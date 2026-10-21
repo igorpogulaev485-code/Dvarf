@@ -36,5 +36,5 @@ PNG для просмотра: артефакты `keyleth-refined/`.
 | Паттерн листа | **hybrid:** glass chrome + solid vitals + tactile controls |
 
 Спека: [`FOUNDATIONS_GLASS_TACTILE.md`](FOUNDATIONS_GLASS_TACTILE.md)  
-Доски: `boards/05-controls-tactile.svg`, `06-glass-surfaces.svg`, `07-hybrid-sheet-preview.svg`  
+Доски: `boards/05`…`08` (08 = полупрозрачные блоки кабинета по EduHub-принципу)  
 PNG: артефакты `keyleth-glass/`.
