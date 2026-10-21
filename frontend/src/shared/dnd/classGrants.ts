@@ -895,20 +895,29 @@ export function buildItemsFromEquipmentLines(input: {
   return items
 }
 
-export function validateEquipmentLinePicks(input: {
+/** All open equipment-line forks (setup dialog lists every blocker). */
+export function equipmentLineBlockingReasons(input: {
   lines: ClassEquipmentLine[]
   picks: Record<string, ClassEquipmentLinePick>
-}): string | null {
+}): string[] {
+  const reasons: string[] = []
   for (const line of input.lines) {
     const pick = input.picks[line.id]
-    if (!pick?.optionId) return `Выбери: ${line.labelRu}`
+    if (!pick?.optionId) {
+      reasons.push(`Выбери: ${line.labelRu}.`)
+      continue
+    }
     const option = line.options.find((row) => row.id === pick.optionId)
-    if (!option) return `Неизвестный вариант в «${line.labelRu}»`
+    if (!option) {
+      reasons.push(`Неизвестный вариант в «${line.labelRu}».`)
+      continue
+    }
     if (option.pickFrom?.length) {
       const name = pick.weaponName?.trim()
-      if (!name) return `Выбери предмет в «${line.labelRu}»`
-      if (!option.pickFrom.includes(name)) {
-        return `Неизвестный вариант в «${line.labelRu}»`
+      if (!name) {
+        reasons.push(`Выбери предмет в «${line.labelRu}».`)
+      } else if (!option.pickFrom.includes(name)) {
+        reasons.push(`Неизвестный вариант в «${line.labelRu}».`)
       }
       continue
     }
@@ -916,13 +925,22 @@ export function validateEquipmentLinePicks(input: {
     if (need > 0) {
       const names = resolvedPickNames(option, pick)
       if (names.length < need) {
-        return need === 1
-          ? `Выбери оружие в «${line.labelRu}»`
-          : `Выбери оружие (${names.length}/${need}) в «${line.labelRu}»`
+        reasons.push(
+          need === 1
+            ? `Выбери оружие в «${line.labelRu}».`
+            : `Выбери оружие (${names.length}/${need}) в «${line.labelRu}».`,
+        )
       }
     }
   }
-  return null
+  return reasons
+}
+
+export function validateEquipmentLinePicks(input: {
+  lines: ClassEquipmentLine[]
+  picks: Record<string, ClassEquipmentLinePick>
+}): string | null {
+  return equipmentLineBlockingReasons(input)[0] ?? null
 }
 
 const ALL_SKILL_KEYS = [
