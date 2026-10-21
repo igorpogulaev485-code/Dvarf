@@ -11,6 +11,17 @@
 
 ## Сейчас в продукте — свежее
 
+### 2026-10-21 — Полный каталог инфузий + цели в лобби
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Каталог инфузий | Core + Replicate Magic Item, RU + `effects` | Выбор с L2 по уровню; реплики Bag of Holding… |
+| Активные на себе / союзнике | `infusions_active` + `infusions_active_targets` | «Усиленная защита» на доспех напарника в лобби |
+| Автоматизация | `aggregateInfusionBonuses` только self; ally → `shareLobbyEffect` | КД/атаки/спас/тёмное зрение на листе; союзнику — эффект в лобби |
+| Guided / лист | `infusionOptionIdsAtLevel` в wizard и ClassFeatures | Не предлагаются инфузии выше уровня |
+
+На проде: **да** · **это новый prod tip** `cursor/artificer-infusions-full-ab30` · PR #265 · залито 2026-10-21 · поверх tip `spells-feats-infusions-ab30` · `/health` ok · alembic `b4c5d6e7f8a9` · бандл `CharacterDetailPage-vFT-rzTU.js` · «Усиленная защита» в бандле · characters=94 classic=20
+
 ### 2026-10-21 — Инфузии RU + список изобретателя + аудит Magic Initiate
 
 | Функция | Как работает | Эффект |
@@ -19,7 +30,7 @@
 | Заклинания изобретателя | Тег `artificer` на 65 PHB/TCE заклинаний + alembic `b4c5d6e7f8a9` | ~22 заговора / ~18 L1 (fire bolt, cure wounds…) |
 | Magic Initiate | Списки класса из каталога; selfcheck по 5 классам | Полные списки барда/жреца/друида/колдуна/волшебника |
 
-На проде: **да** · **это новый prod tip** `cursor/spells-feats-infusions-ab30` · PR #264 · залито 2026-10-21 · поверх tip `multiclass-spell-m1-c9ba` · `/health` ok · alembic `b4c5d6e7f8a9` · fire_bolt classes включают artificer · cantrips artificer=22 · бандл `CharacterDetailPage-BeiXZkAN.js` · characters=94 classic=20
+На проде: **да** · tip `cursor/spells-feats-infusions-ab30` · PR #264 · залито 2026-10-21 · поверх tip `multiclass-spell-m1-c9ba` · `/health` ok · alembic `b4c5d6e7f8a9` · fire_bolt classes включают artificer · cantrips artificer=22 · бандл `CharacterDetailPage-BeiXZkAN.js` · characters=94 classic=20
 
 ### 2026-10-21 — Мультикласс: Сл/атака по классам (M1–M7)
 
@@ -760,19 +771,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 Сюда агенты пишут то, что сделано в PR, но **ещё не залито** на сервер.
 
-### 2026-10-21 — Полный каталог инфузий + цели в лобби
-
-Ветка: `cursor/artificer-infusions-full-ab30` (от tip `spells-feats-infusions-ab30`)
-
-| Функция | Как работает | Эффект |
-|--------|--------------|--------|
-| Каталог инфузий | Core + Replicate Magic Item, RU + `effects` | Выбор с L2 по уровню; реплики Bag of Holding… |
-| Активные на себе / союзнике | `infusions_active` + `infusions_active_targets` | «Усиленная защита» на доспех напарника в лобби |
-| Автоматизация | `aggregateInfusionBonuses` только self; ally → `shareLobbyEffect` | КД/атаки/спас/тёмное зрение на листе; союзнику — эффект в лобби |
-| Guided / лист | `infusionOptionIdsAtLevel` в wizard и ClassFeatures | Не предлагаются инфузии выше уровня |
-
-На проде: **нет** · ждёт merge + Timeweb
-
+<!-- artificer-infusions-full залито 2026-10-21 → tip artificer-infusions-full-ab30; блок в «Сейчас в продукте» -->
 <!-- spells-feats-infusions залито 2026-10-21 → tip spells-feats-infusions-ab30; блок в «Сейчас в продукте» -->
 <!-- grimoire-prepare-home залито 2026-10-21 → tip grimoire-prepare-home-3aba; блок в «Сейчас в продукте» -->
 <!-- prepare-class-list-available залито 2026-10-21 → tip prepare-class-list-available-3aba; блок в «Сейчас в продукте» -->
@@ -831,6 +830,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-21 | `cursor/artificer-infusions-full-ab30` · PR #265 | Полный каталог инфузий + ally lobby targets → **новый tip** после Timeweb |
 | 2026-10-21 | `cursor/spells-feats-infusions-ab30` · PR #264 | Инфузии RU + artificer spell tags + MI audit → tip после Timeweb |
 | 2026-10-21 | `cursor/multiclass-spell-m1-c9ba` · PR #263 | MC spell profiles/budgets/cast/grimoire/classic → tip после Timeweb |
 | 2026-10-21 | `cursor/tiefling-hellish-rebuke-2-6682` · PR #261 | Tiefling Hellish Rebuke cast-as 2 → **новый tip** после Timeweb |
