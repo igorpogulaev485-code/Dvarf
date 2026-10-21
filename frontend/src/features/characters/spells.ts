@@ -1299,6 +1299,36 @@ export function knownHasCatalogId(known: SheetSpell[], catalogId: string): boole
   return known.some((spell) => spell.catalog_id === catalogId)
 }
 
+/** True when the same catalog spell is already bound to this class (M4 dual-learn). */
+export function knownHasCatalogIdForSlug(
+  known: SheetSpell[],
+  catalogId: string,
+  classSlug?: string | null,
+): boolean {
+  const slug = classSlug?.trim().toLowerCase() || null
+  if (!slug) return knownHasCatalogId(known, catalogId)
+  return known.some(
+    (spell) =>
+      spell.catalog_id === catalogId &&
+      (spell.class_slug ?? '').trim().toLowerCase() === slug,
+  )
+}
+
+/** Other class bindings of the same catalog spell (for §2.4 warn). */
+export function otherClassBindingsForCatalog(
+  known: SheetSpell[],
+  catalogId: string,
+  classSlug?: string | null,
+): SheetSpell[] {
+  const slug = classSlug?.trim().toLowerCase() || null
+  return known.filter((spell) => {
+    if (spell.catalog_id !== catalogId) return false
+    const rowSlug = (spell.class_slug ?? '').trim().toLowerCase() || null
+    if (!slug) return true
+    return rowSlug !== slug
+  })
+}
+
 export function addCatalogSpellToKnown(
   known: SheetSpell[],
   entry: { id: string; name_ru: string; data?: Record<string, unknown> },
@@ -1312,7 +1342,8 @@ export function addCatalogSpellToKnown(
     class_entry_id?: string | null
   },
 ): SheetSpell[] {
-  if (knownHasCatalogId(known, entry.id)) return known
+  // Same catalog under a different class_slug is a second binding (M4 §2.4).
+  if (knownHasCatalogIdForSlug(known, entry.id, options?.class_slug)) return known
   const spell = sheetSpellFromCatalog(entry)
   const prepare = options?.prepare ?? spell.level <= 0
   const maxPrepared = options?.maxPrepared ?? null

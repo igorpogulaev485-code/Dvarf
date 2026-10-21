@@ -135,7 +135,9 @@ import { abilityModifier } from '../features/characters/sheetTypes'
 import {
   addCatalogSpellToKnown,
   countLearnedCantrips,
+  countLearnedCantripsForSlug,
   countLearnedLeveled,
+  countLearnedLeveledForSlug,
   countPreparedLeveled,
   ensureKnownSpellsReady,
   isKnownSpellcastingMode,
@@ -144,6 +146,7 @@ import {
   type SpellsState,
 } from '../features/characters/spells'
 import {
+  formatNamedCantripBudgets,
   resolveSpellLearnBudgets,
   totalCantripsBudget,
 } from '../shared/dnd/castProfiles'
@@ -401,6 +404,7 @@ export function CreateCharacterPage() {
     useState<GuidedWizardSession | null>(null)
   const [advanceWizardAfterSubclass, setAdvanceWizardAfterSubclass] = useState(false)
   const [spellsOpen, setSpellsOpen] = useState<'prepare' | 'grimoire' | null>(null)
+  const [grimoireClassFilter, setGrimoireClassFilter] = useState<string | null>(null)
   const [spells, setSpells] = useState<SpellsState>(() => readSpells({}))
   const [racialBonuses, setRacialBonuses] = useState<Partial<AbilityScores>>({})
   const [toast, setToast] = useState<string | null>(null)
@@ -1774,11 +1778,45 @@ export function CreateCharacterPage() {
           }
           openFeatureWizardForClass(classEntryId)
         }}
-        onOpenSpells={() => setSpellsOpen('grimoire')}
+        onOpenSpells={() => {
+          setGrimoireClassFilter(null)
+          setSpellsOpen('grimoire')
+        }}
+        onOpenSpellsForClass={(slug) => {
+          setGrimoireClassFilter(slug)
+          setSpellsOpen('grimoire')
+        }}
         onOpenPrepare={
+          spellLearnBudgets.some((row) => row.mode === 'spellbook') ||
           spellLearnBudget?.mode === 'spellbook'
             ? () => setSpellsOpen('prepare')
             : undefined
+        }
+        spellBudgetMeta={
+          spellLearnBudgets.length > 1
+            ? formatNamedCantripBudgets(
+                spellLearnBudgets,
+                Object.fromEntries(
+                  spellLearnBudgets.map((row) => [
+                    row.slug,
+                    countLearnedCantripsForSlug(spells.known, row.slug),
+                  ]),
+                ),
+              )
+            : null
+        }
+        spellClassBudgets={
+          spellLearnBudgets.length > 0
+            ? spellLearnBudgets.map((row) => ({
+                slug: row.slug,
+                labelRu: row.labelRu,
+                mode: row.mode,
+                cantripsKnown: countLearnedCantripsForSlug(spells.known, row.slug),
+                cantripsMax: row.cantrips,
+                leveledKnown: countLearnedLeveledForSlug(spells.known, row.slug),
+                leveledKnownMax: row.leveledKnown,
+              }))
+            : null
         }
         spellcasting={
           spellcastingSuggestion && spellcastingSuggestion.progression !== 'none'
@@ -2301,9 +2339,14 @@ export function CreateCharacterPage() {
         edition="2014"
         spells={spells}
         classes={state.classes}
-        knownCaster={spellLearnBudget?.mode === 'known'}
+        knownCaster={
+          spellLearnBudgets.some((row) => row.mode === 'known') ||
+          spellLearnBudget?.mode === 'known'
+        }
         learnBudget={spellLearnBudget}
         abilityModFor={abilityModFor}
+        initialClassFilter={grimoireClassFilter}
+        accessContext="create"
         coins={readInventory(state.sheetDraft).coins}
         onCoinsChange={(coins) => {
           const inv = readInventory(state.sheetDraft)
@@ -2317,11 +2360,18 @@ export function CreateCharacterPage() {
         }}
         inventoryItems={readInventory(state.sheetDraft).items}
         onChange={setSpells}
-        onClose={() => setSpellsOpen(null)}
+        onClose={() => {
+          setSpellsOpen(null)
+          setGrimoireClassFilter(null)
+        }}
         onToast={setToast}
       />
       <PrepareSpellsDialog
-        open={spellsOpen === 'prepare' && spellLearnBudget?.mode === 'spellbook'}
+        open={
+          spellsOpen === 'prepare' &&
+          (spellLearnBudget?.mode === 'spellbook' ||
+            spellLearnBudgets.some((row) => row.mode === 'spellbook'))
+        }
         spells={spells}
         learnMode="spellbook"
         onChange={setSpells}

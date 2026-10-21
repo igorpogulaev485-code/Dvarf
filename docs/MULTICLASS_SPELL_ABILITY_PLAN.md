@@ -1,6 +1,6 @@
 # План: мультиклассная магия (источник → Сл/атака → UI-kit)
 
-**Статус:** ok §12 · **M1+M2+M3 в коде** · скрины шапка ✅ · далее скрин cast-dialog + M4 create  
+**Статус:** ok §12 · **M1–M4 в коде** · скрины шапка+cast ✅ · далее M5 гримуар-секции  
 **Контур:** план → ok → срезы M1… → **скрины с реальных листов** → ok → прод  
 **Дата:** 2026-10-21  
 **План PR:** `#262` · **M1 tip base:** `cursor/restore-consumables-grimoire-0bc3`  
@@ -368,17 +368,18 @@ M0 ok решений
 **Скрины (клон Квакка, статы как у Ильи):**  
 `quack-profiles-closeup.png` · `quack-budgets-meta.png` · `quack-spell-header-block.png` · `quack-spell-desk-full.png` · `quack-cast-dialog-*.png`
 
-### Срез M4 — Create / Level-up
+### Срез M4 — Create / Level-up (частично ✅)
 
-| Задача | Где |
-|--------|-----|
-| Шаги/аккордеон per class + overview | guided wizard |
-| Глаголы §2.5 | copy + gating |
-| Draft save без полной подготовки | create |
-| Warn duplicate learn с ценой бюджета §2.4 | grimoire/create |
+| Задача | Где | Статус |
+|--------|-----|--------|
+| Overview + per-class open | `LevelingStep` + `initialClassFilter` | ✅ |
+| Глаголы §2.5 | `spellAccessUi` + create context | ✅ |
+| Draft save без полной подготовки | create (уже было) | ✅ |
+| Warn duplicate learn §2.4 | `addCatalogSpellToKnown` per-slug + toast | ✅ |
+| Level-up replace verbs на листе | sheet level-up | ⏳ тонкий слой |
 
 **Приёмка:** новый Art/Warlock проходит cantrips+known колдуна; черновик сохраняется; prepare недобор ок.  
-**Скрины:** create flow на **новом** реальном прогоне (не выдуманный JSON) — можно вторым персонажем Ильи/стенда после Квакка.
+**Скрины:** create flow на **новом** реальном прогоне — после стенда/второго персонажа.
 
 ### Срез M5 — Гримуар секции
 

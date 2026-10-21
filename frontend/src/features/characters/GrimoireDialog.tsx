@@ -31,7 +31,10 @@ import {
   formatGpTotal,
   type CoinPurse,
 } from '../../shared/dnd/weight'
-import { spellAccessUiCopy } from '../../shared/dnd/spellAccessUi'
+import {
+  spellAccessUiCopy,
+  type SpellAccessContext,
+} from '../../shared/dnd/spellAccessUi'
 import {
   previewSpellbookAddGp,
   remainingFreeSpellbookSlots,
@@ -62,6 +65,8 @@ import {
   groupSpellsByLevel,
   isCustomSheetSpell,
   knownHasCatalogId,
+  knownHasCatalogIdForSlug,
+  otherClassBindingsForCatalog,
   setSpellPrepared,
   spellSourceBadge,
   updateCustomSheetSpell,
@@ -100,6 +105,10 @@ type GrimoireDialogProps = {
   onCoinsChange?: (coins: CoinPurse) => void
   /** Inventory — bind/detect physical spellbook for wizard mode. */
   inventoryItems?: InventoryItem[]
+  /** Prefocus class chip (create per-class accordion). */
+  initialClassFilter?: string | null
+  /** M4 §2.5 verbs: create / level-up / sheet. */
+  accessContext?: SpellAccessContext
   onChange: (spells: SpellsState) => void
   onClose: () => void
   onToast?: (message: string) => void
@@ -162,6 +171,8 @@ export function GrimoireDialog({
   coins = null,
   onCoinsChange,
   inventoryItems = [],
+  initialClassFilter = null,
+  accessContext = 'sheet',
   onChange,
   onClose,
   onToast,
@@ -293,7 +304,7 @@ export function GrimoireDialog({
   )
   const freeBookLeft =
     mode === 'spellbook' ? remainingFreeSpellbookSlots(spells.known, wizardLevel) : 0
-  const uiCopy = spellAccessUiCopy(mode)
+  const uiCopy = spellAccessUiCopy(mode, accessContext)
   const unpreparedOnSheet = spells.known.filter((s) => s.level > 0 && !s.prepared).length
 
   // Slice 2: keep physical book binding fresh when dialog opens.
@@ -330,13 +341,18 @@ export function GrimoireDialog({
 
   useEffect(() => {
     if (!open) return
+    const focus = initialClassFilter?.trim().toLowerCase() || null
+    if (focus && access.classSlugs.includes(focus)) {
+      setClassFilter(focus)
+      return
+    }
     // Default filter to the character's lists (not the full catalog).
     if (access.classSlugs.length === 1) {
       setClassFilter(access.classSlugs[0]!)
     } else {
       setClassFilter('all')
     }
-  }, [open, access.classSlugs.join('|')])
+  }, [open, access.classSlugs.join('|'), initialClassFilter])
 
   useEffect(() => {
     if (!open) return
@@ -560,14 +576,19 @@ export function GrimoireDialog({
   }
 
   function addSpell(entry: CatalogEntry, prepare: boolean) {
-    if (knownHasCatalogId(spells.known, entry.id)) {
-      onToast?.('Уже есть в списке')
-      return
-    }
     const parsed = parseSpellCatalogData(entry.data)
     const level = parsed.level
     if (!access.hasCaster) {
       onToast?.('Нет класса с заклинаниями')
+      return
+    }
+    const acquisitionSlugPreview = resolveSpellAcquisitionSlug({
+      catalogClassSlugs: parsed.classes,
+      profiles: access.profiles,
+      classFilter,
+    })
+    if (knownHasCatalogIdForSlug(spells.known, entry.id, acquisitionSlugPreview)) {
+      onToast?.('Уже есть в списке этого класса')
       return
     }
     const onList = parsed.classes.some((slug) => access.classSlugs.includes(slug))
@@ -699,6 +720,11 @@ export function GrimoireDialog({
     }
 
     const acquireMode = acquisitionProfile?.mode ?? mode
+    const siblings = otherClassBindingsForCatalog(
+      spells.known,
+      entry.id,
+      acquisitionSlug,
+    )
     const nextKnown = addCatalogSpellToKnown(spells.known, entry, {
       prepare: acquireMode === 'known' ? true : prepare,
       maxPrepared,
@@ -710,29 +736,63 @@ export function GrimoireDialog({
       known: nextKnown,
       max_prepared: maxPrepared ?? spells.max_prepared,
     })
+    const dualWarn =
+      siblings.length > 0 && acquisitionSlug
+        ? (() => {
+            const budget = access.budgets.find((row) => row.slug === acquisitionSlug)
+            const label = budget?.labelRu ?? CLASS_LABELS[acquisitionSlug] ?? acquisitionSlug
+            const used =
+              level <= 0
+                ? countLearnedCantripsForSlug(nextKnown, acquisitionSlug)
+                : countLearnedLeveledForSlug(nextKnown, acquisitionSlug)
+            const cap =
+              level <= 0
+                ? budget?.cantrips
+                : budget?.leveledKnown
+            const cost =
+              level <= 0
+                ? `займёт 1 заговор (${used}/${cap ?? '—'})`
+                : budget?.mode === 'known'
+                  ? `займёт 1 из ${cap ?? 'N'} известных`
+                  : 'займёт слот подготовки'
+            return `Также выбрано как ${label} — ${cost}`
+          })()
+        : null
     if (level <= 0) {
-      onToast?.(`Заговор: ${entry.name_ru}`)
+      onToast?.(
+        dualWarn ? `Заговор: ${entry.name_ru}. ${dualWarn}` : `Заговор: ${entry.name_ru}`,
+      )
       return
     }
     if (acquireMode === 'known') {
-      onToast?.(`Известно: ${entry.name_ru}`)
+      onToast?.(
+        dualWarn ? `Известно: ${entry.name_ru}. ${dualWarn}` : `Известно: ${entry.name_ru}`,
+      )
       return
     }
     if (acquireMode === 'prepared_list') {
       onToast?.(
         prepare
-          ? `На лист и подготовлено: ${entry.name_ru}`
-          : `На лист (доступно к подготовке): ${entry.name_ru}`,
+          ? dualWarn
+            ? `На лист и подготовлено: ${entry.name_ru}. ${dualWarn}`
+            : `На лист и подготовлено: ${entry.name_ru}`
+          : dualWarn
+            ? `На лист: ${entry.name_ru}. ${dualWarn}`
+            : `На лист (доступно к подготовке): ${entry.name_ru}`,
       )
       return
     }
     onToast?.(
-      prepare ? `Подготовлено: ${entry.name_ru}` : `Добавлено: ${entry.name_ru}`,
+      prepare
+        ? `Подготовлено: ${entry.name_ru}`
+        : dualWarn
+          ? `Добавлено: ${entry.name_ru}. ${dualWarn}`
+          : `Добавлено: ${entry.name_ru}`,
     )
   }
 
   function togglePrepareOnSheet(entry: CatalogEntry) {
-    const existing = spells.known.find((row) => row.catalog_id === entry.id)
+    const existing = knownSpellForCatalog(entry.id)
     if (!existing || existing.level <= 0) return
     const nextPrepared = !existing.prepared
     if (nextPrepared && prepareCapReached()) {
@@ -746,7 +806,23 @@ export function GrimoireDialog({
     })
   }
 
+  /** Prefer the binding for the active class filter / acquisition slug. */
   function knownSpellForCatalog(catalogId: string): SheetSpell | undefined {
+    const entry = entries.find((row) => row.id === catalogId)
+    const slug = entry
+      ? acquisitionSlugForEntry(entry)
+      : classFilter !== 'all'
+        ? classFilter
+        : null
+    if (slug) {
+      const hit = spells.known.find(
+        (spell) =>
+          spell.catalog_id === catalogId &&
+          (spell.class_slug ?? '').trim().toLowerCase() === slug,
+      )
+      if (hit) return hit
+      if (classFilter !== 'all') return undefined
+    }
     return spells.known.find((spell) => spell.catalog_id === catalogId)
   }
 
@@ -1223,7 +1299,19 @@ export function GrimoireDialog({
                 {group.spells.map((spell) => {
                   const entry = entries.find((item) => item.id === spell.catalog_id)
                   if (!entry) return null
-                  const onSheet = knownHasCatalogId(spells.known, entry.id)
+                  const rowSlug = acquisitionSlugForEntry(entry)
+                  const onSheet = knownHasCatalogIdForSlug(
+                    spells.known,
+                    entry.id,
+                    rowSlug,
+                  )
+                  const otherBindings = otherClassBindingsForCatalog(
+                    spells.known,
+                    entry.id,
+                    rowSlug,
+                  )
+                  const rowMode =
+                    access.profiles.find((row) => row.slug === rowSlug)?.mode ?? mode
                   const parsed = parseSpellCatalogData(entry.data)
                   const expanded = expandedId === entry.id
                   return (
@@ -1275,7 +1363,7 @@ export function GrimoireDialog({
                             const canRemove = sheetSpell ? canRemoveSheetSpell(sheetSpell) : false
                             const needsPrepareToggle =
                               spell.level > 0 &&
-                              (mode === 'prepared_list' || mode === 'spellbook')
+                              (rowMode === 'prepared_list' || rowMode === 'spellbook')
                             return (
                               <>
                                 {needsPrepareToggle ? (
@@ -1285,17 +1373,17 @@ export function GrimoireDialog({
                                     onClick={() => togglePrepareOnSheet(entry)}
                                     title={
                                       prepared
-                                        ? 'Снять с сегодняшнего набора (останется в пуле)'
-                                        : 'Добавить в сегодняшний набор'
+                                        ? 'Убрать из сегодняшнего набора (останется в пуле)'
+                                        : 'В сегодняшний набор'
                                     }
                                   >
                                     {prepared ? 'Подготовлено' : 'Подготовить'}
                                   </button>
                                 ) : (
                                   <span className="sheet-chip is-on">
-                                    {mode === 'spellbook'
+                                    {rowMode === 'spellbook'
                                       ? 'В книге'
-                                      : mode === 'known'
+                                      : rowMode === 'known'
                                         ? 'Известно'
                                         : 'На листе'}
                                   </span>
@@ -1306,37 +1394,48 @@ export function GrimoireDialog({
                                     className="sheet-chip"
                                     onClick={() => removeSpell(entry)}
                                     title={
-                                      mode === 'spellbook'
+                                      rowMode === 'spellbook'
                                         ? 'Убрать из книги'
                                         : 'Убрать с листа'
                                     }
                                   >
-                                    Снять
+                                    {uiCopy.removeActionLabel}
                                   </button>
                                 ) : null}
                               </>
                             )
                           })()
-                        ) : mode === 'known' || spell.level <= 0 ? (
+                        ) : rowMode === 'known' || spell.level <= 0 ? (
                           <button
                             type="button"
                             className="sheet-chip"
                             disabled={
                               spell.level <= 0
-                                ? cantripCapReached(acquisitionSlugForEntry(entry))
-                                : leveledLearnCapReached(acquisitionSlugForEntry(entry))
+                                ? cantripCapReached(rowSlug)
+                                : leveledLearnCapReached(rowSlug)
+                            }
+                            title={
+                              otherBindings.length > 0
+                                ? `Уже есть как ${otherBindings
+                                    .map((row) => row.class_slug || 'класс')
+                                    .join(', ')} — вторая привязка займёт бюджет`
+                                : undefined
                             }
                             onClick={() => addSpell(entry, true)}
                           >
                             {spell.level <= 0
-                              ? cantripCapReached(acquisitionSlugForEntry(entry))
+                              ? cantripCapReached(rowSlug)
                                 ? 'Лимит заговоров'
-                                : 'Взять заговор'
-                              : leveledLearnCapReached(acquisitionSlugForEntry(entry))
+                                : otherBindings.length > 0
+                                  ? `Также ${uiCopy.pickActionLabel.toLowerCase()}`
+                                  : uiCopy.pickActionLabel
+                              : leveledLearnCapReached(rowSlug)
                                 ? 'Лимит'
-                                : 'Добавить'}
+                                : otherBindings.length > 0
+                                  ? `Также ${uiCopy.pickActionLabel.toLowerCase()}`
+                                  : uiCopy.pickActionLabel}
                           </button>
-                        ) : mode === 'spellbook' ? (
+                        ) : rowMode === 'spellbook' ? (
                           <>
                             <button
                               type="button"
