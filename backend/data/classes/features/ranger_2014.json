@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Ranger class + official archetypes for sheet unlock",
     "edition": "2014",
     "source": "phb+xgte+tcoe+ftd",
-    "notes_ru": "Класс: Favored Enemy / Natural Explorer (picks), Fighting Style, half-caster, Primeval Awareness (slot). Архетипы — каркас умений; глубокая полировка позже. H4b depth: martial/half-caster pools/scales/linked ki·BI."
+    "notes_ru": "Класс: Favored Enemy / Natural Explorer (picks), Fighting Style, half-caster, Primeval Awareness (slot). Архетипы — каркас умений; глубокая полировка позже. H4b depth: martial/half-caster pools/scales/linked ki·BI. · TCoE optional class features."
   },
   "class_slug": "ranger",
   "features": [
@@ -50,6 +50,38 @@
       }
     },
     {
+      "id": "deft_explorer",
+      "level": 1,
+      "name_ru": "Ловкий исследователь",
+      "name_en": "Deft Explorer",
+      "summary_ru": "Tasha (optional): альтернатива «Исследователь природы». Canny (компетентность + язык), Roving (скорость +5 / лазание+плавание на 6), Tireless (вр. хиты PB×, сброс истощения на 10).",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe",
+      "replaces": "natural_explorer"
+    },
+    {
+      "id": "favored_foe",
+      "level": 1,
+      "name_ru": "Избранный противник",
+      "name_en": "Favored Foe",
+      "summary_ru": "Tasha (optional): альтернатива «Избранный враг». Пометь цель при попадании (конц. без слота, PB раз / долгий) — +1к4 (+1к6 / +1к8) урона раз в ход.",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe",
+      "desk": "combat",
+      "resource": {
+        "uses": 0,
+        "uses_from": "proficiency_bonus",
+        "recharge": "long_rest",
+        "pool_id": "favored_foe",
+        "pool_name_ru": "Избранный противник",
+        "track": "spend"
+      },
+      "replaces": "favored_enemy",
+      "body_ru": "Урон метки: 1к4 (1), 1к6 (6), 1к8 (14). Концентрация до 1 мин."
+    },
+    {
       "id": "fighting_style_ranger",
       "level": 2,
       "name_ru": "Боевой стиль",
@@ -71,12 +103,14 @@
       "kind": "passive"
     },
     {
-      "id": "ranger_archetype",
-      "level": 3,
-      "name_ru": "Архетип следопыта",
-      "name_en": "Ranger Archetype",
-      "summary_ru": "Выбери архетип (Охотник, Повелитель зверей, …).",
-      "kind": "passive"
+      "id": "spellcasting_focus_ranger",
+      "level": 2,
+      "name_ru": "Фокус заклинаний",
+      "name_en": "Spellcasting Focus",
+      "summary_ru": "Tasha (optional): можешь использовать друидический фокус как фокус заклинаний следопыта.",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe"
     },
     {
       "id": "primeval_awareness",
@@ -91,6 +125,25 @@
         "max_slot": 5,
         "extra_vs_note_ru": "1 мин. × ур. ячейки; 1 миля (6 в избранной местности)"
       }
+    },
+    {
+      "id": "ranger_archetype",
+      "level": 3,
+      "name_ru": "Архетип следопыта",
+      "name_en": "Ranger Archetype",
+      "summary_ru": "Выбери архетип (Охотник, Повелитель зверей, …).",
+      "kind": "passive"
+    },
+    {
+      "id": "primal_awareness_tasha",
+      "level": 3,
+      "name_ru": "Первобытная осведомлённость (Tasha)",
+      "name_en": "Primal Awareness",
+      "summary_ru": "Tasha (optional): альтернатива PHB Primeval Awareness. Получаешь Speaks with Animals и всегда-готовые ритуалы по таблице (бесплатный каст 1× / долгий на заклинание).",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe",
+      "replaces": "primeval_awareness"
     },
     {
       "id": "asi_4_ranger",
@@ -108,6 +161,16 @@
           "feat_coming_soon"
         ]
       }
+    },
+    {
+      "id": "martial_versatility_ranger",
+      "level": 4,
+      "name_ru": "Боевая универсальность",
+      "name_en": "Martial Versatility",
+      "summary_ru": "Tasha (optional): когда берёшь ASI, можешь заменить один боевой стиль на другой, доступный следопыту.",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe"
     },
     {
       "id": "extra_attack_ranger",
@@ -149,6 +212,26 @@
       "name_en": "Hide in Plain Sight",
       "summary_ru": "1 мин. маскировки природными материалами: КД +10 к проверкам Скрытности, пока неподвижен и не сделал что-то, выдающее позицию.",
       "kind": "action"
+    },
+    {
+      "id": "natures_veil",
+      "level": 10,
+      "name_ru": "Природная завеса",
+      "name_en": "Nature's Veil",
+      "summary_ru": "Tasha (optional): альтернатива «Скрытность на виду». Бонусным — невидимость до начала следующего хода. PB раз / долгий отдых.",
+      "kind": "bonus",
+      "optional": true,
+      "source_book": "tcoe",
+      "desk": "combat",
+      "resource": {
+        "uses": 0,
+        "uses_from": "proficiency_bonus",
+        "recharge": "long_rest",
+        "pool_id": "natures_veil",
+        "pool_name_ru": "Природная завеса",
+        "track": "spend"
+      },
+      "replaces": "hide_in_plain_sight"
     },
     {
       "id": "asi_12_ranger",

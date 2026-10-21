@@ -45,17 +45,21 @@ import {
 import { EquipmentProficienciesPanel } from './EquipmentProficienciesPanel'
 import {
   applyBackgroundGrantToDraft,
+  ensureBackgroundFeatureOnDraft,
   readAppliedBackgroundGrant,
   reapplyBackgroundOverlays,
   revokeBackgroundGrant,
   type BackgroundGrantDraftSlice,
 } from './backgroundEffects'
 import {
+  backgroundFeatureCardFromGrant,
   backgroundGrantNeedsSetupDialog,
   backgroundVariantsForRoot,
+  buildBackgroundFeatureText,
   emptyBackgroundPicks,
   isBackgroundComboboxRoot,
   resolveBackgroundGrantDef,
+  upsertBackgroundFeatureBlock,
   type AppliedBackgroundGrant,
   type BackgroundGrantDef,
   type BackgroundGrantPicks,
@@ -233,6 +237,16 @@ import {
   sumFeatSpeedBonus,
   type AppliedFeatGrant,
 } from '../../shared/dnd/featGrants'
+import {
+  buildAsiFeatGrantFromCatalog,
+  findMissingAsiFeatEntries,
+  matchFeatCatalogEntry,
+} from './asiFeatHydrate'
+import {
+  bridgeManeuversIntoFeaturePicks,
+  extractManeuverIdsFromSubclassPicks,
+  hydrateManeuversFromSubclassGrants,
+} from '../../shared/dnd/battleMasterManeuverBridge'
 import {
   applyFeatGrantToDraft,
   revokeFeatGrantFromDraft,
@@ -455,8 +469,10 @@ import {
 import { resolveCastEffect } from '../../shared/dnd/spellCatalog'
 import { spendPactSlot, spendSpellSlot } from '../../shared/dnd/spells'
 import {
+  blockPlainText,
   readTextBlocks,
   textBlocksToSheet,
+  withBlockPlainText,
   type TextBlock,
 } from './textBlocks'
 import {
@@ -886,6 +902,11 @@ export function MinimalSheetEditor({
   const channelRef = useRef<BroadcastChannel | null>(null)
   const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const backgroundCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
+  const asiFeatHydrateAttemptedRef = useRef(false)
+  const bmManeuverHydrateAttemptedRef = useRef(false)
+  const [backgroundCatalogRows, setBackgroundCatalogRows] = useState<CatalogEntry[]>(
+    [],
+  )
   const skipAutosaveRef = useRef(true)
   const autosaveTimerRef = useRef<number | null>(null)
   const saveInFlightRef = useRef(false)
@@ -1002,6 +1023,42 @@ export function MinimalSheetEditor({
       }),
     [unlockedFeatures, characterLevel, draft.abilities],
   )
+  /** Grant first; else catalog by slug/name (older sheets without background_grant). */
+  const resolvedBackgroundFeature = useMemo(() => {
+    const fromGrant = backgroundFeatureCardFromGrant(draft.backgroundGrant ?? {})
+    if (fromGrant) return fromGrant
+    const slug = draft.identity.backgroundSlug?.trim() || ''
+    const name = draft.identity.background?.trim() || ''
+    if (!slug && !name) return null
+    const entry =
+      (slug
+        ? backgroundCatalogRows.find((row) => row.slug === slug)
+        : undefined) ??
+      (name
+        ? backgroundCatalogRows.find(
+            (row) => row.name_ru.trim().toLowerCase() === name.toLowerCase(),
+          )
+        : undefined)
+    if (!entry) return null
+    const def = resolveBackgroundGrantDef({
+      backgroundName: entry.name_ru,
+      catalogSlug: entry.slug,
+      catalogData: entry.data,
+      nameRu: entry.name_ru,
+    })
+    if (!def) return null
+    return backgroundFeatureCardFromGrant({
+      slug: entry.slug,
+      featureNameRu: def.featureNameRu,
+      featureTextRu: def.featureTextRu,
+      featNoteRu: def.featNoteRu,
+    })
+  }, [
+    draft.backgroundGrant,
+    draft.identity.background,
+    draft.identity.backgroundSlug,
+    backgroundCatalogRows,
+  ])
   const martialArtsDie = useMemo(
     () => martialArtsDieFromFeatures(unlockedFeatures),
     [unlockedFeatures],
@@ -1112,13 +1169,98 @@ export function MinimalSheetEditor({
   }, [createGuide, onCreateGuideConsumed])
 
   // Prefetch backgrounds so variant fork popup does not wait on a second fetch.
+  // Also backfill feature name/text + traits marker for older sheets.
   useEffect(() => {
     let active = true
     backgroundCatalogCacheRef.current = null
+    setBackgroundCatalogRows([])
     listCatalogEntries({ kind: 'background', edition: rulesEdition })
       .then((rows) => {
         if (!active) return
         backgroundCatalogCacheRef.current = rows
+        setBackgroundCatalogRows(rows)
+        setDraft((prev) => {
+          if (prev.backgroundGrant) {
+            const entry =
+              rows.find(
+                (row) => row.id === prev.backgroundGrant!.backgroundCatalogId,
+              ) ?? rows.find((row) => row.slug === prev.backgroundGrant!.slug)
+            const catalogDef = entry
+              ? resolveBackgroundGrantDef({
+                  backgroundName: entry.name_ru,
+                  catalogSlug: entry.slug,
+                  catalogData: entry.data,
+                  nameRu: entry.name_ru,
+                })
+              : null
+            const next = ensureBackgroundFeatureOnDraft(
+              {
+                identity: prev.identity,
+                skills: prev.skills,
+                inventory: prev.inventory,
+                textBlocks: prev.textBlocks,
+                weapons: prev.weapons,
+                backgroundGrant: prev.backgroundGrant,
+                protectedSkills: new Set(),
+                protectedTools: new Set(),
+                protectedLanguages: new Set(),
+                protectedWeaponExtras: new Set(),
+              },
+              catalogDef,
+            )
+            if (
+              next.backgroundGrant === prev.backgroundGrant &&
+              next.textBlocks === prev.textBlocks
+            ) {
+              return prev
+            }
+            return {
+              ...prev,
+              backgroundGrant: next.backgroundGrant,
+              textBlocks: next.textBlocks,
+            }
+          }
+          // Name/slug-only sheets: stamp traits from catalog; panel soft-reads catalog.
+          // Do not invent a background_grant (skills/tools ownership stays untouched).
+          const slug = prev.identity.backgroundSlug?.trim() || ''
+          const name = prev.identity.background?.trim() || ''
+          if (!slug && !name) return prev
+          const entry =
+            (slug ? rows.find((row) => row.slug === slug) : undefined) ??
+            (name
+              ? rows.find(
+                  (row) =>
+                    row.name_ru.trim().toLowerCase() === name.toLowerCase(),
+                )
+              : undefined)
+          if (!entry) return prev
+          const catalogDef = resolveBackgroundGrantDef({
+            backgroundName: entry.name_ru,
+            catalogSlug: entry.slug,
+            catalogData: entry.data,
+            nameRu: entry.name_ru,
+          })
+          if (!catalogDef?.featureNameRu) return prev
+          const featureText = buildBackgroundFeatureText(catalogDef)
+          if (!featureText.trim()) return prev
+          let changed = false
+          const textBlocks = prev.textBlocks.map((block) => {
+            if (block.key !== 'traits') return block
+            const current = blockPlainText(block)
+            if (
+              current.includes('<!-- dvarf-background-feature -->') &&
+              current.includes(featureText)
+            ) {
+              return block
+            }
+            const nextPlain = upsertBackgroundFeatureBlock(current, featureText)
+            if (nextPlain === current) return block
+            changed = true
+            return withBlockPlainText(block, nextPlain)
+          })
+          if (!changed) return prev
+          return { ...prev, textBlocks }
+        })
       })
       .catch(() => {
         /* picker will retry on demand */
@@ -1567,6 +1709,94 @@ export function MinimalSheetEditor({
     }
   }
 
+  // Older create discarded ASI→feat packages; rebuild Alert/Mobile/etc. from catalog once.
+  useEffect(() => {
+    if (asiFeatHydrateAttemptedRef.current) return
+    const missing = findMissingAsiFeatEntries(draft.classAsi, draft.featGrants)
+    if (!missing.length) return
+    asiFeatHydrateAttemptedRef.current = true
+    let active = true
+    listCatalogEntries({ kind: 'feat', edition: rulesEdition })
+      .then((rows) => {
+        if (!active) return
+        const level = totalCharacterLevel(draft.classes)
+        const rebuilt: AppliedFeatGrant[] = []
+        for (const entry of missing) {
+          if (entry.resolution.kind !== 'feat') continue
+          const catalogEntry = matchFeatCatalogEntry(rows, entry.resolution)
+          if (!catalogEntry) continue
+          const grant = buildAsiFeatGrantFromCatalog({
+            entry,
+            catalogEntry,
+            characterLevel: level,
+          })
+          if (grant) rebuilt.push(grant)
+        }
+        if (!rebuilt.length) return
+        setDraft((prev) => {
+          let next = prev
+          let applied = 0
+          const names: string[] = []
+          for (const grant of rebuilt) {
+            if (grant.source.kind !== 'asi') continue
+            const source = grant.source
+            const already = next.featGrants.some(
+              (row) =>
+                row.id === grant.id ||
+                (row.source.kind === 'asi' &&
+                  row.featCatalogId === grant.featCatalogId &&
+                  row.source.classEntryId === source.classEntryId &&
+                  row.source.featureId === source.featureId),
+            )
+            if (already) continue
+            next = mergeFeatSlice(
+              next,
+              applyFeatGrantToDraft({ draft: featSliceFrom(next), grant }),
+            )
+            applied += 1
+            names.push(grant.nameRu)
+          }
+          if (applied > 0) {
+            onToast(
+              applied === 1
+                ? `Восстановлена черта ASI «${names[0]}»`
+                : `Восстановлены черты ASI: ${names.join(', ')}`,
+            )
+          }
+          return next
+        })
+      })
+      .catch(() => {
+        /* allow a later remount to retry */
+        asiFeatHydrateAttemptedRef.current = false
+      })
+    return () => {
+      active = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
+  }, [draft.classAsi, draft.featGrants, draft.classes, rulesEdition])
+
+  // Older create stored BM maneuvers only in subclass_grants (flavor); copy into feature_picks.
+  useEffect(() => {
+    if (bmManeuverHydrateAttemptedRef.current) return
+    const probe = hydrateManeuversFromSubclassGrants({
+      featurePicks: draft.featurePicks,
+      subclassGrants: draft.subclassGrants,
+    })
+    if (!probe.bridgedClassEntryIds.length) return
+    bmManeuverHydrateAttemptedRef.current = true
+    setDraft((prev) => {
+      const again = hydrateManeuversFromSubclassGrants({
+        featurePicks: prev.featurePicks,
+        subclassGrants: prev.subclassGrants,
+      })
+      if (!again.bridgedClassEntryIds.length) return prev
+      onToast('Восстановлены манёвры Мастера боя из выбора архетипа')
+      return { ...prev, featurePicks: again.featurePicks }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
+  }, [draft.subclassGrants, draft.featurePicks])
+
   function subclassSliceFrom(prev: Draft): SubclassGrantDraftSlice {
     return {
       identity: prev.identity,
@@ -1671,6 +1901,13 @@ export function MinimalSheetEditor({
       } else if (changeMode === 'replace_all') {
         nextPicks = clearFeaturePicksForClass(withGrant.featurePicks, input.classEntryId)
       }
+      // Battle Master: maneuvers_3 → combat_superiority (sheet archetype block / spend)
+      nextPicks = bridgeManeuversIntoFeaturePicks({
+        featurePicks: nextPicks,
+        classEntryId: input.classEntryId,
+        maneuverIds: extractManeuverIdsFromSubclassPicks(input.picks),
+        mode: 'merge_missing',
+      })
       return {
         ...withGrant,
         featurePicks: nextPicks,
@@ -5956,6 +6193,12 @@ export function MinimalSheetEditor({
         raceName={draft.raceName}
         raceTraitCards={draft.raceGrant?.traitCards ?? []}
         raceTraitsText={draft.raceGrant?.traitsText ?? ''}
+        backgroundName={
+          draft.identity.background?.trim() ||
+          draft.backgroundGrant?.slug ||
+          ''
+        }
+        backgroundFeature={resolvedBackgroundFeature}
         customFeatures={draft.customFeatures}
         onCustomFeaturesChange={(customFeatures) =>
           setDraft((prev) => ({ ...prev, customFeatures }))

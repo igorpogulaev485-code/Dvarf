@@ -120,7 +120,11 @@ import {
   raceSubraceRequired,
   resolveRaceGrantDef,
 } from '../shared/dnd/raceGrants'
-import { raceRequiresFeatPick } from '../shared/dnd/featGrants'
+import {
+  raceRequiresFeatPick,
+  readFeatGrantLedger,
+  type AppliedFeatGrant,
+} from '../shared/dnd/featGrants'
 import type {
   SubclassChangeMode,
   SubclassGrantDef,
@@ -128,8 +132,13 @@ import type {
 } from '../shared/dnd/subclassGrants'
 import {
   emptyFeaturePicks,
+  featurePicksToSheet,
   type FeaturePicksState,
 } from '../shared/dnd/featurePicks'
+import {
+  bridgeManeuversIntoFeaturePicks,
+  extractManeuverIdsFromSubclassPicks,
+} from '../shared/dnd/battleMasterManeuverBridge'
 import { EMPTY_ARMOR } from '../features/characters/identity'
 import { abilityModifier } from '../features/characters/sheetTypes'
 import {
@@ -1005,12 +1014,21 @@ export function CreateCharacterPage() {
           : {}),
       },
     }
+    // Battle Master: maneuvers_3 (flavor) → feature_picks.combat_superiority
+    const nextFeaturePicks = bridgeManeuversIntoFeaturePicks({
+      featurePicks: state.featurePicks ?? emptyFeaturePicks(),
+      classEntryId,
+      maneuverIds: extractManeuverIdsFromSubclassPicks(picks),
+      mode: 'merge_missing',
+    })
     patchState({
       classes: nextClasses,
       subclassSetups: nextSetups,
+      featurePicks: nextFeaturePicks,
       sheetDraft: {
         ...state.sheetDraft,
         subclass_setups: nextSetups,
+        feature_picks: featurePicksToSheet(nextFeaturePicks),
       },
       stepDirty: { ...state.stepDirty, leveling: true },
     })
@@ -2167,15 +2185,24 @@ export function CreateCharacterPage() {
         onConfirmClassGrant={() => {
           // Class grants are handled by ClassSetupDialog in the pipeline.
         }}
-        onConfirmAsi={(entry: AppliedClassAsi) => {
+        onConfirmAsi={(entry: AppliedClassAsi, featGrant?: AppliedFeatGrant) => {
           const nextAsi = [...(state.classAsi ?? []), entry]
+          const prevFeats = readFeatGrantLedger(state.sheetDraft.feat_grants)
+          const nextFeats = featGrant
+            ? [...prevFeats.filter((row) => row.id !== featGrant.id), featGrant]
+            : prevFeats
           patchState({
             classAsi: nextAsi,
             sheetDraft: {
               ...state.sheetDraft,
               class_asi: nextAsi,
+              feat_grants: nextFeats,
             },
           })
+          if (featGrant) {
+            setToast(`ASI → черта «${featGrant.nameRu}»`)
+            return
+          }
           const bits = Object.entries(entry.bonuses)
             .filter(([, amount]) => amount)
             .map(([key, amount]) => `${ABILITY_LABELS[key as AbilityKey]}+${amount}`)

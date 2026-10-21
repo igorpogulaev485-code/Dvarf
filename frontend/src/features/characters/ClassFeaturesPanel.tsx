@@ -3,6 +3,7 @@ import type { RulesEdition } from '../../shared/api/characters'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
   kindLabelRu,
+  optionalFeatureBadgeRu,
   resolveChoiceMaxPicks,
   resolveClassFeatureSlug,
   resolveFeatureChoiceOptions,
@@ -83,6 +84,7 @@ import {
 } from '../../shared/dnd/pendingFeatureChoices'
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
 import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
+import type { BackgroundFeatureCard } from '../../shared/dnd/backgroundGrants'
 import type { RaceTraitCard } from '../../shared/dnd/raceTraitCards'
 import { raceTraitCardsFromText } from '../../shared/dnd/raceTraitCards'
 import type { SheetResource } from '../../shared/dnd/rest'
@@ -170,6 +172,9 @@ type ClassFeaturesPanelProps = {
   /** Structured race traits (catalog trait_cards) or fallback from traitsText. */
   raceTraitCards?: RaceTraitCard[]
   raceTraitsText?: string
+  /** Background name + PHB feature card (e.g. Криминальные связи). */
+  backgroundName?: string
+  backgroundFeature?: BackgroundFeatureCard | null
   customFeatures?: CustomFeature[]
   onCustomFeaturesChange?: (features: CustomFeature[]) => void
   /** Desk helpers for known-pick unique abilities. */
@@ -1396,6 +1401,7 @@ function FeatureRow({
 
   const preview = previewSummary(feature.summary_ru)
   const canExpand = featureCanExpand(feature)
+  const optionalBadge = optionalFeatureBadgeRu(feature)
 
   if (!canExpand) {
     return (
@@ -1406,6 +1412,9 @@ function FeatureRow({
           </span>
           <b className="feature-card__name">{feature.name_ru}</b>
           <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
+          {optionalBadge ? (
+            <span className="feature-optional-badge">{optionalBadge}</span>
+          ) : null}
           <span className="inventory-card__glance-spacer" aria-hidden />
           <span className="feature-card__preview">
             {metaExtra ? `${metaExtra} · ` : ''}
@@ -1425,6 +1434,9 @@ function FeatureRow({
           </span>
           <b className="feature-card__name">{feature.name_ru}</b>
           <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
+          {optionalBadge ? (
+            <span className="feature-optional-badge">{optionalBadge}</span>
+          ) : null}
           {feature.resource ? (
             <span className="attack-held-tag is-on">ресурс</span>
           ) : null}
@@ -1457,6 +1469,9 @@ function FeatureRow({
         </span>
         <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
         <span className="attack-held-tag">{kindLabelRu(feature.kind)}</span>
+        {optionalBadge ? (
+          <span className="feature-optional-badge">{optionalBadge}</span>
+        ) : null}
         {feature.resource ? <span className="attack-held-tag is-on">ресурс</span> : null}
         {choicePending ? <span className="attack-held-tag">выбор</span> : null}
         <button type="button" className="inventory-card__collapse" onClick={onToggle}>
@@ -1636,6 +1651,8 @@ export function ClassFeaturesPanel({
   raceName = '',
   raceTraitCards = [],
   raceTraitsText = '',
+  backgroundName = '',
+  backgroundFeature = null,
   customFeatures = [],
   onCustomFeaturesChange,
   onOpenInfusions,
@@ -1750,6 +1767,8 @@ export function ClassFeaturesPanel({
   const showRace =
     (darkvision > 0 || resolvedRaceTraits.length > 0) &&
     (filter === 'all' || filter === 'class')
+  const showBackground =
+    Boolean(backgroundFeature) && (filter === 'all' || filter === 'class')
   const showFeats = filter === 'all' || filter === 'feats'
   const showCustom = filter === 'all' || filter === 'feats' || filter === 'custom'
 
@@ -1776,9 +1795,10 @@ export function ClassFeaturesPanel({
       if (featureCanExpand(feature)) keys.push(featureRowKey(feature))
     }
     for (const trait of resolvedRaceTraits) keys.push(`race-trait:${trait.id}`)
+    if (backgroundFeature) keys.push(`background-feature:${backgroundFeature.id}`)
     for (const row of customFeatures) keys.push(`custom:${row.id}`)
     return keys
-  }, [visibleFeatures, resolvedRaceTraits, customFeatures])
+  }, [visibleFeatures, resolvedRaceTraits, backgroundFeature, customFeatures])
 
   function toggleKey(key: string) {
     setOpenKeys((prev) => {
@@ -1791,6 +1811,7 @@ export function ClassFeaturesPanel({
 
   const empty =
     !showRace &&
+    !showBackground &&
     visibleFeatures.length === 0 &&
     !(showFeats && namedFeats.length > 0) &&
     !(showCustom && customFeatures.length > 0)
@@ -1798,8 +1819,8 @@ export function ClassFeaturesPanel({
   return (
     <Panel title="Способности" className="features-panel">
       <p className="features-panel__lede">
-        Сводка умений класса, подкласса, черт и расы. Нажми строку — полный текст;
-        у ресурсов и выборов внутри ещё и кнопки.
+        Сводка умений класса, подкласса, предыстории, черт и расы. Нажми строку —
+        полный текст; у ресурсов и выборов внутри ещё и кнопки.
       </p>
 
       <Stack gap={12}>
@@ -1909,6 +1930,68 @@ export function ClassFeaturesPanel({
                   </div>
                 )
               })}
+            </div>
+          </div>
+        ) : null}
+
+        {showBackground && backgroundFeature ? (
+          <div className="feature-group">
+            <div className="feature-group__title">
+              {backgroundName || 'Предыстория'}
+              <span className="feature-group__count"> · 1</span>
+            </div>
+            <div className="feature-list">
+              {(() => {
+                const key = `background-feature:${backgroundFeature.id}`
+                const open = openKeys.has(key)
+                const preview = previewSummary(backgroundFeature.summaryRu)
+                if (!open) {
+                  return (
+                    <div key={key} className="feature-card feature-card--compact">
+                      <button
+                        type="button"
+                        className="feature-card__glance"
+                        onClick={() => toggleKey(key)}
+                      >
+                        <b className="feature-card__name">{backgroundFeature.nameRu}</b>
+                        <span className="inventory-role inventory-role--other">
+                          предыстория
+                        </span>
+                        <span className="inventory-card__glance-spacer" aria-hidden />
+                        <span className="feature-card__preview">{preview}</span>
+                      </button>
+                      <div className="inventory-card__glance-actions">
+                        <button
+                          type="button"
+                          className="inventory-card__chevron-btn"
+                          aria-label="Подробнее"
+                          onClick={() => toggleKey(key)}
+                        >
+                          ›
+                        </button>
+                      </div>
+                    </div>
+                  )
+                }
+                return (
+                  <div key={key} className="feature-card feature-card--expand">
+                    <div className="feature-card__meta">
+                      <span className="inventory-role inventory-role--other">
+                        предыстория
+                      </span>
+                      <button
+                        type="button"
+                        className="inventory-card__collapse"
+                        onClick={() => toggleKey(key)}
+                      >
+                        свернуть
+                      </button>
+                    </div>
+                    <h3 className="feature-card__title">{backgroundFeature.nameRu}</h3>
+                    <Text>{backgroundFeature.summaryRu}</Text>
+                  </div>
+                )
+              })()}
             </div>
           </div>
         ) : null}

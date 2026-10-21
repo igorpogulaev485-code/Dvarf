@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Druid + official circles for sheet unlock",
     "edition": "2014",
     "source": "phb+xgte+tcoe",
-    "notes_ru": "Wild Shape 2× short. Circle of the Land — pick земли. Moon/Stars/Spores/Wildfire тратят WS. 7 кругов каркас. H4b depth wave 2: casters/artificer/druid scales·pools."
+    "notes_ru": "Wild Shape 2× short. Circle of the Land — pick земли. Moon/Stars/Spores/Wildfire тратят WS. 7 кругов каркас. H4b depth wave 2: casters/artificer/druid scales·pools. · TCoE optional class features."
   },
   "class_slug": "druid",
   "features": [
@@ -21,6 +21,14 @@
       "name_ru": "Использование заклинаний",
       "name_en": "Spellcasting",
       "summary_ru": "Полный кастер. Мудрость — базовая. Подготовка = Мудр. + ур. друида (мин. 1). Ритуалы.",
+      "kind": "passive"
+    },
+    {
+      "id": "druid_circle",
+      "level": 2,
+      "name_ru": "Круг друидов",
+      "name_en": "Druid Circle",
+      "summary_ru": "Выбери круг (Земля, Луна, …).",
       "kind": "passive"
     },
     {
@@ -64,15 +72,9 @@
           "label_ru": "1 Дикий облик → фамильяр-фея",
           "mode": "spend"
         }
-      }
-    },
-    {
-      "id": "druid_circle",
-      "level": 2,
-      "name_ru": "Круг друидов",
-      "name_en": "Druid Circle",
-      "summary_ru": "Выбери круг (Земля, Луна, …).",
-      "kind": "passive"
+      },
+      "optional": true,
+      "source_book": "tcoe"
     },
     {
       "id": "asi_4_druid",
@@ -90,6 +92,16 @@
           "feat_coming_soon"
         ]
       }
+    },
+    {
+      "id": "cantrip_versatility_druid",
+      "level": 4,
+      "name_ru": "Универсальность заговора",
+      "name_en": "Cantrip Versatility",
+      "summary_ru": "Tasha (optional): когда берёшь ASI, можешь заменить один известный заговор друида на другой из списка друида.",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe"
     },
     {
       "id": "asi_8_druid",
@@ -143,19 +155,19 @@
       }
     },
     {
-      "id": "timeless_body",
-      "level": 18,
-      "name_ru": "Вневременное тело",
-      "name_en": "Timeless Body",
-      "summary_ru": "Старение замедлено в 10 раз; иммунитет к магическому старению.",
-      "kind": "passive"
-    },
-    {
       "id": "beast_spells",
       "level": 18,
       "name_ru": "Звериные заклинания",
       "name_en": "Beast Spells",
       "summary_ru": "Можешь кастовать друидские заклинания в Диком облике (без материальных с ценой / поглощаемых).",
+      "kind": "passive"
+    },
+    {
+      "id": "timeless_body",
+      "level": 18,
+      "name_ru": "Вневременное тело",
+      "name_en": "Timeless Body",
+      "summary_ru": "Старение замедлено в 10 раз; иммунитет к магическому старению.",
       "kind": "passive"
     },
     {
