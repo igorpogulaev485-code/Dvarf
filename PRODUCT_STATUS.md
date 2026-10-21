@@ -11,6 +11,16 @@
 
 ## Сейчас в продукте — свежее
 
+### 2026-10-21 — Инфузии RU + список изобретателя + аудит Magic Initiate
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Подписи опций фич | Один резолвер `featureChoiceOptionLabel` в create-wizard и на листе | При создании изобретателя инфузии на русском |
+| Заклинания изобретателя | Тег `artificer` на 65 PHB/TCE заклинаний + alembic `b4c5d6e7f8a9` | ~22 заговора / ~18 L1 (fire bolt, cure wounds…) |
+| Magic Initiate | Списки класса из каталога; selfcheck по 5 классам | Полные списки барда/жреца/друида/колдуна/волшебника |
+
+На проде: **да** · **это новый prod tip** `cursor/spells-feats-infusions-ab30` · PR #264 · залито 2026-10-21 · поверх tip `multiclass-spell-m1-c9ba` · `/health` ok · alembic `b4c5d6e7f8a9` · fire_bolt classes включают artificer · cantrips artificer=22 · бандл `CharacterDetailPage-BeiXZkAN.js` · characters=94 classic=20
+
 ### 2026-10-21 — Мультикласс: Сл/атака по классам (M1–M7)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -750,16 +760,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 Сюда агенты пишут то, что сделано в PR, но **ещё не залито** на сервер.
 
-### 2026-10-21 — Инфузии RU + список изобретателя + аудит Magic Initiate
-
-| Функция | Как работает | Эффект |
-|--------|--------------|--------|
-| Подписи опций фич | Один резолвер `featureChoiceOptionLabel` в create-wizard и на листе; каталоги инфузий/метамагии/воззваний через `*ById` | При создании изобретателя инфузии на русском, не `enhanced_weapon` |
-| Заклинания изобретателя | В каталог добавлен тег `artificer` на 65 PHB/TCE заклинаний (fire bolt, cure wounds, …) + alembic `b4c5d6e7f8a9` | В гримуаре ~22 заговора и ~18 заклинаний 1 круга вместо ~9/~4 |
-| Magic Initiate | Фикс списков на месте; selfcheck по PHB-заговорам всех 5 классов | Жрец/бард/друид/колдун/волшебник тянут полные списки; «шипастый щит» в 5e нет (есть «Терновый кнут» у друида) |
-
-На проде: **нет** · ветка `cursor/spells-feats-infusions-ab30` · поверх tip `multiclass-spell-m1-c9ba`
-
+<!-- spells-feats-infusions залито 2026-10-21 → tip spells-feats-infusions-ab30; блок в «Сейчас в продукте» -->
 <!-- grimoire-prepare-home залито 2026-10-21 → tip grimoire-prepare-home-3aba; блок в «Сейчас в продукте» -->
 <!-- prepare-class-list-available залито 2026-10-21 → tip prepare-class-list-available-3aba; блок в «Сейчас в продукте» -->
 <!-- stealthy залито 2026-10-20 → tip feat-stealthy-3565; блок в «Сейчас в продукте» -->
