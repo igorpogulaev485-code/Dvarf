@@ -401,6 +401,7 @@ import {
   syncRaceSpellsForSheetState,
   type RaceGrantDraftSlice,
 } from './raceEffects'
+import { resolveSpellLearnBudgets } from '../../shared/dnd/castProfiles'
 import {
   characterHasCasterClass,
   highestSpellSlotLevelForClasses,
@@ -4213,6 +4214,17 @@ export function MinimalSheetEditor({
     })
   }, [draft.classes, subclassCastersForSpells, draft.abilities])
 
+  const spellLearnBudgets = useMemo(() => {
+    const rows = draft.classes.filter((row) => row.name.trim() && row.level > 0)
+    if (rows.length === 0) return null
+    return resolveSpellLearnBudgets({
+      classes: rows,
+      subclassCasters: subclassCastersForSpells,
+      abilityModFor: (ability) => abilityModifier(draft.abilities[ability]),
+      proficiencyBonus,
+    })
+  }, [draft.classes, subclassCastersForSpells, draft.abilities, proficiencyBonus])
+
   const spellcastingSync = useSpellcastingSheetSync({
     enabled: true,
     className: classSummary || primaryClass?.name || '',
@@ -6010,6 +6022,7 @@ export function MinimalSheetEditor({
             modifiers={draft.modifiers}
             formulaVars={formulaVarsBase}
             learnBudget={spellLearnBudget}
+            learnBudgets={spellLearnBudgets}
             pinned={deskSplit && splitSecondary === 'spells'}
             concentration={draft.play.concentration}
             edition={rulesEdition}

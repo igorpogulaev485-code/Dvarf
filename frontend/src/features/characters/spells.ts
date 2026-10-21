@@ -1101,9 +1101,62 @@ export function countLearnedCantrips(known: SheetSpell[]): number {
   return known.filter((spell) => spell.level <= 0 && canRemoveSheetSpell(spell)).length
 }
 
+/** Player cantrips tagged with class_slug (M2 per-class budgets). */
+export function countLearnedCantripsForSlug(
+  known: SheetSpell[],
+  classSlug: string,
+): number {
+  const slug = classSlug.trim().toLowerCase()
+  if (!slug) return 0
+  return known.filter(
+    (spell) =>
+      spell.level <= 0 &&
+      canRemoveSheetSpell(spell) &&
+      (spell.class_slug ?? '').trim().toLowerCase() === slug,
+  ).length
+}
+
+/** Counts player cantrips per class_slug (untagged omitted). */
+export function countLearnedCantripsBySlug(
+  known: SheetSpell[],
+): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const spell of known) {
+    if (spell.level > 0 || !canRemoveSheetSpell(spell)) continue
+    const slug = (spell.class_slug ?? '').trim().toLowerCase()
+    if (!slug) continue
+    out[slug] = (out[slug] ?? 0) + 1
+  }
+  return out
+}
+
+/** Locked feature cantrips (e.g. Pact of the Tome) — shown outside class budgets. */
+export function countLockedFeatureCantrips(known: SheetSpell[]): number {
+  return known.filter(
+    (spell) =>
+      spell.level <= 0 &&
+      isPreparedLocked(spell) &&
+      (spell.source_kind === 'feature' || spell.id.startsWith('feature-spell:')),
+  ).length
+}
+
 /** Player-chosen leveled spells on the known list / in the spellbook. */
 export function countLearnedLeveled(known: SheetSpell[]): number {
   return known.filter((spell) => spell.level > 0 && canRemoveSheetSpell(spell)).length
+}
+
+export function countLearnedLeveledForSlug(
+  known: SheetSpell[],
+  classSlug: string,
+): number {
+  const slug = classSlug.trim().toLowerCase()
+  if (!slug) return 0
+  return known.filter(
+    (spell) =>
+      spell.level > 0 &&
+      canRemoveSheetSpell(spell) &&
+      (spell.class_slug ?? '').trim().toLowerCase() === slug,
+  ).length
 }
 
 /** Combat list: cantrips + prepared leveled spells. */
@@ -1254,6 +1307,9 @@ export function addCatalogSpellToKnown(
     maxPrepared?: number | null
     spellbook_acquisition?: SpellbookAcquisition
     in_spellbook?: boolean
+    /** Multiclass: which class this acquisition belongs to. */
+    class_slug?: string | null
+    class_entry_id?: string | null
   },
 ): SheetSpell[] {
   if (knownHasCatalogId(known, entry.id)) return known
@@ -1268,6 +1324,8 @@ export function addCatalogSpellToKnown(
     ...(options?.in_spellbook !== undefined && spell.level > 0
       ? { in_spellbook: options.in_spellbook }
       : {}),
+    ...(options?.class_slug ? { class_slug: options.class_slug } : {}),
+    ...(options?.class_entry_id ? { class_entry_id: options.class_entry_id } : {}),
   }
   let next = [...known, withBookMeta]
   if (prepare && withBookMeta.level > 0) {

@@ -7,9 +7,13 @@ import {
 import type { ConcentrationState } from './play'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import { SpellDetailDialog } from './SpellDetailDialog'
+import type { SpellLearnBudget } from '../../shared/dnd/casterProgression'
+import { formatNamedCantripBudgets } from '../../shared/dnd/castProfiles'
 import {
   countLearnedCantrips,
+  countLearnedCantripsBySlug,
   countLearnedLeveled,
+  countLockedFeatureCantrips,
   countPreparedLeveled,
   grantCastRemaining,
   groupSpellsByLevel,
@@ -39,6 +43,8 @@ type PlayDeskSpellsCompactProps = {
     leveledKnown: number | null
     maxPrepared: number | null
   } | null
+  /** M2: per-class budgets for named cantrip meta. */
+  learnBudgets?: SpellLearnBudget[] | null
   pinned?: boolean
   concentration?: ConcentrationState | null
   /** Rules edition for catalog description lookup in detail dialog. */
@@ -67,6 +73,7 @@ export function PlayDeskSpellsCompact({
   modifiers = [],
   formulaVars = {},
   learnBudget = null,
+  learnBudgets = null,
   pinned = false,
   concentration = null,
   edition = '2014',
@@ -128,10 +135,19 @@ export function PlayDeskSpellsCompact({
       ? `подг. ${preparedCount}/${prepCap}`
       : `подг. ${preparedCount}`
   })()
-  const cantripLabel =
-    learnBudget?.cantrips != null
-      ? `заг. ${learnedCantrips}/${learnBudget.cantrips}`
-      : null
+  const cantripLabel = (() => {
+    if (learnBudgets && learnBudgets.length > 0) {
+      return formatNamedCantripBudgets(
+        learnBudgets,
+        countLearnedCantripsBySlug(spells.known),
+        { tomeExtra: countLockedFeatureCantrips(spells.known) },
+      )
+    }
+    if (learnBudget?.cantrips != null) {
+      return `заг. ${learnedCantrips}/${learnBudget.cantrips}`
+    }
+    return null
+  })()
   /**
    * «Подготовить» на листе — только волшебник (быстрый набор из книги).
    * Жрец и компания готовят в гримуаре; known — без daily prepare.

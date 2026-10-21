@@ -2,6 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
+  buildCastProfiles,
+  formatNamedCantripBudgets,
+  resolveSpellAcquisitionSlug,
+  resolveSpellLearnBudgets,
+  totalCantripsBudget,
+} from '../../shared/dnd/castProfiles'
+import {
   characterSpellListSlugs,
   highestSpellSlotLevel,
   resolveSpellLearnBudget,
@@ -46,7 +53,11 @@ import {
   addCustomSpellToKnown,
   canRemoveSheetSpell,
   countLearnedCantrips,
+  countLearnedCantripsBySlug,
+  countLearnedCantripsForSlug,
   countLearnedLeveled,
+  countLearnedLeveledForSlug,
+  countLockedFeatureCantrips,
   countPreparedLeveled,
   groupSpellsByLevel,
   isCustomSheetSpell,
@@ -200,6 +211,24 @@ export function GrimoireDialog({
             abilityModFor: modFor,
           })
         : null)
+    const profiles =
+      activeClasses.length > 0
+        ? buildCastProfiles({
+            classes: activeClasses,
+            subclassCasters,
+            abilityModFor: modFor,
+            proficiencyBonus: 0,
+          })
+        : []
+    const budgets =
+      activeClasses.length > 0
+        ? resolveSpellLearnBudgets({
+            classes: activeClasses,
+            subclassCasters,
+            abilityModFor: modFor,
+            proficiencyBonus: 0,
+          })
+        : []
     // Access circle from character rules — sheet slots must not open higher circles.
     const maxSpellLevel = suggestion
       ? highestSpellSlotLevel(suggestion.slots, suggestion.pact_slots)
@@ -211,6 +240,8 @@ export function GrimoireDialog({
       schoolGate,
       hasCaster: classSlugs.length > 0,
       budget,
+      budgets,
+      profiles,
       suggestion,
     }
   }, [classes, subclassCasters, learnBudgetProp, abilityModFor])
@@ -220,6 +251,11 @@ export function GrimoireDialog({
   const learnedCantrips = countLearnedCantrips(spells.known)
   const learnedLeveled = countLearnedLeveled(spells.known)
   const preparedCount = countPreparedLeveled(spells.known)
+  const cantripsBySlug = countLearnedCantripsBySlug(spells.known)
+  const tomeCantrips = countLockedFeatureCantrips(spells.known)
+  const namedCantripMeta = formatNamedCantripBudgets(access.budgets, cantripsBySlug, {
+    tomeExtra: tomeCantrips,
+  })
 
   /** PHB: each prepared_list class contributes its alone max spell level (not shared MC slots). */
   const prepareSources: ClassListPrepareSource[] = useMemo(() => {
@@ -449,13 +485,50 @@ export function GrimoireDialog({
     return [...levels].sort((a, b) => a - b)
   }, [available])
 
-  function cantripCapReached(): boolean {
+  function acquisitionSlugForEntry(entry: CatalogEntry): string | null {
+    const parsed = parseSpellCatalogData(entry.data)
+    return resolveSpellAcquisitionSlug({
+      catalogClassSlugs: parsed.classes,
+      profiles: access.profiles,
+      classFilter,
+    })
+  }
+
+  function cantripCapReached(forSlug?: string | null): boolean {
+    if (access.budgets.length > 1) {
+      const slug =
+        forSlug ??
+        (classFilter !== 'all' ? classFilter : null)
+      if (slug) {
+        const budget = access.budgets.find((row) => row.slug === slug)
+        if (!budget) return false
+        return countLearnedCantripsForSlug(spells.known, slug) >= budget.cantrips
+      }
+      const totalCap = totalCantripsBudget(access.budgets)
+      return learnedCantrips >= totalCap
+    }
     const cap = access.budget?.cantrips
     if (cap == null) return false
     return learnedCantrips >= cap
   }
 
-  function leveledLearnCapReached(): boolean {
+  function leveledLearnCapReached(forSlug?: string | null): boolean {
+    if (access.budgets.length > 1) {
+      const slug =
+        forSlug ??
+        (classFilter !== 'all' ? classFilter : null)
+      if (slug) {
+        const budget = access.budgets.find((row) => row.slug === slug)
+        const cap = budget?.leveledKnown
+        if (cap == null) return false
+        if (budget?.mode === 'spellbook') {
+          if (freeBookLeft > 0) return false
+          if (onCoinsChange) return false
+          return countLearnedLeveledForSlug(spells.known, slug) >= cap
+        }
+        return countLearnedLeveledForSlug(spells.known, slug) >= cap
+      }
+    }
     const cap = access.budget?.leveledKnown
     if (cap == null) return false
     if (mode === 'spellbook') {
@@ -524,14 +597,28 @@ export function GrimoireDialog({
         return
       }
     }
-    if (level <= 0 && cantripCapReached()) {
+    const acquisitionSlug = acquisitionSlugForEntry(entry)
+    const acquisitionProfile = access.profiles.find((row) => row.slug === acquisitionSlug)
+    if (level <= 0 && cantripCapReached(acquisitionSlug)) {
+      const budget = access.budgets.find((row) => row.slug === acquisitionSlug)
+      const used = acquisitionSlug
+        ? countLearnedCantripsForSlug(spells.known, acquisitionSlug)
+        : learnedCantrips
+      const cap =
+        budget?.cantrips ??
+        (access.budgets.length > 1
+          ? totalCantripsBudget(access.budgets)
+          : access.budget?.cantrips)
       onToast?.(
-        `Лимит заговоров: ${learnedCantrips}/${access.budget?.cantrips ?? '—'}`,
+        namedCantripMeta
+          ? `Лимит заговоров (${budget?.labelRu ?? 'класс'}): ${used}/${cap ?? '—'} · ${namedCantripMeta}`
+          : `Лимит заговоров: ${used}/${cap ?? '—'}`,
       )
       return
     }
     if (level > 0) {
-      if (mode === 'prepared_list') {
+      const acquireMode = acquisitionProfile?.mode ?? mode
+      if (acquireMode === 'prepared_list') {
         // Full-list casters prepare directly from the class list in grimoire.
         if (prepare && prepareCapReached()) {
           onToast?.(
@@ -539,9 +626,14 @@ export function GrimoireDialog({
           )
           return
         }
-      } else if (mode !== 'spellbook' && leveledLearnCapReached()) {
+      } else if (acquireMode !== 'spellbook' && leveledLearnCapReached(acquisitionSlug)) {
+        const budget = access.budgets.find((row) => row.slug === acquisitionSlug)
         onToast?.(
-          `Лимит известных: ${learnedLeveled}/${access.budget?.leveledKnown ?? '—'}`,
+          `Лимит известных (${budget?.labelRu ?? 'класс'}): ${
+            acquisitionSlug
+              ? countLearnedLeveledForSlug(spells.known, acquisitionSlug)
+              : learnedLeveled
+          }/${budget?.leveledKnown ?? access.budget?.leveledKnown ?? '—'}`,
         )
         return
       } else if (prepare && prepareCapReached()) {
@@ -589,6 +681,8 @@ export function GrimoireDialog({
         maxPrepared,
         spellbook_acquisition: payment.acquisition,
         in_spellbook: true,
+        class_slug: acquisitionSlug,
+        class_entry_id: acquisitionProfile?.id ?? null,
       })
       onChange({
         ...spells,
@@ -604,9 +698,12 @@ export function GrimoireDialog({
       return
     }
 
+    const acquireMode = acquisitionProfile?.mode ?? mode
     const nextKnown = addCatalogSpellToKnown(spells.known, entry, {
-      prepare: mode === 'known' ? true : prepare,
+      prepare: acquireMode === 'known' ? true : prepare,
       maxPrepared,
+      class_slug: acquisitionSlug,
+      class_entry_id: acquisitionProfile?.id ?? null,
     })
     onChange({
       ...spells,
@@ -617,11 +714,11 @@ export function GrimoireDialog({
       onToast?.(`Заговор: ${entry.name_ru}`)
       return
     }
-    if (mode === 'known') {
+    if (acquireMode === 'known') {
       onToast?.(`Известно: ${entry.name_ru}`)
       return
     }
-    if (mode === 'prepared_list') {
+    if (acquireMode === 'prepared_list') {
       onToast?.(
         prepare
           ? `На лист и подготовлено: ${entry.name_ru}`
@@ -720,9 +817,15 @@ export function GrimoireDialog({
         return
       }
     }
-    if (level <= 0 && cantripCapReached()) {
+    if (level <= 0 && cantripCapReached(classFilter !== 'all' ? classFilter : null)) {
       onToast?.(
-        `Лимит заговоров: ${learnedCantrips}/${access.budget?.cantrips ?? '—'}`,
+        namedCantripMeta
+          ? `Лимит заговоров: ${namedCantripMeta}`
+          : `Лимит заговоров: ${learnedCantrips}/${
+              access.budgets.length > 1
+                ? totalCantripsBudget(access.budgets)
+                : (access.budget?.cantrips ?? '—')
+            }`,
       )
       return
     }
@@ -851,7 +954,12 @@ export function GrimoireDialog({
   const budgetHint = (() => {
     if (!access.budget) return `${uiCopy.grimoireHint} ${accessHint}`
     const b = access.budget
-    const cantripPart = `заговоры ${learnedCantrips}/${b.cantrips}`
+    const cantripPart = namedCantripMeta
+      ? namedCantripMeta
+      : `заговоры ${learnedCantrips}/${b.cantrips}`
+    if (access.budgets.length > 1) {
+      return `${cantripPart}. ${uiCopy.grimoireHint} ${accessHint}`
+    }
     if (b.mode === 'spellbook') {
       const freePart =
         freeBookLeft > 0
@@ -1215,16 +1323,16 @@ export function GrimoireDialog({
                             className="sheet-chip"
                             disabled={
                               spell.level <= 0
-                                ? cantripCapReached()
-                                : leveledLearnCapReached()
+                                ? cantripCapReached(acquisitionSlugForEntry(entry))
+                                : leveledLearnCapReached(acquisitionSlugForEntry(entry))
                             }
                             onClick={() => addSpell(entry, true)}
                           >
                             {spell.level <= 0
-                              ? cantripCapReached()
+                              ? cantripCapReached(acquisitionSlugForEntry(entry))
                                 ? 'Лимит заговоров'
                                 : 'Взять заговор'
-                              : leveledLearnCapReached()
+                              : leveledLearnCapReached(acquisitionSlugForEntry(entry))
                                 ? 'Лимит'
                                 : 'Добавить'}
                           </button>

@@ -2,8 +2,11 @@
 import {
   backfillSpellClassFields,
   buildCastProfiles,
+  formatNamedCantripBudgets,
   mergeCastProfilesForDisplay,
   resolveSpellCastStats,
+  resolveSpellLearnBudgets,
+  totalCantripsBudget,
 } from './castProfiles'
 import { createClassLevel } from './classLevels'
 
@@ -133,5 +136,19 @@ const tome = backfillSpellClassFields(
   kvakProfiles,
 )
 assert(tome[0]!.class_slug === 'warlock', 'tome → warlock')
+
+// --- M2 budgets ---
+const budgets = resolveSpellLearnBudgets({
+  classes: kvakClasses,
+  abilityModFor: kvakMods,
+  proficiencyBonus: 6,
+})
+assert(budgets.length === 2, 'budgets len')
+assert(totalCantripsBudget(budgets) === 7, `sum cantrips ${totalCantripsBudget(budgets)}`)
+const named = formatNamedCantripBudgets(budgets, { artificer: 4, warlock: 2 }, { tomeExtra: 3 })
+assert(
+  named === 'Изобретатель 4/4 · Колдун 2/3 · Гримуар 3',
+  `named meta got ${named}`,
+)
 
 console.log('castProfiles.selfcheck: ok')

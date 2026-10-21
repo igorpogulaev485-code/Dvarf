@@ -13,6 +13,7 @@ import {
   resolveSpellLearnBudget,
   resolveSubclassCasterOverlays,
   spellLearnModeForSlug,
+  type SpellLearnBudget,
   type SpellLearnMode,
   type SubclassCasterOverlay,
 } from './casterProgression'
@@ -351,4 +352,71 @@ export function backfillSpellClassFields<T extends SpellCastAssociation & { id?:
     }
   })
   return changed ? next : known
+}
+
+/**
+ * Per-class learn budgets (M2). Prefer this over resolveSpellLearnBudget for MC.
+ * Order follows sheet class order / cast profiles.
+ */
+export function resolveSpellLearnBudgets(input: BuildCastProfilesInput): SpellLearnBudget[] {
+  return buildCastProfiles(input).map((profile) => ({
+    mode: profile.mode ?? 'known',
+    slug: profile.slug,
+    labelRu: profile.labelRu,
+    cantrips: profile.cantripsBudget,
+    leveledKnown: profile.leveledKnownBudget,
+    maxPrepared: profile.maxPrepared,
+  }))
+}
+
+export function totalCantripsBudget(budgets: SpellLearnBudget[]): number {
+  return budgets.reduce((sum, row) => sum + Math.max(0, row.cantrips), 0)
+}
+
+/** Short class label for meta chips. */
+export function shortCastProfileLabel(labelRu: string): string {
+  const t = labelRu.trim()
+  if (t.length <= 12) return t
+  // «Изобретатель» → keep; long multiclass thirds already short.
+  return t
+}
+
+/**
+ * Named cantrip meta: «Изобретатель 4/4 · Колдун 3/3».
+ * `countsBySlug` from sheet known (player cantrips only).
+ */
+export function formatNamedCantripBudgets(
+  budgets: SpellLearnBudget[],
+  countsBySlug: Record<string, number>,
+  options?: { tomeExtra?: number },
+): string | null {
+  if (budgets.length === 0) return null
+  const parts = budgets.map((row) => {
+    const used = countsBySlug[row.slug] ?? 0
+    return `${shortCastProfileLabel(row.labelRu)} ${used}/${row.cantrips}`
+  })
+  if (options?.tomeExtra && options.tomeExtra > 0) {
+    parts.push(`Гримуар ${options.tomeExtra}`)
+  }
+  return parts.join(' · ')
+}
+
+/**
+ * Pick which class acquires a catalog spell (for caps + class_slug stamp).
+ * Prefer explicit class filter; else unique list overlap; else first profile overlap.
+ */
+export function resolveSpellAcquisitionSlug(input: {
+  catalogClassSlugs: string[]
+  profiles: SpellCastProfile[]
+  classFilter?: string
+}): string | null {
+  const filter = input.classFilter?.trim() || 'all'
+  if (filter !== 'all' && input.profiles.some((row) => row.slug === filter)) {
+    return filter
+  }
+  const hits = input.profiles.filter((row) =>
+    input.catalogClassSlugs.map((s) => s.toLowerCase()).includes(row.slug.toLowerCase()),
+  )
+  if (hits.length === 0) return input.profiles[0]?.slug ?? null
+  return hits[0]!.slug
 }

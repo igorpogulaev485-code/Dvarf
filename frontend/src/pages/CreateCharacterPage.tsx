@@ -144,6 +144,10 @@ import {
   type SpellsState,
 } from '../features/characters/spells'
 import {
+  resolveSpellLearnBudgets,
+  totalCantripsBudget,
+} from '../shared/dnd/castProfiles'
+import {
   applySpellcastingSuggestion,
   highestSpellSlotLevelForClasses,
   resolveSpellLearnBudget,
@@ -525,6 +529,16 @@ export function CreateCharacterPage() {
       resolveSpellLearnBudget({
         classes: state.classes,
         abilityModFor,
+      }),
+    [state.classes, abilityModFor],
+  )
+
+  const spellLearnBudgets = useMemo(
+    () =>
+      resolveSpellLearnBudgets({
+        classes: state.classes,
+        abilityModFor,
+        proficiencyBonus: 2,
       }),
     [state.classes, abilityModFor],
   )
@@ -1775,7 +1789,10 @@ export function CreateCharacterPage() {
                 knownLeveled: countLearnedLeveled(spells.known),
                 preparedLeveled: countPreparedLeveled(spells.known),
                 cantripsKnown: countLearnedCantrips(spells.known),
-                cantripsMax: spellLearnBudget?.cantrips ?? null,
+                cantripsMax:
+                  spellLearnBudgets.length > 1
+                    ? totalCantripsBudget(spellLearnBudgets)
+                    : (spellLearnBudget?.cantrips ?? null),
                 leveledKnownMax: spellLearnBudget?.leveledKnown ?? null,
                 freeBookLeft:
                   spellLearnBudget?.mode === 'spellbook'
