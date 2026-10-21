@@ -8,6 +8,7 @@
 - [`boards/05-controls-tactile.svg`](boards/05-controls-tactile.svg)
 - [`boards/06-glass-surfaces.svg`](boards/06-glass-surfaces.svg)
 - [`boards/07-hybrid-sheet-preview.svg`](boards/07-hybrid-sheet-preview.svg)
+- [`boards/08-translucent-blocks.svg`](boards/08-translucent-blocks.svg) — кабинет/дашборд-блоки как EduHub-принцип
 
 ---
 
@@ -66,9 +67,28 @@
   border-radius: 24px;
   box-shadow: 0 12px 40px rgba(26, 36, 30, 0.10);
 }
+
+/* Блоки кабинета / лобби / список — тот же принцип, чуть плотнее */
+.block-glass {
+  background: rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(16px) saturate(1.08);
+  -webkit-backdrop-filter: blur(16px) saturate(1.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.72);
+  border-radius: 22px; /* метрики */ /* крупные панели: 28 */
+  box-shadow: 0 8px 28px rgba(26, 36, 30, 0.10);
+}
+.block-glass--dense-row {
+  /* строка внутри стеклянной оболочки — почти solid */
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(213, 221, 212, 0.9);
+  border-radius: 16px;
+}
 ```
 
-Opacity ориентир: **40–55%** белого + blur. Фон за стеклом должен быть «живым» (градиент / мягкая природа), иначе стекло мертвое.
+Opacity ориентир: **42–50%** белого + blur 16–20.  
+Фон за стеклом должен быть «живым» (градиент / мягкая природа), иначе блоки как EduHub-реф не читаются.
+
+**Реф принципа (не палитры):** Pinterest EduHub — sidebar + metric cards + content panels как полупрозрачные «стёкла» поверх градиента. У нас палитра Листва/Keyleth, не purple neon.
 
 ### Где YES
 

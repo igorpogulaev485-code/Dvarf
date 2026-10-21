@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="820" viewBox="0 0 1280 820">
+  <defs>
+    <linearGradient id="liveBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#C8DFC9"/>
+      <stop offset="35%" stop-color="#EEF3EE"/>
+      <stop offset="70%" stop-color="#E8DCCF"/>
+      <stop offset="100%" stop-color="#B7CFBA"/>
+    </linearGradient>
+    <linearGradient id="heroGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2F6A42"/>
+      <stop offset="55%" stop-color="#3F8A58"/>
+      <stop offset="100%" stop-color="#C45A2C"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#1A241E" flood-opacity="0.12"/>
+    </filter>
+    <filter id="cardShadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#1A241E" flood-opacity="0.10"/>
+    </filter>
+    <!-- glass fill approximation for static SVG -->
+  </defs>
+
+  <!-- living background (needed for translucent blocks to read) -->
+  <rect width="100%" height="100%" fill="url(#liveBg)"/>
+  <circle cx="980" cy="120" r="180" fill="#FFFFFF" fill-opacity="0.22"/>
+  <circle cx="220" cy="700" r="220" fill="#2F6A42" fill-opacity="0.08"/>
+  <circle cx="1100" cy="620" r="160" fill="#C45A2C" fill-opacity="0.07"/>
+
+  <text x="40" y="42" font-family="Source Serif 4, Georgia, serif" font-size="24" font-weight="700" fill="#2F6A42">Листва · полупрозрачные блоки (как EduHub-принцип)</text>
+  <text x="40" y="66" font-family="IBM Plex Sans, Arial" font-size="13" fill="#5C6B5F">rgba + blur + тонкая светлая обводка · цвета Keyleth, без тёмного неона</text>
+
+  <!-- SIDEBAR glass -->
+  <rect x="36" y="92" width="220" height="680" rx="28" fill="rgba(255,255,255,0.42)" stroke="rgba(255,255,255,0.72)" stroke-width="1.5" filter="url(#softShadow)"/>
+  <text x="60" y="138" font-family="Source Serif 4, Georgia, serif" font-size="22" font-weight="700" fill="#1A241E">Дварф</text>
+  <text x="60" y="160" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">кабинет · стекло</text>
+
+  <!-- nav items -->
+  <rect x="56" y="190" width="180" height="44" rx="14" fill="rgba(47,106,66,0.16)" stroke="rgba(47,106,66,0.25)"/>
+  <rect x="56" y="190" width="4" height="44" rx="2" fill="#2F6A42"/>
+  <text x="78" y="218" font-family="IBM Plex Sans, Arial" font-size="14" font-weight="600" fill="#2F6A42">Персонажи</text>
+
+  <text x="78" y="278" font-family="IBM Plex Sans, Arial" font-size="14" fill="#1A241E">Лобби</text>
+  <text x="78" y="328" font-family="IBM Plex Sans, Arial" font-size="14" fill="#1A241E">Справочник</text>
+  <text x="78" y="378" font-family="IBM Plex Sans, Arial" font-size="14" fill="#1A241E">Оформление</text>
+
+  <!-- profile chip at bottom of sidebar -->
+  <rect x="56" y="700" width="180" height="48" rx="16" fill="rgba(255,255,255,0.55)" stroke="rgba(255,255,255,0.8)"/>
+  <circle cx="80" cy="724" r="14" fill="#D9EBD9" stroke="#2F6A42" stroke-width="1.5"/>
+  <text x="104" y="730" font-family="IBM Plex Sans, Arial" font-size="13" font-weight="600" fill="#1A241E">Игорь</text>
+
+  <!-- MAIN HERO glass with accent gradient inside -->
+  <rect x="280" y="92" width="960" height="150" rx="28" fill="rgba(255,255,255,0.38)" stroke="rgba(255,255,255,0.75)" stroke-width="1.5" filter="url(#softShadow)"/>
+  <rect x="300" y="110" width="560" height="114" rx="22" fill="url(#heroGrad)"/>
+  <text x="330" y="158" font-family="Source Serif 4, Georgia, serif" font-size="26" font-weight="700" fill="#FFFFFF">Собрал героя — в путь</text>
+  <text x="330" y="188" font-family="IBM Plex Sans, Arial" font-size="14" fill="rgba(255,255,255,0.9)">Один клик до приключения · Листва × Keyleth</text>
+  <rect x="900" y="145" width="160" height="48" rx="24" fill="#FFFFFF" fill-opacity="0.92"/>
+  <text x="980" y="175" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="14" font-weight="700" fill="#2F6A42">В лист</text>
+
+  <!-- METRIC glass cards row -->
+  <!-- card 1 -->
+  <rect x="280" y="268" width="220" height="110" rx="22" fill="rgba(255,255,255,0.48)" stroke="rgba(255,255,255,0.78)" stroke-width="1.4" filter="url(#cardShadow)"/>
+  <rect x="300" y="288" width="40" height="40" rx="12" fill="rgba(47,106,66,0.18)"/>
+  <text x="312" y="314" font-family="IBM Plex Sans, Arial" font-size="16" fill="#2F6A42">⚔</text>
+  <text x="356" y="304" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Персонажи</text>
+  <text x="356" y="334" font-family="Source Serif 4, Georgia, serif" font-size="28" font-weight="700" fill="#1A241E">4</text>
+
+  <rect x="520" y="268" width="220" height="110" rx="22" fill="rgba(255,255,255,0.48)" stroke="rgba(255,255,255,0.78)" stroke-width="1.4" filter="url(#cardShadow)"/>
+  <rect x="540" y="288" width="40" height="40" rx="12" fill="rgba(196,90,44,0.16)"/>
+  <text x="552" y="314" font-family="IBM Plex Sans, Arial" font-size="16" fill="#C45A2C">★</text>
+  <text x="596" y="304" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Вдохновение</text>
+  <text x="596" y="334" font-family="Source Serif 4, Georgia, serif" font-size="28" font-weight="700" fill="#1A241E">2</text>
+
+  <rect x="760" y="268" width="220" height="110" rx="22" fill="rgba(255,255,255,0.48)" stroke="rgba(255,255,255,0.78)" stroke-width="1.4" filter="url(#cardShadow)"/>
+  <rect x="780" y="288" width="40" height="40" rx="12" fill="rgba(176,138,62,0.18)"/>
+  <text x="792" y="314" font-family="IBM Plex Sans, Arial" font-size="16" fill="#B08A3E">◆</text>
+  <text x="836" y="304" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Лобби</text>
+  <text x="836" y="334" font-family="Source Serif 4, Georgia, serif" font-size="28" font-weight="700" fill="#1A241E">1</text>
+
+  <rect x="1000" y="268" width="240" height="110" rx="22" fill="rgba(255,255,255,0.48)" stroke="rgba(255,255,255,0.78)" stroke-width="1.4" filter="url(#cardShadow)"/>
+  <rect x="1020" y="288" width="40" height="40" rx="12" fill="rgba(47,106,66,0.18)"/>
+  <text x="1032" y="314" font-family="IBM Plex Sans, Arial" font-size="16" fill="#2F6A42">♥</text>
+  <text x="1076" y="304" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Готовность</text>
+  <text x="1076" y="334" font-family="Source Serif 4, Georgia, serif" font-size="28" font-weight="700" fill="#1A241E">87%</text>
+
+  <!-- LARGE CONTENT glass block -->
+  <rect x="280" y="402" width="620" height="370" rx="28" fill="rgba(255,255,255,0.46)" stroke="rgba(255,255,255,0.78)" stroke-width="1.5" filter="url(#softShadow)"/>
+  <text x="312" y="448" font-family="Source Serif 4, Georgia, serif" font-size="20" font-weight="700" fill="#1A241E">Недавние листы</text>
+  <text x="312" y="474" font-family="IBM Plex Sans, Arial" font-size="13" fill="#5C6B5F">полупрозрачная оболочка · внутри solid rows</text>
+
+  <!-- solid rows inside glass (hybrid) -->
+  <rect x="312" y="500" width="556" height="64" rx="16" fill="rgba(255,255,255,0.78)" stroke="rgba(213,221,212,0.9)"/>
+  <circle cx="344" cy="532" r="18" fill="#D9EBD9"/>
+  <text x="376" y="528" font-family="IBM Plex Sans, Arial" font-size="15" font-weight="600" fill="#1A241E">Keyara · Друид 5</text>
+  <text x="376" y="548" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">HP 28/28 · КД 16</text>
+  <rect x="740" y="518" width="100" height="32" rx="16" fill="#2F6A42"/>
+  <text x="790" y="539" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="12" font-weight="600" fill="#fff">Открыть</text>
+
+  <rect x="312" y="580" width="556" height="64" rx="16" fill="rgba(255,255,255,0.78)" stroke="rgba(213,221,212,0.9)"/>
+  <circle cx="344" cy="612" r="18" fill="#F3E0D4"/>
+  <text x="376" y="608" font-family="IBM Plex Sans, Arial" font-size="15" font-weight="600" fill="#1A241E">Thorin · Воин 3</text>
+  <text x="376" y="628" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">HP 22/34 · КД 18</text>
+  <rect x="740" y="598" width="100" height="32" rx="16" fill="#D9EBD9"/>
+  <text x="790" y="619" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="12" font-weight="600" fill="#2F6A42">Открыть</text>
+
+  <rect x="312" y="660" width="556" height="64" rx="16" fill="rgba(255,255,255,0.78)" stroke="rgba(213,221,212,0.9)"/>
+  <circle cx="344" cy="692" r="18" fill="#E2E8F0"/>
+  <text x="376" y="688" font-family="IBM Plex Sans, Arial" font-size="15" font-weight="600" fill="#1A241E">Lira · Бард 4</text>
+  <text x="376" y="708" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">черновик create</text>
+
+  <!-- RIGHT COLUMN glass blocks -->
+  <rect x="924" y="402" width="316" height="180" rx="24" fill="rgba(255,255,255,0.46)" stroke="rgba(255,255,255,0.78)" stroke-width="1.5" filter="url(#cardShadow)"/>
+  <text x="948" y="442" font-family="Source Serif 4, Georgia, serif" font-size="18" font-weight="700" fill="#1A241E">Сегодня</text>
+  <text x="948" y="478" font-family="IBM Plex Sans, Arial" font-size="13" fill="#5C6B5F">Лобби «У костра»</text>
+  <text x="948" y="504" font-family="IBM Plex Sans, Arial" font-size="13" fill="#5C6B5F">Код · 7F2K</text>
+  <rect x="948" y="530" width="120" height="36" rx="18" fill="#2F6A42"/>
+  <text x="1008" y="553" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="13" font-weight="600" fill="#fff">Войти</text>
+
+  <rect x="924" y="602" width="316" height="170" rx="24" fill="rgba(255,255,255,0.46)" stroke="rgba(255,255,255,0.78)" stroke-width="1.5" filter="url(#cardShadow)"/>
+  <text x="948" y="642" font-family="Source Serif 4, Georgia, serif" font-size="18" font-weight="700" fill="#1A241E">Рецепт блока</text>
+  <text x="948" y="676" font-family="IBM Plex Sans, Arial" font-size="12" fill="#1A241E">bg rgba(255,255,255,.42–.50)</text>
+  <text x="948" y="698" font-family="IBM Plex Sans, Arial" font-size="12" fill="#1A241E">blur 16–20px · radius 22–28</text>
+  <text x="948" y="720" font-family="IBM Plex Sans, Arial" font-size="12" fill="#1A241E">border rgba(255,255,255,.72)</text>
+  <text x="948" y="742" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">внутри: solid soft rows для цифр</text>
+
+  <!-- footer note -->
+  <text x="40" y="800" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Принцип с рефа: стекло-блоки на живом фоне. Палитра — Листва (не purple neon EduHub).</text>
+</svg>
