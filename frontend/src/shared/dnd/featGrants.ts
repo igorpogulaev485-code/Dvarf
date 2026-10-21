@@ -1,6 +1,14 @@
 /** Feat catalog → picks → ledger (mirrors race/class grants). */
 
 import type { NaturalArmor } from './armor'
+import {
+  spellOptionsForClassList,
+  type FeatSpellCatalogRow,
+  type FeatSpellListOption,
+} from './featSpellListOptions'
+
+export type { FeatSpellCatalogRow, FeatSpellListOption }
+export type FeatSpellOneOptionsFrom = 'class_spell_list' | 'class_ritual_list'
 
 export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 
@@ -87,6 +95,13 @@ export type FeatChoiceDef =
        * are valid (Magic Initiate / Strixhaven college lists).
        */
       filterEnum: string | null
+      /**
+       * Resolve options from the spell catalog for the class picked via
+       * filterEnum (`class_spell_list`) or ritual-only subset
+       * (`class_ritual_list`). Hardcoded `options` are a fallback when the
+       * catalog is unavailable.
+       */
+      optionsFrom: FeatSpellOneOptionsFrom | null
       /** Picks in the same uniqueGroup must be distinct spell ids. */
       uniqueGroup: string | null
       /** Fixed casting ability for this pick (e.g. artificer INT). */
@@ -192,6 +207,11 @@ export type FeatGrantDef = {
   }
   choices: FeatChoiceDef[]
   fixedGrants: FeatGrantsPackage
+  /**
+   * Fixed skills that become proficiency, or expertise if the character
+   * already has proficiency (UA Stealthy / skill feats).
+   */
+  skillOrExpertise: string[]
 }
 
 export type FeatGrantPicks = {
@@ -504,6 +524,13 @@ function parseChoices(raw: unknown): FeatChoiceDef[] {
         typeof abilityRaw === 'string' && ABILITY_KEYS.includes(abilityRaw as AbilityKey)
           ? (abilityRaw as AbilityKey)
           : null
+      const optionsFromRaw =
+        readString(row.options_from) ?? readString(row.optionsFrom)
+      const optionsFrom: FeatSpellOneOptionsFrom | null =
+        optionsFromRaw === 'class_spell_list' ||
+        optionsFromRaw === 'class_ritual_list'
+          ? optionsFromRaw
+          : null
       out.push({
         id,
         type: 'spell_one',
@@ -513,6 +540,7 @@ function parseChoices(raw: unknown): FeatChoiceDef[] {
         notesRu: readString(row.notes_ru) ?? readString(row.notesRu),
         filterEnum:
           readString(row.filter_enum) ?? readString(row.filterEnum) ?? null,
+        optionsFrom,
         uniqueGroup:
           readString(row.unique_group) ?? readString(row.uniqueGroup) ?? null,
         castingAbility,
@@ -527,7 +555,21 @@ function parseChoices(raw: unknown): FeatChoiceDef[] {
 export function spellOneOptionsForPicks(
   choice: Extract<FeatChoiceDef, { type: 'spell_one' }>,
   enumIds: Partial<Record<string, string>>,
+  spellCatalog?: FeatSpellCatalogRow[] | null,
 ): Array<{ id: string; label_ru: string; level?: number; lists?: string[] }> {
+  if (choice.optionsFrom && choice.filterEnum) {
+    const selected = enumIds[choice.filterEnum]?.trim().toLowerCase()
+    if (!selected) return []
+    if (spellCatalog?.length) {
+      return spellOptionsForClassList({
+        spells: spellCatalog,
+        classSlug: selected,
+        level: choice.level,
+        ritualOnly: choice.optionsFrom === 'class_ritual_list',
+      })
+    }
+    // Catalog not loaded yet — fall back to hardcoded lists if present.
+  }
   if (!choice.filterEnum) return choice.options
   const selected = enumIds[choice.filterEnum]?.trim().toLowerCase()
   if (!selected) return []
@@ -759,6 +801,9 @@ export function featGrantDefFromCatalog(input: {
       featEnumsAll: featEnumsAll.length ? featEnumsAll : undefined,
     },
     choices: parseChoices(data.choices),
+    skillOrExpertise: parseStringList(
+      grants.skill_or_expertise ?? grants.skillOrExpertise,
+    ),
     fixedGrants: emptyPackage({
       abilityBonuses: parseAbilityMap(grants.ability_bonuses ?? grants.abilityBonuses),
       armorProficiencies: parseArmorList(
@@ -789,6 +834,9 @@ export function featGrantDefFromCatalog(input: {
         grants.natural_armor ?? grants.naturalArmor,
       ),
       spells: parseFeatSpells(grants.spells ?? grants.feat_spells ?? grants.featSpells),
+      expertiseSkills: parseStringList(
+        grants.expertise_skills ?? grants.expertiseSkills,
+      ),
       benefitsRu: readString(data.benefits_ru) ?? readString(data.benefitsRu) ?? '',
       summaryRu: readString(data.summary_ru) ?? readString(data.summaryRu) ?? '',
     }),
@@ -971,6 +1019,8 @@ export function validateFeatGrantPicks(input: {
   ownedFeatEnums?: OwnedFeatEnumSnapshot[]
   /** Skill keys the character is proficient in (for expertise). */
   proficientSkills?: string[]
+  /** Required when a spell_one choice uses options_from class_* lists. */
+  spellCatalog?: FeatSpellCatalogRow[] | null
 }): string | null {
   const { def, picks } = input
   const prereqFail = featPrerequisitesUnmet(def, input)
@@ -1027,13 +1077,20 @@ export function validateFeatGrantPicks(input: {
     }
     if (choice.type === 'spell_one') {
       const id = picks.enumIds[choice.id]
-      const allowed = spellOneOptionsForPicks(choice, picks.enumIds)
+      const allowed = spellOneOptionsForPicks(
+        choice,
+        picks.enumIds,
+        input.spellCatalog,
+      )
       if (!id || !allowed.some((opt) => opt.id === id)) {
         if (choice.filterEnum && !picks.enumIds[choice.filterEnum]) {
           return `Сначала выбери: ${
             def.choices.find((row) => row.id === choice.filterEnum)?.label_ru ??
             'список'
           }`
+        }
+        if (choice.optionsFrom && !input.spellCatalog?.length) {
+          return 'Список заклинаний ещё загружается — подожди секунду'
         }
         return `Выбери: ${choice.label_ru}`
       }
@@ -1105,6 +1162,9 @@ export function buildAppliedFeatPackage(input: {
   def: FeatGrantDef
   picks: FeatGrantPicks
   characterLevel?: number
+  /** Skill keys the character is already proficient in (skill_or_expertise). */
+  proficientSkills?: string[]
+  spellCatalog?: FeatSpellCatalogRow[] | null
 }): FeatGrantsPackage {
   const { def, picks } = input
   const abilityBonuses: Partial<Record<AbilityKey, number>> = {
@@ -1114,8 +1174,31 @@ export function buildAppliedFeatPackage(input: {
   const enumPicks: Record<string, string> = {}
   const enumMultiPicks: Record<string, string[]> = {}
   const skillsFromEnum: string[] = []
+  const skillsFromOrExpertise: string[] = []
   const pickedSpells: FeatSpell[] = []
-  const expertiseSkills = [...picks.expertiseSkills]
+  const expertiseSkills = [
+    ...def.fixedGrants.expertiseSkills,
+    ...picks.expertiseSkills,
+  ]
+
+  const proficient = new Set(
+    (input.proficientSkills ?? []).map((key) => key.trim().toLowerCase()),
+  )
+  // Skills granted by this package also count as proficient for skill_or_expertise
+  // (e.g. same feat grants a skill pick + expertise path — not used by Stealthy).
+  for (const key of [...def.fixedGrants.skills, ...picks.skills]) {
+    proficient.add(key.trim().toLowerCase())
+  }
+  for (const skill of def.skillOrExpertise) {
+    const key = skill.trim().toLowerCase()
+    if (!key) continue
+    if (proficient.has(key)) {
+      expertiseSkills.push(key)
+    } else {
+      skillsFromOrExpertise.push(key)
+      proficient.add(key)
+    }
+  }
 
   for (const choice of def.choices) {
     if (choice.type === 'ability_one') {
@@ -1162,9 +1245,11 @@ export function buildAppliedFeatPackage(input: {
     if (choice.type === 'spell_one') {
       const id = picks.enumIds[choice.id]
       if (!id) continue
-      const opt = spellOneOptionsForPicks(choice, picks.enumIds).find(
-        (row) => row.id === id,
-      )
+      const opt = spellOneOptionsForPicks(
+        choice,
+        picks.enumIds,
+        input.spellCatalog,
+      ).find((row) => row.id === id)
       if (!opt) continue
       enumPicks[choice.id] = id
       pickedSpells.push({
@@ -1283,6 +1368,7 @@ export function buildAppliedFeatPackage(input: {
       ...def.fixedGrants.skills,
       ...picks.skills,
       ...skillsFromEnum,
+      ...skillsFromOrExpertise,
     ]),
     tools: uniqueStrings([...def.fixedGrants.tools, ...picks.tools]),
     languages: uniqueStrings([...def.fixedGrants.languages, ...picks.languages]),

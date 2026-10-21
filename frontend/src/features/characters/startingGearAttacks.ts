@@ -91,3 +91,67 @@ export function buildStartingWeaponAttacks(input: {
   }
   return { attacks, attackIds }
 }
+
+function attackStackQty(attack: Pick<WeaponAttack, 'qty'>): number {
+  const raw = attack.qty
+  if (raw == null || !Number.isFinite(raw)) return 1
+  return Math.max(1, Math.floor(raw))
+}
+
+/**
+ * Collapse duplicate starting-weapon attack cards that share a weapon identity
+ * (same preset labelRu) into one card with summed qty.
+ *
+ * Inventory rows stay separate — this only merges the Attacks list.
+ * Rows without a weapon preset are left untouched (no fuzzy merge).
+ * Survivor keeps the first card's id / inventory link.
+ */
+export function mergeStartingWeaponAttacksByIdentity(
+  attacks: WeaponAttack[],
+): WeaponAttack[] {
+  const out: WeaponAttack[] = []
+  const indexByKey = new Map<string, number>()
+
+  for (const attack of attacks) {
+    const preset = findWeaponPreset(attack.name)
+    if (!preset) {
+      out.push(attack)
+      continue
+    }
+    const key = preset.labelRu
+    const existingIndex = indexByKey.get(key)
+    if (existingIndex == null) {
+      indexByKey.set(key, out.length)
+      out.push({
+        ...attack,
+        name: preset.labelRu,
+      })
+      continue
+    }
+    const existing = out[existingIndex]!
+    const sum = attackStackQty(existing) + attackStackQty(attack)
+    out[existingIndex] = {
+      ...existing,
+      name: preset.labelRu,
+      qty: sum > 1 ? sum : null,
+      is_proficient: Boolean(existing.is_proficient || attack.is_proficient),
+      held: Boolean(existing.held || attack.held),
+      // Prefer a real damage line if the survivor was empty.
+      damage: existing.damage?.trim() ? existing.damage : attack.damage,
+      damage_type: existing.damage_type?.trim()
+        ? existing.damage_type
+        : attack.damage_type,
+      ability: existing.ability || attack.ability,
+    }
+  }
+  return out
+}
+
+/** Drop attack ids that no longer exist after identity merge. */
+export function filterAttackIdsAfterMerge(
+  attackIds: string[],
+  attacks: WeaponAttack[],
+): string[] {
+  const surviving = new Set(attacks.map((row) => row.id))
+  return attackIds.filter((id) => surviving.has(id))
+}

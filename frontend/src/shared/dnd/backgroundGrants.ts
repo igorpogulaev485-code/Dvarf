@@ -444,63 +444,90 @@ export function skillOptionsForBackground(def: BackgroundGrantDef): string[] {
   return [...choice.from]
 }
 
-export function validateBackgroundGrantPicks(input: {
-  def: BackgroundGrantDef
+/**
+ * Human-readable blockers for background setup Apply.
+ * Returns **all** open forks (not only the first) so the dialog can list them.
+ * Shared by UI and `validateBackgroundGrantPicks` — one source of truth.
+ */
+export function backgroundSetupBlockingReasons(input: {
+  def: BackgroundGrantDef | null
   picks: BackgroundGrantPicks
-}): string | null {
+  /** True while a parent with variants is open and nothing chosen yet. */
+  variantPending?: boolean
+}): string[] {
+  const reasons: string[] = []
+  if (input.variantPending) {
+    reasons.push('Выбери базовый вариант или ответвление.')
+    return reasons
+  }
   const { def, picks } = input
+  if (!def) {
+    reasons.push(
+      'Для этой записи пока нет пакета эффектов — закрой и заполни вручную.',
+    )
+    return reasons
+  }
+
   const skillNeed = def.skillChoices?.count ?? 0
   if (picks.skills.length !== skillNeed) {
-    return `Выбери навыки: ${skillNeed}`
-  }
-  if (def.skillChoices && def.skillChoices.from !== 'any') {
+    reasons.push(
+      `Выбери навыки: нужно ${skillNeed}, сейчас ${picks.skills.length}.`,
+    )
+  } else if (def.skillChoices && def.skillChoices.from !== 'any') {
     const allowed = new Set(def.skillChoices.from)
     if (picks.skills.some((key) => !allowed.has(key))) {
-      return 'Навык вне списка предыстории'
+      reasons.push('Навык вне списка предыстории.')
     }
   }
   if (new Set(picks.skills).size !== picks.skills.length) {
-    return 'Нельзя выбрать один навык дважды'
+    reasons.push('Нельзя выбрать один навык дважды.')
   }
 
   const toolNeed = def.toolChoices?.count ?? 0
   if (picks.tools.length !== toolNeed) {
-    return `Выбери инструменты: ${toolNeed}`
-  }
-  if (def.toolChoices) {
-    const allowed = new Set(def.toolChoices.from.map((item) => item.toLowerCase()))
+    reasons.push(
+      `Выбери инструменты: нужно ${toolNeed}, сейчас ${picks.tools.length}.`,
+    )
+  } else if (def.toolChoices) {
+    const allowed = new Set(
+      def.toolChoices.from.map((item) => item.toLowerCase()),
+    )
     if (picks.tools.some((name) => !allowed.has(name.trim().toLowerCase()))) {
-      return 'Инструмент вне списка предыстории'
+      reasons.push('Инструмент вне списка предыстории.')
     }
   }
   if (
-    new Set(picks.tools.map((item) => item.toLowerCase())).size !== picks.tools.length
+    new Set(picks.tools.map((item) => item.toLowerCase())).size !==
+    picks.tools.length
   ) {
-    return 'Нельзя выбрать один инструмент дважды'
+    reasons.push('Нельзя выбрать один инструмент дважды.')
   }
 
   if (picks.languages.length !== def.languagesChoose) {
-    return `Выбери языки: ${def.languagesChoose}`
+    reasons.push(
+      `Выбери языки: нужно ${def.languagesChoose}, сейчас ${picks.languages.length}.`,
+    )
   }
   if (
     new Set(picks.languages.map((item) => item.toLowerCase())).size !==
     picks.languages.length
   ) {
-    return 'Нельзя выбрать один язык дважды'
+    reasons.push('Нельзя выбрать один язык дважды.')
   }
 
   if (def.equipment.length > 0) {
     const id = picks.equipmentPackageId
-    if (!id) return 'Выбери снаряжение предыстории или «Без снаряжения»'
-    if (id !== 'skip' && !def.equipment.some((pack) => pack.id === id)) {
-      return 'Неизвестный пакет снаряжения'
-    }
-    if (id !== 'skip' && def.equipmentOrChoices.length > 0) {
+    if (!id) {
+      reasons.push('Выбери снаряжение предыстории или «Без снаряжения».')
+    } else if (id !== 'skip' && !def.equipment.some((pack) => pack.id === id)) {
+      reasons.push('Неизвестный пакет снаряжения.')
+    } else if (id !== 'skip') {
       for (const choice of def.equipmentOrChoices) {
         const picked = picks.equipmentOrPicks[choice.id]
-        if (!picked) return `Выбери вариант: ${choice.labelRu}`
-        if (!choice.options.includes(picked)) {
-          return `Неизвестный вариант снаряжения: ${choice.labelRu}`
+        if (!picked) {
+          reasons.push(`Выбери вариант: ${choice.labelRu}.`)
+        } else if (!choice.options.includes(picked)) {
+          reasons.push(`Неизвестный вариант снаряжения: ${choice.labelRu}.`)
         }
       }
     }
@@ -509,14 +536,17 @@ export function validateBackgroundGrantPicks(input: {
   for (const table of def.choiceTables) {
     const picked = picks.choiceTablePicks[table.id] ?? []
     if (picked.length !== table.count) {
-      return `Выбери «${table.labelRu}»: ${table.count}`
-    }
-    const allowed = new Set(table.options)
-    if (picked.some((row) => !allowed.has(row))) {
-      return `Вариант вне таблицы «${table.labelRu}»`
-    }
-    if (new Set(picked).size !== picked.length) {
-      return `Нельзя выбрать один пункт «${table.labelRu}» дважды`
+      reasons.push(
+        `Выбери «${table.labelRu}»: нужно ${table.count}, сейчас ${picked.length}.`,
+      )
+    } else {
+      const allowed = new Set(table.options)
+      if (picked.some((row) => !allowed.has(row))) {
+        reasons.push(`Вариант вне таблицы «${table.labelRu}».`)
+      }
+      if (new Set(picked).size !== picked.length) {
+        reasons.push(`Нельзя выбрать один пункт «${table.labelRu}» дважды.`)
+      }
     }
   }
 
@@ -524,27 +554,43 @@ export function validateBackgroundGrantPicks(input: {
   const traitNeed = personalityPickCount(def)
   if (picks.personalityTraits.length > 0) {
     if (picks.personalityTraits.length !== traitNeed) {
-      return `Выбери черты характера: ${traitNeed} (или ни одной — заполнишь позже)`
-    }
-    const allowed = new Set(def.personalityTraits)
-    if (picks.personalityTraits.some((row) => !allowed.has(row))) {
-      return 'Черта характера вне таблицы предыстории'
-    }
-    if (new Set(picks.personalityTraits).size !== picks.personalityTraits.length) {
-      return 'Нельзя выбрать одну черту дважды'
+      reasons.push(
+        `Черты характера: нужно ${traitNeed}, сейчас ${picks.personalityTraits.length} (или сними все — заполнишь позже).`,
+      )
+    } else {
+      const allowed = new Set(def.personalityTraits)
+      if (picks.personalityTraits.some((row) => !allowed.has(row))) {
+        reasons.push('Черта характера вне таблицы предыстории.')
+      }
+      if (
+        new Set(picks.personalityTraits).size !== picks.personalityTraits.length
+      ) {
+        reasons.push('Нельзя выбрать одну черту дважды.')
+      }
     }
   }
-  if (picks.ideal) {
-    if (!def.ideals.includes(picks.ideal)) return 'Идеал вне таблицы предыстории'
+  if (picks.ideal && !def.ideals.includes(picks.ideal)) {
+    reasons.push('Идеал вне таблицы предыстории.')
   }
-  if (picks.bond) {
-    if (!def.bonds.includes(picks.bond)) return 'Привязанность вне таблицы предыстории'
+  if (picks.bond && !def.bonds.includes(picks.bond)) {
+    reasons.push('Привязанность вне таблицы предыстории.')
   }
-  if (picks.flaw) {
-    if (!def.flaws.includes(picks.flaw)) return 'Слабость вне таблицы предыстории'
+  if (picks.flaw && !def.flaws.includes(picks.flaw)) {
+    reasons.push('Слабость вне таблицы предыстории.')
   }
 
-  return null
+  return reasons
+}
+
+export function validateBackgroundGrantPicks(input: {
+  def: BackgroundGrantDef
+  picks: BackgroundGrantPicks
+}): string | null {
+  const reasons = backgroundSetupBlockingReasons({
+    def: input.def,
+    picks: input.picks,
+  })
+  return reasons[0] ?? null
 }
 
 export function formatBackgroundGrantSummary(input: {
@@ -729,7 +775,18 @@ export function storeTextBlockFromEditor(
 const FEATURE_START = '<!-- dvarf-background-feature -->'
 const FEATURE_END = '<!-- /dvarf-background-feature -->'
 
-export function buildBackgroundFeatureText(def: BackgroundGrantDef): string {
+/** Structured card for the abilities panel (and backfill helpers). */
+export type BackgroundFeatureCard = {
+  id: string
+  nameRu: string
+  summaryRu: string
+}
+
+export function buildBackgroundFeatureText(def: {
+  featureNameRu?: string | null
+  featureTextRu?: string | null
+  featNoteRu?: string | null
+}): string {
   const name = (def.featureNameRu || '').trim()
   const body = (def.featureTextRu || '').trim()
   const feat = (def.featNoteRu || '').trim()
@@ -739,6 +796,27 @@ export function buildBackgroundFeatureText(def: BackgroundGrantDef): string {
     feat,
   ].filter(Boolean)
   return parts.join('\n')
+}
+
+/** Glance card from an applied grant / catalog feature fields. */
+export function backgroundFeatureCardFromGrant(input: {
+  slug?: string | null
+  featureNameRu?: string | null
+  featureTextRu?: string | null
+  featNoteRu?: string | null
+}): BackgroundFeatureCard | null {
+  const nameRu = (input.featureNameRu || '').trim()
+  if (!nameRu) return null
+  const summaryRu = [input.featureTextRu, input.featNoteRu]
+    .map((part) => (part || '').trim())
+    .filter(Boolean)
+    .join('\n\n')
+  const slug = (input.slug || 'background').trim() || 'background'
+  return {
+    id: `background-feature:${slug}`,
+    nameRu,
+    summaryRu: summaryRu || nameRu,
+  }
 }
 
 export function upsertBackgroundFeatureBlock(

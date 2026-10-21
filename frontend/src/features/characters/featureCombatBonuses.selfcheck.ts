@@ -4,6 +4,7 @@
 import {
   darkvisionFtFromFeatures,
   initiativeBonusFromFeatures,
+  initiativeBonusFromRace,
 } from './featureCombatBonuses.ts'
 
 function assert(cond: unknown, msg: string): asserts cond {
@@ -50,6 +51,20 @@ assert(
 assert(
   darkvisionFtFromFeatures({ features: [], baseDarkvision: 60 }) === 60,
   'no umbral keeps base',
+)
+
+assert(
+  initiativeBonusFromRace({
+    grant: {
+      combatBonuses: { initiative: 'proficiency_bonus' },
+    },
+    proficiencyBonus: 6,
+  }) === 6,
+  'race Hare-Trigger PB',
+)
+assert(
+  initiativeBonusFromRace({ grant: null, proficiencyBonus: 6 }) === 0,
+  'no race grant = 0',
 )
 
 console.log('featureCombatBonuses.selfcheck: ok')

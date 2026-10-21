@@ -1,5 +1,9 @@
 /** Live combat bonuses derived from unlocked class/subclass features. */
 
+import {
+  initiativeBonusFromRaceGrant,
+  type AppliedRaceGrant,
+} from '../../shared/dnd/raceGrants'
 import { abilityModifier, type AbilityKey } from './sheetTypes'
 
 type FeatureLike = { id: string }
@@ -7,9 +11,11 @@ type FeatureLike = { id: string }
 type AbilitiesLike = Partial<Record<AbilityKey, number>>
 
 /**
- * Class/subclass initiative add-ons (stack with Alert and other feat bonuses).
+ * Class/subclass initiative add-ons (stack with race/feat bonuses elsewhere).
  * - Dread Ambusher (Gloom Stalker): +Wisdom modifier
  * - Rakish Audacity (Swashbuckler): +Charisma modifier
+ * Race (Hare-Trigger) and Alert feat: `initiativeBonusFromRaceGrant` /
+ * `sumFeatInitiativeBonus`.
  */
 export function initiativeBonusFromFeatures(input: {
   features: FeatureLike[]
@@ -28,6 +34,14 @@ export function initiativeBonusFromFeatures(input: {
     }
   }
   return bonus
+}
+
+/** Race combat_bonuses.initiative (e.g. Hare-Trigger = proficiency bonus). */
+export function initiativeBonusFromRace(input: {
+  grant: Pick<AppliedRaceGrant, 'combatBonuses'> | null | undefined
+  proficiencyBonus: number
+}): number {
+  return initiativeBonusFromRaceGrant(input)
 }
 
 /**

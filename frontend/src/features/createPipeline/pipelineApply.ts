@@ -114,6 +114,12 @@ import {
 } from '../characters/textBlocks'
 import { readSpells, spellsToSheet, type SpellsState } from '../characters/spells'
 import {
+  ensureBlankSpellbookInInventory,
+  isSpellbookInventoryItem,
+  syncWizardSpellbookWithInventory,
+} from '../characters/wizardSpellbookInventory'
+import { isWizardClassName } from '../../shared/dnd/pendingFeatureChoices'
+import {
   playToSheet,
   withSyncedHitDiceSummary,
   type PlayState,
@@ -456,7 +462,13 @@ function normalizeLinePicks(
         : weaponRaw === null
           ? null
           : undefined
-    out[lineId] = { optionId, weaponName }
+    let weaponNames: Array<string | null> | undefined
+    if (Array.isArray(row.weaponNames)) {
+      weaponNames = row.weaponNames.map((value) =>
+        typeof value === 'string' && value.trim() ? value.trim() : null,
+      )
+    }
+    out[lineId] = { optionId, weaponName, weaponNames }
   }
   return out
 }
@@ -1262,6 +1274,27 @@ export async function applyPipelineToSheet(input: {
     })
     Object.assign(draft, mergeSubclass(draft, synced))
     finalSpells = synced.spells
+  }
+
+  // Slice C: bind / ensure physical spellbook on final persist (same contract as mid-create).
+  {
+    const hasWizard = classes.some(
+      (row) =>
+        isWizardClassName(row.name) ||
+        (input.catalog?.classes ?? []).some(
+          (cat) =>
+            cat.id === row.catalog_id && cat.slug.toLowerCase() === 'wizard',
+        ),
+    )
+    if (hasWizard && !draft.inventory.items.some(isSpellbookInventoryItem)) {
+      draft.inventory = ensureBlankSpellbookInInventory(draft.inventory).inventory
+    }
+    const syncedBook = syncWizardSpellbookWithInventory({
+      isWizard: hasWizard,
+      spells: finalSpells,
+      items: draft.inventory.items,
+    })
+    finalSpells = syncedBook.spells
   }
 
   const raceName = state.subrace?.nameRu || state.race?.nameRu || null

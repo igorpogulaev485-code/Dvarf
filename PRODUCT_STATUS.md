@@ -3,9 +3,84 @@
 Единый файл «что уже есть в продукте».  
 Игорь шарит его с друзьями и использует как срез для агентов.
 
-Прод: http://201.34.132.252/ · https://creed20.tech  
-**Prod tip (ветка линии прода):** `cursor/monk-l20-automation-10d6`  
+Прод: https://creed20.tech/  
+**Prod tip (ветка линии прода):** `cursor/versatile-weapons-grip-57bf`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
+
+---
+
+## Сейчас в продукте — свежее
+
+### 2026-10-21 — Наборы: qty содержимого не сбрасывается
+
+| Функция | Как работает |
+|--------|--------------|
+| Soft collapse набора | Сворачивание прячет содержимое, но не удаляет строки |
+| Повторное раскрытие | Те же предметы с уже изменённым количеством (бурдюк 1→9 остаётся 9) |
+
+На проде: **да** · **это новый prod tip** `cursor/pack-qty-persist-2683` · PR #256 · залито 2026-10-21 · поверх tip `optional-class-features-8215` (Tasha optionals + расходники/гримуар сохранены) · `/health` ok · бандл `CharacterDetailPage-DanoONwv.js` · soft collapse на диске · characters=94 classic=19
+
+### 2026-10-21 — Optional class features + умение предыстории на листе
+
+| Функция | Как работает |
+|--------|--------------|
+| Tasha optional class features | В пакетах всех классов (`optional`/`source_book`); плут L3+ — **Точное прицеливание** |
+| Умение предыстории | Карточка в «Способности»; classic читает `traits`; backfill при открытии |
+| Миграция | Unlock из JSON; `ensureBackgroundFeatureOnDraft`; alembic `z2a3b4c5d6e7` |
+
+На проде: **да** · было tip `cursor/optional-class-features-8215` · PR #255 · залито 2026-10-21 · alembic `z2a3b4c5d6e7` · `/health` ok · бандл `CharacterDetailPage-DpIAteFJ.js` · `steady_aim` + `ConsumableSpendPadDialog` на диске · поверх tip `restore-consumables-grimoire-0bc3` (расходники/гримуар сохранены)
+
+
+### 2026-10-21 — Restore: расходники + гримуар поверх ship
+
+Ship `create-feedback-ship-fc00` собрали от `vpn-https` **без** live tip `grimoire-prepare-home-3aba` → с прода пропали Undo/×N расходников и UX «Гримуар = дом подготовки». Classic / cabinet / lobby / Play Desk каркас **на месте**.
+
+На проде: **да** · **это новый prod tip** `cursor/restore-consumables-grimoire-0bc3` · PR #254 · залито 2026-10-21 · `/health` ok · бандл `CharacterDetailPage-DA3Hh2L6.js` · `consumableSpend.ts` на диске · ship U/A/C/F/E сохранены
+
+### 2026-10-21 — Фидбек создания (U/A/C/F/E)
+
+| Срез | Эффект |
+|------|--------|
+| U | Setup-диалоги: явные причины блокировки Apply |
+| A | Расы: `activated_movement` + `combat_bonuses` (не точечный fly) |
+| C | Create: draft inventory + bind книги заклинаний |
+| F | Колдун Гримуар: +3 заговора любого списка вне бюджета |
+| E | Стартовые атаки: merge дублей по identity оружия |
+
+На проде: **да** · было tip `cursor/create-feedback-ship-fc00` (затирал 3b91/3aba) · ship PR #253 · срезы #248–#252 · залито 2026-10-21 · alembic `y1z2a3b4c5d6` · `/health` ok
+
+### 2026-10-21 — Гримуар = дом подготовки; «Подготовить» только у волшебника
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Жрец / друид / паладин / изобретатель | Готовка в **Гримуаре**: чипы Все / Подготовленные / Не подготовленные; «На лист» убран | Один экран вместо двух |
+| Кнопка на листе | У prepared_list **нет** «Подготовить» — только Настройки → Гримуар | Не путает с утренней подготовкой волшебника |
+| Волшебник | «Подготовить» = набор **из книги** на сегодня; новые записи — Гримуар («В книгу») | Как PHB: книга ≠ подготовка |
+| Alone-max | В гримуаре список класса до alone-max уровня (мультикласс) | Видно полный пул класса, не общий CR |
+
+На проде: **да** · tip `cursor/restore-consumables-grimoire-0bc3` · PR #245/#254 · восстановлено 2026-10-21 · `/health` ok
+
+### 2026-10-21 — Расходники: защита от случайных тапов
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Чип «потратить» | Тратит только кнопка, не тап по имени строки | Меньше случайных −1 в бою |
+| Undo в тосте | После траты тост с именем + **Отменить** (~8 с) | Видно что ушло; можно вернуть |
+| ×N | Pad «Потратить: {предмет}» → qty → confirm | Несколько штук за раз, имя в заголовке |
+| Журнал трат | Под расходниками, сессия + «вернуть» | История коротких трат на столе |
+
+На проде: **да** · tip `cursor/restore-consumables-grimoire-0bc3` · PR #246/#254 · восстановлено 2026-10-21 · бандл `CharacterDetailPage-DA3Hh2L6.js` · `consumableSpend` в бандле
+
+### 2026-10-21 — VPN + канон https://creed20.tech
+
+| Что | Эффект |
+|-----|--------|
+| Канон URL | Только **https://creed20.tech** |
+| IP → HTTPS | Старые закладки `http://201.34…` уводят на creed20 |
+| Boot splash | Если модули не пришли за 20с — текст ошибки, не белый экран |
+| MTU harden | TCPMSS + probing на :80/:443 для мобильного VPN |
+
+На проде: **да** · в линии tip (сейчас restore-ветка поверх ship) · PR #243 · залито 2026-10-21
 
 ---
 
@@ -59,6 +134,36 @@
 
 ## Сейчас в продукте (прод)
 
+### 2026-10-21 — универсальное оружие (щит + куб 1к8 / две руки 1к10)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Боевой молот + щит | Универсальное оружие = 1 рука (баг substring `молот` снят) | Можно держать молот и щит вместе |
+| Куб урона | Свободная рука → versatile (часто 1к10); со щитом → базовый (1к8) | Урон в атаках совпадает с хватом |
+| Покрытие PHB | Боевой топор, длинный меч, боевой молот, посох, копьё, трезубец | Одно правило на всё универсальное |
+
+На проде: **да** · **это новый prod tip** `cursor/versatile-weapons-grip-57bf` · PR #257 · залито 2026-10-21 · поверх tip `pack-qty-persist-2683` · `/health` ok · бандл `CharacterDetailPage-DICuRzkn.js` · characters=94 classic=19 · Play Desk + classic на диске
+
+### 2026-10-21 — «Все доступные» из списка класса при подготовке
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Жрец / друид / паладин / изобретатель | Вкладка «Все доступные» подтягивает заклинания класса из гримуара до макс. уровня ячеек *этого* класса | Не надо вручную тащить весь список из гримуара — только отметить, что готовишь |
+| Волшебник / known-кастеры | Без изменений: только то, что уже на листе / в книге | Старое поведение сохранено |
+| Мультикласс | Списки классов объединяются; потолок уровня — по каждому классу отдельно | Жрец 3 / воин 5 → только 1–2 ур. жреца, не по общим ячейкам |
+
+На проде: **да** · **это новый prod tip** `cursor/prepare-class-list-available-3aba` · PR #242 · залито 2026-10-21 · `/health` ok · бандл содержит «список класса» / «Подготовить заклинания» · classic + cabinet + lobby на диске · edge (Caddy) жив
+
+### 2026-10-20 — черта «Скрытный (Stealthy)» (UA)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Черта в каталоге | UA `stealthy` в справочнике черт 2014 | Можно выбрать при ASI / черте от мастера / расы |
+| Скрытность | Нет владения → владение; уже есть → экспертиза (×2 БМ) | Модификатор Скрытности на листе обновляется сам |
+| +1 Лов + текст | ASI и описание (10 фт. скрытности на виду) на лист | Как в карточке черты |
+
+На проде: **да** · **это новый prod tip** `cursor/feat-stealthy-3565` · PR #241 · залито 2026-10-20 · `/health` ok · alembic `x0y1z2a3b4c5` · `stealthy` в `catalog_entries` (`skill_or_expertise: stealth`) · Play Desk + classic + create на диске
+
 ### 2026-10-20 — Онбординг новичка (O0+O1)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -88,7 +193,26 @@
 | Боевые искусства | Кость БИ на monk weapon + карточка «Безоружный удар» | Короткий меч 1к10+Ловк на L17+ |
 | Скорость | Mobile + Unarmored Movement суммируются в шапке | Человек+Подвижный+монах 20 = 70 фт |
 
-На проде: **да** · **это новый prod tip** `cursor/monk-l20-automation-10d6` · PR #238 · залито 2026-10-20 · `/health` ok · бандл `CharacterDetailPage-Nl8qI7Ct.js` / `classMovement-ssC2V3fj.js` · `martialArts.ts` + `featureSaveProficiency.ts` + `diamond_soul` на диске
+На проде: **да** · tip `cursor/monk-l20-automation-10d6` · PR #238 · залито 2026-10-20 · `/health` ok · бандл `CharacterDetailPage-Nl8qI7Ct.js` / `classMovement-ssC2V3fj.js` · `martialArts.ts` + `featureSaveProficiency.ts` + `diamond_soul` на диске
+
+### 2026-10-20 — создание: навыки предыстории + снаряжение класса по строкам
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Серые навыки на шаге класса | В блок «уже есть» входят фиксированные навыки расы/предыстории **и** выбранные, не только picks | Нельзя снова взять Insight/Religion и т.п. с аколита — чипы серые с пометкой «уже есть» |
+| Стартовое снаряжение класса | У всех PHB-классов (+ artificer) выбор **по строкам a/b/c**, как у жреца; пакеты A/B убраны; остаётся «Золото» | Можно собрать набор по блокам (оружие / доспех / набор…), а не брать целый готовый пакет |
+
+На проде: **да** · **это новый prod tip** `cursor/create-skills-equip-fix-1dbf` · PR #240 · залито 2026-10-20 · `/health` ok · бандл `CreateCharacterPage-j2wwe_3M.js` · `CLASS_EQUIPMENT_LINES` + `EquipmentLinesField` + `backgroundGrantDef` на диске
+
+### 2026-10-20 — Посвящённый в магию / ритуалы: полный список класса
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Magic Initiate | `options_from: class_spell_list` → заговоры и 1 круг из каталога по выбранному классу | Жрец: Погребальный звон, Слово сияния, Починка…; то же для барда/друида/колдуна/волшебника |
+| Ritual Caster | `options_from: class_ritual_list` | Ритуалы 1 круга не урезаны curated-списком |
+| Огонь фей | В каталоге снова бард+друид (PHB) | Бард видит Огонь фей в списках |
+
+На проде: **да** · tip `cursor/magic-initiate-spell-lists-10d6` · PR #239 · залито 2026-10-20 · alembic `s1r0c0mifeat1`
 
 ### 2026-10-20 — Сирокко / Следопыт: Archery, Сумрачный охотник, Moonbow
 
@@ -99,7 +223,7 @@
 | Атаки↔инвентарь | Карточка с `inventory_item_id` уходит вместе с предметом | Нет «сирот» после удаления оружия |
 | Сверкающий Лунный Лук (BMT) | Каталог: +1 атака/урон, 1к8+1к6, настройка, 1/рассвет | Со «Стрельбой» атака как в PDF (+9) |
 
-На проде: **да** · **это новый prod tip** `cursor/sirocco-ranger-sync-e6f4` · PR #235 · залито 2026-10-20 · alembic `s1r0c0m00nbw` · `/health` ok · бандл `CharacterDetailPage-CVPY4P_t.js` / `classMovement-CIG_JWrl.js` · Moonbow+Gloom в catalog_entries
+На проде: **да** · **это новый prod tip** `cursor/vpn-https-stable-fab2` · PR #235 · залито 2026-10-20 · alembic `s1r0c0m00nbw` · `/health` ok · бандл `CharacterDetailPage-CVPY4P_t.js` / `classMovement-CIG_JWrl.js` · Moonbow+Gloom в catalog_entries
 
 ### 2026-10-20 — BMT оружие (волна 1)
 
@@ -108,7 +232,7 @@
 | 19 оружий BMT | Каталог `weapon`: от Bloodrage Greataxe до Sword of the Planes (без Moonbow — уже был) | Можно добавить из справочника; эффекты MVP + RU |
 | Пресеты атак | Лук пожара / мелодий, звёздный арбалет, цеп, кнут, клинок шута, меч планов… | Имя оружия матчится в панели атак |
 
-На проде: **да** · tip `cursor/sirocco-ranger-sync-e6f4` · PR #235 · залито 2026-10-20 · alembic `s1r0c0bmtw01` · 19 weapon rows
+На проде: **да** · tip `cursor/vpn-https-stable-fab2` · PR #235 · залито 2026-10-20 · alembic `s1r0c0bmtw01` · 19 weapon rows
 
 ### 2026-10-20 — BMT доспехи/щиты (волна 2)
 
@@ -132,7 +256,7 @@
 |--------|--------------|-------------------------|
 | 8 артефактов DMG + 2 legendary SRD | Vecna, Kas, Orcus, Exalted/Vile, Orb of Dragonkind, Dwarvish Lords; Apparatus / Cubic Gate | Карточки rarity `artifact` / legendary в справочнике (MVP) |
 
-На проде: **да** · tip `cursor/sirocco-ranger-sync-e6f4` · alembic `s1r0c0dmgart1` · backlog BMT+DMG artifacts закрыт (MVP)
+На проде: **да** · tip `cursor/vpn-https-stable-fab2` · alembic `s1r0c0dmgart1` · backlog BMT+DMG artifacts закрыт (MVP)
 
 ### 2026-10-20 — B2 анти-зеркало (ttg/dnd.su)
 
@@ -585,12 +709,19 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 Сюда агенты пишут то, что сделано в PR, но **ещё не залито** на сервер.
 
+<!-- grimoire-prepare-home залито 2026-10-21 → tip grimoire-prepare-home-3aba; блок в «Сейчас в продукте» -->
+<!-- prepare-class-list-available залито 2026-10-21 → tip prepare-class-list-available-3aba; блок в «Сейчас в продукте» -->
+<!-- stealthy залито 2026-10-20 → tip feat-stealthy-3565; блок в «Сейчас в продукте» -->
+
 <!-- load-perf залито 2026-10-16 → tip characters-load-perf-f3ee; блок в «Сейчас в продукте» -->
 <!-- appearance-persist залито 2026-10-16 → tip appearance-persist-f3ee; блок в «Сейчас в продукте» -->
 <!-- tablet-header-hotbar-ship залито 2026-10-16 → tip tablet-header-hotbar-ship-4dea; блок в «Сейчас в продукте» -->
 
 <!-- resource-pips-compact залито 2026-10-20 → tip resource-pips-compact-10d6; блок в «Сейчас в продукте» -->
 <!-- monk-l20-automation залито 2026-10-20 → tip monk-l20-automation-10d6; блок в «Сейчас в продукте» -->
+<!-- magic-initiate-spell-lists залито 2026-10-20 → tip magic-initiate-spell-lists-10d6; блок в «Сейчас в продукте» -->
+<!-- create-skills-equip-fix залито 2026-10-20 → tip create-skills-equip-fix-1dbf; блок в «Сейчас в продукте» -->
+<!-- feat-stealthy залито 2026-10-20 → tip feat-stealthy-3565; блок в «Сейчас в продукте» -->
 
 ---
 
@@ -635,7 +766,16 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
-| 2026-10-20 | `cursor/monk-l20-automation-10d6` · PR #238 | Монах L20: Алмазная душа / БИ / скорость → **новый tip** после Timeweb |
+| 2026-10-21 | `cursor/versatile-weapons-grip-57bf` · PR #257 | Универсальное оружие (щит + 1к8/1к10) → **новый tip** после Timeweb |
+| 2026-10-21 | `cursor/restore-consumables-grimoire-0bc3` | Audit: restore расходники+гримуар после overwrite ship fc00 → **новый tip** (после Timeweb) |
+| 2026-10-21 | `cursor/create-feedback-ship-fc00` · PR #253 | U/A/C/F/E фидбек создания → tip (затёр 3b91/3aba) |
+| 2026-10-21 | `cursor/grimoire-prepare-home-3aba` · PR #245 | Гримуар = дом подготовки; thin Prepare волшебник → tip |
+| 2026-10-21 | `cursor/consumables-tap-guard-plan-3b91` · PR #246 | Расходники: Undo / ×N / журнал → tip |
+| 2026-10-21 | `cursor/vpn-https-stable-fab2` · PR #243 | VPN + канон https://creed20.tech → **новый tip** |
+| 2026-10-21 | `cursor/prepare-class-list-available-3aba` · PR #242 | Prepare: class list → «Все доступные» → tip после Timeweb |
+| 2026-10-20 | `cursor/create-skills-equip-fix-1dbf` · PR #240 | Create: серые навыки предыстории + PHB equip lines → **новый tip** после Timeweb |
+| 2026-10-20 | `cursor/magic-initiate-spell-lists-10d6` · PR #239 | MI/Ritual Caster: полный список класса из каталога → tip после Timeweb |
+| 2026-10-20 | `cursor/monk-l20-automation-10d6` · PR #238 | Монах L20: Алмазная душа / БИ / скорость → tip после Timeweb |
 | 2026-10-20 | `cursor/resource-pips-compact-10d6` · PR #237 | Compact stepper для больших пулов (LoH) → tip после Timeweb |
 | 2026-10-20 | `cursor/onboarding-plan-37ff` · PR #233 | Онбординг O0+O1 (welcome/tour/tips/mobile) → tip после Timeweb |
 | 2026-10-20 | `cursor/sirocco-ranger-sync-e6f4` · PR #235 | Сирокко: Archery / Gloom Stalker / Moonbow → **новый tip** после Timeweb |

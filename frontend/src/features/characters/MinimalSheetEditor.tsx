@@ -45,17 +45,21 @@ import {
 import { EquipmentProficienciesPanel } from './EquipmentProficienciesPanel'
 import {
   applyBackgroundGrantToDraft,
+  ensureBackgroundFeatureOnDraft,
   readAppliedBackgroundGrant,
   reapplyBackgroundOverlays,
   revokeBackgroundGrant,
   type BackgroundGrantDraftSlice,
 } from './backgroundEffects'
 import {
+  backgroundFeatureCardFromGrant,
   backgroundGrantNeedsSetupDialog,
   backgroundVariantsForRoot,
+  buildBackgroundFeatureText,
   emptyBackgroundPicks,
   isBackgroundComboboxRoot,
   resolveBackgroundGrantDef,
+  upsertBackgroundFeatureBlock,
   type AppliedBackgroundGrant,
   type BackgroundGrantDef,
   type BackgroundGrantPicks,
@@ -118,7 +122,27 @@ import {
   withInitiativeBonus,
   type BonusLine,
 } from './modifiers'
-import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
+import {
+  Button,
+  Dialog,
+  Field,
+  Input,
+  NumberInput,
+  Panel,
+  Stack,
+  Text,
+  type ToastInput,
+} from '../../ui'
+import { ConsumableSpendPadDialog } from './ConsumableSpendPadDialog'
+import {
+  appendConsumableSpendLog,
+  formatConsumableSpendToast,
+  formatConsumableUndoToast,
+  markConsumableSpendUndone,
+  newConsumableSpendId,
+  type ConsumableSpendLogEntry,
+  type ConsumableUndoSession,
+} from './consumableSpend'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import {
   emptyRacePicks,
@@ -275,8 +299,19 @@ import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
 import {
   darkvisionFtFromFeatures,
   initiativeBonusFromFeatures,
+  initiativeBonusFromRace,
 } from './featureCombatBonuses'
 import { syncRangerConclaveSpells } from './rangerConclaveSpells'
+import {
+  sanitizeFeaturePicksForPactBoons,
+  syncPactTomeCantrips,
+  withPactTomeCantripsStep,
+} from './pactTomeEffects'
+import {
+  ensurePactTomeSpellCatalog,
+  resolvePactTomeCantripFromOptions,
+} from './PactTomeCantripsPicker'
+import { spellOptionsForPactTomeCantrips } from '../../shared/dnd/featSpellListOptions'
 import {
   ClassFeaturesPanel,
   saveBonusFromFeatures,
@@ -428,8 +463,10 @@ import {
 import { resolveCastEffect } from '../../shared/dnd/spellCatalog'
 import { spendPactSlot, spendSpellSlot } from '../../shared/dnd/spells'
 import {
+  blockPlainText,
   readTextBlocks,
   textBlocksToSheet,
+  withBlockPlainText,
   type TextBlock,
 } from './textBlocks'
 import {
@@ -458,7 +495,7 @@ type MinimalSheetEditorProps = {
   showValueTips?: boolean
   onCreateGuideConsumed?: () => void
   onSaved: (character: CharacterDetail) => void
-  onToast: (message: string) => void
+  onToast: (message: ToastInput) => void
   onRemoteSave?: (message: Extract<SheetSyncMessage, { type: 'sheet-saved' }>) => void
 }
 
@@ -860,6 +897,9 @@ export function MinimalSheetEditor({
   const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const backgroundCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const asiFeatHydrateAttemptedRef = useRef(false)
+  const [backgroundCatalogRows, setBackgroundCatalogRows] = useState<CatalogEntry[]>(
+    [],
+  )
   const skipAutosaveRef = useRef(true)
   const autosaveTimerRef = useRef<number | null>(null)
   const saveInFlightRef = useRef(false)
@@ -976,6 +1016,42 @@ export function MinimalSheetEditor({
       }),
     [unlockedFeatures, characterLevel, draft.abilities],
   )
+  /** Grant first; else catalog by slug/name (older sheets without background_grant). */
+  const resolvedBackgroundFeature = useMemo(() => {
+    const fromGrant = backgroundFeatureCardFromGrant(draft.backgroundGrant ?? {})
+    if (fromGrant) return fromGrant
+    const slug = draft.identity.backgroundSlug?.trim() || ''
+    const name = draft.identity.background?.trim() || ''
+    if (!slug && !name) return null
+    const entry =
+      (slug
+        ? backgroundCatalogRows.find((row) => row.slug === slug)
+        : undefined) ??
+      (name
+        ? backgroundCatalogRows.find(
+            (row) => row.name_ru.trim().toLowerCase() === name.toLowerCase(),
+          )
+        : undefined)
+    if (!entry) return null
+    const def = resolveBackgroundGrantDef({
+      backgroundName: entry.name_ru,
+      catalogSlug: entry.slug,
+      catalogData: entry.data,
+      nameRu: entry.name_ru,
+    })
+    if (!def) return null
+    return backgroundFeatureCardFromGrant({
+      slug: entry.slug,
+      featureNameRu: def.featureNameRu,
+      featureTextRu: def.featureTextRu,
+      featNoteRu: def.featNoteRu,
+    })
+  }, [
+    draft.backgroundGrant,
+    draft.identity.background,
+    draft.identity.backgroundSlug,
+    backgroundCatalogRows,
+  ])
   const martialArtsDie = useMemo(
     () => martialArtsDieFromFeatures(unlockedFeatures),
     [unlockedFeatures],
@@ -1086,13 +1162,98 @@ export function MinimalSheetEditor({
   }, [createGuide, onCreateGuideConsumed])
 
   // Prefetch backgrounds so variant fork popup does not wait on a second fetch.
+  // Also backfill feature name/text + traits marker for older sheets.
   useEffect(() => {
     let active = true
     backgroundCatalogCacheRef.current = null
+    setBackgroundCatalogRows([])
     listCatalogEntries({ kind: 'background', edition: rulesEdition })
       .then((rows) => {
         if (!active) return
         backgroundCatalogCacheRef.current = rows
+        setBackgroundCatalogRows(rows)
+        setDraft((prev) => {
+          if (prev.backgroundGrant) {
+            const entry =
+              rows.find(
+                (row) => row.id === prev.backgroundGrant!.backgroundCatalogId,
+              ) ?? rows.find((row) => row.slug === prev.backgroundGrant!.slug)
+            const catalogDef = entry
+              ? resolveBackgroundGrantDef({
+                  backgroundName: entry.name_ru,
+                  catalogSlug: entry.slug,
+                  catalogData: entry.data,
+                  nameRu: entry.name_ru,
+                })
+              : null
+            const next = ensureBackgroundFeatureOnDraft(
+              {
+                identity: prev.identity,
+                skills: prev.skills,
+                inventory: prev.inventory,
+                textBlocks: prev.textBlocks,
+                weapons: prev.weapons,
+                backgroundGrant: prev.backgroundGrant,
+                protectedSkills: new Set(),
+                protectedTools: new Set(),
+                protectedLanguages: new Set(),
+                protectedWeaponExtras: new Set(),
+              },
+              catalogDef,
+            )
+            if (
+              next.backgroundGrant === prev.backgroundGrant &&
+              next.textBlocks === prev.textBlocks
+            ) {
+              return prev
+            }
+            return {
+              ...prev,
+              backgroundGrant: next.backgroundGrant,
+              textBlocks: next.textBlocks,
+            }
+          }
+          // Name/slug-only sheets: stamp traits from catalog; panel soft-reads catalog.
+          // Do not invent a background_grant (skills/tools ownership stays untouched).
+          const slug = prev.identity.backgroundSlug?.trim() || ''
+          const name = prev.identity.background?.trim() || ''
+          if (!slug && !name) return prev
+          const entry =
+            (slug ? rows.find((row) => row.slug === slug) : undefined) ??
+            (name
+              ? rows.find(
+                  (row) =>
+                    row.name_ru.trim().toLowerCase() === name.toLowerCase(),
+                )
+              : undefined)
+          if (!entry) return prev
+          const catalogDef = resolveBackgroundGrantDef({
+            backgroundName: entry.name_ru,
+            catalogSlug: entry.slug,
+            catalogData: entry.data,
+            nameRu: entry.name_ru,
+          })
+          if (!catalogDef?.featureNameRu) return prev
+          const featureText = buildBackgroundFeatureText(catalogDef)
+          if (!featureText.trim()) return prev
+          let changed = false
+          const textBlocks = prev.textBlocks.map((block) => {
+            if (block.key !== 'traits') return block
+            const current = blockPlainText(block)
+            if (
+              current.includes('<!-- dvarf-background-feature -->') &&
+              current.includes(featureText)
+            ) {
+              return block
+            }
+            const nextPlain = upsertBackgroundFeatureBlock(current, featureText)
+            if (nextPlain === current) return block
+            changed = true
+            return withBlockPlainText(block, nextPlain)
+          })
+          if (!changed) return prev
+          return { ...prev, textBlocks }
+        })
       })
       .catch(() => {
         /* picker will retry on demand */
@@ -1977,6 +2138,10 @@ export function MinimalSheetEditor({
 
   function applyFeaturePicksWithExpertise(featurePicks: FeaturePicksState) {
     setDraft((prev) => {
+      const sanitized = sanitizeFeaturePicksForPactBoons({
+        featurePicks,
+        classes: prev.classes,
+      })
       const unlocked = unlockFeaturesForClasses({
         classes: prev.classes,
         characterLevel: totalCharacterLevel(prev.classes),
@@ -1989,13 +2154,37 @@ export function MinimalSheetEditor({
       const keys = listUnlockedExpertiseKeys(unlocked)
       return {
         ...prev,
-        featurePicks,
+        featurePicks: sanitized,
         skills: syncSkillsExpertiseFromPicks({
           skills: prev.skills,
-          featurePicks,
+          featurePicks: sanitized,
           expertiseKeys: keys,
         }),
       }
+    })
+    setGuidedWizard((prev) => {
+      if (!prev) return null
+      const step = prev.steps[prev.index]
+      if (
+        !step ||
+        (step.kind !== 'feature_choice' && step.kind !== 'pact_tome_cantrips')
+      ) {
+        return prev
+      }
+      const classRow = draft.classes.find((row) => row.id === step.classEntryId)
+      if (!classRow) return prev
+      const sanitized = sanitizeFeaturePicksForPactBoons({
+        featurePicks,
+        classes: draft.classes,
+      })
+      const nextSteps = withPactTomeCantripsStep(prev.steps, {
+        classEntryId: step.classEntryId,
+        className: classRow.name,
+        classLevel: classRow.level,
+        featurePicks: sanitized,
+      })
+      if (nextSteps === prev.steps) return prev
+      return { ...prev, steps: nextSteps }
     })
   }
 
@@ -2091,6 +2280,14 @@ export function MinimalSheetEditor({
                 : Math.min(freeBookSlotsAtLevel(wizardLevel), freeLeft),
         })
       }
+    }
+    if (classRow) {
+      steps = withPactTomeCantripsStep(steps, {
+        classEntryId: input.classEntryId,
+        className: classRow.name,
+        classLevel: Math.max(1, maxLevel),
+        featurePicks: input.featurePicks ?? draft.featurePicks,
+      })
     }
     return steps
   }
@@ -2754,6 +2951,12 @@ export function MinimalSheetEditor({
           picksNeeded: freeBookSlotsAtLevel(leveledRow.level),
         })
       }
+      steps = withPactTomeCantripsStep(steps, {
+        classEntryId: leveledRow.id,
+        className: leveledRow.name,
+        classLevel: leveledRow.level,
+        featurePicks: draft.featurePicks,
+      })
       if (
         !hasSubclass[leveledRow.id] &&
         steps.some((step) => step.kind === 'subclass')
@@ -2859,7 +3062,16 @@ export function MinimalSheetEditor({
       }),
     [unlockedFeatures, draft.abilities],
   )
-  const totalInitiativeBonus = featInitiativeBonus + featureInitiativeBonus
+  const raceInitiativeBonus = useMemo(
+    () =>
+      initiativeBonusFromRace({
+        grant: draft.raceGrant,
+        proficiencyBonus,
+      }),
+    [draft.raceGrant, proficiencyBonus],
+  )
+  const totalInitiativeBonus =
+    featInitiativeBonus + featureInitiativeBonus + raceInitiativeBonus
   const activeFightingStyleId = useMemo(
     () =>
       findFightingStylePick(draft.featurePicks) ??
@@ -3059,6 +3271,34 @@ export function MinimalSheetEditor({
       return { ...prev, spells: synced.spells }
     })
   }, [draft.classes, subclassSlugByEntryId])
+
+  // Pact of the Tome: materialize / revoke +3 any-list cantrips from feature picks.
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      let rows: Awaited<ReturnType<typeof ensurePactTomeSpellCatalog>> = []
+      try {
+        rows = await ensurePactTomeSpellCatalog(rulesEdition)
+      } catch {
+        rows = []
+      }
+      if (cancelled) return
+      const options = spellOptionsForPactTomeCantrips({ spells: rows })
+      setDraft((prev) => {
+        const synced = syncPactTomeCantrips({
+          spells: prev.spells,
+          featurePicks: prev.featurePicks,
+          classes: prev.classes,
+          resolveSpell: (slug) => resolvePactTomeCantripFromOptions(slug, options),
+        })
+        if (!synced.changed) return prev
+        return { ...prev, spells: synced.spells }
+      })
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [draft.featurePicks, draft.classes, rulesEdition])
 
   const effectiveDarkvisionFt = useMemo(
     () => Math.max(featureDarkvisionFt, gearDarkvisionFt(gearEffects)),
@@ -3544,6 +3784,11 @@ export function MinimalSheetEditor({
     slug: SpellSelfFormSlug
   } | null>(null)
   const [deskCastScrollId, setDeskCastScrollId] = useState<string | null>(null)
+  const [consumableSpendPadId, setConsumableSpendPadId] = useState<string | null>(null)
+  const [consumableSpendLog, setConsumableSpendLog] = useState<ConsumableSpendLogEntry[]>(
+    [],
+  )
+  const consumableUndoRef = useRef<ConsumableUndoSession | null>(null)
   const [deskCastScrollPending, setDeskCastScrollPending] = useState<{
     itemId: string
     name: string
@@ -3578,18 +3823,110 @@ export function MinimalSheetEditor({
   )
 
   const emitToast = useCallback(
-    (message: string) => {
+    (message: ToastInput) => {
       onToast(message)
-      if (!isDeskRollToast(message)) return
+      const text = typeof message === 'string' ? message : message.message
+      if (!isDeskRollToast(text)) return
       setDraft((prev) => ({
         ...prev,
         sheetUi: {
           ...prev.sheetUi,
-          rollHistory: appendRollHistory(prev.sheetUi.rollHistory, { text: message }),
+          rollHistory: appendRollHistory(prev.sheetUi.rollHistory, { text }),
         },
       }))
     },
     [onToast],
+  )
+
+  const undoConsumableSpend = useCallback(
+    (session: ConsumableUndoSession) => {
+      if (consumableUndoRef.current?.token === session.token) {
+        consumableUndoRef.current = null
+      }
+      setDraft((prev) => ({
+        ...prev,
+        inventory: {
+          ...prev.inventory,
+          items: prev.inventory.items.map((row) =>
+            row.id === session.itemId
+              ? { ...row, qty: (row.qty ?? 0) + session.amount }
+              : row,
+          ),
+        },
+      }))
+      setConsumableSpendLog((prev) => markConsumableSpendUndone(prev, session.logId))
+      onToast(formatConsumableUndoToast(session.name, session.amount))
+    },
+    [onToast],
+  )
+
+  const spendConsumableFromDesk = useCallback(
+    (itemId: string, amount = 1) => {
+      const item = draft.inventory.items.find((row) => row.id === itemId)
+      if (!item || (item.qty ?? 0) <= 0) return
+      if (isCastableSpellScroll(item)) {
+        setDeskCastScrollId(itemId)
+        return
+      }
+      const spendAmount = Math.max(1, Math.min(amount, item.qty ?? 0))
+      const nextQty = Math.max(0, (item.qty ?? 0) - spendAmount)
+      const logId = newConsumableSpendId()
+      const token = Date.now()
+      const session: ConsumableUndoSession = {
+        token,
+        itemId,
+        name: item.name,
+        amount: spendAmount,
+        logId,
+      }
+      consumableUndoRef.current = session
+      setDraft((prev) => ({
+        ...prev,
+        inventory: {
+          ...prev.inventory,
+          items: prev.inventory.items.map((row) =>
+            row.id === itemId
+              ? { ...row, qty: Math.max(0, (row.qty ?? 0) - spendAmount) }
+              : row,
+          ),
+        },
+      }))
+      setConsumableSpendLog((prev) =>
+        appendConsumableSpendLog(prev, {
+          id: logId,
+          itemId,
+          name: item.name,
+          amount: spendAmount,
+          atMs: token,
+        }),
+      )
+      onToast({
+        message: formatConsumableSpendToast(item.name, spendAmount, nextQty),
+        durationMs: 8000,
+        actionLabel: 'Отменить',
+        onAction: () => {
+          if (consumableUndoRef.current?.token !== token) return
+          undoConsumableSpend(session)
+        },
+      })
+    },
+    [draft.inventory.items, onToast, undoConsumableSpend],
+  )
+
+  const undoConsumableSpendFromLog = useCallback(
+    (logId: string) => {
+      const entry = consumableSpendLog.find((row) => row.id === logId)
+      if (!entry || entry.undone) return
+      const session: ConsumableUndoSession = {
+        token: entry.atMs,
+        itemId: entry.itemId,
+        name: entry.name,
+        amount: entry.amount,
+        logId: entry.id,
+      }
+      undoConsumableSpend(session)
+    },
+    [consumableSpendLog, undoConsumableSpend],
   )
 
   useEffect(() => {
@@ -4037,6 +4374,9 @@ export function MinimalSheetEditor({
   }).total
   const initiativeAutoLabel = [
     `ЛОВ ${formatModifier(abilityModifier(effectiveAbilities.dex))}`,
+    raceInitiativeBonus
+      ? `раса ${formatModifier(raceInitiativeBonus)}`
+      : null,
     featInitiativeBonus
       ? `черта ${formatModifier(featInitiativeBonus)}`
       : null,
@@ -5633,29 +5973,10 @@ export function MinimalSheetEditor({
             onSpendResource={spendResourceOrOpenSorcery}
             onToggleConsumableFavorite={toggleCombatFavorite}
             onCastScroll={(itemId) => setDeskCastScrollId(itemId)}
-            onSpendConsumable={(itemId) => {
-              const item = draft.inventory.items.find((row) => row.id === itemId)
-              if (!item || (item.qty ?? 0) <= 0) return
-              if (isCastableSpellScroll(item)) {
-                setDeskCastScrollId(itemId)
-                return
-              }
-              const nextQty = Math.max(0, (item.qty ?? 0) - 1)
-              setDraft((prev) => ({
-                ...prev,
-                inventory: {
-                  ...prev.inventory,
-                  items: prev.inventory.items.map((row) =>
-                    row.id === itemId ? { ...row, qty: Math.max(0, (row.qty ?? 0) - 1) } : row,
-                  ),
-                },
-              }))
-              onToast(
-                nextQty > 0
-                  ? `−1 «${item.name}» · осталось ${nextQty}`
-                  : `−1 «${item.name}» · кончилось`,
-              )
-            }}
+            onSpendConsumable={spendConsumableFromDesk}
+            onOpenConsumableSpendPad={(itemId) => setConsumableSpendPadId(itemId)}
+            consumableSpendLog={consumableSpendLog}
+            onUndoConsumableSpend={undoConsumableSpendFromLog}
             onToggleHeld={(attack) => {
               if (!attack.inventory_item_id) return
               setDraft((prev) => {
@@ -5813,6 +6134,7 @@ export function MinimalSheetEditor({
         classAsi={draft.classAsi}
         spells={draft.spells}
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+        edition={rulesEdition}
         wearingHeavyArmor={
           equippedArmorPieces(draft.inventory.items).armor?.kind === 'heavy'
         }
@@ -5825,6 +6147,12 @@ export function MinimalSheetEditor({
         raceName={draft.raceName}
         raceTraitCards={draft.raceGrant?.traitCards ?? []}
         raceTraitsText={draft.raceGrant?.traitsText ?? ''}
+        backgroundName={
+          draft.identity.background?.trim() ||
+          draft.backgroundGrant?.slug ||
+          ''
+        }
+        backgroundFeature={resolvedBackgroundFeature}
         customFeatures={draft.customFeatures}
         onCustomFeaturesChange={(customFeatures) =>
           setDraft((prev) => ({ ...prev, customFeatures }))
@@ -6396,6 +6724,32 @@ export function MinimalSheetEditor({
             }
           })
           onToast('Ячейки договора восстановлены')
+        }}
+      />
+
+      <ConsumableSpendPadDialog
+        key={consumableSpendPadId ?? 'consumable-spend-pad-closed'}
+        open={consumableSpendPadId != null}
+        itemName={
+          consumableSpendPadId
+            ? draft.inventory.items.find((row) => row.id === consumableSpendPadId)?.name ??
+              'Расходник'
+            : 'Расходник'
+        }
+        maxQty={
+          consumableSpendPadId
+            ? Math.max(
+                0,
+                draft.inventory.items.find((row) => row.id === consumableSpendPadId)?.qty ?? 0,
+              )
+            : 0
+        }
+        onClose={() => setConsumableSpendPadId(null)}
+        onConfirm={(amount) => {
+          const itemId = consumableSpendPadId
+          setConsumableSpendPadId(null)
+          if (!itemId) return
+          spendConsumableFromDesk(itemId, amount)
         }}
       />
 
@@ -7180,6 +7534,14 @@ export function MinimalSheetEditor({
                 })
               }
             }
+            remaining = withPactTomeCantripsStep(remaining, {
+              classEntryId: step.classEntryId,
+              className: step.className,
+              classLevel:
+                next.classes.find((row) => row.id === step.classEntryId)?.level ??
+                classLevel,
+              featurePicks: next.featurePicks,
+            })
             return next
           })
           if (summary) {

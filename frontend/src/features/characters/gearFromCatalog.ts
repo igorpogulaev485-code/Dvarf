@@ -23,7 +23,10 @@ import {
   equipInventoryItem,
   type InventoryItem,
 } from './inventory'
-import { buildStartingWeaponAttacks } from './startingGearAttacks'
+import {
+  buildStartingWeaponAttacks,
+  mergeStartingWeaponAttacksByIdentity,
+} from './startingGearAttacks'
 
 export type GearPickerKindFilter = 'all' | 'weapon' | 'armor' | 'item'
 
@@ -416,7 +419,10 @@ export function applyGearAdd(input: {
   }
   return {
     items,
-    weapons: [...input.weapons, ...input.result.attacks],
+    weapons: mergeStartingWeaponAttacksByIdentity([
+      ...input.weapons,
+      ...input.result.attacks,
+    ]),
   }
 }
 

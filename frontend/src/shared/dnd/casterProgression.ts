@@ -167,6 +167,47 @@ function thirdCasterRow(level: number): number[] | null {
   return row
 }
 
+/** Highest spell level (1–9) with at least one slot in a PHB slot row; 0 if none. */
+export function maxSpellLevelFromSlotRow(row: number[] | null): number {
+  if (!row) return 0
+  for (let level = 9; level >= 1; level -= 1) {
+    if ((row[level - 1] ?? 0) > 0) return level
+  }
+  return 0
+}
+
+/**
+ * Max leveled spell this class alone could cast (ignore multiclass shared slots).
+ * Used for «prepare from class list» availability — PHB multiclass rule.
+ */
+export function maxSpellLevelForClassAlone(
+  progression: CasterProgression,
+  classLevel: number,
+): number {
+  const lv = Math.max(0, Math.floor(classLevel))
+  if (lv <= 0) return 0
+  if (progression === 'full') return maxSpellLevelFromSlotRow(fullCasterRow(lv))
+  if (progression === 'half') return maxSpellLevelFromSlotRow(halfCasterRow(lv))
+  if (progression === 'half_up') return maxSpellLevelFromSlotRow(halfUpCasterRow(lv))
+  if (progression === 'third') return maxSpellLevelFromSlotRow(thirdCasterRow(lv))
+  if (progression === 'pact') {
+    const pact = warlockPactForLevel(lv)
+    return pact.max > 0 ? pact.level : 0
+  }
+  return 0
+}
+
+/**
+ * Cleric / druid / paladin / artificer prepare from the full class list.
+ * Wizard prepares from the spellbook (not the full wizard list).
+ * Known casters (bard, sorcerer, …) have prepare=null.
+ */
+export function preparesFromFullClassList(slug: string | null): boolean {
+  if (!slug || slug === 'wizard') return false
+  const def = classCasterDef(slug)
+  return def?.prepare != null
+}
+
 function overlayForClass(
   overlays: SubclassCasterOverlay[] | undefined,
   classEntryId: string,

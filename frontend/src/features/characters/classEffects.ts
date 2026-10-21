@@ -41,6 +41,8 @@ import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
 import {
   buildStartingWeaponAttacks,
   classEquipmentAttackIdAt,
+  filterAttackIdsAfterMerge,
+  mergeStartingWeaponAttacksByIdentity,
 } from './startingGearAttacks'
 
 export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
@@ -451,6 +453,12 @@ export function applyClassGrantToDraft(input: {
         nextWeapons.push(...withProf)
         equipmentAttackIds.push(...built.attackIds)
       }
+      nextWeapons = mergeStartingWeaponAttacksByIdentity(nextWeapons)
+      equipmentAttackIds.splice(
+        0,
+        equipmentAttackIds.length,
+        ...filterAttackIdsAfterMerge(equipmentAttackIds, nextWeapons),
+      )
       if (coinsFromPack > 0) {
         equipmentCoinsGp = coinsFromPack
         inventory.coins.gp += coinsFromPack

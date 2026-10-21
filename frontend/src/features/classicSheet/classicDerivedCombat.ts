@@ -18,7 +18,10 @@ import { initiativeBonusFromFeatures } from '../characters/featureCombatBonuses'
 import { findFightingStylePick, readFeaturePicks } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
 import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
-import { readAppliedRaceGrant } from '../../shared/dnd/raceGrants'
+import {
+  initiativeBonusFromRaceGrant,
+  readAppliedRaceGrant,
+} from '../../shared/dnd/raceGrants'
 import { totalCharacterLevel } from '../../shared/dnd/classLevels'
 import { readAttunements } from '../characters/attunement'
 import { readClassLevels } from '../characters/classLevels'
@@ -189,6 +192,8 @@ export function classicDisplayInitiative(character: CharacterDetail): string {
     classCatalogId: null,
   })
   const characterLevel = totalCharacterLevel(classes)
+  const proficiencyBonus = Number(asProfBonus(character))
+  const raceGrant = readAppliedRaceGrant(sheet.race_grant)
   const unlocked = unlockFeaturesForClasses({
     classes,
     characterLevel,
@@ -202,10 +207,14 @@ export function classicDisplayInitiative(character: CharacterDetail): string {
     override ??
     abilityModifier(abilities.dex) +
       sumFeatInitiativeBonus(featGrants) +
-      featureInit
+      featureInit +
+      initiativeBonusFromRaceGrant({
+        grant: raceGrant,
+        proficiencyBonus,
+      })
   const formulaVars = buildSheetFormulaVars({
     mods,
-    proficiencyBonus: Number(asProfBonus(character)),
+    proficiencyBonus,
     level: characterLevel,
   })
   const total = withInitiativeBonus({
