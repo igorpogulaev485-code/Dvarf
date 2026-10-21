@@ -1,13 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
-import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
-import type { RulesEdition } from '../../shared/api/characters'
-import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
-import {
-  classListPrepareSources,
-  describeClassListSources,
-  isClassListVirtualSpell,
-  mergeAvailableForPrepare,
-} from '../../shared/dnd/prepareAvailability'
+import { useMemo, useState } from 'react'
 import {
   spellAccessUiCopy,
   type SpellLearnModeUi,
@@ -15,14 +6,12 @@ import {
 import { countsTowardPrepareLimit, levelLabel } from '../../shared/dnd/spells'
 import { Dialog, Stack, Text } from '../../ui'
 import {
-  addCatalogSpellToKnown,
   countPreparedLeveled,
   groupSpellsByLevel,
   isGrantedSpellHighlight,
   isPreparedLocked,
   preparedLockChip,
   setSpellPrepared,
-  sheetSpellFromCatalog,
   spellSourceBadge,
   type SheetSpell,
   type SpellsState,
@@ -30,13 +19,11 @@ import {
 
 type PrepareSpellsDialogProps = {
   open: boolean
-  /** Needed to load class-list spells from the catalog; defaults are fine for known/spellbook. */
-  edition?: RulesEdition
-  className?: string
-  level?: number
-  classes?: ClassLevelEntry[]
   spells: SpellsState
-  /** PHB learn mode — copy differs for spellbook vs prepared_list. */
+  /**
+   * Thin morning-prep is for spellbook (wizard) only.
+   * prepared_list casters prepare in Grimoire; known have no daily prepare.
+   */
   learnMode?: SpellLearnModeUi | null
   onChange: (spells: SpellsState) => void
   onClose: () => void
@@ -44,82 +31,37 @@ type PrepareSpellsDialogProps = {
 
 type Tab = 'prepared' | 'available'
 
+/**
+ * Wizard morning prep: pick today's set from the spellbook.
+ * Class-list prepare UI lives in GrimoireDialog (status chips).
+ */
 export function PrepareSpellsDialog({
   open,
-  edition = '2014',
-  className = '',
-  level = 1,
-  classes,
   spells,
-  learnMode = 'prepared_list',
+  learnMode = 'spellbook',
   onChange,
   onClose,
 }: PrepareSpellsDialogProps) {
   const [tab, setTab] = useState<Tab>('prepared')
-  const [catalog, setCatalog] = useState<CatalogEntry[]>([])
-  const [catalogLoading, setCatalogLoading] = useState(false)
-  const [catalogError, setCatalogError] = useState<string | null>(null)
-  const uiCopy = spellAccessUiCopy(learnMode ?? 'prepared_list')
-
-  const sources = useMemo(() => {
-    // Only prepared_list casters auto-fill from the class grimoire list.
-    if ((learnMode ?? 'prepared_list') !== 'prepared_list') return []
-    return classListPrepareSources({ className, level, classes })
-  }, [learnMode, className, level, classes])
-  const sourcesKey = sources.map((row) => `${row.slug}:${row.maxSpellLevel}`).join('|')
-  const usesClassList = sources.length > 0
-  const sourceHint = describeClassListSources(sources)
-
-  useEffect(() => {
-    if (!open || !usesClassList) {
-      setCatalog([])
-      setCatalogError(null)
-      setCatalogLoading(false)
-      return
-    }
-    let active = true
-    setCatalogLoading(true)
-    setCatalogError(null)
-    listCatalogEntries({ kind: 'spell', edition })
-      .then((items) => {
-        if (!active) return
-        setCatalog(items)
-      })
-      .catch(() => {
-        if (!active) return
-        setCatalogError('Не удалось загрузить список класса из гримуара')
-        setCatalog([])
-      })
-      .finally(() => {
-        if (active) setCatalogLoading(false)
-      })
-    return () => {
-      active = false
-    }
-  }, [open, edition, usesClassList, sourcesKey])
+  const uiCopy = spellAccessUiCopy(learnMode ?? 'spellbook')
 
   const preparedCount = countPreparedLeveled(spells.known)
   const limitLabel =
     spells.max_prepared == null ? String(preparedCount) : `${preparedCount}/${spells.max_prepared}`
 
-  const preparedList = useMemo(
-    () => spells.known.filter((spell) => spell.level > 0 && spell.prepared),
+  const bookSpells = useMemo(
+    () =>
+      spells.known.filter(
+        (spell) => spell.level > 0 && spell.in_spellbook !== false,
+      ),
     [spells.known],
   )
 
-  const availableList = useMemo(() => {
-    if (!usesClassList) {
-      return spells.known.filter((spell) => spell.level > 0)
-    }
-    return mergeAvailableForPrepare({
-      known: spells.known,
-      catalog,
-      sources,
-      sheetSpellFromCatalog,
-    }) as SheetSpell[]
-  }, [usesClassList, spells.known, catalog, sources])
-
-  /** Pool not yet prepared — the reason «Все доступные» differs from «Подготовленные». */
+  const preparedList = useMemo(
+    () => bookSpells.filter((spell) => spell.prepared),
+    [bookSpells],
+  )
+  const availableList = bookSpells
   const unpreparedList = useMemo(
     () => availableList.filter((spell) => !spell.prepared),
     [availableList],
@@ -139,23 +81,7 @@ export function PrepareSpellsDialog({
   function togglePrepared(spell: SheetSpell) {
     if (!countsTowardPrepareLimit(spell.level)) return
     if (isPreparedLocked(spell)) return
-
-    if (isClassListVirtualSpell(spell) && spell.catalog_id) {
-      if (bookLost) return
-      const entry = catalog.find((item) => item.id === spell.catalog_id)
-      if (!entry) return
-      onChange({
-        ...spells,
-        known: addCatalogSpellToKnown(spells.known, entry, {
-          prepare: true,
-          maxPrepared: spells.max_prepared,
-        }),
-      })
-      return
-    }
-
     const nextPrepared = !spell.prepared
-    // PHB: without the book you cannot prepare a new list (can keep existing).
     if (bookLost && nextPrepared) return
     onChange({
       ...spells,
@@ -187,11 +113,6 @@ export function PrepareSpellsDialog({
           {spell.ritual ? (
             <span className="prepare-row__badge" title="Ритуал">
               ритуал
-            </span>
-          ) : null}
-          {isClassListVirtualSpell(spell) ? (
-            <span className="prepare-row__badge is-source" title="Из списка класса">
-              список класса
             </span>
           ) : null}
           {source && !lock ? (
@@ -244,19 +165,10 @@ export function PrepareSpellsDialog({
     ))
   }
 
-  const emptyAvailableText = usesClassList
-    ? catalogLoading
-      ? 'Загружаем список класса…'
-      : catalogError ??
-        (sourceHint
-          ? `Нет заклинаний в каталоге для: ${sourceHint}. Проверь гримуар.`
-          : 'Сначала добавь заклинания 1+ уровня через Гримуар («На лист»).')
-    : 'Сначала добавь заклинания 1+ уровня через Гримуар («На лист»).'
-
   return (
     <Dialog
       open={open}
-      title="Подготовить заклинания"
+      title="Подготовить из книги"
       size="wide"
       primaryLabel="Готово"
       onPrimary={onClose}
@@ -265,14 +177,8 @@ export function PrepareSpellsDialog({
     >
       <Stack gap={12}>
         <Text tone="muted">
-          {uiCopy.prepareHint} Лимит сегодня: {limitLabel}.
-          {usesClassList
-            ? ` Сейчас в пуле: ${sourceHint}.`
-            : ` Пополнить пул — через Гримуар (${
-                learnMode === 'spellbook'
-                  ? '«В книгу» / «В книгу + подготовить»'
-                  : '«На лист» / «Подготовить»'
-              }).`}
+          {uiCopy.prepareHint} Лимит сегодня: {limitLabel}. Новые записи — через Гримуар («В
+          книгу»).
         </Text>
         {bookLost ? (
           <Text tone="muted">
@@ -308,8 +214,7 @@ export function PrepareSpellsDialog({
             className={`sheet-chip${tab === 'available' ? ' is-on' : ''}`}
             onClick={() => setTab('available')}
           >
-            Все доступные ({availableList.length}
-            {usesClassList && catalogLoading ? '…' : ''})
+            В книге ({availableList.length})
             {unpreparedList.length > 0 ? ` · ещё ${unpreparedList.length}` : ''}
           </button>
         </div>
@@ -318,10 +223,8 @@ export function PrepareSpellsDialog({
           renderGroups(
             preparedGroups,
             unpreparedList.length > 0
-              ? 'Ничего не подготовлено — открой «Все доступные» и нажми «Подготовить».'
-              : usesClassList
-                ? 'Пул класса загружается во вкладке «Все доступные».'
-                : 'Пул пуст. Сначала добавь заклинания через Гримуар («На лист»).',
+              ? 'Ничего не подготовлено — открой «В книге» и нажми «Подготовить».'
+              : 'Книга пуста. Сначала добавь заклинания через Гримуар («В книгу»).',
           )
         ) : (
           <Stack gap={12}>
@@ -333,8 +236,8 @@ export function PrepareSpellsDialog({
             ) : (
               <Text tone="muted">
                 {availableList.length > 0
-                  ? 'Все доступные уже подготовлены. Сними лишние во вкладке «Подготовленные» или добавь новые через Гримуар.'
-                  : emptyAvailableText}
+                  ? 'Всё из книги уже подготовлено. Сними лишние во вкладке «Подготовленные» или допиши книгу в Гримуаре.'
+                  : 'Сначала добавь заклинания в книгу через Гримуар.'}
               </Text>
             )}
             {preparedList.length > 0 && unpreparedList.length > 0 ? (

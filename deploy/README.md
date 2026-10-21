@@ -5,7 +5,7 @@
 **SSH / deploy host:** `201.34.132.252` (HTTP по IP редиректит на creed20 — не открывать как прод)  
 **Path on server:** `/opt/dvarf`  
 **Compose file:** `docker-compose.prod.yml`  
-**Current prod tip branch:** `cursor/create-feedback-ship-fc00`  
+**Current prod tip branch:** `cursor/optional-class-features-8215`  
 **Edge:** Caddy + Let’s Encrypt (`web` only on docker network)  
 (обновляй tip после деплоя, который становится новым tip — также в `AGENTS.md` и skill `dvarf-prod-lineage`)
 

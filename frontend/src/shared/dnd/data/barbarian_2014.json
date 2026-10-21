@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Barbarian + all official paths for sheet unlock",
     "edition": "2014",
     "source": "phb+scag+xgte+tcoe+bmt",
-    "notes_ru": "Все 9 оф. путей. Totem — picks. Zealot/Beast/Wild Magic/Giant/Storm — пулы где нужно. H4b depth: martial/half-caster pools/scales/linked ki·BI."
+    "notes_ru": "Все 9 оф. путей. Totem — picks. Zealot/Beast/Wild Magic/Giant/Storm — пулы где нужно. H4b depth: martial/half-caster pools/scales/linked ki·BI. · TCoE optional class features."
   },
   "class_slug": "barbarian",
   "features": [
@@ -72,6 +72,16 @@
       "kind": "passive"
     },
     {
+      "id": "primal_knowledge",
+      "level": 3,
+      "name_ru": "Изначальные знания",
+      "name_en": "Primal Knowledge",
+      "summary_ru": "Tasha (optional): на 3 / 10 ур. получи владение ещё одним навыком из списка варвара. В ярости проверки Жив./Запуг./Вним./Атлетика можно делать Силой.",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe"
+    },
+    {
       "id": "asi_4",
       "level": 4,
       "name_ru": "Увеличение характеристик",
@@ -111,6 +121,17 @@
       "name_en": "Feral Instinct",
       "summary_ru": "Преимущество на инициативу; если застигнут врасплох и не недееспособен — можешь действовать нормально, войдя в ярость.",
       "kind": "passive"
+    },
+    {
+      "id": "instinctive_pounce",
+      "level": 7,
+      "name_ru": "Инстинктивный прыжок",
+      "name_en": "Instinctive Pounce",
+      "summary_ru": "Tasha (optional): входя в ярость бонусным действием, можешь переместиться на расстояние до половины скорости.",
+      "kind": "bonus",
+      "optional": true,
+      "source_book": "tcoe",
+      "desk": "combat"
     },
     {
       "id": "asi_8",

@@ -19,6 +19,7 @@ import {
   isSaveProficient,
   setCoins,
   skillFlags,
+  classicFeaturesTraitsValue,
   textBlockValue,
 } from './fromApi'
 import {
@@ -490,14 +491,14 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
 
             <div className="classic-panel classic-panel--grow classic-lss-features">
               <ClassicTextBlock
-                blockId="features"
+                blockId="traits"
                 character={c}
                 onPatch={onPatch}
                 fill
-                value={textBlockValue(c, 'features')}
+                value={classicFeaturesTraitsValue(c)}
                 printMaxHeight="9rem"
                 ariaLabel="Умения и способности"
-                onChange={(value) => patch({ textBlocks: { features: value } })}
+                onChange={(value) => patch({ textBlocks: { traits: value } })}
               />
               <div className="classic-caption">Умения и способности</div>
             </div>

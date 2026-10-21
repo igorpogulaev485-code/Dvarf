@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Fighter + all official martial archetypes for sheet unlock",
     "edition": "2014",
     "source": "phb+scag+xgte+tcoe+egtw+ftd",
-    "notes_ru": "Все 10 оф. архетипов. BM: кости + Relentless. Psi Warrior: пси-кости. Arcane Shot / Fighting Spirit / Giant's Might — пулы. H4b depth: martial/half-caster pools/scales/linked ki·BI."
+    "notes_ru": "Все 10 оф. архетипов. BM: кости + Relentless. Psi Warrior: пси-кости. Arcane Shot / Fighting Spirit / Giant's Might — пулы. H4b depth: martial/half-caster pools/scales/linked ki·BI. · TCoE optional class features."
   },
   "class_slug": "fighter",
   "features": [
@@ -78,6 +78,16 @@
           "feat_coming_soon"
         ]
       }
+    },
+    {
+      "id": "martial_versatility_fighter",
+      "level": 4,
+      "name_ru": "Боевая универсальность",
+      "name_en": "Martial Versatility",
+      "summary_ru": "Tasha (optional): когда берёшь ASI, можешь заменить один боевой стиль на другой, доступный воину.",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe"
     },
     {
       "id": "extra_attack_1",

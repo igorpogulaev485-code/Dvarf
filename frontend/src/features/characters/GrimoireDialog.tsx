@@ -11,6 +11,13 @@ import {
   type SubclassCasterOverlay,
 } from '../../shared/dnd/casterProgression'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
+import {
+  catalogEntryClasses,
+  catalogEntryLevel,
+  catalogSpellMatchesClassListSources,
+  classListPrepareSources,
+  type ClassListPrepareSource,
+} from '../../shared/dnd/prepareAvailability'
 import { parseSpellCatalogData } from '../../shared/dnd/spellCatalog'
 import { levelLabel } from '../../shared/dnd/spells'
 import {
@@ -155,6 +162,10 @@ export function GrimoireDialog({
   const [classFilter, setClassFilter] = useState('all')
   const [levelFilter, setLevelFilter] = useState<'all' | number>('all')
   const [bookFilter, setBookFilter] = useState('all')
+  /** Status chips: replace the old Prepare «Все доступные / Подготовленные» split. */
+  const [statusFilter, setStatusFilter] = useState<
+    'all' | 'prepared' | 'unprepared' | 'in_book'
+  >('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [customOpen, setCustomOpen] = useState(false)
   const [editingCustomId, setEditingCustomId] = useState<string | null>(null)
@@ -209,6 +220,12 @@ export function GrimoireDialog({
   const learnedCantrips = countLearnedCantrips(spells.known)
   const learnedLeveled = countLearnedLeveled(spells.known)
   const preparedCount = countPreparedLeveled(spells.known)
+
+  /** PHB: each prepared_list class contributes its alone max spell level (not shared MC slots). */
+  const prepareSources: ClassListPrepareSource[] = useMemo(() => {
+    if (mode !== 'prepared_list') return []
+    return classListPrepareSources({ className: '', level: 1, classes })
+  }, [mode, classes])
   const wizardRow = useMemo(() => {
     return (
       classes.find((item) => {
@@ -342,17 +359,29 @@ export function GrimoireDialog({
       : null
     return entries.filter((entry) => {
       const parsed = parseSpellCatalogData(entry.data)
-      const onList = parsed.classes.some((slug) => slugSet.has(slug))
-      if (!onList) return false
-      // Cantrips (0) always if on a known list; leveled need a slot of that level.
-      if (parsed.level > 0 && parsed.level > access.maxSpellLevel) return false
+      const classes = catalogEntryClasses(entry)
+      const level = catalogEntryLevel(entry)
+
+      if (mode === 'prepared_list' && prepareSources.length > 0) {
+        // Cantrips: any on a class list we prepare from.
+        if (level <= 0) {
+          return classes.some((slug) => prepareSources.some((s) => s.slug === slug))
+        }
+        if (!catalogSpellMatchesClassListSources(entry, prepareSources)) return false
+      } else {
+        const onList = parsed.classes.some((slug) => slugSet.has(slug))
+        if (!onList) return false
+        // Cantrips (0) always if on a known list; leveled need a slot of that level.
+        if (parsed.level > 0 && parsed.level > access.maxSpellLevel) return false
+      }
+
       if (schoolSet && parsed.level > 0) {
         const school = (parsed.school || '').toLowerCase()
         if (!schoolSet.has(school)) return false
       }
       return true
     })
-  }, [entries, access])
+  }, [entries, access, mode, prepareSources])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -361,11 +390,35 @@ export function GrimoireDialog({
       if (levelFilter !== 'all' && parsed.level !== levelFilter) return false
       if (classFilter !== 'all' && !parsed.classes.includes(classFilter)) return false
       if (bookFilter !== 'all' && parsed.source_book !== bookFilter) return false
+
+      if (statusFilter !== 'all') {
+        const sheet = spells.known.find((spell) => spell.catalog_id === entry.id)
+        if (statusFilter === 'prepared') {
+          if (!(sheet && sheet.level > 0 && sheet.prepared)) return false
+        } else if (statusFilter === 'unprepared') {
+          // Class-list / book rows not in today's set (includes not yet on sheet).
+          if (parsed.level <= 0) return false
+          if (sheet?.prepared) return false
+          if (mode === 'spellbook' && sheet && sheet.in_spellbook === false) return false
+        } else if (statusFilter === 'in_book') {
+          if (!(sheet && sheet.level > 0 && sheet.in_spellbook !== false)) return false
+        }
+      }
+
       if (!q) return true
       const hay = `${entry.name_ru} ${entry.name_en ?? ''} ${entry.slug} ${parsed.source_book}`.toLowerCase()
       return hay.includes(q)
     })
-  }, [available, query, classFilter, levelFilter, bookFilter])
+  }, [
+    available,
+    query,
+    classFilter,
+    levelFilter,
+    bookFilter,
+    statusFilter,
+    spells.known,
+    mode,
+  ])
 
   const groups = useMemo(() => {
     const asSpells = filtered.map((entry) => {
@@ -449,13 +502,20 @@ export function GrimoireDialog({
       onToast?.('Нет в списке заклинаний твоих классов')
       return
     }
-    if (level > 0 && level > access.maxSpellLevel) {
-      onToast?.(
-        access.maxSpellLevel > 0
-          ? `Доступен круг до ${access.maxSpellLevel}`
-          : 'Пока доступны только заговоры',
-      )
-      return
+    if (level > 0) {
+      if (mode === 'prepared_list' && prepareSources.length > 0) {
+        if (!catalogSpellMatchesClassListSources(entry, prepareSources)) {
+          onToast?.('Нет в списке класса на текущем уровне')
+          return
+        }
+      } else if (level > access.maxSpellLevel) {
+        onToast?.(
+          access.maxSpellLevel > 0
+            ? `Доступен круг до ${access.maxSpellLevel}`
+            : 'Пока доступны только заговоры',
+        )
+        return
+      }
     }
     if (access.schoolGate && level > 0) {
       const school = (parsed.school || '').toLowerCase()
@@ -472,7 +532,7 @@ export function GrimoireDialog({
     }
     if (level > 0) {
       if (mode === 'prepared_list') {
-        // Full-list casters: may park on sheet without preparing, or prepare now.
+        // Full-list casters prepare directly from the class list in grimoire.
         if (prepare && prepareCapReached()) {
           onToast?.(
             `Лимит подготовки: ${preparedCount}/${maxPrepared ?? '—'}`,
@@ -975,6 +1035,30 @@ export function GrimoireDialog({
           </div>
         ) : null}
 
+        {mode === 'prepared_list' || mode === 'spellbook' ? (
+          <div className="chip-row">
+            {(
+              [
+                { id: 'all' as const, label: 'Все доступные' },
+                { id: 'prepared' as const, label: 'Подготовленные' },
+                { id: 'unprepared' as const, label: 'Не подготовленные' },
+                ...(mode === 'spellbook'
+                  ? [{ id: 'in_book' as const, label: 'В книге' }]
+                  : []),
+              ] as const
+            ).map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`sheet-chip${statusFilter === item.id ? ' is-on' : ''}`}
+                onClick={() => setStatusFilter(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         <div className="chip-row">
           {bookOptions.map((book) => (
             <button
@@ -1192,25 +1276,15 @@ export function GrimoireDialog({
                             </button>
                           </>
                         ) : (
-                          <>
-                            <button
-                              type="button"
-                              className="sheet-chip"
-                              onClick={() => addSpell(entry, false)}
-                              title="На лист без подготовки — появится во «Все доступные»"
-                            >
-                              На лист
-                            </button>
-                            <button
-                              type="button"
-                              className="sheet-chip"
-                              disabled={prepareCapReached()}
-                              onClick={() => addSpell(entry, true)}
-                              title="На лист и сразу в сегодняшний набор"
-                            >
-                              {prepareCapReached() ? 'Лимит подготовки' : 'Подготовить'}
-                            </button>
-                          </>
+                          <button
+                            type="button"
+                            className="sheet-chip"
+                            disabled={prepareCapReached()}
+                            onClick={() => addSpell(entry, true)}
+                            title="Добавить в сегодняшний набор (список класса уже доступен)"
+                          >
+                            {prepareCapReached() ? 'Лимит подготовки' : 'Подготовить'}
+                          </button>
                         )}
                       </div>
                     </li>
