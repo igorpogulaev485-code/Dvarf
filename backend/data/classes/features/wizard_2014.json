@@ -3,18 +3,10 @@
     "purpose": "PHB 2014 Wizard + official traditions for sheet unlock",
     "edition": "2014",
     "source": "phb+scag+xgte+tcoe+egtw",
-    "notes_ru": "Все 13 оф. традиций вкл. Chronurgy/Graviturgy. Portent stock; Bladesong PB. H4b depth wave: pools/scales/linked ki·BI. H4b depth wave 2: casters/artificer/druid scales·pools."
+    "notes_ru": "Все 13 оф. традиций вкл. Chronurgy/Graviturgy. Portent stock; Bladesong PB. H4b depth wave: pools/scales/linked ki·BI. H4b depth wave 2: casters/artificer/druid scales·pools. · TCoE optional class features."
   },
   "class_slug": "wizard",
   "features": [
-    {
-      "id": "spellcasting_wizard",
-      "level": 1,
-      "name_ru": "Использование заклинаний",
-      "name_en": "Spellcasting",
-      "summary_ru": "Полный кастер. Интеллект — базовая. Книга заклинаний; подготовка = Инт + ур. волшебника.",
-      "kind": "passive"
-    },
     {
       "id": "arcane_recovery",
       "level": 1,
@@ -31,12 +23,30 @@
       }
     },
     {
+      "id": "spellcasting_wizard",
+      "level": 1,
+      "name_ru": "Использование заклинаний",
+      "name_en": "Spellcasting",
+      "summary_ru": "Полный кастер. Интеллект — базовая. Книга заклинаний; подготовка = Инт + ур. волшебника.",
+      "kind": "passive"
+    },
+    {
       "id": "arcane_tradition",
       "level": 2,
       "name_ru": "Магическая традиция",
       "name_en": "Arcane Tradition",
       "summary_ru": "Выбери школу или традицию (Ограждение, Воплощение, Песнь клинка, …).",
       "kind": "passive"
+    },
+    {
+      "id": "cantrip_formulas",
+      "level": 3,
+      "name_ru": "Формулы заговоров",
+      "name_en": "Cantrip Formulas",
+      "summary_ru": "Tasha (optional): коротким отдыхом можешь заменить один известный заговор волшебника на другой из списка волшебника.",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe"
     },
     {
       "id": "asi_4_wizard",

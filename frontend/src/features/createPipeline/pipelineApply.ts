@@ -41,6 +41,11 @@ import {
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
 import {
+  bridgeManeuversIntoFeaturePicks,
+  extractManeuverIdsFromSubclassGrant,
+  extractManeuverIdsFromSubclassPicks,
+} from '../../shared/dnd/battleMasterManeuverBridge'
+import {
   applyClassAsiBonuses,
   readClassAsiLedger,
   type AppliedClassAsi,
@@ -79,9 +84,11 @@ import {
 } from '../characters/featEffects'
 import {
   newFeatGrantId,
+  readFeatGrantLedger,
   sumFeatSpeedBonus,
   type AppliedFeatGrant,
 } from '../../shared/dnd/featGrants'
+import { buildAsiFeatGrantFromCatalog } from '../characters/asiFeatHydrate'
 import {
   applyClassGrantToDraft,
   type ClassGrantDraftSlice,
@@ -151,6 +158,7 @@ export type PipelineApplyCatalogCache = {
   backgrounds?: CatalogEntry[]
   races?: CatalogEntry[]
   classes?: CatalogEntry[]
+  feats?: CatalogEntry[]
 }
 
 type WorkingDraft = {
@@ -1110,19 +1118,82 @@ export async function applyPipelineToSheet(input: {
   }
 
   // 5) Feature picks / class ASI / expertise
-  const featurePicks =
+  let featurePicks =
     input.featurePicks ??
     state.featurePicks ??
     readFeaturePicks(state.sheetDraft.feature_picks) ??
     emptyFeaturePicks()
+
+  // Battle Master: subclass setup maneuvers_3 → combat_superiority feature_picks
+  for (const row of classes) {
+    const setup = state.subclassSetups?.[row.id]
+    const fromSetup = setup
+      ? extractManeuverIdsFromSubclassPicks(normalizeSubclassPicks(setup.picks))
+      : []
+    const grant = draft.subclassGrants.find((item) => item.classEntryId === row.id)
+    const fromGrant = grant ? extractManeuverIdsFromSubclassGrant(grant) : []
+    const maneuverIds = fromSetup.length ? fromSetup : fromGrant
+    featurePicks = bridgeManeuversIntoFeaturePicks({
+      featurePicks,
+      classEntryId: row.id,
+      maneuverIds,
+      mode: 'merge_missing',
+    })
+  }
+
   const classAsi =
     input.classAsi ??
     (Array.isArray(state.classAsi) && state.classAsi.length
       ? state.classAsi
       : readClassAsiLedger(state.sheetDraft.class_asi))
 
+  // ASI score bumps + ASI→feat packages chosen in GuidedWizard (stored on sheetDraft).
+  // If the grant was dropped (older create bug), rebuild a no-pick package from catalog.
+  const asiFeatGrants = readFeatGrantLedger(state.sheetDraft.feat_grants).filter(
+    (row) => row.source.kind === 'asi',
+  )
+  const totalLevelForFeats = totalCharacterLevel(classes)
   for (const entry of classAsi) {
     draft.abilities = applyClassAsiBonuses(draft.abilities, entry.bonuses)
+    const resolution = entry.resolution
+    if (resolution.kind !== 'feat') continue
+    let grant =
+      asiFeatGrants.find((row) => row.id === resolution.featGrantId) ??
+      asiFeatGrants.find(
+        (row) =>
+          row.featCatalogId === resolution.featCatalogId &&
+          row.source.kind === 'asi' &&
+          row.source.classEntryId === entry.classEntryId &&
+          row.source.featureId === entry.featureId,
+      ) ??
+      null
+    if (!grant) {
+      const featEntry = await resolveCatalogEntry({
+        kind: 'feat',
+        id: resolution.featCatalogId,
+        slug: resolution.featSlug,
+        cache: input.catalog?.feats,
+      })
+      if (featEntry) {
+        grant = buildAsiFeatGrantFromCatalog({
+          entry,
+          catalogEntry: featEntry,
+          characterLevel: totalLevelForFeats,
+        })
+      }
+    }
+    if (!grant) continue
+    if (draft.featGrants.some((row) => row.id === grant.id)) continue
+    Object.assign(
+      draft,
+      mergeFeat(
+        draft,
+        applyFeatGrantToDraft({
+          draft: featSlice(draft, totalLevelForFeats),
+          grant,
+        }),
+      ),
+    )
   }
 
   const subclassSlugByEntryId: Record<string, string> = {}

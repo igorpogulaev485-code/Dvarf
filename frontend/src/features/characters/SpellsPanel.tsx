@@ -3,6 +3,12 @@ import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
+  buildCastProfiles,
+  formatNamedCantripBudgets,
+  resolveSpellLearnBudgets,
+  totalCantripsBudget,
+} from '../../shared/dnd/castProfiles'
+import {
   applySpellcastingSuggestion,
   resolveSpellLearnBudget,
   suggestSpellcasting,
@@ -65,6 +71,8 @@ import {
   canRemoveSheetSpell,
   canSpendGrantCast,
   countLearnedCantrips,
+  countLearnedCantripsBySlug,
+  countLockedFeatureCantrips,
   countPreparedLeveled,
   ensureInnateGrantCasts,
   ensureKnownSpellsReady,
@@ -207,6 +215,28 @@ export function SpellsPanel({
       abilityModFor: (ability) => abilityModifier(abilities[ability]),
     })
   }, [classes, subclassCasters, abilities])
+
+  const learnBudgets = useMemo(() => {
+    const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
+    if (rows.length === 0) return []
+    return resolveSpellLearnBudgets({
+      classes: rows,
+      subclassCasters,
+      abilityModFor: (ability) => abilityModifier(abilities[ability]),
+      proficiencyBonus,
+    })
+  }, [classes, subclassCasters, abilities, proficiencyBonus])
+
+  const castProfiles = useMemo(() => {
+    const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
+    if (rows.length === 0) return []
+    return buildCastProfiles({
+      classes: rows,
+      subclassCasters,
+      abilityModFor: (ability) => abilityModifier(abilities[ability]),
+      proficiencyBonus,
+    })
+  }, [classes, subclassCasters, abilities, proficiencyBonus])
 
   const combatPool = useMemo(() => {
     if (showAllKnown) return spells.known
@@ -698,11 +728,22 @@ export function SpellsPanel({
                 : prepareLimitLabel}
             </strong>
           </div>
-          {learnBudget?.cantrips != null ? (
+          {learnBudget?.cantrips != null || learnBudgets.length > 0 ? (
             <div className="spells-summary__stat">
               <span className="spells-summary__label">Заговоры</span>
-              <strong>
-                {countLearnedCantrips(spells.known)}/{learnBudget.cantrips}
+              <strong
+                title={
+                  formatNamedCantripBudgets(
+                    learnBudgets,
+                    countLearnedCantripsBySlug(spells.known),
+                    { tomeExtra: countLockedFeatureCantrips(spells.known) },
+                  ) ?? undefined
+                }
+              >
+                {countLearnedCantrips(spells.known)}/
+                {learnBudgets.length > 1
+                  ? totalCantripsBudget(learnBudgets)
+                  : (learnBudget?.cantrips ?? totalCantripsBudget(learnBudgets))}
               </strong>
             </div>
           ) : null}
@@ -750,11 +791,11 @@ export function SpellsPanel({
           <Button variant="secondary" onClick={() => setSettingsOpen((open) => !open)}>
             {settingsOpen ? 'Скрыть настройки' : 'Настройки'}
           </Button>
-          {!knownCaster ? (
+          {learnBudget?.mode === 'spellbook' ? (
             <Button
               variant="secondary"
               onClick={() => setPrepareOpen(true)}
-              title="Выбрать заклинания на сегодня (лимит подготовки класса)"
+              title="Выбрать на сегодня из книги заклинаний"
             >
               <IconWizardHat className="spells-btn-icon" />
               Подготовить
@@ -945,7 +986,11 @@ export function SpellsPanel({
           <Text tone="muted">
             {spells.known.length === 0
               ? 'Пока нет заклинаний — добавь ниже или подготовь из списка.'
-              : 'В боевом виде пусто — нажми «Подготовить» или «Все известные».'}
+              : knownCaster
+                ? 'В боевом виде пусто — открой гримуар или «Все известные».'
+                : learnBudget?.mode === 'spellbook'
+                  ? 'В боевом виде пусто — «Подготовить» из книги или гримуар.'
+                  : 'В боевом виде пусто — открой гримуар и подготовь заклинания.'}
           </Text>
         ) : (
           visibleSpells.map((group) => {
@@ -1198,13 +1243,9 @@ export function SpellsPanel({
       </Stack>
 
       <PrepareSpellsDialog
-        open={prepareOpen}
-        edition={edition}
-        className={className}
-        level={level}
-        classes={classes}
+        open={prepareOpen && learnBudget?.mode === 'spellbook'}
         spells={spells}
-        learnMode={learnBudget?.mode ?? (knownCaster ? 'known' : 'prepared_list')}
+        learnMode="spellbook"
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
       />
@@ -1276,6 +1317,12 @@ export function SpellsPanel({
         characterLevel={level}
         characterId={characterId}
         wizardRitualFromBook={learnBudget?.mode === 'spellbook'}
+        abilities={abilities}
+        proficiencyBonus={proficiencyBonus}
+        castProfiles={castProfiles}
+        modifiers={modifiers}
+        formulaVars={formulaVars}
+        onSelectSpellVariant={setCastSpell}
         onConfirm={confirmCast}
         onClose={() => setCastSpell(null)}
       />

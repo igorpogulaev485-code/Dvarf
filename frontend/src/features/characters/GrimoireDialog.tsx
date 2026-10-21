@@ -2,6 +2,18 @@ import { useEffect, useMemo, useState } from 'react'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
+  buildCastProfiles,
+  buildGrimoireShelfSources,
+  catalogSpellMatchesAnyShelf,
+  catalogSpellMatchesShelf,
+  describeGrimoireShelves,
+  formatNamedCantripBudgets,
+  resolveSpellAcquisitionSlug,
+  resolveSpellLearnBudgets,
+  totalCantripsBudget,
+  type GrimoireShelfSource,
+} from '../../shared/dnd/castProfiles'
+import {
   characterSpellListSlugs,
   highestSpellSlotLevel,
   resolveSpellLearnBudget,
@@ -11,13 +23,20 @@ import {
   type SubclassCasterOverlay,
 } from '../../shared/dnd/casterProgression'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
+import {
+  catalogEntryClasses,
+  catalogEntryLevel,
+} from '../../shared/dnd/prepareAvailability'
 import { parseSpellCatalogData } from '../../shared/dnd/spellCatalog'
 import { levelLabel } from '../../shared/dnd/spells'
 import {
   formatGpTotal,
   type CoinPurse,
 } from '../../shared/dnd/weight'
-import { spellAccessUiCopy } from '../../shared/dnd/spellAccessUi'
+import {
+  spellAccessUiCopy,
+  type SpellAccessContext,
+} from '../../shared/dnd/spellAccessUi'
 import {
   previewSpellbookAddGp,
   remainingFreeSpellbookSlots,
@@ -39,11 +58,16 @@ import {
   addCustomSpellToKnown,
   canRemoveSheetSpell,
   countLearnedCantrips,
+  countLearnedCantripsBySlug,
+  countLearnedCantripsForSlug,
   countLearnedLeveled,
+  countLearnedLeveledForSlug,
+  countLockedFeatureCantrips,
   countPreparedLeveled,
   groupSpellsByLevel,
   isCustomSheetSpell,
-  knownHasCatalogId,
+  knownHasCatalogIdForSlug,
+  otherClassBindingsForCatalog,
   setSpellPrepared,
   spellSourceBadge,
   updateCustomSheetSpell,
@@ -82,6 +106,10 @@ type GrimoireDialogProps = {
   onCoinsChange?: (coins: CoinPurse) => void
   /** Inventory — bind/detect physical spellbook for wizard mode. */
   inventoryItems?: InventoryItem[]
+  /** Prefocus class chip (create per-class accordion). */
+  initialClassFilter?: string | null
+  /** M4 §2.5 verbs: create / level-up / sheet. */
+  accessContext?: SpellAccessContext
   onChange: (spells: SpellsState) => void
   onClose: () => void
   onToast?: (message: string) => void
@@ -144,6 +172,8 @@ export function GrimoireDialog({
   coins = null,
   onCoinsChange,
   inventoryItems = [],
+  initialClassFilter = null,
+  accessContext = 'sheet',
   onChange,
   onClose,
   onToast,
@@ -155,6 +185,10 @@ export function GrimoireDialog({
   const [classFilter, setClassFilter] = useState('all')
   const [levelFilter, setLevelFilter] = useState<'all' | number>('all')
   const [bookFilter, setBookFilter] = useState('all')
+  /** Status chips: replace the old Prepare «Все доступные / Подготовленные» split. */
+  const [statusFilter, setStatusFilter] = useState<
+    'all' | 'prepared' | 'unprepared' | 'in_book'
+  >('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [customOpen, setCustomOpen] = useState(false)
   const [editingCustomId, setEditingCustomId] = useState<string | null>(null)
@@ -189,6 +223,24 @@ export function GrimoireDialog({
             abilityModFor: modFor,
           })
         : null)
+    const profiles =
+      activeClasses.length > 0
+        ? buildCastProfiles({
+            classes: activeClasses,
+            subclassCasters,
+            abilityModFor: modFor,
+            proficiencyBonus: 0,
+          })
+        : []
+    const budgets =
+      activeClasses.length > 0
+        ? resolveSpellLearnBudgets({
+            classes: activeClasses,
+            subclassCasters,
+            abilityModFor: modFor,
+            proficiencyBonus: 0,
+          })
+        : []
     // Access circle from character rules — sheet slots must not open higher circles.
     const maxSpellLevel = suggestion
       ? highestSpellSlotLevel(suggestion.slots, suggestion.pact_slots)
@@ -200,6 +252,8 @@ export function GrimoireDialog({
       schoolGate,
       hasCaster: classSlugs.length > 0,
       budget,
+      budgets,
+      profiles,
       suggestion,
     }
   }, [classes, subclassCasters, learnBudgetProp, abilityModFor])
@@ -209,6 +263,17 @@ export function GrimoireDialog({
   const learnedCantrips = countLearnedCantrips(spells.known)
   const learnedLeveled = countLearnedLeveled(spells.known)
   const preparedCount = countPreparedLeveled(spells.known)
+  const cantripsBySlug = countLearnedCantripsBySlug(spells.known)
+  const tomeCantrips = countLockedFeatureCantrips(spells.known)
+  const namedCantripMeta = formatNamedCantripBudgets(access.budgets, cantripsBySlug, {
+    tomeExtra: tomeCantrips,
+  })
+
+  /** M5: one shelf per caster profile (alone-max, not shared slots). */
+  const shelves: GrimoireShelfSource[] = useMemo(
+    () => buildGrimoireShelfSources(access.profiles),
+    [access.profiles],
+  )
   const wizardRow = useMemo(() => {
     return (
       classes.find((item) => {
@@ -240,7 +305,7 @@ export function GrimoireDialog({
   )
   const freeBookLeft =
     mode === 'spellbook' ? remainingFreeSpellbookSlots(spells.known, wizardLevel) : 0
-  const uiCopy = spellAccessUiCopy(mode)
+  const uiCopy = spellAccessUiCopy(mode, accessContext)
   const unpreparedOnSheet = spells.known.filter((s) => s.level > 0 && !s.prepared).length
 
   // Slice 2: keep physical book binding fresh when dialog opens.
@@ -277,13 +342,18 @@ export function GrimoireDialog({
 
   useEffect(() => {
     if (!open) return
+    const focus = initialClassFilter?.trim().toLowerCase() || null
+    if (focus && access.classSlugs.includes(focus)) {
+      setClassFilter(focus)
+      return
+    }
     // Default filter to the character's lists (not the full catalog).
     if (access.classSlugs.length === 1) {
       setClassFilter(access.classSlugs[0]!)
     } else {
       setClassFilter('all')
     }
-  }, [open, access.classSlugs.join('|')])
+  }, [open, access.classSlugs.join('|'), initialClassFilter])
 
   useEffect(() => {
     if (!open) return
@@ -336,23 +406,32 @@ export function GrimoireDialog({
 
   const available = useMemo(() => {
     if (!access.hasCaster) return []
-    const slugSet = new Set(access.classSlugs)
     const schoolSet = access.schoolGate
       ? new Set(access.schoolGate.map((s) => s.toLowerCase()))
       : null
+    const shelfList = shelves.length > 0 ? shelves : []
     return entries.filter((entry) => {
       const parsed = parseSpellCatalogData(entry.data)
-      const onList = parsed.classes.some((slug) => slugSet.has(slug))
-      if (!onList) return false
-      // Cantrips (0) always if on a known list; leveled need a slot of that level.
-      if (parsed.level > 0 && parsed.level > access.maxSpellLevel) return false
+      const classSlugs = catalogEntryClasses(entry)
+      const level = catalogEntryLevel(entry)
+
+      if (shelfList.length > 0) {
+        // Union of all caster shelves with per-class alone-max (M5).
+        if (!catalogSpellMatchesAnyShelf(classSlugs, level, shelfList)) return false
+      } else {
+        const slugSet = new Set(access.classSlugs)
+        const onList = parsed.classes.some((slug) => slugSet.has(slug))
+        if (!onList) return false
+        if (parsed.level > 0 && parsed.level > access.maxSpellLevel) return false
+      }
+
       if (schoolSet && parsed.level > 0) {
         const school = (parsed.school || '').toLowerCase()
         if (!schoolSet.has(school)) return false
       }
       return true
     })
-  }, [entries, access])
+  }, [entries, access, shelves])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -361,14 +440,38 @@ export function GrimoireDialog({
       if (levelFilter !== 'all' && parsed.level !== levelFilter) return false
       if (classFilter !== 'all' && !parsed.classes.includes(classFilter)) return false
       if (bookFilter !== 'all' && parsed.source_book !== bookFilter) return false
+
+      if (statusFilter !== 'all') {
+        const sheet = spells.known.find((spell) => spell.catalog_id === entry.id)
+        if (statusFilter === 'prepared') {
+          if (!(sheet && sheet.level > 0 && sheet.prepared)) return false
+        } else if (statusFilter === 'unprepared') {
+          // Class-list / book rows not in today's set (includes not yet on sheet).
+          if (parsed.level <= 0) return false
+          if (sheet?.prepared) return false
+          if (mode === 'spellbook' && sheet && sheet.in_spellbook === false) return false
+        } else if (statusFilter === 'in_book') {
+          if (!(sheet && sheet.level > 0 && sheet.in_spellbook !== false)) return false
+        }
+      }
+
       if (!q) return true
       const hay = `${entry.name_ru} ${entry.name_en ?? ''} ${entry.slug} ${parsed.source_book}`.toLowerCase()
       return hay.includes(q)
     })
-  }, [available, query, classFilter, levelFilter, bookFilter])
+  }, [
+    available,
+    query,
+    classFilter,
+    levelFilter,
+    bookFilter,
+    statusFilter,
+    spells.known,
+    mode,
+  ])
 
-  const groups = useMemo(() => {
-    const asSpells = filtered.map((entry) => {
+  function entriesToLevelGroups(list: CatalogEntry[]) {
+    const asSpells = list.map((entry) => {
       const parsed = parseSpellCatalogData(entry.data)
       return {
         id: entry.id,
@@ -389,20 +492,98 @@ export function GrimoireDialog({
       }
     })
     return groupSpellsByLevel(asSpells)
-  }, [filtered])
+  }
+
+  /**
+   * M5: when viewing all classes with ≥2 shelves, group by shelf (полка),
+   * then by level. Single class / mono → level groups only.
+   */
+  const shelfSections = useMemo(() => {
+    const showShelves = classFilter === 'all' && shelves.length > 1
+    if (!showShelves) {
+      const shelf =
+        classFilter !== 'all'
+          ? shelves.find((row) => row.slug === classFilter) ?? null
+          : shelves[0] ?? null
+      return [
+        {
+          shelf,
+          groups: entriesToLevelGroups(filtered),
+        },
+      ]
+    }
+    return shelves.map((shelf) => {
+      const list = filtered.filter((entry) =>
+        catalogSpellMatchesShelf(
+          catalogEntryClasses(entry),
+          catalogEntryLevel(entry),
+          shelf,
+        ),
+      )
+      return { shelf, groups: entriesToLevelGroups(list) }
+    })
+  }, [filtered, shelves, classFilter])
 
   const levelOptions = useMemo(() => {
     const levels = new Set(available.map(entryLevel))
     return [...levels].sort((a, b) => a - b)
   }, [available])
 
-  function cantripCapReached(): boolean {
+  function acquisitionSlugForEntry(
+    entry: CatalogEntry,
+    shelfSlug?: string | null,
+  ): string | null {
+    if (shelfSlug) return shelfSlug
+    const parsed = parseSpellCatalogData(entry.data)
+    return resolveSpellAcquisitionSlug({
+      catalogClassSlugs: parsed.classes,
+      profiles: access.profiles,
+      classFilter,
+    })
+  }
+
+  function shelfModeLabel(shelf: GrimoireShelfSource | null): string {
+    if (!shelf?.mode) return ''
+    if (shelf.mode === 'known') return 'известные'
+    if (shelf.mode === 'spellbook') return 'книга'
+    return 'подготовка'
+  }
+
+  function cantripCapReached(forSlug?: string | null): boolean {
+    if (access.budgets.length > 1) {
+      const slug =
+        forSlug ??
+        (classFilter !== 'all' ? classFilter : null)
+      if (slug) {
+        const budget = access.budgets.find((row) => row.slug === slug)
+        if (!budget) return false
+        return countLearnedCantripsForSlug(spells.known, slug) >= budget.cantrips
+      }
+      const totalCap = totalCantripsBudget(access.budgets)
+      return learnedCantrips >= totalCap
+    }
     const cap = access.budget?.cantrips
     if (cap == null) return false
     return learnedCantrips >= cap
   }
 
-  function leveledLearnCapReached(): boolean {
+  function leveledLearnCapReached(forSlug?: string | null): boolean {
+    if (access.budgets.length > 1) {
+      const slug =
+        forSlug ??
+        (classFilter !== 'all' ? classFilter : null)
+      if (slug) {
+        const budget = access.budgets.find((row) => row.slug === slug)
+        const cap = budget?.leveledKnown
+        if (cap == null) return false
+        if (budget?.mode === 'spellbook') {
+          if (freeBookLeft > 0) return false
+          if (onCoinsChange) return false
+          return countLearnedLeveledForSlug(spells.known, slug) >= cap
+        }
+        return countLearnedLeveledForSlug(spells.known, slug) >= cap
+      }
+    }
     const cap = access.budget?.leveledKnown
     if (cap == null) return false
     if (mode === 'spellbook') {
@@ -433,15 +614,24 @@ export function GrimoireDialog({
     return preparedCount >= maxPrepared
   }
 
-  function addSpell(entry: CatalogEntry, prepare: boolean) {
-    if (knownHasCatalogId(spells.known, entry.id)) {
-      onToast?.('Уже есть в списке')
-      return
-    }
+  function addSpell(
+    entry: CatalogEntry,
+    prepare: boolean,
+    shelfSlug?: string | null,
+  ) {
     const parsed = parseSpellCatalogData(entry.data)
     const level = parsed.level
     if (!access.hasCaster) {
       onToast?.('Нет класса с заклинаниями')
+      return
+    }
+    const acquisitionSlugPreview = resolveSpellAcquisitionSlug({
+      catalogClassSlugs: parsed.classes,
+      profiles: access.profiles,
+      classFilter: shelfSlug?.trim() || classFilter,
+    })
+    if (knownHasCatalogIdForSlug(spells.known, entry.id, acquisitionSlugPreview)) {
+      onToast?.('Уже есть в списке этого класса')
       return
     }
     const onList = parsed.classes.some((slug) => access.classSlugs.includes(slug))
@@ -449,13 +639,23 @@ export function GrimoireDialog({
       onToast?.('Нет в списке заклинаний твоих классов')
       return
     }
-    if (level > 0 && level > access.maxSpellLevel) {
-      onToast?.(
-        access.maxSpellLevel > 0
-          ? `Доступен круг до ${access.maxSpellLevel}`
-          : 'Пока доступны только заговоры',
-      )
-      return
+    if (level > 0) {
+      const shelf = acquisitionSlugPreview
+        ? shelves.find((row) => row.slug === acquisitionSlugPreview)
+        : null
+      const aloneCap = shelf?.aloneMaxLevel ?? access.maxSpellLevel
+      if (
+        shelf
+          ? !catalogSpellMatchesShelf(parsed.classes, level, shelf)
+          : !catalogSpellMatchesAnyShelf(parsed.classes, level, shelves)
+      ) {
+        onToast?.(
+          aloneCap > 0
+            ? `Нет в списке класса / круг выше alone-max (до ${aloneCap})`
+            : 'Пока доступны только заговоры этого класса',
+        )
+        return
+      }
     }
     if (access.schoolGate && level > 0) {
       const school = (parsed.school || '').toLowerCase()
@@ -464,24 +664,43 @@ export function GrimoireDialog({
         return
       }
     }
-    if (level <= 0 && cantripCapReached()) {
+    const acquisitionSlug = acquisitionSlugForEntry(entry)
+    const acquisitionProfile = access.profiles.find((row) => row.slug === acquisitionSlug)
+    if (level <= 0 && cantripCapReached(acquisitionSlug)) {
+      const budget = access.budgets.find((row) => row.slug === acquisitionSlug)
+      const used = acquisitionSlug
+        ? countLearnedCantripsForSlug(spells.known, acquisitionSlug)
+        : learnedCantrips
+      const cap =
+        budget?.cantrips ??
+        (access.budgets.length > 1
+          ? totalCantripsBudget(access.budgets)
+          : access.budget?.cantrips)
       onToast?.(
-        `Лимит заговоров: ${learnedCantrips}/${access.budget?.cantrips ?? '—'}`,
+        namedCantripMeta
+          ? `Лимит заговоров (${budget?.labelRu ?? 'класс'}): ${used}/${cap ?? '—'} · ${namedCantripMeta}`
+          : `Лимит заговоров: ${used}/${cap ?? '—'}`,
       )
       return
     }
     if (level > 0) {
-      if (mode === 'prepared_list') {
-        // Full-list casters: may park on sheet without preparing, or prepare now.
+      const acquireMode = acquisitionProfile?.mode ?? mode
+      if (acquireMode === 'prepared_list') {
+        // Full-list casters prepare directly from the class list in grimoire.
         if (prepare && prepareCapReached()) {
           onToast?.(
             `Лимит подготовки: ${preparedCount}/${maxPrepared ?? '—'}`,
           )
           return
         }
-      } else if (mode !== 'spellbook' && leveledLearnCapReached()) {
+      } else if (acquireMode !== 'spellbook' && leveledLearnCapReached(acquisitionSlug)) {
+        const budget = access.budgets.find((row) => row.slug === acquisitionSlug)
         onToast?.(
-          `Лимит известных: ${learnedLeveled}/${access.budget?.leveledKnown ?? '—'}`,
+          `Лимит известных (${budget?.labelRu ?? 'класс'}): ${
+            acquisitionSlug
+              ? countLearnedLeveledForSlug(spells.known, acquisitionSlug)
+              : learnedLeveled
+          }/${budget?.leveledKnown ?? access.budget?.leveledKnown ?? '—'}`,
         )
         return
       } else if (prepare && prepareCapReached()) {
@@ -529,6 +748,8 @@ export function GrimoireDialog({
         maxPrepared,
         spellbook_acquisition: payment.acquisition,
         in_spellbook: true,
+        class_slug: acquisitionSlug,
+        class_entry_id: acquisitionProfile?.id ?? null,
       })
       onChange({
         ...spells,
@@ -544,38 +765,80 @@ export function GrimoireDialog({
       return
     }
 
+    const acquireMode = acquisitionProfile?.mode ?? mode
+    const siblings = otherClassBindingsForCatalog(
+      spells.known,
+      entry.id,
+      acquisitionSlug,
+    )
     const nextKnown = addCatalogSpellToKnown(spells.known, entry, {
-      prepare: mode === 'known' ? true : prepare,
+      prepare: acquireMode === 'known' ? true : prepare,
       maxPrepared,
+      class_slug: acquisitionSlug,
+      class_entry_id: acquisitionProfile?.id ?? null,
     })
     onChange({
       ...spells,
       known: nextKnown,
       max_prepared: maxPrepared ?? spells.max_prepared,
     })
+    const dualWarn =
+      siblings.length > 0 && acquisitionSlug
+        ? (() => {
+            const budget = access.budgets.find((row) => row.slug === acquisitionSlug)
+            const label = budget?.labelRu ?? CLASS_LABELS[acquisitionSlug] ?? acquisitionSlug
+            const used =
+              level <= 0
+                ? countLearnedCantripsForSlug(nextKnown, acquisitionSlug)
+                : countLearnedLeveledForSlug(nextKnown, acquisitionSlug)
+            const cap =
+              level <= 0
+                ? budget?.cantrips
+                : budget?.leveledKnown
+            const cost =
+              level <= 0
+                ? `займёт 1 заговор (${used}/${cap ?? '—'})`
+                : budget?.mode === 'known'
+                  ? `займёт 1 из ${cap ?? 'N'} известных`
+                  : 'займёт слот подготовки'
+            return `Также выбрано как ${label} — ${cost}`
+          })()
+        : null
     if (level <= 0) {
-      onToast?.(`Заговор: ${entry.name_ru}`)
+      onToast?.(
+        dualWarn ? `Заговор: ${entry.name_ru}. ${dualWarn}` : `Заговор: ${entry.name_ru}`,
+      )
       return
     }
-    if (mode === 'known') {
-      onToast?.(`Известно: ${entry.name_ru}`)
+    if (acquireMode === 'known') {
+      onToast?.(
+        dualWarn ? `Известно: ${entry.name_ru}. ${dualWarn}` : `Известно: ${entry.name_ru}`,
+      )
       return
     }
-    if (mode === 'prepared_list') {
+    if (acquireMode === 'prepared_list') {
       onToast?.(
         prepare
-          ? `На лист и подготовлено: ${entry.name_ru}`
-          : `На лист (доступно к подготовке): ${entry.name_ru}`,
+          ? dualWarn
+            ? `На лист и подготовлено: ${entry.name_ru}. ${dualWarn}`
+            : `На лист и подготовлено: ${entry.name_ru}`
+          : dualWarn
+            ? `На лист: ${entry.name_ru}. ${dualWarn}`
+            : `На лист (доступно к подготовке): ${entry.name_ru}`,
       )
       return
     }
     onToast?.(
-      prepare ? `Подготовлено: ${entry.name_ru}` : `Добавлено: ${entry.name_ru}`,
+      prepare
+        ? `Подготовлено: ${entry.name_ru}`
+        : dualWarn
+          ? `Добавлено: ${entry.name_ru}. ${dualWarn}`
+          : `Добавлено: ${entry.name_ru}`,
     )
   }
 
   function togglePrepareOnSheet(entry: CatalogEntry) {
-    const existing = spells.known.find((row) => row.catalog_id === entry.id)
+    const existing = knownSpellForCatalog(entry.id)
     if (!existing || existing.level <= 0) return
     const nextPrepared = !existing.prepared
     if (nextPrepared && prepareCapReached()) {
@@ -589,7 +852,25 @@ export function GrimoireDialog({
     })
   }
 
-  function knownSpellForCatalog(catalogId: string): SheetSpell | undefined {
+  /** Prefer the binding for the active shelf / class filter / acquisition slug. */
+  function knownSpellForCatalog(
+    catalogId: string,
+    shelfSlug?: string | null,
+  ): SheetSpell | undefined {
+    const entry = entries.find((row) => row.id === catalogId)
+    const slug =
+      shelfSlug?.trim() ||
+      (entry ? acquisitionSlugForEntry(entry, shelfSlug) : null) ||
+      (classFilter !== 'all' ? classFilter : null)
+    if (slug) {
+      const hit = spells.known.find(
+        (spell) =>
+          spell.catalog_id === catalogId &&
+          (spell.class_slug ?? '').trim().toLowerCase() === slug,
+      )
+      if (hit) return hit
+      if (shelfSlug || classFilter !== 'all') return undefined
+    }
     return spells.known.find((spell) => spell.catalog_id === catalogId)
   }
 
@@ -660,9 +941,15 @@ export function GrimoireDialog({
         return
       }
     }
-    if (level <= 0 && cantripCapReached()) {
+    if (level <= 0 && cantripCapReached(classFilter !== 'all' ? classFilter : null)) {
       onToast?.(
-        `Лимит заговоров: ${learnedCantrips}/${access.budget?.cantrips ?? '—'}`,
+        namedCantripMeta
+          ? `Лимит заговоров: ${namedCantripMeta}`
+          : `Лимит заговоров: ${learnedCantrips}/${
+              access.budgets.length > 1
+                ? totalCantripsBudget(access.budgets)
+                : (access.budget?.cantrips ?? '—')
+            }`,
       )
       return
     }
@@ -782,16 +1069,24 @@ export function GrimoireDialog({
     addCustomSpell(input, options.prepare)
   }
 
+  const shelfHint = describeGrimoireShelves(shelves)
   const accessHint = !access.hasCaster
     ? 'Нет класса с заклинаниями — гримуар пуст.'
-    : access.maxSpellLevel > 0
-      ? `Список классов · до ${access.maxSpellLevel} круга.`
-      : 'Пока только заговоры из списка класса (ячеек ещё нет).'
+    : shelfHint
+      ? `Полки (alone-max): ${shelfHint}.`
+      : access.maxSpellLevel > 0
+        ? `Список классов · до ${access.maxSpellLevel} круга.`
+        : 'Пока только заговоры из списка класса (ячеек ещё нет).'
 
   const budgetHint = (() => {
     if (!access.budget) return `${uiCopy.grimoireHint} ${accessHint}`
     const b = access.budget
-    const cantripPart = `заговоры ${learnedCantrips}/${b.cantrips}`
+    const cantripPart = namedCantripMeta
+      ? namedCantripMeta
+      : `заговоры ${learnedCantrips}/${b.cantrips}`
+    if (access.budgets.length > 1) {
+      return `${cantripPart}. ${uiCopy.grimoireHint} ${accessHint}`
+    }
     if (b.mode === 'spellbook') {
       const freePart =
         freeBookLeft > 0
@@ -807,7 +1102,8 @@ export function GrimoireDialog({
     return `${b.labelRu}: известные ${learnedLeveled}/${b.leveledKnown ?? '—'} · ${cantripPart}. ${uiCopy.grimoireHint} ${accessHint}`
   })()
 
-  const dialogTitle = uiCopy.grimoireTitle
+  const dialogTitle =
+    shelves.length > 1 ? 'Гримуар · полки классов' : uiCopy.grimoireTitle
 
   return (
     <>
@@ -975,6 +1271,32 @@ export function GrimoireDialog({
           </div>
         ) : null}
 
+        {shelves.some((row) => row.mode === 'prepared_list' || row.mode === 'spellbook') ||
+        mode === 'prepared_list' ||
+        mode === 'spellbook' ? (
+          <div className="chip-row">
+            {(
+              [
+                { id: 'all' as const, label: 'Все доступные' },
+                { id: 'prepared' as const, label: 'Подготовленные' },
+                { id: 'unprepared' as const, label: 'Не подготовленные' },
+                ...(shelves.some((row) => row.mode === 'spellbook') || mode === 'spellbook'
+                  ? [{ id: 'in_book' as const, label: 'В книге' }]
+                  : []),
+              ] as const
+            ).map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`sheet-chip${statusFilter === item.id ? ' is-on' : ''}`}
+                onClick={() => setStatusFilter(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         <div className="chip-row">
           {bookOptions.map((book) => (
             <button
@@ -1019,11 +1341,37 @@ export function GrimoireDialog({
           <Text tone="muted">Возьми класс с заклинаниями (или архетип вроде Мистического рыцаря).</Text>
         ) : null}
 
-        {groups.length === 0 && !loading && access.hasCaster ? (
+        {shelfSections.every((section) => section.groups.length === 0) &&
+        !loading &&
+        access.hasCaster ? (
           <Text tone="muted">Ничего не найдено.</Text>
         ) : (
-          groups.map((group) => (
-            <div key={group.level} className="prepare-section">
+          shelfSections.map((section) => (
+            <div
+              key={section.shelf?.slug ?? 'mono'}
+              className="grimoire-shelf"
+              data-shelf={section.shelf?.slug ?? ''}
+            >
+              {section.shelf && shelves.length > 1 && classFilter === 'all' ? (
+                <div className="grimoire-shelf__header">
+                  <strong>{section.shelf.labelRu}</strong>
+                  <Text tone="muted">
+                    {[
+                      shelfModeLabel(section.shelf),
+                      section.shelf.aloneMaxLevel > 0
+                        ? `круг 1–${section.shelf.aloneMaxLevel}`
+                        : 'заговоры',
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </Text>
+                </div>
+              ) : null}
+              {section.groups.length === 0 ? (
+                <Text tone="muted">Нет заклинаний на этой полке по фильтру.</Text>
+              ) : null}
+              {section.groups.map((group) => (
+            <div key={`${section.shelf?.slug ?? 'x'}-${group.level}`} className="prepare-section">
               <strong>
                 {levelLabel(group.level)} ({group.spells.length})
               </strong>
@@ -1031,11 +1379,28 @@ export function GrimoireDialog({
                 {group.spells.map((spell) => {
                   const entry = entries.find((item) => item.id === spell.catalog_id)
                   if (!entry) return null
-                  const onSheet = knownHasCatalogId(spells.known, entry.id)
+                  const rowSlug = acquisitionSlugForEntry(entry, section.shelf?.slug)
+                  const onSheet = knownHasCatalogIdForSlug(
+                    spells.known,
+                    entry.id,
+                    rowSlug,
+                  )
+                  const otherBindings = otherClassBindingsForCatalog(
+                    spells.known,
+                    entry.id,
+                    rowSlug,
+                  )
+                  const rowMode =
+                    access.profiles.find((row) => row.slug === rowSlug)?.mode ??
+                    section.shelf?.mode ??
+                    mode
                   const parsed = parseSpellCatalogData(entry.data)
                   const expanded = expandedId === entry.id
                   return (
-                    <li key={entry.id} className="prepare-row prepare-row--spell">
+                    <li
+                      key={`${section.shelf?.slug ?? 'x'}:${entry.id}`}
+                      className="prepare-row prepare-row--spell"
+                    >
                       <div className="prepare-row__main">
                         <div>
                           {entry.name_ru}
@@ -1078,12 +1443,15 @@ export function GrimoireDialog({
                       <div className="grimoire-row__actions">
                         {onSheet ? (
                           (() => {
-                            const sheetSpell = knownSpellForCatalog(entry.id)
+                            const sheetSpell = knownSpellForCatalog(
+                              entry.id,
+                              section.shelf?.slug,
+                            )
                             const prepared = Boolean(sheetSpell?.prepared)
                             const canRemove = sheetSpell ? canRemoveSheetSpell(sheetSpell) : false
                             const needsPrepareToggle =
                               spell.level > 0 &&
-                              (mode === 'prepared_list' || mode === 'spellbook')
+                              (rowMode === 'prepared_list' || rowMode === 'spellbook')
                             return (
                               <>
                                 {needsPrepareToggle ? (
@@ -1093,17 +1461,17 @@ export function GrimoireDialog({
                                     onClick={() => togglePrepareOnSheet(entry)}
                                     title={
                                       prepared
-                                        ? 'Снять с сегодняшнего набора (останется в пуле)'
-                                        : 'Добавить в сегодняшний набор'
+                                        ? 'Убрать из сегодняшнего набора (останется в пуле)'
+                                        : 'В сегодняшний набор'
                                     }
                                   >
                                     {prepared ? 'Подготовлено' : 'Подготовить'}
                                   </button>
                                 ) : (
                                   <span className="sheet-chip is-on">
-                                    {mode === 'spellbook'
+                                    {rowMode === 'spellbook'
                                       ? 'В книге'
-                                      : mode === 'known'
+                                      : rowMode === 'known'
                                         ? 'Известно'
                                         : 'На листе'}
                                   </span>
@@ -1114,43 +1482,54 @@ export function GrimoireDialog({
                                     className="sheet-chip"
                                     onClick={() => removeSpell(entry)}
                                     title={
-                                      mode === 'spellbook'
+                                      rowMode === 'spellbook'
                                         ? 'Убрать из книги'
                                         : 'Убрать с листа'
                                     }
                                   >
-                                    Снять
+                                    {uiCopy.removeActionLabel}
                                   </button>
                                 ) : null}
                               </>
                             )
                           })()
-                        ) : mode === 'known' || spell.level <= 0 ? (
+                        ) : rowMode === 'known' || spell.level <= 0 ? (
                           <button
                             type="button"
                             className="sheet-chip"
                             disabled={
                               spell.level <= 0
-                                ? cantripCapReached()
-                                : leveledLearnCapReached()
+                                ? cantripCapReached(rowSlug)
+                                : leveledLearnCapReached(rowSlug)
                             }
-                            onClick={() => addSpell(entry, true)}
+                            title={
+                              otherBindings.length > 0
+                                ? `Уже есть как ${otherBindings
+                                    .map((row) => row.class_slug || 'класс')
+                                    .join(', ')} — вторая привязка займёт бюджет`
+                                : undefined
+                            }
+                            onClick={() => addSpell(entry, true, section.shelf?.slug)}
                           >
                             {spell.level <= 0
-                              ? cantripCapReached()
+                              ? cantripCapReached(rowSlug)
                                 ? 'Лимит заговоров'
-                                : 'Взять заговор'
-                              : leveledLearnCapReached()
+                                : otherBindings.length > 0
+                                  ? `Также ${uiCopy.pickActionLabel.toLowerCase()}`
+                                  : uiCopy.pickActionLabel
+                              : leveledLearnCapReached(rowSlug)
                                 ? 'Лимит'
-                                : 'Добавить'}
+                                : otherBindings.length > 0
+                                  ? `Также ${uiCopy.pickActionLabel.toLowerCase()}`
+                                  : uiCopy.pickActionLabel}
                           </button>
-                        ) : mode === 'spellbook' ? (
+                        ) : rowMode === 'spellbook' ? (
                           <>
                             <button
                               type="button"
                               className="sheet-chip"
-                              disabled={leveledLearnCapReached() || !canWriteToBook}
-                              onClick={() => addSpell(entry, false)}
+                              disabled={leveledLearnCapReached(rowSlug) || !canWriteToBook}
+                              onClick={() => addSpell(entry, false, section.shelf?.slug)}
                               title={
                                 !canWriteToBook
                                   ? 'Нужна книга заклинаний в инвентаре'
@@ -1163,7 +1542,7 @@ export function GrimoireDialog({
                             >
                               {!canWriteToBook
                                 ? 'Нет книги'
-                                : leveledLearnCapReached()
+                                : leveledLearnCapReached(rowSlug)
                                   ? 'Книга полна'
                                   : spellbookCopyGp(entry) > 0
                                     ? `В книгу · ${formatGpTotal(spellbookCopyGp(entry))} зм`
@@ -1173,11 +1552,11 @@ export function GrimoireDialog({
                               type="button"
                               className="sheet-chip"
                               disabled={
-                                leveledLearnCapReached() ||
+                                leveledLearnCapReached(rowSlug) ||
                                 prepareCapReached() ||
                                 !canWriteToBook
                               }
-                              onClick={() => addSpell(entry, true)}
+                              onClick={() => addSpell(entry, true, section.shelf?.slug)}
                               title={
                                 !canWriteToBook
                                   ? 'Нужна книга заклинаний в инвентаре'
@@ -1192,31 +1571,23 @@ export function GrimoireDialog({
                             </button>
                           </>
                         ) : (
-                          <>
-                            <button
-                              type="button"
-                              className="sheet-chip"
-                              onClick={() => addSpell(entry, false)}
-                              title="На лист без подготовки — появится во «Все доступные»"
-                            >
-                              На лист
-                            </button>
-                            <button
-                              type="button"
-                              className="sheet-chip"
-                              disabled={prepareCapReached()}
-                              onClick={() => addSpell(entry, true)}
-                              title="На лист и сразу в сегодняшний набор"
-                            >
-                              {prepareCapReached() ? 'Лимит подготовки' : 'Подготовить'}
-                            </button>
-                          </>
+                          <button
+                            type="button"
+                            className="sheet-chip"
+                            disabled={prepareCapReached()}
+                            onClick={() => addSpell(entry, true, section.shelf?.slug)}
+                            title="Добавить в сегодняшний набор (список класса уже доступен)"
+                          >
+                            {prepareCapReached() ? 'Лимит подготовки' : 'Подготовить'}
+                          </button>
                         )}
                       </div>
                     </li>
                   )
                 })}
               </ul>
+            </div>
+              ))}
             </div>
           ))
         )}

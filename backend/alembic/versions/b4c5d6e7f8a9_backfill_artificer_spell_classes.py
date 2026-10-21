@@ -1,12 +1,14 @@
 """Backfill artificer onto PHB/TCE class spell lists.
 
-Revision ID: z2a3b4c5d6e7
-Revises: y1z2a3b4c5d6
+Revision ID: b4c5d6e7f8a9
+Revises: a3b4c5d6e7f8
 Create Date: 2026-10-21
 
 Artificer was only tagged on XGE/TCE-native rows; PHB staples (fire_bolt,
 cure_wounds, …) never got `artificer` in data.classes, so grimoire / prepare
 pickers showed ~9 cantrips and ~4 L1 spells.
+
+Chained after live tip head a3b4c5d6e7f8 (tiefling hellish rebuke).
 """
 
 from __future__ import annotations
@@ -16,8 +18,8 @@ from typing import Sequence, Union
 from alembic import op
 from sqlalchemy import text
 
-revision: str = "z2a3b4c5d6e7"
-down_revision: Union[str, Sequence[str], None] = "y1z2a3b4c5d6"
+revision: str = "b4c5d6e7f8a9"
+down_revision: Union[str, Sequence[str], None] = "a3b4c5d6e7f8"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -122,9 +124,6 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     conn = op.get_bind()
-    # Remove only the trailing artificer we may have appended; leave rows that
-    # already had artificer before this migration untouched when possible is
-    # hard in SQL — strip artificer from the listed slugs only.
     conn.execute(
         text(
             """

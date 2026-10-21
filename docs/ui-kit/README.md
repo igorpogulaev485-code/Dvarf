@@ -92,7 +92,34 @@ Skill для агентов: [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../../.cur
 | Новые заклинания | только через **Гримуар** (без «Своё homebrew» в настройках) |
 | Icons | `spellIcons.tsx` — книга / шляпа / ✨ / фокус / мешочек / конц. / ритуал |
 
-Доски: [`spells`](boards/dvarf-ui-kit-spells.jpg) · [`spell-icons`](boards/dvarf-ui-kit-spell-icons.jpg)
+Доски Wave A: [`spells`](boards/dvarf-ui-kit-spells.jpg) · [`spell-icons`](boards/dvarf-ui-kit-spell-icons.jpg)
+
+### Wave MC (мультикласс) — на ok Игоря → LOCK
+
+> Кадры с **реального** клона Квакка (Art15 / Warlock5). Wave A boards не удалять.  
+> Полный LOCK Wave MC — после явного ok Игоря (этот блок = candidate).
+
+| Правило MC | Смысл |
+|------------|--------|
+| Шапка профилей | Строка на класс: label · хар-ка · Сл · атака (merge только если итоги совпали) |
+| Meta budgets | `Изобретатель n/n · Колдун n/n · Гримуар 3` — не безымянное `заг.` |
+| Cast | DC/атака от `class_slug`; dual picker; rest labels на путях ячейки |
+| Гримуар | Полки по классу + alone-max; глаголы §2.5 |
+| Create | Обзор кастеров + «Выбрать заклинания» per class |
+| Classic P3 | Таблица профилей при ≥2 кастерах |
+
+Доски Wave MC (из кадров M3–M6):
+
+| Доска | Файл |
+|-------|------|
+| Profiles | [`spells-mc-profiles`](boards/dvarf-ui-kit-spells-mc-profiles.jpg) |
+| Rows | [`spells-mc-row`](boards/dvarf-ui-kit-spells-mc-row.jpg) |
+| Cast | [`spells-mc-cast`](boards/dvarf-ui-kit-spells-mc-cast.jpg) |
+| Budgets | [`spells-mc-budgets`](boards/dvarf-ui-kit-spells-mc-budgets.jpg) |
+| Grimoire | [`spells-mc-grimoire`](boards/dvarf-ui-kit-spells-mc-grimoire.jpg) |
+| Create | [`create-mc-spells`](boards/dvarf-ui-kit-create-mc-spells.jpg) |
+
+План: [`MULTICLASS_SPELL_ABILITY_PLAN.md`](../MULTICLASS_SPELL_ABILITY_PLAN.md).
 
 ## 2d. Атаки стола — LOCK
 
@@ -149,6 +176,7 @@ Live-эталоны в продукте (уже близки к киту): Inven
 | Pads / dialogs | `dvarf-ui-kit-dialogs-pads.jpg` |
 | Rail | `dvarf-ui-kit-ability-rail-v2.jpg`, `dvarf-ui-kit-ability-colors.jpg` |
 | Spells LOCK | `dvarf-ui-kit-spells.jpg`, `dvarf-ui-kit-spell-icons.jpg` |
+| Spells Wave MC (candidate) | `dvarf-ui-kit-spells-mc-profiles.jpg`, `…-mc-row.jpg`, `…-mc-cast.jpg`, `…-mc-budgets.jpg`, `…-mc-grimoire.jpg`, `dvarf-ui-kit-create-mc-spells.jpg` |
 | Combat attacks compact + settings | line icons in `attackIcons.tsx`; chrome = `desk-chrome` §E; setup = `AttacksSettingsDialog` (§2d) |
 | Features / companions / attunement / ЕЩЁ | `dvarf-ui-kit-features-companions.jpg` |
 | Rest / create / toast / list | `dvarf-ui-kit-rest-create-app.jpg` |

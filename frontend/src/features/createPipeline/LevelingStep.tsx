@@ -47,6 +47,8 @@ type LevelingStepProps = {
   /** Change already-selected archetype (not the primary pick path). */
   onChangeArchetype: (classEntryId: string) => void
   onOpenSpells: () => void
+  /** Open grimoire focused on one caster class (M4 per-class accordion). */
+  onOpenSpellsForClass?: (classSlug: string) => void
   /** Prepared / spellbook casters — open prepare dialog (optional). */
   onOpenPrepare?: () => void
   /** Live caster tables from class levels (slots / prepare / known mode). */
@@ -68,6 +70,18 @@ type LevelingStepProps = {
     slots: Record<string, SpellSlotState>
     pactSlots: PactSlotState | null
   } | null
+  /** M4: one row per caster class (overview + open that class). */
+  spellClassBudgets?: Array<{
+    slug: string
+    labelRu: string
+    mode: 'known' | 'prepared_list' | 'spellbook' | null
+    cantripsKnown: number
+    cantripsMax: number
+    leveledKnown: number
+    leveledKnownMax: number | null
+  }> | null
+  /** Named cantrip meta line (Изобретатель n/n · …). */
+  spellBudgetMeta?: string | null
 }
 
 function formatSlotBrief(slots: Record<string, SpellSlotState>): string {
@@ -124,8 +138,11 @@ export function LevelingStep({
   onMulticlassAdded,
   onChangeArchetype,
   onOpenSpells,
+  onOpenSpellsForClass,
   onOpenPrepare,
   spellcasting = null,
+  spellClassBudgets = null,
+  spellBudgetMeta = null,
 }: LevelingStepProps) {
   const [mcOpen, setMcOpen] = useState(false)
   const [pruneWarn, setPruneWarn] = useState<{
@@ -362,15 +379,62 @@ export function LevelingStep({
       <div className="create-pipeline__spells-block">
         <div className="create-pipeline__method-row">
           <Button variant="secondary" onClick={onOpenSpells}>
-            Заклинания
+            Выбрать заклинания
           </Button>
           {onOpenPrepare ? (
             <Button variant="secondary" onClick={onOpenPrepare}>
-              Подготовить
+              Изменить подготовку
             </Button>
           ) : null}
         </div>
-        {spellcasting ? (
+        {spellClassBudgets && spellClassBudgets.length > 0 ? (
+          <Stack gap={8}>
+            {spellBudgetMeta ? <Text tone="muted">{spellBudgetMeta}</Text> : null}
+            <Text tone="muted">Обзор кастеров — открой класс, чтобы выбрать в его бюджет.</Text>
+            <ul className="create-pipeline__spell-class-list">
+              {spellClassBudgets.map((row) => (
+                <li key={row.slug} className="create-pipeline__spell-class-row">
+                  <div>
+                    <strong>{row.labelRu}</strong>
+                    <Text tone="muted">
+                      {[
+                        `Заговоры ${row.cantripsKnown}/${row.cantripsMax}`,
+                        row.mode === 'known' && row.leveledKnownMax != null
+                          ? `Известно ${row.leveledKnown}/${row.leveledKnownMax}`
+                          : row.mode === 'spellbook'
+                            ? `В книге ${row.leveledKnown}`
+                            : row.mode === 'prepared_list'
+                              ? `На листе ${row.leveledKnown}`
+                              : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </Text>
+                  </div>
+                  {onOpenSpellsForClass ? (
+                    <Button
+                      variant="ghost"
+                      onClick={() => onOpenSpellsForClass(row.slug)}
+                    >
+                      Выбрать…
+                    </Button>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            {spellcasting ? (
+              <Text tone="muted">
+                Ячейки общие: {formatSlotBrief(spellcasting.slots)}
+                {spellcasting.pactSlots && spellcasting.pactSlots.max > 0
+                  ? ` · Pact ${spellcasting.pactSlots.max}×${spellcasting.pactSlots.level}`
+                  : ''}
+                {spellcasting.mode !== 'known' && spellcasting.maxPrepared != null
+                  ? ` · Подготовка ${spellcasting.preparedLeveled}/${spellcasting.maxPrepared} (можно меньше)`
+                  : ''}
+              </Text>
+            ) : null}
+          </Stack>
+        ) : spellcasting ? (
           <Stack gap={4}>
             <Text tone="muted">{spellcasting.labelRu}</Text>
             <Text>
@@ -408,8 +472,8 @@ export function LevelingStep({
               {spellcasting.mode === 'spellbook'
                 ? 'Волшебник: на 1 ур. — 6 бесплатно в книгу, каждый новый уровень — +2 бесплатно. Сверх этого — золото. Гримуар ≠ подготовка.'
                 : spellcasting.mode === 'known'
-                  ? 'Известные сразу готовы к бою. Новые — только через гримуар (кнопка «Подготовить» не нужна).'
-                  : '«На лист» в гримуаре наполняет пул; «Подготовить» выбирает сегодняшний набор. При мультиклассе ячейки/лимит — по PHB 2014.'}
+                  ? 'Выбери известные в гримуаре — сразу готовы к бою. Замена — при повышении уровня.'
+                  : 'Готовь прямо в гримуаре (чипы Все / Подготовленные). Полный лимит подготовки не обязателен.'}
             </Text>
           </Stack>
         ) : (

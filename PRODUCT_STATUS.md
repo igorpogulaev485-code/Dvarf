@@ -4,12 +4,69 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/create-feedback-ship-fc00`  
+**Prod tip (ветка линии прода):** `cursor/spells-feats-infusions-ab30`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
 
 ## Сейчас в продукте — свежее
+
+### 2026-10-21 — Мультикласс: Сл/атака по классам (M1–M7)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Профили каста | `SpellCastProfile` per class + `class_slug` на заклинании | У МС свои Сл/атака (напр. Изобретатель 19/+11 · Колдун 18/+10) |
+| Бюджеты заговоров | Именованная meta по классам | `Изобретатель 4/4 · Колдун 3/3`, не общий пул |
+| Каст / dual / rest | Resolve по slug; dual-picker; labels отдыха | Договор vs обычная ячейка понятны |
+| Гримуар полки | Alone-max на полку класса | Высокая общая ячейка не открывает чужой список |
+| Classic P3 | Таблица профилей при ≥2 кастерах | Печать совпадает со столом |
+| Wave MC UI-kit | Candidate boards `*-mc-*.jpg` | LOCK после ok Игоря; Wave A не откатывали |
+
+На проде: **да** · tip `cursor/multiclass-spell-m1-c9ba` · PR #263 · залито 2026-10-21 · поверх tip `tiefling-hellish-rebuke-2-6682` · `/health` ok · бандл `CharacterDetailPage-BAC-WGUq.js` · `castProfiles.ts` + `play-desk-compact__cast-profile` на диске · characters=94 classic=20
+
+### 2026-10-21 — Тифлинг: Адская месть как 2-й круг
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Infernal Legacy / MToF L3 | `racial_spells.level` = cast-as 2 (не native 1) | «Адская месть» на листе — 2 ур., урон 3к10 |
+| Alembic `a3b4c5d6e7f8` | Upsert racial_spells тифлингов в каталог | Старые листы подтягивают level при открытии |
+
+На проде: **да** · **это новый prod tip** `cursor/tiefling-hellish-rebuke-2-6682` · PR #261 · залито 2026-10-21 · поверх tip `bm-maneuvers-bridge-6682` · `/health` ok · alembic `a3b4c5d6e7f8` · hellish_rebuke level=2 в БД · characters=94 classic=19
+
+### 2026-10-21 — Battle Master: манёвры из create → блок архетипа
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Мост `maneuvers_3` → `feature_picks` | Create/setup + pipelineApply пишут в `combat_superiority` | Приёмы видны в «Боевое превосходство» без ручного ввода |
+| Гидратация старых листов | При открытии копирует манёвры из `subclass_grants`, если picks пусты | Рагнар и др. BM восстанавливаются после переоткрытия |
+
+На проде: **да** · **это новый prod tip** `cursor/bm-maneuvers-bridge-6682` · PR #260 · залито 2026-10-21 · поверх tip `satyr-rogue-init-speed-d602` · `/health` ok · бандл `CharacterDetailPage-CytG2UIW.js` / `CreateCharacterPage-CN1reRzG.js` · `battleMasterManeuverBridge.ts` на диске · characters=94 classic=19
+
+### 2026-10-21 — Наборы: qty содержимого не сбрасывается
+
+| Функция | Как работает |
+|--------|--------------|
+| Soft collapse набора | Сворачивание прячет содержимое, но не удаляет строки |
+| Повторное раскрытие | Те же предметы с уже изменённым количеством (бурдюк 1→9 остаётся 9) |
+
+На проде: **да** · **это новый prod tip** `cursor/pack-qty-persist-2683` · PR #256 · залито 2026-10-21 · поверх tip `optional-class-features-8215` (Tasha optionals + расходники/гримуар сохранены) · `/health` ok · бандл `CharacterDetailPage-DanoONwv.js` · soft collapse на диске · characters=94 classic=19
+
+### 2026-10-21 — Optional class features + умение предыстории на листе
+
+| Функция | Как работает |
+|--------|--------------|
+| Tasha optional class features | В пакетах всех классов (`optional`/`source_book`); плут L3+ — **Точное прицеливание** |
+| Умение предыстории | Карточка в «Способности»; classic читает `traits`; backfill при открытии |
+| Миграция | Unlock из JSON; `ensureBackgroundFeatureOnDraft`; alembic `z2a3b4c5d6e7` |
+
+На проде: **да** · было tip `cursor/optional-class-features-8215` · PR #255 · залито 2026-10-21 · alembic `z2a3b4c5d6e7` · `/health` ok · бандл `CharacterDetailPage-DpIAteFJ.js` · `steady_aim` + `ConsumableSpendPadDialog` на диске · поверх tip `restore-consumables-grimoire-0bc3` (расходники/гримуар сохранены)
+
+
+### 2026-10-21 — Restore: расходники + гримуар поверх ship
+
+Ship `create-feedback-ship-fc00` собрали от `vpn-https` **без** live tip `grimoire-prepare-home-3aba` → с прода пропали Undo/×N расходников и UX «Гримуар = дом подготовки». Classic / cabinet / lobby / Play Desk каркас **на месте**.
+
+На проде: **да** · **это новый prod tip** `cursor/restore-consumables-grimoire-0bc3` · PR #254 · залито 2026-10-21 · `/health` ok · бандл `CharacterDetailPage-DA3Hh2L6.js` · `consumableSpend.ts` на диске · ship U/A/C/F/E сохранены
 
 ### 2026-10-21 — Фидбек создания (U/A/C/F/E)
 
@@ -21,7 +78,29 @@
 | F | Колдун Гримуар: +3 заговора любого списка вне бюджета |
 | E | Стартовые атаки: merge дублей по identity оружия |
 
-На проде: **да** · **это новый prod tip** `cursor/create-feedback-ship-fc00` · ship PR #253 · срезы #248–#252 · залито 2026-10-21 · alembic `y1z2a3b4c5d6` · `/health` ok
+На проде: **да** · было tip `cursor/create-feedback-ship-fc00` (затирал 3b91/3aba) · ship PR #253 · срезы #248–#252 · залито 2026-10-21 · alembic `y1z2a3b4c5d6` · `/health` ok
+
+### 2026-10-21 — Гримуар = дом подготовки; «Подготовить» только у волшебника
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Жрец / друид / паладин / изобретатель | Готовка в **Гримуаре**: чипы Все / Подготовленные / Не подготовленные; «На лист» убран | Один экран вместо двух |
+| Кнопка на листе | У prepared_list **нет** «Подготовить» — только Настройки → Гримуар | Не путает с утренней подготовкой волшебника |
+| Волшебник | «Подготовить» = набор **из книги** на сегодня; новые записи — Гримуар («В книгу») | Как PHB: книга ≠ подготовка |
+| Alone-max | В гримуаре список класса до alone-max уровня (мультикласс) | Видно полный пул класса, не общий CR |
+
+На проде: **да** · tip `cursor/restore-consumables-grimoire-0bc3` · PR #245/#254 · восстановлено 2026-10-21 · `/health` ok
+
+### 2026-10-21 — Расходники: защита от случайных тапов
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Чип «потратить» | Тратит только кнопка, не тап по имени строки | Меньше случайных −1 в бою |
+| Undo в тосте | После траты тост с именем + **Отменить** (~8 с) | Видно что ушло; можно вернуть |
+| ×N | Pad «Потратить: {предмет}» → qty → confirm | Несколько штук за раз, имя в заголовке |
+| Журнал трат | Под расходниками, сессия + «вернуть» | История коротких трат на столе |
+
+На проде: **да** · tip `cursor/restore-consumables-grimoire-0bc3` · PR #246/#254 · восстановлено 2026-10-21 · бандл `CharacterDetailPage-DA3Hh2L6.js` · `consumableSpend` в бандле
 
 ### 2026-10-21 — VPN + канон https://creed20.tech
 
@@ -32,7 +111,7 @@
 | Boot splash | Если модули не пришли за 20с — текст ошибки, не белый экран |
 | MTU harden | TCPMSS + probing на :80/:443 для мобильного VPN |
 
-На проде: **да** · tip сменился на `cursor/create-feedback-ship-fc00` · PR #243 · залито 2026-10-21
+На проде: **да** · в линии tip (сейчас restore-ветка поверх ship) · PR #243 · залито 2026-10-21
 
 ---
 
@@ -85,6 +164,26 @@
 ---
 
 ## Сейчас в продукте (прод)
+
+### 2026-10-21 — плут-сатир: скорость Mobile + инициатива Alert/Rakish
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Лихая дерзость | +мод. Хар. к инициативе (вместе с Alert и ЛОВ) | Дуэлянт видит полный бонус, не только ЛОВ |
+| ASI→черта в создании | «Подвижный» / «Бдительный» пишутся в ledger и применяются | Скорость +10 и init +5 не теряются после создания |
+| Старые листы | При открытии один раз восстанавливают missing ASI-черты из каталога | Лисандр: 35→45 скорости, +5→+11 инициативы после переоткрытия |
+
+На проде: **да** · **это новый prod tip** `cursor/satyr-rogue-init-speed-d602` · PR #258 · залито 2026-10-21 · поверх tip `versatile-weapons-grip-57bf` · `/health` ok · бандл `featureCombatBonuses-BZncBTaZ.js` / `CharacterDetailPage-CvL-fnWU.js` · `rakish_audacity` на диске · characters=94 classic=19
+
+### 2026-10-21 — универсальное оружие (щит + куб 1к8 / две руки 1к10)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Боевой молот + щит | Универсальное оружие = 1 рука (баг substring `молот` снят) | Можно держать молот и щит вместе |
+| Куб урона | Свободная рука → versatile (часто 1к10); со щитом → базовый (1к8) | Урон в атаках совпадает с хватом |
+| Покрытие PHB | Боевой топор, длинный меч, боевой молот, посох, копьё, трезубец | Одно правило на всё универсальное |
+
+На проде: **да** · **это новый prod tip** `cursor/versatile-weapons-grip-57bf` · PR #257 · залито 2026-10-21 · поверх tip `pack-qty-persist-2683` · `/health` ok · бандл `CharacterDetailPage-DICuRzkn.js` · characters=94 classic=19 · Play Desk + classic на диске
 
 ### 2026-10-21 — «Все доступные» из списка класса при подготовке
 
@@ -656,11 +755,12 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 | Функция | Как работает | Эффект |
 |--------|--------------|--------|
 | Подписи опций фич | Один резолвер `featureChoiceOptionLabel` в create-wizard и на листе; каталоги инфузий/метамагии/воззваний через `*ById` | При создании изобретателя инфузии на русском, не `enhanced_weapon` |
-| Заклинания изобретателя | В каталог добавлен тег `artificer` на 65 PHB/TCE заклинаний (fire bolt, cure wounds, …) + alembic `z2a3b4c5d6e7` | В гримуаре ~22 заговора и ~18 заклинаний 1 круга вместо ~9/~4 |
+| Заклинания изобретателя | В каталог добавлен тег `artificer` на 65 PHB/TCE заклинаний (fire bolt, cure wounds, …) + alembic `b4c5d6e7f8a9` | В гримуаре ~22 заговора и ~18 заклинаний 1 круга вместо ~9/~4 |
 | Magic Initiate | Фикс списков на месте; selfcheck по PHB-заговорам всех 5 классов | Жрец/бард/друид/колдун/волшебник тянут полные списки; «шипастый щит» в 5e нет (есть «Терновый кнут» у друида) |
 
-На проде: **нет** · ветка `cursor/spells-feats-infusions-ab30`
+На проде: **нет** · ветка `cursor/spells-feats-infusions-ab30` · поверх tip `multiclass-spell-m1-c9ba`
 
+<!-- grimoire-prepare-home залито 2026-10-21 → tip grimoire-prepare-home-3aba; блок в «Сейчас в продукте» -->
 <!-- prepare-class-list-available залито 2026-10-21 → tip prepare-class-list-available-3aba; блок в «Сейчас в продукте» -->
 <!-- stealthy залито 2026-10-20 → tip feat-stealthy-3565; блок в «Сейчас в продукте» -->
 
@@ -717,7 +817,16 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
-| 2026-10-21 | `cursor/create-feedback-ship-fc00` · PR #253 | U/A/C/F/E фидбек создания → **новый tip** |
+| 2026-10-21 | `cursor/spells-feats-infusions-ab30` · PR #264 | Инфузии RU + artificer spell tags + MI audit → tip после Timeweb |
+| 2026-10-21 | `cursor/multiclass-spell-m1-c9ba` · PR #263 | MC spell profiles/budgets/cast/grimoire/classic → tip после Timeweb |
+| 2026-10-21 | `cursor/tiefling-hellish-rebuke-2-6682` · PR #261 | Tiefling Hellish Rebuke cast-as 2 → **новый tip** после Timeweb |
+| 2026-10-21 | `cursor/bm-maneuvers-bridge-6682` · PR #260 | BM maneuvers → feature_picks bridge → **новый tip** после Timeweb |
+| 2026-10-21 | `cursor/satyr-rogue-init-speed-d602` · PR #258 | Mobile/Alert/Rakish init+speed → **новый tip** после Timeweb |
+| 2026-10-21 | `cursor/versatile-weapons-grip-57bf` · PR #257 | Универсальное оружие (щит + 1к8/1к10) → **новый tip** после Timeweb |
+| 2026-10-21 | `cursor/restore-consumables-grimoire-0bc3` | Audit: restore расходники+гримуар после overwrite ship fc00 → **новый tip** (после Timeweb) |
+| 2026-10-21 | `cursor/create-feedback-ship-fc00` · PR #253 | U/A/C/F/E фидбек создания → tip (затёр 3b91/3aba) |
+| 2026-10-21 | `cursor/grimoire-prepare-home-3aba` · PR #245 | Гримуар = дом подготовки; thin Prepare волшебник → tip |
+| 2026-10-21 | `cursor/consumables-tap-guard-plan-3b91` · PR #246 | Расходники: Undo / ×N / журнал → tip |
 | 2026-10-21 | `cursor/vpn-https-stable-fab2` · PR #243 | VPN + канон https://creed20.tech → **новый tip** |
 | 2026-10-21 | `cursor/prepare-class-list-available-3aba` · PR #242 | Prepare: class list → «Все доступные» → tip после Timeweb |
 | 2026-10-20 | `cursor/create-skills-equip-fix-1dbf` · PR #240 | Create: серые навыки предыстории + PHB equip lines → **новый tip** после Timeweb |

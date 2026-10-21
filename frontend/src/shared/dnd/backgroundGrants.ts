@@ -775,7 +775,18 @@ export function storeTextBlockFromEditor(
 const FEATURE_START = '<!-- dvarf-background-feature -->'
 const FEATURE_END = '<!-- /dvarf-background-feature -->'
 
-export function buildBackgroundFeatureText(def: BackgroundGrantDef): string {
+/** Structured card for the abilities panel (and backfill helpers). */
+export type BackgroundFeatureCard = {
+  id: string
+  nameRu: string
+  summaryRu: string
+}
+
+export function buildBackgroundFeatureText(def: {
+  featureNameRu?: string | null
+  featureTextRu?: string | null
+  featNoteRu?: string | null
+}): string {
   const name = (def.featureNameRu || '').trim()
   const body = (def.featureTextRu || '').trim()
   const feat = (def.featNoteRu || '').trim()
@@ -785,6 +796,27 @@ export function buildBackgroundFeatureText(def: BackgroundGrantDef): string {
     feat,
   ].filter(Boolean)
   return parts.join('\n')
+}
+
+/** Glance card from an applied grant / catalog feature fields. */
+export function backgroundFeatureCardFromGrant(input: {
+  slug?: string | null
+  featureNameRu?: string | null
+  featureTextRu?: string | null
+  featNoteRu?: string | null
+}): BackgroundFeatureCard | null {
+  const nameRu = (input.featureNameRu || '').trim()
+  if (!nameRu) return null
+  const summaryRu = [input.featureTextRu, input.featNoteRu]
+    .map((part) => (part || '').trim())
+    .filter(Boolean)
+    .join('\n\n')
+  const slug = (input.slug || 'background').trim() || 'background'
+  return {
+    id: `background-feature:${slug}`,
+    nameRu,
+    summaryRu: summaryRu || nameRu,
+  }
 }
 
 export function upsertBackgroundFeatureBlock(

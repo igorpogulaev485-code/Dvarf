@@ -138,6 +138,54 @@ const cast = withSpellCastBonuses({
 })
 assert(cast.dc === 14 && cast.attack === 7, `cast ${cast.dc}/${cast.attack}`)
 
+// M3: class_slug scope — warlock +1 DC does not hit artificer
+const scoped = normalizeBonusLines([
+  {
+    id: 'global',
+    target: 'spell_dc',
+    label: 'Амулет',
+    op: '+',
+    expr: '1',
+    enabled: true,
+  },
+  {
+    id: 'wlk',
+    target: 'spell_dc',
+    label: 'Жезл',
+    op: '+',
+    expr: '1',
+    enabled: true,
+    class_slug: 'warlock',
+  },
+])
+assert(scoped[1]?.class_slug === 'warlock', 'normalize class_slug')
+const artScoped = withSpellCastBonuses({
+  baseDc: 19,
+  baseAttack: 11,
+  modifiers: scoped,
+  vars,
+  classSlug: 'artificer',
+})
+assert(artScoped.dc === 20, `art dc scoped got ${artScoped.dc}`)
+const wlkScoped = withSpellCastBonuses({
+  baseDc: 18,
+  baseAttack: 10,
+  modifiers: scoped,
+  vars,
+  classSlug: 'warlock',
+})
+assert(wlkScoped.dc === 20, `wlk dc scoped got ${wlkScoped.dc}`)
+const unlabeled = withSpellCastBonuses({
+  baseDc: 13,
+  baseAttack: 5,
+  modifiers: scoped,
+  vars,
+})
+assert(
+  unlabeled.dc === 14,
+  `unlabeled cast gets only unscoped lines got ${unlabeled.dc}`,
+)
+
 const initLines = normalizeBonusLines([
   {
     id: 'i',

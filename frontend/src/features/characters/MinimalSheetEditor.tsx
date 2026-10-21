@@ -45,17 +45,21 @@ import {
 import { EquipmentProficienciesPanel } from './EquipmentProficienciesPanel'
 import {
   applyBackgroundGrantToDraft,
+  ensureBackgroundFeatureOnDraft,
   readAppliedBackgroundGrant,
   reapplyBackgroundOverlays,
   revokeBackgroundGrant,
   type BackgroundGrantDraftSlice,
 } from './backgroundEffects'
 import {
+  backgroundFeatureCardFromGrant,
   backgroundGrantNeedsSetupDialog,
   backgroundVariantsForRoot,
+  buildBackgroundFeatureText,
   emptyBackgroundPicks,
   isBackgroundComboboxRoot,
   resolveBackgroundGrantDef,
+  upsertBackgroundFeatureBlock,
   type AppliedBackgroundGrant,
   type BackgroundGrantDef,
   type BackgroundGrantPicks,
@@ -118,7 +122,27 @@ import {
   withInitiativeBonus,
   type BonusLine,
 } from './modifiers'
-import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
+import {
+  Button,
+  Dialog,
+  Field,
+  Input,
+  NumberInput,
+  Panel,
+  Stack,
+  Text,
+  type ToastInput,
+} from '../../ui'
+import { ConsumableSpendPadDialog } from './ConsumableSpendPadDialog'
+import {
+  appendConsumableSpendLog,
+  formatConsumableSpendToast,
+  formatConsumableUndoToast,
+  markConsumableSpendUndone,
+  newConsumableSpendId,
+  type ConsumableSpendLogEntry,
+  type ConsumableUndoSession,
+} from './consumableSpend'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import {
   emptyRacePicks,
@@ -213,6 +237,16 @@ import {
   sumFeatSpeedBonus,
   type AppliedFeatGrant,
 } from '../../shared/dnd/featGrants'
+import {
+  buildAsiFeatGrantFromCatalog,
+  findMissingAsiFeatEntries,
+  matchFeatCatalogEntry,
+} from './asiFeatHydrate'
+import {
+  bridgeManeuversIntoFeaturePicks,
+  extractManeuverIdsFromSubclassPicks,
+  hydrateManeuversFromSubclassGrants,
+} from '../../shared/dnd/battleMasterManeuverBridge'
 import {
   applyFeatGrantToDraft,
   revokeFeatGrantFromDraft,
@@ -381,6 +415,7 @@ import {
   syncRaceSpellsForSheetState,
   type RaceGrantDraftSlice,
 } from './raceEffects'
+import { resolveSpellLearnBudgets } from '../../shared/dnd/castProfiles'
 import {
   characterHasCasterClass,
   highestSpellSlotLevelForClasses,
@@ -434,8 +469,10 @@ import {
 import { resolveCastEffect } from '../../shared/dnd/spellCatalog'
 import { spendPactSlot, spendSpellSlot } from '../../shared/dnd/spells'
 import {
+  blockPlainText,
   readTextBlocks,
   textBlocksToSheet,
+  withBlockPlainText,
   type TextBlock,
 } from './textBlocks'
 import {
@@ -464,7 +501,7 @@ type MinimalSheetEditorProps = {
   showValueTips?: boolean
   onCreateGuideConsumed?: () => void
   onSaved: (character: CharacterDetail) => void
-  onToast: (message: string) => void
+  onToast: (message: ToastInput) => void
   onRemoteSave?: (message: Extract<SheetSyncMessage, { type: 'sheet-saved' }>) => void
 }
 
@@ -865,6 +902,11 @@ export function MinimalSheetEditor({
   const channelRef = useRef<BroadcastChannel | null>(null)
   const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const backgroundCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
+  const asiFeatHydrateAttemptedRef = useRef(false)
+  const bmManeuverHydrateAttemptedRef = useRef(false)
+  const [backgroundCatalogRows, setBackgroundCatalogRows] = useState<CatalogEntry[]>(
+    [],
+  )
   const skipAutosaveRef = useRef(true)
   const autosaveTimerRef = useRef<number | null>(null)
   const saveInFlightRef = useRef(false)
@@ -981,6 +1023,42 @@ export function MinimalSheetEditor({
       }),
     [unlockedFeatures, characterLevel, draft.abilities],
   )
+  /** Grant first; else catalog by slug/name (older sheets without background_grant). */
+  const resolvedBackgroundFeature = useMemo(() => {
+    const fromGrant = backgroundFeatureCardFromGrant(draft.backgroundGrant ?? {})
+    if (fromGrant) return fromGrant
+    const slug = draft.identity.backgroundSlug?.trim() || ''
+    const name = draft.identity.background?.trim() || ''
+    if (!slug && !name) return null
+    const entry =
+      (slug
+        ? backgroundCatalogRows.find((row) => row.slug === slug)
+        : undefined) ??
+      (name
+        ? backgroundCatalogRows.find(
+            (row) => row.name_ru.trim().toLowerCase() === name.toLowerCase(),
+          )
+        : undefined)
+    if (!entry) return null
+    const def = resolveBackgroundGrantDef({
+      backgroundName: entry.name_ru,
+      catalogSlug: entry.slug,
+      catalogData: entry.data,
+      nameRu: entry.name_ru,
+    })
+    if (!def) return null
+    return backgroundFeatureCardFromGrant({
+      slug: entry.slug,
+      featureNameRu: def.featureNameRu,
+      featureTextRu: def.featureTextRu,
+      featNoteRu: def.featNoteRu,
+    })
+  }, [
+    draft.backgroundGrant,
+    draft.identity.background,
+    draft.identity.backgroundSlug,
+    backgroundCatalogRows,
+  ])
   const martialArtsDie = useMemo(
     () => martialArtsDieFromFeatures(unlockedFeatures),
     [unlockedFeatures],
@@ -1091,13 +1169,98 @@ export function MinimalSheetEditor({
   }, [createGuide, onCreateGuideConsumed])
 
   // Prefetch backgrounds so variant fork popup does not wait on a second fetch.
+  // Also backfill feature name/text + traits marker for older sheets.
   useEffect(() => {
     let active = true
     backgroundCatalogCacheRef.current = null
+    setBackgroundCatalogRows([])
     listCatalogEntries({ kind: 'background', edition: rulesEdition })
       .then((rows) => {
         if (!active) return
         backgroundCatalogCacheRef.current = rows
+        setBackgroundCatalogRows(rows)
+        setDraft((prev) => {
+          if (prev.backgroundGrant) {
+            const entry =
+              rows.find(
+                (row) => row.id === prev.backgroundGrant!.backgroundCatalogId,
+              ) ?? rows.find((row) => row.slug === prev.backgroundGrant!.slug)
+            const catalogDef = entry
+              ? resolveBackgroundGrantDef({
+                  backgroundName: entry.name_ru,
+                  catalogSlug: entry.slug,
+                  catalogData: entry.data,
+                  nameRu: entry.name_ru,
+                })
+              : null
+            const next = ensureBackgroundFeatureOnDraft(
+              {
+                identity: prev.identity,
+                skills: prev.skills,
+                inventory: prev.inventory,
+                textBlocks: prev.textBlocks,
+                weapons: prev.weapons,
+                backgroundGrant: prev.backgroundGrant,
+                protectedSkills: new Set(),
+                protectedTools: new Set(),
+                protectedLanguages: new Set(),
+                protectedWeaponExtras: new Set(),
+              },
+              catalogDef,
+            )
+            if (
+              next.backgroundGrant === prev.backgroundGrant &&
+              next.textBlocks === prev.textBlocks
+            ) {
+              return prev
+            }
+            return {
+              ...prev,
+              backgroundGrant: next.backgroundGrant,
+              textBlocks: next.textBlocks,
+            }
+          }
+          // Name/slug-only sheets: stamp traits from catalog; panel soft-reads catalog.
+          // Do not invent a background_grant (skills/tools ownership stays untouched).
+          const slug = prev.identity.backgroundSlug?.trim() || ''
+          const name = prev.identity.background?.trim() || ''
+          if (!slug && !name) return prev
+          const entry =
+            (slug ? rows.find((row) => row.slug === slug) : undefined) ??
+            (name
+              ? rows.find(
+                  (row) =>
+                    row.name_ru.trim().toLowerCase() === name.toLowerCase(),
+                )
+              : undefined)
+          if (!entry) return prev
+          const catalogDef = resolveBackgroundGrantDef({
+            backgroundName: entry.name_ru,
+            catalogSlug: entry.slug,
+            catalogData: entry.data,
+            nameRu: entry.name_ru,
+          })
+          if (!catalogDef?.featureNameRu) return prev
+          const featureText = buildBackgroundFeatureText(catalogDef)
+          if (!featureText.trim()) return prev
+          let changed = false
+          const textBlocks = prev.textBlocks.map((block) => {
+            if (block.key !== 'traits') return block
+            const current = blockPlainText(block)
+            if (
+              current.includes('<!-- dvarf-background-feature -->') &&
+              current.includes(featureText)
+            ) {
+              return block
+            }
+            const nextPlain = upsertBackgroundFeatureBlock(current, featureText)
+            if (nextPlain === current) return block
+            changed = true
+            return withBlockPlainText(block, nextPlain)
+          })
+          if (!changed) return prev
+          return { ...prev, textBlocks }
+        })
       })
       .catch(() => {
         /* picker will retry on demand */
@@ -1546,6 +1709,94 @@ export function MinimalSheetEditor({
     }
   }
 
+  // Older create discarded ASI→feat packages; rebuild Alert/Mobile/etc. from catalog once.
+  useEffect(() => {
+    if (asiFeatHydrateAttemptedRef.current) return
+    const missing = findMissingAsiFeatEntries(draft.classAsi, draft.featGrants)
+    if (!missing.length) return
+    asiFeatHydrateAttemptedRef.current = true
+    let active = true
+    listCatalogEntries({ kind: 'feat', edition: rulesEdition })
+      .then((rows) => {
+        if (!active) return
+        const level = totalCharacterLevel(draft.classes)
+        const rebuilt: AppliedFeatGrant[] = []
+        for (const entry of missing) {
+          if (entry.resolution.kind !== 'feat') continue
+          const catalogEntry = matchFeatCatalogEntry(rows, entry.resolution)
+          if (!catalogEntry) continue
+          const grant = buildAsiFeatGrantFromCatalog({
+            entry,
+            catalogEntry,
+            characterLevel: level,
+          })
+          if (grant) rebuilt.push(grant)
+        }
+        if (!rebuilt.length) return
+        setDraft((prev) => {
+          let next = prev
+          let applied = 0
+          const names: string[] = []
+          for (const grant of rebuilt) {
+            if (grant.source.kind !== 'asi') continue
+            const source = grant.source
+            const already = next.featGrants.some(
+              (row) =>
+                row.id === grant.id ||
+                (row.source.kind === 'asi' &&
+                  row.featCatalogId === grant.featCatalogId &&
+                  row.source.classEntryId === source.classEntryId &&
+                  row.source.featureId === source.featureId),
+            )
+            if (already) continue
+            next = mergeFeatSlice(
+              next,
+              applyFeatGrantToDraft({ draft: featSliceFrom(next), grant }),
+            )
+            applied += 1
+            names.push(grant.nameRu)
+          }
+          if (applied > 0) {
+            onToast(
+              applied === 1
+                ? `Восстановлена черта ASI «${names[0]}»`
+                : `Восстановлены черты ASI: ${names.join(', ')}`,
+            )
+          }
+          return next
+        })
+      })
+      .catch(() => {
+        /* allow a later remount to retry */
+        asiFeatHydrateAttemptedRef.current = false
+      })
+    return () => {
+      active = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
+  }, [draft.classAsi, draft.featGrants, draft.classes, rulesEdition])
+
+  // Older create stored BM maneuvers only in subclass_grants (flavor); copy into feature_picks.
+  useEffect(() => {
+    if (bmManeuverHydrateAttemptedRef.current) return
+    const probe = hydrateManeuversFromSubclassGrants({
+      featurePicks: draft.featurePicks,
+      subclassGrants: draft.subclassGrants,
+    })
+    if (!probe.bridgedClassEntryIds.length) return
+    bmManeuverHydrateAttemptedRef.current = true
+    setDraft((prev) => {
+      const again = hydrateManeuversFromSubclassGrants({
+        featurePicks: prev.featurePicks,
+        subclassGrants: prev.subclassGrants,
+      })
+      if (!again.bridgedClassEntryIds.length) return prev
+      onToast('Восстановлены манёвры Мастера боя из выбора архетипа')
+      return { ...prev, featurePicks: again.featurePicks }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
+  }, [draft.subclassGrants, draft.featurePicks])
+
   function subclassSliceFrom(prev: Draft): SubclassGrantDraftSlice {
     return {
       identity: prev.identity,
@@ -1650,6 +1901,13 @@ export function MinimalSheetEditor({
       } else if (changeMode === 'replace_all') {
         nextPicks = clearFeaturePicksForClass(withGrant.featurePicks, input.classEntryId)
       }
+      // Battle Master: maneuvers_3 → combat_superiority (sheet archetype block / spend)
+      nextPicks = bridgeManeuversIntoFeaturePicks({
+        featurePicks: nextPicks,
+        classEntryId: input.classEntryId,
+        maneuverIds: extractManeuverIdsFromSubclassPicks(input.picks),
+        mode: 'merge_missing',
+      })
       return {
         ...withGrant,
         featurePicks: nextPicks,
@@ -3561,6 +3819,11 @@ export function MinimalSheetEditor({
     slug: SpellSelfFormSlug
   } | null>(null)
   const [deskCastScrollId, setDeskCastScrollId] = useState<string | null>(null)
+  const [consumableSpendPadId, setConsumableSpendPadId] = useState<string | null>(null)
+  const [consumableSpendLog, setConsumableSpendLog] = useState<ConsumableSpendLogEntry[]>(
+    [],
+  )
+  const consumableUndoRef = useRef<ConsumableUndoSession | null>(null)
   const [deskCastScrollPending, setDeskCastScrollPending] = useState<{
     itemId: string
     name: string
@@ -3595,18 +3858,110 @@ export function MinimalSheetEditor({
   )
 
   const emitToast = useCallback(
-    (message: string) => {
+    (message: ToastInput) => {
       onToast(message)
-      if (!isDeskRollToast(message)) return
+      const text = typeof message === 'string' ? message : message.message
+      if (!isDeskRollToast(text)) return
       setDraft((prev) => ({
         ...prev,
         sheetUi: {
           ...prev.sheetUi,
-          rollHistory: appendRollHistory(prev.sheetUi.rollHistory, { text: message }),
+          rollHistory: appendRollHistory(prev.sheetUi.rollHistory, { text }),
         },
       }))
     },
     [onToast],
+  )
+
+  const undoConsumableSpend = useCallback(
+    (session: ConsumableUndoSession) => {
+      if (consumableUndoRef.current?.token === session.token) {
+        consumableUndoRef.current = null
+      }
+      setDraft((prev) => ({
+        ...prev,
+        inventory: {
+          ...prev.inventory,
+          items: prev.inventory.items.map((row) =>
+            row.id === session.itemId
+              ? { ...row, qty: (row.qty ?? 0) + session.amount }
+              : row,
+          ),
+        },
+      }))
+      setConsumableSpendLog((prev) => markConsumableSpendUndone(prev, session.logId))
+      onToast(formatConsumableUndoToast(session.name, session.amount))
+    },
+    [onToast],
+  )
+
+  const spendConsumableFromDesk = useCallback(
+    (itemId: string, amount = 1) => {
+      const item = draft.inventory.items.find((row) => row.id === itemId)
+      if (!item || (item.qty ?? 0) <= 0) return
+      if (isCastableSpellScroll(item)) {
+        setDeskCastScrollId(itemId)
+        return
+      }
+      const spendAmount = Math.max(1, Math.min(amount, item.qty ?? 0))
+      const nextQty = Math.max(0, (item.qty ?? 0) - spendAmount)
+      const logId = newConsumableSpendId()
+      const token = Date.now()
+      const session: ConsumableUndoSession = {
+        token,
+        itemId,
+        name: item.name,
+        amount: spendAmount,
+        logId,
+      }
+      consumableUndoRef.current = session
+      setDraft((prev) => ({
+        ...prev,
+        inventory: {
+          ...prev.inventory,
+          items: prev.inventory.items.map((row) =>
+            row.id === itemId
+              ? { ...row, qty: Math.max(0, (row.qty ?? 0) - spendAmount) }
+              : row,
+          ),
+        },
+      }))
+      setConsumableSpendLog((prev) =>
+        appendConsumableSpendLog(prev, {
+          id: logId,
+          itemId,
+          name: item.name,
+          amount: spendAmount,
+          atMs: token,
+        }),
+      )
+      onToast({
+        message: formatConsumableSpendToast(item.name, spendAmount, nextQty),
+        durationMs: 8000,
+        actionLabel: 'Отменить',
+        onAction: () => {
+          if (consumableUndoRef.current?.token !== token) return
+          undoConsumableSpend(session)
+        },
+      })
+    },
+    [draft.inventory.items, onToast, undoConsumableSpend],
+  )
+
+  const undoConsumableSpendFromLog = useCallback(
+    (logId: string) => {
+      const entry = consumableSpendLog.find((row) => row.id === logId)
+      if (!entry || entry.undone) return
+      const session: ConsumableUndoSession = {
+        token: entry.atMs,
+        itemId: entry.itemId,
+        name: entry.name,
+        amount: entry.amount,
+        logId: entry.id,
+      }
+      undoConsumableSpend(session)
+    },
+    [consumableSpendLog, undoConsumableSpend],
   )
 
   useEffect(() => {
@@ -4095,6 +4450,17 @@ export function MinimalSheetEditor({
       abilityModFor: (ability) => abilityModifier(draft.abilities[ability]),
     })
   }, [draft.classes, subclassCastersForSpells, draft.abilities])
+
+  const spellLearnBudgets = useMemo(() => {
+    const rows = draft.classes.filter((row) => row.name.trim() && row.level > 0)
+    if (rows.length === 0) return null
+    return resolveSpellLearnBudgets({
+      classes: rows,
+      subclassCasters: subclassCastersForSpells,
+      abilityModFor: (ability) => abilityModifier(draft.abilities[ability]),
+      proficiencyBonus,
+    })
+  }, [draft.classes, subclassCastersForSpells, draft.abilities, proficiencyBonus])
 
   const spellcastingSync = useSpellcastingSheetSync({
     enabled: true,
@@ -5653,29 +6019,10 @@ export function MinimalSheetEditor({
             onSpendResource={spendResourceOrOpenSorcery}
             onToggleConsumableFavorite={toggleCombatFavorite}
             onCastScroll={(itemId) => setDeskCastScrollId(itemId)}
-            onSpendConsumable={(itemId) => {
-              const item = draft.inventory.items.find((row) => row.id === itemId)
-              if (!item || (item.qty ?? 0) <= 0) return
-              if (isCastableSpellScroll(item)) {
-                setDeskCastScrollId(itemId)
-                return
-              }
-              const nextQty = Math.max(0, (item.qty ?? 0) - 1)
-              setDraft((prev) => ({
-                ...prev,
-                inventory: {
-                  ...prev.inventory,
-                  items: prev.inventory.items.map((row) =>
-                    row.id === itemId ? { ...row, qty: Math.max(0, (row.qty ?? 0) - 1) } : row,
-                  ),
-                },
-              }))
-              onToast(
-                nextQty > 0
-                  ? `−1 «${item.name}» · осталось ${nextQty}`
-                  : `−1 «${item.name}» · кончилось`,
-              )
-            }}
+            onSpendConsumable={spendConsumableFromDesk}
+            onOpenConsumableSpendPad={(itemId) => setConsumableSpendPadId(itemId)}
+            consumableSpendLog={consumableSpendLog}
+            onUndoConsumableSpend={undoConsumableSpendFromLog}
             onToggleHeld={(attack) => {
               if (!attack.inventory_item_id) return
               setDraft((prev) => {
@@ -5846,6 +6193,12 @@ export function MinimalSheetEditor({
         raceName={draft.raceName}
         raceTraitCards={draft.raceGrant?.traitCards ?? []}
         raceTraitsText={draft.raceGrant?.traitsText ?? ''}
+        backgroundName={
+          draft.identity.background?.trim() ||
+          draft.backgroundGrant?.slug ||
+          ''
+        }
+        backgroundFeature={resolvedBackgroundFeature}
         customFeatures={draft.customFeatures}
         onCustomFeaturesChange={(customFeatures) =>
           setDraft((prev) => ({ ...prev, customFeatures }))
@@ -5912,6 +6265,9 @@ export function MinimalSheetEditor({
             modifiers={draft.modifiers}
             formulaVars={formulaVarsBase}
             learnBudget={spellLearnBudget}
+            learnBudgets={spellLearnBudgets}
+            classes={draft.classes}
+            castProfiles={spellcastingSync.castProfiles}
             pinned={deskSplit && splitSecondary === 'spells'}
             concentration={draft.play.concentration}
             edition={rulesEdition}
@@ -6398,6 +6754,12 @@ export function MinimalSheetEditor({
         characterLevel={characterLevel}
         characterId={character.id}
         wizardRitualFromBook={spellLearnBudget?.mode === 'spellbook'}
+        abilities={effectiveAbilities}
+        proficiencyBonus={proficiencyBonus}
+        castProfiles={spellcastingSync.castProfiles}
+        modifiers={draft.modifiers}
+        formulaVars={formulaVarsBase}
+        onSelectSpellVariant={setDeskCastSpell}
         onConfirm={confirmDeskCast}
         onClose={() => setDeskCastSpell(null)}
         onRequestRest={() => {
@@ -6417,6 +6779,32 @@ export function MinimalSheetEditor({
             }
           })
           onToast('Ячейки договора восстановлены')
+        }}
+      />
+
+      <ConsumableSpendPadDialog
+        key={consumableSpendPadId ?? 'consumable-spend-pad-closed'}
+        open={consumableSpendPadId != null}
+        itemName={
+          consumableSpendPadId
+            ? draft.inventory.items.find((row) => row.id === consumableSpendPadId)?.name ??
+              'Расходник'
+            : 'Расходник'
+        }
+        maxQty={
+          consumableSpendPadId
+            ? Math.max(
+                0,
+                draft.inventory.items.find((row) => row.id === consumableSpendPadId)?.qty ?? 0,
+              )
+            : 0
+        }
+        onClose={() => setConsumableSpendPadId(null)}
+        onConfirm={(amount) => {
+          const itemId = consumableSpendPadId
+          setConsumableSpendPadId(null)
+          if (!itemId) return
+          spendConsumableFromDesk(itemId, amount)
         }}
       />
 

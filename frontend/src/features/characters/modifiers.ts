@@ -26,6 +26,11 @@ export type BonusLine = {
   expr: string
   enabled: boolean
   source: 'manual' | 'system' | 'gear'
+  /**
+   * M3 multiclass: when set, spell_dc / spell_attack apply only to this class.
+   * Absent / empty = all profiles (legacy).
+   */
+  class_slug?: string | null
 }
 
 const ABILITY_TARGETS = new Set<BonusTarget>(
@@ -77,6 +82,9 @@ export function createBonusLine(
       partial?.source === 'system' || partial?.source === 'gear'
         ? partial.source
         : 'manual',
+    ...(partial?.class_slug
+      ? { class_slug: String(partial.class_slug).trim().toLowerCase() || null }
+      : {}),
   }
 }
 
@@ -102,6 +110,12 @@ export function normalizeBonusLines(raw: unknown): BonusLine[] {
         enabled: item.enabled !== false,
         source:
           item.source === 'system' || item.source === 'gear' ? item.source : 'manual',
+        class_slug:
+          typeof item.class_slug === 'string'
+            ? item.class_slug.trim().toLowerCase() || null
+            : typeof item.classSlug === 'string'
+              ? item.classSlug.trim().toLowerCase() || null
+              : undefined,
       }),
     )
   }
@@ -217,13 +231,25 @@ export function abilitySaveBonus(
   return applyBonusStack(0, lines, vars).total
 }
 
-/** Flat stack on spell save DC / spell attack (on top of 8+PB+mod / PB+mod). */
+/**
+ * Flat stack on spell save DC / spell attack (on top of 8+PB+mod / PB+mod).
+ * `classSlug`: only unscoped lines + lines matching this class (M3).
+ */
 export function spellCastBonus(
   target: 'spell_dc' | 'spell_attack',
   modifiers: BonusLine[],
   vars: FormulaVars,
+  classSlug?: string | null,
 ): number {
-  const lines = bonusesForTarget(modifiers, target)
+  const slug = classSlug?.trim().toLowerCase() || null
+  const lines = bonusesForTarget(modifiers, target).filter((row) => {
+    const scope = row.class_slug?.trim().toLowerCase() || null
+    // Unscoped lines always apply. Scoped lines only match that class —
+    // unlabeled casts (race/feat without class) do not inherit class gear.
+    if (!scope) return true
+    if (!slug) return false
+    return scope === slug
+  })
   if (lines.length === 0) return 0
   return applyBonusStack(0, lines, vars).total
 }
@@ -233,9 +259,21 @@ export function withSpellCastBonuses(input: {
   baseAttack: number | null
   modifiers: BonusLine[]
   vars: FormulaVars
+  /** When casting a class-tagged spell — scoped gear/buffs. */
+  classSlug?: string | null
 }): { dc: number | null; attack: number | null } {
-  const dcExtra = spellCastBonus('spell_dc', input.modifiers, input.vars)
-  const atkExtra = spellCastBonus('spell_attack', input.modifiers, input.vars)
+  const dcExtra = spellCastBonus(
+    'spell_dc',
+    input.modifiers,
+    input.vars,
+    input.classSlug,
+  )
+  const atkExtra = spellCastBonus(
+    'spell_attack',
+    input.modifiers,
+    input.vars,
+    input.classSlug,
+  )
   return {
     dc: input.baseDc == null ? null : input.baseDc + dcExtra,
     attack: input.baseAttack == null ? null : input.baseAttack + atkExtra,

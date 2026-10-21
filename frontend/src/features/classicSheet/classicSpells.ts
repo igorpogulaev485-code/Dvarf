@@ -5,7 +5,18 @@ import {
   type SheetSpell,
   type SpellsState,
 } from '../characters/spells'
+import { readClassLevels } from '../characters/classLevels'
+import {
+  normalizeBonusLines,
+  withSpellCastBonuses,
+} from '../characters/modifiers'
 import { abilityModifier, asRecord, formatModifier, readNumber } from '../characters/sheetTypes'
+import {
+  buildCastProfiles,
+  mergeCastProfilesForDisplay,
+  type SpellCastProfile,
+} from '../../shared/dnd/castProfiles'
+import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
 import {
   SPELLCASTING_ABILITY_LABELS,
   isSpellcastingAbility,
@@ -15,6 +26,7 @@ import {
 } from '../../shared/dnd/spells'
 import type { CharacterDetail } from '../../shared/api/characters'
 import type { ClassicPatch } from './fromApi'
+import type { AbilityKey } from '../characters/sheetTypes'
 
 /** Official 2014 spell sheet line counts per level (incl. cantrips = 0). */
 export const SPELL_LINE_COUNTS: Record<number, number> = {
@@ -56,6 +68,75 @@ export function classicSpellStats(
     saveDc: String(spellSaveDc(mod, bonus)),
     attackBonus: formatModifier(spellAttackBonus(mod, bonus)),
   }
+}
+
+function abilityScoresFromSheet(
+  sheet: Record<string, unknown>,
+): Record<AbilityKey, number> {
+  const abilities = asRecord(sheet.abilities)
+  const read = (key: AbilityKey) => readNumber(asRecord(abilities[key]).score, 10)
+  return {
+    str: read('str'),
+    dex: read('dex'),
+    con: read('con'),
+    int: read('int'),
+    wis: read('wis'),
+    cha: read('cha'),
+  }
+}
+
+/**
+ * M6: multiclass cast profiles for classic/print P3 header.
+ * Merges equal totals; applies scoped spell_dc / spell_attack bonuses.
+ */
+export function classicCastProfiles(
+  character: CharacterDetail,
+): SpellCastProfile[] {
+  const sheet = asRecord(character.sheet)
+  const classes = readClassLevels(sheet, {
+    className: character.class_name ?? '',
+    level: character.level,
+    subclassName: String(asRecord(sheet.identity).subclass_name ?? ''),
+    classCatalogId: null,
+  })
+  if (classes.length === 0) return []
+  const scores = abilityScoresFromSheet(sheet)
+  const proficiency = readNumber(asRecord(sheet.proficiency).bonus, 2)
+  const built = buildCastProfiles({
+    classes,
+    proficiencyBonus: proficiency,
+    abilityModFor: (ability) => abilityModifier(scores[ability]),
+  })
+  if (built.length === 0) return []
+  const modifiers = normalizeBonusLines(sheet.modifiers)
+  const vars = buildSheetFormulaVars({
+    mods: {
+      str: abilityModifier(scores.str),
+      dex: abilityModifier(scores.dex),
+      con: abilityModifier(scores.con),
+      int: abilityModifier(scores.int),
+      wis: abilityModifier(scores.wis),
+      cha: abilityModifier(scores.cha),
+    },
+    proficiencyBonus: proficiency,
+    level: character.level,
+  })
+  return mergeCastProfilesForDisplay(
+    built.map((row) => {
+      const boosted = withSpellCastBonuses({
+        baseDc: row.saveDc,
+        baseAttack: row.attackBonus,
+        modifiers,
+        vars,
+        classSlug: row.slug,
+      })
+      return {
+        ...row,
+        saveDc: boosted.dc ?? row.saveDc,
+        attackBonus: boosted.attack ?? row.attackBonus,
+      }
+    }),
+  )
 }
 
 export function spellsAtLevel(known: SheetSpell[], level: number): SheetSpell[] {

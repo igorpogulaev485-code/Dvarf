@@ -14,6 +14,7 @@ import {
   sumFeatInitiativeBonus,
   sumFeatSpeedBonus,
 } from '../../shared/dnd/featGrants'
+import { initiativeBonusFromFeatures } from '../characters/featureCombatBonuses'
 import { findFightingStylePick, readFeaturePicks } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
 import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
@@ -165,7 +166,7 @@ export function classicDisplayAc(character: CharacterDetail): string {
   return String(classicAutoArmorClass(character))
 }
 
-/** Initiative: override or DEX (+ feats + bonus lines), same as Play Desk. */
+/** Initiative: override or DEX (+ feats + subclass + bonus lines), same as Play Desk. */
 export function classicDisplayInitiative(character: CharacterDetail): string {
   const override = readNullableCombatNumber(character, 'initiative')
   const sheet = asRecord(character.sheet)
@@ -190,12 +191,23 @@ export function classicDisplayInitiative(character: CharacterDetail): string {
     subclassName: String(asRecord(sheet.identity).subclass_name ?? ''),
     classCatalogId: null,
   })
+  const characterLevel = totalCharacterLevel(classes)
   const proficiencyBonus = Number(asProfBonus(character))
   const raceGrant = readAppliedRaceGrant(sheet.race_grant)
+  const unlocked = unlockFeaturesForClasses({
+    classes,
+    characterLevel,
+    abilities,
+  })
+  const featureInit = initiativeBonusFromFeatures({
+    features: unlocked,
+    abilities,
+  })
   const core =
     override ??
     abilityModifier(abilities.dex) +
       sumFeatInitiativeBonus(featGrants) +
+      featureInit +
       initiativeBonusFromRaceGrant({
         grant: raceGrant,
         proficiencyBonus,
@@ -203,7 +215,7 @@ export function classicDisplayInitiative(character: CharacterDetail): string {
   const formulaVars = buildSheetFormulaVars({
     mods,
     proficiencyBonus,
-    level: totalCharacterLevel(classes),
+    level: characterLevel,
   })
   const total = withInitiativeBonus({
     core,

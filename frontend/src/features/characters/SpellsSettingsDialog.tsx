@@ -312,12 +312,12 @@ export function SpellsSettingsDialog({
           </div>
 
           <div className="spells-settings-dialog__books">
-            {!knownCaster ? (
+            {learnBudget?.mode === 'spellbook' ? (
               <Button
                 type="button"
                 variant="secondary"
                 onClick={() => setPrepareOpen(true)}
-                title="Выбрать заклинания на сегодня (лимит подготовки класса)"
+                title="Выбрать на сегодня из книги заклинаний"
               >
                 <IconWizardHat className="spells-btn-icon" />
                 Подготовить
@@ -756,13 +756,9 @@ export function SpellsSettingsDialog({
       </Dialog>
 
       <PrepareSpellsDialog
-        open={prepareOpen}
-        edition={edition}
-        className={className}
-        level={level}
-        classes={classes}
+        open={prepareOpen && learnBudget?.mode === 'spellbook'}
         spells={spells}
-        learnMode={learnBudget?.mode ?? (knownCaster ? 'known' : 'prepared_list')}
+        learnMode="spellbook"
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
       />

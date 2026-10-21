@@ -935,6 +935,54 @@
   gap: 0.1in;
 }
 
+/* M6 multiclass cast profiles on P3 / LSS P4 */
+.classic-spell-profiles {
+  border: 1.75px solid var(--c-line);
+  border-radius: 0.45rem;
+  padding: 0.12rem 0.2rem 0.16rem;
+  background: #fff;
+  min-width: 0;
+}
+
+.classic-spell-profiles__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.72rem;
+}
+
+.classic-spell-profiles__table th,
+.classic-spell-profiles__table td {
+  padding: 0.1rem 0.18rem;
+  text-align: left;
+  border-bottom: 1px solid var(--c-line-soft);
+  vertical-align: baseline;
+}
+
+.classic-spell-profiles__table th {
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  font-weight: 700;
+}
+
+.classic-spell-profiles__table td:nth-child(3),
+.classic-spell-profiles__table td:nth-child(4),
+.classic-spell-profiles__table th:nth-child(3),
+.classic-spell-profiles__table th:nth-child(4) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+}
+
+.classic-spell-profiles__table tr:last-child td {
+  border-bottom: none;
+}
+
+.classic-spell-profiles--lss {
+  margin-bottom: 0.2rem;
+}
+
 .classic-spell-stats label {
   display: flex;
   flex-direction: column;
