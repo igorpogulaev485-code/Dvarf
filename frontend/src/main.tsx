@@ -7,6 +7,9 @@ import { bootstrapAccountAppearance } from './shared/theme/accountAppearance'
 // Apply cached theme before first paint of React — avoids «Листва» flash after deploy.
 bootstrapAccountAppearance()
 
+const boot = document.getElementById('boot')
+if (boot) boot.hidden = true
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

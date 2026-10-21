@@ -38,7 +38,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 cursor/sirocco-ranger-sync-e6f4
 ```
 
-URL: http://201.34.132.252/
+URL: https://creed20.tech/
 
 Перед деплоем сверь tip с **живым** `/opt/dvarf/AGENTS.md` — локальная копия в feature-ветке может врать.
 
@@ -89,7 +89,7 @@ git merge origin/<live-prod-tip>
 ## После деплоя (обязательно)
 
 ```bash
-curl -fsS http://201.34.132.252/health
+curl -fsS https://creed20.tech/health
 # бандл + маркеры на диске; remote-up.sh на месте
 ```
 

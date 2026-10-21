@@ -3,9 +3,24 @@
 Единый файл «что уже есть в продукте».  
 Игорь шарит его с друзьями и использует как срез для агентов.
 
-Прод: http://201.34.132.252/ · https://creed20.tech  
+Прод: https://creed20.tech/  
 **Prod tip (ветка линии прода):** `cursor/sirocco-ranger-sync-e6f4`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
+
+---
+
+## В ветках / ещё не на проде
+
+### VPN + HTTPS канон (`cursor/vpn-https-stable-fab2`)
+
+| Что | Зачем |
+|-----|--------|
+| `http://201.34…` → `https://creed20.tech` | Старые закладки по IP ломаются на мобильном VPN (MTU) |
+| Boot splash + ошибка через 20с | Не бесконечный белый экран |
+| TCPMSS :80/:443 + `tcp_mtu_probing` | Туннели VPN с битым PMTUD |
+| Шрифты Google не блокируют старт | Некоторые VPN тормозят fonts.googleapis.com |
+
+На проде: **нет** (ждём деплой этой ветки).
 
 ---
 
