@@ -79,9 +79,11 @@ import {
 } from '../characters/featEffects'
 import {
   newFeatGrantId,
+  readFeatGrantLedger,
   sumFeatSpeedBonus,
   type AppliedFeatGrant,
 } from '../../shared/dnd/featGrants'
+import { buildAsiFeatGrantFromCatalog } from '../characters/asiFeatHydrate'
 import {
   applyClassGrantToDraft,
   type ClassGrantDraftSlice,
@@ -151,6 +153,7 @@ export type PipelineApplyCatalogCache = {
   backgrounds?: CatalogEntry[]
   races?: CatalogEntry[]
   classes?: CatalogEntry[]
+  feats?: CatalogEntry[]
 }
 
 type WorkingDraft = {
@@ -1121,8 +1124,53 @@ export async function applyPipelineToSheet(input: {
       ? state.classAsi
       : readClassAsiLedger(state.sheetDraft.class_asi))
 
+  // ASI score bumps + ASI→feat packages chosen in GuidedWizard (stored on sheetDraft).
+  // If the grant was dropped (older create bug), rebuild a no-pick package from catalog.
+  const asiFeatGrants = readFeatGrantLedger(state.sheetDraft.feat_grants).filter(
+    (row) => row.source.kind === 'asi',
+  )
+  const totalLevelForFeats = totalCharacterLevel(classes)
   for (const entry of classAsi) {
     draft.abilities = applyClassAsiBonuses(draft.abilities, entry.bonuses)
+    const resolution = entry.resolution
+    if (resolution.kind !== 'feat') continue
+    let grant =
+      asiFeatGrants.find((row) => row.id === resolution.featGrantId) ??
+      asiFeatGrants.find(
+        (row) =>
+          row.featCatalogId === resolution.featCatalogId &&
+          row.source.kind === 'asi' &&
+          row.source.classEntryId === entry.classEntryId &&
+          row.source.featureId === entry.featureId,
+      ) ??
+      null
+    if (!grant) {
+      const featEntry = await resolveCatalogEntry({
+        kind: 'feat',
+        id: resolution.featCatalogId,
+        slug: resolution.featSlug,
+        cache: input.catalog?.feats,
+      })
+      if (featEntry) {
+        grant = buildAsiFeatGrantFromCatalog({
+          entry,
+          catalogEntry: featEntry,
+          characterLevel: totalLevelForFeats,
+        })
+      }
+    }
+    if (!grant) continue
+    if (draft.featGrants.some((row) => row.id === grant.id)) continue
+    Object.assign(
+      draft,
+      mergeFeat(
+        draft,
+        applyFeatGrantToDraft({
+          draft: featSlice(draft, totalLevelForFeats),
+          grant,
+        }),
+      ),
+    )
   }
 
   const subclassSlugByEntryId: Record<string, string> = {}

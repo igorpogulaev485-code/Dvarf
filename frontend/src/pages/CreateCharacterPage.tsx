@@ -120,7 +120,11 @@ import {
   raceSubraceRequired,
   resolveRaceGrantDef,
 } from '../shared/dnd/raceGrants'
-import { raceRequiresFeatPick } from '../shared/dnd/featGrants'
+import {
+  raceRequiresFeatPick,
+  readFeatGrantLedger,
+  type AppliedFeatGrant,
+} from '../shared/dnd/featGrants'
 import type {
   SubclassChangeMode,
   SubclassGrantDef,
@@ -2112,15 +2116,24 @@ export function CreateCharacterPage() {
         onConfirmClassGrant={() => {
           // Class grants are handled by ClassSetupDialog in the pipeline.
         }}
-        onConfirmAsi={(entry: AppliedClassAsi) => {
+        onConfirmAsi={(entry: AppliedClassAsi, featGrant?: AppliedFeatGrant) => {
           const nextAsi = [...(state.classAsi ?? []), entry]
+          const prevFeats = readFeatGrantLedger(state.sheetDraft.feat_grants)
+          const nextFeats = featGrant
+            ? [...prevFeats.filter((row) => row.id !== featGrant.id), featGrant]
+            : prevFeats
           patchState({
             classAsi: nextAsi,
             sheetDraft: {
               ...state.sheetDraft,
               class_asi: nextAsi,
+              feat_grants: nextFeats,
             },
           })
+          if (featGrant) {
+            setToast(`ASI → черта «${featGrant.nameRu}»`)
+            return
+          }
           const bits = Object.entries(entry.bonuses)
             .filter(([, amount]) => amount)
             .map(([key, amount]) => `${ABILITY_LABELS[key as AbilityKey]}+${amount}`)

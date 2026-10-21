@@ -238,6 +238,11 @@ import {
   type AppliedFeatGrant,
 } from '../../shared/dnd/featGrants'
 import {
+  buildAsiFeatGrantFromCatalog,
+  findMissingAsiFeatEntries,
+  matchFeatCatalogEntry,
+} from './asiFeatHydrate'
+import {
   applyFeatGrantToDraft,
   revokeFeatGrantFromDraft,
   revokeFeatGrantsForAsi,
@@ -891,6 +896,7 @@ export function MinimalSheetEditor({
   const channelRef = useRef<BroadcastChannel | null>(null)
   const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const backgroundCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
+  const asiFeatHydrateAttemptedRef = useRef(false)
   const [backgroundCatalogRows, setBackgroundCatalogRows] = useState<CatalogEntry[]>(
     [],
   )
@@ -1695,6 +1701,73 @@ export function MinimalSheetEditor({
       },
     }
   }
+
+  // Older create discarded ASI→feat packages; rebuild Alert/Mobile/etc. from catalog once.
+  useEffect(() => {
+    if (asiFeatHydrateAttemptedRef.current) return
+    const missing = findMissingAsiFeatEntries(draft.classAsi, draft.featGrants)
+    if (!missing.length) return
+    asiFeatHydrateAttemptedRef.current = true
+    let active = true
+    listCatalogEntries({ kind: 'feat', edition: rulesEdition })
+      .then((rows) => {
+        if (!active) return
+        const level = totalCharacterLevel(draft.classes)
+        const rebuilt: AppliedFeatGrant[] = []
+        for (const entry of missing) {
+          if (entry.resolution.kind !== 'feat') continue
+          const catalogEntry = matchFeatCatalogEntry(rows, entry.resolution)
+          if (!catalogEntry) continue
+          const grant = buildAsiFeatGrantFromCatalog({
+            entry,
+            catalogEntry,
+            characterLevel: level,
+          })
+          if (grant) rebuilt.push(grant)
+        }
+        if (!rebuilt.length) return
+        setDraft((prev) => {
+          let next = prev
+          let applied = 0
+          const names: string[] = []
+          for (const grant of rebuilt) {
+            if (grant.source.kind !== 'asi') continue
+            const source = grant.source
+            const already = next.featGrants.some(
+              (row) =>
+                row.id === grant.id ||
+                (row.source.kind === 'asi' &&
+                  row.featCatalogId === grant.featCatalogId &&
+                  row.source.classEntryId === source.classEntryId &&
+                  row.source.featureId === source.featureId),
+            )
+            if (already) continue
+            next = mergeFeatSlice(
+              next,
+              applyFeatGrantToDraft({ draft: featSliceFrom(next), grant }),
+            )
+            applied += 1
+            names.push(grant.nameRu)
+          }
+          if (applied > 0) {
+            onToast(
+              applied === 1
+                ? `Восстановлена черта ASI «${names[0]}»`
+                : `Восстановлены черты ASI: ${names.join(', ')}`,
+            )
+          }
+          return next
+        })
+      })
+      .catch(() => {
+        /* allow a later remount to retry */
+        asiFeatHydrateAttemptedRef.current = false
+      })
+    return () => {
+      active = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
+  }, [draft.classAsi, draft.featGrants, draft.classes, rulesEdition])
 
   function subclassSliceFrom(prev: Draft): SubclassGrantDraftSlice {
     return {
