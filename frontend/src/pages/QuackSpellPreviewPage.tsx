@@ -3,6 +3,7 @@
  * Реальные компоненты PlayDesk — без auth/API. Статы как у репорта Ильи.
  */
 import { useMemo, useState } from 'react'
+import { CastSpellDialog } from '../features/characters/CastSpellDialog'
 import { PlayDeskSpellsCompact } from '../features/characters/PlayDeskSpellsCompact'
 import type { SpellsState } from '../features/characters/spells'
 import { createClassLevel } from '../shared/dnd/classLevels'
@@ -10,6 +11,7 @@ import {
   buildCastProfiles,
   resolveSpellLearnBudgets,
 } from '../shared/dnd/castProfiles'
+import { createBonusLine } from '../features/characters/modifiers'
 import { abilityModifier, type AbilityKey } from '../features/characters/sheetTypes'
 import type { SheetSpell } from '../features/characters/spells'
 
@@ -48,6 +50,7 @@ function buildKnown(): SheetSpell[] {
       name: 'Огненный болт',
       level: 0,
       class_slug: 'artificer',
+      catalog_id: 'fire_bolt',
       attack_or_save: 'атака',
       damage: '1к10 огонь',
     }),
@@ -89,6 +92,25 @@ function buildKnown(): SheetSpell[] {
       name: 'Малая иллюзия',
       level: 0,
       class_slug: 'warlock',
+    }),
+    /** Dual-cast: тот же каталог под двумя классами (M3 picker). */
+    spell({
+      id: 'dual-art',
+      name: 'Щит',
+      level: 1,
+      class_slug: 'artificer',
+      catalog_id: 'shield',
+      casting_time: '1 реакция',
+      range: 'на себя',
+    }),
+    spell({
+      id: 'dual-wlk',
+      name: 'Щит',
+      level: 1,
+      class_slug: 'warlock',
+      catalog_id: 'shield',
+      casting_time: '1 реакция',
+      range: 'на себя',
     }),
     spell({
       id: 'tome-1',
@@ -140,6 +162,19 @@ function buildKnown(): SheetSpell[] {
       class_slug: 'warlock',
       concentration: true,
     }),
+    spell({
+      id: 'race-1',
+      name: 'Маскировка',
+      level: 1,
+      source_kind: 'race',
+      prepare_source_label: 'Раса',
+      grant_cast: {
+        max: 1,
+        used: 0,
+        reset: 'long',
+        label: 'Раса',
+      },
+    }),
   ]
 }
 
@@ -167,6 +202,7 @@ function buildSpells(): SpellsState {
 
 export function QuackSpellPreviewPage() {
   const [spells, setSpells] = useState<SpellsState>(() => buildSpells())
+  const [castSpell, setCastSpell] = useState<SheetSpell | null>(null)
   const classes = useMemo(
     () => [
       createClassLevel({
@@ -205,6 +241,22 @@ export function QuackSpellPreviewPage() {
     [classes],
   )
 
+  const modifiers = useMemo(
+    () => [
+      createBonusLine({
+        id: 'rod-wlk',
+        target: 'spell_dc',
+        label: 'Жезл договора',
+        op: '+',
+        expr: '1',
+        enabled: true,
+        source: 'gear',
+        class_slug: 'warlock',
+      }),
+    ],
+    [],
+  )
+
   return (
     <main className="page page--app" data-testid="quack-spell-preview">
       <header style={{ padding: '12px 16px', maxWidth: 720 }}>
@@ -224,12 +276,13 @@ export function QuackSpellPreviewPage() {
           spells={spells}
           abilities={ABILITIES}
           proficiencyBonus={PB}
+          modifiers={modifiers}
           learnBudgets={learnBudgets}
           classes={classes}
           castProfiles={castProfiles}
           onOpenSettings={() => undefined}
           onSpellsChange={setSpells}
-          onCastSpell={() => undefined}
+          onCastSpell={(row) => setCastSpell(row)}
           onSlotUsedChange={(level, used) => {
             const key = String(level)
             setSpells((prev) => ({
@@ -249,6 +302,20 @@ export function QuackSpellPreviewPage() {
           }}
         />
       </div>
+      <CastSpellDialog
+        open={castSpell != null}
+        spell={castSpell}
+        spells={spells}
+        inventoryItems={[]}
+        characterLevel={20}
+        abilities={ABILITIES}
+        proficiencyBonus={PB}
+        castProfiles={castProfiles}
+        modifiers={modifiers}
+        onSelectSpellVariant={setCastSpell}
+        onConfirm={() => setCastSpell(null)}
+        onClose={() => setCastSpell(null)}
+      />
     </main>
   )
 }

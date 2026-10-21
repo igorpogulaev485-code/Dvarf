@@ -149,7 +149,7 @@ export function PlayDeskSpellsCompact({
             })
           : []
     if (built.length === 0) return null
-    // Apply global modifiers onto each profile base (M3 scope comes later).
+    // Unscoped lines + lines matching this profile.slug (M3).
     return mergeCastProfilesForDisplay(
       built.map((row) => {
         const boosted = withSpellCastBonuses({
@@ -157,6 +157,7 @@ export function PlayDeskSpellsCompact({
           baseAttack: row.attackBonus,
           modifiers,
           vars: formulaVars,
+          classSlug: row.slug,
         })
         return {
           ...row,

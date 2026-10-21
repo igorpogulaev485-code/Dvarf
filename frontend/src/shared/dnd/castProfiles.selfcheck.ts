@@ -4,6 +4,7 @@ import {
   buildCastProfiles,
   formatNamedCantripBudgets,
   mergeCastProfilesForDisplay,
+  findDualCastSiblings,
   resolveSpellCastStats,
   resolveSpellLearnBudgets,
   totalCantripsBudget,
@@ -150,5 +151,16 @@ assert(
   named === 'Изобретатель 4/4 · Колдун 2/3 · Гримуар 3',
   `named meta got ${named}`,
 )
+
+// --- M3 dual-cast siblings ---
+const dualKnown = [
+  { id: 'a', name: 'Щит', level: 1, catalog_id: 'shield', class_slug: 'artificer' },
+  { id: 'b', name: 'Щит', level: 1, catalog_id: 'shield', class_slug: 'warlock' },
+  { id: 'c', name: 'Огненный шар', level: 3, catalog_id: 'fireball', class_slug: 'artificer' },
+]
+const dual = findDualCastSiblings(dualKnown, dualKnown[0]!)
+assert(dual.length === 2, `dual siblings got ${dual.length}`)
+const solo = findDualCastSiblings(dualKnown, dualKnown[2]!)
+assert(solo.length === 1 && solo[0]!.id === 'c', 'solo no dual')
 
 console.log('castProfiles.selfcheck: ok')

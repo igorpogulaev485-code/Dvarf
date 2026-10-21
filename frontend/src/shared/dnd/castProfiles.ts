@@ -405,6 +405,33 @@ export function formatNamedCantripBudgets(
  * Pick which class acquires a catalog spell (for caps + class_slug stamp).
  * Prefer explicit class filter; else unique list overlap; else first profile overlap.
  */
+/**
+ * Same catalog/name known under multiple class_slug → dual-cast options (M3).
+ */
+export function findDualCastSiblings<
+  T extends {
+    id: string
+    name: string
+    catalog_id?: string | null
+    class_slug?: string | null
+    level: number
+  },
+>(known: T[], spell: T): T[] {
+  const catalog = (spell.catalog_id ?? '').trim()
+  const name = spell.name.trim().toLowerCase()
+  const siblings = known.filter((row) => {
+    if (row.id === spell.id) return true
+    if (row.level !== spell.level) return false
+    if (catalog && row.catalog_id && row.catalog_id === catalog) return true
+    return Boolean(name) && row.name.trim().toLowerCase() === name
+  })
+  const slugs = new Set(
+    siblings.map((row) => (row.class_slug ?? '').trim().toLowerCase()).filter(Boolean),
+  )
+  if (slugs.size < 2) return [spell]
+  return siblings
+}
+
 export function resolveSpellAcquisitionSlug(input: {
   catalogClassSlugs: string[]
   profiles: SpellCastProfile[]

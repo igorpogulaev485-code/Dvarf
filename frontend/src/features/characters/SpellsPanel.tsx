@@ -3,6 +3,7 @@ import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
+  buildCastProfiles,
   formatNamedCantripBudgets,
   resolveSpellLearnBudgets,
   totalCantripsBudget,
@@ -219,6 +220,17 @@ export function SpellsPanel({
     const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
     if (rows.length === 0) return []
     return resolveSpellLearnBudgets({
+      classes: rows,
+      subclassCasters,
+      abilityModFor: (ability) => abilityModifier(abilities[ability]),
+      proficiencyBonus,
+    })
+  }, [classes, subclassCasters, abilities, proficiencyBonus])
+
+  const castProfiles = useMemo(() => {
+    const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
+    if (rows.length === 0) return []
+    return buildCastProfiles({
       classes: rows,
       subclassCasters,
       abilityModFor: (ability) => abilityModifier(abilities[ability]),
@@ -1305,6 +1317,12 @@ export function SpellsPanel({
         characterLevel={level}
         characterId={characterId}
         wizardRitualFromBook={learnBudget?.mode === 'spellbook'}
+        abilities={abilities}
+        proficiencyBonus={proficiencyBonus}
+        castProfiles={castProfiles}
+        modifiers={modifiers}
+        formulaVars={formulaVars}
+        onSelectSpellVariant={setCastSpell}
         onConfirm={confirmCast}
         onClose={() => setCastSpell(null)}
       />

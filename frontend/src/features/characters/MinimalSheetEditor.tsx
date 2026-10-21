@@ -6511,6 +6511,12 @@ export function MinimalSheetEditor({
         characterLevel={characterLevel}
         characterId={character.id}
         wizardRitualFromBook={spellLearnBudget?.mode === 'spellbook'}
+        abilities={effectiveAbilities}
+        proficiencyBonus={proficiencyBonus}
+        castProfiles={spellcastingSync.castProfiles}
+        modifiers={draft.modifiers}
+        formulaVars={formulaVarsBase}
+        onSelectSpellVariant={setDeskCastSpell}
         onConfirm={confirmDeskCast}
         onClose={() => setDeskCastSpell(null)}
         onRequestRest={() => {

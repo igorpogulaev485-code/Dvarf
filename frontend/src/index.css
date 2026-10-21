@@ -8631,6 +8631,28 @@ button.play-desk-vital:hover,
 
 .cast-source-chip {
   font-weight: 700 !important;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  line-height: 1.15;
+}
+
+.cast-source-chip__main {
+  font-weight: 700;
+}
+
+.cast-source-chip__rest {
+  font-size: 0.72em;
+  font-weight: 600;
+  opacity: 0.78;
+}
+
+.cast-stats-banner {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent, #3a6) 35%, var(--line, #ccc));
+  background: color-mix(in srgb, var(--accent-soft, #e8f5e9) 70%, white);
 }
 
 .play-desk-compact__spell-cast-icon {

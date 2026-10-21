@@ -1,6 +1,6 @@
 # План: мультиклассная магия (источник → Сл/атака → UI-kit)
 
-**Статус:** ok §12 · **M1+M2+M3(шапка) в коде** · скрины клон-Квакка ✅ · далее cast-dialog dual + UI-kit доски  
+**Статус:** ok §12 · **M1+M2+M3 в коде** · скрины шапка ✅ · далее скрин cast-dialog + M4 create  
 **Контур:** план → ok → срезы M1… → **скрины с реальных листов** → ok → прод  
 **Дата:** 2026-10-21  
 **План PR:** `#262` · **M1 tip base:** `cursor/restore-consumables-grimoire-0bc3`  
@@ -47,7 +47,7 @@
 | Pact slots + shared slots в касте | `CastSpellDialog`, `casterProgression` |
 | Wizard ritual from book | `isAvailableToCast` + `in_spellbook` |
 | Alone-max для prepare membership | `prepareAvailability` / `maxSpellLevelForClassAlone` |
-| Bonus stack `spell_dc` / `spell_attack` | `modifiers.ts` — пока **без** scope по классу |
+| Bonus stack `spell_dc` / `spell_attack` | `modifiers.ts` — `class_slug` scope (M3) |
 
 Мультикласс добавляет: **привязку к классу**, **per-class бюджеты**, **шапку профилей**, **scope бонусов**, **глаголы доступа**.
 
@@ -353,20 +353,20 @@ M0 ok решений
 **Приёмка R1:** meta `Изобретатель n/n · Колдун n/n · Гримуар 3` (если tome) — на скрине в M3.  
 **Скрин:** вместе с M3 (нужен реальный Квакк).
 
-### Срез M3 — Каст + шапка + modifiers scope (частично ✅)
+### Срез M3 — Каст + шапка + modifiers scope ✅
 
 | Задача | Где | Статус |
 |--------|-----|--------|
 | Шапка профилей §2.3 | `PlayDeskSpellsCompact` + CSS ability colors | ✅ |
 | DEV превью клон-Квакка | `/dev/quack-spell-preview` | ✅ |
 | Скрины шапка + budgets | artifacts `quack-*` | ✅ |
-| Cast использует `resolveSpellCastStats` | CastSpellDialog | ⏳ |
-| Dual-cast picker | CastSpellDialog | ⏳ |
-| Rest labels §2.8 | CastSpellDialog | ⏳ |
-| `BonusLine.scope` | modifiers | ⏳ |
+| Cast использует `resolveSpellCastStats` | CastSpellDialog | ✅ |
+| Dual-cast picker | CastSpellDialog + desk/SpellsPanel | ✅ |
+| Rest labels §2.8 | CastSpellDialog chips + banner | ✅ |
+| `BonusLine.class_slug` scope | modifiers + selfcheck | ✅ |
 
 **Скрины (клон Квакка, статы как у Ильи):**  
-`quack-profiles-closeup.png` · `quack-budgets-meta.png` · `quack-spell-header-block.png` · `quack-spell-desk-full.png`
+`quack-profiles-closeup.png` · `quack-budgets-meta.png` · `quack-spell-header-block.png` · `quack-spell-desk-full.png` · `quack-cast-dialog-*.png`
 
 ### Срез M4 — Create / Level-up
 
