@@ -155,6 +155,14 @@ fi
 echo "starting stack (no pull)..."
 "${COMPOSE[@]}" up -d --pull never --remove-orphans
 
+# Bind-mounted Caddyfile changes do not always restart the container — reload edge.
+if docker ps --format '{{.Names}}' | grep -qx dvarf-edge; then
+  echo "reloading Caddy edge (Caddyfile)..."
+  docker exec dvarf-edge caddy reload --config /etc/caddy/Caddyfile 2>/dev/null \
+    || "${COMPOSE[@]}" restart edge \
+    || true
+fi
+
 save_fp api "$API_FP"
 save_fp web "$WEB_FP"
 
