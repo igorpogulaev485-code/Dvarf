@@ -4,12 +4,18 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/create-feedback-ship-fc00`  
+**Prod tip (ветка линии прода):** `cursor/restore-consumables-grimoire-0bc3`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
 
 ## Сейчас в продукте — свежее
+
+### 2026-10-21 — Restore: расходники + гримуар поверх ship
+
+Ship `create-feedback-ship-fc00` собрали от `vpn-https` **без** live tip `grimoire-prepare-home-3aba` → с прода пропали Undo/×N расходников и UX «Гримуар = дом подготовки». Classic / cabinet / lobby / Play Desk каркас **на месте**.
+
+На проде: **да** · **это новый prod tip** `cursor/restore-consumables-grimoire-0bc3` · PR #254 · залито 2026-10-21 · `/health` ok · бандл `CharacterDetailPage-DA3Hh2L6.js` · `consumableSpend.ts` на диске · ship U/A/C/F/E сохранены
 
 ### 2026-10-21 — Фидбек создания (U/A/C/F/E)
 
@@ -21,7 +27,29 @@
 | F | Колдун Гримуар: +3 заговора любого списка вне бюджета |
 | E | Стартовые атаки: merge дублей по identity оружия |
 
-На проде: **да** · **это новый prod tip** `cursor/create-feedback-ship-fc00` · ship PR #253 · срезы #248–#252 · залито 2026-10-21 · alembic `y1z2a3b4c5d6` · `/health` ok
+На проде: **да** · было tip `cursor/create-feedback-ship-fc00` (затирал 3b91/3aba) · ship PR #253 · срезы #248–#252 · залито 2026-10-21 · alembic `y1z2a3b4c5d6` · `/health` ok
+
+### 2026-10-21 — Гримуар = дом подготовки; «Подготовить» только у волшебника
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Жрец / друид / паладин / изобретатель | Готовка в **Гримуаре**: чипы Все / Подготовленные / Не подготовленные; «На лист» убран | Один экран вместо двух |
+| Кнопка на листе | У prepared_list **нет** «Подготовить» — только Настройки → Гримуар | Не путает с утренней подготовкой волшебника |
+| Волшебник | «Подготовить» = набор **из книги** на сегодня; новые записи — Гримуар («В книгу») | Как PHB: книга ≠ подготовка |
+| Alone-max | В гримуаре список класса до alone-max уровня (мультикласс) | Видно полный пул класса, не общий CR |
+
+На проде: **да** · tip `cursor/restore-consumables-grimoire-0bc3` · PR #245/#254 · восстановлено 2026-10-21 · `/health` ok
+
+### 2026-10-21 — Расходники: защита от случайных тапов
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Чип «потратить» | Тратит только кнопка, не тап по имени строки | Меньше случайных −1 в бою |
+| Undo в тосте | После траты тост с именем + **Отменить** (~8 с) | Видно что ушло; можно вернуть |
+| ×N | Pad «Потратить: {предмет}» → qty → confirm | Несколько штук за раз, имя в заголовке |
+| Журнал трат | Под расходниками, сессия + «вернуть» | История коротких трат на столе |
+
+На проде: **да** · tip `cursor/restore-consumables-grimoire-0bc3` · PR #246/#254 · восстановлено 2026-10-21 · бандл `CharacterDetailPage-DA3Hh2L6.js` · `consumableSpend` в бандле
 
 ### 2026-10-21 — VPN + канон https://creed20.tech
 
@@ -32,7 +60,7 @@
 | Boot splash | Если модули не пришли за 20с — текст ошибки, не белый экран |
 | MTU harden | TCPMSS + probing на :80/:443 для мобильного VPN |
 
-На проде: **да** · tip сменился на `cursor/create-feedback-ship-fc00` · PR #243 · залито 2026-10-21
+На проде: **да** · в линии tip (сейчас restore-ветка поверх ship) · PR #243 · залито 2026-10-21
 
 ---
 
@@ -651,6 +679,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 Сюда агенты пишут то, что сделано в PR, но **ещё не залито** на сервер.
 
+<!-- grimoire-prepare-home залито 2026-10-21 → tip grimoire-prepare-home-3aba; блок в «Сейчас в продукте» -->
 <!-- prepare-class-list-available залито 2026-10-21 → tip prepare-class-list-available-3aba; блок в «Сейчас в продукте» -->
 <!-- stealthy залито 2026-10-20 → tip feat-stealthy-3565; блок в «Сейчас в продукте» -->
 
@@ -707,7 +736,10 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
-| 2026-10-21 | `cursor/create-feedback-ship-fc00` · PR #253 | U/A/C/F/E фидбек создания → **новый tip** |
+| 2026-10-21 | `cursor/restore-consumables-grimoire-0bc3` | Audit: restore расходники+гримуар после overwrite ship fc00 → **новый tip** (после Timeweb) |
+| 2026-10-21 | `cursor/create-feedback-ship-fc00` · PR #253 | U/A/C/F/E фидбек создания → tip (затёр 3b91/3aba) |
+| 2026-10-21 | `cursor/grimoire-prepare-home-3aba` · PR #245 | Гримуар = дом подготовки; thin Prepare волшебник → tip |
+| 2026-10-21 | `cursor/consumables-tap-guard-plan-3b91` · PR #246 | Расходники: Undo / ×N / журнал → tip |
 | 2026-10-21 | `cursor/vpn-https-stable-fab2` · PR #243 | VPN + канон https://creed20.tech → **новый tip** |
 | 2026-10-21 | `cursor/prepare-class-list-available-3aba` · PR #242 | Prepare: class list → «Все доступные» → tip после Timeweb |
 | 2026-10-20 | `cursor/create-skills-equip-fix-1dbf` · PR #240 | Create: серые навыки предыстории + PHB equip lines → **новый tip** после Timeweb |

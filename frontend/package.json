@@ -23,7 +23,8 @@
     "selfcheck:feat-stealthy": "tsx src/shared/dnd/featGrants.stealthy.selfcheck.ts",
     "selfcheck:background-setup": "tsx src/shared/dnd/backgroundSetupValidation.selfcheck.ts",
     "selfcheck:race-effects-contract": "tsx src/shared/dnd/raceEffectsContract.selfcheck.ts",
-    "selfcheck:create-pipeline-gear": "tsx src/features/createPipeline/createPipelineGear.selfcheck.ts"
+    "selfcheck:create-pipeline-gear": "tsx src/features/createPipeline/createPipelineGear.selfcheck.ts",
+    "selfcheck:consumable-spend": "tsx src/features/characters/consumableSpend.selfcheck.ts"
   },
   "dependencies": {
     "react": "^19.2.8",
