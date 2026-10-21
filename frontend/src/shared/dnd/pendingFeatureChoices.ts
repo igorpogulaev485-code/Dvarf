@@ -73,6 +73,13 @@ export type GuidedWizardStep =
       /** How many free research fills to pick in this step (6 at L1, +2 per level). */
       picksNeeded: number
     }
+  | {
+      id: string
+      kind: 'pact_tome_cantrips'
+      classEntryId: string
+      className: string
+      classLevel: number
+    }
 
 export function backgroundWizardStep(): GuidedWizardStep {
   return {

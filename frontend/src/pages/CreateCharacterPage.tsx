@@ -98,6 +98,16 @@ import {
   type GuidedWizardStep,
 } from '../shared/dnd/pendingFeatureChoices'
 import {
+  sanitizeFeaturePicksForPactBoons,
+  syncPactTomeCantrips,
+  withPactTomeCantripsStep,
+} from '../features/characters/pactTomeEffects'
+import {
+  ensurePactTomeSpellCatalog,
+  resolvePactTomeCantripFromOptions,
+} from '../features/characters/PactTomeCantripsPicker'
+import { spellOptionsForPactTomeCantrips } from '../shared/dnd/featSpellListOptions'
+import {
   isPointBuyValid,
   isStandardArrayComplete,
   isManualScoresValid,
@@ -772,6 +782,12 @@ export function CreateCharacterPage() {
         })
       }
     }
+    steps = withPactTomeCantripsStep(steps, {
+      classEntryId,
+      className: row.name,
+      classLevel: row.level,
+      featurePicks: picksState,
+    })
     if (steps.length === 0) {
       if (!options?.silentIfEmpty) {
         setToast('Все развилки и ASI для этого класса закрыты')
@@ -2041,13 +2057,57 @@ export function CreateCharacterPage() {
         blockedSkillKeys={blockedSkillKeys}
         blockedToolNames={blockedToolNames}
         onFeaturePicksChange={(featurePicks: FeaturePicksState) => {
-          patchState({
+          const sanitized = sanitizeFeaturePicksForPactBoons({
             featurePicks,
+            classes: state.classes,
+          })
+          patchState({
+            featurePicks: sanitized,
             sheetDraft: {
               ...state.sheetDraft,
-              feature_picks: featurePicks,
+              feature_picks: sanitized,
             },
           })
+          setGuidedWizard((prev) => {
+            if (!prev) return null
+            const step = prev.steps[prev.index]
+            if (
+              !step ||
+              (step.kind !== 'feature_choice' && step.kind !== 'pact_tome_cantrips')
+            ) {
+              return prev
+            }
+            const classEntryId = step.classEntryId
+            const classRow = state.classes.find((row) => row.id === classEntryId)
+            if (!classRow) return prev
+            const nextSteps = withPactTomeCantripsStep(prev.steps, {
+              classEntryId,
+              className: classRow.name,
+              classLevel: classRow.level,
+              featurePicks: sanitized,
+            })
+            if (nextSteps === prev.steps) return prev
+            return { ...prev, steps: nextSteps }
+          })
+          void (async () => {
+            let rows: Awaited<ReturnType<typeof ensurePactTomeSpellCatalog>> = []
+            try {
+              rows = await ensurePactTomeSpellCatalog('2014')
+            } catch {
+              rows = []
+            }
+            const options = spellOptionsForPactTomeCantrips({ spells: rows })
+            setSpells((prev) => {
+              const synced = syncPactTomeCantrips({
+                spells: prev,
+                featurePicks: sanitized,
+                classes: state.classes,
+                resolveSpell: (slug) =>
+                  resolvePactTomeCantripFromOptions(slug, options),
+              })
+              return synced.changed ? synced.spells : prev
+            })
+          })()
         }}
         onConfirmClassGrant={() => {
           // Class grants are handled by ClassSetupDialog in the pipeline.

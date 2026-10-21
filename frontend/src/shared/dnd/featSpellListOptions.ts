@@ -27,6 +27,17 @@ export const FEAT_CLASS_SPELL_LISTS = [
   'wizard',
 ] as const
 
+/** Pact of the Tome: cantrips from any full caster class list (PHB/XGE tags). */
+export const PACT_TOME_CANTRIP_CLASS_LISTS = [
+  'artificer',
+  'bard',
+  'cleric',
+  'druid',
+  'sorcerer',
+  'warlock',
+  'wizard',
+] as const
+
 export type FeatClassSpellList = (typeof FEAT_CLASS_SPELL_LISTS)[number]
 
 export function isFeatClassSpellList(value: string): value is FeatClassSpellList {
@@ -42,9 +53,15 @@ export function spellOptionsForClassList(input: {
   classSlug: string
   level: number
   ritualOnly?: boolean
+  /**
+   * When true, any class slug is allowed (Pact of the Tome).
+   * Default false keeps Magic Initiate allowlist.
+   */
+  anyClassList?: boolean
 }): FeatSpellListOption[] {
   const classKey = input.classSlug.trim().toLowerCase()
-  if (!classKey || !isFeatClassSpellList(classKey)) return []
+  if (!classKey) return []
+  if (!input.anyClassList && !isFeatClassSpellList(classKey)) return []
   const level = Math.max(0, Math.min(9, Math.floor(input.level)))
   const out: FeatSpellListOption[] = []
   for (const row of input.spells) {
@@ -72,6 +89,7 @@ export function spellOptionsForClassLists(input: {
   classSlugs: string[]
   level: number
   ritualOnly?: boolean
+  anyClassList?: boolean
 }): FeatSpellListOption[] {
   const byId = new Map<string, FeatSpellListOption>()
   for (const classSlug of input.classSlugs) {
@@ -80,6 +98,7 @@ export function spellOptionsForClassLists(input: {
       classSlug,
       level: input.level,
       ritualOnly: input.ritualOnly,
+      anyClassList: input.anyClassList,
     })) {
       const prev = byId.get(opt.id)
       if (!prev) {
@@ -93,4 +112,16 @@ export function spellOptionsForClassLists(input: {
   return [...byId.values()].sort((a, b) =>
     a.label_ru.localeCompare(b.label_ru, 'ru'),
   )
+}
+
+/** Pact of the Tome: union of cantrips from every class list. */
+export function spellOptionsForPactTomeCantrips(input: {
+  spells: FeatSpellCatalogRow[]
+}): FeatSpellListOption[] {
+  return spellOptionsForClassLists({
+    spells: input.spells,
+    classSlugs: [...PACT_TOME_CANTRIP_CLASS_LISTS],
+    level: 0,
+    anyClassList: true,
+  })
 }

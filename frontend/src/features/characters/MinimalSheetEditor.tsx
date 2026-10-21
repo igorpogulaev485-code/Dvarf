@@ -274,6 +274,16 @@ import {
 } from './featureCombatBonuses'
 import { syncRangerConclaveSpells } from './rangerConclaveSpells'
 import {
+  sanitizeFeaturePicksForPactBoons,
+  syncPactTomeCantrips,
+  withPactTomeCantripsStep,
+} from './pactTomeEffects'
+import {
+  ensurePactTomeSpellCatalog,
+  resolvePactTomeCantripFromOptions,
+} from './PactTomeCantripsPicker'
+import { spellOptionsForPactTomeCantrips } from '../../shared/dnd/featSpellListOptions'
+import {
   ClassFeaturesPanel,
   saveBonusFromFeatures,
   type FeatureSelfFormRequest,
@@ -1905,6 +1915,10 @@ export function MinimalSheetEditor({
 
   function applyFeaturePicksWithExpertise(featurePicks: FeaturePicksState) {
     setDraft((prev) => {
+      const sanitized = sanitizeFeaturePicksForPactBoons({
+        featurePicks,
+        classes: prev.classes,
+      })
       const unlocked = unlockFeaturesForClasses({
         classes: prev.classes,
         characterLevel: totalCharacterLevel(prev.classes),
@@ -1917,13 +1931,37 @@ export function MinimalSheetEditor({
       const keys = listUnlockedExpertiseKeys(unlocked)
       return {
         ...prev,
-        featurePicks,
+        featurePicks: sanitized,
         skills: syncSkillsExpertiseFromPicks({
           skills: prev.skills,
-          featurePicks,
+          featurePicks: sanitized,
           expertiseKeys: keys,
         }),
       }
+    })
+    setGuidedWizard((prev) => {
+      if (!prev) return null
+      const step = prev.steps[prev.index]
+      if (
+        !step ||
+        (step.kind !== 'feature_choice' && step.kind !== 'pact_tome_cantrips')
+      ) {
+        return prev
+      }
+      const classRow = draft.classes.find((row) => row.id === step.classEntryId)
+      if (!classRow) return prev
+      const sanitized = sanitizeFeaturePicksForPactBoons({
+        featurePicks,
+        classes: draft.classes,
+      })
+      const nextSteps = withPactTomeCantripsStep(prev.steps, {
+        classEntryId: step.classEntryId,
+        className: classRow.name,
+        classLevel: classRow.level,
+        featurePicks: sanitized,
+      })
+      if (nextSteps === prev.steps) return prev
+      return { ...prev, steps: nextSteps }
     })
   }
 
@@ -2019,6 +2057,14 @@ export function MinimalSheetEditor({
                 : Math.min(freeBookSlotsAtLevel(wizardLevel), freeLeft),
         })
       }
+    }
+    if (classRow) {
+      steps = withPactTomeCantripsStep(steps, {
+        classEntryId: input.classEntryId,
+        className: classRow.name,
+        classLevel: Math.max(1, maxLevel),
+        featurePicks: input.featurePicks ?? draft.featurePicks,
+      })
     }
     return steps
   }
@@ -2682,6 +2728,12 @@ export function MinimalSheetEditor({
           picksNeeded: freeBookSlotsAtLevel(leveledRow.level),
         })
       }
+      steps = withPactTomeCantripsStep(steps, {
+        classEntryId: leveledRow.id,
+        className: leveledRow.name,
+        classLevel: leveledRow.level,
+        featurePicks: draft.featurePicks,
+      })
       if (
         !hasSubclass[leveledRow.id] &&
         steps.some((step) => step.kind === 'subclass')
@@ -2996,6 +3048,34 @@ export function MinimalSheetEditor({
       return { ...prev, spells: synced.spells }
     })
   }, [draft.classes, subclassSlugByEntryId])
+
+  // Pact of the Tome: materialize / revoke +3 any-list cantrips from feature picks.
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      let rows: Awaited<ReturnType<typeof ensurePactTomeSpellCatalog>> = []
+      try {
+        rows = await ensurePactTomeSpellCatalog(rulesEdition)
+      } catch {
+        rows = []
+      }
+      if (cancelled) return
+      const options = spellOptionsForPactTomeCantrips({ spells: rows })
+      setDraft((prev) => {
+        const synced = syncPactTomeCantrips({
+          spells: prev.spells,
+          featurePicks: prev.featurePicks,
+          classes: prev.classes,
+          resolveSpell: (slug) => resolvePactTomeCantripFromOptions(slug, options),
+        })
+        if (!synced.changed) return prev
+        return { ...prev, spells: synced.spells }
+      })
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [draft.featurePicks, draft.classes, rulesEdition])
 
   const effectiveDarkvisionFt = useMemo(
     () => Math.max(featureDarkvisionFt, gearDarkvisionFt(gearEffects)),
@@ -5753,6 +5833,7 @@ export function MinimalSheetEditor({
         classAsi={draft.classAsi}
         spells={draft.spells}
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+        edition={rulesEdition}
         wearingHeavyArmor={
           equippedArmorPieces(draft.inventory.items).armor?.kind === 'heavy'
         }
@@ -7120,6 +7201,14 @@ export function MinimalSheetEditor({
                 })
               }
             }
+            remaining = withPactTomeCantripsStep(remaining, {
+              classEntryId: step.classEntryId,
+              className: step.className,
+              classLevel:
+                next.classes.find((row) => row.id === step.classEntryId)?.level ??
+                classLevel,
+              featurePicks: next.featurePicks,
+            })
             return next
           })
           if (summary) {
