@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/vpn-https-stable-fab2
+cursor/create-feedback-ship-fc00
 ```
 
 URL: https://creed20.tech/

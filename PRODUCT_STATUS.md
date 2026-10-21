@@ -4,12 +4,24 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/vpn-https-stable-fab2`  
+**Prod tip (ветка линии прода):** `cursor/create-feedback-ship-fc00`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
 
 ## Сейчас в продукте — свежее
+
+### 2026-10-21 — Фидбек создания (U/A/C/F/E)
+
+| Срез | Эффект |
+|------|--------|
+| U | Setup-диалоги: явные причины блокировки Apply |
+| A | Расы: `activated_movement` + `combat_bonuses` (не точечный fly) |
+| C | Create: draft inventory + bind книги заклинаний |
+| F | Колдун Гримуар: +3 заговора любого списка вне бюджета |
+| E | Стартовые атаки: merge дублей по identity оружия |
+
+На проде: **да** · **это новый prod tip** `cursor/create-feedback-ship-fc00` · ship PR #253 · срезы #248–#252 · залито 2026-10-21 · alembic `y1z2a3b4c5d6` · `/health` ok
 
 ### 2026-10-21 — VPN + канон https://creed20.tech
 
@@ -20,7 +32,7 @@
 | Boot splash | Если модули не пришли за 20с — текст ошибки, не белый экран |
 | MTU harden | TCPMSS + probing на :80/:443 для мобильного VPN |
 
-На проде: **да** · **это новый prod tip** `cursor/vpn-https-stable-fab2` · PR #243 · залито 2026-10-21
+На проде: **да** · tip сменился на `cursor/create-feedback-ship-fc00` · PR #243 · залито 2026-10-21
 
 ---
 
@@ -695,6 +707,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-21 | `cursor/create-feedback-ship-fc00` · PR #253 | U/A/C/F/E фидбек создания → **новый tip** |
 | 2026-10-21 | `cursor/vpn-https-stable-fab2` · PR #243 | VPN + канон https://creed20.tech → **новый tip** |
 | 2026-10-21 | `cursor/prepare-class-list-available-3aba` · PR #242 | Prepare: class list → «Все доступные» → tip после Timeweb |
 | 2026-10-20 | `cursor/create-skills-equip-fix-1dbf` · PR #240 | Create: серые навыки предыстории + PHB equip lines → **новый tip** после Timeweb |
