@@ -4,12 +4,25 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/tiefling-hellish-rebuke-2-6682`  
+**Prod tip (ветка линии прода):** `cursor/multiclass-spell-m1-c9ba`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
 
 ## Сейчас в продукте — свежее
+
+### 2026-10-21 — Мультикласс: Сл/атака по классам (M1–M7)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Профили каста | `SpellCastProfile` per class + `class_slug` на заклинании | У МС свои Сл/атака (напр. Изобретатель 19/+11 · Колдун 18/+10) |
+| Бюджеты заговоров | Именованная meta по классам | `Изобретатель 4/4 · Колдун 3/3`, не общий пул |
+| Каст / dual / rest | Resolve по slug; dual-picker; labels отдыха | Договор vs обычная ячейка понятны |
+| Гримуар полки | Alone-max на полку класса | Высокая общая ячейка не открывает чужой список |
+| Classic P3 | Таблица профилей при ≥2 кастерах | Печать совпадает со столом |
+| Wave MC UI-kit | Candidate boards `*-mc-*.jpg` | LOCK после ok Игоря; Wave A не откатывали |
+
+На проде: **да** · **это новый prod tip** `cursor/multiclass-spell-m1-c9ba` · PR #263 · залито 2026-10-21 · поверх tip `tiefling-hellish-rebuke-2-6682` · `/health` ok · бандл `CharacterDetailPage-BAC-WGUq.js` · `castProfiles.ts` + `play-desk-compact__cast-profile` на диске · characters=94 classic=20
 
 ### 2026-10-21 — Тифлинг: Адская месть как 2-й круг
 
@@ -794,6 +807,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-21 | `cursor/multiclass-spell-m1-c9ba` · PR #263 | MC spell profiles/budgets/cast/grimoire/classic → **новый tip** после Timeweb |
 | 2026-10-21 | `cursor/tiefling-hellish-rebuke-2-6682` · PR #261 | Tiefling Hellish Rebuke cast-as 2 → **новый tip** после Timeweb |
 | 2026-10-21 | `cursor/bm-maneuvers-bridge-6682` · PR #260 | BM maneuvers → feature_picks bridge → **новый tip** после Timeweb |
 | 2026-10-21 | `cursor/satyr-rogue-init-speed-d602` · PR #258 | Mobile/Alert/Rakish init+speed → **новый tip** после Timeweb |
