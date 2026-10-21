@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="1020"
+     viewBox="0 0 760 1020" role="img"
+     aria-label="03 · Создание персонажа 2014" data-name="03 · Создание персонажа 2014">
+  <title>03 · Создание персонажа 2014</title>
+  <desc>Пайплайн /characters/create · черновик · готово</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6B7B6B"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#F7F5F0"/>
+  <rect x="24" y="24" width="712" height="972"
+        rx="16" fill="#EDE8DC" stroke="#D5CFC0" stroke-width="1"/>
+  <text x="48" y="64" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="22" font-weight="700" fill="#1C241C">03 · Создание персонажа 2014</text>
+  <text x="48" y="88" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="13" fill="#5C6B5C">Пайплайн /characters/create · черновик · готово</text>
+  <g id="edges">
+<g id="edge-0" data-name="s→r1">
+  <polyline points="200.0,176.0 200.0,198.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-1" data-name="r1→r2">
+  <polyline points="200.0,254.0 200.0,276.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-2" data-name="r2→feat">
+  <polyline points="200.0,332.0 200.0,354.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="172.0" y="334" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="200.0" y="346" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">да</text>
+</g>
+<g id="edge-3" data-name="r2→skip">
+  <polyline points="320.0,304.0 420.0,302.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="392" y="282.0" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="420" y="294.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">нет</text>
+</g>
+<g id="edge-4" data-name="skip→bg">
+  <polyline points="420.0,302.0 320.0,460.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-5" data-name="feat→bg">
+  <polyline points="200.0,410.0 200.0,432.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-6" data-name="bg→cls">
+  <polyline points="200.0,488.0 200.0,510.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-7" data-name="cls→abi">
+  <polyline points="200.0,566.0 200.0,588.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-8" data-name="abi→lvl">
+  <polyline points="200.0,644.0 200.0,666.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-9" data-name="lvl→gate">
+  <polyline points="200.0,722.0 200.0,744.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-10" data-name="gate→done">
+  <polyline points="200.0,800.0 200.0,900.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="172.0" y="880" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="200.0" y="892" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">да</text>
+</g>
+<g id="edge-11" data-name="gate→draft">
+  <polyline points="200.0,800.0 200.0,822.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="172.0" y="802" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="200.0" y="814" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">нет / сохранить</text>
+</g>
+<g id="edge-12" data-name="draft→ls">
+  <polyline points="320.0,850.0 420.0,770.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-13" data-name="ls→resume">
+  <polyline points="520.0,796.0 520.0,822.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-14" data-name="resume→r1">
+  <polyline points="520.0,822.0 200.0,254.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-15" data-name="done→e">
+  <polyline points="200.0,956.0 200.0,978.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+  </g>
+  <g id="nodes">
+<g id="node-s" data-name="Создать → 2014">
+  <rect x="80" y="120" width="240" height="56" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="200.0" y="153.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">Создать → 2014</text>
+</g>
+<g id="node-r1" data-name="1. Раса + имя">
+  <rect x="80" y="198" width="240" height="56" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="200.0" y="231.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">1. Раса + имя</text>
+</g>
+<g id="node-r2" data-name="Раса даёт черту?">
+  <path d="M200.0,276 L320,304.0 L200.0,332 L80,304.0 Z" fill="#FFF3D6" stroke="#A67C2A" stroke-width="2"/>
+  <text x="200.0" y="309.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Раса даёт черту?</text>
+</g>
+<g id="node-feat" data-name="2. Черта">
+  <rect x="80" y="354" width="240" height="56" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="200.0" y="387.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">2. Черта</text>
+</g>
+<g id="node-bg" data-name="3. Предыстория">
+  <rect x="80" y="432" width="240" height="56" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="200.0" y="465.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">3. Предыстория</text>
+</g>
+<g id="node-cls" data-name="4. Класс + setup">
+  <rect x="80" y="510" width="240" height="56" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="200.0" y="543.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">4. Класс + setup</text>
+</g>
+<g id="node-abi" data-name="5. Характеристики">
+  <rect x="80" y="588" width="240" height="56" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="200.0" y="621.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">5. Характеристики</text>
+</g>
+<g id="node-lvl" data-name="6. Прокачка">
+  <rect x="80" y="666" width="240" height="56" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="200.0" y="699.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">6. Прокачка</text>
+</g>
+<g id="node-gate" data-name="Гейты «Готово» ок?">
+  <path d="M200.0,744 L320,772.0 L200.0,800 L80,772.0 Z" fill="#FFF3D6" stroke="#A67C2A" stroke-width="2"/>
+  <text x="200.0" y="777.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Гейты «Готово» ок?</text>
+</g>
+<g id="node-draft" data-name="Черновик is_draft">
+  <rect x="80" y="822" width="240" height="56" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="200.0" y="855.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Черновик is_draft</text>
+</g>
+<g id="node-done" data-name="Готово → лист">
+  <rect x="80" y="900" width="240" height="56" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="200.0" y="933.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Готово → лист</text>
+</g>
+<g id="node-e" data-name="/characters/:id">
+  <rect x="80" y="978" width="240" height="56" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="200.0" y="1011.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">/characters/:id</text>
+</g>
+<g id="node-skip" data-name="Шаг черты скрыт">
+  <rect x="420" y="276" width="200" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="520.0" y="307.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Шаг черты скрыт</text>
+</g>
+<g id="node-ls" data-name="F5: localStorage v2">
+  <rect x="420" y="744" width="200" height="52" rx="8" fill="#F3E4DC" stroke="#9A4F2E" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <text x="520.0" y="775.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">F5: localStorage v2</text>
+</g>
+<g id="node-resume" data-name="Продолжить создание">
+  <rect x="420" y="822" width="200" height="52" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="520.0" y="853.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">Продолжить создание</text>
+</g>
+  </g>
+<g id="legend" data-name="Legend" transform="translate(48,964)">
+<text x="0" y="0" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#5C6B5C">Легенда</text>
+<rect x="0" y="14" width="28" height="16" rx="8" fill="#2F4A3A"/>
+<text x="34" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Старт / финиш</text>
+<rect x="150" y="14" width="28" height="16" rx="4" fill="#DCE8DC" stroke="#2F4A3A"/>
+<text x="184" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Экран / маршрут</text>
+<rect x="300" y="14" width="28" height="16" rx="3" fill="#F0E6D4" stroke="#8A6A3A"/>
+<text x="334" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Действие пользователя</text>
+<path d="M464,12 L478,21 L464,30 L450,21 Z" fill="#FFF3D6" stroke="#A67C2A"/>
+<text x="484" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Развилка</text>
+<rect x="600" y="14" width="28" height="16" rx="3" fill="#F3E4DC" stroke="#9A4F2E" stroke-dasharray="3 2"/>
+<text x="634" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Ограничение / stub</text>
+<rect x="750" y="14" width="28" height="16" rx="4" fill="#D9E3F0" stroke="#3A557A"/>
+<text x="784" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Роль</text>
+</g>
+</svg>

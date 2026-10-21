@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="644"
+     viewBox="0 0 420 644" role="img"
+     aria-label="K7 · Атака оружием" data-name="K7 · Атака оружием">
+  <title>K7 · Атака оружием</title>
+  <desc>Режим Бой → Атаки</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6B7B6B"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#F7F5F0"/>
+  <rect x="24" y="24" width="372" height="596"
+        rx="16" fill="#EDE8DC" stroke="#D5CFC0" stroke-width="1"/>
+  <text x="48" y="64" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="22" font-weight="700" fill="#1C241C">K7 · Атака оружием</text>
+  <text x="48" y="88" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="13" fill="#5C6B5C">Режим Бой → Атаки</text>
+  <g id="edges">
+<g id="edge-0" data-name="n0→n1">
+  <polyline points="210.0,172.0 210.0,194.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-1" data-name="n1→n2">
+  <polyline points="210.0,246.0 210.0,268.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-2" data-name="n2→n3">
+  <polyline points="210.0,320.0 210.0,342.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-3" data-name="n3→n4">
+  <polyline points="210.0,394.0 210.0,416.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-4" data-name="n4→n5">
+  <polyline points="210.0,468.0 210.0,490.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+  </g>
+  <g id="nodes">
+<g id="node-n0" data-name="Режим «Бой»">
+  <rect x="80" y="120" width="260" height="52" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="210.0" y="151.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">Режим «Бой»</text>
+</g>
+<g id="node-n1" data-name="Панель Атаки">
+  <rect x="80" y="194" width="260" height="52" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="210.0" y="225.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">Панель Атаки</text>
+</g>
+<g id="node-n2" data-name="Выбрать атаку / оружие">
+  <rect x="80" y="268" width="260" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="210.0" y="299.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Выбрать атаку / оружие</text>
+</g>
+<g id="node-n3" data-name="WAVE: клик = toast-бросок">
+  <rect x="80" y="342" width="260" height="52" rx="8" fill="#F3E4DC" stroke="#9A4F2E" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <text x="210.0" y="373.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">WAVE: клик = toast-бросок</text>
+</g>
+<g id="node-n4" data-name="взять / убрать (held)">
+  <rect x="80" y="416" width="260" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="210.0" y="447.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">взять / убрать (held)</text>
+</g>
+<g id="node-n5" data-name="Атака объявлена">
+  <rect x="80" y="490" width="260" height="52" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="210.0" y="521.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">Атака объявлена</text>
+</g>
+  </g>
+
+</svg>
