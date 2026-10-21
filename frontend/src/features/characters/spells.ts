@@ -56,6 +56,18 @@ export type SheetSpell = {
    */
   source_kind?: SpellSourceKind
   /**
+   * Multiclass: which class this acquisition belongs to (PHB association).
+   * Drives spell attack / save DC via cast profiles (M1+).
+   */
+  class_slug?: string | null
+  /** Sheet class-level row id when known (stable across renames). */
+  class_entry_id?: string | null
+  /**
+   * When the same catalog spell is learned under two classes, share a group id
+   * so combat can show one row with dual cast options (M3).
+   */
+  acquisition_group_id?: string | null
+  /**
    * Race grant mode mirrored from catalog.
    * innate: free racial cast, does not count toward prepare cap.
    * spell_list: mark/class-list expansion; player prepares like class spells.
@@ -373,6 +385,21 @@ function readSpell(raw: unknown, index: number): SheetSpell {
       ? { description: row.description }
       : {}),
     ...(sourceKind ? { source_kind: sourceKind } : {}),
+    ...(typeof row.class_slug === 'string' && row.class_slug.trim()
+      ? { class_slug: row.class_slug.trim() }
+      : typeof row.classSlug === 'string' && row.classSlug.trim()
+        ? { class_slug: row.classSlug.trim() }
+        : {}),
+    ...(typeof row.class_entry_id === 'string' && row.class_entry_id.trim()
+      ? { class_entry_id: row.class_entry_id.trim() }
+      : typeof row.classEntryId === 'string' && row.classEntryId.trim()
+        ? { class_entry_id: row.classEntryId.trim() }
+        : {}),
+    ...(typeof row.acquisition_group_id === 'string' && row.acquisition_group_id.trim()
+      ? { acquisition_group_id: row.acquisition_group_id.trim() }
+      : typeof row.acquisitionGroupId === 'string' && row.acquisitionGroupId.trim()
+        ? { acquisition_group_id: row.acquisitionGroupId.trim() }
+        : {}),
     ...(raceGrant ? { race_grant: raceGrant } : {}),
     ...(featGrant ? { feat_grant: featGrant } : {}),
     ...(preparedLocked ? { prepared_locked: true } : {}),
@@ -982,6 +1009,11 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
         ...(spell.higher_levels ? { higher_levels: spell.higher_levels } : {}),
         ...(spell.description ? { description: spell.description } : {}),
         ...(spell.source_kind ? { source_kind: spell.source_kind } : {}),
+        ...(spell.class_slug ? { class_slug: spell.class_slug } : {}),
+        ...(spell.class_entry_id ? { class_entry_id: spell.class_entry_id } : {}),
+        ...(spell.acquisition_group_id
+          ? { acquisition_group_id: spell.acquisition_group_id }
+          : {}),
         ...(spell.race_grant ? { race_grant: spell.race_grant } : {}),
         ...(spell.feat_grant ? { feat_grant: spell.feat_grant } : {}),
         ...(spell.prepared_locked || isPreparedLocked(spell)
