@@ -11,6 +11,7 @@ import {
 } from '../features/cabinet'
 import { getMe, type User } from '../shared/api/auth'
 import { ApiRequestError } from '../shared/api/client'
+import { AppLegalFooter } from '../shared/brand/creed20'
 import {
   applyAccountAppearance,
   mergeAppearanceFromUser,
@@ -68,6 +69,27 @@ export function CabinetPage() {
     }
   }, [navigate, handleUser])
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const linked = params.get('oauth_linked')
+    const oauthError = params.get('oauth_error')
+    if (!linked && !oauthError) {
+      return
+    }
+    window.history.replaceState({}, '', '/cabinet')
+    if (oauthError) {
+      setToast(oauthError)
+      return
+    }
+    const label = linked === 'yandex' ? 'Яндекс' : linked === 'vk' ? 'VK' : linked
+    setToast(`${label} привязан к аккаунту`)
+    getMe()
+      .then(handleUser)
+      .catch(() => {
+        /* toast already shows success; refresh is best-effort */
+      })
+  }, [handleUser])
+
   return (
     <main className="page page--app page--cabinet">
       <Stack gap={20}>
@@ -107,7 +129,11 @@ export function CabinetPage() {
             </Panel>
 
             <Panel title="Способы входа" className="cabinet-layout__providers">
-              <AuthProvidersPanel providers={user.providers} />
+              <AuthProvidersPanel
+                providers={user.providers}
+                onUserChange={handleUser}
+                onMessage={setToast}
+              />
             </Panel>
 
             <Panel title="Смена email" className="cabinet-layout__email">
@@ -146,6 +172,8 @@ export function CabinetPage() {
             </Panel>
           </div>
         ) : null}
+
+        <AppLegalFooter />
       </Stack>
 
       {toast ? <Toast message={toast} onClose={closeToast} /> : null}

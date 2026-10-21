@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Monk + all official monastic traditions",
     "edition": "2014",
     "source": "phb+scag+xgte+tcoe+ftd",
-    "notes_ru": "Все 10 оф. традиций. Ki на классе. Long Death/Mercy/Astral/Dragon — пулы. H4b depth: martial/half-caster pools/scales/linked ki·BI."
+    "notes_ru": "Все 10 оф. традиций. Ki на классе. Long Death/Mercy/Astral/Dragon — пулы. H4b depth: martial/half-caster pools/scales/linked ki·BI. · TCoE optional class features."
   },
   "class_slug": "monk",
   "features": [
@@ -135,6 +135,17 @@
       }
     },
     {
+      "id": "dedicated_weapon",
+      "level": 2,
+      "name_ru": "Выбранное оружие",
+      "name_en": "Dedicated Weapon",
+      "summary_ru": "Tasha (optional): коротким отдыхом / 1 ч. тренировки сделай простое/воинское оружие без тяжёлого и особого — оружием монаха (пока владеешь им).",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe",
+      "desk": "combat"
+    },
+    {
       "id": "deflect_missiles",
       "level": 3,
       "name_ru": "Отклонение снарядов",
@@ -157,6 +168,17 @@
       "name_en": "Monastic Tradition",
       "summary_ru": "Выбери традицию (Открытая ладонь / Тень / Четыре стихии / …).",
       "kind": "passive"
+    },
+    {
+      "id": "ki_fueled_attack",
+      "level": 3,
+      "name_ru": "Атака на ци",
+      "name_en": "Ki-Fueled Attack",
+      "summary_ru": "Tasha (optional): если в свой ход потратил ци как действие/бонусное, бонусным можешь сделать одну безоружную атаку или атаку оружием монаха.",
+      "kind": "bonus",
+      "optional": true,
+      "source_book": "tcoe",
+      "desk": "combat"
     },
     {
       "id": "asi_4_monk",
@@ -184,6 +206,24 @@
       "kind": "reaction"
     },
     {
+      "id": "quickened_healing",
+      "level": 4,
+      "name_ru": "Ускоренное исцеление",
+      "name_en": "Quickened Healing",
+      "summary_ru": "Tasha (optional): действием потрать 2 ци — восстанови хиты = кость БИ + бонус мастерства.",
+      "kind": "action",
+      "optional": true,
+      "source_book": "tcoe",
+      "resource": {
+        "uses": 0,
+        "recharge": "short_rest",
+        "pool_id": "ki",
+        "pool_name_ru": "Ки",
+        "track": "spend",
+        "spend_cost": 2
+      }
+    },
+    {
       "id": "extra_attack_monk",
       "level": 5,
       "name_ru": "Дополнительная атака",
@@ -198,6 +238,25 @@
       "name_en": "Stunning Strike",
       "summary_ru": "При попадании рукопашной: 1 ки → спас Телосложения или оглушён до конца твоего следующего хода.",
       "kind": "passive",
+      "resource": {
+        "uses": 0,
+        "recharge": "short_rest",
+        "pool_id": "ki",
+        "pool_name_ru": "Ки",
+        "track": "spend",
+        "spend_cost": 1
+      }
+    },
+    {
+      "id": "focused_aim",
+      "level": 5,
+      "name_ru": "Сосредоточенный прицел",
+      "name_en": "Focused Aim",
+      "summary_ru": "Tasha (optional): при промахе атакой потрать 1–3 ци — +2 к броску за каждую (можно довести до попадания).",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe",
+      "desk": "combat",
       "resource": {
         "uses": 0,
         "recharge": "short_rest",
@@ -288,6 +347,7 @@
       "name_en": "Diamond Soul",
       "summary_ru": "Владение всеми спасбросками. Трата 1 ки — переброс спасброска.",
       "kind": "passive",
+      "save_proficiency": "all",
       "resource": {
         "uses": 0,
         "recharge": "short_rest",

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { startOAuth } from '../../shared/api/auth'
 import { ApiRequestError } from '../../shared/api/client'
-import { Button, Stack, Text } from '../../ui'
+import { Text } from '../../ui'
 
 type OAuthButtonsProps = {
   onMessage?: (message: string) => void
@@ -11,6 +11,22 @@ const PROVIDER_LABELS = {
   yandex: 'Яндекс',
   vk: 'VK ID',
 } as const
+
+function YandexMark() {
+  return (
+    <span className="oauth-icons__glyph oauth-icons__glyph--yandex" aria-hidden="true">
+      Я
+    </span>
+  )
+}
+
+function VkMark() {
+  return (
+    <span className="oauth-icons__glyph oauth-icons__glyph--vk" aria-hidden="true">
+      VK
+    </span>
+  )
+}
 
 export function OAuthButtons({ onMessage }: OAuthButtonsProps) {
   const [pendingProvider, setPendingProvider] = useState<'yandex' | 'vk' | null>(null)
@@ -22,7 +38,7 @@ export function OAuthButtons({ onMessage }: OAuthButtonsProps) {
       if (!result.configured || !result.authorize_url) {
         onMessage?.(
           result.message ||
-            `Вход через ${PROVIDER_LABELS[provider]} пока в заглушке`,
+            `Вход через ${PROVIDER_LABELS[provider]} сейчас недоступен`,
         )
         return
       }
@@ -39,24 +55,32 @@ export function OAuthButtons({ onMessage }: OAuthButtonsProps) {
   }
 
   return (
-    <Stack gap={10}>
-      <Text tone="muted">
-        Яндекс — рабочий поток (нужны ключи в env). VK ID пока заглушка.
+    <div className="oauth-icons">
+      <Text tone="muted" className="oauth-icons__label">
+        или через
       </Text>
-      <Button
-        variant="secondary"
-        disabled={pendingProvider !== null}
-        onClick={() => handleStart('yandex')}
-      >
-        {pendingProvider === 'yandex' ? '...' : 'Войти через Яндекс'}
-      </Button>
-      <Button
-        variant="secondary"
-        disabled={pendingProvider !== null}
-        onClick={() => handleStart('vk')}
-      >
-        {pendingProvider === 'vk' ? '...' : 'Войти через VK ID'}
-      </Button>
-    </Stack>
+      <div className="oauth-icons__row" role="group" aria-label="Вход через сервисы">
+        <button
+          type="button"
+          className="oauth-icons__btn"
+          title="Войти через Яндекс"
+          aria-label="Войти через Яндекс"
+          disabled={pendingProvider !== null}
+          onClick={() => handleStart('yandex')}
+        >
+          <YandexMark />
+        </button>
+        <button
+          type="button"
+          className="oauth-icons__btn"
+          title="Войти через VK ID"
+          aria-label="Войти через VK ID"
+          disabled={pendingProvider !== null}
+          onClick={() => handleStart('vk')}
+        >
+          <VkMark />
+        </button>
+      </div>
+    </div>
   )
 }

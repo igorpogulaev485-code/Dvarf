@@ -20,7 +20,10 @@ import {
 type PrepareSpellsDialogProps = {
   open: boolean
   spells: SpellsState
-  /** PHB learn mode — copy differs for spellbook vs prepared_list. */
+  /**
+   * Thin morning-prep is for spellbook (wizard) only.
+   * prepared_list casters prepare in Grimoire; known have no daily prepare.
+   */
   learnMode?: SpellLearnModeUi | null
   onChange: (spells: SpellsState) => void
   onClose: () => void
@@ -28,29 +31,37 @@ type PrepareSpellsDialogProps = {
 
 type Tab = 'prepared' | 'available'
 
+/**
+ * Wizard morning prep: pick today's set from the spellbook.
+ * Class-list prepare UI lives in GrimoireDialog (status chips).
+ */
 export function PrepareSpellsDialog({
   open,
   spells,
-  learnMode = 'prepared_list',
+  learnMode = 'spellbook',
   onChange,
   onClose,
 }: PrepareSpellsDialogProps) {
   const [tab, setTab] = useState<Tab>('prepared')
-  const uiCopy = spellAccessUiCopy(learnMode ?? 'prepared_list')
+  const uiCopy = spellAccessUiCopy(learnMode ?? 'spellbook')
 
   const preparedCount = countPreparedLeveled(spells.known)
   const limitLabel =
     spells.max_prepared == null ? String(preparedCount) : `${preparedCount}/${spells.max_prepared}`
 
+  const bookSpells = useMemo(
+    () =>
+      spells.known.filter(
+        (spell) => spell.level > 0 && spell.in_spellbook !== false,
+      ),
+    [spells.known],
+  )
+
   const preparedList = useMemo(
-    () => spells.known.filter((spell) => spell.level > 0 && spell.prepared),
-    [spells.known],
+    () => bookSpells.filter((spell) => spell.prepared),
+    [bookSpells],
   )
-  const availableList = useMemo(
-    () => spells.known.filter((spell) => spell.level > 0),
-    [spells.known],
-  )
-  /** Pool not yet prepared — the reason «Все доступные» differs from «Подготовленные». */
+  const availableList = bookSpells
   const unpreparedList = useMemo(
     () => availableList.filter((spell) => !spell.prepared),
     [availableList],
@@ -71,7 +82,6 @@ export function PrepareSpellsDialog({
     if (!countsTowardPrepareLimit(spell.level)) return
     if (isPreparedLocked(spell)) return
     const nextPrepared = !spell.prepared
-    // PHB: without the book you cannot prepare a new list (can keep existing).
     if (bookLost && nextPrepared) return
     onChange({
       ...spells,
@@ -145,7 +155,7 @@ export function PrepareSpellsDialog({
     emptyText: string,
   ) {
     if (groups.length === 0) {
-      return <Text tone="muted">{emptyText}</Text>
+      return emptyText ? <Text tone="muted">{emptyText}</Text> : null
     }
     return groups.map((group) => (
       <div key={group.level} className="prepare-section">
@@ -158,7 +168,7 @@ export function PrepareSpellsDialog({
   return (
     <Dialog
       open={open}
-      title="Подготовить заклинания"
+      title="Подготовить из книги"
       size="wide"
       primaryLabel="Готово"
       onPrimary={onClose}
@@ -167,11 +177,8 @@ export function PrepareSpellsDialog({
     >
       <Stack gap={12}>
         <Text tone="muted">
-          {uiCopy.prepareHint} Лимит сегодня: {limitLabel}. Пополнить пул — через Гримуар (
-          {learnMode === 'spellbook'
-            ? '«В книгу» / «В книгу + подготовить»'
-            : '«На лист» / «Подготовить»'}
-          ).
+          {uiCopy.prepareHint} Лимит сегодня: {limitLabel}. Новые записи — через Гримуар («В
+          книгу»).
         </Text>
         {bookLost ? (
           <Text tone="muted">
@@ -207,7 +214,7 @@ export function PrepareSpellsDialog({
             className={`sheet-chip${tab === 'available' ? ' is-on' : ''}`}
             onClick={() => setTab('available')}
           >
-            Все доступные ({availableList.length})
+            В книге ({availableList.length})
             {unpreparedList.length > 0 ? ` · ещё ${unpreparedList.length}` : ''}
           </button>
         </div>
@@ -216,8 +223,8 @@ export function PrepareSpellsDialog({
           renderGroups(
             preparedGroups,
             unpreparedList.length > 0
-              ? 'Ничего не подготовлено — открой «Все доступные» и нажми «Подготовить».'
-              : 'Пул пуст. Сначала добавь заклинания через Гримуар («На лист»).',
+              ? 'Ничего не подготовлено — открой «В книге» и нажми «Подготовить».'
+              : 'Книга пуста. Сначала добавь заклинания через Гримуар («В книгу»).',
           )
         ) : (
           <Stack gap={12}>
@@ -229,8 +236,8 @@ export function PrepareSpellsDialog({
             ) : (
               <Text tone="muted">
                 {availableList.length > 0
-                  ? 'Все доступные уже подготовлены. Сними лишние во вкладке «Подготовленные» или добавь новые через Гримуар.'
-                  : 'Сначала добавь заклинания 1+ уровня через Гримуар («На лист»).'}
+                  ? 'Всё из книги уже подготовлено. Сними лишние во вкладке «Подготовленные» или допиши книгу в Гримуаре.'
+                  : 'Сначала добавь заклинания в книгу через Гримуар.'}
               </Text>
             )}
             {preparedList.length > 0 && unpreparedList.length > 0 ? (

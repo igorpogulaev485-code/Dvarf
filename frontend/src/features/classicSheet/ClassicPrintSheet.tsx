@@ -20,6 +20,7 @@ import {
   cycleSkillMastery,
   setCoins,
   skillFlags,
+  classicFeaturesTraitsValue,
   textBlockValue,
 } from './fromApi'
 import { classicWeaponRows, patchClassicWeapon } from './classicWeapons'
@@ -485,7 +486,9 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                 ['ideals', 'Идеалы', '3rem', true],
                 ['bonds', 'Привязанности', '3rem', true],
                 ['flaws', 'Слабости', '3rem', true],
-                ['features', 'Умения и особенности', '22rem', false],
+                // Background feature text lands in `traits` (see backgroundEffects).
+                // Keep `features` as a secondary merge so older manual notes survive.
+                ['traits', 'Умения и особенности', '22rem', false],
               ] as const
             ).map(([key, label, height, personality]) => (
               <div
@@ -497,7 +500,11 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                   character={c}
                   onPatch={onPatch}
                   fill={!personality}
-                  value={textBlockValue(c, key)}
+                  value={
+                    key === 'traits'
+                      ? classicFeaturesTraitsValue(c)
+                      : textBlockValue(c, key)
+                  }
                   printMaxHeight={height}
                   ariaLabel={label}
                   onChange={(value) => patch({ textBlocks: { [key]: value } })}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
+import { openProductSite } from '../shared/brand/creed20'
 import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
 import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
@@ -421,7 +422,7 @@ export function SessionDetailPage() {
           subtitle={
             session.setting_name ? `Сессия · ${session.setting_name}` : 'Сессия · ваншот'
           }
-          onOfficialSite={() => setToast('Официальный сайт скоро появится')}
+          onOfficialSite={openProductSite}
         />
         <div className="lobby-hub-top">
           <Text>

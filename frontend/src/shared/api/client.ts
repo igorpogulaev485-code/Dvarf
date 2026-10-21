@@ -176,6 +176,11 @@ export async function apiRequest<T>(
     externalSignal?.removeEventListener('abort', onExternalAbort)
   }
 
+  // Public OAuth start/callback must not trigger refresh; link/unlink need auth.
+  const isAnonymousOauth =
+    /^\/auth\/oauth\/[^/]+\/start$/.test(path) ||
+    /^\/auth\/oauth\/[^/]+\/callback/.test(path)
+
   if (
     response.status === 401 &&
     !retried &&
@@ -186,7 +191,7 @@ export async function apiRequest<T>(
     !path.startsWith('/auth/reset-password') &&
     !path.startsWith('/auth/verify-email') &&
     !path.startsWith('/auth/resend-verification') &&
-    !path.startsWith('/auth/oauth') &&
+    !isAnonymousOauth &&
     !path.startsWith('/auth/me/email/confirm')
   ) {
     const refreshed = await tryRefreshAccessToken()

@@ -145,6 +145,102 @@ export function createSheetSpell(): SheetSpell {
   }
 }
 
+/** Default source label for player-authored homebrew spells. */
+export const CUSTOM_SPELL_SOURCE_DEFAULT = 'Хомбрю'
+
+export function isCustomSheetSpell(spell: SheetSpell): boolean {
+  return spell.source_kind === 'custom'
+}
+
+export type CustomSheetSpellInput = {
+  name: string
+  level: number
+  casting_time?: string
+  range?: string
+  duration?: string
+  concentration?: boolean
+  ritual?: boolean
+  components?: SpellComponents
+  attack_or_save?: string
+  damage?: string
+  school?: string
+  description?: string
+  higher_levels?: string
+  /** Shown as source badge; default «Хомбрю». */
+  source_book?: string
+  applies_to_allies?: boolean
+  ally_target_count?: number
+  notes?: string
+}
+
+/** Build a personal (non-catalog) sheet spell. Does not set prepared / book meta. */
+export function createCustomSheetSpell(input: CustomSheetSpellInput): SheetSpell {
+  const name = input.name.trim()
+  const level = Math.max(0, Math.min(9, Math.floor(input.level)))
+  const source = input.source_book?.trim() || CUSTOM_SPELL_SOURCE_DEFAULT
+  const comps = input.components
+  return {
+    ...createSheetSpell(),
+    name,
+    catalog_id: null,
+    level,
+    prepared: level <= 0,
+    source_kind: 'custom',
+    source_book: source,
+    casting_time: input.casting_time?.trim() ?? '',
+    range: input.range?.trim() ?? '',
+    attack_or_save: input.attack_or_save?.trim() ?? '',
+    damage: input.damage?.trim() ?? '',
+    concentration: Boolean(input.concentration),
+    notes: input.notes?.trim() ?? '',
+    ...(input.duration?.trim() ? { duration: input.duration.trim() } : {}),
+    ...(input.ritual ? { ritual: true } : {}),
+    ...(input.school?.trim() ? { school: input.school.trim() } : {}),
+    ...(comps && (comps.v || comps.s || comps.m != null) ? { components: comps } : {}),
+    ...(input.description?.trim() ? { description: input.description.trim() } : {}),
+    ...(input.higher_levels?.trim() ? { higher_levels: input.higher_levels.trim() } : {}),
+    ...(input.applies_to_allies
+      ? {
+          applies_to_allies: true as const,
+          ally_target_count: Math.max(
+            1,
+            Math.min(6, Math.floor(input.ally_target_count ?? 1)),
+          ),
+        }
+      : {}),
+  }
+}
+
+/** Patch fields of an existing custom row (keeps id / prepare / book meta). */
+export function updateCustomSheetSpell(
+  spell: SheetSpell,
+  input: CustomSheetSpellInput,
+): SheetSpell {
+  const next = createCustomSheetSpell(input)
+  return {
+    ...spell,
+    name: next.name,
+    level: next.level,
+    catalog_id: null,
+    source_kind: 'custom',
+    source_book: next.source_book,
+    casting_time: next.casting_time,
+    range: next.range,
+    attack_or_save: next.attack_or_save,
+    damage: next.damage,
+    concentration: next.concentration,
+    notes: next.notes,
+    duration: next.duration,
+    ritual: next.ritual,
+    school: next.school,
+    components: next.components,
+    description: next.description,
+    higher_levels: next.higher_levels,
+    applies_to_allies: next.applies_to_allies,
+    ally_target_count: next.ally_target_count,
+  }
+}
+
 function readSlot(raw: unknown): SpellSlotState {
   const row = asRecord(raw)
   return clampSlot({
@@ -588,11 +684,12 @@ export type SpellSourceBadge = {
   label: string
   title: string
   /** Origin bucket for styling / analytics. */
-  kind: 'race' | 'feat' | 'subclass' | 'feature' | 'grant'
+  kind: 'race' | 'feat' | 'subclass' | 'feature' | 'grant' | 'custom'
 }
 
 /**
- * Badge for spells granted by race / feat / archetype / gear / feature.
+ * Badge for spells granted by race / feat / archetype / gear / feature,
+ * plus personal homebrew («Хомбрю»).
  * Covers both always-prepared (innate, domain) and mark/list expansions
  * that the player prepares into normal slots.
  */
@@ -602,6 +699,15 @@ export function spellSourceBadge(spell: SheetSpell): SpellSourceBadge | null {
     spell.grant_cast && spell.grant_cast.max > 0
       ? ` · ${spell.grant_cast.label} ${grantCastRemaining(spell)}/${spell.grant_cast.max} без ячейки`
       : ''
+
+  if (isCustomSheetSpell(spell)) {
+    const label = spell.source_book?.trim() || CUSTOM_SPELL_SOURCE_DEFAULT
+    return {
+      label,
+      title: `Своё заклинание · ${label} — только на этом листе`,
+      kind: 'custom',
+    }
+  }
 
   if (isRaceSheetSpell(spell) || spell.race_grant) {
     if (spell.race_grant === 'spell_list') {
@@ -666,9 +772,39 @@ export function spellSourceBadge(spell: SheetSpell): SpellSourceBadge | null {
   return null
 }
 
-/** Soft highlight for any grant-origin spell (race / feat / archetype / gear). */
+/** Soft highlight for grant-origin spells (not catalog / custom homebrew). */
 export function isGrantedSpellHighlight(spell: SheetSpell): boolean {
-  return spellSourceBadge(spell) != null
+  const badge = spellSourceBadge(spell)
+  return badge != null && badge.kind !== 'custom'
+}
+
+/** Append a custom spell to known; optional prepare / wizard book meta like catalog adds. */
+export function addCustomSpellToKnown(
+  known: SheetSpell[],
+  input: CustomSheetSpellInput,
+  options?: {
+    prepare?: boolean
+    maxPrepared?: number | null
+    spellbook_acquisition?: SpellbookAcquisition
+    in_spellbook?: boolean
+  },
+): SheetSpell[] {
+  const spell = createCustomSheetSpell(input)
+  const withBookMeta: SheetSpell = {
+    ...spell,
+    ...(options?.spellbook_acquisition && spell.level > 0
+      ? { spellbook_acquisition: options.spellbook_acquisition }
+      : {}),
+    ...(options?.in_spellbook !== undefined && spell.level > 0
+      ? { in_spellbook: options.in_spellbook }
+      : {}),
+  }
+  let next = [...known, withBookMeta]
+  const prepare = options?.prepare ?? withBookMeta.level <= 0
+  if (prepare && withBookMeta.level > 0) {
+    next = setSpellPrepared(next, withBookMeta.id, true, options?.maxPrepared ?? null)
+  }
+  return next
 }
 
 export function preparedLockChip(spell: SheetSpell): {

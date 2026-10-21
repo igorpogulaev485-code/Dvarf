@@ -8,6 +8,10 @@ import {
   ForgotPasswordForm,
   OAuthButtons,
 } from '../features/auth'
+import {
+  AppLegalFooter,
+  Creed20Wordmark,
+} from '../shared/brand/creed20'
 import { Panel, Stack, Text } from '../ui'
 
 type AuthView = 'register' | 'login' | 'forgot'
@@ -28,6 +32,13 @@ export function AuthDebugPage({ nextPath = null }: AuthDebugPageProps) {
     const accessToken = params.get('access_token')
     const refreshToken = params.get('refresh_token')
     const oauthProvider = params.get('oauth')
+    const oauthError = params.get('oauth_error')
+
+    if (oauthError) {
+      setOauthMessage(oauthError)
+      window.history.replaceState({}, '', '/login')
+      return
+    }
 
     if (!accessToken || !refreshToken) {
       return
@@ -58,7 +69,9 @@ export function AuthDebugPage({ nextPath = null }: AuthDebugPageProps) {
     <main className="page page--auth-debug">
       <Stack gap={20}>
         <Stack gap={6}>
-          <Text as="h1">Dvarf — вход</Text>
+          <Text as="h1">
+            <Creed20Wordmark /> — вход
+          </Text>
           <Text tone="muted">Войдите, чтобы открыть список персонажей.</Text>
         </Stack>
 
@@ -86,6 +99,8 @@ export function AuthDebugPage({ nextPath = null }: AuthDebugPageProps) {
                     Вход
                   </button>
                 </div>
+                <OAuthButtons onMessage={setOauthMessage} />
+                {oauthMessage ? <Text tone="muted">{oauthMessage}</Text> : null}
                 <EmailAuthForm
                   mode={view}
                   onSuccess={(nextUser) => {
@@ -103,12 +118,7 @@ export function AuthDebugPage({ nextPath = null }: AuthDebugPageProps) {
           </Stack>
         </Panel>
 
-        <Panel title="Вход через сервисы">
-          <Stack gap={10}>
-            <OAuthButtons onMessage={setOauthMessage} />
-            {oauthMessage ? <Text tone="muted">{oauthMessage}</Text> : null}
-          </Stack>
-        </Panel>
+        <AppLegalFooter />
       </Stack>
     </main>
   )

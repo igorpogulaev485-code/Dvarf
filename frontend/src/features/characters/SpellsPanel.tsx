@@ -24,6 +24,7 @@ import {
   spellSaveDc,
   type SpellcastingAbility,
 } from '../../shared/dnd/spells'
+import { HoverTipCard, PANEL_HELP, panelExplain } from '../onboarding'
 import { Button, Dialog, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
@@ -663,7 +664,10 @@ export function SpellsPanel({
     spells.max_prepared == null ? String(preparedCount) : `${preparedCount}/${spells.max_prepared}`
 
   return (
-    <Panel title="Заклинания">
+    <Panel
+      title="Заклинания"
+      titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.spells)} />}
+    >
       <Stack gap={14}>
         <Text tone="muted">
           {knownCaster
@@ -746,11 +750,11 @@ export function SpellsPanel({
           <Button variant="secondary" onClick={() => setSettingsOpen((open) => !open)}>
             {settingsOpen ? 'Скрыть настройки' : 'Настройки'}
           </Button>
-          {!knownCaster ? (
+          {learnBudget?.mode === 'spellbook' ? (
             <Button
               variant="secondary"
               onClick={() => setPrepareOpen(true)}
-              title="Выбрать заклинания на сегодня (лимит подготовки класса)"
+              title="Выбрать на сегодня из книги заклинаний"
             >
               <IconWizardHat className="spells-btn-icon" />
               Подготовить
@@ -941,7 +945,11 @@ export function SpellsPanel({
           <Text tone="muted">
             {spells.known.length === 0
               ? 'Пока нет заклинаний — добавь ниже или подготовь из списка.'
-              : 'В боевом виде пусто — нажми «Подготовить» или «Все известные».'}
+              : knownCaster
+                ? 'В боевом виде пусто — открой гримуар или «Все известные».'
+                : learnBudget?.mode === 'spellbook'
+                  ? 'В боевом виде пусто — «Подготовить» из книги или гримуар.'
+                  : 'В боевом виде пусто — открой гримуар и подготовь заклинания.'}
           </Text>
         ) : (
           visibleSpells.map((group) => {
@@ -1194,9 +1202,9 @@ export function SpellsPanel({
       </Stack>
 
       <PrepareSpellsDialog
-        open={prepareOpen}
+        open={prepareOpen && learnBudget?.mode === 'spellbook'}
         spells={spells}
-        learnMode={learnBudget?.mode ?? (knownCaster ? 'known' : 'prepared_list')}
+        learnMode="spellbook"
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
       />

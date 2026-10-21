@@ -35,8 +35,12 @@ import { classifySpellTooling, inferFocusKind } from './spellFocus'
 import {
   backgroundEquipmentAttackIdAt,
   buildStartingWeaponAttacks,
+  filterAttackIdsAfterMerge,
+  mergeStartingWeaponAttacksByIdentity,
 } from './startingGearAttacks'
 import { resolveWeaponExtraName } from './weaponProficiencyExtras'
+
+const FEATURE_START = '<!-- dvarf-background-feature -->'
 
 export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
 
@@ -381,6 +385,12 @@ export function applyBackgroundGrantToDraft(input: {
         equipmentCoinsGp = pack.coinsGp
         inventory.coins.gp += pack.coinsGp
       }
+      nextWeapons = mergeStartingWeaponAttacksByIdentity(nextWeapons)
+      equipmentAttackIds.splice(
+        0,
+        equipmentAttackIds.length,
+        ...filterAttackIdsAfterMerge(equipmentAttackIds, nextWeapons),
+      )
     }
   }
 
@@ -513,6 +523,74 @@ export function reapplyBackgroundOverlays(
         ]),
       },
     },
+  }
+}
+
+/**
+ * Backfill background feature onto existing sheets:
+ * - refresh `featureNameRu` / `featureTextRu` from catalog when present
+ *   (grant is a cache of catalog; fixes truncated/older copies)
+ * - upsert the marked block into `traits` text
+ *
+ * Idempotent. Does not invent a grant when none exists (name-only identity
+ * backgrounds stay name-only until the player re-applies the catalog row).
+ */
+export function ensureBackgroundFeatureOnDraft(
+  draft: BackgroundGrantDraftSlice,
+  catalogDef?: BackgroundGrantDef | null,
+): BackgroundGrantDraftSlice {
+  const grant = draft.backgroundGrant
+  if (!grant) return draft
+
+  const catalogName = (catalogDef?.featureNameRu || '').trim()
+  const catalogText = (catalogDef?.featureTextRu || '').trim()
+  const catalogFeatNote = (catalogDef?.featNoteRu || '').trim()
+
+  const nextFeatureNameRu =
+    catalogName || (grant.featureNameRu || '').trim() || null
+  const nextFeatureTextRu =
+    catalogText || (grant.featureTextRu || '').trim() || null
+  const nextFeatNoteRu =
+    catalogFeatNote || (grant.featNoteRu || '').trim() || null
+
+  const grantChanged =
+    nextFeatureNameRu !== grant.featureNameRu ||
+    nextFeatureTextRu !== grant.featureTextRu ||
+    nextFeatNoteRu !== grant.featNoteRu
+
+  const nextGrant: AppliedBackgroundGrant = grantChanged
+    ? {
+        ...grant,
+        featureNameRu: nextFeatureNameRu,
+        featureTextRu: nextFeatureTextRu,
+        featNoteRu: nextFeatNoteRu,
+      }
+    : grant
+
+  const featureText = buildBackgroundFeatureText(nextGrant)
+  if (!featureText.trim()) {
+    return grantChanged ? { ...draft, backgroundGrant: nextGrant } : draft
+  }
+
+  let traitsChanged = false
+  const textBlocks = draft.textBlocks.map((block) => {
+    if (block.key !== 'traits') return block
+    const current = blockPlainText(block)
+    // Already has our marker with the same body — leave alone.
+    if (current.includes(FEATURE_START) && current.includes(featureText)) {
+      return block
+    }
+    const nextPlain = upsertBackgroundFeatureBlock(current, featureText)
+    if (nextPlain === current) return block
+    traitsChanged = true
+    return withBlockPlainText(block, nextPlain)
+  })
+
+  if (!grantChanged && !traitsChanged) return draft
+  return {
+    ...draft,
+    backgroundGrant: nextGrant,
+    textBlocks,
   }
 }
 

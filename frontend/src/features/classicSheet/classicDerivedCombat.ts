@@ -12,11 +12,15 @@ import {
   naturalArmorFromFeatGrants,
   readFeatGrantLedger,
   sumFeatInitiativeBonus,
+  sumFeatSpeedBonus,
 } from '../../shared/dnd/featGrants'
 import { findFightingStylePick, readFeaturePicks } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
 import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
-import { readAppliedRaceGrant } from '../../shared/dnd/raceGrants'
+import {
+  initiativeBonusFromRaceGrant,
+  readAppliedRaceGrant,
+} from '../../shared/dnd/raceGrants'
 import { totalCharacterLevel } from '../../shared/dnd/classLevels'
 import { readAttunements } from '../characters/attunement'
 import { readClassLevels } from '../characters/classLevels'
@@ -37,6 +41,10 @@ import {
   asRecord,
   type AbilityKey,
 } from '../characters/sheetTypes'
+import {
+  classWalkSpeedBonusFt,
+  resolveWalkSpeedFt,
+} from '../../shared/dnd/classMovement'
 import { asProfBonus } from './classicPrintShared'
 import { abilityScore, combatField } from './fromApi'
 
@@ -176,18 +184,25 @@ export function classicDisplayInitiative(character: CharacterDetail): string {
     cha: abilityModifier(abilities.cha),
   }
   const featGrants = readFeatGrantLedger(sheet.feat_grants)
-  const core =
-    override ??
-    abilityModifier(abilities.dex) + sumFeatInitiativeBonus(featGrants)
   const classes = readClassLevels(sheet, {
     className: character.class_name ?? '',
     level: character.level,
     subclassName: String(asRecord(sheet.identity).subclass_name ?? ''),
     classCatalogId: null,
   })
+  const proficiencyBonus = Number(asProfBonus(character))
+  const raceGrant = readAppliedRaceGrant(sheet.race_grant)
+  const core =
+    override ??
+    abilityModifier(abilities.dex) +
+      sumFeatInitiativeBonus(featGrants) +
+      initiativeBonusFromRaceGrant({
+        grant: raceGrant,
+        proficiencyBonus,
+      })
   const formulaVars = buildSheetFormulaVars({
     mods,
-    proficiencyBonus: Number(asProfBonus(character)),
+    proficiencyBonus,
     level: totalCharacterLevel(classes),
   })
   const total = withInitiativeBonus({
@@ -199,22 +214,47 @@ export function classicDisplayInitiative(character: CharacterDetail): string {
 }
 
 /**
- * Speed: stored combat.speed + gear bonus (Play Desk). If nothing stored and
- * no gear, fall back to race grant walk speed so the blank is not empty.
+ * Speed: race / stored + class movement (Fast Movement / Unarmored Movement)
+ * + gear — same derivation as Play Desk.
  */
 export function classicDisplaySpeed(character: CharacterDetail): string {
   const stored = readNullableCombatNumber(character, 'speed')
   const sheet = asRecord(character.sheet)
+  const inventory = readInventory(sheet)
   const gear = aggregateGearEffects({
-    items: readInventory(sheet).items,
+    items: inventory.items,
     attunements: readAttunements(sheet),
   })
-  if (stored == null && !gear.speedBonusFt) {
-    const race = readAppliedRaceGrant(sheet.race_grant)
-    if (race?.speed != null && race.speed > 0) return String(race.speed)
-    return ''
-  }
-  return String((stored ?? 0) + gear.speedBonusFt)
+  const race = readAppliedRaceGrant(sheet.race_grant)
+  const classes = readClassLevels(sheet, {
+    className: character.class_name ?? '',
+    level: character.level,
+    subclassName: '',
+    classCatalogId: null,
+  })
+  const pieces = equippedArmorPieces(inventory.items)
+  const wearingHeavy = pieces.armor?.kind === 'heavy'
+  const wearingArmorOrShield = Boolean(pieces.armor || pieces.shield)
+  const classBonus = classWalkSpeedBonusFt({
+    classes,
+    wearingHeavyArmor: wearingHeavy,
+    wearingArmorOrShield,
+  })
+  const classBonusMax = classWalkSpeedBonusFt({
+    classes,
+    wearingHeavyArmor: false,
+    wearingArmorOrShield: false,
+  })
+  const featBonus = sumFeatSpeedBonus(readFeatGrantLedger(sheet.feat_grants))
+  const resolved = resolveWalkSpeedFt({
+    storedSpeed: stored,
+    raceSpeed: race?.speed ?? null,
+    classBonusFt: classBonus,
+    classBonusFtMax: classBonusMax,
+    featBonusFt: featBonus,
+    gearBonusFt: gear.speedBonusFt,
+  })
+  return resolved == null || resolved === 0 ? '' : String(resolved)
 }
 
 export function classicCombatDisplay(

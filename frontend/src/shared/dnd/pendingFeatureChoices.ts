@@ -73,6 +73,13 @@ export type GuidedWizardStep =
       /** How many free research fills to pick in this step (6 at L1, +2 per level). */
       picksNeeded: number
     }
+  | {
+      id: string
+      kind: 'pact_tome_cantrips'
+      classEntryId: string
+      className: string
+      classLevel: number
+    }
 
 export function backgroundWizardStep(): GuidedWizardStep {
   return {
@@ -212,12 +219,18 @@ export function isSubclassGateFeature(feature: Pick<UnlockedFeature, 'choice' | 
     en.includes('druid circle') ||
     en.includes('monastic tradition') ||
     en.includes('sorcerous origin') ||
-    en.includes('otherworldly')
+    en.includes('otherworldly') ||
+    en.includes('primal path') ||
+    en.includes('arcane tradition') ||
+    en.includes('artificer specialist')
   ) {
     return true
   }
   return (
     feature.id === 'otherworldly_patron' ||
+    feature.id === 'primal_path' ||
+    feature.id === 'arcane_tradition' ||
+    feature.id === 'artificer_specialist' ||
     feature.id.endsWith('_archetype') ||
     feature.id.includes('patron')
   )

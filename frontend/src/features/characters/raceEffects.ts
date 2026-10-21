@@ -294,6 +294,8 @@ export function applyRaceGrantToDraft(input: {
   characterLevel?: number
   /** Spellcasting or Pact Magic present on any class. */
   hasCasterClass?: boolean
+  /** Forwarded to validateRaceGrantPicks (default true). */
+  requireFeat?: boolean
 }): { draft: RaceGrantDraftSlice; summary: string } | null {
   const def =
     input.def ??
@@ -307,7 +309,11 @@ export function applyRaceGrantToDraft(input: {
   if (!def || !def.selectable) return null
 
   const picks = input.picks ?? emptyRacePicks()
-  const pickError = validateRaceGrantPicks({ def, picks })
+  const pickError = validateRaceGrantPicks({
+    def,
+    picks,
+    requireFeat: input.requireFeat,
+  })
   if (pickError) return null
 
   const cleared = revokeRaceGrant(input.draft)
@@ -395,6 +401,9 @@ export function applyRaceGrantToDraft(input: {
     naturalArmor: def.naturalArmor,
     naturalWeapons,
     movement,
+    activatedMovement: def.activatedMovement,
+    damageResistances: [...def.damageResistances],
+    combatBonuses: { ...def.combatBonuses },
     racialSpells,
   }
 
@@ -404,6 +413,7 @@ export function applyRaceGrantToDraft(input: {
     abilities,
     skills,
     speed: def.speed,
+    // Permanent movement only — activated fly (Radiant Soul, …) stays off the vitals row.
     climbSpeed: movement.climb,
     swimSpeed: movement.swim,
     flySpeed: movement.fly,

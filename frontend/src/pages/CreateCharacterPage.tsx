@@ -8,6 +8,10 @@ import {
   RaceSetupDialog,
   type RaceSetupConfirm,
 } from '../features/characters/RaceSetupDialog'
+import {
+  FeatSetupDialog,
+  type FeatSetupResult,
+} from '../features/characters/FeatSetupDialog'
 import { CHARACTER_GENDER_LABELS } from '../shared/dnd/characterGender'
 import { ClassSetupDialog } from '../features/characters/ClassSetupDialog'
 import {
@@ -32,8 +36,15 @@ import {
 } from '../features/createPipeline/catalogCardMeta'
 import { CatalogDetailPanel } from '../features/createPipeline/CatalogDetailPanel'
 import { CreatePipelineShell } from '../features/createPipeline/CreatePipelineShell'
+import { StepHint, useOnboardingState } from '../features/onboarding'
+import { getMe } from '../shared/api/auth'
 import { hydratePipelineFromSheet } from '../features/createPipeline/createPipelineSheet'
 import { applyPipelineToSheet } from '../features/createPipeline/pipelineApply'
+import {
+  createDraftHasUsableSpellbook,
+  materializeCreatePipelineGear,
+  resolveBackgroundEntryForGear,
+} from '../features/createPipeline/createPipelineGear'
 import {
   clearPipelineState,
   loadOrCreatePipelineState,
@@ -45,6 +56,7 @@ import {
   createEmptyPipelineState,
   raceFeatNoteRu,
   raceNeedsFeatStep,
+  raceRequiresCatalogFeat,
   stepIndex,
   visiblePipelineSteps,
   type CreatePipelineState,
@@ -64,6 +76,7 @@ import {
   type AppliedClassAsi,
 } from '../shared/dnd/classAsi'
 import { unlockFeaturesForClasses } from '../shared/dnd/classFeatures'
+import { resolveBackgroundGrantDef } from '../shared/dnd/backgroundGrants'
 import {
   grantNeedsSetupDialog,
   resolveClassGrantDef,
@@ -85,6 +98,16 @@ import {
   type GuidedWizardStep,
 } from '../shared/dnd/pendingFeatureChoices'
 import {
+  sanitizeFeaturePicksForPactBoons,
+  syncPactTomeCantrips,
+  withPactTomeCantripsStep,
+} from '../features/characters/pactTomeEffects'
+import {
+  ensurePactTomeSpellCatalog,
+  resolvePactTomeCantripFromOptions,
+} from '../features/characters/PactTomeCantripsPicker'
+import { spellOptionsForPactTomeCantrips } from '../shared/dnd/featSpellListOptions'
+import {
   isPointBuyValid,
   isStandardArrayComplete,
   isManualScoresValid,
@@ -97,6 +120,7 @@ import {
   raceSubraceRequired,
   resolveRaceGrantDef,
 } from '../shared/dnd/raceGrants'
+import { raceRequiresFeatPick } from '../shared/dnd/featGrants'
 import type {
   SubclassChangeMode,
   SubclassGrantDef,
@@ -128,10 +152,6 @@ import {
 import type { SpellcastingAbility } from '../shared/dnd/spells'
 import { remainingFreeSpellbookSlots } from '../shared/dnd/wizardSpellbook'
 import { inventoryToSheet, readInventory } from '../features/characters/inventory'
-import {
-  isSpellbookInventoryItem,
-  wizardHasUsableSpellbook,
-} from '../features/characters/wizardSpellbookInventory'
 import { Button, Stack, Text, Toast } from '../ui'
 
 const CASTER_NAME_RE =
@@ -176,13 +196,37 @@ function buildWizardProficiencies(state: CreatePipelineState): {
     }
   }
 
-  if (state.backgroundSetup?.picks) {
-    skills = markProficient(skills, state.backgroundSetup.picks.skills)
-    pushTools(state.backgroundSetup.picks.tools)
+  if (state.backgroundSetup) {
+    const bgDef = resolveBackgroundGrantDef({
+      backgroundName: state.backgroundSetup.entry.name_ru,
+      catalogSlug: state.backgroundSetup.entry.slug,
+      catalogData: state.backgroundSetup.entry.data,
+      nameRu: state.backgroundSetup.entry.name_ru,
+    })
+    skills = markProficient(skills, [
+      ...(bgDef?.skillProficiencies ?? []),
+      ...(state.backgroundSetup.picks.skills ?? []),
+    ])
+    pushTools([
+      ...(bgDef?.toolProficiencies ?? []),
+      ...(state.backgroundSetup.picks.tools ?? []),
+    ])
   }
-  if (state.raceSetup?.picks) {
-    skills = markProficient(skills, state.raceSetup.picks.skills)
-    pushTools(state.raceSetup.picks.tools)
+  if (state.raceSetup) {
+    const raceDef = resolveRaceGrantDef({
+      raceName: state.raceSetup.entry.name_ru,
+      catalogSlug: state.raceSetup.entry.slug,
+      catalogData: state.raceSetup.entry.data,
+      nameRu: state.raceSetup.entry.name_ru,
+    })
+    skills = markProficient(skills, [
+      ...(raceDef?.skillProficiencies ?? []),
+      ...(state.raceSetup.picks.skills ?? []),
+    ])
+    pushTools([
+      ...(raceDef?.toolProficiencies ?? []),
+      ...(state.raceSetup.picks.tools ?? []),
+    ])
   }
   for (const picks of Object.values(state.classGrantPicks ?? {})) {
     skills = markProficient(skills, picks.skills)
@@ -280,7 +324,23 @@ function prevVisibleStep(
 export function CreateCharacterPage() {
   const navigate = useNavigate()
   const { characterId: routeCharacterId } = useParams<{ characterId?: string }>()
+  const [userId, setUserId] = useState<string | null>(null)
+  const onboarding = useOnboardingState(userId)
   const [state, setState] = useState<CreatePipelineState>(() => loadOrCreatePipelineState())
+
+  useEffect(() => {
+    let active = true
+    getMe()
+      .then((me) => {
+        if (active) setUserId(me.id)
+      })
+      .catch(() => {
+        if (active) setUserId(null)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
   const [backgrounds, setBackgrounds] = useState<CatalogEntry[]>([])
   const [classes, setClasses] = useState<CatalogEntry[]>([])
   const [races, setRaces] = useState<CatalogEntry[]>([])
@@ -289,6 +349,7 @@ export function CreateCharacterPage() {
   const [selectedClass, setSelectedClass] = useState<CatalogEntry | null>(null)
   const [selectedRace, setSelectedRace] = useState<CatalogEntry | null>(null)
   const [selectedFeat, setSelectedFeat] = useState<CatalogEntry | null>(null)
+  const [featSetupOpen, setFeatSetupOpen] = useState(false)
   const [bgSetup, setBgSetup] = useState<{
     root: CatalogEntry
     variants: CatalogEntry[]
@@ -601,23 +662,53 @@ export function CreateCharacterPage() {
     [state.classes],
   )
 
+  const backgroundGrantDef = useMemo(() => {
+    const setup = state.backgroundSetup
+    if (!setup) return null
+    return resolveBackgroundGrantDef({
+      backgroundName: setup.entry.name_ru,
+      catalogSlug: setup.entry.slug,
+      catalogData: setup.entry.data,
+      nameRu: setup.entry.name_ru,
+    })
+  }, [state.backgroundSetup])
+
   const blockedSkillKeys = useMemo(() => {
     const keys = new Set<string>()
+    // Fixed grants + choice picks (picks alone miss PHB fixed skills like Insight/Religion).
+    for (const key of backgroundGrantDef?.skillProficiencies ?? []) keys.add(key)
     for (const key of state.backgroundSetup?.picks.skills ?? []) keys.add(key)
+    for (const key of raceGrantDef?.skillProficiencies ?? []) keys.add(key)
     for (const key of state.raceSetup?.picks.skills ?? []) keys.add(key)
     return [...keys]
-  }, [state.backgroundSetup?.picks.skills, state.raceSetup?.picks.skills])
+  }, [
+    backgroundGrantDef?.skillProficiencies,
+    state.backgroundSetup?.picks.skills,
+    raceGrantDef?.skillProficiencies,
+    state.raceSetup?.picks.skills,
+  ])
 
   const blockedToolNames = useMemo(() => {
     const tools = new Set<string>()
+    for (const name of backgroundGrantDef?.toolProficiencies ?? []) {
+      if (name.trim()) tools.add(name.trim())
+    }
     for (const name of state.backgroundSetup?.picks.tools ?? []) {
+      if (name.trim()) tools.add(name.trim())
+    }
+    for (const name of raceGrantDef?.toolProficiencies ?? []) {
       if (name.trim()) tools.add(name.trim())
     }
     for (const name of state.raceSetup?.picks.tools ?? []) {
       if (name.trim()) tools.add(name.trim())
     }
     return [...tools]
-  }, [state.backgroundSetup?.picks.tools, state.raceSetup?.picks.tools])
+  }, [
+    backgroundGrantDef?.toolProficiencies,
+    state.backgroundSetup?.picks.tools,
+    raceGrantDef?.toolProficiencies,
+    state.raceSetup?.picks.tools,
+  ])
 
   /** Race fixed languages + race language picks — block in background language chips. */
   const blockedLanguageNames = useMemo(() => {
@@ -691,6 +782,12 @@ export function CreateCharacterPage() {
         })
       }
     }
+    steps = withPactTomeCantripsStep(steps, {
+      classEntryId,
+      className: row.name,
+      classLevel: row.level,
+      featurePicks: picksState,
+    })
     if (steps.length === 0) {
       if (!options?.silentIfEmpty) {
         setToast('Все развилки и ASI для этого класса закрыты')
@@ -712,29 +809,59 @@ export function CreateCharacterPage() {
       advanceToStep?: CreatePipelineStepId
     },
   ) {
-    const classesForWizard = options?.classes
-    setState((prev) => {
-      const nextPicks = {
-        ...prev.classGrantPicks,
-        [entryId]: picks,
-      }
-      return {
-        ...prev,
-        ...(classesForWizard ? { classes: classesForWizard } : {}),
-        classGrantPicks: nextPicks,
-        sheetDraft: {
-          ...prev.sheetDraft,
-          class_grant_picks: nextPicks,
-        },
-        stepDirty: { ...prev.stepDirty, class: true, leveling: true },
-        ...(options?.advanceToStep ? { step: options.advanceToStep } : {}),
-      }
+    const classesForWizard = options?.classes ?? state.classes
+    const nextPicks = {
+      ...state.classGrantPicks,
+      [entryId]: picks,
+    }
+    const nextState: CreatePipelineState = {
+      ...state,
+      classes: classesForWizard,
+      classGrantPicks: nextPicks,
+    }
+    const classCatalogByEntryId = Object.fromEntries(
+      classesForWizard.map((row) => {
+        const catalog =
+          classes.find((item) => item.id === row.catalog_id) ||
+          classes.find(
+            (item) =>
+              item.name_ru.trim().toLowerCase() === row.name.trim().toLowerCase(),
+          ) ||
+          null
+        return [row.id, catalog]
+      }),
+    )
+    const gear = materializeCreatePipelineGear({
+      state: nextState,
+      backgroundEntry: resolveBackgroundEntryForGear(nextState, backgrounds),
+      classCatalogByEntryId,
+      spells,
+      ensureWizardBook: true,
+    })
+    setSpells(gear.spells)
+    setState({
+      ...nextState,
+      sheetDraft: {
+        ...nextState.sheetDraft,
+        class_grant_picks: nextPicks,
+        ...gear.sheetDraftPatch,
+      },
+      stepDirty: { ...nextState.stepDirty, class: true, leveling: true },
+      ...(options?.advanceToStep ? { step: options.advanceToStep } : {}),
     })
     setClassSetup(null)
-    if (options?.toast) setToast(options.toast)
+    if (options?.toast) {
+      setToast(
+        gear.ensuredSpellbook
+          ? `${options.toast} · добавлена книга заклинаний`
+          : options.toast,
+      )
+    } else if (gear.ensuredSpellbook) {
+      setToast('Добавлена книга заклинаний волшебника')
+    }
     if (!options?.openWizardAfter) return
     openFeatureWizardForClass(entryId, {
-      classes: classesForWizard ?? state.classes,
+      classes: classesForWizard,
       featurePicks: state.featurePicks ?? emptyFeaturePicks(),
       silentIfEmpty: true,
     })
@@ -1017,10 +1144,12 @@ export function CreateCharacterPage() {
       patchState({
         step: nextStep,
         feat: null,
+        featSetup: null,
         featAcknowledged: false,
         stepDirty: { ...state.stepDirty, feat: false },
       })
       setSelectedFeat(null)
+      setFeatSetupOpen(false)
       return
     }
     if (step === 'race') {
@@ -1030,6 +1159,7 @@ export function CreateCharacterPage() {
         subrace: null,
         raceSetup: null,
         feat: null,
+        featSetup: null,
         featAcknowledged: false,
         characterName: state.characterName,
         stepDirty: { ...state.stepDirty, race: false, feat: false },
@@ -1037,6 +1167,7 @@ export function CreateCharacterPage() {
       setRacialBonuses({})
       setSelectedRace(null)
       setSelectedFeat(null)
+      setFeatSetupOpen(false)
       return
     }
     patchState({ step: nextStep })
@@ -1116,8 +1247,13 @@ export function CreateCharacterPage() {
         navigate('/characters')
         return
       }
+      onboarding.markCreateHintsSeen()
+      onboarding.queueAfterCreate()
       navigate(`/characters/${saved.id}`, {
-        state: { toast: 'Персонаж готов' },
+        state: {
+          toast: 'Персонаж готов',
+          onboardingReady: true,
+        },
       })
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить')
@@ -1137,6 +1273,9 @@ export function CreateCharacterPage() {
 
   function canFinishHardBlocks(): string | null {
     if (!state.race) return 'Выберите расу'
+    if (raceRequiresCatalogFeat(state.raceSetup) && !state.featSetup) {
+      return 'Выберите черту расы'
+    }
     if (raceNeedsFeatStep(state.raceSetup) && !state.feat && !state.featAcknowledged) {
       return 'Закройте шаг черты'
     }
@@ -1177,6 +1316,10 @@ export function CreateCharacterPage() {
 
   const step = state.step
   const featNote = raceFeatNoteRu(state.raceSetup)
+  const needsCatalogFeat = raceRequiresCatalogFeat(state.raceSetup)
+  const featStepReady = needsCatalogFeat
+    ? Boolean(state.featSetup)
+    : Boolean(state.feat || state.featAcknowledged)
   /** Phone create hides detail (Сводка only) — open setup from card/footer. */
   const createPhoneLayout =
     typeof window !== 'undefined' && window.matchMedia('(max-width: 860px)').matches
@@ -1322,8 +1465,17 @@ export function CreateCharacterPage() {
           source: entry.source,
         }))}
         selectedId={selectedFeat?.id ?? state.feat?.id ?? null}
-        onSelect={(id) => setSelectedFeat(feats.find((row) => row.id === id) ?? null)}
-        emptyText="В каталоге пока мало черт — можно отметить заметку расы и продолжить"
+        onSelect={(id) => {
+          const entry = feats.find((row) => row.id === id) ?? null
+          setSelectedFeat(entry)
+          // Phone hides detail (Сводка only) — open setup like race/background/class.
+          if (entry && createPhoneLayout) setFeatSetupOpen(true)
+        }}
+        emptyText={
+          needsCatalogFeat
+            ? 'Выбери черту из каталога (раса даёт черту с 1 уровня)'
+            : 'В каталоге пока мало черт — можно отметить заметку расы и продолжить'
+        }
       />
     )
     detail = (
@@ -1331,43 +1483,46 @@ export function CreateCharacterPage() {
         kind="feat"
         entry={selectedFeat}
         emptyTitle="Черта"
-        emptyHint={featNote || 'Раса даёт черту с 1 уровня.'}
+        emptyHint={
+          needsCatalogFeat
+            ? 'Раса даёт черту с 1 уровня — настрой её здесь (не в попапе расы).'
+            : featNote || 'Раса даёт черту с 1 уровня.'
+        }
       >
-        {featNote ? (
+        {featNote && !needsCatalogFeat ? (
           <Text>
             Заметка расы: {featNote}
           </Text>
         ) : null}
         <div className="create-pipeline__method-row">
           <Button
-            disabled={!selectedFeat}
-            onClick={() => {
-              if (!selectedFeat) return
-              patchState({
-                feat: catalogRef(selectedFeat),
-                featAcknowledged: true,
-                stepDirty: { ...state.stepDirty, feat: true },
-              })
-              setToast(`Черта «${selectedFeat.name_ru}»`)
-            }}
+            disabled={!selectedFeat && !state.featSetup}
+            onClick={() => setFeatSetupOpen(true)}
           >
-            Выбрать черту
+            {state.featSetup ? 'Сменить черту' : 'Выбрать и настроить'}
           </Button>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              patchState({
-                feat: null,
-                featAcknowledged: true,
-                stepDirty: { ...state.stepDirty, feat: true },
-              })
-              setToast('Черта: отметьте на листе / в заметках')
-            }}
-          >
-            Отметить без каталога
-          </Button>
+          {!needsCatalogFeat ? (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                patchState({
+                  feat: null,
+                  featSetup: null,
+                  featAcknowledged: true,
+                  stepDirty: { ...state.stepDirty, feat: true },
+                  // Same as catalog feat confirm: finish block → next step.
+                  step: 'background',
+                })
+                setToast('Черта отмечена. Далее — предыстория.')
+              }}
+            >
+              Отметить без каталога
+            </Button>
+          ) : null}
         </div>
-        {state.feat ? (
+        {state.featSetup ? (
+          <Text tone="muted">Выбрано: {state.featSetup.entry.name_ru}</Text>
+        ) : state.feat ? (
           <Text tone="muted">Выбрано: {state.feat.nameRu}</Text>
         ) : state.featAcknowledged ? (
           <Text tone="muted">Черта отмечена без карточки каталога</Text>
@@ -1376,10 +1531,16 @@ export function CreateCharacterPage() {
     )
     footer = (
       <Button
-        disabled={!state.feat && !state.featAcknowledged}
-        onClick={() => advanceFrom('feat')}
+        disabled={!featStepReady && !selectedFeat && needsCatalogFeat}
+        onClick={() => {
+          if (featStepReady) {
+            advanceFrom('feat')
+            return
+          }
+          setFeatSetupOpen(true)
+        }}
       >
-        Далее · Предыстория
+        {featStepReady ? 'Далее · Предыстория' : 'Настроить черту'}
       </Button>
     )
   }
@@ -1601,7 +1762,7 @@ export function CreateCharacterPage() {
         }}
         onOpenSpells={() => setSpellsOpen('grimoire')}
         onOpenPrepare={
-          spellLearnBudget && spellLearnBudget.mode !== 'known'
+          spellLearnBudget?.mode === 'spellbook'
             ? () => setSpellsOpen('prepare')
             : undefined
         }
@@ -1661,6 +1822,9 @@ export function CreateCharacterPage() {
         steps={visibleSteps}
         title="Создание персонажа"
         subtitle="Раса → черта* → предыстория → класс → характеристики → прокачка"
+        stepHint={
+          <StepHint step={step} visible={onboarding.state.segment !== 'skip'} />
+        }
         cards={cards}
         detail={detail}
         footer={footer}
@@ -1680,21 +1844,47 @@ export function CreateCharacterPage() {
         blockedLanguageNames={blockedLanguageNames}
         onClose={() => setBgSetup(null)}
         onConfirm={(result: BackgroundSetupConfirm) => {
-          patchState({
+          const nextState: CreatePipelineState = {
+            ...state,
             background: catalogRef(result.entry),
             backgroundSetup: {
               entry: catalogSnapshot(result.entry),
               picks: result.picks,
             },
+          }
+          const classCatalogByEntryId = Object.fromEntries(
+            nextState.classes.map((row) => {
+              const catalog =
+                classes.find((item) => item.id === row.catalog_id) ||
+                classes.find(
+                  (item) =>
+                    item.name_ru.trim().toLowerCase() ===
+                    row.name.trim().toLowerCase(),
+                ) ||
+                null
+              return [row.id, catalog]
+            }),
+          )
+          const gear = materializeCreatePipelineGear({
+            state: nextState,
+            backgroundEntry: result.entry,
+            classCatalogByEntryId,
+            spells,
+            ensureWizardBook: true,
+          })
+          setSpells(gear.spells)
+          setState({
+            ...nextState,
             sheetDraft: {
-              ...state.sheetDraft,
+              ...nextState.sheetDraft,
+              ...gear.sheetDraftPatch,
               background_grant: {
                 backgroundCatalogId: result.entry.id,
                 backgroundSlug: result.entry.slug,
                 picks: result.picks,
               },
             },
-            stepDirty: { ...state.stepDirty, background: true },
+            stepDirty: { ...nextState.stepDirty, background: true },
             step: 'class',
           })
           setBgSetup(null)
@@ -1713,6 +1903,7 @@ export function CreateCharacterPage() {
         hasSpellcasting={hasCasterClass}
         backgroundSlug={state.backgroundSetup?.entry.slug ?? null}
         characterName={state.characterName}
+        deferFeatPick
         gender={state.gender}
         enableNameGeneration
         onClose={() => setRaceSetup(null)}
@@ -1732,7 +1923,9 @@ export function CreateCharacterPage() {
             rootEntry: rootEntry ? catalogSnapshot(rootEntry) : null,
             picks: result.picks,
           }
-          const needsFeat = Boolean(result.def.featNoteRu?.trim())
+          const needsFeat =
+            raceRequiresFeatPick(result.def) ||
+            Boolean(result.def.featNoteRu?.trim())
           patchState({
             characterName: result.characterName,
             gender: result.gender,
@@ -1742,8 +1935,10 @@ export function CreateCharacterPage() {
               : catalogRef(result.entry),
             subrace: isSub ? catalogRef(result.entry) : null,
             raceSetup: nextRaceSetup,
-            feat: needsFeat ? state.feat : null,
-            featAcknowledged: needsFeat ? state.featAcknowledged : false,
+            // Race popup no longer picks the feat — clear stale picks on race change.
+            feat: null,
+            featSetup: null,
+            featAcknowledged: false,
             sheetDraft: {
               ...state.sheetDraft,
               race_grant: {
@@ -1752,16 +1947,77 @@ export function CreateCharacterPage() {
                 picks: result.picks,
               },
             },
-            stepDirty: { ...state.stepDirty, race: true },
+            stepDirty: { ...state.stepDirty, race: true, feat: false },
             // Auto-advance past feat when race does not grant one.
             step: needsFeat ? 'feat' : 'background',
           })
           setRaceSetup(null)
+          setSelectedFeat(null)
+          setFeatSetupOpen(false)
           if (needsFeat) {
             setToast(`Раса «${result.entry.name_ru}». Далее — черта.`)
           } else {
             setToast(`Раса «${result.entry.name_ru}». Далее — предыстория.`)
           }
+        }}
+      />
+
+      <FeatSetupDialog
+        open={featSetupOpen}
+        edition="2014"
+        title="Черта расы"
+        abilities={state.baseAbilities as Record<AbilityKey, number>}
+        armor={EMPTY_ARMOR}
+        hasSpellcasting={hasCasterClass}
+        raceSlug={state.subrace?.slug ?? state.race?.slug ?? null}
+        raceParentSlug={
+          state.subrace && state.race ? state.race.slug : null
+        }
+        characterLevel={1}
+        takenSlugs={[]}
+        classSlugs={state.classRef ? [state.classRef.slug] : []}
+        backgroundSlug={state.backgroundSetup?.entry.slug ?? null}
+        proficientSkills={blockedSkillKeys}
+        forcedSlug={selectedFeat?.slug ?? state.feat?.slug ?? null}
+        initialEntry={selectedFeat}
+        onClose={() => setFeatSetupOpen(false)}
+        onConfirm={(result: FeatSetupResult) => {
+          const racePicks = state.raceSetup?.picks
+          const nextRaceSetup = state.raceSetup
+            ? {
+                ...state.raceSetup,
+                picks: {
+                  ...(racePicks ?? state.raceSetup.picks),
+                  featCatalogId: result.entry.id,
+                },
+              }
+            : null
+          patchState({
+            feat: catalogRef(result.entry),
+            featSetup: {
+              entry: catalogSnapshot(result.entry),
+              picks: result.picks,
+              applied: result.applied,
+            },
+            featAcknowledged: true,
+            raceSetup: nextRaceSetup,
+            sheetDraft: {
+              ...state.sheetDraft,
+              race_grant: nextRaceSetup
+                ? {
+                    raceCatalogId: nextRaceSetup.entry.id,
+                    raceSlug: nextRaceSetup.entry.slug,
+                    picks: nextRaceSetup.picks,
+                  }
+                : state.sheetDraft.race_grant,
+            },
+            stepDirty: { ...state.stepDirty, feat: true },
+            // Same as race/background: finish setup → jump to next block.
+            step: 'background',
+          })
+          setSelectedFeat(result.entry)
+          setFeatSetupOpen(false)
+          setToast(`Черта «${result.entry.name_ru}». Далее — предыстория.`)
         }}
       />
 
@@ -1801,13 +2057,57 @@ export function CreateCharacterPage() {
         blockedSkillKeys={blockedSkillKeys}
         blockedToolNames={blockedToolNames}
         onFeaturePicksChange={(featurePicks: FeaturePicksState) => {
-          patchState({
+          const sanitized = sanitizeFeaturePicksForPactBoons({
             featurePicks,
+            classes: state.classes,
+          })
+          patchState({
+            featurePicks: sanitized,
             sheetDraft: {
               ...state.sheetDraft,
-              feature_picks: featurePicks,
+              feature_picks: sanitized,
             },
           })
+          setGuidedWizard((prev) => {
+            if (!prev) return null
+            const step = prev.steps[prev.index]
+            if (
+              !step ||
+              (step.kind !== 'feature_choice' && step.kind !== 'pact_tome_cantrips')
+            ) {
+              return prev
+            }
+            const classEntryId = step.classEntryId
+            const classRow = state.classes.find((row) => row.id === classEntryId)
+            if (!classRow) return prev
+            const nextSteps = withPactTomeCantripsStep(prev.steps, {
+              classEntryId,
+              className: classRow.name,
+              classLevel: classRow.level,
+              featurePicks: sanitized,
+            })
+            if (nextSteps === prev.steps) return prev
+            return { ...prev, steps: nextSteps }
+          })
+          void (async () => {
+            let rows: Awaited<ReturnType<typeof ensurePactTomeSpellCatalog>> = []
+            try {
+              rows = await ensurePactTomeSpellCatalog('2014')
+            } catch {
+              rows = []
+            }
+            const options = spellOptionsForPactTomeCantrips({ spells: rows })
+            setSpells((prev) => {
+              const synced = syncPactTomeCantrips({
+                spells: prev,
+                featurePicks: sanitized,
+                classes: state.classes,
+                resolveSpell: (slug) =>
+                  resolvePactTomeCantripFromOptions(slug, options),
+              })
+              return synced.changed ? synced.spells : prev
+            })
+          })()
         }}
         onConfirmClassGrant={() => {
           // Class grants are handled by ClassSetupDialog in the pipeline.
@@ -1863,16 +2163,17 @@ export function CreateCharacterPage() {
           const step = guidedWizard?.steps[guidedWizard.index]
           if (!step || step.kind !== 'spellbook_picks') return null
           const inv = readInventory(state.sheetDraft)
-          const hasBook =
-            wizardHasUsableSpellbook(spells) ||
-            inv.items.some(isSpellbookInventoryItem)
+          const hasBook = createDraftHasUsableSpellbook({
+            spells,
+            inventory: inv,
+          })
           const slotCap = highestSpellSlotLevelForClasses(state.classes)
           return {
             maxSpellLevel: Math.max(1, slotCap || 1),
             blockedCatalogIds: spells.known
               .map((spell) => spell.catalog_id)
               .filter((id): id is string => Boolean(id)),
-            // Create kit includes a spellbook; don't block starting free fills.
+            // Real draft inventory + bind; L1 OR only as last-resort safety net.
             hasBook: hasBook || step.classLevel <= 1,
             classListSlugs: ['wizard'],
           }
@@ -2003,9 +2304,9 @@ export function CreateCharacterPage() {
         onToast={setToast}
       />
       <PrepareSpellsDialog
-        open={spellsOpen === 'prepare'}
+        open={spellsOpen === 'prepare' && spellLearnBudget?.mode === 'spellbook'}
         spells={spells}
-        learnMode={spellLearnBudget?.mode ?? null}
+        learnMode="spellbook"
         onChange={setSpells}
         onClose={() => setSpellsOpen(null)}
       />

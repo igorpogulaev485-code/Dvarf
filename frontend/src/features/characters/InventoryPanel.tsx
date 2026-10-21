@@ -59,6 +59,7 @@ import {
   itemsWeightLb,
   totalCarriedLb,
 } from '../../shared/dnd/weight'
+import { HoverTipCard, PANEL_HELP, panelExplain } from '../onboarding'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
 import { SpellScrollBindDialog } from './SpellScrollBindDialog'
@@ -82,6 +83,7 @@ import {
   expandPack,
   findCatalogPackEntry,
   hasPackContents,
+  hasSoftCollapsedChildren,
   hydrateCollapsedPackMeta,
   isExpandedPack,
   orderInventoryItems,
@@ -374,7 +376,13 @@ export function InventoryPanel({
     const current = inventoryRef.current
     let changed = false
     const nextItems = current.items.map((item) => {
-      if (isExpandedPack(current.items, item.id)) return item
+      // Soft-collapsed packs already own live children / weight — leave them alone.
+      if (
+        isExpandedPack(current.items, item.id) ||
+        childrenOf(current.items, item.id).length > 0
+      ) {
+        return item
+      }
       const patch = hydrateCollapsedPackMeta(item, catalogItems)
       if (!patch) return item
       changed = true
@@ -576,6 +584,8 @@ export function InventoryPanel({
   function canExpand(item: InventoryItem): boolean {
     if (item.parent_id) return false
     if (isExpandedPack(inventory.items, item.id)) return false
+    // Soft-collapsed: children already exist — allow reopen without catalog.
+    if (hasSoftCollapsedChildren(inventory.items, item.id)) return true
     const hit = findCatalogPackEntry(item, catalogItems)
     if (!hit) return false
     return hasPackContents(hit.data ?? undefined)
@@ -584,6 +594,19 @@ export function InventoryPanel({
   async function onExpandPack(item: InventoryItem) {
     setPackBusyId(item.id)
     try {
+      // Re-open after soft collapse — keep edited child qty (e.g. бурдюк ×9).
+      if (hasSoftCollapsedChildren(inventory.items, item.id)) {
+        onChange({
+          ...inventory,
+          items: expandPack({
+            items: inventory.items,
+            packId: item.id,
+            contents: [],
+          }),
+        })
+        setOpenId(item.id)
+        return
+      }
       let rows = catalogItems
       if (rows.length === 0) {
         rows = await listCatalogEntries({ kind: 'item', edition })
@@ -1029,7 +1052,11 @@ export function InventoryPanel({
   }
 
   return (
-    <Panel title="Инвентарь" className="inventory-panel">
+    <Panel
+      title="Инвентарь"
+      className="inventory-panel"
+      titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.inventory)} />}
+    >
       <Stack gap={12}>
         <Text tone="muted">
           Ноша и вещи. Строка — взгляд; клик — детали (одна открыта). ★ — в расходники боя. Монеты —

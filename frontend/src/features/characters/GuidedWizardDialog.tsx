@@ -8,11 +8,12 @@ import {
   PHB_LINES_PACKAGE_ID,
   skillOptionsForPackage,
   validateEquipmentLinePicks,
+  weaponPickCount,
   type ClassEquipmentLinePick,
   type ClassGrantDef,
   type ClassGrantPicks,
 } from '../../shared/dnd/classGrants'
-import { listWeaponPresetsByGroup } from '../../shared/dnd/weaponPresets'
+import { EquipmentLinesField } from './EquipmentLinesField'
 import {
   CLASS_ASI_MODE_OPTIONS,
   validateClassAsiPicks,
@@ -47,6 +48,7 @@ import {
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
+import { WARLOCK_PACT_BOONS } from '../../shared/dnd/warlockInvocations'
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
 import type { RulesEdition } from '../../shared/api/characters'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
@@ -56,6 +58,11 @@ import { CatalogCombobox } from '../catalog'
 import { AsiChoiceBody } from './AsiChoiceBody'
 import { SKILL_DEFS } from './sheetTypes'
 import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
+import { PactTomeCantripsPicker } from './PactTomeCantripsPicker'
+import {
+  isPactTomeCantripsComplete,
+  PACT_TOME_CANTRIPS_LIMIT,
+} from './pactTomeEffects'
 import { Button, Dialog, Field, Input, Stack, Text } from '../../ui'
 
 export type GuidedFeatContext = {
@@ -151,8 +158,10 @@ function choiceOptionLabel(optionId: string, choice?: FeatureChoiceDef | null): 
   if (isExpertiseChoice(choice)) {
     return skillLabel(optionId)
   }
+  const pact = WARLOCK_PACT_BOONS.find((row) => row.id === optionId)
   return (
     fightingStyleById(optionId)?.nameRu ||
+    pact?.nameRu ||
     skillLabel(optionId) ||
     optionId
   )
@@ -208,9 +217,16 @@ function ClassGrantStepBody({
   }
 
   function setLineOption(lineId: string, optionId: string) {
+    const line = equipmentLines.find((row) => row.id === lineId)
+    const option = line?.options.find((row) => row.id === optionId)
+    const need = option ? weaponPickCount(option) : 0
     const nextLines: Record<string, ClassEquipmentLinePick> = {
       ...linePicks,
-      [lineId]: { optionId, weaponName: null },
+      [lineId]: {
+        optionId,
+        weaponName: null,
+        weaponNames: need > 1 ? Array.from({ length: need }, () => null) : null,
+      },
     }
     onChange({
       ...picks,
@@ -219,15 +235,24 @@ function ClassGrantStepBody({
     })
   }
 
-  function setLineWeapon(lineId: string, weaponName: string) {
+  function setLineWeapon(lineId: string, weaponName: string, slotIndex?: number) {
     const current = linePicks[lineId]
     if (!current) return
+    const nextPick =
+      typeof slotIndex === 'number'
+        ? (() => {
+            const nextNames = [...(current.weaponNames ?? [])]
+            while (nextNames.length <= slotIndex) nextNames.push(null)
+            nextNames[slotIndex] = weaponName
+            return { ...current, weaponNames: nextNames }
+          })()
+        : { ...current, weaponName }
     onChange({
       ...picks,
       equipmentPackageId: PHB_LINES_PACKAGE_ID,
       equipmentLinePicks: {
         ...linePicks,
-        [lineId]: { ...current, weaponName },
+        [lineId]: nextPick,
       },
     })
   }
@@ -237,8 +262,8 @@ function ClassGrantStepBody({
       <Text tone="muted">
         {mode === 'start'
           ? equipmentLines.length > 0
-            ? 'Выбери навыки и снаряжение по каждой строке PHB. Серые — уже с предыстории.'
-            : 'Выбери навыки, инструменты и стартовое снаряжение. Серые — уже с предыстории, не дублируй.'
+            ? 'Выбери навыки и снаряжение по каждой строке PHB. Серые — уже есть (раса / предыстория).'
+            : 'Выбери навыки, инструменты и стартовое снаряжение. Серые — уже есть (раса / предыстория), не дублируй.'
           : 'Мультикласс: только владения из таблицы PHB.'}
       </Text>
       {skillNeed > 0 ? (
@@ -252,7 +277,7 @@ function ClassGrantStepBody({
                   key={key}
                   type="button"
                   disabled={blocked}
-                  title={blocked ? 'Уже есть с предыстории' : undefined}
+                  title={blocked ? 'Уже есть (раса / предыстория)' : undefined}
                   className={`sheet-chip${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
                   onClick={() => toggleSkill(key)}
                 >
@@ -275,7 +300,7 @@ function ClassGrantStepBody({
                   key={name}
                   type="button"
                   disabled={blocked}
-                  title={blocked ? 'Уже есть с предыстории' : undefined}
+                  title={blocked ? 'Уже есть (раса / предыстория)' : undefined}
                   className={`sheet-chip${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
                   onClick={() => toggleTool(name)}
                 >
@@ -288,75 +313,17 @@ function ClassGrantStepBody({
         </Field>
       ) : null}
       {mode === 'start' && equipmentLines.length > 0 ? (
-        <Field label="Стартовое снаряжение (по строкам)">
-          <Stack gap={12}>
-            {equipmentLines.map((line) => {
-              const pick = linePicks[line.id]
-              const selectedOption = line.options.find((row) => row.id === pick?.optionId)
-              return (
-                <div key={line.id}>
-                  <Text>
-                    <strong>{line.labelRu}</strong>
-                  </Text>
-                  <div className="chip-row" style={{ marginTop: 6 }}>
-                    {line.options.map((option) => {
-                      const on = pick?.optionId === option.id
-                      return (
-                        <button
-                          key={option.id}
-                          type="button"
-                          className={`sheet-chip${on ? ' is-on' : ''}`}
-                          title={option.noteRu}
-                          onClick={() => setLineOption(line.id, option.id)}
-                        >
-                          {option.labelRu}
-                          {option.noteRu ? ' *' : ''}
-                        </button>
-                      )
-                    })}
-                  </div>
-                  {selectedOption?.noteRu ? (
-                    <Text tone="muted">{selectedOption.noteRu}</Text>
-                  ) : null}
-                  {selectedOption?.pickWeapon ? (
-                    <div className="chip-row" style={{ marginTop: 8 }}>
-                      {listWeaponPresetsByGroup(selectedOption.pickWeapon).map((weapon) => {
-                        const on = pick?.weaponName === weapon.labelRu
-                        return (
-                          <button
-                            key={weapon.labelRu}
-                            type="button"
-                            className={`sheet-chip${on ? ' is-on' : ''}`}
-                            onClick={() => setLineWeapon(line.id, weapon.labelRu)}
-                          >
-                            {weapon.labelRu}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  ) : null}
-                </div>
-              )
-            })}
-            {equipmentPackages.map((pack) => {
-              const on = picks.equipmentPackageId === pack.id
-              return (
-                <button
-                  key={pack.id}
-                  type="button"
-                  className={`sheet-chip${on ? ' is-on' : ''}`}
-                  style={{ display: 'block', width: '100%', textAlign: 'left' }}
-                  onClick={() =>
-                    onChange({ ...picks, equipmentPackageId: pack.id, equipmentLinePicks: {} })
-                  }
-                >
-                  <strong>{pack.labelRu}</strong>
-                  <div style={{ opacity: 0.85, fontWeight: 400 }}>{pack.summary}</div>
-                </button>
-              )
-            })}
-          </Stack>
-        </Field>
+        <EquipmentLinesField
+          lines={equipmentLines}
+          linePicks={linePicks}
+          equipmentPackageId={picks.equipmentPackageId}
+          packages={equipmentPackages}
+          onSelectOption={setLineOption}
+          onSelectWeapon={setLineWeapon}
+          onSelectPackage={(packageId) =>
+            onChange({ ...picks, equipmentPackageId: packageId, equipmentLinePicks: {} })
+          }
+        />
       ) : null}
       {mode === 'start' && equipmentLines.length === 0 && equipmentPackages.length > 0 ? (
         <Field label="Стартовое снаряжение">
@@ -779,6 +746,10 @@ export function GuidedWizardDialog({
     Boolean(spellbookPicksContext?.hasBook) &&
     spellbookDraft.length === step.picksNeeded
 
+  const pactTomeReady =
+    step?.kind === 'pact_tome_cantrips' &&
+    isPactTomeCantripsComplete(featurePicks, step.classEntryId)
+
   const primaryDisabled =
     step?.kind === 'class_grant'
       ? !grantReady
@@ -792,7 +763,9 @@ export function GuidedWizardDialog({
               ? !subclassReady
               : step?.kind === 'spellbook_picks'
                 ? !spellbookReady
-                : false
+                : step?.kind === 'pact_tome_cantrips'
+                  ? !pactTomeReady
+                  : false
 
   const title = !step
     ? 'Настройка персонажа'
@@ -808,9 +781,11 @@ export function GuidedWizardDialog({
               ? 'Черта'
               : step.kind === 'spellbook_picks'
                 ? `Книга заклинаний · ${step.className} ${step.classLevel}`
-                : step.kind === 'feature_choice'
-                  ? `${step.choice.label_ru} · ${step.className}`
-                  : 'Настройка персонажа'
+                : step.kind === 'pact_tome_cantrips'
+                  ? `Заговоры договора · ${step.className}`
+                  : step.kind === 'feature_choice'
+                    ? `${step.choice.label_ru} · ${step.className}`
+                    : 'Настройка персонажа'
 
   const choosingFeat =
     (step?.kind === 'asi' && asiUiMode === 'feat') || step?.kind === 'feat'
@@ -905,6 +880,16 @@ export function GuidedWizardDialog({
       onToast?.(
         `В книгу (бесплатно): ${spellbookDraft.map((row) => row.name_ru).join(', ')}`,
       )
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'pact_tome_cantrips') {
+      if (!pactTomeReady) {
+        onToast?.(`Выбери ${PACT_TOME_CANTRIPS_LIMIT} заговора договора`)
+        return
+      }
+      onToast?.('Заговоры договора: готово')
       onAdvance(index + 1)
     }
   }
@@ -1105,6 +1090,20 @@ export function GuidedWizardDialog({
             hasBook={Boolean(spellbookPicksContext?.hasBook)}
             classListSlugs={spellbookPicksContext?.classListSlugs ?? ['wizard']}
           />
+        ) : null}
+        {step.kind === 'pact_tome_cantrips' ? (
+          <Stack gap={12}>
+            <Text tone="muted">
+              Гримуар · {step.className} {step.classLevel} · выбери {PACT_TOME_CANTRIPS_LIMIT}
+            </Text>
+            <PactTomeCantripsPicker
+              classEntryId={step.classEntryId}
+              edition={edition}
+              featurePicks={featurePicks}
+              onFeaturePicksChange={onFeaturePicksChange}
+              onToast={onToast}
+            />
+          </Stack>
         ) : null}
       </Stack>
     </Dialog>

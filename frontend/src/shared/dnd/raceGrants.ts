@@ -144,7 +144,11 @@ export type VariableTraitChoice = {
 /** One alt speed: fixed ft or same as walking speed. */
 export type RaceMovementValue = number | 'walk'
 
-/** Catalog movement package (climb / swim / fly). Omitted keys = none. */
+/**
+ * Catalog **permanent** movement package (climb / swim / fly).
+ * Omitted keys = none. Never use for temporary abilities (Radiant Soul, etc.) —
+ * those belong in `activatedMovement`.
+ */
 export type RaceMovementSpec = {
   climb: RaceMovementValue | null
   swim: RaceMovementValue | null
@@ -156,6 +160,25 @@ export type RaceMovementResolved = {
   climb: number | null
   swim: number | null
   fly: number | null
+}
+
+/** Temporary / activated movement (action → fly 1 min, etc.). Not sheet flySpeed. */
+export type RaceActivatedMovement = {
+  id: string
+  nameRu: string
+  summaryRu: string
+  mode: 'fly' | 'climb' | 'swim'
+  /** Fixed ft or same as walking speed. */
+  speed: RaceMovementValue
+  fromLevel: number
+  durationRu: string
+  rechargeRu: string
+}
+
+/** Structured combat modifiers from race (Hare-Trigger, etc.). */
+export type RaceCombatBonuses = {
+  /** Add proficiency bonus to initiative. */
+  initiative: 'proficiency_bonus' | null
 }
 
 export type RaceGrantDef = {
@@ -188,7 +211,12 @@ export type RaceGrantDef = {
   traitCards: RaceTraitCard[]
   naturalArmor: NaturalArmor | null
   naturalWeapons: RaceNaturalWeapon[]
+  /** Permanent alt speeds only. */
   movement: RaceMovementSpec
+  /** Temporary movement modes — never written to sheet fly/climb/swim. */
+  activatedMovement: RaceActivatedMovement[]
+  damageResistances: string[]
+  combatBonuses: RaceCombatBonuses
   racialSpells: RaceRacialSpell[]
   variableTraitChoices: VariableTraitChoice[]
 }
@@ -233,6 +261,9 @@ export type AppliedRaceGrant = {
   naturalArmor: NaturalArmor | null
   naturalWeapons: RaceNaturalWeapon[]
   movement: RaceMovementResolved
+  activatedMovement: RaceActivatedMovement[]
+  damageResistances: string[]
+  combatBonuses: RaceCombatBonuses
   racialSpells: RaceRacialSpell[]
 }
 
@@ -310,6 +341,83 @@ function readMovementSpec(raw: unknown): RaceMovementSpec {
     swim: readMovementValue(obj.swim),
     fly: readMovementValue(obj.fly),
   }
+}
+
+function readActivatedMovement(raw: unknown): RaceActivatedMovement[] {
+  if (!Array.isArray(raw)) return []
+  const out: RaceActivatedMovement[] = []
+  const seen = new Set<string>()
+  for (const item of raw) {
+    const row = asRecord(item)
+    const id = typeof row.id === 'string' ? row.id.trim() : ''
+    const nameRu =
+      typeof row.name_ru === 'string'
+        ? row.name_ru.trim()
+        : typeof row.nameRu === 'string'
+          ? row.nameRu.trim()
+          : ''
+    const summaryRu =
+      typeof row.summary_ru === 'string'
+        ? row.summary_ru.trim()
+        : typeof row.summaryRu === 'string'
+          ? row.summaryRu.trim()
+          : ''
+    const modeRaw = typeof row.mode === 'string' ? row.mode.trim() : ''
+    const mode =
+      modeRaw === 'fly' || modeRaw === 'climb' || modeRaw === 'swim'
+        ? modeRaw
+        : null
+    const speed = readMovementValue(row.speed)
+    const fromLevel = Math.max(
+      1,
+      Math.floor(readNumber(row.from_level ?? row.fromLevel, 1)),
+    )
+    const durationRu =
+      typeof row.duration_ru === 'string'
+        ? row.duration_ru.trim()
+        : typeof row.durationRu === 'string'
+          ? row.durationRu.trim()
+          : ''
+    const rechargeRu =
+      typeof row.recharge_ru === 'string'
+        ? row.recharge_ru.trim()
+        : typeof row.rechargeRu === 'string'
+          ? row.rechargeRu.trim()
+          : ''
+    if (!id || !nameRu || !mode || speed == null || seen.has(id)) continue
+    seen.add(id)
+    out.push({
+      id,
+      nameRu,
+      summaryRu,
+      mode,
+      speed,
+      fromLevel,
+      durationRu,
+      rechargeRu,
+    })
+  }
+  return out
+}
+
+function readCombatBonuses(raw: unknown): RaceCombatBonuses {
+  const obj = asRecord(raw)
+  const initiativeRaw = obj.initiative
+  const initiative =
+    initiativeRaw === 'proficiency_bonus' ||
+    initiativeRaw === 'proficiencyBonus'
+      ? 'proficiency_bonus'
+      : null
+  return { initiative }
+}
+
+/** Initiative from race combat_bonuses (e.g. Hare-Trigger = PB). */
+export function initiativeBonusFromRaceGrant(input: {
+  grant: Pick<AppliedRaceGrant, 'combatBonuses'> | null | undefined
+  proficiencyBonus: number
+}): number {
+  if (input.grant?.combatBonuses?.initiative !== 'proficiency_bonus') return 0
+  return Math.max(0, Math.floor(input.proficiencyBonus))
 }
 
 function readMovementResolved(raw: unknown): RaceMovementResolved {
@@ -814,6 +922,15 @@ export function raceGrantDefFromCatalog(input: {
     naturalArmor: readNaturalArmor(data.natural_armor ?? data.naturalArmor),
     naturalWeapons: readNaturalWeapons(data.natural_weapons ?? data.naturalWeapons),
     movement: readMovementSpec(data.movement),
+    activatedMovement: readActivatedMovement(
+      data.activated_movement ?? data.activatedMovement,
+    ),
+    damageResistances: readStringList(
+      data.damage_resistances ?? data.damageResistances,
+    ),
+    combatBonuses: readCombatBonuses(
+      data.combat_bonuses ?? data.combatBonuses,
+    ),
     racialSpells: readRacialSpells(data.racial_spells ?? data.racialSpells),
     variableTraitChoices: readVariableTraitChoices(
       data.variable_trait_choices ?? data.variableTraitChoices,
@@ -913,8 +1030,14 @@ export function abilityKeysForBonusChoice(choice: AbilityBonusChoice): AbilityKe
 export function validateRaceGrantPicks(input: {
   def: RaceGrantDef
   picks: RaceGrantPicks
+  /**
+   * When false, feat_pick races may omit featCatalogId (create-pipeline defers
+   * the pick to the dedicated «Черта» step).
+   */
+  requireFeat?: boolean
 }): string | null {
   const { def, picks } = input
+  const requireFeat = input.requireFeat !== false
   const asi = def.abilityBonusChoices
   const modes = resolveAbilityBonusModes(asi)
   if (modes.length > 0) {
@@ -994,7 +1117,7 @@ export function validateRaceGrantPicks(input: {
 
   const needsFeat =
     def.featPick || def.slug === 'custom_lineage' || def.slug === 'human_variant'
-  if (needsFeat && !picks.featCatalogId) {
+  if (requireFeat && needsFeat && !picks.featCatalogId) {
     return 'Выбери черту'
   }
   if (!needsFeat && picks.featCatalogId) {
@@ -1110,6 +1233,13 @@ export function readAppliedRaceGrant(raw: unknown): AppliedRaceGrant | null {
     naturalArmor: readNaturalArmor(row.naturalArmor ?? row.natural_armor),
     naturalWeapons: readNaturalWeapons(row.naturalWeapons ?? row.natural_weapons),
     movement: readMovementResolved(row.movement),
+    activatedMovement: readActivatedMovement(
+      row.activatedMovement ?? row.activated_movement,
+    ),
+    damageResistances: readStringList(
+      row.damageResistances ?? row.damage_resistances,
+    ),
+    combatBonuses: readCombatBonuses(row.combatBonuses ?? row.combat_bonuses),
     racialSpells: readRacialSpells(row.racialSpells ?? row.racial_spells),
   }
 }

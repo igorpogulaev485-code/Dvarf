@@ -1,10 +1,29 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { MinimalSheetEditor } from '../features/characters/MinimalSheetEditor'
+import {
+  CharacterReadyDialog,
+  HelpDrawer,
+  SheetTour,
+  useOnboardingState,
+} from '../features/onboarding'
+import { getMe } from '../shared/api/auth'
 import { getCharacter, type CharacterDetail } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
 import { joinLobby } from '../shared/api/lobbies'
-import { Button, Dialog, Field, Input, Stack, Text, Toast } from '../ui'
+import {
+  Button,
+  Dialog,
+  Field,
+  Input,
+  Stack,
+  Text,
+  Toast,
+  normalizeToast,
+  toastMessageOf,
+  type ToastInput,
+  type ToastPayload,
+} from '../ui'
 import { forceReleaseBodyScrollLock } from '../ui/bodyScrollLock'
 
 type LocationState = {
@@ -13,6 +32,8 @@ type LocationState = {
   createGuide?: 'background-first' | 'class-first'
   /** Create at level N (1–20); wizard covers picks up to N. */
   startingLevel?: number
+  /** After create pipeline Готово — show ready bridge / tour. */
+  onboardingReady?: boolean
 }
 
 export function CharacterDetailPage() {
@@ -31,7 +52,12 @@ export function CharacterDetailPage() {
   const [moreOpen, setMoreOpen] = useState(false)
   const moreRef = useRef<HTMLDivElement | null>(null)
   const initialState = location.state as LocationState | null
-  const [toast, setToast] = useState<string | null>(initialState?.toast ?? null)
+  const [toast, setToastState] = useState<ToastPayload | null>(
+    initialState?.toast ? { message: initialState.toast } : null,
+  )
+  const setToast = useCallback((input: ToastInput | null) => {
+    setToastState(input == null ? null : normalizeToast(input))
+  }, [])
   const [createGuide, setCreateGuide] = useState<'background-first' | 'class-first' | null>(
     initialState?.createGuide ?? null,
   )
@@ -40,14 +66,38 @@ export function CharacterDetailPage() {
       ? initialState.startingLevel
       : 1,
   )
-  const closeToast = useCallback(() => setToast(null), [])
+  const [userId, setUserId] = useState<string | null>(null)
+  const [helpOpen, setHelpOpen] = useState(false)
+  const [tourArmed, setTourArmed] = useState(false)
+  const onboarding = useOnboardingState(userId)
+  const closeToast = useCallback(() => setToastState(null), [])
+
+  useEffect(() => {
+    let active = true
+    getMe()
+      .then((me) => {
+        if (active) setUserId(me.id)
+      })
+      .catch(() => {
+        if (active) setUserId(null)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
     const state = location.state as LocationState | null
-    if (state?.toast || state?.createGuide || state?.startingLevel) {
+    if (state?.toast || state?.createGuide || state?.startingLevel || state?.onboardingReady) {
       navigate(location.pathname, { replace: true, state: null })
     }
   }, [location.pathname, location.state, navigate])
+
+  useEffect(() => {
+    if (onboarding.showSheetTour && !onboarding.showReadyBridge) {
+      setTourArmed(true)
+    }
+  }, [onboarding.showSheetTour, onboarding.showReadyBridge])
 
   // Dialog pads lock body scroll; clear any leaked lock when entering the sheet.
   useEffect(() => {
@@ -167,10 +217,23 @@ export function CharacterDetailPage() {
           </Link>
           {character ? (
             <div className="sheet-topbar__actions">
+              <Button
+                type="button"
+                variant="ghost"
+                className="sheet-topbar__help"
+                data-onboarding="help"
+                onClick={() => {
+                  onboarding.markHelpOpened()
+                  setHelpOpen(true)
+                }}
+              >
+                Справка
+              </Button>
               <div className="sheet-topbar__desk-only">
                 <button
                   type="button"
                   className="back-link"
+                  data-onboarding="classic"
                   onClick={() => navigate(`/characters/${character.id}/classic`)}
                 >
                   <span className="sheet-topbar__classic-full">Классический лист 2014</span>
@@ -247,6 +310,12 @@ export function CharacterDetailPage() {
             character={character}
             createGuide={createGuide}
             startingLevel={startingLevel}
+            showOnboardingChecklist={
+              onboarding.state.segment === 'dnd_new' ||
+              onboarding.state.segment === 'product_new' ||
+              tourArmed
+            }
+            showValueTips={onboarding.state.segment === 'dnd_new'}
             onCreateGuideConsumed={() => {
               setCreateGuide(null)
               setStartingLevel(1)
@@ -260,6 +329,31 @@ export function CharacterDetailPage() {
           />
         ) : null}
       </Stack>
+
+      <CharacterReadyDialog
+        open={onboarding.showReadyBridge}
+        onOpenWithTour={() => {
+          onboarding.dismissReadyBridge({ startTour: true })
+          setTourArmed(true)
+        }}
+        onOpenSkipTour={() => {
+          onboarding.dismissReadyBridge({ startTour: false })
+          onboarding.skipSheetTour()
+          setTourArmed(false)
+        }}
+      />
+      <SheetTour
+        open={Boolean(character) && !loading && tourArmed && !onboarding.showReadyBridge}
+        onComplete={() => {
+          onboarding.completeSheetTour()
+          setTourArmed(false)
+        }}
+        onSkip={() => {
+          onboarding.skipSheetTour()
+          setTourArmed(false)
+        }}
+      />
+      <HelpDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
 
       <Dialog
         open={lobbyOpen}
@@ -284,7 +378,21 @@ export function CharacterDetailPage() {
         </Stack>
       </Dialog>
 
-      <Toast message={toast} onClose={closeToast} />
+      <Toast
+        message={toastMessageOf(toast)}
+        durationMs={toast?.durationMs}
+        actionLabel={toast?.actionLabel}
+        onAction={
+          toast?.onAction
+            ? () => {
+                const action = toast.onAction
+                closeToast()
+                action?.()
+              }
+            : undefined
+        }
+        onClose={closeToast}
+      />
     </main>
   )
 }

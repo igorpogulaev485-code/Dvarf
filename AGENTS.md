@@ -30,8 +30,9 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/name-generation-plan-de51` |
-| URL | http://201.34.132.252/ |
+| Prod tip (сейчас) | `cursor/pack-qty-persist-2683` |
+| URL | https://creed20.tech/ |
+| SSH / deploy host | `201.34.132.252` (не открывать в браузере — редирект на creed20) |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 
 Перед работой над продом / перед деплоем:
@@ -75,7 +76,7 @@
 
 ## 4. Чеклист ПОСЛЕ деплоя
 
-1. `curl -fsS http://201.34.132.252/health`
+1. `curl -fsS https://creed20.tech/health`
 2. Проверь **живые маркеры** в бандле/на диске (не только свой слайс):
    - кабинет / аватар / лобби
    - **Play Desk:** `PlayDeskHeader`, `PlayDeskHotBar`, прыжки, spend-пикеры
@@ -130,3 +131,21 @@ Skill: [`.cursor/skills/dvarf-dev-workflow/SKILL.md`](.cursor/skills/dvarf-dev-w
 Если нужен CSS с другой ветки — **мержить классы**, не checkout файла. После любого restyle `index.css`:  
 `rg 'lobby-member-grid|lobby-hub-tab\.is-active|setting-wiki|UI KIT LOCK — Lobby Hub' frontend/src/index.css`  
 должно быть зелёным, иначе визуал лобби снова «поедет».
+
+---
+
+## 8a. Play Desk / лист персонажа — единственный вид (LOCK)
+
+Канон: [`docs/PLAY_DESK_SOURCE_OF_TRUTH.md`](docs/PLAY_DESK_SOURCE_OF_TRUTH.md) + доски `desk-header-lock` / `desk-chrome` / `spells` + **живой прод** https://creed20.tech/
+
+**Эталон листа = полный Play Desk** (`PlayDeskHeader` + сцены + rail + hot-bar + `MinimalSheetEditor`).  
+Не эталон: `main`-SPA, classic-бланк как digital, ЛСС-скрин как layout, самодельные `/dev` «столы».
+
+**Запрещено всем агентам** без явного ok Игоря:
+
+1. Рисовать / коммитить **альтернативный вид** листа или «упрощённый стол персонажа».
+2. Делать mock/preview-страницы с фальшивой шапкой персонажа и выдавать их за путь на проде.
+3. Класть в ответ Игорю скрины такого фейка. Допустимы только: **prod** · **полный tip Play Desk** · **dialog-only** · **ui-kit board** (подпись обязательна).
+4. Копировать визуал листа из ЛСС / других приложений.
+
+Нарушение = регрессия прода (уже было). При сомнении — открой прод и доску, не выдумывай layout.

@@ -1,3 +1,4 @@
+import { HoverTipCard, PANEL_HELP, panelExplain } from '../onboarding'
 import { Panel, Stack } from '../../ui'
 import {
   LANGUAGE_PRESETS,
@@ -17,7 +18,10 @@ export function LanguagesToolsPanel({
   onChange,
 }: LanguagesToolsPanelProps) {
   return (
-    <Panel title="Языки и инструменты">
+    <Panel
+      title="Языки и инструменты"
+      titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.languages_tools)} />}
+    >
       <Stack gap={14}>
         <NameListPicker
           title="Языки"

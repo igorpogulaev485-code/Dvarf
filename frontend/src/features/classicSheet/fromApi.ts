@@ -140,6 +140,17 @@ export function textBlockValue(character: CharacterDetail, key: string): string 
   return ''
 }
 
+/**
+ * Classic «Умения и особенности» box: background feature is stored in `traits`,
+ * while some older sheets only wrote into `features`. Merge both for display.
+ */
+export function classicFeaturesTraitsValue(character: CharacterDetail): string {
+  const traits = textBlockValue(character, 'traits').trim()
+  const features = textBlockValue(character, 'features').trim()
+  if (traits && features && traits !== features) return `${traits}\n\n${features}`
+  return traits || features
+}
+
 /** Physical description fields on official 2014 page 2 header. */
 export function physiqueField(character: CharacterDetail, key: string): string {
   const value = identityField(character, key)

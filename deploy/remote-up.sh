@@ -117,6 +117,7 @@ else
 fi
 
 ensure_base postgres:16-alpine
+ensure_base caddy:2.8-alpine
 if [[ ${#BUILD_SERVICES[@]} -gt 0 ]]; then
   if [[ " ${BUILD_SERVICES[*]} " == *" api "* ]]; then
     ensure_base python:3.12-slim
@@ -154,11 +155,18 @@ fi
 echo "starting stack (no pull)..."
 "${COMPOSE[@]}" up -d --pull never --remove-orphans
 
+# sync-and-up replaces /opt/dvarf (new inodes). Docker bind-mounts can keep the
+# old Caddyfile inode → `caddy reload` says "config unchanged" while disk is new.
+# Force-recreate edge so the mount picks up deploy/Caddyfile (IP→creed20 redirect).
+echo "recreating Caddy edge (fresh Caddyfile bind-mount)..."
+"${COMPOSE[@]}" up -d --pull never --force-recreate --no-deps edge || true
+
 save_fp api "$API_FP"
 save_fp web "$WEB_FP"
 
 for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
-  if curl -fsS http://127.0.0.1/health; then
+  # :80 = host nginx (HTTPS setup); :8080 = docker web loopback before/without host proxy
+  if curl -fsS http://127.0.0.1/health || curl -fsS http://127.0.0.1:8080/health; then
     echo
     echo "remote-up: healthy"
     exit 0
