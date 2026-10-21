@@ -31,6 +31,7 @@
 | # | Слайс | Статус | Док |
 | --- | --- | --- | --- |
 | **O** | **Онбординг новичка** (welcome → create → sheet tour → panel help + value tips для `dnd_new`) | ✅ на проде · tip `cursor/onboarding-plan-37ff` · лобби не в scope | [`SLICE_ONBOARDING_PLAN.md`](SLICE_ONBOARDING_PLAN.md) · PR #233 |
+| **CF** | **Фидбек создания** (системно: раса / choice / create-inventory / атаки / валидация) | план · ждём ok | [`SLICE_CREATE_FEEDBACK_SYSTEM_PLAN.md`](SLICE_CREATE_FEEDBACK_SYSTEM_PLAN.md) |
 
 ---
 
