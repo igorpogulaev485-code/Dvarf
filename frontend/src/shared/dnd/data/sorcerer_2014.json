@@ -3,10 +3,18 @@
     "purpose": "PHB 2014 Sorcerer + official origins for sheet unlock",
     "edition": "2014",
     "source": "phb+xgte+tcoe+dragonlance",
-    "notes_ru": "Очки чародейства = ур. с 2. Метамагия — picks. Гибкое колдовство — вручную через очки/ячейки. Архетипы — каркас. H4b depth wave 2: casters/artificer/druid scales·pools."
+    "notes_ru": "Очки чародейства = ур. с 2. Метамагия — picks. Гибкое колдовство — вручную через очки/ячейки. Архетипы — каркас. H4b depth wave 2: casters/artificer/druid scales·pools. · TCoE optional class features."
   },
   "class_slug": "sorcerer",
   "features": [
+    {
+      "id": "sorcerous_origin",
+      "level": 1,
+      "name_ru": "Происхождение чародея",
+      "name_en": "Sorcerous Origin",
+      "summary_ru": "Выбери происхождение (Драконья кровь, Дикая магия, …).",
+      "kind": "passive"
+    },
     {
       "id": "spellcasting_sorcerer",
       "level": 1,
@@ -16,12 +24,12 @@
       "kind": "passive"
     },
     {
-      "id": "sorcerous_origin",
-      "level": 1,
-      "name_ru": "Происхождение чародея",
-      "name_en": "Sorcerous Origin",
-      "summary_ru": "Выбери происхождение (Драконья кровь, Дикая магия, …).",
-      "kind": "passive"
+      "id": "flexible_casting",
+      "level": 2,
+      "name_ru": "Гибкое колдовство",
+      "name_en": "Flexible Casting",
+      "summary_ru": "Бонусным: ячейка→очки (= ур.) или очки→ячейка (1→2, 2→3, 3→5, 4→6, 5→7). Кнопки на умении; очки→ячейка восстанавливает потраченную ячейку.",
+      "kind": "bonus"
     },
     {
       "id": "font_of_magic",
@@ -58,14 +66,6 @@
         "pool_name_ru": "Очки чародейства",
         "track": "spend"
       }
-    },
-    {
-      "id": "flexible_casting",
-      "level": 2,
-      "name_ru": "Гибкое колдовство",
-      "name_en": "Flexible Casting",
-      "summary_ru": "Бонусным: ячейка→очки (= ур.) или очки→ячейка (1→2, 2→3, 3→5, 4→6, 5→7). Кнопки на умении; очки→ячейка восстанавливает потраченную ячейку.",
-      "kind": "bonus"
     },
     {
       "id": "metamagic",
@@ -108,6 +108,34 @@
           "plus1x2",
           "feat_coming_soon"
         ]
+      }
+    },
+    {
+      "id": "sorcerous_versatility",
+      "level": 4,
+      "name_ru": "Чародейская универсальность",
+      "name_en": "Sorcerous Versatility",
+      "summary_ru": "Tasha (optional): когда берёшь ASI, можешь заменить один заговор чародея или одну метамагию.",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe"
+    },
+    {
+      "id": "magical_guidance",
+      "level": 5,
+      "name_ru": "Магическое наставление",
+      "name_en": "Magical Guidance",
+      "summary_ru": "Tasha (optional): при провале проверки характеристики можешь потратить 1 очко чародейства и перебросить d20; новый результат обязателен.",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe",
+      "resource": {
+        "uses": 0,
+        "recharge": "long_rest",
+        "pool_id": "sorcery_points",
+        "pool_name_ru": "Очки чародейства",
+        "track": "spend",
+        "spend_cost": 1
       }
     },
     {

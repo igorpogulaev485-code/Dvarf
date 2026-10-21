@@ -1762,7 +1762,7 @@ export function CreateCharacterPage() {
         }}
         onOpenSpells={() => setSpellsOpen('grimoire')}
         onOpenPrepare={
-          spellLearnBudget && spellLearnBudget.mode !== 'known'
+          spellLearnBudget?.mode === 'spellbook'
             ? () => setSpellsOpen('prepare')
             : undefined
         }
@@ -2304,13 +2304,9 @@ export function CreateCharacterPage() {
         onToast={setToast}
       />
       <PrepareSpellsDialog
-        open={spellsOpen === 'prepare'}
-        edition="2014"
-        className={state.classes[0]?.name ?? ''}
-        level={totalCharacterLevel(state.classes)}
-        classes={state.classes}
+        open={spellsOpen === 'prepare' && spellLearnBudget?.mode === 'spellbook'}
         spells={spells}
-        learnMode={spellLearnBudget?.mode ?? null}
+        learnMode="spellbook"
         onChange={setSpells}
         onClose={() => setSpellsOpen(null)}
       />

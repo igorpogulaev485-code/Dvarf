@@ -1254,6 +1254,38 @@ a.ui-button--primary {
   white-space: pre-wrap;
 }
 
+.ui-toast--with-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: default;
+  white-space: normal;
+}
+
+.ui-toast__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  cursor: pointer;
+  white-space: pre-wrap;
+}
+
+.ui-toast__action {
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, #f7f1e3 55%, transparent);
+  background: color-mix(in srgb, #f7f1e3 14%, transparent);
+  color: #f7f1e3;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.ui-toast__action:hover {
+  background: color-mix(in srgb, #f7f1e3 24%, transparent);
+}
+
 /* T3: лор сессии на столе */
 .session-lore-panel {
   border: 1px solid var(--line);
@@ -3312,6 +3344,20 @@ a.ui-button--primary {
   color: var(--accent);
   background: var(--accent-soft);
   border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+}
+
+.feature-optional-badge {
+  display: inline-block;
+  margin-left: 0.2rem;
+  padding: 0.08rem 0.4rem;
+  border-radius: 0.35rem;
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--muted) 28%, var(--line));
 }
 
 .feature-row__meta {
@@ -8864,7 +8910,7 @@ button.play-desk-compact__more--btn:hover {
 
 .play-desk-compact__cons-main {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 8px;
   font-size: 0.82rem;
@@ -8875,6 +8921,10 @@ button.play-desk-compact__more--btn:hover {
   color: inherit;
   width: 100%;
   text-align: left;
+  cursor: default;
+}
+
+.play-desk-compact__cons-main.is-action {
   cursor: pointer;
 }
 
@@ -8891,10 +8941,91 @@ button.play-desk-compact__more--btn:hover {
   min-width: 0;
 }
 
-.play-desk-compact__cons-spend {
+.play-desk-compact__cons-actions {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+  justify-self: end;
+}
+
+.play-desk-compact__cons-spend,
+.play-desk-compact__cons-qty {
+  border: 0;
+  border-left: 1px solid var(--desk-line);
+  background: #fff;
+  font: inherit;
   font-size: 0.72rem;
   font-weight: 600;
   color: var(--desk-accent);
+  padding: 0 10px;
+  min-height: 36px;
+  cursor: pointer;
+}
+
+.play-desk-compact__cons-spend:disabled,
+.play-desk-compact__cons-qty:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.play-desk-compact__cons-spend {
+  color: var(--desk-accent);
+}
+
+.play-desk-compact__cons-qty {
+  color: var(--desk-muted);
+  font-weight: 600;
+}
+
+.play-desk-compact__cons-log {
+  margin-top: 6px;
+  display: grid;
+  gap: 4px;
+}
+
+.play-desk-compact__cons-log-toggle {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.72rem;
+  color: var(--desk-muted);
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+}
+
+.play-desk-compact__cons-log-list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.play-desk-compact__cons-log-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--desk-muted);
+  padding: 2px 0;
+}
+
+.play-desk-compact__cons-log-row.is-undone {
+  text-decoration: line-through;
+  opacity: 0.65;
+}
+
+.play-desk-compact__cons-log-undo {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--desk-accent);
+  cursor: pointer;
+  padding: 0;
 }
 
 .play-desk-compact__cons-fav {
@@ -10221,8 +10352,10 @@ button.play-desk-compact__more--btn:hover {
   min-width: 44px;
   min-height: 44px;
 }
-.play-desk--mobile .play-desk-compact__cons-spend {
+.play-desk--mobile .play-desk-compact__cons-spend,
+.play-desk--mobile .play-desk-compact__cons-qty {
   font-size: 0.78rem;
+  min-height: 44px;
 }
 
 /* Play pads as bottom sheets on all phone/tablet portrait widths */
