@@ -4,12 +4,23 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/consumables-tap-guard-plan-3b91`  
+**Prod tip (ветка линии прода):** `cursor/grimoire-prepare-home-3aba`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
 
 ## Сейчас в продукте — свежее
+
+### 2026-10-21 — Гримуар = дом подготовки; «Подготовить» только у волшебника
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Жрец / друид / паладин / изобретатель | Готовка в **Гримуаре**: чипы Все / Подготовленные / Не подготовленные; «На лист» убран | Один экран вместо двух |
+| Кнопка на листе | У prepared_list **нет** «Подготовить» — только Настройки → Гримуар | Не путает с утренней подготовкой волшебника |
+| Волшебник | «Подготовить» = набор **из книги** на сегодня; новые записи — Гримуар («В книгу») | Как PHB: книга ≠ подготовка |
+| Alone-max | В гримуаре список класса до alone-max уровня (мультикласс) | Видно полный пул класса, не общий CR |
+
+На проде: **да** · **это новый prod tip** `cursor/grimoire-prepare-home-3aba` · PR #245 · залито 2026-10-21 · `/health` ok · бандл `CharacterDetailPage-CKumN9rG.js` · `spellAccessUi.ts` на диске · расходники tip сохранены
 
 ### 2026-10-21 — Расходники: защита от случайных тапов
 
@@ -650,6 +661,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 Сюда агенты пишут то, что сделано в PR, но **ещё не залито** на сервер.
 
+<!-- grimoire-prepare-home залито 2026-10-21 → tip grimoire-prepare-home-3aba; блок в «Сейчас в продукте» -->
 <!-- prepare-class-list-available залито 2026-10-21 → tip prepare-class-list-available-3aba; блок в «Сейчас в продукте» -->
 <!-- stealthy залито 2026-10-20 → tip feat-stealthy-3565; блок в «Сейчас в продукте» -->
 
@@ -706,6 +718,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-21 | `cursor/grimoire-prepare-home-3aba` · PR #245 | Гримуар = дом подготовки; thin Prepare волшебник → **новый tip** |
 | 2026-10-21 | `cursor/consumables-tap-guard-plan-3b91` · PR #246 | Расходники: Undo / ×N / журнал → **новый tip** |
 | 2026-10-21 | `cursor/vpn-https-stable-fab2` · PR #243 | VPN + канон https://creed20.tech → **новый tip** |
 | 2026-10-21 | `cursor/prepare-class-list-available-3aba` · PR #242 | Prepare: class list → «Все доступные» → tip после Timeweb |

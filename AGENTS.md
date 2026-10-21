@@ -30,7 +30,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/consumables-tap-guard-plan-3b91` |
+| Prod tip (сейчас) | `cursor/grimoire-prepare-home-3aba` |
 | URL | https://creed20.tech/ |
 | SSH / deploy host | `201.34.132.252` (не открывать в браузере — редирект на creed20) |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
