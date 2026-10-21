@@ -4,12 +4,21 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/bm-maneuvers-bridge-6682`  
+**Prod tip (ветка линии прода):** `cursor/tiefling-hellish-rebuke-2-6682`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
 
 ## Сейчас в продукте — свежее
+
+### 2026-10-21 — Тифлинг: Адская месть как 2-й круг
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Infernal Legacy / MToF L3 | `racial_spells.level` = cast-as 2 (не native 1) | «Адская месть» на листе — 2 ур., урон 3к10 |
+| Alembic `a3b4c5d6e7f8` | Upsert racial_spells тифлингов в каталог | Старые листы подтягивают level при открытии |
+
+На проде: **да** · **это новый prod tip** `cursor/tiefling-hellish-rebuke-2-6682` · PR #261 · залито 2026-10-21 · поверх tip `bm-maneuvers-bridge-6682` · `/health` ok · alembic `a3b4c5d6e7f8` · hellish_rebuke level=2 в БД · characters=94 classic=19
 
 ### 2026-10-21 — Battle Master: манёвры из create → блок архетипа
 
@@ -785,6 +794,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-21 | `cursor/tiefling-hellish-rebuke-2-6682` · PR #261 | Tiefling Hellish Rebuke cast-as 2 → **новый tip** после Timeweb |
 | 2026-10-21 | `cursor/bm-maneuvers-bridge-6682` · PR #260 | BM maneuvers → feature_picks bridge → **новый tip** после Timeweb |
 | 2026-10-21 | `cursor/satyr-rogue-init-speed-d602` · PR #258 | Mobile/Alert/Rakish init+speed → **новый tip** после Timeweb |
 | 2026-10-21 | `cursor/versatile-weapons-grip-57bf` · PR #257 | Универсальное оружие (щит + 1к8/1к10) → **новый tip** после Timeweb |

@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/bm-maneuvers-bridge-6682
+cursor/tiefling-hellish-rebuke-2-6682
 ```
 
 URL: https://creed20.tech/

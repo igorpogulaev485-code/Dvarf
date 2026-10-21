@@ -36,7 +36,11 @@ export type RaceRacialSpell = {
   /** Optional SRD/catalog slug for enrichment later. */
   spellSlug: string | null
   nameRu: string
-  /** Spell circle 0–9 (not character unlock level). */
+  /**
+   * Cast-as circle 0–9 for this racial grant (not character unlock level).
+   * For innate upcasts (e.g. Tiefling Hellish Rebuke) this is the trait cast
+   * level (2), which may be higher than the spell’s native circle.
+   */
   level: number
   castingAbility: AbilityKey | null
   notesRu: string | null
