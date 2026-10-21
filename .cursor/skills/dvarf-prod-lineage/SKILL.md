@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/restore-consumables-grimoire-0bc3
+cursor/optional-class-features-8215
 ```
 
 URL: https://creed20.tech/

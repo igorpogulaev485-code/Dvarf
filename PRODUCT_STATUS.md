@@ -4,12 +4,23 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/restore-consumables-grimoire-0bc3`  
+**Prod tip (ветка линии прода):** `cursor/optional-class-features-8215`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
 
 ## Сейчас в продукте — свежее
+
+### 2026-10-21 — Optional class features + умение предыстории на листе
+
+| Функция | Как работает |
+|--------|--------------|
+| Tasha optional class features | В пакетах всех классов (`optional`/`source_book`); плут L3+ — **Точное прицеливание** |
+| Умение предыстории | Карточка в «Способности»; classic читает `traits`; backfill при открытии |
+| Миграция | Unlock из JSON; `ensureBackgroundFeatureOnDraft`; alembic `z2a3b4c5d6e7` |
+
+На проде: **ожидает verify после sync-and-up** · ветка `cursor/optional-class-features-8215` · PR #255 · поверх tip `restore-consumables-grimoire-0bc3`
+
 
 ### 2026-10-21 — Restore: расходники + гримуар поверх ship
 
