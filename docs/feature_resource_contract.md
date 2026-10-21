@@ -12,6 +12,26 @@
 | **Scale** | Какое значение сейчас? | `scale.by_level` → `scaleValue` |
 | **Pool** | Сколько зарядов и как тратить? | `resource` → `feat:*` в `sheet.resources` |
 
+## Опциональные умения (Tasha / TCoE)
+
+Поля на `ClassFeatureDef`:
+
+| Поле | Смысл |
+|------|--------|
+| `optional: true` | Умение из optional class features; бейдж «Tasha · опционально» в UI |
+| `source_book: "tcoe"` | Источник контента |
+| `replaces` | Id PHB-умения, которое это row заменяет (оба остаются в unlock — стол выбирает) |
+
+**Политика v1:** optional = **не opt-in pick**. Как `wild_companion` / `cd_harness_divine_power`: при `level <= classLevel` умение видно всем. Стол может игнорировать.
+
+**Миграция существующих персонажей:** список умений **не хранится** в sheet — он считается `unlockFeaturesForClasses` из пакетов. Достаточно обновить JSON (backend + frontend копия). При следующем открытии листа:
+1. новые rows появляются в панели умений;
+2. `syncFeatureResources` дописывает новые `feat:*` пулы (Favored Foe, Nature's Veil, …).
+
+Alembic по персонажам **не нужен**. Эпоха контента: `OPTIONAL_CLASS_FEATURES_EPOCH` в `classFeatures.ts` (для самопроверок / будущих stamp'ов).
+
+Инжект контента: `backend/scripts/inject_tcoe_optional_features.py` (идемпотентно).
+
 ## Паттерны (чеклист нового умения)
 
 1. **Passive scale** — только таблица (Скрытая атака, Martial Arts)

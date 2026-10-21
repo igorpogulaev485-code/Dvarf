@@ -3,6 +3,7 @@ import type { RulesEdition } from '../../shared/api/characters'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
   kindLabelRu,
+  optionalFeatureBadgeRu,
   resolveChoiceMaxPicks,
   resolveClassFeatureSlug,
   resolveFeatureChoiceOptions,
@@ -1396,6 +1397,7 @@ function FeatureRow({
 
   const preview = previewSummary(feature.summary_ru)
   const canExpand = featureCanExpand(feature)
+  const optionalBadge = optionalFeatureBadgeRu(feature)
 
   if (!canExpand) {
     return (
@@ -1406,6 +1408,9 @@ function FeatureRow({
           </span>
           <b className="feature-card__name">{feature.name_ru}</b>
           <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
+          {optionalBadge ? (
+            <span className="feature-optional-badge">{optionalBadge}</span>
+          ) : null}
           <span className="inventory-card__glance-spacer" aria-hidden />
           <span className="feature-card__preview">
             {metaExtra ? `${metaExtra} · ` : ''}
@@ -1425,6 +1430,9 @@ function FeatureRow({
           </span>
           <b className="feature-card__name">{feature.name_ru}</b>
           <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
+          {optionalBadge ? (
+            <span className="feature-optional-badge">{optionalBadge}</span>
+          ) : null}
           {feature.resource ? (
             <span className="attack-held-tag is-on">ресурс</span>
           ) : null}
@@ -1457,6 +1465,9 @@ function FeatureRow({
         </span>
         <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
         <span className="attack-held-tag">{kindLabelRu(feature.kind)}</span>
+        {optionalBadge ? (
+          <span className="feature-optional-badge">{optionalBadge}</span>
+        ) : null}
         {feature.resource ? <span className="attack-held-tag is-on">ресурс</span> : null}
         {choicePending ? <span className="attack-held-tag">выбор</span> : null}
         <button type="button" className="inventory-card__collapse" onClick={onToggle}>
