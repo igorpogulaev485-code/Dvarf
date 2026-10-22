@@ -11,16 +11,20 @@ import type { SpellLearnBudget } from '../../shared/dnd/casterProgression'
 import {
   buildCastProfiles,
   formatNamedCantripBudgets,
+  formatNamedPrepareBudgets,
   mergeCastProfilesForDisplay,
   type SpellCastProfile,
 } from '../../shared/dnd/castProfiles'
+import { resolveCastEffect } from '../../shared/dnd/spellCatalog'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
+  countAlwaysPreparedLeveled,
   countLearnedCantrips,
   countLearnedCantripsBySlug,
   countLearnedLeveled,
   countLockedFeatureCantrips,
   countPreparedLeveled,
+  countPreparedLeveledBySlug,
   grantCastRemaining,
   groupSpellsByLevel,
   isGrantedSpellHighlight,
@@ -55,11 +59,13 @@ type PlayDeskSpellsCompactProps = {
     leveledKnown: number | null
     maxPrepared: number | null
   } | null
-  /** M2: per-class budgets for named cantrip meta. */
+  /** M2: per-class budgets for named cantrip / prepare meta. */
   learnBudgets?: SpellLearnBudget[] | null
   /** M3: class rows for cast profiles (Сл/атака по источнику). */
   classes?: ClassLevelEntry[]
   castProfiles?: SpellCastProfile[] | null
+  /** Total character level — cantrip scaling in the combat list. */
+  characterLevel?: number
   pinned?: boolean
   concentration?: ConcentrationState | null
   /** Rules edition for catalog description lookup in detail dialog. */
@@ -91,6 +97,7 @@ export function PlayDeskSpellsCompact({
   learnBudgets = null,
   classes = [],
   castProfiles = null,
+  characterLevel = 1,
   pinned = false,
   concentration = null,
   edition = '2014',
@@ -170,21 +177,33 @@ export function PlayDeskSpellsCompact({
   const learnedCantrips = countLearnedCantrips(spells.known)
   const learnedLeveled = countLearnedLeveled(spells.known)
   const preparedCount = countPreparedLeveled(spells.known)
+  const alwaysPreparedCount = countAlwaysPreparedLeveled(spells.known)
   const quotaLabel = (() => {
+    if (learnBudget?.mode === 'known') {
+      const cap = learnBudget.leveledKnown
+      return cap != null ? `изв. ${learnedLeveled}/${cap}` : `изв. ${learnedLeveled}`
+    }
+    // Prefer per-class prepare chips when several prepare casters are present.
+    if (learnBudgets && learnBudgets.length > 0) {
+      const named = formatNamedPrepareBudgets(
+        learnBudgets,
+        countPreparedLeveledBySlug(spells.known),
+        { alwaysPrepared: alwaysPreparedCount },
+      )
+      if (named) return named
+    }
     if (!learnBudget) {
       if (spells.max_prepared != null) {
         return `подг. ${preparedCount}/${spells.max_prepared}`
       }
       return null
     }
-    if (learnBudget.mode === 'known') {
-      const cap = learnBudget.leveledKnown
-      return cap != null ? `изв. ${learnedLeveled}/${cap}` : `изв. ${learnedLeveled}`
-    }
     const prepCap = learnBudget.maxPrepared ?? spells.max_prepared
-    return prepCap != null
-      ? `подг. ${preparedCount}/${prepCap}`
-      : `подг. ${preparedCount}`
+    const base =
+      prepCap != null
+        ? `подг. ${preparedCount}/${prepCap}`
+        : `подг. ${preparedCount}`
+    return alwaysPreparedCount > 0 ? `${base} · всегда ${alwaysPreparedCount}` : base
   })()
   const cantripLabel = (() => {
     if (learnBudgets && learnBudgets.length > 0) {
@@ -419,6 +438,9 @@ export function PlayDeskSpellsCompact({
                     <SpellRow
                       key={spell.id}
                       spell={spell}
+                      characterLevel={characterLevel}
+                      learnMode={learnBudget?.mode ?? null}
+                      hasSpellbook={hasSpellbook}
                       activeConcentration={isActiveConc}
                       onOpenDetail={() => setDetailSpell(spell)}
                       onCast={() => {
@@ -544,45 +566,45 @@ function shortDamage(raw: string): string {
   return t.replace(/\s+/g, ' ')
 }
 
-/** Prefer sheet damage; else lowest scale-table entry (cantrip / slot). */
-function compactDamage(spell: SheetSpell): string {
-  const direct = shortDamage(spell.damage)
-  if (direct) return direct
-  const table =
-    spell.level <= 0 ? spell.damage_at_character_level : spell.damage_at_slot_level
-  if (!table) return ''
-  const keys = Object.keys(table)
-    .map((key) => Number(key))
-    .filter((n) => Number.isFinite(n))
-    .sort((a, b) => a - b)
-  if (keys.length === 0) return ''
-  return shortDamage(table[String(keys[0])] ?? '')
+/** Actual effect for this character (cantrip/slot scaling), not the catalog base. */
+function compactDamage(spell: SheetSpell, characterLevel: number): string {
+  const { effect } = resolveCastEffect(spell, {
+    characterLevel: Math.max(1, characterLevel),
+    slotLevel: Math.max(spell.level, 1),
+  })
+  return shortDamage(effect)
 }
 
-/** Non-damage key params (school / comps / range / time / duration / atk). */
+/** Unified card skeleton: action · range · attack/save (always present). */
 function compactSpellMeta(spell: SheetSpell): string {
   const parts: string[] = []
-  if (spell.school) parts.push(spellSchoolLabelRu(spell.school))
+  const time = shortCastingTime(spell.casting_time)
+  parts.push(time || '—')
+  const range = shortRange(spell.range)
+  parts.push(range || '—')
+  const atk = spell.attack_or_save?.trim()
+  parts.push(atk && atk !== '—' ? atk : '—')
   const comps = compactComponents(spell)
   if (comps) parts.push(comps)
-  const range = shortRange(spell.range)
-  if (range) parts.push(range)
-  const time = shortCastingTime(spell.casting_time)
-  if (time) parts.push(time)
+  if (spell.school) parts.push(spellSchoolLabelRu(spell.school))
   if (spell.duration?.trim()) parts.push(spell.duration.trim())
-  const atk = spell.attack_or_save?.trim()
-  if (atk && atk !== '—') parts.push(atk)
   return parts.join(' · ')
 }
 
 function SpellRow({
   spell,
+  characterLevel,
+  learnMode,
+  hasSpellbook,
   activeConcentration,
   onOpenDetail,
   onCast,
   hasCast,
 }: {
   spell: SheetSpell
+  characterLevel: number
+  learnMode: 'known' | 'prepared_list' | 'spellbook' | null
+  hasSpellbook: boolean
   activeConcentration: boolean
   onOpenDetail: () => void
   onCast: () => void
@@ -590,15 +612,25 @@ function SpellRow({
 }) {
   const levelText = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
   const meta = compactSpellMeta(spell)
-  const damage = compactDamage(spell)
+  const damage = compactDamage(spell, characterLevel)
   const source = spellSourceBadge(spell)
   const granted = isGrantedSpellHighlight(spell)
   const grantLeft =
     spell.grant_cast && spell.grant_cast.max > 0 ? grantCastRemaining(spell) : null
+  const ritualFromBook =
+    Boolean(spell.ritual) &&
+    !spell.prepared &&
+    learnMode === 'spellbook' &&
+    hasSpellbook
+  const ritualLabel = ritualFromBook
+    ? 'Не подготовлено · ритуал из книги'
+    : spell.ritual
+      ? 'ритуал'
+      : null
   const flags: string[] = []
   if (activeConcentration) flags.push('держит конц.')
   else if (spell.concentration) flags.push('конц.')
-  if (spell.ritual) flags.push('ритуал')
+  if (ritualLabel) flags.push(ritualLabel)
   if (source) flags.push(source.label)
   if (damage) flags.push(damage)
 
@@ -606,7 +638,9 @@ function SpellRow({
     <div
       className={`play-desk-compact__row is-spell${
         activeConcentration ? ' is-conc-active' : ''
-      }${granted ? ' is-granted' : ''}${hasCast ? ' has-cast' : ''}`}
+      }${granted ? ' is-granted' : ''}${hasCast ? ' has-cast' : ''}${
+        ritualFromBook ? ' is-ritual-unprepared' : ''
+      }`}
     >
       <button
         type="button"
@@ -622,11 +656,12 @@ function SpellRow({
           <div className="play-desk-compact__row-main">
             <b>{spell.name}</b>
             <span className="play-desk-compact__spell-level">{levelText}</span>
-            {damage ? (
-              <span className="play-desk-compact__spell-dmg" title="Урон / эффект">
-                {damage}
-              </span>
-            ) : null}
+            <span
+              className="play-desk-compact__spell-dmg"
+              title="Урон / эффект для этого персонажа"
+            >
+              {damage || '—'}
+            </span>
             {source ? (
               <span
                 className={`play-desk-compact__source is-${source.kind}`}
@@ -637,12 +672,19 @@ function SpellRow({
               </span>
             ) : null}
           </div>
-          {(spell.concentration || spell.ritual) && (
+          {(spell.concentration || ritualLabel) && (
             <span className="play-desk-compact__flags">
-              {spell.ritual ? (
-                <span className="play-desk-compact__flag is-ritual" title="Ритуал">
+              {ritualLabel ? (
+                <span
+                  className={`play-desk-compact__flag is-ritual${
+                    ritualFromBook ? ' is-unprepared' : ''
+                  }`}
+                  title={ritualLabel}
+                >
                   <IconRitual className="play-desk-compact__flag-icon" />
-                  <span className="play-desk-compact__flag-label">ритуал</span>
+                  <span className="play-desk-compact__flag-label">
+                    {ritualFromBook ? 'ритуал · из книги' : 'ритуал'}
+                  </span>
                 </span>
               ) : null}
               {spell.concentration ? (
@@ -659,7 +701,12 @@ function SpellRow({
             </span>
           )}
         </div>
-        {meta ? <p className="play-desk-compact__spell-meta">{meta}</p> : null}
+        <p className="play-desk-compact__spell-meta" title="Действие · дистанция · атака/спас">
+          {meta}
+        </p>
+        {ritualFromBook ? (
+          <p className="play-desk-compact__spell-ritual-note">{ritualLabel}</p>
+        ) : null}
       </button>
       {hasCast ? (
         <button

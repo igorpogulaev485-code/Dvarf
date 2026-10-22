@@ -6381,6 +6381,7 @@ export function MinimalSheetEditor({
             learnBudgets={spellLearnBudgets}
             classes={draft.classes}
             castProfiles={spellcastingSync.castProfiles}
+            characterLevel={characterLevel}
             pinned={deskSplit && splitSecondary === 'spells'}
             concentration={draft.play.concentration}
             edition={rulesEdition}

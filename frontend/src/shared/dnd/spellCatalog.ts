@@ -350,6 +350,10 @@ export type CastEffectSpell = {
   damage?: string | null
   damage_at_character_level?: SpellScaleTable
   damage_at_slot_level?: SpellScaleTable
+  /** Optional prose used when scale tables are missing (e.g. Armor of Agathys). */
+  description?: string | null
+  higher_levels?: string | null
+  duration?: string | null
 }
 
 /**
@@ -385,4 +389,73 @@ export function resolveCastEffect(
   }
 
   return { effect: scaledRaw.trim(), scaled: true }
+}
+
+export type CastEffectSummary = {
+  /** Primary one-line effect (dice / compact). */
+  effect: string
+  scaled: boolean
+  /** Bullet lines for the cast dialog (temp HP, retaliation, duration…). */
+  lines: string[]
+}
+
+/**
+ * Armor of Agathys–style: N temporary HP + N cold damage, +N per slot above base.
+ * Parsed from RU description + higher_levels when scale tables are absent.
+ */
+export function parseTempHpRetaliationScale(
+  spell: CastEffectSpell,
+  slotLevel: number,
+): { tempHp: number; retaliation: number; step: number } | null {
+  const desc = (spell.description ?? '').trim()
+  if (!desc) return null
+  const tempMatch = desc.match(
+    /получаете\s+(\d+)\s+временн(?:ых|ые)\s+хит/i,
+  )
+  const retalMatch = desc.match(/получает\s+(\d+)\s+урона/i)
+  if (!tempMatch || !retalMatch) return null
+  const baseTemp = Number(tempMatch[1])
+  const baseRetal = Number(retalMatch[1])
+  if (!Number.isFinite(baseTemp) || !Number.isFinite(baseRetal)) return null
+  const higher = (spell.higher_levels ?? '').trim()
+  const stepMatch = higher.match(
+    /увеличиваются\s+на\s+(\d+)\s+за\s+каждый\s+уровень/i,
+  )
+  const step = stepMatch ? Number(stepMatch[1]) : 0
+  const baseLevel = Math.max(1, Math.floor(spell.level) || 1)
+  const slot = Math.max(baseLevel, Math.floor(slotLevel) || baseLevel)
+  const extra = step > 0 ? Math.max(0, slot - baseLevel) * step : 0
+  return {
+    tempHp: baseTemp + extra,
+    retaliation: baseRetal + extra,
+    step,
+  }
+}
+
+/**
+ * Full cast preview: scale tables first, then prose-derived temp-HP patterns.
+ */
+export function resolveCastEffectSummary(
+  spell: CastEffectSpell,
+  options: { characterLevel: number; slotLevel: number },
+): CastEffectSummary {
+  const resolved = resolveCastEffect(spell, options)
+  const lines: string[] = []
+  const temp = parseTempHpRetaliationScale(spell, options.slotLevel)
+  if (temp) {
+    lines.push(`${temp.tempHp} временных хитов`)
+    lines.push(`${temp.retaliation} урона холодом (ответ)`)
+    const duration = spell.duration?.trim()
+    if (duration) lines.push(`длительность: ${duration}`)
+    const compact = `${temp.tempHp} врем. хитов · ${temp.retaliation} хол.`
+    return {
+      effect: resolved.effect || compact,
+      scaled: temp.step > 0 || resolved.scaled,
+      lines,
+    }
+  }
+  if (resolved.effect) lines.push(resolved.effect)
+  const duration = spell.duration?.trim()
+  if (duration && resolved.effect) lines.push(`длительность: ${duration}`)
+  return { effect: resolved.effect, scaled: resolved.scaled, lines }
 }

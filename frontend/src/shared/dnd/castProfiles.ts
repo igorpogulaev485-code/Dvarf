@@ -401,6 +401,29 @@ export function formatNamedCantripBudgets(
   return parts.join(' · ')
 }
 
+/**
+ * Per-class prepare meta: «Жрец 4/9 · Паладин 2/6».
+ * Only rows with a prepare cap. Optional always-prepared count as a separate chip.
+ */
+export function formatNamedPrepareBudgets(
+  budgets: SpellLearnBudget[],
+  countsBySlug: Record<string, number>,
+  options?: { alwaysPrepared?: number },
+): string | null {
+  const prepareRows = budgets.filter(
+    (row) => row.maxPrepared != null && row.maxPrepared > 0,
+  )
+  if (prepareRows.length === 0) return null
+  const parts = prepareRows.map((row) => {
+    const used = countsBySlug[row.slug] ?? 0
+    return `${shortCastProfileLabel(row.labelRu)} ${used}/${row.maxPrepared}`
+  })
+  if (options?.alwaysPrepared && options.alwaysPrepared > 0) {
+    parts.push(`всегда ${options.alwaysPrepared}`)
+  }
+  return `подг. ${parts.join(' · ')}`
+}
+
 /** One grimoire shelf = one caster profile (M5). */
 export type GrimoireShelfSource = {
   slug: string

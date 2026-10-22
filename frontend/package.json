@@ -28,7 +28,8 @@
     "selfcheck:background-feature": "tsx src/shared/dnd/backgroundFeature.selfcheck.ts",
     "selfcheck:consumable-spend": "tsx src/features/characters/consumableSpend.selfcheck.ts",
     "selfcheck:magic-sources": "tsx src/features/characters/magicSources.selfcheck.ts",
-    "selfcheck:resource-disambiguate": "tsx src/shared/dnd/featureResources.disambiguate.selfcheck.ts"
+    "selfcheck:resource-disambiguate": "tsx src/shared/dnd/featureResources.disambiguate.selfcheck.ts",
+    "selfcheck:cast-effect": "tsx src/shared/dnd/spellCatalog.castEffect.selfcheck.ts"
   },
   "dependencies": {
     "react": "^19.2.8",

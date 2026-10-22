@@ -4112,6 +4112,36 @@ button.spells-settings__derived-stat--btn:hover {
   cursor: default;
 }
 
+.cast-effect-summary {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--desk-line, #ddd);
+  border-radius: 10px;
+  background: var(--desk-accent-soft, #f3f6f0);
+}
+
+.cast-effect-summary__list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 2px;
+}
+
+.play-desk-compact__spell-ritual-note {
+  margin: 2px 0 0;
+  font-size: 0.72rem;
+  color: var(--desk-muted);
+}
+
+.play-desk-compact__flag.is-ritual.is-unprepared {
+  outline: 1px dashed var(--desk-line, #bbb);
+}
+
+.play-desk-compact__row.is-ritual-unprepared .play-desk-compact__spell-dmg {
+  opacity: 0.85;
+}
+
 .cast-material-box {
   display: grid;
   gap: 6px;
