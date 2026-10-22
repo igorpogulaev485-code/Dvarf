@@ -472,6 +472,13 @@ function emptyDraft(): SubclassGrantDraftSlice {
     'encode_thoughts wizard',
   )
   assert(!(encode.data?.subclasses?.length), 'encode_thoughts no subclass gate')
+  const thorn = rows.find((r) => r.slug === 'thorn_whip')
+  assert(thorn, 'thorn_whip')
+  assert(
+    (thorn.data as { attack_or_save?: string } | undefined)?.attack_or_save ===
+      'атака',
+    'thorn_whip attack',
+  )
   console.log('Q2 EGW dunamancy tags: ok')
 }
 
