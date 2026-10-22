@@ -377,20 +377,34 @@ export function LevelingStep({
       </div>
 
       <div className="create-pipeline__spells-block">
-        <div className="create-pipeline__method-row">
-          <Button variant="secondary" onClick={onOpenSpells}>
-            Выбрать заклинания
-          </Button>
-          {onOpenPrepare ? (
+        {/* Per-class rows are the primary entry (budget + filter).
+            Top «Выбрать заклинания» only when there is no class breakdown
+            (legacy / no caster budgets) — otherwise it duplicated «Выбрать…». */}
+        {!(spellClassBudgets && spellClassBudgets.length > 0) ? (
+          <div className="create-pipeline__method-row">
+            <Button variant="secondary" onClick={onOpenSpells}>
+              Выбрать заклинания
+            </Button>
+            {onOpenPrepare ? (
+              <Button variant="secondary" onClick={onOpenPrepare}>
+                Изменить подготовку
+              </Button>
+            ) : null}
+          </div>
+        ) : onOpenPrepare ? (
+          <div className="create-pipeline__method-row">
             <Button variant="secondary" onClick={onOpenPrepare}>
               Изменить подготовку
             </Button>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
         {spellClassBudgets && spellClassBudgets.length > 0 ? (
           <Stack gap={8}>
             {spellBudgetMeta ? <Text tone="muted">{spellBudgetMeta}</Text> : null}
-            <Text tone="muted">Обзор кастеров — открой класс, чтобы выбрать в его бюджет.</Text>
+            <Text tone="muted">
+              По классу: заговоры / известные / книга. «Выбрать…» открывает гримуар
+              сразу в бюджете этого класса.
+            </Text>
             <ul className="create-pipeline__spell-class-list">
               {spellClassBudgets.map((row) => (
                 <li key={row.slug} className="create-pipeline__spell-class-row">
@@ -418,7 +432,11 @@ export function LevelingStep({
                     >
                       Выбрать…
                     </Button>
-                  ) : null}
+                  ) : (
+                    <Button variant="ghost" onClick={onOpenSpells}>
+                      Выбрать…
+                    </Button>
+                  )}
                 </li>
               ))}
             </ul>
