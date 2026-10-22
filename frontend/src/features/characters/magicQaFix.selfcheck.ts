@@ -401,4 +401,44 @@ function emptyDraft(): SubclassGrantDraftSlice {
   console.log('Q4 Artificer specialists APS: ok')
 }
 
+// --- Q4: druid circle spells (Spores / Stars / Wildfire) ---
+{
+  const expect: Record<string, number> = {
+    circle_of_spores: 9,
+    circle_of_stars: 2,
+    circle_of_wildfire: 10,
+  }
+  for (const [slug, n] of Object.entries(expect)) {
+    const raw = findSub('druid', slug)
+    const def = parseSubclassGrantDef({
+      slug,
+      nameRu: String(raw.name_ru || slug),
+      parentSlug: 'druid',
+      catalogData: raw,
+    })
+    assert(def, `${slug} parse`)
+    assert(
+      def.alwaysPreparedSpells.length === n,
+      `${slug} expected ${n}, got ${def.alwaysPreparedSpells.length}`,
+    )
+    const picks =
+      slug === 'circle_of_stars'
+        ? { values: { star_map: 'scroll' } }
+        : { values: {} }
+    const at2 = applySubclassGrantToDraft({
+      draft: emptyDraft(),
+      classEntryId: `${slug}-1`,
+      catalogId: slug,
+      def,
+      picks,
+      classLevel: 2,
+      maxSpellLevel: 1,
+    })
+    assert(at2, `${slug} L2 apply`)
+    const unlocked = at2.draft.spells.known.length
+    assert(unlocked >= 1, `${slug} L2 grants ≥1, got ${unlocked}`)
+  }
+  console.log('Q4 Druid Spores/Stars/Wildfire APS: ok')
+}
+
 console.log('magicQaFix.selfcheck: all ok')

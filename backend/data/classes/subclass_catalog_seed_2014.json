@@ -2005,7 +2005,54 @@
                 "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Chill Touch",
+              "level": 0,
+              "from_class_level": 2
+            },
+            {
+              "name": "Blindness/Deafness",
+              "level": 2,
+              "from_class_level": 3
+            },
+            {
+              "name": "Gentle Repose",
+              "level": 2,
+              "from_class_level": 3
+            },
+            {
+              "name": "Animate Dead",
+              "level": 3,
+              "from_class_level": 5
+            },
+            {
+              "name": "Gaseous Form",
+              "level": 3,
+              "from_class_level": 5
+            },
+            {
+              "name": "Blight",
+              "level": 4,
+              "from_class_level": 7
+            },
+            {
+              "name": "Confusion",
+              "level": 4,
+              "from_class_level": 7
+            },
+            {
+              "name": "Cloudkill",
+              "level": 5,
+              "from_class_level": 9
+            },
+            {
+              "name": "Contagion",
+              "level": 5,
+              "from_class_level": 9
+            }
+          ]
         },
         {
           "slug": "circle_of_stars",
@@ -2049,7 +2096,19 @@
                 "summary_ru": "Выбор формы — боевой, на листе опционально."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Guidance",
+              "level": 0,
+              "from_class_level": 2
+            },
+            {
+              "name": "Guiding Bolt",
+              "level": 1,
+              "from_class_level": 2
+            }
+          ]
         },
         {
           "slug": "circle_of_wildfire",
@@ -2079,7 +2138,59 @@
                 "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Burning Hands",
+              "level": 1,
+              "from_class_level": 2
+            },
+            {
+              "name": "Cure Wounds",
+              "level": 1,
+              "from_class_level": 2
+            },
+            {
+              "name": "Flaming Sphere",
+              "level": 2,
+              "from_class_level": 3
+            },
+            {
+              "name": "Scorching Ray",
+              "level": 2,
+              "from_class_level": 3
+            },
+            {
+              "name": "Plant Growth",
+              "level": 3,
+              "from_class_level": 5
+            },
+            {
+              "name": "Revivify",
+              "level": 3,
+              "from_class_level": 5
+            },
+            {
+              "name": "Aura of Life",
+              "level": 4,
+              "from_class_level": 7
+            },
+            {
+              "name": "Fire Shield",
+              "level": 4,
+              "from_class_level": 7
+            },
+            {
+              "name": "Flame Strike",
+              "level": 5,
+              "from_class_level": 9
+            },
+            {
+              "name": "Mass Cure Wounds",
+              "level": 5,
+              "from_class_level": 9
+            }
+          ]
         }
       ]
     },
