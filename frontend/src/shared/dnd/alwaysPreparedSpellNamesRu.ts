@@ -73,7 +73,6 @@ const ALWAYS_PREPARED_SPELL_NAME_RU: Record<string, string> = {
   "Flame Strike": "Небесный огонь",
   "Flaming Sphere": "Пылающий шар",
   "Fog Cloud": "Туманное облако",
-  "Fire Shield": "Огненный щит",
   "Freedom of Movement": "Свобода перемещения",
   "Gaseous Form": "Газообразная форма",
   "Geas": "Обет",
