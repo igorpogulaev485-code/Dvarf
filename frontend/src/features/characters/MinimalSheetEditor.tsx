@@ -311,6 +311,7 @@ import {
   initiativeBonusFromRace,
 } from './featureCombatBonuses'
 import { syncRangerConclaveSpells } from './rangerConclaveSpells'
+import { syncPactChainFamiliar } from './pactChainEffects'
 import {
   sanitizeFeaturePicksForPactBoons,
   syncPactTomeCantrips,
@@ -3338,6 +3339,19 @@ export function MinimalSheetEditor({
       cancelled = true
     }
   }, [draft.featurePicks, draft.classes, rulesEdition])
+
+  // Pact of the Chain: Find Familiar as warlock ritual (card appears after cast).
+  useEffect(() => {
+    setDraft((prev) => {
+      const synced = syncPactChainFamiliar({
+        spells: prev.spells,
+        featurePicks: prev.featurePicks,
+        classes: prev.classes,
+      })
+      if (!synced.changed) return prev
+      return { ...prev, spells: synced.spells }
+    })
+  }, [draft.featurePicks, draft.classes])
 
   const infusionBonuses = useMemo(
     () =>
