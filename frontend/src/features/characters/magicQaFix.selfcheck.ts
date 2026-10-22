@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { highestSpellSlotLevelForClasses } from '../../shared/dnd/casterProgression.ts'
 import { parseSubclassGrantDef } from '../../shared/dnd/subclassGrants.ts'
 import { resolveCastEffect } from '../../shared/dnd/spellCatalog.ts'
 import { hydrateAlwaysPreparedMechanics } from './hydrateAlwaysPrepared.ts'
@@ -204,6 +205,76 @@ function emptyDraft(): SubclassGrantDraftSlice {
   assert(hydrated.changed, 'hydrate detects legacy Bless')
   assert(hydrated.known[0]?.concentration === true, 'hydrate sets concentration')
   console.log('hydrate legacy Bless: ok')
+}
+
+// --- Q1 evidence: Cleric4/Paladin4 must not get 5th-circle domain/oath via live apply ---
+{
+  const slotCap = highestSpellSlotLevelForClasses([
+    {
+      id: 'cleric-1',
+      name: 'Жрец',
+      catalog_id: 'cleric',
+      level: 4,
+      subclass_name: 'Домен жизни',
+      subclass_catalog_id: 'life',
+    },
+    {
+      id: 'paladin-1',
+      name: 'Паладин',
+      catalog_id: 'paladin',
+      level: 4,
+      subclass_name: 'Клятва преданности',
+      subclass_catalog_id: 'devotion',
+    },
+  ])
+  assert(slotCap === 3, `Q1 slot cap Cleric4/Paladin4 → 3, got ${slotCap}`)
+
+  const life = findSub('cleric', 'life_domain')
+  const devotion = findSub('paladin', 'oath_of_devotion')
+  const lifeDef = parseSubclassGrantDef({
+    slug: 'life_domain',
+    nameRu: 'Домен жизни',
+    parentSlug: 'cleric',
+    catalogData: life,
+  })
+  const devotionDef = parseSubclassGrantDef({
+    slug: 'oath_of_devotion',
+    nameRu: 'Клятва преданности',
+    parentSlug: 'paladin',
+    catalogData: devotion,
+  })
+  assert(lifeDef && devotionDef, 'Q1 domain/oath parse')
+
+  let draft = emptyDraft()
+  const lifeApplied = applySubclassGrantToDraft({
+    draft,
+    classEntryId: 'cleric-1',
+    catalogId: 'life',
+    def: lifeDef,
+    classLevel: 4,
+    maxSpellLevel: slotCap,
+  })
+  assert(lifeApplied, 'Q1 life apply')
+  draft = lifeApplied.draft
+  const devotionApplied = applySubclassGrantToDraft({
+    draft,
+    classEntryId: 'paladin-1',
+    catalogId: 'devotion',
+    def: devotionDef,
+    classLevel: 4,
+    maxSpellLevel: slotCap,
+  })
+  assert(devotionApplied, 'Q1 devotion apply')
+  const names = devotionApplied.draft.spells.known.map((s) => s.name)
+  const banned = ['Множественное лечение ран', 'Общение', 'Удар пламени']
+  for (const name of banned) {
+    assert(!names.includes(name), `Q1 must not grant ${name} at Cleric4/Paladin4`)
+  }
+  assert(
+    devotionApplied.draft.spells.known.every((s) => s.level <= 3),
+    'Q1 all always-prepared ≤ slot cap 3',
+  )
+  console.log('Q1 live apply Cleric4/Paladin4: ok (no L5 domain/oath)')
 }
 
 console.log('magicQaFix.selfcheck: all ok')
