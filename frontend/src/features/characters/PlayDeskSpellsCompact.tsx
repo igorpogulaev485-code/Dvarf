@@ -247,8 +247,13 @@ export function PlayDeskSpellsCompact({
             </button>
           ) : null}
           {onClearSplit ? (
-            <button type="button" className="play-desk-compact__link" onClick={onClearSplit}>
-              без заклинаний
+            <button
+              type="button"
+              className="play-desk-compact__link"
+              onClick={onClearSplit}
+              title="Скрыть магию — основная панель на всю ширину"
+            >
+              Скрыть магию
             </button>
           ) : null}
           <button
@@ -352,7 +357,16 @@ export function PlayDeskSpellsCompact({
 
       <div className="play-desk-compact__list play-desk-compact__list--dense">
         {ready.length === 0 && levelGroups.length === 0 ? (
-          <p className="play-desk-compact__empty">Нет готовых заклинаний</p>
+          <div className="play-desk-compact__empty-block">
+            <p className="play-desk-compact__empty">Нет готовых заклинаний</p>
+            <button
+              type="button"
+              className="play-desk-compact__link play-desk-compact__link--prepare"
+              onClick={onOpenSettings}
+            >
+              Выбрать заклинания
+            </button>
+          </div>
         ) : (
           levelGroups.map((group) => {
             const slot = group.level > 0 ? spells.slots[String(group.level)] : null

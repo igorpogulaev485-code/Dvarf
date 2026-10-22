@@ -8993,6 +8993,13 @@ button.play-desk-vital:hover,
   color: var(--desk-muted);
 }
 
+.play-desk-compact__empty-block {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  padding: 4px 0 8px;
+}
+
 button.play-desk-compact__more--btn {
   display: inline-flex;
   align-items: center;
@@ -9569,39 +9576,61 @@ button.play-desk-compact__more--btn:hover {
 }
 
 /*
- * Desk hot strip (≥960): horizontal carousel when chips overflow
- * (conditions · concentration · resource pips · skill chips).
- * Matches mobile HotStrip scroll; no wrap that pushes stage down.
+ * Desk hot strip (≥960): wrap pinned chips; overflow resources live in «Ещё»
+ * (no horizontal scroll — UX A1).
  */
 .play-desk--wide .play-desk__hot {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 6px;
   min-width: 0;
   max-width: 100%;
   width: 100%;
   box-sizing: border-box;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
 .play-desk--wide .play-desk__hot-item {
   flex: 0 0 auto;
-  scroll-snap-align: start;
 }
 
 .play-desk--wide .play-desk__hot-item--wide {
-  flex: 0 0 auto;
-  min-width: min(200px, 72%);
-  max-width: min(360px, 85%);
+  flex: 1 1 180px;
+  min-width: min(160px, 100%);
+  max-width: 100%;
 }
 
 .play-desk--wide .play-desk__hot-item--res {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   min-width: 120px;
+}
+
+.play-desk__hot-more {
+  position: relative;
+  flex: 0 0 auto;
+  align-self: stretch;
+}
+
+.play-desk__hot-more-btn {
+  min-width: 72px;
+  height: 100%;
+  font-weight: 600;
+}
+
+.play-desk__hot-more-panel {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 4px);
+  right: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: min(320px, 80vw);
+  max-width: min(480px, 92vw);
+  padding: 8px;
+  border: 1px solid var(--desk-line);
+  border-radius: 10px;
+  background: #fff;
 }
 
 .play-desk__hot-item {

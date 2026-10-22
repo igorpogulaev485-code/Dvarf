@@ -426,6 +426,7 @@ import {
   resolveClassCasterSlug,
   resolveSpellLearnBudget,
 } from '../../shared/dnd/casterProgression'
+import { characterHasMagicSources } from './magicSources'
 import {
   type InventoryItem,
   equipInventoryItem,
@@ -1026,6 +1027,22 @@ export function MinimalSheetEditor({
         abilities: draft.abilities,
       }),
     [unlockedFeatures, characterLevel, draft.abilities],
+  )
+  /** Show spells split when the sheet has any magic source (class/archetype/race/feat/gear). */
+  const hasMagicSources = useMemo(
+    () =>
+      characterHasMagicSources({
+        classes: draft.classes,
+        known: draft.spells.known,
+        slots: draft.spells.slots,
+        pactSlots: draft.spells.pact_slots,
+      }),
+    [
+      draft.classes,
+      draft.spells.known,
+      draft.spells.slots,
+      draft.spells.pact_slots,
+    ],
   )
   /** Grant first; else catalog by slug/name (older sheets without background_grant). */
   const resolvedBackgroundFeature = useMemo(() => {
@@ -4018,6 +4035,38 @@ export function MinimalSheetEditor({
     }))
   }
 
+  /**
+   * Default desk_split is ON for every sheet. Once per character: collapse when
+   * there is no magic; if race/feat grants hydrate later, reopen once.
+   * Does not fight a later manual «Показать магию» on a non-caster.
+   */
+  const magicSplitSeededRef = useRef<string | null>(null)
+  const reopenSplitWhenMagicArrivesRef = useRef(false)
+  useEffect(() => {
+    const id = character.id
+    if (magicSplitSeededRef.current !== id) {
+      magicSplitSeededRef.current = id
+      if (!hasMagicSources) {
+        reopenSplitWhenMagicArrivesRef.current = true
+        if (draft.sheetUi.deskSplit) patchSheetUi({ deskSplit: false })
+      } else {
+        reopenSplitWhenMagicArrivesRef.current = false
+      }
+      return
+    }
+    if (hasMagicSources && reopenSplitWhenMagicArrivesRef.current) {
+      reopenSplitWhenMagicArrivesRef.current = false
+      if (
+        modeUsesSpellSplit(draft.sheetUi.deskMode) &&
+        !draft.sheetUi.deskSplit
+      ) {
+        patchSheetUi({ deskSplit: true })
+      }
+    }
+    // Seed / late-hydrate only — not on every deskSplit toggle.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [character.id, hasMagicSources])
+
   function toggleCombatFavorite(itemId: string) {
     const result = toggleCombatConsumableFavorite(
       draft.sheetUi.combatConsumableFavoriteIds,
@@ -4040,9 +4089,9 @@ export function MinimalSheetEditor({
 
   function setDeskMode(mode: PlayDeskMode) {
     const nextPanel = MODE_DEFAULT_PANEL[mode]
-    // Combat / explore / social keep primary + spells; other scenes stay single-pane.
+    // Pin spells beside the primary panel only when the character has magic sources.
     const nextSplit = modeUsesSpellSplit(mode)
-      ? true
+      ? hasMagicSources
       : mode === 'features' || mode === 'companions'
         ? false
         : draft.sheetUi.deskSplit
@@ -5201,12 +5250,14 @@ export function MinimalSheetEditor({
                   aria-pressed={deskSplit}
                   title={
                     deskSplit
-                      ? 'Убрать заклинания сбоку — одна панель'
-                      : 'Показать заклинания справа рядом с панелью'
+                      ? 'Скрыть магию — основная панель на всю ширину'
+                      : hasMagicSources
+                        ? 'Показать магию справа рядом с панелью'
+                        : 'Показать панель магии (у персонажа нет источников магии)'
                   }
                   onClick={() => patchSheetUi({ deskSplit: !draft.sheetUi.deskSplit })}
                 >
-                  {deskSplit ? 'без заклинаний' : 'Заклинания'}
+                  {deskSplit ? 'Скрыть магию' : 'Показать магию'}
                 </button>
               ) : null}
               <span className="play-desk__mode-hint">{MODE_HINT[draft.sheetUi.deskMode]}</span>
