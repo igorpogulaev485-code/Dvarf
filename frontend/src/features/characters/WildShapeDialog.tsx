@@ -7,9 +7,12 @@ import { Button, Dialog, Field, Input, Stack, Text } from '../../ui'
 import type { CompanionEntry } from './companions'
 import type { KnownForm } from './knownForms'
 import {
+  applyFindFamiliarCompanion,
+  mergeFamiliarCatalogWithFallbacks,
+} from './familiarForms'
+import {
   applyBeastWildShape,
   applyStarryForm,
-  applyWildCompanion,
   applyWildfireSpirit,
   beastPickAllowed,
   ELEMENTAL_FALLBACK_STATS,
@@ -102,9 +105,9 @@ export function WildShapeDialog({
   edition,
   onConfirm,
 }: WildShapeDialogProps) {
-  const [step, setStep] = useState<'fork' | 'beast' | 'starry' | 'elemental'>(
-    'fork',
-  )
+  const [step, setStep] = useState<
+    'fork' | 'beast' | 'familiar' | 'starry' | 'elemental'
+  >('fork')
   const [query, setQuery] = useState('')
   const [catalogPicks, setCatalogPicks] = useState<BestiaryFormPick[]>([])
   const [catalogError, setCatalogError] = useState<string | null>(null)
@@ -242,11 +245,7 @@ export function WildShapeDialog({
       return
     }
     if (id === 'wild_companion') {
-      spendAnd('Дикий спутник', 1, () => ({
-        companions: applyWildCompanion({ companions, druidLevel }),
-        knownForms,
-        toast: 'Дикий спутник: фамильяр-фея',
-      }))
+      setStep('familiar')
       return
     }
     if (id === 'symbiotic_entity') {
@@ -288,6 +287,33 @@ export function WildShapeDialog({
       return { ...next, toast: `Дикий облик: ${pick.name_ru}` }
     })
   }
+
+  function confirmFamiliar(pick: BestiaryFormPick) {
+    spendAnd('Дикий спутник', 1, () => {
+      const applied = applyFindFamiliarCompanion({
+        companions,
+        pick,
+        mode: 'wild_companion',
+        druidLevel,
+        characterLevel: druidLevel,
+      })
+      return {
+        companions: applied.companions,
+        knownForms,
+        toast: `Дикий спутник: ${pick.name_ru} (фея)`,
+      }
+    })
+  }
+
+  const familiarOptions = useMemo(() => {
+    const merged = mergeFamiliarCatalogWithFallbacks(catalogPicks, 'wild_companion')
+    const q = query.trim().toLowerCase()
+    if (!q) return merged
+    return merged.filter(
+      (p) =>
+        p.name_ru.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q),
+    )
+  }, [catalogPicks, query])
 
   function confirmStarry() {
     spendAnd('Звёздная форма', 1, () => ({
@@ -342,9 +368,11 @@ export function WildShapeDialog({
       ? 'Дикий облик — на что потратить?'
       : step === 'beast'
         ? 'Выбери звериный облик'
-        : step === 'starry'
-          ? 'Звёздная форма'
-          : 'Элементальный облик'
+        : step === 'familiar'
+          ? 'Дикий спутник — выбери форму'
+          : step === 'starry'
+            ? 'Звёздная форма'
+            : 'Элементальный облик'
 
   return (
     <Dialog
@@ -363,7 +391,7 @@ export function WildShapeDialog({
             ? 'Принять (−2)'
             : 'Закрыть'
       }
-      primaryDisabled={step === 'beast'}
+      primaryDisabled={step === 'beast' || step === 'familiar'}
       onPrimary={() => {
         if (step === 'starry') confirmStarry()
         else if (step === 'elemental') confirmElemental()
@@ -402,6 +430,37 @@ export function WildShapeDialog({
               Альтернативы кругов видны, если архетип разблокировал умение. Дикий спутник
               (Tasha) — на этой же развилке.
             </Text>
+          </>
+        ) : null}
+
+        {step === 'familiar' ? (
+          <>
+            <Text tone="muted">
+              Как «Поиск фамильяра», но тип — фея. −1 Дикий облик · длительность{' '}
+              {Math.max(1, Math.floor(druidLevel / 2))} ч. Особые формы Цепи недоступны.
+            </Text>
+            <Field label="Поиск">
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="сова, кошка, ворон…"
+              />
+            </Field>
+            {loading ? <Text tone="muted">Загрузка бестиария…</Text> : null}
+            {familiarOptions.map((p) => (
+              <Button
+                key={`fam-${p.slug}`}
+                type="button"
+                variant="secondary"
+                onClick={() => confirmFamiliar(p)}
+              >
+                {p.name_ru} · CR {p.cr} · КД {p.ac} · HP {p.hp}
+                {p.speed_fly ? ` · полёт ${p.speed_fly}` : ''}
+              </Button>
+            ))}
+            {!loading && familiarOptions.length === 0 ? (
+              <Text tone="muted">Нет форм — закрой и попробуй позже.</Text>
+            ) : null}
           </>
         ) : null}
 

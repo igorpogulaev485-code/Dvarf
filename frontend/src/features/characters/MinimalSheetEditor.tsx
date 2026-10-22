@@ -105,6 +105,15 @@ import {
   SpellFormDialog,
   type SpellFormDialogResult,
 } from './SpellFormDialog'
+import {
+  FamiliarPickDialog,
+  type FamiliarPickDialogResult,
+} from './FamiliarPickDialog'
+import {
+  isFindFamiliarSpell,
+  resolveFamiliarCastMode,
+  type FamiliarCastMode,
+} from './familiarForms'
 import { armorKindLabel, computeArmorClass } from '../../shared/dnd/armor'
 import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
 import { AbilityBreakdownDialog } from './AbilityBreakdownDialog'
@@ -3896,6 +3905,11 @@ export function MinimalSheetEditor({
     spell: SheetSpell
     slug: SpellSelfFormSlug
   } | null>(null)
+  const [pendingFamiliar, setPendingFamiliar] = useState<{
+    spell: SheetSpell
+    mode: FamiliarCastMode
+    slotLevel: number
+  } | null>(null)
   const [deskCastScrollId, setDeskCastScrollId] = useState<string | null>(null)
   const [consumableSpendPadId, setConsumableSpendPadId] = useState<string | null>(null)
   const [consumableSpendLog, setConsumableSpendLog] = useState<ConsumableSpendLogEntry[]>(
@@ -4207,6 +4221,20 @@ export function MinimalSheetEditor({
     return true
   }
 
+  function openDeskFamiliarPickerIfNeeded(
+    spell: SheetSpell,
+    slotLevel: number,
+  ): boolean {
+    if (!isFindFamiliarSpell(spell)) return false
+    const mode = resolveFamiliarCastMode({
+      spell,
+      featurePicks: draft.featurePicks,
+      classes: draft.classes,
+    })
+    setPendingFamiliar({ spell, mode, slotLevel })
+    return true
+  }
+
   function applySpellSelfFormResult(result: SpellFormDialogResult) {
     setDraft((prev) => ({
       ...prev,
@@ -4215,6 +4243,12 @@ export function MinimalSheetEditor({
     }))
     if (result.toast) onToast(result.toast)
     setPendingSpellSelfForm(null)
+  }
+
+  function applyFamiliarPickResult(result: FamiliarPickDialogResult) {
+    setDraft((prev) => ({ ...prev, companions: result.companions }))
+    if (result.toast) onToast(result.toast)
+    setPendingFamiliar(null)
   }
 
   function runDeskCast(spell: SheetSpell, choice: CastChoice) {
@@ -4257,13 +4291,20 @@ export function MinimalSheetEditor({
     }
     const naparnikSlot = slotForEffect || spell.level
     const wantsForm = openDeskSelfFormPickerIfNeeded(spell, choice)
-    const formNote = wantsForm ? ' · выбери форму' : ''
+    const wantsFamiliar =
+      !wantsForm && openDeskFamiliarPickerIfNeeded(spell, naparnikSlot)
+    const formNote = wantsForm
+      ? ' · выбери форму'
+      : wantsFamiliar
+        ? ' · выбери фамильяра'
+        : ''
 
     if (spell.level <= 0) {
       if (spell.concentration) applyDeskConcentration(spell)
-      const naparnikNote = wantsForm
-        ? ''
-        : applyDeskNaparnikFromCast(spell, naparnikSlot)
+      const naparnikNote =
+        wantsForm || wantsFamiliar
+          ? ''
+          : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
         spell.concentration
           ? `Каст: ${name}${effectNote}${consumeNote}${allyNote} (концентрация)${naparnikNote}${formNote}`
@@ -4285,9 +4326,10 @@ export function MinimalSheetEditor({
           spell,
         ),
       )
-      const naparnikNote = wantsForm
-        ? ''
-        : applyDeskNaparnikFromCast(spell, naparnikSlot)
+      const naparnikNote =
+        wantsForm || wantsFamiliar
+          ? ''
+          : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
         `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
@@ -4307,9 +4349,10 @@ export function MinimalSheetEditor({
         }
       }
       if (spell.concentration) applyDeskConcentration(spell)
-      const naparnikNote = wantsForm
-        ? ''
-        : applyDeskNaparnikFromCast(spell, naparnikSlot)
+      const naparnikNote =
+        wantsForm || wantsFamiliar
+          ? ''
+          : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
         `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
@@ -4332,9 +4375,10 @@ export function MinimalSheetEditor({
           spell,
         ),
       )
-      const naparnikNote = wantsForm
-        ? ''
-        : applyDeskNaparnikFromCast(spell, pactResult.pact.level)
+      const naparnikNote =
+        wantsForm || wantsFamiliar
+          ? ''
+          : applyDeskNaparnikFromCast(spell, pactResult.pact.level)
       onToast(
         `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
@@ -4356,9 +4400,10 @@ export function MinimalSheetEditor({
         spell,
       ),
     )
-    const naparnikNote = wantsForm
-      ? ''
-      : applyDeskNaparnikFromCast(spell, choice.slotLevel)
+    const naparnikNote =
+      wantsForm || wantsFamiliar
+        ? ''
+        : applyDeskNaparnikFromCast(spell, choice.slotLevel)
     const upcast =
       choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast(
@@ -7406,6 +7451,27 @@ export function MinimalSheetEditor({
             onToast(
               'Облик не выбран — концентрация активна; карточку можно не создавать',
             )
+          }}
+        />
+      ) : null}
+
+      {pendingFamiliar ? (
+        <FamiliarPickDialog
+          open
+          mode={pendingFamiliar.mode}
+          spell={pendingFamiliar.spell}
+          slotLevel={pendingFamiliar.slotLevel}
+          companions={draft.companions}
+          characterLevel={characterLevel}
+          druidLevel={
+            draft.classes.find((row) => /друид|druid/i.test(row.name))?.level ??
+            1
+          }
+          edition={rulesEdition === '2024' ? '2024' : '2014'}
+          onConfirm={applyFamiliarPickResult}
+          onClose={() => {
+            setPendingFamiliar(null)
+            onToast('Фамильяр не выбран — каст уже списан; можно кастануть снова')
           }}
         />
       ) : null}
