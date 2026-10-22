@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/artificer-infusions-full-ab30
+cursor/teodor-spell-ship-7a4a
 ```
 
 URL: https://creed20.tech/
