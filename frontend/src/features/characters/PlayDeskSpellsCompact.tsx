@@ -15,7 +15,7 @@ import {
   mergeCastProfilesForDisplay,
   type SpellCastProfile,
 } from '../../shared/dnd/castProfiles'
-import { resolveCastEffect } from '../../shared/dnd/spellCatalog'
+import { resolveCastEffectSummary } from '../../shared/dnd/spellCatalog'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
   countAlwaysPreparedLeveled,
@@ -568,11 +568,11 @@ function shortDamage(raw: string): string {
 
 /** Actual effect for this character (cantrip/slot scaling), not the catalog base. */
 function compactDamage(spell: SheetSpell, characterLevel: number): string {
-  const { effect } = resolveCastEffect(spell, {
+  const summary = resolveCastEffectSummary(spell, {
     characterLevel: Math.max(1, characterLevel),
     slotLevel: Math.max(spell.level, 1),
   })
-  return shortDamage(effect)
+  return shortDamage(summary.effect)
 }
 
 /** Unified card skeleton: action · range · attack/save (always present). */
