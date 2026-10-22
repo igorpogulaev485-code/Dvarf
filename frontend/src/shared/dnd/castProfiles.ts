@@ -315,6 +315,8 @@ export function inferClassSlugForSpell(
     source_kind?: string | null
     prepare_source_label?: string | null
     id?: string
+    /** Wizard continuum marker — safe MC backfill to wizard when present. */
+    spellbook_acquisition?: string | null
   },
   profiles: SpellCastProfile[],
 ): string | null {
@@ -332,10 +334,42 @@ export function inferClassSlugForSpell(
     }
   }
 
+  // Wizard spellbook rows (starting / level_up / copied / …) — even on multiclass.
+  const acquisition = (spell.spellbook_acquisition ?? '').trim()
+  if (acquisition) {
+    const wizard = profiles.find((row) => row.slug === 'wizard' && row.kind === 'class')
+    if (wizard) return 'wizard'
+  }
+
   const label = (spell.prepare_source_label ?? '').toLowerCase()
   for (const profile of profiles) {
     if (label.includes(profile.labelRu.toLowerCase())) return profile.slug
     if (label.includes(profile.slug)) return profile.slug
+  }
+
+  // Domain / oath / circle chips often name the archetype, not the parent class.
+  if (
+    (label.includes('домен') ||
+      label.includes('клятв') ||
+      label.includes('круг') ||
+      label.includes('охотник') ||
+      label.includes('conclave') ||
+      spell.source_kind === 'subclass' ||
+      spell.id?.startsWith('subclass-spell:')) &&
+    profiles.length > 0
+  ) {
+    if (label.includes('дикого огня') || label.includes('wildfire')) {
+      const druid = profiles.find((row) => row.slug === 'druid')
+      if (druid) return 'druid'
+    }
+    if (label.includes('домен') || label.includes('domain')) {
+      const cleric = profiles.find((row) => row.slug === 'cleric')
+      if (cleric) return 'cleric'
+    }
+    if (label.includes('клятв') || label.includes('oath')) {
+      const paladin = profiles.find((row) => row.slug === 'paladin')
+      if (paladin) return 'paladin'
+    }
   }
 
   // Pact of the Tome / warlock features → warlock when that profile exists.

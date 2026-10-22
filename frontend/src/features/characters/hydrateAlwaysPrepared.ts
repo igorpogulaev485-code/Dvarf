@@ -122,7 +122,7 @@ function toSnapshot(spells: AlwaysPreparedSpell[]): AlwaysPreparedSpell[] {
 export function hydrateAlwaysPreparedFromSubclassCatalog(input: {
   draft: SubclassGrantDraftSlice
   subclassEntries: CatalogEntry[]
-  classLevelsByEntryId: Record<string, number>
+  classLevelByEntryId: Record<string, number>
   maxSpellLevel: number
 }): { draft: SubclassGrantDraftSlice; changed: boolean } {
   const byId = new Map(input.subclassEntries.map((entry) => [entry.id, entry]))
@@ -159,7 +159,7 @@ export function hydrateAlwaysPreparedFromSubclassCatalog(input: {
   const synced = syncSubclassAlwaysPreparedSpells({
     draft: withGrants,
     maxSpellLevel: input.maxSpellLevel,
-    classLevelsByEntryId: input.classLevelsByEntryId,
+    classLevelByEntryId: input.classLevelByEntryId,
   })
 
   const mechanics = hydrateAlwaysPreparedMechanics(synced.spells.known)

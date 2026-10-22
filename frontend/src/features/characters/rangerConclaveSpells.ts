@@ -140,8 +140,15 @@ export function syncRangerConclaveSpells(input: {
           name: spellRow.name,
           level: spellRow.level,
           catalog_id: existing?.catalog_id ?? null,
+          class_slug: 'ranger',
+          class_entry_id: row.id,
         },
-        { source_kind: 'subclass', label: pack.labelRu },
+        {
+          source_kind: 'subclass',
+          label: pack.labelRu,
+          class_slug: 'ranger',
+          class_entry_id: row.id,
+        },
       )
       if (!existing) changed = true
       known.push(created)

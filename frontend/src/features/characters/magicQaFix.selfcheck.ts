@@ -161,7 +161,7 @@ function emptyDraft(): SubclassGrantDraftSlice {
       spells: { ...at20.draft.spells, known: [...at20.draft.spells.known] },
     },
     maxSpellLevel: 2,
-    classLevelsByEntryId: { 'art-1': 5 },
+    classLevelByEntryId: { 'art-1': 5 },
   })
   assert(
     synced.spells.known.length === 4,
@@ -347,7 +347,7 @@ function emptyDraft(): SubclassGrantDraftSlice {
     const synced = syncSubclassAlwaysPreparedSpells({
       draft,
       maxSpellLevel: 9,
-      classLevelsByEntryId: {},
+      classLevelByEntryId: {},
     })
     assert(
       !synced.spells.known.some((s) => s.id === 'orphan-mass-cure'),

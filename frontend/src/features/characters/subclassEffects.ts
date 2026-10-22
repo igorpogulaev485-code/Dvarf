@@ -608,6 +608,7 @@ export function applySubclassGrantToDraft(input: {
     classLevel,
     sharedCap,
   )
+  const parentClassSlug = input.def.parentSlug.trim().toLowerCase() || null
   const landMatched = input.def.alwaysPreparedSpells.filter((spell) =>
     alwaysPreparedMatchesPicks(spell, picks.values),
   )
@@ -629,6 +630,8 @@ export function applySubclassGrantToDraft(input: {
       {
         source_kind: 'subclass',
         label: input.def.labelRu,
+        class_slug: parentClassSlug,
+        class_entry_id: input.classEntryId,
       },
     )
     known.push(created)
@@ -700,8 +703,8 @@ export function syncSubclassAlwaysPreparedSpells(input: {
   draft: SubclassGrantDraftSlice
   /** Fallback shared slot cap when parent progression is unknown. */
   maxSpellLevel: number
-  /** Gates from_class_level specialty spells (Artillerist, Gloom, …). */
-  classLevelsByEntryId?: Record<string, number>
+  /** classEntryId → class level (for fromClassLevel circle/conclave gates). */
+  classLevelByEntryId?: Record<string, number>
 }): SubclassGrantDraftSlice {
   const sharedCap = Math.max(0, Math.min(9, Math.floor(input.maxSpellLevel)))
   let known = [...input.draft.spells.known]
@@ -712,11 +715,10 @@ export function syncSubclassAlwaysPreparedSpells(input: {
     const catalog = grant.alwaysPreparedSpells
     if (!catalog || catalog.length === 0) continue
 
-    const classLevelRaw = input.classLevelsByEntryId?.[grant.classEntryId]
-    const classLevel =
-      typeof classLevelRaw === 'number' && Number.isFinite(classLevelRaw)
-        ? Math.min(20, Math.max(1, Math.floor(classLevelRaw)))
-        : 20
+    const classLevel = Math.min(
+      20,
+      Math.max(1, Math.floor(input.classLevelByEntryId?.[grant.classEntryId] ?? 20)),
+    )
     const maxSpellLevel = aloneMaxSpellLevelForParent(
       grant.parentSlug,
       classLevel,
@@ -729,6 +731,7 @@ export function syncSubclassAlwaysPreparedSpells(input: {
       grant.slug
     const nextKnown = known.filter((spell) => !removeIds.has(spell.id))
     const grantedSpellIds: string[] = []
+    const parentClassSlug = grant.parentSlug.trim().toLowerCase() || null
 
     for (const spell of catalog) {
       if (!alwaysPreparedMatchesPicks(spell, grant.picks ?? {})) continue
@@ -749,6 +752,8 @@ export function syncSubclassAlwaysPreparedSpells(input: {
         {
           source_kind: 'subclass',
           label: prevLabel,
+          class_slug: parentClassSlug,
+          class_entry_id: grant.classEntryId,
         },
       )
       nextKnown.push(created)

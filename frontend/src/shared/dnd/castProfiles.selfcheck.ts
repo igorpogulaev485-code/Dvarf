@@ -140,6 +140,21 @@ const tome = backfillSpellClassFields(
 )
 assert(tome[0]!.class_slug === 'warlock', 'tome → warlock')
 
+// Wizard spellbook continuum on multiclass → wizard (Teodor orphan rows).
+const withWizard = buildCastProfiles({
+  classes: [
+    createClassLevel({ id: 'wiz', name: 'Волшебник', level: 5 }),
+    createClassLevel({ id: 'war', name: 'Колдун', level: 5 }),
+  ],
+  abilityModFor: abilityModFor({ int: 18, wis: 10, cha: 16 }),
+  proficiencyBonus: 3,
+})
+const bookRow = backfillSpellClassFields(
+  [{ id: 'orphan', spellbook_acquisition: 'starting' as const }],
+  withWizard,
+)
+assert(bookRow[0]!.class_slug === 'wizard', 'spellbook_acquisition → wizard on MC')
+
 // --- M2 budgets ---
 const budgets = resolveSpellLearnBudgets({
   classes: kvakClasses,

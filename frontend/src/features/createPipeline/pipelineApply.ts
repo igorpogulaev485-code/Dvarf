@@ -100,6 +100,7 @@ import {
   syncSubclassAlwaysPreparedSpells,
   type SubclassGrantDraftSlice,
 } from '../characters/subclassEffects'
+import { syncDruidCircleSpells } from '../characters/druidCircleSpells'
 import {
   EMPTY_ARMOR,
   EMPTY_WEAPONS,
@@ -1290,18 +1291,37 @@ export async function applyPipelineToSheet(input: {
   // Domain/oath spells must match final slot table (create applies subclass before slots).
   {
     const slotCap = highestSpellSlotLevel(finalSpells.slots, finalSpells.pact_slots)
+    const classLevelByEntryId: Record<string, number> = {}
+    for (const row of classes) {
+      classLevelByEntryId[row.id] = row.level
+    }
     const synced = syncSubclassAlwaysPreparedSpells({
       draft: {
         ...subclassSlice(draft),
         spells: finalSpells,
       },
       maxSpellLevel: slotCap,
-      classLevelsByEntryId: Object.fromEntries(
-        classes.map((row) => [row.id, row.level]),
-      ),
+      classLevelByEntryId,
     })
     Object.assign(draft, mergeSubclass(draft, synced))
     finalSpells = synced.spells
+  }
+
+  // Wildfire circle spells (TCoE): always-prepared as druid even if grant snapshot was empty.
+  {
+    const subclassSlugByEntryId: Record<string, string | null> = {}
+    for (const grant of draft.subclassGrants ?? []) {
+      subclassSlugByEntryId[grant.classEntryId] = grant.slug
+    }
+    const synced = syncDruidCircleSpells({
+      spells: finalSpells,
+      classes,
+      subclassSlugByEntryId,
+    })
+    if (synced.changed) {
+      finalSpells = synced.spells
+      draft.spells = synced.spells
+    }
   }
 
   // Slice C: bind / ensure physical spellbook on final persist (same contract as mid-create).

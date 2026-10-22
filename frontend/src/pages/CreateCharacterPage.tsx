@@ -1363,6 +1363,23 @@ export function CreateCharacterPage() {
       setSpellWarnOpen(true)
       return
     }
+    // Known casters (warlock/sorcerer/bard/…): soft warn if under budget — MC
+    // sheets with other classes' spells used to skip the empty-spells gate.
+    const knownGaps = spellLearnBudgets.filter((row) => {
+      if (row.mode !== 'known') return false
+      const cantrips = countLearnedCantripsForSlug(spells.known, row.slug)
+      const leveled = countLearnedLeveledForSlug(spells.known, row.slug)
+      const cantripShort = row.cantrips > 0 && cantrips < row.cantrips
+      const leveledShort =
+        row.leveledKnown != null &&
+        row.leveledKnown > 0 &&
+        leveled < row.leveledKnown
+      return cantripShort || leveledShort
+    })
+    if (knownGaps.length > 0) {
+      setSpellWarnOpen(true)
+      return
+    }
     void persist({ asDraft: false })
   }
 
@@ -2467,16 +2484,51 @@ export function CreateCharacterPage() {
       {spellWarnOpen ? (
         <div className="create-pipeline__modal">
           <Stack gap={12}>
-            <Text as="h3">Заклинания не выбраны</Text>
+            <Text as="h3">Заклинания не добраны</Text>
             <Text>
-              Заполнить на листе или продолжить в форме создания? Для кастеров с заменой только на
-              повышении уровня лучше закрыть здесь.
+              {(() => {
+                const gaps = spellLearnBudgets
+                  .filter((row) => row.mode === 'known')
+                  .map((row) => {
+                    const cantrips = countLearnedCantripsForSlug(spells.known, row.slug)
+                    const leveled = countLearnedLeveledForSlug(spells.known, row.slug)
+                    const parts: string[] = []
+                    if (row.cantrips > 0 && cantrips < row.cantrips) {
+                      parts.push(`заговоры ${cantrips}/${row.cantrips}`)
+                    }
+                    if (
+                      row.leveledKnown != null &&
+                      row.leveledKnown > 0 &&
+                      leveled < row.leveledKnown
+                    ) {
+                      parts.push(`известные ${leveled}/${row.leveledKnown}`)
+                    }
+                    return parts.length ? `${row.labelRu}: ${parts.join(', ')}` : null
+                  })
+                  .filter(Boolean)
+                if (gaps.length > 0) {
+                  return `${gaps.join(' · ')}. Для known-кастеров замена только при повышении уровня — лучше закрыть бюджет здесь.`
+                }
+                return 'Заполнить на листе или продолжить в форме создания? Для кастеров с заменой только на повышении уровня лучше закрыть здесь.'
+              })()}
             </Text>
             <div className="create-pipeline__method-row">
               <Button
                 variant="secondary"
                 onClick={() => {
                   setSpellWarnOpen(false)
+                  const gapSlug = spellLearnBudgets.find((row) => {
+                    if (row.mode !== 'known') return false
+                    const cantrips = countLearnedCantripsForSlug(spells.known, row.slug)
+                    const leveled = countLearnedLeveledForSlug(spells.known, row.slug)
+                    return (
+                      (row.cantrips > 0 && cantrips < row.cantrips) ||
+                      (row.leveledKnown != null &&
+                        row.leveledKnown > 0 &&
+                        leveled < row.leveledKnown)
+                    )
+                  })?.slug
+                  setGrimoireClassFilter(gapSlug ?? null)
                   setSpellsOpen('grimoire')
                 }}
               >
