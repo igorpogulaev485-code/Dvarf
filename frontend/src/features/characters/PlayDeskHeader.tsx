@@ -35,7 +35,10 @@ import {
   IconSkull,
   IconSpark,
 } from './deskIcons'
-import { formatJumpTitle } from '../../shared/dnd/jumpDistance'
+import {
+  formatJumpFaceLabel,
+  formatJumpTitle,
+} from '../../shared/dnd/jumpDistance'
 import { formatModifier } from './sheetTypes'
 
 type SpeedMode = {
@@ -479,7 +482,7 @@ export function PlayDeskHeader({
               className={`play-desk-vital play-desk-vital--jump${
                 showValueTips ? ' has-onboarding-tip' : ''
               }`}
-              aria-label={`Прыжок: длинный ${jumpLongFt} фт, высокий ${jumpHighFt} фт`}
+              aria-label={`Прыжок: в длину ${jumpLongFt} фт, в высоту ${jumpHighFt} фт`}
               title={
                 showValueTips
                   ? undefined
@@ -494,7 +497,9 @@ export function PlayDeskHeader({
                 </span>
                 {jumpHighFt}
               </b>
-              <span className="play-desk-vital__label-row">Прыж.</span>
+              <span className="play-desk-vital__label-row">
+                {formatJumpFaceLabel()}
+              </span>
               {showValueTips ? <HoverTipCard tip={VITAL_TIPS.jump} /> : null}
             </div>
           ) : null}

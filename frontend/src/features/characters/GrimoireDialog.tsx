@@ -651,7 +651,7 @@ export function GrimoireDialog({
       ) {
         onToast?.(
           aloneCap > 0
-            ? `Нет в списке класса / круг выше alone-max (до ${aloneCap})`
+            ? `Нет в списке класса / круг выше доступного этому классу (до ${aloneCap})`
             : 'Пока доступны только заговоры этого класса',
         )
         return
@@ -1073,7 +1073,7 @@ export function GrimoireDialog({
   const accessHint = !access.hasCaster
     ? 'Нет класса с заклинаниями — гримуар пуст.'
     : shelfHint
-      ? `Полки (alone-max): ${shelfHint}.`
+      ? `Полки по классам: ${shelfHint}.`
       : access.maxSpellLevel > 0
         ? `Список классов · до ${access.maxSpellLevel} круга.`
         : 'Пока только заговоры из списка класса (ячеек ещё нет).'

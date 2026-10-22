@@ -9030,6 +9030,17 @@ button.play-desk-vital:hover,
   padding: 4px 0 8px;
 }
 
+.play-desk-compact__empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.play-desk-compact__empty-block.is-magic-primary {
+  padding-top: 2px;
+}
+
 button.play-desk-compact__more--btn {
   display: inline-flex;
   align-items: center;

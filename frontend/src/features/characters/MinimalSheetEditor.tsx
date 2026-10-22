@@ -381,6 +381,7 @@ import {
   MODE_HINT,
   MODE_LABELS,
   MODE_SKILL_KEYS,
+  defaultDeskSplitForMode,
   modeUsesSpellSplit,
   readSheetUi,
   sheetUiToPatch,
@@ -4056,8 +4057,9 @@ export function MinimalSheetEditor({
     }
     if (hasMagicSources && reopenSplitWhenMagicArrivesRef.current) {
       reopenSplitWhenMagicArrivesRef.current = false
+      // Only auto-reopen on combat (explore/social stay full-width until «Показать магию»).
       if (
-        modeUsesSpellSplit(draft.sheetUi.deskMode) &&
+        defaultDeskSplitForMode(draft.sheetUi.deskMode, true) &&
         !draft.sheetUi.deskSplit
       ) {
         patchSheetUi({ deskSplit: true })
@@ -4089,12 +4091,11 @@ export function MinimalSheetEditor({
 
   function setDeskMode(mode: PlayDeskMode) {
     const nextPanel = MODE_DEFAULT_PANEL[mode]
-    // Pin spells beside the primary panel only when the character has magic sources.
-    const nextSplit = modeUsesSpellSplit(mode)
-      ? hasMagicSources
-      : mode === 'features' || mode === 'companions'
+    // Combat: pin spells when magic exists. Explore/social: full width (A3).
+    const nextSplit =
+      mode === 'features' || mode === 'companions'
         ? false
-        : draft.sheetUi.deskSplit
+        : defaultDeskSplitForMode(mode, hasMagicSources)
     patchSheetUi({ deskMode: mode, deskSplit: nextSplit })
     setActivePanel(nextPanel)
     setForceFullPanel(null)
@@ -6104,7 +6105,13 @@ export function MinimalSheetEditor({
             favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
             combatFeatures={unlockedFeatures}
             rollMode={effectiveRollMode()}
+            preferMagicEmpty={hasMagicSources}
             onOpenSettings={() => setAttacksSettingsOpen(true)}
+            onAddAttack={() => setAttacksSettingsOpen(true)}
+            onOpenInventory={() => {
+              setDeskMode('explore')
+              setActivePanel('inventory')
+            }}
             onCombatFeatureToggle={(featureId, active) => {
               if (featureId === 'reckless_attack') {
                 setDeskRollMode(active ? 'advantage' : 'normal')
@@ -6385,7 +6392,7 @@ export function MinimalSheetEditor({
             pinned={deskSplit && splitSecondary === 'spells'}
             concentration={draft.play.concentration}
             edition={rulesEdition}
-            settingsLabel={isPlayDesk ? 'Настройки' : 'Книга'}
+            settingsLabel={isPlayDesk ? 'Магия' : 'Книга'}
             onOpenSettings={() => {
               if (!isPlayDesk) setMobileSpellSurface('book')
               setSpellsSettingsOpen(true)

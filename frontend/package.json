@@ -29,7 +29,9 @@
     "selfcheck:consumable-spend": "tsx src/features/characters/consumableSpend.selfcheck.ts",
     "selfcheck:magic-sources": "tsx src/features/characters/magicSources.selfcheck.ts",
     "selfcheck:resource-disambiguate": "tsx src/shared/dnd/featureResources.disambiguate.selfcheck.ts",
-    "selfcheck:cast-effect": "tsx src/shared/dnd/spellCatalog.castEffect.selfcheck.ts"
+    "selfcheck:cast-effect": "tsx src/shared/dnd/spellCatalog.castEffect.selfcheck.ts",
+    "selfcheck:desk-split": "tsx src/features/characters/playDeskUi.deskSplit.selfcheck.ts",
+    "selfcheck:jump-distance": "tsx src/shared/dnd/jumpDistance.selfcheck.ts"
   },
   "dependencies": {
     "react": "^19.2.8",
