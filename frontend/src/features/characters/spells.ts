@@ -854,8 +854,14 @@ export function asAlwaysPreparedSpell(
     source_kind: Extract<SpellSourceKind, 'subclass' | 'feat' | 'feature'>
     label: string
     feat_grant?: 'innate' | 'spell_list'
+    /** MC cast profile (domain/oath/circle → parent class). */
+    class_slug?: string | null
+    class_entry_id?: string | null
   },
 ): SheetSpell {
+  const classSlug = input.class_slug?.trim() || spell.class_slug || null
+  const classEntryId =
+    input.class_entry_id?.trim() || spell.class_entry_id || null
   return {
     ...spell,
     prepared: true,
@@ -866,6 +872,8 @@ export function asAlwaysPreparedSpell(
       ? spell.notes
       : `Всегда подготовлено · ${input.label}`,
     ...(input.feat_grant ? { feat_grant: input.feat_grant } : {}),
+    ...(classSlug ? { class_slug: classSlug } : {}),
+    ...(classEntryId ? { class_entry_id: classEntryId } : {}),
   }
 }
 
