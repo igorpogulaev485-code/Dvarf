@@ -888,6 +888,41 @@ export function stripFeatSheetSpellsForGrant(
   )
 }
 
+/**
+ * Keep race/feat grants; drop subclass always-prepared and class-tagged known
+ * that no longer match remaining class slugs (create-pipeline class swap / MC prune).
+ */
+export function retainSpellsForRemainingClasses(
+  known: SheetSpell[],
+  remainingClassSlugs: string[],
+  options?: { dropUntagged?: boolean },
+): SheetSpell[] {
+  const allowed = new Set(
+    remainingClassSlugs
+      .map((slug) => slug.trim().toLowerCase())
+      .filter(Boolean),
+  )
+  const dropUntagged = options?.dropUntagged ?? allowed.size === 0
+  return known.filter((spell) => {
+    if (isRaceSheetSpell(spell)) return true
+    if (isFeatSheetSpell(spell)) return true
+    if (isSubclassSheetSpell(spell)) return false
+    if (spell.prepared_locked && spell.source_kind === 'subclass') return false
+    if (
+      spell.source_kind === 'feature' ||
+      spell.id.startsWith('feature-spell:') ||
+      spell.id.startsWith('gear-spell:')
+    ) {
+      const slug = (spell.class_slug ?? '').trim().toLowerCase()
+      if (slug) return allowed.has(slug)
+      return false
+    }
+    const slug = (spell.class_slug ?? '').trim().toLowerCase()
+    if (slug) return allowed.has(slug)
+    return !dropUntagged
+  })
+}
+
 export function readSpells(sheet: Record<string, unknown>): SpellsState {
   const spells = asRecord(sheet.spells)
   const slotsRaw = asRecord(spells.slots)

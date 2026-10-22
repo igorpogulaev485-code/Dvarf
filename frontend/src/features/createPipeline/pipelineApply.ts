@@ -1046,9 +1046,11 @@ export async function applyPipelineToSheet(input: {
 
   // 4) Subclass grants (after class grants)
   const maxSpellLevelForCreate = highestSpellSlotLevelForClasses(classes)
+  const classEntryIds = new Set(classes.map((row) => row.id))
   for (const row of classes) {
     const setup = state.subclassSetups?.[row.id]
     if (!setup) continue
+    if (!classEntryIds.has(row.id)) continue
     const entry = snapshotToEntry(setup.entry, 'subclass')
     const def = resolveSubclassDefFromCatalog({
       nameRu: entry.name_ru,

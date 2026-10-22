@@ -155,6 +155,10 @@ import {
   type SpellsState,
 } from '../features/characters/spells'
 import {
+  pruneSubclassSetupsForClasses,
+  resetSpellsForClassChange,
+} from '../features/createPipeline/createPipelineMagicReset'
+import {
   formatNamedCantripBudgets,
   resolveSpellLearnBudgets,
   totalCantripsBudget,
@@ -1129,16 +1133,24 @@ export function CreateCharacterPage() {
       return
     }
     if (step === 'leveling') {
+      const nextClasses = [
+        createClassLevel({
+          id: state.classEntryId,
+          name: state.classRef?.nameRu ?? '',
+          catalog_id: state.classRef?.id ?? null,
+          level: 1,
+        }),
+      ]
+      setSpells(
+        resetSpellsForClassChange({
+          prev: spells,
+          remainingClasses: nextClasses,
+          dropUntagged: true,
+        }),
+      )
       patchState({
         step: nextStep,
-        classes: [
-          createClassLevel({
-            id: state.classEntryId,
-            name: state.classRef?.nameRu ?? '',
-            catalog_id: state.classRef?.id ?? null,
-            level: 1,
-          }),
-        ],
+        classes: nextClasses,
         hpChoices: [],
         subclassSetups: {},
         featurePicks: emptyFeaturePicks(),
@@ -1151,6 +1163,7 @@ export function CreateCharacterPage() {
       return
     }
     if (step === 'class') {
+      setSpells(readSpells({}))
       patchState({
         step: nextStep,
         classRef: null,
@@ -1402,12 +1415,26 @@ export function CreateCharacterPage() {
         level: 1,
       }),
     ]
+    const classChanged =
+      Boolean(state.classRef?.id) && state.classRef?.id !== entry.id
+    if (classChanged) {
+      setSpells(
+        resetSpellsForClassChange({
+          prev: spells,
+          remainingClasses: nextClasses,
+          dropUntagged: true,
+        }),
+      )
+    }
     patchState({
       classRef: catalogRef(entry),
       classEntryId: entryId,
       classes: nextClasses,
       hpChoices: ensureHpChoices(nextClasses, []),
-      classGrantPicks: {},
+      classGrantPicks: classChanged ? {} : state.classGrantPicks,
+      subclassSetups: classChanged ? {} : state.subclassSetups,
+      featurePicks: classChanged ? emptyFeaturePicks() : state.featurePicks,
+      classAsi: classChanged ? [] : state.classAsi,
       stepDirty: { ...state.stepDirty, class: true },
     })
     setClassSetup({
@@ -1764,13 +1791,30 @@ export function CreateCharacterPage() {
         racialSpells={raceGrantDef?.racialSpells ?? []}
         hasCasterClass={hasCasterClass}
         featNoteRu={featNote}
-        onClassesChange={(next) =>
+        onClassesChange={(next) => {
+          const prunedSetups = pruneSubclassSetupsForClasses(
+            state.subclassSetups,
+            next,
+          )
+          const removedEntry =
+            (state.classes?.length ?? 0) > next.length ||
+            state.classes.some((row) => !next.some((n) => n.id === row.id))
+          if (removedEntry) {
+            setSpells(
+              resetSpellsForClassChange({
+                prev: spells,
+                remainingClasses: next,
+                dropUntagged: false,
+              }),
+            )
+          }
           patchState({
             classes: next,
             hpChoices: ensureHpChoices(next, state.hpChoices),
+            subclassSetups: prunedSetups,
             stepDirty: { ...state.stepDirty, leveling: true },
           })
-        }
+        }}
         onHpChoicesChange={(hpChoices) => patchState({ hpChoices })}
         onChangeArchetype={(classEntryId) => {
           void openArchetypePicker(classEntryId)
