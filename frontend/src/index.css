@@ -7435,6 +7435,12 @@ button.spells-settings__derived-stat--btn:hover {
   justify-items: stretch;
 }
 
+/* 3+ classes: give the who column room so chips stay in ONE row
+   (not a 2×2 wrap under the narrow single-class cap). */
+.play-desk-header__who:has(.play-desk-header__classes.is-many) {
+  max-width: min(640px, 52vw);
+}
+
 /* 1) Имя · Раса · Мировоззрение · издание */
 .play-desk-header__who-line {
   display: flex;
@@ -7484,15 +7490,17 @@ button.spells-settings__derived-stat--btn:hover {
   font-variant-numeric: tabular-nums;
 }
 
-/* 2) Классы */
+/* 2) Классы — всегда одна горизонтальная строка */
 .play-desk-header__classes {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: stretch;
   gap: 4px;
   min-width: 0;
+  max-width: 100%;
 }
 
 .play-desk-header__class-chip {
@@ -7500,6 +7508,8 @@ button.spells-settings__derived-stat--btn:hover {
   flex-direction: column;
   align-items: flex-start;
   gap: 0;
+  flex: 0 1 auto;
+  min-width: 0;
   padding: 2px 8px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 28%, var(--desk-line));
@@ -7537,10 +7547,16 @@ button.spells-settings__derived-stat--btn:hover {
 .play-desk-header__classes.is-many .play-desk-header__class-chip {
   font-size: 0.66rem;
   padding: 2px 7px;
+  max-width: 10.5rem;
 }
 
 .play-desk-header__classes.is-many .play-desk-header__class-chip.has-subclass {
   padding: 3px 8px 4px;
+}
+
+.play-desk-header__classes.is-many .play-desk-header__class-main,
+.play-desk-header__classes.is-many .play-desk-header__class-archetype {
+  max-width: 100%;
 }
 
 .play-desk-header__classes.is-many .play-desk-header__class-archetype {
@@ -9236,6 +9252,10 @@ button.play-desk-compact__more--btn:hover {
 
   .play-desk--wide .play-desk-header__who {
     max-width: min(240px, 28vw);
+  }
+
+  .play-desk--wide .play-desk-header__who:has(.play-desk-header__classes.is-many) {
+    max-width: min(560px, 48vw);
   }
 
   .play-desk--wide .play-desk-header__name {
