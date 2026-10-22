@@ -289,6 +289,7 @@ import {
   spendFeatureUse,
   syncFeatureResources,
 } from '../../shared/dnd/featureResources'
+import { filterActiveFeaturesForPlay } from '../../shared/dnd/featureReplacement'
 import {
   listSubclassFeatureIdsAboveLevel,
   proficiencyBonusForTotalLevel,
@@ -1043,14 +1044,18 @@ export function MinimalSheetEditor({
     }
     return map
   }, [draft.classes])
+  const playActiveFeatures = useMemo(
+    () => filterActiveFeaturesForPlay(unlockedFeatures, draft.featurePicks),
+    [unlockedFeatures, draft.featurePicks],
+  )
   const featureDesiredResources = useMemo(
     () =>
       desiredResourcesFromFeatures({
-        features: unlockedFeatures,
+        features: playActiveFeatures,
         characterLevel,
         abilities: draft.abilities,
       }),
-    [unlockedFeatures, characterLevel, draft.abilities],
+    [playActiveFeatures, characterLevel, draft.abilities],
   )
   /** Show spells split when the sheet has any magic source (class/archetype/race/feat/gear). */
   const hasMagicSources = useMemo(
@@ -6293,7 +6298,7 @@ export function MinimalSheetEditor({
             resources={draft.play.resources}
             inventoryItems={draft.inventory.items}
             favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
-            combatFeatures={unlockedFeatures}
+            combatFeatures={playActiveFeatures}
             rollMode={effectiveRollMode()}
             preferMagicEmpty={hasMagicSources}
             onOpenSettings={() => setAttacksSettingsOpen(true)}

@@ -25,6 +25,7 @@
     "selfcheck:race-effects-contract": "tsx src/shared/dnd/raceEffectsContract.selfcheck.ts",
     "selfcheck:create-pipeline-gear": "tsx src/features/createPipeline/createPipelineGear.selfcheck.ts",
     "selfcheck:optional-class-features": "tsx src/shared/dnd/optionalClassFeatures.selfcheck.ts",
+    "selfcheck:feature-replacement": "tsx src/shared/dnd/featureReplacement.selfcheck.ts",
     "selfcheck:background-feature": "tsx src/shared/dnd/backgroundFeature.selfcheck.ts",
     "selfcheck:consumable-spend": "tsx src/features/characters/consumableSpend.selfcheck.ts",
     "selfcheck:magic-sources": "tsx src/features/characters/magicSources.selfcheck.ts",

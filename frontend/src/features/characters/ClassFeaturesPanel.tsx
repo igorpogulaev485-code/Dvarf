@@ -14,6 +14,15 @@ import {
   type UnlockedFeature,
 } from '../../shared/dnd/classFeatures'
 import {
+  findReplaceTargets,
+  findReplacerForFeature,
+  isReplacementTaken,
+  replacementStatusForFeature,
+  replacementStatusLabelRu,
+  setReplacementTaken,
+  type FeatureReplacementStatus,
+} from '../../shared/dnd/featureReplacement'
+import {
   infusionById,
   infusionOptionIdsAtLevel,
   normalizeKnownInfusionId,
@@ -225,6 +234,7 @@ function featureCanExpand(feature: UnlockedFeature): boolean {
   if (feature.slot_spend) return true
   if (feature.id === 'metamagic' || feature.id === 'flexible_casting') return true
   if (feature.summon) return true
+  if (feature.replaces) return true
   return false
 }
 
@@ -1259,8 +1269,102 @@ function FeatureSlotSpendControls({
   )
 }
 
+function FeatureReplacementControls({
+  feature,
+  unlocked,
+  featurePicks,
+  onFeaturePicksChange,
+  onToast,
+}: {
+  feature: UnlockedFeature
+  unlocked: UnlockedFeature[]
+  featurePicks: FeaturePicksState
+  onFeaturePicksChange: (picks: FeaturePicksState) => void
+  onToast?: (message: string) => void
+}) {
+  if (feature.replaces) {
+    const targets = findReplaceTargets(feature, unlocked)
+    const targetNames = targets.map((row) => row.name_ru || row.id).filter(Boolean)
+    const taken = isReplacementTaken(featurePicks, feature.classEntryId, feature.id)
+    const targetLabel =
+      targetNames.length === 1
+        ? `«${targetNames[0]}»`
+        : targetNames.length > 1
+          ? targetNames.map((name) => `«${name}»`).join(' / ')
+          : 'PHB-вариант'
+    return (
+      <div className="feature-resource">
+        <Text tone="muted">
+          {taken
+            ? `Заменяет ${targetLabel}.`
+            : `Альтернатива ${targetLabel} (Tasha). На столе будет только выбранный набор.`}
+        </Text>
+        <div className="feature-resource__actions">
+          {taken ? (
+            <Button
+              type="button"
+              onClick={() => {
+                onFeaturePicksChange(
+                  setReplacementTaken(featurePicks, feature.classEntryId, feature.id, false),
+                )
+                onToast?.(`Вернули ${targetLabel}`)
+              }}
+            >
+              Вернуть {targetLabel}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={() => {
+                onFeaturePicksChange(
+                  setReplacementTaken(featurePicks, feature.classEntryId, feature.id, true),
+                )
+                onToast?.(`Взяли «${feature.name_ru}» вместо ${targetLabel}`)
+              }}
+            >
+              Взять вместо {targetLabel}
+            </Button>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  const replacer = findReplacerForFeature(feature, unlocked)
+  if (!replacer) return null
+  const taken = isReplacementTaken(featurePicks, feature.classEntryId, replacer.id)
+  if (!taken) return null
+  return (
+    <div className="feature-resource">
+      <Text tone="muted">
+        Заменено на «{replacer.name_ru || replacer.id}». На игровом столе не показывается.
+      </Text>
+      <div className="feature-resource__actions">
+        <Button
+          type="button"
+          onClick={() => {
+            onFeaturePicksChange(
+              setReplacementTaken(featurePicks, feature.classEntryId, replacer.id, false),
+            )
+            onToast?.(`Вернули «${feature.name_ru}»`)
+          }}
+        >
+          Вернуть «{feature.name_ru}»
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function replacementBadgeClass(status: FeatureReplacementStatus): string {
+  if (status === 'available') return 'feature-replacement-badge is-available'
+  if (status === 'replaced') return 'feature-replacement-badge is-replaced'
+  return 'feature-replacement-badge is-active'
+}
+
 function FeatureRow({
   feature,
+  unlockedFeatures,
   classSlug,
   open,
   onToggle,
@@ -1291,6 +1395,7 @@ function FeatureRow({
   edition = '2014',
 }: {
   feature: UnlockedFeature
+  unlockedFeatures: UnlockedFeature[]
   classSlug: string
   open: boolean
   onToggle: () => void
@@ -1400,17 +1505,38 @@ function FeatureRow({
   const preview = previewSummary(feature.summary_ru)
   const canExpand = featureCanExpand(feature)
   const optionalBadge = optionalFeatureBadgeRu(feature)
+  const replacementStatus = replacementStatusForFeature(
+    feature,
+    unlockedFeatures,
+    featurePicks,
+  )
+  const showReplacementBadge =
+    Boolean(feature.replaces) || Boolean(findReplacerForFeature(feature, unlockedFeatures))
+  const replacementBadge = showReplacementBadge ? (
+    <span className={replacementBadgeClass(replacementStatus)}>
+      {replacementStatusLabelRu(replacementStatus)}
+    </span>
+  ) : null
+  const cardToneClass =
+    replacementStatus === 'replaced'
+      ? ' is-replaced'
+      : replacementStatus === 'available'
+        ? ' is-available-alt'
+        : ''
 
   if (!canExpand) {
     return (
-      <div className="feature-card feature-card--compact feature-card--static">
+      <div
+        className={`feature-card feature-card--compact feature-card--static${cardToneClass}`}
+      >
         <div className="feature-card__glance">
           <span className="feature-card__level" aria-hidden>
             {feature.level}
           </span>
           <b className="feature-card__name">{feature.name_ru}</b>
           <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
-          {optionalBadge ? (
+          {replacementBadge}
+          {optionalBadge && !showReplacementBadge ? (
             <span className="feature-optional-badge">{optionalBadge}</span>
           ) : null}
           <span className="inventory-card__glance-spacer" aria-hidden />
@@ -1425,20 +1551,23 @@ function FeatureRow({
 
   if (!open) {
     return (
-      <div className="feature-card feature-card--compact">
+      <div className={`feature-card feature-card--compact${cardToneClass}`}>
         <button type="button" className="feature-card__glance" onClick={onToggle}>
           <span className="feature-card__level" aria-hidden>
             {feature.level}
           </span>
           <b className="feature-card__name">{feature.name_ru}</b>
           <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
-          {optionalBadge ? (
+          {replacementBadge}
+          {optionalBadge && !showReplacementBadge ? (
             <span className="feature-optional-badge">{optionalBadge}</span>
           ) : null}
-          {feature.resource ? (
+          {feature.resource && replacementStatus === 'active' ? (
             <span className="attack-held-tag is-on">ресурс</span>
           ) : null}
-          {choicePending ? <span className="attack-held-tag">выбор</span> : null}
+          {choicePending && replacementStatus === 'active' ? (
+            <span className="attack-held-tag">выбор</span>
+          ) : null}
           <span className="inventory-card__glance-spacer" aria-hidden />
           <span className="feature-card__preview">
             {metaExtra ? `${metaExtra} · ` : ''}
@@ -1460,18 +1589,23 @@ function FeatureRow({
   }
 
   return (
-    <div className="feature-card feature-card--expand">
+    <div className={`feature-card feature-card--expand${cardToneClass}`}>
       <div className="feature-card__meta">
         <span className="feature-card__level" aria-hidden>
           {feature.level}
         </span>
         <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
         <span className="attack-held-tag">{kindLabelRu(feature.kind)}</span>
-        {optionalBadge ? (
+        {replacementBadge}
+        {optionalBadge && !showReplacementBadge ? (
           <span className="feature-optional-badge">{optionalBadge}</span>
         ) : null}
-        {feature.resource ? <span className="attack-held-tag is-on">ресурс</span> : null}
-        {choicePending ? <span className="attack-held-tag">выбор</span> : null}
+        {feature.resource && replacementStatus === 'active' ? (
+          <span className="attack-held-tag is-on">ресурс</span>
+        ) : null}
+        {choicePending && replacementStatus === 'active' ? (
+          <span className="attack-held-tag">выбор</span>
+        ) : null}
         <button type="button" className="inventory-card__collapse" onClick={onToggle}>
           свернуть
         </button>
@@ -1485,6 +1619,13 @@ function FeatureRow({
       <Text tone="muted">{sourceLabel}</Text>
       <Text>{feature.summary_ru}</Text>
       {feature.body_ru ? <Text tone="muted">{feature.body_ru}</Text> : null}
+      <FeatureReplacementControls
+        feature={feature}
+        unlocked={unlockedFeatures}
+        featurePicks={featurePicks}
+        onFeaturePicksChange={onFeaturePicksChange}
+        onToast={onToast}
+      />
       {feature.scale ? (
         <Text tone="muted">
           {feature.scale.labelRu}: сейчас <strong>{feature.scaleValue}</strong>
@@ -1506,7 +1647,7 @@ function FeatureRow({
             )}
           </Text>
         </div>
-      ) : (
+      ) : replacementStatus === 'active' ? (
         <FeatureChoiceControls
           feature={feature}
           featurePicks={featurePicks}
@@ -1516,7 +1657,7 @@ function FeatureRow({
           expertiseKeys={expertiseKeys}
           onToast={onToast}
         />
-      )}
+      ) : null}
       {feature.id === PACT_BOON_FEATURE_ID &&
       isPactTomeActive(featurePicks, feature.classEntryId) ? (
         <div className="feature-resource">
@@ -1547,47 +1688,57 @@ function FeatureRow({
           </div>
         </div>
       ) : null}
-      <MetamagicSpendControls
-        feature={feature}
-        featurePicks={featurePicks}
-        classSlug={classSlug}
-        resources={resources}
-        onResourcesChange={onResourcesChange}
-        onToast={onToast}
-      />
-      <FlexibleCastingControls
-        feature={feature}
-        classSlug={classSlug}
-        resources={resources}
-        onResourcesChange={onResourcesChange}
-        spells={spells}
-        onSpellsChange={onSpellsChange}
-        onToast={onToast}
-      />
-      <FeatureSlotSpendControls
-        feature={feature}
-        spells={spells}
-        onSpellsChange={onSpellsChange}
-        onToast={onToast}
-        onMoonFormSlotHeal={onMoonFormSlotHeal}
-      />
-      <FeatureResourceControls
-        feature={feature}
-        classSlug={classSlug}
-        resources={resources}
-        onResourcesChange={onResourcesChange}
-        companions={companions}
-        onCompanionsChange={onCompanionsChange}
-        onToast={onToast}
-        initiativeGrantByPool={initiativeGrantByPool}
-        wearingHeavyArmor={wearingHeavyArmor}
-        onOpenInfusions={onOpenInfusions}
-        onOpenSoulTrinkets={onOpenSoulTrinkets}
-        onWildShapeFork={onWildShapeFork}
-        onFeatureSelfForm={onFeatureSelfForm}
-        moonCombatWildShape={moonCombatWildShape}
-      />
-      {feature.id === 'eldritch_invocations' && onOpenInvocations ? (
+      {replacementStatus === 'active' ? (
+        <MetamagicSpendControls
+          feature={feature}
+          featurePicks={featurePicks}
+          classSlug={classSlug}
+          resources={resources}
+          onResourcesChange={onResourcesChange}
+          onToast={onToast}
+        />
+      ) : null}
+      {replacementStatus === 'active' ? (
+        <FlexibleCastingControls
+          feature={feature}
+          classSlug={classSlug}
+          resources={resources}
+          onResourcesChange={onResourcesChange}
+          spells={spells}
+          onSpellsChange={onSpellsChange}
+          onToast={onToast}
+        />
+      ) : null}
+      {replacementStatus === 'active' ? (
+        <FeatureSlotSpendControls
+          feature={feature}
+          spells={spells}
+          onSpellsChange={onSpellsChange}
+          onToast={onToast}
+          onMoonFormSlotHeal={onMoonFormSlotHeal}
+        />
+      ) : null}
+      {replacementStatus === 'active' ? (
+        <FeatureResourceControls
+          feature={feature}
+          classSlug={classSlug}
+          resources={resources}
+          onResourcesChange={onResourcesChange}
+          companions={companions}
+          onCompanionsChange={onCompanionsChange}
+          onToast={onToast}
+          initiativeGrantByPool={initiativeGrantByPool}
+          wearingHeavyArmor={wearingHeavyArmor}
+          onOpenInfusions={onOpenInfusions}
+          onOpenSoulTrinkets={onOpenSoulTrinkets}
+          onWildShapeFork={onWildShapeFork}
+          onFeatureSelfForm={onFeatureSelfForm}
+          moonCombatWildShape={moonCombatWildShape}
+        />
+      ) : null}
+      {replacementStatus === 'active' &&
+      feature.id === 'eldritch_invocations' &&
+      onOpenInvocations ? (
         <div className="feature-resource__actions">
           <Button
             type="button"
@@ -1597,7 +1748,9 @@ function FeatureRow({
           </Button>
         </div>
       ) : null}
-      {feature.id === 'infuse_item' && onOpenInfusions ? (
+      {replacementStatus === 'active' &&
+      feature.id === 'infuse_item' &&
+      onOpenInfusions ? (
         <div className="feature-resource__actions">
           <Button
             type="button"
@@ -1607,7 +1760,8 @@ function FeatureRow({
           </Button>
         </div>
       ) : null}
-      {(feature.id === 'favored_enemy' || feature.id === 'natural_explorer') &&
+      {replacementStatus === 'active' &&
+      (feature.id === 'favored_enemy' || feature.id === 'natural_explorer') &&
       onOpenRangerFavored ? (
         <div className="feature-resource__actions">
           <Button
@@ -2025,6 +2179,7 @@ export function ClassFeaturesPanel({
                   <FeatureRow
                     key={key}
                     feature={feature}
+                    unlockedFeatures={features}
                     classSlug={slugByEntry.get(feature.classEntryId) || group.classSlug}
                     open={openKeys.has(key)}
                     onToggle={() => toggleKey(key)}

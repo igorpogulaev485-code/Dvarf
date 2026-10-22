@@ -11,6 +11,7 @@ import {
   type UnlockedFeature,
 } from './classFeatures'
 import { isExpertiseChoice } from './expertise'
+import { isFeatureActiveForPlay } from './featureReplacement'
 import {
   getFeaturePick,
   getFeaturePickList,
@@ -273,6 +274,13 @@ export function buildPendingWizardSteps(input: {
 
   for (const feature of features) {
     if (!matchesFilter(feature, input.filter)) continue
+    // B4: skip PHB rows replaced by Tasha and untaken optional alternatives.
+    if (
+      !isSubclassGateFeature(feature) &&
+      !isFeatureActiveForPlay(feature, input.unlocked, input.featurePicks)
+    ) {
+      continue
+    }
 
     if (isSubclassGateFeature(feature)) {
       if (input.hasSubclassByEntryId[feature.classEntryId]) continue
