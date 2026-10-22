@@ -24,6 +24,7 @@ import type { AppliedRaceGrant } from '../../shared/dnd/raceGrants'
 import type { CompanionEntry } from './companions'
 import { createCompanion, revokeCompanionsForSubclass } from './companions'
 import type { TextBlock } from './textBlocks'
+import { enrichAlwaysPreparedSheetSpell } from './alwaysPreparedSpellEnrichment'
 import {
   asAlwaysPreparedSpell,
   createSheetSpell,
@@ -242,9 +243,13 @@ function readAlwaysPreparedSnapshot(raw: unknown): AlwaysPreparedSpell[] | undef
     if (!item || typeof item !== 'object') continue
     const row = item as Record<string, unknown>
     if (typeof row.name !== 'string' || !row.name.trim()) continue
+    const fromClassRaw = row.fromClassLevel ?? row.from_class_level
     out.push({
       name: row.name.trim(),
       level: typeof row.level === 'number' ? Math.max(0, Math.min(9, row.level)) : 1,
+      ...(typeof fromClassRaw === 'number' && Number.isFinite(fromClassRaw)
+        ? { fromClassLevel: Math.max(1, Math.min(20, Math.floor(fromClassRaw))) }
+        : {}),
     })
   }
   return out.length > 0 ? out : undefined
@@ -556,12 +561,15 @@ export function applySubclassGrantToDraft(input: {
     const nameRu = alwaysPreparedSpellNameRu(spell.name)
     const key = spellKeyFromName(spell.name)
     const created = asAlwaysPreparedSpell(
-      {
-        ...createSheetSpell(),
-        id: subclassSpellId(input.classEntryId, input.def.slug, key || spell.name),
-        name: nameRu,
-        level: spell.level,
-      },
+      enrichAlwaysPreparedSheetSpell(
+        {
+          ...createSheetSpell(),
+          id: subclassSpellId(input.classEntryId, input.def.slug, key || spell.name),
+          name: nameRu,
+          level: spell.level,
+        },
+        spell.name,
+      ),
       {
         source_kind: 'subclass',
         label: input.def.labelRu,
@@ -588,6 +596,9 @@ export function applySubclassGrantToDraft(input: {
     alwaysPreparedSpells: input.def.alwaysPreparedSpells.map((spell) => ({
       name: spell.name,
       level: spell.level,
+      ...(spell.fromClassLevel != null
+        ? { fromClassLevel: spell.fromClassLevel }
+        : {}),
     })),
   }
 
@@ -626,6 +637,8 @@ export function applySubclassGrantToDraft(input: {
 export function syncSubclassAlwaysPreparedSpells(input: {
   draft: SubclassGrantDraftSlice
   maxSpellLevel: number
+  /** Gates from_class_level specialty spells (Artillerist, Gloom, …). */
+  classLevelsByEntryId?: Record<string, number>
 }): SubclassGrantDraftSlice {
   const maxSpellLevel = Math.max(0, Math.min(9, Math.floor(input.maxSpellLevel)))
   let known = [...input.draft.spells.known]
@@ -636,6 +649,12 @@ export function syncSubclassAlwaysPreparedSpells(input: {
     const catalog = grant.alwaysPreparedSpells
     if (!catalog || catalog.length === 0) continue
 
+    const classLevelRaw = input.classLevelsByEntryId?.[grant.classEntryId]
+    const classLevel =
+      typeof classLevelRaw === 'number' && Number.isFinite(classLevelRaw)
+        ? Math.min(20, Math.max(1, Math.floor(classLevelRaw)))
+        : 20
+
     const removeIds = new Set(grant.grantedSpellIds)
     const prevLabel =
       known.find((spell) => removeIds.has(spell.id))?.prepare_source_label?.trim() ||
@@ -645,15 +664,19 @@ export function syncSubclassAlwaysPreparedSpells(input: {
 
     for (const spell of catalog) {
       if (spell.level > maxSpellLevel) continue
+      if (spell.fromClassLevel != null && spell.fromClassLevel > classLevel) continue
       const nameRu = alwaysPreparedSpellNameRu(spell.name)
       const key = spellKeyFromName(spell.name)
       const created = asAlwaysPreparedSpell(
-        {
-          ...createSheetSpell(),
-          id: subclassSpellId(grant.classEntryId, grant.slug, key || spell.name),
-          name: nameRu,
-          level: spell.level,
-        },
+        enrichAlwaysPreparedSheetSpell(
+          {
+            ...createSheetSpell(),
+            id: subclassSpellId(grant.classEntryId, grant.slug, key || spell.name),
+            name: nameRu,
+            level: spell.level,
+          },
+          spell.name,
+        ),
         {
           source_kind: 'subclass',
           label: prevLabel,

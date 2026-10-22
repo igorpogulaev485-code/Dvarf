@@ -1294,6 +1294,9 @@ export async function applyPipelineToSheet(input: {
         spells: finalSpells,
       },
       maxSpellLevel: slotCap,
+      classLevelsByEntryId: Object.fromEntries(
+        classes.map((row) => [row.id, row.level]),
+      ),
     })
     Object.assign(draft, mergeSubclass(draft, synced))
     finalSpells = synced.spells

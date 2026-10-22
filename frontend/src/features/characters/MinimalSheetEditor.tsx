@@ -2937,6 +2937,9 @@ export function MinimalSheetEditor({
       const syncedSubclass = syncSubclassAlwaysPreparedSpells({
         draft: subclassSliceFrom(withRaceSpells),
         maxSpellLevel: slotCap,
+        classLevelsByEntryId: Object.fromEntries(
+          nextClasses.map((row) => [row.id, row.level]),
+        ),
       })
       return mergeSubclassSlice(withRaceSpells, syncedSubclass)
     })

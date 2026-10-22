@@ -86,7 +86,59 @@
               }
             ]
           },
-          "detail_status": "detailed"
+          "detail_status": "detailed",
+          "always_prepared_spells": [
+            {
+              "name": "Shield",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Thunderwave",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Scorching Ray",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Shatter",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Fireball",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Wind Wall",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Ice Storm",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Wall of Fire",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Cone of Cold",
+              "level": 5,
+              "from_class_level": 17
+            },
+            {
+              "name": "Wall of Force",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         },
         {
           "slug": "battle_smith",
