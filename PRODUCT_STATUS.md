@@ -1,5 +1,12 @@
 # Dvarf — статус продукта
 
+## History — magic QA ship (2026-10-22)
+
+- **Prod tip:** `cursor/magic-qa-fix-7fb8` (merged live `teodor-spell-ship-7a4a` + magic QA).
+- **Shipped:** class tags / Artillerist / Bless concentration / SRD↔PHB dedupe / Fire Bolt+Lightning Lure; Q1–Q6 (RAW alone-max, EGW dunamancy gates, subclass APS depth, create reset, MC UX); alembic through `l7a8b9c0d1e2`.
+- **URL:** https://creed20.tech/ — `/health` ok after deploy.
+
+
 Единый файл «что уже есть в продукте».  
 Игорь шарит его с друзьями и использует как срез для агентов.
 
