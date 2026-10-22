@@ -27,8 +27,49 @@ export const GLOOM_STALKER_SPELLS: RangerConclaveSpell[] = [
   { name: 'Seeming', level: 5, fromClassLevel: 17 },
 ]
 
+/** Horizon Walker Magic (XGtE). */
+export const HORIZON_WALKER_SPELLS: RangerConclaveSpell[] = [
+  { name: 'Protection from Evil and Good', level: 1, fromClassLevel: 3 },
+  { name: 'Misty Step', level: 2, fromClassLevel: 5 },
+  { name: 'Haste', level: 3, fromClassLevel: 9 },
+  { name: 'Banishment', level: 4, fromClassLevel: 13 },
+  { name: 'Plane Shift', level: 5, fromClassLevel: 17 },
+]
+
+/** Monster Slayer Magic (XGtE). */
+export const MONSTER_SLAYER_SPELLS: RangerConclaveSpell[] = [
+  { name: 'Protection from Evil and Good', level: 1, fromClassLevel: 3 },
+  { name: 'Zone of Truth', level: 2, fromClassLevel: 5 },
+  { name: 'Magic Circle', level: 3, fromClassLevel: 9 },
+  { name: 'Banishment', level: 4, fromClassLevel: 13 },
+  { name: 'Hold Monster', level: 5, fromClassLevel: 17 },
+]
+
+/** Fey Wanderer Magic (TCoE). */
+export const FEY_WANDERER_SPELLS: RangerConclaveSpell[] = [
+  { name: 'Charm Person', level: 1, fromClassLevel: 3 },
+  { name: 'Misty Step', level: 2, fromClassLevel: 5 },
+  { name: 'Dispel Magic', level: 3, fromClassLevel: 9 },
+  { name: 'Dimension Door', level: 4, fromClassLevel: 13 },
+  { name: 'Mislead', level: 5, fromClassLevel: 17 },
+]
+
+/** Swarmkeeper Magic (TCoE). */
+export const SWARMKEEPER_SPELLS: RangerConclaveSpell[] = [
+  { name: 'Mage Hand', level: 0, fromClassLevel: 3 },
+  { name: 'Faerie Fire', level: 1, fromClassLevel: 3 },
+  { name: 'Web', level: 2, fromClassLevel: 5 },
+  { name: 'Gaseous Form', level: 3, fromClassLevel: 9 },
+  { name: 'Arcane Eye', level: 4, fromClassLevel: 13 },
+  { name: 'Insect Plague', level: 5, fromClassLevel: 17 },
+]
+
 const CONCLAVE_SPELLS: Record<string, { labelRu: string; spells: RangerConclaveSpell[] }> = {
   gloom_stalker: { labelRu: 'Сумрачный охотник', spells: GLOOM_STALKER_SPELLS },
+  horizon_walker: { labelRu: 'Странник горизонта', spells: HORIZON_WALKER_SPELLS },
+  monster_slayer: { labelRu: 'Убийца чудовищ', spells: MONSTER_SLAYER_SPELLS },
+  fey_wanderer: { labelRu: 'Странник фей', spells: FEY_WANDERER_SPELLS },
+  swarmkeeper: { labelRu: 'Хранитель роя', spells: SWARMKEEPER_SPELLS },
 }
 
 export function rangerConclaveSpellsForSlug(

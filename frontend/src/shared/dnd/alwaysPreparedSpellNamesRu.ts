@@ -97,6 +97,7 @@ const ALWAYS_PREPARED_SPELL_NAME_RU: Record<string, string> = {
   "Lightning Bolt": "Молния",
   "Locate Creature": "Поиск существа",
   "Magic Circle": "Магический круг",
+  "Mage Hand": "Волшебная рука",
   "Magic Missile": "Волшебная стрела",
   "Magic Weapon": "Магическое оружие",
   "Mass Cure Wounds": "Множественное лечение ран",
@@ -112,6 +113,7 @@ const ALWAYS_PREPARED_SPELL_NAME_RU: Record<string, string> = {
   "Pass Without Trace": "Бесследное передвижение",
   "Passwall": "Проход сквозь стену",
   "Planar Binding": "Планарные узы",
+  "Plane Shift": "Уход в иной мир",
   "Plant Growth": "Рост растений",
   "Polymorph": "Превращение",
   "Protection from Energy": "Защита от энергии",
@@ -148,6 +150,7 @@ const ALWAYS_PREPARED_SPELL_NAME_RU: Record<string, string> = {
   "Wall of Fire": "Огненная стена",
   "Wall of Force": "Силовая стена",
   "Warding Bond": "Охраняющая связь",
+  "Web": "Паутина",
   "Wind Wall": "Стена ветров",
   "Zone of Truth": "Область истины",
 }

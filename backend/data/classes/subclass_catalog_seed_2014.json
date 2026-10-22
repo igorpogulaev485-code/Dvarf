@@ -3445,7 +3445,34 @@
                 "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Protection from Evil and Good",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Misty Step",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Haste",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Banishment",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Plane Shift",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         },
         {
           "slug": "monster_slayer",
@@ -3464,7 +3491,34 @@
                 "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Protection from Evil and Good",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Zone of Truth",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Magic Circle",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Banishment",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Hold Monster",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         },
         {
           "slug": "fey_wanderer",
@@ -3483,7 +3537,34 @@
                 "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Charm Person",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Misty Step",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Dispel Magic",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Dimension Door",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Mislead",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         },
         {
           "slug": "swarmkeeper",
@@ -3502,7 +3583,39 @@
                 "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Mage Hand",
+              "level": 0,
+              "from_class_level": 3
+            },
+            {
+              "name": "Faerie Fire",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Web",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Gaseous Form",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Arcane Eye",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Insect Plague",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         },
         {
           "slug": "drakewarden",
