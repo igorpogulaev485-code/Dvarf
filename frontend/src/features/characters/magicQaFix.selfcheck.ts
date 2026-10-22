@@ -207,28 +207,8 @@ function emptyDraft(): SubclassGrantDraftSlice {
   console.log('hydrate legacy Bless: ok')
 }
 
-// --- Q1 evidence: Cleric4/Paladin4 must not get 5th-circle domain/oath via live apply ---
+// --- Q1 RAW: domain/oath gated by class-alone max, not shared multiclass slots ---
 {
-  const slotCap = highestSpellSlotLevelForClasses([
-    {
-      id: 'cleric-1',
-      name: 'Жрец',
-      catalog_id: 'cleric',
-      level: 4,
-      subclass_name: 'Домен жизни',
-      subclass_catalog_id: 'life',
-    },
-    {
-      id: 'paladin-1',
-      name: 'Паладин',
-      catalog_id: 'paladin',
-      level: 4,
-      subclass_name: 'Клятва преданности',
-      subclass_catalog_id: 'devotion',
-    },
-  ])
-  assert(slotCap === 3, `Q1 slot cap Cleric4/Paladin4 → 3, got ${slotCap}`)
-
   const life = findSub('cleric', 'life_domain')
   const devotion = findSub('paladin', 'oath_of_devotion')
   const lifeDef = parseSubclassGrantDef({
@@ -245,36 +225,137 @@ function emptyDraft(): SubclassGrantDraftSlice {
   })
   assert(lifeDef && devotionDef, 'Q1 domain/oath parse')
 
-  let draft = emptyDraft()
-  const lifeApplied = applySubclassGrantToDraft({
-    draft,
-    classEntryId: 'cleric-1',
-    catalogId: 'life',
-    def: lifeDef,
-    classLevel: 4,
-    maxSpellLevel: slotCap,
-  })
-  assert(lifeApplied, 'Q1 life apply')
-  draft = lifeApplied.draft
-  const devotionApplied = applySubclassGrantToDraft({
-    draft,
-    classEntryId: 'paladin-1',
-    catalogId: 'devotion',
-    def: devotionDef,
-    classLevel: 4,
-    maxSpellLevel: slotCap,
-  })
-  assert(devotionApplied, 'Q1 devotion apply')
-  const names = devotionApplied.draft.spells.known.map((s) => s.name)
-  const banned = ['Множественное лечение ран', 'Общение', 'Удар пламени']
-  for (const name of banned) {
-    assert(!names.includes(name), `Q1 must not grant ${name} at Cleric4/Paladin4`)
+  // Cleric4 alone → spell level 2; shared MC slots with Paladin4 would be 3 — must NOT unlock L3 domain.
+  {
+    const slotCap = highestSpellSlotLevelForClasses([
+      {
+        id: 'cleric-1',
+        name: 'Жрец',
+        catalog_id: 'cleric',
+        level: 4,
+        subclass_name: 'Домен жизни',
+        subclass_catalog_id: 'life',
+      },
+      {
+        id: 'paladin-1',
+        name: 'Паладин',
+        catalog_id: 'paladin',
+        level: 4,
+        subclass_name: 'Клятва преданности',
+        subclass_catalog_id: 'devotion',
+      },
+    ])
+    assert(slotCap === 3, `Q1 shared slot cap → 3, got ${slotCap}`)
+
+    let draft = emptyDraft()
+    const lifeApplied = applySubclassGrantToDraft({
+      draft,
+      classEntryId: 'cleric-1',
+      catalogId: 'life',
+      def: lifeDef,
+      classLevel: 4,
+      maxSpellLevel: slotCap,
+    })
+    assert(lifeApplied, 'Q1 life apply')
+    draft = lifeApplied.draft
+    const devotionApplied = applySubclassGrantToDraft({
+      draft,
+      classEntryId: 'paladin-1',
+      catalogId: 'devotion',
+      def: devotionDef,
+      classLevel: 4,
+      maxSpellLevel: slotCap,
+    })
+    assert(devotionApplied, 'Q1 devotion apply')
+    const lifeSpells = devotionApplied.draft.spells.known.filter((s) =>
+      s.id.includes('life_domain') || s.id.includes('cleric-1'),
+    )
+    // Life domain rows use subclassSpellId(classEntryId, slug, …)
+    const lifeOnly = devotionApplied.draft.subclassGrants
+      .find((g) => g.slug === 'life_domain')
+      ?.grantedSpellIds.length
+    assert(lifeOnly === 4, `Q1 Life at Cleric4 → 4 spells (≤L2), got ${lifeOnly}`)
+    const palOnly = devotionApplied.draft.subclassGrants.find(
+      (g) => g.slug === 'oath_of_devotion',
+    )?.grantedSpellIds.length
+    assert(palOnly === 2, `Q1 Devotion at Paladin4 → 2 spells (≤L1), got ${palOnly}`)
+    const names = devotionApplied.draft.spells.known.map((s) => s.name)
+    for (const name of [
+      'Множественное лечение ран',
+      'Маяк надежды',
+      'Общение',
+      'Небесный огонь',
+    ]) {
+      assert(!names.includes(name), `Q1 must not grant ${name}`)
+    }
+    void lifeSpells
   }
-  assert(
-    devotionApplied.draft.spells.known.every((s) => s.level <= 3),
-    'Q1 all always-prepared ≤ slot cap 3',
-  )
-  console.log('Q1 live apply Cleric4/Paladin4: ok (no L5 domain/oath)')
+
+  // Cleric1 / Wizard9: shared slots = 5, but Life domain alone only 1st circle.
+  {
+    const slotCap = highestSpellSlotLevelForClasses([
+      {
+        id: 'cleric-1',
+        name: 'Жрец',
+        catalog_id: 'cleric',
+        level: 1,
+        subclass_name: 'Домен жизни',
+        subclass_catalog_id: 'life',
+      },
+      {
+        id: 'wizard-1',
+        name: 'Волшебник',
+        catalog_id: 'wizard',
+        level: 9,
+        subclass_name: '',
+        subclass_catalog_id: null,
+      },
+    ])
+    assert(slotCap === 5, `Q1 Cleric1/Wiz9 shared → 5, got ${slotCap}`)
+    const applied = applySubclassGrantToDraft({
+      draft: emptyDraft(),
+      classEntryId: 'cleric-1',
+      catalogId: 'life',
+      def: lifeDef,
+      classLevel: 1,
+      maxSpellLevel: slotCap,
+    })
+    assert(applied, 'Q1 life@1 apply')
+    assert(
+      applied.draft.spells.known.length === 2,
+      `Q1 Life Cleric1 → 2 spells, got ${applied.draft.spells.known.length}`,
+    )
+    assert(
+      applied.draft.spells.known.every((s) => s.level <= 1),
+      'Q1 Life Cleric1 only 1st circle despite shared L5 slots',
+    )
+  }
+
+  // Orphan legacy L5 domain row (empty grantedSpellIds) is stripped on sync.
+  {
+    const orphan = asAlwaysPreparedSpell(
+      {
+        ...createSheetSpell(),
+        id: 'orphan-mass-cure',
+        name: 'Множественное лечение ран',
+        level: 5,
+      },
+      { source_kind: 'subclass', label: 'Домен жизни' },
+    )
+    const draft = emptyDraft()
+    draft.spells.known = [orphan]
+    const synced = syncSubclassAlwaysPreparedSpells({
+      draft,
+      maxSpellLevel: 9,
+      classLevelsByEntryId: {},
+    })
+    assert(
+      !synced.spells.known.some((s) => s.id === 'orphan-mass-cure'),
+      'Q1 orphan subclass always-prepared stripped',
+    )
+  }
+
+  console.log('Q1 RAW class-alone domain/oath + orphan strip: ok')
 }
 
 console.log('magicQaFix.selfcheck: all ok')

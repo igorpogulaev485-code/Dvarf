@@ -19,6 +19,10 @@ import {
   type SubclassTransition,
 } from '../../shared/dnd/subclassGrants'
 import { alwaysPreparedSpellNameRu } from '../../shared/dnd/alwaysPreparedSpellNamesRu'
+import {
+  classCasterDef,
+  maxSpellLevelForClassAlone,
+} from '../../shared/dnd/casterProgression'
 import type { ArmorProficiency, IdentityExtras, WeaponProficiency } from './identity'
 import type { AppliedRaceGrant } from '../../shared/dnd/raceGrants'
 import type { CompanionEntry } from './companions'
@@ -28,10 +32,28 @@ import { enrichAlwaysPreparedSheetSpell } from './alwaysPreparedSpellEnrichment'
 import {
   asAlwaysPreparedSpell,
   createSheetSpell,
+  isSubclassSheetSpell,
   spellKeyFromName,
   subclassSpellId,
   type SpellsState,
 } from './spells'
+
+/**
+ * RAW multiclass: domain/oath/specialty circle access follows this class alone,
+ * not shared multiclass spell slots (PHB «Spells Known and Prepared»).
+ */
+function aloneMaxSpellLevelForParent(
+  parentSlug: string | null | undefined,
+  classLevel: number,
+  fallbackSharedCap: number,
+): number {
+  const slug = (parentSlug || '').trim().toLowerCase()
+  const def = slug ? classCasterDef(slug) : null
+  if (!def || def.progression === 'none') {
+    return Math.max(0, Math.min(9, Math.floor(fallbackSharedCap)))
+  }
+  return maxSpellLevelForClassAlone(def.progression, classLevel)
+}
 
 export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
 
@@ -542,7 +564,7 @@ export function applySubclassGrantToDraft(input: {
     )
   }
 
-  const maxSpellLevel =
+  const sharedCap =
     typeof input.maxSpellLevel === 'number' && Number.isFinite(input.maxSpellLevel)
       ? Math.max(0, Math.min(9, Math.floor(input.maxSpellLevel)))
       : 9
@@ -554,6 +576,12 @@ export function applySubclassGrantToDraft(input: {
       1,
       Math.floor(input.classLevel ?? input.changedAtClassLevel ?? input.def.grantsLevel),
     ),
+  )
+  // Prefer RAW class-alone cap; sharedCap only if parent progression unknown.
+  const maxSpellLevel = aloneMaxSpellLevelForParent(
+    input.def.parentSlug,
+    classLevel,
+    sharedCap,
   )
   for (const spell of input.def.alwaysPreparedSpells) {
     if (spell.level > maxSpellLevel) continue
@@ -631,16 +659,18 @@ export function applySubclassGrantToDraft(input: {
 }
 
 /**
- * Re-inject always-prepared domain/oath spells up to the current slot level
- * (e.g. after level-up when 2nd-level slots unlock).
+ * Re-inject always-prepared domain/oath/specialty spells per RAW class-alone
+ * spell level (not shared multiclass slots). Also strips orphan subclass
+ * always-prepared rows whose ids are no longer in any grant.
  */
 export function syncSubclassAlwaysPreparedSpells(input: {
   draft: SubclassGrantDraftSlice
+  /** Fallback shared slot cap when parent progression is unknown. */
   maxSpellLevel: number
   /** Gates from_class_level specialty spells (Artillerist, Gloom, …). */
   classLevelsByEntryId?: Record<string, number>
 }): SubclassGrantDraftSlice {
-  const maxSpellLevel = Math.max(0, Math.min(9, Math.floor(input.maxSpellLevel)))
+  const sharedCap = Math.max(0, Math.min(9, Math.floor(input.maxSpellLevel)))
   let known = [...input.draft.spells.known]
   let grants = input.draft.subclassGrants
   let changed = false
@@ -654,6 +684,11 @@ export function syncSubclassAlwaysPreparedSpells(input: {
       typeof classLevelRaw === 'number' && Number.isFinite(classLevelRaw)
         ? Math.min(20, Math.max(1, Math.floor(classLevelRaw)))
         : 20
+    const maxSpellLevel = aloneMaxSpellLevelForParent(
+      grant.parentSlug,
+      classLevel,
+      sharedCap,
+    )
 
     const removeIds = new Set(grant.grantedSpellIds)
     const prevLabel =
@@ -698,6 +733,20 @@ export function syncSubclassAlwaysPreparedSpells(input: {
         ? { ...row, grantedSpellIds }
         : row,
     )
+  }
+
+  // Legacy orphans: locked subclass rows not in any grant.grantedSpellIds.
+  const tracked = new Set<string>()
+  for (const grant of grants) {
+    for (const id of grant.grantedSpellIds) tracked.add(id)
+  }
+  const orphanStripped = known.filter((spell) => {
+    if (!isSubclassSheetSpell(spell) || !spell.prepared_locked) return true
+    return tracked.has(spell.id)
+  })
+  if (orphanStripped.length !== known.length) {
+    changed = true
+    known = orphanStripped
   }
 
   if (!changed) return input.draft
