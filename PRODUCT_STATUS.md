@@ -793,6 +793,15 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 Сюда агенты пишут то, что сделано в PR, но **ещё не залито** на сервер.
 
+### 2026-10-22 — Magic Initiate в общем списке заклинаний
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Merge create-pipeline | В `known` снова попадают `source_kind: feat` (и race/subclass) из draft | Заклинания «Посвящённый в магию» с расы видны рядом с «Отмеченный тенями» |
+| Heal на листе | Если в `feat_grants` есть spells, а в `known` нет — rematerialize | Уже созданные персонажи восстанавливают MI без пересоздания |
+
+На проде: **нет** · ветка `cursor/magic-initiate-feat-spells-merge-1cc0` · от tip `magic-qa-fix-7fb8`
+
 <!-- artificer-infusions-full залито 2026-10-21 → tip artificer-infusions-full-ab30; блок в «Сейчас в продукте» -->
 <!-- spells-feats-infusions залито 2026-10-21 → tip spells-feats-infusions-ab30; блок в «Сейчас в продукте» -->
 <!-- grimoire-prepare-home залито 2026-10-21 → tip grimoire-prepare-home-3aba; блок в «Сейчас в продукте» -->
