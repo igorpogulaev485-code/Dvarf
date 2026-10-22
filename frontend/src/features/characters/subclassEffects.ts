@@ -266,15 +266,40 @@ function readAlwaysPreparedSnapshot(raw: unknown): AlwaysPreparedSpell[] | undef
     const row = item as Record<string, unknown>
     if (typeof row.name !== 'string' || !row.name.trim()) continue
     const fromClassRaw = row.fromClassLevel ?? row.from_class_level
+    const requiresRaw =
+      row.requiresChoice && typeof row.requiresChoice === 'object'
+        ? (row.requiresChoice as Record<string, unknown>)
+        : row.requires_choice && typeof row.requires_choice === 'object'
+          ? (row.requires_choice as Record<string, unknown>)
+          : null
+    const requiresId =
+      requiresRaw && typeof requiresRaw.id === 'string' ? requiresRaw.id.trim() : ''
+    const requiresValue =
+      requiresRaw && typeof requiresRaw.value === 'string'
+        ? requiresRaw.value.trim()
+        : ''
     out.push({
       name: row.name.trim(),
       level: typeof row.level === 'number' ? Math.max(0, Math.min(9, row.level)) : 1,
       ...(typeof fromClassRaw === 'number' && Number.isFinite(fromClassRaw)
         ? { fromClassLevel: Math.max(1, Math.min(20, Math.floor(fromClassRaw))) }
         : {}),
+      ...(requiresId && requiresValue
+        ? { requiresChoice: { id: requiresId, value: requiresValue } }
+        : {}),
     })
   }
   return out.length > 0 ? out : undefined
+}
+
+function alwaysPreparedMatchesPicks(
+  spell: AlwaysPreparedSpell,
+  picks: Record<string, string | string[] | undefined>,
+): boolean {
+  if (!spell.requiresChoice) return true
+  const raw = picks[spell.requiresChoice.id]
+  const value = typeof raw === 'string' ? raw.trim() : ''
+  return value === spell.requiresChoice.value
 }
 
 export function revokeSubclassGrant(
@@ -583,7 +608,10 @@ export function applySubclassGrantToDraft(input: {
     classLevel,
     sharedCap,
   )
-  for (const spell of input.def.alwaysPreparedSpells) {
+  const landMatched = input.def.alwaysPreparedSpells.filter((spell) =>
+    alwaysPreparedMatchesPicks(spell, picks.values),
+  )
+  for (const spell of landMatched) {
     if (spell.level > maxSpellLevel) continue
     if (spell.fromClassLevel != null && spell.fromClassLevel > classLevel) continue
     const nameRu = alwaysPreparedSpellNameRu(spell.name)
@@ -621,11 +649,16 @@ export function applySubclassGrantToDraft(input: {
     picks: { ...picks.values },
     caster: input.def.sheetGrants.caster,
     grantedSpellIds,
-    alwaysPreparedSpells: input.def.alwaysPreparedSpells.map((spell) => ({
+    // Snapshot only the pick-matched circle/conclave rows so level-up sync
+    // unlocks the rest of that land (not every land table).
+    alwaysPreparedSpells: landMatched.map((spell) => ({
       name: spell.name,
       level: spell.level,
       ...(spell.fromClassLevel != null
         ? { fromClassLevel: spell.fromClassLevel }
+        : {}),
+      ...(spell.requiresChoice
+        ? { requiresChoice: { ...spell.requiresChoice } }
         : {}),
     })),
   }
@@ -698,6 +731,7 @@ export function syncSubclassAlwaysPreparedSpells(input: {
     const grantedSpellIds: string[] = []
 
     for (const spell of catalog) {
+      if (!alwaysPreparedMatchesPicks(spell, grant.picks ?? {})) continue
       if (spell.level > maxSpellLevel) continue
       if (spell.fromClassLevel != null && spell.fromClassLevel > classLevel) continue
       const nameRu = alwaysPreparedSpellNameRu(spell.name)

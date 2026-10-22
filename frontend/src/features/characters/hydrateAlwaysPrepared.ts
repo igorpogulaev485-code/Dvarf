@@ -78,14 +78,28 @@ export function hydrateAlwaysPreparedMechanics(known: SheetSpell[]): {
   return { known: changed ? next : known, changed }
 }
 
+function spellsMatchingGrantPicks(
+  catalogSpells: AlwaysPreparedSpell[],
+  picks: Record<string, string | string[]>,
+): AlwaysPreparedSpell[] {
+  return catalogSpells.filter((spell) => {
+    if (!spell.requiresChoice) return true
+    const raw = picks[spell.requiresChoice.id]
+    const value = typeof raw === 'string' ? raw.trim() : ''
+    return value === spell.requiresChoice.value
+  })
+}
+
 function snapshotNeedsRefresh(
   grant: AppliedSubclassGrant,
   catalogSpells: AlwaysPreparedSpell[],
 ): boolean {
   if (catalogSpells.length === 0) return false
+  const matched = spellsMatchingGrantPicks(catalogSpells, grant.picks ?? {})
+  if (matched.length === 0) return false
   const existing = grant.alwaysPreparedSpells ?? []
-  if (existing.length < catalogSpells.length) return true
-  const catalogHasGates = catalogSpells.some((s) => s.fromClassLevel != null)
+  if (existing.length < matched.length) return true
+  const catalogHasGates = matched.some((s) => s.fromClassLevel != null)
   const existingHasGates = existing.some((s) => s.fromClassLevel != null)
   return catalogHasGates && !existingHasGates
 }
@@ -95,6 +109,9 @@ function toSnapshot(spells: AlwaysPreparedSpell[]): AlwaysPreparedSpell[] {
     name: spell.name,
     level: spell.level,
     ...(spell.fromClassLevel != null ? { fromClassLevel: spell.fromClassLevel } : {}),
+    ...(spell.requiresChoice
+      ? { requiresChoice: { ...spell.requiresChoice } }
+      : {}),
   }))
 }
 
@@ -124,10 +141,14 @@ export function hydrateAlwaysPreparedFromSubclassCatalog(input: {
     })
     if (!def || !snapshotNeedsRefresh(grant, def.alwaysPreparedSpells)) return grant
     grantsChanged = true
+    const matched = spellsMatchingGrantPicks(
+      def.alwaysPreparedSpells,
+      grant.picks ?? {},
+    )
     return {
       ...grant,
       catalogId: grant.catalogId || entry.id,
-      alwaysPreparedSpells: toSnapshot(def.alwaysPreparedSpells),
+      alwaysPreparedSpells: toSnapshot(matched),
     }
   })
 

@@ -1912,10 +1912,10 @@
               },
               "applies_to": "later_spells",
               "required": true,
-              "notes_ru": "Определяет Circle Spells — сохранить pick; авто-гримуар позже."
+              "notes_ru": "PHB Circle Spells: always-prepared по выбранной земле (3/5/7/9)."
             }
           ],
-          "notes_ru": "Bonus cantrip — later. Natural Recovery — фича.",
+          "notes_ru": "Circle Spells по land_type (8 земель × 8 заклинаний). Bonus Cantrip (+1 заговор друида) — бюджет cantrips отдельно.",
           "parent_slug": "druid",
           "grants_level": 2,
           "source_books": "PHB",
@@ -1927,7 +1927,585 @@
               }
             ]
           },
-          "detail_status": "detailed"
+          "detail_status": "detailed",
+          "always_prepared_spells": [
+            {
+              "name": "Hold Person",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Spike Growth",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Sleet Storm",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Slow",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Ice Storm",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Freedom of Movement",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Commune with Nature",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Cone of Cold",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Mirror Image",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Misty Step",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Water Breathing",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Water Walk",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Control Water",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Freedom of Movement",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Conjure Elemental",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Scrying",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Blur",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Silence",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Create Food and Water",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Protection from Energy",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Blight",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Hallucinatory Terrain",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Insect Plague",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Wall of Stone",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Barkskin",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Spider Climb",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Call Lightning",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Plant Growth",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Divination",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Freedom of Movement",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Commune with Nature",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Tree Stride",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Invisibility",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Pass without Trace",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Daylight",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Haste",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Divination",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Freedom of Movement",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Dream",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Insect Plague",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Spider Climb",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Spike Growth",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Lightning Bolt",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Meld into Stone",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Stone Shape",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Stoneskin",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Passwall",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Wall of Stone",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Acid Arrow",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Darkness",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Water Walk",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Stinking Cloud",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Freedom of Movement",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Locate Creature",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Insect Plague",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Scrying",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Spider Climb",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            },
+            {
+              "name": "Web",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            },
+            {
+              "name": "Gust of Wind",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            },
+            {
+              "name": "Lightning Bolt",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            },
+            {
+              "name": "Greater Invisibility",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            },
+            {
+              "name": "Stone Shape",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            },
+            {
+              "name": "Cloudkill",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            },
+            {
+              "name": "Insect Plague",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            }
+          ]
         },
         {
           "slug": "circle_of_the_moon",

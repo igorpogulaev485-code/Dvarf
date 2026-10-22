@@ -441,4 +441,89 @@ function emptyDraft(): SubclassGrantDraftSlice {
   console.log('Q4 Druid Spores/Stars/Wildfire APS: ok')
 }
 
+// --- Q2: EGW dunamancy subclass tags ---
+{
+  const spellsPath = join(here, '../../../../frontend/public/spells-2014.json')
+  const rows = JSON.parse(readFileSync(spellsPath, 'utf8')) as Array<{
+    slug: string
+    source?: string
+    data?: {
+      classes?: string[]
+      subclasses?: Array<{ class?: string; subclass?: string }>
+    }
+  }>
+  const egw = rows.filter((r) => r.source === 'egw-2014')
+  assert(egw.length === 15, `EGW count ${egw.length}`)
+  for (const row of egw) {
+    assert(
+      JSON.stringify(row.data?.classes) === JSON.stringify(['wizard']),
+      `${row.slug} classes`,
+    )
+    const subs = row.data?.subclasses ?? []
+    assert(subs.length === 2, `${row.slug} subclasses len`)
+    const keys = new Set(subs.map((s) => `${s.class}/${s.subclass}`))
+    assert(keys.has('wizard/chronurgy_magic'), `${row.slug} chronurgy`)
+    assert(keys.has('wizard/graviturgy_magic'), `${row.slug} graviturgy`)
+  }
+  const encode = rows.find((r) => r.slug === 'encode_thoughts')
+  assert(encode, 'encode_thoughts')
+  assert(
+    JSON.stringify(encode.data?.classes) === JSON.stringify(['wizard']),
+    'encode_thoughts wizard',
+  )
+  assert(!(encode.data?.subclasses?.length), 'encode_thoughts no subclass gate')
+  console.log('Q2 EGW dunamancy tags: ok')
+}
+
+// --- Q4: Circle of the Land by land_type ---
+{
+  const raw = findSub('druid', 'circle_of_the_land')
+  const def = parseSubclassGrantDef({
+    slug: 'circle_of_the_land',
+    nameRu: 'Круг земли',
+    parentSlug: 'druid',
+    catalogData: raw,
+  })
+  assert(def, 'land parse')
+  assert(def.alwaysPreparedSpells.length === 64, `land aps ${def.alwaysPreparedSpells.length}`)
+  const arctic = def.alwaysPreparedSpells.filter(
+    (s) => s.requiresChoice?.value === 'arctic',
+  )
+  assert(arctic.length === 8, `arctic ${arctic.length}`)
+
+  const at3 = applySubclassGrantToDraft({
+    draft: emptyDraft(),
+    classEntryId: 'druid-1',
+    catalogId: 'land',
+    def,
+    picks: { values: { land_type: 'arctic' } },
+    classLevel: 3,
+    maxSpellLevel: 2,
+  })
+  assert(at3, 'land L3 apply')
+  assert(at3.draft.spells.known.length === 2, `arctic L3 known ${at3.draft.spells.known.length}`)
+  assert(
+    at3.draft.subclassGrants[0]?.alwaysPreparedSpells?.length === 8,
+    'snapshot stores full arctic table',
+  )
+
+  const desert = applySubclassGrantToDraft({
+    draft: emptyDraft(),
+    classEntryId: 'druid-1',
+    catalogId: 'land',
+    def,
+    picks: { values: { land_type: 'desert' } },
+    classLevel: 9,
+    maxSpellLevel: 5,
+  })
+  assert(desert, 'desert L9')
+  assert(
+    desert.draft.spells.known.length === 8,
+    `desert L9 known ${desert.draft.spells.known.length}`,
+  )
+  const names = desert.draft.spells.known.map((s) => s.name)
+  assert(names.some((n) => /тишина|silence/i.test(n) || n.includes('Тишина')), 'desert has Silence')
+  console.log('Q4 Circle of the Land APS: ok')
+}
+
 console.log('magicQaFix.selfcheck: all ok')
