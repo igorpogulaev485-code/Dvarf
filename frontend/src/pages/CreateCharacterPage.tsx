@@ -75,7 +75,10 @@ import {
   type AbilityKey,
   type AppliedClassAsi,
 } from '../shared/dnd/classAsi'
-import { unlockFeaturesForClasses } from '../shared/dnd/classFeatures'
+import {
+  resolveSubclassFeatureSlug,
+  unlockFeaturesForClasses,
+} from '../shared/dnd/classFeatures'
 import { resolveBackgroundGrantDef } from '../shared/dnd/backgroundGrants'
 import {
   grantNeedsSetupDialog,
@@ -154,6 +157,10 @@ import {
   spellsToSheet,
   type SpellsState,
 } from '../features/characters/spells'
+import {
+  pruneSubclassSetupsForClasses,
+  resetSpellsForClassChange,
+} from '../features/createPipeline/createPipelineMagicReset'
 import {
   formatNamedCantripBudgets,
   resolveSpellLearnBudgets,
@@ -1129,16 +1136,24 @@ export function CreateCharacterPage() {
       return
     }
     if (step === 'leveling') {
+      const nextClasses = [
+        createClassLevel({
+          id: state.classEntryId,
+          name: state.classRef?.nameRu ?? '',
+          catalog_id: state.classRef?.id ?? null,
+          level: 1,
+        }),
+      ]
+      setSpells(
+        resetSpellsForClassChange({
+          prev: spells,
+          remainingClasses: nextClasses,
+          dropUntagged: true,
+        }),
+      )
       patchState({
         step: nextStep,
-        classes: [
-          createClassLevel({
-            id: state.classEntryId,
-            name: state.classRef?.nameRu ?? '',
-            catalog_id: state.classRef?.id ?? null,
-            level: 1,
-          }),
-        ],
+        classes: nextClasses,
         hpChoices: [],
         subclassSetups: {},
         featurePicks: emptyFeaturePicks(),
@@ -1151,6 +1166,7 @@ export function CreateCharacterPage() {
       return
     }
     if (step === 'class') {
+      setSpells(readSpells({}))
       patchState({
         step: nextStep,
         classRef: null,
@@ -1347,6 +1363,23 @@ export function CreateCharacterPage() {
       setSpellWarnOpen(true)
       return
     }
+    // Known casters (warlock/sorcerer/bard/…): soft warn if under budget — MC
+    // sheets with other classes' spells used to skip the empty-spells gate.
+    const knownGaps = spellLearnBudgets.filter((row) => {
+      if (row.mode !== 'known') return false
+      const cantrips = countLearnedCantripsForSlug(spells.known, row.slug)
+      const leveled = countLearnedLeveledForSlug(spells.known, row.slug)
+      const cantripShort = row.cantrips > 0 && cantrips < row.cantrips
+      const leveledShort =
+        row.leveledKnown != null &&
+        row.leveledKnown > 0 &&
+        leveled < row.leveledKnown
+      return cantripShort || leveledShort
+    })
+    if (knownGaps.length > 0) {
+      setSpellWarnOpen(true)
+      return
+    }
     void persist({ asDraft: false })
   }
 
@@ -1402,12 +1435,26 @@ export function CreateCharacterPage() {
         level: 1,
       }),
     ]
+    const classChanged =
+      Boolean(state.classRef?.id) && state.classRef?.id !== entry.id
+    if (classChanged) {
+      setSpells(
+        resetSpellsForClassChange({
+          prev: spells,
+          remainingClasses: nextClasses,
+          dropUntagged: true,
+        }),
+      )
+    }
     patchState({
       classRef: catalogRef(entry),
       classEntryId: entryId,
       classes: nextClasses,
       hpChoices: ensureHpChoices(nextClasses, []),
-      classGrantPicks: {},
+      classGrantPicks: classChanged ? {} : state.classGrantPicks,
+      subclassSetups: classChanged ? {} : state.subclassSetups,
+      featurePicks: classChanged ? emptyFeaturePicks() : state.featurePicks,
+      classAsi: classChanged ? [] : state.classAsi,
       stepDirty: { ...state.stepDirty, class: true },
     })
     setClassSetup({
@@ -1764,13 +1811,30 @@ export function CreateCharacterPage() {
         racialSpells={raceGrantDef?.racialSpells ?? []}
         hasCasterClass={hasCasterClass}
         featNoteRu={featNote}
-        onClassesChange={(next) =>
+        onClassesChange={(next) => {
+          const prunedSetups = pruneSubclassSetupsForClasses(
+            state.subclassSetups,
+            next,
+          )
+          const removedEntry =
+            (state.classes?.length ?? 0) > next.length ||
+            state.classes.some((row) => !next.some((n) => n.id === row.id))
+          if (removedEntry) {
+            setSpells(
+              resetSpellsForClassChange({
+                prev: spells,
+                remainingClasses: next,
+                dropUntagged: false,
+              }),
+            )
+          }
           patchState({
             classes: next,
             hpChoices: ensureHpChoices(next, state.hpChoices),
+            subclassSetups: prunedSetups,
             stepDirty: { ...state.stepDirty, leveling: true },
           })
-        }
+        }}
         onHpChoicesChange={(hpChoices) => patchState({ hpChoices })}
         onChangeArchetype={(classEntryId) => {
           void openArchetypePicker(classEntryId)
@@ -2258,6 +2322,18 @@ export function CreateCharacterPage() {
             // Real draft inventory + bind; L1 OR only as last-resort safety net.
             hasBook: hasBook || step.classLevel <= 1,
             classListSlugs: ['wizard'],
+            subclassSlug: (() => {
+              const wizard = state.classes.find((row) => {
+                const n = row.name.trim().toLowerCase()
+                return n === 'волшебник' || n === 'wizard' || n === 'маг'
+              })
+              const raw = wizard?.subclass_name?.trim() || ''
+              if (!raw) return null
+              return (
+                resolveSubclassFeatureSlug(raw) ??
+                raw.toLowerCase().replace(/\s+/g, '_')
+              )
+            })(),
           }
         })()}
         onConfirmSpellbookPicks={(entries) => {
@@ -2408,16 +2484,51 @@ export function CreateCharacterPage() {
       {spellWarnOpen ? (
         <div className="create-pipeline__modal">
           <Stack gap={12}>
-            <Text as="h3">Заклинания не выбраны</Text>
+            <Text as="h3">Заклинания не добраны</Text>
             <Text>
-              Заполнить на листе или продолжить в форме создания? Для кастеров с заменой только на
-              повышении уровня лучше закрыть здесь.
+              {(() => {
+                const gaps = spellLearnBudgets
+                  .filter((row) => row.mode === 'known')
+                  .map((row) => {
+                    const cantrips = countLearnedCantripsForSlug(spells.known, row.slug)
+                    const leveled = countLearnedLeveledForSlug(spells.known, row.slug)
+                    const parts: string[] = []
+                    if (row.cantrips > 0 && cantrips < row.cantrips) {
+                      parts.push(`заговоры ${cantrips}/${row.cantrips}`)
+                    }
+                    if (
+                      row.leveledKnown != null &&
+                      row.leveledKnown > 0 &&
+                      leveled < row.leveledKnown
+                    ) {
+                      parts.push(`известные ${leveled}/${row.leveledKnown}`)
+                    }
+                    return parts.length ? `${row.labelRu}: ${parts.join(', ')}` : null
+                  })
+                  .filter(Boolean)
+                if (gaps.length > 0) {
+                  return `${gaps.join(' · ')}. Для known-кастеров замена только при повышении уровня — лучше закрыть бюджет здесь.`
+                }
+                return 'Заполнить на листе или продолжить в форме создания? Для кастеров с заменой только на повышении уровня лучше закрыть здесь.'
+              })()}
             </Text>
             <div className="create-pipeline__method-row">
               <Button
                 variant="secondary"
                 onClick={() => {
                   setSpellWarnOpen(false)
+                  const gapSlug = spellLearnBudgets.find((row) => {
+                    if (row.mode !== 'known') return false
+                    const cantrips = countLearnedCantripsForSlug(spells.known, row.slug)
+                    const leveled = countLearnedLeveledForSlug(spells.known, row.slug)
+                    return (
+                      (row.cantrips > 0 && cantrips < row.cantrips) ||
+                      (row.leveledKnown != null &&
+                        row.leveledKnown > 0 &&
+                        leveled < row.leveledKnown)
+                    )
+                  })?.slug
+                  setGrimoireClassFilter(gapSlug ?? null)
                   setSpellsOpen('grimoire')
                 }}
               >

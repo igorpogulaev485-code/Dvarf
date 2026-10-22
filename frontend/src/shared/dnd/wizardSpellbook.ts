@@ -535,6 +535,40 @@ export function beginReplacementSpellbook(
 }
 
 /**
+ * Rebind a physical book found in inventory after loss and clear the lost flag.
+ * Caller restores `in_spellbook` from lostBookContents (full snapshot — not memory).
+ */
+export function rebindFoundSpellbook(
+  book: WizardSpellbookState,
+  foundBookItemId: string,
+): WizardSpellbookState {
+  const id = foundBookItemId.trim()
+  if (!id) {
+    throw new Error('foundBookItemId required')
+  }
+  return {
+    ...book,
+    primaryBookItemId: id,
+    bookLost: false,
+    lostBookContents: undefined,
+  }
+}
+
+/** Match known leveled rows to a lost-book snapshot (catalog id or name). */
+export function spellMatchesLostBookContents(
+  spell: { catalog_id?: string | null; name: string; level: number },
+  lost: Array<{ catalog_id?: string | null; name: string; level: number }> | undefined,
+): boolean {
+  if (!lost?.length || spell.level <= 0) return false
+  const byCatalog = new Set(
+    lost.map((row) => row.catalog_id).filter((id): id is string => Boolean(id)),
+  )
+  const byName = new Set(lost.map((row) => row.name.trim().toLowerCase()))
+  if (spell.catalog_id != null && byCatalog.has(spell.catalog_id)) return true
+  return byName.has(spell.name.trim().toLowerCase())
+}
+
+/**
  * Cost plan to restore currently prepared leveled spells into a replacement book.
  * PHB: only prepared spells can be transcribed from memory.
  */

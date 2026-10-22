@@ -27,14 +27,19 @@ import {
   catalogEntryClasses,
   catalogEntryLevel,
 } from '../../shared/dnd/prepareAvailability'
-import { parseSpellCatalogData } from '../../shared/dnd/spellCatalog'
+import {
+  parseSpellCatalogData,
+  spellAvailableOnClassList,
+} from '../../shared/dnd/spellCatalog'
 import { levelLabel } from '../../shared/dnd/spells'
 import {
   formatGpTotal,
   type CoinPurse,
 } from '../../shared/dnd/weight'
 import {
+  multiclassSpellAccessHint,
   spellAccessUiCopy,
+  spellLearnModeLabelRu,
   type SpellAccessContext,
 } from '../../shared/dnd/spellAccessUi'
 import {
@@ -368,7 +373,9 @@ export function GrimoireDialog({
         setError('Не удалось загрузить гримуар')
         return
       }
-      setEntries(items)
+      // Bundled JSON may still list SRD aliases; API already hides is_active=false.
+      const visible = items.filter((entry) => entry.is_active !== false)
+      setEntries(visible)
       setError(null)
     }
 
@@ -417,10 +424,28 @@ export function GrimoireDialog({
 
       if (shelfList.length > 0) {
         // Union of all caster shelves with per-class alone-max (M5).
-        if (!catalogSpellMatchesAnyShelf(classSlugs, level, shelfList)) return false
+        if (
+          !catalogSpellMatchesAnyShelf(
+            classSlugs,
+            level,
+            shelfList,
+            parsed.subclasses,
+          )
+        ) {
+          return false
+        }
       } else {
-        const slugSet = new Set(access.classSlugs)
-        const onList = parsed.classes.some((slug) => slugSet.has(slug))
+        const onList = access.classSlugs.some((slug) => {
+          const shelf = shelves.find((row) => row.slug === slug)
+          return spellAvailableOnClassList({
+            classes: parsed.classes,
+            subclasses: parsed.subclasses,
+            classSlug: slug,
+            subclassSlug:
+              shelf?.subclassSlug ??
+              (slug === 'wizard' ? wizardSubclassSlug : null),
+          })
+        })
         if (!onList) return false
         if (parsed.level > 0 && parsed.level > access.maxSpellLevel) return false
       }
@@ -431,7 +456,7 @@ export function GrimoireDialog({
       }
       return true
     })
-  }, [entries, access, shelves])
+  }, [entries, access, shelves, wizardSubclassSlug])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -513,13 +538,15 @@ export function GrimoireDialog({
       ]
     }
     return shelves.map((shelf) => {
-      const list = filtered.filter((entry) =>
-        catalogSpellMatchesShelf(
+      const list = filtered.filter((entry) => {
+        const parsed = parseSpellCatalogData(entry.data)
+        return catalogSpellMatchesShelf(
           catalogEntryClasses(entry),
           catalogEntryLevel(entry),
           shelf,
-        ),
-      )
+          parsed.subclasses,
+        )
+      })
       return { shelf, groups: entriesToLevelGroups(list) }
     })
   }, [filtered, shelves, classFilter])
@@ -634,7 +661,17 @@ export function GrimoireDialog({
       onToast?.('Уже есть в списке этого класса')
       return
     }
-    const onList = parsed.classes.some((slug) => access.classSlugs.includes(slug))
+    const onList = access.classSlugs.some((slug) => {
+      const shelf = shelves.find((row) => row.slug === slug)
+      return spellAvailableOnClassList({
+        classes: parsed.classes,
+        subclasses: parsed.subclasses,
+        classSlug: slug,
+        subclassSlug:
+          shelf?.subclassSlug ??
+          (slug === 'wizard' ? wizardSubclassSlug : null),
+      })
+    })
     if (!onList) {
       onToast?.('Нет в списке заклинаний твоих классов')
       return
@@ -646,8 +683,18 @@ export function GrimoireDialog({
       const aloneCap = shelf?.aloneMaxLevel ?? access.maxSpellLevel
       if (
         shelf
-          ? !catalogSpellMatchesShelf(parsed.classes, level, shelf)
-          : !catalogSpellMatchesAnyShelf(parsed.classes, level, shelves)
+          ? !catalogSpellMatchesShelf(
+              parsed.classes,
+              level,
+              shelf,
+              parsed.subclasses,
+            )
+          : !catalogSpellMatchesAnyShelf(
+              parsed.classes,
+              level,
+              shelves,
+              parsed.subclasses,
+            )
       ) {
         onToast?.(
           aloneCap > 0
@@ -1085,7 +1132,19 @@ export function GrimoireDialog({
       ? namedCantripMeta
       : `заговоры ${learnedCantrips}/${b.cantrips}`
     if (access.budgets.length > 1) {
-      return `${cantripPart}. ${uiCopy.grimoireHint} ${accessHint}`
+      const mcHint = multiclassSpellAccessHint(
+        access.budgets.map((row) => ({ labelRu: row.labelRu, mode: row.mode })),
+      )
+      const shelfModes =
+        shelves.length > 1
+          ? shelves
+              .map(
+                (shelf) =>
+                  `${shelf.labelRu}: ${spellLearnModeLabelRu(shelf.mode)}`,
+              )
+              .join(' · ')
+          : ''
+      return `${cantripPart}. ${mcHint}${shelfModes ? ` Полки: ${shelfModes}.` : ''} ${accessHint}`
     }
     if (b.mode === 'spellbook') {
       const freePart =

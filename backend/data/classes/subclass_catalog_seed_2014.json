@@ -41,7 +41,59 @@
               }
             ]
           },
-          "detail_status": "detailed"
+          "detail_status": "detailed",
+          "always_prepared_spells": [
+            {
+              "name": "Healing Word",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Ray of Sickness",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Flaming Sphere",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Acid Arrow",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Gaseous Form",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Mass Healing Word",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Blight",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Death Ward",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Cloudkill",
+              "level": 5,
+              "from_class_level": 17
+            },
+            {
+              "name": "Raise Dead",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         },
         {
           "slug": "artillerist",
@@ -86,7 +138,59 @@
               }
             ]
           },
-          "detail_status": "detailed"
+          "detail_status": "detailed",
+          "always_prepared_spells": [
+            {
+              "name": "Shield",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Thunderwave",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Scorching Ray",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Shatter",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Fireball",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Wind Wall",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Ice Storm",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Wall of Fire",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Cone of Cold",
+              "level": 5,
+              "from_class_level": 17
+            },
+            {
+              "name": "Wall of Force",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         },
         {
           "slug": "battle_smith",
@@ -127,7 +231,59 @@
               }
             ]
           },
-          "detail_status": "detailed"
+          "detail_status": "detailed",
+          "always_prepared_spells": [
+            {
+              "name": "Heroism",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Shield",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Branding Smite",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Warding Bond",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Aura of Vitality",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Conjure Barrage",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Aura of Purity",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Fire Shield",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Banishing Smite",
+              "level": 5,
+              "from_class_level": 17
+            },
+            {
+              "name": "Mass Cure Wounds",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         },
         {
           "slug": "armorer",
@@ -165,7 +321,59 @@
           "grants_level": 3,
           "source_books": "TCoE",
           "features_by_level": {},
-          "detail_status": "detailed"
+          "detail_status": "detailed",
+          "always_prepared_spells": [
+            {
+              "name": "Magic Missile",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Thunderwave",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Mirror Image",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Shatter",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Hypnotic Pattern",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Lightning Bolt",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Fire Shield",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Greater Invisibility",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Passwall",
+              "level": 5,
+              "from_class_level": 17
+            },
+            {
+              "name": "Wall of Force",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         }
       ]
     },
@@ -1704,10 +1912,10 @@
               },
               "applies_to": "later_spells",
               "required": true,
-              "notes_ru": "Определяет Circle Spells — сохранить pick; авто-гримуар позже."
+              "notes_ru": "PHB Circle Spells: always-prepared по выбранной земле (3/5/7/9)."
             }
           ],
-          "notes_ru": "Bonus cantrip — later. Natural Recovery — фича.",
+          "notes_ru": "Circle Spells по land_type (8 земель × 8 заклинаний). Bonus Cantrip (+1 заговор друида) — бюджет cantrips отдельно.",
           "parent_slug": "druid",
           "grants_level": 2,
           "source_books": "PHB",
@@ -1719,7 +1927,585 @@
               }
             ]
           },
-          "detail_status": "detailed"
+          "detail_status": "detailed",
+          "always_prepared_spells": [
+            {
+              "name": "Hold Person",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Spike Growth",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Sleet Storm",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Slow",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Ice Storm",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Freedom of Movement",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Commune with Nature",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Cone of Cold",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "arctic"
+              }
+            },
+            {
+              "name": "Mirror Image",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Misty Step",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Water Breathing",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Water Walk",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Control Water",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Freedom of Movement",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Conjure Elemental",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Scrying",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "coast"
+              }
+            },
+            {
+              "name": "Blur",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Silence",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Create Food and Water",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Protection from Energy",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Blight",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Hallucinatory Terrain",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Insect Plague",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Wall of Stone",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "desert"
+              }
+            },
+            {
+              "name": "Barkskin",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Spider Climb",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Call Lightning",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Plant Growth",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Divination",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Freedom of Movement",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Commune with Nature",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Tree Stride",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "forest"
+              }
+            },
+            {
+              "name": "Invisibility",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Pass without Trace",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Daylight",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Haste",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Divination",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Freedom of Movement",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Dream",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Insect Plague",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "grassland"
+              }
+            },
+            {
+              "name": "Spider Climb",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Spike Growth",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Lightning Bolt",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Meld into Stone",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Stone Shape",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Stoneskin",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Passwall",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Wall of Stone",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "mountain"
+              }
+            },
+            {
+              "name": "Acid Arrow",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Darkness",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Water Walk",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Stinking Cloud",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Freedom of Movement",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Locate Creature",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Insect Plague",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Scrying",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "swamp"
+              }
+            },
+            {
+              "name": "Spider Climb",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            },
+            {
+              "name": "Web",
+              "level": 2,
+              "from_class_level": 3,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            },
+            {
+              "name": "Gust of Wind",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            },
+            {
+              "name": "Lightning Bolt",
+              "level": 3,
+              "from_class_level": 5,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            },
+            {
+              "name": "Greater Invisibility",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            },
+            {
+              "name": "Stone Shape",
+              "level": 4,
+              "from_class_level": 7,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            },
+            {
+              "name": "Cloudkill",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            },
+            {
+              "name": "Insect Plague",
+              "level": 5,
+              "from_class_level": 9,
+              "requires_choice": {
+                "id": "land_type",
+                "value": "underdark"
+              }
+            }
+          ]
         },
         {
           "slug": "circle_of_the_moon",
@@ -1797,7 +2583,54 @@
                 "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Chill Touch",
+              "level": 0,
+              "from_class_level": 2
+            },
+            {
+              "name": "Blindness/Deafness",
+              "level": 2,
+              "from_class_level": 3
+            },
+            {
+              "name": "Gentle Repose",
+              "level": 2,
+              "from_class_level": 3
+            },
+            {
+              "name": "Animate Dead",
+              "level": 3,
+              "from_class_level": 5
+            },
+            {
+              "name": "Gaseous Form",
+              "level": 3,
+              "from_class_level": 5
+            },
+            {
+              "name": "Blight",
+              "level": 4,
+              "from_class_level": 7
+            },
+            {
+              "name": "Confusion",
+              "level": 4,
+              "from_class_level": 7
+            },
+            {
+              "name": "Cloudkill",
+              "level": 5,
+              "from_class_level": 9
+            },
+            {
+              "name": "Contagion",
+              "level": 5,
+              "from_class_level": 9
+            }
+          ]
         },
         {
           "slug": "circle_of_stars",
@@ -1841,7 +2674,19 @@
                 "summary_ru": "Выбор формы — боевой, на листе опционально."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Guidance",
+              "level": 0,
+              "from_class_level": 2
+            },
+            {
+              "name": "Guiding Bolt",
+              "level": 1,
+              "from_class_level": 2
+            }
+          ]
         },
         {
           "slug": "circle_of_wildfire",
@@ -1862,16 +2707,72 @@
               "notes_ru": "Имя духа — карточка спутника."
             }
           ],
-          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
-          "detail_status": "inventory_only",
+          "notes_ru": "Заклинания круга всегда подготовлены (TCoE). Дух — карточка спутника.",
+          "detail_status": "detailed",
           "features_by_level": {
             "2": [
               {
-                "title_ru": "Круг дикого огня",
-                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+                "title_ru": "Заклинания круга",
+                "summary_ru": "Всегда подготовлены заклинания дикого огня (2/3/5/7/9)."
+              },
+              {
+                "title_ru": "Призыв духа дикого огня",
+                "summary_ru": "Потрать Дикий облик — призвать духа на 1 ч."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Burning Hands",
+              "level": 1,
+              "from_class_level": 2
+            },
+            {
+              "name": "Cure Wounds",
+              "level": 1,
+              "from_class_level": 2
+            },
+            {
+              "name": "Flaming Sphere",
+              "level": 2,
+              "from_class_level": 3
+            },
+            {
+              "name": "Scorching Ray",
+              "level": 2,
+              "from_class_level": 3
+            },
+            {
+              "name": "Plant Growth",
+              "level": 3,
+              "from_class_level": 5
+            },
+            {
+              "name": "Revivify",
+              "level": 3,
+              "from_class_level": 5
+            },
+            {
+              "name": "Aura of Life",
+              "level": 4,
+              "from_class_level": 7
+            },
+            {
+              "name": "Fire Shield",
+              "level": 4,
+              "from_class_level": 7
+            },
+            {
+              "name": "Flame Strike",
+              "level": 5,
+              "from_class_level": 9
+            },
+            {
+              "name": "Mass Cure Wounds",
+              "level": 5,
+              "from_class_level": 9
+            }
+          ]
         }
       ]
     },
@@ -3237,7 +4138,34 @@
                 "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Protection from Evil and Good",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Misty Step",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Haste",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Banishment",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Plane Shift",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         },
         {
           "slug": "monster_slayer",
@@ -3256,7 +4184,34 @@
                 "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Protection from Evil and Good",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Zone of Truth",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Magic Circle",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Banishment",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Hold Monster",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         },
         {
           "slug": "fey_wanderer",
@@ -3275,7 +4230,34 @@
                 "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Charm Person",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Misty Step",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Dispel Magic",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Dimension Door",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Mislead",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         },
         {
           "slug": "swarmkeeper",
@@ -3294,7 +4276,39 @@
                 "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Mage Hand",
+              "level": 0,
+              "from_class_level": 3
+            },
+            {
+              "name": "Faerie Fire",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Web",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Gaseous Form",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Arcane Eye",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Insect Plague",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         },
         {
           "slug": "drakewarden",
@@ -4228,8 +5242,8 @@
           "source_books": "EGtW",
           "sheet_grants": {},
           "choices": [],
-          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
-          "detail_status": "inventory_only",
+          "notes_ru": "Dunamancy (EGW): 15 заклинаний в каталоге с classes=[wizard] и subclasses chronurgy_magic|graviturgy_magic — в гримуаре только для этой традиции. Фичи традиции — в features pack.",
+          "detail_status": "detailed",
           "features_by_level": {
             "2": [
               {
@@ -4247,8 +5261,8 @@
           "source_books": "EGtW",
           "sheet_grants": {},
           "choices": [],
-          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
-          "detail_status": "inventory_only",
+          "notes_ru": "Dunamancy (EGW): 15 заклинаний в каталоге с classes=[wizard] и subclasses chronurgy_magic|graviturgy_magic — в гримуаре только для этой традиции. Фичи традиции — в features pack.",
+          "detail_status": "detailed",
           "features_by_level": {
             "2": [
               {

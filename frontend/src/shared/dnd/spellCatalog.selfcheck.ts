@@ -2,7 +2,7 @@
  * Lightweight self-check: npx --yes tsx src/shared/dnd/spellCatalog.selfcheck.ts
  * Run from frontend/.
  */
-import { parseSpellCatalogData } from './spellCatalog'
+import { parseSpellCatalogData, spellAvailableOnClassList } from './spellCatalog'
 
 function assert(cond: unknown, message: string): asserts cond {
   if (!cond) throw new Error(message)
@@ -44,4 +44,62 @@ for (const sample of samples) {
   assert(parsed.level === sample.level, `${sample.name} level ${sample.level}`)
 }
 
-console.log('spellCatalog.selfcheck: ok (Goodberry=1; cantrips=0; string levels ok)')
+const dunamancy = parseSpellCatalogData({
+  level: 0,
+  school: 'necromancy',
+  classes: ['wizard'],
+  subclasses: [
+    { class: 'wizard', subclass: 'chronurgy_magic' },
+    { class: 'wizard', subclass: 'graviturgy_magic' },
+  ],
+})
+assert(dunamancy.subclasses.length === 2, 'dunamancy subclasses parse')
+assert(
+  !spellAvailableOnClassList({
+    classes: dunamancy.classes,
+    subclasses: dunamancy.subclasses,
+    classSlug: 'wizard',
+    subclassSlug: null,
+  }),
+  'dunamancy hidden without tradition',
+)
+assert(
+  !spellAvailableOnClassList({
+    classes: dunamancy.classes,
+    subclasses: dunamancy.subclasses,
+    classSlug: 'wizard',
+    subclassSlug: 'evocation',
+  }),
+  'dunamancy hidden for evocation',
+)
+assert(
+  spellAvailableOnClassList({
+    classes: dunamancy.classes,
+    subclasses: dunamancy.subclasses,
+    classSlug: 'wizard',
+    subclassSlug: 'chronurgy_magic',
+  }),
+  'dunamancy open for chronurgy',
+)
+assert(
+  spellAvailableOnClassList({
+    classes: dunamancy.classes,
+    subclasses: dunamancy.subclasses,
+    classSlug: 'wizard',
+    subclassSlug: 'graviturgy_magic',
+  }),
+  'dunamancy open for graviturgy',
+)
+assert(
+  spellAvailableOnClassList({
+    classes: ['wizard'],
+    subclasses: [],
+    classSlug: 'wizard',
+    subclassSlug: null,
+  }),
+  'unrestricted wizard list stays open',
+)
+
+console.log(
+  'spellCatalog.selfcheck: ok (Goodberry=1; cantrips=0; string levels; EGW gates)',
+)

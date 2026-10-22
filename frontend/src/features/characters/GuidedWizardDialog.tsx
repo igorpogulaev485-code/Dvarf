@@ -63,7 +63,10 @@ import {
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
 import type { RulesEdition } from '../../shared/api/characters'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
-import { parseSpellCatalogData } from '../../shared/dnd/spellCatalog'
+import {
+  parseSpellCatalogData,
+  spellAvailableOnClassList,
+} from '../../shared/dnd/spellCatalog'
 import { levelLabel } from '../../shared/dnd/spells'
 import { CatalogCombobox } from '../catalog'
 import { AsiChoiceBody } from './AsiChoiceBody'
@@ -146,6 +149,8 @@ type GuidedWizardDialogProps = {
     blockedCatalogIds?: string[]
     hasBook: boolean
     classListSlugs?: string[]
+    /** Wizard tradition (etc.) for subclass-gated lists (EGW dunamancy). */
+    subclassSlug?: string | null
   } | null
   /** Persist free research picks into the spellbook, then parent advances. */
   onConfirmSpellbookPicks?: (entries: CatalogEntry[]) => void
@@ -581,6 +586,7 @@ function SpellbookPicksStepBody({
   blockedCatalogIds,
   hasBook,
   classListSlugs,
+  subclassSlug,
 }: {
   picksNeeded: number
   classLevel: number
@@ -591,6 +597,7 @@ function SpellbookPicksStepBody({
   blockedCatalogIds: string[]
   hasBook: boolean
   classListSlugs: string[]
+  subclassSlug?: string | null
 }) {
   const [query, setQuery] = useState('')
   const [entries, setEntries] = useState<CatalogEntry[]>([])
@@ -618,14 +625,25 @@ function SpellbookPicksStepBody({
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    const slugs = new Set(classListSlugs.map((s) => s.toLowerCase()))
+    const slugs = classListSlugs.map((s) => s.toLowerCase()).filter(Boolean)
     return entries
       .filter((entry) => {
         if (blocked.has(entry.id) || selectedIds.has(entry.id)) return false
         const parsed = parseSpellCatalogData(entry.data ?? {})
         if (parsed.level < 1 || parsed.level > maxSpellLevel) return false
-        const classes = (parsed.classes ?? []).map((c) => c.toLowerCase())
-        if (slugs.size > 0 && !classes.some((c) => slugs.has(c))) return false
+        if (
+          slugs.length > 0 &&
+          !slugs.some((slug) =>
+            spellAvailableOnClassList({
+              classes: parsed.classes,
+              subclasses: parsed.subclasses,
+              classSlug: slug,
+              subclassSlug,
+            }),
+          )
+        ) {
+          return false
+        }
         if (!q) return true
         return (
           entry.name_ru.toLowerCase().includes(q) ||
@@ -634,7 +652,15 @@ function SpellbookPicksStepBody({
         )
       })
       .slice(0, 30)
-  }, [entries, query, maxSpellLevel, blocked, selectedIds, classListSlugs])
+  }, [
+    entries,
+    query,
+    maxSpellLevel,
+    blocked,
+    selectedIds,
+    classListSlugs,
+    subclassSlug,
+  ])
 
   function toggle(entry: CatalogEntry) {
     if (selectedIds.has(entry.id)) {
@@ -1204,6 +1230,7 @@ export function GuidedWizardDialog({
             blockedCatalogIds={spellbookPicksContext?.blockedCatalogIds ?? []}
             hasBook={Boolean(spellbookPicksContext?.hasBook)}
             classListSlugs={spellbookPicksContext?.classListSlugs ?? ['wizard']}
+            subclassSlug={spellbookPicksContext?.subclassSlug ?? null}
           />
         ) : null}
         {step.kind === 'pact_tome_cantrips' ? (

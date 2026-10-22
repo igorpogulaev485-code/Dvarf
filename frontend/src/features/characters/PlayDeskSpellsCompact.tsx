@@ -15,7 +15,10 @@ import {
   mergeCastProfilesForDisplay,
   type SpellCastProfile,
 } from '../../shared/dnd/castProfiles'
-import { resolveCastEffectSummary } from '../../shared/dnd/spellCatalog'
+import {
+  resolveCastEffectSummary,
+  spellSchoolLabelRu,
+} from '../../shared/dnd/spellCatalog'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
   countAlwaysPreparedLeveled,
@@ -34,7 +37,6 @@ import {
   type SpellsState,
 } from './spells'
 import { IconCast, IconConcentration, IconRitual, IconWizardHat } from './spellIcons'
-import { spellSchoolLabelRu } from '../../shared/dnd/spellCatalog'
 import type { FormulaVars } from '../../shared/dnd/formulas'
 import {
   SPELLCASTING_ABILITY_LABELS,
@@ -97,7 +99,7 @@ export function PlayDeskSpellsCompact({
   learnBudgets = null,
   classes = [],
   castProfiles = null,
-  characterLevel = 1,
+  characterLevel: characterLevelProp = 1,
   pinned = false,
   concentration = null,
   edition = '2014',
@@ -112,7 +114,7 @@ export function PlayDeskSpellsCompact({
 }: PlayDeskSpellsCompactProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [detailSpell, setDetailSpell] = useState<SheetSpell | null>(null)
-  const [showAllSpells, setShowAllSpells] = useState(false)
+  const bookLost = Boolean(spells.wizard_spellbook?.bookLost)
   const hasSpellbook =
     learnBudget?.mode === 'spellbook' &&
     Boolean(
@@ -174,6 +176,14 @@ export function PlayDeskSpellsCompact({
       }),
     )
   })()
+  const characterLevelFromClasses = classes.reduce(
+    (sum, row) => sum + Math.max(0, Math.floor(row.level)),
+    0,
+  )
+  const characterLevel = Math.max(
+    1,
+    Math.floor(characterLevelProp) || characterLevelFromClasses || 1,
+  )
   const learnedCantrips = countLearnedCantrips(spells.known)
   const learnedLeveled = countLearnedLeveled(spells.known)
   const preparedCount = countPreparedLeveled(spells.known)
@@ -225,7 +235,7 @@ export function PlayDeskSpellsCompact({
   const showPrepare =
     Boolean(onSpellsChange) && learnBudget?.mode === 'spellbook'
 
-  const maxRows = 14
+  /** Always show every ready spell — no «показать все» collapse (Игорь). */
   const levelGroups = (() => {
     const grouped = groupSpellsByLevel(ready)
     const byLevel = new Map(grouped.map((group) => [group.level, group]))
@@ -234,15 +244,14 @@ export function PlayDeskSpellsCompact({
         byLevel.set(level, { level, spells: [] })
       }
     }
-    let remaining = showAllSpells ? Number.POSITIVE_INFINITY : maxRows
     return [...byLevel.entries()]
       .sort((a, b) => a[0] - b[0])
-      .map(([, group]) => {
-        const visible = group.spells.slice(0, Math.max(0, remaining))
-        remaining -= visible.length
-        return { ...group, visible }
-      })
-      .filter((group) => group.visible.length > 0 || (group.level > 0 && (spells.slots[String(group.level)]?.max ?? 0) > 0))
+      .map(([, group]) => ({ ...group, visible: group.spells }))
+      .filter(
+        (group) =>
+          group.visible.length > 0 ||
+          (group.level > 0 && (spells.slots[String(group.level)]?.max ?? 0) > 0),
+      )
   })()
 
   return (
@@ -284,6 +293,13 @@ export function PlayDeskSpellsCompact({
           </button>
         </div>
       </div>
+
+      {learnBudget?.mode === 'spellbook' && bookLost ? (
+        <p className="play-desk-compact__book-lost">
+          Книга утеряна — подготовка и ритуалы из книги закрыты. Открой «{settingsLabel}» →
+          статус книги, чтобы вернуть книгу из инвентаря.
+        </p>
+      ) : null}
 
       {profileRows && profileRows.length > 0 ? (
         <div
@@ -460,25 +476,6 @@ export function PlayDeskSpellsCompact({
             )
           })
         )}
-        {ready.length > maxRows ? (
-          showAllSpells ? (
-            <button
-              type="button"
-              className="play-desk-compact__more play-desk-compact__more--btn"
-              onClick={() => setShowAllSpells(false)}
-            >
-              Свернуть список
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="play-desk-compact__more play-desk-compact__more--btn"
-              onClick={() => setShowAllSpells(true)}
-            >
-              + ещё {ready.length - maxRows} · показать все
-            </button>
-          )
-        ) : null}
       </div>
 
       {onSpellsChange ? (
@@ -566,13 +563,20 @@ function shortDamage(raw: string): string {
   return t.replace(/\s+/g, ' ')
 }
 
-/** Actual effect for this character (cantrip/slot scaling), not the catalog base. */
+/**
+ * Actual effect for this character (cantrip/slot scaling + Agathys-style summary).
+ * Falls back to static `damage` when no scale/summary applies (magic-qa tip).
+ */
 function compactDamage(spell: SheetSpell, characterLevel: number): string {
+  const level = Math.max(1, Math.floor(characterLevel) || 1)
+  const slotLevel = Math.max(spell.level, 1)
   const summary = resolveCastEffectSummary(spell, {
-    characterLevel: Math.max(1, characterLevel),
-    slotLevel: Math.max(spell.level, 1),
+    characterLevel: level,
+    slotLevel,
   })
-  return shortDamage(summary.effect)
+  const scaled = shortDamage(summary.effect)
+  if (scaled) return scaled
+  return shortDamage(spell.damage ?? '')
 }
 
 /** Unified card skeleton: action · range · attack/save (always present). */
