@@ -9,12 +9,13 @@ import { fileURLToPath } from 'node:url'
 
 import { parseSubclassGrantDef } from '../../shared/dnd/subclassGrants.ts'
 import { resolveCastEffect } from '../../shared/dnd/spellCatalog.ts'
+import { hydrateAlwaysPreparedMechanics } from './hydrateAlwaysPrepared.ts'
 import {
   applySubclassGrantToDraft,
   syncSubclassAlwaysPreparedSpells,
   type SubclassGrantDraftSlice,
 } from './subclassEffects.ts'
-import { createSheetSpell, type SpellsState } from './spells.ts'
+import { asAlwaysPreparedSpell, createSheetSpell, type SpellsState } from './spells.ts'
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
@@ -187,7 +188,22 @@ function emptyDraft(): SubclassGrantDraftSlice {
   console.log('E1 Fire Bolt scale: ok')
 }
 
-// unused import guard for createSheetSpell in case future expands
-void createSheetSpell
+// --- Hydrate legacy Bless stub on open ---
+{
+  const stub = asAlwaysPreparedSpell(
+    {
+      ...createSheetSpell(),
+      id: 'legacy-bless',
+      name: 'Благословение',
+      level: 1,
+      concentration: false,
+    },
+    { source_kind: 'subclass', label: 'Домен жизни' },
+  )
+  const hydrated = hydrateAlwaysPreparedMechanics([stub])
+  assert(hydrated.changed, 'hydrate detects legacy Bless')
+  assert(hydrated.known[0]?.concentration === true, 'hydrate sets concentration')
+  console.log('hydrate legacy Bless: ok')
+}
 
 console.log('magicQaFix.selfcheck: all ok')

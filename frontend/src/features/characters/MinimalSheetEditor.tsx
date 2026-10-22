@@ -83,6 +83,10 @@ import {
   syncSubclassAlwaysPreparedSpells,
   type SubclassGrantDraftSlice,
 } from './subclassEffects'
+import {
+  hydrateAlwaysPreparedFromSubclassCatalog,
+  hydrateAlwaysPreparedMechanics,
+} from './hydrateAlwaysPrepared'
 import { SubclassSetupDialog } from './SubclassSetupDialog'
 import { SubclassChangeConfirmDialog } from './SubclassChangeConfirmDialog'
 import {
@@ -908,6 +912,7 @@ export function MinimalSheetEditor({
   const backgroundCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const asiFeatHydrateAttemptedRef = useRef(false)
   const bmManeuverHydrateAttemptedRef = useRef(false)
+  const alwaysPreparedHydrateAttemptedRef = useRef(false)
   const [backgroundCatalogRows, setBackgroundCatalogRows] = useState<CatalogEntry[]>(
     [],
   )
@@ -1800,6 +1805,63 @@ export function MinimalSheetEditor({
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
   }, [draft.subclassGrants, draft.featurePicks])
+
+  // QA 22.10: backfill always-prepared mechanics (Bless concentration) + Artillerist lists.
+  useEffect(() => {
+    if (alwaysPreparedHydrateAttemptedRef.current) return
+    if (draft.subclassGrants.length === 0 && draft.spells.known.length === 0) return
+    alwaysPreparedHydrateAttemptedRef.current = true
+    let active = true
+
+    const applyLocalMechanics = () => {
+      setDraft((prev) => {
+        const mechanics = hydrateAlwaysPreparedMechanics(prev.spells.known)
+        if (!mechanics.changed) return prev
+        return {
+          ...prev,
+          spells: { ...prev.spells, known: mechanics.known },
+        }
+      })
+    }
+
+    listCatalogEntries({ kind: 'subclass', edition: rulesEdition })
+      .then((entries) => {
+        if (!active) return
+        setDraft((prev) => {
+          const hydrated = hydrateAlwaysPreparedFromSubclassCatalog({
+            draft: subclassSliceFrom(prev),
+            subclassEntries: Array.isArray(entries) ? entries : [],
+            classLevelsByEntryId: Object.fromEntries(
+              prev.classes.map((row) => [row.id, row.level]),
+            ),
+            maxSpellLevel: highestSpellSlotLevelForClasses(
+              prev.classes,
+              prev.subclassGrants
+                .filter((row) => row.caster?.progression === 'third')
+                .map((row) => ({
+                  classEntryId: row.classEntryId,
+                  progression: 'third' as const,
+                  ability: row.caster?.ability ?? null,
+                })),
+            ),
+          })
+          if (!hydrated.changed) return prev
+          return mergeSubclassSlice(prev, hydrated.draft)
+        })
+      })
+      .catch(() => {
+        // Offline / catalog fail: still fix Bless concentration from bundled JSON.
+        if (active) applyLocalMechanics()
+      })
+
+    // Immediate local pass (Bless) without waiting for subclass catalog.
+    applyLocalMechanics()
+
+    return () => {
+      active = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
+  }, [draft.subclassGrants, draft.spells.known.length, rulesEdition])
 
   function subclassSliceFrom(prev: Draft): SubclassGrantDraftSlice {
     return {
