@@ -1,8 +1,14 @@
 # Dvarf — статус продукта
 
+## History — Magic Initiate feat-spells merge (2026-10-22)
+
+- **Prod tip:** `cursor/magic-initiate-feat-spells-merge-1cc0` (поверх `magic-qa-fix-7fb8`).
+- **Shipped:** create-pipeline merge keeps `source_kind: feat` (+ race/subclass); sheet heal rematerializes missing feat spells from ledger.
+- **URL:** https://creed20.tech/ — `/health` check after deploy.
+
 ## History — magic QA ship (2026-10-22)
 
-- **Prod tip:** `cursor/magic-qa-fix-7fb8` (merged live `teodor-spell-ship-7a4a` + magic QA).
+- **Prod tip (prev):** `cursor/magic-qa-fix-7fb8` (merged live `teodor-spell-ship-7a4a` + magic QA).
 - **Shipped:** class tags / Artillerist / Bless concentration / SRD↔PHB dedupe / Fire Bolt+Lightning Lure; Q1–Q6 (RAW alone-max, EGW dunamancy gates, subclass APS depth, create reset, MC UX); alembic through `l7a8b9c0d1e2`.
 - **URL:** https://creed20.tech/ — `/health` ok after deploy.
 
@@ -11,12 +17,21 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/teodor-spell-ship-7a4a`  
+**Prod tip (ветка линии прода):** `cursor/magic-initiate-feat-spells-merge-1cc0`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
 
 ## Сейчас в продукте — свежее
+
+### 2026-10-22 — Magic Initiate: feat-спеллы в общем списке
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Merge create-pipeline | В `known` остаются race + feat + subclass из draft | «Посвящённый в магию» с расы виден рядом с gift-чертами |
+| Heal на листе | Нет строк feat-spell при живом ledger → rematerialize | Старые персонажи восстанавливают MI без пересоздания |
+
+На проде: **да** · **это новый prod tip** `cursor/magic-initiate-feat-spells-merge-1cc0` · PR #273 · залито 2026-10-22 · поверх tip `magic-qa-fix-7fb8` · `/health` pending verify
 
 ### 2026-10-22 — Teodor spell ship (МС стол + книга + known)
 
@@ -793,14 +808,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 Сюда агенты пишут то, что сделано в PR, но **ещё не залито** на сервер.
 
-### 2026-10-22 — Magic Initiate в общем списке заклинаний
-
-| Функция | Как работает | Эффект |
-|--------|--------------|--------|
-| Merge create-pipeline | В `known` снова попадают `source_kind: feat` (и race/subclass) из draft | Заклинания «Посвящённый в магию» с расы видны рядом с «Отмеченный тенями» |
-| Heal на листе | Если в `feat_grants` есть spells, а в `known` нет — rematerialize | Уже созданные персонажи восстанавливают MI без пересоздания |
-
-На проде: **нет** · ветка `cursor/magic-initiate-feat-spells-merge-1cc0` · от tip `magic-qa-fix-7fb8`
+<!-- magic-initiate-feat-spells-merge залито 2026-10-22 → tip magic-initiate-feat-spells-merge-1cc0; блок в «Сейчас в продукте» -->
 
 <!-- artificer-infusions-full залито 2026-10-21 → tip artificer-infusions-full-ab30; блок в «Сейчас в продукте» -->
 <!-- spells-feats-infusions залито 2026-10-21 → tip spells-feats-infusions-ab30; блок в «Сейчас в продукте» -->
