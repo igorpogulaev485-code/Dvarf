@@ -358,4 +358,47 @@ function emptyDraft(): SubclassGrantDraftSlice {
   console.log('Q1 RAW class-alone domain/oath + orphan strip: ok')
 }
 
+// --- Q4: remaining Artificer specialists have 10 always-prepared ---
+{
+  for (const slug of ['alchemist', 'battle_smith', 'armorer'] as const) {
+    const raw = findSub('artificer', slug)
+    const def = parseSubclassGrantDef({
+      slug,
+      nameRu: String(raw.name_ru || slug),
+      parentSlug: 'artificer',
+      catalogData: raw,
+    })
+    assert(def, `${slug} parse`)
+    assert(
+      def.alwaysPreparedSpells.length === 10,
+      `${slug} expected 10 APS, got ${def.alwaysPreparedSpells.length}`,
+    )
+    assert(
+      def.alwaysPreparedSpells.every((s) => s.fromClassLevel != null),
+      `${slug} fromClassLevel on all`,
+    )
+    const picks =
+      slug === 'armorer'
+        ? { values: { armor_model: 'guardian' } }
+        : slug === 'battle_smith'
+          ? { values: { steel_defender_name: 'Страж' } }
+          : { values: {} }
+    const at3 = applySubclassGrantToDraft({
+      draft: emptyDraft(),
+      classEntryId: `${slug}-1`,
+      catalogId: slug,
+      def,
+      picks,
+      classLevel: 3,
+      maxSpellLevel: 1,
+    })
+    assert(at3, `${slug} L3 apply`)
+    assert(
+      at3.draft.spells.known.length === 2,
+      `${slug} L3 → 2 spells, got ${at3.draft.spells.known.length}`,
+    )
+  }
+  console.log('Q4 Artificer specialists APS: ok')
+}
+
 console.log('magicQaFix.selfcheck: all ok')

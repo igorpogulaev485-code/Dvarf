@@ -41,7 +41,59 @@
               }
             ]
           },
-          "detail_status": "detailed"
+          "detail_status": "detailed",
+          "always_prepared_spells": [
+            {
+              "name": "Healing Word",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Ray of Sickness",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Flaming Sphere",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Acid Arrow",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Gaseous Form",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Mass Healing Word",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Blight",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Death Ward",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Cloudkill",
+              "level": 5,
+              "from_class_level": 17
+            },
+            {
+              "name": "Raise Dead",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         },
         {
           "slug": "artillerist",
@@ -179,7 +231,59 @@
               }
             ]
           },
-          "detail_status": "detailed"
+          "detail_status": "detailed",
+          "always_prepared_spells": [
+            {
+              "name": "Heroism",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Shield",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Branding Smite",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Warding Bond",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Aura of Vitality",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Conjure Barrage",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Aura of Purity",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Fire Shield",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Banishing Smite",
+              "level": 5,
+              "from_class_level": 17
+            },
+            {
+              "name": "Mass Cure Wounds",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         },
         {
           "slug": "armorer",
@@ -217,7 +321,59 @@
           "grants_level": 3,
           "source_books": "TCoE",
           "features_by_level": {},
-          "detail_status": "detailed"
+          "detail_status": "detailed",
+          "always_prepared_spells": [
+            {
+              "name": "Magic Missile",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Thunderwave",
+              "level": 1,
+              "from_class_level": 3
+            },
+            {
+              "name": "Mirror Image",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Shatter",
+              "level": 2,
+              "from_class_level": 5
+            },
+            {
+              "name": "Hypnotic Pattern",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Lightning Bolt",
+              "level": 3,
+              "from_class_level": 9
+            },
+            {
+              "name": "Fire Shield",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Greater Invisibility",
+              "level": 4,
+              "from_class_level": 13
+            },
+            {
+              "name": "Passwall",
+              "level": 5,
+              "from_class_level": 17
+            },
+            {
+              "name": "Wall of Force",
+              "level": 5,
+              "from_class_level": 17
+            }
+          ]
         }
       ]
     },
