@@ -312,8 +312,14 @@ import {
 } from './featureCombatBonuses'
 import { syncRangerConclaveSpells } from './rangerConclaveSpells'
 import { syncDruidCircleSpells } from './druidCircleSpells'
-import { syncPactChainFamiliar } from './pactChainEffects'
 import {
+  isPactChainActive,
+  isPactChainSpellId,
+  pactChainFamiliarSpellId,
+  syncPactChainFamiliar,
+} from './pactChainEffects'
+import {
+  isWarlockClassName,
   sanitizeFeaturePicksForPactBoons,
   syncPactTomeCantrips,
   withPactTomeCantripsStep,
@@ -4149,6 +4155,49 @@ export function MinimalSheetEditor({
       : ` · напарник «${preview.name}»`
   }
 
+  /** Pact of the Chain: ensure Find Familiar row, then open cast dialog. */
+  function openPactChainFamiliarCast(classEntryId?: string) {
+    const warlock = draft.classes.find(
+      (row) =>
+        isWarlockClassName(row.name) &&
+        row.level > 0 &&
+        (!classEntryId || row.id === classEntryId),
+    )
+    if (!warlock || !isPactChainActive(draft.featurePicks, warlock.id)) {
+      onToast('Нужен договор Цепь у колдуна')
+      return
+    }
+    const synced = syncPactChainFamiliar({
+      spells: draft.spells,
+      featurePicks: draft.featurePicks,
+      classes: draft.classes,
+    })
+    if (synced.changed) {
+      setDraft((prev) => ({ ...prev, spells: synced.spells }))
+    }
+    const known = synced.spells.known
+    const spell =
+      known.find((row) => row.id === pactChainFamiliarSpellId()) ??
+      known.find((row) => isPactChainSpellId(row.id)) ??
+      known.find(
+        (row) =>
+          row.class_slug === 'warlock' &&
+          /поиск\s+фамильяра|find\s*familiar/i.test(row.name),
+      )
+    if (!spell) {
+      onToast('Нет «Поиска фамильяра» — проверь договор Цепь у колдуна')
+      return
+    }
+    setDeskCastSpell(spell)
+  }
+
+  const pactChainFamiliarReady = draft.classes.some(
+    (row) =>
+      isWarlockClassName(row.name) &&
+      row.level > 0 &&
+      isPactChainActive(draft.featurePicks, row.id),
+  )
+
   function openDeskSelfFormPickerIfNeeded(spell: SheetSpell, choice: CastChoice) {
     if (choice.selfFormTarget === 'other') return false
     if (!isSpellSelfFormCast(spell)) return false
@@ -6295,6 +6344,9 @@ export function MinimalSheetEditor({
         onOpenInvocations={(classEntryId) =>
           setInvocationsOpen({ classEntryId })
         }
+        onCastPactChainFamiliar={(classEntryId) =>
+          openPactChainFamiliarCast(classEntryId)
+        }
         onOpenRangerFavored={(classEntryId) =>
           setRangerFavoredOpen({ classEntryId })
         }
@@ -6547,6 +6599,11 @@ export function MinimalSheetEditor({
         spells={draft.spells}
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         onToast={onToast}
+        onCastPactChainFamiliar={
+          pactChainFamiliarReady
+            ? () => openPactChainFamiliarCast()
+            : undefined
+        }
       />
 
       </div>
