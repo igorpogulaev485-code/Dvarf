@@ -1862,16 +1862,72 @@
               "notes_ru": "Имя духа — карточка спутника."
             }
           ],
-          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
-          "detail_status": "inventory_only",
+          "notes_ru": "Заклинания круга всегда подготовлены (TCoE). Дух — карточка спутника.",
+          "detail_status": "detailed",
           "features_by_level": {
             "2": [
               {
-                "title_ru": "Круг дикого огня",
-                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+                "title_ru": "Заклинания круга",
+                "summary_ru": "Всегда подготовлены заклинания дикого огня (2/3/5/7/9)."
+              },
+              {
+                "title_ru": "Призыв духа дикого огня",
+                "summary_ru": "Потрать Дикий облик — призвать духа на 1 ч."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Burning Hands",
+              "level": 1,
+              "from_class_level": 2
+            },
+            {
+              "name": "Cure Wounds",
+              "level": 1,
+              "from_class_level": 2
+            },
+            {
+              "name": "Flaming Sphere",
+              "level": 2,
+              "from_class_level": 3
+            },
+            {
+              "name": "Scorching Ray",
+              "level": 2,
+              "from_class_level": 3
+            },
+            {
+              "name": "Plant Growth",
+              "level": 3,
+              "from_class_level": 5
+            },
+            {
+              "name": "Revivify",
+              "level": 3,
+              "from_class_level": 5
+            },
+            {
+              "name": "Aura of Life",
+              "level": 4,
+              "from_class_level": 7
+            },
+            {
+              "name": "Fire Shield",
+              "level": 4,
+              "from_class_level": 7
+            },
+            {
+              "name": "Flame Strike",
+              "level": 5,
+              "from_class_level": 9
+            },
+            {
+              "name": "Mass Cure Wounds",
+              "level": 5,
+              "from_class_level": 9
+            }
+          ]
         }
       ]
     },

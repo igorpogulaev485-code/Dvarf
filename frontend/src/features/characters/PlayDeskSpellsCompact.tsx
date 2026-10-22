@@ -105,7 +105,7 @@ export function PlayDeskSpellsCompact({
 }: PlayDeskSpellsCompactProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [detailSpell, setDetailSpell] = useState<SheetSpell | null>(null)
-  const [showAllSpells, setShowAllSpells] = useState(false)
+  const bookLost = Boolean(spells.wizard_spellbook?.bookLost)
   const hasSpellbook =
     learnBudget?.mode === 'spellbook' &&
     Boolean(
@@ -206,7 +206,7 @@ export function PlayDeskSpellsCompact({
   const showPrepare =
     Boolean(onSpellsChange) && learnBudget?.mode === 'spellbook'
 
-  const maxRows = 14
+  /** Always show every ready spell — no «показать все» collapse (Игорь). */
   const levelGroups = (() => {
     const grouped = groupSpellsByLevel(ready)
     const byLevel = new Map(grouped.map((group) => [group.level, group]))
@@ -215,15 +215,14 @@ export function PlayDeskSpellsCompact({
         byLevel.set(level, { level, spells: [] })
       }
     }
-    let remaining = showAllSpells ? Number.POSITIVE_INFINITY : maxRows
     return [...byLevel.entries()]
       .sort((a, b) => a[0] - b[0])
-      .map(([, group]) => {
-        const visible = group.spells.slice(0, Math.max(0, remaining))
-        remaining -= visible.length
-        return { ...group, visible }
-      })
-      .filter((group) => group.visible.length > 0 || (group.level > 0 && (spells.slots[String(group.level)]?.max ?? 0) > 0))
+      .map(([, group]) => ({ ...group, visible: group.spells }))
+      .filter(
+        (group) =>
+          group.visible.length > 0 ||
+          (group.level > 0 && (spells.slots[String(group.level)]?.max ?? 0) > 0),
+      )
   })()
 
   return (
@@ -260,6 +259,13 @@ export function PlayDeskSpellsCompact({
           </button>
         </div>
       </div>
+
+      {learnBudget?.mode === 'spellbook' && bookLost ? (
+        <p className="play-desk-compact__book-lost">
+          Книга утеряна — подготовка и ритуалы из книги закрыты. Открой «{settingsLabel}» →
+          статус книги, чтобы вернуть книгу из инвентаря.
+        </p>
+      ) : null}
 
       {profileRows && profileRows.length > 0 ? (
         <div
@@ -424,25 +430,6 @@ export function PlayDeskSpellsCompact({
             )
           })
         )}
-        {ready.length > maxRows ? (
-          showAllSpells ? (
-            <button
-              type="button"
-              className="play-desk-compact__more play-desk-compact__more--btn"
-              onClick={() => setShowAllSpells(false)}
-            >
-              Свернуть список
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="play-desk-compact__more play-desk-compact__more--btn"
-              onClick={() => setShowAllSpells(true)}
-            >
-              + ещё {ready.length - maxRows} · показать все
-            </button>
-          )
-        ) : null}
       </div>
 
       {onSpellsChange ? (

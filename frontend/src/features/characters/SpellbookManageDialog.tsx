@@ -8,9 +8,11 @@ import {
   copySpellCost,
   markSpellbookLost,
   planRestorePrepared,
+  rebindFoundSpellbook,
   registerBackupBook,
   resolveSpellbookAddPayment,
   resolveWizardCopyMods,
+  spellMatchesLostBookContents,
   totalCopyCost,
   type SpellbookModifiers,
 } from '../../shared/dnd/wizardSpellbook'
@@ -353,6 +355,38 @@ export function SpellbookManageDialog({
     onClose()
   }
 
+  /** Physical book still in inventory after loss — restore full snapshot (not memory). */
+  function recoverFoundBook(itemId: string) {
+    const base = spells.wizard_spellbook ?? {
+      primaryBookItemId: null,
+      bookLost: true,
+      backupBookItemIds: [],
+    }
+    const lost = base.lostBookContents ?? []
+    const nextBook = rebindFoundSpellbook(base, itemId)
+    let restored = 0
+    onChangeSpells({
+      ...spells,
+      known: spells.known.map((spell) => {
+        if (spell.level <= 0) return spell
+        const fromSnapshot = spellMatchesLostBookContents(spell, lost)
+        const fromAcquisition = Boolean(spell.spellbook_acquisition)
+        if (!fromSnapshot && !fromAcquisition) {
+          return { ...spell, in_spellbook: false }
+        }
+        restored += 1
+        return { ...spell, in_spellbook: true }
+      }),
+      wizard_spellbook: nextBook,
+    })
+    onToast?.(
+      restored > 0
+        ? `Книга снова привязана — в книге ${restored} закл.`
+        : 'Книга снова привязана — подготовка доступна',
+    )
+    onClose()
+  }
+
   const copyModsHint = (() => {
     const parts: string[] = []
     if (mods.wizardlyQuill) parts.push('Перо писца: копии без золота, 2 мин/ур.')
@@ -542,11 +576,36 @@ export function SpellbookManageDialog({
           ) : null}
         </Stack>
 
+        {book?.bookLost && candidateBooks.length > 0 ? (
+          <Stack gap={8}>
+            <Text as="h3">Книга в инвентаре</Text>
+            <Text tone="muted">
+              Физическая «Книга заклинаний» есть на листе, но не привязана. Верни её целиком
+              {book.lostBookContents?.length
+                ? ` (снимок: ${book.lostBookContents.length} закл.)`
+                : ''}
+              — без тарифа из памяти.
+            </Text>
+            <Stack gap={6}>
+              {candidateBooks.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="sheet-chip is-on"
+                  onClick={() => recoverFoundBook(item.id)}
+                >
+                  Вернуть «{item.name}»
+                </button>
+              ))}
+            </Stack>
+          </Stack>
+        ) : null}
+
         <Stack gap={8}>
           <Text as="h3">Замена из памяти</Text>
           <Text tone="muted">
-            Если бэкапа нет: нужна другая «Книга заклинаний». Из памяти переписываются только
-            подготовленные ({preparedLeveled.length})
+            Если бэкапа нет и книги не нашлось: нужна другая «Книга заклинаний». Из памяти
+            переписываются только подготовленные ({preparedLeveled.length})
             {restorePlan.gp > 0
               ? `: ${formatGpTotal(restorePlan.gp)} зм · ${
                   restorePlan.minutes > 0

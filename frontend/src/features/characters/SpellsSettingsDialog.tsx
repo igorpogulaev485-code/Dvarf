@@ -334,9 +334,15 @@ export function SpellsSettingsDialog({
             {learnBudget?.mode === 'spellbook' ? (
               <Button
                 type="button"
-                variant="secondary"
+                variant={
+                  spells.wizard_spellbook?.bookLost ? 'primary' : 'secondary'
+                }
                 onClick={() => setBookManageOpen(true)}
-                title="Утеря / замена книги заклинаний"
+                title={
+                  spells.wizard_spellbook?.bookLost
+                    ? 'Книга утеряна — открыть восстановление / привязку'
+                    : 'Утеря / замена книги заклинаний'
+                }
               >
                 <IconSpellBook className="spells-btn-icon" />
                 {wizardSpellbookStatusLabel(spells).label}

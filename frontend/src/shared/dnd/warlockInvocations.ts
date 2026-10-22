@@ -212,7 +212,10 @@ export const WARLOCK_PACT_BOON_GRANTS: Record<
   PactBoonGrantBundle
 > = {
   blade: {},
-  chain: {},
+  chain: {
+    notesRu:
+      'Учишь «Поиск фамильяра» и можешь кастовать его как ритуал; особые формы фамильяра (бес, псевдодракон…). Карточка напарника — после каста.',
+  },
   tome: {
     knownCantrips: {
       count: 3,

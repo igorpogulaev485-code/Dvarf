@@ -242,9 +242,13 @@ function readAlwaysPreparedSnapshot(raw: unknown): AlwaysPreparedSpell[] | undef
     if (!item || typeof item !== 'object') continue
     const row = item as Record<string, unknown>
     if (typeof row.name !== 'string' || !row.name.trim()) continue
+    const fromClassRaw = row.fromClassLevel ?? row.from_class_level
     out.push({
       name: row.name.trim(),
       level: typeof row.level === 'number' ? Math.max(0, Math.min(9, row.level)) : 1,
+      ...(typeof fromClassRaw === 'number' && Number.isFinite(fromClassRaw)
+        ? { fromClassLevel: Math.max(1, Math.min(20, Math.floor(fromClassRaw))) }
+        : {}),
     })
   }
   return out.length > 0 ? out : undefined
@@ -550,6 +554,7 @@ export function applySubclassGrantToDraft(input: {
       Math.floor(input.classLevel ?? input.changedAtClassLevel ?? input.def.grantsLevel),
     ),
   )
+  const parentClassSlug = input.def.parentSlug.trim().toLowerCase() || null
   for (const spell of input.def.alwaysPreparedSpells) {
     if (spell.level > maxSpellLevel) continue
     if (spell.fromClassLevel != null && spell.fromClassLevel > classLevel) continue
@@ -565,6 +570,8 @@ export function applySubclassGrantToDraft(input: {
       {
         source_kind: 'subclass',
         label: input.def.labelRu,
+        class_slug: parentClassSlug,
+        class_entry_id: input.classEntryId,
       },
     )
     known.push(created)
@@ -588,6 +595,9 @@ export function applySubclassGrantToDraft(input: {
     alwaysPreparedSpells: input.def.alwaysPreparedSpells.map((spell) => ({
       name: spell.name,
       level: spell.level,
+      ...(spell.fromClassLevel != null
+        ? { fromClassLevel: spell.fromClassLevel }
+        : {}),
     })),
   }
 
@@ -626,6 +636,8 @@ export function applySubclassGrantToDraft(input: {
 export function syncSubclassAlwaysPreparedSpells(input: {
   draft: SubclassGrantDraftSlice
   maxSpellLevel: number
+  /** classEntryId → class level (for fromClassLevel circle/conclave gates). */
+  classLevelByEntryId?: Record<string, number>
 }): SubclassGrantDraftSlice {
   const maxSpellLevel = Math.max(0, Math.min(9, Math.floor(input.maxSpellLevel)))
   let known = [...input.draft.spells.known]
@@ -642,9 +654,15 @@ export function syncSubclassAlwaysPreparedSpells(input: {
       grant.slug
     const nextKnown = known.filter((spell) => !removeIds.has(spell.id))
     const grantedSpellIds: string[] = []
+    const parentClassSlug = grant.parentSlug.trim().toLowerCase() || null
+    const classLevel = Math.min(
+      20,
+      Math.max(1, Math.floor(input.classLevelByEntryId?.[grant.classEntryId] ?? 20)),
+    )
 
     for (const spell of catalog) {
       if (spell.level > maxSpellLevel) continue
+      if (spell.fromClassLevel != null && spell.fromClassLevel > classLevel) continue
       const nameRu = alwaysPreparedSpellNameRu(spell.name)
       const key = spellKeyFromName(spell.name)
       const created = asAlwaysPreparedSpell(
@@ -657,6 +675,8 @@ export function syncSubclassAlwaysPreparedSpells(input: {
         {
           source_kind: 'subclass',
           label: prevLabel,
+          class_slug: parentClassSlug,
+          class_entry_id: grant.classEntryId,
         },
       )
       nextKnown.push(created)

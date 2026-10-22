@@ -4,12 +4,26 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/artificer-infusions-full-ab30`  
+**Prod tip (ветка линии прода):** `cursor/teodor-spell-ship-7a4a`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
 
 ## Сейчас в продукте — свежее
+
+### 2026-10-22 — Teodor spell ship (МС стол + книга + known)
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Чипы классов | Одна строка в шапке МС | Не ломает виталы |
+| Wildfire | Always-prepared + `class_slug: druid` | Каст от друида в МС; alembic `c5d6e7f8a9b0` |
+| Стол заклинаний | Без «+ ещё N» | Все ready сразу |
+| Пакт Цепи / фамильяр | Каст → выбор формы (статы из бестиария) | PHB-звери; Цепь + бес/квазит/спрайт/псевдодракон; Дикий спутник = −1 облик, фея, без Цепи |
+| Known-бюджет | Soft-warn при недоборе create | Колдун 0/6 не прячется за чужими МС-заклинаниями |
+| Wizard bookLost | «Вернуть книгу» из инвентаря | Полный снимок, не только память |
+| `class_slug` orphans | Backfill по `spellbook_acquisition` | 14 осирот → wizard |
+
+На проде: **да** · **это новый prod tip** `cursor/teodor-spell-ship-7a4a` · PR #270 · залито 2026-10-22 · поверх tip `artificer-infusions-full-ab30` · `/health` ok · alembic `c5d6e7f8a9b0` · бандл `CharacterDetailPage-xzt3gPIF.js` / `CreateCharacterPage-DiNkTeY8.js` · characters=94 classic=20
 
 ### 2026-10-21 — Полный каталог инфузий + цели в лобби
 

@@ -58,6 +58,7 @@ const ALWAYS_PREPARED_SPELL_NAME_RU: Record<string, string> = {
   "Faerie Fire": "Огонь фей",
   "False Life": "Псевдожизнь",
   "Fear": "Ужас",
+  "Fire Shield": "Огненный щит",
   "Fireball": "Огненный шар",
   "Flame Strike": "Небесный огонь",
   "Flaming Sphere": "Пылающий шар",
