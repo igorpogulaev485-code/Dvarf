@@ -533,4 +533,73 @@ function emptyDraft(): SubclassGrantDraftSlice {
   console.log('Q4 Circle of the Land APS: ok')
 }
 
+// --- Block A (QA 22.10 confirmed): class tags, dedupe, Lightning Lure ---
+{
+  type SpellRow = {
+    slug: string
+    is_active?: boolean
+    data?: {
+      classes?: string[]
+      concentration?: boolean
+      attack_or_save?: string
+      damage?: string
+      damage_at_character_level?: Record<string, string>
+    }
+  }
+  const rows = JSON.parse(
+    readFileSync(join(here, '../../../../frontend/public/spells-2014.json'), 'utf8'),
+  ) as SpellRow[]
+  const bySlug = new Map(rows.map((r) => [r.slug, r]))
+
+  function must(slug: string): SpellRow {
+    const row = bySlug.get(slug)
+    assert(row, `missing ${slug}`)
+    return row
+  }
+  function hasClass(slug: string, cls: string) {
+    assert(must(slug).data?.classes?.includes(cls), `${slug} has ${cls}`)
+  }
+  function lacksClass(slug: string, cls: string) {
+    assert(!must(slug).data?.classes?.includes(cls), `${slug} lacks ${cls}`)
+  }
+
+  // A1 — five Artificer tags
+  for (const slug of [
+    'dancing_lights',
+    'create_food_and_water',
+    'dispel_magic',
+    'secret_chest',
+    'stoneskin',
+  ]) {
+    hasClass(slug, 'artificer')
+  }
+  // A2 — druid/cleric list hygiene
+  hasClass('meld_into_stone', 'druid')
+  hasClass('divination', 'cleric')
+  lacksClass('create_food_and_water', 'druid')
+  lacksClass('arcane_eye', 'cleric')
+
+  // D1 — PHB canon active; SRD aliases inactive
+  const pairs: Array<[string, string]> = [
+    ['nystul_s_magic_aura', 'arcanists_magic_aura'],
+    ['bigby_s_hand', 'arcane_hand'],
+    ['mordenkainen_s_sword', 'arcane_sword'],
+  ]
+  for (const [canon, alias] of pairs) {
+    assert(must(canon).is_active !== false, `${canon} active`)
+    assert(must(alias).is_active === false, `${alias} inactive`)
+  }
+
+  // C1 catalog Bless concentration (grant path covered above)
+  assert(must('bless').data?.concentration === true, 'bless catalog concentration')
+
+  // E2 Lightning Lure combat card fields
+  const lure = must('lightning_lure').data
+  assert(lure?.attack_or_save === 'СИЛ', 'lightning_lure save')
+  assert(Boolean(lure?.damage), 'lightning_lure damage')
+  assert(lure?.damage_at_character_level?.['17'] === '4d8', 'lightning_lure L17 scale')
+
+  console.log('Block A QA 22.10 confirmed: ok')
+}
+
 console.log('magicQaFix.selfcheck: all ok')
