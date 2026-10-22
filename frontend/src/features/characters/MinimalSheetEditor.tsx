@@ -83,6 +83,10 @@ import {
   syncSubclassAlwaysPreparedSpells,
   type SubclassGrantDraftSlice,
 } from './subclassEffects'
+import {
+  hydrateAlwaysPreparedFromSubclassCatalog,
+  hydrateAlwaysPreparedMechanics,
+} from './hydrateAlwaysPrepared'
 import { SubclassSetupDialog } from './SubclassSetupDialog'
 import { SubclassChangeConfirmDialog } from './SubclassChangeConfirmDialog'
 import {
@@ -105,6 +109,15 @@ import {
   SpellFormDialog,
   type SpellFormDialogResult,
 } from './SpellFormDialog'
+import {
+  FamiliarPickDialog,
+  type FamiliarPickDialogResult,
+} from './FamiliarPickDialog'
+import {
+  isFindFamiliarSpell,
+  resolveFamiliarCastMode,
+  type FamiliarCastMode,
+} from './familiarForms'
 import { armorKindLabel, computeArmorClass } from '../../shared/dnd/armor'
 import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
 import { AbilityBreakdownDialog } from './AbilityBreakdownDialog'
@@ -280,6 +293,7 @@ import {
   listSubclassFeatureIdsAboveLevel,
   proficiencyBonusForTotalLevel,
   resolveClassFeatureSlug,
+  resolveSubclassFeatureSlug,
   unlockFeaturesForClasses,
 } from '../../shared/dnd/classFeatures'
 import {
@@ -311,7 +325,15 @@ import {
   initiativeBonusFromRace,
 } from './featureCombatBonuses'
 import { syncRangerConclaveSpells } from './rangerConclaveSpells'
+import { syncDruidCircleSpells } from './druidCircleSpells'
 import {
+  isPactChainActive,
+  isPactChainSpellId,
+  pactChainFamiliarSpellId,
+  syncPactChainFamiliar,
+} from './pactChainEffects'
+import {
+  isWarlockClassName,
   sanitizeFeaturePicksForPactBoons,
   syncPactTomeCantrips,
   withPactTomeCantripsStep,
@@ -908,6 +930,7 @@ export function MinimalSheetEditor({
   const backgroundCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const asiFeatHydrateAttemptedRef = useRef(false)
   const bmManeuverHydrateAttemptedRef = useRef(false)
+  const alwaysPreparedHydrateAttemptedRef = useRef(false)
   const [backgroundCatalogRows, setBackgroundCatalogRows] = useState<CatalogEntry[]>(
     [],
   )
@@ -1800,6 +1823,63 @@ export function MinimalSheetEditor({
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
   }, [draft.subclassGrants, draft.featurePicks])
+
+  // QA 22.10: backfill always-prepared mechanics (Bless concentration) + Artillerist lists.
+  useEffect(() => {
+    if (alwaysPreparedHydrateAttemptedRef.current) return
+    if (draft.subclassGrants.length === 0 && draft.spells.known.length === 0) return
+    alwaysPreparedHydrateAttemptedRef.current = true
+    let active = true
+
+    const applyLocalMechanics = () => {
+      setDraft((prev) => {
+        const mechanics = hydrateAlwaysPreparedMechanics(prev.spells.known)
+        if (!mechanics.changed) return prev
+        return {
+          ...prev,
+          spells: { ...prev.spells, known: mechanics.known },
+        }
+      })
+    }
+
+    listCatalogEntries({ kind: 'subclass', edition: rulesEdition })
+      .then((entries) => {
+        if (!active) return
+        setDraft((prev) => {
+          const hydrated = hydrateAlwaysPreparedFromSubclassCatalog({
+            draft: subclassSliceFrom(prev),
+            subclassEntries: Array.isArray(entries) ? entries : [],
+            classLevelByEntryId: Object.fromEntries(
+              prev.classes.map((row) => [row.id, row.level]),
+            ),
+            maxSpellLevel: highestSpellSlotLevelForClasses(
+              prev.classes,
+              prev.subclassGrants
+                .filter((row) => row.caster?.progression === 'third')
+                .map((row) => ({
+                  classEntryId: row.classEntryId,
+                  progression: 'third' as const,
+                  ability: row.caster?.ability ?? null,
+                })),
+            ),
+          })
+          if (!hydrated.changed) return prev
+          return mergeSubclassSlice(prev, hydrated.draft)
+        })
+      })
+      .catch(() => {
+        // Offline / catalog fail: still fix Bless concentration from bundled JSON.
+        if (active) applyLocalMechanics()
+      })
+
+    // Immediate local pass (Bless) without waiting for subclass catalog.
+    applyLocalMechanics()
+
+    return () => {
+      active = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
+  }, [draft.subclassGrants, draft.spells.known.length, rulesEdition])
 
   function subclassSliceFrom(prev: Draft): SubclassGrantDraftSlice {
     return {
@@ -2934,9 +3014,14 @@ export function MinimalSheetEditor({
             ability: row.caster?.ability ?? null,
           })),
       )
+      const classLevelByEntryId: Record<string, number> = {}
+      for (const row of nextClasses) {
+        classLevelByEntryId[row.id] = row.level
+      }
       const syncedSubclass = syncSubclassAlwaysPreparedSpells({
         draft: subclassSliceFrom(withRaceSpells),
         maxSpellLevel: slotCap,
+        classLevelByEntryId,
       })
       return mergeSubclassSlice(withRaceSpells, syncedSubclass)
     })
@@ -3311,6 +3396,19 @@ export function MinimalSheetEditor({
     })
   }, [draft.classes, subclassSlugByEntryId])
 
+  // Wildfire (etc.) circle spells: always-prepared as druid for MC cast profiles.
+  useEffect(() => {
+    setDraft((prev) => {
+      const synced = syncDruidCircleSpells({
+        spells: prev.spells,
+        classes: prev.classes,
+        subclassSlugByEntryId,
+      })
+      if (!synced.changed) return prev
+      return { ...prev, spells: synced.spells }
+    })
+  }, [draft.classes, subclassSlugByEntryId])
+
   // Pact of the Tome: materialize / revoke +3 any-list cantrips from feature picks.
   useEffect(() => {
     let cancelled = false
@@ -3338,6 +3436,19 @@ export function MinimalSheetEditor({
       cancelled = true
     }
   }, [draft.featurePicks, draft.classes, rulesEdition])
+
+  // Pact of the Chain: Find Familiar as warlock ritual (card appears after cast).
+  useEffect(() => {
+    setDraft((prev) => {
+      const synced = syncPactChainFamiliar({
+        spells: prev.spells,
+        featurePicks: prev.featurePicks,
+        classes: prev.classes,
+      })
+      if (!synced.changed) return prev
+      return { ...prev, spells: synced.spells }
+    })
+  }, [draft.featurePicks, draft.classes])
 
   const infusionBonuses = useMemo(
     () =>
@@ -3857,6 +3968,11 @@ export function MinimalSheetEditor({
     spell: SheetSpell
     slug: SpellSelfFormSlug
   } | null>(null)
+  const [pendingFamiliar, setPendingFamiliar] = useState<{
+    spell: SheetSpell
+    mode: FamiliarCastMode
+    slotLevel: number
+  } | null>(null)
   const [deskCastScrollId, setDeskCastScrollId] = useState<string | null>(null)
   const [consumableSpendPadId, setConsumableSpendPadId] = useState<string | null>(null)
   const [consumableSpendLog, setConsumableSpendLog] = useState<ConsumableSpendLogEntry[]>(
@@ -4116,12 +4232,69 @@ export function MinimalSheetEditor({
       : ` · напарник «${preview.name}»`
   }
 
+  /** Pact of the Chain: ensure Find Familiar row, then open cast dialog. */
+  function openPactChainFamiliarCast(classEntryId?: string) {
+    const warlock = draft.classes.find(
+      (row) =>
+        isWarlockClassName(row.name) &&
+        row.level > 0 &&
+        (!classEntryId || row.id === classEntryId),
+    )
+    if (!warlock || !isPactChainActive(draft.featurePicks, warlock.id)) {
+      onToast('Нужен договор Цепь у колдуна')
+      return
+    }
+    const synced = syncPactChainFamiliar({
+      spells: draft.spells,
+      featurePicks: draft.featurePicks,
+      classes: draft.classes,
+    })
+    if (synced.changed) {
+      setDraft((prev) => ({ ...prev, spells: synced.spells }))
+    }
+    const known = synced.spells.known
+    const spell =
+      known.find((row) => row.id === pactChainFamiliarSpellId()) ??
+      known.find((row) => isPactChainSpellId(row.id)) ??
+      known.find(
+        (row) =>
+          row.class_slug === 'warlock' &&
+          /поиск\s+фамильяра|find\s*familiar/i.test(row.name),
+      )
+    if (!spell) {
+      onToast('Нет «Поиска фамильяра» — проверь договор Цепь у колдуна')
+      return
+    }
+    setDeskCastSpell(spell)
+  }
+
+  const pactChainFamiliarReady = draft.classes.some(
+    (row) =>
+      isWarlockClassName(row.name) &&
+      row.level > 0 &&
+      isPactChainActive(draft.featurePicks, row.id),
+  )
+
   function openDeskSelfFormPickerIfNeeded(spell: SheetSpell, choice: CastChoice) {
     if (choice.selfFormTarget === 'other') return false
     if (!isSpellSelfFormCast(spell)) return false
     const slug = resolveSpellSelfFormSlug(spell)
     if (!slug) return false
     setPendingSpellSelfForm({ spell, slug })
+    return true
+  }
+
+  function openDeskFamiliarPickerIfNeeded(
+    spell: SheetSpell,
+    slotLevel: number,
+  ): boolean {
+    if (!isFindFamiliarSpell(spell)) return false
+    const mode = resolveFamiliarCastMode({
+      spell,
+      featurePicks: draft.featurePicks,
+      classes: draft.classes,
+    })
+    setPendingFamiliar({ spell, mode, slotLevel })
     return true
   }
 
@@ -4133,6 +4306,12 @@ export function MinimalSheetEditor({
     }))
     if (result.toast) onToast(result.toast)
     setPendingSpellSelfForm(null)
+  }
+
+  function applyFamiliarPickResult(result: FamiliarPickDialogResult) {
+    setDraft((prev) => ({ ...prev, companions: result.companions }))
+    if (result.toast) onToast(result.toast)
+    setPendingFamiliar(null)
   }
 
   function runDeskCast(spell: SheetSpell, choice: CastChoice) {
@@ -4175,13 +4354,20 @@ export function MinimalSheetEditor({
     }
     const naparnikSlot = slotForEffect || spell.level
     const wantsForm = openDeskSelfFormPickerIfNeeded(spell, choice)
-    const formNote = wantsForm ? ' · выбери форму' : ''
+    const wantsFamiliar =
+      !wantsForm && openDeskFamiliarPickerIfNeeded(spell, naparnikSlot)
+    const formNote = wantsForm
+      ? ' · выбери форму'
+      : wantsFamiliar
+        ? ' · выбери фамильяра'
+        : ''
 
     if (spell.level <= 0) {
       if (spell.concentration) applyDeskConcentration(spell)
-      const naparnikNote = wantsForm
-        ? ''
-        : applyDeskNaparnikFromCast(spell, naparnikSlot)
+      const naparnikNote =
+        wantsForm || wantsFamiliar
+          ? ''
+          : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
         spell.concentration
           ? `Каст: ${name}${effectNote}${consumeNote}${allyNote} (концентрация)${naparnikNote}${formNote}`
@@ -4203,9 +4389,10 @@ export function MinimalSheetEditor({
           spell,
         ),
       )
-      const naparnikNote = wantsForm
-        ? ''
-        : applyDeskNaparnikFromCast(spell, naparnikSlot)
+      const naparnikNote =
+        wantsForm || wantsFamiliar
+          ? ''
+          : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
         `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
@@ -4225,9 +4412,10 @@ export function MinimalSheetEditor({
         }
       }
       if (spell.concentration) applyDeskConcentration(spell)
-      const naparnikNote = wantsForm
-        ? ''
-        : applyDeskNaparnikFromCast(spell, naparnikSlot)
+      const naparnikNote =
+        wantsForm || wantsFamiliar
+          ? ''
+          : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
         `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
@@ -4250,9 +4438,10 @@ export function MinimalSheetEditor({
           spell,
         ),
       )
-      const naparnikNote = wantsForm
-        ? ''
-        : applyDeskNaparnikFromCast(spell, pactResult.pact.level)
+      const naparnikNote =
+        wantsForm || wantsFamiliar
+          ? ''
+          : applyDeskNaparnikFromCast(spell, pactResult.pact.level)
       onToast(
         `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
@@ -4274,9 +4463,10 @@ export function MinimalSheetEditor({
         spell,
       ),
     )
-    const naparnikNote = wantsForm
-      ? ''
-      : applyDeskNaparnikFromCast(spell, choice.slotLevel)
+    const naparnikNote =
+      wantsForm || wantsFamiliar
+        ? ''
+        : applyDeskNaparnikFromCast(spell, choice.slotLevel)
     const upcast =
       choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast(
@@ -6262,6 +6452,9 @@ export function MinimalSheetEditor({
         onOpenInvocations={(classEntryId) =>
           setInvocationsOpen({ classEntryId })
         }
+        onCastPactChainFamiliar={(classEntryId) =>
+          openPactChainFamiliarCast(classEntryId)
+        }
         onOpenRangerFavored={(classEntryId) =>
           setRangerFavoredOpen({ classEntryId })
         }
@@ -6514,6 +6707,11 @@ export function MinimalSheetEditor({
         spells={draft.spells}
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         onToast={onToast}
+        onCastPactChainFamiliar={
+          pactChainFamiliarReady
+            ? () => openPactChainFamiliarCast()
+            : undefined
+        }
       />
 
       </div>
@@ -7320,6 +7518,27 @@ export function MinimalSheetEditor({
         />
       ) : null}
 
+      {pendingFamiliar ? (
+        <FamiliarPickDialog
+          open
+          mode={pendingFamiliar.mode}
+          spell={pendingFamiliar.spell}
+          slotLevel={pendingFamiliar.slotLevel}
+          companions={draft.companions}
+          characterLevel={characterLevel}
+          druidLevel={
+            draft.classes.find((row) => /друид|druid/i.test(row.name))?.level ??
+            1
+          }
+          edition={rulesEdition === '2024' ? '2024' : '2014'}
+          onConfirm={applyFamiliarPickResult}
+          onClose={() => {
+            setPendingFamiliar(null)
+            onToast('Фамильяр не выбран — каст уже списан; можно кастануть снова')
+          }}
+        />
+      ) : null}
+
       <BardicInspirationSpendDialog
         open={bardicInspirationSpendId != null}
         resource={bardicInspirationResource}
@@ -7718,6 +7937,18 @@ export function MinimalSheetEditor({
               .filter((id): id is string => Boolean(id)),
             hasBook: wizardHasUsableSpellbook(draft.spells),
             classListSlugs: ['wizard'],
+            subclassSlug: (() => {
+              const wizard = draft.classes.find((row) => {
+                const n = row.name.trim().toLowerCase()
+                return n === 'волшебник' || n === 'wizard' || n === 'маг'
+              })
+              const raw = wizard?.subclass_name?.trim() || ''
+              if (!raw) return null
+              return (
+                resolveSubclassFeatureSlug(raw) ??
+                raw.toLowerCase().replace(/\s+/g, '_')
+              )
+            })(),
           }
         })()}
         onConfirmSpellbookPicks={(entries) => {

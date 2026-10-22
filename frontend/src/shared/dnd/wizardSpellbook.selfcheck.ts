@@ -12,10 +12,12 @@ import {
   markSpellbookLost,
   planRestorePrepared,
   registerBackupBook,
+  rebindFoundSpellbook,
   remainingFreeSpellbookSlots,
   resolveSpellbookAddPayment,
   resolveWizardCopyMods,
   schoolMatchesSavant,
+  spellMatchesLostBookContents,
   totalCopyCost,
   wizardSpellAccess,
 } from './wizardSpellbook'
@@ -108,6 +110,20 @@ assert(restorePlan.gp === 10 && restorePlan.hours === 1, 'restore prepared cost'
 book = beginReplacementSpellbook(book, 'item-blank-2')
 assert(!book.bookLost && book.primaryBookItemId === 'item-blank-2', 'replacement bound')
 assert(wizardSpellAccess(book).canPrepare, 'prepare after replace')
+
+const lostAgain = markSpellbookLost(book, [
+  { catalog_id: 'magic-missile', name: 'Magic Missile', level: 1 },
+])
+book = rebindFoundSpellbook(lostAgain.book, 'item-found-9')
+assert(!book.bookLost && book.primaryBookItemId === 'item-found-9', 'found rebound')
+assert(book.lostBookContents == null, 'snapshot cleared on found rebind')
+assert(
+  spellMatchesLostBookContents(
+    { catalog_id: 'magic-missile', name: 'Magic Missile', level: 1 },
+    lostAgain.book.lostBookContents,
+  ),
+  'match by catalog',
+)
 
 book = registerBackupBook(book, 'item-backup-3')
 book = activateBackupAsPrimary(

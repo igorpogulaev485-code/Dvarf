@@ -70,6 +70,11 @@ export function spellOptionsForClassList(input: {
     const parsed = parseSpellCatalogData(row.data)
     if (parsed.level !== level) continue
     if (input.ritualOnly && !parsed.ritual) continue
+    // Feat picks use the class list only — subclass-gated spells (EGW dunamancy)
+    // stay out unless the DM later grants them outside this picker.
+    if (parsed.subclasses.some((ref) => ref.class.trim().toLowerCase() === classKey)) {
+      continue
+    }
     const classes = parsed.classes.map((c) => c.trim().toLowerCase())
     if (!classes.includes(classKey)) continue
     out.push({

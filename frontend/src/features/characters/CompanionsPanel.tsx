@@ -35,6 +35,8 @@ type CompanionsPanelProps = {
   spells?: SpellsState
   onSpellsChange?: (spells: SpellsState) => void
   onToast?: (msg: string) => void
+  /** Pact of the Chain: open Find Familiar cast (creates familiar card). */
+  onCastPactChainFamiliar?: () => void
 }
 
 const KIND_SHORT: Record<CompanionKind, string> = {
@@ -122,7 +124,9 @@ export function CompanionsPanel({
   spells,
   onSpellsChange,
   onToast,
+  onCastPactChainFamiliar,
 }: CompanionsPanelProps) {
+  const hasFamiliar = companions.some((row) => row.kind === 'familiar')
   const [filter, setFilter] = useState<CompanionFilter>('all')
   const [openIds, setOpenIds] = useState<Set<string>>(() => {
     const active = getActiveSelfForm(companions)
@@ -237,6 +241,17 @@ export function CompanionsPanel({
             <IconPlus />
             Добавить
           </Button>
+          {onCastPactChainFamiliar && !hasFamiliar ? (
+            <Button
+              type="button"
+              variant="secondary"
+              className="inventory-toolbar-btn"
+              onClick={onCastPactChainFamiliar}
+              title="Договор Цепи: каст «Поиск фамильяра»"
+            >
+              Призвать фамильяра…
+            </Button>
+          ) : null}
         </div>
 
         <Dialog
@@ -274,6 +289,21 @@ export function CompanionsPanel({
                 Временный союзник от умения: дух, призванное существо и т.п.
               </span>
             </button>
+            {onCastPactChainFamiliar ? (
+              <button
+                type="button"
+                className="companions-add-fork__choice"
+                onClick={() => {
+                  setAddForkOpen(false)
+                  onCastPactChainFamiliar()
+                }}
+              >
+                <strong>Фамильяр (Цепь)</strong>
+                <span>
+                  Каст «Поиск фамильяра» — после каста появится карточка фамильяра.
+                </span>
+              </button>
+            ) : null}
           </div>
         </Dialog>
 
@@ -295,7 +325,11 @@ export function CompanionsPanel({
         {companions.length === 0 ? (
           <Text tone="muted">
             Пока пусто. Спутники — от архетипа (зверь, дрейк, пушка…). Призывы — кнопка
-            «Использовать» на умении или «+ Добавить».
+            «Использовать» на умении или «+ Добавить»
+            {onCastPactChainFamiliar
+              ? '; договор Цепь — «Призвать фамильяра…»'
+              : ''}
+            .
           </Text>
         ) : null}
 

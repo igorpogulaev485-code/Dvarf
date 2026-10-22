@@ -854,8 +854,14 @@ export function asAlwaysPreparedSpell(
     source_kind: Extract<SpellSourceKind, 'subclass' | 'feat' | 'feature'>
     label: string
     feat_grant?: 'innate' | 'spell_list'
+    /** MC cast profile (domain/oath/circle → parent class). */
+    class_slug?: string | null
+    class_entry_id?: string | null
   },
 ): SheetSpell {
+  const classSlug = input.class_slug?.trim() || spell.class_slug || null
+  const classEntryId =
+    input.class_entry_id?.trim() || spell.class_entry_id || null
   return {
     ...spell,
     prepared: true,
@@ -866,6 +872,8 @@ export function asAlwaysPreparedSpell(
       ? spell.notes
       : `Всегда подготовлено · ${input.label}`,
     ...(input.feat_grant ? { feat_grant: input.feat_grant } : {}),
+    ...(classSlug ? { class_slug: classSlug } : {}),
+    ...(classEntryId ? { class_entry_id: classEntryId } : {}),
   }
 }
 
@@ -886,6 +894,41 @@ export function stripFeatSheetSpellsForGrant(
   return known.filter(
     (spell) => !(isFeatSheetSpell(spell) && spell.id.startsWith(prefix)),
   )
+}
+
+/**
+ * Keep race/feat grants; drop subclass always-prepared and class-tagged known
+ * that no longer match remaining class slugs (create-pipeline class swap / MC prune).
+ */
+export function retainSpellsForRemainingClasses(
+  known: SheetSpell[],
+  remainingClassSlugs: string[],
+  options?: { dropUntagged?: boolean },
+): SheetSpell[] {
+  const allowed = new Set(
+    remainingClassSlugs
+      .map((slug) => slug.trim().toLowerCase())
+      .filter(Boolean),
+  )
+  const dropUntagged = options?.dropUntagged ?? allowed.size === 0
+  return known.filter((spell) => {
+    if (isRaceSheetSpell(spell)) return true
+    if (isFeatSheetSpell(spell)) return true
+    if (isSubclassSheetSpell(spell)) return false
+    if (spell.prepared_locked && spell.source_kind === 'subclass') return false
+    if (
+      spell.source_kind === 'feature' ||
+      spell.id.startsWith('feature-spell:') ||
+      spell.id.startsWith('gear-spell:')
+    ) {
+      const slug = (spell.class_slug ?? '').trim().toLowerCase()
+      if (slug) return allowed.has(slug)
+      return false
+    }
+    const slug = (spell.class_slug ?? '').trim().toLowerCase()
+    if (slug) return allowed.has(slug)
+    return !dropUntagged
+  })
 }
 
 export function readSpells(sheet: Record<string, unknown>): SpellsState {

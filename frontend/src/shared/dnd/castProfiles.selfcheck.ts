@@ -140,6 +140,21 @@ const tome = backfillSpellClassFields(
 )
 assert(tome[0]!.class_slug === 'warlock', 'tome → warlock')
 
+// Wizard spellbook continuum on multiclass → wizard (Teodor orphan rows).
+const withWizard = buildCastProfiles({
+  classes: [
+    createClassLevel({ id: 'wiz', name: 'Волшебник', level: 5 }),
+    createClassLevel({ id: 'war', name: 'Колдун', level: 5 }),
+  ],
+  abilityModFor: abilityModFor({ int: 18, wis: 10, cha: 16 }),
+  proficiencyBonus: 3,
+})
+const bookRow = backfillSpellClassFields(
+  [{ id: 'orphan', spellbook_acquisition: 'starting' as const }],
+  withWizard,
+)
+assert(bookRow[0]!.class_slug === 'wizard', 'spellbook_acquisition → wizard on MC')
+
 // --- M2 budgets ---
 const budgets = resolveSpellLearnBudgets({
   classes: kvakClasses,
@@ -191,6 +206,32 @@ assert(
 assert(
   catalogSpellMatchesAnyShelf(['warlock', 'artificer'], 0, shelves),
   'cantrip on either list',
+)
+
+// EGW dunamancy: subclass gate on wizard shelf
+const wizShelfChron = {
+  slug: 'wizard',
+  labelRu: 'Волшебник',
+  mode: 'spellbook' as const,
+  aloneMaxLevel: 9,
+  subclassSlug: 'chronurgy_magic',
+}
+const wizShelfEvo = { ...wizShelfChron, subclassSlug: 'evocation' }
+const dunamancySubs = [
+  { class: 'wizard', subclass: 'chronurgy_magic' },
+  { class: 'wizard', subclass: 'graviturgy_magic' },
+]
+assert(
+  catalogSpellMatchesAnyShelf(['wizard'], 0, [wizShelfChron], dunamancySubs),
+  'chronurgy sees sapping sting',
+)
+assert(
+  !catalogSpellMatchesAnyShelf(['wizard'], 0, [wizShelfEvo], dunamancySubs),
+  'evocation does not see dunamancy',
+)
+assert(
+  catalogSpellMatchesAnyShelf(['wizard'], 1, [wizShelfEvo], []),
+  'unrestricted wizard spell still on evocation shelf',
 )
 
 console.log('castProfiles.selfcheck: ok')

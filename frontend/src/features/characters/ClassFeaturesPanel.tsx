@@ -101,6 +101,8 @@ import {
   isPactTomeCantripsComplete,
   PACT_BOON_FEATURE_ID,
 } from './pactTomeEffects'
+import { isPactChainActive } from './pactChainEffects'
+import { WARLOCK_PACT_BOON_GRANTS } from '../../shared/dnd/warlockInvocations'
 
 export type WildShapeForkRequest = {
   feature: UnlockedFeature
@@ -179,6 +181,8 @@ type ClassFeaturesPanelProps = {
   onOpenInvocations?: (classEntryId: string) => void
   onOpenRangerFavored?: (classEntryId: string) => void
   onOpenSoulTrinkets?: (classEntryId: string) => void
+  /** Pact of the Chain: open cast for Find Familiar (card appears after cast). */
+  onCastPactChainFamiliar?: (classEntryId: string) => void
   /** Spell catalog edition for Pact of the Tome cantrip picks. */
   edition?: RulesEdition
 }
@@ -1279,6 +1283,7 @@ function FeatureRow({
   onOpenInvocations,
   onOpenSoulTrinkets,
   onOpenRangerFavored,
+  onCastPactChainFamiliar,
   onWildShapeFork,
   onFeatureSelfForm,
   moonCombatWildShape = false,
@@ -1308,6 +1313,7 @@ function FeatureRow({
   onOpenInvocations?: (classEntryId: string) => void
   onOpenSoulTrinkets?: (classEntryId: string) => void
   onOpenRangerFavored?: (classEntryId: string) => void
+  onCastPactChainFamiliar?: (classEntryId: string) => void
   onWildShapeFork?: (request: WildShapeForkRequest) => void
   onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
   moonCombatWildShape?: boolean
@@ -1364,6 +1370,9 @@ function FeatureRow({
     feature.id === PACT_BOON_FEATURE_ID &&
     isPactTomeActive(featurePicks, feature.classEntryId) &&
     !isPactTomeCantripsComplete(featurePicks, feature.classEntryId)
+  const chainFamiliarReady =
+    feature.id === PACT_BOON_FEATURE_ID &&
+    isPactChainActive(featurePicks, feature.classEntryId)
   const choicePending = isAsi
     ? !asiEntry
     : (Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)) ||
@@ -1373,7 +1382,7 @@ function FeatureRow({
   if (asiLabel) {
     metaExtra = asiLabel
   } else if (choiceLabel) {
-    metaExtra = choiceLabel
+    metaExtra = chainFamiliarReady ? `${choiceLabel} · призвать` : choiceLabel
   } else if (choicePending) {
     metaExtra = 'не выбрано'
   } else if (feature.resource?.track === 'stock' && pool) {
@@ -1521,6 +1530,23 @@ function FeatureRow({
           />
         </div>
       ) : null}
+      {feature.id === PACT_BOON_FEATURE_ID &&
+      isPactChainActive(featurePicks, feature.classEntryId) ? (
+        <div className="feature-resource">
+          <Text tone="muted">
+            {WARLOCK_PACT_BOON_GRANTS.chain.notesRu ||
+              'Кастуй «Поиск фамильяра» — карточка напарника появится после каста.'}
+          </Text>
+          <div className="feature-resource__actions">
+            <Button
+              type="button"
+              onClick={() => onCastPactChainFamiliar?.(feature.classEntryId)}
+            >
+              Призвать фамильяра…
+            </Button>
+          </div>
+        </div>
+      ) : null}
       <MetamagicSpendControls
         feature={feature}
         featurePicks={featurePicks}
@@ -1648,6 +1674,7 @@ export function ClassFeaturesPanel({
   onOpenInvocations,
   onOpenRangerFavored,
   onOpenSoulTrinkets,
+  onCastPactChainFamiliar,
   edition = '2014',
 }: ClassFeaturesPanelProps) {
   const [filter, setFilter] = useState<FeatureFilter>('all')
@@ -2020,6 +2047,7 @@ export function ClassFeaturesPanel({
                     onOpenInvocations={onOpenInvocations}
                     onOpenSoulTrinkets={onOpenSoulTrinkets}
                     onOpenRangerFavored={onOpenRangerFavored}
+                    onCastPactChainFamiliar={onCastPactChainFamiliar}
                     onWildShapeFork={onWildShapeFork}
                     onFeatureSelfForm={onFeatureSelfForm}
                     moonCombatWildShape={moonCombatWildShape}

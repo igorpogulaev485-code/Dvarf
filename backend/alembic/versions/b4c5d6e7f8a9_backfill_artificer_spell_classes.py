@@ -27,6 +27,7 @@ depends_on: Union[str, Sequence[str], None] = None
 ARTIFICER_CLASS_SLUGS: tuple[str, ...] = (
     # cantrips
     "acid_splash",
+    "dancing_lights",
     "fire_bolt",
     "guidance",
     "light",
@@ -76,6 +77,8 @@ ARTIFICER_CLASS_SLUGS: tuple[str, ...] = (
     "web",
     # 3rd
     "blink",
+    "create_food_and_water",
+    "dispel_magic",
     "fly",
     "glyph_of_warding",
     "haste",
@@ -90,7 +93,9 @@ ARTIFICER_CLASS_SLUGS: tuple[str, ...] = (
     "faithful_hound",
     "private_sanctum",
     "resilient_sphere",
+    "secret_chest",
     "stone_shape",
+    "stoneskin",
     # 5th
     "animate_objects",
     "creation",
