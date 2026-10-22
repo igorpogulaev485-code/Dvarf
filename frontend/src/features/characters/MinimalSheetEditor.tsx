@@ -262,6 +262,8 @@ import {
 } from '../../shared/dnd/battleMasterManeuverBridge'
 import {
   applyFeatGrantToDraft,
+  ensureFeatSpellsFromLedger,
+  featSpellsMissingFromKnown,
   revokeFeatGrantFromDraft,
   revokeFeatGrantsForAsi,
   revokeFeatGrantsForBackground,
@@ -929,6 +931,7 @@ export function MinimalSheetEditor({
   const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const backgroundCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const asiFeatHydrateAttemptedRef = useRef(false)
+  const featSpellsHydrateAttemptedRef = useRef(false)
   const bmManeuverHydrateAttemptedRef = useRef(false)
   const alwaysPreparedHydrateAttemptedRef = useRef(false)
   const [backgroundCatalogRows, setBackgroundCatalogRows] = useState<CatalogEntry[]>(
@@ -1735,6 +1738,42 @@ export function MinimalSheetEditor({
       },
     }
   }
+
+  // Older create dropped feat spells (Magic Initiate) from known while keeping ledger.
+  useEffect(() => {
+    if (featSpellsHydrateAttemptedRef.current) return
+    const level = totalCharacterLevel(draft.classes)
+    if (
+      !featSpellsMissingFromKnown({
+        known: draft.spells.known,
+        featGrants: draft.featGrants,
+        characterLevel: level,
+      })
+    ) {
+      return
+    }
+    featSpellsHydrateAttemptedRef.current = true
+    setDraft((prev) => {
+      const againLevel = totalCharacterLevel(prev.classes)
+      if (
+        !featSpellsMissingFromKnown({
+          known: prev.spells.known,
+          featGrants: prev.featGrants,
+          characterLevel: againLevel,
+        })
+      ) {
+        return prev
+      }
+      const nextSpells = ensureFeatSpellsFromLedger({
+        spells: prev.spells,
+        featGrants: prev.featGrants,
+        characterLevel: againLevel,
+      })
+      onToast('Восстановлены заклинания от черт')
+      return { ...prev, spells: nextSpells }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
+  }, [draft.featGrants, draft.spells.known, draft.classes])
 
   // Older create discarded ASI→feat packages; rebuild Alert/Mobile/etc. from catalog once.
   useEffect(() => {

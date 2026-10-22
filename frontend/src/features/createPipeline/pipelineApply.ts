@@ -119,6 +119,7 @@ import {
   type TextBlock,
 } from '../characters/textBlocks'
 import { readSpells, spellsToSheet, type SpellsState } from '../characters/spells'
+import { mergeCreatePipelineSpells } from './mergeCreatePipelineSpells'
 import {
   ensureBlankSpellbookInInventory,
   isSpellbookInventoryItem,
@@ -1248,24 +1249,19 @@ export async function applyPipelineToSheet(input: {
   draft.hpMax = hp
   draft.hpCurrent = hp
 
-  // 7) Spells merge
+  // 7) Spells merge — re-inject race + feat + subclass rows from draft
+  // (player/sheetDraft known must not drop Magic Initiate etc.).
   const spells =
     input.spells ??
     (state.sheetDraft.spells ? readSpells({ spells: state.sheetDraft.spells }) : draft.spells)
   const subclassGrantedIds = new Set(
     draft.subclassGrants.flatMap((row) => row.grantedSpellIds ?? []),
   )
-  const mergedSpells: SpellsState = {
-    ...spells,
-    known: [
-      ...spells.known.filter(
-        (row) => row.source_kind !== 'race' && !subclassGrantedIds.has(row.id),
-      ),
-      ...draft.spells.known.filter(
-        (row) => row.source_kind === 'race' || subclassGrantedIds.has(row.id),
-      ),
-    ],
-  }
+  const mergedSpells: SpellsState = mergeCreatePipelineSpells({
+    playerSpells: spells,
+    draftSpells: draft.spells,
+    subclassGrantedIds,
+  })
 
   // Keep slots / max_prepared aligned with class levels (create has no SpellsPanel effect).
   const subclassCasters = draft.subclassGrants
