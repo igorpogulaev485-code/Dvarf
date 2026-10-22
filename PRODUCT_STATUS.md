@@ -21,7 +21,7 @@
 | Автоматизация | `aggregateInfusionBonuses` только self; ally → `shareLobbyEffect` | КД/атаки/спас/тёмное зрение на листе; союзнику — эффект в лобби |
 | Guided / лист | `infusionOptionIdsAtLevel` в wizard и ClassFeatures | Не предлагаются инфузии выше уровня |
 
-На проде: **да** · **это новый prod tip** `cursor/artificer-infusions-full-ab30` · PR #265 · залито 2026-10-21 · поверх tip `spells-feats-infusions-ab30` · `/health` ok · alembic `b4c5d6e7f8a9` · бандл `CharacterDetailPage-vFT-rzTU.js` · «Усиленная защита» в бандле · characters=94 classic=20
+На проде: **да** · tip `cursor/artificer-infusions-full-ab30` · PR #265 · залито 2026-10-21 · RAW-копия перезалита 2026-10-22 · `/health` ok · alembic `b4c5d6e7f8a9` · бандл `CharacterDetailPage-CtSWVbA8.js` · «Выучить копию» в бандле · characters=94 classic=20
 
 ### 2026-10-21 — Инфузии RU + список изобретателя + аудит Magic Initiate
 
