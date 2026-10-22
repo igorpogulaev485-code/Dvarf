@@ -4,7 +4,7 @@
 
 - **Prod tip:** `cursor/magic-initiate-feat-spells-merge-1cc0` (поверх `magic-qa-fix-7fb8`).
 - **Shipped:** create-pipeline merge keeps `source_kind: feat` (+ race/subclass); sheet heal rematerializes missing feat spells from ledger.
-- **URL:** https://creed20.tech/ — `/health` check after deploy.
+- **URL:** https://creed20.tech/ — `/health` ok after deploy.
 
 ## History — magic QA ship (2026-10-22)
 
