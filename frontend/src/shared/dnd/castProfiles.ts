@@ -320,6 +320,31 @@ export function inferClassSlugForSpell(
     if (label.includes(profile.slug)) return profile.slug
   }
 
+  // Domain / oath / circle chips often name the archetype, not the parent class.
+  if (
+    (label.includes('домен') ||
+      label.includes('клятв') ||
+      label.includes('круг') ||
+      label.includes('охотник') ||
+      label.includes('conclave') ||
+      spell.source_kind === 'subclass' ||
+      spell.id?.startsWith('subclass-spell:')) &&
+    profiles.length > 0
+  ) {
+    if (label.includes('дикого огня') || label.includes('wildfire')) {
+      const druid = profiles.find((row) => row.slug === 'druid')
+      if (druid) return 'druid'
+    }
+    if (label.includes('домен') || label.includes('domain')) {
+      const cleric = profiles.find((row) => row.slug === 'cleric')
+      if (cleric) return 'cleric'
+    }
+    if (label.includes('клятв') || label.includes('oath')) {
+      const paladin = profiles.find((row) => row.slug === 'paladin')
+      if (paladin) return 'paladin'
+    }
+  }
+
   // Pact of the Tome / warlock features → warlock when that profile exists.
   if (
     (label.includes('гримуар') ||

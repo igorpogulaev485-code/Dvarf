@@ -311,6 +311,7 @@ import {
   initiativeBonusFromRace,
 } from './featureCombatBonuses'
 import { syncRangerConclaveSpells } from './rangerConclaveSpells'
+import { syncDruidCircleSpells } from './druidCircleSpells'
 import {
   sanitizeFeaturePicksForPactBoons,
   syncPactTomeCantrips,
@@ -2934,9 +2935,14 @@ export function MinimalSheetEditor({
             ability: row.caster?.ability ?? null,
           })),
       )
+      const classLevelByEntryId: Record<string, number> = {}
+      for (const row of nextClasses) {
+        classLevelByEntryId[row.id] = row.level
+      }
       const syncedSubclass = syncSubclassAlwaysPreparedSpells({
         draft: subclassSliceFrom(withRaceSpells),
         maxSpellLevel: slotCap,
+        classLevelByEntryId,
       })
       return mergeSubclassSlice(withRaceSpells, syncedSubclass)
     })
@@ -3302,6 +3308,19 @@ export function MinimalSheetEditor({
   useEffect(() => {
     setDraft((prev) => {
       const synced = syncRangerConclaveSpells({
+        spells: prev.spells,
+        classes: prev.classes,
+        subclassSlugByEntryId,
+      })
+      if (!synced.changed) return prev
+      return { ...prev, spells: synced.spells }
+    })
+  }, [draft.classes, subclassSlugByEntryId])
+
+  // Wildfire (etc.) circle spells: always-prepared as druid for MC cast profiles.
+  useEffect(() => {
+    setDraft((prev) => {
+      const synced = syncDruidCircleSpells({
         spells: prev.spells,
         classes: prev.classes,
         subclassSlugByEntryId,

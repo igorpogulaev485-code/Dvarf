@@ -944,7 +944,59 @@
           "sheet_grants": {},
           "choices": [],
           "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
-          "detail_status": "inventory_only"
+          "detail_status": "inventory_only",
+          "always_prepared_spells": [
+            {
+              "name": "Burning Hands",
+              "level": 1,
+              "from_class_level": 2
+            },
+            {
+              "name": "Cure Wounds",
+              "level": 1,
+              "from_class_level": 2
+            },
+            {
+              "name": "Flaming Sphere",
+              "level": 2,
+              "from_class_level": 3
+            },
+            {
+              "name": "Scorching Ray",
+              "level": 2,
+              "from_class_level": 3
+            },
+            {
+              "name": "Plant Growth",
+              "level": 3,
+              "from_class_level": 5
+            },
+            {
+              "name": "Revivify",
+              "level": 3,
+              "from_class_level": 5
+            },
+            {
+              "name": "Aura of Life",
+              "level": 4,
+              "from_class_level": 7
+            },
+            {
+              "name": "Fire Shield",
+              "level": 4,
+              "from_class_level": 7
+            },
+            {
+              "name": "Flame Strike",
+              "level": 5,
+              "from_class_level": 9
+            },
+            {
+              "name": "Mass Cure Wounds",
+              "level": 5,
+              "from_class_level": 9
+            }
+          ]
         }
       ]
     },
