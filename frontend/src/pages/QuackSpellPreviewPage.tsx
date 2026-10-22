@@ -54,7 +54,13 @@ function buildKnown(): SheetSpell[] {
       class_slug: 'artificer',
       catalog_id: 'fire_bolt',
       attack_or_save: 'атака',
-      damage: '1к10 огонь',
+      damage: '1d10 огонь',
+      damage_at_character_level: {
+        '1': '1d10',
+        '5': '2d10',
+        '11': '3d10',
+        '17': '4d10',
+      },
     }),
     spell({
       id: 'art-c2',
