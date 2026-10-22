@@ -297,6 +297,8 @@ export function inferClassSlugForSpell(
     source_kind?: string | null
     prepare_source_label?: string | null
     id?: string
+    /** Wizard continuum marker — safe MC backfill to wizard when present. */
+    spellbook_acquisition?: string | null
   },
   profiles: SpellCastProfile[],
 ): string | null {
@@ -312,6 +314,13 @@ export function inferClassSlugForSpell(
     ) {
       return profiles[0]!.slug
     }
+  }
+
+  // Wizard spellbook rows (starting / level_up / copied / …) — even on multiclass.
+  const acquisition = (spell.spellbook_acquisition ?? '').trim()
+  if (acquisition) {
+    const wizard = profiles.find((row) => row.slug === 'wizard' && row.kind === 'class')
+    if (wizard) return 'wizard'
   }
 
   const label = (spell.prepare_source_label ?? '').toLowerCase()

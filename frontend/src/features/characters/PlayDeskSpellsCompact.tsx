@@ -105,6 +105,7 @@ export function PlayDeskSpellsCompact({
 }: PlayDeskSpellsCompactProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [detailSpell, setDetailSpell] = useState<SheetSpell | null>(null)
+  const bookLost = Boolean(spells.wizard_spellbook?.bookLost)
   const hasSpellbook =
     learnBudget?.mode === 'spellbook' &&
     Boolean(
@@ -258,6 +259,13 @@ export function PlayDeskSpellsCompact({
           </button>
         </div>
       </div>
+
+      {learnBudget?.mode === 'spellbook' && bookLost ? (
+        <p className="play-desk-compact__book-lost">
+          Книга утеряна — подготовка и ритуалы из книги закрыты. Открой «{settingsLabel}» →
+          статус книги, чтобы вернуть книгу из инвентаря.
+        </p>
+      ) : null}
 
       {profileRows && profileRows.length > 0 ? (
         <div

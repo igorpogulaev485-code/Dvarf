@@ -406,8 +406,21 @@ export function LevelingStep({
               сразу в бюджете этого класса.
             </Text>
             <ul className="create-pipeline__spell-class-list">
-              {spellClassBudgets.map((row) => (
-                <li key={row.slug} className="create-pipeline__spell-class-row">
+              {spellClassBudgets.map((row) => {
+                const cantripGap =
+                  row.cantripsMax > 0 && row.cantripsKnown < row.cantripsMax
+                const knownGap =
+                  row.mode === 'known' &&
+                  row.leveledKnownMax != null &&
+                  row.leveledKnown < row.leveledKnownMax
+                const underfilled = cantripGap || knownGap
+                return (
+                <li
+                  key={row.slug}
+                  className={`create-pipeline__spell-class-row${
+                    underfilled ? ' is-underfilled' : ''
+                  }`}
+                >
                   <div>
                     <strong>{row.labelRu}</strong>
                     <Text tone="muted">
@@ -420,6 +433,7 @@ export function LevelingStep({
                             : row.mode === 'prepared_list'
                               ? `На листе ${row.leveledKnown}`
                               : null,
+                        underfilled ? 'недобор — выбери в гримуаре' : null,
                       ]
                         .filter(Boolean)
                         .join(' · ')}
@@ -438,7 +452,8 @@ export function LevelingStep({
                     </Button>
                   )}
                 </li>
-              ))}
+                )
+              })}
             </ul>
             {spellcasting ? (
               <Text tone="muted">
