@@ -1,7 +1,7 @@
 /** Эффекты/способности, которые целят союзников (или включают себя). */
 
 const ALLY_NAME_RE =
-  /благословен|bless|ускорен|haste|щит\s*вер|shield of faith|наставлен|guidance|помощ[ьи]|\baid\b|героизм|heroism|вардинг|warding bond|вдохновен|inspiration|инфуз|infusion|бафф?|\bбаф\b/i
+  /благословен|bless|ускорен|haste|щит\s*вер|shield of faith|наставлен|guidance|помощ[ьи]|\baid\b|героизм|heroism|вардинг|warding bond|вдохновен|inspiration|инфуз|infusion|усиленн|enhanced (defense|weapon|arcane)|бафф?|\bбаф\b/i
 
 /** catalog_id / slug (shield_of_faith, bless, …) — надёжнее имени. */
 const ALLY_CATALOG_RE =

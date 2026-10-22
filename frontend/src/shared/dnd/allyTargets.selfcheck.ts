@@ -22,5 +22,7 @@ assert(guessAllyTargetCount('Щит веры') === 1, 'sof count')
 assert(guessAllyTargetCount('', 'bless') === 3, 'bless catalog count')
 assert(!guessAppliesToAllies('Огненный шар'), 'fireball no')
 assert(guessResourceAppliesToAllies('Вдохновение барда'), 'inspiration')
+assert(guessResourceAppliesToAllies('Активные инфузии'), 'infusion resource')
+assert(guessAppliesToAllies('Усиленная защита'), 'infusion name as ally effect')
 
 console.log('allyTargets.selfcheck: ok')

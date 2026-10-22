@@ -39,6 +39,9 @@ type PlayDeskAttacksCompactProps = {
   fightingStyleId?: string | null
   /** Monk Martial Arts die (e.g. "1к10"). */
   martialArtsDie?: string | null
+  /** Active Artificer infusion weapon bonuses. */
+  infusionAttackBonus?: number
+  infusionDamageBonus?: number
   resources: SheetResource[]
   inventoryItems: InventoryItem[]
   favoriteConsumableIds?: string[]
@@ -81,6 +84,8 @@ export function PlayDeskAttacksCompact({
   gearBonusesByItem = {},
   fightingStyleId = null,
   martialArtsDie = null,
+  infusionAttackBonus = 0,
+  infusionDamageBonus = 0,
   resources,
   inventoryItems,
   favoriteConsumableIds = [],
@@ -206,12 +211,19 @@ export function PlayDeskAttacksCompact({
               styleId: fightingStyleId,
               weaponName: attack.name,
             })
+            const infusionAtk = unarmed
+              ? 0
+              : Math.max(0, Math.floor(infusionAttackBonus))
+            const infusionDmg = unarmed
+              ? 0
+              : Math.max(0, Math.floor(infusionDamageBonus))
             const attackBonus =
               mod +
               (attack.is_proficient || unarmed ? proficiencyBonus : 0) +
               (gear?.attackBonus ?? 0) +
-              styleAtk
-            const dmgBonus = mod + (gear?.damageBonus ?? 0)
+              styleAtk +
+              infusionAtk
+            const dmgBonus = mod + (gear?.damageBonus ?? 0) + infusionDmg
             const dmg =
               baseDamage +
               (dmgBonus ? `${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')

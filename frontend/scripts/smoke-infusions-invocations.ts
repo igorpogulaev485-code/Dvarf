@@ -9,11 +9,21 @@ import {
   setFeaturePick,
 } from '../src/shared/dnd/featurePicks'
 import {
+  infusionCanTargetAlly,
   infusionSlotsMax,
+  learnReplicateMagicItem,
+  listActiveInfusionBindings,
   listActiveInfusionIds,
+  listKnownInfusionIds,
   listKnownInfusions,
+  setActiveInfusionBindings,
   setActiveInfusions,
 } from '../src/shared/dnd/infusionsActive'
+import {
+  formatReplicateKnownId,
+  infusionById,
+  replicateItemsAtLevel,
+} from '../src/shared/dnd/artificerInfusions'
 import { listKnownInvocations } from '../src/features/characters/WarlockInvocationsDialog'
 import { listWarlockArcanumOptions } from '../src/features/characters/WarlockArcanumSpendDialog'
 import { parseInfusionSlotsResourceId } from '../src/features/characters/InfusionsActiveDialog'
@@ -79,6 +89,90 @@ picks = setActiveInfusions(picks, artEntry, [
 assert(
   listActiveInfusionIds(picks, artEntry).join(',') === 'enhanced_defense',
   'unknown filtered',
+)
+
+// Ally targeting: armor infusion on teammate, weapon on self
+picks = setFeaturePick(
+  picks,
+  artEntry,
+  'infuse_item',
+  'enhanced_defense,enhanced_weapon,repeating_shot,returning_weapon',
+)
+picks = setActiveInfusionBindings(picks, artEntry, [
+  { infusionId: 'enhanced_defense', target: 'ally-fighter-1' },
+  { infusionId: 'enhanced_weapon', target: 'self' },
+])
+const bindings = listActiveInfusionBindings(picks, artEntry)
+assert(bindings.length === 2, '2 bindings with ally target')
+assert(
+  bindings.find((b) => b.infusionId === 'enhanced_defense')?.target ===
+    'ally-fighter-1',
+  'enhanced defense on ally',
+)
+assert(
+  bindings.find((b) => b.infusionId === 'enhanced_weapon')?.target === 'self',
+  'enhanced weapon on self',
+)
+assert(
+  infusionCanTargetAlly(infusionById('enhanced_defense')),
+  'enhanced defense can target ally',
+)
+assert(
+  !infusionCanTargetAlly(infusionById('homunculus_servant')),
+  'homunculus self-only',
+)
+
+// Replicate Magic Item RAW: choose item when learning
+picks = setFeaturePick(
+  picks,
+  artEntry,
+  'infuse_item',
+  'enhanced_defense,returning_weapon',
+)
+picks = learnReplicateMagicItem(
+  picks,
+  artEntry,
+  'infuse_item',
+  'bag_of_holding',
+  6,
+)
+picks = learnReplicateMagicItem(
+  picks,
+  artEntry,
+  'infuse_item',
+  'goggles_of_night',
+  6,
+)
+assert(
+  listKnownInfusionIds(picks, artEntry).includes(
+    formatReplicateKnownId('bag_of_holding'),
+  ),
+  'known bag token',
+)
+assert(
+  replicateItemsAtLevel(6).some((r) => r.slug === 'boots_of_elvenkind'),
+  'L6 replicate table has boots of elvenkind',
+)
+assert(
+  !replicateItemsAtLevel(6).some((r) => r.slug === 'winged_boots'),
+  'L6 replicate table no winged boots',
+)
+picks = setActiveInfusionBindings(picks, artEntry, [
+  {
+    infusionId: formatReplicateKnownId('bag_of_holding'),
+    target: 'self',
+  },
+  {
+    infusionId: formatReplicateKnownId('goggles_of_night'),
+    target: 'ally-fighter-1',
+  },
+])
+const repBindings = listActiveInfusionBindings(picks, artEntry)
+assert(repBindings.length === 2, 'two active replicate copies')
+assert(
+  repBindings.map((b) => b.replicateItemSlug).sort().join(',') ===
+    'bag_of_holding,goggles_of_night',
+  'items from known tokens',
 )
 
 const artDesired = desiredResourcesFromFeatures({

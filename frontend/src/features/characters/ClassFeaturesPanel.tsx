@@ -13,7 +13,19 @@ import {
   type AbilityScoreKey,
   type UnlockedFeature,
 } from '../../shared/dnd/classFeatures'
-import { infusionById } from '../../shared/dnd/artificerInfusions'
+import {
+  infusionById,
+  infusionOptionIdsAtLevel,
+  normalizeKnownInfusionId,
+  REPLICATE_MAGIC_ITEM_ID,
+  replicateItemBySlug,
+  replicateItemsAtLevel,
+} from '../../shared/dnd/artificerInfusions'
+import {
+  isReplicateLearnOption,
+  learnReplicateMagicItem,
+  unlearnInfusionPick,
+} from '../../shared/dnd/infusionsActive'
 import { maneuverById } from '../../shared/dnd/battleMasterManeuvers'
 import { elementalDisciplineById } from '../../shared/dnd/monkElementalDisciplines'
 import { featureChoiceOptionLabel } from '../../shared/dnd/featureChoiceOptionLabel'
@@ -644,7 +656,10 @@ function FeatureChoiceControls({
   onToast?: (message: string) => void
 }) {
   const choice = feature.choice
+  const [pendingReplicate, setPendingReplicate] = useState(false)
+  const [pendingReplicateSlug, setPendingReplicateSlug] = useState('')
   if (!choice) return null
+  const choiceLabel = choice.label_ru
   const options = isExpertiseChoice(choice)
     ? listExpertiseOptions({
         skills,
@@ -655,12 +670,20 @@ function FeatureChoiceControls({
           except: { classEntryId: feature.classEntryId, featureId: feature.id },
         }),
       }).map((row) => row.id)
-    : resolveFeatureChoiceOptions(choice)
+    : choice.options_from === 'artificer_infusions'
+      ? infusionOptionIdsAtLevel(feature.classLevel)
+      : resolveFeatureChoiceOptions(choice)
   const maxPicks = resolveChoiceMaxPicks(choice, feature.classLevel)
   const multi = maxPicks > 1 || Boolean(choice.max_picks_by_level) || Boolean(choice.max_picks && choice.max_picks > 1)
-  const selectedList = multi
+  const selectedListRaw = multi
     ? getFeaturePickList(featurePicks, feature.classEntryId, feature.id)
     : []
+  const selectedList =
+    choice.options_from === 'artificer_infusions'
+      ? selectedListRaw
+          .map((id) => normalizeKnownInfusionId(id) ?? id)
+          .filter(Boolean)
+      : selectedListRaw
   const selected = multi
     ? null
     : getFeaturePick(featurePicks, feature.classEntryId, feature.id)
@@ -672,11 +695,33 @@ function FeatureChoiceControls({
       ? choiceOptionLabel(selected)
       : null
   const useSelect = !multi && options.length > 6
+  const replicateChoices = replicateItemsAtLevel(feature.classLevel)
+
+  function confirmReplicateLearn() {
+    const slug = pendingReplicateSlug.trim()
+    if (!slug || !replicateItemBySlug(slug)) {
+      onToast?.('Выбери предмет для копии')
+      return
+    }
+    const next = learnReplicateMagicItem(
+      featurePicks,
+      feature.classEntryId,
+      feature.id,
+      slug,
+      maxPicks,
+    )
+    onFeaturePicksChange(next)
+    onToast?.(
+      `${choiceLabel}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map(choiceOptionLabel).join(', ') || 'очищено'}`,
+    )
+    setPendingReplicate(false)
+    setPendingReplicateSlug('')
+  }
 
   return (
     <div className="feature-resource">
       <Text>
-        {choice.label_ru}
+        {choiceLabel}
         {multi ? ` (${selectedList.length}/${maxPicks})` : ''}
         {selectedLabel ? (
           <>
@@ -724,11 +769,57 @@ function FeatureChoiceControls({
             return (
               <Text key={id} tone="muted">
                 {inf.nameRu}
-                {inf.minLevel ? ` (с ${inf.minLevel} ур.)` : ''}: {inf.summaryRu}
+                {inf.minLevel ? ` (с ${inf.minLevel} ур.)` : ''}
+                {inf.replicate ? ' · предмет зафиксирован при изучении' : ''}:{' '}
+                {inf.abilityRu || inf.summaryRu}
               </Text>
             )
           })
         : null}
+      {pendingReplicate ? (
+        <div className="feature-resource">
+          <Text>
+            Копия магического предмета — выбери предмет (доступно с{' '}
+            {feature.classLevel} ур.):
+          </Text>
+          <label className="feature-resource__select">
+            <span className="sr-only">Предмет для копии</span>
+            <select
+              value={pendingReplicateSlug}
+              onChange={(e) => setPendingReplicateSlug(e.target.value)}
+            >
+              <option value="">— выбрать —</option>
+              {replicateChoices.map((item) => (
+                <option key={item.slug} value={item.slug}>
+                  {item.nameRu}
+                  {item.minLevel > 2 ? ` · с ${item.minLevel} ур.` : ''}
+                  {item.attune ? ' · настройка' : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+          {pendingReplicateSlug ? (
+            <Text tone="muted">
+              {replicateItemBySlug(pendingReplicateSlug)?.abilityRu}
+            </Text>
+          ) : null}
+          <div className="feature-resource__actions">
+            <Button type="button" onClick={confirmReplicateLearn}>
+              Выучить копию
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setPendingReplicate(false)
+                setPendingReplicateSlug('')
+              }}
+            >
+              Отмена
+            </Button>
+          </div>
+        </div>
+      ) : null}
       {choice?.options_from === 'monk_elemental_disciplines'
         ? selectedList.map((id) => {
             const disc = elementalDisciplineById(id)
@@ -780,15 +871,30 @@ function FeatureChoiceControls({
         <div className="feature-resource__actions">
           {options.map((optionId) => {
             const label = choiceOptionLabel(optionId)
+            const replicateLearn = isReplicateLearnOption(optionId)
+            const replicateKnown = selectedList.filter((id) =>
+              id.startsWith(`${REPLICATE_MAGIC_ITEM_ID}:`),
+            )
             const active = multi
-              ? selectedList.includes(optionId)
+              ? replicateLearn
+                ? replicateKnown.length > 0
+                : selectedList.includes(optionId)
               : selected === optionId
             return (
               <Button
                 key={optionId}
                 type="button"
-                disabled={!multi && active}
+                disabled={(!multi && active) || pendingReplicate}
                 onClick={() => {
+                  if (replicateLearn && multi) {
+                    if (selectedList.length >= maxPicks) {
+                      onToast?.(`Лимит известных инфузий: ${maxPicks}`)
+                      return
+                    }
+                    setPendingReplicate(true)
+                    setPendingReplicateSlug('')
+                    return
+                  }
                   if (multi) {
                     const next = toggleFeaturePickInList(
                       featurePicks,
@@ -809,10 +915,41 @@ function FeatureChoiceControls({
                   onToast?.(`${choice.label_ru}: ${label}`)
                 }}
               >
-                {active && multi ? `✓ ${label}` : label}
+                {active && multi
+                  ? replicateLearn
+                    ? `✓ ${label} ×${replicateKnown.length}`
+                    : `✓ ${label}`
+                  : replicateLearn
+                    ? `${label}…`
+                    : label}
               </Button>
             )
           })}
+          {choice.options_from === 'artificer_infusions'
+            ? selectedList
+                .filter((id) => id.startsWith(`${REPLICATE_MAGIC_ITEM_ID}:`))
+                .map((id) => (
+                  <Button
+                    key={id}
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      const next = unlearnInfusionPick(
+                        featurePicks,
+                        feature.classEntryId,
+                        feature.id,
+                        id,
+                      )
+                      onFeaturePicksChange(next)
+                      onToast?.(
+                        `${choice.label_ru}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map(choiceOptionLabel).join(', ') || 'очищено'}`,
+                      )
+                    }}
+                  >
+                    ✕ {choiceOptionLabel(id)}
+                  </Button>
+                ))
+            : null}
         </div>
       )}
     </div>

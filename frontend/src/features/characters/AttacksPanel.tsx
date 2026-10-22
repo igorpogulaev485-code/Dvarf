@@ -95,6 +95,9 @@ type AttacksPanelProps = {
   fightingStyleId?: string | null
   /** Monk Martial Arts die (e.g. "1к10") — overrides monk weapon / unarmed damage. */
   martialArtsDie?: string | null
+  /** Active Artificer infusion weapon bonuses (Enhanced Weapon / …). */
+  infusionAttackBonus?: number
+  infusionDamageBonus?: number
 }
 
 /** Empty custom attack card («Своё» / Добавить атаку). */
@@ -142,6 +145,8 @@ export function AttacksPanel({
   gearBonusesByItem,
   fightingStyleId = null,
   martialArtsDie = null,
+  infusionAttackBonus = 0,
+  infusionDamageBonus = 0,
 }: AttacksPanelProps) {
   function updateAttack(id: string, patch: Partial<WeaponAttack>) {
     onChange(weapons.map((item) => (item.id === id ? { ...item, ...patch } : item)))
@@ -223,13 +228,18 @@ export function AttacksPanel({
             styleId: fightingStyleId,
             weaponName: attack.name,
           })
+          const infusionAtk =
+            !raceNatural && !classMa ? Math.max(0, Math.floor(infusionAttackBonus)) : 0
+          const infusionDmg =
+            !raceNatural && !classMa ? Math.max(0, Math.floor(infusionDamageBonus)) : 0
           const attackBonus =
             abilityModifier(abilities[attackAbility]) +
             (proficient ? proficiencyBonus : 0) +
             magicAtk +
-            styleAtk
+            styleAtk +
+            infusionAtk
           const abilityDmg = abilityModifier(abilities[attackAbility])
-          const totalDmgBonus = abilityDmg + magicDmg
+          const totalDmgBonus = abilityDmg + magicDmg + infusionDmg
           const damageDisplay =
             baseDamage && totalDmgBonus
               ? `${baseDamage}${totalDmgBonus >= 0 ? '+' : ''}${totalDmgBonus}`
