@@ -831,6 +831,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-22 | `cursor/artificer-infusions-full-ab30` · PR #265 | RAW Replicate: выбор предмета при изучении → перезалив Timeweb |
 | 2026-10-21 | `cursor/artificer-infusions-full-ab30` · PR #265 | Полный каталог инфузий + ally lobby targets → **новый tip** после Timeweb |
 | 2026-10-21 | `cursor/spells-feats-infusions-ab30` · PR #264 | Инфузии RU + artificer spell tags + MI audit → tip после Timeweb |
 | 2026-10-21 | `cursor/multiclass-spell-m1-c9ba` · PR #263 | MC spell profiles/budgets/cast/grimoire/classic → tip после Timeweb |
