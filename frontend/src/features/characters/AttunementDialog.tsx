@@ -20,7 +20,7 @@ export function AttunementDialog({
   return (
     <Dialog
       open={open}
-      title="Настройка"
+      title="Настроенные предметы"
       size="wide"
       primaryLabel="Готово"
       onPrimary={onClose}

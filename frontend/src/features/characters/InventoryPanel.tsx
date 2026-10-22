@@ -1116,12 +1116,16 @@ export function InventoryPanel({
                     type="button"
                     className="inventory-summary__chip inventory-summary__chip--action"
                     onClick={onOpenAttunement}
+                    title={`Настроенные предметы: ${attunementFilled} из ${MAX_ATTUNEMENTS}. Магические вещи часто требуют настройки перед использованием свойств.`}
                   >
-                    Настройка {attunementFilled}/{MAX_ATTUNEMENTS}
+                    Настроенные: {attunementFilled}/{MAX_ATTUNEMENTS}
                   </button>
                 ) : (
-                  <span className="inventory-summary__chip">
-                    Настройка {attunementFilled}/{MAX_ATTUNEMENTS}
+                  <span
+                    className="inventory-summary__chip"
+                    title={`Настроенные предметы: ${attunementFilled} из ${MAX_ATTUNEMENTS}`}
+                  >
+                    Настроенные: {attunementFilled}/{MAX_ATTUNEMENTS}
                   </span>
                 )
               ) : null}

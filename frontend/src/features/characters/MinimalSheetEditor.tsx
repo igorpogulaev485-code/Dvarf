@@ -6476,7 +6476,7 @@ export function MinimalSheetEditor({
                 inventory: { ...prev.inventory, coins, items },
               }))
             }
-            title={isPlayDesk ? 'Настройки заклинаний' : 'Книга заклинаний'}
+            title={isPlayDesk ? 'Магия' : 'Книга заклинаний'}
             onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
             onClose={() => {
               setSpellsSettingsOpen(false)

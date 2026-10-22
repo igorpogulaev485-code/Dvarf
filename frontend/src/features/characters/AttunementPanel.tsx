@@ -57,9 +57,9 @@ export function AttunementEditor({
   return (
     <Stack gap={12} className="attune-editor">
       <Text tone="muted">
-        До {MAX_ATTUNEMENTS} предметов · занято {filled}/{MAX_ATTUNEMENTS}. В списке — только
-        вещи с «нужна настройка», которые ещё не привязаны к слоту (или текущий выбор слота).
-        Привязка слота автоматически надевает предмет с wear-слотом / доспех / щит.
+        До {MAX_ATTUNEMENTS} настроенных магических предметов (занято {filled}/
+        {MAX_ATTUNEMENTS}). В списке — вещи с пометкой «нужна настройка», ещё не занявшие слот.
+        Привязка слота надевает предмет (доспех, щит, слот ношения).
       </Text>
 
       <div className="attune-panel__toolbar">

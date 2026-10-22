@@ -637,13 +637,28 @@ a.ui-button--primary {
 
 .grimoire-toolbar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(7rem, 11rem) auto;
   gap: 10px;
   align-items: end;
 }
 
+.grimoire-toolbar--sticky {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 8px 0 10px;
+  margin: -4px 0 0;
+  background: color-mix(in srgb, var(--panel, #f7f3ea) 92%, white);
+  border-bottom: 1px solid color-mix(in srgb, var(--desk-line, #cfc6b4) 55%, transparent);
+}
+
 .grimoire-toolbar .ui-field {
   margin: 0;
+}
+
+.grimoire-toolbar .play-select {
+  width: 100%;
+  min-height: 2.25rem;
 }
 
 .grimoire-row__actions {
@@ -676,6 +691,10 @@ a.ui-button--primary {
   .grimoire-toolbar {
     grid-template-columns: 1fr;
     align-items: stretch;
+  }
+
+  .grimoire-toolbar--sticky {
+    position: static;
   }
 
   .custom-spell-form__row {
