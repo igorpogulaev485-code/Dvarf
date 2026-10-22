@@ -30,7 +30,10 @@ import {
   type SpellsState,
 } from './spells'
 import { IconCast, IconConcentration, IconRitual, IconWizardHat } from './spellIcons'
-import { spellSchoolLabelRu } from '../../shared/dnd/spellCatalog'
+import {
+  resolveCastEffect,
+  spellSchoolLabelRu,
+} from '../../shared/dnd/spellCatalog'
 import type { FormulaVars } from '../../shared/dnd/formulas'
 import {
   SPELLCASTING_ABILITY_LABELS,
@@ -167,6 +170,10 @@ export function PlayDeskSpellsCompact({
       }),
     )
   })()
+  const characterLevel = Math.max(
+    1,
+    classes.reduce((sum, row) => sum + Math.max(0, Math.floor(row.level)), 0),
+  )
   const learnedCantrips = countLearnedCantrips(spells.known)
   const learnedLeveled = countLearnedLeveled(spells.known)
   const preparedCount = countPreparedLeveled(spells.known)
@@ -405,6 +412,7 @@ export function PlayDeskSpellsCompact({
                     <SpellRow
                       key={spell.id}
                       spell={spell}
+                      characterLevel={characterLevel}
                       activeConcentration={isActiveConc}
                       onOpenDetail={() => setDetailSpell(spell)}
                       onCast={() => {
@@ -530,19 +538,20 @@ function shortDamage(raw: string): string {
   return t.replace(/\s+/g, ' ')
 }
 
-/** Prefer sheet damage; else lowest scale-table entry (cantrip / slot). */
-function compactDamage(spell: SheetSpell): string {
-  const direct = shortDamage(spell.damage)
-  if (direct) return direct
-  const table =
-    spell.level <= 0 ? spell.damage_at_character_level : spell.damage_at_slot_level
-  if (!table) return ''
-  const keys = Object.keys(table)
-    .map((key) => Number(key))
-    .filter((n) => Number.isFinite(n))
-    .sort((a, b) => a - b)
-  if (keys.length === 0) return ''
-  return shortDamage(table[String(keys[0])] ?? '')
+/**
+ * Show scaled damage when cantrip/slot tables exist (e.g. Fire Bolt 4d10 at L20).
+ * Falls back to static `damage` when no scale applies.
+ */
+function compactDamage(spell: SheetSpell, characterLevel: number): string {
+  const level = Math.max(1, Math.floor(characterLevel) || 1)
+  const slotLevel = Math.max(spell.level, 1)
+  const resolved = resolveCastEffect(spell, {
+    characterLevel: level,
+    slotLevel,
+  })
+  const scaled = shortDamage(resolved.effect)
+  if (scaled) return scaled
+  return shortDamage(spell.damage)
 }
 
 /** Non-damage key params (school / comps / range / time / duration / atk). */
@@ -563,12 +572,14 @@ function compactSpellMeta(spell: SheetSpell): string {
 
 function SpellRow({
   spell,
+  characterLevel,
   activeConcentration,
   onOpenDetail,
   onCast,
   hasCast,
 }: {
   spell: SheetSpell
+  characterLevel: number
   activeConcentration: boolean
   onOpenDetail: () => void
   onCast: () => void
@@ -576,7 +587,7 @@ function SpellRow({
 }) {
   const levelText = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
   const meta = compactSpellMeta(spell)
-  const damage = compactDamage(spell)
+  const damage = compactDamage(spell, characterLevel)
   const source = spellSourceBadge(spell)
   const granted = isGrantedSpellHighlight(spell)
   const grantLeft =

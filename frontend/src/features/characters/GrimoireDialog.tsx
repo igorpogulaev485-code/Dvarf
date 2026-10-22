@@ -368,7 +368,9 @@ export function GrimoireDialog({
         setError('Не удалось загрузить гримуар')
         return
       }
-      setEntries(items)
+      // Bundled JSON may still list SRD aliases; API already hides is_active=false.
+      const visible = items.filter((entry) => entry.is_active !== false)
+      setEntries(visible)
       setError(null)
     }
 
