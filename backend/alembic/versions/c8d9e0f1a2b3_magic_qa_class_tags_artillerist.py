@@ -119,52 +119,69 @@ def _resolve_artificer_id(conn: Any) -> str | None:
     return str(row[0]) if row else ARTIFICER_STABLE_ID
 
 
-def _add_class_tag(conn: Any, slug: str, class_slug: str) -> None:
+def _read_spell_data(conn: Any, slug: str) -> tuple[str, dict[str, Any]] | None:
+    row = conn.execute(
+        text(
+            """
+            SELECT id, data
+            FROM catalog_entries
+            WHERE kind = 'spell'
+              AND rules_edition = '2014'
+              AND slug = :slug
+            LIMIT 1
+            """
+        ),
+        {"slug": slug},
+    ).mappings().first()
+    if not row:
+        return None
+    raw = row["data"]
+    if isinstance(raw, str):
+        data = json.loads(raw)
+    elif isinstance(raw, dict):
+        data = dict(raw)
+    else:
+        data = {}
+    return str(row["id"]), data
+
+
+def _write_spell_data(conn: Any, entry_id: str, data: dict[str, Any]) -> None:
     conn.execute(
         text(
             """
             UPDATE catalog_entries
-            SET data = jsonb_set(
-              COALESCE(data, '{}'::jsonb),
-              '{classes}',
-              COALESCE(data->'classes', '[]'::jsonb) || to_jsonb(:class_slug::text),
-              true
-            ),
-            updated_at = now()
-            WHERE kind = 'spell'
-              AND rules_edition = '2014'
-              AND slug = :slug
-              AND NOT COALESCE(data->'classes', '[]'::jsonb) ? :class_slug
+            SET data = CAST(:data AS jsonb),
+                updated_at = now()
+            WHERE id = CAST(:id AS uuid)
             """
         ),
-        {"slug": slug, "class_slug": class_slug},
+        {"id": entry_id, "data": json.dumps(data, ensure_ascii=False)},
     )
+
+
+def _add_class_tag(conn: Any, slug: str, class_slug: str) -> None:
+    loaded = _read_spell_data(conn, slug)
+    if not loaded:
+        return
+    entry_id, data = loaded
+    classes = [c for c in (data.get("classes") or []) if isinstance(c, str)]
+    if class_slug in classes:
+        return
+    classes.append(class_slug)
+    data["classes"] = classes
+    _write_spell_data(conn, entry_id, data)
 
 
 def _remove_class_tag(conn: Any, slug: str, class_slug: str) -> None:
-    conn.execute(
-        text(
-            """
-            UPDATE catalog_entries
-            SET data = jsonb_set(
-              COALESCE(data, '{}'::jsonb),
-              '{classes}',
-              (
-                SELECT COALESCE(jsonb_agg(value), '[]'::jsonb)
-                FROM jsonb_array_elements_text(COALESCE(data->'classes', '[]'::jsonb)) AS value
-                WHERE value <> :class_slug
-              ),
-              true
-            ),
-            updated_at = now()
-            WHERE kind = 'spell'
-              AND rules_edition = '2014'
-              AND slug = :slug
-              AND COALESCE(data->'classes', '[]'::jsonb) ? :class_slug
-            """
-        ),
-        {"slug": slug, "class_slug": class_slug},
-    )
+    loaded = _read_spell_data(conn, slug)
+    if not loaded:
+        return
+    entry_id, data = loaded
+    classes = [c for c in (data.get("classes") or []) if isinstance(c, str)]
+    if class_slug not in classes:
+        return
+    data["classes"] = [c for c in classes if c != class_slug]
+    _write_spell_data(conn, entry_id, data)
 
 
 def upgrade() -> None:
