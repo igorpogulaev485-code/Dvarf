@@ -390,12 +390,24 @@ export function LevelingStep({
         {spellClassBudgets && spellClassBudgets.length > 0 ? (
           <Stack gap={8}>
             {spellBudgetMeta ? <Text tone="muted">{spellBudgetMeta}</Text> : null}
-            <Text tone="muted">Обзор кастеров — открой класс, чтобы выбрать в его бюджет.</Text>
+            <Text tone="muted">
+              Обзор кастеров — у каждого свой пул (известные / подготовка / книга).
+              Открой класс, чтобы выбрать в его бюджет.
+            </Text>
             <ul className="create-pipeline__spell-class-list">
               {spellClassBudgets.map((row) => (
                 <li key={row.slug} className="create-pipeline__spell-class-row">
                   <div>
-                    <strong>{row.labelRu}</strong>
+                    <strong>
+                      {row.labelRu}
+                      {row.mode === 'known'
+                        ? ' · Известные'
+                        : row.mode === 'spellbook'
+                          ? ' · Книга'
+                          : row.mode === 'prepared_list'
+                            ? ' · Подготовка'
+                            : ''}
+                    </strong>
                     <Text tone="muted">
                       {[
                         `Заговоры ${row.cantripsKnown}/${row.cantripsMax}`,
@@ -405,6 +417,13 @@ export function LevelingStep({
                             ? `В книге ${row.leveledKnown}`
                             : row.mode === 'prepared_list'
                               ? `На листе ${row.leveledKnown}`
+                              : null,
+                        row.mode === 'known'
+                          ? 'сразу готовы к бою'
+                          : row.mode === 'prepared_list'
+                            ? 'готовь в гримуаре'
+                            : row.mode === 'spellbook'
+                              ? 'книга ≠ подготовка'
                               : null,
                       ]
                         .filter(Boolean)

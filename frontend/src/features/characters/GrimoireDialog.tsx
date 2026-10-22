@@ -34,7 +34,9 @@ import {
   type CoinPurse,
 } from '../../shared/dnd/weight'
 import {
+  multiclassSpellAccessHint,
   spellAccessUiCopy,
+  spellLearnModeLabelRu,
   type SpellAccessContext,
 } from '../../shared/dnd/spellAccessUi'
 import {
@@ -1087,7 +1089,19 @@ export function GrimoireDialog({
       ? namedCantripMeta
       : `заговоры ${learnedCantrips}/${b.cantrips}`
     if (access.budgets.length > 1) {
-      return `${cantripPart}. ${uiCopy.grimoireHint} ${accessHint}`
+      const mcHint = multiclassSpellAccessHint(
+        access.budgets.map((row) => ({ labelRu: row.labelRu, mode: row.mode })),
+      )
+      const shelfModes =
+        shelves.length > 1
+          ? shelves
+              .map(
+                (shelf) =>
+                  `${shelf.labelRu}: ${spellLearnModeLabelRu(shelf.mode)}`,
+              )
+              .join(' · ')
+          : ''
+      return `${cantripPart}. ${mcHint}${shelfModes ? ` Полки: ${shelfModes}.` : ''} ${accessHint}`
     }
     if (b.mode === 'spellbook') {
       const freePart =

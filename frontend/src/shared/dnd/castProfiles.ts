@@ -458,11 +458,23 @@ export function catalogSpellMatchesAnyShelf(
 export function describeGrimoireShelves(shelves: GrimoireShelfSource[]): string {
   if (shelves.length === 0) return ''
   return shelves
-    .map((shelf) =>
-      shelf.aloneMaxLevel > 0
-        ? `${shelf.labelRu} 1–${shelf.aloneMaxLevel}`
-        : `${shelf.labelRu} · заговоры`,
-    )
+    .map((shelf) => {
+      const mode =
+        shelf.mode === 'known'
+          ? 'известные'
+          : shelf.mode === 'spellbook'
+            ? 'книга'
+            : shelf.mode === 'prepared_list'
+              ? 'подготовка'
+              : null
+      const range =
+        shelf.aloneMaxLevel > 0
+          ? `1–${shelf.aloneMaxLevel}`
+          : 'заговоры'
+      return mode
+        ? `${shelf.labelRu} ${range} (${mode})`
+        : `${shelf.labelRu} ${range}`
+    })
     .join(' · ')
 }
 
