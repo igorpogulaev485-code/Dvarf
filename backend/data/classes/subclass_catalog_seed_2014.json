@@ -4660,8 +4660,8 @@
           "source_books": "EGtW",
           "sheet_grants": {},
           "choices": [],
-          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
-          "detail_status": "inventory_only",
+          "notes_ru": "Dunamancy (EGW): 15 заклинаний в каталоге с classes=[wizard] и subclasses chronurgy_magic|graviturgy_magic — в гримуаре только для этой традиции. Фичи традиции — в features pack.",
+          "detail_status": "detailed",
           "features_by_level": {
             "2": [
               {
@@ -4679,8 +4679,8 @@
           "source_books": "EGtW",
           "sheet_grants": {},
           "choices": [],
-          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
-          "detail_status": "inventory_only",
+          "notes_ru": "Dunamancy (EGW): 15 заклинаний в каталоге с classes=[wizard] и subclasses chronurgy_magic|graviturgy_magic — в гримуаре только для этой традиции. Фичи традиции — в features pack.",
+          "detail_status": "detailed",
           "features_by_level": {
             "2": [
               {

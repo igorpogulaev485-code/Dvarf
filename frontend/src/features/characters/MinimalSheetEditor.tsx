@@ -284,6 +284,7 @@ import {
   listSubclassFeatureIdsAboveLevel,
   proficiencyBonusForTotalLevel,
   resolveClassFeatureSlug,
+  resolveSubclassFeatureSlug,
   unlockFeaturesForClasses,
 } from '../../shared/dnd/classFeatures'
 import {
@@ -7783,6 +7784,18 @@ export function MinimalSheetEditor({
               .filter((id): id is string => Boolean(id)),
             hasBook: wizardHasUsableSpellbook(draft.spells),
             classListSlugs: ['wizard'],
+            subclassSlug: (() => {
+              const wizard = draft.classes.find((row) => {
+                const n = row.name.trim().toLowerCase()
+                return n === 'волшебник' || n === 'wizard' || n === 'маг'
+              })
+              const raw = wizard?.subclass_name?.trim() || ''
+              if (!raw) return null
+              return (
+                resolveSubclassFeatureSlug(raw) ??
+                raw.toLowerCase().replace(/\s+/g, '_')
+              )
+            })(),
           }
         })()}
         onConfirmSpellbookPicks={(entries) => {

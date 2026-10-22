@@ -5,6 +5,7 @@
  */
 
 import type { ClassLevelEntry } from './classLevels'
+import { resolveSubclassFeatureSlug } from './classFeatures'
 import {
   classCasterDef,
   maxSpellLevelForClassAlone,
@@ -23,6 +24,19 @@ import {
   spellSaveDc,
   type SpellcastingAbility,
 } from './spells'
+import {
+  spellAvailableOnClassList,
+  type SpellSubclassRef,
+} from './spellCatalog'
+
+function subclassSlugFromClassRow(row: ClassLevelEntry): string | null {
+  const raw = row.subclass_name?.trim() || ''
+  if (!raw) return null
+  return (
+    resolveSubclassFeatureSlug(raw) ??
+    raw.toLowerCase().replace(/\s+/g, '_')
+  )
+}
 
 export type SpellCastProfileKind = 'class' | 'third'
 
@@ -42,6 +56,8 @@ export type SpellCastProfile = {
   saveDc: number
   /** Base attack bonus before scoped item bonuses (M3). */
   attackBonus: number
+  /** Resolved subclass slug when known (dunamancy / tradition gates). */
+  subclassSlug?: string | null
 }
 
 export type BuildCastProfilesInput = {
@@ -128,6 +144,7 @@ export function buildCastProfiles(input: BuildCastProfilesInput): SpellCastProfi
         maxPrepared,
         saveDc: stats.saveDc,
         attackBonus: stats.attackBonus,
+        subclassSlug: subclassSlugFromClassRow(row),
       })
     }
 
@@ -162,6 +179,7 @@ export function buildCastProfiles(input: BuildCastProfilesInput): SpellCastProfi
         maxPrepared: null,
         saveDc: stats.saveDc,
         attackBonus: stats.attackBonus,
+        subclassSlug: subclassSlugFromClassRow(row),
       })
     }
   }
@@ -407,6 +425,8 @@ export type GrimoireShelfSource = {
   labelRu: string
   mode: SpellLearnMode | null
   aloneMaxLevel: number
+  /** Tradition / conclave / circle slug when known (EGW dunamancy gate). */
+  subclassSlug?: string | null
 }
 
 export function buildGrimoireShelfSources(
@@ -423,24 +443,33 @@ export function buildGrimoireShelfSources(
       labelRu: row.labelRu,
       mode: row.mode,
       aloneMaxLevel: row.aloneMaxLevel,
+      subclassSlug: row.subclassSlug ?? null,
     })
   }
   return out
 }
 
 /**
- * Catalog row belongs on a shelf if it is on that class list and
+ * Catalog row belongs on a shelf if it is on that class list,
+ * passes optional subclass gates (`data.subclasses`), and
  * level ≤ that class’s alone-max (cantrips always when on list).
  */
 export function catalogSpellMatchesShelf(
   catalogClassSlugs: string[],
   spellLevel: number,
   shelf: GrimoireShelfSource,
+  spellSubclasses?: SpellSubclassRef[] | null,
 ): boolean {
-  const onList = catalogClassSlugs.some(
-    (slug) => slug.trim().toLowerCase() === shelf.slug,
-  )
-  if (!onList) return false
+  if (
+    !spellAvailableOnClassList({
+      classes: catalogClassSlugs,
+      subclasses: spellSubclasses,
+      classSlug: shelf.slug,
+      subclassSlug: shelf.subclassSlug,
+    })
+  ) {
+    return false
+  }
   if (spellLevel <= 0) return true
   return spellLevel <= shelf.aloneMaxLevel
 }
@@ -449,9 +478,10 @@ export function catalogSpellMatchesAnyShelf(
   catalogClassSlugs: string[],
   spellLevel: number,
   shelves: GrimoireShelfSource[],
+  spellSubclasses?: SpellSubclassRef[] | null,
 ): boolean {
   return shelves.some((shelf) =>
-    catalogSpellMatchesShelf(catalogClassSlugs, spellLevel, shelf),
+    catalogSpellMatchesShelf(catalogClassSlugs, spellLevel, shelf, spellSubclasses),
   )
 }
 

@@ -75,7 +75,10 @@ import {
   type AbilityKey,
   type AppliedClassAsi,
 } from '../shared/dnd/classAsi'
-import { unlockFeaturesForClasses } from '../shared/dnd/classFeatures'
+import {
+  resolveSubclassFeatureSlug,
+  unlockFeaturesForClasses,
+} from '../shared/dnd/classFeatures'
 import { resolveBackgroundGrantDef } from '../shared/dnd/backgroundGrants'
 import {
   grantNeedsSetupDialog,
@@ -2302,6 +2305,18 @@ export function CreateCharacterPage() {
             // Real draft inventory + bind; L1 OR only as last-resort safety net.
             hasBook: hasBook || step.classLevel <= 1,
             classListSlugs: ['wizard'],
+            subclassSlug: (() => {
+              const wizard = state.classes.find((row) => {
+                const n = row.name.trim().toLowerCase()
+                return n === 'волшебник' || n === 'wizard' || n === 'маг'
+              })
+              const raw = wizard?.subclass_name?.trim() || ''
+              if (!raw) return null
+              return (
+                resolveSubclassFeatureSlug(raw) ??
+                raw.toLowerCase().replace(/\s+/g, '_')
+              )
+            })(),
           }
         })()}
         onConfirmSpellbookPicks={(entries) => {
