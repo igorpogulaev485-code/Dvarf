@@ -18,6 +18,24 @@ type PlayDeskCompanionsCompactProps = {
   onToast?: (message: string) => void
 }
 
+function companionGlanceBits(row: CompanionEntry): {
+  bits: string[]
+  incomplete: boolean
+} {
+  const hasAc = row.stats.ac != null
+  const hasHp = row.stats.hp != null || row.stats.hp_max != null
+  const hasSpeed = row.stats.speed != null
+  const incomplete = !hasAc || !hasHp
+  const bits = [
+    hasAc ? `КД ${row.stats.ac}` : 'КД не заполнено',
+    hasHp
+      ? `${row.stats.hp ?? '—'}/${row.stats.hp_max ?? '—'} ХП`
+      : 'ХП не заполнено',
+    hasSpeed ? `${row.stats.speed} фт.` : null,
+  ].filter(Boolean) as string[]
+  return { bits, incomplete }
+}
+
 export function PlayDeskCompanionsCompact({
   companions,
   onOpenFull,
@@ -41,24 +59,31 @@ export function PlayDeskCompanionsCompact({
           named.map((row, index) => {
             const kind = KIND_LABEL[row.kind] ?? 'Спутник'
             const isPrimary = index === 0
-            const bits = [
-              row.stats.ac != null ? `КД ${row.stats.ac}` : null,
-              row.stats.hp != null ? `${row.stats.hp} HP` : null,
-              row.stats.speed != null ? `${row.stats.speed} фт.` : null,
-              isPrimary ? 'основной' : kind,
-            ].filter(Boolean)
+            const { bits, incomplete } = companionGlanceBits(row)
+            const actionPreview = row.actions?.trim()
+              ? row.actions.trim().split('\n')[0]
+              : null
             return (
               <button
                 key={row.id}
                 type="button"
-                className={`play-desk-compact__card is-action${isPrimary ? ' is-primary' : ''}`}
-                onClick={() =>
+                className={`play-desk-compact__card is-action${isPrimary ? ' is-primary' : ''}${
+                  incomplete ? ' is-incomplete' : ''
+                }`}
+                onClick={() => {
+                  if (incomplete) {
+                    onOpenFull()
+                    onToast?.(
+                      `${row.name}: не заполнено — открой «Настроить» в полной панели`,
+                    )
+                    return
+                  }
                   onToast?.(
-                    `${row.name}: ${bits.join(' · ') || kind}${
-                      row.notes.trim() ? ` — ${row.notes.trim()}` : ''
-                    }`,
+                    `${row.name}: ${bits.join(' · ')}${
+                      actionPreview ? ` — ${actionPreview}` : ''
+                    }${row.notes.trim() ? ` · ${row.notes.trim()}` : ''}`,
                   )
-                }
+                }}
               >
                 <div className="play-desk-compact__card-meta">
                   <span>{row.name}</span>
@@ -66,14 +91,20 @@ export function PlayDeskCompanionsCompact({
                     {isPrimary ? 'основной' : kind}
                   </span>
                 </div>
-                <p>{bits.filter((b) => b !== 'основной' && b !== kind).join(' · ') || 'без статов'}</p>
+                <p>{bits.join(' · ')}</p>
+                {incomplete ? (
+                  <p className="play-desk-compact__card-hint">Не заполнено · Настроить</p>
+                ) : actionPreview ? (
+                  <p className="play-desk-compact__card-hint">{actionPreview}</p>
+                ) : null}
               </button>
             )
           })
         )}
       </div>
       <p className="play-desk-compact__more">
-        Редактирование здесь по клику «полностью»; быстрый статус — в доке над сценой.
+        Призыв из способности (дух дикого огня и т.п.) заполняет ХП/КД/атаку сам.
+        Правка — «полностью».
       </p>
     </div>
   )

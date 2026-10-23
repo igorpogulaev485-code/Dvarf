@@ -33,12 +33,13 @@ type AttacksSettingsDialogProps = {
   onClose: () => void
 }
 
-function sourceLabel(kind: WeaponAttack['source_kind']): string {
+function sourceLabel(kind: WeaponAttack['source_kind'], linked: boolean): string {
+  if (linked) return 'Из инвентаря'
   if (kind === 'weapon') return 'Оружие'
   if (kind === 'artifact') return 'Артефакт'
   if (kind === 'race') return 'Раса'
   if (kind === 'class') return 'Класс'
-  return 'Своё'
+  return 'Вручную'
 }
 
 export function AttacksSettingsDialog({
@@ -81,7 +82,7 @@ export function AttacksSettingsDialog({
     >
       <Stack gap={14} className="attacks-settings">
         <Text tone="muted">
-          Оверрайды и «Своё». Официальное оружие — из инвентаря (сцена Исследование). Броски,
+          Ручные правки и «Своё». Официальное оружие — из инвентаря (сцена Исследование). Броски,
           ресурсы и расходники остаются в компакте.
         </Text>
 
@@ -153,7 +154,7 @@ export function AttacksSettingsDialog({
             >
               <div className="attack-card__meta">
                 <span className={`attack-source attack-source--${attack.source_kind}`}>
-                  {sourceLabel(attack.source_kind)}
+                  {sourceLabel(attack.source_kind, linked)}
                 </span>
                 {raceNatural ? (
                   <span className="attack-held-tag">природное</span>
@@ -163,7 +164,9 @@ export function AttacksSettingsDialog({
                   <span className="attack-held-tag">
                     {attack.held ? 'в руках' : 'убран'}
                   </span>
-                ) : null}
+                ) : (
+                  <span className="attack-held-tag">атака на столе</span>
+                )}
                 {attack.qty != null && attack.qty > 1 ? (
                   <span className="attack-held-tag">×{attack.qty}</span>
                 ) : null}
@@ -341,9 +344,14 @@ export function AttacksSettingsDialog({
                 ) : (
                   <Button
                     variant="ghost"
+                    title={
+                      linked
+                        ? 'Убирает строку атаки со стола. Предмет в инвентаре останется.'
+                        : 'Убирает эту атаку со стола.'
+                    }
                     onClick={() => onChange(weapons.filter((item) => item.id !== attack.id))}
                   >
-                    Удалить
+                    {linked ? 'Убрать атаку со стола' : 'Убрать атаку'}
                   </Button>
                 )}
               </div>

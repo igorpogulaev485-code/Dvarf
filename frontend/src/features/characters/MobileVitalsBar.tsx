@@ -9,7 +9,10 @@ import { CharacterAvatarControl } from './CharacterAvatarControl'
 import { HpPadDialog } from './HpPadDialog'
 import { CoinPadDialog } from './CoinPadDialog'
 import { MaxHpByLevelsDialog } from './MaxHpByLevelsDialog'
-import { formatJumpTitle } from '../../shared/dnd/jumpDistance'
+import {
+  formatJumpFaceLabel,
+  formatJumpTitle,
+} from '../../shared/dnd/jumpDistance'
 import { HoverTipCard, VITAL_TIPS } from '../onboarding'
 import { IconCoin, IconJump, IconRest, IconSkull } from './deskIcons'
 
@@ -416,7 +419,7 @@ export function MobileVitalsBar({
             className="mobile-vitals__chip mobile-vitals__chip--jump"
             role="listitem"
             title={formatJumpTitle({ longFt: jumpLongFt, highFt: jumpHighFt })}
-            aria-label={`Прыжок: длинный ${jumpLongFt} фт, высокий ${jumpHighFt} фт`}
+            aria-label={`Прыжок: в длину ${jumpLongFt} фт, в высоту ${jumpHighFt} фт`}
           >
             <IconJump className="mobile-vitals__jump-ico" />
             <b>
@@ -424,7 +427,7 @@ export function MobileVitalsBar({
               <span className="mobile-vitals__jump-sep">/</span>
               {jumpHighFt}
             </b>
-            <span>Прыж.</span>
+            <span>{formatJumpFaceLabel()}</span>
           </div>
         ) : null}
         {onOpenInitiative ? (

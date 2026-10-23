@@ -110,7 +110,7 @@ export function SpellsSettingsDialog({
   onChange,
   onClose,
   onToast,
-  title = 'Настройки заклинаний',
+  title = 'Магия',
 }: SpellsSettingsDialogProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [grimoireOpen, setGrimoireOpen] = useState(false)
@@ -273,6 +273,22 @@ export function SpellsSettingsDialog({
 
   const groups = groupSpellsByLevel(spells.known)
 
+  /** UX A4: only circles that exist (or all nine in advanced). */
+  const slotLevelsVisible = useMemo(() => {
+    const levels = Array.from({ length: 9 }, (_, i) => i + 1)
+    if (advancedOpen) return levels
+    const withMax = levels.filter((lvl) => (spells.slots[String(lvl)]?.max ?? 0) > 0)
+    if (withMax.length > 0) return withMax
+    // Suggestion preview: show table circles even before «По таблице».
+    if (suggestion?.slots) {
+      return levels.filter((lvl) => (suggestion.slots[String(lvl)]?.max ?? 0) > 0)
+    }
+    return []
+  }, [advancedOpen, spells.slots, suggestion])
+
+  const showPactBlock =
+    advancedOpen || warlockLvl > 0 || Boolean(spells.pact_slots) || Boolean(tablePact)
+
   return (
     <>
       <Dialog
@@ -286,9 +302,47 @@ export function SpellsSettingsDialog({
       >
         <Stack gap={14}>
           <Text tone="muted">
-            Здесь — ресурсы кастера и книга. Каст и потраченные ячейки остаются в компактном боевом
-            списке.
+            Выбери заклинания в гримуаре. Каст и потраченные ячейки — на боевом столе.
           </Text>
+
+          <div className="spells-settings-dialog__books">
+            <Button
+              type="button"
+              onClick={() => setGrimoireOpen(true)}
+              title="Каталог и подготовка / изучение"
+            >
+              <IconSpellBook className="spells-btn-icon" />
+              Выбрать заклинания
+            </Button>
+            {learnBudget?.mode === 'spellbook' ? (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setPrepareOpen(true)}
+                title="Выбрать на сегодня из книги заклинаний"
+              >
+                <IconWizardHat className="spells-btn-icon" />
+                Подготовить
+              </Button>
+            ) : null}
+            {learnBudget?.mode === 'spellbook' ? (
+              <Button
+                type="button"
+                variant={
+                  spells.wizard_spellbook?.bookLost ? 'primary' : 'secondary'
+                }
+                onClick={() => setBookManageOpen(true)}
+                title={
+                  spells.wizard_spellbook?.bookLost
+                    ? 'Книга утеряна — открыть восстановление / привязку'
+                    : 'Утеря / замена книги заклинаний'
+                }
+              >
+                <IconSpellBook className="spells-btn-icon" />
+                {wizardSpellbookStatusLabel(spells).label}
+              </Button>
+            ) : null}
+          </div>
 
           <div className="chip-row spells-focus-chips">
             <span
@@ -309,45 +363,6 @@ export function SpellsSettingsDialog({
               <IconPouch className="spells-btn-icon" />
               {spells.has_component_pouch ? 'Мешочек ✓' : 'Мешочек ✗'}
             </span>
-          </div>
-
-          <div className="spells-settings-dialog__books">
-            {learnBudget?.mode === 'spellbook' ? (
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setPrepareOpen(true)}
-                title="Выбрать на сегодня из книги заклинаний"
-              >
-                <IconWizardHat className="spells-btn-icon" />
-                Подготовить
-              </Button>
-            ) : null}
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setGrimoireOpen(true)}
-            >
-              <IconSpellBook className="spells-btn-icon" />
-              Гримуар
-            </Button>
-            {learnBudget?.mode === 'spellbook' ? (
-              <Button
-                type="button"
-                variant={
-                  spells.wizard_spellbook?.bookLost ? 'primary' : 'secondary'
-                }
-                onClick={() => setBookManageOpen(true)}
-                title={
-                  spells.wizard_spellbook?.bookLost
-                    ? 'Книга утеряна — открыть восстановление / привязку'
-                    : 'Утеря / замена книги заклинаний'
-                }
-              >
-                <IconSpellBook className="spells-btn-icon" />
-                {wizardSpellbookStatusLabel(spells).label}
-              </Button>
-            ) : null}
           </div>
 
           <div className="spells-settings">
@@ -461,73 +476,98 @@ export function SpellsSettingsDialog({
                       }`
                     : 'Класс не распознан — задай ячейки вручную'}
                 </Text>
-                <div className="sheet-grid sheet-grid--slots">
-                  {Array.from({ length: 9 }, (_, index) => {
-                    const slotLevel = index + 1
-                    const key = String(slotLevel)
-                    return (
-                      <Field key={key} label={`${slotLevel}`}>
-                        <NumberInput
-                          min={0}
-                          max={20}
-                          emptyValue={0}
-                          value={spells.slots[key]?.max ?? 0}
-                          onValueChange={(max) => setSlotMax(slotLevel, max ?? 0)}
-                          aria-label={`Ячейки ${slotLevel}-го круга`}
-                        />
-                      </Field>
-                    )
-                  })}
-                </div>
-              </div>
-              <div className="pact-settings">
-                <div className="play-resources-head">
-                  <Text>Договор (колдун)</Text>
-                  {spells.pact_slots ? (
-                    <button type="button" className="linkish" onClick={disablePact}>
-                      Выключить
-                    </button>
-                  ) : (
-                    <Button type="button" variant="secondary" onClick={enablePact}>
-                      Включить
-                    </Button>
-                  )}
-                </div>
-                {spells.pact_slots ? (
-                  <div className="spells-settings__pact-row">
-                    <div
-                      className="spells-settings__pact-level"
-                      title="Уровень ячеек договора по таблице колдуна (PHB 2014)"
-                    >
-                      <span className="spells-settings__pact-level-label">Ур. ячеек</span>
-                      <strong>
-                        {tablePact?.level ?? spells.pact_slots.level}
-                      </strong>
-                      <span className="spells-settings__pact-level-auto">авто</span>
-                    </div>
-                    <Field
-                      label="Макс."
-                      hint={
-                        tablePact != null ? `табл. ${tablePact.max}` : undefined
-                      }
-                    >
-                      <NumberInput
-                        min={0}
-                        max={10}
-                        emptyValue={0}
-                        value={spells.pact_slots.max}
-                        onValueChange={(max) => patchPact({ max: max ?? 0 })}
-                        aria-label="Максимум ячеек договора"
-                      />
-                    </Field>
+                {slotLevelsVisible.length > 0 ? (
+                  <div
+                    className={`sheet-grid sheet-grid--slots${
+                      slotLevelsVisible.length < 9 ? ' is-applicable' : ''
+                    }`}
+                    style={
+                      slotLevelsVisible.length < 9
+                        ? {
+                            gridTemplateColumns: `repeat(${slotLevelsVisible.length}, 2.35rem)`,
+                          }
+                        : undefined
+                    }
+                  >
+                    {slotLevelsVisible.map((slotLevel) => {
+                      const key = String(slotLevel)
+                      return (
+                        <Field key={key} label={`${slotLevel}`}>
+                          <NumberInput
+                            min={0}
+                            max={20}
+                            emptyValue={0}
+                            value={spells.slots[key]?.max ?? 0}
+                            onValueChange={(max) => setSlotMax(slotLevel, max ?? 0)}
+                            aria-label={`Ячейки ${slotLevel}-го круга`}
+                          />
+                        </Field>
+                      )
+                    })}
                   </div>
                 ) : (
-                  <Text tone="muted">
-                    Уровень ячеек — по уровню колдуна. Каст договора, если круг заклинания ≤
-                    этого уровня.
+                  <Text tone="muted" className="spells-settings__slots-hint">
+                    Нет ячеек на листе — нажми «По таблице» или открой «Расширенное», чтобы задать
+                    круги вручную.
                   </Text>
                 )}
+                {!advancedOpen && slotLevelsVisible.length > 0 && slotLevelsVisible.length < 9 ? (
+                  <Text tone="muted" className="spells-settings__slots-hint">
+                    Показаны только круги с ячейками. Остальные — в «Расширенное».
+                  </Text>
+                ) : null}
               </div>
+              {showPactBlock ? (
+                <div className="pact-settings">
+                  <div className="play-resources-head">
+                    <Text>Ячейки договора</Text>
+                    {spells.pact_slots ? (
+                      <button type="button" className="linkish" onClick={disablePact}>
+                        Выключить
+                      </button>
+                    ) : (
+                      <Button type="button" variant="secondary" onClick={enablePact}>
+                        Включить
+                      </Button>
+                    )}
+                  </div>
+                  {spells.pact_slots ? (
+                    <div className="spells-settings__pact-row">
+                      <div
+                        className="spells-settings__pact-level"
+                        title="Уровень ячеек договора по таблице колдуна (PHB 2014)"
+                      >
+                        <span className="spells-settings__pact-level-label">Ур. ячеек</span>
+                        <strong>
+                          {tablePact?.level ?? spells.pact_slots.level}
+                        </strong>
+                        <span className="spells-settings__pact-level-auto">авто</span>
+                      </div>
+                      <Field
+                        label="Макс."
+                        hint={
+                          tablePact != null ? `табл. ${tablePact.max}` : undefined
+                        }
+                      >
+                        <NumberInput
+                          min={0}
+                          max={10}
+                          emptyValue={0}
+                          value={spells.pact_slots.max}
+                          onValueChange={(max) => patchPact({ max: max ?? 0 })}
+                          aria-label="Максимум ячеек договора"
+                        />
+                      </Field>
+                    </div>
+                  ) : (
+                    <Text tone="muted">
+                      {warlockLvl > 0 || tablePact
+                        ? 'Уровень ячеек — по уровню колдуна. Каст договора, если круг заклинания ≤ этого уровня.'
+                        : 'Нужен колдун (или включи вручную в расширенном).'}
+                    </Text>
+                  )}
+                </div>
+              ) : null}
             </Stack>
           </div>
 

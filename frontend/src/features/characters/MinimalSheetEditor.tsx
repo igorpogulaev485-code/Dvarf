@@ -289,6 +289,7 @@ import {
   spendFeatureUse,
   syncFeatureResources,
 } from '../../shared/dnd/featureResources'
+import { filterActiveFeaturesForPlay } from '../../shared/dnd/featureReplacement'
 import {
   listSubclassFeatureIdsAboveLevel,
   proficiencyBonusForTotalLevel,
@@ -403,6 +404,7 @@ import {
   MODE_HINT,
   MODE_LABELS,
   MODE_SKILL_KEYS,
+  defaultDeskSplitForMode,
   modeUsesSpellSplit,
   readSheetUi,
   sheetUiToPatch,
@@ -448,6 +450,7 @@ import {
   resolveClassCasterSlug,
   resolveSpellLearnBudget,
 } from '../../shared/dnd/casterProgression'
+import { characterHasMagicSources } from './magicSources'
 import {
   type InventoryItem,
   equipInventoryItem,
@@ -1041,14 +1044,34 @@ export function MinimalSheetEditor({
     }
     return map
   }, [draft.classes])
+  const playActiveFeatures = useMemo(
+    () => filterActiveFeaturesForPlay(unlockedFeatures, draft.featurePicks),
+    [unlockedFeatures, draft.featurePicks],
+  )
   const featureDesiredResources = useMemo(
     () =>
       desiredResourcesFromFeatures({
-        features: unlockedFeatures,
+        features: playActiveFeatures,
         characterLevel,
         abilities: draft.abilities,
       }),
-    [unlockedFeatures, characterLevel, draft.abilities],
+    [playActiveFeatures, characterLevel, draft.abilities],
+  )
+  /** Show spells split when the sheet has any magic source (class/archetype/race/feat/gear). */
+  const hasMagicSources = useMemo(
+    () =>
+      characterHasMagicSources({
+        classes: draft.classes,
+        known: draft.spells.known,
+        slots: draft.spells.slots,
+        pactSlots: draft.spells.pact_slots,
+      }),
+    [
+      draft.classes,
+      draft.spells.known,
+      draft.spells.slots,
+      draft.spells.pact_slots,
+    ],
   )
   /** Grant first; else catalog by slug/name (older sheets without background_grant). */
   const resolvedBackgroundFeature = useMemo(() => {
@@ -4134,6 +4157,39 @@ export function MinimalSheetEditor({
     }))
   }
 
+  /**
+   * Default desk_split is ON for every sheet. Once per character: collapse when
+   * there is no magic; if race/feat grants hydrate later, reopen once.
+   * Does not fight a later manual «Показать магию» on a non-caster.
+   */
+  const magicSplitSeededRef = useRef<string | null>(null)
+  const reopenSplitWhenMagicArrivesRef = useRef(false)
+  useEffect(() => {
+    const id = character.id
+    if (magicSplitSeededRef.current !== id) {
+      magicSplitSeededRef.current = id
+      if (!hasMagicSources) {
+        reopenSplitWhenMagicArrivesRef.current = true
+        if (draft.sheetUi.deskSplit) patchSheetUi({ deskSplit: false })
+      } else {
+        reopenSplitWhenMagicArrivesRef.current = false
+      }
+      return
+    }
+    if (hasMagicSources && reopenSplitWhenMagicArrivesRef.current) {
+      reopenSplitWhenMagicArrivesRef.current = false
+      // Only auto-reopen on combat (explore/social stay full-width until «Показать магию»).
+      if (
+        defaultDeskSplitForMode(draft.sheetUi.deskMode, true) &&
+        !draft.sheetUi.deskSplit
+      ) {
+        patchSheetUi({ deskSplit: true })
+      }
+    }
+    // Seed / late-hydrate only — not on every deskSplit toggle.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [character.id, hasMagicSources])
+
   function toggleCombatFavorite(itemId: string) {
     const result = toggleCombatConsumableFavorite(
       draft.sheetUi.combatConsumableFavoriteIds,
@@ -4156,12 +4212,11 @@ export function MinimalSheetEditor({
 
   function setDeskMode(mode: PlayDeskMode) {
     const nextPanel = MODE_DEFAULT_PANEL[mode]
-    // Combat / explore / social keep primary + spells; other scenes stay single-pane.
-    const nextSplit = modeUsesSpellSplit(mode)
-      ? true
-      : mode === 'features' || mode === 'companions'
+    // Combat: pin spells when magic exists. Explore/social: full width (A3).
+    const nextSplit =
+      mode === 'features' || mode === 'companions'
         ? false
-        : draft.sheetUi.deskSplit
+        : defaultDeskSplitForMode(mode, hasMagicSources)
     patchSheetUi({ deskMode: mode, deskSplit: nextSplit })
     setActivePanel(nextPanel)
     setForceFullPanel(null)
@@ -5391,12 +5446,14 @@ export function MinimalSheetEditor({
                   aria-pressed={deskSplit}
                   title={
                     deskSplit
-                      ? 'Убрать заклинания сбоку — одна панель'
-                      : 'Показать заклинания справа рядом с панелью'
+                      ? 'Скрыть магию — основная панель на всю ширину'
+                      : hasMagicSources
+                        ? 'Показать магию справа рядом с панелью'
+                        : 'Показать панель магии (у персонажа нет источников магии)'
                   }
                   onClick={() => patchSheetUi({ deskSplit: !draft.sheetUi.deskSplit })}
                 >
-                  {deskSplit ? 'без заклинаний' : 'Заклинания'}
+                  {deskSplit ? 'Скрыть магию' : 'Показать магию'}
                 </button>
               ) : null}
               <span className="play-desk__mode-hint">{MODE_HINT[draft.sheetUi.deskMode]}</span>
@@ -6241,9 +6298,15 @@ export function MinimalSheetEditor({
             resources={draft.play.resources}
             inventoryItems={draft.inventory.items}
             favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
-            combatFeatures={unlockedFeatures}
+            combatFeatures={playActiveFeatures}
             rollMode={effectiveRollMode()}
+            preferMagicEmpty={hasMagicSources}
             onOpenSettings={() => setAttacksSettingsOpen(true)}
+            onAddAttack={() => setAttacksSettingsOpen(true)}
+            onOpenInventory={() => {
+              setDeskMode('explore')
+              setActivePanel('inventory')
+            }}
             onCombatFeatureToggle={(featureId, active) => {
               if (featureId === 'reckless_attack') {
                 setDeskRollMode(active ? 'advantage' : 'normal')
@@ -6523,10 +6586,11 @@ export function MinimalSheetEditor({
             learnBudgets={spellLearnBudgets}
             classes={draft.classes}
             castProfiles={spellcastingSync.castProfiles}
+            characterLevel={characterLevel}
             pinned={deskSplit && splitSecondary === 'spells'}
             concentration={draft.play.concentration}
             edition={rulesEdition}
-            settingsLabel={isPlayDesk ? 'Настройки' : 'Книга'}
+            settingsLabel={isPlayDesk ? 'Магия' : 'Книга'}
             onOpenSettings={() => {
               if (!isPlayDesk) setMobileSpellSurface('book')
               setSpellsSettingsOpen(true)
@@ -6610,7 +6674,7 @@ export function MinimalSheetEditor({
                 inventory: { ...prev.inventory, coins, items },
               }))
             }
-            title={isPlayDesk ? 'Настройки заклинаний' : 'Книга заклинаний'}
+            title={isPlayDesk ? 'Магия' : 'Книга заклинаний'}
             onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
             onClose={() => {
               setSpellsSettingsOpen(false)
@@ -6726,6 +6790,13 @@ export function MinimalSheetEditor({
           setDraft((prev) => ({
             ...prev,
             play: { ...prev.play, resources },
+          }))
+        }
+        physique={draft.identity.physique}
+        onPhysiqueChange={(physique) =>
+          setDraft((prev) => ({
+            ...prev,
+            identity: { ...prev.identity, physique },
           }))
         }
       />

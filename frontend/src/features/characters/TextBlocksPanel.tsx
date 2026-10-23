@@ -33,13 +33,27 @@ import {
   type TextBlock,
   type TextBlockPart,
 } from './textBlocks'
+import type { PhysiqueFields } from './identity'
 
 type TextBlocksPanelProps = {
   blocks: TextBlock[]
   onChange: (blocks: TextBlock[]) => void
   resources: SheetResource[]
   onResourcesChange: (resources: SheetResource[]) => void
+  /** B10: рост / вес / возраст / глаза / кожа / волосы */
+  physique?: PhysiqueFields
+  onPhysiqueChange?: (physique: PhysiqueFields) => void
 }
+
+const PHYSIQUE_FIELDS: Array<{ key: keyof PhysiqueFields; label: string; placeholder: string }> =
+  [
+    { key: 'height', label: 'Рост', placeholder: '4 фута' },
+    { key: 'weight', label: 'Вес', placeholder: '160 фунтов' },
+    { key: 'age', label: 'Возраст', placeholder: '150' },
+    { key: 'eyes', label: 'Глаза', placeholder: 'Зелёные' },
+    { key: 'skin', label: 'Кожа', placeholder: 'Светлая' },
+    { key: 'hair', label: 'Волосы', placeholder: 'Каштановые' },
+  ]
 
 const RESET_OPTIONS: ResourceReset[] = ['short', 'long', 'manual']
 
@@ -122,15 +136,32 @@ function IconTrash() {
   )
 }
 
+function blockHasContent(block: TextBlock): boolean {
+  return block.parts.some((part) => {
+    if (part.kind === 'text') return Boolean(part.value.trim())
+    if (part.kind === 'spoiler') {
+      return Boolean(part.title.trim() || part.body.trim())
+    }
+    if (part.kind === 'divider') return Boolean(part.label.trim())
+    if (part.kind === 'resource') return true
+    return false
+  })
+}
+
 export function TextBlocksPanel({
   blocks,
   onChange,
   resources,
   onResourcesChange,
+  physique,
+  onPhysiqueChange,
 }: TextBlocksPanelProps) {
-  const [filter, setFilter] = useState<TextFilter>('all')
+  // B10: start on personality — not the full technical dump.
+  const [filter, setFilter] = useState<TextFilter>('personality')
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
   const [insertMenuFor, setInsertMenuFor] = useState<string | null>(null)
+  const [orphansOpen, setOrphansOpen] = useState(false)
+  const [physiqueOpen, setPhysiqueOpen] = useState(true)
 
   const linkedIds = new Set(
     blocks.flatMap((block) => listResourceIds(block.parts)),
@@ -138,7 +169,7 @@ export function TextBlocksPanel({
   const orphanResources = resources.filter((item) => !linkedIds.has(item.id))
 
   const visibleBlocks = useMemo(() => {
-    return blocks.filter((block) => {
+    const filtered = blocks.filter((block) => {
       if (filter === 'all') return !block.isHidden
       if (filter === 'hidden') return block.isHidden
       if (filter === 'resource') return blockHasResource(block) && !block.isHidden
@@ -150,7 +181,30 @@ export function TextBlocksPanel({
       }
       return !block.isHidden && blockBucket(block) === 'notes'
     })
+    const bucketRank = (block: TextBlock) => {
+      const bucket = blockBucket(block)
+      if (bucket === 'personality') return 0
+      if (bucket === 'notes') return 1
+      return 2
+    }
+    return [...filtered].sort((a, b) => {
+      const rank = bucketRank(a) - bucketRank(b)
+      if (rank !== 0) return rank
+      // Empty personality last within personality.
+      if (blockBucket(a) === 'personality') {
+        return Number(blockHasContent(a)) === Number(blockHasContent(b))
+          ? 0
+          : blockHasContent(a)
+            ? -1
+            : 1
+      }
+      return 0
+    })
   }, [blocks, filter])
+
+  const physiqueFilled = physique
+    ? PHYSIQUE_FIELDS.filter((row) => physique[row.key].trim()).length
+    : 0
 
   function replaceBlock(next: TextBlock) {
     onChange(blocks.map((item) => (item.key === next.key ? next : item)))
@@ -700,15 +754,66 @@ export function TextBlocksPanel({
 
   return (
     <Panel
-      title="Тексты и заметки"
+      title="Общение"
       className="text-panel"
       titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.text_blocks)} />}
     >
       <p className="text-panel__lede">
-        Личность и заметки. Вставки: ресурс · спойлер · разделитель. ☆ hot — на полосу.
+        Сначала личность и внешность. Умения класса — во вкладке «Способности».
       </p>
 
       <Stack gap={12}>
+        <div className="inventory-filters" role="tablist" aria-label="Фильтр текстов">
+          {FILTERS.map((row) => (
+            <button
+              key={row.id}
+              type="button"
+              role="tab"
+              aria-selected={filter === row.id}
+              className={`inventory-filter${filter === row.id ? ' is-on' : ''}`}
+              onClick={() => setFilter(row.id)}
+            >
+              {row.label}
+            </button>
+          ))}
+        </div>
+
+        {physique && onPhysiqueChange && (filter === 'all' || filter === 'personality') ? (
+          <div className="text-physique">
+            <button
+              type="button"
+              className="text-physique__toggle"
+              aria-expanded={physiqueOpen}
+              onClick={() => setPhysiqueOpen((prev) => !prev)}
+            >
+              <strong>Внешность</strong>
+              <span className="text-physique__meta">
+                {physiqueFilled > 0 ? `${physiqueFilled}/6` : 'не заполнено'}
+                {' · '}
+                {physiqueOpen ? 'свернуть' : 'показать'}
+              </span>
+            </button>
+            {physiqueOpen ? (
+              <div className="text-physique__grid">
+                {PHYSIQUE_FIELDS.map((row) => (
+                  <Field key={row.key} label={row.label}>
+                    <Input
+                      value={physique[row.key]}
+                      placeholder={row.placeholder}
+                      onChange={(event) =>
+                        onPhysiqueChange({
+                          ...physique,
+                          [row.key]: event.target.value,
+                        })
+                      }
+                    />
+                  </Field>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
         <div className="abil-column__toolbar text-panel__collapse-bar">
           <button type="button" onClick={collapseAll}>
             ▲ Свернуть все
@@ -734,83 +839,83 @@ export function TextBlocksPanel({
           </Button>
         </div>
 
-        {orphanResources.length > 0 ? (
-          <div className="text-block__orphans">
-            <Text>
-              <strong>Ресурсы без блока</strong>
-            </Text>
-            <Text tone="muted">
-              Остались от старого списка. Привяжи к блоку или удали.
-            </Text>
-            {orphanResources.map((resource) => (
-              <div key={resource.id} className="text-block__orphan">
-                <SlotPips
-                  max={resource.max}
-                  used={resource.used}
-                  fillMode="available"
-                  label={resource.name || 'Ресурс'}
-                  summary={`${Math.max(0, resource.max - resource.used)} / ${resource.max}`}
-                  onChange={(used) => updateResource(resource.id, { used })}
-                />
-                <div className="text-block__orphan-actions">
-                  <select
-                    className="play-select"
-                    defaultValue=""
-                    aria-label={`Привязать «${resource.name || 'ресурс'}» к блоку`}
-                    onChange={(event) => {
-                      const key = event.target.value
-                      if (!key) return
-                      linkOrphanToBlock(resource.id, key)
-                      event.target.value = ''
-                    }}
-                  >
-                    <option value="">В блок…</option>
-                    {blocks
-                      .filter((block) => !block.isHidden)
-                      .map((block) => (
-                        <option key={block.key} value={block.key}>
-                          {displayLabel(block)}
-                        </option>
-                      ))}
-                  </select>
-                  <button
-                    type="button"
-                    className="linkish"
-                    onClick={() => removeResource(resource.id)}
-                  >
-                    Удалить
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : null}
-
-        <div className="inventory-filters" role="tablist" aria-label="Фильтр текстов">
-          {FILTERS.map((row) => (
-            <button
-              key={row.id}
-              type="button"
-              role="tab"
-              aria-selected={filter === row.id}
-              className={`inventory-filter${filter === row.id ? ' is-on' : ''}`}
-              onClick={() => setFilter(row.id)}
-            >
-              {row.label}
-            </button>
-          ))}
-        </div>
-
         <Stack gap={10}>
           {visibleBlocks.length === 0 ? (
             <Text tone="muted">
               {filter === 'all'
                 ? 'Нет видимых блоков — добавь заметку или покажи скрытые.'
-                : 'Нет блоков в этом фильтре.'}
+                : filter === 'personality'
+                  ? 'Пустые поля личности свёрнуты в карточках — открой нужное и заполни.'
+                  : 'Нет блоков в этом фильтре.'}
             </Text>
           ) : null}
           {visibleBlocks.map((block) => renderBlockCard(block))}
         </Stack>
+
+        {orphanResources.length > 0 ? (
+          <div className="text-block__orphans">
+            <button
+              type="button"
+              className="text-block__orphans-toggle"
+              aria-expanded={orphansOpen}
+              onClick={() => setOrphansOpen((prev) => !prev)}
+            >
+              <strong>Ресурсы без блока</strong>
+              <span>
+                {orphanResources.length} · служебное ·{' '}
+                {orphansOpen ? 'свернуть' : 'показать'}
+              </span>
+            </button>
+            {orphansOpen ? (
+              <>
+                <Text tone="muted">
+                  Остались от старого списка. Привяжи к блоку или удали.
+                </Text>
+                {orphanResources.map((resource) => (
+                  <div key={resource.id} className="text-block__orphan">
+                    <SlotPips
+                      max={resource.max}
+                      used={resource.used}
+                      fillMode="available"
+                      label={resource.name || 'Ресурс'}
+                      summary={`${Math.max(0, resource.max - resource.used)} / ${resource.max}`}
+                      onChange={(used) => updateResource(resource.id, { used })}
+                    />
+                    <div className="text-block__orphan-actions">
+                      <select
+                        className="play-select"
+                        defaultValue=""
+                        aria-label={`Привязать «${resource.name || 'ресурс'}» к блоку`}
+                        onChange={(event) => {
+                          const key = event.target.value
+                          if (!key) return
+                          linkOrphanToBlock(resource.id, key)
+                          event.target.value = ''
+                        }}
+                      >
+                        <option value="">В блок…</option>
+                        {blocks
+                          .filter((block) => !block.isHidden)
+                          .map((block) => (
+                            <option key={block.key} value={block.key}>
+                              {displayLabel(block)}
+                            </option>
+                          ))}
+                      </select>
+                      <button
+                        type="button"
+                        className="linkish"
+                        onClick={() => removeResource(resource.id)}
+                      >
+                        Удалить
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </>
+            ) : null}
+          </div>
+        ) : null}
       </Stack>
     </Panel>
   )

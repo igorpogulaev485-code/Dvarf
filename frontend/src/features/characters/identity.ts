@@ -22,6 +22,16 @@ export type WeaponProficiency = {
   extras: string[]
 }
 
+/** Physical description — same keys as classic print page 2. */
+export type PhysiqueFields = {
+  age: string
+  height: string
+  weight: string
+  eyes: string
+  skin: string
+  hair: string
+}
+
 export type IdentityExtras = {
   experience: number
   subclassName: string
@@ -39,6 +49,23 @@ export type IdentityExtras = {
   tools: string[]
   /** Languages last applied from a race pick; removed on next race apply. */
   raceAppliedLanguages: string[]
+  /** Рост / вес / возраст / глаза / кожа / волосы (B10). */
+  physique: PhysiqueFields
+}
+
+export const EMPTY_PHYSIQUE: PhysiqueFields = {
+  age: '',
+  height: '',
+  weight: '',
+  eyes: '',
+  skin: '',
+  hair: '',
+}
+
+function readPhysiqueString(value: unknown): string {
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  return ''
 }
 
 export const EMPTY_ARMOR: ArmorProficiency = {
@@ -89,6 +116,14 @@ export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtr
     languages: canonicalLanguageList(readNameList(proficiency.languages)),
     tools: readNameList(proficiency.tools),
     raceAppliedLanguages: canonicalLanguageList(readNameList(identity.race_applied_languages)),
+    physique: {
+      age: readPhysiqueString(identity.age),
+      height: readPhysiqueString(identity.height),
+      weight: readPhysiqueString(identity.weight),
+      eyes: readPhysiqueString(identity.eyes),
+      skin: readPhysiqueString(identity.skin),
+      hair: readPhysiqueString(identity.hair),
+    },
   }
 }
 
@@ -114,6 +149,12 @@ export function identityExtrasToSheet(extras: IdentityExtras): {
       race_applied_languages: extras.raceAppliedLanguages
         .map((item) => item.trim())
         .filter(Boolean),
+      age: extras.physique.age.trim() || null,
+      height: extras.physique.height.trim() || null,
+      weight: extras.physique.weight.trim() || null,
+      eyes: extras.physique.eyes.trim() || null,
+      skin: extras.physique.skin.trim() || null,
+      hair: extras.physique.hair.trim() || null,
     },
     combatPatch: {
       darkvision: Math.max(0, Math.floor(extras.darkvision)),

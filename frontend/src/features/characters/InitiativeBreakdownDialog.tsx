@@ -134,7 +134,7 @@ export function InitiativeBreakdownDialog({
           <div className="ac-breakdown__hero-text">
             <Text tone="muted" className="ac-breakdown__summary">
               {override != null
-                ? `Оверрайд ${formatModifier(override)}`
+                ? `Вручную ${formatModifier(override)}`
                 : autoLabel}
               {bonusHint ? ` · ${bonusHint}` : ''}
             </Text>
@@ -162,7 +162,7 @@ export function InitiativeBreakdownDialog({
           <div className="ac-breakdown__base">{autoLabel}</div>
           <label className="ability-breakdown__base" style={{ marginTop: 8 }}>
             <span className="ability-breakdown__base-label">
-              Оверрайд (пусто = авто)
+              Вручную (пусто = авто)
             </span>
             <NumberInput
               min={-10}

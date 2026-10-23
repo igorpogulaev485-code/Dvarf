@@ -7,7 +7,7 @@ import {
 import type { FormulaVars } from '../../shared/dnd/formulas'
 import {
   formatSpellComponents,
-  resolveCastEffect,
+  resolveCastEffectSummary,
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
 import {
@@ -319,8 +319,8 @@ export function CastSpellDialog({
   }, [spell, isCantrip, useRitual, useGrant, usePact, spells.pact_slots, slotLevel])
 
   const castEffect = useMemo(() => {
-    if (!spell) return { effect: '', scaled: false }
-    return resolveCastEffect(spell, {
+    if (!spell) return { effect: '', scaled: false, lines: [] as string[] }
+    return resolveCastEffectSummary(spell, {
       characterLevel,
       slotLevel: effectiveSlotLevel || spell.level,
     })
@@ -542,17 +542,33 @@ export function CastSpellDialog({
           </div>
         ) : null}
         {metaParts.length > 0 ? <Text tone="muted">{metaParts.join(' · ')}</Text> : null}
-        {castEffect.scaled && castEffect.effect ? (
-          <Text>
-            Эффект сейчас: <strong>{castEffect.effect}</strong>
-            {isCantrip
-              ? ` (ур. персонажа ${Math.max(1, characterLevel)})`
-              : !useRitual && !useGrant && effectiveSlotLevel > spell.level
-                ? ` (ячейка ${effectiveSlotLevel})`
-                : ''}
-          </Text>
+        {castEffect.lines.length > 0 || castEffect.effect ? (
+          <div className="cast-effect-summary" aria-label="Итог эффекта для выбранной ячейки">
+            <Text>
+              Эффект сейчас
+              {isCantrip
+                ? ` (ур. персонажа ${Math.max(1, characterLevel)})`
+                : !useRitual && !useGrant
+                  ? ` (ячейка ${Math.max(spell.level, effectiveSlotLevel)} · база ${spell.level})`
+                  : ''}
+              :
+            </Text>
+            {castEffect.lines.length > 0 ? (
+              <ul className="cast-effect-summary__list">
+                {castEffect.lines.map((line) => (
+                  <li key={line}>
+                    <strong>{line}</strong>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <Text>
+                <strong>{castEffect.effect}</strong>
+              </Text>
+            )}
+          </div>
         ) : null}
-        {showHigherLevels ? (
+        {showHigherLevels && castEffect.lines.length === 0 ? (
           <Text tone="muted">На больших уровнях: {spell.higher_levels}</Text>
         ) : null}
 

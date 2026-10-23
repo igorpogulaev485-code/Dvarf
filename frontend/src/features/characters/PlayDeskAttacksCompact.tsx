@@ -63,6 +63,12 @@ type PlayDeskAttacksCompactProps = {
   onUndoConsumableSpend?: (logId: string) => void
   onToast?: (message: string) => void
   onOpenSettings: () => void
+  /** Empty-state CTA: open attacks settings (add / sync weapons). */
+  onAddAttack?: () => void
+  /** Empty-state CTA: jump to inventory (equip → attacks). */
+  onOpenInventory?: () => void
+  /** When true and no weapons — compact empty (pure caster). */
+  preferMagicEmpty?: boolean
   rollMode?: DeskRollMode
 }
 
@@ -101,6 +107,9 @@ export function PlayDeskAttacksCompact({
   onUndoConsumableSpend,
   onToast,
   onOpenSettings,
+  onAddAttack,
+  onOpenInventory,
+  preferMagicEmpty = false,
   rollMode = 'normal',
 }: PlayDeskAttacksCompactProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -141,8 +150,9 @@ export function PlayDeskAttacksCompact({
             type="button"
             className="play-desk-compact__link play-desk-compact__link--settings"
             onClick={onOpenSettings}
+            title="Оружие и атаки"
           >
-            Настройки
+            Оружие и атаки
           </button>
         </div>
       </div>
@@ -182,7 +192,45 @@ export function PlayDeskAttacksCompact({
 
       <div className="play-desk-compact__list play-desk-compact__list--dense">
         {named.length === 0 ? (
-          <p className="play-desk-compact__empty">Нет атак — добавь в полной панели</p>
+          <div
+            className={`play-desk-compact__empty-block${
+              preferMagicEmpty ? ' is-magic-primary' : ''
+            }`}
+          >
+            <p className="play-desk-compact__empty">
+              {preferMagicEmpty
+                ? 'Нет оружия в атаках — можно кастовать из панели магии'
+                : 'Нет атак'}
+            </p>
+            <div className="play-desk-compact__empty-actions">
+              {onAddAttack ? (
+                <button
+                  type="button"
+                  className="play-desk-compact__link play-desk-compact__link--prepare"
+                  onClick={onAddAttack}
+                >
+                  Добавить атаку
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="play-desk-compact__link play-desk-compact__link--prepare"
+                  onClick={onOpenSettings}
+                >
+                  Настройки атак
+                </button>
+              )}
+              {onOpenInventory ? (
+                <button
+                  type="button"
+                  className="play-desk-compact__link"
+                  onClick={onOpenInventory}
+                >
+                  Открыть инвентарь
+                </button>
+              ) : null}
+            </div>
+          </div>
         ) : (
           named.map((attack) => {
             const unarmed = isMonkUnarmedAttack(attack)
@@ -257,6 +305,15 @@ export function PlayDeskAttacksCompact({
                       <IconMelee className="play-desk-compact__row-icon" />
                     )}
                     <b>{attack.name}</b>
+                    {attack.inventory_item_id ? (
+                      <span className="play-desk-compact__tag">из инвентаря</span>
+                    ) : attack.source_kind === 'custom' ? (
+                      <span className="play-desk-compact__tag">вручную</span>
+                    ) : attack.source_kind === 'race' ? (
+                      <span className="play-desk-compact__tag">раса</span>
+                    ) : attack.source_kind === 'class' ? (
+                      <span className="play-desk-compact__tag">класс</span>
+                    ) : null}
                     {attack.qty != null && attack.qty > 1 ? (
                       <span className="play-desk-compact__tag">×{attack.qty}</span>
                     ) : null}

@@ -16,7 +16,11 @@ import {
   blockPlainText,
   readTextBlocks,
 } from '../../features/characters/textBlocks.ts'
-import { EMPTY_ARMOR, EMPTY_WEAPONS } from '../../features/characters/identity.ts'
+import {
+  EMPTY_ARMOR,
+  EMPTY_PHYSIQUE,
+  EMPTY_WEAPONS,
+} from '../../features/characters/identity.ts'
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
@@ -81,6 +85,7 @@ const emptySlice = (): BackgroundGrantDraftSlice => ({
     languages: [],
     tools: [],
     raceAppliedLanguages: [],
+    physique: { ...EMPTY_PHYSIQUE },
   },
   skills: {},
   inventory: { coins: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 }, items: [], notes: '' },

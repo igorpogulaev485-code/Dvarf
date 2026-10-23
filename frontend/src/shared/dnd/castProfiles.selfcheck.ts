@@ -6,6 +6,7 @@ import {
   catalogSpellMatchesAnyShelf,
   findDualCastSiblings,
   formatNamedCantripBudgets,
+  formatNamedPrepareBudgets,
   mergeCastProfilesForDisplay,
   resolveSpellCastStats,
   resolveSpellLearnBudgets,
@@ -167,6 +168,19 @@ const named = formatNamedCantripBudgets(budgets, { artificer: 4, warlock: 2 }, {
 assert(
   named === 'Изобретатель 4/4 · Колдун 2/3 · Гримуар 3',
   `named meta got ${named}`,
+)
+const namedPrep = formatNamedPrepareBudgets(
+  [
+    { mode: 'prepared_list', slug: 'cleric', labelRu: 'Жрец', cantrips: 3, leveledKnown: null, maxPrepared: 9 },
+    { mode: 'prepared_list', slug: 'paladin', labelRu: 'Паладин', cantrips: 0, leveledKnown: null, maxPrepared: 6 },
+    { mode: 'known', slug: 'bard', labelRu: 'Бард', cantrips: 3, leveledKnown: 8, maxPrepared: null },
+  ],
+  { cleric: 4, paladin: 2 },
+  { alwaysPrepared: 3 },
+)
+assert(
+  namedPrep === 'подг. Жрец 4/9 · Паладин 2/6 · всегда 3',
+  `named prepare got ${namedPrep}`,
 )
 
 // --- M3 dual-cast siblings ---

@@ -215,11 +215,24 @@ export const MODE_DEFAULT_PANEL: Record<PlayDeskMode, PlayDeskPanelId> = {
   features: 'features',
 }
 
-/** Scenes that keep spells pinned beside the primary panel. */
+/** Scenes that *can* pin spells beside the primary panel. */
 export const MODE_SPELL_SPLIT: PlayDeskMode[] = ['combat', 'explore', 'social']
 
 export function modeUsesSpellSplit(mode: PlayDeskMode): boolean {
   return MODE_SPELL_SPLIT.includes(mode)
+}
+
+/**
+ * UX A3: Бой — магия рядом (если есть источники).
+ * Исследование / Общение — основному содержимому вся ширина; магия по «Показать магию».
+ */
+export function defaultDeskSplitForMode(
+  mode: PlayDeskMode,
+  hasMagicSources: boolean,
+): boolean {
+  if (!hasMagicSources) return false
+  if (!modeUsesSpellSplit(mode)) return false
+  return mode === 'combat'
 }
 
 /**
@@ -273,8 +286,8 @@ export const MODE_SCENE_PANELS: Record<PlayDeskMode, PlayDeskPanelId[]> = {
 
 export const MODE_HINT: Record<PlayDeskMode, string> = {
   combat: 'Сцена боя: атаки и заклинания рядом',
-  explore: 'Сцена исследования: снаряжение под рукой',
-  social: 'Сцена общения: тексты и роль',
+  explore: 'Сцена исследования: снаряжение на всю ширину · магия по кнопке',
+  social: 'Сцена общения: тексты на всю ширину · магия по кнопке',
   companions: 'Сцена напарников: спутники и призывы',
   features: 'Сцена способностей: что умеет герой',
 }

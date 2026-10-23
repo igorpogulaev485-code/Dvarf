@@ -1139,6 +1139,30 @@ export function countPreparedLeveled(known: SheetSpell[]): number {
   return known.filter((spell) => spellCountsTowardPrepareCap(spell)).length
 }
 
+/** Prepared leveled spells that count toward the prepare cap, per class_slug. */
+export function countPreparedLeveledBySlug(
+  known: SheetSpell[],
+): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const spell of known) {
+    if (!spellCountsTowardPrepareCap(spell)) continue
+    const slug = (spell.class_slug ?? '').trim().toLowerCase()
+    if (!slug) continue
+    out[slug] = (out[slug] ?? 0) + 1
+  }
+  return out
+}
+
+/** Always-prepared leveled grants (domain / oath / innate) — outside prepare caps. */
+export function countAlwaysPreparedLeveled(known: SheetSpell[]): number {
+  return known.filter(
+    (spell) =>
+      spell.level > 0 &&
+      spell.prepared &&
+      isPreparedLocked(spell),
+  ).length
+}
+
 /** Player-chosen cantrips (excludes racial / feat / locked grants). */
 export function countLearnedCantrips(known: SheetSpell[]): number {
   return known.filter((spell) => spell.level <= 0 && canRemoveSheetSpell(spell)).length

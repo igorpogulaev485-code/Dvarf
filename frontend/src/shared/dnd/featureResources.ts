@@ -1,5 +1,6 @@
 /** Sync class-feature pools into sheet.resources (H3). */
 
+import { classCasterDef } from './casterProgression'
 import type { SheetResource } from './rest'
 import { clampResource } from './rest'
 import {
@@ -25,6 +26,10 @@ export type DesiredFeatureResource = {
   track: 'spend' | 'stock'
   /** When unlocked at this level, grant 1 stock on long rest if empty. */
   grantStockOnLongRestIfEmpty?: boolean
+  /** Class slug for display disambiguation (e.g. cleric vs paladin Channel Divinity). */
+  classSlug?: string
+  /** Russian class label used when the same pool name appears on two classes. */
+  classLabelRu?: string
 }
 
 export function isFeatureManagedResourceId(id: string): boolean {
@@ -37,6 +42,48 @@ export function featureResourceId(
   classEntryId: string,
 ): string {
   return `${FEATURE_RESOURCE_PREFIX}${classSlug}:${poolId}:${classEntryId}`
+}
+
+function classLabelRuForSlug(classSlug: string, fallbackName: string): string {
+  return classCasterDef(classSlug)?.labelRu || fallbackName.trim() || classSlug
+}
+
+/**
+ * When two classes share the same pool label (e.g. «Божественный канал»),
+ * prefix with the class name: «Жрец · Божественный канал».
+ */
+export function disambiguateFeatureResourceNames(
+  rows: DesiredFeatureResource[],
+): DesiredFeatureResource[] {
+  const byName = new Map<string, DesiredFeatureResource[]>()
+  for (const row of rows) {
+    const key = row.name.trim().toLowerCase()
+    if (!key) continue
+    const list = byName.get(key)
+    if (list) list.push(row)
+    else byName.set(key, [row])
+  }
+
+  const renameIds = new Set<string>()
+  for (const group of byName.values()) {
+    if (group.length < 2) continue
+    const slugs = new Set(
+      group.map((row) => row.classSlug || '').filter(Boolean),
+    )
+    if (slugs.size < 2) continue
+    for (const row of group) renameIds.add(row.id)
+  }
+
+  if (renameIds.size === 0) return rows
+
+  return rows.map((row) => {
+    if (!renameIds.has(row.id)) return row
+    const label = row.classLabelRu?.trim()
+    if (!label) return row
+    const base = row.name.trim()
+    if (!base || base.startsWith(`${label} ·`)) return row
+    return { ...row, name: `${label} · ${base}` }
+  })
 }
 
 export function desiredResourcesFromFeatures(input: {
@@ -55,6 +102,7 @@ export function desiredResourcesFromFeatures(input: {
       input.classSlugByEntryId?.[feature.classEntryId] ||
       resolveClassFeatureSlug(feature.className) ||
       'class'
+    const classLabelRu = classLabelRuForSlug(classSlug, feature.className)
     const id = featureResourceId(classSlug, resource.pool_id, feature.classEntryId)
 
     let max: number
@@ -92,6 +140,8 @@ export function desiredResourcesFromFeatures(input: {
             : 'long',
       track: resource.track === 'stock' ? 'stock' : 'spend',
       grantStockOnLongRestIfEmpty: Boolean(resource.grant_stock_on_long_rest_if_empty),
+      classSlug,
+      classLabelRu,
     }
 
     const prev = byId.get(id)
@@ -110,6 +160,8 @@ export function desiredResourcesFromFeatures(input: {
               : 'long',
         grantStockOnLongRestIfEmpty:
           prev.grantStockOnLongRestIfEmpty || next.grantStockOnLongRestIfEmpty,
+        classSlug: prev.classSlug || classSlug,
+        classLabelRu: prev.classLabelRu || classLabelRu,
       })
     } else {
       byId.set(id, next)
@@ -129,12 +181,14 @@ export function desiredResourcesFromFeatures(input: {
           max: 1,
           reset: resource.recover_one.recharge === 'long_rest' ? 'long' : 'short',
           track: 'spend',
+          classSlug,
+          classLabelRu,
         })
       }
     }
   }
 
-  return [...byId.values()]
+  return disambiguateFeatureResourceNames([...byId.values()])
 }
 
 /** Upsert feature pools; keep manual resources; drop obsolete feat: pools. */

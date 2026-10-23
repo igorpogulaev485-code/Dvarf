@@ -103,6 +103,7 @@ import {
 import { syncDruidCircleSpells } from '../characters/druidCircleSpells'
 import {
   EMPTY_ARMOR,
+  EMPTY_PHYSIQUE,
   EMPTY_WEAPONS,
   identityExtrasToSheet,
   type IdentityExtras,
@@ -228,6 +229,7 @@ function emptyIdentity(): IdentityExtras {
     languages: [],
     tools: [],
     raceAppliedLanguages: [],
+    physique: { ...EMPTY_PHYSIQUE },
   }
 }
 

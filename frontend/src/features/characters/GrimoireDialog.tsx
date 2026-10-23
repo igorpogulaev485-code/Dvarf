@@ -698,7 +698,7 @@ export function GrimoireDialog({
       ) {
         onToast?.(
           aloneCap > 0
-            ? `Нет в списке класса / круг выше alone-max (до ${aloneCap})`
+            ? `Нет в списке класса / круг выше доступного этому классу (до ${aloneCap})`
             : 'Пока доступны только заговоры этого класса',
         )
         return
@@ -1120,7 +1120,7 @@ export function GrimoireDialog({
   const accessHint = !access.hasCaster
     ? 'Нет класса с заклинаниями — гримуар пуст.'
     : shelfHint
-      ? `Полки (alone-max): ${shelfHint}.`
+      ? `Полки по классам: ${shelfHint}.`
       : access.maxSpellLevel > 0
         ? `Список классов · до ${access.maxSpellLevel} круга.`
         : 'Пока только заговоры из списка класса (ячеек ещё нет).'
@@ -1153,7 +1153,7 @@ export function GrimoireDialog({
           : onCoinsChange
             ? 'далее — копия за золото из кошелька'
             : 'бесплатный объём исчерпан'
-      return `${b.labelRu}: в книге ${learnedLeveled} · ${freePart} (free-cap ${b.leveledKnown ?? '—'}) · ${cantripPart} · ${uiCopy.readyLabel.toLowerCase()} ${preparedCount}/${b.maxPrepared ?? '—'}. ${uiCopy.grimoireHint} ${accessHint}`
+      return `${b.labelRu}: в книге ${learnedLeveled} · ${freePart} (лимит бесплатных ${b.leveledKnown ?? '—'}) · ${cantripPart} · ${uiCopy.readyLabel.toLowerCase()} ${preparedCount}/${b.maxPrepared ?? '—'}. ${uiCopy.grimoireHint} ${accessHint}`
     }
     if (b.mode === 'prepared_list') {
       return `${b.labelRu}: на листе ${learnedLeveled} · не подготовлено ${unpreparedOnSheet} · ${cantripPart} · ${uiCopy.readyLabel.toLowerCase()} ${preparedCount}/${b.maxPrepared ?? '—'}. ${uiCopy.grimoireHint} ${accessHint}`
@@ -1194,7 +1194,10 @@ export function GrimoireDialog({
               </span>
             ) : null}
             {copyMods.wizardlyQuill ? (
-              <span className="sheet-chip is-on" title="Wizardly Quill">
+              <span
+                className="sheet-chip is-on"
+                title="Перо писца — быстрее переписывать заклинания"
+              >
                 Перо писца
               </span>
             ) : null}
@@ -1206,13 +1209,27 @@ export function GrimoireDialog({
           </div>
         ) : null}
 
-        <div className="grimoire-toolbar">
+        <div className="grimoire-toolbar grimoire-toolbar--sticky">
           <Field label="Поиск">
             <Input
               value={query}
-              placeholder="Название или книга…"
+              placeholder="Название заклинания…"
               onChange={(event) => setQuery(event.target.value)}
             />
+          </Field>
+          <Field label="Книга-источник">
+            <select
+              className="play-select"
+              value={bookFilter}
+              onChange={(event) => setBookFilter(event.target.value)}
+              aria-label="Фильтр по книге-источнику"
+            >
+              {bookOptions.map((book) => (
+                <option key={book} value={book}>
+                  {book === 'all' ? 'Все книги' : book}
+                </option>
+              ))}
+            </select>
           </Field>
           <button
             type="button"
@@ -1356,20 +1373,7 @@ export function GrimoireDialog({
           </div>
         ) : null}
 
-        <div className="chip-row">
-          {bookOptions.map((book) => (
-            <button
-              key={book}
-              type="button"
-              className={`sheet-chip${bookFilter === book ? ' is-on' : ''}`}
-              onClick={() => setBookFilter(book)}
-            >
-              {book === 'all' ? 'Все книги' : book}
-            </button>
-          ))}
-        </div>
-
-        <div className="chip-row">
+        <div className="chip-row grimoire-level-chips">
           <button
             type="button"
             className={`sheet-chip${levelFilter === 'all' ? ' is-on' : ''}`}

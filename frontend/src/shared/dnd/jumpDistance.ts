@@ -24,10 +24,15 @@ export function jumpDistances(input: {
   }
 }
 
-/** Tooltip / aria — not shown in the vital face. */
+/** Tooltip / aria — clarifies «N/M» on the vital chip. */
 export function formatJumpTitle(jump: JumpDistances): string {
   return (
-    `Прыжок с разбега: длинный ${jump.longFt} фт, высокий ${jump.highFt} фт. ` +
+    `Прыжок с разбега: в длину ${jump.longFt} фт / в высоту ${jump.highFt} фт. ` +
     'Без разбега — половина.'
   )
+}
+
+/** Short face label under the N/M chip (UX audit). */
+export function formatJumpFaceLabel(): string {
+  return 'дл./выс. фт'
 }
