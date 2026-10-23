@@ -204,9 +204,15 @@ type FeatureFilter =
   | 'custom'
   | 'resource'
   | 'choice'
+  | 'active'
+  | 'passive'
+  | 'needs_setup'
 
 const FEATURE_FILTERS: Array<{ id: FeatureFilter; label: string }> = [
   { id: 'all', label: 'Все' },
+  { id: 'active', label: 'Активные' },
+  { id: 'passive', label: 'Пассивные' },
+  { id: 'needs_setup', label: 'Нужно настроить' },
   { id: 'class', label: 'Класс' },
   { id: 'subclass', label: 'Подкласс' },
   { id: 'feats', label: 'Черты' },
@@ -571,6 +577,7 @@ function FeatureResourceControls({
                       nameRu: summon.name_ru,
                       replaceExisting: summon.replace_existing !== false,
                       notesRu: summon.notes_ru,
+                      actionsRu: summon.actions_ru,
                       ac: summon.ac,
                       speed: summon.speed,
                       hpBase: summon.hp_base,
@@ -1832,6 +1839,8 @@ export function ClassFeaturesPanel({
   edition = '2014',
 }: ClassFeaturesPanelProps) {
   const [filter, setFilter] = useState<FeatureFilter>('all')
+  const [search, setSearch] = useState('')
+  const [asiOpenByClass, setAsiOpenByClass] = useState<Set<string>>(() => new Set())
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
   const [customDraftName, setCustomDraftName] = useState('')
   const [customDraftSummary, setCustomDraftSummary] = useState('')
@@ -1899,20 +1908,30 @@ export function ClassFeaturesPanel({
   }, [byClass])
 
   const visibleFeatures = useMemo(() => {
+    const q = search.trim().toLowerCase()
     return features.filter((feature) => {
+      if (q) {
+        const hay = `${feature.name_ru} ${feature.summary_ru} ${feature.name_en ?? ''}`.toLowerCase()
+        if (!hay.includes(q)) return false
+      }
       if (filter === 'all') return true
       if (filter === 'class') return feature.source !== 'subclass'
       if (filter === 'subclass') return feature.source === 'subclass'
       if (filter === 'feats' || filter === 'custom') return false
       if (filter === 'resource') return Boolean(feature.resource?.pool_id)
-      if (filter === 'choice') {
+      if (filter === 'active') return feature.kind !== 'passive'
+      if (filter === 'passive') return feature.kind === 'passive'
+      if (filter === 'choice' || filter === 'needs_setup') {
+        if (isAsiFeature(feature)) {
+          return !findAppliedClassAsi(classAsi, feature.classEntryId, feature.id)
+        }
         return (
           Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)
         )
       }
       return true
     })
-  }, [features, filter, featurePicks])
+  }, [features, filter, featurePicks, search, classAsi])
 
   const visibleByClass = useMemo(() => {
     const map = new Map<string, UnlockedFeature[]>()
@@ -2009,6 +2028,14 @@ export function ClassFeaturesPanel({
         ) : null}
 
         {extraAttackNote ? <Text tone="muted">{extraAttackNote}</Text> : null}
+
+        <Field label="Поиск">
+          <Input
+            value={search}
+            placeholder="Избранный, стиль боя…"
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </Field>
 
         <div className="inventory-filters" role="tablist" aria-label="Фильтр способностей">
           {FEATURE_FILTERS.map((row) => (
@@ -2173,44 +2200,96 @@ export function ClassFeaturesPanel({
               <span className="feature-group__count"> · {group.features.length}</span>
             </div>
             <div className="feature-list">
-              {group.features.map((feature) => {
-                const key = featureRowKey(feature)
+              {(() => {
+                const collapseAsi =
+                  !search.trim() &&
+                  filter !== 'needs_setup' &&
+                  filter !== 'choice' &&
+                  filter !== 'active'
+                const asiRows = collapseAsi
+                  ? group.features.filter((feature) => isAsiFeature(feature))
+                  : []
+                const mainRows = collapseAsi
+                  ? group.features.filter((feature) => !isAsiFeature(feature))
+                  : group.features
+                const asiPending = asiRows.filter(
+                  (feature) =>
+                    !findAppliedClassAsi(classAsi, feature.classEntryId, feature.id),
+                ).length
                 return (
-                  <FeatureRow
-                    key={key}
-                    feature={feature}
-                    unlockedFeatures={features}
-                    classSlug={slugByEntry.get(feature.classEntryId) || group.classSlug}
-                    open={openKeys.has(key)}
-                    onToggle={() => toggleKey(key)}
-                    resources={resources}
-                    onResourcesChange={onResourcesChange}
-                    featurePicks={featurePicks}
-                    onFeaturePicksChange={onFeaturePicksChange}
-                    spells={spells}
-                    onSpellsChange={onSpellsChange}
-                    skills={skills}
-                    tools={tools}
-                    expertiseKeys={expertiseKeys}
-                    classAsi={classAsi}
-                    companions={companions}
-                    onCompanionsChange={onCompanionsChange}
-                    onToast={onToast}
-                    initiativeGrantByPool={initiativeGrantByPool}
-                    wearingHeavyArmor={wearingHeavyArmor}
-                    onOpenInfusions={onOpenInfusions}
-                    onOpenInvocations={onOpenInvocations}
-                    onOpenSoulTrinkets={onOpenSoulTrinkets}
-                    onOpenRangerFavored={onOpenRangerFavored}
-                    onCastPactChainFamiliar={onCastPactChainFamiliar}
-                    onWildShapeFork={onWildShapeFork}
-                    onFeatureSelfForm={onFeatureSelfForm}
-                    moonCombatWildShape={moonCombatWildShape}
-                    onMoonFormSlotHeal={onMoonFormSlotHeal}
-                    edition={edition}
-                  />
+                  <>
+                    {asiRows.length > 0 ? (
+                      <div className="feature-card feature-card--compact feature-card--static">
+                        <button
+                          type="button"
+                          className="feature-card__glance"
+                          onClick={() =>
+                            setAsiOpenByClass((prev) => {
+                              const next = new Set(prev)
+                              if (next.has(group.classEntryId)) next.delete(group.classEntryId)
+                              else next.add(group.classEntryId)
+                              return next
+                            })
+                          }
+                        >
+                          <b className="feature-card__name">История повышений характеристик</b>
+                          <span className="inventory-role inventory-role--armor">ASI</span>
+                          <span className="inventory-card__glance-spacer" aria-hidden />
+                          <span className="feature-card__preview">
+                            {asiRows.length} запис.
+                            {asiPending > 0 ? ` · нужно настроить: ${asiPending}` : ''}
+                            {asiOpenByClass.has(group.classEntryId)
+                              ? ' · свернуть'
+                              : ' · показать'}
+                          </span>
+                        </button>
+                      </div>
+                    ) : null}
+                    {(asiOpenByClass.has(group.classEntryId) ? asiRows : [])
+                      .concat(mainRows)
+                      .map((feature) => {
+                        const key = featureRowKey(feature)
+                        return (
+                          <FeatureRow
+                            key={key}
+                            feature={feature}
+                            unlockedFeatures={features}
+                            classSlug={
+                              slugByEntry.get(feature.classEntryId) || group.classSlug
+                            }
+                            open={openKeys.has(key)}
+                            onToggle={() => toggleKey(key)}
+                            resources={resources}
+                            onResourcesChange={onResourcesChange}
+                            featurePicks={featurePicks}
+                            onFeaturePicksChange={onFeaturePicksChange}
+                            spells={spells}
+                            onSpellsChange={onSpellsChange}
+                            skills={skills}
+                            tools={tools}
+                            expertiseKeys={expertiseKeys}
+                            classAsi={classAsi}
+                            companions={companions}
+                            onCompanionsChange={onCompanionsChange}
+                            onToast={onToast}
+                            initiativeGrantByPool={initiativeGrantByPool}
+                            wearingHeavyArmor={wearingHeavyArmor}
+                            onOpenInfusions={onOpenInfusions}
+                            onOpenInvocations={onOpenInvocations}
+                            onOpenSoulTrinkets={onOpenSoulTrinkets}
+                            onOpenRangerFavored={onOpenRangerFavored}
+                            onCastPactChainFamiliar={onCastPactChainFamiliar}
+                            onWildShapeFork={onWildShapeFork}
+                            onFeatureSelfForm={onFeatureSelfForm}
+                            moonCombatWildShape={moonCombatWildShape}
+                            onMoonFormSlotHeal={onMoonFormSlotHeal}
+                            edition={edition}
+                          />
+                        )
+                      })}
+                  </>
                 )
-              })}
+              })()}
             </div>
           </div>
         ))}

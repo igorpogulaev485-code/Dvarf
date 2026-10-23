@@ -350,6 +350,8 @@ export function InventoryPanel({
   const [filter, setFilter] = useState<InventoryFilter>('all')
   /** Accordion: at most one root detail open. */
   const [openId, setOpenId] = useState<string | null>(null)
+  /** B7: expand opens view-first; edit only after «Изменить». */
+  const [editingIds, setEditingIds] = useState<Set<string>>(() => new Set())
   const inventoryRef = useRef(inventory)
   const onChangeRef = useRef(onChange)
   inventoryRef.current = inventory
@@ -400,6 +402,11 @@ export function InventoryPanel({
   const capacityLb = carryingCapacityLb(strengthScore)
   const overEncumbered = totalLb > capacityLb
   const ordered = orderInventoryItems(inventory.items)
+  const weightIncomplete = inventory.items.some((item) => {
+    if (item.parent_id) return false
+    if (isExpandedPack(inventory.items, item.id)) return false
+    return item.weight_lb == null
+  })
 
   const visibleRoots = useMemo(() => {
     return ordered.filter((item) => {
@@ -429,6 +436,11 @@ export function InventoryPanel({
     setOpenId((prev) => {
       const next = prev === id ? null : id
       if (next) {
+        setEditingIds((ids) => {
+          const copy = new Set(ids)
+          copy.delete(next)
+          return copy
+        })
         window.requestAnimationFrame(() => {
           document
             .getElementById(`inventory-card-${next}`)
@@ -695,6 +707,8 @@ export function InventoryPanel({
         ? equipLabel(item).off.toLowerCase()
         : null
 
+    const editing = nested || editingIds.has(item.id)
+
     if (!detailsOpen) {
       const weightLabel =
         item.weight_lb == null && !expandedPack ? '—' : `${lineLb} фнт`
@@ -768,6 +782,65 @@ export function InventoryPanel({
             >
               ›
             </button>
+          </div>
+        </div>
+      )
+    }
+
+    if (!editing) {
+      return (
+        <div
+          key={item.id}
+          id={`inventory-card-${item.id}`}
+          className={`inventory-card inventory-card--expand inventory-card--view${
+            expandedPack ? ' inventory-card--pack-open' : ''
+          }`}
+        >
+          <div className="inventory-card__meta">
+            <span className={`inventory-role inventory-role--${bucket}`}>{role}</span>
+            {statusTag ? (
+              <span className={`attack-held-tag${item.equipped ? ' is-on' : ''}`}>
+                {statusTag}
+              </span>
+            ) : null}
+            {!nested && isArmorRow(item) ? (
+              <span className="inventory-card__ac-pill" aria-label="КД">
+                {item.armor_kind === 'shield'
+                  ? `щит +${item.base_ac ?? 2}`
+                  : `кд ${item.base_ac ?? '—'}`}
+              </span>
+            ) : null}
+            <button
+              type="button"
+              className="inventory-card__collapse"
+              onClick={() => toggleDetails(item.id)}
+            >
+              свернуть
+            </button>
+          </div>
+          <h3 className="inventory-card__view-title">{item.name || 'Без названия'}</h3>
+          <Text tone="muted">
+            {item.qty > 1 ? `×${item.qty} · ` : ''}
+            {item.weight_lb == null && !expandedPack
+              ? 'вес неизвестен'
+              : `${lineLb} фнт`}
+            {effectsLine ? ` · ${effectsLine}` : ''}
+          </Text>
+          {item.notes?.trim() ? <Text>{item.notes.trim()}</Text> : null}
+          <div className="inventory-card__view-actions">
+            {renderEquipChip(item)}
+            <Button
+              type="button"
+              onClick={() =>
+                setEditingIds((prev) => {
+                  const next = new Set(prev)
+                  next.add(item.id)
+                  return next
+                })
+              }
+            >
+              Изменить
+            </Button>
           </div>
         </div>
       )
@@ -1100,6 +1173,15 @@ export function InventoryPanel({
               <strong>
                 {formatLb(totalLb)} / {formatLb(capacityLb)} фнт
               </strong>
+              {weightIncomplete ? (
+                <span
+                  className="inventory-summary__incomplete"
+                  title="У части вещей вес «—», итог может быть неполным"
+                >
+                  {' '}
+                  · вес неполный
+                </span>
+              ) : null}
             </p>
             <div className="inventory-summary__chips">
               {autoAc != null ? (

@@ -126,12 +126,13 @@ function sourceFromCatalog(entry: CatalogEntry): AttackSourceKind {
   return 'custom'
 }
 
-function sourceLabel(kind: AttackSourceKind): string {
+function sourceLabel(kind: AttackSourceKind, linked: boolean): string {
+  if (linked) return 'Из инвентаря'
   if (kind === 'weapon') return 'Оружие'
   if (kind === 'artifact') return 'Артефакт'
   if (kind === 'race') return 'Раса'
   if (kind === 'class') return 'Класс'
-  return 'Своё'
+  return 'Вручную'
 }
 
 export function AttacksPanel({
@@ -256,7 +257,7 @@ export function AttacksPanel({
             >
               <div className="attack-card__meta">
                 <span className={`attack-source attack-source--${attack.source_kind}`}>
-                  {sourceLabel(attack.source_kind)}
+                  {sourceLabel(attack.source_kind, Boolean(attack.inventory_item_id))}
                 </span>
                 {raceNatural ? (
                   <span className="attack-held-tag">природное</span>
@@ -266,7 +267,9 @@ export function AttacksPanel({
                   <span className="attack-held-tag">
                     {attack.held ? 'в руках' : 'убран'}
                   </span>
-                ) : null}
+                ) : (
+                  <span className="attack-held-tag">атака на столе</span>
+                )}
                 {attack.qty != null && attack.qty > 1 ? (
                   <span className="attack-held-tag">×{attack.qty}</span>
                 ) : null}
@@ -434,9 +437,14 @@ export function AttacksPanel({
                 ) : (
                   <Button
                     variant="ghost"
+                    title={
+                      attack.inventory_item_id
+                        ? 'Убирает строку атаки со стола. Предмет в инвентаре останется.'
+                        : 'Убирает эту атаку со стола.'
+                    }
                     onClick={() => onChange(weapons.filter((item) => item.id !== attack.id))}
                   >
-                    Удалить
+                    {attack.inventory_item_id ? 'Убрать атаку со стола' : 'Убрать атаку'}
                   </Button>
                 )}
               </div>

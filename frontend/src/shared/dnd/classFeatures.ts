@@ -179,9 +179,11 @@ export type FeatureSummonDef = {
   /** Replace prior summon from this feature (default true). */
   replace_existing?: boolean
   notes_ru?: string
+  /** Combat actions / attacks text for the companion card. */
+  actions_ru?: string
   ac?: number
   speed?: number
-  /** HP = hp_base + hp_per_level × class level (Wildfire: 5 + 5×lvl). */
+  /** HP = hp_base + hp_per_level × class level (Wildfire: 10 + 5×lvl). */
   hp_base?: number
   hp_per_level?: number
 }
@@ -433,6 +435,8 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
         replace_existing: summonRaw.replace_existing !== false,
         notes_ru:
           typeof summonRaw.notes_ru === 'string' ? summonRaw.notes_ru : undefined,
+        actions_ru:
+          typeof summonRaw.actions_ru === 'string' ? summonRaw.actions_ru : undefined,
         ac: readOptNum(summonRaw.ac),
         speed: readOptNum(summonRaw.speed),
         hp_base: readOptNum(summonRaw.hp_base),

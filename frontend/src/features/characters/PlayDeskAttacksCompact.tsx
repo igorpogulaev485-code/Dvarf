@@ -305,6 +305,15 @@ export function PlayDeskAttacksCompact({
                       <IconMelee className="play-desk-compact__row-icon" />
                     )}
                     <b>{attack.name}</b>
+                    {attack.inventory_item_id ? (
+                      <span className="play-desk-compact__tag">из инвентаря</span>
+                    ) : attack.source_kind === 'custom' ? (
+                      <span className="play-desk-compact__tag">вручную</span>
+                    ) : attack.source_kind === 'race' ? (
+                      <span className="play-desk-compact__tag">раса</span>
+                    ) : attack.source_kind === 'class' ? (
+                      <span className="play-desk-compact__tag">класс</span>
+                    ) : null}
                     {attack.qty != null && attack.qty > 1 ? (
                       <span className="play-desk-compact__tag">×{attack.qty}</span>
                     ) : null}

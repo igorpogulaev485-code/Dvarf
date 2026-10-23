@@ -3379,6 +3379,26 @@ a.ui-button--primary {
   border: 1px solid color-mix(in srgb, var(--muted) 28%, var(--line));
 }
 
+.inventory-card__view-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.inventory-card__view-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.inventory-summary__incomplete {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
 .feature-replacement-badge {
   display: inline-block;
   margin-left: 0.2rem;
@@ -5950,6 +5970,49 @@ button.spells-settings__derived-stat--btn:hover {
   justify-content: space-between;
 }
 
+.text-physique {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent-soft, #eef2e8) 55%, white);
+}
+
+.text-physique__toggle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.text-physique__meta {
+  font-size: 0.82rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.text-physique__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+@media (max-width: 560px) {
+  .text-physique__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .text-block__orphans {
   display: grid;
   gap: 10px;
@@ -5957,6 +6020,28 @@ button.spells-settings__derived-stat--btn:hover {
   border: 1px dashed var(--line);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.5);
+}
+
+.text-block__orphans-toggle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.text-block__orphans-toggle span {
+  font-size: 0.82rem;
+  color: var(--muted);
+  white-space: nowrap;
 }
 
 .text-block__orphan {
@@ -12071,6 +12156,28 @@ button.play-desk-compact__more--btn:hover {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.variable-picker__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.variable-picker__chevron {
+  flex: 0 0 auto;
+  font-size: 0.85rem;
+  color: var(--desk-muted, var(--muted));
 }
 
 .variable-picker__title {

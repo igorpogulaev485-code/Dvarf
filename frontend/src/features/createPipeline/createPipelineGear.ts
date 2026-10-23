@@ -21,7 +21,7 @@ import {
 } from '../../shared/dnd/backgroundGrants'
 import { totalCharacterLevel, type ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { isWizardClassName } from '../../shared/dnd/pendingFeatureChoices'
-import { EMPTY_ARMOR, EMPTY_WEAPONS } from '../characters/identity'
+import { EMPTY_ARMOR, EMPTY_PHYSIQUE, EMPTY_WEAPONS } from '../characters/identity'
 import { ABILITY_KEYS, SKILL_DEFS, type AbilityKey } from '../characters/sheetTypes'
 import {
   inventoryToSheet,
@@ -70,6 +70,7 @@ function emptyIdentity(): BackgroundGrantDraftSlice['identity'] {
     languages: [],
     tools: [],
     raceAppliedLanguages: [],
+    physique: { ...EMPTY_PHYSIQUE },
   }
 }
 

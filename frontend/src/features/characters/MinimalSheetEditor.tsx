@@ -6792,6 +6792,13 @@ export function MinimalSheetEditor({
             play: { ...prev.play, resources },
           }))
         }
+        physique={draft.identity.physique}
+        onPhysiqueChange={(physique) =>
+          setDraft((prev) => ({
+            ...prev,
+            identity: { ...prev.identity, physique },
+          }))
+        }
       />
 
       </div>

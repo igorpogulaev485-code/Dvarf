@@ -938,6 +938,7 @@ export type FeatureSummonApply = {
   nameRu: string
   replaceExisting?: boolean
   notesRu?: string | null
+  actionsRu?: string | null
   ac?: number | null
   speed?: number | null
   hpBase?: number | null
@@ -948,6 +949,7 @@ export type FeatureSummonApply = {
  * Upsert a feature-summoned ally onto the sheet list.
  * Tip ClassFeaturesPanel calls this on spend when `feature.summon` is set
  * (Wildfire Spirit, Drake, …). Kept compatible with rich naparniki model.
+ * Stats/actions come from the feature summon block (prefilled from Tasha/bestiary data).
  */
 export function applyFeatureSummon(input: {
   companions: CompanionEntry[]
@@ -975,6 +977,11 @@ export function applyFeatureSummon(input: {
     nature: defaultNatureForKind(kind),
     name: input.summon.nameRu,
     notes: input.summon.notesRu ?? '',
+    actions: input.summon.actionsRu?.trim() || '',
+    bestiary_ref:
+      input.featureId === 'summon_wildfire_spirit' ? 'wildfire_spirit' : null,
+    bestiary_name_ru:
+      input.featureId === 'summon_wildfire_spirit' ? input.summon.nameRu : null,
     source: {
       kind: 'feature',
       labelRu: input.summon.nameRu,
