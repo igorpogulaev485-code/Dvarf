@@ -8706,6 +8706,16 @@ button.play-desk-vital:hover,
   border-color: color-mix(in srgb, var(--desk-accent) 35%, var(--desk-line));
 }
 
+.play-desk-compact__card.is-incomplete {
+  border-style: dashed;
+}
+
+.play-desk-compact__card-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--desk-muted);
+}
+
 .play-desk-compact__card:disabled {
   opacity: 0.65;
   cursor: default;
