@@ -2,7 +2,7 @@
 
 ## History — Magic Initiate feat-spells merge (2026-10-22)
 
-- **Prod tip:** `cursor/magic-initiate-feat-spells-merge-1cc0` (поверх `magic-qa-fix-7fb8`).
+- **Prod tip (then):** `cursor/magic-initiate-feat-spells-merge-1cc0` (поверх `magic-qa-fix-7fb8`).
 - **Shipped:** create-pipeline merge keeps `source_kind: feat` (+ race/subclass); sheet heal rematerializes missing feat spells from ledger.
 - **URL:** https://creed20.tech/ — `/health` ok after deploy.
 
@@ -17,12 +17,22 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/magic-initiate-feat-spells-merge-1cc0`  
+**Prod tip (ветка линии прода):** `cursor/amulet-devout-bonuses-9b04`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
 
 ## Сейчас в продукте — свежее
+
+### 2026-10-28 — Амулет благочестия: атака/Сл + Божественный канал
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Бонус заклинателя | Надетый + настроенный амулет даёт `+N` к атаке заклинанием и Сл (через modifiers) | Жрец/паладин видит правильные числа на столе |
+| Свободный канал | Ресурс «· Божественный канал» ×1 / длинный отдых | Канал без траты классового пула |
+| Legacy-инвентарь | Бонусы по имени «Амулет благочестия +N» | Уже лежащий амулет работает без передобавления |
+
+На проде: **да** · ветка `cursor/amulet-devout-bonuses-9b04` · это **новый prod tip** · база `cursor/magic-initiate-feat-spells-merge-1cc0` · бандл `CharacterDetailPage-C61fNpzp.js` (`gear:spellcasting_bonus`) · alembic `l7a8b9c0d1e2` · проверено 2026-10-28: `/health` ok; контуры Identity/Lobby/Cabinet/remote-up на месте
 
 ### 2026-10-22 — Magic Initiate: feat-спеллы в общем списке
 
@@ -31,7 +41,7 @@
 | Merge create-pipeline | В `known` остаются race + feat + subclass из draft | «Посвящённый в магию» с расы виден рядом с gift-чертами |
 | Heal на листе | Нет строк feat-spell при живом ledger → rematerialize | Старые персонажи восстанавливают MI без пересоздания |
 
-На проде: **да** · **это новый prod tip** `cursor/magic-initiate-feat-spells-merge-1cc0` · PR #273 · залито 2026-10-22 · поверх tip `magic-qa-fix-7fb8` · `/health` pending verify
+На проде: **да** · **это новый prod tip** `cursor/amulet-devout-bonuses-9b04` · PR #273 · залито 2026-10-22 · поверх tip `magic-qa-fix-7fb8` · `/health` pending verify
 
 ### 2026-10-22 — Teodor spell ship (МС стол + книга + known)
 
@@ -810,15 +820,6 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 <!-- magic-initiate-feat-spells-merge залито 2026-10-22 → tip magic-initiate-feat-spells-merge-1cc0; блок в «Сейчас в продукте» -->
 
-### 2026-10-28 — Амулет благочестия: атака/Сл + Божественный канал
-
-| Функция | Как работает | Эффект для пользователя |
-|--------|--------------|-------------------------|
-| Бонус заклинателя | Надетый + настроенный амулет даёт `+N` к атаке заклинанием и Сл (через modifiers) | Жрец/паладин видит правильные числа на столе и в панели заклинаний |
-| Свободный канал | Отдельный ресурс «· Божественный канал» ×1 / длинный отдых; диалог опций канала | Можно использовать канал без траты классового пула |
-| Legacy-инвентарь | Даже если в предмете только `custom_note`, бонусы читаются по имени «Амулет благочестия +N» | Уже лежащий амулет чинится без передобавления |
-
-На проде: **нет** · ветка `cursor/amulet-devout-bonuses-9b04` · merge tip `cursor/magic-initiate-feat-spells-merge-1cc0`
 
 <!-- artificer-infusions-full залито 2026-10-21 → tip artificer-infusions-full-ab30; блок в «Сейчас в продукте» -->
 <!-- spells-feats-infusions залито 2026-10-21 → tip spells-feats-infusions-ab30; блок в «Сейчас в продукте» -->

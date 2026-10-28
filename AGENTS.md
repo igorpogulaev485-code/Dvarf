@@ -30,7 +30,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/magic-initiate-feat-spells-merge-1cc0` |
+| Prod tip (сейчас) | `cursor/amulet-devout-bonuses-9b04` |
 | URL | https://creed20.tech/ |
 | SSH / deploy host | `201.34.132.252` (не открывать в браузере — редирект на creed20) |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
