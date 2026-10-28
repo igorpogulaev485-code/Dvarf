@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Warlock + official patrons for sheet unlock",
     "edition": "2014",
     "source": "phb+scag+xgte+tcoe+vrgr",
-    "notes_ru": "Pact Magic — в casterProgression (short rest). Инвокации multi-pick. Pact Boon choice. Mystic Arcanum 6–9 = 1× long. Архетипы — каркас. H4b depth wave 2: casters/artificer/druid scales·pools."
+    "notes_ru": "Pact Magic — в casterProgression (short rest). Инвокации multi-pick. Pact Boon choice. Mystic Arcanum 6–9 = 1× long. Архетипы — каркас. H4b depth wave 2: casters/artificer/druid scales·pools. · TCoE optional class features."
   },
   "class_slug": "warlock",
   "features": [
@@ -86,6 +86,16 @@
           "feat_coming_soon"
         ]
       }
+    },
+    {
+      "id": "eldritch_versatility",
+      "level": 4,
+      "name_ru": "Мистическая универсальность",
+      "name_en": "Eldritch Versatility",
+      "summary_ru": "Tasha (optional): когда берёшь ASI, можешь заменить один заговор колдуна, одно воззвание или (если есть) выбор договора Пакт.",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe"
     },
     {
       "id": "asi_8_warlock",

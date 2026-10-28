@@ -1,7 +1,8 @@
+import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { ProfileAvatar } from '../cabinet/ProfileAvatar'
 import type { User } from '../../shared/api/auth'
-import { Button, Text } from '../../ui'
+import { Button, Dialog, Text } from '../../ui'
 
 type AppHeaderProps = {
   title: string
@@ -17,6 +18,16 @@ const NAV = [
 
 export function AppHeader({ title, subtitle, user, onOfficialSite }: AppHeaderProps) {
   const nickname = user?.display_name?.trim() || user?.email || 'Профиль'
+  const [moreOpen, setMoreOpen] = useState(false)
+
+  useEffect(() => {
+    if (!moreOpen) return
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') setMoreOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [moreOpen])
 
   return (
     <header className="app-header">
@@ -49,10 +60,57 @@ export function AppHeader({ title, subtitle, user, onOfficialSite }: AppHeaderPr
             Личный кабинет
           </NavLink>
         )}
-        <Button variant="secondary" onClick={onOfficialSite}>
-          Официальный сайт
+        <Button
+          variant="secondary"
+          className="app-header__official"
+          onClick={onOfficialSite}
+        >
+          Сайт КриD20
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          className="app-header__more-btn"
+          aria-label="Ещё"
+          aria-haspopup="dialog"
+          aria-expanded={moreOpen}
+          onClick={() => setMoreOpen(true)}
+        >
+          ⋯
         </Button>
       </div>
+
+      <Dialog
+        open={moreOpen}
+        title="Ещё"
+        primaryLabel="Закрыть"
+        secondaryLabel="Отмена"
+        onPrimary={() => setMoreOpen(false)}
+        onSecondary={() => setMoreOpen(false)}
+        closeOnBackdrop
+      >
+        <div className="app-header__more-sheet" role="menu">
+          <button
+            type="button"
+            role="menuitem"
+            className="app-header__more-item"
+            onClick={() => {
+              setMoreOpen(false)
+              onOfficialSite()
+            }}
+          >
+            Сайт КриD20
+          </button>
+          <NavLink
+            role="menuitem"
+            className="app-header__more-item"
+            to="/cabinet"
+            onClick={() => setMoreOpen(false)}
+          >
+            Личный кабинет
+          </NavLink>
+        </div>
+      </Dialog>
     </header>
   )
 }

@@ -1,10 +1,14 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { startSessionKeepAlive } from './shared/api/client'
 import './index.css'
 import App from './App.tsx'
+import { bootstrapAccountAppearance } from './shared/theme/accountAppearance'
 
-startSessionKeepAlive()
+// Apply cached theme before first paint of React — avoids «Листва» flash after deploy.
+bootstrapAccountAppearance()
+
+const boot = document.getElementById('boot')
+if (boot) boot.hidden = true
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

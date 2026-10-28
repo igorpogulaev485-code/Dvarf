@@ -16,6 +16,7 @@ import {
   formatGpTotal,
   type CoinPurse,
 } from '../../shared/dnd/weight'
+import { HoverTipCard, VITAL_TIPS } from '../onboarding'
 import { NumberPadDialog } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
 import { HpPadDialog } from './HpPadDialog'
@@ -28,11 +29,13 @@ import {
   IconBolt,
   IconBoot,
   IconCoin,
+  IconJump,
   IconRest,
   IconShield,
   IconSkull,
   IconSpark,
 } from './deskIcons'
+import { formatJumpTitle } from '../../shared/dnd/jumpDistance'
 import { formatModifier } from './sheetTypes'
 
 type SpeedMode = {
@@ -58,6 +61,14 @@ type PlayDeskHeaderProps = {
   play: PlayState
   autoAc: number
   acHint: string
+  /** Open AC breakdown / buffs dialog. */
+  onOpenAc?: () => void
+  /** Shield currently in hand (affects AC). */
+  shieldInHand?: boolean
+  /** At least one shield exists in inventory for the quick toggle. */
+  shieldAvailable?: boolean
+  /** Draw / stow shield from the AC vital. */
+  onToggleShield?: () => void
   speed: number | null
   /** Extra walk-speed note (e.g. gear bonus) for title tooltip. */
   movementHint?: string | null
@@ -65,6 +76,9 @@ type PlayDeskHeaderProps = {
   climbSpeed?: number | null
   swimSpeed?: number | null
   flySpeed?: number | null
+  /** PHB running long / high jump (ft) — shown as a vital like speed. */
+  jumpLongFt?: number | null
+  jumpHighFt?: number | null
   proficiencyBonus: number
   initiative: number
   inspiration: boolean
@@ -78,6 +92,8 @@ type PlayDeskHeaderProps = {
   onToggleInspiration: () => void
   onExhaustionChange: (exhaustion: number) => void
   onInitiativeRoll?: () => void
+  /** Open initiative breakdown / buffs (preferred over direct roll). */
+  onOpenInitiative?: () => void
   onPlayChange: (play: PlayState) => void
   onCoinsChange: (coins: CoinPurse) => void
   onCombatChange: (patch: {
@@ -90,6 +106,8 @@ type PlayDeskHeaderProps = {
   /** Controlled CoinPad (Explore inventory readout opens the same pad). */
   coinPadOpen?: boolean
   onCoinPadOpenChange?: (open: boolean) => void
+  /** Absolute beginner: «?» next to key numbers (КД, хиты, БМ…). */
+  showValueTips?: boolean
 }
 
 export function PlayDeskHeader({
@@ -108,11 +126,17 @@ export function PlayDeskHeader({
   play,
   autoAc,
   acHint,
+  onOpenAc,
+  shieldInHand = false,
+  shieldAvailable = false,
+  onToggleShield,
   speed,
   movementHint = null,
   climbSpeed = null,
   swimSpeed = null,
   flySpeed = null,
+  jumpLongFt = null,
+  jumpHighFt = null,
   proficiencyBonus,
   initiative,
   inspiration,
@@ -125,6 +149,7 @@ export function PlayDeskHeader({
   onToggleInspiration,
   onExhaustionChange,
   onInitiativeRoll,
+  onOpenInitiative,
   onPlayChange,
   onCoinsChange,
   onCombatChange,
@@ -132,6 +157,7 @@ export function PlayDeskHeader({
   onDamaged,
   coinPadOpen: coinPadOpenProp,
   onCoinPadOpenChange,
+  showValueTips = false,
 }: PlayDeskHeaderProps) {
   const alignmentLabel = alignment.trim()
   const editionLabel = String(rulesEdition).trim() || '2014'
@@ -357,26 +383,81 @@ export function PlayDeskHeader({
 
       <div className="play-desk-header__mid">
         <div className="play-desk-header__vitals">
-          <div className="play-desk-vital play-desk-vital--shield" title={acHint}>
+          <div
+            className={`play-desk-vital play-desk-vital--shield${
+              shieldInHand ? ' is-shield-on' : ''
+            }${onOpenAc ? ' play-desk-vital--clickable' : ''}${
+              showValueTips ? ' has-onboarding-tip' : ''
+            }`}
+            title={
+              showValueTips
+                ? undefined
+                : onOpenAc
+                  ? `${acHint}. Нажми, чтобы открыть разборку КД и бонусы`
+                  : acHint
+            }
+            role={onOpenAc ? 'button' : undefined}
+            tabIndex={onOpenAc ? 0 : undefined}
+            aria-label={
+              onOpenAc
+                ? `Класс защиты ${autoAc}. Открыть разборку`
+                : `Класс защиты ${autoAc}`
+            }
+            onClick={() => onOpenAc?.()}
+            onKeyDown={(event) => {
+              if (!onOpenAc) return
+              if (event.key !== 'Enter' && event.key !== ' ') return
+              event.preventDefault()
+              onOpenAc()
+            }}
+          >
             <IconShield className="play-desk-vital__icon" />
             <b>{autoAc}</b>
-            <span>КД</span>
+            <span className="play-desk-vital__label-row">КД</span>
+            {onToggleShield ? (
+              <button
+                type="button"
+                className={`play-desk-vital__shield-tog${
+                  shieldInHand ? ' is-on' : ''
+                }${shieldAvailable || shieldInHand ? '' : ' is-empty'}`}
+                aria-pressed={shieldInHand}
+                aria-label={
+                  shieldInHand ? 'Убрать щит из руки' : 'Взять щит в руку'
+                }
+                title={
+                  shieldInHand
+                    ? 'Щит в руке — нажми, чтобы убрать (КД −бонус щита)'
+                    : shieldAvailable
+                      ? 'Взять щит в руку — КД с бонусом щита'
+                      : 'Нет щита в инвентаре'
+                }
+                disabled={!shieldAvailable && !shieldInHand}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onToggleShield()
+                }}
+              >
+                щит
+              </button>
+            ) : null}
+            {showValueTips ? <HoverTipCard tip={VITAL_TIPS.ac} /> : null}
           </div>
           <div
             className={`play-desk-vital play-desk-vital--speed${
               primarySpeed && primarySpeed.key !== 'walk' ? ' play-desk-vital--alt-primary' : ''
-            }`}
-            title={speedTitle}
+            }${showValueTips ? ' has-onboarding-tip' : ''}`}
+            title={showValueTips ? undefined : speedTitle}
           >
             <IconBoot className="play-desk-vital__icon" />
             <b>{primarySpeed ? primarySpeed.value : '—'}</b>
-            <span>
+            <span className="play-desk-vital__label-row">
               {primarySpeed
                 ? primarySpeed.key === 'walk'
                   ? 'Скор.'
                   : primarySpeed.label
                 : 'Скор.'}
             </span>
+            {showValueTips ? <HoverTipCard tip={VITAL_TIPS.speed} /> : null}
           </div>
           {secondarySpeeds.length > 0 ? (
             <div
@@ -393,56 +474,120 @@ export function PlayDeskHeader({
               </ul>
             </div>
           ) : null}
-          {onInitiativeRoll ? (
+          {jumpLongFt != null && jumpHighFt != null ? (
+            <div
+              className={`play-desk-vital play-desk-vital--jump${
+                showValueTips ? ' has-onboarding-tip' : ''
+              }`}
+              aria-label={`Прыжок: длинный ${jumpLongFt} фт, высокий ${jumpHighFt} фт`}
+              title={
+                showValueTips
+                  ? undefined
+                  : formatJumpTitle({ longFt: jumpLongFt, highFt: jumpHighFt })
+              }
+            >
+              <IconJump className="play-desk-vital__icon" />
+              <b>
+                {jumpLongFt}
+                <span className="play-desk-vital__slash" aria-hidden>
+                  /
+                </span>
+                {jumpHighFt}
+              </b>
+              <span className="play-desk-vital__label-row">Прыж.</span>
+              {showValueTips ? <HoverTipCard tip={VITAL_TIPS.jump} /> : null}
+            </div>
+          ) : null}
+          {onOpenInitiative ? (
             <button
               type="button"
-              className="play-desk-vital"
-              title="Бросок инициативы (значение считается автоматически)"
+              className={`play-desk-vital play-desk-vital--clickable${
+                showValueTips ? ' has-onboarding-tip' : ''
+              }`}
+              title={
+                showValueTips
+                  ? undefined
+                  : `${formatModifier(initiative)} инициатива. Нажми — разборка и бонусы`
+              }
+              aria-label={`Инициатива ${formatModifier(initiative)}. Открыть разборку`}
+              onClick={onOpenInitiative}
+            >
+              <IconBolt className="play-desk-vital__icon" />
+              <b>{formatModifier(initiative)}</b>
+              <span className="play-desk-vital__label-row">Иниц.</span>
+              {showValueTips ? <HoverTipCard tip={VITAL_TIPS.initiative} /> : null}
+            </button>
+          ) : onInitiativeRoll ? (
+            <button
+              type="button"
+              className={`play-desk-vital${showValueTips ? ' has-onboarding-tip' : ''}`}
+              title={
+                showValueTips
+                  ? undefined
+                  : 'Бросок инициативы (значение считается автоматически)'
+              }
               onClick={onInitiativeRoll}
             >
               <IconBolt className="play-desk-vital__icon" />
               <b>{formatModifier(initiative)}</b>
-              <span>Иниц.</span>
+              <span className="play-desk-vital__label-row">Иниц.</span>
+              {showValueTips ? <HoverTipCard tip={VITAL_TIPS.initiative} /> : null}
             </button>
           ) : (
-            <div className="play-desk-vital" title="Инициатива (авто)">
+            <div
+              className={`play-desk-vital${showValueTips ? ' has-onboarding-tip' : ''}`}
+              title={showValueTips ? undefined : 'Инициатива (авто)'}
+            >
               <IconBolt className="play-desk-vital__icon" />
               <b>{formatModifier(initiative)}</b>
-              <span>Иниц.</span>
+              <span className="play-desk-vital__label-row">Иниц.</span>
+              {showValueTips ? <HoverTipCard tip={VITAL_TIPS.initiative} /> : null}
             </div>
           )}
-          <div className="play-desk-vital" title="Бонус мастерства (от уровня)">
+          <div
+            className={`play-desk-vital${showValueTips ? ' has-onboarding-tip' : ''}`}
+            title={showValueTips ? undefined : 'Бонус мастерства (от уровня)'}
+          >
             <IconBadge className="play-desk-vital__icon" />
             <b>{formatModifier(proficiencyBonus)}</b>
-            <span>БМ</span>
+            <span className="play-desk-vital__label-row">БМ</span>
+            {showValueTips ? <HoverTipCard tip={VITAL_TIPS.proficiency} /> : null}
           </div>
           <div className="play-desk-header__stack">
             <button
               type="button"
-              className={`play-desk-header__chip${inspiration ? ' is-on' : ''}`}
+              className={`play-desk-header__chip${inspiration ? ' is-on' : ''}${
+                showValueTips ? ' has-onboarding-tip' : ''
+              }`}
               onClick={onToggleInspiration}
               aria-pressed={inspiration}
-              title="Вдохновение — нажми, чтобы переключить"
+              title={showValueTips ? undefined : 'Вдохновение — нажми, чтобы переключить'}
             >
               <IconSpark className="play-desk-header__chip-icon" />
-              <span>Вдохн.</span>
+              <span className="play-desk-vital__label-row">Вдохн.</span>
               <b>{inspiration ? 'да' : '—'}</b>
+              {showValueTips ? <HoverTipCard tip={VITAL_TIPS.inspiration} /> : null}
             </button>
             <button
               type="button"
-              className={`play-desk-header__chip${play.exhaustion > 0 ? ' is-warn' : ''}`}
+              className={`play-desk-header__chip${play.exhaustion > 0 ? ' is-warn' : ''}${
+                showValueTips ? ' has-onboarding-tip' : ''
+              }`}
               title={
-                exhaustionStage
-                  ? `Истощение ${play.exhaustion}: ${exhaustionStage}`
-                  : 'Истощение — нажми, чтобы изменить уровень (0–6)'
+                showValueTips
+                  ? undefined
+                  : exhaustionStage
+                    ? `Истощение ${play.exhaustion}: ${exhaustionStage}`
+                    : 'Истощение — нажми, чтобы изменить уровень (0–6)'
               }
               onClick={() => {
                 const next = play.exhaustion >= 6 ? 0 : play.exhaustion + 1
                 onExhaustionChange(clampExhaustion(next))
               }}
             >
-              <span>Истощ.</span>
+              <span className="play-desk-vital__label-row">Истощ.</span>
               <b>{play.exhaustion}</b>
+              {showValueTips ? <HoverTipCard tip={VITAL_TIPS.exhaustion} /> : null}
             </button>
             {exhaustionStage ? (
               <span className="play-desk-header__exh-hint" title={exhaustionStage}>
@@ -471,9 +616,14 @@ export function PlayDeskHeader({
               <small>Нажми — взять / отдать</small>
             </span>
           </button>
-          <button type="button" className="play-desk-header__rest" onClick={onOpenRest}>
+          <button
+            type="button"
+            className={`play-desk-header__rest${showValueTips ? ' has-onboarding-tip' : ''}`}
+            onClick={onOpenRest}
+          >
             <IconRest className="play-desk-header__btn-icon" />
-            <span>Отдых</span>
+            <span className="play-desk-vital__label-row">Отдых</span>
+            {showValueTips ? <HoverTipCard tip={VITAL_TIPS.rest} /> : null}
           </button>
         </div>
         <div className="play-desk-header__hp-wrap">
@@ -481,23 +631,26 @@ export function PlayDeskHeader({
             type="button"
             className={`play-desk-header__hp${hpPulse ? ' is-pulse' : ''}${
               showDeath ? ' is-critical' : ''
-            }`}
+            }${showValueTips ? ' has-onboarding-tip' : ''}`}
             title={
-              showDeath
-                ? 'Хиты ≤ 0 — спасброски от смерти рядом'
-                : hpTemp > 0
-                  ? `врем. +${hpTemp}`
-                  : 'Хиты — лечение, урон, кости, смерть'
+              showValueTips
+                ? undefined
+                : showDeath
+                  ? 'Хиты ≤ 0 — спасброски от смерти рядом'
+                  : hpTemp > 0
+                    ? `врем. +${hpTemp}`
+                    : 'Хиты — лечение, урон, кости, смерть'
             }
             onClick={() => setHpPadOpen(true)}
           >
             <strong>
               {hpCurrent ?? '—'} / {hpMax ?? '—'}
             </strong>
-            <small>
+            <small className="play-desk-vital__label-row">
               {showDeath ? 'при смерти' : 'хиты'}
               {hpTemp > 0 ? ` · врем. +${hpTemp}` : ''}
             </small>
+            {showValueTips ? <HoverTipCard tip={VITAL_TIPS.hp} /> : null}
           </button>
           <div
             className={`play-desk-header__death-slot${showDeath ? ' is-open' : ''}`}

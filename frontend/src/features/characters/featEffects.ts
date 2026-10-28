@@ -129,7 +129,7 @@ function featSpellToSheetSpell(
   }
 }
 
-function syncFeatSpellsForGrant(input: {
+export function syncFeatSpellsForGrant(input: {
   spells: SpellsState
   grant: AppliedFeatGrant
   characterLevel: number
@@ -161,6 +161,55 @@ function syncFeatSpellsForGrant(input: {
     return next
   })
   return { ...input.spells, known: [...withoutGrant, ...nextRows] }
+}
+
+/** Expected feat-spell row ids for unlocked spells on the ledger. */
+export function expectedFeatSpellIds(
+  grants: readonly AppliedFeatGrant[],
+  characterLevel: number,
+): string[] {
+  const level = Math.max(1, Math.floor(characterLevel))
+  const ids: string[] = []
+  for (const grant of grants) {
+    for (const spell of grant.applied.spells ?? []) {
+      if (level < spell.unlockLevel) continue
+      ids.push(featSpellId(grant.id, spell.id))
+    }
+  }
+  return ids
+}
+
+/**
+ * True when ledger lists feat spells that are missing from `known`
+ * (create-pipeline used to drop `source_kind: 'feat'` on save).
+ */
+export function featSpellsMissingFromKnown(input: {
+  known: readonly SheetSpell[]
+  featGrants: readonly AppliedFeatGrant[]
+  characterLevel: number
+}): boolean {
+  if (!input.featGrants.length) return false
+  const have = new Set(input.known.map((row) => row.id))
+  return expectedFeatSpellIds(input.featGrants, input.characterLevel).some(
+    (id) => !have.has(id),
+  )
+}
+
+/** Rematerialize all ledger feat spells into the sheet spell list. */
+export function ensureFeatSpellsFromLedger(input: {
+  spells: SpellsState
+  featGrants: readonly AppliedFeatGrant[]
+  characterLevel: number
+}): SpellsState {
+  let spells = input.spells
+  for (const grant of input.featGrants) {
+    spells = syncFeatSpellsForGrant({
+      spells,
+      grant,
+      characterLevel: input.characterLevel,
+    })
+  }
+  return spells
 }
 
 function applyPackage(input: {

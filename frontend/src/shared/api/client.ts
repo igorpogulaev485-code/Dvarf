@@ -34,38 +34,28 @@ export function setTokens(accessToken: string, refreshToken: string): void {
 export function clearTokens(): void {
   localStorage.removeItem(ACCESS_TOKEN_KEY)
   localStorage.removeItem(REFRESH_TOKEN_KEY)
-  // Avoid holding catalog lists across accounts on shared devices.
-  void import('./catalog')
-    .then((mod) => mod.clearCatalogCache())
-    .catch(() => undefined)
 }
 
 let refreshInFlight: Promise<boolean> | null = null
 
 /** Fail fast — a stuck refresh must not leave the UI on «Загрузка…» forever. */
 const REFRESH_TIMEOUT_MS = 12_000
-/** Refresh access a few minutes before JWT exp so saves mid-game do not 401. */
-const ACCESS_REFRESH_SKEW_MS = 5 * 60 * 1000
-const KEEP_ALIVE_INTERVAL_MS = 10 * 60 * 1000
+/** General API budget. Without this, hung /characters leaves «Загружаем персонажей…» forever. */
+const REQUEST_TIMEOUT_MS = 20_000
+/** List/summary GETs should fail fast — heavy sheet JSON is not needed here. */
+const LIST_TIMEOUT_MS = 12_000
 
-function readJwtExpMs(token: string | null): number | null {
-  if (!token) return null
-  const parts = token.split('.')
-  if (parts.length < 2) return null
-  try {
-    const normalized = parts[1]!.replace(/-/g, '+').replace(/_/g, '/')
-    const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4)
-    const payload = JSON.parse(atob(padded)) as { exp?: unknown }
-    return typeof payload.exp === 'number' ? payload.exp * 1000 : null
-  } catch {
-    return null
+function timeoutMsForPath(path: string): number {
+  if (path.startsWith('/auth/login') || path.startsWith('/auth/register')) {
+    return 15_000
   }
-}
-
-function accessNeedsRefresh(token: string | null = getAccessToken()): boolean {
-  const expMs = readJwtExpMs(token)
-  if (expMs == null) return Boolean(getRefreshToken())
-  return expMs - Date.now() <= ACCESS_REFRESH_SKEW_MS
+  if (path.startsWith('/auth/refresh')) {
+    return REFRESH_TIMEOUT_MS
+  }
+  if (path === '/characters' || path === '/lobbies' || path === '/auth/me') {
+    return LIST_TIMEOUT_MS
+  }
+  return REQUEST_TIMEOUT_MS
 }
 
 async function tryRefreshAccessToken(): Promise<boolean> {
@@ -91,12 +81,8 @@ async function tryRefreshAccessToken(): Promise<boolean> {
         body: JSON.stringify({ refresh_token: refreshToken }),
         signal: controller.signal,
       })
-      if (response.status === 401 || response.status === 403) {
-        clearTokens()
-        return false
-      }
       if (!response.ok) {
-        // Transient API flap / session_busy — keep tokens; caller may retry.
+        clearTokens()
         return false
       }
       const data = (await response.json()) as {
@@ -106,7 +92,7 @@ async function tryRefreshAccessToken(): Promise<boolean> {
       setTokens(data.access_token, data.refresh_token)
       return true
     } catch {
-      // Network / abort: do not wipe a still-valid login for a blip.
+      clearTokens()
       return false
     } finally {
       window.clearTimeout(timer)
@@ -115,37 +101,6 @@ async function tryRefreshAccessToken(): Promise<boolean> {
   })()
 
   return refreshInFlight
-}
-
-/** Extend the login before a long save / when the tab returns to focus. */
-export async function ensureSession(): Promise<boolean> {
-  if (!getRefreshToken()) return false
-  if (!accessNeedsRefresh()) return true
-  const ok = await tryRefreshAccessToken()
-  if (ok) return true
-  // Another tab may have refreshed while we waited.
-  return !accessNeedsRefresh(getAccessToken())
-}
-
-let keepAliveStarted = false
-
-/** Call once from the app shell — keeps 8h table sessions from expiring quietly. */
-export function startSessionKeepAlive(): void {
-  if (keepAliveStarted || typeof window === 'undefined') return
-  keepAliveStarted = true
-
-  const tick = () => {
-    if (!getRefreshToken()) return
-    void ensureSession()
-  }
-
-  window.setInterval(tick, KEEP_ALIVE_INTERVAL_MS)
-  window.addEventListener('focus', tick)
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') tick()
-  })
-  window.addEventListener('online', tick)
-  tick()
 }
 
 function errorMessage(data: ApiError): string {
@@ -164,21 +119,12 @@ export async function apiRequest<T>(
   options: RequestInit = {},
   retried = false,
 ): Promise<T> {
-  if (
-    !retried &&
-    !path.startsWith('/auth/login') &&
-    !path.startsWith('/auth/register') &&
-    !path.startsWith('/auth/refresh')
-  ) {
-    await ensureSession()
-  }
-
   const headers = new Headers(options.headers)
   const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData
   if (!headers.has('Content-Type') && options.body && !isFormData) {
     headers.set('Content-Type', 'application/json')
   }
-  // Force JSON Accept (overwrite) so nginx never mistakes an API call for SPA nav.
+  // Force JSON Accept + client marker so nginx never rewrites API to SPA HTML.
   headers.set('Accept', 'application/json')
   headers.set('X-Dvarf-Client', 'app')
 
@@ -187,19 +133,53 @@ export async function apiRequest<T>(
     headers.set('Authorization', `Bearer ${accessToken}`)
   }
 
+  const timeoutMs = timeoutMsForPath(path)
+  const controller = new AbortController()
+  const externalSignal = options.signal
+  const onExternalAbort = () => controller.abort()
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort()
+    } else {
+      externalSignal.addEventListener('abort', onExternalAbort, { once: true })
+    }
+  }
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs)
+
   let response: Response
   try {
     response = await fetch(path, {
       ...options,
       headers,
+      signal: controller.signal,
+      // Dual-purpose URLs (/characters) must never reuse a cached SPA HTML shell.
+      cache: 'no-store',
     })
-  } catch {
+  } catch (err) {
+    if (controller.signal.aborted && !externalSignal?.aborted) {
+      throw new ApiRequestError(
+        'Сервер временно недоступен — подождите пару секунд и повторите',
+        504,
+        'api_unavailable',
+      )
+    }
+    if (err instanceof ApiRequestError) {
+      throw err
+    }
     throw new ApiRequestError(
       'Нет связи с сервером — проверьте сеть и повторите',
       0,
       'network_error',
     )
+  } finally {
+    window.clearTimeout(timer)
+    externalSignal?.removeEventListener('abort', onExternalAbort)
   }
+
+  // Public OAuth start/callback must not trigger refresh; link/unlink need auth.
+  const isAnonymousOauth =
+    /^\/auth\/oauth\/[^/]+\/start$/.test(path) ||
+    /^\/auth\/oauth\/[^/]+\/callback/.test(path)
 
   if (
     response.status === 401 &&
@@ -211,33 +191,21 @@ export async function apiRequest<T>(
     !path.startsWith('/auth/reset-password') &&
     !path.startsWith('/auth/verify-email') &&
     !path.startsWith('/auth/resend-verification') &&
-    !path.startsWith('/auth/oauth') &&
+    !isAnonymousOauth &&
     !path.startsWith('/auth/me/email/confirm')
   ) {
     const refreshed = await tryRefreshAccessToken()
     if (refreshed) {
       return apiRequest<T>(path, options, true)
     }
-    // Another tab may have written fresh tokens during the failed refresh.
-    if (!accessNeedsRefresh(getAccessToken()) && getAccessToken()) {
-      return apiRequest<T>(path, options, true)
-    }
-    // Expired access without a usable refresh — drop the stale access token
-    // so LoginRoute does not bounce back into a RequireAuth dead-end.
     clearTokens()
-    throw new ApiRequestError(
-      'Сессия истекла — войдите снова',
-      401,
-      'unauthorized',
-    )
+    throw new ApiRequestError('Сессия истекла — войдите снова', 401, 'unauthorized')
   }
 
   if (response.status === 204) {
     return undefined as T
   }
 
-  // API container flap (deploy/restart) → nginx 502/503/504. One short retry
-  // covers autosave races; otherwise show a clear temporary-unavailable message.
   if (
     !retried &&
     (response.status === 502 || response.status === 503 || response.status === 504)

@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, defer
 
 from app.models.character import Character, RulesEdition
 
@@ -14,9 +14,12 @@ class CharacterRepository:
         self.db = db
 
     def list_for_user(self, user_id: UUID) -> list[Character]:
+        # List cards only need summary columns. Full sheet JSONB can be
+        # hundreds of KB per row and was the main cost of «Загружаем персонажей…».
         return list(
             self.db.scalars(
                 select(Character)
+                .options(defer(Character.sheet))
                 .where(
                     Character.user_id == user_id,
                     Character.deleted_at.is_(None),
@@ -30,6 +33,14 @@ class CharacterRepository:
             select(Character).where(
                 Character.id == character_id,
                 Character.user_id == user_id,
+                Character.deleted_at.is_(None),
+            )
+        )
+
+    def get_active(self, character_id: UUID) -> Character | None:
+        return self.db.scalar(
+            select(Character).where(
+                Character.id == character_id,
                 Character.deleted_at.is_(None),
             )
         )

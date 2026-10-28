@@ -3,7 +3,7 @@
     "purpose": "2014 Cleric + all 14 official domains for sheet unlock",
     "edition": "2014",
     "source": "phb+dmg+scag+xgte+tcoe",
-    "notes_ru": "14 доменов. Channel Divinity — общий пул (Turn Undead + cd_*). DI: success_lock 7 дней. Always-prepared/grants — в каталоге. H4b depth wave 2: casters/artificer/druid scales·pools."
+    "notes_ru": "14 доменов. Channel Divinity — общий пул (Turn Undead + cd_*). DI: success_lock 7 дней. Always-prepared/grants — в каталоге. H4b depth wave 2: casters/artificer/druid scales·pools. · TCoE optional class features."
   },
   "class_slug": "cleric",
   "features": [
@@ -64,6 +64,28 @@
       }
     },
     {
+      "id": "cd_harness_divine_power",
+      "level": 2,
+      "name_ru": "Праведное восстановление",
+      "name_en": "Harness Divine Power",
+      "summary_ru": "Бонусным действием Channel Divinity: восстановить одну потраченную ячейку заклинаний (уровень ≤ половины уровня жреца, округление вверх). Число раз = бонус мастерства / долгий отдых (Tasha).",
+      "kind": "bonus",
+      "resource": {
+        "uses": 1,
+        "recharge": "short_rest",
+        "scale_uses": {
+          "2": 1,
+          "6": 2,
+          "18": 3
+        },
+        "pool_id": "channel_divinity",
+        "pool_name_ru": "Божественный канал",
+        "track": "spend"
+      },
+      "optional": true,
+      "source_book": "tcoe"
+    },
+    {
       "id": "asi_4_cleric",
       "level": 4,
       "name_ru": "Увеличение характеристик",
@@ -79,6 +101,16 @@
           "feat_coming_soon"
         ]
       }
+    },
+    {
+      "id": "cantrip_versatility_cleric",
+      "level": 4,
+      "name_ru": "Универсальность заговора",
+      "name_en": "Cantrip Versatility",
+      "summary_ru": "Tasha (optional): когда берёшь ASI, можешь заменить один известный заговор жреца на другой из списка жреца.",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe"
     },
     {
       "id": "destroy_undead",
@@ -114,6 +146,18 @@
           "feat_coming_soon"
         ]
       }
+    },
+    {
+      "id": "blessed_strikes",
+      "level": 8,
+      "name_ru": "Благословенные удары",
+      "name_en": "Blessed Strikes",
+      "summary_ru": "Tasha (optional): альтернатива Divine Strike / Potent Spellcasting домена. Раз в ход +1к8 урона излучением к атаке оружием или к урону заговора жреца.",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe",
+      "desk": "combat",
+      "replaces": "divine_strike_or_potent_spellcasting"
     },
     {
       "id": "divine_intervention",

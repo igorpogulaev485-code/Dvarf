@@ -3,18 +3,10 @@
     "purpose": "PHB 2014 Bard + official colleges for sheet unlock",
     "edition": "2014",
     "source": "phb+xgte+tcoe+vrgr",
-    "notes_ru": "Bardic Inspiration = мод. Хар (мин. 1); кость d6→d12. Font@5 → short rest (тот же pool). Superior Inspiration@20. 8 коллегий каркас. H4b depth: martial/half-caster pools/scales/linked ki·BI."
+    "notes_ru": "Bardic Inspiration = мод. Хар (мин. 1); кость d6→d12. Font@5 → short rest (тот же pool). Superior Inspiration@20. 8 коллегий каркас. H4b depth: martial/half-caster pools/scales/linked ki·BI. · TCoE optional class features."
   },
   "class_slug": "bard",
   "features": [
-    {
-      "id": "spellcasting_bard",
-      "level": 1,
-      "name_ru": "Использование заклинаний",
-      "name_en": "Spellcasting",
-      "summary_ru": "Полный кастер. Харизма — базовая. Известные заклинания (не подготовка).",
-      "kind": "passive"
-    },
     {
       "id": "bardic_inspiration",
       "level": 1,
@@ -42,6 +34,14 @@
       }
     },
     {
+      "id": "spellcasting_bard",
+      "level": 1,
+      "name_ru": "Использование заклинаний",
+      "name_en": "Spellcasting",
+      "summary_ru": "Полный кастер. Харизма — базовая. Известные заклинания (не подготовка).",
+      "kind": "passive"
+    },
+    {
       "id": "jack_of_all_trades",
       "level": 2,
       "name_ru": "Мастер на все руки",
@@ -65,6 +65,16 @@
           "17": "1к12"
         }
       }
+    },
+    {
+      "id": "magical_inspiration",
+      "level": 2,
+      "name_ru": "Магическое вдохновение",
+      "name_en": "Magical Inspiration",
+      "summary_ru": "Tasha (optional): существо с твоей костью BI при заклинании лечения/урона может добавить бросок кости к лечению или урону по одной цели — затем кость тратится.",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe"
     },
     {
       "id": "bard_college",
@@ -104,6 +114,16 @@
           "feat_coming_soon"
         ]
       }
+    },
+    {
+      "id": "bardic_versatility",
+      "level": 4,
+      "name_ru": "Универсальность барда",
+      "name_en": "Bardic Versatility",
+      "summary_ru": "Tasha (optional): когда берёшь ASI, можешь заменить одну компетентность или одно известное заклинание барда на другое того же уровня.",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe"
     },
     {
       "id": "font_of_inspiration",
@@ -148,14 +168,6 @@
       }
     },
     {
-      "id": "magical_secrets_10",
-      "level": 10,
-      "name_ru": "Магические тайны",
-      "name_en": "Magical Secrets",
-      "summary_ru": "Выучи 2 заклинания любого класса (ур. ≤ ячеек барда). Считаются заклинаниями барда. Ещё на 14 и 18.",
-      "kind": "passive"
-    },
-    {
       "id": "expertise_bard_10",
       "level": 10,
       "name_ru": "Компетентность",
@@ -168,6 +180,14 @@
         "options_from": "expertise_skills_tools",
         "max_picks": 2
       }
+    },
+    {
+      "id": "magical_secrets_10",
+      "level": 10,
+      "name_ru": "Магические тайны",
+      "name_en": "Magical Secrets",
+      "summary_ru": "Выучи 2 заклинания любого класса (ур. ≤ ячеек барда). Считаются заклинаниями барда. Ещё на 14 и 18.",
+      "kind": "passive"
     },
     {
       "id": "asi_12_bard",
@@ -287,7 +307,8 @@
           "linked_spend": {
             "pool_id": "bardic_inspiration",
             "label_ru": "кость Бардовского вдохновения",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         }
       },
@@ -321,7 +342,8 @@
           "linked_spend": {
             "pool_id": "bardic_inspiration",
             "label_ru": "кость Бардовского вдохновения",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         }
       }
@@ -363,7 +385,8 @@
           "linked_spend": {
             "pool_id": "bardic_inspiration",
             "label_ru": "кость Бардовского вдохновения",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         }
       },
@@ -411,6 +434,19 @@
             "5": "8",
             "10": "11",
             "15": "14"
+          }
+        },
+        "resource": {
+          "uses": 0,
+          "recharge": "long_rest",
+          "pool_id": "mantle_of_inspiration",
+          "pool_name_ru": "Мантия вдохновения",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "bardic_inspiration",
+            "label_ru": "кость Бардовского вдохновения",
+            "mode": "spend",
+            "amount": 1
           }
         }
       },
@@ -490,7 +526,8 @@
           "linked_spend": {
             "pool_id": "bardic_inspiration",
             "label_ru": "кость Бардовского вдохновения",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         },
         "choice": {
@@ -630,7 +667,8 @@
           "linked_spend": {
             "pool_id": "bardic_inspiration",
             "label_ru": "кость Бардовского вдохновения",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         },
         "scale": {
@@ -793,7 +831,8 @@
           "linked_spend": {
             "pool_id": "bardic_inspiration",
             "label_ru": "кость → бросок таблицы VRGtR",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         }
       },

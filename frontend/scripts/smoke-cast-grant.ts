@@ -33,7 +33,8 @@ const hellish: SheetSpell = {
   ...createSheetSpell(),
   id: 'race-spell:tiefling:hellish_rebuke',
   name: 'Адская месть',
-  level: 1,
+  // PHB Infernal Legacy: cast as a 2nd-level spell
+  level: 2,
   prepared: true,
   prepared_locked: true,
   source_kind: 'race',

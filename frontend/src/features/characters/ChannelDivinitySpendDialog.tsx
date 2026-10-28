@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
+import { listChannelDivinityOptions } from '../../shared/dnd/channelDivinitySpend'
 import { FEATURE_RESOURCE_PREFIX } from '../../shared/dnd/featureResources'
 import type { SheetResource } from '../../shared/dnd/rest'
 import { Button, Dialog, Stack, Text } from '../../ui'
@@ -39,14 +40,8 @@ export function ChannelDivinitySpendDialog({
   const parsed = resource ? parseChannelResourceId(resource.id) : null
 
   const options = useMemo(() => {
-    // Class pool: filter to that class entry. Gear free-charge (amulet): all CD options.
-    return features.filter((feature) => {
-      if (parsed && feature.classEntryId !== parsed.classEntryId) return false
-      if (feature.resource?.pool_id !== 'channel_divinity') return false
-      // Skip the bare pool tracker — show Turn Undead / domain options.
-      if (feature.id === 'channel_divinity') return false
-      return true
-    })
+    // Class pool → that entry. Gear free-charge (amulet) → all CD options.
+    return listChannelDivinityOptions(features, parsed?.classEntryId ?? null)
   }, [features, parsed])
 
   function spend(label: string) {
@@ -74,7 +69,8 @@ export function ChannelDivinitySpendDialog({
 
         {options.length === 0 ? (
           <Text tone="muted">
-            Нет доступных опций — проверь уровень и архетип (Изгнание нежити / домен).
+            Нет доступных опций — нужен домен жреца (Изгнание нежити) или клятва
+            паладина (с 3 ур.).
           </Text>
         ) : (
           <div className="sorcery-spend-list">

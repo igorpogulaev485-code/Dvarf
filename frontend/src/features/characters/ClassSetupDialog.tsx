@@ -1,16 +1,24 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  buildItemsFromEquipmentLines,
+  equipmentLineBlockingReasons,
+  equipmentLinesFor,
   equipmentPackagesFor,
   grantNeedsSetupDialog,
   packageForMode,
+  PHB_LINES_PACKAGE_ID,
   skillOptionsForPackage,
+  validateEquipmentLinePicks,
+  weaponPickCount,
   type ClassEquipmentFocusPick,
+  type ClassEquipmentLinePick,
   type ClassGrantDef,
   type ClassGrantPicks,
 } from '../../shared/dnd/classGrants'
 import type { RulesEdition } from '../../shared/api/characters'
 import { SKILL_DEFS } from './sheetTypes'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
+import { EquipmentLinesField } from './EquipmentLinesField'
 import { FocusCatalogSelect } from './FocusCatalogSelect'
 import {
   detectFocusPlaceholder,
@@ -63,6 +71,7 @@ export function ClassSetupDialog({
     return skillOptionsForPackage(packageForMode(def, mode))
   }, [def, mode])
   const toolOptions = def ? packageForMode(def, mode).toolChoices?.from ?? [] : []
+  const equipmentLines = def && mode === 'start' ? equipmentLinesFor(def) : []
   const equipmentPackages = def && mode === 'start' ? equipmentPackagesFor(def) : []
   const blockedSkills = useMemo(() => new Set(blockedSkillKeys), [blockedSkillKeys])
   const blockedTools = useMemo(
@@ -73,15 +82,24 @@ export function ClassSetupDialog({
   const [skills, setSkills] = useState<string[]>([])
   const [tools, setTools] = useState<string[]>([])
   const [equipmentPackageId, setEquipmentPackageId] = useState<string | null>(null)
+  const [linePicks, setLinePicks] = useState<Record<string, ClassEquipmentLinePick>>({})
   const [focusSelection, setFocusSelection] = useState<FocusSelection | null>(null)
 
   useEffect(() => {
-    if (!open) return
+    if (!open || !def) return
+    const lines = mode === 'start' ? equipmentLinesFor(def) : []
     setSkills([])
     setTools([])
-    setEquipmentPackageId(null)
+    setEquipmentPackageId(lines.length > 0 ? PHB_LINES_PACKAGE_ID : null)
+    const initial: Record<string, ClassEquipmentLinePick> = {}
+    for (const line of lines) {
+      if (line.options.length === 1) {
+        initial[line.id] = { optionId: line.options[0]!.id }
+      }
+    }
+    setLinePicks(initial)
     setFocusSelection(null)
-  }, [open, def?.slug, mode])
+  }, [open, def, mode])
 
   // Multiclass with only fixed armor/weapons (друид, колдун…): nothing to pick —
   // apply empty picks immediately so the dialog does not sit waiting for «Отмена».
@@ -93,6 +111,7 @@ export function ClassSetupDialog({
       tools: [],
       equipmentPackageId: null,
       equipmentFocusPick: null,
+      equipmentLinePicks: {},
     })
     // Intentionally omit onConfirm: parent often passes an inline function.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- open/def/mode gate the auto-apply
@@ -103,18 +122,31 @@ export function ClassSetupDialog({
     [equipmentPackages, equipmentPackageId],
   )
 
+  const lineItems = useMemo(() => {
+    if (equipmentPackageId !== PHB_LINES_PACKAGE_ID || equipmentLines.length === 0) {
+      return null
+    }
+    if (validateEquipmentLinePicks({ lines: equipmentLines, picks: linePicks })) {
+      return null
+    }
+    return buildItemsFromEquipmentLines({ lines: equipmentLines, picks: linePicks })
+  }, [equipmentPackageId, equipmentLines, linePicks])
+
   const focusPlaceholder = useMemo(() => {
-    if (!selectedPack) return null
-    for (const item of selectedPack.items) {
-      const kind = detectFocusPlaceholder(item.name)
-      if (kind) return { name: item.name, kind }
+    const items =
+      equipmentPackageId === PHB_LINES_PACKAGE_ID
+        ? lineItems ?? []
+        : selectedPack?.items ?? []
+    for (const row of items) {
+      const kind = detectFocusPlaceholder(row.name)
+      if (kind) return { name: row.name, kind }
     }
     return null
-  }, [selectedPack])
+  }, [equipmentPackageId, lineItems, selectedPack])
 
   useEffect(() => {
     setFocusSelection(null)
-  }, [equipmentPackageId])
+  }, [equipmentPackageId, linePicks])
 
   function toggleSkill(key: string) {
     if (blockedSkills.has(key)) return
@@ -134,19 +166,72 @@ export function ClassSetupDialog({
     })
   }
 
-  const equipmentOk =
-    mode !== 'start' ||
-    equipmentPackages.length === 0 ||
-    Boolean(equipmentPackageId)
+  function setLineOption(lineId: string, optionId: string) {
+    setEquipmentPackageId(PHB_LINES_PACKAGE_ID)
+    const line = equipmentLines.find((row) => row.id === lineId)
+    const option = line?.options.find((row) => row.id === optionId)
+    const need = option ? weaponPickCount(option) : 0
+    setLinePicks((prev) => ({
+      ...prev,
+      [lineId]: {
+        optionId,
+        weaponName: null,
+        weaponNames: need > 1 ? Array.from({ length: need }, () => null) : null,
+      },
+    }))
+  }
 
-  const focusOk = !focusPlaceholder || focusSelection != null
+  function setLineWeapon(lineId: string, weaponName: string, slotIndex?: number) {
+    setLinePicks((prev) => {
+      const current = prev[lineId]
+      if (!current) return prev
+      if (typeof slotIndex === 'number') {
+        const nextNames = [...(current.weaponNames ?? [])]
+        while (nextNames.length <= slotIndex) nextNames.push(null)
+        nextNames[slotIndex] = weaponName
+        return { ...prev, [lineId]: { ...current, weaponNames: nextNames } }
+      }
+      return { ...prev, [lineId]: { ...current, weaponName } }
+    })
+  }
 
-  const canConfirm =
-    Boolean(def && pkg) &&
-    skills.length === skillNeed &&
-    tools.length === toolNeed &&
-    equipmentOk &&
-    focusOk
+  const blockingReasons = ((): string[] => {
+    const reasons: string[] = []
+    if (!def || !pkg) {
+      reasons.push(
+        'Для этого класса пока нет пакета эффектов — закрой и заполни вручную.',
+      )
+      return reasons
+    }
+    if (skills.length !== skillNeed) {
+      reasons.push(
+        `Выбери навыки: нужно ${skillNeed}, сейчас ${skills.length}.`,
+      )
+    }
+    if (tools.length !== toolNeed) {
+      reasons.push(
+        `Выбери инструменты: нужно ${toolNeed}, сейчас ${tools.length}.`,
+      )
+    }
+    if (mode === 'start') {
+      if (equipmentPackageId === PHB_LINES_PACKAGE_ID) {
+        reasons.push(
+          ...equipmentLineBlockingReasons({
+            lines: equipmentLines,
+            picks: linePicks,
+          }),
+        )
+      } else if (equipmentPackages.length > 0 && !equipmentPackageId) {
+        reasons.push('Выбери стартовое снаряжение.')
+      }
+    }
+    if (focusPlaceholder && focusSelection == null) {
+      reasons.push('Выбери фокус / символ.')
+    }
+    return reasons
+  })()
+
+  const canConfirm = blockingReasons.length === 0
 
   if (!def || !pkg) return null
 
@@ -165,6 +250,10 @@ export function ClassSetupDialog({
           tools,
           equipmentPackageId: mode === 'start' ? equipmentPackageId : null,
           equipmentFocusPick: focusSelection ? toPick(focusSelection) : null,
+          equipmentLinePicks:
+            mode === 'start' && equipmentPackageId === PHB_LINES_PACKAGE_ID
+              ? linePicks
+              : {},
         })
       }}
       onSecondary={onClose}
@@ -172,7 +261,9 @@ export function ClassSetupDialog({
       <Stack gap={14}>
         <Text tone="muted">
           {mode === 'start'
-            ? 'Выбери навыки, инструменты и снаряжение. Серые — уже с предыстории.'
+            ? equipmentLines.length > 0
+              ? 'Выбери навыки и снаряжение по каждой строке PHB. Серые навыки — уже есть (раса / предыстория).'
+              : 'Выбери навыки, инструменты и снаряжение. Серые — уже есть (раса / предыстория).'
             : 'Мультикласс: только владения из таблицы PHB (без стартового снаряжения).'}
         </Text>
 
@@ -187,7 +278,7 @@ export function ClassSetupDialog({
                     key={key}
                     type="button"
                     disabled={blocked}
-                    title={blocked ? 'Уже есть с предыстории' : undefined}
+                    title={blocked ? 'Уже есть (раса / предыстория)' : undefined}
                     className={`sheet-chip${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
                     onClick={() => toggleSkill(key)}
                   >
@@ -211,7 +302,7 @@ export function ClassSetupDialog({
                     key={name}
                     type="button"
                     disabled={blocked}
-                    title={blocked ? 'Уже есть с предыстории' : undefined}
+                    title={blocked ? 'Уже есть (раса / предыстория)' : undefined}
                     className={`sheet-chip${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
                     onClick={() => toggleTool(name)}
                   >
@@ -224,7 +315,19 @@ export function ClassSetupDialog({
           </Field>
         ) : null}
 
-        {mode === 'start' && equipmentPackages.length > 0 ? (
+        {mode === 'start' && equipmentLines.length > 0 ? (
+          <EquipmentLinesField
+            lines={equipmentLines}
+            linePicks={linePicks}
+            equipmentPackageId={equipmentPackageId}
+            packages={equipmentPackages}
+            onSelectOption={setLineOption}
+            onSelectWeapon={setLineWeapon}
+            onSelectPackage={setEquipmentPackageId}
+          />
+        ) : null}
+
+        {mode === 'start' && equipmentLines.length === 0 && equipmentPackages.length > 0 ? (
           <Field label="Стартовое снаряжение">
             <Stack gap={8}>
               {equipmentPackages.map((pack) => {
@@ -264,8 +367,14 @@ export function ClassSetupDialog({
           </Stack>
         ) : null}
 
-        {!canConfirm ? (
-          <Text tone="muted">Отметь все обязательные развилки, чтобы продолжить.</Text>
+        {blockingReasons.length > 0 ? (
+          <Stack gap={4}>
+            {blockingReasons.map((reason) => (
+              <Text key={reason} tone="danger">
+                {reason}
+              </Text>
+            ))}
+          </Stack>
         ) : null}
       </Stack>
     </Dialog>
@@ -301,6 +410,7 @@ export function HomebrewClassDialog({
       title="Хомбрю-класс"
       primaryLabel="Применить"
       secondaryLabel="Отмена"
+      primaryDisabled={!canConfirm}
       onPrimary={() => {
         if (!canConfirm) return
         onConfirm(trimmed)

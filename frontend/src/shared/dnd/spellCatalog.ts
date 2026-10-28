@@ -134,6 +134,30 @@ function readSubclasses(value: unknown): SpellSubclassRef[] | undefined {
   return out.length > 0 ? out : undefined
 }
 
+/**
+ * RAW list gate: spell is on a class list only if `classes` includes the caster
+ * and, when `subclasses` is non-empty for that class, the character’s subclass matches.
+ * Empty `subclasses` = unrestricted for every tagged class (PHB/XGE default).
+ */
+export function spellAvailableOnClassList(input: {
+  classes: string[]
+  subclasses?: SpellSubclassRef[] | null
+  classSlug: string
+  subclassSlug?: string | null
+}): boolean {
+  const classSlug = input.classSlug.trim().toLowerCase()
+  if (!classSlug) return false
+  const onClass = input.classes.some((c) => c.trim().toLowerCase() === classSlug)
+  if (!onClass) return false
+  const gates = (input.subclasses ?? []).filter(
+    (ref) => ref.class.trim().toLowerCase() === classSlug,
+  )
+  if (gates.length === 0) return true
+  const sub = (input.subclassSlug ?? '').trim().toLowerCase()
+  if (!sub) return false
+  return gates.some((ref) => ref.subclass.trim().toLowerCase() === sub)
+}
+
 /** Parse components from legacy ["V","S","M"] or canonical object. */
 export function parseSpellComponents(raw: unknown): SpellComponents {
   if (Array.isArray(raw)) {

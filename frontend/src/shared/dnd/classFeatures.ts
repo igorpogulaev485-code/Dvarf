@@ -70,12 +70,21 @@ export type FeatureResource = {
   pool_name_ru?: string
   /** spend = expended uses; stock = current holdings (soul trinkets). */
   track?: 'spend' | 'stock'
+  /**
+   * When this feature shares a pool (Ki, Channel Divinity), how many uses to
+   * expend per activation. Default 1. Monk Empty Body = 4, etc.
+   */
+  spend_cost?: number
   /** If spend pool is empty, pay via linked pool (stock burn or spend die). */
   linked_spend?: {
     pool_id: string
     label_ru: string
     /** stock = decrement holdings; spend = expend one from linked spend pool. */
     mode?: 'stock' | 'spend'
+    /** How many to take from the linked pool (default 1). Shadow Arts = 2 ki. */
+    amount?: number
+    /** Optional upper bound for variable spends (Touch of the Long Death 1–10). */
+    amount_max?: number
   }
   /** Soulknife: regain 1 die as an action, once per short/long rest. */
   recover_one?: {
@@ -185,6 +194,17 @@ export type ClassFeatureDef = {
   summary_ru: string
   body_ru?: string
   kind: FeatureKind
+  /**
+   * Tasha (and similar) optional class feature. Still unlocks by level —
+   * shown on the sheet with an «опционально» badge; table may ignore it.
+   */
+  optional?: boolean
+  /** Content source book slug, e.g. `tcoe`. */
+  source_book?: string
+  /** PHB feature id this optional row replaces (both remain unlocked). */
+  replaces?: string
+  /** Pin a glance chip on the play-desk mode (e.g. Reckless Attack → combat). */
+  desk?: 'combat' | 'explore' | 'social'
   scale?: FeatureScale
   resource?: FeatureResource
   /** Persistent pick (fighting style). */
@@ -193,9 +213,17 @@ export type ClassFeatureDef = {
   slot_spend?: FeatureSlotSpendDef
   /** Add ability mod (min) to own saves while unlocked (Aura of Protection). */
   save_bonus_self?: FeatureSaveBonusSelfDef
+  /**
+   * Grant save proficiency while unlocked (Diamond Soul → all).
+   * `"all"` or a list of ability keys.
+   */
+  save_proficiency?: 'all' | AbilityScoreKey[]
   /** On successful resource spend — create/replace companion or ally card. */
   summon?: FeatureSummonDef
 }
+
+/** Bump when optional-feature pack content changes; sheets re-sync pools on open. */
+export const OPTIONAL_CLASS_FEATURES_EPOCH = 1
 
 export type UnlockedFeature = ClassFeatureDef & {
   classEntryId: string
@@ -251,6 +279,7 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       row.save_bonus_self && typeof row.save_bonus_self === 'object'
         ? (row.save_bonus_self as Record<string, unknown>)
         : null
+    const saveProfRaw = row.save_proficiency
     const summonRaw =
       row.summon && typeof row.summon === 'object'
         ? (row.summon as Record<string, unknown>)
@@ -364,6 +393,22 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       }
     }
 
+    let save_proficiency: ClassFeatureDef['save_proficiency']
+    if (saveProfRaw === 'all') {
+      save_proficiency = 'all'
+    } else if (Array.isArray(saveProfRaw)) {
+      const keys = saveProfRaw.filter(
+        (key): key is AbilityScoreKey =>
+          key === 'str' ||
+          key === 'dex' ||
+          key === 'con' ||
+          key === 'int' ||
+          key === 'wis' ||
+          key === 'cha',
+      )
+      if (keys.length) save_proficiency = keys
+    }
+
     let summon: FeatureSummonDef | undefined
     if (summonRaw && typeof summonRaw.name_ru === 'string') {
       const kindRaw = summonRaw.kind
@@ -396,6 +441,21 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       if (!summon.name_ru) summon = undefined
     }
 
+    const deskRaw = row.desk
+    const desk =
+      deskRaw === 'combat' || deskRaw === 'explore' || deskRaw === 'social'
+        ? deskRaw
+        : undefined
+    const optional = row.optional === true
+    const source_book =
+      typeof row.source_book === 'string' && row.source_book.trim()
+        ? row.source_book.trim()
+        : undefined
+    const replaces =
+      typeof row.replaces === 'string' && row.replaces.trim()
+        ? row.replaces.trim()
+        : undefined
+
     out.push({
       id: row.id,
       level: typeof row.level === 'number' ? Math.max(1, row.level) : 1,
@@ -404,6 +464,10 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       summary_ru: typeof row.summary_ru === 'string' ? row.summary_ru : '',
       body_ru: typeof row.body_ru === 'string' ? row.body_ru : undefined,
       kind,
+      optional: optional || undefined,
+      source_book,
+      replaces,
+      desk,
       scale:
         scaleRaw && scaleRaw.by_level && typeof scaleRaw.by_level === 'object'
           ? {
@@ -420,6 +484,7 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       choice,
       slot_spend,
       save_bonus_self,
+      save_proficiency,
       summon,
     })
   }
@@ -633,6 +698,10 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
     pool_name_ru:
       typeof resourceRaw.pool_name_ru === 'string' ? resourceRaw.pool_name_ru : undefined,
     track: resourceRaw.track === 'stock' ? 'stock' : resourceRaw.track === 'spend' ? 'spend' : undefined,
+    spend_cost:
+      typeof resourceRaw.spend_cost === 'number'
+        ? Math.max(1, Math.floor(resourceRaw.spend_cost))
+        : undefined,
     linked_spend:
       linkedRaw && typeof linkedRaw.pool_id === 'string'
         ? {
@@ -642,6 +711,14 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
                 ? linkedRaw.label_ru
                 : 'сжечь частицу души',
             mode: linkedRaw.mode === 'spend' ? 'spend' : 'stock',
+            amount:
+              typeof linkedRaw.amount === 'number'
+                ? Math.max(1, Math.floor(linkedRaw.amount))
+                : undefined,
+            amount_max:
+              typeof linkedRaw.amount_max === 'number'
+                ? Math.max(1, Math.floor(linkedRaw.amount_max))
+                : undefined,
           }
         : undefined,
     recover_one:
@@ -1340,4 +1417,14 @@ export function kindLabelRu(kind: FeatureKind): string {
   if (kind === 'reaction') return 'Реакция'
   if (kind === 'resource') return 'Ресурс'
   return 'Пассив'
+}
+
+/** Glance/meta badge for Tasha-style optional class features. */
+export function optionalFeatureBadgeRu(feature: {
+  optional?: boolean
+  source_book?: string
+}): string | null {
+  if (!feature.optional) return null
+  if (feature.source_book === 'tcoe') return 'Tasha · опционально'
+  return 'опционально'
 }

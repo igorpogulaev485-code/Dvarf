@@ -2,12 +2,18 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import {
+  equipmentLinesFor,
   equipmentPackagesFor,
   packageForMode,
+  PHB_LINES_PACKAGE_ID,
   skillOptionsForPackage,
+  validateEquipmentLinePicks,
+  weaponPickCount,
+  type ClassEquipmentLinePick,
   type ClassGrantDef,
   type ClassGrantPicks,
 } from '../../shared/dnd/classGrants'
+import { EquipmentLinesField } from './EquipmentLinesField'
 import {
   CLASS_ASI_MODE_OPTIONS,
   validateClassAsiPicks,
@@ -41,15 +47,37 @@ import {
   toggleFeaturePickInList,
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
+import { featureChoiceOptionLabel } from '../../shared/dnd/featureChoiceOptionLabel'
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
+import {
+  infusionOptionIdsAtLevel,
+  REPLICATE_MAGIC_ITEM_ID,
+  replicateItemBySlug,
+  replicateItemsAtLevel,
+} from '../../shared/dnd/artificerInfusions'
+import {
+  isReplicateLearnOption,
+  learnReplicateMagicItem,
+  unlearnInfusionPick,
+} from '../../shared/dnd/infusionsActive'
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
 import type { RulesEdition } from '../../shared/api/characters'
-import type { CatalogEntry } from '../../shared/api/catalog'
+import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
+import {
+  parseSpellCatalogData,
+  spellAvailableOnClassList,
+} from '../../shared/dnd/spellCatalog'
+import { levelLabel } from '../../shared/dnd/spells'
 import { CatalogCombobox } from '../catalog'
 import { AsiChoiceBody } from './AsiChoiceBody'
 import { SKILL_DEFS } from './sheetTypes'
 import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
-import { Button, Dialog, Field, Stack, Text } from '../../ui'
+import { PactTomeCantripsPicker } from './PactTomeCantripsPicker'
+import {
+  isPactTomeCantripsComplete,
+  PACT_TOME_CANTRIPS_LIMIT,
+} from './pactTomeEffects'
+import { Button, Dialog, Field, Input, Stack, Text } from '../../ui'
 
 export type GuidedFeatContext = {
   armor: Partial<Record<ArmorProfKey, boolean>>
@@ -114,30 +142,31 @@ type GuidedWizardDialogProps = {
   subclassParentCatalogIdByEntryId?: Record<string, string | null | undefined>
   /** classEntryId → already selected subclass display name. */
   selectedSubclassNameByEntryId?: Record<string, string | undefined>
+  /** Context for wizard spellbook free picks (level-up / create fork). */
+  spellbookPicksContext?: {
+    maxSpellLevel: number
+    /** Catalog ids already in the book / on sheet. */
+    blockedCatalogIds?: string[]
+    hasBook: boolean
+    classListSlugs?: string[]
+    /** Wizard tradition (etc.) for subclass-gated lists (EGW dunamancy). */
+    subclassSlug?: string | null
+  } | null
+  /** Persist free research picks into the spellbook, then parent advances. */
+  onConfirmSpellbookPicks?: (entries: CatalogEntry[]) => void
 }
 
 function skillLabel(key: string): string {
   return SKILL_DEFS.find((item) => item.key === key)?.label ?? key
 }
 
-const OPTION_LABEL_FALLBACKS_RU: Record<string, string> = {
-  plus2: '+2 к одной характеристике',
-  plus1x2: '+1 к двум характеристикам',
-  feat_coming_soon: 'Черта',
-}
-
 function choiceOptionLabel(optionId: string, choice?: FeatureChoiceDef | null): string {
-  if (optionId === THIEVES_TOOLS_OPTION_ID) return THIEVES_TOOLS_LABEL_RU
-  const labeled = choice?.option_labels_ru?.[optionId]?.trim()
-  if (labeled) return labeled
-  if (OPTION_LABEL_FALLBACKS_RU[optionId]) return OPTION_LABEL_FALLBACKS_RU[optionId]
   if (isExpertiseChoice(choice)) {
+    if (optionId === THIEVES_TOOLS_OPTION_ID) return THIEVES_TOOLS_LABEL_RU
     return skillLabel(optionId)
   }
-  return (
-    fightingStyleById(optionId)?.nameRu ||
-    skillLabel(optionId) ||
-    optionId
+  return featureChoiceOptionLabel(optionId, choice, (id) =>
+    SKILL_DEFS.find((item) => item.key === id)?.label,
   )
 }
 
@@ -162,7 +191,9 @@ function ClassGrantStepBody({
   const toolNeed = pkg.toolChoices?.count ?? 0
   const skillOptions = skillOptionsForPackage(pkg)
   const toolOptions = pkg.toolChoices?.from ?? []
+  const equipmentLines = mode === 'start' ? equipmentLinesFor(def) : []
   const equipmentPackages = mode === 'start' ? equipmentPackagesFor(def) : []
+  const linePicks = picks.equipmentLinePicks ?? {}
   const blockedSkills = new Set(blockedSkillKeys)
   const blockedTools = new Set(
     blockedToolNames.map((name) => name.trim().toLowerCase()),
@@ -188,11 +219,54 @@ function ClassGrantStepBody({
     onChange({ ...picks, tools })
   }
 
+  function setLineOption(lineId: string, optionId: string) {
+    const line = equipmentLines.find((row) => row.id === lineId)
+    const option = line?.options.find((row) => row.id === optionId)
+    const need = option ? weaponPickCount(option) : 0
+    const nextLines: Record<string, ClassEquipmentLinePick> = {
+      ...linePicks,
+      [lineId]: {
+        optionId,
+        weaponName: null,
+        weaponNames: need > 1 ? Array.from({ length: need }, () => null) : null,
+      },
+    }
+    onChange({
+      ...picks,
+      equipmentPackageId: PHB_LINES_PACKAGE_ID,
+      equipmentLinePicks: nextLines,
+    })
+  }
+
+  function setLineWeapon(lineId: string, weaponName: string, slotIndex?: number) {
+    const current = linePicks[lineId]
+    if (!current) return
+    const nextPick =
+      typeof slotIndex === 'number'
+        ? (() => {
+            const nextNames = [...(current.weaponNames ?? [])]
+            while (nextNames.length <= slotIndex) nextNames.push(null)
+            nextNames[slotIndex] = weaponName
+            return { ...current, weaponNames: nextNames }
+          })()
+        : { ...current, weaponName }
+    onChange({
+      ...picks,
+      equipmentPackageId: PHB_LINES_PACKAGE_ID,
+      equipmentLinePicks: {
+        ...linePicks,
+        [lineId]: nextPick,
+      },
+    })
+  }
+
   return (
     <Stack gap={14}>
       <Text tone="muted">
         {mode === 'start'
-          ? 'Выбери навыки, инструменты и стартовое снаряжение. Серые — уже с предыстории, не дублируй.'
+          ? equipmentLines.length > 0
+            ? 'Выбери навыки и снаряжение по каждой строке PHB. Серые — уже есть (раса / предыстория).'
+            : 'Выбери навыки, инструменты и стартовое снаряжение. Серые — уже есть (раса / предыстория), не дублируй.'
           : 'Мультикласс: только владения из таблицы PHB.'}
       </Text>
       {skillNeed > 0 ? (
@@ -206,7 +280,7 @@ function ClassGrantStepBody({
                   key={key}
                   type="button"
                   disabled={blocked}
-                  title={blocked ? 'Уже есть с предыстории' : undefined}
+                  title={blocked ? 'Уже есть (раса / предыстория)' : undefined}
                   className={`sheet-chip${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
                   onClick={() => toggleSkill(key)}
                 >
@@ -229,7 +303,7 @@ function ClassGrantStepBody({
                   key={name}
                   type="button"
                   disabled={blocked}
-                  title={blocked ? 'Уже есть с предыстории' : undefined}
+                  title={blocked ? 'Уже есть (раса / предыстория)' : undefined}
                   className={`sheet-chip${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
                   onClick={() => toggleTool(name)}
                 >
@@ -241,7 +315,20 @@ function ClassGrantStepBody({
           </div>
         </Field>
       ) : null}
-      {mode === 'start' && equipmentPackages.length > 0 ? (
+      {mode === 'start' && equipmentLines.length > 0 ? (
+        <EquipmentLinesField
+          lines={equipmentLines}
+          linePicks={linePicks}
+          equipmentPackageId={picks.equipmentPackageId}
+          packages={equipmentPackages}
+          onSelectOption={setLineOption}
+          onSelectWeapon={setLineWeapon}
+          onSelectPackage={(packageId) =>
+            onChange({ ...picks, equipmentPackageId: packageId, equipmentLinePicks: {} })
+          }
+        />
+      ) : null}
+      {mode === 'start' && equipmentLines.length === 0 && equipmentPackages.length > 0 ? (
         <Field label="Стартовое снаряжение">
           <Stack gap={8}>
             {equipmentPackages.map((pack) => {
@@ -282,6 +369,8 @@ function FeatureChoiceStepBody({
   onFeaturePicksChange: (picks: FeaturePicksState) => void
 }) {
   const choice = step.choice
+  const [pendingReplicate, setPendingReplicate] = useState(false)
+  const [pendingReplicateSlug, setPendingReplicateSlug] = useState('')
   const maxPicks = resolveChoiceMaxPicks(choice, step.classLevel)
   const multi = maxPicks > 1 || Boolean(choice.max_picks_by_level)
   const selectedList = multi
@@ -290,6 +379,13 @@ function FeatureChoiceStepBody({
   const selected = multi
     ? null
     : getFeaturePick(featurePicks, step.classEntryId, step.featureId)
+  const replicateChoices = useMemo(
+    () => replicateItemsAtLevel(step.classLevel),
+    [step.classLevel],
+  )
+  const replicateKnown = selectedList.filter((id) =>
+    id.startsWith(`${REPLICATE_MAGIC_ITEM_ID}:`),
+  )
 
   const options = useMemo(() => {
     if (isExpertiseChoice(choice)) {
@@ -303,11 +399,24 @@ function FeatureChoiceStepBody({
         label: row.kind === 'tool' ? row.labelRu : skillLabel(row.id),
       }))
     }
-    return resolveFeatureChoiceOptions(choice).map((id) => ({
+    const ids =
+      choice.options_from === 'artificer_infusions'
+        ? infusionOptionIdsAtLevel(step.classLevel)
+        : resolveFeatureChoiceOptions(choice)
+    return ids.map((id) => ({
       id,
       label: choiceOptionLabel(id, choice),
     }))
-  }, [choice, skills, tools, featurePicks, expertiseKeys, step.classEntryId, step.featureId])
+  }, [
+    choice,
+    skills,
+    tools,
+    featurePicks,
+    expertiseKeys,
+    step.classEntryId,
+    step.featureId,
+    step.classLevel,
+  ])
 
   const selectedDef = fightingStyleById(selected)
 
@@ -324,17 +433,87 @@ function FeatureChoiceStepBody({
         </Text>
       ) : null}
       {selectedDef ? <Text tone="muted">{selectedDef.summaryRu}</Text> : null}
+      {pendingReplicate ? (
+        <Stack gap={10}>
+          <Text>
+            Копия магического предмета — выбери предмет (таблицы до {step.classLevel}{' '}
+            ур.):
+          </Text>
+          <select
+            className="play-select"
+            value={pendingReplicateSlug}
+            onChange={(e) => setPendingReplicateSlug(e.target.value)}
+          >
+            <option value="">— выбрать —</option>
+            {replicateChoices.map((item) => (
+              <option key={item.slug} value={item.slug}>
+                {item.nameRu}
+                {item.minLevel > 2 ? ` · с ${item.minLevel} ур.` : ''}
+                {item.attune ? ' · настройка' : ''}
+              </option>
+            ))}
+          </select>
+          {pendingReplicateSlug ? (
+            <Text tone="muted">
+              {replicateItemBySlug(pendingReplicateSlug)?.abilityRu}
+            </Text>
+          ) : null}
+          <div className="chip-row">
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => {
+                const slug = pendingReplicateSlug.trim()
+                if (!slug || !replicateItemBySlug(slug)) return
+                onFeaturePicksChange(
+                  learnReplicateMagicItem(
+                    featurePicks,
+                    step.classEntryId,
+                    step.featureId,
+                    slug,
+                    maxPicks,
+                  ),
+                )
+                setPendingReplicate(false)
+                setPendingReplicateSlug('')
+              }}
+            >
+              Выучить копию
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setPendingReplicate(false)
+                setPendingReplicateSlug('')
+              }}
+            >
+              Отмена
+            </Button>
+          </div>
+        </Stack>
+      ) : null}
       <div className="chip-row" role="group" aria-label={choice.label_ru}>
         {options.map((option) => {
+          const replicateLearn = isReplicateLearnOption(option.id)
           const active = multi
-            ? selectedList.includes(option.id)
+            ? replicateLearn
+              ? replicateKnown.length > 0
+              : selectedList.includes(option.id)
             : selected === option.id
           return (
             <Button
               key={option.id}
               type="button"
               variant={active ? 'primary' : 'ghost'}
+              disabled={pendingReplicate}
               onClick={() => {
+                if (replicateLearn && multi) {
+                  if (selectedList.length >= maxPicks) return
+                  setPendingReplicate(true)
+                  setPendingReplicateSlug('')
+                  return
+                }
                 if (multi) {
                   onFeaturePicksChange(
                     toggleFeaturePickInList(
@@ -352,10 +531,35 @@ function FeatureChoiceStepBody({
                 )
               }}
             >
-              {active && multi ? `✓ ${option.label}` : option.label}
+              {active && multi
+                ? replicateLearn
+                  ? `✓ ${option.label} ×${replicateKnown.length}`
+                  : `✓ ${option.label}`
+                : replicateLearn
+                  ? `${option.label}…`
+                  : option.label}
             </Button>
           )
         })}
+        {replicateKnown.map((id) => (
+          <Button
+            key={id}
+            type="button"
+            variant="ghost"
+            onClick={() =>
+              onFeaturePicksChange(
+                unlearnInfusionPick(
+                  featurePicks,
+                  step.classEntryId,
+                  step.featureId,
+                  id,
+                ),
+              )
+            }
+          >
+            ✕ {choiceOptionLabel(id, choice)}
+          </Button>
+        ))}
       </div>
       {options.length === 0 ? (
         <Text tone="muted">Пока нет доступных вариантов — сначала возьми владения.</Text>
@@ -367,6 +571,177 @@ function FeatureChoiceStepBody({
             ? ` · ${selectedList.map((id) => choiceOptionLabel(id, choice)).join(', ')}`
             : ''}
         </Text>
+      ) : null}
+    </Stack>
+  )
+}
+
+function SpellbookPicksStepBody({
+  picksNeeded,
+  classLevel,
+  edition,
+  selected,
+  onChange,
+  maxSpellLevel,
+  blockedCatalogIds,
+  hasBook,
+  classListSlugs,
+  subclassSlug,
+}: {
+  picksNeeded: number
+  classLevel: number
+  edition: RulesEdition
+  selected: CatalogEntry[]
+  onChange: (next: CatalogEntry[]) => void
+  maxSpellLevel: number
+  blockedCatalogIds: string[]
+  hasBook: boolean
+  classListSlugs: string[]
+  subclassSlug?: string | null
+}) {
+  const [query, setQuery] = useState('')
+  const [entries, setEntries] = useState<CatalogEntry[]>([])
+  const [loading, setLoading] = useState(false)
+  const blocked = useMemo(() => new Set(blockedCatalogIds), [blockedCatalogIds])
+  const selectedIds = useMemo(() => new Set(selected.map((row) => row.id)), [selected])
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    listCatalogEntries({ kind: 'spell', edition })
+      .then((rows) => {
+        if (!cancelled) setEntries(rows)
+      })
+      .catch(() => {
+        if (!cancelled) setEntries([])
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [edition])
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const slugs = classListSlugs.map((s) => s.toLowerCase()).filter(Boolean)
+    return entries
+      .filter((entry) => {
+        if (blocked.has(entry.id) || selectedIds.has(entry.id)) return false
+        const parsed = parseSpellCatalogData(entry.data ?? {})
+        if (parsed.level < 1 || parsed.level > maxSpellLevel) return false
+        if (
+          slugs.length > 0 &&
+          !slugs.some((slug) =>
+            spellAvailableOnClassList({
+              classes: parsed.classes,
+              subclasses: parsed.subclasses,
+              classSlug: slug,
+              subclassSlug,
+            }),
+          )
+        ) {
+          return false
+        }
+        if (!q) return true
+        return (
+          entry.name_ru.toLowerCase().includes(q) ||
+          (entry.name_en ?? '').toLowerCase().includes(q) ||
+          entry.slug.toLowerCase().includes(q)
+        )
+      })
+      .slice(0, 30)
+  }, [
+    entries,
+    query,
+    maxSpellLevel,
+    blocked,
+    selectedIds,
+    classListSlugs,
+    subclassSlug,
+  ])
+
+  function toggle(entry: CatalogEntry) {
+    if (selectedIds.has(entry.id)) {
+      onChange(selected.filter((row) => row.id !== entry.id))
+      return
+    }
+    if (selected.length >= picksNeeded) return
+    onChange([...selected, entry])
+  }
+
+  return (
+    <Stack gap={12}>
+      <Text>
+        {classLevel <= 1
+          ? `Стартовая книга: выбери ${picksNeeded} заклинания 1 ур. бесплатно.`
+          : `Повышение уровня: +${picksNeeded} бесплатно в книгу (ур. ≤ ${maxSpellLevel}).`}
+      </Text>
+      {!hasBook ? (
+        <Text tone="danger">
+          Нет активной книги заклинаний — внести нельзя. «Позже» или возьми книгу в инвентаре.
+        </Text>
+      ) : null}
+      <Text tone="muted">
+        Выбрано: {selected.length}/{picksNeeded}
+        {selected.length
+          ? ` · ${selected.map((row) => row.name_ru).join(', ')}`
+          : ''}
+      </Text>
+      {selected.length > 0 ? (
+        <div className="chip-row">
+          {selected.map((row) => (
+            <button
+              key={row.id}
+              type="button"
+              className="sheet-chip is-on"
+              onClick={() => toggle(row)}
+            >
+              {row.name_ru} ×
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <Field label="Поиск по списку волшебника">
+        <Input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Название заклинания"
+          disabled={!hasBook || selected.length >= picksNeeded}
+        />
+      </Field>
+      {loading ? <Text tone="muted">Загрузка…</Text> : null}
+      {!loading && hasBook ? (
+        <ul className="prepare-list">
+          {filtered.map((entry) => {
+            const parsed = parseSpellCatalogData(entry.data ?? {})
+            const full = selected.length >= picksNeeded
+            return (
+              <li key={entry.id} className="prepare-row">
+                <span>
+                  {entry.name_ru}
+                  <span className="prepare-meta">
+                    {' '}
+                    · {levelLabel(parsed.level)}
+                    {parsed.ritual ? ' · ритуал' : ''}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="sheet-chip is-on"
+                  disabled={full}
+                  onClick={() => toggle(entry)}
+                >
+                  В книгу
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      ) : null}
+      {!loading && hasBook && filtered.length === 0 ? (
+        <Text tone="muted">Нет подходящих заклинаний по фильтру.</Text>
       ) : null}
     </Stack>
   )
@@ -397,6 +772,8 @@ export function GuidedWizardDialog({
   onPickSubclass,
   subclassParentCatalogIdByEntryId,
   selectedSubclassNameByEntryId,
+  spellbookPicksContext = null,
+  onConfirmSpellbookPicks,
 }: GuidedWizardDialogProps) {
   const step = session?.steps[session.index] ?? null
   const total = session?.steps.length ?? 0
@@ -406,6 +783,7 @@ export function GuidedWizardDialog({
     skills: [],
     tools: [],
     equipmentPackageId: null,
+    equipmentLinePicks: {},
   })
   const [asiModeId, setAsiModeId] = useState<ClassAsiModeId>('plus2')
   const [asiUiMode, setAsiUiMode] = useState<'scores' | 'feat'>('scores')
@@ -413,11 +791,25 @@ export function GuidedWizardDialog({
   const [asiError, setAsiError] = useState<string | null>(null)
   const [featOpen, setFeatOpen] = useState(false)
   const [backgroundDraftName, setBackgroundDraftName] = useState('')
+  const [spellbookDraft, setSpellbookDraft] = useState<CatalogEntry[]>([])
 
   useEffect(() => {
     if (!open || !step) return
     if (step.kind === 'class_grant') {
-      setGrantPicks({ skills: [], tools: [], equipmentPackageId: null })
+      const def = session?.grant?.def ?? null
+      const lines = def && step.mode === 'start' ? equipmentLinesFor(def) : []
+      const initialLines: Record<string, ClassEquipmentLinePick> = {}
+      for (const line of lines) {
+        if (line.options.length === 1) {
+          initialLines[line.id] = { optionId: line.options[0]!.id }
+        }
+      }
+      setGrantPicks({
+        skills: [],
+        tools: [],
+        equipmentPackageId: lines.length > 0 ? PHB_LINES_PACKAGE_ID : null,
+        equipmentLinePicks: initialLines,
+      })
     }
     if (step.kind === 'asi') {
       setAsiModeId('plus2')
@@ -432,6 +824,9 @@ export function GuidedWizardDialog({
     if (step.kind === 'background') {
       setBackgroundDraftName(backgroundName)
     }
+    if (step.kind === 'spellbook_picks') {
+      setSpellbookDraft([])
+    }
   }, [open, step?.id, step?.kind, backgroundName])
 
   const grantDef = session?.grant?.def ?? null
@@ -440,11 +835,17 @@ export function GuidedWizardDialog({
     const pkg = packageForMode(grantDef, step.mode)
     const skillNeed = pkg.skillChoices?.count ?? 0
     const toolNeed = pkg.toolChoices?.count ?? 0
+    const lines = step.mode === 'start' ? equipmentLinesFor(grantDef) : []
     const equipmentPackages = step.mode === 'start' ? equipmentPackagesFor(grantDef) : []
     const equipmentOk =
       step.mode !== 'start' ||
-      equipmentPackages.length === 0 ||
-      Boolean(grantPicks.equipmentPackageId)
+      (lines.length === 0 && equipmentPackages.length === 0) ||
+      (grantPicks.equipmentPackageId === PHB_LINES_PACKAGE_ID
+        ? !validateEquipmentLinePicks({
+            lines,
+            picks: grantPicks.equipmentLinePicks ?? {},
+          })
+        : Boolean(grantPicks.equipmentPackageId))
     return (
       grantPicks.skills.length === skillNeed &&
       grantPicks.tools.length === toolNeed &&
@@ -481,6 +882,15 @@ export function GuidedWizardDialog({
       ? subclassParentCatalogIdByEntryId?.[step.classEntryId] ?? null
       : null
 
+  const spellbookReady =
+    step?.kind === 'spellbook_picks' &&
+    Boolean(spellbookPicksContext?.hasBook) &&
+    spellbookDraft.length === step.picksNeeded
+
+  const pactTomeReady =
+    step?.kind === 'pact_tome_cantrips' &&
+    isPactTomeCantripsComplete(featurePicks, step.classEntryId)
+
   const primaryDisabled =
     step?.kind === 'class_grant'
       ? !grantReady
@@ -492,7 +902,11 @@ export function GuidedWizardDialog({
             ? !backgroundReady
             : step?.kind === 'subclass'
               ? !subclassReady
-              : false
+              : step?.kind === 'spellbook_picks'
+                ? !spellbookReady
+                : step?.kind === 'pact_tome_cantrips'
+                  ? !pactTomeReady
+                  : false
 
   const title = !step
     ? 'Настройка персонажа'
@@ -506,9 +920,13 @@ export function GuidedWizardDialog({
             ? 'Предыстория'
             : step.kind === 'feat'
               ? 'Черта'
-              : step.kind === 'feature_choice'
-                ? `${step.choice.label_ru} · ${step.className}`
-                : 'Настройка персонажа'
+              : step.kind === 'spellbook_picks'
+                ? `Книга заклинаний · ${step.className} ${step.classLevel}`
+                : step.kind === 'pact_tome_cantrips'
+                  ? `Заговоры договора · ${step.className}`
+                  : step.kind === 'feature_choice'
+                    ? `${step.choice.label_ru} · ${step.className}`
+                    : 'Настройка персонажа'
 
   const choosingFeat =
     (step?.kind === 'asi' && asiUiMode === 'feat') || step?.kind === 'feat'
@@ -587,6 +1005,33 @@ export function GuidedWizardDialog({
 
     if (step.kind === 'feat') {
       setFeatOpen(true)
+      return
+    }
+
+    if (step.kind === 'spellbook_picks') {
+      if (!spellbookPicksContext?.hasBook) {
+        onToast?.('Нужна книга заклинаний в инвентаре — иначе нельзя внести бесплатные')
+        return
+      }
+      if (spellbookDraft.length !== step.picksNeeded) {
+        onToast?.(`Выбери ${step.picksNeeded} заклинания в книгу`)
+        return
+      }
+      onConfirmSpellbookPicks?.(spellbookDraft)
+      onToast?.(
+        `В книгу (бесплатно): ${spellbookDraft.map((row) => row.name_ru).join(', ')}`,
+      )
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'pact_tome_cantrips') {
+      if (!pactTomeReady) {
+        onToast?.(`Выбери ${PACT_TOME_CANTRIPS_LIMIT} заговора договора`)
+        return
+      }
+      onToast?.('Заговоры договора: готово')
+      onAdvance(index + 1)
     }
   }
 
@@ -772,6 +1217,34 @@ export function GuidedWizardDialog({
             <Text>{step.promptRu}</Text>
             {step.noteRu ? <Text tone="muted">{step.noteRu}</Text> : null}
             <Text tone="muted">«Выбрать черту» откроет каталог.</Text>
+          </Stack>
+        ) : null}
+        {step.kind === 'spellbook_picks' ? (
+          <SpellbookPicksStepBody
+            picksNeeded={step.picksNeeded}
+            classLevel={step.classLevel}
+            edition={edition}
+            selected={spellbookDraft}
+            onChange={setSpellbookDraft}
+            maxSpellLevel={spellbookPicksContext?.maxSpellLevel ?? 1}
+            blockedCatalogIds={spellbookPicksContext?.blockedCatalogIds ?? []}
+            hasBook={Boolean(spellbookPicksContext?.hasBook)}
+            classListSlugs={spellbookPicksContext?.classListSlugs ?? ['wizard']}
+            subclassSlug={spellbookPicksContext?.subclassSlug ?? null}
+          />
+        ) : null}
+        {step.kind === 'pact_tome_cantrips' ? (
+          <Stack gap={12}>
+            <Text tone="muted">
+              Гримуар · {step.className} {step.classLevel} · выбери {PACT_TOME_CANTRIPS_LIMIT}
+            </Text>
+            <PactTomeCantripsPicker
+              classEntryId={step.classEntryId}
+              edition={edition}
+              featurePicks={featurePicks}
+              onFeaturePicksChange={onFeaturePicksChange}
+              onToast={onToast}
+            />
           </Stack>
         ) : null}
       </Stack>

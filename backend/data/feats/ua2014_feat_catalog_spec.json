@@ -1,0 +1,36 @@
+{
+  "rules_edition": "2014",
+  "notes_ru": "UA / community_ref. Скрытный (Stealthy) из Unearthed Arcana 38 — Feats for Skills. Не путать с PHB Skulker («Скрытный»).",
+  "wave": "ua",
+  "feats": [
+    {
+      "id": "f1958173-1c34-569c-ba55-50536f0f5f64",
+      "slug": "stealthy",
+      "name_ru": "Скрытный (Stealthy)",
+      "name_en": "Stealthy",
+      "source": "ua",
+      "sort_order": 3500,
+      "data": {
+        "source": "ua",
+        "wave": "ua",
+        "content_layer": "community_ref",
+        "prerequisites_ru": null,
+        "summary_ru": "+1 Лов; владение Скрытностью или экспертиза, если уже владеете; 10 фт. скрытности на виду.",
+        "benefits_ru": "Увеличьте Ловкость на 1, максимум 20. Получаете владение навыком «Скрытность». Если вы уже владеете этим навыком, добавляете удвоенный бонус мастерства к проверкам с ним. Если вы спрятаны, можете переместиться до 10 футов по открытому пространству, не раскрывая себя, если заканчиваете перемещение в позиции, где вас не видно явно.",
+        "prerequisites": {},
+        "choices": [],
+        "grants": {
+          "ability_bonuses": {
+            "dex": 1
+          },
+          "skill_or_expertise": [
+            "stealth"
+          ],
+          "flags": [
+            "stealthy"
+          ]
+        }
+      }
+    }
+  ]
+}

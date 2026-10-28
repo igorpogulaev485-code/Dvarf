@@ -3,9 +3,11 @@
  */
 import { asWeighableItems, createInventoryItem } from './inventory.ts'
 import {
+  collapsePack,
   expandPack,
   findCatalogPackEntry,
   hasPackContents,
+  hasSoftCollapsedChildren,
   isExpandedPack,
   sumContentsWeightLb,
   type ResolvedPackContent,
@@ -107,6 +109,40 @@ const after = itemsWeightLb(asWeighableItems(withMore))
 assert(after === before + 5 * 2, `nested qty must move total: before=${before} after=${after}`)
 assert(sumContentsWeightLb(contents) === 20, 'sumContentsWeightLb')
 
+// --- soft collapse keeps children; re-expand restores edited qty ---
+const waterskinContents: ResolvedPackContent[] = [
+  { name_ru: 'Бурдюк', qty: 1, weight_lb: 5, catalog_id: null, slug: 'waterskin' },
+  { name_ru: 'Рационы', qty: 10, weight_lb: 2, catalog_id: null, slug: 'rations' },
+]
+const packSoft = createInventoryItem()
+packSoft.name = 'Набор путешественника'
+packSoft.weight_lb = 25
+const opened = expandPack({
+  items: [packSoft],
+  packId: packSoft.id,
+  contents: waterskinContents,
+})
+const edited = opened.map((row) =>
+  row.parent_id === packSoft.id && row.name === 'Бурдюк' ? { ...row, qty: 9 } : row,
+)
+const collapsed = collapsePack({ items: edited, packId: packSoft.id })
+assert(!isExpandedPack(collapsed, packSoft.id), 'soft collapse hides UI')
+assert(hasSoftCollapsedChildren(collapsed, packSoft.id), 'children survive collapse')
+assert(
+  collapsed.filter((row) => row.parent_id === packSoft.id).length === 2,
+  'soft collapse must not delete children',
+)
+const reopened = expandPack({
+  items: collapsed,
+  packId: packSoft.id,
+  contents: waterskinContents, // catalog still says qty 1 — must be ignored
+})
+assert(isExpandedPack(reopened, packSoft.id), 're-expand opens UI')
+const skin = reopened.find(
+  (row) => row.parent_id === packSoft.id && row.name === 'Бурдюк',
+)
+assert(skin?.qty === 9, `re-expand must keep edited qty, got ${skin?.qty}`)
+
 // --- focus filter: class family must not leak magic «any» ---
 const fakeEntries = [
   {
@@ -155,5 +191,5 @@ assert(
 )
 
 console.log(
-  'inventoryPacks.selfcheck: ok (unique ids; expand scoped; nested weight; focus family)',
+  'inventoryPacks.selfcheck: ok (unique ids; expand scoped; nested weight; soft collapse qty; focus family)',
 )

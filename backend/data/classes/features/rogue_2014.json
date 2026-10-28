@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Rogue + all official archetypes",
     "edition": "2014",
     "source": "phb+xgte+scag+tcoe",
-    "notes_ru": "Все 9 оф. архетипов. Phantom/Soulknife уже с пулами. Swashbuckler/Inquisitive/Scout/Mastermind — донабор. H4b depth: martial/half-caster pools/scales/linked ki·BI."
+    "notes_ru": "Все 9 оф. архетипов. Phantom/Soulknife уже с пулами. Swashbuckler/Inquisitive/Scout/Mastermind — донабор. H4b depth: martial/half-caster pools/scales/linked ki·BI. · TCoE optional class features."
   },
   "class_slug": "rogue",
   "features": [
@@ -67,6 +67,17 @@
       "name_en": "Roguish Archetype",
       "summary_ru": "Выбери архетип (Вор / Убийца / Мистический ловкач).",
       "kind": "passive"
+    },
+    {
+      "id": "steady_aim",
+      "level": 3,
+      "name_ru": "Точное прицеливание",
+      "name_en": "Steady Aim",
+      "summary_ru": "Tasha (optional): бонусным — преимущество на следующую атаку в этот ход, если ещё не перемещался; после этого скорость 0 до конца хода.",
+      "kind": "bonus",
+      "optional": true,
+      "source_book": "tcoe",
+      "desk": "combat"
     },
     {
       "id": "asi_4",
@@ -604,17 +615,81 @@
         }
       },
       {
+        "id": "psi_bolstered_knack",
+        "level": 3,
+        "name_ru": "Пси-усиленная сноровка",
+        "name_en": "Psi-Bolstered Knack",
+        "summary_ru": "При провале проверки навыка/инструмента с владением: брось пси-кость и добавь к результату. Если всё ещё провал — кость не тратится.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 0,
+          "recharge": "long_rest",
+          "pool_id": "psionic_energy_dice",
+          "pool_name_ru": "Пси-кости",
+          "track": "spend",
+          "spend_cost": 1
+        }
+      },
+      {
+        "id": "psychic_whispers",
+        "level": 3,
+        "name_ru": "Психический шёпот",
+        "name_en": "Psychic Whispers",
+        "summary_ru": "Действием выбери число существ ≤ бонуса мастерства в 30 фт.: телепатия на часы = броску пси-кости (кость тратится).",
+        "kind": "action",
+        "resource": {
+          "uses": 0,
+          "recharge": "long_rest",
+          "pool_id": "psionic_energy_dice",
+          "pool_name_ru": "Пси-кости",
+          "track": "spend",
+          "spend_cost": 1
+        }
+      },
+      {
         "id": "soul_blades",
         "level": 9,
         "name_ru": "Клинки души",
         "name_en": "Soul Blades",
-        "summary_ru": "Homings Strikes / Psychic Teleportation за пси-кость (см. TCoE).",
+        "summary_ru": "Homing Strikes и Psychic Teleportation — за пси-кость (см. опции ниже).",
         "kind": "passive",
         "scale": {
           "label_ru": "Улучшения",
           "by_level": {
-            "9": "Homining Strikes / Psychic Teleportation"
+            "9": "Homing Strikes / Psychic Teleportation"
           }
+        }
+      },
+      {
+        "id": "homing_strikes",
+        "level": 9,
+        "name_ru": "Самонаводящиеся удары",
+        "name_en": "Homing Strikes",
+        "summary_ru": "Промах психическим клинком: брось пси-кость и добавь к атаке. Если всё ещё промах — кость не тратится.",
+        "kind": "passive",
+        "resource": {
+          "uses": 0,
+          "recharge": "long_rest",
+          "pool_id": "psionic_energy_dice",
+          "pool_name_ru": "Пси-кости",
+          "track": "spend",
+          "spend_cost": 1
+        }
+      },
+      {
+        "id": "psychic_teleportation",
+        "level": 9,
+        "name_ru": "Психическая телепортация",
+        "name_en": "Psychic Teleportation",
+        "summary_ru": "Бонусным: брось пси-кость — телепорт до (бросок × 10) фт. в видимое свободное место (кость тратится).",
+        "kind": "bonus",
+        "resource": {
+          "uses": 0,
+          "recharge": "long_rest",
+          "pool_id": "psionic_energy_dice",
+          "pool_name_ru": "Пси-кости",
+          "track": "spend",
+          "spend_cost": 1
         }
       },
       {
@@ -632,8 +707,9 @@
           "track": "spend",
           "linked_spend": {
             "pool_id": "psionic_energy_dice",
-            "label_ru": "потратить пси-кость",
-            "mode": "spend"
+            "label_ru": "1 пси-кость → снова",
+            "mode": "spend",
+            "amount": 1
           }
         }
       },
@@ -649,7 +725,13 @@
           "recharge": "long_rest",
           "pool_id": "rend_mind",
           "pool_name_ru": "Разрыв разума",
-          "track": "spend"
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "psionic_energy_dice",
+            "label_ru": "3 пси-кости → повтор",
+            "mode": "spend",
+            "amount": 3
+          }
         }
       }
     ],

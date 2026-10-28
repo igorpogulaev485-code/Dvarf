@@ -13,7 +13,9 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 Инциденты:
 
 - 2026-10-06: аватар, кабинет, лист P1–P6, classic — затирались параллельными развилками.
+- **2026-10-17:** T5 setting с линии C4 затёр Play Desk + полный classic (см. docs/INCIDENT_OVERWRITE_2026-10-17.md).
 - 2026-10-13: orphan kit-ветка (пустой merge-base), час cherry-pick, API падал из‑за alembic в БД без файла в дереве, Docker Hub/BuildKit ~27+ мин.
+- **2026-10-17:** агент показал Игорю **фейковый упрощённый «лист»** (`/dev` mock-стол) вместо Play Desk — канон: [`docs/PLAY_DESK_SOURCE_OF_TRUTH.md`](../../../docs/PLAY_DESK_SOURCE_OF_TRUTH.md). Не повторять.
 
 ## Hard rules
 
@@ -27,15 +29,16 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 4. **PRODUCT_STATUS** — только после проверки живого сервера.
 5. Параллельные агенты: ветки от tip; на сервер — один деплой после merge tip.
 6. **Запрещено** собирать deploy-ветку cherry-pick’ами мимо tip при пустом `merge-base`.
-7. **Запрещено** откатывать fast-path (`deploy/remote-up.sh`, nginx+dist) на `docker compose up -d --build` / node Dockerfile на VPS.
+7. **Запрещено** деплоить параллельную «линию tip» (сеттинг от C4, пока live=classic). Сначала `git merge origin/<live-tip>`.
+8. **Запрещено** откатывать fast-path (`deploy/remote-up.sh`, nginx+dist) на `docker compose up -d --build` / node Dockerfile на VPS.
 
 ## Текущий prod tip
 
 ```text
-cursor/cleric-create-bugs-244b
+cursor/magic-initiate-feat-spells-merge-1cc0
 ```
 
-URL: http://201.34.132.252/
+URL: https://creed20.tech/
 
 Перед деплоем сверь tip с **живым** `/opt/dvarf/AGENTS.md` — локальная копия в feature-ветке может врать.
 
@@ -72,6 +75,7 @@ git merge origin/<live-prod-tip>
 | Tip file | `deploy/prod-tip` (совпадает с AGENTS) |
 | Wave A identity | `IdentityDialog.tsx` + wiring; **нет** `label: 'ЕЩЁ'` |
 | Wave B theme | `shared/theme/accountAppearance.ts` |
+| UI Kit CSS LOCK | `index.css` содержит `UI KIT LOCK — Lobby Hub` + `.lobby-member-grid` + `.setting-wiki` |
 
 `deploy/preflight-live.sh` — до затирания сервера:
 
@@ -85,7 +89,7 @@ git merge origin/<live-prod-tip>
 ## После деплоя (обязательно)
 
 ```bash
-curl -fsS http://201.34.132.252/health
+curl -fsS https://creed20.tech/health
 # бандл + маркеры на диске; remote-up.sh на месте
 ```
 
@@ -97,6 +101,19 @@ curl -fsS http://201.34.132.252/health
 2. Взять live tip + недостающие коммиты (`git merge`, не час cherry-pick).
 3. Preflight local+live → деплой → маркеры → PRODUCT_STATUS.
 
+## Сеттинг / classic — не ломать прод
+
+Доработки C5–T5 и classic **сами по себе ок**. Ломает только деплой с параллельной линии tip.
+
+Перед деплоем сеттинга:
+
+1. Live tip с VPS — ancestor of HEAD.
+2. В дереве есть Play Desk + полный classic + ваш сеттинг.
+3. `preflight-prod` + `preflight-live` зелёные (counts не ниже live).
+
+Контракт classic ↔ продукт: [`docs/CLASSIC_SHEET_PROD.md`](../../../docs/CLASSIC_SHEET_PROD.md).  
+Постмортем: [`docs/INCIDENT_OVERWRITE_2026-10-17.md`](../../../docs/INCIDENT_OVERWRITE_2026-10-17.md).
+
 ## Связанные файлы
 
 - [`AGENTS.md`](../../../AGENTS.md)
@@ -105,4 +122,6 @@ curl -fsS http://201.34.132.252/health
 - [`deploy/preflight-live.sh`](../../../deploy/preflight-live.sh)
 - [`deploy/remote-up.sh`](../../../deploy/remote-up.sh)
 - [`PRODUCT_STATUS.md`](../../../PRODUCT_STATUS.md)
+- [`docs/CLASSIC_SHEET_PROD.md`](../../../docs/CLASSIC_SHEET_PROD.md)
+- [`docs/INCIDENT_OVERWRITE_2026-10-17.md`](../../../docs/INCIDENT_OVERWRITE_2026-10-17.md)
 - [`dvarf-dev-workflow`](../dvarf-dev-workflow/SKILL.md)

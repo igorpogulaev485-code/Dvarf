@@ -7,29 +7,50 @@ import {
 import type { ConcentrationState } from './play'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import { SpellDetailDialog } from './SpellDetailDialog'
+import type { SpellLearnBudget } from '../../shared/dnd/casterProgression'
+import {
+  buildCastProfiles,
+  formatNamedCantripBudgets,
+  mergeCastProfilesForDisplay,
+  type SpellCastProfile,
+} from '../../shared/dnd/castProfiles'
+import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
   countLearnedCantrips,
+  countLearnedCantripsBySlug,
   countLearnedLeveled,
+  countLockedFeatureCantrips,
   countPreparedLeveled,
   grantCastRemaining,
   groupSpellsByLevel,
   isGrantedSpellHighlight,
-  isReadyInCombat,
+  isAvailableToCast,
   spellSourceBadge,
   type SheetSpell,
   type SpellsState,
 } from './spells'
 import { IconCast, IconConcentration, IconRitual, IconWizardHat } from './spellIcons'
-import { spellSchoolLabelRu } from '../../shared/dnd/spellCatalog'
-import { clampPactSlots, levelLabel, spellAttackBonus, spellSaveDc } from '../../shared/dnd/spells'
+import {
+  resolveCastEffect,
+  spellSchoolLabelRu,
+} from '../../shared/dnd/spellCatalog'
+import type { FormulaVars } from '../../shared/dnd/formulas'
+import {
+  SPELLCASTING_ABILITY_LABELS,
+  clampPactSlots,
+  levelLabel,
+  spellAttackBonus,
+  spellSaveDc,
+} from '../../shared/dnd/spells'
 import type { RulesEdition } from '../../shared/api/characters'
+import { type BonusLine, withSpellCastBonuses } from './modifiers'
 
 type PlayDeskSpellsCompactProps = {
   spells: SpellsState
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
-  /** Flat bonus from gear (Amulet of the Devout, …) to attack + save DC. */
-  spellcastingBonus?: number
+  modifiers?: BonusLine[]
+  formulaVars?: FormulaVars
   /** PHB learn budget caps for compact quota chips. */
   learnBudget?: {
     mode: 'known' | 'prepared_list' | 'spellbook'
@@ -37,12 +58,19 @@ type PlayDeskSpellsCompactProps = {
     leveledKnown: number | null
     maxPrepared: number | null
   } | null
+  /** M2: per-class budgets for named cantrip meta. */
+  learnBudgets?: SpellLearnBudget[] | null
+  /** M3: class rows for cast profiles (Сл/атака по источнику). */
+  classes?: ClassLevelEntry[]
+  castProfiles?: SpellCastProfile[] | null
   pinned?: boolean
   concentration?: ConcentrationState | null
   /** Rules edition for catalog description lookup in detail dialog. */
   edition?: RulesEdition
   /** Open caster setup (slots / grimoire / advanced) — replaces full panel. */
   onOpenSettings: () => void
+  /** Label for settings / book entry (mobile kit: «Книга»). */
+  settingsLabel?: string
   onClearSplit?: () => void
   /** Patch spells (prepare dialog). */
   onSpellsChange?: (spells: SpellsState) => void
@@ -60,12 +88,17 @@ export function PlayDeskSpellsCompact({
   spells,
   abilities,
   proficiencyBonus,
-  spellcastingBonus = 0,
+  modifiers = [],
+  formulaVars = {},
   learnBudget = null,
+  learnBudgets = null,
+  classes = [],
+  castProfiles = null,
   pinned = false,
   concentration = null,
   edition = '2014',
   onOpenSettings,
+  settingsLabel = 'Настройки',
   onClearSplit,
   onSpellsChange,
   onSlotUsedChange,
@@ -75,19 +108,72 @@ export function PlayDeskSpellsCompact({
 }: PlayDeskSpellsCompactProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [detailSpell, setDetailSpell] = useState<SheetSpell | null>(null)
-  const [showAllSpells, setShowAllSpells] = useState(false)
-  const ready = spells.known.filter(isReadyInCombat)
+  const bookLost = Boolean(spells.wizard_spellbook?.bookLost)
+  const hasSpellbook =
+    learnBudget?.mode === 'spellbook' &&
+    Boolean(
+      spells.wizard_spellbook &&
+        !spells.wizard_spellbook.bookLost &&
+        spells.wizard_spellbook.primaryBookItemId,
+    )
+  const ready = spells.known.filter((spell) =>
+    isAvailableToCast(spell, {
+      learnMode: learnBudget?.mode ?? null,
+      hasSpellbook,
+    }),
+  )
   const pact = spells.pact_slots ? clampPactSlots(spells.pact_slots) : null
   const pactRemaining = pact && pact.max > 0 ? Math.max(0, pact.max - pact.used) : null
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
-  const gearBonus = Math.floor(spellcastingBonus) || 0
-  const dc = abilityKey
-    ? spellSaveDc(abilityMod, proficiencyBonus) + gearBonus
-    : null
-  const attack = abilityKey
-    ? spellAttackBonus(abilityMod, proficiencyBonus) + gearBonus
-    : null
+  const castStats = withSpellCastBonuses({
+    baseDc: abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null,
+    baseAttack: abilityKey
+      ? spellAttackBonus(abilityMod, proficiencyBonus)
+      : null,
+    modifiers,
+    vars: formulaVars,
+  })
+  const dc = castStats.dc
+  const attack = castStats.attack
+  const profileRows = (() => {
+    const built =
+      castProfiles && castProfiles.length > 0
+        ? castProfiles
+        : classes.filter((row) => row.name.trim() && row.level > 0).length > 0
+          ? buildCastProfiles({
+              classes,
+              proficiencyBonus,
+              abilityModFor: (ability) => abilityModifier(abilities[ability]),
+              dcExtra: (dc ?? 0) - (abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : 0),
+              attackExtra:
+                (attack ?? 0) -
+                (abilityKey ? spellAttackBonus(abilityMod, proficiencyBonus) : 0),
+            })
+          : []
+    if (built.length === 0) return null
+    // Unscoped lines + lines matching this profile.slug (M3).
+    return mergeCastProfilesForDisplay(
+      built.map((row) => {
+        const boosted = withSpellCastBonuses({
+          baseDc: row.saveDc,
+          baseAttack: row.attackBonus,
+          modifiers,
+          vars: formulaVars,
+          classSlug: row.slug,
+        })
+        return {
+          ...row,
+          saveDc: boosted.dc ?? row.saveDc,
+          attackBonus: boosted.attack ?? row.attackBonus,
+        }
+      }),
+    )
+  })()
+  const characterLevel = Math.max(
+    1,
+    classes.reduce((sum, row) => sum + Math.max(0, Math.floor(row.level)), 0),
+  )
   const learnedCantrips = countLearnedCantrips(spells.known)
   const learnedLeveled = countLearnedLeveled(spells.known)
   const preparedCount = countPreparedLeveled(spells.known)
@@ -107,12 +193,27 @@ export function PlayDeskSpellsCompact({
       ? `подг. ${preparedCount}/${prepCap}`
       : `подг. ${preparedCount}`
   })()
-  const cantripLabel =
-    learnBudget?.cantrips != null
-      ? `заг. ${learnedCantrips}/${learnBudget.cantrips}`
-      : null
+  const cantripLabel = (() => {
+    if (learnBudgets && learnBudgets.length > 0) {
+      return formatNamedCantripBudgets(
+        learnBudgets,
+        countLearnedCantripsBySlug(spells.known),
+        { tomeExtra: countLockedFeatureCantrips(spells.known) },
+      )
+    }
+    if (learnBudget?.cantrips != null) {
+      return `заг. ${learnedCantrips}/${learnBudget.cantrips}`
+    }
+    return null
+  })()
+  /**
+   * «Подготовить» на листе — только волшебник (быстрый набор из книги).
+   * Жрец и компания готовят в гримуаре; known — без daily prepare.
+   */
+  const showPrepare =
+    Boolean(onSpellsChange) && learnBudget?.mode === 'spellbook'
 
-  const maxRows = 14
+  /** Always show every ready spell — no «показать все» collapse (Игорь). */
   const levelGroups = (() => {
     const grouped = groupSpellsByLevel(ready)
     const byLevel = new Map(grouped.map((group) => [group.level, group]))
@@ -121,15 +222,14 @@ export function PlayDeskSpellsCompact({
         byLevel.set(level, { level, spells: [] })
       }
     }
-    let remaining = showAllSpells ? Number.POSITIVE_INFINITY : maxRows
     return [...byLevel.entries()]
       .sort((a, b) => a[0] - b[0])
-      .map(([, group]) => {
-        const visible = group.spells.slice(0, Math.max(0, remaining))
-        remaining -= visible.length
-        return { ...group, visible }
-      })
-      .filter((group) => group.visible.length > 0 || (group.level > 0 && (spells.slots[String(group.level)]?.max ?? 0) > 0))
+      .map(([, group]) => ({ ...group, visible: group.spells }))
+      .filter(
+        (group) =>
+          group.visible.length > 0 ||
+          (group.level > 0 && (spells.slots[String(group.level)]?.max ?? 0) > 0),
+      )
   })()
 
   return (
@@ -137,11 +237,16 @@ export function PlayDeskSpellsCompact({
       <div className="play-desk-compact__head">
         <h3>{pinned ? 'Заклинания (закреплено)' : 'Заклинания'}</h3>
         <div className="play-desk-compact__head-actions">
-          {onSpellsChange ? (
+          {showPrepare ? (
             <button
               type="button"
               className="play-desk-compact__link play-desk-compact__link--prepare"
               onClick={() => setPrepareOpen(true)}
+              title={
+                learnBudget?.mode === 'spellbook'
+                  ? 'Выбрать на сегодня из книги (лимит = Инт + ур. волшебника)'
+                  : 'Выбрать на сегодня из списка класса (лимит = мод + уровень)'
+              }
             >
               <IconWizardHat className="play-desk-compact__link-icon" />
               Подготовить
@@ -157,12 +262,47 @@ export function PlayDeskSpellsCompact({
             className="play-desk-compact__link play-desk-compact__link--settings"
             onClick={onOpenSettings}
           >
-            Настройки
+            {settingsLabel}
           </button>
         </div>
       </div>
 
-      {(dc != null || attack != null) && (
+      {learnBudget?.mode === 'spellbook' && bookLost ? (
+        <p className="play-desk-compact__book-lost">
+          Книга утеряна — подготовка и ритуалы из книги закрыты. Открой «{settingsLabel}» →
+          статус книги, чтобы вернуть книгу из инвентаря.
+        </p>
+      ) : null}
+
+      {profileRows && profileRows.length > 0 ? (
+        <div
+          className={`play-desk-compact__combat-stats play-desk-compact__combat-stats--profiles${
+            profileRows.length > 1 ? ' is-multi' : ''
+          }`}
+          aria-label="Сл. спас. и атака заклинаний по классам"
+        >
+          {profileRows.map((row) => (
+            <div
+              key={row.id}
+              className={`play-desk-compact__cast-profile is-${row.ability}`}
+              title={`${row.labelRu} · ${SPELLCASTING_ABILITY_LABELS[row.ability]}`}
+            >
+              <span className="play-desk-compact__cast-profile-source">
+                {row.labelRu}
+                <em>{SPELLCASTING_ABILITY_LABELS[row.ability]}</em>
+              </span>
+              <span className="play-desk-compact__cast-profile-nums">
+                <span>
+                  Сл <b>{row.saveDc}</b>
+                </span>
+                <span>
+                  Атака <b>{formatModifier(row.attackBonus)}</b>
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (dc != null || attack != null) ? (
         <div className="play-desk-compact__combat-stats" aria-label="Сл. спас. и атака заклинаний">
           {dc != null ? (
             <div className="play-desk-compact__combat-stat">
@@ -177,7 +317,7 @@ export function PlayDeskSpellsCompact({
             </div>
           ) : null}
         </div>
-      )}
+      ) : null}
 
       {(quotaLabel || cantripLabel || concentration) && (
         <div className="play-desk-compact__meta">
@@ -278,6 +418,7 @@ export function PlayDeskSpellsCompact({
                     <SpellRow
                       key={spell.id}
                       spell={spell}
+                      characterLevel={characterLevel}
                       activeConcentration={isActiveConc}
                       onOpenDetail={() => setDetailSpell(spell)}
                       onCast={() => {
@@ -297,31 +438,13 @@ export function PlayDeskSpellsCompact({
             )
           })
         )}
-        {ready.length > maxRows ? (
-          showAllSpells ? (
-            <button
-              type="button"
-              className="play-desk-compact__more play-desk-compact__more--btn"
-              onClick={() => setShowAllSpells(false)}
-            >
-              Свернуть список
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="play-desk-compact__more play-desk-compact__more--btn"
-              onClick={() => setShowAllSpells(true)}
-            >
-              + ещё {ready.length - maxRows} · показать все
-            </button>
-          )
-        ) : null}
       </div>
 
       {onSpellsChange ? (
         <PrepareSpellsDialog
-          open={prepareOpen}
+          open={prepareOpen && learnBudget?.mode === 'spellbook'}
           spells={spells}
+          learnMode="spellbook"
           onChange={onSpellsChange}
           onClose={() => setPrepareOpen(false)}
         />
@@ -402,19 +525,20 @@ function shortDamage(raw: string): string {
   return t.replace(/\s+/g, ' ')
 }
 
-/** Prefer sheet damage; else lowest scale-table entry (cantrip / slot). */
-function compactDamage(spell: SheetSpell): string {
-  const direct = shortDamage(spell.damage)
-  if (direct) return direct
-  const table =
-    spell.level <= 0 ? spell.damage_at_character_level : spell.damage_at_slot_level
-  if (!table) return ''
-  const keys = Object.keys(table)
-    .map((key) => Number(key))
-    .filter((n) => Number.isFinite(n))
-    .sort((a, b) => a - b)
-  if (keys.length === 0) return ''
-  return shortDamage(table[String(keys[0])] ?? '')
+/**
+ * Show scaled damage when cantrip/slot tables exist (e.g. Fire Bolt 4d10 at L20).
+ * Falls back to static `damage` when no scale applies.
+ */
+function compactDamage(spell: SheetSpell, characterLevel: number): string {
+  const level = Math.max(1, Math.floor(characterLevel) || 1)
+  const slotLevel = Math.max(spell.level, 1)
+  const resolved = resolveCastEffect(spell, {
+    characterLevel: level,
+    slotLevel,
+  })
+  const scaled = shortDamage(resolved.effect)
+  if (scaled) return scaled
+  return shortDamage(spell.damage)
 }
 
 /** Non-damage key params (school / comps / range / time / duration / atk). */
@@ -435,12 +559,14 @@ function compactSpellMeta(spell: SheetSpell): string {
 
 function SpellRow({
   spell,
+  characterLevel,
   activeConcentration,
   onOpenDetail,
   onCast,
   hasCast,
 }: {
   spell: SheetSpell
+  characterLevel: number
   activeConcentration: boolean
   onOpenDetail: () => void
   onCast: () => void
@@ -448,7 +574,7 @@ function SpellRow({
 }) {
   const levelText = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
   const meta = compactSpellMeta(spell)
-  const damage = compactDamage(spell)
+  const damage = compactDamage(spell, characterLevel)
   const source = spellSourceBadge(spell)
   const granted = isGrantedSpellHighlight(spell)
   const grantLeft =

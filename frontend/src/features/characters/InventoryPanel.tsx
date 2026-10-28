@@ -59,8 +59,15 @@ import {
   itemsWeightLb,
   totalCarriedLb,
 } from '../../shared/dnd/weight'
+import { HoverTipCard, PANEL_HELP, panelExplain } from '../onboarding'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
+import { SpellScrollBindDialog } from './SpellScrollBindDialog'
+import {
+  isCastableSpellScroll,
+  isSpellScrollCatalogSlug,
+  isSpellScrollItem,
+} from './spellScroll'
 import {
   armorFieldsFromCatalog,
   asWeighableItems,
@@ -76,6 +83,7 @@ import {
   expandPack,
   findCatalogPackEntry,
   hasPackContents,
+  hasSoftCollapsedChildren,
   hydrateCollapsedPackMeta,
   isExpandedPack,
   orderInventoryItems,
@@ -310,6 +318,8 @@ type InventoryPanelProps = {
   /** Combat consumable favorites (★ in explore → расходники в бою). */
   favoriteConsumableIds?: string[]
   onToggleConsumableFavorite?: (itemId: string) => void
+  /** Cast a bound spell scroll from inventory (explore / combat). */
+  onCastScroll?: (itemId: string) => void
 }
 
 export function InventoryPanel({
@@ -328,6 +338,7 @@ export function InventoryPanel({
   onOpenCoins,
   favoriteConsumableIds = [],
   onToggleConsumableFavorite,
+  onCastScroll,
 }: InventoryPanelProps) {
   const favoriteSet = useMemo(() => new Set(favoriteConsumableIds), [favoriteConsumableIds])
   const favoriteCount = favoriteConsumableIds.length
@@ -335,6 +346,7 @@ export function InventoryPanel({
   const [packBusyId, setPackBusyId] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [coinPadOpen, setCoinPadOpen] = useState(false)
+  const [scrollBindItemId, setScrollBindItemId] = useState<string | null>(null)
   const [filter, setFilter] = useState<InventoryFilter>('all')
   /** Accordion: at most one root detail open. */
   const [openId, setOpenId] = useState<string | null>(null)
@@ -364,7 +376,13 @@ export function InventoryPanel({
     const current = inventoryRef.current
     let changed = false
     const nextItems = current.items.map((item) => {
-      if (isExpandedPack(current.items, item.id)) return item
+      // Soft-collapsed packs already own live children / weight — leave them alone.
+      if (
+        isExpandedPack(current.items, item.id) ||
+        childrenOf(current.items, item.id).length > 0
+      ) {
+        return item
+      }
       const patch = hydrateCollapsedPackMeta(item, catalogItems)
       if (!patch) return item
       changed = true
@@ -484,6 +502,7 @@ export function InventoryPanel({
     updateItem(id, {
       name: selected.name_ru,
       catalog_id: selected.id,
+      catalog_slug: selected.slug,
       weight_lb: weight,
       armor_kind: armor.armor_kind ?? 'none',
       base_ac: armor.base_ac ?? null,
@@ -504,7 +523,15 @@ export function InventoryPanel({
       wear_slot: wear,
       requires_attunement: attune,
       effects,
+      scroll_spell: null,
     })
+    const isScroll =
+      isSpellScrollCatalogSlug(selected.slug) ||
+      parsedItem.family_slug === 'spell_scroll'
+    if (isScroll) {
+      setScrollBindItemId(id)
+      onToast?.('Укажи заклинание на свитке')
+    }
   }
 
   function toggleEquip(item: InventoryItem) {
@@ -557,6 +584,8 @@ export function InventoryPanel({
   function canExpand(item: InventoryItem): boolean {
     if (item.parent_id) return false
     if (isExpandedPack(inventory.items, item.id)) return false
+    // Soft-collapsed: children already exist — allow reopen without catalog.
+    if (hasSoftCollapsedChildren(inventory.items, item.id)) return true
     const hit = findCatalogPackEntry(item, catalogItems)
     if (!hit) return false
     return hasPackContents(hit.data ?? undefined)
@@ -565,6 +594,19 @@ export function InventoryPanel({
   async function onExpandPack(item: InventoryItem) {
     setPackBusyId(item.id)
     try {
+      // Re-open after soft collapse — keep edited child qty (e.g. бурдюк ×9).
+      if (hasSoftCollapsedChildren(inventory.items, item.id)) {
+        onChange({
+          ...inventory,
+          items: expandPack({
+            items: inventory.items,
+            packId: item.id,
+            contents: [],
+          }),
+        })
+        setOpenId(item.id)
+        return
+      }
       let rows = catalogItems
       if (rows.length === 0) {
         rows = await listCatalogEntries({ kind: 'item', edition })
@@ -939,6 +981,29 @@ export function InventoryPanel({
           </Text>
         ) : null}
 
+        {isSpellScrollItem(item) ? (
+          <div className="chip-row" style={{ marginTop: 4 }}>
+            <button
+              type="button"
+              className={`sheet-chip${item.scroll_spell ? ' is-on' : ''}`}
+              onClick={() => setScrollBindItemId(item.id)}
+            >
+              {item.scroll_spell
+                ? `Заклинание: ${item.scroll_spell.name}`
+                : 'Указать заклинание свитка'}
+            </button>
+            {isCastableSpellScroll(item) && onCastScroll ? (
+              <button
+                type="button"
+                className="sheet-chip is-on"
+                onClick={() => onCastScroll(item.id)}
+              >
+                Кастовать свиток
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
         <Field label="Примечания">
           <Input
             value={item.notes}
@@ -987,7 +1052,11 @@ export function InventoryPanel({
   }
 
   return (
-    <Panel title="Инвентарь" className="inventory-panel">
+    <Panel
+      title="Инвентарь"
+      className="inventory-panel"
+      titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.inventory)} />}
+    >
       <Stack gap={12}>
         <Text tone="muted">
           Ноша и вещи. Строка — взгляд; клик — детали (одна открыта). ★ — в расходники боя. Монеты —
@@ -1021,41 +1090,64 @@ export function InventoryPanel({
           </Button>
         </div>
 
-        <p className={`inventory-summary-line${overEncumbered ? ' is-over' : ''}`}>
-          Вещи {formatLb(itemsLb)} фнт · Монеты {formatLb(coinsLb)} фнт · Итого{' '}
-          <strong>
-            {formatLb(totalLb)} / {formatLb(capacityLb)} фнт
-          </strong>
-          {autoAc != null ? (
-            <>
-              {' · '}
-              <span className="inventory-summary-line__ac" title={acHint || undefined}>
-                КД {autoAc}
-              </span>
-            </>
-          ) : null}
-          {attunementFilled != null ? (
-            <>
-              {' · '}
-              {onOpenAttunement ? (
-                <button
-                  type="button"
-                  className="inventory-summary-line__link"
-                  onClick={onOpenAttunement}
+        <div
+          className={`inventory-summary${overEncumbered ? ' is-over' : ''}`}
+          aria-label="Ноша и настройка"
+        >
+          <div className="inventory-summary__top">
+            <p className="inventory-summary__weights">
+              Вещи {formatLb(itemsLb)} · монеты {formatLb(coinsLb)} ·{' '}
+              <strong>
+                {formatLb(totalLb)} / {formatLb(capacityLb)} фнт
+              </strong>
+            </p>
+            <div className="inventory-summary__chips">
+              {autoAc != null ? (
+                <span
+                  className="inventory-summary__chip"
+                  title={acHint || undefined}
                 >
-                  Настройка {attunementFilled}/{MAX_ATTUNEMENTS}
-                </button>
-              ) : (
-                <span>
-                  Настройка {attunementFilled}/{MAX_ATTUNEMENTS}
+                  КД {autoAc}
                 </span>
-              )}
-            </>
+              ) : null}
+              {attunementFilled != null ? (
+                onOpenAttunement ? (
+                  <button
+                    type="button"
+                    className="inventory-summary__chip inventory-summary__chip--action"
+                    onClick={onOpenAttunement}
+                  >
+                    Настройка {attunementFilled}/{MAX_ATTUNEMENTS}
+                  </button>
+                ) : (
+                  <span className="inventory-summary__chip">
+                    Настройка {attunementFilled}/{MAX_ATTUNEMENTS}
+                  </span>
+                )
+              ) : null}
+            </div>
+          </div>
+          <div
+            className="inventory-summary__bar"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={Math.max(1, Math.round(capacityLb))}
+            aria-valuenow={Math.round(totalLb)}
+            aria-label={`Ноша ${formatLb(totalLb)} из ${formatLb(capacityLb)} фунтов`}
+          >
+            <div
+              className="inventory-summary__fill"
+              style={{
+                width: `${Math.min(100, capacityLb > 0 ? (totalLb / capacityLb) * 100 : 0)}%`,
+              }}
+            />
+          </div>
+          {overEncumbered ? (
+            <Text tone="danger" className="inventory-summary__over">
+              Перегруз: больше лимита переноски (СИЛ × 15).
+            </Text>
           ) : null}
-        </p>
-        {overEncumbered ? (
-          <Text tone="danger">Перегруз: итого больше лимита переноски (СИЛ × 15).</Text>
-        ) : null}
+        </div>
 
         <button
           type="button"
@@ -1138,7 +1230,40 @@ export function InventoryPanel({
             onWeaponsChange(next.weapons)
           }
           setPickerOpen(false)
+          const added = toAdd.item
+          if (
+            isSpellScrollCatalogSlug(added.catalog_slug) ||
+            isSpellScrollItem(added)
+          ) {
+            setScrollBindItemId(added.id)
+            onToast?.('Укажи заклинание на свитке')
+          }
         }}
+      />
+
+      <SpellScrollBindDialog
+        open={scrollBindItemId != null}
+        edition={edition}
+        item={
+          scrollBindItemId
+            ? inventory.items.find((row) => row.id === scrollBindItemId) ?? null
+            : null
+        }
+        onConfirm={(bound) => {
+          onChange({
+            ...inventory,
+            items: inventory.items.map((row) =>
+              row.id === bound.id ? bound : row,
+            ),
+          })
+          setScrollBindItemId(null)
+          onToast?.(
+            bound.scroll_spell
+              ? `Свиток: ${bound.scroll_spell.name}`
+              : 'Свиток обновлён',
+          )
+        }}
+        onClose={() => setScrollBindItemId(null)}
       />
 
       {!onOpenCoins ? (

@@ -15,6 +15,7 @@ export type User = {
   full_name: string | null
   phone: string | null
   avatar_url: string | null
+  /** Required on /auth/me — preflight guards schema; optional only if API regressed. */
   theme_id?: ThemeId
   ability_colors?: AbilityColorsMode
   email_verified_at: string | null
@@ -238,6 +239,18 @@ export async function deleteAccount(
 
 export async function startOAuth(provider: 'yandex' | 'vk'): Promise<OAuthStartResponse> {
   return apiRequest<OAuthStartResponse>(`/auth/oauth/${provider}/start`)
+}
+
+export async function startOAuthLink(
+  provider: 'yandex' | 'vk',
+): Promise<OAuthStartResponse> {
+  return apiRequest<OAuthStartResponse>(`/auth/oauth/${provider}/link/start`)
+}
+
+export async function unlinkOAuth(provider: 'yandex' | 'vk'): Promise<User> {
+  return apiRequest<User>(`/auth/oauth/${provider}/link`, {
+    method: 'DELETE',
+  })
 }
 
 export type ForgotPasswordResponse = {

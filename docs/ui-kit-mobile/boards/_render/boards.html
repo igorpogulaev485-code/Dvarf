@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<title>Dvarf Mobile UI Kit Boards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #2d2d2a;
+    --muted: #6f675c;
+    --panel: #fbf7ec;
+    --line: #e0d8c7;
+    --card: #fffdf8;
+    --danger: #b42318;
+    --accent: #5a6b3d;
+    --accent-soft: #e5ecd4;
+    --font-display: "Source Serif 4", "Times New Roman", serif;
+    --font-ui: "IBM Plex Sans", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: #cfc6b4;
+    font-family: var(--font-ui);
+    color: var(--ink);
+  }
+  .board {
+    width: 1280px;
+    height: 720px;
+    background: var(--panel);
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+    display: none;
+  }
+  .board.is-active { display: block; }
+  .board::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(90,107,61,.07), transparent 45%),
+      radial-gradient(ellipse at 90% 100%, rgba(154,74,50,.05), transparent 40%),
+      linear-gradient(180deg, #fffdf8 0%, var(--panel) 40%, #f3ecda 100%);
+    pointer-events: none;
+  }
+  .board > * { position: relative; z-index: 1; }
+  .hdr {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding: 22px 32px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .hdr h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 28px; font-weight: 700;
+    color: var(--accent);
+  }
+  .hdr .sub { margin: 4px 0 0; font-size: 13px; color: var(--muted); font-weight: 500; }
+  .hdr .badge {
+    background: var(--accent); color: #fff;
+    font-size: 11px; font-weight: 600; letter-spacing: .04em;
+    padding: 6px 10px; border-radius: 999px;
+  }
+  .body { padding: 18px 32px 24px; }
+  .sec-label {
+    font-size: 11px; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 8px;
+  }
+  .row { display: flex; gap: 16px; }
+  .col { flex: 1; min-width: 0; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .phone {
+    width: 300px;
+    height: 580px;
+    background: var(--card);
+    border: 2px solid var(--ink);
+    border-radius: 36px;
+    box-shadow: 0 12px 40px rgba(45,45,42,.18);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    flex-shrink: 0;
+  }
+  .phone-notch {
+    height: 22px; display: flex; justify-content: center; align-items: flex-end;
+  }
+  .phone-notch span {
+    width: 90px; height: 10px; background: var(--ink); border-radius: 0 0 10px 10px;
+  }
+  .phone-body {
+    flex: 1; display: flex; flex-direction: column;
+    background: var(--panel);
+    min-height: 0;
+  }
+  .vitals {
+    padding: 8px 10px 6px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #fffdf8, var(--panel));
+  }
+  .who { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--accent-soft); border: 2px solid var(--accent);
+    display: grid; place-items: center;
+    font-family: var(--font-display); font-weight: 700; color: var(--accent); font-size: 14px;
+  }
+  .who-name { font-family: var(--font-display); font-weight: 700; font-size: 16px; line-height: 1.1; }
+  .who-meta { font-size: 11px; color: var(--muted); }
+  .vital-row { display: flex; gap: 4px; margin-bottom: 6px; }
+  .vital {
+    flex: 1; background: var(--card); border: 1px solid var(--line);
+    border-radius: 8px; padding: 4px 2px; text-align: center;
+  }
+  .vital .v { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .vital .l { font-size: 9px; color: var(--muted); font-weight: 500; }
+  .hp-row { display: flex; gap: 6px; align-items: stretch; }
+  .hp {
+    flex: 1.4; background: var(--card); border: 1.5px solid var(--accent);
+    border-radius: 10px; padding: 6px 8px; display: flex; align-items: center; gap: 8px;
+  }
+  .hp .num { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
+  .hp .lab { font-size: 10px; color: var(--muted); }
+  .tool {
+    width: 40px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--card); display: grid; place-items: center;
+    font-size: 16px;
+  }
+  .hot {
+    display: flex; gap: 4px; padding: 6px 8px;
+    border-bottom: 1px solid var(--line);
+    background: var(--accent-soft);
+  }
+  .hot chip {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 999px; padding: 3px 8px; font-size: 10px; font-weight: 600;
+  }
+  .hot chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .scene {
+    flex: 1; overflow: hidden; padding: 8px;
+    display: flex; flex-direction: column; gap: 6px; min-height: 0;
+  }
+  .scene-title {
+    font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--accent);
+    margin: 0 0 2px;
+  }
+  .seg {
+    display: flex; gap: 4px; margin-bottom: 2px;
+  }
+  .seg button {
+    flex: 1; border: 1px solid var(--line); background: var(--card);
+    border-radius: 8px; padding: 6px; font-size: 11px; font-weight: 600;
+    font-family: inherit; color: var(--ink);
+  }
+  .seg button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .att {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 8px 10px; min-height: 48px;
+  }
+  .att .name { font-weight: 600; font-size: 13px; flex: 1; }
+  .att .meta { font-size: 11px; color: var(--muted); }
+  .att .hit {
+    background: var(--accent); color: #fff; font-weight: 700;
+    border-radius: 8px; padding: 6px 8px; font-size: 12px; min-width: 44px; text-align: center;
+  }
+  .bnav {
+    display: flex; border-top: 1px solid var(--line);
+    background: var(--card); padding: 4px 2px calc(6px + env(safe-area-inset-bottom, 0));
+  }
+  .bnav .tab {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    gap: 2px; padding: 6px 0 4px; font-size: 8px; font-weight: 600; color: var(--muted);
+    min-height: 48px; justify-content: center;
+  }
+  .bnav .tab .ico {
+    width: 22px; height: 22px; border-radius: 6px;
+    display: grid; place-items: center; font-size: 13px;
+  }
+  .bnav .tab.on { color: var(--accent); }
+  .bnav .tab.on .ico { background: var(--accent); color: #fff; }
+  .note {
+    font-size: 12px; color: var(--muted); line-height: 1.45; margin: 0;
+  }
+  .note strong { color: var(--ink); }
+  .swatch {
+    width: 72px; height: 64px; border-radius: 10px; border: 1px solid var(--line);
+    display: flex; flex-direction: column; justify-content: flex-end; padding: 6px;
+    font-size: 10px; font-weight: 600;
+  }
+  .swatch span { opacity: .85; font-weight: 500; font-size: 9px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--line); background: var(--card);
+    border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 600;
+  }
+  .pill.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .sheet-demo {
+    width: 280px; background: var(--card);
+    border: 1px solid var(--line); border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 28px rgba(45,45,42,.12);
+    padding: 10px 14px 16px;
+  }
+  .sheet-demo .grab {
+    width: 40px; height: 4px; background: var(--line); border-radius: 4px; margin: 0 auto 10px;
+  }
+  .sheet-demo h3 {
+    margin: 0 0 8px; font-family: var(--font-display); font-size: 18px; color: var(--accent);
+  }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 44px; padding: 0 14px; border-radius: 10px;
+    font-weight: 600; font-size: 13px; border: 1px solid transparent;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-soft { background: var(--accent-soft); color: var(--ink); }
+  .btn-ghost { background: var(--card); border-color: var(--line); color: var(--ink); }
+  .btn-danger { background: var(--card); border-color: var(--danger); color: var(--danger); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .callout {
+    background: var(--accent-soft); border: 1px solid #c9d5a8;
+    border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.4;
+  }
+  .tag {
+    display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--accent); background: var(--accent-soft);
+    padding: 3px 7px; border-radius: 6px; margin-bottom: 6px;
+  }
+  .mini-phone {
+    width: 170px; height: 300px; border: 2px solid var(--ink); border-radius: 22px;
+    background: var(--panel); overflow: hidden; flex-shrink: 0;
+    display: flex; flex-direction: column;
+  }
+  .mini-phone .top {
+    height: 42px; background: linear-gradient(180deg,#fffdf8,var(--panel));
+    border-bottom: 1px solid var(--line); padding: 6px; font-size: 9px; font-weight: 700;
+  }
+  .mini-phone .mid { flex: 1; padding: 6px; font-size: 9px; }
+  .mini-phone .bot {
+    display: flex; border-top: 1px solid var(--line); background: var(--card);
+    padding: 3px 1px;
+  }
+  .mini-phone .bot span {
+    flex: 1; text-align: center; font-size: 7px; font-weight: 600; color: var(--muted);
+    padding: 4px 0; line-height: 1.15;
+  }
+  .mini-phone .bot span.on { color: var(--accent); }
+  .line-item {
+    border: 1px solid var(--line); background: var(--card); border-radius: 8px;
+    padding: 6px; margin-bottom: 4px; min-height: 32px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== CATALOG ========== -->
+<section class="board" id="catalog" data-file="dvarf-mobile-kit-catalog.jpg">
+  <div class="hdr">
+    <div>
+      <h1>Dvarf Mobile UI Kit · каталог</h1>
+      <p class="sub">Телефон &lt;960px · токены Листвы · паритет функций стола · desktop kit не меняем</p>
+    </div>
+    <div class="badge">МОБИЛЬНЫЙ КИТ</div>
+  </div>
+  <div class="body">
+    <div class="row" style="gap:20px;align-items:stretch">
+      <div class="col" style="flex:1.1">
+        <p class="sec-label">A · Токены (наследуем)</p>
+        <div class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:14px">
+          <div class="swatch" style="background:#2d2d2a;color:#fff">Ink<span>#2d2d2a</span></div>
+          <div class="swatch" style="background:#6f675c;color:#fff">Muted<span>#6f675c</span></div>
+          <div class="swatch" style="background:#5a6b3d;color:#fff">Листва<span>#5a6b3d</span></div>
+          <div class="swatch" style="background:#e5ecd4;color:#2d2d2a">Soft<span>#e5ecd4</span></div>
+          <div class="swatch" style="background:#fbf7ec;color:#2d2d2a">Panel<span>#fbf7ec</span></div>
+          <div class="swatch" style="background:#e0d8c7;color:#2d2d2a">Line<span>#e0d8c7</span></div>
+          <div class="swatch" style="background:#fffdf8;color:#2d2d2a">Card<span>#fffdf8</span></div>
+          <div class="swatch" style="background:#b42318;color:#fff">Danger<span>#b42318</span></div>
+        </div>
+        <p class="sec-label">B · Типографика</p>
+        <div class="card" style="margin-bottom:14px">
+          <div style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--accent);margin-bottom:4px">Source Serif 4 — заголовки</div>
+          <div style="font-size:14px;font-weight:500">IBM Plex Sans — кнопки, списки, табы</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px">Tap ≥44px · Numeric tabular для HP</div>
+        </div>
+        <p class="sec-label">C · Кнопки / chips</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+          <span class="btn btn-primary">Каст</span>
+          <span class="btn btn-soft">Сводка</span>
+          <span class="btn btn-ghost">Назад</span>
+          <span class="btn btn-danger">Удалить</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="pill on">Все</span>
+          <span class="pill">Оружие</span>
+          <span class="pill">Доспех</span>
+        </div>
+      </div>
+      <div class="col" style="flex:1.2">
+        <p class="sec-label">D · Shell телефона (одна сцена)</p>
+        <div class="callout" style="margin-bottom:12px">
+          <strong>Слои:</strong> MobileVitalsBar (сворачивается) → HotStrip → Scene (одна) → Bottom Scene Nav.<br/>
+          Табы = desktop после drop ЕЩЁ. Характеристики = <strong>страница B</strong> из vitals. Сцены «ЕЩЁ» нет.
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="tag">Pads</div>
+            <p class="note" style="margin:0">HP · Монеты · Отдых · Состояния · Каст · Владения · Identity — только <strong>bottom sheet</strong></p>
+          </div>
+          <div class="card">
+            <div class="tag">Parity</div>
+            <p class="note" style="margin:0">Все LOCK стола достижимы. Нет «только на ПК». Нет стека всех панелей.</p>
+          </div>
+          <div class="card">
+            <div class="tag">Density</div>
+            <p class="note" style="margin:0">Строки боя `*-card__combat`, primary tap справа, glance→expand</p>
+          </div>
+          <div class="card">
+            <div class="tag">Motion</div>
+            <p class="note" style="margin:0">sheet-rise 220ms · scene-crossfade 180ms · hp-pulse 220ms</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SHELL ========== -->
+<section class="board" id="shell" data-file="dvarf-mobile-kit-shell.jpg">
+  <div class="hdr">
+    <div>
+      <h1>Кит · Shell телефона</h1>
+      <p class="sub">Vitals + HotStrip + одна сцена + Bottom Scene Nav · 390×844 образ</p>
+    </div>
+    <div class="badge">P0 · M0.1</div>
+  </div>
+  <div class="body" style="display:flex;gap:28px;align-items:flex-start">
+    <div class="phone">
+      <div class="phone-notch"><span></span></div>
+      <div class="phone-body">
+        <div class="vitals">
+          <div class="who" title="tap → Основное">
+            <div class="avatar">Т</div>
+            <div>
+              <div class="who-name">Торин</div>
+              <div class="who-meta">Дварф · Воин 5 · зд · → Основное</div>
+            </div>
+          </div>
+          <div class="vital-row">
+            <div class="vital"><div class="v">16</div><div class="l">КД</div></div>
+            <div class="vital"><div class="v">25</div><div class="l">Скор.</div></div>
+            <div class="vital"><div class="v">+2</div><div class="l">Иниц.</div></div>
+            <div class="vital"><div class="v">+3</div><div class="l">БМ</div></div>
+          </div>
+          <div class="hp-row">
+            <div class="hp">
+              <div>
+                <div class="num">28/28</div>
+                <div class="lab">Хиты · tap → pad</div>
+              </div>
+            </div>
+            <div class="tool" title="Монеты">◉</div>
+            <div class="tool" title="Отдых">♨</div>
+          </div>
+          <div style="margin-top:6px;display:flex;gap:4px">
+            <span class="pill on" style="flex:1;justify-content:center;padding:5px 6px;font-size:10px;border-radius:8px">СИЛ… · Характеристики</span>
+          </div>
+          <div style="text-align:center;font-size:10px;font-weight:700;color:var(--muted);margin-top:4px;letter-spacing:.04em">▴ Свернуть</div>
+        </div>
+        <div class="hot">
+          <chip class="on">◎ Состояния</chip>
+          <chip>◌ Конц.</chip>
+          <chip>★ Ярость 2</chip>
+        </div>
+        <div class="scene">
+          <div class="scene-title">Бой</div>
+          <div class="seg">
+            <button class="on">Атаки</button>
+            <button>Заклинания</button>
+          </div>
+          <div class="att" style="min-height:40px;padding:5px 8px"><div><div class="name">Топор дварфа</div><div class="meta">1к8+3 руб.</div></div><div class="hit">+5</div></div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:2px 2px 0;display:flex;justify-content:space-between;flex-shrink:0">
+            <span>Расходники</span><span style="font-weight:600;text-transform:none;letter-spacing:0">избр. 1/3</span>
+          </div>
+          <div class="att" style="min-height:40px;padding:5px 8px;flex-shrink:0;border-color:var(--accent)"><div><div class="name">★ Зелье лечения</div><div class="meta">потратить · x2</div></div><div class="hit" style="background:var(--accent-soft);color:var(--ink)">−1</div></div>
+        </div>
+        <div class="bnav">
+          <div class="tab on"><div class="ico">⚔</div>Бой</div>
+          <div class="tab"><div class="ico">🎒</div>Исслед.</div>
+          <div class="tab"><div class="ico">💬</div>Общение</div>
+          <div class="tab"><div class="ico">🐾</div>Напарн.</div>
+          <div class="tab"><div class="ico">✦</div>Способн.</div>
+        </div>
+      </div>
+    </div>
+    <div style="flex:1">
+      <p class="sec-label">Правила shell</p>
+      <div class="card" style="margin-bottom:12px">
+        <ol class="note" style="margin:0;padding-left:18px">
+          <li style="margin-bottom:8px"><strong>Одна сцена</strong> — никогда не стек всех панелей Wave A.</li>
+          <li style="margin-bottom:8px"><strong>Bottom Nav</strong> — имена как desktop ModeTab; short label под иконкой ок.</li>
+          <li style="margin-bottom:8px"><strong>HP</strong> — крупнейший tap; pad = bottom sheet.</li>
+          <li style="margin-bottom:8px"><strong>Свернуть vitals</strong> — ▴ → compact (who · HP · chip · ▾); больше места сцене.</li>
+          <li style="margin-bottom:8px"><strong>Характеристики</strong> — chip → <strong>полноэкранная страница</strong> (B), не sheet / не tab.</li>
+          <li style="margin-bottom:8px"><strong>HotStrip</strong> — состояния · концентрация · пипы; остаётся при collapse.</li>
+          <li><strong>Расходники</strong> — блок под атаками в Бою (★ из Исследования, до 3).</li>
+        </ol>
+      </div>
+      <div class="callout" style="margin-bottom:12px">
+        <strong>Collapsed strip:</strong> Т · Торин · <b>28/28</b> · СИЛ… · ▾ — pads HP/монеты/отдых всё ещё доступны.
+      </div>
+      <div class="callout">
+        <strong>Не делать:</strong> left drawer владений · путать tab «Способности» с характеристиками · прятать расходники · 6-й tab ЕЩЁ.
+      </div>
+      <div style="margin-top:14px" class="card">
+        <p class="sec-label">Z-слои</p>
+        <p class="note" style="margin:0">vitals sticky (40) → scene scroll → nav (50) → sheet (60) · страница Характеристики поверх сцены</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== NAV + VITALS ========== -->
+<section class="board" id="nav-vitals" data-file="dvarf-mobile-kit-nav-vitals.jpg">
+  <div class="hdr">
+    <div>
+      <h1>Кит · Bottom Nav + Vitals + Hot</h1>
+      <p class="sub">Имена табов = MODE_LABELS десктопа · паритет PlayDeskHeader / HotBar</p>
+    </div>
+    <div class="badge">LOCK-кандидат</div>
+  </div>
+  <div class="body">
+    <p class="sec-label">A · Bottom Scene Nav — полный label / short на узком</p>
+    <div class="card" style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <span class="pill on">⚔ Бой</span>
+      <span class="pill">🎒 Исследование</span>
+      <span class="pill">💬 Общение</span>
+      <span class="pill">🐾 Напарники</span>
+      <span class="pill">✦ Способности</span>
+      <span class="note" style="width:100%;margin:4px 0 0">5 табов = desktop LOCK после drop ЕЩЁ. Short: Исслед. · Напарн. · Способн. · aria-label полный. <strong>Tab «ЕЩЁ» не возвращаем.</strong></span>
+    </div>
+    <div class="row" style="gap:16px">
+      <div class="col">
+        <p class="sec-label">B · MobileVitalsBar</p>
+        <div class="card">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Who</td><td style="padding:6px 4px">Имя · раса · класс → Identity sheet</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">КД/Скор/Иниц/БМ</td><td style="padding:6px 4px">chips · tip формулы</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">HP</td><td style="padding:6px 4px">primary → HpPad (урон/хил/temp/death)</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Монеты</td><td style="padding:6px 4px">→ CoinPad sheet</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Отдых</td><td style="padding:6px 4px">→ Rest sheet</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Death</td><td style="padding:6px 4px">только HP≤0 · opaque + череп</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">XP</td><td style="padding:6px 4px">полоска или ⋯ → sheet</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Характеристики</td><td style="padding:6px 4px">chip → <strong>страница</strong> (вариант B) + навыки → Владения</td></tr>
+            <tr><td style="padding:6px 4px;font-weight:600">Свернуть</td><td style="padding:6px 4px">▴ → compact strip; ▾ развернуть</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="col">
+        <p class="sec-label">C · HotStrip + collapse</p>
+        <div class="card" style="margin-bottom:12px">
+          <div class="hot" style="border:none;border-radius:8px;margin:-4px">
+            <chip class="on">◎ Состояния</chip>
+            <chip>◌ Концентрация</chip>
+            <chip>★ Ресурс</chip>
+          </div>
+          <p class="note" style="margin:10px 0 0">HotStrip <strong>остаётся</strong> при свёрнутых vitals. Отдых не дублировать здесь.</p>
+        </div>
+        <div class="card" style="margin-bottom:12px;padding:10px;background:var(--accent-soft);border-color:#c9d5a8">
+          <div class="tag">Collapsed</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600">
+            <span class="avatar" style="width:28px;height:28px;font-size:11px">Т</span>
+            <span>Торин</span>
+            <span style="color:var(--accent);font-size:16px">28/28</span>
+            <span class="pill on" style="padding:3px 8px;font-size:10px">СИЛ…</span>
+            <span style="margin-left:auto;color:var(--muted)">▾</span>
+          </div>
+        </div>
+        <p class="sec-label">D · Бывшее ЕЩЁ — разнесено</p>
+        <div class="card">
+          <p class="note" style="margin:0">Состояния → HotStrip · Identity → аватар · Attunement → Исследование · Характеристики → <strong>страница</strong> из vitals. <strong>Сцены ЕЩЁ нет.</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SHEETS ========== -->
+<section class="board" id="sheets" data-file="dvarf-mobile-kit-sheets.jpg">
+  <div class="hdr">
+    <div>
+      <h1>Кит · Bottom sheets (pads)</h1>
+      <p class="sub">Единый паттерн &lt;960 · radius 16 · rise 220ms · tap ≥44</p>
+    </div>
+    <div class="badge">PADS</div>
+  </div>
+  <div class="body" style="display:flex;gap:14px;align-items:flex-end;justify-content:space-between">
+    <div class="sheet-demo">
+      <div class="grab"></div>
+      <h3>Хиты</h3>
+      <div style="font-size:28px;font-weight:700;color:var(--accent);margin-bottom:8px">28 / 28</div>
+      <div class="grid-2" style="margin-bottom:8px">
+        <span class="btn btn-danger" style="min-height:48px">Урон</span>
+        <span class="btn btn-primary" style="min-height:48px">Вылечить</span>
+      </div>
+      <div class="grid-2">
+        <span class="btn btn-ghost">Temp HP</span>
+        <span class="btn btn-soft">Макс. по ур.</span>
+      </div>
+      <p class="note" style="margin:10px 0 0">При уроне + conc → «Удержал / Сорвалось»</p>
+    </div>
+    <div class="sheet-demo">
+      <div class="grab"></div>
+      <h3>Отдых</h3>
+      <span class="btn btn-soft" style="width:100%;margin-bottom:8px">Кость хитов</span>
+      <span class="btn btn-primary" style="width:100%;margin-bottom:8px">Короткий отдых</span>
+      <span class="btn btn-ghost" style="width:100%">Продолжительный отдых</span>
+      <p class="note" style="margin:10px 0 0">Паритет RestDialog Wave A</p>
+    </div>
+    <div class="sheet-demo">
+      <div class="grab"></div>
+      <h3>Состояния</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+        <span class="pill on">Отравл.</span>
+        <span class="pill">Испуг</span>
+        <span class="pill">Схвачен</span>
+        <span class="pill">Своё…</span>
+      </div>
+      <div class="card" style="padding:8px;background:var(--panel)">
+        <div style="font-size:11px;font-weight:700;margin-bottom:4px">Истощение 1/6</div>
+        <div class="note">Помехи к проверкам характеристик</div>
+      </div>
+    </div>
+    <div class="sheet-demo">
+      <div class="grab"></div>
+      <h3>Каст</h3>
+      <div style="font-weight:600;margin-bottom:4px">Огненный шар</div>
+      <div class="note" style="margin-bottom:8px">Ячейка 3 · Сл 14 · конц. нет</div>
+      <div class="seg" style="margin-bottom:8px">
+        <button>3</button><button class="on">4</button><button>5</button>
+      </div>
+      <span class="btn btn-primary" style="width:100%">Кастовать</span>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SCENES ========== -->
+<section class="board" id="scenes" data-file="dvarf-mobile-kit-scenes.jpg">
+  <div class="hdr">
+    <div>
+      <h1>Кит · Сцены (по одной)</h1>
+      <p class="sub">Каждый tab = одна поверхность · glance→expand · combat density</p>
+    </div>
+    <div class="badge">SCENES</div>
+  </div>
+  <div class="body" style="display:flex;gap:12px;justify-content:space-between">
+    <div class="mini-phone">
+      <div class="top">Бой<br/><span style="font-weight:500;color:var(--muted)">Атаки | Заклинания</span></div>
+      <div class="mid">
+        <div class="line-item"><span>Топор +5</span><strong>⚔</strong></div>
+        <div class="line-item"><span>Молот +5</span><strong>⚔</strong></div>
+        <div style="font-size:8px;font-weight:700;color:var(--muted);margin:4px 0 2px">РАСХОДНИКИ · ★1/3</div>
+        <div class="line-item"><span>★ Зелье x2</span><strong>−1</strong></div>
+      </div>
+      <div class="bot"><span class="on">Бой</span><span>Исслед.</span><span>Общ.</span><span>Нап.</span><span>Спос.</span></div>
+    </div>
+    <div class="mini-phone">
+      <div class="top">Исследование<br/><span style="font-weight:500;color:var(--muted)">Снаряжение</span></div>
+      <div class="mid">
+        <div class="line-item"><span>Кольчуга</span><span style="color:var(--accent)">надето</span></div>
+        <div class="line-item"><span>★ Зелье ×2</span><span style="color:var(--accent)">в бой</span></div>
+        <div class="line-item"><span>Топор ×1</span><span>2ф</span></div>
+        <div class="line-item"><span>Настройка 1/3</span><span>▸</span></div>
+      </div>
+      <div class="bot"><span>Бой</span><span class="on">Исслед.</span><span>Общ.</span><span>Нап.</span><span>Спос.</span></div>
+    </div>
+    <div class="mini-phone">
+      <div class="top">Общение<br/><span style="font-weight:500;color:var(--muted)">Тексты</span></div>
+      <div class="mid">
+        <div class="line-item"><span>Личность</span><span>▸</span></div>
+        <div class="line-item"><span>Идеал</span><span>▸</span></div>
+        <div class="line-item"><span>Заметка ★</span><span>hot</span></div>
+      </div>
+      <div class="bot"><span>Бой</span><span>Исслед.</span><span class="on">Общ.</span><span>Нап.</span><span>Спос.</span></div>
+    </div>
+    <div class="mini-phone">
+      <div class="top">Напарники<br/><span style="font-weight:500;color:var(--muted)">Свита / призывы</span></div>
+      <div class="mid">
+        <div class="line-item"><span>Балин</span><span>24/24</span></div>
+        <div class="line-item"><span>Двали</span><span>20/20</span></div>
+        <div class="line-item" style="justify-content:center;color:var(--accent)">+ Добавить</div>
+      </div>
+      <div class="bot"><span>Бой</span><span>Исслед.</span><span>Общ.</span><span class="on">Нап.</span><span>Спос.</span></div>
+    </div>
+    <div class="mini-phone">
+      <div class="top">Способности<br/><span style="font-weight:500;color:var(--muted)">Умения / ресурсы</span></div>
+      <div class="mid">
+        <div class="line-item"><span>Ярость</span><span>2/3</span></div>
+        <div class="line-item"><span>Second Wind</span><span>spend</span></div>
+        <div class="line-item"><span>Черта</span><span>▸</span></div>
+      </div>
+      <div class="bot"><span>Бой</span><span>Исслед.</span><span>Общ.</span><span>Нап.</span><span class="on">Спос.</span></div>
+    </div>
+    <div class="mini-phone">
+      <div class="top">Sheet · Характеристики<br/><span style="font-weight:500;color:var(--muted)">не tab · вход из vitals</span></div>
+      <div class="mid">
+        <div class="line-item"><span>Сила 16→18</span><span>Пр</span></div>
+        <div class="line-item"><span>Атлетика</span><span>Влад.</span></div>
+        <div class="line-item"><span>Владения ▸</span><span>sheet</span></div>
+      </div>
+      <div class="bot"><span>Бой</span><span>Исслед.</span><span>Общ.</span><span>Нап.</span><span>Спос.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== IDENTITY / ОСНОВНОЕ ========== -->
+<section class="board" id="identity" data-file="dvarf-mobile-kit-identity.jpg">
+  <div class="hdr">
+    <div>
+      <h1>Кит · Основное (аватар)</h1>
+      <p class="sub">Паритет desktop IdentityDialog §2k · вход: аватар / who · bottom sheet · не ЕЩЁ</p>
+    </div>
+    <div class="badge">§2k MOBILE</div>
+  </div>
+  <div class="body" style="display:flex;gap:20px;align-items:flex-start">
+    <div style="width:220px;flex-shrink:0">
+      <p class="sec-label">1 · Где нажать</p>
+      <div class="phone" style="width:220px;height:380px;border-radius:28px">
+        <div class="phone-notch"><span style="width:70px"></span></div>
+        <div class="phone-body">
+          <div class="vitals" style="padding:10px">
+            <div class="who" style="border:2px solid var(--accent);border-radius:12px;padding:8px;background:var(--accent-soft)">
+              <div class="avatar" style="width:40px;height:40px">Т</div>
+              <div>
+                <div class="who-name" style="font-size:15px">Торин</div>
+                <div class="who-meta">tap → Основное</div>
+              </div>
+            </div>
+            <div class="vital-row" style="margin-top:8px;opacity:.5">
+              <div class="vital"><div class="v" style="font-size:12px">16</div><div class="l">КД</div></div>
+              <div class="vital"><div class="v" style="font-size:12px">28</div><div class="l">HP</div></div>
+            </div>
+          </div>
+          <div class="scene" style="opacity:.4;font-size:11px">сцена…</div>
+          <div class="bnav">
+            <div class="tab on"><div class="ico" style="font-size:11px">⚔</div>Бой</div>
+            <div class="tab"><div class="ico" style="font-size:11px">🎒</div>Исслед.</div>
+            <div class="tab"><div class="ico" style="font-size:11px">💬</div>Общ.</div>
+            <div class="tab"><div class="ico" style="font-size:11px">🐾</div>Нап.</div>
+            <div class="tab"><div class="ico" style="font-size:11px">✦</div>Спос.</div>
+          </div>
+        </div>
+      </div>
+      <p class="note" style="margin:8px 0 0">Аватар <strong>или</strong> строка who (имя·раса·класс). Не путать с chip «Характеристики».</p>
+    </div>
+
+    <div style="flex:1.2;min-width:0">
+      <p class="sec-label">2 · Sheet «Основное» (scroll)</p>
+      <div class="sheet-demo" style="width:100%;border-radius:16px;min-height:480px;max-height:520px;overflow:hidden">
+        <div class="grab"></div>
+        <h3>Основное</h3>
+        <div class="card" style="display:flex;gap:12px;align-items:center;margin-bottom:10px;padding:10px">
+          <div class="avatar" style="width:56px;height:56px;font-size:20px">Т</div>
+          <div style="flex:1">
+            <strong>Аватар</strong>
+            <div class="note" style="margin:2px 0 6px">JPEG / PNG / WebP</div>
+            <div style="display:flex;gap:6px">
+              <span class="btn btn-soft" style="min-height:36px;padding:0 10px;font-size:12px">Загрузить</span>
+              <span class="btn btn-ghost" style="min-height:36px;padding:0 10px;font-size:12px">Удалить</span>
+            </div>
+          </div>
+        </div>
+        <div class="tag">Персонаж</div>
+        <div class="card" style="padding:8px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span class="note" style="margin:0">Имя</span><strong>Торин</strong></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span class="note" style="margin:0">Уровень</span><strong>5 · +1 уровень</strong></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span class="note" style="margin:0">XP</span><strong>6500 · ещё до 6</strong></div>
+        </div>
+        <div class="tag">Классы</div>
+        <div class="card" style="padding:8px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;font-size:12px"><strong>Воин</strong><span>ур. 5</span></div>
+          <div class="note" style="margin:4px 0 0">Архетип · мультикласс +</div>
+        </div>
+        <div class="tag">Раса и прошлое</div>
+        <div class="card" style="padding:8px;margin-bottom:10px">
+          <div style="font-size:12px;margin-bottom:3px"><strong>Дварф</strong> · горный</div>
+          <div style="font-size:12px;margin-bottom:3px"><strong>Солдат</strong> · предыстория</div>
+          <div style="font-size:12px"><strong>ЗД</strong> · мировоззрение</div>
+        </div>
+        <span class="btn btn-primary" style="width:100%">Готово</span>
+      </div>
+    </div>
+
+    <div style="flex:0.9;min-width:0">
+      <p class="sec-label">3 · Типы полей = компоненты</p>
+      <div class="card" style="margin-bottom:10px;padding:10px;font-size:11px">
+        <table style="width:100%;border-collapse:collapse">
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 2px;font-weight:700">A Avatar</td><td style="padding:5px 2px">CharacterAvatarControl</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 2px;font-weight:700">T Text</td><td style="padding:5px 2px">Field + Input</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 2px;font-weight:700">R Read-only</td><td style="padding:5px 2px">Field + Text / Input ro</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 2px;font-weight:700">S Stepper</td><td style="padding:5px 2px">значение + CTA full-width</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 2px;font-weight:700">X XP</td><td style="padding:5px 2px">XpProgressField</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 2px;font-weight:700">C Catalog</td><td style="padding:5px 2px">CatalogCombobox + Хомбрю</td></tr>
+          <tr><td style="padding:5px 2px;font-weight:700">K Class card</td><td style="padding:5px 2px">повтор · класс/ур./архетип</td></tr>
+        </table>
+      </div>
+      <div class="card" style="margin-bottom:10px">
+        <ol class="note" style="margin:0;padding-left:18px">
+          <li style="margin-bottom:6px">&lt;960: только <strong>1 колонка</strong> (нет sheet-grid--2).</li>
+          <li style="margin-bottom:6px">Мастера (setup/level-up) — <strong>поверх</strong> sheet.</li>
+          <li style="margin-bottom:6px">Identity ≠ Характеристики ≠ Способности.</li>
+          <li>Новых виджетов не плодим — только атомы кита.</li>
+        </ol>
+      </div>
+      <div class="callout">
+        Личность/тексты — сцена <strong>Общение</strong>. Здесь только сборка героя.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== ABILITIES + OWNERSHIP (вариант B) ========== -->
+<section class="board" id="abilities" data-file="dvarf-mobile-kit-abilities.jpg">
+  <div class="hdr">
+    <div>
+      <h1>Кит · Характеристики (страница B)</h1>
+      <p class="sub">Полноэкранная страница из vitals · не tab · не sheet · ok Игоря 2026-10-14 · + сворачиваемые vitals</p>
+    </div>
+    <div class="badge">ВАРИАНТ B</div>
+  </div>
+  <div class="body" style="display:flex;gap:16px;align-items:flex-start">
+    <!-- Entry + collapsed -->
+    <div style="width:200px;flex-shrink:0">
+      <p class="sec-label">1 · Вход + collapse</p>
+      <div class="phone" style="width:200px;height:460px;border-radius:26px">
+        <div class="phone-notch"><span style="width:64px"></span></div>
+        <div class="phone-body">
+          <div style="padding:8px;border-bottom:1px solid var(--line);background:var(--accent-soft)">
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600">
+              <span class="avatar" style="width:26px;height:26px;font-size:10px">Т</span>
+              <span>Торин</span>
+              <span style="color:var(--accent);font-size:15px;margin-left:auto">28/28</span>
+            </div>
+            <div style="display:flex;gap:4px;margin-top:6px;align-items:center">
+              <span class="pill on" style="flex:1;justify-content:center;padding:4px;font-size:9px;border:2px solid var(--accent)">СИЛ… ▸</span>
+              <span style="font-size:11px;font-weight:700;color:var(--muted)">▾</span>
+            </div>
+            <div class="note" style="margin:4px 0 0;font-size:9px">vitals свёрнуты</div>
+          </div>
+          <div class="hot" style="padding:4px 6px">
+            <chip class="on" style="font-size:9px">◎ Сост.</chip>
+            <chip style="font-size:9px">◌ Конц.</chip>
+          </div>
+          <div class="scene" style="opacity:.5;font-size:10px">Бой · атаки…</div>
+          <div class="bnav">
+            <div class="tab on" style="font-size:7px"><div class="ico" style="font-size:10px;width:18px;height:18px">⚔</div>Бой</div>
+            <div class="tab" style="font-size:7px"><div class="ico" style="font-size:10px;width:18px;height:18px">🎒</div>Исслед.</div>
+            <div class="tab" style="font-size:7px"><div class="ico" style="font-size:10px;width:18px;height:18px">💬</div>Общ.</div>
+            <div class="tab" style="font-size:7px"><div class="ico" style="font-size:10px;width:18px;height:18px">🐾</div>Нап.</div>
+            <div class="tab" style="font-size:7px"><div class="ico" style="font-size:10px;width:18px;height:18px">✦</div>Спос.</div>
+          </div>
+        </div>
+      </div>
+      <p class="note" style="margin:8px 0 0">Chip → страница. Tab «Способности» = черты/ярость.</p>
+    </div>
+
+    <!-- Full page abilities -->
+    <div style="width:260px;flex-shrink:0">
+      <p class="sec-label">2 · Страница «Характеристики»</p>
+      <div class="phone" style="width:260px;height:520px;border-radius:28px">
+        <div class="phone-notch"><span style="width:70px"></span></div>
+        <div class="phone-body" style="background:var(--panel)">
+          <div style="padding:10px 12px;border-bottom:1px solid var(--line);background:var(--card);display:flex;align-items:center;gap:8px">
+            <span style="font-weight:700;color:var(--accent)">←</span>
+            <div style="font-family:var(--font-display);font-weight:700;color:var(--accent);font-size:16px">Характеристики</div>
+          </div>
+          <div style="flex:1;overflow:hidden;padding:8px;display:flex;flex-direction:column;gap:6px">
+            <div class="card" style="padding:8px 10px;border-color:#9a4a32;background:#f3e0d6">
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <strong style="font-family:var(--font-display);color:#9a4a32">Сила</strong>
+                <span style="font-weight:700;font-size:18px">16 <span style="font-size:11px;color:var(--muted)">(+3)</span></span>
+              </div>
+              <div style="margin-top:4px;font-size:11px;display:flex;gap:6px">
+                <span class="pill" style="padding:2px 6px;font-size:10px">Пров. +3</span>
+                <span class="pill" style="padding:2px 6px;font-size:10px">Спас +3</span>
+              </div>
+              <div style="margin-top:4px;font-size:12px">
+                <div style="display:flex;justify-content:space-between;padding:3px 0;border-top:1px solid #e0c4b4"><span>Атлетика</span><strong>+6</strong></div>
+              </div>
+            </div>
+            <div class="card" style="padding:8px 10px;border-color:#3d6b5a;background:#dcece4">
+              <div style="display:flex;justify-content:space-between"><strong style="font-family:var(--font-display);color:#3d6b5a">Ловкость</strong><span style="font-weight:700">12 (+1)</span></div>
+              <div class="note" style="margin:4px 0 0">навыки · tap раскрыть</div>
+            </div>
+            <div class="card" style="padding:8px 10px;border-color:#8a6a2f;background:#f1e6c8">
+              <div style="display:flex;justify-content:space-between"><strong style="font-family:var(--font-display);color:#8a6a2f">Телосложение</strong><span style="font-weight:700">15 (+2)</span></div>
+            </div>
+            <div class="note" style="text-align:center;margin:0">ИНТ · МДР · ХАР — scroll</div>
+            <span class="btn btn-primary" style="width:100%;min-height:40px;margin-top:auto">Владения ▸</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ownership + rules -->
+    <div style="flex:1;min-width:0">
+      <p class="sec-label">3 · Владения (из страницы)</p>
+      <div class="sheet-demo" style="width:100%;border-radius:16px;margin-bottom:12px">
+        <div class="grab"></div>
+        <h3>Владения</h3>
+        <p class="note" style="margin:0 0 8px">Sheet или вложенная страница · не left drawer · не ЕЩЁ</p>
+        <div class="card" style="margin-bottom:6px;padding:8px">
+          <div class="tag">Скорости / ТЗ</div>
+          <div class="note" style="margin:0">Ходьба 25 · ТЗ 14</div>
+        </div>
+        <div class="card" style="margin-bottom:6px;padding:8px">
+          <div class="tag">Снаряжение</div>
+          <div class="note" style="margin:0">Доспех ср. · щит · оружие</div>
+        </div>
+        <div class="card" style="padding:8px">
+          <div class="tag">Языки / инструменты</div>
+          <div class="note" style="margin:0">Общий · Дварфский · кузнечные</div>
+        </div>
+        <span class="btn btn-ghost" style="width:100%;margin-top:10px;min-height:40px">← к характеристикам</span>
+      </div>
+      <div class="callout">
+        <strong>LOCK-кандидат:</strong> страница B + сворачиваемые vitals.<br/>
+        Назад ← возвращает к активной сцене. Bottom Nav на странице скрыт.<br/>
+        Реф. LSS — только IA (отдельная поверхность), не их тёмная тема.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== CREATE + LOBBY ========== -->
+<section class="board" id="create-lobby" data-file="dvarf-mobile-kit-create-lobby.jpg">
+  <div class="hdr">
+    <div>
+      <h1>Кит · Create + Лобби (телефон)</h1>
+      <p class="sub">StepRail + sticky footer · Lobby Hero: код крупно, QR accordion</p>
+    </div>
+    <div class="badge">P1</div>
+  </div>
+  <div class="body" style="display:flex;gap:28px">
+    <div class="phone" style="height:560px">
+      <div class="phone-notch"><span></span></div>
+      <div class="phone-body">
+        <div style="padding:10px;border-bottom:1px solid var(--line);background:var(--card)">
+          <div style="font-size:11px;color:var(--muted);font-weight:600">Шаг 4 из 6 · 67%</div>
+          <div style="height:6px;background:var(--line);border-radius:4px;margin:6px 0 8px;overflow:hidden">
+            <div style="width:67%;height:100%;background:var(--accent)"></div>
+          </div>
+          <div style="font-family:var(--font-display);font-weight:700;color:var(--accent);font-size:16px">Класс</div>
+        </div>
+        <div class="scene" style="gap:8px">
+          <div class="att" style="border-color:var(--accent);background:var(--accent-soft)"><div class="name">Воин</div><div class="meta">к10 · броня</div></div>
+          <div class="att"><div class="name">Варвар</div><div class="meta">к12 · ярость</div></div>
+          <div class="att"><div class="name">Плут</div><div class="meta">к8 · скрытность</div></div>
+        </div>
+        <div style="display:flex;gap:6px;padding:8px;border-top:1px solid var(--line);background:var(--card)">
+          <span class="btn btn-ghost" style="flex:1">Назад</span>
+          <span class="btn btn-soft" style="flex:1">Сводка</span>
+          <span class="btn btn-primary" style="flex:1.2">Далее</span>
+        </div>
+      </div>
+    </div>
+    <div class="phone" style="height:560px">
+      <div class="phone-notch"><span></span></div>
+      <div class="phone-body">
+        <div class="scene" style="padding:12px">
+          <div class="scene-title">Стол Торина</div>
+          <div class="card" style="text-align:center;padding:16px;margin-bottom:10px">
+            <div class="note" style="margin-bottom:4px">Код стола</div>
+            <div style="font-family:var(--font-display);font-size:36px;font-weight:700;letter-spacing:.12em;color:var(--accent)">7K2M</div>
+            <span class="btn btn-primary" style="width:100%;margin-top:10px">Скопировать</span>
+            <span class="btn btn-ghost" style="width:100%;margin-top:6px">Показать QR ▾</span>
+          </div>
+          <div class="note"><strong>Состав:</strong> 3 игрока · вы мастер</div>
+          <span class="btn btn-soft" style="width:100%;margin-top:10px">Открыть сессию</span>
+        </div>
+      </div>
+    </div>
+    <div style="flex:1">
+      <div class="card" style="margin-bottom:12px">
+        <div class="tag">Create</div>
+        <p class="note" style="margin:0">Сводка = bottom sheet. Гейты на шаге. Карточки выбора с accent border.</p>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="tag">Lobby</div>
+        <p class="note" style="margin:0">Код — hero. QR не занимает первый экран — accordion. Share/copy в thumb zone.</p>
+      </div>
+      <div class="callout">
+        Паритет с desktop create LOCK и lobby hero из redesign plan §4.2–4.3.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== DEATH ========== -->
+<section class="board" id="death" data-file="dvarf-mobile-kit-death.jpg">
+  <div class="hdr">
+    <div>
+      <h1>Dvarf Mobile UI Kit · при смерти</h1>
+      <p class="sub">HP ≤ 0 · opaque card + череп · пипы успехов/провалов · паритет desktop LOCK</p>
+    </div>
+    <div class="badge">DEATH · MOBILE</div>
+  </div>
+  <div class="body">
+    <div class="row" style="gap:20px;align-items:flex-start">
+      <div class="phone">
+        <div class="phone-notch"><span></span></div>
+        <div class="phone-body">
+          <div class="vitals">
+            <div class="who">
+              <div class="avatar">Т</div>
+              <div style="flex:1;min-width:0">
+                <div class="who-name">Торин</div>
+                <div class="who-meta">Дварф · Воин · ур. 3</div>
+              </div>
+              <span class="pill" style="font-size:10px">Вдохн.</span>
+            </div>
+            <div class="vital-row">
+              <div class="vital"><div class="v">16</div><div class="l">КД</div></div>
+              <div class="vital"><div class="v">25</div><div class="l">Скор.</div></div>
+              <div class="vital"><div class="v">+2</div><div class="l">Иниц.</div></div>
+              <div class="vital"><div class="v">+2</div><div class="l">БМ</div></div>
+            </div>
+            <div class="hp-row">
+              <div class="hp" style="border-color:#c97a72;background:#fff4f4">
+                <div>
+                  <div class="num" style="color:var(--danger)">0 / 34</div>
+                  <div class="lab" style="color:var(--danger);font-weight:600">при смерти</div>
+                </div>
+              </div>
+              <div class="tool">◎</div>
+              <div class="tool">☾</div>
+            </div>
+            <div style="margin-top:6px;padding:8px 10px;border:1px solid #c97a72;border-radius:12px;background:#fff">
+              <div style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;background:#ffe8e4;border:1px solid #e8b4ae;color:var(--danger);font-size:11px;font-weight:700;margin-bottom:6px">
+                ☠ При смерти
+              </div>
+              <div style="display:grid;gap:5px;font-size:11px;font-weight:600;color:var(--muted)">
+                <div style="display:grid;grid-template-columns:58px 1fr;align-items:center;gap:6px">
+                  <span>Успехи</span>
+                  <span style="display:inline-flex;gap:5px">
+                    <span style="width:14px;height:14px;border-radius:50%;background:#16a34a;border:2px solid #15803d"></span>
+                    <span style="width:14px;height:14px;border-radius:50%;background:#16a34a;border:2px solid #15803d"></span>
+                    <span style="width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--line)"></span>
+                  </span>
+                </div>
+                <div style="display:grid;grid-template-columns:58px 1fr;align-items:center;gap:6px">
+                  <span>Провалы</span>
+                  <span style="display:inline-flex;gap:5px">
+                    <span style="width:14px;height:14px;border-radius:50%;background:#dc2626;border:2px solid #b91c1c"></span>
+                    <span style="width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--line)"></span>
+                    <span style="width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--line)"></span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:6px">
+              <span class="btn btn-primary" style="width:100%;justify-content:center;font-size:12px;padding:8px">Характеристики ▸</span>
+            </div>
+          </div>
+          <div class="hot">
+            <chip>◎ Состояния</chip>
+            <chip>◌ Концентрация</chip>
+          </div>
+          <div class="scene">
+            <div class="scene-title">Бой · Атаки</div>
+            <div class="line-item"><span>Боевой топор</span><span class="pill">+5</span></div>
+            <div class="line-item"><span>Рукопашная</span><span class="pill">+4</span></div>
+            <p class="note" style="margin:auto 0 0">Death card не прыгает layout — появляется под HP.</p>
+          </div>
+          <div class="bot">
+            <span class="on">⚔<br/>Бой</span>
+            <span>🎒<br/>Исслед.</span>
+            <span>💬<br/>Общение</span>
+            <span>🐾<br/>Напарн.</span>
+            <span>✦<br/>Способн.</span>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <p class="sec-label">Правила (LOCK desktop → phone)</p>
+        <div class="card" style="margin-bottom:12px">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Когда</td><td style="padding:6px 4px">только HP ≤ 0 или флаг «при смерти»</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">HP</td><td style="padding:6px 4px">красная рамка · подпись «при смерти»</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Карта</td><td style="padding:6px 4px"><strong>opaque #fff</strong> + череп · не wash / не fade</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Пипы</td><td style="padding:6px 4px">Успехи зелёные · Провалы красные · tap</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Pad</td><td style="padding:6px 4px">HpPad sheet тоже держит death tracks</td></tr>
+            <tr><td style="padding:6px 4px;font-weight:600">Collapsed</td><td style="padding:6px 4px">череп + красный HP · pad по tap</td></tr>
+          </table>
+        </div>
+        <div class="card" style="margin-bottom:12px;padding:10px;background:#fff4f4;border-color:#e8b4ae">
+          <div class="tag" style="background:#ffe8e4;color:var(--danger)">Collapsed</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;margin-top:6px">
+            <span class="avatar" style="width:28px;height:28px;font-size:11px">Т</span>
+            <span style="flex:1">Торин</span>
+            <span style="color:var(--danger);display:inline-flex;align-items:center;gap:3px">☠ 0/34</span>
+            <span class="pill">СИЛ</span>
+            <span>▾</span>
+          </div>
+        </div>
+        <div class="callout">
+          Реф. desktop: <code>dvarf-ui-kit-desk-header-death.jpg</code>. На телефоне карта <strong>под</strong> HP (не справа) — иначе не влезет.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Show one board via ?board=id for screenshots
+  const params = new URLSearchParams(location.search);
+  const id = params.get('board') || 'catalog';
+  document.querySelectorAll('.board').forEach((el) => {
+    el.classList.toggle('is-active', el.id === id);
+  });
+  document.title = document.getElementById(id)?.dataset.file || 'board';
+</script>
+</body>
+</html>

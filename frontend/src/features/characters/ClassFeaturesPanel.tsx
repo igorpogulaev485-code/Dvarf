@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react'
+import type { RulesEdition } from '../../shared/api/characters'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
   kindLabelRu,
+  optionalFeatureBadgeRu,
   resolveChoiceMaxPicks,
   resolveClassFeatureSlug,
   resolveFeatureChoiceOptions,
@@ -12,29 +14,28 @@ import {
   type UnlockedFeature,
 } from '../../shared/dnd/classFeatures'
 import {
-  ARMORER_ARMOR_MODELS,
   infusionById,
-  infusionLabel,
+  infusionOptionIdsAtLevel,
+  normalizeKnownInfusionId,
+  REPLICATE_MAGIC_ITEM_ID,
+  replicateItemBySlug,
+  replicateItemsAtLevel,
 } from '../../shared/dnd/artificerInfusions'
 import {
-  maneuverById,
-  maneuverLabel,
-} from '../../shared/dnd/battleMasterManeuvers'
-import {
-  elementalDisciplineById,
-  elementalDisciplineLabel,
-} from '../../shared/dnd/monkElementalDisciplines'
-import { druidLandLabel } from '../../shared/dnd/druidLandChoices'
-import { rangerChoiceLabel } from '../../shared/dnd/rangerChoices'
+  isReplicateLearnOption,
+  learnReplicateMagicItem,
+  unlearnInfusionPick,
+} from '../../shared/dnd/infusionsActive'
+import { maneuverById } from '../../shared/dnd/battleMasterManeuvers'
+import { elementalDisciplineById } from '../../shared/dnd/monkElementalDisciplines'
+import { featureChoiceOptionLabel } from '../../shared/dnd/featureChoiceOptionLabel'
 import {
   FLEXIBLE_CASTING_SLOT_COST,
   metamagicById,
-  metamagicLabel,
   metamagicSpendCost,
 } from '../../shared/dnd/sorcererMetamagic'
 import {
   invocationById,
-  invocationLabel,
   WARLOCK_PACT_BOONS,
 } from '../../shared/dnd/warlockInvocations'
 import { canSpendSlot, spendSpellSlot, slotsRemaining } from '../../shared/dnd/spells'
@@ -59,8 +60,6 @@ import {
   collectExpertiseOptionIdsFromPicks,
   isExpertiseChoice,
   listExpertiseOptions,
-  THIEVES_TOOLS_LABEL_RU,
-  THIEVES_TOOLS_OPTION_ID,
   type SkillExpertiseState,
 } from '../../shared/dnd/expertise'
 import {
@@ -71,16 +70,51 @@ import {
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
 import {
+  findAppliedClassAsi,
+  formatAppliedClassAsiLabel,
+  isAsiFeature,
+  type AppliedClassAsi,
+} from '../../shared/dnd/classAsi'
+import {
   isFeatureChoiceComplete,
   listUnlockedExpertiseKeys,
 } from '../../shared/dnd/pendingFeatureChoices'
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
 import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
+import type { BackgroundFeatureCard } from '../../shared/dnd/backgroundGrants'
+import type { RaceTraitCard } from '../../shared/dnd/raceTraitCards'
+import { raceTraitCardsFromText } from '../../shared/dnd/raceTraitCards'
 import type { SheetResource } from '../../shared/dnd/rest'
-import { Button, Panel, Stack, Text } from '../../ui'
+import { Button, Field, Input, Panel, Stack, Text } from '../../ui'
 import { SlotPips } from '../../ui/SlotPips'
+import {
+  newCustomFeatureId,
+  type CustomFeature,
+} from './customFeatures'
+import { isFeatureSelfFormId } from './featureForms'
 import type { SpellsState } from './spells'
 import { abilityModifier, SKILL_DEFS } from './sheetTypes'
+import { isWildShapeForkFeature, moonHealDiceCount } from './wildShape'
+import { PactTomeCantripsPicker } from './PactTomeCantripsPicker'
+import {
+  isPactTomeActive,
+  isPactTomeCantripsComplete,
+  PACT_BOON_FEATURE_ID,
+} from './pactTomeEffects'
+import { isPactChainActive } from './pactChainEffects'
+import { WARLOCK_PACT_BOON_GRANTS } from '../../shared/dnd/warlockInvocations'
+
+export type WildShapeForkRequest = {
+  feature: UnlockedFeature
+  classSlug: string
+  classEntryId: string
+}
+
+export type FeatureSelfFormRequest = {
+  feature: UnlockedFeature
+  classSlug: string
+  classEntryId: string
+}
 
 type ClassFeaturesPanelProps = {
   classes: ClassLevelEntry[]
@@ -107,24 +141,67 @@ type ClassFeaturesPanelProps = {
   /** For Expertise pickers — proficient skills + tools on the sheet. */
   skills?: SkillExpertiseState
   tools?: string[]
+  /** Class ASI ledger — drives labels for Ability Score Improvement rows. */
+  classAsi?: AppliedClassAsi[]
   /** Equipped heavy body armor — blocks Rage benefits (PHB). */
   wearingHeavyArmor?: boolean
   companions?: CompanionEntry[]
   onCompanionsChange?: (companions: CompanionEntry[]) => void
+  /**
+   * Дикий облик + linked_spend альтернативы (Дикий спутник, Звёздная форма, …):
+   * открыть развилку вместо голого spend.
+   */
+  onWildShapeFork?: (request: WildShapeForkRequest) => void
+  /** Wizard Shapechanger etc. — open self_form picker, then spend pool. */
+  onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
+  /**
+   * Moon Combat Wild Shape: spend slot + heal active self_form (caller updates spells).
+   * Return toast message on success, null if no form.
+   */
+  onMoonFormSlotHeal?: (input: {
+    slotLevel: number
+    diceCount: number
+    diceSize: number
+  }) => string | null
   onToast?: (message: string) => void
   /** Summary surface: feats + race on the same glance list. */
   featGrants?: AppliedFeatGrant[]
   darkvision?: number
   raceName?: string
+  /** Structured race traits (catalog trait_cards) or fallback from traitsText. */
+  raceTraitCards?: RaceTraitCard[]
+  raceTraitsText?: string
+  /** Background name + PHB feature card (e.g. Криминальные связи). */
+  backgroundName?: string
+  backgroundFeature?: BackgroundFeatureCard | null
+  customFeatures?: CustomFeature[]
+  onCustomFeaturesChange?: (features: CustomFeature[]) => void
+  /** Desk helpers for known-pick unique abilities. */
+  onOpenInfusions?: (classEntryId: string) => void
+  onOpenInvocations?: (classEntryId: string) => void
+  onOpenRangerFavored?: (classEntryId: string) => void
+  onOpenSoulTrinkets?: (classEntryId: string) => void
+  /** Pact of the Chain: open cast for Find Familiar (card appears after cast). */
+  onCastPactChainFamiliar?: (classEntryId: string) => void
+  /** Spell catalog edition for Pact of the Tome cantrip picks. */
+  edition?: RulesEdition
 }
 
-type FeatureFilter = 'all' | 'class' | 'subclass' | 'feats' | 'resource' | 'choice'
+type FeatureFilter =
+  | 'all'
+  | 'class'
+  | 'subclass'
+  | 'feats'
+  | 'custom'
+  | 'resource'
+  | 'choice'
 
 const FEATURE_FILTERS: Array<{ id: FeatureFilter; label: string }> = [
   { id: 'all', label: 'Все' },
   { id: 'class', label: 'Класс' },
   { id: 'subclass', label: 'Подкласс' },
   { id: 'feats', label: 'Черты' },
+  { id: 'custom', label: 'Свои' },
   { id: 'resource', label: 'С ресурсом' },
   { id: 'choice', label: 'Выбор' },
 ]
@@ -140,8 +217,9 @@ function featureRowKey(feature: UnlockedFeature): string {
   return `${feature.classEntryId}:${feature.source}:${feature.id}`
 }
 
-/** Expand only when there are controls — not for passive text-only rows. */
+/** Expand when there is full text or interactive controls. */
 function featureCanExpand(feature: UnlockedFeature): boolean {
+  if (feature.summary_ru.trim() || feature.body_ru?.trim()) return true
   if (feature.resource?.pool_id) return true
   if (feature.choice) return true
   if (feature.slot_spend) return true
@@ -167,6 +245,11 @@ function FeatureResourceControls({
   onToast,
   initiativeGrantByPool,
   wearingHeavyArmor,
+  onOpenInfusions,
+  onOpenSoulTrinkets,
+  onWildShapeFork,
+  onFeatureSelfForm,
+  moonCombatWildShape = false,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -177,6 +260,12 @@ function FeatureResourceControls({
   onToast?: (message: string) => void
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
+  onOpenInfusions?: (classEntryId: string) => void
+  onOpenSoulTrinkets?: (classEntryId: string) => void
+  onWildShapeFork?: (request: WildShapeForkRequest) => void
+  onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
+  /** Circle of the Moon: Wild Shape is a bonus action. */
+  moonCombatWildShape?: boolean
 }) {
   const resource = feature.resource
   if (!resource?.pool_id) return null
@@ -196,6 +285,23 @@ function FeatureResourceControls({
 
   if (resource.track === 'stock') {
     const current = stockCurrent(pool)
+    if (resource.pool_id === 'infusion_slots' && onOpenInfusions) {
+      return (
+        <div className="feature-resource">
+          <Text>
+            {pool.name}: <strong>{current}</strong> / {pool.max} на предметах
+          </Text>
+          <div className="feature-resource__actions">
+            <Button
+              type="button"
+              onClick={() => onOpenInfusions(feature.classEntryId)}
+            >
+              Управление инфузиями
+            </Button>
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="feature-resource">
         <Text>
@@ -217,6 +323,13 @@ function FeatureResourceControls({
             type="button"
             disabled={current <= 0}
             onClick={() => {
+              if (
+                resource.pool_id === 'soul_trinkets' &&
+                onOpenSoulTrinkets
+              ) {
+                onOpenSoulTrinkets(feature.classEntryId)
+                return
+              }
               const result = consumeStock({
                 resources,
                 classSlug,
@@ -231,15 +344,19 @@ function FeatureResourceControls({
               )
             }}
           >
-            {resource.stock_spend_label_ru || `− ${pool.name}`}
+            {resource.pool_id === 'soul_trinkets' && onOpenSoulTrinkets
+              ? 'Сжечь…'
+              : resource.stock_spend_label_ru || `− ${pool.name}`}
           </Button>
         </div>
       </div>
     )
   }
 
+  const spendCost = Math.max(1, Math.floor(resource.spend_cost ?? 1))
   const remaining = spendRemaining(pool)
   const linked = resource.linked_spend
+  const linkedCost = Math.max(1, Math.floor(linked?.amount ?? 1))
   const linkedPool = linked?.pool_id
     ? findFeatureResource(
         resources,
@@ -252,7 +369,7 @@ function FeatureResourceControls({
     linked?.mode === 'spend'
       ? spendRemaining(linkedPool)
       : stockCurrent(linkedPool)
-  const canViaLinked = remaining <= 0 && linkedLeft > 0
+  const canViaLinked = remaining < spendCost && linkedLeft >= linkedCost
   const canRecover =
     Boolean(resource.recover_one) && pool.used > 0
   const initiativeAmount =
@@ -268,6 +385,21 @@ function FeatureResourceControls({
   const lockedBySuccess = Boolean(successLock) && pool.reset === 'manual' && pool.used > 0
   const blockedByHeavyArmor =
     Boolean(resource.blocked_while_heavy_armor) && wearingHeavyArmor
+  const opensWildShapeFork =
+    Boolean(onWildShapeFork) && isWildShapeForkFeature(feature.id)
+  // Fork spends wild_shape (own pool or linked); enable when that currency remains.
+  const wildShapePoolForFork =
+    poolId === 'wild_shape'
+      ? pool
+      : linked?.pool_id === 'wild_shape'
+        ? linkedPool
+        : null
+  const wildShapeLeftForFork = spendRemaining(wildShapePoolForFork)
+  const canOpenWildShapeFork = opensWildShapeFork && wildShapeLeftForFork > 0
+  const opensFeatureSelfForm =
+    Boolean(onFeatureSelfForm) && isFeatureSelfFormId(feature.id)
+  const canOpenFeatureSelfForm =
+    opensFeatureSelfForm && remaining > 0
 
   return (
     <div className="feature-resource">
@@ -292,10 +424,20 @@ function FeatureResourceControls({
           лёгкий/средний.
         </Text>
       ) : null}
-      {linked ? (
+      {linked && !opensWildShapeFork ? (
         <Text tone="muted">
           Сверх лимита: {linked.label_ru}
           {linkedPool ? ` (${linkedLeft} доступно)` : ''}
+        </Text>
+      ) : null}
+      {opensWildShapeFork ? (
+        <Text tone="muted">
+          Тратит Дикий облик
+          {wildShapePoolForFork
+            ? ` (${wildShapeLeftForFork}/${wildShapePoolForFork.max})`
+            : ''}
+          {' · '}
+          развилка: облик / спутник / умения круга
         </Text>
       ) : null}
       {lockedBySuccess ? (
@@ -349,10 +491,53 @@ function FeatureResourceControls({
               </Button>
             ) : null}
           </>
+        ) : opensWildShapeFork ? (
+          <Button
+            type="button"
+            disabled={!canOpenWildShapeFork}
+            onClick={() => {
+              if (!canOpenWildShapeFork) {
+                onToast?.('Нет использований Дикого облика')
+                return
+              }
+              onWildShapeFork?.({
+                feature,
+                classSlug,
+                classEntryId: feature.classEntryId,
+              })
+            }}
+          >
+            {feature.id === 'wild_shape'
+              ? moonCombatWildShape
+                ? 'Потратить (бонусным)…'
+                : 'Потратить…'
+              : 'Через Дикий облик…'}
+          </Button>
+        ) : opensFeatureSelfForm ? (
+          <Button
+            type="button"
+            disabled={!canOpenFeatureSelfForm}
+            onClick={() => {
+              if (!canOpenFeatureSelfForm) {
+                onToast?.('Нет использований')
+                return
+              }
+              onFeatureSelfForm?.({
+                feature,
+                classSlug,
+                classEntryId: feature.classEntryId,
+              })
+            }}
+          >
+            Принять облик…
+          </Button>
         ) : (
           <Button
             type="button"
-            disabled={blockedByHeavyArmor || (remaining <= 0 && !canViaLinked)}
+            disabled={
+              blockedByHeavyArmor ||
+              (remaining < spendCost && !canViaLinked)
+            }
             onClick={() => {
               if (blockedByHeavyArmor) {
                 onToast?.(
@@ -404,7 +589,9 @@ function FeatureResourceControls({
                 ? feature.summon.kind === 'ally'
                   ? 'Призвать напарника'
                   : 'Призвать спутника'
-                : 'Использовать'}
+                : spendCost > 1
+                  ? `Использовать (−${spendCost})`
+                  : 'Использовать'}
           </Button>
         )}
         {resource.recover_one ? (
@@ -449,142 +636,9 @@ function FeatureResourceControls({
   )
 }
 
-const FEATURE_OPTION_LABELS_RU: Record<string, string> = {
-  bear: 'Медведь',
-  eagle: 'Орёл',
-  wolf: 'Волк',
-  desert: 'Пустыня',
-  sea: 'Море',
-  tundra: 'Тундра',
-  bite: 'Укус',
-  claws: 'Когти',
-  tail: 'Хвост',
-  acid: 'Кислота',
-  cold: 'Холод',
-  fire: 'Огонь',
-  lightning: 'Молния',
-  thunder: 'Гром',
-  colossus_slayer: 'Убийца колосса',
-  giant_killer: 'Убийца великанов',
-  horde_breaker: 'Крушитель орды',
-  escape_the_horde: 'Побег от орды',
-  multiattack_defense: 'Защита от мультиатаки',
-  steel_will: 'Стальная воля',
-  volley: 'Залп',
-  whirlwind: 'Вихрь',
-  evasion: 'Уклонение',
-  stand_against_the_tide: 'Стойкость против волны',
-  uncanny_dodge: 'Невероятное уклонение',
-  black: 'Чёрный (кислота)',
-  blue: 'Синий (молния)',
-  brass: 'Латунный (огонь)',
-  bronze: 'Бронзовый (молния)',
-  copper: 'Медный (кислота)',
-  gold: 'Золотой (огонь)',
-  green: 'Зелёный (яд)',
-  red: 'Красный (огонь)',
-  silver: 'Серебряный (холод)',
-  white: 'Белый (холод)',
-  full_moon: 'Полная луна',
-  new_moon: 'Новолуние',
-  crescent_moon: 'Полумесяц',
-  beast_phb: 'Зверь (PHB)',
-  primal_companion_tasha: 'Первобытный спутник (Tasha)',
-  poison: 'Яд',
-  dao: 'Дао (земля)',
-  djinni: 'Джинн (воздух)',
-  efreeti: 'Ифрит (огонь)',
-  marid: 'Марид (вода)',
-  flamethrower: 'Огнемёт',
-  force_ballista: 'Силовая баллиста',
-  protector: 'Защитник',
-  // ASI scaffold
-  plus2: '+2 к одной характеристике',
-  plus1x2: '+1 к двум характеристикам',
-  feat_coming_soon: 'Черта (скоро)',
-  // Open Hand / flourish / swarm / companion
-  trip: 'Сбить с ног',
-  push_15ft: 'Оттолкнуть на 15 фт.',
-  no_reactions: 'Без реакций',
-  defensive_flourish: 'Защитный flourish',
-  slashing_flourish: 'Рубящий flourish',
-  mobile_flourish: 'Подвижный flourish',
-  damage_1d6: '+1к6 урона',
-  push_target_5: 'Сдвинуть цель на 5 фт.',
-  self_move_5: 'Сдвинуть себя на 5 фт.',
-  phb_beast_cr_1_4: 'Зверь PHB (КР ≤ ¼)',
-  beast_of_the_land: 'Зверь суши (Tasha)',
-  beast_of_the_sea: 'Зверь моря (Tasha)',
-  beast_of_the_sky: 'Зверь неба (Tasha)',
-  // Starry / elemental / affinity
-  archer: 'Лучник',
-  chalice: 'Чаша',
-  dragon: 'Дракон',
-  air: 'Воздух',
-  earth: 'Земля',
-  water: 'Вода',
-  good: 'Добро',
-  evil: 'Зло',
-  law: 'Закон',
-  chaos: 'Хаос',
-  neutral: 'Нейтралитет',
-  // Saves / skills / damage types
-  wisdom: 'Мудрость',
-  intelligence: 'Интеллект',
-  charisma: 'Харизма',
-  nature: 'Природа',
-  arcana: 'Магия',
-  history: 'История',
-  insight: 'Проницательность',
-  religion: 'Религия',
-  animal_handling: 'Уход за животными',
-  survival: 'Выживание',
-  deception: 'Обман',
-  performance: 'Выступление',
-  persuasion: 'Убеждение',
-  unarmed_fighting: 'Безоружный бой',
-  necrotic: 'Некротический',
-  radiant: 'Лучистый',
-  psychic: 'Психический',
-  force: 'Силовой',
-  bludgeoning: 'Дробящий',
-  piercing: 'Колющий',
-  slashing: 'Рубящий',
-  // Transmuter / Arcana mastery
-  speed_10: '+10 фт. скорости',
-  darkvision_60: 'Тёмное зрение 60 фт.',
-  resistance_acid_cold_fire_lightning_thunder: 'Сопр. кислоте/холоду/огню/молнии/грому',
-  con_save_proficiency: 'Владение спасом Тел.',
-  major_transformation: 'Большое преобразование',
-  panacea: 'Панацея',
-  restore_life: 'Вернуть жизнь',
-  restore_youth: 'Вернуть молодость',
-  wizard_6th: 'Заклинание волшебника 6 круга',
-  wizard_7th: 'Заклинание волшебника 7 круга',
-  wizard_8th: 'Заклинание волшебника 8 круга',
-  wizard_9th: 'Заклинание волшебника 9 круга',
-  kensei_melee_ranged_note: 'Рукопашное + дальнобойное (заметка)',
-}
-
 function choiceOptionLabel(optionId: string): string {
-  if (optionId === THIEVES_TOOLS_OPTION_ID) return THIEVES_TOOLS_LABEL_RU
-  const pact = WARLOCK_PACT_BOONS.find((row) => row.id === optionId)
-  const armorModel = ARMORER_ARMOR_MODELS.find((row) => row.id === optionId)
-  const skill = SKILL_DEFS.find((row) => row.key === optionId)
-  return (
-    fightingStyleById(optionId)?.nameRu ||
-    rangerChoiceLabel(optionId) ||
-    druidLandLabel(optionId) ||
-    metamagicLabel(optionId) ||
-    invocationLabel(optionId) ||
-    infusionLabel(optionId) ||
-    elementalDisciplineLabel(optionId) ||
-    maneuverLabel(optionId) ||
-    pact?.nameRu ||
-    armorModel?.nameRu ||
-    skill?.label ||
-    FEATURE_OPTION_LABELS_RU[optionId] ||
-    optionId
+  return featureChoiceOptionLabel(optionId, null, (id) =>
+    SKILL_DEFS.find((row) => row.key === id)?.label,
   )
 }
 
@@ -606,7 +660,10 @@ function FeatureChoiceControls({
   onToast?: (message: string) => void
 }) {
   const choice = feature.choice
+  const [pendingReplicate, setPendingReplicate] = useState(false)
+  const [pendingReplicateSlug, setPendingReplicateSlug] = useState('')
   if (!choice) return null
+  const choiceLabel = choice.label_ru
   const options = isExpertiseChoice(choice)
     ? listExpertiseOptions({
         skills,
@@ -617,12 +674,20 @@ function FeatureChoiceControls({
           except: { classEntryId: feature.classEntryId, featureId: feature.id },
         }),
       }).map((row) => row.id)
-    : resolveFeatureChoiceOptions(choice)
+    : choice.options_from === 'artificer_infusions'
+      ? infusionOptionIdsAtLevel(feature.classLevel)
+      : resolveFeatureChoiceOptions(choice)
   const maxPicks = resolveChoiceMaxPicks(choice, feature.classLevel)
   const multi = maxPicks > 1 || Boolean(choice.max_picks_by_level) || Boolean(choice.max_picks && choice.max_picks > 1)
-  const selectedList = multi
+  const selectedListRaw = multi
     ? getFeaturePickList(featurePicks, feature.classEntryId, feature.id)
     : []
+  const selectedList =
+    choice.options_from === 'artificer_infusions'
+      ? selectedListRaw
+          .map((id) => normalizeKnownInfusionId(id) ?? id)
+          .filter(Boolean)
+      : selectedListRaw
   const selected = multi
     ? null
     : getFeaturePick(featurePicks, feature.classEntryId, feature.id)
@@ -634,11 +699,33 @@ function FeatureChoiceControls({
       ? choiceOptionLabel(selected)
       : null
   const useSelect = !multi && options.length > 6
+  const replicateChoices = replicateItemsAtLevel(feature.classLevel)
+
+  function confirmReplicateLearn() {
+    const slug = pendingReplicateSlug.trim()
+    if (!slug || !replicateItemBySlug(slug)) {
+      onToast?.('Выбери предмет для копии')
+      return
+    }
+    const next = learnReplicateMagicItem(
+      featurePicks,
+      feature.classEntryId,
+      feature.id,
+      slug,
+      maxPicks,
+    )
+    onFeaturePicksChange(next)
+    onToast?.(
+      `${choiceLabel}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map(choiceOptionLabel).join(', ') || 'очищено'}`,
+    )
+    setPendingReplicate(false)
+    setPendingReplicateSlug('')
+  }
 
   return (
     <div className="feature-resource">
       <Text>
-        {choice.label_ru}
+        {choiceLabel}
         {multi ? ` (${selectedList.length}/${maxPicks})` : ''}
         {selectedLabel ? (
           <>
@@ -686,11 +773,57 @@ function FeatureChoiceControls({
             return (
               <Text key={id} tone="muted">
                 {inf.nameRu}
-                {inf.minLevel ? ` (с ${inf.minLevel} ур.)` : ''}: {inf.summaryRu}
+                {inf.minLevel ? ` (с ${inf.minLevel} ур.)` : ''}
+                {inf.replicate ? ' · предмет зафиксирован при изучении' : ''}:{' '}
+                {inf.abilityRu || inf.summaryRu}
               </Text>
             )
           })
         : null}
+      {pendingReplicate ? (
+        <div className="feature-resource">
+          <Text>
+            Копия магического предмета — выбери предмет (доступно с{' '}
+            {feature.classLevel} ур.):
+          </Text>
+          <label className="feature-resource__select">
+            <span className="sr-only">Предмет для копии</span>
+            <select
+              value={pendingReplicateSlug}
+              onChange={(e) => setPendingReplicateSlug(e.target.value)}
+            >
+              <option value="">— выбрать —</option>
+              {replicateChoices.map((item) => (
+                <option key={item.slug} value={item.slug}>
+                  {item.nameRu}
+                  {item.minLevel > 2 ? ` · с ${item.minLevel} ур.` : ''}
+                  {item.attune ? ' · настройка' : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+          {pendingReplicateSlug ? (
+            <Text tone="muted">
+              {replicateItemBySlug(pendingReplicateSlug)?.abilityRu}
+            </Text>
+          ) : null}
+          <div className="feature-resource__actions">
+            <Button type="button" onClick={confirmReplicateLearn}>
+              Выучить копию
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setPendingReplicate(false)
+                setPendingReplicateSlug('')
+              }}
+            >
+              Отмена
+            </Button>
+          </div>
+        </div>
+      ) : null}
       {choice?.options_from === 'monk_elemental_disciplines'
         ? selectedList.map((id) => {
             const disc = elementalDisciplineById(id)
@@ -742,15 +875,30 @@ function FeatureChoiceControls({
         <div className="feature-resource__actions">
           {options.map((optionId) => {
             const label = choiceOptionLabel(optionId)
+            const replicateLearn = isReplicateLearnOption(optionId)
+            const replicateKnown = selectedList.filter((id) =>
+              id.startsWith(`${REPLICATE_MAGIC_ITEM_ID}:`),
+            )
             const active = multi
-              ? selectedList.includes(optionId)
+              ? replicateLearn
+                ? replicateKnown.length > 0
+                : selectedList.includes(optionId)
               : selected === optionId
             return (
               <Button
                 key={optionId}
                 type="button"
-                disabled={!multi && active}
+                disabled={(!multi && active) || pendingReplicate}
                 onClick={() => {
+                  if (replicateLearn && multi) {
+                    if (selectedList.length >= maxPicks) {
+                      onToast?.(`Лимит известных инфузий: ${maxPicks}`)
+                      return
+                    }
+                    setPendingReplicate(true)
+                    setPendingReplicateSlug('')
+                    return
+                  }
                   if (multi) {
                     const next = toggleFeaturePickInList(
                       featurePicks,
@@ -771,10 +919,41 @@ function FeatureChoiceControls({
                   onToast?.(`${choice.label_ru}: ${label}`)
                 }}
               >
-                {active && multi ? `✓ ${label}` : label}
+                {active && multi
+                  ? replicateLearn
+                    ? `✓ ${label} ×${replicateKnown.length}`
+                    : `✓ ${label}`
+                  : replicateLearn
+                    ? `${label}…`
+                    : label}
               </Button>
             )
           })}
+          {choice.options_from === 'artificer_infusions'
+            ? selectedList
+                .filter((id) => id.startsWith(`${REPLICATE_MAGIC_ITEM_ID}:`))
+                .map((id) => (
+                  <Button
+                    key={id}
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      const next = unlearnInfusionPick(
+                        featurePicks,
+                        feature.classEntryId,
+                        feature.id,
+                        id,
+                      )
+                      onFeaturePicksChange(next)
+                      onToast?.(
+                        `${choice.label_ru}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map(choiceOptionLabel).join(', ') || 'очищено'}`,
+                      )
+                    }}
+                  >
+                    ✕ {choiceOptionLabel(id)}
+                  </Button>
+                ))
+            : null}
         </div>
       )}
     </div>
@@ -996,11 +1175,17 @@ function FeatureSlotSpendControls({
   spells,
   onSpellsChange,
   onToast,
+  onMoonFormSlotHeal,
 }: {
   feature: UnlockedFeature
   spells: SpellsState
   onSpellsChange: (spells: SpellsState) => void
   onToast?: (message: string) => void
+  onMoonFormSlotHeal?: (input: {
+    slotLevel: number
+    diceCount: number
+    diceSize: number
+  }) => string | null
 }) {
   const spend = feature.slot_spend
   if (!spend) return null
@@ -1009,12 +1194,14 @@ function FeatureSlotSpendControls({
   for (let level = spend.min_slot; level <= spend.max_slot; level += 1) {
     levels.push(level)
   }
+  const isMoonHeal = feature.id === 'combat_wild_shape'
 
   return (
     <div className="feature-resource">
       <Text tone="muted">
         {spend.label_ru}
         {spend.extra_vs_note_ru ? ` · ${spend.extra_vs_note_ru}` : ''}
+        {isMoonHeal ? ' · нужен активный облик' : ''}
       </Text>
       <div className="feature-resource__actions">
         {levels.map((level) => {
@@ -1027,6 +1214,27 @@ function FeatureSlotSpendControls({
               type="button"
               disabled={!available}
               onClick={() => {
+                if (isMoonHeal && onMoonFormSlotHeal) {
+                  const diceSize = spend.dice_size ?? 8
+                  const diceCount = withDice ? dice : moonHealDiceCount(level)
+                  const result = spendSpellSlot(spells.slots, level)
+                  if (!result.ok) {
+                    onToast?.(`Нет ячейки ${level} ур.`)
+                    return
+                  }
+                  const msg = onMoonFormSlotHeal({
+                    slotLevel: level,
+                    diceCount,
+                    diceSize,
+                  })
+                  if (msg == null) {
+                    onToast?.('Нет активного облика')
+                    return
+                  }
+                  onSpellsChange({ ...spells, slots: result.slots })
+                  onToast?.(msg)
+                  return
+                }
                 const result = spendSpellSlot(spells.slots, level)
                 if (!result.ok) {
                   onToast?.(`Нет ячейки ${level} ур.`)
@@ -1065,11 +1273,22 @@ function FeatureRow({
   skills,
   tools,
   expertiseKeys,
+  classAsi,
   companions,
   onCompanionsChange,
   onToast,
   initiativeGrantByPool,
   wearingHeavyArmor,
+  onOpenInfusions,
+  onOpenInvocations,
+  onOpenSoulTrinkets,
+  onOpenRangerFavored,
+  onCastPactChainFamiliar,
+  onWildShapeFork,
+  onFeatureSelfForm,
+  moonCombatWildShape = false,
+  onMoonFormSlotHeal,
+  edition = '2014',
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -1084,11 +1303,26 @@ function FeatureRow({
   skills: SkillExpertiseState
   tools: string[]
   expertiseKeys: Array<{ classEntryId: string; featureId: string }>
+  classAsi: AppliedClassAsi[]
   companions?: CompanionEntry[]
   onCompanionsChange?: (companions: CompanionEntry[]) => void
   onToast?: (message: string) => void
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
+  onOpenInfusions?: (classEntryId: string) => void
+  onOpenInvocations?: (classEntryId: string) => void
+  onOpenSoulTrinkets?: (classEntryId: string) => void
+  onOpenRangerFavored?: (classEntryId: string) => void
+  onCastPactChainFamiliar?: (classEntryId: string) => void
+  onWildShapeFork?: (request: WildShapeForkRequest) => void
+  onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
+  moonCombatWildShape?: boolean
+  onMoonFormSlotHeal?: (input: {
+    slotLevel: number
+    diceCount: number
+    diceSize: number
+  }) => string | null
+  edition?: RulesEdition
 }) {
   const sourceLabel =
     feature.source === 'subclass'
@@ -1106,30 +1340,49 @@ function FeatureRow({
       )
     : null
 
+  const asiEntry = isAsiFeature(feature)
+    ? findAppliedClassAsi(classAsi, feature.classEntryId, feature.id)
+    : null
+  const asiLabel = asiEntry ? formatAppliedClassAsiLabel(asiEntry) : null
+  const isAsi = isAsiFeature(feature)
+
   const choiceMulti =
+    !isAsi &&
     feature.choice &&
     (Boolean(feature.choice.max_picks_by_level) ||
       Boolean(feature.choice.max_picks && feature.choice.max_picks > 1) ||
       resolveChoiceMaxPicks(feature.choice, feature.classLevel) > 1)
-  const choicePick = feature.choice
-    ? choiceMulti
-      ? getFeaturePickList(featurePicks, feature.classEntryId, feature.id)
-          .map(choiceOptionLabel)
-          .join(', ')
-      : getFeaturePick(featurePicks, feature.classEntryId, feature.id)
-    : null
+  const choicePick =
+    !isAsi && feature.choice
+      ? choiceMulti
+        ? getFeaturePickList(featurePicks, feature.classEntryId, feature.id)
+            .map(choiceOptionLabel)
+            .join(', ')
+        : getFeaturePick(featurePicks, feature.classEntryId, feature.id)
+      : null
   const choiceLabel =
     typeof choicePick === 'string' && choicePick
       ? choiceMulti
         ? choicePick
         : choiceOptionLabel(choicePick)
       : null
-  const choicePending =
-    Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)
+  const tomeCantripsPending =
+    feature.id === PACT_BOON_FEATURE_ID &&
+    isPactTomeActive(featurePicks, feature.classEntryId) &&
+    !isPactTomeCantripsComplete(featurePicks, feature.classEntryId)
+  const chainFamiliarReady =
+    feature.id === PACT_BOON_FEATURE_ID &&
+    isPactChainActive(featurePicks, feature.classEntryId)
+  const choicePending = isAsi
+    ? !asiEntry
+    : (Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)) ||
+      tomeCantripsPending
 
   let metaExtra = ''
-  if (choiceLabel) {
-    metaExtra = choiceLabel
+  if (asiLabel) {
+    metaExtra = asiLabel
+  } else if (choiceLabel) {
+    metaExtra = chainFamiliarReady ? `${choiceLabel} · призвать` : choiceLabel
   } else if (choicePending) {
     metaExtra = 'не выбрано'
   } else if (feature.resource?.track === 'stock' && pool) {
@@ -1146,6 +1399,7 @@ function FeatureRow({
 
   const preview = previewSummary(feature.summary_ru)
   const canExpand = featureCanExpand(feature)
+  const optionalBadge = optionalFeatureBadgeRu(feature)
 
   if (!canExpand) {
     return (
@@ -1156,6 +1410,9 @@ function FeatureRow({
           </span>
           <b className="feature-card__name">{feature.name_ru}</b>
           <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
+          {optionalBadge ? (
+            <span className="feature-optional-badge">{optionalBadge}</span>
+          ) : null}
           <span className="inventory-card__glance-spacer" aria-hidden />
           <span className="feature-card__preview">
             {metaExtra ? `${metaExtra} · ` : ''}
@@ -1175,6 +1432,9 @@ function FeatureRow({
           </span>
           <b className="feature-card__name">{feature.name_ru}</b>
           <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
+          {optionalBadge ? (
+            <span className="feature-optional-badge">{optionalBadge}</span>
+          ) : null}
           {feature.resource ? (
             <span className="attack-held-tag is-on">ресурс</span>
           ) : null}
@@ -1207,6 +1467,9 @@ function FeatureRow({
         </span>
         <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
         <span className="attack-held-tag">{kindLabelRu(feature.kind)}</span>
+        {optionalBadge ? (
+          <span className="feature-optional-badge">{optionalBadge}</span>
+        ) : null}
         {feature.resource ? <span className="attack-held-tag is-on">ресурс</span> : null}
         {choicePending ? <span className="attack-held-tag">выбор</span> : null}
         <button type="button" className="inventory-card__collapse" onClick={onToggle}>
@@ -1227,15 +1490,63 @@ function FeatureRow({
           {feature.scale.labelRu}: сейчас <strong>{feature.scaleValue}</strong>
         </Text>
       ) : null}
-      <FeatureChoiceControls
-        feature={feature}
-        featurePicks={featurePicks}
-        onFeaturePicksChange={onFeaturePicksChange}
-        skills={skills}
-        tools={tools}
-        expertiseKeys={expertiseKeys}
-        onToast={onToast}
-      />
+      {isAsi ? (
+        <div className="feature-resource">
+          <Text>
+            Увеличение характеристик
+            {asiLabel ? (
+              <>
+                : <strong>{asiLabel}</strong>
+              </>
+            ) : (
+              <>
+                {' '}
+                <span className="feature-choice-badge">не выбрано</span>
+              </>
+            )}
+          </Text>
+        </div>
+      ) : (
+        <FeatureChoiceControls
+          feature={feature}
+          featurePicks={featurePicks}
+          onFeaturePicksChange={onFeaturePicksChange}
+          skills={skills}
+          tools={tools}
+          expertiseKeys={expertiseKeys}
+          onToast={onToast}
+        />
+      )}
+      {feature.id === PACT_BOON_FEATURE_ID &&
+      isPactTomeActive(featurePicks, feature.classEntryId) ? (
+        <div className="feature-resource">
+          <PactTomeCantripsPicker
+            classEntryId={feature.classEntryId}
+            edition={edition}
+            featurePicks={featurePicks}
+            onFeaturePicksChange={onFeaturePicksChange}
+            onToast={onToast}
+            compact
+          />
+        </div>
+      ) : null}
+      {feature.id === PACT_BOON_FEATURE_ID &&
+      isPactChainActive(featurePicks, feature.classEntryId) ? (
+        <div className="feature-resource">
+          <Text tone="muted">
+            {WARLOCK_PACT_BOON_GRANTS.chain.notesRu ||
+              'Кастуй «Поиск фамильяра» — карточка напарника появится после каста.'}
+          </Text>
+          <div className="feature-resource__actions">
+            <Button
+              type="button"
+              onClick={() => onCastPactChainFamiliar?.(feature.classEntryId)}
+            >
+              Призвать фамильяра…
+            </Button>
+          </div>
+        </div>
+      ) : null}
       <MetamagicSpendControls
         feature={feature}
         featurePicks={featurePicks}
@@ -1258,6 +1569,7 @@ function FeatureRow({
         spells={spells}
         onSpellsChange={onSpellsChange}
         onToast={onToast}
+        onMoonFormSlotHeal={onMoonFormSlotHeal}
       />
       <FeatureResourceControls
         feature={feature}
@@ -1269,7 +1581,43 @@ function FeatureRow({
         onToast={onToast}
         initiativeGrantByPool={initiativeGrantByPool}
         wearingHeavyArmor={wearingHeavyArmor}
+        onOpenInfusions={onOpenInfusions}
+        onOpenSoulTrinkets={onOpenSoulTrinkets}
+        onWildShapeFork={onWildShapeFork}
+        onFeatureSelfForm={onFeatureSelfForm}
+        moonCombatWildShape={moonCombatWildShape}
       />
+      {feature.id === 'eldritch_invocations' && onOpenInvocations ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() => onOpenInvocations(feature.classEntryId)}
+          >
+            Воззвания на столе
+          </Button>
+        </div>
+      ) : null}
+      {feature.id === 'infuse_item' && onOpenInfusions ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() => onOpenInfusions(feature.classEntryId)}
+          >
+            Активные инфузии
+          </Button>
+        </div>
+      ) : null}
+      {(feature.id === 'favored_enemy' || feature.id === 'natural_explorer') &&
+      onOpenRangerFavored ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() => onOpenRangerFavored(feature.classEntryId)}
+          >
+            Избранное на столе
+          </Button>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -1305,16 +1653,34 @@ export function ClassFeaturesPanel({
   onSpellsChange,
   skills = {},
   tools = [],
+  classAsi = [],
   wearingHeavyArmor = false,
   companions = [],
   onCompanionsChange,
+  onWildShapeFork,
+  onFeatureSelfForm,
+  onMoonFormSlotHeal,
   onToast,
   featGrants = [],
   darkvision = 0,
   raceName = '',
+  raceTraitCards = [],
+  raceTraitsText = '',
+  backgroundName = '',
+  backgroundFeature = null,
+  customFeatures = [],
+  onCustomFeaturesChange,
+  onOpenInfusions,
+  onOpenInvocations,
+  onOpenRangerFavored,
+  onOpenSoulTrinkets,
+  onCastPactChainFamiliar,
+  edition = '2014',
 }: ClassFeaturesPanelProps) {
   const [filter, setFilter] = useState<FeatureFilter>('all')
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
+  const [customDraftName, setCustomDraftName] = useState('')
+  const [customDraftSummary, setCustomDraftSummary] = useState('')
 
   const features = useMemo(
     () =>
@@ -1351,6 +1717,11 @@ export function ClassFeaturesPanel({
     return map
   }, [features])
 
+  const moonCombatWildShape = useMemo(
+    () => features.some((f) => f.id === 'combat_wild_shape'),
+    [features],
+  )
+
   const byClass = useMemo(() => {
     const map = new Map<string, UnlockedFeature[]>()
     for (const feature of features) {
@@ -1378,7 +1749,7 @@ export function ClassFeaturesPanel({
       if (filter === 'all') return true
       if (filter === 'class') return feature.source !== 'subclass'
       if (filter === 'subclass') return feature.source === 'subclass'
-      if (filter === 'feats') return false
+      if (filter === 'feats' || filter === 'custom') return false
       if (filter === 'resource') return Boolean(feature.resource?.pool_id)
       if (filter === 'choice') {
         return (
@@ -1404,9 +1775,18 @@ export function ClassFeaturesPanel({
       .filter((group) => group.features.length > 0)
   }, [byClass, visibleFeatures])
 
+  const resolvedRaceTraits = useMemo(() => {
+    if (raceTraitCards.length > 0) return raceTraitCards
+    return raceTraitCardsFromText(raceTraitsText)
+  }, [raceTraitCards, raceTraitsText])
+
   const showRace =
-    darkvision > 0 && (filter === 'all' || filter === 'class')
+    (darkvision > 0 || resolvedRaceTraits.length > 0) &&
+    (filter === 'all' || filter === 'class')
+  const showBackground =
+    Boolean(backgroundFeature) && (filter === 'all' || filter === 'class')
   const showFeats = filter === 'all' || filter === 'feats'
+  const showCustom = filter === 'all' || filter === 'feats' || filter === 'custom'
 
   const extraAttackNote = useMemo(() => {
     const attacks = features.filter(
@@ -1430,8 +1810,11 @@ export function ClassFeaturesPanel({
     for (const feature of visibleFeatures) {
       if (featureCanExpand(feature)) keys.push(featureRowKey(feature))
     }
+    for (const trait of resolvedRaceTraits) keys.push(`race-trait:${trait.id}`)
+    if (backgroundFeature) keys.push(`background-feature:${backgroundFeature.id}`)
+    for (const row of customFeatures) keys.push(`custom:${row.id}`)
     return keys
-  }, [visibleFeatures])
+  }, [visibleFeatures, resolvedRaceTraits, backgroundFeature, customFeatures])
 
   function toggleKey(key: string) {
     setOpenKeys((prev) => {
@@ -1444,14 +1827,16 @@ export function ClassFeaturesPanel({
 
   const empty =
     !showRace &&
+    !showBackground &&
     visibleFeatures.length === 0 &&
-    !(showFeats && namedFeats.length > 0)
+    !(showFeats && namedFeats.length > 0) &&
+    !(showCustom && customFeatures.length > 0)
 
   return (
     <Panel title="Способности" className="features-panel">
       <p className="features-panel__lede">
-        Сводка умений класса, подкласса, черт и расы. Раскрываются только строки с
-        ресурсом, выбором или действием.
+        Сводка умений класса, подкласса, предыстории, черт и расы. Нажми строку —
+        полный текст; у ресурсов и выборов внутри ещё и кнопки.
       </p>
 
       <Stack gap={12}>
@@ -1493,14 +1878,136 @@ export function ClassFeaturesPanel({
         ) : null}
 
         {showRace ? (
-          <div className="feature-card feature-card--compact feature-card--static">
-            <div className="feature-card__glance">
-              <b className="feature-card__name">Тёмное зрение {darkvision} фт.</b>
-              <span className="inventory-role inventory-role--other">раса</span>
-              <span className="inventory-card__glance-spacer" aria-hidden />
-              <span className="feature-card__preview">
-                {raceName || 'раса'} · в темноте на {darkvision} фт.
+          <div className="feature-group">
+            <div className="feature-group__title">
+              {raceName || 'Раса'}
+              <span className="feature-group__count">
+                {' '}
+                · {(darkvision > 0 ? 1 : 0) + resolvedRaceTraits.length}
               </span>
+            </div>
+            <div className="feature-list">
+              {darkvision > 0 ? (
+                <div className="feature-card feature-card--compact feature-card--static">
+                  <div className="feature-card__glance">
+                    <b className="feature-card__name">Тёмное зрение {darkvision} фт.</b>
+                    <span className="inventory-role inventory-role--other">раса</span>
+                    <span className="inventory-card__glance-spacer" aria-hidden />
+                    <span className="feature-card__preview">
+                      в темноте на {darkvision} фт.
+                    </span>
+                  </div>
+                </div>
+              ) : null}
+              {resolvedRaceTraits.map((trait) => {
+                const key = `race-trait:${trait.id}`
+                const open = openKeys.has(key)
+                const preview = previewSummary(trait.summaryRu)
+                if (!open) {
+                  return (
+                    <div key={key} className="feature-card feature-card--compact">
+                      <button
+                        type="button"
+                        className="feature-card__glance"
+                        onClick={() => toggleKey(key)}
+                      >
+                        <b className="feature-card__name">{trait.nameRu}</b>
+                        <span className="inventory-role inventory-role--other">раса</span>
+                        <span className="inventory-card__glance-spacer" aria-hidden />
+                        <span className="feature-card__preview">{preview}</span>
+                      </button>
+                      <div className="inventory-card__glance-actions">
+                        <button
+                          type="button"
+                          className="inventory-card__chevron-btn"
+                          aria-label="Подробнее"
+                          onClick={() => toggleKey(key)}
+                        >
+                          ›
+                        </button>
+                      </div>
+                    </div>
+                  )
+                }
+                return (
+                  <div key={key} className="feature-card feature-card--expand">
+                    <div className="feature-card__meta">
+                      <span className="inventory-role inventory-role--other">раса</span>
+                      <button
+                        type="button"
+                        className="inventory-card__collapse"
+                        onClick={() => toggleKey(key)}
+                      >
+                        свернуть
+                      </button>
+                    </div>
+                    <h3 className="feature-card__title">{trait.nameRu}</h3>
+                    <Text>{trait.summaryRu}</Text>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
+
+        {showBackground && backgroundFeature ? (
+          <div className="feature-group">
+            <div className="feature-group__title">
+              {backgroundName || 'Предыстория'}
+              <span className="feature-group__count"> · 1</span>
+            </div>
+            <div className="feature-list">
+              {(() => {
+                const key = `background-feature:${backgroundFeature.id}`
+                const open = openKeys.has(key)
+                const preview = previewSummary(backgroundFeature.summaryRu)
+                if (!open) {
+                  return (
+                    <div key={key} className="feature-card feature-card--compact">
+                      <button
+                        type="button"
+                        className="feature-card__glance"
+                        onClick={() => toggleKey(key)}
+                      >
+                        <b className="feature-card__name">{backgroundFeature.nameRu}</b>
+                        <span className="inventory-role inventory-role--other">
+                          предыстория
+                        </span>
+                        <span className="inventory-card__glance-spacer" aria-hidden />
+                        <span className="feature-card__preview">{preview}</span>
+                      </button>
+                      <div className="inventory-card__glance-actions">
+                        <button
+                          type="button"
+                          className="inventory-card__chevron-btn"
+                          aria-label="Подробнее"
+                          onClick={() => toggleKey(key)}
+                        >
+                          ›
+                        </button>
+                      </div>
+                    </div>
+                  )
+                }
+                return (
+                  <div key={key} className="feature-card feature-card--expand">
+                    <div className="feature-card__meta">
+                      <span className="inventory-role inventory-role--other">
+                        предыстория
+                      </span>
+                      <button
+                        type="button"
+                        className="inventory-card__collapse"
+                        onClick={() => toggleKey(key)}
+                      >
+                        свернуть
+                      </button>
+                    </div>
+                    <h3 className="feature-card__title">{backgroundFeature.nameRu}</h3>
+                    <Text>{backgroundFeature.summaryRu}</Text>
+                  </div>
+                )
+              })()}
             </div>
           </div>
         ) : null}
@@ -1530,11 +2037,22 @@ export function ClassFeaturesPanel({
                     skills={skills}
                     tools={tools}
                     expertiseKeys={expertiseKeys}
+                    classAsi={classAsi}
                     companions={companions}
                     onCompanionsChange={onCompanionsChange}
                     onToast={onToast}
                     initiativeGrantByPool={initiativeGrantByPool}
                     wearingHeavyArmor={wearingHeavyArmor}
+                    onOpenInfusions={onOpenInfusions}
+                    onOpenInvocations={onOpenInvocations}
+                    onOpenSoulTrinkets={onOpenSoulTrinkets}
+                    onOpenRangerFavored={onOpenRangerFavored}
+                    onCastPactChainFamiliar={onCastPactChainFamiliar}
+                    onWildShapeFork={onWildShapeFork}
+                    onFeatureSelfForm={onFeatureSelfForm}
+                    moonCombatWildShape={moonCombatWildShape}
+                    onMoonFormSlotHeal={onMoonFormSlotHeal}
+                    edition={edition}
                   />
                 )
               })}
@@ -1550,23 +2068,167 @@ export function ClassFeaturesPanel({
             </div>
             <div className="feature-list">
               {namedFeats.map((feat) => {
+                const key = `feat:${feat.id}`
+                const open = openKeys.has(key)
+                const body =
+                  feat.applied.benefitsRu || feat.applied.summaryRu || featSourceLabel(feat.source)
                 const preview =
                   previewSummary(feat.applied.summaryRu || feat.applied.benefitsRu) ||
                   featSourceLabel(feat.source)
-                return (
-                  <div
-                    key={feat.id}
-                    className="feature-card feature-card--compact feature-card--static"
-                  >
-                    <div className="feature-card__glance">
-                      <b className="feature-card__name">{feat.nameRu}</b>
-                      <span className="inventory-role inventory-role--weapon">черта</span>
-                      <span className="inventory-card__glance-spacer" aria-hidden />
-                      <span className="feature-card__preview">{preview}</span>
+                if (!open) {
+                  return (
+                    <div key={feat.id} className="feature-card feature-card--compact">
+                      <button
+                        type="button"
+                        className="feature-card__glance"
+                        onClick={() => toggleKey(key)}
+                      >
+                        <b className="feature-card__name">{feat.nameRu}</b>
+                        <span className="inventory-role inventory-role--weapon">черта</span>
+                        <span className="inventory-card__glance-spacer" aria-hidden />
+                        <span className="feature-card__preview">{preview}</span>
+                      </button>
+                      <div className="inventory-card__glance-actions">
+                        <button
+                          type="button"
+                          className="inventory-card__chevron-btn"
+                          aria-label="Подробнее"
+                          onClick={() => toggleKey(key)}
+                        >
+                          ›
+                        </button>
+                      </div>
                     </div>
+                  )
+                }
+                return (
+                  <div key={feat.id} className="feature-card feature-card--expand">
+                    <div className="feature-card__meta">
+                      <span className="inventory-role inventory-role--weapon">черта</span>
+                      <span className="attack-held-tag">
+                        {featSourceLabel(feat.source)}
+                      </span>
+                      <button
+                        type="button"
+                        className="inventory-card__collapse"
+                        onClick={() => toggleKey(key)}
+                      >
+                        свернуть
+                      </button>
+                    </div>
+                    <h3 className="feature-card__title">{feat.nameRu}</h3>
+                    <Text>{body}</Text>
                   </div>
                 )
               })}
+            </div>
+          </div>
+        ) : null}
+
+        {showCustom && onCustomFeaturesChange ? (
+          <div className="feature-group">
+            <div className="feature-group__title">
+              Свои способности
+              <span className="feature-group__count"> · {customFeatures.length}</span>
+            </div>
+            <div className="feature-list">
+              {customFeatures.map((row) => {
+                const key = `custom:${row.id}`
+                const open = openKeys.has(key)
+                if (!open) {
+                  return (
+                    <div key={row.id} className="feature-card feature-card--compact">
+                      <button
+                        type="button"
+                        className="feature-card__glance"
+                        onClick={() => toggleKey(key)}
+                      >
+                        <b className="feature-card__name">{row.nameRu}</b>
+                        <span className="inventory-role inventory-role--other">своё</span>
+                        <span className="inventory-card__glance-spacer" aria-hidden />
+                        <span className="feature-card__preview">
+                          {previewSummary(row.summaryRu) || 'без описания'}
+                        </span>
+                      </button>
+                      <div className="inventory-card__glance-actions">
+                        <button
+                          type="button"
+                          className="inventory-card__chevron-btn"
+                          aria-label="Подробнее"
+                          onClick={() => toggleKey(key)}
+                        >
+                          ›
+                        </button>
+                      </div>
+                    </div>
+                  )
+                }
+                return (
+                  <div key={row.id} className="feature-card feature-card--expand">
+                    <div className="feature-card__meta">
+                      <span className="inventory-role inventory-role--other">своё</span>
+                      <button
+                        type="button"
+                        className="inventory-card__collapse"
+                        onClick={() => toggleKey(key)}
+                      >
+                        свернуть
+                      </button>
+                    </div>
+                    <h3 className="feature-card__title">{row.nameRu}</h3>
+                    <Text>{row.summaryRu || '—'}</Text>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() =>
+                        onCustomFeaturesChange(
+                          customFeatures.filter((item) => item.id !== row.id),
+                        )
+                      }
+                    >
+                      Убрать
+                    </Button>
+                  </div>
+                )
+              })}
+              <Stack gap={8}>
+                <Field label="Название">
+                  <Input
+                    value={customDraftName}
+                    placeholder="Например: Благословение храма"
+                    onChange={(event) => setCustomDraftName(event.target.value)}
+                  />
+                </Field>
+                <Field label="Описание">
+                  <Input
+                    value={customDraftSummary}
+                    placeholder="Что делает способность"
+                    onChange={(event) => setCustomDraftSummary(event.target.value)}
+                  />
+                </Field>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={!customDraftName.trim()}
+                  onClick={() => {
+                    const nameRu = customDraftName.trim()
+                    if (!nameRu) return
+                    onCustomFeaturesChange([
+                      ...customFeatures,
+                      {
+                        id: newCustomFeatureId(),
+                        nameRu,
+                        summaryRu: customDraftSummary.trim(),
+                      },
+                    ])
+                    setCustomDraftName('')
+                    setCustomDraftSummary('')
+                    onToast?.(`Своя способность «${nameRu}»`)
+                  }}
+                >
+                  Добавить способность
+                </Button>
+              </Stack>
             </div>
           </div>
         ) : null}

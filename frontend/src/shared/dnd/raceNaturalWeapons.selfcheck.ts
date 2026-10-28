@@ -153,11 +153,15 @@ function emptyGrant(
     armorKeys: [],
     weaponNames: [],
     traitsText: '',
+    traitCards: [],
     ancestryId: null,
     featNoteRu: null,
     naturalArmor: null,
     naturalWeapons,
     movement: { climb: null, swim: null, fly: null },
+    activatedMovement: [],
+    damageResistances: [],
+    combatBonuses: { initiative: null },
     racialSpells: [],
   }
 }

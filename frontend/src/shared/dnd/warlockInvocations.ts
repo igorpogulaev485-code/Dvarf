@@ -190,3 +190,39 @@ export const WARLOCK_PACT_BOONS = [
   { id: 'chain', nameRu: 'Цепь' },
   { id: 'tome', nameRu: 'Гримуар' },
 ] as const
+
+export type WarlockPactBoonId = (typeof WARLOCK_PACT_BOONS)[number]['id']
+
+/**
+ * Systemic grants attached to a pact boon choice (slice F).
+ * Tome: +3 known cantrips from any class list, outside warlock cantrip budget.
+ */
+export type PactBoonGrantBundle = {
+  knownCantrips?: {
+    count: number
+    /** Feature-pick id that stores CSV of catalog slugs. */
+    pickFeatureId: string
+    lists: 'any_class'
+  }
+  notesRu?: string
+}
+
+export const WARLOCK_PACT_BOON_GRANTS: Record<
+  WarlockPactBoonId,
+  PactBoonGrantBundle
+> = {
+  blade: {},
+  chain: {
+    notesRu:
+      'Учишь «Поиск фамильяра» и можешь кастовать его как ритуал; особые формы фамильяра (бес, псевдодракон…). Карточка напарника — после каста.',
+  },
+  tome: {
+    knownCantrips: {
+      count: 3,
+      pickFeatureId: 'pact_tome_cantrips',
+      lists: 'any_class',
+    },
+    notesRu:
+      'Три заговора из списков любого класса. Не входят в лимит заговоров колдуна.',
+  },
+}

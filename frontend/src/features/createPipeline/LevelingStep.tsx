@@ -47,22 +47,41 @@ type LevelingStepProps = {
   /** Change already-selected archetype (not the primary pick path). */
   onChangeArchetype: (classEntryId: string) => void
   onOpenSpells: () => void
+  /** Open grimoire focused on one caster class (M4 per-class accordion). */
+  onOpenSpellsForClass?: (classSlug: string) => void
   /** Prepared / spellbook casters — open prepare dialog (optional). */
   onOpenPrepare?: () => void
   /** Live caster tables from class levels (slots / prepare / known mode). */
   spellcasting?: {
     labelRu: string
+    mode?: 'known' | 'prepared_list' | 'spellbook'
     maxPrepared: number | null
     knownLeveled: number
     preparedLeveled: number
     /** PHB cantrips known on sheet / cap (null cap = not tracked). */
     cantripsKnown?: number
     cantripsMax?: number | null
-    /** Cap for leveled known / spellbook (null = full-list prepare caster). */
+    /** Cap for leveled known / spellbook free research (null = full-list prepare caster). */
     leveledKnownMax?: number | null
+    /** Wizard: remaining free book fills at current level. */
+    freeBookLeft?: number | null
+    /** Leveled on sheet that are not prepared (prepared_list / spellbook). */
+    unpreparedLeveled?: number
     slots: Record<string, SpellSlotState>
     pactSlots: PactSlotState | null
   } | null
+  /** M4: one row per caster class (overview + open that class). */
+  spellClassBudgets?: Array<{
+    slug: string
+    labelRu: string
+    mode: 'known' | 'prepared_list' | 'spellbook' | null
+    cantripsKnown: number
+    cantripsMax: number
+    leveledKnown: number
+    leveledKnownMax: number | null
+  }> | null
+  /** Named cantrip meta line (Изобретатель n/n · …). */
+  spellBudgetMeta?: string | null
 }
 
 function formatSlotBrief(slots: Record<string, SpellSlotState>): string {
@@ -119,8 +138,11 @@ export function LevelingStep({
   onMulticlassAdded,
   onChangeArchetype,
   onOpenSpells,
+  onOpenSpellsForClass,
   onOpenPrepare,
   spellcasting = null,
+  spellClassBudgets = null,
+  spellBudgetMeta = null,
 }: LevelingStepProps) {
   const [mcOpen, setMcOpen] = useState(false)
   const [pruneWarn, setPruneWarn] = useState<{
@@ -355,17 +377,113 @@ export function LevelingStep({
       </div>
 
       <div className="create-pipeline__spells-block">
-        <div className="create-pipeline__method-row">
-          <Button variant="secondary" onClick={onOpenSpells}>
-            Заклинания
-          </Button>
-          {onOpenPrepare ? (
-            <Button variant="secondary" onClick={onOpenPrepare}>
-              Подготовить
+        {/* Per-class rows are the primary entry (budget + filter).
+            Top «Выбрать заклинания» only when there is no class breakdown
+            (legacy / no caster budgets) — otherwise it duplicated «Выбрать…». */}
+        {!(spellClassBudgets && spellClassBudgets.length > 0) ? (
+          <div className="create-pipeline__method-row">
+            <Button variant="secondary" onClick={onOpenSpells}>
+              Выбрать заклинания
             </Button>
-          ) : null}
-        </div>
-        {spellcasting ? (
+            {onOpenPrepare ? (
+              <Button variant="secondary" onClick={onOpenPrepare}>
+                Изменить подготовку
+              </Button>
+            ) : null}
+          </div>
+        ) : onOpenPrepare ? (
+          <div className="create-pipeline__method-row">
+            <Button variant="secondary" onClick={onOpenPrepare}>
+              Изменить подготовку
+            </Button>
+          </div>
+        ) : null}
+        {spellClassBudgets && spellClassBudgets.length > 0 ? (
+          <Stack gap={8}>
+            {spellBudgetMeta ? <Text tone="muted">{spellBudgetMeta}</Text> : null}
+            <Text tone="muted">
+              Обзор кастеров — у каждого свой пул (известные / подготовка / книга).
+              «Выбрать…» открывает гримуар сразу в бюджете этого класса.
+            </Text>
+            <ul className="create-pipeline__spell-class-list">
+              {spellClassBudgets.map((row) => {
+                const cantripGap =
+                  row.cantripsMax > 0 && row.cantripsKnown < row.cantripsMax
+                const knownGap =
+                  row.mode === 'known' &&
+                  row.leveledKnownMax != null &&
+                  row.leveledKnown < row.leveledKnownMax
+                const underfilled = cantripGap || knownGap
+                return (
+                <li
+                  key={row.slug}
+                  className={`create-pipeline__spell-class-row${
+                    underfilled ? ' is-underfilled' : ''
+                  }`}
+                >
+                  <div>
+                    <strong>
+                      {row.labelRu}
+                      {row.mode === 'known'
+                        ? ' · Известные'
+                        : row.mode === 'spellbook'
+                          ? ' · Книга'
+                          : row.mode === 'prepared_list'
+                            ? ' · Подготовка'
+                            : ''}
+                    </strong>
+                    <Text tone="muted">
+                      {[
+                        `Заговоры ${row.cantripsKnown}/${row.cantripsMax}`,
+                        row.mode === 'known' && row.leveledKnownMax != null
+                          ? `Известно ${row.leveledKnown}/${row.leveledKnownMax}`
+                          : row.mode === 'spellbook'
+                            ? `В книге ${row.leveledKnown}`
+                            : row.mode === 'prepared_list'
+                              ? `На листе ${row.leveledKnown}`
+                              : null,
+                        row.mode === 'known'
+                          ? 'сразу готовы к бою'
+                          : row.mode === 'prepared_list'
+                            ? 'готовь в гримуаре'
+                            : row.mode === 'spellbook'
+                              ? 'книга ≠ подготовка'
+                              : null,
+                        underfilled ? 'недобор — выбери в гримуаре' : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </Text>
+                  </div>
+                  {onOpenSpellsForClass ? (
+                    <Button
+                      variant="ghost"
+                      onClick={() => onOpenSpellsForClass(row.slug)}
+                    >
+                      Выбрать…
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" onClick={onOpenSpells}>
+                      Выбрать…
+                    </Button>
+                  )}
+                </li>
+                )
+              })}
+            </ul>
+            {spellcasting ? (
+              <Text tone="muted">
+                Ячейки общие: {formatSlotBrief(spellcasting.slots)}
+                {spellcasting.pactSlots && spellcasting.pactSlots.max > 0
+                  ? ` · Pact ${spellcasting.pactSlots.max}×${spellcasting.pactSlots.level}`
+                  : ''}
+                {spellcasting.mode !== 'known' && spellcasting.maxPrepared != null
+                  ? ` · Подготовка ${spellcasting.preparedLeveled}/${spellcasting.maxPrepared} (можно меньше)`
+                  : ''}
+              </Text>
+            ) : null}
+          </Stack>
+        ) : spellcasting ? (
           <Stack gap={4}>
             <Text tone="muted">{spellcasting.labelRu}</Text>
             <Text>
@@ -373,11 +491,24 @@ export function LevelingStep({
                 spellcasting.cantripsMax != null
                   ? `Заговоры: ${spellcasting.cantripsKnown ?? 0}/${spellcasting.cantripsMax}`
                   : null,
-                spellcasting.maxPrepared == null
-                  ? spellcasting.leveledKnownMax != null
-                    ? `Известно: ${spellcasting.knownLeveled}/${spellcasting.leveledKnownMax}`
-                    : `Известно (на листе): ${spellcasting.knownLeveled}`
-                  : `Подготовка: ${spellcasting.preparedLeveled}/${spellcasting.maxPrepared}`,
+                spellcasting.mode === 'spellbook'
+                  ? `В книге: ${spellcasting.knownLeveled}${
+                      spellcasting.freeBookLeft != null
+                        ? ` · бесплатно ещё ${spellcasting.freeBookLeft}`
+                        : ''
+                    }`
+                  : spellcasting.mode === 'known' || spellcasting.maxPrepared == null
+                    ? spellcasting.leveledKnownMax != null
+                      ? `Известно: ${spellcasting.knownLeveled}/${spellcasting.leveledKnownMax}`
+                      : `Известно (на листе): ${spellcasting.knownLeveled}`
+                    : `На листе: ${spellcasting.knownLeveled}${
+                        spellcasting.unpreparedLeveled
+                          ? ` · не подг. ${spellcasting.unpreparedLeveled}`
+                          : ''
+                      }`,
+                spellcasting.mode !== 'known' && spellcasting.maxPrepared != null
+                  ? `Подготовка: ${spellcasting.preparedLeveled}/${spellcasting.maxPrepared}`
+                  : null,
                 `Ячейки: ${formatSlotBrief(spellcasting.slots)}`,
                 spellcasting.pactSlots && spellcasting.pactSlots.max > 0
                   ? `Pact ${spellcasting.pactSlots.max}×${spellcasting.pactSlots.level}`
@@ -387,8 +518,11 @@ export function LevelingStep({
                 .join(' · ')}
             </Text>
             <Text tone="muted">
-              При мультиклассе ячейки и лимит подготовки пересчитываются по таблицам PHB 2014.
-              Выбор — в гримуаре (только список класса и доступные круги).
+              {spellcasting.mode === 'spellbook'
+                ? 'Волшебник: на 1 ур. — 6 бесплатно в книгу, каждый новый уровень — +2 бесплатно. Сверх этого — золото. Гримуар ≠ подготовка.'
+                : spellcasting.mode === 'known'
+                  ? 'Выбери известные в гримуаре — сразу готовы к бою. Замена — при повышении уровня.'
+                  : 'Готовь прямо в гримуаре (чипы Все / Подготовленные). Полный лимит подготовки не обязателен.'}
             </Text>
           </Stack>
         ) : (

@@ -130,13 +130,26 @@ LIVE_MARKERS="$("${SSH[@]}" "root@${HOST}" bash -s <<EOF
 set +e
 for f in \
   frontend/src/features/characters/IdentityDialog.tsx \
+  frontend/src/features/characters/PlayDeskHeader.tsx \
+  frontend/src/features/characters/PlayDeskHotBar.tsx \
+  frontend/src/features/classicSheet/ClassicPrint2024.tsx \
+  frontend/src/features/classicSheet/classicSheetLayout.ts \
   frontend/src/shared/theme/accountAppearance.ts \
   frontend/src/features/createPipeline/CreatePipelineShell.tsx \
+  frontend/src/features/lobby/SettingQuickCreateDialog.tsx \
+  frontend/src/features/lobby/SettingTableHandoffDialog.tsx \
+  frontend/src/features/lobby/SessionLorePanel.tsx \
+  frontend/src/features/lobby/SettingArtifactsPanel.tsx \
   deploy/remote-up.sh \
   docs/ui-kit/README.md
  do
   if [[ -e ${REMOTE_DIR}/\$f ]]; then echo "LIVE_HAS:\$f"; fi
  done
+# Высота водяного знака: если на live УЖЕ полный лист — нельзя залить тонкий
+LIVE_CHAR=\$(find ${REMOTE_DIR}/frontend/src/features/characters -maxdepth 1 -type f -name '*.tsx' 2>/dev/null | wc -l | tr -d ' ')
+LIVE_CLASSIC=\$(find ${REMOTE_DIR}/frontend/src/features/classicSheet -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d ' ')
+echo "LIVE_CHAR_COUNT:\$LIVE_CHAR"
+echo "LIVE_CLASSIC_COUNT:\$LIVE_CLASSIC"
 if grep -q "Legacy ЕЩЁ" ${REMOTE_DIR}/frontend/src/features/characters/playDeskUi.ts 2>/dev/null; then
   echo "LIVE_HAS:legacy_eshcho_drop"
 fi
@@ -146,9 +159,30 @@ fi
 EOF
 )" || LIVE_MARKERS=""
 
+LOCAL_CHAR="$(find "$ROOT/frontend/src/features/characters" -maxdepth 1 -type f -name '*.tsx' 2>/dev/null | wc -l | tr -d ' ')"
+LOCAL_CLASSIC="$(find "$ROOT/frontend/src/features/classicSheet" -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d ' ')"
+
 while IFS= read -r line; do
   [[ -z "$line" ]] && continue
   case "$line" in
+    LIVE_CHAR_COUNT:*)
+      live_n="${line#LIVE_CHAR_COUNT:}"
+      if [[ -n "$live_n" && "$live_n" -gt 50 && "${LOCAL_CHAR:-0}" -lt "$live_n" ]]; then
+        echo "FAIL: live characters tsx=${live_n}, tree only ${LOCAL_CHAR} — overwrite Play Desk" >&2
+        FAILED=1
+      else
+        echo "ok: characters count live=${live_n:-?} tree=${LOCAL_CHAR}"
+      fi
+      ;;
+    LIVE_CLASSIC_COUNT:*)
+      live_n="${line#LIVE_CLASSIC_COUNT:}"
+      if [[ -n "$live_n" && "$live_n" -gt 5 && "${LOCAL_CLASSIC:-0}" -lt "$live_n" ]]; then
+        echo "FAIL: live classicSheet=${live_n}, tree only ${LOCAL_CLASSIC} — overwrite classic" >&2
+        FAILED=1
+      else
+        echo "ok: classicSheet count live=${live_n:-?} tree=${LOCAL_CLASSIC}"
+      fi
+      ;;
     LIVE_HAS:legacy_eshcho_drop)
       if ! grep -q 'Legacy ЕЩЁ' "$ROOT/frontend/src/features/characters/playDeskUi.ts" 2>/dev/null; then
         echo "FAIL: live disk already dropped ЕЩЁ, but this tree would bring ЕЩЁ back" >&2

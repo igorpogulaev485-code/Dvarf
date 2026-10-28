@@ -194,14 +194,14 @@
     {
       "id": "17d6975e-d472-50de-8ab7-1b4c53582412",
       "slug": "durable",
-      "name_ru": "Крепкий",
+      "name_ru": "Стойкий",
       "name_en": "Durable",
       "source": "phb",
       "sort_order": 1090,
       "data": {
         "source": "phb",
         "prerequisites_ru": null,
-        "summary_ru": "+1 Тел; кости хитов лечат не меньше удвоенного модификатора Тел.",
+        "summary_ru": "Durable: +1 Тел; кости хитов лечат не меньше удвоенного модификатора Тел. (Не путать с «Крепкий» / Tough — +2 HP за уровень.)",
         "benefits_ru": "Увеличьте Телосложение на 1, максимум 20. Когда вы бросаете Кость Хитов для восстановления хитов, минимум равен удвоенному модификатору Телосложения (минимум 2).",
         "prerequisites": {},
         "choices": [],
@@ -570,11 +570,26 @@
             "type": "enum",
             "label_ru": "Список заклинаний",
             "options": [
-              { "id": "bard", "label_ru": "Бард (Хар)" },
-              { "id": "cleric", "label_ru": "Жрец (Муд)" },
-              { "id": "druid", "label_ru": "Друид (Муд)" },
-              { "id": "warlock", "label_ru": "Колдун (Хар)" },
-              { "id": "wizard", "label_ru": "Волшебник (Инт)" }
+              {
+                "id": "bard",
+                "label_ru": "Бард (Хар)"
+              },
+              {
+                "id": "cleric",
+                "label_ru": "Жрец (Муд)"
+              },
+              {
+                "id": "druid",
+                "label_ru": "Друид (Муд)"
+              },
+              {
+                "id": "warlock",
+                "label_ru": "Колдун (Хар)"
+              },
+              {
+                "id": "wizard",
+                "label_ru": "Волшебник (Инт)"
+              }
             ]
           },
           {
@@ -585,28 +600,8 @@
             "grant": "innate",
             "filter_enum": "list",
             "unique_group": "cantrips",
-            "options": [
-              { "id": "vicious_mockery", "label_ru": "Злая насмешка", "lists": ["bard"] },
-              { "id": "minor_illusion", "label_ru": "Малая иллюзия", "lists": ["bard", "warlock", "wizard"] },
-              { "id": "prestidigitation", "label_ru": "Фокусы", "lists": ["bard", "warlock", "wizard"] },
-              { "id": "mage_hand", "label_ru": "Волшебная рука", "lists": ["bard", "warlock", "wizard"] },
-              { "id": "friends", "label_ru": "Дружба", "lists": ["bard", "warlock", "wizard"] },
-              { "id": "sacred_flame", "label_ru": "Священное пламя", "lists": ["cleric"] },
-              { "id": "thaumaturgy", "label_ru": "Чудотворство", "lists": ["cleric"] },
-              { "id": "guidance", "label_ru": "Наставление", "lists": ["cleric", "druid"] },
-              { "id": "light", "label_ru": "Свет", "lists": ["bard", "cleric", "wizard"] },
-              { "id": "spare_the_dying", "label_ru": "Уход за умирающим", "lists": ["cleric"] },
-              { "id": "druidcraft", "label_ru": "Друидизм", "lists": ["druid"] },
-              { "id": "shillelagh", "label_ru": "Дубинка", "lists": ["druid"] },
-              { "id": "produce_flame", "label_ru": "Сотворение пламени", "lists": ["druid"] },
-              { "id": "thorn_whip", "label_ru": "Терновый кнут", "lists": ["druid"] },
-              { "id": "eldritch_blast", "label_ru": "Мистический заряд", "lists": ["warlock"] },
-              { "id": "chill_touch", "label_ru": "Леденящее прикосновение", "lists": ["warlock", "wizard"] },
-              { "id": "fire_bolt", "label_ru": "Огненный снаряд", "lists": ["wizard"] },
-              { "id": "ray_of_frost", "label_ru": "Луч холода", "lists": ["wizard"] },
-              { "id": "shocking_grasp", "label_ru": "Шокирующее касание", "lists": ["wizard"] },
-              { "id": "acid_splash", "label_ru": "Брызги кислоты", "lists": ["wizard"] }
-            ]
+            "options": [],
+            "options_from": "class_spell_list"
           },
           {
             "id": "cantrip2",
@@ -616,28 +611,8 @@
             "grant": "innate",
             "filter_enum": "list",
             "unique_group": "cantrips",
-            "options": [
-              { "id": "vicious_mockery", "label_ru": "Злая насмешка", "lists": ["bard"] },
-              { "id": "minor_illusion", "label_ru": "Малая иллюзия", "lists": ["bard", "warlock", "wizard"] },
-              { "id": "prestidigitation", "label_ru": "Фокусы", "lists": ["bard", "warlock", "wizard"] },
-              { "id": "mage_hand", "label_ru": "Волшебная рука", "lists": ["bard", "warlock", "wizard"] },
-              { "id": "friends", "label_ru": "Дружба", "lists": ["bard", "warlock", "wizard"] },
-              { "id": "sacred_flame", "label_ru": "Священное пламя", "lists": ["cleric"] },
-              { "id": "thaumaturgy", "label_ru": "Чудотворство", "lists": ["cleric"] },
-              { "id": "guidance", "label_ru": "Наставление", "lists": ["cleric", "druid"] },
-              { "id": "light", "label_ru": "Свет", "lists": ["bard", "cleric", "wizard"] },
-              { "id": "spare_the_dying", "label_ru": "Уход за умирающим", "lists": ["cleric"] },
-              { "id": "druidcraft", "label_ru": "Друидизм", "lists": ["druid"] },
-              { "id": "shillelagh", "label_ru": "Дубинка", "lists": ["druid"] },
-              { "id": "produce_flame", "label_ru": "Сотворение пламени", "lists": ["druid"] },
-              { "id": "thorn_whip", "label_ru": "Терновый кнут", "lists": ["druid"] },
-              { "id": "eldritch_blast", "label_ru": "Мистический заряд", "lists": ["warlock"] },
-              { "id": "chill_touch", "label_ru": "Леденящее прикосновение", "lists": ["warlock", "wizard"] },
-              { "id": "fire_bolt", "label_ru": "Огненный снаряд", "lists": ["wizard"] },
-              { "id": "ray_of_frost", "label_ru": "Луч холода", "lists": ["wizard"] },
-              { "id": "shocking_grasp", "label_ru": "Шокирующее касание", "lists": ["wizard"] },
-              { "id": "acid_splash", "label_ru": "Брызги кислоты", "lists": ["wizard"] }
-            ]
+            "options": [],
+            "options_from": "class_spell_list"
           },
           {
             "id": "l1_spell",
@@ -647,29 +622,8 @@
             "grant": "innate",
             "filter_enum": "list",
             "notes_ru": "1/длинный отдых без ячейки",
-            "options": [
-              { "id": "charm_person", "label_ru": "Очарование личности", "lists": ["bard", "warlock", "wizard"] },
-              { "id": "cure_wounds", "label_ru": "Лечение ран", "lists": ["bard", "cleric", "druid"] },
-              { "id": "healing_word", "label_ru": "Целебное слово", "lists": ["bard", "cleric", "druid"] },
-              { "id": "detect_magic", "label_ru": "Обнаружение магии", "lists": ["bard", "cleric", "druid", "wizard"] },
-              { "id": "disguise_self", "label_ru": "Маскировка", "lists": ["bard", "wizard"] },
-              { "id": "sleep", "label_ru": "Усыпление", "lists": ["bard", "wizard"] },
-              { "id": "bless", "label_ru": "Благословение", "lists": ["cleric"] },
-              { "id": "command", "label_ru": "Приказ", "lists": ["cleric"] },
-              { "id": "guiding_bolt", "label_ru": "Направляющий снаряд", "lists": ["cleric"] },
-              { "id": "shield_of_faith", "label_ru": "Щит веры", "lists": ["cleric"] },
-              { "id": "entangle", "label_ru": "Опутывание", "lists": ["druid"] },
-              { "id": "faerie_fire", "label_ru": "Огонь фей", "lists": ["druid", "bard"] },
-              { "id": "goodberry", "label_ru": "Ягоды доброго", "lists": ["druid"] },
-              { "id": "speak_with_animals", "label_ru": "Разговор с животными", "lists": ["bard", "druid"] },
-              { "id": "hex", "label_ru": "Сглаз", "lists": ["warlock"] },
-              { "id": "armor_of_agathys", "label_ru": "Доспех Агатиса", "lists": ["warlock"] },
-              { "id": "hellish_rebuke", "label_ru": "Адское возмездие", "lists": ["warlock"] },
-              { "id": "mage_armor", "label_ru": "Доспехи мага", "lists": ["wizard"] },
-              { "id": "magic_missile", "label_ru": "Волшебная стрела", "lists": ["wizard"] },
-              { "id": "shield", "label_ru": "Щит", "lists": ["wizard"] },
-              { "id": "find_familiar", "label_ru": "Поиск фамильяра", "lists": ["wizard"] }
-            ]
+            "options": [],
+            "options_from": "class_spell_list"
           }
         ],
         "grants": {
@@ -699,22 +653,70 @@
             "label_ru": "Приёмы мастера боевых искусств",
             "count": 2,
             "options": [
-              { "id": "commanders_strike", "label_ru": "Удар командира" },
-              { "id": "disarming_attack", "label_ru": "Обезоруживающая атака" },
-              { "id": "distracting_strike", "label_ru": "Отвлекающий удар" },
-              { "id": "evasive_footwork", "label_ru": "Уклончивая работа ног" },
-              { "id": "feinting_attack", "label_ru": "Обманная атака" },
-              { "id": "goading_attack", "label_ru": "Провокационная атака" },
-              { "id": "lunging_attack", "label_ru": "Выпад" },
-              { "id": "maneuvering_attack", "label_ru": "Маневренная атака" },
-              { "id": "menacing_attack", "label_ru": "Устрашающая атака" },
-              { "id": "parry", "label_ru": "Парирование" },
-              { "id": "precision_attack", "label_ru": "Точная атака" },
-              { "id": "pushing_attack", "label_ru": "Отталкивающая атака" },
-              { "id": "rally", "label_ru": "Сплочение" },
-              { "id": "riposte", "label_ru": "Ответный удар" },
-              { "id": "sweeping_attack", "label_ru": "Сметающая атака" },
-              { "id": "trip_attack", "label_ru": "Атака с подножкой" }
+              {
+                "id": "commanders_strike",
+                "label_ru": "Удар командира"
+              },
+              {
+                "id": "disarming_attack",
+                "label_ru": "Обезоруживающая атака"
+              },
+              {
+                "id": "distracting_strike",
+                "label_ru": "Отвлекающий удар"
+              },
+              {
+                "id": "evasive_footwork",
+                "label_ru": "Уклончивая работа ног"
+              },
+              {
+                "id": "feinting_attack",
+                "label_ru": "Обманная атака"
+              },
+              {
+                "id": "goading_attack",
+                "label_ru": "Провокационная атака"
+              },
+              {
+                "id": "lunging_attack",
+                "label_ru": "Выпад"
+              },
+              {
+                "id": "maneuvering_attack",
+                "label_ru": "Маневренная атака"
+              },
+              {
+                "id": "menacing_attack",
+                "label_ru": "Устрашающая атака"
+              },
+              {
+                "id": "parry",
+                "label_ru": "Парирование"
+              },
+              {
+                "id": "precision_attack",
+                "label_ru": "Точная атака"
+              },
+              {
+                "id": "pushing_attack",
+                "label_ru": "Отталкивающая атака"
+              },
+              {
+                "id": "rally",
+                "label_ru": "Сплочение"
+              },
+              {
+                "id": "riposte",
+                "label_ru": "Ответный удар"
+              },
+              {
+                "id": "sweeping_attack",
+                "label_ru": "Сметающая атака"
+              },
+              {
+                "id": "trip_attack",
+                "label_ru": "Атака с подножкой"
+              }
             ]
           }
         ],
@@ -993,19 +995,8 @@
             "filter_enum": "list",
             "unique_group": "rituals",
             "notes_ru": "ритуал (книга ритуалов)",
-            "options": [
-              { "id": "alarm", "label_ru": "Тревога", "lists": ["wizard"] },
-              { "id": "comprehend_languages", "label_ru": "Понимание языков", "lists": ["bard", "warlock", "wizard"] },
-              { "id": "detect_magic", "label_ru": "Обнаружение магии", "lists": ["bard", "cleric", "druid", "wizard"] },
-              { "id": "detect_poison_and_disease", "label_ru": "Обнаружение яда и болезни", "lists": ["cleric", "druid"] },
-              { "id": "find_familiar", "label_ru": "Поиск фамильяра", "lists": ["wizard"] },
-              { "id": "identify", "label_ru": "Опознание", "lists": ["bard", "wizard"] },
-              { "id": "illusory_script", "label_ru": "Невидимое письмо", "lists": ["bard", "warlock", "wizard"] },
-              { "id": "purify_food_and_drink", "label_ru": "Очищение пищи и питья", "lists": ["cleric", "druid"] },
-              { "id": "speak_with_animals", "label_ru": "Разговор с животными", "lists": ["bard", "druid"] },
-              { "id": "tensers_floating_disk", "label_ru": "Парящий диск Тенсера", "lists": ["wizard"] },
-              { "id": "unseen_servant", "label_ru": "Невидимый слуга", "lists": ["bard", "warlock", "wizard"] }
-            ]
+            "options": [],
+            "options_from": "class_ritual_list"
           },
           {
             "id": "ritual2",
@@ -1016,19 +1007,8 @@
             "filter_enum": "list",
             "unique_group": "rituals",
             "notes_ru": "ритуал (книга ритуалов)",
-            "options": [
-              { "id": "alarm", "label_ru": "Тревога", "lists": ["wizard"] },
-              { "id": "comprehend_languages", "label_ru": "Понимание языков", "lists": ["bard", "warlock", "wizard"] },
-              { "id": "detect_magic", "label_ru": "Обнаружение магии", "lists": ["bard", "cleric", "druid", "wizard"] },
-              { "id": "detect_poison_and_disease", "label_ru": "Обнаружение яда и болезни", "lists": ["cleric", "druid"] },
-              { "id": "find_familiar", "label_ru": "Поиск фамильяра", "lists": ["wizard"] },
-              { "id": "identify", "label_ru": "Опознание", "lists": ["bard", "wizard"] },
-              { "id": "illusory_script", "label_ru": "Невидимое письмо", "lists": ["bard", "warlock", "wizard"] },
-              { "id": "purify_food_and_drink", "label_ru": "Очищение пищи и питья", "lists": ["cleric", "druid"] },
-              { "id": "speak_with_animals", "label_ru": "Разговор с животными", "lists": ["bard", "druid"] },
-              { "id": "tensers_floating_disk", "label_ru": "Парящий диск Тенсера", "lists": ["wizard"] },
-              { "id": "unseen_servant", "label_ru": "Невидимый слуга", "lists": ["bard", "warlock", "wizard"] }
-            ]
+            "options": [],
+            "options_from": "class_ritual_list"
           }
         ],
         "grants": {
@@ -1229,16 +1209,84 @@
             "filter_enum": "list",
             "notes_ru": "атакующий заговор (Spell Sniper)",
             "options": [
-              { "id": "eldritch_blast", "label_ru": "Мистический заряд", "lists": ["warlock"] },
-              { "id": "fire_bolt", "label_ru": "Огненный снаряд", "lists": ["sorcerer", "wizard"] },
-              { "id": "ray_of_frost", "label_ru": "Луч холода", "lists": ["sorcerer", "wizard"] },
-              { "id": "shocking_grasp", "label_ru": "Шокирующее касание", "lists": ["sorcerer", "wizard"] },
-              { "id": "chill_touch", "label_ru": "Леденящее прикосновение", "lists": ["sorcerer", "warlock", "wizard"] },
-              { "id": "sacred_flame", "label_ru": "Священное пламя", "lists": ["cleric"] },
-              { "id": "produce_flame", "label_ru": "Сотворение пламени", "lists": ["druid"] },
-              { "id": "thorn_whip", "label_ru": "Терновый кнут", "lists": ["druid"] },
-              { "id": "poison_spray", "label_ru": "Ядовитые брызги", "lists": ["druid", "sorcerer", "warlock", "wizard"] },
-              { "id": "vicious_mockery", "label_ru": "Злая насмешка", "lists": ["bard"] }
+              {
+                "id": "eldritch_blast",
+                "label_ru": "Мистический заряд",
+                "lists": [
+                  "warlock"
+                ]
+              },
+              {
+                "id": "fire_bolt",
+                "label_ru": "Огненный снаряд",
+                "lists": [
+                  "sorcerer",
+                  "wizard"
+                ]
+              },
+              {
+                "id": "ray_of_frost",
+                "label_ru": "Луч холода",
+                "lists": [
+                  "sorcerer",
+                  "wizard"
+                ]
+              },
+              {
+                "id": "shocking_grasp",
+                "label_ru": "Шокирующее касание",
+                "lists": [
+                  "sorcerer",
+                  "wizard"
+                ]
+              },
+              {
+                "id": "chill_touch",
+                "label_ru": "Леденящее прикосновение",
+                "lists": [
+                  "sorcerer",
+                  "warlock",
+                  "wizard"
+                ]
+              },
+              {
+                "id": "sacred_flame",
+                "label_ru": "Священное пламя",
+                "lists": [
+                  "cleric"
+                ]
+              },
+              {
+                "id": "produce_flame",
+                "label_ru": "Сотворение пламени",
+                "lists": [
+                  "druid"
+                ]
+              },
+              {
+                "id": "thorn_whip",
+                "label_ru": "Терновый кнут",
+                "lists": [
+                  "druid"
+                ]
+              },
+              {
+                "id": "poison_spray",
+                "label_ru": "Ядовитые брызги",
+                "lists": [
+                  "druid",
+                  "sorcerer",
+                  "warlock",
+                  "wizard"
+                ]
+              },
+              {
+                "id": "vicious_mockery",
+                "label_ru": "Злая насмешка",
+                "lists": [
+                  "bard"
+                ]
+              }
             ]
           }
         ],
@@ -1285,14 +1333,14 @@
     {
       "id": "31a0b9d2-a9b0-541b-a112-aeac4b4b1e9a",
       "slug": "tough",
-      "name_ru": "Живучий",
+      "name_ru": "Крепкий",
       "name_en": "Tough",
       "source": "phb",
       "sort_order": 1400,
       "data": {
         "source": "phb",
         "prerequisites_ru": null,
-        "summary_ru": "+2 хита за каждый уровень (включая прошлые и будущие).",
+        "summary_ru": "Tough: +2 к максимуму хитов за каждый уровень (включая прошлые и будущие). На 2 ур. = +4 HP.",
         "benefits_ru": "Максимум хитов увеличивается на 2 за каждый уровень, который у вас есть. Каждый раз, когда вы получаете уровень после этого, максимум хитов дополнительно увеличивается на 2.",
         "prerequisites": {},
         "choices": [],

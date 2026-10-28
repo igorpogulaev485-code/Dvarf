@@ -17,7 +17,16 @@
     "selfcheck:subclass-grants": "tsx src/shared/dnd/subclassGrants.selfcheck.ts",
     "selfcheck:attunement": "tsx src/features/characters/attunement.selfcheck.ts",
     "selfcheck:starting-gear-attacks": "tsx src/features/characters/startingGearAttacks.selfcheck.ts",
-    "selfcheck:desk-rolls": "tsx --tsconfig tsconfig.app.json src/features/characters/deskRolls.selfcheck.ts"
+    "selfcheck:class-equipment-lines": "tsx src/shared/dnd/classEquipmentLines.selfcheck.ts",
+    "selfcheck:desk-rolls": "tsx --tsconfig tsconfig.app.json src/features/characters/deskRolls.selfcheck.ts",
+    "selfcheck:race-naming": "tsx src/shared/dnd/raceNaming.selfcheck.ts",
+    "selfcheck:feat-stealthy": "tsx src/shared/dnd/featGrants.stealthy.selfcheck.ts",
+    "selfcheck:background-setup": "tsx src/shared/dnd/backgroundSetupValidation.selfcheck.ts",
+    "selfcheck:race-effects-contract": "tsx src/shared/dnd/raceEffectsContract.selfcheck.ts",
+    "selfcheck:create-pipeline-gear": "tsx src/features/createPipeline/createPipelineGear.selfcheck.ts",
+    "selfcheck:optional-class-features": "tsx src/shared/dnd/optionalClassFeatures.selfcheck.ts",
+    "selfcheck:background-feature": "tsx src/shared/dnd/backgroundFeature.selfcheck.ts",
+    "selfcheck:consumable-spend": "tsx src/features/characters/consumableSpend.selfcheck.ts"
   },
   "dependencies": {
     "react": "^19.2.8",

@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Monk + all official monastic traditions",
     "edition": "2014",
     "source": "phb+scag+xgte+tcoe+ftd",
-    "notes_ru": "Все 10 оф. традиций. Ki на классе. Long Death/Mercy/Astral/Dragon — пулы. H4b depth: martial/half-caster pools/scales/linked ki·BI."
+    "notes_ru": "Все 10 оф. традиций. Ki на классе. Long Death/Mercy/Astral/Dragon — пулы. H4b depth: martial/half-caster pools/scales/linked ki·BI. · TCoE optional class features."
   },
   "class_slug": "monk",
   "features": [
@@ -38,7 +38,15 @@
       "name_ru": "Шквал ударов",
       "name_en": "Flurry of Blows",
       "summary_ru": "После атаки: 1 ки → бонусным две безоружные атаки.",
-      "kind": "bonus"
+      "kind": "bonus",
+      "resource": {
+        "uses": 0,
+        "recharge": "short_rest",
+        "pool_id": "ki",
+        "pool_name_ru": "Ки",
+        "track": "spend",
+        "spend_cost": 1
+      }
     },
     {
       "id": "ki",
@@ -82,7 +90,15 @@
       "name_ru": "Терпеливая оборона",
       "name_en": "Patient Defense",
       "summary_ru": "1 ки → бонусным действие Уклонение.",
-      "kind": "bonus"
+      "kind": "bonus",
+      "resource": {
+        "uses": 0,
+        "recharge": "short_rest",
+        "pool_id": "ki",
+        "pool_name_ru": "Ки",
+        "track": "spend",
+        "spend_cost": 1
+      }
     },
     {
       "id": "step_of_the_wind",
@@ -90,7 +106,15 @@
       "name_ru": "Шаг ветра",
       "name_en": "Step of the Wind",
       "summary_ru": "1 ки → бонусным Отход или Рывок; прыжок удваивается в этот ход.",
-      "kind": "bonus"
+      "kind": "bonus",
+      "resource": {
+        "uses": 0,
+        "recharge": "short_rest",
+        "pool_id": "ki",
+        "pool_name_ru": "Ки",
+        "track": "spend",
+        "spend_cost": 1
+      }
     },
     {
       "id": "unarmored_movement",
@@ -111,12 +135,31 @@
       }
     },
     {
+      "id": "dedicated_weapon",
+      "level": 2,
+      "name_ru": "Выбранное оружие",
+      "name_en": "Dedicated Weapon",
+      "summary_ru": "Tasha (optional): коротким отдыхом / 1 ч. тренировки сделай простое/воинское оружие без тяжёлого и особого — оружием монаха (пока владеешь им).",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe",
+      "desk": "combat"
+    },
+    {
       "id": "deflect_missiles",
       "level": 3,
       "name_ru": "Отклонение снарядов",
       "name_en": "Deflect Missiles",
-      "summary_ru": "Реакция: урон снаряда − 1к10+Ловк.+ур. монаха. При 0 можно поймать и за 1 ки метнуть обратно.",
-      "kind": "reaction"
+      "summary_ru": "Реакция: урон снаряда − 1к10+Ловк.+ур. монаха. При 0 урона можно поймать; трата 1 ки — метнуть обратно.",
+      "kind": "reaction",
+      "resource": {
+        "uses": 0,
+        "recharge": "short_rest",
+        "pool_id": "ki",
+        "pool_name_ru": "Ки",
+        "track": "spend",
+        "spend_cost": 1
+      }
     },
     {
       "id": "monastic_tradition",
@@ -125,6 +168,17 @@
       "name_en": "Monastic Tradition",
       "summary_ru": "Выбери традицию (Открытая ладонь / Тень / Четыре стихии / …).",
       "kind": "passive"
+    },
+    {
+      "id": "ki_fueled_attack",
+      "level": 3,
+      "name_ru": "Атака на ци",
+      "name_en": "Ki-Fueled Attack",
+      "summary_ru": "Tasha (optional): если в свой ход потратил ци как действие/бонусное, бонусным можешь сделать одну безоружную атаку или атаку оружием монаха.",
+      "kind": "bonus",
+      "optional": true,
+      "source_book": "tcoe",
+      "desk": "combat"
     },
     {
       "id": "asi_4_monk",
@@ -152,6 +206,24 @@
       "kind": "reaction"
     },
     {
+      "id": "quickened_healing",
+      "level": 4,
+      "name_ru": "Ускоренное исцеление",
+      "name_en": "Quickened Healing",
+      "summary_ru": "Tasha (optional): действием потрать 2 ци — восстанови хиты = кость БИ + бонус мастерства.",
+      "kind": "action",
+      "optional": true,
+      "source_book": "tcoe",
+      "resource": {
+        "uses": 0,
+        "recharge": "short_rest",
+        "pool_id": "ki",
+        "pool_name_ru": "Ки",
+        "track": "spend",
+        "spend_cost": 2
+      }
+    },
+    {
       "id": "extra_attack_monk",
       "level": 5,
       "name_ru": "Дополнительная атака",
@@ -165,7 +237,34 @@
       "name_ru": "Оглушающий удар",
       "name_en": "Stunning Strike",
       "summary_ru": "При попадании рукопашной: 1 ки → спас Телосложения или оглушён до конца твоего следующего хода.",
-      "kind": "passive"
+      "kind": "passive",
+      "resource": {
+        "uses": 0,
+        "recharge": "short_rest",
+        "pool_id": "ki",
+        "pool_name_ru": "Ки",
+        "track": "spend",
+        "spend_cost": 1
+      }
+    },
+    {
+      "id": "focused_aim",
+      "level": 5,
+      "name_ru": "Сосредоточенный прицел",
+      "name_en": "Focused Aim",
+      "summary_ru": "Tasha (optional): при промахе атакой потрать 1–3 ци — +2 к броску за каждую (можно довести до попадания).",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe",
+      "desk": "combat",
+      "resource": {
+        "uses": 0,
+        "recharge": "short_rest",
+        "pool_id": "ki",
+        "pool_name_ru": "Ки",
+        "track": "spend",
+        "spend_cost": 1
+      }
     },
     {
       "id": "ki_empowered_strikes",
@@ -246,8 +345,17 @@
       "level": 14,
       "name_ru": "Алмазная душа",
       "name_en": "Diamond Soul",
-      "summary_ru": "Владение всеми спасбросками; 1 ки → переброс спасброска.",
-      "kind": "passive"
+      "summary_ru": "Владение всеми спасбросками. Трата 1 ки — переброс спасброска.",
+      "kind": "passive",
+      "save_proficiency": "all",
+      "resource": {
+        "uses": 0,
+        "recharge": "short_rest",
+        "pool_id": "ki",
+        "pool_name_ru": "Ки",
+        "track": "spend",
+        "spend_cost": 1
+      }
     },
     {
       "id": "timeless_body",
@@ -279,8 +387,16 @@
       "level": 18,
       "name_ru": "Пустое тело",
       "name_en": "Empty Body",
-      "summary_ru": "4 ки → невидимость 1 мин (+сопротивление всем уронам кроме силового). 8 ки → проекция в астрал.",
-      "kind": "action"
+      "summary_ru": "4 ки → невидимость 1 мин (+сопротивление всем уронам кроме силового). 8 ки → проекция в астрал (в picker Ки).",
+      "kind": "action",
+      "resource": {
+        "uses": 0,
+        "recharge": "short_rest",
+        "pool_id": "ki",
+        "pool_name_ru": "Ки",
+        "track": "spend",
+        "spend_cost": 4
+      }
     },
     {
       "id": "asi_19_monk",
@@ -408,7 +524,8 @@
           "linked_spend": {
             "pool_id": "ki",
             "label_ru": "3 ки → вибрация; действием завершить",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 3
           }
         },
         "scale": {
@@ -435,8 +552,9 @@
           "track": "spend",
           "linked_spend": {
             "pool_id": "ki",
-            "label_ru": "2 ки (отметь −2 в пуле Ки)",
-            "mode": "spend"
+            "label_ru": "2 ки",
+            "mode": "spend",
+            "amount": 2
           }
         },
         "scale": {
@@ -572,7 +690,8 @@
           "linked_spend": {
             "pool_id": "ki",
             "label_ru": "1 ки → 1 хит вместо 0",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         }
       },
@@ -592,7 +711,9 @@
           "linked_spend": {
             "pool_id": "ki",
             "label_ru": "1–10 ки (2к10/ки)",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1,
+            "amount_max": 10
           }
         }
       }
@@ -628,7 +749,8 @@
           "linked_spend": {
             "pool_id": "ki",
             "label_ru": "2+ ки → burning hands",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 2
           }
         }
       },
@@ -655,7 +777,9 @@
           "linked_spend": {
             "pool_id": "ki",
             "label_ru": "0–3 ки (+2к6 каждый)",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1,
+            "amount_max": 3
           }
         }
       },
@@ -719,7 +843,8 @@
           "linked_spend": {
             "pool_id": "ki",
             "label_ru": "1 ки → перенаправить атаку",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         }
       },
@@ -739,7 +864,8 @@
           "linked_spend": {
             "pool_id": "ki",
             "label_ru": "1 ки → без помехи",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         }
       },
@@ -790,7 +916,8 @@
           "linked_spend": {
             "pool_id": "ki",
             "label_ru": "1 ки → +кость БИ к урону",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         }
       },
@@ -810,7 +937,9 @@
           "linked_spend": {
             "pool_id": "ki",
             "label_ru": "1–3 ки → бонус атаки/урона",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1,
+            "amount_max": 3
           }
         },
         "scale": {
@@ -860,7 +989,8 @@
           "linked_spend": {
             "pool_id": "ki",
             "label_ru": "1 ки → кость БИ + Мудр.",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         },
         "scale": {
@@ -886,7 +1016,8 @@
           "linked_spend": {
             "pool_id": "ki",
             "label_ru": "1 ки → +некротический кость БИ + Мудр. (1×/ход)",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         },
         "scale": {
@@ -938,7 +1069,13 @@
           "recharge": "long_rest",
           "pool_id": "hand_of_ultimate_mercy",
           "pool_name_ru": "Рука высшего милосердия",
-          "track": "spend"
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "ki",
+            "label_ru": "5 ки",
+            "mode": "spend",
+            "amount": 5
+          }
         }
       }
     ],
@@ -959,7 +1096,8 @@
           "linked_spend": {
             "pool_id": "ki",
             "label_ru": "1 ки → руки 10 мин.",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         }
       },
@@ -979,7 +1117,8 @@
           "linked_spend": {
             "pool_id": "ki",
             "label_ru": "1 ки → лик 10 мин.",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         }
       },
@@ -1019,7 +1158,8 @@
           "linked_spend": {
             "pool_id": "ki",
             "label_ru": "ки (см. описание)",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 5
           }
         }
       }
@@ -1081,7 +1221,8 @@
           "linked_spend": {
             "pool_id": "ki",
             "label_ru": "Step of the Wind → полёт = скорость до конца хода",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         }
       },

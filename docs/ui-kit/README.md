@@ -92,7 +92,34 @@ Skill для агентов: [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../../.cur
 | Новые заклинания | только через **Гримуар** (без «Своё homebrew» в настройках) |
 | Icons | `spellIcons.tsx` — книга / шляпа / ✨ / фокус / мешочек / конц. / ритуал |
 
-Доски: [`spells`](boards/dvarf-ui-kit-spells.jpg) · [`spell-icons`](boards/dvarf-ui-kit-spell-icons.jpg)
+Доски Wave A: [`spells`](boards/dvarf-ui-kit-spells.jpg) · [`spell-icons`](boards/dvarf-ui-kit-spell-icons.jpg)
+
+### Wave MC (мультикласс) — на ok Игоря → LOCK
+
+> Кадры с **реального** клона Квакка (Art15 / Warlock5). Wave A boards не удалять.  
+> Полный LOCK Wave MC — после явного ok Игоря (этот блок = candidate).
+
+| Правило MC | Смысл |
+|------------|--------|
+| Шапка профилей | Строка на класс: label · хар-ка · Сл · атака (merge только если итоги совпали) |
+| Meta budgets | `Изобретатель n/n · Колдун n/n · Гримуар 3` — не безымянное `заг.` |
+| Cast | DC/атака от `class_slug`; dual picker; rest labels на путях ячейки |
+| Гримуар | Полки по классу + alone-max; глаголы §2.5 |
+| Create | Обзор кастеров + «Выбрать заклинания» per class |
+| Classic P3 | Таблица профилей при ≥2 кастерах |
+
+Доски Wave MC (из кадров M3–M6):
+
+| Доска | Файл |
+|-------|------|
+| Profiles | [`spells-mc-profiles`](boards/dvarf-ui-kit-spells-mc-profiles.jpg) |
+| Rows | [`spells-mc-row`](boards/dvarf-ui-kit-spells-mc-row.jpg) |
+| Cast | [`spells-mc-cast`](boards/dvarf-ui-kit-spells-mc-cast.jpg) |
+| Budgets | [`spells-mc-budgets`](boards/dvarf-ui-kit-spells-mc-budgets.jpg) |
+| Grimoire | [`spells-mc-grimoire`](boards/dvarf-ui-kit-spells-mc-grimoire.jpg) |
+| Create | [`create-mc-spells`](boards/dvarf-ui-kit-create-mc-spells.jpg) |
+
+План: [`MULTICLASS_SPELL_ABILITY_PLAN.md`](../MULTICLASS_SPELL_ABILITY_PLAN.md).
 
 ## 2d. Атаки стола — LOCK
 
@@ -111,10 +138,10 @@ Skill для агентов: [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../../.cur
 
 - у каждой характеристики **свой identity-цвет** (полоска + label + Сп on + навыки);
 - identity **не** перекрашивается темой аккаунта;
-- навык = строка-кнопка: `—` → `Влад.` → `Эксп.` (не switch);
-- Пр — read-only chip; Сп — toggle владения;
+- навык = pip + имя + число: кружок `нет → влад. → эксп.`; **число → бросок** (как LSS);
+- Пр — число → бросок проверки; Сп — pip владения + число → бросок спасброска;
+- название характеристики → разборка (бафы); ▾ сворачивает навыки;
 - база → эффективный (`16 → 18`);
-- свернуть навыки — клик по **полному названию** (Сила / Ловкость…; отдельной кнопки ▾ в краю нет);
 - шапка в две строки: полное название · число/`→eff` + Пр/Сп;
 - пассивы — glance-карточки; CTA «Владения ▸» → drawer (скорости/ТЗ · снаряжение · языки/инструменты); вкладки ЕЩЁ нет.
 
@@ -149,6 +176,7 @@ Live-эталоны в продукте (уже близки к киту): Inven
 | Pads / dialogs | `dvarf-ui-kit-dialogs-pads.jpg` |
 | Rail | `dvarf-ui-kit-ability-rail-v2.jpg`, `dvarf-ui-kit-ability-colors.jpg` |
 | Spells LOCK | `dvarf-ui-kit-spells.jpg`, `dvarf-ui-kit-spell-icons.jpg` |
+| Spells Wave MC (candidate) | `dvarf-ui-kit-spells-mc-profiles.jpg`, `…-mc-row.jpg`, `…-mc-cast.jpg`, `…-mc-budgets.jpg`, `…-mc-grimoire.jpg`, `dvarf-ui-kit-create-mc-spells.jpg` |
 | Combat attacks compact + settings | line icons in `attackIcons.tsx`; chrome = `desk-chrome` §E; setup = `AttacksSettingsDialog` (§2d) |
 | Features / companions / attunement / ЕЩЁ | `dvarf-ui-kit-features-companions.jpg` |
 | Rest / create / toast / list | `dvarf-ui-kit-rest-create-app.jpg` |
@@ -369,6 +397,40 @@ Live-эталоны в продукте (уже близки к киту): Inven
 | **Классический бланк** | отдельный print-трек |
 | **Теги списка** | sync на аккаунт (сейчас localStorage) |
 
+## 2r. Play Desk = единственный лист (LOCK)
+
+> **LOCK (Play Desk source of truth):** зафиксировано с Игорем 2026-10-17 после инцидента с фейковым «листом» в превью агента.  
+> Полный канон: [`../PLAY_DESK_SOURCE_OF_TRUTH.md`](../PLAY_DESK_SOURCE_OF_TRUTH.md).
+
+| Правило | Деталь |
+|---------|--------|
+| Эталон | живой прод + доски §2b–2l + код `MinimalSheetEditor` / `PlayDeskHeader` / hot-bar |
+| Запрет | второй layout листа; `/dev` mock-стол с самодельной шапкой; скрин фейка как «путь на проде» |
+| Classic | только print (`/classic`), не digital Play Desk |
+| Скрины для Игоря | `prod` \| `tip Play Desk` \| `dialog-only` \| `ui-kit board` — с подписью |
+| ЛСС | референс поведения, **не** визуал стола Dvarf |
+
+**Статус:** LOCK.
+
+## 2q. Хаб лобби (A1) — LOCK
+
+> **LOCK (Lobby Hub A1):** зафиксировано с Игорем 2026-10-15 (превью 8 игроков + скрины a1-roster).  
+> **Инцидент 2026-10-16:** `index.css` от forms-adapt затёр блок A1→D1 — состав «поехал» (вертикальный список без карточек/табов).  
+> Блок CSS помечен `UI KIT LOCK — Lobby Hub` в `frontend/src/index.css`. **Не удалять и не «упрощать»** без ok Игоря + обновления этого § и preflight.
+
+| Компонент | Правило |
+|-----------|---------|
+| Табы | `.lobby-hub-tabs` sticky; `.lobby-hub-tab` pill; **active = solid `--accent` + белый текст** |
+| Состав | `.lobby-member-grid` → 1→2→3→4 колонки (640 / 1000 / 1280); ориентир **~8**, запас до 10 |
+| Карточка | `.lobby-member-card`: HP-полоска сверху (ok/warn/down) · аватар-инициал · имя · ур./раса/класс · HP · «Лист/Смотреть» + «Убрать» |
+| Ширина хаба | `.page.page--lobby-hub` расширяется media (1120→1560), не узкий 720 на desktop |
+| Код комнаты | `.lobby-hub-code__value` mono, accent, копируется кликом |
+| Доска / эталон | `boards/dvarf-ui-kit-lobbies.jpg` · артефакты `a1-roster-*-desktop.png` |
+
+Связанные блоки в том же LOCK-хвосте CSS (тоже священны): Session A2–A3, Journal A4, Chats A5, Notes A6, бой B1–B8, вики C1–C4, артефакты D1 (`.setting-wiki*`, `.setting-artifact*`).
+
+**Статус:** Идеал / LOCK.
+
 ### 6b. Логика прода священна
 
 Пиксельный restyle = CSS / className / обёртки.  
@@ -384,3 +446,4 @@ Live-эталоны в продукте (уже близки к киту): Inven
 - Не перекрашивать identity характеристик темой аккаунта **по умолчанию** — только если пользователь явно выбрал `ability_colors=theme`.
 - Не кодить UI «в обход» досок, если паттерн новый.
 - Не возвращать purple-glow / default Inter-only / плоский white dashboard без пергамента.
+- Не создавать альтернативный / упрощённый «лист персонажа» или fake Play Desk для демо (§2r).

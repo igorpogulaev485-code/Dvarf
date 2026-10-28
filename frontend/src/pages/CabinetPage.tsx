@@ -11,7 +11,12 @@ import {
 } from '../features/cabinet'
 import { getMe, type User } from '../shared/api/auth'
 import { ApiRequestError } from '../shared/api/client'
-import { applyAccountAppearance, normalizeAppearance } from '../shared/theme/accountAppearance'
+import { AppLegalFooter } from '../shared/brand/creed20'
+import {
+  applyAccountAppearance,
+  mergeAppearanceFromUser,
+  readCachedAppearance,
+} from '../shared/theme/accountAppearance'
 import { Panel, Stack, Text, Toast } from '../ui'
 
 export function CabinetPage() {
@@ -24,8 +29,15 @@ export function CabinetPage() {
   const closeToast = useCallback(() => setToast(null), [])
 
   const handleUser = useCallback((next: User) => {
-    setUser(next)
-    applyAccountAppearance(normalizeAppearance(next))
+    // Prefer server fields when present; otherwise keep cache (thin-deploy safety).
+    const appearance = mergeAppearanceFromUser(readCachedAppearance(), next)
+    const merged: User = {
+      ...next,
+      theme_id: appearance.themeId,
+      ability_colors: appearance.abilityColors,
+    }
+    setUser(merged)
+    applyAccountAppearance(appearance)
   }, [])
 
   useEffect(() => {
@@ -56,6 +68,27 @@ export function CabinetPage() {
       active = false
     }
   }, [navigate, handleUser])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const linked = params.get('oauth_linked')
+    const oauthError = params.get('oauth_error')
+    if (!linked && !oauthError) {
+      return
+    }
+    window.history.replaceState({}, '', '/cabinet')
+    if (oauthError) {
+      setToast(oauthError)
+      return
+    }
+    const label = linked === 'yandex' ? 'Яндекс' : linked === 'vk' ? 'VK' : linked
+    setToast(`${label} привязан к аккаунту`)
+    getMe()
+      .then(handleUser)
+      .catch(() => {
+        /* toast already shows success; refresh is best-effort */
+      })
+  }, [handleUser])
 
   return (
     <main className="page page--app page--cabinet">
@@ -96,7 +129,11 @@ export function CabinetPage() {
             </Panel>
 
             <Panel title="Способы входа" className="cabinet-layout__providers">
-              <AuthProvidersPanel providers={user.providers} />
+              <AuthProvidersPanel
+                providers={user.providers}
+                onUserChange={handleUser}
+                onMessage={setToast}
+              />
             </Panel>
 
             <Panel title="Смена email" className="cabinet-layout__email">
@@ -135,6 +172,8 @@ export function CabinetPage() {
             </Panel>
           </div>
         ) : null}
+
+        <AppLegalFooter />
       </Stack>
 
       {toast ? <Toast message={toast} onClose={closeToast} /> : null}

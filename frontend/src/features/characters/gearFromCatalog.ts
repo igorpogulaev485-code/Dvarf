@@ -23,7 +23,10 @@ import {
   equipInventoryItem,
   type InventoryItem,
 } from './inventory'
-import { buildStartingWeaponAttacks } from './startingGearAttacks'
+import {
+  buildStartingWeaponAttacks,
+  mergeStartingWeaponAttacksByIdentity,
+} from './startingGearAttacks'
 
 export type GearPickerKindFilter = 'all' | 'weapon' | 'armor' | 'item'
 
@@ -293,6 +296,7 @@ export function inventoryItemFromCatalog(input: {
   const created = createInventoryItem()
   created.name = entry.name_ru
   created.catalog_id = entry.id
+  created.catalog_slug = entry.slug
   created.qty = qty
   created.notes = 'Из справочника'
 
@@ -415,7 +419,10 @@ export function applyGearAdd(input: {
   }
   return {
     items,
-    weapons: [...input.weapons, ...input.result.attacks],
+    weapons: mergeStartingWeaponAttacksByIdentity([
+      ...input.weapons,
+      ...input.result.attacks,
+    ]),
   }
 }
 

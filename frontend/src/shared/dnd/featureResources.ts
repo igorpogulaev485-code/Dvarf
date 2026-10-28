@@ -371,14 +371,17 @@ export function spendFeatureUse(input: {
     }
   }
 
-  if (spendRemaining(pool) > 0) {
+  const poolCost = Math.max(1, Math.floor(resource.spend_cost ?? 1))
+  if (spendRemaining(pool) >= poolCost) {
     return {
       resources: input.resources.map((row) =>
-        row.id === pool.id ? clampResource({ ...row, used: row.used + 1 }) : row,
+        row.id === pool.id
+          ? clampResource({ ...row, used: row.used + poolCost })
+          : row,
       ),
       ok: true,
       via: 'pool',
-      message: `${pool.name}: −1`,
+      message: `${pool.name}: −${poolCost}`,
     }
   }
 
@@ -392,28 +395,32 @@ export function spendFeatureUse(input: {
     )
     if (alt) {
       const mode = linked.mode === 'spend' ? 'spend' : 'stock'
-      if (mode === 'stock' && stockCurrent(alt) > 0) {
+      const linkedCost = Math.max(1, Math.floor(linked.amount ?? 1))
+      if (mode === 'stock' && stockCurrent(alt) >= linkedCost) {
         return {
           resources: input.resources.map((row) =>
             row.id === alt.id
-              ? clampResource({ ...row, used: Math.max(0, row.used - 1) })
+              ? clampResource({
+                  ...row,
+                  used: Math.max(0, row.used - linkedCost),
+                })
               : row,
           ),
           ok: true,
           via: 'linked_stock',
-          message: linked.label_ru || `Сжигаем ${alt.name}`,
+          message: linked.label_ru || `Сжигаем ${alt.name} (−${linkedCost})`,
         }
       }
-      if (mode === 'spend' && spendRemaining(alt) > 0) {
+      if (mode === 'spend' && spendRemaining(alt) >= linkedCost) {
         return {
           resources: input.resources.map((row) =>
             row.id === alt.id
-              ? clampResource({ ...row, used: row.used + 1 })
+              ? clampResource({ ...row, used: row.used + linkedCost })
               : row,
           ),
           ok: true,
           via: 'linked_stock',
-          message: linked.label_ru || `${alt.name}: −1`,
+          message: linked.label_ru || `${alt.name}: −${linkedCost}`,
         }
       }
     }
