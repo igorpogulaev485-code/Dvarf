@@ -54,6 +54,8 @@ type SpellsSettingsDialogProps = {
   spells: SpellsState
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
+  /** Flat bonus from gear (Amulet of the Devout, …) to attack + save DC. */
+  spellcastingBonus?: number
   suggestion: SpellcastingSuggestion | null
   knownCaster: boolean
   onChange: (spells: SpellsState) => void
@@ -71,6 +73,7 @@ export function SpellsSettingsDialog({
   spells,
   abilities,
   proficiencyBonus,
+  spellcastingBonus = 0,
   suggestion,
   knownCaster,
   onChange,
@@ -107,9 +110,12 @@ export function SpellsSettingsDialog({
 
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
-  const saveDc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
+  const gearBonus = Math.floor(spellcastingBonus) || 0
+  const saveDc = abilityKey
+    ? spellSaveDc(abilityMod, proficiencyBonus) + gearBonus
+    : null
   const attackBonus = abilityKey
-    ? spellAttackBonus(abilityMod, proficiencyBonus)
+    ? spellAttackBonus(abilityMod, proficiencyBonus) + gearBonus
     : null
 
   function patch(next: Partial<SpellsState>) {

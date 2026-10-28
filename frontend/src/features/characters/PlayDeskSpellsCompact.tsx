@@ -28,6 +28,8 @@ type PlayDeskSpellsCompactProps = {
   spells: SpellsState
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
+  /** Flat bonus from gear (Amulet of the Devout, …) to attack + save DC. */
+  spellcastingBonus?: number
   /** PHB learn budget caps for compact quota chips. */
   learnBudget?: {
     mode: 'known' | 'prepared_list' | 'spellbook'
@@ -58,6 +60,7 @@ export function PlayDeskSpellsCompact({
   spells,
   abilities,
   proficiencyBonus,
+  spellcastingBonus = 0,
   learnBudget = null,
   pinned = false,
   concentration = null,
@@ -78,8 +81,13 @@ export function PlayDeskSpellsCompact({
   const pactRemaining = pact && pact.max > 0 ? Math.max(0, pact.max - pact.used) : null
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
-  const dc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
-  const attack = abilityKey ? spellAttackBonus(abilityMod, proficiencyBonus) : null
+  const gearBonus = Math.floor(spellcastingBonus) || 0
+  const dc = abilityKey
+    ? spellSaveDc(abilityMod, proficiencyBonus) + gearBonus
+    : null
+  const attack = abilityKey
+    ? spellAttackBonus(abilityMod, proficiencyBonus) + gearBonus
+    : null
   const learnedCantrips = countLearnedCantrips(spells.known)
   const learnedLeveled = countLearnedLeveled(spells.known)
   const preparedCount = countPreparedLeveled(spells.known)

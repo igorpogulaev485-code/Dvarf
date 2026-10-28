@@ -3332,6 +3332,7 @@ export function MinimalSheetEditor({
   function isChannelDivinityResource(row: { id: string; name: string }): boolean {
     return (
       row.id.includes(':channel_divinity:') ||
+      row.id.includes('channel_divinity') ||
       /божественный канал/i.test(row.name) ||
       /channel divinity/i.test(row.name)
     )
@@ -4510,6 +4511,7 @@ export function MinimalSheetEditor({
             spells={draft.spells}
             abilities={draft.abilities}
             proficiencyBonus={proficiencyBonus}
+            spellcastingBonus={gearEffects.spellcastingBonus}
             learnBudget={spellLearnBudget}
             pinned={deskSplit && splitSecondary === 'spells'}
             concentration={draft.play.concentration}
@@ -4567,6 +4569,7 @@ export function MinimalSheetEditor({
             spells={draft.spells}
             abilities={draft.abilities}
             proficiencyBonus={proficiencyBonus}
+            spellcastingBonus={gearEffects.spellcastingBonus}
             suggestion={spellcastingSync.suggestion}
             knownCaster={spellcastingSync.knownCaster}
             onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
@@ -4584,6 +4587,7 @@ export function MinimalSheetEditor({
           spells={draft.spells}
           abilities={draft.abilities}
           proficiencyBonus={proficiencyBonus}
+          spellcastingBonus={gearEffects.spellcastingBonus}
           inventoryItems={draft.inventory.items}
           inventory={draft.inventory}
           concentration={draft.play.concentration}

@@ -39,9 +39,9 @@ export function ChannelDivinitySpendDialog({
   const parsed = resource ? parseChannelResourceId(resource.id) : null
 
   const options = useMemo(() => {
-    if (!parsed) return [] as UnlockedFeature[]
+    // Class pool: filter to that class entry. Gear free-charge (amulet): all CD options.
     return features.filter((feature) => {
-      if (feature.classEntryId !== parsed.classEntryId) return false
+      if (parsed && feature.classEntryId !== parsed.classEntryId) return false
       if (feature.resource?.pool_id !== 'channel_divinity') return false
       // Skip the bare pool tracker — show Turn Undead / domain options.
       if (feature.id === 'channel_divinity') return false

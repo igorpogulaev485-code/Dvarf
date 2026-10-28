@@ -77,6 +77,8 @@ type SpellsPanelProps = {
   spells: SpellsState
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
+  /** Flat bonus from gear (Amulet of the Devout, …) to attack + save DC. */
+  spellcastingBonus?: number
   inventoryItems: InventoryItem[]
   onChange: (spells: SpellsState) => void
   onInventoryChange?: (inventory: InventoryState) => void
@@ -98,6 +100,7 @@ export function SpellsPanel({
   spells,
   abilities,
   proficiencyBonus,
+  spellcastingBonus = 0,
   inventoryItems,
   inventory,
   concentration = null,
@@ -128,8 +131,13 @@ export function SpellsPanel({
 
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
-  const dc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
-  const attack = abilityKey ? spellAttackBonus(abilityMod, proficiencyBonus) : null
+  const gearBonus = Math.floor(spellcastingBonus) || 0
+  const dc = abilityKey
+    ? spellSaveDc(abilityMod, proficiencyBonus) + gearBonus
+    : null
+  const attack = abilityKey
+    ? spellAttackBonus(abilityMod, proficiencyBonus) + gearBonus
+    : null
   const preparedCount = countPreparedLeveled(spells.known)
 
   const combatPool = useMemo(
