@@ -7,15 +7,17 @@ const CHANNEL_DIVINITY_TRACKERS = new Set([
 ])
 
 /**
- * Domain / oath Channel Divinity options for one class entry.
- * Shared by Cleric and Paladin (same pool_id).
+ * Domain / oath Channel Divinity options.
+ * Pass `classEntryId` for a class pool; omit / null for gear free-charges
+ * (Amulet of the Devout) — then all unlocked CD options across classes.
  */
 export function listChannelDivinityOptions(
   features: UnlockedFeature[],
-  classEntryId: string,
+  classEntryId?: string | null,
 ): UnlockedFeature[] {
+  const entryId = classEntryId?.trim() || null
   return features.filter((feature) => {
-    if (feature.classEntryId !== classEntryId) return false
+    if (entryId && feature.classEntryId !== entryId) return false
     if (feature.resource?.pool_id !== 'channel_divinity') return false
     if (CHANNEL_DIVINITY_TRACKERS.has(feature.id)) return false
     return true

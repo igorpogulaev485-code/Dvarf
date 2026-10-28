@@ -1,6 +1,7 @@
 /**
  * Aggregate active gear effects from inventory (equipped + attuned when required).
- * MVP: ac_bonus, sense, attack/damage bonus, ability_score / ability_mod.
+ * MVP: ac_bonus, sense, attack/damage bonus, ability_score / ability_mod,
+ * spellcasting_bonus, resource (incl. free Channel Divinity).
  */
 
 import type { GearEffect, AbilityScoreKey } from '../../shared/dnd/gearCatalog'
@@ -32,6 +33,8 @@ export type AggregatedGearEffects = {
   speedBonusFt: number
   /** Extra spell slots by level (Ring of Spell Storing–style deltas). */
   spellSlotDeltas: Record<number, number>
+  /** Bonus to spell attack rolls and spell save DC (summed). */
+  spellcastingBonus: number
   /** Charge pools from `resource` effects. */
   resources: Array<{
     key: string
@@ -104,6 +107,7 @@ export function emptyAggregatedGearEffects(): AggregatedGearEffects {
     saveBonuses: {},
     speedBonusFt: 0,
     spellSlotDeltas: {},
+    spellcastingBonus: 0,
     resources: [],
     companions: [],
     grantSpells: [],
@@ -118,11 +122,63 @@ function readReset(value: unknown): 'short' | 'long' | 'manual' {
     const restore = (value as { restore?: unknown }).restore
     if (restore === 'short' || restore === 'long' || restore === 'manual') return restore
   }
+  // Catalog sometimes uses long_rest / short_rest.
+  if (value === 'long_rest') return 'long'
+  if (value === 'short_rest') return 'short'
   return 'long'
 }
 
 function normalizeSkillKey(raw: string): string {
   return raw.trim().toLowerCase().replace(/[\s-]+/g, '_')
+}
+
+function resourceDisplayName(itemName: string, resourceId: string): string {
+  if (resourceId === 'channel_divinity') {
+    return `${itemName || 'Предмет'} · Божественный канал`
+  }
+  return `${itemName || 'Предмет'} · ${resourceId}`
+}
+
+/** Detect Amulet of the Devout +N from inventory name (legacy custom_note-only rows). */
+export function devoutAmuletBonusFromName(name: string): number | null {
+  const trimmed = name.trim()
+  if (!trimmed) return null
+  if (!/амулет\s+благочестия|amulet\s+of\s+the\s+devout/i.test(trimmed)) return null
+  const plus = trimmed.match(/\+(\d+)/)
+  if (plus) {
+    const n = Number(plus[1])
+    if (n >= 1 && n <= 3) return n
+  }
+  return 1
+}
+
+function pushSpellcastingBonus(
+  out: AggregatedGearEffects,
+  item: InventoryItem,
+  value: number,
+): void {
+  if (!value) return
+  const amount = Math.floor(value)
+  out.spellcastingBonus += amount
+  out.notes.push(
+    `${item.name || 'предмет'}: атака закл./Сл ${amount >= 0 ? '+' : ''}${amount}`,
+  )
+}
+
+function pushChannelDivinityResource(
+  out: AggregatedGearEffects,
+  item: InventoryItem,
+): void {
+  const key = `gear-res:${item.id}:channel_divinity`
+  if (out.resources.some((row) => row.key === key)) return
+  out.resources.push({
+    key,
+    name: resourceDisplayName(item.name || 'Предмет', 'channel_divinity'),
+    max: 1,
+    reset: 'long',
+    itemId: item.id,
+  })
+  out.notes.push(`${item.name || 'предмет'}: Божественный канал ×1 (без траты пула)`)
 }
 
 /**
@@ -139,10 +195,11 @@ export function aggregateGearEffects(input: {
   for (const item of input.items) {
     if (!isGearEffectActive(item, attuned)) continue
     const effects = item.effects ?? []
-    if (effects.length === 0) continue
 
     let itemAttack = 0
     let itemDamage = 0
+    let appliedSpellcasting = false
+    let appliedChannelResource = false
 
     for (const effect of effects) {
       const type = typeof effect.type === 'string' ? effect.type : ''
@@ -254,6 +311,14 @@ export function aggregateGearEffects(input: {
         continue
       }
 
+      if (type === 'spellcasting_bonus') {
+        const value = asNumber((effect as { value?: unknown }).value) ?? 0
+        if (!value) continue
+        pushSpellcastingBonus(out, item, value)
+        appliedSpellcasting = true
+        continue
+      }
+
       if (type === 'resource') {
         const id = String((effect as { id?: unknown }).id ?? '').trim() || 'charges'
         const max = asNumber((effect as { max?: unknown }).max) ?? 0
@@ -264,11 +329,12 @@ export function aggregateGearEffects(input: {
         const key = `gear-res:${item.id}:${id}`
         out.resources.push({
           key,
-          name: `${item.name || 'Предмет'} · ${id}`,
+          name: resourceDisplayName(item.name || 'Предмет', id),
           max: Math.floor(max),
           reset,
           itemId: item.id,
         })
+        if (id === 'channel_divinity') appliedChannelResource = true
         out.notes.push(`${item.name || 'предмет'}: ресурс ${id} ×${Math.floor(max)}`)
         continue
       }
@@ -289,7 +355,7 @@ export function aggregateGearEffects(input: {
         const slug = String((effect as { slug?: unknown }).slug ?? '').trim()
         if (!slug) continue
         const uses = asNumber((effect as { uses?: unknown }).uses)
-        const reset = readReset((effect as { restore?: unknown }).restore) 
+        const reset = readReset((effect as { restore?: unknown }).restore)
         const key = `gear-spell:${item.id}:${slug}`
         out.grantSpells.push({
           key,
@@ -304,6 +370,27 @@ export function aggregateGearEffects(input: {
             uses != null && uses > 0 ? ` ×${Math.floor(uses)}` : ''
           }`,
         )
+      }
+    }
+
+    // Legacy catalog rows only had custom_note — still grant devout bonuses by name.
+    const devoutBonus = devoutAmuletBonusFromName(item.name || '')
+    if (devoutBonus != null) {
+      if (!appliedSpellcasting) {
+        pushSpellcastingBonus(out, item, devoutBonus)
+        out.active.push({
+          effect: { type: 'spellcasting_bonus', value: devoutBonus },
+          itemId: item.id,
+          itemName: item.name || 'Без названия',
+        })
+      }
+      if (!appliedChannelResource) {
+        pushChannelDivinityResource(out, item)
+        out.active.push({
+          effect: { type: 'resource', id: 'channel_divinity', max: 1, restore: 'long' },
+          itemId: item.id,
+          itemName: item.name || 'Без названия',
+        })
       }
     }
 

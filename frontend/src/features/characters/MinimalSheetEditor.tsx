@@ -129,6 +129,7 @@ import {
   applyAbilityScoreBonuses,
   applyBonusStack,
   bonusesForTarget,
+  createBonusLine,
   formatBonusSummary,
   modifiersToSheet,
   readModifiers,
@@ -3505,6 +3506,49 @@ export function MinimalSheetEditor({
     ],
   )
 
+  /** Gear (amulet) + infusion spell attack/DC lines on top of sheet modifiers. */
+  const spellCastModifiers = useMemo(() => {
+    const extra: BonusLine[] = []
+    const gearBonus = Math.floor(gearEffects.spellcastingBonus) || 0
+    if (gearBonus) {
+      extra.push(
+        createBonusLine({
+          id: 'gear:spellcasting_bonus:dc',
+          target: 'spell_dc',
+          label: 'Снаряжение',
+          op: '+',
+          expr: String(gearBonus),
+          enabled: true,
+          source: 'gear',
+        }),
+        createBonusLine({
+          id: 'gear:spellcasting_bonus:attack',
+          target: 'spell_attack',
+          label: 'Снаряжение',
+          op: '+',
+          expr: String(gearBonus),
+          enabled: true,
+          source: 'gear',
+        }),
+      )
+    }
+    if (infusionBonuses.spellAttackBonus) {
+      extra.push(
+        createBonusLine({
+          id: 'infusion:spell_attack',
+          target: 'spell_attack',
+          label: 'Инфузия (фокус)',
+          op: '+',
+          expr: String(infusionBonuses.spellAttackBonus),
+          enabled: true,
+          source: 'system',
+          class_slug: 'artificer',
+        }),
+      )
+    }
+    return extra.length ? [...draft.modifiers, ...extra] : draft.modifiers
+  }, [draft.modifiers, gearEffects.spellcastingBonus, infusionBonuses.spellAttackBonus])
+
   const effectiveDarkvisionFt = useMemo(
     () =>
       Math.max(
@@ -4834,6 +4878,7 @@ export function MinimalSheetEditor({
   function isChannelDivinityResource(row: { id: string; name: string }): boolean {
     return (
       row.id.includes(':channel_divinity:') ||
+      row.id.includes('channel_divinity') ||
       /божественный канал/i.test(row.name) ||
       /channel divinity/i.test(row.name)
     )
@@ -6540,23 +6585,7 @@ export function MinimalSheetEditor({
             spells={draft.spells}
             abilities={effectiveAbilities}
             proficiencyBonus={proficiencyBonus}
-            modifiers={
-              infusionBonuses.spellAttackBonus
-                ? [
-                    ...draft.modifiers,
-                    {
-                      id: 'infusion:spell_attack',
-                      target: 'spell_attack' as const,
-                      label: 'Инфузия (фокус)',
-                      op: '+' as const,
-                      expr: String(infusionBonuses.spellAttackBonus),
-                      enabled: true,
-                      source: 'system' as const,
-                      class_slug: 'artificer',
-                    },
-                  ]
-                : draft.modifiers
-            }
+            modifiers={spellCastModifiers}
             formulaVars={formulaVarsBase}
             learnBudget={spellLearnBudget}
             learnBudgets={spellLearnBudgets}
@@ -6622,7 +6651,7 @@ export function MinimalSheetEditor({
             spells={draft.spells}
             abilities={effectiveAbilities}
             proficiencyBonus={proficiencyBonus}
-            modifiers={draft.modifiers}
+            modifiers={spellCastModifiers}
             formulaVars={formulaVarsBase}
             onModifiersChange={(modifiers) =>
               setDraft((prev) => ({ ...prev, modifiers }))
@@ -6683,7 +6712,7 @@ export function MinimalSheetEditor({
           hostHpMax={draft.hpMax}
           abilities={effectiveAbilities}
           proficiencyBonus={proficiencyBonus}
-          modifiers={draft.modifiers}
+          modifiers={spellCastModifiers}
           formulaVars={formulaVarsBase}
           inventoryItems={draft.inventory.items}
           inventory={draft.inventory}

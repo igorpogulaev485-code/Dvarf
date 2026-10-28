@@ -119,6 +119,8 @@ export type GearEffect =
   | { type: 'speed'; mode?: string; value_ft: number }
   | { type: 'spell_slots'; level: number; delta: number }
   | { type: 'grant_spell'; slug: string; uses?: number }
+  /** Bonus to spell attack rolls and spell save DC (Amulet of the Devout, …). */
+  | { type: 'spellcasting_bonus'; value: number }
   /** Potion of Healing family — dice string like "2к4+2" / "2d4+2". */
   | { type: 'heal'; dice: string }
   | { type: 'resistance'; damage_type: string }
