@@ -68,6 +68,7 @@ export function syncPactChainFamiliar(input: {
       name: FIND_FAMILIAR_NAME_RU,
       level: 1,
       ritual: true,
+      cast_access: 'ritual_or_slot',
       class_slug: 'warlock',
       class_entry_id: warlock!.id,
       catalog_id: existing?.catalog_id ?? PACT_CHAIN_FIND_FAMILIAR_SLUG,
@@ -84,7 +85,8 @@ export function syncPactChainFamiliar(input: {
     existing.class_slug !== 'warlock' ||
     existing.name !== FIND_FAMILIAR_NAME_RU ||
     !existing.prepared_locked ||
-    !existing.ritual
+    !existing.ritual ||
+    existing.cast_access !== 'ritual_or_slot'
   ) {
     changed = true
   }

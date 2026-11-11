@@ -925,12 +925,24 @@ export function syncSubclassAlwaysPreparedSpells(input: {
       )
       if (ritualGrant) {
         created.ritual = true
+        created.cast_access = 'ritual_only'
         created.notes = 'Только как ритуал, без ячейки заклинаний'
         created.casting_time = created.casting_time || '1 ритуал'
       }
       if (consult) {
+        created.ritual = false
+        created.cast_access = 'feature'
+        created.class_slug = 'barbarian'
+        created.feature_spend = {
+          poolId: 'consult_the_spirits',
+          classSlug: 'barbarian',
+          classEntryId: grant.classEntryId,
+          cost: 1,
+          label: 'Совет духов',
+          optionId: key || spell.name,
+        }
         created.notes =
-          'Совет духов: без ячейки и без компонентов. Общий заряд 1 на короткий или продолжительный отдых — выбери Гадание или Подсматривание на умении.'
+          'Совет духов: без ячейки и без компонентов. Общий заряд 1 на короткий или продолжительный отдых.'
         created.prepared = true
       }
       nextKnown.push(created)
@@ -950,7 +962,17 @@ export function syncSubclassAlwaysPreparedSpells(input: {
     const sameIds =
       grantedSpellIds.length === grant.grantedSpellIds.length &&
       grantedSpellIds.every((id, index) => id === grant.grantedSpellIds[index])
-    if (sameIds && nextKnown.length === known.length) continue
+    const drifted = grantedSpellIds.some((id) => {
+      const next = nextKnown.find((spell) => spell.id === id)
+      const prev = known.find((spell) => spell.id === id)
+      if (!next || !prev) return true
+      return (
+        next.cast_access !== prev.cast_access ||
+        next.ritual !== prev.ritual ||
+        next.feature_spend?.poolId !== prev.feature_spend?.poolId
+      )
+    })
+    if (sameIds && nextKnown.length === known.length && !drifted) continue
 
     changed = true
     known = nextKnown

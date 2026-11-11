@@ -3,6 +3,7 @@
  * Avoids rotting hardcoded PHB subsets in feat JSON.
  */
 
+import { isRitualCasterList } from './ritualBooks'
 import { parseSpellCatalogData } from './spellCatalog'
 
 export type FeatSpellListOption = {
@@ -58,10 +59,16 @@ export function spellOptionsForClassList(input: {
    * Default false keeps Magic Initiate allowlist.
    */
   anyClassList?: boolean
+  /** Ritual Caster also includes the sorcerer list (PHB). */
+  ritualCasterList?: boolean
 }): FeatSpellListOption[] {
   const classKey = input.classSlug.trim().toLowerCase()
   if (!classKey) return []
-  if (!input.anyClassList && !isFeatClassSpellList(classKey)) return []
+  const allowed =
+    input.anyClassList ||
+    isFeatClassSpellList(classKey) ||
+    (input.ritualCasterList && isRitualCasterList(classKey))
+  if (!allowed) return []
   const level = Math.max(0, Math.min(9, Math.floor(input.level)))
   const out: FeatSpellListOption[] = []
   for (const row of input.spells) {
@@ -95,6 +102,7 @@ export function spellOptionsForClassLists(input: {
   level: number
   ritualOnly?: boolean
   anyClassList?: boolean
+  ritualCasterList?: boolean
 }): FeatSpellListOption[] {
   const byId = new Map<string, FeatSpellListOption>()
   for (const classSlug of input.classSlugs) {
@@ -104,6 +112,7 @@ export function spellOptionsForClassLists(input: {
       level: input.level,
       ritualOnly: input.ritualOnly,
       anyClassList: input.anyClassList,
+      ritualCasterList: input.ritualCasterList,
     })) {
       const prev = byId.get(opt.id)
       if (!prev) {

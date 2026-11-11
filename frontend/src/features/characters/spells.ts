@@ -88,6 +88,24 @@ export type SheetSpell = {
    */
   grant_cast?: SpellGrantCast
   /**
+   * How this row is cast besides a normal class slot.
+   * ritual_only — ritual, no slot (totem, ritual book, Book of Ancient Secrets).
+   * ritual_or_slot — ritual or a slot/pact (Chain; known warlock rituals).
+   * at_will — invocation, no slot, repeatable.
+   * feature — a feature charge or ki, not a spell slot.
+   */
+  cast_access?: SpellCastAccess
+  /** Which physical book this ritual row requires. */
+  ritual_book?: RitualBookKind
+  /** Copied into a ritual book (as opposed to the two free starters). */
+  ritual_book_role?: 'starter' | 'copied'
+  /** Feature or ki spend when `cast_access` is `feature`. */
+  feature_spend?: SpellFeatureSpend
+  /** Grant / ritual-book casting ability when the row has no class profile. */
+  casting_ability?: SpellcastingAbility | null
+  /** This row spends a pact slot only (invocation), never a regular slot. */
+  pact_only?: boolean
+  /**
    * Wizard spellbook: how this leveled spell entered the book continuum.
    * Cantrips omit this. See docs/wizard-spellbook.md.
    */
@@ -101,6 +119,40 @@ export type SheetSpell = {
   applies_to_allies?: boolean
   /** Сколько слотов целей (Благословение = 3); заполнение необязательно. */
   ally_target_count?: number
+}
+
+export type SpellCastAccess = 'ritual_only' | 'ritual_or_slot' | 'at_will' | 'feature'
+
+export type RitualBookKind = 'feat' | 'ancient_secrets'
+
+export type SpellFeatureSpend = {
+  poolId: string
+  classSlug: string
+  classEntryId: string
+  cost: number
+  label: string
+  optionId?: string
+}
+
+export type RitualBookEntry = {
+  slug: string
+  name: string
+  level: number
+  listSlug: string
+  starter?: boolean
+}
+
+export type RitualBookBinding = {
+  itemId: string | null
+  lost: boolean
+  listSlug?: string | null
+  /** Kept when the feat or invocation is removed, so access can return. */
+  entries?: RitualBookEntry[]
+}
+
+export type RitualBooksState = {
+  feat?: RitualBookBinding
+  ancient_secrets?: RitualBookBinding
 }
 
 /** Free cast charge from a grant source (race innate, Fey Touched, …). */
@@ -132,6 +184,11 @@ export type SpellsState = {
    * Absent / undefined for non-wizard sheets.
    */
   wizard_spellbook?: WizardSpellbookState
+  /**
+   * Ritual Caster book and Book of Ancient Secrets (inside the Book of Shadows).
+   * Inventory item ids only — no new database column.
+   */
+  ritual_books?: RitualBooksState
 }
 
 const EMPTY_SLOTS: Record<string, SpellSlotState> = Object.fromEntries(
@@ -285,6 +342,121 @@ function readGrantMode(raw: unknown): 'innate' | 'spell_list' | undefined {
   return undefined
 }
 
+function readCastAccess(raw: unknown): SpellCastAccess | undefined {
+  if (
+    raw === 'ritual_only' ||
+    raw === 'ritual_or_slot' ||
+    raw === 'at_will' ||
+    raw === 'feature'
+  ) {
+    return raw
+  }
+  return undefined
+}
+
+function readRitualBookKind(raw: unknown): RitualBookKind | undefined {
+  if (raw === 'feat' || raw === 'ancient_secrets') return raw
+  return undefined
+}
+
+function readFeatureSpend(raw: unknown): SpellFeatureSpend | undefined {
+  const row = asRecord(raw)
+  const poolId = typeof row.poolId === 'string' ? row.poolId : typeof row.pool_id === 'string' ? row.pool_id : ''
+  const classSlug =
+    typeof row.classSlug === 'string'
+      ? row.classSlug
+      : typeof row.class_slug === 'string'
+        ? row.class_slug
+        : ''
+  const classEntryId =
+    typeof row.classEntryId === 'string'
+      ? row.classEntryId
+      : typeof row.class_entry_id === 'string'
+        ? row.class_entry_id
+        : ''
+  const label = typeof row.label === 'string' ? row.label : ''
+  const cost = Math.max(1, Math.floor(readNumber(row.cost, 1)))
+  if (!poolId || !classSlug || !classEntryId || !label) return undefined
+  const optionId =
+    typeof row.optionId === 'string'
+      ? row.optionId
+      : typeof row.option_id === 'string'
+        ? row.option_id
+        : undefined
+  return {
+    poolId,
+    classSlug,
+    classEntryId,
+    cost,
+    label,
+    ...(optionId ? { optionId } : {}),
+  }
+}
+
+function readRitualBookEntry(raw: unknown): RitualBookEntry | null {
+  const row = asRecord(raw)
+  const slug = typeof row.slug === 'string' ? row.slug.trim() : ''
+  const name = typeof row.name === 'string' ? row.name.trim() : ''
+  const listSlug =
+    typeof row.listSlug === 'string'
+      ? row.listSlug.trim()
+      : typeof row.list_slug === 'string'
+        ? row.list_slug.trim()
+        : ''
+  const level = Math.max(1, Math.min(9, Math.floor(readNumber(row.level, 1))))
+  if (!slug || !name) return null
+  return {
+    slug,
+    name,
+    level,
+    listSlug,
+    ...(row.starter === true ? { starter: true } : {}),
+  }
+}
+
+function readRitualBookBinding(raw: unknown): RitualBookBinding | undefined {
+  if (raw == null || typeof raw !== 'object') return undefined
+  const row = asRecord(raw)
+  const itemId =
+    typeof row.itemId === 'string'
+      ? row.itemId
+      : typeof row.item_id === 'string'
+        ? row.item_id
+        : null
+  const lost = row.lost === true
+  const listSlug =
+    typeof row.listSlug === 'string'
+      ? row.listSlug
+      : typeof row.list_slug === 'string'
+        ? row.list_slug
+        : undefined
+  const entriesRaw = row.entries
+  const entries = Array.isArray(entriesRaw)
+    ? entriesRaw
+        .map((item) => readRitualBookEntry(item))
+        .filter((item): item is RitualBookEntry => item != null)
+    : undefined
+  if (!itemId && !lost && !listSlug && !entries?.length) return undefined
+  return {
+    itemId,
+    lost,
+    ...(listSlug ? { listSlug } : {}),
+    ...(entries?.length ? { entries } : {}),
+  }
+}
+
+function readRitualBooks(raw: unknown): RitualBooksState | undefined {
+  if (raw == null || typeof raw !== 'object') return undefined
+  const row = asRecord(raw)
+  const feat = readRitualBookBinding(row.feat)
+  const ancient = readRitualBookBinding(row.ancient_secrets ?? row.ancientSecrets)
+  if (!feat && !ancient) return undefined
+  return {
+    ...(feat ? { feat } : {}),
+    ...(ancient ? { ancient_secrets: ancient } : {}),
+  }
+}
+
 function readScaleTable(raw: unknown): SpellScaleTable | undefined {
   const row = asRecord(raw)
   const out: SpellScaleTable = {}
@@ -325,6 +497,17 @@ function readSpell(raw: unknown, index: number): SheetSpell {
   const damageAtCharacter = readScaleTable(row.damage_at_character_level)
   const damageAtSlot = readScaleTable(row.damage_at_slot_level)
   const grantCast = readGrantCast(row.grant_cast ?? row.grantCast)
+  const castAccess = readCastAccess(row.cast_access ?? row.castAccess)
+  const ritualBook = readRitualBookKind(row.ritual_book ?? row.ritualBook)
+  const featureSpend = readFeatureSpend(row.feature_spend ?? row.featureSpend)
+  const castingAbilityRaw = row.casting_ability ?? row.castingAbility
+  const castingAbility = isSpellcastingAbility(castingAbilityRaw) ? castingAbilityRaw : undefined
+  const ritualBookRole =
+    row.ritual_book_role === 'starter' || row.ritual_book_role === 'copied'
+      ? row.ritual_book_role
+      : row.ritualBookRole === 'starter' || row.ritualBookRole === 'copied'
+        ? row.ritualBookRole
+        : undefined
   const acquisition = readSpellbookAcquisition(
     row.spellbook_acquisition ?? row.spellbookAcquisition,
   )
@@ -406,6 +589,12 @@ function readSpell(raw: unknown, index: number): SheetSpell {
     ...(preparedLocked ? { prepared_locked: true } : {}),
     ...(prepareSourceLabel ? { prepare_source_label: prepareSourceLabel } : {}),
     ...(grantCast ? { grant_cast: grantCast } : {}),
+    ...(castAccess ? { cast_access: castAccess } : {}),
+    ...(ritualBook ? { ritual_book: ritualBook } : {}),
+    ...(ritualBookRole ? { ritual_book_role: ritualBookRole } : {}),
+    ...(featureSpend ? { feature_spend: featureSpend } : {}),
+    ...(castingAbility ? { casting_ability: castingAbility } : {}),
+    ...(row.pact_only === true || row.pactOnly === true ? { pact_only: true } : {}),
     ...(acquisition ? { spellbook_acquisition: acquisition } : {}),
     ...(inSpellbook !== undefined ? { in_spellbook: inSpellbook } : {}),
   }
@@ -516,6 +705,14 @@ export function parseGrantCastLimitFromNotes(
 /** Whether this sheet spell is an innate race/feat grant that can get free casts. */
 export function isInnateGrantSpell(spell: SheetSpell): boolean {
   if (spell.level <= 0) return false
+  if (
+    spell.cast_access === 'ritual_only' ||
+    spell.cast_access === 'at_will' ||
+    spell.cast_access === 'feature'
+  ) {
+    return false
+  }
+  if (spell.ritual_book) return false
   if (spell.race_grant === 'innate') return true
   if (spell.feat_grant === 'innate') return true
   return false
@@ -986,6 +1183,10 @@ export function readSpells(sheet: Record<string, unknown>): SpellsState {
       )
       return wizard_spellbook ? { wizard_spellbook } : {}
     })(),
+    ...((): { ritual_books?: RitualBooksState } => {
+      const ritual_books = readRitualBooks(spells.ritual_books ?? spells.ritualBooks)
+      return ritual_books ? { ritual_books } : {}
+    })(),
   }
 }
 
@@ -1022,6 +1223,7 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
             },
           }
         : {}),
+      ...(state.ritual_books ? { ritual_books: state.ritual_books } : {}),
       known: state.known.map((spell) => ({
         id: spell.id,
         name: spell.name,
@@ -1077,6 +1279,12 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
               },
             }
           : {}),
+        ...(spell.cast_access ? { cast_access: spell.cast_access } : {}),
+        ...(spell.ritual_book ? { ritual_book: spell.ritual_book } : {}),
+        ...(spell.ritual_book_role ? { ritual_book_role: spell.ritual_book_role } : {}),
+        ...(spell.feature_spend ? { feature_spend: spell.feature_spend } : {}),
+        ...(spell.casting_ability ? { casting_ability: spell.casting_ability } : {}),
+        ...(spell.pact_only ? { pact_only: true } : {}),
         ...(spell.spellbook_acquisition
           ? { spellbook_acquisition: spell.spellbook_acquisition }
           : {}),

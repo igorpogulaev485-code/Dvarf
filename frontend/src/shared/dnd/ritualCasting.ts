@@ -28,3 +28,30 @@ export function canCastPreparedSpellAsRitual(input: {
   if (casters.length === 0) return false
   return casters.every((slug) => classHasRitualCasting(slug))
 }
+
+/**
+ * Explicit sheet-row grant. Does not add barbarian / warlock / paladin to
+ * `RITUAL_CLASS_SLUGS` (M47 stays).
+ * - ritual_only: this row is a ritual and nothing else (totem, ritual book).
+ * - ritual_or_slot: ritual without a slot, or a normal slot (Chain, Book of Ancient Secrets on known warlock rituals).
+ */
+export function castAccessAllowsRitual(access: string | null | undefined): boolean {
+  return access === 'ritual_only' || access === 'ritual_or_slot'
+}
+
+export function isRitualOnlyAccess(access: string | null | undefined): boolean {
+  return access === 'ritual_only'
+}
+
+/** Class Ritual Casting, or an explicit ritual grant on this row. */
+export function canOfferRitualCast(input: {
+  ritual: boolean
+  level: number
+  classSlug?: string | null
+  casterSlugs: string[]
+  castAccess?: string | null
+}): boolean {
+  if (!input.ritual || input.level <= 0) return false
+  if (castAccessAllowsRitual(input.castAccess)) return true
+  return canCastPreparedSpellAsRitual(input)
+}
