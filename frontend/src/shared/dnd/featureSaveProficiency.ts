@@ -43,7 +43,7 @@ export function wisdomSaveAlreadyGranted(input: {
     if (feat.applied.savingThrows.includes('wis')) return true
   }
   for (const feature of input.features ?? []) {
-    if (feature.id === 'iron_mind') continue
+    if (feature.id === 'iron_mind' || feature.id === 'elegant_courtier') continue
     const grant = feature.save_proficiency
     if (grant === 'all' || (Array.isArray(grant) && grant.includes('wis'))) return true
   }

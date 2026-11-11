@@ -16,9 +16,18 @@ import { applyFeatGrantToDraft, ensureFeatSpellsFromLedger, featSpellsMissingFro
 import { syncFeatureResources } from '../../../shared/dnd/featureResources'
 import { classWalkSpeedBonusFt, resolveWalkSpeedFt } from '../../../shared/dnd/classMovement'
 import { applyFeatureSaveProficiencies, ironMindSaveKey, wisdomSaveAlreadyGranted } from '../../../shared/dnd/featureSaveProficiency'
-import { getFeaturePick } from '../../../shared/dnd/featurePicks'
+import { revokeFalseSubclassCompanions } from '../companions'
+import {
+  fighterSkillAndLanguageGrants,
+  hydrateTotemSpiritFromGrants,
+} from '../../../shared/dnd/fighterArchetypeGrants'
+import {
+  dropDuplicateFightingStyles,
+  findFightingStylePick,
+  getFeaturePick,
+  listFightingStyleIds,
+} from '../../../shared/dnd/featurePicks'
 import { syncMonkUnarmedAttack } from '../../../shared/dnd/martialArts'
-import { findFightingStylePick } from '../../../shared/dnd/featurePicks'
 import { darkvisionFtFromFeatures, initiativeBonusFromFeatures, initiativeBonusFromRace } from '../featureCombatBonuses'
 import { createSheetSpell } from '../spells'
 import {
@@ -199,28 +208,90 @@ export function useSheetEditorPart2(model: SheetModel) {
   useEffect(() => {
     model.setDraft((prev) => {
       const baseSaves = applyFeatureSaveProficiencies(prev.saves, model.unlockedFeatures)
-      const ironMind = model.unlockedFeatures.find(
-        (row: { id: string; classEntryId: string }) => row.id === 'iron_mind',
-      )
       const alreadyWis = wisdomSaveAlreadyGranted({
         classes: prev.classes,
         featGrants: prev.featGrants,
         features: model.unlockedFeatures,
       })
-      const ironKey = ironMind
-        ? ironMindSaveKey({
-            alreadyHasWisdom: alreadyWis,
-            pick: getFeaturePick(prev.featurePicks, ironMind.classEntryId, 'iron_mind_save'),
-          })
-        : null
-      const nextSaves =
-        ironKey && !baseSaves[ironKey]
-          ? { ...baseSaves, [ironKey]: true }
-          : baseSaves
+      const conditionalSaves = model.unlockedFeatures.filter(
+        (row: { id: string }) => row.id === 'iron_mind' || row.id === 'elegant_courtier',
+      )
+      let nextSaves = baseSaves
+      for (const feature of conditionalSaves) {
+        const pickId = feature.id === 'iron_mind' ? 'iron_mind_save' : 'elegant_courtier'
+        const key = ironMindSaveKey({
+          alreadyHasWisdom: alreadyWis,
+          pick: getFeaturePick(prev.featurePicks, feature.classEntryId, pickId),
+        })
+        if (key && !nextSaves[key]) nextSaves = { ...nextSaves, [key]: true }
+      }
       if (nextSaves === prev.saves) return prev
       return { ...prev, saves: nextSaves }
     })
-  }, [model.unlockedFeatures])
+  }, [model.unlockedFeatures, model.draft.featurePicks])
+
+  // Cavalier / samurai skill-or-language, Royal Envoy proficiency and expertise.
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const persuasionFromOtherSources = [
+        ...(prev.classGrants ?? []).map((row: { skills?: string[] }) => row.skills),
+        prev.backgroundGrant?.skills,
+        prev.raceGrant?.skills,
+        ...(prev.featGrants ?? []).map(
+          (row: { applied?: { skills?: string[] } }) => row.applied?.skills,
+        ),
+        ...(prev.subclassGrants ?? []).map((row: { skills?: string[] }) => row.skills),
+      ].some((list: string[] | undefined) => Array.isArray(list) && list.includes('persuasion'))
+      const plan = fighterSkillAndLanguageGrants({
+        features: model.unlockedFeatures,
+        featurePicks: prev.featurePicks,
+        persuasionFromOtherSources,
+      })
+      let changed = false
+      const skills = { ...prev.skills }
+      for (const key of plan.skills) {
+        const current = skills[key] ?? { is_proficient: false, is_expertise: false }
+        const expertise = plan.expertise.includes(key) || current.is_expertise
+        if (!current.is_proficient || expertise !== current.is_expertise) {
+          skills[key] = { is_proficient: true, is_expertise: expertise }
+          changed = true
+        }
+      }
+      for (const key of plan.expertise) {
+        const current = skills[key] ?? { is_proficient: false, is_expertise: false }
+        if (!current.is_proficient || !current.is_expertise) {
+          skills[key] = { is_proficient: true, is_expertise: true }
+          changed = true
+        }
+      }
+      const languages = [...prev.identity.languages]
+      for (const name of plan.languages) {
+        if (languages.some((item) => item.trim().toLowerCase() === name.toLowerCase())) continue
+        languages.push(name)
+        changed = true
+      }
+      if (!changed) return prev
+      return {
+        ...prev,
+        skills,
+        identity: { ...prev.identity, languages },
+      }
+    })
+  }, [model.unlockedFeatures, model.draft.featurePicks])
+
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const companions = revokeFalseSubclassCompanions(prev.companions)
+      const featurePicks = dropDuplicateFightingStyles(
+        hydrateTotemSpiritFromGrants({
+          featurePicks: prev.featurePicks,
+          subclassGrants: prev.subclassGrants,
+        }).featurePicks,
+      )
+      if (companions === prev.companions && featurePicks === prev.featurePicks) return prev
+      return { ...prev, companions, featurePicks }
+    })
+  }, [model.draft.companions, model.draft.featurePicks, model.draft.subclassGrants])
 
   // Martial Arts: keep a live «Безоружный удар» card while the feature is unlocked.
   useEffect(() => {
@@ -579,8 +650,9 @@ export function useSheetEditorPart2(model: SheetModel) {
       initiativeBonusFromFeatures({
         features: model.unlockedFeatures,
         abilities: model.draft.abilities,
+        proficiencyBonus,
       }),
-    [model.unlockedFeatures, model.draft.abilities],
+    [model.unlockedFeatures, model.draft.abilities, proficiencyBonus],
   )
   model.featureInitiativeBonus = featureInitiativeBonus
   const raceInitiativeBonus = useMemo(
@@ -595,6 +667,13 @@ export function useSheetEditorPart2(model: SheetModel) {
   const totalInitiativeBonus =
     featInitiativeBonus + featureInitiativeBonus + raceInitiativeBonus
   model.totalInitiativeBonus = totalInitiativeBonus
+  const fightingStyleIds = useMemo(() => {
+    const ids = listFightingStyleIds(model.draft.featurePicks)
+    const fromFeat = fightingStyleFromFeatGrants(model.draft.featGrants)
+    if (fromFeat && !ids.includes(fromFeat)) ids.push(fromFeat)
+    return ids
+  }, [model.draft.featurePicks, model.draft.featGrants])
+  model.fightingStyleIds = fightingStyleIds
   const activeFightingStyleId = useMemo(
     () =>
       findFightingStylePick(model.draft.featurePicks) ??

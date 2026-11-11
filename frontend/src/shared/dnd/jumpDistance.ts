@@ -17,9 +17,12 @@ export function highJumpFt(strengthMod: number): number {
 export function jumpDistances(input: {
   strengthScore: number
   strengthMod: number
+  /** Remarkable Athlete: +Strength modifier feet on a running long jump. */
+  longBonusFt?: number
 }): JumpDistances {
+  const bonus = Math.max(0, Math.floor(input.longBonusFt ?? 0))
   return {
-    longFt: longJumpFt(input.strengthScore),
+    longFt: longJumpFt(input.strengthScore) + bonus,
     highFt: highJumpFt(input.strengthMod),
   }
 }

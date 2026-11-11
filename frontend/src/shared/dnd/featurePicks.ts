@@ -1,5 +1,7 @@
 /** Persistent picks for class features (fighting style, toggles, etc.). */
 
+import { fightingStyleById } from './fightingStyles'
+
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -173,19 +175,131 @@ export function addFeaturePickToList(
   )
 }
 
+/**
+ * Feature ids whose pick is a fighting style.
+ * Earlier ids win when the same style was stored twice (champion's second style).
+ */
+export const FIGHTING_STYLE_FEATURE_IDS = [
+  'fighting_style',
+  'fighting_style_fighter',
+  'fighting_style_paladin',
+  'fighting_style_ranger',
+  'bonus_proficiencies_swords',
+  'additional_fighting_style',
+] as const
+
+function fightingStyleFeatureRank(featureId: string): number {
+  const index = FIGHTING_STYLE_FEATURE_IDS.indexOf(
+    featureId as (typeof FIGHTING_STYLE_FEATURE_IDS)[number],
+  )
+  return index < 0 ? FIGHTING_STYLE_FEATURE_IDS.length : index
+}
+
+export function isFightingStyleFeatureId(featureId: string): boolean {
+  return (FIGHTING_STYLE_FEATURE_IDS as readonly string[]).includes(featureId)
+}
+
+function featureIdFromPickKey(key: string): string {
+  return key.split(':').slice(1).join(':')
+}
+
+function classEntryIdFromPickKey(key: string, featureId: string): string {
+  return key.slice(0, Math.max(0, key.length - featureId.length - 1))
+}
+
+/** Every fighting style currently stored, in feature priority order. */
+export function listFightingStyleIds(picks: FeaturePicksState): string[] {
+  const keys = Object.keys(picks.values).sort((a, b) => {
+    const rank = fightingStyleFeatureRank(featureIdFromPickKey(a)) - fightingStyleFeatureRank(featureIdFromPickKey(b))
+    return rank !== 0 ? rank : a.localeCompare(b)
+  })
+  const ids: string[] = []
+  for (const key of keys) {
+    const featureId = featureIdFromPickKey(key)
+    if (!isFightingStyleFeatureId(featureId)) continue
+    for (const part of (picks.values[key] ?? '').split(',')) {
+      const id = part.trim()
+      if (fightingStyleById(id) && !ids.includes(id)) ids.push(id)
+    }
+  }
+  return ids
+}
+
+/**
+ * Styles already taken on other features. The current feature keeps its own pick
+ * visible so the player can see it, but cannot select it on a second card.
+ */
+export function fightingStylesTakenElsewhere(
+  picks: FeaturePicksState,
+  except: { classEntryId: string; featureId: string },
+): Set<string> {
+  const taken = new Set<string>()
+  const exceptKey = `${except.classEntryId}:${except.featureId}`
+  for (const [key, value] of Object.entries(picks.values)) {
+    if (key === exceptKey) continue
+    const featureId = featureIdFromPickKey(key)
+    if (!isFightingStyleFeatureId(featureId)) continue
+    for (const part of value.split(',')) {
+      const id = part.trim()
+      if (fightingStyleById(id)) taken.add(id)
+    }
+  }
+  return taken
+}
+
+/**
+ * A style can be taken once per character, including another class
+ * (College of Swords, paladin, ranger).
+ */
+export function dropDuplicateFightingStyles(picks: FeaturePicksState): FeaturePicksState {
+  const seen = new Set<string>()
+  let next = picks
+  const keys = Object.keys(picks.values).sort((a, b) => {
+    const rank = fightingStyleFeatureRank(featureIdFromPickKey(a)) - fightingStyleFeatureRank(featureIdFromPickKey(b))
+    return rank !== 0 ? rank : a.localeCompare(b)
+  })
+  for (const key of keys) {
+    const featureId = featureIdFromPickKey(key)
+    if (!isFightingStyleFeatureId(featureId)) continue
+    const classEntryId = classEntryIdFromPickKey(key, featureId)
+    const raw = picks.values[key] ?? ''
+    const kept: string[] = []
+    for (const part of raw.split(',')) {
+      const id = part.trim()
+      if (!id) continue
+      if (!fightingStyleById(id)) {
+        kept.push(id)
+        continue
+      }
+      if (seen.has(id)) continue
+      seen.add(id)
+      kept.push(id)
+    }
+    const value = kept.join(',')
+    if (value !== raw) {
+      next = setFeaturePick(next, classEntryId, featureId, value || null)
+    }
+  }
+  return next
+}
+
 /** First fighting-style pick across class entries (Defense AC, etc.). */
 export function findFightingStylePick(
   picks: FeaturePicksState,
-  featureIds: string[] = [
-    'fighting_style_paladin',
-    'fighting_style_ranger',
-    'fighting_style',
-    'fighting_style_fighter',
-  ],
+  featureIds: string[] = [...FIGHTING_STYLE_FEATURE_IDS],
 ): string | null {
-  for (const [key, value] of Object.entries(picks.values)) {
-    const featureId = key.split(':').slice(1).join(':')
-    if (featureIds.includes(featureId) && value) return value
+  const wanted = new Set(featureIds)
+  const keys = Object.keys(picks.values).sort((a, b) => {
+    const rank =
+      fightingStyleFeatureRank(featureIdFromPickKey(a)) -
+      fightingStyleFeatureRank(featureIdFromPickKey(b))
+    return rank !== 0 ? rank : a.localeCompare(b)
+  })
+  for (const key of keys) {
+    const featureId = featureIdFromPickKey(key)
+    if (!wanted.has(featureId)) continue
+    const first = (picks.values[key] ?? '').split(',')[0]?.trim()
+    if (first) return first
   }
   return null
 }

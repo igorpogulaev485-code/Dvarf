@@ -318,8 +318,9 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
         features: playActiveFeatures,
         characterLevel,
         abilities: draft.abilities,
+        featurePicks: draft.featurePicks,
       }),
-    [playActiveFeatures, characterLevel, draft.abilities],
+    [playActiveFeatures, characterLevel, draft.abilities, draft.featurePicks],
   )
   model.featureDesiredResources = featureDesiredResources
   /** Show spells split when the sheet has any magic source (class/archetype/race/feat/gear). */

@@ -696,14 +696,9 @@ export function applySubclassGrantToDraft(input: {
     const value = typeof raw === 'string' ? raw.trim() : ''
     if (!value) continue
     const id = choice.id.toLowerCase()
-    const isCompanion =
-      choice.appliesTo === 'companion' ||
-      id.includes('companion') ||
-      id.includes('defender') ||
-      id.includes('drake') ||
-      id.includes('cannon') ||
-      id.includes('spirit')
-    if (!isCompanion) continue
+    // Only an explicit companion choice. Totem spirits and drake essence
+    // are effect types; a substring match used to mint a false naparnik.
+    if (choice.appliesTo !== 'companion') continue
     const kind =
       id.includes('defender')
         ? 'steel_defender'

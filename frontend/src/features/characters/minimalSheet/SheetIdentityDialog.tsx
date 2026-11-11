@@ -21,6 +21,7 @@ import {
   knowledgeBlessingSkillIds,
   syncSkillsExpertiseFromPicks,
 } from '../../../shared/dnd/expertise'
+import { featureLockedExpertiseSkillIds } from '../../../shared/dnd/fighterArchetypeGrants'
 import { clearFeaturePicksAboveClassLevel, listUnlockedExpertiseKeys } from '../../../shared/dnd/pendingFeatureChoices'
 import { revokeFeatGrantFromDraft, revokeFeatGrantsForAsi, revokeFeatGrantsForBackground, syncFeatProficiencyResources } from '../featEffects'
 import { syncHitDicePools } from '../../../shared/dnd/classHitDice'
@@ -298,9 +299,10 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                   skills: featBase.skills,
                                   featurePicks: nextPicks,
                                   expertiseKeys: listUnlockedExpertiseKeys(nextUnlocked),
-                                  alsoExpertiseSkillIds: knowledgeBlessingSkillIds(
-                                    featBase.subclassGrants,
-                                  ),
+                                  alsoExpertiseSkillIds: [
+                                    ...knowledgeBlessingSkillIds(featBase.subclassGrants),
+                                    ...featureLockedExpertiseSkillIds(nextUnlocked),
+                                  ],
                                 })
                                 const synced = model.mergeFeatSlice(
                                   {

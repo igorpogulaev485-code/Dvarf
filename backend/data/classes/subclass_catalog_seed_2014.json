@@ -214,9 +214,9 @@
               "kind": "open_text",
               "count": 1,
               "from": [],
-              "applies_to": "flavor_only",
+              "applies_to": "companion",
               "required": false,
-              "notes_ru": "Имя компаньона — опционально."
+              "notes_ru": "Имя стального защитника. Это напарник, не подпись."
             }
           ],
           "notes_ru": "Владение воинским оружием и инструментами кузнеца. Атака магическим оружием может идти от Интеллекта вместо Силы или Ловкости — бонус на карточке атаки выставь вручную.",
@@ -2967,36 +2967,15 @@
           "name_en": "Cavalier",
           "source": "xgte",
           "source_books": "XGtE",
-          "sheet_grants": {
-            "skill_choices": {
-              "count": 1,
-              "from": [
-                "animal_handling",
-                "history",
-                "insight",
-                "performance",
-                "persuasion"
-              ]
-            }
-          },
-          "choices": [
-            {
-              "id": "language",
-              "label_ru": "Язык",
-              "kind": "single",
-              "count": 1,
-              "from": "any",
-              "applies_to": "sheet_field",
-              "required": true
-            }
-          ],
-          "notes_ru": "Навык + язык (или Unarmed Fighting Style вместо — уточнить UI).",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "XGE: один навык из пяти либо один язык. Выбор на карточке «Доп. владение», не оба сразу и не Unarmed Fighting.",
           "detail_status": "forks_stub",
           "features_by_level": {
             "3": [
               {
                 "title_ru": "Кавалерист",
-                "summary_ru": "Навык + язык (или Unarmed Fighting Style вместо — уточнить UI)."
+                "summary_ru": "Один навык из пяти либо один язык."
               }
             ]
           }
@@ -3007,35 +2986,15 @@
           "name_en": "Samurai",
           "source": "xgte",
           "source_books": "XGtE",
-          "sheet_grants": {
-            "skill_choices": {
-              "count": 1,
-              "from": [
-                "history",
-                "insight",
-                "performance",
-                "persuasion"
-              ]
-            }
-          },
-          "choices": [
-            {
-              "id": "language",
-              "label_ru": "Язык",
-              "kind": "single",
-              "count": 1,
-              "from": "any",
-              "applies_to": "sheet_field",
-              "required": true
-            }
-          ],
-          "notes_ru": "Навык + язык.",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "XGE: один навык из четырёх либо один язык. Выбор на карточке «Доп. владение», не оба сразу.",
           "detail_status": "forks_stub",
           "features_by_level": {
             "3": [
               {
                 "title_ru": "Самурай",
-                "summary_ru": "Навык + язык."
+                "summary_ru": "Один навык из четырёх либо один язык."
               }
             ]
           }
@@ -3094,33 +3053,17 @@
               "kind": "single",
               "count": 1,
               "from": "artisan_tools",
-              "applies_to": "sheet_field",
-              "required": true
-            },
-            {
-              "id": "runes",
-              "label_ru": "Руны",
-              "kind": "multi",
-              "count": 2,
-              "from": [
-                "cloud",
-                "fire",
-                "frost",
-                "hill",
-                "storm",
-                "stone"
-              ],
               "applies_to": "grant",
               "required": true
             }
           ],
-          "notes_ru": "Инструменты + 2 руны на 3 ур.",
+          "notes_ru": "Инструменты кузнеца на развилке. Руны — на карточке «Резчик рун»: на 3-м Облако, Огонь, Холод и Камень; Холм и Буря с 7-го.",
           "detail_status": "forks_stub",
           "features_by_level": {
             "3": [
               {
                 "title_ru": "Рунный рыцарь",
-                "summary_ru": "Инструменты + 2 руны на 3 ур."
+                "summary_ru": "Инструменты. Руны выбираются на листе с порогами 3 и 7 уровня."
               }
             ]
           }
@@ -4006,9 +3949,9 @@
               "kind": "open_text",
               "count": 1,
               "from": [],
-              "applies_to": "flavor_only",
+              "applies_to": "companion",
               "required": true,
-              "notes_ru": "Имя/вид зверя CR ≤ 1/4, размер ≤ Medium — свободный текст на лист (потом сущность компаньона)."
+              "notes_ru": "Имя зверя КР ≤ 1/4, размер не больше Среднего. Это напарник."
             }
           ],
           "parent_slug": "ranger",

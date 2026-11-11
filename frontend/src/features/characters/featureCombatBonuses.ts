@@ -17,9 +17,44 @@ type AbilitiesLike = Partial<Record<AbilityKey, number>>
  * Race (Hare-Trigger) and Alert feat: `initiativeBonusFromRaceGrant` /
  * `sumFeatInitiativeBonus`.
  */
+/** PHB Remarkable Athlete: half proficiency, round up. */
+export function halfProficiencyRoundUp(proficiencyBonus: number): number {
+  return Math.ceil(Math.max(0, Math.floor(proficiencyBonus)) / 2)
+}
+
+/**
+ * Champion Remarkable Athlete: half PB (round up) on Strength, Dexterity,
+ * and Constitution checks that do not already add proficiency.
+ */
+export function remarkableAthleteCheckBonus(input: {
+  features: FeatureLike[]
+  proficiencyBonus: number
+  ability: string
+  includesProficiency: boolean
+}): number {
+  if (input.includesProficiency) return 0
+  if (input.ability !== 'str' && input.ability !== 'dex' && input.ability !== 'con') return 0
+  if (!input.features.some((feature) => feature.id === 'remarkable_athlete')) return 0
+  return halfProficiencyRoundUp(input.proficiencyBonus)
+}
+
+/** Samurai Elegant Courtier: Wisdom modifier on Persuasion checks. */
+export function elegantCourtierPersuasionBonus(input: {
+  features: FeatureLike[]
+  wisdomScore: number | null | undefined
+  skillKey: string
+}): number {
+  if (input.skillKey !== 'persuasion') return 0
+  if (!input.features.some((feature) => feature.id === 'elegant_courtier')) return 0
+  if (typeof input.wisdomScore !== 'number') return 0
+  return abilityModifier(input.wisdomScore)
+}
+
 export function initiativeBonusFromFeatures(input: {
   features: FeatureLike[]
   abilities: AbilitiesLike
+  /** Remarkable Athlete adds half PB (round up) to initiative, a Dexterity check. */
+  proficiencyBonus?: number
 }): number {
   let bonus = 0
   for (const feature of input.features) {
@@ -31,6 +66,10 @@ export function initiativeBonusFromFeatures(input: {
     if (feature.id === 'rakish_audacity') {
       const cha = input.abilities.cha
       bonus += typeof cha === 'number' ? abilityModifier(cha) : 0
+      continue
+    }
+    if (feature.id === 'remarkable_athlete') {
+      bonus += halfProficiencyRoundUp(input.proficiencyBonus ?? 0)
     }
   }
   return bonus

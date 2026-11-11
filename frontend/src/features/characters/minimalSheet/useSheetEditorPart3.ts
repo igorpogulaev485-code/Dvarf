@@ -33,7 +33,11 @@ import { naturalArmorFromFeatGrants } from '../../../shared/dnd/featGrants'
 import { proficiencyBonusForTotalLevel } from '../../../shared/dnd/classFeatures'
 import { classWalkSpeedBonusFt } from '../../../shared/dnd/classMovement'
 import { featurePicksToSheet } from '../../../shared/dnd/featurePicks'
-import { fightingStyleAcBonus } from '../../../shared/dnd/fightingStyles'
+import { fightingStyleAcBonusFromIds } from '../../../shared/dnd/fightingStyles'
+import {
+  elegantCourtierPersuasionBonus,
+  remarkableAthleteCheckBonus,
+} from '../featureCombatBonuses'
 import { aggregateInfusionBonuses, applyInfusionAbilityFloors } from '../../../shared/dnd/infusionEffects'
 import { infusionAcFromSharedEffects } from '../../../shared/dnd/infusionItems'
 import { beastPhysicalOverlay } from '../wildShape'
@@ -520,11 +524,46 @@ export function useSheetEditorPart3(model: SheetModel) {
     const out: Partial<Record<AbilityKey, number>> = {}
     for (const key of ABILITY_KEYS) {
       const n = abilityCheckBonus(key, model.draft.modifiers, formulaVarsBase)
-      if (n) out[key] = n
+      const athlete = remarkableAthleteCheckBonus({
+        features: model.unlockedFeatures,
+        proficiencyBonus: model.proficiencyBonus,
+        ability: key,
+        includesProficiency: false,
+      })
+      const total = n + athlete
+      if (total) out[key] = total
     }
     return out
-  }, [model.draft.modifiers, formulaVarsBase])
+  }, [model.draft.modifiers, formulaVarsBase, model.unlockedFeatures, model.proficiencyBonus])
   model.abilityCheckExtras = abilityCheckExtras
+
+  const featureSkillBonuses = useMemo(() => {
+    const out: Record<string, number> = {}
+    for (const skill of SKILL_DEFS) {
+      const state = model.draft.skills[skill.key]
+      const proficient = Boolean(state?.is_proficient || state?.is_expertise)
+      const athlete = remarkableAthleteCheckBonus({
+        features: model.unlockedFeatures,
+        proficiencyBonus: model.proficiencyBonus,
+        ability: skill.base,
+        includesProficiency: proficient,
+      })
+      const courtier = elegantCourtierPersuasionBonus({
+        features: model.unlockedFeatures,
+        wisdomScore: model.draft.abilities.wis,
+        skillKey: skill.key,
+      })
+      const total = athlete + courtier
+      if (total) out[skill.key] = total
+    }
+    return out
+  }, [
+    model.draft.skills,
+    model.draft.abilities.wis,
+    model.unlockedFeatures,
+    model.proficiencyBonus,
+  ])
+  model.featureSkillBonuses = featureSkillBonuses
 
   const abilitySaveExtras = useMemo(() => {
     const out: Partial<Record<AbilityKey, number>> = {}
@@ -598,8 +637,8 @@ export function useSheetEditorPart3(model: SheetModel) {
       naturalArmor,
       unarmoredDefense,
     })
-    const styleBonus = fightingStyleAcBonus({
-      styleId: model.activeFightingStyleId,
+    const styleBonus = fightingStyleAcBonusFromIds({
+      styleIds: model.fightingStyleIds ?? [],
       wearingArmor: Boolean(pieces.armor),
     })
     let coreAc = base.ac
@@ -663,7 +702,7 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.draft.play.resources,
     model.draft.abilities.int,
     model.draft.raceGrant,
-    model.activeFightingStyleId,
+    model.fightingStyleIds,
     model.draft.modifiers,
     model.raceCatalogRows,
     model.unlockedFeatures,

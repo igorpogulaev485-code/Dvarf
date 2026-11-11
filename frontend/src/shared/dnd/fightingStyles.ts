@@ -137,3 +137,32 @@ export function fightingStyleAttackBonus(input: {
     (input.ranged !== false && isRangedWeaponAttackName(input.weaponName))
   return ranged ? 2 : 0
 }
+
+/** Highest archery bonus among every style the character already has. */
+export function fightingStyleAttackBonusFromIds(input: {
+  styleIds: Array<string | null | undefined>
+  weaponName: string
+  ranged?: boolean | null
+}): number {
+  let best = 0
+  for (const styleId of input.styleIds) {
+    best = Math.max(
+      best,
+      fightingStyleAttackBonus({
+        styleId,
+        weaponName: input.weaponName,
+        ranged: input.ranged,
+      }),
+    )
+  }
+  return best
+}
+
+/** Defense is +1 AC if any taken style is Defense and armor is worn. */
+export function fightingStyleAcBonusFromIds(input: {
+  styleIds: Array<string | null | undefined>
+  wearingArmor: boolean
+}): number {
+  if (!input.wearingArmor) return 0
+  return input.styleIds.some((id) => id === 'defense') ? 1 : 0
+}

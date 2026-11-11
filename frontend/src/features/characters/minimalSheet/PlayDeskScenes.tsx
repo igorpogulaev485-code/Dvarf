@@ -86,6 +86,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             proficiencyBonus={model.proficiencyBonus}
             gearBonusesByItem={model.gearEffects.byItem}
             fightingStyleId={model.activeFightingStyleId}
+            fightingStyleIds={model.fightingStyleIds}
             infusionByItem={model.infusionBonuses.weaponByItem}
             shillelagh={model.draft.play.shillelagh ?? null}
             martialArtsDie={model.martialArtsDie}
@@ -178,6 +179,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           weaponProficiency={model.draft.identity.weapons}
           gearBonusesByItem={model.gearEffects.byItem}
           fightingStyleId={model.activeFightingStyleId}
+          fightingStyleIds={model.fightingStyleIds}
           infusionByItem={model.infusionBonuses.weaponByItem}
           shillelagh={model.draft.play.shillelagh ?? null}
           martialArtsDie={model.martialArtsDie}

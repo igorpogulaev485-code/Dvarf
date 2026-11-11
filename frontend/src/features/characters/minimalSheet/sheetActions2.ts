@@ -15,6 +15,7 @@ import {
   knowledgeBlessingSkillIds,
   syncSkillsExpertiseFromPicks,
 } from '../../../shared/dnd/expertise'
+import { featureLockedExpertiseSkillIds } from '../../../shared/dnd/fighterArchetypeGrants'
 import {
   backgroundWizardStep,
   buildPendingWizardSteps,
@@ -154,7 +155,10 @@ export function installSheetActions2(model: SheetModel) {
           skills: prev.skills,
           featurePicks: sanitized,
           expertiseKeys: keys,
-          alsoExpertiseSkillIds: knowledgeBlessingSkillIds(prev.subclassGrants),
+          alsoExpertiseSkillIds: [
+            ...knowledgeBlessingSkillIds(prev.subclassGrants),
+            ...featureLockedExpertiseSkillIds(unlocked),
+          ],
         }),
       }
     })

@@ -2,7 +2,7 @@ import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { parseWeaponCatalogData } from '../../shared/dnd/gearCatalog'
-import { fightingStyleAttackBonus } from '../../shared/dnd/fightingStyles'
+import { fightingStyleAttackBonusFromIds } from '../../shared/dnd/fightingStyles'
 import {
   effectiveMartialArtsDamage,
   isMonkUnarmedAttack,
@@ -94,6 +94,7 @@ type AttacksPanelProps = {
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
   /** Active fighting style id (archery → +2 on ranged attacks). */
   fightingStyleId?: string | null
+  fightingStyleIds?: string[]
   /** Monk Martial Arts die (e.g. "1к10") — overrides monk weapon / unarmed damage. */
   martialArtsDie?: string | null
   /** Active Artificer infusion weapon bonuses (Enhanced Weapon / …). */
@@ -150,6 +151,7 @@ export function AttacksPanel({
   onToggleHeld,
   gearBonusesByItem,
   fightingStyleId = null,
+  fightingStyleIds,
   martialArtsDie = null,
   infusionAttackBonus = 0,
   infusionDamageBonus = 0,
@@ -240,8 +242,8 @@ export function AttacksPanel({
               sourceKind: attack.source_kind,
               attackId: attack.id,
             })
-          const styleAtk = fightingStyleAttackBonus({
-            styleId: fightingStyleId,
+          const styleAtk = fightingStyleAttackBonusFromIds({
+            styleIds: fightingStyleIds ?? (fightingStyleId ? [fightingStyleId] : []),
             weaponName: attack.name,
           })
           const boundInfusion = attack.inventory_item_id

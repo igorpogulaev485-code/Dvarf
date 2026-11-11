@@ -15,8 +15,8 @@ import {
   sumFeatSpeedBonus,
 } from '../../shared/dnd/featGrants'
 import { initiativeBonusFromFeatures } from '../characters/featureCombatBonuses'
-import { findFightingStylePick, readFeaturePicks } from '../../shared/dnd/featurePicks'
-import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
+import { listFightingStyleIds, readFeaturePicks } from '../../shared/dnd/featurePicks'
+import { fightingStyleAcBonusFromIds } from '../../shared/dnd/fightingStyles'
 import { aggregateInfusionBonuses } from '../../shared/dnd/infusionEffects'
 import { infusionAcFromSharedEffects } from '../../shared/dnd/infusionItems'
 import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
@@ -135,11 +135,11 @@ export function classicAutoArmorClass(character: CharacterDetail): number {
   })
 
   const featGrants = readFeatGrantLedger(sheet.feat_grants)
-  const styleId =
-    findFightingStylePick(readFeaturePicks(sheet.feature_picks)) ??
-    fightingStyleFromFeatGrants(featGrants)
-  const styleBonus = fightingStyleAcBonus({
-    styleId,
+  const styleIds = listFightingStyleIds(readFeaturePicks(sheet.feature_picks))
+  const fromFeat = fightingStyleFromFeatGrants(featGrants)
+  if (fromFeat && !styleIds.includes(fromFeat)) styleIds.push(fromFeat)
+  const styleBonus = fightingStyleAcBonusFromIds({
+    styleIds,
     wearingArmor: Boolean(pieces.armor),
   })
 
@@ -212,6 +212,7 @@ export function classicDisplayInitiative(character: CharacterDetail): string {
   const featureInit = initiativeBonusFromFeatures({
     features: unlocked,
     abilities,
+    proficiencyBonus,
   })
   const core =
     override ??

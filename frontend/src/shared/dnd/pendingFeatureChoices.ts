@@ -198,6 +198,7 @@ export function isFeatureChoiceComplete(
 ): boolean {
   const choice = feature.choice
   if (!choice) return true
+  if (choice.optional) return true
   const maxPicks = resolveChoiceMaxPicks(choice, feature.classLevel)
   const multi = maxPicks > 1 || Boolean(choice.max_picks_by_level)
   if (multi) {
