@@ -147,6 +147,8 @@ const FIXED_BONUS_CANTRIPS: Record<string, BonusCantripGrant[]> = {
   arcane_trickster: [{ nameEn: 'Mage Hand' }],
   // PHB Way of Shadow: Minor Illusion if not already known.
   way_of_shadow: [{ nameEn: 'Minor Illusion' }],
+  // VRGtR Guiding Whispers: Guidance outside the cantrip budget, range 60 ft.
+  college_of_spirits: [{ nameEn: 'Guidance', range: '60 фт.' }],
 }
 
 /** PHB Improved Minor Illusion: a different wizard cantrip only if Minor Illusion is already known. */

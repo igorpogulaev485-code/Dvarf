@@ -13,6 +13,12 @@ import {
   type HitDie,
 } from '../../shared/dnd/hitDice'
 import { applyLongRest, applyShortRest } from '../../shared/dnd/rest'
+import {
+  hitDieHealWithSong,
+  stripMantleCommand,
+  stripSpiritSessionSpells,
+} from '../../shared/dnd/bardCollege'
+import { rollDie } from './deskRolls'
 import { finishWizardResourcesOnRest } from '../../shared/dnd/wizardTradition'
 import {
   grantStockOnLongRestIfEmpty,
@@ -40,6 +46,8 @@ type RestDialogProps = {
   play: PlayState
   spells: SpellsState
   featureDesiredResources?: DesiredFeatureResource[]
+  /** PHB Song of Rest die, when the bard feature is unlocked. */
+  songOfRest?: { sides: number; label: string } | null
   onPlayChange: (play: PlayState) => void
   onSpellsChange: (spells: SpellsState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
@@ -58,6 +66,7 @@ export function RestDialog({
   play,
   spells,
   featureDesiredResources = [],
+  songOfRest = null,
   onPlayChange,
   onSpellsChange,
   onCombatChange,
@@ -80,6 +89,7 @@ export function RestDialog({
   const suggestedHeal =
     activeDie != null ? suggestedHitDieHeal(activeDie, constitutionMod) : null
   const [healAmount, setHealAmount] = useState<number | null>(null)
+  const [songRoll, setSongRoll] = useState<number | null>(null)
 
   const healValue = useMemo(() => {
     if (healAmount != null) return healAmount
@@ -133,7 +143,10 @@ export function RestDialog({
       onToast('Сначала выбери кость хитов')
       return
     }
-    const amount = Math.max(0, Math.floor(healValue ?? 0))
+    const songBonus = songOfRest
+      ? Math.max(0, Math.floor(songRoll ?? rollDie(songOfRest.sides)))
+      : 0
+    const amount = hitDieHealWithSong(healValue ?? 0, songBonus)
     const beforeHp = hpCurrent ?? 0
     const nextHp = applyHitDieHeal({
       hpCurrent,
@@ -154,14 +167,20 @@ export function RestDialog({
       )
       onCombatChange({ hpCurrent: nextHp })
       onToast(
-        `${activePool.className} ${die}: +${amount} HP (${beforeHp} → ${nextHp}/${hpMax})`,
+        `${activePool.className} ${die}: +${amount} HP (${beforeHp} → ${nextHp}/${hpMax})${
+          songOfRest ? ` · Песнь отдыха ${songOfRest.label}: +${songBonus}` : ''
+        }`,
       )
       return
     }
     const nextDice = spendHitDie(play.hitDiceCurrent)
     patchPlay({ hitDiceCurrent: nextDice })
     onCombatChange({ hpCurrent: nextHp })
-    onToast(`Кость ${die}: +${amount} HP (${beforeHp} → ${nextHp}/${hpMax})`)
+    onToast(
+      `Кость ${die}: +${amount} HP (${beforeHp} → ${nextHp}/${hpMax})${
+        songOfRest ? ` · Песнь отдыха ${songOfRest.label}: +${songBonus}` : ''
+      }`,
+    )
   }
 
   function doLongRest() {
@@ -197,7 +216,9 @@ export function RestDialog({
       ...spells,
       slots: result.slots ?? spells.slots,
       pact_slots: result.pact_slots === undefined ? spells.pact_slots : result.pact_slots,
-      known: recoverGrantCastsOnRest(spells.known, 'long'),
+      known: stripMantleCommand(
+        stripSpiritSessionSpells(recoverGrantCastsOnRest(spells.known, 'long')),
+      ),
     })
     if (result.hp_current !== undefined) {
       onCombatChange({ hpCurrent: result.hp_current })
@@ -347,6 +368,17 @@ export function RestDialog({
                 disabled={!activeDie}
               />
             </Field>
+            {songOfRest ? (
+              <Field label={`Песнь отдыха ${songOfRest.label}`}>
+                <NumberInput
+                  min={1}
+                  max={songOfRest.sides}
+                  emptyValue={0}
+                  value={songRoll}
+                  onValueChange={(value) => setSongRoll(value)}
+                />
+              </Field>
+            ) : null}
             <div className="play-hit-heal__actions">
               <Button
                 type="button"

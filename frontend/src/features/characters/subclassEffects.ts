@@ -106,6 +106,7 @@ function cantripLabelForSlug(slug: string, fallback: string): string {
   if (slug === 'arcane_trickster') return 'Мистический ловкач · вне лимита заговоров'
   if (slug === 'way_of_shadow') return 'Путь тени · вне лимита заговоров'
   if (slug === 'arcane_archer') return 'Мистический лучник · вне лимита заклинаний'
+  if (slug === 'college_of_spirits') return 'Направляющие шёпоты · Харизма, 60 фт., вне лимита'
   return fallback
 }
 
@@ -135,9 +136,12 @@ function appendBonusCantripGrants(input: {
     input.known.map((spell) => spell.name),
   )
   const label = cantripLabelForSlug(input.slug, input.label)
+  const parentClassSlug =
+    input.parentClassSlug || (input.slug === 'college_of_spirits' ? 'bard' : null)
   for (const grant of grants) {
     pushLockedGrantSpell({
       ...input,
+      parentClassSlug,
       label,
       englishName: grant.nameEn,
       level: 0,

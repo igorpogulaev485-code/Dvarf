@@ -10,6 +10,7 @@ import { aggregateGearEffects } from '../gearEffects'
 import { fightingStyleFromFeatGrants, sumFeatInitiativeBonus, sumFeatPassiveBonus, type AppliedFeatGrant } from '../../../shared/dnd/featGrants'
 import { buildAsiFeatGrantFromCatalog, findMissingAsiFeatEntries, matchFeatCatalogEntry } from '../asiFeatHydrate'
 import { hydrateManeuversFromSubclassGrants } from '../../../shared/dnd/battleMasterManeuverBridge'
+import { hydrateSwordsFightingStyleFromGrants } from '../../../shared/dnd/swordsFightingStyleBridge'
 import { knowledgeBlessingSkillIds } from '../../../shared/dnd/expertise'
 import { applyFeatGrantToDraft, ensureFeatSpellsFromLedger, featSpellsMissingFromKnown } from '../featEffects'
 import { syncFeatureResources } from '../../../shared/dnd/featureResources'
@@ -407,6 +408,22 @@ export function useSheetEditorPart2(model: SheetModel) {
       return { ...prev, featurePicks: again.featurePicks }
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
+  }, [model.draft.subclassGrants, model.draft.featurePicks])
+
+  useEffect(() => {
+    const probe = hydrateSwordsFightingStyleFromGrants({
+      featurePicks: model.draft.featurePicks,
+      subclassGrants: model.draft.subclassGrants,
+    })
+    if (!probe.bridgedClassEntryIds.length) return
+    model.setDraft((prev) => {
+      const again = hydrateSwordsFightingStyleFromGrants({
+        featurePicks: prev.featurePicks,
+        subclassGrants: prev.subclassGrants,
+      })
+      if (!again.bridgedClassEntryIds.length) return prev
+      return { ...prev, featurePicks: again.featurePicks }
+    })
   }, [model.draft.subclassGrants, model.draft.featurePicks])
 
   // Ritual grants and bonus cantrips (totem, shadow, giant, arcane trickster)

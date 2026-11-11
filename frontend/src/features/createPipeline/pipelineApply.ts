@@ -46,6 +46,11 @@ import {
   extractManeuverIdsFromSubclassPicks,
 } from '../../shared/dnd/battleMasterManeuverBridge'
 import {
+  bridgeSwordsFightingStyle,
+  swordsFightingStyleFromGrant,
+  swordsFightingStyleFromSubclassPicks,
+} from '../../shared/dnd/swordsFightingStyleBridge'
+import {
   applyClassAsiBonuses,
   readClassAsiLedger,
   type AppliedClassAsi,
@@ -1146,6 +1151,14 @@ export async function applyPipelineToSheet(input: {
       classEntryId: row.id,
       maneuverIds,
       mode: 'merge_missing',
+    })
+    const styleFromSetup = setup
+      ? swordsFightingStyleFromSubclassPicks(normalizeSubclassPicks(setup.picks))
+      : null
+    featurePicks = bridgeSwordsFightingStyle({
+      featurePicks,
+      classEntryId: row.id,
+      styleId: styleFromSetup ?? (grant ? swordsFightingStyleFromGrant(grant) : null),
     })
   }
 

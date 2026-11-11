@@ -15,6 +15,10 @@ import { applyConcentrationChangeToCompanions } from '../spellCompanions'
 import { type CatalogEntry } from '../../../shared/api/catalog'
 import { type ClassLevelEntry } from '../classLevels'
 import { bridgeManeuversIntoFeaturePicks, extractManeuverIdsFromSubclassPicks } from '../../../shared/dnd/battleMasterManeuverBridge'
+import {
+  bridgeSwordsFightingStyle,
+  swordsFightingStyleFromSubclassPicks,
+} from '../../../shared/dnd/swordsFightingStyleBridge'
 import { bridgeOriginPicks } from '../../../shared/dnd/pack04SorcererWarlock'
 import { type FeatGrantDraftSlice } from '../featEffects'
 import { listSubclassFeatureIdsAboveLevel } from '../../../shared/dnd/classFeatures'
@@ -392,6 +396,11 @@ export function installSheetActions1(model: SheetModel) {
         classEntryId: input.classEntryId,
         maneuverIds: extractManeuverIdsFromSubclassPicks(input.picks),
         mode: 'merge_missing',
+      })
+      nextPicks = bridgeSwordsFightingStyle({
+        featurePicks: nextPicks,
+        classEntryId: input.classEntryId,
+        styleId: swordsFightingStyleFromSubclassPicks(input.picks),
       })
       return {
         ...withGrant,

@@ -11,6 +11,7 @@ import { isPactChainActive, isPactChainSpellId, pactChainFamiliarSpellId, syncPa
 import { isWarlockClassName } from '../pactTomeEffects'
 import { toggleCombatConsumableFavorite } from '../combatConsumables'
 import { formatSkillRoll, resolveRollMode, type DeskRollMode } from '../deskRolls'
+import { isMantleCommandSpell, MANTLE_CONCENTRATION_ID, silverTongueApplies } from '../../../shared/dnd/bardCollege'
 import { exhaustionRollFlags } from '../../../shared/dnd/exhaustion2014'
 import {
   MODE_DEFAULT_PANEL,
@@ -405,6 +406,15 @@ export function installSheetActions4(model: SheetModel) {
         ? ' · выбери фамильяра'
         : ''
 
+    if (isMantleCommandSpell(spell)) {
+      const conc = model.draft.play.concentration
+      if (!conc || conc.spell_id !== MANTLE_CONCENTRATION_ID) {
+        model.onToast('Приказ мантии доступен, только пока держится концентрация на «Мантии величия»')
+        return
+      }
+      model.onToast(`Каст: ${name} (Мантия величия, без ячейки)${effectNote}${consumeNote}${allyNote}`)
+      return
+    }
     if (spell.level <= 0) {
       if (spell.concentration) model.applyDeskConcentration(spell)
       const naparnikNote =
@@ -738,8 +748,21 @@ export function installSheetActions4(model: SheetModel) {
           ? ' · помеха от истощения'
           : ''
     const base = SKILL_DEFS.find((item) => item.key === skill.key)?.base
+    const silver = silverTongueApplies(
+      skill.key,
+      (model.unlockedFeatures ?? []).some(
+        (feature: { id?: string }) => feature.id === 'silver_tongue',
+      ),
+    )
     model.emitToast(
-      `${formatSkillRoll(skill.label, skill.mod, mode, undefined, model.strengthCheckFloor(base === 'str'))}${note}`,
+      `${formatSkillRoll(
+        skill.label,
+        skill.mod,
+        mode,
+        undefined,
+        model.strengthCheckFloor(base === 'str'),
+        silver ? { value: 10, label: 'серебряный язык' } : null,
+      )}${note}`,
     )
   }
 

@@ -6,6 +6,7 @@ import {
 } from './Pack09FeatureExtras'
 import { isPack03CustomSpend, Pack03FeatureExtras } from './Pack03FeatureExtras'
 import { Pack04FeatureExtras } from './Pack04FeatureExtras'
+import { Pack05FeatureExtras, pack05CustomSpendFeature } from './Pack05FeatureExtras'
 import type { RulesEdition } from '../../shared/api/characters'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
@@ -534,15 +535,24 @@ function FeatureResourceControls({
   const canOpenFeatureSelfForm =
     opensFeatureSelfForm && remaining > 0
 
+  const mirrorLinked = pool.max === 0 && linkedPool != null
+  const shownPool = mirrorLinked && linkedPool ? linkedPool : pool
+  const shownLeft = mirrorLinked ? linkedLeft : spendRemaining(pool)
   return (
     <div className="feature-resource">
       <SlotPips
-        max={pool.max}
-        used={pool.used}
-        label={`${pool.name}: ${spendRemaining(pool)}/${pool.max}`}
+        max={shownPool.max}
+        used={shownPool.used}
+        label={
+          mirrorLinked && linkedPool
+            ? `${linkedPool.name}: ${shownLeft}/${linkedPool.max}`
+            : `${pool.name}: ${spendRemaining(pool)}/${pool.max}`
+        }
         onChange={(used) =>
           onResourcesChange(
-            resources.map((row) => (row.id === pool.id ? { ...row, used } : row)),
+            resources.map((row) =>
+              row.id === shownPool.id ? { ...row, used } : row,
+            ),
           )
         }
       />
@@ -562,7 +572,12 @@ function FeatureResourceControls({
           лёгкий/средний.
         </Text>
       ) : null}
-      {linked && !opensWildShapeFork ? (
+      {mirrorLinked && linked ? (
+        <Text tone="muted">
+          Общий ресурс «{linkedPool?.name ?? linked.label_ru}»
+          {linkedPool ? ` (${linkedLeft}/${linkedPool.max})` : ''}. Отдельного счётчика нет.
+        </Text>
+      ) : linked && !opensWildShapeFork ? (
         <Text tone="muted">
           Сверх лимита: {linked.label_ru}
           {linkedPool ? ` (${linkedLeft} доступно)` : ''}
@@ -644,7 +659,9 @@ function FeatureResourceControls({
                 : 'Потратить…'
               : 'Через Дикий облик…'}
           </Button>
-        ) : isPack03CustomSpend(feature.id) || pack04CustomSpendFeature(feature.id) ? null : onWizardFeatureUse && wizardResolvedFeatureId(feature.id) ? (
+        ) : isPack03CustomSpend(feature.id) ||
+          pack04CustomSpendFeature(feature.id) ||
+          pack05CustomSpendFeature(feature.id) ? null : onWizardFeatureUse && wizardResolvedFeatureId(feature.id) ? (
           <Button
             type="button"
             disabled={
@@ -1699,6 +1716,7 @@ function FeatureRow({
   classes,
   featGrants = [],
   characterLevel,
+  charismaScore,
   edition = '2014',
 }: {
   feature: UnlockedFeature
@@ -1742,6 +1760,7 @@ function FeatureRow({
   classes: ClassLevelEntry[]
   featGrants?: AppliedFeatGrant[]
   characterLevel: number
+  charismaScore?: number
   edition?: RulesEdition
 }) {
   const sourceLabel =
@@ -2124,6 +2143,28 @@ function FeatureRow({
               name,
             })
           }
+        />
+      ) : null}
+      {replacementStatus === 'active' ? (
+        <Pack05FeatureExtras
+          feature={feature}
+          classSlug={classSlug}
+          resources={resources}
+          onResourcesChange={onResourcesChange}
+          featurePicks={featurePicks}
+          onFeaturePicksChange={onFeaturePicksChange}
+          spells={spells}
+          onSpellsChange={onSpellsChange}
+          inventoryItems={inventoryItems}
+          onInventoryChange={onInventoryChange}
+          companions={companions ?? []}
+          onCompanionsChange={onCompanionsChange}
+          concentration={concentration}
+          onConcentrationChange={onConcentrationChange}
+          onToast={onToast}
+          characterLevel={characterLevel}
+          charismaScore={charismaScore}
+          unlocked={unlockedFeatures}
         />
       ) : null}
       {replacementStatus === 'active' ? (
@@ -2702,6 +2743,7 @@ export function ClassFeaturesPanel({
                             classes={classes}
                             featGrants={featGrants}
                             characterLevel={characterLevel}
+                            charismaScore={abilities?.cha}
                             edition={edition}
                           />
                         )
