@@ -124,25 +124,48 @@ export function LobbyChatsPanel({
     }
   }, [activeChannelId, reloadMessages, onError])
 
-  useLobbyRealtime(lobbyId, (data) => {
-    if (data.type === 'chat_message') {
-      const message = data.message as ChatMessage
-      if (message.channel_id === activeChannelId) {
-        setMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, message]))
-      }
-      setChannels((prev) =>
-        prev.map((c) =>
-          c.id === message.channel_id ? { ...c, message_count: c.message_count + 1 } : c,
-        ),
-      )
+  const refreshChats = useCallback(() => {
+    void reloadChannels()
+    if (activeChannelId) void reloadMessages(activeChannelId)
+    void reloadLetters()
+    if (activeLetter) {
+      void getLetter(activeLetter.id).then(setActiveLetter).catch(() => undefined)
     }
-    if (data.type === 'master_letter' || data.type === 'master_letter_message') {
-      void reloadLetters()
-      if (activeLetter && data.type === 'master_letter_message' && data.letter_id === activeLetter.id) {
-        void getLetter(activeLetter.id).then(setActiveLetter).catch(() => undefined)
+  }, [activeChannelId, activeLetter, reloadChannels, reloadLetters, reloadMessages])
+
+  useLobbyRealtime(
+    lobbyId,
+    (data) => {
+      if (data.type === 'chat_message' && data.message && typeof data.message === 'object') {
+        const message = data.message as ChatMessage
+        if (message.channel_id === activeChannelId) {
+          setMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, message]))
+        }
+        setChannels((prev) =>
+          prev.map((c) =>
+            c.id === message.channel_id ? { ...c, message_count: c.message_count + 1 } : c,
+          ),
+        )
       }
-    }
-  })
+      if (data.type === 'chat_refresh' || data.type === 'lobby_resync') {
+        refreshChats()
+      }
+      // Текст письма по сокету не применяем: его видят только автор и мастер после своего GET.
+      if (
+        data.type === 'letters_changed' ||
+        data.type === 'master_letter' ||
+        data.type === 'master_letter_message'
+      ) {
+        void reloadLetters()
+        if (activeLetter) {
+          void getLetter(activeLetter.id).then(setActiveLetter).catch(() => undefined)
+        }
+      }
+    },
+    () => {
+      refreshChats()
+    },
+  )
 
   async function run(action: () => Promise<void>) {
     setBusy(true)

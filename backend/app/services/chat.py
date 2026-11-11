@@ -273,15 +273,7 @@ class ChatService:
         letter = self.chats.get_letter(letter.id)
         assert letter is not None
         out = self._letter_out(letter)
-        await lobby_hub.broadcast(
-            lobby_id,
-            {
-                "type": "master_letter",
-                "letter": self._letter_summary(letter, payload.body.strip()[:120]).model_dump(
-                    mode="json"
-                ),
-            },
-        )
+        await lobby_hub.broadcast(lobby_id, {"type": "letters_changed"})
         return out
 
     async def reply_letter(
@@ -318,18 +310,10 @@ class ChatService:
         letter = self.chats.get_letter(letter_id)
         assert letter is not None
         out = self._letter_out(letter)
-        await lobby_hub.broadcast(
-            letter.lobby_id,
-            {
-                "type": "master_letter_message",
-                "letter_id": str(letter.id),
-                "message": MasterLetterMessageOut.model_validate(msg).model_dump(mode="json"),
-                "status": letter.status,
-            },
-        )
+        await lobby_hub.broadcast(letter.lobby_id, {"type": "letters_changed"})
         return out
 
-    def close_letter(self, user: User, letter_id: UUID) -> MasterLetterOut:
+    async def close_letter(self, user: User, letter_id: UUID) -> MasterLetterOut:
         letter = self.chats.get_letter(letter_id)
         if letter is None:
             raise NotFoundError("Письмо не найдено", code="letter_not_found")
@@ -340,4 +324,5 @@ class ChatService:
         self.db.commit()
         letter = self.chats.get_letter(letter_id)
         assert letter is not None
+        await lobby_hub.broadcast(letter.lobby_id, {"type": "letters_changed"})
         return self._letter_out(letter)

@@ -7,9 +7,12 @@ type LobbyWsHandler = (data: { type: string; [key: string]: unknown }) => void
 export function useLobbyRealtime(
   lobbyId: string | null | undefined,
   onMessage: LobbyWsHandler,
+  onReconnect?: () => void,
 ): void {
   const onMessageRef = useRef(onMessage)
+  const onReconnectRef = useRef(onReconnect)
   onMessageRef.current = onMessage
+  onReconnectRef.current = onReconnect
 
   useEffect(() => {
     if (!lobbyId) return
@@ -17,6 +20,7 @@ export function useLobbyRealtime(
     if (!token) return
 
     let closed = false
+    let openedOnce = false
     let ws: WebSocket | null = null
     let pingTimer: ReturnType<typeof setInterval> | null = null
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null
@@ -35,10 +39,14 @@ export function useLobbyRealtime(
       if (!access || !lobbyId) return
       ws = new WebSocket(lobbyWsUrl(lobbyId, access))
       ws.onopen = () => {
+        if (closed) return
+        const isReconnect = openedOnce
+        openedOnce = true
         attempt = 0
         pingTimer = setInterval(() => {
           if (ws?.readyState === WebSocket.OPEN) ws.send('ping')
         }, 25000)
+        if (isReconnect) onReconnectRef.current?.()
       }
       ws.onmessage = (msg) => {
         try {

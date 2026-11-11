@@ -140,10 +140,7 @@ class NoteService:
         self.db.commit()
         self.db.refresh(note)
         out = self._out(note, user, is_owner)
-        await lobby_hub.broadcast(
-            lobby_id,
-            {"type": "note_upsert", "note": out.model_dump(mode="json")},
-        )
+        await lobby_hub.broadcast(lobby_id, {"type": "notes_changed"})
         return out
 
     async def update_note(
@@ -168,10 +165,7 @@ class NoteService:
         self.db.commit()
         self.db.refresh(note)
         out = self._out(note, user, is_owner)
-        await lobby_hub.broadcast(
-            note.lobby_id,
-            {"type": "note_upsert", "note": out.model_dump(mode="json")},
-        )
+        await lobby_hub.broadcast(note.lobby_id, {"type": "notes_changed"})
         return out
 
     async def delete_note(self, user: User, note_id: UUID) -> None:
@@ -183,10 +177,6 @@ class NoteService:
         if not self._can_edit(note, user, is_owner):
             raise AppError("Нельзя удалить чужую заметку", code="forbidden", status_code=403)
         lobby_id = note.lobby_id
-        nid = note.id
         self.notes.delete(note)
         self.db.commit()
-        await lobby_hub.broadcast(
-            lobby_id,
-            {"type": "note_delete", "note_id": str(nid)},
-        )
+        await lobby_hub.broadcast(lobby_id, {"type": "notes_changed"})

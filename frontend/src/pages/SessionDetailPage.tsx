@@ -157,6 +157,38 @@ export function SessionDetailPage() {
     setEvents(list)
   }, [sessionId, rollsOnly])
 
+  const pullGate = useRef({ inflight: false, again: false })
+  const pullSessionRef = useRef<() => void>(() => undefined)
+  const sessionIdRef = useRef(sessionId)
+  sessionIdRef.current = sessionId
+  const pullSession = useCallback(() => {
+    if (!sessionId) return
+    const gate = pullGate.current
+    if (gate.inflight) {
+      gate.again = true
+      return
+    }
+    gate.inflight = true
+    const requestedId = sessionId
+    void (async () => {
+      try {
+        const detail = await getSession(requestedId)
+        if (sessionIdRef.current === requestedId) setSession(detail)
+      } catch (err) {
+        if (err instanceof ApiRequestError && err.status === 401) {
+          navigate('/login', { replace: true })
+        }
+      } finally {
+        gate.inflight = false
+        if (gate.again) {
+          gate.again = false
+          pullSessionRef.current()
+        }
+      }
+    })()
+  }, [navigate, sessionId])
+  pullSessionRef.current = pullSession
+
   useEffect(() => {
     pageDeepLinkDone.current = false
   }, [sessionId])
@@ -242,6 +274,13 @@ export function SessionDetailPage() {
     },
     onSessionUpdate: (next) => {
       setSession(next)
+    },
+    onSessionChanged: () => {
+      pullSession()
+    },
+    onReconnect: () => {
+      pullSession()
+      void reloadEvents()
     },
   })
 

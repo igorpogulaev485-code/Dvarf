@@ -805,6 +805,7 @@ async def session_ws(session_id: UUID, websocket: WebSocket) -> None:
         return
     try:
         user = _user_from_ws_token(token)
+        user_id = user.id
     except UnauthorizedError:
         await websocket.close(code=4401)
         return
@@ -818,7 +819,7 @@ async def session_ws(session_id: UUID, websocket: WebSocket) -> None:
     finally:
         db.close()
 
-    await session_hub.connect(session_id, websocket)
+    await session_hub.connect(session_id, websocket, user_id=user_id)
     try:
         while True:
             # Держим соединение; клиент может слать ping.
@@ -928,12 +929,12 @@ async def reply_letter(
 
 
 @router.post("/letters/{letter_id}/close", response_model=MasterLetterOut)
-def close_letter(
+async def close_letter(
     letter_id: UUID,
     current_user: CurrentUser,
     db: DbSession,
 ) -> MasterLetterOut:
-    return ChatService(db).close_letter(current_user, letter_id)
+    return await ChatService(db).close_letter(current_user, letter_id)
 
 
 @router.get("/lobbies/{lobby_id}/notes", response_model=list[NoteOut])
@@ -988,6 +989,7 @@ async def lobby_ws(lobby_id: UUID, websocket: WebSocket) -> None:
         return
     try:
         user = _user_from_ws_token(token)
+        user_id = user.id
     except UnauthorizedError:
         await websocket.close(code=4401)
         return
@@ -1001,7 +1003,7 @@ async def lobby_ws(lobby_id: UUID, websocket: WebSocket) -> None:
     finally:
         db.close()
 
-    await lobby_hub.connect(lobby_id, websocket)
+    await lobby_hub.connect(lobby_id, websocket, user_id=user_id)
     try:
         while True:
             await websocket.receive_text()
