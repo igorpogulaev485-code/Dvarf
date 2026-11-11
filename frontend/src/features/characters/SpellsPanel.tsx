@@ -43,7 +43,9 @@ import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import { SpellbookManageDialog } from './SpellbookManageDialog'
 import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
-import { canCastPreparedSpellAsRitual } from '../../shared/dnd/ritualCasting'
+import { canOfferRitualCast, castAccessAllowsRitual } from '../../shared/dnd/ritualCasting'
+import { ritualBookBlockReason } from './castWithoutSlots'
+import { spendFeatureCast } from './featureCastSpend'
 import { resolveCastTiming } from '../../shared/dnd/upcastDuration'
 import {
   applyAbjurationToWard,
@@ -141,6 +143,8 @@ type SpellsPanelProps = {
   masterySpellIds?: string[]
   offerPowerSurge?: boolean
   voiceOfAuthority?: boolean
+  ritualBookLabel?: string | null
+  onOpenRitualBook?: () => void
 }
 
 export function SpellsPanel({
@@ -175,6 +179,8 @@ export function SpellsPanel({
   masterySpellIds = [],
   offerPowerSurge = false,
   voiceOfAuthority = false,
+  ritualBookLabel = null,
+  onOpenRitualBook,
 }: SpellsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
@@ -530,12 +536,20 @@ export function SpellsPanel({
         : ''
     }`
     const ritualCast = Boolean(choice.ritual && castSpell.ritual && castSpell.level > 0)
+    const atWillCast = Boolean(choice.atWill || castSpell.cast_access === 'at_will')
+    const featureCast = Boolean(choice.useFeature || castSpell.cast_access === 'feature')
+    if ((ritualCast || castSpell.cast_access === 'ritual_only') && ritualBookBlockReason(spells, castSpell)) {
+      onToast?.(ritualBookBlockReason(spells, castSpell) ?? 'Нет книги')
+      setCastSpell(null)
+      return
+    }
     if (ritualCast && learnBudget?.mode !== 'spellbook') {
-      const allowed = canCastPreparedSpellAsRitual({
+      const allowed = canOfferRitualCast({
         ritual: true,
         level: castSpell.level,
         classSlug: castSpell.class_slug,
         casterSlugs: (castProfiles ?? []).map((row) => row.slug),
+        castAccess: castSpell.cast_access,
       })
       if (!allowed) {
         onToast?.(
@@ -564,7 +578,7 @@ export function SpellsPanel({
         : null
     const grantCast = Boolean(grantRow && canSpendGrantCast(grantRow))
     const slotForEffect =
-      castSpell.level <= 0 || ritualCast || grantCast
+      castSpell.level <= 0 || ritualCast || grantCast || atWillCast || featureCast
         ? castSpell.level
         : choice.usePact
           ? (spells.pact_slots?.level ?? castSpell.level)
@@ -581,6 +595,38 @@ export function SpellsPanel({
     const naparnikSlot = slotForEffect || castSpell.level
     const wantsForm = openSelfFormPickerIfNeeded(castSpell, choice)
     const formNote = wantsForm ? ' · выбери форму' : ''
+
+    if (atWillCast) {
+      applyConcentrationIfNeeded(castSpell)
+      const naparnikNote = wantsForm ? '' : applyNaparnikFromCast(castSpell, 0)
+      onToast?.(
+        `Каст: ${name} (по желанию, без ячейки)${effectNote}${consumeNote}${allyNote}${
+          castSpell.concentration ? ' · концентрация' : ''
+        }${naparnikNote}${formNote}`,
+      )
+      setCastSpell(null)
+      return
+    }
+    if (featureCast) {
+      if (!resources || !onResourcesChange) {
+        onToast?.('Нет пула умения')
+        return
+      }
+      const spent = spendFeatureCast({ resources, spell: castSpell })
+      if (!spent.ok) {
+        onToast?.(spent.message)
+        return
+      }
+      onResourcesChange(spent.resources)
+      applyConcentrationIfNeeded(castSpell)
+      onToast?.(
+        `Каст: ${name} (${spent.message}, без ячейки)${effectNote}${consumeNote}${allyNote}${
+          castSpell.concentration ? ' · концентрация' : ''
+        }${formNote}`,
+      )
+      setCastSpell(null)
+      return
+    }
 
     if (castSpell.level <= 0) {
       applyConcentrationIfNeeded(castSpell)
@@ -626,7 +672,9 @@ export function SpellsPanel({
       return
     }
     if (ritualCast) {
-      if (learnBudget?.mode === 'spellbook') {
+      const externalRitual =
+        castSpell.ritual_book != null || castAccessAllowsRitual(castSpell.cast_access)
+      if (learnBudget?.mode === 'spellbook' && !externalRitual) {
         const gate = canCastWizardRitualFromBook({
           spell: castSpell,
           book: spells.wizard_spellbook,
@@ -881,6 +929,12 @@ export function SpellsPanel({
             <IconSpellBook className="spells-btn-icon" />
             Гримуар
           </Button>
+          {ritualBookLabel && onOpenRitualBook ? (
+            <Button variant="secondary" onClick={onOpenRitualBook}>
+              <IconSpellBook className="spells-btn-icon" />
+              {ritualBookLabel}
+            </Button>
+          ) : null}
         </div>
 
         {settingsOpen ? (
@@ -1405,6 +1459,7 @@ export function SpellsPanel({
             : 0
         }
         voiceOfAuthority={voiceOfAuthority}
+        resources={resources}
         abilities={abilities}
         proficiencyBonus={proficiencyBonus}
         castProfiles={castProfiles}

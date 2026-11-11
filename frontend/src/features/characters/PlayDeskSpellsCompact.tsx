@@ -38,7 +38,7 @@ import {
   type SheetSpell,
   type SpellsState,
 } from './spells'
-import { IconCast, IconConcentration, IconRitual, IconWizardHat } from './spellIcons'
+import { IconCast, IconConcentration, IconRitual, IconSpellBook, IconWizardHat } from './spellIcons'
 import type { FormulaVars } from '../../shared/dnd/formulas'
 import {
   SPELLCASTING_ABILITY_LABELS,
@@ -92,6 +92,8 @@ type PlayDeskSpellsCompactProps = {
   onCastSpell?: (spell: SheetSpell) => void
   /** Pin concentration in hot without opening full panel. */
   onConcentrateSpell?: (spell: SheetSpell) => void
+  ritualBookLabel?: string | null
+  onOpenRitualBook?: () => void
 }
 
 export function PlayDeskSpellsCompact({
@@ -117,6 +119,8 @@ export function PlayDeskSpellsCompact({
   onPactUsedChange,
   onCastSpell,
   onConcentrateSpell,
+  ritualBookLabel = null,
+  onOpenRitualBook,
 }: PlayDeskSpellsCompactProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [detailSpell, setDetailSpell] = useState<SheetSpell | null>(null)
@@ -265,6 +269,16 @@ export function PlayDeskSpellsCompact({
       <div className="play-desk-compact__head">
         <h3>{pinned ? 'Заклинания (закреплено)' : 'Заклинания'}</h3>
         <div className="play-desk-compact__head-actions">
+          {ritualBookLabel && onOpenRitualBook ? (
+            <button
+              type="button"
+              className="play-desk-compact__link play-desk-compact__link--prepare"
+              onClick={onOpenRitualBook}
+            >
+              <IconSpellBook className="play-desk-compact__link-icon" />
+              {ritualBookLabel}
+            </button>
+          ) : null}
           {showPrepare ? (
             <button
               type="button"

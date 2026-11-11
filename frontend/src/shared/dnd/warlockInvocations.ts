@@ -185,6 +185,47 @@ export function invocationLabel(id: string): string {
   return invocationById(id)?.nameRu || id
 }
 
+/**
+ * PHB invocations that are a spell cast. XGE rows are omitted: those
+ * invocations are not in `WARLOCK_INVOCATIONS`, and this hotfix does not
+ * invent the XGE catalog.
+ * `pact_slot` is ready for a book line that spends a pact slot (and an
+ * optional long-rest limit) instead of a regular slot.
+ */
+export type InvocationCastDef = {
+  invocationId: string
+  mode: 'at_will' | 'pact_slot'
+  nameEn: string
+  selfOnly?: boolean
+  /** Lock the card to this circle. Fiendish Vigor is 1st level only. */
+  fixedLevel?: number
+  limitPerLongRest?: number
+}
+
+export const INVOCATION_CASTS: InvocationCastDef[] = [
+  { invocationId: 'armor_of_shadows', mode: 'at_will', nameEn: 'Mage Armor', selfOnly: true },
+  { invocationId: 'beast_speech', mode: 'at_will', nameEn: 'Speak with Animals' },
+  { invocationId: 'eldritch_sight', mode: 'at_will', nameEn: 'Detect Magic' },
+  {
+    invocationId: 'fiendish_vigor',
+    mode: 'at_will',
+    nameEn: 'False Life',
+    selfOnly: true,
+    fixedLevel: 1,
+  },
+  { invocationId: 'mask_of_many_faces', mode: 'at_will', nameEn: 'Disguise Self' },
+  { invocationId: 'misty_visions', mode: 'at_will', nameEn: 'Silent Image' },
+  { invocationId: 'otherworldly_leap', mode: 'at_will', nameEn: 'Jump', selfOnly: true },
+  { invocationId: 'whispers_of_the_grave', mode: 'at_will', nameEn: 'Speak with Dead' },
+  { invocationId: 'master_of_myriad_forms', mode: 'at_will', nameEn: 'Alter Self' },
+  { invocationId: 'visions_of_distant_realms', mode: 'at_will', nameEn: 'Arcane Eye' },
+]
+
+export function invocationCastById(id: string | null | undefined): InvocationCastDef | null {
+  if (!id) return null
+  return INVOCATION_CASTS.find((row) => row.invocationId === id) ?? null
+}
+
 export const WARLOCK_PACT_BOONS = [
   { id: 'blade', nameRu: 'Клинок' },
   { id: 'chain', nameRu: 'Цепь' },

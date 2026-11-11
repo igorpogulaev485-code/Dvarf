@@ -123,6 +123,39 @@ export function bundledSpellsAtLevel(level: number): BundledSpellBrief[] {
   return out
 }
 
+export type BundledRitualOption = {
+  slug: string
+  nameRu: string
+  nameEn: string
+  level: number
+  classes: string[]
+}
+
+/** Leveled spells with the ritual tag, for ritual-book copy pickers. */
+export function bundledRitualOptions(): BundledRitualOption[] {
+  const out: BundledRitualOption[] = []
+  for (const row of bundledList) {
+    const slug = row.slug?.trim()
+    if (!slug) continue
+    const data = row.data ?? {}
+    if (data.ritual !== true) continue
+    const level = typeof data.level === 'number' ? data.level : 0
+    if (level <= 0) continue
+    const classes = Array.isArray(data.classes)
+      ? data.classes.filter((item): item is string => typeof item === 'string')
+      : []
+    out.push({
+      slug,
+      nameRu: row.name_ru,
+      nameEn: row.name_en?.trim() || row.name_ru,
+      level,
+      classes: classes.map((item) => item.trim().toLowerCase()),
+    })
+  }
+  out.sort((a, b) => a.level - b.level || a.nameRu.localeCompare(b.nameRu, 'ru'))
+  return out
+}
+
 /** Bundled 2014 row by catalog slug (fireball, command, …). */
 export function bundledSpellBySlug(slug: string): CatalogSpellEntry | null {
   const key = slug.trim()

@@ -46,6 +46,7 @@ assert(row.name === 'Поиск фамильяра', 'RU name')
 assert(row.class_slug === 'warlock', 'warlock slug')
 assert(row.prepared_locked, 'locked')
 assert(row.ritual, 'ritual')
+assert(row.cast_access === 'ritual_or_slot', 'ritual or pact slot')
 
 const off = syncPactChainFamiliar({
   spells: on.spells,
