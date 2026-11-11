@@ -70,6 +70,7 @@ else
 fi
 
 section "правила, похожие на дроп, гео или DDoS (iptables-save и nft)"
+echo "Сырой список. Изоляция Docker (DROP на адрес подсети моста с «! -i br-*» или docker0) в вердикт не входит."
 hits="$(
   {
     iptables-save 2>/dev/null
@@ -118,6 +119,19 @@ cat <<'EOF'
 Если permission denied — в начале той же команды sudo. Это по-прежнему только чтение.
 EOF
 
+# Штатная изоляция моста Docker, не бан внешнего клиента:
+#   -A PREROUTING -d 172.18.0.2/32 ! -i br-XXXX -j DROP
+#   -A PREROUTING -d 172.17.0.0/16 ! -i docker0 -j DROP
+# Пакет к адресу контейнера, пришедший не с его моста, отбрасывается.
+# Скрипт это только читает и в вердикт не берёт.
+is_docker_bridge_isolation() {
+  local line="$1"
+  printf '%s\n' "$line" | grep -Eq -- '-j DROP([[:space:]]|$)' || return 1
+  printf '%s\n' "$line" | grep -Eq -- '! -i (br-[0-9A-Za-z]+|docker0)([[:space:]]|$)' || return 1
+  printf '%s\n' "$line" | grep -Eq -- '-d (10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|192\.168\.)' || return 1
+  return 0
+}
+
 print_verdict() {
   section "вердикт: бан на сервере или SYN не дошёл"
   local host_block=0
@@ -127,6 +141,9 @@ print_verdict() {
   local policy=""
   local drops=""
   local raw_drops=""
+  local forward_rules=""
+  local docker_iso=0
+  local real_raw=0
   local jails=""
   local jail=""
   local jail_text=""
@@ -199,6 +216,10 @@ print_verdict() {
     if [[ -n "$drops" ]]; then
       while IFS= read -r line; do
         [[ -n "$line" ]] || continue
+        [[ "$line" == -P\ * ]] && continue
+        if is_docker_bridge_isolation "$line"; then
+          continue
+        fi
         if printf '%s\n' "$line" | grep -Eq 'dpt:22([^0-9]|$)|dpt:5432([^0-9]|$)'; then
           continue
         fi
@@ -208,10 +229,41 @@ print_verdict() {
     fi
   fi
 
+  # Политика FORWARD DROP у Docker — норма. Правило DROP/REJECT в самой
+  # цепочке FORWARD на внешний адрес — запрет. Цепочку DOCKER не читаем:
+  # её «! -i br-* -o br-* -j DROP» — изоляция моста, не бан клиента.
+  forward_rules="$(iptables -S FORWARD 2>/dev/null || true)"
+  if [[ -n "$forward_rules" ]]; then
+    while IFS= read -r line; do
+      [[ "$line" == -A\ * ]] || continue
+      printf '%s\n' "$line" | grep -Eq 'DROP|REJECT' || continue
+      if is_docker_bridge_isolation "$line"; then
+        continue
+      fi
+      host_block=1
+      notes="${notes}FORWARD дропает: ${line}. "
+    done <<< "$forward_rules"
+  fi
+
   raw_drops="$(iptables -t raw -S PREROUTING 2>/dev/null | grep -E 'DROP|REJECT' || true)"
+  docker_iso=0
+  real_raw=0
   if [[ -n "$raw_drops" ]]; then
+    while IFS= read -r line; do
+      [[ -n "$line" ]] || continue
+      [[ "$line" == -P\ * ]] && continue
+      if is_docker_bridge_isolation "$line"; then
+        docker_iso=$((docker_iso + 1))
+        continue
+      fi
+      real_raw=$((real_raw + 1))
+      notes="${notes}raw PREROUTING дропает: ${line}. "
+    done <<< "$raw_drops"
+  fi
+  if (( real_raw > 0 )); then
     host_block=1
-    notes="${notes}raw PREROUTING дропает пакеты до обычного фильтра. "
+  elif (( docker_iso > 0 )); then
+    notes="${notes}raw PREROUTING: ${docker_iso} правил изоляции Docker (DROP на адрес моста, не с br-*/docker0) — не запрет. "
   fi
 
   local docker_user=""
