@@ -444,6 +444,17 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         onPlayChange={(play) => model.setDraft((prev) => ({ ...prev, play }))}
         onToast={model.onToast}
         onClose={() => model.setHotConditionsOpen(false)}
+        immuneWarning={
+          (model.unlockedFeatures ?? []).some(
+            (feature: { id?: string }) => feature.id === 'fungal_body',
+          ) && (model.draft.hpCurrent ?? 0) >= 1
+            ? {
+                slugs: ['blinded', 'deafened', 'frightened', 'poisoned'],
+                reason:
+                  'Грибковое тело: пока есть хотя бы 1 хит, нельзя ослепить, оглохнуть, испугать или отравить. Критическое попадание по тебе считается обычным. Отметить состояние всё равно?',
+              }
+            : null
+        }
       />
 
       <AcBreakdownDialog

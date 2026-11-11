@@ -12,6 +12,7 @@ import {
 } from '../../ui'
 import {
   COMPANION_KIND_LABELS,
+  companionMovementLine,
   companionSourceLabel,
   createCompanion,
   dealDamageToSelfForm,
@@ -37,6 +38,8 @@ type CompanionsPanelProps = {
   onToast?: (msg: string) => void
   /** Pact of the Chain: open Find Familiar cast (creates familiar card). */
   onCastPactChainFamiliar?: () => void
+  /** Damage to a beast form is damage to you: offer a concentration save. */
+  onFormDamaged?: (damage: number) => void
 }
 
 const KIND_SHORT: Record<CompanionKind, string> = {
@@ -125,6 +128,7 @@ export function CompanionsPanel({
   onSpellsChange,
   onToast,
   onCastPactChainFamiliar,
+  onFormDamaged,
 }: CompanionsPanelProps) {
   const hasFamiliar = companions.some((row) => row.kind === 'familiar')
   const [filter, setFilter] = useState<CompanionFilter>('all')
@@ -519,6 +523,24 @@ export function CompanionsPanel({
                     />
                   </Field>
                 </div>
+                {companionMovementLine(row.stats) ? (
+                  <Text tone="muted">Скорость: {companionMovementLine(row.stats)}</Text>
+                ) : null}
+                {row.stats.str != null || row.stats.dex != null || row.stats.con != null ? (
+                  <Text tone="muted">
+                    СИЛ {row.stats.str ?? '—'} · ЛОВ {row.stats.dex ?? '—'} · ТЕЛ{' '}
+                    {row.stats.con ?? '—'} (ИНТ/МУД/ХАР хозяина)
+                  </Text>
+                ) : null}
+                {row.stats.resistances ? (
+                  <Text tone="muted">Устойчивости: {row.stats.resistances}</Text>
+                ) : null}
+                {row.stats.immunities ? (
+                  <Text tone="muted">Иммунитеты: {row.stats.immunities}</Text>
+                ) : null}
+                {row.actions.trim() ? (
+                  <Text tone="muted">Атаки и действия: {row.actions}</Text>
+                ) : null}
 
                 {selfForm && hasFormHp && row.active ? (
                   <div className="sheet-grid sheet-grid--2">
@@ -551,6 +573,7 @@ export function CompanionsPanel({
                             onHostHpChange(result.hostHp)
                           }
                           setDamageById((prev) => ({ ...prev, [row.id]: null }))
+                          onFormDamaged?.(amount)
                           if (result.formDismissed) {
                             setOpenIds((prev) => {
                               const next = new Set(prev)

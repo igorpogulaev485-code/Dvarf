@@ -6,6 +6,7 @@ import { pactChainFamiliarSpellId } from './pactChainEffects.ts'
 import {
   applyFindFamiliarCompanion,
   familiarAllowedSlugs,
+  FIND_FAMILIAR_BEAST_SLUGS,
   FIND_FAMILIAR_FALLBACK_PICKS,
   resolveFamiliarCastMode,
   warlockHasPactChain,
@@ -74,6 +75,14 @@ assert(
 
 const spellSlugs = familiarAllowedSlugs('spell')
 assert(spellSlugs.includes('owl') && !spellSlugs.includes('imp'), 'spell no imp')
+assert(
+  FIND_FAMILIAR_BEAST_SLUGS.every((slug) => FIND_FAMILIAR_FALLBACK_PICKS[slug]),
+  'fallback stats for all 15 PHB forms',
+)
+assert(
+  Boolean(FIND_FAMILIAR_FALLBACK_PICKS.spider && FIND_FAMILIAR_FALLBACK_PICKS.rat && FIND_FAMILIAR_FALLBACK_PICKS.octopus),
+  'spider rat octopus',
+)
 const chainSlugs = familiarAllowedSlugs('pact_chain')
 assert(chainSlugs.includes('imp') && chainSlugs.includes('owl'), 'chain has both')
 

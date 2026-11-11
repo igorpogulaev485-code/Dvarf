@@ -36,6 +36,7 @@ import { featurePicksToSheet } from '../../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../../shared/dnd/fightingStyles'
 import { aggregateInfusionBonuses, applyInfusionAbilityFloors } from '../../../shared/dnd/infusionEffects'
 import { infusionAcFromSharedEffects } from '../../../shared/dnd/infusionItems'
+import { beastPhysicalOverlay } from '../wildShape'
 import { syncPactBladeAttack } from '../pactBladeAttack'
 import { syncRangerConclaveSpells } from '../rangerConclaveSpells'
 import { syncSorcererOriginSpells } from '../sorcererOriginSpells'
@@ -497,12 +498,21 @@ export function useSheetEditorPart3(model: SheetModel) {
       model.draft.modifiers,
       formulaVarsBase,
     )
-    return applyInfusionAbilityFloors(boosted, infusionBonuses.abilityFloor)
+    const floored = applyInfusionAbilityFloors(boosted, infusionBonuses.abilityFloor)
+    const form = beastPhysicalOverlay(model.draft.companions)
+    if (!form) return floored
+    return {
+      ...floored,
+      ...(form.str != null ? { str: form.str } : {}),
+      ...(form.dex != null ? { dex: form.dex } : {}),
+      ...(form.con != null ? { con: form.con } : {}),
+    }
   }, [
     gearAbilities,
     model.draft.modifiers,
     formulaVarsBase,
     infusionBonuses.abilityFloor,
+    model.draft.companions,
   ])
   model.effectiveAbilities = effectiveAbilities
 

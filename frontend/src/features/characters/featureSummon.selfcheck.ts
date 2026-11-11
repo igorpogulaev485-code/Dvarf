@@ -33,7 +33,7 @@ assert(summonFeat, 'wildfire summon feature unlocked')
 assert(summonFeat.summon, 'summon block parsed')
 assert(summonFeat.summon.kind === 'ally', 'kind=ally (напарник)')
 assert(summonFeat.summon.name_ru === 'Дух дикого огня', 'name')
-assert(summonFeat.summon.hp_base === 10 && summonFeat.summon.hp_per_level === 5, 'hp formula')
+assert(summonFeat.summon.hp_base === 5 && summonFeat.summon.hp_per_level === 5, 'hp formula')
 assert(summonFeat.summon.ac === 13, 'ac 13')
 assert(Boolean(summonFeat.summon.actions_ru?.trim()), 'actions prefilled')
 
@@ -56,7 +56,7 @@ const companions = applyFeatureSummon({
 })
 assert(companions.length === 1, 'one ally card')
 assert(companions[0]!.kind === 'ally', 'stored as ally')
-assert(companions[0]!.stats.hp === 10 + 5 * 6, 'hp = 10+5×level (TCoE)')
+assert(companions[0]!.stats.hp === 5 + 5 * 6, 'hp = 5+5×level (TCE)')
 assert(companions[0]!.stats.ac === 13, 'ac filled')
 assert(companions[0]!.stats.speed === 30, 'speed filled')
 assert(Boolean(companions[0]!.actions?.trim()), 'actions on card')
@@ -87,5 +87,5 @@ const roundTrip = readCompanions(replaced)
 assert(roundTrip[0]?.kind === 'ally', 'persist ally kind')
 
 console.log(
-  'featureSummon.selfcheck: ok (wildfire → напарник ally; hp 10+5×lvl; actions; replace)',
+  'featureSummon.selfcheck: ok (wildfire → напарник ally; hp 5+5×lvl; actions; replace)',
 )

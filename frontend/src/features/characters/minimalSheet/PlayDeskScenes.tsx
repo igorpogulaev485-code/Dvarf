@@ -3,7 +3,7 @@ import { useState } from 'react'
 import type { SheetModel } from './sheetModel'
 import type { DivineSmiteIntent } from '../divineSmite'
 import { type RulesEdition } from '../../../shared/api/characters'
-import { applyConcentrationChangeToCompanions } from '../spellCompanions'
+import { applyConcentrationChangeToCompanions, concentrationEndNotice } from '../spellCompanions'
 import { AttacksPanel, syncAttacksHeldFromInventory } from '../AttacksPanel'
 import { AttunementDialog } from '../AttunementDialog'
 import { filledAttunementCount } from '../attunement'
@@ -13,7 +13,8 @@ import { SpellsPanel } from '../SpellsPanel'
 import { SpellsSettingsDialog } from '../SpellsSettingsDialog'
 import { ClassFeaturesPanel } from '../ClassFeaturesPanel'
 import { CompanionsPanel } from '../CompanionsPanel'
-import { healSelfForm, rollDice } from '../wildShape'
+import { getActiveSelfForm } from '../companions'
+import { healSelfForm, rollDice, starryFormDice } from '../wildShape'
 import { TextBlocksPanel } from '../TextBlocksPanel'
 import { PlayDeskAttacksCompact } from '../PlayDeskAttacksCompact'
 import { PlayDeskSpellsCompact } from '../PlayDeskSpellsCompact'
@@ -58,7 +59,29 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
       {model.showCompact('attacks') ? (
         <>
           <PlayDeskAttacksCompact
-            weapons={model.draft.weapons}
+            weapons={
+              getActiveSelfForm(model.draft.companions)?.form?.form_source_ref?.startsWith(
+                'starry_form:archer',
+              )
+                ? [
+                    ...model.draft.weapons,
+                    {
+                      id: 'starry-archer',
+                      name: 'Лучистый лук',
+                      catalog_id: null,
+                      source_kind: 'class' as const,
+                      ability: 'wis' as const,
+                      is_proficient: true,
+                      damage: starryFormDice(
+                        model.draft.classes.find((row) => /друид|druid/i.test(row.name))?.level ??
+                          model.characterLevel,
+                      ),
+                      damage_type: 'лучистый',
+                    },
+                  ]
+                : model.draft.weapons
+            }
+            hpTemp={model.draft.play.hpTemp}
             abilities={model.effectiveAbilities}
             proficiencyBonus={model.proficiencyBonus}
             gearBonusesByItem={model.gearEffects.byItem}
@@ -308,6 +331,10 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           else model.onToast('Пул частиц души ещё не синхронизирован')
         }}
         onWildShapeFork={(request) => model.setWildShapeFork(request)}
+        onOpenRecovery={(id) => model.setArcaneRecoverySpendId(id)}
+        hpCurrent={model.draft.hpCurrent}
+        hpMax={model.draft.hpMax}
+        onHpChange={(hp) => model.setDraft((prev) => ({ ...prev, hpCurrent: hp }))}
         onFeatureSelfForm={(request) => model.setFeatureSelfForm(request)}
         inventoryItems={model.draft.inventory.items}
         onInventoryChange={(items) =>
@@ -318,23 +345,21 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         }
         concentration={model.draft.play.concentration}
         onConcentrationChange={(concentration) => {
-          let dismissed: string[] = []
+          let notice: string | null = null
           model.setDraft((prev) => {
             const result = applyConcentrationChangeToCompanions({
               companions: prev.companions,
               previous: prev.play.concentration,
               next: concentration,
             })
-            dismissed = result.dismissedNames
+            notice = concentrationEndNotice(result)
             return {
               ...prev,
               companions: result.companions,
               play: { ...prev.play, concentration },
             }
           })
-          if (dismissed.length) {
-            model.onToast(`Концентрация снята · напарник неактивен: ${dismissed.join(', ')}`)
-          }
+          if (notice) model.onToast(notice)
         }}
         onWizardFeatureUse={(request) => model.setWizardFeatureUse(request)}
         onMoonFormSlotHeal={({ slotLevel, diceCount, diceSize }) => {
@@ -546,25 +571,21 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             })
           }
           onConcentrationChange={(concentration) => {
-            let dismissed: string[] = []
+            let notice: string | null = null
             model.setDraft((prev) => {
               const result = applyConcentrationChangeToCompanions({
                 companions: prev.companions,
                 previous: prev.play.concentration,
                 next: concentration,
               })
-              dismissed = result.dismissedNames
+              notice = concentrationEndNotice(result)
               return {
                 ...prev,
                 companions: result.companions,
                 play: { ...prev.play, concentration },
               }
             })
-            if (dismissed.length) {
-              model.onToast(
-                `Концентрация снята · напарник неактивен: ${dismissed.join(', ')}`,
-              )
-            }
+            if (notice) model.onToast(notice)
           }}
           onToast={model.onToast}
         />
@@ -587,6 +608,14 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         spells={model.draft.spells}
         onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
         onToast={model.onToast}
+        onFormDamaged={(damage) => {
+          if (!model.draft.play.concentration || damage <= 0) return
+          model.setConcDamageAsk({
+            damage,
+            spellName: model.draft.play.concentration.name,
+            dc: Math.max(10, Math.floor(damage / 2)),
+          })
+        }}
         onCastPactChainFamiliar={
           model.pactChainFamiliarReady
             ? () => model.openPactChainFamiliarCast()

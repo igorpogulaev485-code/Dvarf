@@ -171,6 +171,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           hostHp={model.draft.hpCurrent ?? 0}
           hostHpMax={model.draft.hpMax ?? 0}
           edition={model.rulesEdition === '2024' ? '2024' : '2014'}
+          featurePicks={model.draft.featurePicks}
           onConfirm={(result) => {
             model.applyWildShapeResult(result)
             model.setWildShapeFork(null)

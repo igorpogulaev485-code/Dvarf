@@ -11,7 +11,7 @@ import {
   subclassNeedsSetupDialog,
   type SubclassGrantDraftSlice,
 } from '../subclassEffects'
-import { applyConcentrationChangeToCompanions } from '../spellCompanions'
+import { applyConcentrationChangeToCompanions, concentrationEndNotice } from '../spellCompanions'
 import { type CatalogEntry } from '../../../shared/api/catalog'
 import { type ClassLevelEntry } from '../classLevels'
 import { bridgeManeuversIntoFeaturePicks, extractManeuverIdsFromSubclassPicks } from '../../../shared/dnd/battleMasterManeuverBridge'
@@ -43,6 +43,7 @@ export function installSheetActions1(model: SheetModel) {
           ? { hpTemp: Math.max(prev.play.hpTemp, result.hpTemp) }
           : {}),
       },
+      ...(result.featurePicks ? { featurePicks: result.featurePicks } : {}),
     }))
     if (result.toast) model.onToast(result.toast)
   }
@@ -50,25 +51,21 @@ export function installSheetActions1(model: SheetModel) {
   model.clearConcentrationDismissingCompanions = function clearConcentrationDismissingCompanions(
     next: typeof model.draft.play.concentration | null = null,
   ) {
-    let dismissed: string[] = []
+    let notice: string | null = null
     model.setDraft((prev) => {
       const result = applyConcentrationChangeToCompanions({
         companions: prev.companions,
         previous: prev.play.concentration,
         next,
       })
-      dismissed = result.dismissedNames
+      notice = concentrationEndNotice(result)
       return {
         ...prev,
         companions: result.companions,
         play: { ...prev.play, concentration: next },
       }
     })
-    if (dismissed.length) {
-      model.onToast(
-        `Концентрация снята · напарник неактивен: ${dismissed.join(', ')}`,
-      )
-    }
+    if (notice) model.onToast(notice)
   }
 
 /** Refresh mark-list racial spells after class / subclass / level changes. */

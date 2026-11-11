@@ -7,6 +7,7 @@ import {
 import { isPack03CustomSpend, Pack03FeatureExtras } from './Pack03FeatureExtras'
 import { Pack04FeatureExtras } from './Pack04FeatureExtras'
 import { Pack05FeatureExtras, pack05CustomSpendFeature } from './Pack05FeatureExtras'
+import { Pack07FeatureExtras, pack07CustomSpendFeature } from './Pack07FeatureExtras'
 import type { RulesEdition } from '../../shared/api/characters'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
@@ -131,7 +132,7 @@ import {
 import { isFeatureSelfFormId } from './featureForms'
 import type { SpellsState } from './spells'
 import { abilityModifier, SKILL_DEFS } from './sheetTypes'
-import { isWildShapeForkFeature, moonHealDiceCount } from './wildShape'
+import { isWildShapeForkFeature, moonHealDiceCount, moonShapeScale } from './wildShape'
 import { PactTomeCantripsPicker } from './PactTomeCantripsPicker'
 import {
   isPactTomeActive,
@@ -189,6 +190,11 @@ type ClassFeaturesPanelProps = {
    * открыть развилку вместо голого spend.
    */
   onWildShapeFork?: (request: WildShapeForkRequest) => void
+  /** Natural Recovery: open the slot picker instead of spending the charge. */
+  onOpenRecovery?: (resourceId: string) => void
+  hpCurrent?: number | null
+  hpMax?: number | null
+  onHpChange?: (hp: number) => void
   /** Wizard Shapechanger etc. — open self_form picker, then spend pool. */
   onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
   /** Tradition features that ask for a target, mode, or active state. */
@@ -311,9 +317,11 @@ function FeatureResourceControls({
   onOpenInfusions,
   onOpenSoulTrinkets,
   onWildShapeFork,
+  onOpenRecovery,
   onFeatureSelfForm,
   onWizardFeatureUse,
   moonCombatWildShape = false,
+  scaleText = null,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -327,10 +335,12 @@ function FeatureResourceControls({
   onOpenInfusions?: (classEntryId: string) => void
   onOpenSoulTrinkets?: (classEntryId: string) => void
   onWildShapeFork?: (request: WildShapeForkRequest) => void
+  onOpenRecovery?: (resourceId: string) => void
   onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
   onWizardFeatureUse?: (request: WizardFeatureRequest) => void
   /** Circle of the Moon: Wild Shape is a bonus action. */
   moonCombatWildShape?: boolean
+  scaleText?: string | null
 }) {
   const perUseCap =
     feature.resource?.per_use_cap === 'half_class_level'
@@ -353,7 +363,7 @@ function FeatureResourceControls({
     )
   }
 
-  if (pool.unlimited) {
+  if (pool.unlimited && !isWildShapeForkFeature(feature.id)) {
     return (
       <div className="feature-resource">
         <Text>
@@ -541,7 +551,9 @@ function FeatureResourceControls({
         ? linkedPool
         : null
   const wildShapeLeftForFork = spendRemaining(wildShapePoolForFork)
-  const canOpenWildShapeFork = opensWildShapeFork && wildShapeLeftForFork > 0
+  const wildShapeUnlimited = Boolean(wildShapePoolForFork?.unlimited)
+  const canOpenWildShapeFork =
+    opensWildShapeFork && (wildShapeUnlimited || wildShapeLeftForFork > 0)
   const opensFeatureSelfForm =
     Boolean(onFeatureSelfForm) && isFeatureSelfFormId(feature.id)
   const canOpenFeatureSelfForm =
@@ -552,25 +564,31 @@ function FeatureResourceControls({
   const shownLeft = mirrorLinked ? linkedLeft : spendRemaining(pool)
   return (
     <div className="feature-resource">
-      <SlotPips
-        max={shownPool.max}
-        used={shownPool.used}
-        label={
-          mirrorLinked && linkedPool
-            ? `${linkedPool.name}: ${shownLeft}/${linkedPool.max}`
-            : `${pool.name}: ${spendRemaining(pool)}/${pool.max}`
-        }
-        onChange={(used) =>
-          onResourcesChange(
-            resources.map((row) =>
-              row.id === shownPool.id ? { ...row, used } : row,
-            ),
-          )
-        }
-      />
-      {feature.scaleValue ? (
+      {shownPool.unlimited ? (
+        <Text>
+          {shownPool.name}: <strong>без лимита</strong>
+        </Text>
+      ) : (
+        <SlotPips
+          max={shownPool.max}
+          used={shownPool.used}
+          label={
+            mirrorLinked && linkedPool
+              ? `${linkedPool.name}: ${shownLeft}/${linkedPool.max}`
+              : `${pool.name}: ${spendRemaining(pool)}/${pool.max}`
+          }
+          onChange={(used) =>
+            onResourcesChange(
+              resources.map((row) =>
+                row.id === shownPool.id ? { ...row, used } : row,
+              ),
+            )
+          }
+        />
+      )}
+      {(scaleText ?? feature.scaleValue) ? (
         <Text tone="muted">
-          Сейчас: <strong>{feature.scaleValue}</strong>
+          Сейчас: <strong>{scaleText ?? feature.scaleValue}</strong>
         </Text>
       ) : null}
       {pool.activeLabel ? (
@@ -598,9 +616,11 @@ function FeatureResourceControls({
       {opensWildShapeFork ? (
         <Text tone="muted">
           Тратит Дикий облик
-          {wildShapePoolForFork
-            ? ` (${wildShapeLeftForFork}/${wildShapePoolForFork.max})`
-            : ''}
+          {wildShapeUnlimited
+            ? ' (без лимита)'
+            : wildShapePoolForFork
+              ? ` (${wildShapeLeftForFork}/${wildShapePoolForFork.max})`
+              : ''}
           {' · '}
           развилка: облик / спутник / умения круга
         </Text>
@@ -693,7 +713,8 @@ function FeatureResourceControls({
           </Button>
         ) : isPack03CustomSpend(feature.id) ||
           pack04CustomSpendFeature(feature.id) ||
-          pack05CustomSpendFeature(feature.id) ? null : onWizardFeatureUse && wizardResolvedFeatureId(feature.id) ? (
+          pack05CustomSpendFeature(feature.id) ||
+          pack07CustomSpendFeature(feature.id) ? null : onWizardFeatureUse && wizardResolvedFeatureId(feature.id) ? (
           <Button
             type="button"
             disabled={
@@ -751,6 +772,11 @@ function FeatureResourceControls({
                 perUseCap != null
                   ? Math.min(perUseCap, Math.max(1, diceToSpend), Math.max(1, remaining))
                   : undefined
+              if (feature.id === 'natural_recovery') {
+                if (onOpenRecovery) onOpenRecovery(pool.id)
+                else onToast?.('Выбор ячеек недоступен')
+                return
+              }
               const result = spendFeatureUse({
                 resources,
                 feature,
@@ -790,14 +816,20 @@ function FeatureResourceControls({
                 onToast?.(
                   perUseCap != null && spendAmount != null
                     ? `Потрачено ${spendAmount}к6: лечение на сумму костей и ${spendAmount} временных хитов, существо в 120 фт.`
-                    : `${feature.name_ru}${via}${feature.scaleValue ? ` · ${feature.scaleValue}` : ''}${summoned}`,
+                    : `${feature.name_ru}${via}${
+                        (scaleText ?? feature.scaleValue)
+                          ? ` · ${scaleText ?? feature.scaleValue}`
+                          : ''
+                      }${summoned}`,
                 )
               } else {
                 onToast?.(result.message)
               }
             }}
           >
-            {canViaLinked
+            {feature.id === 'natural_recovery'
+              ? 'Выбрать ячейки'
+              : canViaLinked
               ? linked?.label_ru || 'Сверх лимита'
               : feature.summon
                 ? feature.summon.kind === 'ally'
@@ -1800,6 +1832,10 @@ function FeatureRow({
   onOpenRangerFavored,
   onCastPactChainFamiliar,
   onWildShapeFork,
+  onOpenRecovery,
+  hpCurrent = null,
+  hpMax = null,
+  onHpChange,
   onFeatureSelfForm,
   onWizardFeatureUse,
   moonCombatWildShape = false,
@@ -1814,6 +1850,7 @@ function FeatureRow({
   featGrants = [],
   characterLevel,
   charismaScore,
+  wisdomScore,
   edition = '2014',
 }: {
   feature: UnlockedFeature
@@ -1842,6 +1879,10 @@ function FeatureRow({
   onOpenRangerFavored?: (classEntryId: string) => void
   onCastPactChainFamiliar?: (classEntryId: string) => void
   onWildShapeFork?: (request: WildShapeForkRequest) => void
+  onOpenRecovery?: (resourceId: string) => void
+  hpCurrent?: number | null
+  hpMax?: number | null
+  onHpChange?: (hp: number) => void
   onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
   onWizardFeatureUse?: (request: WizardFeatureRequest) => void
   moonCombatWildShape?: boolean
@@ -1860,6 +1901,7 @@ function FeatureRow({
   featGrants?: AppliedFeatGrant[]
   characterLevel: number
   charismaScore?: number
+  wisdomScore?: number
   edition?: RulesEdition
 }) {
   const sourceLabel =
@@ -1916,6 +1958,8 @@ function FeatureRow({
     : (Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)) ||
       tomeCantripsPending
 
+  const scaleShown = moonShapeScale(feature, unlockedFeatures) ?? feature.scaleValue
+
   let metaExtra = ''
   if (asiLabel) {
     metaExtra = asiLabel
@@ -1931,8 +1975,8 @@ function FeatureRow({
       : `${feature.resourceUses}×`
   } else if (feature.save_bonus_self) {
     metaExtra = feature.save_bonus_self.label_ru
-  } else if (feature.scaleValue) {
-    metaExtra = feature.scaleValue
+  } else if (scaleShown) {
+    metaExtra = scaleShown
   }
 
   const preview = previewSummary(feature.summary_ru)
@@ -2045,8 +2089,8 @@ function FeatureRow({
       </div>
       <h3 className="feature-card__title">
         {feature.name_ru}
-        {feature.scaleValue ? (
-          <strong className="feature-row__scale"> · {feature.scaleValue}</strong>
+        {scaleShown ? (
+          <strong className="feature-row__scale"> · {scaleShown}</strong>
         ) : null}
       </h3>
       <Text tone="muted">{sourceLabel}</Text>
@@ -2061,7 +2105,7 @@ function FeatureRow({
       />
       {feature.scale ? (
         <Text tone="muted">
-          {feature.scale.labelRu}: сейчас <strong>{feature.scaleValue}</strong>
+          {feature.scale.labelRu}: сейчас <strong>{scaleShown}</strong>
         </Text>
       ) : null}
       {isAsi ? (
@@ -2221,9 +2265,11 @@ function FeatureRow({
           onOpenInfusions={onOpenInfusions}
           onOpenSoulTrinkets={onOpenSoulTrinkets}
           onWildShapeFork={onWildShapeFork}
+          onOpenRecovery={onOpenRecovery}
           onFeatureSelfForm={onFeatureSelfForm}
           onWizardFeatureUse={onWizardFeatureUse}
           moonCombatWildShape={moonCombatWildShape}
+          scaleText={scaleShown}
         />
       ) : null}
       {replacementStatus === 'active' ? (
@@ -2244,6 +2290,22 @@ function FeatureRow({
               name,
             })
           }
+        />
+      ) : null}
+      {replacementStatus === 'active' ? (
+        <Pack07FeatureExtras
+          feature={feature}
+          classSlug={classSlug}
+          resources={resources}
+          onResourcesChange={onResourcesChange}
+          companions={companions ?? []}
+          onCompanionsChange={onCompanionsChange}
+          onToast={onToast}
+          wisdomScore={wisdomScore}
+          hpCurrent={hpCurrent}
+          hpMax={hpMax}
+          onHpChange={onHpChange}
+          edition={edition}
         />
       ) : null}
       {replacementStatus === 'active' ? (
@@ -2365,6 +2427,10 @@ export function ClassFeaturesPanel({
   companions = [],
   onCompanionsChange,
   onWildShapeFork,
+  onOpenRecovery,
+  hpCurrent = null,
+  hpMax = null,
+  onHpChange,
   onFeatureSelfForm,
   onWizardFeatureUse,
   onMoonFormSlotHeal,
@@ -2835,6 +2901,10 @@ export function ClassFeaturesPanel({
                             onOpenRangerFavored={onOpenRangerFavored}
                             onCastPactChainFamiliar={onCastPactChainFamiliar}
                             onWildShapeFork={onWildShapeFork}
+                            onOpenRecovery={onOpenRecovery}
+                            hpCurrent={hpCurrent}
+                            hpMax={hpMax}
+                            onHpChange={onHpChange}
                             onFeatureSelfForm={onFeatureSelfForm}
                             onWizardFeatureUse={onWizardFeatureUse}
                             moonCombatWildShape={moonCombatWildShape}
@@ -2849,6 +2919,7 @@ export function ClassFeaturesPanel({
                             featGrants={featGrants}
                             characterLevel={characterLevel}
                             charismaScore={abilities?.cha}
+                            wisdomScore={abilities?.wis}
                             edition={edition}
                           />
                         )

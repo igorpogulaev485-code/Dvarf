@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import { parseBestiaryData } from '../../shared/dnd/bestiaryCatalog'
+import { getFeaturePick, setFeaturePick, type FeaturePicksState } from '../../shared/dnd/featurePicks'
+import { SYMBIOTIC_ACTIVE_PREFIX } from './featureCombatBonuses'
+import { bestiaryDataToPick } from './bestiaryCompanionStats'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import type { SheetResource } from '../../shared/dnd/rest'
 import { Button, Dialog, Field, Input, Stack, Text } from '../../ui'
@@ -17,6 +20,7 @@ import {
   beastPickAllowed,
   ELEMENTAL_FALLBACK_STATS,
   elementalKeyToSlug,
+  formatWildShapeLimit,
   resolveWildShapeOptions,
   spendWildShapeUses,
   symbioticTempHp,
@@ -30,6 +34,7 @@ export type WildShapeDialogResult = {
   companions: CompanionEntry[]
   knownForms: KnownForm[]
   hpTemp?: number | null
+  featurePicks?: FeaturePicksState
   toast: string
 }
 
@@ -47,29 +52,19 @@ type WildShapeDialogProps = {
   hostHp: number
   hostHpMax: number
   edition: '2014' | '2024'
+  featurePicks?: FeaturePicksState
   onConfirm: (result: WildShapeDialogResult) => void
 }
 
 function catalogToPick(entry: CatalogEntry): BestiaryFormPick | null {
   const data = parseBestiaryData(entry.data)
   if (!data) return null
-  const speed = data.speed || {}
-  const actions = (data.actions || [])
-    .map((a) => `${a.name_ru}: ${a.text_ru}`)
-    .join('\n')
-  return {
+  return bestiaryDataToPick({
     slug: entry.slug,
     name_ru: entry.name_ru,
     catalog_id: entry.id,
-    cr: data.cr,
-    type: data.type,
-    ac: data.ac,
-    hp: data.hp_average,
-    speed_walk: speed.walk ?? 0,
-    speed_swim: speed.swim,
-    speed_fly: speed.fly,
-    actions_text: actions,
-  }
+    data,
+  })
 }
 
 function knownToPick(form: KnownForm): BestiaryFormPick | null {
@@ -103,6 +98,7 @@ export function WildShapeDialog({
   hostHp,
   hostHpMax,
   edition,
+  featurePicks,
   onConfirm,
 }: WildShapeDialogProps) {
   const [step, setStep] = useState<
@@ -147,8 +143,15 @@ export function WildShapeDialog({
     if (!open) {
       setStep('fork')
       setQuery('')
+      return
     }
-  }, [open])
+    const saved = featurePicks
+      ? getFeaturePick(featurePicks, classEntryId, 'starry_form')
+      : null
+    if (saved === 'archer' || saved === 'chalice' || saved === 'dragon') {
+      setConstellation(saved)
+    }
+  }, [open, featurePicks, classEntryId])
 
   useEffect(() => {
     if (!open) return
@@ -200,6 +203,7 @@ export function WildShapeDialog({
     amount: number,
     build: () => Omit<WildShapeDialogResult, 'resources' | 'toast'> & {
       toast?: string
+      resources?: SheetResource[] | ((spent: SheetResource[]) => SheetResource[])
     },
   ) {
     const spent = spendWildShapeUses({
@@ -220,10 +224,14 @@ export function WildShapeDialog({
     }
     const built = build()
     onConfirm({
-      resources: spent.resources,
+      resources:
+        typeof built.resources === 'function'
+          ? built.resources(spent.resources)
+          : (built.resources ?? spent.resources),
       companions: built.companions,
       knownForms: built.knownForms,
       hpTemp: built.hpTemp,
+      featurePicks: built.featurePicks,
       toast: built.toast || spent.message,
     })
     onClose()
@@ -254,7 +262,16 @@ export function WildShapeDialog({
         companions,
         knownForms,
         hpTemp: temp,
-        toast: `Симбиотическая сущность: ${temp} вр. хитов`,
+        toast: `Симбиотическая сущность: ${temp} вр. хитов · +1к6 некротического на рукопашные, удвоенный ореол, 10 мин.`,
+        resources: (spentRows) =>
+          spentRows.map((row) =>
+            row.id.includes(':symbiotic_entity:')
+              ? {
+                  ...row,
+                  activeLabel: `${SYMBIOTIC_ACTIVE_PREFIX} · 10 мин · +1к6 некрот. на рукопашные, удвоенный ореол`,
+                }
+              : row,
+          ),
       }))
       return
     }
@@ -316,15 +333,20 @@ export function WildShapeDialog({
   }, [catalogPicks, query])
 
   function confirmStarry() {
+    const picks = featurePicks
+      ? setFeaturePick(featurePicks, classEntryId, 'starry_form', constellation)
+      : undefined
     spendAnd('Звёздная форма', 1, () => ({
       companions: applyStarryForm({
         companions,
         constellation,
         hostHp,
         hostHpMax,
+        druidLevel,
       }),
       knownForms,
-      toast: 'Звёздная форма принята',
+      featurePicks: picks,
+      toast: `Звёздная форма: ${constellation === 'archer' ? 'Лучник' : constellation === 'chalice' ? 'Чаша' : 'Дракон'}`,
     }))
   }
 
@@ -402,10 +424,8 @@ export function WildShapeDialog({
         {step === 'fork' ? (
           <>
             <Text tone="muted">
-              Лимит облика: CR ≤ {limits.maxCr}
-              {limits.allowSwim ? ' · плавание' : ''}
-              {limits.allowFly ? ' · полёт' : ''}
-              {limits.combatBonusAction ? ' · Moon: бонусным действием' : ''}
+              Лимит облика: {formatWildShapeLimit(limits)}
+              {limits.combatBonusAction ? ' · бонусным действием' : ''}
             </Text>
             <Stack gap={8}>
               {options.map((opt) => (

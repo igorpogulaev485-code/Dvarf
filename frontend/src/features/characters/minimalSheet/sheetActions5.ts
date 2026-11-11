@@ -7,8 +7,11 @@ export function installSheetActions5(model: SheetModel) {
   model.isArcaneRecoveryResource = function isArcaneRecoveryResource(row: { id: string; name: string }): boolean {
     return (
       /:arcane_recovery:/.test(row.id) ||
+      /:natural_recovery:/.test(row.id) ||
       /магическое восстановление/i.test(row.name) ||
-      /arcane recovery/i.test(row.name)
+      /природное восстановление/i.test(row.name) ||
+      /arcane recovery/i.test(row.name) ||
+      /natural recovery/i.test(row.name)
     )
   }
 

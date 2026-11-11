@@ -339,6 +339,18 @@ export function spendPoolUses(input: {
       message: 'Пул не синхронизирован',
     }
   }
+  if (pool.unlimited) {
+    return {
+      resources: input.resources.map((row) =>
+        row.id === pool.id ? clampResource({ ...row, unlimited: true, used: 0 }) : row,
+      ),
+      ok: true,
+      via: 'pool',
+      message: input.label
+        ? `${input.label}: ${pool.name} без лимита`
+        : `${pool.name}: без лимита`,
+    }
+  }
   if (spendRemaining(pool) < amount) {
     return {
       resources: input.resources,

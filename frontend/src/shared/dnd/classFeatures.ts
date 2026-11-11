@@ -202,7 +202,7 @@ export type FeatureSummonDef = {
   actions_ru?: string
   ac?: number
   speed?: number
-  /** HP = hp_base + hp_per_level × class level (Wildfire: 10 + 5×lvl). */
+  /** HP = hp_base + hp_per_level × class level (Wildfire TCE: 5 + 5×lvl). */
   hp_base?: number
   hp_per_level?: number
 }

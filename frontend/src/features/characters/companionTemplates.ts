@@ -1,5 +1,6 @@
 /** Local naparnik stat templates (2014 class companions + Tasha Summon*). Not bestiary. */
 
+import { wildfireSpiritHp } from './bestiaryCompanionStats'
 import {
   createCompanion,
   defaultControlForKind,
@@ -187,16 +188,16 @@ function familiarStub(): CompanionTemplatePatch {
   }
 }
 
-/** TCE Wildfire Spirit — HP always 10+5×druidLevel (ttg), never catalog average alone. */
+/** TCE Wildfire Spirit — HP always 5+5×druidLevel, never catalog average alone. */
 function wildfireSpiritTemplate(ctx: CompanionTemplateContext): CompanionTemplatePatch {
   const level = Math.max(1, Math.floor(ctx.hostClassLevel || ctx.characterLevel || 1))
-  const hp = 10 + 5 * level
+  const hp = wildfireSpiritHp(level)
   return {
     kind: 'other',
     defaultName: 'Дух дикого огня',
     stats: { hp, hp_max: hp, ac: 13, speed: 30 },
     actions: 'Семя пламени; Огненная телепортация (см. TCE / бестиарий).',
-    notes: `Summon Wildfire Spirit · HP = 10 + 5×ур. = ${hp} (ttg)`,
+    notes: `Summon Wildfire Spirit · HP = 5 + 5×ур. = ${hp} (TCE)`,
     nature: 'summoned',
     control: 'bonus_action_command',
   }

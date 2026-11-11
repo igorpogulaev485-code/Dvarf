@@ -622,7 +622,7 @@ const starry = applyStarryForm({
 assert(getActiveSelfForm(starry)?.name?.includes('Лучник'), 'starry replaces self_form')
 assert(getActiveSelfForm(starry)?.stats.hp == null, 'starry keeps host HP pool')
 const fire = applyWildfireSpirit({ companions: [], druidLevel: 6 })
-assert(fire[0]?.stats.hp_max === 40, 'wildfire HP 10+5×6 (ttg)')
+assert(fire[0]?.stats.hp_max === 35, 'wildfire HP 5+5×6 (TCE)')
 
 // --- F3: overflow / dismiss / rest ---
 const allyPrimary = createCompanion({
@@ -860,7 +860,7 @@ const manualDrop = dismissSpellSelfFormsForConcentration({
 assert(manualDrop.companions.every((c) => c.role !== 'self_form'), 'manual dismiss removes')
 
 // --- F6: bestiary ally stats + Shapechanger ---
-assert(wildfireSpiritHp(6) === 40, 'wildfire 10+5×6')
+assert(wildfireSpiritHp(6) === 35, 'wildfire 5+5×6')
 assert(wildfireSpiritHp(1) === 15, 'wildfire L1')
 // Catalog pick with hp=10 must NOT override scaling
 const fireScaled = applyWildfireSpirit({

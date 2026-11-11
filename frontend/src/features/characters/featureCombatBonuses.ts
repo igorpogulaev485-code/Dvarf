@@ -93,6 +93,39 @@ export function improvedDivineSmiteRider(
   }
 }
 
+export const SYMBIOTIC_ACTIVE_PREFIX = 'Симбиотическая сущность'
+
+/**
+ * Circle of Spores: while Symbiotic Entity is up and temporary HP remain,
+ * melee weapon hits deal an extra 1d6 necrotic. Same rider path as Divine Strike.
+ */
+export function symbioticNecroticRider(input: {
+  features: Array<{ id: string }>
+  resources: Array<{ id: string; activeLabel?: string }>
+  hpTemp: number
+}): DivineStrikeRider | null {
+  if (!input.features.some((row) => row.id === 'symbiotic_entity')) return null
+  if (Math.floor(input.hpTemp) <= 0) return null
+  const active = input.resources.some(
+    (row) =>
+      row.id.includes(':symbiotic_entity:') &&
+      (row.activeLabel ?? '').startsWith(SYMBIOTIC_ACTIVE_PREFIX),
+  )
+  if (!active) return null
+  return {
+    dice: '1d6',
+    type: 'некротической энергией',
+    label: '1к6 некротической энергией',
+    rollLabel: 'Симбиотическая сущность, 1к6',
+  }
+}
+
+export function haloDice(druidLevel: number, doubled: boolean): string {
+  const level = Math.floor(druidLevel)
+  const base = level >= 14 ? '1к10' : level >= 10 ? '1к8' : level >= 6 ? '1к6' : '1к4'
+  return doubled ? base.replace('1к', '2к') : base
+}
+
 /** Race combat_bonuses.initiative (e.g. Hare-Trigger = proficiency bonus). */
 export function initiativeBonusFromRace(input: {
   grant: Pick<AppliedRaceGrant, 'combatBonuses'> | null | undefined
