@@ -10,6 +10,8 @@ import {
 import { SKILL_DEFS } from './sheetTypes'
 import { LANGUAGE_PRESETS } from './languagesTools'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
+import { alwaysPreparedSpellNameRu } from '../../shared/dnd/alwaysPreparedSpellNamesRu'
+import { presentSubclassCopy } from '../../shared/dnd/subclassPlayerCopy'
 
 type SubclassSetupDialogProps = {
   open: boolean
@@ -89,20 +91,26 @@ export function SubclassSetupDialog({
           Выбери развилки архетипа. При смене архетипа старые выборы снимутся; общие заметки
           персонажа не трогаем.
         </Text>
-        {def.notesRu ? <Text tone="muted">{def.notesRu}</Text> : null}
+        {presentSubclassCopy(def.notesRu) ? (
+          <Text tone="muted">{presentSubclassCopy(def.notesRu)}</Text>
+        ) : null}
         {def.alwaysPreparedSpells.length > 0 ? (
           <Text tone="muted">
             Всегда подготовлены ({def.alwaysPreparedSpells.length}):{' '}
-            {def.alwaysPreparedSpells.map((spell) => spell.name).join(', ')}
+            {def.alwaysPreparedSpells
+              .map((spell) => alwaysPreparedSpellNameRu(spell.name))
+              .join(', ')}
           </Text>
         ) : null}
         {Object.keys(def.featuresByLevel).length > 0 ? (
           <Stack gap={6}>
-            <Text tone="muted">Фичи (черновик текстов):</Text>
+            <Text tone="muted">Умения архетипа:</Text>
             {Object.entries(def.featuresByLevel).map(([level, cards]) => (
               <Text key={level} tone="muted">
                 {level} ур.: {cards.map((card) => card.titleRu).join(', ')}
-                {cards[0]?.summaryRu ? ` — ${cards[0].summaryRu}` : ''}
+                {presentSubclassCopy(cards[0]?.summaryRu)
+                  ? ` — ${presentSubclassCopy(cards[0]?.summaryRu)}`
+                  : ''}
               </Text>
             ))}
           </Stack>
@@ -112,7 +120,7 @@ export function SubclassSetupDialog({
           const value = picks.values[choice.id]
           if (choice.kind === 'open_text') {
             return (
-              <Field key={choice.id} label={choice.labelRu} hint={choice.notesRu}>
+              <Field key={choice.id} label={choice.labelRu} hint={presentSubclassCopy(choice.notesRu)}>
                 <Input
                   value={typeof value === 'string' ? value : ''}
                   placeholder="Имя / описание"
@@ -140,7 +148,7 @@ export function SubclassSetupDialog({
               label={`${choice.labelRu}${
                 choice.kind === 'multi' ? ` (${selected.length}/${choice.count})` : ''
               }`}
-              hint={choice.notesRu}
+              hint={presentSubclassCopy(choice.notesRu)}
             >
               <div className="chip-row">
                 {options.map((key) => {

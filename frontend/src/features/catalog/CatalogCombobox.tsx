@@ -20,6 +20,8 @@ type CatalogComboboxProps = {
   optionLabel?: (entry: CatalogEntry) => string
   /** Keep only matching catalog rows in the dropdown. */
   filterEntry?: (entry: CatalogEntry) => boolean
+  /** Typing searches only. The parent hears a change when an option is chosen. */
+  commitOnSelect?: boolean
   onChange: (value: string, selected: CatalogEntry | null) => void
 }
 
@@ -77,6 +79,7 @@ export function CatalogCombobox({
   parentId,
   optionLabel,
   filterEntry,
+  commitOnSelect = false,
   onChange,
 }: CatalogComboboxProps) {
   const [options, setOptions] = useState<ComboboxOption[]>([])
@@ -152,7 +155,9 @@ export function CatalogCombobox({
       placeholder={placeholder}
       disabled={disabled}
       loading={loading}
+      commitOnSelect={commitOnSelect}
       onChange={(next) => {
+        if (commitOnSelect) return
         const match =
           entries.find((item) => item.name_ru.toLowerCase() === next.trim().toLowerCase()) ?? null
         onChange(next, match)

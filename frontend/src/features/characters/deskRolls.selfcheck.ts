@@ -89,4 +89,39 @@ assert(
   'breastplate ok',
 )
 
+const crit = formatAttackRoll({
+  name: 'Молот',
+  attackBonus: 2,
+  damageExpr: '1к8+2',
+  damageType: 'дробящий',
+  rng: seq([0.999, 0, 0.5]), // d20=20, then 1 and 5
+})
+assert(
+  crit === 'Молот: 22 (d20:20 +2) · критическое попадание · урон 8 дробящий (2d8: 1+5+2)',
+  `crit got: ${crit}`,
+)
+const notCrit = formatAttackRoll({
+  name: 'Арбалет',
+  attackBonus: 1,
+  damageExpr: '1d8+1',
+  mode: 'disadvantage',
+  rng: seq([0.999, 0, 0.5]), // 20 and 1, keep 1, one damage die
+})
+assert(!notCrit.includes('критическое'), `disadvantage 20 is not a crit: ${notCrit}`)
+assert(notCrit.includes('1d8:'), `disadvantage keeps one die: ${notCrit}`)
+
+const might = formatSkillRoll('Проверка · Сила', 5, 'normal', () => 0.1, {
+  value: 20,
+  label: 'неукротимая мощь',
+})
+assert(
+  might === 'Проверка · Сила: 20 (d20:3 +5 · неукротимая мощь, было 8)',
+  `might got: ${might}`,
+)
+const mightSkip = formatSkillRoll('Проверка · Сила', 5, 'normal', () => 0.9, {
+  value: 20,
+  label: 'неукротимая мощь',
+})
+assert(!mightSkip.includes('неукротимая'), `high roll stays: ${mightSkip}`)
+
 console.log('deskRolls.selfcheck ok')

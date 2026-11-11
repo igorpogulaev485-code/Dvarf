@@ -13,6 +13,9 @@ export type CheckRoll = DieRoll & {
   mode: DeskRollMode
   /** The other d20 when advantage/disadvantage was used. */
   otherDie?: number
+  /** Total before a feature floor (Indomitable Might) replaced it. */
+  rawTotal?: number
+  floorLabel?: string
 }
 
 export type DamageRoll = {
@@ -95,11 +98,14 @@ export function parseDamageExpression(raw: string): {
 export function rollDamage(
   expression: string,
   rng: () => number = Math.random,
+  options?: { crit?: boolean },
 ): DamageRoll | null {
   const parsed = parseDamageExpression(expression)
   if (!parsed) return null
+  // PHB p. 196: a critical hit rolls the attack's damage dice twice. Modifiers stay once.
+  const count = parsed.count * (options?.crit ? 2 : 1)
   const parts: number[] = []
-  for (let i = 0; i < parsed.count; i += 1) {
+  for (let i = 0; i < count; i += 1) {
     parts.push(rollDie(parsed.sides, rng))
   }
   const sum = parts.reduce((a, b) => a + b, 0)
@@ -113,9 +119,20 @@ export function rollDamage(
         : String(parsed.modifier)
   return {
     total,
-    detail: `${parsed.count}d${parsed.sides}: ${diceBit}${modBit}`,
+    detail: `${count}d${parsed.sides}: ${diceBit}${modBit}`,
     parts,
     modifier: parsed.modifier,
+  }
+}
+
+/** PHB Indomitable Might: a Strength check total can be replaced by the Strength score. */
+export function raiseCheckToFloor(roll: CheckRoll, floor: number, label: string): CheckRoll {
+  if (!Number.isFinite(floor) || roll.total >= floor) return roll
+  return {
+    ...roll,
+    rawTotal: roll.total,
+    total: Math.floor(floor),
+    floorLabel: label,
   }
 }
 
@@ -130,7 +147,11 @@ export function formatCheckRoll(label: string, roll: CheckRoll): string {
     roll.mode !== 'normal' && roll.otherDie != null
       ? `d20:${roll.die}/${roll.otherDie} ${modeLabel(roll.mode)}`
       : `d20:${roll.die}`
-  return `${label}: ${roll.total} (${dice} ${formatModifier(roll.modifier)})`
+  const floor =
+    roll.rawTotal != null && roll.floorLabel && roll.rawTotal !== roll.total
+      ? ` · ${roll.floorLabel}, было ${roll.rawTotal}`
+      : ''
+  return `${label}: ${roll.total} (${dice} ${formatModifier(roll.modifier)}${floor})`
 }
 
 export function formatAttackRoll(input: {
@@ -144,12 +165,15 @@ export function formatAttackRoll(input: {
   const rng = input.rng ?? Math.random
   const mode = input.mode ?? 'normal'
   const hit = rollCheck(input.attackBonus, mode, rng)
-  const dmg = rollDamage(input.damageExpr, rng)
+  // The kept d20 is the attack roll. Advantage can crit; disadvantage uses the lower die.
+  const crit = hit.die === 20
+  const dmg = rollDamage(input.damageExpr, rng, { crit })
   const typeBit = input.damageType?.trim() ? ` ${input.damageType.trim()}` : ''
+  const critBit = crit ? ' · критическое попадание' : ''
   if (!dmg) {
-    return `${formatCheckRoll(input.name, hit)} · урон ${input.damageExpr || '—'}${typeBit}`
+    return `${formatCheckRoll(input.name, hit)}${critBit} · урон ${input.damageExpr || '—'}${typeBit}`
   }
-  return `${formatCheckRoll(input.name, hit)} · урон ${dmg.total}${typeBit} (${dmg.detail})`
+  return `${formatCheckRoll(input.name, hit)}${critBit} · урон ${dmg.total}${typeBit} (${dmg.detail})`
 }
 
 export function formatSkillRoll(
@@ -157,8 +181,11 @@ export function formatSkillRoll(
   modifier: number,
   mode: DeskRollMode = 'normal',
   rng?: () => number,
+  floor?: { value: number; label: string } | null,
 ): string {
-  return formatCheckRoll(label, rollCheck(modifier, mode, rng))
+  const rolled = rollCheck(modifier, mode, rng)
+  const roll = floor ? raiseCheckToFloor(rolled, floor.value, floor.label) : rolled
+  return formatCheckRoll(label, roll)
 }
 
 /** PHB: padded, scale mail, half plate, all heavy — stealth disadvantage. */

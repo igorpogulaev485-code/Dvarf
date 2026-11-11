@@ -13,6 +13,11 @@ type ComboboxProps = {
   disabled?: boolean
   loading?: boolean
   emptyHint?: string
+  /**
+   * Search text stays local until an option is chosen.
+   * Blur and Escape restore `value` and do not notify the parent.
+   */
+  commitOnSelect?: boolean
   onChange: (value: string) => void
   onSelectOption?: (option: ComboboxOption) => void
   onQueryChange?: (query: string) => void
@@ -26,6 +31,7 @@ export function Combobox({
   disabled,
   loading = false,
   emptyHint = 'Нет совпадений — можно оставить свой вариант',
+  commitOnSelect = false,
   onChange,
   onSelectOption,
   onQueryChange,
@@ -35,6 +41,11 @@ export function Combobox({
   const rootRef = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
   const [highlight, setHighlight] = useState(0)
+  const [draft, setDraft] = useState(value)
+
+  useEffect(() => {
+    setDraft(value)
+  }, [value])
 
   useEffect(() => {
     function onPointerDown(event: MouseEvent) {
@@ -64,7 +75,7 @@ export function Combobox({
       <input
         id={inputId}
         className="ui-input"
-        value={value}
+        value={commitOnSelect ? draft : value}
         disabled={disabled}
         placeholder={placeholder}
         autoComplete="off"
@@ -74,16 +85,28 @@ export function Combobox({
         aria-autocomplete="list"
         onFocus={() => {
           setOpen(true)
-          onQueryChange?.(value)
+          onQueryChange?.(commitOnSelect ? draft : value)
+        }}
+        onBlur={() => {
+          if (!commitOnSelect) return
+          setDraft(value)
+          setOpen(false)
         }}
         onChange={(event) => {
           const next = event.target.value
+          if (commitOnSelect) {
+            setDraft(next)
+            onQueryChange?.(next)
+            setOpen(true)
+            return
+          }
           onChange(next)
           onQueryChange?.(next)
           setOpen(true)
         }}
         onKeyDown={(event) => {
           if (event.key === 'Escape') {
+            if (commitOnSelect) setDraft(value)
             setOpen(false)
             return
           }

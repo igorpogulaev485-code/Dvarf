@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { conditionLevelLabel } from '../../shared/dnd/conditions'
+import {
+  exhaustionHpCurrent,
+  exhaustionHpMax,
+  exhaustionHpNote,
+  exhaustionSpeedFt,
+  exhaustionSpeedNote,
+} from '../../shared/dnd/exhaustion2014'
 import { clampExhaustion } from '../../shared/dnd/rest'
 import {
   formatXp,
@@ -220,15 +227,23 @@ export function PlayDeskHeader({
   const deathTracksActive = play.isDying || atZeroHp
   const exhaustionStage =
     play.exhaustion > 0 ? conditionLevelLabel('exhaustion', play.exhaustion) : null
+  const shownHpMax = exhaustionHpMax(hpMax, play.exhaustion)
+  const shownHpCurrent = exhaustionHpCurrent(hpCurrent, hpMax, play.exhaustion)
+  const hpExhaustNote = exhaustionHpNote(play.exhaustion)
+  const speedExhaustNote = exhaustionSpeedNote(play.exhaustion)
+  const shownSpeed = exhaustionSpeedFt(speed, play.exhaustion)
+  const shownClimb = exhaustionSpeedFt(climbSpeed, play.exhaustion)
+  const shownSwim = exhaustionSpeedFt(swimSpeed, play.exhaustion)
+  const shownFly = exhaustionSpeedFt(flySpeed, play.exhaustion)
 
   const altModes: SpeedMode[] = []
-  if (climbSpeed != null) altModes.push({ key: 'climb', label: 'лаз.', value: climbSpeed })
-  if (swimSpeed != null) altModes.push({ key: 'swim', label: 'плав.', value: swimSpeed })
-  if (flySpeed != null) altModes.push({ key: 'fly', label: 'полёт', value: flySpeed })
+  if (shownClimb != null) altModes.push({ key: 'climb', label: 'лаз.', value: shownClimb })
+  if (shownSwim != null) altModes.push({ key: 'swim', label: 'плав.', value: shownSwim })
+  if (shownFly != null) altModes.push({ key: 'fly', label: 'полёт', value: shownFly })
 
-  const hasWalk = speed != null
+  const hasWalk = shownSpeed != null
   const primarySpeed: SpeedMode | null = hasWalk
-    ? { key: 'walk', label: 'Скор.', value: speed }
+    ? { key: 'walk', label: 'Скор.', value: shownSpeed }
     : altModes[0]
       ? { ...altModes[0], label: altModes[0].label }
       : null
@@ -240,14 +255,15 @@ export function PlayDeskHeader({
         : null,
       ...secondarySpeeds.map((mode) => `${mode.label} ${mode.value}`),
       movementHint,
+      speedExhaustNote,
     ]
       .filter(Boolean)
       .join(' · ') || 'Скорость (из расы / снаряжения)'
 
   function applyHeal(amount: number) {
-    const current = hpCurrent ?? 0
+    const current = shownHpCurrent ?? 0
     const next = current + amount
-    const capped = hpMax == null ? next : Math.min(hpMax, next)
+    const capped = shownHpMax == null ? next : Math.min(shownHpMax, next)
     onCombatChange({ hpCurrent: Math.max(0, capped) })
     if (play.isDying && capped > 0) {
       onPlayChange({
@@ -267,7 +283,7 @@ export function PlayDeskHeader({
       nextTemp -= absorbed
       remaining -= absorbed
     }
-    const current = hpCurrent ?? 0
+    const current = shownHpCurrent ?? 0
     const nextHp = Math.max(0, current - remaining)
     if (nextTemp !== hpTemp) {
       onPlayChange({ ...play, hpTemp: nextTemp })
@@ -649,10 +665,11 @@ export function PlayDeskHeader({
             onClick={() => setHpPadOpen(true)}
           >
             <strong>
-              {hpCurrent ?? '—'} / {hpMax ?? '—'}
+              {shownHpCurrent ?? '—'} / {shownHpMax ?? '—'}
             </strong>
             <small className="play-desk-vital__label-row">
               {showDeath ? 'при смерти' : 'хиты'}
+              {hpExhaustNote ? ` · ${hpExhaustNote}` : ''}
               {hpTemp > 0 ? ` · врем. +${hpTemp}` : ''}
             </small>
             {showValueTips ? <HoverTipCard tip={VITAL_TIPS.hp} /> : null}
@@ -716,8 +733,8 @@ export function PlayDeskHeader({
 
       <HpPadDialog
         open={hpPadOpen}
-        hpCurrent={hpCurrent}
-        hpMax={hpMax}
+        hpCurrent={shownHpCurrent}
+        hpMax={shownHpMax}
         hpTemp={hpTemp}
         constitutionMod={constitutionMod}
         play={play}

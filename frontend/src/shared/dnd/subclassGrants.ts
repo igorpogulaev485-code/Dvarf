@@ -10,6 +10,7 @@ import {
   type ArmorProfKey,
   type WeaponProfKey,
 } from './classGrants'
+import { presentSubclassCopy } from './subclassPlayerCopy'
 
 /** PHB Battle Master maneuvers (RU labels for picker). */
 export const PHB_MANEUVERS: Array<{ id: string; labelRu: string }> = [
@@ -319,7 +320,9 @@ export function parseSubclassGrantDef(input: {
       fromLabelsRu,
       appliesTo,
       required: row.required !== false,
-      notesRu: typeof row.notes_ru === 'string' ? row.notes_ru : undefined,
+      notesRu: presentSubclassCopy(
+        typeof row.notes_ru === 'string' ? row.notes_ru : undefined,
+      ),
     })
   }
 
@@ -358,7 +361,9 @@ export function parseSubclassGrantDef(input: {
       if (typeof row.title_ru !== 'string') continue
       cards.push({
         titleRu: row.title_ru,
-        summaryRu: typeof row.summary_ru === 'string' ? row.summary_ru : '',
+        summaryRu: presentSubclassCopy(
+          typeof row.summary_ru === 'string' ? row.summary_ru : '',
+        ) ?? '',
       })
     }
     if (cards.length) featuresByLevel[levelKey] = cards
@@ -389,7 +394,7 @@ export function parseSubclassGrantDef(input: {
     choices: ensureParsedBonusCantripChoices(input.slug, choices),
     alwaysPreparedSpells,
     featuresByLevel,
-    notesRu: typeof data.notes_ru === 'string' ? data.notes_ru : undefined,
+    notesRu: presentSubclassCopy(typeof data.notes_ru === 'string' ? data.notes_ru : undefined),
   }
 }
 

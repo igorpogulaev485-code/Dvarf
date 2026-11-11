@@ -1,6 +1,6 @@
 /** Состояние и эффекты листа, часть 3. Порядок хуков совпадает с прежним компонентом. */
 import type { SheetModel } from './sheetModel'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { getCharacter, updateCharacter } from '../../../shared/api/characters'
 import { ApiRequestError } from '../../../shared/api/client'
 import { publishSheetSync } from '../../../shared/sync/characterSheetChannel'
@@ -20,6 +20,8 @@ import {
 } from '../modifiers'
 import { resolveRaceGrantDef } from '../../../shared/dnd/raceGrants'
 import { DEFAULT_ABILITY_SCORE_MAX, clampAbilityScore, resolveAbilityMaxes } from '../../../shared/dnd/abilityScoreCaps'
+import { applyHpDelta } from '../../../shared/dnd/constitutionHp'
+import { syncPrimalChampion } from '../../../shared/dnd/primalChampion'
 import { customFeaturesToSheet } from '../customFeatures'
 import { applyGearAbilityScores, gearDarkvisionFt } from '../gearEffects'
 import { syncGearCompanions, syncGearGrantSpells, syncGearResources } from '../gearGrantsSync'
@@ -527,6 +529,7 @@ export function useSheetEditorPart3(model: SheetModel) {
       sheet.known_forms = draftSnap.knownForms
       sheet.feature_picks = featurePicksToSheet(draftSnap.featurePicks)
       sheet.class_asi = draftSnap.classAsi
+      sheet.primal_champion = draftSnap.primalChampion
       sheet.feat_grants = draftSnap.featGrants
       Object.assign(sheet, customFeaturesToSheet(draftSnap.customFeatures))
 
@@ -657,4 +660,77 @@ export function useSheetEditorPart3(model: SheetModel) {
     }
   }, [])
   model.persistDraft = persistDraft
+
+  const conHpRef = useRef<{ mod: number } | null>(null)
+  useEffect(() => {
+    const level = totalCharacterLevel(model.draft.classes)
+    const mod = abilityModifier(model.draft.abilities.con)
+    if (model.draft.hpMax == null) return
+    const prev = conHpRef.current
+    if (!prev) {
+      conHpRef.current = { mod }
+      return
+    }
+    if (prev.mod === mod) return
+    const delta = (mod - prev.mod) * level
+    conHpRef.current = { mod }
+    if (delta === 0) return
+    model.setDraft((current) => {
+      const next = applyHpDelta({
+        hpMax: current.hpMax,
+        hpCurrent: current.hpCurrent,
+        delta,
+      })
+      if (next.hpMax === current.hpMax && next.hpCurrent === current.hpCurrent) return current
+      return { ...current, hpMax: next.hpMax, hpCurrent: next.hpCurrent }
+    })
+    model.onToast(
+      delta > 0
+        ? `Телосложение: максимум хитов +${delta} за все уровни`
+        : `Телосложение: максимум хитов ${delta} за все уровни`,
+    )
+  }, [model.draft.abilities.con, model.draft.classes, model.draft.hpMax])
+
+  useEffect(() => {
+    const exhaustion = model.draft.play.exhaustion ?? 0
+    if (exhaustion < 4) return
+    const max = model.draft.hpMax
+    const current = model.draft.hpCurrent
+    if (max == null || current == null) return
+    const cap = Math.floor(max / 2)
+    if (current <= cap) return
+    model.setDraft((prev) => {
+      if (prev.hpMax == null || prev.hpCurrent == null) return prev
+      if ((prev.play.exhaustion ?? 0) < 4) return prev
+      const nextCap = Math.floor(prev.hpMax / 2)
+      if (prev.hpCurrent <= nextCap) return prev
+      return { ...prev, hpCurrent: nextCap }
+    })
+  }, [model.draft.play.exhaustion, model.draft.hpMax, model.draft.hpCurrent])
+
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const next = syncPrimalChampion(prev, {
+        str: abilityCeilings.str?.max ?? DEFAULT_ABILITY_SCORE_MAX,
+        con: abilityCeilings.con?.max ?? DEFAULT_ABILITY_SCORE_MAX,
+      })
+      if (next === prev) return prev
+      const gained =
+        !prev.primalChampion &&
+        next.primalChampion != null &&
+        (next.primalChampion.str > 0 || next.primalChampion.con > 0)
+      if (gained) {
+        queueMicrotask(() => {
+          model.onToast('Изначальный чемпион: Сила и Телосложение +4, потолок 24')
+        })
+      }
+      return next
+    })
+  }, [
+    abilityCeilings,
+    model.draft.classes,
+    model.draft.abilities.str,
+    model.draft.abilities.con,
+    model.draft.primalChampion,
+  ])
 }

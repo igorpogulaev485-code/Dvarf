@@ -14,6 +14,13 @@ import {
   formatJumpTitle,
 } from '../../shared/dnd/jumpDistance'
 import { HoverTipCard, VITAL_TIPS } from '../onboarding'
+import {
+  exhaustionHpCurrent,
+  exhaustionHpMax,
+  exhaustionHpNote,
+  exhaustionSpeedFt,
+  exhaustionSpeedNote,
+} from '../../shared/dnd/exhaustion2014'
 import { IconCoin, IconJump, IconRest, IconSkull } from './deskIcons'
 
 const COLLAPSE_KEY = 'dvarf.mobileVitals.collapsed'
@@ -153,28 +160,37 @@ export function MobileVitalsBar({
     [raceName || null, classSummary ? `${classSummary}` : null, alignment.trim() || null]
       .filter(Boolean)
       .join(' · ') || 'Черновик'
+  const shownHpMax = exhaustionHpMax(hpMax, play.exhaustion)
+  const shownHpCurrent = exhaustionHpCurrent(hpCurrent, hpMax, play.exhaustion)
+  const hpExhaustNote = exhaustionHpNote(play.exhaustion)
+  const speedExhaustNote = exhaustionSpeedNote(play.exhaustion)
+  const shownSpeed = exhaustionSpeedFt(speed, play.exhaustion)
+  const shownClimb = exhaustionSpeedFt(climbSpeed, play.exhaustion)
+  const shownSwim = exhaustionSpeedFt(swimSpeed, play.exhaustion)
+  const shownFly = exhaustionSpeedFt(flySpeed, play.exhaustion)
   const altModes: { key: string; label: string; value: number }[] = []
-  if (climbSpeed != null) altModes.push({ key: 'climb', label: 'лаз.', value: climbSpeed })
-  if (swimSpeed != null) altModes.push({ key: 'swim', label: 'плав.', value: swimSpeed })
-  if (flySpeed != null) altModes.push({ key: 'fly', label: 'полёт', value: flySpeed })
+  if (shownClimb != null) altModes.push({ key: 'climb', label: 'лаз.', value: shownClimb })
+  if (shownSwim != null) altModes.push({ key: 'swim', label: 'плав.', value: shownSwim })
+  if (shownFly != null) altModes.push({ key: 'fly', label: 'полёт', value: shownFly })
   const speedTitle =
     [
-      speed != null ? `ход ${speed}` : null,
+      shownSpeed != null ? `ход ${shownSpeed}` : null,
       ...altModes.map((mode) => `${mode.label} ${mode.value}`),
       movementHint,
+      speedExhaustNote,
     ]
       .filter(Boolean)
       .join(' · ') || undefined
   const hpLabel =
-    hpCurrent == null && hpMax == null
+    shownHpCurrent == null && shownHpMax == null
       ? '—/—'
-      : `${hpCurrent ?? '—'}/${hpMax ?? '—'}`
+      : `${shownHpCurrent ?? '—'}/${shownHpMax ?? '—'}${hpExhaustNote ? ' · ÷2' : ''}`
   const isDying = play.isDying || (hpCurrent != null && hpCurrent <= 0)
   const abilityPeek = 'Характеристики ▸'
 
   function applyHeal(amount: number) {
-    const max = hpMax
-    const cur = hpCurrent ?? 0
+    const max = shownHpMax
+    const cur = shownHpCurrent ?? 0
     const next = max == null ? cur + amount : Math.min(max, cur + amount)
     const capped = Math.max(0, next)
     onCombatChange({ hpCurrent: capped })
@@ -196,7 +212,7 @@ export function MobileVitalsBar({
       temp -= soak
       left -= soak
     }
-    const cur = hpCurrent ?? 0
+    const cur = shownHpCurrent ?? 0
     const next = Math.max(0, cur - left)
     onPlayChange({ ...play, hpTemp: temp })
     onCombatChange({ hpCurrent: next })
@@ -400,11 +416,11 @@ export function MobileVitalsBar({
           role="listitem"
           title={speedTitle}
         >
-          <b>{speed == null && altModes[0] ? altModes[0].value : speed == null ? '—' : speed}</b>
+          <b>{shownSpeed == null && altModes[0] ? altModes[0].value : shownSpeed == null ? '—' : shownSpeed}</b>
           <span>
-            {speed == null && altModes[0] ? altModes[0].label : 'Скор.'}
+            {shownSpeed == null && altModes[0] ? altModes[0].label : 'Скор.'}
           </span>
-          {altModes.length > 0 && speed != null ? (
+          {altModes.length > 0 && shownSpeed != null ? (
             <ul className="mobile-vitals__modes" aria-label="Дополнительные скорости">
               {altModes.map((mode) => (
                 <li key={mode.key}>
@@ -533,8 +549,8 @@ export function MobileVitalsBar({
       <>
         <HpPadDialog
           open={hpPadOpen}
-          hpCurrent={hpCurrent}
-          hpMax={hpMax}
+          hpCurrent={shownHpCurrent}
+          hpMax={shownHpMax}
           hpTemp={play.hpTemp}
           constitutionMod={constitutionMod}
           play={play}
