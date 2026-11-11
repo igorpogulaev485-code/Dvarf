@@ -1135,17 +1135,45 @@ export function spellCountsTowardPrepareCap(spell: SheetSpell): boolean {
   return true
 }
 
+function lockedPrepareIdentity(known: SheetSpell[]): { names: Set<string>; catalogIds: Set<string> } {
+  const names = new Set<string>()
+  const catalogIds = new Set<string>()
+  for (const spell of known) {
+    if (spell.level <= 0 || !spell.prepared || !isPreparedLocked(spell)) continue
+    const key = spellKeyFromName(spell.name)
+    if (key) names.add(key)
+    if (spell.catalog_id) catalogIds.add(spell.catalog_id)
+  }
+  return { names, catalogIds }
+}
+
+function isDuplicateOfLockedPrepare(
+  spell: SheetSpell,
+  locked: { names: Set<string>; catalogIds: Set<string> },
+): boolean {
+  if (isPreparedLocked(spell)) return false
+  if (spell.catalog_id && locked.catalogIds.has(spell.catalog_id)) return true
+  const key = spellKeyFromName(spell.name)
+  return Boolean(key && locked.names.has(key))
+}
+
 export function countPreparedLeveled(known: SheetSpell[]): number {
-  return known.filter((spell) => spellCountsTowardPrepareCap(spell)).length
+  const locked = lockedPrepareIdentity(known)
+  return known.filter(
+    (spell) =>
+      spellCountsTowardPrepareCap(spell) && !isDuplicateOfLockedPrepare(spell, locked),
+  ).length
 }
 
 /** Prepared leveled spells that count toward the prepare cap, per class_slug. */
 export function countPreparedLeveledBySlug(
   known: SheetSpell[],
 ): Record<string, number> {
+  const locked = lockedPrepareIdentity(known)
   const out: Record<string, number> = {}
   for (const spell of known) {
     if (!spellCountsTowardPrepareCap(spell)) continue
+    if (isDuplicateOfLockedPrepare(spell, locked)) continue
     const slug = (spell.class_slug ?? '').trim().toLowerCase()
     if (!slug) continue
     out[slug] = (out[slug] ?? 0) + 1
@@ -1411,6 +1439,14 @@ export function addCatalogSpellToKnown(
 ): SheetSpell[] {
   // Same catalog under a different class_slug is a second binding (M4 §2.4).
   if (knownHasCatalogIdForSlug(known, entry.id, options?.class_slug)) return known
+  const entryKey = spellKeyFromName(entry.name_ru)
+  const lockedTwin = known.some(
+    (spell) =>
+      isPreparedLocked(spell) &&
+      (spell.catalog_id === entry.id ||
+        (entryKey !== '' && spellKeyFromName(spell.name) === entryKey)),
+  )
+  if (lockedTwin) return known
   const spell = sheetSpellFromCatalog(entry)
   const prepare = options?.prepare ?? spell.level <= 0
   const maxPrepared = options?.maxPrepared ?? null

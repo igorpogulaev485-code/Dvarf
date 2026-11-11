@@ -27,7 +27,7 @@ import { type CastChoice } from '../CastSpellDialog'
 import { consumeMaterialItem } from '../spellMaterials'
 import { canSpendGrantCast, spendGrantCast, type SheetSpell } from '../spells'
 import { resolveCastEffect } from '../../../shared/dnd/spellCatalog'
-import { spendPactSlot, spendSpellSlot } from '../../../shared/dnd/spells'
+import { canCastLeveledSpell, spendPactSlot, spendSpellSlot } from '../../../shared/dnd/spells'
 import {
   ABILITY_LABELS,
   ABILITY_NAMES,
@@ -324,6 +324,16 @@ export function installSheetActions4(model: SheetModel) {
           spell.concentration ? ' · концентрация' : ''
         }${naparnikNote}${formNote}`,
       )
+      return
+    }
+    if (
+      !canCastLeveledSpell(
+        model.draft.spells.slots,
+        model.draft.spells.pact_slots,
+        spell.level,
+      )
+    ) {
+      model.onToast('Нет ячейки этого круга')
       return
     }
     if (choice.usePact && model.draft.spells.pact_slots) {

@@ -168,6 +168,7 @@ import {
 } from '../shared/dnd/castProfiles'
 import {
   applySpellcastingSuggestion,
+  classLevelOffersSpellPicks,
   highestSpellSlotLevelForClasses,
   resolveSpellLearnBudget,
   suggestSpellcastingFromClasses,
@@ -1232,6 +1233,11 @@ export function CreateCharacterPage() {
     const curIdx = stepIndex(current, steps)
     if (nextIdx < 0 || nextIdx > curIdx) return
     if (nextIdx < curIdx) {
+      // Bard 20 on step 5 (leveling) → 4 (abilities) → 5 must keep level and budgets.
+      if (current === 'leveling' && next === 'abilities') {
+        patchState({ step: next })
+        return
+      }
       clearStepFields(current, next)
       return
     }
@@ -1357,9 +1363,11 @@ export function CreateCharacterPage() {
       setToast(hard)
       return
     }
-    const maybeCaster = state.classes.some((row) => CASTER_NAME_RE.test(row.name))
+    const needsSpellPicks = state.classes.some((row) =>
+      classLevelOffersSpellPicks(row, 0),
+    )
     const hasSpells = (spells.known?.length ?? 0) > 0
-    if (maybeCaster && !hasSpells) {
+    if (needsSpellPicks && !hasSpells) {
       setSpellWarnOpen(true)
       return
     }

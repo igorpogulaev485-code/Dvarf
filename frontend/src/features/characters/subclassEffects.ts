@@ -19,6 +19,7 @@ import {
   type SubclassTransition,
 } from '../../shared/dnd/subclassGrants'
 import { alwaysPreparedSpellNameRu } from '../../shared/dnd/alwaysPreparedSpellNamesRu'
+import { bonusCantripGrants, type BonusCantripGrant } from '../../shared/dnd/bonusCantrips'
 import {
   classCasterDef,
   maxSpellLevelForClassAlone,
@@ -32,9 +33,11 @@ import { enrichAlwaysPreparedSheetSpell } from './alwaysPreparedSpellEnrichment'
 import {
   asAlwaysPreparedSpell,
   createSheetSpell,
+  isPreparedLocked,
   isSubclassSheetSpell,
   spellKeyFromName,
   subclassSpellId,
+  type SheetSpell,
   type SpellsState,
 } from './spells'
 
@@ -42,6 +45,95 @@ import {
  * RAW multiclass: domain/oath/specialty circle access follows this class alone,
  * not shared multiclass spell slots (PHB «Spells Known and Prepared»).
  */
+function pushLockedGrantSpell(input: {
+  known: SheetSpell[]
+  grantedSpellIds: string[]
+  classEntryId: string
+  slug: string
+  label: string
+  parentClassSlug: string | null
+  englishName: string
+  level: number
+  range?: string
+  castingTime?: string
+}) {
+  const key = spellKeyFromName(input.englishName)
+  const enriched = enrichAlwaysPreparedSheetSpell(
+    {
+      ...createSheetSpell(),
+      id: subclassSpellId(input.classEntryId, input.slug, key || input.englishName),
+      name: '',
+      level: input.level,
+      ...(input.range ? { range: input.range } : {}),
+      ...(input.castingTime ? { casting_time: input.castingTime } : {}),
+    },
+    input.englishName,
+  )
+  if (!enriched.name) enriched.name = alwaysPreparedSpellNameRu(input.englishName)
+  const created = asAlwaysPreparedSpell(
+    enriched,
+    {
+      source_kind: 'subclass',
+      label: input.label,
+      class_slug: input.parentClassSlug,
+      class_entry_id: input.classEntryId,
+    },
+  )
+  if (input.range) created.range = input.range
+  if (input.castingTime) created.casting_time = input.castingTime
+  input.known.push(created)
+  input.grantedSpellIds.push(created.id)
+}
+
+function appendBonusCantripGrants(input: {
+  known: SheetSpell[]
+  grantedSpellIds: string[]
+  classEntryId: string
+  slug: string
+  label: string
+  parentClassSlug: string | null
+  picks: SubclassGrantPicks
+}) {
+  const grants: BonusCantripGrant[] = bonusCantripGrants(
+    input.slug,
+    input.picks,
+    input.known.map((spell) => spell.name),
+  )
+  for (const grant of grants) {
+    pushLockedGrantSpell({
+      ...input,
+      englishName: grant.nameEn,
+      level: 0,
+      range: grant.range,
+      castingTime: grant.castingTime,
+    })
+  }
+}
+
+/** Player copy of a domain/oath/cantrip grant must not sit beside the locked row. */
+function dropUnlockedGrantDuplicates(
+  known: SheetSpell[],
+  grantedSpellIds: string[],
+  parentClassSlug: string | null,
+): SheetSpell[] {
+  const granted = known.filter((spell) => grantedSpellIds.includes(spell.id))
+  if (granted.length === 0) return known
+  const catalogIds = new Set(
+    granted.map((spell) => spell.catalog_id).filter((id): id is string => Boolean(id)),
+  )
+  const names = new Set(granted.map((spell) => spellKeyFromName(spell.name)))
+  return known.filter((spell) => {
+    if (grantedSpellIds.includes(spell.id)) return true
+    if (isPreparedLocked(spell)) return true
+    const sameCatalog = Boolean(spell.catalog_id && catalogIds.has(spell.catalog_id))
+    const sameName = names.has(spellKeyFromName(spell.name))
+    if (!sameCatalog && !sameName) return true
+    const slug = (spell.class_slug ?? '').trim().toLowerCase()
+    if (slug && parentClassSlug && slug !== parentClassSlug) return true
+    return false
+  })
+}
+
 function aloneMaxSpellLevelForParent(
   parentSlug: string | null | undefined,
   classLevel: number,
@@ -594,7 +686,7 @@ export function applySubclassGrantToDraft(input: {
       ? Math.max(0, Math.min(9, Math.floor(input.maxSpellLevel)))
       : 9
   const grantedSpellIds: string[] = []
-  const known = [...cleared.spells.known]
+  let known = [...cleared.spells.known]
   const classLevel = Math.min(
     20,
     Math.max(
@@ -637,6 +729,16 @@ export function applySubclassGrantToDraft(input: {
     known.push(created)
     grantedSpellIds.push(created.id)
   }
+  appendBonusCantripGrants({
+    known,
+    grantedSpellIds,
+    classEntryId: input.classEntryId,
+    slug: input.def.slug,
+    label: input.def.labelRu,
+    parentClassSlug,
+    picks,
+  })
+  known = dropUnlockedGrantDuplicates(known, grantedSpellIds, parentClassSlug)
 
   const nextGrant: AppliedSubclassGrant = {
     classEntryId: input.classEntryId,
@@ -712,8 +814,9 @@ export function syncSubclassAlwaysPreparedSpells(input: {
   let changed = false
 
   for (const grant of input.draft.subclassGrants) {
-    const catalog = grant.alwaysPreparedSpells
-    if (!catalog || catalog.length === 0) continue
+    const catalog = grant.alwaysPreparedSpells ?? []
+    const bonus = bonusCantripGrants(grant.slug, { values: grant.picks ?? {} })
+    if (catalog.length === 0 && bonus.length === 0) continue
 
     const classLevel = Math.min(
       20,
@@ -729,7 +832,7 @@ export function syncSubclassAlwaysPreparedSpells(input: {
     const prevLabel =
       known.find((spell) => removeIds.has(spell.id))?.prepare_source_label?.trim() ||
       grant.slug
-    const nextKnown = known.filter((spell) => !removeIds.has(spell.id))
+    let nextKnown = known.filter((spell) => !removeIds.has(spell.id))
     const grantedSpellIds: string[] = []
     const parentClassSlug = grant.parentSlug.trim().toLowerCase() || null
 
@@ -759,6 +862,16 @@ export function syncSubclassAlwaysPreparedSpells(input: {
       nextKnown.push(created)
       grantedSpellIds.push(created.id)
     }
+    appendBonusCantripGrants({
+      known: nextKnown,
+      grantedSpellIds,
+      classEntryId: grant.classEntryId,
+      slug: grant.slug,
+      label: prevLabel,
+      parentClassSlug,
+      picks: { values: grant.picks ?? {} },
+    })
+    nextKnown = dropUnlockedGrantDuplicates(nextKnown, grantedSpellIds, parentClassSlug)
 
     const sameIds =
       grantedSpellIds.length === grant.grantedSpellIds.length &&

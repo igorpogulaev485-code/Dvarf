@@ -13,7 +13,7 @@ import {
   type BackgroundGrantDef,
   type BackgroundGrantPicks,
 } from '../../../shared/dnd/backgroundGrants'
-import { syncSubclassAlwaysPreparedSpells } from '../subclassEffects'
+import { reconcileSubclassSpellcasting } from '../reconcileSpellcasting'
 import { listCatalogEntries, type CatalogEntry } from '../../../shared/api/catalog'
 import {
   emptyRacePicks,
@@ -34,7 +34,7 @@ import { unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
 import { withPactTomeCantripsStep } from '../pactTomeEffects'
 import { type IdentityExtras } from '../identity'
 import { revokeRaceGrant, syncRaceSpellsForSheetState } from '../raceEffects'
-import { characterHasCasterClass, highestSpellSlotLevelForClasses } from '../../../shared/dnd/casterProgression'
+import { characterHasCasterClass } from '../../../shared/dnd/casterProgression'
 import { freeBookSlotsAtLevel } from '../../../shared/dnd/wizardSpellbook'
 import { ABILITY_LABELS, type AbilityKey } from '../sheetTypes'
 import { buildDraft, grantedFeatSlugFromCatalog, subclassSlugMapFromLedger, subclassTransitionMapFromLedger, type Draft } from './draft'
@@ -325,6 +325,7 @@ export function installSheetActions3(model: SheetModel) {
           ) ??
           null
 
+    let tableChanged = false
     model.setDraft((prev) => {
       const toughBonus = sumFeatHpPerLevel(prev.featGrants)
       const prevMax = prev.hpMax
@@ -366,33 +367,21 @@ export function installSheetActions3(model: SheetModel) {
               raceLabelRu: withFeatPools.raceName,
             }),
           }
-      const slotCap = highestSpellSlotLevelForClasses(
-        nextClasses,
-        withRaceSpells.subclassGrants
-          .filter((row: { caster?: { progression?: string } | null }) => row.caster?.progression === 'third')
-          .map((row: { classEntryId: string; caster?: { ability?: string | null } | null }) => ({
-            classEntryId: row.classEntryId,
-            progression: 'third' as const,
-            ability: row.caster?.ability ?? null,
-          })),
-      )
-      const classLevelByEntryId: Record<string, number> = {}
-      for (const row of nextClasses) {
-        classLevelByEntryId[row.id] = row.level
-      }
-      const syncedSubclass = syncSubclassAlwaysPreparedSpells({
-        draft: model.subclassSliceFrom(withRaceSpells),
-        maxSpellLevel: slotCap,
-        classLevelByEntryId,
+      const reconciled = reconcileSubclassSpellcasting({
+        classes: nextClasses,
+        abilities: withRaceSpells.abilities,
+        slice: model.subclassSliceFrom(withRaceSpells),
       })
-      return model.mergeSubclassSlice(withRaceSpells, syncedSubclass)
+      tableChanged = reconciled.tableChanged
+      return model.mergeSubclassSlice(withRaceSpells, reconciled.slice)
     })
     model.setLevelUpOpen(false)
     const hpNote = ` · HP +${Math.max(0, Math.floor(choice.hpGain))}`
+    const slotNote = tableChanged ? ' · ячейки по таблице 2014' : ''
     model.onToast(
       choice.type === 'same'
-        ? `Уровень класса +1${hpNote}`
-        : `Мультикласс: ${choice.name.trim()} 1${hpNote}`,
+        ? `Уровень класса +1${hpNote}${slotNote}`
+        : `Мультикласс: ${choice.name.trim()} 1${hpNote}${slotNote}`,
     )
 
     if (newMulticlassRow) {
