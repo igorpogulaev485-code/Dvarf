@@ -1,10 +1,24 @@
 /** PHB/Tasha 2014 subclass grant defs (sheet forks only — no feature text). */
 
+import { ARCANE_SHOTS } from './arcaneShots'
 import {
   bonusCantripChoiceInsert,
   bonusCantripLabelRu,
   resolveCantripPreset,
 } from './bonusCantrips'
+import { KENSEI_WEAPONS, kenseiPairError } from './kenseiWeapons'
+import {
+  MONK_ELEMENTAL_DISCIPLINES,
+  elementalDisciplineById,
+} from './monkElementalDisciplines'
+
+/** PHB: Elemental Attunement is free. Other disciplines respect min level. */
+function elementalDisciplinesAtLevel(level: number): string[] {
+  return MONK_ELEMENTAL_DISCIPLINES.filter((row) => {
+    if (row.id === 'elemental_attunement') return false
+    return row.minLevel == null || row.minLevel <= level
+  }).map((row) => row.id)
+}
 import {
   ARTISAN_TOOL_CHOICES,
   type ArmorProfKey,
@@ -181,6 +195,9 @@ export function resolveSubclassChoiceOptions(
     if (from === 'maneuver_catalog_phb') return PHB_MANEUVERS.map((item) => item.id)
     const cantrips = resolveCantripPreset(from)
     if (cantrips) return [...cantrips]
+    if (from === 'arcane_shots') return ARCANE_SHOTS.map((row) => row.id)
+    if (from === 'kensei_eligible') return KENSEI_WEAPONS.map((row) => row.id)
+    if (from === 'elemental_disciplines_phb') return elementalDisciplinesAtLevel(3)
     return from ? [from] : []
   }
   if (Array.isArray(from)) {
@@ -193,10 +210,27 @@ export function resolveSubclassChoiceOptions(
     if (from.length === 1 && from[0]) {
       const cantrips = resolveCantripPreset(from[0])
       if (cantrips) return [...cantrips]
+      if (from[0] === 'arcane_shots') return ARCANE_SHOTS.map((row) => row.id)
+      if (from[0] === 'kensei_eligible') return KENSEI_WEAPONS.map((row) => row.id)
+      if (from[0] === 'elemental_disciplines_phb') return elementalDisciplinesAtLevel(3)
     }
     return from
   }
   return []
+}
+
+const TOOL_LABELS_RU: Record<string, string> = {
+  calligraphers_supplies: 'Инструменты каллиграфа',
+  painters_supplies: 'Инструменты художника',
+  brewers_supplies: 'Инструменты пивовара',
+}
+
+const DAMAGE_LABELS_RU: Record<string, string> = {
+  acid: 'Кислота',
+  cold: 'Холод',
+  fire: 'Огонь',
+  lightning: 'Молния',
+  thunder: 'Гром',
 }
 
 export function subclassChoiceLabel(
@@ -206,7 +240,24 @@ export function subclassChoiceLabel(
   if (labels?.[key]) return labels[key]
   const maneuver = PHB_MANEUVERS.find((item) => item.id === key)
   if (maneuver) return maneuver.labelRu
-  return bonusCantripLabelRu(key) ?? key
+  const shot = ARCANE_SHOTS.find((item) => item.id === key)
+  if (shot) return shot.nameRu
+  const weapon = KENSEI_WEAPONS.find((item) => item.id === key)
+  if (weapon) {
+    return weapon.kind === 'ranged' ? `${weapon.nameRu} (дальний)` : `${weapon.nameRu} (ближний)`
+  }
+  const discipline = elementalDisciplineById(key)
+  if (discipline) {
+    return discipline.minLevel
+      ? `${discipline.nameRu} (с ${discipline.minLevel} ур.)`
+      : discipline.nameRu
+  }
+  return (
+    bonusCantripLabelRu(key) ??
+    TOOL_LABELS_RU[key] ??
+    DAMAGE_LABELS_RU[key] ??
+    key
+  )
 }
 
 export function emptySubclassPicks(): SubclassGrantPicks {
@@ -454,6 +505,10 @@ export function validateSubclassPicks(
     }
     if (!Array.isArray(value) || value.length !== choice.count) {
       return `Выбери ${choice.count}: ${choice.labelRu}`
+    }
+    if (choice.id === 'kensei_weapons') {
+      const pair = kenseiPairError(value)
+      if (pair) return pair
     }
   }
   return null

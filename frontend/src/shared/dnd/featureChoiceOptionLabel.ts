@@ -8,7 +8,9 @@ import {
   ARMORER_ARMOR_MODELS,
   infusionById,
 } from './artificerInfusions'
+import { arcaneShotById } from './arcaneShots'
 import { maneuverById } from './battleMasterManeuvers'
+import { kenseiWeaponById } from './kenseiWeapons'
 import { druidLandById } from './druidLandChoices'
 import {
   THIEVES_TOOLS_LABEL_RU,
@@ -34,6 +36,8 @@ export const FEATURE_OPTION_LABELS_RU: Record<string, string> = {
   bite: 'Укус',
   claws: 'Когти',
   tail: 'Хвост',
+  Druidcraft: 'Искусство друидов',
+  Thaumaturgy: 'Чудотворство',
   acid: 'Кислота',
   cold: 'Холод',
   fire: 'Огонь',
@@ -171,6 +175,10 @@ export function featureChoiceOptionLabel(
     infusionById(optionId)?.nameRu ||
     elementalDisciplineById(optionId)?.nameRu ||
     maneuverById(optionId)?.nameRu ||
+    arcaneShotById(optionId)?.nameRu ||
+    (kenseiWeaponById(optionId)
+      ? `${kenseiWeaponById(optionId)!.nameRu} (${kenseiWeaponById(optionId)!.kind === 'ranged' ? 'дальний' : 'ближний'})`
+      : '') ||
     pact?.nameRu ||
     armorModel?.nameRu ||
     fromSkill ||

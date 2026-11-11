@@ -430,7 +430,12 @@
               "notes_ru": "Эффект боевой/ролевой; на лист — сохранить выбор в subclass_grant.picks. Позже 6/14 ур. — отдельные тотемы."
             }
           ],
-          "notes_ru": "На 6 и 14 — ещё выборы Aspect / Totemic Attunement (заложить в data как future_choices).",
+          "notes_ru": "Ритуалы Искателя духов и Странника духов — без ячеек.",
+          "always_prepared_spells": [
+            { "name": "Beast Sense", "level": 2, "from_class_level": 3 },
+            { "name": "Speak with Animals", "level": 1, "from_class_level": 3 },
+            { "name": "Commune with Nature", "level": 5, "from_class_level": 10 }
+          ],
           "parent_slug": "barbarian",
           "grants_level": 3,
           "source_books": "PHB",
@@ -471,7 +476,11 @@
           "source_books": "XGtE",
           "sheet_grants": {},
           "choices": [],
-          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "notes_ru": "Совет духов: Гадание или Подсматривание без ячейки, общий заряд 1 на короткий или продолжительный отдых.",
+          "always_prepared_spells": [
+            { "name": "Augury", "level": 2, "from_class_level": 10 },
+            { "name": "Clairvoyance", "level": 3, "from_class_level": 10 }
+          ],
           "detail_status": "inventory_only",
           "features_by_level": {
             "3": [
@@ -581,6 +590,16 @@
           "sheet_grants": {},
           "choices": [
             {
+              "id": "giant_cantrip",
+              "label_ru": "Заговор",
+              "kind": "single",
+              "count": 1,
+              "from": "druidcraft_or_thaumaturgy",
+              "applies_to": "later_spells",
+              "required": true,
+              "notes_ru": "Искусство друидов или Чудотворство. Мудрость, без ячеек."
+            },
+            {
               "id": "giant_damage_type",
               "label_ru": "Тип урона великана",
               "kind": "single",
@@ -592,11 +611,18 @@
                 "lightning",
                 "thunder"
               ],
+              "from_labels_ru": {
+                "acid": "Кислота",
+                "cold": "Холод",
+                "fire": "Огонь",
+                "lightning": "Молния",
+                "thunder": "Гром"
+              },
               "applies_to": "grant",
               "required": true
             }
           ],
-          "notes_ru": "Тип урона (можно менять при level-up / long rest по правилам BGG).",
+          "notes_ru": "Заговор на 3 ур. (Мудрость, без ячеек) и тип урона Стихийного разруба.",
           "detail_status": "forks_stub",
           "features_by_level": {
             "3": [
@@ -2912,9 +2938,19 @@
               "from": "arcane_shots",
               "applies_to": "grant",
               "required": true
+            },
+            {
+              "id": "arcane_archer_cantrip",
+              "label_ru": "Заговор",
+              "kind": "single",
+              "count": 1,
+              "from": "druidcraft_or_prestidigitation",
+              "applies_to": "later_spells",
+              "required": true,
+              "notes_ru": "Фокусы или Искусство друидов. Вне ячеек воина."
             }
           ],
-          "notes_ru": "Дополнительный заговор: Фокусы или Искусство друидов. Добавь его в список заклинаний, если карточки ещё нет.",
+          "notes_ru": "Два тайных выстрела и заговор: Фокусы или Искусство друидов.",
           "detail_status": "forks_stub",
           "features_by_level": {
             "3": [
@@ -3255,6 +3291,10 @@
                 "calligraphers_supplies",
                 "painters_supplies"
               ],
+              "from_labels_ru": {
+                "calligraphers_supplies": "Инструменты каллиграфа",
+                "painters_supplies": "Инструменты художника"
+              },
               "applies_to": "sheet_field",
               "required": true
             }

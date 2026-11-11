@@ -31,6 +31,21 @@ function ResourceChip({
 }) {
   const remaining = Math.max(0, row.max - row.used)
   const compact = shouldUseCompactResourceTrack(row.max)
+  if (row.unlimited) {
+    return (
+      <div className="play-desk__hot-item play-desk__hot-item--res play-desk__hot-item--res-compact">
+        <span className="play-desk__hot-res-head">
+          <IconPouch className="play-desk__hot-icon" />
+          <span className="play-desk__hot-res-name" title={row.name}>
+            {row.name}
+          </span>
+        </span>
+        <div className="play-desk__stepper" role="group" aria-label={`${row.name}: без лимита`}>
+          <span className="play-desk__stepper-value">без лимита</span>
+        </div>
+      </div>
+    )
+  }
   return (
     <div
       className={`play-desk__hot-item play-desk__hot-item--res${

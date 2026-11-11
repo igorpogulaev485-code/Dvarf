@@ -28,6 +28,7 @@ import {
 import { saveBonusFromFeatures } from '../ClassFeaturesPanel'
 import { ensureRaceNaturalWeaponAttacks, raceNaturalWeaponAttacksMatch, syncRaceSpellsForSheetState } from '../raceEffects'
 import { characterHasCasterClass, highestSpellSlotLevelForClasses } from '../../../shared/dnd/casterProgression'
+import { syncSubclassAlwaysPreparedSpells } from '../subclassEffects'
 import { equippedArmorPieces } from '../inventory'
 import { SKILL_DEFS, abilityModifier } from '../sheetTypes'
 import { passiveScore, skillModifierFromState } from '../../../shared/dnd/passives'
@@ -388,6 +389,33 @@ export function useSheetEditorPart2(model: SheetModel) {
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
   }, [model.draft.subclassGrants, model.draft.featurePicks])
+
+  // Ritual grants and bonus cantrips (totem, shadow, giant, arcane trickster)
+  // follow the archetype and the feature-card cantrip pick.
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const slice = model.subclassSliceFrom(prev)
+      const synced = syncSubclassAlwaysPreparedSpells({
+        draft: slice,
+        maxSpellLevel: highestSpellSlotLevelForClasses(
+          prev.classes,
+          prev.subclassGrants
+            .filter((row) => row.caster?.progression === 'third')
+            .map((row) => ({
+              classEntryId: row.classEntryId,
+              progression: 'third' as const,
+              ability: row.caster?.ability ?? null,
+            })),
+        ),
+        classLevelByEntryId: Object.fromEntries(
+          prev.classes.map((row) => [row.id, row.level]),
+        ),
+        featurePicks: prev.featurePicks,
+      })
+      if (synced === slice) return prev
+      return model.mergeSubclassSlice(prev, synced)
+    })
+  }, [model.draft.subclassGrants, model.draft.featurePicks, model.draft.classes])
 
   // PHB Blessings of Knowledge: chosen skills keep doubled proficiency on old sheets.
   useEffect(() => {

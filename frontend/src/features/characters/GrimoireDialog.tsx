@@ -15,9 +15,12 @@ import {
 } from '../../shared/dnd/castProfiles'
 import {
   characterSpellListSlugs,
+  countThirdCasterAnySchoolSpells,
   highestSpellSlotLevel,
   resolveSpellLearnBudget,
   suggestSpellcastingFromClasses,
+  thirdCasterAnySchoolSlots,
+  thirdCasterSchoolAllows,
   thirdCasterSchoolGate,
   type SpellLearnBudget,
   type SubclassCasterOverlay,
@@ -308,6 +311,36 @@ export function GrimoireDialog({
       }),
     [wizardSubclassSlug, wizardLevel],
   )
+  const thirdCasterLevel = useMemo(() => {
+    if (!access.schoolGate) return 0
+    const host = classes.find((row) => row.level > 0 && row.name.trim())
+    return Math.max(0, Math.floor(host?.level ?? 0))
+  }, [access.schoolGate, classes])
+  const anySchoolSlots = access.schoolGate ? thirdCasterAnySchoolSlots(thirdCasterLevel) : 0
+  const anySchoolUsed = access.schoolGate
+    ? countThirdCasterAnySchoolSpells(spells.known, access.schoolGate)
+    : 0
+
+  function schoolBudgetBlock(level: number, school: string): string | null {
+    if (!access.schoolGate || level <= 0) return null
+    if (
+      thirdCasterSchoolAllows({
+        level,
+        school,
+        restrictedSchools: access.schoolGate,
+        anySchoolUsed,
+        anySchoolSlots,
+      })
+    ) {
+      return null
+    }
+    const pair =
+      access.schoolGate.includes('abjuration')
+        ? 'ограждение или воплощение'
+        : 'очарование или иллюзия'
+    return `Лимит любой школы ${anySchoolUsed}/${anySchoolSlots}. Остальные известные — ${pair}.`
+  }
+
   const freeBookLeft =
     mode === 'spellbook' ? remainingFreeSpellbookSlots(spells.known, wizardLevel) : 0
   const uiCopy = spellAccessUiCopy(mode, accessContext)
@@ -413,9 +446,6 @@ export function GrimoireDialog({
 
   const available = useMemo(() => {
     if (!access.hasCaster) return []
-    const schoolSet = access.schoolGate
-      ? new Set(access.schoolGate.map((s) => s.toLowerCase()))
-      : null
     const shelfList = shelves.length > 0 ? shelves : []
     return entries.filter((entry) => {
       const parsed = parseSpellCatalogData(entry.data)
@@ -450,10 +480,6 @@ export function GrimoireDialog({
         if (parsed.level > 0 && parsed.level > access.maxSpellLevel) return false
       }
 
-      if (schoolSet && parsed.level > 0) {
-        const school = (parsed.school || '').toLowerCase()
-        if (!schoolSet.has(school)) return false
-      }
       return true
     })
   }, [entries, access, shelves, wizardSubclassSlug])
@@ -704,12 +730,10 @@ export function GrimoireDialog({
         return
       }
     }
-    if (access.schoolGate && level > 0) {
-      const school = (parsed.school || '').toLowerCase()
-      if (!access.schoolGate.map((s) => s.toLowerCase()).includes(school)) {
-        onToast?.('Школа недоступна для этого кастера')
-        return
-      }
+    const schoolBlock = schoolBudgetBlock(level, parsed.school || '')
+    if (schoolBlock) {
+      onToast?.(schoolBlock)
+      return
     }
     const acquisitionSlug = acquisitionSlugForEntry(entry)
     const acquisitionProfile = access.profiles.find((row) => row.slug === acquisitionSlug)
@@ -981,12 +1005,10 @@ export function GrimoireDialog({
       )
       return
     }
-    if (access.schoolGate && level > 0) {
-      const school = (input.school || '').toLowerCase()
-      if (!school || !access.schoolGate.map((s) => s.toLowerCase()).includes(school)) {
-        onToast?.('Школа недоступна для этого кастера')
-        return
-      }
+    const customSchoolBlock = schoolBudgetBlock(level, input.school || '')
+    if (customSchoolBlock) {
+      onToast?.(customSchoolBlock)
+      return
     }
     if (level <= 0 && cantripCapReached(classFilter !== 'all' ? classFilter : null)) {
       onToast?.(
@@ -1158,7 +1180,14 @@ export function GrimoireDialog({
     if (b.mode === 'prepared_list') {
       return `${b.labelRu}: на листе ${learnedLeveled} · не подготовлено ${unpreparedOnSheet} · ${cantripPart} · ${uiCopy.readyLabel.toLowerCase()} ${preparedCount}/${b.maxPrepared ?? '—'}. ${uiCopy.grimoireHint} ${accessHint}`
     }
-    return `${b.labelRu}: известные ${learnedLeveled}/${b.leveledKnown ?? '—'} · ${cantripPart}. ${uiCopy.grimoireHint} ${accessHint}`
+    const schoolHint = access.schoolGate
+      ? ` Любая школа ${anySchoolUsed}/${anySchoolSlots}, остальное — ${
+          access.schoolGate.includes('abjuration')
+            ? 'ограждение или воплощение'
+            : 'очарование или иллюзия'
+        }.`
+      : ''
+    return `${b.labelRu}: известные ${learnedLeveled}/${b.leveledKnown ?? '—'} · ${cantripPart}.${schoolHint} ${uiCopy.grimoireHint} ${accessHint}`
   })()
 
   const dialogTitle =

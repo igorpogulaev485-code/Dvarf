@@ -14,6 +14,8 @@ import {
   resolveSpellLearnBudget,
   resolveSubclassCasterOverlays,
   spellLearnModeForSlug,
+  thirdCasterCantripsKnown,
+  thirdCasterSpellsKnown,
   type SpellLearnBudget,
   type SpellLearnMode,
   type SubclassCasterOverlay,
@@ -58,6 +60,12 @@ export type SpellCastProfile = {
   attackBonus: number
   /** Resolved subclass slug when known (dunamancy / tradition gates). */
   subclassSlug?: string | null
+  /**
+   * Catalog class list this profile learns from.
+   * Third-casters keep `slug` as the host class (fighter/rogue budgets)
+   * and set this to `wizard`.
+   */
+  listSlug?: string | null
 }
 
 export type BuildCastProfilesInput = {
@@ -155,8 +163,8 @@ export function buildCastProfiles(input: BuildCastProfilesInput): SpellCastProfi
         continue
       }
       const level = Math.max(0, Math.floor(row.level))
-      const cantrips = level >= 10 ? 3 : level >= 3 ? 2 : 0
-      const known = level >= 3 ? Math.max(0, Math.floor((level - 1) / 2)) : 0
+      const cantrips = thirdCasterCantripsKnown(level)
+      const known = thirdCasterSpellsKnown(level)
       const aloneMaxLevel = maxSpellLevelForClassAlone('third', row.level)
       const hostSlug = resolveClassCasterSlug(row.name) ?? 'third'
       const stats = profileStats(
@@ -180,6 +188,7 @@ export function buildCastProfiles(input: BuildCastProfilesInput): SpellCastProfi
         saveDc: stats.saveDc,
         attackBonus: stats.attackBonus,
         subclassSlug: subclassSlugFromClassRow(row),
+        listSlug: 'wizard',
       })
     }
   }
@@ -484,6 +493,8 @@ export type GrimoireShelfSource = {
   aloneMaxLevel: number
   /** Tradition / conclave / circle slug when known (EGW dunamancy gate). */
   subclassSlug?: string | null
+  /** Catalog list to match. Defaults to `slug`. Third-casters use `wizard`. */
+  listSlug?: string | null
 }
 
 export function buildGrimoireShelfSources(
@@ -501,6 +512,7 @@ export function buildGrimoireShelfSources(
       mode: row.mode,
       aloneMaxLevel: row.aloneMaxLevel,
       subclassSlug: row.subclassSlug ?? null,
+      listSlug: row.listSlug ?? null,
     })
   }
   return out
@@ -517,11 +529,12 @@ export function catalogSpellMatchesShelf(
   shelf: GrimoireShelfSource,
   spellSubclasses?: SpellSubclassRef[] | null,
 ): boolean {
+  const listSlug = (shelf.listSlug || shelf.slug).trim().toLowerCase()
   if (
     !spellAvailableOnClassList({
       classes: catalogClassSlugs,
       subclasses: spellSubclasses,
-      classSlug: shelf.slug,
+      classSlug: listSlug,
       subclassSlug: shelf.subclassSlug,
     })
   ) {

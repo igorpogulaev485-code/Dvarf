@@ -1,4 +1,9 @@
 import { useMemo, useState } from 'react'
+import {
+  isSunSoulVariableKi,
+  Pack09FeatureExtras,
+  SunSoulKiControls,
+} from './Pack09FeatureExtras'
 import type { RulesEdition } from '../../shared/api/characters'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
@@ -37,6 +42,7 @@ import {
 } from '../../shared/dnd/infusionsActive'
 import { maneuverById } from '../../shared/dnd/battleMasterManeuvers'
 import { elementalDisciplineById } from '../../shared/dnd/monkElementalDisciplines'
+import { kenseiPairError } from '../../shared/dnd/kenseiWeapons'
 import { featureChoiceOptionLabel } from '../../shared/dnd/featureChoiceOptionLabel'
 import { createArcaneWard, wizardResolvedFeatureId } from '../../shared/dnd/wizardTradition'
 import { WizardCapstonePicks } from './WizardCapstonePicks'
@@ -312,6 +318,29 @@ function FeatureResourceControls({
   if (!pool) {
     return (
       <Text tone="muted">Ресурс синхронизируется при сохранении уровня/архетипа…</Text>
+    )
+  }
+
+  if (pool.unlimited) {
+    return (
+      <div className="feature-resource">
+        <Text>
+          {pool.name}: <strong>без лимита</strong>
+        </Text>
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            disabled={Boolean(resource.blocked_while_heavy_armor) && wearingHeavyArmor}
+            onClick={() => {
+              const result = spendFeatureUse({ resources, feature, classSlug })
+              onResourcesChange(result.resources)
+              onToast?.(result.ok ? `${feature.name_ru}: без лимита` : result.message)
+            }}
+          >
+            Использовать
+          </Button>
+        </div>
+      </div>
     )
   }
 
@@ -838,6 +867,14 @@ function FeatureChoiceControls({
     : choice.options_from === 'artificer_infusions'
       ? infusionOptionIdsAtLevel(feature.classLevel)
       : resolveFeatureChoiceOptions(choice)
+  const visibleOptions =
+    choice.options_from === 'monk_elemental_disciplines'
+      ? options.filter((id) => {
+          const disc = elementalDisciplineById(id)
+          if (!disc || disc.id === 'elemental_attunement') return false
+          return disc.minLevel == null || disc.minLevel <= feature.classLevel
+        })
+      : options
   const maxPicks = resolveChoiceMaxPicks(choice, feature.classLevel)
   const multi = maxPicks > 1 || Boolean(choice.max_picks_by_level) || Boolean(choice.max_picks && choice.max_picks > 1)
   const selectedListRaw = multi
@@ -859,7 +896,7 @@ function FeatureChoiceControls({
     : selected
       ? choiceOptionLabel(selected)
       : null
-  const useSelect = !multi && options.length > 6
+  const useSelect = !multi && visibleOptions.length > 6
   const replicateChoices = replicateItemsAtLevel(feature.classLevel)
 
   function confirmReplicateLearn() {
@@ -991,12 +1028,34 @@ function FeatureChoiceControls({
             if (!disc) return null
             const cost =
               disc.kiCost == null ? 'бесплатно' : `${disc.kiCost} ки`
+            const locked = disc.minLevel != null && disc.minLevel > feature.classLevel
             const prereq = disc.minLevel ? `с ${disc.minLevel} ур.; ` : ''
             return (
-              <Text key={id} tone="muted">
-                {disc.nameRu} ({prereq}
-                {cost}): {disc.summaryRu}
-              </Text>
+              <div key={id}>
+                <Text tone="muted">
+                  {disc.nameRu} ({prereq}
+                  {cost}){locked ? ' — выше текущего уровня' : ''}: {disc.summaryRu}
+                </Text>
+                {locked ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      onFeaturePicksChange(
+                        toggleFeaturePickInList(
+                          featurePicks,
+                          feature.classEntryId,
+                          feature.id,
+                          id,
+                          maxPicks,
+                        ),
+                      )
+                    }}
+                  >
+                    Снять {disc.nameRu}
+                  </Button>
+                ) : null}
+              </div>
             )
           })
         : null}
@@ -1025,7 +1084,7 @@ function FeatureChoiceControls({
             }}
           >
             <option value="">— выбрать —</option>
-            {options.map((optionId) => (
+            {visibleOptions.map((optionId) => (
               <option key={optionId} value={optionId}>
                 {choiceOptionLabel(optionId)}
               </option>
@@ -1034,7 +1093,7 @@ function FeatureChoiceControls({
         </label>
       ) : (
         <div className="feature-resource__actions">
-          {options.map((optionId) => {
+          {visibleOptions.map((optionId) => {
             const label = choiceOptionLabel(optionId)
             const replicateLearn = isReplicateLearnOption(optionId)
             const replicateKnown = selectedList.filter((id) =>
@@ -1061,6 +1120,18 @@ function FeatureChoiceControls({
                     return
                   }
                   if (multi) {
+                    if (
+                      choice.options_from === 'kensei_weapons' &&
+                      maxPicks === 2 &&
+                      !selectedList.includes(optionId)
+                    ) {
+                      const preview = [...selectedList, optionId]
+                      const pair = kenseiPairError(preview)
+                      if (preview.length === 2 && pair) {
+                        onToast?.(pair)
+                        return
+                      }
+                    }
                     const next = toggleFeaturePickInList(
                       featurePicks,
                       feature.classEntryId,
@@ -1902,7 +1973,30 @@ function FeatureRow({
           onMoonFormSlotHeal={onMoonFormSlotHeal}
         />
       ) : null}
+      {replacementStatus === 'active' && isSunSoulVariableKi(feature.id) ? (
+        <SunSoulKiControls
+          feature={feature}
+          classSlug={classSlug}
+          resources={resources}
+          onResourcesChange={onResourcesChange}
+          onToast={onToast}
+          unlocked={unlockedFeatures}
+        />
+      ) : null}
       {replacementStatus === 'active' ? (
+        <Pack09FeatureExtras
+          feature={feature}
+          classSlug={classSlug}
+          resources={resources}
+          onResourcesChange={onResourcesChange}
+          onToast={onToast}
+          unlocked={unlockedFeatures}
+        />
+      ) : null}
+      {replacementStatus === 'active' &&
+      !isSunSoulVariableKi(feature.id) &&
+      feature.id !== 'bolstering_magic' &&
+      feature.id !== 'consult_the_spirits' ? (
         <FeatureResourceControls
           feature={feature}
           classSlug={classSlug}

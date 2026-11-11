@@ -7,6 +7,7 @@ import {
   proficiencyBonusForTotalLevel,
   recoverPoolId,
   resolveClassFeatureSlug,
+  resourceIsUnlimited,
   type AbilityScoreKey,
   type UnlockedFeature,
 } from './classFeatures'
@@ -30,6 +31,8 @@ export type DesiredFeatureResource = {
   classSlug?: string
   /** Russian class label used when the same pool name appears on two classes. */
   classLabelRu?: string
+  /** PHB rage at 20: the pool does not run out. */
+  unlimited?: boolean
 }
 
 export function isFeatureManagedResourceId(id: string): boolean {
@@ -149,10 +152,12 @@ export function desiredResourcesFromFeatures(input: {
       max = feature.resourceUses ?? resource.uses
     }
 
+    const unlimited = resourceIsUnlimited(resource, feature.classLevel)
     const next: DesiredFeatureResource = {
       id,
       name: resource.pool_name_ru || feature.name_ru,
       max: Math.max(0, Math.floor(max)),
+      unlimited,
       reset:
         resource.recharge === 'short_rest'
           ? 'short'
@@ -189,6 +194,7 @@ export function desiredResourcesFromFeatures(input: {
         // Prefer shorter reset (Font of Inspiration: long → short at L5).
         name: resource.pool_name_ru || prev.name,
         max: Math.max(prev.max, next.max),
+        unlimited: Boolean(prev.unlimited || next.unlimited),
         reset:
           prev.reset === 'short' || next.reset === 'short'
             ? 'short'
@@ -252,9 +258,10 @@ export function syncFeatureResources(
         ...item,
         name: want.name,
         max: want.max,
-        used: Math.min(want.max, item.used),
+        used: want.unlimited ? 0 : Math.min(want.max, item.used),
         reset: preserveManualLock ? 'manual' : want.reset,
         track: want.track,
+        unlimited: want.unlimited || undefined,
       }),
     )
   }
@@ -269,6 +276,7 @@ export function syncFeatureResources(
         used: 0,
         reset: want.reset,
         track: want.track,
+        unlimited: want.unlimited || undefined,
       }),
     )
   }
@@ -406,6 +414,8 @@ export function spendFeatureUse(input: {
   resources: SheetResource[]
   feature: UnlockedFeature
   classSlug: string
+  /** Override the pool cost (Sun Soul 0–3). 0 succeeds without spending. */
+  amount?: number
 }): SpendFeatureResult {
   const resource = input.feature.resource
   if (!resource?.pool_id) {
@@ -451,7 +461,27 @@ export function spendFeatureUse(input: {
     }
   }
 
-  const poolCost = Math.max(1, Math.floor(resource.spend_cost ?? 1))
+  if (pool.unlimited || resourceIsUnlimited(resource, input.feature.classLevel)) {
+    return {
+      resources: input.resources,
+      ok: true,
+      via: 'pool',
+      message: `${pool.name}: без лимита`,
+    }
+  }
+
+  const poolCost =
+    input.amount != null
+      ? Math.max(0, Math.floor(input.amount))
+      : Math.max(1, Math.floor(resource.spend_cost ?? 1))
+  if (poolCost === 0) {
+    return {
+      resources: input.resources,
+      ok: true,
+      via: 'pool',
+      message: `${input.feature.name_ru}: 0 ки`,
+    }
+  }
   if (spendRemaining(pool) >= poolCost) {
     return {
       resources: input.resources.map((row) =>

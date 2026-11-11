@@ -30,7 +30,9 @@ import rangerPack from './data/ranger_2014.json'
 import sorcererPack from './data/sorcerer_2014.json'
 import warlockPack from './data/warlock_2014.json'
 import { SORCERER_METAMAGIC } from './sorcererMetamagic'
+import { ARCANE_SHOTS } from './arcaneShots'
 import { BATTLE_MASTER_MANEUVERS } from './battleMasterManeuvers'
+import { KENSEI_WEAPONS } from './kenseiWeapons'
 import { MONK_ELEMENTAL_DISCIPLINES } from './monkElementalDisciplines'
 import {
   WARLOCK_INVOCATIONS,
@@ -92,6 +94,10 @@ export type FeatureResource = {
     /** Optional upper bound for variable spends (Touch of the Long Death 1–10). */
     amount_max?: number
   }
+  /**
+   * From this class level the pool does not deplete (PHB barbarian rage at 20).
+   */
+  unlimited_from_level?: number
   /** Soulknife: regain 1 die as an action, once per short/long rest. */
   recover_one?: {
     label_ru: string
@@ -141,6 +147,8 @@ export type FeatureChoiceDef = {
     | 'armorer_armor_models'
     | 'monk_elemental_disciplines'
     | 'battle_master_maneuvers'
+    | 'arcane_shots'
+    | 'kensei_weapons'
     /** Runtime: proficient skills + thieves' tools from sheet. */
     | 'expertise_skills_tools'
   options?: string[]
@@ -310,6 +318,8 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
         choiceRaw.options_from === 'armorer_armor_models' ||
         choiceRaw.options_from === 'monk_elemental_disciplines' ||
         choiceRaw.options_from === 'battle_master_maneuvers' ||
+        choiceRaw.options_from === 'arcane_shots' ||
+        choiceRaw.options_from === 'kensei_weapons' ||
         choiceRaw.options_from === 'expertise_skills_tools'
           ? choiceRaw.options_from
           : undefined
@@ -583,7 +593,21 @@ export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] 
   if (choice.options_from === 'battle_master_maneuvers') {
     return BATTLE_MASTER_MANEUVERS.map((row) => row.id)
   }
+  if (choice.options_from === 'arcane_shots') {
+    return ARCANE_SHOTS.map((row) => row.id)
+  }
+  if (choice.options_from === 'kensei_weapons') {
+    return KENSEI_WEAPONS.map((row) => row.id)
+  }
   return choice.options ? [...choice.options] : []
+}
+
+export function resourceIsUnlimited(
+  resource: FeatureResource | undefined,
+  classLevel: number,
+): boolean {
+  const at = resource?.unlimited_from_level
+  return typeof at === 'number' && Math.floor(classLevel) >= at
 }
 
 export function resolveChoiceMaxPicks(
@@ -773,6 +797,10 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
     stock_spend_label_ru:
       typeof resourceRaw.stock_spend_label_ru === 'string'
         ? resourceRaw.stock_spend_label_ru
+        : undefined,
+    unlimited_from_level:
+      typeof resourceRaw.unlimited_from_level === 'number'
+        ? Math.max(1, Math.floor(resourceRaw.unlimited_from_level))
         : undefined,
     success_lock: (() => {
       const raw =

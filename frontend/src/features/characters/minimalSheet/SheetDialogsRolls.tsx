@@ -11,6 +11,9 @@ import { canWearArmor, armorProficiencyHint } from '../equipmentProficiency'
 import { listShieldItems, toggleShieldInHand } from '../heldEquip'
 import { HotConditionsDialog } from '../HotConditionsDialog'
 import { formatSkillRoll } from '../deskRolls'
+import { applyStrokeOfLuck, strokeOfLuckKind } from '../../../shared/dnd/strokeOfLuck'
+import { spendFeatureUse } from '../../../shared/dnd/featureResources'
+import { resolveClassFeatureSlug, type UnlockedFeature } from '../../../shared/dnd/classFeatures'
 import { setConcentration } from '../../../shared/dnd/concentration'
 import { equippedArmorPieces } from '../inventory'
 import { CastSpellDialog } from '../CastSpellDialog'
@@ -88,6 +91,54 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
                       </time>
                     ) : null}
                     <span className="desk-roll-history__text">{row.text}</span>
+                    {strokeOfLuckKind(row.text) ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          const feature = ((model.unlockedFeatures ?? []) as UnlockedFeature[]).find(
+                            (item) => item.id === 'stroke_of_luck',
+                          )
+                          if (!feature) {
+                            model.onToast?.('Удача доступна плуту 20-го уровня')
+                            return
+                          }
+                          const nextText = applyStrokeOfLuck(row.text)
+                          if (!nextText) {
+                            model.onToast?.('Этот бросок уже нельзя заменить Удачей')
+                            return
+                          }
+                          const classSlug =
+                            resolveClassFeatureSlug(feature.className ?? 'плут') ?? 'rogue'
+                          const spent = spendFeatureUse({
+                            resources: model.draft.play.resources,
+                            feature,
+                            classSlug,
+                          })
+                          if (!spent.ok) {
+                            model.onToast?.(spent.message)
+                            return
+                          }
+                          model.setDraft((prev) => ({
+                            ...prev,
+                            play: { ...prev.play, resources: spent.resources },
+                            sheetUi: {
+                              ...prev.sheetUi,
+                              rollHistory: prev.sheetUi.rollHistory.map((item) =>
+                                item.id === row.id ? { ...item, text: nextText } : item,
+                              ),
+                            },
+                          }))
+                          model.onToast?.(
+                            strokeOfLuckKind(row.text) === 'attack'
+                              ? 'Удача: промах становится попаданием'
+                              : 'Удача: d20 проверки считается как 20',
+                          )
+                        }}
+                      >
+                        Удача
+                      </Button>
+                    ) : null}
                   </li>
                 )
               })}
