@@ -11,6 +11,7 @@ import { isPactChainActive, isPactChainSpellId, pactChainFamiliarSpellId, syncPa
 import { isWarlockClassName } from '../pactTomeEffects'
 import { toggleCombatConsumableFavorite } from '../combatConsumables'
 import { formatSkillRoll, resolveRollMode, type DeskRollMode } from '../deskRolls'
+import { exhaustionRollFlags } from '../../../shared/dnd/exhaustion2014'
 import {
   MODE_DEFAULT_PANEL,
   MODE_SKILL_KEYS,
@@ -522,41 +523,99 @@ export function installSheetActions4(model: SheetModel) {
     })
   }
 
+  model.exhaustionFlags = function exhaustionFlags() {
+    return exhaustionRollFlags(model.draft.play.exhaustion ?? 0)
+  }
+
+  model.strengthCheckFloor = function strengthCheckFloor(applies: boolean) {
+    if (!applies) return null
+    const on = (model.unlockedFeatures ?? []).some(
+      (feature: { id?: string; name_en?: string }) =>
+        feature.id === 'indomitable_might' || feature.name_en === 'Indomitable Might',
+    )
+    if (!on) return null
+    const score = Math.floor(model.effectiveAbilities?.str ?? model.draft.abilities.str)
+    return { value: score, label: 'неукротимая мощь' }
+  }
+
   model.effectiveRollMode = function effectiveRollMode(skillKey?: string): DeskRollMode {
-    const forced = skillKey === 'stealth' && model.stealthArmorDisadvantage
-    return resolveRollMode(model.deskRollMode, forced)
+    const armor = skillKey === 'stealth' && model.stealthArmorDisadvantage
+    const exhaustion = model.exhaustionFlags().disadvantageOnChecks
+    return resolveRollMode(model.deskRollMode, armor || exhaustion)
+  }
+
+  model.attackRollMode = function attackRollMode(): DeskRollMode {
+    return resolveRollMode(
+      model.deskRollMode,
+      model.exhaustionFlags().disadvantageOnAttacksAndSaves,
+    )
+  }
+
+  model.saveRollMode = function saveRollMode(): DeskRollMode {
+    return resolveRollMode(
+      model.deskRollMode,
+      model.exhaustionFlags().disadvantageOnAttacksAndSaves,
+    )
   }
 
   model.rollModeSkill = function rollModeSkill(skill: { key: string; label: string; mod: number }) {
     const mode = model.effectiveRollMode(skill.key)
-    const note =
-      skill.key === 'stealth' && model.stealthArmorDisadvantage
-        ? mode === 'normal' && model.deskRollMode === 'advantage'
-          ? ' · доспех отменил преим.'
-          : mode === 'disadvantage' && model.deskRollMode !== 'disadvantage'
-            ? ' · помеха от доспеха'
-            : ''
-        : ''
-    model.emitToast(`${formatSkillRoll(skill.label, skill.mod, mode)}${note}`)
+    const armor = skill.key === 'stealth' && model.stealthArmorDisadvantage
+    const exhaustion = model.exhaustionFlags().disadvantageOnChecks
+    const note = armor
+      ? mode === 'normal' && model.deskRollMode === 'advantage'
+        ? ' · доспех отменил преим.'
+        : mode === 'disadvantage' && model.deskRollMode !== 'disadvantage'
+          ? exhaustion
+            ? ' · помеха от доспеха и истощения'
+            : ' · помеха от доспеха'
+          : ''
+      : exhaustion && model.deskRollMode === 'advantage'
+        ? ' · истощение отменило преим.'
+        : exhaustion && model.deskRollMode !== 'disadvantage'
+          ? ' · помеха от истощения'
+          : ''
+    const base = SKILL_DEFS.find((item) => item.key === skill.key)?.base
+    model.emitToast(
+      `${formatSkillRoll(skill.label, skill.mod, mode, undefined, model.strengthCheckFloor(base === 'str'))}${note}`,
+    )
   }
 
   model.rollAbilityCheck = function rollAbilityCheck(key: AbilityKey, mod: number) {
+    const exhaustion = model.exhaustionFlags().disadvantageOnChecks
+    const note =
+      exhaustion && model.deskRollMode === 'advantage'
+        ? ' · истощение отменило преим.'
+        : exhaustion && model.deskRollMode !== 'disadvantage'
+          ? ' · помеха от истощения'
+          : ''
     model.emitToast(
-      formatSkillRoll(
+      `${formatSkillRoll(
         `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
         mod,
         model.effectiveRollMode(),
-      ),
+        undefined,
+        model.strengthCheckFloor(key === 'str'),
+      )}${note}`,
     )
   }
 
   model.rollAbilitySave = function rollAbilitySave(key: AbilityKey, mod: number) {
+    const exhaustion = model.exhaustionFlags().disadvantageOnAttacksAndSaves
+    const note =
+      exhaustion && model.deskRollMode === 'advantage'
+        ? ' · истощение отменило преим.'
+        : exhaustion && model.deskRollMode !== 'disadvantage'
+          ? ' · помеха от истощения'
+          : ''
     model.emitToast(
-      formatSkillRoll(
+      `${formatSkillRoll(
         `Спас · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
         mod,
-        model.effectiveRollMode(),
-      ),
+        model.saveRollMode(),
+        undefined,
+        null,
+      )}${note}`,
     )
   }
 

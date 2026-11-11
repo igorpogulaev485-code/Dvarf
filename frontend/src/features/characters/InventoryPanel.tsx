@@ -737,8 +737,11 @@ export function InventoryPanel({
               <span className="attack-held-tag">{WEAR_SLOT_LABEL_RU[item.wear_slot]}</span>
             ) : null}
             <span className="inventory-card__glance-spacer" aria-hidden />
-            <span className="inventory-card__glance-meta">
-              {item.qty > 1 ? `×${item.qty}` : '×1'}
+            <span
+              className="inventory-card__glance-meta"
+              aria-label={item.qty <= 0 ? 'количество 0' : `количество ${item.qty}`}
+            >
+              {item.qty <= 0 ? '×0' : item.qty > 1 ? `×${item.qty}` : '×1'}
             </span>
             <span className="inventory-card__glance-meta">{weightLabel}</span>
           </button>
@@ -820,7 +823,7 @@ export function InventoryPanel({
           </div>
           <h3 className="inventory-card__view-title">{item.name || 'Без названия'}</h3>
           <Text tone="muted">
-            {item.qty > 1 ? `×${item.qty} · ` : ''}
+            {item.qty === 1 ? '' : `×${item.qty} · `}
             {item.weight_lb == null && !expandedPack
               ? 'вес неизвестен'
               : `${lineLb} фнт`}

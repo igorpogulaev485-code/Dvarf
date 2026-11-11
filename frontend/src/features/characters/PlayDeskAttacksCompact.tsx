@@ -14,6 +14,7 @@ import {
   monkAttackAbility,
 } from '../../shared/dnd/martialArts'
 import { formatAttackRoll, type DeskRollMode } from './deskRolls'
+import { attackSuppressedByEmptyStack } from './attacksInventorySync'
 import {
   abilityModifier,
   formatModifier,
@@ -248,6 +249,7 @@ export function PlayDeskAttacksCompact({
               shillelagh != null &&
               shillelagh.attackId === attack.id &&
               attack.held !== false
+            if (attackSuppressedByEmptyStack(attack, inventoryItems)) return null
             const attackAbility = shillelaghOn
               ? shillelagh.ability
               : monkWeapon
@@ -315,8 +317,10 @@ export function PlayDeskAttacksCompact({
             return (
               <div key={attack.id} className="play-desk-compact__row is-dense is-attack">
                 <button
+                  key={`${attack.id}:${dmgLine}:${formatModifier(attackBonus)}`}
                   type="button"
                   className="play-desk-compact__hit"
+                  aria-label={`${attack.name}, атака ${formatModifier(attackBonus)}, урон ${dmgLine}`}
                   title="Бросок атаки и урона"
                   onClick={() =>
                     onToast?.(

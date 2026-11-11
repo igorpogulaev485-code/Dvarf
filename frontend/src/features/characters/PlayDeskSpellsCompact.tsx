@@ -683,8 +683,12 @@ function SpellRow({
       }`}
     >
       <button
+        key={`${spell.id}:${damage || '—'}`}
         type="button"
         className="play-desk-compact__spell-body"
+        aria-label={
+          damage ? `${spell.name}, ${damage}` : `${spell.name}, без урона`
+        }
         title={
           flags.length
             ? `${spell.name} · ${flags.join(' · ')} · описание`

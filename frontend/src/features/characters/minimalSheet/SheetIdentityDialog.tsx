@@ -396,43 +396,10 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                         disabled={!row.catalog_id}
                         value={row.subclass_name}
                         placeholder="Например: Клятва мести"
-                        onChange={(value, selected) => {
-                          if (selected) {
-                            model.requestSubclassChange(row.id, selected)
-                            return
-                          }
-                          // Free-text / clear: drop catalog subclass grant (EK/AT caster etc.)
-                          // so stale third-caster overlays do not linger without an archetype.
-                          model.setDraft((prev) => {
-                            const hadGrant = prev.subclassGrants.some(
-                              (grant) => grant.classEntryId === row.id,
-                            )
-                            const cleared = hadGrant
-                              ? revokeSubclassGrant(model.subclassSliceFrom(prev), row.id, {
-                                  copyTextToNotes: true,
-                                })
-                              : model.subclassSliceFrom(prev)
-                            const merged = hadGrant
-                              ? model.mergeSubclassSlice(prev, cleared)
-                              : prev
-                            const nextClasses = merged.classes.map((item) =>
-                              item.id === row.id
-                                ? {
-                                    ...item,
-                                    subclass_name: value,
-                                    subclass_catalog_id: null,
-                                  }
-                                : item,
-                            )
-                            const next = model.withRaceSpellsSynced(merged, nextClasses)
-                            return {
-                              ...next,
-                              identity:
-                                next.classes[0]?.id === row.id
-                                  ? { ...next.identity, subclassName: value }
-                                  : next.identity,
-                            }
-                          })
+                        commitOnSelect
+                        onChange={(_value, selected) => {
+                          if (!selected) return
+                          model.requestSubclassChange(row.id, selected)
                         }}
                       />
                       <Button

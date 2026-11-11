@@ -1163,6 +1163,7 @@ export function GuidedWizardDialog({
                 disabled={!subclassParentId}
                 value={subclassSelectedName}
                 placeholder="Начни вводить: Клятва мести, Школа воплощения…"
+                commitOnSelect
                 onChange={(_value, selected) => {
                   if (!selected) return
                   onPickSubclass?.(step.classEntryId, selected)

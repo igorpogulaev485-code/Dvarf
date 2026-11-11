@@ -1,7 +1,10 @@
 /**
  * Run: npx --yes tsx src/features/characters/attacksSync.selfcheck.ts
  */
-import { syncAttacksHeldFromInventory } from './attacksInventorySync.ts'
+import {
+  attackSuppressedByEmptyStack,
+  syncAttacksHeldFromInventory,
+} from './attacksInventorySync.ts'
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
@@ -45,5 +48,24 @@ const stowed = syncAttacksHeldFromInventory([bow], [
   { id: 'inv-bow', equipped: false },
 ])
 assert(stowed[0]?.held === false, 'unequip → not held')
+
+assert(
+  attackSuppressedByEmptyStack(
+    { inventory_item_id: 'staff' },
+    [{ id: 'staff', qty: 0 }],
+  ),
+  'qty 0 suppresses the attack',
+)
+assert(
+  !attackSuppressedByEmptyStack(
+    { inventory_item_id: 'staff' },
+    [{ id: 'staff', qty: 1 }],
+  ),
+  'qty 1 still attacks',
+)
+assert(
+  !attackSuppressedByEmptyStack({ inventory_item_id: null }, [{ id: 'staff', qty: 0 }]),
+  'unlinked attack stays',
+)
 
 console.log('attacksSync.selfcheck: ok')

@@ -19,6 +19,7 @@ import { syncAttacksHeldFromInventory, type WeaponAttack } from '../AttacksPanel
 import { readAttunements, type AttunementSlot } from '../attunement'
 import { readClassLevels, type ClassLevelEntry } from '../classLevels'
 import { readClassAsiLedger, type AppliedClassAsi } from '../../../shared/dnd/classAsi'
+import { readPrimalChampion, type PrimalChampionGrant } from '../../../shared/dnd/primalChampion'
 import { readFeatGrantLedger, sumFeatSpeedBonus, type AppliedFeatGrant } from '../../../shared/dnd/featGrants'
 import { migrateLegacyHitDice, syncHitDicePools } from '../../../shared/dnd/classHitDice'
 import { withSyncedHitDiceSummary } from '../play'
@@ -105,6 +106,8 @@ export type Draft = {
   knownForms: KnownForm[]
   featurePicks: FeaturePicksState
   classAsi: AppliedClassAsi[]
+  /** Barbarian 20 Primal Champion bonuses already written onto abilities. */
+  primalChampion: PrimalChampionGrant | null
   featGrants: AppliedFeatGrant[]
   customFeatures: CustomFeature[]
   /** Named buff/debuff stack (AC formulas, later abilities). */
@@ -319,6 +322,7 @@ export function buildDraft(character: CharacterDetail): Draft {
     knownForms: readKnownForms(sheet.known_forms),
     featurePicks: readFeaturePicks(sheet.feature_picks),
     classAsi: readClassAsiLedger(sheet.class_asi),
+    primalChampion: readPrimalChampion(sheet.primal_champion),
     featGrants: readFeatGrantLedger(sheet.feat_grants),
     customFeatures: readCustomFeatures(sheet.custom_features ?? sheet.customFeatures),
     modifiers: readModifiers(sheet),

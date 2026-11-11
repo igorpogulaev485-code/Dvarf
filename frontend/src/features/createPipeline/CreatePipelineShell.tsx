@@ -72,20 +72,22 @@ export function CreatePipelineShell({
           {stepHint}
         </Stack>
 
-        <div className="create-pipeline__progress" aria-live="polite">
-          <div className="create-pipeline__progress-meta">
+        <div className="create-pipeline__progress">
+          <div className="create-pipeline__progress-meta" aria-live="polite">
             <span>
               Шаг {stepNumber} из {stepTotal}
             </span>
             <span>{progressPct}%</span>
           </div>
           <div
+            key={step}
             className="create-pipeline__progress-bar"
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={progressPct}
-            aria-label={`Прогресс создания ${progressPct} процентов`}
+            aria-valuetext={`${progressPct} процентов`}
+            aria-label="Прогресс создания персонажа"
           >
             <div
               className="create-pipeline__progress-fill"

@@ -39,7 +39,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             inventoryItems={model.draft.inventory.items}
             favoriteConsumableIds={model.draft.sheetUi.combatConsumableFavoriteIds}
             combatFeatures={model.playActiveFeatures}
-            rollMode={model.effectiveRollMode()}
+            rollMode={model.attackRollMode()}
             preferMagicEmpty={model.hasMagicSources}
             onOpenSettings={() => model.setAttacksSettingsOpen(true)}
             onAddAttack={() => model.setAttacksSettingsOpen(true)}

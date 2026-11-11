@@ -29,6 +29,17 @@ function occupiesHandSlot(item: HeldSyncItem): boolean {
   return Boolean(item.name && findWeaponPreset(item.name))
 }
 
+/** Qty 0 keeps the inventory row, but it is not a weapon you can swing. */
+export function attackSuppressedByEmptyStack(
+  attack: { inventory_item_id?: string | null },
+  items: Array<{ id: string; qty?: number | null }>,
+): boolean {
+  if (!attack.inventory_item_id) return false
+  const item = items.find((row) => row.id === attack.inventory_item_id)
+  if (!item || item.qty == null) return false
+  return item.qty <= 0
+}
+
 /**
  * Mirror inventory.equipped onto linked attack cards, drop attacks whose
  * inventory row was deleted, and swap versatile dice (1H vs 2H) from grip.
