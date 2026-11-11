@@ -1,7 +1,7 @@
 """Idempotent 2014 gear catalog seed and inventory rule refresh.
 
 Revision ID: i01seed8f2a7
-Revises: q2c06e7f8a9b
+Revises: r3d10a8b9c0d
 Create Date: 2026-11-11
 
 Upserts SRD catalog gear plus every gear_*.json wave (DMG/XGE/TCE/settings/BMT).
@@ -17,7 +17,7 @@ from typing import Sequence, Union
 from alembic import op
 
 revision: str = "i01seed8f2a7"
-down_revision: Union[str, Sequence[str], None] = "q2c06e7f8a9b"
+down_revision: Union[str, Sequence[str], None] = "r3d10a8b9c0d"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
