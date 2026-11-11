@@ -1,6 +1,7 @@
 /** Сцены стола: бой, инвентарь, умения, заклинания, напарники, тексты. */
 import { useState } from 'react'
 import type { SheetModel } from './sheetModel'
+import type { DivineSmiteIntent } from '../divineSmite'
 import { type RulesEdition } from '../../../shared/api/characters'
 import { applyConcentrationChangeToCompanions } from '../spellCompanions'
 import { AttacksPanel, syncAttacksHeldFromInventory } from '../AttacksPanel'
@@ -26,6 +27,10 @@ import { totalCharacterLevel } from '../../../shared/dnd/classLevels'
 import { RitualBookCopyDialog, ritualBookButtonLabel } from '../RitualBookCopyDialog'
 
 export function PlayDeskScenes({ model }: { model: SheetModel }) {
+  const [divineSmiteIntent, setDivineSmiteIntent] = useState<DivineSmiteIntent>({
+    slotLevel: null,
+    vsUndeadOrFiend: false,
+  })
   const [ritualBookOpen, setRitualBookOpen] = useState(false)
   const ritualInput = {
     spells: model.draft.spells,
@@ -65,6 +70,10 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             inventoryItems={model.draft.inventory.items}
             favoriteConsumableIds={model.draft.sheetUi.combatConsumableFavoriteIds}
             combatFeatures={model.playActiveFeatures}
+            spells={model.draft.spells}
+            onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
+            divineSmiteIntent={divineSmiteIntent}
+            onDivineSmiteIntent={setDivineSmiteIntent}
             rollMode={model.attackRollMode()}
             preferMagicEmpty={model.hasMagicSources}
             onOpenSettings={() => model.setAttacksSettingsOpen(true)}
@@ -245,6 +254,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         classAsi={model.draft.classAsi}
         spells={model.draft.spells}
         onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
+        divineSmiteIntent={divineSmiteIntent}
+        onDivineSmiteIntent={setDivineSmiteIntent}
         edition={model.rulesEdition}
         wearingHeavyArmor={
           equippedArmorPieces(model.draft.inventory.items).armor?.kind === 'heavy'

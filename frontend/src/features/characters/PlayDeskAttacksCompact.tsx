@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { resourceShownCurrent, type SheetResource } from '../../shared/dnd/rest'
 import {
   listCombatConsumables,
@@ -7,14 +7,25 @@ import {
 import type { ConsumableSpendLogEntry } from './consumableSpend'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import { fightingStyleAttackBonus } from '../../shared/dnd/fightingStyles'
-import { divineStrikeRider } from './featureCombatBonuses'
+import { canSpendSlot, spendSpellSlot } from '../../shared/dnd/spells'
+import type { SpellsState } from './spells'
+import { divineStrikeRider, improvedDivineSmiteRider } from './featureCombatBonuses'
+import { DivineSmiteCombatBlock } from './DivineSmiteCombatBlock'
+import {
+  decideSmiteSlotClick,
+  divineSmiteDice,
+  divineSmiteSpendOf,
+  formatDivineSmiteExtra,
+  isMeleeWeaponAttackName,
+  type DivineSmiteIntent,
+} from './divineSmite'
 import {
   effectiveMartialArtsDamage,
   isMonkUnarmedAttack,
   isMonkWeaponName,
   monkAttackAbility,
 } from '../../shared/dnd/martialArts'
-import { formatAttackRoll, type DeskRollMode } from './deskRolls'
+import { resolveAttackRoll, type DeskRollMode } from './deskRolls'
 import { attackSuppressedByEmptyStack } from './attacksInventorySync'
 import {
   abilityModifier,
@@ -54,6 +65,12 @@ type PlayDeskAttacksCompactProps = {
   favoriteConsumableIds?: string[]
   /** Combat-desk class features (e.g. Reckless Attack). */
   combatFeatures?: UnlockedFeature[]
+  /** Shared spell slots. Divine Smite spends one only after a melee hit. */
+  spells?: SpellsState | null
+  onSpellsChange?: (spells: SpellsState) => void
+  /** Circle prepared from this panel or from «Способности». */
+  divineSmiteIntent?: DivineSmiteIntent
+  onDivineSmiteIntent?: (next: DivineSmiteIntent) => void
   /** Fired when a combat feature chip is toggled (e.g. Reckless → advantage). */
   onCombatFeatureToggle?: (featureId: string, active: boolean) => void
   onToggleHeld?: (attack: WeaponAttack) => void
@@ -105,6 +122,10 @@ export function PlayDeskAttacksCompact({
   inventoryItems,
   favoriteConsumableIds = [],
   combatFeatures = [],
+  spells = null,
+  onSpellsChange,
+  divineSmiteIntent,
+  onDivineSmiteIntent,
   onCombatFeatureToggle,
   onToggleHeld,
   onSpendResource,
@@ -122,6 +143,28 @@ export function PlayDeskAttacksCompact({
   rollMode = 'normal',
 }: PlayDeskAttacksCompactProps) {
   const divineStrike = useMemo(() => divineStrikeRider(combatFeatures), [combatFeatures])
+  const improvedSmite = useMemo(
+    () => improvedDivineSmiteRider(combatFeatures),
+    [combatFeatures],
+  )
+  const smiteSpend = useMemo(() => divineSmiteSpendOf(combatFeatures), [combatFeatures])
+  const [localSmiteIntent, setLocalSmiteIntent] = useState<DivineSmiteIntent>({
+    slotLevel: null,
+    vsUndeadOrFiend: false,
+  })
+  const smiteIntent = divineSmiteIntent ?? localSmiteIntent
+  const setSmiteIntent = (next: DivineSmiteIntent) => {
+    onDivineSmiteIntent?.(next)
+    if (!divineSmiteIntent) setLocalSmiteIntent(next)
+  }
+  const [openStrike, setOpenStrike] = useState<{
+    name: string
+    melee: boolean
+    crit: boolean
+    text: string
+    smiteApplied: boolean
+  } | null>(null)
+  const smiteApplyLock = useRef(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [logOpen, setLogOpen] = useState(false)
   const [activeCombatFeatureIds, setActiveCombatFeatureIds] = useState<Set<string>>(
@@ -152,6 +195,80 @@ export function PlayDeskAttacksCompact({
     )
   }, [inventoryItems, favoriteConsumableIds])
   const restoreableLogCount = consumableSpendLog.filter((row) => !row.undone).length
+
+  const applySmiteSlot = (slotLevel: number) => {
+    if (!smiteSpend) return
+    const decision = decideSmiteSlotClick({
+      slotLevel,
+      armedSlot: smiteIntent.slotLevel,
+      open: openStrike,
+      slotAvailable: spells ? canSpendSlot(spells.slots, slotLevel) : false,
+    })
+    if (decision.action === 'refuse') {
+      const reason =
+        decision.reason === 'no_slot'
+          ? `Нет ячейки ${slotLevel} ур. Ячейка не списана.`
+          : decision.reason === 'ranged'
+            ? 'Дальняя атака не получает кару. Ячейка не списана.'
+            : 'На это попадание кара уже добавлена. Ячейка не списана.'
+      if (decision.reason === 'ranged') setOpenStrike(null)
+      onToast?.(reason)
+      return
+    }
+    if (decision.action === 'disarm') {
+      setSmiteIntent({ slotLevel: null, vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend })
+      onToast?.('Круг снят. Ячейка не списана.')
+      return
+    }
+    if (decision.action === 'arm') {
+      setSmiteIntent({
+        slotLevel: decision.slotLevel,
+        vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
+      })
+      const dice = divineSmiteDice({
+        spend: smiteSpend,
+        slotLevel: decision.slotLevel,
+        vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
+      })
+      onToast?.(
+        `Круг ${decision.slotLevel} выбран (${dice.formulaRu}). Ячейка не списана — спишется, если подтвердишь попадание.`,
+      )
+      return
+    }
+    if (!openStrike || !spells || !onSpellsChange) {
+      onToast?.('Нет попадания. Ячейка не списана.')
+      return
+    }
+    if (smiteApplyLock.current || openStrike.smiteApplied) {
+      onToast?.('На это попадание кара уже добавлена. Ячейка не списана.')
+      return
+    }
+    smiteApplyLock.current = true
+    const spent = spendSpellSlot(spells.slots, decision.slotLevel)
+    if (!spent.ok) {
+      smiteApplyLock.current = false
+      onToast?.(`Нет ячейки ${decision.slotLevel} ур. Ячейка не списана.`)
+      return
+    }
+    const line = formatDivineSmiteExtra({
+      spend: smiteSpend,
+      slotLevel: decision.slotLevel,
+      vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
+      crit: openStrike.crit,
+    })
+    onSpellsChange({ ...spells, slots: spent.slots })
+    const text = `${openStrike.text}${line}`
+    onToast?.(text)
+    setOpenStrike({ ...openStrike, smiteApplied: true, text })
+    setSmiteIntent({ slotLevel: null, vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend })
+  }
+
+  const markSmiteMiss = () => {
+    const name = openStrike ? ` «${openStrike.name}»` : ''
+    smiteApplyLock.current = false
+    onToast?.(`Промах${name}: ячейка не списана.`)
+    setOpenStrike(null)
+  }
 
   return (
     <div className="play-desk-compact">
@@ -200,6 +317,18 @@ export function PlayDeskAttacksCompact({
             )
           })}
         </div>
+      ) : null}
+
+      {smiteSpend ? (
+        <DivineSmiteCombatBlock
+          spend={smiteSpend}
+          slots={spells?.slots ?? {}}
+          intent={smiteIntent}
+          openStrike={openStrike}
+          onIntent={setSmiteIntent}
+          onSlotClick={applySmiteSlot}
+          onMiss={markSmiteMiss}
+        />
       ) : null}
 
       <div className="play-desk-compact__list play-desk-compact__list--dense">
@@ -313,9 +442,10 @@ export function PlayDeskAttacksCompact({
             const dmg =
               baseDamage +
               (dmgBonus ? `${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
+            const meleeAttack = isMeleeWeaponAttackName(attack.name)
             const dmgLine = `${dmg || '—'}${attack.damage_type ? ` ${attack.damage_type}` : ''}${
               divineStrike ? ` + ${divineStrike.label}` : ''
-            }`
+            }${meleeAttack && improvedSmite ? ` + ${improvedSmite.label}` : ''}`
             const iconKind = attackRowIconKind({
               name: attack.name,
               ability: attackAbility,
@@ -328,24 +458,44 @@ export function PlayDeskAttacksCompact({
                   className="play-desk-compact__hit"
                   aria-label={`${attack.name}, атака ${formatModifier(attackBonus)}, урон ${dmgLine}`}
                   title="Бросок атаки и урона"
-                  onClick={() =>
-                    onToast?.(
-                      formatAttackRoll({
-                        name: attack.name,
-                        attackBonus,
-                        damageExpr: dmg || baseDamage,
-                        damageType: attack.damage_type,
-                        extraDamage: divineStrike
-                          ? {
-                              expression: divineStrike.dice,
-                              type: divineStrike.type ?? attack.damage_type,
-                              label: divineStrike.label,
-                            }
-                          : null,
-                        mode: rollMode,
-                      }),
-                    )
-                  }
+                  onClick={() => {
+                    const strike = resolveAttackRoll({
+                      name: attack.name,
+                      attackBonus,
+                      damageExpr: dmg || baseDamage,
+                      damageType: attack.damage_type,
+                      extraDamages: [
+                        ...(divineStrike
+                          ? [
+                              {
+                                expression: divineStrike.dice,
+                                type: divineStrike.type ?? attack.damage_type,
+                                label: divineStrike.rollLabel ?? divineStrike.label,
+                              },
+                            ]
+                          : []),
+                        ...(meleeAttack && improvedSmite
+                          ? [
+                              {
+                                expression: improvedSmite.dice,
+                                type: improvedSmite.type,
+                                label: improvedSmite.rollLabel ?? improvedSmite.label,
+                              },
+                            ]
+                          : []),
+                      ],
+                      mode: rollMode,
+                    })
+                    onToast?.(strike.text)
+                    smiteApplyLock.current = false
+                    setOpenStrike({
+                      name: attack.name,
+                      melee: meleeAttack,
+                      crit: strike.crit,
+                      text: strike.text,
+                      smiteApplied: false,
+                    })
+                  }}
                 >
                   <div className="play-desk-compact__row-main">
                     {iconKind === 'ranged' ? (

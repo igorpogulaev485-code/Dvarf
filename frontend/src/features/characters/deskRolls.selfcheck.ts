@@ -3,6 +3,7 @@ import {
   formatAttackRoll,
   formatSkillRoll,
   parseDamageExpression,
+  resolveAttackRoll,
   resolveRollMode,
   rollCheck,
   rollDamage,
@@ -109,6 +110,24 @@ const notCrit = formatAttackRoll({
 })
 assert(!notCrit.includes('критическое'), `disadvantage 20 is not a crit: ${notCrit}`)
 assert(notCrit.includes('1d8:'), `disadvantage keeps one die: ${notCrit}`)
+
+const stackedCrit = resolveAttackRoll({
+  name: 'Меч',
+  attackBonus: 5,
+  damageExpr: '1d8+3',
+  damageType: 'рубящий',
+  extraDamages: [
+    { expression: '1d8', type: 'излучением', label: 'Улучшенная божественная кара, 1к8' },
+    { expression: '2d8', type: 'излучением', label: 'Божественная кара, 2к8' },
+  ],
+  rng: seq([0.999, 0, 0.5, 0, 0.25, 0, 0.25, 0.5, 0.75]),
+})
+assert(stackedCrit.crit, 'natural 20 is a crit')
+assert(
+  stackedCrit.text.includes('Улучшенная божественная кара, 1к8, 2d8: 1+3') &&
+    stackedCrit.text.includes('Божественная кара, 2к8, 4d8: 1+3+5+7'),
+  `stacked crit extras got: ${stackedCrit.text}`,
+)
 
 const might = formatSkillRoll('Проверка · Сила', 5, 'normal', () => 0.1, {
   value: 20,
