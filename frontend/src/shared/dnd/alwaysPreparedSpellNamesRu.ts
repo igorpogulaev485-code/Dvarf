@@ -161,6 +161,7 @@ const ALWAYS_PREPARED_SPELL_NAME_RU: Record<string, string> = {
   "Stoneskin": "Каменная кожа",
   "Suggestion": "Внушение",
   "Teleportation Circle": "Круг телепортации",
+  Thaumaturgy: "Чудотворство",
   "Thunderwave": "Волна грома",
   "Tree Stride": "Древесный путь",
   "Vampiric Touch": "Прикосновение вампира",

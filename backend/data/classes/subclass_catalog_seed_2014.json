@@ -3837,30 +3837,9 @@
           "name_en": "Oath of Glory",
           "source": "tasha",
           "source_books": "MOoT/TCoE",
-          "sheet_grants": {
-            "skill_choices": {
-              "count": 1,
-              "from": [
-                "athletics",
-                "acrobatics"
-              ]
-            }
-          },
-          "choices": [
-            {
-              "id": "glory_skill",
-              "label_ru": "Навык клятвы славы",
-              "kind": "single",
-              "count": 1,
-              "from": [
-                "athletics",
-                "acrobatics"
-              ],
-              "applies_to": "grant",
-              "required": true
-            }
-          ],
-          "notes_ru": "Athletics или Acrobatics; always-prepared + пакет умений.",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "TCE: постоянного владения Атлетикой/Акробатикой нет. Канал «Непревзойдённый атлет» даёт временное преимущество.",
           "detail_status": "detailed",
           "features_by_level": {
             "3": [
@@ -3920,35 +3899,8 @@
           "source": "tasha",
           "source_books": "TCoE",
           "sheet_grants": {},
-          "choices": [
-            {
-              "id": "skills_or_tools",
-              "label_ru": "2 навыка/инструмента из списка",
-              "kind": "multi",
-              "count": 2,
-              "from": [
-                "insight",
-                "intimidation",
-                "medicine",
-                "perception",
-                "religion",
-                "artisans_tools",
-                "musical_instrument"
-              ],
-              "applies_to": "sheet_field",
-              "required": true
-            },
-            {
-              "id": "languages",
-              "label_ru": "2 языка",
-              "kind": "multi",
-              "count": 2,
-              "from": "any",
-              "applies_to": "sheet_field",
-              "required": true
-            }
-          ],
-          "notes_ru": "2 навыка/инструмента + 2 языка; always-prepared + пакет умений.",
+          "choices": [],
+          "notes_ru": "TCE: клятва не даёт навыков, инструментов и языков. Только заклинания и умения.",
           "detail_status": "detailed",
           "features_by_level": {
             "3": [
@@ -4201,7 +4153,7 @@
               "from_class_level": 13
             },
             {
-              "name": "Plane Shift",
+              "name": "Teleportation Circle",
               "level": 5,
               "from_class_level": 17
             }

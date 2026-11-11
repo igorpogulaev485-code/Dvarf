@@ -65,6 +65,54 @@ for (const [slug, n] of [
     synced.spells.known.length === 2,
     `swarm L3 → Mage Hand + Faerie Fire, got ${synced.spells.known.length}`,
   )
+  assert(
+    synced.spells.known.some((spell) => spell.name === 'Волшебная рука' && spell.level === 0),
+    'swarm mage hand is a russian cantrip card',
+  )
+}
+
+{
+  const classes = [
+    createClassLevel({
+      id: 'r1',
+      name: 'Следопыт',
+      level: 17,
+      subclass_name: 'Странник горизонта',
+    }),
+  ]
+  const synced = syncRangerConclaveSpells({
+    spells: readSpells({}),
+    classes,
+    subclassSlugByEntryId: { r1: 'horizon_walker' },
+  })
+  assert(
+    synced.spells.known.some((spell) => spell.name === 'Круг телепортации' && spell.level === 5),
+    'horizon 17 grants teleportation circle',
+  )
+  assert(
+    !synced.spells.known.some((spell) => /plane shift|уход в иной мир/i.test(spell.name)),
+    'horizon does not grant plane shift',
+  )
+}
+
+{
+  const classes = [
+    createClassLevel({
+      id: 'r1',
+      name: 'Следопыт',
+      level: 3,
+      subclass_name: 'Наездник на дрейке',
+    }),
+  ]
+  const synced = syncRangerConclaveSpells({
+    spells: readSpells({}),
+    classes,
+    subclassSlugByEntryId: { r1: 'drakewarden' },
+  })
+  assert(
+    synced.spells.known.some((spell) => spell.name === 'Чудотворство' && spell.level === 0),
+    'drakewarden grants thaumaturgy',
+  )
 }
 
 console.log('rangerConclaveSpells.selfcheck: all ok')

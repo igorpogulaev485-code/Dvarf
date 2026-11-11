@@ -7,6 +7,7 @@ import {
 import type { ConsumableSpendLogEntry } from './consumableSpend'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import { fightingStyleAttackBonus } from '../../shared/dnd/fightingStyles'
+import { divineStrikeRider } from './featureCombatBonuses'
 import {
   effectiveMartialArtsDamage,
   isMonkUnarmedAttack,
@@ -120,6 +121,7 @@ export function PlayDeskAttacksCompact({
   preferMagicEmpty = false,
   rollMode = 'normal',
 }: PlayDeskAttacksCompactProps) {
+  const divineStrike = useMemo(() => divineStrikeRider(combatFeatures), [combatFeatures])
   const [pickerOpen, setPickerOpen] = useState(false)
   const [logOpen, setLogOpen] = useState(false)
   const [activeCombatFeatureIds, setActiveCombatFeatureIds] = useState<Set<string>>(
@@ -311,7 +313,9 @@ export function PlayDeskAttacksCompact({
             const dmg =
               baseDamage +
               (dmgBonus ? `${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
-            const dmgLine = `${dmg || '—'}${attack.damage_type ? ` ${attack.damage_type}` : ''}`
+            const dmgLine = `${dmg || '—'}${attack.damage_type ? ` ${attack.damage_type}` : ''}${
+              divineStrike ? ` + ${divineStrike.label}` : ''
+            }`
             const iconKind = attackRowIconKind({
               name: attack.name,
               ability: attackAbility,
@@ -331,6 +335,13 @@ export function PlayDeskAttacksCompact({
                         attackBonus,
                         damageExpr: dmg || baseDamage,
                         damageType: attack.damage_type,
+                        extraDamage: divineStrike
+                          ? {
+                              expression: divineStrike.dice,
+                              type: divineStrike.type ?? attack.damage_type,
+                              label: divineStrike.label,
+                            }
+                          : null,
                         mode: rollMode,
                       }),
                     )

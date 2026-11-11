@@ -43,6 +43,8 @@ import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import { SpellbookManageDialog } from './SpellbookManageDialog'
 import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
+import { canCastPreparedSpellAsRitual } from '../../shared/dnd/ritualCasting'
+import { resolveCastTiming } from '../../shared/dnd/upcastDuration'
 import {
   applyAbjurationToWard,
   gainPowerSurge,
@@ -138,6 +140,7 @@ type SpellsPanelProps = {
   onResourcesChange?: (resources: SheetResource[]) => void
   masterySpellIds?: string[]
   offerPowerSurge?: boolean
+  voiceOfAuthority?: boolean
 }
 
 export function SpellsPanel({
@@ -171,6 +174,7 @@ export function SpellsPanel({
   onResourcesChange,
   masterySpellIds = [],
   offerPowerSurge = false,
+  voiceOfAuthority = false,
 }: SpellsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
@@ -469,12 +473,27 @@ export function SpellsPanel({
 
   function confirmCast(choice: CastChoice) {
     if (!castSpell) return
-    if (needsConcentrationSwap(castSpell)) {
-      setPendingConc({ spell: castSpell, choice })
+    const slotLevel = choice.usePact
+      ? (spells.pact_slots?.level ?? castSpell.level)
+      : choice.slotLevel
+    const timing = resolveCastTiming({
+      name: castSpell.name,
+      catalogId: castSpell.catalog_id,
+      duration: castSpell.duration,
+      concentration: castSpell.concentration,
+      slotLevel: choice.ritual || choice.useGrant ? castSpell.level : slotLevel || castSpell.level,
+    })
+    const timed = {
+      ...castSpell,
+      concentration: timing.concentration,
+      duration: timing.duration || castSpell.duration,
+    }
+    if (needsConcentrationSwap(timed)) {
+      setPendingConc({ spell: timed, choice })
       setCastSpell(null)
       return
     }
-    runCast(castSpell, choice)
+    runCast(timed, choice)
   }
 
   function wizardPanelFollowUp(spell: SheetSpell, slotLevel: number, choice: CastChoice): string {
@@ -497,11 +516,47 @@ export function SpellsPanel({
 
   function runCast(castSpell: SheetSpell, choice: CastChoice) {
     const name = castSpell.name || 'Заклинание'
-    const allyNote =
+    const allyNote = `${
       choice.allyTargetIds && choice.allyTargetIds.length > 0
         ? ` · целей ${choice.allyTargetIds.length}`
         : ''
+    }${
+      voiceOfAuthority && castSpell.level > 0
+        ? ' · Голос власти: союзник может реакцией атаковать'
+        : ''
+    }${choice.embodimentOfLaw ? ' · бонусное действие' : ''}${
+      /проклятие|bestow curse/i.test(castSpell.name) && castSpell.duration
+        ? ` · ${castSpell.duration}`
+        : ''
+    }`
     const ritualCast = Boolean(choice.ritual && castSpell.ritual && castSpell.level > 0)
+    if (ritualCast && learnBudget?.mode !== 'spellbook') {
+      const allowed = canCastPreparedSpellAsRitual({
+        ritual: true,
+        level: castSpell.level,
+        classSlug: castSpell.class_slug,
+        casterSlugs: (castProfiles ?? []).map((row) => row.slug),
+      })
+      if (!allowed) {
+        onToast?.(
+          'Ритуал недоступен: у этого класса нет умения «Ритуальное колдовство». Кастуй ячейкой.',
+        )
+        setCastSpell(null)
+        return
+      }
+    }
+    if (choice.embodimentOfLaw && resources && onResourcesChange) {
+      const pool = resources.find(
+        (row) => row.id.includes(':embodiment_of_the_law:') && row.max - row.used > 0,
+      )
+      if (!pool) {
+        onToast?.('Нет зарядов Воплощения закона')
+        return
+      }
+      onResourcesChange(
+        resources.map((row) => (row.id === pool.id ? { ...row, used: row.used + 1 } : row)),
+      )
+    }
     const grantSpellId = choice.grantSpellId || castSpell.id
     const grantRow =
       choice.useGrant
@@ -1340,6 +1395,16 @@ export function SpellsPanel({
         wizardRitualFromBook={learnBudget?.mode === 'spellbook'}
         masterySpellIds={masterySpellIds}
         offerPowerSurge={offerPowerSurge}
+        embodimentRemaining={
+          resources?.find((row) => row.id.includes(':embodiment_of_the_law:'))
+            ? Math.max(
+                0,
+                (resources.find((row) => row.id.includes(':embodiment_of_the_law:'))?.max ?? 0) -
+                  (resources.find((row) => row.id.includes(':embodiment_of_the_law:'))?.used ?? 0),
+              )
+            : 0
+        }
+        voiceOfAuthority={voiceOfAuthority}
         abilities={abilities}
         proficiencyBonus={proficiencyBonus}
         castProfiles={castProfiles}

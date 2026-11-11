@@ -22,6 +22,8 @@ import {
   type SpellcastingAbility,
 } from '../../shared/dnd/spells'
 import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
+import { canCastPreparedSpellAsRitual } from '../../shared/dnd/ritualCasting'
+import { resolveCastTiming } from '../../shared/dnd/upcastDuration'
 import {
   isCounterspellOrDispel,
   wizardLeveledCastGate,
@@ -133,6 +135,8 @@ export type CastChoice = {
   allyTargetIds?: string[]
   /** Flame Strike: which damage type grows on upcast. */
   damageChoice?: 'first' | 'second'
+  /** Order domain: this enchantment is cast as a bonus action. */
+  embodimentOfLaw?: boolean
   /** Spell Mastery: base-level cast without a slot, only while prepared. */
   useMastery?: boolean
   /** War Magic: this counterspell or dispel magic ended a spell. */
@@ -185,6 +189,10 @@ type CastSpellDialogProps = {
   masterySpellIds?: string[]
   /** War Wizard can gain a power surge from a successful counterspell or dispel. */
   offerPowerSurge?: boolean
+  /** Order domain Embodiment of the Law charges still available. */
+  embodimentRemaining?: number
+  /** Order domain Voice of Authority is on the sheet. */
+  voiceOfAuthority?: boolean
 }
 
 export function CastSpellDialog({
@@ -212,6 +220,8 @@ export function CastSpellDialog({
   infusedItemIds = [],
   masterySpellIds = [],
   offerPowerSurge = false,
+  embodimentRemaining = 0,
+  voiceOfAuthority = false,
 }: CastSpellDialogProps) {
   const isCantrip = spell != null && spell.level <= 0
   const spellLevel = spell?.level ?? 0
@@ -232,7 +242,19 @@ export function CastSpellDialog({
     wizardRitualFromBook && spell && !isCantrip
       ? wizardLeveledCastGate(spell)
       : { slot: true, ritualOnly: false, message: '' }
-  const isRitual = Boolean(spell?.ritual && !isCantrip && wizardRitualGate.ok && (bookGate.slot || bookGate.ritualOnly))
+  const ritualByClass = canCastPreparedSpellAsRitual({
+    ritual: Boolean(spell?.ritual),
+    level: spellLevel,
+    classSlug: spell?.class_slug,
+    casterSlugs: (castProfiles ?? []).map((row) => row.slug),
+  })
+  const isRitual = Boolean(
+    spell?.ritual &&
+      !isCantrip &&
+      wizardRitualGate.ok &&
+      (bookGate.slot || bookGate.ritualOnly) &&
+      (wizardRitualFromBook || ritualByClass),
+  )
   const masteryAvailable = Boolean(
     spell &&
       bookGate.slot &&
@@ -263,6 +285,7 @@ export function CastSpellDialog({
   const [selfFormTarget, setSelfFormTarget] = useState<'self' | 'other'>('self')
   const [useMastery, setUseMastery] = useState(false)
   const [powerSurge, setPowerSurge] = useState(false)
+  const [useEmbodiment, setUseEmbodiment] = useState(false)
   const isTransformSelf = spell != null && isSpellSelfFormCast(spell)
 
   const appliesToAllies = Boolean(spell && castSpellAppliesToAllies(spell))
@@ -534,6 +557,20 @@ export function CastSpellDialog({
     !useRitual &&
     !useGrant &&
     effectiveSlotLevel > spell.level
+  const castTiming = resolveCastTiming({
+    name: spell.name,
+    catalogId: spell.catalog_id,
+    duration: spell.duration,
+    concentration: spell.concentration,
+    slotLevel: useRitual || useGrant ? spell.level : effectiveSlotLevel || spell.level,
+  })
+  const enchantment = /enchant|очарован/i.test(spell.school ?? '')
+  const notOneAction = /бонус|реакц|мин|час|bonus|reaction|minute|hour/i.test(
+    spell.casting_time ?? '',
+  )
+  const offerEmbodiment = Boolean(
+    embodimentRemaining > 0 && enchantment && !isCantrip && !notOneAction,
+  )
 
   const grantLabel = selectedGrant?.label ?? 'Грант'
   const activeRestLabel = isCantrip
@@ -587,6 +624,7 @@ export function CastSpellDialog({
           ritual: !isCantrip && !useGrant && !useMastery && useRitual && isRitual,
           useMastery: !isCantrip && useMastery && masteryAvailable,
           powerSurge: powerSurgeOffer && powerSurge,
+          embodimentOfLaw: offerEmbodiment && useEmbodiment && !useRitual && !useGrant,
           usePact: !isCantrip && !useGrant && !useRitual && !useMastery && usePact && pactOk,
           slotLevel:
             isCantrip || useRitual || useGrant
@@ -890,6 +928,16 @@ export function CastSpellDialog({
                   Заклинание сорвано — +1 Всплеск силы
                 </label>
               ) : null}
+              {offerEmbodiment ? (
+                <label className="field">
+                  <input
+                    type="checkbox"
+                    checked={useEmbodiment}
+                    onChange={(event) => setUseEmbodiment(event.target.checked)}
+                  />{' '}
+                  Воплощение закона: бонусное действие (−1 заряд, осталось {embodimentRemaining})
+                </label>
+              ) : null}
             </div>
             {activeRestLabel ? (
               <Text tone="muted">
@@ -957,9 +1005,18 @@ export function CastSpellDialog({
           </>
         )}
 
-        {spell.concentration && !useRitual ? (
+        {castTiming.duration ? (
+          <Text tone="muted">Длительность: {castTiming.duration}</Text>
+        ) : null}
+        {castTiming.concentration && !useRitual ? (
           <Text tone="muted">
             Это концентрация — станет активной на листе (предыдущая снимется).
+          </Text>
+        ) : null}
+        {voiceOfAuthority && !isCantrip && !useRitual && (effectiveSlotLevel || spell.level) >= 1 ? (
+          <Text tone="muted">
+            Голос власти: если заклинание нацелено на союзника, он может реакцией атаковать.
+            Не только лечение.
           </Text>
         ) : null}
 

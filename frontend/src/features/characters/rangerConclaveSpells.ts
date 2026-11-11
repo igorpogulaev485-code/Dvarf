@@ -3,7 +3,9 @@
  * count as ranger spells, do not count against spells known.
  */
 
+import { alwaysPreparedSpellNameRu } from '../../shared/dnd/alwaysPreparedSpellNamesRu'
 import { resolveSubclassFeatureSlug } from '../../shared/dnd/classFeatures'
+import { enrichAlwaysPreparedSheetSpell } from './alwaysPreparedSpellEnrichment'
 import {
   asAlwaysPreparedSpell,
   createSheetSpell,
@@ -33,7 +35,7 @@ export const HORIZON_WALKER_SPELLS: RangerConclaveSpell[] = [
   { name: 'Misty Step', level: 2, fromClassLevel: 5 },
   { name: 'Haste', level: 3, fromClassLevel: 9 },
   { name: 'Banishment', level: 4, fromClassLevel: 13 },
-  { name: 'Plane Shift', level: 5, fromClassLevel: 17 },
+  { name: 'Teleportation Circle', level: 5, fromClassLevel: 17 },
 ]
 
 /** Monster Slayer Magic (XGtE). */
@@ -54,6 +56,11 @@ export const FEY_WANDERER_SPELLS: RangerConclaveSpell[] = [
   { name: 'Mislead', level: 5, fromClassLevel: 17 },
 ]
 
+/** Drakewarden Draconic Gift (FTD): Thaumaturgy as a ranger cantrip, Wisdom. */
+export const DRAKEWARDEN_SPELLS: RangerConclaveSpell[] = [
+  { name: 'Thaumaturgy', level: 0, fromClassLevel: 3 },
+]
+
 /** Swarmkeeper Magic (TCoE). */
 export const SWARMKEEPER_SPELLS: RangerConclaveSpell[] = [
   { name: 'Mage Hand', level: 0, fromClassLevel: 3 },
@@ -70,6 +77,12 @@ const CONCLAVE_SPELLS: Record<string, { labelRu: string; spells: RangerConclaveS
   monster_slayer: { labelRu: 'Убийца чудовищ', spells: MONSTER_SLAYER_SPELLS },
   fey_wanderer: { labelRu: 'Странник фей', spells: FEY_WANDERER_SPELLS },
   swarmkeeper: { labelRu: 'Хранитель роя', spells: SWARMKEEPER_SPELLS },
+  drakewarden: { labelRu: 'Наездник на дрейке', spells: DRAKEWARDEN_SPELLS },
+}
+
+/** Legacy wrong grants removed when the conclave list is rebuilt. */
+const OBSOLETE_CONCLAVE_KEYS: Record<string, string[]> = {
+  horizon_walker: ['plane-shift'],
 }
 
 export function rangerConclaveSpellsForSlug(
@@ -121,8 +134,13 @@ export function syncRangerConclaveSpells(input: {
       null
     const pack = rangerConclaveSpellsForSlug(slug)
     const managed = managedConclaveSpellIds(row.id)
+    const obsolete = new Set(
+      (OBSOLETE_CONCLAVE_KEYS[slug ?? ''] ?? []).map((key) =>
+        subclassSpellId(row.id, slug ?? '', key),
+      ),
+    )
     const before = known.length
-    known = known.filter((spell) => !managed.has(spell.id))
+    known = known.filter((spell) => !managed.has(spell.id) && !obsolete.has(spell.id))
     if (known.length !== before) changed = true
 
     if (!pack) continue
@@ -133,24 +151,28 @@ export function syncRangerConclaveSpells(input: {
       const key = spellKeyFromName(spellRow.name)
       const id = subclassSpellId(row.id, pack.slug, key || spellRow.name)
       const existing = input.spells.known.find((spell) => spell.id === id)
-      const created = asAlwaysPreparedSpell(
-        {
-          ...(existing ?? createSheetSpell()),
-          id,
-          name: spellRow.name,
-          level: spellRow.level,
-          catalog_id: existing?.catalog_id ?? null,
-          class_slug: 'ranger',
-          class_entry_id: row.id,
-        },
-        {
-          source_kind: 'subclass',
-          label: pack.labelRu,
-          class_slug: 'ranger',
-          class_entry_id: row.id,
-        },
+      const nameRu = alwaysPreparedSpellNameRu(spellRow.name)
+      const created = enrichAlwaysPreparedSheetSpell(
+        asAlwaysPreparedSpell(
+          {
+            ...(existing ?? createSheetSpell()),
+            id,
+            name: nameRu,
+            level: spellRow.level,
+            catalog_id: existing?.catalog_id ?? null,
+            class_slug: 'ranger',
+            class_entry_id: row.id,
+          },
+          {
+            source_kind: 'subclass',
+            label: pack.labelRu,
+            class_slug: 'ranger',
+            class_entry_id: row.id,
+          },
+        ),
+        spellRow.name,
       )
-      if (!existing) changed = true
+      if (!existing || existing.name !== nameRu) changed = true
       known.push(created)
     }
   }

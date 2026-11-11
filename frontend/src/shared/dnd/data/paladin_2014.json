@@ -71,7 +71,7 @@
       "slot_spend": {
         "label_ru": "Божественная кара",
         "min_slot": 1,
-        "max_slot": 4,
+        "max_slot": 5,
         "dice_base": 2,
         "dice_per_slot_above": 1,
         "dice_cap": 5,
@@ -136,15 +136,16 @@
       "level": 3,
       "name_ru": "Праведное восстановление",
       "name_en": "Harness Divine Power",
-      "summary_ru": "Tasha (optional): бонусным Channel Divinity — восстановить одну потраченную ячейку (ур. ≤ половины ур. паладина, вверх). Число раз = бонус мастерства / долгий отдых.",
+      "summary_ru": "TCE: бонусным — потратить Божественный канал и одно дневное применение (бонус мастерства / долгий отдых). Вернуть одну потраченную ячейку не выше половины бонуса мастерства (вверх).",
       "kind": "bonus",
       "optional": true,
       "source_book": "tcoe",
       "resource": {
         "uses": 1,
-        "recharge": "short_rest",
-        "pool_id": "channel_divinity",
-        "pool_name_ru": "Божественный канал",
+        "uses_from": "proficiency_bonus",
+        "recharge": "long_rest",
+        "pool_id": "harness_divine_power",
+        "pool_name_ru": "Праведное восстановление",
         "track": "spend"
       }
     },
@@ -826,7 +827,7 @@
         "level": 3,
         "name_ru": "Канал: Непревзойдённый атлет",
         "name_en": "Channel Divinity: Peerless Athlete",
-        "summary_ru": "Бонусным (тратит канал): 1 час — преимущество на Атлетику/Акробатику; прыжки +10 фт.; скорость ношения ×2.",
+        "summary_ru": "Бонусным (тратит канал): 10 мин — преимущество на Атлетику и Акробатику, переносимый вес ×2, прыжок +10 фт. Постоянного владения навыком нет.",
         "kind": "bonus",
         "resource": {
           "uses": 1,
