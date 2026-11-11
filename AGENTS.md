@@ -30,7 +30,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/amulet-devout-bonuses-9b04` |
+| Prod tip (сейчас) | `cursor/ux-a1-magic-resources-8b9c` |
 | URL | https://creed20.tech/ |
 | SSH / deploy host | `201.34.132.252` (не открывать в браузере — редирект на creed20) |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |

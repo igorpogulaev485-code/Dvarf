@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/amulet-devout-bonuses-9b04
+cursor/ux-a1-magic-resources-8b9c
 ```
 
 URL: https://creed20.tech/
