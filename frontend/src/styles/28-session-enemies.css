@@ -1,0 +1,530 @@
+/* —— Session master panel (B1) —— */
+.session-seat-stack {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.session-table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+}
+
+.session-table-toolbar__hint {
+  margin: 0;
+  font-size: 0.88rem;
+  flex: 1 1 12rem;
+}
+
+.session-insp-toggle {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 12px;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--muted);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+}
+
+.session-insp-toggle.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.session-table-card__conditions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.session-condition-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--line));
+  background: color-mix(in srgb, var(--danger) 10%, white);
+  border-radius: 999px;
+  padding: 6px 11px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--danger);
+  line-height: 1.2;
+}
+
+button.session-condition-tag {
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+}
+
+.session-condition-tag.is-removable:hover:not(:disabled),
+.session-condition-tag.is-picked {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 18%, white);
+}
+
+.session-condition-tag.is-picked {
+  box-shadow: inset 0 0 0 1px var(--danger);
+}
+
+.session-effect-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, white);
+  border-radius: 999px;
+  padding: 6px 11px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.2;
+}
+
+button.session-effect-tag {
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+}
+
+.session-effect-tag.is-removable:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, white);
+}
+
+.session-effect-tag__link {
+  opacity: 0.75;
+  font-size: 0.85em;
+}
+
+.session-concentration-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid color-mix(in srgb, #0f766e 40%, var(--line));
+  background: color-mix(in srgb, #0f766e 12%, white);
+  border-radius: 999px;
+  padding: 6px 11px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0f766e;
+  line-height: 1.2;
+}
+
+button.session-concentration-tag {
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+}
+
+.session-concentration-tag.is-removable:hover:not(:disabled) {
+  border-color: #0f766e;
+  background: color-mix(in srgb, #0f766e 20%, white);
+}
+
+.session-table-card__concentration {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.apply-effect__suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.apply-effect__hint {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.ally-targets {
+  display: grid;
+  gap: 10px;
+}
+
+.ally-targets__lobby {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.apply-condition__heading {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  font-family: var(--font-display);
+  color: var(--accent);
+  font-weight: 650;
+}
+
+.apply-condition__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.apply-condition__targets-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.apply-condition__targets-head .apply-condition__heading {
+  margin: 0;
+}
+
+.apply-condition__targets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.apply-condition__target {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  background: var(--card);
+  min-height: 48px;
+}
+
+.apply-condition__target.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.apply-condition__target strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.apply-condition__already {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+}
+
+.session-companion-card {
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.65);
+  overflow: hidden;
+  margin-left: 16px;
+}
+
+.session-companion-card__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+}
+
+.session-companion-card__main {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.session-companion-card__name {
+  margin: 0;
+  font-size: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  line-height: 1.25;
+}
+
+.session-companion-card__tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+
+.session-companion-card__stat {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.session-companion-card__remove {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.session-companion-card--down {
+  border-color: color-mix(in srgb, #b42318 35%, var(--line));
+}
+
+.session-companion-card--warn {
+  border-color: color-mix(in srgb, #b54708 35%, var(--line));
+}
+
+/* —— B3 enemies on session table —— */
+.session-enemies-title {
+  margin: 8px 0 0;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.session-enemies-grid {
+  /* иначе раскрытый статблок растягивает соседей в ряду */
+  align-items: start;
+}
+
+.session-enemies-grid .session-enemy-card {
+  border-top: 3px solid color-mix(in srgb, #9a3412 55%, var(--line));
+}
+
+.session-enemy-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  min-width: 0;
+  height: auto;
+  align-self: start;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.session-enemy-card--player {
+  border-top-color: color-mix(in srgb, #57534e 40%, var(--line));
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+.session-enemy-card--player .session-enemy-card__name {
+  font-size: 1rem;
+}
+
+.session-enemy-card__pack-tag {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  vertical-align: middle;
+}
+
+.session-enemy-card__roster {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--line);
+}
+
+.session-enemy-roster {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.session-enemy-roster__row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--card) 92%, #78716c);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.session-enemy-roster__row.is-dead {
+  opacity: 0.72;
+}
+
+.session-enemy-roster__row.is-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.session-enemy-roster__who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: center;
+}
+
+.session-enemy-roster__name {
+  font-weight: 650;
+  font-size: 0.95rem;
+}
+
+.session-enemy-roster__pick {
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--accent);
+}
+
+.session-enemy-card--warn {
+  border-color: color-mix(in srgb, #b54708 35%, var(--line));
+}
+
+.session-enemy-card--down {
+  border-color: color-mix(in srgb, #b42318 35%, var(--line));
+}
+
+.session-enemy-card__top {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.session-enemy-card__meta {
+  min-width: 0;
+}
+
+.session-enemy-card__name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.session-enemy-card__sub,
+.session-enemy-card__block-title {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+}
+
+.session-enemy-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.session-enemy-card__hp-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.session-enemy-card__hp-controls .ui-button {
+  min-height: 36px;
+  padding-inline: 12px;
+}
+
+.session-enemy-card__damage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.session-enemy-card__damage-input {
+  width: 5.5rem;
+  min-height: 36px;
+  text-align: center;
+}
+
+.session-enemy-card__kit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.session-enemy-kit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 88%, #78716c);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+}
+
+.session-enemy-kit-chip__kind {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  color: var(--muted);
+}
+
+.session-enemy-kit-chip--trait {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
+.session-enemy-kit-chip--action {
+  border-color: color-mix(in srgb, var(--ink) 22%, var(--line));
+}
+
+.session-enemy-kit-chip--reaction {
+  border-color: color-mix(in srgb, #b45309 40%, var(--line));
+}
+
+.session-enemy-kit-chip--legendary {
+  border-color: color-mix(in srgb, #a16207 45%, var(--line));
+}
+
+.session-enemy-kit-chip.is-active,
+.session-enemy-kit-chip:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.session-enemy-card.is-active-turn {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.session-enemy-card__ability-text {
+  margin: 4px 0 8px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+

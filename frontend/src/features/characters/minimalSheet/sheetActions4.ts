@@ -1,0 +1,566 @@
+/** Действия листа, группа 4. Тела функций перенесены без изменения порядка вызовов. */
+import type { SheetModel } from './sheetModel'
+import { type CompanionEntry } from '../companions'
+import { applyConcentrationChangeToCompanions, applySpellCastToCompanions } from '../spellCompanions'
+import { isSpellSelfFormCast, resolveSpellSelfFormSlug } from '../spellForms'
+import { type SpellFormDialogResult } from '../SpellFormDialog'
+import { type FamiliarPickDialogResult } from '../FamiliarPickDialog'
+import { isFindFamiliarSpell, resolveFamiliarCastMode } from '../familiarForms'
+import { type AttunementSlot } from '../attunement'
+import { isPactChainActive, isPactChainSpellId, pactChainFamiliarSpellId, syncPactChainFamiliar } from '../pactChainEffects'
+import { isWarlockClassName } from '../pactTomeEffects'
+import { toggleCombatConsumableFavorite } from '../combatConsumables'
+import { formatSkillRoll, resolveRollMode, type DeskRollMode } from '../deskRolls'
+import {
+  MODE_DEFAULT_PANEL,
+  MODE_SKILL_KEYS,
+  defaultDeskSplitForMode,
+  type PlayDeskCompactPanelId,
+  type PlayDeskMode,
+  type PlayDeskPanelId,
+  type SheetUiState,
+} from '../playDeskUi'
+import { setConcentration } from '../../../shared/dnd/concentration'
+import { equipInventoryItem } from '../inventory'
+import { canCastWizardRitualFromBook } from '../../../shared/dnd/wizardSpellbook'
+import { type CastChoice } from '../CastSpellDialog'
+import { consumeMaterialItem } from '../spellMaterials'
+import { canSpendGrantCast, spendGrantCast, type SheetSpell } from '../spells'
+import { resolveCastEffect } from '../../../shared/dnd/spellCatalog'
+import { spendPactSlot, spendSpellSlot } from '../../../shared/dnd/spells'
+import {
+  ABILITY_LABELS,
+  ABILITY_NAMES,
+  SKILL_DEFS,
+  abilityModifier,
+  type AbilityKey,
+} from '../sheetTypes'
+import { skillModifierFromState } from '../../../shared/dnd/passives'
+
+export function installSheetActions4(model: SheetModel) {
+  model.patchSheetUi = function patchSheetUi(patch: Partial<SheetUiState>) {
+    model.setDraft((prev) => ({
+      ...prev,
+      sheetUi: { ...prev.sheetUi, ...patch },
+    }))
+  }
+
+  model.toggleCombatFavorite = function toggleCombatFavorite(itemId: string) {
+    const result = toggleCombatConsumableFavorite(
+      model.draft.sheetUi.combatConsumableFavoriteIds,
+      itemId,
+    )
+    if (!result.ok) {
+      model.onToast(result.reason ?? 'Нельзя добавить в избранное')
+      return
+    }
+    const adding = !model.draft.sheetUi.combatConsumableFavoriteIds.includes(itemId)
+    const name =
+      model.draft.inventory.items.find((row) => row.id === itemId)?.name.trim() || 'предмет'
+    model.patchSheetUi({ combatConsumableFavoriteIds: result.ids })
+    model.onToast(
+      adding
+        ? `«${name}» в расходниках боя (${result.ids.length}/3)`
+        : `«${name}» убран из избранного`,
+    )
+  }
+
+  model.setDeskMode = function setDeskMode(mode: PlayDeskMode) {
+    const nextPanel = MODE_DEFAULT_PANEL[mode]
+    // Combat: pin spells when magic exists. Explore/social: full width (A3).
+    const nextSplit =
+      mode === 'features' || mode === 'companions'
+        ? false
+        : defaultDeskSplitForMode(mode, model.hasMagicSources)
+    model.patchSheetUi({ deskMode: mode, deskSplit: nextSplit })
+    model.setActivePanel(nextPanel)
+    model.setForceFullPanel(null)
+    model.setAttacksSettingsOpen(false)
+    model.setSpellsSettingsOpen(false)
+    model.setMobileSpellSurface('combat')
+  }
+
+  model.applyDeskConcentration = function applyDeskConcentration(spell: SheetSpell) {
+    model.setDraft((prev) => model.withDeskConcentration(prev, spell))
+  }
+
+  model.withDeskConcentration = function withDeskConcentration<
+    T extends { play: typeof model.draft.play; companions: CompanionEntry[] },
+  >(prev: T, spell: SheetSpell): T {
+    if (!spell.concentration) return prev
+    const next = setConcentration({
+      spellId: spell.id,
+      name: spell.name || 'Заклинание',
+    })
+    const result = applyConcentrationChangeToCompanions({
+      companions: prev.companions,
+      previous: prev.play.concentration,
+      next,
+    })
+    return {
+      ...prev,
+      companions: result.companions,
+      play: {
+        ...prev.play,
+        concentration: next,
+      },
+    }
+  }
+
+  model.needsDeskConcentrationSwap = function needsDeskConcentrationSwap(spell: SheetSpell): boolean {
+    const current = model.draft.play.concentration
+    if (!spell.concentration || !current) return false
+    return (
+      current.spell_id !== spell.id &&
+      current.name.trim() !== (spell.name || '').trim()
+    )
+  }
+
+  model.applyDeskNaparnikFromCast = function applyDeskNaparnikFromCast(spell: SheetSpell, slotLevel: number): string {
+    const abilityKey = model.draft.spells.casting_ability
+    const spellMod = abilityKey ? abilityModifier(model.effectiveAbilities[abilityKey]) : 0
+    const castCtx = {
+      spell,
+      slotLevel,
+      characterLevel: model.characterLevel,
+      spellMod,
+    }
+    const preview = applySpellCastToCompanions({
+      companions: model.draft.companions,
+      ...castCtx,
+    })
+    if (!preview) return ''
+    model.setDraft((prev) => {
+      const result = applySpellCastToCompanions({
+        companions: prev.companions,
+        ...castCtx,
+      })
+      return result ? { ...prev, companions: result.companions } : prev
+    })
+    return preview.refreshed
+      ? ` · напарник «${preview.name}» снова в строю`
+      : ` · напарник «${preview.name}»`
+  }
+
+/** Pact of the Chain: ensure Find Familiar row, then open cast dialog. */
+  model.openPactChainFamiliarCast = function openPactChainFamiliarCast(classEntryId?: string) {
+    const warlock = model.draft.classes.find(
+      (row) =>
+        isWarlockClassName(row.name) &&
+        row.level > 0 &&
+        (!classEntryId || row.id === classEntryId),
+    )
+    if (!warlock || !isPactChainActive(model.draft.featurePicks, warlock.id)) {
+      model.onToast('Нужен договор Цепь у колдуна')
+      return
+    }
+    const synced = syncPactChainFamiliar({
+      spells: model.draft.spells,
+      featurePicks: model.draft.featurePicks,
+      classes: model.draft.classes,
+    })
+    if (synced.changed) {
+      model.setDraft((prev) => ({ ...prev, spells: synced.spells }))
+    }
+    const known = synced.spells.known
+    const spell =
+      known.find((row) => row.id === pactChainFamiliarSpellId()) ??
+      known.find((row) => isPactChainSpellId(row.id)) ??
+      known.find(
+        (row) =>
+          row.class_slug === 'warlock' &&
+          /поиск\s+фамильяра|find\s*familiar/i.test(row.name),
+      )
+    if (!spell) {
+      model.onToast('Нет «Поиска фамильяра» — проверь договор Цепь у колдуна')
+      return
+    }
+    model.setDeskCastSpell(spell)
+  }
+
+  model.openDeskSelfFormPickerIfNeeded = function openDeskSelfFormPickerIfNeeded(spell: SheetSpell, choice: CastChoice) {
+    if (choice.selfFormTarget === 'other') return false
+    if (!isSpellSelfFormCast(spell)) return false
+    const slug = resolveSpellSelfFormSlug(spell)
+    if (!slug) return false
+    model.setPendingSpellSelfForm({ spell, slug })
+    return true
+  }
+
+  model.openDeskFamiliarPickerIfNeeded = function openDeskFamiliarPickerIfNeeded(
+    spell: SheetSpell,
+    slotLevel: number,
+  ): boolean {
+    if (!isFindFamiliarSpell(spell)) return false
+    const mode = resolveFamiliarCastMode({
+      spell,
+      featurePicks: model.draft.featurePicks,
+      classes: model.draft.classes,
+    })
+    model.setPendingFamiliar({ spell, mode, slotLevel })
+    return true
+  }
+
+  model.applySpellSelfFormResult = function applySpellSelfFormResult(result: SpellFormDialogResult) {
+    model.setDraft((prev) => ({
+      ...prev,
+      companions: result.companions,
+      knownForms: result.knownForms,
+    }))
+    if (result.toast) model.onToast(result.toast)
+    model.setPendingSpellSelfForm(null)
+  }
+
+  model.applyFamiliarPickResult = function applyFamiliarPickResult(result: FamiliarPickDialogResult) {
+    model.setDraft((prev) => ({ ...prev, companions: result.companions }))
+    if (result.toast) model.onToast(result.toast)
+    model.setPendingFamiliar(null)
+  }
+
+  model.runDeskCast = function runDeskCast(spell: SheetSpell, choice: CastChoice) {
+    const name = spell.name || 'Заклинание'
+    const allyNote =
+      choice.allyTargetIds && choice.allyTargetIds.length > 0
+        ? ` · целей ${choice.allyTargetIds.length}`
+        : ''
+    const ritualCast = Boolean(choice.ritual && spell.ritual && spell.level > 0)
+    const grantSpellId = choice.grantSpellId || spell.id
+    const grantRow =
+      choice.useGrant
+        ? model.draft.spells.known.find((row) => row.id === grantSpellId) ?? spell
+        : null
+    const grantCast = Boolean(grantRow && canSpendGrantCast(grantRow))
+    const slotForEffect =
+      spell.level <= 0 || ritualCast || grantCast
+        ? spell.level
+        : choice.usePact
+          ? (model.draft.spells.pact_slots?.level ?? spell.level)
+          : choice.slotLevel
+    const { effect, scaled } = resolveCastEffect(spell, {
+      characterLevel: model.characterLevel,
+      slotLevel: slotForEffect || spell.level,
+    })
+    const effectNote = scaled && effect ? ` · ${effect}` : ''
+    let consumeNote = ''
+    if (choice.consumeMaterial && choice.consumeItemId) {
+      const target = model.draft.inventory.items.find((row) => row.id === choice.consumeItemId)
+      if (target) {
+        model.setDraft((prev) => ({
+          ...prev,
+          inventory: {
+            ...prev.inventory,
+            items: consumeMaterialItem(prev.inventory.items, choice.consumeItemId!, 1),
+          },
+        }))
+        consumeNote = ` · −1 «${target.name}»`
+      }
+    }
+    const naparnikSlot = slotForEffect || spell.level
+    const wantsForm = model.openDeskSelfFormPickerIfNeeded(spell, choice)
+    const wantsFamiliar =
+      !wantsForm && model.openDeskFamiliarPickerIfNeeded(spell, naparnikSlot)
+    const formNote = wantsForm
+      ? ' · выбери форму'
+      : wantsFamiliar
+        ? ' · выбери фамильяра'
+        : ''
+
+    if (spell.level <= 0) {
+      if (spell.concentration) model.applyDeskConcentration(spell)
+      const naparnikNote =
+        wantsForm || wantsFamiliar
+          ? ''
+          : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
+      model.onToast(
+        spell.concentration
+          ? `Каст: ${name}${effectNote}${consumeNote}${allyNote} (концентрация)${naparnikNote}${formNote}`
+          : `Каст: ${name}${effectNote}${consumeNote}${allyNote}${naparnikNote}${formNote}`,
+      )
+      return
+    }
+    if (grantCast && grantRow) {
+      const label = grantRow.grant_cast?.label ?? 'Грант'
+      model.setDraft((prev) =>
+        model.withDeskConcentration(
+          {
+            ...prev,
+            spells: {
+              ...prev.spells,
+              known: spendGrantCast(prev.spells.known, grantRow.id),
+            },
+          },
+          spell,
+        ),
+      )
+      const naparnikNote =
+        wantsForm || wantsFamiliar
+          ? ''
+          : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
+      model.onToast(
+        `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${allyNote}${
+          spell.concentration ? ' · концентрация' : ''
+        }${naparnikNote}${formNote}`,
+      )
+      return
+    }
+    if (ritualCast) {
+      if (model.spellLearnBudget?.mode === 'spellbook') {
+        const gate = canCastWizardRitualFromBook({
+          spell,
+          book: model.draft.spells.wizard_spellbook,
+        })
+        if (!gate.ok) {
+          model.onToast(gate.message)
+          return
+        }
+      }
+      if (spell.concentration) model.applyDeskConcentration(spell)
+      const naparnikNote =
+        wantsForm || wantsFamiliar
+          ? ''
+          : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
+      model.onToast(
+        `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${allyNote}${
+          spell.concentration ? ' · концентрация' : ''
+        }${naparnikNote}${formNote}`,
+      )
+      return
+    }
+    if (choice.usePact && model.draft.spells.pact_slots) {
+      const pactResult = spendPactSlot(model.draft.spells.pact_slots)
+      if (!pactResult.ok) {
+        model.onToast('Нет свободных ячеек договора')
+        return
+      }
+      model.setDraft((prev) =>
+        model.withDeskConcentration(
+          {
+            ...prev,
+            spells: { ...prev.spells, pact_slots: pactResult.pact },
+          },
+          spell,
+        ),
+      )
+      const naparnikNote =
+        wantsForm || wantsFamiliar
+          ? ''
+          : model.applyDeskNaparnikFromCast(spell, pactResult.pact.level)
+      model.onToast(
+        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${allyNote}${
+          spell.concentration ? ' · концентрация' : ''
+        }${naparnikNote}${formNote}`,
+      )
+      return
+    }
+    const result = spendSpellSlot(model.draft.spells.slots, choice.slotLevel)
+    if (!result.ok) {
+      model.onToast(`Нет ячеек ${choice.slotLevel}-го уровня`)
+      return
+    }
+    model.setDraft((prev) =>
+      model.withDeskConcentration(
+        {
+          ...prev,
+          spells: { ...prev.spells, slots: result.slots },
+        },
+        spell,
+      ),
+    )
+    const naparnikNote =
+      wantsForm || wantsFamiliar
+        ? ''
+        : model.applyDeskNaparnikFromCast(spell, choice.slotLevel)
+    const upcast =
+      choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
+    model.onToast(
+      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${allyNote}${
+        spell.concentration ? ' · концентрация' : ''
+      }${naparnikNote}${formNote}`,
+    )
+  }
+
+  model.confirmDeskCast = function confirmDeskCast(choice: CastChoice) {
+    if (!model.deskCastSpell) return
+    const spell = model.deskCastSpell
+    if (model.needsDeskConcentrationSwap(spell)) {
+      model.setDeskCastPending({ spell, choice })
+      model.setDeskCastSpell(null)
+      return
+    }
+    model.setDeskCastSpell(null)
+    model.runDeskCast(spell, choice)
+  }
+
+  model.applyAttunements = function applyAttunements(attunements: AttunementSlot[]) {
+    const prevLinked = new Set(
+      model.draft.attunements.map((slot) => slot.item_id).filter((id): id is string => Boolean(id)),
+    )
+    const newlyLinked = attunements
+      .map((slot) => slot.item_id)
+      .filter((id): id is string => id != null && id !== '' && !prevLinked.has(id))
+    let nextItems = model.draft.inventory.items
+    const equippedNames: string[] = []
+    for (const id of newlyLinked) {
+      const item = nextItems.find((row) => row.id === id)
+      if (!item || item.equipped) continue
+      const shouldEquip =
+        (item.wear_slot != null && item.wear_slot !== 'none') ||
+        item.armor_kind === 'light' ||
+        item.armor_kind === 'medium' ||
+        item.armor_kind === 'heavy' ||
+        item.armor_kind === 'shield'
+      if (!shouldEquip) continue
+      nextItems = equipInventoryItem(nextItems, id, true)
+      if (item.name.trim()) equippedNames.push(item.name.trim())
+    }
+    model.setDraft((prev) => ({
+      ...prev,
+      attunements,
+      inventory:
+        nextItems === model.draft.inventory.items
+          ? prev.inventory
+          : { ...prev.inventory, items: nextItems },
+    }))
+    if (equippedNames.length > 0) {
+      model.onToast(
+        equippedNames.length === 1
+          ? `Настроено и надето: «${equippedNames[0]}»`
+          : `Настроено и надето: ${equippedNames.map((name) => `«${name}»`).join(', ')}`,
+      )
+    }
+  }
+
+  model.showCompact = function showCompact(id: PlayDeskCompactPanelId): boolean {
+    // Spells / attacks: compact is the only play surface (desk + phone); setup in dialogs.
+    if (id === 'spells' || id === 'attacks') return true
+    // Explore / Social / Features / Companions: glance→expand — no compact/full flip.
+    if (
+      id === 'inventory' ||
+      id === 'texts' ||
+      id === 'features' ||
+      id === 'companions'
+    ) {
+      return false
+    }
+    return model.forceFullPanel !== id
+  }
+
+  model.skillModFor = function skillModFor(skillKey: string): number {
+    const def = SKILL_DEFS.find((skill) => skill.key === skillKey)
+    if (!def) return 0
+    const state = model.draft.skills[skillKey]
+    return (
+      skillModifierFromState({
+        abilityMod: abilityModifier(model.draft.abilities[def.base]),
+        proficiencyBonus: model.proficiencyBonus,
+        isProficient: state?.is_proficient ?? false,
+        isExpertise: state?.is_expertise ?? false,
+      }) + (model.gearEffects.skillBonuses[skillKey] ?? 0)
+    )
+  }
+
+  model.modeSkillChips = function modeSkillChips(mode: 'combat' | 'explore' | 'social') {
+    return MODE_SKILL_KEYS[mode].map((key) => {
+      const def = SKILL_DEFS.find((skill) => skill.key === key)
+      const state = model.draft.skills[key]
+      return {
+        key,
+        label: def?.label ?? key,
+        mod: model.skillModFor(key),
+        trained: Boolean(state?.is_proficient || state?.is_expertise),
+      }
+    })
+  }
+
+  model.effectiveRollMode = function effectiveRollMode(skillKey?: string): DeskRollMode {
+    const forced = skillKey === 'stealth' && model.stealthArmorDisadvantage
+    return resolveRollMode(model.deskRollMode, forced)
+  }
+
+  model.rollModeSkill = function rollModeSkill(skill: { key: string; label: string; mod: number }) {
+    const mode = model.effectiveRollMode(skill.key)
+    const note =
+      skill.key === 'stealth' && model.stealthArmorDisadvantage
+        ? mode === 'normal' && model.deskRollMode === 'advantage'
+          ? ' · доспех отменил преим.'
+          : mode === 'disadvantage' && model.deskRollMode !== 'disadvantage'
+            ? ' · помеха от доспеха'
+            : ''
+        : ''
+    model.emitToast(`${formatSkillRoll(skill.label, skill.mod, mode)}${note}`)
+  }
+
+  model.rollAbilityCheck = function rollAbilityCheck(key: AbilityKey, mod: number) {
+    model.emitToast(
+      formatSkillRoll(
+        `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
+        mod,
+        model.effectiveRollMode(),
+      ),
+    )
+  }
+
+  model.rollAbilitySave = function rollAbilitySave(key: AbilityKey, mod: number) {
+    model.emitToast(
+      formatSkillRoll(
+        `Спас · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
+        mod,
+        model.effectiveRollMode(),
+      ),
+    )
+  }
+
+  model.stageHidden = function stageHidden(id: PlayDeskPanelId): boolean {
+    // Mobile kit: always one panel (no all-panels stack).
+    if (model.deskSplit && model.splitSecondary && (id === model.activePanel || id === model.splitSecondary)) {
+      return false
+    }
+    return model.activePanel !== id
+  }
+
+  model.isSorceryPointsResource = function isSorceryPointsResource(row: { id: string; name: string }): boolean {
+    return (
+      row.id.includes('sorcery_points') ||
+      /очки чародейства/i.test(row.name) ||
+      /sorcery points/i.test(row.name)
+    )
+  }
+
+  model.isChannelDivinityResource = function isChannelDivinityResource(row: { id: string; name: string }): boolean {
+    return (
+      row.id.includes(':channel_divinity:') ||
+      row.id.includes('channel_divinity') ||
+      /божественный канал/i.test(row.name) ||
+      /channel divinity/i.test(row.name)
+    )
+  }
+
+  model.isKiResource = function isKiResource(row: { id: string; name: string }): boolean {
+    // feat:{class}:ki:{entryId} — avoid matching unrelated names that contain «ки».
+    return /:ki:/.test(row.id) || /^ки$/i.test(row.name.trim())
+  }
+
+  model.isBardicInspirationResource = function isBardicInspirationResource(row: { id: string; name: string }): boolean {
+    return (
+      /:bardic_inspiration:/.test(row.id) ||
+      /бардовское вдохновение/i.test(row.name) ||
+      /bardic inspiration/i.test(row.name)
+    )
+  }
+
+  model.isLayOnHandsResource = function isLayOnHandsResource(row: { id: string; name: string }): boolean {
+    return (
+      /:lay_on_hands:/.test(row.id) ||
+      /возложение рук/i.test(row.name) ||
+      /lay on hands/i.test(row.name)
+    )
+  }
+
+  model.isSuperiorityDiceResource = function isSuperiorityDiceResource(row: { id: string; name: string }): boolean {
+    return (
+      /:superiority_dice:/.test(row.id) ||
+      /кости превосходства/i.test(row.name) ||
+      /superiority dice/i.test(row.name)
+    )
+  }
+}

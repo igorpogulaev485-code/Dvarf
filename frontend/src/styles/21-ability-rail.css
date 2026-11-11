@@ -1,0 +1,579 @@
+/* Kit rail A — strip + color inside block (docs/ui-kit ability-colors A) */
+.abil-block {
+  --abil: var(--accent);
+  --abil-soft: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--line) 88%, var(--abil));
+  border-left: 4px solid var(--abil);
+  border-radius: 12px;
+  background: var(--card);
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 1px 0 rgba(45, 45, 42, 0.03);
+}
+
+.abil-block[data-abil="str"] { --abil: var(--abil-str); --abil-soft: var(--abil-str-soft); }
+.abil-block[data-abil="dex"] { --abil: var(--abil-dex); --abil-soft: var(--abil-dex-soft); }
+.abil-block[data-abil="con"] { --abil: var(--abil-con); --abil-soft: var(--abil-con-soft); }
+.abil-block[data-abil="int"] { --abil: var(--abil-int); --abil-soft: var(--abil-int-soft); }
+.abil-block[data-abil="wis"] { --abil: var(--abil-wis); --abil-soft: var(--abil-wis-soft); }
+.abil-block[data-abil="cha"] { --abil: var(--abil-cha); --abil-soft: var(--abil-cha-soft); }
+
+.abil-block.is-dragging {
+  opacity: 0.55;
+  outline: 2px dashed var(--abil);
+}
+
+.abil-block.drag-over {
+  box-shadow: 0 -3px 0 0 var(--abil);
+}
+
+.abil-block__head {
+  /*
+   * Two rows — full name never truncated:
+   *   ⋮⋮  Телосложение ▾
+   *       [16] → 18   Пр +4   Сп +7
+   */
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  grid-template-areas:
+    "drag name"
+    "drag meta";
+  column-gap: 8px;
+  row-gap: 6px;
+  align-items: center;
+  padding: 8px 10px 8px 6px;
+  background: color-mix(in srgb, var(--abil-soft) 72%, white);
+  min-width: 0;
+}
+
+.abil-block.is-collapsed .abil-block__head {
+  background: color-mix(in srgb, var(--abil-soft) 48%, white);
+}
+
+.abil-block__drag {
+  grid-area: drag;
+  width: 18px;
+  height: 100%;
+  min-height: 32px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: color-mix(in srgb, var(--muted) 70%, var(--abil));
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  cursor: grab;
+  font-size: 0.78rem;
+  letter-spacing: -0.12em;
+  line-height: 1;
+  user-select: none;
+  touch-action: none;
+}
+
+.abil-block__drag:hover {
+  background: color-mix(in srgb, var(--card) 80%, var(--abil-soft));
+  border-color: var(--line);
+}
+
+.abil-block__drag:active { cursor: grabbing; }
+
+.abil-block__label {
+  grid-area: name;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+}
+
+.abil-block__label-open {
+  display: inline-flex;
+  align-items: baseline;
+  min-width: 0;
+  margin: 0;
+  padding: 1px 0;
+  border: none;
+  background: transparent;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  color: var(--abil);
+  cursor: pointer;
+  text-align: left;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.abil-block__label-open:hover {
+  color: color-mix(in srgb, var(--abil) 82%, var(--ink));
+}
+
+.abil-block__label-open:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--ink) 28%, var(--line));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.abil-block__label-text {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.abil-block__label-chevron {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 2px 4px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--abil);
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.abil-block__label-chevron:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--abil-soft) 55%, white);
+}
+
+.ability-breakdown__base {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 10px;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--desk-line, var(--line));
+  background: color-mix(in srgb, var(--desk-chip, #e7e1d4) 35%, white);
+}
+
+.ability-breakdown__base-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--desk-ink, var(--ink));
+}
+
+.ability-breakdown__base-hint {
+  grid-column: 1 / -1;
+  font-size: 0.78rem;
+  color: var(--desk-muted, var(--muted));
+}
+
+.ability-breakdown__channel-hint {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+}
+
+.initiative-breakdown__roll {
+  margin-top: 8px;
+}
+
+.abil-block__meta {
+  grid-area: meta;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.abil-block__score-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+}
+
+.abil-block__score.ui-input {
+  width: 2.7rem;
+  min-width: 2.7rem;
+  max-width: 2.7rem;
+  height: 32px;
+  box-sizing: border-box;
+  text-align: center;
+  padding: 0 2px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid color-mix(in srgb, var(--line) 80%, var(--abil));
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 30px;
+  color: var(--ink);
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.abil-block__score.ui-input::-webkit-outer-spin-button,
+.abil-block__score.ui-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+  height: 0;
+  width: 0;
+}
+
+.abil-block__effective {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--abil);
+  white-space: nowrap;
+}
+
+.abil-block__mods {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.abil-mod {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-sizing: border-box;
+  height: 28px;
+  margin: 0;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0 10px;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.abil-mod__tag {
+  opacity: 0.72;
+  font-size: 0.68rem;
+}
+
+.abil-mod__num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.abil-mod--btn {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.abil-mod--btn:hover:not(.is-on) {
+  border-color: color-mix(in srgb, var(--abil) 45%, var(--line));
+  color: var(--abil);
+}
+
+.abil-mod--btn.is-on {
+  background: var(--abil);
+  border-color: var(--abil);
+  color: #fff;
+}
+
+.abil-mod--roll.is-proficient {
+  border-color: color-mix(in srgb, var(--abil) 40%, var(--line));
+  background: color-mix(in srgb, var(--abil-soft) 70%, white);
+}
+
+.abil-mod-pair {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.abil-prof-pip {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--abil) 45%, var(--line));
+  background: #fff;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.abil-prof-pip.is-on {
+  background: var(--abil);
+  border-color: var(--abil);
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.abil-prof-pip.is-expert {
+  background: var(--abil);
+  border-color: var(--abil);
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    0 0 0 2px color-mix(in srgb, var(--abil) 55%, white);
+}
+
+.abil-block__skills {
+  padding: 5px 7px 7px;
+  display: grid;
+  gap: 3px;
+  background: color-mix(in srgb, var(--card) 92%, var(--abil-soft));
+}
+
+.abil-skill {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 1px solid transparent;
+  background: color-mix(in srgb, var(--panel) 55%, white);
+  border-radius: 8px;
+  padding: 4px 6px 4px 8px;
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+  color: var(--ink);
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.abil-skill:hover {
+  border-color: color-mix(in srgb, var(--abil) 22%, var(--line));
+}
+
+.abil-skill.is-on {
+  background: var(--abil-soft);
+  border-color: color-mix(in srgb, var(--abil) 28%, var(--line));
+  color: var(--abil);
+  font-weight: 600;
+}
+
+.abil-skill.is-expert {
+  font-weight: 700;
+  background: color-mix(in srgb, var(--abil-soft) 72%, white);
+  border-color: color-mix(in srgb, var(--abil) 42%, var(--line));
+  color: var(--abil);
+}
+
+.abil-skill__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.abil-skill__roll {
+  flex: 0 0 auto;
+  min-width: 2.6rem;
+  height: 26px;
+  margin: 0;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.abil-skill__roll:hover {
+  border-color: color-mix(in srgb, var(--abil) 45%, var(--line));
+  color: var(--abil);
+}
+
+.abil-skill.is-on .abil-skill__roll,
+.abil-skill.is-expert .abil-skill__roll {
+  border-color: color-mix(in srgb, var(--abil) 35%, var(--line));
+  color: var(--abil);
+}
+
+.abil-block__empty {
+  margin: 0;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+}
+
+.abil-column__toolbar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 2px 0 2px;
+  background: color-mix(in srgb, var(--panel) 94%, white);
+}
+
+.abil-column__toolbar button {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 9px;
+  padding: 7px 8px;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.abil-column__toolbar button:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+  color: var(--accent);
+}
+
+.abil-column__hint {
+  margin: 0;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+/* Passives + Владения CTA — kit rail foot */
+.play-desk__rail-foot > .ui-button {
+  width: 100%;
+  justify-content: center;
+  border-radius: 10px;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--accent-soft) 70%, white);
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+  color: var(--accent);
+}
+
+.play-desk__rail-foot > .ui-button:hover {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.passive-grid--desk .passive-card {
+  background: color-mix(in srgb, var(--accent-soft) 35%, white);
+}
+
+.passive-grid--desk .passive-card strong {
+  color: var(--accent);
+}
+
+.play-desk-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 28, 24, 0.35);
+  z-index: 40;
+}
+
+.play-desk-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(360px, 92vw);
+  background: var(--panel, #faf8f2);
+  border-right: 1px solid var(--line);
+  z-index: 41;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  box-shadow: 8px 0 30px rgba(0, 0, 0, 0.12);
+}
+
+.play-desk-drawer__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.play-desk-drawer__head h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--accent);
+}
+
+.play-desk-drawer__body {
+  overflow: auto;
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+/* Narrow drawer: keep climb/swim/fly on one label line so the row stays level. */
+.sheet-grid--speeds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+.sheet-grid--speeds .ui-field__label {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sheet-grid--speeds .ui-field__hint {
+  font-size: 0.74rem;
+}
+
+.sheet-grid--speeds .ui-input {
+  padding: 10px 10px;
+}
+
+/* Wide desk keeps rail A identity colors — do not force theme accent onto skills */
+
+@media (min-width: 960px) {
+  .play-desk__body {
+    grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .play-desk__left {
+    position: sticky;
+    top: 12px;
+    max-height: calc(100vh - 24px);
+    overflow: auto;
+  }
+
+  .play-desk__stage {
+    min-height: 60vh;
+  }
+}
+
+@media (min-width: 1280px) {
+  .play-desk__body {
+    /* Slightly narrower ability rail → more stage for attacks/spells split. */
+    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  }
+
+  .play-desk--split .play-desk__scene-wrap {
+    /* Left = selected panel; right = pinned spells (slightly wider). */
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  }
+}
+
+@media (max-width: 1100px) {
+  .play-desk--split .play-desk__scene-wrap {
+    grid-template-columns: 1fr;
+  }
+}
+

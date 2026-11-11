@@ -1,0 +1,573 @@
+.inventory-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.inventory-card__meta .play-desk-compact__link {
+  margin-left: auto;
+}
+
+.inventory-card__name .ui-field__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.inventory-card__name .ui-input,
+.inventory-card__name .ui-combobox .ui-input {
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.inventory-card__grid--armor {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (min-width: 720px) {
+  .inventory-card__grid--armor {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.inventory-card__glance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.inventory-card__glance-spacer {
+  flex: 1 1 8px;
+  min-width: 8px;
+}
+
+.inventory-card__glance-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.inventory-card__glance-name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.inventory-card__glance-meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.inventory-card__chevron,
+.inventory-card__chevron-btn {
+  font-size: 1.25rem;
+  color: var(--muted);
+  line-height: 1;
+  border: 0;
+  background: transparent;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+
+.inventory-card__glance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.inventory-fav {
+  min-width: 2rem;
+  height: 2rem;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 6px;
+}
+
+.inventory-fav.is-on {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  color: var(--accent);
+}
+
+.inventory-fav:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.inventory-summary-line__ac {
+  font-weight: 650;
+  color: var(--accent);
+}
+
+.inventory-summary-line__link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-weight: 650;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.inventory-summary-line__link:hover {
+  color: var(--ink);
+}
+
+/* Mobile inventory density (M1.2) */
+.play-desk--mobile .inventory-panel__toolbar {
+  gap: 6px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.play-desk--mobile .inventory-panel__toolbar .ui-button,
+.play-desk--mobile .inventory-toolbar-btn {
+  flex: 1 1 calc(50% - 4px);
+  min-height: 44px;
+  justify-content: center;
+}
+
+.play-desk--mobile .inventory-summary {
+  position: sticky;
+  top: 52px;
+  z-index: 19;
+  gap: 6px;
+  padding: 8px 10px;
+  box-shadow: 0 1px 0 rgba(45, 45, 42, 0.04);
+}
+
+.play-desk--mobile .inventory-summary__chip {
+  min-height: 40px;
+  padding: 6px 12px;
+  font-size: 0.84rem;
+}
+
+.play-desk--mobile .inventory-summary__weights {
+  font-size: 0.8rem;
+}
+
+.play-desk--mobile .inventory-summary__weights strong {
+  font-size: 0.95rem;
+}
+
+.play-desk--mobile .inventory-filters {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
+.play-desk--mobile .inventory-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.play-desk--mobile .inventory-filter {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 6px 12px;
+  font-size: 0.84rem;
+}
+
+.play-desk--mobile .inventory-card--compact {
+  gap: 6px 8px;
+  padding: 8px 10px;
+}
+
+.play-desk--mobile .inventory-card__glance-name {
+  font-size: 0.95rem;
+}
+
+.play-desk--mobile .inventory-card__glance-meta {
+  font-size: 0.78rem;
+}
+
+.play-desk--mobile .inventory-equip,
+.play-desk--mobile .inventory-fav,
+.play-desk--mobile .inventory-card__chevron-btn {
+  min-height: 40px;
+  min-width: 40px;
+}
+
+.play-desk--mobile .inventory-coins--pad {
+  min-height: 52px;
+  padding: 10px 12px;
+}
+
+.play-desk--mobile .mobile-combat-roll--explore,
+.play-desk--mobile .mobile-combat-roll--social {
+  margin: 0 0 8px;
+}
+
+/* M1.3 Social / Features / Companions density */
+.play-desk--mobile .text-panel__collapse-bar,
+.play-desk--mobile .features-panel__collapse-bar,
+.play-desk--mobile .companions-panel__collapse-bar {
+  position: sticky;
+  top: 0;
+  z-index: 18;
+  gap: 6px;
+}
+
+.play-desk--mobile .text-panel__collapse-bar button,
+.play-desk--mobile .features-panel__collapse-bar button,
+.play-desk--mobile .companions-panel__collapse-bar button {
+  min-height: 40px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+}
+
+.play-desk--mobile .text-panel .inventory-panel__toolbar,
+.play-desk--mobile .companions-panel__toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 17;
+  gap: 6px;
+}
+
+.play-desk--mobile .text-panel .inventory-toolbar-btn,
+.play-desk--mobile .companions-panel__toolbar .inventory-toolbar-btn,
+.play-desk--mobile .companions-panel__toolbar .ui-button {
+  flex: 1 1 100%;
+  min-height: 44px;
+  justify-content: center;
+}
+
+.play-desk--mobile .text-block--compact,
+.play-desk--mobile .feature-card--compact,
+.play-desk--mobile .companion-card--compact {
+  gap: 6px 8px;
+  padding: 8px 10px;
+}
+
+.play-desk--mobile .text-block__glance-name,
+.play-desk--mobile .feature-card__name,
+.play-desk--mobile .companion-card__name {
+  font-size: 0.95rem;
+}
+
+.play-desk--mobile .text-block__glance-preview,
+.play-desk--mobile .feature-card__preview,
+.play-desk--mobile .companion-card__preview {
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.play-desk--mobile .text-block__drag {
+  min-height: 40px;
+  min-width: 28px;
+}
+
+.play-desk--mobile .feature-card--expand .ui-button,
+.play-desk--mobile .companion-card--expand .ui-button,
+.play-desk--mobile .text-block--expand .ui-button,
+.play-desk--mobile .feature-group .ui-button {
+  min-height: 44px;
+}
+
+.play-desk--mobile .feature-group__title {
+  font-size: 0.92rem;
+}
+
+.play-desk--mobile .companions-add-fork__choice {
+  min-height: 64px;
+  padding: 12px 14px;
+  text-align: left;
+}
+
+.play-desk--mobile .play-desk-compact .chip-row .sheet-chip {
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 0.84rem;
+}
+
+.play-desk--mobile .feature-card__level {
+  font-size: 0.72rem;
+  min-width: 1.6rem;
+}
+
+.inventory-role {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+}
+
+.inventory-role--weapon {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 25%, white);
+}
+
+.inventory-role--armor {
+  background: #edf2e8;
+  color: #3f5c44;
+  border-color: #c9d6c0;
+}
+
+.inventory-role--pack {
+  background: #f5efe4;
+  color: #7a5c2e;
+  border-color: #e2d3b5;
+}
+
+.inventory-role--other {
+  background: #f3f1ec;
+  color: #5c564c;
+  border-color: #ddd6ca;
+}
+
+.inventory-add-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.gear-picker {
+  display: grid;
+  gap: 12px;
+}
+
+.gear-picker__card {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card, #fff);
+}
+
+.gear-picker__card--selected {
+  background: color-mix(in srgb, var(--accent) 8%, white);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
+.gear-picker__card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.gear-picker__card-title {
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.gear-picker__count {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.gear-picker__chips {
+  gap: 6px;
+  margin-bottom: 0;
+}
+
+.gear-picker__chips .sheet-chip {
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  border-radius: 10px;
+}
+
+.gear-picker-list {
+  display: grid;
+  gap: 6px;
+  max-height: min(42vh, 360px);
+  overflow: auto;
+  padding: 4px 2px;
+}
+
+.gear-picker-family {
+  display: grid;
+  gap: 4px;
+}
+
+.gear-picker-row {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.gear-picker-row:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+}
+
+.gear-picker-row.is-selected,
+.gear-picker-row.is-open {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  background: color-mix(in srgb, var(--accent) 10%, white);
+}
+
+.gear-picker-row--family {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.gear-picker-row--variant {
+  margin-left: 12px;
+  border-style: dashed;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.gear-picker-row__name {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  font-weight: 600;
+}
+
+.gear-picker-row__badge {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.gear-picker-row__meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.gear-picker-selected {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent) 6%, white);
+}
+
+.gear-picker-selected__desc {
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.gear-rarity-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 1px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.7);
+  vertical-align: middle;
+}
+
+.gear-rarity-badge--mundane {
+  color: #57534e;
+  border-color: #d6d3d1;
+  background: #f5f5f4;
+}
+
+.gear-rarity-badge--common {
+  color: #3f6212;
+  border-color: #d9f99d;
+  background: #f7fee7;
+}
+
+.gear-rarity-badge--uncommon {
+  color: #166534;
+  border-color: #bbf7d0;
+  background: #ecfdf5;
+}
+
+.gear-rarity-badge--rare {
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.gear-rarity-badge--very_rare {
+  color: #a16207;
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.gear-rarity-badge--legendary {
+  color: #9a3412;
+  border-color: #fdba74;
+  background: #fff7ed;
+}
+
+.gear-rarity-badge--artifact {
+  color: #9f1239;
+  border-color: #fecdd3;
+  background: #fff1f2;
+}
+
+.inventory-card__nest-label {
+  font-size: 0.8rem;
+}
+
+.inventory-card__grid {
+  display: grid;
+  gap: 8px 10px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.inventory-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.attack-held-tag.is-on {
+  color: var(--accent);
+  font-weight: 600;
+}
+

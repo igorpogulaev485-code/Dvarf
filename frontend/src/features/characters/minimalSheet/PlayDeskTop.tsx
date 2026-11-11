@@ -1,0 +1,296 @@
+/** Шапка стола, полоска жизни на телефоне и док напарников. */
+import type { SheetModel } from './sheetModel'
+import { isSelfForm } from '../companions'
+import { formatRaceMovementHint } from '../../../shared/dnd/raceGrants'
+import { syncAttacksHeldFromInventory } from '../AttacksPanel'
+import { canWearArmor, armorProficiencyHint } from '../equipmentProficiency'
+import { listShieldItems, toggleShieldInHand } from '../heldEquip'
+import { CharacterAvatarControl } from '../CharacterAvatarControl'
+import { PlayDeskHeader } from '../PlayDeskHeader'
+import { MobileVitalsBar } from '../MobileVitalsBar'
+import { formatSkillRoll } from '../deskRolls'
+import { appendXpHistory } from '../playDeskUi'
+import { equippedArmorPieces } from '../inventory'
+import { abilityModifier } from '../sheetTypes'
+import { COMPANION_KIND_SHORT } from './draft'
+
+export function PlayDeskTop({ model }: { model: SheetModel }) {
+  return (
+    <>
+      {model.isPlayDesk ? (
+        <div className="play-desk__top" data-onboarding="combat-header">
+          <CharacterAvatarControl
+            character={model.baseCharacter}
+            size="md"
+            showActions={false}
+            onOpen={() => model.setIdentityOpen(true)}
+            onChanged={(updated) => {
+              model.setBaseCharacter(updated)
+              model.onSaved(updated)
+            }}
+          />
+          <PlayDeskHeader
+            name={model.draft.name}
+            raceName={model.draft.raceName}
+            className={model.classSummary || model.primaryClass?.name || ''}
+            alignment={model.draft.identity.alignment}
+            rulesEdition={model.baseCharacter.rules_edition}
+            level={model.characterLevel}
+            experience={model.draft.identity.experience}
+            classes={model.draft.classes}
+            hitDie={model.draft.play.hitDie}
+            constitutionMod={abilityModifier(model.draft.abilities.con)}
+            hpCurrent={model.draft.hpCurrent}
+            hpMax={model.draft.hpMax}
+            play={model.draft.play}
+            autoAc={model.armorClass.ac}
+            acHint={model.armorClass.summary}
+            onOpenAc={() => model.setAcBreakdownOpen(true)}
+            shieldInHand={Boolean(equippedArmorPieces(model.draft.inventory.items).shield)}
+            shieldAvailable={listShieldItems(model.draft.inventory.items).length > 0}
+            onToggleShield={() => {
+              const shields = listShieldItems(model.draft.inventory.items)
+              const anyOn = shields.some((row) => row.equipped)
+              if (!anyOn && !canWearArmor('shield', model.draft.identity.armor)) {
+                model.onToast(armorProficiencyHint('shield'))
+                return
+              }
+              const result = toggleShieldInHand(model.draft.inventory.items)
+              if (!result.ok) {
+                model.onToast(result.reason)
+                return
+              }
+              model.setDraft((prev) => ({
+                ...prev,
+                inventory: { ...prev.inventory, items: result.items },
+                weapons: syncAttacksHeldFromInventory(prev.weapons, result.items),
+              }))
+              model.onToast(
+                result.equipped
+                  ? `Щит «${result.name}» в руке`
+                  : `Щит «${result.name}» убран`,
+              )
+            }}
+            speed={model.displaySpeed}
+            climbSpeed={model.draft.climbSpeed}
+            swimSpeed={model.draft.swimSpeed}
+            flySpeed={model.draft.flySpeed}
+            jumpLongFt={model.jump.longFt}
+            jumpHighFt={model.jump.highFt}
+            movementHint={model.classSpeedHint}
+            proficiencyBonus={model.proficiencyBonus}
+            initiative={model.initiativeValue}
+            inspiration={model.draft.inspiration}
+            coins={model.draft.inventory.coins}
+            xpHistory={model.draft.sheetUi.xpHistory}
+            onOpenRest={() => model.setRestOpen(true)}
+            onOpenIdentity={() => model.setIdentityOpen(true)}
+            onExperienceChange={(experience, meta) => {
+              model.setDraft((prev) => {
+                const prevXp = prev.identity.experience
+                const delta = experience - prevXp
+                return {
+                  ...prev,
+                  identity: { ...prev.identity, experience },
+                  sheetUi: {
+                    ...prev.sheetUi,
+                    xpHistory: delta
+                      ? appendXpHistory(prev.sheetUi.xpHistory, {
+                          delta,
+                          reason: meta?.reason ?? '',
+                        })
+                      : prev.sheetUi.xpHistory,
+                  },
+                }
+              })
+            }}
+            onRequestLevelUp={() => model.setLevelUpOpen(true)}
+            onToggleInspiration={() =>
+              model.setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
+            }
+            onExhaustionChange={(exhaustion) =>
+              model.setDraft((prev) => ({
+                ...prev,
+                play: { ...prev.play, exhaustion },
+              }))
+            }
+            onOpenInitiative={() => model.setInitiativeBreakdownOpen(true)}
+            onInitiativeRoll={() =>
+              model.emitToast(
+                formatSkillRoll('Инициатива', model.initiativeValue, model.effectiveRollMode()),
+              )
+            }
+            onPlayChange={(play) => model.setDraft((prev) => ({ ...prev, play }))}
+            onCoinsChange={(coins) =>
+              model.setDraft((prev) => ({
+                ...prev,
+                inventory: { ...prev.inventory, coins },
+              }))
+            }
+            coinPadOpen={model.coinPadOpen}
+            onCoinPadOpenChange={model.setCoinPadOpen}
+            showValueTips={model.showValueTips}
+            onCombatChange={(patch) =>
+              model.setDraft((prev) => ({
+                ...prev,
+                ...(patch.hpCurrent !== undefined ? { hpCurrent: patch.hpCurrent } : {}),
+                ...(patch.hpMax !== undefined ? { hpMax: patch.hpMax } : {}),
+              }))
+            }
+            onToast={model.onToast}
+            onDamaged={(damageToHp) => {
+              if (!model.draft.play.concentration || damageToHp <= 0) return
+              model.setConcDamageAsk({
+                damage: damageToHp,
+                spellName: model.draft.play.concentration.name,
+                dc: Math.max(10, Math.floor(damageToHp / 2)),
+              })
+            }}
+          />
+        </div>
+      ) : (
+        <div className="play-desk__mobile-chrome" data-onboarding="combat-header">
+        <MobileVitalsBar
+          character={model.baseCharacter}
+          name={model.draft.name}
+          raceName={model.draft.raceName}
+          classSummary={model.classSummary || model.primaryClass?.name || ''}
+          alignment={model.draft.identity.alignment}
+          level={model.characterLevel}
+          hpCurrent={model.draft.hpCurrent}
+          hpMax={model.draft.hpMax}
+          play={model.draft.play}
+          autoAc={model.armorClass.ac}
+          acOverride={model.draft.ac}
+          acHint={model.armorClass.summary}
+          onOpenAc={() => model.setAcBreakdownOpen(true)}
+          shieldInHand={Boolean(equippedArmorPieces(model.draft.inventory.items).shield)}
+          shieldAvailable={listShieldItems(model.draft.inventory.items).length > 0}
+          onToggleShield={() => {
+            const shields = listShieldItems(model.draft.inventory.items)
+            const anyOn = shields.some((row) => row.equipped)
+            if (!anyOn && !canWearArmor('shield', model.draft.identity.armor)) {
+              model.onToast(armorProficiencyHint('shield'))
+              return
+            }
+            const result = toggleShieldInHand(model.draft.inventory.items)
+            if (!result.ok) {
+              model.onToast(result.reason)
+              return
+            }
+            model.setDraft((prev) => ({
+              ...prev,
+              inventory: { ...prev.inventory, items: result.items },
+              weapons: syncAttacksHeldFromInventory(prev.weapons, result.items),
+            }))
+            model.onToast(
+              result.equipped
+                ? `Щит «${result.name}» в руке`
+                : `Щит «${result.name}» убран`,
+            )
+          }}
+          speed={model.displaySpeed}
+          movementHint={[
+            formatRaceMovementHint({
+              climb: model.draft.climbSpeed,
+              swim: model.draft.swimSpeed,
+              fly: model.draft.flySpeed,
+            }),
+            model.classSpeedHint,
+          ]
+            .filter(Boolean)
+            .join(' · ') || null}
+          climbSpeed={model.draft.climbSpeed}
+          swimSpeed={model.draft.swimSpeed}
+          flySpeed={model.draft.flySpeed}
+          jumpLongFt={model.jump.longFt}
+          jumpHighFt={model.jump.highFt}
+          initiative={model.initiativeValue}
+          onOpenInitiative={() => model.setInitiativeBreakdownOpen(true)}
+          proficiencyBonus={model.proficiencyBonus}
+          inspiration={model.draft.inspiration}
+          coins={model.draft.inventory.coins}
+          constitutionMod={abilityModifier(model.draft.abilities.con)}
+          classes={model.draft.classes}
+          hitDie={model.draft.play.hitDie}
+          onOpenIdentity={() => model.setIdentityOpen(true)}
+          onOpenAbilities={() => model.setMobileAbilitiesOpen(true)}
+          onOpenRest={() => model.setRestOpen(true)}
+          onOpenConditions={() => model.setHotConditionsOpen(true)}
+          onToggleInspiration={() =>
+            model.setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
+          }
+          onAvatarChanged={(updated) => {
+            model.setBaseCharacter(updated)
+            model.onSaved(updated)
+          }}
+          onPlayChange={(play) => model.setDraft((prev) => ({ ...prev, play }))}
+          onCoinsChange={(coins) =>
+            model.setDraft((prev) => ({
+              ...prev,
+              inventory: { ...prev.inventory, coins },
+            }))
+          }
+          onCombatChange={(patch) =>
+            model.setDraft((prev) => ({
+              ...prev,
+              ...(patch.hpCurrent !== undefined ? { hpCurrent: patch.hpCurrent } : {}),
+              ...(patch.hpMax !== undefined ? { hpMax: patch.hpMax } : {}),
+            }))
+          }
+          onDamaged={(damageToHp) => {
+            if (!model.draft.play.concentration || damageToHp <= 0) return
+            model.setConcDamageAsk({
+              damage: damageToHp,
+              spellName: model.draft.play.concentration.name,
+              dc: Math.max(10, Math.floor(damageToHp / 2)),
+            })
+          }}
+          onToast={model.onToast}
+          showValueTips={model.showValueTips}
+        />
+        </div>
+      )}
+
+      {model.isPlayDesk && model.dockCompanions.length > 0 ? (
+        <div className="play-desk__dock" aria-label="Напарники">
+          <span className="play-desk__dock-label">Напарники</span>
+          {model.dockCompanions.map((row, index) => {
+            const initial = (row.name.trim()[0] || '?').toUpperCase()
+            const isPrimary = index === 0
+            const inForm = isSelfForm(row) && row.active
+            const kind = COMPANION_KIND_SHORT[row.kind] ?? 'Спутник'
+            return (
+              <button
+                key={row.id}
+                type="button"
+                className={`play-desk__comp${isPrimary ? ' is-primary' : ''}${inForm ? ' is-form' : ''}`}
+                onClick={() => {
+                  model.setDeskMode('companions')
+                  model.setActivePanel('companions')
+                }}
+              >
+                <span className="play-desk__comp-face" aria-hidden>
+                  {initial}
+                </span>
+                <span className="play-desk__comp-text">
+                  <b>{row.name || 'Без имени'}</b>
+                  <span>
+                    {inForm ? 'В облике' : isPrimary ? 'Основной' : kind}
+                    {row.stats.hp != null ? ` · ${row.stats.hp} HP` : ''}
+                  </span>
+                </span>
+                <span className="play-desk__comp-hp">
+                  {row.stats.hp != null ? row.stats.hp : '—'}
+                </span>
+              </button>
+            )
+          })}
+          <p className="play-desk__dock-note">
+            Док всегда виден. Полный список — панель «Напарники».
+          </p>
+        </div>
+      ) : null}
+    </>
+  )
+}

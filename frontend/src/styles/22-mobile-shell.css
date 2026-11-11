@@ -1,0 +1,350 @@
+/* ——— Mobile UI Kit shell (<960) ——— */
+.play-desk--mobile {
+  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+}
+
+.play-desk--mobile .play-desk__left {
+  display: none;
+}
+
+.play-desk--mobile .play-desk__body {
+  display: block;
+}
+
+.play-desk--mobile .play-desk__stage {
+  min-height: 0;
+}
+
+/* HotStrip: stays under vitals (vitals sticky); opaque strip, dense taps */
+.play-desk--mobile .play-desk__hot {
+  position: relative;
+  z-index: 30;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin: 0;
+  padding: 6px;
+  border: 1px solid var(--desk-line);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(45, 45, 42, 0.04);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+.play-desk--mobile .play-desk__hot::-webkit-scrollbar {
+  display: none;
+}
+.play-desk--mobile .play-desk__hot-item {
+  flex: 0 0 auto;
+  min-width: min(140px, 68vw);
+  min-height: 44px;
+  padding: 8px 10px;
+  align-content: center;
+  max-width: none;
+}
+.play-desk--mobile .play-desk__hot-item--wide {
+  flex: 0 0 auto;
+  min-width: min(140px, 68vw);
+}
+.play-desk--mobile .play-desk__hot-item--res {
+  flex: 0 0 auto;
+  min-width: min(112px, 52vw);
+}
+.play-desk--mobile .play-desk__hot-item--res-compact {
+  min-width: min(148px, 58vw);
+  max-width: min(180px, 70vw);
+}
+.play-desk--mobile .play-desk__step {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+}
+.play-desk--mobile .play-desk__hot-label {
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+.play-desk--mobile .play-desk__pip {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+.play-desk--mobile .play-desk-compact__cons-main {
+  min-height: 44px;
+  padding: 8px 10px;
+}
+.play-desk--mobile .play-desk-compact__cons-fav {
+  min-width: 44px;
+  min-height: 44px;
+}
+.play-desk--mobile .play-desk-compact__cons-spend,
+.play-desk--mobile .play-desk-compact__cons-qty {
+  font-size: 0.78rem;
+  min-height: 44px;
+}
+
+/* Play pads as bottom sheets on all phone/tablet portrait widths */
+@media (max-width: 959px) {
+  .ui-dialog-backdrop {
+    align-items: flex-end;
+    padding:
+      max(8px, env(safe-area-inset-top, 0px))
+      0
+      0
+      0;
+  }
+
+  .ui-dialog,
+  .ui-dialog--wide,
+  .ui-dialog--xl,
+  .ui-dialog--pad {
+    width: 100%;
+    max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 8px));
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 28px rgba(28, 25, 23, 0.18);
+  }
+
+  .ui-dialog__title {
+    padding: 12px 14px 0;
+    font-size: 1rem;
+  }
+
+  .ui-dialog__body {
+    padding: 8px 14px 6px;
+  }
+
+  .ui-dialog__actions {
+    gap: 8px;
+    padding: 10px 14px max(12px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .ui-dialog__actions .ui-button {
+    flex: 1 1 calc(50% - 4px);
+    justify-content: center;
+  }
+}
+
+.mobile-combat-seg-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+
+.mobile-combat-seg {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mobile-combat-seg--spell .mobile-combat-seg__btn {
+  font-size: 0.84rem;
+  font-weight: 500;
+  min-height: 40px;
+}
+
+.mobile-combat-seg__btn {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-combat-seg__btn.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* Combat roll mode: норм / преим. / помеха / броски (M1.4) */
+.mobile-combat-roll {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--desk-line, var(--line));
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mobile-combat-roll__btn {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 40px;
+  border: 0;
+  border-right: 1px solid var(--desk-line, var(--line));
+  background: transparent;
+  padding: 6px 4px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--desk-muted, var(--muted));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-combat-roll__btn:last-child {
+  border-right: 0;
+}
+
+.mobile-combat-roll__btn.is-on {
+  background: var(--desk-accent, var(--accent));
+  color: #fff;
+}
+
+.mobile-combat-roll__btn--history {
+  flex: 1.15;
+}
+
+/* Mobile combat density: keep body ≥14px, tighten meta/gaps */
+.play-desk--mobile .play-desk__hot--skills .play-desk__hot-item {
+  flex: 0 0 auto;
+  min-width: min(100px, 38vw);
+  max-width: 46vw;
+  min-height: 40px;
+  padding: 6px 8px;
+}
+
+.play-desk--mobile .play-desk__hot--skills .play-desk__hot-item span {
+  font-size: 0.78rem;
+}
+
+.play-desk--mobile .play-desk__hot--skills .play-desk__hot-item b {
+  font-size: 0.9rem;
+}
+
+.play-desk--mobile .play-desk-compact__hit,
+.play-desk--mobile .play-desk-compact__row.is-action:not(.is-spell) {
+  padding: 6px 8px;
+  gap: 6px;
+  font-size: 0.875rem;
+}
+
+.play-desk--mobile .play-desk-compact__row-main b {
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.play-desk--mobile .play-desk-compact__meta,
+.play-desk--mobile .play-desk-compact__card-meta,
+.play-desk--mobile .play-desk-compact__spell-meta {
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.play-desk--mobile .play-desk-compact__list {
+  gap: 6px;
+}
+
+.play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__mod,
+.play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__dmg {
+  font-size: 0.84rem;
+}
+
+.cast-recovery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cast-recovery .ui-button {
+  flex: 1 1 calc(50% - 4px);
+  min-height: 44px;
+  justify-content: center;
+}
+
+.mobile-scene-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  background: var(--card);
+  border-top: 1px solid var(--line);
+  padding: 4px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -6px 20px rgba(45, 45, 42, 0.08);
+}
+
+.mobile-scene-nav__tabs {
+  display: flex;
+  gap: 2px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.mobile-scene-nav__tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 48px;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.mobile-scene-nav__ico {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.mobile-scene-nav__tab.is-on {
+  color: var(--accent);
+}
+
+.mobile-scene-nav__tab.is-on .mobile-scene-nav__ico {
+  background: var(--accent);
+  color: #fff;
+}
+
+.mobile-scene-nav__label {
+  line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 960px) {
+  .mobile-scene-nav,
+  .mobile-combat-seg,
+  .mobile-combat-seg-stack,
+  .mobile-combat-roll {
+    display: none;
+  }
+}
+
