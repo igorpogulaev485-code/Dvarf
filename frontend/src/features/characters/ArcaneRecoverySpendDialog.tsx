@@ -45,6 +45,8 @@ export function ArcaneRecoverySpendDialog({
   onToast,
   onClose,
 }: ArcaneRecoverySpendDialogProps) {
+  const natural = Boolean(resource?.id.includes(':natural_recovery:'))
+  const featureName = natural ? 'Природное восстановление' : 'Магическое восстановление'
   const remainingCharges = resource
     ? Math.max(0, resource.max - resource.used)
     : 0
@@ -72,7 +74,7 @@ export function ArcaneRecoverySpendDialog({
 
   function confirm() {
     if (remainingCharges <= 0) {
-      onToast('Магическое восстановление уже использовано (до прод. отдыха)')
+      onToast(`${featureName} уже использовано (до прод. отдыха)`)
       return
     }
     const result = applyArcaneRecovery({
@@ -95,7 +97,7 @@ export function ArcaneRecoverySpendDialog({
   return (
     <Dialog
       open={open}
-      title="Магическое восстановление"
+      title={featureName}
       size="wide"
       primaryLabel="Закрыть"
       onPrimary={onClose}
@@ -104,9 +106,10 @@ export function ArcaneRecoverySpendDialog({
     >
       <Stack gap={14}>
         <Text tone="muted">
-          Лимит суммы уровней ячеек: <strong>{budget}</strong> (½ ур. волшебника
+          Лимит суммы уровней ячеек: <strong>{budget}</strong> (½ ур.{' '}
+          {natural ? 'друида' : 'волшебника'}
           {wizardLevel ? ` · ур. ${wizardLevel}` : ''}, вверх). Без ячеек 6+. Раз в
-          день после короткого отдыха.
+          день{natural ? '' : ' после короткого отдыха'}.
           {parsed ? '' : ''}
         </Text>
         <Text tone="muted">

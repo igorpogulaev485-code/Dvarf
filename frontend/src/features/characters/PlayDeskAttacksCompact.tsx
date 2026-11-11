@@ -9,7 +9,11 @@ import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import { fightingStyleAttackBonus } from '../../shared/dnd/fightingStyles'
 import { canSpendSlot, spendSpellSlot } from '../../shared/dnd/spells'
 import type { SpellsState } from './spells'
-import { divineStrikeRider, improvedDivineSmiteRider } from './featureCombatBonuses'
+import {
+  divineStrikeRider,
+  improvedDivineSmiteRider,
+  symbioticNecroticRider,
+} from './featureCombatBonuses'
 import { DivineSmiteCombatBlock } from './DivineSmiteCombatBlock'
 import {
   decideSmiteSlotClick,
@@ -71,6 +75,8 @@ type PlayDeskAttacksCompactProps = {
   /** Circle prepared from this panel or from «Способности». */
   divineSmiteIntent?: DivineSmiteIntent
   onDivineSmiteIntent?: (next: DivineSmiteIntent) => void
+  /** Temporary HP. Symbiotic Entity's necrotic die is on only while this is above 0. */
+  hpTemp?: number
   /** Fired when a combat feature chip is toggled (e.g. Reckless → advantage). */
   onCombatFeatureToggle?: (featureId: string, active: boolean) => void
   onToggleHeld?: (attack: WeaponAttack) => void
@@ -126,6 +132,7 @@ export function PlayDeskAttacksCompact({
   onSpellsChange,
   divineSmiteIntent,
   onDivineSmiteIntent,
+  hpTemp = 0,
   onCombatFeatureToggle,
   onToggleHeld,
   onSpendResource,
@@ -146,6 +153,10 @@ export function PlayDeskAttacksCompact({
   const improvedSmite = useMemo(
     () => improvedDivineSmiteRider(combatFeatures),
     [combatFeatures],
+  )
+  const symbioticRider = useMemo(
+    () => symbioticNecroticRider({ features: combatFeatures, resources, hpTemp }),
+    [combatFeatures, resources, hpTemp],
   )
   const smiteSpend = useMemo(() => divineSmiteSpendOf(combatFeatures), [combatFeatures])
   const [localSmiteIntent, setLocalSmiteIntent] = useState<DivineSmiteIntent>({
@@ -445,7 +456,9 @@ export function PlayDeskAttacksCompact({
             const meleeAttack = isMeleeWeaponAttackName(attack.name)
             const dmgLine = `${dmg || '—'}${attack.damage_type ? ` ${attack.damage_type}` : ''}${
               divineStrike ? ` + ${divineStrike.label}` : ''
-            }${meleeAttack && improvedSmite ? ` + ${improvedSmite.label}` : ''}`
+            }${meleeAttack && improvedSmite ? ` + ${improvedSmite.label}` : ''}${
+              meleeAttack && symbioticRider ? ` + ${symbioticRider.label}` : ''
+            }`
             const iconKind = attackRowIconKind({
               name: attack.name,
               ability: attackAbility,
@@ -480,6 +493,15 @@ export function PlayDeskAttacksCompact({
                                 expression: improvedSmite.dice,
                                 type: improvedSmite.type,
                                 label: improvedSmite.rollLabel ?? improvedSmite.label,
+                              },
+                            ]
+                          : []),
+                        ...(meleeAttack && symbioticRider
+                          ? [
+                              {
+                                expression: symbioticRider.dice,
+                                type: symbioticRider.type,
+                                label: symbioticRider.rollLabel ?? symbioticRider.label,
                               },
                             ]
                           : []),

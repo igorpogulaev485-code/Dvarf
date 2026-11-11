@@ -1,16 +1,16 @@
 /**
  * Merge bestiary catalog rows into companion / form stats.
- * Wildfire Spirit: HP always 10 + 5×druidLevel (ttg), never raw catalog average alone.
+ * Wildfire Spirit: HP always 5 + 5×druidLevel (TCE), never raw catalog average alone.
  */
 
 import type { BestiaryCatalogData } from '../../shared/dnd/bestiaryCatalog'
 import type { CompanionEntry } from './companions'
 import type { BestiaryFormPick } from './wildShape'
 
-/** TCE / ttg: Wildfire Spirit hit points. */
+/** TCE Wildfire Spirit: 5 + five times your druid level (20 → 105, 9 → 50). */
 export function wildfireSpiritHp(druidLevel: number): number {
   const level = Math.max(1, Math.floor(druidLevel) || 1)
-  return 10 + 5 * level
+  return 5 + 5 * level
 }
 
 export function bestiaryDataToPick(input: {
@@ -34,8 +34,19 @@ export function bestiaryDataToPick(input: {
     speed_walk: speed.walk ?? 0,
     speed_swim: speed.swim,
     speed_fly: speed.fly,
+    speed_climb: speed.climb,
+    str: input.data.abilities?.str,
+    dex: input.data.abilities?.dex,
+    con: input.data.abilities?.con,
+    resistances: joinList(input.data.damage_resistances),
+    immunities: joinList(input.data.damage_immunities),
     actions_text: actions,
   }
+}
+
+function joinList(values: string[] | undefined): string | undefined {
+  const text = (values ?? []).map((row) => row.trim()).filter(Boolean).join(', ')
+  return text || undefined
 }
 
 /** Overlay catalog pick onto companion stats (optional HP override for scaled spirits). */

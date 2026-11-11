@@ -67,6 +67,7 @@ import {
 } from './spellIcons'
 import type { ConcentrationState } from './play'
 import type { CompanionEntry } from './companions'
+import { wildShapeCastBlock } from './wildShape'
 import type { KnownForm } from './knownForms'
 import { applySpellCastToCompanions } from './spellCompanions'
 import {
@@ -521,6 +522,17 @@ export function SpellsPanel({
   }
 
   function runCast(castSpell: SheetSpell, choice: CastChoice) {
+    const wildBlock = wildShapeCastBlock({
+      companions,
+      classes: classes ?? [],
+      classSlug: castSpell.class_slug,
+      material: castSpell.components?.m,
+    })
+    if (wildBlock) {
+      onToast?.(wildBlock)
+      setCastSpell(null)
+      return
+    }
     const name = castSpell.name || 'Заклинание'
     const allyNote = `${
       choice.allyTargetIds && choice.allyTargetIds.length > 0

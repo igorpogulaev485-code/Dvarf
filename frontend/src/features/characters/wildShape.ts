@@ -105,6 +105,39 @@ export function wildShapeLimits(input: {
   return { maxCr, allowSwim, allowFly, moon: false, combatBonusAction }
 }
 
+/** One line for the Wild Shape card, Circle Forms card, and the apply dialog. */
+export function formatWildShapeLimit(limits: WildShapeLimits): string {
+  const cr =
+    limits.maxCr >= 1
+      ? String(limits.maxCr)
+      : limits.maxCr === 0.5
+        ? '1/2'
+        : limits.maxCr === 0.25
+          ? '1/4'
+          : String(limits.maxCr)
+  const swim = limits.allowSwim ? 'плавание' : 'без плавания'
+  const fly = limits.allowFly ? 'полёт' : 'без полёта'
+  return `CR ${cr}, ${swim} и ${fly}`
+}
+
+/**
+ * Moon circle replaces the PHB Wild Shape CR column. Land and other circles
+ * keep the feature's own scale text.
+ */
+export function moonShapeScale(
+  feature: { id: string; classLevel: number; classEntryId: string },
+  unlocked: Array<{ id: string; classEntryId: string }>,
+): string | null {
+  if (feature.id !== 'wild_shape' && feature.id !== 'circle_forms') return null
+  const moon = unlocked.some(
+    (row) => row.id === 'circle_forms' && row.classEntryId === feature.classEntryId,
+  )
+  if (!moon) return null
+  return formatWildShapeLimit(
+    wildShapeLimits({ druidLevel: feature.classLevel, subclassSlug: 'circle_of_the_moon' }),
+  )
+}
+
 export function crAllowed(cr: string, limits: WildShapeLimits): boolean {
   const value = parseCr(cr)
   if (value == null) return false
@@ -124,7 +157,8 @@ export function resolveWildShapeOptions(input: {
     'wild_shape',
     input.classEntryId,
   )
-  const left = spendRemaining(pool)
+  const unlimited = Boolean(pool?.unlimited)
+  const left = unlimited ? Number.POSITIVE_INFINITY : spendRemaining(pool)
 
   function base(
     id: WildShapeOptionId,
@@ -211,7 +245,7 @@ export function resolveWildShapeOptions(input: {
       base(
         'wildfire_spirit',
         'Дух дикого огня',
-        'Призвать духа на 1 час (статы из бестиария, HP 10+5×ур.).',
+        'Призвать духа на 1 час (статы из бестиария, HP 5+5×ур.).',
         1,
         'summon_wildfire_spirit',
         true,
@@ -258,6 +292,12 @@ export type BestiaryFormPick = {
   speed_walk: number
   speed_swim?: number
   speed_fly?: number
+  speed_climb?: number
+  str?: number
+  dex?: number
+  con?: number
+  resistances?: string
+  immunities?: string
   actions_text: string
 }
 
@@ -270,6 +310,139 @@ export function beastPickAllowed(
   if ((pick.speed_swim ?? 0) > 0 && !limits.allowSwim) return false
   if ((pick.speed_fly ?? 0) > 0 && !limits.allowFly) return false
   return true
+}
+
+const PHYSICAL_FALLBACK: Record<string, { str: number; dex: number; con: number }> = {
+  brown_bear: { str: 19, dex: 10, con: 16 },
+  air_elemental: { str: 14, dex: 20, con: 14 },
+  earth_elemental: { str: 20, dex: 8, con: 20 },
+  fire_elemental: { str: 10, dex: 17, con: 16 },
+  water_elemental: { str: 18, dex: 14, con: 18 },
+}
+
+/** STR/DEX/CON of the form. Catalog values win; brown bear and elementals have a fallback. */
+export function physicalScoresForPick(
+  pick: Pick<BestiaryFormPick, 'slug' | 'name_ru' | 'str' | 'dex' | 'con'>,
+): { str: number; dex: number; con: number } | null {
+  if (pick.str != null && pick.dex != null && pick.con != null) {
+    return { str: pick.str, dex: pick.dex, con: pick.con }
+  }
+  const slug = pick.slug.replace(/-/g, '_')
+  if (PHYSICAL_FALLBACK[slug]) return PHYSICAL_FALLBACK[slug]
+  if (/бурый медведь|brown bear/i.test(pick.name_ru)) return PHYSICAL_FALLBACK.brown_bear!
+  if (pick.str != null) {
+    return { str: pick.str, dex: pick.dex ?? 10, con: pick.con ?? 10 }
+  }
+  return null
+}
+
+export function formStatsFromPick(pick: BestiaryFormPick): CompanionEntry['stats'] {
+  const scores = physicalScoresForPick(pick)
+  return {
+    hp: pick.hp,
+    hp_max: pick.hp,
+    ac: pick.ac,
+    speed: pick.speed_walk,
+    ...(pick.speed_fly != null ? { speed_fly: pick.speed_fly } : {}),
+    ...(pick.speed_swim != null ? { speed_swim: pick.speed_swim } : {}),
+    ...(pick.speed_climb != null ? { speed_climb: pick.speed_climb } : {}),
+    ...(scores
+      ? { str: scores.str, dex: scores.dex, con: scores.con }
+      : {}),
+    ...(pick.resistances ? { resistances: pick.resistances } : {}),
+    ...(pick.immunities ? { immunities: pick.immunities } : {}),
+  }
+}
+
+function formNotesFromPick(pick: BestiaryFormPick, elemental: boolean): string {
+  const scores = physicalScoresForPick(pick)
+  const move = [
+    `пешком ${pick.speed_walk}`,
+    pick.speed_fly ? `полёт ${pick.speed_fly}` : '',
+    pick.speed_swim ? `плавание ${pick.speed_swim}` : '',
+    pick.speed_climb ? `лазание ${pick.speed_climb}` : '',
+  ]
+    .filter(Boolean)
+    .join(', ')
+  return [
+    elemental ? 'Элементальный дикий облик' : 'Дикий облик',
+    `CR ${pick.cr}`,
+    move,
+    scores ? `СИЛ ${scores.str} ЛОВ ${scores.dex} ТЕЛ ${scores.con}` : '',
+    pick.resistances ? `устойчивости: ${pick.resistances}` : '',
+    pick.immunities ? `иммунитеты: ${pick.immunities}` : '',
+    pick.actions_text ? `атаки: ${pick.actions_text}` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ')
+}
+
+/**
+ * Active beast or elemental Wild Shape. Starry Form is a feature reminder and
+ * does not block spells.
+ */
+export function activeBeastWildShape(
+  companions: CompanionEntry[],
+): CompanionEntry | null {
+  const form = getActiveSelfForm(companions)
+  if (!form?.active) return null
+  const source = form.form?.form_source
+  if (source === 'wild_shape' || source === 'elemental_wild_shape') return form
+  return null
+}
+
+/** Physical scores to show and roll while a beast or elemental form is up. */
+export function beastPhysicalOverlay(
+  companions: CompanionEntry[],
+): { str?: number; dex?: number; con?: number } | null {
+  const form = activeBeastWildShape(companions)
+  if (!form) return null
+  const { str, dex, con } = form.stats
+  if (str == null && dex == null && con == null) return null
+  return {
+    ...(str != null ? { str } : {}),
+    ...(dex != null ? { dex } : {}),
+    ...(con != null ? { con } : {}),
+  }
+}
+
+export function druidLevelFromClasses(
+  classes: Array<{ name: string; level: number }>,
+): number {
+  const row = classes.find((item) => /друид|druid/i.test(item.name))
+  return Math.max(0, Math.floor(row?.level ?? 0))
+}
+
+function materialHasGpCost(text: string | undefined): boolean {
+  if (!text) return false
+  return /\d/.test(text) && /(gp|зм|зл|золот)/i.test(text)
+}
+
+/**
+ * PHB: no spells in Wild Shape until Beast Spells (18). Those still cannot
+ * supply material components. Archdruid (20) ignores V, S, and free M.
+ */
+export function wildShapeCastBlock(input: {
+  companions: CompanionEntry[]
+  classes: Array<{ name: string; level: number }>
+  classSlug?: string | null
+  material?: string | null
+}): string | null {
+  if (!activeBeastWildShape(input.companions)) return null
+  const level = druidLevelFromClasses(input.classes)
+  if (level <= 0) return null
+  const slug = (input.classSlug || '').toLowerCase()
+  const druidSpell = slug === '' || slug === 'druid'
+  if (level < 18 || !druidSpell) {
+    return 'В Диком облике нельзя накладывать заклинания до «Звериных заклинаний» (18). Форма не сброшена, ячейка не списана.'
+  }
+  const material = input.material?.trim() || ''
+  if (!material) return null
+  if (level >= 20 && !materialHasGpCost(material)) return null
+  if (level >= 20) {
+    return 'Архидруид не отменяет материальный компонент с указанной ценой. Каст не выполнен.'
+  }
+  return 'Звериные заклинания: в облике нельзя предоставить материальный компонент. Каст не выполнен.'
 }
 
 function dismissActiveSelfForm(companions: CompanionEntry[]): CompanionEntry[] {
@@ -329,16 +502,9 @@ export function applyBeastWildShape(input: {
     control: 'with_master',
     active: true,
     is_primary: true,
-    stats: {
-      hp: input.pick.hp,
-      hp_max: input.pick.hp,
-      ac: input.pick.ac,
-      speed: input.pick.speed_walk,
-    },
+    stats: formStatsFromPick(input.pick),
     actions: input.pick.actions_text,
-    notes: isElemental
-      ? `Элементальный дикий облик · CR ${input.pick.cr}`
-      : `Дикий облик · CR ${input.pick.cr}`,
+    notes: formNotesFromPick(input.pick, isElemental),
     source: {
       kind: 'class',
       labelRu: isElemental ? 'Элементальный дикий облик' : 'Дикий облик',
@@ -454,7 +620,7 @@ export function applyWildfireSpirit(input: {
   pick?: BestiaryFormPick | null
 }): CompanionEntry[] {
   const level = Math.max(1, Math.floor(input.druidLevel) || 1)
-  // Always ttg scaling — never use catalog hp_average alone (it's the base 10).
+  // TCE: 5 + 5×druid level. Never the catalog average alone.
   const hp = wildfireSpiritHp(level)
   const withoutOld = input.companions.filter(
     (row) => row.source?.feature !== 'summon_wildfire_spirit',
@@ -477,7 +643,7 @@ export function applyWildfireSpirit(input: {
     actions:
       input.pick?.actions_text ||
       'Семя пламени; Огненная телепортация (см. TCE / бестиарий).',
-    notes: `Summon Wildfire Spirit · 1 ч. · HP = 10 + 5×ур. друида = ${hp} (ttg)`,
+    notes: `Summon Wildfire Spirit · 1 ч. · HP = 5 + 5×ур. друида = ${hp} (TCE)`,
     source: {
       kind: 'subclass',
       labelRu: 'Дух дикого огня',
@@ -487,17 +653,23 @@ export function applyWildfireSpirit(input: {
   return [...withoutOld, spirit]
 }
 
+export function starryFormDice(druidLevel: number): '1к8' | '2к8' {
+  return Math.floor(druidLevel) >= 10 ? '2к8' : '1к8'
+}
+
 export function applyStarryForm(input: {
   companions: CompanionEntry[]
   constellation: 'archer' | 'chalice' | 'dragon'
   hostHp: number
   hostHpMax: number
+  druidLevel?: number
 }): CompanionEntry[] {
   const labels = {
     archer: 'Лучник',
     chalice: 'Чаша',
     dragon: 'Дракон',
   } as const
+  const dice = starryFormDice(input.druidLevel ?? 2)
   const previousPrimaryId = capturePreviousPrimaryId(input.companions)
   const cleared = dismissActiveSelfForm(input.companions)
   const form = createCompanion({
@@ -517,9 +689,9 @@ export function applyStarryForm(input: {
     },
     actions:
       input.constellation === 'archer'
-        ? 'Лучистый лук: атака заклинанием, 1к8+мудр. лучистого (бонусным).'
+        ? `Лучистый лук: атака заклинанием, ${dice}+МУД лучистого (бонусным).`
         : input.constellation === 'chalice'
-          ? 'Чаша: при лечении заклинанием 1–2 круга — доп. 1к8+мудр. себе или союзнику в 30 фт.'
+          ? `Чаша: при лечении заклинанием 1–2 круга — доп. ${dice}+МУД себе или союзнику в 30 фт.`
           : 'Дракон: проверки ИНТ/МУД с преимуществом; можно заменить вербальные/соматические на звёздные.',
     notes: 'Звёздная форма · 10 мин. · хиты = хиты персонажа (не отдельный пул)',
     source: {
@@ -659,6 +831,12 @@ export const ELEMENTAL_FALLBACK_STATS: Record<
     hp: 90,
     speed_walk: 0,
     speed_fly: 90,
+    str: 14,
+    dex: 20,
+    con: 14,
+    resistances:
+      'электричество, звук; дробящий, колющий и рубящий от немагических атак',
+    immunities: 'яд',
     actions_text: 'Вихрь; Мультиатака; Удар (см. MM).',
   },
   earth: {

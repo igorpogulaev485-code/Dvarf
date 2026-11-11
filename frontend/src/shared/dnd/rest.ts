@@ -80,6 +80,20 @@ export function resourceShowsOnHot(resource: SheetResource): boolean {
   return resource.max > 0 && Boolean(resource.name.trim())
 }
 
+function clearExpiredPack07Label(resource: SheetResource): SheetResource {
+  const label = resource.activeLabel ?? ''
+  if (
+    label.startsWith('Симбиотическая сущность') ||
+    label.startsWith('Дух-тотем') ||
+    label.startsWith('Знамение:')
+  ) {
+    const next = { ...resource }
+    delete next.activeLabel
+    return next
+  }
+  return resource
+}
+
 export function resetResourcesOnRest(
   resources: SheetResource[],
   kind: 'short' | 'long',
@@ -89,7 +103,7 @@ export function resetResourcesOnRest(
     if (resource.reset === 'manual') return resource
     if (kind === 'short' && resource.reset !== 'short') return resource
     // long rest clears short- and long-reset resources
-    return { ...resource, used: 0 }
+    return clearExpiredPack07Label({ ...resource, used: 0 })
   })
 }
 

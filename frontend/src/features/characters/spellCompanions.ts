@@ -335,15 +335,29 @@ function matchesEndedConcentration(
 export function dismissCompanionsForEndedConcentration(input: {
   companions: CompanionEntry[]
   ended: ConcentrationState | null | undefined
-}): { companions: CompanionEntry[]; dismissedNames: string[] } {
+}): { companions: CompanionEntry[]; dismissedNames: string[]; hostileNames: string[] } {
   if (!input.ended) {
-    return { companions: input.companions, dismissedNames: [] }
+    return { companions: input.companions, dismissedNames: [], hostileNames: [] }
   }
   const dismissedNames: string[] = []
+  const hostileNames: string[] = []
   const companions = input.companions.map((row) => {
     if (!matchesEndedConcentration(row, input.ended!)) return row
     if (!row.active && (row.stats.hp ?? 1) <= 0) return row
-    dismissedNames.push(row.name.trim() || row.source?.labelRu || 'Напарник')
+    const name = row.name.trim() || row.source?.labelRu || 'Напарник'
+    if (row.source?.feature === 'spell:conjure_elemental') {
+      hostileNames.push(name)
+      const mark = 'враждебен: концентрация снята, исчезнет через 1 час'
+      return {
+        ...row,
+        active: true,
+        control: 'other' as const,
+        notes: row.notes.includes(mark)
+          ? row.notes
+          : `${row.notes}${row.notes.trim() ? ' · ' : ''}${mark}. Нельзя отпустить.`,
+      }
+    }
+    dismissedNames.push(name)
     return {
       ...row,
       active: false,
@@ -357,7 +371,7 @@ export function dismissCompanionsForEndedConcentration(input: {
         : `${row.notes}${row.notes.trim() ? ' · ' : ''}концентрация снята`,
     }
   })
-  return { companions, dismissedNames }
+  return { companions, dismissedNames, hostileNames }
 }
 
 /**
@@ -368,15 +382,15 @@ export function applyConcentrationChangeToCompanions(input: {
   companions: CompanionEntry[]
   previous: ConcentrationState | null | undefined
   next: ConcentrationState | null | undefined
-}): { companions: CompanionEntry[]; dismissedNames: string[] } {
+}): { companions: CompanionEntry[]; dismissedNames: string[]; hostileNames: string[] } {
   if (!input.previous) {
-    return { companions: input.companions, dismissedNames: [] }
+    return { companions: input.companions, dismissedNames: [], hostileNames: [] }
   }
   if (
     input.next &&
     input.next.spell_id === input.previous.spell_id
   ) {
-    return { companions: input.companions, dismissedNames: [] }
+    return { companions: input.companions, dismissedNames: [], hostileNames: [] }
   }
   const allies = dismissCompanionsForEndedConcentration({
     companions: input.companions,
@@ -390,5 +404,22 @@ export function applyConcentrationChangeToCompanions(input: {
   return {
     companions: forms.companions,
     dismissedNames: [...allies.dismissedNames, ...forms.dismissedNames],
+    hostileNames: allies.hostileNames,
   }
+}
+
+export function concentrationEndNotice(input: {
+  dismissedNames: string[]
+  hostileNames?: string[]
+}): string | null {
+  const parts: string[] = []
+  if (input.hostileNames && input.hostileNames.length) {
+    parts.push(
+      `Концентрация снята · ${input.hostileNames.join(', ')} враждебен и исчезнет через 1 час`,
+    )
+  }
+  if (input.dismissedNames.length) {
+    parts.push(`Концентрация снята · напарник неактивен: ${input.dismissedNames.join(', ')}`)
+  }
+  return parts.length ? parts.join(' ') : null
 }

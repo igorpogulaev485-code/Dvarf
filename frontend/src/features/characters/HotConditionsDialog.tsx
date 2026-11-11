@@ -18,7 +18,7 @@ import {
   type CatalogEntry,
 } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
-import { Combobox, Dialog, Field, Text, type ComboboxOption } from '../../ui'
+import { Button, Combobox, Dialog, Field, Text, type ComboboxOption } from '../../ui'
 import { IconConditions, IconExhaustion } from './deskIcons'
 import type { PlayState } from './play'
 
@@ -29,6 +29,8 @@ type HotConditionsDialogProps = {
   onPlayChange: (play: PlayState) => void
   onToast: (message: string) => void
   onClose: () => void
+  /** Ask before marking a condition the character is immune to. */
+  immuneWarning?: { slugs: string[]; reason: string } | null
 }
 
 type ConditionOption = {
@@ -45,9 +47,11 @@ export function HotConditionsDialog({
   onPlayChange,
   onToast,
   onClose,
+  immuneWarning = null,
 }: HotConditionsDialogProps) {
   const [catalogConditions, setCatalogConditions] = useState<CatalogEntry[]>([])
   const [query, setQuery] = useState('')
+  const [pendingImmune, setPendingImmune] = useState<ConditionRef | null>(null)
 
   useEffect(() => {
     if (!open) return
@@ -145,6 +149,18 @@ export function HotConditionsDialog({
       onToast(conditionStatusToast({ action: 'remove', ref }))
       return
     }
+    const already = activeConditions.some((item) => conditionKey(item) === conditionKey(ref))
+    const immuneName = /ослеп|оглох|испуг|отрав/i.test(ref.name)
+    if (
+      !already &&
+      immuneWarning &&
+      (immuneWarning.slugs.includes(ref.slug) || immuneName) &&
+      pendingImmune?.slug !== ref.slug
+    ) {
+      setPendingImmune(ref)
+      return
+    }
+    setPendingImmune(null)
     const nextList = toggleCondition(activeConditions, ref).filter(
       (item) => item.slug !== 'exhaustion',
     )
@@ -210,6 +226,30 @@ export function HotConditionsDialog({
       onSecondary={onClose}
     >
       <div className="hot-conditions">
+        {pendingImmune && immuneWarning ? (
+          <section className="hot-conditions__card">
+            <Text>{immuneWarning.reason}</Text>
+            <div className="feature-resource__actions">
+              <Button
+                type="button"
+                onClick={() => {
+                  const ref = pendingImmune
+                  setPendingImmune(null)
+                  const nextList = toggleCondition(activeConditions, ref).filter(
+                    (item) => item.slug !== 'exhaustion',
+                  )
+                  patchPlay({ conditions: nextList })
+                  onToast(`Отмечено вручную вопреки иммунитету: ${ref.name}`)
+                }}
+              >
+                Всё равно отметить
+              </Button>
+              <Button type="button" variant="secondary" onClick={() => setPendingImmune(null)}>
+                Не ставить
+              </Button>
+            </div>
+          </section>
+        ) : null}
         <Text tone="muted">
           Быстрый набор на бой. Истощение — с пояснением, как отыгрывает на персонаже.
         </Text>

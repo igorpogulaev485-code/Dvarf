@@ -6,6 +6,7 @@ import { isSpellSelfFormCast, resolveSpellSelfFormSlug } from '../spellForms'
 import { type SpellFormDialogResult } from '../SpellFormDialog'
 import { type FamiliarPickDialogResult } from '../FamiliarPickDialog'
 import { isFindFamiliarSpell, resolveFamiliarCastMode } from '../familiarForms'
+import { wildShapeCastBlock } from '../wildShape'
 import { type AttunementSlot } from '../attunement'
 import { isPactChainActive, isPactChainSpellId, pactChainFamiliarSpellId, syncPactChainFamiliar } from '../pactChainEffects'
 import { isWarlockClassName } from '../pactTomeEffects'
@@ -275,6 +276,16 @@ export function installSheetActions4(model: SheetModel) {
   }
 
   model.runDeskCast = function runDeskCast(spell: SheetSpell, choice: CastChoice) {
+    const wildBlock = wildShapeCastBlock({
+      companions: model.draft.companions,
+      classes: model.draft.classes,
+      classSlug: spell.class_slug,
+      material: spell.components?.m,
+    })
+    if (wildBlock) {
+      model.onToast(wildBlock)
+      return
+    }
     const name = spell.name || 'Заклинание'
     const ritualCast = Boolean(choice.ritual && spell.ritual && spell.level > 0)
     const atWillCast = Boolean(choice.atWill || spell.cast_access === 'at_will')

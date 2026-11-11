@@ -118,6 +118,16 @@ export type CompanionEntry = {
     hp_max: number | null
     ac: number | null
     speed: number | null
+    /** Extra movement kept beside the editable walk speed (elemental fly 90, …). */
+    speed_fly?: number | null
+    speed_swim?: number | null
+    speed_climb?: number | null
+    /** Beast / elemental physical scores. Mental scores stay on the host. */
+    str?: number | null
+    dex?: number | null
+    con?: number | null
+    resistances?: string | null
+    immunities?: string | null
   }
   death: CompanionDeathState | null
   resources: CompanionResource[]
@@ -313,6 +323,57 @@ export function normalizeSelfForms(companions: CompanionEntry[]): CompanionEntry
   return out.reverse()
 }
 
+function optionalNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+}
+
+function optionalCompanionStats(
+  stats: Partial<CompanionEntry['stats']> | null | undefined,
+): Partial<CompanionEntry['stats']> {
+  if (!stats) return {}
+  const out: Partial<CompanionEntry['stats']> = {}
+  const fly = optionalNumber(stats.speed_fly)
+  const swim = optionalNumber(stats.speed_swim)
+  const climb = optionalNumber(stats.speed_climb)
+  const str = optionalNumber(stats.str)
+  const dex = optionalNumber(stats.dex)
+  const con = optionalNumber(stats.con)
+  if (fly != null) out.speed_fly = fly
+  if (swim != null) out.speed_swim = swim
+  if (climb != null) out.speed_climb = climb
+  if (str != null) out.str = str
+  if (dex != null) out.dex = dex
+  if (con != null) out.con = con
+  if (typeof stats.resistances === 'string' && stats.resistances.trim()) {
+    out.resistances = stats.resistances.trim()
+  }
+  if (typeof stats.immunities === 'string' && stats.immunities.trim()) {
+    out.immunities = stats.immunities.trim()
+  }
+  return out
+}
+
+/** Walk plus fly / swim / climb, for the companion card. */
+export function companionMovementLine(
+  stats: Pick<
+    CompanionEntry['stats'],
+    'speed' | 'speed_fly' | 'speed_swim' | 'speed_climb'
+  >,
+): string {
+  const parts: string[] = []
+  if (typeof stats.speed === 'number') parts.push(`пешком ${stats.speed}`)
+  if (typeof stats.speed_fly === 'number' && stats.speed_fly > 0) {
+    parts.push(`полёт ${stats.speed_fly}`)
+  }
+  if (typeof stats.speed_swim === 'number' && stats.speed_swim > 0) {
+    parts.push(`плавание ${stats.speed_swim}`)
+  }
+  if (typeof stats.speed_climb === 'number' && stats.speed_climb > 0) {
+    parts.push(`лазание ${stats.speed_climb}`)
+  }
+  return parts.join(', ')
+}
+
 export function getActiveSelfForm(
   companions: CompanionEntry[],
 ): CompanionEntry | null {
@@ -497,6 +558,7 @@ export function createCompanion(partial?: Partial<CompanionEntry>): CompanionEnt
       hp_max: partial?.stats?.hp_max ?? null,
       ac: partial?.stats?.ac ?? null,
       speed: partial?.stats?.speed ?? null,
+      ...optionalCompanionStats(partial?.stats),
     },
     death: partial?.death ?? null,
     resources: (partial?.resources ?? []).map(clampCompanionResource),
@@ -612,6 +674,7 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
         hp_max: typeof statsRaw.hp_max === 'number' ? statsRaw.hp_max : null,
         ac: typeof statsRaw.ac === 'number' ? statsRaw.ac : null,
         speed: typeof statsRaw.speed === 'number' ? statsRaw.speed : null,
+        ...optionalCompanionStats(statsRaw as CompanionEntry['stats']),
       },
       death: role === 'self_form' ? null : readDeath(row.death),
       resources: readCompanionResources(row.resources),
