@@ -194,20 +194,15 @@ if [[ "$MISSING" -ne 0 ]]; then
   cat >&2 <<'EOF'
 PREFLIGHT FAILED.
 
-Этот tree нельзя заливать на Timeweb: не хватает контуров, которые уже были на проде.
-Деплой затёр бы их (sync-and-up заменяет всё /opt/dvarf кроме .env).
+В этом дереве не хватает контуров, которые уже есть в проде (`main`).
+В PR их нужно вернуть, а не выкидывать. Ручной sync-and-up заморожен.
 
 Частый провал после 2026-10-16: checkout/restore frontend/src/index.css с forms-adapt
 без хвоста «UI KIT LOCK — Lobby Hub» — состав лобби снова без сетки/карточек.
 
-Сделай:
-  git fetch origin
-  git merge origin/<current-prod-tip>   # см. AGENTS.md / .cursor/skills/dvarf-prod-lineage
-  # или начни ветку заново от tip
-  # CSS мержить, НЕ git checkout <other> -- frontend/src/index.css
-
-Обход только с явного ok Игоря:
-  DVARF_SKIP_PREFLIGHT=1 ./deploy/sync-and-up.sh
+Прод — ветка main. Ручной sync-and-up заморожен и на VPS не ходит.
+Допиши недостающие контуры в PR в main. CSS мержить, не checkout всего index.css.
+Выкладка: docs/deploy.md (GitHub Actions Deploy).
 EOF
   exit 1
 fi

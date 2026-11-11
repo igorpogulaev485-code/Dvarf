@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Runs on the Timeweb VPS after sync-and-up extracts the tree.
+# Runs on the Timeweb VPS after the tree is synced (rsync from GitHub Actions).
 # Fast/resilient compose: no Hub refresh on every release, rebuild only when
 # fingerprints change, hard time-box, BuildKit → legacy fallback.
+# DVARF_BUILD_ONLY=1 — собрать образы и выйти, не перезапуская стек.
 set -euo pipefail
 
 REMOTE_DIR="${DVARF_REMOTE_DIR:-/opt/dvarf}"
@@ -78,7 +79,7 @@ if [[ ! -f "$REMOTE_DIR/frontend/$WEB_DOCKERFILE" ]]; then
   exit 1
 fi
 if [[ "$WEB_DOCKERFILE" == "Dockerfile" && ! -d "$REMOTE_DIR/frontend/dist" ]]; then
-  echo "ERROR: frontend/dist missing — sync-and-up must prebuild the SPA on the agent" >&2
+  echo "ERROR: frontend/dist missing — GitHub Actions must upload the prebuilt SPA" >&2
   exit 1
 fi
 
@@ -152,17 +153,22 @@ else
   echo "no image rebuild needed"
 fi
 
+save_fp api "$API_FP"
+save_fp web "$WEB_FP"
+
+if [[ "${DVARF_BUILD_ONLY:-}" == "1" ]]; then
+  echo "remote-up: образы готовы (build only, стек не перезапускался)"
+  exit 0
+fi
+
 echo "starting stack (no pull)..."
 "${COMPOSE[@]}" up -d --pull never --remove-orphans
 
-# sync-and-up replaces /opt/dvarf (new inodes). Docker bind-mounts can keep the
-# old Caddyfile inode → `caddy reload` says "config unchanged" while disk is new.
-# Force-recreate edge so the mount picks up deploy/Caddyfile (IP→creed20 redirect).
+# rsync заменяет inode Caddyfile. Bind-mount может держать старый inode,
+# и `caddy reload` пишет "config unchanged", хотя на диске уже новый файл.
+# Force-recreate edge, чтобы подхватить deploy/Caddyfile (IP→creed20 redirect).
 echo "recreating Caddy edge (fresh Caddyfile bind-mount)..."
 "${COMPOSE[@]}" up -d --pull never --force-recreate --no-deps edge || true
-
-save_fp api "$API_FP"
-save_fp web "$WEB_FP"
 
 for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
   # :80 = host nginx (HTTPS setup); :8080 = docker web loopback before/without host proxy

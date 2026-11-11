@@ -1,0 +1,119 @@
+name: Deploy
+
+# Прод только из main, только вручную. Push сюда не деплоит.
+# Job deploy сидит в environment production — required reviewer включается в GitHub UI.
+# Секреты: docs/deploy.md. Workflow из репозитория не запускать агентам.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Сборка и проверки
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Только ветка main
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "Деплой разрешён только из main (сейчас ${GITHUB_REF})."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Сборка фронтенда
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+          test -f dist/index.html
+
+      - name: Сохранить frontend/dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+
+      - name: Зависимости backend
+        working-directory: backend
+        run: python -m pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: pytest
+        working-directory: backend
+        run: PYTHONPATH=. python -m pytest -q
+
+      - name: Одна голова Alembic
+        working-directory: backend
+        run: |
+          count="$(python -m alembic heads | grep -c '(head)' || true)"
+          echo "alembic heads:"
+          python -m alembic heads
+          if [ "$count" != "1" ]; then
+            echo "Нужна ровно одна голова Alembic, сейчас: ${count}"
+            exit 1
+          fi
+
+  deploy:
+    name: Выкладка на Timeweb
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: production
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Скачать frontend/dist
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+      - name: Доставка, миграции, перезапуск
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: bash deploy/ci-release.sh
+
+      - name: Проверка /health
+        run: curl -fsS --retry 12 --retry-delay 5 --retry-all-errors https://creed20.tech/health

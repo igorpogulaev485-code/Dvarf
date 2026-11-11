@@ -1,127 +1,22 @@
 ---
 name: dvarf-prod-lineage
-description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any deploy, when branching for prod work, when another agent may have shipped, or when updating PRODUCT_STATUS about live features.
+description: Прод Dvarf — ветка main на Timeweb. Читать перед деплоем и перед правкой PRODUCT_STATUS. Ручной sync-and-up заморожен.
 ---
 
-# Dvarf — prod lineage (анти-overwrite)
+# Dvarf — прод = main
 
-## Почему это существует
+Сайт: https://creed20.tech/  
+Код прода: ветка `main`. Линии tip больше нет.  
+Выкладка: GitHub Actions **Deploy** (`workflow_dispatch`, environment `production`). Шаги и секреты: [`docs/deploy.md`](../../../docs/deploy.md).
 
-`deploy/sync-and-up.sh` **заменяет всё дерево** на VPS (`/opt/dvarf`, кроме `.env`).  
-Деплой с ветки без кабинета/листа/лобби = эти фичи **исчезают с прода**, даже если код жив в другом PR.
+## Не делать
 
-Инциденты:
+1. Не запускать `./deploy/sync-and-up.sh` и не ходить на VPS по SSH, пока Игорь явно не попросил. Скрипт заморожен и больше не стирает `/opt/dvarf`.
+2. Не деплоить GitHub Pages.
+3. Не выкидывать из дерева кабинет, лобби, Play Desk, classic, бой, вики, сиды `backend/data/`.
+4. Не писать в `PRODUCT_STATUS.md` «на проде», пока workflow Deploy не показал зелёный `/health`.
+5. Не подменять `frontend/src/index.css` целиком.
 
-- 2026-10-06: аватар, кабинет, лист P1–P6, classic — затирались параллельными развилками.
-- **2026-10-17:** T5 setting с линии C4 затёр Play Desk + полный classic (см. docs/INCIDENT_OVERWRITE_2026-10-17.md).
-- 2026-10-13: orphan kit-ветка (пустой merge-base), час cherry-pick, API падал из‑за alembic в БД без файла в дереве, Docker Hub/BuildKit ~27+ мин.
-- **2026-10-17:** агент показал Игорю **фейковый упрощённый «лист»** (`/dev` mock-стол) вместо Play Desk — канон: [`docs/PLAY_DESK_SOURCE_OF_TRUTH.md`](../../../docs/PLAY_DESK_SOURCE_OF_TRUTH.md). Не повторять.
+Постмортем, зачем так: [`docs/INCIDENT_OVERWRITE_2026-10-17.md`](../../../docs/INCIDENT_OVERWRITE_2026-10-17.md). Контракт агента: [`AGENTS.md`](../../../AGENTS.md).
 
-## Hard rules
-
-1. **Никогда не деплой** с ветки, которая не содержит **live** prod tip (читается с VPS).
-2. **Перед деплоем**: `preflight-prod.sh` + `preflight-live.sh` (оба вызывает `sync-and-up.sh`).
-3. **Один tip** — одна линия. После успешного деплоя обнови tip в:
-   - `AGENTS.md`
-   - этот skill
-   - `deploy/README.md`
-   - `PRODUCT_STATUS.md`
-4. **PRODUCT_STATUS** — только после проверки живого сервера.
-5. Параллельные агенты: ветки от tip; на сервер — один деплой после merge tip.
-6. **Запрещено** собирать deploy-ветку cherry-pick’ами мимо tip при пустом `merge-base`.
-7. **Запрещено** деплоить параллельную «линию tip» (сеттинг от C4, пока live=classic). Сначала `git merge origin/<live-tip>`.
-8. **Запрещено** откатывать fast-path (`deploy/remote-up.sh`, nginx+dist) на `docker compose up -d --build` / node Dockerfile на VPS.
-
-## Текущий prod tip
-
-```text
-cursor/ux-a1-magic-resources-8b9c
-```
-
-URL: https://creed20.tech/
-
-Перед деплоем сверь tip с **живым** `/opt/dvarf/AGENTS.md` — локальная копия в feature-ветке может врать.
-
-## Как начать слайс, который может попасть на прод
-
-```bash
-git fetch origin
-# tip = строка с сервера / актуальный AGENTS + deploy/prod-tip
-git checkout -b cursor/<descriptive>-acbe origin/<live-prod-tip>
-```
-
-Если ветка уже есть и отстала:
-
-```bash
-git fetch origin
-git merge origin/<live-prod-tip>
-# разрешить конфликты, НЕ выкидывать чужие фичи
-./deploy/preflight-prod.sh
-./deploy/preflight-live.sh   # нужен SSH / DVARF_SSH_PRIVATE_KEY
-```
-
-## Обязательные маркеры (preflight)
-
-`deploy/preflight-prod.sh` — файлы контуров + fast-deploy:
-
-| Контур | Маркер |
-|--------|--------|
-| Лобби | `JoinLobbyPage.tsx`, `lobbies.py` |
-| Кабинет / SMTP | `SessionsPanel.tsx`, `mail.py` |
-| Аватар | `AvatarEditor.tsx`, `avatar.py` |
-| Лист P1–P6 | `raceEffects.ts`, `LevelUpDialog.tsx`, … |
-| Classic | `ClassicSheetPage.tsx` |
-| Fast deploy | `deploy/remote-up.sh`, nginx+dist `frontend/Dockerfile` |
-| Tip file | `deploy/prod-tip` (совпадает с AGENTS) |
-| Wave A identity | `IdentityDialog.tsx` + wiring; **нет** `label: 'ЕЩЁ'` |
-| Wave B theme | `shared/theme/accountAppearance.ts` |
-| UI Kit CSS LOCK | `index.css` содержит `UI KIT LOCK — Lobby Hub` + `.lobby-member-grid` + `.setting-wiki` |
-
-`deploy/preflight-live.sh` — до затирания сервера:
-
-| Проверка | Fail если |
-|----------|-----------|
-| Tip ancestry | `origin/<live-tip>` не ancestor of `HEAD` |
-| Alembic | `alembic_version` в prod DB отсутствует в `backend/alembic/versions` |
-| Live disk markers | На VPS уже есть файл (IdentityDialog / create / remote-up…), а в заливе его нет |
-| Drop ЕЩЁ | На live уже `Legacy ЕЩЁ`, а в заливе снова `label: 'ЕЩЁ'` |
-
-## После деплоя (обязательно)
-
-```bash
-curl -fsS https://creed20.tech/health
-# бандл + маркеры на диске; remote-up.sh на месте
-```
-
-Потом `PRODUCT_STATUS.md`. Если tip сменился — обнови четыре места выше.
-
-## Что делать, если уже затёрли
-
-1. Не деплоить «починку» с ещё одной тонкой/orphan ветки.
-2. Взять live tip + недостающие коммиты (`git merge`, не час cherry-pick).
-3. Preflight local+live → деплой → маркеры → PRODUCT_STATUS.
-
-## Сеттинг / classic — не ломать прод
-
-Доработки C5–T5 и classic **сами по себе ок**. Ломает только деплой с параллельной линии tip.
-
-Перед деплоем сеттинга:
-
-1. Live tip с VPS — ancestor of HEAD.
-2. В дереве есть Play Desk + полный classic + ваш сеттинг.
-3. `preflight-prod` + `preflight-live` зелёные (counts не ниже live).
-
-Контракт classic ↔ продукт: [`docs/CLASSIC_SHEET_PROD.md`](../../../docs/CLASSIC_SHEET_PROD.md).  
-Постмортем: [`docs/INCIDENT_OVERWRITE_2026-10-17.md`](../../../docs/INCIDENT_OVERWRITE_2026-10-17.md).
-
-## Связанные файлы
-
-- [`AGENTS.md`](../../../AGENTS.md)
-- [`deploy/README.md`](../../../deploy/README.md)
-- [`deploy/preflight-prod.sh`](../../../deploy/preflight-prod.sh)
-- [`deploy/preflight-live.sh`](../../../deploy/preflight-live.sh)
-- [`deploy/remote-up.sh`](../../../deploy/remote-up.sh)
-- [`PRODUCT_STATUS.md`](../../../PRODUCT_STATUS.md)
-- [`docs/CLASSIC_SHEET_PROD.md`](../../../docs/CLASSIC_SHEET_PROD.md)
-- [`docs/INCIDENT_OVERWRITE_2026-10-17.md`](../../../docs/INCIDENT_OVERWRITE_2026-10-17.md)
-- [`dvarf-dev-workflow`](../dvarf-dev-workflow/SKILL.md)
+Живые `.env` и тома Docker (Postgres, uploads, сертификаты Caddy) при выкладке не удаляются. Фильтр: `deploy/rsync-filter.txt`.
