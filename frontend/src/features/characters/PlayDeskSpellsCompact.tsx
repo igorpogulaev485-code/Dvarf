@@ -71,6 +71,8 @@ type PlayDeskSpellsCompactProps = {
   castProfiles?: SpellCastProfile[] | null
   /** Total character level — cantrip scaling in the combat list. */
   characterLevel?: number
+  /** Draconic Elemental Affinity preview (+CHA to one ancestry damage roll). */
+  elementalAffinity?: { damageType: string; amount: number } | null
   pinned?: boolean
   concentration?: ConcentrationState | null
   /** Rules edition for catalog description lookup in detail dialog. */
@@ -103,6 +105,7 @@ export function PlayDeskSpellsCompact({
   classes = [],
   castProfiles = null,
   characterLevel: characterLevelProp = 1,
+  elementalAffinity = null,
   pinned = false,
   concentration = null,
   edition = '2014',
@@ -458,6 +461,7 @@ export function PlayDeskSpellsCompact({
                       key={spell.id}
                       spell={spell}
                       characterLevel={characterLevel}
+                      affinity={elementalAffinity}
                       learnMode={learnBudget?.mode ?? null}
                       hasSpellbook={hasSpellbook}
                       activeConcentration={isActiveConc}
@@ -579,6 +583,7 @@ function compactDamage(
   characterLevel: number,
   spellMod: number | null,
   spellModLabel: string | null,
+  affinity?: { damageType: string; amount: number } | null,
 ): string {
   const rules = withBundledRules(spell)
   const level = Math.max(1, Math.floor(characterLevel) || 1)
@@ -588,6 +593,7 @@ function compactDamage(
     slotLevel,
     spellMod,
     spellModLabel,
+    affinity,
   })
   const scaled = shortDamage(summary.effect)
   if (scaled) return scaled
@@ -597,11 +603,11 @@ function compactDamage(
 /** Unified card skeleton: action · range · attack/save (always present). */
 function compactSpellMeta(spell: SheetSpell): string {
   const parts: string[] = []
-  const time = shortCastingTime(spell.casting_time)
-  parts.push(time || '—')
-  const range = shortRange(spell.range)
-  parts.push(range || '—')
   const rules = withBundledRules(spell)
+  const time = shortCastingTime(rules.casting_time || spell.casting_time)
+  parts.push(time || '—')
+  const range = shortRange(rules.range || spell.range)
+  parts.push(range || '—')
   const atk = (rules.attack_or_save || spell.attack_or_save)?.trim()
   parts.push(atk && atk !== '—' ? atk : '—')
   const comps = compactComponents(rules)
@@ -614,6 +620,7 @@ function compactSpellMeta(spell: SheetSpell): string {
 function SpellRow({
   spell,
   characterLevel,
+  affinity = null,
   learnMode,
   hasSpellbook,
   activeConcentration,
@@ -627,6 +634,7 @@ function SpellRow({
 }: {
   spell: SheetSpell
   characterLevel: number
+  affinity?: { damageType: string; amount: number } | null
   learnMode: 'known' | 'prepared_list' | 'spellbook' | null
   hasSpellbook: boolean
   activeConcentration: boolean
@@ -652,6 +660,7 @@ function SpellRow({
     characterLevel,
     modStats.ability ? abilityModifier(abilities[modStats.ability]) : null,
     modStats.ability ? SPELLCASTING_ABILITY_LABELS[modStats.ability] : null,
+    affinity,
   )
   const source = spellSourceBadge(spell)
   const granted = isGrantedSpellHighlight(spell)

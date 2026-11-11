@@ -8,13 +8,16 @@ import {
   clearFeaturePicksForFeatureIds,
   getFeaturePick,
   getFeaturePickList,
+  setFeaturePick,
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
+import { invocationIsSelectable } from '../../shared/dnd/pack04SorcererWarlock'
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
 import {
   WARLOCK_PACT_BOON_GRANTS,
   type WarlockPactBoonId,
 } from '../../shared/dnd/warlockInvocations'
+import { enrichAlwaysPreparedSheetSpell } from './alwaysPreparedSpellEnrichment'
 import {
   asAlwaysPreparedSpell,
   createSheetSpell,
@@ -106,12 +109,27 @@ export function clearPactTomeCantripsIfNeeded(
  */
 export function sanitizeFeaturePicksForPactBoons(input: {
   featurePicks: FeaturePicksState
-  classes: Array<{ id: string; name: string }>
+  classes: Array<{ id: string; name: string; level?: number }>
 }): FeaturePicksState {
   let next = input.featurePicks
   for (const row of input.classes) {
     if (!isWarlockClassName(row.name)) continue
     next = clearPactTomeCantripsIfNeeded(next, row.id)
+    if (typeof row.level !== 'number') continue
+    const level = Math.max(0, Math.floor(row.level))
+    const pact = getPactBoonId(next, row.id)
+    const kept = getFeaturePickList(next, row.id, 'eldritch_invocations').filter((id) =>
+      invocationIsSelectable(id, level, pact),
+    )
+    const current = getFeaturePickList(next, row.id, 'eldritch_invocations')
+    if (kept.length !== current.length || kept.some((id, index) => id !== current[index])) {
+      next = setFeaturePick(
+        next,
+        row.id,
+        'eldritch_invocations',
+        kept.length ? kept.join(',') : null,
+      )
+    }
   }
   return next
 }
@@ -143,17 +161,28 @@ export function syncPactTomeCantrips(input: {
       if (!resolved) continue
       const id = pactTomeSpellId(slug)
       const existing = input.spells.known.find((spell) => spell.id === id)
-      const created = asAlwaysPreparedSpell(
-        {
-          ...(existing ?? createSheetSpell()),
-          id,
-          name: resolved.nameRu,
-          level: 0,
-          catalog_id: resolved.catalogId ?? existing?.catalog_id ?? null,
-        },
-        { source_kind: 'feature', label: PACT_TOME_LABEL_RU },
+      const created = enrichAlwaysPreparedSheetSpell(
+        asAlwaysPreparedSpell(
+          {
+            ...(existing ?? createSheetSpell()),
+            id,
+            name: resolved.nameRu,
+            level: 0,
+            catalog_id: resolved.catalogId ?? existing?.catalog_id ?? null,
+          },
+          { source_kind: 'feature', label: PACT_TOME_LABEL_RU },
+        ),
+        resolved.nameRu,
       )
-      if (!existing) changed = true
+      if (
+        !existing ||
+        existing.name !== created.name ||
+        (existing.damage || '') !== (created.damage || '') ||
+        (existing.range || '') !== (created.range || '') ||
+        (existing.attack_or_save || '') !== (created.attack_or_save || '')
+      ) {
+        changed = true
+      }
       known.push(created)
     }
   }

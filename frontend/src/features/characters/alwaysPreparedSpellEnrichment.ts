@@ -22,9 +22,11 @@ function norm(value: string): string {
 const byEn = new Map<string, CatalogSpellEntry>()
 const byRu = new Map<string, CatalogSpellEntry>()
 const byId = new Map<string, CatalogSpellEntry>()
+const bundledList: CatalogSpellEntry[] = []
 
 for (const raw of bundledSpells2014 as CatalogSpellEntry[]) {
   if (!raw || typeof raw.id !== 'string') continue
+  bundledList.push(raw)
   byId.set(raw.id, raw)
   if (typeof raw.slug === 'string' && raw.slug.trim()) {
     byId.set(raw.slug, raw)
@@ -78,6 +80,47 @@ export function withBundledRules<T extends SheetSpell>(spell: T): T {
     duration: spell.duration || fromCatalog.duration,
     concentration: spell.concentration || fromCatalog.concentration,
   }
+}
+
+export type BundledSpellBrief = {
+  slug: string
+  nameRu: string
+  level: number
+  classes: string[]
+  attackOrSave: string
+  damage: string
+  range: string
+  concentration: boolean
+  school: string
+}
+
+/** Spells of one circle, for arcanum / psionic pickers. */
+export function bundledSpellsAtLevel(level: number): BundledSpellBrief[] {
+  const circle = Math.max(0, Math.min(9, Math.floor(level)))
+  const out: BundledSpellBrief[] = []
+  for (const row of bundledList) {
+    const data = row.data ?? {}
+    const spellLevel = typeof data.level === 'number' ? data.level : 0
+    if (spellLevel !== circle) continue
+    const slug = row.slug?.trim()
+    if (!slug) continue
+    const classes = Array.isArray(data.classes)
+      ? data.classes.filter((item): item is string => typeof item === 'string')
+      : []
+    out.push({
+      slug,
+      nameRu: row.name_ru,
+      level: spellLevel,
+      classes,
+      attackOrSave: typeof data.attack_or_save === 'string' ? data.attack_or_save : '',
+      damage: typeof data.damage === 'string' ? data.damage : '',
+      range: typeof data.range === 'string' ? data.range : '',
+      concentration: data.concentration === true,
+      school: typeof data.school === 'string' ? data.school : '',
+    })
+  }
+  out.sort((a, b) => a.nameRu.localeCompare(b.nameRu, 'ru'))
+  return out
 }
 
 /** Resolve catalog entry by English seed name or Russian sheet label. */

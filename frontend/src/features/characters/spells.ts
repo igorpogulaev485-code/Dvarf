@@ -258,6 +258,7 @@ function readSlot(raw: unknown): SpellSlotState {
   return clampSlot({
     max: readNumber(row.max, 0),
     used: readNumber(row.used, 0),
+    flexible: readNumber(row.flexible, 0),
   })
 }
 

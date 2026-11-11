@@ -26,6 +26,7 @@ import {
   spellSaveDc,
   type SpellcastingAbility,
 } from './spells'
+import { pack04ExtraClassList } from './pack04SorcererWarlock'
 import {
   spellAvailableOnClassList,
   type SpellSubclassRef,
@@ -493,6 +494,8 @@ export type GrimoireShelfSource = {
   aloneMaxLevel: number
   /** Tradition / conclave / circle slug when known (EGW dunamancy gate). */
   subclassSlug?: string | null
+  /** Genie kind (dao / djinni / efreeti / marid) for the expanded patron list. */
+  genieKind?: string | null
   /** Catalog list to match. Defaults to `slug`. Third-casters use `wizard`. */
   listSlug?: string | null
 }
@@ -528,16 +531,23 @@ export function catalogSpellMatchesShelf(
   spellLevel: number,
   shelf: GrimoireShelfSource,
   spellSubclasses?: SpellSubclassRef[] | null,
+  spellSlug?: string | null,
 ): boolean {
   const listSlug = (shelf.listSlug || shelf.slug).trim().toLowerCase()
-  if (
-    !spellAvailableOnClassList({
-      classes: catalogClassSlugs,
-      subclasses: spellSubclasses,
-      classSlug: listSlug,
-      subclassSlug: shelf.subclassSlug,
-    })
-  ) {
+  const onBaseList = spellAvailableOnClassList({
+    classes: catalogClassSlugs,
+    subclasses: spellSubclasses,
+    classSlug: listSlug,
+    subclassSlug: shelf.subclassSlug,
+  })
+  const onExpanded = pack04ExtraClassList({
+    catalogClasses: catalogClassSlugs,
+    spellSlug,
+    shelfSlug: listSlug,
+    subclassSlug: shelf.subclassSlug,
+    genieKind: shelf.genieKind,
+  })
+  if (!onBaseList && !onExpanded) {
     return false
   }
   if (spellLevel <= 0) return true
@@ -549,9 +559,16 @@ export function catalogSpellMatchesAnyShelf(
   spellLevel: number,
   shelves: GrimoireShelfSource[],
   spellSubclasses?: SpellSubclassRef[] | null,
+  spellSlug?: string | null,
 ): boolean {
   return shelves.some((shelf) =>
-    catalogSpellMatchesShelf(catalogClassSlugs, spellLevel, shelf, spellSubclasses),
+    catalogSpellMatchesShelf(
+      catalogClassSlugs,
+      spellLevel,
+      shelf,
+      spellSubclasses,
+      spellSlug,
+    ),
   )
 }
 

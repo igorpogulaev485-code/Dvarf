@@ -392,6 +392,8 @@ export type CastEffectOptions = {
   spellModLabel?: string | null
   /** Flame Strike and the same PHB pattern: which damage type the extra dice join. */
   damageChoice?: DamageTypeChoice
+  /** Draconic Elemental Affinity: +CHA to one roll of this damage type. */
+  affinity?: { damageType: string; amount: number } | null
 }
 
 const SPLIT_DAMAGE_RE =
@@ -431,6 +433,24 @@ export function damageTypeChoiceLabels(
   return { first: match[3] ?? 'первый', second: match[6] ?? 'второй' }
 }
 
+/**
+ * PHB Elemental Affinity: add the Charisma modifier to one damage roll
+ * of the draconic ancestry type. Other types in the same spell stay plain.
+ */
+export function applyElementalAffinityBonus(
+  effect: string,
+  damageType: string,
+  amount: number,
+): string {
+  const type = damageType.trim()
+  if (!effect.trim() || !type || !Number.isFinite(amount)) return effect
+  const signed = amount >= 0 ? `+${Math.trunc(amount)}` : `${Math.trunc(amount)}`
+  const escaped = type.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const re = new RegExp(`(${escaped})(?!\\s*[+-]\\d)`, 'i')
+  if (!re.test(effect)) return effect
+  return effect.replace(re, `$1${signed}`)
+}
+
 /** `1d8 + MOD` → `1d8+3 (МУД)`. Leaves the text alone when the modifier is unknown. */
 export function applySpellModPlaceholder(
   effect: string,
@@ -457,10 +477,20 @@ export function resolveCastEffect(
   spell: CastEffectSpell,
   options: CastEffectOptions,
 ): { effect: string; scaled: boolean } {
-  const finish = (effect: string, scaled: boolean) => ({
-    effect: applySpellModPlaceholder(effect, options.spellMod, options.spellModLabel),
-    scaled,
-  })
+  const finish = (effect: string, scaled: boolean) => {
+    const withMod = applySpellModPlaceholder(
+      effect,
+      options.spellMod,
+      options.spellModLabel,
+    )
+    const affinity = options.affinity
+    return {
+      effect: affinity
+        ? applyElementalAffinityBonus(withMod, affinity.damageType, affinity.amount)
+        : withMod,
+      scaled,
+    }
+  }
   const typed = resolveTypedDamageChoice(
     spell,
     options.slotLevel,

@@ -36,7 +36,9 @@ import { featurePicksToSheet } from '../../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../../shared/dnd/fightingStyles'
 import { aggregateInfusionBonuses, applyInfusionAbilityFloors } from '../../../shared/dnd/infusionEffects'
 import { infusionAcFromSharedEffects } from '../../../shared/dnd/infusionItems'
+import { syncPactBladeAttack } from '../pactBladeAttack'
 import { syncRangerConclaveSpells } from '../rangerConclaveSpells'
+import { syncSorcererOriginSpells } from '../sorcererOriginSpells'
 import { syncDruidicWarriorCantrips } from '../druidicWarrior'
 import { stripForgeBlessing } from '../forgeBlessing'
 import { syncDruidCircleSpells } from '../druidCircleSpells'
@@ -161,6 +163,45 @@ export function useSheetEditorPart3(model: SheetModel) {
       }
     })
   }, [model.gearEffects])
+
+  // Sorcerer origin spells (Aberrant, Clockwork, Divine, Shadow, Lunar).
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const synced = syncSorcererOriginSpells({
+        spells: prev.spells,
+        classes: prev.classes,
+        subclassSlugByEntryId: model.subclassSlugByEntryId,
+        featurePicks: prev.featurePicks,
+        subclassGrants: prev.subclassGrants,
+      })
+      if (!synced.changed) return prev
+      return {
+        ...prev,
+        spells: synced.spells,
+        featurePicks: synced.featurePicks,
+        subclassGrants: synced.subclassGrants,
+      }
+    })
+  }, [
+    model.draft.classes,
+    model.draft.featurePicks,
+    model.draft.subclassGrants,
+    model.subclassSlugByEntryId,
+  ])
+
+  // Pact of the Blade weapon card.
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const synced = syncPactBladeAttack({
+        weapons: prev.weapons,
+        featurePicks: prev.featurePicks,
+        classes: prev.classes,
+        subclassSlugByEntryId: model.subclassSlugByEntryId,
+      })
+      if (!synced.changed) return prev
+      return { ...prev, weapons: synced.weapons }
+    })
+  }, [model.draft.classes, model.draft.featurePicks, model.draft.weapons, model.subclassSlugByEntryId])
 
   // Gloom Stalker (etc.) bonus spells: keep always-prepared list in sync with level.
   useEffect(() => {

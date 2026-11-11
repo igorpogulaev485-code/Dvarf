@@ -15,6 +15,7 @@ import { applyConcentrationChangeToCompanions } from '../spellCompanions'
 import { type CatalogEntry } from '../../../shared/api/catalog'
 import { type ClassLevelEntry } from '../classLevels'
 import { bridgeManeuversIntoFeaturePicks, extractManeuverIdsFromSubclassPicks } from '../../../shared/dnd/battleMasterManeuverBridge'
+import { bridgeOriginPicks } from '../../../shared/dnd/pack04SorcererWarlock'
 import { type FeatGrantDraftSlice } from '../featEffects'
 import { listSubclassFeatureIdsAboveLevel } from '../../../shared/dnd/classFeatures'
 import { clearFeaturePicksForClass, clearFeaturePicksForFeatureIds } from '../../../shared/dnd/featurePicks'
@@ -380,6 +381,12 @@ export function installSheetActions1(model: SheetModel) {
         nextPicks = clearFeaturePicksForClass(withGrant.featurePicks, input.classEntryId)
       }
       // Battle Master: maneuvers_3 → combat_superiority (sheet archetype block / spend)
+      nextPicks = bridgeOriginPicks({
+        featurePicks: nextPicks,
+        classEntryId: input.classEntryId,
+        subclassSlug: input.def.slug,
+        grantPicks: input.picks,
+      })
       nextPicks = bridgeManeuversIntoFeaturePicks({
         featurePicks: nextPicks,
         classEntryId: input.classEntryId,

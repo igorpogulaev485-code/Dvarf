@@ -5,8 +5,11 @@ import {
   findFeatureResource,
   spendRemaining,
 } from '../../shared/dnd/featureResources'
+import { getFeaturePick, type FeaturePicksState } from '../../shared/dnd/featurePicks'
+import { mysticArcanumLevel } from '../../shared/dnd/pack04SorcererWarlock'
 import type { SheetResource } from '../../shared/dnd/rest'
 import { Button, Dialog, Stack, Text } from '../../ui'
+import { bundledSpellsAtLevel } from './alwaysPreparedSpellEnrichment'
 
 type WarlockArcanumSpendDialogProps = {
   open: boolean
@@ -14,6 +17,7 @@ type WarlockArcanumSpendDialogProps = {
   resource: SheetResource | null
   features: UnlockedFeature[]
   resources: SheetResource[]
+  featurePicks?: FeaturePicksState | null
   onSpend: (poolResourceId: string, label: string) => void
   onToast: (message: string) => void
   onClose: () => void
@@ -49,6 +53,7 @@ export function WarlockArcanumSpendDialog({
   resource,
   features,
   resources,
+  featurePicks = null,
   onSpend,
   onToast,
   onClose,
@@ -105,6 +110,14 @@ export function WarlockArcanumSpendDialog({
                     )
                   : null
               const left = spendRemaining(pool)
+              const circle = mysticArcanumLevel(feature.id)
+              const slug = featurePicks
+                ? getFeaturePick(featurePicks, feature.classEntryId, feature.id)
+                : null
+              const chosen =
+                circle != null && slug
+                  ? bundledSpellsAtLevel(circle).find((spell) => spell.slug === slug) ?? null
+                  : null
               return (
                 <div
                   key={`${feature.classEntryId}:${feature.id}`}
@@ -113,16 +126,30 @@ export function WarlockArcanumSpendDialog({
                   <div className="sorcery-spend-row__text">
                     <b>{feature.name_ru}</b>
                     <span>
-                      {left}/{pool?.max ?? 1} · {feature.summary_ru}
+                      {left}/{pool?.max ?? 1} ·{' '}
+                      {chosen
+                        ? `${chosen.nameRu}${chosen.damage ? ` · ${chosen.damage}` : ''}${
+                            chosen.attackOrSave ? ` · ${chosen.attackOrSave}` : ''
+                          }`
+                        : 'заклинание не выбрано — открой умение'}
                     </span>
                   </div>
                   <Button
                     type="button"
                     variant="secondary"
-                    disabled={left <= 0}
-                    onClick={() => spend(feature)}
+                    disabled={left <= 0 || !chosen}
+                    onClick={() => {
+                      if (!chosen) {
+                        onToast('Сначала выбери заклинание арканума в умении')
+                        return
+                      }
+                      spend(feature)
+                      onToast(
+                        `${chosen.nameRu}: без ячейки${chosen.concentration ? ' · концентрация' : ''}`,
+                      )
+                    }}
                   >
-                    −1
+                    Каст
                   </Button>
                 </div>
               )
