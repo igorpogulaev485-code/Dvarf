@@ -147,13 +147,13 @@ const THIRD_CASTER_SLOTS: number[][] = [
   [4, 2, 0, 0, 0, 0, 0, 0, 0],
   [4, 2, 0, 0, 0, 0, 0, 0, 0],
   [4, 2, 0, 0, 0, 0, 0, 0, 0],
-  [4, 2, 0, 0, 0, 0, 0, 0, 0],
-  [4, 3, 0, 0, 0, 0, 0, 0, 0],
   [4, 3, 0, 0, 0, 0, 0, 0, 0],
   [4, 3, 0, 0, 0, 0, 0, 0, 0],
   [4, 3, 0, 0, 0, 0, 0, 0, 0],
   [4, 3, 2, 0, 0, 0, 0, 0, 0],
   [4, 3, 2, 0, 0, 0, 0, 0, 0],
+  [4, 3, 2, 0, 0, 0, 0, 0, 0],
+  [4, 3, 3, 0, 0, 0, 0, 0, 0],
   [4, 3, 3, 0, 0, 0, 0, 0, 0],
   [4, 3, 3, 0, 0, 0, 0, 0, 0],
   [4, 3, 3, 1, 0, 0, 0, 0, 0],
@@ -815,7 +815,8 @@ const CANTRIPS_BY_LEVEL: Record<string, number[]> = {
   bard: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
   sorcerer: [4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
   warlock: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
-  artificer: [2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4],
+  // TCE: 2 at 1, 3 at 10, 4 at 14.
+  artificer: [2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4],
   // PHB ranger / paladin: no cantrips.
   ranger: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   paladin: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -964,4 +965,68 @@ export function applySpellcastingSuggestion(
     casting_ability: suggestion.casting_ability,
     max_prepared: suggestion.max_prepared,
   }
+}
+
+/** True when «По таблице» would change slot maxes, pact, prepare cap, or spent clamp. */
+export function spellcastingTableChanged(
+  before: {
+    slots: Record<string, SpellSlotState>
+    pact_slots: PactSlotState | null
+    casting_ability: SpellcastingAbility | null
+    max_prepared: number | null
+  },
+  after: {
+    slots: Record<string, SpellSlotState>
+    pact_slots: PactSlotState | null
+    casting_ability: SpellcastingAbility | null
+    max_prepared: number | null
+  },
+): boolean {
+  if ((before.max_prepared ?? null) !== (after.max_prepared ?? null)) return true
+  if ((before.casting_ability ?? null) !== (after.casting_ability ?? null)) return true
+  const beforePact = before.pact_slots
+  const afterPact = after.pact_slots
+  if (Boolean(beforePact) !== Boolean(afterPact)) return true
+  if (
+    beforePact &&
+    afterPact &&
+    (beforePact.max !== afterPact.max ||
+      beforePact.level !== afterPact.level ||
+      beforePact.used !== afterPact.used)
+  ) {
+    return true
+  }
+  for (let level = 1; level <= 9; level += 1) {
+    const key = String(level)
+    const left = before.slots[key]
+    const right = after.slots[key]
+    if ((left?.max ?? 0) !== (right?.max ?? 0)) return true
+    if ((left?.used ?? 0) !== (right?.used ?? 0)) return true
+  }
+  return false
+}
+
+/**
+ * Create-finish warning: this class level actually has spells to pick.
+ * Paladin/ranger 1 have the caster name but no slots until level 2.
+ */
+export function classLevelOffersSpellPicks(
+  row: ClassLevelEntry,
+  abilityMod = 0,
+): boolean {
+  const suggestion = suggestSpellcastingFromClasses({
+    classes: [row],
+    abilityModFor: () => abilityMod,
+  })
+  if (!suggestion || suggestion.progression === 'none') return false
+  if (Object.values(suggestion.slots).some((slot) => slot.max > 0)) return true
+  if ((suggestion.pact_slots?.max ?? 0) > 0) return true
+  if ((suggestion.max_prepared ?? 0) > 0) return true
+  const budget = resolveSpellLearnBudget({
+    classes: [row],
+    abilityModFor: () => abilityMod,
+  })
+  if (!budget) return false
+  if (budget.cantrips > 0) return true
+  return (budget.leveledKnown ?? 0) > 0
 }

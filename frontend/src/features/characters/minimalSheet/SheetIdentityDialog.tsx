@@ -28,7 +28,28 @@ import { clearFeaturePicksForClass } from '../../../shared/dnd/featurePicks'
 import { IdentityDialog } from '../IdentityDialog'
 import { appendXpHistory } from '../playDeskUi'
 import { abilityModifier, formatModifier } from '../sheetTypes'
+import { reconcileSubclassSpellcasting } from '../reconcileSpellcasting'
 import type { Draft } from './draft'
+
+function withLevelSpellcasting(model: SheetModel, draft: Draft): {
+  draft: Draft
+  tableChanged: boolean
+} {
+  const raced = draft
+  const reconciled = reconcileSubclassSpellcasting({
+    classes: raced.classes,
+    abilities: raced.abilities,
+    slice: model.subclassSliceFrom(raced),
+  })
+  return {
+    tableChanged: reconciled.tableChanged,
+    draft: {
+      ...raced,
+      spells: reconciled.slice.spells,
+      subclassGrants: reconciled.slice.subclassGrants,
+    },
+  }
+}
 
 export function SheetIdentityDialog({ model }: { model: SheetModel }) {
   return (
@@ -190,7 +211,8 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                           type="button"
                           variant="ghost"
                           disabled={model.draft.classes.length === 1 && row.level <= 1}
-                          onClick={() =>
+                          onClick={() => {
+                            let tableChanged = false
                             model.setDraft((prev) => {
                               const beforeLevel = row.level
                               const die =
@@ -293,7 +315,10 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                     }),
                                   ),
                                 )
-                                return model.withRaceSpellsSynced(synced, nextClasses)
+                                const raced = model.withRaceSpellsSynced(synced, nextClasses)
+                                const finished = withLevelSpellcasting(model, raced)
+                                tableChanged = finished.tableChanged
+                                return finished.draft
                               }
                               const withoutClass = revokeClassGrant(
                                 model.draftSliceFrom(featBase),
@@ -309,7 +334,7 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                 row.id,
                                 { copyTextToNotes: true },
                               )
-                              return model.withRaceSpellsSynced(
+                              const raced = model.withRaceSpellsSynced(
                                 model.mergeSubclassSlice(
                                   {
                                     ...featBase,
@@ -335,8 +360,14 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                 ),
                                 nextClasses,
                               )
+                              const finished = withLevelSpellcasting(model, raced)
+                              tableChanged = finished.tableChanged
+                              return finished.draft
                             })
-                          }
+                            if (tableChanged) {
+                              model.onToast('Ячейки обновлены по таблице 2014')
+                            }
+                          }}
                         >
                           −1
                         </Button>

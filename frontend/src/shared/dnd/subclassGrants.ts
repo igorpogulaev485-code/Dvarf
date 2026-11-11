@@ -1,6 +1,11 @@
 /** PHB/Tasha 2014 subclass grant defs (sheet forks only — no feature text). */
 
 import {
+  bonusCantripChoiceInsert,
+  bonusCantripLabelRu,
+  resolveCantripPreset,
+} from './bonusCantrips'
+import {
   ARTISAN_TOOL_CHOICES,
   type ArmorProfKey,
   type WeaponProfKey,
@@ -173,6 +178,8 @@ export function resolveSubclassChoiceOptions(
   if (typeof from === 'string') {
     if (from === 'artisan_tools') return [...ARTISAN_TOOL_CHOICES]
     if (from === 'maneuver_catalog_phb') return PHB_MANEUVERS.map((item) => item.id)
+    const cantrips = resolveCantripPreset(from)
+    if (cantrips) return [...cantrips]
     return from ? [from] : []
   }
   if (Array.isArray(from)) {
@@ -181,6 +188,10 @@ export function resolveSubclassChoiceOptions(
     }
     if (from.length === 1 && from[0] === 'maneuver_catalog_phb') {
       return PHB_MANEUVERS.map((item) => item.id)
+    }
+    if (from.length === 1 && from[0]) {
+      const cantrips = resolveCantripPreset(from[0])
+      if (cantrips) return [...cantrips]
     }
     return from
   }
@@ -194,11 +205,21 @@ export function subclassChoiceLabel(
   if (labels?.[key]) return labels[key]
   const maneuver = PHB_MANEUVERS.find((item) => item.id === key)
   if (maneuver) return maneuver.labelRu
-  return key
+  return bonusCantripLabelRu(key) ?? key
 }
 
 export function emptySubclassPicks(): SubclassGrantPicks {
   return { values: {} }
+}
+
+function ensureParsedBonusCantripChoices(
+  slug: string,
+  choices: SubclassChoiceDef[],
+): SubclassChoiceDef[] {
+  const insert = bonusCantripChoiceInsert(slug)
+  if (!insert) return choices
+  if (choices.some((choice) => choice.id === insert.id)) return choices
+  return [...choices, insert]
 }
 
 export function parseSubclassGrantDef(input: {
@@ -365,7 +386,7 @@ export function parseSubclassGrantDef(input: {
       languageChoices,
       caster,
     },
-    choices,
+    choices: ensureParsedBonusCantripChoices(input.slug, choices),
     alwaysPreparedSpells,
     featuresByLevel,
     notesRu: typeof data.notes_ru === 'string' ? data.notes_ru : undefined,

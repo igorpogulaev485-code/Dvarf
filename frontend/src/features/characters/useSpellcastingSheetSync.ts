@@ -5,6 +5,7 @@ import {
 } from '../../shared/dnd/castProfiles'
 import {
   applySpellcastingSuggestion,
+  spellcastingTableChanged,
   suggestSpellcasting,
   type SubclassCasterOverlay,
 } from '../../shared/dnd/casterProgression'
@@ -145,7 +146,9 @@ export function useSpellcastingSheetSync({
     if (appliedClassLevel.current === classLevelKey) return
     appliedClassLevel.current = classLevelKey
     if (!suggestion) return
-    onChange({ ...spells, ...applySpellcastingSuggestion(spells, suggestion) })
+    const next = applySpellcastingSuggestion(spells, suggestion)
+    if (!spellcastingTableChanged(spells, next)) return
+    onChange({ ...spells, ...next })
     onToast?.(`${suggestion.labelRu}: ячейки обновлены по таблице 2014`)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, classLevelKey])

@@ -503,12 +503,12 @@ function emptyDraft(): SubclassGrantDraftSlice {
     classEntryId: 'druid-1',
     catalogId: 'land',
     def,
-    picks: { values: { land_type: 'arctic' } },
+    picks: { values: { land_type: 'arctic', land_bonus_cantrip: 'Guidance' } },
     classLevel: 3,
     maxSpellLevel: 2,
   })
   assert(at3, 'land L3 apply')
-  assert(at3.draft.spells.known.length === 2, `arctic L3 known ${at3.draft.spells.known.length}`)
+  assert(at3.draft.spells.known.length === 3, `arctic L3 known ${at3.draft.spells.known.length}`)
   assert(
     at3.draft.subclassGrants[0]?.alwaysPreparedSpells?.length === 8,
     'snapshot stores full arctic table',
@@ -519,13 +519,13 @@ function emptyDraft(): SubclassGrantDraftSlice {
     classEntryId: 'druid-1',
     catalogId: 'land',
     def,
-    picks: { values: { land_type: 'desert' } },
+    picks: { values: { land_type: 'desert', land_bonus_cantrip: 'Guidance' } },
     classLevel: 9,
     maxSpellLevel: 5,
   })
   assert(desert, 'desert L9')
   assert(
-    desert.draft.spells.known.length === 8,
+    desert.draft.spells.known.length === 9,
     `desert L9 known ${desert.draft.spells.known.length}`,
   )
   const names = desert.draft.spells.known.map((s) => s.name)

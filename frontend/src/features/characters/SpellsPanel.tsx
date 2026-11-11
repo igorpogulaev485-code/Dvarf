@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
@@ -330,47 +330,6 @@ export function SpellsPanel({
         : ` · подготовка ${suggestion.max_prepared}`
     onToast?.(`${suggestion.labelRu}: ячейки 2014${prep}`)
   }
-
-  const subclassCasterKey = (subclassCasters ?? [])
-    .map((row) => `${row.classEntryId}:third:${row.ability ?? ''}`)
-    .sort()
-    .join('|')
-  const classLevelKey =
-    (classes && classes.length > 0
-      ? classes
-          .map((row) => `${row.name.trim().toLowerCase()}:${row.level}`)
-          .join('|')
-      : `${className.trim().toLowerCase()}|${level}`) + `::${subclassCasterKey}`
-  const appliedClassLevel = useRef<string | null>(null)
-  useEffect(() => {
-    if (appliedClassLevel.current == null) {
-      appliedClassLevel.current = classLevelKey
-      return
-    }
-    if (appliedClassLevel.current === classLevelKey) return
-    appliedClassLevel.current = classLevelKey
-    if (!suggestion) return
-    onChange({ ...spells, ...applySpellcastingSuggestion(spells, suggestion) })
-    onToast?.(`${suggestion.labelRu}: ячейки обновлены по таблице 2014`)
-    // Apply once per class/level/subclass-caster change; skip first paint for saved sheets.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [classLevelKey])
-
-  const prepareKey =
-    suggestion?.max_prepared == null ? '' : `${suggestion.slug}:${suggestion.max_prepared}`
-  const appliedPrepare = useRef<string | null>(null)
-  useEffect(() => {
-    if (!prepareKey || suggestion?.max_prepared == null) return
-    if (appliedPrepare.current == null) {
-      appliedPrepare.current = prepareKey
-      return
-    }
-    if (appliedPrepare.current === prepareKey) return
-    appliedPrepare.current = prepareKey
-    if (spells.max_prepared === suggestion.max_prepared) return
-    onChange({ ...spells, max_prepared: suggestion.max_prepared })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prepareKey])
 
   function updateSpell(id: string, next: Partial<SheetSpell>) {
     patch({
