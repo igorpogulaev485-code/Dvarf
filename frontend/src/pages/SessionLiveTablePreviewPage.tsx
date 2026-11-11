@@ -912,7 +912,7 @@ export function SessionLiveTablePreviewPage() {
                         Противники · игрок
                       </Text>
                       <Text tone="muted" className="session-table-toolbar__hint">
-                        Игрок видит имя · тип · цвет HP. Без КД, цифр и статблока.
+                        Игрок видит имя · тип · цвет HP. Состав пачки раскрывается: у каждого имя и тот же статус. Без КД, цифр и статблока.
                       </Text>
                       <div className="session-table-grid session-enemies-grid">
                         {combatants.map((enemy) => (
