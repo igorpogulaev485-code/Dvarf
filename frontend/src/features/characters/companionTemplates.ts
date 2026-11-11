@@ -8,6 +8,11 @@ import {
   type CompanionKind,
   type CompanionResource,
 } from './companions'
+import {
+  conjureAnimalsCounts,
+  conjureFeyCrMax,
+  tceSpiritStats,
+} from '../../shared/dnd/summonSpellPreview'
 import { proficiencyBonusForLevel } from './spells'
 
 export type CompanionTemplateContext = {
@@ -239,6 +244,27 @@ function tashaSpiritTemplate(input: {
   }
 }
 
+function tceSpiritCard(
+  kind: 'beast' | 'fey' | 'elemental',
+  ctx: CompanionTemplateContext,
+): CompanionTemplatePatch {
+  const stats = tceSpiritStats(kind, ctx.slotLevel ?? (kind === 'beast' ? 2 : kind === 'fey' ? 3 : 4))
+  const atk = spellAttack(ctx)
+  const hpNote =
+    stats.hpAlt != null
+      ? `Хиты ${stats.hp} (земля/вода) или ${stats.hpAlt} (${stats.hpAltLabel})`
+      : `Хиты ${stats.hp}`
+  return {
+    kind: 'other',
+    defaultName: stats.titleRu,
+    stats: { hp: stats.hp, hp_max: stats.hp, ac: stats.ac, speed: kind === 'fey' ? 40 : kind === 'beast' ? 30 : 40 },
+    actions: `Атака +${atk} · ${stats.attacks} атак. · ${stats.attackRu}. Скорость ${stats.speedRu}.`,
+    notes: `${stats.titleRu} · ячейка ${Math.max(kind === 'beast' ? 2 : kind === 'fey' ? 3 : 4, Math.floor(ctx.slotLevel ?? 0))} · КД ${stats.ac} · ${hpNote}`,
+    nature: 'summoned',
+    control: 'bonus_action_command',
+  }
+}
+
 const SUMMON_SPELL_TEMPLATES: Record<
   string,
   (ctx: CompanionTemplateContext) => CompanionTemplatePatch
@@ -246,27 +272,8 @@ const SUMMON_SPELL_TEMPLATES: Record<
   find_familiar: () => familiarStub(),
   wildfire_spirit: (ctx) => wildfireSpiritTemplate(ctx),
   summon_wildfire_spirit: (ctx) => wildfireSpiritTemplate(ctx),
-  summon_beast: (ctx) =>
-    tashaSpiritTemplate({
-      titleRu: 'Дух зверя',
-      minLevel: 2,
-      acBase: 11,
-      hpBase: 30,
-      hpPerAbove: 5,
-      speed: 30,
-      ctx,
-      notesExtra: 'по умолчанию Land/Sea (Air: HP base 20)',
-    }),
-  summon_fey: (ctx) =>
-    tashaSpiritTemplate({
-      titleRu: 'Дух феи',
-      minLevel: 3,
-      acBase: 12,
-      hpBase: 30,
-      hpPerAbove: 10,
-      speed: 40,
-      ctx,
-    }),
+  summon_beast: (ctx) => tceSpiritCard('beast', ctx),
+  summon_fey: (ctx) => tceSpiritCard('fey', ctx),
   summon_shadowspawn: (ctx) =>
     tashaSpiritTemplate({
       titleRu: 'Дух тени',
@@ -309,16 +316,7 @@ const SUMMON_SPELL_TEMPLATES: Record<
       ctx,
       notesExtra: 'Metal default (Clay AC 12+L)',
     }),
-  summon_elemental: (ctx) =>
-    tashaSpiritTemplate({
-      titleRu: 'Дух стихии',
-      minLevel: 4,
-      acBase: 11,
-      hpBase: 50,
-      hpPerAbove: 10,
-      speed: 40,
-      ctx,
-    }),
+  summon_elemental: (ctx) => tceSpiritCard('elemental', ctx),
   summon_celestial: (ctx) =>
     tashaSpiritTemplate({
       titleRu: 'Дух небожителя',
@@ -350,11 +348,14 @@ const SUMMON_SPELL_TEMPLATES: Record<
       ctx,
       notesExtra: 'Fizban',
     }),
-  conjure_animals: () =>
-    conjureGroupTemplate(
+  conjure_animals: (ctx) => {
+    const slot = Math.max(3, Math.floor(ctx.slotLevel ?? 3))
+    const counts = conjureAnimalsCounts(slot)
+    return conjureGroupTemplate(
       'Призванные звери',
-      'Conjure Animals: варианты КР (1×2 / 2×1 / 4×½ / 8×¼). Статы — бестиарий/Мастер',
-    ),
+      `Призыв животных · ячейка ${slot} · множитель ×${counts.multiplier}: КР≤2 → ${counts.cr2}, КР≤1 → ${counts.cr1}, КР≤½ → ${counts.crHalf}, КР≤¼ → ${counts.crQuarter}. Статы зверей — у Мастера`,
+    )
+  },
   conjure_woodland_beings: () =>
     conjureGroupTemplate(
       'Лесные обитатели',
@@ -370,11 +371,14 @@ const SUMMON_SPELL_TEMPLATES: Record<
       'Призванный элементаль',
       'Conjure Elemental: один элементаль КР≤5 (выше ячейкой). Статы — бестиарий',
     ),
-  conjure_fey: () =>
-    conjureGroupTemplate(
+  conjure_fey: (ctx) => {
+    const slot = Math.max(6, Math.floor(ctx.slotLevel ?? 6))
+    const cr = conjureFeyCrMax(slot)
+    return conjureGroupTemplate(
       'Призванная фея',
-      'Conjure Fey: одно существо КР≤6. Статы — бестиарий',
-    ),
+      `Призыв феи · ячейка ${slot} · одно существо КР≤${cr} (база 6, +1 за круг выше 6). Статы — бестиарий`,
+    )
+  },
   conjure_celestial: () =>
     conjureGroupTemplate(
       'Призванный небожитель',

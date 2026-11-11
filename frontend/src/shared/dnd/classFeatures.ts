@@ -50,6 +50,8 @@ export type FeatureKind = 'passive' | 'action' | 'bonus' | 'reaction' | 'resourc
 export type FeatureScale = {
   labelRu: string
   by_level: Record<string, string>
+  /** Computed line, e.g. half the class level for Guardian Spirit. */
+  formula?: 'half_class_level'
 }
 
 export type FeatureResource = {
@@ -63,8 +65,11 @@ export type FeatureResource = {
     | 'ability_modifier'
     | 'one_plus_ability_modifier'
     | 'twice_class_level_plus_ability'
+    | 'class_level'
   /** For uses_from: ability_modifier / one_plus_ability_modifier / twice_class_level_plus_ability. */
   ability?: AbilityScoreKey
+  /** One activation cannot spend more than this. Balm of the Summer Court. */
+  per_use_cap?: 'half_class_level'
   recharge: 'short_rest' | 'long_rest' | 'dawn' | 'manual'
   scale_uses?: Record<string, number>
   /** Stable pool key for sheet.resources sync (`feat:{slug}:{pool_id}:{entry}`). */
@@ -489,15 +494,23 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       replaces,
       desk,
       scale:
-        scaleRaw && scaleRaw.by_level && typeof scaleRaw.by_level === 'object'
+        scaleRaw &&
+        ((scaleRaw.by_level && typeof scaleRaw.by_level === 'object') ||
+          scaleRaw.formula === 'half_class_level')
           ? {
               labelRu:
                 typeof scaleRaw.label_ru === 'string' ? scaleRaw.label_ru : 'Масштаб',
-              by_level: Object.fromEntries(
-                Object.entries(scaleRaw.by_level as Record<string, unknown>).filter(
-                  (e): e is [string, string] => typeof e[1] === 'string',
-                ),
-              ),
+              by_level:
+                scaleRaw.by_level && typeof scaleRaw.by_level === 'object'
+                  ? Object.fromEntries(
+                      Object.entries(scaleRaw.by_level as Record<string, unknown>).filter(
+                        (e): e is [string, string] => typeof e[1] === 'string',
+                      ),
+                    )
+                  : {},
+              ...(scaleRaw.formula === 'half_class_level'
+                ? { formula: 'half_class_level' as const }
+                : {}),
             }
           : undefined,
       resource: parseFeatureResource(resourceRaw),
@@ -651,6 +664,11 @@ export function localFeaturePack(classSlug: string | null | undefined): FeatureP
 
 function resolveScaleValue(scale: FeatureScale | undefined, classLevel: number): string | null {
   if (!scale) return null
+  if (scale.formula === 'half_class_level') {
+    const amount = Math.floor(Math.max(0, classLevel) / 2)
+    const text = Object.values(scale.by_level)[0]
+    return text ? `${amount} ${text}` : String(amount)
+  }
   let best: string | null = null
   let bestLevel = 0
   for (const [lvlRaw, value] of Object.entries(scale.by_level)) {
@@ -678,16 +696,19 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
             ? 'ability_modifier'
             : resourceRaw.uses_from === 'twice_class_level_plus_ability'
               ? 'twice_class_level_plus_ability'
-              : resourceRaw.uses_from === 'fixed'
-                ? 'fixed'
-                : undefined
+              : resourceRaw.uses_from === 'class_level'
+                ? 'class_level'
+                : resourceRaw.uses_from === 'fixed'
+                  ? 'fixed'
+                  : undefined
   if (
     !hasUses &&
     usesFrom !== 'proficiency_bonus' &&
     usesFrom !== 'twice_proficiency_bonus' &&
     usesFrom !== 'ability_modifier' &&
     usesFrom !== 'one_plus_ability_modifier' &&
-    usesFrom !== 'twice_class_level_plus_ability'
+    usesFrom !== 'twice_class_level_plus_ability' &&
+    usesFrom !== 'class_level'
   ) {
     return undefined
   }
@@ -716,6 +737,9 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
     uses: hasUses ? (resourceRaw.uses as number) : 0,
     uses_from: usesFrom,
     ability,
+    ...(resourceRaw.per_use_cap === 'half_class_level'
+      ? { per_use_cap: 'half_class_level' as const }
+      : {}),
     recharge:
       resourceRaw.recharge === 'short_rest' ||
       resourceRaw.recharge === 'long_rest' ||
@@ -855,6 +879,9 @@ function resolveResourceUses(
     const score = abilities?.[key]
     const mod = typeof score === 'number' ? abilityModifierFromScore(score) : 0
     return Math.max(0, classLevel * 2 + mod)
+  }
+  if (resource.uses_from === 'class_level') {
+    return Math.max(0, Math.floor(classLevel))
   }
   let uses = resource.uses
   if (resource.scale_uses) {

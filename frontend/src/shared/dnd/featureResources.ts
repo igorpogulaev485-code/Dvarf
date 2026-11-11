@@ -148,6 +148,8 @@ export function desiredResourcesFromFeatures(input: {
       const score = input.abilities?.[key]
       const mod = typeof score === 'number' ? abilityModifierFromScore(score) : 0
       max = Math.max(0, feature.classLevel * 2 + mod)
+    } else if (resource.uses_from === 'class_level') {
+      max = Math.max(0, feature.classLevel)
     } else {
       max = feature.resourceUses ?? resource.uses
     }
@@ -474,6 +476,17 @@ export function spendFeatureUse(input: {
     input.amount != null
       ? Math.max(0, Math.floor(input.amount))
       : Math.max(1, Math.floor(resource.spend_cost ?? 1))
+  if (resource.per_use_cap === 'half_class_level') {
+    const cap = Math.max(1, Math.floor(input.feature.classLevel / 2))
+    if (poolCost > cap) {
+      return {
+        resources: input.resources,
+        ok: false,
+        via: null,
+        message: `Разово не больше ${cap} костей (половина уровня друида)`,
+      }
+    }
+  }
   if (poolCost === 0) {
     return {
       resources: input.resources,

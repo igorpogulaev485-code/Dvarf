@@ -97,9 +97,11 @@ import {
 import { buildAsiFeatGrantFromCatalog } from '../characters/asiFeatHydrate'
 import {
   applyClassGrantToDraft,
+  reconcileDruidStartWeapons,
   type ClassGrantDraftSlice,
   type SaveState,
 } from '../characters/classEffects'
+import { withDruidicLanguage } from '../characters/languagesTools'
 import {
   applySubclassGrantToDraft,
   resolveSubclassDefFromCatalog,
@@ -1331,6 +1333,8 @@ export async function applyPipelineToSheet(input: {
       spells: finalSpells,
       classes,
       subclassSlugByEntryId,
+      featurePicks,
+      subclassGrants: draft.subclassGrants,
     })
     if (synced.changed) {
       finalSpells = synced.spells
@@ -1360,6 +1364,24 @@ export async function applyPipelineToSheet(input: {
       items: draft.inventory.items,
     })
     finalSpells = syncedBook.spells
+  }
+
+  {
+    const hasDruid = classes.some((row) => row.level > 0 && /друид|druid/i.test(row.name))
+    const languages = withDruidicLanguage(draft.identity.languages ?? [], hasDruid)
+    const weapons = reconcileDruidStartWeapons({
+      classGrants: draft.classGrants,
+      subclassWeaponKeys: (draft.subclassGrants ?? []).flatMap((grant) => grant.weaponKeys),
+      weapons: draft.identity.weapons,
+    })
+    if (languages.changed || weapons.changed) {
+      draft.identity = {
+        ...draft.identity,
+        languages: languages.languages,
+        weapons: weapons.changed ? weapons.weapons : draft.identity.weapons,
+      }
+      if (weapons.changed) draft.classGrants = weapons.classGrants
+    }
   }
 
   const raceName = state.subrace?.nameRu || state.race?.nameRu || null

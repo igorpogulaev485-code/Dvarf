@@ -5,6 +5,8 @@ const LANGUAGE_ALIASES: Record<string, string> = {
   акван: 'Акван',
   водяной: 'Акван',
   'водяной язык': 'Акван',
+  druidic: 'Друидический',
+  друидический: 'Друидический',
 }
 
 function normalizeName(value: string): string {

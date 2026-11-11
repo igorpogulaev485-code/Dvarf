@@ -332,6 +332,11 @@ function FeatureResourceControls({
   /** Circle of the Moon: Wild Shape is a bonus action. */
   moonCombatWildShape?: boolean
 }) {
+  const perUseCap =
+    feature.resource?.per_use_cap === 'half_class_level'
+      ? Math.max(1, Math.floor(feature.classLevel / 2))
+      : null
+  const [diceToSpend, setDiceToSpend] = useState(1)
   const resource = feature.resource
   if (!resource?.pool_id) return null
   const poolId = resource.pool_id
@@ -603,6 +608,26 @@ function FeatureResourceControls({
       {lockedBySuccess ? (
         <Text tone="muted">Заблокировано после успеха — снимите блок через 7 дней.</Text>
       ) : null}
+      {perUseCap != null ? (
+        <label className="feature-resource__select">
+          <span className="sr-only">Сколько костей потратить</span>
+          <select
+            value={String(
+              Math.min(perUseCap, Math.max(1, diceToSpend), Math.max(1, remaining)),
+            )}
+            onChange={(event) => setDiceToSpend(Number(event.target.value) || 1)}
+          >
+            {Array.from(
+              { length: Math.min(perUseCap, Math.max(1, remaining)) },
+              (_, index) => index + 1,
+            ).map((count) => (
+              <option key={count} value={count}>
+                {count}к6 · разово не больше {perUseCap}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
       <div className="feature-resource__actions">
         {successLock ? (
           <>
@@ -722,7 +747,16 @@ function FeatureResourceControls({
                 )
                 return
               }
-              const result = spendFeatureUse({ resources, feature, classSlug })
+              const spendAmount =
+                perUseCap != null
+                  ? Math.min(perUseCap, Math.max(1, diceToSpend), Math.max(1, remaining))
+                  : undefined
+              const result = spendFeatureUse({
+                resources,
+                feature,
+                classSlug,
+                ...(spendAmount != null ? { amount: spendAmount } : {}),
+              })
               onResourcesChange(result.resources)
               if (result.ok) {
                 const summon = feature.summon
@@ -754,7 +788,9 @@ function FeatureResourceControls({
                     ? ` · ${summon.kind === 'ally' ? 'напарник' : 'спутник'}: ${summon.name_ru}`
                     : ''
                 onToast?.(
-                  `${feature.name_ru}${via}${feature.scaleValue ? ` · ${feature.scaleValue}` : ''}${summoned}`,
+                  perUseCap != null && spendAmount != null
+                    ? `Потрачено ${spendAmount}к6: лечение на сумму костей и ${spendAmount} временных хитов, существо в 120 фт.`
+                    : `${feature.name_ru}${via}${feature.scaleValue ? ` · ${feature.scaleValue}` : ''}${summoned}`,
                 )
               } else {
                 onToast?.(result.message)

@@ -42,6 +42,8 @@ import { syncSorcererOriginSpells } from '../sorcererOriginSpells'
 import { syncDruidicWarriorCantrips } from '../druidicWarrior'
 import { stripForgeBlessing } from '../forgeBlessing'
 import { syncDruidCircleSpells } from '../druidCircleSpells'
+import { reconcileDruidStartWeapons } from '../classEffects'
+import { withDruidicLanguage } from '../languagesTools'
 import { syncPactChainFamiliar } from '../pactChainEffects'
 import { syncCastWithoutSlotGrants } from '../castWithoutSlots'
 import { syncPactTomeCantrips } from '../pactTomeEffects'
@@ -290,11 +292,42 @@ export function useSheetEditorPart3(model: SheetModel) {
         spells: prev.spells,
         classes: prev.classes,
         subclassSlugByEntryId: model.subclassSlugByEntryId,
+        featurePicks: prev.featurePicks,
+        subclassGrants: prev.subclassGrants,
       })
       if (!synced.changed) return prev
       return { ...prev, spells: synced.spells }
     })
-  }, [model.draft.classes, model.subclassSlugByEntryId])
+  }, [
+    model.draft.classes,
+    model.draft.featurePicks,
+    model.draft.subclassGrants,
+    model.subclassSlugByEntryId,
+  ])
+
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const hasDruid = prev.classes.some(
+        (row) => row.level > 0 && /друид|druid/i.test(row.name),
+      )
+      const languages = withDruidicLanguage(prev.identity.languages, hasDruid)
+      const weapons = reconcileDruidStartWeapons({
+        classGrants: prev.classGrants,
+        subclassWeaponKeys: prev.subclassGrants.flatMap((grant) => grant.weaponKeys),
+        weapons: prev.identity.weapons,
+      })
+      if (!languages.changed && !weapons.changed) return prev
+      return {
+        ...prev,
+        classGrants: weapons.changed ? weapons.classGrants : prev.classGrants,
+        identity: {
+          ...prev.identity,
+          languages: languages.languages,
+          weapons: weapons.changed ? weapons.weapons : prev.identity.weapons,
+        },
+      }
+    })
+  }, [model.draft.classes, model.draft.classGrants, model.draft.subclassGrants])
 
   // Pact of the Tome: materialize / revoke +3 any-list cantrips from feature picks.
   useEffect(() => {

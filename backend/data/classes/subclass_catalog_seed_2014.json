@@ -2478,7 +2478,7 @@
               }
             },
             {
-              "name": "Gust of Wind",
+              "name": "Gaseous Form",
               "level": 3,
               "from_class_level": 5,
               "requires_choice": {
@@ -2487,7 +2487,7 @@
               }
             },
             {
-              "name": "Lightning Bolt",
+              "name": "Stinking Cloud",
               "level": 3,
               "from_class_level": 5,
               "requires_choice": {

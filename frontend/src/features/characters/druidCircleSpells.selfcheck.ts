@@ -117,4 +117,57 @@ assert(
 
 assert(WILDFIRE_CIRCLE_SPELLS.length === 10, 'full wildfire list')
 
+const aura = atL5.spells.known.find((row) => row.name === 'Аура жизни')
+// Aura of Life unlocks at druid 7, not 5.
+assert(!aura, 'aura of life still locked at L5')
+
+const atL7 = syncDruidCircleSpells({
+  spells: emptySpells(),
+  classes: [
+    {
+      id: druidId,
+      name: 'Друид',
+      level: 7,
+      subclass_name: 'Круг дикого огня',
+    },
+  ],
+  subclassSlugByEntryId: { [druidId]: 'circle_of_wildfire' },
+})
+const auraL7 = atL7.spells.known.find((row) => row.level === 4 && /аура жизни/i.test(row.name))
+assert(auraL7, 'aura of life at L7')
+assert(auraL7.concentration, 'aura of life concentrates')
+assert(auraL7.catalog_id, 'aura of life catalog id')
+
+const underdark = syncDruidCircleSpells({
+  spells: emptySpells(),
+  classes: [
+    {
+      id: druidId,
+      name: 'Друид',
+      level: 5,
+      subclass_name: 'Круг земли',
+    },
+  ],
+  subclassSlugByEntryId: { [druidId]: 'circle_of_the_land' },
+  featurePicks: {
+    values: { [`${druidId}:circle_spells_land`]: 'underdark' },
+  },
+})
+const landRows = underdark.spells.known.filter((row) =>
+  row.id.includes(':circle_of_the_land:'),
+)
+assert(landRows.length === 4, `underdark L5 count ${landRows.length}`)
+assert(
+  landRows.some((row) => row.name === 'Газообразная форма' && row.level === 3),
+  'gaseous form',
+)
+assert(
+  landRows.some((row) => row.name === 'Зловонное облако' && row.level === 3),
+  'stinking cloud',
+)
+assert(
+  !landRows.some((row) => /порыв ветра|молния/i.test(row.name)),
+  'no gust or lightning',
+)
+
 console.log('druidCircleSpells.selfcheck: ok')
