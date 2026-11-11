@@ -18,8 +18,12 @@ Workflow из этого репозитория агенты не запуска
 2. **deploy** (environment `production`, ждёт required reviewer, когда правило включено):
    - забирает уже собранный `frontend/dist`;
    - `rsync --delete` на VPS по фильтру [`deploy/rsync-filter.txt`](../deploy/rsync-filter.txt). Не присылает и не удаляет `.env`. Не удаляет `backups/`, `pgdata/`, `postgres-data/`, `uploads/`, `backend/uploads/`, дампы `*.sql` / `*.dump` / `*.sql.gz`. Каталог целиком не стирает;
-   - на VPS [`deploy/remote-release.sh`](../deploy/remote-release.sh): сборка образов (`remote-up` с `DVARF_BUILD_ONLY=1`, старые контейнеры ещё отвечают), `alembic upgrade head` отдельным контейнером, затем перезапуск [`deploy/remote-up.sh`](../deploy/remote-up.sh);
+   - на VPS [`deploy/remote-release.sh`](../deploy/remote-release.sh): сборка образов (`remote-up` с `DVARF_BUILD_ONLY=1`, старые контейнеры ещё отвечают), `alembic upgrade head` отдельным контейнером, затем перезапуск [`deploy/remote-up.sh`](../deploy/remote-up.sh). Порядок тот же. Запускает его [`deploy/remote-release-ctl.sh`](../deploy/remote-release-ctl.sh) в отдельной сессии (`setsid`), с lock-файлом против второй сборки. Job не держит один длинный ssh на всю сборку: он опрашивает статус и журнал короткими вызовами;
    - с раннера `curl https://creed20.tech/health`.
+
+SSH с раннера: `ConnectTimeout=20`, `ServerAliveInterval=15`, `ServerAliveCountMax=4`. `rsync` и эти короткие ssh при коде 255 повторяются до 3 раз. Код 255 здесь — обрыв соединения. Ошибка сборки, миграции или проверки health приходит отдельным кодом и текстом `ci-release: серверные шаги завершились с ошибкой`.
+
+Журнал на VPS: `/var/lib/dvarf/release.log`. Состояние: `/var/lib/dvarf/release.state` (`running`, `success`, `failed`). Эти файлы лежат вне `/opt/dvarf`, rsync их не удаляет.
 
 Тома Docker (`dvarf_pg_data`, `dvarf_uploads`, `dvarf_caddy_data`, `dvarf_caddy_config`) workflow не удаляет: нет `docker compose down -v`.
 
@@ -114,7 +118,31 @@ ssh-keygen -lf <(ssh-keyscan -t ed25519 201.34.132.252)
 - Пустой секрет или битый ключ — шаг «Доставка» падает до rsync или на SSH. Стек на VPS не перезапускается.
 - `pytest` или две головы Alembic — job `deploy` не начинается.
 - Миграция упала — API не перезапускался, отвечает предыдущий контейнер. Схему, которую миграция успела записать, смотреть отдельно: откат сам workflow не делает.
+- Сборка упала до строки `remote-release: перезапуск` — старые контейнеры продолжают работать. В логе Actions будет: `шаг перезапуска не начался, старые контейнеры продолжают работать.`
 - `/health` снаружи красный, а `remote-up` внутри уже написал `healthy` — смотреть Caddy и DNS, не перезаливать дерево руками.
+- В журнале есть признаки нехватки памяти — workflow пишет, что swap он не включает. Память на VPS из Actions не меняется.
+
+## Если SSH оборвался
+
+Так уже было на деплоях 9, 12 и 14: примерно через секунду после `remote-release: сборка образов` job получал код 255, а повтор того же коммита проходил. Соединение в этот момент уже было открыто (rsync и строка про alembic успевали пройти). Похоже на гибель процесса во время `docker builder du` по большому кэшу сборки (на успешном повторе в логе было `pruning build cache (~2869MB reclaimable)`), а не на таймаут простоя и не на лимит сессий sshd. Обрыв ssh больше не убивает сборку: она в своей сессии, job читает журнал заново.
+
+Что сделать, по одному шагу:
+
+1. Откройте упавший Deploy и прочитайте шаг «Доставка, миграции, перезапуск».
+2. Если там «сборка на сервере уже идёт» или «жду её» — запустите Deploy ещё раз и дождитесь конца. Второй запуск не начнёт параллельную сборку.
+3. Если написано, что шаг перезапуска не начался — сайт остался на старых контейнерах. Запустите Deploy ещё раз.
+4. Если есть абзац про нехватку памяти — со своего компьютера зайдите на VPS и выполните `free -h`.
+5. Если в выводе `Swap: 0` — добавьте swap вручную (workflow этого не делает), например файл 2 ГБ:
+
+```bash
+fallocate -l 2G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+```
+
+6. Если `free -h` показывает мало свободной памяти, а в `/var/lib/dvarf/release.log` сборка обрывается на кэше Docker — можно снять кэш: `docker builder prune -f`. Команда не удаляет `.env` и тома Postgres.
 
 ## Чего здесь нет
 
