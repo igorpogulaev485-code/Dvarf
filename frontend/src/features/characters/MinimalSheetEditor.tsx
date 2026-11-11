@@ -129,6 +129,7 @@ import {
   applyAbilityScoreBonuses,
   applyBonusStack,
   bonusesForTarget,
+  createBonusLine,
   formatBonusSummary,
   modifiersToSheet,
   readModifiers,
@@ -262,6 +263,8 @@ import {
 } from '../../shared/dnd/battleMasterManeuverBridge'
 import {
   applyFeatGrantToDraft,
+  ensureFeatSpellsFromLedger,
+  featSpellsMissingFromKnown,
   revokeFeatGrantFromDraft,
   revokeFeatGrantsForAsi,
   revokeFeatGrantsForBackground,
@@ -932,6 +935,7 @@ export function MinimalSheetEditor({
   const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const backgroundCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const asiFeatHydrateAttemptedRef = useRef(false)
+  const featSpellsHydrateAttemptedRef = useRef(false)
   const bmManeuverHydrateAttemptedRef = useRef(false)
   const alwaysPreparedHydrateAttemptedRef = useRef(false)
   const [backgroundCatalogRows, setBackgroundCatalogRows] = useState<CatalogEntry[]>(
@@ -1758,6 +1762,42 @@ export function MinimalSheetEditor({
       },
     }
   }
+
+  // Older create dropped feat spells (Magic Initiate) from known while keeping ledger.
+  useEffect(() => {
+    if (featSpellsHydrateAttemptedRef.current) return
+    const level = totalCharacterLevel(draft.classes)
+    if (
+      !featSpellsMissingFromKnown({
+        known: draft.spells.known,
+        featGrants: draft.featGrants,
+        characterLevel: level,
+      })
+    ) {
+      return
+    }
+    featSpellsHydrateAttemptedRef.current = true
+    setDraft((prev) => {
+      const againLevel = totalCharacterLevel(prev.classes)
+      if (
+        !featSpellsMissingFromKnown({
+          known: prev.spells.known,
+          featGrants: prev.featGrants,
+          characterLevel: againLevel,
+        })
+      ) {
+        return prev
+      }
+      const nextSpells = ensureFeatSpellsFromLedger({
+        spells: prev.spells,
+        featGrants: prev.featGrants,
+        characterLevel: againLevel,
+      })
+      onToast('Восстановлены заклинания от черт')
+      return { ...prev, spells: nextSpells }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
+  }, [draft.featGrants, draft.spells.known, draft.classes])
 
   // Older create discarded ASI→feat packages; rebuild Alert/Mobile/etc. from catalog once.
   useEffect(() => {
@@ -3489,6 +3529,49 @@ export function MinimalSheetEditor({
     ],
   )
 
+  /** Gear (amulet) + infusion spell attack/DC lines on top of sheet modifiers. */
+  const spellCastModifiers = useMemo(() => {
+    const extra: BonusLine[] = []
+    const gearBonus = Math.floor(gearEffects.spellcastingBonus) || 0
+    if (gearBonus) {
+      extra.push(
+        createBonusLine({
+          id: 'gear:spellcasting_bonus:dc',
+          target: 'spell_dc',
+          label: 'Снаряжение',
+          op: '+',
+          expr: String(gearBonus),
+          enabled: true,
+          source: 'gear',
+        }),
+        createBonusLine({
+          id: 'gear:spellcasting_bonus:attack',
+          target: 'spell_attack',
+          label: 'Снаряжение',
+          op: '+',
+          expr: String(gearBonus),
+          enabled: true,
+          source: 'gear',
+        }),
+      )
+    }
+    if (infusionBonuses.spellAttackBonus) {
+      extra.push(
+        createBonusLine({
+          id: 'infusion:spell_attack',
+          target: 'spell_attack',
+          label: 'Инфузия (фокус)',
+          op: '+',
+          expr: String(infusionBonuses.spellAttackBonus),
+          enabled: true,
+          source: 'system',
+          class_slug: 'artificer',
+        }),
+      )
+    }
+    return extra.length ? [...draft.modifiers, ...extra] : draft.modifiers
+  }, [draft.modifiers, gearEffects.spellcastingBonus, infusionBonuses.spellAttackBonus])
+
   const effectiveDarkvisionFt = useMemo(
     () =>
       Math.max(
@@ -4850,6 +4933,7 @@ export function MinimalSheetEditor({
   function isChannelDivinityResource(row: { id: string; name: string }): boolean {
     return (
       row.id.includes(':channel_divinity:') ||
+      row.id.includes('channel_divinity') ||
       /божественный канал/i.test(row.name) ||
       /channel divinity/i.test(row.name)
     )
@@ -6564,23 +6648,7 @@ export function MinimalSheetEditor({
             spells={draft.spells}
             abilities={effectiveAbilities}
             proficiencyBonus={proficiencyBonus}
-            modifiers={
-              infusionBonuses.spellAttackBonus
-                ? [
-                    ...draft.modifiers,
-                    {
-                      id: 'infusion:spell_attack',
-                      target: 'spell_attack' as const,
-                      label: 'Инфузия (фокус)',
-                      op: '+' as const,
-                      expr: String(infusionBonuses.spellAttackBonus),
-                      enabled: true,
-                      source: 'system' as const,
-                      class_slug: 'artificer',
-                    },
-                  ]
-                : draft.modifiers
-            }
+            modifiers={spellCastModifiers}
             formulaVars={formulaVarsBase}
             learnBudget={spellLearnBudget}
             learnBudgets={spellLearnBudgets}
@@ -6647,7 +6715,7 @@ export function MinimalSheetEditor({
             spells={draft.spells}
             abilities={effectiveAbilities}
             proficiencyBonus={proficiencyBonus}
-            modifiers={draft.modifiers}
+            modifiers={spellCastModifiers}
             formulaVars={formulaVarsBase}
             onModifiersChange={(modifiers) =>
               setDraft((prev) => ({ ...prev, modifiers }))
@@ -6708,7 +6776,7 @@ export function MinimalSheetEditor({
           hostHpMax={draft.hpMax}
           abilities={effectiveAbilities}
           proficiencyBonus={proficiencyBonus}
-          modifiers={draft.modifiers}
+          modifiers={spellCastModifiers}
           formulaVars={formulaVarsBase}
           inventoryItems={draft.inventory.items}
           inventory={draft.inventory}

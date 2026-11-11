@@ -503,8 +503,18 @@
         "description_ru": "Священный символ +1 и дополнительный канал божественности.",
         "effects": [
           {
+            "type": "spellcasting_bonus",
+            "value": 1
+          },
+          {
+            "type": "resource",
+            "id": "channel_divinity",
+            "max": 1,
+            "restore": "long"
+          },
+          {
             "type": "custom_note",
-            "text": "Символ жреца/паладина +1 Сл; +1 канал божественности / длинный отдых."
+            "text": "Символ жреца/паладина: +1 к атакам заклинаний и Сл; 1× Божественный канал без траты пула / длинный отдых."
           }
         ],
         "family_slug": "amulet_of_the_devout",
@@ -540,8 +550,18 @@
         "description_ru": "Священный символ +2.",
         "effects": [
           {
+            "type": "spellcasting_bonus",
+            "value": 2
+          },
+          {
+            "type": "resource",
+            "id": "channel_divinity",
+            "max": 1,
+            "restore": "long"
+          },
+          {
             "type": "custom_note",
-            "text": "+2 Сл заклинаний; +1 канал божественности."
+            "text": "+2 к атакам заклинаний и Сл; 1× Божественный канал без траты пула / длинный отдых."
           }
         ],
         "family_slug": "amulet_of_the_devout",
@@ -577,8 +597,18 @@
         "description_ru": "Священный символ +3.",
         "effects": [
           {
+            "type": "spellcasting_bonus",
+            "value": 3
+          },
+          {
+            "type": "resource",
+            "id": "channel_divinity",
+            "max": 1,
+            "restore": "long"
+          },
+          {
             "type": "custom_note",
-            "text": "+3 Сл заклинаний; +1 канал божественности."
+            "text": "+3 к атакам заклинаний и Сл; 1× Божественный канал без траты пула / длинный отдых."
           }
         ],
         "family_slug": "amulet_of_the_devout",

@@ -40,9 +40,8 @@ export function ChannelDivinitySpendDialog({
   const parsed = resource ? parseChannelResourceId(resource.id) : null
 
   const options = useMemo(() => {
-    if (!parsed) return [] as UnlockedFeature[]
-    // Cleric domains + Paladin oaths; skip pool trackers (incl. channel_divinity_paladin).
-    return listChannelDivinityOptions(features, parsed.classEntryId)
+    // Class pool → that entry. Gear free-charge (amulet) → all CD options.
+    return listChannelDivinityOptions(features, parsed?.classEntryId ?? null)
   }, [features, parsed])
 
   function spend(label: string) {
