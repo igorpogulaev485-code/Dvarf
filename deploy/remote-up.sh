@@ -58,6 +58,9 @@ ensure_base() {
 # BuildKit session flakes ("only one connection allowed") leave huge reclaimable
 # cache and correlate with multi-minute stalls — trim when oversized.
 if docker builder du >/dev/null 2>&1; then
+  # Best-effort. `set -e` plus a second `docker builder du` used to abort the
+  # whole release (Actions then showed ssh status 255) when BuildKit dropped
+  # the session or awk closed the pipe early. Skip the prune and keep going.
   reclaim_mb="$(
     docker builder du 2>/dev/null | awk '
       /Reclaimable:/ {
@@ -65,7 +68,7 @@ if docker builder du >/dev/null 2>&1; then
         if (val ~ /GB/) { gsub(/[^0-9.]/,"",val); print int(val*1024); exit }
         if (val ~ /MB/) { gsub(/[^0-9.]/,"",val); print int(val); exit }
         print 0; exit
-      }'
+      }' || true
   )"
   reclaim_mb="${reclaim_mb:-0}"
   if [[ "$reclaim_mb" =~ ^[0-9]+$ ]] && [[ "$reclaim_mb" -gt 2048 ]]; then
