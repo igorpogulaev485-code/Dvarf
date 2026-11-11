@@ -4,6 +4,7 @@ import {
   Pack09FeatureExtras,
   SunSoulKiControls,
 } from './Pack09FeatureExtras'
+import { isPack03CustomSpend, Pack03FeatureExtras } from './Pack03FeatureExtras'
 import type { RulesEdition } from '../../shared/api/characters'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
@@ -102,7 +103,9 @@ import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
 import type { BackgroundFeatureCard } from '../../shared/dnd/backgroundGrants'
 import type { RaceTraitCard } from '../../shared/dnd/raceTraitCards'
 import { raceTraitCardsFromText } from '../../shared/dnd/raceTraitCards'
+import type { ConcentrationState } from '../../shared/dnd/concentration'
 import type { SheetResource } from '../../shared/dnd/rest'
+import type { InventoryItem } from './inventory'
 import { Button, Field, Input, Panel, Stack, Text } from '../../ui'
 import { SlotPips } from '../../ui/SlotPips'
 import {
@@ -203,6 +206,11 @@ type ClassFeaturesPanelProps = {
   onOpenSoulTrinkets?: (classEntryId: string) => void
   /** Pact of the Chain: open cast for Find Familiar (card appears after cast). */
   onCastPactChainFamiliar?: (classEntryId: string) => void
+  /** Inventory rows for Blessing of the Forge. */
+  inventoryItems?: InventoryItem[]
+  onInventoryChange?: (items: InventoryItem[]) => void
+  concentration?: ConcentrationState | null
+  onConcentrationChange?: (next: ConcentrationState | null) => void
   /** Spell catalog edition for Pact of the Tome cantrip picks. */
   edition?: RulesEdition
 }
@@ -532,6 +540,11 @@ function FeatureResourceControls({
           Сейчас: <strong>{feature.scaleValue}</strong>
         </Text>
       ) : null}
+      {pool.activeLabel ? (
+        <Text>
+          Эффект: <strong>{pool.activeLabel}</strong>
+        </Text>
+      ) : null}
       {blockedByHeavyArmor ? (
         <Text tone="muted">
           Надет тяжёлый доспех — бонусы ярости не действуют (PHB). Сними доспех или выбери
@@ -564,33 +577,26 @@ function FeatureResourceControls({
               type="button"
               disabled={remaining <= 0 || lockedBySuccess}
               onClick={() => {
+                const auto = feature.classLevel >= 20
+                const roll = auto ? null : 1 + Math.floor(Math.random() * 100)
+                const success = auto || (roll != null && roll <= feature.classLevel)
                 const result = spendFeatureUseWithOutcome({
                   resources,
                   feature,
                   classSlug,
-                  outcome: 'failure',
+                  outcome: success ? 'success' : 'failure',
                 })
                 onResourcesChange(result.resources)
-                onToast?.(result.message)
+                onToast?.(
+                  auto
+                    ? 'Божественное вмешательство: 20 уровень, успех без броска. Блок 7 дней.'
+                    : success
+                      ? `d100: ${roll} ≤ ${feature.classLevel} — успех. Блок 7 дней.`
+                      : `d100: ${roll} > ${feature.classLevel} — провал. Снова после продолжительного отдыха.`,
+                )
               }}
             >
-              {resource.failure_spend_label_ru || 'Провал'}
-            </Button>
-            <Button
-              type="button"
-              disabled={remaining <= 0 || lockedBySuccess}
-              onClick={() => {
-                const result = spendFeatureUseWithOutcome({
-                  resources,
-                  feature,
-                  classSlug,
-                  outcome: 'success',
-                })
-                onResourcesChange(result.resources)
-                onToast?.(result.message)
-              }}
-            >
-              {successLock.label_ru}
+              {feature.classLevel >= 20 ? 'Вмешательство (авто)' : 'Бросок d100'}
             </Button>
             {lockedBySuccess ? (
               <Button
@@ -627,7 +633,7 @@ function FeatureResourceControls({
                 : 'Потратить…'
               : 'Через Дикий облик…'}
           </Button>
-        ) : onWizardFeatureUse && wizardResolvedFeatureId(feature.id) ? (
+        ) : isPack03CustomSpend(feature.id) ? null : onWizardFeatureUse && wizardResolvedFeatureId(feature.id) ? (
           <Button
             type="button"
             disabled={
@@ -1615,6 +1621,13 @@ function FeatureRow({
   onWizardFeatureUse,
   moonCombatWildShape = false,
   onMoonFormSlotHeal,
+  inventoryItems = [],
+  onInventoryChange,
+  concentration = null,
+  onConcentrationChange,
+  classes,
+  featGrants = [],
+  characterLevel,
   edition = '2014',
 }: {
   feature: UnlockedFeature
@@ -1651,6 +1664,13 @@ function FeatureRow({
     diceCount: number
     diceSize: number
   }) => string | null
+  inventoryItems?: InventoryItem[]
+  onInventoryChange?: (items: InventoryItem[]) => void
+  concentration?: ConcentrationState | null
+  onConcentrationChange?: (next: ConcentrationState | null) => void
+  classes: ClassLevelEntry[]
+  featGrants?: AppliedFeatGrant[]
+  characterLevel: number
   edition?: RulesEdition
 }) {
   const sourceLabel =
@@ -2015,6 +2035,27 @@ function FeatureRow({
           moonCombatWildShape={moonCombatWildShape}
         />
       ) : null}
+      {replacementStatus === 'active' ? (
+        <Pack03FeatureExtras
+          feature={feature}
+          classSlug={classSlug}
+          resources={resources}
+          onResourcesChange={onResourcesChange}
+          spells={spells}
+          onSpellsChange={onSpellsChange}
+          characterLevel={characterLevel}
+          inventoryItems={inventoryItems}
+          onInventoryChange={onInventoryChange}
+          concentration={concentration}
+          onConcentrationChange={onConcentrationChange}
+          onToast={onToast}
+          featurePicks={featurePicks}
+          onFeaturePicksChange={onFeaturePicksChange}
+          classes={classes}
+          featGrants={featGrants}
+          unlocked={unlockedFeatures}
+        />
+      ) : null}
       {replacementStatus === 'active' &&
       feature.id === 'eldritch_invocations' &&
       onOpenInvocations ? (
@@ -2109,6 +2150,10 @@ export function ClassFeaturesPanel({
   onOpenRangerFavored,
   onOpenSoulTrinkets,
   onCastPactChainFamiliar,
+  inventoryItems = [],
+  onInventoryChange,
+  concentration = null,
+  onConcentrationChange,
   edition = '2014',
 }: ClassFeaturesPanelProps) {
   const [filter, setFilter] = useState<FeatureFilter>('all')
@@ -2559,6 +2604,13 @@ export function ClassFeaturesPanel({
                             onWizardFeatureUse={onWizardFeatureUse}
                             moonCombatWildShape={moonCombatWildShape}
                             onMoonFormSlotHeal={onMoonFormSlotHeal}
+                            inventoryItems={inventoryItems}
+                            onInventoryChange={onInventoryChange}
+                            concentration={concentration}
+                            onConcentrationChange={onConcentrationChange}
+                            classes={classes}
+                            featGrants={featGrants}
+                            characterLevel={characterLevel}
                             edition={edition}
                           />
                         )

@@ -272,6 +272,33 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         }}
         onWildShapeFork={(request) => model.setWildShapeFork(request)}
         onFeatureSelfForm={(request) => model.setFeatureSelfForm(request)}
+        inventoryItems={model.draft.inventory.items}
+        onInventoryChange={(items) =>
+          model.setDraft((prev) => ({
+            ...prev,
+            inventory: { ...prev.inventory, items },
+          }))
+        }
+        concentration={model.draft.play.concentration}
+        onConcentrationChange={(concentration) => {
+          let dismissed: string[] = []
+          model.setDraft((prev) => {
+            const result = applyConcentrationChangeToCompanions({
+              companions: prev.companions,
+              previous: prev.play.concentration,
+              next: concentration,
+            })
+            dismissed = result.dismissedNames
+            return {
+              ...prev,
+              companions: result.companions,
+              play: { ...prev.play, concentration },
+            }
+          })
+          if (dismissed.length) {
+            model.onToast(`Концентрация снята · напарник неактивен: ${dismissed.join(', ')}`)
+          }
+        }}
         onWizardFeatureUse={(request) => model.setWizardFeatureUse(request)}
         onMoonFormSlotHeal={({ slotLevel, diceCount, diceSize }) => {
           const form = model.draft.companions.find(
@@ -440,6 +467,9 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           concentration={model.draft.play.concentration}
           onChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
           resources={model.draft.play.resources}
+          voiceOfAuthority={model.unlockedFeatures.some(
+            (row: { id: string }) => row.id === 'voice_of_authority',
+          )}
           onResourcesChange={(resources) =>
             model.setDraft((prev) => ({
               ...prev,

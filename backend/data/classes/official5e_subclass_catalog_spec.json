@@ -1514,17 +1514,9 @@
           "name_en": "Oath of Glory",
           "source": "tasha",
           "source_books": "MOoT/TCoE",
-          "sheet_grants": {
-            "skill_choices": {
-              "count": 1,
-              "from": [
-                "athletics",
-                "acrobatics"
-              ]
-            }
-          },
+          "sheet_grants": {},
           "choices": [],
-          "notes_ru": "Athletics или Acrobatics.",
+          "notes_ru": "TCE: постоянного владения Атлетикой/Акробатикой нет.",
           "detail_status": "forks_stub"
         },
         {
@@ -1534,35 +1526,8 @@
           "source": "tasha",
           "source_books": "TCoE",
           "sheet_grants": {},
-          "choices": [
-            {
-              "id": "skills_or_tools",
-              "label_ru": "2 навыка/инструмента из списка",
-              "kind": "multi",
-              "count": 2,
-              "from": [
-                "insight",
-                "intimidation",
-                "medicine",
-                "perception",
-                "religion",
-                "artisans_tools",
-                "musical_instrument"
-              ],
-              "applies_to": "sheet_field",
-              "required": true
-            },
-            {
-              "id": "languages",
-              "label_ru": "2 языка",
-              "kind": "multi",
-              "count": 2,
-              "from": "any",
-              "applies_to": "sheet_field",
-              "required": true
-            }
-          ],
-          "notes_ru": "2 из skills/tools + 2 языка.",
+          "choices": [],
+          "notes_ru": "TCE: клятва не даёт навыков, инструментов и языков.",
           "detail_status": "forks_stub"
         }
       ]

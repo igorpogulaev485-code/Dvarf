@@ -3,7 +3,9 @@
  * Contract: feature.save_proficiency = "all" | AbilityKey[]
  */
 
+import { classGrantDefFromName } from './classGrants'
 import type { AbilityScoreKey, UnlockedFeature } from './classFeatures'
+import type { AppliedFeatGrant } from './featGrants'
 
 const ALL_SAVES: AbilityScoreKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
 
@@ -21,6 +23,42 @@ export function saveProficiencyKeysFromFeatures(
     for (const key of grant) out.add(key)
   }
   return ALL_SAVES.filter((key) => out.has(key))
+}
+
+/**
+ * XGE Iron Mind: Wisdom save if you lack it; otherwise Intelligence or Charisma.
+ * Class and feat saves count as "already have Wisdom". A previous manual pick
+ * does not, when Wisdom is still missing.
+ */
+export function wisdomSaveAlreadyGranted(input: {
+  classes: Array<{ name: string }>
+  featGrants?: Array<Pick<AppliedFeatGrant, 'applied'>>
+  features?: Array<Pick<UnlockedFeature, 'id' | 'save_proficiency'>>
+}): boolean {
+  for (const row of input.classes) {
+    const grant = classGrantDefFromName(row.name)
+    if (grant?.start.saves.includes('wis')) return true
+  }
+  for (const feat of input.featGrants ?? []) {
+    if (feat.applied.savingThrows.includes('wis')) return true
+  }
+  for (const feature of input.features ?? []) {
+    if (feature.id === 'iron_mind') continue
+    const grant = feature.save_proficiency
+    if (grant === 'all' || (Array.isArray(grant) && grant.includes('wis'))) return true
+  }
+  return false
+}
+
+export function ironMindSaveKey(input: {
+  alreadyHasWisdom: boolean
+  /** intelligence | charisma when Wisdom is already proficient. */
+  pick: string | null | undefined
+}): AbilityScoreKey | null {
+  if (!input.alreadyHasWisdom) return 'wis'
+  if (input.pick === 'intelligence') return 'int'
+  if (input.pick === 'charisma') return 'cha'
+  return null
 }
 
 /** Force-enable feature-granted saves; never clears manual extras. */

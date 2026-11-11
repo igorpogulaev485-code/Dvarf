@@ -159,6 +159,8 @@ export function formatAttackRoll(input: {
   attackBonus: number
   damageExpr: string
   damageType?: string
+  /** Extra dice on the same hit (Divine Strike). Crit doubles them too. */
+  extraDamage?: { expression: string; type?: string | null; label: string } | null
   mode?: DeskRollMode
   rng?: () => number
 }): string {
@@ -170,10 +172,18 @@ export function formatAttackRoll(input: {
   const dmg = rollDamage(input.damageExpr, rng, { crit })
   const typeBit = input.damageType?.trim() ? ` ${input.damageType.trim()}` : ''
   const critBit = crit ? ' · критическое попадание' : ''
+  const extra = input.extraDamage
+  const extraRoll = extra ? rollDamage(extra.expression, rng, { crit }) : null
+  const extraBit =
+    extra && extraRoll
+      ? ` + ${extraRoll.total}${extra.type?.trim() ? ` ${extra.type.trim()}` : ''} (${extra.label}, ${extraRoll.detail})`
+      : extra
+        ? ` + ${extra.label}`
+        : ''
   if (!dmg) {
-    return `${formatCheckRoll(input.name, hit)}${critBit} · урон ${input.damageExpr || '—'}${typeBit}`
+    return `${formatCheckRoll(input.name, hit)}${critBit} · урон ${input.damageExpr || '—'}${typeBit}${extraBit}`
   }
-  return `${formatCheckRoll(input.name, hit)}${critBit} · урон ${dmg.total}${typeBit} (${dmg.detail})`
+  return `${formatCheckRoll(input.name, hit)}${critBit} · урон ${dmg.total}${typeBit} (${dmg.detail})${extraBit}`
 }
 
 export function formatSkillRoll(

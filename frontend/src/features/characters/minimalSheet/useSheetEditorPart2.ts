@@ -14,7 +14,8 @@ import { knowledgeBlessingSkillIds } from '../../../shared/dnd/expertise'
 import { applyFeatGrantToDraft, ensureFeatSpellsFromLedger, featSpellsMissingFromKnown } from '../featEffects'
 import { syncFeatureResources } from '../../../shared/dnd/featureResources'
 import { classWalkSpeedBonusFt, resolveWalkSpeedFt } from '../../../shared/dnd/classMovement'
-import { applyFeatureSaveProficiencies } from '../../../shared/dnd/featureSaveProficiency'
+import { applyFeatureSaveProficiencies, ironMindSaveKey, wisdomSaveAlreadyGranted } from '../../../shared/dnd/featureSaveProficiency'
+import { getFeaturePick } from '../../../shared/dnd/featurePicks'
 import { syncMonkUnarmedAttack } from '../../../shared/dnd/martialArts'
 import { findFightingStylePick } from '../../../shared/dnd/featurePicks'
 import { darkvisionFtFromFeatures, initiativeBonusFromFeatures, initiativeBonusFromRace } from '../featureCombatBonuses'
@@ -196,7 +197,25 @@ export function useSheetEditorPart2(model: SheetModel) {
   // Diamond Soul (and similar): force-enable save proficiencies from features.
   useEffect(() => {
     model.setDraft((prev) => {
-      const nextSaves = applyFeatureSaveProficiencies(prev.saves, model.unlockedFeatures)
+      const baseSaves = applyFeatureSaveProficiencies(prev.saves, model.unlockedFeatures)
+      const ironMind = model.unlockedFeatures.find(
+        (row: { id: string; classEntryId: string }) => row.id === 'iron_mind',
+      )
+      const alreadyWis = wisdomSaveAlreadyGranted({
+        classes: prev.classes,
+        featGrants: prev.featGrants,
+        features: model.unlockedFeatures,
+      })
+      const ironKey = ironMind
+        ? ironMindSaveKey({
+            alreadyHasWisdom: alreadyWis,
+            pick: getFeaturePick(prev.featurePicks, ironMind.classEntryId, 'iron_mind_save'),
+          })
+        : null
+      const nextSaves =
+        ironKey && !baseSaves[ironKey]
+          ? { ...baseSaves, [ironKey]: true }
+          : baseSaves
       if (nextSaves === prev.saves) return prev
       return { ...prev, saves: nextSaves }
     })

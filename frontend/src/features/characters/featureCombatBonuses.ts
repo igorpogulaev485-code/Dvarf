@@ -36,6 +36,45 @@ export function initiativeBonusFromFeatures(input: {
   return bonus
 }
 
+/**
+ * PHB / XGE / TCE Divine Strike: extra weapon damage once on your turn.
+ * Twilight (TCE) is radiant, not psychic. War uses the weapon's damage type.
+ * Dice: 1d8 at 8, 2d8 at 14 — same number in the card and on the attack.
+ */
+const DIVINE_STRIKE_TYPE: Record<string, string | null> = {
+  divine_strike_life: 'излучением',
+  divine_strike_nature: 'холодом, огнём или электричеством',
+  divine_strike_tempest: 'громом',
+  divine_strike_trickery: 'ядом',
+  divine_strike_war: null,
+  divine_strike_death: 'некротической энергией',
+  divine_strike_forge: 'огнём',
+  divine_strike_order: 'психической энергией',
+  divine_strike_twilight: 'излучением',
+}
+
+export type DivineStrikeRider = {
+  /** Dice expression for the roller (`1d8` / `2d8`). */
+  dice: string
+  /** Null = same type as the weapon. */
+  type: string | null
+  /** Russian fragment for the attack line. */
+  label: string
+}
+
+export function divineStrikeRider(
+  features: Array<{ id: string; classLevel: number }>,
+): DivineStrikeRider | null {
+  const feature = features.find((row) => row.id.startsWith('divine_strike_'))
+  if (!feature) return null
+  const diceCount = feature.classLevel >= 14 ? 2 : 1
+  const dice = `${diceCount}d8`
+  const type = DIVINE_STRIKE_TYPE[feature.id] ?? null
+  const diceRu = `${diceCount}к8`
+  const label = type ? `${diceRu} ${type}, раз в ход` : `${diceRu} того же типа, раз в ход`
+  return { dice, type, label }
+}
+
 /** Race combat_bonuses.initiative (e.g. Hare-Trigger = proficiency bonus). */
 export function initiativeBonusFromRace(input: {
   grant: Pick<AppliedRaceGrant, 'combatBonuses'> | null | undefined

@@ -24,6 +24,8 @@ import {
 import { setConcentration } from '../../../shared/dnd/concentration'
 import { equipInventoryItem } from '../inventory'
 import { canCastWizardRitualFromBook } from '../../../shared/dnd/wizardSpellbook'
+import { canCastPreparedSpellAsRitual } from '../../../shared/dnd/ritualCasting'
+import { resolveCastTiming } from '../../../shared/dnd/upcastDuration'
 import {
   applyAbjurationToWard,
   bladesongBonuses,
@@ -263,11 +265,54 @@ export function installSheetActions4(model: SheetModel) {
 
   model.runDeskCast = function runDeskCast(spell: SheetSpell, choice: CastChoice) {
     const name = spell.name || 'Заклинание'
-    const allyNote =
+    const ritualCast = Boolean(choice.ritual && spell.ritual && spell.level > 0)
+    if (ritualCast && model.spellLearnBudget?.mode !== 'spellbook') {
+      const allowed = canCastPreparedSpellAsRitual({
+        ritual: true,
+        level: spell.level,
+        classSlug: spell.class_slug,
+        casterSlugs: (model.spellcastingSync?.castProfiles ?? []).map(
+          (row: { slug: string }) => row.slug,
+        ),
+      })
+      if (!allowed) {
+        model.onToast(
+          'Ритуал недоступен: у этого класса нет умения «Ритуальное колдовство». Кастуй ячейкой.',
+        )
+        return
+      }
+    }
+    if (choice.embodimentOfLaw) {
+      const pool = model.draft.play.resources.find(
+        (row) => row.id.includes(':embodiment_of_the_law:') && row.max - row.used > 0,
+      )
+      if (!pool) {
+        model.onToast('Нет зарядов Воплощения закона')
+        return
+      }
+      model.setDraft((prev) => ({
+        ...prev,
+        play: {
+          ...prev.play,
+          resources: prev.play.resources.map((row) =>
+            row.id === pool.id ? { ...row, used: row.used + 1 } : row,
+          ),
+        },
+      }))
+    }
+    const voice =
+      model.unlockedFeatures.some((row: { id: string }) => row.id === 'voice_of_authority') &&
+      spell.level > 0 &&
+      !ritualCast
+    const allyNote = `${
       choice.allyTargetIds && choice.allyTargetIds.length > 0
         ? ` · целей ${choice.allyTargetIds.length}`
         : ''
-    const ritualCast = Boolean(choice.ritual && spell.ritual && spell.level > 0)
+    }${voice ? ' · Голос власти: союзник может реакцией атаковать' : ''}${
+      choice.embodimentOfLaw ? ' · бонусное действие' : ''
+    }${
+      /проклятие|bestow curse/i.test(spell.name) && spell.duration ? ` · ${spell.duration}` : ''
+    }`
     const grantSpellId = choice.grantSpellId || spell.id
     const grantRow =
       choice.useGrant
@@ -493,7 +538,22 @@ export function installSheetActions4(model: SheetModel) {
 
   model.confirmDeskCast = function confirmDeskCast(choice: CastChoice) {
     if (!model.deskCastSpell) return
-    const spell = model.deskCastSpell
+    const raw = model.deskCastSpell
+    const slotLevel = choice.usePact
+      ? (model.draft.spells.pact_slots?.level ?? raw.level)
+      : choice.slotLevel
+    const timing = resolveCastTiming({
+      name: raw.name,
+      catalogId: raw.catalog_id,
+      duration: raw.duration,
+      concentration: raw.concentration,
+      slotLevel: choice.ritual || choice.useGrant ? raw.level : slotLevel || raw.level,
+    })
+    const spell = {
+      ...raw,
+      concentration: timing.concentration,
+      duration: timing.duration || raw.duration,
+    }
     if (model.needsDeskConcentrationSwap(spell)) {
       model.setDeskCastPending({ spell, choice })
       model.setDeskCastSpell(null)

@@ -7,6 +7,7 @@ export type FightingStyleId =
   | 'great_weapon_fighting'
   | 'protection'
   | 'two_weapon_fighting'
+  | 'druidic_warrior'
 
 export type FightingStyleDef = {
   id: FightingStyleId
@@ -55,6 +56,13 @@ export const FIGHTING_STYLES: Record<FightingStyleId, FightingStyleDef> = {
     nameEn: 'Two-Weapon Fighting',
     summaryRu: 'К бонусной атаке вторым оружием добавляешь модификатор характеристики.',
   },
+  druidic_warrior: {
+    id: 'druidic_warrior',
+    nameRu: 'Воин-друид',
+    nameEn: 'Druidic Warrior',
+    summaryRu:
+      'TCE: два заговора друида как заклинания следопыта (МУД), вне лимита. При новом уровне следопыта можно заменить один.',
+  },
 }
 
 export const PALADIN_FIGHTING_STYLES: FightingStyleId[] = [
@@ -78,6 +86,7 @@ export const RANGER_FIGHTING_STYLES: FightingStyleId[] = [
   'defense',
   'dueling',
   'two_weapon_fighting',
+  'druidic_warrior',
 ]
 
 /** College of Swords (XGtE). */

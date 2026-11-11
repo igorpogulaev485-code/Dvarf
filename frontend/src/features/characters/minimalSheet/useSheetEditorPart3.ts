@@ -37,6 +37,8 @@ import { fightingStyleAcBonus } from '../../../shared/dnd/fightingStyles'
 import { aggregateInfusionBonuses, applyInfusionAbilityFloors } from '../../../shared/dnd/infusionEffects'
 import { infusionAcFromSharedEffects } from '../../../shared/dnd/infusionItems'
 import { syncRangerConclaveSpells } from '../rangerConclaveSpells'
+import { syncDruidicWarriorCantrips } from '../druidicWarrior'
+import { stripForgeBlessing } from '../forgeBlessing'
 import { syncDruidCircleSpells } from '../druidCircleSpells'
 import { syncPactChainFamiliar } from '../pactChainEffects'
 import { syncPactTomeCantrips } from '../pactTomeEffects'
@@ -172,6 +174,30 @@ export function useSheetEditorPart3(model: SheetModel) {
       return { ...prev, spells: synced.spells }
     })
   }, [model.draft.classes, model.subclassSlugByEntryId])
+
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const synced = syncDruidicWarriorCantrips({
+        spells: prev.spells,
+        featurePicks: prev.featurePicks,
+        classes: prev.classes,
+      })
+      if (!synced.changed) return prev
+      return { ...prev, spells: synced.spells }
+    })
+  }, [model.draft.classes, model.draft.featurePicks])
+
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const pool = prev.play.resources.find((row) =>
+        row.id.includes(':blessing_of_the_forge:'),
+      )
+      if (!pool || pool.used > 0) return prev
+      const stripped = stripForgeBlessing(prev.inventory.items)
+      if (!stripped.changed) return prev
+      return { ...prev, inventory: { ...prev.inventory, items: stripped.items } }
+    })
+  }, [model.draft.play.resources])
 
   // Wildfire (etc.) circle spells: always-prepared as druid for MC cast profiles.
   useEffect(() => {

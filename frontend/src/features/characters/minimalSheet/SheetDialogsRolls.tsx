@@ -209,6 +209,15 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         offerPowerSurge={model.draft.play.resources.some(
           (row: { id: string }) => row.id.includes(':power_surge:'),
         )}
+        embodimentRemaining={(() => {
+          const pool = model.draft.play.resources.find((row) =>
+            row.id.includes(':embodiment_of_the_law:'),
+          )
+          return Math.max(0, (pool?.max ?? 0) - (pool?.used ?? 0))
+        })()}
+        voiceOfAuthority={model.unlockedFeatures.some(
+          (row: { id: string }) => row.id === 'voice_of_authority',
+        )}
         abilities={model.effectiveAbilities}
         proficiencyBonus={model.proficiencyBonus}
         castProfiles={model.spellcastingSync.castProfiles}
