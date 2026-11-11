@@ -3,6 +3,7 @@
  */
 import {
   darkvisionFtFromFeatures,
+  improvedDivineSmiteRider,
   initiativeBonusFromFeatures,
   initiativeBonusFromRace,
 } from './featureCombatBonuses.ts'
@@ -65,6 +66,20 @@ assert(
 assert(
   initiativeBonusFromRace({ grant: null, proficiencyBonus: 6 }) === 0,
   'no race grant = 0',
+)
+
+assert(improvedDivineSmiteRider([{ id: 'divine_smite' }]) == null, 'smite slot is not the improved rider')
+const improved = improvedDivineSmiteRider([{ id: 'improved_divine_smite' }])
+assert(
+  improved != null && improved.dice === '1d8' && improved.type === 'излучением',
+  'improved divine smite is +1d8 radiant',
+)
+assert(
+  improvedDivineSmiteRider([
+    { id: 'divine_strike_war' },
+    { id: 'improved_divine_smite' },
+  ])?.dice === '1d8',
+  'improved smite stacks beside cleric divine strike data',
 )
 
 console.log('featureCombatBonuses.selfcheck: ok')

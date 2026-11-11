@@ -508,3 +508,66 @@ button.play-desk-compact__more--btn:hover {
   min-width: 0;
 }
 
+/* Divine Smite on the combat attack panel — chips from the kit, not a new pattern. */
+.play-desk-smite {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--desk-line, var(--line));
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.play-desk-smite__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.play-desk-smite__title {
+  margin: 0;
+  font-family: var(--font-display, 'Source Serif 4', serif);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--desk-accent, var(--accent));
+}
+
+.play-desk-smite__note {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: var(--desk-muted, var(--muted));
+}
+
+.play-desk-smite__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.play-desk-smite__chips .sheet-chip {
+  min-height: 44px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+}
+
+.play-desk-smite__chips .sheet-chip:disabled {
+  text-decoration: none;
+  opacity: 0.45;
+}
+
+.play-desk-smite__miss {
+  justify-self: start;
+  border: 0;
+  background: transparent;
+  padding: 0 2px;
+  min-height: 44px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+  cursor: pointer;
+}
+
