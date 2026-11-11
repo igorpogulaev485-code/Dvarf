@@ -1,0 +1,584 @@
+.ui-combobox {
+  position: relative;
+}
+
+.ui-combobox__list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(28, 25, 23, 0.12);
+  max-height: 240px;
+  overflow: auto;
+}
+
+.ui-combobox__status {
+  padding: 10px 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.ui-combobox__option {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.ui-combobox__option.is-active,
+.ui-combobox__option:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.sheet-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.sheet-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sheet-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.sheet-grid--4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sheet-grid--coins {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 8px;
+}
+
+/* Slot maxes 1–9: compact fixed cells, not full-width stretch */
+.sheet-grid--slots {
+  display: grid;
+  grid-template-columns: repeat(9, 2.35rem);
+  gap: 5px;
+  margin-top: 6px;
+  width: max-content;
+  max-width: 100%;
+  justify-content: start;
+}
+
+.sheet-grid--slots .ui-field {
+  gap: 2px;
+  width: 2.35rem;
+}
+
+.sheet-grid--slots .ui-field__label,
+.ui-dialog__body .sheet-grid--slots .ui-field__label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+  color: var(--muted);
+}
+
+.sheet-grid--slots .ui-input,
+.ui-dialog__body .sheet-grid--slots .ui-input {
+  width: 2.35rem;
+  padding: 5px 0;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* Explore stage: flat like spells compact — no cream panel plate. */
+.inventory-panel.ui-panel {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.inventory-panel__toolbar {
+  position: sticky;
+  top: 0;
+  /* Keep below portaled pads/dialogs (body z-index 50+). */
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0 8px;
+  margin: 0 0 2px;
+  /* Match stage panel (#fff) — not --panel parchment (shows as a halo under dialogs). */
+  background: #fff;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+.inventory-summary {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+}
+
+.inventory-summary__top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.inventory-summary__weights {
+  margin: 0;
+  flex: 1 1 160px;
+  min-width: 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.inventory-summary__weights strong {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.inventory-summary.is-over .inventory-summary__weights strong {
+  color: #9a3412;
+}
+
+.inventory-summary__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.inventory-summary__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--accent);
+}
+
+.inventory-summary__chip--action {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.inventory-summary__chip--action:hover {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.inventory-summary__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #efe7dc;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.inventory-summary__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 160ms ease;
+}
+
+.inventory-summary.is-over .inventory-summary__fill {
+  background: #9a3412;
+}
+
+.inventory-summary__over {
+  margin: 0;
+  color: #9a3412;
+  font-size: 0.84rem;
+}
+
+/* Legacy text-line (kept if referenced elsewhere) */
+.inventory-summary-line {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--accent-soft);
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.inventory-summary-line strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.inventory-summary-line.is-over strong {
+  color: #9a3412;
+}
+
+.inventory-icon {
+  width: 1.05em;
+  height: 1.05em;
+  flex: 0 0 auto;
+  display: block;
+}
+
+.inventory-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inventory-toolbar-btn--ghost {
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.inventory-toolbar-btn--ghost:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
+.inventory-coins {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.inventory-coins--pad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 14px;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--accent-soft) 40%, white);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--line));
+}
+
+.inventory-coins--pad:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+}
+
+.inventory-coins__total {
+  display: grid;
+  gap: 2px;
+}
+
+.inventory-coins__total strong {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.inventory-coins__total span {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.inventory-coins__breakdown {
+  font-size: 0.88rem;
+  color: var(--muted);
+  text-align: right;
+}
+
+.inventory-coin {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 7px;
+  row-gap: 5px;
+  align-items: center;
+  min-width: 0;
+}
+
+.inventory-coin__icon {
+  width: 22px;
+  height: 22px;
+  grid-row: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.inventory-coin__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.inventory-coin__icon svg circle:first-child {
+  stroke: rgba(0, 0, 0, 0.18);
+  stroke-width: 1;
+}
+
+.inventory-coin__icon svg circle:nth-child(2) {
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1.2;
+}
+
+.inventory-coin__icon svg path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.inventory-coin__icon--copper {
+  background: radial-gradient(circle at 35% 30%, #e0a46a, #b87333 62%, #8a4f1f);
+  color: #fff7ed;
+}
+
+.inventory-coin__icon--silver {
+  background: radial-gradient(circle at 35% 30%, #f5f5f4, #a8a29e 62%, #78716c);
+}
+
+.inventory-coin__icon--electrum {
+  background: radial-gradient(circle at 35% 30%, #bfdbfe, #60a5fa 62%, #2563eb);
+}
+
+.inventory-coin__icon--gold {
+  background: radial-gradient(circle at 35% 30%, #f6e27a, #d4a017 62%, #a16207);
+}
+
+.inventory-coin__icon--platinum {
+  background: radial-gradient(circle at 35% 30%, #ddd6fe, #a78bfa 62%, #6d28d9);
+}
+
+.inventory-coin__label {
+  grid-row: 1;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.inventory-coin .ui-input,
+.inventory-coin input {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-width: 0;
+  text-align: center;
+  padding: 6px 4px;
+}
+
+.inventory-equip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: #fffdf8;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.inventory-equip.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #f8fffb;
+  font-weight: 600;
+}
+
+.inventory-equip.is-blocked {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.inventory-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: #fffdf8;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.inventory-action:hover {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+}
+
+.inventory-action--danger {
+  color: color-mix(in srgb, var(--danger) 80%, var(--muted));
+}
+
+.inventory-action--danger:hover {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--line));
+}
+
+@media (max-width: 639px) {
+  .inventory-coins:not(.inventory-coins--pad) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.inventory-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.inventory-filter {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.inventory-filter.is-on {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+  font-weight: 600;
+}
+
+.inventory-card-group {
+  display: grid;
+  gap: 8px;
+}
+
+.inventory-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.inventory-card--expand {
+  gap: 8px;
+  padding: 10px 12px 12px;
+  overflow: visible;
+  background: #fffdf8;
+}
+
+.inventory-card__collapse {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.inventory-card__collapse:hover {
+  color: var(--ink);
+}
+
+.inventory-card__ac-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+}
+
+.inventory-card__grid--dense {
+  grid-template-columns: 4.5rem 5.5rem;
+  gap: 8px;
+  align-items: end;
+}
+
+.inventory-card__role-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: end;
+}
+
+.inventory-card__role-row .ui-field {
+  flex: 1 1 9rem;
+  min-width: 0;
+}
+
+.inventory-card__effects {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.inventory-card--compact {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 10px 12px;
+  background: #fffdf8;
+}
+
+.inventory-card--stowed {
+  opacity: 0.9;
+  border-style: dashed;
+  background: rgba(255, 253, 248, 0.7);
+}
+
+.inventory-card--nested {
+  margin-left: 14px;
+  border-style: dashed;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.inventory-card--pack-open {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+

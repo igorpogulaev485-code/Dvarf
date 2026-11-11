@@ -151,20 +151,22 @@ require "backend/data/races/phb2014_race_catalog_spec.json" "сид рас PHB"
 require "backend/alembic/archive_forms_adapt_versions/README.md" "архив миграций forms-adapt"
 
 # Spot-check: digital sheet must not still say multiclass is backlog-only
-if grep -q 'Мультикласс — в backlog; пока один класс' \
-  frontend/src/features/characters/MinimalSheetEditor.tsx 2>/dev/null; then
+if grep -R -q 'Мультикласс — в backlog; пока один класс' \
+  frontend/src/features/characters/MinimalSheetEditor.tsx \
+  frontend/src/features/characters/minimalSheet 2>/dev/null; then
   echo "FAIL: MinimalSheetEditor still has multiclass backlog hint — merge sheet P5 tip" >&2
   MISSING=1
 else
   echo "ok: multiclass backlog hint absent"
 fi
 
-# UI Kit LOCK — CSS markers (forms-adapt overwrite wiped lobby hub 2026-10-16)
+# UI Kit LOCK — CSS markers (forms-adapt overwrite wiped lobby hub 2026-10-16).
+# index.css is only the @import order; the rules live in frontend/src/styles/.
 require_css() {
   local pattern="$1"
   local why="$2"
-  if ! grep -qE "$pattern" frontend/src/index.css 2>/dev/null; then
-    echo "MISSING CSS: /$pattern/ in frontend/src/index.css  ($why)" >&2
+  if ! grep -R -q -E --include='*.css' -e "$pattern" frontend/src; then
+    echo "MISSING CSS: /$pattern/ in frontend/src/**/*.css  ($why)" >&2
     MISSING=1
   else
     echo "ok css: $pattern"
@@ -172,8 +174,8 @@ require_css() {
 }
 
 echo
-echo "=== UI Kit LOCK (index.css markers) ==="
-require_css 'UI KIT LOCK — Lobby Hub' "маркер хвоста A1→D1 — не checkout index.css с другой ветки"
+echo "=== UI Kit LOCK (styles/*.css markers) ==="
+require_css 'UI KIT LOCK — Lobby Hub' "маркер хвоста A1→D1 в styles/26-lobby-hub-lock.css — не выкидывать этот @import"
 require_css '\.lobby-member-grid' "сетка состава лобби"
 require_css '\.lobby-hub-tab\.is-active' "активный таб хаба = accent"
 require_css '\.lobby-member-card__hp--ok' "полоска HP на карточке состава"
@@ -197,11 +199,13 @@ PREFLIGHT FAILED.
 В этом дереве не хватает контуров, которые уже есть в проде (`main`).
 В PR их нужно вернуть, а не выкидывать. Ручной sync-and-up заморожен.
 
-Частый провал после 2026-10-16: checkout/restore frontend/src/index.css с forms-adapt
+Частый провал после 2026-10-16: checkout/restore CSS с forms-adapt
 без хвоста «UI KIT LOCK — Lobby Hub» — состав лобби снова без сетки/карточек.
+Маркер и классы хаба лежат в frontend/src/styles/26-lobby-hub-lock.css.
+frontend/src/index.css только задаёт порядок @import. Не переставлять импорты и не выкидывать файл лока.
 
 Прод — ветка main. Ручной sync-and-up заморожен и на VPS не ходит.
-Допиши недостающие контуры в PR в main. CSS мержить, не checkout всего index.css.
+Допиши недостающие контуры в PR в main. CSS мержить по файлам в styles/, не подменять весь набор.
 Выкладка: docs/deploy.md (GitHub Actions Deploy).
 EOF
   exit 1

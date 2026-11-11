@@ -1,0 +1,447 @@
+.session-enemy-card__remove {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.session-enemy-card__details {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--line);
+}
+
+.session-enemy-card__block-title {
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.session-enemy-card__actions-list {
+  margin: 4px 0 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.session-combat-track {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--panel) 92%, #78716c);
+}
+
+.session-combat-track__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+}
+
+.session-combat-track__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.session-combat-track__now {
+  margin: 0;
+  flex: 1 1 10rem;
+  font-size: 0.95rem;
+}
+
+.session-combat-track__kind {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.session-combat-track__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.session-combat-order {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.session-combat-order__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.session-combat-order__chip:disabled {
+  cursor: default;
+}
+
+.session-combat-order__chip.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 650;
+}
+
+.session-combat-order__chip.is-enemy:not(.is-active) {
+  border-color: color-mix(in srgb, #b45309 30%, var(--line));
+}
+
+.session-combat-order__init {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.session-combat-order__chip.is-active .session-combat-order__init {
+  color: var(--accent);
+}
+
+.session-init-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.session-init-list__row {
+  display: grid;
+  grid-template-columns: 1fr minmax(5.5rem, 7rem);
+  gap: 10px 14px;
+  align-items: end;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.session-init-list__name {
+  font-weight: 650;
+}
+
+.session-init-list__meta {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 520px) {
+  .session-init-list__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.session-xp-defeat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.session-xp-defeat-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  font-size: 0.92rem;
+}
+
+.session-xp-defeat-list__xp {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.session-xp-recipients__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.session-xp-recipients__title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.session-xp-link {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.session-xp-recipients {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.session-xp-recipient {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  cursor: pointer;
+}
+
+.session-xp-recipient.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.session-encounter-save {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.session-encounter-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.session-encounter-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.session-encounter-list__main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 12rem;
+}
+
+.session-encounter-list__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 520px) {
+  .session-encounter-save {
+    grid-template-columns: 1fr;
+  }
+}
+
+.session-gen-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.session-gen-chip {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: inherit;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.session-gen-chip.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.session-gen-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.session-gen-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.session-gen-option {
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: inherit;
+  border-radius: 14px;
+  padding: 10px 12px;
+  font: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 2px;
+}
+
+.session-gen-option span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.session-gen-option.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.session-gen-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inventory-coins-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.session-loot-compose {
+  display: grid;
+  grid-template-columns: 1.4fr 5.5rem 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.session-loot-compose--coins {
+  grid-template-columns: repeat(3, minmax(4.5rem, 1fr)) 1fr;
+}
+
+.session-loot-compose__coin-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.session-loot-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.session-loot-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.session-loot-list__main {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.session-loot-list__remove {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .session-loot-compose,
+  .session-loot-compose--coins {
+    grid-template-columns: 1fr;
+  }
+}
+
+.session-combatant-mode {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.session-combatant-mode__btn {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 12px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.session-combatant-mode__btn.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.session-combatant-custom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 520px) {
+  .session-combatant-custom-row {
+    grid-template-columns: 1fr;
+  }
+}
+

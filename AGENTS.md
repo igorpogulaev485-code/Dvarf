@@ -13,9 +13,8 @@
 
 ## Что не ломать
 
-- Визуал прода: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) и skill `dvarf-ui-kit`. Не подменять `frontend/src/index.css` целиком и не снимать маркер `UI KIT LOCK — Lobby Hub`.
-- Лист — полный Play Desk (`PlayDeskHeader`, сцены, rail, hot-bar, `MinimalSheetEditor`). Не рисовать другой стол и не выдавать mock за прод. Канон: [`docs/PLAY_DESK_SOURCE_OF_TRUTH.md`](docs/PLAY_DESK_SOURCE_OF_TRUTH.md).
-- Не разбивать `index.css` и `MinimalSheetEditor.tsx` в чужой задаче — это отдельная работа.
+- Визуал прода: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) и skill `dvarf-ui-kit`. `frontend/src/index.css` — только порядок `@import`. Правила в `frontend/src/styles/`. Не переставлять импорты и не снимать маркер `UI KIT LOCK — Lobby Hub` (`styles/26-lobby-hub-lock.css`).
+- Лист — полный Play Desk (`PlayDeskHeader`, сцены, rail, hot-bar, `MinimalSheetEditor`). Редактор собран из `frontend/src/features/characters/minimalSheet/`. Не рисовать другой стол и не выдавать mock за прод. Канон: [`docs/PLAY_DESK_SOURCE_OF_TRUTH.md`](docs/PLAY_DESK_SOURCE_OF_TRUTH.md).
 - Актуальный срез фич — [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md). История слайсов — [`docs/changelog/`](docs/changelog/).
 
 ## Уже в дереве прода, не выкидывать
