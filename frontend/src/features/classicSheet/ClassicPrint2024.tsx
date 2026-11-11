@@ -8,7 +8,6 @@ import {
 } from '../characters/sheetTypes'
 import type { SheetSpell } from '../characters/spells'
 import {
-  abilityScore,
   applyClassicEdits,
   combatField,
   cycleSkillMastery,
@@ -24,6 +23,7 @@ import {
 } from './fromApi'
 import {
   classicAttunementFilled,
+  classicAttunementLimit,
   patchClassicAttunementCount,
 } from './classicAttunement'
 import { classicConditionsLabel } from './classicConditions'
@@ -49,7 +49,12 @@ import {
   clampMarks,
   numOrNull,
 } from './classicPrintShared'
-import { classicCombatDisplay } from './classicDerivedCombat'
+import { classicCombatDisplay, classicEffectiveAbilities } from './classicDerivedCombat'
+import {
+  ALIGNMENTS,
+  alignmentNeedsClarification,
+  recognizeAlignment,
+} from '../../shared/dnd/alignments'
 import {
   addClassicNote,
   classicNoteLabel,
@@ -102,6 +107,15 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
   const deathFails = clampMarks(Number(combatField(c, 'death_fails') ?? 0))
   const exhaustion = clampExhaustion(Number(combatField(c, 'exhaustion') ?? 0))
   const attunement = classicAttunementFilled(c)
+  const attunementLimit = classicAttunementLimit(c)
+  const scores = classicEffectiveAbilities(c)
+  const alignmentRaw = String(identityField(c, 'alignment') ?? '')
+  const alignmentText = String(identityField(c, 'alignment_text') ?? '')
+  const alignmentSlug = recognizeAlignment(alignmentRaw) ?? ''
+  const alignmentUnparsed = alignmentNeedsClarification({
+    alignment: alignmentSlug,
+    alignmentText: alignmentText || (alignmentSlug ? '' : alignmentRaw),
+  })
   const conditionsLabel = classicConditionsLabel(c)
   const equipItems = equipmentItemsLine(c)
   const spells = classicSpellsState(c)
@@ -111,7 +125,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
   const weapons = classicWeaponRows(c)
   const passivePerception =
     10 +
-    abilityModifier(abilityScore(c, 'wis')) +
+    abilityModifier(scores.wis) +
     (skillFlags(c, 'perception').is_proficient ? proficiency : 0) +
     (skillFlags(c, 'perception').is_expertise ? proficiency : 0)
 
@@ -716,7 +730,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                   <input
                     value={
                       spells.casting_ability
-                        ? formatModifier(abilityModifier(abilityScore(c, spells.casting_ability)))
+                        ? formatModifier(abilityModifier(scores[spells.casting_ability]))
                         : ''
                     }
                     readOnly
@@ -910,12 +924,25 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               />
               <label className="classic-lss-alignment">
                 <span>Мировоззрение</span>
-                <input
-                  value={String(identityField(c, 'alignment') ?? '')}
+                <select
+                  value={alignmentSlug}
                   onChange={(e) =>
-                    patch({ identity: { alignment: e.target.value || null } })
+                    patch({
+                      identity: {
+                        alignment: e.target.value || null,
+                        alignment_text: null,
+                      },
+                    })
                   }
-                />
+                >
+                  <option value="">—</option>
+                  {ALIGNMENTS.map((row) => (
+                    <option key={row.slug} value={row.slug}>
+                      {row.nameRu}
+                    </option>
+                  ))}
+                </select>
+                {alignmentUnparsed ? <span>Уточните мировоззрение</span> : null}
               </label>
               <div className="classic-caption">Предыстория и личные качества</div>
             </div>
@@ -955,7 +982,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               />
               <div className="classic-lss-attune">
                 <span>Настройка</span>
-                {[0, 1, 2].map((i) => (
+                {Array.from({ length: attunementLimit }, (_, i) => (
                   <Bubble
                     key={`a${i}`}
                     filled={attunement > i}
@@ -970,6 +997,9 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                     }
                   />
                 ))}
+                {attunement > attunementLimit ? (
+                  <span>Сверх лимита настройки — лишние предметы не действуют</span>
+                ) : null}
               </div>
               <div className="classic-caption">Снаряжение</div>
             </div>
@@ -991,7 +1021,7 @@ function AbilityBlock({
   proficiency: number
   onPatch: (edits: Parameters<typeof applyClassicEdits>[1]) => void
 }) {
-  const score = abilityScore(c, ability)
+  const score = classicEffectiveAbilities(c)[ability]
   const mod = abilityModifier(score)
   const saveProf = isSaveProficient(c, ability)
   const saveBonus = mod + (saveProf ? proficiency : 0)

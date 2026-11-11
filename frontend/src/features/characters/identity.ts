@@ -1,3 +1,4 @@
+import { recognizeAlignment, isAlignmentSlug } from '../../shared/dnd/alignments'
 import {
   parseCharacterGender,
   type CharacterGender,
@@ -38,7 +39,10 @@ export type IdentityExtras = {
   background: string
   /** Catalog slug when picked from kind=background; used for feat prereqs. */
   backgroundSlug: string | null
+  /** Catalog slug (lawful_good, …). Empty when the old text was not recognized. */
   alignment: string
+  /** Original wording kept when it did not match the catalog. */
+  alignmentText: string
   /** Character gender from create-pipeline / identity editor. */
   gender: CharacterGender | null
   size: string
@@ -81,6 +85,18 @@ export const EMPTY_WEAPONS: WeaponProficiency = {
   extras: [],
 }
 
+function readAlignmentFields(identity: Record<string, unknown>): {
+  alignment: string
+  alignmentText: string
+} {
+  const raw = typeof identity.alignment === 'string' ? identity.alignment.trim() : ''
+  const stored =
+    typeof identity.alignment_text === 'string' ? identity.alignment_text.trim() : ''
+  const slug = isAlignmentSlug(raw) ? raw : recognizeAlignment(raw) ?? ''
+  if (slug) return { alignment: slug, alignmentText: '' }
+  return { alignment: '', alignmentText: stored || raw }
+}
+
 export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtras {
   const identity = asRecord(sheet.identity)
   const combat = asRecord(sheet.combat)
@@ -98,7 +114,7 @@ export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtr
         : typeof identity.backgroundSlug === 'string' && identity.backgroundSlug.trim()
           ? identity.backgroundSlug.trim()
           : null,
-    alignment: typeof identity.alignment === 'string' ? identity.alignment : '',
+    ...readAlignmentFields(identity),
     gender: parseCharacterGender(identity.gender),
     size: typeof identity.size === 'string' && identity.size.trim() ? identity.size : 'medium',
     darkvision: Math.max(0, Math.floor(readNumber(combat.darkvision, 0))),
@@ -144,6 +160,7 @@ export function identityExtrasToSheet(extras: IdentityExtras): {
       background: extras.background.trim() || null,
       background_slug: extras.backgroundSlug?.trim() || null,
       alignment: extras.alignment.trim() || null,
+      alignment_text: extras.alignmentText.trim() || null,
       gender: extras.gender,
       size: extras.size.trim() || 'medium',
       race_applied_languages: extras.raceAppliedLanguages

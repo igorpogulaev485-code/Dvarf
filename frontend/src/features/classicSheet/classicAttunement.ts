@@ -1,13 +1,26 @@
 import type { CharacterDetail } from '../../shared/api/characters'
 import {
-  MAX_ATTUNEMENTS,
   createAttunementSlot,
   filledAttunementCount,
+  maxAttunementsForClasses,
   readAttunements,
   attunementsToSheet,
 } from '../characters/attunement'
+import { readClassLevels } from '../characters/classLevels'
 import { asRecord } from '../characters/sheetTypes'
 import { cloneSheet, type ClassicPatch } from './fromApi'
+
+/** Slots this character can attune (3, or 4/5/6 for an artificer). */
+export function classicAttunementLimit(character: CharacterDetail): number {
+  const sheet = asRecord(character.sheet)
+  const classes = readClassLevels(sheet, {
+    className: character.class_name ?? '',
+    level: character.level,
+    subclassName: String(asRecord(sheet.identity).subclass_name ?? ''),
+    classCatalogId: null,
+  })
+  return maxAttunementsForClasses(classes)
+}
 
 /** How many attunement bubbles are filled on the classic blank. */
 export function classicAttunementFilled(character: CharacterDetail): number {
@@ -18,7 +31,7 @@ export function classicAttunementFilled(character: CharacterDetail): number {
   // Legacy classic-only counter before sheet.attunements existed.
   const used = Number(asRecord(sheet.combat).attunement_used ?? 0)
   if (!Number.isFinite(used) || used <= 0) return 0
-  return Math.max(0, Math.min(MAX_ATTUNEMENTS, Math.floor(used)))
+  return Math.max(0, Math.floor(used))
 }
 
 /**
@@ -30,7 +43,7 @@ export function patchClassicAttunementCount(
   character: CharacterDetail,
   count: number,
 ): ClassicPatch {
-  const nextCount = Math.max(0, Math.min(MAX_ATTUNEMENTS, Math.floor(count)))
+  const nextCount = Math.max(0, Math.min(classicAttunementLimit(character), Math.floor(count)))
   const sheet = cloneSheet(asRecord(character.sheet))
   const current = readAttunements(sheet)
   const next = current.slice(0, nextCount)

@@ -12,9 +12,17 @@ import { formatSkillRoll } from '../deskRolls'
 import { appendXpHistory } from '../playDeskUi'
 import { equippedArmorPieces } from '../inventory'
 import { abilityModifier } from '../sheetTypes'
+import {
+  alignmentNeedsClarification,
+  alignmentSheetLabel,
+} from '../../../shared/dnd/alignments'
 import { COMPANION_KIND_SHORT } from './draft'
 
 export function PlayDeskTop({ model }: { model: SheetModel }) {
+  const alignmentLabel = alignmentSheetLabel(model.draft.identity)
+  const alignmentHint = alignmentNeedsClarification(model.draft.identity)
+    ? 'Уточните мировоззрение'
+    : ''
   return (
     <>
       {model.isPlayDesk ? (
@@ -33,7 +41,8 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             name={model.draft.name}
             raceName={model.draft.raceName}
             className={model.classSummary || model.primaryClass?.name || ''}
-            alignment={model.draft.identity.alignment}
+            alignment={alignmentLabel}
+            alignmentHint={alignmentHint}
             rulesEdition={model.baseCharacter.rules_edition}
             level={model.characterLevel}
             experience={model.draft.identity.experience}
@@ -155,7 +164,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           name={model.draft.name}
           raceName={model.draft.raceName}
           classSummary={model.classSummary || model.primaryClass?.name || ''}
-          alignment={model.draft.identity.alignment}
+          alignment={alignmentHint ? `${alignmentLabel} · уточните мировоззрение` : alignmentLabel}
           level={model.characterLevel}
           hpCurrent={model.draft.hpCurrent}
           hpMax={model.draft.hpMax}

@@ -277,6 +277,33 @@ export type GearAddResult = {
   equip: boolean
 }
 
+function readSlugList(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined
+  const list = value
+    .filter((item): item is string => typeof item === 'string' && Boolean(item.trim()))
+    .map((item) => item.trim())
+  return list.length ? list : undefined
+}
+
+/** Family and attunement gates travel with the catalog row onto the sheet. */
+function copyAttunementMeta(item: InventoryItem, data: Record<string, unknown> | null | undefined) {
+  const row = data ?? {}
+  if (typeof row.family_slug === 'string' && row.family_slug.trim()) {
+    item.family_slug = row.family_slug.trim()
+  }
+  if (typeof row.variant_key === 'string' && row.variant_key.trim()) {
+    item.variant_key = row.variant_key.trim()
+  }
+  if (row.single_attunement_family === true) item.single_attunement_family = true
+  if (row.alignment_color_gate === true) item.alignment_color_gate = true
+  const classes = readSlugList(row.attunement_classes)
+  const races = readSlugList(row.attunement_races)
+  const alignments = readSlugList(row.attunement_alignments)
+  if (classes) item.attunement_classes = classes
+  if (races) item.attunement_races = races
+  if (alignments) item.attunement_alignments = alignments
+}
+
 function newAttackId(inventoryItemId: string, index: number, cardCount: number): string {
   const base = `pick-eq:${inventoryItemId}`
   return cardCount <= 1 ? base : `${base}:${index}`
@@ -299,6 +326,7 @@ export function inventoryItemFromCatalog(input: {
   created.catalog_slug = entry.slug
   created.qty = qty
   created.notes = 'Из справочника'
+  copyAttunementMeta(created, (entry.data ?? {}) as Record<string, unknown>)
 
   if (entry.kind === 'weapon') {
     const parsed = parseWeaponCatalogData(entry.data ?? {})

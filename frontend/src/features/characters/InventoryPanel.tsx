@@ -309,6 +309,8 @@ type InventoryPanelProps = {
   autoAc?: number
   acHint?: string
   attunementFilled?: number
+  /** Character limit (3, or 4/5/6 for an artificer). */
+  attunementLimit?: number
   onOpenAttunement?: () => void
   /**
    * Open header CoinPad. When omitted, panel opens its own CoinPadDialog
@@ -334,6 +336,7 @@ export function InventoryPanel({
   autoAc,
   acHint,
   attunementFilled,
+  attunementLimit = MAX_ATTUNEMENTS,
   onOpenAttunement,
   onOpenCoins,
   favoriteConsumableIds = [],
@@ -1201,16 +1204,18 @@ export function InventoryPanel({
                     type="button"
                     className="inventory-summary__chip inventory-summary__chip--action"
                     onClick={onOpenAttunement}
-                    title={`Настроенные предметы: ${attunementFilled} из ${MAX_ATTUNEMENTS}. Магические вещи часто требуют настройки перед использованием свойств.`}
+                    title={`Настроенные предметы: ${attunementFilled} из ${attunementLimit}. Магические вещи часто требуют настройки перед использованием свойств.${attunementFilled > attunementLimit ? ' Сверх лимита не действуют.' : ''}`}
                   >
-                    Настроенные: {attunementFilled}/{MAX_ATTUNEMENTS}
+                    Настроенные: {attunementFilled}/{attunementLimit}
+                    {attunementFilled > attunementLimit ? ' · сверх лимита' : ''}
                   </button>
                 ) : (
                   <span
                     className="inventory-summary__chip"
-                    title={`Настроенные предметы: ${attunementFilled} из ${MAX_ATTUNEMENTS}`}
+                    title={`Настроенные предметы: ${attunementFilled} из ${attunementLimit}${attunementFilled > attunementLimit ? '. Сверх лимита не действуют.' : ''}`}
                   >
-                    Настроенные: {attunementFilled}/{MAX_ATTUNEMENTS}
+                    Настроенные: {attunementFilled}/{attunementLimit}
+                    {attunementFilled > attunementLimit ? ' · сверх лимита' : ''}
                   </span>
                 )
               ) : null}

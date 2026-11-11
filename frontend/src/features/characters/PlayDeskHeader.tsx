@@ -59,6 +59,8 @@ type PlayDeskHeaderProps = {
   raceName: string
   className: string
   alignment?: string
+  /** Shown as the who-line tooltip when the stored text is not a catalog alignment. */
+  alignmentHint?: string
   /** Rules edition label in who line (2014 / 2024). */
   rulesEdition?: string
   level: number
@@ -125,6 +127,7 @@ export function PlayDeskHeader({
   raceName,
   className,
   alignment = '',
+  alignmentHint = '',
   rulesEdition = '2014',
   level,
   experience,
@@ -308,9 +311,11 @@ export function PlayDeskHeader({
               type="button"
               className="play-desk-header__identity play-desk-header__sub--btn"
               title={
-                alignmentLabel
-                  ? 'Открыть основное (мировоззрение, предыстория…)'
-                  : 'Мировоззрение не задано — нажми, чтобы указать'
+                alignmentHint
+                  ? alignmentHint
+                  : alignmentLabel
+                    ? 'Открыть основное (мировоззрение, предыстория…)'
+                    : 'Мировоззрение не задано — нажми, чтобы указать'
               }
               onClick={onOpenIdentity}
             >

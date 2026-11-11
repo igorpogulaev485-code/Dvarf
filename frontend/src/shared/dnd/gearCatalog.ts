@@ -113,7 +113,7 @@ export type GearEffect =
   | { type: 'attack_bonus'; value: number }
   | { type: 'damage_bonus'; value: number }
   | { type: 'ability_score'; ability: AbilityScoreKey; value: number }
-  | { type: 'ability_mod'; ability: AbilityScoreKey; value: number }
+  | { type: 'ability_mod'; ability: AbilityScoreKey; value: number; max?: number }
   | { type: 'skill_bonus'; skill: string; value: number }
   | { type: 'save_bonus'; ability?: AbilityScoreKey; value: number }
   | { type: 'sense'; sense: string; range_ft?: number }

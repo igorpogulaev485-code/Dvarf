@@ -27,10 +27,9 @@ import {
 import { totalCharacterLevel } from '../../shared/dnd/classLevels'
 import { readAttunements } from '../characters/attunement'
 import { readClassLevels } from '../characters/classLevels'
-import {
-  aggregateGearEffects,
-  applyGearAbilityScores,
-} from '../characters/gearEffects'
+import { aggregateGearEffects } from '../characters/gearEffects'
+import { abilitiesWithGear } from '../characters/effectiveAbilities'
+import { attunementGateFromSheet } from '../characters/attunementRules'
 import { equippedArmorPieces, readInventory } from '../characters/inventory'
 import {
   applyBonusStack,
@@ -50,6 +49,43 @@ import {
 } from '../../shared/dnd/classMovement'
 import { asProfBonus } from './classicPrintShared'
 import { abilityScore, combatField } from './fromApi'
+
+/** Scores the blank should print: base + bonuses + item floors. */
+export function classicEffectiveAbilities(
+  character: CharacterDetail,
+): Record<AbilityKey, number> {
+  const sheet = asRecord(character.sheet)
+  const inventory = readInventory(sheet)
+  const classes = readClassLevels(sheet, {
+    className: character.class_name ?? '',
+    level: character.level,
+    subclassName: String(asRecord(sheet.identity).subclass_name ?? ''),
+    classCatalogId: null,
+  })
+  return abilitiesWithGear({
+    base: readAbilityScores(character),
+    modifiers: readModifiers(sheet),
+    items: inventory.items,
+    attunements: readAttunements(sheet),
+    classes,
+    featurePicks: readFeaturePicks(sheet.feature_picks),
+    proficiencyBonus: Number(asProfBonus(character)),
+    level: totalCharacterLevel(classes),
+    gate: attunementGateFromSheet({
+      sheet,
+      className: character.class_name,
+      level: character.level,
+    }),
+  })
+}
+
+function sheetGate(character: CharacterDetail) {
+  return attunementGateFromSheet({
+    sheet: asRecord(character.sheet),
+    className: character.class_name,
+    level: character.level,
+  })
+}
 
 function readAbilityScores(character: CharacterDetail): Record<AbilityKey, number> {
   const out = {} as Record<AbilityKey, number>
@@ -80,9 +116,9 @@ export function classicAutoArmorClass(character: CharacterDetail): number {
   const gear = aggregateGearEffects({
     items: inventory.items,
     attunements,
+    gate: sheetGate(character),
   })
-  const baseAbilities = readAbilityScores(character)
-  const abilities = applyGearAbilityScores(baseAbilities, gear)
+  const abilities = classicEffectiveAbilities(character)
   const mods = {
     str: abilityModifier(abilities.str),
     dex: abilityModifier(abilities.dex),
@@ -180,12 +216,7 @@ export function classicDisplayAc(character: CharacterDetail): string {
 export function classicDisplayInitiative(character: CharacterDetail): string {
   const override = readNullableCombatNumber(character, 'initiative')
   const sheet = asRecord(character.sheet)
-  const inventory = readInventory(sheet)
-  const gear = aggregateGearEffects({
-    items: inventory.items,
-    attunements: readAttunements(sheet),
-  })
-  const abilities = applyGearAbilityScores(readAbilityScores(character), gear)
+  const abilities = classicEffectiveAbilities(character)
   const mods = {
     str: abilityModifier(abilities.str),
     dex: abilityModifier(abilities.dex),
@@ -247,6 +278,7 @@ export function classicDisplaySpeed(character: CharacterDetail): string {
   const gear = aggregateGearEffects({
     items: inventory.items,
     attunements: readAttunements(sheet),
+    gate: sheetGate(character),
   })
   const race = readAppliedRaceGrant(sheet.race_grant)
   const classes = readClassLevels(sheet, {

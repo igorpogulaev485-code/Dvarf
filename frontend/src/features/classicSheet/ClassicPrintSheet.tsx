@@ -8,7 +8,6 @@ import {
   formatModifier,
 } from '../characters/sheetTypes'
 import {
-  abilityScore,
   applyClassicEdits,
   combatField,
   equipmentItemsLine,
@@ -68,7 +67,12 @@ import {
   clampMarks,
   numOrNull,
 } from './classicPrintShared'
-import { classicCombatDisplay } from './classicDerivedCombat'
+import { classicCombatDisplay, classicEffectiveAbilities } from './classicDerivedCombat'
+import {
+  ALIGNMENTS,
+  alignmentNeedsClarification,
+  recognizeAlignment,
+} from '../../shared/dnd/alignments'
 import {
   readClassicSheetLayout,
   type ClassicSheetLayout,
@@ -114,9 +118,17 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
       ? [[]]
       : chunkClassicNotePages(trailingNotes)
   const spellCardPages = chunkSpellCardPages(classicSpellCardFaces(c))
+  const scores = classicEffectiveAbilities(c)
+  const alignmentRaw = String(identityField(c, 'alignment') ?? '')
+  const alignmentText = String(identityField(c, 'alignment_text') ?? '')
+  const alignmentSlug = recognizeAlignment(alignmentRaw) ?? ''
+  const alignmentUnparsed = alignmentNeedsClarification({
+    alignment: alignmentSlug,
+    alignmentText: alignmentText || (alignmentSlug ? '' : alignmentRaw),
+  })
   const passivePerception =
     10 +
-    abilityModifier(abilityScore(c, 'wis')) +
+    abilityModifier(scores.wis) +
     (skillFlags(c, 'perception').is_proficient ? proficiency : 0) +
     (skillFlags(c, 'perception').is_expertise ? proficiency : 0)
 
@@ -173,10 +185,25 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
             </label>
             <label>
               <span>Мировоззрение</span>
-              <input
-                value={String(identityField(c, 'alignment') ?? '')}
-                onChange={(e) => patch({ identity: { alignment: e.target.value || null } })}
-              />
+              <select
+                value={alignmentSlug}
+                onChange={(e) =>
+                  patch({
+                    identity: {
+                      alignment: e.target.value || null,
+                      alignment_text: null,
+                    },
+                  })
+                }
+              >
+                <option value="">—</option>
+                {ALIGNMENTS.map((row) => (
+                  <option key={row.slug} value={row.slug}>
+                    {row.nameRu}
+                  </option>
+                ))}
+              </select>
+              {alignmentUnparsed ? <span>Уточните мировоззрение</span> : null}
             </label>
             <label>
               <span>Опыт</span>
@@ -199,13 +226,13 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                     <div className="classic-ability__label">{ABILITY_NAMES[key]}</div>
                     <input
                       type="number"
-                      value={abilityScore(c, key)}
+                      value={scores[key]}
                       onChange={(e) =>
                         patch({ abilities: { [key]: Number(e.target.value) || 0 } })
                       }
                     />
                     <div className="classic-ability__mod">
-                      {formatModifier(abilityModifier(abilityScore(c, key)))}
+                      {formatModifier(abilityModifier(scores[key]))}
                     </div>
                   </div>
                 ))}
@@ -239,7 +266,7 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                       />
                       <strong>
                         {formatModifier(
-                          abilityModifier(abilityScore(c, key)) +
+                          abilityModifier(scores[key]) +
                             (isSaveProficient(c, key) ? proficiency : 0),
                         )}
                       </strong>
@@ -252,7 +279,7 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                   {SKILL_DEFS.map((skill) => {
                     const flags = skillFlags(c, skill.key)
                     const bonus =
-                      abilityModifier(abilityScore(c, skill.base)) +
+                      abilityModifier(scores[skill.base]) +
                       (flags.is_expertise ? proficiency * 2 : flags.is_proficient ? proficiency : 0)
                     return (
                       <div className="classic-check" key={skill.key}>

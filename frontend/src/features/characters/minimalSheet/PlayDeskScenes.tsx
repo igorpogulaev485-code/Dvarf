@@ -6,7 +6,7 @@ import { type RulesEdition } from '../../../shared/api/characters'
 import { applyConcentrationChangeToCompanions, concentrationEndNotice } from '../spellCompanions'
 import { AttacksPanel, syncAttacksHeldFromInventory } from '../AttacksPanel'
 import { AttunementDialog } from '../AttunementDialog'
-import { filledAttunementCount } from '../attunement'
+import { filledAttunementCount, maxAttunementsForClasses } from '../attunement'
 import { InventoryPanel } from '../InventoryPanel'
 import { AttacksSettingsDialog } from '../AttacksSettingsDialog'
 import { SpellsPanel } from '../SpellsPanel'
@@ -212,12 +212,13 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
       <InventoryPanel
         edition={model.baseCharacter.rules_edition as RulesEdition}
         inventory={model.draft.inventory}
-        strengthScore={model.draft.abilities.str}
+        strengthScore={model.effectiveAbilities?.str ?? model.draft.abilities.str}
         armorProficiency={model.draft.identity.armor}
         weapons={model.draft.weapons}
         autoAc={model.armorClass.ac}
         acHint={model.armorClass.summary}
         attunementFilled={filledAttunementCount(model.draft.attunements)}
+        attunementLimit={maxAttunementsForClasses(model.draft.classes)}
         favoriteConsumableIds={model.draft.sheetUi.combatConsumableFavoriteIds}
         onToggleConsumableFavorite={model.toggleCombatFavorite}
         onCastScroll={(itemId) => model.setDeskCastScrollId(itemId)}
@@ -252,7 +253,26 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         onClose={() => model.setAttunementDialogOpen(false)}
         attunements={model.draft.attunements}
         inventoryItems={model.draft.inventory.items}
+        character={{
+          classes: model.draft.classes,
+          raceCatalogId: model.draft.raceCatalogId,
+          raceSlug: model.draft.raceGrant?.slug ?? null,
+          raceParentSlug: model.draft.raceGrant?.parentSlug ?? null,
+          alignmentSlug: model.draft.identity.alignment,
+          alignmentUnresolved: Boolean(model.draft.identity.alignmentText),
+        }}
         onChange={model.applyAttunements}
+        onPatchItem={(itemId, patch) =>
+          model.setDraft((prev) => ({
+            ...prev,
+            inventory: {
+              ...prev.inventory,
+              items: prev.inventory.items.map((item) =>
+                item.id === itemId ? { ...item, ...patch } : item,
+              ),
+            },
+          }))
+        }
       />
 
       </div>

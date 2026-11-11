@@ -63,6 +63,7 @@ function emptyIdentity(): BackgroundGrantDraftSlice['identity'] {
     background: '',
     backgroundSlug: null,
     alignment: '',
+    alignmentText: '',
     gender: null,
     size: 'medium',
     darkvision: 0,

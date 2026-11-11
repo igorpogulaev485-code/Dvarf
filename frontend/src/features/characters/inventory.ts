@@ -90,6 +90,17 @@ export type InventoryItem = {
   wear_slot?: WearSlot | null
   /** Magic item needs attunement. */
   requires_attunement?: boolean
+  /** Shared family (amulet +1/+2, giant belts). */
+  family_slug?: string | null
+  variant_key?: string | null
+  /** Belts of giant strength: only one of the family can be attuned. */
+  single_attunement_family?: boolean
+  attunement_classes?: string[]
+  attunement_races?: string[]
+  attunement_alignments?: string[]
+  /** Robe of the Archmagi: color must match alignment. */
+  alignment_color_gate?: boolean
+  robe_color?: 'white' | 'gray' | 'black' | null
   /** Typed catalog effects (ac_bonus, sense, …) — active when equipped (+ attuned). */
   effects?: GearEffect[]
   /**
@@ -170,6 +181,19 @@ function readCoins(raw: unknown): CoinPurse {
   }
 }
 
+function readSlugList(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined
+  const list = value
+    .filter((item): item is string => typeof item === 'string' && Boolean(item.trim()))
+    .map((item) => item.trim())
+  return list.length ? list : undefined
+}
+
+function readRobeColor(value: unknown): 'white' | 'gray' | 'black' | null {
+  if (value === 'white' || value === 'gray' || value === 'black') return value
+  return null
+}
+
 function readScrollSpell(raw: unknown): ScrollSpellBinding | null {
   if (!raw || typeof raw !== 'object') return null
   const row = raw as Record<string, unknown>
@@ -217,6 +241,23 @@ function readItem(raw: unknown, index: number): InventoryItem {
     focus_kind: readFocusKind(row.focus_kind),
     wear_slot: readWearSlot(row.wear_slot),
     requires_attunement: Boolean(row.requires_attunement),
+    family_slug: typeof row.family_slug === 'string' ? row.family_slug : null,
+    variant_key: typeof row.variant_key === 'string' ? row.variant_key : null,
+    single_attunement_family: row.single_attunement_family === true,
+    attunement_classes:
+      readSlugList(row.attunement_classes) ??
+      readSlugList(row.attune_classes) ??
+      readSlugList(row.required_classes),
+    attunement_races:
+      readSlugList(row.attunement_races) ??
+      readSlugList(row.attune_races) ??
+      readSlugList(row.required_races),
+    attunement_alignments:
+      readSlugList(row.attunement_alignments) ??
+      readSlugList(row.attune_alignments) ??
+      readSlugList(row.required_alignments),
+    alignment_color_gate: row.alignment_color_gate === true,
+    robe_color: readRobeColor(row.robe_color),
     effects: readEffects(row.effects),
     scroll_spell: readScrollSpell(row.scroll_spell),
   }
@@ -299,6 +340,18 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         focus_kind: item.focus_kind ?? null,
         wear_slot: item.wear_slot ?? null,
         requires_attunement: Boolean(item.requires_attunement),
+        ...(item.family_slug ? { family_slug: item.family_slug } : {}),
+        ...(item.variant_key ? { variant_key: item.variant_key } : {}),
+        ...(item.single_attunement_family ? { single_attunement_family: true } : {}),
+        ...(item.attunement_classes?.length
+          ? { attunement_classes: item.attunement_classes }
+          : {}),
+        ...(item.attunement_races?.length ? { attunement_races: item.attunement_races } : {}),
+        ...(item.attunement_alignments?.length
+          ? { attunement_alignments: item.attunement_alignments }
+          : {}),
+        ...(item.alignment_color_gate ? { alignment_color_gate: true } : {}),
+        ...(item.robe_color ? { robe_color: item.robe_color } : {}),
         effects: item.effects ?? [],
         ...(item.scroll_spell
           ? {

@@ -66,6 +66,7 @@ GEAR_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("gear_bmt_armor_v1.json"),
     WaveSpec("gear_bmt_wondrous_v1.json"),
     WaveSpec("gear_dmg_artifacts_v1.json"),
+    WaveSpec("gear_i02_attunement_v1.json"),
 )
 
 # I22. Slugs stay; rows are hidden, not deleted.
@@ -103,6 +104,15 @@ ARMOR_RULE_KEYS = (
     "base_ac",
     "max_dex_bonus",
     "strength_requirement",
+)
+# Family and color gates are item rules, not a player's rename or notes.
+FAMILY_RULE_KEYS = (
+    "family_slug",
+    "variant_key",
+    "family_label_ru",
+    "variant_label_ru",
+    "single_attunement_family",
+    "alignment_color_gate",
 )
 
 
@@ -658,6 +668,11 @@ def _copy_rules(item: dict[str, Any], catalog: GearRecord) -> dict[str, Any]:
             isinstance(key, str) and key.startswith("attunement_")
         ):
             updated[key] = value
+    for key in FAMILY_RULE_KEYS:
+        if key in data:
+            updated[key] = data[key]
+    if not updated.get("catalog_slug"):
+        updated["catalog_slug"] = catalog.slug
     if catalog.kind == "armor":
         for key in ARMOR_RULE_KEYS:
             if key in data:

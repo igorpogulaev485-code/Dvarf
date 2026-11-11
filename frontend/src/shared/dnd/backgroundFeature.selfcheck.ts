@@ -77,6 +77,7 @@ const emptySlice = (): BackgroundGrantDraftSlice => ({
     background: 'Преступник',
     backgroundSlug: 'criminal',
     alignment: '',
+    alignmentText: '',
     gender: null,
     size: '',
     darkvision: 0,
