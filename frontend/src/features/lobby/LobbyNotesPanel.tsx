@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ApiRequestError } from '../../shared/api/client'
 import {
   createNote,
@@ -71,6 +71,28 @@ export function LobbyNotesPanel({
     setNotes(list)
   }, [lobbyId, filter])
 
+  const notesFlight = useRef<Promise<void> | null>(null)
+  const notesAgain = useRef(false)
+  const pullNotes = useCallback(() => {
+    if (notesFlight.current) {
+      notesAgain.current = true
+      return
+    }
+    const run = () => {
+      const task = reload()
+        .catch(() => undefined)
+        .finally(() => {
+          notesFlight.current = null
+          if (notesAgain.current) {
+            notesAgain.current = false
+            run()
+          }
+        })
+      notesFlight.current = task
+    }
+    run()
+  }, [reload])
+
   useEffect(() => {
     let active = true
     reload().catch((err: unknown) => {
@@ -82,29 +104,23 @@ export function LobbyNotesPanel({
     }
   }, [reload, onError])
 
-  useLobbyRealtime(lobbyId, (data) => {
-    if (data.type === 'note_upsert') {
-      const note = data.note as Note
-      setNotes((prev) => {
-        const without = prev.filter((n) => n.id !== note.id)
-        if (filter !== 'all' && note.scope !== filter) return without
-        if (!isOwner && note.scope === 'master') return without
-        if (
-          !isOwner &&
-          note.scope === 'personal' &&
-          !ownCharacterOptions.some((c) => c.id === note.character_id)
-        ) {
-          return without
-        }
-        return [note, ...without].sort(
-          (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
-        )
-      })
-    }
-    if (data.type === 'note_delete' && typeof data.note_id === 'string') {
-      setNotes((prev) => prev.filter((n) => n.id !== data.note_id))
-    }
-  })
+  useLobbyRealtime(
+    lobbyId,
+    (data) => {
+      // Тело заметки с сокета не берём: личные и мастерские видны только после своего GET.
+      if (
+        data.type === 'notes_changed' ||
+        data.type === 'note_upsert' ||
+        data.type === 'note_delete' ||
+        data.type === 'lobby_resync'
+      ) {
+        pullNotes()
+      }
+    },
+    () => {
+      pullNotes()
+    },
+  )
 
   async function run(action: () => Promise<void>) {
     setBusy(true)

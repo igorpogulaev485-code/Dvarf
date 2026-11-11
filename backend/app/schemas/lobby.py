@@ -676,6 +676,10 @@ class SessionCombatantOut(BaseModel):
     xp: int | None = None
     """Сколько поверженных из пачки уже учтены при раздаче XP."""
     xp_claimed_count: int = 0
+    damage_resistances: list[str] = Field(default_factory=list)
+    damage_immunities: list[str] = Field(default_factory=list)
+    damage_vulnerabilities: list[str] = Field(default_factory=list)
+    condition_immunities: list[str] = Field(default_factory=list)
 
 
 class CombatEntryOut(BaseModel):

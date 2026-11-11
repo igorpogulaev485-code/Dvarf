@@ -5,11 +5,16 @@ import { sessionWsUrl, type SessionDetail, type SessionEvent } from '../../share
 type SessionWsMessage =
   | { type: 'session_event'; event: SessionEvent }
   | { type: 'session_update'; session: SessionDetail }
+  | { type: 'session_changed'; session_id?: string; event?: undefined; session?: undefined }
   | { type: 'pong' | 'ping' | string; event?: undefined; session?: undefined }
 
 type Handlers = {
   onEvent?: (event: SessionEvent) => void
   onSessionUpdate?: (session: SessionDetail) => void
+  /** Сигнал без чужого снимка: забрать GET /sessions/{id} своим токеном. */
+  onSessionChanged?: () => void
+  /** Сокет отваливался: один раз добрать состояние, которое могли пропустить. */
+  onReconnect?: () => void
 }
 
 /**
@@ -29,6 +34,7 @@ export function useSessionRealtime(
     if (!token) return
 
     let closed = false
+    let openedOnce = false
     let ws: WebSocket | null = null
     let pingTimer: ReturnType<typeof setInterval> | null = null
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null
@@ -51,13 +57,17 @@ export function useSessionRealtime(
       if (!access || !sessionId) return
       ws = new WebSocket(sessionWsUrl(sessionId, access))
       ws.onopen = () => {
+        if (closed) return
         connectedRef.current = true
+        const isReconnect = openedOnce
+        openedOnce = true
         attempt = 0
         pingTimer = setInterval(() => {
           if (ws?.readyState === WebSocket.OPEN) {
             ws.send('ping')
           }
         }, 25000)
+        if (isReconnect) handlersRef.current.onReconnect?.()
       }
       ws.onmessage = (msg) => {
         try {
@@ -67,6 +77,9 @@ export function useSessionRealtime(
           }
           if (data.type === 'session_update' && data.session) {
             handlersRef.current.onSessionUpdate?.(data.session)
+          }
+          if (data.type === 'session_changed') {
+            handlersRef.current.onSessionChanged?.()
           }
         } catch {
           // ignore non-json

@@ -344,6 +344,24 @@ def _apply_member_damage(member: dict, damage: int) -> None:
     member["hp_current"] = max(0, min(hp_max, next_hp))
 
 
+def _str_list(raw: object) -> list[str]:
+    if not isinstance(raw, list):
+        return []
+    return [item.strip() for item in raw if isinstance(item, str) and item.strip()]
+
+
+def _copy_defenses(data: dict) -> dict[str, list[str]]:
+    return {
+        key: _str_list(data.get(key))
+        for key in (
+            "damage_resistances",
+            "damage_immunities",
+            "damage_vulnerabilities",
+            "condition_immunities",
+        )
+    }
+
+
 def _parse_combatants(raw: object) -> list[dict]:
     if not isinstance(raw, list):
         return []
@@ -394,6 +412,7 @@ def _parse_combatants(raw: object) -> list[dict]:
                 if isinstance(item.get("xp_claimed_count"), int)
                 else (int(item.get("member_count") or 0) if item.get("xp_claimed") else 0),
             ),
+            **_copy_defenses(item),
             "members": members,
             "alive_count": 0,
             "member_count": 0,
@@ -438,6 +457,10 @@ def _combatant_out(row: dict) -> SessionCombatantOut:
         dex_mod=int(row["dex_mod"]) if isinstance(row.get("dex_mod"), int) else None,
         xp=int(row["xp"]) if isinstance(row.get("xp"), int) else None,
         xp_claimed_count=max(0, int(row.get("xp_claimed_count") or 0)),
+        damage_resistances=_str_list(row.get("damage_resistances")),
+        damage_immunities=_str_list(row.get("damage_immunities")),
+        damage_vulnerabilities=_str_list(row.get("damage_vulnerabilities")),
+        condition_immunities=_str_list(row.get("condition_immunities")),
     )
 
 
@@ -583,6 +606,21 @@ def _parse_encounter_templates(raw: object) -> list[EncounterTemplateOut]:
 
 def _templates_to_storage(templates: list[EncounterTemplateOut]) -> list[dict]:
     return [t.model_dump(mode="json") for t in templates]
+
+
+def _roll_audience(is_master_roll: bool, owner_id: UUID) -> set[UUID] | None:
+    """Скрытый бросок мастера уходит только мастеру. Остальные события — всей комнате."""
+    if is_master_roll:
+        return {owner_id}
+    return None
+
+
+async def _broadcast_session_changed(session_id: UUID) -> None:
+    """Сигнал без чужой видимости: клиент сам берёт GET /sessions/{id}."""
+    await session_hub.broadcast(
+        session_id,
+        {"type": "session_changed", "session_id": str(session_id)},
+    )
 
 
 class LobbyService:
@@ -2086,6 +2124,7 @@ class LobbyService:
         await session_hub.broadcast(
             session.id,
             {"type": "session_event", "event": out.model_dump(mode="json")},
+            only_user_ids=_roll_audience(is_master_roll, lobby.owner_id),
         )
         return out
 
@@ -2182,10 +2221,7 @@ class LobbyService:
 
         self.db.commit()
         detail = self._session_detail(session, lobby, user)
-        await session_hub.broadcast(
-            session.id,
-            {"type": "session_update", "session": detail.model_dump(mode="json")},
-        )
+        await _broadcast_session_changed(session.id)
         return detail
 
     def share_effect(
@@ -2346,10 +2382,7 @@ class LobbyService:
         flag_modified(character, "sheet")
         self.db.commit()
         detail = self._session_detail(session, lobby, user)
-        await session_hub.broadcast(
-            session.id,
-            {"type": "session_update", "session": detail.model_dump(mode="json")},
-        )
+        await _broadcast_session_changed(session.id)
         return detail
 
     async def patch_seat_companion(
@@ -2391,10 +2424,7 @@ class LobbyService:
         flag_modified(character, "sheet")
         self.db.commit()
         detail = self._session_detail(session, lobby, user)
-        await session_hub.broadcast(
-            session.id,
-            {"type": "session_update", "session": detail.model_dump(mode="json")},
-        )
+        await _broadcast_session_changed(session.id)
         return detail
 
     async def delete_seat_companion(
@@ -2418,10 +2448,7 @@ class LobbyService:
         flag_modified(character, "sheet")
         self.db.commit()
         detail = self._session_detail(session, lobby, user)
-        await session_hub.broadcast(
-            session.id,
-            {"type": "session_update", "session": detail.model_dump(mode="json")},
-        )
+        await _broadcast_session_changed(session.id)
         return detail
 
     def _require_session_owner(self, user: User, session_id: UUID) -> tuple[PlaySession, Lobby]:
@@ -2519,10 +2546,7 @@ class LobbyService:
 
         detail = self._session_detail(session, lobby, user)
         out_event = SessionEventOut.model_validate(event)
-        await session_hub.broadcast(
-            session.id,
-            {"type": "session_update", "session": detail.model_dump(mode="json")},
-        )
+        await _broadcast_session_changed(session.id)
         await session_hub.broadcast(
             session.id,
             {"type": "session_event", "event": out_event.model_dump(mode="json")},
@@ -2594,10 +2618,7 @@ class LobbyService:
 
         detail = self._session_detail(session, lobby, user)
         out_event = SessionEventOut.model_validate(event)
-        await session_hub.broadcast(
-            session.id,
-            {"type": "session_update", "session": detail.model_dump(mode="json")},
-        )
+        await _broadcast_session_changed(session.id)
         await session_hub.broadcast(
             session.id,
             {"type": "session_event", "event": out_event.model_dump(mode="json")},
@@ -2668,6 +2689,7 @@ class LobbyService:
                     else xp_from_cr(data.get("cr"))
                 ),
                 "xp_claimed_count": 0,
+                **_copy_defenses(data),
             }
         else:
             name = (payload.name or "").strip()
@@ -2697,6 +2719,7 @@ class LobbyService:
                 "dex_mod": None,
                 "xp": int(payload.xp) if payload.xp is not None else None,
                 "xp_claimed_count": 0,
+                **_copy_defenses({}),
             }
 
         combatants = _parse_combatants(session.combatants)
@@ -2727,10 +2750,7 @@ class LobbyService:
         flag_modified(session, "combatants")
         self.db.commit()
         detail = self._session_detail(session, lobby, user)
-        await session_hub.broadcast(
-            session.id,
-            {"type": "session_update", "session": detail.model_dump(mode="json")},
-        )
+        await _broadcast_session_changed(session.id)
         return detail
 
     async def patch_combatant(
@@ -2806,10 +2826,7 @@ class LobbyService:
         flag_modified(session, "combatants")
         self.db.commit()
         detail = self._session_detail(session, lobby, user)
-        await session_hub.broadcast(
-            session.id,
-            {"type": "session_update", "session": detail.model_dump(mode="json")},
-        )
+        await _broadcast_session_changed(session.id)
         return detail
 
     async def delete_combatant(
@@ -2829,10 +2846,7 @@ class LobbyService:
         flag_modified(session, "combatants")
         self.db.commit()
         detail = self._session_detail(session, lobby, user)
-        await session_hub.broadcast(
-            session.id,
-            {"type": "session_update", "session": detail.model_dump(mode="json")},
-        )
+        await _broadcast_session_changed(session.id)
         return detail
 
     async def start_combat(
@@ -2870,10 +2884,7 @@ class LobbyService:
         flag_modified(session, "combat")
         self.db.commit()
         detail = self._session_detail(session, lobby, user)
-        await session_hub.broadcast(
-            session.id,
-            {"type": "session_update", "session": detail.model_dump(mode="json")},
-        )
+        await _broadcast_session_changed(session.id)
         return detail
 
     async def patch_combat(
@@ -2900,10 +2911,7 @@ class LobbyService:
             flag_modified(session, "combat")
             self.db.commit()
             detail = self._session_detail(session, lobby, user)
-            await session_hub.broadcast(
-                session.id,
-                {"type": "session_update", "session": detail.model_dump(mode="json")},
-            )
+            await _broadcast_session_changed(session.id)
             return detail
 
         if payload.entries is not None:
@@ -2959,10 +2967,7 @@ class LobbyService:
         flag_modified(session, "combat")
         self.db.commit()
         detail = self._session_detail(session, lobby, user)
-        await session_hub.broadcast(
-            session.id,
-            {"type": "session_update", "session": detail.model_dump(mode="json")},
-        )
+        await _broadcast_session_changed(session.id)
         return detail
 
     async def award_xp(
@@ -3087,10 +3092,7 @@ class LobbyService:
 
         detail = self._session_detail(session, lobby, user)
         out_event = SessionEventOut.model_validate(event)
-        await session_hub.broadcast(
-            session.id,
-            {"type": "session_update", "session": detail.model_dump(mode="json")},
-        )
+        await _broadcast_session_changed(session.id)
         await session_hub.broadcast(
             session.id,
             {"type": "session_event", "event": out_event.model_dump(mode="json")},
@@ -3292,10 +3294,7 @@ class LobbyService:
 
         detail = self._session_detail(session, lobby, user)
         out_event = SessionEventOut.model_validate(event)
-        await session_hub.broadcast(
-            session.id,
-            {"type": "session_update", "session": detail.model_dump(mode="json")},
-        )
+        await _broadcast_session_changed(session.id)
         await session_hub.broadcast(
             session.id,
             {"type": "session_event", "event": out_event.model_dump(mode="json")},
