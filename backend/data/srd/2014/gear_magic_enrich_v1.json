@@ -1,0 +1,2532 @@
+{
+  "version": 1,
+  "notes": "W2: enrich existing DMG/SRD magic weapon/armor — combat stats, wear_slot, magic_bonus, effects MVP, description_ru, cost guide; deactivate +N varies stubs.",
+  "updates": [
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "adamantine_armor",
+      "name_ru": "Адамантиновый доспех",
+      "name_en": "Adamantine Armor",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "body_armor",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "description_ru": "Адамантиновый доспех: критические удары не усилены.",
+        "effects": [
+          {
+            "type": "sheet_flag",
+            "flag": "critical_hit_immunity",
+            "value": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Критические попадания по вам становятся обычными. Шаблон: латы (в правилах — любой средний/тяжёлый кроме шкуры)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "animated_shield",
+      "name_ru": "Оживший щит",
+      "name_en": "Animated Shield",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 6,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "shield",
+        "magic_bonus": 0,
+        "base_armor_slug": "shield",
+        "description_ru": "Оживший щит (+2 КД), парящий рядом с вами.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Бонусным действием щит парит и защищает (+2 КД), освобождая руки."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "armor",
+      "name_ru": "Доспех +1, +2 или +3",
+      "name_en": "Armor, +1, +2, or +3",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "body_armor",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "description_ru": "Заглушка семьи — используйте +1 / +2 / +3.",
+        "effects": [],
+        "family_slug": "armor_bonus",
+        "family_label_ru": "Доспех +1 / +2 / +3",
+        "variant_key": "varies",
+        "variant_label_ru": "варьируется"
+      },
+      "is_active": false
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "armor_1",
+      "name_ru": "Доспех +1",
+      "name_en": "Armor, +1",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "body_armor",
+        "magic_bonus": 1,
+        "base_armor_slug": "plate_armor",
+        "description_ru": "Бонус +1 к КД. Форма — любой доспех (шаблон: латы).",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          }
+        ],
+        "variant_key": "1",
+        "variant_label_ru": "+1",
+        "family_slug": "armor_bonus",
+        "family_label_ru": "Доспех +1 / +2 / +3"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "armor_2",
+      "name_ru": "Доспех +2",
+      "name_en": "Armor, +2",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "body_armor",
+        "magic_bonus": 2,
+        "base_armor_slug": "plate_armor",
+        "description_ru": "Бонус +2 к КД.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 2
+          }
+        ],
+        "variant_key": "2",
+        "variant_label_ru": "+2",
+        "family_slug": "armor_bonus",
+        "family_label_ru": "Доспех +1 / +2 / +3"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "armor_3",
+      "name_ru": "Доспех +3",
+      "name_en": "Armor, +3",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": false,
+        "wear_slot": "body_armor",
+        "magic_bonus": 3,
+        "base_armor_slug": "plate_armor",
+        "description_ru": "Бонус +3 к КД.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 3
+          }
+        ],
+        "variant_key": "3",
+        "variant_label_ru": "+3",
+        "family_slug": "armor_bonus",
+        "family_label_ru": "Доспех +1 / +2 / +3"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "armor_of_invulnerability",
+      "name_ru": "Доспех неуязвимости",
+      "name_en": "Armor of Invulnerability",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "description_ru": "Доспех неуязвимости к немагическому урону (заряды).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "armor_invuln",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Заряд: на 10 мин сопротивление немагическому урону; раз в день — неуязвимость 10 мин к немагии."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "armor_of_resistance",
+      "name_ru": "Доспех сопротивления",
+      "name_en": "Armor of Resistance",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "description_ru": "Доспех сопротивления выбранному типу урона.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Сопротивление одному типу урона (определяется при находке). Шаблон: латы."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "armor_of_vulnerability",
+      "name_ru": "Доспех уязвимости",
+      "name_en": "Armor of Vulnerability",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "description_ru": "Проклятый доспех уязвимости.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Проклятие: уязвимость к одному типу; сопротивление двум другим (DMG)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "arrow_catching_shield",
+      "name_ru": "Щит ловли стрел",
+      "name_en": "Arrow-Catching Shield",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 6,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "shield",
+        "magic_bonus": 0,
+        "base_armor_slug": "shield",
+        "description_ru": "Щит +2, ловящий стрелы.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "+2 КД щита; дополнительно +2 КД против дальнобойных атак оружия; перехват снаряда (реакция)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "demon_armor",
+      "name_ru": "Демонический доспех",
+      "name_en": "Demon Armor",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 19,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 1,
+        "base_armor_slug": "plate_armor",
+        "description_ru": "Демонические латы +1 с когтями; прокляты.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Проклятие; атаки когтями 1к8+Сил+1; speak Abyssal. Снятие — remove curse и т.п."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail",
+      "name_ru": "Доспех из чешуи дракона",
+      "name_en": "Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 15,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 45,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 1,
+        "base_armor_slug": "scale_mail",
+        "description_ru": "Чешуя дракона +1 (выберите цвет в семье вариантов).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Выберите цвет чешуи — сопротивление соответствующему урону; преимущество на спас vs дыхание того типа."
+          }
+        ],
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "generic",
+        "variant_label_ru": "тип дракона"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_black",
+      "name_ru": "Доспех из чешуи чёрного дракона",
+      "name_en": "Black Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 15,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 45,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 1,
+        "base_armor_slug": "scale_mail",
+        "description_ru": "Доспех из чешуи чёрного дракона (+1 КД, сопротивление: acid).",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "acid"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания чёрного дракона."
+          }
+        ],
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "black",
+        "variant_label_ru": "чёрного"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_blue",
+      "name_ru": "Доспех из чешуи синего дракона",
+      "name_en": "Blue Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 15,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 45,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 1,
+        "base_armor_slug": "scale_mail",
+        "description_ru": "Доспех из чешуи синего дракона (+1 КД, сопротивление: lightning).",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "lightning"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания синего дракона."
+          }
+        ],
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "blue",
+        "variant_label_ru": "синего"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_brass",
+      "name_ru": "Доспех из чешуи латунного дракона",
+      "name_en": "Brass Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 15,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 45,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 1,
+        "base_armor_slug": "scale_mail",
+        "description_ru": "Доспех из чешуи латунного дракона (+1 КД, сопротивление: fire).",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания латунного дракона."
+          }
+        ],
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "brass",
+        "variant_label_ru": "латунного"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_bronze",
+      "name_ru": "Доспех из чешуи бронзового дракона",
+      "name_en": "Bronze Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 15,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 45,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 1,
+        "base_armor_slug": "scale_mail",
+        "description_ru": "Доспех из чешуи бронзового дракона (+1 КД, сопротивление: lightning).",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "lightning"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания бронзового дракона."
+          }
+        ],
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "bronze",
+        "variant_label_ru": "бронзового"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_copper",
+      "name_ru": "Доспех из чешуи медного дракона",
+      "name_en": "Copper Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 15,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 45,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 1,
+        "base_armor_slug": "scale_mail",
+        "description_ru": "Доспех из чешуи медного дракона (+1 КД, сопротивление: acid).",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "acid"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания медного дракона."
+          }
+        ],
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "copper",
+        "variant_label_ru": "медного"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_gold",
+      "name_ru": "Доспех из чешуи золотого дракона",
+      "name_en": "Gold Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 15,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 45,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 1,
+        "base_armor_slug": "scale_mail",
+        "description_ru": "Доспех из чешуи золотого дракона (+1 КД, сопротивление: fire).",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания золотого дракона."
+          }
+        ],
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "gold",
+        "variant_label_ru": "золотого"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_green",
+      "name_ru": "Доспех из чешуи зелёного дракона",
+      "name_en": "Green Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 15,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 45,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 1,
+        "base_armor_slug": "scale_mail",
+        "description_ru": "Доспех из чешуи зелёного дракона (+1 КД, сопротивление: poison).",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "poison"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания зелёного дракона."
+          }
+        ],
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "green",
+        "variant_label_ru": "зелёного"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_red",
+      "name_ru": "Доспех из чешуи красного дракона",
+      "name_en": "Red Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 15,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 45,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 1,
+        "base_armor_slug": "scale_mail",
+        "description_ru": "Доспех из чешуи красного дракона (+1 КД, сопротивление: fire).",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания красного дракона."
+          }
+        ],
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "red",
+        "variant_label_ru": "красного"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_silver",
+      "name_ru": "Доспех из чешуи серебряного дракона",
+      "name_en": "Silver Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 15,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 45,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 1,
+        "base_armor_slug": "scale_mail",
+        "description_ru": "Доспех из чешуи серебряного дракона (+1 КД, сопротивление: cold).",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "cold"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания серебряного дракона."
+          }
+        ],
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "silver",
+        "variant_label_ru": "серебряного"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_white",
+      "name_ru": "Доспех из чешуи белого дракона",
+      "name_en": "White Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 15,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 45,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 1,
+        "base_armor_slug": "scale_mail",
+        "description_ru": "Доспех из чешуи белого дракона (+1 КД, сопротивление: cold).",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "cold"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания белого дракона."
+          }
+        ],
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "white",
+        "variant_label_ru": "белого"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dwarven_plate",
+      "name_ru": "Дварфийские латы",
+      "name_en": "Dwarven Plate",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 20,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "body_armor",
+        "magic_bonus": 2,
+        "base_armor_slug": "plate_armor",
+        "description_ru": "Дварфийские латы +2 без штрафа скорости тяжёлого доспеха.",
+        "effects": [
+          {
+            "type": "sheet_flag",
+            "flag": "no_heavy_speed_penalty",
+            "value": true
+          },
+          {
+            "type": "custom_note",
+            "text": "+2 к КД; скорость не снижается от тяжести лат."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "elven_chain",
+      "name_ru": "Эльфийская кольчуга",
+      "name_en": "Elven Chain",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 14,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 20,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "body_armor",
+        "magic_bonus": 1,
+        "base_armor_slug": "chain_shirt",
+        "description_ru": "Эльфийская кольчуга (рубаха) +1; носить можно без владения средним.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Владение средним не требуется; без помехи Скрытности. КД уже включает +1."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "glamoured_studded_leather_armor",
+      "name_ru": "Иллюзорный клёпаный кожаный доспех",
+      "name_en": "Glamoured Studded Leather Armor",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "light",
+        "base_ac": 13,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 13,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "body_armor",
+        "magic_bonus": 1,
+        "base_armor_slug": "studded_leather_armor",
+        "description_ru": "Проклёпанная кожа +1 с иллюзией облика.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Бонусным действием — иллюзорный вид одежды/доспеха до снятия."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "mithral_armor",
+      "name_ru": "Мифриловый доспех",
+      "name_en": "Mithral Armor",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 13,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 20,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "body_armor",
+        "magic_bonus": 0,
+        "base_armor_slug": "chain_shirt",
+        "description_ru": "Мифриловый доспех — лёгкий на теле, без шума и требования силы.",
+        "effects": [
+          {
+            "type": "sheet_flag",
+            "flag": "mithral",
+            "value": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Нет помехи Скрытности и требования Силы. Шаблон: кольчужная рубаха (в правилах — любой средний/тяжёлый кроме шкуры)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "plate_armor_of_etherealness",
+      "name_ru": "Латы эфирности",
+      "name_en": "Plate Armor of Etherealness",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "description_ru": "Латы эфирности — шаг в Эфирный План.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "plate_ethereal",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Заряд: etherealness на себя до окончания или до новой команды."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "shield_of_missile_attraction",
+      "name_ru": "Щит притяжения снарядов",
+      "name_en": "Shield of Missile Attraction",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 6,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "shield",
+        "magic_bonus": 0,
+        "base_armor_slug": "shield",
+        "description_ru": "Щит +2; сопротивление урону от дальнобойного оружия, но притягивает снаряды.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "from_ranged_weapons"
+          },
+          {
+            "type": "custom_note",
+            "text": "Проклятие: притягивает дальнобойные атаки в 10 фт к вам."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "spellguard_shield",
+      "name_ru": "Щит защиты от заклинаний",
+      "name_en": "Spellguard Shield",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 6,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "shield",
+        "magic_bonus": 0,
+        "base_armor_slug": "shield",
+        "description_ru": "Щит +2 защиты от заклинаний.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против заклинаний; помеха напад. заклинаниям по вам."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "berserker_axe",
+      "name_ru": "Топор берсерка",
+      "name_en": "Berserker Axe",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к12",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 7,
+        "properties": [
+          "heavy",
+          "two-handed"
+        ],
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "greataxe",
+        "description_ru": "Любой топор +1. При атаке есть шанс впасть в берсерк до конца боя.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Проклятие: ярость в бою; снятие — remove curse и т.п. (DMG)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "dagger_of_venom",
+      "name_ru": "Кинжал яда",
+      "name_en": "Dagger of Venom",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "колющий",
+        "category": "simple",
+        "finesse": true,
+        "ranged": false,
+        "weight_lb": 1,
+        "properties": [
+          "finesse",
+          "light",
+          "monk",
+          "thrown"
+        ],
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "range": {
+          "long": 60,
+          "normal": 20
+        },
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "dagger",
+        "description_ru": "Кинжал +1. Раз в день клинок можно покрыть ядом.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "1/день: яд DC 15 — 2к10 яда при провале (DMG)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "dancing_sword",
+      "name_ru": "Пляшущий меч",
+      "name_en": "Dancing Sword",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Меч +1, который может сражаться отдельно от владельца.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Бонусным действием меч парит и атакует сам; владелец может телепатически направлять."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "defender",
+      "name_ru": "Защитник",
+      "name_en": "Defender",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 3,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Меч +3. Часть бонуса можно перекинуть в защиту.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "custom_note",
+            "text": "Перед атакой можно перевести бонус +1…+3 с атаки/урона в КД до начала следующего хода."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "dragon_slayer",
+      "name_ru": "Убийца драконов",
+      "name_en": "Dragon Slayer",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Оружие +1; особенно губительно для драконов.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "По драконам: +3к6 урона оружия."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "dwarven_thrower",
+      "name_ru": "Метательный молот дварфов",
+      "name_en": "Dwarven Thrower",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "дробящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 2,
+        "properties": [
+          "versatile",
+          "thrown"
+        ],
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 3,
+        "base_weapon_slug": "warhammer",
+        "description_ru": "Боевой молот +3 дварфов; метательный, возвращается.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "custom_note",
+            "text": "Только для дварфа: бросок дальн. 20/60, возврат; +доп. урон по великанам/др."
+          }
+        ],
+        "range": {
+          "normal": 20,
+          "long": 60
+        }
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "flame_tongue",
+      "name_ru": "Язык пламени",
+      "name_en": "Flame Tongue",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Меч +1; по команде вспыхивает пламенем.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Бонусным действием: языки пламени — +2к6 огня к урону; свет."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "frost_brand",
+      "name_ru": "Морозный клинок",
+      "name_en": "Frost Brand",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Меч +1 холода; сопротивление холоду, гасит огонь рядом.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "resistance",
+            "damage_type": "cold"
+          },
+          {
+            "type": "custom_note",
+            "text": "+1к6 холода к урону; гасит немагический огонь в 10 фт."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "giant_slayer",
+      "name_ru": "Убийца великанов",
+      "name_en": "Giant Slayer",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Оружие +1 против великанов.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "По великанам: +2к6 урона; великан может упасть ничком (DC 15 Сил)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "hammer_of_thunderbolts",
+      "name_ru": "Молот громовых ударов",
+      "name_en": "Hammer of Thunderbolts",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "2к6",
+        "damage_type": "дробящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 10,
+        "properties": [
+          "heavy",
+          "two-handed"
+        ],
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "maul",
+        "description_ru": "Молот +1; полный потенциал — с поясом и рукавицами силы.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "С поясом силы великана и рукавицами силы огра: +4 к атаке/урону, метание, гром."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "holy_avenger",
+      "name_ru": "Святой мститель",
+      "name_en": "Holy Avenger",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 3,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Меч +3 паладина — священный мститель.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "custom_note",
+            "text": "Для паладина: +2к10 излучению по исчадиям/нежити; аура защиты от заклинаний 10 фт."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "javelin_of_lightning",
+      "name_ru": "Молниевое копьё",
+      "name_en": "Javelin of Lightning",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "колющий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 2,
+        "properties": [
+          "monk",
+          "thrown"
+        ],
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "range": {
+          "long": 120,
+          "normal": 30
+        },
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "held_main",
+        "magic_bonus": 0,
+        "base_weapon_slug": "javelin",
+        "description_ru": "Метательное копьё; раз в день — разряд молнии.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "1/рассвет: бросок → линия молнии 5×120 фт, 4к6 электричества (лов. пол)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "luck_blade",
+      "name_ru": "Клинок удачи",
+      "name_en": "Luck Blade",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Меч +1 удачи; может хранить wish.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "1 удача/рассвет (реролл); 1d3–3 wish (заряды на клинке)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "mace_of_disruption",
+      "name_ru": "Булава распада",
+      "name_en": "Mace of Disruption",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "дробящий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 4,
+        "properties": [
+          "monk"
+        ],
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "mace",
+        "description_ru": "Булава +1 против нежити и исчадий.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "+2к6 излучению по исчадиям/нежити; сильные могут быть уничтожены (DC 15 Муд)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "mace_of_smiting",
+      "name_ru": "Булава кары",
+      "name_en": "Mace of Smiting",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "дробящий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 4,
+        "properties": [
+          "monk"
+        ],
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "mace",
+        "description_ru": "Булава +1; особенно сильна против конструктов.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "+2к6 силового по конструктам; крит 20 — доп. эффекты по конструкту."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "mace_of_terror",
+      "name_ru": "Булава ужаса",
+      "name_en": "Mace of Terror",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "дробящий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 4,
+        "properties": [
+          "monk"
+        ],
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "mace",
+        "description_ru": "Булава +1 с зарядами ужаса.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "resource",
+            "id": "mace_terror",
+            "max": 3,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Заряд: волна страха 30 фт (DC 15 Муд)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "nine_lives_stealer",
+      "name_ru": "Похититель девяти жизней",
+      "name_en": "Nine Lives Stealer",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 2,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Меч +2, похищающий жизни при критическом ударе.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "custom_note",
+            "text": "Крит по существу с ≤1к10 хитов: DC 15 Хари — мгновенная смерть; 1d8+1 зарядов."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "oathbow",
+      "name_ru": "Клятволук",
+      "name_en": "Oathbow",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 2,
+        "properties": [
+          "ammunition",
+          "heavy",
+          "two-handed"
+        ],
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "range": {
+          "long": 600,
+          "normal": 150
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 0,
+        "base_weapon_slug": "longbow",
+        "description_ru": "Лук клятвы: объявите врага — и стрелы ищут только его.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Клятва против врага: преимущество, +3к6 колющего; помеха по другим, пока цель жива."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "scimitar_of_speed",
+      "name_ru": "Скимитар скорости",
+      "name_en": "Scimitar of Speed",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к6",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": true,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "finesse",
+          "light"
+        ],
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 2,
+        "base_weapon_slug": "scimitar",
+        "description_ru": "Скимитар +2; бонусная атака этим оружием.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "custom_note",
+            "text": "Бонусным действием — одна атака этим скимитаром."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "sun_blade",
+      "name_ru": "Солнечный клинок",
+      "name_en": "Sun Blade",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к8",
+        "damage_type": "излучение",
+        "category": "martial",
+        "finesse": true,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "finesse",
+          "versatile"
+        ],
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 2,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Полуторный меч света (+2, фехтовальное, излучение).",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "custom_note",
+            "text": "Клинок-свет: +2к8 излучению по нежити; яркий свет 15 / тусклый 15."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "sword_of_life_stealing",
+      "name_ru": "Меч похищения жизни",
+      "name_en": "Sword of Life Stealing",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 2,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Меч +2, пьющий жизнь при критическом ударе.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "custom_note",
+            "text": "Крит по существу (не конструкт/нежить): +10 некротики и временные хиты."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "sword_of_sharpness",
+      "name_ru": "Меч остроты",
+      "name_en": "Sword of Sharpness",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 0,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Рубящий меч остроты; на натуральной 20 — тяжёлые раны.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Только рубящий: на 20 на к20 — +14 рубящего; шанс отсечь конечность (DMG)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "sword_of_wounding",
+      "name_ru": "Меч ранения",
+      "name_en": "Sword of Wounding",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Меч +1, оставляющий незаживающие раны.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Попадание: раны — 1к4 некротики/ход за каждый стек, пока не лечат (DMG)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "trident_of_fish_command",
+      "name_ru": "Трезубец власти над рыбами",
+      "name_en": "Trident of Fish Command",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 4,
+        "properties": [
+          "thrown",
+          "versatile"
+        ],
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "range": {
+          "long": 60,
+          "normal": 20
+        },
+        "versatile_damage": "1к8",
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "trident",
+        "description_ru": "Трезубец +1 власти над водными существами.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "resource",
+            "id": "trident_fish",
+            "max": 3,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Заряд: dominate beast на водное существо (DC 15)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "vicious_weapon",
+      "name_ru": "Жестокое оружие",
+      "name_en": "Vicious Weapon",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "held_main",
+        "magic_bonus": 0,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Любое оружие: на крите +2к6 урона. На листе — шаблон длинного меча.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Натуральная 20 на атаку: +2к6 урона того же типа. Форма — любое оружие."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "vorpal_sword",
+      "name_ru": "Меч отсечения",
+      "name_en": "Vorpal Sword",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 3,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Меч +3 отсечения — смертоносный критический удар.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "custom_note",
+            "text": "Рубящий: на 20 на к20 — обезглавливание (иммунитеты/легендарность — по DMG)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "weapon",
+      "name_ru": "Оружие +1, +2 или +3",
+      "name_en": "Weapon, +1, +2, or +3",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "held_main",
+        "magic_bonus": 0,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Заглушка семьи — используйте +1 / +2 / +3.",
+        "effects": [],
+        "family_slug": "weapon_bonus",
+        "family_label_ru": "Оружие +1 / +2 / +3",
+        "variant_key": "varies",
+        "variant_label_ru": "варьируется"
+      },
+      "is_active": false
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "weapon_1",
+      "name_ru": "Оружие +1",
+      "name_en": "Weapon, +1",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Бонус +1 к броскам атаки и урона этим оружием. Форма — любое оружие (шаблон: длинный меч).",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          }
+        ],
+        "variant_key": "1",
+        "variant_label_ru": "+1",
+        "family_slug": "weapon_bonus",
+        "family_label_ru": "Оружие +1 / +2 / +3"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "weapon_2",
+      "name_ru": "Оружие +2",
+      "name_en": "Weapon, +2",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "held_main",
+        "magic_bonus": 2,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Бонус +2 к броскам атаки и урона этим оружием.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          }
+        ],
+        "variant_key": "2",
+        "variant_label_ru": "+2",
+        "family_slug": "weapon_bonus",
+        "family_label_ru": "Оружие +1 / +2 / +3"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "weapon_3",
+      "name_ru": "Оружие +3",
+      "name_en": "Weapon, +3",
+      "source": "DMG 2014",
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "versatile_damage": "1к10",
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "held_main",
+        "magic_bonus": 3,
+        "base_weapon_slug": "longsword",
+        "description_ru": "Бонус +3 к броскам атаки и урона этим оружием.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          }
+        ],
+        "variant_key": "3",
+        "variant_label_ru": "+3",
+        "family_slug": "weapon_bonus",
+        "family_label_ru": "Оружие +1 / +2 / +3"
+      }
+    }
+  ],
+  "deactivate_slugs": [
+    "weapon",
+    "armor"
+  ]
+}

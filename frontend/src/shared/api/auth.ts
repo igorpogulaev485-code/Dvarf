@@ -1,0 +1,281 @@
+import { apiRequest, clearTokens, setTokens } from './client'
+import {
+  applyAccountAppearance,
+  clearCachedAppearance,
+  normalizeAppearance,
+  type AbilityColorsMode,
+  type ThemeId,
+} from '../theme/accountAppearance'
+
+export type User = {
+  id: string
+  email: string | null
+  login: string | null
+  display_name: string | null
+  full_name: string | null
+  phone: string | null
+  avatar_url: string | null
+  /** Required on /auth/me — preflight guards schema; optional only if API regressed. */
+  theme_id?: ThemeId
+  ability_colors?: AbilityColorsMode
+  email_verified_at: string | null
+  created_at: string
+  updated_at: string
+  providers: string[]
+}
+
+export type UserUpdatePayload = {
+  display_name?: string | null
+  full_name?: string | null
+  phone?: string | null
+  theme_id?: ThemeId
+  ability_colors?: AbilityColorsMode
+}
+
+export type TokenResponse = {
+  access_token: string
+  refresh_token: string
+  token_type: string
+  user: User
+}
+
+export type OAuthStartResponse = {
+  provider: string
+  configured: boolean
+  authorize_url: string | null
+  message: string | null
+}
+
+export async function register(
+  email: string,
+  password: string,
+  displayName: string,
+): Promise<RegisterResponse> {
+  return apiRequest<RegisterResponse>('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({
+      email,
+      password,
+      display_name: displayName,
+    }),
+  })
+}
+
+export async function login(email: string, password: string): Promise<TokenResponse> {
+  const result = await apiRequest<TokenResponse>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  })
+  setTokens(result.access_token, result.refresh_token)
+  applyAccountAppearance(normalizeAppearance(result.user))
+  return result
+}
+
+export type RegisterResponse = {
+  message: string
+  stub: boolean
+  debug_verify_url: string | null
+}
+
+export type VerifyEmailResponse = TokenResponse
+
+export async function verifyEmail(token: string): Promise<VerifyEmailResponse> {
+  const result = await apiRequest<VerifyEmailResponse>('/auth/verify-email', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  })
+  setTokens(result.access_token, result.refresh_token)
+  applyAccountAppearance(normalizeAppearance(result.user))
+  return result
+}
+
+export type ResendVerificationResponse = {
+  message: string
+  stub: boolean
+  debug_verify_url: string | null
+}
+
+export async function resendVerification(email: string): Promise<ResendVerificationResponse> {
+  return apiRequest<ResendVerificationResponse>('/auth/resend-verification', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
+export async function logout(): Promise<void> {
+  try {
+    await apiRequest<void>('/auth/logout', { method: 'POST' })
+  } finally {
+    clearTokens()
+    clearCachedAppearance()
+  }
+}
+
+export type AuthSession = {
+  id: string
+  created_at: string
+  last_seen_at: string
+  expires_at: string
+  user_agent: string | null
+  ip_address: string | null
+  current: boolean
+}
+
+export type AuthSessionListResponse = {
+  items: AuthSession[]
+}
+
+export type RevokeSessionsResponse = {
+  message: string
+  revoked: number
+}
+
+export async function listSessions(): Promise<AuthSessionListResponse> {
+  return apiRequest<AuthSessionListResponse>('/auth/sessions')
+}
+
+export async function revokeSession(sessionId: string): Promise<RevokeSessionsResponse> {
+  return apiRequest<RevokeSessionsResponse>(`/auth/sessions/${sessionId}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function revokeOtherSessions(): Promise<RevokeSessionsResponse> {
+  return apiRequest<RevokeSessionsResponse>('/auth/sessions?others_only=true', {
+    method: 'DELETE',
+  })
+}
+
+export async function revokeAllSessions(): Promise<RevokeSessionsResponse> {
+  return apiRequest<RevokeSessionsResponse>('/auth/sessions?others_only=false', {
+    method: 'DELETE',
+  })
+}
+
+export async function getMe(): Promise<User> {
+  return apiRequest<User>('/auth/me')
+}
+
+export async function updateMe(payload: UserUpdatePayload): Promise<User> {
+  return apiRequest<User>('/auth/me', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}
+
+export type ChangePasswordResponse = {
+  message: string
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<ChangePasswordResponse> {
+  return apiRequest<ChangePasswordResponse>('/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({
+      current_password: currentPassword,
+      new_password: newPassword,
+    }),
+  })
+}
+
+export async function uploadAvatar(file: File): Promise<User> {
+  const body = new FormData()
+  body.append('file', file)
+  return apiRequest<User>('/auth/me/avatar', {
+    method: 'POST',
+    body,
+  })
+}
+
+export async function deleteAvatar(): Promise<User> {
+  return apiRequest<User>('/auth/me/avatar', {
+    method: 'DELETE',
+  })
+}
+
+export type EmailChangeRequestResponse = {
+  message: string
+  stub: boolean
+  debug_confirm_url: string | null
+}
+
+export type EmailChangeConfirmResponse = {
+  message: string
+  user: User
+}
+
+export async function requestEmailChange(newEmail: string): Promise<EmailChangeRequestResponse> {
+  return apiRequest<EmailChangeRequestResponse>('/auth/me/email/request', {
+    method: 'POST',
+    body: JSON.stringify({ new_email: newEmail }),
+  })
+}
+
+export async function confirmEmailChange(token: string): Promise<EmailChangeConfirmResponse> {
+  return apiRequest<EmailChangeConfirmResponse>('/auth/me/email/confirm', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  })
+}
+
+export type DeleteAccountResponse = {
+  message: string
+}
+
+export async function deleteAccount(
+  confirmEmail: string,
+  password: string | null,
+): Promise<DeleteAccountResponse> {
+  return apiRequest<DeleteAccountResponse>('/auth/me', {
+    method: 'DELETE',
+    body: JSON.stringify({
+      confirm_email: confirmEmail,
+      password,
+    }),
+  })
+}
+
+export async function startOAuth(provider: 'yandex' | 'vk'): Promise<OAuthStartResponse> {
+  return apiRequest<OAuthStartResponse>(`/auth/oauth/${provider}/start`)
+}
+
+export async function startOAuthLink(
+  provider: 'yandex' | 'vk',
+): Promise<OAuthStartResponse> {
+  return apiRequest<OAuthStartResponse>(`/auth/oauth/${provider}/link/start`)
+}
+
+export async function unlinkOAuth(provider: 'yandex' | 'vk'): Promise<User> {
+  return apiRequest<User>(`/auth/oauth/${provider}/link`, {
+    method: 'DELETE',
+  })
+}
+
+export type ForgotPasswordResponse = {
+  message: string
+  stub: boolean
+  debug_reset_url: string | null
+}
+
+export type ResetPasswordResponse = {
+  message: string
+}
+
+export async function forgotPassword(email: string): Promise<ForgotPasswordResponse> {
+  return apiRequest<ForgotPasswordResponse>('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
+export async function resetPassword(
+  token: string,
+  password: string,
+): Promise<ResetPasswordResponse> {
+  return apiRequest<ResetPasswordResponse>('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, password }),
+  })
+}

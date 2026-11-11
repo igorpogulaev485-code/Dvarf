@@ -1,0 +1,519 @@
+{
+  "version": 1,
+  "notes": "BMT armor/shields wave. Effects MVP; RU names. Generic variants use representative base AC.",
+  "inserts": [
+    {
+      "op": "insert",
+      "kind": "armor",
+      "id": "c611be18-2a6b-5240-bd80-13cf779e46ca",
+      "slug": "armor_of_fungal_spores",
+      "name_ru": "Доспех грибных спор",
+      "name_en": "Armor of Fungal Spores",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10700,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 14,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 20,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "body_armor",
+        "description_ru": "Доспех (любой средний/лёгкий как в BMT). Бонусным: сфера спор 10 фт — Con DC 15 или отравлен до конца вашего следующего хода.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Бонусным: spores 10 фт, Con DC 15 → poisoned до конца вашего след. хода."
+          }
+        ],
+        "base_armor_slug": "breastplate"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "armor",
+      "id": "5cde75d9-2e05-5074-a050-44bb516897a1",
+      "slug": "armor_of_the_fallen",
+      "name_ru": "Доспех павших",
+      "name_en": "Armor of the Fallen",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10701,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 14,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 20,
+        "cost": {
+          "amount": 3000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "description_ru": "Доспех (настройка). 1/рассвет: сотворить одно из заклинаний доспеха (см. BMT).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "armor_fallen_spell",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "1/рассвет: заклинание с доспеха (BMT)."
+          }
+        ],
+        "base_armor_slug": "breastplate"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "armor",
+      "id": "9adb00f6-b3d8-5a1e-a8e0-791cc0de098f",
+      "slug": "armor_of_weightlessness",
+      "name_ru": "Доспех невесомости",
+      "name_en": "Armor of Weightlessness",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10702,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "light",
+        "base_ac": 12,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 10,
+        "cost": {
+          "amount": 2000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "description_ru": "Доспех (настройка), 5 зарядов. Бонусным: потратить заряд(ы) — заклинание на себя (левitation и др., см. BMT).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "weightless_charges",
+            "max": 5,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "5 зарядов → self spells (BMT)."
+          }
+        ],
+        "base_armor_slug": "studded_leather"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "armor",
+      "id": "5bcd5b45-c476-58c9-a6fd-a26921197fc9",
+      "slug": "boomerang_shield",
+      "name_ru": "Щит-бумеранг",
+      "name_en": "Boomerang Shield",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10703,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "max_dex_bonus": 0,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 6,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "shield",
+        "description_ru": "Щит (настройка). Можно метнуть как дальнюю атаку (20/60), Str или Dex; при владении щитом — владение этой атакой. Возвращается в руку после попадания/промаха.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Метание 20/60 (Str/Dex); возвращается в руку."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "armor",
+      "id": "78df0bf4-13a0-55a7-a381-fd3952fa4579",
+      "slug": "plate_of_knights_fellowship",
+      "name_ru": "Латный доспех рыцарского братства",
+      "name_en": "Plate of Knight's Fellowship",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10704,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "cost": {
+          "amount": 2000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "description_ru": "Латы (настройка). Бонусным: призвать дух воина в свободное место в 30 фт (статы — BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Бонусным: summon warrior spirit (BMT)."
+          }
+        ],
+        "base_armor_slug": "plate_armor"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "armor",
+      "id": "1411ec6c-0f2b-5c80-8e76-e8b46298932d",
+      "slug": "shield_of_the_tortoise",
+      "name_ru": "Щит черепахи",
+      "name_en": "Shield of the Tortoise",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10705,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "max_dex_bonus": 0,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 6,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "shield",
+        "description_ru": "Щит +1 КД сверх обычного бонуса щита (настройка). Проклят: пока прокляты — не хотите расставаться; снятие требует remove curse.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "+1 AC к щиту. Curse (BMT)."
+          }
+        ],
+        "magic_bonus": 1
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "armor",
+      "id": "f812c71b-c86b-5bb6-99a0-be2de8b657a8",
+      "slug": "breastplate_of_balance",
+      "name_ru": "Нагрудник равновесия",
+      "name_en": "Breastplate of Balance",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10706,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 14,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 20,
+        "cost": {
+          "amount": 1200,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "description_ru": "Нагрудник (настройка), 4 заряда — свойства равновесия/торга (см. BMT).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "balance_charges",
+            "max": 4,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "4 заряда (Balance card theme, BMT)."
+          }
+        ],
+        "base_armor_slug": "breastplate"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "armor",
+      "id": "cbf443d8-a0bc-5d88-9499-63123e77c1a6",
+      "slug": "feywrought_armor",
+      "name_ru": "Доспех фейской ковки",
+      "name_en": "Feywrought Armor",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10707,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 14,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 20,
+        "cost": {
+          "amount": 4000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "description_ru": "Доспех Фейвайлда (настройка). Преимущество к спасброскам против очарования (charmed).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Adv на сейвы vs charmed."
+          }
+        ],
+        "base_armor_slug": "breastplate"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "armor",
+      "id": "8819e95f-3244-5eb7-b626-df5ef7071a71",
+      "slug": "gloomwrought_armor",
+      "name_ru": "Доспех Мрачной Ковки",
+      "name_en": "Gloomwrought Armor",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10708,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "medium",
+        "base_ac": 14,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 20,
+        "cost": {
+          "amount": 2000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "description_ru": "Доспех Шэдоуфелла (настройка). Преимущество к спасброскам против испуга (frightened).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Adv на сейвы vs frightened."
+          }
+        ],
+        "base_armor_slug": "breastplate"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "armor",
+      "id": "80acc6c5-57cd-5eff-93c4-ec4884efd521",
+      "slug": "voidwalker_armor",
+      "name_ru": "Доспех пустохода",
+      "name_en": "Voidwalker Armor",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10709,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "light",
+        "base_ac": 12,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 13,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "description_ru": "Клёпаная кожа (настройка). Бонусным: проекция-копия в 30 фт (иммунитет к урону/состояниям, см. BMT). Проклят.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Бонусным: void projection. Curse (BMT)."
+          }
+        ],
+        "base_armor_slug": "studded_leather"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "armor",
+      "id": "ab75cf9c-1b0d-5a22-9090-ee68bc87eaf2",
+      "slug": "antimagic_armor",
+      "name_ru": "Антимагический доспех",
+      "name_en": "Antimagic Armor",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10710,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "description_ru": "Доспех (настройка). 1/рассвет реакцией: преимущество к сейву против заклинания; также можно сотворить заклинание с доспеха (BMT).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "antimagic_armor_react",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "1/рассвет: adv vs spell (реакция); + spell from armor (BMT)."
+          }
+        ],
+        "base_armor_slug": "plate_armor"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "armor",
+      "id": "09d56990-05c6-5a0b-bf79-2ad804a49d41",
+      "slug": "clockwork_armor",
+      "name_ru": "Заводной доспех",
+      "name_en": "Clockwork Armor",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10711,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "cost": {
+          "amount": 2000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "description_ru": "Доспех Механуса (настройка). Заряды: можно заменить бросок к20 на 10 (см. BMT).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "clockwork_armor_charges",
+            "max": 3,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Заряд: d20 → 10 (BMT)."
+          }
+        ],
+        "base_armor_slug": "plate_armor"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "armor",
+      "id": "11243ef5-4160-5388-a0e8-9bd048e6c22a",
+      "slug": "euryales_aegis",
+      "name_ru": "Эгида Эвриалы",
+      "name_en": "Euryale's Aegis",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10712,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "max_dex_bonus": 0,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 6,
+        "cost": {
+          "amount": 15000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "shield",
+        "description_ru": "Легендарный щит Эвриалы (настройка). Набор защит и свойств медузы-друида (см. BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Легендарные свойства щита Эвриалы (BMT)."
+          }
+        ]
+      }
+    }
+  ]
+}

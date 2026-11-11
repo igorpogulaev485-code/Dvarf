@@ -1,0 +1,1056 @@
+{
+  "version": 1,
+  "notes": "BMT wondrous/rings/rods/staves/wands/decks. MVP. Existing Deck/Orb/Die stubs unchanged.",
+  "inserts": [
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "34c7150d-5105-5900-a4ea-23a3fdd2e33e",
+      "slug": "blasted_goggles",
+      "name_ru": "Опалённые очки",
+      "name_en": "Blasted Goggles",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10800,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "head",
+        "description_ru": "Чудесный предмет (настройка). Защита/атака взглядом — см. BMT.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Attune; blast/gaze effect (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "b36cc3ee-8e8c-5812-a84b-2611a8f27a9d",
+      "slug": "card_sharps_deck",
+      "name_ru": "Колода шулера",
+      "name_en": "Card Sharp's Deck",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10801,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 1500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Колода для шулерских трюков (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Card sharp tricks (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "1cfe7b13-5ca5-54e0-829c-ce66c04c7954",
+      "slug": "deck_of_miscellany",
+      "name_ru": "Колода всячины",
+      "name_en": "Deck of Miscellany",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10802,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Мелкая колода полезных мелочей (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Misc utility deck (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "a21515de-9a14-5982-a066-0499f3d76aa7",
+      "slug": "deck_of_wonder",
+      "name_ru": "Колода чудес",
+      "name_en": "Deck of Wonder",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10803,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Колода чудесных эффектов (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Wonder card draws (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "1e4deabb-82e2-5339-a397-a8fd1fd97b14",
+      "slug": "fabulist_gem",
+      "name_ru": "Самоцвет баснописца",
+      "name_en": "Fabulist Gem",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10804,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Камень рассказчика (настройка, BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Storytelling gem (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "535a0c21-d063-5c5f-970c-b8b36f22f5cc",
+      "slug": "house_of_cards",
+      "name_ru": "Карточный дом",
+      "name_en": "House of Cards",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10805,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 1000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Разворачивает карточное укрытие/структуру (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Card house structure (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "30cfbacd-b991-5848-823b-e852bfb9ea4f",
+      "slug": "ring_of_puzzlers_wit",
+      "name_ru": "Кольцо остроумия загадчика",
+      "name_en": "Ring of Puzzler's Wit",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10806,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "item_category": "ring",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "ring",
+        "description_ru": "Кольцо (BMT) — помощь в загадках и проверках ума.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Puzzle/wit aid (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "c8210678-947f-5a3c-b304-bdb587661167",
+      "slug": "deck_of_oracles",
+      "name_ru": "Колода оракулов",
+      "name_en": "Deck of Oracles",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10807,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 4000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Колода прорицания (настройка, BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Oracle draws (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "897667aa-d58d-5b55-91dd-885f3012a7ab",
+      "slug": "donjons_sundering_sphere",
+      "name_ru": "Сфера разрушения Донжона",
+      "name_en": "Donjon's Sundering Sphere",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10808,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 1000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Сфера карты Донжон (настройка) — разрушение оков/стен (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Sundering sphere (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "efdf4b52-2e67-512b-8f4d-535043101eea",
+      "slug": "fate_dealers_deck_1",
+      "name_ru": "Колода раздатчика судьбы +1",
+      "name_en": "Fate Dealer's Deck +1",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10809,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 1500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Колода +1 (настройка). Бонус к картам судьбы (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "+1 fate dealer deck (BMT)."
+          }
+        ],
+        "family_slug": "fate_dealers_deck",
+        "family_label_ru": "Колода раздатчика судьбы",
+        "variant_label_ru": "+1"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "e6ec5a4d-5b56-5fc8-bbbe-f6820a4b5f93",
+      "slug": "rogues_mantle",
+      "name_ru": "Мантия плута",
+      "name_en": "Rogue's Mantle",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10810,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "shoulders",
+        "description_ru": "Мантия карты Rogue (настройка, BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Rogue mantle benefits (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "d29b6ad4-6155-5da4-9626-8364850c1c79",
+      "slug": "shrieking_greaves",
+      "name_ru": "Визжащие поножи",
+      "name_en": "Shrieking Greaves",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10811,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "feet",
+        "description_ru": "Поножи (настройка) — визг/движение (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Shriek/movement greaves (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "b5f36485-1a3c-5cc3-8ffd-6861e1efd499",
+      "slug": "sun_staff",
+      "name_ru": "Посох солнца",
+      "name_en": "Sun Staff",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10812,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 4000,
+          "unit": "gp"
+        },
+        "item_category": "staff",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Посох карты Sun (настройка, BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Sun staff spells/light (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "e351cb1e-2bc8-5601-b5af-967567698fde",
+      "slug": "warriors_passkey",
+      "name_ru": "Отмычка воина",
+      "name_en": "Warrior's Passkey",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10813,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 3000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Ключ/пропуск воина (настройка, BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Warrior passkey (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "06225e63-e1ad-5a8a-a00e-191239246287",
+      "slug": "sages_signet_bear",
+      "name_ru": "Перстень мудреца (Медведь)",
+      "name_en": "Sage's Signet (Bear)",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10814,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 4400,
+          "unit": "gp"
+        },
+        "item_category": "ring",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "description_ru": "Перстень Sage (Медведь) — настройка (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Sage signet Bear (BMT)."
+          }
+        ],
+        "family_slug": "sages_signet",
+        "family_label_ru": "Перстень мудреца",
+        "variant_label_ru": "Медведь"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "3aaf2e34-59d9-51d2-ac23-a7cc7bc5b9cb",
+      "slug": "sages_signet_hart",
+      "name_ru": "Перстень мудреца (Олень)",
+      "name_en": "Sage's Signet (Hart)",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10815,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 8000,
+          "unit": "gp"
+        },
+        "item_category": "ring",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "description_ru": "Перстень Sage (Олень) — настройка (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Sage signet Hart (BMT)."
+          }
+        ],
+        "family_slug": "sages_signet",
+        "family_label_ru": "Перстень мудреца",
+        "variant_label_ru": "Олень"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "fef91cc8-29ba-5ec1-aac6-eef34fe81f6e",
+      "slug": "sages_signet_lion",
+      "name_ru": "Перстень мудреца (Лев)",
+      "name_en": "Sage's Signet (Lion)",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10816,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 4000,
+          "unit": "gp"
+        },
+        "item_category": "ring",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "description_ru": "Перстень Sage (Лев) — настройка (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Sage signet Lion (BMT)."
+          }
+        ],
+        "family_slug": "sages_signet",
+        "family_label_ru": "Перстень мудреца",
+        "variant_label_ru": "Лев"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "b1555543-c786-59b3-a0c9-d638f09c9a36",
+      "slug": "sages_signet_serpent",
+      "name_ru": "Перстень мудреца (Змей)",
+      "name_en": "Sage's Signet (Serpent)",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10817,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 2600,
+          "unit": "gp"
+        },
+        "item_category": "ring",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "description_ru": "Перстень Sage (Змей) — настройка (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Sage signet Serpent (BMT)."
+          }
+        ],
+        "family_slug": "sages_signet",
+        "family_label_ru": "Перстень мудреца",
+        "variant_label_ru": "Змей"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "b7ee3c5d-2f16-5502-99db-896f70b57a3d",
+      "slug": "sages_signet_songbird",
+      "name_ru": "Перстень мудреца (Певчая птица)",
+      "name_en": "Sage's Signet (Songbird)",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10818,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 2600,
+          "unit": "gp"
+        },
+        "item_category": "ring",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "description_ru": "Перстень Sage (Певчая птица) — настройка (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Sage signet Songbird (BMT)."
+          }
+        ],
+        "family_slug": "sages_signet",
+        "family_label_ru": "Перстень мудреца",
+        "variant_label_ru": "Певчая птица"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "3fd763e1-0fd7-5064-bc85-f9db6d4383f8",
+      "slug": "sages_signet_wolf",
+      "name_ru": "Перстень мудреца (Волк)",
+      "name_en": "Sage's Signet (Wolf)",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10819,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 4000,
+          "unit": "gp"
+        },
+        "item_category": "ring",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "description_ru": "Перстень Sage (Волк) — настройка (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Sage signet Wolf (BMT)."
+          }
+        ],
+        "family_slug": "sages_signet",
+        "family_label_ru": "Перстень мудреца",
+        "variant_label_ru": "Волк"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "53625919-6800-5f75-97a3-fbe3ff2575ac",
+      "slug": "crown_of_whirling_comets",
+      "name_ru": "Корона кружащихся комет",
+      "name_en": "Crown of Whirling Comets",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10820,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 7500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "head",
+        "description_ru": "Корона карты Comet (настройка, BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Comet crown (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "39029566-0193-5cdd-8b50-10cf340a83d1",
+      "slug": "deck_of_dimensions",
+      "name_ru": "Колода измерений",
+      "name_en": "Deck of Dimensions",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10821,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 8000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Колода пространственных трюков (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Dimension deck (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "0eae7ee8-da19-5e22-a6a5-560198c2d1dc",
+      "slug": "deck_of_wild_cards",
+      "name_ru": "Колода диких карт",
+      "name_en": "Deck of Wild Cards",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10822,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 2000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Хаотичная колода (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Wild cards (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "5249f8eb-56ff-5c5b-81a0-be40ba6f5d65",
+      "slug": "fate_dealers_deck_2",
+      "name_ru": "Колода раздатчика судьбы +2",
+      "name_en": "Fate Dealer's Deck +2",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10823,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Колода +2 (настройка, BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "+2 fate dealer deck (BMT)."
+          }
+        ],
+        "family_slug": "fate_dealers_deck",
+        "family_label_ru": "Колода раздатчика судьбы",
+        "variant_label_ru": "+2"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "fd8d2776-5765-5d27-bcf7-9c10a6b7572e",
+      "slug": "rod_of_hellish_flames",
+      "name_ru": "Жезл адского пламени",
+      "name_en": "Rod of Hellish Flames",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10824,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "rod",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Жезл огня (настройка, BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Hellish flame rod (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "0eae5f94-49bb-5978-8bfc-56d391611b0e",
+      "slug": "skull_helm",
+      "name_ru": "Черепной шлем",
+      "name_en": "Skull Helm",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10825,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 6000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "head",
+        "description_ru": "Шлем карты Skull (настройка, BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Skull helm (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "e7b0587b-4d3a-5ed7-8fb9-3a56fbc6e13e",
+      "slug": "deck_of_many_more_things",
+      "name_ru": "Колода ещё большего числа вещей",
+      "name_en": "Deck of Many More Things",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10826,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "legendary",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Расширенная колода судьбы (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Expanded deck of many things (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "e215ff38-0cfc-5e53-81b8-e55b05fab20e",
+      "slug": "fate_dealers_deck_3",
+      "name_ru": "Колода раздатчика судьбы +3",
+      "name_en": "Fate Dealer's Deck +3",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10827,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 20000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Колода +3 (настройка, BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "+3 fate dealer deck (BMT)."
+          }
+        ],
+        "family_slug": "fate_dealers_deck",
+        "family_label_ru": "Колода раздатчика судьбы",
+        "variant_label_ru": "+3"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "26099243-0494-5f71-918c-d48d697ab5e1",
+      "slug": "jesters_mask",
+      "name_ru": "Маска шута",
+      "name_en": "Jester's Mask",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10828,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 20000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "head",
+        "description_ru": "Маска карты Jester (настройка, BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Jester mask (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "94e49698-4dac-56fa-b502-93007e6b49cf",
+      "slug": "spindle_of_fate",
+      "name_ru": "Веретено судьбы",
+      "name_en": "Spindle of Fate",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10829,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 4000,
+          "unit": "gp"
+        },
+        "item_category": "wand",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Жезл/веретено судьбы (настройка, BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Spindle of fate wand (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "24349f52-e916-52b1-a836-1ba50ceee026",
+      "slug": "telescopic_transporter",
+      "name_ru": "Телескопический транспортёр",
+      "name_en": "Telescopic Transporter",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10830,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "legendary",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Устройство дальнего перемещения (BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Telescopic transporter (BMT)."
+          }
+        ]
+      }
+    }
+  ]
+}

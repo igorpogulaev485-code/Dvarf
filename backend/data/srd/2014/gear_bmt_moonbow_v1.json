@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "notes": "BMT: Glimmering Moonbow (Сверкающий Лунный Лук). Official Book of Many Things.",
+  "inserts": [
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "0c9d44d6-54f2-5636-9891-0fc1d64e4f05",
+      "slug": "glimmering_moonbow",
+      "name_ru": "Сверкающий Лунный Лук",
+      "name_en": "Glimmering Moonbow",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10600,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к8+1к6",
+        "damage_type": "колющий + излучение",
+        "category": "martial",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 2,
+        "properties": [
+          "ammunition",
+          "heavy",
+          "two-handed"
+        ],
+        "cost": {
+          "amount": 3500,
+          "unit": "gp"
+        },
+        "range": {
+          "normal": 150,
+          "long": 600
+        },
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "longbow",
+        "description_ru": "Оружие (любой лук), редкое (требуется настройка). Серебряно-чёрный лук с фазами луны. +1 к атаке и урону. При попадании цель дополнительно получает 1к6 урона излучением (уже в строке урона). Без боеприпаса создаёт свой магический; исчезает при попадании или промахе. Бонусным действием, держа лук: полубестелесность до начала следующего хода (сопротивление дробящему, колющему и рубящему); затем до следующего рассвета.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "resource",
+            "id": "moonbow_incorporeal",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Свои магические стрелы (без колчана). 1/рассвет бонусным: полубестелесность до начала след. хода — сопротивление дробящему/колющему/рубящему."
+          }
+        ]
+      }
+    }
+  ]
+}

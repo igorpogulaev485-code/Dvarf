@@ -1,0 +1,125 @@
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { getMe, type User } from '../shared/api/auth'
+import { setTokens } from '../shared/api/client'
+import {
+  AuthSessionPanel,
+  EmailAuthForm,
+  ForgotPasswordForm,
+  OAuthButtons,
+} from '../features/auth'
+import {
+  AppLegalFooter,
+  Creed20Wordmark,
+} from '../shared/brand/creed20'
+import { Panel, Stack, Text } from '../ui'
+
+type AuthView = 'register' | 'login' | 'forgot'
+
+type AuthDebugPageProps = {
+  nextPath?: string | null
+}
+
+export function AuthDebugPage({ nextPath = null }: AuthDebugPageProps) {
+  const navigate = useNavigate()
+  const [user, setUser] = useState<User | null>(null)
+  const [oauthMessage, setOauthMessage] = useState<string | null>(null)
+  const [view, setView] = useState<AuthView>('login')
+  const afterAuth = nextPath || '/characters'
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const accessToken = params.get('access_token')
+    const refreshToken = params.get('refresh_token')
+    const oauthProvider = params.get('oauth')
+    const oauthError = params.get('oauth_error')
+
+    if (oauthError) {
+      setOauthMessage(oauthError)
+      window.history.replaceState({}, '', '/login')
+      return
+    }
+
+    if (!accessToken || !refreshToken) {
+      return
+    }
+
+    setTokens(accessToken, refreshToken)
+    window.history.replaceState({}, '', '/login')
+
+    getMe()
+      .then((me) => {
+        setUser(me)
+        if (oauthProvider === 'yandex') {
+          setOauthMessage('Вход через Яндекс выполнен успешно')
+        } else if (oauthProvider) {
+          setOauthMessage(`Вход через ${oauthProvider} выполнен успешно`)
+        }
+        navigate(afterAuth, { replace: true })
+      })
+      .catch(() => {
+        setOauthMessage('Не удалось восстановить сессию после OAuth')
+      })
+  }, [afterAuth, navigate])
+
+  const panelTitle =
+    view === 'register' ? 'Регистрация' : view === 'login' ? 'Вход' : 'Забыли пароль'
+
+  return (
+    <main className="page page--auth-debug">
+      <Stack gap={20}>
+        <Stack gap={6}>
+          <Text as="h1">
+            <Creed20Wordmark /> — вход
+          </Text>
+          <Text tone="muted">Войдите, чтобы открыть список персонажей.</Text>
+        </Stack>
+
+        <Panel title="Сессия">
+          <AuthSessionPanel user={user} onUserChange={setUser} />
+        </Panel>
+
+        <Panel title={panelTitle}>
+          <Stack gap={12}>
+            {view === 'register' || view === 'login' ? (
+              <>
+                <div className="mode-switch">
+                  <button
+                    type="button"
+                    className={view === 'register' ? 'is-active' : ''}
+                    onClick={() => setView('register')}
+                  >
+                    Регистрация
+                  </button>
+                  <button
+                    type="button"
+                    className={view === 'login' ? 'is-active' : ''}
+                    onClick={() => setView('login')}
+                  >
+                    Вход
+                  </button>
+                </div>
+                <OAuthButtons onMessage={setOauthMessage} />
+                {oauthMessage ? <Text tone="muted">{oauthMessage}</Text> : null}
+                <EmailAuthForm
+                  mode={view}
+                  onSuccess={(nextUser) => {
+                    setUser(nextUser)
+                    navigate(afterAuth, { replace: true })
+                  }}
+                  onForgotPassword={() => setView('forgot')}
+                />
+              </>
+            ) : null}
+
+            {view === 'forgot' ? (
+              <ForgotPasswordForm onBackToLogin={() => setView('login')} />
+            ) : null}
+          </Stack>
+        </Panel>
+
+        <AppLegalFooter />
+      </Stack>
+    </main>
+  )
+}

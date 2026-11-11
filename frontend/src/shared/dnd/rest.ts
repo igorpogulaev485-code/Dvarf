@@ -1,0 +1,145 @@
+/** Pure rest helpers — sheet now, party frame later. */
+
+import {
+  recoverHitDicePoolsOnLongRest,
+  type ClassHitDicePool,
+} from './classHitDice'
+import { recoverHitDiceOnLongRest } from './hitDice'
+import { clampSlot, type SpellSlotState } from './spells'
+
+export type ResourceReset = 'short' | 'long' | 'manual'
+
+export type SheetResource = {
+  id: string
+  name: string
+  max: number
+  used: number
+  reset: ResourceReset
+  /**
+   * Show pips on PlayDesk hot bar.
+   * `undefined` = legacy default (on). Note-block resources opt in with `true`.
+   */
+  onHot?: boolean
+}
+
+export function clampExhaustion(value: number): number {
+  return Math.min(6, Math.max(0, Math.floor(value)))
+}
+
+export function clampResource(resource: SheetResource): SheetResource {
+  const max = Math.max(0, Math.floor(resource.max))
+  const used = Math.min(max, Math.max(0, Math.floor(resource.used)))
+  const reset: ResourceReset =
+    resource.reset === 'short' || resource.reset === 'long' || resource.reset === 'manual'
+      ? resource.reset
+      : 'long'
+  const onHot =
+    typeof resource.onHot === 'boolean' ? resource.onHot : undefined
+  return {
+    ...resource,
+    max,
+    used,
+    reset,
+    ...(onHot === undefined ? {} : { onHot }),
+  }
+}
+
+/** Hot-bar visibility: explicit false hides; undefined/true shows (legacy + class pools). */
+export function resourceShowsOnHot(resource: SheetResource): boolean {
+  if (resource.onHot === false) return false
+  return resource.max > 0 && Boolean(resource.name.trim())
+}
+
+export function resetResourcesOnRest(
+  resources: SheetResource[],
+  kind: 'short' | 'long',
+): SheetResource[] {
+  return resources.map((raw) => {
+    const resource = clampResource(raw)
+    if (resource.reset === 'manual') return resource
+    if (kind === 'short' && resource.reset !== 'short') return resource
+    // long rest clears short- and long-reset resources
+    return { ...resource, used: 0 }
+  })
+}
+
+/** Recover all leveled spell slots (and pact slots) after a long rest. */
+export function recoverSpellSlotsOnLongRest(
+  slots: Record<string, SpellSlotState>,
+): Record<string, SpellSlotState> {
+  const next: Record<string, SpellSlotState> = {}
+  for (const [key, slot] of Object.entries(slots)) {
+    const clamped = clampSlot(slot)
+    next[key] = { max: clamped.max, used: 0 }
+  }
+  return next
+}
+
+/** 2014 PHB: long rest reduces exhaustion by 1 (min 0). */
+export function reduceExhaustionOnLongRest(exhaustion: number): number {
+  return clampExhaustion(exhaustion - 1)
+}
+
+export type RestResult = {
+  resources: SheetResource[]
+  slots?: Record<string, SpellSlotState>
+  pact_slots?: { max: number; used: number; level: number } | null
+  exhaustion?: number
+  hp_current?: number | null
+  hp_temp?: number
+  hit_dice_current?: number
+  hit_dice_by_class?: ClassHitDicePool[]
+  is_dying?: boolean
+  death_successes?: number
+  death_fails?: number
+}
+
+/**
+ * 2014 PHB: short rest recovers short-reset resources and warlock pact slots.
+ * Spell slots (Spellcasting) stay spent until a long rest.
+ */
+export function applyShortRest(input: {
+  resources: SheetResource[]
+  /** When provided, pact `used` is cleared (PHB Pact Magic). Omit to leave spells untouched. */
+  pact_slots?: { max: number; used: number; level: number } | null
+}): RestResult {
+  const result: RestResult = {
+    resources: resetResourcesOnRest(input.resources, 'short'),
+  }
+  if (input.pact_slots !== undefined) {
+    const pact = input.pact_slots
+    result.pact_slots = pact ? { ...pact, used: 0 } : null
+  }
+  return result
+}
+
+export function applyLongRest(input: {
+  resources: SheetResource[]
+  slots: Record<string, SpellSlotState>
+  pact_slots: { max: number; used: number; level: number } | null
+  exhaustion: number
+  hp_max: number | null
+  hit_dice_current: number
+  hit_dice_max: number
+  hit_dice_by_class?: ClassHitDicePool[]
+}): RestResult {
+  const pact = input.pact_slots
+  const pools = input.hit_dice_by_class
+  const recoveredPools =
+    pools && pools.length > 0 ? recoverHitDicePoolsOnLongRest(pools) : undefined
+  return {
+    resources: resetResourcesOnRest(input.resources, 'long'),
+    slots: recoverSpellSlotsOnLongRest(input.slots),
+    pact_slots: pact ? { ...pact, used: 0 } : null,
+    exhaustion: reduceExhaustionOnLongRest(input.exhaustion),
+    hp_current: input.hp_max,
+    hp_temp: 0,
+    hit_dice_current: recoveredPools
+      ? recoveredPools.reduce((sum, pool) => sum + pool.current, 0)
+      : recoverHitDiceOnLongRest(input.hit_dice_current, input.hit_dice_max),
+    hit_dice_by_class: recoveredPools,
+    is_dying: false,
+    death_successes: 0,
+    death_fails: 0,
+  }
+}

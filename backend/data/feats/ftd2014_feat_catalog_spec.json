@@ -1,0 +1,135 @@
+{
+  "rules_edition": "2014",
+  "notes_ru": "Волна FTD (Сокровищница драконов Фицбана). Три дара драконов — без расового требования. Пулы реакций масштабируются от бонуса мастерства (uses_proficiency_bonus). При расхождении dnd.su/ttg — решать с Игорем.",
+  "wave": "ftd",
+  "feats": [
+    {
+      "id": "153182b1-b2ea-5a5f-8890-2d3c28d7e124",
+      "slug": "gift_of_the_chromatic_dragon",
+      "name_ru": "Дар цветного дракона",
+      "name_en": "Gift of the Chromatic Dragon",
+      "source": "ftd",
+      "sort_order": 4010,
+      "data": {
+        "source": "ftd",
+        "wave": "ftd",
+        "prerequisites_ru": null,
+        "summary_ru": "Оружие с хроматическим уроном; реакция — сопротивление стихии.",
+        "benefits_ru": "Бонусным действием можете на 1 минуту наделить своё оружие или боеприпас хроматической энергией (кислота, холод, огонь, электричество или яд — на ваш выбор при активации): при попадании доп. 1к4 урона выбранного типа. Использование снова — после длинного отдыха. Когда получаете урон кислотой, холодом, огнём, электричеством или ядом, можете реакцией получить сопротивление этому урону. Число использований реакции = бонус мастерства; все восстанавливаются после длинного отдыха.",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "chromatic_note",
+            "type": "note",
+            "label_ru": "Хроматический урон",
+            "text_ru": "Тип энергии выбираешь при каждой активации (кислота/холод/огонь/электричество/яд)."
+          }
+        ],
+        "grants": {
+          "flags": [
+            "gift_of_the_chromatic_dragon"
+          ],
+          "resource": {
+            "pool_id": "chromatic_resistance",
+            "pool_name_ru": "Реактивное сопротивление",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    },
+    {
+      "id": "8e3efc32-238d-551f-976c-10d46abdaffc",
+      "slug": "gift_of_the_metallic_dragon",
+      "name_ru": "Дар металлического дракона",
+      "name_en": "Gift of the Metallic Dragon",
+      "source": "ftd",
+      "sort_order": 4020,
+      "data": {
+        "source": "ftd",
+        "wave": "ftd",
+        "prerequisites_ru": null,
+        "summary_ru": "Лечение ран + спектральные крылья (помеха на атаку).",
+        "benefits_ru": "Выучите Лечение ран; можете накладывать без ячейки 1 раз / длинный отдых или за ячейку. Характеристика сотворения — Инт, Муд или Хар (выбор при взятии черты). Когда вы или существо в пределах 5 футов от вас становитесь целью атаки, можете реакцией наложить помеху на этот бросок атаки (спектральные крылья). Число использований = бонус мастерства; восстанавливаются после длинного отдыха.",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 0,
+            "from": [
+              "int",
+              "wis",
+              "cha"
+            ],
+            "label_ru": "Характеристика сотворения (Лечение ран)"
+          }
+        ],
+        "grants": {
+          "flags": [
+            "gift_of_the_metallic_dragon"
+          ],
+          "resource": {
+            "pool_id": "protective_wings",
+            "pool_name_ru": "Защитные крылья",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          },
+          "spells": [
+            {
+              "id": "cure_wounds",
+              "spell_slug": "cure_wounds",
+              "name_ru": "Лечение ран",
+              "level": 1,
+              "grant": "innate",
+              "notes_ru": "1/длинный отдых без ячейки"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "502ec28a-e5d7-5b84-a7fa-0bf3d6e23c50",
+      "slug": "gift_of_the_gem_dragon",
+      "name_ru": "Дар самоцветного дракона",
+      "name_en": "Gift of the Gem Dragon",
+      "source": "ftd",
+      "sort_order": 4030,
+      "data": {
+        "source": "ftd",
+        "wave": "ftd",
+        "prerequisites_ru": null,
+        "summary_ru": "+1 Инт/Муд/Хар; телекинетический отпор при получении урона.",
+        "benefits_ru": "Увеличьте Интеллект, Мудрость или Харизму на 1 (макс. 20). Когда вы получаете урон от существа в пределах 10 футов, можете реакцией дать отпор: существо должно преуспеть в спасброске Силы (Сл = 8 + бонус мастерства + модификатор характеристики, увеличенной этой чертой) или будет оттолкнуто на 10 футов и получит силового урона = ваш бонус мастерства. Число использований = бонус мастерства; восстанавливаются после длинного отдыха.",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "int",
+              "wis",
+              "cha"
+            ],
+            "label_ru": "+1 к Инт, Муд или Хар"
+          }
+        ],
+        "grants": {
+          "flags": [
+            "gift_of_the_gem_dragon"
+          ],
+          "resource": {
+            "pool_id": "telekinetic_reprisal",
+            "pool_name_ru": "Телекинетический отпор",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    }
+  ]
+}

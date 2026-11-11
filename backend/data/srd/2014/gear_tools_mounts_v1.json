@@ -1,0 +1,1768 @@
+{
+  "version": 1,
+  "notes": "PHB 2014 tools / gaming / instruments / mounts / tack / vehicles — RU + cost + item_category backfill; insert missing tack rows. Canonical short slugs only (no musical_instrument_* / gaming_set_dice|cards aliases).",
+  "updates": [
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "alchemists_supplies",
+      "name_ru": "Инструменты алхимика",
+      "name_en": "Alchemist's Supplies",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 8,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "02c9ec3a-4413-5b33-bcd6-494175b520d1",
+      "sort_order": 4500
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "brewers_supplies",
+      "name_ru": "Инструменты пивовара",
+      "name_en": "Brewer's Supplies",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 9,
+        "cost": {
+          "amount": 20,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "b98337fb-7a47-5b84-b2ab-00380572a04b",
+      "sort_order": 4501
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "calligraphers_supplies",
+      "name_ru": "Инструменты каллиграфа",
+      "name_en": "Calligrapher's Supplies",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "ecf1b724-f1a8-51f9-8fe8-495d314c4682",
+      "sort_order": 4502
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "carpenters_tools",
+      "name_ru": "Инструменты плотника",
+      "name_en": "Carpenter's Tools",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 6,
+        "cost": {
+          "amount": 8,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "40fc7948-6263-586a-aed3-2db54153ecc9",
+      "sort_order": 4503
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "cartographers_tools",
+      "name_ru": "Инструменты картографа",
+      "name_en": "Cartographer's Tools",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 6,
+        "cost": {
+          "amount": 15,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "66cbc76d-a532-5d29-90f5-9804f445e44e",
+      "sort_order": 4504
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "cobblers_tools",
+      "name_ru": "Инструменты сапожника",
+      "name_en": "Cobbler's Tools",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "af44bfbd-3163-5383-97be-b0b182a536eb",
+      "sort_order": 4505
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "cooks_utensils",
+      "name_ru": "Кухонная утварь",
+      "name_en": "Cook's Utensils",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 8,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "99e05219-3898-5011-8bbd-1acdc35c1206",
+      "sort_order": 4506
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "glassblowers_tools",
+      "name_ru": "Инструменты стеклодува",
+      "name_en": "Glassblower's Tools",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 30,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "8d673294-940f-55b2-a31d-63a04ba6ceb3",
+      "sort_order": 4507
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "jewelers_tools",
+      "name_ru": "Инструменты ювелира",
+      "name_en": "Jeweler's Tools",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "839ab961-a25c-54d6-aeae-0c8252aced8f",
+      "sort_order": 4508
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "leatherworkers_tools",
+      "name_ru": "Инструменты кожевника",
+      "name_en": "Leatherworker's Tools",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "52eaa5e4-3d71-5cfc-b80c-1c5a0cb95756",
+      "sort_order": 4509
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "masons_tools",
+      "name_ru": "Инструменты каменщика",
+      "name_en": "Mason's Tools",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 8,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "dc865704-7d51-5a2c-846d-c5d6c5524340",
+      "sort_order": 4510
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "painters_supplies",
+      "name_ru": "Инструменты художника",
+      "name_en": "Painter's Supplies",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "79fc9b9a-1900-59ec-bc6a-5231e7a58948",
+      "sort_order": 4511
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "potters_tools",
+      "name_ru": "Инструменты гончара",
+      "name_en": "Potter's Tools",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 3,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "04b09843-ba2b-57c6-9321-1e83b84ea930",
+      "sort_order": 4512
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "smiths_tools",
+      "name_ru": "Инструменты кузнеца",
+      "name_en": "Smith's Tools",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 8,
+        "cost": {
+          "amount": 20,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "82c3aee9-73db-5ae1-9de3-ca8f1e51995b",
+      "sort_order": 4513
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "tinkers_tools",
+      "name_ru": "Инструменты жестянщика",
+      "name_en": "Tinker's Tools",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 10,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "250bcda3-c4b8-5b65-b73e-10d682866bb5",
+      "sort_order": 4514
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "weavers_tools",
+      "name_ru": "Инструменты ткача",
+      "name_en": "Weaver's Tools",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "6fac0296-db6b-5923-bcf3-79d8a315e368",
+      "sort_order": 4515
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "woodcarvers_tools",
+      "name_ru": "Инструменты резчика по дереву",
+      "name_en": "Woodcarver's Tools",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "artisan"
+      },
+      "id": "412e454a-e4bf-5c14-bd11-8efa2645c3f8",
+      "sort_order": 4516
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "thieves_tools",
+      "name_ru": "Воровские инструменты",
+      "name_en": "Thieves' Tools",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "kit"
+      },
+      "id": "6488f11f-5e7c-537a-bcce-c223db5d9129",
+      "sort_order": 4517
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "navigators_tools",
+      "name_ru": "Инструменты навигатора",
+      "name_en": "Navigator's Tools",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "kit"
+      },
+      "id": "81127752-82fa-5151-8089-d970fed72da3",
+      "sort_order": 4518
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "disguise_kit",
+      "name_ru": "Набор для грима",
+      "name_en": "Disguise Kit",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 3,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "kit"
+      },
+      "id": "5562791a-79b2-5434-adb0-0ec70caa802b",
+      "sort_order": 4519
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "forgery_kit",
+      "name_ru": "Набор фальшивомонетчика",
+      "name_en": "Forgery Kit",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 15,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "kit"
+      },
+      "id": "ebed59f7-82dc-5fde-8888-f07418b1fb46",
+      "sort_order": 4520
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "herbalism_kit",
+      "name_ru": "Набор травника",
+      "name_en": "Herbalism Kit",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 3,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "kit"
+      },
+      "id": "38b2c40f-230a-5b2f-ada0-61b474d48d56",
+      "sort_order": 4521
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "poisoners_kit",
+      "name_ru": "Набор отравителя",
+      "name_en": "Poisoner's Kit",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "kit"
+      },
+      "id": "bf1f543c-444e-5cc2-abfd-b92b84b078be",
+      "sort_order": 4522
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "climbers_kit",
+      "name_ru": "Комплект для лазания",
+      "name_en": "Climber's Kit",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 12,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "kit"
+      },
+      "id": "b86ed7a8-f26e-5b67-b868-b4151c7ca966",
+      "sort_order": 4523
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "healers_kit",
+      "name_ru": "Комплект целителя",
+      "name_en": "Healer's Kit",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 3,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "kit"
+      },
+      "id": "1351974b-0fac-5ac6-96ec-39976c01ec5c",
+      "sort_order": 4524
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "mess_kit",
+      "name_ru": "Столовый набор",
+      "name_en": "Mess Kit",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "sp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "kit"
+      },
+      "id": "8b327bac-4651-5396-af5c-e35e9b111cbd",
+      "sort_order": 4525
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "dice_set",
+      "name_ru": "Игральные кости",
+      "name_en": "Dice set",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 1,
+          "unit": "sp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "gaming"
+      },
+      "id": "2dc0cdeb-f9cb-5147-be52-59109035e139",
+      "sort_order": 4526
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "playing_card_set",
+      "name_ru": "Игральные карты",
+      "name_en": "Playing card set",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "gaming"
+      },
+      "id": "5132053b-65c2-53c0-9038-dee9d48f5025",
+      "sort_order": 4528
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "gaming_set_dragonchess",
+      "name_ru": "Драконьи шахматы",
+      "name_en": "Gaming Set, Dragonchess",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "gaming"
+      },
+      "id": "7d9b2691-99e1-5d8a-af7d-645dadf881c9",
+      "sort_order": 4530
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "gaming_set_three_dragon_ante",
+      "name_ru": "Ставка трёх драконов",
+      "name_en": "Gaming Set, Three-Dragon Ante",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "gaming"
+      },
+      "id": "7bbfff25-01bd-5fa9-b208-50519e551b2f",
+      "sort_order": 4531
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "bagpipes",
+      "name_ru": "Волынка",
+      "name_en": "Bagpipes",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 6,
+        "cost": {
+          "amount": 30,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "musical"
+      },
+      "id": "24722fb5-bff8-5a8d-96df-38691fee01d5",
+      "sort_order": 4532
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "drum",
+      "name_ru": "Барабан",
+      "name_en": "Drum",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 3,
+        "cost": {
+          "amount": 6,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "musical"
+      },
+      "id": "3c4221e6-7d55-52cd-85cb-f3313beb023e",
+      "sort_order": 4534
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "dulcimer",
+      "name_ru": "Цимбалы",
+      "name_en": "Dulcimer",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 10,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "musical"
+      },
+      "id": "211c405c-edcc-5e9b-8fef-5ee7f9b8a0fa",
+      "sort_order": 4536
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "flute",
+      "name_ru": "Флейта",
+      "name_en": "Flute",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "musical"
+      },
+      "id": "2f3e9e03-e650-5e47-903e-1058c3463d71",
+      "sort_order": 4538
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "lute",
+      "name_ru": "Лютня",
+      "name_en": "Lute",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 35,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "musical"
+      },
+      "id": "b6daeade-094e-501e-9b28-2af6e0fa1573",
+      "sort_order": 4540
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "lyre",
+      "name_ru": "Лира",
+      "name_en": "Lyre",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 30,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "musical"
+      },
+      "id": "2352436f-491e-52a5-92ae-f294103fd3b9",
+      "sort_order": 4542
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "horn",
+      "name_ru": "Рожок",
+      "name_en": "Horn",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 3,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "musical"
+      },
+      "id": "81384d53-6367-5658-adbc-8ea99cbf51b6",
+      "sort_order": 4544
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "pan_flute",
+      "name_ru": "Свирель",
+      "name_en": "Pan flute",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 12,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "musical"
+      },
+      "id": "c3d903e7-fa6d-5ce8-a905-753893e206db",
+      "sort_order": 4546
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "shawm",
+      "name_ru": "Шалмей",
+      "name_en": "Shawm",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "musical"
+      },
+      "id": "15445969-3e6c-5693-84ad-364a6f4223bb",
+      "sort_order": 4548
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "viol",
+      "name_ru": "Виола",
+      "name_en": "Viol",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 30,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "musical"
+      },
+      "id": "3ee1a849-b68e-5bd5-bc68-253c7c49879f",
+      "sort_order": 4550
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "camel",
+      "name_ru": "Верблюд",
+      "name_en": "Camel",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "item_category": "mount",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      },
+      "id": "ba92ab77-513d-5a78-ad6e-e1b9b9a94845",
+      "sort_order": 4552
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "mule",
+      "name_ru": "Мул",
+      "name_en": "Mule",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 8,
+          "unit": "gp"
+        },
+        "item_category": "mount",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      },
+      "id": "44fc08a7-053b-5b3b-97a4-30725dbf843f",
+      "sort_order": 4553
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "elephant",
+      "name_ru": "Слон",
+      "name_en": "Elephant",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 200,
+          "unit": "gp"
+        },
+        "item_category": "mount",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      },
+      "id": "21fe1450-fb8c-5889-a431-5a5aed9d6e89",
+      "sort_order": 4554
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "horse_draft",
+      "name_ru": "Упряжная лошадь",
+      "name_en": "Horse (Draft)",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "item_category": "mount",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      },
+      "id": "9971f2d7-8a40-5ba9-8c4b-c9a5b11f8700",
+      "sort_order": 4555
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "horse_riding",
+      "name_ru": "Ездовая лошадь",
+      "name_en": "Horse (Riding)",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 75,
+          "unit": "gp"
+        },
+        "item_category": "mount",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      },
+      "id": "8a9f59e3-35aa-57d2-a9aa-414d206a9aa0",
+      "sort_order": 4556
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "mastiff",
+      "name_ru": "Мастиф",
+      "name_en": "Mastiff",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "item_category": "mount",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      },
+      "id": "148894fa-aefa-5b25-b3dd-0ceaf248ad01",
+      "sort_order": 4557
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "pony",
+      "name_ru": "Пони",
+      "name_en": "Pony",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 30,
+          "unit": "gp"
+        },
+        "item_category": "mount",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      },
+      "id": "abb04cde-83fa-5591-9fb4-4b6a5f118410",
+      "sort_order": 4558
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "warhorse",
+      "name_ru": "Боевой конь",
+      "name_en": "Warhorse",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 400,
+          "unit": "gp"
+        },
+        "item_category": "mount",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      },
+      "id": "76ba15af-cfe7-5ad3-8324-c6bd2df59085",
+      "sort_order": 4559
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "saddle_riding",
+      "name_ru": "Ездовое седло",
+      "name_en": "Saddle (Riding)",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 25,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "item_category": "tack",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      },
+      "id": "cfbb5233-7c77-542e-a9ec-554aebb67571",
+      "sort_order": 4560
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "saddle_military",
+      "name_ru": "Военное седло",
+      "name_en": "Saddle (Military)",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 30,
+        "cost": {
+          "amount": 20,
+          "unit": "gp"
+        },
+        "item_category": "tack",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      },
+      "id": "1a7444a9-729a-5acb-a935-d35c907d2beb",
+      "sort_order": 4561
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "saddle_exotic",
+      "name_ru": "Экзотическое седло",
+      "name_en": "Saddle (Exotic)",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 40,
+        "cost": {
+          "amount": 60,
+          "unit": "gp"
+        },
+        "item_category": "tack",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      },
+      "id": "17bd8911-535e-5f7a-a546-1facc064f6e6",
+      "sort_order": 4562
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "feed_per_day",
+      "name_ru": "Корм (день)",
+      "name_en": "Feed (per day)",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 10,
+        "cost": {
+          "amount": 5,
+          "unit": "cp"
+        },
+        "item_category": "tack",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      },
+      "id": "10fd91b2-1f5f-5637-a366-20fe3012b71d",
+      "sort_order": 4563
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "carriage",
+      "name_ru": "Карета",
+      "name_en": "Carriage",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 600,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "item_category": "vehicle",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "vehicles"
+      },
+      "id": "ecae2a24-a8b9-522d-9bf5-e98c8ea10212",
+      "sort_order": 4564
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "cart",
+      "name_ru": "Телега",
+      "name_en": "Cart",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 200,
+        "cost": {
+          "amount": 15,
+          "unit": "gp"
+        },
+        "item_category": "vehicle",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "vehicles"
+      },
+      "id": "01750e05-997d-512b-b198-730b57969a38",
+      "sort_order": 4565
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "chariot",
+      "name_ru": "Колесница",
+      "name_en": "Chariot",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 100,
+        "cost": {
+          "amount": 250,
+          "unit": "gp"
+        },
+        "item_category": "vehicle",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "vehicles"
+      },
+      "id": "1d042be1-4985-55ce-8bd9-4cf53ad69711",
+      "sort_order": 4566
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "sled",
+      "name_ru": "Сани",
+      "name_en": "Sled",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 300,
+        "cost": {
+          "amount": 20,
+          "unit": "gp"
+        },
+        "item_category": "vehicle",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "vehicles"
+      },
+      "id": "30e4b26b-3da5-5520-a8ff-beb820dd1e9a",
+      "sort_order": 4567
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "wagon",
+      "name_ru": "Фургон",
+      "name_en": "Wagon",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 400,
+        "cost": {
+          "amount": 35,
+          "unit": "gp"
+        },
+        "item_category": "vehicle",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "vehicles"
+      },
+      "id": "dc255de7-91a4-5303-a566-f8528cd08dcd",
+      "sort_order": 4568
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "rowboat",
+      "name_ru": "Шлюпка",
+      "name_en": "Rowboat",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 100,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "item_category": "vehicle",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "vehicles"
+      },
+      "id": "880e4711-3592-5260-bc1a-6cc5424c82ae",
+      "sort_order": 4569
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "keelboat",
+      "name_ru": "Килевая лодка",
+      "name_en": "Keelboat",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 3000,
+          "unit": "gp"
+        },
+        "item_category": "vehicle",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "vehicles"
+      },
+      "id": "059c9b6a-b628-54cf-b110-f33da3cf5b6b",
+      "sort_order": 4570
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "longship",
+      "name_ru": "Драккар",
+      "name_en": "Longship",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 10000,
+          "unit": "gp"
+        },
+        "item_category": "vehicle",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "vehicles"
+      },
+      "id": "5678606e-6caf-52d7-a203-1408cee5d04e",
+      "sort_order": 4571
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "sailing_ship",
+      "name_ru": "Парусник",
+      "name_en": "Sailing Ship",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 10000,
+          "unit": "gp"
+        },
+        "item_category": "vehicle",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "vehicles"
+      },
+      "id": "7211b7b9-2c56-5cda-bc36-297b59663fff",
+      "sort_order": 4572
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "warship",
+      "name_ru": "Военный корабль",
+      "name_en": "Warship",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 25000,
+          "unit": "gp"
+        },
+        "item_category": "vehicle",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "vehicles"
+      },
+      "id": "5b75e358-fd05-5b38-a61c-a25e08f1dff7",
+      "sort_order": 4573
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "galley",
+      "name_ru": "Галера",
+      "name_en": "Galley",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 30000,
+          "unit": "gp"
+        },
+        "item_category": "vehicle",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "vehicles"
+      },
+      "id": "d345dff3-774a-57ae-80a5-71e08fa59cf4",
+      "sort_order": 4574
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "airship",
+      "name_ru": "Воздушный корабль",
+      "name_en": "Airship",
+      "source": "PHB 2014",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "vehicle",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "",
+        "tool_type": "vehicles"
+      },
+      "id": "7eee8d88-19de-5236-b38f-bcf8f7c92437",
+      "sort_order": 4575
+    }
+  ],
+  "inserts": [
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "3ac224c3-775c-5d3c-92d0-ab65ad5943f8",
+      "slug": "bit_and_bridle",
+      "name_ru": "Узда и удила",
+      "name_en": "Bit and bridle",
+      "rules_edition": "2014",
+      "source": "PHB 2014",
+      "sort_order": 4610,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "tack",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "8a47b4c3-fa32-515b-b01d-60dd909b6eef",
+      "slug": "saddle_pack",
+      "name_ru": "Вьючное седло",
+      "name_en": "Saddle (Pack)",
+      "rules_edition": "2014",
+      "source": "PHB 2014",
+      "sort_order": 4611,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 15,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "tack",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "e63036ac-0dc9-5e77-83e8-7deb29fefaf4",
+      "slug": "saddlebags",
+      "name_ru": "Перемётные сумки",
+      "name_en": "Saddlebags",
+      "rules_edition": "2014",
+      "source": "PHB 2014",
+      "sort_order": 4612,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 8,
+        "cost": {
+          "amount": 4,
+          "unit": "gp"
+        },
+        "item_category": "tack",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "2d1dc4f0-1e9a-58e5-bc73-7543f3fcf4ce",
+      "slug": "stabling_per_day",
+      "name_ru": "Конюшня (день)",
+      "name_en": "Stabling (per day)",
+      "rules_edition": "2014",
+      "source": "PHB 2014",
+      "sort_order": 4613,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        },
+        "item_category": "tack",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": ""
+      }
+    }
+  ]
+}

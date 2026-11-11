@@ -1,0 +1,432 @@
+from __future__ import annotations
+
+from urllib.parse import urlencode
+from uuid import UUID
+
+from fastapi import APIRouter, File, Request, Response, UploadFile
+from fastapi.responses import RedirectResponse
+
+from app.api.deps import CurrentSessionId, CurrentUser, DbSession, client_meta
+from app.core.config import settings
+from app.core.exceptions import AppError
+from app.models.user import AuthProvider
+from app.schemas.auth import (
+    AuthSessionListResponse,
+    ChangePasswordRequest,
+    ChangePasswordResponse,
+    DeleteAccountRequest,
+    DeleteAccountResponse,
+    EmailChangeConfirmRequest,
+    EmailChangeConfirmResponse,
+    EmailChangeRequest,
+    EmailChangeRequestResponse,
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
+    LoginRequest,
+    OAuthStartResponse,
+    RefreshRequest,
+    RegisterRequest,
+    RegisterResponse,
+    ResendVerificationRequest,
+    ResendVerificationResponse,
+    ResetPasswordRequest,
+    ResetPasswordResponse,
+    RevokeSessionsResponse,
+    TokenResponse,
+    VerifyEmailRequest,
+)
+from app.schemas.user import UserResponse, UserUpdateRequest
+from app.services.auth import AuthService, serialize_user
+from app.services.oauth import VkOAuthProvider, YandexOAuthProvider
+from app.services.oauth.state import (
+    consume_oauth_state,
+    issue_oauth_state,
+    make_pkce_pair,
+)
+
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+def _provider(provider: AuthProvider):
+    if provider == AuthProvider.yandex:
+        return YandexOAuthProvider()
+    if provider == AuthProvider.vk:
+        return VkOAuthProvider()
+    raise AppError(
+        "Неподдерживаемый OAuth-провайдер",
+        code="unsupported_provider",
+        status_code=400,
+    )
+
+
+@router.post("/register", response_model=RegisterResponse)
+def register(payload: RegisterRequest, db: DbSession) -> RegisterResponse:
+    return AuthService(db).register(payload.email, payload.password, payload.display_name)
+
+
+@router.post("/login", response_model=TokenResponse)
+def login(payload: LoginRequest, request: Request, db: DbSession) -> TokenResponse:
+    user_agent, ip_address = client_meta(request)
+    return AuthService(db).login(
+        payload.email,
+        payload.password,
+        user_agent=user_agent,
+        ip_address=ip_address,
+    )
+
+
+@router.post("/verify-email", response_model=TokenResponse)
+def verify_email(payload: VerifyEmailRequest, request: Request, db: DbSession) -> TokenResponse:
+    user_agent, ip_address = client_meta(request)
+    return AuthService(db).verify_email(
+        payload.token,
+        user_agent=user_agent,
+        ip_address=ip_address,
+    )
+
+
+@router.post("/resend-verification", response_model=ResendVerificationResponse)
+def resend_verification(
+    payload: ResendVerificationRequest,
+    db: DbSession,
+) -> ResendVerificationResponse:
+    return AuthService(db).resend_verification(payload.email)
+
+
+@router.post("/refresh", response_model=TokenResponse)
+def refresh(payload: RefreshRequest, request: Request, db: DbSession) -> TokenResponse:
+    user_agent, ip_address = client_meta(request)
+    return AuthService(db).refresh(
+        payload.refresh_token,
+        user_agent=user_agent,
+        ip_address=ip_address,
+    )
+
+
+@router.post("/forgot-password", response_model=ForgotPasswordResponse)
+def forgot_password(payload: ForgotPasswordRequest, db: DbSession) -> ForgotPasswordResponse:
+    return AuthService(db).forgot_password(payload.email)
+
+
+@router.post("/reset-password", response_model=ResetPasswordResponse)
+def reset_password(payload: ResetPasswordRequest, db: DbSession) -> ResetPasswordResponse:
+    return AuthService(db).reset_password(payload.token, payload.password)
+
+
+@router.post("/logout", status_code=204)
+def logout(
+    current_user: CurrentUser,
+    session_id: CurrentSessionId,
+    db: DbSession,
+) -> Response:
+    AuthService(db).logout_current(session_id=session_id)
+    return Response(status_code=204)
+
+
+@router.get("/sessions", response_model=AuthSessionListResponse)
+def list_sessions(
+    current_user: CurrentUser,
+    session_id: CurrentSessionId,
+    db: DbSession,
+) -> AuthSessionListResponse:
+    return AuthService(db).list_sessions(current_user.id, current_session_id=session_id)
+
+
+@router.delete("/sessions/{session_id}", response_model=RevokeSessionsResponse)
+def revoke_session(
+    session_id: UUID,
+    current_user: CurrentUser,
+    current_session_id: CurrentSessionId,
+    db: DbSession,
+) -> RevokeSessionsResponse:
+    return AuthService(db).revoke_session(
+        current_user.id,
+        session_id,
+        current_session_id=current_session_id,
+    )
+
+
+@router.delete("/sessions", response_model=RevokeSessionsResponse)
+def revoke_sessions(
+    current_user: CurrentUser,
+    session_id: CurrentSessionId,
+    db: DbSession,
+    others_only: bool = True,
+) -> RevokeSessionsResponse:
+    if others_only:
+        return AuthService(db).revoke_other_sessions(
+            current_user.id,
+            current_session_id=session_id,
+        )
+    return AuthService(db).revoke_all_sessions(current_user.id)
+
+
+@router.get("/me", response_model=UserResponse)
+def me(current_user: CurrentUser) -> UserResponse:
+    return serialize_user(current_user)
+
+
+@router.patch("/me", response_model=UserResponse)
+def update_me(
+    payload: UserUpdateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> UserResponse:
+    return AuthService(db).update_me(current_user.id, payload)
+
+
+@router.post("/change-password", response_model=ChangePasswordResponse)
+def change_password(
+    payload: ChangePasswordRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> ChangePasswordResponse:
+    return AuthService(db).change_password(
+        current_user.id,
+        payload.current_password,
+        payload.new_password,
+    )
+
+
+@router.post("/me/avatar", response_model=UserResponse)
+async def upload_avatar(
+    current_user: CurrentUser,
+    db: DbSession,
+    file: UploadFile = File(...),
+) -> UserResponse:
+    data = await file.read()
+    return AuthService(db).upload_avatar(current_user.id, data, file.content_type)
+
+
+@router.delete("/me/avatar", response_model=UserResponse)
+def delete_avatar(current_user: CurrentUser, db: DbSession) -> UserResponse:
+    return AuthService(db).delete_avatar(current_user.id)
+
+
+@router.post("/me/email/request", response_model=EmailChangeRequestResponse)
+def request_email_change(
+    payload: EmailChangeRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> EmailChangeRequestResponse:
+    return AuthService(db).request_email_change(current_user.id, payload.new_email)
+
+
+@router.post("/me/email/confirm", response_model=EmailChangeConfirmResponse)
+def confirm_email_change(
+    payload: EmailChangeConfirmRequest,
+    db: DbSession,
+) -> EmailChangeConfirmResponse:
+    # No auth required: user opens the link from the OLD mailbox.
+    return AuthService(db).confirm_email_change(payload.token)
+
+
+@router.delete("/me", response_model=DeleteAccountResponse)
+def delete_account(
+    payload: DeleteAccountRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> DeleteAccountResponse:
+    return AuthService(db).delete_account(
+        current_user.id,
+        confirm_email=payload.confirm_email,
+        password=payload.password,
+    )
+
+
+def _oauth_labels() -> dict[AuthProvider, str]:
+    return {AuthProvider.yandex: "Яндекс", AuthProvider.vk: "VK ID"}
+
+
+def _oauth_public_base() -> str:
+    return (settings.app_public_url or "https://creed20.tech").rstrip("/")
+
+
+def _oauth_redirect(path: str, **params: str) -> RedirectResponse:
+    query = urlencode({k: v for k, v in params.items() if v})
+    url = f"{_oauth_public_base()}{path}"
+    if query:
+        url = f"{url}?{query}"
+    return RedirectResponse(url=url, status_code=302)
+
+
+@router.get("/oauth/{provider}/start", response_model=OAuthStartResponse)
+def oauth_start(provider: AuthProvider) -> OAuthStartResponse:
+    if provider not in {AuthProvider.yandex, AuthProvider.vk}:
+        raise AppError(
+            "Неподдерживаемый OAuth-провайдер",
+            code="unsupported_provider",
+            status_code=400,
+        )
+
+    oauth = _provider(provider)
+    labels = _oauth_labels()
+    if not oauth.is_configured():
+        return OAuthStartResponse(
+            provider=provider.value,
+            configured=False,
+            authorize_url=None,
+            message=(
+                f"Вход через {labels[provider]} не настроен: "
+                "добавьте client id/secret в env."
+            ),
+        )
+
+    code_challenge: str | None = None
+    if provider == AuthProvider.vk:
+        verifier, code_challenge = make_pkce_pair()
+        state = issue_oauth_state(code_verifier=verifier)
+    else:
+        state = issue_oauth_state()
+
+    return OAuthStartResponse(
+        provider=provider.value,
+        configured=True,
+        authorize_url=oauth.get_authorize_url(state, code_challenge=code_challenge),
+        message=f"Готово к входу через {labels[provider]}.",
+    )
+
+
+@router.get("/oauth/{provider}/link/start", response_model=OAuthStartResponse)
+def oauth_link_start(
+    provider: AuthProvider,
+    current_user: CurrentUser,
+) -> OAuthStartResponse:
+    """Start OAuth in «link to current account» mode (cabinet)."""
+    if provider not in {AuthProvider.yandex, AuthProvider.vk}:
+        raise AppError(
+            "Неподдерживаемый OAuth-провайдер",
+            code="unsupported_provider",
+            status_code=400,
+        )
+
+    oauth = _provider(provider)
+    labels = _oauth_labels()
+    if not oauth.is_configured():
+        return OAuthStartResponse(
+            provider=provider.value,
+            configured=False,
+            authorize_url=None,
+            message=(
+                f"Привязка {labels[provider]} не настроена: "
+                "добавьте client id/secret в env."
+            ),
+        )
+
+    if any(identity.provider == provider for identity in current_user.identities):
+        raise AppError(
+            f"{labels[provider]} уже привязан к этому аккаунту.",
+            code="oauth_provider_already_linked",
+            status_code=409,
+        )
+
+    code_challenge: str | None = None
+    if provider == AuthProvider.vk:
+        verifier, code_challenge = make_pkce_pair()
+        state = issue_oauth_state(
+            code_verifier=verifier,
+            purpose="link",
+            user_id=current_user.id,
+        )
+    else:
+        state = issue_oauth_state(purpose="link", user_id=current_user.id)
+
+    return OAuthStartResponse(
+        provider=provider.value,
+        configured=True,
+        authorize_url=oauth.get_authorize_url(state, code_challenge=code_challenge),
+        message=f"Готово к привязке {labels[provider]}.",
+    )
+
+
+@router.delete("/oauth/{provider}/link", response_model=UserResponse)
+def oauth_unlink(
+    provider: AuthProvider,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> UserResponse:
+    return AuthService(db).unlink_oauth_provider(current_user, provider)
+
+
+@router.get("/oauth/{provider}/callback")
+async def oauth_callback(
+    provider: AuthProvider,
+    request: Request,
+    db: DbSession,
+    code: str | None = None,
+    state: str | None = None,
+    error: str | None = None,
+    device_id: str | None = None,
+):
+    labels = _oauth_labels()
+    is_link_hint = False
+    try:
+        if provider not in {AuthProvider.yandex, AuthProvider.vk}:
+            raise AppError(
+                "Неподдерживаемый OAuth-провайдер",
+                code="unsupported_provider",
+                status_code=400,
+            )
+
+        # Peek state early so errors redirect to cabinet when linking.
+        peek = consume_oauth_state(state)
+        is_link_hint = bool(peek and peek.is_link)
+
+        if error:
+            raise AppError(
+                f"Провайдер вернул ошибку: {error}",
+                code="oauth_provider_error",
+                status_code=400,
+            )
+
+        if not code:
+            raise AppError("Не передан код OAuth", code="missing_code", status_code=400)
+
+        state_payload = peek
+        if state_payload is None:
+            raise AppError(
+                "Некорректный или просроченный state OAuth",
+                code="invalid_oauth_state",
+                status_code=400,
+            )
+
+        oauth = _provider(provider)
+        profile = await oauth.exchange_code(
+            code,
+            device_id=device_id,
+            code_verifier=state_payload.code_verifier,
+            state=state,
+        )
+
+        if state_payload.is_link:
+            assert state_payload.user_id is not None
+            AuthService(db).link_oauth_profile(state_payload.user_id, profile)
+            return _oauth_redirect(
+                "/cabinet",
+                oauth_linked=provider.value,
+            )
+
+        user_agent, ip_address = client_meta(request)
+        tokens = AuthService(db).login_with_oauth_profile(
+            profile,
+            user_agent=user_agent,
+            ip_address=ip_address,
+        )
+        # Must land on /login — HomeRedirect on / strips query and drops tokens.
+        return _oauth_redirect(
+            "/login",
+            oauth=provider.value,
+            access_token=tokens.access_token,
+            refresh_token=tokens.refresh_token,
+        )
+    except AppError as exc:
+        label = labels.get(provider, provider.value)
+        if is_link_hint:
+            return _oauth_redirect(
+                "/cabinet",
+                oauth_error=exc.message or f"Не удалось привязать {label}",
+            )
+        return _oauth_redirect(
+            "/login",
+            oauth_error=exc.message or f"Не удалось войти через {label}",
+        )
