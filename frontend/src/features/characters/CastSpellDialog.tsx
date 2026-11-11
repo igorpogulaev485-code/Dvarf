@@ -50,7 +50,7 @@ import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
  * dialog never opened the lobby target picker for Щит веры / Bless / …
  */
 const CAST_ALLY_NAME_RE =
-  /благословен|bless|ускорен|haste|щит\s*вер|shield of faith|наставлен|guidance|помощ[ьи]|\baid\b|героизм|heroism|вардинг|warding bond|вдохновен|inspiration|инфуз|infusion|бафф?|\bбаф\b/i
+  /благословен|bless|ускорен|haste|щит\s*вер|shield of faith|наставлен|указан|guidance|помощ[ьи]|\baid\b|героизм|heroism|вардинг|warding bond|вдохновен|inspiration|инфуз|infusion|бафф?|\bбаф\b/i
 const CAST_ALLY_CATALOG_RE =
   /shield_of_faith|\bbless\b|\baid\b|\bhaste\b|\bheroism\b|warding_bond|\bguidance\b|beacon_of_hope|enhance_ability/i
 const CAST_MULTI_TARGET_RE = /благословен|bless|помощ[ьи]|\baid\b/i

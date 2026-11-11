@@ -3,6 +3,8 @@
  * JSONB on catalog_entries — readers must accept legacy SRD shapes.
  */
 
+import { summonCastPreview } from './summonSpellPreview'
+
 export const SPELL_DATA_SCHEMA_VERSION = 1 as const
 
 export type SpellCastingTimeUnit =
@@ -371,6 +373,7 @@ export function scaleAtSlotLevel(
 
 export type CastEffectSpell = {
   level: number
+  name?: string | null
   damage?: string | null
   damage_at_character_level?: SpellScaleTable
   damage_at_slot_level?: SpellScaleTable
@@ -573,6 +576,8 @@ export function resolveCastEffectSummary(
   spell: CastEffectSpell,
   options: CastEffectOptions,
 ): CastEffectSummary {
+  const summon = summonCastPreview(spell, options.slotLevel)
+  if (summon) return summon
   const resolved = resolveCastEffect(spell, options)
   const lines: string[] = []
   const temp = parseTempHpRetaliationScale(spell, options.slotLevel)

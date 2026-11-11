@@ -8,6 +8,23 @@ export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 export type ArmorProfKey = 'light' | 'medium' | 'heavy' | 'shields'
 export type WeaponProfKey = 'simple' | 'martial'
 
+/**
+ * PHB druid weapon list: clubs, daggers, darts, javelins, maces,
+ * quarterstaffs, scimitars, sickles, slings, spears. Not every simple weapon.
+ */
+export const DRUID_PHB_WEAPONS = [
+  'Дубинка',
+  'Кинжал',
+  'Дротик',
+  'Метательное копьё',
+  'Булава',
+  'Боевой посох',
+  'Ятаган',
+  'Серп',
+  'Праща',
+  'Копьё',
+] as const
+
 export type SkillChoice = {
   count: number
   /** Skill keys from sheetTypes; 'any' = any skill (bard multiclass). */
@@ -1056,8 +1073,8 @@ export const CLASS_GRANT_DEFS: Record<string, ClassGrantDef> = {
     start: pkg({
       saves: ['int', 'wis'],
       armor: ['light', 'medium', 'shields'],
-      weapons: ['simple'],
-      weaponExtras: ['Ятаган'],
+      weapons: [],
+      weaponExtras: [...DRUID_PHB_WEAPONS],
       skillChoices: {
         count: 2,
         from: [
@@ -1456,6 +1473,8 @@ function parseWeaponExtras(raw: unknown): string[] {
     shortsword: 'Короткий меч',
     rapier: 'Рапира',
     scimitar: 'Ятаган',
+    sickle: 'Серп',
+    sling: 'Праща',
     dagger: 'Кинжал',
     shortbow: 'Короткий лук',
     longbow: 'Длинный лук',

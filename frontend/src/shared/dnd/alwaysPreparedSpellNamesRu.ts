@@ -83,7 +83,7 @@ const ALWAYS_PREPARED_SPELL_NAME_RU: Record<string, string> = {
   "Greater Invisibility": "Высшая невидимость",
   "Greater Restoration": "Высшее восстановление",
   "Guardian of Faith": "Страж веры",
-  "Guidance": "Наставление",
+  "Guidance": "Указание",
   "Guiding Bolt": "Направляющий снаряд",
   "Gust of Wind": "Порыв ветра",
   "Hallucinatory Terrain": "Мираж",

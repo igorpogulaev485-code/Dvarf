@@ -1,5 +1,18 @@
 /** Language / tool proficiency lists for the digital sheet (2014 presets + custom). */
 
+export const DRUIDIC_LANGUAGE = 'Друидический'
+
+/** Druidic is a class language. Added while a druid class is on the sheet. */
+export function withDruidicLanguage(
+  languages: string[],
+  hasDruid: boolean,
+): { languages: string[]; changed: boolean } {
+  if (!hasDruid) return { languages, changed: false }
+  const exists = languages.some((name) => name.trim().toLowerCase() === DRUIDIC_LANGUAGE.toLowerCase())
+  if (exists) return { languages, changed: false }
+  return { languages: [...languages, DRUIDIC_LANGUAGE], changed: true }
+}
+
 export const LANGUAGE_PRESETS = [
   'Общий',
   'Дварфийский',
@@ -18,6 +31,7 @@ export const LANGUAGE_PRESETS = [
   'Акван',
   'Сильван',
   'Подземный',
+  'Друидический',
 ] as const
 
 export const TOOL_PRESETS = [

@@ -15,6 +15,7 @@ import {
   type AbilityKey,
   type AppliedClassGrant,
   type ArmorProfKey,
+  DRUID_PHB_WEAPONS,
   type ClassGrantDef,
   type ClassGrantPicks,
   type StartingGearItem,
@@ -322,8 +323,12 @@ export function applyClassGrantToDraft(input: {
   const pkg = packageForMode(def, input.mode)
 
   const armorKeys = [...pkg.armor] as ArmorProfKey[]
-  const weaponKeys = [...pkg.weapons] as WeaponProfKey[]
-  const weaponExtras = uniqueStrings([...(pkg.weaponExtras ?? [])])
+  let weaponKeys = [...pkg.weapons] as WeaponProfKey[]
+  let weaponExtras = uniqueStrings([...(pkg.weaponExtras ?? [])])
+  if (def.slug === 'druid' && input.mode === 'start') {
+    weaponKeys = weaponKeys.filter((key) => key !== 'simple')
+    weaponExtras = uniqueStrings([...DRUID_PHB_WEAPONS])
+  }
   const saves = [...pkg.saves]
   const skills = [...input.picks.skills]
   const tools = uniqueStrings([...pkg.toolsFixed, ...input.picks.tools])
@@ -630,4 +635,62 @@ export function readAppliedClassGrants(raw: unknown): AppliedClassGrant[] {
     })
   }
   return result
+}
+
+/**
+ * PHB druid does not know every simple weapon. Existing sheets that stored
+ * the category «Простое» plus a scimitar are rewritten to the ten-weapon list.
+ * Simple stays if another class or subclass still grants the category.
+ */
+export function reconcileDruidStartWeapons(input: {
+  classGrants: AppliedClassGrant[]
+  subclassWeaponKeys?: WeaponProfKey[]
+  weapons: WeaponProficiency
+}): {
+  classGrants: AppliedClassGrant[]
+  weapons: WeaponProficiency
+  changed: boolean
+} {
+  let changed = false
+  const classGrants = input.classGrants.map((grant) => {
+    if (grant.slug !== 'druid' || grant.mode !== 'start') return grant
+    const extrasLower = new Set(
+      (grant.weaponExtras ?? []).map((name) => name.trim().toLowerCase()),
+    )
+    const missing = DRUID_PHB_WEAPONS.some((name) => !extrasLower.has(name.toLowerCase()))
+    const hasSimple = grant.weaponKeys.includes('simple')
+    if (!hasSimple && !missing) return grant
+    changed = true
+    const kept = (grant.weaponExtras ?? []).filter((name) => {
+      const key = name.trim().toLowerCase()
+      if (!key || key === 'scimitar') return false
+      return !DRUID_PHB_WEAPONS.some((item) => item.toLowerCase() === key)
+    })
+    return {
+      ...grant,
+      weaponKeys: grant.weaponKeys.filter((key) => key !== 'simple'),
+      weaponExtras: uniqueStrings([...DRUID_PHB_WEAPONS, ...kept]),
+    }
+  })
+  const simpleStill =
+    classGrants.some((grant) => grant.weaponKeys.includes('simple')) ||
+    (input.subclassWeaponKeys ?? []).includes('simple')
+  const extras = uniqueStrings([
+    ...(input.weapons.extras ?? []).filter((name) => name.trim().toLowerCase() !== 'scimitar'),
+    ...classGrants
+      .filter((grant) => grant.slug === 'druid' && grant.mode === 'start')
+      .flatMap((grant) => grant.weaponExtras),
+  ])
+  const weaponsChanged =
+    input.weapons.simple !== simpleStill ||
+    extras.length !== (input.weapons.extras ?? []).length ||
+    extras.some((name, index) => (input.weapons.extras ?? [])[index] !== name)
+  if (!changed && !weaponsChanged) {
+    return { classGrants: input.classGrants, weapons: input.weapons, changed: false }
+  }
+  return {
+    classGrants,
+    weapons: { ...input.weapons, simple: simpleStill, extras },
+    changed: true,
+  }
 }

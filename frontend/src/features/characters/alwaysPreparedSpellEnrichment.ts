@@ -168,7 +168,7 @@ export function enrichAlwaysPreparedSheetSpell(
     ...fromCatalog,
     ...base,
     catalog_id: base.catalog_id ?? fromCatalog.catalog_id,
-    name: base.name || fromCatalog.name,
+    name: fromCatalog.name || base.name,
     level: Number.isFinite(base.level) ? base.level : fromCatalog.level,
     casting_time: base.casting_time || fromCatalog.casting_time,
     range: base.range || fromCatalog.range,

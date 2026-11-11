@@ -333,7 +333,7 @@
       "primary_abilities": ["wis"],
       "saving_throws": ["int", "wis"],
       "armor": ["light", "medium", "shields"],
-      "weapons": { "simple": true, "martial": false, "extras": ["scimitar"], "note": "PHB: клубы, кинжалы, дротики, копья, булавы, посохи, ятаганы, серпы, пращи — без металла в доспехах/щитах" },
+      "weapons": { "simple": false, "martial": false, "extras": ["club", "dagger", "dart", "javelin", "mace", "quarterstaff", "scimitar", "sickle", "sling", "spear"], "note": "PHB: дубинка, кинжал, дротик, метательное копьё, булава, боевой посох, ятаган, серп, праща, копьё — не вся категория простого оружия" },
       "tools_fixed": ["Набор травника"],
       "tool_choices": null,
       "skill_choices": {

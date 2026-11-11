@@ -32,6 +32,11 @@ import { createCompanion, revokeCompanionsForSubclass } from './companions'
 import type { TextBlock } from './textBlocks'
 import { enrichAlwaysPreparedSheetSpell } from './alwaysPreparedSpellEnrichment'
 import {
+  LAND_CIRCLE_SPELLS,
+  landCircleSpells,
+  resolveDruidLandType,
+} from './druidCircleSpells'
+import {
   asAlwaysPreparedSpell,
   createSheetSpell,
   isPreparedLocked,
@@ -849,6 +854,41 @@ export function applySubclassGrantToDraft(input: {
   }
 }
 
+function grantSpellShapeMatches(
+  prev: SheetSpell | undefined,
+  next: SheetSpell | undefined,
+): boolean {
+  if (!prev || !next) return false
+  const mark = (spell: SheetSpell) => {
+    const components = spell.components
+    if (!components) return ''
+    return `${components.v ? 'v' : ''}${components.s ? 's' : ''}${components.m ? 'm' : ''}`
+  }
+  return (
+    prev.name === next.name &&
+    (prev.catalog_id ?? null) === (next.catalog_id ?? null) &&
+    prev.concentration === next.concentration &&
+    (prev.duration ?? '') === (next.duration ?? '') &&
+    mark(prev) === mark(next)
+  )
+}
+
+function sameAlwaysPreparedList(
+  prev: AlwaysPreparedSpell[],
+  next: AlwaysPreparedSpell[],
+): boolean {
+  if (prev.length !== next.length) return false
+  return prev.every((spell, index) => {
+    const other = next[index]
+    return (
+      other != null &&
+      spell.name === other.name &&
+      spell.level === other.level &&
+      (spell.fromClassLevel ?? null) === (other.fromClassLevel ?? null)
+    )
+  })
+}
+
 /**
  * Re-inject always-prepared domain/oath/specialty spells per RAW class-alone
  * spell level (not shared multiclass slots). Also strips orphan subclass
@@ -870,15 +910,34 @@ export function syncSubclassAlwaysPreparedSpells(input: {
 
   for (const grant of input.draft.subclassGrants) {
     const extra = EXTRA_SUBCLASS_SPELLS[grant.slug] ?? []
-    const catalog = [...(grant.alwaysPreparedSpells ?? [])]
+    let catalog = [...(grant.alwaysPreparedSpells ?? [])]
     for (const spell of extra) {
       if (!catalog.some((row) => row.name === spell.name && row.level === spell.level)) {
         catalog.push(spell)
       }
     }
     const picks = picksWithFeatureCantrips(grant, input.featurePicks)
+    let landType: string | null = null
+    if (grant.slug === 'circle_of_the_land') {
+      landType = resolveDruidLandType({
+        classEntryId: grant.classEntryId,
+        featurePicks: input.featurePicks,
+        grantPicks: picks.values,
+      })
+      catalog = landCircleSpells(landType).map((spell) => ({
+        name: spell.name,
+        level: spell.level,
+        fromClassLevel: spell.fromClassLevel,
+      }))
+    }
     const bonus = bonusCantripGrants(grant.slug, picks)
-    if (catalog.length === 0 && bonus.length === 0) continue
+    if (
+      catalog.length === 0 &&
+      bonus.length === 0 &&
+      grant.slug !== 'circle_of_the_land'
+    ) {
+      continue
+    }
 
     const classLevel = Math.min(
       20,
@@ -891,6 +950,17 @@ export function syncSubclassAlwaysPreparedSpells(input: {
     )
 
     const removeIds = new Set(grant.grantedSpellIds)
+    if (grant.slug === 'circle_of_the_land') {
+      const names = new Set<string>(['Gust of Wind', 'Lightning Bolt'])
+      for (const rows of Object.values(LAND_CIRCLE_SPELLS)) {
+        for (const spell of rows) names.add(spell.name)
+      }
+      for (const name of names) {
+        removeIds.add(
+          subclassSpellId(grant.classEntryId, grant.slug, spellKeyFromName(name)),
+        )
+      }
+    }
     const prevLabel =
       known.find((spell) => removeIds.has(spell.id))?.prepare_source_label?.trim() ||
       grant.slug
@@ -950,13 +1020,36 @@ export function syncSubclassAlwaysPreparedSpells(input: {
     const sameIds =
       grantedSpellIds.length === grant.grantedSpellIds.length &&
       grantedSpellIds.every((id, index) => id === grant.grantedSpellIds[index])
-    if (sameIds && nextKnown.length === known.length) continue
+    const rulesSame =
+      sameIds &&
+      grantedSpellIds.every((id) =>
+        grantSpellShapeMatches(
+          known.find((spell) => spell.id === id),
+          nextKnown.find((spell) => spell.id === id),
+        ),
+      )
+    const snapshotSame =
+      grant.slug !== 'circle_of_the_land' ||
+      sameAlwaysPreparedList(grant.alwaysPreparedSpells ?? [], catalog)
+    const picksSame = landType == null || grant.picks?.land_type === landType
+    if (sameIds && rulesSame && nextKnown.length === known.length && snapshotSame && picksSame) {
+      continue
+    }
 
     changed = true
     known = nextKnown
     grants = grants.map((row) =>
       row.classEntryId === grant.classEntryId
-        ? { ...row, grantedSpellIds }
+        ? {
+            ...row,
+            grantedSpellIds,
+            ...(grant.slug === 'circle_of_the_land'
+              ? {
+                  alwaysPreparedSpells: catalog,
+                  picks: landType ? { ...row.picks, land_type: landType } : row.picks,
+                }
+              : {}),
+          }
         : row,
     )
   }
