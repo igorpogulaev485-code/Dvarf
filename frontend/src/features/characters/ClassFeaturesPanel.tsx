@@ -22,6 +22,10 @@ import {
   type UnlockedFeature,
 } from '../../shared/dnd/classFeatures'
 import {
+  DIVINE_SMITE_FEATURE_ID,
+  type DivineSmiteIntent,
+} from './divineSmite'
+import {
   findReplaceTargets,
   findReplacerForFeature,
   isReplacementTaken,
@@ -198,6 +202,9 @@ type ClassFeaturesPanelProps = {
     diceCount: number
     diceSize: number
   }) => string | null
+  /** Shared with the combat scene: prepare a smite circle without spending it. */
+  divineSmiteIntent?: DivineSmiteIntent
+  onDivineSmiteIntent?: (next: DivineSmiteIntent) => void
   onToast?: (message: string) => void
   /** Summary surface: feats + race on the same glance list. */
   featGrants?: AppliedFeatGrant[]
@@ -1538,6 +1545,8 @@ function FeatureSlotSpendControls({
   onSpellsChange,
   onToast,
   onMoonFormSlotHeal,
+  divineSmiteIntent,
+  onDivineSmiteIntent,
 }: {
   feature: UnlockedFeature
   spells: SpellsState
@@ -1548,6 +1557,8 @@ function FeatureSlotSpendControls({
     diceCount: number
     diceSize: number
   }) => string | null
+  divineSmiteIntent?: DivineSmiteIntent
+  onDivineSmiteIntent?: (next: DivineSmiteIntent) => void
 }) {
   const spend = feature.slot_spend
   if (!spend) return null
@@ -1564,18 +1575,46 @@ function FeatureSlotSpendControls({
         {spend.label_ru}
         {spend.extra_vs_note_ru ? ` · ${spend.extra_vs_note_ru}` : ''}
         {isMoonHeal ? ' · нужен активный облик' : ''}
+        {feature.id === DIVINE_SMITE_FEATURE_ID
+          ? ' · в «Бою» ячейка списывается после рукопашного попадания'
+          : ''}
+        {feature.id === DIVINE_SMITE_FEATURE_ID && divineSmiteIntent?.vsUndeadOrFiend
+          ? ' · сейчас +1к8 против нежити или исчадия'
+          : ''}
       </Text>
       <div className="feature-resource__actions">
         {levels.map((level) => {
           const withDice = slotSpendHasDice(spend)
           const dice = withDice ? slotSpendDiceCount(spend, level) : 0
           const available = canSpendSlot(spells.slots, level)
+          const smiteArmed =
+            feature.id === DIVINE_SMITE_FEATURE_ID && divineSmiteIntent?.slotLevel === level
           return (
             <Button
               key={level}
               type="button"
+              variant={
+                feature.id === DIVINE_SMITE_FEATURE_ID
+                  ? smiteArmed
+                    ? 'primary'
+                    : 'secondary'
+                  : 'primary'
+              }
               disabled={!available}
               onClick={() => {
+                if (feature.id === DIVINE_SMITE_FEATURE_ID) {
+                  const nextLevel = divineSmiteIntent?.slotLevel === level ? null : level
+                  onDivineSmiteIntent?.({
+                    slotLevel: nextLevel,
+                    vsUndeadOrFiend: divineSmiteIntent?.vsUndeadOrFiend ?? false,
+                  })
+                  onToast?.(
+                    nextLevel == null
+                      ? 'Божественная кара снята. Ячейка не списана.'
+                      : `Божественная кара: ячейка ${level} → +${dice}к${spend.dice_size ?? 8}. Ячейка не списана — в сцене «Бой» подтверди попадание.`,
+                  )
+                  return
+                }
                 if (isMoonHeal && onMoonFormSlotHeal) {
                   const diceSize = spend.dice_size ?? 8
                   const diceCount = withDice ? dice : moonHealDiceCount(level)
@@ -1616,6 +1655,26 @@ function FeatureSlotSpendControls({
             </Button>
           )
         })}
+        {feature.id === DIVINE_SMITE_FEATURE_ID ? (
+          <Button
+            type="button"
+            variant={divineSmiteIntent?.vsUndeadOrFiend ? 'primary' : 'secondary'}
+            onClick={() => {
+              const next = !(divineSmiteIntent?.vsUndeadOrFiend ?? false)
+              onDivineSmiteIntent?.({
+                slotLevel: divineSmiteIntent?.slotLevel ?? null,
+                vsUndeadOrFiend: next,
+              })
+              onToast?.(
+                next
+                  ? 'Нежить / исчадие: +1к8 к каре сверх потолка ячейки. Ячейка не списана.'
+                  : 'Обычная цель: без дополнительного к8. Ячейка не списана.',
+              )
+            }}
+          >
+            нежить / исчадие
+          </Button>
+        ) : null}
       </div>
     </div>
   )
@@ -1745,6 +1804,8 @@ function FeatureRow({
   onWizardFeatureUse,
   moonCombatWildShape = false,
   onMoonFormSlotHeal,
+  divineSmiteIntent,
+  onDivineSmiteIntent,
   inventoryItems = [],
   onInventoryChange,
   concentration = null,
@@ -1789,6 +1850,8 @@ function FeatureRow({
     diceCount: number
     diceSize: number
   }) => string | null
+  divineSmiteIntent?: DivineSmiteIntent
+  onDivineSmiteIntent?: (next: DivineSmiteIntent) => void
   inventoryItems?: InventoryItem[]
   onInventoryChange?: (items: InventoryItem[]) => void
   concentration?: ConcentrationState | null
@@ -2117,6 +2180,8 @@ function FeatureRow({
           onSpellsChange={onSpellsChange}
           onToast={onToast}
           onMoonFormSlotHeal={onMoonFormSlotHeal}
+          divineSmiteIntent={divineSmiteIntent}
+          onDivineSmiteIntent={onDivineSmiteIntent}
         />
       ) : null}
       {replacementStatus === 'active' && isSunSoulVariableKi(feature.id) ? (
@@ -2303,6 +2368,8 @@ export function ClassFeaturesPanel({
   onFeatureSelfForm,
   onWizardFeatureUse,
   onMoonFormSlotHeal,
+  divineSmiteIntent,
+  onDivineSmiteIntent,
   onToast,
   featGrants = [],
   darkvision = 0,
@@ -2772,6 +2839,8 @@ export function ClassFeaturesPanel({
                             onWizardFeatureUse={onWizardFeatureUse}
                             moonCombatWildShape={moonCombatWildShape}
                             onMoonFormSlotHeal={onMoonFormSlotHeal}
+                            divineSmiteIntent={divineSmiteIntent}
+                            onDivineSmiteIntent={onDivineSmiteIntent}
                             inventoryItems={inventoryItems}
                             onInventoryChange={onInventoryChange}
                             concentration={concentration}

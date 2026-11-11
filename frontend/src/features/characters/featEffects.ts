@@ -12,6 +12,7 @@ import {
 } from '../../shared/dnd/featGrants'
 import type { ArmorProficiency } from './identity'
 import type { TextBlock } from './textBlocks'
+import { ritualCasterCastingAbility } from '../../shared/dnd/ritualBooks'
 import {
   featSpellId,
   proficiencyBonusForLevel,
@@ -154,7 +155,24 @@ export function syncFeatSpellsForGrant(input: {
     if (prev && next.feat_grant === 'spell_list' && next.level > 0) {
       next = { ...next, prepared: prev.prepared }
     }
-    if (prev?.grant_cast) {
+    if (input.grant.slug === 'ritual_caster') {
+      const list = input.grant.picks.enumIds.list ?? null
+      const ability = ritualCasterCastingAbility(list)
+      const { grant_cast: _drop, ...rest } = next
+      next = {
+        ...rest,
+        ritual: true,
+        cast_access: 'ritual_only',
+        ritual_book: 'feat',
+        ritual_book_role: 'starter',
+        catalog_id: spell.spellSlug ?? next.catalog_id,
+        prepared: true,
+        prepared_locked: true,
+        ...(list ? { class_slug: list } : {}),
+        ...(ability ? { casting_ability: ability } : {}),
+        notes: 'Книга ритуалов · только ритуал, без ячейки',
+      }
+    } else if (prev?.grant_cast) {
       next = { ...next, grant_cast: prev.grant_cast }
     }
     next = withInnateGrantCast(next, { proficiencyBonus: pb, label })

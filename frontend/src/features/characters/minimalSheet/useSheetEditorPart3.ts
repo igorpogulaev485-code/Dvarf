@@ -45,6 +45,7 @@ import { syncDruidCircleSpells } from '../druidCircleSpells'
 import { reconcileDruidStartWeapons } from '../classEffects'
 import { withDruidicLanguage } from '../languagesTools'
 import { syncPactChainFamiliar } from '../pactChainEffects'
+import { syncCastWithoutSlotGrants } from '../castWithoutSlots'
 import { syncPactTomeCantrips } from '../pactTomeEffects'
 import { syncMagicalSecrets } from '../bardSecretsSync'
 import {
@@ -368,6 +369,30 @@ export function useSheetEditorPart3(model: SheetModel) {
       return { ...prev, spells: synced.spells }
     })
   }, [model.draft.featurePicks, model.draft.classes])
+
+  // Ritual books, at-will invocations, elemental discipline cards.
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const synced = syncCastWithoutSlotGrants({
+        spells: prev.spells,
+        inventory: prev.inventory,
+        featurePicks: prev.featurePicks,
+        featGrants: prev.featGrants,
+        classes: prev.classes,
+        subclassSlugByEntryId: model.subclassSlugByEntryId,
+        characterLevel: totalCharacterLevel(prev.classes),
+      })
+      if (!synced.changed) return prev
+      return { ...prev, spells: synced.spells, inventory: synced.inventory }
+    })
+  }, [
+    model.draft.featurePicks,
+    model.draft.classes,
+    model.draft.featGrants,
+    model.draft.spells,
+    model.draft.inventory,
+    model.subclassSlugByEntryId,
+  ])
 
   const infusionBonuses = useMemo(
     () =>

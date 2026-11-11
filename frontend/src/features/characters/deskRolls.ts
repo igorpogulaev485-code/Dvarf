@@ -171,16 +171,43 @@ export function formatCheckRoll(label: string, roll: CheckRoll): string {
   return `${label}: ${roll.total} (${dice} ${formatModifier(roll.modifier)}${floor})`
 }
 
-export function formatAttackRoll(input: {
+export type AttackExtraDamage = {
+  expression: string
+  type?: string | null
+  label: string
+}
+
+export type AttackStrike = {
+  text: string
+  /** Kept d20 is a natural 20. */
+  crit: boolean
+  die: number
+}
+
+function formatExtraDamage(
+  extra: AttackExtraDamage,
+  rng: () => number,
+  crit: boolean,
+): string {
+  const extraRoll = rollDamage(extra.expression, rng, { crit })
+  if (!extraRoll) return ` + ${extra.label}`
+  const typeBit = extra.type?.trim() ? ` ${extra.type.trim()}` : ''
+  return ` + ${extraRoll.total}${typeBit} (${extra.label}, ${extraRoll.detail})`
+}
+
+/** Attack and damage roll. Crit doubles every extra's dice (PHB p. 196). */
+export function resolveAttackRoll(input: {
   name: string
   attackBonus: number
   damageExpr: string
   damageType?: string
   /** Extra dice on the same hit (Divine Strike). Crit doubles them too. */
-  extraDamage?: { expression: string; type?: string | null; label: string } | null
+  extraDamage?: AttackExtraDamage | null
+  /** Further riders (Improved Divine Smite). Same crit rule, rolled in order. */
+  extraDamages?: AttackExtraDamage[] | null
   mode?: DeskRollMode
   rng?: () => number
-}): string {
+}): AttackStrike {
   const rng = input.rng ?? Math.random
   const mode = input.mode ?? 'normal'
   const hit = rollCheck(input.attackBonus, mode, rng)
@@ -189,18 +216,30 @@ export function formatAttackRoll(input: {
   const dmg = rollDamage(input.damageExpr, rng, { crit })
   const typeBit = input.damageType?.trim() ? ` ${input.damageType.trim()}` : ''
   const critBit = crit ? ' · критическое попадание' : ''
-  const extra = input.extraDamage
-  const extraRoll = extra ? rollDamage(extra.expression, rng, { crit }) : null
-  const extraBit =
-    extra && extraRoll
-      ? ` + ${extraRoll.total}${extra.type?.trim() ? ` ${extra.type.trim()}` : ''} (${extra.label}, ${extraRoll.detail})`
-      : extra
-        ? ` + ${extra.label}`
-        : ''
-  if (!dmg) {
-    return `${formatCheckRoll(input.name, hit)}${critBit} · урон ${input.damageExpr || '—'}${typeBit}${extraBit}`
-  }
-  return `${formatCheckRoll(input.name, hit)}${critBit} · урон ${dmg.total}${typeBit} (${dmg.detail})${extraBit}`
+  const extras = [
+    ...(input.extraDamage ? [input.extraDamage] : []),
+    ...(input.extraDamages ?? []),
+  ]
+  const extraBit = extras.map((extra) => formatExtraDamage(extra, rng, crit)).join('')
+  const text = !dmg
+    ? `${formatCheckRoll(input.name, hit)}${critBit} · урон ${input.damageExpr || '—'}${typeBit}${extraBit}`
+    : `${formatCheckRoll(input.name, hit)}${critBit} · урон ${dmg.total}${typeBit} (${dmg.detail})${extraBit}`
+  return { text, crit, die: hit.die }
+}
+
+export function formatAttackRoll(input: {
+  name: string
+  attackBonus: number
+  damageExpr: string
+  damageType?: string
+  /** Extra dice on the same hit (Divine Strike). Crit doubles them too. */
+  extraDamage?: AttackExtraDamage | null
+  /** Further riders (Improved Divine Smite). Same crit rule, rolled in order. */
+  extraDamages?: AttackExtraDamage[] | null
+  mode?: DeskRollMode
+  rng?: () => number
+}): string {
+  return resolveAttackRoll(input).text
 }
 
 export function formatSkillRoll(

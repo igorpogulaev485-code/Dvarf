@@ -133,6 +133,24 @@ export const MONK_ELEMENTAL_DISCIPLINES: ElementalDisciplineDef[] = [
   },
 ]
 
+/**
+ * Disciplines that are a spell paid with ki (PHB). Non-spell disciplines
+ * stay on the feature card.
+ */
+export const ELEMENTAL_DISCIPLINE_SPELLS: Record<string, { nameEn: string; selfOnly?: boolean }> = {
+  fist_of_four_thunders: { nameEn: 'Thunderwave' },
+  rush_of_the_gale_spirits: { nameEn: 'Gust of Wind' },
+  sweeping_cinder_strike: { nameEn: 'Burning Hands' },
+  clench_of_the_north_wind: { nameEn: 'Hold Person' },
+  gong_of_the_summit: { nameEn: 'Shatter' },
+  flames_of_the_phoenix: { nameEn: 'Fireball' },
+  mist_stance: { nameEn: 'Gaseous Form', selfOnly: true },
+  ride_the_wind: { nameEn: 'Fly', selfOnly: true },
+  eternal_mountain_defense: { nameEn: 'Stoneskin', selfOnly: true },
+  river_of_hungry_flame: { nameEn: 'Wall of Fire' },
+  wave_of_rolling_earth: { nameEn: 'Wall of Stone' },
+}
+
 export function elementalDisciplineById(id: string | null | undefined): ElementalDisciplineDef | null {
   if (!id) return null
   return MONK_ELEMENTAL_DISCIPLINES.find((row) => row.id === id) ?? null

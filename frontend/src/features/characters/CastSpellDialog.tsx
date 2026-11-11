@@ -22,7 +22,10 @@ import {
   type SpellcastingAbility,
 } from '../../shared/dnd/spells'
 import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
-import { canCastPreparedSpellAsRitual } from '../../shared/dnd/ritualCasting'
+import { canCastPreparedSpellAsRitual, castAccessAllowsRitual } from '../../shared/dnd/ritualCasting'
+import type { SheetResource } from '../../shared/dnd/rest'
+import { ritualBookBlockReason } from './castWithoutSlots'
+import { featureCastOffer, featureCastRemaining } from './featureCastSpend'
 import { resolveCastTiming } from '../../shared/dnd/upcastDuration'
 import {
   isCounterspellOrDispel,
@@ -118,6 +121,10 @@ export type CastChoice = {
   slotLevel: number
   /** Ritual: no slot / pact spent (PHB +10 min). */
   ritual?: boolean
+  /** Invocation at will: no slot, repeatable. */
+  atWill?: boolean
+  /** Feature charge or ki, not a spell slot. */
+  useFeature?: boolean
   /** Spend race/feat/artifact grant free-cast charge instead of a slot. */
   useGrant?: boolean
   /** Which sheet row's grant_cast to spend (sibling race/gear row ok). */
@@ -195,6 +202,8 @@ type CastSpellDialogProps = {
   voiceOfAuthority?: boolean
   /** Draconic Elemental Affinity: +CHA on one roll of this damage type. */
   elementalAffinity?: { damageType: string; amount: number } | null
+  /** Feature / ki pools, for cards that do not spend a spell slot. */
+  resources?: SheetResource[]
 }
 
 export function CastSpellDialog({
@@ -225,6 +234,7 @@ export function CastSpellDialog({
   embodimentRemaining = 0,
   voiceOfAuthority = false,
   elementalAffinity = null,
+  resources,
 }: CastSpellDialogProps) {
   const isCantrip = spell != null && spell.level <= 0
   const spellLevel = spell?.level ?? 0
@@ -251,12 +261,25 @@ export function CastSpellDialog({
     classSlug: spell?.class_slug,
     casterSlugs: (castProfiles ?? []).map((row) => row.slug),
   })
+  const grantedRitual = castAccessAllowsRitual(spell?.cast_access)
+  const ritualOnly = spell?.cast_access === 'ritual_only'
+  const atWill = spell?.cast_access === 'at_will'
+  const featureOffer = featureCastOffer(spell)
+  const featureLeft = featureCastRemaining(resources, spell)
+  const bookBlock = spell ? ritualBookBlockReason(spells, spell) : null
+  const pactOnly = Boolean(spell?.pact_only)
+  const showRegularSlots =
+    bookGate.slot && !ritualOnly && !atWill && !featureOffer && !pactOnly
   const isRitual = Boolean(
     spell?.ritual &&
       !isCantrip &&
-      wizardRitualGate.ok &&
-      (bookGate.slot || bookGate.ritualOnly) &&
-      (wizardRitualFromBook || ritualByClass),
+      !atWill &&
+      !featureOffer &&
+      !bookBlock &&
+      (grantedRitual ||
+        (wizardRitualGate.ok &&
+          (bookGate.slot || bookGate.ritualOnly) &&
+          (wizardRitualFromBook || ritualByClass))),
   )
   const masteryAvailable = Boolean(
     spell &&
@@ -274,9 +297,17 @@ export function CastSpellDialog({
     [spell, isCantrip, spells.known],
   )
   const grantAvailable = grantOptions.filter((row) => row.remaining > 0)
-  const slotLevels = spell && !isCantrip ? availableCastSlotLevels(spells.slots, spellLevel) : []
+  const slotLevels =
+    spell && !isCantrip && showRegularSlots
+      ? availableCastSlotLevels(spells.slots, spellLevel)
+      : []
   const pactOk =
-    spell != null && !isCantrip && canSpendPactSlot(spells.pact_slots, spellLevel)
+    spell != null &&
+    !isCantrip &&
+    !ritualOnly &&
+    !atWill &&
+    !featureOffer &&
+    canSpendPactSlot(spells.pact_slots, spellLevel)
   const hasSlotPath = pactOk || slotLevels.length > 0
   const [usePact, setUsePact] = useState(false)
   const [useRitual, setUseRitual] = useState(false)
@@ -287,6 +318,7 @@ export function CastSpellDialog({
   const [consumeMaterial, setConsumeMaterial] = useState(true)
   const [selfFormTarget, setSelfFormTarget] = useState<'self' | 'other'>('self')
   const [useMastery, setUseMastery] = useState(false)
+  const [useFeature, setUseFeature] = useState(false)
   const [powerSurge, setPowerSurge] = useState(false)
   const [useEmbodiment, setUseEmbodiment] = useState(false)
   const isTransformSelf = spell != null && isSpellSelfFormCast(spell)
@@ -365,11 +397,30 @@ export function CastSpellDialog({
     setSelfFormTarget('self')
     setUseMastery(false)
     setPowerSurge(false)
-    if (bookGate.ritualOnly) {
+    if (atWill) {
+      setUseGrant(false)
+      setGrantSpellId(null)
+      setUsePact(false)
+      setUseRitual(false)
+      setUseFeature(false)
+      setUseMastery(false)
+      return
+    }
+    if (featureOffer) {
+      setUseGrant(false)
+      setGrantSpellId(null)
+      setUsePact(false)
+      setUseRitual(false)
+      setUseFeature(true)
+      setUseMastery(false)
+      return
+    }
+    if (bookGate.ritualOnly || ritualOnly) {
       setUseGrant(false)
       setGrantSpellId(null)
       setUsePact(false)
       setUseRitual(true)
+      setUseFeature(false)
       return
     }
     // Prefer first available grant; else slots/pact; else ritual.
@@ -410,6 +461,10 @@ export function CastSpellDialog({
     slotLevels.join(','),
     spells.pact_slots?.level,
     bookGate.ritualOnly,
+    atWill,
+    ritualOnly,
+    featureOffer?.label,
+    featureOffer?.cost,
   ])
 
   const selectedGrant = useMemo(
@@ -528,13 +583,17 @@ export function CastSpellDialog({
       materialCheck.cheapest,
   )
 
+  const featureOk = Boolean(featureOffer && featureLeft >= featureOffer.cost)
   const canCast =
     materialsOk &&
+    !bookBlock &&
     (isCantrip ||
+      atWill ||
+      (useFeature && featureOk) ||
       grantOk ||
       (useMastery && masteryAvailable) ||
       (useRitual && isRitual) ||
-      (!useGrant && !useRitual && !useMastery && hasSlotPath && bookGate.slot))
+      (!useGrant && !useRitual && !useMastery && !useFeature && hasSlotPath && (bookGate.slot || pactOnly)))
   /** Цели необязательны; блок только при дублях в слотах */
   const targetsOk = !showTargets || !duplicateTarget
   const selectedSlot =
@@ -586,6 +645,10 @@ export function CastSpellDialog({
           grantLabel: selectedGrant.label,
           reset: selectedGrant.reset,
         })
+      : atWill
+        ? 'По желанию · без ячейки'
+        : useFeature && featureOffer
+          ? `${featureOffer.label} · ${featureOffer.cost}`
       : useRitual
         ? castPathRestLabel({ kind: 'ritual' })
         : usePact && spells.pact_slots
@@ -599,10 +662,16 @@ export function CastSpellDialog({
 
   const primaryLabel = !materialsOk
     ? 'Нет компонента'
-    : !canCast
-      ? 'Нет ячеек'
+    : bookBlock
+      ? 'Нет книги'
+      : !canCast
+        ? featureOffer
+          ? 'Нет заряда'
+          : 'Нет ячеек'
       : busy
         ? 'Кастуем…'
+        : useFeature && featureOffer
+          ? `Каст (${featureOffer.label})`
         : useGrant
           ? `Каст (${grantLabel})`
           : useRitual
@@ -624,13 +693,23 @@ export function CastSpellDialog({
       onPrimary={() => {
         if (!canCast || busy || !targetsOk) return
         onConfirm({
-          useGrant: !isCantrip && grantOk,
-          grantSpellId: !isCantrip && grantOk ? grantSpellId : null,
-          ritual: !isCantrip && !useGrant && !useMastery && useRitual && isRitual,
+          useGrant: !isCantrip && grantOk && !atWill && !useFeature,
+          grantSpellId: !isCantrip && grantOk && !atWill && !useFeature ? grantSpellId : null,
+          ritual: !isCantrip && !useGrant && !useMastery && !atWill && !useFeature && useRitual && isRitual,
+          atWill,
+          useFeature: Boolean(useFeature && featureOk),
           useMastery: !isCantrip && useMastery && masteryAvailable,
           powerSurge: powerSurgeOffer && powerSurge,
           embodimentOfLaw: offerEmbodiment && useEmbodiment && !useRitual && !useGrant,
-          usePact: !isCantrip && !useGrant && !useRitual && !useMastery && usePact && pactOk,
+          usePact:
+            !isCantrip &&
+            !useGrant &&
+            !useRitual &&
+            !useMastery &&
+            !atWill &&
+            !useFeature &&
+            usePact &&
+            pactOk,
           slotLevel:
             isCantrip || useRitual || useGrant
               ? spellLevel
@@ -789,7 +868,7 @@ export function CastSpellDialog({
             <div>
               <Text tone="muted">За счёт чего кастуем</Text>
               <div className="chip-row cast-source-row" style={{ marginTop: 8 }}>
-                {bookGate.slot ? slotLevels.map((level) => {
+                {showRegularSlots ? slotLevels.map((level) => {
                   const rest = castPathRestLabel({ kind: 'slot', level })
                   return (
                     <button
@@ -817,7 +896,7 @@ export function CastSpellDialog({
                     </button>
                   )
                 }) : null}
-                {bookGate.slot && pactOk && spells.pact_slots ? (
+                {pactOk && spells.pact_slots ? (
                   <button
                     type="button"
                     className={`sheet-chip cast-source-chip${
@@ -894,6 +973,31 @@ export function CastSpellDialog({
                     <span className="cast-source-chip__rest">базовый круг, без ячейки</span>
                   </button>
                 ) : null}
+                {atWill ? (
+                  <button
+                    type="button"
+                    className="sheet-chip cast-source-chip is-on"
+                    title="По желанию · без ячейки"
+                  >
+                    <span className="cast-source-chip__main">По желанию</span>
+                    <span className="cast-source-chip__rest">без ячейки</span>
+                  </button>
+                ) : null}
+                {featureOffer ? (
+                  <button
+                    type="button"
+                    className={`sheet-chip cast-source-chip${useFeature ? ' is-on' : ''}${
+                      featureOk ? '' : ' is-disabled'
+                    }`}
+                    disabled={!featureOk}
+                    title={featureOffer.label}
+                  >
+                    <span className="cast-source-chip__main">{featureOffer.label}</span>
+                    <span className="cast-source-chip__rest">
+                      {featureOffer.cost} · осталось {featureLeft}
+                    </span>
+                  </button>
+                ) : null}
                 {isRitual ? (
                   <button
                     type="button"
@@ -919,6 +1023,7 @@ export function CastSpellDialog({
                   </button>
                 ) : null}
               </div>
+              {bookBlock ? <Text tone="danger">{bookBlock}</Text> : null}
               {ritualBlockedReason ? (
                 <Text tone="muted">{ritualBlockedReason}</Text>
               ) : null}
@@ -959,20 +1064,24 @@ export function CastSpellDialog({
                           }.`
                         : '.'}
               </Text>
-            ) : hasSlotPath || useGrant || useRitual ? null : (
+            ) : hasSlotPath || useGrant || useRitual || atWill || featureOk ? null : (
               <Stack gap={8}>
                 <Text tone="danger">
-                  Нет свободных ячеек {spell.level}-го уровня или выше
-                  {spells.pact_slots ? ' и подходящей ячейки договора' : ''}. Верни пипс или
-                  сделай отдых
-                  {isRitual || grantOptions.some((row) => row.remaining <= 0)
-                    ? `, либо ${
-                        grantOptions.some((row) => row.remaining <= 0)
-                          ? 'восстанови заряд умения/предмета'
-                          : 'выбери ритуал'
-                      }`
-                    : ''}
-                  .
+                  {bookBlock
+                    ? bookBlock
+                    : featureOffer
+                      ? `Не хватает «${featureOffer.label}» (нужно ${featureOffer.cost}, есть ${featureLeft}).`
+                      : `Нет свободных ячеек ${spell.level}-го уровня или выше${
+                          spells.pact_slots ? ' и подходящей ячейки договора' : ''
+                        }. Верни пипс или сделай отдых${
+                          isRitual || grantOptions.some((row) => row.remaining <= 0)
+                            ? `, либо ${
+                                grantOptions.some((row) => row.remaining <= 0)
+                                  ? 'восстанови заряд умения/предмета'
+                                  : 'выбери ритуал'
+                              }`
+                            : ''
+                        }.`}
                 </Text>
                 {onRequestRest ||
                 (onRestorePact &&

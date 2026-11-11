@@ -230,6 +230,7 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         voiceOfAuthority={model.unlockedFeatures.some(
           (row: { id: string }) => row.id === 'voice_of_authority',
         )}
+        resources={model.draft.play.resources}
         elementalAffinity={elementalAffinity}
         abilities={model.effectiveAbilities}
         proficiencyBonus={model.proficiencyBonus}

@@ -60,6 +60,8 @@ export type DivineStrikeRider = {
   type: string | null
   /** Russian fragment for the attack line. */
   label: string
+  /** Toast label when it should differ from the short attack line. */
+  rollLabel?: string
 }
 
 export function divineStrikeRider(
@@ -73,6 +75,22 @@ export function divineStrikeRider(
   const diceRu = `${diceCount}к8`
   const label = type ? `${diceRu} ${type}, раз в ход` : `${diceRu} того же типа, раз в ход`
   return { dice, type, label }
+}
+
+/**
+ * PHB Improved Divine Smite (11th, p. 85): +1d8 radiant on every melee weapon hit.
+ * Stacks with Divine Smite and is not part of the 5d8 slot cap. No slot is spent.
+ */
+export function improvedDivineSmiteRider(
+  features: Array<{ id: string }>,
+): DivineStrikeRider | null {
+  if (!features.some((row) => row.id === 'improved_divine_smite')) return null
+  return {
+    dice: '1d8',
+    type: 'излучением',
+    label: '1к8 излучением',
+    rollLabel: 'Улучшенная божественная кара, 1к8',
+  }
 }
 
 /** Race combat_bonuses.initiative (e.g. Hare-Trigger = proficiency bonus). */
