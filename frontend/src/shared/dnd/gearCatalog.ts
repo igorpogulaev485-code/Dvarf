@@ -77,6 +77,7 @@ export const CHARGE_RESTORE = [
   'long_rest',
   'short_rest',
   'dawn',
+  'midnight',
   'never',
   'manual',
 ] as const

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "notes": "W5: setting-book magic EGW/FTD/AI/SCC/ERLW/GGR/BMT/PAM/SDQ/BPGG + DMG gaps. Official, RU, effects MVP.",
+  "notes": "W5: setting-book magic EGW/FTD/AI/SCC/ERLW/GGR/BMT/PAM/SDQ/BPGG + DMG gaps. Official, RU, effects MVP. I01: wand_of_viscous_goo is Wand of Viscid Globs (OotA); 13 rows without a 5e14 card are inactive.",
   "inserts": [
     {
       "op": "insert",
@@ -55,7 +55,7 @@
       "rules_edition": "2014",
       "source": "EGW 2014",
       "sort_order": 10501,
-      "is_active": true,
+      "is_active": false,
       "data": {
         "schema_version": 1,
         "weight_lb": 0,
@@ -88,7 +88,7 @@
       "rules_edition": "2014",
       "source": "EGW 2014",
       "sort_order": 10502,
-      "is_active": true,
+      "is_active": false,
       "data": {
         "schema_version": 1,
         "weight_lb": 0,
@@ -248,7 +248,7 @@
       "rules_edition": "2014",
       "source": "EGW 2014",
       "sort_order": 10506,
-      "is_active": true,
+      "is_active": false,
       "data": {
         "schema_version": 1,
         "weight_lb": 0,
@@ -1010,7 +1010,7 @@
       "rules_edition": "2014",
       "source": "AI 2014",
       "sort_order": 10525,
-      "is_active": true,
+      "is_active": false,
       "data": {
         "schema_version": 1,
         "weight_lb": 0,
@@ -1076,41 +1076,40 @@
       "kind": "item",
       "id": "b5a1223e-7ad1-50fa-ba39-d9901f51a3f8",
       "slug": "wand_of_viscous_goo",
-      "name_ru": "Палочка вязкой слизи",
-      "name_en": "Wand of Viscous Goop",
+      "name_ru": "Волшебная палочка вязких шаров",
+      "name_en": "Wand of Viscid Globs",
       "rules_edition": "2014",
-      "source": "AI 2014",
+      "source": "OotA 2014",
       "sort_order": 10527,
       "is_active": true,
       "data": {
         "schema_version": 1,
         "weight_lb": 1,
-        "cost": {
-          "amount": 500,
-          "unit": "gp"
-        },
+        "cost": null,
         "item_category": "wondrous",
+        "magic_item_type": "wand",
+        "magic_item_type_ru": "Волшебная палочка",
         "stackable": false,
-        "source_book": "AI",
-        "rarity": "uncommon",
-        "requires_attunement": false,
+        "source_book": "OotA",
+        "rarity": "rare",
+        "requires_attunement": true,
         "wear_slot": "none",
-        "description_ru": "Заряды сковывающей слизи.",
+        "description_ru": "Волшебная палочка (Out of the Abyss), редкая, требуется настройка. 7 зарядов. Действием тратится 1 заряд: атака дальнего боя по существу в пределах 60 футов. Модификатор атаки — модификатор заклинательной характеристики (или Интеллекта, если её нет) плюс бонус мастерства. При попадании цель опутана на 1 час. Шар уничтожают пинта алкоголя, масло эфирности, универсальный растворитель или солнечный свет. В полночь палочка восстанавливает 1к6+1 зарядов. Если израсходован последний заряд, бросок к20: при 1 палочка уничтожена. Непрерывный час на солнечном свете тоже уничтожает её.",
         "effects": [
           {
             "type": "resource",
             "id": "wand_goo",
             "max": 7,
-            "restore": "dawn"
+            "restore": "midnight"
           },
           {
             "type": "custom_note",
-            "text": "Заряд: атака слизью, сковывающая цель."
+            "text": "1 заряд, действие: атака дальнего боя 60 фт. (заклинательная характеристика или Интеллект + мастерство). Попадание — опутан на 1 час. В полночь 1к6+1. Последний заряд: к20, при 1 палочка уничтожена."
           }
         ],
         "charges": {
           "max": 7,
-          "restore": "dawn",
+          "restore": "midnight",
           "recharge_dice": "1d6+1"
         }
       }
@@ -1158,7 +1157,7 @@
       "rules_edition": "2014",
       "source": "SCC 2014",
       "sort_order": 10529,
-      "is_active": true,
+      "is_active": false,
       "data": {
         "schema_version": 1,
         "weight_lb": 0,
@@ -1257,7 +1256,7 @@
       "rules_edition": "2014",
       "source": "SCC 2014",
       "sort_order": 10532,
-      "is_active": true,
+      "is_active": false,
       "data": {
         "schema_version": 1,
         "weight_lb": 0,
@@ -1508,7 +1507,7 @@
       "rules_edition": "2014",
       "source": "SCC 2014",
       "sort_order": 10539,
-      "is_active": true,
+      "is_active": false,
       "data": {
         "schema_version": 1,
         "weight_lb": 0,
@@ -1744,7 +1743,7 @@
       "rules_edition": "2014",
       "source": "ERLW 2014",
       "sort_order": 10546,
-      "is_active": true,
+      "is_active": false,
       "data": {
         "schema_version": 1,
         "weight_lb": 3,
@@ -2394,7 +2393,7 @@
       "rules_edition": "2014",
       "source": "BMT 2014",
       "sort_order": 10561,
-      "is_active": true,
+      "is_active": false,
       "data": {
         "schema_version": 1,
         "weight_lb": 0,
@@ -2526,7 +2525,7 @@
       "rules_edition": "2014",
       "source": "PAM 2014",
       "sort_order": 10565,
-      "is_active": true,
+      "is_active": false,
       "data": {
         "schema_version": 1,
         "weight_lb": 0,
@@ -2602,7 +2601,7 @@
       "rules_edition": "2014",
       "source": "SDQ 2014",
       "sort_order": 10567,
-      "is_active": true,
+      "is_active": false,
       "data": {
         "schema_version": 1,
         "weight_lb": 0,
@@ -2639,7 +2638,7 @@
       "rules_edition": "2014",
       "source": "BPGG 2014",
       "sort_order": 10568,
-      "is_active": true,
+      "is_active": false,
       "data": {
         "schema_version": 1,
         "weight_lb": 0,
@@ -2705,7 +2704,7 @@
       "rules_edition": "2014",
       "source": "BPGG 2014",
       "sort_order": 10570,
-      "is_active": true,
+      "is_active": false,
       "data": {
         "schema_version": 1,
         "weight_lb": 0,
