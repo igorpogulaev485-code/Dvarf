@@ -3,6 +3,13 @@
 
 {
 	email info@creed20.tech
+	# HTTP/3 (QUIC, UDP 443) выключен: через VPN он часто не доходит, и браузер
+	# ждёт до таймаута, хотя TCP живой. Caddy сам проксирует WebSocket (Upgrade).
+	# Вернуть h3: заменить protocols на `h1 h2 h3` и в docker-compose.prod.yml
+	# у сервиса edge снова опубликовать "443:443/udp".
+	servers {
+		protocols h1 h2
+	}
 }
 
 creed20.tech {
