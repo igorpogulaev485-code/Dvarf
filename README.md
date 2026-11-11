@@ -41,18 +41,15 @@
 
 ## Для агентов (обязательно прочитать)
 
-**Сначала:** [`AGENTS.md`](AGENTS.md) — жёсткий контракт (анти-overwrite + **UI Kit**).  
+**Сначала:** [`AGENTS.md`](AGENTS.md) — прод это `main`, один PR на задачу, баги в `docs/bugs.md`.  
 **UI Kit (основа фронта):** [`docs/ui-kit/README.md`](docs/ui-kit/README.md) · skill [`.cursor/skills/dvarf-ui-kit/SKILL.md`](.cursor/skills/dvarf-ui-kit/SKILL.md) · доски [`docs/ui-kit/boards/`](docs/ui-kit/boards/).  
-Skills: [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](.cursor/skills/dvarf-prod-lineage/SKILL.md) · [`.cursor/skills/dvarf-dev-workflow/SKILL.md`](.cursor/skills/dvarf-dev-workflow/SKILL.md).  
-Живой срез фич: [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md).
+Живой срез фич: [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md). История: [`docs/changelog/`](docs/changelog/).  
+Деплой: [`docs/deploy.md`](docs/deploy.md).
 
 - Итерации: **короткий план → ok от Игоря → код / commit / push / PR**. Без ok код не писать.
-- Ветки: `cursor/<name>-acbe` (от **prod tip**, не от голого `main`/старой развилки). В `main` только через PR.
-- **Prod tip сейчас:** `cursor/prod-lineage-rules-acbe`. Деплой только с дерева, где tip уже влит.
-- Деплой на Timeweb **только** по явной просьбе («залей на сервер»). `./deploy/sync-and-up.sh` **затирает весь** `/opt/dvarf` кроме `.env` — тонкая ветка убивает чужие фичи. Перед деплоем: `./deploy/preflight-prod.sh`. См. [`deploy/README.md`](deploy/README.md).
-- После деплоя: проверить маркеры (лобби, кабинет, лист, classic) на живом сервере; в `PRODUCT_STATUS` писать «на проде» только по факту.
-- Параллельные агенты: PR можно параллельно; **на сервер — один интегрированный деплой от tip**. Не деплоить каждый свою развилку.
-- Секреты не коммитить. Cloud Agent: `DVARF_SSH_PRIVATE_KEY` = **полный** OpenSSH PEM (`BEGIN`…`END`).
+- Ветки от `main`. В `main` только через PR, мерж — обычный merge commit.
+- Деплой на Timeweb — workflow **Deploy** (`workflow_dispatch`). `./deploy/sync-and-up.sh` заморожен и не стирает `/opt/dvarf`. GitHub Pages не использовать.
+- Секреты не коммитить.
 - Каталоги: свой seed + SRD (CC-BY). API TTG недоступен; ждём dnd.su; **чужие сайты не скрейпим**.
 
 ## Продуктовые принципы
@@ -172,7 +169,7 @@ flowchart LR
 - Alembic head на проде: `c9d0e1f2a3b4` (lobbies/settings/sessions)
 - Prod Docker deploy (Timeweb)
 
-Прод: http://201.34.132.252/ — подробности в [`deploy/README.md`](deploy/README.md).  
+Прод: https://creed20.tech/ — [`docs/deploy.md`](docs/deploy.md).  
 PR этого слайса: https://github.com/igorpogulaev485-code/Dvarf/pull/18 (`cursor/lobby-join-table-3333`).
 
 ## Очередь ближайших слайсов
@@ -193,7 +190,7 @@ Backlog (не начинать без плана): multiclass; race → эффе
 
 - Ветки `cursor/<name>-eb8e`; после слайса: commit → push → обновить PR
 - Не коммитить `.env` с ключами (только `.env.example` / `.env.prod.example`)
-- Деплой: `./deploy/sync-and-up.sh` (нужен SSH; Cloud Agent — secret `DVARF_SSH_PRIVATE_KEY`)
+- Деплой: GitHub Actions **Deploy** из `main` ([`docs/deploy.md`](docs/deploy.md)). Ручной `sync-and-up.sh` заморожен.
 
 Основной PR разработки: открытые PR в репо (обычно auth/sheet ветка).
 

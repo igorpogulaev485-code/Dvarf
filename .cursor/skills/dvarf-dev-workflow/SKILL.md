@@ -1,6 +1,6 @@
 ---
 name: dvarf-dev-workflow
-description: Workflow for building Dvarf with Игорь — plan first, code only after approval. Use on every feature, schema, API, or UI change in this repo. Also read dvarf-prod-lineage before any Timeweb deploy.
+description: Workflow for building Dvarf with Игорь — plan first, code only after approval. Use on every feature, schema, API, or UI change in this repo. Prod is main; deploy only via GitHub Actions, see docs/deploy.md.
 ---
 
 # Dvarf development workflow
@@ -31,21 +31,15 @@ Do not start coding, scaffolding, or migrations until the plan is approved for t
 
 → [`.cursor/skills/dvarf-friends-announce/SKILL.md`](../dvarf-friends-announce/SKILL.md)
 
-## Hard rule — prod lineage (не затирать прод)
+## Hard rule — прод = main
 
-Перед **любым** деплоем на Timeweb и перед веткой «под прод» прочитай и выполни:
+→ [`AGENTS.md`](../../../AGENTS.md) · [`docs/deploy.md`](../../../docs/deploy.md) · skill [`dvarf-prod-lineage`](../dvarf-prod-lineage/SKILL.md)
 
-→ [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](../dvarf-prod-lineage/SKILL.md)  
-→ корневой [`AGENTS.md`](../../../AGENTS.md)
-
-Кратко (обязательный рецепт, иначе релиз снова уйдёт в час):
-
-- `sync-and-up.sh` **затирает весь** `/opt/dvarf` (кроме `.env`).
-- Tip брать с **живого сервера** (`/opt/dvarf/AGENTS.md`), не из своей устаревшей копии. Сейчас tip: `cursor/deploy-guardrails-93e5` (сверяй live).
-- Ветку строить / вливать **только** `git merge origin/<live-tip>`. **Запрещено** сшивать orphan cherry-pick’ами при пустом `merge-base`.
-- Перед деплоем (само из `sync-and-up`): `preflight-prod.sh` + **`preflight-live.sh`** (tip = ancestor; alembic из prod DB есть в дереве).
-- Не откатывать fast-path: нужны `deploy/remote-up.sh` и nginx+dist `frontend/Dockerfile` (не `docker compose up -d --build` / node на VPS).
-- В `PRODUCT_STATUS.md` пиши «на проде: да» только после проверки живого сервера.
+- Ветки слайсов от `main`. Отдельной линии tip нет.
+- Выкладка на Timeweb только workflow Deploy. `sync-and-up.sh` заморожен и не стирает `/opt/dvarf`.
+- GitHub Pages не использовать. На VPS по SSH не заходить без явной просьбы Игоря.
+- Образы на VPS по-прежнему через `deploy/remote-up.sh` и nginx+dist `frontend/Dockerfile`.
+- В `PRODUCT_STATUS.md` «на проде» — только после зелёного `/health` у Deploy.
 
 ## Plan format (keep short)
 
@@ -77,14 +71,14 @@ Do not start coding, scaffolding, or migrations until the plan is approved for t
 5. **Never commit secrets** — no `.env` with real keys, tokens, passwords, OAuth secrets. Use `.env.example` only.
 6. **Do not commit broken half-migrations** — a pushed slice must apply cleanly (migrate up works).
 7. **Plan changes mid-flight** — if scope changes, stop, re-plan, get ok, then continue with a new commit.
-8. **Main** — do not push product work straight to `main`; use feature branches `cursor/<name>-acbe` (или `-eb8e` у старых PR).
-9. **Prod tip** — branch from / merge **live** tip before Timeweb deploy; never deploy a divergent thin fork / orphan cherry-pick tree.
-10. **Migrations** — if prod DB already has an alembic revision, that file **must** be in your tree before `sync-and-up` (live preflight fails otherwise).
+8. **Main** — do not push product work straight to `main`; use feature branches. Мерж в `main` делает Игорь обычным merge commit.
+9. **Прод** — это `main`. Не деплоить с tip-ветки и не запускать `sync-and-up`.
+10. **Migrations** — в дереве одна голова Alembic. На VPS `alembic upgrade head` выполняет workflow, до перезапуска API.
 
 ## Collaboration notes
 
 - Prefer Russian in plans and summaries with Игорь
 - Small vertical slices; avoid overbuilding permissions/billing early
 - If scope creeps mid-implementation, pause and re-plan
-- Parallel agents: separate PR ok; **one** integrated deploy from tip lineage only
-- Deploy to Timeweb only on explicit «залей на сервер»
+- Один агент — одна задача — один PR в `main`
+- Деплой на Timeweb только workflow Deploy; агент его не запускает, пока Игорь явно не попросил

@@ -1,0 +1,29 @@
+# Фильтр доставки на VPS (deploy/ci-release.sh).
+# protect — не удалять на сервере. exclude — не присылать с раннера.
+# Без --delete-excluded исключённое на сервере тоже не удаляется.
+# Сиды backend/data/ — это код каталога, их обновляем. Живая БД в томе Docker.
+
+protect .env
+exclude .env
+
+protect backups/***
+protect pgdata/***
+protect postgres-data/***
+protect uploads/***
+protect backend/uploads/***
+
+protect *.sql
+protect *.dump
+protect *.sql.gz
+
+exclude .git/***
+exclude .github/***
+exclude .cursor/***
+exclude frontend/node_modules/***
+exclude backend/.venv/***
+exclude **/*.pyc
+exclude **/__pycache__/***
+exclude .pytest_cache/***
+exclude .mypy_cache/***
+exclude .ruff_cache/***
+exclude *.log
