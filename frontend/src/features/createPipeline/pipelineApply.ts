@@ -35,6 +35,7 @@ import {
   suggestSpellcastingFromClasses,
 } from '../../shared/dnd/casterProgression'
 import {
+  dropDuplicateFightingStyles,
   emptyFeaturePicks,
   featurePicksToSheet,
   readFeaturePicks,
@@ -73,6 +74,11 @@ import {
   knowledgeBlessingSkillIds,
   syncSkillsExpertiseFromPicks,
 } from '../../shared/dnd/expertise'
+import {
+  bridgeTotemSpiritPick,
+  featureLockedExpertiseSkillIds,
+  fighterSkillAndLanguageGrants,
+} from '../../shared/dnd/fighterArchetypeGrants'
 import { listUnlockedExpertiseKeys } from '../../shared/dnd/pendingFeatureChoices'
 import {
   applyBackgroundGrantToDraft,
@@ -1162,7 +1168,16 @@ export async function applyPipelineToSheet(input: {
       classEntryId: row.id,
       styleId: styleFromSetup ?? (grant ? swordsFightingStyleFromGrant(grant) : null),
     })
+    const totemValues = setup
+      ? normalizeSubclassPicks(setup.picks).values
+      : grant?.picks
+    featurePicks = bridgeTotemSpiritPick({
+      featurePicks,
+      classEntryId: row.id,
+      values: totemValues,
+    })
   }
+  featurePicks = dropDuplicateFightingStyles(featurePicks)
 
   const classAsi =
     input.classAsi ??
@@ -1252,11 +1267,41 @@ export async function applyPipelineToSheet(input: {
     subclassSlugByEntryId,
     subclassTransitionByEntryId,
   })
+  const persuasionFromOtherSources = [
+    ...draft.classGrants.map((row) => row.skills),
+    draft.backgroundGrant?.skills,
+    draft.raceGrant?.skills,
+    ...draft.featGrants.map((row) => row.applied.skills),
+    ...draft.subclassGrants.map((row) => row.skills),
+  ].some((list) => list?.includes('persuasion'))
+  const fighterPlan = fighterSkillAndLanguageGrants({
+    features: unlocked,
+    featurePicks,
+    persuasionFromOtherSources,
+  })
+  for (const key of fighterPlan.skills) {
+    const current = draft.skills[key] ?? { is_proficient: false, is_expertise: false }
+    draft.skills[key] = { ...current, is_proficient: true }
+  }
+  for (const name of fighterPlan.languages) {
+    if (
+      draft.identity.languages.some(
+        (item) => item.trim().toLowerCase() === name.toLowerCase(),
+      )
+    ) {
+      continue
+    }
+    draft.identity.languages = [...draft.identity.languages, name]
+  }
   draft.skills = syncSkillsExpertiseFromPicks({
     skills: draft.skills,
     featurePicks,
     expertiseKeys: listUnlockedExpertiseKeys(unlocked),
-    alsoExpertiseSkillIds: knowledgeBlessingSkillIds(draft.subclassGrants),
+    alsoExpertiseSkillIds: [
+      ...knowledgeBlessingSkillIds(draft.subclassGrants),
+      ...featureLockedExpertiseSkillIds(unlocked),
+      ...fighterPlan.expertise,
+    ],
   })
 
   // 6) HP from pipeline choices (override class L1 max; after ASI so CON is final)

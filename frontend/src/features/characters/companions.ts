@@ -685,6 +685,48 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
   return normalizeSelfForms(result)
 }
 
+/**
+ * Subclass choices that are a real naparnik (PHB / XGE / TCE / ERftLW).
+ * Totem spirit and drake essence are not in this set.
+ */
+const REAL_SUBCLASS_COMPANION_FEATURES = new Set([
+  'eldritch_cannon',
+  'steel_defender_name',
+  'wildfire_spirit',
+  'rangers_companion',
+  'drake_companion',
+])
+
+function heuristicCompanionFeature(feature: string): boolean {
+  const id = feature.toLowerCase()
+  return (
+    id.includes('companion') ||
+    id.includes('defender') ||
+    id.includes('drake') ||
+    id.includes('cannon') ||
+    id.includes('spirit')
+  )
+}
+
+/**
+ * Drop naparniki created by the old id-substring heuristic (totem, drake essence).
+ * Manual cards, spell summons, and real companion choices stay.
+ */
+export function revokeFalseSubclassCompanions(
+  companions: CompanionEntry[],
+): CompanionEntry[] {
+  const next = companions.filter((row) => {
+    const source = row.source
+    if (!source || source.kind !== 'subclass') return true
+    const feature = source.feature?.trim() ?? ''
+    if (!feature) return true
+    if (REAL_SUBCLASS_COMPANION_FEATURES.has(feature)) return true
+    if (!heuristicCompanionFeature(feature)) return true
+    return false
+  })
+  return next.length === companions.length ? companions : next
+}
+
 /** Drop companions tied to a class entry / subclass. Manual and other sources stay. */
 export function revokeCompanionsForSubclass(
   companions: CompanionEntry[],

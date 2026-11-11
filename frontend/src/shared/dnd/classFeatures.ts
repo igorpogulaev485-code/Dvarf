@@ -32,6 +32,10 @@ import warlockPack from './data/warlock_2014.json'
 import { SORCERER_METAMAGIC } from './sorcererMetamagic'
 import { ARCANE_SHOTS } from './arcaneShots'
 import { BATTLE_MASTER_MANEUVERS } from './battleMasterManeuvers'
+import {
+  cavalierBonusOptionIds,
+  samuraiBonusOptionIds,
+} from './fighterArchetypeGrants'
 import { KENSEI_WEAPONS } from './kenseiWeapons'
 import { MONK_ELEMENTAL_DISCIPLINES } from './monkElementalDisciplines'
 import {
@@ -156,13 +160,24 @@ export type FeatureChoiceDef = {
     | 'kensei_weapons'
     /** Runtime: proficient skills + thieves' tools from sheet. */
     | 'expertise_skills_tools'
+    /** XGE Cavalier: one of five skills or one language. */
+    | 'cavalier_bonus_proficiency'
+    /** XGE Samurai: one of four skills or one language. */
+    | 'samurai_bonus_proficiency'
   options?: string[]
   /** Russian labels for explicit option ids (e.g. dragon ancestry colors). */
   option_labels_ru?: Record<string, string>
+  /** Option id → minimum class level (Rune Knight Hill/Storm at 7). */
+  option_min_level?: Record<string, number>
   /** Fixed multi-select cap (Expertise 2). Overrides default 1 when set. */
   max_picks?: number
-  /** Multi-select cap by class level (Metamagic 2/3/4). */
+  /** Multi-select cap by class level (Metamagic 2/3/4, runes 2/3/4/5). */
   max_picks_by_level?: Record<string, number>
+  /**
+   * Empty pick still counts as complete (Royal Envoy substitute, Elegant Courtier
+   * save when Wisdom is not already proficient). The card can still record a pick.
+   */
+  optional?: boolean
 }
 
 export type FeatureSlotSpendDef = {
@@ -325,7 +340,9 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
         choiceRaw.options_from === 'battle_master_maneuvers' ||
         choiceRaw.options_from === 'arcane_shots' ||
         choiceRaw.options_from === 'kensei_weapons' ||
-        choiceRaw.options_from === 'expertise_skills_tools'
+        choiceRaw.options_from === 'expertise_skills_tools' ||
+        choiceRaw.options_from === 'cavalier_bonus_proficiency' ||
+        choiceRaw.options_from === 'samurai_bonus_proficiency'
           ? choiceRaw.options_from
           : undefined
       const options = Array.isArray(choiceRaw.options)
@@ -352,6 +369,18 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
         typeof choiceRaw.max_picks === 'number' && Number.isFinite(choiceRaw.max_picks)
           ? Math.max(1, Math.floor(choiceRaw.max_picks))
           : undefined
+      const minLevelRaw =
+        choiceRaw.option_min_level && typeof choiceRaw.option_min_level === 'object'
+          ? (choiceRaw.option_min_level as Record<string, unknown>)
+          : null
+      const option_min_level = minLevelRaw
+        ? Object.fromEntries(
+            Object.entries(minLevelRaw).filter(
+              (entry): entry is [string, number] =>
+                typeof entry[1] === 'number' && Number.isFinite(entry[1]),
+            ),
+          )
+        : undefined
       choice = {
         id: choiceRaw.id,
         label_ru: choiceRaw.label_ru,
@@ -361,6 +390,10 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
           option_labels_ru && Object.keys(option_labels_ru).length > 0
             ? option_labels_ru
             : undefined,
+        option_min_level:
+          option_min_level && Object.keys(option_min_level).length > 0
+            ? option_min_level
+            : undefined,
         max_picks: maxPicksFixed,
         max_picks_by_level: maxPicksRaw
           ? Object.fromEntries(
@@ -369,6 +402,7 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
               ),
             )
           : undefined,
+        optional: choiceRaw.optional === true,
       }
     }
 
@@ -612,7 +646,25 @@ export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] 
   if (choice.options_from === 'kensei_weapons') {
     return KENSEI_WEAPONS.map((row) => row.id)
   }
+  if (choice.options_from === 'cavalier_bonus_proficiency') {
+    return cavalierBonusOptionIds()
+  }
+  if (choice.options_from === 'samurai_bonus_proficiency') {
+    return samuraiBonusOptionIds()
+  }
   return choice.options ? [...choice.options] : []
+}
+
+/** Drop options the class level has not opened yet (Hill/Storm runes before 7). */
+export function choiceOptionsAtLevel(
+  choice: FeatureChoiceDef,
+  classLevel: number,
+): string[] {
+  const level = Math.floor(classLevel)
+  return resolveFeatureChoiceOptions(choice).filter((id) => {
+    const min = choice.option_min_level?.[id]
+    return min == null || min <= level
+  })
 }
 
 export function resourceIsUnlimited(

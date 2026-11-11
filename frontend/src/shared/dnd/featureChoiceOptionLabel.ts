@@ -30,6 +30,12 @@ export const FEATURE_OPTION_LABELS_RU: Record<string, string> = {
   bear: 'Медведь',
   eagle: 'Орёл',
   wolf: 'Волк',
+  rune_cloud: 'Облако',
+  rune_fire: 'Огонь',
+  rune_frost: 'Холод',
+  rune_stone: 'Камень',
+  rune_hill: 'Холм',
+  rune_storm: 'Буря',
   desert: 'Пустыня',
   sea: 'Море',
   tundra: 'Тундра',
@@ -156,6 +162,10 @@ export function featureChoiceOptionLabel(
   skillLabel?: (id: string) => string | undefined | null,
 ): string {
   if (optionId === THIEVES_TOOLS_OPTION_ID) return THIEVES_TOOLS_LABEL_RU
+  if (optionId.startsWith('lang:')) {
+    const name = optionId.slice('lang:'.length).trim()
+    return name ? `Язык: ${name}` : optionId
+  }
   const fromChoice = choice?.option_labels_ru?.[optionId]?.trim()
   if (fromChoice) return fromChoice
   if (FEATURE_OPTION_LABELS_RU[optionId]) return FEATURE_OPTION_LABELS_RU[optionId]

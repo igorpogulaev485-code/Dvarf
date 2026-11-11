@@ -15,7 +15,7 @@ import {
   optionalFeatureBadgeRu,
   resolveChoiceMaxPicks,
   resolveClassFeatureSlug,
-  resolveFeatureChoiceOptions,
+  choiceOptionsAtLevel,
   slotSpendDiceCount,
   slotSpendHasDice,
   unlockFeaturesForClasses,
@@ -99,6 +99,7 @@ import {
   type SkillExpertiseState,
 } from '../../shared/dnd/expertise'
 import {
+  fightingStylesTakenElsewhere,
   getFeaturePick,
   getFeaturePickList,
   setFeaturePick,
@@ -963,19 +964,25 @@ function FeatureChoiceControls({
   const [pendingReplicateSlug, setPendingReplicateSlug] = useState('')
   if (!choice) return null
   const choiceLabel = choice.label_ru
-  const options = isExpertiseChoice(choice)
-    ? listExpertiseOptions({
-        skills,
-        tools,
-        excludeOptionIds: collectExpertiseOptionIdsFromPicks({
-          featurePicks,
-          expertiseKeys,
-          except: { classEntryId: feature.classEntryId, featureId: feature.id },
-        }),
-      }).map((row) => row.id)
-    : choice.options_from === 'artificer_infusions'
-      ? infusionOptionIdsAtLevel(feature.classLevel)
-      : resolveFeatureChoiceOptions(choice)
+  const takenStyles = fightingStylesTakenElsewhere(featurePicks, {
+    classEntryId: feature.classEntryId,
+    featureId: feature.id,
+  })
+  const options = (
+    isExpertiseChoice(choice)
+      ? listExpertiseOptions({
+          skills,
+          tools,
+          excludeOptionIds: collectExpertiseOptionIdsFromPicks({
+            featurePicks,
+            expertiseKeys,
+            except: { classEntryId: feature.classEntryId, featureId: feature.id },
+          }),
+        }).map((row) => row.id)
+      : choice.options_from === 'artificer_infusions'
+        ? infusionOptionIdsAtLevel(feature.classLevel)
+        : choiceOptionsAtLevel(choice, feature.classLevel)
+  ).filter((id) => !takenStyles.has(id))
   const pactBoonId = getFeaturePick(featurePicks, feature.classEntryId, 'pact_boon')
   const visibleOptions =
     choice.options_from === 'monk_elemental_disciplines'

@@ -37,7 +37,13 @@ export function useSheetEditorPart5(model: SheetModel) {
       auraSaveBonus={model.auraSaveBonus}
       saveBonusExtra={mergedSaveExtras}
       checkBonusExtra={model.abilityCheckExtras}
-      skillBonusExtra={model.gearEffects.skillBonuses}
+      skillBonusExtra={Object.entries(model.featureSkillBonuses ?? {}).reduce(
+        (acc: Record<string, number>, [key, value]) => {
+          acc[key] = (acc[key] ?? 0) + (value as number)
+          return acc
+        },
+        { ...model.gearEffects.skillBonuses },
+      )}
       onOpenAbility={(key) => model.setAbilityBreakdownKey(key)}
       onRollCheck={model.rollAbilityCheck}
       onRollSave={model.rollAbilitySave}
