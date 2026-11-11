@@ -538,30 +538,67 @@
     ],
     "way_of_shadow": [
       {
-        "id": "shadow_arts",
+        "id": "shadow_arts_darkness",
         "level": 3,
-        "name_ru": "Искусство тени",
-        "name_en": "Shadow Arts",
-        "summary_ru": "Потрать 2 ки: darkness / darkvision / pass without trace / silence (без компонентов). Заговор minor illusion.",
+        "name_ru": "Искусство тени: тьма",
+        "name_en": "Shadow Arts (Darkness)",
+        "summary_ru": "Действие, 2 ки, без материальных компонентов. Тьма: 60 фт., концентрация до 10 мин., сфера 15 фт. Ячеек нет.",
         "kind": "action",
         "resource": {
           "uses": 0,
           "recharge": "short_rest",
-          "pool_id": "shadow_arts",
-          "pool_name_ru": "Искусство тени",
+          "pool_id": "ki",
+          "pool_name_ru": "Ки",
           "track": "spend",
-          "linked_spend": {
-            "pool_id": "ki",
-            "label_ru": "2 ки",
-            "mode": "spend",
-            "amount": 2
-          }
-        },
-        "scale": {
-          "label_ru": "Стоимость",
-          "by_level": {
-            "3": "2 ки"
-          }
+          "spend_cost": 2
+        }
+      },
+      {
+        "id": "shadow_arts_darkvision",
+        "level": 3,
+        "name_ru": "Искусство тени: тёмное зрение",
+        "name_en": "Shadow Arts (Darkvision)",
+        "summary_ru": "Действие, 2 ки, без материальных компонентов. Тёмное зрение: касание, 8 часов, без концентрации. Ячеек нет.",
+        "kind": "action",
+        "resource": {
+          "uses": 0,
+          "recharge": "short_rest",
+          "pool_id": "ki",
+          "pool_name_ru": "Ки",
+          "track": "spend",
+          "spend_cost": 2
+        }
+      },
+      {
+        "id": "shadow_arts_pass",
+        "level": 3,
+        "name_ru": "Искусство тени: бесследное передвижение",
+        "name_en": "Shadow Arts (Pass without Trace)",
+        "summary_ru": "Действие, 2 ки, без материальных компонентов. Бесследное передвижение: на себя, концентрация 1 час. Ячеек нет.",
+        "kind": "action",
+        "resource": {
+          "uses": 0,
+          "recharge": "short_rest",
+          "pool_id": "ki",
+          "pool_name_ru": "Ки",
+          "track": "spend",
+          "spend_cost": 2
+        }
+      },
+      {
+        "id": "shadow_arts_silence",
+        "level": 3,
+        "name_ru": "Искусство тени: тишина",
+        "name_en": "Shadow Arts (Silence)",
+        "summary_ru": "Действие, 2 ки, без материальных компонентов. Тишина: 120 фт., концентрация до 10 мин., сфера 20 фт. Ячеек нет. Заговор Малая иллюзия выдаётся отдельно.",
+        "kind": "action",
+        "resource": {
+          "uses": 0,
+          "recharge": "short_rest",
+          "pool_id": "ki",
+          "pool_name_ru": "Ки",
+          "track": "spend",
+          "spend_cost": 2
         }
       },
       {
@@ -738,20 +775,15 @@
         "level": 6,
         "name_ru": "Обжигающая дуга",
         "name_en": "Searing Arc Strike",
-        "summary_ru": "Сразу после Атаки: потрать 2 ки — casting burning hands бонусным (можно +1 ки за ур. ячейки, макс. ½ ур. монаха).",
+        "summary_ru": "Сразу после Атаки бонусным: сожги ладони (burning hands). Стоимость от 2 ки; каждая следующая ки повышает круг на 1, максимум — половина уровня монаха. Сначала выбери стоимость.",
         "kind": "bonus",
         "resource": {
           "uses": 0,
           "recharge": "short_rest",
-          "pool_id": "searing_arc_strike",
-          "pool_name_ru": "Обжигающая дуга",
+          "pool_id": "ki",
+          "pool_name_ru": "Ки",
           "track": "spend",
-          "linked_spend": {
-            "pool_id": "ki",
-            "label_ru": "2+ ки → burning hands",
-            "mode": "spend",
-            "amount": 2
-          }
+          "spend_cost": 2
         }
       },
       {
@@ -759,7 +791,7 @@
         "level": 11,
         "name_ru": "Обжигающее солнце",
         "name_en": "Searing Sunburst",
-        "summary_ru": "Действием: точка в 150 фт., сфера 20 фт. — 2к6 лучистого (спас Ловк. пол.); +2к6 за каждый ки (макс. 3).",
+        "summary_ru": "Действием: точка в 150 фт., сфера 20 фт. — 2к6 лучистого (спас Телосложения, успех — половина). До наложения выбери 0–3 ки: каждый ки добавляет 2к6.",
         "kind": "action",
         "scale": {
           "label_ru": "Базовый урон",
@@ -771,16 +803,10 @@
         "resource": {
           "uses": 0,
           "recharge": "short_rest",
-          "pool_id": "searing_sunburst",
-          "pool_name_ru": "Обжигающее солнце",
+          "pool_id": "ki",
+          "pool_name_ru": "Ки",
           "track": "spend",
-          "linked_spend": {
-            "pool_id": "ki",
-            "label_ru": "0–3 ки (+2к6 каждый)",
-            "mode": "spend",
-            "amount": 1,
-            "amount_max": 3
-          }
+          "spend_cost": 1
         }
       },
       {
@@ -894,10 +920,14 @@
         "kind": "passive",
         "choice": {
           "id": "kensei_weapons",
-          "label_ru": "Оружие кэнсэя (заметка)",
-          "options": [
-            "kensei_melee_ranged_note"
-          ]
+          "label_ru": "Оружие кэнсэя",
+          "options_from": "kensei_weapons",
+          "max_picks_by_level": {
+            "3": 2,
+            "6": 3,
+            "11": 4,
+            "17": 5
+          }
         }
       },
       {

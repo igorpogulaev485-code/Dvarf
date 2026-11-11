@@ -45,6 +45,8 @@ export const CANTRIP_PRESETS: Record<string, readonly string[]> = {
   wizard_cantrips: WIZARD_CANTRIP_NAMES,
   druid_cantrips: DRUID_CANTRIP_NAMES,
   necromancy_cantrips: NECROMANCY_CANTRIP_NAMES,
+  druidcraft_or_prestidigitation: ['Druidcraft', 'Prestidigitation'],
+  druidcraft_or_thaumaturgy: ['Druidcraft', 'Thaumaturgy'],
 }
 
 const CANTRIP_LABEL_RU: Record<string, string> = {
@@ -63,6 +65,7 @@ const CANTRIP_LABEL_RU: Record<string, string> = {
   'Shocking Grasp': 'Электрошок',
   'True Strike': 'Меткий удар',
   Druidcraft: 'Искусство друидов',
+  Thaumaturgy: 'Чудотворство',
   Guidance: 'Указание',
   'Produce Flame': 'Сотворение пламени',
   Resistance: 'Сопротивление',
@@ -105,6 +108,20 @@ const INJECTED_CANTRIP_CHOICES: Record<string, BonusCantripChoiceSpec> = {
     preset: 'druid_cantrips',
     notesRu: 'Бонусный заговор круга земли, вне обычного лимита.',
   },
+  arcane_archer: {
+    id: 'arcane_archer_cantrip',
+    labelRu: 'Заговор',
+    count: 1,
+    preset: 'druidcraft_or_prestidigitation',
+    notesRu: 'XGE: Фокусы или Искусство друидов. Вне лимита заклинаний воина.',
+  },
+  path_of_the_giant: {
+    id: 'giant_cantrip',
+    labelRu: 'Заговор',
+    count: 1,
+    preset: 'druidcraft_or_thaumaturgy',
+    notesRu: 'BGG: Искусство друидов или Чудотворство. Базовая характеристика — Мудрость. Ячеек нет.',
+  },
 }
 
 /** Picks already stored on these choice ids (catalog or injected). */
@@ -113,6 +130,8 @@ const CANTRIP_PICK_SPECS: Record<string, { id: string; preset: string }> = {
   nature_domain: { id: 'nature_druid_cantrip', preset: 'druid_cantrips' },
   death_domain: { id: 'death_necro_cantrip', preset: 'necromancy_cantrips' },
   circle_of_the_land: { id: 'land_bonus_cantrip', preset: 'druid_cantrips' },
+  arcane_archer: { id: 'arcane_archer_cantrip', preset: 'druidcraft_or_prestidigitation' },
+  path_of_the_giant: { id: 'giant_cantrip', preset: 'druidcraft_or_thaumaturgy' },
 }
 
 const FIXED_BONUS_CANTRIPS: Record<string, BonusCantripGrant[]> = {
@@ -124,6 +143,10 @@ const FIXED_BONUS_CANTRIPS: Record<string, BonusCantripGrant[]> = {
       castingTime: '1 бонусное действие',
     },
   ],
+  // PHB Arcane Trickster: Mage Hand is mandatory and does not spend a cantrip pick.
+  arcane_trickster: [{ nameEn: 'Mage Hand' }],
+  // PHB Way of Shadow: Minor Illusion if not already known.
+  way_of_shadow: [{ nameEn: 'Minor Illusion' }],
 }
 
 /** PHB Improved Minor Illusion: a different wizard cantrip only if Minor Illusion is already known. */

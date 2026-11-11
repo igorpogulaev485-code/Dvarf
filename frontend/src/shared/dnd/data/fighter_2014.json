@@ -566,7 +566,7 @@
         "level": 3,
         "name_ru": "Знания мистического лучника",
         "name_en": "Arcane Archer Lore",
-        "summary_ru": "Владение Природой или Магией; заговор prestidigitation или druidcraft.",
+        "summary_ru": "Владение Природой или Магией. Заговор на выбор: Фокусы или Искусство друидов — он не занимает ячейки воина.",
         "kind": "passive",
         "choice": {
           "id": "arcane_archer_skill",
@@ -590,6 +590,18 @@
         "name_en": "Arcane Shot",
         "summary_ru": "При попадании/промахе дальнобойным: применить выстрел (2 известных; больше на 7/10/15/18). 2× / короткий или прод. отдых.",
         "kind": "passive",
+        "choice": {
+          "id": "arcane_shots",
+          "label_ru": "Тайные выстрелы",
+          "options_from": "arcane_shots",
+          "max_picks_by_level": {
+            "3": 2,
+            "7": 3,
+            "10": 4,
+            "15": 5,
+            "18": 6
+          }
+        },
         "resource": {
           "uses": 2,
           "recharge": "short_rest",

@@ -20,6 +20,7 @@ import {
 } from '../../shared/dnd/subclassGrants'
 import { alwaysPreparedSpellNameRu } from '../../shared/dnd/alwaysPreparedSpellNamesRu'
 import { bonusCantripGrants, type BonusCantripGrant } from '../../shared/dnd/bonusCantrips'
+import { getFeaturePick, type FeaturePicksState } from '../../shared/dnd/featurePicks'
 import {
   classCasterDef,
   maxSpellLevelForClassAlone,
@@ -85,6 +86,40 @@ function pushLockedGrantSpell(input: {
   input.grantedSpellIds.push(created.id)
 }
 
+const RITUAL_WITHOUT_SLOTS = new Set(['path_of_the_totem_warrior'])
+
+/** Spells the subclass grants even when the stored catalog snapshot is empty. */
+const EXTRA_SUBCLASS_SPELLS: Record<string, AlwaysPreparedSpell[]> = {
+  path_of_the_totem_warrior: [
+    { name: 'Beast Sense', level: 2, fromClassLevel: 3 },
+    { name: 'Speak with Animals', level: 1, fromClassLevel: 3 },
+    { name: 'Commune with Nature', level: 5, fromClassLevel: 10 },
+  ],
+  path_of_the_ancestral_guardian: [
+    { name: 'Augury', level: 2, fromClassLevel: 10 },
+    { name: 'Clairvoyance', level: 3, fromClassLevel: 10 },
+  ],
+}
+
+function cantripLabelForSlug(slug: string, fallback: string): string {
+  if (slug === 'path_of_the_giant') return 'Путь великана · Мудрость, без ячеек'
+  if (slug === 'arcane_trickster') return 'Мистический ловкач · вне лимита заговоров'
+  if (slug === 'way_of_shadow') return 'Путь тени · вне лимита заговоров'
+  if (slug === 'arcane_archer') return 'Мистический лучник · вне лимита заклинаний'
+  return fallback
+}
+
+function picksWithFeatureCantrips(
+  grant: AppliedSubclassGrant,
+  featurePicks: FeaturePicksState | undefined,
+): SubclassGrantPicks {
+  const values = { ...(grant.picks ?? {}) }
+  if (!featurePicks) return { values }
+  const giant = getFeaturePick(featurePicks, grant.classEntryId, 'giants_power')
+  if (giant && values.giant_cantrip == null) values.giant_cantrip = giant
+  return { values }
+}
+
 function appendBonusCantripGrants(input: {
   known: SheetSpell[]
   grantedSpellIds: string[]
@@ -99,9 +134,11 @@ function appendBonusCantripGrants(input: {
     input.picks,
     input.known.map((spell) => spell.name),
   )
+  const label = cantripLabelForSlug(input.slug, input.label)
   for (const grant of grants) {
     pushLockedGrantSpell({
       ...input,
+      label,
       englishName: grant.nameEn,
       level: 0,
       range: grant.range,
@@ -819,6 +856,8 @@ export function syncSubclassAlwaysPreparedSpells(input: {
   maxSpellLevel: number
   /** classEntryId → class level (for fromClassLevel circle/conclave gates). */
   classLevelByEntryId?: Record<string, number>
+  /** Feature-card cantrip picks (Giant) when the archetype dialog was already closed. */
+  featurePicks?: FeaturePicksState
 }): SubclassGrantDraftSlice {
   const sharedCap = Math.max(0, Math.min(9, Math.floor(input.maxSpellLevel)))
   let known = [...input.draft.spells.known]
@@ -826,8 +865,15 @@ export function syncSubclassAlwaysPreparedSpells(input: {
   let changed = false
 
   for (const grant of input.draft.subclassGrants) {
-    const catalog = grant.alwaysPreparedSpells ?? []
-    const bonus = bonusCantripGrants(grant.slug, { values: grant.picks ?? {} })
+    const extra = EXTRA_SUBCLASS_SPELLS[grant.slug] ?? []
+    const catalog = [...(grant.alwaysPreparedSpells ?? [])]
+    for (const spell of extra) {
+      if (!catalog.some((row) => row.name === spell.name && row.level === spell.level)) {
+        catalog.push(spell)
+      }
+    }
+    const picks = picksWithFeatureCantrips(grant, input.featurePicks)
+    const bonus = bonusCantripGrants(grant.slug, picks)
     if (catalog.length === 0 && bonus.length === 0) continue
 
     const classLevel = Math.min(
@@ -849,8 +895,10 @@ export function syncSubclassAlwaysPreparedSpells(input: {
     const parentClassSlug = grant.parentSlug.trim().toLowerCase() || null
 
     for (const spell of catalog) {
-      if (!alwaysPreparedMatchesPicks(spell, grant.picks ?? {})) continue
-      if (spell.level > maxSpellLevel) continue
+      if (!alwaysPreparedMatchesPicks(spell, picks.values)) continue
+      const ritualGrant = RITUAL_WITHOUT_SLOTS.has(grant.slug)
+      const consult = grant.slug === 'path_of_the_ancestral_guardian'
+      if (!ritualGrant && !consult && spell.level > maxSpellLevel) continue
       if (spell.fromClassLevel != null && spell.fromClassLevel > classLevel) continue
       const nameRu = alwaysPreparedSpellNameRu(spell.name)
       const key = spellKeyFromName(spell.name)
@@ -871,6 +919,16 @@ export function syncSubclassAlwaysPreparedSpells(input: {
           class_entry_id: grant.classEntryId,
         },
       )
+      if (ritualGrant) {
+        created.ritual = true
+        created.notes = 'Только как ритуал, без ячейки заклинаний'
+        created.casting_time = created.casting_time || '1 ритуал'
+      }
+      if (consult) {
+        created.notes =
+          'Совет духов: без ячейки и без компонентов. Общий заряд 1 на короткий или продолжительный отдых — выбери Гадание или Подсматривание на умении.'
+        created.prepared = true
+      }
       nextKnown.push(created)
       grantedSpellIds.push(created.id)
     }
@@ -881,7 +939,7 @@ export function syncSubclassAlwaysPreparedSpells(input: {
       slug: grant.slug,
       label: prevLabel,
       parentClassSlug,
-      picks: { values: grant.picks ?? {} },
+      picks,
     })
     nextKnown = dropUnlockedGrantDuplicates(nextKnown, grantedSpellIds, parentClassSlug)
 

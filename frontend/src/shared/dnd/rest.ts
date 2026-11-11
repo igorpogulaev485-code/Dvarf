@@ -28,6 +28,8 @@ export type SheetResource = {
   activeLabel?: string
   /** Arcane Ward has been created since the last long rest. */
   wardCreated?: boolean
+  /** Does not deplete (PHB barbarian rage at 20). */
+  unlimited?: boolean
 }
 
 export function clampExhaustion(value: number): number {
@@ -59,6 +61,7 @@ export function clampResource(resource: SheetResource): SheetResource {
       ? { activeLabel: resource.activeLabel.trim() }
       : { activeLabel: undefined }),
     ...(resource.wardCreated ? { wardCreated: true } : { wardCreated: undefined }),
+    ...(resource.unlimited ? { unlimited: true, used: 0 } : { unlimited: undefined }),
   }
 }
 
@@ -73,6 +76,7 @@ export function resourceShownCurrent(resource: SheetResource): number {
 /** Hot-bar visibility: explicit false hides; undefined/true shows (legacy + class pools). */
 export function resourceShowsOnHot(resource: SheetResource): boolean {
   if (resource.onHot === false) return false
+  if (resource.unlimited) return Boolean(resource.name.trim())
   return resource.max > 0 && Boolean(resource.name.trim())
 }
 

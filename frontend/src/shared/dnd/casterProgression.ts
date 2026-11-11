@@ -167,6 +167,44 @@ function thirdCasterRow(level: number): number[] | null {
   return row
 }
 
+/**
+ * PHB Eldritch Knight / Arcane Trickster — cantrips the player chooses.
+ * Arcane Trickster's Mage Hand is a free grant and is not in this number
+ * (2 chosen at 3, +1 at 10 → 3 chosen).
+ * Index 0 = level 1.
+ */
+export const THIRD_CASTER_CANTRIPS_KNOWN: number[] = [
+  0, 0, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+]
+
+/** PHB spells known (leveled) for EK and Arcane Trickster. Index 0 = level 1. */
+export const THIRD_CASTER_SPELLS_KNOWN: number[] = [
+  0, 0, 3, 4, 4, 4, 5, 6, 6, 7, 8, 8, 9, 10, 10, 11, 11, 11, 12, 13,
+]
+
+export function thirdCasterCantripsKnown(level: number): number {
+  return tableAtLevel(THIRD_CASTER_CANTRIPS_KNOWN, level)
+}
+
+export function thirdCasterSpellsKnown(level: number): number {
+  return tableAtLevel(THIRD_CASTER_SPELLS_KNOWN, level)
+}
+
+/**
+ * How many leveled spells may be from any wizard school.
+ * PHB: one of the three at 3rd (the other two are restricted), then the
+ * spell learned at 8, 14 and 20 may be any school.
+ */
+export function thirdCasterAnySchoolSlots(level: number): number {
+  const lv = Math.max(0, Math.floor(level))
+  if (lv < 3) return 0
+  let slots = 1
+  if (lv >= 8) slots += 1
+  if (lv >= 14) slots += 1
+  if (lv >= 20) slots += 1
+  return slots
+}
+
 /** Highest spell level (1–9) with at least one slot in a PHB slot row; 0 if none. */
 export function maxSpellLevelFromSlotRow(row: number[] | null): number {
   if (!row) return 0
@@ -784,6 +822,38 @@ export function thirdCasterSchoolGate(
   return schools.size ? [...schools] : null
 }
 
+/** Leveled known spells whose school is outside the EK/AT restricted pair. */
+export function countThirdCasterAnySchoolSpells(
+  known: Array<{ level: number; school?: string | null; prepared_locked?: boolean }>,
+  restrictedSchools: string[],
+): number {
+  const gate = new Set(restrictedSchools.map((school) => school.toLowerCase()))
+  return known.filter((spell) => {
+    if (spell.level <= 0 || spell.prepared_locked) return false
+    const school = (spell.school || '').toLowerCase()
+    return !gate.has(school)
+  }).length
+}
+
+/**
+ * PHB school budget. Cantrips are unrestricted.
+ * A leveled spell outside the restricted schools is allowed while the
+ * any-school quota (empty list still has the full quota) is not full.
+ */
+export function thirdCasterSchoolAllows(input: {
+  level: number
+  school: string
+  restrictedSchools: string[]
+  anySchoolUsed: number
+  anySchoolSlots: number
+}): boolean {
+  if (input.level <= 0) return true
+  const school = (input.school || '').toLowerCase()
+  const gate = input.restrictedSchools.map((item) => item.toLowerCase())
+  if (gate.includes(school)) return true
+  return input.anySchoolUsed < input.anySchoolSlots
+}
+
 /**
  * How the class learns spells (PHB 2014).
  * - known: pick a limited list; always ready (bard / sorcerer / warlock / ranger).
@@ -892,15 +962,12 @@ export function resolveSpellLearnBudget(input: {
         overlays.some((item) => item.classEntryId === row.id),
       )
       const level = clampLevel(host?.level ?? 1)
-      // EK/AT: 2 cantrips at 3, then grow slowly — approximate with warlock-ish 2–3.
-      const cantrips = level >= 10 ? 3 : level >= 3 ? 2 : 0
-      const known = level >= 3 ? Math.max(0, Math.floor((level - 1) / 2)) : 0
       return {
         mode: 'known',
         slug: suggestion.slug,
         labelRu: suggestion.labelRu,
-        cantrips,
-        leveledKnown: known,
+        cantrips: thirdCasterCantripsKnown(level),
+        leveledKnown: thirdCasterSpellsKnown(level),
         maxPrepared: null,
       }
     }
