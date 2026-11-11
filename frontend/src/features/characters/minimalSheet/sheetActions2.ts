@@ -32,7 +32,7 @@ import { syncHitDicePools } from '../../../shared/dnd/classHitDice'
 import { buildMaxHpByLevels } from '../../../shared/dnd/multiclassRules'
 import { clampCharacterLevel, xpToReachLevel } from '../../../shared/dnd/experience'
 import { withSyncedHitDiceSummary } from '../play'
-import { unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
+import { proficiencyBonusForTotalLevel, unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
 import { clearFeaturePicksForClass, type FeaturePicksState } from '../../../shared/dnd/featurePicks'
 import { sanitizeFeaturePicksForPactBoons, withPactTomeCantripsStep } from '../pactTomeEffects'
 import { applyRaceGrantToDraft, reapplyRaceOverlays, type RaceGrantDraftSlice } from '../raceEffects'
@@ -41,6 +41,7 @@ import { withSpellFocusFlags } from '../spellFocus'
 import { freeBookSlotsAtLevel, remainingFreeSpellbookSlots } from '../../../shared/dnd/wizardSpellbook'
 import { syncWizardSpellbookWithInventory } from '../wizardSpellbookInventory'
 import { abilityModifier } from '../sheetTypes'
+import { abilitiesWithGear } from '../effectiveAbilities'
 import { subclassSlugMapFromLedger, subclassTransitionMapFromLedger, type Draft } from './draft'
 
 export function installSheetActions2(model: SheetModel) {
@@ -202,7 +203,25 @@ export function installSheetActions2(model: SheetModel) {
     const nextClasses = prev.classes.map((row) =>
       row.id === classEntryId ? { ...row, level } : row,
     )
-    const conMod = abilityModifier(prev.abilities.con)
+    const scores = abilitiesWithGear({
+      base: prev.abilities,
+      modifiers: prev.modifiers,
+      items: prev.inventory.items,
+      attunements: prev.attunements,
+      classes: nextClasses,
+      featurePicks: prev.featurePicks,
+      proficiencyBonus: proficiencyBonusForTotalLevel(totalCharacterLevel(nextClasses)),
+      level: totalCharacterLevel(nextClasses),
+      gate: {
+        classes: nextClasses,
+        raceCatalogId: prev.raceCatalogId,
+        raceSlug: prev.raceGrant?.slug ?? null,
+        raceParentSlug: prev.raceGrant?.parentSlug ?? null,
+        alignmentSlug: prev.identity.alignment,
+        alignmentUnresolved: Boolean(prev.identity.alignmentText),
+      },
+    })
+    const conMod = abilityModifier(scores.con)
     const hpBuilt = buildMaxHpByLevels({
       classes: nextClasses.map((row) => ({ name: row.name, level: row.level })),
       constitutionMod: conMod,

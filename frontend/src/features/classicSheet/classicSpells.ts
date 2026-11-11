@@ -6,6 +6,7 @@ import {
   type SpellsState,
 } from '../characters/spells'
 import { readClassLevels } from '../characters/classLevels'
+import { classicEffectiveAbilities } from './classicDerivedCombat'
 import {
   normalizeBonusLines,
   withSpellCastBonuses,
@@ -26,7 +27,6 @@ import {
 } from '../../shared/dnd/spells'
 import type { CharacterDetail } from '../../shared/api/characters'
 import type { ClassicPatch } from './fromApi'
-import type { AbilityKey } from '../characters/sheetTypes'
 
 /** Official 2014 spell sheet line counts per level (incl. cantrips = 0). */
 export const SPELL_LINE_COUNTS: Record<number, number> = {
@@ -59,29 +59,13 @@ export function classicSpellStats(
 ): { saveDc: string; attackBonus: string } {
   const ability = spells.casting_ability
   if (!ability) return { saveDc: '', attackBonus: '' }
-  const abilities = asRecord(asRecord(character.sheet).abilities)
-  const score = readNumber(asRecord(abilities[ability]).score, 10)
+  const score = classicEffectiveAbilities(character)[ability]
   const mod = abilityModifier(score)
   const proficiency = asRecord(asRecord(character.sheet).proficiency)
   const bonus = readNumber(proficiency.bonus, 2)
   return {
     saveDc: String(spellSaveDc(mod, bonus)),
     attackBonus: formatModifier(spellAttackBonus(mod, bonus)),
-  }
-}
-
-function abilityScoresFromSheet(
-  sheet: Record<string, unknown>,
-): Record<AbilityKey, number> {
-  const abilities = asRecord(sheet.abilities)
-  const read = (key: AbilityKey) => readNumber(asRecord(abilities[key]).score, 10)
-  return {
-    str: read('str'),
-    dex: read('dex'),
-    con: read('con'),
-    int: read('int'),
-    wis: read('wis'),
-    cha: read('cha'),
   }
 }
 
@@ -100,7 +84,7 @@ export function classicCastProfiles(
     classCatalogId: null,
   })
   if (classes.length === 0) return []
-  const scores = abilityScoresFromSheet(sheet)
+  const scores = classicEffectiveAbilities(character)
   const proficiency = readNumber(asRecord(sheet.proficiency).bonus, 2)
   const built = buildCastProfiles({
     classes,

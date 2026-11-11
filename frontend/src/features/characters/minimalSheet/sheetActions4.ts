@@ -714,9 +714,10 @@ export function installSheetActions4(model: SheetModel) {
     const def = SKILL_DEFS.find((skill) => skill.key === skillKey)
     if (!def) return 0
     const state = model.draft.skills[skillKey]
+    const abilities = model.effectiveAbilities ?? model.draft.abilities
     return (
       skillModifierFromState({
-        abilityMod: abilityModifier(model.draft.abilities[def.base]),
+        abilityMod: abilityModifier(abilities[def.base]),
         proficiencyBonus: model.proficiencyBonus,
         isProficient: state?.is_proficient ?? false,
         isExpertise: state?.is_expertise ?? false,

@@ -728,8 +728,24 @@ export function useSheetEditorPart2(model: SheetModel) {
       aggregateGearEffects({
         items: model.draft.inventory.items,
         attunements: model.draft.attunements,
+        gate: {
+          classes: model.draft.classes,
+          raceCatalogId: model.draft.raceCatalogId,
+          raceSlug: model.draft.raceGrant?.slug ?? null,
+          raceParentSlug: model.draft.raceGrant?.parentSlug ?? null,
+          alignmentSlug: model.draft.identity.alignment,
+          alignmentUnresolved: Boolean(model.draft.identity.alignmentText),
+        },
       }),
-    [model.draft.inventory.items, model.draft.attunements],
+    [
+      model.draft.inventory.items,
+      model.draft.attunements,
+      model.draft.classes,
+      model.draft.raceCatalogId,
+      model.draft.raceGrant,
+      model.draft.identity.alignment,
+      model.draft.identity.alignmentText,
+    ],
   )
   model.gearEffects = gearEffects
 

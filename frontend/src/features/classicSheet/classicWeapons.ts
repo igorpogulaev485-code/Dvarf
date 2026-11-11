@@ -6,6 +6,8 @@ import {
 import { readAttunements } from '../characters/attunement'
 import { isWeaponProficient } from '../characters/equipmentProficiency'
 import { aggregateGearEffects } from '../characters/gearEffects'
+import { attunementGateFromSheet } from '../characters/attunementRules'
+import { classicEffectiveAbilities } from './classicDerivedCombat'
 import { readIdentityExtras } from '../characters/identity'
 import { readInventory } from '../characters/inventory'
 import {
@@ -91,8 +93,9 @@ function computedAttackBonus(
   attack: WeaponAttack,
   weaponProficiency: ReturnType<typeof readIdentityExtras>['weapons'],
   magicAtk: number,
+  scores: Record<AbilityKey, number>,
 ): string {
-  const mod = abilityModifier(abilityScore(character, attack.ability))
+  const mod = abilityModifier(scores[attack.ability] ?? abilityScore(character, attack.ability))
   const proficient = isWeaponProficient({
     name: attack.name,
     weapons: weaponProficiency,
@@ -112,13 +115,14 @@ function computedDamageLine(
   character: CharacterDetail,
   attack: WeaponAttack,
   magicDmg: number,
+  scores: Record<AbilityKey, number>,
 ): string {
   if (!attack.damage.trim()) return joinDamageLine('', attack.damage_type)
   // Respect a full line typed into the classic blank («1к12+5»).
   if (damageAlreadyHasModifier(attack.damage)) {
     return joinDamageLine(attack.damage, attack.damage_type)
   }
-  const abilityDmg = abilityModifier(abilityScore(character, attack.ability))
+  const abilityDmg = abilityModifier(scores[attack.ability] ?? abilityScore(character, attack.ability))
   const totalDmgBonus = abilityDmg + magicDmg
   const damageWithMod = totalDmgBonus
     ? `${attack.damage}${totalDmgBonus >= 0 ? '+' : ''}${totalDmgBonus}`
@@ -131,11 +135,12 @@ function rowAttackBonus(
   attack: WeaponAttack & { attack_bonus?: string },
   weaponProficiency: ReturnType<typeof readIdentityExtras>['weapons'],
   magicAtk: number,
+  scores: Record<AbilityKey, number>,
 ): string {
   const manual = attack.attack_bonus?.trim()
   if (manual) return manual
   if (!attack.name.trim() && !attack.damage.trim()) return ''
-  return computedAttackBonus(character, attack, weaponProficiency, magicAtk)
+  return computedAttackBonus(character, attack, weaponProficiency, magicAtk, scores)
 }
 
 export function classicWeaponRows(character: CharacterDetail): ClassicWeaponRow[] {
@@ -143,10 +148,17 @@ export function classicWeaponRows(character: CharacterDetail): ClassicWeaponRow[
   const attacks = readWeaponAttacks(sheet)
   const weaponProficiency = readIdentityExtras(sheet).weapons
   const inventory = readInventory(sheet)
+  const gate = attunementGateFromSheet({
+    sheet,
+    className: character.class_name,
+    level: character.level,
+  })
   const gear = aggregateGearEffects({
     items: inventory.items,
     attunements: readAttunements(sheet),
+    gate,
   })
+  const scores = classicEffectiveAbilities(character)
   const rows = attacks.map((attack) => {
     const withBonus = attack as WeaponAttack & { attack_bonus?: string }
     const gearRow =
@@ -158,8 +170,8 @@ export function classicWeaponRows(character: CharacterDetail): ClassicWeaponRow[
     return {
       id: attack.id,
       name: attack.name,
-      attackBonus: rowAttackBonus(character, withBonus, weaponProficiency, magicAtk),
-      damageLine: computedDamageLine(character, attack, magicDmg),
+      attackBonus: rowAttackBonus(character, withBonus, weaponProficiency, magicAtk, scores),
+      damageLine: computedDamageLine(character, attack, magicDmg, scores),
     }
   })
   while (rows.length < CLASSIC_WEAPON_SLOTS) {

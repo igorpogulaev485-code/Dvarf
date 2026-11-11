@@ -15,7 +15,9 @@ export function AttunementDialog({
   onClose,
   attunements,
   inventoryItems,
+  character,
   onChange,
+  onPatchItem,
 }: AttunementDialogProps) {
   return (
     <Dialog
@@ -30,7 +32,9 @@ export function AttunementDialog({
       <AttunementEditor
         attunements={attunements}
         inventoryItems={inventoryItems}
+        character={character}
         onChange={onChange}
+        onPatchItem={onPatchItem}
       />
     </Dialog>
   )

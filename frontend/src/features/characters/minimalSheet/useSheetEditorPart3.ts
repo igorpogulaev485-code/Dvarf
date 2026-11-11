@@ -21,10 +21,11 @@ import {
 } from '../modifiers'
 import { resolveRaceGrantDef } from '../../../shared/dnd/raceGrants'
 import { DEFAULT_ABILITY_SCORE_MAX, clampAbilityScore, resolveAbilityMaxes } from '../../../shared/dnd/abilityScoreCaps'
-import { applyHpDelta } from '../../../shared/dnd/constitutionHp'
+import { applyHpDelta, constitutionHpDelta } from '../../../shared/dnd/constitutionHp'
 import { syncPrimalChampion } from '../../../shared/dnd/primalChampion'
 import { customFeaturesToSheet } from '../customFeatures'
 import { applyGearAbilityScores, gearDarkvisionFt } from '../gearEffects'
+import { passiveScore, skillModifierFromState } from '../../../shared/dnd/passives'
 import { syncGearCompanions, syncGearGrantSpells, syncGearResources } from '../gearGrantsSync'
 import { listShieldItems } from '../heldEquip'
 import { attunementsToSheet } from '../attunement'
@@ -38,7 +39,7 @@ import {
   elegantCourtierPersuasionBonus,
   remarkableAthleteCheckBonus,
 } from '../featureCombatBonuses'
-import { aggregateInfusionBonuses, applyInfusionAbilityFloors } from '../../../shared/dnd/infusionEffects'
+import { aggregateInfusionBonuses } from '../../../shared/dnd/infusionEffects'
 import { infusionAcFromSharedEffects } from '../../../shared/dnd/infusionItems'
 import { beastPhysicalOverlay } from '../wildShape'
 import { syncPactBladeAttack } from '../pactBladeAttack'
@@ -473,10 +474,36 @@ export function useSheetEditorPart3(model: SheetModel) {
   )
   model.effectiveDarkvisionFt = effectiveDarkvisionFt
 
-  const gearAbilities = useMemo(
-    () => applyGearAbilityScores(model.draft.abilities, model.gearEffects),
-    [model.draft.abilities, model.gearEffects],
-  )
+  const ownFormulaVars = useMemo(() => {
+    const mods = {
+      str: abilityModifier(model.draft.abilities.str),
+      dex: abilityModifier(model.draft.abilities.dex),
+      con: abilityModifier(model.draft.abilities.con),
+      int: abilityModifier(model.draft.abilities.int),
+      wis: abilityModifier(model.draft.abilities.wis),
+      cha: abilityModifier(model.draft.abilities.cha),
+    }
+    return buildSheetFormulaVars({
+      mods,
+      proficiencyBonus: model.proficiencyBonus,
+      level: model.characterLevel,
+    })
+  }, [model.draft.abilities, model.proficiencyBonus, model.characterLevel])
+
+  const gearAbilities = useMemo(() => {
+    const boosted = applyAbilityScoreBonuses(
+      model.draft.abilities,
+      model.draft.modifiers,
+      ownFormulaVars,
+    )
+    return applyGearAbilityScores(boosted, model.gearEffects, infusionBonuses.abilityFloor)
+  }, [
+    model.draft.abilities,
+    model.draft.modifiers,
+    ownFormulaVars,
+    model.gearEffects,
+    infusionBonuses.abilityFloor,
+  ])
   model.gearAbilities = gearAbilities
 
   const formulaVarsBase = useMemo(() => {
@@ -497,28 +524,37 @@ export function useSheetEditorPart3(model: SheetModel) {
   model.formulaVarsBase = formulaVarsBase
 
   const effectiveAbilities = useMemo(() => {
-    const boosted = applyAbilityScoreBonuses(
-      gearAbilities,
-      model.draft.modifiers,
-      formulaVarsBase,
-    )
-    const floored = applyInfusionAbilityFloors(boosted, infusionBonuses.abilityFloor)
     const form = beastPhysicalOverlay(model.draft.companions)
-    if (!form) return floored
+    if (!form) return gearAbilities
     return {
-      ...floored,
+      ...gearAbilities,
       ...(form.str != null ? { str: form.str } : {}),
       ...(form.dex != null ? { dex: form.dex } : {}),
       ...(form.con != null ? { con: form.con } : {}),
     }
-  }, [
-    gearAbilities,
-    model.draft.modifiers,
-    formulaVarsBase,
-    infusionBonuses.abilityFloor,
-    model.draft.companions,
-  ])
+  }, [gearAbilities, model.draft.companions])
   model.effectiveAbilities = effectiveAbilities
+
+  const passivesFromGear = useMemo(() => {
+    const modFor = (skillKey: string) => {
+      const def = SKILL_DEFS.find((skill) => skill.key === skillKey)
+      if (!def) return 0
+      const state = model.draft.skills[skillKey]
+      return skillModifierFromState({
+        abilityMod: abilityModifier(gearAbilities[def.base]),
+        proficiencyBonus: model.proficiencyBonus,
+        isProficient: Boolean(state?.is_proficient),
+        isExpertise: Boolean(state?.is_expertise),
+      })
+    }
+    const featPassive = model.featPassiveBonus ?? 0
+    return {
+      perception: passiveScore(modFor('perception')) + featPassive,
+      investigation: passiveScore(modFor('investigation')) + featPassive,
+      insight: passiveScore(modFor('insight')),
+    }
+  }, [gearAbilities, model.draft.skills, model.proficiencyBonus, model.featPassiveBonus])
+  model.passives = passivesFromGear
 
   const abilityCheckExtras = useMemo(() => {
     const out: Partial<Record<AbilityKey, number>> = {}
@@ -550,7 +586,7 @@ export function useSheetEditorPart3(model: SheetModel) {
       })
       const courtier = elegantCourtierPersuasionBonus({
         features: model.unlockedFeatures,
-        wisdomScore: model.draft.abilities.wis,
+        wisdomScore: effectiveAbilities.wis,
         skillKey: skill.key,
       })
       const total = athlete + courtier
@@ -559,7 +595,7 @@ export function useSheetEditorPart3(model: SheetModel) {
     return out
   }, [
     model.draft.skills,
-    model.draft.abilities.wis,
+    effectiveAbilities.wis,
     model.unlockedFeatures,
     model.proficiencyBonus,
   ])
@@ -891,7 +927,7 @@ export function useSheetEditorPart3(model: SheetModel) {
   const conHpRef = useRef<{ mod: number } | null>(null)
   useEffect(() => {
     const level = totalCharacterLevel(model.draft.classes)
-    const mod = abilityModifier(model.draft.abilities.con)
+    const mod = abilityModifier(model.gearAbilities?.con ?? model.draft.abilities.con)
     if (model.draft.hpMax == null) return
     const prev = conHpRef.current
     if (!prev) {
@@ -899,7 +935,11 @@ export function useSheetEditorPart3(model: SheetModel) {
       return
     }
     if (prev.mod === mod) return
-    const delta = (mod - prev.mod) * level
+    const delta = constitutionHpDelta({
+      previousMod: prev.mod,
+      nextMod: mod,
+      levelCount: level,
+    })
     conHpRef.current = { mod }
     if (delta === 0) return
     model.setDraft((current) => {
@@ -916,7 +956,7 @@ export function useSheetEditorPart3(model: SheetModel) {
         ? `Телосложение: максимум хитов +${delta} за все уровни`
         : `Телосложение: максимум хитов ${delta} за все уровни`,
     )
-  }, [model.draft.abilities.con, model.draft.classes, model.draft.hpMax])
+  }, [model.gearAbilities, model.draft.abilities.con, model.draft.classes, model.draft.hpMax])
 
   useEffect(() => {
     const exhaustion = model.draft.play.exhaustion ?? 0

@@ -6,6 +6,10 @@
 
 import type { GearEffect, AbilityScoreKey } from '../../shared/dnd/gearCatalog'
 import type { AttunementSlot } from './attunement'
+import {
+  suppressedAttunementItemIds,
+  type AttunementCharacter,
+} from './attunementRules'
 import type { InventoryItem } from './inventory'
 
 export type ActiveGearEffect = {
@@ -19,10 +23,12 @@ export type AggregatedGearEffects = {
   acBonus: number
   /** Darkvision / blindsight / … — max range per sense key. */
   senses: Record<string, number>
-  /** Ability score set (absolute) — last wins per ability. */
+  /** Fixed scores (gauntlets, belts). The highest floor wins; nothing is lowered. */
   abilityScores: Partial<Record<AbilityScoreKey, number>>
-  /** Ability score deltas (Ring of Strength style). */
+  /** Uncapped ability deltas. Capped ones live in abilityModCaps. */
   abilityMods: Partial<Record<AbilityScoreKey, number>>
+  /** +N with a ceiling («+2, максимум 20»). A cap never lowers a higher score. */
+  abilityModCaps: Array<{ ability: AbilityScoreKey; value: number; max: number }>
   /** Per inventory item: attack / damage bonuses (weapon +1 while held). */
   byItem: Record<string, { attackBonus: number; damageBonus: number }>
   /** Skill key → flat bonus (cloak of elvenkind stealth, …). */
@@ -82,9 +88,11 @@ function asNumber(value: unknown): number | null {
 export function isGearEffectActive(
   item: InventoryItem,
   attunedItemIds: ReadonlySet<string>,
+  suppressedItemIds?: ReadonlySet<string>,
 ): boolean {
   if (!item.equipped || item.parent_id) return false
   if (item.requires_attunement && !attunedItemIds.has(item.id)) return false
+  if (suppressedItemIds?.has(item.id)) return false
   return true
 }
 
@@ -102,6 +110,7 @@ export function emptyAggregatedGearEffects(): AggregatedGearEffects {
     senses: {},
     abilityScores: {},
     abilityMods: {},
+    abilityModCaps: [],
     byItem: {},
     skillBonuses: {},
     saveBonuses: {},
@@ -188,12 +197,19 @@ function pushChannelDivinityResource(
 export function aggregateGearEffects(input: {
   items: InventoryItem[]
   attunements: AttunementSlot[]
+  /** Class, race, alignment, family, and the artificer slot limit. */
+  gate?: AttunementCharacter | null
 }): AggregatedGearEffects {
   const attuned = attunedItemIdSet(input.attunements)
+  const suppressed = suppressedAttunementItemIds({
+    slots: input.attunements,
+    items: input.items,
+    character: input.gate,
+  })
   const out = emptyAggregatedGearEffects()
 
   for (const item of input.items) {
-    if (!isGearEffectActive(item, attuned)) continue
+    if (!isGearEffectActive(item, attuned, suppressed)) continue
     const effects = item.effects ?? []
 
     let itemAttack = 0
@@ -241,9 +257,11 @@ export function aggregateGearEffects(input: {
         const ability = (effect as { ability?: unknown }).ability
         const value = asNumber((effect as { value?: unknown }).value)
         if (!isAbilityKey(ability) || value == null) continue
-        out.abilityScores[ability] = Math.floor(value)
+        const floor = Math.floor(value)
+        const prev = out.abilityScores[ability]
+        out.abilityScores[ability] = prev == null ? floor : Math.max(prev, floor)
         out.notes.push(
-          `${item.name || 'предмет'}: ${ability.toUpperCase()} → ${Math.floor(value)}`,
+          `${item.name || 'предмет'}: ${ability.toUpperCase()} не ниже ${floor}`,
         )
         continue
       }
@@ -252,12 +270,27 @@ export function aggregateGearEffects(input: {
         const ability = (effect as { ability?: unknown }).ability
         const value = asNumber((effect as { value?: unknown }).value)
         if (!isAbilityKey(ability) || value == null) continue
-        out.abilityMods[ability] = (out.abilityMods[ability] ?? 0) + Math.floor(value)
-        out.notes.push(
-          `${item.name || 'предмет'}: ${ability.toUpperCase()} ${
-            value >= 0 ? '+' : ''
-          }${Math.floor(value)}`,
-        )
+        const delta = Math.floor(value)
+        const cap = asNumber((effect as { max?: unknown }).max)
+        if (cap != null) {
+          out.abilityModCaps.push({
+            ability,
+            value: delta,
+            max: Math.floor(cap),
+          })
+          out.notes.push(
+            `${item.name || 'предмет'}: ${ability.toUpperCase()} ${
+              delta >= 0 ? '+' : ''
+            }${delta}, максимум ${Math.floor(cap)}`,
+          )
+        } else {
+          out.abilityMods[ability] = (out.abilityMods[ability] ?? 0) + delta
+          out.notes.push(
+            `${item.name || 'предмет'}: ${ability.toUpperCase()} ${
+              delta >= 0 ? '+' : ''
+            }${delta}`,
+          )
+        }
         continue
       }
 
@@ -412,21 +445,40 @@ export function aggregateGearEffects(input: {
   return out
 }
 
-/** Apply ability_score / ability_mod on top of sheet scores. */
+function applyCappedBonus(score: number, bonus: number, max: number): number {
+  if (bonus >= 0) {
+    if (score >= max) return score
+    return Math.min(score + bonus, max)
+  }
+  return score + bonus
+}
+
+/**
+ * Own score (already including the character's +N) plus item +N, then the
+ * highest fixed floor. A floor never lowers a higher score. Item order
+ * does not matter. `extraFloors` (infusions) share that same floor.
+ */
 export function applyGearAbilityScores(
   base: Record<AbilityScoreKey, number>,
-  gear: Pick<AggregatedGearEffects, 'abilityScores' | 'abilityMods'>,
+  gear: Pick<AggregatedGearEffects, 'abilityScores' | 'abilityMods' | 'abilityModCaps'>,
+  extraFloors?: Partial<Record<AbilityScoreKey, number>> | null,
 ): Record<AbilityScoreKey, number> {
   const next = { ...base }
   for (const key of ABILITY_KEYS) {
-    const absolute = gear.abilityScores[key]
-    if (typeof absolute === 'number') {
-      next[key] = absolute
-    }
     const delta = gear.abilityMods[key]
     if (typeof delta === 'number' && delta !== 0) {
       next[key] = (next[key] ?? 10) + delta
     }
+  }
+  for (const cap of gear.abilityModCaps ?? []) {
+    next[cap.ability] = applyCappedBonus(next[cap.ability] ?? 10, cap.value, cap.max)
+  }
+  for (const key of ABILITY_KEYS) {
+    const floors = [gear.abilityScores[key], extraFloors?.[key]].filter(
+      (value): value is number => typeof value === 'number',
+    )
+    if (!floors.length) continue
+    next[key] = Math.max(next[key] ?? 10, ...floors)
   }
   return next
 }

@@ -1,0 +1,478 @@
+{
+  "updates": [
+    {
+      "kind": "item",
+      "slug": "ioun_stone_strength",
+      "rules_edition": "2014",
+      "data": {
+        "description_ru": "Сила увеличивается на 2, максимум 20, пока камень вращается вокруг головы.",
+        "effects": [
+          {
+            "type": "ability_mod",
+            "ability": "str",
+            "value": 2,
+            "max": 20
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ioun_stone_intellect",
+      "rules_edition": "2014",
+      "data": {
+        "description_ru": "Интеллект увеличивается на 2, максимум 20, пока камень вращается вокруг головы.",
+        "effects": [
+          {
+            "type": "ability_mod",
+            "ability": "int",
+            "value": 2,
+            "max": 20
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ioun_stone_fortitude",
+      "rules_edition": "2014",
+      "data": {
+        "description_ru": "Телосложение увеличивается на 2, максимум 20, пока камень вращается вокруг головы.",
+        "effects": [
+          {
+            "type": "ability_mod",
+            "ability": "con",
+            "value": 2,
+            "max": 20
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ioun_stone_insight",
+      "rules_edition": "2014",
+      "data": {
+        "description_ru": "Мудрость увеличивается на 2, максимум 20, пока камень вращается вокруг головы.",
+        "effects": [
+          {
+            "type": "ability_mod",
+            "ability": "wis",
+            "value": 2,
+            "max": 20
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ioun_stone_leadership",
+      "rules_edition": "2014",
+      "data": {
+        "description_ru": "Харизма увеличивается на 2, максимум 20, пока камень вращается вокруг головы.",
+        "effects": [
+          {
+            "type": "ability_mod",
+            "ability": "cha",
+            "value": 2,
+            "max": 20
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "belt_of_giant_strength_hill",
+      "rules_edition": "2014",
+      "data": {
+        "single_attunement_family": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "belt_of_giant_strength_stone",
+      "rules_edition": "2014",
+      "data": {
+        "single_attunement_family": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "belt_of_giant_strength_fire",
+      "rules_edition": "2014",
+      "data": {
+        "single_attunement_family": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "belt_of_giant_strength_cloud",
+      "rules_edition": "2014",
+      "data": {
+        "single_attunement_family": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "belt_of_giant_strength_storm",
+      "rules_edition": "2014",
+      "data": {
+        "single_attunement_family": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "amulet_of_the_devout_1",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "cleric",
+          "paladin"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "all_purpose_tool_1",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "artificer"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "arcane_grimoire_1",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "wizard"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bloodwell_vial_1",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "sorcerer"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "moon_sickle_1",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "druid",
+          "ranger"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "alchemical_compendium_1",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "wizard"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "amulet_of_the_devout_2",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "cleric",
+          "paladin"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "all_purpose_tool_2",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "artificer"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "arcane_grimoire_2",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "wizard"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bloodwell_vial_2",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "sorcerer"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "moon_sickle_2",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "druid",
+          "ranger"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "alchemical_compendium_2",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "wizard"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "amulet_of_the_devout_3",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "cleric",
+          "paladin"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "all_purpose_tool_3",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "artificer"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "arcane_grimoire_3",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "wizard"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bloodwell_vial_3",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "sorcerer"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "moon_sickle_3",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "druid",
+          "ranger"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "alchemical_compendium_3",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "wizard"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_power",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_the_magi",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_the_woodlands",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "druid"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "robe_of_the_archmagi",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ],
+        "alignment_color_gate": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "instrument_of_the_bards_doss_lute",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "bard"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "instrument_of_the_bards_canaith",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "bard"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "instrument_of_the_bards_cli",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "bard"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "holy_avenger",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "paladin"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "hat_of_wizardry",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "wizard"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "dark_shard_amulet",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "warlock"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "natures_mantle",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "druid",
+          "ranger"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "arcane_propulsion_armor",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "artificer"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "instrument_of_scribing",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_classes": [
+          "bard"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "dwarven_thrower",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_races": [
+          "dwarf"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "book_of_exalted_deeds",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_alignments": [
+          "good"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "book_of_vile_darkness",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_alignments": [
+          "evil"
+        ]
+      }
+    }
+  ]
+}

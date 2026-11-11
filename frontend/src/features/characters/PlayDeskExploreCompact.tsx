@@ -17,6 +17,7 @@ type PlayDeskExploreCompactProps = {
   autoAc: number
   acHint: string
   attunements: AttunementSlot[]
+  attunementLimit?: number
   favoriteConsumableIds?: string[]
   onToggleConsumableFavorite?: (itemId: string) => void
   onOpenFull: () => void
@@ -30,6 +31,7 @@ export function PlayDeskExploreCompact({
   autoAc,
   acHint,
   attunements,
+  attunementLimit = MAX_ATTUNEMENTS,
   favoriteConsumableIds = [],
   onToggleConsumableFavorite,
   onOpenFull,
@@ -101,7 +103,8 @@ export function PlayDeskExploreCompact({
           <div className="play-desk-compact__card-meta">
             <span>Настройка</span>
             <span className="play-desk-compact__tag">
-              {filled}/{MAX_ATTUNEMENTS}
+              {filled}/{attunementLimit}
+              {filled > attunementLimit ? ' · сверх лимита' : ''}
             </span>
           </div>
           <p>

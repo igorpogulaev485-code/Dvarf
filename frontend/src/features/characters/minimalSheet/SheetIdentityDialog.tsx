@@ -16,6 +16,11 @@ import {
   Text,
 } from '../../../ui'
 import { isRaceComboboxRoot, raceSizeLabel } from '../../../shared/dnd/raceGrants'
+import {
+  ALIGNMENTS,
+  alignmentNeedsClarification,
+  alignmentSheetLabel,
+} from '../../../shared/dnd/alignments'
 import { revokeClassAsiBonuses } from '../../../shared/dnd/classAsi'
 import {
   knowledgeBlessingSkillIds,
@@ -595,12 +600,30 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
               </div>
             </Field>
             <Field label="Мировоззрение" htmlFor="sheet-alignment">
-              <Input
+              <select
                 id="sheet-alignment"
+                className="play-select"
                 value={model.draft.identity.alignment}
-                placeholder="Нейтральный добрый…"
-                onChange={(event) => model.patchIdentity({ alignment: event.target.value })}
-              />
+                onChange={(event) =>
+                  model.patchIdentity({
+                    alignment: event.target.value,
+                    alignmentText: '',
+                  })
+                }
+              >
+                <option value="">— не выбрано —</option>
+                {ALIGNMENTS.map((row) => (
+                  <option key={row.slug} value={row.slug}>
+                    {row.nameRu}
+                  </option>
+                ))}
+              </select>
+              {alignmentNeedsClarification(model.draft.identity) ? (
+                <Text tone="muted">
+                  Уточните мировоззрение. Сейчас записано: «
+                  {alignmentSheetLabel(model.draft.identity)}».
+                </Text>
+              ) : null}
             </Field>
             <Field label="Пол">
               <div className="chip-row" role="group" aria-label="Пол персонажа">

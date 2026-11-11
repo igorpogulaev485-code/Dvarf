@@ -406,7 +406,7 @@
     "id": "cd039545-f18b-5795-8e03-9ce657b0d5ca",
     "kind": "alignment",
     "slug": "chaotic_evil",
-    "name_ru": "Chaotic Evil",
+    "name_ru": "Хаотично-злой",
     "name_en": "Chaotic Evil",
     "rules_edition": "2014",
     "parent_id": null,
@@ -415,14 +415,14 @@
       "api": "/api/2014/alignments/chaotic-evil"
     },
     "data": {},
-    "sort_order": 10,
+    "sort_order": 90,
     "is_active": true
   },
   {
     "id": "0488da0c-2076-5993-8d28-7dda9fbc9f35",
     "kind": "alignment",
     "slug": "chaotic_good",
-    "name_ru": "Chaotic Good",
+    "name_ru": "Хаотично-добрый",
     "name_en": "Chaotic Good",
     "rules_edition": "2014",
     "parent_id": null,
@@ -431,14 +431,14 @@
       "api": "/api/2014/alignments/chaotic-good"
     },
     "data": {},
-    "sort_order": 20,
+    "sort_order": 30,
     "is_active": true
   },
   {
     "id": "4a4c9820-3e54-5e47-bf3c-0eb247e6d3a6",
     "kind": "alignment",
     "slug": "chaotic_neutral",
-    "name_ru": "Chaotic Neutral",
+    "name_ru": "Хаотично-нейтральный",
     "name_en": "Chaotic Neutral",
     "rules_edition": "2014",
     "parent_id": null,
@@ -447,14 +447,14 @@
       "api": "/api/2014/alignments/chaotic-neutral"
     },
     "data": {},
-    "sort_order": 30,
+    "sort_order": 60,
     "is_active": true
   },
   {
     "id": "174d916e-5ebd-5adc-b5c0-8cad54bbe740",
     "kind": "alignment",
     "slug": "lawful_evil",
-    "name_ru": "Lawful Evil",
+    "name_ru": "Законно-злой",
     "name_en": "Lawful Evil",
     "rules_edition": "2014",
     "parent_id": null,
@@ -463,14 +463,14 @@
       "api": "/api/2014/alignments/lawful-evil"
     },
     "data": {},
-    "sort_order": 40,
+    "sort_order": 70,
     "is_active": true
   },
   {
     "id": "fdbe447e-a359-5297-9589-a16f4b77f9da",
     "kind": "alignment",
     "slug": "lawful_good",
-    "name_ru": "Lawful Good",
+    "name_ru": "Законно-добрый",
     "name_en": "Lawful Good",
     "rules_edition": "2014",
     "parent_id": null,
@@ -479,14 +479,14 @@
       "api": "/api/2014/alignments/lawful-good"
     },
     "data": {},
-    "sort_order": 50,
+    "sort_order": 10,
     "is_active": true
   },
   {
     "id": "1d61f391-b3eb-5239-b374-0dea5cc6c344",
     "kind": "alignment",
     "slug": "lawful_neutral",
-    "name_ru": "Lawful Neutral",
+    "name_ru": "Законно-нейтральный",
     "name_en": "Lawful Neutral",
     "rules_edition": "2014",
     "parent_id": null,
@@ -495,14 +495,14 @@
       "api": "/api/2014/alignments/lawful-neutral"
     },
     "data": {},
-    "sort_order": 60,
+    "sort_order": 40,
     "is_active": true
   },
   {
     "id": "8538b275-d4e4-530a-bb32-a37687bf014f",
     "kind": "alignment",
     "slug": "neutral",
-    "name_ru": "Neutral",
+    "name_ru": "Нейтральный",
     "name_en": "Neutral",
     "rules_edition": "2014",
     "parent_id": null,
@@ -511,14 +511,14 @@
       "api": "/api/2014/alignments/neutral"
     },
     "data": {},
-    "sort_order": 70,
+    "sort_order": 50,
     "is_active": true
   },
   {
     "id": "e40a0724-5c33-537a-b8c7-8b53de94289c",
     "kind": "alignment",
     "slug": "neutral_evil",
-    "name_ru": "Neutral Evil",
+    "name_ru": "Нейтрально-злой",
     "name_en": "Neutral Evil",
     "rules_edition": "2014",
     "parent_id": null,
@@ -534,7 +534,7 @@
     "id": "1ec2c676-aaf7-5150-82e7-f46d89b4aa4c",
     "kind": "alignment",
     "slug": "neutral_good",
-    "name_ru": "Neutral Good",
+    "name_ru": "Нейтрально-добрый",
     "name_en": "Neutral Good",
     "rules_edition": "2014",
     "parent_id": null,
@@ -543,7 +543,7 @@
       "api": "/api/2014/alignments/neutral-good"
     },
     "data": {},
-    "sort_order": 90,
+    "sort_order": 20,
     "is_active": true
   },
   {
@@ -29490,5 +29490,19 @@
     "sort_order": 3425,
     "is_active": true,
     "content_layer": "community_ref"
+  },
+  {
+    "id": "edf3857d-1ba8-5e8c-8628-b7b95cee54e5",
+    "kind": "alignment",
+    "slug": "unaligned",
+    "name_ru": "Без мировоззрения",
+    "name_en": "Unaligned",
+    "rules_edition": "2014",
+    "parent_id": null,
+    "source": "srd-5.1",
+    "external_ref": null,
+    "data": {},
+    "sort_order": 100,
+    "is_active": true
   }
 ]

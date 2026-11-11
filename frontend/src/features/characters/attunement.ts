@@ -1,7 +1,32 @@
+import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
+import { resolveClassFeatureSlug } from '../../shared/dnd/classFeatures'
 import type { InventoryItem } from './inventory'
 import { asRecord } from './sheetTypes'
 
+/** PHB default. Artificer raises this; use maxAttunementsForClasses. */
 export const MAX_ATTUNEMENTS = 3
+
+function isArtificer(row: ClassLevelEntry): boolean {
+  if (resolveClassFeatureSlug(row.name) === 'artificer') return true
+  const id = (row.catalog_id || '').toLowerCase()
+  return id.includes('artificer') || /изобретат/i.test(row.name || '')
+}
+
+/**
+ * Attunement slots. Artificer class level (not character level):
+ * 10+ → 4, 14+ → 5, 18+ → 6 (TCE Magic Item Adept / Savant / Master).
+ */
+export function maxAttunementsForClasses(classes: ClassLevelEntry[]): number {
+  let artificer = 0
+  for (const row of classes) {
+    if (!isArtificer(row)) continue
+    artificer += Math.max(0, Math.floor(row.level))
+  }
+  if (artificer >= 18) return 6
+  if (artificer >= 14) return 5
+  if (artificer >= 10) return 4
+  return MAX_ATTUNEMENTS
+}
 
 export type AttunementSlot = {
   id: string
@@ -36,12 +61,14 @@ function readSlot(raw: unknown, index: number): AttunementSlot {
 export function readAttunements(sheet: Record<string, unknown>): AttunementSlot[] {
   const raw = sheet.attunements
   if (!Array.isArray(raw)) return []
-  return raw.map((item, index) => readSlot(item, index)).slice(0, MAX_ATTUNEMENTS)
+  // Do not drop slots above the current limit — a level-down must not
+  // silently unattune. Overflow is marked and stops granting effects.
+  return raw.map((item, index) => readSlot(item, index))
 }
 
 export function attunementsToSheet(slots: AttunementSlot[]): { attunements: AttunementSlot[] } {
   return {
-    attunements: slots.slice(0, MAX_ATTUNEMENTS).map((slot) => ({
+    attunements: slots.map((slot) => ({
       id: slot.id,
       item_id: slot.item_id,
       name: slot.name.trim(),
