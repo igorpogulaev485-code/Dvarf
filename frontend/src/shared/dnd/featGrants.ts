@@ -566,6 +566,7 @@ export function spellOneOptionsForPicks(
         classSlug: selected,
         level: choice.level,
         ritualOnly: choice.optionsFrom === 'class_ritual_list',
+        ritualCasterList: choice.optionsFrom === 'class_ritual_list',
       })
     }
     // Catalog not loaded yet — fall back to hardcoded lists if present.
@@ -782,7 +783,7 @@ export function featGrantDefFromCatalog(input: {
       ? Math.max(1, Math.floor(minLevelRaw))
       : undefined
 
-  return {
+  const def: FeatGrantDef = {
     slug: input.slug,
     labelRu: input.nameRu,
     prerequisitesRu: readString(data.prerequisites_ru) ?? readString(data.prerequisitesRu),
@@ -839,6 +840,28 @@ export function featGrantDefFromCatalog(input: {
       ),
       benefitsRu: readString(data.benefits_ru) ?? readString(data.benefitsRu) ?? '',
       summaryRu: readString(data.summary_ru) ?? readString(data.summaryRu) ?? '',
+    }),
+  }
+  return withRitualCasterPhb(def)
+}
+
+/** PHB list includes sorcerer even when a stored catalog row is older. */
+function withRitualCasterPhb(def: FeatGrantDef): FeatGrantDef {
+  if (def.slug !== 'ritual_caster') return def
+  return {
+    ...def,
+    choices: def.choices.map((choice) => {
+      if (choice.type === 'ability_one' && choice.id === 'ability') {
+        return { ...choice, label_ru: 'Предпосылка (Инт или Муд 13+)' }
+      }
+      if (choice.type !== 'enum' || choice.id !== 'list') return choice
+      if (choice.options.some((opt) => opt.id === 'sorcerer')) return choice
+      const options = [...choice.options]
+      const warlock = options.findIndex((opt) => opt.id === 'warlock')
+      const sorcerer = { id: 'sorcerer', label_ru: 'Чародей' }
+      if (warlock >= 0) options.splice(warlock, 0, sorcerer)
+      else options.push(sorcerer)
+      return { ...choice, options }
     }),
   }
 }

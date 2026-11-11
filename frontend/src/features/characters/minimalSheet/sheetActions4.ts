@@ -25,7 +25,9 @@ import {
 import { setConcentration } from '../../../shared/dnd/concentration'
 import { equipInventoryItem } from '../inventory'
 import { canCastWizardRitualFromBook } from '../../../shared/dnd/wizardSpellbook'
-import { canCastPreparedSpellAsRitual } from '../../../shared/dnd/ritualCasting'
+import { canOfferRitualCast, castAccessAllowsRitual } from '../../../shared/dnd/ritualCasting'
+import { ritualBookBlockReason } from '../castWithoutSlots'
+import { spendFeatureCast } from '../featureCastSpend'
 import { resolveCastTiming } from '../../../shared/dnd/upcastDuration'
 import {
   applyAbjurationToWard,
@@ -275,14 +277,21 @@ export function installSheetActions4(model: SheetModel) {
   model.runDeskCast = function runDeskCast(spell: SheetSpell, choice: CastChoice) {
     const name = spell.name || 'Заклинание'
     const ritualCast = Boolean(choice.ritual && spell.ritual && spell.level > 0)
+    const atWillCast = Boolean(choice.atWill || spell.cast_access === 'at_will')
+    const featureCast = Boolean(choice.useFeature || spell.cast_access === 'feature')
+    if ((ritualCast || spell.cast_access === 'ritual_only') && ritualBookBlockReason(model.draft.spells, spell)) {
+      model.onToast(ritualBookBlockReason(model.draft.spells, spell) ?? 'Нет книги')
+      return
+    }
     if (ritualCast && model.spellLearnBudget?.mode !== 'spellbook') {
-      const allowed = canCastPreparedSpellAsRitual({
+      const allowed = canOfferRitualCast({
         ritual: true,
         level: spell.level,
         classSlug: spell.class_slug,
         casterSlugs: (model.spellcastingSync?.castProfiles ?? []).map(
           (row: { slug: string }) => row.slug,
         ),
+        castAccess: spell.cast_access,
       })
       if (!allowed) {
         model.onToast(
@@ -329,7 +338,7 @@ export function installSheetActions4(model: SheetModel) {
         : null
     const grantCast = Boolean(grantRow && canSpendGrantCast(grantRow))
     const slotForEffect =
-      spell.level <= 0 || ritualCast || grantCast
+      spell.level <= 0 || ritualCast || grantCast || atWillCast || featureCast
         ? spell.level
         : choice.usePact
           ? (model.draft.spells.pact_slots?.level ?? spell.level)
@@ -396,7 +405,7 @@ export function installSheetActions4(model: SheetModel) {
       }
     }
     const naparnikSlot = slotForEffect || spell.level
-    const familiarSlot = ritualCast || grantCast ? 0 : naparnikSlot
+    const familiarSlot = ritualCast || grantCast || atWillCast || featureCast ? 0 : naparnikSlot
     const wantsForm = model.openDeskSelfFormPickerIfNeeded(spell, choice)
     const wantsFamiliar =
       !wantsForm && model.openDeskFamiliarPickerIfNeeded(spell, familiarSlot)
@@ -406,6 +415,36 @@ export function installSheetActions4(model: SheetModel) {
         ? ' · выбери фамильяра'
         : ''
 
+    if (atWillCast) {
+      if (spell.concentration) model.applyDeskConcentration(spell)
+      model.onToast(
+        `Каст: ${name} (по желанию, без ячейки)${effectNote}${consumeNote}${allyNote}${
+          spell.concentration ? ' · концентрация' : ''
+        }${formNote}`,
+      )
+      return
+    }
+    if (featureCast) {
+      const spent = spendFeatureCast({
+        resources: model.draft.play.resources,
+        spell,
+      })
+      if (!spent.ok) {
+        model.onToast(spent.message)
+        return
+      }
+      model.setDraft((prev) => ({
+        ...prev,
+        play: { ...prev.play, resources: spent.resources },
+      }))
+      if (spell.concentration) model.applyDeskConcentration(spell)
+      model.onToast(
+        `Каст: ${name} (${spent.message}, без ячейки)${effectNote}${consumeNote}${allyNote}${
+          spell.concentration ? ' · концентрация' : ''
+        }${formNote}`,
+      )
+      return
+    }
     if (isMantleCommandSpell(spell)) {
       const conc = model.draft.play.concentration
       if (!conc || conc.spell_id !== MANTLE_CONCENTRATION_ID) {
@@ -483,7 +522,8 @@ export function installSheetActions4(model: SheetModel) {
       return
     }
     if (ritualCast) {
-      if (model.spellLearnBudget?.mode === 'spellbook') {
+      const externalRitual = spell.ritual_book != null || castAccessAllowsRitual(spell.cast_access)
+      if (model.spellLearnBudget?.mode === 'spellbook' && !externalRitual) {
         const gate = canCastWizardRitualFromBook({
           spell,
           book: model.draft.spells.wizard_spellbook,

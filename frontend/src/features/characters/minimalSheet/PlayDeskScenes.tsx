@@ -23,12 +23,25 @@ import { syncWizardSpellbookWithInventory } from '../wizardSpellbookInventory'
 import { abilityModifier } from '../sheetTypes'
 import { getFeaturePick } from '../../../shared/dnd/featurePicks'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
+import { totalCharacterLevel } from '../../../shared/dnd/classLevels'
+import { RitualBookCopyDialog, ritualBookButtonLabel } from '../RitualBookCopyDialog'
 
 export function PlayDeskScenes({ model }: { model: SheetModel }) {
   const [divineSmiteIntent, setDivineSmiteIntent] = useState<DivineSmiteIntent>({
     slotLevel: null,
     vsUndeadOrFiend: false,
   })
+  const [ritualBookOpen, setRitualBookOpen] = useState(false)
+  const ritualInput = {
+    spells: model.draft.spells,
+    inventory: model.draft.inventory,
+    featurePicks: model.draft.featurePicks,
+    featGrants: model.draft.featGrants,
+    classes: model.draft.classes,
+    subclassSlugByEntryId: model.subclassSlugByEntryId,
+    characterLevel: totalCharacterLevel(model.draft.classes),
+  }
+  const ritualLabel = ritualBookButtonLabel(ritualInput)
   const sorcerer = model.draft.classes.find((row) => /чародей|sorcerer/i.test(row.name))
   const elementalAffinity = sorcerer
     ? elementalAffinityPreview({
@@ -374,6 +387,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             }}
             onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
             onCastSpell={(spell) => model.setDeskCastSpell(spell)}
+            ritualBookLabel={ritualLabel}
+            onOpenRitualBook={() => setRitualBookOpen(true)}
             onConcentrateSpell={(spell) => model.setDeskCastSpell(spell)}
             onClearSplit={
               model.deskSplit && model.splitSecondary === 'spells'
@@ -496,6 +511,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           voiceOfAuthority={model.unlockedFeatures.some(
             (row: { id: string }) => row.id === 'voice_of_authority',
           )}
+          ritualBookLabel={ritualLabel}
+          onOpenRitualBook={() => setRitualBookOpen(true)}
           onResourcesChange={(resources) =>
             model.setDraft((prev) => ({
               ...prev,
@@ -603,6 +620,19 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
       </div>
 
       </div>{/* scene-wrap */}
+      <RitualBookCopyDialog
+        open={ritualBookOpen}
+        input={ritualInput}
+        onClose={() => setRitualBookOpen(false)}
+        onApply={(next) => {
+          model.setDraft((prev) => ({
+            ...prev,
+            spells: next.spells,
+            inventory: next.inventory,
+          }))
+          if (next.message) model.onToast(next.message)
+        }}
+      />
     </>
   )
 }
