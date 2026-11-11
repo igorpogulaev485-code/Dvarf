@@ -378,6 +378,10 @@ button.session-concentration-tag {
   background: var(--accent-soft);
 }
 
+.session-enemy-roster__row.is-readonly {
+  cursor: default;
+}
+
 .session-enemy-roster__who {
   display: flex;
   flex-wrap: wrap;

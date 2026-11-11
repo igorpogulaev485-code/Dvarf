@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from 'react'
 import type { CombatantAction, CombatantMember, SessionCombatant } from '../../shared/api/lobbies'
 import { Button, NumberInput, Text } from '../../ui'
+import { PackRosterList, memberHpColorLabel, memberHpTone } from './enemyPackRoster'
 import {
   normalizeVisibilityProfile,
   type VisibilityProfile,
@@ -23,18 +24,6 @@ type Props = {
 }
 
 type KitItem = CombatantAction & { kind: string }
-
-function hpTone(current: number, max: number): 'ok' | 'warn' | 'down' {
-  if (current <= 0) return 'down'
-  if (max > 0 && current / max <= 0.5) return 'warn'
-  return 'ok'
-}
-
-function hpColorLabel(tone: 'ok' | 'warn' | 'down'): string {
-  if (tone === 'ok') return 'Здоров'
-  if (tone === 'warn') return 'Ранен'
-  return 'Повержен'
-}
 
 function ActionList({
   title,
@@ -95,6 +84,7 @@ function collectKit(combatant: SessionCombatant): KitItem[] {
  * Карточка противника / пачки.
  * Мастер: имена действий/черт всегда на карточке; текст — по раскрытию.
  * HP: цифра + «Нанести урон» / «Вылечить». В пачке цель из «Состава».
+ * Игрок тоже раскрывает состав: статус каждого — по профилю видимости, без КД и статблока.
  */
 export function EnemyCard({
   combatant,
@@ -121,7 +111,7 @@ export function EnemyCard({
   const aliveCount =
     combatant.alive_count ?? members.filter((m) => m.hp_current > 0).length
   const memberCount = combatant.member_count ?? members.length
-  const tone = hpTone(
+  const tone = memberHpTone(
     aliveCount <= 0 ? 0 : combatant.hp_current,
     Math.max(1, combatant.hp_max),
   )
@@ -250,7 +240,7 @@ export function EnemyCard({
             <span className={`session-table-card__chip session-table-card__chip--hp is-${tone}`}>
               {isPack && !isDead
                 ? `${aliveCount}/${memberCount} живых`
-                : hpColorLabel(tone)}
+                : memberHpColorLabel(tone)}
             </span>
           ) : null}
           {showAc ? (
@@ -331,6 +321,8 @@ export function EnemyCard({
               type="button"
               variant="ghost"
               disabled={busy}
+              aria-expanded={rosterOpen}
+              aria-controls={`pack-roster-${combatant.id}`}
               onClick={() => {
                 setRosterOpen((v) => !v)
                 if (!rosterOpen) setAbilitiesOpen(false)
@@ -367,50 +359,42 @@ export function EnemyCard({
             </Button>
           ) : null}
         </div>
+      ) : isPack ? (
+        <div className="session-enemy-card__hp-controls">
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={busy}
+            aria-expanded={rosterOpen}
+            aria-controls={`pack-roster-${combatant.id}`}
+            onClick={() => setRosterOpen((v) => !v)}
+          >
+            {rosterOpen ? 'Свернуть' : 'Состав'}
+          </Button>
+        </div>
       ) : null}
 
-      {masterControls && rosterOpen && isPack ? (
-        <div className="session-enemy-card__roster" aria-label="Состав пачки">
-          <Text tone="muted" className="session-enemy-card__block-title">
-            Выбери, кому урон — затем введи цифру и «Нанести урон». Без выбора бьёт
-            первого живого.
-          </Text>
-          <ul className="session-enemy-roster">
-            {members.map((m) => {
-              const mTone = hpTone(m.hp_current, m.hp_max)
-              const mDead = m.hp_current <= 0
-              const selected = selectedMemberId === m.id
-              return (
-                <li key={m.id}>
-                  <button
-                    type="button"
-                    className={`session-enemy-roster__row${mDead ? ' is-dead' : ''}${
-                      selected ? ' is-selected' : ''
-                    }`}
-                    disabled={busy}
-                    onClick={() =>
-                      setSelectedMemberId((prev) => (prev === m.id ? null : m.id))
-                    }
-                  >
-                    <div className="session-enemy-roster__who">
-                      <span className="session-enemy-roster__name">{m.name}</span>
-                      <span
-                        className={`session-table-card__chip session-table-card__chip--hp is-${mTone}`}
-                      >
-                        HP {m.hp_current}/{m.hp_max}
-                      </span>
-                      {mDead ? (
-                        <span className="session-condition-tag">Мёртв</span>
-                      ) : null}
-                      {selected && !mDead ? (
-                        <span className="session-enemy-roster__pick">цель</span>
-                      ) : null}
-                    </div>
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
+      {rosterOpen && isPack ? (
+        <div
+          id={`pack-roster-${combatant.id}`}
+          className="session-enemy-card__roster"
+          aria-label="Состав пачки"
+        >
+          {masterControls ? (
+            <Text tone="muted" className="session-enemy-card__block-title">
+              Выбери, кому урон — затем введи цифру и «Нанести урон». Без выбора бьёт
+              первого живого.
+            </Text>
+          ) : null}
+          <PackRosterList
+            members={members}
+            visibility={profile}
+            revealExactHp={isMaster}
+            interactive={Boolean(masterControls)}
+            selectedMemberId={selectedMemberId}
+            busy={busy}
+            onSelect={(id) => setSelectedMemberId((prev) => (prev === id ? null : id))}
+          />
         </div>
       ) : null}
 
