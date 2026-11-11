@@ -74,10 +74,14 @@ services:
     image: caddy:2.8-alpine
     container_name: dvarf-edge
     restart: unless-stopped
+    # UDP 443 не публикуем: HTTP/3 выключен в Caddyfile (protocols h1 h2).
+    # Вернуть h3 — см. комментарий в deploy/Caddyfile, затем снова "443:443/udp".
     ports:
       - "80:80"
       - "443:443"
-      - "443:443/udp"
+    sysctls:
+      net.ipv4.tcp_mtu_probing: "1"
+      net.ipv4.tcp_base_mss: "1024"
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - dvarf_caddy_data:/data

@@ -108,6 +108,20 @@ def _user_from_ws_token(token: str) -> User:
         db.close()
 
 
+async def _ws_reject(websocket: WebSocket, code: int) -> None:
+    """Рукопожатие, затем close с кодом. До accept uvicorn превращает close в HTTP 403."""
+    await websocket.accept()
+    await websocket.close(code=code)
+
+
+async def _ws_text_loop(websocket: WebSocket) -> None:
+    """Держим сокет. Текст ping — ответ {"type":"pong"}, остальное игнорируем."""
+    while True:
+        text = await websocket.receive_text()
+        if text == "ping":
+            await websocket.send_text('{"type":"pong"}')
+
+
 @router.get("/lobbies", response_model=list[LobbySummary])
 def list_lobbies(current_user: CurrentUser, db: DbSession) -> list[LobbySummary]:
     return LobbyService(db).list_mine(current_user)
@@ -801,29 +815,27 @@ async def create_session_roll(
 async def session_ws(session_id: UUID, websocket: WebSocket) -> None:
     token = websocket.query_params.get("token") or ""
     if not token:
-        await websocket.close(code=4401)
+        await _ws_reject(websocket, 4401)
         return
     try:
         user = _user_from_ws_token(token)
         user_id = user.id
     except UnauthorizedError:
-        await websocket.close(code=4401)
+        await _ws_reject(websocket, 4401)
         return
 
     db = SessionLocal()
     try:
         LobbyService(db).get_session(user, session_id)
     except Exception:  # noqa: BLE001
-        await websocket.close(code=4403)
+        await _ws_reject(websocket, 4403)
         return
     finally:
         db.close()
 
     await session_hub.connect(session_id, websocket, user_id=user_id)
     try:
-        while True:
-            # Держим соединение; клиент может слать ping.
-            await websocket.receive_text()
+        await _ws_text_loop(websocket)
     except WebSocketDisconnect:
         pass
     finally:
@@ -985,28 +997,27 @@ async def delete_note(
 async def lobby_ws(lobby_id: UUID, websocket: WebSocket) -> None:
     token = websocket.query_params.get("token") or ""
     if not token:
-        await websocket.close(code=4401)
+        await _ws_reject(websocket, 4401)
         return
     try:
         user = _user_from_ws_token(token)
         user_id = user.id
     except UnauthorizedError:
-        await websocket.close(code=4401)
+        await _ws_reject(websocket, 4401)
         return
 
     db = SessionLocal()
     try:
         LobbyService(db).get(user, lobby_id)
     except Exception:  # noqa: BLE001
-        await websocket.close(code=4403)
+        await _ws_reject(websocket, 4403)
         return
     finally:
         db.close()
 
     await lobby_hub.connect(lobby_id, websocket, user_id=user_id)
     try:
-        while True:
-            await websocket.receive_text()
+        await _ws_text_loop(websocket)
     except WebSocketDisconnect:
         pass
     finally:

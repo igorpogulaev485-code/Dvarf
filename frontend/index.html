@@ -53,6 +53,9 @@
         max-width: 28rem;
         line-height: 1.45;
       }
+      #boot .err a {
+        color: #9fd0ff;
+      }
     </style>
     <!-- Instant theme from local cache before JS modules load (survives hard refresh / deploy). -->
     <script>
@@ -83,9 +86,21 @@
           shown = true
           var err = document.createElement('p')
           err.className = 'err'
-          err.textContent =
-            'Не удалось загрузить. Откройте https://creed20.tech (не IP), обновите страницу. Если с VPN — попробуйте другой сервер или без VPN.' +
-            (detail ? ' (' + detail + ')' : '')
+          var code = detail ? ' (' + detail + ')' : ''
+          err.appendChild(
+            document.createTextNode(
+              'Не удалось загрузить. Пришлите скриншот этого экрана и код ошибки' +
+                code +
+                '. Откройте https://creed20.tech (не голый IP) и обновите страницу. Проверка сервера: ',
+            ),
+          )
+          var link = document.createElement('a')
+          link.href = 'https://creed20.tech/health'
+          link.textContent = 'creed20.tech/health'
+          err.appendChild(link)
+          err.appendChild(
+            document.createTextNode('. Если с VPN — попробуйте другой сервер или без VPN.'),
+          )
           boot.appendChild(err)
         }
         window.addEventListener('error', function (event) {

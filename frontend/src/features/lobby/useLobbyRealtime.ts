@@ -1,6 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { getAccessToken } from '../../shared/api/client'
 import { lobbyWsUrl } from '../../shared/api/chat'
+import {
+  WS_OFFLINE_POLL_MS,
+  WS_PING_INTERVAL_MS,
+  nextPingState,
+  offlinePollDue,
+} from './wsKeepalive'
 
 type LobbyWsHandler = (data: { type: string; [key: string]: unknown }) => void
 
@@ -21,17 +27,28 @@ export function useLobbyRealtime(
 
     let closed = false
     let openedOnce = false
+    let unanswered = 0
+    let offlineSince: number | null = Date.now()
     let ws: WebSocket | null = null
     let pingTimer: ReturnType<typeof setInterval> | null = null
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null
+    let pollTimer: ReturnType<typeof setInterval> | null = null
     let attempt = 0
 
-    function clearTimers() {
+    function clearSocketTimers() {
       if (pingTimer) clearInterval(pingTimer)
       if (reconnectTimer) clearTimeout(reconnectTimer)
       pingTimer = null
       reconnectTimer = null
     }
+
+    pollTimer = setInterval(() => {
+      if (closed) return
+      if (ws?.readyState === WebSocket.OPEN) return
+      if (offlineSince == null) return
+      if (!offlinePollDue(Date.now() - offlineSince)) return
+      onReconnectRef.current?.()
+    }, WS_OFFLINE_POLL_MS)
 
     function connect() {
       if (closed) return
@@ -40,24 +57,37 @@ export function useLobbyRealtime(
       ws = new WebSocket(lobbyWsUrl(lobbyId, access))
       ws.onopen = () => {
         if (closed) return
+        offlineSince = null
+        unanswered = 0
         const isReconnect = openedOnce
         openedOnce = true
         attempt = 0
+        if (pingTimer) clearInterval(pingTimer)
         pingTimer = setInterval(() => {
-          if (ws?.readyState === WebSocket.OPEN) ws.send('ping')
-        }, 25000)
+          const socket = ws
+          if (!socket || socket.readyState !== WebSocket.OPEN) return
+          const step = nextPingState(unanswered)
+          if (step.close) {
+            socket.close()
+            return
+          }
+          unanswered = step.unanswered
+          socket.send('ping')
+        }, WS_PING_INTERVAL_MS)
         if (isReconnect) onReconnectRef.current?.()
       }
       ws.onmessage = (msg) => {
         try {
           const data = JSON.parse(String(msg.data)) as { type: string }
+          if (data.type === 'pong') unanswered = 0
           onMessageRef.current(data)
         } catch {
           // ignore
         }
       }
       ws.onclose = () => {
-        clearTimers()
+        clearSocketTimers()
+        if (offlineSince == null) offlineSince = Date.now()
         if (closed) return
         const delay = Math.min(15000, 1000 * 2 ** attempt)
         attempt += 1
@@ -69,7 +99,8 @@ export function useLobbyRealtime(
     connect()
     return () => {
       closed = true
-      clearTimers()
+      clearSocketTimers()
+      if (pollTimer) clearInterval(pollTimer)
       ws?.close()
     }
   }, [lobbyId])
