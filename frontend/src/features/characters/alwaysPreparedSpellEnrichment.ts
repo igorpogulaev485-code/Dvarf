@@ -123,6 +123,13 @@ export function bundledSpellsAtLevel(level: number): BundledSpellBrief[] {
   return out
 }
 
+/** Bundled 2014 row by catalog slug (fireball, command, …). */
+export function bundledSpellBySlug(slug: string): CatalogSpellEntry | null {
+  const key = slug.trim()
+  if (!key) return null
+  return byId.get(key) ?? null
+}
+
 /** Resolve catalog entry by English seed name or Russian sheet label. */
 export function findBundledSpellForAlwaysPrepared(
   englishName: string,

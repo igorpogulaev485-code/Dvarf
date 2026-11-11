@@ -134,6 +134,10 @@ import type {
   SubclassGrantPicks,
 } from '../shared/dnd/subclassGrants'
 import {
+  bridgeSwordsFightingStyle,
+  swordsFightingStyleFromSubclassPicks,
+} from '../shared/dnd/swordsFightingStyleBridge'
+import {
   emptyFeaturePicks,
   featurePicksToSheet,
   type FeaturePicksState,
@@ -1035,11 +1039,15 @@ export function CreateCharacterPage() {
       },
     }
     // Battle Master: maneuvers_3 (flavor) → feature_picks.combat_superiority
-    const nextFeaturePicks = bridgeManeuversIntoFeaturePicks({
-      featurePicks: state.featurePicks ?? emptyFeaturePicks(),
+    const nextFeaturePicks = bridgeSwordsFightingStyle({
+      featurePicks: bridgeManeuversIntoFeaturePicks({
+        featurePicks: state.featurePicks ?? emptyFeaturePicks(),
+        classEntryId,
+        maneuverIds: extractManeuverIdsFromSubclassPicks(picks),
+        mode: 'merge_missing',
+      }),
       classEntryId,
-      maneuverIds: extractManeuverIdsFromSubclassPicks(picks),
-      mode: 'merge_missing',
+      styleId: swordsFightingStyleFromSubclassPicks(picks),
     })
     patchState({
       classes: nextClasses,

@@ -125,6 +125,23 @@ export function rollDamage(
   }
 }
 
+/**
+ * Silver Tongue and similar: a natural d20 at or below the floor is treated as that floor
+ * before the modifier is added.
+ */
+export function raiseNaturalDie(roll: CheckRoll, floor: number, label: string): CheckRoll {
+  if (!Number.isFinite(floor) || roll.die >= floor) return roll
+  const rawDie = roll.die
+  const nextDie = Math.floor(floor)
+  return {
+    ...roll,
+    die: nextDie,
+    rawTotal: roll.total,
+    total: nextDie + roll.modifier,
+    floorLabel: `${label}, кость ${rawDie}→${nextDie}`,
+  }
+}
+
 /** PHB Indomitable Might: a Strength check total can be replaced by the Strength score. */
 export function raiseCheckToFloor(roll: CheckRoll, floor: number, label: string): CheckRoll {
   if (!Number.isFinite(floor) || roll.total >= floor) return roll
@@ -192,9 +209,11 @@ export function formatSkillRoll(
   mode: DeskRollMode = 'normal',
   rng?: () => number,
   floor?: { value: number; label: string } | null,
+  dieFloor?: { value: number; label: string } | null,
 ): string {
   const rolled = rollCheck(modifier, mode, rng)
-  const roll = floor ? raiseCheckToFloor(rolled, floor.value, floor.label) : rolled
+  const withDie = dieFloor ? raiseNaturalDie(rolled, dieFloor.value, dieFloor.label) : rolled
+  const roll = floor ? raiseCheckToFloor(withDie, floor.value, floor.label) : withDie
   return formatCheckRoll(label, roll)
 }
 

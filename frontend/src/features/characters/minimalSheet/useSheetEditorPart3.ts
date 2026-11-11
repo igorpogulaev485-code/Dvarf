@@ -44,6 +44,13 @@ import { stripForgeBlessing } from '../forgeBlessing'
 import { syncDruidCircleSpells } from '../druidCircleSpells'
 import { syncPactChainFamiliar } from '../pactChainEffects'
 import { syncPactTomeCantrips } from '../pactTomeEffects'
+import { syncMagicalSecrets } from '../bardSecretsSync'
+import {
+  isMantleCommandSpell,
+  MANTLE_CONCENTRATION_ID,
+  stripMantleCommand,
+  stripSpiritSessionSpells,
+} from '../../../shared/dnd/bardCollege'
 import { ensurePactTomeSpellCatalog, resolvePactTomeCantripFromOptions } from '../PactTomeCantripsPicker'
 import { spellOptionsForPactTomeCantrips } from '../../../shared/dnd/featSpellListOptions'
 import { sheetUiToPatch } from '../playDeskUi'
@@ -227,6 +234,41 @@ export function useSheetEditorPart3(model: SheetModel) {
       return { ...prev, spells: synced.spells }
     })
   }, [model.draft.classes, model.draft.featurePicks])
+
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const synced = syncMagicalSecrets({
+        spells: prev.spells,
+        featurePicks: prev.featurePicks,
+        classes: prev.classes,
+      })
+      const hasSpirits = Object.values(model.subclassSlugByEntryId).includes('college_of_spirits')
+      const known = hasSpirits
+        ? synced.spells.known
+        : stripSpiritSessionSpells(synced.spells.known)
+      const same =
+        known.length === prev.spells.known.length &&
+        known.every(
+          (spell, index) =>
+            spell.id === prev.spells.known[index]?.id &&
+            spell.name === prev.spells.known[index]?.name &&
+            spell.prepared_locked === prev.spells.known[index]?.prepared_locked,
+        )
+      if (same) return prev
+      return { ...prev, spells: { ...prev.spells, known } }
+    })
+  }, [model.draft.classes, model.draft.featurePicks, model.subclassSlugByEntryId])
+
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const active = prev.play.concentration?.spell_id === MANTLE_CONCENTRATION_ID
+      if (active || !prev.spells.known.some(isMantleCommandSpell)) return prev
+      return {
+        ...prev,
+        spells: { ...prev.spells, known: stripMantleCommand(prev.spells.known) },
+      }
+    })
+  }, [model.draft.play.concentration])
 
   useEffect(() => {
     model.setDraft((prev) => {

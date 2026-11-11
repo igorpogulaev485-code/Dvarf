@@ -26,6 +26,7 @@ import { PsionicDiceSpendDialog } from '../PsionicDiceSpendDialog'
 import { SoulTrinketsSpendDialog } from '../SoulTrinketsSpendDialog'
 import { RangerFavoredDeskDialog } from '../RangerFavoredDeskDialog'
 import { abilityModifier } from '../sheetTypes'
+import { songOfRestDie } from '../../../shared/dnd/bardCollege'
 
 export function SheetDialogsResources({ model }: { model: SheetModel }) {
   return (
@@ -39,6 +40,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         play={model.draft.play}
         spells={model.draft.spells}
         featureDesiredResources={model.featureDesiredResources}
+        songOfRest={songOfRestDie(model.unlockedFeatures ?? [])}
         onPlayChange={(play) =>
           model.setDraft((prev) => {
             const result = applyConcentrationChangeToCompanions({
