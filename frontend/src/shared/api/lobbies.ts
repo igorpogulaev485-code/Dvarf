@@ -518,6 +518,26 @@ export async function addLobbyMember(lobbyId: string, characterId: string): Prom
   })
 }
 
+export async function syncLobbyInfusionEffects(
+  lobbyId: string,
+  payload: {
+    source_character_id: string
+    effects: Array<{
+      target_character_id: string
+      name: string
+      ac_bonus?: number
+    }>
+  },
+): Promise<{ applied: number; lobby: LobbyDetail }> {
+  return apiRequest<{ applied: number; lobby: LobbyDetail }>(
+    `/lobbies/${lobbyId}/sync-infusion-effects`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+  )
+}
+
 export async function shareLobbyEffect(
   lobbyId: string,
   payload: {

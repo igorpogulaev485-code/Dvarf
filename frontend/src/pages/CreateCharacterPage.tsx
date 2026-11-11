@@ -194,11 +194,19 @@ function emptyWizardSkills(): SkillExpertiseState {
   )
 }
 
-function markProficient(skills: SkillExpertiseState, keys: string[]): SkillExpertiseState {
+function markProficient(
+  skills: SkillExpertiseState,
+  keys: string[],
+  expertise = false,
+): SkillExpertiseState {
   const next = { ...skills }
   for (const key of keys) {
     const current = next[key] ?? { is_proficient: false, is_expertise: false }
-    next[key] = { ...current, is_proficient: true }
+    next[key] = {
+      ...current,
+      is_proficient: true,
+      is_expertise: current.is_expertise || expertise,
+    }
   }
   return next
 }
@@ -256,6 +264,7 @@ function buildWizardProficiencies(state: CreatePipelineState): {
     skills = markProficient(skills, picks.skills)
     pushTools(picks.tools)
   }
+  const knowledgeExpert: string[] = []
   for (const setup of Object.values(state.subclassSetups ?? {})) {
     const def = resolveSubclassDefFromCatalog({
       nameRu: setup.entry.name_ru,
@@ -275,10 +284,12 @@ function buildWizardProficiencies(state: CreatePipelineState): {
         continue
       }
       if (idLower.includes('lang')) continue
-      skills = markProficient(
-        skills,
-        values.filter((key) => SKILL_DEFS.some((skill) => skill.key === key)),
-      )
+      const skillKeys = values.filter((key) => SKILL_DEFS.some((skill) => skill.key === key))
+      const doubled =
+        setup.entry.slug === 'knowledge_domain' &&
+        choice.id === 'blessings_of_knowledge_skills'
+      if (doubled) knowledgeExpert.push(...skillKeys)
+      skills = markProficient(skills, skillKeys, doubled)
     }
   }
 
@@ -314,6 +325,7 @@ function buildWizardProficiencies(state: CreatePipelineState): {
     skills,
     featurePicks: state.featurePicks ?? emptyFeaturePicks(),
     expertiseKeys: listUnlockedExpertiseKeys(unlocked),
+    alsoExpertiseSkillIds: knowledgeExpert,
   })
   return { skills, tools }
 }

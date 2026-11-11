@@ -27,6 +27,7 @@ import {
 
 export const INFUSIONS_ACTIVE_FEATURE_ID = 'infusions_active'
 export const INFUSIONS_ACTIVE_TARGETS_FEATURE_ID = 'infusions_active_targets'
+export const INFUSIONS_ACTIVE_ITEMS_FEATURE_ID = 'infusions_active_items'
 
 export type InfusionTargetRef = 'self' | string
 
@@ -36,6 +37,8 @@ export type ActiveInfusionBinding = {
   target: InfusionTargetRef
   /** Derived from infusionId for replicate; kept for callers/effects. */
   replicateItemSlug?: string | null
+  /** Inventory row this infusion sits on. Absent → no weapon/AC bonus. */
+  itemId?: string | null
 }
 
 function slugFromId(infusionId: string): string | null {
@@ -152,11 +155,21 @@ export function listActiveInfusionBindings(
     ),
     tokens,
   )
-  return tokens.map((infusionId, i) => ({
-    infusionId,
-    target: targets[i] ?? 'self',
-    replicateItemSlug: slugFromId(infusionId),
-  }))
+  const itemTokens = (
+    getFeaturePick(featurePicks, classEntryId, INFUSIONS_ACTIVE_ITEMS_FEATURE_ID) ?? ''
+  )
+    .split(',')
+    .map((part) => part.trim())
+  return tokens.map((infusionId, i) => {
+    const rawItem = itemTokens[i] ?? ''
+    const itemId = rawItem && rawItem !== '-' ? rawItem : null
+    return {
+      infusionId,
+      target: targets[i] ?? 'self',
+      replicateItemSlug: slugFromId(infusionId),
+      itemId,
+    }
+  })
 }
 
 export function setActiveInfusions(
@@ -197,6 +210,7 @@ export function setActiveInfusionBindings(
       infusionId: id,
       target: row.target || 'self',
       replicateItemSlug: slugFromId(id),
+      itemId: row.itemId?.trim() || null,
     })
   }
   const tokens = cleaned.map((row) => row.infusionId)
@@ -211,6 +225,15 @@ export function setActiveInfusionBindings(
     classEntryId,
     INFUSIONS_ACTIVE_TARGETS_FEATURE_ID,
     serializeTargetsOrdered(cleaned),
+  )
+  const itemPick = cleaned.some((row) => row.itemId)
+    ? cleaned.map((row) => row.itemId || '-').join(',')
+    : null
+  next = setFeaturePick(
+    next,
+    classEntryId,
+    INFUSIONS_ACTIVE_ITEMS_FEATURE_ID,
+    itemPick,
   )
   return next
 }

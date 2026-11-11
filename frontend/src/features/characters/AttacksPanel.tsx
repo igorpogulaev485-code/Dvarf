@@ -21,6 +21,7 @@ import {
 import { isWeaponProficient } from './equipmentProficiency'
 import type { WeaponProficiency } from './identity'
 import { syncAttacksHeldFromInventory } from './attacksInventorySync'
+import { shillelaghDamage } from './shillelagh'
 
 export { syncAttacksHeldFromInventory }
 
@@ -98,6 +99,10 @@ type AttacksPanelProps = {
   /** Active Artificer infusion weapon bonuses (Enhanced Weapon / …). */
   infusionAttackBonus?: number
   infusionDamageBonus?: number
+  /** Bonuses keyed by inventory item — only the infused weapon. */
+  infusionByItem?: Record<string, { attack: number; damage: number }>
+  /** Shillelagh: this attack uses the caster's ability and a d8. */
+  shillelagh?: { attackId: string; ability: AbilityKey } | null
 }
 
 /** Empty custom attack card («Своё» / Добавить атаку). */
@@ -148,6 +153,8 @@ export function AttacksPanel({
   martialArtsDie = null,
   infusionAttackBonus = 0,
   infusionDamageBonus = 0,
+  infusionByItem,
+  shillelagh = null,
 }: AttacksPanelProps) {
   function updateAttack(id: string, patch: Partial<WeaponAttack>) {
     onChange(weapons.map((item) => (item.id === id ? { ...item, ...patch } : item)))
@@ -197,20 +204,28 @@ export function AttacksPanel({
           const monkWeapon =
             Boolean(martialArtsDie) &&
             (classMa || isMonkWeaponName(attack.name))
-          const attackAbility = monkWeapon
-            ? monkAttackAbility({
-                str: abilities.str,
-                dex: abilities.dex,
-                weaponAbility: attack.ability,
-              })
-            : attack.ability
-          const baseDamage = monkWeapon
-            ? effectiveMartialArtsDamage({
-                weaponDamage: attack.damage,
-                martialArtsDie,
-                forceMartialArts: classMa,
-              })
-            : attack.damage
+          const shillelaghOn =
+            shillelagh != null &&
+            shillelagh.attackId === attack.id &&
+            attack.held !== false
+          const attackAbility = shillelaghOn
+            ? shillelagh.ability
+            : monkWeapon
+              ? monkAttackAbility({
+                  str: abilities.str,
+                  dex: abilities.dex,
+                  weaponAbility: attack.ability,
+                })
+              : attack.ability
+          const baseDamage = shillelaghOn
+            ? shillelaghDamage(attack.damage)
+            : monkWeapon
+              ? effectiveMartialArtsDamage({
+                  weaponDamage: attack.damage,
+                  martialArtsDie,
+                  forceMartialArts: classMa,
+                })
+              : attack.damage
           const gear =
             !raceNatural && !classMa && attack.inventory_item_id && attack.held
               ? gearBonusesByItem?.[attack.inventory_item_id]
@@ -229,10 +244,31 @@ export function AttacksPanel({
             styleId: fightingStyleId,
             weaponName: attack.name,
           })
+          const boundInfusion = attack.inventory_item_id
+            ? infusionByItem?.[attack.inventory_item_id]
+            : undefined
           const infusionAtk =
-            !raceNatural && !classMa ? Math.max(0, Math.floor(infusionAttackBonus)) : 0
+            !raceNatural && !classMa
+              ? Math.max(
+                  0,
+                  Math.floor(
+                    infusionByItem
+                      ? (boundInfusion?.attack ?? 0)
+                      : infusionAttackBonus,
+                  ),
+                )
+              : 0
           const infusionDmg =
-            !raceNatural && !classMa ? Math.max(0, Math.floor(infusionDamageBonus)) : 0
+            !raceNatural && !classMa
+              ? Math.max(
+                  0,
+                  Math.floor(
+                    infusionByItem
+                      ? (boundInfusion?.damage ?? 0)
+                      : infusionDamageBonus,
+                  ),
+                )
+              : 0
           const attackBonus =
             abilityModifier(abilities[attackAbility]) +
             (proficient ? proficiencyBonus : 0) +

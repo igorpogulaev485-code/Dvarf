@@ -144,6 +144,22 @@ export function desiredResourcesFromFeatures(input: {
       classLabelRu,
     }
 
+    if (resource.alt_pools) {
+      for (const alt of resource.alt_pools) {
+        const altId = featureResourceId(classSlug, alt.pool_id, feature.classEntryId)
+        if (byId.has(altId)) continue
+        byId.set(altId, {
+          id: altId,
+          name: alt.pool_name_ru,
+          max: Math.max(1, Math.floor(alt.uses)),
+          reset: next.reset,
+          track: 'spend',
+          classSlug,
+          classLabelRu,
+        })
+      }
+    }
+
     const prev = byId.get(id)
     if (prev) {
       byId.set(id, {

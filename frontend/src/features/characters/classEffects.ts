@@ -408,6 +408,16 @@ export function applyClassGrantToDraft(input: {
             created.weapon_grip = resolveWeaponGrip({ name: created.name })
           }
           created.spell_tooling = classifySpellTooling({ name: created.name })
+          const artificerTools =
+            (input.catalogSlug ?? '').toLowerCase().includes('artificer') ||
+            /изобретат/i.test(input.className)
+          if (
+            artificerTools &&
+            created.spell_tooling !== 'component_pouch' &&
+            /инструмент|воровск|thieves|tools/i.test(created.name)
+          ) {
+            created.spell_tooling = 'focus'
+          }
           if (created.spell_tooling === 'focus') {
             created.focus_kind = inferFocusKind({ name: created.name }) ?? 'any'
           }

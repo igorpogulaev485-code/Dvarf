@@ -617,9 +617,62 @@ function FeatureResourceControls({
                   : 'Призвать спутника'
                 : spendCost > 1
                   ? `Использовать (−${spendCost})`
-                  : 'Использовать'}
+                  : resource.alt_pools?.length
+                    ? resource.pool_name_ru || pool.name
+                    : 'Использовать'}
           </Button>
         )}
+        {resource.alt_pools?.map((alt) => {
+          const altPool = findFeatureResource(
+            resources,
+            classSlug,
+            alt.pool_id,
+            feature.classEntryId,
+          )
+          if (!altPool) return null
+          const altLeft = spendRemaining(altPool)
+          return (
+            <div key={alt.pool_id} className="feature-resource">
+              <SlotPips
+                max={altPool.max}
+                used={altPool.used}
+                label={`${altPool.name}: потрачено ${altPool.used}/${altPool.max}`}
+                onChange={(used) =>
+                  onResourcesChange(
+                    resources.map((row) =>
+                      row.id === altPool.id ? { ...row, used } : row,
+                    ),
+                  )
+                }
+              />
+              <Button
+                type="button"
+                disabled={altLeft <= 0}
+                onClick={() => {
+                  const result = spendFeatureUse({
+                    resources,
+                    classSlug,
+                    feature: {
+                      ...feature,
+                      resource: {
+                        ...resource,
+                        pool_id: alt.pool_id,
+                        pool_name_ru: alt.pool_name_ru,
+                        alt_pools: undefined,
+                      },
+                    },
+                  })
+                  onResourcesChange(result.resources)
+                  onToast?.(
+                    result.ok ? `${alt.pool_name_ru}: −1` : result.message,
+                  )
+                }}
+              >
+                {alt.pool_name_ru}
+              </Button>
+            </div>
+          )
+        })}
         {resource.recover_one ? (
           <Button
             type="button"

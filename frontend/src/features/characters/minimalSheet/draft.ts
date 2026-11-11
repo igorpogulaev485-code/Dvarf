@@ -254,7 +254,21 @@ export function buildDraft(character: CharacterDetail): Draft {
       const inventory = readInventory(sheet)
       // Hydrate spell_tooling type for legacy rows (one pass on load).
       // Cast later looks at type — custom names keep working once typed as focus.
+      const artificer = classes.some(
+        (row) =>
+          /изобретат|artificer/i.test(row.name) ||
+          (row.catalog_id ?? '').toLowerCase().includes('artificer'),
+      )
       const items = inventory.items.map((item) => {
+        const toolName = /инструмент|воровск|thieves|tools/i.test(item.name)
+        if (
+          artificer &&
+          toolName &&
+          item.spell_tooling !== 'component_pouch' &&
+          item.spell_tooling !== 'focus'
+        ) {
+          return { ...item, spell_tooling: 'focus' as const, focus_kind: item.focus_kind ?? 'any' }
+        }
         if (item.spell_tooling) {
           if (
             item.spell_tooling === 'focus' &&

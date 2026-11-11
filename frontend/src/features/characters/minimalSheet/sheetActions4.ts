@@ -27,7 +27,15 @@ import { type CastChoice } from '../CastSpellDialog'
 import { consumeMaterialItem } from '../spellMaterials'
 import { canSpendGrantCast, spendGrantCast, type SheetSpell } from '../spells'
 import { resolveCastEffect } from '../../../shared/dnd/spellCatalog'
-import { canCastLeveledSpell, spendPactSlot, spendSpellSlot } from '../../../shared/dnd/spells'
+import { resolveSpellCastStats } from '../../../shared/dnd/castProfiles'
+import {
+  canCastLeveledSpell,
+  SPELLCASTING_ABILITY_LABELS,
+  spendPactSlot,
+  spendSpellSlot,
+  type SpellcastingAbility,
+} from '../../../shared/dnd/spells'
+import { isShillelaghSpell, pickShillelaghAttack } from '../shillelagh'
 import {
   ABILITY_LABELS,
   ABILITY_NAMES,
@@ -236,11 +244,43 @@ export function installSheetActions4(model: SheetModel) {
         : choice.usePact
           ? (model.draft.spells.pact_slots?.level ?? spell.level)
           : choice.slotLevel
+    const castStats = resolveSpellCastStats({
+      spell,
+      profiles: model.spellcastingSync?.castProfiles ?? [],
+      abilityModFor: (ability: SpellcastingAbility) =>
+        abilityModifier(model.effectiveAbilities[ability]),
+      proficiencyBonus: model.proficiencyBonus,
+      fallbackAbility: model.draft.spells.casting_ability,
+    })
     const { effect, scaled } = resolveCastEffect(spell, {
       characterLevel: model.characterLevel,
       slotLevel: slotForEffect || spell.level,
+      spellMod: castStats.ability
+        ? abilityModifier(model.effectiveAbilities[castStats.ability])
+        : null,
+      spellModLabel: castStats.ability
+        ? SPELLCASTING_ABILITY_LABELS[castStats.ability]
+        : null,
+      damageChoice: choice.damageChoice,
     })
-    const effectNote = scaled && effect ? ` · ${effect}` : ''
+    let shillelaghNote = ''
+    if (isShillelaghSpell(spell)) {
+      const weapon = pickShillelaghAttack(model.draft.weapons)
+      if (weapon && castStats.ability) {
+        const ability = castStats.ability
+        model.setDraft((prev) => ({
+          ...prev,
+          play: {
+            ...prev.play,
+            shillelagh: { attackId: weapon.id, ability },
+          },
+        }))
+        shillelaghNote = ` · ${weapon.name}: ${SPELLCASTING_ABILITY_LABELS[ability]}, кость к8`
+      } else {
+        shillelaghNote = ' · нет дубинки или посоха'
+      }
+    }
+    const effectNote = `${scaled && effect ? ` · ${effect}` : ''}${shillelaghNote}`
     let consumeNote = ''
     if (choice.consumeMaterial && choice.consumeItemId) {
       const target = model.draft.inventory.items.find((row) => row.id === choice.consumeItemId)

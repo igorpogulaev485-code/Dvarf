@@ -11,7 +11,10 @@ import { type RaceGrantDef, type RaceGrantPicks } from '../../../shared/dnd/race
 import { type ClassLevelEntry } from '../classLevels'
 import { type GuidedWizardSession } from '../GuidedWizardDialog'
 import { type AppliedClassAsi } from '../../../shared/dnd/classAsi'
-import { syncSkillsExpertiseFromPicks } from '../../../shared/dnd/expertise'
+import {
+  knowledgeBlessingSkillIds,
+  syncSkillsExpertiseFromPicks,
+} from '../../../shared/dnd/expertise'
 import {
   backgroundWizardStep,
   buildPendingWizardSteps,
@@ -151,6 +154,7 @@ export function installSheetActions2(model: SheetModel) {
           skills: prev.skills,
           featurePicks: sanitized,
           expertiseKeys: keys,
+          alsoExpertiseSkillIds: knowledgeBlessingSkillIds(prev.subclassGrants),
         }),
       }
     })

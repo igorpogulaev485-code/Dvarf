@@ -14,10 +14,31 @@ import { formatSkillRoll } from '../deskRolls'
 import { setConcentration } from '../../../shared/dnd/concentration'
 import { equippedArmorPieces } from '../inventory'
 import { CastSpellDialog } from '../CastSpellDialog'
+import { listActiveInfusionBindings } from '../../../shared/dnd/infusionsActive'
 import { CastScrollDialog } from '../CastScrollDialog'
 import { consumeScrollItem, isCastableSpellScroll, spellScrollCastStats } from '../spellScroll'
 
+function infusedItemIdsFor(model: SheetModel): string[] {
+  const ids: string[] = []
+  for (const row of model.draft.classes) {
+    const artificer =
+      /изобретат|artificer/i.test(row.name) ||
+      (row.catalog_id ?? '').toLowerCase().includes('artificer')
+    if (!artificer) continue
+    for (const binding of listActiveInfusionBindings(model.draft.featurePicks, row.id)) {
+      if (binding.target === 'self' && binding.itemId) ids.push(binding.itemId)
+    }
+  }
+  return ids
+}
+
 export function SheetDialogsRolls({ model }: { model: SheetModel }) {
+  const arcaneArmor = model.unlockedFeatures.some(
+    (feature: { id: string }) => feature.id === 'arcane_armor',
+  )
+  const arcaneFirearm = model.unlockedFeatures.some(
+    (feature: { id: string }) => feature.id === 'arcane_firearm',
+  )
   return (
     <>
       <Dialog
@@ -138,6 +159,9 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           model.setDeskCastSpell(null)
           model.setRestOpen(true)
         }}
+        arcaneArmor={arcaneArmor}
+        arcaneFirearm={arcaneFirearm}
+        infusedItemIds={infusedItemIdsFor(model)}
         onRestorePact={() => {
           model.setDraft((prev) => {
             const pact = prev.spells.pact_slots

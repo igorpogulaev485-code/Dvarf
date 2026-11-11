@@ -27,6 +27,7 @@ import {
   type SheetResource,
 } from '../../shared/dnd/rest'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
+import { readShillelagh, type ShillelaghState } from './shillelagh'
 
 export type PlayState = {
   conditions: ConditionRef[]
@@ -43,6 +44,8 @@ export type PlayState = {
   deathSuccesses: number
   deathFails: number
   concentration: ConcentrationState | null
+  /** PHB Shillelagh on one held club or quarterstaff. */
+  shillelagh?: ShillelaghState | null
 }
 
 export type { ConcentrationState }
@@ -161,6 +164,7 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
     deathSuccesses: clampDeathMarks(readNumber(combat.death_successes, 0)),
     deathFails: clampDeathMarks(readNumber(combat.death_fails, 0)),
     concentration: readConcentration(combat.concentration),
+    shillelagh: readShillelagh(combat.shillelagh),
   }
 }
 
@@ -176,6 +180,7 @@ export function playToSheet(play: PlayState): {
     death_successes: number
     death_fails: number
     concentration: ConcentrationState | null
+    shillelagh: ShillelaghState | null
   }
   resources: SheetResource[]
 } {
@@ -205,6 +210,7 @@ export function playToSheet(play: PlayState): {
             name: play.concentration.name,
           }
         : clearConcentration(),
+      shillelagh: play.shillelagh ?? null,
     },
     resources: play.resources.map((item) => clampResource(item)),
   }

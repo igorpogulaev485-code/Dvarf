@@ -8,13 +8,17 @@ import type { FormulaVars } from '../../shared/dnd/formulas'
 import {
   formatSpellComponents,
   resolveCastEffectSummary,
+  damageTypeChoiceLabels,
+  spellOffersDamageTypeChoice,
   spellSchoolLabelRu,
+  type DamageTypeChoice,
 } from '../../shared/dnd/spellCatalog'
 import {
   availableCastSlotLevels,
   canSpendPactSlot,
   levelLabel,
   slotsRemaining,
+  SPELLCASTING_ABILITY_LABELS,
   type SpellcastingAbility,
 } from '../../shared/dnd/spells'
 import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
@@ -27,6 +31,8 @@ import {
   type SpellsState,
 } from './spells'
 import { checkSpellMaterials, type MaterialInventoryItem } from './spellMaterials'
+import { withBundledRules } from './alwaysPreparedSpellEnrichment'
+import { artificerFocusGate } from './artificerFocus'
 import { isSpellSelfFormCast } from './spellForms'
 import { type BonusLine, withSpellCastBonuses } from './modifiers'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
@@ -121,6 +127,8 @@ export type CastChoice = {
   selfFormTarget?: 'self' | 'other'
   /** Выбранные цели (себя и/или союзники), без пустых слотов */
   allyTargetIds?: string[]
+  /** Flame Strike: which damage type grows on upcast. */
+  damageChoice?: 'first' | 'second'
   lobbyId?: string | null
 }
 
@@ -159,6 +167,12 @@ type CastSpellDialogProps = {
   onRequestRest?: () => void
   /** K14: reset warlock pact used → 0 without leaving cast sheet. */
   onRestorePact?: () => void
+  /** Armorer: worn body armor is an artificer focus. */
+  arcaneArmor?: boolean
+  /** Artillerist: a held wand, staff or rod is the Arcane Firearm. */
+  arcaneFirearm?: boolean
+  /** Inventory ids that currently bear this character's infusions. */
+  infusedItemIds?: string[]
 }
 
 export function CastSpellDialog({
@@ -181,6 +195,9 @@ export function CastSpellDialog({
   onClose,
   onRequestRest,
   onRestorePact,
+  arcaneArmor = false,
+  arcaneFirearm = false,
+  infusedItemIds = [],
 }: CastSpellDialogProps) {
   const isCantrip = spell != null && spell.level <= 0
   const spellLevel = spell?.level ?? 0
@@ -216,6 +233,7 @@ export function CastSpellDialog({
   const [useGrant, setUseGrant] = useState(false)
   const [grantSpellId, setGrantSpellId] = useState<string | null>(null)
   const [slotLevel, setSlotLevel] = useState(1)
+  const [damageChoice, setDamageChoice] = useState<DamageTypeChoice>('first')
   const [consumeMaterial, setConsumeMaterial] = useState(true)
   const [selfFormTarget, setSelfFormTarget] = useState<'self' | 'other'>('self')
   const isTransformSelf = spell != null && isSpellSelfFormCast(spell)
@@ -232,7 +250,32 @@ export function CastSpellDialog({
   )
   const party = useLobbyParty(showTargets ? characterId : undefined, allyDemo)
 
-  const materialText = spell?.components?.m
+  const rulesSpell = useMemo(
+    () => (spell ? withBundledRules(spell) : null),
+    [spell],
+  )
+  const materialText = rulesSpell?.components?.m
+  const focusGate = useMemo(() => {
+    const classSlug =
+      rulesSpell?.class_slug ||
+      (castProfiles?.length === 1 ? castProfiles[0]?.slug : null)
+    return artificerFocusGate({
+      classSlug,
+      material: materialText,
+      items: inventoryItems,
+      arcaneArmor,
+      arcaneFirearm,
+      infusedItemIds: new Set(infusedItemIds),
+    })
+  }, [
+    rulesSpell,
+    materialText,
+    inventoryItems,
+    arcaneArmor,
+    arcaneFirearm,
+    infusedItemIds,
+    castProfiles,
+  ])
 
   const materialCheck = useMemo(
     () =>
@@ -315,16 +358,51 @@ export function CastSpellDialog({
   const effectiveSlotLevel = useMemo(() => {
     if (!spell || isCantrip || useRitual || useGrant) return spell?.level ?? 0
     if (usePact && spells.pact_slots) return spells.pact_slots.level
-    return slotLevel
-  }, [spell, isCantrip, useRitual, useGrant, usePact, spells.pact_slots, slotLevel])
+    if (slotLevels.includes(slotLevel)) return slotLevel
+    return slotLevels[0] ?? spellLevel
+  }, [
+    spell,
+    isCantrip,
+    useRitual,
+    useGrant,
+    usePact,
+    spells.pact_slots,
+    slotLevel,
+    slotLevels,
+    spellLevel,
+  ])
 
   const castEffect = useMemo(() => {
-    if (!spell) return { effect: '', scaled: false, lines: [] as string[] }
-    return resolveCastEffectSummary(spell, {
+    if (!rulesSpell) return { effect: '', scaled: false, lines: [] as string[] }
+    const resolved = abilities
+      ? resolveSpellCastStats({
+          spell: rulesSpell,
+          profiles: castProfiles ?? [],
+          abilityModFor: (ability: SpellcastingAbility) =>
+            abilityModifier(abilities[ability]),
+          proficiencyBonus,
+          fallbackAbility: spells.casting_ability,
+        })
+      : null
+    return resolveCastEffectSummary(rulesSpell, {
       characterLevel,
-      slotLevel: effectiveSlotLevel || spell.level,
+      slotLevel: effectiveSlotLevel || rulesSpell.level,
+      spellMod: resolved?.ability ? abilityModifier(abilities![resolved.ability]) : null,
+      spellModLabel: resolved?.ability
+        ? SPELLCASTING_ABILITY_LABELS[resolved.ability]
+        : null,
+      damageChoice,
     })
-  }, [spell, characterLevel, effectiveSlotLevel])
+  }, [
+    rulesSpell,
+    characterLevel,
+    effectiveSlotLevel,
+    damageChoice,
+    abilities,
+    castProfiles,
+    proficiencyBonus,
+    spells.casting_ability,
+  ])
 
   const selectedIds = useMemo(
     () => targetSlots.filter((id) => id.trim().length > 0),
@@ -376,7 +454,7 @@ export function CastSpellDialog({
     return null
   }
 
-  const materialsOk = materialCheck.ok
+  const materialsOk = materialCheck.ok && focusGate.ok
   const needsConsumeChoice = Boolean(
     materialCheck.ok &&
       materialCheck.requirement &&
@@ -394,7 +472,9 @@ export function CastSpellDialog({
   /** Цели необязательны; блок только при дублях в слотах */
   const targetsOk = !showTargets || !duplicateTarget
   const selectedSlot =
-    !usePact && !useRitual && !useGrant ? spells.slots[String(slotLevel)] : null
+    !usePact && !useRitual && !useGrant
+      ? spells.slots[String(effectiveSlotLevel)]
+      : null
   const remaining = selectedSlot ? slotsRemaining(selectedSlot) : 0
   const pactRemaining = spells.pact_slots
     ? Math.max(0, spells.pact_slots.max - spells.pact_slots.used)
@@ -404,10 +484,10 @@ export function CastSpellDialog({
     spell.casting_time,
     spell.range,
     spell.duration ? `длится ${spell.duration}` : '',
-    spell.components ? formatSpellComponents(spell.components) : '',
+    rulesSpell?.components ? formatSpellComponents(rulesSpell.components) : '',
     spell.school ? spellSchoolLabelRu(spell.school) : '',
-    spell.attack_or_save,
-    castEffect.effect || spell.damage,
+    rulesSpell?.attack_or_save || spell.attack_or_save,
+    castEffect.effect || rulesSpell?.damage || spell.damage,
   ].filter(Boolean)
 
   const showHigherLevels =
@@ -434,7 +514,7 @@ export function CastSpellDialog({
               level: spells.pact_slots.level,
             })
           : hasSlotPath
-            ? castPathRestLabel({ kind: 'slot', level: slotLevel })
+            ? castPathRestLabel({ kind: 'slot', level: effectiveSlotLevel })
             : null
 
   const primaryLabel = !materialsOk
@@ -471,9 +551,10 @@ export function CastSpellDialog({
           slotLevel:
             isCantrip || useRitual || useGrant
               ? spellLevel
-              : usePact
-                ? (spells.pact_slots?.level ?? spellLevel)
-                : slotLevel,
+                : usePact
+                  ? (spells.pact_slots?.level ?? spellLevel)
+                  : effectiveSlotLevel,
+          damageChoice,
           consumeMaterial: needsConsumeChoice ? consumeMaterial : false,
           consumeItemId:
             needsConsumeChoice && consumeMaterial
@@ -568,13 +649,39 @@ export function CastSpellDialog({
             )}
           </div>
         ) : null}
+        {rulesSpell &&
+        spellOffersDamageTypeChoice(rulesSpell) &&
+        !isCantrip &&
+        !useRitual &&
+        !useGrant &&
+        effectiveSlotLevel > spell.level ? (
+          <div className="chip-row" role="group" aria-label="Какой урон растёт">
+            <Text tone="muted">Какой тип урона растёт</Text>
+            <button
+              type="button"
+              className={`sheet-chip${damageChoice === 'first' ? ' is-on' : ''}`}
+              onClick={() => setDamageChoice('first')}
+            >
+              {damageTypeChoiceLabels(rulesSpell)?.first ?? 'Первый'}
+            </button>
+            <button
+              type="button"
+              className={`sheet-chip${damageChoice === 'second' ? ' is-on' : ''}`}
+              onClick={() => setDamageChoice('second')}
+            >
+              {damageTypeChoiceLabels(rulesSpell)?.second ?? 'Второй'}
+            </button>
+          </div>
+        ) : null}
         {showHigherLevels && castEffect.lines.length === 0 ? (
           <Text tone="muted">На больших уровнях: {spell.higher_levels}</Text>
         ) : null}
 
         {materialCheck.requirement ? (
           <div className="cast-material-box">
-            <Text tone={materialsOk ? 'muted' : 'danger'}>{materialCheck.message}</Text>
+            <Text tone={materialsOk ? 'muted' : 'danger'}>
+              {focusGate.ok ? materialCheck.message : focusGate.message}
+            </Text>
             {materialCheck.requirement.raw ? (
               <Text tone="muted">М: {materialCheck.requirement.raw}</Text>
             ) : null}
@@ -606,7 +713,7 @@ export function CastSpellDialog({
                       key={level}
                       type="button"
                       className={`sheet-chip cast-source-chip${
-                        !useRitual && !useGrant && !usePact && slotLevel === level
+                        !useRitual && !useGrant && !usePact && effectiveSlotLevel === level
                           ? ' is-on'
                           : ''
                       }`}
@@ -727,7 +834,7 @@ export function CastSpellDialog({
                       ? `. Останется ${pactRemaining - 1} из ${spells.pact_slots.max}.`
                       : hasSlotPath
                         ? `. Останется ${remaining - 1} из ${selectedSlot?.max ?? 0}${
-                            slotLevel > spellLevel ? ' (upcast)' : ''
+                            effectiveSlotLevel > spellLevel ? ' (upcast)' : ''
                           }.`
                         : '.'}
               </Text>

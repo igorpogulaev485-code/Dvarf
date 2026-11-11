@@ -18,6 +18,7 @@ import { initiativeBonusFromFeatures } from '../characters/featureCombatBonuses'
 import { findFightingStylePick, readFeaturePicks } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
 import { aggregateInfusionBonuses } from '../../shared/dnd/infusionEffects'
+import { infusionAcFromSharedEffects } from '../../shared/dnd/infusionItems'
 import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
 import {
   initiativeBonusFromRaceGrant,
@@ -152,6 +153,7 @@ export function classicAutoArmorClass(character: CharacterDetail): number {
     wearingShield: Boolean(pieces.shield),
   })
   if (infusion.acBonus) coreAc += infusion.acBonus
+  coreAc += infusionAcFromSharedEffects(asRecord(sheet.combat).effects)
 
   const proficiencyBonus = Number(asProfBonus(character))
   const formulaVars = buildSheetFormulaVars({
