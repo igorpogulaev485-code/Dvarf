@@ -91,6 +91,10 @@ import {
   syncSkillsExpertiseFromPicks,
   type SkillExpertiseState,
 } from '../shared/dnd/expertise'
+import {
+  bridgeTotemSpiritPick,
+  featureLockedExpertiseSkillIds,
+} from '../shared/dnd/fighterArchetypeGrants'
 import type { AbilityScores } from '../shared/dnd/multiclassRules'
 import {
   buildPendingWizardSteps,
@@ -329,7 +333,10 @@ function buildWizardProficiencies(state: CreatePipelineState): {
     skills,
     featurePicks: state.featurePicks ?? emptyFeaturePicks(),
     expertiseKeys: listUnlockedExpertiseKeys(unlocked),
-    alsoExpertiseSkillIds: knowledgeExpert,
+    alsoExpertiseSkillIds: [
+      ...knowledgeExpert,
+      ...featureLockedExpertiseSkillIds(unlocked),
+    ],
   })
   return { skills, tools }
 }
@@ -448,6 +455,26 @@ export function CreateCharacterPage() {
   useEffect(() => {
     savePipelineState(state)
   }, [state])
+
+  // Archetype picked in the wizard must stay on the class row until create finishes.
+  useEffect(() => {
+    setState((prev) => {
+      let changed = false
+      const classes = prev.classes.map((row) => {
+        const setup = prev.subclassSetups?.[row.id]
+        const name = setup?.entry?.name_ru?.trim()
+        if (!name) return row
+        if (row.subclass_name.trim() && row.subclass_catalog_id) return row
+        changed = true
+        return {
+          ...row,
+          subclass_name: row.subclass_name.trim() || name,
+          subclass_catalog_id: row.subclass_catalog_id || setup.entry.id || null,
+        }
+      })
+      return changed ? { ...prev, classes } : prev
+    })
+  }, [state.classes, state.subclassSetups])
 
   // Restore racial ASI from stored race setup (F5 / draft reload).
   useEffect(() => {
@@ -808,7 +835,8 @@ export function CreateCharacterPage() {
     })
     const hasSubclass: Record<string, boolean> = {}
     for (const item of classRows) {
-      hasSubclass[item.id] = hasSubclassSelected(item)
+      const setupName = state.subclassSetups?.[item.id]?.entry?.name_ru?.trim()
+      hasSubclass[item.id] = hasSubclassSelected(item) || Boolean(setupName)
     }
     let steps: GuidedWizardStep[] = buildPendingWizardSteps({
       unlocked,
@@ -1014,52 +1042,66 @@ export function CreateCharacterPage() {
       advanceWizardAfter?: boolean
     },
   ) {
-    const nextClasses = state.classes.map((row) =>
-      row.id === classEntryId
-        ? {
-            ...row,
-            subclass_name: selected.name_ru,
-            subclass_catalog_id: selected.id,
-          }
-        : row,
-    )
-    const nextSetups = {
-      ...state.subclassSetups,
-      [classEntryId]: {
-        entry: catalogSnapshot(selected),
-        picks,
-        ...(options?.changeMode
+    let saved = false
+    setState((prev) => {
+      if (!prev.classes.some((row) => row.id === classEntryId)) return prev
+      saved = true
+      const nextClasses = prev.classes.map((row) =>
+        row.id === classEntryId
           ? {
-              changeMode: options.changeMode,
-              changedAtClassLevel: options.changedAtClassLevel,
-              previousEntry: options.previousEntry ?? null,
-              previousPicks: options.previousPicks,
+              ...row,
+              subclass_name: selected.name_ru,
+              subclass_catalog_id: selected.id,
             }
-          : {}),
-      },
-    }
-    // Battle Master: maneuvers_3 (flavor) → feature_picks.combat_superiority
-    const nextFeaturePicks = bridgeSwordsFightingStyle({
-      featurePicks: bridgeManeuversIntoFeaturePicks({
-        featurePicks: state.featurePicks ?? emptyFeaturePicks(),
+          : row,
+      )
+      const nextSetups = {
+        ...prev.subclassSetups,
+        [classEntryId]: {
+          entry: catalogSnapshot(selected),
+          picks,
+          ...(options?.changeMode
+            ? {
+                changeMode: options.changeMode,
+                changedAtClassLevel: options.changedAtClassLevel,
+                previousEntry: options.previousEntry ?? null,
+                previousPicks: options.previousPicks,
+              }
+            : {}),
+        },
+      }
+      const nextFeaturePicks = bridgeTotemSpiritPick({
+        featurePicks: bridgeSwordsFightingStyle({
+          featurePicks: bridgeManeuversIntoFeaturePicks({
+            featurePicks: prev.featurePicks ?? emptyFeaturePicks(),
+            classEntryId,
+            maneuverIds: extractManeuverIdsFromSubclassPicks(picks),
+            mode: 'merge_missing',
+          }),
+          classEntryId,
+          styleId: swordsFightingStyleFromSubclassPicks(picks),
+        }),
         classEntryId,
-        maneuverIds: extractManeuverIdsFromSubclassPicks(picks),
-        mode: 'merge_missing',
-      }),
-      classEntryId,
-      styleId: swordsFightingStyleFromSubclassPicks(picks),
+        values: picks.values,
+      })
+      return {
+        ...prev,
+        classes: nextClasses,
+        subclassSetups: nextSetups,
+        featurePicks: nextFeaturePicks,
+        sheetDraft: {
+          ...prev.sheetDraft,
+          subclass_setups: nextSetups,
+          feature_picks: featurePicksToSheet(nextFeaturePicks),
+        },
+        stepDirty: { ...prev.stepDirty, leveling: true },
+      }
     })
-    patchState({
-      classes: nextClasses,
-      subclassSetups: nextSetups,
-      featurePicks: nextFeaturePicks,
-      sheetDraft: {
-        ...state.sheetDraft,
-        subclass_setups: nextSetups,
-        feature_picks: featurePicksToSheet(nextFeaturePicks),
-      },
-      stepDirty: { ...state.stepDirty, leveling: true },
-    })
+    if (!saved) {
+      setToast('Архетип не записан: класс в прокачке не найден')
+      setAdvanceWizardAfterSubclass(false)
+      return
+    }
     setSubclassSetup(null)
     setSubclassPicker(null)
     setSubclassChange(null)
@@ -1371,7 +1413,8 @@ export function CreateCharacterPage() {
     for (const feature of unlockedFeatures) {
       if (!isSubclassGateFeature(feature)) continue
       const row = state.classes.find((item) => item.id === feature.classEntryId)
-      if (!row || hasSubclassSelected(row)) continue
+      const setupName = state.subclassSetups?.[feature.classEntryId]?.entry?.name_ru?.trim()
+      if (!row || hasSubclassSelected(row) || setupName) continue
       return `Выберите архетип для «${row.name || feature.className}» (${feature.name_ru})`
     }
     return null
@@ -1840,10 +1883,6 @@ export function CreateCharacterPage() {
         hasCasterClass={hasCasterClass}
         featNoteRu={featNote}
         onClassesChange={(next) => {
-          const prunedSetups = pruneSubclassSetupsForClasses(
-            state.subclassSetups,
-            next,
-          )
           const removedEntry =
             (state.classes?.length ?? 0) > next.length ||
             state.classes.some((row) => !next.some((n) => n.id === row.id))
@@ -1856,11 +1895,23 @@ export function CreateCharacterPage() {
               }),
             )
           }
-          patchState({
-            classes: next,
-            hpChoices: ensureHpChoices(next, state.hpChoices),
-            subclassSetups: prunedSetups,
-            stepDirty: { ...state.stepDirty, leveling: true },
+          setState((prev) => {
+            const merged = next.map((row) => {
+              const old = prev.classes.find((item) => item.id === row.id)
+              if (!old) return row
+              return {
+                ...row,
+                subclass_name: row.subclass_name.trim() ? row.subclass_name : old.subclass_name,
+                subclass_catalog_id: row.subclass_catalog_id ?? old.subclass_catalog_id,
+              }
+            })
+            return {
+              ...prev,
+              classes: merged,
+              hpChoices: ensureHpChoices(merged, prev.hpChoices),
+              subclassSetups: pruneSubclassSetupsForClasses(prev.subclassSetups, merged),
+              stepDirty: { ...prev.stepDirty, leveling: true },
+            }
           })
         }}
         onHpChoicesChange={(hpChoices) => patchState({ hpChoices })}
@@ -2332,6 +2383,11 @@ export function CreateCharacterPage() {
         onPickSubclass={(classEntryId, entry) => {
           setAdvanceWizardAfterSubclass(true)
           beginSubclassSelection(classEntryId, entry, { advanceWizardAfter: true })
+        }}
+        onSubclassStepAdvance={(classEntryId) => {
+          const row = state.classes.find((item) => item.id === classEntryId)
+          const setupName = state.subclassSetups?.[classEntryId]?.entry?.name_ru?.trim()
+          return Boolean((row && hasSubclassSelected(row)) || setupName)
         }}
         spellbookPicksContext={(() => {
           const step = guidedWizard?.steps[guidedWizard.index]

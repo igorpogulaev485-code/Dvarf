@@ -720,7 +720,9 @@ export function installSheetActions4(model: SheetModel) {
         proficiencyBonus: model.proficiencyBonus,
         isProficient: state?.is_proficient ?? false,
         isExpertise: state?.is_expertise ?? false,
-      }) + (model.gearEffects.skillBonuses[skillKey] ?? 0)
+      }) +
+      (model.gearEffects.skillBonuses[skillKey] ?? 0) +
+      (model.featureSkillBonuses?.[skillKey] ?? 0)
     )
   }
 

@@ -480,9 +480,14 @@ export function useSheetEditorPart4(model: SheetModel) {
     .filter(Boolean)
     .join(' · ')
   model.initiativeAutoLabel = initiativeAutoLabel
+  const remarkableAthlete = (model.unlockedFeatures ?? []).some(
+    (feature: { id?: string }) => feature.id === 'remarkable_athlete',
+  )
+  const strengthMod = abilityModifier(model.effectiveAbilities.str)
   const jump = jumpDistances({
     strengthScore: model.effectiveAbilities.str,
-    strengthMod: abilityModifier(model.effectiveAbilities.str),
+    strengthMod,
+    longBonusFt: remarkableAthlete ? Math.max(0, strengthMod) : 0,
   })
   model.jump = jump
   const hotConditionNames = model.draft.play.conditions

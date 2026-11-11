@@ -6,7 +6,7 @@ import {
 } from './combatConsumables'
 import type { ConsumableSpendLogEntry } from './consumableSpend'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
-import { fightingStyleAttackBonus } from '../../shared/dnd/fightingStyles'
+import { fightingStyleAttackBonusFromIds } from '../../shared/dnd/fightingStyles'
 import { canSpendSlot, spendSpellSlot } from '../../shared/dnd/spells'
 import type { SpellsState } from './spells'
 import {
@@ -55,6 +55,8 @@ type PlayDeskAttacksCompactProps = {
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
   /** Active fighting style id (archery → +2 on ranged attacks). */
   fightingStyleId?: string | null
+  /** Every fighting style on the sheet, including a second champion style. */
+  fightingStyleIds?: string[]
   /** Monk Martial Arts die (e.g. "1к10"). */
   martialArtsDie?: string | null
   /** Active Artificer infusion weapon bonuses. */
@@ -119,6 +121,7 @@ export function PlayDeskAttacksCompact({
   proficiencyBonus,
   gearBonusesByItem = {},
   fightingStyleId = null,
+  fightingStyleIds,
   martialArtsDie = null,
   infusionAttackBonus = 0,
   infusionDamageBonus = 0,
@@ -416,8 +419,8 @@ export function PlayDeskAttacksCompact({
             const gear = attack.inventory_item_id
               ? gearBonusesByItem[attack.inventory_item_id]
               : undefined
-            const styleAtk = fightingStyleAttackBonus({
-              styleId: fightingStyleId,
+            const styleAtk = fightingStyleAttackBonusFromIds({
+              styleIds: fightingStyleIds ?? (fightingStyleId ? [fightingStyleId] : []),
               weaponName: attack.name,
             })
             const boundInfusion = attack.inventory_item_id

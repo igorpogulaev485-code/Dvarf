@@ -29,7 +29,7 @@ import {
 } from '../../shared/dnd/featGrants'
 import {
   resolveChoiceMaxPicks,
-  resolveFeatureChoiceOptions,
+  choiceOptionsAtLevel,
   type FeatureChoiceDef,
 } from '../../shared/dnd/classFeatures'
 import {
@@ -41,6 +41,7 @@ import {
   type SkillExpertiseState,
 } from '../../shared/dnd/expertise'
 import {
+  fightingStylesTakenElsewhere,
   getFeaturePick,
   getFeaturePickList,
   setFeaturePick,
@@ -138,6 +139,11 @@ type GuidedWizardDialogProps = {
    * packs immediately), then resumes / advances the queue.
    */
   onPickSubclass?: (classEntryId: string, entry: CatalogEntry) => void
+  /**
+   * «Далее» on the archetype step. Return false when the pick is only on screen
+   * and not yet stored on the class row / subclass setups.
+   */
+  onSubclassStepAdvance?: (classEntryId: string) => boolean
   /** classEntryId → parent class catalog id (filters subclass combobox). */
   subclassParentCatalogIdByEntryId?: Record<string, string | null | undefined>
   /** classEntryId → already selected subclass display name. */
@@ -399,10 +405,15 @@ function FeatureChoiceStepBody({
         label: row.kind === 'tool' ? row.labelRu : skillLabel(row.id),
       }))
     }
-    const ids =
+    const takenStyles = fightingStylesTakenElsewhere(featurePicks, {
+      classEntryId: step.classEntryId,
+      featureId: step.featureId,
+    })
+    const ids = (
       choice.options_from === 'artificer_infusions'
         ? infusionOptionIdsAtLevel(step.classLevel)
-        : resolveFeatureChoiceOptions(choice)
+        : choiceOptionsAtLevel(choice, step.classLevel)
+    ).filter((id) => !takenStyles.has(id))
     return ids.map((id) => ({
       id,
       label: choiceOptionLabel(id, choice),
@@ -770,6 +781,7 @@ export function GuidedWizardDialog({
   onClose,
   onToast,
   onPickSubclass,
+  onSubclassStepAdvance,
   subclassParentCatalogIdByEntryId,
   selectedSubclassNameByEntryId,
   spellbookPicksContext = null,
@@ -987,6 +999,10 @@ export function GuidedWizardDialog({
 
     if (step.kind === 'subclass') {
       if (!subclassReady) return
+      if (onSubclassStepAdvance && !onSubclassStepAdvance(step.classEntryId)) {
+        onToast?.('Архетип ещё не записан — выбери его из списка ещё раз')
+        return
+      }
       onToast?.(`Архетип «${subclassSelectedName}» выбран`)
       onAdvance(index + 1)
       return

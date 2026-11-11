@@ -4,6 +4,12 @@ import { classCasterDef } from './casterProgression'
 import type { SheetResource } from './rest'
 import { clampResource } from './rest'
 import {
+  knownRuneIds,
+  runeChargesAtLevel,
+  runeLabelRu,
+} from './fighterArchetypeGrants'
+import type { FeaturePicksState } from './featurePicks'
+import {
   proficiencyBonusForTotalLevel,
   recoverPoolId,
   resolveClassFeatureSlug,
@@ -110,18 +116,39 @@ export function desiredResourcesFromFeatures(input: {
   characterLevel: number
   abilities?: Partial<Record<AbilityScoreKey, number>>
   classSlugByEntryId?: Record<string, string | null | undefined>
+  /** Rune Knight: one short-rest pool per known rune. */
+  featurePicks?: FeaturePicksState
 }): DesiredFeatureResource[] {
   const pb = proficiencyBonusForTotalLevel(input.characterLevel)
   const byId = new Map<string, DesiredFeatureResource>()
 
   for (const feature of input.features) {
-    const resource = feature.resource
-    if (!resource?.pool_id) continue
     const classSlug =
       input.classSlugByEntryId?.[feature.classEntryId] ||
       resolveClassFeatureSlug(feature.className) ||
       'class'
     const classLabelRu = classLabelRuForSlug(classSlug, feature.className)
+    // TCE Rune Knight: each known rune has its own charges (1, then 2 at 15).
+    if (feature.id === 'rune_carver' && input.featurePicks) {
+      const charges = runeChargesAtLevel(feature.classLevel)
+      for (const runeId of knownRuneIds(input.featurePicks, feature.classEntryId)) {
+        const label = runeLabelRu(runeId)
+        if (!label) continue
+        const runePoolId = featureResourceId(classSlug, runeId, feature.classEntryId)
+        if (byId.has(runePoolId)) continue
+        byId.set(runePoolId, {
+          id: runePoolId,
+          name: `Руна: ${label}`,
+          max: charges,
+          reset: 'short',
+          track: 'spend',
+          classSlug,
+          classLabelRu,
+        })
+      }
+    }
+    const resource = feature.resource
+    if (!resource?.pool_id) continue
     const id = featureResourceId(classSlug, resource.pool_id, feature.classEntryId)
 
     let max: number
