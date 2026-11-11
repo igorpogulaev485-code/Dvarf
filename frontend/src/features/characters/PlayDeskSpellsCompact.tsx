@@ -13,12 +13,14 @@ import {
   formatNamedCantripBudgets,
   formatNamedPrepareBudgets,
   mergeCastProfilesForDisplay,
+  resolveSpellCastStats,
   type SpellCastProfile,
 } from '../../shared/dnd/castProfiles'
 import {
   resolveCastEffectSummary,
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
+import { withBundledRules } from './alwaysPreparedSpellEnrichment'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
   countAlwaysPreparedLeveled,
@@ -44,6 +46,7 @@ import {
   levelLabel,
   spellAttackBonus,
   spellSaveDc,
+  type SpellcastingAbility,
 } from '../../shared/dnd/spells'
 import type { RulesEdition } from '../../shared/api/characters'
 import { type BonusLine, withSpellCastBonuses } from './modifiers'
@@ -459,6 +462,10 @@ export function PlayDeskSpellsCompact({
                       hasSpellbook={hasSpellbook}
                       activeConcentration={isActiveConc}
                       onOpenDetail={() => setDetailSpell(spell)}
+                      abilities={abilities}
+                      castProfiles={castProfiles ?? null}
+                      proficiencyBonus={proficiencyBonus}
+                      castingAbility={spells.casting_ability ?? null}
                       onCast={() => {
                         if (onCastSpell) {
                           onCastSpell(spell)
@@ -567,16 +574,24 @@ function shortDamage(raw: string): string {
  * Actual effect for this character (cantrip/slot scaling + Agathys-style summary).
  * Falls back to static `damage` when no scale/summary applies (magic-qa tip).
  */
-function compactDamage(spell: SheetSpell, characterLevel: number): string {
+function compactDamage(
+  spell: SheetSpell,
+  characterLevel: number,
+  spellMod: number | null,
+  spellModLabel: string | null,
+): string {
+  const rules = withBundledRules(spell)
   const level = Math.max(1, Math.floor(characterLevel) || 1)
-  const slotLevel = Math.max(spell.level, 1)
-  const summary = resolveCastEffectSummary(spell, {
+  const slotLevel = Math.max(rules.level, 1)
+  const summary = resolveCastEffectSummary(rules, {
     characterLevel: level,
     slotLevel,
+    spellMod,
+    spellModLabel,
   })
   const scaled = shortDamage(summary.effect)
   if (scaled) return scaled
-  return shortDamage(spell.damage ?? '')
+  return shortDamage(rules.damage ?? '')
 }
 
 /** Unified card skeleton: action · range · attack/save (always present). */
@@ -586,9 +601,10 @@ function compactSpellMeta(spell: SheetSpell): string {
   parts.push(time || '—')
   const range = shortRange(spell.range)
   parts.push(range || '—')
-  const atk = spell.attack_or_save?.trim()
+  const rules = withBundledRules(spell)
+  const atk = (rules.attack_or_save || spell.attack_or_save)?.trim()
   parts.push(atk && atk !== '—' ? atk : '—')
-  const comps = compactComponents(spell)
+  const comps = compactComponents(rules)
   if (comps) parts.push(comps)
   if (spell.school) parts.push(spellSchoolLabelRu(spell.school))
   if (spell.duration?.trim()) parts.push(spell.duration.trim())
@@ -604,6 +620,10 @@ function SpellRow({
   onOpenDetail,
   onCast,
   hasCast,
+  abilities,
+  castProfiles,
+  proficiencyBonus,
+  castingAbility,
 }: {
   spell: SheetSpell
   characterLevel: number
@@ -613,10 +633,26 @@ function SpellRow({
   onOpenDetail: () => void
   onCast: () => void
   hasCast: boolean
+  abilities: Record<AbilityKey, number>
+  castProfiles: SpellCastProfile[] | null
+  proficiencyBonus: number
+  castingAbility: SpellcastingAbility | null
 }) {
   const levelText = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
   const meta = compactSpellMeta(spell)
-  const damage = compactDamage(spell, characterLevel)
+  const modStats = resolveSpellCastStats({
+    spell,
+    profiles: castProfiles ?? [],
+    abilityModFor: (ability) => abilityModifier(abilities[ability]),
+    proficiencyBonus,
+    fallbackAbility: castingAbility,
+  })
+  const damage = compactDamage(
+    spell,
+    characterLevel,
+    modStats.ability ? abilityModifier(abilities[modStats.ability]) : null,
+    modStats.ability ? SPELLCASTING_ABILITY_LABELS[modStats.ability] : null,
+  )
   const source = spellSourceBadge(spell)
   const granted = isGrantedSpellHighlight(spell)
   const grantLeft =

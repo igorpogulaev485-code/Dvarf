@@ -68,6 +68,11 @@ export type FeatureResource = {
   pool_id?: string
   /** Display name on the resource tracker (defaults to feature name). */
   pool_name_ru?: string
+  /**
+   * Extra independent pools on the same feature (Chemical Mastery:
+   * greater restoration and heal, 1 each).
+   */
+  alt_pools?: Array<{ pool_id: string; pool_name_ru: string; uses: number }>
   /** spend = expended uses; stock = current holdings (soul trinkets). */
   track?: 'spend' | 'stock'
   /**
@@ -701,6 +706,20 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
     pool_id: typeof resourceRaw.pool_id === 'string' ? resourceRaw.pool_id : undefined,
     pool_name_ru:
       typeof resourceRaw.pool_name_ru === 'string' ? resourceRaw.pool_name_ru : undefined,
+    alt_pools: Array.isArray(resourceRaw.alt_pools)
+      ? resourceRaw.alt_pools.flatMap((row) => {
+          if (!row || typeof row !== 'object') return []
+          const alt = row as Record<string, unknown>
+          if (typeof alt.pool_id !== 'string' || typeof alt.pool_name_ru !== 'string') return []
+          return [
+            {
+              pool_id: alt.pool_id,
+              pool_name_ru: alt.pool_name_ru,
+              uses: typeof alt.uses === 'number' ? Math.max(1, Math.floor(alt.uses)) : 1,
+            },
+          ]
+        })
+      : undefined,
     track: resourceRaw.track === 'stock' ? 'stock' : resourceRaw.track === 'spend' ? 'spend' : undefined,
     spend_cost:
       typeof resourceRaw.spend_cost === 'number'

@@ -17,8 +17,10 @@ from app.repositories.character import CharacterRepository
 from app.repositories.lobby import LobbyRepository
 from app.services.sheet_effects import (
     append_effect,
+    apply_infusion_effect_sync,
     clear_linked_effects_for_caster,
     effect_suggestions_from_sheet,
+    INFUSION_ORIGIN,
     parse_effects,
 )
 from app.repositories.catalog import CatalogRepository
@@ -72,6 +74,7 @@ from app.schemas.lobby import (
     LobbyMemberOut,
     LobbyShareEffectRequest,
     LobbyShareEffectResponse,
+    LobbySyncInfusionEffectsRequest,
     LobbySummary,
     LobbyUpdateRequest,
     SeatCompanionCreateRequest,
@@ -2156,6 +2159,8 @@ class LobbyService:
                     "source_character_id": e.source_character_id,
                     "source_name": e.source_name,
                     "linked_concentration": bool(e.linked_concentration),
+                    **({"origin": e.origin} if e.origin else {}),
+                    **({"ac_bonus": e.ac_bonus} if e.ac_bonus is not None else {}),
                 }
                 for e in payload.effects
             ]
@@ -2244,6 +2249,70 @@ class LobbyService:
                 linked_concentration=linked,
             )
             applied += 1
+
+        self.db.commit()
+        detail = self.get(user, lobby_id)
+        return LobbyShareEffectResponse(applied=applied, lobby=detail)
+
+    def sync_infusion_effects(
+        self,
+        user: User,
+        lobby_id: UUID,
+        payload: LobbySyncInfusionEffectsRequest,
+    ) -> LobbyShareEffectResponse:
+        """Write ally infusion marks onto target sheets and drop the ones removed."""
+        lobby = self.lobbies.get(lobby_id)
+        if lobby is None:
+            raise NotFoundError("Лобби не найдено", code="lobby_not_found")
+        source_member = self.lobbies.get_member(lobby.id, payload.source_character_id)
+        if source_member is None or (
+            source_member.user_id != user.id and lobby.owner_id != user.id
+        ):
+            raise AppError(
+                "Нельзя раздать эффект от этого персонажа",
+                code="forbidden",
+                status_code=403,
+            )
+
+        member_ids = [member.character_id for member in lobby.members]
+        char_map = self.lobbies.get_characters_map(member_ids)
+        source = char_map.get(payload.source_character_id)
+        if source is None:
+            raise NotFoundError("Персонаж-источник не найден", code="character_not_found")
+
+        by_target: dict[UUID, list[dict]] = {}
+        for row in payload.effects:
+            name = row.name.strip()
+            if not name:
+                continue
+            by_target.setdefault(row.target_character_id, []).append(
+                {
+                    "id": str(uuid4()),
+                    "name": name,
+                    "source_character_id": str(payload.source_character_id),
+                    "source_name": source.name,
+                    "linked_concentration": False,
+                    "origin": INFUSION_ORIGIN,
+                    "ac_bonus": int(row.ac_bonus),
+                }
+            )
+
+        applied = 0
+        for character_id in member_ids:
+            if character_id == payload.source_character_id:
+                continue
+            target = char_map.get(character_id)
+            if target is None:
+                continue
+            replacements = by_target.get(character_id, [])
+            changed = apply_infusion_effect_sync(
+                target,
+                source_id=str(payload.source_character_id),
+                source_name=source.name,
+                replacements=replacements,
+            )
+            if changed:
+                applied += len(replacements)
 
         self.db.commit()
         detail = self.get(user, lobby_id)

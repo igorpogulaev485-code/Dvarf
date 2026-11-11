@@ -77,10 +77,40 @@ export function collectExpertiseOptionIdsFromPicks(input: {
  * Skills not in any pick lose expertise (manual click is overridden by pack picks).
  * Proficiency flags are preserved.
  */
+const KNOWLEDGE_BLESSING_SKILLS = new Set([
+  'arcana',
+  'history',
+  'nature',
+  'religion',
+])
+
+/** PHB Blessings of Knowledge: the two chosen skills have doubled proficiency. */
+export function knowledgeBlessingSkillIds(
+  grants: Array<{
+    slug?: string
+    skills?: string[]
+    picks?: Record<string, string | string[] | undefined>
+  }>,
+): string[] {
+  const out: string[] = []
+  for (const grant of grants) {
+    if ((grant.slug ?? '') !== 'knowledge_domain') continue
+    const raw = grant.picks?.blessings_of_knowledge_skills
+    const picked = Array.isArray(raw) ? raw : typeof raw === 'string' ? [raw] : []
+    const source = picked.length ? picked : (grant.skills ?? [])
+    for (const key of source) {
+      if (KNOWLEDGE_BLESSING_SKILLS.has(key)) out.push(key)
+    }
+  }
+  return out
+}
+
 export function syncSkillsExpertiseFromPicks(input: {
   skills: SkillExpertiseState
   featurePicks: FeaturePicksState
   expertiseKeys: Array<{ classEntryId: string; featureId: string }>
+  /** Skills that stay at doubled proficiency even without an Expertise pick. */
+  alsoExpertiseSkillIds?: string[]
 }): SkillExpertiseState {
   const expertIds = new Set(
     collectExpertiseOptionIdsFromPicks({
@@ -88,6 +118,7 @@ export function syncSkillsExpertiseFromPicks(input: {
       expertiseKeys: input.expertiseKeys,
     }).filter((id) => id !== THIEVES_TOOLS_OPTION_ID),
   )
+  for (const id of input.alsoExpertiseSkillIds ?? []) expertIds.add(id)
   const next: SkillExpertiseState = { ...input.skills }
   for (const key of Object.keys(next)) {
     const current = next[key] ?? { is_proficient: false, is_expertise: false }

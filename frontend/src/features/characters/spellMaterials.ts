@@ -22,6 +22,9 @@ export type MaterialInventoryItem = {
   name: string
   qty: number
   cost_gp?: number | null
+  equipped?: boolean | null
+  armor_kind?: string | null
+  spell_tooling?: string | null
 }
 
 export type MaterialCandidate = {
@@ -122,7 +125,7 @@ function extractKeywords(raw: string): string[] {
   const cleaned = normalizeName(
     raw
       .replace(
-        /\d[\d\s.,]*\s*(зм|см|мм|gp|sp|cp)\b/gi,
+        /\d[\d\s.,]*\s*(зм|см|мм|gp|sp|cp)(?!\p{L})/giu,
         ' ',
       )
       .replace(
@@ -172,7 +175,7 @@ export function parseMaterialRequirement(
   }
 
   const costMatch = raw.match(
-    /(\d[\d\s]*)\s*(зм|см|мм|gp|sp|cp)\b/i,
+    /(\d[\d\s]*)\s*(зм|см|мм|gp|sp|cp)(?!\p{L})/iu,
   )
   const minCostGp = costMatch
     ? parseCostToGp(costMatch[1], costMatch[2])
@@ -196,7 +199,14 @@ function itemMatchesKeywords(
   const name = normalizeName(itemName)
   if (!name) return false
   // Any strong keyword hit is enough (алмаз ∈ «Алмаз 300 зм»).
-  return keywords.some((kw) => name.includes(kw))
+  // PHB writes «бриллиант»; sheets often say «алмаз».
+  return keywords.some((kw) => {
+    if (name.includes(kw)) return true
+    if (kw.startsWith('бриллиант') || kw === 'алмаз' || kw === 'diamond') {
+      return /бриллиант|алмаз|diamond/.test(name)
+    }
+    return false
+  })
 }
 
 export function findMaterialCandidates(

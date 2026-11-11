@@ -484,6 +484,9 @@ export function SpellsPanel({
     const { effect, scaled } = resolveCastEffect(castSpell, {
       characterLevel: level,
       slotLevel: slotForEffect || castSpell.level,
+      spellMod: abilityMod,
+      spellModLabel: abilityKey ? SPELLCASTING_ABILITY_LABELS[abilityKey] : null,
+      damageChoice: choice.damageChoice,
     })
     const effectNote = scaled && effect ? ` · ${effect}` : ''
     const consumeNote = applyMaterialConsume(choice)

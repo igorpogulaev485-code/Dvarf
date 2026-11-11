@@ -25,18 +25,72 @@ def parse_effects(raw: object) -> list[dict]:
             eid = f"fx-{name.lower().replace(' ', '-')}"
         source_character_id = item.get("source_character_id")
         source_name = item.get("source_name")
-        out.append(
-            {
-                "id": eid,
-                "name": name,
-                "source_character_id": (
-                    str(source_character_id) if source_character_id else None
-                ),
-                "source_name": str(source_name).strip() if source_name else None,
-                "linked_concentration": bool(item.get("linked_concentration")),
-            }
-        )
+        row = {
+            "id": eid,
+            "name": name,
+            "source_character_id": (
+                str(source_character_id) if source_character_id else None
+            ),
+            "source_name": str(source_name).strip() if source_name else None,
+            "linked_concentration": bool(item.get("linked_concentration")),
+        }
+        origin = item.get("origin")
+        if isinstance(origin, str) and origin.strip():
+            row["origin"] = origin.strip()
+        ac_bonus = item.get("ac_bonus")
+        if isinstance(ac_bonus, int) and not isinstance(ac_bonus, bool):
+            row["ac_bonus"] = max(0, ac_bonus)
+        out.append(row)
     return out
+
+
+INFUSION_ORIGIN = "infusion"
+
+
+def is_infusion_share_effect(effect: dict, source_id: str) -> bool:
+    """Effects this artificer previously hung on an ally via Infuse Item."""
+    if str(effect.get("source_character_id") or "") != source_id:
+        return False
+    if effect.get("origin") == INFUSION_ORIGIN:
+        return True
+    # Legacy shares: «Усиленная защита · +1 КД» (no origin field yet).
+    return " · +" in str(effect.get("name") or "")
+
+
+def replace_infusion_effects(
+    effects: list[dict],
+    source_id: str,
+    replacements: list[dict],
+) -> list[dict]:
+    kept = [row for row in effects if not is_infusion_share_effect(row, source_id)]
+    return kept + replacements
+
+
+def apply_infusion_effect_sync(
+    character: Character,
+    *,
+    source_id: str,
+    source_name: str | None,
+    replacements: list[dict],
+) -> bool:
+    """Replace this source's infusion marks. Returns True when the sheet changed."""
+    sheet = dict(character.sheet or {})
+    combat = dict(sheet.get("combat") or {})
+    current = parse_effects(combat.get("effects"))
+    next_effects = replace_infusion_effects(current, source_id, replacements)
+    stamped = []
+    for row in next_effects:
+        if row.get("origin") == INFUSION_ORIGIN and not row.get("source_name"):
+            row = {**row, "source_name": source_name}
+        stamped.append(row)
+    if stamped == current:
+        return False
+    combat["effects"] = stamped
+    sheet["combat"] = combat
+    character.sheet = sheet
+    character.sheet_version = int(character.sheet_version or 1) + 1
+    flag_modified(character, "sheet")
+    return True
 
 
 def append_effect(

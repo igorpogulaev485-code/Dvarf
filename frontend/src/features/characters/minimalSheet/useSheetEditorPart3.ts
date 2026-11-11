@@ -32,6 +32,7 @@ import { classWalkSpeedBonusFt } from '../../../shared/dnd/classMovement'
 import { featurePicksToSheet } from '../../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../../shared/dnd/fightingStyles'
 import { aggregateInfusionBonuses, applyInfusionAbilityFloors } from '../../../shared/dnd/infusionEffects'
+import { infusionAcFromSharedEffects } from '../../../shared/dnd/infusionItems'
 import { syncRangerConclaveSpells } from '../rangerConclaveSpells'
 import { syncDruidCircleSpells } from '../druidCircleSpells'
 import { syncPactChainFamiliar } from '../pactChainEffects'
@@ -230,12 +231,14 @@ export function useSheetEditorPart3(model: SheetModel) {
         classes: model.draft.classes,
         wearingArmor: Boolean(model.armorPiecesForSpeed.armor),
         wearingShield: Boolean(model.armorPiecesForSpeed.shield),
+        items: model.draft.inventory.items,
       }),
     [
       model.draft.featurePicks,
       model.draft.classes,
       model.armorPiecesForSpeed.armor,
       model.armorPiecesForSpeed.shield,
+      model.draft.inventory.items,
     ],
   )
   model.infusionBonuses = infusionBonuses
@@ -429,9 +432,16 @@ export function useSheetEditorPart3(model: SheetModel) {
       coreAc += model.gearEffects.acBonus
       gearSummary = `${gearSummary} · магия +${model.gearEffects.acBonus}`
     }
+    const sharedInfusionAc = infusionAcFromSharedEffects(
+      asRecord(asRecord(model.baseCharacter.sheet).combat).effects,
+    )
     if (infusionBonuses.acBonus) {
       coreAc += infusionBonuses.acBonus
       gearSummary = `${gearSummary} · инфузия +${infusionBonuses.acBonus}`
+    }
+    if (sharedInfusionAc) {
+      coreAc += sharedInfusionAc
+      gearSummary = `${gearSummary} · инфузия союзника +${sharedInfusionAc}`
     }
     const formulaVars = buildSheetFormulaVars({
       mods,
@@ -469,6 +479,7 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.unlockedFeatures,
     model.gearEffects.acBonus,
     infusionBonuses.acBonus,
+    model.baseCharacter.sheet,
     model.proficiencyBonus,
     model.characterLevel,
   ])
@@ -571,6 +582,7 @@ export function useSheetEditorPart3(model: SheetModel) {
       combat.death_successes = playSheet.combatPatch.death_successes
       combat.death_fails = playSheet.combatPatch.death_fails
       combat.concentration = playSheet.combatPatch.concentration
+      combat.shillelagh = playSheet.combatPatch.shillelagh
       sheet.combat = combat
       const proficiency = asRecord(sheet.proficiency)
       proficiency.bonus = proficiencyBonusForTotalLevel(totalLevel)

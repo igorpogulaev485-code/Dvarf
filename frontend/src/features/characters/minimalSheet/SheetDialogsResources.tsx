@@ -375,6 +375,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         }}
         onToast={model.onToast}
         onClose={() => model.setInfusionsSpendId(null)}
+        items={model.draft.inventory.items}
       />
 
       <WarlockArcanumSpendDialog

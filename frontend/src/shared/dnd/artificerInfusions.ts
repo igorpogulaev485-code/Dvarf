@@ -17,7 +17,7 @@ export type ArtificerInfusionEffects = {
   acBonus?: number | 'scale_1_2'
   /** Bracers of Defense: +2 AC only without armor and without shield. */
   acBonusUnarmoredUnshielded?: number
-  /** Weapon attack bonus (`scale_1_2` for Enhanced Weapon / Repeating Shot). */
+  /** Weapon attack bonus (`scale_1_2` for Enhanced Weapon only). Repeating Shot stays +1. */
   weaponAttackBonus?: number | 'scale_1_2'
   weaponDamageBonus?: number | 'scale_1_2'
   /** Spell attack only (Enhanced Arcane Focus). */
@@ -187,12 +187,12 @@ const CORE_INFUSIONS: ArtificerInfusionDef[] = [
     id: 'repeating_shot',
     nameRu: 'Повторяющий выстрел',
     nameEn: 'Repeating Shot',
-    summaryRu: 'Дальнобойное «заряжаемое»: +1; игнор. заряжания; боеприпасы.',
+    summaryRu: 'Оружие с «боеприпасом»: +1; игнор. заряжания; боеприпасы.',
     abilityRu:
-      'Инфузия дальнобойного оружия со свойством «заряжаемое» (настройка). +1 к атаке и урону; игнорирует «заряжаемое»; при отсутствии боеприпасов создаёт магические. С 10 уровня изобретателя бонус +2.',
+      'Инфузия простого или воинского оружия со свойством «боеприпас» (настройка). +1 к атаке и урону дальнобойных атак; игнорирует «перезарядку»; при отсутствии боеприпасов создаёт магические. Бонус не растёт с уровнем.',
     effects: {
-      weaponAttackBonus: 'scale_1_2',
-      weaponDamageBonus: 'scale_1_2',
+      weaponAttackBonus: 1,
+      weaponDamageBonus: 1,
       requiresAttunement: true,
     },
   },

@@ -20,6 +20,7 @@ import {
   type AbilityKey,
 } from './sheetTypes'
 import type { WeaponAttack } from './AttacksPanel'
+import { shillelaghDamage } from './shillelagh'
 import type { InventoryItem } from './inventory'
 import { isCastableSpellScroll } from './spellScroll'
 import {
@@ -42,6 +43,10 @@ type PlayDeskAttacksCompactProps = {
   /** Active Artificer infusion weapon bonuses. */
   infusionAttackBonus?: number
   infusionDamageBonus?: number
+  /** Bonuses keyed by inventory item — only the infused weapon. */
+  infusionByItem?: Record<string, { attack: number; damage: number }>
+  /** Shillelagh on one held club or quarterstaff. */
+  shillelagh?: { attackId: string; ability: AbilityKey } | null
   resources: SheetResource[]
   inventoryItems: InventoryItem[]
   favoriteConsumableIds?: string[]
@@ -92,6 +97,8 @@ export function PlayDeskAttacksCompact({
   martialArtsDie = null,
   infusionAttackBonus = 0,
   infusionDamageBonus = 0,
+  infusionByItem,
+  shillelagh = null,
   resources,
   inventoryItems,
   favoriteConsumableIds = [],
@@ -237,20 +244,28 @@ export function PlayDeskAttacksCompact({
             const monkWeapon =
               Boolean(martialArtsDie) &&
               (unarmed || isMonkWeaponName(attack.name))
-            const attackAbility = monkWeapon
-              ? monkAttackAbility({
-                  str: abilities.str,
-                  dex: abilities.dex,
-                  weaponAbility: attack.ability,
-                })
-              : attack.ability
-            const baseDamage = monkWeapon
-              ? effectiveMartialArtsDamage({
-                  weaponDamage: attack.damage,
-                  martialArtsDie,
-                  forceMartialArts: unarmed,
-                })
-              : attack.damage
+            const shillelaghOn =
+              shillelagh != null &&
+              shillelagh.attackId === attack.id &&
+              attack.held !== false
+            const attackAbility = shillelaghOn
+              ? shillelagh.ability
+              : monkWeapon
+                ? monkAttackAbility({
+                    str: abilities.str,
+                    dex: abilities.dex,
+                    weaponAbility: attack.ability,
+                  })
+                : attack.ability
+            const baseDamage = shillelaghOn
+              ? shillelaghDamage(attack.damage)
+              : monkWeapon
+                ? effectiveMartialArtsDamage({
+                    weaponDamage: attack.damage,
+                    martialArtsDie,
+                    forceMartialArts: unarmed,
+                  })
+                : attack.damage
             const mod = abilityModifier(abilities[attackAbility])
             const gear = attack.inventory_item_id
               ? gearBonusesByItem[attack.inventory_item_id]
@@ -259,12 +274,29 @@ export function PlayDeskAttacksCompact({
               styleId: fightingStyleId,
               weaponName: attack.name,
             })
+            const boundInfusion = attack.inventory_item_id
+              ? infusionByItem?.[attack.inventory_item_id]
+              : undefined
             const infusionAtk = unarmed
               ? 0
-              : Math.max(0, Math.floor(infusionAttackBonus))
+              : Math.max(
+                  0,
+                  Math.floor(
+                    infusionByItem
+                      ? (boundInfusion?.attack ?? 0)
+                      : infusionAttackBonus,
+                  ),
+                )
             const infusionDmg = unarmed
               ? 0
-              : Math.max(0, Math.floor(infusionDamageBonus))
+              : Math.max(
+                  0,
+                  Math.floor(
+                    infusionByItem
+                      ? (boundInfusion?.damage ?? 0)
+                      : infusionDamageBonus,
+                  ),
+                )
             const attackBonus =
               mod +
               (attack.is_proficient || unarmed ? proficiencyBonus : 0) +

@@ -10,6 +10,7 @@ import { aggregateGearEffects } from '../gearEffects'
 import { fightingStyleFromFeatGrants, sumFeatInitiativeBonus, sumFeatPassiveBonus, type AppliedFeatGrant } from '../../../shared/dnd/featGrants'
 import { buildAsiFeatGrantFromCatalog, findMissingAsiFeatEntries, matchFeatCatalogEntry } from '../asiFeatHydrate'
 import { hydrateManeuversFromSubclassGrants } from '../../../shared/dnd/battleMasterManeuverBridge'
+import { knowledgeBlessingSkillIds } from '../../../shared/dnd/expertise'
 import { applyFeatGrantToDraft, ensureFeatSpellsFromLedger, featSpellsMissingFromKnown } from '../featEffects'
 import { syncFeatureResources } from '../../../shared/dnd/featureResources'
 import { classWalkSpeedBonusFt, resolveWalkSpeedFt } from '../../../shared/dnd/classMovement'
@@ -380,6 +381,23 @@ export function useSheetEditorPart2(model: SheetModel) {
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
   }, [model.draft.subclassGrants, model.draft.featurePicks])
+
+  // PHB Blessings of Knowledge: chosen skills keep doubled proficiency on old sheets.
+  useEffect(() => {
+    const ids = knowledgeBlessingSkillIds(model.draft.subclassGrants)
+    if (!ids.length) return
+    model.setDraft((prev) => {
+      let changed = false
+      const skills = { ...prev.skills }
+      for (const key of knowledgeBlessingSkillIds(prev.subclassGrants)) {
+        const current = skills[key] ?? { is_proficient: false, is_expertise: false }
+        if (current.is_proficient && current.is_expertise) continue
+        skills[key] = { is_proficient: true, is_expertise: true }
+        changed = true
+      }
+      return changed ? { ...prev, skills } : prev
+    })
+  }, [model.draft.subclassGrants])
 
   // QA 22.10: backfill always-prepared mechanics (Bless concentration) + Artillerist lists.
   useEffect(() => {

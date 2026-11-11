@@ -380,6 +380,73 @@ export type CastEffectSpell = {
   duration?: string | null
 }
 
+/** Which half of a split upcast grows (Flame Strike: fire or radiant). */
+export type DamageTypeChoice = 'first' | 'second'
+
+export type CastEffectOptions = {
+  characterLevel: number
+  slotLevel: number
+  /** Spellcasting ability modifier. Replaces a literal `MOD` in the effect. */
+  spellMod?: number | null
+  /** Short source, e.g. МУД — shown next to the number. */
+  spellModLabel?: string | null
+  /** Flame Strike and the same PHB pattern: which damage type the extra dice join. */
+  damageChoice?: DamageTypeChoice
+}
+
+const SPLIT_DAMAGE_RE =
+  /^(\d+)\s*d\s*(\d+)\s+(\S+)\s*,\s*(\d+)\s*d\s*(\d+)\s+(\S+)$/i
+
+/**
+ * PHB Flame Strike: both damage types stay; above the base slot the caster
+ * picks which type grows. Returns null when the spell is not that pattern.
+ */
+export function resolveTypedDamageChoice(
+  spell: CastEffectSpell,
+  slotLevel: number,
+  choice: DamageTypeChoice = 'first',
+): string | null {
+  const higher = spell.higher_levels ?? ''
+  if (!/на ваш выбор|your choice/i.test(higher)) return null
+  const base = (spell.damage ?? '').trim()
+  const match = base.match(SPLIT_DAMAGE_RE)
+  if (!match) return null
+  const die = match[2]
+  if (die !== match[5]) return null
+  const extra = Math.max(0, Math.floor(slotLevel) - Math.max(1, Math.floor(spell.level) || 1))
+  const first = Number(match[1]) + (choice === 'first' ? extra : 0)
+  const second = Number(match[4]) + (choice === 'second' ? extra : 0)
+  return `${first}d${die} ${match[3]} + ${second}d${die} ${match[6]}`
+}
+
+export function spellOffersDamageTypeChoice(spell: CastEffectSpell): boolean {
+  return resolveTypedDamageChoice(spell, spell.level, 'first') != null
+}
+
+export function damageTypeChoiceLabels(
+  spell: CastEffectSpell,
+): { first: string; second: string } | null {
+  const match = (spell.damage ?? '').trim().match(SPLIT_DAMAGE_RE)
+  if (!match || !spellOffersDamageTypeChoice(spell)) return null
+  return { first: match[3] ?? 'первый', second: match[6] ?? 'второй' }
+}
+
+/** `1d8 + MOD` → `1d8+3 (МУД)`. Leaves the text alone when the modifier is unknown. */
+export function applySpellModPlaceholder(
+  effect: string,
+  spellMod: number | null | undefined,
+  sourceLabel?: string | null,
+): string {
+  if (spellMod == null || !Number.isFinite(spellMod) || !/\bMOD\b/.test(effect)) {
+    return effect
+  }
+  const n = Math.trunc(spellMod)
+  const signed = n >= 0 ? `+${n}` : `${n}`
+  const replaced = effect.replace(/\s*\+\s*MOD\b/g, signed).replace(/\bMOD\b/g, String(n))
+  const label = sourceLabel?.trim()
+  return label ? `${replaced} (${label})` : replaced
+}
+
 /**
  * Resolve effect dice/text for a cast.
  * Cantrips scale by character level; leveled spells by slot level (upcast).
@@ -388,8 +455,21 @@ export type CastEffectSpell = {
  */
 export function resolveCastEffect(
   spell: CastEffectSpell,
-  options: { characterLevel: number; slotLevel: number },
+  options: CastEffectOptions,
 ): { effect: string; scaled: boolean } {
+  const finish = (effect: string, scaled: boolean) => ({
+    effect: applySpellModPlaceholder(effect, options.spellMod, options.spellModLabel),
+    scaled,
+  })
+  const typed = resolveTypedDamageChoice(
+    spell,
+    options.slotLevel,
+    options.damageChoice ?? 'first',
+  )
+  if (typed) {
+    return finish(typed, Math.floor(options.slotLevel) > Math.max(1, spell.level))
+  }
+
   const base = typeof spell.damage === 'string' ? spell.damage.trim() : ''
   const isCantrip = spell.level <= 0
   const scaledRaw = isCantrip
@@ -401,18 +481,18 @@ export function resolveCastEffect(
     : scaleAtSlotLevel(spell.damage_at_slot_level, options.slotLevel, '')
 
   if (!scaledRaw) {
-    return { effect: base, scaled: false }
+    return finish(base, false)
   }
 
   const bareDice = /^\d+d\d+$/i.test(scaledRaw.trim())
   if (bareDice && base) {
     const suffix = base.match(/^\d+d\d+(\b.*)$/i)
     if (suffix) {
-      return { effect: `${scaledRaw.trim()}${suffix[1]}`, scaled: true }
+      return finish(`${scaledRaw.trim()}${suffix[1]}`, true)
     }
   }
 
-  return { effect: scaledRaw.trim(), scaled: true }
+  return finish(scaledRaw.trim(), true)
 }
 
 export type CastEffectSummary = {
@@ -461,7 +541,7 @@ export function parseTempHpRetaliationScale(
  */
 export function resolveCastEffectSummary(
   spell: CastEffectSpell,
-  options: { characterLevel: number; slotLevel: number },
+  options: CastEffectOptions,
 ): CastEffectSummary {
   const resolved = resolveCastEffect(spell, options)
   const lines: string[] = []

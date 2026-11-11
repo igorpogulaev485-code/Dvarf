@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { infusionById } from '../../shared/dnd/artificerInfusions'
+import { infusionAcceptsItem, infusionNeedsItem } from '../../shared/dnd/infusionItems'
 import {
   infusionCanTargetAlly,
   infusionSlotsMax,
@@ -9,11 +10,11 @@ import {
   type ActiveInfusionBinding,
   type InfusionTargetRef,
 } from '../../shared/dnd/infusionsActive'
-import { infusionShareEffectName } from '../../shared/dnd/infusionEffects'
+import { infusionShareAcBonus, infusionShareEffectName } from '../../shared/dnd/infusionEffects'
 import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
 import { FEATURE_RESOURCE_PREFIX } from '../../shared/dnd/featureResources'
 import type { SheetResource } from '../../shared/dnd/rest'
-import { shareLobbyEffect } from '../../shared/api/lobbies'
+import { syncLobbyInfusionEffects } from '../../shared/api/lobbies'
 import { AllyTargetFields } from '../lobby/AllyTargetFields'
 import { useLobbyParty } from '../lobby/useLobbyParty'
 import { Button, Dialog, Stack, Text } from '../../ui'
@@ -30,6 +31,13 @@ type InfusionsActiveDialogProps = {
   onSlotsUsedChange: (used: number) => void
   onToast: (message: string) => void
   onClose: () => void
+  /** Own inventory — a weapon/armor infusion must name one eligible row. */
+  items?: Array<{
+    id: string
+    name: string
+    equipped?: boolean
+    armor_kind?: string | null
+  }>
 }
 
 export function parseInfusionSlotsResourceId(
@@ -49,6 +57,7 @@ type DraftRow = {
   key: string
   infusionId: string
   target: InfusionTargetRef
+  itemId: string | null
 }
 
 let draftKeySeq = 0
@@ -69,6 +78,7 @@ export function InfusionsActiveDialog({
   onSlotsUsedChange,
   onToast,
   onClose,
+  items = [],
 }: InfusionsActiveDialogProps) {
   const maxSlots = infusionSlotsMax(artificerLevel)
   const known = useMemo(
@@ -84,10 +94,12 @@ export function InfusionsActiveDialog({
       key: nextDraftKey(),
       infusionId: row.infusionId,
       target: row.target,
+      itemId: row.itemId ?? null,
     })),
   )
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [pendingTarget, setPendingTarget] = useState<string>('')
+  const [pendingItemId, setPendingItemId] = useState<string>('')
   const [pendingEditKey, setPendingEditKey] = useState<string | null>(null)
   const [sharing, setSharing] = useState(false)
 
@@ -100,10 +112,12 @@ export function InfusionsActiveDialog({
         key: nextDraftKey(),
         infusionId: row.infusionId,
         target: row.target,
+        itemId: row.itemId ?? null,
       })),
     )
     setPendingId(null)
     setPendingTarget('')
+    setPendingItemId('')
     setPendingEditKey(null)
   }, [open, initialBindings])
 
@@ -135,15 +149,18 @@ export function InfusionsActiveDialog({
       return
     }
     const def = infusionById(infusionId)
-    if (!infusionCanTargetAlly(def) || party.options.length <= 1) {
+    const needsItem = infusionNeedsItem(infusionId)
+    const canAlly = Boolean(def && infusionCanTargetAlly(def) && party.options.length > 1)
+    if (!needsItem && !canAlly) {
       setDraft((prev) => [
         ...prev,
-        { key: nextDraftKey(), infusionId, target: 'self' },
+        { key: nextDraftKey(), infusionId, target: 'self', itemId: null },
       ])
       return
     }
     setPendingId(infusionId)
     setPendingTarget('')
+    setPendingItemId('')
     setPendingEditKey(null)
   }
 
@@ -155,54 +172,53 @@ export function InfusionsActiveDialog({
       return
     }
     const target = resolveTarget(pendingTarget)
+    const needsItem = infusionNeedsItem(pendingId) && target === 'self'
+    const eligible = items.filter((item) => infusionAcceptsItem(pendingId, item))
+    if (needsItem && !eligible.some((item) => item.id === pendingItemId)) {
+      onToast(
+        eligible.length
+          ? 'Выбери один подходящий предмет — бонус не ляжет на всё оружие'
+          : 'В инвентаре нет предмета, который принимает эту инфузию',
+      )
+      return
+    }
+    const itemId = needsItem ? pendingItemId : null
     if (pendingEditKey) {
       setDraft((prev) =>
         prev.map((row) =>
-          row.key === pendingEditKey ? { ...row, target } : row,
+          row.key === pendingEditKey ? { ...row, target, itemId: itemId ?? row.itemId } : row,
         ),
       )
     } else {
       setDraft((prev) => [
         ...prev,
-        { key: nextDraftKey(), infusionId: pendingId, target },
+        { key: nextDraftKey(), infusionId: pendingId, target, itemId },
       ])
     }
     setPendingId(null)
     setPendingTarget('')
+    setPendingItemId('')
     setPendingEditKey(null)
   }
 
-  async function shareAllyBindings(bindings: ActiveInfusionBinding[]) {
+  async function syncAllyMarks(bindings: ActiveInfusionBinding[]) {
     const allyRows = bindings.filter((row) => row.target !== 'self')
-    if (!allyRows.length) return
     if (!party.lobbyId) {
-      onToast('Нет лобби — инфузии на союзников не отправлены')
+      if (allyRows.length) onToast('Нет лобби — инфузии на союзников не отправлены')
       return
-    }
-    const byTarget = new Map<string, string[]>()
-    for (const row of allyRows) {
-      if (row.target === 'self') continue
-      const name = infusionShareEffectName(row, artificerLevel)
-      const list = byTarget.get(row.target) ?? []
-      list.push(name)
-      byTarget.set(row.target, list)
     }
     setSharing(true)
     try {
-      let applied = 0
-      for (const [targetId, names] of byTarget) {
-        for (const name of names) {
-          const res = await shareLobbyEffect(party.lobbyId, {
-            source_character_id: characterId,
-            name,
-            target_character_ids: [targetId],
-            linked_concentration: false,
-          })
-          applied += res.applied
-        }
-      }
-      if (applied > 0) {
-        onToast(`Инфузии на союзников: ${applied}`)
+      const res = await syncLobbyInfusionEffects(party.lobbyId, {
+        source_character_id: characterId,
+        effects: allyRows.map((row) => ({
+          target_character_id: row.target,
+          name: infusionShareEffectName(row, artificerLevel),
+          ac_bonus: infusionShareAcBonus(row, artificerLevel),
+        })),
+      })
+      if (allyRows.length) {
+        onToast(`Инфузии на союзников: ${res.applied}`)
       }
     } catch (err) {
       onToast(
@@ -219,12 +235,13 @@ export function InfusionsActiveDialog({
     const bindings: ActiveInfusionBinding[] = draft.map((row) => ({
       infusionId: row.infusionId,
       target: row.target,
+      itemId: row.itemId,
     }))
     onFeaturePicksChange(
       setActiveInfusionBindings(featurePicks, classEntryId, bindings),
     )
     onSlotsUsedChange(bindings.length)
-    await shareAllyBindings(bindings)
+    await syncAllyMarks(bindings)
     const selfCount = bindings.filter((row) => row.target === 'self').length
     const allyCount = bindings.length - selfCount
     onToast(
@@ -279,6 +296,26 @@ export function InfusionsActiveDialog({
             <Text tone="muted">
               Пустой слот = на себе ({characterName || 'ты'}).
             </Text>
+            {infusionNeedsItem(pendingId) && resolveTarget(pendingTarget) === 'self' ? (
+              <label>
+                <Text tone="muted">Предмет инфузии</Text>
+                <select
+                  className="ui-input"
+                  value={pendingItemId}
+                  onChange={(event) => setPendingItemId(event.target.value)}
+                >
+                  <option value="">Выбери один предмет</option>
+                  {items
+                    .filter((item) => infusionAcceptsItem(pendingId, item))
+                    .map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name || 'предмет'}
+                        {item.equipped ? ' · надет' : ''}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            ) : null}
             <div className="chip-row">
               <Button type="button" variant="primary" onClick={confirmPending}>
                 Подтвердить
@@ -289,6 +326,7 @@ export function InfusionsActiveDialog({
                 onClick={() => {
                   setPendingId(null)
                   setPendingTarget('')
+                  setPendingItemId('')
                   setPendingEditKey(null)
                 }}
               >
@@ -315,6 +353,9 @@ export function InfusionsActiveDialog({
                     {on && row ? (
                       <span>
                         Цель: {targetLabel(row.target)}
+                        {row.itemId
+                          ? ` · ${items.find((item) => item.id === row.itemId)?.name || 'предмет'}`
+                          : ''}
                         {infusionCanTargetAlly(def) &&
                         party.options.length > 1 ? (
                           <>

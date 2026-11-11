@@ -48,6 +48,7 @@ from app.schemas.lobby import (
     LobbyDetail,
     LobbyShareEffectRequest,
     LobbyShareEffectResponse,
+    LobbySyncInfusionEffectsRequest,
     LobbySummary,
     LobbyUpdateRequest,
     SeatCompanionCreateRequest,
@@ -181,6 +182,20 @@ def share_lobby_effect(
 ) -> LobbyShareEffectResponse:
     """С листа: повесить эффект на союзников лобби (данные → их sheet.combat.effects)."""
     return LobbyService(db).share_effect(current_user, lobby_id, payload)
+
+
+@router.post(
+    "/lobbies/{lobby_id}/sync-infusion-effects",
+    response_model=LobbyShareEffectResponse,
+)
+def sync_lobby_infusion_effects(
+    lobby_id: UUID,
+    payload: LobbySyncInfusionEffectsRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> LobbyShareEffectResponse:
+    """Инфузия на союзника: записать КД в его лист и снять пометку, когда инфузию убрали."""
+    return LobbyService(db).sync_infusion_effects(current_user, lobby_id, payload)
 
 
 @router.delete("/lobbies/{lobby_id}/members/{character_id}", response_model=LobbyDetail)

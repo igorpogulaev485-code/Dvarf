@@ -370,6 +370,8 @@ class SeatEffectOut(BaseModel):
     source_character_id: str | None = None
     source_name: str | None = None
     linked_concentration: bool = False
+    origin: str | None = None
+    ac_bonus: int | None = None
 
 
 class SessionSeatOut(BaseModel):
@@ -403,6 +405,21 @@ class SeatCombatPatchRequest(BaseModel):
     effects: list[SeatEffectOut] | None = None
     concentration: SeatConcentrationOut | None = None
     clear_concentration: bool = False
+
+
+class InfusionEffectShare(BaseModel):
+    """One ally-bound infusion mark. ac_bonus feeds the target's sheet AC."""
+
+    target_character_id: UUID
+    name: str = Field(min_length=1, max_length=160)
+    ac_bonus: int = Field(default=0, ge=0, le=20)
+
+
+class LobbySyncInfusionEffectsRequest(BaseModel):
+    """Replace every infusion mark from this artificer, then write the current set."""
+
+    source_character_id: UUID
+    effects: list[InfusionEffectShare] = Field(default_factory=list)
 
 
 class LobbyShareEffectRequest(BaseModel):

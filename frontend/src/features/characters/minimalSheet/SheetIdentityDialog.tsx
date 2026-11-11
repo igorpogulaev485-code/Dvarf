@@ -17,7 +17,10 @@ import {
 } from '../../../ui'
 import { isRaceComboboxRoot, raceSizeLabel } from '../../../shared/dnd/raceGrants'
 import { revokeClassAsiBonuses } from '../../../shared/dnd/classAsi'
-import { syncSkillsExpertiseFromPicks } from '../../../shared/dnd/expertise'
+import {
+  knowledgeBlessingSkillIds,
+  syncSkillsExpertiseFromPicks,
+} from '../../../shared/dnd/expertise'
 import { clearFeaturePicksAboveClassLevel, listUnlockedExpertiseKeys } from '../../../shared/dnd/pendingFeatureChoices'
 import { revokeFeatGrantFromDraft, revokeFeatGrantsForAsi, revokeFeatGrantsForBackground, syncFeatProficiencyResources } from '../featEffects'
 import { syncHitDicePools } from '../../../shared/dnd/classHitDice'
@@ -295,6 +298,9 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                   skills: featBase.skills,
                                   featurePicks: nextPicks,
                                   expertiseKeys: listUnlockedExpertiseKeys(nextUnlocked),
+                                  alsoExpertiseSkillIds: knowledgeBlessingSkillIds(
+                                    featBase.subclassGrants,
+                                  ),
                                 })
                                 const synced = model.mergeFeatSlice(
                                   {

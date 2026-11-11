@@ -32,8 +32,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             proficiencyBonus={model.proficiencyBonus}
             gearBonusesByItem={model.gearEffects.byItem}
             fightingStyleId={model.activeFightingStyleId}
-            infusionAttackBonus={model.infusionBonuses.weaponAttackBonus}
-            infusionDamageBonus={model.infusionBonuses.weaponDamageBonus}
+            infusionByItem={model.infusionBonuses.weaponByItem}
+            shillelagh={model.draft.play.shillelagh ?? null}
             martialArtsDie={model.martialArtsDie}
             resources={model.draft.play.resources}
             inventoryItems={model.draft.inventory.items}
@@ -120,8 +120,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           weaponProficiency={model.draft.identity.weapons}
           gearBonusesByItem={model.gearEffects.byItem}
           fightingStyleId={model.activeFightingStyleId}
-          infusionAttackBonus={model.infusionBonuses.weaponAttackBonus}
-          infusionDamageBonus={model.infusionBonuses.weaponDamageBonus}
+          infusionByItem={model.infusionBonuses.weaponByItem}
+          shillelagh={model.draft.play.shillelagh ?? null}
           martialArtsDie={model.martialArtsDie}
           onChange={(weapons) => model.setDraft((prev) => ({ ...prev, weapons }))}
           onToggleHeld={(attack) => {

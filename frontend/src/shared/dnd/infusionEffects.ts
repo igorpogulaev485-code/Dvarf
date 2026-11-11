@@ -18,6 +18,7 @@ import {
   listActiveInfusionBindings,
   type ActiveInfusionBinding,
 } from './infusionsActive'
+import { infusionAcceptsItem, type InfusionItemShape } from './infusionItems'
 import type { FeaturePicksState } from './featurePicks'
 
 export type InfusionBonuses = {
@@ -30,6 +31,8 @@ export type InfusionBonuses = {
   abilityFloor: Partial<Record<AbilityScoreKey, number>>
   /** Short RU chips for AC / attack summaries. */
   labels: string[]
+  /** Weapon +hit/+dmg keyed by the infused inventory row. Empty item → no bonus. */
+  weaponByItem: Record<string, { attack: number; damage: number }>
   activeDefs: ArtificerInfusionDef[]
   /** Bindings aimed at lobby allies (for share-effect sync). */
   allyBindings: ActiveInfusionBinding[]
@@ -44,6 +47,7 @@ const EMPTY: InfusionBonuses = {
   darkvisionFt: 0,
   abilityFloor: {},
   labels: [],
+  weaponByItem: {},
   activeDefs: [],
   allyBindings: [],
 }
@@ -84,10 +88,6 @@ function accumulateEffects(
   }
 
   const ac = resolveInfusionNumericBonus(fx.acBonus, level)
-  if (ac) {
-    acc.acBonus += ac
-    acc.labels.push(`${label} +${ac} КД`)
-  }
   if (
     fx.acBonusUnarmoredUnshielded &&
     !input.wearingArmor &&
@@ -95,14 +95,6 @@ function accumulateEffects(
   ) {
     acc.acBonus += fx.acBonusUnarmoredUnshielded
     acc.labels.push(`${label} +${fx.acBonusUnarmoredUnshielded} КД`)
-  }
-
-  const wAtk = resolveInfusionNumericBonus(fx.weaponAttackBonus, level)
-  const wDmg = resolveInfusionNumericBonus(fx.weaponDamageBonus, level)
-  if (wAtk) acc.weaponAttackBonus += wAtk
-  if (wDmg) acc.weaponDamageBonus += wDmg
-  if (wAtk || wDmg) {
-    acc.labels.push(`${label} оружие +${wAtk || 0}/+${wDmg || 0}`)
   }
 
   const sAtk = resolveInfusionNumericBonus(fx.spellAttackBonus, level)
@@ -134,8 +126,6 @@ function accumulateEffects(
   if (
     !ac &&
     !fx.acBonusUnarmoredUnshielded &&
-    !wAtk &&
-    !wDmg &&
     !sAtk &&
     !fx.saveBonus &&
     !fx.abilityFloor
@@ -153,6 +143,8 @@ export function aggregateInfusionBonuses(input: {
   classes: ClassLevelEntry[]
   wearingArmor: boolean
   wearingShield: boolean
+  /** Inventory rows — weapon/AC bonuses apply only to the bound item. */
+  items?: InfusionItemShape[]
 }): InfusionBonuses {
   const entries = listArtificerEntries(input.classes)
   if (!entries.length) return EMPTY
@@ -166,6 +158,7 @@ export function aggregateInfusionBonuses(input: {
     darkvisionFt: 0,
     abilityFloor: {},
     labels: [],
+    weaponByItem: {},
     activeDefs: [],
     allyBindings: [],
   }
@@ -184,14 +177,40 @@ export function aggregateInfusionBonuses(input: {
         binding.infusionId,
         binding.replicateItemSlug,
       )
-      accumulateEffects(
-        displayName(binding, def),
-        fx,
-        level,
-        input,
-        acc,
-        def,
-      )
+      const label = displayName(binding, def)
+      accumulateEffects(label, fx, level, input, acc, def)
+      if (!fx) continue
+      const itemId = binding.itemId?.trim() || ''
+      const item = itemId ? input.items?.find((row) => row.id === itemId) : undefined
+      const itemOk =
+        Boolean(itemId) &&
+        (item
+          ? infusionAcceptsItem(binding.infusionId, item)
+          : input.items == null)
+      const wAtk = resolveInfusionNumericBonus(fx.weaponAttackBonus, level)
+      const wDmg = resolveInfusionNumericBonus(fx.weaponDamageBonus, level)
+      if (itemOk && itemId && (wAtk || wDmg)) {
+        const prev = acc.weaponByItem[itemId] ?? { attack: 0, damage: 0 }
+        acc.weaponByItem[itemId] = {
+          attack: prev.attack + (wAtk || 0),
+          damage: prev.damage + (wDmg || 0),
+        }
+        acc.labels.push(`${label} → предмет +${wAtk || 0}/+${wDmg || 0}`)
+      }
+      if (fx.acBonus && itemId) {
+        const worn = item ? Boolean(item.equipped) : input.items == null
+        const n = resolveInfusionNumericBonus(fx.acBonus, level)
+        if (n && worn && itemOk) {
+          acc.acBonus += n
+          acc.labels.push(`${label} +${n} КД`)
+        }
+      } else if (fx.acBonus && !itemId) {
+        const n = resolveInfusionNumericBonus(fx.acBonus, level)
+        if (n) {
+          acc.acBonus += n
+          acc.labels.push(`${label} +${n} КД`)
+        }
+      }
     }
   }
 
@@ -212,6 +231,19 @@ export function applyInfusionAbilityFloors<T extends Record<AbilityScoreKey, num
     if (next[key] < floor) next[key] = floor
   }
   return next
+}
+
+/** Flat AC an ally's sheet should gain from this infusion (0 if it is not an AC infusion). */
+export function infusionShareAcBonus(
+  binding: ActiveInfusionBinding,
+  artificerLevel: number,
+): number {
+  const fx = resolveActiveInfusionEffects(
+    binding.infusionId,
+    binding.replicateItemSlug,
+  )
+  if (!fx?.acBonus) return 0
+  return resolveInfusionNumericBonus(fx.acBonus, artificerLevel)
 }
 
 /** RU label for lobby share-effect on an ally. */

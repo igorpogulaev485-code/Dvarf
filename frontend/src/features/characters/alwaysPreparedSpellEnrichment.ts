@@ -21,14 +21,62 @@ function norm(value: string): string {
 
 const byEn = new Map<string, CatalogSpellEntry>()
 const byRu = new Map<string, CatalogSpellEntry>()
+const byId = new Map<string, CatalogSpellEntry>()
 
 for (const raw of bundledSpells2014 as CatalogSpellEntry[]) {
   if (!raw || typeof raw.id !== 'string') continue
+  byId.set(raw.id, raw)
+  if (typeof raw.slug === 'string' && raw.slug.trim()) {
+    byId.set(raw.slug, raw)
+  }
   if (typeof raw.name_en === 'string' && raw.name_en.trim()) {
     byEn.set(norm(raw.name_en), raw)
   }
   if (typeof raw.name_ru === 'string' && raw.name_ru.trim()) {
     byRu.set(norm(raw.name_ru), raw)
+  }
+}
+
+function bundledEntryForSheetSpell(spell: {
+  name?: string | null
+  catalog_id?: string | null
+}): CatalogSpellEntry | null {
+  const catalog = spell.catalog_id?.trim()
+  if (catalog) {
+    const byCatalog = byId.get(catalog) ?? byEn.get(norm(catalog)) ?? byRu.get(norm(catalog))
+    if (byCatalog) return byCatalog
+  }
+  const name = spell.name?.trim()
+  if (!name) return null
+  return byRu.get(norm(name)) ?? byEn.get(norm(name)) ?? null
+}
+
+/**
+ * Combat fields from the 2014 catalog (components, save, damage, upcast).
+ * Sheet rows keep their id, preparation and class; rules text comes from the book.
+ */
+export function withBundledRules<T extends SheetSpell>(spell: T): T {
+  if (spell.source_kind === 'custom') return spell
+  const entry = bundledEntryForSheetSpell(spell)
+  if (!entry) return spell
+  const fromCatalog = sheetSpellFromCatalog({
+    id: entry.id,
+    name_ru: entry.name_ru,
+    slug: entry.slug,
+    data: entry.data,
+  })
+  return {
+    ...spell,
+    components: fromCatalog.components ?? spell.components,
+    attack_or_save: fromCatalog.attack_or_save || spell.attack_or_save,
+    damage: fromCatalog.damage || spell.damage,
+    damage_at_character_level:
+      fromCatalog.damage_at_character_level ?? spell.damage_at_character_level,
+    damage_at_slot_level: fromCatalog.damage_at_slot_level ?? spell.damage_at_slot_level,
+    higher_levels: fromCatalog.higher_levels || spell.higher_levels,
+    description: spell.description || fromCatalog.description,
+    duration: spell.duration || fromCatalog.duration,
+    concentration: spell.concentration || fromCatalog.concentration,
   }
 }
 

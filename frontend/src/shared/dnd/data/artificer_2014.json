@@ -313,14 +313,15 @@
         "level": 9,
         "name_ru": "Восстанавливающие реагенты",
         "name_en": "Restorative Reagents",
-        "summary_ru": "Эликсир даёт 2к6+Инт вр. хитов. Бесплатный lesser restoration PB раз / прод. отдых.",
+        "summary_ru": "Эликсир даёт 2к6+Инт вр. хитов. Бесплатный lesser restoration = мод. Интеллекта (минимум 1) / прод. отдых.",
         "kind": "action",
         "resource": {
-          "uses": 2,
-          "uses_from": "proficiency_bonus",
+          "uses": 1,
+          "uses_from": "ability_modifier",
+          "ability": "int",
           "recharge": "long_rest",
           "pool_id": "restorative_reagents",
-          "pool_name_ru": "Lesser Restoration (реагенты)",
+          "pool_name_ru": "Малое восстановление (реагенты)",
           "track": "spend"
         }
       },
@@ -329,14 +330,21 @@
         "level": 15,
         "name_ru": "Химическое мастерство",
         "name_en": "Chemical Mastery",
-        "summary_ru": "Сопр. кислоте и яду; иммунитет к отравленному. Бесплатные greater restoration и heal 1× / прод. отдых каждое.",
+        "summary_ru": "Сопр. кислоте и яду; иммунитет к отравленному. Высшее восстановление и Полное исцеление — по 1 разу каждое / прод. отдых, без ячейки и без компонентов, фокус — инструменты алхимика.",
         "kind": "action",
         "resource": {
-          "uses": 2,
+          "uses": 1,
           "recharge": "long_rest",
-          "pool_id": "chemical_mastery",
-          "pool_name_ru": "Химическое мастерство",
-          "track": "spend"
+          "pool_id": "chemical_mastery_greater_restoration",
+          "pool_name_ru": "Высшее восстановление",
+          "track": "spend",
+          "alt_pools": [
+            {
+              "pool_id": "chemical_mastery_heal",
+              "pool_name_ru": "Полное исцеление",
+              "uses": 1
+            }
+          ]
         }
       }
     ],

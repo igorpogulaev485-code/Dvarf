@@ -620,10 +620,22 @@ export function applySubclassGrantToDraft(input: {
   if (input.def.sheetGrants.weapons.martial) weaponKeys.push('martial')
   const weaponExtras = [...input.def.sheetGrants.weapons.extras]
 
+  const knowledgeExpertise =
+    input.def.slug === 'knowledge_domain'
+      ? new Set(
+          skillsApplied.filter((key) =>
+            ['arcana', 'history', 'nature', 'religion'].includes(key),
+          ),
+        )
+      : new Set<string>()
   const skills = { ...cleared.skills }
   for (const key of skillsApplied) {
     const current = skills[key] ?? { is_proficient: false, is_expertise: false }
-    skills[key] = { ...current, is_proficient: true }
+    skills[key] = {
+      ...current,
+      is_proficient: true,
+      is_expertise: current.is_expertise || knowledgeExpertise.has(key),
+    }
   }
 
   const armor: ArmorProficiency = { ...cleared.identity.armor }

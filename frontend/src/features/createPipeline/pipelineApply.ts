@@ -65,6 +65,7 @@ import {
   resolveWalkSpeedFt,
 } from '../../shared/dnd/classMovement'
 import {
+  knowledgeBlessingSkillIds,
   syncSkillsExpertiseFromPicks,
 } from '../../shared/dnd/expertise'
 import { listUnlockedExpertiseKeys } from '../../shared/dnd/pendingFeatureChoices'
@@ -1239,6 +1240,7 @@ export async function applyPipelineToSheet(input: {
     skills: draft.skills,
     featurePicks,
     expertiseKeys: listUnlockedExpertiseKeys(unlocked),
+    alsoExpertiseSkillIds: knowledgeBlessingSkillIds(draft.subclassGrants),
   })
 
   // 6) HP from pipeline choices (override class L1 max; after ASI so CON is final)
