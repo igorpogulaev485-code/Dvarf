@@ -448,6 +448,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         resource={model.arcanumResource}
         features={model.unlockedFeatures}
         resources={model.draft.play.resources}
+        featurePicks={model.draft.featurePicks}
         onSpend={(poolResourceId, label) => {
           model.setDraft((prev) => ({
             ...prev,

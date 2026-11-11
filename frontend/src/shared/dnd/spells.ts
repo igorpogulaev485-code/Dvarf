@@ -13,6 +13,11 @@ export const SPELLCASTING_ABILITY_LABELS: Record<SpellcastingAbility, string> = 
 export type SpellSlotState = {
   max: number
   used: number
+  /**
+   * Extra slots created by Flexible Casting (PHB).
+   * Included in `max`; removed on a long rest.
+   */
+  flexible?: number
 }
 
 export function isSpellcastingAbility(value: unknown): value is SpellcastingAbility {
@@ -30,7 +35,28 @@ export function spellAttackBonus(abilityMod: number, proficiencyBonus: number): 
 export function clampSlot(slot: SpellSlotState): SpellSlotState {
   const max = Math.max(0, Math.floor(slot.max))
   const used = Math.min(max, Math.max(0, Math.floor(slot.used)))
+  const flexible = Math.min(max, Math.max(0, Math.floor(slot.flexible ?? 0)))
+  if (flexible > 0) return { max, used, flexible }
   return { max, used }
+}
+
+/** PHB Flexible Casting: one new slot of level 1–5. It vanishes on a long rest. */
+export function addFlexibleSpellSlot(
+  slots: Record<string, SpellSlotState>,
+  level: number,
+): Record<string, SpellSlotState> | null {
+  const circle = Math.floor(level)
+  if (circle < 1 || circle > 5) return null
+  const key = String(circle)
+  const current = clampSlot(slots[key] ?? { max: 0, used: 0 })
+  return {
+    ...slots,
+    [key]: clampSlot({
+      max: current.max + 1,
+      used: current.used,
+      flexible: (current.flexible ?? 0) + 1,
+    }),
+  }
 }
 
 /** Pip index click: free from this pip, or spend up to this pip inclusive. */
@@ -94,7 +120,11 @@ export function spendSpellSlot(
     ok: true,
     slots: {
       ...slots,
-      [key]: { max: current.max, used: current.used + 1 },
+      [key]: clampSlot({
+        max: current.max,
+        used: current.used + 1,
+        flexible: current.flexible,
+      }),
     },
   }
 }

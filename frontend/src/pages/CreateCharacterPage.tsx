@@ -2462,6 +2462,7 @@ export function CreateCharacterPage() {
         edition="2014"
         spells={spells}
         classes={state.classes}
+        featurePicks={state.featurePicks}
         knownCaster={
           spellLearnBudgets.some((row) => row.mode === 'known') ||
           spellLearnBudget?.mode === 'known'

@@ -5,6 +5,7 @@ import {
   SunSoulKiControls,
 } from './Pack09FeatureExtras'
 import { isPack03CustomSpend, Pack03FeatureExtras } from './Pack03FeatureExtras'
+import { Pack04FeatureExtras } from './Pack04FeatureExtras'
 import type { RulesEdition } from '../../shared/api/characters'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
@@ -57,7 +58,17 @@ import {
   invocationById,
   WARLOCK_PACT_BOONS,
 } from '../../shared/dnd/warlockInvocations'
-import { canSpendSlot, spendSpellSlot, slotsRemaining } from '../../shared/dnd/spells'
+import {
+  invocationIsSelectable,
+  invocationPrerequisiteError,
+  pack04CustomSpendFeature,
+} from '../../shared/dnd/pack04SorcererWarlock'
+import {
+  addFlexibleSpellSlot,
+  canSpendSlot,
+  spendSpellSlot,
+  slotsRemaining,
+} from '../../shared/dnd/spells'
 import {
   clearSuccessLock,
   consumeStock,
@@ -633,7 +644,7 @@ function FeatureResourceControls({
                 : 'Потратить…'
               : 'Через Дикий облик…'}
           </Button>
-        ) : isPack03CustomSpend(feature.id) ? null : onWizardFeatureUse && wizardResolvedFeatureId(feature.id) ? (
+        ) : isPack03CustomSpend(feature.id) || pack04CustomSpendFeature(feature.id) ? null : onWizardFeatureUse && wizardResolvedFeatureId(feature.id) ? (
           <Button
             type="button"
             disabled={
@@ -873,6 +884,7 @@ function FeatureChoiceControls({
     : choice.options_from === 'artificer_infusions'
       ? infusionOptionIdsAtLevel(feature.classLevel)
       : resolveFeatureChoiceOptions(choice)
+  const pactBoonId = getFeaturePick(featurePicks, feature.classEntryId, 'pact_boon')
   const visibleOptions =
     choice.options_from === 'monk_elemental_disciplines'
       ? options.filter((id) => {
@@ -880,7 +892,9 @@ function FeatureChoiceControls({
           if (!disc || disc.id === 'elemental_attunement') return false
           return disc.minLevel == null || disc.minLevel <= feature.classLevel
         })
-      : options
+      : choice.options_from === 'warlock_invocations'
+        ? options
+        : options
   const maxPicks = resolveChoiceMaxPicks(choice, feature.classLevel)
   const multi = maxPicks > 1 || Boolean(choice.max_picks_by_level) || Boolean(choice.max_picks && choice.max_picks > 1)
   const selectedListRaw = multi
@@ -1114,7 +1128,19 @@ function FeatureChoiceControls({
               <Button
                 key={optionId}
                 type="button"
-                disabled={(!multi && active) || pendingReplicate}
+                disabled={
+                  (!multi && active) ||
+                  pendingReplicate ||
+                  (choice.options_from === 'warlock_invocations' &&
+                    !active &&
+                    !invocationIsSelectable(optionId, feature.classLevel, pactBoonId))
+                }
+                title={
+                  choice.options_from === 'warlock_invocations'
+                    ? invocationPrerequisiteError(optionId, feature.classLevel, pactBoonId) ??
+                      undefined
+                    : undefined
+                }
                 onClick={() => {
                   if (replicateLearn && multi) {
                     if (selectedList.length >= maxPicks) {
@@ -1126,6 +1152,20 @@ function FeatureChoiceControls({
                     return
                   }
                   if (multi) {
+                    if (
+                      choice.options_from === 'warlock_invocations' &&
+                      !selectedList.includes(optionId)
+                    ) {
+                      const gate = invocationPrerequisiteError(
+                        optionId,
+                        feature.classLevel,
+                        pactBoonId,
+                      )
+                      if (gate) {
+                        onToast?.(gate)
+                        return
+                      }
+                    }
                     if (
                       choice.options_from === 'kensei_weapons' &&
                       maxPicks === 2 &&
@@ -1348,22 +1388,18 @@ function FlexibleCastingControls({
           )
         })}
       </div>
-      <Text tone="muted">Очки → ячейка (стоимость PHB)</Text>
+      <Text tone="muted">
+        Очки → новая ячейка до 5 круга (PHB). Созданная ячейка исчезает после продолжительного отдыха.
+      </Text>
       <div className="feature-resource__actions">
         {[1, 2, 3, 4, 5].map((level) => {
           const cost = FLEXIBLE_CASTING_SLOT_COST[level] ?? 99
-          const slot = spells.slots[String(level)]
-          const canRegain = Boolean(slot && slot.used > 0)
           return (
             <Button
               key={`to-slot-${level}`}
               type="button"
-              disabled={left < cost || !canRegain}
-              title={
-                canRegain
-                  ? undefined
-                  : 'Нет потраченной ячейки этого уровня — сначала потрать ячейку или увеличь max вручную'
-              }
+              disabled={left < cost}
+              title="Создать дополнительную ячейку, даже если круг полон"
               onClick={() => {
                 const spResult = spendPoolUses({
                   resources,
@@ -1377,12 +1413,48 @@ function FlexibleCastingControls({
                   onToast?.(spResult.message)
                   return
                 }
-                const key = String(level)
-                const current = spells.slots[key] ?? { max: 0, used: 0 }
-                if (current.used <= 0) {
-                  onToast?.('Нет потраченной ячейки для восстановления')
+                const nextSlots = addFlexibleSpellSlot(spells.slots, level)
+                if (!nextSlots) return
+                onResourcesChange(spResult.resources)
+                onSpellsChange({ ...spells, slots: nextSlots })
+                const created = nextSlots[String(level)]
+                onToast?.(
+                  `Новая ячейка ${level} ур.: −${cost} очк. (${slotsRemaining(created)} св., доп. ${created?.flexible ?? 1})`,
+                )
+              }}
+            >
+              Новая {level} (−{cost})
+            </Button>
+          )
+        })}
+      </div>
+      <div className="feature-resource__actions">
+        {[1, 2, 3, 4, 5].map((level) => {
+          const cost = FLEXIBLE_CASTING_SLOT_COST[level] ?? 99
+          const slot = spells.slots[String(level)]
+          const canRegain = Boolean(slot && slot.used > 0)
+          if (!canRegain) return null
+          return (
+            <Button
+              key={`regain-${level}`}
+              type="button"
+              variant="secondary"
+              disabled={left < cost}
+              onClick={() => {
+                const spResult = spendPoolUses({
+                  resources,
+                  classSlug,
+                  poolId: 'sorcery_points',
+                  classEntryId: feature.classEntryId,
+                  amount: cost,
+                  label: `Вернуть ячейку ${level}`,
+                })
+                if (!spResult.ok) {
+                  onToast?.(spResult.message)
                   return
                 }
+                const key = String(level)
+                const current = spells.slots[key] ?? { max: 0, used: 0 }
                 onResourcesChange(spResult.resources)
                 onSpellsChange({
                   ...spells,
@@ -1391,15 +1463,14 @@ function FlexibleCastingControls({
                     [key]: {
                       max: current.max,
                       used: Math.max(0, current.used - 1),
+                      ...(current.flexible ? { flexible: current.flexible } : {}),
                     },
                   },
                 })
-                onToast?.(
-                  `Очки→ячейка ${level}: −${cost} очк., ячейка восстановлена (${slotsRemaining({ max: current.max, used: current.used - 1 })} св.)`,
-                )
+                onToast?.(`Вернули потраченную ячейку ${level} ур. (−${cost} очк.)`)
               }}
             >
-              −{cost}→{level} ур.
+              Вернуть {level}
             </Button>
           )
         })}
@@ -2033,6 +2104,26 @@ function FeatureRow({
           onFeatureSelfForm={onFeatureSelfForm}
           onWizardFeatureUse={onWizardFeatureUse}
           moonCombatWildShape={moonCombatWildShape}
+        />
+      ) : null}
+      {replacementStatus === 'active' ? (
+        <Pack04FeatureExtras
+          feature={feature}
+          classSlug={classSlug}
+          resources={resources}
+          onResourcesChange={onResourcesChange}
+          featurePicks={featurePicks}
+          onFeaturePicksChange={onFeaturePicksChange}
+          spells={spells}
+          onSpellsChange={onSpellsChange}
+          onToast={onToast}
+          subclassSlug={feature.subclassSlug}
+          onSetConcentration={(name) =>
+            onConcentrationChange?.({
+              spell_id: `pack04:${feature.id}`,
+              name,
+            })
+          }
         />
       ) : null}
       {replacementStatus === 'active' ? (

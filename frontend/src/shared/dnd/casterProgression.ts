@@ -1012,9 +1012,10 @@ export function applySpellcastingSuggestion(
   const slots: Record<string, SpellSlotState> = {}
   for (let level = 1; level <= 9; level += 1) {
     const key = String(level)
-    const max = suggestion.slots[key]?.max ?? 0
+    const flexible = current.slots[key]?.flexible ?? 0
+    const max = (suggestion.slots[key]?.max ?? 0) + flexible
     const used = current.slots[key]?.used ?? 0
-    slots[key] = clampSlot({ max, used })
+    slots[key] = clampSlot({ max, used, flexible })
   }
 
   let pact_slots: PactSlotState | null = null

@@ -26,6 +26,7 @@ import {
   type SubclassCasterOverlay,
 } from '../../shared/dnd/casterProgression'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
+import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
 import {
   catalogEntryClasses,
   catalogEntryLevel,
@@ -52,6 +53,7 @@ import {
   resolveWizardCopyMods,
 } from '../../shared/dnd/wizardSpellbook'
 import { resolveSubclassFeatureSlug } from '../../shared/dnd/classFeatures'
+import { pack04ExtraClassList } from '../../shared/dnd/pack04SorcererWarlock'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
 import {
   syncWizardSpellbookWithInventory,
@@ -118,6 +120,8 @@ type GrimoireDialogProps = {
   initialClassFilter?: string | null
   /** M4 §2.5 verbs: create / level-up / sheet. */
   accessContext?: SpellAccessContext
+  /** Genie kind and other feature picks that widen a class list. */
+  featurePicks?: FeaturePicksState | null
   onChange: (spells: SpellsState) => void
   onClose: () => void
   onToast?: (message: string) => void
@@ -182,6 +186,7 @@ export function GrimoireDialog({
   inventoryItems = [],
   initialClassFilter = null,
   accessContext = 'sheet',
+  featurePicks = null,
   onChange,
   onClose,
   onToast,
@@ -278,10 +283,17 @@ export function GrimoireDialog({
   })
 
   /** M5: one shelf per caster profile (alone-max, not shared slots). */
-  const shelves: GrimoireShelfSource[] = useMemo(
-    () => buildGrimoireShelfSources(access.profiles),
-    [access.profiles],
-  )
+  const shelves: GrimoireShelfSource[] = useMemo(() => {
+    const built = buildGrimoireShelfSources(access.profiles)
+    if (!featurePicks) return built
+    return built.map((shelf) => {
+      if (shelf.slug !== 'warlock' && shelf.listSlug !== 'warlock') return shelf
+      const warlock = classes.find((row) => /колдун|warlock/i.test(row.name))
+      if (!warlock) return shelf
+      const kind = featurePicks.values[`${warlock.id}:genies_vessel`] ?? null
+      return kind ? { ...shelf, genieKind: kind } : shelf
+    })
+  }, [access.profiles, classes, featurePicks])
   const wizardRow = useMemo(() => {
     return (
       classes.find((item) => {
@@ -460,6 +472,7 @@ export function GrimoireDialog({
             level,
             shelfList,
             parsed.subclasses,
+            entry.slug,
           )
         ) {
           return false
@@ -467,14 +480,25 @@ export function GrimoireDialog({
       } else {
         const onList = access.classSlugs.some((slug) => {
           const shelf = shelves.find((row) => row.slug === slug)
-          return spellAvailableOnClassList({
-            classes: parsed.classes,
-            subclasses: parsed.subclasses,
-            classSlug: slug,
-            subclassSlug:
-              shelf?.subclassSlug ??
-              (slug === 'wizard' ? wizardSubclassSlug : null),
-          })
+          return (
+            spellAvailableOnClassList({
+              classes: parsed.classes,
+              subclasses: parsed.subclasses,
+              classSlug: slug,
+              subclassSlug:
+                shelf?.subclassSlug ??
+                (slug === 'wizard' ? wizardSubclassSlug : null),
+            }) ||
+            pack04ExtraClassList({
+              catalogClasses: parsed.classes,
+              spellSlug: entry.slug,
+              shelfSlug: slug,
+              subclassSlug:
+                shelf?.subclassSlug ??
+                (slug === 'wizard' ? wizardSubclassSlug : null),
+              genieKind: shelf?.genieKind,
+            })
+          )
         })
         if (!onList) return false
         if (parsed.level > 0 && parsed.level > access.maxSpellLevel) return false
@@ -571,6 +595,7 @@ export function GrimoireDialog({
           catalogEntryLevel(entry),
           shelf,
           parsed.subclasses,
+          entry.slug,
         )
       })
       return { shelf, groups: entriesToLevelGroups(list) }
@@ -678,8 +703,17 @@ export function GrimoireDialog({
       onToast?.('Нет класса с заклинаниями')
       return
     }
+    const divineSoul = shelves.some(
+      (shelf) =>
+        (shelf.slug === 'sorcerer' || shelf.listSlug === 'sorcerer') &&
+        shelf.subclassSlug === 'divine_soul',
+    )
+    const acquireClasses =
+      divineSoul && parsed.classes.includes('cleric')
+        ? [...parsed.classes, 'sorcerer']
+        : parsed.classes
     const acquisitionSlugPreview = resolveSpellAcquisitionSlug({
-      catalogClassSlugs: parsed.classes,
+      catalogClassSlugs: acquireClasses,
       profiles: access.profiles,
       classFilter: shelfSlug?.trim() || classFilter,
     })
@@ -689,14 +723,23 @@ export function GrimoireDialog({
     }
     const onList = access.classSlugs.some((slug) => {
       const shelf = shelves.find((row) => row.slug === slug)
-      return spellAvailableOnClassList({
-        classes: parsed.classes,
-        subclasses: parsed.subclasses,
-        classSlug: slug,
-        subclassSlug:
-          shelf?.subclassSlug ??
-          (slug === 'wizard' ? wizardSubclassSlug : null),
-      })
+      const subclassSlug =
+        shelf?.subclassSlug ?? (slug === 'wizard' ? wizardSubclassSlug : null)
+      return (
+        spellAvailableOnClassList({
+          classes: parsed.classes,
+          subclasses: parsed.subclasses,
+          classSlug: slug,
+          subclassSlug,
+        }) ||
+        pack04ExtraClassList({
+          catalogClasses: parsed.classes,
+          spellSlug: entry.slug,
+          shelfSlug: slug,
+          subclassSlug,
+          genieKind: shelf?.genieKind,
+        })
+      )
     })
     if (!onList) {
       onToast?.('Нет в списке заклинаний твоих классов')
@@ -714,12 +757,14 @@ export function GrimoireDialog({
               level,
               shelf,
               parsed.subclasses,
+              entry.slug,
             )
           : !catalogSpellMatchesAnyShelf(
               parsed.classes,
               level,
               shelves,
               parsed.subclasses,
+              entry.slug,
             )
       ) {
         onToast?.(

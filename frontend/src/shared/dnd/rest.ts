@@ -100,9 +100,31 @@ export function recoverSpellSlotsOnLongRest(
   const next: Record<string, SpellSlotState> = {}
   for (const [key, slot] of Object.entries(slots)) {
     const clamped = clampSlot(slot)
-    next[key] = { max: clamped.max, used: 0 }
+    const flexible = clamped.flexible ?? 0
+    next[key] = { max: Math.max(0, clamped.max - flexible), used: 0 }
   }
   return next
+}
+
+/**
+ * PHB Sorcerous Restoration: a 20th-level sorcerer regains 4 sorcery points
+ * on a short rest, up to the pool maximum.
+ */
+export function regainSorceryPointsOnShortRest(
+  resources: SheetResource[],
+  amount = 4,
+): SheetResource[] {
+  const gain = Math.max(0, Math.floor(amount))
+  if (gain <= 0) return resources
+  return resources.map((raw) => {
+    const resource = clampResource(raw)
+    if (resource.track === 'stock') return resource
+    if (!resource.id.includes('sorcery_points')) return resource
+    if (resource.max < 20) return resource
+    const regained = Math.min(gain, resource.used)
+    if (regained <= 0) return resource
+    return { ...resource, used: resource.used - regained }
+  })
 }
 
 /** 2014 PHB: long rest reduces exhaustion by 1 (min 0). */
@@ -134,7 +156,9 @@ export function applyShortRest(input: {
   pact_slots?: { max: number; used: number; level: number } | null
 }): RestResult {
   const result: RestResult = {
-    resources: resetResourcesOnRest(input.resources, 'short'),
+    resources: regainSorceryPointsOnShortRest(
+      resetResourcesOnRest(input.resources, 'short'),
+    ),
   }
   if (input.pact_slots !== undefined) {
     const pact = input.pact_slots

@@ -5,7 +5,7 @@ import {
   metamagicSpendCost,
   type MetamagicDef,
 } from '../../shared/dnd/sorcererMetamagic'
-import { clampSlot, type SpellSlotState } from '../../shared/dnd/spells'
+import { addFlexibleSpellSlot, clampSlot, type SpellSlotState } from '../../shared/dnd/spells'
 import type { SheetResource } from '../../shared/dnd/rest'
 import { Button, Dialog, Field, Stack, Text } from '../../ui'
 
@@ -60,16 +60,11 @@ export function SorceryPointsSpendDialog({
       onToast(`Не хватает очков (нужно ${cost}, есть ${remaining})`)
       return
     }
-    const key = String(level)
-    const current = clampSlot(slots[key] ?? { max: 0, used: 0 })
-    // Recover one spent slot, or temporarily bump max if none spent.
-    const next =
-      current.used > 0
-        ? clampSlot({ ...current, used: current.used - 1 })
-        : clampSlot({ max: current.max + 1, used: current.used })
+    const next = addFlexibleSpellSlot(slots, level)
+    if (!next) return
     onSetUsed(Math.min(resource.max, resource.used + cost))
-    onSlotsChange({ ...slots, [key]: next })
-    onToast(`Гибкое колдовство: ячейка ${level} ур. (−${cost} очк.)`)
+    onSlotsChange(next)
+    onToast(`Гибкое колдовство: новая ячейка ${level} ур. (−${cost} очк.)`)
     onClose()
   }
 
@@ -165,7 +160,10 @@ export function SorceryPointsSpendDialog({
           <Text>
             <strong>Гибкое колдовство</strong>
           </Text>
-          <Text tone="muted">Очки → ячейка (бонусным) или ячейка → очки (= уровень ячейки).</Text>
+          <Text tone="muted">
+            Очки создают новую ячейку до 5 круга, даже если круг полон. Она исчезает после
+            продолжительного отдыха. Ячейка → очки (= уровень ячейки).
+          </Text>
           <div className="sorcery-spend-flex">
             {[1, 2, 3, 4, 5].map((level) => {
               const cost = FLEXIBLE_CASTING_SLOT_COST[level]!

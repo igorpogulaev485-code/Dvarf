@@ -18,8 +18,20 @@ import { PlayDeskSpellsCompact } from '../PlayDeskSpellsCompact'
 import { equipInventoryItem, equippedArmorPieces } from '../inventory'
 import { withSpellFocusFlags } from '../spellFocus'
 import { syncWizardSpellbookWithInventory } from '../wizardSpellbookInventory'
+import { abilityModifier } from '../sheetTypes'
+import { getFeaturePick } from '../../../shared/dnd/featurePicks'
+import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
 
 export function PlayDeskScenes({ model }: { model: SheetModel }) {
+  const sorcerer = model.draft.classes.find((row) => /чародей|sorcerer/i.test(row.name))
+  const elementalAffinity = sorcerer
+    ? elementalAffinityPreview({
+        subclassSlug: model.subclassSlugByEntryId?.[sorcerer.id] || sorcerer.subclass_name,
+        sorcererLevel: sorcerer.level,
+        ancestry: getFeaturePick(model.draft.featurePicks, sorcerer.id, 'dragon_ancestor'),
+        chaMod: abilityModifier(model.effectiveAbilities.cha),
+      })
+    : null
   return (
     <>
       <div className="play-desk__scene-wrap">
@@ -337,6 +349,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             learnBudget={model.spellLearnBudget}
             learnBudgets={model.spellLearnBudgets}
             classes={model.draft.classes}
+            elementalAffinity={elementalAffinity}
             castProfiles={model.spellcastingSync.castProfiles}
             characterLevel={model.characterLevel}
             pinned={model.deskSplit && model.splitSecondary === 'spells'}
@@ -395,6 +408,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             className={model.classSummary || model.primaryClass?.name || ''}
             level={model.characterLevel}
             classes={model.draft.classes}
+            featurePicks={model.draft.featurePicks}
             subclassCasters={model.subclassCastersForSpells}
             spells={model.draft.spells}
             abilities={model.effectiveAbilities}

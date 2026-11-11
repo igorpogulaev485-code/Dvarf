@@ -193,6 +193,8 @@ type CastSpellDialogProps = {
   embodimentRemaining?: number
   /** Order domain Voice of Authority is on the sheet. */
   voiceOfAuthority?: boolean
+  /** Draconic Elemental Affinity: +CHA on one roll of this damage type. */
+  elementalAffinity?: { damageType: string; amount: number } | null
 }
 
 export function CastSpellDialog({
@@ -222,6 +224,7 @@ export function CastSpellDialog({
   offerPowerSurge = false,
   embodimentRemaining = 0,
   voiceOfAuthority = false,
+  elementalAffinity = null,
 }: CastSpellDialogProps) {
   const isCantrip = spell != null && spell.level <= 0
   const spellLevel = spell?.level ?? 0
@@ -452,12 +455,14 @@ export function CastSpellDialog({
         ? SPELLCASTING_ABILITY_LABELS[resolved.ability]
         : null,
       damageChoice,
+      affinity: elementalAffinity,
     })
   }, [
     rulesSpell,
     characterLevel,
     effectiveSlotLevel,
     damageChoice,
+    elementalAffinity,
     abilities,
     castProfiles,
     proficiencyBonus,

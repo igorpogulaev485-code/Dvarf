@@ -256,8 +256,8 @@ export function applyFindFamiliarCompanion(input: {
     mode === 'wild_companion'
       ? `Дикий облик · ${hours} ч.`
       : input.slotLevel != null && input.slotLevel > 0
-        ? `ячейка ${input.slotLevel}`
-        : 'ритуал / без ячейки'
+        ? `ячейка ${input.slotLevel} списана`
+        : 'ритуал, ячейка не списана'
 
   const labelRu =
     mode === 'wild_companion'

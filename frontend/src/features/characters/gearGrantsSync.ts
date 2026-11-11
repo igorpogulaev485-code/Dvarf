@@ -153,7 +153,11 @@ export function syncGearGrantSpells(
     const baseMax = Math.max(0, cur.max - (prevDeltas[level] ?? 0))
     const delta = nextDeltas[level] ?? 0
     const max = Math.max(0, baseMax + delta)
-    slots[key] = clampSlot({ max, used: Math.min(cur.used, max) })
+    slots[key] = clampSlot({
+      max,
+      used: Math.min(cur.used, max),
+      flexible: cur.flexible,
+    })
   }
   const nextSpells = {
     ...spells,

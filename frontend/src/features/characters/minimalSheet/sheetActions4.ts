@@ -37,6 +37,14 @@ import { type CastChoice } from '../CastSpellDialog'
 import { consumeMaterialItem } from '../spellMaterials'
 import { canSpendGrantCast, spendGrantCast, type SheetSpell } from '../spells'
 import { resolveCastEffect } from '../../../shared/dnd/spellCatalog'
+import { getFeaturePick } from '../../../shared/dnd/featurePicks'
+import {
+  lunarFreeCastBlocked,
+} from '../sorcererOriginSpells'
+import {
+  elementalAffinityPreview,
+  normalizeLunarPhase,
+} from '../../../shared/dnd/pack04SorcererWarlock'
 import { resolveSpellCastStats } from '../../../shared/dnd/castProfiles'
 import {
   canCastLeveledSpell,
@@ -333,6 +341,15 @@ export function installSheetActions4(model: SheetModel) {
       proficiencyBonus: model.proficiencyBonus,
       fallbackAbility: model.draft.spells.casting_ability,
     })
+    const sorc = model.draft.classes.find((row) => /чародей|sorcerer/i.test(row.name))
+    const affinity = sorc
+      ? elementalAffinityPreview({
+          subclassSlug: model.subclassSlugByEntryId?.[sorc.id] || sorc.subclass_name,
+          sorcererLevel: sorc.level,
+          ancestry: getFeaturePick(model.draft.featurePicks, sorc.id, 'dragon_ancestor'),
+          chaMod: abilityModifier(model.effectiveAbilities.cha),
+        })
+      : null
     const { effect, scaled } = resolveCastEffect(spell, {
       characterLevel: model.characterLevel,
       slotLevel: slotForEffect || spell.level,
@@ -343,6 +360,7 @@ export function installSheetActions4(model: SheetModel) {
         ? SPELLCASTING_ABILITY_LABELS[castStats.ability]
         : null,
       damageChoice: choice.damageChoice,
+      affinity,
     })
     let shillelaghNote = ''
     if (isShillelaghSpell(spell)) {
@@ -377,9 +395,10 @@ export function installSheetActions4(model: SheetModel) {
       }
     }
     const naparnikSlot = slotForEffect || spell.level
+    const familiarSlot = ritualCast || grantCast ? 0 : naparnikSlot
     const wantsForm = model.openDeskSelfFormPickerIfNeeded(spell, choice)
     const wantsFamiliar =
-      !wantsForm && model.openDeskFamiliarPickerIfNeeded(spell, naparnikSlot)
+      !wantsForm && model.openDeskFamiliarPickerIfNeeded(spell, familiarSlot)
     const formNote = wantsForm
       ? ' · выбери форму'
       : wantsFamiliar
@@ -400,6 +419,19 @@ export function installSheetActions4(model: SheetModel) {
       return
     }
     if (grantCast && grantRow) {
+      const phase = normalizeLunarPhase(
+        getFeaturePick(model.draft.featurePicks, spell.class_entry_id ?? '', 'lunar_embodiment'),
+      )
+      if (
+        lunarFreeCastBlocked({
+          spell: grantRow,
+          phase,
+          classLevel: model.characterLevel,
+        })
+      ) {
+        model.onToast('Бесплатный каст этой лунной фазы доступен, только пока фаза активна')
+        return
+      }
       const label = grantRow.grant_cast?.label ?? 'Грант'
       model.setDraft((prev) =>
         model.withDeskConcentration(

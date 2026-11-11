@@ -20,6 +20,9 @@ import { CastSpellDialog } from '../CastSpellDialog'
 import { listActiveInfusionBindings } from '../../../shared/dnd/infusionsActive'
 import { CastScrollDialog } from '../CastScrollDialog'
 import { consumeScrollItem, isCastableSpellScroll, spellScrollCastStats } from '../spellScroll'
+import { abilityModifier } from '../sheetTypes'
+import { getFeaturePick } from '../../../shared/dnd/featurePicks'
+import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
 
 function infusedItemIdsFor(model: SheetModel): string[] {
   const ids: string[] = []
@@ -36,6 +39,15 @@ function infusedItemIdsFor(model: SheetModel): string[] {
 }
 
 export function SheetDialogsRolls({ model }: { model: SheetModel }) {
+  const sorcerer = model.draft.classes.find((row) => /чародей|sorcerer/i.test(row.name))
+  const elementalAffinity = sorcerer
+    ? elementalAffinityPreview({
+        subclassSlug: model.subclassSlugByEntryId?.[sorcerer.id] || sorcerer.subclass_name,
+        sorcererLevel: sorcerer.level,
+        ancestry: getFeaturePick(model.draft.featurePicks, sorcerer.id, 'dragon_ancestor'),
+        chaMod: abilityModifier(model.effectiveAbilities.cha),
+      })
+    : null
   const arcaneArmor = model.unlockedFeatures.some(
     (feature: { id: string }) => feature.id === 'arcane_armor',
   )
@@ -218,6 +230,7 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         voiceOfAuthority={model.unlockedFeatures.some(
           (row: { id: string }) => row.id === 'voice_of_authority',
         )}
+        elementalAffinity={elementalAffinity}
         abilities={model.effectiveAbilities}
         proficiencyBonus={model.proficiencyBonus}
         castProfiles={model.spellcastingSync.castProfiles}

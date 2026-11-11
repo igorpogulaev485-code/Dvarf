@@ -85,6 +85,7 @@ type SpellsSettingsDialogProps = {
   onToast?: (message: string) => void
   /** Mobile kit M1.1: «Книга заклинаний»; desk keeps default. */
   title?: string
+  featurePicks?: import('../../shared/dnd/featurePicks').FeaturePicksState | null
 }
 
 export function SpellsSettingsDialog({
@@ -111,6 +112,7 @@ export function SpellsSettingsDialog({
   onClose,
   onToast,
   title = 'Магия',
+  featurePicks = null,
 }: SpellsSettingsDialogProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [grimoireOpen, setGrimoireOpen] = useState(false)
@@ -841,6 +843,7 @@ export function SpellsSettingsDialog({
         abilityModFor={(ability) => abilityModifier(abilities[ability])}
         classes={classRows}
         subclassCasters={subclassCasters}
+        featurePicks={featurePicks}
         coins={coins}
         onCoinsChange={onCoinsChange}
         inventoryItems={inventoryItems}
