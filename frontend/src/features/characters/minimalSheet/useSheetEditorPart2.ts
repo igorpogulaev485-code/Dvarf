@@ -18,6 +18,13 @@ import { applyFeatureSaveProficiencies } from '../../../shared/dnd/featureSavePr
 import { syncMonkUnarmedAttack } from '../../../shared/dnd/martialArts'
 import { findFightingStylePick } from '../../../shared/dnd/featurePicks'
 import { darkvisionFtFromFeatures, initiativeBonusFromFeatures, initiativeBonusFromRace } from '../featureCombatBonuses'
+import { createSheetSpell } from '../spells'
+import {
+  bladesongBonuses,
+  syncWizardCapstoneSpells,
+  syncWizardSchoolSpellbook,
+  thirdEyeDarkvisionBonus,
+} from '../../../shared/dnd/wizardTradition'
 import { saveBonusFromFeatures } from '../ClassFeaturesPanel'
 import { ensureRaceNaturalWeaponAttacks, raceNaturalWeaponAttacksMatch, syncRaceSpellsForSheetState } from '../raceEffects'
 import { characterHasCasterClass, highestSpellSlotLevelForClasses } from '../../../shared/dnd/casterProgression'
@@ -399,6 +406,43 @@ export function useSheetEditorPart2(model: SheetModel) {
     })
   }, [model.draft.subclassGrants])
 
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const school = syncWizardSchoolSpellbook({
+        known: prev.spells.known,
+        classes: prev.classes,
+        grants: prev.subclassGrants,
+        makeSpell: (draft) => ({
+          ...createSheetSpell(),
+          id: draft.id,
+          name: draft.name,
+          level: draft.level,
+          school: draft.school,
+          prepared: false,
+          in_spellbook: true,
+          spellbook_acquisition: 'feature' as const,
+          class_slug: 'wizard',
+        }),
+      })
+      let known = school.known
+      let changed = school.changed
+      for (const row of prev.classes) {
+        if (!/волшебник|wizard/i.test(row.name)) continue
+        const cap = syncWizardCapstoneSpells({
+          known,
+          featurePicks: prev.featurePicks,
+          classEntryId: row.id,
+        })
+        if (cap.changed) {
+          known = cap.known
+          changed = true
+        }
+      }
+      if (!changed) return prev
+      return { ...prev, spells: { ...prev.spells, known } }
+    })
+  }, [model.draft.subclassGrants, model.draft.classes, model.draft.featurePicks])
+
   // QA 22.10: backfill always-prepared mechanics (Bless concentration) + Artillerist lists.
   useEffect(() => {
     if (model.alwaysPreparedHydrateAttemptedRef.current) return
@@ -498,9 +542,11 @@ export function useSheetEditorPart2(model: SheetModel) {
     () =>
       darkvisionFtFromFeatures({
         features: model.unlockedFeatures,
-        baseDarkvision: model.draft.identity.darkvision,
+        baseDarkvision:
+          model.draft.identity.darkvision +
+          thirdEyeDarkvisionBonus(model.draft.play.resources),
       }),
-    [model.unlockedFeatures, model.draft.identity.darkvision],
+    [model.unlockedFeatures, model.draft.identity.darkvision, model.draft.play.resources],
   )
   model.featureDarkvisionFt = featureDarkvisionFt
 
@@ -564,18 +610,26 @@ export function useSheetEditorPart2(model: SheetModel) {
       wearingHeavyArmor: false,
       wearingArmorOrShield: false,
     })
-    return resolveWalkSpeedFt({
-      storedSpeed: model.draft.speed,
-      raceSpeed: model.draft.raceGrant?.speed ?? null,
-      classBonusFt: classBonus,
-      classBonusFtMax: classBonusMax,
-      featBonusFt: model.featSpeedBonusFt,
-      gearBonusFt: gearEffects.speedBonusFt,
+    const song = bladesongBonuses({
+      resources: model.draft.play.resources,
+      intelligenceScore: model.draft.abilities.int ?? 10,
     })
+    return (
+      (resolveWalkSpeedFt({
+        storedSpeed: model.draft.speed,
+        raceSpeed: model.draft.raceGrant?.speed ?? null,
+        classBonusFt: classBonus,
+        classBonusFtMax: classBonusMax,
+        featBonusFt: model.featSpeedBonusFt,
+        gearBonusFt: gearEffects.speedBonusFt,
+      }) ?? 0) + song.speed
+    )
   }, [
     armorPiecesForSpeed,
     model.draft.classes,
     model.draft.speed,
+    model.draft.play.resources,
+    model.draft.abilities.int,
     model.draft.raceGrant?.speed,
     model.featSpeedBonusFt,
     gearEffects.speedBonusFt,

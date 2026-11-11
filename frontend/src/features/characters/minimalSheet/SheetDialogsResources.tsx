@@ -16,6 +16,9 @@ import { BardicInspirationSpendDialog } from '../BardicInspirationSpendDialog'
 import { LayOnHandsSpendDialog } from '../LayOnHandsSpendDialog'
 import { SuperiorityDiceSpendDialog } from '../SuperiorityDiceSpendDialog'
 import { ArcaneRecoverySpendDialog } from '../ArcaneRecoverySpendDialog'
+import { WizardFeatureUseDialog } from '../WizardFeatureUseDialog'
+import { createCompanion } from '../companions'
+import { setConcentration } from '../../../shared/dnd/concentration'
 import { InfusionsActiveDialog } from '../InfusionsActiveDialog'
 import { WarlockArcanumSpendDialog } from '../WarlockArcanumSpendDialog'
 import { WarlockInvocationsDialog } from '../WarlockInvocationsDialog'
@@ -172,6 +175,68 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           }}
         />
       ) : null}
+
+      <WizardFeatureUseDialog
+        open={model.wizardFeatureUse != null}
+        request={model.wizardFeatureUse}
+        resources={model.draft.play.resources}
+        featurePicks={model.draft.featurePicks}
+        classes={model.draft.classes}
+        intelligenceScore={model.draft.abilities.int ?? 10}
+        onClose={() => model.setWizardFeatureUse(null)}
+        onConfirm={(result) => {
+          if (!result.ok) {
+            model.onToast(result.message)
+            return
+          }
+          model.setDraft((prev) => {
+            let companions = prev.companions
+            if (result.companion) {
+              const next = createCompanion({
+                id: result.companion.id,
+                name: result.companion.name,
+                notes: result.companion.notes,
+                kind: 'familiar',
+                role: 'ally',
+                nature: 'summoned',
+                control: 'with_master',
+                active: true,
+                source: {
+                  kind: 'feature',
+                  labelRu: 'Проявить разум',
+                  feature: 'manifest_mind',
+                  classEntryId: model.wizardFeatureUse?.classEntryId,
+                },
+              })
+              companions = [
+                ...companions.filter((row) => row.id !== next.id),
+                next,
+              ]
+            }
+            const exhaustion = Math.min(
+              6,
+              Math.max(0, (prev.play.exhaustion ?? 0) + result.exhaustionDelta),
+            )
+            return {
+              ...prev,
+              companions,
+              play: {
+                ...prev.play,
+                resources: result.resources,
+                exhaustion,
+                concentration: result.concentrationName
+                  ? setConcentration({
+                      spellId: `feature:${model.wizardFeatureUse?.featureId ?? 'wizard'}`,
+                      name: result.concentrationName,
+                    })
+                  : prev.play.concentration,
+              },
+            }
+          })
+          model.onToast(result.message)
+          model.setWizardFeatureUse(null)
+        }}
+      />
 
       {model.featureSelfForm ? (
         <FeatureSelfFormDialog

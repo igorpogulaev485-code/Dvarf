@@ -44,6 +44,22 @@ export function featureResourceId(
   return `${FEATURE_RESOURCE_PREFIX}${classSlug}:${poolId}:${classEntryId}`
 }
 
+/** `feat:{classSlug}:{poolId}:{classEntryId}` — pool id may contain underscores, not colons. */
+export function parseFeatureResourceId(
+  id: string,
+): { classSlug: string; poolId: string; classEntryId: string } | null {
+  if (!id.startsWith(FEATURE_RESOURCE_PREFIX)) return null
+  const rest = id.slice(FEATURE_RESOURCE_PREFIX.length)
+  const first = rest.indexOf(':')
+  const last = rest.lastIndexOf(':')
+  if (first <= 0 || last <= first) return null
+  return {
+    classSlug: rest.slice(0, first),
+    poolId: rest.slice(first + 1, last),
+    classEntryId: rest.slice(last + 1),
+  }
+}
+
 function classLabelRuForSlug(classSlug: string, fallbackName: string): string {
   return classCasterDef(classSlug)?.labelRu || fallbackName.trim() || classSlug
 }
@@ -124,6 +140,11 @@ export function desiredResourcesFromFeatures(input: {
         typeof score === 'number'
           ? Math.max(1, 1 + abilityModifierFromScore(score))
           : feature.resourceUses ?? Math.max(1, resource.uses || 1)
+    } else if (resource.uses_from === 'twice_class_level_plus_ability') {
+      const key = resource.ability ?? 'int'
+      const score = input.abilities?.[key]
+      const mod = typeof score === 'number' ? abilityModifierFromScore(score) : 0
+      max = Math.max(0, feature.classLevel * 2 + mod)
     } else {
       max = feature.resourceUses ?? resource.uses
     }
@@ -226,28 +247,16 @@ export function syncFeatureResources(
     desiredById.delete(item.id)
     // Preserve manual reset while the pool is still expended (success_lock).
     const preserveManualLock = item.reset === 'manual' && item.used > 0
-    if (want.track === 'stock') {
-      // used = current holdings
-      next.push(
-        clampResource({
-          ...item,
-          name: want.name,
-          max: want.max,
-          used: Math.min(want.max, item.used),
-          reset: preserveManualLock ? 'manual' : want.reset,
-        }),
-      )
-    } else {
-      next.push(
-        clampResource({
-          ...item,
-          name: want.name,
-          max: want.max,
-          used: Math.min(want.max, item.used),
-          reset: preserveManualLock ? 'manual' : want.reset,
-        }),
-      )
-    }
+    next.push(
+      clampResource({
+        ...item,
+        name: want.name,
+        max: want.max,
+        used: Math.min(want.max, item.used),
+        reset: preserveManualLock ? 'manual' : want.reset,
+        track: want.track,
+      }),
+    )
   }
 
   for (const want of desiredById.values()) {
@@ -259,6 +268,7 @@ export function syncFeatureResources(
         // stock starts empty; spend starts fully available (used=0)
         used: 0,
         reset: want.reset,
+        track: want.track,
       }),
     )
   }

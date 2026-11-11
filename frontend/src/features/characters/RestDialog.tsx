@@ -13,6 +13,7 @@ import {
   type HitDie,
 } from '../../shared/dnd/hitDice'
 import { applyLongRest, applyShortRest } from '../../shared/dnd/rest'
+import { finishWizardResourcesOnRest } from '../../shared/dnd/wizardTradition'
 import {
   grantStockOnLongRestIfEmpty,
   type DesiredFeatureResource,
@@ -94,7 +95,7 @@ export function RestDialog({
       resources: play.resources,
       pact_slots: spells.pact_slots,
     })
-    patchPlay({ resources: result.resources })
+    patchPlay({ resources: finishWizardResourcesOnRest(result.resources, 'short') })
     const known = recoverGrantCastsOnRest(spells.known, 'short')
     const spellsTouched =
       result.pact_slots !== undefined || known !== spells.known
@@ -174,9 +175,9 @@ export function RestDialog({
       hit_dice_max: hitDiceMax,
       hit_dice_by_class: pools.length > 0 ? pools : undefined,
     })
-    const resources = grantStockOnLongRestIfEmpty(
-      result.resources,
-      featureDesiredResources,
+    const resources = finishWizardResourcesOnRest(
+      grantStockOnLongRestIfEmpty(result.resources, featureDesiredResources),
+      'long',
     )
     onPlayChange(
       withSyncedHitDiceSummary({

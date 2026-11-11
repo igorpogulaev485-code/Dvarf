@@ -20,6 +20,8 @@ export type SpellbookAcquisition =
   | 'copied'
   | 'restored'
   | 'backup_copy'
+  /** School feature wrote the spell into the book; does not use the +2 per level. */
+  | 'feature'
 
 /** Tariff for putting a spell into a book. */
 export type SpellbookCopyKind =

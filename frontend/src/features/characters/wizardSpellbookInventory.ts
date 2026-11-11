@@ -145,6 +145,34 @@ export function syncWizardSpellbookWithInventory(input: {
   }
 }
 
+/**
+ * Create rebuilds inventory with new item ids. A missing primary id there is
+ * not a lost book: clear the stale bind so the next sync attaches the new copy.
+ * Play-time loss stays lost until the player returns or replaces the book.
+ */
+export function forgetStaleSpellbookBinding(
+  spells: SpellsState,
+  items: SpellbookItemRef[],
+): SpellsState {
+  const book = spells.wizard_spellbook
+  if (!book) return spells
+  const books = listSpellbookItems(items)
+  if (!books.length) return spells
+  const stillThere = Boolean(
+    book.primaryBookItemId && books.some((row) => row.id === book.primaryBookItemId),
+  )
+  if (stillThere && !book.bookLost) return spells
+  return {
+    ...spells,
+    wizard_spellbook: {
+      ...book,
+      primaryBookItemId: null,
+      bookLost: false,
+      lostBookContents: undefined,
+    },
+  }
+}
+
 export function wizardHasUsableSpellbook(spells: SpellsState): boolean {
   const book = spells.wizard_spellbook
   return Boolean(book && !book.bookLost && book.primaryBookItemId)

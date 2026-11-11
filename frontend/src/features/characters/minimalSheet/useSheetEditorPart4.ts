@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { formatConditionLabel } from '../../../shared/dnd/conditions'
 import { type SpellSelfFormSlug } from '../spellForms'
+import type { WizardFeatureRequest } from '../WizardFeatureUseDialog'
 import { type FamiliarCastMode } from '../familiarForms'
 import { withInitiativeBonus } from '../modifiers'
 import { type ToastInput } from '../../../ui'
@@ -135,6 +136,11 @@ export function useSheetEditorPart4(model: SheetModel) {
   )
   model.arcaneRecoverySpendId = arcaneRecoverySpendId
   model.setArcaneRecoverySpendId = setArcaneRecoverySpendId
+  const [wizardFeatureUse, setWizardFeatureUse] = useState<WizardFeatureRequest | null>(
+    null,
+  )
+  model.wizardFeatureUse = wizardFeatureUse
+  model.setWizardFeatureUse = setWizardFeatureUse
   const [infusionsSpendId, setInfusionsSpendId] = useState<string | null>(null)
   model.infusionsSpendId = infusionsSpendId
   model.setInfusionsSpendId = setInfusionsSpendId

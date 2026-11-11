@@ -6,6 +6,7 @@ import { ApiRequestError } from '../../../shared/api/client'
 import { publishSheetSync } from '../../../shared/sync/characterSheetChannel'
 import { formatClassSummary, totalCharacterLevel } from '../../../shared/dnd/classLevels'
 import { armorKindLabel, computeArmorClass } from '../../../shared/dnd/armor'
+import { bladesongBonuses } from '../../../shared/dnd/wizardTradition'
 import { buildSheetFormulaVars } from '../../../shared/dnd/formulas'
 import {
   abilityCheckBonus,
@@ -430,6 +431,14 @@ export function useSheetEditorPart3(model: SheetModel) {
       coreAc += styleBonus
       gearSummary = `${gearSummary} · стиль +${styleBonus}`
     }
+    const song = bladesongBonuses({
+      resources: model.draft.play.resources,
+      intelligenceScore: model.draft.abilities.int ?? 10,
+    })
+    if (song.ac > 0) {
+      coreAc += song.ac
+      gearSummary = `${gearSummary} · песнь +${song.ac}`
+    }
     if (model.gearEffects.acBonus) {
       coreAc += model.gearEffects.acBonus
       gearSummary = `${gearSummary} · магия +${model.gearEffects.acBonus}`
@@ -474,6 +483,8 @@ export function useSheetEditorPart3(model: SheetModel) {
   }, [
     effectiveAbilities,
     model.draft.inventory.items,
+    model.draft.play.resources,
+    model.draft.abilities.int,
     model.draft.raceGrant,
     model.activeFightingStyleId,
     model.draft.modifiers,

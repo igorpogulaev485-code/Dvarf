@@ -60,7 +60,8 @@ export type FeatureResource = {
     | 'twice_proficiency_bonus'
     | 'ability_modifier'
     | 'one_plus_ability_modifier'
-  /** For uses_from: ability_modifier / one_plus_ability_modifier (Divine Sense = 1+cha). */
+    | 'twice_class_level_plus_ability'
+  /** For uses_from: ability_modifier / one_plus_ability_modifier / twice_class_level_plus_ability. */
   ability?: AbilityScoreKey
   recharge: 'short_rest' | 'long_rest' | 'dawn' | 'manual'
   scale_uses?: Record<string, number>
@@ -651,15 +652,18 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
           ? 'one_plus_ability_modifier'
           : resourceRaw.uses_from === 'ability_modifier'
             ? 'ability_modifier'
-            : resourceRaw.uses_from === 'fixed'
-              ? 'fixed'
-              : undefined
+            : resourceRaw.uses_from === 'twice_class_level_plus_ability'
+              ? 'twice_class_level_plus_ability'
+              : resourceRaw.uses_from === 'fixed'
+                ? 'fixed'
+                : undefined
   if (
     !hasUses &&
     usesFrom !== 'proficiency_bonus' &&
     usesFrom !== 'twice_proficiency_bonus' &&
     usesFrom !== 'ability_modifier' &&
-    usesFrom !== 'one_plus_ability_modifier'
+    usesFrom !== 'one_plus_ability_modifier' &&
+    usesFrom !== 'twice_class_level_plus_ability'
   ) {
     return undefined
   }
@@ -817,6 +821,12 @@ function resolveResourceUses(
     const score = abilities?.[key]
     if (typeof score !== 'number') return Math.max(1, resource.uses || 1)
     return Math.max(1, 1 + abilityModifierFromScore(score))
+  }
+  if (resource.uses_from === 'twice_class_level_plus_ability') {
+    const key = resource.ability ?? 'int'
+    const score = abilities?.[key]
+    const mod = typeof score === 'number' ? abilityModifierFromScore(score) : 0
+    return Math.max(0, classLevel * 2 + mod)
   }
   let uses = resource.uses
   if (resource.scale_uses) {
@@ -1141,8 +1151,12 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   // Wizard dunamancy
   chronurgy_magic: 'chronurgy_magic',
   хронургия: 'chronurgy_magic',
+  'магия хронургии': 'chronurgy_magic',
+  'chronurgy magic': 'chronurgy_magic',
   graviturgy_magic: 'graviturgy_magic',
   гравитургия: 'graviturgy_magic',
+  'магия гравитургии': 'graviturgy_magic',
+  'graviturgy magic': 'graviturgy_magic',
 }
 
 const KNOWN_SUBCLASS_SLUGS = new Set([

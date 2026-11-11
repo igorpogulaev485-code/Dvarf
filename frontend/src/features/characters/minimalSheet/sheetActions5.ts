@@ -1,5 +1,7 @@
 /** Действия листа, группа 5. Тела функций перенесены без изменения порядка вызовов. */
 import type { SheetModel } from './sheetModel'
+import { parseFeatureResourceId } from '../../../shared/dnd/featureResources'
+import { wizardResolvedFeatureId } from '../../../shared/dnd/wizardTradition'
 
 export function installSheetActions5(model: SheetModel) {
   model.isArcaneRecoveryResource = function isArcaneRecoveryResource(row: { id: string; name: string }): boolean {
@@ -88,6 +90,31 @@ export function installSheetActions5(model: SheetModel) {
       model.setSoulTrinketsSpendId(id)
       return true
     }
+    const parsed = parseFeatureResourceId(row.id)
+    if (parsed?.poolId === 'shapechanger') {
+      const feature = (model.unlockedFeatures ?? []).find(
+        (item: { id: string; classEntryId: string }) =>
+          item.id === 'shapechanger' && item.classEntryId === parsed.classEntryId,
+      )
+      if (feature) {
+        model.setFeatureSelfForm({
+          feature,
+          classSlug: parsed.classSlug,
+          classEntryId: parsed.classEntryId,
+        })
+        return true
+      }
+    }
+    if (parsed && wizardResolvedFeatureId(parsed.poolId)) {
+      model.setWizardFeatureUse({
+        featureId: parsed.poolId,
+        resourceId: row.id,
+        classSlug: parsed.classSlug,
+        classEntryId: parsed.classEntryId,
+        name: row.name,
+      })
+      return true
+    }
     return false
   }
 
@@ -97,11 +124,15 @@ export function installSheetActions5(model: SheetModel) {
       ...prev,
       play: {
         ...prev.play,
-        resources: prev.play.resources.map((item) =>
-          item.id === id && item.used < item.max
-            ? { ...item, used: item.used + 1 }
-            : item,
-        ),
+        resources: prev.play.resources.map((item) => {
+          if (item.id !== id) return item
+          if (item.track === 'stock') {
+            if (item.used <= 0) return item
+            return { ...item, used: item.used - 1 }
+          }
+          if (item.used >= item.max) return item
+          return { ...item, used: item.used + 1 }
+        }),
       },
     }))
   }
