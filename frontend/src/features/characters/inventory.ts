@@ -98,6 +98,10 @@ export type InventoryItem = {
   attunement_classes?: string[]
   attunement_races?: string[]
   attunement_alignments?: string[]
+  /** DMG "by a spellcaster": Spellcasting or Pact Magic, including subclass casters. */
+  attunement_spellcaster?: boolean
+  /** Card says the item can be used as a spellcasting focus. */
+  is_spell_focus?: boolean
   /** Robe of the Archmagi: color must match alignment. */
   alignment_color_gate?: boolean
   robe_color?: 'white' | 'gray' | 'black' | null
@@ -256,6 +260,8 @@ function readItem(raw: unknown, index: number): InventoryItem {
       readSlugList(row.attunement_alignments) ??
       readSlugList(row.attune_alignments) ??
       readSlugList(row.required_alignments),
+    attunement_spellcaster: row.attunement_spellcaster === true,
+    is_spell_focus: row.is_spell_focus === true,
     alignment_color_gate: row.alignment_color_gate === true,
     robe_color: readRobeColor(row.robe_color),
     effects: readEffects(row.effects),
@@ -350,6 +356,8 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         ...(item.attunement_alignments?.length
           ? { attunement_alignments: item.attunement_alignments }
           : {}),
+        ...(item.attunement_spellcaster ? { attunement_spellcaster: true } : {}),
+        ...(item.is_spell_focus ? { is_spell_focus: true } : {}),
         ...(item.alignment_color_gate ? { alignment_color_gate: true } : {}),
         ...(item.robe_color ? { robe_color: item.robe_color } : {}),
         effects: item.effects ?? [],

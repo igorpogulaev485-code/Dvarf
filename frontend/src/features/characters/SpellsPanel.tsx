@@ -208,16 +208,6 @@ export function SpellsPanel({
 
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
-  const castStats = withSpellCastBonuses({
-    baseDc: abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null,
-    baseAttack: abilityKey
-      ? spellAttackBonus(abilityMod, proficiencyBonus)
-      : null,
-    modifiers,
-    vars: formulaVars,
-  })
-  const dc = castStats.dc
-  const attack = castStats.attack
   const preparedCount = countPreparedLeveled(spells.known)
 
   const suggestion = useMemo(
@@ -263,6 +253,17 @@ export function SpellsPanel({
       proficiencyBonus,
     })
   }, [classes, subclassCasters, abilities, proficiencyBonus])
+
+  const headerClass = castProfiles.length === 1 ? castProfiles[0]?.slug ?? null : null
+  const castStats = withSpellCastBonuses({
+    baseDc: abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null,
+    baseAttack: abilityKey ? spellAttackBonus(abilityMod, proficiencyBonus) : null,
+    modifiers,
+    vars: formulaVars,
+    classSlug: headerClass,
+  })
+  const dc = castStats.dc
+  const attack = castStats.attack
 
   const combatPool = useMemo(() => {
     if (showAllKnown) return spells.known

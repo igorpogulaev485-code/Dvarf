@@ -120,8 +120,18 @@ export type GearEffect =
   | { type: 'speed'; mode?: string; value_ft: number }
   | { type: 'spell_slots'; level: number; delta: number }
   | { type: 'grant_spell'; slug: string; uses?: number }
-  /** Bonus to spell attack rolls and spell save DC (Amulet of the Devout, …). */
-  | { type: 'spellcasting_bonus'; value: number }
+  /**
+   * Bonus to spell attack rolls and/or spell save DC.
+   * `class_scoped` reads classes from the item's I02 `attunement_classes`.
+   * Without it the bonus applies to every spell.
+   */
+  | {
+      type: 'spellcasting_bonus'
+      value: number
+      applies_to?: 'attack' | 'dc' | 'both'
+      requires_held?: boolean
+      class_scoped?: boolean
+    }
   /** Potion of Healing family — dice string like "2к4+2" / "2d4+2". */
   | { type: 'heal'; dice: string }
   | { type: 'resistance'; damage_type: string }

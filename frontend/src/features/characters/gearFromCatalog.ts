@@ -285,6 +285,10 @@ function readSlugList(value: unknown): string[] | undefined {
   return list.length ? list : undefined
 }
 
+function parsedItemIsFocus(data: Record<string, unknown> | null | undefined): boolean {
+  return data?.is_spell_focus === true
+}
+
 /** Family and attunement gates travel with the catalog row onto the sheet. */
 function copyAttunementMeta(item: InventoryItem, data: Record<string, unknown> | null | undefined) {
   const row = data ?? {}
@@ -296,6 +300,8 @@ function copyAttunementMeta(item: InventoryItem, data: Record<string, unknown> |
   }
   if (row.single_attunement_family === true) item.single_attunement_family = true
   if (row.alignment_color_gate === true) item.alignment_color_gate = true
+  if (row.attunement_spellcaster === true) item.attunement_spellcaster = true
+  if (row.is_spell_focus === true) item.is_spell_focus = true
   const classes = readSlugList(row.attunement_classes)
   const races = readSlugList(row.attunement_races)
   const alignments = readSlugList(row.attunement_alignments)
@@ -405,10 +411,14 @@ export function inventoryItemFromCatalog(input: {
   // Pack bulk may be null in catalog — InventoryPanel hydrate fills from contents.
   created.weight_lb = parsed.weight_lb
   created.cost_gp = gearCostToGp(parsed.cost)
+  created.is_spell_focus = parsedItemIsFocus(entry.data)
   created.spell_tooling = classifySpellTooling({
     name: entry.name_ru,
     catalog_slug: entry.slug,
     item_category: parsed.item_category,
+    is_spell_focus: created.is_spell_focus,
+    description: parsed.description_ru,
+    effects: parsed.effects,
   })
   created.focus_kind =
     created.spell_tooling === 'focus'

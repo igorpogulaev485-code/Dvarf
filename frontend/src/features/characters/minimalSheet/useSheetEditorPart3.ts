@@ -14,17 +14,20 @@ import {
   applyAbilityScoreBonuses,
   applyBonusStack,
   bonusesForTarget,
-  createBonusLine,
   formatBonusSummary,
   modifiersToSheet,
-  type BonusLine,
 } from '../modifiers'
 import { resolveRaceGrantDef } from '../../../shared/dnd/raceGrants'
 import { DEFAULT_ABILITY_SCORE_MAX, clampAbilityScore, resolveAbilityMaxes } from '../../../shared/dnd/abilityScoreCaps'
 import { applyHpDelta, constitutionHpDelta } from '../../../shared/dnd/constitutionHp'
 import { syncPrimalChampion } from '../../../shared/dnd/primalChampion'
 import { customFeaturesToSheet } from '../customFeatures'
-import { applyGearAbilityScores, gearDarkvisionFt } from '../gearEffects'
+import {
+  appendSpellCastModifiers,
+  applyGearAbilityScores,
+  attunedItemIdSet,
+  gearDarkvisionFt,
+} from '../gearEffects'
 import { passiveScore, skillModifierFromState } from '../../../shared/dnd/passives'
 import { syncGearCompanions, syncGearGrantSpells, syncGearResources } from '../gearGrantsSync'
 import { listShieldItems } from '../heldEquip'
@@ -408,6 +411,7 @@ export function useSheetEditorPart3(model: SheetModel) {
         wearingArmor: Boolean(model.armorPiecesForSpeed.armor),
         wearingShield: Boolean(model.armorPiecesForSpeed.shield),
         items: model.draft.inventory.items,
+        attunedItemIds: attunedItemIdSet(model.draft.attunements),
       }),
     [
       model.draft.featurePicks,
@@ -415,52 +419,21 @@ export function useSheetEditorPart3(model: SheetModel) {
       model.armorPiecesForSpeed.armor,
       model.armorPiecesForSpeed.shield,
       model.draft.inventory.items,
+      model.draft.attunements,
     ],
   )
   model.infusionBonuses = infusionBonuses
 
-  /** Gear (amulet) + infusion spell attack/DC lines on top of sheet modifiers. */
-  const spellCastModifiers = useMemo(() => {
-    const extra: BonusLine[] = []
-    const gearBonus = Math.floor(model.gearEffects.spellcastingBonus) || 0
-    if (gearBonus) {
-      extra.push(
-        createBonusLine({
-          id: 'gear:spellcasting_bonus:dc',
-          target: 'spell_dc',
-          label: 'Снаряжение',
-          op: '+',
-          expr: String(gearBonus),
-          enabled: true,
-          source: 'gear',
-        }),
-        createBonusLine({
-          id: 'gear:spellcasting_bonus:attack',
-          target: 'spell_attack',
-          label: 'Снаряжение',
-          op: '+',
-          expr: String(gearBonus),
-          enabled: true,
-          source: 'gear',
-        }),
-      )
-    }
-    if (infusionBonuses.spellAttackBonus) {
-      extra.push(
-        createBonusLine({
-          id: 'infusion:spell_attack',
-          target: 'spell_attack',
-          label: 'Инфузия (фокус)',
-          op: '+',
-          expr: String(infusionBonuses.spellAttackBonus),
-          enabled: true,
-          source: 'system',
-          class_slug: 'artificer',
-        }),
-      )
-    }
-    return extra.length ? [...model.draft.modifiers, ...extra] : model.draft.modifiers
-  }, [model.draft.modifiers, model.gearEffects.spellcastingBonus, infusionBonuses.spellAttackBonus])
+  /** One list: sheet lines + class-scoped gear + held attuned focus infusion. */
+  const spellCastModifiers = useMemo(
+    () =>
+      appendSpellCastModifiers({
+        modifiers: model.draft.modifiers,
+        gear: model.gearEffects,
+        infusionSpellAttack: infusionBonuses.spellAttackBonus,
+      }),
+    [model.draft.modifiers, model.gearEffects, infusionBonuses.spellAttackBonus],
+  )
   model.spellCastModifiers = spellCastModifiers
 
   const effectiveDarkvisionFt = useMemo(

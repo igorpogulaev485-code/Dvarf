@@ -283,4 +283,55 @@ const ringAndCloak = aggregateGearEffects({
 })
 assert(ringAndCloak.acBonus === 2, 'ring and cloak still add')
 
+const pearl = item({
+  name: 'Жемчужина силы',
+  catalog_slug: 'pearl_of_power',
+  attunement_spellcaster: true,
+  effects: [{ type: 'ac_bonus', value: 1 }],
+})
+
+function who(name: string, level: number, subclass = ''): AttunementCharacter {
+  const row = cls(name, level)
+  if (subclass) row.subclass_name = subclass
+  return { ...fighter, classes: [row] }
+}
+
+function pearlGate(character: AttunementCharacter) {
+  return attunementChoiceReason({
+    item: pearl,
+    slots: [slot],
+    items: [pearl],
+    currentSlotId: slot.id,
+    character,
+  })
+}
+
+assert(pearlGate(fighter).blocked, 'fighter cannot attune a spellcaster item')
+assert(
+  (pearlGate(fighter).reason || '').includes('заклинания'),
+  'spellcaster hint names spellcasting',
+)
+assert(!pearlGate(who('Волшебник', 1)).blocked, 'wizard 1 attunes')
+assert(!pearlGate(who('Изобретатель', 1)).blocked, 'artificer 1 attunes')
+assert(pearlGate(who('Паладин', 1)).blocked, 'paladin 1 is not a caster yet')
+assert(!pearlGate(who('Паладин', 2)).blocked, 'paladin 2 attunes')
+assert(!pearlGate(who('Следопыт', 2)).blocked, 'ranger 2 attunes')
+assert(pearlGate(who('Воин', 2, 'Мистический рыцарь')).blocked, 'eldritch knight 2 is early')
+assert(!pearlGate(who('Воин', 3, 'Мистический рыцарь')).blocked, 'eldritch knight 3 attunes')
+assert(!pearlGate(who('Плут', 3, 'Плут-трюкач')).blocked, 'arcane trickster 3 attunes')
+assert(!pearlGate(thief).blocked, 'thief 13 ignores the spellcaster gate')
+
+const fighterHoldsPearl = aggregateGearEffects({
+  items: [pearl],
+  attunements: [createAttunementSlot({ item_id: pearl.id, name: pearl.name })],
+  gate: fighter,
+})
+assert(fighterHoldsPearl.acBonus === 0, 'a blocked spellcaster item grants nothing')
+const wizardHoldsPearl = aggregateGearEffects({
+  items: [pearl],
+  attunements: [createAttunementSlot({ item_id: pearl.id, name: pearl.name })],
+  gate: who('Волшебник', 5),
+})
+assert(wizardHoldsPearl.acBonus === 1, 'a wizard keeps the pearl bonus')
+
 console.log('attunementRules.selfcheck: ok')

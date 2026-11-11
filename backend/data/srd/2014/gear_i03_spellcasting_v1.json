@@ -1,0 +1,643 @@
+{
+  "updates": [
+    {
+      "kind": "item",
+      "slug": "all_purpose_tool_1",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 1,
+            "applies_to": "both",
+            "requires_held": true,
+            "class_scoped": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус изобретателя; становится любым ремесленным инструментом; бонус к атаке и Сл заклинаний изобретателя, пока инструмент в руке."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "all_purpose_tool_2",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "both",
+            "requires_held": true,
+            "class_scoped": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус изобретателя +2; любой ремесленный инструмент. Бонус к атаке и Сл заклинаний изобретателя, пока в руке."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "all_purpose_tool_3",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 3,
+            "applies_to": "both",
+            "requires_held": true,
+            "class_scoped": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус изобретателя +3; любой ремесленный инструмент. Бонус к атаке и Сл заклинаний изобретателя, пока в руке."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "arcane_grimoire_1",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 1,
+            "applies_to": "both",
+            "requires_held": true,
+            "class_scoped": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Книга заклинаний волшебника и фокус. Бонус к атаке и Сл заклинаний волшебника, пока книга в руке."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "arcane_grimoire_2",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "both",
+            "requires_held": true,
+            "class_scoped": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус волшебника +2 к атаке и Сл заклинаний волшебника, пока книга в руке."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "arcane_grimoire_3",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 3,
+            "applies_to": "both",
+            "requires_held": true,
+            "class_scoped": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус волшебника +3 к атаке и Сл заклинаний волшебника, пока книга в руке."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bloodwell_vial_1",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "resource",
+            "id": "bloodwell",
+            "max": 1,
+            "restore": "long_rest"
+          },
+          {
+            "type": "spellcasting_bonus",
+            "value": 1,
+            "applies_to": "both",
+            "requires_held": true,
+            "class_scoped": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус чародея. Бонус к атаке и Сл заклинаний чародея, пока фиал в руке. Раз за длинный отдых восстанавливает чародейские очки."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bloodwell_vial_2",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "both",
+            "requires_held": true,
+            "class_scoped": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус чародея +2 к атаке и Сл заклинаний чародея, пока фиал в руке."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bloodwell_vial_3",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 3,
+            "applies_to": "both",
+            "requires_held": true,
+            "class_scoped": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус чародея +3 к атаке и Сл заклинаний чародея, пока фиал в руке."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "amulet_of_the_devout_1",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 1,
+            "applies_to": "both",
+            "requires_held": false,
+            "class_scoped": true
+          },
+          {
+            "type": "resource",
+            "id": "channel_divinity",
+            "max": 1,
+            "restore": "long"
+          },
+          {
+            "type": "custom_note",
+            "text": "Священный символ жреца или паладина: +1 к атаке и Сл их заклинаний, пока надет. 1× Божественный канал без траты пула / длинный отдых."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "amulet_of_the_devout_2",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "both",
+            "requires_held": false,
+            "class_scoped": true
+          },
+          {
+            "type": "resource",
+            "id": "channel_divinity",
+            "max": 1,
+            "restore": "long"
+          },
+          {
+            "type": "custom_note",
+            "text": "Священный символ +2 к атаке и Сл заклинаний жреца или паладина, пока надет. 1× Божественный канал без траты пула / длинный отдых."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "amulet_of_the_devout_3",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 3,
+            "applies_to": "both",
+            "requires_held": false,
+            "class_scoped": true
+          },
+          {
+            "type": "resource",
+            "id": "channel_divinity",
+            "max": 1,
+            "restore": "long"
+          },
+          {
+            "type": "custom_note",
+            "text": "Священный символ +3 к атаке и Сл заклинаний жреца или паладина, пока надет. 1× Божественный канал без траты пула / длинный отдых."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "moon_sickle_1",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "spellcasting_bonus",
+            "value": 1,
+            "applies_to": "both",
+            "requires_held": true,
+            "class_scoped": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Серп +1 к удару этим оружием. Бонус +1 к атаке и Сл заклинаний друида и следопыта, пока серп в руке. Фокус этих классов. +1к4 к лечению заклинанием."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "moon_sickle_2",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "both",
+            "requires_held": true,
+            "class_scoped": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Серп +2 к удару этим оружием. Бонус +2 к атаке и Сл заклинаний друида и следопыта, пока серп в руке. Фокус этих классов. +1к4 к лечению заклинанием."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "moon_sickle_3",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "spellcasting_bonus",
+            "value": 3,
+            "applies_to": "both",
+            "requires_held": true,
+            "class_scoped": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Серп +3 к удару этим оружием. Бонус +3 к атаке и Сл заклинаний друида и следопыта, пока серп в руке. Фокус этих классов. +1к4 к лечению заклинанием."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_power",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "description_ru": "Боевой посох +2 к атаке и урону. Пока в руке: +2 КД, +2 к спасброскам и +2 к атаке заклинанием (Сл заклинаний не растёт). Можно использовать как фокус. 20 зарядов.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 2
+          },
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "save_bonus",
+            "value": 2
+          },
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "attack",
+            "requires_held": true
+          },
+          {
+            "type": "resource",
+            "id": "staff_of_power",
+            "max": 20,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "magic_missile",
+            "uses": 20
+          },
+          {
+            "type": "custom_note",
+            "text": "+2 к удару посохом (атака и урон), к КД, спасброскам и только к атаке заклинанием. Сл заклинаний не растёт. Это заклинательный фокус."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_the_magi",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "description_ru": "Боевой посох +2 к атаке и урону. Пока в руке: +2 только к атаке заклинанием. КД и спасброски не даёт. Можно использовать как фокус. 50 зарядов.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "attack",
+            "requires_held": true
+          },
+          {
+            "type": "resource",
+            "id": "staff_of_the_magi",
+            "max": 50,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fireball",
+            "uses": 50
+          },
+          {
+            "type": "custom_note",
+            "text": "+2 к удару посохом (атака и урон) и только к атаке заклинанием. КД и спасброски не даёт. Это заклинательный фокус."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "robe_of_the_archmagi",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 0
+          },
+          {
+            "type": "save_bonus",
+            "value": 2
+          },
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "both",
+            "requires_held": false
+          },
+          {
+            "type": "custom_note",
+            "text": "КД 15+ЛОВ без другого доспеха (отдельная формула). +2 к атаке и Сл любых ваших заклинаний, пока надета. Преимущество на спасброски от заклинаний. Настройка: чародей, колдун или волшебник, цвет по мировоззрению."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ruby_weave_gem",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "attunement_spellcaster": true,
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Пока держите камень, это заклинательный фокус. 3 заряда, чтобы игнорировать компоненты до 500 зм за заряд. После долгого отдыха — одно заклинание уровня, который вы можете накладывать. Бонуса к атаке и Сл нет."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ruby_of_the_war_mage",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "attunement_spellcaster": true,
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Вставленный в оружие, позволяет использовать это оружие как заклинательную фокусировку. Настройка — заклинатель."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "hat_of_wizardry",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Пока надета, шляпа — заклинательная фокусировка заклинаний волшебника. Раз в день попытка выучить заговор из списка волшебника (Сл 10 Интеллект)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "pearl_of_power",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_spellcaster": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_binding",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_spellcaster": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_fireballs",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_spellcaster": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_lightning_bolts",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_spellcaster": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_paralysis",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_spellcaster": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_polymorph",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_spellcaster": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_web",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_spellcaster": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_wonder",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_spellcaster": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "lorehold_primer",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_spellcaster": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "prismari_primer",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_spellcaster": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "quandrix_primer",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_spellcaster": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "silverquill_primer",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_spellcaster": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "witherbloom_primer",
+      "rules_edition": "2014",
+      "data": {
+        "attunement_spellcaster": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "mizzium_apparatus",
+      "rules_edition": "2014",
+      "data": {
+        "is_spell_focus": true,
+        "attunement_classes": [
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
+      }
+    }
+  ]
+}

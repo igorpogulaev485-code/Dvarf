@@ -15,6 +15,7 @@ import {
 } from '../../shared/dnd/alignments'
 import { readAppliedRaceGrant } from '../../shared/dnd/raceGrants'
 import { RACE_NAMING_PARENT } from '../../shared/dnd/raceNamingTables'
+import { characterHasCasterClass } from '../../shared/dnd/casterProgression'
 import { readClassLevels } from './classLevels'
 import { asRecord } from './sheetTypes'
 import type { AttunementSlot } from './attunement'
@@ -91,7 +92,7 @@ function classSlugOf(row: ClassLevelEntry): string | null {
   return null
 }
 
-/** Thief 13 ignores class, race, and level requirements. Alignment still applies. */
+/** Thief 13 ignores class, race, level, and «spellcaster» requirements. Alignment still applies. */
 export function ignoresClassRaceLevel(classes: ClassLevelEntry[]): boolean {
   return classes.some((row) => {
     if (row.level < 13) return false
@@ -163,7 +164,8 @@ export function requirementBlock(
   const races = item.attunement_races ?? []
   const alignments = item.attunement_alignments ?? []
   const colorGate = Boolean(item.alignment_color_gate)
-  if (!classes.length && !races.length && !alignments.length && !colorGate) {
+  const needsSpellcaster = item.attunement_spellcaster === true
+  if (!classes.length && !races.length && !alignments.length && !colorGate && !needsSpellcaster) {
     return { blocked: false, reason: null, hint: null }
   }
   if (!character) return { blocked: false, reason: null, hint: null }
@@ -177,6 +179,12 @@ export function requirementBlock(
     if (!classes.some((slug) => have.has(slug))) {
       reasons.push(`Нужен класс: ${listLabel(classes, CLASS_LABEL_RU)}`)
     }
+  }
+
+  if (needsSpellcaster && !skipClassRace && !characterHasCasterClass(character.classes)) {
+    reasons.push(
+      'Нужно уметь накладывать заклинания (заклинательство или магия договора)',
+    )
   }
 
   if (races.length && !skipClassRace) {
