@@ -147,6 +147,17 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         characterLevel={model.characterLevel}
         characterId={model.character.id}
         wizardRitualFromBook={model.spellLearnBudget?.mode === 'spellbook'}
+        masterySpellIds={model.draft.classes
+          .filter((row: { name: string }) => /волшебник|wizard/i.test(row.name))
+          .flatMap((row: { id: string }) =>
+            (model.draft.featurePicks.values[`${row.id}:spell_mastery`] ?? '')
+              .split(',')
+              .map((id: string) => id.trim())
+              .filter(Boolean),
+          )}
+        offerPowerSurge={model.draft.play.resources.some(
+          (row: { id: string }) => row.id.includes(':power_surge:'),
+        )}
         abilities={model.effectiveAbilities}
         proficiencyBonus={model.proficiencyBonus}
         castProfiles={model.spellcastingSync.castProfiles}

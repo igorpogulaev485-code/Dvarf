@@ -99,6 +99,9 @@ function readReset(value: unknown): ResourceReset {
 
 function readResource(raw: unknown, index: number): SheetResource {
   const row = asRecord(raw)
+  const dice = Array.isArray(row.dice)
+    ? row.dice.filter((value): value is number => typeof value === 'number')
+    : undefined
   return clampResource({
     id: typeof row.id === 'string' ? row.id : `res-${index}`,
     name: typeof row.name === 'string' ? row.name : '',
@@ -110,6 +113,10 @@ function readResource(raw: unknown, index: number): SheetResource {
       : typeof row.onHot === 'boolean'
         ? { onHot: row.onHot }
         : {}),
+    ...(row.track === 'stock' || row.track === 'spend' ? { track: row.track } : {}),
+    ...(dice?.length ? { dice } : {}),
+    ...(typeof row.activeLabel === 'string' ? { activeLabel: row.activeLabel } : {}),
+    ...(row.wardCreated === true ? { wardCreated: true } : {}),
   })
 }
 

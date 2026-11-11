@@ -38,6 +38,9 @@ import {
 import { maneuverById } from '../../shared/dnd/battleMasterManeuvers'
 import { elementalDisciplineById } from '../../shared/dnd/monkElementalDisciplines'
 import { featureChoiceOptionLabel } from '../../shared/dnd/featureChoiceOptionLabel'
+import { createArcaneWard, wizardResolvedFeatureId } from '../../shared/dnd/wizardTradition'
+import { WizardCapstonePicks } from './WizardCapstonePicks'
+import type { WizardFeatureRequest } from './WizardFeatureUseDialog'
 import {
   FLEXIBLE_CASTING_SLOT_COST,
   metamagicById,
@@ -163,6 +166,8 @@ type ClassFeaturesPanelProps = {
   onWildShapeFork?: (request: WildShapeForkRequest) => void
   /** Wizard Shapechanger etc. — open self_form picker, then spend pool. */
   onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
+  /** Tradition features that ask for a target, mode, or active state. */
+  onWizardFeatureUse?: (request: WizardFeatureRequest) => void
   /**
    * Moon Combat Wild Shape: spend slot + heal active self_form (caller updates spells).
    * Return toast message on success, null if no form.
@@ -274,6 +279,7 @@ function FeatureResourceControls({
   onOpenSoulTrinkets,
   onWildShapeFork,
   onFeatureSelfForm,
+  onWizardFeatureUse,
   moonCombatWildShape = false,
 }: {
   feature: UnlockedFeature
@@ -289,6 +295,7 @@ function FeatureResourceControls({
   onOpenSoulTrinkets?: (classEntryId: string) => void
   onWildShapeFork?: (request: WildShapeForkRequest) => void
   onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
+  onWizardFeatureUse?: (request: WizardFeatureRequest) => void
   /** Circle of the Moon: Wild Shape is a bonus action. */
   moonCombatWildShape?: boolean
 }) {
@@ -327,22 +334,65 @@ function FeatureResourceControls({
         </div>
       )
     }
+    const openResolved = () =>
+      onWizardFeatureUse?.({
+        featureId: feature.id,
+        resourceId: pool.id,
+        classSlug,
+        classEntryId: feature.classEntryId,
+        name: feature.name_ru,
+      })
     return (
       <div className="feature-resource">
         <Text>
           {pool.name}: <strong>{current}</strong> / {pool.max}
+          {pool.wardCreated ? '' : resource.pool_id === 'arcane_ward' ? ' · не создан' : ''}
         </Text>
+        {pool.dice?.length ? (
+          <Text>
+            Записано: <strong>{pool.dice.join(', ')}</strong>
+          </Text>
+        ) : null}
+        {pool.activeLabel ? <Text>Сейчас: {pool.activeLabel}</Text> : null}
         <div className="feature-resource__actions">
+          {resource.pool_id === 'arcane_ward' ? (
+            <Button
+              type="button"
+              disabled={pool.wardCreated}
+              onClick={() => {
+                const created = createArcaneWard(resources)
+                onResourcesChange(created.resources)
+                onToast?.(created.message)
+              }}
+            >
+              Создать щит
+            </Button>
+          ) : null}
           <Button
             type="button"
             disabled={current >= pool.max}
             onClick={() => {
+              if (resource.pool_id === 'portent') {
+                const rolled = 1 + Math.floor(Math.random() * 20)
+                const dice = [...(pool.dice ?? []), rolled]
+                onResourcesChange(
+                  resources.map((row) =>
+                    row.id === pool.id
+                      ? { ...row, used: dice.length, dice, track: 'stock' }
+                      : row,
+                  ),
+                )
+                onToast?.(`Знамение: записано ${rolled}`)
+                return
+              }
               const result = spendFeatureUse({ resources, feature, classSlug })
               onResourcesChange(result.resources)
               if (result.message) onToast?.(result.message)
             }}
           >
-            {resource.stock_gain_label_ru || `+ ${pool.name}`}
+            {resource.pool_id === 'portent'
+              ? 'Записать кость'
+              : resource.stock_gain_label_ru || `+ ${pool.name}`}
           </Button>
           <Button
             type="button"
@@ -353,6 +403,14 @@ function FeatureResourceControls({
                 onOpenSoulTrinkets
               ) {
                 onOpenSoulTrinkets(feature.classEntryId)
+                return
+              }
+              if (
+                onWizardFeatureUse &&
+                (resource.pool_id === 'portent' ||
+                  resource.pool_id === 'power_surge')
+              ) {
+                openResolved()
                 return
               }
               const result = consumeStock({
@@ -371,7 +429,9 @@ function FeatureResourceControls({
           >
             {resource.pool_id === 'soul_trinkets' && onOpenSoulTrinkets
               ? 'Сжечь…'
-              : resource.stock_spend_label_ru || `− ${pool.name}`}
+              : resource.pool_id === 'portent'
+                ? 'Заменить бросок…'
+                : resource.stock_spend_label_ru || `− ${pool.name}`}
           </Button>
         </div>
       </div>
@@ -431,7 +491,7 @@ function FeatureResourceControls({
       <SlotPips
         max={pool.max}
         used={pool.used}
-        label={`${pool.name}: потрачено ${pool.used}/${pool.max}`}
+        label={`${pool.name}: ${spendRemaining(pool)}/${pool.max}`}
         onChange={(used) =>
           onResourcesChange(
             resources.map((row) => (row.id === pool.id ? { ...row, used } : row)),
@@ -537,6 +597,28 @@ function FeatureResourceControls({
                 ? 'Потратить (бонусным)…'
                 : 'Потратить…'
               : 'Через Дикий облик…'}
+          </Button>
+        ) : onWizardFeatureUse && wizardResolvedFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            disabled={
+              feature.id === 'bladesong'
+                ? !pool.activeLabel && remaining <= 0
+                : remaining <= 0
+            }
+            onClick={() =>
+              onWizardFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {feature.id === 'bladesong' && pool.activeLabel
+              ? 'Завершить песнь'
+              : 'Использовать…'}
           </Button>
         ) : opensFeatureSelfForm ? (
           <Button
@@ -1459,6 +1541,7 @@ function FeatureRow({
   onCastPactChainFamiliar,
   onWildShapeFork,
   onFeatureSelfForm,
+  onWizardFeatureUse,
   moonCombatWildShape = false,
   onMoonFormSlotHeal,
   edition = '2014',
@@ -1490,6 +1573,7 @@ function FeatureRow({
   onCastPactChainFamiliar?: (classEntryId: string) => void
   onWildShapeFork?: (request: WildShapeForkRequest) => void
   onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
+  onWizardFeatureUse?: (request: WizardFeatureRequest) => void
   moonCombatWildShape?: boolean
   onMoonFormSlotHeal?: (input: {
     slotLevel: number
@@ -1727,6 +1811,37 @@ function FeatureRow({
           onToast={onToast}
         />
       ) : null}
+      {replacementStatus === 'active' &&
+      (feature.id === 'spell_mastery' || feature.id === 'signature_spells') ? (
+        <WizardCapstonePicks
+          featureId={feature.id}
+          classEntryId={feature.classEntryId}
+          spells={spells.known}
+          featurePicks={featurePicks}
+          onFeaturePicksChange={onFeaturePicksChange}
+          onToast={onToast}
+        />
+      ) : null}
+      {replacementStatus === 'active' &&
+      onWizardFeatureUse &&
+      (feature.id === 'minor_conjuration' || feature.id === 'command_undead') ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onWizardFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            Использовать…
+          </Button>
+        </div>
+      ) : null}
       {feature.id === PACT_BOON_FEATURE_ID &&
       isPactTomeActive(featurePicks, feature.classEntryId) ? (
         <div className="feature-resource">
@@ -1802,6 +1917,7 @@ function FeatureRow({
           onOpenSoulTrinkets={onOpenSoulTrinkets}
           onWildShapeFork={onWildShapeFork}
           onFeatureSelfForm={onFeatureSelfForm}
+          onWizardFeatureUse={onWizardFeatureUse}
           moonCombatWildShape={moonCombatWildShape}
         />
       ) : null}
@@ -1882,6 +1998,7 @@ export function ClassFeaturesPanel({
   onCompanionsChange,
   onWildShapeFork,
   onFeatureSelfForm,
+  onWizardFeatureUse,
   onMoonFormSlotHeal,
   onToast,
   featGrants = [],
@@ -2345,6 +2462,7 @@ export function ClassFeaturesPanel({
                             onCastPactChainFamiliar={onCastPactChainFamiliar}
                             onWildShapeFork={onWildShapeFork}
                             onFeatureSelfForm={onFeatureSelfForm}
+                            onWizardFeatureUse={onWizardFeatureUse}
                             moonCombatWildShape={moonCombatWildShape}
                             onMoonFormSlotHeal={onMoonFormSlotHeal}
                             edition={edition}

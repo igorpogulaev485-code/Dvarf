@@ -24,6 +24,13 @@ import {
 import { setConcentration } from '../../../shared/dnd/concentration'
 import { equipInventoryItem } from '../inventory'
 import { canCastWizardRitualFromBook } from '../../../shared/dnd/wizardSpellbook'
+import {
+  applyAbjurationToWard,
+  bladesongBonuses,
+  gainPowerSurge,
+  isAbjurationSchool,
+  wizardLeveledCastGate,
+} from '../../../shared/dnd/wizardTradition'
 import { type CastChoice } from '../CastSpellDialog'
 import { consumeMaterialItem } from '../spellMaterials'
 import { canSpendGrantCast, spendGrantCast, type SheetSpell } from '../spells'
@@ -226,6 +233,34 @@ export function installSheetActions4(model: SheetModel) {
     model.setPendingFamiliar(null)
   }
 
+  function wizardCastFollowUp(
+    spell: SheetSpell,
+    slotLevel: number,
+    choice: CastChoice,
+  ): string {
+    if (spell.level <= 0) return ''
+    let resources = model.draft.play.resources
+    const notes: string[] = []
+    if (isAbjurationSchool(spell.school)) {
+      const repaired = applyAbjurationToWard(resources, slotLevel)
+      resources = repaired.resources
+      if (repaired.note) notes.push(repaired.note)
+    }
+    if (choice.powerSurge) {
+      const gained = gainPowerSurge(resources)
+      resources = gained.resources
+      if (gained.note) notes.push(gained.note)
+    }
+    if (resources !== model.draft.play.resources) {
+      const nextResources = resources
+      model.setDraft((prev) => ({
+        ...prev,
+        play: { ...prev.play, resources: nextResources },
+      }))
+    }
+    return notes.length ? ` · ${notes.join(' · ')}` : ''
+  }
+
   model.runDeskCast = function runDeskCast(spell: SheetSpell, choice: CastChoice) {
     const name = spell.name || 'Заклинание'
     const allyNote =
@@ -337,10 +372,26 @@ export function installSheetActions4(model: SheetModel) {
         wantsForm || wantsFamiliar
           ? ''
           : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
+      const wardNote = wizardCastFollowUp(spell, spell.level, choice)
       model.onToast(
         `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
-        }${naparnikNote}${formNote}`,
+        }${naparnikNote}${formNote}${wardNote}`,
+      )
+      return
+    }
+    if (choice.useMastery) {
+      const gate = wizardLeveledCastGate(spell)
+      if (!gate.slot) {
+        model.onToast(gate.message || 'Мастерство требует подготовленное заклинание')
+        return
+      }
+      if (spell.concentration) model.applyDeskConcentration(spell)
+      const wardNote = wizardCastFollowUp(spell, spell.level, choice)
+      model.onToast(
+        `Каст: ${name} (мастерство, без ячейки)${effectNote}${consumeNote}${allyNote}${
+          spell.concentration ? ' · концентрация' : ''
+        }${wardNote}`,
       )
       return
     }
@@ -360,12 +411,20 @@ export function installSheetActions4(model: SheetModel) {
         wantsForm || wantsFamiliar
           ? ''
           : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
+      const wardNote = wizardCastFollowUp(spell, spell.level, choice)
       model.onToast(
         `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
-        }${naparnikNote}${formNote}`,
+        }${naparnikNote}${formNote}${wardNote}`,
       )
       return
+    }
+    if (model.spellLearnBudget?.mode === 'spellbook' && !choice.useGrant) {
+      const gate = wizardLeveledCastGate(spell)
+      if (!gate.slot) {
+        model.onToast(gate.message)
+        return
+      }
     }
     if (
       !canCastLeveledSpell(
@@ -396,10 +455,11 @@ export function installSheetActions4(model: SheetModel) {
         wantsForm || wantsFamiliar
           ? ''
           : model.applyDeskNaparnikFromCast(spell, pactResult.pact.level)
+      const wardNote = wizardCastFollowUp(spell, pactResult.pact.level, choice)
       model.onToast(
         `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
-        }${naparnikNote}${formNote}`,
+        }${naparnikNote}${formNote}${wardNote}`,
       )
       return
     }
@@ -423,10 +483,11 @@ export function installSheetActions4(model: SheetModel) {
         : model.applyDeskNaparnikFromCast(spell, choice.slotLevel)
     const upcast =
       choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
+    const wardNote = wizardCastFollowUp(spell, choice.slotLevel, choice)
     model.onToast(
       `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${allyNote}${
         spell.concentration ? ' · концентрация' : ''
-      }${naparnikNote}${formNote}`,
+      }${naparnikNote}${formNote}${wardNote}`,
     )
   }
 
@@ -541,7 +602,16 @@ export function installSheetActions4(model: SheetModel) {
   model.effectiveRollMode = function effectiveRollMode(skillKey?: string): DeskRollMode {
     const armor = skillKey === 'stealth' && model.stealthArmorDisadvantage
     const exhaustion = model.exhaustionFlags().disadvantageOnChecks
-    return resolveRollMode(model.deskRollMode, armor || exhaustion)
+    const song =
+      skillKey === 'acrobatics' &&
+      bladesongBonuses({
+        resources: model.draft.play.resources,
+        intelligenceScore: model.draft.abilities.int ?? 10,
+      }).active
+    const base = resolveRollMode(model.deskRollMode, armor || exhaustion)
+    if (!song) return base
+    if (base === 'disadvantage') return 'normal'
+    return 'advantage'
   }
 
   model.attackRollMode = function attackRollMode(): DeskRollMode {
@@ -601,6 +671,15 @@ export function installSheetActions4(model: SheetModel) {
   }
 
   model.rollAbilitySave = function rollAbilitySave(key: AbilityKey, mod: number) {
+    const song =
+      key === 'con' && model.draft.play.concentration
+        ? bladesongBonuses({
+            resources: model.draft.play.resources,
+            intelligenceScore: model.draft.abilities.int ?? 10,
+          })
+        : null
+    const rolledMod = mod + (song?.active ? song.concentrationSave : 0)
+    const songNote = song?.active ? ` · песнь +${song.concentrationSave}` : ''
     const exhaustion = model.exhaustionFlags().disadvantageOnAttacksAndSaves
     const note =
       exhaustion && model.deskRollMode === 'advantage'
@@ -611,11 +690,11 @@ export function installSheetActions4(model: SheetModel) {
     model.emitToast(
       `${formatSkillRoll(
         `Спас · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
-        mod,
+        rolledMod,
         model.saveRollMode(),
         undefined,
         null,
-      )}${note}`,
+      )}${note}${songNote}`,
     )
   }
 

@@ -43,6 +43,13 @@ import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import { SpellbookManageDialog } from './SpellbookManageDialog'
 import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
+import {
+  applyAbjurationToWard,
+  gainPowerSurge,
+  isAbjurationSchool,
+  wizardLeveledCastGate,
+} from '../../shared/dnd/wizardTradition'
+import type { SheetResource } from '../../shared/dnd/rest'
 import { wizardSpellbookStatusLabel } from './wizardSpellbookInventory'
 import { resolveSubclassFeatureSlug } from '../../shared/dnd/classFeatures'
 import {
@@ -127,6 +134,10 @@ type SpellsPanelProps = {
   /** Open cast dialog for this spell id once (from play-desk compact). */
   initialCastSpellId?: string | null
   onInitialCastConsumed?: () => void
+  resources?: SheetResource[]
+  onResourcesChange?: (resources: SheetResource[]) => void
+  masterySpellIds?: string[]
+  offerPowerSurge?: boolean
 }
 
 export function SpellsPanel({
@@ -156,6 +167,10 @@ export function SpellsPanel({
   onToast,
   initialCastSpellId = null,
   onInitialCastConsumed,
+  resources,
+  onResourcesChange,
+  masterySpellIds = [],
+  offerPowerSurge = false,
 }: SpellsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
@@ -462,6 +477,24 @@ export function SpellsPanel({
     runCast(castSpell, choice)
   }
 
+  function wizardPanelFollowUp(spell: SheetSpell, slotLevel: number, choice: CastChoice): string {
+    if (!resources || !onResourcesChange || spell.level <= 0) return ''
+    let next = resources
+    const notes: string[] = []
+    if (isAbjurationSchool(spell.school)) {
+      const repaired = applyAbjurationToWard(next, slotLevel)
+      next = repaired.resources
+      if (repaired.note) notes.push(repaired.note)
+    }
+    if (choice.powerSurge) {
+      const gained = gainPowerSurge(next)
+      next = gained.resources
+      if (gained.note) notes.push(gained.note)
+    }
+    if (next !== resources) onResourcesChange(next)
+    return notes.length ? ` · ${notes.join(' · ')}` : ''
+  }
+
   function runCast(castSpell: SheetSpell, choice: CastChoice) {
     const name = castSpell.name || 'Заклинание'
     const allyNote =
@@ -521,6 +554,22 @@ export function SpellsPanel({
       setCastSpell(null)
       return
     }
+    if (choice.useMastery) {
+      const gate = wizardLeveledCastGate(castSpell)
+      if (!gate.slot) {
+        onToast?.(gate.message || 'Мастерство требует подготовленное заклинание')
+        return
+      }
+      applyConcentrationIfNeeded(castSpell)
+      const wardNote = wizardPanelFollowUp(castSpell, castSpell.level, choice)
+      onToast?.(
+        `Каст: ${name} (мастерство, без ячейки)${effectNote}${consumeNote}${allyNote}${
+          castSpell.concentration ? ' · концентрация' : ''
+        }${wardNote}`,
+      )
+      setCastSpell(null)
+      return
+    }
     if (ritualCast) {
       if (learnBudget?.mode === 'spellbook') {
         const gate = canCastWizardRitualFromBook({
@@ -534,10 +583,11 @@ export function SpellsPanel({
       }
       applyConcentrationIfNeeded(castSpell)
       const naparnikNote = wantsForm ? '' : applyNaparnikFromCast(castSpell, naparnikSlot)
+      const wardNote = wizardPanelFollowUp(castSpell, castSpell.level, choice)
       onToast?.(
         `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${allyNote}${
           castSpell.concentration ? ' · концентрация' : ''
-        }${naparnikNote}${formNote}`,
+        }${naparnikNote}${formNote}${wardNote}`,
       )
       setCastSpell(null)
       return
@@ -553,13 +603,21 @@ export function SpellsPanel({
       const naparnikNote = wantsForm
         ? ''
         : applyNaparnikFromCast(castSpell, pactResult.pact.level)
+      const wardNote = wizardPanelFollowUp(castSpell, pactResult.pact.level, choice)
       onToast?.(
         `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${allyNote}${
           castSpell.concentration ? ' · концентрация' : ''
-        }${naparnikNote}${formNote}`,
+        }${naparnikNote}${formNote}${wardNote}`,
       )
       setCastSpell(null)
       return
+    }
+    if (learnBudget?.mode === 'spellbook' && !choice.useGrant && !choice.useMastery) {
+      const gate = wizardLeveledCastGate(castSpell)
+      if (!gate.slot) {
+        onToast?.(gate.message)
+        return
+      }
     }
     const result = spendSpellSlot(spells.slots, choice.slotLevel)
     if (!result.ok) {
@@ -573,10 +631,11 @@ export function SpellsPanel({
       : applyNaparnikFromCast(castSpell, choice.slotLevel)
     const upcast =
       choice.slotLevel > castSpell.level ? ` · upcast ${choice.slotLevel}` : ''
+    const wardNote = wizardPanelFollowUp(castSpell, choice.slotLevel, choice)
     onToast?.(
       `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${allyNote}${
         castSpell.concentration ? ' · концентрация' : ''
-      }${naparnikNote}${formNote}`,
+      }${naparnikNote}${formNote}${wardNote}`,
     )
     setCastSpell(null)
   }
@@ -1279,6 +1338,8 @@ export function SpellsPanel({
         characterLevel={level}
         characterId={characterId}
         wizardRitualFromBook={learnBudget?.mode === 'spellbook'}
+        masterySpellIds={masterySpellIds}
+        offerPowerSurge={offerPowerSurge}
         abilities={abilities}
         proficiencyBonus={proficiencyBonus}
         castProfiles={castProfiles}

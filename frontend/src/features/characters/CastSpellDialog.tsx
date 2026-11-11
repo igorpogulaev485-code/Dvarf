@@ -22,6 +22,10 @@ import {
   type SpellcastingAbility,
 } from '../../shared/dnd/spells'
 import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
+import {
+  isCounterspellOrDispel,
+  wizardLeveledCastGate,
+} from '../../shared/dnd/wizardTradition'
 import { Button, Dialog, Stack, Text } from '../../ui'
 import { AllyTargetFields } from '../lobby/AllyTargetFields'
 import { useLobbyParty, type AllyPickDemo } from '../lobby/useLobbyParty'
@@ -129,6 +133,10 @@ export type CastChoice = {
   allyTargetIds?: string[]
   /** Flame Strike: which damage type grows on upcast. */
   damageChoice?: 'first' | 'second'
+  /** Spell Mastery: base-level cast without a slot, only while prepared. */
+  useMastery?: boolean
+  /** War Magic: this counterspell or dispel magic ended a spell. */
+  powerSurge?: boolean
   lobbyId?: string | null
 }
 
@@ -173,6 +181,10 @@ type CastSpellDialogProps = {
   arcaneFirearm?: boolean
   /** Inventory ids that currently bear this character's infusions. */
   infusedItemIds?: string[]
+  /** Sheet spell ids chosen for Spell Mastery. */
+  masterySpellIds?: string[]
+  /** War Wizard can gain a power surge from a successful counterspell or dispel. */
+  offerPowerSurge?: boolean
 }
 
 export function CastSpellDialog({
@@ -198,6 +210,8 @@ export function CastSpellDialog({
   arcaneArmor = false,
   arcaneFirearm = false,
   infusedItemIds = [],
+  masterySpellIds = [],
+  offerPowerSurge = false,
 }: CastSpellDialogProps) {
   const isCantrip = spell != null && spell.level <= 0
   const spellLevel = spell?.level ?? 0
@@ -214,7 +228,18 @@ export function CastSpellDialog({
       book: spells.wizard_spellbook,
     })
   }, [wizardRitualFromBook, spell, isCantrip, spells.wizard_spellbook])
-  const isRitual = Boolean(spell?.ritual && !isCantrip && wizardRitualGate.ok)
+  const bookGate =
+    wizardRitualFromBook && spell && !isCantrip
+      ? wizardLeveledCastGate(spell)
+      : { slot: true, ritualOnly: false, message: '' }
+  const isRitual = Boolean(spell?.ritual && !isCantrip && wizardRitualGate.ok && (bookGate.slot || bookGate.ritualOnly))
+  const masteryAvailable = Boolean(
+    spell &&
+      bookGate.slot &&
+      spell.prepared &&
+      masterySpellIds.includes(spell.id),
+  )
+  const powerSurgeOffer = Boolean(offerPowerSurge && spell && isCounterspellOrDispel(spell))
   const ritualBlockedReason =
     wizardRitualFromBook && spell?.ritual && !isCantrip && !wizardRitualGate.ok
       ? wizardRitualGate.message
@@ -236,6 +261,8 @@ export function CastSpellDialog({
   const [damageChoice, setDamageChoice] = useState<DamageTypeChoice>('first')
   const [consumeMaterial, setConsumeMaterial] = useState(true)
   const [selfFormTarget, setSelfFormTarget] = useState<'self' | 'other'>('self')
+  const [useMastery, setUseMastery] = useState(false)
+  const [powerSurge, setPowerSurge] = useState(false)
   const isTransformSelf = spell != null && isSpellSelfFormCast(spell)
 
   const appliesToAllies = Boolean(spell && castSpellAppliesToAllies(spell))
@@ -310,6 +337,15 @@ export function CastSpellDialog({
       return
     }
     setSelfFormTarget('self')
+    setUseMastery(false)
+    setPowerSurge(false)
+    if (bookGate.ritualOnly) {
+      setUseGrant(false)
+      setGrantSpellId(null)
+      setUsePact(false)
+      setUseRitual(true)
+      return
+    }
     // Prefer first available grant; else slots/pact; else ritual.
     if (grantAvailable.length > 0) {
       setUseGrant(true)
@@ -347,6 +383,7 @@ export function CastSpellDialog({
     pactOk,
     slotLevels.join(','),
     spells.pact_slots?.level,
+    bookGate.ritualOnly,
   ])
 
   const selectedGrant = useMemo(
@@ -467,8 +504,9 @@ export function CastSpellDialog({
     materialsOk &&
     (isCantrip ||
       grantOk ||
+      (useMastery && masteryAvailable) ||
       (useRitual && isRitual) ||
-      (!useGrant && !useRitual && hasSlotPath))
+      (!useGrant && !useRitual && !useMastery && hasSlotPath && bookGate.slot))
   /** Цели необязательны; блок только при дублях в слотах */
   const targetsOk = !showTargets || !duplicateTarget
   const selectedSlot =
@@ -546,8 +584,10 @@ export function CastSpellDialog({
         onConfirm({
           useGrant: !isCantrip && grantOk,
           grantSpellId: !isCantrip && grantOk ? grantSpellId : null,
-          ritual: !isCantrip && !useGrant && useRitual && isRitual,
-          usePact: !isCantrip && !useGrant && !useRitual && usePact && pactOk,
+          ritual: !isCantrip && !useGrant && !useMastery && useRitual && isRitual,
+          useMastery: !isCantrip && useMastery && masteryAvailable,
+          powerSurge: powerSurgeOffer && powerSurge,
+          usePact: !isCantrip && !useGrant && !useRitual && !useMastery && usePact && pactOk,
           slotLevel:
             isCantrip || useRitual || useGrant
               ? spellLevel
@@ -706,7 +746,7 @@ export function CastSpellDialog({
             <div>
               <Text tone="muted">За счёт чего кастуем</Text>
               <div className="chip-row cast-source-row" style={{ marginTop: 8 }}>
-                {slotLevels.map((level) => {
+                {bookGate.slot ? slotLevels.map((level) => {
                   const rest = castPathRestLabel({ kind: 'slot', level })
                   return (
                     <button
@@ -720,6 +760,7 @@ export function CastSpellDialog({
                       title={rest}
                       onClick={() => {
                         setUseRitual(false)
+                        setUseMastery(false)
                         clearGrant()
                         setUsePact(false)
                         setSlotLevel(level)
@@ -732,8 +773,8 @@ export function CastSpellDialog({
                       <span className="cast-source-chip__rest">долгий отдых</span>
                     </button>
                   )
-                })}
-                {pactOk && spells.pact_slots ? (
+                }) : null}
+                {bookGate.slot && pactOk && spells.pact_slots ? (
                   <button
                     type="button"
                     className={`sheet-chip cast-source-chip${
@@ -794,6 +835,22 @@ export function CastSpellDialog({
                     </button>
                   )
                 })}
+                {masteryAvailable ? (
+                  <button
+                    type="button"
+                    className={`sheet-chip cast-source-chip${useMastery ? ' is-on' : ''}`}
+                    onClick={() => {
+                      setUseMastery(true)
+                      setUseRitual(false)
+                      clearGrant()
+                      setUsePact(false)
+                      setSlotLevel(spellLevel)
+                    }}
+                  >
+                    <span className="cast-source-chip__main">Мастерство</span>
+                    <span className="cast-source-chip__rest">базовый круг, без ячейки</span>
+                  </button>
+                ) : null}
                 {isRitual ? (
                   <button
                     type="button"
@@ -821,6 +878,17 @@ export function CastSpellDialog({
               </div>
               {ritualBlockedReason ? (
                 <Text tone="muted">{ritualBlockedReason}</Text>
+              ) : null}
+              {!bookGate.slot ? <Text tone="muted">{bookGate.message}</Text> : null}
+              {powerSurgeOffer ? (
+                <label className="field">
+                  <input
+                    type="checkbox"
+                    checked={powerSurge}
+                    onChange={(event) => setPowerSurge(event.target.checked)}
+                  />{' '}
+                  Заклинание сорвано — +1 Всплеск силы
+                </label>
               ) : null}
             </div>
             {activeRestLabel ? (

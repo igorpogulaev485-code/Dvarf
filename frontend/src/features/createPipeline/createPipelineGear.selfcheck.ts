@@ -108,6 +108,23 @@ assert(
   gear.spells.wizard_spellbook?.primaryBookItemId,
   'primaryBookItemId set',
 )
+const rebound = materializeCreatePipelineGear({
+  state,
+  backgroundEntry: null,
+  classCatalogByEntryId: { [classEntry.id]: wizardCatalog },
+  spells: gear.spells,
+  ensureWizardBook: true,
+})
+assert(!rebound.spells.wizard_spellbook?.bookLost, 'rebuild does not mark the book lost')
+assert(
+  rebound.spells.wizard_spellbook?.primaryBookItemId,
+  'rebuild rebinds the new spellbook id',
+)
+assert(
+  rebound.spells.wizard_spellbook?.primaryBookItemId !==
+    gear.spells.wizard_spellbook?.primaryBookItemId,
+  'rebuild mints a new item id',
+)
 
 // Skip gear → ensure blank book (C2).
 const skipState = createEmptyPipelineState()

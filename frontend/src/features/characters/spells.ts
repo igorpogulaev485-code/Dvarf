@@ -416,7 +416,8 @@ function readSpellbookAcquisition(raw: unknown): SpellbookAcquisition | undefine
     raw === 'level_up' ||
     raw === 'copied' ||
     raw === 'restored' ||
-    raw === 'backup_copy'
+    raw === 'backup_copy' ||
+    raw === 'feature'
   ) {
     return raw
   }

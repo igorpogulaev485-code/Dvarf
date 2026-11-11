@@ -33,6 +33,7 @@ import type { SpellsState } from '../characters/spells'
 import { readSpells } from '../characters/spells'
 import {
   ensureBlankSpellbookInInventory,
+  forgetStaleSpellbookBinding,
   isSpellbookInventoryItem,
   syncWizardSpellbookWithInventory,
   wizardHasUsableSpellbook,
@@ -249,6 +250,7 @@ export function materializeCreatePipelineGear(
   }
 
   let spells = input.spells.known ? input.spells : readSpells({})
+  if (hasWizard) spells = forgetStaleSpellbookBinding(spells, inventory.items)
   const synced = syncWizardSpellbookWithInventory({
     isWizard: hasWizard,
     spells,

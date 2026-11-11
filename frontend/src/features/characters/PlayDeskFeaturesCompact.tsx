@@ -1,4 +1,4 @@
-import type { SheetResource } from '../../shared/dnd/rest'
+import { resourceShownCurrent, type SheetResource } from '../../shared/dnd/rest'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
 
@@ -38,7 +38,7 @@ export function PlayDeskFeaturesCompact({
 
       <div className="play-desk-compact__cards">
         {namedResources.map((row) => {
-          const remaining = Math.max(0, row.max - row.used)
+          const remaining = resourceShownCurrent(row)
           return (
             <button
               key={row.id}

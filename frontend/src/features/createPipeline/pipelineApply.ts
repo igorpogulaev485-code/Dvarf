@@ -124,6 +124,7 @@ import { readSpells, spellsToSheet, type SpellsState } from '../characters/spell
 import { mergeCreatePipelineSpells } from './mergeCreatePipelineSpells'
 import {
   ensureBlankSpellbookInInventory,
+  forgetStaleSpellbookBinding,
   isSpellbookInventoryItem,
   syncWizardSpellbookWithInventory,
 } from '../characters/wizardSpellbookInventory'
@@ -1337,9 +1338,12 @@ export async function applyPipelineToSheet(input: {
     if (hasWizard && !draft.inventory.items.some(isSpellbookInventoryItem)) {
       draft.inventory = ensureBlankSpellbookInInventory(draft.inventory).inventory
     }
+    const spellsForBook = hasWizard
+      ? forgetStaleSpellbookBinding(finalSpells, draft.inventory.items)
+      : finalSpells
     const syncedBook = syncWizardSpellbookWithInventory({
       isWizard: hasWizard,
-      spells: finalSpells,
+      spells: spellsForBook,
       items: draft.inventory.items,
     })
     finalSpells = syncedBook.spells

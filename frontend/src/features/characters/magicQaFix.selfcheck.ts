@@ -460,10 +460,29 @@ function emptyDraft(): SubclassGrantDraftSlice {
       `${row.slug} classes`,
     )
     const subs = row.data?.subclasses ?? []
-    assert(subs.length === 2, `${row.slug} subclasses len`)
     const keys = new Set(subs.map((s) => `${s.class}/${s.subclass}`))
-    assert(keys.has('wizard/chronurgy_magic'), `${row.slug} chronurgy`)
-    assert(keys.has('wizard/graviturgy_magic'), `${row.slug} graviturgy`)
+    const expected = {
+      sapping_sting: ['chronurgy_magic', 'graviturgy_magic'],
+      gift_of_alacrity: ['chronurgy_magic'],
+      magnify_gravity: ['graviturgy_magic'],
+      fortune_s_favor: ['chronurgy_magic', 'graviturgy_magic'],
+      immovable_object: ['graviturgy_magic'],
+      wristpocket: ['chronurgy_magic', 'graviturgy_magic'],
+      pulse_wave: ['chronurgy_magic', 'graviturgy_magic'],
+      gravity_sinkhole: ['graviturgy_magic'],
+      temporal_shunt: ['chronurgy_magic'],
+      gravity_fissure: ['graviturgy_magic'],
+      tether_essence: ['chronurgy_magic', 'graviturgy_magic'],
+      dark_star: ['graviturgy_magic'],
+      reality_break: ['chronurgy_magic'],
+      ravenous_void: ['graviturgy_magic'],
+      time_ravage: ['chronurgy_magic'],
+    }[row.slug]
+    assert(expected, `${row.slug} known`)
+    assert(subs.length === expected!.length, `${row.slug} subclasses len`)
+    for (const sub of expected!) {
+      assert(keys.has(`wizard/${sub}`), `${row.slug} ${sub}`)
+    }
   }
   const encode = rows.find((r) => r.slug === 'encode_thoughts')
   assert(encode, 'encode_thoughts')

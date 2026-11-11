@@ -272,6 +272,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         }}
         onWildShapeFork={(request) => model.setWildShapeFork(request)}
         onFeatureSelfForm={(request) => model.setFeatureSelfForm(request)}
+        onWizardFeatureUse={(request) => model.setWizardFeatureUse(request)}
         onMoonFormSlotHeal={({ slotLevel, diceCount, diceSize }) => {
           const form = model.draft.companions.find(
             (c) => c.role === 'self_form' && c.active,
@@ -438,6 +439,24 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           inventory={model.draft.inventory}
           concentration={model.draft.play.concentration}
           onChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
+          resources={model.draft.play.resources}
+          onResourcesChange={(resources) =>
+            model.setDraft((prev) => ({
+              ...prev,
+              play: { ...prev.play, resources },
+            }))
+          }
+          masterySpellIds={model.draft.classes
+            .filter((row) => /волшебник|wizard/i.test(row.name))
+            .flatMap((row) =>
+              (model.draft.featurePicks.values[`${row.id}:spell_mastery`] ?? '')
+                .split(',')
+                .map((id) => id.trim())
+                .filter(Boolean),
+            )}
+          offerPowerSurge={model.draft.play.resources.some((row) =>
+            row.id.includes(':power_surge:'),
+          )}
           onInventoryChange={(inventory) =>
             model.setDraft((prev) => {
               const focusSpells = withSpellFocusFlags(prev.spells, inventory.items)

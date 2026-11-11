@@ -20,6 +20,14 @@ export type SheetResource = {
    * `undefined` = legacy default (on). Note-block resources opt in with `true`.
    */
   onHot?: boolean
+  /** spend: used = expended. stock: used = current holdings (ward HP, portent dice). */
+  track?: 'spend' | 'stock'
+  /** Recorded d20s (Portent). */
+  dice?: number[]
+  /** Active feature state shown on the card (Bladesong, Third Eye). */
+  activeLabel?: string
+  /** Arcane Ward has been created since the last long rest. */
+  wardCreated?: boolean
 }
 
 export function clampExhaustion(value: number): number {
@@ -35,13 +43,31 @@ export function clampResource(resource: SheetResource): SheetResource {
       : 'long'
   const onHot =
     typeof resource.onHot === 'boolean' ? resource.onHot : undefined
+  const dice = Array.isArray(resource.dice)
+    ? resource.dice
+        .filter((value) => Number.isFinite(value))
+        .map((value) => Math.min(20, Math.max(1, Math.floor(value))))
+    : undefined
   return {
     ...resource,
     max,
     used,
     reset,
     ...(onHot === undefined ? {} : { onHot }),
+    ...(dice && dice.length ? { dice } : { dice: undefined }),
+    ...(resource.activeLabel?.trim()
+      ? { activeLabel: resource.activeLabel.trim() }
+      : { activeLabel: undefined }),
+    ...(resource.wardCreated ? { wardCreated: true } : { wardCreated: undefined }),
   }
+}
+
+/** Same current/max on the feature card and the combat bar. Stock keeps holdings in `used`. */
+export function resourceShownCurrent(resource: SheetResource): number {
+  if (resource.track === 'stock') {
+    return Math.max(0, Math.min(resource.max, Math.floor(resource.used)))
+  }
+  return Math.max(0, resource.max - resource.used)
 }
 
 /** Hot-bar visibility: explicit false hides; undefined/true shows (legacy + class pools). */

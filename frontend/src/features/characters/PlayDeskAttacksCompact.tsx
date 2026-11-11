@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { SheetResource } from '../../shared/dnd/rest'
+import { resourceShownCurrent, type SheetResource } from '../../shared/dnd/rest'
 import {
   listCombatConsumables,
   MAX_COMBAT_CONSUMABLE_FAVORITES,
@@ -126,9 +126,11 @@ export function PlayDeskAttacksCompact({
     () => new Set(),
   )
   const named = weapons.filter((row) => row.name.trim())
-  const combatResources = resources.filter(
-    (row) => row.max > 0 && row.name.trim() && row.used < row.max,
-  )
+  const combatResources = resources.filter((row) => {
+    if (row.max <= 0 || !row.name.trim()) return false
+    if (row.track === 'stock') return true
+    return row.used < row.max
+  })
   const deskCombatFeatures = combatFeatures.filter(
     (row) => row.desk === 'combat' && row.name_ru.trim(),
   )
@@ -376,13 +378,14 @@ export function PlayDeskAttacksCompact({
         )}
 
         {combatResources.map((row) => {
-          const remaining = Math.max(0, row.max - row.used)
+          const remaining = resourceShownCurrent(row)
+          const dice = row.track === 'stock' && row.dice?.length ? ` · ${row.dice.join(', ')}` : ''
           return (
             <div key={row.id} className="play-desk-compact__row is-dense is-resource">
               <button
                 type="button"
                 className="play-desk-compact__hit"
-                disabled={!onSpendResource || remaining <= 0}
+                disabled={!onSpendResource || (row.track !== 'stock' && remaining <= 0) || (row.track === 'stock' && remaining <= 0 && !row.activeLabel)}
                 onClick={() => onSpendResource?.(row.id)}
               >
                 <div className="play-desk-compact__row-main">
@@ -391,7 +394,7 @@ export function PlayDeskAttacksCompact({
                   <span className="play-desk-compact__tag">ресурс</span>
                 </div>
                 <span className="play-desk-compact__mod">
-                  {remaining}/{row.max}
+                  {remaining}/{row.max}{dice}
                 </span>
                 <span className="play-desk-compact__dmg">потратить</span>
               </button>
