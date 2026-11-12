@@ -6,6 +6,7 @@ import { LobbyHubTabs, type LobbyHubTabId } from '../features/lobby/LobbyHubTabs
 import { LobbyJournalPanel } from '../features/lobby/LobbyJournalPanel'
 import { LobbyMemberMiniCard } from '../features/lobby/LobbyMemberMiniCard'
 import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
+import { LobbyMediaQuotaPanel } from '../features/lobby/LobbyMediaQuotaPanel'
 import { LobbyRolesPanel } from '../features/lobby/LobbyRolesPanel'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { VisibilitySettingsPanel } from '../features/lobby/VisibilitySettingsPanel'
@@ -27,6 +28,7 @@ import {
   removeLobbyMember,
   updateLobby,
   type LobbyDetail,
+  type LobbyMediaUsage,
 } from '../shared/api/lobbies'
 import { openProductSite } from '../shared/brand/creed20'
 import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
@@ -536,6 +538,28 @@ export function LobbyDetailPage() {
                 <Text tone="muted">Только мастер меняет название и приглашение.</Text>
               </Panel>
             )}
+
+            {lobby.media_usage || canEditWiki || canManageJournal ? (
+              <LobbyMediaQuotaPanel
+                lobbyId={lobby.id}
+                usage={
+                  lobby.media_usage ?? {
+                    used_bytes: 0,
+                    free_bytes: 200 * 1024 * 1024,
+                    limit_bytes: 200 * 1024 * 1024,
+                    used_mb: 0,
+                    free_mb: 200,
+                    limit_mb: 200,
+                  }
+                }
+                canUpload={canEditWiki || canManageJournal}
+                onUsageChange={(next: LobbyMediaUsage) =>
+                  setLobby((prev) => (prev ? { ...prev, media_usage: next } : prev))
+                }
+                onToast={setToast}
+                onError={setError}
+              />
+            ) : null}
 
             <VisibilitySettingsPanel
               profile={visibilityDraft}

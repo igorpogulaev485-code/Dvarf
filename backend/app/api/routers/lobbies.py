@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Query, Response, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, File, Form, Query, Response, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse
 
 from app.api.deps import CurrentUser, DbSession
-from app.core.exceptions import UnauthorizedError
+from app.core.exceptions import AppError, UnauthorizedError
 from app.core.security import decode_token
 from app.db.session import SessionLocal
 from app.models.user import User
@@ -51,6 +52,8 @@ from app.schemas.lobby import (
     JournalPageOut,
     LobbyCreateRequest,
     LobbyDetail,
+    LobbyMediaOut,
+    LobbyMediaUsageOut,
     LobbyShareEffectRequest,
     LobbyShareEffectResponse,
     LobbySyncInfusionEffectsRequest,
@@ -85,11 +88,33 @@ from app.schemas.lobby import (
     SettingUpdateRequest,
 )
 from app.schemas.note import NoteCreateRequest, NoteOut, NoteUpdateRequest
+from app.models.lobby_media import LOBBY_MEDIA_KINDS, LobbyMedia
 from app.services.chat import ChatService
 from app.services.lobby import LobbyService
+from app.services.media import LobbyMediaService
 from app.services.note import NoteService
 
 router = APIRouter(tags=["lobbies"])
+
+
+def _media_out(row: LobbyMedia, *, quota_remaining_bytes: int | None = None) -> LobbyMediaOut:
+    return LobbyMediaOut(
+        id=row.id,
+        lobby_id=row.lobby_id,
+        url=row.url,
+        preview_url=row.preview_url,
+        bytes_on_disk=row.bytes_on_disk,
+        width=row.width,
+        height=row.height,
+        type=row.kind,  # type: ignore[arg-type]
+        attached_to_id=row.attached_to_id,
+        is_primary=row.is_primary,
+        original_filename=row.original_filename,
+        uploaded_by=row.uploaded_by,
+        created_at=row.created_at,
+        updated_at=row.updated_at,
+        quota_remaining_bytes=quota_remaining_bytes,
+    )
 
 
 def _user_from_ws_token(token: str) -> User:
@@ -209,6 +234,99 @@ def get_lobby(
     db: DbSession,
 ) -> LobbyDetail:
     return LobbyService(db).get(current_user, lobby_id)
+
+
+@router.get("/lobbies/{lobby_id}/media/usage", response_model=LobbyMediaUsageOut)
+def get_lobby_media_usage(
+    lobby_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> LobbyMediaUsageOut:
+    usage = LobbyMediaService(db).get_usage_for_user(current_user, lobby_id)
+    return LobbyMediaUsageOut(
+        used_bytes=usage.used_bytes,
+        free_bytes=usage.free_bytes,
+        limit_bytes=usage.limit_bytes,
+        used_mb=usage.used_mb,
+        free_mb=usage.free_mb,
+        limit_mb=usage.limit_mb,
+    )
+
+
+@router.post("/lobbies/{lobby_id}/media", response_model=LobbyMediaOut, status_code=201)
+async def upload_lobby_media(
+    lobby_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+    file: UploadFile = File(...),
+    type: str = Form("other"),
+    attached_to_id: UUID | None = Form(None),
+    is_primary: bool = Form(False),
+) -> LobbyMediaOut:
+    kind = (type or "other").strip().lower()
+    if kind not in LOBBY_MEDIA_KINDS:
+        raise AppError(
+            "Тип медиа: journal, wiki, map или other",
+            code="invalid_media_kind",
+            status_code=400,
+        )
+    data = await file.read()
+    row = LobbyMediaService(db).upload(
+        current_user,
+        lobby_id,
+        data=data,
+        content_type=file.content_type,
+        original_filename=file.filename,
+        kind=kind,  # type: ignore[arg-type]
+        attached_to_id=attached_to_id,
+        is_primary=is_primary,
+    )
+    usage = LobbyMediaService(db).usage(lobby_id)
+    return _media_out(row, quota_remaining_bytes=usage.free_bytes)
+
+
+@router.delete("/lobbies/{lobby_id}/media/{media_id}", response_model=LobbyMediaUsageOut)
+def delete_lobby_media(
+    lobby_id: UUID,
+    media_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> LobbyMediaUsageOut:
+    usage = LobbyMediaService(db).delete(current_user, lobby_id, media_id)
+    return LobbyMediaUsageOut(
+        used_bytes=usage.used_bytes,
+        free_bytes=usage.free_bytes,
+        limit_bytes=usage.limit_bytes,
+        used_mb=usage.used_mb,
+        free_mb=usage.free_mb,
+        limit_mb=usage.limit_mb,
+    )
+
+
+@router.get("/lobbies/{lobby_id}/media/{media_id}/file")
+def get_lobby_media_file(
+    lobby_id: UUID,
+    media_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> FileResponse:
+    path = LobbyMediaService(db).open_file_for_user(
+        current_user, lobby_id, media_id, preview=False
+    )
+    return FileResponse(path, media_type="image/webp", filename=path.name)
+
+
+@router.get("/lobbies/{lobby_id}/media/{media_id}/preview")
+def get_lobby_media_preview(
+    lobby_id: UUID,
+    media_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> FileResponse:
+    path = LobbyMediaService(db).open_file_for_user(
+        current_user, lobby_id, media_id, preview=True
+    )
+    return FileResponse(path, media_type="image/webp", filename=path.name)
 
 
 @router.patch("/lobbies/{lobby_id}", response_model=LobbyDetail)

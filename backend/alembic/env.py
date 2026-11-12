@@ -12,6 +12,7 @@ from app.models import (  # noqa: F401
     EmailChangeToken,
     EmailVerificationToken,
     Lobby,
+    LobbyMedia,
     PasswordResetToken,
     PlaySession,
     Setting,

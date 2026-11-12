@@ -573,6 +573,35 @@ class LobbySummary(BaseModel):
     updated_at: datetime
 
 
+class LobbyMediaUsageOut(BaseModel):
+    used_bytes: int
+    free_bytes: int
+    limit_bytes: int
+    used_mb: float
+    free_mb: float
+    limit_mb: float
+
+
+class LobbyMediaOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    lobby_id: UUID
+    url: str
+    preview_url: str
+    bytes_on_disk: int
+    width: int
+    height: int
+    type: Literal["journal", "wiki", "map", "other"]
+    attached_to_id: UUID | None = None
+    is_primary: bool = False
+    original_filename: str
+    uploaded_by: UUID
+    created_at: datetime
+    updated_at: datetime
+    quota_remaining_bytes: int | None = None
+
+
 class LobbyDetail(BaseModel):
     id: UUID
     name: str
@@ -599,6 +628,7 @@ class LobbyDetail(BaseModel):
     settings: list[SettingSummary]
     sessions: list[SessionSummary]
     visibility_profile: dict = Field(default_factory=dict)
+    media_usage: LobbyMediaUsageOut | None = None
     created_at: datetime
     updated_at: datetime
 

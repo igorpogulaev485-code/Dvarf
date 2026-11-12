@@ -3,6 +3,7 @@ from app.models.character import Character, RulesEdition
 from app.models.chat import ChatChannel, ChatMessage, MasterLetter, MasterLetterMessage
 from app.models.journal import CampaignJournalEntry
 from app.models.lobby import Lobby, LobbyMember, LobbyRole, PlaySession, SessionSeat, Setting
+from app.models.lobby_media import LobbyMedia
 from app.models.note import Note
 from app.models.session_event import SessionEvent
 from app.models.setting_artifact import SettingArtifact
@@ -32,6 +33,7 @@ __all__ = [
     "EmailChangeToken",
     "EmailVerificationToken",
     "Lobby",
+    "LobbyMedia",
     "LobbyMember",
     "LobbyRole",
     "MasterLetter",

@@ -43,9 +43,20 @@ app.include_router(lobbies_router.router)
 
 uploads_path = Path(settings.uploads_dir)
 uploads_path.mkdir(parents=True, exist_ok=True)
-(uploads_path / "avatars").mkdir(parents=True, exist_ok=True)
-(uploads_path / "character-avatars").mkdir(parents=True, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=str(uploads_path)), name="uploads")
+avatars_path = uploads_path / "avatars"
+character_avatars_path = uploads_path / "character-avatars"
+lobbies_uploads_path = uploads_path / "lobbies"
+avatars_path.mkdir(parents=True, exist_ok=True)
+character_avatars_path.mkdir(parents=True, exist_ok=True)
+lobbies_uploads_path.mkdir(parents=True, exist_ok=True)
+# Аватарки кабинета — публичный StaticFiles. Папка lobbies НЕ монтируется:
+# раздача только через /lobbies/{id}/media/{media_id}/file|preview с can_view_lobby.
+app.mount("/uploads/avatars", StaticFiles(directory=str(avatars_path)), name="uploads-avatars")
+app.mount(
+    "/uploads/character-avatars",
+    StaticFiles(directory=str(character_avatars_path)),
+    name="uploads-character-avatars",
+)
 
 
 @app.exception_handler(AppError)
