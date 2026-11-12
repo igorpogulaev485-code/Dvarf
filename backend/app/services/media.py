@@ -364,9 +364,13 @@ class LobbyMediaService:
         lobby_id: UUID,
         kind: LobbyMediaKind,
         attached_to_id: UUID,
+        *,
+        commit: bool = True,
     ) -> int:
         """Удалить все медиа хозяина (вики-страница / пост дневника). Без проверки юзера —
         вызывающий сервис уже проверил права на удаление хозяина.
+
+        W-02: квота освобождается при окончательном удалении хозяина (не при soft-delete в корзину).
         """
         rows = list(
             self.db.scalars(
@@ -379,8 +383,10 @@ class LobbyMediaService:
         )
         for row in rows:
             self._delete_row_and_files(row)
-        if rows:
+        if rows and commit:
             self.db.commit()
+        elif rows:
+            self.db.flush()
         return len(rows)
 
     def attach_to_wiki_page(

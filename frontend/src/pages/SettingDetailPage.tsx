@@ -4,6 +4,12 @@ import { AppHeader } from '../features/characters'
 import { openProductSite } from '../shared/brand/creed20'
 import { SettingMentionBody } from '../features/lobby/SettingMentionBody'
 import { SettingQuickCreateDialog } from '../features/lobby/SettingQuickCreateDialog'
+import { WikiMentionAssist } from '../features/lobby/WikiMentionAssist'
+import { WikiPageHistoryPanel } from '../features/lobby/WikiPageHistoryPanel'
+import { WikiPageMediaPanel } from '../features/lobby/WikiPageMediaPanel'
+import { useLobbyRealtime } from '../features/lobby/useLobbyRealtime'
+import { getAccessToken } from '../shared/api/client'
+import { lobbyWsUrl } from '../shared/api/chat'
 import { SETTING_LINK_PRESETS } from '../features/lobby/settingLinkPresets'
 import {
   QUEST_STATUS_LABELS,
@@ -37,20 +43,32 @@ import {
 } from '../features/lobby/settingKinds'
 import {
   bulkCreateSettingPages,
+  copyWikiPages,
   createSettingArtifact,
   createSettingPage,
   createSettingPageLink,
   deleteSettingArtifact,
   deleteSettingPage,
   deleteSettingPageLink,
+  getLobby,
   getSetting,
+  listLobbies,
+  listWikiTrash,
+  restoreSetting,
+  restoreSettingPage,
   updateSetting,
   updateSettingArtifact,
   updateSettingPage,
   type SettingDetail,
   type SettingPageTemplateField,
+  type SettingSummary,
+  type SettingTrashItem,
 } from '../shared/api/lobbies'
 import { Button, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+
+function canEditWikiHint(setting: SettingDetail | null | undefined): boolean {
+  return Boolean(setting?.can_edit_wiki ?? setting?.is_owner)
+}
 
 export function SettingDetailPage() {
   const { settingId = '' } = useParams()
@@ -80,8 +98,14 @@ export function SettingDetailPage() {
   const [tagDraft, setTagDraft] = useState('')
   const [recentIds, setRecentIds] = useState<string[]>([])
   const [quickOpen, setQuickOpen] = useState(false)
-  const [createMissingMentions, setCreateMissingMentions] = useState(false)
   const [bodyPreview, setBodyPreview] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [conflictOpen, setConflictOpen] = useState(false)
+  const [editingNames, setEditingNames] = useState<string[]>([])
+  const [trashItems, setTrashItems] = useState<SettingTrashItem[]>([])
+  const [copySources, setCopySources] = useState<SettingSummary[]>([])
+  const [copySourcePageId, setCopySourcePageId] = useState('')
+  const [copyIncludeSubtree, setCopyIncludeSubtree] = useState(false)
 
   const allTags = useMemo(
     () => setting?.all_tags?.length
@@ -242,7 +266,7 @@ export function SettingDetailPage() {
     }
   }
 
-  async function savePage() {
+  async function savePage(forceOverwrite = false) {
     if (!selected) return
     setBusy(true)
     setError(null)
@@ -255,13 +279,20 @@ export function SettingDetailPage() {
         fields: draftFields,
         quest_status: draftKind === 'quest' ? draftQuestStatus || 'planned' : undefined,
         clear_quest_status: draftKind !== 'quest',
-        create_missing_mentions: createMissingMentions,
         tags: normalizeClientTags(draftTags),
+        expected_updated_at: selected.updated_at,
+        force_overwrite: forceOverwrite,
       })
       applyDetail(next, selected.id)
+      setConflictOpen(false)
       setToast('Страница сохранена')
     } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить страницу')
+      if (err instanceof ApiRequestError && err.status === 409) {
+        setConflictOpen(true)
+        setError('Страницу уже изменили. Перезаписать или посмотреть серверную версию?')
+      } else {
+        setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить страницу')
+      }
     } finally {
       setBusy(false)
     }
@@ -344,13 +375,91 @@ export function SettingDetailPage() {
     try {
       const next = await deleteSettingPage(selected.id)
       applyDetail(next, null)
-      setToast('Страница удалена')
+      setToast('Страница в корзине (30 дней)')
+      void refreshTrash(setting.lobby_id)
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось удалить')
     } finally {
       setBusy(false)
     }
   }
+
+  async function refreshTrash(lobbyId: string) {
+    try {
+      const res = await listWikiTrash(lobbyId)
+      setTrashItems(res.items)
+    } catch {
+      // корзина только для редакторов; молча
+    }
+  }
+
+  async function loadCopySources(lobbyId: string) {
+    try {
+      const all = await listLobbies()
+      const others: SettingSummary[] = []
+      for (const row of all) {
+        if (row.id === lobbyId) continue
+        try {
+          const detail = await getLobby(row.id)
+          if (!detail.can_edit_wiki) continue
+          for (const s of detail.settings) others.push(s)
+        } catch {
+          // skip
+        }
+      }
+      setCopySources(others)
+    } catch {
+      setCopySources([])
+    }
+  }
+
+  useEffect(() => {
+    if (!setting?.lobby_id || !canEditWikiHint(setting)) return
+    void refreshTrash(setting.lobby_id)
+    void loadCopySources(setting.lobby_id)
+  }, [setting?.lobby_id, setting?.can_edit_wiki, setting?.is_owner])
+
+  useLobbyRealtime(setting?.lobby_id, (data) => {
+    if (!selectedId) return
+    if (data.type === 'wiki_editing' && data.page_id === selectedId) {
+      const name = String(data.display_name || 'Мастер')
+      setEditingNames((prev) => (prev.includes(name) ? prev : [...prev, name]))
+    }
+    if (data.type === 'wiki_editing_stop' && data.page_id === selectedId) {
+      const name = String(data.display_name || '')
+      setEditingNames((prev) => prev.filter((n) => n !== name))
+    }
+  })
+
+  // Heartbeat «сейчас правит» пока открыт редактор страницы.
+  useEffect(() => {
+    if (!setting?.lobby_id || !selectedId || !canEditWikiHint(setting)) return
+    const token = getAccessToken()
+    if (!token) return
+    let ws: WebSocket | null = null
+    try {
+      ws = new WebSocket(lobbyWsUrl(setting.lobby_id, token))
+    } catch {
+      return
+    }
+    const pageId = selectedId
+    const send = () => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'wiki_editing', page_id: pageId }))
+      }
+    }
+    ws.onopen = () => {
+      send()
+    }
+    const timer = setInterval(send, 15000)
+    return () => {
+      clearInterval(timer)
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'wiki_editing_stop', page_id: pageId }))
+      }
+      ws?.close()
+    }
+  }, [setting?.lobby_id, selectedId, setting?.can_edit_wiki, setting?.is_owner])
 
   async function addLink() {
     if (!selected || !linkTargetId) return
@@ -420,6 +529,11 @@ export function SettingDetailPage() {
   const isOwner = canEditWiki
   const schemaFields: SettingPageTemplateField[] = activeTemplate?.schema ?? []
   const readerUserKey = setting ? `lobby:${setting.lobby_id}` : 'anon'
+  const existingMentionTitles = useMemo(() => {
+    const set = new Set<string>()
+    for (const p of setting?.pages ?? []) set.add(p.title.trim().toLowerCase())
+    return set
+  }, [setting?.pages])
 
   if (!setting && !error) {
     return (
@@ -449,6 +563,37 @@ export function SettingDetailPage() {
           <Link to={`/lobbies/${setting.lobby_id}`}>← В лобби</Link>
         </Text>
         {error ? <Text tone="danger">{error}</Text> : null}
+        {setting.in_trash ? (
+          <Panel title="Корзина">
+            <Text>Сеттинг в корзине. Сессии остаются привязаны. Восстановите в течение 30 дней.</Text>
+            {canEditWiki ? (
+              <Button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  void (async () => {
+                    setBusy(true)
+                    try {
+                      await restoreSetting(setting.id)
+                      const next = await getSetting(setting.id)
+                      applyDetail(next, selectedId)
+                      setToast('Сеттинг восстановлен')
+                      void refreshTrash(setting.lobby_id)
+                    } catch (err) {
+                      setError(
+                        err instanceof ApiRequestError ? err.message : 'Не удалось восстановить',
+                      )
+                    } finally {
+                      setBusy(false)
+                    }
+                  })()
+                }}
+              >
+                Восстановить сеттинг
+              </Button>
+            ) : null}
+          </Panel>
+        ) : null}
 
         <Panel title="Сеттинг">
           {canEditWiki ? (
@@ -487,6 +632,52 @@ export function SettingDetailPage() {
               canEditWiki={false}
               canSeeHidden={canSeeHidden}
             />
+          </Panel>
+        ) : null}
+
+        {isOwner && trashItems.length > 0 ? (
+          <Panel title="Корзина вики">
+            <ul className="wiki-history-panel__list">
+              {trashItems.map((item) => (
+                <li key={`${item.kind}-${item.id}`} className="wiki-history-panel__row">
+                  <Text>
+                    {item.kind === 'setting' ? 'Сеттинг' : 'Страница'}: {item.title}
+                  </Text>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={busy}
+                    onClick={() => {
+                      void (async () => {
+                        setBusy(true)
+                        try {
+                          if (item.kind === 'setting') {
+                            await restoreSetting(item.id)
+                            const next = await getSetting(setting.id)
+                            applyDetail(next, selectedId)
+                          } else {
+                            const next = await restoreSettingPage(item.id)
+                            applyDetail(next, item.id)
+                          }
+                          setToast('Восстановлено из корзины')
+                          void refreshTrash(setting.lobby_id)
+                        } catch (err) {
+                          setError(
+                            err instanceof ApiRequestError
+                              ? err.message
+                              : 'Не удалось восстановить',
+                          )
+                        } finally {
+                          setBusy(false)
+                        }
+                      })()
+                    }}
+                  >
+                    Восстановить
+                  </Button>
+                </li>
+              ))}
+            </ul>
           </Panel>
         ) : null}
 
@@ -888,15 +1079,66 @@ export function SettingDetailPage() {
                     >
                       {bodyPreview ? 'Редактировать текст' : 'Превью упоминаний'}
                     </Button>
-                    <label className="setting-wiki-reveal__toggle">
-                      <input
-                        type="checkbox"
-                        checked={createMissingMentions}
+                  </div>
+                ) : null}
+                {isOwner ? (
+                  <WikiMentionAssist
+                    settingId={setting.id}
+                    body={draftBody}
+                    existingTitles={existingMentionTitles}
+                    busy={busy}
+                    onCreated={(next, pageId) => {
+                      applyDetail(next, pageId)
+                      setToast('Страница создана из упоминания')
+                    }}
+                  />
+                ) : null}
+                {isOwner && selected ? (
+                  <WikiPageMediaPanel
+                    lobbyId={setting.lobby_id}
+                    pageId={selected.id}
+                    pageKind={draftKind}
+                    media={selected.media ?? []}
+                    canEdit
+                    onChanged={(media) => {
+                      setSetting((prev) => {
+                        if (!prev) return prev
+                        return {
+                          ...prev,
+                          pages: prev.pages.map((p) =>
+                            p.id === selected.id ? { ...p, media } : p,
+                          ),
+                        }
+                      })
+                    }}
+                  />
+                ) : null}
+                {editingNames.length > 0 ? (
+                  <Text tone="muted">Сейчас правит: {editingNames.join(', ')}</Text>
+                ) : null}
+                {conflictOpen ? (
+                  <div className="wiki-conflict-banner">
+                    <Text>Конфликт правок — страница изменилась на сервере.</Text>
+                    <div className="inline-actions">
+                      <Button type="button" disabled={busy} onClick={() => void savePage(true)}>
+                        Перезаписать
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
                         disabled={busy}
-                        onChange={(e) => setCreateMissingMentions(e.target.checked)}
-                      />
-                      <span>Создавать отсутствующие @упоминания</span>
-                    </label>
+                        onClick={() => {
+                          void (async () => {
+                            const next = await getSetting(setting.id)
+                            applyDetail(next, selected?.id)
+                            setConflictOpen(false)
+                            setToast('Загружена серверная версия — сравните с черновиком выше')
+                          })()
+                        }}
+                      >
+                        Посмотреть разницу
+                      </Button>
+                    </div>
                   </div>
                 ) : null}
 
@@ -953,12 +1195,81 @@ export function SettingDetailPage() {
                       <Button
                         type="button"
                         variant="ghost"
+                        disabled={busy}
+                        onClick={() => setHistoryOpen((v) => !v)}
+                      >
+                        {historyOpen ? 'Скрыть историю' : 'История'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
                         disabled={busy || setting.pages.length <= 1}
                         onClick={() => void removePage()}
                       >
-                        Удалить
+                        В корзину
                       </Button>
                     </div>
+                    <WikiPageHistoryPanel
+                      pageId={selected.id}
+                      open={historyOpen}
+                      onRestored={(next) => {
+                        applyDetail(next, selected.id)
+                        setToast('Версия возвращена')
+                      }}
+                    />
+                    {copySources.length > 0 ? (
+                      <div className="wiki-copy-panel">
+                        <Text as="h3">Копия из другого лобби</Text>
+                        <Field label="Страница-источник (id)">
+                          <Input
+                            value={copySourcePageId}
+                            onChange={(e) => setCopySourcePageId(e.target.value)}
+                            placeholder="UUID страницы из своего лобби"
+                          />
+                        </Field>
+                        <label className="setting-wiki-reveal__toggle">
+                          <input
+                            type="checkbox"
+                            checked={copyIncludeSubtree}
+                            onChange={(e) => setCopyIncludeSubtree(e.target.checked)}
+                          />
+                          <span>Вместе с веткой</span>
+                        </label>
+                        <Text tone="muted">
+                          Доступно {copySources.length} сеттинг(ов) с правом правки вики.
+                        </Text>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={busy || !copySourcePageId.trim()}
+                          onClick={() => {
+                            void (async () => {
+                              setBusy(true)
+                              setError(null)
+                              try {
+                                const next = await copyWikiPages(setting.id, {
+                                  source_page_id: copySourcePageId.trim(),
+                                  include_subtree: copyIncludeSubtree,
+                                  target_parent_id: selected.id,
+                                })
+                                applyDetail(next, selected.id)
+                                setToast('Копия создана (независимая)')
+                              } catch (err) {
+                                setError(
+                                  err instanceof ApiRequestError
+                                    ? err.message
+                                    : 'Не удалось скопировать',
+                                )
+                              } finally {
+                                setBusy(false)
+                              }
+                            })()
+                          }}
+                        >
+                          Скопировать сюда
+                        </Button>
+                      </div>
+                    ) : null}
                   </>
                 ) : null}
 

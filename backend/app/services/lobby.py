@@ -936,15 +936,15 @@ class LobbyService:
         members = [_member_out(m, char_map.get(m.character_id)) for m in lobby.members]
         role_rows = list(getattr(lobby, "roles", None) or self.lobbies.list_roles(lobby.id))
         all_settings = list(lobby.settings or [])
-        active_settings = [s for s in all_settings if not bool(getattr(s, "is_extra", False))]
+        # W-02: корзина (deleted_at) скрыта из обычного списка
+        active_settings = [
+            s
+            for s in all_settings
+            if getattr(s, "deleted_at", None) is None
+            and not bool(getattr(s, "is_extra", False))
+        ]
         settings_need_primary = len(active_settings) > 1
-        if settings_need_primary and flags["can_edit_wiki"]:
-            # Мастеру показываем все активные, чтобы выбрать основной.
-            visible_settings = active_settings
-        else:
-            # Обычный список: только активные; при конфликте игроку — все активные
-            # (страницы лишних всё равно блокируются до выбора).
-            visible_settings = active_settings
+        visible_settings = active_settings
         settings = [SettingSummary.model_validate(s) for s in visible_settings]
         sessions = [
             SessionSummary(
@@ -1859,7 +1859,8 @@ class LobbyService:
         active = [
             s
             for s in (lobby.settings or [])
-            if not bool(getattr(s, "is_extra", False))
+            if getattr(s, "deleted_at", None) is None
+            and not bool(getattr(s, "is_extra", False))
         ]
         if active:
             raise AppError(
@@ -1882,21 +1883,32 @@ class LobbyService:
         lobby_id: UUID,
         setting_id: UUID,
     ) -> LobbyDetail:
-        """W-01: основной сеттинг; остальные активные → is_extra (корзина W-02)."""
+        """W-01/W-02: основной сеттинг; остальные активные → корзина (deleted_at + is_extra)."""
         lobby = self._require_lobby(lobby_id)
         self._require_wiki(lobby, user)
         chosen = self.lobbies.get_setting(setting_id)
         if chosen is None or chosen.lobby_id != lobby.id:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        now = datetime.now(timezone.utc)
         for s in lobby.settings or []:
             if s.id == chosen.id:
                 s.is_extra = False
-            elif not bool(getattr(s, "is_extra", False)):
+                s.deleted_at = None
+            elif getattr(s, "deleted_at", None) is None and not bool(
+                getattr(s, "is_extra", False)
+            ):
                 s.is_extra = True
+                s.deleted_at = now
         self.db.commit()
         return self._to_detail(self._require_lobby(lobby_id), user)
 
     def _require_setting_writable(self, setting: Setting) -> None:
+        if getattr(setting, "deleted_at", None) is not None:
+            raise AppError(
+                "Сеттинг в корзине — восстановите, чтобы править.",
+                code="setting_in_trash",
+                status_code=400,
+            )
         if bool(getattr(setting, "is_extra", False)):
             raise AppError(
                 "Этот сеттинг помечен как лишний. Выберите основной или дождитесь корзины.",
@@ -1907,7 +1919,8 @@ class LobbyService:
         active = [
             s
             for s in (lobby.settings or [])
-            if not bool(getattr(s, "is_extra", False))
+            if getattr(s, "deleted_at", None) is None
+            and not bool(getattr(s, "is_extra", False))
         ]
         if len(active) > 1:
             raise AppError(
@@ -1915,6 +1928,11 @@ class LobbyService:
                 code="settings_need_primary",
                 status_code=400,
             )
+
+    def wiki(self):
+        from app.services.wiki import WikiService
+
+        return WikiService(self.db, self)
 
     def update_setting(
         self,
@@ -1936,13 +1954,8 @@ class LobbyService:
         return SettingSummary.model_validate(setting)
 
     def delete_setting(self, user: User, setting_id: UUID) -> None:
-        setting = self.lobbies.get_setting(setting_id)
-        if setting is None:
-            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
-        lobby = self._require_lobby(setting.lobby_id)
-        self._require_wiki(lobby, user)
-        self.lobbies.delete_setting(setting)
-        self.db.commit()
+        """W-02: DELETE → корзина (soft-delete). Окончательное — purge."""
+        self.wiki().trash_setting(user, setting_id)
 
     def get_setting(self, user: User, setting_id: UUID) -> SettingDetail:
         setting = self.lobbies.get_setting(setting_id)
@@ -1950,15 +1963,30 @@ class LobbyService:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
         self._require_view(lobby, user)
+        # Фоновая чистка просроченной корзины при обращении.
+        try:
+            self.wiki().purge_expired(lobby_id=lobby.id)
+            setting = self.lobbies.get_setting(setting_id)
+            if setting is None:
+                raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        except Exception:  # noqa: BLE001
+            pass
         see_gm = roles.can_see_hidden(self.db, lobby, user)
         can_edit = roles.can_edit_wiki(self.db, lobby, user)
-        detail = self._setting_detail(setting, see_as_gm=see_gm)
+        in_trash = getattr(setting, "deleted_at", None) is not None
+        # В корзине: страницы мастеру для restore; игроку — пусто + пометка на столе.
+        if in_trash and not can_edit:
+            see_gm = False
+        detail = self._setting_detail(setting, see_as_gm=see_gm if not in_trash or can_edit else False)
+        if in_trash and not can_edit:
+            detail = detail.model_copy(update={"pages": [], "links": [], "artifacts": []})
         return detail.model_copy(
             update={
                 "is_owner": roles.is_owner(lobby, user),
                 "can_edit_wiki": can_edit,
-                "can_see_hidden": see_gm,
+                "can_see_hidden": see_gm and not in_trash,
                 "can_view_lobby": True,
+                "in_trash": in_trash,
             }
         )
 
@@ -2061,6 +2089,15 @@ class LobbyService:
         else:
             pages = all_pages
             pages_out = [SettingPageOut.model_validate(p) for p in pages]
+        # W-02: картинки L-02 на страницах
+        try:
+            pages_out = self.wiki().enrich_pages_with_media(
+                pages_out,
+                lobby_id=setting.lobby_id,
+                see_as_gm=see_as_gm,
+            )
+        except Exception:  # noqa: BLE001
+            pass
         title_by_id = {p.id: p.title for p in pages}
         base = SettingSummary.model_validate(setting)
         data = base.model_dump()
@@ -2089,6 +2126,7 @@ class LobbyService:
             all_tags=collect_all_tags(pages_out),
             artifacts=[SettingArtifactOut.model_validate(a) for a in artifacts],
             is_owner=owner_flag,
+            in_trash=getattr(setting, "deleted_at", None) is not None,
         )
 
     def _apply_revealed(
@@ -2324,7 +2362,7 @@ class LobbyService:
         payload: SettingPageUpdateRequest,
     ) -> SettingDetail:
         page = self.lobbies.get_setting_page(page_id)
-        if page is None:
+        if page is None or getattr(page, "deleted_at", None) is not None:
             raise NotFoundError("Страница не найдена", code="setting_page_not_found")
         setting = self.lobbies.get_setting(page.setting_id)
         if setting is None:
@@ -2332,6 +2370,25 @@ class LobbyService:
         lobby = self._require_lobby(setting.lobby_id)
         self._require_wiki(lobby, user)
         self._require_setting_writable(setting)
+
+        content_keys = (
+            payload.title is not None
+            or payload.body is not None
+            or payload.gm_body is not None
+            or payload.fields is not None
+            or payload.page_kind is not None
+            or payload.quest_status is not None
+            or payload.clear_quest_status
+            or payload.tags is not None
+        )
+        # W-02: конфликт при сохранении поверх чужой правки.
+        self.wiki().check_conflict(
+            page,
+            expected_updated_at=payload.expected_updated_at,
+            force_overwrite=bool(payload.force_overwrite),
+        )
+        if content_keys:
+            self.wiki().record_version(page=page, lobby_id=lobby.id, user=user)
 
         if payload.title is not None:
             page.title = payload.title.strip() or "Без названия"
@@ -2408,11 +2465,12 @@ class LobbyService:
             page.tags = normalize_tags(payload.tags)
 
         if payload.body is not None:
+            # W-02: молчаливое создание пустых страниц отключено (create_missing всегда False).
             self._sync_page_mentions(
                 setting_id=setting.id,
                 page=page,
                 body=page.body or "",
-                create_missing=bool(payload.create_missing_mentions),
+                create_missing=False,
             )
 
         if page.parent_id is None and payload.body is not None:
@@ -2425,34 +2483,17 @@ class LobbyService:
             if roots_sorted and roots_sorted[0].id == page.id:
                 setting.world_notes = page.body
 
+        if content_keys:
+            page.updated_at = datetime.now(timezone.utc)
+
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
         return self._setting_detail(refreshed, see_as_gm=True)
 
     def delete_setting_page(self, user: User, page_id: UUID) -> SettingDetail:
-        page = self.lobbies.get_setting_page(page_id)
-        if page is None:
-            raise NotFoundError("Страница не найдена", code="setting_page_not_found")
-        setting = self.lobbies.get_setting(page.setting_id)
-        if setting is None:
-            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
-        lobby = self._require_lobby(setting.lobby_id)
-        self._require_wiki(lobby, user)
-        remaining = [
-            p for p in self.lobbies.list_setting_pages(setting.id) if p.id != page_id
-        ]
-        if len(remaining) == 0:
-            raise AppError(
-                "Нельзя удалить последнюю страницу сеттинга",
-                code="setting_page_last",
-                status_code=400,
-            )
-        self.lobbies.delete_setting_page(page)
-        self.db.commit()
-        refreshed = self.lobbies.get_setting(setting.id)
-        assert refreshed is not None
-        return self._setting_detail(refreshed, see_as_gm=True)
+        """W-02: DELETE → корзина. Окончательное — purge."""
+        return self.wiki().trash_page(user, page_id)
 
     def create_setting_page_link(
         self,

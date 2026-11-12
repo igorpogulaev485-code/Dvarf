@@ -214,14 +214,15 @@ class LobbyRepository:
         self.db.flush()
         return setting
 
-    def list_setting_pages(self, setting_id: UUID) -> list:
+    def list_setting_pages(self, setting_id: UUID, *, include_deleted: bool = False) -> list:
         from app.models.setting_page import SettingPage
 
+        stmt = select(SettingPage).where(SettingPage.setting_id == setting_id)
+        if not include_deleted:
+            stmt = stmt.where(SettingPage.deleted_at.is_(None))
         return list(
             self.db.scalars(
-                select(SettingPage)
-                .where(SettingPage.setting_id == setting_id)
-                .order_by(SettingPage.sort_order.asc(), SettingPage.created_at.asc())
+                stmt.order_by(SettingPage.sort_order.asc(), SettingPage.created_at.asc())
             ).all()
         )
 
