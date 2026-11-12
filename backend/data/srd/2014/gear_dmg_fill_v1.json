@@ -1,0 +1,3969 @@
+{
+  "version": 1,
+  "notes": "I06 / I25: DMG cards that were missing, plus frost giant belt and Ioun stone of agility.",
+  "updates": [
+    {
+      "kind": "item",
+      "slug": "instrument_of_the_bards_doss_lute",
+      "rules_edition": "2014",
+      "name_ru": "Лютня Досс",
+      "name_en": "Doss lute",
+      "data": {
+        "family_slug": "instrument_of_the_bards",
+        "family_label_ru": "Инструменты бардов",
+        "variant_key": "doss",
+        "variant_label_ru": "Досс",
+        "is_spell_focus": true,
+        "attunement_classes": [
+          "bard"
+        ],
+        "source_url": "https://5e14.dnd.su/items/9042-doss-lute/"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "instrument_of_the_bards_canaith",
+      "rules_edition": "2014",
+      "name_ru": "Мандолина Канаит",
+      "name_en": "Canaith mandolin",
+      "data": {
+        "family_slug": "instrument_of_the_bards",
+        "family_label_ru": "Инструменты бардов",
+        "variant_key": "canaith",
+        "variant_label_ru": "Канаит",
+        "is_spell_focus": true,
+        "attunement_classes": [
+          "bard"
+        ],
+        "source_url": "https://5e14.dnd.su/items/9043-canaith-mandolin/"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "instrument_of_the_bards_cli",
+      "rules_edition": "2014",
+      "name_ru": "Лира Кли",
+      "name_en": "Cli lyre",
+      "data": {
+        "family_slug": "instrument_of_the_bards",
+        "family_label_ru": "Инструменты бардов",
+        "variant_key": "cli",
+        "variant_label_ru": "Кли",
+        "is_spell_focus": true,
+        "attunement_classes": [
+          "bard"
+        ],
+        "source_url": "https://5e14.dnd.su/items/9044-cli-lyre/"
+      }
+    }
+  ],
+  "inserts": [
+    {
+      "kind": "item",
+      "slug": "instrument_of_the_bards_fochlucan",
+      "name_ru": "Бандура Фоклучан",
+      "name_en": "Fochlucan bandore",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10001,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/9047-fochlucan-bandore/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Фокус барда. Каждое заклинание инструмента — один раз до рассвета. Очарование с инструмента даёт помеху на спасбросок.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "fly",
+            "name_ru": "Полёт",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "invisibility",
+            "name_ru": "Невидимость",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "levitate",
+            "name_ru": "Левитация",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "protection_from_evil_and_good",
+            "name_ru": "Защита от добра и зла",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "entangle",
+            "name_ru": "Опутывание",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "faerie_fire",
+            "name_ru": "Огонь фей",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "shillelagh",
+            "name_ru": "Дубинка",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "speak_with_animals",
+            "name_ru": "Разговор с животными",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус барда. Каждое заклинание инструмента — один раз до рассвета. Очарование с инструмента даёт помеху на спасбросок."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 2,
+        "stackable": false,
+        "family_slug": "instrument_of_the_bards",
+        "family_label_ru": "Инструменты бардов",
+        "variant_key": "fochlucan",
+        "variant_label_ru": "Фоклучан",
+        "attunement_classes": [
+          "bard"
+        ],
+        "is_spell_focus": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "instrument_of_the_bards_mac_fuirmidh",
+      "name_ru": "Цитра Мак-Фуирми",
+      "name_en": "Mac-Fuirmidh cittern",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10002,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/9048-mac-fuirmidh-cittern/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Фокус барда. Каждое заклинание инструмента — один раз до рассвета. Очарование с инструмента даёт помеху на спасбросок.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "fly",
+            "name_ru": "Полёт",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "invisibility",
+            "name_ru": "Невидимость",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "levitate",
+            "name_ru": "Левитация",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "protection_from_evil_and_good",
+            "name_ru": "Защита от добра и зла",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "barkskin",
+            "name_ru": "Дубовая кора",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "cure_wounds",
+            "name_ru": "Лечение ран",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fog_cloud",
+            "name_ru": "Туманное облако",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус барда. Каждое заклинание инструмента — один раз до рассвета. Очарование с инструмента даёт помеху на спасбросок."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 2,
+        "stackable": false,
+        "family_slug": "instrument_of_the_bards",
+        "family_label_ru": "Инструменты бардов",
+        "variant_key": "mac_fuirmidh",
+        "variant_label_ru": "Мак-Фуирми",
+        "attunement_classes": [
+          "bard"
+        ],
+        "is_spell_focus": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "instrument_of_the_bards_anstruth",
+      "name_ru": "Арфа Анструт",
+      "name_en": "Anstruth harp",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10003,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/9041-anstruth-harp/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Фокус барда. Каждое заклинание инструмента — один раз до рассвета. Очарование с инструмента даёт помеху на спасбросок.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "fly",
+            "name_ru": "Полёт",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "invisibility",
+            "name_ru": "Невидимость",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "levitate",
+            "name_ru": "Левитация",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "protection_from_evil_and_good",
+            "name_ru": "Защита от добра и зла",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "control_weather",
+            "name_ru": "Власть над погодой",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "cure_wounds",
+            "name_ru": "Лечение ран",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "wall_of_thorns",
+            "name_ru": "Стена шипов",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус барда. Каждое заклинание инструмента — один раз до рассвета. Очарование с инструмента даёт помеху на спасбросок."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 2,
+        "stackable": false,
+        "family_slug": "instrument_of_the_bards",
+        "family_label_ru": "Инструменты бардов",
+        "variant_key": "anstruth",
+        "variant_label_ru": "Анструт",
+        "attunement_classes": [
+          "bard"
+        ],
+        "is_spell_focus": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "instrument_of_the_bards_ollamh",
+      "name_ru": "Арфа Оллава",
+      "name_en": "Ollamh harp",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10004,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/9046-ollamh-harp/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Фокус барда. Каждое заклинание инструмента — один раз до рассвета. Очарование с инструмента даёт помеху на спасбросок.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "fly",
+            "name_ru": "Полёт",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "invisibility",
+            "name_ru": "Невидимость",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "levitate",
+            "name_ru": "Левитация",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "protection_from_evil_and_good",
+            "name_ru": "Защита от добра и зла",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "confusion",
+            "name_ru": "Замешательство",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "control_weather",
+            "name_ru": "Власть над погодой",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fire_storm",
+            "name_ru": "Огненная буря",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус барда. Каждое заклинание инструмента — один раз до рассвета. Очарование с инструмента даёт помеху на спасбросок."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 2,
+        "stackable": false,
+        "family_slug": "instrument_of_the_bards",
+        "family_label_ru": "Инструменты бардов",
+        "variant_key": "ollamh",
+        "variant_label_ru": "Оллав",
+        "attunement_classes": [
+          "bard"
+        ],
+        "is_spell_focus": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ammunition_1",
+      "name_ru": "Боеприпас +1",
+      "name_en": "Ammunition, +1",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10005,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/278-ammunition-1-2-3/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "Стрелы, болты, иглы или снаряды пращи. Пока стреляете ими, +1 к атаке и урону.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Бонус только у атаки, которая стреляет этим боеприпасом."
+          }
+        ],
+        "item_category": "ammo",
+        "wear_slot": "none",
+        "weight_lb": 1,
+        "stackable": true,
+        "family_slug": "ammunition_bonus",
+        "family_label_ru": "Боеприпас +1 / +2 / +3",
+        "variant_key": "1",
+        "variant_label_ru": "+1",
+        "magic_bonus": 1,
+        "allowed_base_ammo": [
+          "arrow",
+          "crossbow_bolt",
+          "blowgun_needle",
+          "sling_bullet"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_the_war_mage_1",
+      "name_ru": "Волшебная палочка боевого мага +1",
+      "name_en": "Wand of the War Mage, +1",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10006,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/16-wand-of-the-war-mage-1-2-3/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "+1 к атаке заклинанием, пока палочка в руке. Игнорируете помеху от половинного укрытия.",
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 1,
+            "applies_to": "attack"
+          },
+          {
+            "type": "custom_note",
+            "text": "Игнорируете половинное укрытие при атаке заклинанием. На сложность спасброска бонус не идёт. Фокус заклинателя."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 1,
+        "stackable": false,
+        "family_slug": "wand_of_the_war_mage",
+        "family_label_ru": "Волшебная палочка боевого мага",
+        "variant_key": "1",
+        "variant_label_ru": "+1",
+        "attunement_spellcaster": true,
+        "is_spell_focus": true,
+        "magic_bonus": 1
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rod_of_the_pact_keeper_1",
+      "name_ru": "Жезл хранителя договора +1",
+      "name_en": "Rod of the Pact Keeper, +1",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10007,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/46-rod-of-the-pact-keeper/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "+1 к атаке и сложности заклинаний колдуна. Раз в день можно вернуть одну ячейку договора.",
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 1,
+            "applies_to": "both",
+            "class_scoped": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Действием, раз до длинного отдыха: верните одну потраченную ячейку колдуна. Фокус колдуна."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 2,
+        "stackable": false,
+        "family_slug": "rod_of_the_pact_keeper",
+        "family_label_ru": "Жезл хранителя договора",
+        "variant_key": "1",
+        "variant_label_ru": "+1",
+        "attunement_classes": [
+          "warlock"
+        ],
+        "is_spell_focus": true,
+        "magic_bonus": 1
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "shield_plus_1",
+      "name_ru": "Щит +1",
+      "name_en": "Shield, +1",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10008,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/254-shield-1-2-3/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "Щит. Пока держите его, бонус к КД на 1 больше обычного щита.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          }
+        ],
+        "family_slug": "shield_bonus",
+        "family_label_ru": "Щит +1 / +2 / +3",
+        "variant_key": "1",
+        "variant_label_ru": "+1",
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 6,
+        "wear_slot": "shield",
+        "base_armor_slug": "shield",
+        "magic_bonus": 1
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ammunition_2",
+      "name_ru": "Боеприпас +2",
+      "name_en": "Ammunition, +2",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10009,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/278-ammunition-1-2-3/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Стрелы, болты, иглы или снаряды пращи. Пока стреляете ими, +2 к атаке и урону.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "custom_note",
+            "text": "Бонус только у атаки, которая стреляет этим боеприпасом."
+          }
+        ],
+        "item_category": "ammo",
+        "wear_slot": "none",
+        "weight_lb": 1,
+        "stackable": true,
+        "family_slug": "ammunition_bonus",
+        "family_label_ru": "Боеприпас +1 / +2 / +3",
+        "variant_key": "2",
+        "variant_label_ru": "+2",
+        "magic_bonus": 2,
+        "allowed_base_ammo": [
+          "arrow",
+          "crossbow_bolt",
+          "blowgun_needle",
+          "sling_bullet"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_the_war_mage_2",
+      "name_ru": "Волшебная палочка боевого мага +2",
+      "name_en": "Wand of the War Mage, +2",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10010,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/16-wand-of-the-war-mage-1-2-3/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "+2 к атаке заклинанием, пока палочка в руке. Игнорируете помеху от половинного укрытия.",
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "attack"
+          },
+          {
+            "type": "custom_note",
+            "text": "Игнорируете половинное укрытие при атаке заклинанием. На сложность спасброска бонус не идёт. Фокус заклинателя."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 1,
+        "stackable": false,
+        "family_slug": "wand_of_the_war_mage",
+        "family_label_ru": "Волшебная палочка боевого мага",
+        "variant_key": "2",
+        "variant_label_ru": "+2",
+        "attunement_spellcaster": true,
+        "is_spell_focus": true,
+        "magic_bonus": 2
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rod_of_the_pact_keeper_2",
+      "name_ru": "Жезл хранителя договора +2",
+      "name_en": "Rod of the Pact Keeper, +2",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10011,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/46-rod-of-the-pact-keeper/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "+2 к атаке и сложности заклинаний колдуна. Раз в день можно вернуть одну ячейку договора.",
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "both",
+            "class_scoped": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Действием, раз до длинного отдыха: верните одну потраченную ячейку колдуна. Фокус колдуна."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 2,
+        "stackable": false,
+        "family_slug": "rod_of_the_pact_keeper",
+        "family_label_ru": "Жезл хранителя договора",
+        "variant_key": "2",
+        "variant_label_ru": "+2",
+        "attunement_classes": [
+          "warlock"
+        ],
+        "is_spell_focus": true,
+        "magic_bonus": 2
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "shield_plus_2",
+      "name_ru": "Щит +2",
+      "name_en": "Shield, +2",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10012,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/254-shield-1-2-3/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Щит. Пока держите его, бонус к КД на 2 больше обычного щита.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 2
+          }
+        ],
+        "family_slug": "shield_bonus",
+        "family_label_ru": "Щит +1 / +2 / +3",
+        "variant_key": "2",
+        "variant_label_ru": "+2",
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 6,
+        "wear_slot": "shield",
+        "base_armor_slug": "shield",
+        "magic_bonus": 2
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ammunition_3",
+      "name_ru": "Боеприпас +3",
+      "name_en": "Ammunition, +3",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10013,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/278-ammunition-1-2-3/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Стрелы, болты, иглы или снаряды пращи. Пока стреляете ими, +3 к атаке и урону.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "custom_note",
+            "text": "Бонус только у атаки, которая стреляет этим боеприпасом."
+          }
+        ],
+        "item_category": "ammo",
+        "wear_slot": "none",
+        "weight_lb": 1,
+        "stackable": true,
+        "family_slug": "ammunition_bonus",
+        "family_label_ru": "Боеприпас +1 / +2 / +3",
+        "variant_key": "3",
+        "variant_label_ru": "+3",
+        "magic_bonus": 3,
+        "allowed_base_ammo": [
+          "arrow",
+          "crossbow_bolt",
+          "blowgun_needle",
+          "sling_bullet"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_the_war_mage_3",
+      "name_ru": "Волшебная палочка боевого мага +3",
+      "name_en": "Wand of the War Mage, +3",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10014,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/16-wand-of-the-war-mage-1-2-3/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "+3 к атаке заклинанием, пока палочка в руке. Игнорируете помеху от половинного укрытия.",
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 3,
+            "applies_to": "attack"
+          },
+          {
+            "type": "custom_note",
+            "text": "Игнорируете половинное укрытие при атаке заклинанием. На сложность спасброска бонус не идёт. Фокус заклинателя."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 1,
+        "stackable": false,
+        "family_slug": "wand_of_the_war_mage",
+        "family_label_ru": "Волшебная палочка боевого мага",
+        "variant_key": "3",
+        "variant_label_ru": "+3",
+        "attunement_spellcaster": true,
+        "is_spell_focus": true,
+        "magic_bonus": 3
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rod_of_the_pact_keeper_3",
+      "name_ru": "Жезл хранителя договора +3",
+      "name_en": "Rod of the Pact Keeper, +3",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10015,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/46-rod-of-the-pact-keeper/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "+3 к атаке и сложности заклинаний колдуна. Раз в день можно вернуть одну ячейку договора.",
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 3,
+            "applies_to": "both",
+            "class_scoped": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Действием, раз до длинного отдыха: верните одну потраченную ячейку колдуна. Фокус колдуна."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 2,
+        "stackable": false,
+        "family_slug": "rod_of_the_pact_keeper",
+        "family_label_ru": "Жезл хранителя договора",
+        "variant_key": "3",
+        "variant_label_ru": "+3",
+        "attunement_classes": [
+          "warlock"
+        ],
+        "is_spell_focus": true,
+        "magic_bonus": 3
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "shield_plus_3",
+      "name_ru": "Щит +3",
+      "name_en": "Shield, +3",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10016,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/254-shield-1-2-3/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Щит. Пока держите его, бонус к КД на 3 больше обычного щита.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 3
+          }
+        ],
+        "family_slug": "shield_bonus",
+        "family_label_ru": "Щит +1 / +2 / +3",
+        "variant_key": "3",
+        "variant_label_ru": "+3",
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 6,
+        "wear_slot": "shield",
+        "base_armor_slug": "shield",
+        "magic_bonus": 3
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "amulet_of_the_planes",
+      "name_ru": "Амулет планов",
+      "name_en": "Amulet of the planes",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10017,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/5-amulet-of-the-planes/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Действием назовите план и место. Проверка Интеллекта Сл 15: успех — переход, провал — случайный план.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Действием назовите план и место. Проверка Интеллекта Сл 15: успех — переход, провал — случайный план."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "neck",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "efreeti_bottle",
+      "name_ru": "Бутылка с ифритом",
+      "name_en": "Efreeti bottle",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10018,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/11-efreeti-bottle/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Раз в день откройте бутылку. к10: ифрит служит час, или атакует, или исполняет желание, или уходит на время.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Открывается раз до рассвета. Исход — к10 по карточке: служба, атака, желание или передышка ифрита."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rope_of_entanglement",
+      "name_ru": "Верёвка опутывания",
+      "name_en": "Rope of entanglement",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10019,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/14-rope-of-entanglement/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Верёвка 30 футов. Действием может оплести существо в 20 футах: Сл 15 Ловкость или оно опутано.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Верёвка 30 футов. Действием может оплести существо в 20 футах: Сл 15 Ловкость или оно опутано."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 3,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "wave",
+      "name_ru": "Волна",
+      "name_en": "Wave",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10020,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/2230-wave/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Разумный трезубец +3. Критический удар обрушивает воду; есть свойства трезубца повелевания рыбами.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "custom_note",
+            "text": "Разумное оружие. На критическом ударе — водный эффект по карточке. Также работает как трезубец повелевания рыбами."
+          }
+        ],
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "колющий",
+        "category": "martial",
+        "properties": [
+          "thrown",
+          "versatile"
+        ],
+        "weight_lb": 4,
+        "wear_slot": "held_main",
+        "magic_bonus": 3,
+        "base_weapon_slug": "trident",
+        "versatile_damage": "1к8"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_magic_detection",
+      "name_ru": "Волшебная палочка обнаружения магии",
+      "name_en": "Wand of magic detection",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10021,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/19-wand-of-magic-detection/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "3 заряда, на рассвете 1к3. Заряд — обнаружение магии.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "detect_magic",
+            "name_ru": "Обнаружение магии",
+            "restore": "dawn",
+            "charges": 1
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "tome_of_the_stilled_tongue",
+      "name_ru": "Гримуар молчаливого языка",
+      "name_en": "Tome of the stilled tongue",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10022,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/234-tome-of-the-stilled-tongue/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Книга заклинаний Векны. Пока она — ваша книга, можно сотворить заклинание из неё бонусным действием, один раз до рассвета, без словесного компонента.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Книга заклинаний Векны. Пока она — ваша книга, можно сотворить заклинание из неё бонусным действием, один раз до рассвета, без словесного компонента."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 3,
+        "stackable": false,
+        "attunement_classes": [
+          "wizard"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "mariners_armor",
+      "name_ru": "Доспех моряка",
+      "name_en": "Mariner’s armor",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10023,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/35-mariners-armor/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "Любой лёгкий, средний или тяжёлый доспех. Скорость плавания равна скорости ходьбы. При 0 хитов под водой вас поднимает к поверхности.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Скорость плавания = скорость ходьбы. На 0 хитов под водой доспех поднимает вас на 60 футов к поверхности в начале хода."
+          }
+        ],
+        "armor_kind": "light",
+        "base_ac": 11,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 10,
+        "wear_slot": "body_armor",
+        "base_armor_slug": "leather_armor",
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "brazier_of_commanding_fire_elementals",
+      "name_ru": "Жаровня командования огненными элементалями",
+      "name_en": "Brazier of commanding fire elementals",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10024,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/39-brazier-of-commanding-fire-elementals/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Подожгите жаровню действием: призовётся огненный элементаль, если на этом плане его ещё нет от этой жаровни.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Подожгите жаровню действием: призовётся огненный элементаль, если на этом плане его ещё нет от этой жаровни."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 5,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "censer_of_controlling_air_elementals",
+      "name_ru": "Кадило контролирования воздушных элементалей",
+      "name_en": "Censer of controlling air elementals",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10025,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/77-censer-of-controlling-air-elementals/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Пока курится, можно призвать воздушного элементаля.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Пока курится, можно призвать воздушного элементаля."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "stone_of_controlling_earth_elementals",
+      "name_ru": "Камень контролирования земляных элементалей",
+      "name_en": "Stone of controlling earth elementals",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10026,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/80-stone-of-controlling-earth-elementals/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Камень касается земли: можно призвать земляного элементаля.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Камень касается земли: можно призвать земляного элементаля."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 5,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bowl_of_commanding_water_elementals",
+      "name_ru": "Чаша командования водяными элементалями",
+      "name_en": "Bowl of commanding water elementals",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10027,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/246-bowl-of-commanding-water-elementals/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Чаша, полная воды: можно призвать водяного элементаля.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Чаша, полная воды: можно призвать водяного элементаля."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 3,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rod_of_alertness",
+      "name_ru": "Жезл бдительности",
+      "name_en": "Rod of alertness",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10028,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/40-rod-of-alertness/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Пока держите жезл, преимущество на инициативу и восприятие. Верхушка может стать светом и не дать застать врасплох.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Пока держите жезл, преимущество на инициативу и восприятие. Верхушка может стать светом и не дать застать врасплох."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 2,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rod_of_security",
+      "name_ru": "Жезл безопасности",
+      "name_en": "Rod of security",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10029,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/41-rod-of-security/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Действием переносит до 199 союзников в карманный рай на отдых. Вернуться можно в то же место.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Действием переносит до 199 союзников в карманный рай на отдых. Вернуться можно в то же место."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 2,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rod_of_lordly_might",
+      "name_ru": "Жезл величественной мощи",
+      "name_en": "Rod of lordly might",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10030,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/42-rod-of-lordly-might/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Булава +3 с кнопками: паралич, страх, превращение в древковое оружие и другие формы по карточке.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "custom_note",
+            "text": "Шесть кнопок меняют форму и дают паралич, страх и прочие эффекты карточки. Бонус +3 — в форме булавы."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 2,
+        "stackable": false,
+        "magic_bonus": 3
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rod_of_resurrection",
+      "name_ru": "Жезл воскрешения",
+      "name_en": "Rod of resurrection",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10031,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/43-rod-of-resurrection/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "5 зарядов. Жрец или паладин тратит заряды на лечение, оживление или воскрешение.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 5,
+            "restore": "dawn",
+            "recharge_dice": "1"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "heal",
+            "name_ru": "Полное исцеление",
+            "restore": "dawn",
+            "charges": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "1 заряд — лечение, 2 — оживление, 5 — воскрешение. Только жрец или паладин. На рассвете жезл восстанавливает 1 заряд."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 2,
+        "stackable": false,
+        "attunement_classes": [
+          "cleric",
+          "paladin"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rod_of_absorption",
+      "name_ru": "Жезл поглощения",
+      "name_en": "Rod of absorption",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10032,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/44-rod-of-absorption/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Реакцией поглощает заклинание, целящееся только в вас. Запас до 50 уровней, их можно вложить в свои заклинания.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Реакцией поглощает заклинание, целящееся только в вас. Запас до 50 уровней, их можно вложить в свои заклинания."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 2,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rod_of_rulership",
+      "name_ru": "Жезл правления",
+      "name_en": "Rod of rulership",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10033,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/45-rod-of-rulership/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Действием: существа в 120 футах, Сл 15 Мудрость, или очарованы 8 часов и считают вас другом. Раз до рассвета.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Действием: существа в 120 футах, Сл 15 Мудрость, или очарованы 8 часов и считают вас другом. Раз до рассвета."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 2,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "tentacle_rod",
+      "name_ru": "Жезл щупалец",
+      "name_en": "Tentacle rod",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10034,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/47-tentacle-rod/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Три щупальца. Бонусным можно приказать им атаковать: попадание 1к6 дробящего, три попадания — скорость 0.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Три щупальца. Бонусным можно приказать им атаковать: попадание 1к6 дробящего, три попадания — скорость 0."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 2,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "iron_flask",
+      "name_ru": "Железная фляга",
+      "name_en": "Iron flask",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10035,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/48-iron-flask/",
+        "rarity": "legendary",
+        "requires_attunement": false,
+        "description_ru": "Можно поймать существо из другого плана или выпустить уже пойманное. Команда — на языке существа.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Можно поймать существо из другого плана или выпустить уже пойманное. Команда — на языке существа."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "iron_bands_of_bilarro",
+      "name_ru": "Железные ленты Биларро",
+      "name_en": "Iron bands of Bilarro",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10036,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/49-iron-bands-of-bilarro/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Железный шар. Бросок: при попадании ленты сковывают существо Large или меньше. Сл 20 Сила, чтобы вырваться.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Железный шар. Бросок: при попадании ленты сковывают существо Large или меньше. Сл 20 Сила, чтобы вырваться."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_longevity",
+      "name_ru": "Зелье долголетия",
+      "name_en": "Potion of longevity",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10037,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/57-potion-of-longevity/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Вы молодеете на 1к6+6 лет. Есть шанс 10%, что вместо этого постареете. Не ниже 13 лет.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Вы молодеете на 1к6+6 лет. Есть шанс 10%, что вместо этого постареете. Не ниже 13 лет."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0.5,
+        "stackable": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_vitality",
+      "name_ru": "Зелье живучести",
+      "name_en": "Potion of vitality",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10038,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/59-potion-of-vitality/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Снимает истощение, яд и болезнь. 24 часа кости хитов, которые вы тратите, лечат по максимуму.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Снимает истощение, яд и болезнь. 24 часа кости хитов, которые вы тратите, лечат по максимуму."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0.5,
+        "stackable": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_invulnerability",
+      "name_ru": "Зелье неуязвимости",
+      "name_en": "Potion of invulnerability",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10039,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/63-potion-of-invulnerability/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "На 1 минуту сопротивление всем видам урона. Длительность — пачка бафов, на листе это заметка.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "На 1 минуту сопротивление всем видам урона. Длительность — пачка бафов, на листе это заметка."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0.5,
+        "stackable": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_fire_breath",
+      "name_ru": "Зелье огненного дыхания",
+      "name_en": "Potion of fire breath",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10040,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/64-potion-of-fire-breath/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "До трёх огненных выдохов в течение часа: 4к6 огня, Сл 13 Ловкость, половина при успехе.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "До трёх огненных выдохов в течение часа: 4к6 огня, Сл 13 Ловкость, половина при успехе."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0.5,
+        "stackable": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_diminution",
+      "name_ru": "Зелье уменьшения",
+      "name_en": "Potion of diminution",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10041,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/71-potion-of-diminution/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "На 1к4 часа вы уменьшаетесь, как заклинание уменьшение. Сл 15 Телосложение, чтобы не уменьшиться.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "На 1к4 часа вы уменьшаетесь, как заклинание уменьшение. Сл 15 Телосложение, чтобы не уменьшиться."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0.5,
+        "stackable": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_clairvoyance",
+      "name_ru": "Зелье ясновидения",
+      "name_en": "Potion of clairvoyance",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10042,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/74-potion-of-clairvoyance/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Выпив, получаете эффект ясновидения. Концентрация не нужна.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Выпив, получаете эффект ясновидения. Концентрация не нужна."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0.5,
+        "stackable": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "philter_of_love",
+      "name_ru": "Любовное зелье",
+      "name_en": "Philter of love",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10043,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/125-philter-of-love/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "Следующее существо, которое вы увидите в течение 10 минут, очаровывает вас на 1 час.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Следующее существо, которое вы увидите в течение 10 минут, очаровывает вас на 1 час."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0.5,
+        "stackable": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "oil_of_sharpness",
+      "name_ru": "Масло остроты",
+      "name_en": "Oil of sharpness",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10044,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/133-oil-of-sharpness/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Покройте рубящее или колющее оружие или 5 боеприпасов. На час они +3 к атаке и урону.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Покройте рубящее или колющее оружие или 5 боеприпасов. На час они +3 к атаке и урону."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0.5,
+        "stackable": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "oil_of_slipperiness",
+      "name_ru": "Масло ускользания",
+      "name_en": "Oil of slipperiness",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10045,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/134-oil-of-slipperiness/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "На теле — свобода передвижения на 8 часов. На полу — скользкая зона 10 футов на 8 часов.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "На теле — свобода передвижения на 8 часов. На полу — скользкая зона 10 футов на 8 часов."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0.5,
+        "stackable": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "dust_of_disappearance",
+      "name_ru": "Порошок исчезновения",
+      "name_en": "Dust of disappearance",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10046,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/182-dust-of-disappearance/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "Бросок горсти: вы и всё, что несёте, невидимы 2к4 минуты. Всё в радиусе 10 футов тоже.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Бросок горсти: вы и всё, что несёте, невидимы 2к4 минуты. Всё в радиусе 10 футов тоже."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0.5,
+        "stackable": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "dust_of_dryness",
+      "name_ru": "Порошок сухости",
+      "name_en": "Dust of dryness",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10047,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/183-dust-of-dryness/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "Щепотка высушивает 15 кубических футов воды в шарик. Бросок шарика в воду — взрыв воды.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Щепотка высушивает 15 кубических футов воды в шарик. Бросок шарика в воду — взрыв воды."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0.5,
+        "stackable": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "dust_of_sneezing_and_choking",
+      "name_ru": "Порошок чихания и удушья",
+      "name_en": "Dust of sneezing and choking",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10048,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/184-dust-of-sneezing-and-choking/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "Облако 30 футов. Сл 15 Телосложение или существа не держатся на ногах и задыхаются.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Облако 30 футов. Сл 15 Телосложение или существа не держатся на ногах и задыхаются."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0.5,
+        "stackable": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "sovereign_glue",
+      "name_ru": "Превосходный клей",
+      "name_en": "Sovereign glue",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10049,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/200-sovereign-glue/",
+        "rarity": "legendary",
+        "requires_attunement": false,
+        "description_ru": "Склеивает два предмета навсегда. Растворяет только универсальный растворитель.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Склеивает два предмета навсегда. Растворяет только универсальный растворитель."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0.5,
+        "stackable": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "universal_solvent",
+      "name_ru": "Универсальный растворитель",
+      "name_en": "Universal solvent",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10050,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/243-universal-solvent/",
+        "rarity": "legendary",
+        "requires_attunement": false,
+        "description_ru": "Растворяет клей, слизь и большинство веществ. Одной унции хватает на куб в 1 фут.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Растворяет клей, слизь и большинство веществ. Одной унции хватает на куб в 1 фут."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0.5,
+        "stackable": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "gem_of_seeing",
+      "name_ru": "Камень зрения",
+      "name_en": "Gem of seeing",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10051,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/78-gem-of-seeing/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "3 заряда. Действием — истинное зрение на 10 минут. На рассвете 1к3 заряда.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "true_seeing",
+            "name_ru": "Истинное зрение",
+            "restore": "dawn",
+            "charges": 1
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "eyes",
+        "weight_lb": 0,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "gem_of_brightness",
+      "name_ru": "Камень сияния",
+      "name_en": "Gem of brightness",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10052,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/81-gem-of-brightness/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "50 зарядов. Свет, вспышка или ослепляющий луч. Когда заряды кончаются, камень тускнеет.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 50,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "1 заряд — свет 30/60. 1+ — вспышка, Сл 15 Телосложение или ослепление. 5 — луч 60 футов."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 0,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_elemental_command_air",
+      "name_ru": "Кольцо командования элементалями (воздух)",
+      "name_en": "Ring of Elemental Command (Air)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10053,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/96-ring-of-elemental-command/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Кольцо стихии «воздух». Пока не приручено — слабые свойства. После — сопротивление, языки стихии и заклинания кольца.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Кольцо стихии «воздух». Пока не приручено — слабые свойства. После — сопротивление, языки стихии и заклинания кольца."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "ring",
+        "weight_lb": 0,
+        "stackable": false,
+        "family_slug": "ring_of_elemental_command",
+        "family_label_ru": "Кольцо командования элементалями",
+        "variant_key": "air",
+        "variant_label_ru": "воздух"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_elemental_command_earth",
+      "name_ru": "Кольцо командования элементалями (земля)",
+      "name_en": "Ring of Elemental Command (Earth)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10054,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/96-ring-of-elemental-command/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Кольцо стихии «земля». Пока не приручено — слабые свойства. После — сопротивление, языки стихии и заклинания кольца.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Кольцо стихии «земля». Пока не приручено — слабые свойства. После — сопротивление, языки стихии и заклинания кольца."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "ring",
+        "weight_lb": 0,
+        "stackable": false,
+        "family_slug": "ring_of_elemental_command",
+        "family_label_ru": "Кольцо командования элементалями",
+        "variant_key": "earth",
+        "variant_label_ru": "земля"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_elemental_command_fire",
+      "name_ru": "Кольцо командования элементалями (огонь)",
+      "name_en": "Ring of Elemental Command (Fire)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10055,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/96-ring-of-elemental-command/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Кольцо стихии «огонь». Пока не приручено — слабые свойства. После — сопротивление, языки стихии и заклинания кольца.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Кольцо стихии «огонь». Пока не приручено — слабые свойства. После — сопротивление, языки стихии и заклинания кольца."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "ring",
+        "weight_lb": 0,
+        "stackable": false,
+        "family_slug": "ring_of_elemental_command",
+        "family_label_ru": "Кольцо командования элементалями",
+        "variant_key": "fire",
+        "variant_label_ru": "огонь"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_elemental_command_water",
+      "name_ru": "Кольцо командования элементалями (вода)",
+      "name_en": "Ring of Elemental Command (Water)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10056,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/96-ring-of-elemental-command/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Кольцо стихии «вода». Пока не приручено — слабые свойства. После — сопротивление, языки стихии и заклинания кольца.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Кольцо стихии «вода». Пока не приручено — слабые свойства. После — сопротивление, языки стихии и заклинания кольца."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "ring",
+        "weight_lb": 0,
+        "stackable": false,
+        "family_slug": "ring_of_elemental_command",
+        "family_label_ru": "Кольцо командования элементалями",
+        "variant_key": "water",
+        "variant_label_ru": "вода"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_spell_turning",
+      "name_ru": "Кольцо отражения заклинаний",
+      "name_en": "Ring of spell turning",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10057,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/98-ring-of-spell-turning/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Реакцией можно попытаться отразить заклинание, нацеленное только на вас. к20 + модификатор вашей заклинательной характеристики против Сл 11 + круг.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Реакцией можно попытаться отразить заклинание, нацеленное только на вас. к20 + модификатор вашей заклинательной характеристики против Сл 11 + круг."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "ring",
+        "weight_lb": 0,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_shooting_stars",
+      "name_ru": "Кольцо падающих звёзд",
+      "name_en": "Ring of shooting stars",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10058,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/99-ring-of-shooting-stars/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Ночью под открытым небом: светлячки, шары света и падающие звёзды. 6 зарядов, на рассвете 1к6.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 6,
+            "restore": "dawn",
+            "recharge_dice": "1d6"
+          },
+          {
+            "type": "custom_note",
+            "text": "Светлячки, сферы и падающие звёзды — только ночью вне помещения. См. карточку."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "ring",
+        "weight_lb": 0,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_djinni_summoning",
+      "name_ru": "Кольцо призыва джинна",
+      "name_en": "Ring of djinni summoning",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10059,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/102-ring-of-djinni-summoning/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Раз до рассвета призывает конкретного джинна на час. Если джинн умер, кольцо теряет силу.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Раз до рассвета призывает конкретного джинна на час. Если джинн умер, кольцо теряет силу."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "ring",
+        "weight_lb": 0,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "efreeti_chain",
+      "name_ru": "Кольчуга ифритов",
+      "name_en": "Efreeti Chain",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10060,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/115-efreeti-chain/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Кольчуга. Иммунитет к огню, язык игнанов, вы терпите сильную жару.",
+        "effects": [
+          {
+            "type": "immunity",
+            "damage_type": "fire"
+          },
+          {
+            "type": "custom_note",
+            "text": "Вы понимаете и говорите на игнан. Жара вас не мучает."
+          }
+        ],
+        "armor_kind": "heavy",
+        "base_ac": 16,
+        "max_dex_bonus": 0,
+        "strength_requirement": 13,
+        "stealth_disadvantage": true,
+        "weight_lb": 55,
+        "wear_slot": "body_armor",
+        "base_armor_slug": "chain_mail"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wings_of_flying",
+      "name_ru": "Крылья полёта",
+      "name_en": "Wings of flying",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10061,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/118-wings-of-flying/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Плащ. Действием вырастают крылья: скорость полёта 60 футов на час. Потом нужен короткий или длинный отдых.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Плащ. Действием вырастают крылья: скорость полёта 60 футов на час. Потом нужен короткий или длинный отдых."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "cloak",
+        "weight_lb": 2,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "moonblade",
+      "name_ru": "Лунный клинок",
+      "name_en": "Moonblade",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10062,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/2231-moonblade/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Полуторный меч эльфов. Начинает как +1. Руны добавляет мастер. Настройка — эльф или полуэльф.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Руны (свечение, личность, свойства) определяет мастер. База на листе — +1, пока руны не записаны в заметку."
+          }
+        ],
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "weight_lb": 3,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "longsword",
+        "versatile_damage": "1к10",
+        "attunement_races": [
+          "elf",
+          "half_elf"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "keoghtoms_ointment",
+      "name_ru": "Мазь Кеогтома",
+      "name_en": "Keoghtom’s ointment",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10063,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/126-keoghtoms-ointment/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "1к4+1 доз. Доза лечит 2к8+2, снимает яд и болезнь, закрывает раны.",
+        "effects": [
+          {
+            "type": "heal",
+            "dice": "2d8+2"
+          },
+          {
+            "type": "custom_note",
+            "text": "Также снимает отравление и одну болезнь. Доз 1к4+1 — отметьте в количестве."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 0.5,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "robe_of_stars",
+      "name_ru": "Мантия звёзд",
+      "name_en": "Robe of stars",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10064,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/129-robe-of-stars/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Шесть звёзд. Бонусным можно метнуть звезду (дальнобойная атака заклинанием, 1к6+4 излучением). Раз до рассвета — план Астрала.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "stars",
+            "max": 6,
+            "restore": "never"
+          },
+          {
+            "type": "custom_note",
+            "text": "Попавшая звезда пропадает и сама не возвращается. Раз до рассвета можно перейти на Астральный план."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "robe",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "robe_of_useful_items",
+      "name_ru": "Мантия полезных предметов",
+      "name_en": "Robe of useful items",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10065,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/130-robe-of-useful-items/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "Заплатки. Действием срываете заплатку — она становится предметом из списка карточки.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Заплатки. Действием срываете заплатку — она становится предметом из списка карточки."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "robe",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "robe_of_scintillating_colors",
+      "name_ru": "Мантия сияющих цветов",
+      "name_en": "Robe of scintillating colors",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10066,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/131-robe-of-scintillating-colors/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "3 заряда. Действием мантия вспыхивает: существа в 30 футах, Сл 15 Мудрость, или ошеломлены.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "robe",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "mantle_of_spell_resistance",
+      "name_ru": "Мантия сопротивления заклинаниям",
+      "name_en": "Mantle of spell resistance",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10067,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/132-mantle-of-spell-resistance/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Преимущество на спасброски против заклинаний.",
+        "effects": [
+          {
+            "type": "save_advantage",
+            "against": "spells",
+            "note": "пока надета"
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "cloak",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "periapt_of_health",
+      "name_ru": "Медальон здоровья",
+      "name_en": "Periapt of health",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10068,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/139-periapt-of-health/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "Пока медальон надет, вы невосприимчивы к болезням. Уже больны — болезнь подавлена.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Пока медальон надет, вы невосприимчивы к болезням. Уже больны — болезнь подавлена."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "neck",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "sword_of_vengeance",
+      "name_ru": "Меч мести",
+      "name_en": "Sword of vengeance",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10069,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/144-sword-of-vengeance/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Проклятый меч +1. Вы не хотите с ним расставаться и обязаны атаковать того, кто вас ранил.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Проклят. Снять проклятие может снять проклятие. Пока прокляты, атакуете обидчика."
+          }
+        ],
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "weight_lb": 3,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "longsword",
+        "versatile_damage": "1к10",
+        "allowed_base_weapon": [
+          "shortsword",
+          "longsword",
+          "scimitar",
+          "greatsword",
+          "rapier"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "sword_of_answering",
+      "name_ru": "Меч ответа",
+      "name_en": "Sword of answering",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10070,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/146-sword-of-answering/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Длинный меч +3. У меча своё мировоззрение и одно из девяти имён. Настройка — существо того же мировоззрения. Если вас ударили с прошлого хода, реакцией можно ударить в ответ.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "custom_note",
+            "text": "Девять имён и мировоззрений — в заметке мастера. На листе одна строка +3; реакционный удар отметьте сами."
+          }
+        ],
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "weight_lb": 3,
+        "wear_slot": "held_main",
+        "magic_bonus": 3,
+        "base_weapon_slug": "longsword",
+        "versatile_damage": "1к10"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "necklace_of_prayer_beads",
+      "name_ru": "Ожерелье молитвенных чёток",
+      "name_en": "Necklace of prayer beads",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10071,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/157-necklace-of-prayer-beads/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "1к4+2 бусины из таблицы: благословение, лечение, лечение ран, излечение болезни, благосклонность, призыв и прочие. Жрец, друид или паладин читает бусину бонусным, раз до рассвета.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "1к4+2 бусины из таблицы: благословение, лечение, лечение ран, излечение болезни, благосклонность, призыв и прочие. Жрец, друид или паладин читает бусину бонусным, раз до рассвета."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "neck",
+        "weight_lb": 0,
+        "stackable": false,
+        "attunement_classes": [
+          "cleric",
+          "druid",
+          "paladin"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "eyes_of_minute_seeing",
+      "name_ru": "Очки детального зрения",
+      "name_en": "Eyes of minute seeing",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10072,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/162-eyes-of-minute-seeing/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "Преимущество на проверки, когда вы рассматриваете что-то мелкое вплотную.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Преимущество на проверки, когда вы рассматриваете что-то мелкое вплотную."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "eyes",
+        "weight_lb": 0,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "quaals_feather_token_anchor",
+      "name_ru": "Перо Кваля (якорь)",
+      "name_en": "Quaal’s Feather Token (Anchor)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10073,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/167-quaals-feather-token/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Якорь держит лодку сутки.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Якорь держит лодку сутки."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0,
+        "stackable": true,
+        "family_slug": "quaals_feather_token",
+        "family_label_ru": "Перо Кваля",
+        "variant_key": "anchor",
+        "variant_label_ru": "якорь"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "quaals_feather_token_bird",
+      "name_ru": "Перо Кваля (птица)",
+      "name_en": "Quaal’s Feather Token (Bird)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10074,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/167-quaals-feather-token/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Птица относит небольшое послание.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Птица относит небольшое послание."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0,
+        "stackable": true,
+        "family_slug": "quaals_feather_token",
+        "family_label_ru": "Перо Кваля",
+        "variant_key": "bird",
+        "variant_label_ru": "птица"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "quaals_feather_token_fan",
+      "name_ru": "Перо Кваля (веер)",
+      "name_en": "Quaal’s Feather Token (Fan)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10075,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/167-quaals-feather-token/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Веер даёт ветер в парус или сбивает с ног.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Веер даёт ветер в парус или сбивает с ног."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0,
+        "stackable": true,
+        "family_slug": "quaals_feather_token",
+        "family_label_ru": "Перо Кваля",
+        "variant_key": "fan",
+        "variant_label_ru": "веер"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "quaals_feather_token_swan_boat",
+      "name_ru": "Перо Кваля (лебединая ладья)",
+      "name_en": "Quaal’s Feather Token (Swan boat)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10076,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/167-quaals-feather-token/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Лодка-лебедь на 6 существ, 24 часа.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Лодка-лебедь на 6 существ, 24 часа."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0,
+        "stackable": true,
+        "family_slug": "quaals_feather_token",
+        "family_label_ru": "Перо Кваля",
+        "variant_key": "swan_boat",
+        "variant_label_ru": "лебединая ладья"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "quaals_feather_token_tree",
+      "name_ru": "Перо Кваля (дерево)",
+      "name_en": "Quaal’s Feather Token (Tree)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10077,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/167-quaals-feather-token/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Вырастает дуб.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Вырастает дуб."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0,
+        "stackable": true,
+        "family_slug": "quaals_feather_token",
+        "family_label_ru": "Перо Кваля",
+        "variant_key": "tree",
+        "variant_label_ru": "дерево"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "quaals_feather_token_whip",
+      "name_ru": "Перо Кваля (кнут)",
+      "name_en": "Quaal’s Feather Token (Whip)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10078,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/167-quaals-feather-token/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Кнут +1? По карточке — плавающий кнут, который защищает вас.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Кнут +1? По карточке — плавающий кнут, который защищает вас."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0,
+        "stackable": true,
+        "family_slug": "quaals_feather_token",
+        "family_label_ru": "Перо Кваля",
+        "variant_key": "whip",
+        "variant_label_ru": "кнут"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "cloak_of_invisibility",
+      "name_ru": "Плащ невидимости",
+      "name_en": "Cloak of invisibility",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10079,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/173-cloak-of-invisibility/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Капюшон делает вас невидимым. Суммарно 2 часа, кусками не короче минуты? По карточке — до 2 часов, затем 8 часов на восстановление.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Капюшон делает вас невидимым. Суммарно 2 часа, кусками не короче минуты? По карточке — до 2 часов, затем 8 часов на восстановление."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "cloak",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "horseshoes_of_a_zephyr",
+      "name_ru": "Подковы ветра",
+      "name_en": "Horseshoes of a Zephyr",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10080,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/179-horseshoes-of-a-zephyr/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Четыре подковы. Скакун парит на 4 дюйма над землёй и не оставляет следов.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Четыре подковы. Скакун парит на 4 дюйма над землёй и не оставляет следов."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "feet",
+        "weight_lb": 4,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "horseshoes_of_speed",
+      "name_ru": "Подковы скорости",
+      "name_en": "Horseshoes of speed",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10081,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/180-horseshoes-of-speed/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Четыре подковы. Скорость ходьбы скакуна +30 футов.",
+        "effects": [
+          {
+            "type": "speed",
+            "value_ft": 30
+          },
+          {
+            "type": "custom_note",
+            "text": "Все четыре подковы на копытах скакуна."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "feet",
+        "weight_lb": 4,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_the_adder",
+      "name_ru": "Посох гадюки",
+      "name_en": "Staff of the adder",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10082,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/185-staff-of-the-adder/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Бонусным посох становится змеёй и кусает. На рассвете можно вернуть форму посоха.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Бонусным посох становится змеёй и кусает. На рассвете можно вернуть форму посоха."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 4,
+        "stackable": false,
+        "is_spell_focus": true,
+        "attunement_classes": [
+          "cleric",
+          "druid",
+          "warlock"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_charming",
+      "name_ru": "Посох очарования",
+      "name_en": "Staff of charming",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10083,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/193-staff-of-charming/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "10 зарядов. Очарование личности, приказ, понимание языков. На рассвете 1к8+2. Можно реакцией отразить очарование.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 10,
+            "restore": "dawn",
+            "recharge_dice": "1d8+2"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "charm_person",
+            "name_ru": "Очарование личности",
+            "restore": "dawn",
+            "charges": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "command",
+            "name_ru": "Приказ",
+            "restore": "dawn",
+            "charges": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Реакцией можно обратить проваленное очарование на заклинателя, потратив заряд. Настройка: бард, жрец, друид, чародей, колдун, волшебник."
+          }
+        ],
+        "item_category": "focus",
+        "wear_slot": "held_main",
+        "weight_lb": 4,
+        "stackable": false,
+        "is_spell_focus": true,
+        "attunement_classes": [
+          "bard",
+          "cleric",
+          "druid",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "candle_of_invocation",
+      "name_ru": "Свеча мольбы",
+      "name_en": "Candle of invocation",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10084,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/207-candle-of-invocation/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Свеча одного мировоззрения. Горит 4 часа. В 30 футах заклинатель того же мировоззрения имеет преимущество на заклинания. Можно прочитать врата.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Мировоззрение свечи мастер пишет в заметку. Преимущество — только у заклинателя того же мировоззрения, и только пока свеча горит."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 0,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "pipes_of_the_sewers",
+      "name_ru": "Свирель канализации",
+      "name_en": "Pipes of the sewers",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10085,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/208-pipes-of-the-sewers/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "3 заряда. Играя, призываете крыс. На рассвете 1к3.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "held_main",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "pipes_of_haunting",
+      "name_ru": "Свирель ужаса",
+      "name_en": "Pipes of haunting",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10086,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/209-pipes-of-haunting/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "3 заряда. Существа в 30 футах, Сл 15 Мудрость, или испуганы. На рассвете 1к3.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "held_main",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "scroll_of_protection",
+      "name_ru": "Свиток защиты",
+      "name_en": "Scroll of protection",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10087,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/211-scroll-of-protection/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Свиток против одного вида существ. Чтение 10 минут создаёт круг, который этот вид не может пересечь.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Вид существ — в заметке. Это не свиток заклинания и не тратит ячейку."
+          }
+        ],
+        "item_category": "consumable",
+        "wear_slot": "none",
+        "weight_lb": 0,
+        "stackable": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "saddle_of_the_cavalier",
+      "name_ru": "Седло кавалериста",
+      "name_en": "Saddle of the Cavalier",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10088,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/213-saddle-of-the-cavalier/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "Пока вы в седле, атаки по скакуну имеют помеху, и вы с преимуществом держитесь в седле.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Пока вы в седле, атаки по скакуну имеют помеху, и вы с преимуществом держитесь в седле."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 5,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "whelm",
+      "name_ru": "Сокрушитель",
+      "name_en": "Whelm",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10089,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/2232-whelm/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Разумный боевой молот +3 дварфов. Метательный, возвращается. Против великанов урон выше. Может сбить с ног.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "custom_note",
+            "text": "Настройка — дварф. Дополнительный урон великанам и оглушение — по карточке, отметьте в бою."
+          }
+        ],
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "дробящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "weight_lb": 2,
+        "wear_slot": "held_main",
+        "magic_bonus": 3,
+        "base_weapon_slug": "warhammer",
+        "versatile_damage": "1к10",
+        "attunement_races": [
+          "dwarf"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "manual_of_golems_clay",
+      "name_ru": "Справочник по големам (глина)",
+      "name_en": "Manual of Golems (Clay)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10090,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/219-manual-of-golems/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Инструкция голема (глина). Нужны заклинательные ячейки и материалы. Книга сгорает, когда голем готов.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Инструкция голема (глина). Нужны заклинательные ячейки и материалы. Книга сгорает, когда голем готов."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 3,
+        "stackable": false,
+        "family_slug": "manual_of_golems",
+        "family_label_ru": "Справочник по големам",
+        "variant_key": "clay",
+        "variant_label_ru": "глина"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "manual_of_golems_flesh",
+      "name_ru": "Справочник по големам (плоть)",
+      "name_en": "Manual of Golems (Flesh)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10091,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/219-manual-of-golems/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Инструкция голема (плоть). Нужны заклинательные ячейки и материалы. Книга сгорает, когда голем готов.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Инструкция голема (плоть). Нужны заклинательные ячейки и материалы. Книга сгорает, когда голем готов."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 3,
+        "stackable": false,
+        "family_slug": "manual_of_golems",
+        "family_label_ru": "Справочник по големам",
+        "variant_key": "flesh",
+        "variant_label_ru": "плоть"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "manual_of_golems_iron",
+      "name_ru": "Справочник по големам (железо)",
+      "name_en": "Manual of Golems (Iron)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10092,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/219-manual-of-golems/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Инструкция голема (железо). Нужны заклинательные ячейки и материалы. Книга сгорает, когда голем готов.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Инструкция голема (железо). Нужны заклинательные ячейки и материалы. Книга сгорает, когда голем готов."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 3,
+        "stackable": false,
+        "family_slug": "manual_of_golems",
+        "family_label_ru": "Справочник по големам",
+        "variant_key": "iron",
+        "variant_label_ru": "железо"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "manual_of_golems_stone",
+      "name_ru": "Справочник по големам (камень)",
+      "name_en": "Manual of Golems (Stone)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10093,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/219-manual-of-golems/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Инструкция голема (камень). Нужны заклинательные ячейки и материалы. Книга сгорает, когда голем готов.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Инструкция голема (камень). Нужны заклинательные ячейки и материалы. Книга сгорает, когда голем готов."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 3,
+        "stackable": false,
+        "family_slug": "manual_of_golems",
+        "family_label_ru": "Справочник по големам",
+        "variant_key": "stone",
+        "variant_label_ru": "камень"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "arrow_of_slaying",
+      "name_ru": "Стрела убийства",
+      "name_en": "Arrow of slaying",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10094,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/223-arrow-of-slaying/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Стрела против одного вида существ. Попадание: Сл 17 Телосложение или 6к10 колющего сверху, половина при успехе. Стрела уничтожается.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Вид существ мастер пишет в заметку. Сл 17 Телосложение, 6к10 колющего, половина при успехе."
+          }
+        ],
+        "item_category": "ammo",
+        "wear_slot": "none",
+        "weight_lb": 0.05,
+        "stackable": true,
+        "base_ammo_slug": "arrow"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bag_of_devouring",
+      "name_ru": "Сумка пожирания",
+      "name_en": "Bag of devouring",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10095,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/224-bag-of-devouring/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Похожа на сумку хранения. Может проглотить то, что внутрь положили, и затянуть существо, которое полезло внутрь.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Похожа на сумку хранения. Может проглотить то, что внутрь положили, и затянуть существо, которое полезло внутрь."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 5,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "talisman_of_pure_good",
+      "name_ru": "Талисман чистого добра",
+      "name_en": "Talisman of pure good",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10096,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/231-talisman-of-pure-good/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "7 зарядов. Жрец или паладин доброго мировоззрения касанием может изгнать исчадие или нежить. Злому носителю талисман вредит.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 7,
+            "restore": "dawn",
+            "recharge_dice": "1d4+3"
+          },
+          {
+            "type": "custom_note",
+            "text": "Настройка — доброе существо. Касание злого исчадия или нежити: Сл 20 Харизма или уничтожение. Злому носителю — урон излучением."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "neck",
+        "weight_lb": 1,
+        "stackable": false,
+        "attunement_alignments": [
+          "lawful_good",
+          "neutral_good",
+          "chaotic_good"
+        ],
+        "attunement_classes": [
+          "cleric",
+          "paladin"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "talisman_of_ultimate_evil",
+      "name_ru": "Талисман абсолютного зла",
+      "name_en": "Talisman of ultimate evil",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10097,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/229-talisman-of-ultimate-evil/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "7 зарядов. Злой жрец касанием может уничтожить доброе существо. Доброму носителю талисман вредит.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 7,
+            "restore": "dawn",
+            "recharge_dice": "1d4+3"
+          },
+          {
+            "type": "custom_note",
+            "text": "Настройка — злое существо. Касание доброго: Сл 20 Харизма или уничтожение. Доброму носителю — урон некротикой."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "neck",
+        "weight_lb": 1,
+        "stackable": false,
+        "attunement_alignments": [
+          "lawful_evil",
+          "neutral_evil",
+          "chaotic_evil"
+        ],
+        "attunement_classes": [
+          "cleric"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "talisman_of_the_sphere",
+      "name_ru": "Талисман сферы",
+      "name_en": "Talisman of the sphere",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10098,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/230-talisman-of-the-sphere/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Пока талисман надет, проверки на управление сферой аннигиляции идут с преимуществом, и вы можете двигать сферу дальше.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Пока талисман надет, проверки на управление сферой аннигиляции идут с преимуществом, и вы можете двигать сферу дальше."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "neck",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "crystal_ball",
+      "name_ru": "Хрустальный шар",
+      "name_en": "Crystal ball",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10099,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/245-crystal-ball/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Раз до короткого отдыха — прорицание.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "scrying",
+            "name_ru": "Прорицание",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Раз до короткого отдыха — прорицание."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 3,
+        "stackable": false,
+        "family_slug": "crystal_ball",
+        "family_label_ru": "Хрустальный шар",
+        "variant_key": "base",
+        "variant_label_ru": "прорицание"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "crystal_ball_mind_reading",
+      "name_ru": "Хрустальный шар (чтение мыслей)",
+      "name_en": "Crystal Ball of Mind Reading",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10100,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/245-crystal-ball/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Прорицание и обнаружение мыслей.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "scrying",
+            "name_ru": "Прорицание",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Прорицание и обнаружение мыслей."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 3,
+        "stackable": false,
+        "family_slug": "crystal_ball",
+        "family_label_ru": "Хрустальный шар",
+        "variant_key": "mind_reading",
+        "variant_label_ru": "чтение мыслей"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "crystal_ball_telepathy",
+      "name_ru": "Хрустальный шар (телепатия)",
+      "name_en": "Crystal Ball of Telepathy",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10101,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/245-crystal-ball/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Прорицание и телепатия с существом, которое вы видите.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "scrying",
+            "name_ru": "Прорицание",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Прорицание и телепатия с существом, которое вы видите."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 3,
+        "stackable": false,
+        "family_slug": "crystal_ball",
+        "family_label_ru": "Хрустальный шар",
+        "variant_key": "telepathy",
+        "variant_label_ru": "телепатия"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "crystal_ball_true_seeing",
+      "name_ru": "Хрустальный шар (истинное зрение)",
+      "name_en": "Crystal Ball of True Seeing",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10102,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/245-crystal-ball/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Прорицание и истинное зрение в наблюдаемом месте.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "scrying",
+            "name_ru": "Прорицание",
+            "restore": "dawn",
+            "uses": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Прорицание и истинное зрение в наблюдаемом месте."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 3,
+        "stackable": false,
+        "family_slug": "crystal_ball",
+        "family_label_ru": "Хрустальный шар",
+        "variant_key": "true_seeing",
+        "variant_label_ru": "истинное зрение"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "blackrazor",
+      "name_ru": "Чёрный клинок",
+      "name_en": "Blackrazor",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10103,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/2233-blackrazor/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Разумный двуручный меч +3. Поглощает душу убитого и на время даёт вам его живучесть и ускорение.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "custom_note",
+            "text": "Если клинок снижает существо до 0 хитов, душа поглощена: временные хиты и ускорение по карточке. Разумный, хочет есть души."
+          }
+        ],
+        "ability": "str",
+        "damage": "2к6",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "heavy",
+          "two-handed"
+        ],
+        "weight_lb": 6,
+        "wear_slot": "held_main",
+        "magic_bonus": 3,
+        "base_weapon_slug": "greatsword"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "nolzurs_marvelous_pigments",
+      "name_ru": "Чудесные краски Нолзура",
+      "name_en": "Nolzur’s marvelous pigments",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10104,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/247-nolzurs-marvelous-pigments/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "1к4 банки. Кистью можно нарисовать предмет или дверь, и картина станет настоящей.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "1к4 банки. Кистью можно нарисовать предмет или дверь, и картина станет настоящей."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 1,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "cap_of_water_breathing",
+      "name_ru": "Шапка подводного дыхания",
+      "name_en": "Cap of water breathing",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10105,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/249-cap-of-water-breathing/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "Пока шапка на голове, вы дышите под водой.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Пока шапка на голове, вы дышите под водой."
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "head",
+        "weight_lb": 0,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "helm_of_comprehending_languages",
+      "name_ru": "Шлем понимания языков",
+      "name_en": "Helm of comprehending languages",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10106,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/251-helm-of-comprehending-languages/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "Действием читаете понимание языков с шлема, без ограничения.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "comprehend_languages",
+            "name_ru": "Понимание языков",
+            "restore": "dawn",
+            "unlimited": true,
+            "uses": 0
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "head",
+        "weight_lb": 2,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "helm_of_teleportation",
+      "name_ru": "Шлем телепортации",
+      "name_en": "Helm of teleportation",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10107,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/253-helm-of-teleportation/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "3 заряда. Телепортация. На рассвете 1к3.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "teleport",
+            "name_ru": "Телепортация",
+            "restore": "dawn",
+            "charges": 1
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "head",
+        "weight_lb": 2,
+        "stackable": false
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "sentinel_shield",
+      "name_ru": "Щит часового",
+      "name_en": "Sentinel shield",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10108,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/257-sentinel-shield/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "Щит. Преимущество на инициативу и на восприятие.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Преимущество на проверки инициативы и Мудрость (Восприятие). Бонус КД — как у обычного щита."
+          }
+        ],
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 6,
+        "wear_slot": "shield",
+        "base_armor_slug": "shield"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "belt_of_giant_strength_frost",
+      "name_ru": "Пояс силы морозного великана",
+      "name_en": "Belt of Giant Strength (Frost)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10109,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/37-belt-of-giant-strength/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Сила 23, пока пояс надет и настроен.",
+        "effects": [
+          {
+            "type": "ability_score",
+            "ability": "str",
+            "value": 23
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "belt",
+        "weight_lb": 1,
+        "stackable": false,
+        "family_slug": "belt_of_giant_strength",
+        "family_label_ru": "Пояс силы великана",
+        "variant_key": "frost",
+        "variant_label_ru": "Морозный",
+        "single_attunement_family": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ioun_stone_agility",
+      "name_ru": "Камень Иоун (ловкости)",
+      "name_en": "Ioun Stone (Agility)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10110,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "DMG",
+        "source_url": "https://5e14.dnd.su/items/82-ioun-stone/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Ловкость увеличивается на 2, максимум 20, пока камень вращается вокруг головы.",
+        "effects": [
+          {
+            "type": "ability_mod",
+            "ability": "dex",
+            "value": 2,
+            "max": 20
+          }
+        ],
+        "item_category": "wondrous",
+        "wear_slot": "none",
+        "weight_lb": 0,
+        "stackable": false,
+        "family_slug": "ioun_stone",
+        "family_label_ru": "Камень Иоун",
+        "variant_key": "agility",
+        "variant_label_ru": "Ловкость"
+      }
+    }
+  ]
+}

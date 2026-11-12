@@ -15,6 +15,12 @@ import {
   type GearPickerKindFilter,
   type GearPickerSourceBookFilter,
 } from './gearFromCatalog'
+import {
+  ammoBundleQty,
+  baseChoiceFromData,
+  baseChoiceLabel,
+  baseOptions,
+} from './gearBaseChoice'
 
 function RarityBadge({ rarity, label }: { rarity: GearRarity; label: string }) {
   return (
@@ -107,6 +113,7 @@ export function GearPickerDialog({
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [expandedFamily, setExpandedFamily] = useState<string | null>(null)
   const [qty, setQty] = useState(1)
+  const [baseSlug, setBaseSlug] = useState('')
   const [equipArmor, setEquipArmor] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -120,6 +127,7 @@ export function GearPickerDialog({
     setSelectedId(null)
     setExpandedFamily(null)
     setQty(1)
+    setBaseSlug('')
     setEquipArmor(true)
     setError(null)
   }, [open])
@@ -150,6 +158,11 @@ export function GearPickerDialog({
       cancelled = true
     }
   }, [open, edition])
+
+  useEffect(() => {
+    const bundle = ammoBundleQty(baseSlug)
+    if (bundle > 1) setQty(bundle)
+  }, [baseSlug])
 
   const showItemCategoryFilters = kind === 'all' || kind === 'item'
 
@@ -207,9 +220,14 @@ export function GearPickerDialog({
     [entries, selectedId],
   )
   const selectedSummary = selected ? summarizeGearEntry(selected) : null
+  const baseChoice = baseChoiceFromData(
+    (selected?.data ?? null) as Record<string, unknown> | null,
+  )
+  const baseOptionRows = baseChoice ? baseOptions(baseChoice) : []
 
   function pickEntry(entry: CatalogEntry) {
     setSelectedId(entry.id)
+    setBaseSlug('')
     setError(null)
   }
 
@@ -218,10 +236,15 @@ export function GearPickerDialog({
       setError('Выбери предмет из списка')
       return
     }
+    if (baseChoice && !baseSlug) {
+      setError('Выберите базовый предмет')
+      return
+    }
     const result = inventoryItemFromCatalog({
       entry: selected,
       qty,
       equipArmor,
+      baseSlug: baseSlug || null,
     })
     if (!result) {
       setError('Не удалось добавить этот предмет')
@@ -237,7 +260,7 @@ export function GearPickerDialog({
       size="wide"
       primaryLabel="Добавить"
       secondaryLabel="Отмена"
-      primaryDisabled={!selected || loading}
+      primaryDisabled={!selected || loading || Boolean(baseChoice && !baseSlug)}
       onPrimary={handleConfirm}
       onSecondary={onClose}
     >
@@ -443,6 +466,25 @@ export function GearPickerDialog({
             ) : null}
             {selectedSummary.meta_line ? (
               <Text tone="muted">{selectedSummary.meta_line}</Text>
+            ) : null}
+            {baseChoice ? (
+              <Field label={baseChoiceLabel(baseChoice.kind)}>
+                <select
+                  className="play-select"
+                  value={baseSlug}
+                  onChange={(event) => {
+                    setBaseSlug(event.target.value)
+                    setError(null)
+                  }}
+                >
+                  <option value="">Выберите базу</option>
+                  {baseOptionRows.map((option) => (
+                    <option key={option.slug} value={option.slug}>
+                      {option.nameRu}
+                    </option>
+                  ))}
+                </select>
+              </Field>
             ) : null}
             {selectedSummary.description_ru ? (
               <Text tone="muted" className="gear-picker-selected__desc">

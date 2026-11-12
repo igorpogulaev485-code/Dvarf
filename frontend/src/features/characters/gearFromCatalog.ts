@@ -27,6 +27,7 @@ import {
   buildStartingWeaponAttacks,
   mergeStartingWeaponAttacksByIdentity,
 } from './startingGearAttacks'
+import { applyBaseToGear, stampBaseChoiceMeta } from './gearBaseChoice'
 
 export type GearPickerKindFilter = 'all' | 'weapon' | 'armor' | 'item'
 
@@ -320,6 +321,8 @@ export function inventoryItemFromCatalog(input: {
   entry: CatalogEntry
   qty?: number
   equipArmor?: boolean
+  /** PHB base when the card allows more than one. */
+  baseSlug?: string | null
 }): GearAddResult | null {
   const { entry } = input
   if (entry.kind !== 'weapon' && entry.kind !== 'armor' && entry.kind !== 'item') {
@@ -332,7 +335,9 @@ export function inventoryItemFromCatalog(input: {
   created.catalog_slug = entry.slug
   created.qty = qty
   created.notes = 'Из справочника'
-  copyAttunementMeta(created, (entry.data ?? {}) as Record<string, unknown>)
+  const catalogData = (entry.data ?? {}) as Record<string, unknown>
+  copyAttunementMeta(created, catalogData)
+  stampBaseChoiceMeta(created, catalogData)
 
   if (entry.kind === 'weapon') {
     const parsed = parseWeaponCatalogData(entry.data ?? {})
@@ -383,7 +388,7 @@ export function inventoryItemFromCatalog(input: {
         held: false,
       })
     }
-    return { item: created, attacks, equip: false }
+    return finishGearAdd({ item: created, attacks, equip: false }, input.baseSlug, entry.name_ru)
   }
 
   if (entry.kind === 'armor') {
@@ -406,7 +411,7 @@ export function inventoryItemFromCatalog(input: {
         created.armor_kind === 'medium' ||
         created.armor_kind === 'heavy' ||
         created.armor_kind === 'shield')
-    return { item: created, attacks: [], equip }
+    return finishGearAdd({ item: created, attacks: [], equip }, input.baseSlug, entry.name_ru)
   }
 
   const parsed = parseItemCatalogData(entry.data ?? {})
@@ -444,7 +449,24 @@ export function inventoryItemFromCatalog(input: {
   if (created.container_kind === 'pack') {
     created.pack_weight_lb = parsed.weight_lb
   }
-  return { item: created, attacks: [], equip: false }
+  return finishGearAdd({ item: created, attacks: [], equip: false }, input.baseSlug, entry.name_ru)
+}
+
+function finishGearAdd(
+  result: GearAddResult,
+  baseSlug: string | null | undefined,
+  catalogName: string,
+): GearAddResult {
+  const slug = baseSlug?.trim()
+  if (!slug) return result
+  const applied = applyBaseToGear({
+    item: result.item,
+    attacks: result.attacks,
+    baseSlug: slug,
+    catalogName,
+  })
+  if (!applied) return result
+  return { ...result, item: applied.item, attacks: applied.attacks }
 }
 
 /** Append catalog gear into inventory (+ attacks), optionally auto-equip armor. */

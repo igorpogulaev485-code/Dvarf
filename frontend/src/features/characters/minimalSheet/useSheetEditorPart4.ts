@@ -479,9 +479,17 @@ export function useSheetEditorPart4(model: SheetModel) {
 
   const stealthArmorPieces = equippedArmorPieces(model.draft.inventory.items)
   model.stealthArmorPieces = stealthArmorPieces
+  const wornBody = model.draft.inventory.items.find(
+    (item) =>
+      item.equipped &&
+      (item.armor_kind === 'light' ||
+        item.armor_kind === 'medium' ||
+        item.armor_kind === 'heavy'),
+  )
   const stealthArmorDisadvantage = armorGivesStealthDisadvantage({
     armorKind: stealthArmorPieces.armor?.kind ?? null,
     armorName: stealthArmorPieces.armor?.name ?? null,
+    stealthDisadvantage: wornBody?.stealth_disadvantage,
   })
   model.stealthArmorDisadvantage = stealthArmorDisadvantage
 

@@ -70,6 +70,8 @@ GEAR_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("gear_i03_spellcasting_v1.json"),
     WaveSpec("gear_i04_defense_v1.json"),
     WaveSpec("gear_i05_charges_v1.json"),
+    WaveSpec("gear_i06_bases_v1.json"),
+    WaveSpec("gear_dmg_fill_v1.json"),
 )
 
 # Audited active-magic count after the I22 hide (docs/items-audit/count.md).
@@ -122,6 +124,23 @@ FAMILY_RULE_KEYS = (
     "single_attunement_family",
     "alignment_color_gate",
 )
+# Lists of PHB bases. The chosen slug on the row is a player field (I31).
+BASE_LIST_KEYS = (
+    "allowed_base_weapon",
+    "allowed_base_armor",
+    "allowed_base_ammo",
+    "clear_stealth_disadvantage",
+    "clear_strength_requirement",
+)
+# Old +N templates stay longsword / plate when the sheet never picked a base.
+LEGACY_BASE_SLUGS = {
+    "weapon_1": ("base_weapon_slug", "longsword"),
+    "weapon_2": ("base_weapon_slug", "longsword"),
+    "weapon_3": ("base_weapon_slug", "longsword"),
+    "armor_1": ("base_armor_slug", "plate_armor"),
+    "armor_2": ("base_armor_slug", "plate_armor"),
+    "armor_3": ("base_armor_slug", "plate_armor"),
+}
 
 
 @dataclass
@@ -718,6 +737,12 @@ def _copy_rules(item: dict[str, Any], catalog: GearRecord) -> dict[str, Any]:
     for key in FAMILY_RULE_KEYS:
         if key in data:
             updated[key] = data[key]
+    for key in BASE_LIST_KEYS:
+        if key in data:
+            updated[key] = data[key]
+    legacy = LEGACY_BASE_SLUGS.get(catalog.slug)
+    if legacy and not updated.get(legacy[0]):
+        updated[legacy[0]] = legacy[1]
     if data.get("is_spell_focus") is True:
         updated["is_spell_focus"] = True
     bonus = data.get("magic_bonus")
@@ -727,7 +752,9 @@ def _copy_rules(item: dict[str, Any], catalog: GearRecord) -> dict[str, Any]:
         updated["magic_bonus"] = int(bonus)
     if not updated.get("catalog_slug"):
         updated["catalog_slug"] = catalog.slug
-    if catalog.kind == "armor":
+    # A chosen base owns AC, Strength and the armor kind. Do not paste the template.
+    chosen_base = bool(data.get("allowed_base_armor")) and bool(updated.get("base_armor_slug"))
+    if catalog.kind == "armor" and not chosen_base:
         for key in ARMOR_RULE_KEYS:
             if key in data:
                 updated[key] = data[key]
