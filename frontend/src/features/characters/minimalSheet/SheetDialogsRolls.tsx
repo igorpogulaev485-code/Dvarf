@@ -11,7 +11,7 @@ import { syncAttacksHeldFromInventory } from '../AttacksPanel'
 import { canWearArmor, armorProficiencyHint } from '../equipmentProficiency'
 import { listShieldItems, toggleShieldInHand } from '../heldEquip'
 import { HotConditionsDialog } from '../HotConditionsDialog'
-import { formatSkillRoll } from '../deskRolls'
+import { applyLuckyPick, formatCheckRoll, formatSkillRoll } from '../deskRolls'
 import {
   listRollDieChips,
   mergeDeskRollMode,
@@ -504,6 +504,49 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
       />
 
       <TempHpReplaceDialog request={model.tempHpReplaceAsk ?? null} />
+
+      <Dialog
+        open={model.luckyPickPending != null}
+        title="Везунчик: выберите к20"
+        primaryLabel="Закрыть"
+        secondaryLabel="Отмена"
+        onPrimary={() => model.setLuckyPickPending?.(null)}
+        onSecondary={() => model.setLuckyPickPending?.(null)}
+      >
+        <Stack gap={8}>
+          <Text>Выберите любую из выпавших костей (решение 11).</Text>
+          <div className="chip-row" role="group" aria-label="Кости удачи">
+            {(model.luckyPickPending?.allDice ?? []).map((die: number, idx: number) => (
+              <button
+                key={`${die}-${idx}`}
+                type="button"
+                className="sheet-chip"
+                onClick={() => {
+                  const pending = model.luckyPickPending
+                  if (!pending?.hitRoll) return
+                  const picked = applyLuckyPick(pending.hitRoll, die)
+                  const label = pending.text.split(':')[0] || 'Бросок'
+                  const bonusFlat =
+                    pending.hitRoll.total -
+                    pending.hitRoll.die -
+                    pending.hitRoll.modifier
+                  const rebuilt = formatCheckRoll(label, {
+                    ...picked,
+                    total: picked.die + picked.modifier + bonusFlat,
+                  })
+                  // Keep damage suffix from original toast if present.
+                  const dmgIdx = pending.text.indexOf(' · урон')
+                  const suffix = dmgIdx >= 0 ? pending.text.slice(dmgIdx) : ''
+                  model.emitToast?.(`${rebuilt}${suffix}`)
+                  model.setLuckyPickPending?.(null)
+                }}
+              >
+                {die}
+              </button>
+            ))}
+          </div>
+        </Stack>
+      </Dialog>
 
       <AbilityBreakdownDialog
         open={model.abilityBreakdownKey != null}

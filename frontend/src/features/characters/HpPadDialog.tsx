@@ -47,6 +47,10 @@ type HpPadDialogProps = {
   hasEvasion?: boolean
   /** B-05: Uncanny Dodge — reaction: half damage from one attack (before resist). */
   hasUncannyDodge?: boolean
+  /** B-07: Heavy Armor Master — −3 nonmagical B/P/S while in heavy (before resist, Р6). */
+  heavyArmorMaster?: boolean
+  /** B-07: Shield Master — reaction: Dex save for half → 0 damage when success. */
+  hasShieldMasterEvasion?: boolean
 }
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'] as const
@@ -69,6 +73,8 @@ export function HpPadDialog({
   damageProfile,
   hasEvasion = false,
   hasUncannyDodge = false,
+  heavyArmorMaster = false,
+  hasShieldMasterEvasion = false,
 }: HpPadDialogProps) {
   const [digits, setDigits] = useState('')
   const [damageType, setDamageType] = useState<DamageType | null>(null)
@@ -77,6 +83,8 @@ export function HpPadDialog({
   const [evasionMode, setEvasionMode] = useState<'success' | 'fail' | null>(null)
   /** B-05: half one attack (reaction), before resistance (Р6). */
   const [uncannyDodgeOn, setUncannyDodgeOn] = useState(false)
+  /** B-07 Shield Master: success on Dex save for half → 0. */
+  const [shieldMasterOn, setShieldMasterOn] = useState(false)
   const profile = damageProfile ?? emptyDamageProfile()
   const pools = play.hitDiceByClass
   const hitCurrent = totalHitDiceCurrent(pools)
@@ -91,6 +99,7 @@ export function HpPadDialog({
     setNonmagical(false)
     setEvasionMode(null)
     setUncannyDodgeOn(false)
+    setShieldMasterOn(false)
     const releaseScroll = acquireBodyScrollLock()
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -134,15 +143,43 @@ export function HpPadDialog({
     const half = Math.floor(afterEvasion.amount / 2)
     return { amount: half, note: `Увёртливость: ${afterEvasion.amount} → ${half}` }
   })()
+  const afterShieldMaster = (() => {
+    if (!hasShieldMasterEvasion || !shieldMasterOn || afterUncanny.amount <= 0) {
+      return { amount: afterUncanny.amount, note: '' }
+    }
+    return {
+      amount: 0,
+      note: `Мастер щитов (успех): ${afterUncanny.amount} → 0`,
+    }
+  })()
+  const afterHeavyArmor = (() => {
+    if (!heavyArmorMaster || afterShieldMaster.amount <= 0) {
+      return { amount: afterShieldMaster.amount, note: '' }
+    }
+    if (!nonmagical || !damageType || !isPhysicalDamage(damageType)) {
+      return { amount: afterShieldMaster.amount, note: '' }
+    }
+    const next = Math.max(0, afterShieldMaster.amount - 3)
+    return {
+      amount: next,
+      note: `Мастер тяжёлых доспехов: ${afterShieldMaster.amount} → ${next}`,
+    }
+  })()
   const adjustedRaw = adjustIncomingDamage({
-    amount: afterUncanny.amount,
+    amount: afterHeavyArmor.amount,
     type: damageType,
     nonmagical,
     profile,
   })
   const adjusted = {
     amount: adjustedRaw.amount,
-    note: [afterEvasion.note, afterUncanny.note, adjustedRaw.note]
+    note: [
+      afterEvasion.note,
+      afterUncanny.note,
+      afterShieldMaster.note,
+      afterHeavyArmor.note,
+      adjustedRaw.note,
+    ]
       .filter(Boolean)
       .join(' · '),
   }
@@ -288,6 +325,18 @@ export function HpPadDialog({
               onClick={() => setEvasionMode((prev) => (prev === 'fail' ? null : 'fail'))}
             >
               Уклонение: провал → ½
+            </button>
+          </div>
+        ) : null}
+        {hasShieldMasterEvasion ? (
+          <div className="chip-row" role="group" aria-label="Мастер щитов">
+            <button
+              type="button"
+              className={`sheet-chip${shieldMasterOn ? ' is-on' : ''}`}
+              aria-pressed={shieldMasterOn}
+              onClick={() => setShieldMasterOn((prev) => !prev)}
+            >
+              Мастер щитов: успех → 0 урона
             </button>
           </div>
         ) : null}

@@ -90,6 +90,22 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                     {label}
                   </button>
                 ))}
+                {typeof model.luckyPointsRemaining === 'function' &&
+                model.luckyPointsRemaining() > 0 ? (
+                  <button
+                    type="button"
+                    className={`play-desk__roll-mode-btn${
+                      model.luckyRollArmed ? ' is-on' : ''
+                    }`}
+                    aria-pressed={Boolean(model.luckyRollArmed)}
+                    title="Везунчик: лишняя к20, выбрать любую"
+                    onClick={() =>
+                      model.setLuckyRollArmed?.(!model.luckyRollArmed)
+                    }
+                  >
+                    удача {model.luckyPointsRemaining()}
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   className="play-desk__roll-mode-btn"
@@ -236,7 +252,23 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                     {label}
                   </button>
                 ))}
-                <button
+                                {typeof model.luckyPointsRemaining === 'function' &&
+                model.luckyPointsRemaining() > 0 ? (
+                  <button
+                    type="button"
+                    className={`mobile-combat-roll__btn${
+                      model.luckyRollArmed ? ' is-on' : ''
+                    }`}
+                    aria-pressed={Boolean(model.luckyRollArmed)}
+                    title="Везунчик: лишняя к20, выбрать любую"
+                    onClick={() =>
+                      model.setLuckyRollArmed?.(!model.luckyRollArmed)
+                    }
+                  >
+                    удача {model.luckyPointsRemaining()}
+                  </button>
+                ) : null}
+<button
                   type="button"
                   className="mobile-combat-roll__btn mobile-combat-roll__btn--history"
                   title="История бросков на этом листе"
@@ -284,7 +316,23 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                   {label}
                 </button>
               ))}
-              <button
+                              {typeof model.luckyPointsRemaining === 'function' &&
+                model.luckyPointsRemaining() > 0 ? (
+                  <button
+                    type="button"
+                    className={`mobile-combat-roll__btn${
+                      model.luckyRollArmed ? ' is-on' : ''
+                    }`}
+                    aria-pressed={Boolean(model.luckyRollArmed)}
+                    title="Везунчик: лишняя к20, выбрать любую"
+                    onClick={() =>
+                      model.setLuckyRollArmed?.(!model.luckyRollArmed)
+                    }
+                  >
+                    удача {model.luckyPointsRemaining()}
+                  </button>
+                ) : null}
+<button
                 type="button"
                 className="mobile-combat-roll__btn mobile-combat-roll__btn--history"
                 title="История бросков на этом листе"
@@ -331,7 +379,23 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                   {label}
                 </button>
               ))}
-              <button
+                              {typeof model.luckyPointsRemaining === 'function' &&
+                model.luckyPointsRemaining() > 0 ? (
+                  <button
+                    type="button"
+                    className={`mobile-combat-roll__btn${
+                      model.luckyRollArmed ? ' is-on' : ''
+                    }`}
+                    aria-pressed={Boolean(model.luckyRollArmed)}
+                    title="Везунчик: лишняя к20, выбрать любую"
+                    onClick={() =>
+                      model.setLuckyRollArmed?.(!model.luckyRollArmed)
+                    }
+                  >
+                    удача {model.luckyPointsRemaining()}
+                  </button>
+                ) : null}
+<button
                 type="button"
                 className="mobile-combat-roll__btn mobile-combat-roll__btn--history"
                 title="История бросков на этом листе"

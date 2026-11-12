@@ -14,6 +14,10 @@ import { equippedArmorPieces } from '../inventory'
 import { abilityModifier } from '../sheetTypes'
 import { sheetDamageProfile } from '../gearEffects'
 import {
+  featResistanceTypes,
+  hasFeatFlag,
+} from '../../../shared/dnd/b07FeatCombat'
+import {
   listRollDieChips,
   mergeDeskRollMode,
   resolveAdvantageFromEffects,
@@ -58,13 +62,21 @@ function formatInitiativeToast(model: SheetModel): string {
 
 export function PlayDeskTop({ model }: { model: SheetModel }) {
   const alignmentLabel = alignmentSheetLabel(model.draft.identity)
+  const wornArmorKind = equippedArmorPieces(model.draft.inventory.items).armor?.kind
   const damageProfile = sheetDamageProfile({
     raceSlug: model.draft.raceGrant?.slug,
     raceResistances: model.draft.raceGrant?.damageResistances,
     gear: model.gearEffects,
     effects: model.draft.play.effects,
     infusionResistances: model.infusionBonuses?.resistances,
+    featResistances: featResistanceTypes(model.draft.featGrants),
   })
+  const heavyArmorMaster =
+    wornArmorKind === 'heavy' &&
+    hasFeatFlag(model.draft.featGrants, 'heavy_armor_master')
+  const hasShieldMasterEvasion =
+    hasFeatFlag(model.draft.featGrants, 'shield_master') &&
+    Boolean(equippedArmorPieces(model.draft.inventory.items).shield)
   const alignmentHint = alignmentNeedsClarification(model.draft.identity)
     ? 'Уточните мировоззрение'
     : ''
@@ -103,6 +115,8 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             hasUncannyDodge={(model.unlockedFeatures ?? []).some(
               (f: { id?: string }) => f.id === 'uncanny_dodge',
             )}
+            heavyArmorMaster={heavyArmorMaster}
+            hasShieldMasterEvasion={hasShieldMasterEvasion}
             draconicResilience={(model.unlockedFeatures ?? []).some(
               (f: { id?: string }) => f.id === 'draconic_resilience',
             )}
@@ -253,6 +267,8 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           hasUncannyDodge={(model.unlockedFeatures ?? []).some(
             (f: { id?: string }) => f.id === 'uncanny_dodge',
           )}
+          heavyArmorMaster={heavyArmorMaster}
+          hasShieldMasterEvasion={hasShieldMasterEvasion}
           draconicResilience={(model.unlockedFeatures ?? []).some(
             (f: { id?: string }) => f.id === 'draconic_resilience',
           )}

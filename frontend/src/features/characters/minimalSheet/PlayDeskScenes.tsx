@@ -40,6 +40,12 @@ import {
 import { resolveB04FeatureSpend } from '../b04FeatureSpend'
 import { resolveB05FeatureSpend } from '../b05FeatureSpend'
 import { resolveB06FeatureSpend } from '../b06FeatureSpend'
+import { resolveB07FeatureSpend } from '../b07FeatureSpend'
+import { type CheckRoll } from '../deskRolls'
+import {
+  featResistanceTypes,
+  hasFeatFlag,
+} from '../../../shared/dnd/b07FeatCombat'
 import { UseAllyAbilityDialog } from '../UseAllyAbilityDialog'
 
 function mergeToolNames(base: string[], extra: string[]): string[] {
@@ -165,6 +171,24 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             divineSmiteIntent={divineSmiteIntent}
             onDivineSmiteIntent={setDivineSmiteIntent}
             rollMode={model.attackRollMode()}
+            elvenAccuracy={hasFeatFlag(model.draft.featGrants, 'elven_accuracy')}
+            luckyArmed={Boolean(model.luckyRollArmed)}
+            onLuckySpent={() => {
+              model.spendLuckyPoint?.()
+              model.setLuckyRollArmed?.(false)
+            }}
+            onLuckyPickNeeded={(input: {
+              allDice: number[]
+              text: string
+              hitRoll: CheckRoll
+            }) => {
+              model.setLuckyPickPending?.(input)
+            }}
+            savageAttacker={hasFeatFlag(model.draft.featGrants, 'savage_attacker')}
+            flamesOfPhlegethos={hasFeatFlag(
+              model.draft.featGrants,
+              'flames_of_phlegethos',
+            )}
             bonusDice={listRollDieChips(model.draft.play.effects ?? [], 'attack').map((chip) => ({
               dice: chip.dice,
               label: chip.name,
@@ -490,6 +514,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               gear: model.gearEffects,
               effects: model.draft.play.effects,
               infusionResistances: model.infusionBonuses?.resistances,
+              featResistances: featResistanceTypes(model.draft.featGrants),
             }),
           ),
           model.gearEffects.conditionImmunities,
@@ -542,8 +567,24 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                   ).length,
                 })
               : { kind: 'none' as const }
+          const b07 =
+            b04.kind === 'none' && b05.kind === 'none' && b06.kind === 'none'
+              ? resolveB07FeatureSpend({
+                  featureId: input.featureId,
+                  featureNameRu: input.featureNameRu,
+                  characterLevel: model.characterLevel,
+                  proficiencyBonus: model.proficiencyBonus,
+                  abilities: model.draft.abilities,
+                })
+              : { kind: 'none' as const }
           const action =
-            b04.kind !== 'none' ? b04 : b05.kind !== 'none' ? b05 : b06
+            b04.kind !== 'none'
+              ? b04
+              : b05.kind !== 'none'
+                ? b05
+                : b06.kind !== 'none'
+                  ? b06
+                  : b07
           if (action.kind === 'heal') {
             model.setDraft((prev) => ({
               ...prev,

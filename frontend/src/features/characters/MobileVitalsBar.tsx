@@ -40,6 +40,9 @@ type MobileVitalsBarProps = {
   hasEvasion?: boolean
   /** B-05: Uncanny Dodge — half one attack (reaction). */
   hasUncannyDodge?: boolean
+  /** B-07 */
+  heavyArmorMaster?: boolean
+  hasShieldMasterEvasion?: boolean
   draconicResilience?: boolean
   play: PlayState
   autoAc: number
@@ -105,6 +108,8 @@ export function MobileVitalsBar({
   damageProfile,
   hasEvasion = false,
   hasUncannyDodge = false,
+  heavyArmorMaster = false,
+  hasShieldMasterEvasion = false,
   draconicResilience = false,
   play,
   autoAc,
@@ -581,6 +586,8 @@ export function MobileVitalsBar({
           damageProfile={damageProfile}
           hasEvasion={hasEvasion}
           hasUncannyDodge={hasUncannyDodge}
+          heavyArmorMaster={heavyArmorMaster}
+          hasShieldMasterEvasion={hasShieldMasterEvasion}
         />
         <CoinPadDialog
           open={coinPadOpen}

@@ -365,6 +365,58 @@ export function useSheetEditorPart4(model: SheetModel) {
   const [deskRollMode, setDeskRollMode] = useState<DeskRollMode>('normal')
   model.deskRollMode = deskRollMode
   model.setDeskRollMode = setDeskRollMode
+  /** B-07 Lucky: arm extra d20 on next attack/check/save. */
+  const [luckyRollArmed, setLuckyRollArmed] = useState(false)
+  model.luckyRollArmed = luckyRollArmed
+  model.setLuckyRollArmed = setLuckyRollArmed
+  const [luckyPickPending, setLuckyPickPending] = useState<{
+    allDice: number[]
+    text: string
+    hitRoll: import('../deskRolls').CheckRoll
+  } | null>(null)
+  model.luckyPickPending = luckyPickPending
+  model.setLuckyPickPending = setLuckyPickPending
+  model.spendLuckyPoint = function spendLuckyPoint() {
+    const resources = model.draft.play.resources ?? []
+    const pool = resources.find(
+      (row: { id?: string; used?: number; max?: number }) =>
+        typeof row.id === 'string' &&
+        row.id.includes(':lucky') &&
+        row.id.startsWith('feat-grant:') &&
+        Math.max(0, (row.max ?? 0) - (row.used ?? 0)) > 0,
+    )
+    if (!pool?.id) {
+      model.onToast?.('Нет очков «Удача»')
+      return false
+    }
+    model.setDraft((prev) => ({
+      ...prev,
+      play: {
+        ...prev.play,
+        resources: (prev.play.resources ?? []).map((row) =>
+          row.id === pool.id
+            ? { ...row, used: Math.min(row.max, row.used + 1) }
+            : row,
+        ),
+      },
+    }))
+    return true
+  }
+  model.luckyPointsRemaining = function luckyPointsRemaining() {
+    const resources = model.draft.play.resources ?? []
+    return resources
+      .filter(
+        (row: { id?: string }) =>
+          typeof row.id === 'string' &&
+          row.id.startsWith('feat-grant:') &&
+          row.id.includes(':lucky'),
+      )
+      .reduce(
+        (sum: number, row: { used?: number; max?: number }) =>
+          sum + Math.max(0, (row.max ?? 0) - (row.used ?? 0)),
+        0,
+      )
+  }
   const [rollHistoryOpen, setRollHistoryOpen] = useState(false)
   model.rollHistoryOpen = rollHistoryOpen
   model.setRollHistoryOpen = setRollHistoryOpen
@@ -670,11 +722,26 @@ export function useSheetEditorPart4(model: SheetModel) {
         item.armor_kind === 'medium' ||
         item.armor_kind === 'heavy'),
   )
-  const stealthArmorDisadvantage = armorGivesStealthDisadvantage({
-    armorKind: stealthArmorPieces.armor?.kind ?? null,
-    armorName: stealthArmorPieces.armor?.name ?? null,
-    stealthDisadvantage: wornBody?.stealth_disadvantage,
-  })
+  const stealthArmorDisadvantage = (() => {
+    const kind = stealthArmorPieces.armor?.kind ?? null
+    // B-07 Medium Armor Master: medium armor does not impose stealth disadvantage.
+    if (
+      kind === 'medium' &&
+      (model.draft.featGrants ?? []).some((row: { applied?: { flags?: string[] } }) =>
+        (row.applied?.flags ?? []).some(
+          (f) =>
+            String(f).toLowerCase().replace(/-/g, '_') === 'medium_armor_master',
+        ),
+      )
+    ) {
+      return false
+    }
+    return armorGivesStealthDisadvantage({
+      armorKind: kind,
+      armorName: stealthArmorPieces.armor?.name ?? null,
+      stealthDisadvantage: wornBody?.stealth_disadvantage,
+    })
+  })()
   model.stealthArmorDisadvantage = stealthArmorDisadvantage
 
   /** Split only on wide desk; phone = one scene panel (+ combat segment for spells). */
