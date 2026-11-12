@@ -9,6 +9,8 @@ import {
 import {
   applyHitDieHeal,
   clampDeathMarks,
+  hasBlackBloodHealing,
+  rollHitDieFace,
   suggestedHitDieHeal,
 } from '../../shared/dnd/hitDice'
 import { Button, SlotPips } from '../../ui'
@@ -55,6 +57,8 @@ type HpPadDialogProps = {
   stonesEnduranceReduction?: number | null
   /** B-08: Hadozee Dodge — reaction: −(1d6+level). */
   hadozeeDodgeReduction?: number | null
+  /** Race slug — Verdan Black Blood Healing on Hit Dice. */
+  raceSlug?: string | null
 }
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'] as const
@@ -81,7 +85,9 @@ export function HpPadDialog({
   hasShieldMasterEvasion = false,
   stonesEnduranceReduction = null,
   hadozeeDodgeReduction = null,
+  raceSlug = null,
 }: HpPadDialogProps) {
+  const blackBlood = hasBlackBloodHealing(raceSlug)
   const [digits, setDigits] = useState('')
   const [damageType, setDamageType] = useState<DamageType | null>(null)
   const [nonmagical, setNonmagical] = useState(false)
@@ -248,17 +254,31 @@ export function HpPadDialog({
     }
     const spent = spendHitDieFromPool(pools, pool.classEntryId)
     if (!spent) return
-    const average = suggestedHitDieHeal(pool.die, constitutionMod)
+    const face = blackBlood
+      ? rollHitDieFace({
+          die: pool.die,
+          constitutionMod,
+          blackBloodHealing: true,
+        })
+      : null
+    const healAmount = face
+      ? face.heal
+      : suggestedHitDieHeal(pool.die, constitutionMod)
     const healed =
       applyHitDieHeal({
         hpCurrent: current,
         hpMax,
-        healAmount: average,
+        healAmount,
       }) ?? current
     onPlayChange(withSyncedHitDiceSummary({ ...play, hitDiceByClass: spent }))
     onCombatChange({ hpCurrent: healed })
+    const detail = face
+      ? face.note
+        ? face.note
+        : `бросок ${face.final} + ТЕЛ`
+      : 'среднее + ТЕЛ'
     onToast(
-      `Кость ${pool.className} (${pool.die}): +${Math.max(0, healed - current)} HP (среднее + ТЕЛ)`,
+      `Кость ${pool.className} (${pool.die}): +${Math.max(0, healed - current)} HP (${detail})`,
     )
   }
 

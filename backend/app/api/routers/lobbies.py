@@ -51,6 +51,8 @@ from app.schemas.lobby import (
     LobbySyncInfusionEffectsRequest,
     LobbySummary,
     LobbyUpdateRequest,
+    PietyAwardRequest,
+    PietyAwardResult,
     SeatCompanionCreateRequest,
     SeatCompanionPatchRequest,
     SeatCombatPatchRequest,
@@ -196,6 +198,19 @@ async def share_lobby_effect(
 ) -> LobbyShareEffectResponse:
     """С листа: повесить эффект на союзников лобби (данные → их sheet.combat.effects)."""
     return await LobbyService(db).share_effect(current_user, lobby_id, payload)
+
+
+@router.post(
+    "/lobbies/{lobby_id}/piety",
+    response_model=PietyAwardResult,
+)
+async def award_lobby_piety(
+    lobby_id: UUID,
+    payload: PietyAwardRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> PietyAwardResult:
+    return await LobbyService(db).award_piety(current_user, lobby_id, payload)
 
 
 @router.post(

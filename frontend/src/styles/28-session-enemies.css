@@ -39,6 +39,24 @@
   color: var(--accent);
 }
 
+.session-piety-btn {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 12px;
+  font-size: 0.82rem;
+  line-height: 1.1;
+  cursor: pointer;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.session-piety-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .session-table-card__conditions {
   display: flex;
   flex-wrap: wrap;

@@ -28,6 +28,7 @@ import { resolveRaceGrantDef } from '../../../shared/dnd/raceGrants'
 import { DEFAULT_ABILITY_SCORE_MAX, clampAbilityScore, resolveAbilityMaxes } from '../../../shared/dnd/abilityScoreCaps'
 import { applyHpDelta, constitutionHpDelta } from '../../../shared/dnd/constitutionHp'
 import { syncPrimalChampion } from '../../../shared/dnd/primalChampion'
+import { pietyAbilityMaxes, syncPietyChampion } from '../../../shared/dnd/therosPiety'
 import { customFeaturesToSheet } from '../customFeatures'
 import {
   appendSpellCastModifiers,
@@ -136,32 +137,42 @@ export function useSheetEditorPart3(model: SheetModel) {
 
   // Live sources only (class/archetype + active inventory). Baked sheet.max_score
   // is written on save from this resolve — so unequipping an artifact drops the cap.
-  const abilityCeilings = useMemo(
-    () =>
-      resolveAbilityMaxes({
-        classes: model.draft.classes,
-        inventoryItems: model.draft.inventory.items.map((item) => {
-          const extra = item as InventoryItem & {
-            item_kind?: string
-            magic_mods?: Record<string, unknown> | null
-            artifact_snapshot?: Record<string, unknown> | null
-          }
-          return {
-            id: item.id,
-            name: item.name,
-            qty: item.qty,
-            equipped: item.equipped,
-            item_kind: extra.item_kind ?? 'other',
-            requires_attunement: item.requires_attunement,
-            magic_mods: extra.magic_mods ?? null,
-            artifact_snapshot: extra.artifact_snapshot ?? null,
-            effects: item.effects,
-          }
-        }),
-        attunedItemIds,
+  const abilityCeilings = useMemo(() => {
+    const resolved = resolveAbilityMaxes({
+      classes: model.draft.classes,
+      inventoryItems: model.draft.inventory.items.map((item) => {
+        const extra = item as InventoryItem & {
+          item_kind?: string
+          magic_mods?: Record<string, unknown> | null
+          artifact_snapshot?: Record<string, unknown> | null
+        }
+        return {
+          id: item.id,
+          name: item.name,
+          qty: item.qty,
+          equipped: item.equipped,
+          item_kind: extra.item_kind ?? 'other',
+          requires_attunement: item.requires_attunement,
+          magic_mods: extra.magic_mods ?? null,
+          artifact_snapshot: extra.artifact_snapshot ?? null,
+          effects: item.effects,
+        }
       }),
-    [model.draft.classes, model.draft.inventory.items, attunedItemIds],
-  )
+      attunedItemIds,
+    })
+    const pietyMaxes = pietyAbilityMaxes(model.draft.piety)
+    for (const key of ABILITY_KEYS) {
+      const pietyMax = pietyMaxes[key]
+      if (pietyMax != null && pietyMax > resolved[key].max) {
+        resolved[key] = {
+          max: pietyMax,
+          sources: ['Благочестие: поборник'],
+          raised: pietyMax > DEFAULT_ABILITY_SCORE_MAX,
+        }
+      }
+    }
+    return resolved
+  }, [model.draft.classes, model.draft.inventory.items, attunedItemIds, model.draft.piety])
   model.abilityCeilings = abilityCeilings
 
   // Keep gear-granted companions / charge pools / spells / slot deltas in sync.
@@ -875,6 +886,7 @@ export function useSheetEditorPart3(model: SheetModel) {
       sheet.feature_picks = featurePicksToSheet(draftSnap.featurePicks)
       sheet.class_asi = draftSnap.classAsi
       sheet.primal_champion = draftSnap.primalChampion
+      sheet.piety = draftSnap.piety
       sheet.feat_grants = draftSnap.featGrants
       Object.assign(sheet, customFeaturesToSheet(draftSnap.customFeatures))
 
@@ -1084,5 +1096,18 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.draft.abilities.str,
     model.draft.abilities.con,
     model.draft.primalChampion,
+  ])
+
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const next = syncPietyChampion(prev)
+      return next === prev ? prev : next
+    })
+  }, [
+    model.draft.piety.score,
+    model.draft.piety.god,
+    model.draft.piety.gift,
+    model.draft.piety.champion_ability,
+    model.draft.piety.champion_applied,
   ])
 }

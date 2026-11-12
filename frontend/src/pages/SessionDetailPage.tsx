@@ -10,6 +10,7 @@ import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
 import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
 import { AwardLootDialog } from '../features/lobby/AwardLootDialog'
 import { AwardXpDialog } from '../features/lobby/AwardXpDialog'
+import { PietyAwardDialog } from '../features/lobby/PietyAwardDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EncounterGenerateDialog } from '../features/lobby/EncounterGenerateDialog'
 import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDialog'
@@ -34,6 +35,7 @@ import { ApiRequestError } from '../shared/api/client'
 import {
   addSeatCompanion,
   addSessionCombatants,
+  awardLobbyPiety,
   awardSessionLoot,
   awardSessionXp,
   closeSession,
@@ -104,6 +106,7 @@ export function SessionDetailPage() {
   const [combatantOpen, setCombatantOpen] = useState(false)
   const [combatStartOpen, setCombatStartOpen] = useState(false)
   const [xpOpen, setXpOpen] = useState(false)
+  const [pietySeatId, setPietySeatId] = useState<string | null>(null)
   const [lootOpen, setLootOpen] = useState(false)
   const [encounterOpen, setEncounterOpen] = useState(false)
   const [generatorOpen, setGeneratorOpen] = useState(false)
@@ -739,6 +742,11 @@ export function SessionDetailPage() {
                               setSession(updated)
                             })
                           }}
+                          onAwardPiety={
+                            session.is_owner && !session.closed_at
+                              ? () => setPietySeatId(seat.character_id)
+                              : undefined
+                          }
                           onRemoveCondition={(condition: SeatCondition) => {
                             void run(async () => {
                               const current = seat.conditions ?? []
@@ -1331,6 +1339,43 @@ export function SessionDetailPage() {
                 : 'XP: 0',
             )
             await reloadEvents()
+          })
+        }}
+      />
+
+      <PietyAwardDialog
+        open={pietySeatId != null}
+        busy={busy}
+        characterName={
+          session.seats.find((s) => s.character_id === pietySeatId)?.character_name ?? ''
+        }
+        currentScore={
+          session.seats.find((s) => s.character_id === pietySeatId)?.piety_score ?? null
+        }
+        onClose={() => setPietySeatId(null)}
+        onSubmit={({ delta, comment }) => {
+          const characterId = pietySeatId
+          if (!characterId) return
+          void run(async () => {
+            const result = await awardLobbyPiety(session.lobby_id, {
+              character_id: characterId,
+              delta,
+              comment,
+            })
+            setSession((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    seats: prev.seats.map((s) =>
+                      s.character_id === characterId
+                        ? { ...s, piety_score: result.score, piety_god: result.god }
+                        : s,
+                    ),
+                  }
+                : prev,
+            )
+            setPietySeatId(null)
+            setToast(`Благочестие: ${delta > 0 ? '+' : ''}${delta} → ${result.score}`)
           })
         }}
       />

@@ -21,6 +21,8 @@ type Props = {
   masterControls?: boolean
   busy?: boolean
   onToggleInspiration?: (next: boolean) => void
+  /** Мастер: начислить или снять благочестие (MOT) */
+  onAwardPiety?: () => void
   /** Снять состояние с этого персонажа (тап по тегу) */
   onRemoveCondition?: (condition: SeatCondition) => void
   onRemoveEffect?: (effect: SeatEffect) => void
@@ -135,6 +137,7 @@ export function SessionTableCard({
   masterControls = false,
   busy = false,
   onToggleInspiration,
+  onAwardPiety,
   onRemoveCondition,
   onRemoveEffect,
   onClearConcentration,
@@ -233,6 +236,23 @@ export function SessionTableCard({
               <span className="session-table-card__insp" title="Вдохновение">
                 ★
               </span>
+            ) : null}
+            {masterControls && onAwardPiety ? (
+              <button
+                type="button"
+                className="session-piety-btn"
+                disabled={busy}
+                aria-label="Благочестие ±"
+                title={
+                  seat.piety_score != null
+                    ? `Благочестие: ${seat.piety_score}`
+                    : 'Благочестие'
+                }
+                onClick={onAwardPiety}
+              >
+                Благочестие ±
+                {seat.piety_score != null ? ` · ${seat.piety_score}` : ''}
+              </button>
             ) : null}
           </div>
 

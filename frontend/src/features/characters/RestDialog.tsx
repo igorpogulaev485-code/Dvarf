@@ -8,6 +8,8 @@ import {
   HIT_DIE_OPTIONS,
   applyHitDieHeal,
   clampHitDiceCurrent,
+  hasBlackBloodHealing,
+  rollHitDieFace,
   spendHitDie,
   suggestedHitDieHeal,
   type HitDie,
@@ -48,6 +50,8 @@ type RestDialogProps = {
   featureDesiredResources?: DesiredFeatureResource[]
   /** PHB Song of Rest die, when the bard feature is unlocked. */
   songOfRest?: { sides: number; label: string } | null
+  /** Race slug — Verdan Black Blood Healing rerolls 1–2 on Hit Dice. */
+  raceSlug?: string | null
   onPlayChange: (play: PlayState) => void
   onSpellsChange: (spells: SpellsState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
@@ -67,6 +71,7 @@ export function RestDialog({
   spells,
   featureDesiredResources = [],
   songOfRest = null,
+  raceSlug = null,
   onPlayChange,
   onSpellsChange,
   onCombatChange,
@@ -74,6 +79,7 @@ export function RestDialog({
   onToast,
   onClose,
 }: RestDialogProps) {
+  const blackBlood = hasBlackBloodHealing(raceSlug)
   const pools = play.hitDiceByClass ?? []
   const [spendPoolId, setSpendPoolId] = useState('')
   const activePool =
@@ -155,13 +161,26 @@ export function RestDialog({
     const songBonus = songOfRest
       ? Math.max(0, Math.floor(songRoll ?? rollDie(songOfRest.sides)))
       : 0
-    const amount = hitDieHealWithSong(healValue ?? 0, songBonus)
+    // Verdan Black Blood: always roll the die (reroll 1–2). Others keep the manual/average pad.
+    const face = blackBlood
+      ? rollHitDieFace({
+          die,
+          constitutionMod,
+          blackBloodHealing: true,
+        })
+      : null
+    const baseHeal = face ? face.heal : (healValue ?? 0)
+    const amount = hitDieHealWithSong(baseHeal, songBonus)
     const beforeHp = hpCurrent ?? 0
     const nextHp = applyHitDieHeal({
       hpCurrent,
       hpMax,
       healAmount: amount,
     })
+    const blackNote = face?.note ? ` · ${face.note}` : ''
+    const songNote = songOfRest
+      ? ` · Песнь отдыха ${songOfRest.label}: +${songBonus}`
+      : ''
     if (pools.length > 0 && activePool) {
       const nextPools = spendHitDieFromPool(pools, activePool.classEntryId)
       if (!nextPools) {
@@ -176,9 +195,7 @@ export function RestDialog({
       )
       onCombatChange({ hpCurrent: nextHp })
       onToast(
-        `${activePool.className} ${die}: +${amount} HP (${beforeHp} → ${nextHp}/${hpMax})${
-          songOfRest ? ` · Песнь отдыха ${songOfRest.label}: +${songBonus}` : ''
-        }`,
+        `${activePool.className} ${die}: +${amount} HP (${beforeHp} → ${nextHp}/${hpMax})${blackNote}${songNote}`,
       )
       return
     }
@@ -186,9 +203,7 @@ export function RestDialog({
     patchPlay({ hitDiceCurrent: nextDice })
     onCombatChange({ hpCurrent: nextHp })
     onToast(
-      `Кость ${die}: +${amount} HP (${beforeHp} → ${nextHp}/${hpMax})${
-        songOfRest ? ` · Песнь отдыха ${songOfRest.label}: +${songBonus}` : ''
-      }`,
+      `Кость ${die}: +${amount} HP (${beforeHp} → ${nextHp}/${hpMax})${blackNote}${songNote}`,
     )
   }
 
@@ -377,13 +392,19 @@ export function RestDialog({
             />
           )}
           <div className="play-hit-heal">
-            <Field label="HP за кость">
+            {blackBlood ? (
+              <Text tone="muted">
+                Чёрная кровь (вердан): при трате кости хитов выпадение 1 или 2
+                перебрасывается автоматически — результат в журнале отдыха.
+              </Text>
+            ) : null}
+            <Field label={blackBlood ? 'HP за кость (бросок)' : 'HP за кость'}>
               <NumberInput
                 min={0}
                 emptyValue={0}
                 value={healValue}
                 onValueChange={(value) => setHealAmount(value ?? 0)}
-                disabled={!activeDie}
+                disabled={!activeDie || blackBlood}
               />
             </Field>
             {songOfRest ? (

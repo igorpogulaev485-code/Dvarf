@@ -46,6 +46,8 @@ type MobileVitalsBarProps = {
   /** B-08 */
   stonesEnduranceReduction?: number | null
   hadozeeDodgeReduction?: number | null
+  /** Race slug for Hit Die traits (Verdan Black Blood). */
+  raceSlug?: string | null
   draconicResilience?: boolean
   play: PlayState
   autoAc: number
@@ -114,6 +116,7 @@ export function MobileVitalsBar({
   heavyArmorMaster = false,
   stonesEnduranceReduction = null,
   hadozeeDodgeReduction = null,
+  raceSlug = null,
   hasShieldMasterEvasion = false,
   draconicResilience = false,
   play,
@@ -595,6 +598,7 @@ export function MobileVitalsBar({
           stonesEnduranceReduction={stonesEnduranceReduction}
           hadozeeDodgeReduction={hadozeeDodgeReduction}
           hasShieldMasterEvasion={hasShieldMasterEvasion}
+          raceSlug={raceSlug}
         />
         <CoinPadDialog
           open={coinPadOpen}

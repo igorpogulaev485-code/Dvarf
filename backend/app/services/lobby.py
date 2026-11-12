@@ -80,6 +80,8 @@ from app.schemas.lobby import (
     SeatCompanionCreateRequest,
     SeatCompanionOut,
     SeatCompanionPatchRequest,
+    PietyAwardRequest,
+    PietyAwardResult,
     SeatCombatPatchRequest,
     SeatConcentrationOut,
     SeatConditionOut,
@@ -225,6 +227,8 @@ def _seat_combat_fields(character: Character | None) -> dict:
             "ac": None,
             "speed": None,
             "inspiration": False,
+            "piety_score": None,
+            "piety_god": None,
             "conditions": [],
             "effects": [],
             "concentration": None,
@@ -236,7 +240,17 @@ def _seat_combat_fields(character: Character | None) -> dict:
         }
     sheet = character.sheet or {}
     combat = sheet.get("combat") or {}
+    piety = sheet.get("piety") if isinstance(sheet.get("piety"), dict) else None
+    piety_score = None
+    piety_god = None
+    if piety is not None:
+        raw_score = piety.get("score")
+        piety_score = raw_score if isinstance(raw_score, int) else None
+        raw_god = piety.get("god")
+        piety_god = raw_god if isinstance(raw_god, str) and raw_god else None
     return {
+        "piety_score": piety_score,
+        "piety_god": piety_god,
         "ac": combat.get("ac") if isinstance(combat.get("ac"), int) else None,
         "speed": combat.get("speed") if isinstance(combat.get("speed"), int) else None,
         "inspiration": bool(combat.get("inspiration")),
@@ -1706,6 +1720,8 @@ class LobbyService:
                     ac=extras["ac"],
                     speed=extras["speed"],
                     inspiration=extras["inspiration"],
+                    piety_score=extras["piety_score"],
+                    piety_god=extras["piety_god"],
                     conditions=[SeatConditionOut(**c) for c in extras["conditions"]],
                     effects=[SeatEffectOut(**e) for e in extras["effects"]],
                     concentration=(
@@ -2332,6 +2348,66 @@ class LobbyService:
         await broadcast_sheet_effects_changed(self.lobbies, touched)
         detail = self.get(user, lobby_id)
         return LobbyShareEffectResponse(applied=applied, lobby=detail)
+
+    async def award_piety(
+        self,
+        user: User,
+        lobby_id: UUID,
+        payload: PietyAwardRequest,
+    ) -> PietyAwardResult:
+        """Мастер начисляет или снимает благочестие (sheet.piety, MOT)."""
+        lobby = self.lobbies.get(lobby_id)
+        if lobby is None:
+            raise NotFoundError("Лобби не найдено", code="lobby_not_found")
+        self._require_owner(lobby, user)
+        member = self.lobbies.get_member(lobby.id, payload.character_id)
+        if member is None:
+            raise AppError(
+                "Персонаж не в лобби",
+                code="character_not_in_lobby",
+                status_code=400,
+            )
+        char_map = self.lobbies.get_characters_map([payload.character_id])
+        character = char_map.get(payload.character_id)
+        if character is None:
+            raise NotFoundError("Персонаж не найден", code="character_not_found")
+        sheet = dict(character.sheet or {})
+        piety = dict(sheet.get("piety") or {})
+        raw_score = piety.get("score")
+        current = raw_score if isinstance(raw_score, int) else 0
+        score = max(0, current + payload.delta)
+        comment = (payload.comment or "").strip() or None
+        entry = {
+            "at": datetime.now(timezone.utc).isoformat(),
+            "by_user_id": str(user.id),
+            "by_name": user.display_name or user.login or user.email,
+            "delta": payload.delta,
+            "comment": comment,
+            "score_after": score,
+            "reason": "master_award",
+        }
+        journal = list(piety.get("journal") or [])
+        journal.append(entry)
+        piety["score"] = score
+        piety["journal"] = journal
+        piety.setdefault("god", None)
+        sheet["piety"] = piety
+        character.sheet = sheet
+        character.sheet_version = int(character.sheet_version or 1) + 1
+        from sqlalchemy.orm.attributes import flag_modified
+
+        flag_modified(character, "sheet")
+        self.db.commit()
+        from app.services.sheet_effects import broadcast_sheet_effects_changed
+
+        await broadcast_sheet_effects_changed(self.lobbies, [payload.character_id])
+        god = piety.get("god")
+        return PietyAwardResult(
+            character_id=payload.character_id,
+            god=god if isinstance(god, str) and god else None,
+            score=score,
+            journal_entry=entry,
+        )
 
     async def sync_infusion_effects(
         self,

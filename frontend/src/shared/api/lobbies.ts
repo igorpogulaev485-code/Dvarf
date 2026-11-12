@@ -318,6 +318,8 @@ export type SessionSeat = {
   ac?: number | null
   speed?: number | null
   inspiration?: boolean
+  piety_score?: number | null
+  piety_god?: string | null
   conditions?: SeatCondition[]
   effects?: SeatEffect[]
   concentration?: SeatConcentration | null
@@ -515,6 +517,23 @@ export async function addLobbyMember(lobbyId: string, characterId: string): Prom
   return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/members`, {
     method: 'POST',
     body: JSON.stringify({ character_id: characterId }),
+  })
+}
+
+export type PietyAwardResult = {
+  character_id: string
+  god: string | null
+  score: number
+  journal_entry: Record<string, unknown>
+}
+
+export async function awardLobbyPiety(
+  lobbyId: string,
+  payload: { character_id: string; delta: number; comment?: string | null },
+): Promise<PietyAwardResult> {
+  return apiRequest<PietyAwardResult>(`/lobbies/${lobbyId}/piety`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
   })
 }
 

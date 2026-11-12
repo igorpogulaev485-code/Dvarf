@@ -38,6 +38,52 @@ export function suggestedHitDieHeal(die: HitDie, constitutionMod: number): numbe
   return Math.max(0, avg + constitutionMod)
 }
 
+/** AI Verdan — Black Blood Healing: reroll 1 or 2 on a short-rest Hit Die; keep the new face. */
+export function hasBlackBloodHealing(raceSlug: string | null | undefined): boolean {
+  const slug = String(raceSlug || '')
+    .trim()
+    .toLowerCase()
+  return slug === 'verdan' || slug.endsWith('_verdan') || slug.includes('verdan')
+}
+
+export type HitDieFaceRoll = {
+  faces: number
+  first: number
+  final: number
+  rerolled: boolean
+  heal: number
+  note: string | null
+}
+
+/**
+ * Roll one Hit Die face (+ CON). With Black Blood Healing, a 1 or 2 is rerolled
+ * once and the new face is kept (AI Verdan).
+ */
+export function rollHitDieFace(input: {
+  die: HitDie
+  constitutionMod: number
+  blackBloodHealing?: boolean
+  rng?: () => number
+}): HitDieFaceRoll {
+  const sides = hitDieSides(input.die)
+  const rng = input.rng ?? Math.random
+  const roll = () => Math.max(1, Math.min(sides, 1 + Math.floor(rng() * sides)))
+  const first = roll()
+  const rerolled = Boolean(input.blackBloodHealing) && (first === 1 || first === 2)
+  const final = rerolled ? roll() : first
+  const heal = Math.max(0, final + Math.floor(input.constitutionMod))
+  return {
+    faces: sides,
+    first,
+    final,
+    rerolled,
+    heal,
+    note: rerolled
+      ? `Чёрная кровь: на ${input.die} выпало ${first} → переброс → ${final}`
+      : null,
+  }
+}
+
 export function applyHitDieHeal(input: {
   hpCurrent: number | null
   hpMax: number | null

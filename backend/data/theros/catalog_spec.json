@@ -1,0 +1,2117 @@
+{
+  "version": 1,
+  "source": "mot",
+  "rules_edition": "2014",
+  "notes_ru": "Справочник благочестия Тероса и сверхъестественных даров (пачка B-09). Имена по MOT / 5e14.dnd.su.",
+  "entries": [
+    {
+      "slug": "theros_god_athreos",
+      "kind": "feat",
+      "name_ru": "Атрей",
+      "name_en": "Athreos",
+      "source": "mot",
+      "sort_order": 9001,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "god",
+        "god_slug": "athreos",
+        "theme_ru": "Переход",
+        "champion_abilities": [
+          "int",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Бог Тероса: Атрей (Переход). Награды благоволения на порогах 3/10/25/50."
+      }
+    },
+    {
+      "slug": "piety_athreos_devotee",
+      "kind": "feat",
+      "name_ru": "Послушник Атрей",
+      "name_en": "Athreos's Devotee",
+      "source": "mot",
+      "sort_order": 9002,
+      "parent_slug": "theros_god_athreos",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "athreos",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "cast",
+          "spell": "gentle_repose",
+          "spell_ru": "Нетленные останки",
+          "uses": "wis_mod",
+          "no_material": true,
+          "ability": "wis"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Нетленные останки» N раз (мод. хар-ки, мин. 1) за продолжительный отдых; хар-ка — Мудрость",
+        "record_id": "B-390"
+      }
+    },
+    {
+      "slug": "piety_athreos_votary",
+      "kind": "feat",
+      "name_ru": "Служитель Атрей",
+      "name_en": "Athreos's Votary",
+      "source": "mot",
+      "sort_order": 9003,
+      "parent_slug": "theros_god_athreos",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "athreos",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "cast",
+          "spell": "speak_with_dead",
+          "spell_ru": "Разговор с мёртвыми",
+          "uses": 1,
+          "no_material": true,
+          "ability": "wis"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Разговор с мёртвыми» 1 раз за продолжительный отдых; хар-ка — Мудрость",
+        "record_id": "B-391"
+      }
+    },
+    {
+      "slug": "piety_athreos_disciple",
+      "kind": "feat",
+      "name_ru": "Последователь Атрей",
+      "name_en": "Athreos's Disciple",
+      "source": "mot",
+      "sort_order": 9004,
+      "parent_slug": "theros_god_athreos",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "athreos",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "cast",
+          "spell": "false_life",
+          "spell_ru": "Псевдожизнь",
+          "uses": 1,
+          "no_material": true,
+          "ability": "wis",
+          "extra_temp_hp": 25
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Псевдожизнь» 1 раз за продолжительный отдых; хар-ка — Мудрость",
+        "record_id": "B-392"
+      }
+    },
+    {
+      "slug": "piety_athreos_champion",
+      "kind": "feat",
+      "name_ru": "Поборник перехода (Атрей)",
+      "name_en": "Champion of Passage (Athreos)",
+      "source": "mot",
+      "sort_order": 9005,
+      "parent_slug": "theros_god_athreos",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "athreos",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion"
+        },
+        "champion_abilities": [
+          "int",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Увеличить Интеллект или Мудрость на 2 и максимум этой характеристики на 2 (при потолке 20 → 22).",
+        "record_id": "B-393"
+      }
+    },
+    {
+      "slug": "theros_god_heliod",
+      "kind": "feat",
+      "name_ru": "Гелиод",
+      "name_en": "Heliod",
+      "source": "mot",
+      "sort_order": 9006,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "god",
+        "god_slug": "heliod",
+        "theme_ru": "Солнце",
+        "champion_abilities": [
+          "str",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Бог Тероса: Гелиод (Солнце). Награды благоволения на порогах 3/10/25/50."
+      }
+    },
+    {
+      "slug": "piety_heliod_devotee",
+      "kind": "feat",
+      "name_ru": "Послушник Гелиод",
+      "name_en": "Heliod's Devotee",
+      "source": "mot",
+      "sort_order": 9007,
+      "parent_slug": "theros_god_heliod",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "heliod",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "cast",
+          "spell": "bless",
+          "spell_ru": "Благословение",
+          "uses": "wis_mod",
+          "no_material": true,
+          "ability": "wis",
+          "lobby_partial": true,
+          "note": "нимб 5 фт — часть лобби"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Благословение» N раз (мод. хар-ки, мин. 1) за продолжительный отдых; хар-ка — Мудрость",
+        "record_id": "B-394"
+      }
+    },
+    {
+      "slug": "piety_heliod_votary",
+      "kind": "feat",
+      "name_ru": "Служитель Гелиод",
+      "name_en": "Heliod's Votary",
+      "source": "mot",
+      "sort_order": 9008,
+      "parent_slug": "theros_god_heliod",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "heliod",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "cast",
+          "spell": "daylight",
+          "spell_ru": "Дневной свет",
+          "uses": 1,
+          "ability": "wis"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Дневной свет» 1 раз за продолжительный отдых; хар-ка — Мудрость",
+        "record_id": "B-395"
+      }
+    },
+    {
+      "slug": "piety_heliod_disciple",
+      "kind": "feat",
+      "name_ru": "Последователь Гелиод",
+      "name_en": "Heliod's Disciple",
+      "source": "mot",
+      "sort_order": 9009,
+      "parent_slug": "theros_god_heliod",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "heliod",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "passive",
+          "save_adv": [
+            "blinded"
+          ],
+          "resist": [
+            "fire"
+          ]
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "сопротивление: fire; преимущество на спас против: blinded",
+        "record_id": "B-396"
+      }
+    },
+    {
+      "slug": "piety_heliod_champion",
+      "kind": "feat",
+      "name_ru": "Поборник солнца (Гелиод)",
+      "name_en": "Champion of the Sun (Heliod)",
+      "source": "mot",
+      "sort_order": 9010,
+      "parent_slug": "theros_god_heliod",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "heliod",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion"
+        },
+        "champion_abilities": [
+          "str",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Увеличить Сила или Мудрость на 2 и максимум этой характеристики на 2 (при потолке 20 → 22).",
+        "record_id": "B-397"
+      }
+    },
+    {
+      "slug": "theros_god_iroas",
+      "kind": "feat",
+      "name_ru": "Ирой",
+      "name_en": "Iroas",
+      "source": "mot",
+      "sort_order": 9011,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "god",
+        "god_slug": "iroas",
+        "theme_ru": "Победа",
+        "champion_abilities": [
+          "str",
+          "cha"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Бог Тероса: Ирой (Победа). Награды благоволения на порогах 3/10/25/50."
+      }
+    },
+    {
+      "slug": "piety_iroas_devotee",
+      "kind": "feat",
+      "name_ru": "Послушник Ирой",
+      "name_en": "Iroas's Devotee",
+      "source": "mot",
+      "sort_order": 9012,
+      "parent_slug": "theros_god_iroas",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "iroas",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "cast",
+          "spell": "compelled_duel",
+          "spell_ru": "Вызов на дуэль",
+          "uses": "cha_mod",
+          "ability": "cha"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Вызов на дуэль» N раз (мод. хар-ки, мин. 1) за продолжительный отдых; хар-ка — Харизма",
+        "record_id": "B-398"
+      }
+    },
+    {
+      "slug": "piety_iroas_votary",
+      "kind": "feat",
+      "name_ru": "Служитель Ирой",
+      "name_en": "Iroas's Votary",
+      "source": "mot",
+      "sort_order": 9013,
+      "parent_slug": "theros_god_iroas",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "iroas",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "cast",
+          "spell": "crusaders_mantle",
+          "spell_ru": "Мантия крестоносца",
+          "uses": 1,
+          "ability": "cha",
+          "save_adv": [
+            "frightened"
+          ],
+          "lobby_partial": true
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Мантия крестоносца» 1 раз за продолжительный отдых; хар-ка — Харизма",
+        "record_id": "B-399"
+      }
+    },
+    {
+      "slug": "piety_iroas_disciple",
+      "kind": "feat",
+      "name_ru": "Последователь Ирой",
+      "name_en": "Iroas's Disciple",
+      "source": "mot",
+      "sort_order": 9014,
+      "parent_slug": "theros_god_iroas",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "iroas",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "activate",
+          "slug_effect": "iroas_disciple_ward",
+          "duration_minutes": 1,
+          "uses": 1,
+          "book": "no_advantage_vs_you_30ft",
+          "catalog_error": "каталог писал «помеха»; MOT — нельзя получить преимущество к атакам по вам"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "activate",
+        "record_id": "B-400"
+      }
+    },
+    {
+      "slug": "piety_iroas_champion",
+      "kind": "feat",
+      "name_ru": "Поборник победы (Ирой)",
+      "name_en": "Champion of Victory (Iroas)",
+      "source": "mot",
+      "sort_order": 9015,
+      "parent_slug": "theros_god_iroas",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "iroas",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion"
+        },
+        "champion_abilities": [
+          "str",
+          "cha"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Увеличить Сила или Харизма на 2 и максимум этой характеристики на 2 (при потолке 20 → 22).",
+        "record_id": "B-401"
+      }
+    },
+    {
+      "slug": "theros_god_karametra",
+      "kind": "feat",
+      "name_ru": "Караметра",
+      "name_en": "Karametra",
+      "source": "mot",
+      "sort_order": 9016,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "god",
+        "god_slug": "karametra",
+        "theme_ru": "Урожай",
+        "champion_abilities": [
+          "con",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Бог Тероса: Караметра (Урожай). Награды благоволения на порогах 3/10/25/50."
+      }
+    },
+    {
+      "slug": "piety_karametra_devotee",
+      "kind": "feat",
+      "name_ru": "Послушник Караметра",
+      "name_en": "Karametra's Devotee",
+      "source": "mot",
+      "sort_order": 9017,
+      "parent_slug": "theros_god_karametra",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "karametra",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "activate",
+          "slug_effect": "karametra_devotee_ac",
+          "ac_bonus": 1,
+          "duration_minutes": 1,
+          "uses": 1
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "activate",
+        "record_id": "B-402"
+      }
+    },
+    {
+      "slug": "piety_karametra_votary",
+      "kind": "feat",
+      "name_ru": "Служитель Караметра",
+      "name_en": "Karametra's Votary",
+      "source": "mot",
+      "sort_order": 9018,
+      "parent_slug": "theros_god_karametra",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "karametra",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "cast",
+          "spell": "create_food_and_water",
+          "spell_ru": "Сотворение пищи и воды",
+          "uses": 1,
+          "ability": "wis",
+          "save_adv": [
+            "poisoned"
+          ]
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Сотворение пищи и воды» 1 раз за продолжительный отдых; хар-ка — Мудрость",
+        "record_id": "B-403"
+      }
+    },
+    {
+      "slug": "piety_karametra_disciple",
+      "kind": "feat",
+      "name_ru": "Последователь Караметра",
+      "name_en": "Karametra's Disciple",
+      "source": "mot",
+      "sort_order": 9019,
+      "parent_slug": "theros_god_karametra",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "karametra",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "ritual_create",
+          "item": "healing_wine",
+          "qty": 3,
+          "hours": 24,
+          "uses": 1,
+          "label": "Три флакона вина как зелья лечения"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "ritual_create",
+        "record_id": "B-404"
+      }
+    },
+    {
+      "slug": "piety_karametra_champion",
+      "kind": "feat",
+      "name_ru": "Поборник урожая (Караметра)",
+      "name_en": "Champion of Harvest (Karametra)",
+      "source": "mot",
+      "sort_order": 9020,
+      "parent_slug": "theros_god_karametra",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "karametra",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion"
+        },
+        "champion_abilities": [
+          "con",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Увеличить Телосложение или Мудрость на 2 и максимум этой характеристики на 2 (при потолке 20 → 22).",
+        "record_id": "B-405"
+      }
+    },
+    {
+      "slug": "theros_god_keranos",
+      "kind": "feat",
+      "name_ru": "Керан",
+      "name_en": "Keranos",
+      "source": "mot",
+      "sort_order": 9021,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "god",
+        "god_slug": "keranos",
+        "theme_ru": "Буря",
+        "champion_abilities": [
+          "int",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Бог Тероса: Керан (Буря). Награды благоволения на порогах 3/10/25/50."
+      }
+    },
+    {
+      "slug": "piety_keranos_devotee",
+      "kind": "feat",
+      "name_ru": "Послушник Керан",
+      "name_en": "Keranos's Devotee",
+      "source": "mot",
+      "sort_order": 9022,
+      "parent_slug": "theros_god_keranos",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "keranos",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "weapon_rider",
+          "damage": "1d6",
+          "damage_type": "lightning",
+          "uses": "int_mod",
+          "once_per_turn": true
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "weapon_rider",
+        "record_id": "B-406"
+      }
+    },
+    {
+      "slug": "piety_keranos_votary",
+      "kind": "feat",
+      "name_ru": "Служитель Керан",
+      "name_en": "Keranos's Votary",
+      "source": "mot",
+      "sort_order": 9023,
+      "parent_slug": "theros_god_keranos",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "keranos",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "reroll",
+          "targets": [
+            "wis_save",
+            "int_save"
+          ],
+          "uses": 1
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "reroll",
+        "record_id": "B-407"
+      }
+    },
+    {
+      "slug": "piety_keranos_disciple",
+      "kind": "feat",
+      "name_ru": "Последователь Керан",
+      "name_en": "Keranos's Disciple",
+      "source": "mot",
+      "sort_order": 9024,
+      "parent_slug": "theros_god_keranos",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "keranos",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "passive",
+          "initiative_adv": true
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "преимущество на инициативу",
+        "record_id": "B-408"
+      }
+    },
+    {
+      "slug": "piety_keranos_champion",
+      "kind": "feat",
+      "name_ru": "Поборник бури (Керан)",
+      "name_en": "Champion of Storms (Keranos)",
+      "source": "mot",
+      "sort_order": 9025,
+      "parent_slug": "theros_god_keranos",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "keranos",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion"
+        },
+        "champion_abilities": [
+          "int",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Увеличить Интеллект или Мудрость на 2 и максимум этой характеристики на 2 (при потолке 20 → 22).",
+        "record_id": "B-409"
+      }
+    },
+    {
+      "slug": "theros_god_klothys",
+      "kind": "feat",
+      "name_ru": "Клотида",
+      "name_en": "Klothys",
+      "source": "mot",
+      "sort_order": 9026,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "god",
+        "god_slug": "klothys",
+        "theme_ru": "Предназначение",
+        "champion_abilities": [
+          "str",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Бог Тероса: Клотида (Предназначение). Награды благоволения на порогах 3/10/25/50."
+      }
+    },
+    {
+      "slug": "piety_klothys_devotee",
+      "kind": "feat",
+      "name_ru": "Послушник Клотида",
+      "name_en": "Klothys's Devotee",
+      "source": "mot",
+      "sort_order": 9027,
+      "parent_slug": "theros_god_klothys",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "klothys",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "cast",
+          "spell": "command",
+          "spell_ru": "Приказ",
+          "uses": "wis_mod",
+          "ability": "wis"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Приказ» N раз (мод. хар-ки, мин. 1) за продолжительный отдых; хар-ка — Мудрость",
+        "record_id": "B-410"
+      }
+    },
+    {
+      "slug": "piety_klothys_votary",
+      "kind": "feat",
+      "name_ru": "Служитель Клотида",
+      "name_en": "Klothys's Votary",
+      "source": "mot",
+      "sort_order": 9028,
+      "parent_slug": "theros_god_klothys",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "klothys",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "cast",
+          "spell": "clairvoyance",
+          "spell_ru": "Подсматривание",
+          "uses": 1,
+          "no_material": true,
+          "ability": "wis",
+          "save_adv": [
+            "charmed"
+          ]
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Подсматривание» 1 раз за продолжительный отдых; хар-ка — Мудрость",
+        "record_id": "B-411"
+      }
+    },
+    {
+      "slug": "piety_klothys_disciple",
+      "kind": "feat",
+      "name_ru": "Последователь Клотида",
+      "name_en": "Klothys's Disciple",
+      "source": "mot",
+      "sort_order": 9029,
+      "parent_slug": "theros_god_klothys",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "klothys",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "passive",
+          "no_surprise_while_conscious": true
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "нельзя застать врасплох в сознании",
+        "record_id": "B-412"
+      }
+    },
+    {
+      "slug": "piety_klothys_champion",
+      "kind": "feat",
+      "name_ru": "Поборник предназначения (Клотида)",
+      "name_en": "Champion of Destiny (Klothys)",
+      "source": "mot",
+      "sort_order": 9030,
+      "parent_slug": "theros_god_klothys",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "klothys",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion"
+        },
+        "champion_abilities": [
+          "str",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Увеличить Сила или Мудрость на 2 и максимум этой характеристики на 2 (при потолке 20 → 22).",
+        "record_id": "B-413"
+      }
+    },
+    {
+      "slug": "theros_god_kruphix",
+      "kind": "feat",
+      "name_ru": "Круфикс",
+      "name_en": "Kruphix",
+      "source": "mot",
+      "sort_order": 9031,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "god",
+        "god_slug": "kruphix",
+        "theme_ru": "Горизонты",
+        "champion_abilities": [
+          "con",
+          "int"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Бог Тероса: Круфикс (Горизонты). Награды благоволения на порогах 3/10/25/50."
+      }
+    },
+    {
+      "slug": "piety_kruphix_devotee",
+      "kind": "feat",
+      "name_ru": "Послушник Круфикс",
+      "name_en": "Kruphix's Devotee",
+      "source": "mot",
+      "sort_order": 9032,
+      "parent_slug": "theros_god_kruphix",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "kruphix",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "cast",
+          "spell": "detect_magic",
+          "spell_ru": "Обнаружение магии",
+          "uses": "int_mod",
+          "ability": "int"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Обнаружение магии» N раз (мод. хар-ки, мин. 1) за продолжительный отдых; хар-ка — Интеллект",
+        "record_id": "B-414"
+      }
+    },
+    {
+      "slug": "piety_kruphix_votary",
+      "kind": "feat",
+      "name_ru": "Служитель Круфикс",
+      "name_en": "Kruphix's Votary",
+      "source": "mot",
+      "sort_order": 9033,
+      "parent_slug": "theros_god_kruphix",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "kruphix",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "cast",
+          "spell": "detect_thoughts",
+          "spell_ru": "Обнаружение мыслей",
+          "uses": 1,
+          "no_material": true,
+          "ability": "int",
+          "save_adv": [
+            "charmed"
+          ]
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Обнаружение мыслей» 1 раз за продолжительный отдых; хар-ка — Интеллект",
+        "record_id": "B-415"
+      }
+    },
+    {
+      "slug": "piety_kruphix_disciple",
+      "kind": "feat",
+      "name_ru": "Последователь Круфикс",
+      "name_en": "Kruphix's Disciple",
+      "source": "mot",
+      "sort_order": 9034,
+      "parent_slug": "theros_god_kruphix",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "kruphix",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "conditional_ac",
+          "ac_bonus_ranged": 2,
+          "requires": "mage_hand_within_5ft",
+          "cantrip": "mage_hand"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "conditional_ac",
+        "record_id": "B-416"
+      }
+    },
+    {
+      "slug": "piety_kruphix_champion",
+      "kind": "feat",
+      "name_ru": "Поборник горизонтов (Круфикс)",
+      "name_en": "Champion of Horizons (Kruphix)",
+      "source": "mot",
+      "sort_order": 9035,
+      "parent_slug": "theros_god_kruphix",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "kruphix",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion"
+        },
+        "champion_abilities": [
+          "con",
+          "int"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Увеличить Телосложение или Интеллект на 2 и максимум этой характеристики на 2 (при потолке 20 → 22).",
+        "record_id": "B-417"
+      }
+    },
+    {
+      "slug": "theros_god_mogis",
+      "kind": "feat",
+      "name_ru": "Могий",
+      "name_en": "Mogis",
+      "source": "mot",
+      "sort_order": 9036,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "god",
+        "god_slug": "mogis",
+        "theme_ru": "Резня",
+        "champion_abilities": [
+          "str",
+          "con"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Бог Тероса: Могий (Резня). Награды благоволения на порогах 3/10/25/50."
+      }
+    },
+    {
+      "slug": "piety_mogis_devotee",
+      "kind": "feat",
+      "name_ru": "Послушник Могий",
+      "name_en": "Mogis's Devotee",
+      "source": "mot",
+      "sort_order": 9037,
+      "parent_slug": "theros_god_mogis",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "mogis",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "cast",
+          "spell": "wrathful_smite",
+          "spell_ru": "Гневная кара",
+          "uses": "con_mod",
+          "ability": "con",
+          "lobby_partial": true
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Гневная кара» N раз (мод. хар-ки, мин. 1) за продолжительный отдых; хар-ка — Телосложение",
+        "record_id": "B-418"
+      }
+    },
+    {
+      "slug": "piety_mogis_votary",
+      "kind": "feat",
+      "name_ru": "Служитель Могий",
+      "name_en": "Mogis's Votary",
+      "source": "mot",
+      "sort_order": 9038,
+      "parent_slug": "theros_god_mogis",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "mogis",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "cast",
+          "spell": "blinding_smite",
+          "spell_ru": "Ослепляющая кара",
+          "uses": 1,
+          "no_material": true,
+          "ability": "con"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Ослепляющая кара» 1 раз за продолжительный отдых; хар-ка — Телосложение",
+        "record_id": "B-419"
+      }
+    },
+    {
+      "slug": "piety_mogis_disciple",
+      "kind": "feat",
+      "name_ru": "Последователь Могий",
+      "name_en": "Mogis's Disciple",
+      "source": "mot",
+      "sort_order": 9039,
+      "parent_slug": "theros_god_mogis",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "mogis",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "passive",
+          "save_adv": [
+            "charmed",
+            "frightened"
+          ]
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "преимущество на спас против: charmed, frightened",
+        "record_id": "B-420"
+      }
+    },
+    {
+      "slug": "piety_mogis_champion",
+      "kind": "feat",
+      "name_ru": "Поборник резни (Могий)",
+      "name_en": "Champion of Slaughter (Mogis)",
+      "source": "mot",
+      "sort_order": 9040,
+      "parent_slug": "theros_god_mogis",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "mogis",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion"
+        },
+        "champion_abilities": [
+          "str",
+          "con"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Увеличить Сила или Телосложение на 2 и максимум этой характеристики на 2 (при потолке 20 → 22).",
+        "record_id": "B-421"
+      }
+    },
+    {
+      "slug": "theros_god_nylea",
+      "kind": "feat",
+      "name_ru": "Нилея",
+      "name_en": "Nylea",
+      "source": "mot",
+      "sort_order": 9041,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "god",
+        "god_slug": "nylea",
+        "theme_ru": "Охота",
+        "champion_abilities": [
+          "dex",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Бог Тероса: Нилея (Охота). Награды благоволения на порогах 3/10/25/50."
+      }
+    },
+    {
+      "slug": "piety_nylea_devotee",
+      "kind": "feat",
+      "name_ru": "Послушник Нилея",
+      "name_en": "Nylea's Devotee",
+      "source": "mot",
+      "sort_order": 9042,
+      "parent_slug": "theros_god_nylea",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "nylea",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "cast",
+          "spell": "hunters_mark",
+          "spell_ru": "Метка охотника",
+          "uses": "wis_mod",
+          "ability": "wis"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Метка охотника» N раз (мод. хар-ки, мин. 1) за продолжительный отдых; хар-ка — Мудрость",
+        "record_id": "B-422"
+      }
+    },
+    {
+      "slug": "piety_nylea_votary",
+      "kind": "feat",
+      "name_ru": "Служитель Нилея",
+      "name_en": "Nylea's Votary",
+      "source": "mot",
+      "sort_order": 9043,
+      "parent_slug": "theros_god_nylea",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "nylea",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "cast",
+          "spell": "speak_with_animals",
+          "spell_ru": "Разговор с животными",
+          "uses": "wis_mod",
+          "ability": "wis",
+          "save_adv": [
+            "poisoned"
+          ]
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Разговор с животными» N раз (мод. хар-ки, мин. 1) за продолжительный отдых; хар-ка — Мудрость",
+        "record_id": "B-423"
+      }
+    },
+    {
+      "slug": "piety_nylea_disciple",
+      "kind": "feat",
+      "name_ru": "Последователь Нилея",
+      "name_en": "Nylea's Disciple",
+      "source": "mot",
+      "sort_order": 9044,
+      "parent_slug": "theros_god_nylea",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "nylea",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "lobby_only",
+          "note": "перенаправление атаки зверя — лобби 12–14"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "перенаправление атаки зверя — лобби 12–14",
+        "record_id": "B-424"
+      }
+    },
+    {
+      "slug": "piety_nylea_champion",
+      "kind": "feat",
+      "name_ru": "Поборник охоты (Нилея)",
+      "name_en": "Champion of the Hunt (Nylea)",
+      "source": "mot",
+      "sort_order": 9045,
+      "parent_slug": "theros_god_nylea",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "nylea",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion"
+        },
+        "champion_abilities": [
+          "dex",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Увеличить Ловкость или Мудрость на 2 и максимум этой характеристики на 2 (при потолке 20 → 22).",
+        "record_id": "B-425"
+      }
+    },
+    {
+      "slug": "theros_god_purphoros",
+      "kind": "feat",
+      "name_ru": "Пирфор",
+      "name_en": "Purphoros",
+      "source": "mot",
+      "sort_order": 9046,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "god",
+        "god_slug": "purphoros",
+        "theme_ru": "Кузни",
+        "champion_abilities": [
+          "str",
+          "int"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Бог Тероса: Пирфор (Кузни). Награды благоволения на порогах 3/10/25/50."
+      }
+    },
+    {
+      "slug": "piety_purphoros_devotee",
+      "kind": "feat",
+      "name_ru": "Послушник Пирфор",
+      "name_en": "Purphoros's Devotee",
+      "source": "mot",
+      "sort_order": 9047,
+      "parent_slug": "theros_god_purphoros",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "purphoros",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "cast",
+          "spell": "shield_of_faith",
+          "spell_ru": "Щит веры",
+          "uses": "int_mod",
+          "no_material": true,
+          "ability": "int",
+          "extra_cantrip": "mending"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Щит веры» N раз (мод. хар-ки, мин. 1) за продолжительный отдых; хар-ка — Интеллект",
+        "record_id": "B-426"
+      }
+    },
+    {
+      "slug": "piety_purphoros_votary",
+      "kind": "feat",
+      "name_ru": "Служитель Пирфор",
+      "name_en": "Purphoros's Votary",
+      "source": "mot",
+      "sort_order": 9048,
+      "parent_slug": "theros_god_purphoros",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "purphoros",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "cast",
+          "spell": "heat_metal",
+          "spell_ru": "Раскалённый металл",
+          "uses": 1,
+          "no_material": true,
+          "ability": "int",
+          "save_adv": [
+            "prone"
+          ]
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Раскалённый металл» 1 раз за продолжительный отдых; хар-ка — Интеллект",
+        "record_id": "B-427"
+      }
+    },
+    {
+      "slug": "piety_purphoros_disciple",
+      "kind": "feat",
+      "name_ru": "Последователь Пирфор",
+      "name_en": "Purphoros's Disciple",
+      "source": "mot",
+      "sort_order": 9049,
+      "parent_slug": "theros_god_purphoros",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "purphoros",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "reaction",
+          "prevent_push": true,
+          "requires_standing": true
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "reaction",
+        "record_id": "B-428"
+      }
+    },
+    {
+      "slug": "piety_purphoros_champion",
+      "kind": "feat",
+      "name_ru": "Поборник кузни (Пирфор)",
+      "name_en": "Champion of the Forge (Purphoros)",
+      "source": "mot",
+      "sort_order": 9050,
+      "parent_slug": "theros_god_purphoros",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "purphoros",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion"
+        },
+        "champion_abilities": [
+          "str",
+          "int"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Увеличить Сила или Интеллект на 2 и максимум этой характеристики на 2 (при потолке 20 → 22).",
+        "record_id": "B-429"
+      }
+    },
+    {
+      "slug": "theros_god_thassa",
+      "kind": "feat",
+      "name_ru": "Тасса",
+      "name_en": "Thassa",
+      "source": "mot",
+      "sort_order": 9051,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "god",
+        "god_slug": "thassa",
+        "theme_ru": "Море",
+        "champion_abilities": [
+          "dex",
+          "int"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Бог Тероса: Тасса (Море). Награды благоволения на порогах 3/10/25/50."
+      }
+    },
+    {
+      "slug": "piety_thassa_devotee",
+      "kind": "feat",
+      "name_ru": "Послушник Тасса",
+      "name_en": "Thassa's Devotee",
+      "source": "mot",
+      "sort_order": 9052,
+      "parent_slug": "theros_god_thassa",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "thassa",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "cast",
+          "spell": "fog_cloud",
+          "spell_ru": "Туманное облако",
+          "uses": "int_mod",
+          "ability": "int"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Туманное облако» N раз (мод. хар-ки, мин. 1) за продолжительный отдых; хар-ка — Интеллект",
+        "record_id": "B-430"
+      }
+    },
+    {
+      "slug": "piety_thassa_votary",
+      "kind": "feat",
+      "name_ru": "Служитель Тасса",
+      "name_en": "Thassa's Votary",
+      "source": "mot",
+      "sort_order": 9053,
+      "parent_slug": "theros_god_thassa",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "thassa",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "cast",
+          "spell": "blink",
+          "spell_ru": "Мерцание",
+          "uses": 1,
+          "ability": "int"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Мерцание» 1 раз за продолжительный отдых; хар-ка — Интеллект",
+        "record_id": "B-431"
+      }
+    },
+    {
+      "slug": "piety_thassa_disciple",
+      "kind": "feat",
+      "name_ru": "Последователь Тасса",
+      "name_en": "Thassa's Disciple",
+      "source": "mot",
+      "sort_order": 9054,
+      "parent_slug": "theros_god_thassa",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "thassa",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "passive",
+          "save_adv": [
+            "charmed",
+            "restrained"
+          ]
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "преимущество на спас против: charmed, restrained",
+        "record_id": "B-432"
+      }
+    },
+    {
+      "slug": "piety_thassa_champion",
+      "kind": "feat",
+      "name_ru": "Поборник моря (Тасса)",
+      "name_en": "Champion of the Sea (Thassa)",
+      "source": "mot",
+      "sort_order": 9055,
+      "parent_slug": "theros_god_thassa",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "thassa",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion"
+        },
+        "champion_abilities": [
+          "dex",
+          "int"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Увеличить Ловкость или Интеллект на 2 и максимум этой характеристики на 2 (при потолке 20 → 22).",
+        "record_id": "B-433"
+      }
+    },
+    {
+      "slug": "theros_god_pharika",
+      "kind": "feat",
+      "name_ru": "Фарика",
+      "name_en": "Pharika",
+      "source": "mot",
+      "sort_order": 9056,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "god",
+        "god_slug": "pharika",
+        "theme_ru": "Болезнь",
+        "champion_abilities": [
+          "dex",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Бог Тероса: Фарика (Болезнь). Награды благоволения на порогах 3/10/25/50."
+      }
+    },
+    {
+      "slug": "piety_pharika_devotee",
+      "kind": "feat",
+      "name_ru": "Послушник Фарика",
+      "name_en": "Pharika's Devotee",
+      "source": "mot",
+      "sort_order": 9057,
+      "parent_slug": "theros_god_pharika",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "pharika",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "cast",
+          "spell": "ray_of_sickness",
+          "spell_ru": "Луч болезни",
+          "uses": "wis_mod",
+          "ability": "wis"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Луч болезни» N раз (мод. хар-ки, мин. 1) за продолжительный отдых; хар-ка — Мудрость",
+        "record_id": "B-434"
+      }
+    },
+    {
+      "slug": "piety_pharika_votary",
+      "kind": "feat",
+      "name_ru": "Служитель Фарика",
+      "name_en": "Pharika's Votary",
+      "source": "mot",
+      "sort_order": 9058,
+      "parent_slug": "theros_god_pharika",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "pharika",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "passive",
+          "save_adv": [
+            "poisoned"
+          ],
+          "immune_disease": true
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "преимущество на спас против: poisoned; иммунитет к болезням",
+        "record_id": "B-435"
+      }
+    },
+    {
+      "slug": "piety_pharika_disciple",
+      "kind": "feat",
+      "name_ru": "Последователь Фарика",
+      "name_en": "Pharika's Disciple",
+      "source": "mot",
+      "sort_order": 9059,
+      "parent_slug": "theros_god_pharika",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "pharika",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "activate",
+          "slug_effect": "pharika_balm",
+          "uses": 1,
+          "heal_or_weaken": true
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "activate",
+        "record_id": "B-436"
+      }
+    },
+    {
+      "slug": "piety_pharika_champion",
+      "kind": "feat",
+      "name_ru": "Поборник болезни (Фарика)",
+      "name_en": "Champion of Affliction (Pharika)",
+      "source": "mot",
+      "sort_order": 9060,
+      "parent_slug": "theros_god_pharika",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "pharika",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion"
+        },
+        "champion_abilities": [
+          "dex",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Увеличить Ловкость или Мудрость на 2 и максимум этой характеристики на 2 (при потолке 20 → 22).",
+        "record_id": "B-437"
+      }
+    },
+    {
+      "slug": "theros_god_phenax",
+      "kind": "feat",
+      "name_ru": "Фенакс",
+      "name_en": "Phenax",
+      "source": "mot",
+      "sort_order": 9061,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "god",
+        "god_slug": "phenax",
+        "theme_ru": "Обман",
+        "champion_abilities": [
+          "dex",
+          "cha"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Бог Тероса: Фенакс (Обман). Награды благоволения на порогах 3/10/25/50."
+      }
+    },
+    {
+      "slug": "piety_phenax_devotee",
+      "kind": "feat",
+      "name_ru": "Послушник Фенакс",
+      "name_en": "Phenax's Devotee",
+      "source": "mot",
+      "sort_order": 9062,
+      "parent_slug": "theros_god_phenax",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "phenax",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "cast",
+          "spell": "disguise_self",
+          "spell_ru": "Маскировка",
+          "uses": "cha_mod",
+          "ability": "cha"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Маскировка» N раз (мод. хар-ки, мин. 1) за продолжительный отдых; хар-ка — Харизма",
+        "record_id": "B-438"
+      }
+    },
+    {
+      "slug": "piety_phenax_votary",
+      "kind": "feat",
+      "name_ru": "Служитель Фенакс",
+      "name_en": "Phenax's Votary",
+      "source": "mot",
+      "sort_order": 9063,
+      "parent_slug": "theros_god_phenax",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "phenax",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "passive",
+          "check_adv": [
+            "deception"
+          ]
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "преимущество на проверки: deception",
+        "record_id": "B-439"
+      }
+    },
+    {
+      "slug": "piety_phenax_disciple",
+      "kind": "feat",
+      "name_ru": "Последователь Фенакс",
+      "name_en": "Phenax's Disciple",
+      "source": "mot",
+      "sort_order": 9064,
+      "parent_slug": "theros_god_phenax",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "phenax",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "passive",
+          "miss_while_hidden_no_reveal": true
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "промах из скрытности не выдаёт место",
+        "record_id": "B-440"
+      }
+    },
+    {
+      "slug": "piety_phenax_champion",
+      "kind": "feat",
+      "name_ru": "Поборник обмана (Фенакс)",
+      "name_en": "Champion of Deception (Phenax)",
+      "source": "mot",
+      "sort_order": 9065,
+      "parent_slug": "theros_god_phenax",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "phenax",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion"
+        },
+        "champion_abilities": [
+          "dex",
+          "cha"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Увеличить Ловкость или Харизма на 2 и максимум этой характеристики на 2 (при потолке 20 → 22).",
+        "record_id": "B-441"
+      }
+    },
+    {
+      "slug": "theros_god_erebos",
+      "kind": "feat",
+      "name_ru": "Эреб",
+      "name_en": "Erebos",
+      "source": "mot",
+      "sort_order": 9066,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "god",
+        "god_slug": "erebos",
+        "theme_ru": "Мёртвые",
+        "champion_abilities": [
+          "con",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Бог Тероса: Эреб (Мёртвые). Награды благоволения на порогах 3/10/25/50."
+      }
+    },
+    {
+      "slug": "piety_erebos_devotee",
+      "kind": "feat",
+      "name_ru": "Послушник Эреб",
+      "name_en": "Erebos's Devotee",
+      "source": "mot",
+      "sort_order": 9067,
+      "parent_slug": "theros_god_erebos",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "erebos",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "cast",
+          "spell": "bane",
+          "spell_ru": "Порча",
+          "uses": "wis_mod",
+          "no_material": true,
+          "ability": "wis"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Порча» N раз (мод. хар-ки, мин. 1) за продолжительный отдых; хар-ка — Мудрость",
+        "record_id": "B-442"
+      }
+    },
+    {
+      "slug": "piety_erebos_votary",
+      "kind": "feat",
+      "name_ru": "Служитель Эреб",
+      "name_en": "Erebos's Votary",
+      "source": "mot",
+      "sort_order": 9068,
+      "parent_slug": "theros_god_erebos",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "erebos",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "cast",
+          "spell": "vampiric_touch",
+          "spell_ru": "Прикосновение вампира",
+          "uses": 1,
+          "no_material": true,
+          "ability": "wis"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Прикосновение вампира» 1 раз за продолжительный отдых; хар-ка — Мудрость",
+        "record_id": "B-443"
+      }
+    },
+    {
+      "slug": "piety_erebos_disciple",
+      "kind": "feat",
+      "name_ru": "Последователь Эреб",
+      "name_en": "Erebos's Disciple",
+      "source": "mot",
+      "sort_order": 9069,
+      "parent_slug": "theros_god_erebos",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "erebos",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "reaction_temp_hp",
+          "when": "creature_dies_within_10ft",
+          "temp_hp": "level"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "reaction_temp_hp",
+        "record_id": "B-444"
+      }
+    },
+    {
+      "slug": "piety_erebos_champion",
+      "kind": "feat",
+      "name_ru": "Поборник мёртвых (Эреб)",
+      "name_en": "Champion of the Dead (Erebos)",
+      "source": "mot",
+      "sort_order": 9070,
+      "parent_slug": "theros_god_erebos",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "erebos",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion"
+        },
+        "champion_abilities": [
+          "con",
+          "wis"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Увеличить Телосложение или Мудрость на 2 и максимум этой характеристики на 2 (при потолке 20 → 22).",
+        "record_id": "B-445"
+      }
+    },
+    {
+      "slug": "theros_god_ephara",
+      "kind": "feat",
+      "name_ru": "Эфара",
+      "name_en": "Ephara",
+      "source": "mot",
+      "sort_order": 9071,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "god",
+        "god_slug": "ephara",
+        "theme_ru": "Полис",
+        "champion_abilities": [
+          "int",
+          "cha"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Бог Тероса: Эфара (Полис). Награды благоволения на порогах 3/10/25/50."
+      }
+    },
+    {
+      "slug": "piety_ephara_devotee",
+      "kind": "feat",
+      "name_ru": "Послушник Эфара",
+      "name_en": "Ephara's Devotee",
+      "source": "mot",
+      "sort_order": 9072,
+      "parent_slug": "theros_god_ephara",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "ephara",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "cast",
+          "spell": "comprehend_languages",
+          "spell_ru": "Понимание языков",
+          "uses": "int_mod",
+          "no_material": true,
+          "ability": "int"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Понимание языков» N раз (мод. хар-ки, мин. 1) за продолжительный отдых; хар-ка — Интеллект",
+        "record_id": "B-446"
+      }
+    },
+    {
+      "slug": "piety_ephara_votary",
+      "kind": "feat",
+      "name_ru": "Служитель Эфара",
+      "name_en": "Ephara's Votary",
+      "source": "mot",
+      "sort_order": 9073,
+      "parent_slug": "theros_god_ephara",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "ephara",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "passive",
+          "check_adv_in_city": [
+            "persuasion"
+          ],
+          "reroll": [
+            "int_check",
+            "int_save"
+          ],
+          "uses": 1
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "в городе преимущество на Убеждение",
+        "record_id": "B-447"
+      }
+    },
+    {
+      "slug": "piety_ephara_disciple",
+      "kind": "feat",
+      "name_ru": "Последователь Эфара",
+      "name_en": "Ephara's Disciple",
+      "source": "mot",
+      "sort_order": 9074,
+      "parent_slug": "theros_god_ephara",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "ephara",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "cast",
+          "spell": "private_sanctum",
+          "spell_ru": "Кабинет Морденкайнена",
+          "uses": 1,
+          "no_material": true,
+          "ability": "int"
+        },
+        "champion_abilities": null,
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Накладывать «Кабинет Морденкайнена» 1 раз за продолжительный отдых; хар-ка — Интеллект",
+        "record_id": "B-448"
+      }
+    },
+    {
+      "slug": "piety_ephara_champion",
+      "kind": "feat",
+      "name_ru": "Поборник полиса (Эфара)",
+      "name_en": "Champion of the Polis (Ephara)",
+      "source": "mot",
+      "sort_order": 9075,
+      "parent_slug": "theros_god_ephara",
+      "data": {
+        "theros_kind": "piety_reward",
+        "god_slug": "ephara",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion"
+        },
+        "champion_abilities": [
+          "int",
+          "cha"
+        ],
+        "selectable": false,
+        "content_layer": "theros_piety",
+        "summary_ru": "Увеличить Интеллект или Харизма на 2 и максимум этой характеристики на 2 (при потолке 20 → 22).",
+        "record_id": "B-449"
+      }
+    },
+    {
+      "slug": "supernatural_gift_heroic_destiny",
+      "kind": "feat",
+      "name_ru": "Сверхъестественный дар: героическая судьба",
+      "name_en": "Supernatural Gift: Heroic Destiny",
+      "source": "mot",
+      "sort_order": 9085,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "supernatural_gift",
+        "gift_slug": "heroic_destiny",
+        "selectable": true,
+        "content_layer": "theros_gift",
+        "summary_ru": "Преимущество на спасброски от смерти. Когда хиты падают до 0 (но не мгновенная смерть) — можно остаться с 1 хитом (1/продолжительный отдых).",
+        "traits": [
+          {
+            "id": "defy_death",
+            "name_ru": "Бросить вызов смерти",
+            "summary_ru": "Преимущество на спасброски от смерти."
+          },
+          {
+            "id": "hard_to_kill",
+            "name_ru": "Трудно убить",
+            "summary_ru": "При падении до 0 хитов (не мгновенная смерть) — остаться с 1 хитом; 1/продолжительный отдых."
+          }
+        ],
+        "record_id": "B-388"
+      }
+    },
+    {
+      "slug": "supernatural_gift_oracle",
+      "kind": "feat",
+      "name_ru": "Сверхъестественный дар: оракул",
+      "name_en": "Supernatural Gift: Oracle",
+      "source": "mot",
+      "sort_order": 9086,
+      "parent_slug": null,
+      "data": {
+        "theros_kind": "supernatural_gift",
+        "gift_slug": "oracle",
+        "selectable": true,
+        "content_layer": "theros_gift",
+        "summary_ru": "Небесный язык; озарение (+1к10 к проверке 1/короткий или продолжительный отдых). Вместо наград бога — линейка оракула на порогах 3/10/25/50.",
+        "traits": [
+          {
+            "id": "ears_of_the_oracle",
+            "name_ru": "Уши оракула",
+            "summary_ru": "Говорите, читайте и пишите на Небесном; бог может говорить через вас."
+          },
+          {
+            "id": "oracles_insight",
+            "name_ru": "Озарение оракула",
+            "summary_ru": "+1к10 к проверке характеристики (после d20, до объявления успеха); 1/короткий или продолжительный отдых."
+          }
+        ],
+        "record_id": "B-389"
+      }
+    },
+    {
+      "slug": "piety_oracle_devotee",
+      "kind": "feat",
+      "name_ru": "Авгур",
+      "name_en": "Augur",
+      "source": "mot",
+      "sort_order": 9087,
+      "parent_slug": "supernatural_gift_oracle",
+      "data": {
+        "theros_kind": "oracle_reward",
+        "gift_slug": "oracle",
+        "rank": "devotee",
+        "threshold": 3,
+        "reward": {
+          "kind": "cast",
+          "spell": "augury",
+          "spell_ru": "Гадание",
+          "uses": 1,
+          "ritual": true,
+          "ability": "wis"
+        },
+        "selectable": false,
+        "content_layer": "theros_gift",
+        "summary_ru": "Гадание"
+      }
+    },
+    {
+      "slug": "piety_oracle_votary",
+      "kind": "feat",
+      "name_ru": "Провидец",
+      "name_en": "Seer",
+      "source": "mot",
+      "sort_order": 9088,
+      "parent_slug": "supernatural_gift_oracle",
+      "data": {
+        "theros_kind": "oracle_reward",
+        "gift_slug": "oracle",
+        "rank": "votary",
+        "threshold": 10,
+        "reward": {
+          "kind": "cast",
+          "spell": "divination",
+          "spell_ru": "Прорицание",
+          "uses": 1,
+          "ritual": true,
+          "ability": "wis"
+        },
+        "selectable": false,
+        "content_layer": "theros_gift",
+        "summary_ru": "Прорицание"
+      }
+    },
+    {
+      "slug": "piety_oracle_disciple",
+      "kind": "feat",
+      "name_ru": "Сивилла",
+      "name_en": "Sibyl",
+      "source": "mot",
+      "sort_order": 9089,
+      "parent_slug": "supernatural_gift_oracle",
+      "data": {
+        "theros_kind": "oracle_reward",
+        "gift_slug": "oracle",
+        "rank": "disciple",
+        "threshold": 25,
+        "reward": {
+          "kind": "cast",
+          "spell": "commune",
+          "spell_ru": "Общение",
+          "uses": 1,
+          "ritual": true,
+          "ability": "wis",
+          "no_surprise": true
+        },
+        "selectable": false,
+        "content_layer": "theros_gift",
+        "summary_ru": "Общение"
+      }
+    },
+    {
+      "slug": "piety_oracle_champion",
+      "kind": "feat",
+      "name_ru": "Божественный оракул",
+      "name_en": "Divine Oracle",
+      "source": "mot",
+      "sort_order": 9090,
+      "parent_slug": "supernatural_gift_oracle",
+      "data": {
+        "theros_kind": "oracle_reward",
+        "gift_slug": "oracle",
+        "rank": "champion",
+        "threshold": 50,
+        "reward": {
+          "kind": "champion",
+          "abilities": [
+            "int",
+            "wis"
+          ]
+        },
+        "selectable": false,
+        "content_layer": "theros_gift",
+        "summary_ru": "Линейка оракула"
+      }
+    }
+  ]
+}

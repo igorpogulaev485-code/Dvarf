@@ -20,6 +20,8 @@ import { AttacksSettingsDialog } from '../AttacksSettingsDialog'
 import { SpellsPanel } from '../SpellsPanel'
 import { SpellsSettingsDialog } from '../SpellsSettingsDialog'
 import { ClassFeaturesPanel } from '../ClassFeaturesPanel'
+import { PietyPanel } from '../PietyPanel'
+import { syncPietyChampion, type PietyState } from '../../../shared/dnd/therosPiety'
 import { CompanionsPanel } from '../CompanionsPanel'
 import { getActiveSelfForm } from '../companions'
 import { healSelfForm, rollDice, starryFormDice } from '../wildShape'
@@ -482,6 +484,21 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
 
       <div className="play-desk__stage-panel" hidden={model.stageHidden('features')}>
       {/* Features: ClassFeaturesPanel glance→expand — no compact/full flip. */}
+      <PietyPanel
+        piety={model.draft.piety}
+        onChange={(nextPiety: PietyState) =>
+          model.setDraft((prev) => {
+            const reverted = syncPietyChampion({
+              ...prev,
+              piety: { ...prev.piety, score: 0 },
+            })
+            return {
+              ...reverted,
+              piety: { ...nextPiety, champion_applied: 0 },
+            }
+          })
+        }
+      />
       <ClassFeaturesPanel
         classes={model.draft.classes}
         characterLevel={model.characterLevel}
