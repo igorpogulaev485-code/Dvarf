@@ -85,6 +85,9 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             hpCurrent={model.draft.hpCurrent}
             hpMax={model.draft.hpMax}
             damageProfile={damageProfile}
+            hasEvasion={(model.unlockedFeatures ?? []).some(
+              (f: { id?: string }) => f.id === 'evasion',
+            )}
             play={model.draft.play}
             autoAc={model.armorClass.ac}
             acHint={model.armorClass.summary}
@@ -226,6 +229,9 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           hpCurrent={model.draft.hpCurrent}
           hpMax={model.draft.hpMax}
           damageProfile={damageProfile}
+          hasEvasion={(model.unlockedFeatures ?? []).some(
+            (f: { id?: string }) => f.id === 'evasion',
+          )}
           play={model.draft.play}
           autoAc={model.armorClass.ac}
           acOverride={model.draft.ac}

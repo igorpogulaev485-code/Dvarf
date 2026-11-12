@@ -72,6 +72,7 @@ type PlayDeskHeaderProps = {
   hpCurrent: number | null
   hpMax: number | null
   damageProfile?: IncomingDamageProfile
+  hasEvasion?: boolean
   play: PlayState
   autoAc: number
   acHint: string
@@ -139,6 +140,7 @@ export function PlayDeskHeader({
   hpCurrent,
   hpMax,
   damageProfile,
+  hasEvasion = false,
   play,
   autoAc,
   acHint,
@@ -758,6 +760,7 @@ export function PlayDeskHeader({
         onCombatChange={onCombatChange}
         onToast={onToast}
         damageProfile={damageProfile}
+        hasEvasion={hasEvasion}
       />
 
       <CoinPadDialog

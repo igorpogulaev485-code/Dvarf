@@ -37,6 +37,7 @@ import {
   listRollDieChips,
   weaponBonusesFromActiveEffects,
 } from '../../../shared/dnd/activeEffects'
+import { resolveB04FeatureSpend } from '../b04FeatureSpend'
 
 function mergeToolNames(base: string[], extra: string[]): string[] {
   const seen = new Set(base.map((name) => name.trim().toLowerCase()))
@@ -137,6 +138,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             proficiencyBonus={model.proficiencyBonus}
             gearBonusesByItem={model.gearEffects.byItem}
             effectWeaponBonus={weaponBonusesFromActiveEffects(model.draft.play.effects)}
+            activeEffects={model.draft.play.effects ?? []}
             fightingStyleId={model.activeFightingStyleId}
             fightingStyleIds={model.fightingStyleIds}
             infusionByItem={model.infusionBonuses.weaponByItem}
@@ -227,6 +229,12 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             onCombatFeatureToggle={(featureId, active) => {
               if (featureId === 'reckless_attack') {
                 model.setDeskRollMode(active ? 'advantage' : 'normal')
+                if (active && typeof model.applyFeatureBuff === 'function') {
+                  void model.applyFeatureBuff({
+                    slug: 'reckless_attack',
+                    name: 'Безрассудная атака',
+                  })
+                }
               }
             }}
             onToast={model.emitToast}
@@ -487,6 +495,43 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           model.setDraft((prev) => ({ ...prev, customFeatures }))
         }
         onToast={model.onToast}
+        onFeatureBuffApply={(input) => {
+          const action = resolveB04FeatureSpend({
+            featureId: input.featureId,
+            featureNameRu: input.featureNameRu,
+            classEntryId: input.classEntryId,
+            classLevel: input.classLevel,
+            featurePicks: model.draft.featurePicks,
+            abilities: model.draft.abilities,
+          })
+          if (action.kind === 'heal') {
+            model.setDraft((prev) => ({
+              ...prev,
+              hpCurrent: Math.min(
+                prev.hpMax ?? action.amount,
+                (prev.hpCurrent ?? 0) + action.amount,
+              ),
+            }))
+            model.onToast(action.label)
+            return
+          }
+          if (action.kind !== 'buff') return
+          if (action.clearConcentration) {
+            model.clearConcentrationDismissingCompanions?.(null)
+          }
+          void model
+            .applyFeatureBuff({
+              slug: action.slug,
+              name: action.name,
+              classLevel: action.classLevel,
+              casterMod: action.casterMod,
+              option: action.option,
+            })
+            .then((res: { error?: string } | undefined) => {
+              if (res?.error) model.onToast(res.error)
+              else if (action.slug === 'rage') model.onToast('В ярости')
+            })
+        }}
         onOpenInfusions={(classEntryId) => {
           const row = model.draft.play.resources.find(
             (r) =>

@@ -43,6 +43,8 @@ type HpPadDialogProps = {
   onToast: (message: string) => void
   /** Race + worn items. Damage is halved only when the player picks a type. */
   damageProfile?: IncomingDamageProfile
+  /** B-04: Monk/Rogue Evasion — Dex save damage: success → 0, fail → half. */
+  hasEvasion?: boolean
 }
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'] as const
@@ -63,10 +65,13 @@ export function HpPadDialog({
   onCombatChange,
   onToast,
   damageProfile,
+  hasEvasion = false,
 }: HpPadDialogProps) {
   const [digits, setDigits] = useState('')
   const [damageType, setDamageType] = useState<DamageType | null>(null)
   const [nonmagical, setNonmagical] = useState(false)
+  /** null = off; success = 0 dmg; fail = half before resist. */
+  const [evasionMode, setEvasionMode] = useState<'success' | 'fail' | null>(null)
   const profile = damageProfile ?? emptyDamageProfile()
   const pools = play.hitDiceByClass
   const hitCurrent = totalHitDiceCurrent(pools)
@@ -79,6 +84,7 @@ export function HpPadDialog({
     setDigits('')
     setDamageType(null)
     setNonmagical(false)
+    setEvasionMode(null)
     const releaseScroll = acquireBodyScrollLock()
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -105,12 +111,26 @@ export function HpPadDialog({
 
   const delta = digits === '' ? 0 : Number(digits)
   const canApply = delta > 0
-  const adjusted = adjustIncomingDamage({
-    amount: delta,
+  const afterEvasion = (() => {
+    if (!hasEvasion || !evasionMode || delta <= 0) {
+      return { amount: delta, note: '' }
+    }
+    if (evasionMode === 'success') {
+      return { amount: 0, note: `Уклонение (успех): ${delta} → 0` }
+    }
+    const half = Math.floor(delta / 2)
+    return { amount: half, note: `Уклонение (провал): ${delta} → ${half}` }
+  })()
+  const adjustedRaw = adjustIncomingDamage({
+    amount: afterEvasion.amount,
     type: damageType,
     nonmagical,
     profile,
   })
+  const adjusted = {
+    amount: adjustedRaw.amount,
+    note: [afterEvasion.note, adjustedRaw.note].filter(Boolean).join(' · '),
+  }
   const resistanceLabel = formatDefenseList(profile.resistances)
   const vulnerabilityLabel = formatDefenseList(profile.vulnerabilities)
   const immunityLabel = formatDefenseList(profile.immunities)
@@ -233,6 +253,28 @@ export function HpPadDialog({
             />
             <span>Немагический удар</span>
           </label>
+        ) : null}
+        {hasEvasion ? (
+          <div className="chip-row" role="group" aria-label="Уклонение (спасбросок Ловкости)">
+            <button
+              type="button"
+              className={`sheet-chip${evasionMode === 'success' ? ' is-on' : ''}`}
+              aria-pressed={evasionMode === 'success'}
+              onClick={() =>
+                setEvasionMode((prev) => (prev === 'success' ? null : 'success'))
+              }
+            >
+              Уклонение: успех → 0
+            </button>
+            <button
+              type="button"
+              className={`sheet-chip${evasionMode === 'fail' ? ' is-on' : ''}`}
+              aria-pressed={evasionMode === 'fail'}
+              onClick={() => setEvasionMode((prev) => (prev === 'fail' ? null : 'fail'))}
+            >
+              Уклонение: провал → ½
+            </button>
+          </div>
         ) : null}
 
         <div className="number-pad__keys" role="group" aria-label="Цифровая клавиатура">

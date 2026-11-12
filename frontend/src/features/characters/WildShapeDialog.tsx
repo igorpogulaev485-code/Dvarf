@@ -34,6 +34,12 @@ export type WildShapeDialogResult = {
   companions: CompanionEntry[]
   knownForms: KnownForm[]
   hpTemp?: number | null
+  /** B-04: apply symbiotic_entity ActiveEffect (temp HP via Р4 dialog + 1d6 necrotic). */
+  symbioticEffect?: boolean
+  symbioticDruidLevel?: number
+  /** B-04: constellation buff for Starry Form. */
+  starryConstellation?: 'archer' | 'chalice' | 'dragon'
+  starryDruidLevel?: number
   featurePicks?: FeaturePicksState
   toast: string
 }
@@ -261,14 +267,15 @@ export function WildShapeDialog({
       spendAnd('Симбиотическая сущность', 1, () => ({
         companions,
         knownForms,
-        hpTemp: temp,
-        toast: `Симбиотическая сущность: ${temp} вр. хитов · +1к6 некротического на рукопашные, удвоенный ореол, 10 мин.`,
+        symbioticEffect: true,
+        symbioticDruidLevel: druidLevel,
+        toast: `Симбиотическая сущность: ${temp} вр. хитов · +1к6 некротического на рукопашные, Ореол спор удвоен, 10 мин.`,
         resources: (spentRows) =>
           spentRows.map((row) =>
             row.id.includes(':symbiotic_entity:')
               ? {
                   ...row,
-                  activeLabel: `${SYMBIOTIC_ACTIVE_PREFIX} · 10 мин · +1к6 некрот. на рукопашные, удвоенный ореол`,
+                  activeLabel: `${SYMBIOTIC_ACTIVE_PREFIX} · 10 мин · +1к6 некрот. на рукопашные, Ореол спор удвоен`,
                 }
               : row,
           ),
@@ -346,6 +353,8 @@ export function WildShapeDialog({
       }),
       knownForms,
       featurePicks: picks,
+      starryConstellation: constellation,
+      starryDruidLevel: druidLevel,
       toast: `Звёздная форма: ${constellation === 'archer' ? 'Лучник' : constellation === 'chalice' ? 'Чаша' : 'Дракон'}`,
     }))
   }

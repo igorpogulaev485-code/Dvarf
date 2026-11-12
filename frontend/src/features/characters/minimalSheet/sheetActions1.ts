@@ -39,13 +39,65 @@ export function installSheetActions1(model: SheetModel) {
       play: {
         ...prev.play,
         resources: result.resources,
-        ...(result.hpTemp != null
-          ? { hpTemp: Math.max(prev.play.hpTemp, result.hpTemp) }
-          : {}),
       },
       ...(result.featurePicks ? { featurePicks: result.featurePicks } : {}),
     }))
     if (result.toast) model.onToast(result.toast)
+
+    // B-04: Symbiotic Entity → ActiveEffect + TempHpReplaceDialog (Р4), not Math.max.
+    if (result.symbioticEffect && typeof model.applyFeatureBuff === 'function') {
+      const level = Math.max(1, Math.floor(result.symbioticDruidLevel ?? 1))
+      void model.applyFeatureBuff({
+        slug: 'symbiotic_entity',
+        name: 'Симбиотическая сущность',
+        classLevel: level,
+      })
+    }
+    if (result.starryConstellation && typeof model.applyFeatureBuff === 'function') {
+      const level = Math.max(1, Math.floor(result.starryDruidLevel ?? 1))
+      const slug =
+        result.starryConstellation === 'archer'
+          ? 'starry_form_archer'
+          : result.starryConstellation === 'chalice'
+            ? 'starry_form_chalice'
+            : 'starry_form_dragon'
+      void model.applyFeatureBuff({
+        slug,
+        name: 'Звёздный облик',
+        classLevel: level,
+        option: result.starryConstellation,
+      })
+    }
+    if (result.symbioticEffect) return
+
+    // Other wild-shape paths that still pass raw hpTemp (legacy).
+    const incomingTemp =
+      typeof result.hpTemp === 'number' ? Math.max(0, Math.floor(result.hpTemp)) : null
+    if (incomingTemp != null && incomingTemp > 0) {
+      const current = Math.max(0, model.draft.play.hpTemp || 0)
+      if (current <= 0) {
+        model.setDraft((prev) => ({
+          ...prev,
+          play: { ...prev.play, hpTemp: incomingTemp },
+        }))
+      } else if (typeof model.askTempHpReplace === 'function') {
+        void model
+          .askTempHpReplace({ current, incoming: incomingTemp })
+          .then(async (choice: 'keep' | 'replace') => {
+            const { chooseTempHpPool } = await import('../../../shared/dnd/activeEffects')
+            const next = chooseTempHpPool(current, incomingTemp, choice)
+            model.setDraft((prev) => ({
+              ...prev,
+              play: { ...prev.play, hpTemp: next },
+            }))
+          })
+      } else {
+        model.setDraft((prev) => ({
+          ...prev,
+          play: { ...prev.play, hpTemp: Math.max(current, incomingTemp) },
+        }))
+      }
+    }
   }
 
   model.clearConcentrationDismissingCompanions = function clearConcentrationDismissingCompanions(

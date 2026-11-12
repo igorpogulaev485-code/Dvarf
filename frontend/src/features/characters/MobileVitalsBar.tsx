@@ -36,6 +36,7 @@ type MobileVitalsBarProps = {
   hpCurrent: number | null
   hpMax: number | null
   damageProfile?: IncomingDamageProfile
+  hasEvasion?: boolean
   play: PlayState
   autoAc: number
   acOverride: number | null
@@ -98,6 +99,7 @@ export function MobileVitalsBar({
   hpCurrent,
   hpMax,
   damageProfile,
+  hasEvasion = false,
   play,
   autoAc,
   acOverride,
@@ -569,6 +571,7 @@ export function MobileVitalsBar({
           onCombatChange={onCombatChange}
           onToast={onToast}
           damageProfile={damageProfile}
+          hasEvasion={hasEvasion}
         />
         <CoinPadDialog
           open={coinPadOpen}

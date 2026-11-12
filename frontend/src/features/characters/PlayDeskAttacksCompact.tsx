@@ -7,7 +7,17 @@ import {
 } from './combatConsumables'
 import type { ConsumableSpendLogEntry } from './consumableSpend'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
-import { fightingStyleAttackBonusFromIds } from '../../shared/dnd/fightingStyles'
+import {
+  countEquippedWeapons,
+  fightingStyleAttackBonusFromIds,
+  fightingStyleDamageBonusFromIds,
+} from '../../shared/dnd/fightingStyles'
+import {
+  attackBonusFromActiveEffects,
+  weaponBonusesFromActiveEffects,
+  type ActiveEffect,
+} from '../../shared/dnd/activeEffects'
+import { resolveWeaponGrip } from './heldEquip'
 import { canSpendSlot, spendSpellSlot } from '../../shared/dnd/spells'
 import type { SpellsState } from './spells'
 import {
@@ -56,6 +66,8 @@ type PlayDeskAttacksCompactProps = {
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
   /** B-02: magic weapon / elemental weapon flat bonuses from active effects. */
   effectWeaponBonus?: { attack: number; damage: number }
+  /** B-04: live effects for conditional weapon bonuses (rage melee_str…). */
+  activeEffects?: ActiveEffect[] | null
   /** Active fighting style id (archery → +2 on ranged attacks). */
   fightingStyleId?: string | null
   /** Every fighting style on the sheet, including a second champion style. */
@@ -147,6 +159,7 @@ export function PlayDeskAttacksCompact({
   proficiencyBonus,
   gearBonusesByItem = {},
   effectWeaponBonus = { attack: 0, damage: 0 },
+  activeEffects = null,
   fightingStyleId = null,
   fightingStyleIds,
   martialArtsDie = null,
@@ -191,8 +204,14 @@ export function PlayDeskAttacksCompact({
     [combatFeatures],
   )
   const symbioticRider = useMemo(
-    () => symbioticNecroticRider({ features: combatFeatures, resources, hpTemp }),
-    [combatFeatures, resources, hpTemp],
+    () =>
+      symbioticNecroticRider({
+        features: combatFeatures,
+        resources,
+        hpTemp,
+        effects: activeEffects,
+      }),
+    [combatFeatures, resources, hpTemp, activeEffects],
   )
   const smiteSpend = useMemo(() => divineSmiteSpendOf(combatFeatures), [combatFeatures])
   const [riderOn, setRiderOn] = useState<Record<string, boolean>>({})
@@ -490,10 +509,32 @@ export function PlayDeskAttacksCompact({
               attack.inventory_item_id && attack.held && requirementOk
                 ? gearBonusesByItem[attack.inventory_item_id]
                 : undefined
+            const styleIds =
+              fightingStyleIds ?? (fightingStyleId ? [fightingStyleId] : [])
             const styleAtk = fightingStyleAttackBonusFromIds({
-              styleIds: fightingStyleIds ?? (fightingStyleId ? [fightingStyleId] : []),
+              styleIds,
               weaponName: attack.name,
             })
+            const meleeAttack = isMeleeWeaponAttackName(attack.name)
+            const grip = resolveWeaponGrip({ name: attack.name })
+            const oneHandedMelee =
+              meleeAttack && !unarmed && grip !== 'two_hand'
+            const equippedWeaponCount = countEquippedWeapons(inventoryItems)
+            const styleDmg = fightingStyleDamageBonusFromIds({
+              styleIds,
+              oneHandedMelee,
+              holdingAnotherWeapon: equippedWeaponCount > 1,
+            })
+            const fxWeapon = weaponBonusesFromActiveEffects(activeEffects ?? [], {
+              melee: meleeAttack || unarmed,
+              ability: attackAbility,
+            })
+            const flatFxAttack = unarmed
+              ? 0
+              : fxWeapon.attack || effectWeaponBonus.attack
+            const flatFxDamage =
+              (unarmed ? 0 : fxWeapon.damage || effectWeaponBonus.damage) +
+              (unarmed ? 0 : styleDmg)
             const boundInfusion = attack.inventory_item_id
               ? infusionByItem?.[attack.inventory_item_id]
               : undefined
@@ -517,22 +558,23 @@ export function PlayDeskAttacksCompact({
                       : infusionDamageBonus,
                   ),
                 )
+            const fxAttackFlat = attackBonusFromActiveEffects(activeEffects ?? [])
             const attackBonus =
               mod +
               (attack.is_proficient || unarmed ? proficiencyBonus : 0) +
               (gear?.attackBonus ?? 0) +
               styleAtk +
               infusionAtk +
-              (unarmed ? 0 : effectWeaponBonus.attack)
+              flatFxAttack +
+              fxAttackFlat
             const dmgBonus =
               mod +
               (gear?.damageBonus ?? 0) +
               infusionDmg +
-              (unarmed ? 0 : effectWeaponBonus.damage)
+              flatFxDamage
             const dmg =
               baseDamage +
               (dmgBonus ? `${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
-            const meleeAttack = isMeleeWeaponAttackName(attack.name)
             const attackMode =
               attack.mode_active && attack.activation?.advantage
                 ? rollMode === 'disadvantage'

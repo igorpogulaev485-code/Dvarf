@@ -1,5 +1,6 @@
 /** Действия листа, группа 4. Тела функций перенесены без изменения порядка вызовов. */
 import type { SheetModel } from './sheetModel'
+import type { Draft } from './draft'
 import { type CompanionEntry } from '../companions'
 import { applyConcentrationChangeToCompanions, applySpellCastToCompanions } from '../spellCompanions'
 import { isSpellSelfFormCast, resolveSpellSelfFormSlug } from '../spellForms'
@@ -947,10 +948,20 @@ export function installSheetActions4(model: SheetModel) {
   }
 
   model.saveRollMode = function saveRollMode(abilityKey?: string): DeskRollMode {
-    const fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
+    let fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
       rollKind: 'save',
       abilityKey: abilityKey ?? null,
     })
+    // B-04 Danger Sense: permanent feature → advantage on Dex saves (visible effects).
+    if (
+      fromFx === 'normal' &&
+      String(abilityKey || '').toLowerCase() === 'dex' &&
+      (model.unlockedFeatures ?? []).some(
+        (f: { id?: string }) => f.id === 'danger_sense',
+      )
+    ) {
+      fromFx = 'advantage'
+    }
     return resolveRollMode(
       mergeDeskRollMode(model.deskRollMode, fromFx),
       model.exhaustionFlags().disadvantageOnAttacksAndSaves,
@@ -1131,5 +1142,83 @@ export function installSheetActions4(model: SheetModel) {
       /кости превосходства/i.test(row.name) ||
       /superiority dice/i.test(row.name)
     )
+  }
+
+  /** B-04: shared hooks for feature → ActiveEffect apply. */
+  model.featureBuffHooks = function featureBuffHooks() {
+    return {
+      onApplyLocal: (effect: ActiveEffect) => {
+        model.setDraft((prev: Draft) => ({
+          ...prev,
+          play: {
+            ...prev.play,
+            effects: [...(prev.play.effects ?? []), effect],
+          },
+        }))
+      },
+      onHpMaxGrant: (bonus: number) => {
+        model.setDraft((prev: Draft) => ({
+          ...prev,
+          hpMax: Math.max(1, (prev.hpMax ?? 0) + bonus),
+          hpCurrent: (prev.hpCurrent ?? 0) + bonus,
+        }))
+      },
+      onTempHpGrant: (incoming: number) => {
+        const current = Math.max(0, model.draft.play.hpTemp || 0)
+        if (current <= 0) {
+          model.setDraft((prev: Draft) => ({
+            ...prev,
+            play: { ...prev.play, hpTemp: incoming },
+          }))
+          return true
+        }
+        const ask = model.askTempHpReplace as
+          | ((input: { current: number; incoming: number }) => Promise<'keep' | 'replace'>)
+          | undefined
+        if (typeof ask === 'function') {
+          return ask({ current, incoming }).then((choiceKeep: 'keep' | 'replace') => {
+            const next = chooseTempHpPool(
+              current,
+              incoming,
+              choiceKeep === 'keep' ? 'keep' : 'replace',
+            )
+            model.setDraft((prev: Draft) => ({
+              ...prev,
+              play: { ...prev.play, hpTemp: next },
+            }))
+            return next === incoming
+          })
+        }
+        const next = Math.max(current, incoming)
+        model.setDraft((prev: Draft) => ({
+          ...prev,
+          play: { ...prev.play, hpTemp: next },
+        }))
+        return next === incoming
+      },
+    }
+  }
+
+  model.applyFeatureBuff = async function applyFeatureBuff(input: {
+    slug: string
+    name?: string
+    targets?: string[]
+    classLevel?: number | null
+    casterMod?: number | null
+    option?: string | null
+  }) {
+    const { applyFeatureBuffToTargets } = await import('../applyFeatureBuff')
+    return applyFeatureBuffToTargets({
+      slug: input.slug,
+      name: input.name,
+      targets: input.targets,
+      classLevel: input.classLevel,
+      casterMod: input.casterMod,
+      option: input.option,
+      sourceCharacterId: String(model.baseCharacter.id),
+      sourceName:
+        model.draft.name?.trim() || model.baseCharacter.name || 'Персонаж',
+      ...model.featureBuffHooks(),
+    })
   }
 }
