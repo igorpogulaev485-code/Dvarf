@@ -2,6 +2,7 @@
 import { createInventoryItem } from './inventory'
 import { isAutoCombatConsumable } from './combatConsumables'
 import {
+  applyScrollSpellChoice,
   bindScrollSpell,
   consumeScrollItem,
   formatScrollDisplayName,
@@ -9,9 +10,11 @@ import {
   isSpellScrollCatalogSlug,
   isSpellScrollItem,
   listBoundSpellScrolls,
+  scrollReadGate,
   spellScrollCastStats,
   spellScrollLevelCap,
   spellScrollOffListCheckDc,
+  SCROLL_NOT_ON_CLASS_LIST,
 } from './spellScroll'
 
 function assert(cond: unknown, msg: string): asserts cond {
@@ -69,5 +72,57 @@ assert(
 const stats3 = spellScrollCastStats(3)
 assert(stats3.saveDc === 15 && stats3.attackBonus === 7, 'L3 scroll stats')
 assert(spellScrollOffListCheckDc(3) === 13, 'off-list DC 10+3')
+
+const cleric5 = [{ listSlug: 'cleric', ability: 'wis' as const, maxSpellLevel: 3 }]
+const cleric3 = [{ listSlug: 'cleric', ability: 'wis' as const, maxSpellLevel: 2 }]
+assert(
+  scrollReadGate({
+    spellLevel: 1,
+    spellClasses: ['cleric'],
+    casters: cleric5,
+    thiefRogue13: false,
+  }).status === 'cast',
+  'guiding bolt on list',
+)
+const fireball = scrollReadGate({
+  spellLevel: 3,
+  spellClasses: ['sorcerer', 'wizard'],
+  casters: cleric5,
+  thiefRogue13: false,
+})
+assert(fireball.status === 'blocked' && fireball.reason === SCROLL_NOT_ON_CLASS_LIST, 'fireball blocked')
+const guardians = scrollReadGate({
+  spellLevel: 3,
+  spellClasses: ['cleric'],
+  casters: cleric3,
+  thiefRogue13: false,
+})
+assert(
+  guardians.status === 'check' && guardians.ability === 'wis' && guardians.dc === 13,
+  'spirit guardians check',
+)
+const thief = scrollReadGate({
+  spellLevel: 1,
+  spellClasses: ['wizard'],
+  casters: [],
+  thiefRogue13: true,
+})
+assert(thief.status === 'check' && thief.ability === 'int' && thief.dc === 11, 'thief uses Int')
+
+const locked = bindScrollSpell(bound, {
+  catalog_id: 'other',
+  name: 'Огненный шар',
+  level: 3,
+})
+assert(locked.scroll_spell?.name === 'Обнаружение магии', 'choice is locked')
+const stackBlank = { ...blank, id: 'stack', qty: 3 }
+const split = applyScrollSpellChoice(stackBlank.qty ? [stackBlank] : [], 'stack', {
+  catalog_id: 'shield',
+  name: 'Щит',
+  level: 1,
+})
+assert(split.length === 2, 'stack splits')
+assert(split[0]!.qty === 2 && !split[0]!.scroll_spell, 'rest stays blank')
+assert(split[1]!.qty === 1 && split[1]!.scroll_spell?.name === 'Щит', 'one copy bound')
 
 console.log('spellScroll.selfcheck: ok')

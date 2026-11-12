@@ -79,12 +79,16 @@ export function SpellScrollBindDialog({
   }, [entries, query, levelCap])
 
   function pick(entry: CatalogEntry) {
-    if (!item) return
+    if (!item || item.scroll_spell?.name) return
     const parsed = parseSpellCatalogData(entry.data ?? {})
     if (levelCap != null && parsed.level !== levelCap) {
       setError(`Этот свиток только для ${levelLabel(levelCap)}`)
       return
     }
+    const rawClasses = entry.data?.classes
+    const classes = Array.isArray(rawClasses)
+      ? rawClasses.filter((row): row is string => typeof row === 'string')
+      : []
     const binding: ScrollSpellBinding = {
       catalog_id: entry.id,
       slug: entry.slug,
@@ -93,11 +97,22 @@ export function SpellScrollBindDialog({
       school: parsed.school ?? null,
       ritual: Boolean(parsed.ritual),
       concentration: Boolean(parsed.concentration),
+      classes,
     }
     onConfirm(bindScrollSpell(item, binding))
   }
 
   if (!item) return null
+  if (item.scroll_spell?.name) {
+    return (
+      <Dialog open={open} title="Заклинание свитка" primaryLabel="Понятно" onPrimary={onClose}>
+        <Text>
+          На свитке уже {item.scroll_spell.name}. Выбор не меняется. Ошибку можно исправить только
+          удалением строки и новым свитком.
+        </Text>
+      </Dialog>
+    )
+  }
 
   return (
     <Dialog

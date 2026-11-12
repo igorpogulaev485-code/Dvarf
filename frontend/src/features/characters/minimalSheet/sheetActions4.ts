@@ -26,6 +26,8 @@ import {
 } from '../playDeskUi'
 import { setConcentration } from '../../../shared/dnd/concentration'
 import { equipInventoryItem } from '../inventory'
+import { consumeScrollItem } from '../spellScroll'
+import { spendItemCharges } from '../itemSpellCast'
 import { canCastWizardRitualFromBook } from '../../../shared/dnd/wizardSpellbook'
 import { canOfferRitualCast, castAccessAllowsRitual } from '../../../shared/dnd/ritualCasting'
 import { ritualBookBlockReason } from '../castWithoutSlots'
@@ -349,8 +351,9 @@ export function installSheetActions4(model: SheetModel) {
         ? model.draft.spells.known.find((row) => row.id === grantSpellId) ?? spell
         : null
     const grantCast = Boolean(grantRow && canSpendGrantCast(grantRow))
-    const slotForEffect =
-      spell.level <= 0 || ritualCast || grantCast || atWillCast || featureCast
+    const slotForEffect = choice.noSlot
+      ? choice.slotLevel || spell.level
+      : spell.level <= 0 || ritualCast || grantCast || atWillCast || featureCast
         ? spell.level
         : choice.usePact
           ? (model.draft.spells.pact_slots?.level ?? spell.level)
@@ -384,6 +387,45 @@ export function installSheetActions4(model: SheetModel) {
       damageChoice: choice.damageChoice,
       affinity,
     })
+    if (choice.noSlot) {
+      const spent = spendItemCharges(
+        model.draft.play.resources,
+        {
+          resourceId: choice.itemResourceId ?? null,
+          charges: choice.itemChargeCost ?? 0,
+        },
+        choice.itemChargeCost ?? 0,
+      )
+      if (!spent.ok) {
+        model.onToast(spent.message)
+        return
+      }
+      model.setDraft((prev) =>
+        model.withDeskConcentration(
+          {
+            ...prev,
+            play: { ...prev.play, resources: spent.resources },
+            inventory: choice.scrollItemId
+              ? {
+                  ...prev.inventory,
+                  items: consumeScrollItem(prev.inventory.items, choice.scrollItemId),
+                }
+              : prev.inventory,
+          },
+          spell,
+        ),
+      )
+      const chargeNote =
+        (choice.itemChargeCost ?? 0) > 0 ? ` · −${choice.itemChargeCost} зарядов` : ''
+      const hint = spent.hint ? ` · ${spent.hint}` : ''
+      model.setDeskScrollLock(null)
+      model.onToast(
+        `Каст: ${name}${choice.scrollItemId ? ' со свитка' : ' из предмета'} (без ячейки)${
+          effect ? ` · ${effect}` : ''
+        }${chargeNote}${hint}${spell.concentration ? ' · концентрация' : ''}`,
+      )
+      return
+    }
     let shillelaghNote = ''
     if (isShillelaghSpell(spell)) {
       const weapon = pickShillelaghAttack(model.draft.weapons)

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { itemCastSlotLevel } from './itemSpellCast'
 import {
   findDualCastSiblings,
   resolveSpellCastStats,
@@ -149,6 +150,11 @@ export type CastChoice = {
   /** War Magic: this counterspell or dispel magic ended a spell. */
   powerSurge?: boolean
   lobbyId?: string | null
+  /** Item pool or spell scroll: do not spend a spell slot. */
+  noSlot?: boolean
+  itemResourceId?: string | null
+  itemChargeCost?: number
+  scrollItemId?: string | null
 }
 
 type CastSpellDialogProps = {
@@ -204,6 +210,12 @@ type CastSpellDialogProps = {
   elementalAffinity?: { damageType: string; amount: number } | null
   /** Feature / ki pools, for cards that do not spend a spell slot. */
   resources?: SheetResource[]
+  /**
+   * Spell scroll: these numbers replace the character's attack and DC.
+   * Item bonuses from the sheet are not added.
+   */
+  statLock?: { saveDc: number; attackBonus: number } | null
+  scrollItemId?: string | null
 }
 
 export function CastSpellDialog({
@@ -235,7 +247,15 @@ export function CastSpellDialog({
   voiceOfAuthority = false,
   elementalAffinity = null,
   resources,
+  statLock = null,
+  scrollItemId = null,
 }: CastSpellDialogProps) {
+  const itemCast = spell?.item_cast ?? null
+  const borne = Boolean(itemCast || statLock)
+  const [chargeCount, setChargeCount] = useState(1)
+  useEffect(() => {
+    setChargeCount(Math.max(1, itemCast?.charges ?? 1))
+  }, [spell?.id, itemCast?.charges])
   const isCantrip = spell != null && spell.level <= 0
   const spellLevel = spell?.level ?? 0
   const dualOptions = useMemo(
@@ -490,6 +510,15 @@ export function CastSpellDialog({
     spellLevel,
   ])
 
+  const castSlot = itemCast
+    ? itemCastSlotLevel(
+        itemCast,
+        itemCast.chargePerLevel ? chargeCount : Math.max(itemCast.charges, itemCast.castLevel > 0 ? itemCast.charges : 0),
+      )
+    : statLock
+      ? spellLevel
+      : effectiveSlotLevel
+
   const castEffect = useMemo(() => {
     if (!rulesSpell) return { effect: '', scaled: false, lines: [] as string[] }
     const resolved = abilities
@@ -504,7 +533,7 @@ export function CastSpellDialog({
       : null
     return resolveCastEffectSummary(rulesSpell, {
       characterLevel,
-      slotLevel: effectiveSlotLevel || rulesSpell.level,
+      slotLevel: castSlot || rulesSpell.level,
       spellMod: resolved?.ability ? abilityModifier(abilities![resolved.ability]) : null,
       spellModLabel: resolved?.ability
         ? SPELLCASTING_ABILITY_LABELS[resolved.ability]
@@ -515,7 +544,7 @@ export function CastSpellDialog({
   }, [
     rulesSpell,
     characterLevel,
-    effectiveSlotLevel,
+    castSlot,
     damageChoice,
     elementalAffinity,
     abilities,
@@ -547,7 +576,17 @@ export function CastSpellDialog({
       proficiencyBonus,
       fallbackAbility: spells.casting_ability,
     })
-    if (resolved.saveDc == null && resolved.attackBonus == null) return null
+    if (statLock) {
+      return {
+        ...resolved,
+        saveDc: statLock.saveDc,
+        attackBonus: statLock.attackBonus,
+        sourceLabel: 'Свиток',
+      }
+    }
+    if (resolved.saveDc == null && resolved.attackBonus == null && itemCast?.saveDc == null) {
+      return null
+    }
     const boosted = withSpellCastBonuses({
       baseDc: resolved.saveDc,
       baseAttack: resolved.attackBonus,
@@ -557,8 +596,8 @@ export function CastSpellDialog({
     })
     return {
       ...resolved,
-      saveDc: boosted.dc,
-      attackBonus: boosted.attack,
+      saveDc: itemCast?.saveDc != null ? itemCast.saveDc : boosted.dc,
+      attackBonus: itemCast?.attackBonus != null ? itemCast.attackBonus : boosted.attack,
     }
   }, [
     spell,
@@ -568,13 +607,36 @@ export function CastSpellDialog({
     spells.casting_ability,
     modifiers,
     formulaVars,
+    statLock,
+    itemCast,
   ])
 
   if (!spell) {
     return null
   }
 
-  const materialsOk = materialCheck.ok && focusGate.ok
+  const materialsOk = borne || (materialCheck.ok && focusGate.ok)
+  const chargePool = itemCast?.resourceId
+    ? resources?.find((row) => row.id === itemCast.resourceId) ?? null
+    : null
+  const chargesLeft = chargePool ? Math.max(0, chargePool.max - chargePool.used) : 0
+  const chargePickMax = itemCast?.chargePerLevel
+    ? Math.max(
+        itemCast.charges,
+        Math.min(
+          chargesLeft || itemCast.charges,
+          (itemCast.maxLevel ?? 9) - itemCast.castLevel + itemCast.charges,
+        ),
+      )
+    : itemCast?.charges ?? 1
+  const pickedCharges = itemCast?.chargePerLevel
+    ? Math.min(Math.max(itemCast.charges, chargeCount), chargePickMax)
+    : itemCast?.charges ?? 0
+  const chargeOk =
+    !itemCast ||
+    itemCast.charges <= 0 ||
+    itemCast.resourceId == null ||
+    chargesLeft >= pickedCharges
   const needsConsumeChoice = Boolean(
     materialCheck.ok &&
       materialCheck.requirement &&
@@ -586,8 +648,9 @@ export function CastSpellDialog({
   const featureOk = Boolean(featureOffer && featureLeft >= featureOffer.cost)
   const canCast =
     materialsOk &&
-    !bookBlock &&
-    (isCantrip ||
+    (borne ? chargeOk : !bookBlock) &&
+    (borne ||
+      isCantrip ||
       atWill ||
       (useFeature && featureOk) ||
       grantOk ||
@@ -665,9 +728,11 @@ export function CastSpellDialog({
     : bookBlock
       ? 'Нет книги'
       : !canCast
-        ? featureOffer
-          ? 'Нет заряда'
-          : 'Нет ячеек'
+        ? borne
+          ? 'Нет зарядов'
+          : featureOffer
+            ? 'Нет заряда'
+            : 'Нет ячеек'
       : busy
         ? 'Кастуем…'
         : useFeature && featureOffer
@@ -710,12 +775,17 @@ export function CastSpellDialog({
             !useFeature &&
             usePact &&
             pactOk,
-          slotLevel:
-            isCantrip || useRitual || useGrant
+          slotLevel: borne
+            ? castSlot
+            : isCantrip || useRitual || useGrant
               ? spellLevel
-                : usePact
-                  ? (spells.pact_slots?.level ?? spellLevel)
-                  : effectiveSlotLevel,
+              : usePact
+                ? (spells.pact_slots?.level ?? spellLevel)
+                : effectiveSlotLevel,
+          noSlot: borne,
+          itemResourceId: itemCast?.resourceId ?? null,
+          itemChargeCost: itemCast && itemCast.charges > 0 ? pickedCharges : 0,
+          scrollItemId: scrollItemId ?? null,
           damageChoice,
           consumeMaterial: needsConsumeChoice ? consumeMaterial : false,
           consumeItemId:
@@ -741,6 +811,34 @@ export function CastSpellDialog({
           {appliesToAllies ? ` · до ${targetCount} цел.` : ''}
           {spell.source_book ? ` · ${spell.source_book}` : ''}
         </Text>
+        {borne ? (
+          <Stack gap={8}>
+            <Text tone="muted">
+              {statLock
+                ? 'Свиток: Сл и атака свитка, ячейка и материальные компоненты не тратятся. После каста свиток рассыпается.'
+                : itemCast?.charges
+                  ? `${itemCast.itemName}: ${itemCast.chargePerLevel ? `от ${itemCast.charges} зарядов, уровень растёт с каждым` : `${pickedCharges} зарядов`}. Ячейка не тратится.`
+                  : `${itemCast?.itemName ?? 'Предмет'}: без затраты зарядов. Ячейка не тратится.`}
+            </Text>
+            {itemCast?.chargePerLevel ? (
+              <div className="chip-row">
+                {Array.from(
+                  { length: Math.max(1, chargePickMax - itemCast.charges + 1) },
+                  (_, index) => itemCast.charges + index,
+                ).map((count) => (
+                  <button
+                    key={count}
+                    type="button"
+                    className={`sheet-chip${pickedCharges === count ? ' is-on' : ''}`}
+                    onClick={() => setChargeCount(count)}
+                  >
+                    {count} зар. · {itemCastSlotLevel(itemCast, count)} ур.
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </Stack>
+        ) : null}
         {dualOptions.length > 1 && onSelectSpellVariant ? (
           <div>
             <Text tone="muted">Как кастуем (класс-источник)</Text>
@@ -791,8 +889,10 @@ export function CastSpellDialog({
               Эффект сейчас
               {isCantrip
                 ? ` (ур. персонажа ${Math.max(1, characterLevel)})`
-                : !useRitual && !useGrant
-                  ? ` (ячейка ${Math.max(spell.level, effectiveSlotLevel)} · база ${spell.level})`
+                : borne
+                  ? ` (${castSlot} ур.${itemCast?.chargePerLevel ? '' : ''})`
+                  : !useRitual && !useGrant
+                    ? ` (ячейка ${Math.max(spell.level, effectiveSlotLevel)} · база ${spell.level})`
                   : ''}
               :
             </Text>
@@ -1064,7 +1164,7 @@ export function CastSpellDialog({
                           }.`
                         : '.'}
               </Text>
-            ) : hasSlotPath || useGrant || useRitual || atWill || featureOk ? null : (
+            ) : hasSlotPath || useGrant || useRitual || atWill || featureOk || borne ? null : (
               <Stack gap={8}>
                 <Text tone="danger">
                   {bookBlock

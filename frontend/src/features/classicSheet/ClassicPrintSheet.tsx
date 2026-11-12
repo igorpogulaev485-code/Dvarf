@@ -1,4 +1,5 @@
 import type { CharacterDetail } from '../../shared/api/characters'
+import { ClassicSpellScrolls } from './ClassicSpellScrolls'
 import {
   ABILITY_KEYS,
   ABILITY_LABELS,
@@ -459,6 +460,7 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                   />
                 </div>
               ))}
+              <ClassicSpellScrolls character={c} onPatch={onPatch} />
               <ClassicTextBlock
                 blockId="attacks"
                 character={c}

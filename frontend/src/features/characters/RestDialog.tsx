@@ -231,8 +231,11 @@ export function RestDialog({
           ? ' · −1 истощение'
           : ''
     onCompanionRest?.('long')
+    const rechargeNote = result.rechargeLines?.length
+      ? ` · ${result.rechargeLines.join(' · ')}`
+      : ''
     onToast(
-      `Продолжительный отдых: HP, кости, ячейки, ресурсы сброшены${exhaustionNote}`,
+      `Продолжительный отдых: HP, кости, ячейки, ресурсы сброшены${exhaustionNote}${rechargeNote}`,
     )
     onClose()
   }

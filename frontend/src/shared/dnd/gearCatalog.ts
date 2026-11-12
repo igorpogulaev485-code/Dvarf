@@ -130,7 +130,20 @@ export type GearEffect =
   | { type: 'sense'; sense: string; range_ft?: number }
   | { type: 'speed'; mode?: string; value_ft: number }
   | { type: 'spell_slots'; level: number; delta: number }
-  | { type: 'grant_spell'; slug: string; uses?: number }
+  | {
+      type: 'grant_spell'
+      slug: string
+      uses?: number
+      name_ru?: string
+      /** Charge cost from the item pool. 0 with unlimited, or omitted uses own `uses`. */
+      charges?: number
+      cast_level?: number
+      charge_per_level?: boolean
+      max_level?: number
+      save_dc?: number
+      attack_bonus?: number
+      unlimited?: boolean
+    }
   /**
    * Bonus to spell attack rolls and/or spell save DC.
    * `class_scoped` reads classes from the item's I02 `attunement_classes`.
@@ -145,6 +158,8 @@ export type GearEffect =
     }
   /** Potion of Healing family — dice string like "2к4+2" / "2d4+2". */
   | { type: 'heal'; dice: string }
+  /** Instant harm on drink (potion of poison). Duration effects stay with buffs. */
+  | { type: 'harm'; dice: string; note?: string }
   | {
       type: 'resistance'
       damage_type: string
@@ -155,7 +170,15 @@ export type GearEffect =
     }
   | { type: 'vulnerability'; damage_type: string }
   | { type: 'immunity'; damage_type: string }
-  | { type: 'resource'; id: string; max: number; restore?: ChargeRestore }
+  | {
+      type: 'resource'
+      id: string
+      max: number
+      restore?: ChargeRestore
+      recharge_dice?: string
+      /** Last charge: show a d20 hint. The sheet does not destroy the item. */
+      deplete?: 'destroy_on_1' | 'regain_1d12_on_20' | 'strip_on_1'
+    }
   | { type: 'companion'; kind: string; name_ru?: string }
   | { type: 'sheet_flag'; flag: string; value?: boolean | string | number }
   | { type: 'custom_note'; text: string }

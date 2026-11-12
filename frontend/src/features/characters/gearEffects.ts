@@ -25,6 +25,8 @@ import {
   type AttunementCharacter,
 } from './attunementRules'
 import type { InventoryItem } from './inventory'
+import type { ResourceReset } from '../../shared/dnd/rest'
+import { depleteHintFromCode } from './gearCharges'
 
 export type ActiveGearEffect = {
   effect: GearEffect
@@ -88,8 +90,10 @@ export type AggregatedGearEffects = {
     key: string
     name: string
     max: number
-    reset: 'short' | 'long' | 'manual'
+    reset: ResourceReset
     itemId: string
+    rechargeDice?: string
+    depleteHint?: string
   }>
   /** Companions granted while item is active. */
   companions: Array<{
@@ -106,18 +110,32 @@ export type AggregatedGearEffects = {
   conditionImmunities: Array<{ slug: string; name: string; itemName: string }>
   /** Tool proficiencies granted while the item is active. */
   toolProficiencies: string[]
-  /** Spells granted with optional free charges. */
-  grantSpells: Array<{
-    key: string
-    slug: string
-    uses: number | null
-    reset: 'short' | 'long'
-    itemId: string
-    itemName: string
-  }>
+  /** Spells granted with optional free charges or a shared item pool. */
+  grantSpells: GearGrantSpell[]
   /** Human-readable lines for UI. */
   notes: string[]
   active: ActiveGearEffect[]
+}
+
+export type GearGrantPool = 'uses' | 'charges' | 'unlimited'
+
+export type GearGrantSpell = {
+  key: string
+  slug: string
+  nameRu: string
+  uses: number | null
+  reset: 'short' | 'long'
+  itemId: string
+  itemName: string
+  /** `uses` is the old per-spell counter. `charges` spends the item pool. */
+  pool: GearGrantPool
+  chargeCost: number
+  castLevel: number
+  chargePerLevel: boolean
+  maxCastLevel: number | null
+  saveDc: number | null
+  attackBonus: number | null
+  resourceKey: string | null
 }
 
 export type SpellcastingAppliesTo = 'attack' | 'dc' | 'both'
@@ -195,15 +213,28 @@ export function emptyAggregatedGearEffects(): AggregatedGearEffects {
   }
 }
 
-function readReset(value: unknown): 'short' | 'long' | 'manual' {
-  if (value === 'short' || value === 'long' || value === 'manual') return value
-  if (value && typeof value === 'object') {
-    const restore = (value as { restore?: unknown }).restore
-    if (restore === 'short' || restore === 'long' || restore === 'manual') return restore
-  }
-  // Catalog sometimes uses long_rest / short_rest.
+function asReset(value: unknown): ResourceReset | null {
   if (value === 'long_rest') return 'long'
   if (value === 'short_rest') return 'short'
+  if (
+    value === 'short' ||
+    value === 'long' ||
+    value === 'manual' ||
+    value === 'dawn' ||
+    value === 'midnight'
+  ) {
+    return value
+  }
+  return null
+}
+
+function readReset(value: unknown): ResourceReset {
+  const direct = asReset(value)
+  if (direct) return direct
+  if (value && typeof value === 'object') {
+    const nested = asReset((value as { restore?: unknown }).restore)
+    if (nested) return nested
+  }
   return 'long'
 }
 
@@ -561,13 +592,24 @@ export function aggregateGearEffects(input: {
         const reset = readReset(
           (effect as { restore?: unknown }).restore ?? effect,
         )
+        const rechargeDice = String(
+          (effect as { recharge_dice?: unknown }).recharge_dice ?? '',
+        ).trim()
+        const depleteHint = depleteHintFromCode(
+          (effect as { deplete?: unknown }).deplete,
+        )
         const key = `gear-res:${item.id}:${id}`
+        const namedPool = Boolean(rechargeDice || depleteHint)
         out.resources.push({
           key,
-          name: resourceDisplayName(item.name || 'Предмет', id),
+          name: namedPool
+            ? `${item.name || 'Предмет'}: заряды`
+            : resourceDisplayName(item.name || 'Предмет', id),
           max: Math.floor(max),
           reset,
           itemId: item.id,
+          ...(rechargeDice ? { rechargeDice } : {}),
+          ...(depleteHint ? { depleteHint } : {}),
         })
         if (id === 'channel_divinity') appliedChannelResource = true
         out.notes.push(`${item.name || 'предмет'}: ресурс ${id} ×${Math.floor(max)}`)
@@ -640,22 +682,67 @@ export function aggregateGearEffects(input: {
       if (type === 'grant_spell') {
         const slug = String((effect as { slug?: unknown }).slug ?? '').trim()
         if (!slug) continue
-        const uses = asNumber((effect as { uses?: unknown }).uses)
-        const reset = readReset((effect as { restore?: unknown }).restore)
-        const key = `gear-spell:${item.id}:${slug}`
+        const row = effect as {
+          uses?: unknown
+          charges?: unknown
+          cast_level?: unknown
+          charge_per_level?: unknown
+          max_level?: unknown
+          save_dc?: unknown
+          attack_bonus?: unknown
+          unlimited?: unknown
+          name_ru?: unknown
+          restore?: unknown
+        }
+        const uses = asNumber(row.uses)
+        const chargeCostRaw = asNumber(row.charges)
+        const unlimited = row.unlimited === true || chargeCostRaw === 0
+        const sharedPool = unlimited || (chargeCostRaw != null && chargeCostRaw > 0)
+        const reset = readReset(row.restore)
+        const castLevel = asNumber(row.cast_level)
+        const saveDc = asNumber(row.save_dc)
+        const attackBonus = asNumber(row.attack_bonus)
+        const maxCast = asNumber(row.max_level)
+        const nameRu = String(row.name_ru ?? '').trim()
+        const key = `gear-spell:${item.id}:${slug}:${castLevel ?? 'base'}`
+        const pool: GearGrantPool = unlimited ? 'unlimited' : sharedPool ? 'charges' : 'uses'
         out.grantSpells.push({
           key,
           slug,
-          uses: uses != null && uses > 0 ? Math.floor(uses) : null,
+          nameRu,
+          uses: !sharedPool && uses != null && uses > 0 ? Math.floor(uses) : null,
           reset: reset === 'short' ? 'short' : 'long',
           itemId: item.id,
           itemName: item.name || 'Предмет',
+          pool,
+          chargeCost: pool === 'charges' && chargeCostRaw != null ? Math.floor(chargeCostRaw) : 0,
+          castLevel: castLevel != null ? Math.max(0, Math.floor(castLevel)) : 0,
+          chargePerLevel: row.charge_per_level === true,
+          maxCastLevel: maxCast != null ? Math.floor(maxCast) : null,
+          saveDc: saveDc != null ? Math.floor(saveDc) : null,
+          attackBonus: attackBonus != null ? Math.floor(attackBonus) : null,
+          resourceKey: null,
         })
+        const costLabel =
+          pool === 'unlimited'
+            ? 'неограниченно'
+            : pool === 'charges'
+              ? `${Math.floor(chargeCostRaw ?? 0)} зар.`
+              : uses != null && uses > 0
+                ? `×${Math.floor(uses)}`
+                : ''
         out.notes.push(
-          `${item.name || 'предмет'}: заклинание ${slug}${
-            uses != null && uses > 0 ? ` ×${Math.floor(uses)}` : ''
-          }`,
+          `${item.name || 'предмет'}: ${nameRu || slug}${costLabel ? ` ${costLabel}` : ''}`,
         )
+      }
+    }
+
+    const chargePool = [...out.resources].reverse().find((row) => row.itemId === item.id)
+    if (chargePool) {
+      for (const grant of out.grantSpells) {
+        if (grant.itemId === item.id && grant.pool === 'charges' && !grant.resourceKey) {
+          grant.resourceKey = chargePool.key
+        }
       }
     }
 

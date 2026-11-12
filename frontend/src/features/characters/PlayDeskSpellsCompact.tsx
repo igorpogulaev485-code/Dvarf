@@ -660,7 +660,22 @@ function SpellRow({
   proficiencyBonus: number
   castingAbility: SpellcastingAbility | null
 }) {
-  const levelText = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
+  const levelText = spell.item_cast
+    ? spell.item_cast.chargePerLevel
+      ? `${spell.item_cast.castLevel}+ ур.`
+      : spell.item_cast.castLevel <= 0
+        ? 'заговор'
+        : `${spell.item_cast.castLevel} ур.`
+    : spell.level <= 0
+      ? 'заговор'
+      : `${spell.level} ур.`
+  const chargeText = spell.item_cast
+    ? spell.item_cast.charges <= 0
+      ? 'неограниченно'
+      : spell.item_cast.chargePerLevel
+        ? `от ${spell.item_cast.charges} зар.`
+        : `${spell.item_cast.charges} зар.`
+    : ''
   const meta = compactSpellMeta(spell)
   const modStats = resolveSpellCastStats({
     spell,
@@ -722,7 +737,10 @@ function SpellRow({
         <div className="play-desk-compact__spell-top">
           <div className="play-desk-compact__row-main">
             <b>{spell.name}</b>
-            <span className="play-desk-compact__spell-level">{levelText}</span>
+            <span className="play-desk-compact__spell-level">
+              {levelText}
+              {chargeText ? ` · ${chargeText}` : ''}
+            </span>
             <span
               className="play-desk-compact__spell-dmg"
               title="Урон / эффект для этого персонажа"
