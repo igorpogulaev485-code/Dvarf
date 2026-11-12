@@ -113,6 +113,19 @@ export type InventoryItem = {
    */
   magic_bonus?: number | null
   /**
+   * Setting-artifact grant. Kept across open/save so live effects can be
+   * rebuilt and the ability ceiling (Маска Лича, ИНТ 22) is not lost.
+   */
+  item_kind?: string | null
+  setting_artifact_id?: string | null
+  artifact_snapshot?: Record<string, unknown> | null
+  magic_mods?: Record<string, unknown> | null
+  requirements?: Array<Record<string, unknown>>
+  req_ability?: string | null
+  req_score?: number | null
+  /** True once numeric bonuses live in effects and are not baked into scores. */
+  artifact_live?: boolean
+  /**
    * Spell Scroll: which spell this consumable holds.
    * Catalog blanks are level-only; binding is set when the item enters inventory.
    */
@@ -271,6 +284,26 @@ function readItem(raw: unknown, index: number): InventoryItem {
     robe_color: readRobeColor(row.robe_color),
     effects: readEffects(row.effects),
     magic_bonus: readNullableNumber(row.magic_bonus),
+    item_kind: typeof row.item_kind === 'string' ? row.item_kind : null,
+    setting_artifact_id:
+      typeof row.setting_artifact_id === 'string' ? row.setting_artifact_id : null,
+    artifact_snapshot:
+      row.artifact_snapshot && typeof row.artifact_snapshot === 'object'
+        ? (row.artifact_snapshot as Record<string, unknown>)
+        : null,
+    magic_mods:
+      row.magic_mods && typeof row.magic_mods === 'object' && !Array.isArray(row.magic_mods)
+        ? (row.magic_mods as Record<string, unknown>)
+        : null,
+    requirements: Array.isArray(row.requirements)
+      ? row.requirements.filter(
+          (entry): entry is Record<string, unknown> =>
+            Boolean(entry) && typeof entry === 'object' && !Array.isArray(entry),
+        )
+      : undefined,
+    req_ability: typeof row.req_ability === 'string' ? row.req_ability : null,
+    req_score: readNullableNumber(row.req_score),
+    artifact_live: row.artifact_live === true,
     scroll_spell: readScrollSpell(row.scroll_spell),
   }
 }
@@ -368,6 +401,14 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         ...(item.robe_color ? { robe_color: item.robe_color } : {}),
         effects: item.effects ?? [],
         ...(item.magic_bonus ? { magic_bonus: item.magic_bonus } : {}),
+        ...(item.item_kind ? { item_kind: item.item_kind } : {}),
+        ...(item.setting_artifact_id ? { setting_artifact_id: item.setting_artifact_id } : {}),
+        ...(item.artifact_snapshot ? { artifact_snapshot: item.artifact_snapshot } : {}),
+        ...(item.magic_mods ? { magic_mods: item.magic_mods } : {}),
+        ...(item.requirements?.length ? { requirements: item.requirements } : {}),
+        ...(item.req_ability ? { req_ability: item.req_ability } : {}),
+        ...(item.req_score != null ? { req_score: item.req_score } : {}),
+        ...(item.artifact_live ? { artifact_live: true } : {}),
         ...(item.scroll_spell
           ? {
               scroll_spell: {

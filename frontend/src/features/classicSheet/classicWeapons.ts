@@ -1,5 +1,7 @@
 import type { CharacterDetail } from '../../shared/api/characters'
 import {
+  artifactAttackDamage,
+  artifactRequirementMet,
   createCustomAttack,
   type WeaponAttack,
 } from '../characters/AttacksPanel'
@@ -65,8 +67,37 @@ function readWeaponAttacks(sheet: Record<string, unknown>): WeaponAttack[] {
           ? Math.floor(row.qty)
           : null,
       inventory_item_id:
-        typeof row.inventory_item_id === 'string' ? row.inventory_item_id : null,
+        typeof row.inventory_item_id === 'string'
+          ? row.inventory_item_id
+          : typeof row.source_item_id === 'string'
+            ? row.source_item_id
+            : null,
       held: Boolean(row.held),
+      mode_active: row.mode_active === true,
+      activation:
+        row.activation && typeof row.activation === 'object'
+          ? {
+              id: '',
+              name: '',
+              action_cost: 'bonus',
+              duration: '',
+              duration_rounds: 0,
+              active_damage:
+                typeof (row.activation as { active_damage?: unknown }).active_damage === 'string'
+                  ? (row.activation as { active_damage: string }).active_damage
+                  : '',
+              active_damage_type:
+                typeof (row.activation as { active_damage_type?: unknown }).active_damage_type ===
+                'string'
+                  ? (row.activation as { active_damage_type: string }).active_damage_type
+                  : '',
+              advantage: true,
+              resource_id: null,
+              base_damage: '',
+              base_damage_type: '',
+              text: '',
+            }
+          : null,
       // Classic blank column — kept as an extra field interactive UI ignores.
       ...(typeof row.attack_bonus === 'string' ? { attack_bonus: row.attack_bonus } : null),
     } as WeaponAttack & { attack_bonus?: string }
@@ -161,17 +192,20 @@ export function classicWeaponRows(character: CharacterDetail): ClassicWeaponRow[
   const scores = classicEffectiveAbilities(character)
   const rows = attacks.map((attack) => {
     const withBonus = attack as WeaponAttack & { attack_bonus?: string }
+    const face = artifactAttackDamage(attack)
+    const allowed = artifactRequirementMet(attack, scores)
     const gearRow =
-      attack.inventory_item_id && attack.held
+      attack.inventory_item_id && attack.held && allowed
         ? gear.byItem[attack.inventory_item_id]
         : undefined
     const magicAtk = gearRow?.attackBonus ?? 0
     const magicDmg = gearRow?.damageBonus ?? 0
+    const faced = { ...attack, damage: face.damage, damage_type: face.damageType }
     return {
       id: attack.id,
       name: attack.name,
       attackBonus: rowAttackBonus(character, withBonus, weaponProficiency, magicAtk, scores),
-      damageLine: computedDamageLine(character, attack, magicDmg, scores),
+      damageLine: computedDamageLine(character, faced, magicDmg, scores),
     }
   })
   while (rows.length < CLASSIC_WEAPON_SLOTS) {

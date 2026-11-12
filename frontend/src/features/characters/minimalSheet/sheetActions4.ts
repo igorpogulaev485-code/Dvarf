@@ -674,7 +674,10 @@ export function installSheetActions4(model: SheetModel) {
         item.armor_kind === 'light' ||
         item.armor_kind === 'medium' ||
         item.armor_kind === 'heavy' ||
-        item.armor_kind === 'shield'
+        item.armor_kind === 'shield' ||
+        item.item_kind === 'magic' ||
+        Boolean(item.setting_artifact_id) ||
+        Boolean(item.artifact_snapshot)
       if (!shouldEquip) continue
       nextItems = equipInventoryItem(nextItems, id, true)
       if (item.name.trim()) equippedNames.push(item.name.trim())

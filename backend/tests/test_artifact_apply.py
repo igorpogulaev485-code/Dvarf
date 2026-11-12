@@ -167,13 +167,23 @@ def test_apply_full_kit():
     assert items[0]["artifact_snapshot"]["attack_role"] == "artifact"
     assert len(sheet["attunements"]) == 1
 
-    assert sheet["combat"]["ac"] == 10 + 2 + 1
+    assert sheet["combat"].get("ac") in (None, 0)
     assert sheet["combat"]["speed"] == 30
     assert any(
         r.get("damage_type") == "огонь" for r in sheet["combat"]["damage_resistances"]
     )
+    assert sheet["combat"]["darkvision"] == 60
     assert sheet["identity"]["darkvision"] == 60
-    assert sheet["saves"]["dex"]["magic_bonus"] == 1
+    effects = items[0]["effects"]
+    assert any(e.get("type") == "ac_bonus" and e.get("value") == 1 for e in effects)
+    assert any(
+        e.get("type") == "save_bonus" and e.get("ability") == "dex" and e.get("value") == 1
+        for e in effects
+    )
+    assert any(e.get("type") == "sense" and e.get("range_ft") == 60 for e in effects)
+    assert any(e.get("type") == "resistance" and e.get("damage_type") == "огонь" for e in effects)
+    assert sheet["spells"]["gear_slot_deltas"]["3"] == 1
+    assert items[0]["artifact_live"] is True
 
     assert sheet["spells"]["slots"]["3"]["max"] == 2  # was 1 + 1
     assert any(s.get("name") == "Огненный шар" for s in sheet["spells"]["known"])
@@ -184,6 +194,8 @@ def test_apply_full_kit():
 
     assert any(r.get("max") == 7 for r in sheet["resources"])
     assert any(w.get("magic_bonus") == 1 for w in sheet["weapons"])
+    assert sheet["weapons"][0]["inventory_item_id"] == items[0]["id"]
+    assert sheet["weapons"][0]["damage"] == "1d6"
 
 
 def test_apply_greataxe_mode_and_requirement():
@@ -235,6 +247,7 @@ def test_apply_greataxe_mode_and_requirement():
     assert item["req_score"] == 15
     weapon = sheet["weapons"][0]
     assert weapon["damage"] == "1d12"
+    assert weapon["inventory_item_id"] == item["id"]
     assert weapon["req_score"] == 15
     assert weapon["activation"]["active_damage"] == "2d12"
     assert weapon["activation"]["advantage"] is True
@@ -274,8 +287,11 @@ def test_apply_weapon_artifact_bakes_bonuses():
     }
     apply_artifact_to_sheet(sheet, artifact=artifact)
     assert sheet["weapons"][0]["magic_bonus"] == 1
-    assert "1d8" in sheet["weapons"][0]["damage"]
-    assert "+1" in sheet["weapons"][0]["damage"]
+    assert sheet["weapons"][0]["damage"] == "1d8"
+    assert sheet["weapons"][0]["inventory_item_id"] == sheet["inventory"]["items"][0]["id"]
+    effects = sheet["inventory"]["items"][0]["effects"]
+    assert any(e.get("type") == "attack_bonus" and e.get("value") == 1 for e in effects)
+    assert any(e.get("type") == "damage_bonus" and e.get("value") == 1 for e in effects)
     assert sheet["weapons"][0]["source_kind"] == "artifact"
 
 
@@ -314,9 +330,11 @@ def test_apply_vezul_feather_skills_and_tool():
         "resources": [],
     }
     apply_artifact_to_sheet(sheet, artifact=artifact)
-    assert sheet["skills"]["nature"]["magic_bonus"] == 2
-    assert sheet["skills"]["nature"]["is_proficient"] is True
-    assert sheet["skills"]["history"]["magic_bonus"] == 2
+    effects = sheet["inventory"]["items"][0]["effects"]
+    assert any(e.get("type") == "skill_bonus" and e.get("skill") == "nature" and e.get("value") == 2 for e in effects)
+    assert any(e.get("type") == "skill_bonus" and e.get("skill") == "history" and e.get("value") == 2 for e in effects)
+    assert any(e.get("flag") == "tool_proficiency" for e in effects)
+    assert "magic_bonus" not in sheet["skills"].get("nature", {})
     tools = sheet["proficiency"]["tools"]
     assert "Воровские инструменты" in tools
     assert "Инструменты фальсификатора" in tools
@@ -368,8 +386,15 @@ def test_apply_lich_mask_max_int_and_condition_immunities():
         "resources": [],
     }
     apply_artifact_to_sheet(sheet, artifact=artifact)
-    assert sheet["abilities"]["int"]["score"] == 20
+    # Own score stays 18. +2 / max 22 is a live effect, not a baked 20.
+    assert sheet["abilities"]["int"]["score"] == 18
     assert sheet["abilities"]["int"]["max_score"] == 22
+    effects = sheet["inventory"]["items"][0]["effects"]
+    assert any(
+        e.get("type") == "ability_mod" and e.get("ability") == "int" and e.get("value") == 2 and e.get("max") == 22
+        for e in effects
+    )
+    assert any(e.get("type") == "condition_immunity" and e.get("slug") == "frightened" for e in effects)
     slugs = {c["slug"] for c in sheet["combat"]["condition_immunities"]}
     assert "frightened" in slugs
     assert "illusions" in slugs

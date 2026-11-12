@@ -97,7 +97,15 @@ export type AggregatedGearEffects = {
     kind: string
     nameRu: string
     itemId: string
+    hpMax?: number | null
+    ac?: number | null
+    actions?: string
+    notes?: string
   }>
+  /** Condition immunities from setting artifacts (frightened, illusions, …). */
+  conditionImmunities: Array<{ slug: string; name: string; itemName: string }>
+  /** Tool proficiencies granted while the item is active. */
+  toolProficiencies: string[]
   /** Spells granted with optional free charges. */
   grantSpells: Array<{
     key: string
@@ -179,6 +187,8 @@ export function emptyAggregatedGearEffects(): AggregatedGearEffects {
     saveAdvantages: [],
     resources: [],
     companions: [],
+    conditionImmunities: [],
+    toolProficiencies: [],
     grantSpells: [],
     notes: [],
     active: [],
@@ -570,9 +580,60 @@ export function aggregateGearEffects(input: {
           String((effect as { name_ru?: unknown }).name_ru ?? '').trim() ||
           item.name ||
           'Спутник'
-        const key = `gear-companion:${item.id}:${kind}`
-        out.companions.push({ key, kind, nameRu, itemId: item.id })
+        const abilityId = String((effect as { ability_id?: unknown }).ability_id ?? '').trim()
+        const key = abilityId
+          ? `gear-companion:${item.id}:${abilityId}`
+          : `gear-companion:${item.id}:${kind}`
+        const hpMax = asNumber((effect as { hp_max?: unknown }).hp_max)
+        const ac = asNumber((effect as { ac?: unknown }).ac)
+        const actions = String((effect as { actions?: unknown }).actions ?? '').trim()
+        const notes = String((effect as { notes?: unknown }).notes ?? '').trim()
+        out.companions.push({
+          key,
+          kind,
+          nameRu,
+          itemId: item.id,
+          hpMax: hpMax == null ? null : Math.floor(hpMax),
+          ac: ac == null ? null : Math.floor(ac),
+          actions,
+          notes,
+        })
         out.notes.push(`${item.name || 'предмет'}: спутник ${nameRu}`)
+        continue
+      }
+
+      if (type === 'condition_immunity') {
+        const name = String((effect as { name?: unknown }).name ?? '').trim()
+        const slug = String((effect as { slug?: unknown }).slug ?? '').trim()
+        if (!name && !slug) continue
+        out.conditionImmunities.push({
+          slug: slug || name,
+          name: name || slug,
+          itemName: item.name || 'предмет',
+        })
+        out.notes.push(`${item.name || 'предмет'}: иммунитет ${name || slug}`)
+        continue
+      }
+
+      if (type === 'sheet_flag') {
+        const flag = String((effect as { flag?: unknown }).flag ?? '')
+        if (flag === 'tool_proficiency') {
+          const tool = String((effect as { value?: unknown }).value ?? '').trim()
+          if (tool && !out.toolProficiencies.some((row) => row.toLowerCase() === tool.toLowerCase())) {
+            out.toolProficiencies.push(tool)
+            out.notes.push(`${item.name || 'предмет'}: владение ${tool}`)
+          }
+        }
+        continue
+      }
+
+      if (type === 'custom_note' || type === 'weapon_mode' || type === 'artifact_spell') {
+        const text = String(
+          (effect as { text?: unknown }).text ??
+            (effect as { name?: unknown }).name ??
+            '',
+        ).trim()
+        if (text) out.notes.push(`${item.name || 'предмет'}: ${text}`)
         continue
       }
 

@@ -69,6 +69,18 @@ export function syncAttacksHeldFromInventory<T extends AttackInventoryLink>(
     }
 
     const held = Boolean(item.equipped)
+    const artifactDie =
+      (attack as { source_kind?: string }).source_kind === 'artifact' ||
+      (attack as { activation?: unknown }).activation != null
+    if (artifactDie) {
+      if (attack.held === held) {
+        next.push(attack)
+        continue
+      }
+      changed = true
+      next.push({ ...attack, held })
+      continue
+    }
     const name = (item.name || attack.name || '').trim()
     const data = item.data ?? null
     const profile = name ? resolveWeaponDamageProfile({ name, data }) : null

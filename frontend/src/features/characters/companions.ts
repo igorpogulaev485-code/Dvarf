@@ -606,6 +606,13 @@ function readDeath(raw: unknown): CompanionDeathState | null {
   }
 }
 
+function legacyAttackLine(row: Record<string, unknown>): string {
+  if (typeof row.attack_damage !== 'string' || !row.attack_damage.trim()) return ''
+  const bonus = typeof row.attack_bonus === 'number' ? row.attack_bonus : 0
+  const type = typeof row.attack_damage_type === 'string' ? row.attack_damage_type : ''
+  return `${bonus >= 0 ? '+' : ''}${bonus} ${row.attack_damage} ${type}`.trim()
+}
+
 export function readCompanions(raw: unknown): CompanionEntry[] {
   if (!Array.isArray(raw)) return []
   const result: CompanionEntry[] = []
@@ -613,10 +620,19 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
     if (!item || typeof item !== 'object') continue
     const row = item as Record<string, unknown>
     if (typeof row.id !== 'string') continue
+    const legacyHp =
+      typeof row.hp_max === 'number'
+        ? row.hp_max
+        : typeof row.hp_current === 'number'
+          ? row.hp_current
+          : null
+    const legacySummon = legacyHp != null || typeof row.ac === 'number' || typeof row.attack_damage === 'string'
     const kind: CompanionKind =
       typeof row.kind === 'string' && KIND_SET.has(row.kind)
         ? (row.kind as CompanionKind)
-        : 'other'
+        : legacySummon
+          ? 'ally'
+          : 'other'
     const role: CompanionRole =
       typeof row.role === 'string' && ROLE_SET.has(row.role)
         ? (row.role as CompanionRole)
@@ -667,19 +683,47 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
       active: typeof row.active === 'boolean' ? row.active : true,
       is_primary: typeof row.is_primary === 'boolean' ? row.is_primary : false,
       control,
-      source: readSource(row.source),
+      source:
+        readSource(row.source) ??
+        (typeof row.source_item_id === 'string'
+          ? {
+              kind: 'item' as const,
+              labelRu:
+                typeof row.source_name === 'string' && row.source_name.trim()
+                  ? row.source_name
+                  : 'Из предмета',
+            }
+          : null),
       form,
       stats: {
-        hp: typeof statsRaw.hp === 'number' ? statsRaw.hp : null,
-        hp_max: typeof statsRaw.hp_max === 'number' ? statsRaw.hp_max : null,
-        ac: typeof statsRaw.ac === 'number' ? statsRaw.ac : null,
+        hp:
+          typeof statsRaw.hp === 'number'
+            ? statsRaw.hp
+            : typeof row.hp_current === 'number'
+              ? row.hp_current
+              : legacyHp,
+        hp_max: typeof statsRaw.hp_max === 'number' ? statsRaw.hp_max : legacyHp,
+        ac:
+          typeof statsRaw.ac === 'number'
+            ? statsRaw.ac
+            : typeof row.ac === 'number'
+              ? row.ac
+              : null,
         speed: typeof statsRaw.speed === 'number' ? statsRaw.speed : null,
         ...optionalCompanionStats(statsRaw as CompanionEntry['stats']),
       },
       death: role === 'self_form' ? null : readDeath(row.death),
       resources: readCompanionResources(row.resources),
-      actions: typeof row.actions === 'string' ? row.actions : '',
-      notes: typeof row.notes === 'string' ? row.notes : '',
+      actions:
+        typeof row.actions === 'string' && row.actions.trim()
+          ? row.actions
+          : legacyAttackLine(row),
+      notes:
+        typeof row.notes === 'string' && row.notes.trim()
+          ? row.notes
+          : typeof row.duration === 'string'
+            ? row.duration
+            : '',
     })
   }
   return normalizeSelfForms(result)

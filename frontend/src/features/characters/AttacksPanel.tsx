@@ -42,6 +42,51 @@ export type WeaponAttack = {
   inventory_item_id?: string | null
   /** In hand right now (synced from inventory when linked). */
   held?: boolean
+  /** Setting-artifact mode (Секира бури: 1d12 → 2d12). */
+  activation?: WeaponActivation | null
+  mode_active?: boolean
+  /** Requirement such as СИЛ 15+. Magic bonus and the mode stay off until it is met. */
+  req_ability?: AbilityKey | null
+  req_score?: number | null
+  range_kind?: string | null
+  magic_bonus?: number | null
+}
+
+export type WeaponActivation = {
+  id: string
+  name: string
+  action_cost: string
+  duration: string
+  duration_rounds: number
+  active_damage: string
+  active_damage_type: string
+  advantage: boolean
+  resource_id: string | null
+  base_damage: string
+  base_damage_type: string
+  text: string
+}
+
+export function artifactRequirementMet(
+  attack: Pick<WeaponAttack, 'req_ability' | 'req_score'>,
+  abilities: Record<AbilityKey, number>,
+): boolean {
+  if (!attack.req_ability || attack.req_score == null) return true
+  return (abilities[attack.req_ability] ?? 0) >= attack.req_score
+}
+
+/** Active mode replaces the base die. The ability modifier is added by the card. */
+export function artifactAttackDamage(attack: Pick<WeaponAttack, 'damage' | 'damage_type' | 'activation' | 'mode_active'>): {
+  damage: string
+  damageType: string
+} {
+  if (attack.mode_active && attack.activation?.active_damage) {
+    return {
+      damage: attack.activation.active_damage,
+      damageType: attack.activation.active_damage_type || attack.damage_type,
+    }
+  }
+  return { damage: attack.damage, damageType: attack.damage_type }
 }
 
 /** Stable attack id for race natural weapons (revoke on race change). */
@@ -219,17 +264,20 @@ export function AttacksPanel({
                   weaponAbility: attack.ability,
                 })
               : attack.ability
+          const face = artifactAttackDamage(attack)
+          const requirementOk = artifactRequirementMet(attack, abilities)
           const baseDamage = shillelaghOn
             ? shillelaghDamage(attack.damage)
             : monkWeapon
               ? effectiveMartialArtsDamage({
-                  weaponDamage: attack.damage,
+                  weaponDamage: face.damage,
                   martialArtsDie,
                   forceMartialArts: classMa,
                 })
-              : attack.damage
+              : face.damage
+          const shownType = face.damageType
           const gear =
-            !raceNatural && !classMa && attack.inventory_item_id && attack.held
+            !raceNatural && !classMa && attack.inventory_item_id && attack.held && requirementOk
               ? gearBonusesByItem?.[attack.inventory_item_id]
               : undefined
           const magicAtk = gear?.attackBonus ?? 0
@@ -311,6 +359,27 @@ export function AttacksPanel({
                 {attack.qty != null && attack.qty > 1 ? (
                   <span className="attack-held-tag">×{attack.qty}</span>
                 ) : null}
+                {attack.req_score != null && attack.req_ability ? (
+                  <span className="attack-held-tag">
+                    {requirementOk ? 'требование ок' : `нужна ${attack.req_ability.toUpperCase()} ${attack.req_score}+`}
+                  </span>
+                ) : null}
+                {attack.activation && requirementOk ? (
+                  <Button
+                    variant="secondary"
+                    onClick={() =>
+                      onChange(
+                        weapons.map((row) =>
+                          row.id === attack.id ? { ...row, mode_active: !row.mode_active } : row,
+                        ),
+                      )
+                    }
+                  >
+                    {attack.mode_active
+                      ? `${attack.activation.name}: вкл`
+                      : attack.activation.name || 'Активировать'}
+                  </Button>
+                ) : null}
               </div>
 
               <div className="attack-card__name">
@@ -348,8 +417,8 @@ export function AttacksPanel({
                   <span className="attack-card__stat-value">{damageHero}</span>
                   <span className="attack-card__stat-label">
                     урон
-                    {attack.damage_type ? (
-                      <span className="attack-card__stat-hint"> {attack.damage_type}</span>
+                    {shownType ? (
+                      <span className="attack-card__stat-hint"> {shownType}</span>
                     ) : null}
                   </span>
                 </div>

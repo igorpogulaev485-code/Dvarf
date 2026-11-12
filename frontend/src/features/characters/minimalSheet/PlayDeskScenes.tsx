@@ -23,6 +23,28 @@ import { withSpellFocusFlags } from '../spellFocus'
 import { syncWizardSpellbookWithInventory } from '../wizardSpellbookInventory'
 import { abilityModifier } from '../sheetTypes'
 import { sheetDamageProfile } from '../gearEffects'
+
+function mergeToolNames(base: string[], extra: string[]): string[] {
+  const seen = new Set(base.map((name) => name.trim().toLowerCase()))
+  const out = [...base]
+  for (const name of extra) {
+    const key = name.trim().toLowerCase()
+    if (!key || seen.has(key)) continue
+    seen.add(key)
+    out.push(name)
+  }
+  return out
+}
+
+function withConditionImmunities(
+  defense: string,
+  rows: Array<{ name: string }>,
+): string {
+  const names = [...new Set(rows.map((row) => row.name.trim()).filter(Boolean))]
+  if (!names.length) return defense
+  const extra = `Имм. состояний: ${names.join(', ')}`
+  return defense ? `${defense} · ${extra}` : extra
+}
 import { formatDefenseSummary } from '../../../shared/dnd/damageTypes'
 import { getFeaturePick } from '../../../shared/dnd/featurePicks'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
@@ -121,6 +143,37 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             onOpenConsumableSpendPad={(itemId) => model.setConsumableSpendPadId(itemId)}
             consumableSpendLog={model.consumableSpendLog}
             onUndoConsumableSpend={model.undoConsumableSpendFromLog}
+            onToggleActivation={(attack) => {
+              if (!attack.activation) return
+              const turningOn = !attack.mode_active
+              const poolId = attack.activation.resource_id
+              if (turningOn && poolId) {
+                const pool = model.draft.play.resources.find((row) => row.id === poolId)
+                if (pool && pool.used >= pool.max) {
+                  model.onToast('Нет зарядов режима')
+                  return
+                }
+              }
+              model.setDraft((prev) => {
+                let resources = prev.play.resources
+                if (turningOn && poolId) {
+                  const pool = resources.find((row) => row.id === poolId)
+                  if (pool && pool.used >= pool.max) return prev
+                  if (pool) {
+                    resources = resources.map((row) =>
+                      row.id === pool.id ? { ...row, used: Math.min(row.max, row.used + 1) } : row,
+                    )
+                  }
+                }
+                return {
+                  ...prev,
+                  play: resources === prev.play.resources ? prev.play : { ...prev.play, resources },
+                  weapons: prev.weapons.map((row) =>
+                    row.id === attack.id ? { ...row, mode_active: turningOn } : row,
+                  ),
+                }
+              })
+            }}
             onToggleHeld={(attack) => {
               if (!attack.inventory_item_id) return
               model.setDraft((prev) => {
@@ -297,7 +350,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         featurePicks={model.draft.featurePicks}
         onFeaturePicksChange={model.applyFeaturePicksWithExpertise}
         skills={model.draft.skills}
-        tools={model.draft.identity.tools}
+        tools={mergeToolNames(model.draft.identity.tools, model.gearEffects.toolProficiencies)}
         classAsi={model.draft.classAsi}
         spells={model.draft.spells}
         onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
@@ -313,12 +366,15 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         }
         featGrants={model.draft.featGrants}
         darkvision={model.effectiveDarkvisionFt}
-        defenseSummary={formatDefenseSummary(
-          sheetDamageProfile({
-            raceSlug: model.draft.raceGrant?.slug,
-            raceResistances: model.draft.raceGrant?.damageResistances,
-            gear: model.gearEffects,
-          }),
+        defenseSummary={withConditionImmunities(
+          formatDefenseSummary(
+            sheetDamageProfile({
+              raceSlug: model.draft.raceGrant?.slug,
+              raceResistances: model.draft.raceGrant?.damageResistances,
+              gear: model.gearEffects,
+            }),
+          ),
+          model.gearEffects.conditionImmunities,
         )}
         raceName={model.draft.raceName}
         raceTraitCards={model.draft.raceGrant?.traitCards ?? []}

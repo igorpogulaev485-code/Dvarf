@@ -88,15 +88,18 @@ export function syncGearCompanions(
         kind: 'item',
         labelRu: 'Из предмета (снаряжение)',
       },
-      stats: prev?.stats ?? {
-        hp: null,
-        hp_max: null,
-        ac: null,
-        speed: null,
+      stats: {
+        hp: prev?.stats.hp ?? spec.hpMax ?? null,
+        hp_max: prev?.stats.hp_max ?? spec.hpMax ?? null,
+        ac: prev?.stats.ac ?? spec.ac ?? null,
+        speed: prev?.stats.speed ?? null,
       },
+      actions: prev?.actions?.trim() ? prev.actions : spec.actions ?? '',
       notes: prev?.notes?.trim()
         ? prev.notes
-        : `Из предмета (снаряжение)`,
+        : spec.notes?.trim()
+          ? spec.notes
+          : `Из предмета (снаряжение)`,
     })
   })
   return [...without, ...nextGear]

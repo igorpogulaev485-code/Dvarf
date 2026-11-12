@@ -118,7 +118,7 @@ def test_lich_mask_raises_ceiling_and_applies_bonus():
         "classes": [],
     }
     apply_artifact_to_sheet(sheet, artifact=artifact)
-    assert sheet["abilities"]["int"]["score"] == 20
+    assert sheet["abilities"]["int"]["score"] == 18
     assert sheet["abilities"]["int"]["max_score"] == 22
     item = sheet["inventory"]["items"][0]
     assert item["magic_mods"]["ability_max"]["int"] == 22

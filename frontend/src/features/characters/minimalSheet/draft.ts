@@ -15,7 +15,11 @@ import { type ToastInput } from '../../../ui'
 import { type CatalogEntry } from '../../../shared/api/catalog'
 import { type AppliedRaceGrant } from '../../../shared/dnd/raceGrants'
 import { readCustomFeatures, type CustomFeature } from '../customFeatures'
-import { syncAttacksHeldFromInventory, type WeaponAttack } from '../AttacksPanel'
+import {
+  syncAttacksHeldFromInventory,
+  type WeaponActivation,
+  type WeaponAttack,
+} from '../AttacksPanel'
 import { readAttunements, type AttunementSlot } from '../attunement'
 import { readClassLevels, type ClassLevelEntry } from '../classLevels'
 import { readClassAsiLedger, type AppliedClassAsi } from '../../../shared/dnd/classAsi'
@@ -29,6 +33,7 @@ import { readSheetUi, type SheetUiState } from '../playDeskUi'
 import type { CompanionKind } from '../companions'
 import { readIdentityExtras, type IdentityExtras } from '../identity'
 import { readAppliedRaceGrant } from '../raceEffects'
+import { hydrateArtifactSheet } from '../artifactGear'
 import { readInventory, type InventoryState } from '../inventory'
 import { classifySpellTooling, inferFocusKind, withSpellFocusFlags } from '../spellFocus'
 import { readPlay, type PlayState } from '../play'
@@ -153,14 +158,51 @@ export function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
           ? Math.floor(row.qty)
           : null,
       inventory_item_id:
-        typeof row.inventory_item_id === 'string' ? row.inventory_item_id : null,
+        typeof row.inventory_item_id === 'string'
+          ? row.inventory_item_id
+          : typeof row.source_item_id === 'string'
+            ? row.source_item_id
+            : null,
       held: Boolean(row.held),
+      activation: readWeaponActivation(row.activation),
+      mode_active: row.mode_active === true,
+      req_ability: ABILITY_KEYS.includes(row.req_ability as AbilityKey)
+        ? (row.req_ability as AbilityKey)
+        : null,
+      req_score: readNullableNumber(row.req_score),
+      range_kind: typeof row.range_kind === 'string' ? row.range_kind : null,
+      magic_bonus: readNullableNumber(row.magic_bonus),
     }
   })
 }
 
+function readWeaponActivation(raw: unknown): WeaponActivation | null {
+  if (!raw || typeof raw !== 'object') return null
+  const row = asRecord(raw)
+  const active = typeof row.active_damage === 'string' ? row.active_damage : ''
+  if (!active && typeof row.name !== 'string') return null
+  return {
+    id: typeof row.id === 'string' ? row.id : '',
+    name: typeof row.name === 'string' ? row.name : 'Активация',
+    action_cost: typeof row.action_cost === 'string' ? row.action_cost : 'bonus',
+    duration: typeof row.duration === 'string' ? row.duration : '',
+    duration_rounds:
+      typeof row.duration_rounds === 'number' && Number.isFinite(row.duration_rounds)
+        ? Math.floor(row.duration_rounds)
+        : 10,
+    active_damage: active,
+    active_damage_type:
+      typeof row.active_damage_type === 'string' ? row.active_damage_type : '',
+    advantage: row.advantage !== false,
+    resource_id: typeof row.resource_id === 'string' ? row.resource_id : null,
+    base_damage: typeof row.base_damage === 'string' ? row.base_damage : '',
+    base_damage_type: typeof row.base_damage_type === 'string' ? row.base_damage_type : '',
+    text: typeof row.text === 'string' ? row.text : '',
+  }
+}
+
 export function buildDraft(character: CharacterDetail): Draft {
-  const sheet = asRecord(character.sheet)
+  const sheet = hydrateArtifactSheet(asRecord(character.sheet))
   const identity = asRecord(sheet.identity)
   const abilitiesRaw = asRecord(sheet.abilities)
   const savesRaw = asRecord(sheet.saves)
