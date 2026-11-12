@@ -6,6 +6,11 @@ import { ApiRequestError } from '../../../shared/api/client'
 import { publishSheetSync } from '../../../shared/sync/characterSheetChannel'
 import { formatClassSummary, totalCharacterLevel } from '../../../shared/dnd/classLevels'
 import { armorKindLabel, computeArmorClass, mageArmorCompetingFormula } from '../../../shared/dnd/armor'
+import {
+  acFormulasFromActiveEffects,
+  acMinFromActiveEffects,
+  speedModsFromActiveEffects,
+} from '../../../shared/dnd/activeEffects'
 import { bladesongBonuses } from '../../../shared/dnd/wizardTradition'
 import { buildSheetFormulaVars } from '../../../shared/dnd/formulas'
 import {
@@ -99,9 +104,18 @@ export function useSheetEditorPart3(model: SheetModel) {
         `предметы ${model.gearEffects.speedBonusFt >= 0 ? '+' : ''}${model.gearEffects.speedBonusFt}`,
       )
     }
+    const effectSpeed = speedModsFromActiveEffects(model.draft.play.effects)
+    if (effectSpeed.notes.length) bits.push(...effectSpeed.notes)
     return bits.length ? bits.join(', ') : null
-  }, [model.armorPiecesForSpeed, model.draft.classes, model.featSpeedBonusFt, model.gearEffects.speedBonusFt])
+  }, [
+    model.armorPiecesForSpeed,
+    model.draft.classes,
+    model.featSpeedBonusFt,
+    model.gearEffects.speedBonusFt,
+    model.draft.play.effects,
+  ])
   model.classSpeedHint = classSpeedHint
+  model.effectSpeedMods = speedModsFromActiveEffects(model.draft.play.effects)
 
   const attunedItemIds = useMemo(
     () =>
@@ -622,22 +636,58 @@ export function useSheetEditorPart3(model: SheetModel) {
         (feature: { id: string }) => feature.id === 'unarmored_defense_barb',
       )
       if (hasBarb) {
-        return { labelRu: 'Защита без доспехов', secondMod: 'con' as const }
+        return {
+          labelRu: 'Защита без доспехов',
+          secondMod: 'con' as const,
+          allowsShield: true,
+        }
       }
       const hasMonk = model.unlockedFeatures.some(
         (feature: { id: string }) => feature.id === 'unarmored_defense_monk',
       )
       if (hasMonk) {
-        return { labelRu: 'Защита без доспехов', secondMod: 'wis' as const }
+        return {
+          labelRu: 'Защита без доспехов',
+          secondMod: 'wis' as const,
+          allowsShield: false,
+        }
       }
       return null
     })()
-    const mageArmor = pieces.armor
+    const effectsRaw = model.draft.play.effects?.length
+      ? model.draft.play.effects
+      : asRecord(asRecord(model.baseCharacter.sheet).combat).effects
+    const mageArmorFromConc = pieces.armor
       ? null
       : mageArmorCompetingFormula(model.draft.play.concentration?.name)
+    const mageFromConcFormula = mageArmorFromConc
+      ? { ...mageArmorFromConc, key: 'mage_armor' }
+      : null
+    const effectFormulas = pieces.armor ? [] : acFormulasFromActiveEffects(effectsRaw)
+    const draconic = (() => {
+      if (pieces.armor) return null
+      const has = model.unlockedFeatures.some(
+        (feature: { id: string }) => feature.id === 'draconic_resilience',
+      )
+      if (!has) return null
+      return {
+        key: 'draconic_resilience',
+        label: 'Драконья устойчивость',
+        base: 13,
+        dexCap: null as number | null,
+        allowsShield: true,
+      }
+    })()
     const extraFormulas = pieces.armor
       ? []
-      : [...model.gearEffects.acFormulas, ...(mageArmor ? [mageArmor] : [])]
+      : [
+          ...model.gearEffects.acFormulas,
+          ...(mageFromConcFormula ? [mageFromConcFormula] : []),
+          ...effectFormulas,
+          ...(draconic ? [draconic] : []),
+        ]
+    const acMinFloor = acMinFromActiveEffects(effectsRaw)
+    const preferredKey = model.draft.acFormulaKey
     const withoutShield = computeArmorClass({
       dexMod: mods.dex,
       abilityMods: mods,
@@ -646,6 +696,8 @@ export function useSheetEditorPart3(model: SheetModel) {
       naturalArmor,
       unarmoredDefense,
       extraFormulas,
+      preferredFormulaKey: preferredKey,
+      acMinFloor,
     })
     const base = computeArmorClass({
       dexMod: mods.dex,
@@ -655,6 +707,8 @@ export function useSheetEditorPart3(model: SheetModel) {
       naturalArmor,
       unarmoredDefense,
       extraFormulas,
+      preferredFormulaKey: preferredKey,
+      acMinFloor,
     })
     const styleBonus = fightingStyleAcBonusFromIds({
       styleIds: model.fightingStyleIds ?? [],
@@ -682,11 +736,7 @@ export function useSheetEditorPart3(model: SheetModel) {
       coreAc += gearAc.total
       gearSummary = `${gearSummary} · ${gearAc.parts.join(' · ')}`
     }
-    const sharedInfusionAc = infusionAcFromSharedEffects(
-      model.draft.play.effects?.length
-        ? model.draft.play.effects
-        : asRecord(asRecord(model.baseCharacter.sheet).combat).effects,
-    )
+    const sharedInfusionAc = infusionAcFromSharedEffects(effectsRaw)
     if (infusionBonuses.acBonus) {
       coreAc += infusionBonuses.acBonus
       gearSummary = `${gearSummary} · инфузия +${infusionBonuses.acBonus}`
@@ -720,6 +770,10 @@ export function useSheetEditorPart3(model: SheetModel) {
       baseLabel,
       shieldBonus,
       formulaVars,
+      formulaKey: base.formulaKey,
+      formulaLabel: base.formulaLabel,
+      candidates: base.candidates,
+      floorApplied: base.floorApplied,
     }
   }, [
     effectiveAbilities,
@@ -735,6 +789,8 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.gearEffects.conditionalAc,
     model.gearEffects.acFormulas,
     model.draft.play.concentration?.name,
+    model.draft.play.effects,
+    model.draft.acFormulaKey,
     infusionBonuses.acBonus,
     model.baseCharacter.sheet,
     model.proficiencyBonus,
@@ -822,6 +878,8 @@ export function useSheetEditorPart3(model: SheetModel) {
       combat.hp_current = draftSnap.hpCurrent
       combat.hp_max = draftSnap.hpMax
       combat.ac = draftSnap.ac
+      if (draftSnap.acFormulaKey) combat.ac_formula_key = draftSnap.acFormulaKey
+      else delete combat.ac_formula_key
       combat.speed = draftSnap.speed
       combat.climb_speed = draftSnap.climbSpeed
       combat.swim_speed = draftSnap.swimSpeed

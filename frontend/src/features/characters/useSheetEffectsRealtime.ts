@@ -1,5 +1,6 @@
 /**
  * B-01 / B04 / Р15: live-refresh combat.effects via lobby WS (#299) or 15s poll.
+ * B-02: also pull hp_max / hp_current / hp_temp so Aid / temp HP land on allies.
  */
 import { useEffect, useRef } from 'react'
 import { getCharacter } from '../../shared/api/characters'
@@ -10,11 +11,19 @@ import { asRecord } from './sheetTypes'
 
 const POLL_MS = 15_000
 
+export type SheetEffectsCombatPatch = {
+  effects: ActiveEffect[]
+  sheetVersion: number
+  hpMax?: number | null
+  hpCurrent?: number | null
+  hpTemp?: number | null
+}
+
 type Args = {
   characterId: string | undefined
   enabled?: boolean
-  /** Merge remote effects into the open draft without wiping other edits. */
-  onEffects: (effects: ActiveEffect[], sheetVersion: number) => void
+  /** Merge remote effects (+ optional HP) into the open draft without wiping other edits. */
+  onEffects: (patch: SheetEffectsCombatPatch) => void
 }
 
 export function useSheetEffectsRealtime({
@@ -34,7 +43,23 @@ export function useSheetEffectsRealtime({
       if (fresh.sheet_version <= lastVersionRef.current) return
       lastVersionRef.current = fresh.sheet_version
       const combat = asRecord(asRecord(fresh.sheet).combat)
-      onEffectsRef.current(parseActiveEffects(combat.effects), fresh.sheet_version)
+      const hpMax =
+        typeof combat.hp_max === 'number'
+          ? combat.hp_max
+          : fresh.hp_max
+      const hpCurrent =
+        typeof combat.hp_current === 'number'
+          ? combat.hp_current
+          : fresh.hp_current
+      const hpTemp =
+        typeof combat.hp_temp === 'number' ? Math.max(0, combat.hp_temp) : null
+      onEffectsRef.current({
+        effects: parseActiveEffects(combat.effects),
+        sheetVersion: fresh.sheet_version,
+        hpMax,
+        hpCurrent,
+        hpTemp,
+      })
     } catch {
       // ignore transient network errors
     }

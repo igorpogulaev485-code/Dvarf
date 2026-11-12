@@ -15,6 +15,10 @@ import { knowledgeBlessingSkillIds } from '../../../shared/dnd/expertise'
 import { applyFeatGrantToDraft, ensureFeatSpellsFromLedger, featSpellsMissingFromKnown } from '../featEffects'
 import { syncFeatureResources } from '../../../shared/dnd/featureResources'
 import { classWalkSpeedBonusFt, resolveWalkSpeedFt } from '../../../shared/dnd/classMovement'
+import {
+  applySpeedModsToWalk,
+  speedModsFromActiveEffects,
+} from '../../../shared/dnd/activeEffects'
 import { applyFeatureSaveProficiencies, ironMindSaveKey, wisdomSaveAlreadyGranted } from '../../../shared/dnd/featureSaveProficiency'
 import { revokeFalseSubclassCompanions } from '../companions'
 import {
@@ -773,7 +777,7 @@ export function useSheetEditorPart2(model: SheetModel) {
       resources: model.draft.play.resources,
       intelligenceScore: model.draft.abilities.int ?? 10,
     })
-    return (
+    const base =
       (resolveWalkSpeedFt({
         storedSpeed: model.draft.speed,
         raceSpeed: model.draft.raceGrant?.speed ?? null,
@@ -782,7 +786,8 @@ export function useSheetEditorPart2(model: SheetModel) {
         featBonusFt: model.featSpeedBonusFt,
         gearBonusFt: gearEffects.speedBonusFt,
       }) ?? 0) + song.speed
-    )
+    const effectMods = speedModsFromActiveEffects(model.draft.play.effects)
+    return applySpeedModsToWalk(base, effectMods)
   }, [
     armorPiecesForSpeed,
     model.draft.classes,
@@ -792,6 +797,7 @@ export function useSheetEditorPart2(model: SheetModel) {
     model.draft.raceGrant?.speed,
     model.featSpeedBonusFt,
     gearEffects.speedBonusFt,
+    model.draft.play.effects,
   ])
   model.displaySpeed = displaySpeed
 }

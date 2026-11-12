@@ -3,6 +3,7 @@ import type { SheetModel } from './sheetModel'
 import { applyConcentrationChangeToCompanions } from '../spellCompanions'
 import { AbilityBreakdownDialog } from '../AbilityBreakdownDialog'
 import { AcBreakdownDialog } from '../AcBreakdownDialog'
+import { TempHpReplaceDialog } from '../TempHpReplaceDialog'
 import { InitiativeBreakdownDialog } from '../InitiativeBreakdownDialog'
 import { Button, Dialog, Stack, Text } from '../../../ui'
 import { ConsumableSpendPadDialog } from '../ConsumableSpendPadDialog'
@@ -485,8 +486,19 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         onModifiersChange={(modifiers) =>
           model.setDraft((prev) => ({ ...prev, modifiers }))
         }
+        formulaCandidates={model.armorClass.candidates ?? []}
+        selectedFormulaKey={model.armorClass.formulaKey ?? null}
+        floorNote={model.armorClass.floorApplied ?? null}
+        onSelectFormula={(key) => {
+          model.setDraft((prev) => ({
+            ...prev,
+            acFormulaKey: key,
+          }))
+        }}
         onClose={() => model.setAcBreakdownOpen(false)}
       />
+
+      <TempHpReplaceDialog request={model.tempHpReplaceAsk ?? null} />
 
       <AbilityBreakdownDialog
         open={model.abilityBreakdownKey != null}

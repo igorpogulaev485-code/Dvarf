@@ -54,11 +54,11 @@ import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
  * dialog never opened the lobby target picker for Щит веры / Bless / …
  */
 const CAST_ALLY_NAME_RE =
-  /благословен|bless|ускорен|haste|щит\s*вер|shield of faith|наставлен|указан|guidance|помощ[ьи]|подмог|\baid\b|героизм|heroism|вардинг|warding bond|вдохновен|inspiration|инфуз|infusion|бафф?|\bбаф\b|сопротивлен|\bresistance\b/i
+  /благословен|bless|ускорен|haste|щит\s*вер|shield of faith|наставлен|указан|guidance|помощ[ьи]|подмог|\baid\b|героизм|heroism|вардинг|warding bond|вдохновен|inspiration|инфуз|infusion|бафф?|\bбаф\b|сопротивлен|\bresistance\b|скороход|longstrider|доспех[иа]?\s*мага|mage armou?r|дубов|barkskin|охраняющ|пол[её]т|\bfly\b|бесследн|pass without|улучшен[\p{L}]*\s*характерист|enhance ability|магическ[\p{L}]*\s*оруж|magic weapon|защит[аы]\s*от\s*энерг|protection from energy|т[её]мн[\p{L}]*\s*зрен|darkvision|пир\s*геро|heroes'? feast/iu
 const CAST_ALLY_CATALOG_RE =
-  /shield_of_faith|\bbless\b|\baid\b|\bhaste\b|\bheroism\b|warding_bond|\bguidance\b|\bresistance\b|beacon_of_hope|enhance_ability/i
-const CAST_MULTI_TARGET_RE = /благословен|bless|помощ[ьи]|подмог|\baid\b/i
-const CAST_MULTI_CATALOG_RE = /\bbless\b|\baid\b/i
+  /shield_of_faith|\bbless\b|\baid\b|\bhaste\b|\bheroism\b|warding_bond|\bguidance\b|\bresistance\b|beacon_of_hope|enhance_ability|longstrider|mage_armou?r|barkskin|fly|pass_without_trace|magic_weapon|protection_from_energy|darkvision|heroes_feast|protection_from_poison|freedom_of_movement|death_ward/i
+const CAST_MULTI_TARGET_RE = /благословен|bless|помощ[ьи]|подмог|\baid\b|пир\s*геро|heroes'? feast/i
+const CAST_MULTI_CATALOG_RE = /\bbless\b|\baid\b|heroes_feast/i
 
 function castSpellAppliesToAllies(spell: SheetSpell): boolean {
   if (spell.applies_to_allies === true) return true
@@ -155,6 +155,11 @@ export type CastChoice = {
   itemResourceId?: string | null
   itemChargeCost?: number
   scrollItemId?: string | null
+  /**
+   * B-02: optional buff variant — ability (enhance_ability), damage type
+   * (protection_from_energy / elemental_weapon), warm|cold (fire_shield), …
+   */
+  buffOption?: string | null
 }
 
 type CastSpellDialogProps = {
@@ -341,7 +346,21 @@ export function CastSpellDialog({
   const [useFeature, setUseFeature] = useState(false)
   const [powerSurge, setPowerSurge] = useState(false)
   const [useEmbodiment, setUseEmbodiment] = useState(false)
+  const [buffOption, setBuffOption] = useState<string>('str')
   const isTransformSelf = spell != null && isSpellSelfFormCast(spell)
+  const catalogSlug = String(spell?.catalog_id ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/-/g, '_')
+  const needsAbilityOption =
+    /enhance_ability|улучшен[\p{L}]*\s*характерист/iu.test(catalogSlug) ||
+    /улучшен[\p{L}]*\s*характерист/iu.test(spell?.name ?? '')
+  const needsEnergyOption =
+    /protection_from_energy|защит[аы]\s*от\s*энерг/iu.test(catalogSlug) ||
+    /защит[аы]\s*от\s*энерг/iu.test(spell?.name ?? '')
+  const needsFireShieldOption =
+    /fire_shield|огненн[\p{L}]*\s*щит/iu.test(catalogSlug) ||
+    /огненн[\p{L}]*\s*щит/iu.test(spell?.name ?? '')
 
   const appliesToAllies = Boolean(spell && castSpellAppliesToAllies(spell))
   /** Показываем блок целей всегда для ally-баффов: в лобби — select, иначе подсказка. */
@@ -795,6 +814,9 @@ export function CastSpellDialog({
           selfFormTarget: isTransformSelf ? selfFormTarget : undefined,
           allyTargetIds: showTargets ? selectedIds : [],
           lobbyId: showTargets ? party.lobbyId : null,
+          buffOption: needsAbilityOption || needsEnergyOption || needsFireShieldOption
+            ? buffOption
+            : null,
         })
       }}
       onSecondary={onClose}
@@ -811,6 +833,69 @@ export function CastSpellDialog({
           {appliesToAllies ? ` · до ${targetCount} цел.` : ''}
           {spell.source_book ? ` · ${spell.source_book}` : ''}
         </Text>
+        {needsAbilityOption ? (
+          <div className="chip-row" role="group" aria-label="Характеристика">
+            {(
+              [
+                ['str', 'Сила'],
+                ['dex', 'Ловкость'],
+                ['con', 'Телосложение'],
+                ['int', 'Интеллект'],
+                ['wis', 'Мудрость'],
+                ['cha', 'Харизма'],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                className={`sheet-chip${buffOption === key ? ' is-on' : ''}`}
+                onClick={() => setBuffOption(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        {needsEnergyOption ? (
+          <div className="chip-row" role="group" aria-label="Тип урона">
+            {(
+              [
+                ['acid', 'кислота'],
+                ['cold', 'холод'],
+                ['fire', 'огонь'],
+                ['lightning', 'молния'],
+                ['thunder', 'звук'],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                className={`sheet-chip${buffOption === key ? ' is-on' : ''}`}
+                onClick={() => setBuffOption(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        {needsFireShieldOption ? (
+          <div className="chip-row" role="group" aria-label="Огненный щит">
+            <button
+              type="button"
+              className={`sheet-chip${buffOption === 'warm' ? ' is-on' : ''}`}
+              onClick={() => setBuffOption('warm')}
+            >
+              Тёплый
+            </button>
+            <button
+              type="button"
+              className={`sheet-chip${buffOption === 'cold' ? ' is-on' : ''}`}
+              onClick={() => setBuffOption('cold')}
+            >
+              Холодный
+            </button>
+          </div>
+        ) : null}
         {borne ? (
           <Stack gap={8}>
             <Text tone="muted">

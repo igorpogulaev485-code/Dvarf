@@ -56,7 +56,11 @@ function acOf(input: {
   const unarmoredDefense =
     pieces.armor || !input.monk
       ? null
-      : { labelRu: 'Защита без доспехов', secondMod: 'wis' as const }
+      : {
+          labelRu: 'Защита без доспехов',
+          secondMod: 'wis' as const,
+          allowsShield: false,
+        }
   const mage = input.mageArmor ? mageArmorCompetingFormula('Доспех мага') : null
   const extraFormulas = pieces.armor ? [] : [...gear.acFormulas, ...(mage ? [mage] : [])]
   const base = computeArmorClass({

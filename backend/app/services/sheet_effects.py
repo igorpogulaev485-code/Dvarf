@@ -266,6 +266,117 @@ def apply_infusion_effect_sync(
     return True
 
 
+def _hp_max_bonus_from_effect(effect: dict) -> int:
+    total = 0
+    mods = effect.get("mods") or []
+    if not isinstance(mods, list):
+        return 0
+    for mod in mods:
+        if not isinstance(mod, dict):
+            continue
+        if mod.get("target") != "hp_max" or mod.get("op") != "add":
+            continue
+        try:
+            total += int(mod.get("value") or 0)
+        except (TypeError, ValueError):
+            continue
+    return max(0, total)
+
+
+def _temp_hp_grant_from_effect(effect: dict) -> int | None:
+    mods = effect.get("mods") or []
+    if not isinstance(mods, list):
+        return None
+    total = 0
+    found = False
+    for mod in mods:
+        if not isinstance(mod, dict) or mod.get("target") != "temp_hp":
+            continue
+        found = True
+        try:
+            if mod.get("value") is not None:
+                total += int(mod.get("value") or 0)
+        except (TypeError, ValueError):
+            pass
+        # Dice are rolled on the client; backend keeps fixed value when present.
+    return total if found and total > 0 else None
+
+
+def _apply_hp_max_grant(character: Character, combat: dict, bonus: int) -> None:
+    if bonus <= 0:
+        return
+    try:
+        hp_max = int(combat.get("hp_max") or character.hp_max or 1)
+    except (TypeError, ValueError):
+        hp_max = int(character.hp_max or 1)
+    try:
+        hp_current = int(
+            combat.get("hp_current")
+            if combat.get("hp_current") is not None
+            else character.hp_current
+            if character.hp_current is not None
+            else hp_max
+        )
+    except (TypeError, ValueError):
+        hp_current = hp_max
+    combat["hp_max"] = hp_max + bonus
+    combat["hp_current"] = hp_current + bonus
+    character.hp_max = combat["hp_max"]
+    character.hp_current = combat["hp_current"]
+
+
+def _revert_hp_max_grant(character: Character, combat: dict, lost: int) -> None:
+    if lost <= 0:
+        return
+    try:
+        hp_max = int(combat.get("hp_max") or character.hp_max or 1)
+    except (TypeError, ValueError):
+        hp_max = int(character.hp_max or 1)
+    try:
+        hp_current = int(
+            combat.get("hp_current")
+            if combat.get("hp_current") is not None
+            else character.hp_current
+            if character.hp_current is not None
+            else hp_max
+        )
+    except (TypeError, ValueError):
+        hp_current = hp_max
+    new_max = max(1, hp_max - lost)
+    if hp_current > 0:
+        new_current = max(1, min(hp_current, new_max))
+    else:
+        new_current = max(0, min(hp_current, new_max))
+    combat["hp_max"] = new_max
+    combat["hp_current"] = new_current
+    character.hp_max = new_max
+    character.hp_current = new_current
+
+
+def _apply_temp_hp_grant(combat: dict, grant: int | None) -> None:
+    if grant is None or grant <= 0:
+        return
+    try:
+        current = int(combat.get("hp_temp") or 0)
+    except (TypeError, ValueError):
+        current = 0
+    # Remote apply: replace only when incoming is higher (Р4 dialog is local).
+    if current <= 0 or grant > current:
+        combat["hp_temp"] = grant
+
+
+def _clear_temp_hp_if_needed(combat: dict, effect: dict) -> None:
+    mods = effect.get("mods") or []
+    if not isinstance(mods, list):
+        return
+    for mod in mods:
+        if not isinstance(mod, dict) or mod.get("target") != "temp_hp":
+            continue
+        if mod.get("condition") == "clear_on_end" or effect.get("slug") == "tensers_transformation":
+            combat["hp_temp"] = 0
+            return
+
+
 def append_effect(
     character: Character,
     *,
@@ -327,6 +438,8 @@ def append_effect(
     effects = parse_effects(combat.get("effects"))
     effects.append(row)
     combat["effects"] = effects
+    _apply_hp_max_grant(character, combat, _hp_max_bonus_from_effect(row))
+    _apply_temp_hp_grant(combat, _temp_hp_grant_from_effect(row))
     sheet["combat"] = combat
     character.sheet = sheet
     character.sheet_version = int(character.sheet_version or 1) + 1
@@ -338,9 +451,13 @@ def remove_effect_by_id(character: Character, effect_id: str) -> bool:
     sheet = dict(character.sheet or {})
     combat = dict(sheet.get("combat") or {})
     effects = parse_effects(combat.get("effects"))
+    removed_rows = [e for e in effects if e.get("id") == effect_id]
     kept = [e for e in effects if e.get("id") != effect_id]
     if len(kept) == len(effects):
         return False
+    for row in removed_rows:
+        _revert_hp_max_grant(character, combat, _hp_max_bonus_from_effect(row))
+        _clear_temp_hp_if_needed(combat, row)
     combat["effects"] = kept
     sheet["combat"] = combat
     character.sheet = sheet
@@ -356,17 +473,19 @@ def clear_linked_effects_on_character(
     sheet = dict(character.sheet or {})
     combat = dict(sheet.get("combat") or {})
     effects = parse_effects(combat.get("effects"))
-    kept = [
-        e
-        for e in effects
-        if not (
-            e.get("linked_concentration")
-            and e.get("source_character_id") == caster_key
-        )
-    ]
-    removed = len(effects) - len(kept)
+    kept = []
+    removed_rows = []
+    for e in effects:
+        if e.get("linked_concentration") and e.get("source_character_id") == caster_key:
+            removed_rows.append(e)
+        else:
+            kept.append(e)
+    removed = len(removed_rows)
     if removed == 0:
         return 0
+    for row in removed_rows:
+        _revert_hp_max_grant(character, combat, _hp_max_bonus_from_effect(row))
+        _clear_temp_hp_if_needed(combat, row)
     combat["effects"] = kept
     sheet["combat"] = combat
     character.sheet = sheet

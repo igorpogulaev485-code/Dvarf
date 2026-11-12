@@ -54,6 +54,8 @@ type PlayDeskAttacksCompactProps = {
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
+  /** B-02: magic weapon / elemental weapon flat bonuses from active effects. */
+  effectWeaponBonus?: { attack: number; damage: number }
   /** Active fighting style id (archery → +2 on ranged attacks). */
   fightingStyleId?: string | null
   /** Every fighting style on the sheet, including a second champion style. */
@@ -127,6 +129,7 @@ export function PlayDeskAttacksCompact({
   abilities,
   proficiencyBonus,
   gearBonusesByItem = {},
+  effectWeaponBonus = { attack: 0, damage: 0 },
   fightingStyleId = null,
   fightingStyleIds,
   martialArtsDie = null,
@@ -467,8 +470,13 @@ export function PlayDeskAttacksCompact({
               (attack.is_proficient || unarmed ? proficiencyBonus : 0) +
               (gear?.attackBonus ?? 0) +
               styleAtk +
-              infusionAtk
-            const dmgBonus = mod + (gear?.damageBonus ?? 0) + infusionDmg
+              infusionAtk +
+              (unarmed ? 0 : effectWeaponBonus.attack)
+            const dmgBonus =
+              mod +
+              (gear?.damageBonus ?? 0) +
+              infusionDmg +
+              (unarmed ? 0 : effectWeaponBonus.damage)
             const dmg =
               baseDamage +
               (dmgBonus ? `${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')

@@ -26,6 +26,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
     raceSlug: model.draft.raceGrant?.slug,
     raceResistances: model.draft.raceGrant?.damageResistances,
     gear: model.gearEffects,
+    effects: model.draft.play.effects,
   })
   const alignmentHint = alignmentNeedsClarification(model.draft.identity)
     ? 'Уточните мировоззрение'
@@ -187,13 +188,9 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           />
           <ActiveEffectsPanel
             effects={model.draft.play.effects ?? []}
-            onChange={(effects) =>
-              model.setDraft((prev) => ({
-                ...prev,
-                play: { ...prev.play, effects },
-              }))
-            }
+            onChange={(effects) => model.applyEffectsChange?.(effects)}
             onToast={model.onToast}
+            onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
           />
         </div>
       ) : (
@@ -309,13 +306,9 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
         />
         <ActiveEffectsPanel
           effects={model.draft.play.effects ?? []}
-          onChange={(effects) =>
-            model.setDraft((prev) => ({
-              ...prev,
-              play: { ...prev.play, effects },
-            }))
-          }
+          onChange={(effects) => model.applyEffectsChange?.(effects)}
           onToast={model.onToast}
+          onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
         />
         </div>
       )}

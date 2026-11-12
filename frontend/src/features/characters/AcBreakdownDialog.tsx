@@ -11,6 +11,13 @@ import {
 } from './modifiers'
 import { VariablePicker } from './VariablePicker'
 
+type FormulaCandidate = {
+  key: string
+  label: string
+  ac: number
+  summary: string
+}
+
 type AcBreakdownDialogProps = {
   open: boolean
   /** Final AC (with shield, style, gear, active bonuses). */
@@ -27,6 +34,11 @@ type AcBreakdownDialogProps = {
   /** All sheet modifiers; dialog edits only `ac` rows. */
   modifiers: BonusLine[]
   onModifiersChange: (next: BonusLine[]) => void
+  /** B-09: competing base formulas; player may pick (Р3). */
+  formulaCandidates?: FormulaCandidate[]
+  selectedFormulaKey?: string | null
+  floorNote?: string | null
+  onSelectFormula?: (key: string) => void
   onClose: () => void
 }
 
@@ -52,6 +64,10 @@ export function AcBreakdownDialog({
   formulaVars,
   modifiers,
   onModifiersChange,
+  formulaCandidates = [],
+  selectedFormulaKey = null,
+  floorNote = null,
+  onSelectFormula,
   onClose,
 }: AcBreakdownDialogProps) {
   const acLines = bonusesForTarget(modifiers, 'ac')
@@ -158,6 +174,26 @@ export function AcBreakdownDialog({
         <section className="ac-breakdown__section">
           <h3 className="ac-breakdown__label">База</h3>
           <div className="ac-breakdown__base">{baseLabel}</div>
+          {floorNote ? (
+            <Text tone="muted" className="ac-breakdown__floor">
+              {floorNote}
+            </Text>
+          ) : null}
+          {formulaCandidates.length > 1 && onSelectFormula ? (
+            <div className="chip-row" role="group" aria-label="Формула КД">
+              {formulaCandidates.map((row) => (
+                <button
+                  key={row.key}
+                  type="button"
+                  className={`sheet-chip${selectedFormulaKey === row.key ? ' is-on' : ''}`}
+                  title={row.summary}
+                  onClick={() => onSelectFormula(row.key)}
+                >
+                  {row.label} · {row.ac}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </section>
 
         <section className="ac-breakdown__section">
