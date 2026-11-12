@@ -111,6 +111,23 @@ type PlayDeskAttacksCompactProps = {
   /** B-01: Bless / Emboldening Bond etc. on attack rolls. */
   bonusDice?: BonusDiePart[] | null
   onConsumeOnceBuffDice?: () => void
+  /**
+   * B-03: damage riders (Divine Favor, smites, Absorb Elements…).
+   * Optional chips get a checkbox (marked target / in aura).
+   */
+  damageRiders?: Array<{
+    effectId: string
+    name: string
+    dice: string
+    once: boolean
+    damageType?: string | null
+    optional?: boolean
+    defaultChecked?: boolean
+    meleeOnly?: boolean
+    spendCharge?: boolean
+  }> | null
+  /** After hit: pass used rider effect ids (once / charge spend). */
+  onConsumeDamageRiders?: (used: Array<{ effectId: string; once: boolean; spendCharge?: boolean }>) => void
 }
 
 function formatSpendTime(atMs: number): string {
@@ -165,6 +182,8 @@ export function PlayDeskAttacksCompact({
   rollMode = 'normal',
   bonusDice = null,
   onConsumeOnceBuffDice,
+  damageRiders = null,
+  onConsumeDamageRiders,
 }: PlayDeskAttacksCompactProps) {
   const divineStrike = useMemo(() => divineStrikeRider(combatFeatures), [combatFeatures])
   const improvedSmite = useMemo(
@@ -176,6 +195,14 @@ export function PlayDeskAttacksCompact({
     [combatFeatures, resources, hpTemp],
   )
   const smiteSpend = useMemo(() => divineSmiteSpendOf(combatFeatures), [combatFeatures])
+  const [riderOn, setRiderOn] = useState<Record<string, boolean>>({})
+  const riderEnabled = (row: { effectId: string; optional?: boolean; defaultChecked?: boolean }) => {
+    if (!row.optional) return true
+    if (Object.prototype.hasOwnProperty.call(riderOn, row.effectId)) {
+      return Boolean(riderOn[row.effectId])
+    }
+    return row.defaultChecked !== false
+  }
   const [localSmiteIntent, setLocalSmiteIntent] = useState<DivineSmiteIntent>({
     slotLevel: null,
     vsUndeadOrFiend: false,
@@ -348,6 +375,31 @@ export function PlayDeskAttacksCompact({
         </div>
       ) : null}
 
+      {damageRiders && damageRiders.some((row) => row.optional) ? (
+        <div className="chip-row" style={{ marginBottom: 8 }} role="group" aria-label="Наездники урона">
+          {damageRiders
+            .filter((row) => row.optional)
+            .map((row) => {
+              const on = riderEnabled(row)
+              return (
+                <button
+                  key={row.effectId}
+                  type="button"
+                  className={`sheet-chip${on ? ' is-on' : ''}`}
+                  aria-pressed={on}
+                  onClick={() =>
+                    setRiderOn((prev) => ({ ...prev, [row.effectId]: !on }))
+                  }
+                >
+                  {row.name}
+                  {row.dice ? ` +${row.dice}` : ''}
+                  {row.damageType ? ` ${row.damageType}` : ''}
+                </button>
+              )
+            })}
+        </div>
+      ) : null}
+
       {smiteSpend ? (
         <DivineSmiteCombatBlock
           spend={smiteSpend}
@@ -505,6 +557,10 @@ export function PlayDeskAttacksCompact({
                   aria-label={`${attack.name}, атака ${formatModifier(attackBonus)}, урон ${dmgLine}`}
                   title="Бросок атаки и урона"
                   onClick={() => {
+                    const activeRiders = (damageRiders ?? []).filter((row) => {
+                      if (row.meleeOnly && !meleeAttack) return false
+                      return riderEnabled(row)
+                    })
                     const strike = resolveAttackRoll({
                       name: attack.name,
                       attackBonus,
@@ -539,11 +595,27 @@ export function PlayDeskAttacksCompact({
                               },
                             ]
                           : []),
+                        ...activeRiders.map((row) => ({
+                          expression: row.dice,
+                          type: row.damageType ?? null,
+                          label: row.damageType
+                            ? `+${row.dice} ${row.damageType} (${row.name})`
+                            : `${row.name}, ${row.dice}`,
+                        })),
                       ],
                       mode: attackMode,
                     })
                     onToast?.(strike.text)
                     onConsumeOnceBuffDice?.()
+                    if (activeRiders.length) {
+                      onConsumeDamageRiders?.(
+                        activeRiders.map((row) => ({
+                          effectId: row.effectId,
+                          once: row.once,
+                          spendCharge: row.spendCharge,
+                        })),
+                      )
+                    }
                     smiteApplyLock.current = false
                     setOpenStrike({
                       name: attack.name,

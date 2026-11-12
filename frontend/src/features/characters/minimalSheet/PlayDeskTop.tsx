@@ -14,11 +14,36 @@ import { equippedArmorPieces } from '../inventory'
 import { abilityModifier } from '../sheetTypes'
 import { sheetDamageProfile } from '../gearEffects'
 import {
+  listRollDieChips,
+  mergeDeskRollMode,
+  resolveAdvantageFromEffects,
+} from '../../../shared/dnd/activeEffects'
+import {
   alignmentNeedsClarification,
   alignmentSheetLabel,
 } from '../../../shared/dnd/alignments'
 import { COMPANION_KIND_SHORT } from './draft'
 import { ActiveEffectsPanel } from '../ActiveEffectsPanel'
+
+function formatInitiativeToast(model: SheetModel): string {
+  const mode = mergeDeskRollMode(
+    model.effectiveRollMode(),
+    resolveAdvantageFromEffects(model.draft.play.effects, { rollKind: 'initiative' }),
+  )
+  const bonus = listRollDieChips(model.draft.play.effects ?? [], 'initiative').map((chip) => ({
+    dice: chip.dice,
+    label: chip.name,
+  }))
+  return formatSkillRoll(
+    'Инициатива',
+    model.initiativeValue,
+    mode,
+    undefined,
+    undefined,
+    null,
+    bonus,
+  )
+}
 
 export function PlayDeskTop({ model }: { model: SheetModel }) {
   const alignmentLabel = alignmentSheetLabel(model.draft.identity)
@@ -133,11 +158,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               }))
             }
             onOpenInitiative={() => model.setInitiativeBreakdownOpen(true)}
-            onInitiativeRoll={() =>
-              model.emitToast(
-                formatSkillRoll('Инициатива', model.initiativeValue, model.effectiveRollMode()),
-              )
-            }
+            onInitiativeRoll={() => model.emitToast(formatInitiativeToast(model))}
             onPlayChange={(play) => model.setDraft((prev) => ({ ...prev, play }))}
             onCoinsChange={(coins) =>
               model.setDraft((prev) => ({

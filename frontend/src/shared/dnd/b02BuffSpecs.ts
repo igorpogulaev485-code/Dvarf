@@ -169,10 +169,12 @@ export const B02_BUFF_SPEC_BUILDERS: Record<string, SpecBuilder> = {
       mods: [
         { target: 'resistance', op: 'set', condition: dtype },
         {
-          target: 'label',
-          op: 'set',
+          // B-03 rider: next melee hit damage (resistance stays until duration end / clear).
+          target: 'weapon_damage',
+          op: 'roll_die',
           dice,
           condition: `next_melee_${dtype}`,
+          once: true,
         },
       ],
     }
@@ -189,6 +191,13 @@ export const B02_BUFF_SPEC_BUILDERS: Record<string, SpecBuilder> = {
         target: 'advantage',
         op: 'advantage',
         condition: 'weapon_attack_once',
+        once: true,
+      },
+      {
+        target: 'weapon_damage',
+        op: 'roll_die',
+        dice: '1d8',
+        condition: 'force',
         once: true,
       },
       { target: 'speed', op: 'add', value: 30, condition: 'after_zephyr_hit', once: true },
@@ -339,6 +348,14 @@ export const B02_BUFF_SPEC_BUILDERS: Record<string, SpecBuilder> = {
       concentration: true,
       duration: minutes(1),
       mods: [
+        // B-03: damage rider on existing attack dialog (no second weapon inventory).
+        {
+          target: 'weapon_damage',
+          op: 'roll_die',
+          dice,
+          condition: 'shadow_blade_psychic',
+          once: false,
+        },
         { target: 'label', op: 'set', dice, condition: 'shadow_blade_weapon' },
       ],
     }

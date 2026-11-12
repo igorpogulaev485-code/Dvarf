@@ -19,7 +19,10 @@ import {
 } from '../deskRolls'
 import {
   chooseTempHpPool,
+  consumeRollDieChips,
   listRollDieChips,
+  mergeDeskRollMode,
+  resolveAdvantageFromEffects,
   saveBonusFromActiveEffects,
   skillBonusFromActiveEffects,
 } from '../../../shared/dnd/activeEffects'
@@ -922,22 +925,34 @@ export function installSheetActions4(model: SheetModel) {
         resources: model.draft.play.resources,
         intelligenceScore: model.draft.abilities.int ?? 10,
       }).active
-    const base = resolveRollMode(model.deskRollMode, armor || exhaustion)
+    const fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
+      rollKind: 'check',
+      abilityKey: skillKey ?? null,
+    })
+    const withFx = mergeDeskRollMode(model.deskRollMode, fromFx)
+    const base = resolveRollMode(withFx, armor || exhaustion)
     if (!song) return base
     if (base === 'disadvantage') return 'normal'
     return 'advantage'
   }
 
   model.attackRollMode = function attackRollMode(): DeskRollMode {
+    const fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
+      rollKind: 'attack',
+    })
     return resolveRollMode(
-      model.deskRollMode,
+      mergeDeskRollMode(model.deskRollMode, fromFx),
       model.exhaustionFlags().disadvantageOnAttacksAndSaves,
     )
   }
 
-  model.saveRollMode = function saveRollMode(): DeskRollMode {
+  model.saveRollMode = function saveRollMode(abilityKey?: string): DeskRollMode {
+    const fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
+      rollKind: 'save',
+      abilityKey: abilityKey ?? null,
+    })
     return resolveRollMode(
-      model.deskRollMode,
+      mergeDeskRollMode(model.deskRollMode, fromFx),
       model.exhaustionFlags().disadvantageOnAttacksAndSaves,
     )
   }
@@ -981,24 +996,25 @@ export function installSheetActions4(model: SheetModel) {
     consumeOnceBuffDice('check')
   }
 
-  function buffDiceFor(rollKind: 'attack' | 'save' | 'check'): BonusDiePart[] {
+  function buffDiceFor(
+    rollKind: 'attack' | 'save' | 'check' | 'initiative',
+  ): BonusDiePart[] {
     return listRollDieChips(model.draft.play.effects ?? [], rollKind).map((chip) => ({
       dice: chip.dice,
       label: chip.name,
     }))
   }
 
-  function consumeOnceBuffDice(rollKind: 'attack' | 'save' | 'check') {
+  function consumeOnceBuffDice(rollKind: 'attack' | 'save' | 'check' | 'initiative') {
     const chips = listRollDieChips(model.draft.play.effects ?? [], rollKind).filter(
       (chip) => chip.once,
     )
     if (!chips.length) return
-    const removeIds = new Set(chips.map((chip) => chip.effectId))
     model.setDraft((prev) => ({
       ...prev,
       play: {
         ...prev.play,
-        effects: (prev.play.effects ?? []).filter((row) => !removeIds.has(row.id)),
+        effects: consumeRollDieChips(prev.play.effects ?? [], chips),
       },
     }))
   }
@@ -1053,7 +1069,7 @@ export function installSheetActions4(model: SheetModel) {
       `${formatSkillRoll(
         `Спас · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
         rolledMod,
-        model.saveRollMode(),
+        model.saveRollMode(key),
         undefined,
         null,
         null,

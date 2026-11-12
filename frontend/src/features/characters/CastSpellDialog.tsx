@@ -354,10 +354,22 @@ export function CastSpellDialog({
     .replace(/-/g, '_')
   const needsAbilityOption =
     /enhance_ability|улучшен[\p{L}]*\s*характерист/iu.test(catalogSlug) ||
-    /улучшен[\p{L}]*\s*характерист/iu.test(spell?.name ?? '')
+    /улучшен[\p{L}]*\s*характерист/iu.test(spell?.name ?? '') ||
+    /hex$|^сглаз/iu.test(catalogSlug) ||
+    /^сглаз/iu.test(spell?.name ?? '')
   const needsEnergyOption =
     /protection_from_energy|защит[аы]\s*от\s*энерг/iu.test(catalogSlug) ||
-    /защит[аы]\s*от\s*энерг/iu.test(spell?.name ?? '')
+    /защит[аы]\s*от\s*энерг/iu.test(spell?.name ?? '') ||
+    /absorb_elements|поглощен[\p{L}]*\s*стих/iu.test(catalogSlug) ||
+    /поглощен[\p{L}]*\s*стих/iu.test(spell?.name ?? '') ||
+    /elemental_weapon|стихийн[\p{L}]*\s*оруж/iu.test(catalogSlug) ||
+    /стихийн[\p{L}]*\s*оруж/iu.test(spell?.name ?? '')
+  const needsSpiritShroudOption =
+    /spirit_shroud|покров\s*дух/iu.test(catalogSlug) ||
+    /покров\s*дух/iu.test(spell?.name ?? '')
+  const needsCeremonyOption =
+    (/ceremony|церемони/iu.test(catalogSlug) || /церемони/iu.test(spell?.name ?? '')) &&
+    !/венчан|wedding/iu.test(spell?.name ?? '')
   const needsFireShieldOption =
     /fire_shield|огненн[\p{L}]*\s*щит/iu.test(catalogSlug) ||
     /огненн[\p{L}]*\s*щит/iu.test(spell?.name ?? '')
@@ -814,9 +826,41 @@ export function CastSpellDialog({
           selfFormTarget: isTransformSelf ? selfFormTarget : undefined,
           allyTargetIds: showTargets ? selectedIds : [],
           lobbyId: showTargets ? party.lobbyId : null,
-          buffOption: needsAbilityOption || needsEnergyOption || needsFireShieldOption
-            ? buffOption
-            : null,
+          buffOption: (() => {
+            if (
+              !(
+                needsAbilityOption ||
+                needsEnergyOption ||
+                needsFireShieldOption ||
+                needsSpiritShroudOption ||
+                needsCeremonyOption
+              )
+            ) {
+              return null
+            }
+            if (
+              needsCeremonyOption &&
+              !['dedication', 'coming_of_age', 'wedding'].includes(buffOption)
+            ) {
+              return 'dedication'
+            }
+            if (
+              needsSpiritShroudOption &&
+              !['radiant', 'necrotic', 'cold'].includes(buffOption)
+            ) {
+              return 'radiant'
+            }
+            if (
+              needsEnergyOption &&
+              !['acid', 'cold', 'fire', 'lightning', 'thunder'].includes(buffOption)
+            ) {
+              return 'fire'
+            }
+            if (needsFireShieldOption && !['warm', 'cold'].includes(buffOption)) {
+              return 'warm'
+            }
+            return buffOption
+          })(),
         })
       }}
       onSecondary={onClose}
@@ -894,6 +938,46 @@ export function CastSpellDialog({
             >
               Холодный
             </button>
+          </div>
+        ) : null}
+        {needsSpiritShroudOption ? (
+          <div className="chip-row" role="group" aria-label="Тип покрова духа">
+            {(
+              [
+                ['radiant', 'излучение'],
+                ['necrotic', 'некротика'],
+                ['cold', 'холод'],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                className={`sheet-chip${buffOption === key ? ' is-on' : ''}`}
+                onClick={() => setBuffOption(key)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        {needsCeremonyOption ? (
+          <div className="chip-row" role="group" aria-label="Обряд церемонии">
+            {(
+              [
+                ['dedication', 'Посвящение'],
+                ['coming_of_age', 'Становление'],
+                ['wedding', 'Венчание'],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                className={`sheet-chip${buffOption === key ? ' is-on' : ''}`}
+                onClick={() => setBuffOption(key)}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         ) : null}
         {borne ? (
