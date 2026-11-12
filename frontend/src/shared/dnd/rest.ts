@@ -7,7 +7,7 @@ import {
 import { recoverHitDiceOnLongRest } from './hitDice'
 import { clampSlot, type SpellSlotState } from './spells'
 
-export type ResourceReset = 'short' | 'long' | 'manual'
+export type ResourceReset = 'short' | 'long' | 'manual' | 'dawn' | 'midnight'
 
 export type SheetResource = {
   id: string
@@ -30,6 +30,10 @@ export type SheetResource = {
   wardCreated?: boolean
   /** Does not deplete (PHB barbarian rage at 20). */
   unlimited?: boolean
+  /** Dawn / midnight recharge formula, e.g. "4d6+2". Absent = refill to max. */
+  rechargeDice?: string
+  /** Shown when the last charge is spent. The sheet does not destroy the item. */
+  depleteHint?: string
 }
 
 export function clampExhaustion(value: number): number {
@@ -40,9 +44,15 @@ export function clampResource(resource: SheetResource): SheetResource {
   const max = Math.max(0, Math.floor(resource.max))
   const used = Math.min(max, Math.max(0, Math.floor(resource.used)))
   const reset: ResourceReset =
-    resource.reset === 'short' || resource.reset === 'long' || resource.reset === 'manual'
+    resource.reset === 'short' ||
+    resource.reset === 'long' ||
+    resource.reset === 'manual' ||
+    resource.reset === 'dawn' ||
+    resource.reset === 'midnight'
       ? resource.reset
       : 'long'
+  const rechargeDice = resource.rechargeDice?.trim() || undefined
+  const depleteHint = resource.depleteHint?.trim() || undefined
   const onHot =
     typeof resource.onHot === 'boolean' ? resource.onHot : undefined
   const dice = Array.isArray(resource.dice)
@@ -62,6 +72,8 @@ export function clampResource(resource: SheetResource): SheetResource {
       : { activeLabel: undefined }),
     ...(resource.wardCreated ? { wardCreated: true } : { wardCreated: undefined }),
     ...(resource.unlimited ? { unlimited: true, used: 0 } : { unlimited: undefined }),
+    ...(rechargeDice ? { rechargeDice } : { rechargeDice: undefined }),
+    ...(depleteHint ? { depleteHint } : { depleteHint: undefined }),
   }
 }
 
@@ -101,6 +113,8 @@ export function resetResourcesOnRest(
   return resources.map((raw) => {
     const resource = clampResource(raw)
     if (resource.reset === 'manual') return resource
+    // Dawn and midnight roll (or refill) in rechargeFormulaResources, not here.
+    if (resource.reset === 'dawn' || resource.reset === 'midnight') return resource
     if (kind === 'short' && resource.reset !== 'short') return resource
     // long rest clears short- and long-reset resources
     return clearExpiredPack07Label({ ...resource, used: 0 })
@@ -158,6 +172,8 @@ export type RestResult = {
   is_dying?: boolean
   death_successes?: number
   death_fails?: number
+  /** Player-visible dawn / midnight charge rolls from this long rest. */
+  rechargeLines?: string[]
 }
 
 /**
@@ -181,6 +197,69 @@ export function applyShortRest(input: {
   return result
 }
 
+function rollChargeFormula(
+  formula: string,
+  rng: () => number,
+): number | null {
+  const text = formula.trim().toLowerCase()
+  const match = text.match(/(\d+)\s*[dк]\s*(\d+)/i)
+  if (!match) return null
+  const count = Math.max(1, Math.floor(Number(match[1])))
+  const sides = Math.max(2, Math.floor(Number(match[2])))
+  let total = 0
+  for (let i = 0; i < count; i += 1) {
+    total += 1 + Math.floor(rng() * sides)
+  }
+  const after = text.slice((match.index ?? 0) + match[0].length)
+  const modRe = /([+-])\s*(\d+)/g
+  let mod: RegExpExecArray | null
+  while ((mod = modRe.exec(after))) {
+    const sign = mod[1] === '-' ? -1 : 1
+    total += sign * Math.floor(Number(mod[2]))
+  }
+  return total
+}
+
+function formulaForPlayer(formula: string): string {
+  return formula.replace(/(\d)\s*d\s*/gi, '$1к')
+}
+
+/**
+ * Dawn and midnight pools regain charges on a long rest.
+ * A formula is rolled and shown; without one the pool refills (regain all).
+ * Never above max.
+ */
+export function rechargeFormulaResources(
+  resources: SheetResource[],
+  rng: () => number = Math.random,
+): { resources: SheetResource[]; lines: string[] } {
+  const lines: string[] = []
+  const next = resources.map((raw) => {
+    const resource = clampResource(raw)
+    if (resource.reset !== 'dawn' && resource.reset !== 'midnight') return resource
+    const before = Math.max(0, resource.max - resource.used)
+    if (!resource.rechargeDice) {
+      if (resource.used === 0) return resource
+      lines.push(`${resource.name}: заряды ${before} → ${resource.max}`)
+      return { ...resource, used: 0 }
+    }
+    const rolled = rollChargeFormula(resource.rechargeDice, rng)
+    if (rolled == null) {
+      if (resource.used === 0) return resource
+      lines.push(`${resource.name}: заряды ${before} → ${resource.max}`)
+      return { ...resource, used: 0 }
+    }
+    const gain = Math.max(0, rolled)
+    const after = Math.min(resource.max, before + gain)
+    const used = Math.max(0, resource.max - after)
+    lines.push(
+      `${resource.name}: ${formulaForPlayer(resource.rechargeDice)} = ${gain}, заряды ${before} → ${after}`,
+    )
+    return { ...resource, used }
+  })
+  return { resources: next, lines }
+}
+
 export function applyLongRest(input: {
   resources: SheetResource[]
   slots: Record<string, SpellSlotState>
@@ -190,13 +269,20 @@ export function applyLongRest(input: {
   hit_dice_current: number
   hit_dice_max: number
   hit_dice_by_class?: ClassHitDicePool[]
+  /** Injected so tests can pin dawn recharge rolls. */
+  rng?: () => number
 }): RestResult {
   const pact = input.pact_slots
   const pools = input.hit_dice_by_class
   const recoveredPools =
     pools && pools.length > 0 ? recoverHitDicePoolsOnLongRest(pools) : undefined
+  const recharged = rechargeFormulaResources(
+    resetResourcesOnRest(input.resources, 'long'),
+    input.rng,
+  )
   return {
-    resources: resetResourcesOnRest(input.resources, 'long'),
+    resources: recharged.resources,
+    rechargeLines: recharged.lines,
     slots: recoverSpellSlotsOnLongRest(input.slots),
     pact_slots: pact ? { ...pact, used: 0 } : null,
     exhaustion: reduceExhaustionOnLongRest(input.exhaustion),

@@ -123,6 +123,7 @@ export function installSheetActions5(model: SheetModel) {
 
   model.spendResourceOrOpenSorcery = function spendResourceOrOpenSorcery(id: string) {
     if (model.openResourceSpendDialog(id)) return
+    const current = model.draft.play.resources.find((item) => item.id === id)
     model.setDraft((prev) => ({
       ...prev,
       play: {
@@ -138,5 +139,13 @@ export function installSheetActions5(model: SheetModel) {
         }),
       },
     }))
+    if (
+      current &&
+      current.track !== 'stock' &&
+      current.used + 1 >= current.max &&
+      current.depleteHint
+    ) {
+      model.onToast(current.depleteHint)
+    }
   }
 }

@@ -19,6 +19,20 @@ import type {
 } from '../../shared/dnd/wizardSpellbook'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 
+export type ItemSpellCast = {
+  slug: string
+  resourceId: string | null
+  /** 0 = does not spend charges. */
+  charges: number
+  castLevel: number
+  chargePerLevel?: boolean
+  maxLevel?: number | null
+  /** When set, this DC replaces the character's (item bonuses are not added). */
+  saveDc?: number | null
+  attackBonus?: number | null
+  itemName: string
+}
+
 export type SpellSourceKind =
   | 'catalog'
   | 'custom'
@@ -87,6 +101,11 @@ export type SheetSpell = {
    * Cast picker can spend this instead of a slot/pact; rest recovers `used`.
    */
   grant_cast?: SpellGrantCast
+  /**
+   * Cast from an active item: shared charge pool, fixed level, no spell slot.
+   * Rebuilt by syncGearGrantSpells whenever the item is active.
+   */
+  item_cast?: ItemSpellCast
   /**
    * How this row is cast besides a normal class slot.
    * ritual_only — ritual, no slot (totem, ritual book, Book of Ancient Secrets).
@@ -589,6 +608,9 @@ function readSpell(raw: unknown, index: number): SheetSpell {
     ...(preparedLocked ? { prepared_locked: true } : {}),
     ...(prepareSourceLabel ? { prepare_source_label: prepareSourceLabel } : {}),
     ...(grantCast ? { grant_cast: grantCast } : {}),
+    ...(readItemCast(row.item_cast ?? row.itemCast)
+      ? { item_cast: readItemCast(row.item_cast ?? row.itemCast) }
+      : {}),
     ...(castAccess ? { cast_access: castAccess } : {}),
     ...(ritualBook ? { ritual_book: ritualBook } : {}),
     ...(ritualBookRole ? { ritual_book_role: ritualBookRole } : {}),
@@ -652,6 +674,32 @@ function readWizardSpellbook(raw: unknown): WizardSpellbookState | undefined {
     bookLost,
     ...(lostBookContents?.length ? { lostBookContents } : {}),
     ...(backupBookItemIds?.length ? { backupBookItemIds } : {}),
+  }
+}
+
+function readItemCast(raw: unknown): ItemSpellCast | undefined {
+  const row = asRecord(raw)
+  const slug = typeof row.slug === 'string' ? row.slug.trim() : ''
+  if (!slug) return undefined
+  const charges = Math.max(0, Math.floor(readNumber(row.charges, 0)))
+  const castLevel = Math.max(0, Math.min(9, Math.floor(readNumber(row.castLevel, 0))))
+  const resourceId =
+    typeof row.resourceId === 'string' && row.resourceId.trim()
+      ? row.resourceId.trim()
+      : null
+  const maxRaw = row.maxLevel
+  const saveRaw = row.saveDc
+  const attackRaw = row.attackBonus
+  return {
+    slug,
+    resourceId,
+    charges,
+    castLevel,
+    ...(row.chargePerLevel === true ? { chargePerLevel: true } : {}),
+    ...(typeof maxRaw === 'number' ? { maxLevel: Math.floor(maxRaw) } : {}),
+    ...(typeof saveRaw === 'number' ? { saveDc: Math.floor(saveRaw) } : {}),
+    ...(typeof attackRaw === 'number' ? { attackBonus: Math.floor(attackRaw) } : {}),
+    itemName: typeof row.itemName === 'string' ? row.itemName : '',
   }
 }
 
@@ -1279,6 +1327,7 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
               },
             }
           : {}),
+        ...(spell.item_cast ? { item_cast: spell.item_cast } : {}),
         ...(spell.cast_access ? { cast_access: spell.cast_access } : {}),
         ...(spell.ritual_book ? { ritual_book: spell.ritual_book } : {}),
         ...(spell.ritual_book_role ? { ritual_book_role: spell.ritual_book_role } : {}),

@@ -3,7 +3,7 @@
  * Rows are keyed `gear-*` so unequipping cleanly removes them without touching manual data.
  */
 
-import type { AggregatedGearEffects } from './gearEffects'
+import type { AggregatedGearEffects, GearGrantSpell } from './gearEffects'
 import {
   createCompanion,
   type CompanionEntry,
@@ -64,6 +64,8 @@ export function syncGearResources(
       max: spec.max,
       used: prev ? Math.min(prev.used, spec.max) : 0,
       reset: spec.reset,
+      ...(spec.rechargeDice ? { rechargeDice: spec.rechargeDice } : {}),
+      ...(spec.depleteHint ? { depleteHint: spec.depleteHint } : {}),
     })
   })
   return [...without, ...nextGear]
@@ -105,6 +107,66 @@ export function syncGearCompanions(
   return [...without, ...nextGear]
 }
 
+function sheetSpellFromGearGrant(spec: GearGrantSpell, prev: SheetSpell | undefined): SheetSpell {
+  const shared = spec.pool === 'charges' || spec.pool === 'unlimited'
+  const grantCast =
+    !shared && spec.uses != null
+      ? {
+          max: spec.uses,
+          used: prev?.grant_cast ? Math.min(prev.grant_cast.used, spec.uses) : 0,
+          reset: spec.reset,
+          label: spec.itemName,
+        }
+      : undefined
+  const cost =
+    spec.pool === 'unlimited'
+      ? 'неограниченно'
+      : spec.chargePerLevel
+        ? `от ${spec.chargeCost} зарядов`
+        : `${spec.chargeCost} зарядов`
+  const levelNote = spec.castLevel <= 0 ? 'заговор' : `${spec.castLevel} ур.`
+  const itemCast = shared
+    ? {
+        slug: spec.slug,
+        resourceId: spec.pool === 'unlimited' ? null : spec.resourceKey,
+        charges: spec.pool === 'unlimited' ? 0 : spec.chargeCost,
+        castLevel: spec.castLevel,
+        ...(spec.chargePerLevel ? { chargePerLevel: true as const } : {}),
+        ...(spec.maxCastLevel != null ? { maxLevel: spec.maxCastLevel } : {}),
+        ...(spec.saveDc != null ? { saveDc: spec.saveDc } : {}),
+        ...(spec.attackBonus != null ? { attackBonus: spec.attackBonus } : {}),
+        itemName: spec.itemName,
+      }
+    : undefined
+  return {
+    id: spec.key,
+    name: spec.nameRu || (prev?.name?.trim() ? prev.name : spec.slug.replace(/_/g, ' ')),
+    catalog_id: prev?.catalog_id ?? null,
+    level: shared ? spec.castLevel : (prev?.level ?? 0),
+    prepared: true,
+    notes: shared ? `${levelNote} · ${cost}` : prev?.notes || `Предмет: ${spec.itemName}`,
+    casting_time: prev?.casting_time ?? '',
+    range: prev?.range ?? '',
+    attack_or_save: prev?.attack_or_save ?? '',
+    damage: prev?.damage ?? '',
+    concentration: prev?.concentration ?? false,
+    ...(prev?.duration ? { duration: prev.duration } : {}),
+    ...(prev?.components ? { components: prev.components } : {}),
+    ...(prev?.damage_at_slot_level ? { damage_at_slot_level: prev.damage_at_slot_level } : {}),
+    ...(prev?.damage_at_character_level
+      ? { damage_at_character_level: prev.damage_at_character_level }
+      : {}),
+    ...(prev?.higher_levels ? { higher_levels: prev.higher_levels } : {}),
+    ...(prev?.description ? { description: prev.description } : {}),
+    ...(prev?.school ? { school: prev.school } : {}),
+    source_kind: 'feature' as const,
+    prepared_locked: true,
+    prepare_source_label: spec.itemName,
+    ...(grantCast ? { grant_cast: grantCast } : {}),
+    ...(itemCast ? { item_cast: itemCast } : {}),
+  }
+}
+
 /** Placeholder spell rows from grant_spell — catalog hydrate fills name/level later if needed. */
 export function syncGearGrantSpells(
   spells: SpellsState,
@@ -114,37 +176,9 @@ export function syncGearGrantSpells(
     spells.known.filter((row) => isGearSpellId(row.id)).map((row) => [row.id, row]),
   )
   const without = spells.known.filter((row) => !isGearSpellId(row.id))
-  const nextRows: SheetSpell[] = gear.grantSpells.map((spec) => {
-    const prev = previous.get(spec.key)
-    const grantCast =
-      spec.uses != null
-        ? {
-            max: spec.uses,
-            used: prev?.grant_cast
-              ? Math.min(prev.grant_cast.used, spec.uses)
-              : 0,
-            reset: spec.reset,
-            label: spec.itemName,
-          }
-        : prev?.grant_cast
-    return {
-      id: spec.key,
-      name: prev?.name?.trim() ? prev.name : spec.slug.replace(/_/g, ' '),
-      catalog_id: prev?.catalog_id ?? null,
-      level: prev?.level ?? 0,
-      prepared: true,
-      notes: prev?.notes || `Предмет: ${spec.itemName}`,
-      casting_time: prev?.casting_time ?? '',
-      range: prev?.range ?? '',
-      attack_or_save: prev?.attack_or_save ?? '',
-      damage: prev?.damage ?? '',
-      concentration: prev?.concentration ?? false,
-      source_kind: 'feature' as const,
-      prepared_locked: true,
-      prepare_source_label: spec.itemName,
-      ...(grantCast ? { grant_cast: grantCast } : {}),
-    }
-  })
+  const nextRows: SheetSpell[] = gear.grantSpells.map((spec) =>
+    sheetSpellFromGearGrant(spec, previous.get(spec.key)),
+  )
 
   let slots = { ...spells.slots }
   // Apply spell_slots deltas relative to base = current max − previously applied gear delta.

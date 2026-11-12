@@ -62,6 +62,8 @@ export function createResource(partial?: Partial<SheetResource>): SheetResource 
     used: partial?.used ?? 0,
     reset: partial?.reset ?? 'long',
     ...(typeof partial?.onHot === 'boolean' ? { onHot: partial.onHot } : {}),
+    ...(partial?.rechargeDice ? { rechargeDice: partial.rechargeDice } : {}),
+    ...(partial?.depleteHint ? { depleteHint: partial.depleteHint } : {}),
   })
 }
 
@@ -93,7 +95,15 @@ function readCondition(raw: unknown, index: number): ConditionRef | null {
 }
 
 function readReset(value: unknown): ResourceReset {
-  if (value === 'short' || value === 'long' || value === 'manual') return value
+  if (
+    value === 'short' ||
+    value === 'long' ||
+    value === 'manual' ||
+    value === 'dawn' ||
+    value === 'midnight'
+  ) {
+    return value
+  }
   return 'long'
 }
 
@@ -117,6 +127,16 @@ function readResource(raw: unknown, index: number): SheetResource {
     ...(dice?.length ? { dice } : {}),
     ...(typeof row.activeLabel === 'string' ? { activeLabel: row.activeLabel } : {}),
     ...(row.wardCreated === true ? { wardCreated: true } : {}),
+    ...(typeof row.rechargeDice === 'string'
+      ? { rechargeDice: row.rechargeDice }
+      : typeof row.recharge_dice === 'string'
+        ? { rechargeDice: row.recharge_dice }
+        : {}),
+    ...(typeof row.depleteHint === 'string'
+      ? { depleteHint: row.depleteHint }
+      : typeof row.deplete_hint === 'string'
+        ? { depleteHint: row.deplete_hint }
+        : {}),
   })
 }
 
@@ -251,4 +271,6 @@ export const RESET_LABELS: Record<ResourceReset, string> = {
   short: 'короткий',
   long: 'продолжительный',
   manual: 'вручную',
+  dawn: 'рассвет',
+  midnight: 'полночь',
 }

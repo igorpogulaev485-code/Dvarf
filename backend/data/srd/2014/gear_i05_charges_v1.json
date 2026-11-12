@@ -1,0 +1,965 @@
+{
+  "updates": [
+    {
+      "kind": "item",
+      "slug": "potion_of_poison",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Маскируется под healing; отравление и урон ядом (DMG)."
+          },
+          {
+            "type": "harm",
+            "dice": "3d6",
+            "note": "Сл 13 Телосложение. Провал: урон ядом и состояние Отравлен (отметьте вручную). Успех: отмените расход."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_fire",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "resource",
+            "id": "staff_of_fire",
+            "max": 10,
+            "restore": "dawn",
+            "recharge_dice": "1d6+4",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "burning_hands",
+            "name_ru": "Огненные ладони",
+            "charges": 1,
+            "cast_level": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fireball",
+            "name_ru": "Огненный шар",
+            "charges": 3,
+            "cast_level": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "wall_of_fire",
+            "name_ru": "Огненная стена",
+            "charges": 4,
+            "cast_level": 4
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление огню, пока посох в руке. Заклинания вашей сложностью спасения: огненные ладони 1, огненный шар 3, огненная стена 4. На рассвете 1к6+4. Последний заряд: к20, при 1 посох уничтожается (бросок вручную)."
+          }
+        ],
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+4"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_frost",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "cold"
+          },
+          {
+            "type": "resource",
+            "id": "staff_of_frost",
+            "max": 10,
+            "restore": "dawn",
+            "recharge_dice": "1d6+4",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fog_cloud",
+            "name_ru": "Туманное облако",
+            "charges": 1,
+            "cast_level": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "ice_storm",
+            "name_ru": "Град",
+            "charges": 4,
+            "cast_level": 4
+          },
+          {
+            "type": "grant_spell",
+            "slug": "wall_of_ice",
+            "name_ru": "Ледяная стена",
+            "charges": 4,
+            "cast_level": 4
+          },
+          {
+            "type": "grant_spell",
+            "slug": "cone_of_cold",
+            "name_ru": "Конус холода",
+            "charges": 5,
+            "cast_level": 5
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление холоду, пока посох в руке. Заклинания вашей сложностью спасения: туманное облако 1, град 4, ледяная стена 4, конус холода 5. На рассвете 1к6+4."
+          }
+        ],
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+4"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_healing",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "staff_of_healing",
+            "max": 10,
+            "restore": "dawn",
+            "recharge_dice": "1d6+4",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "cure_wounds",
+            "name_ru": "Лечение ран",
+            "charges": 1,
+            "cast_level": 1,
+            "charge_per_level": true,
+            "max_level": 4
+          },
+          {
+            "type": "grant_spell",
+            "slug": "lesser_restoration",
+            "name_ru": "Малое восстановление",
+            "charges": 2,
+            "cast_level": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "mass_cure_wounds",
+            "name_ru": "Множественное лечение ран",
+            "charges": 5,
+            "cast_level": 5
+          },
+          {
+            "type": "custom_note",
+            "text": "Лечение ран: 1 заряд за круг, не выше 4. Малое восстановление 2, множественное лечение ран 5. На рассвете 1к6+4."
+          }
+        ],
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+4"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_power",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 2
+          },
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "save_bonus",
+            "value": 2
+          },
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "attack",
+            "requires_held": true
+          },
+          {
+            "type": "resource",
+            "id": "staff_of_power",
+            "max": 20,
+            "restore": "dawn",
+            "recharge_dice": "2d8+4",
+            "deplete": "strip_on_1"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "cone_of_cold",
+            "name_ru": "Конус холода",
+            "charges": 5,
+            "cast_level": 5
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fireball",
+            "name_ru": "Огненный шар",
+            "charges": 5,
+            "cast_level": 5
+          },
+          {
+            "type": "grant_spell",
+            "slug": "globe_of_invulnerability",
+            "name_ru": "Сфера неуязвимости",
+            "charges": 6,
+            "cast_level": 6
+          },
+          {
+            "type": "grant_spell",
+            "slug": "hold_monster",
+            "name_ru": "Удержание чудовища",
+            "charges": 5,
+            "cast_level": 5
+          },
+          {
+            "type": "grant_spell",
+            "slug": "levitate",
+            "name_ru": "Левитация",
+            "charges": 2,
+            "cast_level": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "lightning_bolt",
+            "name_ru": "Молния",
+            "charges": 5,
+            "cast_level": 5
+          },
+          {
+            "type": "grant_spell",
+            "slug": "magic_missile",
+            "name_ru": "Волшебная стрела",
+            "charges": 1,
+            "cast_level": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "ray_of_enfeeblement",
+            "name_ru": "Луч слабости",
+            "charges": 1,
+            "cast_level": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "wall_of_force",
+            "name_ru": "Силовая стена",
+            "charges": 5,
+            "cast_level": 5
+          },
+          {
+            "type": "custom_note",
+            "text": "Пока посох в руке: +2 к атаке и урону удара, +2 КД, +2 ко всем спасброскам и +2 к атаке заклинанием. Порог спасения от заклинаний не повышается. 20 зарядов, на рассвете 2к8+4. Удар с тратой заряда и ответный удар — по карточке, без автоматики."
+          }
+        ],
+        "charges": {
+          "max": 20,
+          "restore": "dawn",
+          "recharge_dice": "2d8+4"
+        },
+        "description_ru": "Посох силы. Пока его держат: +2 к атаке и урону удара посохом, +2 к классу доспеха, +2 ко всем спасброскам и +2 к броску атаки заклинанием. Порог спасения от заклинаний не повышается. 20 зарядов, на рассвете 2к8+4. Можно использовать как заклинательную фокусировку. Настройка: чародей, колдун или волшебник."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_striking",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "staff_of_striking",
+            "max": 10,
+            "restore": "dawn",
+            "recharge_dice": "1d6+4",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "custom_note",
+            "text": "+3 посох; заряды на урон"
+          }
+        ],
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+4"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_swarming_insects",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "staff_of_swarming_insects",
+            "max": 10,
+            "restore": "dawn",
+            "recharge_dice": "1d6+4",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "giant_insect",
+            "name_ru": "Гигантское насекомое",
+            "charges": 4,
+            "cast_level": 4
+          },
+          {
+            "type": "grant_spell",
+            "slug": "insect_plague",
+            "name_ru": "Нашествие насекомых",
+            "charges": 5,
+            "cast_level": 5
+          },
+          {
+            "type": "custom_note",
+            "text": "Гигантское насекомое 4 заряда, нашествие насекомых 5. Облако насекомых — по карточке, без автоматики. На рассвете 1к6+4."
+          }
+        ],
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+4"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_the_magi",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "attack",
+            "requires_held": true
+          },
+          {
+            "type": "save_advantage",
+            "against": "spells"
+          },
+          {
+            "type": "resource",
+            "id": "staff_of_the_magi",
+            "max": 50,
+            "restore": "dawn",
+            "recharge_dice": "4d6+2",
+            "deplete": "regain_1d12_on_20"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "conjure_elemental",
+            "name_ru": "Сотворение элементаля",
+            "charges": 7,
+            "cast_level": 7
+          },
+          {
+            "type": "grant_spell",
+            "slug": "dispel_magic",
+            "name_ru": "Рассеивание магии",
+            "charges": 3,
+            "cast_level": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fireball",
+            "name_ru": "Огненный шар",
+            "charges": 7,
+            "cast_level": 7
+          },
+          {
+            "type": "grant_spell",
+            "slug": "flaming_sphere",
+            "name_ru": "Пылающий шар",
+            "charges": 2,
+            "cast_level": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "ice_storm",
+            "name_ru": "Град",
+            "charges": 4,
+            "cast_level": 4
+          },
+          {
+            "type": "grant_spell",
+            "slug": "invisibility",
+            "name_ru": "Невидимость",
+            "charges": 1,
+            "cast_level": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "knock",
+            "name_ru": "Открывание",
+            "charges": 2,
+            "cast_level": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "lightning_bolt",
+            "name_ru": "Молния",
+            "charges": 7,
+            "cast_level": 7
+          },
+          {
+            "type": "grant_spell",
+            "slug": "passwall",
+            "name_ru": "Проход сквозь стену",
+            "charges": 5,
+            "cast_level": 5
+          },
+          {
+            "type": "grant_spell",
+            "slug": "plane_shift",
+            "name_ru": "Смена плана",
+            "charges": 7,
+            "cast_level": 7
+          },
+          {
+            "type": "grant_spell",
+            "slug": "telekinesis",
+            "name_ru": "Телекинез",
+            "charges": 5,
+            "cast_level": 5
+          },
+          {
+            "type": "grant_spell",
+            "slug": "wall_of_fire",
+            "name_ru": "Огненная стена",
+            "charges": 4,
+            "cast_level": 4
+          },
+          {
+            "type": "grant_spell",
+            "slug": "web",
+            "name_ru": "Паутина",
+            "charges": 2,
+            "cast_level": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "arcane_lock",
+            "name_ru": "Волшебный замок",
+            "unlimited": true,
+            "cast_level": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "detect_magic",
+            "name_ru": "Обнаружение магии",
+            "unlimited": true,
+            "cast_level": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "enlarge_reduce",
+            "name_ru": "Увеличение/уменьшение",
+            "unlimited": true,
+            "cast_level": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "light",
+            "name_ru": "Свет",
+            "unlimited": true,
+            "cast_level": 0
+          },
+          {
+            "type": "grant_spell",
+            "slug": "mage_hand",
+            "name_ru": "Волшебная рука",
+            "unlimited": true,
+            "cast_level": 0
+          },
+          {
+            "type": "grant_spell",
+            "slug": "protection_from_evil_and_good",
+            "name_ru": "Защита от добра и зла",
+            "unlimited": true,
+            "cast_level": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Пока посох в руке: +2 к атаке и урону удара и +2 к атаке заклинанием. КД и спасброски не растут. Преимущество на спасброски от заклинаний. 50 зарядов, на рассвете 4к6+2. Заклинания посоха идут вашей сложностью спасения. Поглощение заклинаний и ответный удар — по карточке, лист их не считает."
+          }
+        ],
+        "charges": {
+          "max": 50,
+          "restore": "dawn",
+          "recharge_dice": "4d6+2"
+        },
+        "description_ru": "Посох мага. Пока его держат, он даёт +2 к броскам атаки и урона своим ударом и +2 к броскам атаки заклинанием. Класс доспеха и спасброски не увеличивает. Преимущество на спасброски от заклинаний. 50 зарядов, каждое утро на длинном отдыхе 4к6+2, не выше 50. Можно использовать как заклинательную фокусировку. Настройка: чародей, колдун или волшебник."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_the_woodlands",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "staff_of_the_woodlands",
+            "max": 10,
+            "restore": "dawn",
+            "recharge_dice": "1d6+4",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "animal_friendship",
+            "name_ru": "Дружба с животными",
+            "charges": 1,
+            "cast_level": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "awaken",
+            "name_ru": "Пробуждение разума",
+            "charges": 5,
+            "cast_level": 5
+          },
+          {
+            "type": "grant_spell",
+            "slug": "barkskin",
+            "name_ru": "Дубовая кора",
+            "charges": 2,
+            "cast_level": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "locate_animals_or_plants",
+            "name_ru": "Поиск животных или растений",
+            "charges": 2,
+            "cast_level": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "speak_with_animals",
+            "name_ru": "Разговор с животными",
+            "charges": 1,
+            "cast_level": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "speak_with_plants",
+            "name_ru": "Разговор с растениями",
+            "charges": 3,
+            "cast_level": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "wall_of_thorns",
+            "name_ru": "Стена шипов",
+            "charges": 6,
+            "cast_level": 6
+          },
+          {
+            "type": "grant_spell",
+            "slug": "pass_without_trace",
+            "name_ru": "Бесследное передвижение",
+            "unlimited": true,
+            "cast_level": 2
+          },
+          {
+            "type": "custom_note",
+            "text": "Бесследное передвижение без зарядов. Остальные заклинания посоха тратят заряды по карточке. Древесный облик — текстом. На рассвете 1к6+4."
+          }
+        ],
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+4"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_withering",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "staff_of_withering",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "custom_note",
+            "text": "Некротический урон; истощение"
+          }
+        ],
+        "charges": {
+          "max": 3,
+          "restore": "dawn",
+          "recharge_dice": "1d3"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_binding",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_of_binding",
+            "max": 7,
+            "restore": "dawn",
+            "recharge_dice": "1d6+1",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "hold_person",
+            "name_ru": "Удержание личности",
+            "charges": 1,
+            "cast_level": 2,
+            "save_dc": 17
+          },
+          {
+            "type": "grant_spell",
+            "slug": "hold_monster",
+            "name_ru": "Удержание чудовища",
+            "charges": 2,
+            "cast_level": 5,
+            "save_dc": 17
+          },
+          {
+            "type": "custom_note",
+            "text": "1 заряд — удержание личности, 2 заряда — удержание чудовища. Сл 15 палочки в карточке для луча; заклинания Сл 17. На рассвете 1к6+1."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_enemy_detection",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_of_enemy_detection",
+            "max": 7,
+            "restore": "dawn",
+            "recharge_dice": "1d6+1",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "custom_note",
+            "text": "7 зарядов; рассвет 1d6+1. обнаружения врагов."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_fear",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_of_fear",
+            "max": 7,
+            "restore": "dawn",
+            "recharge_dice": "1d6+1",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fear",
+            "name_ru": "Испуг",
+            "charges": 2,
+            "cast_level": 3,
+            "save_dc": 15
+          },
+          {
+            "type": "custom_note",
+            "text": "Конус страха — по карточке, без автоматики. 2 заряда — заклинание испуг, Сл 15. На рассвете 1к6+1."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_fireballs",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_fireball",
+            "max": 7,
+            "restore": "dawn",
+            "recharge_dice": "1d6+1",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fireball",
+            "name_ru": "Огненный шар",
+            "charges": 1,
+            "cast_level": 3,
+            "charge_per_level": true,
+            "max_level": 9,
+            "save_dc": 15
+          },
+          {
+            "type": "custom_note",
+            "text": "1 заряд — огненный шар 3 круга, Сл 15. Каждый лишний заряд повышает круг. На рассвете 1к6+1."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_lightning_bolts",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_lightning",
+            "max": 7,
+            "restore": "dawn",
+            "recharge_dice": "1d6+1",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "lightning_bolt",
+            "name_ru": "Молния",
+            "charges": 1,
+            "cast_level": 3,
+            "charge_per_level": true,
+            "max_level": 9,
+            "save_dc": 15
+          },
+          {
+            "type": "custom_note",
+            "text": "1 заряд — молния 3 круга, Сл 15. Каждый лишний заряд повышает круг. На рассвете 1к6+1."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_magic_missiles",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_mm",
+            "max": 7,
+            "restore": "dawn",
+            "recharge_dice": "1d6+1",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "magic_missile",
+            "name_ru": "Волшебная стрела",
+            "charges": 1,
+            "cast_level": 1,
+            "charge_per_level": true,
+            "max_level": 9
+          },
+          {
+            "type": "custom_note",
+            "text": "1 заряд — волшебная стрела 1 круга, каждый лишний заряд повышает круг на 1. На рассвете 1к6+1. Последний заряд: к20, при 1 палочка уничтожается (вручную)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_paralysis",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_of_paralysis",
+            "max": 7,
+            "restore": "dawn",
+            "recharge_dice": "1d6+1",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "custom_note",
+            "text": "Это луч, а не заклинание из списка: атака заклинанием, при попадании Сл 15 Телосложение или паралич. Лист луч сам не бросает. На рассвете 1к6+1. Последний заряд: к20, при 1 палочка уничтожается (вручную)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_polymorph",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_of_polymorph",
+            "max": 7,
+            "restore": "dawn",
+            "recharge_dice": "1d6+1",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "polymorph",
+            "name_ru": "Превращение",
+            "charges": 1,
+            "cast_level": 4,
+            "save_dc": 15
+          },
+          {
+            "type": "custom_note",
+            "text": "1 заряд — превращение, Сл 15. На рассвете 1к6+1."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_secrets",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_of_secrets",
+            "max": 7,
+            "restore": "dawn",
+            "recharge_dice": "1d6+1",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "custom_note",
+            "text": "7 зарядов; рассвет 1d6+1. секретов."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_viscous_goo",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_goo",
+            "max": 7,
+            "restore": "midnight",
+            "recharge_dice": "1d6+1",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "custom_note",
+            "text": "1 заряд, действие: атака дальнего боя 60 фт. (заклинательная характеристика или Интеллект + мастерство). Попадание — опутан на 1 час. В полночь 1к6+1. Последний заряд: к20, при 1 палочка уничтожена."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_web",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_web",
+            "max": 7,
+            "restore": "dawn",
+            "recharge_dice": "1d6+1",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "web",
+            "name_ru": "Паутина",
+            "charges": 1,
+            "cast_level": 2,
+            "save_dc": 15
+          },
+          {
+            "type": "custom_note",
+            "text": "1 заряд — паутина, Сл 15. На рассвете 1к6+1."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_wonder",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_wonder",
+            "max": 7,
+            "restore": "dawn",
+            "recharge_dice": "1d6+1",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "custom_note",
+            "text": "Случайный эффект из таблицы палочки чудес."
+          }
+        ]
+      }
+    }
+  ]
+}

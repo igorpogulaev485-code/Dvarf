@@ -50,6 +50,8 @@ export type ScrollSpellBinding = {
   school?: string | null
   ritual?: boolean
   concentration?: boolean
+  /** Class-list slugs from the spell catalog. Absent until the spell is chosen or loaded. */
+  classes?: string[]
 }
 
 export type InventoryItem = {
@@ -234,6 +236,9 @@ function readScrollSpell(raw: unknown): ScrollSpellBinding | null {
     school: typeof row.school === 'string' ? row.school : null,
     ritual: Boolean(row.ritual),
     concentration: Boolean(row.concentration),
+    ...(Array.isArray(row.classes)
+      ? { classes: row.classes.filter((item): item is string => typeof item === 'string') }
+      : {}),
   }
 }
 
@@ -422,6 +427,9 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
                 ...(item.scroll_spell.ritual ? { ritual: true } : {}),
                 ...(item.scroll_spell.concentration
                   ? { concentration: true }
+                  : {}),
+                ...(item.scroll_spell.classes
+                  ? { classes: item.scroll_spell.classes }
                   : {}),
               },
             }

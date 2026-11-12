@@ -1,5 +1,13 @@
 /** Сцены стола: бой, инвентарь, умения, заклинания, напарники, тексты. */
 import { useState } from 'react'
+import { ignoresClassRaceLevel } from '../attunementRules'
+import { spellReadyToCast } from '../itemSpellCast'
+import { useScrollSpellClasses } from '../ScrollCastGate'
+import {
+  resolveScrollClasses,
+  scrollCastersFromProfiles,
+  scrollCastBlockReason,
+} from '../spellScroll'
 import type { SheetModel } from './sheetModel'
 import type { DivineSmiteIntent } from '../divineSmite'
 import { type RulesEdition } from '../../../shared/api/characters'
@@ -57,6 +65,19 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
     vsUndeadOrFiend: false,
   })
   const [ritualBookOpen, setRitualBookOpen] = useState(false)
+  const scrollIndex = useScrollSpellClasses(
+    model.draft.inventory.items,
+    model.baseCharacter.rules_edition as RulesEdition,
+  )
+  const scrollCasters = scrollCastersFromProfiles(model.spellcastingSync?.castProfiles ?? [])
+  const thiefScroll = ignoresClassRaceLevel(model.draft.classes)
+  const scrollCastBlock = (item: (typeof model.draft.inventory.items)[number]) =>
+    scrollCastBlockReason(
+      item,
+      scrollCasters,
+      thiefScroll,
+      resolveScrollClasses(item, scrollIndex.index, scrollIndex.ready),
+    )
   const ritualInput = {
     spells: model.draft.spells,
     inventory: model.draft.inventory,
@@ -139,6 +160,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             onSpendResource={model.spendResourceOrOpenSorcery}
             onToggleConsumableFavorite={model.toggleCombatFavorite}
             onCastScroll={(itemId) => model.setDeskCastScrollId(itemId)}
+            scrollCastBlock={scrollCastBlock}
             onSpendConsumable={model.spendConsumableFromDesk}
             onOpenConsumableSpendPad={(itemId) => model.setConsumableSpendPadId(itemId)}
             consumableSpendLog={model.consumableSpendLog}
@@ -277,6 +299,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         favoriteConsumableIds={model.draft.sheetUi.combatConsumableFavoriteIds}
         onToggleConsumableFavorite={model.toggleCombatFavorite}
         onCastScroll={(itemId) => model.setDeskCastScrollId(itemId)}
+        scrollCastBlock={scrollCastBlock}
         onOpenAttunement={() => model.setAttunementDialogOpen(true)}
         /* Header owns CoinPad only on wide desk; compact uses panel-local pad. */
         onOpenCoins={() => model.setCoinPadOpen(true)}
@@ -498,7 +521,11 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               model.setSpellsSettingsOpen(true)
             }}
             onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
-            onCastSpell={(spell) => model.setDeskCastSpell(spell)}
+            onCastSpell={(spell) => {
+              void spellReadyToCast(spell, model.rulesEdition).then((ready) =>
+                model.setDeskCastSpell(ready),
+              )
+            }}
             ritualBookLabel={ritualLabel}
             onOpenRitualBook={() => setRitualBookOpen(true)}
             onConcentrateSpell={(spell) => model.setDeskCastSpell(spell)}

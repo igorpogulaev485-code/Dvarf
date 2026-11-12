@@ -90,6 +90,8 @@ type PlayDeskAttacksCompactProps = {
   onOpenConsumableSpendPad?: (itemId: string) => void
   /** Bound spell scroll: open cast flow (consumes on confirm). */
   onCastScroll?: (itemId: string) => void
+  /** DMG p. 200 reason. Non-empty disables the cast button. */
+  scrollCastBlock?: (item: InventoryItem) => string | null
   onToggleConsumableFavorite?: (itemId: string) => void
   /** Session spend journal (recent, soft-undo). */
   consumableSpendLog?: ConsumableSpendLogEntry[]
@@ -144,6 +146,7 @@ export function PlayDeskAttacksCompact({
   onSpendConsumable,
   onOpenConsumableSpendPad,
   onCastScroll,
+  scrollCastBlock,
   onToggleConsumableFavorite,
   consumableSpendLog = [],
   onUndoConsumableSpend,
@@ -643,9 +646,11 @@ export function PlayDeskAttacksCompact({
         ) : (
           consumables.map(({ item, favorite }) => {
             const qty = item.qty ?? 0
-            const scrollCast = isCastableSpellScroll(item) && Boolean(onCastScroll)
+            const scrollRow = isCastableSpellScroll(item) && Boolean(onCastScroll)
+            const scrollBlock = scrollRow ? scrollCastBlock?.(item) ?? null : null
+            const scrollCast = scrollRow && !scrollBlock
             const canSpend =
-              qty > 0 && (scrollCast || Boolean(onSpendConsumable))
+              qty > 0 && !scrollBlock && (scrollCast || Boolean(onSpendConsumable))
             const showQtyPad =
               !scrollCast && qty > 1 && Boolean(onOpenConsumableSpendPad) && Boolean(onSpendConsumable)
             return (
@@ -683,11 +688,13 @@ export function PlayDeskAttacksCompact({
                       className="play-desk-compact__cons-spend"
                       disabled={!canSpend}
                       title={
-                        scrollCast
-                          ? `Каст со свитка: ${item.scroll_spell?.name ?? item.name}`
-                          : canSpend
-                            ? `Потратить 1 «${item.name}»`
-                            : item.name
+                        scrollBlock
+                          ? scrollBlock
+                          : scrollCast
+                            ? `Каст со свитка: ${item.scroll_spell?.name ?? item.name}`
+                            : canSpend
+                              ? `Потратить 1 «${item.name}»`
+                              : item.name
                       }
                       onClick={() => {
                         if (!canSpend) {
@@ -701,7 +708,7 @@ export function PlayDeskAttacksCompact({
                         onSpendConsumable?.(item.id, 1)
                       }}
                     >
-                      {scrollCast ? 'каст' : 'потратить'}
+                      {scrollBlock ? 'нельзя' : scrollCast ? 'каст' : 'потратить'}
                     </button>
                   </div>
                 </div>

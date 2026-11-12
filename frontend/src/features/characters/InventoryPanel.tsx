@@ -64,6 +64,7 @@ import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
 import { SpellScrollBindDialog } from './SpellScrollBindDialog'
 import {
+  applyScrollSpellChoice,
   isCastableSpellScroll,
   isSpellScrollCatalogSlug,
   isSpellScrollItem,
@@ -322,6 +323,8 @@ type InventoryPanelProps = {
   onToggleConsumableFavorite?: (itemId: string) => void
   /** Cast a bound spell scroll from inventory (explore / combat). */
   onCastScroll?: (itemId: string) => void
+  /** DMG p. 200: non-empty string disables «Кастовать свиток». */
+  scrollCastBlock?: (item: InventoryItem) => string | null
 }
 
 export function InventoryPanel({
@@ -342,6 +345,7 @@ export function InventoryPanel({
   favoriteConsumableIds = [],
   onToggleConsumableFavorite,
   onCastScroll,
+  scrollCastBlock,
 }: InventoryPanelProps) {
   const favoriteSet = useMemo(() => new Set(favoriteConsumableIds), [favoriteConsumableIds])
   const favoriteCount = favoriteConsumableIds.length
@@ -1062,23 +1066,33 @@ export function InventoryPanel({
 
         {isSpellScrollItem(item) ? (
           <div className="chip-row" style={{ marginTop: 4 }}>
-            <button
-              type="button"
-              className={`sheet-chip${item.scroll_spell ? ' is-on' : ''}`}
-              onClick={() => setScrollBindItemId(item.id)}
-            >
-              {item.scroll_spell
-                ? `Заклинание: ${item.scroll_spell.name}`
-                : 'Указать заклинание свитка'}
-            </button>
+            {item.scroll_spell?.name ? (
+              <span className="sheet-chip is-on">Заклинание: {item.scroll_spell.name}</span>
+            ) : (
+              <button
+                type="button"
+                className="sheet-chip"
+                onClick={() => setScrollBindItemId(item.id)}
+              >
+                Указать заклинание свитка
+              </button>
+            )}
             {isCastableSpellScroll(item) && onCastScroll ? (
               <button
                 type="button"
                 className="sheet-chip is-on"
-                onClick={() => onCastScroll(item.id)}
+                disabled={Boolean(scrollCastBlock?.(item))}
+                title={scrollCastBlock?.(item) ?? `Каст со свитка: ${item.scroll_spell?.name ?? ''}`}
+                onClick={() => {
+                  if (scrollCastBlock?.(item)) return
+                  onCastScroll(item.id)
+                }}
               >
                 Кастовать свиток
               </button>
+            ) : null}
+            {scrollCastBlock?.(item) ? (
+              <Text tone="muted">{scrollCastBlock(item)}</Text>
             ) : null}
           </div>
         ) : null}
@@ -1344,18 +1358,17 @@ export function InventoryPanel({
             : null
         }
         onConfirm={(bound) => {
+          const spell = bound.scroll_spell
+          if (!spell) {
+            setScrollBindItemId(null)
+            return
+          }
           onChange({
             ...inventory,
-            items: inventory.items.map((row) =>
-              row.id === bound.id ? bound : row,
-            ),
+            items: applyScrollSpellChoice(inventory.items, bound.id, spell),
           })
           setScrollBindItemId(null)
-          onToast?.(
-            bound.scroll_spell
-              ? `Свиток: ${bound.scroll_spell.name}`
-              : 'Свиток обновлён',
-          )
+          onToast?.(`Свиток: ${spell.name}`)
         }}
         onClose={() => setScrollBindItemId(null)}
       />

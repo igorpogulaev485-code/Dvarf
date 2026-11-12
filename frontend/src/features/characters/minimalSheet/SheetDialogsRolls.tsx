@@ -19,8 +19,15 @@ import { setConcentration } from '../../../shared/dnd/concentration'
 import { equippedArmorPieces } from '../inventory'
 import { CastSpellDialog } from '../CastSpellDialog'
 import { listActiveInfusionBindings } from '../../../shared/dnd/infusionsActive'
-import { CastScrollDialog } from '../CastScrollDialog'
-import { consumeScrollItem, isCastableSpellScroll, spellScrollCastStats } from '../spellScroll'
+import { ScrollCastGate, useScrollSpellClasses } from '../ScrollCastGate'
+import {
+  consumeScrollItem,
+  isCastableSpellScroll,
+  resolveScrollClasses,
+  scrollCastersFromProfiles,
+  spellScrollCastStats,
+} from '../spellScroll'
+import { ignoresClassRaceLevel } from '../attunementRules'
 import { abilityModifier } from '../sheetTypes'
 import { getFeaturePick } from '../../../shared/dnd/featurePicks'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
@@ -55,6 +62,12 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
   const arcaneFirearm = model.unlockedFeatures.some(
     (feature: { id: string }) => feature.id === 'arcane_firearm',
   )
+  const scrollIndex = useScrollSpellClasses(model.draft.inventory.items, model.rulesEdition)
+  const scrollItem = model.deskCastScrollId
+    ? model.draft.inventory.items.find((row) => row.id === model.deskCastScrollId) ?? null
+    : null
+  const scrollCasters = scrollCastersFromProfiles(model.spellcastingSync?.castProfiles ?? [])
+  const thiefScroll = ignoresClassRaceLevel(model.draft.classes)
   return (
     <>
       <Dialog
@@ -240,7 +253,19 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         formulaVars={model.formulaVarsBase}
         onSelectSpellVariant={model.setDeskCastSpell}
         onConfirm={model.confirmDeskCast}
-        onClose={() => model.setDeskCastSpell(null)}
+        statLock={
+          model.deskScrollLock
+            ? {
+                saveDc: model.deskScrollLock.saveDc,
+                attackBonus: model.deskScrollLock.attackBonus,
+              }
+            : null
+        }
+        scrollItemId={model.deskScrollLock?.itemId ?? null}
+        onClose={() => {
+          model.setDeskCastSpell(null)
+          model.setDeskScrollLock(null)
+        }}
         onRequestRest={() => {
           model.setDeskCastSpell(null)
           model.setRestOpen(true)
@@ -290,73 +315,36 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         }}
       />
 
-      <CastScrollDialog
+      <ScrollCastGate
         open={model.deskCastScrollId != null}
-        item={
-          model.deskCastScrollId
-            ? model.draft.inventory.items.find((row) => row.id === model.deskCastScrollId) ?? null
+        item={scrollItem}
+        spellClasses={
+          scrollItem
+            ? resolveScrollClasses(scrollItem, scrollIndex.index, scrollIndex.ready)
             : null
         }
-        onConfirm={() => {
-          const itemId = model.deskCastScrollId
-          if (!itemId) return
-          const item = model.draft.inventory.items.find((row) => row.id === itemId)
-          if (!item || !isCastableSpellScroll(item) || !item.scroll_spell) {
-            model.setDeskCastScrollId(null)
-            return
-          }
-          const binding = item.scroll_spell
-          const stats = spellScrollCastStats(binding.level)
-          const scrollSpellId = `scroll:${item.id}:${binding.catalog_id ?? binding.name}`
-          if (
-            binding.concentration &&
-            model.draft.play.concentration &&
-            model.draft.play.concentration.spell_id !== scrollSpellId &&
-            model.draft.play.concentration.name.trim() !== binding.name.trim()
-          ) {
-            model.setDeskCastScrollPending({
-              itemId,
-              name: binding.name,
-              concentration: true,
-            })
-            model.setDeskCastScrollId(null)
-            return
-          }
-          model.setDraft((prev) => {
-            let next = {
-              ...prev,
-              inventory: {
-                ...prev.inventory,
-                items: consumeScrollItem(prev.inventory.items, itemId),
-              },
-            }
-            if (binding.concentration) {
-              const nextConc = setConcentration({
-                spellId: scrollSpellId,
-                name: binding.name,
-              })
-              const result = applyConcentrationChangeToCompanions({
-                companions: next.companions,
-                previous: next.play.concentration,
-                next: nextConc,
-              })
-              next = {
-                ...next,
-                companions: result.companions,
-                play: {
-                  ...next.play,
-                  concentration: nextConc,
-                },
-              }
-            }
-            return next
+        casters={scrollCasters}
+        thiefRogue13={thiefScroll}
+        abilityMod={(ability) => abilityModifier(model.effectiveAbilities[ability])}
+        edition={model.rulesEdition}
+        onOpenCast={(spell, itemId, stats) => {
+          model.setDeskScrollLock({
+            itemId,
+            saveDc: stats.saveDc,
+            attackBonus: stats.attackBonus,
           })
+          model.setDeskCastSpell(spell)
           model.setDeskCastScrollId(null)
-          model.onToast(
-            `Свиток: ${binding.name} · Сл ${stats.saveDc} · +${stats.attackBonus}${
-              binding.concentration ? ' · концентрация' : ''
-            } · свиток израсходован`,
-          )
+        }}
+        onConsume={(itemId, message) => {
+          model.setDraft((prev) => ({
+            ...prev,
+            inventory: {
+              ...prev.inventory,
+              items: consumeScrollItem(prev.inventory.items, itemId),
+            },
+          }))
+          model.onToast(message)
         }}
         onClose={() => model.setDeskCastScrollId(null)}
       />
@@ -434,7 +422,10 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
       >
         <Text>
           Сейчас концентрация: «{model.draft.play.concentration?.name ?? '—'}». Сменить на «
-          {model.deskCastPending?.spell.name || 'Заклинание'}»? Ячейка потратится после подтверждения.
+          {model.deskCastPending?.spell.name || 'Заклинание'}»?
+          {model.deskCastPending?.choice.noSlot
+            ? ' Ячейка не тратится.'
+            : ' Ячейка потратится после подтверждения.'}
         </Text>
       </Dialog>
 

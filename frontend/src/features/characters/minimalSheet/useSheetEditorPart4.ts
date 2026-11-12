@@ -43,6 +43,7 @@ import { resolveClassCasterSlug, resolveSpellLearnBudget } from '../../../shared
 import { equippedArmorPieces } from '../inventory'
 import { type CastChoice } from '../CastSpellDialog'
 import { isCastableSpellScroll } from '../spellScroll'
+import { applyInstantDice, instantDice } from '../gearCharges'
 import { type SheetSpell } from '../spells'
 import { abilityModifier, formatModifier, type AbilityKey } from '../sheetTypes'
 
@@ -205,6 +206,13 @@ export function useSheetEditorPart4(model: SheetModel) {
   model.setPendingFamiliar = setPendingFamiliar
   const [deskCastScrollId, setDeskCastScrollId] = useState<string | null>(null)
   model.deskCastScrollId = deskCastScrollId
+  const [deskScrollLock, setDeskScrollLock] = useState<{
+    itemId: string
+    saveDc: number
+    attackBonus: number
+  } | null>(null)
+  model.deskScrollLock = deskScrollLock
+  model.setDeskScrollLock = setDeskScrollLock
   model.setDeskCastScrollId = setDeskCastScrollId
   const [consumableSpendPadId, setConsumableSpendPadId] = useState<string | null>(null)
   model.consumableSpendPadId = consumableSpendPadId
@@ -299,6 +307,7 @@ export function useSheetEditorPart4(model: SheetModel) {
       }
       model.setDraft((prev) => ({
         ...prev,
+        ...(session.hpBefore !== undefined ? { hpCurrent: session.hpBefore } : {}),
         inventory: {
           ...prev.inventory,
           items: prev.inventory.items.map((row) =>
@@ -325,6 +334,32 @@ export function useSheetEditorPart4(model: SheetModel) {
       }
       const spendAmount = Math.max(1, Math.min(amount, item.qty ?? 0))
       const nextQty = Math.max(0, (item.qty ?? 0) - spendAmount)
+      const heal = instantDice(item.effects, 'heal')
+      const harm = heal ? null : instantDice(item.effects, 'harm')
+      const dice = heal ?? harm
+      let hpBefore: number | null | undefined
+      let hpAfter: number | null = null
+      const diceLines: string[] = []
+      if (dice) {
+        if (heal && model.draft.hpMax == null) {
+          model.onToast('Задай максимум хитов — зелье не выпито')
+          return
+        }
+        hpBefore = model.draft.hpCurrent
+        let hp = model.draft.hpCurrent
+        for (let i = 0; i < spendAmount; i += 1) {
+          const rolled = applyInstantDice({
+            hp,
+            max: model.draft.hpMax,
+            dice: dice.dice,
+            kind: heal ? 'heal' : 'harm',
+          })
+          if (!rolled) break
+          hp = rolled.hp
+          diceLines.push(rolled.line)
+        }
+        hpAfter = hp
+      }
       const logId = newConsumableSpendId()
       const token = Date.now()
       const session: ConsumableUndoSession = {
@@ -333,10 +368,12 @@ export function useSheetEditorPart4(model: SheetModel) {
         name: item.name,
         amount: spendAmount,
         logId,
+        ...(hpBefore !== undefined ? { hpBefore } : {}),
       }
       consumableUndoRef.current = session
       model.setDraft((prev) => ({
         ...prev,
+        ...(hpAfter != null ? { hpCurrent: hpAfter } : {}),
         inventory: {
           ...prev.inventory,
           items: prev.inventory.items.map((row) =>
@@ -355,8 +392,11 @@ export function useSheetEditorPart4(model: SheetModel) {
           atMs: token,
         }),
       )
+      const drinkNote = diceLines.length
+        ? ` · ${diceLines.join(' · ')}${harm?.note ? ` · ${harm.note}` : ''}`
+        : ''
       model.onToast({
-        message: formatConsumableSpendToast(item.name, spendAmount, nextQty),
+        message: `${formatConsumableSpendToast(item.name, spendAmount, nextQty)}${drinkNote}`,
         durationMs: 8000,
         actionLabel: 'Отменить',
         onAction: () => {

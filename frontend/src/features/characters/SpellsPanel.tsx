@@ -46,6 +46,7 @@ import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
 import { canOfferRitualCast, castAccessAllowsRitual } from '../../shared/dnd/ritualCasting'
 import { ritualBookBlockReason } from './castWithoutSlots'
 import { spendFeatureCast } from './featureCastSpend'
+import { spellReadyToCast, spendItemCharges } from './itemSpellCast'
 import { resolveCastTiming } from '../../shared/dnd/upcastDuration'
 import {
   applyAbjurationToWard,
@@ -590,8 +591,9 @@ export function SpellsPanel({
         ? spells.known.find((row) => row.id === grantSpellId) ?? castSpell
         : null
     const grantCast = Boolean(grantRow && canSpendGrantCast(grantRow))
-    const slotForEffect =
-      castSpell.level <= 0 || ritualCast || grantCast || atWillCast || featureCast
+    const slotForEffect = choice.noSlot
+      ? choice.slotLevel || castSpell.level
+      : castSpell.level <= 0 || ritualCast || grantCast || atWillCast || featureCast
         ? castSpell.level
         : choice.usePact
           ? (spells.pact_slots?.level ?? castSpell.level)
@@ -604,6 +606,32 @@ export function SpellsPanel({
       damageChoice: choice.damageChoice,
     })
     const effectNote = scaled && effect ? ` · ${effect}` : ''
+    if (choice.noSlot) {
+      const spent = spendItemCharges(
+        resources ?? [],
+        {
+          resourceId: choice.itemResourceId ?? null,
+          charges: choice.itemChargeCost ?? 0,
+        },
+        choice.itemChargeCost ?? 0,
+      )
+      if (!spent.ok) {
+        onToast?.(spent.message)
+        return
+      }
+      if ((choice.itemChargeCost ?? 0) > 0) onResourcesChange?.(spent.resources)
+      applyConcentrationIfNeeded(castSpell)
+      const chargeNote =
+        (choice.itemChargeCost ?? 0) > 0 ? ` · −${choice.itemChargeCost} зарядов` : ''
+      const hint = spent.hint ? ` · ${spent.hint}` : ''
+      onToast?.(
+        `Каст: ${name} из предмета (без ячейки)${effect ? ` · ${effect}` : ''}${chargeNote}${hint}${
+          castSpell.concentration ? ' · концентрация' : ''
+        }`,
+      )
+      setCastSpell(null)
+      return
+    }
     const consumeNote = applyMaterialConsume(choice)
     const naparnikSlot = slotForEffect || castSpell.level
     const wantsForm = openSelfFormPickerIfNeeded(castSpell, choice)
@@ -1356,17 +1384,21 @@ export function SpellsPanel({
                         <Button
                           className="spell-card__cast"
                           disabled={
-                            (spell.level > 0 && !spell.prepared) ||
-                            (spell.level > 0 &&
-                              !spell.ritual &&
-                              !canSpendGrantCast(spell) &&
-                              !canCastLeveledSpell(
-                                spells.slots,
-                                spells.pact_slots,
-                                spell.level,
-                              ))
+                            spell.item_cast
+                              ? false
+                              : (spell.level > 0 && !spell.prepared) ||
+                                (spell.level > 0 &&
+                                  !spell.ritual &&
+                                  !canSpendGrantCast(spell) &&
+                                  !canCastLeveledSpell(
+                                    spells.slots,
+                                    spells.pact_slots,
+                                    spell.level,
+                                  ))
                           }
-                          onClick={() => setCastSpell(spell)}
+                          onClick={() => {
+                            void spellReadyToCast(spell, edition).then(setCastSpell)
+                          }}
                         >
                           <IconCast className="spells-btn-icon" />
                           Каст

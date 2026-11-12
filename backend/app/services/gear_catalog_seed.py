@@ -69,6 +69,7 @@ GEAR_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("gear_i02_attunement_v1.json"),
     WaveSpec("gear_i03_spellcasting_v1.json"),
     WaveSpec("gear_i04_defense_v1.json"),
+    WaveSpec("gear_i05_charges_v1.json"),
 )
 
 # Audited active-magic count after the I22 hide (docs/items-audit/count.md).
