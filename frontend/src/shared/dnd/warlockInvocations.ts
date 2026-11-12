@@ -162,6 +162,33 @@ export const WARLOCK_INVOCATIONS: WarlockInvocationDef[] = [
     minLevel: 15,
     summaryRu: 'Истинное зрение 30 фт. на существ в облике (превращение/иллюзия).',
   },
+  // XGE / TCE — B-05 sheet buffs
+  {
+    id: 'eldritch_mind',
+    nameRu: 'Элдрический разум',
+    nameEn: 'Eldritch Mind',
+    summaryRu: 'Преимущество на спасброски Телосложения для концентрации.',
+  },
+  {
+    id: 'improved_pact_weapon',
+    nameRu: 'Улучшенное оружие договора',
+    nameEn: 'Improved Pact Weapon',
+    requiresPact: 'blade',
+    summaryRu: '+1 к атаке и урону пактного оружия (если нет большего бонуса); можно как фокусировку.',
+  },
+  {
+    id: 'tomb_of_levistus',
+    nameRu: 'Гробница Левиста',
+    nameEn: 'Tomb of Levistus',
+    minLevel: 5,
+    summaryRu: 'Реакция: 10×ур. временных хитов; до конца след. хода скорость 0, опутан, уязвим к огню.',
+  },
+  {
+    id: 'pact_of_the_talisman',
+    nameRu: 'Договор талисмана',
+    nameEn: 'Pact of the Talisman',
+    summaryRu: 'Носитель талисмана при провале проверки может добавить 1к4 (БМ раз / долгий отдых).',
+  },
 ]
 
 /** Invocation count by warlock level (PHB). */

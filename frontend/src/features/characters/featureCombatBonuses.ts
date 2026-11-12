@@ -68,6 +68,17 @@ export function initiativeBonusFromFeatures(input: {
       bonus += typeof cha === 'number' ? abilityModifier(cha) : 0
       continue
     }
+    if (feature.id === 'tactical_wit') {
+      const int = input.abilities.int
+      bonus += typeof int === 'number' ? abilityModifier(int) : 0
+      continue
+    }
+    if (feature.id === 'aura_of_the_sentinel') {
+      const cha = input.abilities.cha
+      const mod = typeof cha === 'number' ? abilityModifier(cha) : 0
+      bonus += Math.max(1, mod)
+      continue
+    }
     if (feature.id === 'remarkable_athlete') {
       bonus += halfProficiencyRoundUp(input.proficiencyBonus ?? 0)
     }

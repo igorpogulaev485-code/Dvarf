@@ -1206,6 +1206,8 @@ export function installSheetActions4(model: SheetModel) {
     classLevel?: number | null
     casterMod?: number | null
     option?: string | null
+    slotLevel?: number | null
+    auraAllyDefaultOff?: boolean
   }) {
     const { applyFeatureBuffToTargets } = await import('../applyFeatureBuff')
     return applyFeatureBuffToTargets({
@@ -1215,6 +1217,8 @@ export function installSheetActions4(model: SheetModel) {
       classLevel: input.classLevel,
       casterMod: input.casterMod,
       option: input.option,
+      slotLevel: input.slotLevel,
+      auraAllyDefaultOff: input.auraAllyDefaultOff,
       sourceCharacterId: String(model.baseCharacter.id),
       sourceName:
         model.draft.name?.trim() || model.baseCharacter.name || 'Персонаж',

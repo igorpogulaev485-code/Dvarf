@@ -397,6 +397,39 @@ export function createArcaneWard(resources: SheetResource[]): {
  * Casting an abjuration spell of 1st level or higher creates the ward
  * or restores 2 × the slot level (PHB).
  */
+/**
+ * Р5: Arcane Ward absorbs damage before temp HP and real HP.
+ * Ward stock track: `used` = current ward HP.
+ */
+export function absorbDamageWithArcaneWard(
+  resources: SheetResource[],
+  amount: number,
+): {
+  resources: SheetResource[]
+  remaining: number
+  absorbed: number
+  note: string | null
+} {
+  const dmg = Math.max(0, Math.floor(amount))
+  const row = resourceByPool(resources, 'arcane_ward')
+  if (!row || !row.wardCreated || row.track !== 'stock' || row.used <= 0 || dmg <= 0) {
+    return { resources, remaining: dmg, absorbed: 0, note: null }
+  }
+  const absorbed = Math.min(row.used, dmg)
+  const nextUsed = row.used - absorbed
+  return {
+    resources: mapResource(resources, row.id, (item) => ({
+      ...item,
+      used: nextUsed,
+      track: 'stock',
+      wardCreated: true,
+    })),
+    remaining: dmg - absorbed,
+    absorbed,
+    note: `Тайный страж: −${absorbed} (${nextUsed}/${row.max})`,
+  }
+}
+
 export function applyAbjurationToWard(
   resources: SheetResource[],
   slotLevel: number,

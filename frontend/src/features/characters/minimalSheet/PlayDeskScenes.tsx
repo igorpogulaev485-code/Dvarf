@@ -38,6 +38,8 @@ import {
   weaponBonusesFromActiveEffects,
 } from '../../../shared/dnd/activeEffects'
 import { resolveB04FeatureSpend } from '../b04FeatureSpend'
+import { resolveB05FeatureSpend } from '../b05FeatureSpend'
+import { UseAllyAbilityDialog } from '../UseAllyAbilityDialog'
 
 function mergeToolNames(base: string[], extra: string[]): string[] {
   const seen = new Set(base.map((name) => name.trim().toLowerCase()))
@@ -72,6 +74,15 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
     vsUndeadOrFiend: false,
   })
   const [ritualBookOpen, setRitualBookOpen] = useState(false)
+  const [pendingAllyBuff, setPendingAllyBuff] = useState<{
+    slug: string
+    name: string
+    classLevel?: number
+    casterMod?: number | null
+    option?: string | null
+    slotLevel?: number | null
+    auraAllyDefaultOff?: boolean
+  } | null>(null)
   const scrollIndex = useScrollSpellClasses(
     model.draft.inventory.items,
     model.baseCharacter.rules_edition as RulesEdition,
@@ -496,7 +507,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         }
         onToast={model.onToast}
         onFeatureBuffApply={(input) => {
-          const action = resolveB04FeatureSpend({
+          const b04 = resolveB04FeatureSpend({
             featureId: input.featureId,
             featureNameRu: input.featureNameRu,
             classEntryId: input.classEntryId,
@@ -504,6 +515,18 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             featurePicks: model.draft.featurePicks,
             abilities: model.draft.abilities,
           })
+          const b05 =
+            b04.kind === 'none'
+              ? resolveB05FeatureSpend({
+                  featureId: input.featureId,
+                  featureNameRu: input.featureNameRu,
+                  classEntryId: input.classEntryId,
+                  classLevel: input.classLevel,
+                  abilities: model.draft.abilities,
+                  proficiencyBonus: model.proficiencyBonus,
+                })
+              : { kind: 'none' as const }
+          const action = b04.kind !== 'none' ? b04 : b05
           if (action.kind === 'heal') {
             model.setDraft((prev) => ({
               ...prev,
@@ -515,9 +538,38 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             model.onToast(action.label)
             return
           }
+          if (action.kind === 'temp_hp') {
+            void model.applyFeatureBuff?.({
+              slug: 'dark_ones_blessing',
+              name: 'Благословение Темнейшего',
+              classLevel: input.classLevel,
+              casterMod:
+                typeof model.draft.abilities.cha === 'number'
+                  ? Math.floor((model.draft.abilities.cha - 10) / 2)
+                  : 0,
+            })
+            model.onToast(action.label)
+            return
+          }
           if (action.kind !== 'buff') return
-          if (action.clearConcentration) {
+          if ('clearConcentration' in action && action.clearConcentration) {
             model.clearConcentrationDismissingCompanions?.(null)
+          }
+          if (action.targetsSelf === false) {
+            setPendingAllyBuff({
+              slug: action.slug,
+              name: action.name || input.featureNameRu,
+              classLevel: action.classLevel,
+              casterMod: action.casterMod,
+              option: action.option,
+              slotLevel:
+                'slotLevel' in action ? action.slotLevel : undefined,
+              auraAllyDefaultOff:
+                'auraAllyDefaultOff' in action
+                  ? Boolean(action.auraAllyDefaultOff)
+                  : action.slug.startsWith('aura_of_'),
+            })
+            return
           }
           void model
             .applyFeatureBuff({
@@ -526,6 +578,14 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               classLevel: action.classLevel,
               casterMod: action.casterMod,
               option: action.option,
+              slotLevel:
+                action.kind === 'buff' && 'slotLevel' in action
+                  ? action.slotLevel
+                  : undefined,
+              auraAllyDefaultOff:
+                action.kind === 'buff' && 'auraAllyDefaultOff' in action
+                  ? action.auraAllyDefaultOff
+                  : undefined,
             })
             .then((res: { error?: string } | undefined) => {
               if (res?.error) model.onToast(res.error)
@@ -882,6 +942,45 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
       </div>
 
       </div>{/* scene-wrap */}
+      {pendingAllyBuff ? (
+        <UseAllyAbilityDialog
+          open
+          characterId={String(model.baseCharacter.id)}
+          characterName={
+            model.draft.name?.trim() || model.baseCharacter.name || 'Персонаж'
+          }
+          abilityName={pendingAllyBuff.name}
+          targetCount={1}
+          onClose={() => setPendingAllyBuff(null)}
+          onConfirm={(targetIds) => {
+            const targets =
+              targetIds.length > 0
+                ? targetIds
+                : [String(model.baseCharacter.id)]
+            void model
+              .applyFeatureBuff?.({
+                slug: pendingAllyBuff.slug,
+                name: pendingAllyBuff.name,
+                targets,
+                classLevel: pendingAllyBuff.classLevel,
+                casterMod: pendingAllyBuff.casterMod,
+                option: pendingAllyBuff.option,
+                slotLevel: pendingAllyBuff.slotLevel,
+                auraAllyDefaultOff: pendingAllyBuff.auraAllyDefaultOff,
+              })
+              .then((res: { error?: string } | undefined) => {
+                if (res?.error) model.onToast(res.error)
+                else
+                  model.onToast(
+                    `${pendingAllyBuff.name}: целей ${targets.length}`,
+                  )
+              })
+            setPendingAllyBuff(null)
+          }}
+          onToast={model.onToast}
+        />
+      ) : null}
+
       <RitualBookCopyDialog
         open={ritualBookOpen}
         input={ritualInput}

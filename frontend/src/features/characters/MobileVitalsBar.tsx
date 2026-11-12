@@ -23,6 +23,7 @@ import {
 } from '../../shared/dnd/exhaustion2014'
 import { IconCoin, IconJump, IconRest, IconSkull } from './deskIcons'
 import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
+import { absorbDamageWithArcaneWard } from '../../shared/dnd/wizardTradition'
 
 const COLLAPSE_KEY = 'dvarf.mobileVitals.collapsed'
 
@@ -37,6 +38,9 @@ type MobileVitalsBarProps = {
   hpMax: number | null
   damageProfile?: IncomingDamageProfile
   hasEvasion?: boolean
+  /** B-05: Uncanny Dodge — half one attack (reaction). */
+  hasUncannyDodge?: boolean
+  draconicResilience?: boolean
   play: PlayState
   autoAc: number
   acOverride: number | null
@@ -100,6 +104,8 @@ export function MobileVitalsBar({
   hpMax,
   damageProfile,
   hasEvasion = false,
+  hasUncannyDodge = false,
+  draconicResilience = false,
   play,
   autoAc,
   acOverride,
@@ -210,7 +216,8 @@ export function MobileVitalsBar({
   }
 
   function applyDamage(amount: number) {
-    let left = Math.max(0, amount)
+    const ward = absorbDamageWithArcaneWard(play.resources ?? [], amount)
+    let left = ward.remaining
     let temp = play.hpTemp
     if (temp > 0) {
       const soak = Math.min(temp, left)
@@ -219,7 +226,8 @@ export function MobileVitalsBar({
     }
     const cur = shownHpCurrent ?? 0
     const next = Math.max(0, cur - left)
-    onPlayChange({ ...play, hpTemp: temp })
+    onPlayChange({ ...play, resources: ward.resources, hpTemp: temp })
+    if (ward.note) onToast(ward.note)
     onCombatChange({ hpCurrent: next })
     if (left > 0) onDamaged?.(left)
   }
@@ -572,6 +580,7 @@ export function MobileVitalsBar({
           onToast={onToast}
           damageProfile={damageProfile}
           hasEvasion={hasEvasion}
+          hasUncannyDodge={hasUncannyDodge}
         />
         <CoinPadDialog
           open={coinPadOpen}
@@ -587,6 +596,7 @@ export function MobileVitalsBar({
           hitDie={hitDie}
           hpMax={hpMax}
           hpCurrent={hpCurrent}
+          draconicResilience={draconicResilience}
           onClose={() => setMaxDialogOpen(false)}
           onApply={({ hpMax: nextMax, hpCurrent: nextCurrent }) => {
             onCombatChange({ hpMax: nextMax, hpCurrent: nextCurrent })

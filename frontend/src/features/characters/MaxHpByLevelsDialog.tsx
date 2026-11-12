@@ -15,6 +15,8 @@ type MaxHpByLevelsDialogProps = {
   hitDie: HitDie | null
   hpMax: number | null
   hpCurrent: number | null
+  /** B-05: Draconic Resilience +1 HP per sorcerer level. */
+  draconicResilience?: boolean
   onApply: (next: { hpMax: number; hpCurrent: number }) => void
   onClose: () => void
 }
@@ -28,6 +30,7 @@ export function MaxHpByLevelsDialog({
   hitDie,
   hpMax,
   hpCurrent,
+  draconicResilience = false,
   onApply,
   onClose,
 }: MaxHpByLevelsDialogProps) {
@@ -41,8 +44,9 @@ export function MaxHpByLevelsDialog({
         classes,
         constitutionMod,
         fallbackDie: hitDie,
+        draconicResilience,
       }),
-    [classes, constitutionMod, hitDie],
+    [classes, constitutionMod, hitDie, draconicResilience],
   )
 
   useEffect(() => {

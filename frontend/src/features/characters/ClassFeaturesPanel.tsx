@@ -2304,6 +2304,44 @@ function FeatureRow({
           scaleText={scaleShown}
         />
       ) : null}
+      {replacementStatus === 'active' &&
+      onFeatureBuffApply &&
+      (feature.id === 'aura_of_protection' ||
+        feature.id === 'aura_of_courage' ||
+        feature.id === 'aura_of_devotion' ||
+        feature.id === 'aura_of_warding' ||
+        feature.id === 'aura_of_alacrity' ||
+        feature.id === 'aura_of_the_sentinel' ||
+        feature.id === 'dark_ones_blessing' ||
+        feature.id === 'dread_ambusher' ||
+        feature.id === 'eldritch_mind' ||
+        feature.id === 'improved_pact_weapon' ||
+        feature.id === 'spell_resistance' ||
+        feature.id === 'durable_magic' ||
+        feature.id === 'tactical_wit' ||
+        feature.id === 'colossus_slayer' ||
+        feature.id === 'steel_will' ||
+        feature.id === 'psychic_defenses' ||
+        feature.id === 'wind_soul' ||
+        feature.id === 'supernatural_resistance' ||
+        feature.id === 'unyielding_spirit') ? (
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() =>
+            onFeatureBuffApply({
+              featureId: feature.id,
+              featureNameRu: feature.name_ru,
+              classEntryId: feature.classEntryId,
+              classLevel: feature.classLevel,
+            })
+          }
+        >
+          {feature.id.startsWith('aura_of_')
+            ? 'На союзника'
+            : 'Применить эффект'}
+        </Button>
+      ) : null}
       {replacementStatus === 'active' ? (
         <Pack04FeatureExtras
           feature={feature}

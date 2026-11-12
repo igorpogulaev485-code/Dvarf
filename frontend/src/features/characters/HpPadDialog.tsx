@@ -45,6 +45,8 @@ type HpPadDialogProps = {
   damageProfile?: IncomingDamageProfile
   /** B-04: Monk/Rogue Evasion — Dex save damage: success → 0, fail → half. */
   hasEvasion?: boolean
+  /** B-05: Uncanny Dodge — reaction: half damage from one attack (before resist). */
+  hasUncannyDodge?: boolean
 }
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'] as const
@@ -66,12 +68,15 @@ export function HpPadDialog({
   onToast,
   damageProfile,
   hasEvasion = false,
+  hasUncannyDodge = false,
 }: HpPadDialogProps) {
   const [digits, setDigits] = useState('')
   const [damageType, setDamageType] = useState<DamageType | null>(null)
   const [nonmagical, setNonmagical] = useState(false)
   /** null = off; success = 0 dmg; fail = half before resist. */
   const [evasionMode, setEvasionMode] = useState<'success' | 'fail' | null>(null)
+  /** B-05: half one attack (reaction), before resistance (Р6). */
+  const [uncannyDodgeOn, setUncannyDodgeOn] = useState(false)
   const profile = damageProfile ?? emptyDamageProfile()
   const pools = play.hitDiceByClass
   const hitCurrent = totalHitDiceCurrent(pools)
@@ -85,6 +90,7 @@ export function HpPadDialog({
     setDamageType(null)
     setNonmagical(false)
     setEvasionMode(null)
+    setUncannyDodgeOn(false)
     const releaseScroll = acquireBodyScrollLock()
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -121,15 +127,24 @@ export function HpPadDialog({
     const half = Math.floor(delta / 2)
     return { amount: half, note: `Уклонение (провал): ${delta} → ${half}` }
   })()
+  const afterUncanny = (() => {
+    if (!hasUncannyDodge || !uncannyDodgeOn || afterEvasion.amount <= 0) {
+      return { amount: afterEvasion.amount, note: '' }
+    }
+    const half = Math.floor(afterEvasion.amount / 2)
+    return { amount: half, note: `Увёртливость: ${afterEvasion.amount} → ${half}` }
+  })()
   const adjustedRaw = adjustIncomingDamage({
-    amount: afterEvasion.amount,
+    amount: afterUncanny.amount,
     type: damageType,
     nonmagical,
     profile,
   })
   const adjusted = {
     amount: adjustedRaw.amount,
-    note: [afterEvasion.note, adjustedRaw.note].filter(Boolean).join(' · '),
+    note: [afterEvasion.note, afterUncanny.note, adjustedRaw.note]
+      .filter(Boolean)
+      .join(' · '),
   }
   const resistanceLabel = formatDefenseList(profile.resistances)
   const vulnerabilityLabel = formatDefenseList(profile.vulnerabilities)
@@ -273,6 +288,18 @@ export function HpPadDialog({
               onClick={() => setEvasionMode((prev) => (prev === 'fail' ? null : 'fail'))}
             >
               Уклонение: провал → ½
+            </button>
+          </div>
+        ) : null}
+        {hasUncannyDodge ? (
+          <div className="chip-row" role="group" aria-label="Увёртливость">
+            <button
+              type="button"
+              className={`sheet-chip${uncannyDodgeOn ? ' is-on' : ''}`}
+              aria-pressed={uncannyDodgeOn}
+              onClick={() => setUncannyDodgeOn((prev) => !prev)}
+            >
+              Увёртливость: половина урона атаки
             </button>
           </div>
         ) : null}

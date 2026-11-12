@@ -36,6 +36,7 @@ import {
   resolveB04KiSpend,
   resolveB04SuperioritySpend,
 } from '../b04FeatureSpend'
+import { resolveB05ChannelSpend } from '../b05FeatureSpend'
 
 export function SheetDialogsResources({ model }: { model: SheetModel }) {
   const [pendingAllyBuff, setPendingAllyBuff] = useState<{
@@ -44,6 +45,8 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     die: string | null
     classLevel?: number
     casterMod?: number
+    slotLevel?: number
+    auraAllyDefaultOff?: boolean
   } | null>(null)
 
   return (
@@ -143,7 +146,27 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           }))
           model.onToast(`${label}: −1 Божественный канал`)
           model.setChannelDivinitySpendId(null)
-          const action = resolveB04ChannelSpend(label, model.characterLevel)
+          const b04 = resolveB04ChannelSpend(label, model.characterLevel)
+          const b05 =
+            b04.kind === 'none'
+              ? resolveB05ChannelSpend(
+                  label,
+                  model.characterLevel,
+                  model.draft.abilities,
+                )
+              : { kind: 'none' as const }
+          const action = b04.kind !== 'none' ? b04 : b05
+          if (action.kind === 'heal') {
+            model.setDraft((prev) => ({
+              ...prev,
+              hpCurrent: Math.min(
+                prev.hpMax ?? action.amount,
+                (prev.hpCurrent ?? 0) + action.amount,
+              ),
+            }))
+            model.onToast(action.label)
+            return
+          }
           if (action.kind === 'buff') {
             if (action.targetsSelf === false) {
               setPendingAllyBuff({
@@ -151,12 +174,27 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
                 name: action.name || label,
                 die: null,
                 classLevel: action.classLevel,
+                casterMod:
+                  typeof action.casterMod === 'number'
+                    ? action.casterMod
+                    : undefined,
+                slotLevel:
+                  'slotLevel' in action && typeof action.slotLevel === 'number'
+                    ? action.slotLevel
+                    : undefined,
+                auraAllyDefaultOff:
+                  'auraAllyDefaultOff' in action
+                    ? Boolean(action.auraAllyDefaultOff)
+                    : action.slug.startsWith('aura_of_'),
               })
             } else {
               void model.applyFeatureBuff?.({
                 slug: action.slug,
                 name: action.name,
                 classLevel: action.classLevel,
+                casterMod: action.casterMod,
+                slotLevel:
+                  'slotLevel' in action ? action.slotLevel : undefined,
               })
             }
           }
@@ -435,6 +473,8 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
                 option: pendingAllyBuff.die,
                 classLevel: pendingAllyBuff.classLevel,
                 casterMod: pendingAllyBuff.casterMod,
+                slotLevel: pendingAllyBuff.slotLevel,
+                auraAllyDefaultOff: pendingAllyBuff.auraAllyDefaultOff,
               })
               .then((res: { error?: string; applied?: number } | undefined) => {
                 if (res?.error) model.onToast(res.error)

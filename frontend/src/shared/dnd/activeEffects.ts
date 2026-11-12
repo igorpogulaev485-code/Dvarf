@@ -4,6 +4,7 @@
  * B-02 adds collectors (temp_hp, ac_formula, speed, resist…) + B02 buff specs.
  * B-03 adds roll riders (damage dice chips), finer advantage filters, B03 specs.
  * B-04 adds class-feature specs (rage, BI, symbiotic…).
+ * B-05 adds paladin/warlock/wizard/ranger/rogue/sorcerer feature specs.
  */
 
 import {
@@ -23,6 +24,11 @@ import {
   B04_NAME_TO_SLUG,
   buildB04BuffSpec,
 } from './b04BuffSpecs'
+import {
+  B05_BUFF_SPEC_BUILDERS,
+  B05_NAME_TO_SLUG,
+  buildB05BuffSpec,
+} from './b05BuffSpecs'
 import type { AcMinFloor, CompetingAcFormula } from './armor'
 
 export type EffectKind =
@@ -151,7 +157,11 @@ function isOptionalRiderCondition(condition: string | null | undefined): boolean
     c.startsWith('marked_target_') ||
     c.startsWith('in_aura') ||
     c === 'shadow_blade_psychic' ||
-    c === 'flame_arrows_fire'
+    c === 'flame_arrows_fire' ||
+    c === 'cursed_target' ||
+    c === 'vow_target' ||
+    c === 'first_turn_extra' ||
+    c === 'first_turn_extra_attack'
   )
 }
 
@@ -159,6 +169,11 @@ function optionalLabelFor(condition: string | null | undefined, effectName: stri
   const c = String(condition || '')
   if (c === 'marked_target' || c.startsWith('marked_target_')) {
     return `${effectName} · по помеченной цели`
+  }
+  if (c === 'cursed_target') return `${effectName} · по проклятой цели`
+  if (c === 'vow_target') return `${effectName} · по цели обета`
+  if (c === 'first_turn_extra' || c === 'first_turn_extra_attack') {
+    return `${effectName} · доп. атака 1-го хода`
   }
   if (c.startsWith('in_aura')) return `${effectName} · в ауре`
   if (c === 'shadow_blade_psychic') return `${effectName} · клинок`
@@ -454,6 +469,11 @@ export function effectStrength(effect: ActiveEffect): number {
  * Same slug/name: strongest active, others marked inactive (Р9).
  * Different names stack (Р1).
  */
+/** Р10: player toggled ally aura off — do not clear on stacking. */
+function isAuraOff(row: ActiveEffect): boolean {
+  return Boolean(row.inactive) && row.inactive_reason === 'вне ауры'
+}
+
 export function applyEffectStacking(effects: ActiveEffect[]): ActiveEffect[] {
   const byKey = new Map<string, ActiveEffect[]>()
   for (const row of effects) {
@@ -465,18 +485,29 @@ export function applyEffectStacking(effects: ActiveEffect[]): ActiveEffect[] {
   const out: ActiveEffect[] = []
   for (const group of byKey.values()) {
     if (group.length === 1) {
-      out.push({ ...group[0], inactive: false, inactive_reason: null })
+      const only = group[0]
+      if (isAuraOff(only)) {
+        out.push({ ...only, inactive: true, inactive_reason: 'вне ауры' })
+      } else {
+        out.push({ ...only, inactive: false, inactive_reason: null })
+      }
       continue
     }
     const sorted = [...group].sort((a, b) => effectStrength(b) - effectStrength(a))
     sorted.forEach((row, index) => {
       if (index === 0) {
-        out.push({ ...row, inactive: false, inactive_reason: null })
+        if (isAuraOff(row)) {
+          out.push({ ...row, inactive: true, inactive_reason: 'вне ауры' })
+        } else {
+          out.push({ ...row, inactive: false, inactive_reason: null })
+        }
       } else {
         out.push({
           ...row,
           inactive: true,
-          inactive_reason: 'не действует (одноимённый)',
+          inactive_reason: isAuraOff(row)
+            ? 'вне ауры'
+            : 'не действует (одноимённый)',
         })
       }
     })
@@ -667,9 +698,38 @@ export function defensesFromActiveEffects(effects: unknown): EffectDefenseLine[]
   for (const effect of activeEffectsList(effects)) {
     for (const mod of effect.mods ?? []) {
       if (mod.target !== 'resistance' && mod.target !== 'immunity') continue
-      const type = (mod.condition || '').trim()
+      let type = (mod.condition || '').trim()
       if (!type) continue
-      const nonmagical = mod.dice === 'nonmagical'
+      // Spell-damage resist is a desk checkbox / lobby — keep as label, not a damage type.
+      if (type === 'spells' || type === 'spell_damage') continue
+      let nonmagical = mod.dice === 'nonmagical'
+      if (type.endsWith('_nonmagic') || type.endsWith('_nonmagical')) {
+        type = type.replace(/_nonmagicals?$/, '').replace(/_nonmagic$/, '')
+        nonmagical = true
+      }
+      if (type === 'all_except_radiant_force') {
+        for (const t of [
+          'acid',
+          'cold',
+          'fire',
+          'lightning',
+          'necrotic',
+          'poison',
+          'psychic',
+          'thunder',
+          'bludgeoning',
+          'piercing',
+          'slashing',
+        ]) {
+          out.push({
+            type: t,
+            nonmagical: false,
+            source: effect.name,
+            kind: 'resistance',
+          })
+        }
+        continue
+      }
       if (type === 'all' || type === 'all_damage') {
         // Expand common physical + energy set for warding bond / invulnerability.
         const types =
@@ -803,6 +863,18 @@ export function attackBonusFromActiveEffects(effects: unknown): number {
   for (const effect of activeEffectsList(effects)) {
     for (const mod of effect.mods ?? []) {
       if (mod.target !== 'attack' || mod.op !== 'add') continue
+      if (typeof mod.value === 'number') sum += Math.floor(mod.value)
+    }
+  }
+  return sum
+}
+
+/** Flat initiative adds from active effects (Aura of the Sentinel on ally, etc.). */
+export function initiativeBonusFromActiveEffects(effects: unknown): number {
+  let sum = 0
+  for (const effect of activeEffectsList(effects)) {
+    for (const mod of effect.mods ?? []) {
+      if (mod.target !== 'initiative' || mod.op !== 'add') continue
       if (typeof mod.value === 'number') sum += Math.floor(mod.value)
     }
   }
@@ -994,6 +1066,7 @@ function advantageModApplies(
       cond === 'weapon_attack_once' ||
       cond === 'str_attack' ||
       cond === 'dex_wis_attack' ||
+      cond === 'vow_target' ||
       cond === 'all'
     ) {
       return true
@@ -1005,6 +1078,17 @@ function advantageModApplies(
       return true
     }
     const ability = (opts?.abilityKey || '').toLowerCase()
+    if (cond === 'concentration' && (ability === 'con' || ability === 'concentration')) {
+      return true
+    }
+    if (
+      cond === 'frightened' ||
+      cond === 'charmed' ||
+      cond === 'paralyzed' ||
+      cond === 'stunned'
+    ) {
+      return true
+    }
     if (ability && (cond === ability || cond.split('_').includes(ability))) return true
     if (cond === 'death' && ability === 'death') return true
     // Bare advantage target with ability condition (enhance-like on checks only) — skip for saves
@@ -1310,6 +1394,7 @@ const SPELL_NAME_TO_SLUG: Array<{ re: RegExp; slug: string }> = [
   { re: /^благословен|^bless$/i, slug: 'bless' },
   { re: /^щит\s*вер|^shield of faith$/i, slug: 'shield_of_faith' },
   { re: /^ободряющ|^emboldening/i, slug: 'emboldening_bond' },
+  ...B05_NAME_TO_SLUG,
   ...B04_NAME_TO_SLUG,
   ...B03_NAME_TO_SLUG,
   ...B02_NAME_TO_SLUG,
@@ -1321,6 +1406,7 @@ export function guessBuffSlug(name: string, catalogId?: string | null): string |
     .toLowerCase()
     .replace(/-/g, '_')
   if (id && B01_BUFF_SPECS[id]) return id
+  if (id && B05_BUFF_SPEC_BUILDERS[id]) return id
   if (id && B04_BUFF_SPEC_BUILDERS[id]) return id
   if (id && B03_BUFF_SPEC_BUILDERS[id]) return id
   if (id && B02_BUFF_SPEC_BUILDERS[id]) return id
@@ -1350,6 +1436,7 @@ export function guessBuffSlug(name: string, catalogId?: string | null): string |
   }
   if (id && aliases[id]) return aliases[id]
   const stripped = id.replace(/'/g, '')
+  if (stripped && B05_BUFF_SPEC_BUILDERS[stripped]) return stripped
   if (stripped && B04_BUFF_SPEC_BUILDERS[stripped]) return stripped
   if (stripped && B03_BUFF_SPEC_BUILDERS[stripped]) return stripped
   if (stripped && B02_BUFF_SPEC_BUILDERS[stripped]) return stripped
@@ -1412,6 +1499,7 @@ export function buildBuffEffect(input: {
   }
   const spec =
     B01_BUFF_SPECS[slug] ??
+    buildB05BuffSpec(slug, ctx) ??
     buildB04BuffSpec(slug, ctx) ??
     buildB03BuffSpec(slug, ctx) ??
     buildB02BuffSpec(slug, ctx)

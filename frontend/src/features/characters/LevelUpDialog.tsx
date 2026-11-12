@@ -36,6 +36,8 @@ type LevelUpDialogProps = {
   classes: ClassLevelEntry[]
   abilities: AbilityScores
   constitutionMod: number
+  /** B-05: +1 HP per sorcerer level (Draconic Resilience). */
+  draconicResilience?: boolean
   onConfirm: (choice: LevelUpChoice) => void
   onClose: () => void
 }
@@ -48,6 +50,7 @@ export function LevelUpDialog({
   classes,
   abilities,
   constitutionMod,
+  draconicResilience = false,
   onConfirm,
   onClose,
 }: LevelUpDialogProps) {
@@ -102,7 +105,13 @@ export function LevelUpDialog({
     [targetClass],
   )
 
-  const averageGain = hitDie ? averageHpGain(hitDie, constitutionMod) : null
+  const averageGain = hitDie
+    ? averageHpGain(hitDie, constitutionMod, {
+        draconicResilience:
+          draconicResilience &&
+          /чародей|sorcerer/i.test(targetClass.name),
+      })
+    : null
 
   const multiclassGate = useMemo(() => {
     if (mode !== 'multiclass') return null
