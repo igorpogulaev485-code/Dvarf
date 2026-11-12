@@ -102,6 +102,17 @@ export type InventoryItem = {
   attunement_alignments?: string[]
   /** DMG "by a spellcaster": Spellcasting or Pact Magic, including subclass casters. */
   attunement_spellcaster?: boolean
+  /**
+   * OR of AND-groups. Orcsplitter: dwarf, or fighter, or a good paladin.
+   * Inside one group every listed gate must hold. Across groups, any one is enough.
+   * When set, the flat class/race/alignment lists are not also required.
+   */
+  attunement_alternatives?: Array<{
+    classes?: string[]
+    races?: string[]
+    alignments?: string[]
+    spellcaster?: boolean
+  }>
   /** Card says the item can be used as a spellcasting focus. */
   is_spell_focus?: boolean
   /** Robe of the Archmagi: color must match alignment. */
@@ -232,6 +243,29 @@ function readSlugList(value: unknown): string[] | undefined {
   return list.length ? list : undefined
 }
 
+export function readAttunementAlternatives(
+  value: unknown,
+): InventoryItem['attunement_alternatives'] {
+  if (!Array.isArray(value)) return undefined
+  const out: NonNullable<InventoryItem['attunement_alternatives']> = []
+  for (const raw of value) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) continue
+    const row = raw as Record<string, unknown>
+    const classes = readSlugList(row.classes)
+    const races = readSlugList(row.races)
+    const alignments = readSlugList(row.alignments)
+    const spellcaster = row.spellcaster === true
+    if (!classes && !races && !alignments && !spellcaster) continue
+    out.push({
+      ...(classes ? { classes } : {}),
+      ...(races ? { races } : {}),
+      ...(alignments ? { alignments } : {}),
+      ...(spellcaster ? { spellcaster: true } : {}),
+    })
+  }
+  return out.length ? out : undefined
+}
+
 function readRobeColor(value: unknown): 'white' | 'gray' | 'black' | null {
   if (value === 'white' || value === 'gray' || value === 'black') return value
   return null
@@ -303,6 +337,7 @@ function readItem(raw: unknown, index: number): InventoryItem {
       readSlugList(row.attune_alignments) ??
       readSlugList(row.required_alignments),
     attunement_spellcaster: row.attunement_spellcaster === true,
+    attunement_alternatives: readAttunementAlternatives(row.attunement_alternatives),
     is_spell_focus: row.is_spell_focus === true,
     alignment_color_gate: row.alignment_color_gate === true,
     robe_color: readRobeColor(row.robe_color),
@@ -430,6 +465,9 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
           ? { attunement_alignments: item.attunement_alignments }
           : {}),
         ...(item.attunement_spellcaster ? { attunement_spellcaster: true } : {}),
+        ...(item.attunement_alternatives?.length
+          ? { attunement_alternatives: item.attunement_alternatives }
+          : {}),
         ...(item.is_spell_focus ? { is_spell_focus: true } : {}),
         ...(item.alignment_color_gate ? { alignment_color_gate: true } : {}),
         ...(item.robe_color ? { robe_color: item.robe_color } : {}),

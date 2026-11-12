@@ -65,6 +65,9 @@ const RACE_LABEL_RU: Record<string, string> = {
   mark_of_finding_half_orc: 'полуорк с меткой поиска',
   mark_of_scribing: 'метка письма',
   mark_of_warding: 'метка охраны',
+  fairy: 'фэйри',
+  satyr: 'сатир',
+  centaur: 'кентавр',
 }
 
 const ALIGNMENT_GROUP_RU: Record<string, string> = {
@@ -161,10 +164,85 @@ export type AttunementBlock = {
   hint: string | null
 }
 
+function alternativeLabel(alt: NonNullable<InventoryItem['attunement_alternatives']>[number]): string {
+  const bits: string[] = []
+  if (alt.races?.length) bits.push(listLabel(alt.races, RACE_LABEL_RU))
+  if (alt.classes?.length) bits.push(listLabel(alt.classes, CLASS_LABEL_RU))
+  if (alt.spellcaster) bits.push('заклинатель')
+  if (alt.alignments?.length) bits.push(listLabel(alt.alignments, {}))
+  return bits.join(' и ') || 'условие'
+}
+
+type AltVerdict = 'pass' | 'fail' | 'need-race' | 'need-alignment'
+
+/** One branch of an OR gate. Inside the branch, class, race, alignment and spellcasting are AND. */
+function alternativeVerdict(
+  alt: NonNullable<InventoryItem['attunement_alternatives']>[number],
+  character: AttunementCharacter,
+  skipClassRace: boolean,
+): AltVerdict {
+  const classes = alt.classes ?? []
+  const races = alt.races ?? []
+  if (classes.length && !skipClassRace) {
+    const have = characterClassSlugs(character.classes)
+    if (!classes.some((slug) => have.has(slug))) return 'fail'
+  }
+  if (alt.spellcaster && !skipClassRace && !characterHasCasterClass(character.classes)) {
+    return 'fail'
+  }
+  if (alt.alignments?.length) {
+    if (!character.alignmentSlug || character.alignmentUnresolved) return 'need-alignment'
+    if (
+      !alt.alignments.some((need) => alignmentMatchesRequirement(character.alignmentSlug, need))
+    ) {
+      return 'fail'
+    }
+  }
+  if (races.length && !skipClassRace) {
+    if (!character.raceCatalogId) return 'need-race'
+    const have = characterRaceSlugs(character)
+    if (!races.some((slug) => have.has(slug))) return 'fail'
+  }
+  return 'pass'
+}
+
+/**
+ * Card says "A, or B, or C" across race, class and alignment.
+ * A branch with only race or class is open to a thief 13 (Use Magic Device still
+ * ignores class, race and «spellcaster», not alignment).
+ */
+function alternativeBlock(
+  item: InventoryItem,
+  character: AttunementCharacter | null | undefined,
+): AttunementBlock {
+  const options = item.attunement_alternatives ?? []
+  if (!character) return { blocked: false, reason: null, hint: null }
+  const skipClassRace = ignoresClassRaceLevel(character.classes)
+  const verdicts = options.map((alt) => alternativeVerdict(alt, character, skipClassRace))
+  if (verdicts.includes('pass')) return { blocked: false, reason: null, hint: null }
+  if (verdicts.includes('need-race')) {
+    return { blocked: false, reason: null, hint: 'Выберите расу из справочника' }
+  }
+  if (verdicts.includes('need-alignment')) {
+    return { blocked: true, reason: 'Укажите мировоззрение', hint: null }
+  }
+  const labels = options.map(alternativeLabel).filter((label) => label !== 'условие')
+  return {
+    blocked: true,
+    reason: labels.length ? `Нужно одно из: ${labels.join('; ')}` : 'Требование настройки не выполнено',
+    hint: null,
+  }
+}
+
 export function requirementBlock(
   item: InventoryItem,
   character: AttunementCharacter | null | undefined,
 ): AttunementBlock {
+  if (item.attunement_alternatives?.length) {
+    const gate = alternativeBlock(item, character)
+    if (!item.alignment_color_gate) return gate
+    if (gate.blocked || !character) return gate
+  }
   const classes = item.attunement_classes ?? []
   const races = item.attunement_races ?? []
   const alignments = item.attunement_alignments ?? []

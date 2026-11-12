@@ -21,6 +21,7 @@ import {
   armorFieldsFromCatalog,
   createInventoryItem,
   equipInventoryItem,
+  readAttunementAlternatives,
   type InventoryItem,
 } from './inventory'
 import {
@@ -149,6 +150,7 @@ export const GEAR_RARITY_RANK: Record<GearRarity, number> = {
   legendary: 5,
   artifact: 6,
   none: 7,
+  varies: 8,
 }
 
 export function summarizeGearEntry(entry: CatalogEntry): GearCatalogSummary | null {
@@ -303,6 +305,8 @@ function copyAttunementMeta(item: InventoryItem, data: Record<string, unknown> |
   if (row.single_attunement_family === true) item.single_attunement_family = true
   if (row.alignment_color_gate === true) item.alignment_color_gate = true
   if (row.attunement_spellcaster === true) item.attunement_spellcaster = true
+  const alternatives = readAttunementAlternatives(row.attunement_alternatives)
+  if (alternatives) item.attunement_alternatives = alternatives
   if (row.is_spell_focus === true) item.is_spell_focus = true
   const classes = readSlugList(row.attunement_classes)
   const races = readSlugList(row.attunement_races)

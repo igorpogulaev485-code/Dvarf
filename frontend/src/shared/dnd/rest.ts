@@ -30,7 +30,11 @@ export type SheetResource = {
   wardCreated?: boolean
   /** Does not deplete (PHB barbarian rage at 20). */
   unlimited?: boolean
-  /** Dawn / midnight recharge formula, e.g. "4d6+2". Absent = refill to max. */
+  /**
+   * Dawn / midnight recharge. Dice ("4d6+2") are rolled.
+   * A plain integer ("3") restores that many charges.
+   * Absent = refill to max.
+   */
   rechargeDice?: string
   /** Shown when the last charge is spent. The sheet does not destroy the item. */
   depleteHint?: string
@@ -202,6 +206,8 @@ function rollChargeFormula(
   rng: () => number,
 ): number | null {
   const text = formula.trim().toLowerCase()
+  const fixed = text.match(/^\+?\d+$/)
+  if (fixed) return Math.max(0, Math.floor(Number(text.replace('+', ''))))
   const match = text.match(/(\d+)\s*[dк]\s*(\d+)/i)
   if (!match) return null
   const count = Math.max(1, Math.floor(Number(match[1])))
