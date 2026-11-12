@@ -476,3 +476,25 @@ button.play-desk-header__identity:hover {
   text-underline-offset: 2px;
 }
 
+
+/* B-01 active effects block */
+.active-effects {
+  margin: 0.5rem 0 0;
+  padding: 0.55rem 0.7rem;
+}
+.active-effects__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.active-effects__main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.55rem;
+}
+.active-effects__row.is-inactive {
+  opacity: 0.55;
+}

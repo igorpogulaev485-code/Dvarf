@@ -31,6 +31,7 @@ import { withSpellFocusFlags } from '../spellFocus'
 import { syncWizardSpellbookWithInventory } from '../wizardSpellbookInventory'
 import { abilityModifier } from '../sheetTypes'
 import { sheetDamageProfile } from '../gearEffects'
+import { listRollDieChips } from '../../../shared/dnd/activeEffects'
 
 function mergeToolNames(base: string[], extra: string[]): string[] {
   const seen = new Set(base.map((name) => name.trim().toLowerCase()))
@@ -144,6 +145,24 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             divineSmiteIntent={divineSmiteIntent}
             onDivineSmiteIntent={setDivineSmiteIntent}
             rollMode={model.attackRollMode()}
+            bonusDice={listRollDieChips(model.draft.play.effects ?? [], 'attack').map((chip) => ({
+              dice: chip.dice,
+              label: chip.name,
+            }))}
+            onConsumeOnceBuffDice={() => {
+              const chips = listRollDieChips(model.draft.play.effects ?? [], 'attack').filter(
+                (chip) => chip.once,
+              )
+              if (!chips.length) return
+              const removeIds = new Set(chips.map((chip) => chip.effectId))
+              model.setDraft((prev) => ({
+                ...prev,
+                play: {
+                  ...prev.play,
+                  effects: (prev.play.effects ?? []).filter((row) => !removeIds.has(row.id)),
+                },
+              }))
+            }}
             preferMagicEmpty={model.hasMagicSources}
             onOpenSettings={() => model.setAttacksSettingsOpen(true)}
             onAddAttack={() => model.setAttacksSettingsOpen(true)}

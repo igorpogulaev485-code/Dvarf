@@ -188,28 +188,28 @@ def add_lobby_member(
     "/lobbies/{lobby_id}/share-effect",
     response_model=LobbyShareEffectResponse,
 )
-def share_lobby_effect(
+async def share_lobby_effect(
     lobby_id: UUID,
     payload: LobbyShareEffectRequest,
     current_user: CurrentUser,
     db: DbSession,
 ) -> LobbyShareEffectResponse:
     """С листа: повесить эффект на союзников лобби (данные → их sheet.combat.effects)."""
-    return LobbyService(db).share_effect(current_user, lobby_id, payload)
+    return await LobbyService(db).share_effect(current_user, lobby_id, payload)
 
 
 @router.post(
     "/lobbies/{lobby_id}/sync-infusion-effects",
     response_model=LobbyShareEffectResponse,
 )
-def sync_lobby_infusion_effects(
+async def sync_lobby_infusion_effects(
     lobby_id: UUID,
     payload: LobbySyncInfusionEffectsRequest,
     current_user: CurrentUser,
     db: DbSession,
 ) -> LobbyShareEffectResponse:
     """Инфузия на союзника: записать КД в его лист и снять пометку, когда инфузию убрали."""
-    return LobbyService(db).sync_infusion_effects(current_user, lobby_id, payload)
+    return await LobbyService(db).sync_infusion_effects(current_user, lobby_id, payload)
 
 
 @router.delete("/lobbies/{lobby_id}/members/{character_id}", response_model=LobbyDetail)

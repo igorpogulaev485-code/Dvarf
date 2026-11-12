@@ -104,8 +104,13 @@ export function RestDialog({
     const result = applyShortRest({
       resources: play.resources,
       pact_slots: spells.pact_slots,
+      effects: play.effects ?? [],
     })
-    patchPlay({ resources: finishWizardResourcesOnRest(result.resources, 'short') })
+    const removed = result.removed_effects?.length ?? 0
+    patchPlay({
+      resources: finishWizardResourcesOnRest(result.resources, 'short'),
+      ...(result.effects ? { effects: result.effects } : {}),
+    })
     const known = recoverGrantCastsOnRest(spells.known, 'short')
     const spellsTouched =
       result.pact_slots !== undefined || known !== spells.known
@@ -119,8 +124,12 @@ export function RestDialog({
     onCompanionRest?.('short')
     onToast(
       spells.pact_slots
-        ? 'Короткий отдых: ресурсы «короткий» + pact-ячейки восстановлены'
-        : 'Сброшены ресурсы со сбросом «короткий»',
+        ? `Короткий отдых: ресурсы «короткий» + pact-ячейки восстановлены${
+            removed ? ` · снято эффектов: ${removed}` : ''
+          }`
+        : `Сброшены ресурсы со сбросом «короткий»${
+            removed ? ` · снято эффектов: ${removed}` : ''
+          }`,
     )
   }
 
@@ -193,11 +202,13 @@ export function RestDialog({
       hit_dice_current: hitDiceCurrent,
       hit_dice_max: hitDiceMax,
       hit_dice_by_class: pools.length > 0 ? pools : undefined,
+      effects: play.effects ?? [],
     })
     const resources = finishWizardResourcesOnRest(
       grantStockOnLongRestIfEmpty(result.resources, featureDesiredResources),
       'long',
     )
+    const removed = result.removed_effects?.length ?? 0
     onPlayChange(
       withSyncedHitDiceSummary({
         ...play,
@@ -210,8 +221,12 @@ export function RestDialog({
         deathSuccesses: 0,
         deathFails: 0,
         concentration: null,
+        effects: result.effects ?? play.effects ?? [],
       }),
     )
+    if (removed) {
+      onToast(`Снято эффектов отдыхом: ${removed}`)
+    }
     onSpellsChange({
       ...spells,
       slots: result.slots ?? spells.slots,

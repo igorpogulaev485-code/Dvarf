@@ -6,10 +6,14 @@ from fastapi import APIRouter, File, Response, UploadFile
 
 from app.api.deps import CurrentUser, DbSession
 from app.schemas.character import (
+    ApplyEffectsRequest,
+    ApplyEffectsResponse,
     CharacterCreateRequest,
     CharacterDetail,
     CharacterSummary,
     CharacterUpdateRequest,
+    ClearConcentrationEffectsRequest,
+    ClearConcentrationEffectsResponse,
 )
 from app.services.character import CharacterService
 
@@ -82,3 +86,36 @@ def delete_character(
 ) -> Response:
     CharacterService(db).delete_mine(current_user, character_id)
     return Response(status_code=204)
+
+
+@router.post(
+    "/{character_id}/effects/apply",
+    response_model=ApplyEffectsResponse,
+)
+async def apply_character_effects(
+    character_id: UUID,
+    payload: ApplyEffectsRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> ApplyEffectsResponse:
+    """B-01 / Р25: наложить эффект на цели (лобби + свои персонажи)."""
+    return await CharacterService(db).apply_effects(current_user, character_id, payload)
+
+
+@router.post(
+    "/{character_id}/effects/clear-concentration",
+    response_model=ClearConcentrationEffectsResponse,
+)
+async def clear_character_concentration_effects(
+    character_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+    payload: ClearConcentrationEffectsRequest | None = None,
+) -> ClearConcentrationEffectsResponse:
+    """Снять связанные эффекты; по умолчанию также концентрацию на кастере."""
+    body = payload or ClearConcentrationEffectsRequest()
+    return await CharacterService(db).clear_concentration_effects(
+        current_user,
+        character_id,
+        clear_concentration=body.clear_concentration,
+    )

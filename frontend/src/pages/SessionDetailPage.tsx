@@ -52,6 +52,7 @@ import {
   revealSessionPage,
   updateSessionQuestStatus,
   patchSeatCombat,
+  shareLobbyEffect,
   patchSessionCombat,
   patchSessionCombatant,
   saveSessionEncounterTemplate,
@@ -1059,12 +1060,59 @@ export function SessionDetailPage() {
         onClose={() => setEffectOpen(false)}
         onApply={(effect, characterIds) => {
           void run(async () => {
+            const { buildBuffEffect, serializeActiveEffect } = await import(
+              '../shared/dnd/activeEffects'
+            )
+            const sourceId = effect.source_character_id
+            const built = buildBuffEffect({
+              name: effect.name,
+              sourceCharacterId: sourceId,
+              sourceName: effect.source_name,
+              linkedConcentration: effect.linked_concentration,
+            })
+            if (sourceId && built) {
+              const payload = serializeActiveEffect(built)
+              await shareLobbyEffect(session.lobby_id, {
+                source_character_id: sourceId,
+                name: String(payload.name),
+                target_character_ids: characterIds,
+                linked_concentration: Boolean(payload.linked_concentration),
+                kind: typeof payload.kind === 'string' ? payload.kind : undefined,
+                slug: typeof payload.slug === 'string' ? payload.slug : undefined,
+                charges: typeof payload.charges === 'number' ? payload.charges : undefined,
+                mods: Array.isArray(payload.mods)
+                  ? (payload.mods as Array<{
+                      target: string
+                      op: string
+                      value?: number
+                      dice?: string
+                      once?: boolean
+                    }>)
+                  : undefined,
+                duration:
+                  payload.duration && typeof payload.duration === 'object'
+                    ? (payload.duration as {
+                        unit: string
+                        value?: number
+                        remaining_rounds?: number
+                      })
+                    : undefined,
+              })
+            }
             let latest = session
             for (const characterId of characterIds) {
               const seat = latest.seats.find((s) => s.character_id === characterId)
               const current = seat?.effects ?? []
+              const seatEffect = built
+                ? {
+                    ...effect,
+                    id: `${built.id}-${characterId}`,
+                    name: built.name,
+                    linked_concentration: Boolean(built.linked_concentration),
+                  }
+                : { ...effect, id: `${effect.id}-${characterId}` }
               latest = await patchSeatCombat(latest.id, characterId, {
-                effects: [...current, { ...effect, id: `${effect.id}-${characterId}` }],
+                effects: [...current, seatEffect],
               })
             }
             setSession(latest)

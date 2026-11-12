@@ -11,7 +11,13 @@ import { type AttunementSlot } from '../attunement'
 import { isPactChainActive, isPactChainSpellId, pactChainFamiliarSpellId, syncPactChainFamiliar } from '../pactChainEffects'
 import { isWarlockClassName } from '../pactTomeEffects'
 import { toggleCombatConsumableFavorite } from '../combatConsumables'
-import { formatSkillRoll, resolveRollMode, type DeskRollMode } from '../deskRolls'
+import {
+  formatSkillRoll,
+  resolveRollMode,
+  type BonusDiePart,
+  type DeskRollMode,
+} from '../deskRolls'
+import { listRollDieChips } from '../../../shared/dnd/activeEffects'
 import { formatSaveAdvantageNote } from '../gearEffects'
 import { isMantleCommandSpell, MANTLE_CONCENTRATION_ID, silverTongueApplies } from '../../../shared/dnd/bardCollege'
 import { exhaustionRollFlags } from '../../../shared/dnd/exhaustion2014'
@@ -41,6 +47,9 @@ import {
   wizardLeveledCastGate,
 } from '../../../shared/dnd/wizardTradition'
 import { type CastChoice } from '../CastSpellDialog'
+import { applySpellBuffToTargets } from '../applySpellBuff'
+import { clearCharacterConcentrationEffects } from '../../../shared/api/characters'
+import { type ActiveEffect } from '../../../shared/dnd/activeEffects'
 import { consumeMaterialItem } from '../spellMaterials'
 import { canSpendGrantCast, spendGrantCast, type SheetSpell } from '../spells'
 import { resolveCastEffect } from '../../../shared/dnd/spellCatalog'
@@ -114,7 +123,25 @@ export function installSheetActions4(model: SheetModel) {
   }
 
   model.applyDeskConcentration = function applyDeskConcentration(spell: SheetSpell) {
-    model.setDraft((prev) => model.withDeskConcentration(prev, spell))
+    const hadConc = Boolean(model.draft.play.concentration)
+    const sourceId = String(model.baseCharacter.id)
+    model.setDraft((prev) => {
+      const next = model.withDeskConcentration(prev, spell)
+      if (!hadConc) return next
+      return {
+        ...next,
+        play: {
+          ...next.play,
+          effects: (next.play.effects ?? []).filter((row: ActiveEffect) =>
+            !(
+              row.linked_concentration &&
+              String(row.source_character_id || '') === sourceId
+            ),
+          ),
+        },
+      }
+    })
+    // Server clear of old linked effects is chained from successToast (before apply).
   }
 
   model.withDeskConcentration = function withDeskConcentration<
@@ -278,7 +305,39 @@ export function installSheetActions4(model: SheetModel) {
     return notes.length ? ` · ${notes.join(' · ')}` : ''
   }
 
-  model.runDeskCast = function runDeskCast(spell: SheetSpell, choice: CastChoice) {
+  model.runDeskCast = function runDeskCast(spell: SheetSpell, choice: CastChoice): boolean {
+    let castSucceeded = false
+    const successToast = (message: string) => {
+      castSucceeded = true
+      model.onToast(message)
+      const targets = choice.allyTargetIds ?? []
+      const sourceId = String(model.baseCharacter.id)
+      void (async () => {
+        if (spell.concentration) {
+          await clearCharacterConcentrationEffects(sourceId, {
+            clearConcentration: false,
+          }).catch(() => null)
+        }
+        if (targets.length === 0) return
+        const res = await applySpellBuffToTargets({
+          spell,
+          choice,
+          sourceCharacterId: sourceId,
+          sourceName: model.draft.name || model.baseCharacter.name || 'Заклинатель',
+          onApplyLocal: (effect: ActiveEffect) => {
+            model.setDraft((prev) => ({
+              ...prev,
+              play: {
+                ...prev.play,
+                effects: [...(prev.play.effects ?? []), effect],
+              },
+            }))
+          },
+        })
+        if (res.error) model.onToast(res.error)
+        else if (res.applied > 0) model.onToast(`Эффект на целях: ${res.applied}`)
+      })()
+    }
     const wildBlock = wildShapeCastBlock({
       companions: model.draft.companions,
       classes: model.draft.classes,
@@ -287,7 +346,7 @@ export function installSheetActions4(model: SheetModel) {
     })
     if (wildBlock) {
       model.onToast(wildBlock)
-      return
+      return false
     }
     const name = spell.name || 'Заклинание'
     const ritualCast = Boolean(choice.ritual && spell.ritual && spell.level > 0)
@@ -295,7 +354,7 @@ export function installSheetActions4(model: SheetModel) {
     const featureCast = Boolean(choice.useFeature || spell.cast_access === 'feature')
     if ((ritualCast || spell.cast_access === 'ritual_only') && ritualBookBlockReason(model.draft.spells, spell)) {
       model.onToast(ritualBookBlockReason(model.draft.spells, spell) ?? 'Нет книги')
-      return
+      return false
     }
     if (ritualCast && model.spellLearnBudget?.mode !== 'spellbook') {
       const allowed = canOfferRitualCast({
@@ -311,7 +370,7 @@ export function installSheetActions4(model: SheetModel) {
         model.onToast(
           'Ритуал недоступен: у этого класса нет умения «Ритуальное колдовство». Кастуй ячейкой.',
         )
-        return
+        return false
       }
     }
     if (choice.embodimentOfLaw) {
@@ -320,7 +379,7 @@ export function installSheetActions4(model: SheetModel) {
       )
       if (!pool) {
         model.onToast('Нет зарядов Воплощения закона')
-        return
+        return false
       }
       model.setDraft((prev) => ({
         ...prev,
@@ -398,7 +457,7 @@ export function installSheetActions4(model: SheetModel) {
       )
       if (!spent.ok) {
         model.onToast(spent.message)
-        return
+        return false
       }
       model.setDraft((prev) =>
         model.withDeskConcentration(
@@ -419,12 +478,12 @@ export function installSheetActions4(model: SheetModel) {
         (choice.itemChargeCost ?? 0) > 0 ? ` · −${choice.itemChargeCost} зарядов` : ''
       const hint = spent.hint ? ` · ${spent.hint}` : ''
       model.setDeskScrollLock(null)
-      model.onToast(
+      successToast(
         `Каст: ${name}${choice.scrollItemId ? ' со свитка' : ' из предмета'} (без ячейки)${
           effect ? ` · ${effect}` : ''
         }${chargeNote}${hint}${spell.concentration ? ' · концентрация' : ''}`,
       )
-      return
+      return true
     }
     let shillelaghNote = ''
     if (isShillelaghSpell(spell)) {
@@ -471,12 +530,12 @@ export function installSheetActions4(model: SheetModel) {
 
     if (atWillCast) {
       if (spell.concentration) model.applyDeskConcentration(spell)
-      model.onToast(
+      successToast(
         `Каст: ${name} (по желанию, без ячейки)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
         }${formNote}`,
       )
-      return
+      return true
     }
     if (featureCast) {
       const spent = spendFeatureCast({
@@ -485,28 +544,28 @@ export function installSheetActions4(model: SheetModel) {
       })
       if (!spent.ok) {
         model.onToast(spent.message)
-        return
+        return false
       }
       model.setDraft((prev) => ({
         ...prev,
         play: { ...prev.play, resources: spent.resources },
       }))
       if (spell.concentration) model.applyDeskConcentration(spell)
-      model.onToast(
+      successToast(
         `Каст: ${name} (${spent.message}, без ячейки)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
         }${formNote}`,
       )
-      return
+      return true
     }
     if (isMantleCommandSpell(spell)) {
       const conc = model.draft.play.concentration
       if (!conc || conc.spell_id !== MANTLE_CONCENTRATION_ID) {
         model.onToast('Приказ мантии доступен, только пока держится концентрация на «Мантии величия»')
-        return
+        return false
       }
-      model.onToast(`Каст: ${name} (Мантия величия, без ячейки)${effectNote}${consumeNote}${allyNote}`)
-      return
+      successToast(`Каст: ${name} (Мантия величия, без ячейки)${effectNote}${consumeNote}${allyNote}`)
+      return true
     }
     if (spell.level <= 0) {
       if (spell.concentration) model.applyDeskConcentration(spell)
@@ -519,7 +578,7 @@ export function installSheetActions4(model: SheetModel) {
           ? `Каст: ${name}${effectNote}${consumeNote}${allyNote} (концентрация)${naparnikNote}${formNote}`
           : `Каст: ${name}${effectNote}${consumeNote}${allyNote}${naparnikNote}${formNote}`,
       )
-      return
+      return true
     }
     if (grantCast && grantRow) {
       const phase = normalizeLunarPhase(
@@ -533,7 +592,7 @@ export function installSheetActions4(model: SheetModel) {
         })
       ) {
         model.onToast('Бесплатный каст этой лунной фазы доступен, только пока фаза активна')
-        return
+        return false
       }
       const label = grantRow.grant_cast?.label ?? 'Грант'
       model.setDraft((prev) =>
@@ -553,27 +612,27 @@ export function installSheetActions4(model: SheetModel) {
           ? ''
           : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
       const wardNote = wizardCastFollowUp(spell, spell.level, choice)
-      model.onToast(
+      successToast(
         `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
         }${naparnikNote}${formNote}${wardNote}`,
       )
-      return
+      return true
     }
     if (choice.useMastery) {
       const gate = wizardLeveledCastGate(spell)
       if (!gate.slot) {
         model.onToast(gate.message || 'Мастерство требует подготовленное заклинание')
-        return
+        return false
       }
       if (spell.concentration) model.applyDeskConcentration(spell)
       const wardNote = wizardCastFollowUp(spell, spell.level, choice)
-      model.onToast(
+      successToast(
         `Каст: ${name} (мастерство, без ячейки)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
         }${wardNote}`,
       )
-      return
+      return true
     }
     if (ritualCast) {
       const externalRitual = spell.ritual_book != null || castAccessAllowsRitual(spell.cast_access)
@@ -584,7 +643,7 @@ export function installSheetActions4(model: SheetModel) {
         })
         if (!gate.ok) {
           model.onToast(gate.message)
-          return
+          return false
         }
       }
       if (spell.concentration) model.applyDeskConcentration(spell)
@@ -593,18 +652,18 @@ export function installSheetActions4(model: SheetModel) {
           ? ''
           : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
       const wardNote = wizardCastFollowUp(spell, spell.level, choice)
-      model.onToast(
+      successToast(
         `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
         }${naparnikNote}${formNote}${wardNote}`,
       )
-      return
+      return true
     }
     if (model.spellLearnBudget?.mode === 'spellbook' && !choice.useGrant) {
       const gate = wizardLeveledCastGate(spell)
       if (!gate.slot) {
         model.onToast(gate.message)
-        return
+        return false
       }
     }
     if (
@@ -615,13 +674,13 @@ export function installSheetActions4(model: SheetModel) {
       )
     ) {
       model.onToast('Нет ячейки этого круга')
-      return
+      return false
     }
     if (choice.usePact && model.draft.spells.pact_slots) {
       const pactResult = spendPactSlot(model.draft.spells.pact_slots)
       if (!pactResult.ok) {
         model.onToast('Нет свободных ячеек договора')
-        return
+        return false
       }
       model.setDraft((prev) =>
         model.withDeskConcentration(
@@ -637,17 +696,17 @@ export function installSheetActions4(model: SheetModel) {
           ? ''
           : model.applyDeskNaparnikFromCast(spell, pactResult.pact.level)
       const wardNote = wizardCastFollowUp(spell, pactResult.pact.level, choice)
-      model.onToast(
+      successToast(
         `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
         }${naparnikNote}${formNote}${wardNote}`,
       )
-      return
+      return true
     }
     const result = spendSpellSlot(model.draft.spells.slots, choice.slotLevel)
     if (!result.ok) {
       model.onToast(`Нет ячеек ${choice.slotLevel}-го уровня`)
-      return
+      return false
     }
     model.setDraft((prev) =>
       model.withDeskConcentration(
@@ -665,11 +724,12 @@ export function installSheetActions4(model: SheetModel) {
     const upcast =
       choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
     const wardNote = wizardCastFollowUp(spell, choice.slotLevel, choice)
-    model.onToast(
+    successToast(
       `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${allyNote}${
         spell.concentration ? ' · концентрация' : ''
       }${naparnikNote}${formNote}${wardNote}`,
     )
+    return castSucceeded
   }
 
   model.confirmDeskCast = function confirmDeskCast(choice: CastChoice) {
@@ -854,6 +914,7 @@ export function installSheetActions4(model: SheetModel) {
         (feature: { id?: string }) => feature.id === 'silver_tongue',
       ),
     )
+    const bonusDice = buffDiceFor('check')
     model.emitToast(
       `${formatSkillRoll(
         skill.label,
@@ -862,8 +923,32 @@ export function installSheetActions4(model: SheetModel) {
         undefined,
         model.strengthCheckFloor(base === 'str'),
         silver ? { value: 10, label: 'серебряный язык' } : null,
+        bonusDice,
       )}${note}`,
     )
+    consumeOnceBuffDice('check')
+  }
+
+  function buffDiceFor(rollKind: 'attack' | 'save' | 'check'): BonusDiePart[] {
+    return listRollDieChips(model.draft.play.effects ?? [], rollKind).map((chip) => ({
+      dice: chip.dice,
+      label: chip.name,
+    }))
+  }
+
+  function consumeOnceBuffDice(rollKind: 'attack' | 'save' | 'check') {
+    const chips = listRollDieChips(model.draft.play.effects ?? [], rollKind).filter(
+      (chip) => chip.once,
+    )
+    if (!chips.length) return
+    const removeIds = new Set(chips.map((chip) => chip.effectId))
+    model.setDraft((prev) => ({
+      ...prev,
+      play: {
+        ...prev.play,
+        effects: (prev.play.effects ?? []).filter((row) => !removeIds.has(row.id)),
+      },
+    }))
   }
 
   model.rollAbilityCheck = function rollAbilityCheck(key: AbilityKey, mod: number) {
@@ -874,6 +959,7 @@ export function installSheetActions4(model: SheetModel) {
         : exhaustion && model.deskRollMode !== 'disadvantage'
           ? ' · помеха от истощения'
           : ''
+    const bonusDice = buffDiceFor('check')
     model.emitToast(
       `${formatSkillRoll(
         `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
@@ -881,8 +967,11 @@ export function installSheetActions4(model: SheetModel) {
         model.effectiveRollMode(),
         undefined,
         model.strengthCheckFloor(key === 'str'),
+        null,
+        bonusDice,
       )}${note}`,
     )
+    consumeOnceBuffDice('check')
   }
 
   model.rollAbilitySave = function rollAbilitySave(key: AbilityKey, mod: number) {
@@ -904,6 +993,7 @@ export function installSheetActions4(model: SheetModel) {
           : ''
     const spellAdvantage = formatSaveAdvantageNote(model.gearEffects.saveAdvantages)
     const spellNote = spellAdvantage ? ` · ${spellAdvantage}` : ''
+    const bonusDice = buffDiceFor('save')
     model.emitToast(
       `${formatSkillRoll(
         `Спас · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
@@ -911,8 +1001,11 @@ export function installSheetActions4(model: SheetModel) {
         model.saveRollMode(),
         undefined,
         null,
+        null,
+        bonusDice,
       )}${note}${songNote}${spellNote}`,
     )
+    consumeOnceBuffDice('save')
   }
 
   model.stageHidden = function stageHidden(id: PlayDeskPanelId): boolean {

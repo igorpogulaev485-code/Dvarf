@@ -819,6 +819,7 @@ function serializeSheet(input: {
     deathSuccesses: 0,
     deathFails: 0,
     concentration: null,
+    effects: [],
   })
   const playSheet = playToSheet(play)
 

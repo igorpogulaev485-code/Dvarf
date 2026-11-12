@@ -362,8 +362,25 @@ class SeatConcentrationOut(BaseModel):
     name: str
 
 
+class EffectModOut(BaseModel):
+    target: str
+    op: str = "add"
+    value: float | int | None = None
+    dice: str | None = None
+    condition: str | None = None
+    once: bool | None = None
+
+
+class EffectDurationOut(BaseModel):
+    unit: str
+    value: float | int | None = None
+    started_at: str | None = None
+    started_round: int | None = None
+    remaining_rounds: int | None = None
+
+
 class SeatEffectOut(BaseModel):
-    """Баф/эффект на союзнике (не SRD-состояние)."""
+    """Баф/эффект на союзнике (не SRD-состояние). B-01: duration/mods."""
 
     id: str
     name: str
@@ -372,6 +389,13 @@ class SeatEffectOut(BaseModel):
     linked_concentration: bool = False
     origin: str | None = None
     ac_bonus: int | None = None
+    kind: str | None = None
+    slug: str | None = None
+    charges: int | None = None
+    mods: list[EffectModOut] = Field(default_factory=list)
+    duration: EffectDurationOut | None = None
+    inactive: bool | None = None
+    inactive_reason: str | None = None
 
 
 class SessionSeatOut(BaseModel):
@@ -426,9 +450,17 @@ class LobbyShareEffectRequest(BaseModel):
     """С листа / стола: повесить эффект на союзников лобби."""
 
     source_character_id: UUID
-    name: str = Field(min_length=1, max_length=120)
+    name: str = Field(min_length=1, max_length=160)
     target_character_ids: list[UUID] = Field(min_length=1)
     linked_concentration: bool = True
+    # B-01 optional structured payload (mods/duration/slug).
+    kind: str | None = None
+    slug: str | None = None
+    origin: str | None = None
+    ac_bonus: int | None = Field(default=None, ge=0, le=40)
+    charges: int | None = Field(default=None, ge=0, le=99)
+    mods: list[EffectModOut] = Field(default_factory=list)
+    duration: EffectDurationOut | None = None
 
 
 class SeatCompanionCreateRequest(BaseModel):

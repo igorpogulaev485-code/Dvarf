@@ -52,6 +52,7 @@ export function installSheetActions1(model: SheetModel) {
     next: typeof model.draft.play.concentration | null = null,
   ) {
     let notice: string | null = null
+    const hadConc = Boolean(model.draft.play.concentration)
     model.setDraft((prev) => {
       const result = applyConcentrationChangeToCompanions({
         companions: prev.companions,
@@ -59,13 +60,29 @@ export function installSheetActions1(model: SheetModel) {
         next,
       })
       notice = concentrationEndNotice(result)
+      // Drop own linked buffs locally when concentration ends without a replacement.
+      const effects =
+        next == null
+          ? (prev.play.effects ?? []).filter(
+              (row) =>
+                !(
+                  row.linked_concentration &&
+                  String(row.source_character_id || '') === String(model.baseCharacter.id)
+                ),
+            )
+          : prev.play.effects
       return {
         ...prev,
         companions: result.companions,
-        play: { ...prev.play, concentration: next },
+        play: { ...prev.play, concentration: next, effects },
       }
     })
     if (notice) model.onToast(notice)
+    if (hadConc && next == null) {
+      void import('../../../shared/api/characters').then(({ clearCharacterConcentrationEffects }) =>
+        clearCharacterConcentrationEffects(String(model.baseCharacter.id)).catch(() => null),
+      )
+    }
   }
 
 /** Refresh mark-list racial spells after class / subclass / level changes. */

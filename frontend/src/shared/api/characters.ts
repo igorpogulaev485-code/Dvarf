@@ -99,3 +99,61 @@ export async function deleteCharacter(id: string): Promise<void> {
     method: 'DELETE',
   })
 }
+
+export type ApplyEffectPayload = {
+  target_character_ids: string[]
+  effect: {
+    id?: string
+    name: string
+    kind?: string
+    slug?: string
+    origin?: string
+    linked_concentration?: boolean
+    ac_bonus?: number
+    charges?: number
+    mods?: Array<{
+      target: string
+      op: string
+      value?: number
+      dice?: string
+      condition?: string
+      once?: boolean
+    }>
+    duration?: {
+      unit: string
+      value?: number
+      started_at?: string
+      started_round?: number
+      remaining_rounds?: number
+    }
+  }
+  linked_concentration?: boolean
+}
+
+export async function applyCharacterEffects(
+  sourceCharacterId: string,
+  payload: ApplyEffectPayload,
+): Promise<{ applied: number; character_ids: string[] }> {
+  return apiRequest<{ applied: number; character_ids: string[] }>(
+    `/characters/${sourceCharacterId}/effects/apply`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+  )
+}
+
+export async function clearCharacterConcentrationEffects(
+  characterId: string,
+  options?: { clearConcentration?: boolean },
+): Promise<{ removed: number }> {
+  return apiRequest<{ removed: number }>(
+    `/characters/${characterId}/effects/clear-concentration`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        clear_concentration: options?.clearConcentration !== false,
+      }),
+    },
+  )
+}

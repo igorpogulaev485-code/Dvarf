@@ -82,6 +82,19 @@ class LobbyRepository:
         )
         return lobby_id is not None
 
+    def share_lobby_ids(self, a: UUID, b: UUID) -> bool:
+        """True if both characters sit in at least one common lobby (Р25)."""
+        a_lobbies = select(LobbyMember.lobby_id).where(LobbyMember.character_id == a)
+        shared = self.db.scalar(
+            select(LobbyMember.lobby_id)
+            .where(
+                LobbyMember.character_id == b,
+                LobbyMember.lobby_id.in_(a_lobbies),
+            )
+            .limit(1)
+        )
+        return shared is not None
+
     def add_member(
         self,
         *,

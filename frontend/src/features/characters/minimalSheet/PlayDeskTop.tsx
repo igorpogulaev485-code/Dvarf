@@ -18,6 +18,7 @@ import {
   alignmentSheetLabel,
 } from '../../../shared/dnd/alignments'
 import { COMPANION_KIND_SHORT } from './draft'
+import { ActiveEffectsPanel } from '../ActiveEffectsPanel'
 
 export function PlayDeskTop({ model }: { model: SheetModel }) {
   const alignmentLabel = alignmentSheetLabel(model.draft.identity)
@@ -147,11 +148,32 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             onCoinPadOpenChange={model.setCoinPadOpen}
             showValueTips={model.showValueTips}
             onCombatChange={(patch) =>
-              model.setDraft((prev) => ({
-                ...prev,
-                ...(patch.hpCurrent !== undefined ? { hpCurrent: patch.hpCurrent } : {}),
-                ...(patch.hpMax !== undefined ? { hpMax: patch.hpMax } : {}),
-              }))
+              model.setDraft((prev) => {
+                const nextHp =
+                  patch.hpCurrent !== undefined ? patch.hpCurrent : prev.hpCurrent
+                const droppedToZero =
+                  patch.hpCurrent !== undefined &&
+                  (patch.hpCurrent ?? 0) <= 0 &&
+                  (prev.hpCurrent ?? 0) > 0
+                if (droppedToZero && prev.play.concentration) {
+                  queueMicrotask(() =>
+                    model.clearConcentrationDismissingCompanions(null),
+                  )
+                }
+                return {
+                  ...prev,
+                  ...(patch.hpCurrent !== undefined ? { hpCurrent: patch.hpCurrent } : {}),
+                  ...(patch.hpMax !== undefined ? { hpMax: patch.hpMax } : {}),
+                  ...(droppedToZero
+                    ? {
+                        play: {
+                          ...prev.play,
+                          isDying: (nextHp ?? 0) <= 0 ? true : prev.play.isDying,
+                        },
+                      }
+                    : {}),
+                }
+              })
             }
             onToast={model.onToast}
             onDamaged={(damageToHp) => {
@@ -162,6 +184,16 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                 dc: Math.max(10, Math.floor(damageToHp / 2)),
               })
             }}
+          />
+          <ActiveEffectsPanel
+            effects={model.draft.play.effects ?? []}
+            onChange={(effects) =>
+              model.setDraft((prev) => ({
+                ...prev,
+                play: { ...prev.play, effects },
+              }))
+            }
+            onToast={model.onToast}
           />
         </div>
       ) : (
@@ -249,11 +281,20 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             }))
           }
           onCombatChange={(patch) =>
-            model.setDraft((prev) => ({
-              ...prev,
-              ...(patch.hpCurrent !== undefined ? { hpCurrent: patch.hpCurrent } : {}),
-              ...(patch.hpMax !== undefined ? { hpMax: patch.hpMax } : {}),
-            }))
+            model.setDraft((prev) => {
+              const droppedToZero =
+                patch.hpCurrent !== undefined &&
+                (patch.hpCurrent ?? 0) <= 0 &&
+                (prev.hpCurrent ?? 0) > 0
+              if (droppedToZero && prev.play.concentration) {
+                queueMicrotask(() => model.clearConcentrationDismissingCompanions(null))
+              }
+              return {
+                ...prev,
+                ...(patch.hpCurrent !== undefined ? { hpCurrent: patch.hpCurrent } : {}),
+                ...(patch.hpMax !== undefined ? { hpMax: patch.hpMax } : {}),
+              }
+            })
           }
           onDamaged={(damageToHp) => {
             if (!model.draft.play.concentration || damageToHp <= 0) return
@@ -265,6 +306,16 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           }}
           onToast={model.onToast}
           showValueTips={model.showValueTips}
+        />
+        <ActiveEffectsPanel
+          effects={model.draft.play.effects ?? []}
+          onChange={(effects) =>
+            model.setDraft((prev) => ({
+              ...prev,
+              play: { ...prev.play, effects },
+            }))
+          }
+          onToast={model.onToast}
         />
         </div>
       )}
