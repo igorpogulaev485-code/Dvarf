@@ -23,6 +23,7 @@ import {
 import { readAttunements, type AttunementSlot } from '../attunement'
 import { readClassLevels, type ClassLevelEntry } from '../classLevels'
 import { readClassAsiLedger, type AppliedClassAsi } from '../../../shared/dnd/classAsi'
+import { readPiety, type PietyState } from '../../../shared/dnd/therosPiety'
 import { readPrimalChampion, type PrimalChampionGrant } from '../../../shared/dnd/primalChampion'
 import { readFeatGrantLedger, sumFeatSpeedBonus, type AppliedFeatGrant } from '../../../shared/dnd/featGrants'
 import { migrateLegacyHitDice, syncHitDicePools } from '../../../shared/dnd/classHitDice'
@@ -115,6 +116,8 @@ export type Draft = {
   classAsi: AppliedClassAsi[]
   /** Barbarian 20 Primal Champion bonuses already written onto abilities. */
   primalChampion: PrimalChampionGrant | null
+  /** B-09: Theros piety (god, score, journal, champion pick, gift). */
+  piety: PietyState
   featGrants: AppliedFeatGrant[]
   customFeatures: CustomFeature[]
   /** Named buff/debuff stack (AC formulas, later abilities). */
@@ -381,6 +384,7 @@ export function buildDraft(character: CharacterDetail): Draft {
     featurePicks: readFeaturePicks(sheet.feature_picks),
     classAsi: readClassAsiLedger(sheet.class_asi),
     primalChampion: readPrimalChampion(sheet.primal_champion),
+    piety: readPiety(sheet.piety),
     featGrants: readFeatGrantLedger(sheet.feat_grants),
     customFeatures: readCustomFeatures(sheet.custom_features ?? sheet.customFeatures),
     modifiers: readModifiers(sheet),

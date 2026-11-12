@@ -136,6 +136,8 @@ type PlayDeskHeaderProps = {
   stonesEnduranceReduction?: number | null
   /** B-08: Hadozee Dodge reduction amount (1d6+level). */
   hadozeeDodgeReduction?: number | null
+  /** Race slug for Hit Die traits (Verdan Black Blood). */
+  raceSlug?: string | null
 }
 
 export function PlayDeskHeader({
@@ -159,6 +161,7 @@ export function PlayDeskHeader({
   hasShieldMasterEvasion = false,
   stonesEnduranceReduction = null,
   hadozeeDodgeReduction = null,
+  raceSlug = null,
   draconicResilience = false,
   play,
   autoAc,
@@ -791,6 +794,7 @@ export function PlayDeskHeader({
         hasShieldMasterEvasion={hasShieldMasterEvasion}
         stonesEnduranceReduction={stonesEnduranceReduction}
         hadozeeDodgeReduction={hadozeeDodgeReduction}
+        raceSlug={raceSlug}
       />
 
       <CoinPadDialog

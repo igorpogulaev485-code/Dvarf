@@ -172,6 +172,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             heavyArmorMaster={heavyArmorMaster}
             stonesEnduranceReduction={stonesCut}
             hadozeeDodgeReduction={hadozeeCut}
+            raceSlug={model.draft.raceGrant?.slug ?? null}
             hasShieldMasterEvasion={hasShieldMasterEvasion}
             draconicResilience={(model.unlockedFeatures ?? []).some(
               (f: { id?: string }) => f.id === 'draconic_resilience',
@@ -349,6 +350,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           hasShieldMasterEvasion={hasShieldMasterEvasion}
           stonesEnduranceReduction={stonesCut}
           hadozeeDodgeReduction={hadozeeCut}
+          raceSlug={model.draft.raceGrant?.slug ?? null}
           draconicResilience={(model.unlockedFeatures ?? []).some(
             (f: { id?: string }) => f.id === 'draconic_resilience',
           )}

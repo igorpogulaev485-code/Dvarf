@@ -47,6 +47,11 @@ import {
   B08_NAME_TO_SLUG,
   buildB08BuffSpec,
 } from './b08BuffSpecs'
+import {
+  B09_BUFF_SPEC_BUILDERS,
+  B09_NAME_TO_SLUG,
+  buildB09BuffSpec,
+} from './b09BuffSpecs'
 import type { AcMinFloor, CompetingAcFormula } from './armor'
 
 export type EffectKind =
@@ -1466,6 +1471,7 @@ const SPELL_NAME_TO_SLUG: Array<{ re: RegExp; slug: string }> = [
   { re: /^благословен|^bless$/i, slug: 'bless' },
   { re: /^щит\s*вер|^shield of faith$/i, slug: 'shield_of_faith' },
   { re: /^ободряющ|^emboldening/i, slug: 'emboldening_bond' },
+  ...B09_NAME_TO_SLUG,
   ...B08_NAME_TO_SLUG,
   ...B07_NAME_TO_SLUG,
   ...B06_NAME_TO_SLUG,
@@ -1481,6 +1487,7 @@ export function guessBuffSlug(name: string, catalogId?: string | null): string |
     .toLowerCase()
     .replace(/-/g, '_')
   if (id && B01_BUFF_SPECS[id]) return id
+  if (id && B09_BUFF_SPEC_BUILDERS[id]) return id
   if (id && B08_BUFF_SPEC_BUILDERS[id]) return id
   if (id && B07_BUFF_SPEC_BUILDERS[id]) return id
   if (id && B06_BUFF_SPEC_BUILDERS[id]) return id
@@ -1514,6 +1521,7 @@ export function guessBuffSlug(name: string, catalogId?: string | null): string |
   }
   if (id && aliases[id]) return aliases[id]
   const stripped = id.replace(/'/g, '')
+  if (stripped && B09_BUFF_SPEC_BUILDERS[stripped]) return stripped
   if (stripped && B08_BUFF_SPEC_BUILDERS[stripped]) return stripped
   if (stripped && B07_BUFF_SPEC_BUILDERS[stripped]) return stripped
   if (stripped && B06_BUFF_SPEC_BUILDERS[stripped]) return stripped
@@ -1580,6 +1588,7 @@ export function buildBuffEffect(input: {
   }
   const spec =
     B01_BUFF_SPECS[slug] ??
+    buildB09BuffSpec(slug, ctx) ??
     buildB08BuffSpec(slug, ctx) ??
     buildB07BuffSpec(slug, ctx) ??
     buildB06BuffSpec(slug, ctx) ??

@@ -61,6 +61,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         spells={model.draft.spells}
         featureDesiredResources={model.featureDesiredResources}
         songOfRest={songOfRestDie(model.unlockedFeatures ?? [])}
+        raceSlug={model.draft.raceGrant?.slug ?? null}
         onPlayChange={(play) =>
           model.setDraft((prev) => {
             const result = applyConcentrationChangeToCompanions({

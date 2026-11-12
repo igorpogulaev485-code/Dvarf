@@ -409,6 +409,8 @@ class SessionSeatOut(BaseModel):
     ac: int | None = None
     speed: int | None = None
     inspiration: bool = False
+    piety_score: int | None = None
+    piety_god: str | None = None
     conditions: list[SeatConditionOut] = Field(default_factory=list)
     effects: list[SeatEffectOut] = Field(default_factory=list)
     concentration: SeatConcentrationOut | None = None
@@ -419,6 +421,19 @@ class SessionSeatOut(BaseModel):
     passive_investigation: int | None = None
     dex_mod: int | None = None
     seated_at: datetime
+
+
+class PietyAwardRequest(BaseModel):
+    character_id: UUID
+    delta: int = Field(..., ge=-50, le=50)
+    comment: str | None = Field(default=None, max_length=240)
+
+
+class PietyAwardResult(BaseModel):
+    character_id: UUID
+    god: str | None
+    score: int
+    journal_entry: dict
 
 
 class SeatCombatPatchRequest(BaseModel):
