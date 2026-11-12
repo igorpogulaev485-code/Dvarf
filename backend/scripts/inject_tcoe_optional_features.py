@@ -219,15 +219,17 @@ OPTIONAL_BY_CLASS: dict[str, list[dict[str, Any]]] = {
             name_ru="Праведное восстановление",
             name_en="Harness Divine Power",
             summary_ru=(
-                "Tasha (optional): бонусным Channel Divinity — восстановить одну потраченную ячейку "
-                "(ур. ≤ половины ур. паладина, вверх). Число раз = бонус мастерства / долгий отдых."
+                "TCE: действием потратить 1 Божественный канал и 1 дневное применение. "
+                "Вернуть одну потраченную ячейку не выше половины бонуса мастерства (вверх). "
+                "Дневных: 1 с 3 ур., 2 с 7, 3 с 15 / долгий отдых."
             ),
-            kind="bonus",
+            kind="action",
             resource={
                 "uses": 1,
-                "recharge": "short_rest",
-                "pool_id": "channel_divinity",
-                "pool_name_ru": "Божественный канал",
+                "recharge": "long_rest",
+                "scale_uses": {"3": 1, "7": 2, "15": 3},
+                "pool_id": "harness_divine_power",
+                "pool_name_ru": "Праведное восстановление",
                 "track": "spend",
             },
         ),

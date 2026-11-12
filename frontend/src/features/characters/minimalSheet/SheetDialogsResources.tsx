@@ -108,6 +108,9 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         open={model.channelDivinitySpendId != null}
         resource={model.channelDivinityResource}
         features={model.unlockedFeatures}
+        resources={model.draft.play.resources}
+        slots={model.draft.spells.slots}
+        characterLevel={model.characterLevel}
         onSpend={(label) => {
           if (!model.channelDivinitySpendId) return
           model.setDraft((prev) => ({
@@ -122,6 +125,15 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
             },
           }))
           model.onToast(`${label}: −1 Божественный канал`)
+          model.setChannelDivinitySpendId(null)
+        }}
+        onHarnessDivinePower={({ resources, slots, message }) => {
+          model.setDraft((prev) => ({
+            ...prev,
+            play: { ...prev.play, resources },
+            spells: { ...prev.spells, slots },
+          }))
+          model.onToast(message)
           model.setChannelDivinitySpendId(null)
         }}
         onToast={model.onToast}

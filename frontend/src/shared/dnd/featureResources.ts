@@ -178,7 +178,16 @@ export function desiredResourcesFromFeatures(input: {
     } else if (resource.uses_from === 'class_level') {
       max = Math.max(0, feature.classLevel)
     } else {
-      max = feature.resourceUses ?? resource.uses
+      // fixed / scale_uses (Lay on Hands, HDP daily, Channel Divinity, …)
+      let uses = feature.resourceUses ?? resource.uses
+      if (resource.scale_uses) {
+        for (const [lvlRaw, value] of Object.entries(resource.scale_uses)) {
+          const lvl = Number(lvlRaw)
+          if (!Number.isFinite(lvl) || lvl > feature.classLevel) continue
+          if (value > uses) uses = value
+        }
+      }
+      max = uses
     }
 
     const unlimited = resourceIsUnlimited(resource, feature.classLevel)

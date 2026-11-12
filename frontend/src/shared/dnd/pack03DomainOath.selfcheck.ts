@@ -7,6 +7,7 @@ import { slotSpendDiceCount } from './classFeatures.ts'
 import { domainChannelEffect } from './domainChannelEffect.ts'
 import { RANGER_FIGHTING_STYLES, fightingStyleById } from './fightingStyles.ts'
 import {
+  harnessDivinePowerDailyUses,
   harnessDivinePowerSlotCap,
   restoreOneSpentSlot,
   spentSlotLevels,
@@ -30,6 +31,8 @@ assert(harnessDivinePowerSlotCap(2) === 1, 'pb 2 cap 1')
 assert(harnessDivinePowerSlotCap(3) === 2, 'pb 3 cap 2')
 assert(harnessDivinePowerSlotCap(5) === 3, 'pb 5 cap 3')
 assert(harnessDivinePowerSlotCap(6) === 3, 'pb 6 cap 3')
+assert(harnessDivinePowerDailyUses('cleric', 6) === 2, 'cleric 6 daily 2')
+assert(harnessDivinePowerDailyUses('paladin', 15) === 3, 'paladin 15 daily 3')
 {
   const slots = { '1': { max: 4, used: 2 }, '2': { max: 3, used: 0 }, '3': { max: 2, used: 1 } }
   assert(spentSlotLevels(slots, 2).join() === '1', 'cap 2 hides circle 3')
