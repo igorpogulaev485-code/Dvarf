@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { listCharacters } from '../../shared/api/characters'
 import { getLobby, listLobbies, type LobbyMember } from '../../shared/api/lobbies'
 
 export type AllyPickDemo = {
@@ -12,7 +13,7 @@ export type PartyOption = {
   isSelf: boolean
 }
 
-/** Участники лобби текущего персонажа (включая себя) — для select’ов в касте. */
+/** Участники лобби текущего персонажа + собственные персонажи игрока (Р25). */
 export function useLobbyParty(
   characterId: string | undefined,
   demo: AllyPickDemo | null = null,
@@ -27,6 +28,7 @@ export function useLobbyParty(
   const [lobbyId, setLobbyId] = useState<string | null>(demo ? 'demo-lobby' : null)
   const [lobbies, setLobbies] = useState<Array<{ id: string; name: string }>>([])
   const [members, setMembers] = useState<LobbyMember[]>([])
+  const [ownChars, setOwnChars] = useState<Array<{ id: string; name: string }>>([])
   const [lobbyName, setLobbyName] = useState<string | null>(demo?.lobbyName ?? null)
   const [loading, setLoading] = useState(!demo && Boolean(characterId))
 
@@ -49,6 +51,7 @@ export function useLobbyParty(
           hp_max: null,
         })),
       )
+      setOwnChars([])
       setLoading(false)
       return
     }
@@ -58,8 +61,10 @@ export function useLobbyParty(
     }
     let active = true
     setLoading(true)
-    listLobbies()
-      .then(async (list) => {
+    Promise.all([listLobbies(), listCharacters()])
+      .then(async ([list, chars]) => {
+        if (!active) return
+        setOwnChars(chars.map((c) => ({ id: c.id, name: c.name })))
         const found: Array<{ id: string; name: string }> = []
         for (const summary of list) {
           const detail = await getLobby(summary.id)
@@ -98,11 +103,26 @@ export function useLobbyParty(
     }
   }, [lobbyId, characterId, demo])
 
-  const options: PartyOption[] = members.map((m) => ({
-    character_id: m.character_id,
-    character_name: m.character_name,
-    isSelf: m.character_id === characterId,
-  }))
+  const seen = new Set<string>()
+  const options: PartyOption[] = []
+  for (const m of members) {
+    if (seen.has(m.character_id)) continue
+    seen.add(m.character_id)
+    options.push({
+      character_id: m.character_id,
+      character_name: m.character_name,
+      isSelf: m.character_id === characterId,
+    })
+  }
+  for (const own of ownChars) {
+    if (seen.has(own.id)) continue
+    seen.add(own.id)
+    options.push({
+      character_id: own.id,
+      character_name: own.name,
+      isSelf: own.id === characterId,
+    })
+  }
 
   return {
     loading,

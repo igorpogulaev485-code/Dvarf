@@ -2200,6 +2200,23 @@ class LobbyService:
                     "linked_concentration": bool(e.linked_concentration),
                     **({"origin": e.origin} if e.origin else {}),
                     **({"ac_bonus": e.ac_bonus} if e.ac_bonus is not None else {}),
+                    **({"kind": e.kind} if e.kind else {}),
+                    **({"slug": e.slug} if e.slug else {}),
+                    **({"charges": e.charges} if e.charges is not None else {}),
+                    **(
+                        {
+                            "mods": [
+                                m.model_dump(exclude_none=True) for m in (e.mods or [])
+                            ]
+                        }
+                        if e.mods
+                        else {}
+                    ),
+                    **(
+                        {"duration": e.duration.model_dump(exclude_none=True)}
+                        if e.duration
+                        else {}
+                    ),
                 }
                 for e in payload.effects
             ]
@@ -2220,11 +2237,15 @@ class LobbyService:
             clear_linked_effects_for_caster(self.lobbies, character_id)
 
         self.db.commit()
+        if cleared_concentration:
+            from app.services.sheet_effects import broadcast_sheet_effects_changed
+
+            await broadcast_sheet_effects_changed(self.lobbies, [character_id])
         detail = self._session_detail(session, lobby, user)
         await _broadcast_session_changed(session.id)
         return detail
 
-    def share_effect(
+    async def share_effect(
         self,
         user: User,
         lobby_id: UUID,
@@ -2264,7 +2285,24 @@ class LobbyService:
         if linked and not _parse_concentration(source_conc):
             linked = False
 
+        effect_extra: dict = {"name": name, "linked_concentration": linked}
+        if payload.kind:
+            effect_extra["kind"] = payload.kind
+        if payload.slug:
+            effect_extra["slug"] = payload.slug
+        if payload.origin:
+            effect_extra["origin"] = payload.origin
+        if payload.ac_bonus is not None:
+            effect_extra["ac_bonus"] = payload.ac_bonus
+        if payload.charges is not None:
+            effect_extra["charges"] = payload.charges
+        if payload.mods:
+            effect_extra["mods"] = [m.model_dump(exclude_none=True) for m in payload.mods]
+        if payload.duration is not None:
+            effect_extra["duration"] = payload.duration.model_dump(exclude_none=True)
+
         applied = 0
+        touched: list[UUID] = []
         seen: set[UUID] = set()
         for target_id in payload.target_character_ids:
             if target_id in seen:
@@ -2283,14 +2321,19 @@ class LobbyService:
                 source_character_id=str(payload.source_character_id),
                 source_name=source.name,
                 linked_concentration=linked,
+                effect=effect_extra,
             )
             applied += 1
+            touched.append(target_id)
 
         self.db.commit()
+        from app.services.sheet_effects import broadcast_sheet_effects_changed
+
+        await broadcast_sheet_effects_changed(self.lobbies, touched)
         detail = self.get(user, lobby_id)
         return LobbyShareEffectResponse(applied=applied, lobby=detail)
 
-    def sync_infusion_effects(
+    async def sync_infusion_effects(
         self,
         user: User,
         lobby_id: UUID,
@@ -2321,6 +2364,7 @@ class LobbyService:
             name = row.name.strip()
             if not name:
                 continue
+            bonus = int(row.ac_bonus)
             by_target.setdefault(row.target_character_id, []).append(
                 {
                     "id": str(uuid4()),
@@ -2329,11 +2373,18 @@ class LobbyService:
                     "source_name": source.name,
                     "linked_concentration": False,
                     "origin": INFUSION_ORIGIN,
-                    "ac_bonus": int(row.ac_bonus),
+                    "kind": "infusion",
+                    "slug": "enhanced_defense",
+                    "ac_bonus": bonus,
+                    "mods": (
+                        [{"target": "ac", "op": "add", "value": bonus}] if bonus > 0 else []
+                    ),
+                    "duration": {"unit": "permanent"},
                 }
             )
 
         applied = 0
+        touched: list[UUID] = []
         for character_id in member_ids:
             if character_id == payload.source_character_id:
                 continue
@@ -2349,8 +2400,12 @@ class LobbyService:
             )
             if changed:
                 applied += len(replacements)
+                touched.append(character_id)
 
         self.db.commit()
+        from app.services.sheet_effects import broadcast_sheet_effects_changed
+
+        await broadcast_sheet_effects_changed(self.lobbies, touched)
         detail = self.get(user, lobby_id)
         return LobbyShareEffectResponse(applied=applied, lobby=detail)
 

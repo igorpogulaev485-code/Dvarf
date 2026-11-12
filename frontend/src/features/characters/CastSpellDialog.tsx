@@ -54,10 +54,10 @@ import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
  * dialog never opened the lobby target picker for Щит веры / Bless / …
  */
 const CAST_ALLY_NAME_RE =
-  /благословен|bless|ускорен|haste|щит\s*вер|shield of faith|наставлен|указан|guidance|помощ[ьи]|\baid\b|героизм|heroism|вардинг|warding bond|вдохновен|inspiration|инфуз|infusion|бафф?|\bбаф\b/i
+  /благословен|bless|ускорен|haste|щит\s*вер|shield of faith|наставлен|указан|guidance|помощ[ьи]|подмог|\baid\b|героизм|heroism|вардинг|warding bond|вдохновен|inspiration|инфуз|infusion|бафф?|\bбаф\b|сопротивлен|\bresistance\b/i
 const CAST_ALLY_CATALOG_RE =
-  /shield_of_faith|\bbless\b|\baid\b|\bhaste\b|\bheroism\b|warding_bond|\bguidance\b|beacon_of_hope|enhance_ability/i
-const CAST_MULTI_TARGET_RE = /благословен|bless|помощ[ьи]|\baid\b/i
+  /shield_of_faith|\bbless\b|\baid\b|\bhaste\b|\bheroism\b|warding_bond|\bguidance\b|\bresistance\b|beacon_of_hope|enhance_ability/i
+const CAST_MULTI_TARGET_RE = /благословен|bless|помощ[ьи]|подмог|\baid\b/i
 const CAST_MULTI_CATALOG_RE = /\bbless\b|\baid\b/i
 
 function castSpellAppliesToAllies(spell: SheetSpell): boolean {

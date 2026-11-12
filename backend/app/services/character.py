@@ -11,10 +11,20 @@ from app.models.user import User
 from app.repositories.character import CharacterRepository
 from app.repositories.lobby import LobbyRepository
 from app.schemas.character import (
+    ApplyEffectsRequest,
+    ApplyEffectsResponse,
     CharacterCreateRequest,
     CharacterDetail,
     CharacterSummary,
     CharacterUpdateRequest,
+    ClearConcentrationEffectsResponse,
+)
+from app.services.sheet_effects import (
+    append_effect,
+    broadcast_sheet_effects_changed,
+    clear_caster_concentration,
+    clear_linked_effects_for_caster,
+    concentration_from_sheet,
 )
 from app.services.avatar import (
     delete_character_avatar_file,
@@ -238,3 +248,91 @@ class CharacterService:
             delete_character_avatar_file(character.id)
         self.characters.soft_delete(character)
         self.db.commit()
+
+    def _can_target_effect(
+        self,
+        *,
+        user: User,
+        source: Character,
+        target: Character,
+    ) -> bool:
+        """Р25: own character or same lobby as source."""
+        if target.user_id == user.id:
+            return True
+        return self.lobbies.share_lobby_ids(source.id, target.id)
+
+    async def apply_effects(
+        self,
+        user: User,
+        source_character_id: UUID,
+        payload: ApplyEffectsRequest,
+    ) -> ApplyEffectsResponse:
+        source = self.characters.get_for_user(source_character_id, user.id)
+        if source is None:
+            raise AppError("Персонаж не найден", code="character_not_found", status_code=404)
+
+        linked = (
+            bool(payload.linked_concentration)
+            if payload.linked_concentration is not None
+            else bool(payload.effect.linked_concentration)
+        )
+        if linked and not concentration_from_sheet(source.sheet):
+            linked = False
+
+        effect_body = payload.effect.model_dump(exclude_none=True)
+        effect_body["source_character_id"] = str(source.id)
+        effect_body["source_name"] = source.name
+        effect_body["linked_concentration"] = linked
+
+        applied = 0
+        touched: list[UUID] = []
+        seen: set[UUID] = set()
+        for target_id in payload.target_character_ids:
+            if target_id in seen:
+                continue
+            seen.add(target_id)
+            target = self.characters.get_active(target_id)
+            if target is None:
+                raise AppError(
+                    "Цель не найдена",
+                    code="character_not_found",
+                    status_code=404,
+                )
+            if not self._can_target_effect(user=user, source=source, target=target):
+                raise AppError(
+                    "Нельзя наложить эффект на этого персонажа",
+                    code="effect_target_forbidden",
+                    status_code=403,
+                )
+            append_effect(
+                target,
+                name=payload.effect.name,
+                source_character_id=str(source.id),
+                source_name=source.name,
+                linked_concentration=linked,
+                effect=effect_body,
+            )
+            applied += 1
+            touched.append(target_id)
+
+        self.db.commit()
+        await broadcast_sheet_effects_changed(self.lobbies, touched)
+        return ApplyEffectsResponse(applied=applied, character_ids=touched)
+
+    async def clear_concentration_effects(
+        self,
+        user: User,
+        character_id: UUID,
+        *,
+        clear_concentration: bool = True,
+    ) -> ClearConcentrationEffectsResponse:
+        character = self.characters.get_for_user(character_id, user.id)
+        if character is None:
+            raise AppError("Персонаж не найден", code="character_not_found", status_code=404)
+        if clear_concentration:
+            removed = clear_caster_concentration(character, self.lobbies)
+        else:
+            removed = clear_linked_effects_for_caster(self.lobbies, character_id)
+        self.db.commit()
+        await broadcast_sheet_effects_changed(self.lobbies, [character_id])
+        return ClearConcentrationEffectsResponse(removed=removed)

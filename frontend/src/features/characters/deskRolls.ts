@@ -205,12 +205,15 @@ export function resolveAttackRoll(input: {
   extraDamage?: AttackExtraDamage | null
   /** Further riders (Improved Divine Smite). Same crit rule, rolled in order. */
   extraDamages?: AttackExtraDamage[] | null
+  /** B-01 buff dice on the attack roll (Bless etc.). */
+  bonusDice?: BonusDiePart[] | null
   mode?: DeskRollMode
   rng?: () => number
 }): AttackStrike {
   const rng = input.rng ?? Math.random
   const mode = input.mode ?? 'normal'
   const hit = rollCheck(input.attackBonus, mode, rng)
+  const bonus = rollBonusDiceParts(input.bonusDice, rng)
   // The kept d20 is the attack roll. Advantage can crit; disadvantage uses the lower die.
   const crit = hit.die === 20
   const dmg = rollDamage(input.damageExpr, rng, { crit })
@@ -221,9 +224,11 @@ export function resolveAttackRoll(input: {
     ...(input.extraDamages ?? []),
   ]
   const extraBit = extras.map((extra) => formatExtraDamage(extra, rng, crit)).join('')
+  const attackHit =
+    bonus.total > 0 ? { ...hit, total: hit.total + bonus.total } : hit
   const text = !dmg
-    ? `${formatCheckRoll(input.name, hit)}${critBit} · урон ${input.damageExpr || '—'}${typeBit}${extraBit}`
-    : `${formatCheckRoll(input.name, hit)}${critBit} · урон ${dmg.total}${typeBit} (${dmg.detail})${extraBit}`
+    ? `${formatCheckRoll(input.name, attackHit)}${bonus.text}${critBit} · урон ${input.damageExpr || '—'}${typeBit}${extraBit}`
+    : `${formatCheckRoll(input.name, attackHit)}${bonus.text}${critBit} · урон ${dmg.total}${typeBit} (${dmg.detail})${extraBit}`
   return { text, crit, die: hit.die }
 }
 
@@ -242,6 +247,33 @@ export function formatAttackRoll(input: {
   return resolveAttackRoll(input).text
 }
 
+export type BonusDiePart = {
+  dice: string
+  label: string
+}
+
+/** Roll optional buff dice (Bless / Guidance / …) and format as `+N (1d4 Label)`. */
+export function rollBonusDiceParts(
+  parts: BonusDiePart[] | null | undefined,
+  rng: () => number = Math.random,
+): { total: number; text: string; rolls: Array<{ label: string; value: number; dice: string }> } {
+  if (!parts?.length) return { total: 0, text: '', rolls: [] }
+  const rolls: Array<{ label: string; value: number; dice: string }> = []
+  let total = 0
+  for (const part of parts) {
+    const match = String(part.dice).trim().match(/^(\d*)d(\d+)$/i)
+    if (!match) continue
+    const count = Math.max(1, Number(match[1] || 1))
+    const sides = Math.max(2, Number(match[2]))
+    let value = 0
+    for (let i = 0; i < count; i += 1) value += rollDie(sides, rng)
+    total += value
+    rolls.push({ label: part.label, value, dice: part.dice })
+  }
+  const text = rolls.map((row) => ` + ${row.value} (${row.dice} ${row.label})`).join('')
+  return { total, text, rolls }
+}
+
 export function formatSkillRoll(
   label: string,
   modifier: number,
@@ -249,11 +281,16 @@ export function formatSkillRoll(
   rng?: () => number,
   floor?: { value: number; label: string } | null,
   dieFloor?: { value: number; label: string } | null,
+  bonusDice?: BonusDiePart[] | null,
 ): string {
-  const rolled = rollCheck(modifier, mode, rng)
+  const roller = rng ?? Math.random
+  const rolled = rollCheck(modifier, mode, roller)
   const withDie = dieFloor ? raiseNaturalDie(rolled, dieFloor.value, dieFloor.label) : rolled
   const roll = floor ? raiseCheckToFloor(withDie, floor.value, floor.label) : withDie
-  return formatCheckRoll(label, roll)
+  const bonus = rollBonusDiceParts(bonusDice, roller)
+  if (!bonus.total) return formatCheckRoll(label, roll)
+  const base = formatCheckRoll(label, { ...roll, total: roll.total + bonus.total })
+  return `${base}${bonus.text}`
 }
 
 /** PHB: padded, scale mail, half plate, all heavy — stealth disadvantage. */

@@ -1,11 +1,17 @@
 /** Pure rest helpers — sheet now, party frame later. */
 
 import {
+  filterEffectsAfterRest,
+  type ActiveEffect,
+} from './activeEffects'
+import {
   recoverHitDicePoolsOnLongRest,
   type ClassHitDicePool,
 } from './classHitDice'
 import { recoverHitDiceOnLongRest } from './hitDice'
 import { clampSlot, type SpellSlotState } from './spells'
+
+export { filterEffectsAfterRest }
 
 export type ResourceReset = 'short' | 'long' | 'manual' | 'dawn' | 'midnight'
 
@@ -190,8 +196,13 @@ export function applyShortRest(input: {
   resources: SheetResource[]
   /** When provided, pact `used` is cleared (PHB Pact Magic). Omit to leave spells untouched. */
   pact_slots?: { max: number; used: number; level: number } | null
-}): RestResult {
-  const result: RestResult = {
+  /** B-01 / Р26: effects with duration ≤ 1h (and until_short_rest). */
+  effects?: ActiveEffect[]
+}): RestResult & { effects?: ActiveEffect[]; removed_effects?: ActiveEffect[] } {
+  const result: RestResult & {
+    effects?: ActiveEffect[]
+    removed_effects?: ActiveEffect[]
+  } = {
     resources: regainSorceryPointsOnShortRest(
       resetResourcesOnRest(input.resources, 'short'),
     ),
@@ -199,6 +210,11 @@ export function applyShortRest(input: {
   if (input.pact_slots !== undefined) {
     const pact = input.pact_slots
     result.pact_slots = pact ? { ...pact, used: 0 } : null
+  }
+  if (input.effects) {
+    const { kept, removed } = filterEffectsAfterRest(input.effects, 'short')
+    result.effects = kept
+    result.removed_effects = removed
   }
   return result
 }
@@ -279,7 +295,9 @@ export function applyLongRest(input: {
   hit_dice_by_class?: ClassHitDicePool[]
   /** Injected so tests can pin dawn recharge rolls. */
   rng?: () => number
-}): RestResult {
+  /** B-01 / Р26: effects with duration ≤ 8h (and until_*_rest). */
+  effects?: ActiveEffect[]
+}): RestResult & { effects?: ActiveEffect[]; removed_effects?: ActiveEffect[] } {
   const pact = input.pact_slots
   const pools = input.hit_dice_by_class
   const recoveredPools =
@@ -288,6 +306,10 @@ export function applyLongRest(input: {
     resetResourcesOnRest(input.resources, 'long'),
     input.rng,
   )
+  const effectResult =
+    input.effects != null
+      ? filterEffectsAfterRest(input.effects, 'long')
+      : null
   return {
     resources: recharged.resources,
     rechargeLines: recharged.lines,
@@ -300,6 +322,9 @@ export function applyLongRest(input: {
       ? recoveredPools.reduce((sum, pool) => sum + pool.current, 0)
       : recoverHitDiceOnLongRest(input.hit_dice_current, input.hit_dice_max),
     hit_dice_by_class: recoveredPools,
+    ...(effectResult
+      ? { effects: effectResult.kept, removed_effects: effectResult.removed }
+      : {}),
     is_dying: false,
     death_successes: 0,
     death_fails: 0,

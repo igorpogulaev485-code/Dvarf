@@ -1,13 +1,112 @@
-"""Эффекты на листе (combat.effects) и снятие связанных с концентрацией."""
+"""Эффекты на листе (combat.effects) и снятие связанных с концентрацией.
+
+B-01: расширенная модель (kind/slug/duration/mods/charges) с обратной совместимостью.
+Старые строки (имя, · +N КД, ac_bonus инфузий) читаются как раньше.
+"""
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+from typing import Any
 from uuid import UUID, uuid4
 
+from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 
 from app.models.character import Character
 from app.repositories.lobby import LobbyRepository
+
+EFFECT_KINDS = frozenset(
+    {"spell", "feature", "feat", "race", "item", "infusion", "piety"}
+)
+DURATION_UNITS = frozenset(
+    {
+        "rounds",
+        "minutes",
+        "hours",
+        "until_short_rest",
+        "until_long_rest",
+        "until_source_next_turn_end",
+        "permanent",
+        "manual",
+    }
+)
+
+ROUNDS_PER_MINUTE = 10
+ROUNDS_PER_HOUR = 600
+
+INFUSION_ORIGIN = "infusion"
+
+
+def _duration_to_rounds(duration: dict) -> int | None:
+    unit = duration.get("unit")
+    if isinstance(duration.get("remaining_rounds"), int):
+        return max(0, int(duration["remaining_rounds"]))
+    value = duration.get("value")
+    try:
+        num = float(value) if value is not None else 0.0
+    except (TypeError, ValueError):
+        num = 0.0
+    if unit == "rounds" or unit == "until_source_next_turn_end":
+        return max(0, int(num or 1))
+    if unit == "minutes":
+        return int(num * ROUNDS_PER_MINUTE)
+    if unit == "hours":
+        return int(num * ROUNDS_PER_HOUR)
+    return None
+
+
+def _parse_mods(raw: object) -> list[dict]:
+    if not isinstance(raw, list):
+        return []
+    out: list[dict] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        target = str(item.get("target") or "").strip()
+        op = str(item.get("op") or "add").strip() or "add"
+        if not target:
+            continue
+        row: dict[str, Any] = {"target": target, "op": op}
+        value = item.get("value")
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            row["value"] = value
+        dice = item.get("dice")
+        if isinstance(dice, str) and dice.strip():
+            row["dice"] = dice.strip()
+        condition = item.get("condition")
+        if isinstance(condition, str) and condition.strip():
+            row["condition"] = condition.strip()
+        if isinstance(item.get("once"), bool):
+            row["once"] = bool(item.get("once"))
+        out.append(row)
+    return out
+
+
+def _parse_duration(raw: object) -> dict | None:
+    if not isinstance(raw, dict):
+        return None
+    unit = str(raw.get("unit") or "").strip()
+    if unit not in DURATION_UNITS:
+        return None
+    duration: dict[str, Any] = {"unit": unit}
+    value = raw.get("value")
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        duration["value"] = value
+    started_at = raw.get("started_at")
+    if isinstance(started_at, str) and started_at.strip():
+        duration["started_at"] = started_at.strip()
+    started_round = raw.get("started_round")
+    if isinstance(started_round, int):
+        duration["started_round"] = started_round
+    remaining = raw.get("remaining_rounds")
+    if isinstance(remaining, int):
+        duration["remaining_rounds"] = max(0, remaining)
+    else:
+        rounds = _duration_to_rounds(duration)
+        if rounds is not None:
+            duration["remaining_rounds"] = rounds
+    return duration
 
 
 def parse_effects(raw: object) -> list[dict]:
@@ -25,7 +124,7 @@ def parse_effects(raw: object) -> list[dict]:
             eid = f"fx-{name.lower().replace(' ', '-')}"
         source_character_id = item.get("source_character_id")
         source_name = item.get("source_name")
-        row = {
+        row: dict[str, Any] = {
             "id": eid,
             "name": name,
             "source_character_id": (
@@ -34,17 +133,81 @@ def parse_effects(raw: object) -> list[dict]:
             "source_name": str(source_name).strip() if source_name else None,
             "linked_concentration": bool(item.get("linked_concentration")),
         }
+        kind = item.get("kind")
+        if isinstance(kind, str) and kind.strip() in EFFECT_KINDS:
+            row["kind"] = kind.strip()
+        slug = item.get("slug")
+        if isinstance(slug, str) and slug.strip():
+            row["slug"] = slug.strip().replace("-", "_")
         origin = item.get("origin")
         if isinstance(origin, str) and origin.strip():
             row["origin"] = origin.strip()
         ac_bonus = item.get("ac_bonus")
         if isinstance(ac_bonus, int) and not isinstance(ac_bonus, bool):
             row["ac_bonus"] = max(0, ac_bonus)
+        charges = item.get("charges")
+        if isinstance(charges, int) and not isinstance(charges, bool):
+            row["charges"] = max(0, charges)
+        mods = _parse_mods(item.get("mods"))
+        if mods:
+            row["mods"] = mods
+        duration = _parse_duration(item.get("duration"))
+        if duration:
+            row["duration"] = duration
+        if item.get("inactive") is True:
+            row["inactive"] = True
+            reason = item.get("inactive_reason")
+            if isinstance(reason, str) and reason.strip():
+                row["inactive_reason"] = reason.strip()
         out.append(row)
     return out
 
 
-INFUSION_ORIGIN = "infusion"
+def normalize_effect_payload(payload: dict, *, default_id: str | None = None) -> dict:
+    """Build a stored effect row from an API/client payload."""
+    name = str(payload.get("name") or "").strip()
+    if not name:
+        raise ValueError("effect_name_required")
+    eid = str(payload.get("id") or "").strip() or (default_id or str(uuid4()))
+    row: dict[str, Any] = {
+        "id": eid,
+        "name": name,
+        "source_character_id": (
+            str(payload["source_character_id"])
+            if payload.get("source_character_id")
+            else None
+        ),
+        "source_name": (
+            str(payload.get("source_name")).strip()
+            if payload.get("source_name")
+            else None
+        ),
+        "linked_concentration": bool(payload.get("linked_concentration")),
+    }
+    kind = payload.get("kind")
+    if isinstance(kind, str) and kind.strip() in EFFECT_KINDS:
+        row["kind"] = kind.strip()
+    slug = payload.get("slug")
+    if isinstance(slug, str) and slug.strip():
+        row["slug"] = slug.strip().replace("-", "_")
+    origin = payload.get("origin")
+    if isinstance(origin, str) and origin.strip():
+        row["origin"] = origin.strip()
+    ac_bonus = payload.get("ac_bonus")
+    if isinstance(ac_bonus, int) and not isinstance(ac_bonus, bool):
+        row["ac_bonus"] = max(0, ac_bonus)
+    charges = payload.get("charges")
+    if isinstance(charges, int) and not isinstance(charges, bool):
+        row["charges"] = max(0, charges)
+    mods = _parse_mods(payload.get("mods"))
+    if mods:
+        row["mods"] = mods
+    duration = _parse_duration(payload.get("duration"))
+    if duration:
+        if "started_at" not in duration:
+            duration["started_at"] = datetime.now(timezone.utc).isoformat()
+        row["duration"] = duration
+    return row
 
 
 def is_infusion_share_effect(effect: dict, source_id: str) -> bool:
@@ -52,6 +215,8 @@ def is_infusion_share_effect(effect: dict, source_id: str) -> bool:
     if str(effect.get("source_character_id") or "") != source_id:
         return False
     if effect.get("origin") == INFUSION_ORIGIN:
+        return True
+    if effect.get("kind") == "infusion":
         return True
     # Legacy shares: «Усиленная защита · +1 КД» (no origin field yet).
     return " · +" in str(effect.get("name") or "")
@@ -82,6 +247,14 @@ def apply_infusion_effect_sync(
     for row in next_effects:
         if row.get("origin") == INFUSION_ORIGIN and not row.get("source_name"):
             row = {**row, "source_name": source_name}
+        # B-01: ensure mods.ac mirrors ac_bonus for new writes.
+        if row.get("origin") == INFUSION_ORIGIN and "ac_bonus" in row:
+            mods = list(row.get("mods") or [])
+            if not any(m.get("target") == "ac" for m in mods if isinstance(m, dict)):
+                bonus = int(row.get("ac_bonus") or 0)
+                if bonus > 0:
+                    mods.append({"target": "ac", "op": "add", "value": bonus})
+                    row = {**row, "mods": mods, "kind": row.get("kind") or "infusion"}
         stamped.append(row)
     if stamped == current:
         return False
@@ -96,40 +269,118 @@ def apply_infusion_effect_sync(
 def append_effect(
     character: Character,
     *,
-    effect_id: str | None,
+    effect_id: str | None = None,
     name: str,
     source_character_id: str | None,
     source_name: str | None,
     linked_concentration: bool,
-) -> None:
-    sheet = dict(character.sheet or {})
-    combat = dict(sheet.get("combat") or {})
-    effects = parse_effects(combat.get("effects"))
-    effects.append(
-        {
+    kind: str | None = None,
+    slug: str | None = None,
+    origin: str | None = None,
+    ac_bonus: int | None = None,
+    charges: int | None = None,
+    mods: list[dict] | None = None,
+    duration: dict | None = None,
+    effect: dict | None = None,
+) -> dict:
+    """Append one effect. Pass `effect` for a full B-01 payload, or legacy fields."""
+    if effect is not None:
+        row = normalize_effect_payload(
+            {
+                **effect,
+                "name": effect.get("name") or name,
+                "source_character_id": effect.get("source_character_id")
+                or source_character_id,
+                "source_name": effect.get("source_name") or source_name,
+                "linked_concentration": effect.get(
+                    "linked_concentration", linked_concentration
+                ),
+            },
+            default_id=effect_id,
+        )
+    else:
+        payload: dict[str, Any] = {
             "id": effect_id or str(uuid4()),
             "name": name.strip(),
             "source_character_id": source_character_id,
             "source_name": source_name,
             "linked_concentration": linked_concentration,
         }
-    )
+        if kind:
+            payload["kind"] = kind
+        if slug:
+            payload["slug"] = slug
+        if origin:
+            payload["origin"] = origin
+        if ac_bonus is not None:
+            payload["ac_bonus"] = ac_bonus
+        if charges is not None:
+            payload["charges"] = charges
+        if mods:
+            payload["mods"] = mods
+        if duration:
+            payload["duration"] = duration
+        row = normalize_effect_payload(payload, default_id=effect_id)
+
+    sheet = dict(character.sheet or {})
+    combat = dict(sheet.get("combat") or {})
+    effects = parse_effects(combat.get("effects"))
+    effects.append(row)
     combat["effects"] = effects
     sheet["combat"] = combat
     character.sheet = sheet
     character.sheet_version = int(character.sheet_version or 1) + 1
     flag_modified(character, "sheet")
+    return row
+
+
+def remove_effect_by_id(character: Character, effect_id: str) -> bool:
+    sheet = dict(character.sheet or {})
+    combat = dict(sheet.get("combat") or {})
+    effects = parse_effects(combat.get("effects"))
+    kept = [e for e in effects if e.get("id") != effect_id]
+    if len(kept) == len(effects):
+        return False
+    combat["effects"] = kept
+    sheet["combat"] = combat
+    character.sheet = sheet
+    character.sheet_version = int(character.sheet_version or 1) + 1
+    flag_modified(character, "sheet")
+    return True
+
+
+def clear_linked_effects_on_character(
+    character: Character,
+    caster_key: str,
+) -> int:
+    sheet = dict(character.sheet or {})
+    combat = dict(sheet.get("combat") or {})
+    effects = parse_effects(combat.get("effects"))
+    kept = [
+        e
+        for e in effects
+        if not (
+            e.get("linked_concentration")
+            and e.get("source_character_id") == caster_key
+        )
+    ]
+    removed = len(effects) - len(kept)
+    if removed == 0:
+        return 0
+    combat["effects"] = kept
+    sheet["combat"] = combat
+    character.sheet = sheet
+    character.sheet_version = int(character.sheet_version or 1) + 1
+    flag_modified(character, "sheet")
+    return removed
 
 
 def clear_linked_effects_for_caster(
     lobbies: LobbyRepository,
     caster_id: UUID,
 ) -> int:
-    """Снять у союзников во всех лобби кастера эффекты, связанные с его Conc."""
+    """Снять у всех целей эффекты, связанные с Conc кастера (включая самого кастера)."""
     caster_key = str(caster_id)
-    # Лобби, где кастер в составе (или владелец смотрит чужой лист — только членство)
-    from sqlalchemy import select
-
     from app.models.lobby import LobbyMember
 
     lobby_ids = list(
@@ -137,39 +388,48 @@ def clear_linked_effects_for_caster(
             select(LobbyMember.lobby_id).where(LobbyMember.character_id == caster_id)
         ).all()
     )
-    if not lobby_ids:
-        return 0
 
-    removed = 0
+    touched_ids: set[UUID] = {caster_id}
     for lobby_id in lobby_ids:
         lobby = lobbies.get(lobby_id)
         if lobby is None:
             continue
-        member_ids = [m.character_id for m in lobby.members]
-        char_map = lobbies.get_characters_map(member_ids)
-        for other_id, other in char_map.items():
-            if other is None or str(other_id) == caster_key:
-                continue
-            sheet = dict(other.sheet or {})
-            combat = dict(sheet.get("combat") or {})
-            effects = parse_effects(combat.get("effects"))
-            kept = [
-                e
-                for e in effects
-                if not (
-                    e.get("linked_concentration")
-                    and e.get("source_character_id") == caster_key
-                )
-            ]
-            if len(kept) == len(effects):
-                continue
-            removed += len(effects) - len(kept)
-            combat["effects"] = kept
-            sheet["combat"] = combat
-            other.sheet = sheet
-            other.sheet_version = int(other.sheet_version or 1) + 1
-            flag_modified(other, "sheet")
+        for member in lobby.members:
+            touched_ids.add(member.character_id)
+
+    # Also own other characters of the same user (Р25 self-cast outside lobby).
+    caster = lobbies.db.get(Character, caster_id)
+    if caster is not None:
+        own_ids = list(
+            lobbies.db.scalars(
+                select(Character.id).where(Character.user_id == caster.user_id)
+            ).all()
+        )
+        touched_ids.update(own_ids)
+
+    removed = 0
+    char_map = lobbies.get_characters_map(list(touched_ids))
+    for other_id, other in char_map.items():
+        if other is None:
+            continue
+        removed += clear_linked_effects_on_character(other, caster_key)
     return removed
+
+
+def clear_caster_concentration(
+    character: Character,
+    lobbies: LobbyRepository,
+) -> int:
+    """Drop concentration on the caster sheet and clear linked ally effects."""
+    sheet = dict(character.sheet or {})
+    combat = dict(sheet.get("combat") or {})
+    if combat.get("concentration") is not None:
+        combat["concentration"] = None
+        sheet["combat"] = combat
+        character.sheet = sheet
+        character.sheet_version = int(character.sheet_version or 1) + 1
+        flag_modified(character, "sheet")
+    return clear_linked_effects_for_caster(lobbies, character.id)
 
 
 def concentration_from_sheet(sheet: object) -> dict | None:
@@ -213,16 +473,47 @@ def effect_suggestions_from_sheet(sheet: object) -> list[str]:
     if isinstance(spells, dict):
         known = spells.get("known")
         if not isinstance(known, list):
-            known = spells.get("prepared") if isinstance(spells.get("prepared"), list) else []
+            known = (
+                spells.get("prepared")
+                if isinstance(spells.get("prepared"), list)
+                else []
+            )
         for item in known:
             if not isinstance(item, dict):
                 continue
             prepared = item.get("prepared")
             level = item.get("level")
-            # cantrips always ready; leveled need prepared
             if isinstance(level, int) and level > 0 and prepared is False:
                 continue
             if item.get("concentration") or item.get("applies_to_allies"):
                 add(str(item.get("name") or ""))
 
     return names
+
+
+async def broadcast_sheet_effects_changed(
+    lobbies: LobbyRepository,
+    character_ids: list[UUID],
+) -> None:
+    """Nudge lobby sockets so open sheets can refresh combat.effects (B04 / #299)."""
+    from app.models.lobby import LobbyMember
+    from app.realtime.hub import lobby_hub
+
+    if not character_ids:
+        return
+    lobby_ids = list(
+        set(
+            lobbies.db.scalars(
+                select(LobbyMember.lobby_id).where(
+                    LobbyMember.character_id.in_(character_ids)
+                )
+            ).all()
+        )
+    )
+    payload = {
+        "type": "sheet_effects_changed",
+        "character_ids": [str(cid) for cid in character_ids],
+    }
+    for lobby_id in lobby_ids:
+        await lobby_hub.broadcast(lobby_id, payload)
+        await lobby_hub.broadcast(lobby_id, {"type": "lobby_resync"})

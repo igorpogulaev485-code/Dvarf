@@ -683,7 +683,9 @@ export function useSheetEditorPart3(model: SheetModel) {
       gearSummary = `${gearSummary} · ${gearAc.parts.join(' · ')}`
     }
     const sharedInfusionAc = infusionAcFromSharedEffects(
-      asRecord(asRecord(model.baseCharacter.sheet).combat).effects,
+      model.draft.play.effects?.length
+        ? model.draft.play.effects
+        : asRecord(asRecord(model.baseCharacter.sheet).combat).effects,
     )
     if (infusionBonuses.acBonus) {
       coreAc += infusionBonuses.acBonus
@@ -691,7 +693,7 @@ export function useSheetEditorPart3(model: SheetModel) {
     }
     if (sharedInfusionAc) {
       coreAc += sharedInfusionAc
-      gearSummary = `${gearSummary} · инфузия союзника +${sharedInfusionAc}`
+      gearSummary = `${gearSummary} · эффекты +${sharedInfusionAc}`
     }
     const formulaVars = buildSheetFormulaVars({
       mods,
@@ -839,6 +841,7 @@ export function useSheetEditorPart3(model: SheetModel) {
       combat.death_fails = playSheet.combatPatch.death_fails
       combat.concentration = playSheet.combatPatch.concentration
       combat.shillelagh = playSheet.combatPatch.shillelagh
+      combat.effects = playSheet.combatPatch.effects
       sheet.combat = combat
       const proficiency = asRecord(sheet.proficiency)
       proficiency.bonus = proficiencyBonusForTotalLevel(totalLevel)

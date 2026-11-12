@@ -30,7 +30,7 @@ import {
   isMonkWeaponName,
   monkAttackAbility,
 } from '../../shared/dnd/martialArts'
-import { resolveAttackRoll, type DeskRollMode } from './deskRolls'
+import { resolveAttackRoll, type BonusDiePart, type DeskRollMode } from './deskRolls'
 import { attackSuppressedByEmptyStack } from './attacksInventorySync'
 import {
   abilityModifier,
@@ -106,6 +106,9 @@ type PlayDeskAttacksCompactProps = {
   /** When true and no weapons — compact empty (pure caster). */
   preferMagicEmpty?: boolean
   rollMode?: DeskRollMode
+  /** B-01: Bless / Emboldening Bond etc. on attack rolls. */
+  bonusDice?: BonusDiePart[] | null
+  onConsumeOnceBuffDice?: () => void
 }
 
 function formatSpendTime(atMs: number): string {
@@ -157,6 +160,8 @@ export function PlayDeskAttacksCompact({
   onOpenInventory,
   preferMagicEmpty = false,
   rollMode = 'normal',
+  bonusDice = null,
+  onConsumeOnceBuffDice,
 }: PlayDeskAttacksCompactProps) {
   const divineStrike = useMemo(() => divineStrikeRider(combatFeatures), [combatFeatures])
   const improvedSmite = useMemo(
@@ -497,6 +502,7 @@ export function PlayDeskAttacksCompact({
                       attackBonus,
                       damageExpr: dmg || baseDamage,
                       damageType: attack.damage_type,
+                      bonusDice,
                       extraDamages: [
                         ...(divineStrike
                           ? [
@@ -529,6 +535,7 @@ export function PlayDeskAttacksCompact({
                       mode: attackMode,
                     })
                     onToast?.(strike.text)
+                    onConsumeOnceBuffDice?.()
                     smiteApplyLock.current = false
                     setOpenStrike({
                       name: attack.name,

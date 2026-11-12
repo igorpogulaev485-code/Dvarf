@@ -545,6 +545,26 @@ export async function shareLobbyEffect(
     name: string
     target_character_ids: string[]
     linked_concentration?: boolean
+    kind?: string
+    slug?: string
+    origin?: string
+    ac_bonus?: number
+    charges?: number
+    mods?: Array<{
+      target: string
+      op: string
+      value?: number
+      dice?: string
+      condition?: string
+      once?: boolean
+    }>
+    duration?: {
+      unit: string
+      value?: number
+      started_at?: string
+      started_round?: number
+      remaining_rounds?: number
+    }
   },
 ): Promise<{ applied: number; lobby: LobbyDetail }> {
   return apiRequest<{ applied: number; lobby: LobbyDetail }>(

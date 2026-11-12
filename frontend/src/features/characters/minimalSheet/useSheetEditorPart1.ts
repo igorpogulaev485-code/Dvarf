@@ -1,7 +1,7 @@
 /** Состояние и эффекты листа, часть 1. Порядок хуков совпадает с прежним компонентом. */
 import type { SheetModel } from './sheetModel'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { type RulesEdition } from '../../../shared/api/characters'
+import { type CharacterDetail, type RulesEdition } from '../../../shared/api/characters'
 import { formatClassSummary, totalCharacterLevel } from '../../../shared/dnd/classLevels'
 import type { ClassGrantDef } from '../../../shared/dnd/classGrants'
 import { ensureBackgroundFeatureOnDraft } from '../backgroundEffects'
@@ -20,6 +20,8 @@ import { type FeatureSelfFormRequest, type WildShapeForkRequest } from '../Class
 import { characterHasMagicSources } from '../magicSources'
 import { blockPlainText, withBlockPlainText } from '../textBlocks'
 import { buildDraft, type MinimalSheetEditorProps } from './draft'
+import { useSheetEffectsRealtime } from '../useSheetEffectsRealtime'
+import { applyEffectStacking } from '../../../shared/dnd/activeEffects'
 
 export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditorProps) {
   model.character = props.character
@@ -436,6 +438,34 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
       setBaseCharacter(model.character)
     }
   }, [model.character, baseCharacter.id, sheetVersion])
+
+  useSheetEffectsRealtime({
+    characterId: baseCharacter.id,
+    enabled: Boolean(baseCharacter.id),
+    onEffects: (effects, remoteVersion) => {
+      if (remoteVersion <= sheetVersion) return
+      setSheetVersion(remoteVersion)
+      setDraft((prev) => ({
+        ...prev,
+        play: {
+          ...prev.play,
+          effects: applyEffectStacking(effects),
+        },
+      }))
+      setBaseCharacter((prev: CharacterDetail) => {
+        const sheet = { ...(prev.sheet || {}) } as Record<string, unknown>
+        const combat = {
+          ...((sheet.combat as Record<string, unknown> | undefined) || {}),
+          effects,
+        }
+        return {
+          ...prev,
+          sheet_version: remoteVersion,
+          sheet: { ...sheet, combat },
+        }
+      })
+    },
+  })
 
   useEffect(() => {
     if (model.createGuide !== 'background-first' && model.createGuide !== 'class-first') return

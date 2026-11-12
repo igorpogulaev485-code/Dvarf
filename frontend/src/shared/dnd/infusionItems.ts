@@ -3,6 +3,7 @@
  * Weapon bonuses apply only to that row — never to every attack.
  */
 
+import { acBonusFromActiveEffects } from './activeEffects'
 import { findWeaponPreset } from './weaponPresets'
 
 export type InfusionItemShape = {
@@ -75,24 +76,11 @@ export function infusionAcceptsItem(infusionId: string, item: InfusionItemShape)
 }
 
 /**
- * AC printed on a shared infusion effect.
- * Structured `ac_bonus` wins. Legacy names from infusionShareEffectName
+ * AC printed on a shared infusion effect (and B-01 mods.ac).
+ * Structured `ac_bonus` / mods win. Legacy names from infusionShareEffectName
  * (`Усиленная защита · +1 КД`) still count. Conditional «КД без доспеха» does not.
+ * Same-name stacking: strongest only (Р9) via acBonusFromActiveEffects.
  */
 export function infusionAcFromSharedEffects(effects: unknown): number {
-  if (!Array.isArray(effects)) return 0
-  let sum = 0
-  for (const raw of effects) {
-    if (!raw || typeof raw !== 'object') continue
-    const row = raw as Record<string, unknown>
-    if (typeof row.ac_bonus === 'number' && Number.isFinite(row.ac_bonus)) {
-      sum += Math.max(0, Math.floor(row.ac_bonus))
-      continue
-    }
-    const name = typeof row.name === 'string' ? row.name : ''
-    if (/КД\s*без/i.test(name)) continue
-    const match = name.match(/·\s*\+(\d+)\s*КД(?!\p{L})/u)
-    if (match) sum += Number(match[1])
-  }
-  return sum
+  return acBonusFromActiveEffects(effects)
 }

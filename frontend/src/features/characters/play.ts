@@ -9,6 +9,11 @@ import {
   type ConcentrationState,
 } from '../../shared/dnd/concentration'
 import {
+  parseActiveEffects,
+  serializeActiveEffect,
+  type ActiveEffect,
+} from '../../shared/dnd/activeEffects'
+import {
   primaryHitDie,
   readHitDicePools,
   totalHitDiceCurrent,
@@ -46,6 +51,8 @@ export type PlayState = {
   concentration: ConcentrationState | null
   /** PHB Shillelagh on one held club or quarterstaff. */
   shillelagh?: ShillelaghState | null
+  /** B-01: sheet.combat.effects (buffs, infusions, duration). */
+  effects: ActiveEffect[]
 }
 
 export type { ConcentrationState }
@@ -192,6 +199,7 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
     deathFails: clampDeathMarks(readNumber(combat.death_fails, 0)),
     concentration: readConcentration(combat.concentration),
     shillelagh: readShillelagh(combat.shillelagh),
+    effects: parseActiveEffects(combat.effects),
   }
 }
 
@@ -208,6 +216,7 @@ export function playToSheet(play: PlayState): {
     death_fails: number
     concentration: ConcentrationState | null
     shillelagh: ShillelaghState | null
+    effects: ReturnType<typeof serializeActiveEffect>[]
   }
   resources: SheetResource[]
 } {
@@ -238,6 +247,7 @@ export function playToSheet(play: PlayState): {
           }
         : clearConcentration(),
       shillelagh: play.shillelagh ?? null,
+      effects: (play.effects ?? []).map(serializeActiveEffect),
     },
     resources: play.resources.map((item) => clampResource(item)),
   }
