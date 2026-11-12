@@ -339,6 +339,10 @@ class SeatConditionOut(BaseModel):
     slug: str
     name: str
     catalog_id: str | None = None
+    """Опциональная длительность в раундах — напоминание ведущему, без авто-снятия."""
+    duration_rounds: int | None = Field(default=None, ge=1, le=100)
+    duration_note: str | None = Field(default=None, max_length=240)
+    started_round: int | None = Field(default=None, ge=1, le=9999)
 
 
 class SeatCompanionOut(BaseModel):
@@ -406,9 +410,15 @@ class SessionSeatOut(BaseModel):
     character_race_name: str | None = None
     hp_current: int | None = None
     hp_max: int | None = None
+    hp_temp: int = 0
+    hp_band: str | None = None
+    hp_label: str | None = None
+    hp_ratio: float | None = None
     ac: int | None = None
     speed: int | None = None
     inspiration: bool = False
+    """Вдохновение потрачено — преимущество на следующий бросок (до броска)."""
+    advantage_next_roll: bool = False
     piety_score: int | None = None
     piety_god: str | None = None
     conditions: list[SeatConditionOut] = Field(default_factory=list)
@@ -424,6 +434,12 @@ class SessionSeatOut(BaseModel):
     initiative_bonus: int = 0
     """Преимущество на инициативу с листа (ауры/эффекты)."""
     initiative_advantage: bool = False
+    """Спасброски от смерти — только умирающему и ведущему; иначе null."""
+    is_dying: bool | None = None
+    death_successes: int | None = None
+    death_fails: int | None = None
+    """Подсказка после урона со стола (S-04 проводит реакцию)."""
+    reaction_hint: str | None = None
     seated_at: datetime
 
 
@@ -441,13 +457,21 @@ class PietyAwardResult(BaseModel):
 
 
 class SeatCombatPatchRequest(BaseModel):
-    """Жесты за столом: вдохновение / состояния / эффекты / концентрация."""
+    """Жесты за столом: вдохновение / состояния / эффекты / концентрация / урон."""
 
     inspiration: bool | None = None
+    """Потратить вдохновение → преимущество на следующий бросок (до броска)."""
+    spend_inspiration: bool = False
     conditions: list[SeatConditionOut] | None = None
     effects: list[SeatEffectOut] | None = None
     concentration: SeatConcentrationOut | None = None
     clear_concentration: bool = False
+    """Урон / лечение с карточки (только can_run_session). damage > 0 урон, < 0 лечение."""
+    damage: int | None = Field(default=None, ge=-9999, le=9999)
+    damage_type: str | None = Field(default=None, max_length=40)
+    grant_temp_hp: int | None = Field(default=None, ge=0, le=9999)
+    death_successes: int | None = Field(default=None, ge=0, le=3)
+    death_fails: int | None = Field(default=None, ge=0, le=3)
 
 
 class InfusionEffectShare(BaseModel):
@@ -757,11 +781,34 @@ class CombatantMemberOut(BaseModel):
     name: str
     hp_current: int
     hp_max: int
+    hp_temp: int = 0
+    hp_band: str | None = None
+    hp_label: str | None = None
+    hp_ratio: float | None = None
+    hp_numbers_hidden: bool = False
 
 
 class CombatantMemberDamage(BaseModel):
     member_id: str
     damage: int = Field(ge=-9999, le=9999)
+    damage_type: str | None = Field(default=None, max_length=40)
+
+
+class CombatantStudySnapshotOut(BaseModel):
+    hp_current: int
+    hp_max: int
+    at: str | None = None
+
+
+class CombatantPendingStudyOut(BaseModel):
+    user_id: str
+    character_id: str | None = None
+    character_name: str | None = None
+    skill: str
+    skill_ru: str
+    dc: int
+    roll_total: int | None = None
+    status: str = "pending"
 
 
 class SessionCombatantOut(BaseModel):
@@ -772,6 +819,11 @@ class SessionCombatantOut(BaseModel):
     """Сводка для быстрых жестов: HP первого живого (цель урона без выбора)."""
     hp_current: int
     hp_max: int
+    hp_band: str | None = None
+    hp_label: str | None = None
+    hp_ratio: float | None = None
+    """G12: точные числа скрыты, пока статблок не открыт."""
+    hp_numbers_hidden: bool = False
     alive_count: int = 1
     member_count: int = 1
     ac: int | None = None
@@ -783,6 +835,7 @@ class SessionCombatantOut(BaseModel):
     type_ru: str | None = None
     custom: bool = False
     conditions: list[SeatConditionOut] = Field(default_factory=list)
+    effects: list[SeatEffectOut] = Field(default_factory=list)
     traits: list[CombatantActionOut] = Field(default_factory=list)
     actions: list[CombatantActionOut] = Field(default_factory=list)
     bonus_actions: list[CombatantActionOut] = Field(default_factory=list)
@@ -798,6 +851,18 @@ class SessionCombatantOut(BaseModel):
     damage_immunities: list[str] = Field(default_factory=list)
     damage_vulnerabilities: list[str] = Field(default_factory=list)
     condition_immunities: list[str] = Field(default_factory=list)
+    """G12 / Изучить."""
+    statblock_visible: bool = False
+    statblock_revealed: bool = False
+    studied_by_me: bool = False
+    study_snapshot: CombatantStudySnapshotOut | None = None
+    pending_study: CombatantPendingStudyOut | None = None
+    study_skill: str | None = None
+    study_skill_ru: str | None = None
+    suggested_study_dc: int | None = None
+    """Подсказка ведущему после урона (реакция — S-04)."""
+    reaction_hint: str | None = None
+    last_damage_note: str | None = None
 
 
 class CombatEntryOut(BaseModel):
@@ -1008,11 +1073,38 @@ class CombatantPatchRequest(BaseModel):
     ac: int | None = Field(default=None, ge=0, le=40)
     name: str | None = Field(default=None, min_length=1, max_length=120)
     conditions: list[SeatConditionOut] | None = None
+    effects: list[SeatEffectOut] | None = None
     """Урон одному: без member_id → первый живой; с member_id → выбранный."""
     damage: int | None = Field(default=None, ge=-9999, le=9999)
+    damage_type: str | None = Field(default=None, max_length=40)
+    grant_temp_hp: int | None = Field(default=None, ge=0, le=9999)
     member_id: str | None = Field(default=None, max_length=80)
     """Пакетный урон по составу: этому N, этому M."""
     member_damages: list[CombatantMemberDamage] | None = None
+    """G12: открыть статблок всей партии."""
+    reveal_statblock: bool | None = None
+
+
+class CombatantStudyRequest(BaseModel):
+    """Игрок начинает «Изучить» видимого врага."""
+
+    character_id: UUID
+    roll_total: int | None = Field(default=None, ge=-999, le=9999)
+    dc: int | None = Field(default=None, ge=1, le=40)
+
+
+class CombatantStudyResolveRequest(BaseModel):
+    """Ведущий подтверждает успех / провал «Изучить»."""
+
+    success: bool
+    """Кому засчитать успех; по умолчанию — pending_study.user_id."""
+    user_id: UUID | None = None
+
+
+class CombatantShareStudyRequest(BaseModel):
+    """Изучивший показывает карточку партии (= reveal_statblock)."""
+
+    pass
 
 
 class SessionDetail(BaseModel):
@@ -1135,6 +1227,9 @@ class SessionRollCreateRequest(BaseModel):
     total: int = Field(ge=-999, le=9999)
     # если true — скрываем от игроков при режиме «Без бросков мастера»
     is_master_roll: bool = False
+    """Клиент сообщает, что бросок уже с преимуществом (потраченное вдохновение)."""
+    used_inspiration: bool = False
+    advantage: bool = False
 
 
 class SeatRequest(BaseModel):

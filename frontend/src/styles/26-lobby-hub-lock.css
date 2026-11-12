@@ -425,6 +425,141 @@
   background: var(--line);
 }
 
+/* S-03: живая полоска хитов (заливка по --hp-ratio) */
+.session-hp-bar {
+  height: 8px;
+  background: color-mix(in srgb, var(--line) 80%, transparent);
+  position: relative;
+  overflow: hidden;
+}
+
+.session-hp-bar::after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: calc(var(--hp-ratio, 0) * 100%);
+  max-width: 100%;
+  transition: width 0.25s ease;
+  background: var(--success);
+}
+
+.session-hp-bar--ok::after {
+  background: var(--success);
+}
+
+.session-hp-bar--warn::after {
+  background: #b54708;
+}
+
+.session-hp-bar--critical::after {
+  background: #9f1239;
+}
+
+.session-hp-bar--down::after {
+  background: var(--danger);
+  width: 100%;
+  opacity: 0.35;
+}
+
+.session-hp-bar--unknown::after {
+  background: var(--line);
+  width: 0;
+}
+
+.session-table-card__chip--hp.is-critical {
+  color: #9f1239;
+}
+
+.session-death-saves {
+  display: grid;
+  gap: 4px;
+}
+
+.session-death-saves__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.session-death-saves__label {
+  font-size: 12px;
+  color: var(--muted);
+  min-width: 58px;
+}
+
+.session-death-pip {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+  padding: 0;
+}
+
+.session-death-pip.is-on {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.session-death-pip.is-fail.is-on {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.session-typed-damage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.session-typed-damage__type {
+  min-width: 120px;
+  max-width: 160px;
+}
+
+.session-typed-damage__temp {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.session-typed-damage__hint,
+.session-reaction-hint {
+  font-size: 12px;
+}
+
+.session-enemy-card__defenses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.session-defense-chip {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.session-defense-chip.is-immune {
+  border-color: var(--danger);
+}
+
+.session-defense-chip.is-vuln {
+  border-color: #b54708;
+}
+
+.session-study-form,
+.session-study-resolve {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+}
+
 .session-table-card__body {
   display: grid;
   gap: 8px;
