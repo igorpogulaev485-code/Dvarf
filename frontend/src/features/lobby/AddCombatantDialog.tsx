@@ -9,6 +9,8 @@ type Mode = 'bestiary' | 'custom'
 type Props = {
   open: boolean
   busy?: boolean
+  /** S-02: в идущем бою новая пачка = скрытая волна */
+  combatActive?: boolean
   onClose: () => void
   onSubmit: (payload: {
     catalog_id?: string
@@ -19,10 +21,17 @@ type Props = {
     speed?: number | null
     count: number
     actions?: { name_ru: string; text_ru: string }[]
+    wave_condition_text?: string | null
   }) => void
 }
 
-export function AddCombatantDialog({ open, busy = false, onClose, onSubmit }: Props) {
+export function AddCombatantDialog({
+  open,
+  busy = false,
+  combatActive = false,
+  onClose,
+  onSubmit,
+}: Props) {
   const [mode, setMode] = useState<Mode>('bestiary')
   const [queryLabel, setQueryLabel] = useState('')
   const [selected, setSelected] = useState<CatalogEntry | null>(null)
@@ -31,6 +40,7 @@ export function AddCombatantDialog({ open, busy = false, onClose, onSubmit }: Pr
   const [customHp, setCustomHp] = useState<number | null>(30)
   const [customAc, setCustomAc] = useState<number | null>(15)
   const [customAction, setCustomAction] = useState('')
+  const [waveCondition, setWaveCondition] = useState('')
 
   useEffect(() => {
     if (!open) return
@@ -42,6 +52,7 @@ export function AddCombatantDialog({ open, busy = false, onClose, onSubmit }: Pr
     setCustomHp(30)
     setCustomAc(15)
     setCustomAction('')
+    setWaveCondition('')
   }, [open])
 
   const data = selected ? parseBestiaryData(selected.data) : null
@@ -62,11 +73,15 @@ export function AddCombatantDialog({ open, busy = false, onClose, onSubmit }: Pr
       onSecondary={onClose}
       onPrimary={() => {
         if (!canSubmit) return
+        const waveBit = combatActive
+          ? { wave_condition_text: waveCondition.trim() || null }
+          : {}
         if (mode === 'bestiary' && selected) {
           onSubmit({
             catalog_id: selected.id,
             slug: selected.slug,
             count: Math.max(1, Math.min(12, count || 1)),
+            ...waveBit,
           })
           return
         }
@@ -79,13 +94,26 @@ export function AddCombatantDialog({ open, busy = false, onClose, onSubmit }: Pr
           ac: customAc,
           count: Math.max(1, Math.min(12, count || 1)),
           actions,
+          ...waveBit,
         })
       }}
     >
       <Stack gap={14}>
         <Text tone="muted">
-          Из бестиария (MM и др.) или свой НПС. Подготовка энкаунтеров — позже (B7).
+          {combatActive
+            ? 'В идущем бою пачка станет новой скрытой волной — выпусти её кнопкой.'
+            : 'Из бестиария (MM и др.) или свой НПС. Волны раскладываются в диалоге «Бой».'}
         </Text>
+        {combatActive ? (
+          <Field label="Напоминание волны (необязательно)">
+            <Input
+              value={waveCondition}
+              disabled={busy}
+              placeholder="например: на раунде 3"
+              onChange={(e) => setWaveCondition(e.target.value)}
+            />
+          </Field>
+        ) : null}
 
         <div className="session-combatant-mode">
           <button

@@ -420,6 +420,10 @@ class SessionSeatOut(BaseModel):
     passive_insight: int | None = None
     passive_investigation: int | None = None
     dex_mod: int | None = None
+    """Бонус инициативы сверх ловкости (эффекты листа) — для броска за столом."""
+    initiative_bonus: int = 0
+    """Преимущество на инициативу с листа (ауры/эффекты)."""
+    initiative_advantage: bool = False
     seated_at: datetime
 
 
@@ -789,6 +793,7 @@ class SessionCombatantOut(BaseModel):
     xp: int | None = None
     """Сколько поверженных из пачки уже учтены при раздаче XP."""
     xp_claimed_count: int = 0
+    wave_id: str | None = None
     damage_resistances: list[str] = Field(default_factory=list)
     damage_immunities: list[str] = Field(default_factory=list)
     damage_vulnerabilities: list[str] = Field(default_factory=list)
@@ -801,15 +806,50 @@ class CombatEntryOut(BaseModel):
     ref_id: str
     companion_id: str | None = None
     name: str
-    initiative: int
+    initiative: int | None = None
+    initiative_pending: bool = False
     dex_mod: int | None = None
+    wave_id: str | None = None
+    defer_to_next_round: bool = False
+    alive_count: int | None = None
+    member_count: int | None = None
+    """ok | warn | down — цвета состояния членов группы в очереди."""
+    member_tones: list[str] = Field(default_factory=list)
+
+
+class CombatWaveOut(BaseModel):
+    id: str
+    index: int
+    released: bool = False
+    condition_text: str | None = None
+    combatant_ids: list[str] = Field(default_factory=list)
+
+
+class CombatFallenOut(BaseModel):
+    id: str
+    combatant_id: str
+    member_id: str
+    name: str
+    hp_max: int = 1
+
+
+class CombatWaveReminderOut(BaseModel):
+    wave_id: str
+    wave_index: int
+    condition_text: str
+    due: bool = False
 
 
 class SessionCombatOut(BaseModel):
     active: bool = False
     round: int = 1
     active_index: int = 0
+    waiting_reaction: bool = False
     entries: list[CombatEntryOut] = Field(default_factory=list)
+    waves: list[CombatWaveOut] = Field(default_factory=list)
+    fallen: list[CombatFallenOut] = Field(default_factory=list)
+    saved_waves: list[CombatWaveOut] = Field(default_factory=list)
+    wave_reminders: list[CombatWaveReminderOut] = Field(default_factory=list)
 
 
 class CombatEntryInput(BaseModel):
@@ -817,23 +857,58 @@ class CombatEntryInput(BaseModel):
     ref_id: str = Field(min_length=1, max_length=80)
     companion_id: str | None = Field(default=None, max_length=80)
     name: str = Field(min_length=1, max_length=120)
-    initiative: int = Field(ge=-20, le=99)
+    """None / не передано + initiative_pending → «ждём бросок»."""
+    initiative: int | None = Field(default=None, ge=-20, le=99)
+    initiative_pending: bool = False
     dex_mod: int | None = Field(default=None, ge=-10, le=10)
+    wave_id: str | None = Field(default=None, max_length=80)
+
+
+class CombatWaveInput(BaseModel):
+    index: int = Field(ge=1, le=20)
+    condition_text: str | None = Field(default=None, max_length=240)
+    combatant_ids: list[str] = Field(default_factory=list)
+    """Волна 1 всегда released при старте; остальные — скрыты."""
+    released: bool | None = None
 
 
 class CombatStartRequest(BaseModel):
-    """Старт боя: мастер вводит инициативу с физ. кубов (или свою)."""
+    """Старт боя: игроки бросают инициативу сами; мастер — за врагов/НПС."""
 
     entries: list[CombatEntryInput] = Field(min_length=1)
+    waves: list[CombatWaveInput] | None = None
 
 
 class CombatPatchRequest(BaseModel):
-    """Ход / конец боя / правка инициативы активного порядка."""
+    """Ход / конец боя / волны / павшие / правка порядка."""
 
-    action: str | None = None  # next | prev | end
+    action: str | None = None
+    # next | prev | end | release_wave | restore_fallen | set_waiting_reaction
     active_index: int | None = Field(default=None, ge=0)
     round: int | None = Field(default=None, ge=1)
     entries: list[CombatEntryInput] | None = None
+    wave_id: str | None = Field(default=None, max_length=80)
+    fallen_id: str | None = Field(default=None, max_length=80)
+    restore_hp: int | None = Field(default=None, ge=1, le=9999)
+    """При end: сохранить невыпущенные волны на сессии / выбросить."""
+    keep_unreleased_waves: bool | None = None
+    """Краткая строка итога в ленту при end."""
+    summary: str | None = Field(default=None, max_length=240)
+    waiting_reaction: bool | None = None
+
+
+class CombatInitiativeRequest(BaseModel):
+    """Бросок или ручной ввод инициативы игроком (свой ПК) / ведущим."""
+
+    character_id: UUID | None = None
+    entry_id: str | None = Field(default=None, max_length=80)
+    kind: str | None = Field(default=None, pattern="^(pc|companion|enemy)$")
+    ref_id: str | None = Field(default=None, max_length=80)
+    companion_id: str | None = Field(default=None, max_length=80)
+    mode: str = Field(default="roll", pattern="^(roll|manual)$")
+    value: int | None = Field(default=None, ge=-20, le=99)
+    """Принудительно преимущество (если на листе уже есть — и так учтём)."""
+    advantage: bool | None = None
 
 
 class XpAwardRequest(BaseModel):
@@ -922,6 +997,9 @@ class CombatantCreateRequest(BaseModel):
     count: int = Field(default=1, ge=1, le=20)
     actions: list[CombatantActionOut] = Field(default_factory=list)
     xp: int | None = Field(default=None, ge=0, le=10_000_000)
+    """S-02: при активном бое — номер новой (ещё не выпущенной) волны; иначе волна 1."""
+    wave_index: int | None = Field(default=None, ge=1, le=20)
+    wave_condition_text: str | None = Field(default=None, max_length=240)
 
 
 class CombatantPatchRequest(BaseModel):

@@ -25,6 +25,7 @@ from app.schemas.chat import (
 )
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
+    CombatInitiativeRequest,
     CombatPatchRequest,
     CombatStartRequest,
     CombatantCreateRequest,
@@ -632,6 +633,22 @@ async def start_session_combat(
     db: DbSession,
 ) -> SessionDetail:
     return await LobbyService(db).start_combat(current_user, session_id, payload)
+
+
+@router.post(
+    "/sessions/{session_id}/combat/initiative",
+    response_model=SessionDetail,
+)
+async def roll_session_combat_initiative(
+    session_id: UUID,
+    payload: CombatInitiativeRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionDetail:
+    """S-02: игрок бросает инициативу за своего ПК; ведущий — за любого."""
+    return await LobbyService(db).roll_combat_initiative(
+        current_user, session_id, payload
+    )
 
 
 @router.patch(

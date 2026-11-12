@@ -342,6 +342,8 @@ export type SessionSeat = {
   passive_insight?: number | null
   passive_investigation?: number | null
   dex_mod?: number | null
+  initiative_bonus?: number
+  initiative_advantage?: boolean
   seated_at: string
 }
 
@@ -387,6 +389,7 @@ export type SessionCombatant = {
   xp_claimed_count?: number
   /** @deprecated используй xp_claimed_count */
   xp_claimed?: boolean
+  wave_id?: string | null
 }
 
 export type CombatEntryKind = 'pc' | 'companion' | 'enemy'
@@ -397,15 +400,49 @@ export type CombatEntry = {
   ref_id: string
   companion_id?: string | null
   name: string
-  initiative: number
+  initiative?: number | null
+  initiative_pending?: boolean
   dex_mod?: number | null
+  wave_id?: string | null
+  defer_to_next_round?: boolean
+  alive_count?: number | null
+  member_count?: number | null
+  member_tones?: string[]
+}
+
+export type CombatWave = {
+  id: string
+  index: number
+  released: boolean
+  condition_text?: string | null
+  combatant_ids: string[]
+}
+
+export type CombatFallen = {
+  id: string
+  combatant_id: string
+  member_id: string
+  name: string
+  hp_max: number
+}
+
+export type CombatWaveReminder = {
+  wave_id: string
+  wave_index: number
+  condition_text: string
+  due: boolean
 }
 
 export type SessionCombat = {
   active: boolean
   round: number
   active_index: number
+  waiting_reaction?: boolean
   entries: CombatEntry[]
+  waves?: CombatWave[]
+  fallen?: CombatFallen[]
+  saved_waves?: CombatWave[]
+  wave_reminders?: CombatWaveReminder[]
 }
 
 export type SessionLorePage = {
@@ -983,6 +1020,8 @@ export async function addSessionCombatants(
     speed?: number | null
     count?: number
     actions?: CombatantAction[]
+    wave_index?: number
+    wave_condition_text?: string | null
   },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(`/sessions/${sessionId}/combatants`, {
@@ -1025,15 +1064,43 @@ export type CombatEntryInput = {
   ref_id: string
   companion_id?: string | null
   name: string
-  initiative: number
+  initiative?: number | null
+  initiative_pending?: boolean
   dex_mod?: number | null
+  wave_id?: string | null
+}
+
+export type CombatWaveInput = {
+  index: number
+  condition_text?: string | null
+  combatant_ids: string[]
+  released?: boolean | null
 }
 
 export async function startSessionCombat(
   sessionId: string,
-  payload: { entries: CombatEntryInput[] },
+  payload: { entries: CombatEntryInput[]; waves?: CombatWaveInput[] },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(`/sessions/${sessionId}/combat/start`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function rollSessionCombatInitiative(
+  sessionId: string,
+  payload: {
+    character_id?: string
+    entry_id?: string
+    kind?: CombatEntryKind
+    ref_id?: string
+    companion_id?: string | null
+    mode?: 'roll' | 'manual'
+    value?: number | null
+    advantage?: boolean | null
+  },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(`/sessions/${sessionId}/combat/initiative`, {
     method: 'POST',
     body: JSON.stringify(payload),
   })
@@ -1042,10 +1109,23 @@ export async function startSessionCombat(
 export async function patchSessionCombat(
   sessionId: string,
   payload: {
-    action?: 'next' | 'prev' | 'end' | null
+    action?:
+      | 'next'
+      | 'prev'
+      | 'end'
+      | 'release_wave'
+      | 'restore_fallen'
+      | 'set_waiting_reaction'
+      | null
     active_index?: number
     round?: number
     entries?: CombatEntryInput[]
+    wave_id?: string
+    fallen_id?: string
+    restore_hp?: number
+    keep_unreleased_waves?: boolean
+    summary?: string
+    waiting_reaction?: boolean
   },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(`/sessions/${sessionId}/combat`, {

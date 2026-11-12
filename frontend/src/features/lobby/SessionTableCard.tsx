@@ -29,6 +29,10 @@ type Props = {
   onClearConcentration?: () => void
   onAddCompanion?: () => void
   onRemoveCompanion?: (companionId: string) => void
+  /** S-02: подсветка «Твой ход» */
+  yourTurn?: boolean
+  /** Заглушка экономики хода до T-01 */
+  showTurnEconomyStub?: boolean
 }
 
 function hpTone(current: number | null, max: number | null): 'ok' | 'warn' | 'down' | 'unknown' {
@@ -143,6 +147,8 @@ export function SessionTableCard({
   onClearConcentration,
   onAddCompanion,
   onRemoveCompanion,
+  yourTurn = false,
+  showTurnEconomyStub = false,
 }: Props) {
   const profile = normalizeVisibilityProfile(visibility)
   const fields = profile.fields
@@ -190,8 +196,21 @@ export function SessionTableCard({
         seat.passive_investigation != null))
 
   return (
-    <div className="session-seat-stack">
-      <article className="session-table-card">
+    <div className={`session-seat-stack${yourTurn ? ' is-your-turn' : ''}`}>
+      <article className={`session-table-card${yourTurn ? ' is-your-turn' : ''}`}>
+        {yourTurn ? (
+          <p className="session-table-card__your-turn" role="status">
+            Твой ход
+          </p>
+        ) : null}
+        {yourTurn && showTurnEconomyStub ? (
+          <div className="session-table-card__turn-stub" aria-label="Экономика хода (крючок T-01)">
+            <span className="session-turn-chip">Действие</span>
+            <span className="session-turn-chip">Бонусное</span>
+            <span className="session-turn-chip">Реакция</span>
+            <span className="session-turn-chip">Движение</span>
+          </div>
+        ) : null}
         <div className={`session-table-card__hp session-table-card__hp--${tone}`} aria-hidden />
         <div className="session-table-card__body">
           <div className="session-table-card__top">

@@ -1055,22 +1055,37 @@ export function SessionLiveTablePreviewPage() {
         seats={seats}
         combatants={combatants}
         onClose={() => setCombatStartOpen(false)}
-        onSubmit={(entries) => {
-          const sorted = [...entries].sort((a, b) => {
-            if (b.initiative !== a.initiative) return b.initiative - a.initiative
+        onSubmit={(payload) => {
+          const sorted = [...payload.entries].sort((a, b) => {
+            const ap = a.initiative_pending || a.initiative == null
+            const bp = b.initiative_pending || b.initiative == null
+            if (ap !== bp) return ap ? 1 : -1
+            if ((b.initiative ?? -999) !== (a.initiative ?? -999)) {
+              return (b.initiative ?? -999) - (a.initiative ?? -999)
+            }
             return (b.dex_mod ?? -99) - (a.dex_mod ?? -99)
           })
           setCombat({
             active: true,
             round: 1,
             active_index: 0,
+            waiting_reaction: false,
+            waves: payload.waves.map((w, i) => ({
+              id: `wave-${w.index}-${i}`,
+              index: w.index,
+              released: w.index === 1,
+              condition_text: w.condition_text ?? null,
+              combatant_ids: w.combatant_ids,
+            })),
+            fallen: [],
             entries: sorted.map((e, i) => ({
               id: `ce-${i}-${e.ref_id}`,
               kind: e.kind,
               ref_id: e.ref_id,
               companion_id: e.companion_id,
               name: e.name,
-              initiative: e.initiative,
+              initiative: e.initiative ?? null,
+              initiative_pending: Boolean(e.initiative_pending || e.initiative == null),
               dex_mod: e.dex_mod,
             })),
           })
