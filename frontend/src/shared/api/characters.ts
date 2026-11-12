@@ -21,6 +21,10 @@ export type CharacterSummary = {
 
 export type CharacterDetail = CharacterSummary & {
   sheet: Record<string, unknown>
+  can_edit?: boolean
+  /** L-08: персонаж в лобби — правила кампании для листа */
+  lobby_id?: string | null
+  campaign_rules?: unknown
 }
 
 export async function listCharacters(): Promise<CharacterSummary[]> {

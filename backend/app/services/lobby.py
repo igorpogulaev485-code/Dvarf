@@ -918,18 +918,31 @@ class LobbyService:
             settings=settings,
             sessions=sessions,
             visibility_profile=lobby.visibility_profile or {},
+            campaign_rules=self._campaign_rules_out(lobby),
             media_usage=media_usage,
             last_journal_published_at=self.lobbies.latest_journal_published_at(lobby.id),
             created_at=lobby.created_at,
             updated_at=lobby.updated_at,
         )
 
+    def _campaign_rules_out(self, lobby: Lobby) -> dict:
+        from app.services.campaign_rules import (
+            migrate_inspiration_from_visibility,
+            normalize_campaign_rules,
+        )
+
+        raw = getattr(lobby, "campaign_rules", None) or {}
+        return migrate_inspiration_from_visibility(raw, lobby.visibility_profile or {})
+
     def list_mine(self, user: User) -> list[LobbySummary]:
         return [self._to_summary(item, user) for item in self.lobbies.list_for_user(user.id)]
 
     def create(self, user: User, payload: LobbyCreateRequest) -> LobbyDetail:
+        from app.services.campaign_rules import default_campaign_rules
+
         name = (payload.name or "Новое лобби").strip() or "Новое лобби"
         lobby = self.lobbies.create(owner_id=user.id, name=name)
+        lobby.campaign_rules = default_campaign_rules()
         self.db.commit()
         lobby = self._require_lobby(lobby.id)
         return self._to_detail(lobby, user)
@@ -940,8 +953,27 @@ class LobbyService:
         return self._to_detail(lobby, user)
 
     def update(self, user: User, lobby_id: UUID, payload: LobbyUpdateRequest) -> LobbyDetail:
+        from app.services.campaign_rules import (
+            normalize_campaign_rules,
+            sync_inspiration_to_visibility,
+        )
+        from sqlalchemy.orm.attributes import flag_modified
+
         lobby = self._require_lobby(lobby_id)
-        self._require_owner(lobby, user)
+        touches_name = payload.name is not None
+        touches_visibility = payload.visibility_profile is not None
+        touches_rules = payload.campaign_rules is not None
+        if touches_name:
+            self._require_owner(lobby, user)
+        if touches_rules:
+            roles.require_can_edit_campaign_rules(self.db, lobby, user)
+        if touches_visibility and not roles.is_owner(lobby, user):
+            # Сомастер (L-08): только event_history из блока скрытности, не весь профиль.
+            if not roles.can_edit_campaign_rules(self.db, lobby, user):
+                self._require_owner(lobby, user)
+        if not touches_name and not touches_visibility and not touches_rules:
+            self._require_owner(lobby, user)
+
         if payload.name is not None:
             lobby.name = payload.name.strip() or "Новое лобби"
         if payload.visibility_profile is not None:
@@ -951,7 +983,57 @@ class LobbyService:
                     code="visibility_profile_invalid",
                     status_code=400,
                 )
-            lobby.visibility_profile = payload.visibility_profile
+            if roles.is_owner(lobby, user):
+                lobby.visibility_profile = payload.visibility_profile
+            else:
+                from sqlalchemy.orm.attributes import flag_modified as _fm_vis
+
+                next_profile = dict(lobby.visibility_profile or {})
+                eh = payload.visibility_profile.get("event_history")
+                if eh in ("active", "hide_master_rolls", "off"):
+                    next_profile["event_history"] = eh
+                    lobby.visibility_profile = next_profile
+                    _fm_vis(lobby, "visibility_profile")
+                else:
+                    raise AppError(
+                        "Сомастер может менять только скрытность бросков мастера",
+                        code="visibility_profile_forbidden",
+                        status_code=403,
+                    )
+        if payload.campaign_rules is not None:
+            if not isinstance(payload.campaign_rules, dict):
+                raise AppError(
+                    "Некорректные правила кампании",
+                    code="campaign_rules_invalid",
+                    status_code=400,
+                )
+            # Запрет крита «максимум + бросок» — ключ не принимаем.
+            banned = ("crit_max_plus_dice", "crit_maximum_plus_roll", "max_plus_roll_crit")
+            home = payload.campaign_rules.get("homebrew")
+            if isinstance(home, dict):
+                for key in banned:
+                    if key in home:
+                        raise AppError(
+                            "Правило крита «максимум + бросок» не поддерживается",
+                            code="campaign_rules_banned_key",
+                            status_code=400,
+                        )
+            for key in banned:
+                if key in payload.campaign_rules:
+                    raise AppError(
+                        "Правило крита «максимум + бросок» не поддерживается",
+                        code="campaign_rules_banned_key",
+                        status_code=400,
+                    )
+            normalized = normalize_campaign_rules(payload.campaign_rules)
+            lobby.campaign_rules = normalized
+            flag_modified(lobby, "campaign_rules")
+            # Совместимость S-03: дублируем inspiration_after_roll в visibility_profile.
+            lobby.visibility_profile = sync_inspiration_to_visibility(
+                lobby.visibility_profile or {},
+                bool(normalized.get("inspiration_after_roll")),
+            )
+            flag_modified(lobby, "visibility_profile")
         self.db.commit()
         lobby = self._require_lobby(lobby_id)
         return self._to_detail(lobby, user)
@@ -2518,15 +2600,21 @@ class LobbyService:
             hp_cur = character.hp_current if character else None
             hp_mx = character.hp_max if character else None
             band = s03.hp_band(hp_cur, hp_mx)
-            # Спасброски от смерти: только умирающему и ведущему (решение 12.11 > пресет).
+            # Спасброски от смерти: L-08 hidden_death_saves (дефолт вкл) —
+            # только умирающему и ведущему; выкл — всем, кто видит карточку.
             show_death = False
             if extras.get("is_dying") and hp_cur is not None and int(hp_cur) <= 0:
+                from app.services.campaign_rules import homebrew_enabled
+
                 member = next(
                     (m for m in lobby.members if m.character_id == seat.character_id),
                     None,
                 )
                 is_self = member is not None and member.user_id == user.id
-                show_death = bool(see_hidden or is_self)
+                if homebrew_enabled(getattr(lobby, "campaign_rules", None), "hidden_death_saves"):
+                    show_death = bool(see_hidden or is_self)
+                else:
+                    show_death = True
             seats.append(
                 SessionSeatOut(
                     character_id=seat.character_id,
@@ -2629,6 +2717,7 @@ class LobbyService:
             ),
             lobby_members=members,
             visibility_profile=lobby.visibility_profile or {},
+            campaign_rules=self._campaign_rules_out(lobby),
             location_page_id=location_page_id if see_hidden else (location_page.id if location_page else None),
             involved_page_ids=list(involved_raw) if see_hidden else visible_involved_ids,
             location_page=location_page,
@@ -3219,7 +3308,10 @@ class LobbyService:
 
         inspiration_used = False
         advantage_applied = bool(payload.advantage or payload.used_inspiration)
-        after_roll = s03.parse_inspiration_after_roll(lobby.visibility_profile or {})
+        after_roll = s03.parse_inspiration_after_roll(
+            lobby.visibility_profile or {},
+            campaign_rules=getattr(lobby, "campaign_rules", None),
+        )
         if character_id is not None:
             char_map_roll = self.lobbies.get_characters_map([character_id])
             roll_char = char_map_roll.get(character_id)

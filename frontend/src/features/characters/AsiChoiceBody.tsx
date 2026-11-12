@@ -19,6 +19,8 @@ type AsiChoiceBodyProps = {
   onChooseFeat: () => void
   onToggleKey: (key: AbilityKey) => void
   error: string | null
+  /** L-08: выкл — нет выбора черты. */
+  allowFeat?: boolean
 }
 
 export function AsiChoiceBody({
@@ -30,12 +32,15 @@ export function AsiChoiceBody({
   onChooseFeat,
   onToggleKey,
   error,
+  allowFeat = true,
 }: AsiChoiceBodyProps) {
   const mode = CLASS_ASI_MODE_OPTIONS.find((row) => row.id === modeId) ?? CLASS_ASI_MODE_OPTIONS[0]
   return (
     <Stack gap={14}>
       <Text tone="muted">
-        +2 к одной характеристике, +1 к двум (максимум 20) или одна черта из каталога.
+        {allowFeat
+          ? '+2 к одной характеристике, +1 к двум (максимум 20) или одна черта из каталога.'
+          : '+2 к одной характеристике или +1 к двум (максимум 20). Черты выключены правилами кампании.'}
       </Text>
       <div className="chip-row" role="group" aria-label="Вариант ASI">
         {CLASS_ASI_MODE_OPTIONS.map((row) => (
@@ -48,13 +53,15 @@ export function AsiChoiceBody({
             {row.labelRu}
           </Button>
         ))}
-        <Button
-          type="button"
-          variant={uiMode === 'feat' ? 'primary' : 'ghost'}
-          onClick={onChooseFeat}
-        >
-          Черта
-        </Button>
+        {allowFeat ? (
+          <Button
+            type="button"
+            variant={uiMode === 'feat' ? 'primary' : 'ghost'}
+            onClick={onChooseFeat}
+          >
+            Черта
+          </Button>
+        ) : null}
       </div>
       {uiMode === 'scores' ? (
         <div className="chip-row" role="group" aria-label="Характеристики">

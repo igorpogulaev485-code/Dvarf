@@ -167,6 +167,36 @@ export function carryingCapacityLb(strengthScore: number): number {
   return Math.max(0, Math.floor(strengthScore)) * 15
 }
 
+/** PHB variant «Нагрузка»: пороги 5×Сил / 10×Сил. */
+export type EncumbranceTier = 'none' | 'encumbered' | 'heavily'
+
+export function encumbranceTier(
+  strengthScore: number,
+  carriedLb: number,
+): { tier: EncumbranceTier; speedPenalty: number; disadvantage: boolean } {
+  const str = Math.max(0, Math.floor(strengthScore))
+  if (carriedLb > str * 10) {
+    return { tier: 'heavily', speedPenalty: 20, disadvantage: true }
+  }
+  if (carriedLb > str * 5) {
+    return { tier: 'encumbered', speedPenalty: 10, disadvantage: false }
+  }
+  return { tier: 'none', speedPenalty: 0, disadvantage: false }
+}
+
+/** Effective speed with optional PHB encumbrance variant. */
+export function speedWithEncumbrance(
+  baseSpeed: number | null | undefined,
+  strengthScore: number,
+  carriedLb: number,
+  useVariant: boolean,
+): number | null {
+  if (baseSpeed == null || !Number.isFinite(baseSpeed)) return baseSpeed ?? null
+  if (!useVariant) return baseSpeed
+  const { speedPenalty } = encumbranceTier(strengthScore, carriedLb)
+  return Math.max(0, baseSpeed - speedPenalty)
+}
+
 export function formatLb(value: number, digits = 1): string {
   if (!Number.isFinite(value)) return '0'
   const rounded = Number(value.toFixed(digits))

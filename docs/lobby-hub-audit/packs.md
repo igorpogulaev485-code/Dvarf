@@ -92,3 +92,16 @@
 | L07-4 | Права L-01; isOwner = journal | сужен проп панели; наблюдатель/lead без писем/факта | LobbyDetailPage + SessionDetailPage | L-07 | сделано |
 | S-01 | Раскладка стола | не трогали панель сайдбара, только `isOwner` | — | S-01 | уже было |
 | L-06 | Дневник | не трогали | — | L-06 | уже было |
+
+## L-08 — Правила кампании
+
+| ID | Ожидалось | Фактически | Где | Пачка | Статус |
+|---|---|---|---|---|---|
+| L08-1 | JSONB `campaign_rules` + UI раздел | колонка + дефолты/миграция inspiration; панель в настройках | model + `l08rules9f2a1` + CampaignRulesPanel | L-08 | сделано |
+| L08-2 | Варианты 2014 + применение | черты/мультикласс/хиты в LevelUp/ASI; флаг/нагрузка на листе | LevelUpDialog, ClassAsiDialog, InventoryPanel | L-08 | сделано |
+| L08-3 | 11 домашних + текст + справочник | HOMEBREW_CATALOG FE/BE; зелье toast; остальные — флаг/крючок | campaign_rules.py + campaignRules.ts | L-08 | сделано |
+| L08-4 | Скрытность | броски→event_history; КД→enemies_ac_visible; death→hidden_death_saves | CampaignRulesPanel + EnemyCard + seats | L-08 | сделано |
+| L08-5 | S-03/S-06 в разделе | inspiration_after_roll перенесён; xp/milestones; без дубля в видимости | VisibilitySettingsPanel − галочка | L-08 | сделано |
+| L08-6 | Место под L-16 | строка «появятся позже» | CampaignRulesPanel | L-08 | сделано |
+| G-01 | Генератор | только поле в GET лобби/сессии | LobbyDetail / SessionDetail | G-01 | перенесено |
+| — | Крит max+dice | не делали, ключ отвергается | lobby.update | L-08 | сделано (отказ) |

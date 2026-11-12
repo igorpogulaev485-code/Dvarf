@@ -37,6 +37,8 @@ type ClassAsiDialogProps = {
   backgroundSlug?: string | null
   ownedFeatEnums?: OwnedFeatEnumSnapshot[]
   proficientSkills?: string[]
+  /** L-08: разрешить выбор черты вместо ASI. */
+  allowFeat?: boolean
   onConfirm: (entry: AppliedClassAsi, featGrant?: AppliedFeatGrant) => void
   onSkip: () => void
 }
@@ -63,6 +65,7 @@ export function ClassAsiDialog({
   backgroundSlug = null,
   ownedFeatEnums = [],
   proficientSkills = [],
+  allowFeat = true,
   onConfirm,
   onSkip,
 }: ClassAsiDialogProps) {
@@ -154,7 +157,7 @@ export function ClassAsiDialog({
         primaryLabel={uiMode === 'scores' ? 'Применить' : 'Выбрать черту'}
         secondaryLabel="Позже"
         onPrimary={() => {
-          if (uiMode === 'feat') {
+          if (allowFeat && uiMode === 'feat') {
             setFeatOpen(true)
             return
           }
@@ -166,10 +169,11 @@ export function ClassAsiDialog({
         }
       >
         <AsiChoiceBody
-          uiMode={uiMode}
+          uiMode={allowFeat ? uiMode : 'scores'}
           modeId={modeId}
           keys={keys}
           abilities={abilities}
+          allowFeat={allowFeat}
           onModeId={(next) => {
             setUiMode('scores')
             setModeId(next)
@@ -177,6 +181,7 @@ export function ClassAsiDialog({
             setError(null)
           }}
           onChooseFeat={() => {
+            if (!allowFeat) return
             setUiMode('feat')
             setKeys([])
             setError(null)

@@ -33,6 +33,8 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
   model.onSaved = props.onSaved
   model.onToast = props.onToast
   model.onRemoteSave = props.onRemoteSave
+  // L-08: правила кампании лобби (проп или поле персонажа).
+  model.campaignRulesRaw = props.campaignRules ?? props.character.campaign_rules ?? null
   const [baseCharacter, setBaseCharacter] = useState(model.character)
   model.baseCharacter = baseCharacter
   model.setBaseCharacter = setBaseCharacter

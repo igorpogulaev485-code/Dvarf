@@ -65,6 +65,7 @@ export function VisibilitySettingsPanel({
     }
     onChange({
       ...applyVisibilityPreset(preset),
+      // inspiration_after_roll живёт в campaign_rules (L-08); пресет не трогает.
       inspiration_after_roll: profile.inspiration_after_roll,
     })
   }
@@ -134,28 +135,6 @@ export function VisibilitySettingsPanel({
               </button>
             ))}
           </div>
-        </div>
-
-        <div>
-          <Text as="h3">Вдохновение</Text>
-          <label className="visibility-preview-toggle">
-            <input
-              type="checkbox"
-              checked={Boolean(profile.inspiration_after_roll)}
-              disabled={readOnly}
-              onChange={(e) =>
-                onChange({
-                  ...profile,
-                  inspiration_after_roll: e.target.checked,
-                })
-              }
-            />
-            <span>Вдохновение после броска (переброс)</span>
-          </label>
-          <Text tone="muted">
-            По умолчанию выкл: «Потратить вдохновение» даёт преимущество на следующий бросок
-            до броска (RAW 2014).
-          </Text>
         </div>
 
         <div>

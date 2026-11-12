@@ -634,8 +634,17 @@ export function useSheetEditorPart4(model: SheetModel) {
         : potionFx
           ? ` · эффект: ${potionFx.name}`
           : ''
+      // L-08: potion_bonus_self — себе бонусное, другому действие (крючок T-01).
+      let economyNote = ''
+      const homebrew = (model.campaignRulesRaw as { homebrew?: { potion_bonus_self?: boolean } } | null)
+        ?.homebrew
+      if (heal && homebrew?.potion_bonus_self) {
+        economyNote = ' · бонусное действие (себе)'
+      } else if (heal) {
+        economyNote = ' · действие'
+      }
       model.onToast({
-        message: `${formatConsumableSpendToast(item.name, spendAmount, nextQty)}${drinkNote}`,
+        message: `${formatConsumableSpendToast(item.name, spendAmount, nextQty)}${drinkNote}${economyNote}`,
         durationMs: 8000,
         actionLabel: 'Отменить',
         onAction: () => {
@@ -651,6 +660,7 @@ export function useSheetEditorPart4(model: SheetModel) {
       model.draft.name,
       model.draft.play.hpTemp,
       model.baseCharacter?.id,
+      model.campaignRulesRaw,
       model.onToast,
       model.askTempHpReplace,
       undoConsumableSpend,

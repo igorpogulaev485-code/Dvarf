@@ -44,6 +44,13 @@ class Lobby(Base):
         default=dict,
         server_default="{}",
     )
+    # L-08: варианты 2014, домашние переключатели, прогрессия, скрытность КД.
+    campaign_rules: Mapped[dict] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=dict,
+        server_default="{}",
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

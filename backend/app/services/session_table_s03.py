@@ -310,11 +310,15 @@ def viewer_sees_statblock(
     return str(user_id) in {str(x) for x in studied}
 
 
-def parse_inspiration_after_roll(visibility_profile: object) -> bool:
-    """Настройка лобби: вдохновение после броска (переброс). По умолчанию выкл."""
-    if not isinstance(visibility_profile, dict):
-        return False
-    return bool(visibility_profile.get("inspiration_after_roll"))
+def parse_inspiration_after_roll(
+    visibility_profile: object = None,
+    *,
+    campaign_rules: object = None,
+) -> bool:
+    """S-03 / L-08: вдохновение после броска. Источник правды — campaign_rules, иначе visibility."""
+    from app.services.campaign_rules import parse_inspiration_after_roll as _parse
+
+    return _parse(campaign_rules=campaign_rules, visibility_profile=visibility_profile)
 
 
 def set_inspiration_after_roll(visibility_profile: dict, value: bool) -> dict:

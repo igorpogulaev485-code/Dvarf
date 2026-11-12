@@ -16,6 +16,7 @@ import { AttacksPanel, syncAttacksHeldFromInventory } from '../AttacksPanel'
 import { AttunementDialog } from '../AttunementDialog'
 import { filledAttunementCount, maxAttunementsForClasses } from '../attunement'
 import { InventoryPanel } from '../InventoryPanel'
+import { normalizeCampaignRules } from '../../lobby/campaignRules'
 import { AttacksSettingsDialog } from '../AttacksSettingsDialog'
 import { SpellsPanel } from '../SpellsPanel'
 import { SpellsSettingsDialog } from '../SpellsSettingsDialog'
@@ -417,6 +418,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         edition={model.baseCharacter.rules_edition as RulesEdition}
         inventory={model.draft.inventory}
         strengthScore={model.effectiveAbilities?.str ?? model.draft.abilities.str}
+        encumbranceVariant={normalizeCampaignRules(model.campaignRulesRaw).homebrew.encumbrance}
         armorProficiency={model.draft.identity.armor}
         weapons={model.draft.weapons}
         autoAc={model.armorClass.ac}

@@ -1,6 +1,7 @@
 /** Повышение уровня и диалоги выбора класса, расы, черт и архетипа. */
 import type { SheetModel } from './sheetModel'
 import { type RulesEdition } from '../../../shared/api/characters'
+import { normalizeCampaignRules } from '../../lobby/campaignRules'
 import { totalCharacterLevel } from '../../../shared/dnd/classLevels'
 import { applyClassGrantToDraft } from '../classEffects'
 import { ClassSetupDialog, HomebrewClassDialog } from '../ClassSetupDialog'
@@ -25,6 +26,7 @@ import { abilityModifier } from '../sheetTypes'
 import { subclassSlugMapFromLedger, subclassTransitionMapFromLedger } from './draft'
 
 export function SheetDialogsSetup({ model }: { model: SheetModel }) {
+  const campaignRules = normalizeCampaignRules(model.campaignRulesRaw)
   return (
     <>
       <LevelUpDialog
@@ -36,6 +38,8 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
         draconicResilience={(model.unlockedFeatures ?? []).some(
           (f: { id?: string }) => f.id === 'draconic_resilience',
         )}
+        allowMulticlass={campaignRules.edition_2014.multiclass}
+        defaultHpMode={campaignRules.edition_2014.hp_on_level_up}
         onConfirm={model.applyLevelUp}
         onClose={() => model.setLevelUpOpen(false)}
       />
@@ -266,6 +270,7 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
         backgroundSlug={model.draft.identity.backgroundSlug}
         ownedFeatEnums={model.ownedFeatEnums}
         proficientSkills={model.proficientSkills}
+        allowFeat={campaignRules.edition_2014.feats_instead_of_asi}
         onConfirm={model.confirmClassAsi}
         onSkip={() => model.setPendingAsi(null)}
       />

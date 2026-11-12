@@ -30,6 +30,8 @@ export type LevelUpChoice =
       hitDie: HitDie | null
     }
 
+type HpMode = 'average' | 'manual'
+
 type LevelUpDialogProps = {
   open: boolean
   edition: RulesEdition
@@ -38,11 +40,13 @@ type LevelUpDialogProps = {
   constitutionMod: number
   /** B-05: +1 HP per sorcerer level (Draconic Resilience). */
   draconicResilience?: boolean
+  /** L-08: разрешить мультикласс (дефолт true). */
+  allowMulticlass?: boolean
+  /** L-08: среднее | бросок — стартовый режим хитов кампании. */
+  defaultHpMode?: 'average' | 'roll'
   onConfirm: (choice: LevelUpChoice) => void
   onClose: () => void
 }
-
-type HpMode = 'average' | 'manual'
 
 export function LevelUpDialog({
   open,
@@ -51,6 +55,8 @@ export function LevelUpDialog({
   abilities,
   constitutionMod,
   draconicResilience = false,
+  allowMulticlass = true,
+  defaultHpMode = 'average',
   onConfirm,
   onClose,
 }: LevelUpDialogProps) {
@@ -62,7 +68,9 @@ export function LevelUpDialog({
   const [newCatalogData, setNewCatalogData] = useState<Record<string, unknown> | null>(
     null,
   )
-  const [hpMode, setHpMode] = useState<HpMode>('average')
+  const [hpMode, setHpMode] = useState<HpMode>(
+    defaultHpMode === 'roll' ? 'manual' : 'average',
+  )
   const [manualHp, setManualHp] = useState<number | null>(null)
 
   const currentClassNames = useMemo(
@@ -78,9 +86,9 @@ export function LevelUpDialog({
     setNewCatalogId(null)
     setNewCatalogSlug(null)
     setNewCatalogData(null)
-    setHpMode('average')
+    setHpMode(defaultHpMode === 'roll' ? 'manual' : 'average')
     setManualHp(null)
-  }, [open, classes])
+  }, [open, classes, defaultHpMode])
 
   const targetClass = useMemo(() => {
     if (mode === 'same') {
@@ -187,14 +195,19 @@ export function LevelUpDialog({
           >
             Этот класс
           </button>
-          <button
-            type="button"
-            className={`sheet-chip${mode === 'multiclass' ? ' is-on' : ''}`}
-            onClick={() => setMode('multiclass')}
-          >
-            Мультикласс
-          </button>
+          {allowMulticlass ? (
+            <button
+              type="button"
+              className={`sheet-chip${mode === 'multiclass' ? ' is-on' : ''}`}
+              onClick={() => setMode('multiclass')}
+            >
+              Мультикласс
+            </button>
+          ) : null}
         </div>
+        {!allowMulticlass ? (
+          <Text tone="muted">Мультикласс выключен правилами кампании.</Text>
+        ) : null}
 
         {mode === 'same' ? (
           <Field label="Класс для +1">
