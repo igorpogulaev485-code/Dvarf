@@ -114,6 +114,25 @@ export type InventoryItem = {
    * the matching effect is missing, so a row that already has `ac_bonus` is not doubled.
    */
   magic_bonus?: number | null
+  /** PHB weapon the magic item was made from. Empty until the player chooses. */
+  base_weapon_slug?: string | null
+  /** PHB armor or shield the magic item was made from. */
+  base_armor_slug?: string | null
+  /** PHB ammunition the magic stack was made from. */
+  base_ammo_slug?: string | null
+  /** Allowed PHB bases copied from the catalog card. */
+  allowed_base_weapon?: string[]
+  allowed_base_armor?: string[]
+  allowed_base_ammo?: string[]
+  /** Mithral: the base's Stealth disadvantage does not apply. */
+  clear_stealth_disadvantage?: boolean
+  /** Mithral: the base's Strength requirement does not apply. */
+  clear_strength_requirement?: boolean
+  /**
+   * Stealth disadvantage after the base and the magic override.
+   * Undefined keeps the name/kind heuristic.
+   */
+  stealth_disadvantage?: boolean | null
   /**
    * Setting-artifact grant. Kept across open/save so live effects can be
    * rebuilt and the ability ceiling (Маска Лича, ИНТ 22) is not lost.
@@ -289,6 +308,16 @@ function readItem(raw: unknown, index: number): InventoryItem {
     robe_color: readRobeColor(row.robe_color),
     effects: readEffects(row.effects),
     magic_bonus: readNullableNumber(row.magic_bonus),
+    base_weapon_slug: typeof row.base_weapon_slug === 'string' ? row.base_weapon_slug : null,
+    base_armor_slug: typeof row.base_armor_slug === 'string' ? row.base_armor_slug : null,
+    base_ammo_slug: typeof row.base_ammo_slug === 'string' ? row.base_ammo_slug : null,
+    allowed_base_weapon: readSlugList(row.allowed_base_weapon),
+    allowed_base_armor: readSlugList(row.allowed_base_armor),
+    allowed_base_ammo: readSlugList(row.allowed_base_ammo),
+    clear_stealth_disadvantage: row.clear_stealth_disadvantage === true,
+    clear_strength_requirement: row.clear_strength_requirement === true,
+    stealth_disadvantage:
+      typeof row.stealth_disadvantage === 'boolean' ? row.stealth_disadvantage : null,
     item_kind: typeof row.item_kind === 'string' ? row.item_kind : null,
     setting_artifact_id:
       typeof row.setting_artifact_id === 'string' ? row.setting_artifact_id : null,
@@ -406,6 +435,23 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         ...(item.robe_color ? { robe_color: item.robe_color } : {}),
         effects: item.effects ?? [],
         ...(item.magic_bonus ? { magic_bonus: item.magic_bonus } : {}),
+        ...(item.base_weapon_slug ? { base_weapon_slug: item.base_weapon_slug } : {}),
+        ...(item.base_armor_slug ? { base_armor_slug: item.base_armor_slug } : {}),
+        ...(item.base_ammo_slug ? { base_ammo_slug: item.base_ammo_slug } : {}),
+        ...(item.allowed_base_weapon?.length
+          ? { allowed_base_weapon: item.allowed_base_weapon }
+          : {}),
+        ...(item.allowed_base_armor?.length
+          ? { allowed_base_armor: item.allowed_base_armor }
+          : {}),
+        ...(item.allowed_base_ammo?.length
+          ? { allowed_base_ammo: item.allowed_base_ammo }
+          : {}),
+        ...(item.clear_stealth_disadvantage ? { clear_stealth_disadvantage: true } : {}),
+        ...(item.clear_strength_requirement ? { clear_strength_requirement: true } : {}),
+        ...(typeof item.stealth_disadvantage === 'boolean'
+          ? { stealth_disadvantage: item.stealth_disadvantage }
+          : {}),
         ...(item.item_kind ? { item_kind: item.item_kind } : {}),
         ...(item.setting_artifact_id ? { setting_artifact_id: item.setting_artifact_id } : {}),
         ...(item.artifact_snapshot ? { artifact_snapshot: item.artifact_snapshot } : {}),

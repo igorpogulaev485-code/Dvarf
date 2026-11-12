@@ -17,6 +17,8 @@ type HeldSyncItem = {
   id: string
   name?: string
   equipped: boolean
+  qty?: number | null
+  base_ammo_slug?: string | null
   armor_kind?: string | null
   weapon_grip?: string | null
   data?: Record<string, unknown> | null
@@ -65,6 +67,17 @@ export function syncAttacksHeldFromInventory<T extends AttackInventoryLink>(
     if (!item) {
       // Orphan attack card (inventory row deleted) — drop it.
       changed = true
+      continue
+    }
+
+    if (item.base_ammo_slug) {
+      const held = (item.qty ?? 0) > 0
+      if (attack.held === held) {
+        next.push(attack)
+        continue
+      }
+      changed = true
+      next.push({ ...attack, held })
       continue
     }
 

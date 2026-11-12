@@ -169,7 +169,11 @@ export function isGearEffectActive(
   attunedItemIds: ReadonlySet<string>,
   suppressedItemIds?: ReadonlySet<string>,
 ): boolean {
-  if (!item.equipped || item.parent_id) return false
+  if (item.parent_id) return false
+  // Magic ammunition is carried, not worn. Its bonus lands on the attack card
+  // linked to this stack (I06). A general ammo picker is still an open question.
+  if (item.base_ammo_slug) return (item.qty ?? 0) > 0
+  if (!item.equipped) return false
   if (item.requires_attunement && !attunedItemIds.has(item.id)) return false
   if (suppressedItemIds?.has(item.id)) return false
   return true

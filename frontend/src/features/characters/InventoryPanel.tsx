@@ -7,6 +7,15 @@ import {
   applyGearAdd,
   type GearAddResult,
 } from './gearFromCatalog'
+import {
+  applyBaseToGear,
+  armorBase,
+  baseChoiceFromItem,
+  baseChoiceLabel,
+  baseOptions,
+  currentBaseSlug,
+  itemNeedsBaseChoice,
+} from './gearBaseChoice'
 import { syncAttacksHeldFromInventory, type WeaponAttack } from './AttacksPanel'
 import { MAX_ATTUNEMENTS } from './attunement'
 import { MAX_COMBAT_CONSUMABLE_FAVORITES } from './combatConsumables'
@@ -169,7 +178,14 @@ function IconTrash() {
   )
 }
 
-type InventoryFilter = 'all' | 'equipped' | 'weapon' | 'armor' | 'pack' | 'other'
+type InventoryFilter =
+  | 'all'
+  | 'equipped'
+  | 'weapon'
+  | 'armor'
+  | 'pack'
+  | 'other'
+  | 'needs_base'
 
 const FILTERS: Array<{ id: InventoryFilter; label: string }> = [
   { id: 'all', label: 'Все' },
@@ -178,6 +194,7 @@ const FILTERS: Array<{ id: InventoryFilter; label: string }> = [
   { id: 'armor', label: 'Доспех' },
   { id: 'pack', label: 'Наборы' },
   { id: 'other', label: 'Прочее' },
+  { id: 'needs_base', label: 'Нужно настроить' },
 ]
 
 function focusSelectionFromItem(
@@ -420,6 +437,7 @@ export function InventoryPanel({
       if (item.parent_id) return false
       if (filter === 'all') return true
       if (filter === 'equipped') return item.equipped
+      if (filter === 'needs_base') return itemNeedsBaseChoice(item)
       return itemBucket(item, catalogItems) === filter
     })
   }, [ordered, filter, catalogItems])
@@ -430,6 +448,21 @@ export function InventoryPanel({
       return
     }
     setCoinPadOpen(true)
+  }
+
+  function chooseBase(item: InventoryItem, baseSlug: string) {
+    if (!baseSlug) return
+    const applied = applyBaseToGear({
+      item,
+      attacks: weapons,
+      baseSlug,
+    })
+    if (!applied) return
+    onChange({
+      ...inventory,
+      items: inventory.items.map((row) => (row.id === item.id ? applied.item : row)),
+    })
+    onWeaponsChange?.(applied.attacks)
   }
 
   function updateItem(id: string, patch: Partial<InventoryItem>) {
@@ -694,6 +727,48 @@ export function InventoryPanel({
     )
   }
 
+  function renderBaseField(item: InventoryItem) {
+    const choice = baseChoiceFromItem(item)
+    if (!choice) return null
+    const options = baseOptions(choice)
+    if (options.length === 0) return null
+    const current = currentBaseSlug(item)
+    const armor = item.base_armor_slug ? armorBase(item.base_armor_slug) : null
+    const stealth =
+      typeof item.stealth_disadvantage === 'boolean' ? item.stealth_disadvantage : null
+    return (
+      <div className="sheet-grid">
+        <Field label={baseChoiceLabel(choice.kind)}>
+          <select
+            className="play-select"
+            value={current}
+            onChange={(event) => chooseBase(item, event.target.value)}
+          >
+            <option value="">Выберите базу</option>
+            {options.map((option) => (
+              <option key={option.slug} value={option.slug}>
+                {option.nameRu}
+              </option>
+            ))}
+          </select>
+        </Field>
+        {!current ? (
+          <Text tone="danger">
+            Нужно настроить: выберите {baseChoiceLabel(choice.kind).toLowerCase()}.
+          </Text>
+        ) : null}
+        {armor && armor.kind !== 'shield' ? (
+          <Text tone="muted">
+            {item.strength_requirement
+              ? `Сила ${item.strength_requirement}`
+              : 'Без требования Силы'}
+            {stealth ? ' · помеха Скрытности' : ' · без помехи Скрытности'}
+          </Text>
+        ) : null}
+      </div>
+    )
+  }
+
   function renderItemCard(item: InventoryItem, nested: boolean) {
     const expandedPack = isExpandedPack(inventory.items, item.id)
     const detailsOpen = openId === item.id || nested
@@ -739,6 +814,9 @@ export function InventoryPanel({
               <span className={`attack-held-tag${item.equipped ? ' is-on' : ''}`}>
                 {statusTag}
               </span>
+            ) : null}
+            {itemNeedsBaseChoice(item) ? (
+              <span className="attack-held-tag">нужно настроить</span>
             ) : null}
             {item.wear_slot && item.wear_slot !== 'none' && bucket === 'other' ? (
               <span className="attack-held-tag">{WEAR_SLOT_LABEL_RU[item.wear_slot]}</span>
@@ -837,6 +915,7 @@ export function InventoryPanel({
             {effectsLine ? ` · ${effectsLine}` : ''}
           </Text>
           {item.notes?.trim() ? <Text>{item.notes.trim()}</Text> : null}
+          {renderBaseField(item)}
           <div className="inventory-card__view-actions">
             {renderEquipChip(item)}
             <Button
@@ -906,6 +985,8 @@ export function InventoryPanel({
             />
           </Field>
         </div>
+
+        {renderBaseField(item)}
 
         {!nested && isArmorRow(item) ? (
           <div className="inventory-card__grid inventory-card__grid--armor">

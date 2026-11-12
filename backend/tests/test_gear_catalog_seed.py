@@ -469,3 +469,113 @@ def test_ambiguous_slug_does_not_guess() -> None:
     updated, changed = refresh_character_sheet(sheet, _catalog(left, right))
     assert changed == 0
     assert updated is sheet
+
+
+def test_i06_bases_and_dmg_cards(planned: list[GearRecord]) -> None:
+    weapon = _by_slug(planned, "weapon_1")
+    allowed = weapon.data["allowed_base_weapon"]
+    assert "dagger" in allowed
+    assert "net" in allowed
+    armor = _by_slug(planned, "armor_1")
+    assert "chain_mail" in armor.data["allowed_base_armor"]
+    assert "shield" not in armor.data["allowed_base_armor"]
+    adamantine = _by_slug(planned, "adamantine_armor")
+    assert "hide_armor" not in adamantine.data["allowed_base_armor"]
+    assert "leather_armor" not in adamantine.data["allowed_base_armor"]
+    assert "chain_mail" in adamantine.data["allowed_base_armor"]
+    assert _by_slug(planned, "armor_of_vulnerability").data.get("allowed_base_armor") is None
+    mithral = _by_slug(planned, "mithral_armor")
+    assert mithral.data["clear_stealth_disadvantage"] is True
+    assert mithral.data["clear_strength_requirement"] is True
+    warning = _by_slug(planned, "weapon_of_warning")
+    assert warning.kind == "item"
+    assert "longsword" in warning.data["allowed_base_weapon"]
+
+    for slug in (
+        "rope_of_entanglement",
+        "efreeti_bottle",
+        "wave",
+        "ammunition_2",
+        "shield_plus_1",
+        "belt_of_giant_strength_frost",
+        "ioun_stone_agility",
+        "mantle_of_spell_resistance",
+    ):
+        assert _by_slug(planned, slug).is_active
+    bards = [
+        "instrument_of_the_bards_doss_lute",
+        "instrument_of_the_bards_canaith",
+        "instrument_of_the_bards_cli",
+        "instrument_of_the_bards_fochlucan",
+        "instrument_of_the_bards_mac_fuirmidh",
+        "instrument_of_the_bards_anstruth",
+        "instrument_of_the_bards_ollamh",
+    ]
+    assert all(_by_slug(planned, slug).data.get("attunement_classes") == ["bard"] for slug in bards)
+    wand = _by_slug(planned, "wand_of_the_war_mage_1")
+    assert wand.data["effects"][0] == {
+        "type": "spellcasting_bonus",
+        "value": 1,
+        "applies_to": "attack",
+    }
+    rod = _by_slug(planned, "rod_of_the_pact_keeper_1")
+    assert rod.data["attunement_classes"] == ["warlock"]
+    assert rod.data["effects"][0]["applies_to"] == "both"
+    frost = _by_slug(planned, "belt_of_giant_strength_frost")
+    assert frost.data["single_attunement_family"] is True
+    assert frost.data["effects"] == [{"type": "ability_score", "ability": "str", "value": 23}]
+
+
+def test_i06_refresh_keeps_chosen_base_and_stamps_legacy(planned: list[GearRecord]) -> None:
+    weapon = _by_slug(planned, "weapon_1")
+    armor = _by_slug(planned, "armor_1")
+    chosen = {
+        "id": "w1",
+        "name": "Кинжал +1",
+        "catalog_id": weapon.id,
+        "catalog_slug": "weapon_1",
+        "base_weapon_slug": "dagger",
+        "effects": [],
+        "qty": 1,
+        "equipped": True,
+        "notes": "мой",
+    }
+    sheet = {"inventory": {"items": [chosen], "notes": ""}, "resources": []}
+    updated, _changed = refresh_character_sheet(sheet, planned)
+    row = updated["inventory"]["items"][0]
+    assert row["base_weapon_slug"] == "dagger"
+    assert row["name"] == "Кинжал +1"
+    assert row["notes"] == "мой"
+    assert "dagger" in row["allowed_base_weapon"]
+    again, again_changed = refresh_character_sheet(updated, planned)
+    assert again_changed == 0
+
+    legacy = {
+        "id": "old",
+        "name": "Оружие +1",
+        "catalog_id": weapon.id,
+        "effects": [{"type": "attack_bonus", "value": 1}],
+    }
+    stamped, _ = refresh_character_sheet({"inventory": {"items": [legacy]}, "resources": []}, planned)
+    assert stamped["inventory"]["items"][0]["base_weapon_slug"] == "longsword"
+
+    chain = {
+        "id": "a1",
+        "name": "Кольчуга +1",
+        "catalog_id": armor.id,
+        "base_armor_slug": "chain_mail",
+        "base_ac": 16,
+        "armor_kind": "heavy",
+        "strength_requirement": 13,
+        "max_dex_bonus": 0,
+    }
+    kept_sheet, _ = refresh_character_sheet(
+        {"inventory": {"items": [chain]}, "resources": []},
+        planned,
+    )
+    kept = kept_sheet["inventory"]["items"][0]
+    assert kept["base_ac"] == 16
+    assert kept["strength_requirement"] == 13
+    assert kept["base_armor_slug"] == "chain_mail"
+    _again_armor, armor_changed = refresh_character_sheet(kept_sheet, planned)
+    assert armor_changed == 0

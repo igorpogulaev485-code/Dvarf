@@ -270,7 +270,11 @@ const STEALTH_DISADV_KEYS = new Set([
 export function armorGivesStealthDisadvantage(input: {
   armorKind?: string | null
   armorName?: string | null
+  /** Set when the worn piece already resolved mithral / the chosen base. */
+  stealthDisadvantage?: boolean | null
 }): boolean {
+  if (input.stealthDisadvantage === false) return false
+  if (input.stealthDisadvantage === true) return true
   if (input.armorKind === 'heavy') return true
   const name = (input.armorName ?? '').trim().toLowerCase()
   if (!name) return false

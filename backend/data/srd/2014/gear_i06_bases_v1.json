@@ -1,0 +1,996 @@
+{
+  "version": 1,
+  "notes": "I06: allowed PHB bases. Player choice is not stored here.",
+  "updates": [
+    {
+      "kind": "weapon",
+      "slug": "berserker_axe",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "handaxe",
+          "battleaxe",
+          "greataxe"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "dancing_sword",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "shortsword",
+          "longsword",
+          "scimitar",
+          "greatsword",
+          "rapier"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "defender",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "shortsword",
+          "longsword",
+          "scimitar",
+          "greatsword",
+          "rapier"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "dragon_slayer",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "shortsword",
+          "longsword",
+          "scimitar",
+          "greatsword",
+          "rapier"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "flame_tongue",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "shortsword",
+          "longsword",
+          "scimitar",
+          "greatsword",
+          "rapier"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "frost_brand",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "shortsword",
+          "longsword",
+          "scimitar",
+          "greatsword",
+          "rapier"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "holy_avenger",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "shortsword",
+          "longsword",
+          "scimitar",
+          "greatsword",
+          "rapier"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "luck_blade",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "shortsword",
+          "longsword",
+          "scimitar",
+          "greatsword",
+          "rapier"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "nine_lives_stealer",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "shortsword",
+          "longsword",
+          "scimitar",
+          "greatsword",
+          "rapier"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "sword_of_life_stealing",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "shortsword",
+          "longsword",
+          "scimitar",
+          "greatsword",
+          "rapier"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "sword_of_wounding",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "shortsword",
+          "longsword",
+          "scimitar",
+          "greatsword",
+          "rapier"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "sword_of_sharpness",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "longsword",
+          "scimitar",
+          "greatsword"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "vorpal_sword",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "longsword",
+          "scimitar",
+          "greatsword"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "giant_slayer",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "club",
+          "dagger",
+          "greatclub",
+          "handaxe",
+          "javelin",
+          "light_hammer",
+          "mace",
+          "quarterstaff",
+          "sickle",
+          "spear",
+          "crossbow_light",
+          "dart",
+          "shortbow",
+          "sling",
+          "battleaxe",
+          "flail",
+          "glaive",
+          "greataxe",
+          "greatsword",
+          "halberd",
+          "lance",
+          "longsword",
+          "maul",
+          "morningstar",
+          "pike",
+          "rapier",
+          "scimitar",
+          "shortsword",
+          "trident",
+          "war_pick",
+          "warhammer",
+          "whip",
+          "blowgun",
+          "crossbow_hand",
+          "crossbow_heavy",
+          "longbow",
+          "net"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "vicious_weapon",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "club",
+          "dagger",
+          "greatclub",
+          "handaxe",
+          "javelin",
+          "light_hammer",
+          "mace",
+          "quarterstaff",
+          "sickle",
+          "spear",
+          "crossbow_light",
+          "dart",
+          "shortbow",
+          "sling",
+          "battleaxe",
+          "flail",
+          "glaive",
+          "greataxe",
+          "greatsword",
+          "halberd",
+          "lance",
+          "longsword",
+          "maul",
+          "morningstar",
+          "pike",
+          "rapier",
+          "scimitar",
+          "shortsword",
+          "trident",
+          "war_pick",
+          "warhammer",
+          "whip",
+          "blowgun",
+          "crossbow_hand",
+          "crossbow_heavy",
+          "longbow",
+          "net"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "weapon_of_warning",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "club",
+          "dagger",
+          "greatclub",
+          "handaxe",
+          "javelin",
+          "light_hammer",
+          "mace",
+          "quarterstaff",
+          "sickle",
+          "spear",
+          "crossbow_light",
+          "dart",
+          "shortbow",
+          "sling",
+          "battleaxe",
+          "flail",
+          "glaive",
+          "greataxe",
+          "greatsword",
+          "halberd",
+          "lance",
+          "longsword",
+          "maul",
+          "morningstar",
+          "pike",
+          "rapier",
+          "scimitar",
+          "shortsword",
+          "trident",
+          "war_pick",
+          "warhammer",
+          "whip",
+          "blowgun",
+          "crossbow_hand",
+          "crossbow_heavy",
+          "longbow",
+          "net"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "weapon_1",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "club",
+          "dagger",
+          "greatclub",
+          "handaxe",
+          "javelin",
+          "light_hammer",
+          "mace",
+          "quarterstaff",
+          "sickle",
+          "spear",
+          "crossbow_light",
+          "dart",
+          "shortbow",
+          "sling",
+          "battleaxe",
+          "flail",
+          "glaive",
+          "greataxe",
+          "greatsword",
+          "halberd",
+          "lance",
+          "longsword",
+          "maul",
+          "morningstar",
+          "pike",
+          "rapier",
+          "scimitar",
+          "shortsword",
+          "trident",
+          "war_pick",
+          "warhammer",
+          "whip",
+          "blowgun",
+          "crossbow_hand",
+          "crossbow_heavy",
+          "longbow",
+          "net"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "weapon_2",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "club",
+          "dagger",
+          "greatclub",
+          "handaxe",
+          "javelin",
+          "light_hammer",
+          "mace",
+          "quarterstaff",
+          "sickle",
+          "spear",
+          "crossbow_light",
+          "dart",
+          "shortbow",
+          "sling",
+          "battleaxe",
+          "flail",
+          "glaive",
+          "greataxe",
+          "greatsword",
+          "halberd",
+          "lance",
+          "longsword",
+          "maul",
+          "morningstar",
+          "pike",
+          "rapier",
+          "scimitar",
+          "shortsword",
+          "trident",
+          "war_pick",
+          "warhammer",
+          "whip",
+          "blowgun",
+          "crossbow_hand",
+          "crossbow_heavy",
+          "longbow",
+          "net"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "weapon_3",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "club",
+          "dagger",
+          "greatclub",
+          "handaxe",
+          "javelin",
+          "light_hammer",
+          "mace",
+          "quarterstaff",
+          "sickle",
+          "spear",
+          "crossbow_light",
+          "dart",
+          "shortbow",
+          "sling",
+          "battleaxe",
+          "flail",
+          "glaive",
+          "greataxe",
+          "greatsword",
+          "halberd",
+          "lance",
+          "longsword",
+          "maul",
+          "morningstar",
+          "pike",
+          "rapier",
+          "scimitar",
+          "shortsword",
+          "trident",
+          "war_pick",
+          "warhammer",
+          "whip",
+          "blowgun",
+          "crossbow_hand",
+          "crossbow_heavy",
+          "longbow",
+          "net"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "fools_blade",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "shortsword",
+          "longsword",
+          "scimitar",
+          "greatsword",
+          "rapier"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "sword_of_the_planes",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "shortsword",
+          "longsword",
+          "scimitar",
+          "greatsword",
+          "rapier"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "forcebreaker_weapon",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "club",
+          "dagger",
+          "greatclub",
+          "handaxe",
+          "javelin",
+          "light_hammer",
+          "mace",
+          "quarterstaff",
+          "sickle",
+          "spear",
+          "crossbow_light",
+          "dart",
+          "shortbow",
+          "sling",
+          "battleaxe",
+          "flail",
+          "glaive",
+          "greataxe",
+          "greatsword",
+          "halberd",
+          "lance",
+          "longsword",
+          "maul",
+          "morningstar",
+          "pike",
+          "rapier",
+          "scimitar",
+          "shortsword",
+          "trident",
+          "war_pick",
+          "warhammer",
+          "whip",
+          "blowgun",
+          "crossbow_hand",
+          "crossbow_heavy",
+          "longbow",
+          "net"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "weapon_of_thrones_command",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "club",
+          "dagger",
+          "greatclub",
+          "handaxe",
+          "javelin",
+          "light_hammer",
+          "mace",
+          "quarterstaff",
+          "sickle",
+          "spear",
+          "crossbow_light",
+          "dart",
+          "shortbow",
+          "sling",
+          "battleaxe",
+          "flail",
+          "glaive",
+          "greataxe",
+          "greatsword",
+          "halberd",
+          "lance",
+          "longsword",
+          "maul",
+          "morningstar",
+          "pike",
+          "rapier",
+          "scimitar",
+          "shortsword",
+          "trident",
+          "war_pick",
+          "warhammer",
+          "whip",
+          "blowgun",
+          "crossbow_hand",
+          "crossbow_heavy",
+          "longbow",
+          "net"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "bow_of_conflagration",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "shortbow",
+          "longbow"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "glimmering_moonbow",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "shortbow",
+          "longbow"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "starshot_crossbow",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "crossbow_light",
+          "crossbow_hand",
+          "crossbow_heavy"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "adamantine_armor",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "mithral_armor",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ],
+        "clear_stealth_disadvantage": true,
+        "clear_strength_requirement": true
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_1",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_2",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_3",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_fungal_spores",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_acid",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_cold",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_fire",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_force",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_lightning",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_necrotic",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_poison",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_psychic",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_radiant",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_thunder",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "bloodseeker_ammunition",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_ammo": [
+          "arrow",
+          "crossbow_bolt",
+          "blowgun_needle",
+          "sling_bullet"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "winged_ammunition",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_ammo": [
+          "arrow",
+          "crossbow_bolt",
+          "blowgun_needle",
+          "sling_bullet"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "dried_leech",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_ammo": [
+          "arrow",
+          "crossbow_bolt"
+        ]
+      }
+    }
+  ]
+}
