@@ -610,6 +610,72 @@ def test_i07_xge_tce_settings_cards(planned: list[GearRecord]) -> None:
     assert all(not row.is_active for row in hidden)
 
 
+def test_i08_other_books_part_one(planned: list[GearRecord]) -> None:
+    """I33 part 1: adventure and side-book cards, with I06 bases and I02 families."""
+    amulet = _by_slug(planned, "sanctum_amulet")
+    assert amulet.data["rarity"] == "very_rare"
+    assert amulet.data["requires_attunement"] is True
+    assert amulet.data["source_book"] == "BPGG"
+    assert {"type": "resistance", "damage_type": "necrotic"} in amulet.data["effects"]
+
+    rapier = _by_slug(planned, "vicious_rapier_1")
+    assert rapier.kind == "weapon"
+    assert rapier.name_ru == "Жестокая рапира +1"
+    assert rapier.data["rarity"] == "rare"
+    assert rapier.data["requires_attunement"] is False
+    assert rapier.data["base_weapon_slug"] == "rapier"
+    assert rapier.data["magic_bonus"] == 1
+    assert {"type": "attack_bonus", "value": 1} in rapier.data["effects"]
+    assert {"type": "damage_bonus", "value": 1} in rapier.data["effects"]
+    assert rapier.data.get("allowed_base_weapon") is None
+
+    circlet = _by_slug(planned, "circlet_of_human_perfection")
+    assert circlet.data["rarity"] == "uncommon"
+    assert circlet.data["requires_attunement"] is True
+    rod = _by_slug(planned, "rod_of_the_vonindod")
+    assert rod.data["rarity"] == "rare"
+    assert rod.data["requires_attunement"] is True
+    assert rod.data["charges"]["max"] == 10
+    abracadabrus = _by_slug(planned, "abracadabrus")
+    assert abracadabrus.data["rarity"] == "very_rare"
+    assert abracadabrus.data["requires_attunement"] is False
+
+    hellfire = _by_slug(planned, "hellfire_weapon")
+    assert hellfire.kind == "weapon"
+    assert hellfire.data["rarity"] == "uncommon"
+    assert hellfire.data["requires_attunement"] is False
+    assert "longsword" in hellfire.data["allowed_base_weapon"]
+    assert "dagger" in hellfire.data["allowed_base_weapon"]
+    assert "net" in hellfire.data["allowed_base_weapon"]
+
+    bloodshed = _by_slug(planned, "bloodshed_blade")
+    assert set(bloodshed.data["allowed_base_weapon"]) == {
+        "shortsword",
+        "longsword",
+        "scimitar",
+        "rapier",
+        "greatsword",
+    }
+    jewel = _by_slug(planned, "jewel_of_three_prayers_awakened")
+    assert jewel.data["family_slug"] == "jewel_of_three_prayers"
+    assert jewel.data["single_attunement_family"] is True
+    assert jewel.data["variant_key"] == "awakened"
+    assert _by_slug(planned, "jewel_of_three_prayers_exalted").data["single_attunement_family"] is True
+    rose = _by_slug(planned, "red_chromatic_rose")
+    assert rose.data.get("single_attunement_family") is not True
+    assert rose.data["family_slug"] == "chromatic_rose"
+
+    story = _by_slug(planned, "the_codicil_of_white")
+    assert story.data["rarity"] == "none"
+    assert story.data["story_item"] is True
+    assert story.is_active
+
+    hidden = [row for row in planned if row.slug in I22_DEACTIVATE_SLUGS]
+    assert len(hidden) == 13
+    assert all(not row.is_active for row in hidden)
+    assert _by_slug(planned, WAND_SLUG).name_en == "Wand of Viscid Globs"
+
+
 def test_i06_refresh_keeps_chosen_base_and_stamps_legacy(planned: list[GearRecord]) -> None:
     weapon = _by_slug(planned, "weapon_1")
     armor = _by_slug(planned, "armor_1")

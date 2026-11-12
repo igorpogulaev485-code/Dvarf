@@ -84,6 +84,7 @@ const RARITY_FILTERS: Array<{ id: GearRarity | 'all'; label: string }> = [
   { id: 'very_rare', label: GEAR_RARITY_LABEL_RU.very_rare },
   { id: 'legendary', label: GEAR_RARITY_LABEL_RU.legendary },
   { id: 'artifact', label: GEAR_RARITY_LABEL_RU.artifact },
+  { id: 'none', label: GEAR_RARITY_LABEL_RU.none },
 ]
 
 function matchesQuery(entry: CatalogEntry, query: string): boolean {

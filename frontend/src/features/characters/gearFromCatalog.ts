@@ -148,6 +148,7 @@ export const GEAR_RARITY_RANK: Record<GearRarity, number> = {
   very_rare: 4,
   legendary: 5,
   artifact: 6,
+  none: 7,
 }
 
 export function summarizeGearEntry(entry: CatalogEntry): GearCatalogSummary | null {
