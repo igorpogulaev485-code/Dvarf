@@ -25,6 +25,7 @@ export const GEAR_RARITIES = [
   'very_rare',
   'legendary',
   'artifact',
+  'none',
 ] as const
 export type GearRarity = (typeof GEAR_RARITIES)[number]
 
@@ -617,6 +618,7 @@ export const GEAR_RARITY_LABEL_RU: Record<GearRarity, string> = {
   very_rare: 'очень редкий',
   legendary: 'легендарный',
   artifact: 'артефакт',
+  none: 'без редкости',
 }
 
 function readProperties(value: unknown): string[] {
