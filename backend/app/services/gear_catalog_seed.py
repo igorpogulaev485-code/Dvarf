@@ -67,6 +67,7 @@ GEAR_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("gear_bmt_wondrous_v1.json"),
     WaveSpec("gear_dmg_artifacts_v1.json"),
     WaveSpec("gear_i02_attunement_v1.json"),
+    WaveSpec("gear_i03_spellcasting_v1.json"),
 )
 
 # I22. Slugs stay; rows are hidden, not deleted.
@@ -671,6 +672,8 @@ def _copy_rules(item: dict[str, Any], catalog: GearRecord) -> dict[str, Any]:
     for key in FAMILY_RULE_KEYS:
         if key in data:
             updated[key] = data[key]
+    if data.get("is_spell_focus") is True:
+        updated["is_spell_focus"] = True
     if not updated.get("catalog_slug"):
         updated["catalog_slug"] = catalog.slug
     if catalog.kind == "armor":

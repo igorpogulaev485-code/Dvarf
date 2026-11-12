@@ -24,6 +24,31 @@ export type SpellToolingItem = {
   /** Catalog slug when known. */
   catalog_slug?: string | null
   item_category?: string | null
+  /** Catalog flag: the card says this item is a spellcasting focus. */
+  is_spell_focus?: boolean | null
+  description?: string | null
+  effects?: Array<{ type?: string; text?: string }> | null
+}
+
+/** Card text that says the item may be used as a spellcasting focus. */
+const FOCUS_PHRASE =
+  /заклинательн\p{L}*\s+фокус|as a spellcasting focus|spellcasting focus/iu
+
+export function cardSaysSpellFocus(text: string | null | undefined): boolean {
+  if (!text) return false
+  return FOCUS_PHRASE.test(text)
+}
+
+function focusCorpus(item: SpellToolingItem): string {
+  const notes = (item.effects ?? [])
+    .filter((row) => row?.type === 'custom_note' && typeof row.text === 'string')
+    .map((row) => row.text as string)
+  return [item.name, item.description ?? '', ...notes].join('\n')
+}
+
+export function itemCountsAsSpellFocus(item: SpellToolingItem): boolean {
+  if (item.is_spell_focus === true) return true
+  return cardSaysSpellFocus(focusCorpus(item))
 }
 
 const POUCH_SLUGS = new Set(['component_pouch', 'components_pouch', 'componentspouch'])
@@ -178,6 +203,7 @@ export function inferSpellTooling(item: SpellToolingItem): SpellTooling {
   }
   // Catalog category focus (pouch already caught by name/slug).
   if (item.item_category === 'focus') return 'focus'
+  if (itemCountsAsSpellFocus(item)) return 'focus'
   return 'none'
 }
 
@@ -207,7 +233,9 @@ export function syncSpellFocusFlags(items: SpellToolingItem[]): SpellFocusFlags 
   let has_component_pouch = false
   for (const item of items) {
     if ((item.qty ?? 1) <= 0) continue
-    const kind = resolveSpellTooling(item)
+    let kind = resolveSpellTooling(item)
+    // A stored «none» does not hide a catalog focus flag or the card's own sentence.
+    if (kind === 'none' && itemCountsAsSpellFocus(item)) kind = 'focus'
     if (kind === 'component_pouch') has_component_pouch = true
     else if (kind === 'focus') has_spell_focus = true
     if (has_spell_focus && has_component_pouch) break

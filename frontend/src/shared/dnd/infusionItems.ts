@@ -69,7 +69,7 @@ export function infusionAcceptsItem(infusionId: string, item: InfusionItemShape)
     return isArmor(item) || isShield(item)
   }
   if (id === 'enhanced_arcane_focus') {
-    return /жезл|посох|сфер|wand|rod|staff|orb/i.test(item.name)
+    return /жезл|посох|палоч|сфер|wand|rod|staff|orb/i.test(item.name)
   }
   return true
 }

@@ -303,6 +303,7 @@ const SUBCLASS_SPELLCASTING_ALIASES: SubclassCasterUnlock[] = [
       'arcane trickster',
       'мистический ловкач',
       'мистический плут',
+      'плут-трюкач',
       'арканный плут',
       'чародейский плут',
     ],

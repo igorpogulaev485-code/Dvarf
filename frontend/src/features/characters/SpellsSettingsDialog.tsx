@@ -23,6 +23,7 @@ import {
   formatSpellComponents,
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
+import { buildCastProfiles } from '../../shared/dnd/castProfiles'
 import type { FormulaVars } from '../../shared/dnd/formulas'
 import type { CoinPurse } from '../../shared/dnd/weight'
 import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
@@ -162,11 +163,22 @@ export function SpellsSettingsDialog({
   const baseAttackBonus = abilityKey
     ? spellAttackBonus(abilityMod, proficiencyBonus)
     : null
+  const headerClass = useMemo(() => {
+    if (classRows.length === 0) return null
+    const profiles = buildCastProfiles({
+      classes: classRows,
+      subclassCasters,
+      proficiencyBonus,
+      abilityModFor: (ability) => abilityModifier(abilities[ability]),
+    })
+    return profiles.length === 1 ? profiles[0]?.slug ?? null : null
+  }, [classRows, subclassCasters, proficiencyBonus, abilities])
   const castStats = withSpellCastBonuses({
     baseDc: baseSaveDc,
     baseAttack: baseAttackBonus,
     modifiers,
     vars: formulaVars,
+    classSlug: headerClass,
   })
   const saveDc = castStats.dc
   const attackBonus = castStats.attack

@@ -235,7 +235,7 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         abilities={model.effectiveAbilities}
         proficiencyBonus={model.proficiencyBonus}
         castProfiles={model.spellcastingSync.castProfiles}
-        modifiers={model.draft.modifiers}
+        modifiers={model.spellCastModifiers}
         formulaVars={model.formulaVarsBase}
         onSelectSpellVariant={model.setDeskCastSpell}
         onConfirm={model.confirmDeskCast}

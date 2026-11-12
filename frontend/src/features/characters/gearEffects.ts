@@ -6,6 +6,7 @@
 
 import type { GearEffect, AbilityScoreKey } from '../../shared/dnd/gearCatalog'
 import type { AttunementSlot } from './attunement'
+import { createBonusLine, type BonusLine } from './modifiers'
 import {
   suppressedAttunementItemIds,
   type AttunementCharacter,
@@ -39,8 +40,13 @@ export type AggregatedGearEffects = {
   speedBonusFt: number
   /** Extra spell slots by level (Ring of Spell Storing–style deltas). */
   spellSlotDeltas: Record<number, number>
-  /** Bonus to spell attack rolls and spell save DC (summed). */
+  /** Raw sum of spellcasting values. The lines below are what the sheet applies. */
   spellcastingBonus: number
+  /**
+   * One row per active item. Empty `classes` applies to every spell.
+   * Several classes (amulet: cleric and paladin) become several bonus lines.
+   */
+  spellcastingLines: SpellcastingGearLine[]
   /** Charge pools from `resource` effects. */
   resources: Array<{
     key: string
@@ -68,6 +74,17 @@ export type AggregatedGearEffects = {
   /** Human-readable lines for UI. */
   notes: string[]
   active: ActiveGearEffect[]
+}
+
+export type SpellcastingAppliesTo = 'attack' | 'dc' | 'both'
+
+export type SpellcastingGearLine = {
+  value: number
+  appliesTo: SpellcastingAppliesTo
+  /** Empty = every spell. Otherwise only these class slugs (I02 field). */
+  classes: string[]
+  itemId: string
+  label: string
 }
 
 const ABILITY_KEYS: AbilityScoreKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
@@ -117,6 +134,7 @@ export function emptyAggregatedGearEffects(): AggregatedGearEffects {
     speedBonusFt: 0,
     spellSlotDeltas: {},
     spellcastingBonus: 0,
+    spellcastingLines: [],
     resources: [],
     companions: [],
     grantSpells: [],
@@ -161,16 +179,47 @@ export function devoutAmuletBonusFromName(name: string): number | null {
   return 1
 }
 
-function pushSpellcastingBonus(
+function readAppliesTo(value: unknown): SpellcastingAppliesTo {
+  if (value === 'attack' || value === 'dc' || value === 'both') return value
+  return 'both'
+}
+
+function classSlugs(values: string[] | null | undefined): string[] {
+  if (!values?.length) return []
+  const out: string[] = []
+  for (const raw of values) {
+    const slug = raw.trim().toLowerCase()
+    if (slug && !out.includes(slug)) out.push(slug)
+  }
+  return out
+}
+
+function appliesLabel(appliesTo: SpellcastingAppliesTo): string {
+  if (appliesTo === 'attack') return 'атака закл.'
+  if (appliesTo === 'dc') return 'Сл закл.'
+  return 'атака закл./Сл'
+}
+
+function pushSpellcastingLine(
   out: AggregatedGearEffects,
   item: InventoryItem,
   value: number,
+  appliesTo: SpellcastingAppliesTo,
+  classes: string[],
 ): void {
   if (!value) return
   const amount = Math.floor(value)
   out.spellcastingBonus += amount
+  out.spellcastingLines.push({
+    value: amount,
+    appliesTo,
+    classes,
+    itemId: item.id,
+    label: item.name?.trim() || 'Снаряжение',
+  })
+  const scope = classes.length ? ` (${classes.join(', ')})` : ''
   out.notes.push(
-    `${item.name || 'предмет'}: атака закл./Сл ${amount >= 0 ? '+' : ''}${amount}`,
+    `${item.name || 'предмет'}: ${appliesLabel(appliesTo)} ${amount >= 0 ? '+' : ''}${amount}${scope}`,
   )
 }
 
@@ -347,7 +396,15 @@ export function aggregateGearEffects(input: {
       if (type === 'spellcasting_bonus') {
         const value = asNumber((effect as { value?: unknown }).value) ?? 0
         if (!value) continue
-        pushSpellcastingBonus(out, item, value)
+        const effectRow = effect as {
+          applies_to?: unknown
+          class_scoped?: unknown
+        }
+        const classScoped = effectRow.class_scoped === true
+        const classes = classScoped ? classSlugs(item.attunement_classes) : []
+        // A class-scoped bonus with no I02 class list must not leak onto every spell.
+        if (classScoped && classes.length === 0) continue
+        pushSpellcastingLine(out, item, value, readAppliesTo(effectRow.applies_to), classes)
         appliedSpellcasting = true
         continue
       }
@@ -410,9 +467,21 @@ export function aggregateGearEffects(input: {
     const devoutBonus = devoutAmuletBonusFromName(item.name || '')
     if (devoutBonus != null) {
       if (!appliedSpellcasting) {
-        pushSpellcastingBonus(out, item, devoutBonus)
+        const classes = classSlugs(item.attunement_classes)
+        pushSpellcastingLine(
+          out,
+          item,
+          devoutBonus,
+          'both',
+          classes.length ? classes : ['cleric', 'paladin'],
+        )
         out.active.push({
-          effect: { type: 'spellcasting_bonus', value: devoutBonus },
+          effect: {
+            type: 'spellcasting_bonus',
+            value: devoutBonus,
+            applies_to: 'both',
+            class_scoped: true,
+          },
           itemId: item.id,
           itemName: item.name || 'Без названия',
         })
@@ -510,4 +579,58 @@ export function appendDamageBonus(damage: string, bonus: number): string {
     return total === 0 ? base : `${base}${total >= 0 ? '+' : ''}${total}`
   }
   return `${trimmed}${bonus >= 0 ? '+' : ''}${bonus}`
+}
+
+const APPLIES_TARGETS: Record<SpellcastingAppliesTo, Array<'spell_dc' | 'spell_attack'>> = {
+  attack: ['spell_attack'],
+  dc: ['spell_dc'],
+  both: ['spell_dc', 'spell_attack'],
+}
+
+/**
+ * Sheet modifiers plus gear and the enhanced-focus infusion.
+ * One list for the spell panel, the book, the cast dialog, and the classic blank.
+ * Class-scoped lines use `class_slug` (M3): a wizard bonus does not touch artificer spells,
+ * and a spell with no class (race, feat, item, scroll) does not take a class bonus.
+ */
+export function appendSpellCastModifiers(input: {
+  modifiers: BonusLine[]
+  gear: Pick<AggregatedGearEffects, 'spellcastingLines'>
+  infusionSpellAttack?: number
+}): BonusLine[] {
+  const extra: BonusLine[] = []
+  for (const line of input.gear.spellcastingLines) {
+    const classes = line.classes.length ? line.classes : [null]
+    for (const classSlug of classes) {
+      for (const target of APPLIES_TARGETS[line.appliesTo]) {
+        extra.push(
+          createBonusLine({
+            id: `gear:spell:${line.itemId}:${target}:${classSlug ?? 'all'}`,
+            target,
+            label: line.label,
+            op: '+',
+            expr: String(line.value),
+            enabled: true,
+            source: 'gear',
+            ...(classSlug ? { class_slug: classSlug } : {}),
+          }),
+        )
+      }
+    }
+  }
+  const infusion = Math.floor(input.infusionSpellAttack ?? 0)
+  if (infusion) {
+    extra.push(
+      createBonusLine({
+        id: 'infusion:spell_attack',
+        target: 'spell_attack',
+        label: 'Инфузия (фокус)',
+        op: '+',
+        expr: String(infusion),
+        enabled: true,
+        source: 'system',
+      }),
+    )
+  }
+  return extra.length ? [...input.modifiers, ...extra] : input.modifiers
 }

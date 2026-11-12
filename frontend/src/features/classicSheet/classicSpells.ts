@@ -11,6 +11,12 @@ import {
   normalizeBonusLines,
   withSpellCastBonuses,
 } from '../characters/modifiers'
+import { readAttunements } from '../characters/attunement'
+import { aggregateGearEffects, appendSpellCastModifiers, attunedItemIdSet } from '../characters/gearEffects'
+import { attunementGateFromSheet } from '../characters/attunementRules'
+import { readInventory } from '../characters/inventory'
+import { readFeaturePicks } from '../../shared/dnd/featurePicks'
+import { aggregateInfusionBonuses } from '../../shared/dnd/infusionEffects'
 import { abilityModifier, asRecord, formatModifier, readNumber } from '../characters/sheetTypes'
 import {
   buildCastProfiles,
@@ -63,6 +69,13 @@ export function classicSpellStats(
   const mod = abilityModifier(score)
   const proficiency = asRecord(asRecord(character.sheet).proficiency)
   const bonus = readNumber(proficiency.bonus, 2)
+  const profiles = classicCastProfiles(character)
+  if (profiles.length === 1) {
+    return {
+      saveDc: String(profiles[0].saveDc),
+      attackBonus: formatModifier(profiles[0].attackBonus),
+    }
+  }
   return {
     saveDc: String(spellSaveDc(mod, bonus)),
     attackBonus: formatModifier(spellAttackBonus(mod, bonus)),
@@ -92,7 +105,30 @@ export function classicCastProfiles(
     abilityModFor: (ability) => abilityModifier(scores[ability]),
   })
   if (built.length === 0) return []
-  const modifiers = normalizeBonusLines(sheet.modifiers)
+  const inventory = readInventory(sheet)
+  const attunements = readAttunements(sheet)
+  const gear = aggregateGearEffects({
+    items: inventory.items,
+    attunements,
+    gate: attunementGateFromSheet({
+      sheet,
+      className: character.class_name,
+      level: character.level,
+    }),
+  })
+  const infusion = aggregateInfusionBonuses({
+    featurePicks: readFeaturePicks(sheet.feature_picks),
+    classes,
+    wearingArmor: false,
+    wearingShield: false,
+    items: inventory.items,
+    attunedItemIds: attunedItemIdSet(attunements),
+  })
+  const modifiers = appendSpellCastModifiers({
+    modifiers: normalizeBonusLines(sheet.modifiers),
+    gear,
+    infusionSpellAttack: infusion.spellAttackBonus,
+  })
   const vars = buildSheetFormulaVars({
     mods: {
       str: abilityModifier(scores.str),

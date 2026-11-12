@@ -97,11 +97,8 @@ function accumulateEffects(
     acc.labels.push(`${label} +${fx.acBonusUnarmoredUnshielded} КД`)
   }
 
+  // Spell attack is applied by the caller: the focus must be held and attuned.
   const sAtk = resolveInfusionNumericBonus(fx.spellAttackBonus, level)
-  if (sAtk) {
-    acc.spellAttackBonus += sAtk
-    acc.labels.push(`${label} атака закл. +${sAtk}`)
-  }
 
   if (fx.saveBonus) {
     acc.saveBonus += fx.saveBonus
@@ -145,6 +142,11 @@ export function aggregateInfusionBonuses(input: {
   wearingShield: boolean
   /** Inventory rows — weapon/AC bonuses apply only to the bound item. */
   items?: InfusionItemShape[]
+  /**
+   * When `items` is known, Enhanced Arcane Focus adds spell attack only while
+   * that rod, staff, or wand is equipped and (if the infusion requires it) attuned.
+   */
+  attunedItemIds?: ReadonlySet<string>
 }): InfusionBonuses {
   const entries = listArtificerEntries(input.classes)
   if (!entries.length) return EMPTY
@@ -196,6 +198,22 @@ export function aggregateInfusionBonuses(input: {
           damage: prev.damage + (wDmg || 0),
         }
         acc.labels.push(`${label} → предмет +${wAtk || 0}/+${wDmg || 0}`)
+      }
+      if (fx.spellAttackBonus) {
+        const sAtk = resolveInfusionNumericBonus(fx.spellAttackBonus, level)
+        if (sAtk) {
+          const tracked = input.items != null
+          const held =
+            !tracked || (Boolean(itemId) && Boolean(item?.equipped) && itemOk)
+          const attuned =
+            !fx.requiresAttunement ||
+            !tracked ||
+            (Boolean(itemId) && (input.attunedItemIds?.has(itemId) ?? false))
+          if (held && attuned) {
+            acc.spellAttackBonus += sAtk
+            acc.labels.push(`${label} атака закл. +${sAtk}`)
+          }
+        }
       }
       if (fx.acBonus && itemId) {
         const worn = item ? Boolean(item.equipped) : input.items == null
