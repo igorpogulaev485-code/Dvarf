@@ -21,6 +21,8 @@ import { SettingTableHandoffDialog } from '../features/lobby/SettingTableHandoff
 import { SettingTableRevealDialog } from '../features/lobby/SettingTableRevealDialog'
 import { draftFromCombatant, type SettingHandoffDraft } from '../features/lobby/settingHandoff'
 import { StartCombatDialog } from '../features/lobby/StartCombatDialog'
+import { EndCombatDialog } from '../features/lobby/EndCombatDialog'
+import { InitiativeRollDialog } from '../features/lobby/InitiativeRollDialog'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
@@ -52,8 +54,10 @@ import {
   shareLobbyEffect,
   patchSessionCombat,
   patchSessionCombatant,
+  rollSessionCombatInitiative,
   seatCharacter,
   startSessionCombat,
+  type CombatEntry,
   unseatCharacter,
   updateSession,
   type SeatCondition,
@@ -129,7 +133,11 @@ export function SessionDetailPage() {
   const [effectOpen, setEffectOpen] = useState(false)
   const [combatantOpen, setCombatantOpen] = useState(false)
   const [combatStartOpen, setCombatStartOpen] = useState(false)
+  const [combatEndOpen, setCombatEndOpen] = useState(false)
+  const [endCombatThenClose, setEndCombatThenClose] = useState(false)
+  const [initRollEntry, setInitRollEntry] = useState<CombatEntry | null>(null)
   const [xpOpen, setXpOpen] = useState(false)
+  const [lootOpenAfterXp, setLootOpenAfterXp] = useState(false)
   const [pietySeatId, setPietySeatId] = useState<string | null>(null)
   const [lootOpen, setLootOpen] = useState(false)
   const [settingArtifacts, setSettingArtifacts] = useState<SettingArtifact[]>([])
@@ -496,6 +504,41 @@ export function SessionDetailPage() {
     )
   }
 
+  const activeCombatEntry =
+    session.combat?.active ? session.combat.entries[session.combat.active_index] : undefined
+  const yourTurnCharacterId =
+    activeCombatEntry?.kind === 'pc' &&
+    !activeCombatEntry.initiative_pending &&
+    ownCharacterIds.has(activeCombatEntry.ref_id)
+      ? activeCombatEntry.ref_id
+      : null
+  const finishCombat = async (payload: {
+    keep_unreleased_waves: boolean
+    summary: string
+  }) => {
+    const updated = await patchSessionCombat(session.id, {
+      action: 'end',
+      keep_unreleased_waves: payload.keep_unreleased_waves,
+      summary: payload.summary,
+    })
+    setSession(updated)
+    setCombatEndOpen(false)
+    setToast('Бой завершён')
+    setLootOpenAfterXp(true)
+    setXpOpen(true)
+    await reloadEvents()
+    // Диалог закрытия сессии — после наград (afterCombatRewards)
+  }
+
+  const afterCombatRewards = () => {
+    if (!endCombatThenClose) return
+    setEndCombatThenClose(false)
+    setCloseTitle(`Итог: ${session.name}`)
+    setCloseSummary('')
+    setWriteJournal(true)
+    setCloseOpen(true)
+  }
+
   const historyOff = !sessionCanSeeHidden(session) && visibility.event_history === 'off'
   const canSeeHidden = sessionCanSeeHidden(session)
   const canRun = sessionCanRun(session)
@@ -550,9 +593,9 @@ export function SessionDetailPage() {
                   void run(async () => {
                     let latest = session
                     if (latest.combat?.active) {
-                      latest = await patchSessionCombat(latest.id, { action: 'end' })
-                      setSession(latest)
-                      setToast('Бой окончен')
+                      setEndCombatThenClose(true)
+                      setCombatEndOpen(true)
+                      return
                     }
                     setCloseTitle(`Итог: ${latest.name}`)
                     setCloseSummary('')
@@ -663,13 +706,35 @@ export function SessionDetailPage() {
                       })
                     }}
                     onEnd={() => {
+                      setEndCombatThenClose(false)
+                      setCombatEndOpen(true)
+                    }}
+                    ownCharacterIds={ownCharacterIds}
+                    onRollInitiative={(entry) => setInitRollEntry(entry)}
+                    onReleaseWave={(waveId) => {
                       void run(async () => {
                         const updated = await patchSessionCombat(session.id, {
-                          action: 'end',
+                          action: 'release_wave',
+                          wave_id: waveId,
                         })
                         setSession(updated)
-                        setToast('Бой окончен')
-                        setXpOpen(true)
+                        setToast('Волна выпущена')
+                      })
+                    }}
+                    onRestoreFallen={(fallenId) => {
+                      void run(async () => {
+                        const hpRaw = window.prompt('Хиты после возврата (пусто = 1)', '1')
+                        const restore_hp =
+                          hpRaw == null || hpRaw.trim() === ''
+                            ? 1
+                            : Math.max(1, Number.parseInt(hpRaw, 10) || 1)
+                        const updated = await patchSessionCombat(session.id, {
+                          action: 'restore_fallen',
+                          fallen_id: fallenId,
+                          restore_hp,
+                        })
+                        setSession(updated)
+                        setToast('Вернули из павших')
                       })
                     }}
                     onSelect={(index) => {
@@ -725,6 +790,11 @@ export function SessionDetailPage() {
 
               <div className="session-live-desk__center">
                 <Stack gap={12}>
+                  {yourTurnCharacterId ? (
+                    <div className="session-your-turn-banner" role="status">
+                      Твой ход
+                    </div>
+                  ) : null}
                   <SessionLorePanel
                     hasSetting={Boolean(session.setting_id)}
                     locationPage={session.location_page ?? null}
@@ -765,17 +835,11 @@ export function SessionDetailPage() {
                           variant="secondary"
                           disabled={busy}
                           onClick={() => {
-                            void run(async () => {
-                              const updated = await patchSessionCombat(session.id, {
-                                action: 'end',
-                              })
-                              setSession(updated)
-                              setToast('Бой окончен')
-                              setXpOpen(true)
-                            })
+                            setEndCombatThenClose(false)
+                            setCombatEndOpen(true)
                           }}
                         >
-                          Конец боя
+                          Завершить бой
                         </Button>
                       )}
                       <Button
@@ -943,13 +1007,35 @@ export function SessionDetailPage() {
                       })
                     }}
                     onEnd={() => {
+                      setEndCombatThenClose(false)
+                      setCombatEndOpen(true)
+                    }}
+                    ownCharacterIds={ownCharacterIds}
+                    onRollInitiative={(entry) => setInitRollEntry(entry)}
+                    onReleaseWave={(waveId) => {
                       void run(async () => {
                         const updated = await patchSessionCombat(session.id, {
-                          action: 'end',
+                          action: 'release_wave',
+                          wave_id: waveId,
                         })
                         setSession(updated)
-                        setToast('Бой окончен')
-                        setXpOpen(true)
+                        setToast('Волна выпущена')
+                      })
+                    }}
+                    onRestoreFallen={(fallenId) => {
+                      void run(async () => {
+                        const hpRaw = window.prompt('Хиты после возврата (пусто = 1)', '1')
+                        const restore_hp =
+                          hpRaw == null || hpRaw.trim() === ''
+                            ? 1
+                            : Math.max(1, Number.parseInt(hpRaw, 10) || 1)
+                        const updated = await patchSessionCombat(session.id, {
+                          action: 'restore_fallen',
+                          fallen_id: fallenId,
+                          restore_hp,
+                        })
+                        setSession(updated)
+                        setToast('Вернули из павших')
                       })
                     }}
                     onSelect={(index) => {
@@ -982,6 +1068,8 @@ export function SessionDetailPage() {
                         <SessionTableCard
                           key={seat.character_id}
                           seat={seat}
+                          yourTurn={yourTurnCharacterId === seat.character_id}
+                          showTurnEconomyStub={yourTurnCharacterId === seat.character_id}
                           visibility={visibility}
                           revealAll={canSeeHidden}
                           masterControls={canControl && !session.closed_at && !session.is_observer}
@@ -1590,6 +1678,7 @@ export function SessionDetailPage() {
       <AddCombatantDialog
         open={combatantOpen}
         busy={busy}
+        combatActive={Boolean(session.combat?.active)}
         onClose={() => setCombatantOpen(false)}
         onSubmit={(payload) => {
           void run(async () => {
@@ -1597,7 +1686,13 @@ export function SessionDetailPage() {
             setSession(updated)
             setCombatantOpen(false)
             const n = payload.count ?? 1
-            setToast(n > 1 ? `На столе: ${n}` : 'Противник на столе')
+            setToast(
+              session.combat?.active
+                ? 'Новая скрытая волна'
+                : n > 1
+                  ? `На столе: ${n}`
+                  : 'Противник на столе',
+            )
           })
         }}
       />
@@ -1608,12 +1703,69 @@ export function SessionDetailPage() {
         seats={session.seats}
         combatants={session.combatants ?? []}
         onClose={() => setCombatStartOpen(false)}
-        onSubmit={(entries) => {
+        onSubmit={(payload) => {
           void run(async () => {
-            const updated = await startSessionCombat(session.id, { entries })
+            const updated = await startSessionCombat(session.id, payload)
             setSession(updated)
             setCombatStartOpen(false)
             setToast('Бой начат')
+          })
+        }}
+      />
+
+      <EndCombatDialog
+        open={combatEndOpen}
+        busy={busy}
+        combat={session.combat}
+        onClose={() => {
+          setCombatEndOpen(false)
+          setEndCombatThenClose(false)
+        }}
+        onConfirm={(payload) => {
+          void run(async () => {
+            await finishCombat(payload)
+          })
+        }}
+      />
+
+      <InitiativeRollDialog
+        open={initRollEntry != null}
+        busy={busy}
+        entry={initRollEntry}
+        seat={
+          initRollEntry?.kind === 'pc'
+            ? session.seats.find((s) => s.character_id === initRollEntry.ref_id) ?? null
+            : null
+        }
+        onClose={() => setInitRollEntry(null)}
+        onRoll={({ advantage }) => {
+          const entry = initRollEntry
+          if (!entry) return
+          void run(async () => {
+            const updated = await rollSessionCombatInitiative(session.id, {
+              entry_id: entry.id,
+              mode: 'roll',
+              advantage: advantage ?? null,
+            })
+            setSession(updated)
+            setInitRollEntry(null)
+            setToast('Инициатива брошена')
+            await reloadEvents()
+          })
+        }}
+        onManual={(value) => {
+          const entry = initRollEntry
+          if (!entry) return
+          void run(async () => {
+            const updated = await rollSessionCombatInitiative(session.id, {
+              entry_id: entry.id,
+              mode: 'manual',
+              value,
+            })
+            setSession(updated)
+            setInitRollEntry(null)
+            setToast('Инициатива записана')
+            await reloadEvents()
           })
         }}
       />
@@ -1623,7 +1775,15 @@ export function SessionDetailPage() {
         busy={busy}
         seats={session.seats}
         combatants={session.combatants ?? []}
-        onClose={() => setXpOpen(false)}
+        onClose={() => {
+          setXpOpen(false)
+          if (lootOpenAfterXp) {
+            setLootOpenAfterXp(false)
+            setLootOpen(true)
+          } else {
+            afterCombatRewards()
+          }
+        }}
         onSubmit={(payload) => {
           void run(async () => {
             const result = await awardSessionXp(session.id, payload)
@@ -1635,6 +1795,12 @@ export function SessionDetailPage() {
                 : 'XP: 0',
             )
             await reloadEvents()
+            if (lootOpenAfterXp) {
+              setLootOpenAfterXp(false)
+              setLootOpen(true)
+            } else {
+              afterCombatRewards()
+            }
           })
         }}
       />
@@ -1681,7 +1847,10 @@ export function SessionDetailPage() {
         busy={busy}
         seats={session.seats}
         artifacts={settingArtifacts}
-        onClose={() => setLootOpen(false)}
+        onClose={() => {
+          setLootOpen(false)
+          afterCombatRewards()
+        }}
         onSubmit={(payload) => {
           void run(async () => {
             const result = await awardSessionLoot(session.id, payload)
@@ -1689,6 +1858,7 @@ export function SessionDetailPage() {
             setLootOpen(false)
             setToast(`Лут: ${result.summary}`)
             await reloadEvents()
+            afterCombatRewards()
           })
         }}
       />

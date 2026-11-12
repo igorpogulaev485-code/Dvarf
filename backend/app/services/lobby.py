@@ -51,11 +51,16 @@ from app.dnd.setting_templates import (
 )
 from app.dnd.sheet_signals import PartyMemberSnapshot
 from app.dnd.xp import xp_from_cr
+from app.services import session_combat as scmb
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
     CombatEntryOut,
+    CombatFallenOut,
+    CombatInitiativeRequest,
     CombatPatchRequest,
     CombatStartRequest,
+    CombatWaveOut,
+    CombatWaveReminderOut,
     CombatantActionOut,
     CombatantCreateRequest,
     CombatantMemberOut,
@@ -439,6 +444,7 @@ def _parse_combatants(raw: object) -> list[dict]:
                 if isinstance(item.get("xp_claimed_count"), int)
                 else (int(item.get("member_count") or 0) if item.get("xp_claimed") else 0),
             ),
+            "wave_id": str(item["wave_id"]) if item.get("wave_id") else None,
             **_copy_defenses(item),
             "members": members,
             "alive_count": 0,
@@ -484,6 +490,7 @@ def _combatant_out(row: dict) -> SessionCombatantOut:
         dex_mod=int(row["dex_mod"]) if isinstance(row.get("dex_mod"), int) else None,
         xp=int(row["xp"]) if isinstance(row.get("xp"), int) else None,
         xp_claimed_count=max(0, int(row.get("xp_claimed_count") or 0)),
+        wave_id=str(row["wave_id"]) if row.get("wave_id") else None,
         damage_resistances=_str_list(row.get("damage_resistances")),
         damage_immunities=_str_list(row.get("damage_immunities")),
         damage_vulnerabilities=_str_list(row.get("damage_vulnerabilities")),
@@ -518,66 +525,70 @@ def _dex_mod_from_character(character: Character | None) -> int | None:
     return _dex_mod_from_abilities(abilities)
 
 
+
 def _sort_combat_entries(entries: list[dict]) -> list[dict]:
-    return sorted(
-        entries,
-        key=lambda e: (
-            -int(e.get("initiative") or 0),
-            -(e.get("dex_mod") if isinstance(e.get("dex_mod"), int) else -99),
-            str(e.get("name") or ""),
-        ),
+    return scmb.sort_combat_entries(entries)
+
+
+def _parse_combat_state(raw: object, *, combatants: list[dict] | None = None) -> dict:
+    return scmb.parse_combat_state(raw, combatants=combatants)
+
+
+def _combat_entry_out(e: dict) -> CombatEntryOut:
+    return CombatEntryOut(
+        id=e["id"],
+        kind=e["kind"],
+        ref_id=e["ref_id"],
+        companion_id=e.get("companion_id"),
+        name=e["name"],
+        initiative=e.get("initiative"),
+        initiative_pending=bool(e.get("initiative_pending")),
+        dex_mod=e.get("dex_mod") if isinstance(e.get("dex_mod"), int) else None,
+        wave_id=e.get("wave_id"),
+        defer_to_next_round=bool(e.get("defer_to_next_round")),
+        alive_count=e.get("alive_count"),
+        member_count=e.get("member_count"),
+        member_tones=list(e.get("member_tones") or []),
     )
 
 
-def _parse_combat_state(raw: object) -> dict:
-    if not isinstance(raw, dict):
-        return {"active": False, "round": 1, "active_index": 0, "entries": []}
-    entries: list[dict] = []
-    raw_entries = raw.get("entries")
-    if isinstance(raw_entries, list):
-        for item in raw_entries:
-            if not isinstance(item, dict):
-                continue
-            eid = str(item.get("id") or "").strip() or str(uuid4())
-            kind = str(item.get("kind") or "").strip()
-            ref_id = str(item.get("ref_id") or "").strip()
-            name = str(item.get("name") or "").strip()
-            if kind not in {"pc", "companion", "enemy"} or not ref_id or not name:
-                continue
-            companion_id = item.get("companion_id")
-            dex_mod = item.get("dex_mod")
-            entries.append(
-                {
-                    "id": eid,
-                    "kind": kind,
-                    "ref_id": ref_id,
-                    "companion_id": str(companion_id) if companion_id else None,
-                    "name": name,
-                    "initiative": int(item.get("initiative") or 0),
-                    "dex_mod": int(dex_mod) if isinstance(dex_mod, int) else None,
-                }
-            )
-    active = bool(raw.get("active")) and len(entries) > 0
-    active_index = int(raw.get("active_index") or 0)
-    if entries:
-        active_index = max(0, min(len(entries) - 1, active_index))
-    else:
-        active_index = 0
-    return {
-        "active": active,
-        "round": max(1, int(raw.get("round") or 1)),
-        "active_index": active_index,
-        "entries": entries if active else [],
-    }
-
-
-def _combat_out(raw: object) -> SessionCombatOut:
-    state = _parse_combat_state(raw)
+def _combat_out(
+    raw: object,
+    *,
+    combatants: list[dict] | None = None,
+    see_hidden: bool = True,
+) -> SessionCombatOut:
+    combatants = list(combatants or [])
+    state = scmb.parse_combat_state(raw, combatants=combatants)
+    # enrich enemy labels
+    by_id = {str(c.get("id")): c for c in combatants}
+    entries = []
+    for e in state.get("entries") or []:
+        if e.get("kind") == "enemy":
+            e = scmb.enrich_enemy_entry(e, by_id.get(e.get("ref_id")))
+        entries.append(e)
+    state["entries"] = entries
+    filtered, _vis_c = scmb.filter_combat_for_viewer(
+        state, combatants, see_hidden=see_hidden
+    )
+    reminders = (
+        [
+            CombatWaveReminderOut(**r)
+            for r in scmb.wave_reminders(filtered, combatants)
+        ]
+        if see_hidden
+        else []
+    )
     return SessionCombatOut(
-        active=bool(state["active"]),
-        round=int(state["round"]),
-        active_index=int(state["active_index"]),
-        entries=[CombatEntryOut(**e) for e in state["entries"]],
+        active=bool(filtered["active"]),
+        round=int(filtered["round"]),
+        active_index=int(filtered["active_index"]),
+        waiting_reaction=bool(filtered.get("waiting_reaction")),
+        entries=[_combat_entry_out(e) for e in filtered.get("entries") or []],
+        waves=[CombatWaveOut(**w) for w in filtered.get("waves") or []],
+        fallen=[CombatFallenOut(**f) for f in filtered.get("fallen") or []],
+        saved_waves=[CombatWaveOut(**w) for w in filtered.get("saved_waves") or []],
+        wave_reminders=reminders,
     )
 
 
@@ -1998,8 +2009,32 @@ class LobbyService:
         changed = False
         if self.lobbies.get_seat(session.id, payload.character_id) is None:
             self.lobbies.add_seat(session_id=session.id, character_id=payload.character_id)
-            self.db.commit()
             changed = True
+            # S-02: опоздавший в идущий бой — слот «ждём бросок»
+            combat_raw = getattr(session, "combat", None) or {}
+            if isinstance(combat_raw, dict) and combat_raw.get("active"):
+                from sqlalchemy.orm.attributes import flag_modified
+
+                combatants = _parse_combatants(session.combatants)
+                state = _parse_combat_state(combat_raw, combatants=combatants)
+                character = self.characters.get_active(payload.character_id)
+                sheet = character.sheet if character and isinstance(character.sheet, dict) else {}
+                entry = {
+                    "id": str(uuid4()),
+                    "kind": "pc",
+                    "ref_id": str(payload.character_id),
+                    "companion_id": None,
+                    "name": character.name if character else "Герой",
+                    "initiative": None,
+                    "initiative_pending": True,
+                    "dex_mod": scmb.dex_mod_from_sheet(sheet),
+                    "wave_id": None,
+                    "defer_to_next_round": False,
+                }
+                state = scmb.insert_entry(state, entry, respect_current_turn=True)
+                session.combat = scmb.dump_combat_state(state)
+                flag_modified(session, "combat")
+            self.db.commit()
         detail = self.get_session(user, session_id)
         if changed:
             await _broadcast_session_changed(session.id)
@@ -2038,6 +2073,10 @@ class LobbyService:
         for seat in session.seats:
             character = char_map.get(seat.character_id)
             extras = _seat_combat_fields(character)
+            sheet = (character.sheet if character is not None else None) or {}
+            init_bonus, init_adv = scmb.initiative_bonus_from_sheet(
+                sheet if isinstance(sheet, dict) else {}
+            )
             seats.append(
                 SessionSeatOut(
                     character_id=seat.character_id,
@@ -2065,13 +2104,23 @@ class LobbyService:
                     passive_insight=extras["passive_insight"],
                     passive_investigation=extras["passive_investigation"],
                     dex_mod=_dex_mod_from_character(character),
+                    initiative_bonus=init_bonus,
+                    initiative_advantage=init_adv,
                     seated_at=seat.seated_at,
                 )
             )
         members = [_member_out(m, char_map.get(m.character_id)) for m in lobby.members]
-        combatants = [_combatant_out(c) for c in _parse_combatants(session.combatants)]
+        raw_combatants = _parse_combatants(session.combatants)
         flags = roles.permission_flags(self.db, lobby, user, session=session)
         see_hidden = flags["can_see_hidden"]
+        combat_state = scmb.parse_combat_state(
+            getattr(session, "combat", None) or {},
+            combatants=raw_combatants,
+        )
+        _filtered_state, visible_combatants = scmb.filter_combat_for_viewer(
+            combat_state, raw_combatants, see_hidden=see_hidden
+        )
+        combatants = [_combatant_out(c) for c in visible_combatants]
         lead = self.lobbies.get_lead_today_for_session(session.id)
         location_page = None
         location_page_id = getattr(session, "location_page_id", None)
@@ -2109,7 +2158,11 @@ class LobbyService:
             lead_today_user_id=lead.user_id if lead else None,
             seats=seats,
             combatants=combatants,
-            combat=_combat_out(getattr(session, "combat", None) or {}),
+            combat=_combat_out(
+                getattr(session, "combat", None) or {},
+                combatants=raw_combatants,
+                see_hidden=see_hidden,
+            ),
             lobby_members=members,
             visibility_profile=lobby.visibility_profile or {},
             location_page_id=location_page_id if see_hidden else (location_page.id if location_page else None),
@@ -3251,10 +3304,41 @@ class LobbyService:
             "name": base_name,
             "members": members,
             "custom": custom,
+            "wave_id": None,
         }
         _sync_combatant_summary(row)
-        combatants.append(row)
 
+        combat_state = _parse_combat_state(session.combat, combatants=combatants)
+        if combat_state.get("active"):
+            # S-02: «+ Враги» в бою → новая скрытая волна
+            next_index = 1
+            for w in combat_state.get("waves") or []:
+                next_index = max(next_index, int(w.get("index") or 1) + 1)
+            if payload.wave_index is not None:
+                next_index = max(2, int(payload.wave_index))
+            wid = str(uuid4())
+            row["wave_id"] = wid
+            wave = {
+                "id": wid,
+                "index": next_index,
+                "released": False,
+                "condition_text": (payload.wave_condition_text or None),
+                "combatant_ids": [row["id"]],
+            }
+            waves = list(combat_state.get("waves") or [])
+            waves.append(wave)
+            combat_state["waves"] = waves
+            session.combat = scmb.dump_combat_state(combat_state)
+            flag_modified(session, "combat")
+        else:
+            # до боя — волна 1 (выпущена при старте)
+            if payload.wave_index and int(payload.wave_index) > 1:
+                # запомним желаемый индекс в row; waves соберутся при старте
+                row["wave_id"] = None
+                row["_desired_wave_index"] = int(payload.wave_index)
+                row["_desired_wave_condition"] = payload.wave_condition_text
+
+        combatants.append(row)
         session.combatants = combatants
         flag_modified(session, "combatants")
         self.db.commit()
@@ -3331,6 +3415,16 @@ class LobbyService:
         target["members"] = members
         _sync_combatant_summary(target)
 
+        combat_state = _parse_combat_state(session.combat, combatants=combatants)
+        if combat_state.get("active"):
+            combat_state, combatants = scmb.sync_fallen_from_combatants(
+                combat_state, combatants
+            )
+            for c in combatants:
+                _sync_combatant_summary(c)
+            session.combat = scmb.dump_combat_state(combat_state)
+            flag_modified(session, "combat")
+
         session.combatants = combatants
         flag_modified(session, "combatants")
         self.db.commit()
@@ -3358,6 +3452,7 @@ class LobbyService:
         await _broadcast_session_changed(session.id)
         return detail
 
+
     async def start_combat(
         self,
         user: User,
@@ -3370,30 +3465,252 @@ class LobbyService:
         if session.closed_at is not None:
             raise AppError("Сессия закрыта", code="session_closed", status_code=400)
 
+        combatants = _parse_combatants(session.combatants)
+        by_id = {c["id"]: c for c in combatants}
+
+        # Волны из запроса или одна выпущенная волна 1
+        waves: list[dict] = []
+        if payload.waves:
+            for w in payload.waves:
+                wid = str(uuid4())
+                released = True if w.index == 1 else bool(w.released) if w.released is not None else False
+                if w.index == 1:
+                    released = True
+                cids = [cid.strip() for cid in w.combatant_ids if cid.strip()]
+                waves.append(
+                    {
+                        "id": wid,
+                        "index": int(w.index),
+                        "released": released,
+                        "condition_text": (w.condition_text or None),
+                        "combatant_ids": cids,
+                    }
+                )
+                for cid in cids:
+                    if cid in by_id:
+                        by_id[cid]["wave_id"] = wid
+        else:
+            wid = str(uuid4())
+            enemy_ids = [
+                e.ref_id.strip()
+                for e in payload.entries
+                if e.kind == "enemy" and e.ref_id.strip()
+            ]
+            # все текущие combatants тоже в волну 1
+            for c in combatants:
+                if c["id"] not in enemy_ids:
+                    enemy_ids.append(c["id"])
+            waves.append(
+                {
+                    "id": wid,
+                    "index": 1,
+                    "released": True,
+                    "condition_text": None,
+                    "combatant_ids": enemy_ids,
+                }
+            )
+            for cid in enemy_ids:
+                if cid in by_id:
+                    by_id[cid]["wave_id"] = wid
+
+        wave_by_combatant = {
+            cid: w["id"] for w in waves for cid in w.get("combatant_ids") or []
+        }
+        released_wave_ids = {w["id"] for w in waves if w.get("released")}
+
         entries: list[dict] = []
         for item in payload.entries:
+            ref = item.ref_id.strip()
+            pending = bool(item.initiative_pending) or item.initiative is None
+            # враги невыпущенных волн в очередь не ставим
+            if item.kind == "enemy":
+                wid = item.wave_id or wave_by_combatant.get(ref)
+                if wid and wid not in released_wave_ids:
+                    continue
             entries.append(
                 {
                     "id": str(uuid4()),
                     "kind": item.kind,
-                    "ref_id": item.ref_id.strip(),
+                    "ref_id": ref,
                     "companion_id": item.companion_id,
                     "name": item.name.strip(),
-                    "initiative": int(item.initiative),
+                    "initiative": None if pending else int(item.initiative),
+                    "initiative_pending": pending,
                     "dex_mod": item.dex_mod,
+                    "wave_id": item.wave_id or wave_by_combatant.get(ref),
+                    "defer_to_next_round": False,
                 }
             )
         entries = _sort_combat_entries(entries)
-        session.combat = {
-            "active": True,
-            "round": 1,
-            "active_index": 0,
-            "entries": entries,
-        }
+        for e in entries:
+            if e.get("kind") == "enemy":
+                scmb.enrich_enemy_entry(e, by_id.get(e["ref_id"]))
+
+        session.combatants = list(by_id.values()) if by_id else combatants
+        # preserve order of original list with updates
+        ordered = []
+        seen = set()
+        for c in combatants:
+            ordered.append(by_id.get(c["id"], c))
+            seen.add(c["id"])
+        for cid, c in by_id.items():
+            if cid not in seen:
+                ordered.append(c)
+        session.combatants = ordered
+        flag_modified(session, "combatants")
+
+        session.combat = scmb.dump_combat_state(
+            {
+                "active": True,
+                "round": 1,
+                "active_index": 0,
+                "waiting_reaction": False,
+                "entries": entries,
+                "waves": waves,
+                "fallen": [],
+                "saved_waves": list(
+                    (session.combat or {}).get("saved_waves") or []
+                )
+                if isinstance(session.combat, dict)
+                else [],
+            }
+        )
         flag_modified(session, "combat")
         self.db.commit()
         detail = self._session_detail(session, lobby, user)
         await _broadcast_session_changed(session.id)
+        return detail
+
+    async def roll_combat_initiative(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: CombatInitiativeRequest,
+    ) -> SessionDetail:
+        """Игрок бросает за своего ПК; ведущий — за любого. Наблюдатель — 403."""
+        session = self.lobbies.get_session(session_id)
+        if session is None:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lobby = session.lobby
+        self._require_view(lobby, user)
+        if session.closed_at is not None:
+            raise AppError("Сессия закрыта", code="session_closed", status_code=400)
+        roles.require_can_act_on_board(self.db, lobby, user)
+
+        from sqlalchemy.orm.attributes import flag_modified
+
+        combatants = _parse_combatants(session.combatants)
+        state = _parse_combat_state(session.combat, combatants=combatants)
+        if not state.get("active"):
+            raise AppError("Бой не начат", code="combat_inactive", status_code=400)
+
+        can_run = roles.can_run_session(self.db, lobby, user, session)
+        entry = None
+        if payload.entry_id:
+            entry = next(
+                (e for e in state["entries"] if e.get("id") == payload.entry_id),
+                None,
+            )
+        elif payload.character_id is not None:
+            entry = next(
+                (
+                    e
+                    for e in state["entries"]
+                    if e.get("kind") == "pc"
+                    and e.get("ref_id") == str(payload.character_id)
+                ),
+                None,
+            )
+        elif payload.kind and payload.ref_id:
+            entry = next(
+                (
+                    e
+                    for e in state["entries"]
+                    if e.get("kind") == payload.kind
+                    and e.get("ref_id") == payload.ref_id.strip()
+                    and (e.get("companion_id") or None)
+                    == (payload.companion_id or None)
+                ),
+                None,
+            )
+        if entry is None:
+            raise NotFoundError("Участник боя не найден", code="combat_entry_not_found")
+
+        if entry.get("kind") == "pc":
+            member = self.lobbies.get_member(lobby.id, UUID(str(entry["ref_id"])))
+            if not can_run:
+                if member is None or member.user_id != user.id:
+                    raise AppError(
+                        "Можно бросать инициативу только за своего персонажа",
+                        code="forbidden",
+                        status_code=403,
+                    )
+        elif not can_run:
+            raise AppError(
+                "Инициативу врагов и напарников вводит ведущий",
+                code="forbidden",
+                status_code=403,
+            )
+
+        bonus = 0
+        advantage = bool(payload.advantage)
+        formula = None
+        breakdown = None
+        if payload.mode == "manual":
+            if payload.value is None:
+                raise AppError(
+                    "Укажите число инициативы",
+                    code="initiative_value_required",
+                    status_code=400,
+                )
+            total = int(payload.value)
+            formula = "вручную"
+            breakdown = str(total)
+        else:
+            dex = entry.get("dex_mod") if isinstance(entry.get("dex_mod"), int) else 0
+            if entry.get("kind") == "pc":
+                character = self.characters.get_active(UUID(str(entry["ref_id"])))
+                if character is not None:
+                    sheet = character.sheet if isinstance(character.sheet, dict) else {}
+                    dex = scmb.dex_mod_from_sheet(sheet)
+                    b, adv = scmb.initiative_bonus_from_sheet(sheet)
+                    bonus = b
+                    advantage = advantage or adv
+            die, die_note = scmb.roll_d20(advantage=advantage)
+            total = die + dex + bonus
+            formula = f"1к20{(' с преим.' if advantage else '')}{dex:+d}{bonus:+d}" if bonus else f"1к20{(' с преим.' if advantage else '')}{dex:+d}"
+            breakdown = f"{die_note}; ловк. {dex:+d}" + (f"; бонус {bonus:+d}" if bonus else "") + f" → {total}"
+
+        state = scmb.set_entry_initiative(
+            state,
+            entry_id=entry["id"],
+            initiative=total,
+        )
+        session.combat = scmb.dump_combat_state(state)
+        flag_modified(session, "combat")
+
+        event = SessionEvent(
+            session_id=session.id,
+            event_type="roll",
+            character_id=UUID(str(entry["ref_id"])) if entry.get("kind") == "pc" else None,
+            actor_user_id=user.id,
+            character_name=entry.get("name"),
+            title=f"Инициатива: {entry.get('name')}",
+            formula=formula,
+            breakdown=breakdown,
+            total=total,
+            is_master_roll=can_run and entry.get("kind") != "pc",
+            payload={"kind": "initiative", "entry_id": entry["id"]},
+        )
+        self.lobbies.add_session_event(event)
+        self.db.commit()
+        detail = self._session_detail(session, lobby, user)
+        await _broadcast_session_changed(session.id)
+        out_event = SessionEventOut.model_validate(event)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_event", "event": out_event.model_dump(mode="json")},
+        )
         return detail
 
     async def patch_combat(
@@ -3408,15 +3725,171 @@ class LobbyService:
         if session.closed_at is not None:
             raise AppError("Сессия закрыта", code="session_closed", status_code=400)
 
-        state = _parse_combat_state(session.combat)
+        combatants = _parse_combatants(session.combatants)
+        state = _parse_combat_state(session.combat, combatants=combatants)
 
         if payload.action == "end":
-            session.combat = {
-                "active": False,
-                "round": 1,
-                "active_index": 0,
-                "entries": [],
-            }
+            released_ids: set[str] = set()
+            unreleased: list[dict] = []
+            for wave in state.get("waves") or []:
+                if wave.get("released"):
+                    released_ids.update(wave.get("combatant_ids") or [])
+                    for c in combatants:
+                        if str(c.get("wave_id") or "") == wave["id"]:
+                            released_ids.add(str(c["id"]))
+                else:
+                    unreleased.append(wave)
+
+            # убрать павших и выпущенных врагов со стола
+            fallen_combatant_ids = {f["combatant_id"] for f in state.get("fallen") or []}
+            remove_ids = set(released_ids) | fallen_combatant_ids
+            keep_unreleased = bool(payload.keep_unreleased_waves)
+            next_combatants: list[dict] = []
+            saved_waves: list[dict] = []
+            if keep_unreleased and unreleased:
+                keep_ids = set()
+                for w in unreleased:
+                    keep_ids.update(w.get("combatant_ids") or [])
+                    saved = {**w, "released": False}
+                    saved_waves.append(saved)
+                for c in combatants:
+                    cid = str(c.get("id") or "")
+                    if cid in keep_ids:
+                        c["wave_id"] = None
+                        next_combatants.append(c)
+                    elif cid not in remove_ids and str(c.get("wave_id") or "") not in {
+                        w["id"] for w in (state.get("waves") or []) if w.get("released")
+                    }:
+                        # combatants без волны / legacy — если не в released, оставить только если keep
+                        if not c.get("wave_id"):
+                            next_combatants.append(c)
+            else:
+                # выбросить невыпущенные тоже
+                for c in combatants:
+                    cid = str(c.get("id") or "")
+                    wid = str(c.get("wave_id") or "")
+                    wave = next((w for w in (state.get("waves") or []) if w["id"] == wid), None)
+                    if wave and not wave.get("released"):
+                        continue
+                    if cid in remove_ids:
+                        continue
+                    if wave and wave.get("released"):
+                        continue
+                    if not wid and cid in released_ids:
+                        continue
+                    # leftover without wave that weren't in combat — keep
+                    if not wid:
+                        next_combatants.append(c)
+
+            session.combatants = next_combatants
+            flag_modified(session, "combatants")
+
+            summary = (payload.summary or "").strip() or "Бой завершён"
+            event = SessionEvent(
+                session_id=session.id,
+                event_type="combat_end",
+                character_id=None,
+                actor_user_id=user.id,
+                character_name=None,
+                title=summary,
+                formula=None,
+                breakdown=None,
+                total=None,
+                is_master_roll=False,
+                payload={"kind": "combat_end"},
+            )
+            self.lobbies.add_session_event(event)
+
+            # T-01 hook: сброс отметок хода у всех — событие turn_economy_reset
+            await session_hub.broadcast(
+                session.id,
+                {
+                    "type": "turn_economy_reset",
+                    "session_id": str(session.id),
+                    "reason": "combat_end",
+                },
+            )
+
+            session.combat = scmb.empty_combat(saved_waves=saved_waves)
+            flag_modified(session, "combat")
+            self.db.commit()
+            detail = self._session_detail(session, lobby, user)
+            await _broadcast_session_changed(session.id)
+            out_event = SessionEventOut.model_validate(event)
+            await session_hub.broadcast(
+                session.id,
+                {"type": "session_event", "event": out_event.model_dump(mode="json")},
+            )
+            return detail
+
+        if payload.action == "release_wave":
+            if not payload.wave_id:
+                raise AppError("Укажите wave_id", code="wave_id_required", status_code=400)
+            wave = next(
+                (w for w in state.get("waves") or [] if w.get("id") == payload.wave_id),
+                None,
+            )
+            if wave is None:
+                raise NotFoundError("Волна не найдена", code="wave_not_found")
+            if wave.get("released"):
+                raise AppError("Волна уже выпущена", code="wave_already_released", status_code=400)
+            state = scmb.release_wave(state, payload.wave_id)
+            by_id = {c["id"]: c for c in combatants}
+            for cid in wave.get("combatant_ids") or []:
+                c = by_id.get(cid)
+                if c is None:
+                    continue
+                if int(c.get("alive_count") or 0) <= 0:
+                    continue
+                entry = {
+                    "id": str(uuid4()),
+                    "kind": "enemy",
+                    "ref_id": cid,
+                    "companion_id": None,
+                    "name": str(c.get("name") or "Враг"),
+                    "initiative": None,
+                    "initiative_pending": True,
+                    "dex_mod": c.get("dex_mod") if isinstance(c.get("dex_mod"), int) else None,
+                    "wave_id": wave["id"],
+                    "defer_to_next_round": False,
+                }
+                # ведущий может сразу задать инициативу через entries отдельно;
+                # здесь — «ждём бросок» / ввод мастером
+                state = scmb.insert_entry(state, entry, respect_current_turn=True)
+            session.combat = scmb.dump_combat_state(state)
+            flag_modified(session, "combat")
+            self.db.commit()
+            detail = self._session_detail(session, lobby, user)
+            await _broadcast_session_changed(session.id)
+            return detail
+
+        if payload.action == "restore_fallen":
+            if not payload.fallen_id:
+                raise AppError("Укажите fallen_id", code="fallen_id_required", status_code=400)
+            state, combatants = scmb.restore_fallen(
+                state,
+                combatants,
+                payload.fallen_id,
+                hp=payload.restore_hp,
+            )
+            for c in combatants:
+                _sync_combatant_summary(c)
+            session.combatants = combatants
+            flag_modified(session, "combatants")
+            session.combat = scmb.dump_combat_state(state)
+            flag_modified(session, "combat")
+            self.db.commit()
+            detail = self._session_detail(session, lobby, user)
+            await _broadcast_session_changed(session.id)
+            return detail
+
+        if payload.action == "set_waiting_reaction":
+            state["waiting_reaction"] = (
+                bool(payload.waiting_reaction)
+                if payload.waiting_reaction is not None
+                else True
+            )
+            session.combat = scmb.dump_combat_state(state)
             flag_modified(session, "combat")
             self.db.commit()
             detail = self._session_detail(session, lobby, user)
@@ -3426,6 +3899,7 @@ class LobbyService:
         if payload.entries is not None:
             entries = []
             for item in payload.entries:
+                pending = bool(item.initiative_pending) or item.initiative is None
                 entries.append(
                     {
                         "id": str(uuid4()),
@@ -3433,46 +3907,60 @@ class LobbyService:
                         "ref_id": item.ref_id.strip(),
                         "companion_id": item.companion_id,
                         "name": item.name.strip(),
-                        "initiative": int(item.initiative),
+                        "initiative": None if pending else int(item.initiative),
+                        "initiative_pending": pending,
                         "dex_mod": item.dex_mod,
+                        "wave_id": item.wave_id,
+                        "defer_to_next_round": False,
                     }
                 )
             state["entries"] = _sort_combat_entries(entries)
-            state["active"] = len(state["entries"]) > 0
+            state["active"] = True
             state["active_index"] = 0
             state["round"] = 1
 
-        if not state["entries"]:
+        if not state.get("active"):
             raise AppError("Бой не начат", code="combat_inactive", status_code=400)
 
-        n = len(state["entries"])
-        idx = int(state["active_index"])
-        round_no = int(state["round"])
+        prev_active = None
+        if state.get("entries") and 0 <= int(state.get("active_index") or 0) < len(state["entries"]):
+            prev_active = state["entries"][int(state["active_index"])]
 
         if payload.action == "next":
-            idx += 1
-            if idx >= n:
-                idx = 0
-                round_no += 1
+            state = scmb.advance_turn(state, direction=1)
         elif payload.action == "prev":
-            idx -= 1
-            if idx < 0:
-                idx = n - 1
-                round_no = max(1, round_no - 1)
+            state = scmb.advance_turn(state, direction=-1)
         elif payload.action not in (None, ""):
             raise AppError("Неизвестное действие боя", code="combat_bad_action", status_code=400)
 
-        if payload.active_index is not None:
-            idx = max(0, min(n - 1, int(payload.active_index)))
+        if payload.active_index is not None and state.get("entries"):
+            n = len(state["entries"])
+            state["active_index"] = max(0, min(n - 1, int(payload.active_index)))
         if payload.round is not None:
-            round_no = max(1, int(payload.round))
+            state["round"] = max(1, int(payload.round))
 
-        session.combat = {
-            "active": True,
-            "round": round_no,
-            "active_index": idx,
-            "entries": state["entries"],
-        }
+        # T-01 hook: начало хода героя
+        cur = None
+        if state.get("entries") and 0 <= int(state.get("active_index") or 0) < len(state["entries"]):
+            cur = state["entries"][int(state["active_index"])]
+        if (
+            payload.action in ("next", "prev")
+            or payload.active_index is not None
+        ) and cur is not None:
+            if prev_active is None or prev_active.get("id") != cur.get("id"):
+                if cur.get("kind") == "pc" and not cur.get("initiative_pending"):
+                    await session_hub.broadcast(
+                        session.id,
+                        {
+                            "type": "turn_started",
+                            "session_id": str(session.id),
+                            "character_id": cur.get("ref_id"),
+                            "entry_id": cur.get("id"),
+                            "round": state.get("round"),
+                        },
+                    )
+
+        session.combat = scmb.dump_combat_state(state)
         flag_modified(session, "combat")
         self.db.commit()
         detail = self._session_detail(session, lobby, user)
