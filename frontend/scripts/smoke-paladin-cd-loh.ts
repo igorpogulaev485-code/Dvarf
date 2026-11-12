@@ -44,6 +44,10 @@ assert(
   !cdOpts.some((f) => f.id === 'channel_divinity'),
   'cleric tracker id must not appear',
 )
+assert(
+  cdOpts.some((f) => f.id === 'cd_harness_divine_power'),
+  'HDP listed as CD option',
+)
 
 const desired = desiredResourcesFromFeatures({
   features: unlocked,

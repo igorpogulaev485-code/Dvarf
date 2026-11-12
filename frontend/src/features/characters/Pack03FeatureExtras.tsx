@@ -2,13 +2,14 @@ import { useState } from 'react'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import { domainChannelEffect } from '../../shared/dnd/domainChannelEffect'
 import {
+  featureResourceId,
   findFeatureResource,
   spendFeatureUse,
   spendRemaining,
 } from '../../shared/dnd/featureResources'
 import {
+  applyHarnessDivinePower,
   harnessDivinePowerSlotCap,
-  restoreOneSpentSlot,
   spentSlotLevels,
 } from '../../shared/dnd/harnessDivinePower'
 import {
@@ -105,17 +106,23 @@ function HarnessControls({
     'channel_divinity',
     feature.classEntryId,
   )
-  const cap = harnessDivinePowerSlotCap(proficiencyBonusForTotalLevel(characterLevel))
+  const pb = proficiencyBonusForTotalLevel(characterLevel)
+  const cap = harnessDivinePowerSlotCap(pb)
   const options = spentSlotLevels(spells.slots, cap)
   const dailyLeft = spendRemaining(daily)
   const channelLeft = spendRemaining(channel)
   const picked = options.includes(level) ? level : (options[0] ?? 0)
+  const channelResourceId = featureResourceId(
+    classSlug,
+    'channel_divinity',
+    feature.classEntryId,
+  )
 
   return (
     <div className="feature-resource">
       <Text tone="muted">
         Дневных {dailyLeft}/{daily?.max ?? 0} · канал {channelLeft}/{channel?.max ?? 0}. Потолок
-        круга: {cap}.
+        круга: {cap}. Основное место — диалог Божественного канала (и заряд предмета).
       </Text>
       {options.length === 0 ? (
         <Text tone="muted">Нет потраченных ячеек круга 1–{cap}.</Text>
@@ -140,43 +147,22 @@ function HarnessControls({
           type="button"
           disabled={!daily || !channel || dailyLeft <= 0 || channelLeft <= 0 || picked <= 0}
           onClick={() => {
-            if (!daily || !channel) {
-              onToast?.('Пулы Праведного восстановления ещё не синхронизированы')
-              return
-            }
-            const restored = restoreOneSpentSlot(spells.slots, picked, cap)
-            if (!restored.ok) {
-              onToast?.(restored.reason)
-              return
-            }
-            const spentDaily = spendFeatureUse({ resources, feature, classSlug })
-            if (!spentDaily.ok) {
-              onToast?.(spentDaily.message)
-              return
-            }
-            const spentChannel = spendFeatureUse({
-              resources: spentDaily.resources,
+            const result = applyHarnessDivinePower({
+              resources,
+              slots: spells.slots,
+              channelResourceId,
+              feature,
               classSlug,
-              feature: {
-                ...feature,
-                resource: {
-                  uses: 1,
-                  recharge: 'short_rest',
-                  pool_id: 'channel_divinity',
-                  pool_name_ru: 'Божественный канал',
-                  track: 'spend',
-                },
-              },
+              slotLevel: picked,
+              proficiencyBonus: pb,
             })
-            if (!spentChannel.ok) {
-              onToast?.(spentChannel.message)
+            if (!result.ok) {
+              onToast?.(result.reason)
               return
             }
-            onResourcesChange(spentChannel.resources)
-            onSpellsChange({ ...spells, slots: restored.slots })
-            onToast?.(
-              `Праведное восстановление: ячейка ${picked} круга возвращена. Канал и дневной заряд потрачены.`,
-            )
+            onResourcesChange(result.resources)
+            onSpellsChange({ ...spells, slots: result.slots })
+            onToast?.(result.message)
           }}
         >
           Вернуть ячейку
