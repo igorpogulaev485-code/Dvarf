@@ -31,7 +31,10 @@ import { withSpellFocusFlags } from '../spellFocus'
 import { syncWizardSpellbookWithInventory } from '../wizardSpellbookInventory'
 import { abilityModifier } from '../sheetTypes'
 import { sheetDamageProfile } from '../gearEffects'
-import { listRollDieChips } from '../../../shared/dnd/activeEffects'
+import {
+  listRollDieChips,
+  weaponBonusesFromActiveEffects,
+} from '../../../shared/dnd/activeEffects'
 
 function mergeToolNames(base: string[], extra: string[]): string[] {
   const seen = new Set(base.map((name) => name.trim().toLowerCase()))
@@ -131,6 +134,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             abilities={model.effectiveAbilities}
             proficiencyBonus={model.proficiencyBonus}
             gearBonusesByItem={model.gearEffects.byItem}
+            effectWeaponBonus={weaponBonusesFromActiveEffects(model.draft.play.effects)}
             fightingStyleId={model.activeFightingStyleId}
             fightingStyleIds={model.fightingStyleIds}
             infusionByItem={model.infusionBonuses.weaponByItem}
@@ -414,6 +418,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               raceSlug: model.draft.raceGrant?.slug,
               raceResistances: model.draft.raceGrant?.damageResistances,
               gear: model.gearEffects,
+              effects: model.draft.play.effects,
             }),
           ),
           model.gearEffects.conditionImmunities,

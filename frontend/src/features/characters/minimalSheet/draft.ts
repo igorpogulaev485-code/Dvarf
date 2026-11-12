@@ -88,6 +88,8 @@ export type Draft = {
   hpCurrent: number | null
   hpMax: number | null
   ac: number | null
+  /** B-09 / Р3: preferred AC formula key (combat.ac_formula_key). */
+  acFormulaKey: string | null
   speed: number | null
   climbSpeed: number | null
   swimSpeed: number | null
@@ -289,6 +291,10 @@ export function buildDraft(character: CharacterDetail): Draft {
     hpCurrent: character.hp_current ?? readNullableNumber(combat.hp_current),
     hpMax: character.hp_max ?? readNullableNumber(combat.hp_max),
     ac: readNullableNumber(combat.ac),
+    acFormulaKey:
+      typeof combat.ac_formula_key === 'string' && combat.ac_formula_key.trim()
+        ? combat.ac_formula_key.trim()
+        : null,
     speed,
     climbSpeed: readNullableNumber(combat.climb_speed ?? combat.climbSpeed),
     swimSpeed: readNullableNumber(combat.swim_speed ?? combat.swimSpeed),

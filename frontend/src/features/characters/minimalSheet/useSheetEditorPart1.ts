@@ -442,25 +442,33 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
   useSheetEffectsRealtime({
     characterId: baseCharacter.id,
     enabled: Boolean(baseCharacter.id),
-    onEffects: (effects, remoteVersion) => {
-      if (remoteVersion <= sheetVersion) return
-      setSheetVersion(remoteVersion)
+    onEffects: (patch) => {
+      if (patch.sheetVersion <= sheetVersion) return
+      setSheetVersion(patch.sheetVersion)
       setDraft((prev) => ({
         ...prev,
+        ...(patch.hpMax != null ? { hpMax: patch.hpMax } : {}),
+        ...(patch.hpCurrent != null ? { hpCurrent: patch.hpCurrent } : {}),
         play: {
           ...prev.play,
-          effects: applyEffectStacking(effects),
+          effects: applyEffectStacking(patch.effects),
+          ...(patch.hpTemp != null ? { hpTemp: patch.hpTemp } : {}),
         },
       }))
       setBaseCharacter((prev: CharacterDetail) => {
         const sheet = { ...(prev.sheet || {}) } as Record<string, unknown>
         const combat = {
           ...((sheet.combat as Record<string, unknown> | undefined) || {}),
-          effects,
+          effects: patch.effects,
+          ...(patch.hpMax != null ? { hp_max: patch.hpMax } : {}),
+          ...(patch.hpCurrent != null ? { hp_current: patch.hpCurrent } : {}),
+          ...(patch.hpTemp != null ? { hp_temp: patch.hpTemp } : {}),
         }
         return {
           ...prev,
-          sheet_version: remoteVersion,
+          sheet_version: patch.sheetVersion,
+          ...(patch.hpMax != null ? { hp_max: patch.hpMax } : {}),
+          ...(patch.hpCurrent != null ? { hp_current: patch.hpCurrent } : {}),
           sheet: { ...sheet, combat },
         }
       })

@@ -17,7 +17,12 @@ import {
   type BonusDiePart,
   type DeskRollMode,
 } from '../deskRolls'
-import { listRollDieChips } from '../../../shared/dnd/activeEffects'
+import {
+  chooseTempHpPool,
+  listRollDieChips,
+  saveBonusFromActiveEffects,
+  skillBonusFromActiveEffects,
+} from '../../../shared/dnd/activeEffects'
 import { formatSaveAdvantageNote } from '../gearEffects'
 import { isMantleCommandSpell, MANTLE_CONCENTRATION_ID, silverTongueApplies } from '../../../shared/dnd/bardCollege'
 import { exhaustionRollFlags } from '../../../shared/dnd/exhaustion2014'
@@ -310,7 +315,6 @@ export function installSheetActions4(model: SheetModel) {
     const successToast = (message: string) => {
       castSucceeded = true
       model.onToast(message)
-      const targets = choice.allyTargetIds ?? []
       const sourceId = String(model.baseCharacter.id)
       void (async () => {
         if (spell.concentration) {
@@ -318,12 +322,59 @@ export function installSheetActions4(model: SheetModel) {
             clearConcentration: false,
           }).catch(() => null)
         }
-        if (targets.length === 0) return
+        const castingAbility = model.draft.spells.casting_ability as AbilityKey | undefined
+        const casterMod =
+          castingAbility && model.draft.abilities[castingAbility] != null
+            ? abilityModifier(model.draft.abilities[castingAbility] as number)
+            : abilityModifier(model.draft.abilities.cha ?? 10)
         const res = await applySpellBuffToTargets({
           spell,
           choice,
           sourceCharacterId: sourceId,
           sourceName: model.draft.name || model.baseCharacter.name || 'Заклинатель',
+          casterMod,
+          buffOption: choice.buffOption ?? null,
+          onHpMaxGrant: (bonus) => {
+            model.setDraft((prev) => ({
+              ...prev,
+              hpMax: Math.max(1, (prev.hpMax ?? 0) + bonus),
+              hpCurrent: (prev.hpCurrent ?? 0) + bonus,
+            }))
+          },
+          onTempHpGrant: (incoming) => {
+            const current = Math.max(0, model.draft.play.hpTemp || 0)
+            if (current <= 0) {
+              model.setDraft((prev) => ({
+                ...prev,
+                play: { ...prev.play, hpTemp: incoming },
+              }))
+              return true
+            }
+            // Ask via model hook (TempHpReplaceDialog). Fallback: keep larger.
+            const ask = model.askTempHpReplace as
+              | ((input: { current: number; incoming: number }) => Promise<'keep' | 'replace'>)
+              | undefined
+            if (typeof ask === 'function') {
+              return ask({ current, incoming }).then((choiceKeep: 'keep' | 'replace') => {
+                const next = chooseTempHpPool(
+                  current,
+                  incoming,
+                  choiceKeep === 'keep' ? 'keep' : 'replace',
+                )
+                model.setDraft((prev) => ({
+                  ...prev,
+                  play: { ...prev.play, hpTemp: next },
+                }))
+                return next === incoming
+              })
+            }
+            const next = Math.max(current, incoming)
+            model.setDraft((prev) => ({
+              ...prev,
+              play: { ...prev.play, hpTemp: next },
+            }))
+            return next === incoming
+          },
           onApplyLocal: (effect: ActiveEffect) => {
             model.setDraft((prev) => ({
               ...prev,
@@ -829,7 +880,8 @@ export function installSheetActions4(model: SheetModel) {
         isExpertise: state?.is_expertise ?? false,
       }) +
       (model.gearEffects.skillBonuses[skillKey] ?? 0) +
-      (model.featureSkillBonuses?.[skillKey] ?? 0)
+      (model.featureSkillBonuses?.[skillKey] ?? 0) +
+      skillBonusFromActiveEffects(model.draft.play.effects, skillKey)
     )
   }
 
@@ -982,7 +1034,10 @@ export function installSheetActions4(model: SheetModel) {
             intelligenceScore: model.draft.abilities.int ?? 10,
           })
         : null
-    const rolledMod = mod + (song?.active ? song.concentrationSave : 0)
+    const effectSave =
+      saveBonusFromActiveEffects(model.draft.play.effects, key) +
+      saveBonusFromActiveEffects(model.draft.play.effects, 'all')
+    const rolledMod = mod + (song?.active ? song.concentrationSave : 0) + effectSave
     const songNote = song?.active ? ` · песнь +${song.concentrationSave}` : ''
     const exhaustion = model.exhaustionFlags().disadvantageOnAttacksAndSaves
     const note =

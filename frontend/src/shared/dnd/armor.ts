@@ -178,6 +178,11 @@ export type UnarmoredDefense = {
   labelRu: string
   /** Second ability added on top of DEX. */
   secondMod: AbilityModKey
+  /**
+   * Barbarian: shield ok. Monk (PHB p.78): no armor and no shield.
+   * Default true for back-compat; callers must pass false for monk.
+   */
+  allowsShield?: boolean
 }
 
 /**
@@ -191,6 +196,23 @@ export type CompetingAcFormula = {
   /** null/omitted = full Dex. 0 = ignore Dex. N = cap. */
   dexCap?: number | null
   allowsShield?: boolean
+  /** Stable id for preferred-formula persistence (combat.ac_formula_key). */
+  key?: string
+}
+
+/** Floor on final AC (barkskin: never below 16). Applied after formula + shield. */
+export type AcMinFloor = {
+  value: number
+  label: string
+}
+
+export type AcFormulaCandidate = {
+  key: string
+  label: string
+  /** AC before flat bonuses (style / gear / effects add), with shield if allowed. */
+  ac: number
+  summary: string
+  allowsShield: boolean
 }
 
 function dexContribution(dex: number, cap: number | null | undefined): number {
@@ -210,6 +232,8 @@ export function mageArmorCompetingFormula(
 }
 
 type AcCandidate = {
+  key: string
+  label: string
   ac: number
   summary: string
   allowsShield: boolean
@@ -229,20 +253,51 @@ function withShield(
   }
 }
 
-function bestCandidate(
+function slugKey(label: string): string {
+  return label
+    .trim()
+    .toLocaleLowerCase('ru')
+    .replace(/\s+/g, '_')
+    .replace(/[^\p{L}\p{N}_-]/gu, '')
+}
+
+function applyAcFloor(
+  ac: number,
+  summary: string,
+  floor: AcMinFloor | null | undefined,
+): { ac: number; summary: string; floorApplied: string | null } {
+  if (!floor || ac >= floor.value) {
+    return { ac, summary, floorApplied: null }
+  }
+  return {
+    ac: floor.value,
+    summary: `${summary} · ${floor.label}`,
+    floorApplied: floor.label,
+  }
+}
+
+function pickCandidate(
   candidates: AcCandidate[],
   shield: ShieldPiece | null,
-): { ac: number; summary: string } {
-  let winner = candidates[0]
-  let winnerAc = withShield(winner, shield).ac
-  for (const candidate of candidates.slice(1)) {
-    const next = withShield(candidate, shield).ac
-    if (next > winnerAc) {
-      winner = candidate
-      winnerAc = next
+  preferredKey?: string | null,
+): { ac: number; summary: string; winner: AcCandidate } {
+  const ranked = candidates.map((candidate) => ({
+    candidate,
+    scored: withShield(candidate, shield),
+  }))
+  const preferred =
+    preferredKey && preferredKey.trim()
+      ? ranked.find((row) => row.candidate.key === preferredKey.trim())
+      : null
+  let winner = ranked[0]
+  if (preferred) {
+    winner = preferred
+  } else {
+    for (const row of ranked.slice(1)) {
+      if (row.scored.ac > winner.scored.ac) winner = row
     }
   }
-  return withShield(winner, shield)
+  return { ac: winner.scored.ac, summary: winner.scored.summary, winner: winner.candidate }
 }
 
 export function computeArmorClass(input: {
@@ -255,12 +310,23 @@ export function computeArmorClass(input: {
   /** Used only when no body armor is worn. Competes with other unarmored formulas. */
   unarmoredDefense?: UnarmoredDefense | null
   /**
-   * Extra formulas (robe, mage armor, barrier tattoo). Ignored while body armor
-   * is worn. The best of armor / natural / unarmored defense / these wins;
-   * a shield is added afterwards when that formula allows it.
+   * Extra formulas (robe, mage armor, barrier tattoo, buffs). Ignored while body
+   * armor is worn (except acMinFloor, which always applies). Best wins unless
+   * preferredFormulaKey still names an available candidate (Р3).
    */
   extraFormulas?: CompetingAcFormula[] | null
-}): { ac: number; summary: string } {
+  /** Persisted choice (combat.ac_formula_key); ignored if candidate gone. */
+  preferredFormulaKey?: string | null
+  /** Barkskin-style floor on the final AC (Р2). */
+  acMinFloor?: AcMinFloor | null
+}): {
+  ac: number
+  summary: string
+  formulaKey: string
+  formulaLabel: string
+  candidates: AcFormulaCandidate[]
+  floorApplied: string | null
+} {
   const dex = Math.floor(input.dexMod)
   const mods: Partial<Record<AbilityModKey, number>> = {
     dex,
@@ -270,6 +336,7 @@ export function computeArmorClass(input: {
 
   const natural = input.naturalArmor ?? null
   const ud = input.unarmoredDefense ?? null
+  const floor = input.acMinFloor ?? null
 
   if (input.armor) {
     let ac: number
@@ -299,7 +366,24 @@ export function computeArmorClass(input: {
       ac += bonus
       parts.push(`щит +${bonus}`)
     }
-    return { ac, summary: parts.join(' · ') }
+    const floored = applyAcFloor(ac, parts.join(' · '), floor)
+    const key = 'armor'
+    return {
+      ac: floored.ac,
+      summary: floored.summary,
+      formulaKey: key,
+      formulaLabel: name,
+      candidates: [
+        {
+          key,
+          label: name,
+          ac: floored.ac,
+          summary: floored.summary,
+          allowsShield: true,
+        },
+      ],
+      floorApplied: floored.floorApplied,
+    }
   }
 
   const candidates: AcCandidate[] = []
@@ -317,19 +401,34 @@ export function computeArmorClass(input: {
         capped >= 0 ? '+' : ''
       }${capped}`
     }
-    candidates.push({ ac, summary, allowsShield: natural.allowsShield })
-  }
-  if (ud) {
-    const second = Math.floor(mods[ud.secondMod] ?? 0)
     candidates.push({
-      ac: 10 + dex + second,
-      summary: `${ud.labelRu} 10+ЛОВ${dex >= 0 ? '+' : ''}${dex}+${MOD_LABEL[ud.secondMod]}${
-        second >= 0 ? '+' : ''
-      }${second}`,
-      allowsShield: true,
+      key: natural.labelRu ? slugKey(natural.labelRu) : 'natural_armor',
+      label: natural.labelRu || 'Природная броня',
+      ac,
+      summary,
+      allowsShield: natural.allowsShield,
     })
   }
+  if (ud) {
+    const udAllowsShield = ud.allowsShield !== false
+    // Monk: feature requires no armor and no shield — omit the candidate entirely.
+    const monkBlockedByShield = !udAllowsShield && Boolean(input.shield)
+    if (!monkBlockedByShield) {
+      const second = Math.floor(mods[ud.secondMod] ?? 0)
+      candidates.push({
+        key: `unarmored_${ud.secondMod}`,
+        label: ud.labelRu,
+        ac: 10 + dex + second,
+        summary: `${ud.labelRu} 10+ЛОВ${dex >= 0 ? '+' : ''}${dex}+${MOD_LABEL[ud.secondMod]}${
+          second >= 0 ? '+' : ''
+        }${second}`,
+        allowsShield: udAllowsShield,
+      })
+    }
+  }
   candidates.push({
+    key: 'dex_default',
+    label: '10+ЛОВ',
     ac: 10 + dex,
     summary: `10+ЛОВ ${dex >= 0 ? '+' : ''}${dex}`,
     allowsShield: true,
@@ -345,11 +444,33 @@ export function computeArmorClass(input: {
           : `+ЛОВ≤${Math.floor(formula.dexCap)}`
     }
     candidates.push({
+      key: formula.key?.trim() || slugKey(formula.label),
+      label: formula.label,
       ac: base + dexPart,
       summary,
       allowsShield: formula.allowsShield !== false,
     })
   }
 
-  return bestCandidate(candidates, input.shield)
+  const picked = pickCandidate(candidates, input.shield, input.preferredFormulaKey)
+  const floored = applyAcFloor(picked.ac, picked.summary, floor)
+  const listed: AcFormulaCandidate[] = candidates.map((candidate) => {
+    const scored = withShield(candidate, input.shield)
+    const withFloor = applyAcFloor(scored.ac, scored.summary, floor)
+    return {
+      key: candidate.key,
+      label: candidate.label,
+      ac: withFloor.ac,
+      summary: withFloor.summary,
+      allowsShield: candidate.allowsShield,
+    }
+  })
+  return {
+    ac: floored.ac,
+    summary: floored.summary,
+    formulaKey: picked.winner.key,
+    formulaLabel: picked.winner.label,
+    candidates: listed,
+    floorApplied: floored.floorApplied,
+  }
 }

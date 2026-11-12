@@ -6,6 +6,7 @@
  */
 
 import type { CompetingAcFormula } from '../../shared/dnd/armor'
+import { defensesFromActiveEffects } from '../../shared/dnd/activeEffects'
 import {
   addDefense,
   emptyDamageProfile,
@@ -883,6 +884,8 @@ export function sheetDamageProfile(input: {
   raceSlug?: string | null
   raceResistances?: string[] | null
   gear?: Pick<AggregatedGearEffects, 'resistances' | 'vulnerabilities' | 'immunities'> | null
+  /** B-02: resistances / immunities from combat.effects. */
+  effects?: unknown
 }): IncomingDamageProfile {
   const gear = input.gear ?? emptyAggregatedGearEffects()
   const profile = emptyDamageProfile()
@@ -905,6 +908,15 @@ export function sheetDamageProfile(input: {
   for (const row of gear.immunities) {
     for (const source of row.sources.length ? row.sources : ['предмет']) {
       addDefense(profile.immunities, row.type, source, row.nonmagical)
+    }
+  }
+  if (input.effects != null) {
+    for (const row of defensesFromActiveEffects(input.effects)) {
+      if (row.kind === 'immunity') {
+        addDefense(profile.immunities, row.type, row.source, row.nonmagical)
+      } else {
+        addDefense(profile.resistances, row.type, row.source, row.nonmagical)
+      }
     }
   }
   return profile

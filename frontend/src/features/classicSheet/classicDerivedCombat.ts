@@ -6,6 +6,10 @@
 
 import type { CharacterDetail } from '../../shared/api/characters'
 import { computeArmorClass, mageArmorCompetingFormula } from '../../shared/dnd/armor'
+import {
+  acFormulasFromActiveEffects,
+  acMinFromActiveEffects,
+} from '../../shared/dnd/activeEffects'
 import { readConcentration } from '../../shared/dnd/concentration'
 import { unlockFeaturesForClasses } from '../../shared/dnd/classFeatures'
 import {
@@ -154,19 +158,49 @@ export function classicAutoArmorClass(character: CharacterDetail): number {
   const unarmoredDefense = (() => {
     if (pieces.armor) return null
     if (unlocked.some((feature) => feature.id === 'unarmored_defense_barb')) {
-      return { labelRu: 'Защита без доспехов', secondMod: 'con' as const }
+      return {
+        labelRu: 'Защита без доспехов',
+        secondMod: 'con' as const,
+        allowsShield: true,
+      }
     }
     if (unlocked.some((feature) => feature.id === 'unarmored_defense_monk')) {
-      return { labelRu: 'Защита без доспехов', secondMod: 'wis' as const }
+      return {
+        labelRu: 'Защита без доспехов',
+        secondMod: 'wis' as const,
+        allowsShield: false,
+      }
     }
     return null
   })()
 
   const concentration = readConcentration(asRecord(sheet.combat).concentration)
   const mageArmor = pieces.armor ? null : mageArmorCompetingFormula(concentration?.name)
+  const mageFormula = mageArmor ? { ...mageArmor, key: 'mage_armor' } : null
+  const combatEffects = asRecord(sheet.combat).effects
+  const effectFormulas = pieces.armor ? [] : acFormulasFromActiveEffects(combatEffects)
+  const hasDraconic = unlocked.some((feature) => feature.id === 'draconic_resilience')
+  const draconic = !pieces.armor && hasDraconic
+    ? {
+        key: 'draconic_resilience',
+        label: 'Драконья устойчивость',
+        base: 13,
+        dexCap: null as number | null,
+        allowsShield: true,
+      }
+    : null
   const extraFormulas = pieces.armor
     ? []
-    : [...gear.acFormulas, ...(mageArmor ? [mageArmor] : [])]
+    : [
+        ...gear.acFormulas,
+        ...(mageFormula ? [mageFormula] : []),
+        ...effectFormulas,
+        ...(draconic ? [draconic] : []),
+      ]
+  const preferredKey =
+    typeof asRecord(sheet.combat).ac_formula_key === 'string'
+      ? String(asRecord(sheet.combat).ac_formula_key)
+      : null
   const base = computeArmorClass({
     dexMod: mods.dex,
     abilityMods: mods,
@@ -175,6 +209,8 @@ export function classicAutoArmorClass(character: CharacterDetail): number {
     naturalArmor,
     unarmoredDefense,
     extraFormulas,
+    preferredFormulaKey: preferredKey,
+    acMinFloor: acMinFromActiveEffects(combatEffects),
   })
 
   const featGrants = readFeatGrantLedger(sheet.feat_grants)

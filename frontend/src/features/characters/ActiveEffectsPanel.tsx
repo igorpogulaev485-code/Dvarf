@@ -1,4 +1,4 @@
-/** Блок «Активные эффекты» на листе цели (B-01). */
+/** Блок «Активные эффекты» на листе цели (B-01 / B-02). */
 import {
   applyEffectStacking,
   formatEffectRemaining,
@@ -11,9 +11,16 @@ type Props = {
   effects: ActiveEffect[]
   onChange: (effects: ActiveEffect[]) => void
   onToast?: (message: string) => void
+  /** Heroism: grant temp HP equal to caster mod at start of turn. */
+  onHeroismTurnStart?: () => void
 }
 
-export function ActiveEffectsPanel({ effects, onChange, onToast }: Props) {
+export function ActiveEffectsPanel({
+  effects,
+  onChange,
+  onToast,
+  onHeroismTurnStart,
+}: Props) {
   const rows = applyEffectStacking(effects ?? [])
   if (rows.length === 0) {
     return (
@@ -22,6 +29,8 @@ export function ActiveEffectsPanel({ effects, onChange, onToast }: Props) {
       </div>
     )
   }
+
+  const hasHeroism = rows.some((row) => row.slug === 'heroism' && !row.inactive)
 
   return (
     <div className="active-effects panel" data-testid="active-effects">
@@ -83,6 +92,11 @@ export function ActiveEffectsPanel({ effects, onChange, onToast }: Props) {
             </div>
           )
         })}
+        {hasHeroism && onHeroismTurnStart ? (
+          <Button type="button" variant="secondary" onClick={onHeroismTurnStart}>
+            Начало хода (Героизм)
+          </Button>
+        ) : null}
         <Button
           type="button"
           variant="secondary"

@@ -46,6 +46,12 @@ import { isCastableSpellScroll } from '../spellScroll'
 import { applyInstantDice, instantDice } from '../gearCharges'
 import { type SheetSpell } from '../spells'
 import { abilityModifier, formatModifier, type AbilityKey } from '../sheetTypes'
+import {
+  clampHpAfterMaxLoss,
+  hpMaxBonusFromSingleEffect,
+  parseActiveEffects,
+  type ActiveEffect,
+} from '../../../shared/dnd/activeEffects'
 
 export function useSheetEditorPart4(model: SheetModel) {
 
@@ -179,6 +185,88 @@ export function useSheetEditorPart4(model: SheetModel) {
   const [acBreakdownOpen, setAcBreakdownOpen] = useState(false)
   model.acBreakdownOpen = acBreakdownOpen
   model.setAcBreakdownOpen = setAcBreakdownOpen
+  const [tempHpReplaceAsk, setTempHpReplaceAsk] = useState<{
+    current: number
+    incoming: number
+    resolve: (choice: 'keep' | 'replace') => void
+  } | null>(null)
+  model.tempHpReplaceAsk = tempHpReplaceAsk
+  model.setTempHpReplaceAsk = setTempHpReplaceAsk
+  model.askTempHpReplace = (input: { current: number; incoming: number }) =>
+    new Promise<'keep' | 'replace'>((resolve) => {
+      setTempHpReplaceAsk({
+        current: input.current,
+        incoming: input.incoming,
+        resolve: (choice) => {
+          setTempHpReplaceAsk(null)
+          resolve(choice)
+        },
+      })
+    })
+  model.applyEffectsChange = (nextEffects: ActiveEffect[]) => {
+    model.setDraft((prev) => {
+      const prevRows = parseActiveEffects(prev.play.effects)
+      const nextIds = new Set(nextEffects.map((row) => row.id))
+      const removed = prevRows.filter((row) => !nextIds.has(row.id))
+      let hpMax = prev.hpMax ?? 1
+      let hpCurrent = prev.hpCurrent ?? 0
+      let hpTemp = prev.play.hpTemp
+      for (const row of removed) {
+        const lost = hpMaxBonusFromSingleEffect({ ...row, inactive: false })
+        if (lost > 0) {
+          const clamped = clampHpAfterMaxLoss({
+            hpCurrent: hpCurrent ?? 0,
+            hpMaxBefore: hpMax ?? 1,
+            lostMax: lost,
+          })
+          hpMax = clamped.hpMax
+          hpCurrent = clamped.hpCurrent
+        }
+        const clearsTemp = (row.mods ?? []).some(
+          (mod) =>
+            mod.target === 'temp_hp' &&
+            (mod.condition === 'clear_on_end' || row.slug === 'tensers_transformation'),
+        )
+        if (clearsTemp) hpTemp = 0
+      }
+      return {
+        ...prev,
+        hpMax,
+        hpCurrent,
+        play: { ...prev.play, effects: nextEffects, hpTemp },
+      }
+    })
+  }
+  model.applyHeroismTurnStart = () => {
+    const effects = model.draft.play.effects ?? []
+    const heroism = effects.find(
+      (row: { slug?: string | null; inactive?: boolean }) =>
+        row.slug === 'heroism' && !row.inactive,
+    )
+    if (!heroism) {
+      model.onToast('Нет эффекта «Героизм»')
+      return
+    }
+    const mod =
+      heroism.mods?.find((m: { target?: string }) => m.target === 'temp_hp')?.value ?? 0
+    if (typeof mod !== 'number' || mod <= 0) return
+    const current = model.draft.play.hpTemp || 0
+    if (current > 0 && current !== mod) {
+      void model.askTempHpReplace({ current, incoming: mod }).then((choice: 'keep' | 'replace') => {
+        if (choice === 'replace') {
+          model.setDraft((prev: typeof model.draft) => ({
+            ...prev,
+            play: { ...prev.play, hpTemp: mod },
+          }))
+        }
+      })
+    } else {
+      model.setDraft((prev: typeof model.draft) => ({
+        ...prev,
+        play: { ...prev.play, hpTemp: Math.max(current, mod) },
+      }))
+    }
+  }
   const [abilityBreakdownKey, setAbilityBreakdownKey] = useState<AbilityKey | null>(
     null,
   )

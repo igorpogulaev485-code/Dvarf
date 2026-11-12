@@ -1,7 +1,16 @@
 /**
  * B-01: sheet.combat.effects — duration, mods registry, stacking, rest expiry.
  * Legacy rows (name only, `· +N КД`, ac_bonus) keep working.
+ * B-02 adds collectors (temp_hp, ac_formula, speed, resist…) + B02 buff specs.
  */
+
+import {
+  B02_BUFF_SPEC_BUILDERS,
+  B02_NAME_TO_SLUG,
+  buildB02BuffSpec,
+  type BuffBuildContext,
+} from './b02BuffSpecs'
+import type { AcMinFloor, CompetingAcFormula } from './armor'
 
 export type EffectKind =
   | 'spell'
@@ -314,7 +323,7 @@ export function effectStackKey(effect: ActiveEffect): string {
   return `name:${effect.name.trim().toLocaleLowerCase('ru')}`
 }
 
-/** Strength for same-name stacking: higher AC / dice wins (Р9). */
+/** Strength for same-name stacking: higher AC / dice / hp_max / temp wins (Р9). */
 export function effectStrength(effect: ActiveEffect): number {
   let score = 0
   score += acBonusFromSingleEffect(effect) * 100
@@ -324,8 +333,21 @@ export function effectStrength(effect: ActiveEffect): number {
       if (mod.dice?.includes('d4')) score += 4
       if (mod.dice?.includes('d6')) score += 6
       if (mod.dice?.includes('d8')) score += 8
+      if (mod.dice?.includes('d10')) score += 10
     }
     if (typeof mod.value === 'number') score += Math.abs(mod.value)
+    if (mod.target === 'hp_max' && typeof mod.value === 'number') {
+      score += Math.abs(mod.value) * 50
+    }
+    if (mod.target === 'temp_hp' && typeof mod.value === 'number') {
+      score += Math.abs(mod.value) * 20
+    }
+    if (mod.target === 'ac_formula' && typeof mod.value === 'number') {
+      score += Math.abs(mod.value) * 30
+    }
+    if (mod.target === 'ac_min' && typeof mod.value === 'number') {
+      score += Math.abs(mod.value) * 25
+    }
   }
   if (effect.charges != null) score += effect.charges
   const rounds = durationToRounds(effect.duration ?? null)
@@ -389,6 +411,324 @@ export function acBonusFromActiveEffects(effects: unknown): number {
   let sum = 0
   for (const row of parsed) sum += acBonusFromSingleEffect(row)
   return sum
+}
+
+function activeEffectsList(effects: unknown): ActiveEffect[] {
+  return applyEffectStacking(parseActiveEffects(effects)).filter((row) => !row.inactive)
+}
+
+/** Competing base AC formulas from buffs (mage armor, etc.). */
+export function acFormulasFromActiveEffects(effects: unknown): CompetingAcFormula[] {
+  const out: CompetingAcFormula[] = []
+  for (const effect of activeEffectsList(effects)) {
+    for (const mod of effect.mods ?? []) {
+      if (mod.target !== 'ac_formula') continue
+      if (mod.op !== 'set' && mod.op !== 'add') continue
+      const base = typeof mod.value === 'number' ? Math.floor(mod.value) : 13
+      const key =
+        (mod.condition && String(mod.condition).trim()) ||
+        effect.slug ||
+        effect.name
+      out.push({
+        key: String(key).replace(/-/g, '_'),
+        label: effect.name,
+        base,
+        dexCap: null,
+        allowsShield: true,
+      })
+    }
+  }
+  return out
+}
+
+/** Barkskin-style floor — highest min wins. */
+export function acMinFromActiveEffects(effects: unknown): AcMinFloor | null {
+  let best: AcMinFloor | null = null
+  for (const effect of activeEffectsList(effects)) {
+    for (const mod of effect.mods ?? []) {
+      if (mod.target !== 'ac_min') continue
+      if (typeof mod.value !== 'number' || !Number.isFinite(mod.value)) continue
+      const value = Math.floor(mod.value)
+      if (!best || value > best.value) {
+        best = { value, label: `${effect.name}: не ниже ${value}` }
+      }
+    }
+  }
+  return best
+}
+
+export type SpeedModsFromEffects = {
+  walkBonusFt: number
+  /** Multiply walk after bonuses (haste ×2). */
+  walkMul: number
+  flySpeedFt: number | null
+  climbEqualWalk: boolean
+  climbSpeedFt: number | null
+  notes: string[]
+}
+
+export function speedModsFromActiveEffects(effects: unknown): SpeedModsFromEffects {
+  const out: SpeedModsFromEffects = {
+    walkBonusFt: 0,
+    walkMul: 1,
+    flySpeedFt: null,
+    climbEqualWalk: false,
+    climbSpeedFt: null,
+    notes: [],
+  }
+  for (const effect of activeEffectsList(effects)) {
+    for (const mod of effect.mods ?? []) {
+      if (mod.target === 'speed') {
+        if (mod.op === 'add' && typeof mod.value === 'number') {
+          out.walkBonusFt += Math.floor(mod.value)
+          out.notes.push(`${effect.name} +${Math.floor(mod.value)}`)
+        } else if (mod.op === 'mul' && typeof mod.value === 'number' && mod.value > 0) {
+          out.walkMul *= mod.value
+          out.notes.push(`${effect.name} ×${mod.value}`)
+        } else if (mod.op === 'set' && typeof mod.value === 'number') {
+          out.walkBonusFt += Math.floor(mod.value)
+        }
+      }
+      if (mod.target === 'fly_speed' && typeof mod.value === 'number') {
+        const ft = Math.floor(mod.value)
+        out.flySpeedFt = out.flySpeedFt == null ? ft : Math.max(out.flySpeedFt, ft)
+        out.notes.push(`${effect.name}: полёт ${ft}`)
+      }
+      if (mod.target === 'climb_speed') {
+        if (mod.condition === 'equal_walk' || mod.op === 'set') {
+          out.climbEqualWalk = true
+          out.notes.push(`${effect.name}: лазание = ходьба`)
+        } else if (typeof mod.value === 'number') {
+          out.climbSpeedFt = Math.floor(mod.value)
+        }
+      }
+    }
+  }
+  return out
+}
+
+export function applySpeedModsToWalk(baseWalk: number, mods: SpeedModsFromEffects): number {
+  const withBonus = Math.max(0, Math.floor(baseWalk) + mods.walkBonusFt)
+  const mul = mods.walkMul > 0 ? mods.walkMul : 1
+  return Math.max(0, Math.floor(withBonus * mul))
+}
+
+export function hpMaxBonusFromActiveEffects(effects: unknown): number {
+  let sum = 0
+  for (const effect of activeEffectsList(effects)) {
+    for (const mod of effect.mods ?? []) {
+      if (mod.target === 'hp_max' && mod.op === 'add' && typeof mod.value === 'number') {
+        sum += Math.floor(mod.value)
+      }
+    }
+  }
+  return sum
+}
+
+export function hpMaxBonusFromSingleEffect(effect: ActiveEffect): number {
+  if (effect.inactive) return 0
+  let sum = 0
+  for (const mod of effect.mods ?? []) {
+    if (mod.target === 'hp_max' && mod.op === 'add' && typeof mod.value === 'number') {
+      sum += Math.floor(mod.value)
+    }
+  }
+  return sum
+}
+
+/** Temp HP grant encoded on an effect (value and/or dice). */
+export function tempHpGrantFromEffect(
+  effect: ActiveEffect,
+  rng: () => number = Math.random,
+): number | null {
+  if (effect.inactive) return null
+  let total: number | null = null
+  for (const mod of effect.mods ?? []) {
+    if (mod.target !== 'temp_hp') continue
+    let amount = 0
+    if (typeof mod.dice === 'string' && mod.dice.trim()) {
+      amount += rollDiceNotation(mod.dice, rng)
+    }
+    if (typeof mod.value === 'number' && Number.isFinite(mod.value)) {
+      amount += Math.floor(mod.value)
+    }
+    if (mod.op === 'set' && typeof mod.value === 'number' && !mod.dice) {
+      amount = Math.floor(mod.value)
+    }
+    if (amount > 0) total = (total ?? 0) + amount
+  }
+  return total
+}
+
+export type EffectDefenseLine = {
+  type: string
+  nonmagical: boolean
+  source: string
+  kind: 'resistance' | 'immunity'
+}
+
+export function defensesFromActiveEffects(effects: unknown): EffectDefenseLine[] {
+  const out: EffectDefenseLine[] = []
+  for (const effect of activeEffectsList(effects)) {
+    for (const mod of effect.mods ?? []) {
+      if (mod.target !== 'resistance' && mod.target !== 'immunity') continue
+      const type = (mod.condition || '').trim()
+      if (!type) continue
+      const nonmagical = mod.dice === 'nonmagical'
+      if (type === 'all' || type === 'all_damage') {
+        // Expand common physical + energy set for warding bond / invulnerability.
+        const types =
+          type === 'all_damage'
+            ? [
+                'acid',
+                'cold',
+                'fire',
+                'force',
+                'lightning',
+                'necrotic',
+                'poison',
+                'psychic',
+                'radiant',
+                'thunder',
+                'bludgeoning',
+                'piercing',
+                'slashing',
+              ]
+            : [
+                'acid',
+                'cold',
+                'fire',
+                'force',
+                'lightning',
+                'necrotic',
+                'poison',
+                'psychic',
+                'radiant',
+                'thunder',
+                'bludgeoning',
+                'piercing',
+                'slashing',
+              ]
+        for (const t of types) {
+          out.push({
+            type: t,
+            nonmagical: false,
+            source: effect.name,
+            kind: mod.target === 'immunity' || type === 'all_damage' ? 'immunity' : 'resistance',
+          })
+        }
+        continue
+      }
+      out.push({
+        type,
+        nonmagical,
+        source: effect.name,
+        kind: mod.target === 'immunity' ? 'immunity' : 'resistance',
+      })
+    }
+  }
+  return out
+}
+
+export function weaponBonusesFromActiveEffects(effects: unknown): {
+  attack: number
+  damage: number
+} {
+  let attack = 0
+  let damage = 0
+  for (const effect of activeEffectsList(effects)) {
+    for (const mod of effect.mods ?? []) {
+      if (mod.target === 'weapon_attack' && typeof mod.value === 'number') {
+        attack += Math.floor(mod.value)
+      }
+      if (mod.target === 'weapon_damage' && typeof mod.value === 'number') {
+        damage += Math.floor(mod.value)
+      }
+    }
+  }
+  return { attack, damage }
+}
+
+export function saveBonusFromActiveEffects(
+  effects: unknown,
+  condition?: string | null,
+): number {
+  let sum = 0
+  for (const effect of activeEffectsList(effects)) {
+    for (const mod of effect.mods ?? []) {
+      if (mod.target !== 'save' || mod.op !== 'add') continue
+      if (condition && mod.condition && mod.condition !== condition && mod.condition !== 'all') {
+        continue
+      }
+      if (typeof mod.value === 'number') sum += Math.floor(mod.value)
+    }
+  }
+  return sum
+}
+
+export function skillBonusFromActiveEffects(
+  effects: unknown,
+  skillKey: string,
+): number {
+  let sum = 0
+  const key = skillKey.trim().toLowerCase()
+  for (const effect of activeEffectsList(effects)) {
+    for (const mod of effect.mods ?? []) {
+      if (mod.target !== 'skill' || mod.op !== 'add') continue
+      const cond = (mod.condition || '').toLowerCase()
+      if (cond && cond !== key && cond !== 'stealth') continue
+      if (cond === 'stealth' && key !== 'stealth') continue
+      if (typeof mod.value === 'number') sum += Math.floor(mod.value)
+    }
+  }
+  return sum
+}
+
+export function darkvisionFromActiveEffects(effects: unknown): number | null {
+  let best: number | null = null
+  for (const effect of activeEffectsList(effects)) {
+    for (const mod of effect.mods ?? []) {
+      if (mod.target !== 'senses') continue
+      if (mod.condition && mod.condition !== 'darkvision') continue
+      if (typeof mod.value === 'number') {
+        best = best == null ? Math.floor(mod.value) : Math.max(best, Math.floor(mod.value))
+      }
+    }
+  }
+  return best
+}
+
+/**
+ * PHB temp HP: pools do not stack. Ask when both > 0 (Р4).
+ * Returns which pool to keep; UI highlights the larger.
+ */
+export function chooseTempHpPool(
+  current: number,
+  incoming: number,
+  choice: 'keep' | 'replace',
+): number {
+  const cur = Math.max(0, Math.floor(current))
+  const next = Math.max(0, Math.floor(incoming))
+  if (cur <= 0) return next
+  if (next <= 0) return cur
+  return choice === 'replace' ? next : cur
+}
+
+/** Clamp current HP after losing hp_max from an ended effect (B11). */
+export function clampHpAfterMaxLoss(input: {
+  hpCurrent: number
+  hpMaxBefore: number
+  lostMax: number
+}): { hpMax: number; hpCurrent: number } {
+  const lost = Math.max(0, Math.floor(input.lostMax))
+  const hpMax = Math.max(1, Math.floor(input.hpMaxBefore) - lost)
+  let hpCurrent = Math.floor(input.hpCurrent)
+  if (hpCurrent > 0) {
+    hpCurrent = Math.max(1, Math.min(hpCurrent, hpMax))
+  } else {
+    hpCurrent = Math.max(0, Math.min(hpCurrent, hpMax))
+  }
+  return { hpMax, hpCurrent }
 }
 
 export function listRollDieChips(
@@ -586,6 +926,7 @@ const SPELL_NAME_TO_SLUG: Array<{ re: RegExp; slug: string }> = [
   { re: /^благословен|^bless$/i, slug: 'bless' },
   { re: /^щит\s*вер|^shield of faith$/i, slug: 'shield_of_faith' },
   { re: /^ободряющ|^emboldening/i, slug: 'emboldening_bond' },
+  ...B02_NAME_TO_SLUG,
 ]
 
 export function guessBuffSlug(name: string, catalogId?: string | null): string | null {
@@ -594,6 +935,29 @@ export function guessBuffSlug(name: string, catalogId?: string | null): string |
     .toLowerCase()
     .replace(/-/g, '_')
   if (id && B01_BUFF_SPECS[id]) return id
+  if (id && B02_BUFF_SPEC_BUILDERS[id]) return id
+  // Common catalog_id aliases
+  const aliases: Record<string, string> = {
+    shillelagh: 'shillelagh',
+    blade_ward: 'blade_ward',
+    mage_armour: 'mage_armor',
+    armor_of_agathys: 'armor_of_agathys',
+    protection_from_evil_and_good: 'protection_from_evil_and_good',
+    pass_without_trace: 'pass_without_trace',
+    enlarge_reduce: 'enlarge',
+    enlarge_reduce_enlarge: 'enlarge',
+    heroes_feast: 'heroes_feast',
+    tensers_transformation: 'tensers_transformation',
+    tasha_s_otherworldly_guise: 'tashas_otherworldly_guise',
+    tashas_otherworldly_guise: 'tashas_otherworldly_guise',
+    ashardalon_s_stride: 'ashardalons_stride',
+    ashardalons_stride: 'ashardalons_stride',
+    ceremony: 'ceremony_wedding',
+  }
+  if (id && aliases[id]) return aliases[id]
+  if (id && id.replace(/'/g, '') in B02_BUFF_SPEC_BUILDERS) {
+    return id.replace(/'/g, '')
+  }
   const label = name.trim()
   for (const row of SPELL_NAME_TO_SLUG) {
     if (row.re.test(label)) return row.slug
@@ -608,12 +972,25 @@ export function buildBuffEffect(input: {
   sourceCharacterId?: string | null
   sourceName?: string | null
   linkedConcentration?: boolean
+  slotLevel?: number | null
+  spellLevel?: number | null
+  casterMod?: number | null
+  option?: string | null
 }): ActiveEffect | null {
   const slug =
     input.slug ||
     guessBuffSlug(input.name ?? '', input.catalogId) ||
     null
-  const spec = slug ? B01_BUFF_SPECS[slug] : null
+  if (!slug) return null
+  const ctx: BuffBuildContext = {
+    slotLevel: input.slotLevel,
+    spellLevel: input.spellLevel,
+    casterMod: input.casterMod,
+    option: input.option,
+  }
+  const spec =
+    B01_BUFF_SPECS[slug] ??
+    buildB02BuffSpec(slug, ctx)
   if (!spec) return null
   const startedAt = new Date().toISOString()
   const duration: EffectDuration = {
@@ -637,6 +1014,11 @@ export function buildBuffEffect(input: {
     mods: spec.mods.map((m) => ({ ...m })),
     ...(spec.charges != null ? { charges: spec.charges } : {}),
   }
+}
+
+/** True when this spell/catalog has a structured B-01/B-02 buff spec. */
+export function hasBuffSpec(name: string, catalogId?: string | null): boolean {
+  return guessBuffSlug(name, catalogId) != null
 }
 
 export function buildInfusionDefenseEffect(input: {
