@@ -8,6 +8,8 @@ export type FieldPreset = 'all' | 'complex_combat' | 'minimum' | 'custom'
 export type VisibilityProfile = {
   event_history: EventHistoryMode
   preset: FieldPreset
+  /** S-03: вдохновение после броска (переброс). По умолчанию выкл — преимущество до броска. */
+  inspiration_after_roll?: boolean
   fields: {
     identity: {
       enabled: boolean
@@ -254,6 +256,9 @@ export function normalizeVisibilityProfile(raw: unknown): VisibilityProfile {
       obj.preset === 'all'
         ? obj.preset
         : 'all',
+    inspiration_after_roll: Boolean(
+      (raw as { inspiration_after_roll?: unknown }).inspiration_after_roll,
+    ),
     fields: { ...fallback.fields },
   }
   for (const section of Object.keys(fallback.fields) as Array<keyof VisibilityProfile['fields']>) {

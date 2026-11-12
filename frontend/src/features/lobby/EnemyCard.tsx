@@ -1,7 +1,13 @@
-import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import type { CombatantAction, CombatantMember, SessionCombatant } from '../../shared/api/lobbies'
 import { Button, NumberInput, Text } from '../../ui'
 import { PackRosterList, memberHpColorLabel, memberHpTone } from './enemyPackRoster'
+import { TypedDamageForm, type TypedDamagePayload } from './TypedDamageForm'
+import {
+  bandFromRatio,
+  hpLabelEnemy,
+  type HpBand,
+} from './sessionHpBand'
 import {
   normalizeVisibilityProfile,
   type VisibilityProfile,
@@ -15,12 +21,19 @@ type Props = {
   busy?: boolean
   /** Раскрыть возможности сразу (активный ход в B4) */
   forceAbilitiesOpen?: boolean
-  /** Урон: без memberId — первый живой; с memberId — выбранный в составе */
-  onDamage?: (amount: number, memberId?: string) => void
+  /** Урон с типом; без memberId — первый живой */
+  onDamage?: (payload: TypedDamagePayload & { memberId?: string }) => void
   onRemove?: () => void
   /** T1: сохранить в вики сеттинга сессии */
   canSaveToSetting?: boolean
   onSaveToSetting?: () => void
+  /** G12 / Изучить */
+  canStudy?: boolean
+  onStudy?: (opts: { rollTotal?: number; dc?: number }) => void
+  onResolveStudy?: (success: boolean) => void
+  onRevealStatblock?: () => void
+  onShareStudy?: () => void
+  studyCharacterName?: string | null
 }
 
 type KitItem = CombatantAction & { kind: string }
@@ -58,6 +71,10 @@ function ensureMembers(combatant: SessionCombatant): CombatantMember[] {
       name: combatant.name,
       hp_current: combatant.hp_current,
       hp_max: combatant.hp_max,
+      hp_band: combatant.hp_band,
+      hp_label: combatant.hp_label,
+      hp_ratio: combatant.hp_ratio,
+      hp_numbers_hidden: combatant.hp_numbers_hidden,
     },
   ]
 }
@@ -82,9 +99,7 @@ function collectKit(combatant: SessionCombatant): KitItem[] {
 
 /**
  * Карточка противника / пачки.
- * Мастер: имена действий/черт всегда на карточке; текст — по раскрытию.
- * HP: цифра + «Нанести урон» / «Вылечить». В пачке цель из «Состава».
- * Игрок тоже раскрывает состав: статус каждого — по профилю видимости, без КД и статблока.
+ * G12: до «Показать» / «Изучить» игроку — имя, полоска/подпись, состояния; без КД и статблока.
  */
 export function EnemyCard({
   combatant,
@@ -97,25 +112,41 @@ export function EnemyCard({
   onRemove,
   canSaveToSetting = false,
   onSaveToSetting,
+  canStudy = false,
+  onStudy,
+  onResolveStudy,
+  onRevealStatblock,
+  onShareStudy,
 }: Props) {
   const [abilitiesOpen, setAbilitiesOpen] = useState(forceAbilitiesOpen)
   const [rosterOpen, setRosterOpen] = useState(false)
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null)
-  const [hpDelta, setHpDelta] = useState<number | null>(null)
   const [focusAbility, setFocusAbility] = useState<string | null>(null)
+  const [studyRoll, setStudyRoll] = useState<number | null>(null)
+  const [studyDc, setStudyDc] = useState<number | null>(null)
   const profile = normalizeVisibilityProfile(visibility)
   const isMaster = Boolean(masterControls || revealAll)
+  const statblockVisible = Boolean(isMaster || combatant.statblock_visible)
   const members = useMemo(() => ensureMembers(combatant), [combatant])
   const kit = useMemo(() => collectKit(combatant), [combatant])
   const isPack = members.length > 1
   const aliveCount =
-    combatant.alive_count ?? members.filter((m) => m.hp_current > 0).length
+    combatant.alive_count ?? members.filter((m) => (m.hp_ratio ?? m.hp_current) > 0).length
   const memberCount = combatant.member_count ?? members.length
-  const tone = memberHpTone(
-    aliveCount <= 0 ? 0 : combatant.hp_current,
-    Math.max(1, combatant.hp_max),
-  )
+  const tone: HpBand =
+    (combatant.hp_band as HpBand | undefined) ||
+    (combatant.hp_ratio != null
+      ? bandFromRatio(combatant.hp_ratio)
+      : memberHpTone(
+          aliveCount <= 0 ? 0 : combatant.hp_current,
+          Math.max(1, combatant.hp_max),
+        ))
+  const ratio =
+    combatant.hp_ratio ??
+    (aliveCount <= 0 ? 0 : combatant.hp_current / Math.max(1, combatant.hp_max))
+  const colorLabel = combatant.hp_label || memberHpColorLabel(tone) || hpLabelEnemy(tone)
   const isDead = aliveCount <= 0
+  const numbersHidden = Boolean(combatant.hp_numbers_hidden) && !statblockVisible
 
   useEffect(() => {
     if (forceAbilitiesOpen) setAbilitiesOpen(true)
@@ -131,54 +162,42 @@ export function EnemyCard({
     ? members.find((m) => m.id === selectedMemberId) ?? null
     : null
   const focusMember =
-    selectedMember ?? members.find((m) => m.hp_current > 0) ?? members[0] ?? null
+    selectedMember ?? members.find((m) => (m.hp_ratio ?? m.hp_current) > 0) ?? members[0] ?? null
 
-  const showHpNumbers = isMaster || profile.fields.health.hp === 'active'
+  // G12: точные числа врага — только после открытия статблока (или мастер).
+  const showHpNumbers =
+    isMaster ||
+    (statblockVisible && !numbersHidden && profile.fields.health.hp === 'active')
   const showHpColor = isMaster || profile.fields.health.hp !== 'off'
-  const showAc = isMaster && combatant.ac != null
-  const showSpeed = isMaster && combatant.speed != null
+  const showAc = statblockVisible && combatant.ac != null
+  const showSpeed = statblockVisible && combatant.speed != null
   const showConditions =
     isMaster ||
     (profile.fields.health.enabled && profile.fields.health.conditions === 'active')
+  const showDefenses =
+    statblockVisible &&
+    ((combatant.damage_resistances?.length ?? 0) > 0 ||
+      (combatant.damage_immunities?.length ?? 0) > 0 ||
+      (combatant.damage_vulnerabilities?.length ?? 0) > 0)
 
   const metaParts = [
     combatant.type_ru,
     isPack ? `${aliveCount}/${memberCount}` : null,
-    isMaster && combatant.cr ? `CR ${combatant.cr}` : null,
+    statblockVisible && combatant.cr ? `CR ${combatant.cr}` : null,
     isMaster && combatant.source_book ? combatant.source_book : null,
     isMaster && combatant.custom ? 'свой НПС' : null,
   ].filter(Boolean)
   const meta = metaParts.join(' · ')
 
-  const hasAmount = hpDelta != null && hpDelta > 0
-  const canDeal =
-    !busy &&
-    hasAmount &&
-    !isDead &&
-    !(selectedMember != null && selectedMember.hp_current <= 0)
-  /** Лечение: и раненому, и с 0 HP (поднять / особые черты). */
-  const canHeal = !busy && hasAmount
-
-  function applyHpChange(amount: number) {
-    if (!onDamage || amount === 0) return
-    if (isPack && selectedMemberId) {
-      onDamage(amount, selectedMemberId)
-    } else {
-      onDamage(amount)
-    }
-    setHpDelta(null)
-  }
-
-  function onDamageForm(event: FormEvent) {
-    event.preventDefault()
-    if (canDeal && hpDelta != null) applyHpChange(hpDelta)
-  }
-
-  function onHpKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === 'Enter') {
-      event.preventDefault()
-      if (canDeal && hpDelta != null) applyHpChange(hpDelta)
-    }
+  function applyDamage(payload: TypedDamagePayload) {
+    if (!onDamage) return
+    const signed = payload.heal ? -payload.amount : payload.amount
+    onDamage({
+      ...payload,
+      amount: Math.abs(signed),
+      heal: payload.heal,
+      memberId: isPack && selectedMemberId ? selectedMemberId : undefined,
+    })
   }
 
   function openAbility(name: string) {
@@ -186,6 +205,17 @@ export function EnemyCard({
     setAbilitiesOpen(true)
     setRosterOpen(false)
   }
+
+  function onStudyForm(e: FormEvent) {
+    e.preventDefault()
+    onStudy?.({
+      rollTotal: studyRoll ?? undefined,
+      dc: studyDc ?? undefined,
+    })
+  }
+
+  const pending = combatant.pending_study
+  const snap = combatant.study_snapshot
 
   return (
     <article
@@ -195,6 +225,12 @@ export function EnemyCard({
         abilitiesOpen || rosterOpen ? ' is-open' : ''
       }${forceAbilitiesOpen ? ' is-active-turn' : ''}`}
     >
+      <div
+        className={`session-hp-bar session-hp-bar--${tone}`}
+        style={{ ['--hp-ratio' as string]: String(ratio) }}
+        title={colorLabel}
+        aria-hidden
+      />
       <div className="session-enemy-card__top">
         <div className="session-enemy-card__meta">
           <Text as="h4" className="session-enemy-card__name">
@@ -239,8 +275,8 @@ export function EnemyCard({
           {!showHpNumbers && showHpColor ? (
             <span className={`session-table-card__chip session-table-card__chip--hp is-${tone}`}>
               {isPack && !isDead
-                ? `${aliveCount}/${memberCount} живых`
-                : memberHpColorLabel(tone)}
+                ? `${aliveCount}/${memberCount} живых · ${colorLabel}`
+                : colorLabel}
             </span>
           ) : null}
           {showAc ? (
@@ -255,17 +291,65 @@ export function EnemyCard({
         </div>
       ) : null}
 
-      {showConditions && (combatant.conditions?.length ?? 0) > 0 ? (
-        <div className="session-table-card__conditions" aria-label="Состояния">
-          {combatant.conditions!.map((c) => (
-            <span key={c.slug} className="session-condition-tag">
-              {c.name}
+      {snap ? (
+        <Text tone="muted" className="session-enemy-card__sub">
+          Снимок при анализе: {snap.hp_current}/{snap.hp_max}
+        </Text>
+      ) : null}
+
+      {showDefenses ? (
+        <div className="session-enemy-card__defenses" aria-label="Сопротивления">
+          {(combatant.damage_resistances ?? []).map((r) => (
+            <span key={`r-${r}`} className="session-defense-chip">
+              сопр. {r}
+            </span>
+          ))}
+          {(combatant.damage_immunities ?? []).map((r) => (
+            <span key={`i-${r}`} className="session-defense-chip is-immune">
+              имм. {r}
+            </span>
+          ))}
+          {(combatant.damage_vulnerabilities ?? []).map((r) => (
+            <span key={`v-${r}`} className="session-defense-chip is-vuln">
+              уязв. {r}
             </span>
           ))}
         </div>
       ) : null}
 
-      {isMaster && kit.length > 0 ? (
+      {showConditions && (combatant.conditions?.length ?? 0) > 0 ? (
+        <div className="session-table-card__conditions" aria-label="Состояния">
+          {combatant.conditions!.map((c) => (
+            <span key={c.slug} className="session-condition-tag">
+              {c.name}
+              {c.duration_rounds ? ` · ${c.duration_rounds} раунд.` : ''}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      {(combatant.effects?.length ?? 0) > 0 && (isMaster || showConditions) ? (
+        <div className="session-table-card__conditions" aria-label="Эффекты">
+          {combatant.effects!.map((fx) => (
+            <span key={fx.id} className="session-effect-tag">
+              {fx.name}
+              {fx.duration?.remaining_rounds != null
+                ? ` · ${fx.duration.remaining_rounds} раунд.`
+                : fx.duration?.value != null
+                  ? ` · ${fx.duration.value} раунд.`
+                  : ''}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      {combatant.reaction_hint || combatant.last_damage_note ? (
+        <p className="ui-text ui-text--muted session-reaction-hint" role="status">
+          {[combatant.last_damage_note, combatant.reaction_hint].filter(Boolean).join(' · ')}
+        </p>
+      ) : null}
+
+      {statblockVisible && kit.length > 0 ? (
         <div className="session-enemy-card__kit" aria-label="Действия и возможности">
           {kit.map((item) => (
             <button
@@ -287,42 +371,17 @@ export function EnemyCard({
 
       {masterControls ? (
         <div className="session-enemy-card__hp-controls">
-          <form className="session-enemy-card__damage" onSubmit={onDamageForm}>
-            <NumberInput
-              className="session-enemy-card__damage-input"
-              value={hpDelta}
-              min={1}
-              max={9999}
-              integer
-              emptyValue={null}
-              disabled={busy}
-              placeholder="Число"
-              aria-label="Количество HP"
-              onValueChange={setHpDelta}
-              onKeyDown={onHpKeyDown}
-            />
-            <Button type="submit" variant="secondary" disabled={!canDeal}>
-              Нанести урон
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={!canHeal}
-              title="Вернуть столько HP (не выше максимума)"
-              onClick={() => {
-                if (canHeal && hpDelta != null) applyHpChange(-hpDelta)
-              }}
-            >
-              Вылечить
-            </Button>
-          </form>
+          <TypedDamageForm
+            busy={busy || !onDamage}
+            disabledDeal={isDead || (selectedMember != null && (selectedMember.hp_ratio ?? selectedMember.hp_current) <= 0)}
+            onApply={applyDamage}
+          />
           {isPack ? (
             <Button
               type="button"
               variant="ghost"
               disabled={busy}
               aria-expanded={rosterOpen}
-              aria-controls={`pack-roster-${combatant.id}`}
               onClick={() => {
                 setRosterOpen((v) => !v)
                 if (!rosterOpen) setAbilitiesOpen(false)
@@ -347,6 +406,11 @@ export function EnemyCard({
               {abilitiesOpen ? 'Свернуть' : 'Текст'}
             </Button>
           ) : null}
+          {onRevealStatblock && !combatant.statblock_revealed ? (
+            <Button type="button" variant="ghost" disabled={busy} onClick={onRevealStatblock}>
+              Показать игрокам
+            </Button>
+          ) : null}
           {canSaveToSetting && onSaveToSetting ? (
             <Button
               type="button"
@@ -359,37 +423,98 @@ export function EnemyCard({
             </Button>
           ) : null}
         </div>
-      ) : isPack ? (
+      ) : (
         <div className="session-enemy-card__hp-controls">
-          <Button
-            type="button"
-            variant="ghost"
-            disabled={busy}
-            aria-expanded={rosterOpen}
-            aria-controls={`pack-roster-${combatant.id}`}
-            onClick={() => setRosterOpen((v) => !v)}
-          >
-            {rosterOpen ? 'Свернуть' : 'Состав'}
+          {isPack ? (
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={busy}
+              aria-expanded={rosterOpen}
+              onClick={() => setRosterOpen((v) => !v)}
+            >
+              {rosterOpen ? 'Свернуть' : 'Состав'}
+            </Button>
+          ) : null}
+          {canStudy && onStudy && !statblockVisible ? (
+            <form className="session-study-form" onSubmit={onStudyForm}>
+              <Text tone="muted">
+                Изучить · {combatant.study_skill_ru ?? 'Анализ'} · СЛ{' '}
+                {studyDc ?? combatant.suggested_study_dc ?? 10}
+              </Text>
+              <NumberInput
+                value={studyRoll}
+                min={-20}
+                max={99}
+                integer
+                emptyValue={null}
+                disabled={busy}
+                placeholder="Бросок"
+                aria-label="Результат проверки"
+                onValueChange={setStudyRoll}
+              />
+              <NumberInput
+                value={studyDc}
+                min={1}
+                max={40}
+                integer
+                emptyValue={null}
+                disabled={busy}
+                placeholder={`СЛ ${combatant.suggested_study_dc ?? 10}`}
+                aria-label="СЛ (если задал ведущий)"
+                onValueChange={setStudyDc}
+              />
+              <Button type="submit" variant="secondary" disabled={busy}>
+                Изучить
+              </Button>
+            </form>
+          ) : null}
+          {combatant.studied_by_me && onShareStudy && !combatant.statblock_revealed ? (
+            <Button type="button" variant="ghost" disabled={busy} onClick={onShareStudy}>
+              Показать партии
+            </Button>
+          ) : null}
+          {statblockVisible && kit.length > 0 ? (
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={busy}
+              onClick={() => setAbilitiesOpen((v) => !v)}
+            >
+              {abilitiesOpen ? 'Свернуть' : 'Статблок'}
+            </Button>
+          ) : null}
+        </div>
+      )}
+
+      {pending && masterControls && onResolveStudy ? (
+        <div className="session-study-resolve" role="status">
+          <Text>
+            «Изучить»: {pending.character_name ?? 'игрок'} · {pending.skill_ru} против СЛ{' '}
+            {pending.dc}
+            {pending.roll_total != null ? ` · бросок ${pending.roll_total}` : ''}
+          </Text>
+          <Button type="button" variant="secondary" disabled={busy} onClick={() => onResolveStudy(true)}>
+            Успех
+          </Button>
+          <Button type="button" variant="ghost" disabled={busy} onClick={() => onResolveStudy(false)}>
+            Провал
           </Button>
         </div>
       ) : null}
 
       {rosterOpen && isPack ? (
-        <div
-          id={`pack-roster-${combatant.id}`}
-          className="session-enemy-card__roster"
-          aria-label="Состав пачки"
-        >
+        <div className="session-enemy-card__roster" aria-label="Состав пачки">
           {masterControls ? (
             <Text tone="muted" className="session-enemy-card__block-title">
-              Выбери, кому урон — затем введи цифру и «Нанести урон». Без выбора бьёт
-              первого живого.
+              Выбери, кому урон — затем введи цифру и тип. Без выбора бьёт первого живого.
             </Text>
           ) : null}
           <PackRosterList
             members={members}
             visibility={profile}
             revealExactHp={isMaster}
+            statblockVisible={statblockVisible}
             interactive={Boolean(masterControls)}
             selectedMemberId={selectedMemberId}
             busy={busy}
@@ -398,7 +523,7 @@ export function EnemyCard({
         </div>
       ) : null}
 
-      {isMaster && abilitiesOpen && kit.length > 0 ? (
+      {statblockVisible && abilitiesOpen && kit.length > 0 ? (
         <div className="session-enemy-card__details" aria-label="Текст возможностей">
           {focusAbility ? (
             (() => {

@@ -30,6 +30,8 @@ from app.schemas.lobby import (
     CombatStartRequest,
     CombatantCreateRequest,
     CombatantPatchRequest,
+    CombatantStudyRequest,
+    CombatantStudyResolveRequest,
     JoinLobbyRequest,
     EncounterGenerateRequest,
     EncounterGenerateResult,
@@ -602,6 +604,61 @@ async def patch_session_combatant(
         session_id,
         combatant_id,
         payload,
+    )
+
+
+@router.post(
+    "/sessions/{session_id}/combatants/{combatant_id}/study",
+    response_model=SessionDetail,
+)
+async def study_session_combatant(
+    session_id: UUID,
+    combatant_id: str,
+    payload: CombatantStudyRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionDetail:
+    return await LobbyService(db).study_combatant(
+        current_user,
+        session_id,
+        combatant_id,
+        payload,
+    )
+
+
+@router.post(
+    "/sessions/{session_id}/combatants/{combatant_id}/study/resolve",
+    response_model=SessionDetail,
+)
+async def resolve_study_session_combatant(
+    session_id: UUID,
+    combatant_id: str,
+    payload: CombatantStudyResolveRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionDetail:
+    return await LobbyService(db).resolve_study_combatant(
+        current_user,
+        session_id,
+        combatant_id,
+        payload,
+    )
+
+
+@router.post(
+    "/sessions/{session_id}/combatants/{combatant_id}/share-study",
+    response_model=SessionDetail,
+)
+async def share_studied_session_combatant(
+    session_id: UUID,
+    combatant_id: str,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionDetail:
+    return await LobbyService(db).share_studied_combatant(
+        current_user,
+        session_id,
+        combatant_id,
     )
 
 

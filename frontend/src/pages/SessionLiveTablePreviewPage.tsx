@@ -843,7 +843,9 @@ export function SessionLiveTablePreviewPage() {
                               )
                               setHandoffOpen(true)
                             }}
-                            onDamage={(amount, memberId) => {
+                            onDamage={(payload) => {
+                              const amount = payload.heal ? -payload.amount : payload.amount
+                              const memberId = payload.memberId
                               setCombatants((prev) =>
                                 prev.map((c) => {
                                   if (c.id !== enemy.id) return c
@@ -972,20 +974,32 @@ export function SessionLiveTablePreviewPage() {
         open={conditionOpen}
         seats={seats}
         onClose={() => setConditionOpen(false)}
-        onApply={(condition, characterIds) => {
+        combatants={combatants}
+        onApply={(condition, targets) => {
+          const seatIds = targets.filter((t) => t.kind === 'seat').map((t) => t.id)
+          const enemyIds = targets.filter((t) => t.kind === 'enemy').map((t) => t.id)
           setSeats((prev) =>
             prev.map((s) => {
-              if (!characterIds.includes(s.character_id)) return s
+              if (!seatIds.includes(s.character_id)) return s
               const current = s.conditions ?? []
               if (current.some((c) => c.slug === condition.slug)) return s
               return { ...s, conditions: [...current, condition] }
             }),
           )
+          setCombatants((prev) =>
+            prev.map((c) => {
+              if (!enemyIds.includes(c.id)) return c
+              const current = c.conditions ?? []
+              if (current.some((x) => x.slug === condition.slug)) return c
+              return { ...c, conditions: [...current, condition] }
+            }),
+          )
           setConditionOpen(false)
+          const n = seatIds.length + enemyIds.length
           setToast(
-            characterIds.length === 1
+            n === 1
               ? `Состояние: ${condition.name}`
-              : `Состояние: ${condition.name} · ${characterIds.length}`,
+              : `Состояние: ${condition.name} · ${n}`,
           )
         }}
       />
@@ -995,10 +1009,13 @@ export function SessionLiveTablePreviewPage() {
         seats={seats}
         preferredSourceId="c2"
         onClose={() => setEffectOpen(false)}
-        onApply={(effect, characterIds) => {
+        combatants={combatants}
+        onApply={(effect, targets) => {
+          const seatIds = targets.filter((t) => t.kind === 'seat').map((t) => t.id)
+          const enemyIds = targets.filter((t) => t.kind === 'enemy').map((t) => t.id)
           setSeats((prev) =>
             prev.map((s) => {
-              if (!characterIds.includes(s.character_id)) return s
+              if (!seatIds.includes(s.character_id)) return s
               const current = s.effects ?? []
               return {
                 ...s,
@@ -1006,12 +1023,19 @@ export function SessionLiveTablePreviewPage() {
               }
             }),
           )
-          setEffectOpen(false)
-          setToast(
-            characterIds.length === 1
-              ? `Эффект: ${effect.name}`
-              : `Эффект: ${effect.name} · ${characterIds.length}`,
+          setCombatants((prev) =>
+            prev.map((c) => {
+              if (!enemyIds.includes(c.id)) return c
+              const current = c.effects ?? []
+              return {
+                ...c,
+                effects: [...current, { ...effect, id: `${effect.id}-${c.id}` }],
+              }
+            }),
           )
+          setEffectOpen(false)
+          const n = seatIds.length + enemyIds.length
+          setToast(n === 1 ? `Эффект: ${effect.name}` : `Эффект: ${effect.name} · ${n}`)
         }}
       />
 

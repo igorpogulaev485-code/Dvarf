@@ -6,6 +6,14 @@ import type {
   SessionSeat,
 } from '../../shared/api/lobbies'
 import { Text } from '../../ui'
+import { TypedDamageForm, type TypedDamagePayload } from './TypedDamageForm'
+import {
+  bandFromRatio,
+  hpBand,
+  hpLabelHero,
+  hpRatio,
+  type HpBand,
+} from './sessionHpBand'
 import {
   normalizeVisibilityProfile,
   type VisibilityProfile,
@@ -19,8 +27,11 @@ type Props = {
   revealAll?: boolean
   /** Жесты за столом: вдохновение, снятие тега, напарник */
   masterControls?: boolean
+  /** Хозяин героя (тратит вдохновение, правит свои спасброски) */
+  isOwner?: boolean
   busy?: boolean
   onToggleInspiration?: (next: boolean) => void
+  onSpendInspiration?: () => void
   /** Мастер: начислить или снять благочестие (MOT) */
   onAwardPiety?: () => void
   /** Снять состояние с этого персонажа (тап по тегу) */
@@ -29,25 +40,12 @@ type Props = {
   onClearConcentration?: () => void
   onAddCompanion?: () => void
   onRemoveCompanion?: (companionId: string) => void
+  onDamage?: (payload: TypedDamagePayload) => void
+  onDeathSavesChange?: (successes: number, fails: number) => void
   /** S-02: подсветка «Твой ход» */
   yourTurn?: boolean
   /** Заглушка экономики хода до T-01 */
   showTurnEconomyStub?: boolean
-}
-
-function hpTone(current: number | null, max: number | null): 'ok' | 'warn' | 'down' | 'unknown' {
-  if (max == null || max <= 0 || current == null) return 'unknown'
-  if (current <= 0) return 'down'
-  if (current / max <= 0.5) return 'warn'
-  return 'ok'
-}
-
-function hpColorLabel(current: number | null, max: number | null): string {
-  const tone = hpTone(current, max)
-  if (tone === 'ok') return 'Здоров'
-  if (tone === 'warn') return 'Ранен'
-  if (tone === 'down') return 'Без сознания'
-  return '—'
 }
 
 function CompanionCard({
@@ -61,7 +59,8 @@ function CompanionCard({
   busy?: boolean
   onRemove?: () => void
 }) {
-  const tone = hpTone(companion.hp_current, companion.hp_max)
+  const tone = hpBand(companion.hp_current, companion.hp_max)
+  const ratio = hpRatio(companion.hp_current, companion.hp_max)
   const hp =
     companion.hp_max != null
       ? `HP ${companion.hp_current ?? 0}/${companion.hp_max}`
@@ -88,6 +87,11 @@ function CompanionCard({
 
   return (
     <article className={`session-companion-card session-companion-card--${tone}`}>
+      <div
+        className={`session-hp-bar session-hp-bar--${tone}`}
+        style={{ ['--hp-ratio' as string]: String(ratio) }}
+        aria-hidden
+      />
       <div className="session-companion-card__row">
         <div className="session-companion-card__main">
           <Text as="h4" className="session-companion-card__name">
@@ -132,6 +136,57 @@ function CompanionCard({
   )
 }
 
+function DeathSavePips({
+  successes,
+  fails,
+  editable,
+  busy,
+  onChange,
+}: {
+  successes: number
+  fails: number
+  editable: boolean
+  busy?: boolean
+  onChange?: (successes: number, fails: number) => void
+}) {
+  function cycle(kind: 'ok' | 'fail', current: number) {
+    if (!editable || !onChange) return
+    const next = current >= 3 ? 0 : current + 1
+    if (kind === 'ok') onChange(next, fails)
+    else onChange(successes, next)
+  }
+  return (
+    <div className="session-death-saves" aria-label="Спасброски от смерти">
+      <div className="session-death-saves__row">
+        <span className="session-death-saves__label">Успехи</span>
+        {[0, 1, 2].map((i) => (
+          <button
+            key={`ok-${i}`}
+            type="button"
+            className={`session-death-pip${successes > i ? ' is-on' : ''}`}
+            disabled={busy || !editable}
+            aria-label={`Успех ${i + 1}`}
+            onClick={() => cycle('ok', successes)}
+          />
+        ))}
+      </div>
+      <div className="session-death-saves__row">
+        <span className="session-death-saves__label">Провалы</span>
+        {[0, 1, 2].map((i) => (
+          <button
+            key={`fail-${i}`}
+            type="button"
+            className={`session-death-pip is-fail${fails > i ? ' is-on' : ''}`}
+            disabled={busy || !editable}
+            aria-label={`Провал ${i + 1}`}
+            onClick={() => cycle('fail', fails)}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /** Полная карточка за столом с учётом профиля видимости лобби. */
 export function SessionTableCard({
   seat,
@@ -139,14 +194,18 @@ export function SessionTableCard({
   sheetLabel = 'Лист',
   revealAll = false,
   masterControls = false,
+  isOwner = false,
   busy = false,
   onToggleInspiration,
+  onSpendInspiration,
   onAwardPiety,
   onRemoveCondition,
   onRemoveEffect,
   onClearConcentration,
   onAddCompanion,
   onRemoveCompanion,
+  onDamage,
+  onDeathSavesChange,
   yourTurn = false,
   showTurnEconomyStub = false,
 }: Props) {
@@ -171,7 +230,13 @@ export function SessionTableCard({
   const showPortrait =
     revealAll || (fields.identity.enabled && fields.identity.portrait !== 'off')
 
-  const tone = hpTone(seat.hp_current, seat.hp_max)
+  const tone: HpBand =
+    (seat.hp_band as HpBand | undefined) ||
+    (seat.hp_ratio != null ? bandFromRatio(seat.hp_ratio) : hpBand(seat.hp_current, seat.hp_max))
+  const ratio =
+    seat.hp_ratio ??
+    hpRatio(seat.hp_current, seat.hp_max)
+  const colorLabel = seat.hp_label || hpLabelHero(tone)
   const initial = (seat.character_name.trim().charAt(0) || '?').toUpperCase()
   const conditions = seat.conditions ?? []
   const effects = seat.effects ?? []
@@ -181,19 +246,29 @@ export function SessionTableCard({
   const hpLabel =
     showHpSection && hpMode !== 'off'
       ? hpMode === 'color_only' && !revealAll
-        ? `HP · ${hpColorLabel(seat.hp_current, seat.hp_max)}`
+        ? `HP · ${colorLabel}`
         : seat.hp_max != null
-          ? `HP ${seat.hp_current ?? 0}/${seat.hp_max}`
+          ? `HP ${seat.hp_current ?? 0}/${seat.hp_max}${seat.hp_temp ? ` (+${seat.hp_temp})` : ''}`
           : 'HP —'
       : null
 
+  const atZero = seat.hp_current != null && seat.hp_current <= 0
+  // Решение 12.11: спасброски только умирающему и ведущему; API уже режет поля.
+  const showDeathSaves =
+    atZero && (seat.death_successes != null || seat.death_fails != null)
+  const showUnconsciousOnly = atZero && !showDeathSaves && showHpSection
+
   const hasVitalChips =
     Boolean(hpLabel) ||
+    showUnconsciousOnly ||
     (showAc && seat.ac != null) ||
     (showPassives &&
       (seat.passive_perception != null ||
         seat.passive_insight != null ||
         seat.passive_investigation != null))
+
+  const canSpendInspiration =
+    (masterControls || isOwner) && Boolean(seat.inspiration) && Boolean(onSpendInspiration)
 
   return (
     <div className={`session-seat-stack${yourTurn ? ' is-your-turn' : ''}`}>
@@ -211,7 +286,12 @@ export function SessionTableCard({
             <span className="session-turn-chip">Движение</span>
           </div>
         ) : null}
-        <div className={`session-table-card__hp session-table-card__hp--${tone}`} aria-hidden />
+        <div
+          className={`session-hp-bar session-hp-bar--${tone}`}
+          style={{ ['--hp-ratio' as string]: String(ratio) }}
+          title={colorLabel}
+          aria-hidden
+        />
         <div className="session-table-card__body">
           <div className="session-table-card__top">
             {showPortrait ? (
@@ -282,6 +362,11 @@ export function SessionTableCard({
                   {hpLabel}
                 </span>
               ) : null}
+              {showUnconsciousOnly ? (
+                <span className="session-table-card__chip session-table-card__chip--hp is-down">
+                  Без сознания
+                </span>
+              ) : null}
               {showAc && seat.ac != null ? (
                 <span className="session-table-card__chip">КД {seat.ac}</span>
               ) : null}
@@ -300,7 +385,28 @@ export function SessionTableCard({
                   ? {seat.passive_investigation}
                 </span>
               ) : null}
+              {seat.advantage_next_roll ? (
+                <span className="session-table-card__chip" title="Преимущество на следующий бросок">
+                  Преим. ★
+                </span>
+              ) : null}
             </div>
+          ) : null}
+
+          {showDeathSaves ? (
+            <DeathSavePips
+              successes={seat.death_successes ?? 0}
+              fails={seat.death_fails ?? 0}
+              editable={Boolean(masterControls || isOwner)}
+              busy={busy}
+              onChange={onDeathSavesChange}
+            />
+          ) : null}
+
+          {seat.reaction_hint ? (
+            <p className="ui-text ui-text--muted session-reaction-hint" role="status">
+              {seat.reaction_hint}
+            </p>
           ) : null}
 
           {showConcentration && concentration ? (
@@ -310,7 +416,7 @@ export function SessionTableCard({
                   type="button"
                   className="session-concentration-tag is-removable"
                   disabled={busy}
-                  title="Снять концентрацию"
+                  title="Снять концентрацию (вдохновение не снимается)"
                   onClick={onClearConcentration}
                 >
                   Конц. · {concentration.name}
@@ -329,7 +435,7 @@ export function SessionTableCard({
             <div className="session-table-card__conditions" aria-label="Состояния и эффекты">
               {showConditions
                 ? conditions.map((c) =>
-                    masterControls && onRemoveCondition ? (
+                    (masterControls || isOwner) && onRemoveCondition ? (
                       <button
                         key={`c-${c.slug}`}
                         type="button"
@@ -353,7 +459,7 @@ export function SessionTableCard({
                     const label = fx.source_name
                       ? `${fx.name} · ${fx.source_name}`
                       : fx.name
-                    return masterControls && onRemoveEffect ? (
+                    return (masterControls || isOwner) && onRemoveEffect ? (
                       <button
                         key={`e-${fx.id}`}
                         type="button"
@@ -391,10 +497,33 @@ export function SessionTableCard({
             </div>
           ) : null}
 
+          {masterControls && onDamage ? (
+            <div className="session-table-card__damage">
+              <Text tone="muted" className="session-typed-damage__hint">
+                Урон / лечение со стола
+              </Text>
+              <TypedDamageForm
+                busy={busy}
+                onApply={onDamage}
+              />
+            </div>
+          ) : null}
+
           <div className="session-table-card__actions">
             <Link className="ui-button ui-button--ghost" to={`/characters/${seat.character_id}`}>
               {sheetLabel}
             </Link>
+            {canSpendInspiration ? (
+              <button
+                type="button"
+                className="ui-button ui-button--ghost"
+                disabled={busy}
+                title="Преимущество на следующий бросок (до броска)"
+                onClick={onSpendInspiration}
+              >
+                Потратить вдохновение
+              </button>
+            ) : null}
             {masterControls && onAddCompanion ? (
               <button
                 type="button"

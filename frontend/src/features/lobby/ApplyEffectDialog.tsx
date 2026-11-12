@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { SeatEffect, SessionSeat } from '../../shared/api/lobbies'
+import type { SeatEffect, SessionCombatant, SessionSeat } from '../../shared/api/lobbies'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
+import type { ConditionTarget } from './ApplyConditionDialog'
 
 type Props = {
   open: boolean
   seats: SessionSeat[]
+  combatants?: SessionCombatant[]
   /** Предпочтительный кастер (свой персонаж), если есть */
   preferredSourceId?: string | null
   busy?: boolean
   onClose: () => void
-  onApply: (effect: SeatEffect, characterIds: string[]) => void
+  onApply: (effect: SeatEffect, targets: ConditionTarget[]) => void
 }
 
 const SUGGESTIONS = [
@@ -23,12 +25,13 @@ const SUGGESTIONS = [
 ]
 
 /**
- * Жест: выдать баф/эффект союзнику (не SRD-состояние).
- * Можно связать с концентрацией кастера — при снятии концентрации тег уйдёт.
+ * Жест: выдать баф/эффект герою или врагу.
+ * Эффекты с длительностью в раундах снимаются сами по очереди S-02.
  */
 export function ApplyEffectDialog({
   open,
   seats,
+  combatants = [],
   preferredSourceId = null,
   busy = false,
   onClose,
@@ -43,6 +46,8 @@ export function ApplyEffectDialog({
   const [selected, setSelected] = useState<Set<string>>(() => new Set())
   const [sourceId, setSourceId] = useState<string | null>(null)
   const [linkConcentration, setLinkConcentration] = useState(false)
+  const [durationRounds, setDurationRounds] = useState('10')
+  const [acBonus, setAcBonus] = useState('')
 
   useEffect(() => {
     if (!open) return
@@ -56,6 +61,8 @@ export function ApplyEffectDialog({
     setLinkConcentration(Boolean(preferred?.concentration))
     const fromSheet = preferred?.effect_suggestions?.[0] || preferred?.concentration?.name
     setName(fromSheet ?? '')
+    setDurationRounds('10')
+    setAcBonus(fromSheet === 'Щит веры' ? '2' : '')
   }, [open, preferredSourceId, casters, seats])
 
   const sourceSeat = seats.find((s) => s.character_id === sourceId) ?? null
@@ -63,20 +70,30 @@ export function ApplyEffectDialog({
   const suggestions = useMemo(() => {
     const merged: string[] = []
     const seen = new Set<string>()
-    for (const name of [...sheetSuggestions, ...SUGGESTIONS]) {
-      const key = name.trim().toLocaleLowerCase('ru')
+    for (const hint of [...sheetSuggestions, ...SUGGESTIONS]) {
+      const key = hint.trim().toLocaleLowerCase('ru')
       if (!key || seen.has(key)) continue
       seen.add(key)
-      merged.push(name.trim())
+      merged.push(hint.trim())
     }
     return merged
   }, [sheetSuggestions])
-  const allSelected = seats.length > 0 && selected.size === seats.length
+
+  const allIds = useMemo(
+    () => [
+      ...seats.map((s) => `seat:${s.character_id}`),
+      ...combatants.map((c) => `enemy:${c.id}`),
+    ],
+    [seats, combatants],
+  )
+  const allSelected = allIds.length > 0 && selected.size === allIds.length
   const canLink = Boolean(sourceSeat?.concentration)
 
   const effect = useMemo((): SeatEffect | null => {
     const trimmed = name.trim()
     if (!trimmed) return null
+    const rounds = Number.parseInt(durationRounds, 10)
+    const ac = Number.parseInt(acBonus, 10)
     return {
       id:
         typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -86,21 +103,26 @@ export function ApplyEffectDialog({
       source_character_id: sourceSeat?.character_id ?? null,
       source_name: sourceSeat?.character_name ?? null,
       linked_concentration: canLink && linkConcentration,
+      ac_bonus: Number.isFinite(ac) && ac > 0 ? ac : null,
+      duration:
+        Number.isFinite(rounds) && rounds > 0
+          ? { unit: 'round', value: rounds, remaining_rounds: rounds }
+          : null,
     }
-  }, [name, sourceSeat, canLink, linkConcentration])
+  }, [name, sourceSeat, canLink, linkConcentration, durationRounds, acBonus])
 
-  function toggle(id: string) {
+  function toggle(key: string) {
     setSelected((prev) => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
       return next
     })
   }
 
   function toggleAll() {
     if (allSelected) setSelected(new Set())
-    else setSelected(new Set(seats.map((s) => s.character_id)))
+    else setSelected(new Set(allIds))
   }
 
   if (!open) return null
@@ -116,14 +138,18 @@ export function ApplyEffectDialog({
       onSecondary={onClose}
       onPrimary={() => {
         if (!effect || selected.size === 0) return
-        onApply(effect, [...selected])
+        const targets: ConditionTarget[] = []
+        for (const key of selected) {
+          if (key.startsWith('seat:')) targets.push({ kind: 'seat', id: key.slice(5) })
+          else if (key.startsWith('enemy:')) targets.push({ kind: 'enemy', id: key.slice(6) })
+        }
+        onApply(effect, targets)
       }}
     >
       <Stack gap={14}>
         <Text tone="muted">
-          Пометка на карточке союзника: «на нём сейчас Благословение». Это не состояние вроде
-          «отравлен». Если связать с концентрацией кастера — сняли концентрацию, пометка у
-          союзников тоже пропадёт.
+          Баф на героя или врага. Если задана длительность в раундах — эффект снимется сам по
+          очереди боя. Связь с концентрацией на врагов не распространяется автоматически.
         </Text>
 
         <Field label="Название">
@@ -142,17 +168,36 @@ export function ApplyEffectDialog({
               type="button"
               className="session-effect-tag"
               disabled={busy}
-              onClick={() => setName(hint)}
+              onClick={() => {
+                setName(hint)
+                if (hint === 'Щит веры') setAcBonus('2')
+              }}
             >
               {hint}
             </button>
           ))}
         </div>
-        {sheetSuggestions.length > 0 ? (
-          <Text tone="muted" className="apply-effect__hint">
-            Первые подсказки — с листа кастера (концентрация и подготовленные Conc-заклинания).
-          </Text>
-        ) : null}
+
+        <div className="apply-condition__duration">
+          <Field label="Длительность (раунды)">
+            <Input
+              value={durationRounds}
+              disabled={busy}
+              inputMode="numeric"
+              placeholder="пусто = без авто-снятия"
+              onChange={(e) => setDurationRounds(e.target.value)}
+            />
+          </Field>
+          <Field label="Бонус КД (опц.)">
+            <Input
+              value={acBonus}
+              disabled={busy}
+              inputMode="numeric"
+              placeholder="2 для Щита веры"
+              onChange={(e) => setAcBonus(e.target.value)}
+            />
+          </Field>
+        </div>
 
         {casters.length > 0 ? (
           <Field label="От кого (кастер)">
@@ -171,9 +216,7 @@ export function ApplyEffectDialog({
               {seats.map((seat) => (
                 <option key={seat.character_id} value={seat.character_id}>
                   {seat.character_name}
-                  {seat.concentration
-                    ? ` · конц.: ${seat.concentration.name}`
-                    : ''}
+                  {seat.concentration ? ` · конц.: ${seat.concentration.name}` : ''}
                 </option>
               ))}
             </select>
@@ -190,12 +233,7 @@ export function ApplyEffectDialog({
             />
             Связать с концентрацией «{sourceSeat?.concentration?.name}»
           </label>
-        ) : (
-          <Text tone="muted" className="apply-effect__hint">
-            Чтобы связать с концентрацией — сначала кастуйте заклинание на листе кастера
-            (появится «Конц.») или выберите кастера с концентрацией выше.
-          </Text>
-        )}
+        ) : null}
 
         <div>
           <div className="apply-condition__targets-head">
@@ -208,23 +246,44 @@ export function ApplyEffectDialog({
               onClick={toggleAll}
               disabled={busy}
             >
-              {allSelected ? 'Снять всех' : 'Все за столом'}
+              {allSelected ? 'Снять всех' : 'Все на столе'}
             </button>
           </div>
           <ul className="apply-condition__targets">
             {seats.map((seat) => {
-              const checked = selected.has(seat.character_id)
+              const key = `seat:${seat.character_id}`
+              const checked = selected.has(key)
               return (
-                <li key={seat.character_id}>
+                <li key={key}>
                   <label className={`apply-condition__target${checked ? ' is-on' : ''}`}>
                     <input
                       type="checkbox"
                       checked={checked}
                       disabled={busy}
-                      onChange={() => toggle(seat.character_id)}
+                      onChange={() => toggle(key)}
                     />
                     <span>
                       <strong>{seat.character_name}</strong>
+                    </span>
+                  </label>
+                </li>
+              )
+            })}
+            {combatants.map((enemy) => {
+              const key = `enemy:${enemy.id}`
+              const checked = selected.has(key)
+              return (
+                <li key={key}>
+                  <label className={`apply-condition__target${checked ? ' is-on' : ''}`}>
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      disabled={busy}
+                      onChange={() => toggle(key)}
+                    />
+                    <span>
+                      <strong>{enemy.name}</strong>
+                      <Text tone="muted"> · враг</Text>
                     </span>
                   </label>
                 </li>

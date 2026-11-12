@@ -52,6 +52,7 @@ from app.dnd.setting_templates import (
 from app.dnd.sheet_signals import PartyMemberSnapshot
 from app.dnd.xp import xp_from_cr
 from app.services import session_combat as scmb
+from app.services import session_table_s03 as s03
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
     CombatEntryOut,
@@ -64,7 +65,11 @@ from app.schemas.lobby import (
     CombatantActionOut,
     CombatantCreateRequest,
     CombatantMemberOut,
+    CombatantPendingStudyOut,
     CombatantPatchRequest,
+    CombatantStudyResolveRequest,
+    CombatantStudyRequest,
+    CombatantStudySnapshotOut,
     JoinLobbyRequest,
     LeadTodayRequest,
     LobbyRoleAssignRequest,
@@ -182,13 +187,19 @@ def _parse_conditions(raw: object) -> list[dict]:
         if not slug and not name:
             continue
         catalog_id = item.get("catalog_id")
-        out.append(
-            {
-                "slug": slug or name.lower(),
-                "name": name or slug,
-                "catalog_id": str(catalog_id) if catalog_id else None,
-            }
-        )
+        row: dict = {
+            "slug": slug or name.lower(),
+            "name": name or slug,
+            "catalog_id": str(catalog_id) if catalog_id else None,
+        }
+        if isinstance(item.get("duration_rounds"), int) and item["duration_rounds"] > 0:
+            row["duration_rounds"] = int(item["duration_rounds"])
+        note = str(item.get("duration_note") or "").strip()
+        if note:
+            row["duration_note"] = note[:240]
+        if isinstance(item.get("started_round"), int) and item["started_round"] > 0:
+            row["started_round"] = int(item["started_round"])
+        out.append(row)
     return out
 
 
@@ -245,6 +256,11 @@ def _seat_combat_fields(character: Character | None) -> dict:
             "ac": None,
             "speed": None,
             "inspiration": False,
+            "advantage_next_roll": False,
+            "hp_temp": 0,
+            "is_dying": False,
+            "death_successes": 0,
+            "death_fails": 0,
             "piety_score": None,
             "piety_god": None,
             "conditions": [],
@@ -255,6 +271,9 @@ def _seat_combat_fields(character: Character | None) -> dict:
             "passive_perception": None,
             "passive_insight": None,
             "passive_investigation": None,
+            "damage_resistances": [],
+            "damage_immunities": [],
+            "damage_vulnerabilities": [],
         }
     sheet = character.sheet or {}
     combat = sheet.get("combat") or {}
@@ -266,12 +285,32 @@ def _seat_combat_fields(character: Character | None) -> dict:
         piety_score = raw_score if isinstance(raw_score, int) else None
         raw_god = piety.get("god")
         piety_god = raw_god if isinstance(raw_god, str) and raw_god else None
+    defenses = s03.defenses_from_sheet_combat(combat if isinstance(combat, dict) else {})
+    hp_temp = int(combat.get("hp_temp") or 0) if isinstance(combat.get("hp_temp"), int) else 0
+    death_successes = (
+        int(combat.get("death_successes") or 0)
+        if isinstance(combat.get("death_successes"), int)
+        else 0
+    )
+    death_fails = (
+        int(combat.get("death_fails") or 0)
+        if isinstance(combat.get("death_fails"), int)
+        else 0
+    )
+    is_dying = bool(combat.get("is_dying")) or (
+        character.hp_current is not None and int(character.hp_current) <= 0
+    )
     return {
         "piety_score": piety_score,
         "piety_god": piety_god,
         "ac": combat.get("ac") if isinstance(combat.get("ac"), int) else None,
         "speed": combat.get("speed") if isinstance(combat.get("speed"), int) else None,
         "inspiration": bool(combat.get("inspiration")),
+        "advantage_next_roll": bool(combat.get("advantage_next_roll")),
+        "hp_temp": max(0, hp_temp),
+        "is_dying": is_dying,
+        "death_successes": max(0, min(3, death_successes)),
+        "death_fails": max(0, min(3, death_fails)),
         "conditions": _parse_conditions(combat.get("conditions")),
         "effects": parse_effects(combat.get("effects")),
         "concentration": _parse_concentration(combat.get("concentration")),
@@ -280,6 +319,7 @@ def _seat_combat_fields(character: Character | None) -> dict:
         "passive_perception": _passive_from_sheet(sheet, "perception", "wis"),
         "passive_insight": _passive_from_sheet(sheet, "insight", "wis"),
         "passive_investigation": _passive_from_sheet(sheet, "investigation", "int"),
+        **defenses,
     }
 
 
@@ -336,12 +376,14 @@ def _parse_members(raw: object, *, fallback_name: str, hp_current: int, hp_max: 
             m_cur = int(
                 item.get("hp_current") if item.get("hp_current") is not None else m_max
             )
+            m_temp = int(item.get("hp_temp") or 0) if isinstance(item.get("hp_temp"), int) else 0
             members.append(
                 {
                     "id": mid,
                     "name": mname,
                     "hp_current": max(0, min(m_max, m_cur)),
                     "hp_max": m_max,
+                    "hp_temp": max(0, m_temp),
                 }
             )
     if not members:
@@ -351,6 +393,7 @@ def _parse_members(raw: object, *, fallback_name: str, hp_current: int, hp_max: 
                 "name": fallback_name,
                 "hp_current": max(0, min(max(1, hp_max), hp_current)),
                 "hp_max": max(1, hp_max),
+                "hp_temp": 0,
             }
         )
     return members
@@ -370,10 +413,34 @@ def _sync_combatant_summary(row: dict) -> None:
     row["hp_max"] = int(focus["hp_max"])
 
 
-def _apply_member_damage(member: dict, damage: int) -> None:
+def _apply_member_damage(
+    member: dict,
+    damage: int,
+    *,
+    damage_type: str | None = None,
+    defenses: dict | None = None,
+) -> str:
+    """Урон/лечение с типом. Возвращает note о сопротивлении."""
     hp_max = max(1, int(member.get("hp_max") or 1))
-    next_hp = int(member.get("hp_current") or 0) - int(damage)
-    member["hp_current"] = max(0, min(hp_max, next_hp))
+    note = ""
+    applied = int(damage)
+    if applied > 0 and damage_type:
+        defs = defenses or {}
+        applied, note = s03.adjust_incoming_damage(
+            applied,
+            damage_type,
+            resistances=list(defs.get("damage_resistances") or []),
+            immunities=list(defs.get("damage_immunities") or []),
+            vulnerabilities=list(defs.get("damage_vulnerabilities") or []),
+        )
+    cur = int(member.get("hp_current") or 0)
+    temp = int(member.get("hp_temp") or 0)
+    next_cur, next_temp = s03.apply_damage_through_temp_hp(
+        cur, temp, applied, hp_max=hp_max
+    )
+    member["hp_current"] = next_cur
+    member["hp_temp"] = next_temp
+    return note
 
 
 def _str_list(raw: object) -> list[str]:
@@ -413,6 +480,19 @@ def _parse_combatants(raw: object) -> list[dict]:
             hp_current=hp_current,
             hp_max=hp_max,
         )
+        studied_by = []
+        if isinstance(item.get("studied_by"), list):
+            studied_by = [str(x) for x in item["studied_by"] if x]
+        study_snapshots = (
+            dict(item["study_snapshots"])
+            if isinstance(item.get("study_snapshots"), dict)
+            else {}
+        )
+        pending_study = (
+            dict(item["pending_study"])
+            if isinstance(item.get("pending_study"), dict)
+            else None
+        )
         row = {
             "id": cid,
             "name": name,
@@ -427,6 +507,7 @@ def _parse_combatants(raw: object) -> list[dict]:
             "type_ru": str(item["type_ru"]) if item.get("type_ru") else None,
             "custom": bool(item.get("custom")),
             "conditions": _parse_conditions(item.get("conditions")),
+            "effects": parse_effects(item.get("effects")),
             "traits": _action_blocks(item.get("traits")),
             "actions": _action_blocks(item.get("actions")),
             "bonus_actions": _action_blocks(item.get("bonus_actions")),
@@ -449,52 +530,122 @@ def _parse_combatants(raw: object) -> list[dict]:
             "members": members,
             "alive_count": 0,
             "member_count": 0,
+            "statblock_revealed": bool(item.get("statblock_revealed")),
+            "studied_by": studied_by,
+            "study_snapshots": study_snapshots,
+            "pending_study": pending_study,
+            "last_damage_note": (
+                str(item["last_damage_note"])
+                if item.get("last_damage_note")
+                else None
+            ),
+            "reaction_hint": (
+                str(item["reaction_hint"]) if item.get("reaction_hint") else None
+            ),
         }
         _sync_combatant_summary(row)
         out.append(row)
     return out
 
 
-def _combatant_out(row: dict) -> SessionCombatantOut:
-    members = [
-        CombatantMemberOut(
-            id=m["id"],
-            name=m["name"],
-            hp_current=int(m["hp_current"]),
-            hp_max=int(m["hp_max"]),
+def _combatant_out(
+    row: dict,
+    *,
+    see_hidden: bool = True,
+    user_id: UUID | str | None = None,
+) -> SessionCombatantOut:
+    uid = str(user_id) if user_id else None
+    view = s03.redact_combatant_row(row, see_hidden=see_hidden, user_id=uid)
+    numbers_hidden = bool(view.get("_hp_numbers_hidden"))
+    members = []
+    for m in view.get("members") or []:
+        raw_m = next(
+            (x for x in (row.get("members") or []) if x.get("id") == m.get("id")),
+            m,
         )
-        for m in row.get("members") or []
-    ]
+        live_cur = int(raw_m.get("hp_current") or 0)
+        live_max = max(1, int(raw_m.get("hp_max") or 1))
+        live_band = s03.hp_band(live_cur, live_max)
+        live_ratio = live_cur / live_max
+        members.append(
+            CombatantMemberOut(
+                id=str(m["id"]),
+                name=str(m["name"]),
+                hp_current=0 if numbers_hidden else live_cur,
+                hp_max=live_max,
+                hp_temp=0 if numbers_hidden else max(0, int(raw_m.get("hp_temp") or 0)),
+                hp_band=live_band,
+                hp_label=s03.hp_label_enemy(live_band),
+                hp_ratio=live_ratio,
+                hp_numbers_hidden=numbers_hidden,
+            )
+        )
+    skill = s03.study_skill_for_creature_type(
+        str(row.get("type_ru") or "") or None
+    )
+    snap = view.get("study_snapshot")
+    pending = view.get("pending_study")
     return SessionCombatantOut(
         id=row["id"],
         name=row["name"],
-        hp_current=row["hp_current"],
-        hp_max=row["hp_max"],
+        hp_current=0 if numbers_hidden else int(view.get("hp_current") or 0),
+        hp_max=max(1, int(view.get("hp_max") or row.get("hp_max") or 1)),
+        hp_band=str(view.get("hp_band") or s03.hp_band(
+            int(row.get("hp_current") or 0), max(1, int(row.get("hp_max") or 1))
+        )),
+        hp_label=str(view.get("hp_label") or ""),
+        hp_ratio=float(view.get("hp_ratio") or 0),
+        hp_numbers_hidden=numbers_hidden,
         alive_count=int(row.get("alive_count") or 0),
         member_count=int(row.get("member_count") or len(members) or 1),
-        ac=row.get("ac"),
-        speed=row.get("speed"),
-        cr=row.get("cr"),
+        ac=view.get("ac") if isinstance(view.get("ac"), int) else None,
+        speed=view.get("speed") if isinstance(view.get("speed"), int) else None,
+        cr=str(view["cr"]) if view.get("cr") not in (None, "") else None,
         catalog_id=row.get("catalog_id"),
         slug=row.get("slug"),
-        source_book=row.get("source_book"),
+        source_book=str(view["source_book"]) if view.get("source_book") else None,
         type_ru=row.get("type_ru"),
         custom=bool(row.get("custom")),
         conditions=[SeatConditionOut(**c) for c in row.get("conditions") or []],
-        traits=[CombatantActionOut(**a) for a in row.get("traits") or []],
-        actions=[CombatantActionOut(**a) for a in row.get("actions") or []],
-        bonus_actions=[CombatantActionOut(**a) for a in row.get("bonus_actions") or []],
-        reactions=[CombatantActionOut(**a) for a in row.get("reactions") or []],
-        legendary_actions=[CombatantActionOut(**a) for a in row.get("legendary_actions") or []],
+        effects=[SeatEffectOut(**e) for e in (row.get("effects") or [])],
+        traits=[CombatantActionOut(**a) for a in (view.get("traits") or [])],
+        actions=[CombatantActionOut(**a) for a in (view.get("actions") or [])],
+        bonus_actions=[CombatantActionOut(**a) for a in (view.get("bonus_actions") or [])],
+        reactions=[CombatantActionOut(**a) for a in (view.get("reactions") or [])],
+        legendary_actions=[
+            CombatantActionOut(**a) for a in (view.get("legendary_actions") or [])
+        ],
         members=members,
-        dex_mod=int(row["dex_mod"]) if isinstance(row.get("dex_mod"), int) else None,
-        xp=int(row["xp"]) if isinstance(row.get("xp"), int) else None,
-        xp_claimed_count=max(0, int(row.get("xp_claimed_count") or 0)),
+        dex_mod=int(view["dex_mod"]) if isinstance(view.get("dex_mod"), int) else None,
+        xp=int(view["xp"]) if isinstance(view.get("xp"), int) else None,
+        xp_claimed_count=(
+            max(0, int(row.get("xp_claimed_count") or 0))
+            if bool(view.get("statblock_visible"))
+            else 0
+        ),
         wave_id=str(row["wave_id"]) if row.get("wave_id") else None,
-        damage_resistances=_str_list(row.get("damage_resistances")),
-        damage_immunities=_str_list(row.get("damage_immunities")),
-        damage_vulnerabilities=_str_list(row.get("damage_vulnerabilities")),
-        condition_immunities=_str_list(row.get("condition_immunities")),
+        damage_resistances=_str_list(view.get("damage_resistances")),
+        damage_immunities=_str_list(view.get("damage_immunities")),
+        damage_vulnerabilities=_str_list(view.get("damage_vulnerabilities")),
+        condition_immunities=_str_list(view.get("condition_immunities")),
+        statblock_visible=bool(view.get("statblock_visible")),
+        statblock_revealed=bool(row.get("statblock_revealed")),
+        studied_by_me=bool(view.get("studied_by_me")),
+        study_snapshot=(
+            CombatantStudySnapshotOut(**snap) if isinstance(snap, dict) else None
+        ),
+        pending_study=(
+            CombatantPendingStudyOut(**pending) if isinstance(pending, dict) else None
+        ),
+        study_skill=skill["skill"],
+        study_skill_ru=skill["skill_ru"],
+        suggested_study_dc=s03.default_study_dc(
+            str(row.get("cr")) if row.get("cr") is not None else None
+        ),
+        reaction_hint=str(row["reaction_hint"]) if row.get("reaction_hint") else None,
+        last_damage_note=(
+            str(row["last_damage_note"]) if row.get("last_damage_note") else None
+        ),
     )
 
 
@@ -2069,6 +2220,8 @@ class LobbyService:
         member_ids = [m.character_id for m in lobby.members]
         seat_ids = [s.character_id for s in session.seats]
         char_map = self.lobbies.get_characters_map([*member_ids, *seat_ids])
+        flags = roles.permission_flags(self.db, lobby, user, session=session)
+        see_hidden = flags["can_see_hidden"]
         seats: list[SessionSeatOut] = []
         for seat in session.seats:
             character = char_map.get(seat.character_id)
@@ -2077,6 +2230,18 @@ class LobbyService:
             init_bonus, init_adv = scmb.initiative_bonus_from_sheet(
                 sheet if isinstance(sheet, dict) else {}
             )
+            hp_cur = character.hp_current if character else None
+            hp_mx = character.hp_max if character else None
+            band = s03.hp_band(hp_cur, hp_mx)
+            # Спасброски от смерти: только умирающему и ведущему (решение 12.11 > пресет).
+            show_death = False
+            if extras.get("is_dying") and hp_cur is not None and int(hp_cur) <= 0:
+                member = next(
+                    (m for m in lobby.members if m.character_id == seat.character_id),
+                    None,
+                )
+                is_self = member is not None and member.user_id == user.id
+                show_death = bool(see_hidden or is_self)
             seats.append(
                 SessionSeatOut(
                     character_id=seat.character_id,
@@ -2084,11 +2249,20 @@ class LobbyService:
                     character_level=character.level if character else 1,
                     character_class_name=character.class_name if character else None,
                     character_race_name=character.race_name if character else None,
-                    hp_current=character.hp_current if character else None,
-                    hp_max=character.hp_max if character else None,
+                    hp_current=hp_cur,
+                    hp_max=hp_mx,
+                    hp_temp=int(extras.get("hp_temp") or 0),
+                    hp_band=band,
+                    hp_label=s03.hp_label_hero(band),
+                    hp_ratio=(
+                        max(0.0, min(1.0, float(hp_cur) / float(hp_mx)))
+                        if hp_cur is not None and hp_mx and hp_mx > 0
+                        else None
+                    ),
                     ac=extras["ac"],
                     speed=extras["speed"],
                     inspiration=extras["inspiration"],
+                    advantage_next_roll=bool(extras.get("advantage_next_roll")),
                     piety_score=extras["piety_score"],
                     piety_god=extras["piety_god"],
                     conditions=[SeatConditionOut(**c) for c in extras["conditions"]],
@@ -2106,13 +2280,15 @@ class LobbyService:
                     dex_mod=_dex_mod_from_character(character),
                     initiative_bonus=init_bonus,
                     initiative_advantage=init_adv,
+                    is_dying=True if show_death else (True if band == "down" else False),
+                    death_successes=int(extras["death_successes"]) if show_death else None,
+                    death_fails=int(extras["death_fails"]) if show_death else None,
+                    reaction_hint=None,
                     seated_at=seat.seated_at,
                 )
             )
         members = [_member_out(m, char_map.get(m.character_id)) for m in lobby.members]
         raw_combatants = _parse_combatants(session.combatants)
-        flags = roles.permission_flags(self.db, lobby, user, session=session)
-        see_hidden = flags["can_see_hidden"]
         combat_state = scmb.parse_combat_state(
             getattr(session, "combat", None) or {},
             combatants=raw_combatants,
@@ -2120,7 +2296,10 @@ class LobbyService:
         _filtered_state, visible_combatants = scmb.filter_combat_for_viewer(
             combat_state, raw_combatants, see_hidden=see_hidden
         )
-        combatants = [_combatant_out(c) for c in visible_combatants]
+        combatants = [
+            _combatant_out(c, see_hidden=see_hidden, user_id=user.id)
+            for c in visible_combatants
+        ]
         lead = self.lobbies.get_lead_today_for_session(session.id)
         location_page = None
         location_page_id = getattr(session, "location_page_id", None)
@@ -2523,6 +2702,36 @@ class LobbyService:
             is_master_roll = True
             character_name = "Мастер"
 
+        inspiration_used = False
+        advantage_applied = bool(payload.advantage or payload.used_inspiration)
+        after_roll = s03.parse_inspiration_after_roll(lobby.visibility_profile or {})
+        if character_id is not None:
+            char_map_roll = self.lobbies.get_characters_map([character_id])
+            roll_char = char_map_roll.get(character_id)
+            if roll_char is not None:
+                sheet = dict(roll_char.sheet or {})
+                combat = dict(sheet.get("combat") or {})
+                # Режим по умолчанию: преимущество до броска (advantage_next_roll).
+                if combat.get("advantage_next_roll") and not after_roll:
+                    advantage_applied = True
+                    combat["advantage_next_roll"] = False
+                    inspiration_used = True
+                    sheet["combat"] = combat
+                    roll_char.sheet = sheet
+                    from sqlalchemy.orm.attributes import flag_modified as _fm_sheet
+
+                    _fm_sheet(roll_char, "sheet")
+                elif after_roll and (payload.used_inspiration or combat.get("inspiration")):
+                    # Режим «после броска»: снимаем вдохновение при явном use.
+                    if payload.used_inspiration and combat.get("inspiration"):
+                        combat["inspiration"] = False
+                        inspiration_used = True
+                        sheet["combat"] = combat
+                        roll_char.sheet = sheet
+                        from sqlalchemy.orm.attributes import flag_modified as _fm_sheet2
+
+                        _fm_sheet2(roll_char, "sheet")
+
         event = SessionEvent(
             session_id=session.id,
             event_type="roll",
@@ -2534,7 +2743,11 @@ class LobbyService:
             breakdown=payload.breakdown,
             total=payload.total,
             is_master_roll=is_master_roll,
-            payload={},
+            payload={
+                "advantage": advantage_applied,
+                "inspiration_used": inspiration_used,
+                "inspiration_after_roll": after_roll,
+            },
         )
         self.lobbies.add_session_event(event)
         self.db.commit()
@@ -2603,15 +2816,48 @@ class LobbyService:
         payload: SeatCombatPatchRequest,
     ) -> SessionDetail:
         session, lobby, character = self._require_seat_actor(user, session_id, character_id)
+        can_run = roles.can_run_session(self.db, lobby, user, session)
         combat = self._mutate_sheet_combat(character)
+        reaction_hint: str | None = None
+        damage_note: str | None = None
+
+        if payload.spend_inspiration:
+            if not combat.get("inspiration"):
+                raise AppError(
+                    "Нет вдохновения",
+                    code="no_inspiration",
+                    status_code=400,
+                )
+            # RAW 2014: преимущество до броска; снятие концентрации вдохновение не трогает.
+            combat["inspiration"] = False
+            combat["advantage_next_roll"] = True
         if payload.inspiration is not None:
             combat["inspiration"] = bool(payload.inspiration)
+            if not payload.inspiration:
+                # Явно выключили — не оставляем «зависшее» преимущество без траты.
+                pass
+
         if payload.conditions is not None:
             combat["conditions"] = [
                 {
                     "slug": c.slug,
                     "name": c.name,
                     "catalog_id": c.catalog_id,
+                    **(
+                        {"duration_rounds": c.duration_rounds}
+                        if c.duration_rounds is not None
+                        else {}
+                    ),
+                    **(
+                        {"duration_note": c.duration_note}
+                        if c.duration_note
+                        else {}
+                    ),
+                    **(
+                        {"started_round": c.started_round}
+                        if c.started_round is not None
+                        else {}
+                    ),
                 }
                 for c in payload.conditions
             ]
@@ -2654,6 +2900,71 @@ class LobbyService:
         if payload.clear_concentration:
             combat["concentration"] = None
             cleared_concentration = True
+            # Вдохновение от концентрации не зависит — не трогаем.
+
+        if payload.death_successes is not None or payload.death_fails is not None:
+            if not can_run:
+                member = self.lobbies.get_member(lobby.id, character_id)
+                if member is None or member.user_id != user.id:
+                    raise AppError("Forbidden", code="forbidden", status_code=403)
+            if payload.death_successes is not None:
+                combat["death_successes"] = max(0, min(3, int(payload.death_successes)))
+            if payload.death_fails is not None:
+                combat["death_fails"] = max(0, min(3, int(payload.death_fails)))
+            combat["is_dying"] = True
+
+        if (
+            payload.damage is not None
+            or payload.grant_temp_hp is not None
+        ):
+            if not can_run:
+                raise AppError(
+                    "Только ведущий наносит урон герою со стола",
+                    code="forbidden",
+                    status_code=403,
+                )
+            hp_max = max(1, int(character.hp_max or 1))
+            hp_cur = int(character.hp_current if character.hp_current is not None else hp_max)
+            hp_temp = int(combat.get("hp_temp") or 0)
+            if payload.grant_temp_hp is not None:
+                hp_temp = max(hp_temp, int(payload.grant_temp_hp))
+                combat["hp_temp"] = hp_temp
+            if payload.damage is not None:
+                applied = int(payload.damage)
+                if applied > 0 and payload.damage_type:
+                    defs = s03.defenses_from_sheet_combat(combat)
+                    applied, damage_note = s03.adjust_incoming_damage(
+                        applied,
+                        payload.damage_type,
+                        resistances=defs["damage_resistances"],
+                        immunities=defs["damage_immunities"],
+                        vulnerabilities=defs["damage_vulnerabilities"],
+                    )
+                hp_cur, hp_temp = s03.apply_damage_through_temp_hp(
+                    hp_cur, hp_temp, applied, hp_max=hp_max
+                )
+                character.hp_current = hp_cur
+                combat["hp_temp"] = hp_temp
+                combat["hp_current"] = hp_cur
+                if hp_cur <= 0:
+                    combat["is_dying"] = True
+                else:
+                    combat["is_dying"] = False
+                    combat["death_successes"] = 0
+                    combat["death_fails"] = 0
+                if applied > 0:
+                    reaction_hint = "Есть ли реакция на этот урон?"
+                    # Флаг боя S-02 — проведение реакции в S-04.
+                    combat_state = _parse_combat_state(
+                        session.combat, combatants=_parse_combatants(session.combatants)
+                    )
+                    if combat_state.get("active"):
+                        from sqlalchemy.orm.attributes import flag_modified as _fm
+
+                        combat_state["waiting_reaction"] = True
+                        session.combat = scmb.dump_combat_state(combat_state)
+                        _fm(session, "combat")
+
         from sqlalchemy.orm.attributes import flag_modified
 
         flag_modified(character, "sheet")
@@ -2667,6 +2978,11 @@ class LobbyService:
 
             await broadcast_sheet_effects_changed(self.lobbies, [character_id])
         detail = self._session_detail(session, lobby, user)
+        if reaction_hint or damage_note:
+            for seat in detail.seats:
+                if seat.character_id == character_id:
+                    seat.reaction_hint = reaction_hint
+                    break
         await _broadcast_session_changed(session.id)
         return detail
 
@@ -3365,10 +3681,65 @@ class LobbyService:
             target["name"] = payload.name.strip()
         if payload.ac is not None:
             target["ac"] = int(payload.ac)
+        if payload.reveal_statblock is True:
+            target["statblock_revealed"] = True
         if payload.conditions is not None:
+            combat_state_preview = _parse_combat_state(
+                session.combat, combatants=combatants
+            )
+            current_round = int(combat_state_preview.get("round") or 1)
             target["conditions"] = [
-                {"slug": c.slug, "name": c.name, "catalog_id": c.catalog_id}
+                {
+                    "slug": c.slug,
+                    "name": c.name,
+                    "catalog_id": c.catalog_id,
+                    **(
+                        {"duration_rounds": c.duration_rounds}
+                        if c.duration_rounds is not None
+                        else {}
+                    ),
+                    **({"duration_note": c.duration_note} if c.duration_note else {}),
+                    **(
+                        {
+                            "started_round": c.started_round
+                            if c.started_round is not None
+                            else current_round
+                        }
+                        if c.duration_rounds is not None
+                        else {}
+                    ),
+                }
                 for c in payload.conditions
+            ]
+        if payload.effects is not None:
+            target["effects"] = [
+                {
+                    "id": e.id,
+                    "name": e.name,
+                    "source_character_id": e.source_character_id,
+                    "source_name": e.source_name,
+                    "linked_concentration": bool(e.linked_concentration),
+                    **({"origin": e.origin} if e.origin else {}),
+                    **({"ac_bonus": e.ac_bonus} if e.ac_bonus is not None else {}),
+                    **({"kind": e.kind} if e.kind else {}),
+                    **({"slug": e.slug} if e.slug else {}),
+                    **({"charges": e.charges} if e.charges is not None else {}),
+                    **(
+                        {
+                            "mods": [
+                                m.model_dump(exclude_none=True) for m in (e.mods or [])
+                            ]
+                        }
+                        if e.mods
+                        else {}
+                    ),
+                    **(
+                        {"duration": e.duration.model_dump(exclude_none=True)}
+                        if e.duration
+                        else {}
+                    ),
+                }
+                for e in payload.effects
             ]
 
         members: list[dict] = list(target.get("members") or [])
@@ -3380,6 +3751,14 @@ class LobbyService:
                 members[0]["hp_max"] = new_max
                 members[0]["hp_current"] = min(int(members[0]["hp_current"]), new_max)
 
+        defenses = {
+            "damage_resistances": target.get("damage_resistances") or [],
+            "damage_immunities": target.get("damage_immunities") or [],
+            "damage_vulnerabilities": target.get("damage_vulnerabilities") or [],
+        }
+        last_note = ""
+        damaged = False
+
         if payload.member_damages:
             by_id = {m["id"]: m for m in members}
             for entry in payload.member_damages:
@@ -3389,7 +3768,16 @@ class LobbyService:
                         "Боец пачки не найден",
                         code="combatant_member_not_found",
                     )
-                _apply_member_damage(member, entry.damage)
+                note = _apply_member_damage(
+                    member,
+                    entry.damage,
+                    damage_type=entry.damage_type,
+                    defenses=defenses,
+                )
+                if note:
+                    last_note = note
+                if entry.damage > 0:
+                    damaged = True
         elif payload.damage is not None:
             # Без member_id — первый живой; с member_id — выбранный в составе.
             member = None
@@ -3406,17 +3794,42 @@ class LobbyService:
                     member = members[0]
             if member is None:
                 raise AppError("В пачке нет бойцов", code="combatant_empty", status_code=400)
-            _apply_member_damage(member, payload.damage)
+            if payload.grant_temp_hp is not None and payload.damage < 0:
+                member["hp_temp"] = max(
+                    int(member.get("hp_temp") or 0), int(payload.grant_temp_hp)
+                )
+            last_note = _apply_member_damage(
+                member,
+                payload.damage,
+                damage_type=payload.damage_type,
+                defenses=defenses,
+            )
+            if payload.damage > 0:
+                damaged = True
+        elif payload.grant_temp_hp is not None:
+            member = next((m for m in members if int(m["hp_current"]) > 0), None)
+            if member is None and members:
+                member = members[0]
+            if member is not None:
+                member["hp_temp"] = max(
+                    int(member.get("hp_temp") or 0), int(payload.grant_temp_hp)
+                )
         elif payload.hp_current is not None and len(members) == 1:
             m = members[0]
             m_max = max(1, int(m["hp_max"]))
             m["hp_current"] = max(0, min(m_max, int(payload.hp_current)))
 
         target["members"] = members
+        if last_note:
+            target["last_damage_note"] = last_note
+        if damaged:
+            target["reaction_hint"] = "Есть ли реакция на этот урон?"
         _sync_combatant_summary(target)
 
         combat_state = _parse_combat_state(session.combat, combatants=combatants)
         if combat_state.get("active"):
+            if damaged:
+                combat_state["waiting_reaction"] = True
             combat_state, combatants = scmb.sync_fallen_from_combatants(
                 combat_state, combatants
             )
@@ -3425,6 +3838,164 @@ class LobbyService:
             session.combat = scmb.dump_combat_state(combat_state)
             flag_modified(session, "combat")
 
+        session.combatants = combatants
+        flag_modified(session, "combatants")
+        self.db.commit()
+        detail = self._session_detail(session, lobby, user)
+        await _broadcast_session_changed(session.id)
+        return detail
+
+    async def study_combatant(
+        self,
+        user: User,
+        session_id: UUID,
+        combatant_id: str,
+        payload: CombatantStudyRequest,
+    ) -> SessionDetail:
+        """Игрок начинает «Изучить» выпущенного врага."""
+        session = self.lobbies.get_session(session_id)
+        if session is None:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lobby = session.lobby
+        self._require_view(lobby, user)
+        roles.require_can_act_on_board(self.db, lobby, user)
+        from sqlalchemy.orm.attributes import flag_modified
+
+        member = self.lobbies.get_member(lobby.id, payload.character_id)
+        if member is None or member.user_id != user.id:
+            if not roles.can_run_session(self.db, lobby, user, session):
+                raise AppError(
+                    "Можно изучать только своим героем",
+                    code="forbidden",
+                    status_code=403,
+                )
+        if self.lobbies.get_seat(session.id, payload.character_id) is None:
+            raise AppError(
+                "Персонаж не за столом",
+                code="character_not_seated",
+                status_code=400,
+            )
+
+        combatants = _parse_combatants(session.combatants)
+        target = next((c for c in combatants if c["id"] == combatant_id), None)
+        if target is None:
+            raise NotFoundError("Противник не найден", code="combatant_not_found")
+
+        # Невыпущенная волна не должна быть видна игроку (S-02 filter).
+        see_hidden = roles.can_see_hidden(self.db, lobby, user, session)
+        combat_state = _parse_combat_state(session.combat, combatants=combatants)
+        _f, visible = scmb.filter_combat_for_viewer(
+            combat_state, combatants, see_hidden=see_hidden
+        )
+        if not any(c["id"] == combatant_id for c in visible):
+            raise NotFoundError("Противник не найден", code="combatant_not_found")
+
+        skill = s03.study_skill_for_creature_type(
+            str(target.get("type_ru") or "") or None
+        )
+        dc = s03.default_study_dc(
+            str(target.get("cr")) if target.get("cr") is not None else None,
+            payload.dc,
+        )
+        char_map = self.lobbies.get_characters_map([payload.character_id])
+        character = char_map.get(payload.character_id)
+        target["pending_study"] = {
+            "user_id": str(user.id),
+            "character_id": str(payload.character_id),
+            "character_name": character.name if character else None,
+            "skill": skill["skill"],
+            "skill_ru": skill["skill_ru"],
+            "dc": dc,
+            "roll_total": payload.roll_total,
+            "status": "pending",
+        }
+        session.combatants = combatants
+        flag_modified(session, "combatants")
+        self.db.commit()
+        detail = self._session_detail(session, lobby, user)
+        await _broadcast_session_changed(session.id)
+        return detail
+
+    async def resolve_study_combatant(
+        self,
+        user: User,
+        session_id: UUID,
+        combatant_id: str,
+        payload: CombatantStudyResolveRequest,
+    ) -> SessionDetail:
+        """Ведущий подтверждает успех / провал «Изучить»."""
+        session, lobby = self._require_session_owner(user, session_id)
+        from sqlalchemy.orm.attributes import flag_modified
+        from datetime import datetime, timezone
+
+        combatants = _parse_combatants(session.combatants)
+        target = next((c for c in combatants if c["id"] == combatant_id), None)
+        if target is None:
+            raise NotFoundError("Противник не найден", code="combatant_not_found")
+        pending = target.get("pending_study") if isinstance(target.get("pending_study"), dict) else None
+        if not pending:
+            raise AppError(
+                "Нет ожидающей проверки «Изучить»",
+                code="study_not_pending",
+                status_code=400,
+            )
+        target_user = str(payload.user_id) if payload.user_id else str(pending.get("user_id") or "")
+        if not target_user:
+            raise AppError("Не указан игрок", code="study_user_required", status_code=400)
+        if payload.success:
+            studied = [str(x) for x in (target.get("studied_by") or [])]
+            if target_user not in studied:
+                studied.append(target_user)
+            target["studied_by"] = studied
+            snaps = (
+                dict(target["study_snapshots"])
+                if isinstance(target.get("study_snapshots"), dict)
+                else {}
+            )
+            snaps[target_user] = {
+                "hp_current": int(target.get("hp_current") or 0),
+                "hp_max": max(1, int(target.get("hp_max") or 1)),
+                "at": datetime.now(timezone.utc).isoformat(),
+            }
+            target["study_snapshots"] = snaps
+            pending["status"] = "success"
+        else:
+            pending["status"] = "fail"
+        target["pending_study"] = None
+        session.combatants = combatants
+        flag_modified(session, "combatants")
+        self.db.commit()
+        detail = self._session_detail(session, lobby, user)
+        await _broadcast_session_changed(session.id)
+        return detail
+
+    async def share_studied_combatant(
+        self,
+        user: User,
+        session_id: UUID,
+        combatant_id: str,
+    ) -> SessionDetail:
+        """«Показать партии» — изучивший или ведущий открывает статблок всем."""
+        session = self.lobbies.get_session(session_id)
+        if session is None:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lobby = session.lobby
+        self._require_view(lobby, user)
+        from sqlalchemy.orm.attributes import flag_modified
+
+        combatants = _parse_combatants(session.combatants)
+        target = next((c for c in combatants if c["id"] == combatant_id), None)
+        if target is None:
+            raise NotFoundError("Противник не найден", code="combatant_not_found")
+        can_run = roles.can_run_session(self.db, lobby, user, session)
+        studied = {str(x) for x in (target.get("studied_by") or [])}
+        if not can_run and str(user.id) not in studied:
+            raise AppError(
+                "Сначала изучите противника или дождитесь «Показать» ведущего",
+                code="forbidden",
+                status_code=403,
+            )
+        target["statblock_revealed"] = True
         session.combatants = combatants
         flag_modified(session, "combatants")
         self.db.commit()
@@ -3926,6 +4497,8 @@ class LobbyService:
         if state.get("entries") and 0 <= int(state.get("active_index") or 0) < len(state["entries"]):
             prev_active = state["entries"][int(state["active_index"])]
 
+        prev_round = int(state.get("round") or 1)
+
         if payload.action == "next":
             state = scmb.advance_turn(state, direction=1)
         elif payload.action == "prev":
@@ -3938,6 +4511,32 @@ class LobbyService:
             state["active_index"] = max(0, min(n - 1, int(payload.active_index)))
         if payload.round is not None:
             state["round"] = max(1, int(payload.round))
+
+        # S-03: эффекты с длительностью в раундах снимаются при смене раунда очереди.
+        new_round = int(state.get("round") or 1)
+        if new_round > prev_round:
+            rounds_passed = new_round - prev_round
+            for c in combatants:
+                effects = list(c.get("effects") or [])
+                c["effects"] = s03.tick_effects_rounds(effects, rounds_passed=rounds_passed)
+            session.combatants = combatants
+            flag_modified(session, "combatants")
+            # Эффекты на героях за столом
+            seat_ids = [s.character_id for s in session.seats]
+            char_map = self.lobbies.get_characters_map(seat_ids)
+            for cid in seat_ids:
+                ch = char_map.get(cid)
+                if ch is None:
+                    continue
+                sheet = dict(ch.sheet or {})
+                combat = dict(sheet.get("combat") or {})
+                effects = list(combat.get("effects") or [])
+                next_effects = s03.tick_effects_rounds(effects, rounds_passed=rounds_passed)
+                if next_effects != effects:
+                    combat["effects"] = next_effects
+                    sheet["combat"] = combat
+                    ch.sheet = sheet
+                    flag_modified(ch, "sheet")
 
         # T-01 hook: начало хода героя
         cur = None

@@ -288,6 +288,9 @@ export type SeatCondition = {
   slug: string
   name: string
   catalog_id?: string | null
+  duration_rounds?: number | null
+  duration_note?: string | null
+  started_round?: number | null
 }
 
 export type SeatCompanion = {
@@ -317,6 +320,15 @@ export type SeatEffect = {
   source_character_id?: string | null
   source_name?: string | null
   linked_concentration?: boolean
+  ac_bonus?: number | null
+  kind?: string | null
+  slug?: string | null
+  duration?: {
+    unit: string
+    value?: number | null
+    remaining_rounds?: number | null
+    started_round?: number | null
+  } | null
 }
 
 export type SessionSeat = {
@@ -327,9 +339,14 @@ export type SessionSeat = {
   character_race_name: string | null
   hp_current: number | null
   hp_max: number | null
+  hp_temp?: number
+  hp_band?: string | null
+  hp_label?: string | null
+  hp_ratio?: number | null
   ac?: number | null
   speed?: number | null
   inspiration?: boolean
+  advantage_next_roll?: boolean
   piety_score?: number | null
   piety_god?: string | null
   conditions?: SeatCondition[]
@@ -344,6 +361,10 @@ export type SessionSeat = {
   dex_mod?: number | null
   initiative_bonus?: number
   initiative_advantage?: boolean
+  is_dying?: boolean | null
+  death_successes?: number | null
+  death_fails?: number | null
+  reaction_hint?: string | null
   seated_at: string
 }
 
@@ -358,14 +379,40 @@ export type CombatantMember = {
   name: string
   hp_current: number
   hp_max: number
+  hp_temp?: number
+  hp_band?: string | null
+  hp_label?: string | null
+  hp_ratio?: number | null
+  hp_numbers_hidden?: boolean
+}
+
+export type CombatantStudySnapshot = {
+  hp_current: number
+  hp_max: number
+  at?: string | null
+}
+
+export type CombatantPendingStudy = {
+  user_id: string
+  character_id?: string | null
+  character_name?: string | null
+  skill: string
+  skill_ru: string
+  dc: number
+  roll_total?: number | null
+  status?: string
 }
 
 export type SessionCombatant = {
   id: string
   name: string
-  /** HP первого живого / выбранной цели для быстрого урона */
+  /** HP первого живого / условной цели для быстрого урона */
   hp_current: number
   hp_max: number
+  hp_band?: string | null
+  hp_label?: string | null
+  hp_ratio?: number | null
+  hp_numbers_hidden?: boolean
   alive_count?: number
   member_count?: number
   ac?: number | null
@@ -377,6 +424,7 @@ export type SessionCombatant = {
   type_ru?: string | null
   custom?: boolean
   conditions?: SeatCondition[]
+  effects?: SeatEffect[]
   traits?: CombatantAction[]
   actions?: CombatantAction[]
   bonus_actions?: CombatantAction[]
@@ -390,6 +438,20 @@ export type SessionCombatant = {
   /** @deprecated используй xp_claimed_count */
   xp_claimed?: boolean
   wave_id?: string | null
+  damage_resistances?: string[]
+  damage_immunities?: string[]
+  damage_vulnerabilities?: string[]
+  condition_immunities?: string[]
+  statblock_visible?: boolean
+  statblock_revealed?: boolean
+  studied_by_me?: boolean
+  study_snapshot?: CombatantStudySnapshot | null
+  pending_study?: CombatantPendingStudy | null
+  study_skill?: string | null
+  study_skill_ru?: string | null
+  suggested_study_dc?: number | null
+  reaction_hint?: string | null
+  last_damage_note?: string | null
 }
 
 export type CombatEntryKind = 'pc' | 'companion' | 'enemy'
@@ -943,10 +1005,16 @@ export async function patchSeatCombat(
   characterId: string,
   payload: {
     inspiration?: boolean
+    spend_inspiration?: boolean
     conditions?: SeatCondition[]
     effects?: SeatEffect[]
     concentration?: SeatConcentration | null
     clear_concentration?: boolean
+    damage?: number
+    damage_type?: string | null
+    grant_temp_hp?: number
+    death_successes?: number
+    death_fails?: number
   },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(
@@ -1039,15 +1107,61 @@ export async function patchSessionCombatant(
     ac?: number | null
     name?: string
     damage?: number
+    damage_type?: string | null
+    grant_temp_hp?: number
     member_id?: string
-    member_damages?: { member_id: string; damage: number }[]
+    member_damages?: { member_id: string; damage: number; damage_type?: string | null }[]
     conditions?: SeatCondition[]
+    effects?: SeatEffect[]
+    reveal_statblock?: boolean
   },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(`/sessions/${sessionId}/combatants/${combatantId}`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
   })
+}
+
+export async function studySessionCombatant(
+  sessionId: string,
+  combatantId: string,
+  payload: {
+    character_id: string
+    roll_total?: number | null
+    dc?: number | null
+  },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(
+    `/sessions/${sessionId}/combatants/${combatantId}/study`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+  )
+}
+
+export async function resolveStudySessionCombatant(
+  sessionId: string,
+  combatantId: string,
+  payload: { success: boolean; user_id?: string | null },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(
+    `/sessions/${sessionId}/combatants/${combatantId}/study/resolve`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+  )
+}
+
+export async function shareStudiedSessionCombatant(
+  sessionId: string,
+  combatantId: string,
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(
+    `/sessions/${sessionId}/combatants/${combatantId}/share-study`,
+    { method: 'POST', body: JSON.stringify({}) },
+  )
 }
 
 export async function deleteSessionCombatant(

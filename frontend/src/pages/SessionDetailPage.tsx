@@ -54,6 +54,9 @@ import {
   shareLobbyEffect,
   patchSessionCombat,
   patchSessionCombatant,
+  resolveStudySessionCombatant,
+  shareStudiedSessionCombatant,
+  studySessionCombatant,
   rollSessionCombatInitiative,
   seatCharacter,
   startSessionCombat,
@@ -1072,7 +1075,8 @@ export function SessionDetailPage() {
                           showTurnEconomyStub={yourTurnCharacterId === seat.character_id}
                           visibility={visibility}
                           revealAll={canSeeHidden}
-                          masterControls={canControl && !session.closed_at && !session.is_observer}
+                          masterControls={canRun && !session.closed_at && !session.is_observer}
+                          isOwner={isOwn && !session.closed_at && !session.is_observer}
                           busy={busy}
                           sheetLabel={canRun && !isOwn ? 'Смотреть' : 'Лист'}
                           onToggleInspiration={(next) => {
@@ -1083,6 +1087,17 @@ export function SessionDetailPage() {
                                 { inspiration: next },
                               )
                               setSession(updated)
+                            })
+                          }}
+                          onSpendInspiration={() => {
+                            void run(async () => {
+                              const updated = await patchSeatCombat(
+                                session.id,
+                                seat.character_id,
+                                { spend_inspiration: true },
+                              )
+                              setSession(updated)
+                              setToast('Вдохновение потрачено · преимущество на следующий бросок')
                             })
                           }}
                           onAwardPiety={
@@ -1122,7 +1137,39 @@ export function SessionDetailPage() {
                                 { clear_concentration: true },
                               )
                               setSession(updated)
-                              setToast('Концентрация снята · связанные эффекты убраны')
+                              setToast('Концентрация снята · связанные эффекты убраны · вдохновение на месте')
+                            })
+                          }}
+                          onDamage={
+                            canRun && !session.closed_at
+                              ? (payload) => {
+                                  void run(async () => {
+                                    const updated = await patchSeatCombat(
+                                      session.id,
+                                      seat.character_id,
+                                      {
+                                        damage: payload.heal ? -payload.amount : payload.amount,
+                                        damage_type: payload.damageType,
+                                        grant_temp_hp: payload.grantTempHp,
+                                      },
+                                    )
+                                    setSession(updated)
+                                    const hint = updated.seats.find(
+                                      (s) => s.character_id === seat.character_id,
+                                    )?.reaction_hint
+                                    setToast(hint || (payload.heal ? 'Лечение' : 'Урон нанесён'))
+                                  })
+                                }
+                              : undefined
+                          }
+                          onDeathSavesChange={(successes, fails) => {
+                            void run(async () => {
+                              const updated = await patchSeatCombat(
+                                session.id,
+                                seat.character_id,
+                                { death_successes: successes, death_fails: fails },
+                              )
+                              setSession(updated)
                             })
                           }}
                           onAddCompanion={
@@ -1183,17 +1230,86 @@ export function SessionDetailPage() {
                           onSaveToSetting={() => {
                             void openHandoff(enemy)
                           }}
-                          onDamage={(amount, memberId) => {
+                          canStudy={
+                            !canRun &&
+                            !session.closed_at &&
+                            !session.is_observer &&
+                            ownCharacterIds.size > 0 &&
+                            !enemy.statblock_visible
+                          }
+                          onStudy={({ rollTotal, dc }) => {
+                            const characterId =
+                              session.seats.find((s) => ownCharacterIds.has(s.character_id))
+                                ?.character_id
+                            if (!characterId) {
+                              setToast('Нужен свой персонаж за столом')
+                              return
+                            }
+                            void run(async () => {
+                              const updated = await studySessionCombatant(
+                                session.id,
+                                enemy.id,
+                                {
+                                  character_id: characterId,
+                                  roll_total: rollTotal ?? null,
+                                  dc: dc ?? null,
+                                },
+                              )
+                              setSession(updated)
+                              setToast('Ожидаем подтверждения ведущего')
+                            })
+                          }}
+                          onResolveStudy={(success) => {
+                            void run(async () => {
+                              const updated = await resolveStudySessionCombatant(
+                                session.id,
+                                enemy.id,
+                                { success },
+                              )
+                              setSession(updated)
+                              setToast(success ? 'Изучение: успех' : 'Изучение: провал')
+                            })
+                          }}
+                          onRevealStatblock={() => {
+                            void run(async () => {
+                              const updated = await patchSessionCombatant(
+                                session.id,
+                                enemy.id,
+                                { reveal_statblock: true },
+                              )
+                              setSession(updated)
+                              setToast('Статблок показан партии')
+                            })
+                          }}
+                          onShareStudy={() => {
+                            void run(async () => {
+                              const updated = await shareStudiedSessionCombatant(
+                                session.id,
+                                enemy.id,
+                              )
+                              setSession(updated)
+                              setToast('Карточка показана партии')
+                            })
+                          }}
+                          onDamage={(payload) => {
                             void run(async () => {
                               const updated = await patchSessionCombatant(
                                 session.id,
                                 enemy.id,
                                 {
-                                  damage: amount,
-                                  member_id: memberId,
+                                  damage: payload.heal ? -payload.amount : payload.amount,
+                                  damage_type: payload.damageType,
+                                  grant_temp_hp: payload.grantTempHp,
+                                  member_id: payload.memberId,
                                 },
                               )
                               setSession(updated)
+                              const note = updated.combatants?.find((c) => c.id === enemy.id)
+                              setToast(
+                                note?.last_damage_note ||
+                                  note?.reaction_hint ||
+                                  (payload.heal ? 'Лечение' : 'Урон'),
+                              )
                             })
                           }}
                           onRemove={() => {
@@ -1417,25 +1533,38 @@ export function SessionDetailPage() {
       <ApplyConditionDialog
         open={conditionOpen}
         seats={session.seats}
+        combatants={session.combatants ?? []}
         busy={busy}
         onClose={() => setConditionOpen(false)}
-        onApply={(condition, characterIds) => {
+        onApply={(condition, targets) => {
           void run(async () => {
             let latest = session
-            for (const characterId of characterIds) {
-              const seat = latest.seats.find((s) => s.character_id === characterId)
-              const current = seat?.conditions ?? []
-              if (current.some((c) => c.slug === condition.slug)) continue
-              latest = await patchSeatCombat(latest.id, characterId, {
-                conditions: [...current, condition],
-              })
+            let applied = 0
+            for (const target of targets) {
+              if (target.kind === 'seat') {
+                const seat = latest.seats.find((s) => s.character_id === target.id)
+                const current = seat?.conditions ?? []
+                if (current.some((c) => c.slug === condition.slug)) continue
+                latest = await patchSeatCombat(latest.id, target.id, {
+                  conditions: [...current, condition],
+                })
+                applied += 1
+              } else {
+                const enemy = latest.combatants?.find((c) => c.id === target.id)
+                const current = enemy?.conditions ?? []
+                if (current.some((c) => c.slug === condition.slug)) continue
+                latest = await patchSessionCombatant(latest.id, target.id, {
+                  conditions: [...current, condition],
+                })
+                applied += 1
+              }
             }
             setSession(latest)
             setConditionOpen(false)
             setToast(
-              characterIds.length === 1
+              applied === 1
                 ? `Состояние: ${condition.name}`
-                : `Состояние: ${condition.name} · ${characterIds.length}`,
+                : `Состояние: ${condition.name} · ${applied}`,
             )
           })
         }}
@@ -1444,30 +1573,51 @@ export function SessionDetailPage() {
       <ApplyEffectDialog
         open={effectOpen}
         seats={session.seats}
+        combatants={session.combatants ?? []}
         preferredSourceId={
           session.seats.find((s) => ownCharacterIds.has(s.character_id))?.character_id ??
           null
         }
         busy={busy}
         onClose={() => setEffectOpen(false)}
-        onApply={(effect, characterIds) => {
+        onApply={(effect, targets) => {
           void run(async () => {
             const { buildBuffEffect, serializeActiveEffect } = await import(
               '../shared/dnd/activeEffects'
             )
             const sourceId = effect.source_character_id
+            const seatTargets = targets.filter((t) => t.kind === 'seat').map((t) => t.id)
+            const enemyTargets = targets.filter((t) => t.kind === 'enemy').map((t) => t.id)
             const built = buildBuffEffect({
               name: effect.name,
               sourceCharacterId: sourceId,
               sourceName: effect.source_name,
               linkedConcentration: effect.linked_concentration,
             })
-            if (sourceId && built) {
+            if (sourceId && built && seatTargets.length > 0) {
               const payload = serializeActiveEffect(built)
+              const rawDuration =
+                effect.duration ??
+                (payload.duration && typeof payload.duration === 'object'
+                  ? (payload.duration as {
+                      unit: string
+                      value?: number | null
+                      remaining_rounds?: number | null
+                      started_round?: number | null
+                    })
+                  : undefined)
+              const duration = rawDuration
+                ? {
+                    unit: rawDuration.unit,
+                    value: rawDuration.value ?? undefined,
+                    remaining_rounds: rawDuration.remaining_rounds ?? undefined,
+                    started_round: rawDuration.started_round ?? undefined,
+                  }
+                : undefined
               await shareLobbyEffect(session.lobby_id, {
                 source_character_id: sourceId,
                 name: String(payload.name),
-                target_character_ids: characterIds,
+                target_character_ids: seatTargets,
                 linked_concentration: Boolean(payload.linked_concentration),
                 kind: typeof payload.kind === 'string' ? payload.kind : undefined,
                 slug: typeof payload.slug === 'string' ? payload.slug : undefined,
@@ -1481,39 +1631,35 @@ export function SessionDetailPage() {
                       once?: boolean
                     }>)
                   : undefined,
-                duration:
-                  payload.duration && typeof payload.duration === 'object'
-                    ? (payload.duration as {
-                        unit: string
-                        value?: number
-                        remaining_rounds?: number
-                      })
-                    : undefined,
+                duration,
+                ac_bonus: effect.ac_bonus ?? undefined,
               })
             }
             let latest = session
-            for (const characterId of characterIds) {
+            for (const characterId of seatTargets) {
               const seat = latest.seats.find((s) => s.character_id === characterId)
               const current = seat?.effects ?? []
-              const seatEffect = built
-                ? {
-                    ...effect,
-                    id: `${built.id}-${characterId}`,
-                    name: built.name,
-                    linked_concentration: Boolean(built.linked_concentration),
-                  }
-                : { ...effect, id: `${effect.id}-${characterId}` }
+              const seatEffect = {
+                ...effect,
+                id: `${effect.id}-${characterId}`,
+                duration: effect.duration ?? undefined,
+                ac_bonus: effect.ac_bonus ?? undefined,
+              }
               latest = await patchSeatCombat(latest.id, characterId, {
                 effects: [...current, seatEffect],
               })
             }
+            for (const combatantId of enemyTargets) {
+              const enemy = latest.combatants?.find((c) => c.id === combatantId)
+              const current = enemy?.effects ?? []
+              latest = await patchSessionCombatant(latest.id, combatantId, {
+                effects: [...current, { ...effect, id: `${effect.id}-${combatantId}` }],
+              })
+            }
             setSession(latest)
             setEffectOpen(false)
-            setToast(
-              characterIds.length === 1
-                ? `Эффект: ${effect.name}`
-                : `Эффект: ${effect.name} · ${characterIds.length}`,
-            )
+            const n = seatTargets.length + enemyTargets.length
+            setToast(n === 1 ? `Эффект: ${effect.name}` : `Эффект: ${effect.name} · ${n}`)
           })
         }}
       />
