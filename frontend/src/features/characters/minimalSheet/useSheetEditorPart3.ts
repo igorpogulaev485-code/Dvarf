@@ -867,6 +867,8 @@ export function useSheetEditorPart3(model: SheetModel) {
       sheet.subclass_grants = draftSnap.subclassGrants
       sheet.subclass_transitions = draftSnap.subclassTransitions
       sheet.race_grant = draftSnap.raceGrant
+      sheet.migrations = draftSnap.migrations
+      sheet.ui_notices = draftSnap.uiNotices
       sheet.background_grant = draftSnap.backgroundGrant
       sheet.companions = draftSnap.companions
       sheet.known_forms = draftSnap.knownForms

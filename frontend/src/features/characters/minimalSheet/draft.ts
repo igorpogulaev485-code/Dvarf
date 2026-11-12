@@ -120,6 +120,16 @@ export type Draft = {
   /** Named buff/debuff stack (AC formulas, later abilities). */
   modifiers: BonusLine[]
   sheetUi: SheetUiState
+  /** B-08: sheet.migrations journal (MPMM remap, …). */
+  migrations: Array<Record<string, unknown>>
+  /** B-08: dismissible sheet banners (race updated to MPMM, …). */
+  uiNotices: Array<{
+    id: string
+    text_ru: string
+    dismissed?: boolean
+    kind?: string
+    migration_id?: string
+  }>
 }
 
 export function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
@@ -375,6 +385,38 @@ export function buildDraft(character: CharacterDetail): Draft {
     customFeatures: readCustomFeatures(sheet.custom_features ?? sheet.customFeatures),
     modifiers: readModifiers(sheet),
     sheetUi: readSheetUi(sheet),
+    migrations: Array.isArray(sheet.migrations)
+      ? (sheet.migrations as Array<Record<string, unknown>>)
+      : [],
+    uiNotices: (() => {
+      const raw = sheet.ui_notices ?? sheet.uiNotices
+      if (!Array.isArray(raw)) return []
+      const out: Draft['uiNotices'] = []
+      for (const item of raw) {
+        const row = asRecord(item)
+        const id = typeof row.id === 'string' ? row.id : ''
+        const text =
+          typeof row.text_ru === 'string'
+            ? row.text_ru
+            : typeof row.textRu === 'string'
+              ? row.textRu
+              : ''
+        if (!id || !text) continue
+        out.push({
+          id,
+          text_ru: text,
+          dismissed: Boolean(row.dismissed),
+          kind: typeof row.kind === 'string' ? row.kind : undefined,
+          migration_id:
+            typeof row.migration_id === 'string'
+              ? row.migration_id
+              : typeof row.migrationId === 'string'
+                ? row.migrationId
+                : undefined,
+        })
+      }
+      return out
+    })(),
   }
 }
 

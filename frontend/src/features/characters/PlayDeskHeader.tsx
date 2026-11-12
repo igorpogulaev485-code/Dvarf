@@ -132,6 +132,10 @@ type PlayDeskHeaderProps = {
   onCoinPadOpenChange?: (open: boolean) => void
   /** Absolute beginner: «?» next to key numbers (КД, хиты, БМ…). */
   showValueTips?: boolean
+  /** B-08: Stone's Endurance reduction amount (rolled 1d12+Con). */
+  stonesEnduranceReduction?: number | null
+  /** B-08: Hadozee Dodge reduction amount (1d6+level). */
+  hadozeeDodgeReduction?: number | null
 }
 
 export function PlayDeskHeader({
@@ -153,6 +157,8 @@ export function PlayDeskHeader({
   hasUncannyDodge = false,
   heavyArmorMaster = false,
   hasShieldMasterEvasion = false,
+  stonesEnduranceReduction = null,
+  hadozeeDodgeReduction = null,
   draconicResilience = false,
   play,
   autoAc,
@@ -783,6 +789,8 @@ export function PlayDeskHeader({
         hasUncannyDodge={hasUncannyDodge}
         heavyArmorMaster={heavyArmorMaster}
         hasShieldMasterEvasion={hasShieldMasterEvasion}
+        stonesEnduranceReduction={stonesEnduranceReduction}
+        hadozeeDodgeReduction={hadozeeDodgeReduction}
       />
 
       <CoinPadDialog

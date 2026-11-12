@@ -269,6 +269,12 @@ export type AppliedRaceGrant = {
   damageResistances: string[]
   combatBonuses: RaceCombatBonuses
   racialSpells: RaceRacialSpell[]
+  /** B-08 / MPMM aasimar: chosen celestial revelation id. */
+  revelationId?: string | null
+  /** True when revelation is pre-filled but level < 3. */
+  revelationDeferred?: boolean
+  /** B-08 / MPMM eladrin season id. */
+  seasonId?: string | null
 }
 
 const ABILITY_KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
@@ -1245,5 +1251,18 @@ export function readAppliedRaceGrant(raw: unknown): AppliedRaceGrant | null {
     ),
     combatBonuses: readCombatBonuses(row.combatBonuses ?? row.combat_bonuses),
     racialSpells: readRacialSpells(row.racialSpells ?? row.racial_spells),
+    revelationId:
+      typeof row.revelationId === 'string'
+        ? row.revelationId
+        : typeof row.revelation_id === 'string'
+          ? row.revelation_id
+          : null,
+    revelationDeferred: Boolean(row.revelationDeferred ?? row.revelation_deferred),
+    seasonId:
+      typeof row.seasonId === 'string'
+        ? row.seasonId
+        : typeof row.season_id === 'string'
+          ? row.season_id
+          : null,
   }
 }

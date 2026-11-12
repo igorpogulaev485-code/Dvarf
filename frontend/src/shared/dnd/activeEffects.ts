@@ -7,6 +7,7 @@
  * B-05 adds paladin/warlock/wizard/ranger/rogue/sorcerer feature specs.
  * B-06 adds artificer elixirs/infusion-adjacent features + duration potions.
  * B-07 adds feat buffs (Inspiring Leader, Chef, reaction AC, giant/dragon spends…).
+ * B-08 adds racial buffs (Lucky, Relentless, flight gate, EEPC/EGW spends…).
  */
 
 import {
@@ -41,6 +42,11 @@ import {
   B07_NAME_TO_SLUG,
   buildB07BuffSpec,
 } from './b07BuffSpecs'
+import {
+  B08_BUFF_SPEC_BUILDERS,
+  B08_NAME_TO_SLUG,
+  buildB08BuffSpec,
+} from './b08BuffSpecs'
 import type { AcMinFloor, CompetingAcFormula } from './armor'
 
 export type EffectKind =
@@ -1460,6 +1466,7 @@ const SPELL_NAME_TO_SLUG: Array<{ re: RegExp; slug: string }> = [
   { re: /^благословен|^bless$/i, slug: 'bless' },
   { re: /^щит\s*вер|^shield of faith$/i, slug: 'shield_of_faith' },
   { re: /^ободряющ|^emboldening/i, slug: 'emboldening_bond' },
+  ...B08_NAME_TO_SLUG,
   ...B07_NAME_TO_SLUG,
   ...B06_NAME_TO_SLUG,
   ...B05_NAME_TO_SLUG,
@@ -1474,6 +1481,7 @@ export function guessBuffSlug(name: string, catalogId?: string | null): string |
     .toLowerCase()
     .replace(/-/g, '_')
   if (id && B01_BUFF_SPECS[id]) return id
+  if (id && B08_BUFF_SPEC_BUILDERS[id]) return id
   if (id && B07_BUFF_SPEC_BUILDERS[id]) return id
   if (id && B06_BUFF_SPEC_BUILDERS[id]) return id
   if (id && B05_BUFF_SPEC_BUILDERS[id]) return id
@@ -1506,6 +1514,7 @@ export function guessBuffSlug(name: string, catalogId?: string | null): string |
   }
   if (id && aliases[id]) return aliases[id]
   const stripped = id.replace(/'/g, '')
+  if (stripped && B08_BUFF_SPEC_BUILDERS[stripped]) return stripped
   if (stripped && B07_BUFF_SPEC_BUILDERS[stripped]) return stripped
   if (stripped && B06_BUFF_SPEC_BUILDERS[stripped]) return stripped
   if (stripped && B05_BUFF_SPEC_BUILDERS[stripped]) return stripped
@@ -1571,6 +1580,7 @@ export function buildBuffEffect(input: {
   }
   const spec =
     B01_BUFF_SPECS[slug] ??
+    buildB08BuffSpec(slug, ctx) ??
     buildB07BuffSpec(slug, ctx) ??
     buildB06BuffSpec(slug, ctx) ??
     buildB05BuffSpec(slug, ctx) ??

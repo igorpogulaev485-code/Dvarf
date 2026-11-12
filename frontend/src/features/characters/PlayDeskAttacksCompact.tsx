@@ -155,6 +155,12 @@ type PlayDeskAttacksCompactProps = {
     text: string
     hitRoll: import('./deskRolls').CheckRoll
   }) => void
+  /** B-08: Halfling Lucky — natural 1 on attack. */
+  raceSlug?: string | null
+  onHalflingLuckyNeeded?: (input: {
+    text: string
+    hitRoll: import('./deskRolls').CheckRoll
+  }) => void
 }
 
 function formatSpendTime(atMs: number): string {
@@ -218,6 +224,8 @@ export function PlayDeskAttacksCompact({
   savageAttacker = false,
   flamesOfPhlegethos = false,
   onLuckyPickNeeded,
+  raceSlug = null,
+  onHalflingLuckyNeeded,
 }: PlayDeskAttacksCompactProps) {
   const divineStrike = useMemo(() => divineStrikeRider(combatFeatures), [combatFeatures])
   const improvedSmite = useMemo(
@@ -689,6 +697,18 @@ export function PlayDeskAttacksCompact({
                     ) {
                       onLuckyPickNeeded({
                         allDice: strike.allDice,
+                        text: strike.text,
+                        hitRoll: strike.hitRoll,
+                      })
+                    } else if (
+                      strike.die === 1 &&
+                      strike.hitRoll &&
+                      onHalflingLuckyNeeded &&
+                      (raceSlug === 'halfling' ||
+                        Boolean(raceSlug && raceSlug.includes('halfling')))
+                    ) {
+                      onToast?.(strike.text)
+                      onHalflingLuckyNeeded({
                         text: strike.text,
                         hitRoll: strike.hitRoll,
                       })

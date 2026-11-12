@@ -77,11 +77,65 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
   const hasShieldMasterEvasion =
     hasFeatFlag(model.draft.featGrants, 'shield_master') &&
     Boolean(equippedArmorPieces(model.draft.inventory.items).shield)
+  const raceSlug = model.draft.raceGrant?.slug ?? ''
+  // Stable preview amounts for the pad chips (exact roll is table-facing; here mean+mod).
+  const stonesCut =
+    raceSlug === 'goliath'
+      ? 7 + abilityModifier(model.draft.abilities.con ?? 10)
+      : null
+  const hadozeeCut =
+    raceSlug === 'hadozee' ? 4 + Math.max(1, model.characterLevel ?? 1) : null
   const alignmentHint = alignmentNeedsClarification(model.draft.identity)
     ? 'Уточните мировоззрение'
     : ''
+  const raceMpmmNotice = (model.draft.uiNotices ?? []).find(
+    (row: { id: string; dismissed?: boolean; text_ru: string }) =>
+      row.id === 'race_updated_mpmm' && !row.dismissed,
+  )
+
   return (
     <>
+      {raceMpmmNotice ? (
+        <div className="sheet-banner" role="status">
+          <span>{raceMpmmNotice.text_ru}</span>
+          <div className="sheet-banner__actions">
+            <button
+              type="button"
+              className="sheet-chip"
+              onClick={() => {
+                const journal = (model.draft.migrations ?? []).find(
+                  (row: Record<string, unknown>) =>
+                    row.id === raceMpmmNotice.migration_id ||
+                    row.id === 'b08_mpmm_race_remap_v1',
+                )
+                if (journal?.text_ru) {
+                  model.onToast(String(journal.text_ru))
+                } else {
+                  model.onToast(raceMpmmNotice.text_ru)
+                }
+              }}
+            >
+              Смотреть
+            </button>
+            <button
+              type="button"
+              className="sheet-chip"
+              onClick={() => {
+                model.setDraft((prev) => ({
+                  ...prev,
+                  uiNotices: (prev.uiNotices ?? []).map((row) =>
+                    row.id === 'race_updated_mpmm'
+                      ? { ...row, dismissed: true }
+                      : row,
+                  ),
+                }))
+              }}
+            >
+              Закрыть
+            </button>
+          </div>
+        </div>
+      ) : null}
       {model.isPlayDesk ? (
         <div className="play-desk__top" data-onboarding="combat-header">
           <CharacterAvatarControl
@@ -116,6 +170,8 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               (f: { id?: string }) => f.id === 'uncanny_dodge',
             )}
             heavyArmorMaster={heavyArmorMaster}
+            stonesEnduranceReduction={stonesCut}
+            hadozeeDodgeReduction={hadozeeCut}
             hasShieldMasterEvasion={hasShieldMasterEvasion}
             draconicResilience={(model.unlockedFeatures ?? []).some(
               (f: { id?: string }) => f.id === 'draconic_resilience',
@@ -155,7 +211,11 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             flySpeed={model.displayFlySpeed ?? model.draft.flySpeed}
             jumpLongFt={model.jump.longFt}
             jumpHighFt={model.jump.highFt}
-            movementHint={model.classSpeedHint}
+            movementHint={
+              [model.classSpeedHint, model.displayFlySpeedNote]
+                .filter(Boolean)
+                .join(' · ') || null
+            }
             proficiencyBonus={model.proficiencyBonus}
             initiative={model.initiativeValue}
             inspiration={model.draft.inspiration}
@@ -217,6 +277,24 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                     model.clearConcentrationDismissingCompanions(null),
                   )
                 }
+                if (droppedToZero) {
+                  const slug = prev.raceGrant?.slug ?? ''
+                  const spent = (prev.play.effects ?? []).some(
+                    (fx) =>
+                      fx.slug === 'relentless_endurance_spent' ||
+                      (fx.mods ?? []).some(
+                        (m) => m.condition === 'relentless_endurance_spent',
+                      ),
+                  )
+                  if (
+                    !spent &&
+                    (slug === 'half_orc' ||
+                      slug === 'orc' ||
+                      slug.startsWith('half_orc'))
+                  ) {
+                    queueMicrotask(() => model.setRelentlessEndurancePending?.(true))
+                  }
+                }
                 return {
                   ...prev,
                   ...(patch.hpCurrent !== undefined ? { hpCurrent: patch.hpCurrent } : {}),
@@ -269,6 +347,8 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           )}
           heavyArmorMaster={heavyArmorMaster}
           hasShieldMasterEvasion={hasShieldMasterEvasion}
+          stonesEnduranceReduction={stonesCut}
+          hadozeeDodgeReduction={hadozeeCut}
           draconicResilience={(model.unlockedFeatures ?? []).some(
             (f: { id?: string }) => f.id === 'draconic_resilience',
           )}
@@ -307,15 +387,16 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             formatRaceMovementHint({
               climb: model.draft.climbSpeed,
               swim: model.draft.swimSpeed,
-              fly: model.draft.flySpeed,
+              fly: model.displayFlySpeed ?? model.draft.flySpeed,
             }),
             model.classSpeedHint,
+            model.displayFlySpeedNote,
           ]
             .filter(Boolean)
             .join(' · ') || null}
           climbSpeed={model.draft.climbSpeed}
           swimSpeed={model.draft.swimSpeed}
-          flySpeed={model.draft.flySpeed}
+          flySpeed={model.displayFlySpeed ?? model.draft.flySpeed}
           jumpLongFt={model.jump.longFt}
           jumpHighFt={model.jump.highFt}
           initiative={model.initiativeValue}
@@ -352,6 +433,24 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                 (prev.hpCurrent ?? 0) > 0
               if (droppedToZero && prev.play.concentration) {
                 queueMicrotask(() => model.clearConcentrationDismissingCompanions(null))
+              }
+              if (droppedToZero) {
+                const slug = prev.raceGrant?.slug ?? ''
+                const spent = (prev.play.effects ?? []).some(
+                  (fx) =>
+                    fx.slug === 'relentless_endurance_spent' ||
+                    (fx.mods ?? []).some(
+                      (m) => m.condition === 'relentless_endurance_spent',
+                    ),
+                )
+                if (
+                  !spent &&
+                  (slug === 'half_orc' ||
+                    slug === 'orc' ||
+                    slug.startsWith('half_orc'))
+                ) {
+                  queueMicrotask(() => model.setRelentlessEndurancePending?.(true))
+                }
               }
               return {
                 ...prev,

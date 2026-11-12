@@ -1472,11 +1472,18 @@ export function CreateCharacterPage() {
     } catch {
       // keep cached roots
     }
-    const subraces = all.filter((row) => row.parent_id === entry.id)
+    const subraces = all.filter((row) => {
+      if (row.parent_id !== entry.id) return false
+      if (!row.is_active) return false
+      // B-08 / R24: VGM/MTF forks marked selectable:false stay in DB but leave the picker.
+      const data = (row.data ?? {}) as { selectable?: boolean }
+      if (data.selectable === false) return false
+      return true
+    })
     setRaceSetup({
       root: entry,
       subraces,
-      required: raceSubraceRequired(entry.data),
+      required: raceSubraceRequired(entry.data) && subraces.length > 0,
     })
   }
 

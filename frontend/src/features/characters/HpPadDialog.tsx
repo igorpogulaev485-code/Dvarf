@@ -51,6 +51,10 @@ type HpPadDialogProps = {
   heavyArmorMaster?: boolean
   /** B-07: Shield Master — reaction: Dex save for half → 0 damage when success. */
   hasShieldMasterEvasion?: boolean
+  /** B-08: Stone's Endurance — reaction: −(1d12+Con) before resist. */
+  stonesEnduranceReduction?: number | null
+  /** B-08: Hadozee Dodge — reaction: −(1d6+level). */
+  hadozeeDodgeReduction?: number | null
 }
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'] as const
@@ -75,12 +79,16 @@ export function HpPadDialog({
   hasUncannyDodge = false,
   heavyArmorMaster = false,
   hasShieldMasterEvasion = false,
+  stonesEnduranceReduction = null,
+  hadozeeDodgeReduction = null,
 }: HpPadDialogProps) {
   const [digits, setDigits] = useState('')
   const [damageType, setDamageType] = useState<DamageType | null>(null)
   const [nonmagical, setNonmagical] = useState(false)
   /** null = off; success = 0 dmg; fail = half before resist. */
   const [evasionMode, setEvasionMode] = useState<'success' | 'fail' | null>(null)
+  const [stonesOn, setStonesOn] = useState(false)
+  const [hadozeeOn, setHadozeeOn] = useState(false)
   /** B-05: half one attack (reaction), before resistance (Р6). */
   const [uncannyDodgeOn, setUncannyDodgeOn] = useState(false)
   /** B-07 Shield Master: success on Dex save for half → 0. */
@@ -165,8 +173,30 @@ export function HpPadDialog({
       note: `Мастер тяжёлых доспехов: ${afterShieldMaster.amount} → ${next}`,
     }
   })()
+  const afterStones = (() => {
+    const cut = stonesEnduranceReduction ?? 0
+    if (!stonesOn || cut <= 0 || afterHeavyArmor.amount <= 0) {
+      return { amount: afterHeavyArmor.amount, note: '' }
+    }
+    const next = Math.max(0, afterHeavyArmor.amount - cut)
+    return {
+      amount: next,
+      note: `Каменная стойкость: ${afterHeavyArmor.amount} → ${next}`,
+    }
+  })()
+  const afterHadozee = (() => {
+    const cut = hadozeeDodgeReduction ?? 0
+    if (!hadozeeOn || cut <= 0 || afterStones.amount <= 0) {
+      return { amount: afterStones.amount, note: '' }
+    }
+    const next = Math.max(0, afterStones.amount - cut)
+    return {
+      amount: next,
+      note: `Уклонение хадози: ${afterStones.amount} → ${next}`,
+    }
+  })()
   const adjustedRaw = adjustIncomingDamage({
-    amount: afterHeavyArmor.amount,
+    amount: afterHadozee.amount,
     type: damageType,
     nonmagical,
     profile,
@@ -178,6 +208,8 @@ export function HpPadDialog({
       afterUncanny.note,
       afterShieldMaster.note,
       afterHeavyArmor.note,
+      afterStones.note,
+      afterHadozee.note,
       adjustedRaw.note,
     ]
       .filter(Boolean)
@@ -349,6 +381,30 @@ export function HpPadDialog({
               onClick={() => setUncannyDodgeOn((prev) => !prev)}
             >
               Увёртливость: половина урона атаки
+            </button>
+          </div>
+        ) : null}
+        {stonesEnduranceReduction != null && stonesEnduranceReduction > 0 ? (
+          <div className="chip-row" role="group" aria-label="Каменная стойкость">
+            <button
+              type="button"
+              className={`sheet-chip${stonesOn ? ' is-on' : ''}`}
+              aria-pressed={stonesOn}
+              onClick={() => setStonesOn((prev) => !prev)}
+            >
+              Каменная стойкость: −{stonesEnduranceReduction}
+            </button>
+          </div>
+        ) : null}
+        {hadozeeDodgeReduction != null && hadozeeDodgeReduction > 0 ? (
+          <div className="chip-row" role="group" aria-label="Уклонение хадози">
+            <button
+              type="button"
+              className={`sheet-chip${hadozeeOn ? ' is-on' : ''}`}
+              aria-pressed={hadozeeOn}
+              onClick={() => setHadozeeOn((prev) => !prev)}
+            >
+              Уклонение хадози: −{hadozeeDodgeReduction}
             </button>
           </div>
         ) : null}

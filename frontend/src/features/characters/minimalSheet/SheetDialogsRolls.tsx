@@ -11,7 +11,12 @@ import { syncAttacksHeldFromInventory } from '../AttacksPanel'
 import { canWearArmor, armorProficiencyHint } from '../equipmentProficiency'
 import { listShieldItems, toggleShieldInHand } from '../heldEquip'
 import { HotConditionsDialog } from '../HotConditionsDialog'
-import { applyLuckyPick, formatCheckRoll, formatSkillRoll } from '../deskRolls'
+import {
+  applyHalflingLuckyReroll,
+  applyLuckyPick,
+  formatCheckRoll,
+  formatSkillRoll,
+} from '../deskRolls'
 import {
   listRollDieChips,
   mergeDeskRollMode,
@@ -506,6 +511,73 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
       <TempHpReplaceDialog request={model.tempHpReplaceAsk ?? null} />
 
       <Dialog
+        open={model.halflingLuckyPending != null}
+        title="Удача: перебросить?"
+        primaryLabel="Перебросить"
+        secondaryLabel="Оставить 1"
+        onPrimary={() => {
+          const pending = model.halflingLuckyPending
+          if (!pending?.hitRoll) {
+            model.setHalflingLuckyPending?.(null)
+            return
+          }
+          const rerolled = applyHalflingLuckyReroll(pending.hitRoll)
+          const label = pending.text.split(':')[0] || 'Бросок'
+          const bonusFlat =
+            pending.hitRoll.total - pending.hitRoll.die - pending.hitRoll.modifier
+          const rebuilt = formatCheckRoll(label, {
+            ...rerolled,
+            total: rerolled.die + rerolled.modifier + bonusFlat,
+          })
+          const dmgIdx = pending.text.indexOf(' · урон')
+          const suffix = dmgIdx >= 0 ? pending.text.slice(dmgIdx) : ''
+          model.emitToast?.(`${rebuilt}${suffix}`)
+          model.setHalflingLuckyPending?.(null)
+        }}
+        onSecondary={() => model.setHalflingLuckyPending?.(null)}
+      >
+        <Stack gap={8}>
+          <Text>
+            На к20 выпала 1. Удача полурослика: можете перебросить — новый результат
+            обязателен.
+          </Text>
+        </Stack>
+      </Dialog>
+
+      <Dialog
+        open={model.relentlessEndurancePending != null}
+        title="Непоколебимая стойкость"
+        primaryLabel="Остаться с 1 хитом"
+        secondaryLabel="Упасть"
+        onPrimary={() => {
+          model.setDraft?.((prev) => ({
+            ...prev,
+            hpCurrent: 1,
+            play: {
+              ...prev.play,
+              isDying: false,
+              deathSuccesses: 0,
+              deathFails: 0,
+            },
+          }))
+          void model.applyFeatureBuff?.({
+            slug: 'relentless_endurance_spent',
+            name: 'Непоколебимая стойкость (израсходована)',
+          })
+          model.onToast?.('Непоколебимая стойкость: остаётесь с 1 хитом')
+          model.setRelentlessEndurancePending?.(null)
+        }}
+        onSecondary={() => model.setRelentlessEndurancePending?.(null)}
+      >
+        <Stack gap={8}>
+          <Text>
+            Хиты должны опуститься до 0. Использовать Непоколебимую стойкость и остаться с
+            1 хитом? (1 раз до продолжительного отдыха)
+          </Text>
+        </Stack>
+      </Dialog>
+
+      <Dialog
         open={model.luckyPickPending != null}
         title="Везунчик: выберите к20"
         primaryLabel="Закрыть"
@@ -583,7 +655,10 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           model.setDraft((prev) => ({ ...prev, modifiers }))
         }
         onClose={() => model.setAbilityBreakdownKey(null)}
-        saveAdvantageNote={formatSaveAdvantageNote(model.gearEffects.saveAdvantages)}
+        saveAdvantageNote={formatSaveAdvantageNote(
+          model.gearEffects.saveAdvantages,
+          model.raceSaveAdvantageNotes ?? [],
+        )}
       />
 
       <InitiativeBreakdownDialog

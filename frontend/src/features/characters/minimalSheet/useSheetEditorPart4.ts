@@ -376,6 +376,19 @@ export function useSheetEditorPart4(model: SheetModel) {
   } | null>(null)
   model.luckyPickPending = luckyPickPending
   model.setLuckyPickPending = setLuckyPickPending
+  /** B-08: Halfling Lucky — nat 1 offer to reroll. */
+  const [halflingLuckyPending, setHalflingLuckyPending] = useState<{
+    text: string
+    hitRoll: import('../deskRolls').CheckRoll
+  } | null>(null)
+  model.halflingLuckyPending = halflingLuckyPending
+  model.setHalflingLuckyPending = setHalflingLuckyPending
+  /** B-08: Relentless Endurance when HP would hit 0. */
+  const [relentlessEndurancePending, setRelentlessEndurancePending] = useState<true | null>(
+    null,
+  )
+  model.relentlessEndurancePending = relentlessEndurancePending
+  model.setRelentlessEndurancePending = setRelentlessEndurancePending
   model.spendLuckyPoint = function spendLuckyPoint() {
     const resources = model.draft.play.resources ?? []
     const pool = resources.find(

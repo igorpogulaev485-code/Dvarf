@@ -1086,7 +1086,10 @@ export function installSheetActions4(model: SheetModel) {
         : exhaustion && model.deskRollMode !== 'disadvantage'
           ? ' · помеха от истощения'
           : ''
-    const spellAdvantage = formatSaveAdvantageNote(model.gearEffects.saveAdvantages)
+    const spellAdvantage = formatSaveAdvantageNote(
+      model.gearEffects.saveAdvantages,
+      model.raceSaveAdvantageNotes ?? [],
+    )
     const spellNote = spellAdvantage ? ` · ${spellAdvantage}` : ''
     const bonusDice = buffDiceFor('save')
     model.emitToast(

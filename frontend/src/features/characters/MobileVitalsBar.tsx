@@ -43,6 +43,9 @@ type MobileVitalsBarProps = {
   /** B-07 */
   heavyArmorMaster?: boolean
   hasShieldMasterEvasion?: boolean
+  /** B-08 */
+  stonesEnduranceReduction?: number | null
+  hadozeeDodgeReduction?: number | null
   draconicResilience?: boolean
   play: PlayState
   autoAc: number
@@ -109,6 +112,8 @@ export function MobileVitalsBar({
   hasEvasion = false,
   hasUncannyDodge = false,
   heavyArmorMaster = false,
+  stonesEnduranceReduction = null,
+  hadozeeDodgeReduction = null,
   hasShieldMasterEvasion = false,
   draconicResilience = false,
   play,
@@ -587,6 +592,8 @@ export function MobileVitalsBar({
           hasEvasion={hasEvasion}
           hasUncannyDodge={hasUncannyDodge}
           heavyArmorMaster={heavyArmorMaster}
+          stonesEnduranceReduction={stonesEnduranceReduction}
+          hadozeeDodgeReduction={hadozeeDodgeReduction}
           hasShieldMasterEvasion={hasShieldMasterEvasion}
         />
         <CoinPadDialog

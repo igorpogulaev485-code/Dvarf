@@ -172,7 +172,10 @@
           ]
         }
       },
-      "content_layer": "srd"
+      "content_layer": "srd",
+      "damage_resistances": [
+        "яд"
+      ]
     },
     {
       "slug": "mountain_dwarf",
@@ -213,7 +216,10 @@
         "medium"
       ],
       "traits_text": "Горный дварф (2014): +2 Тел, +2 Сил. Дварфские черты + владение лёгкими и средними доспехами.",
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "яд"
+      ]
     },
     {
       "slug": "hill_dwarf",
@@ -250,7 +256,10 @@
         "Боевой молот"
       ],
       "traits_text": "Холмовой дварф (2014): +2 Тел, +1 Муд. Дварфские черты + Каменная стойкость (+1 хитов за уровень).",
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "яд"
+      ]
     },
     {
       "slug": "duergar",
@@ -258,7 +267,7 @@
       "name_en": "Duergar",
       "parent_slug": "dwarf",
       "selectable": true,
-      "source": "mtf",
+      "source": "mpmm",
       "sort_order": 13,
       "speed": 25,
       "size": "medium",
@@ -287,8 +296,23 @@
         "Лёгкий молот",
         "Боевой молот"
       ],
-      "traits_text": "Дуэргар (SCAG 2014): +2 Тел, +1 Сил. Дварфские черты. Превосходное тёмное зрение 120 фт. Устойчивость дуэргаров. Магия дуэргаров (3 ур. увеличение, 5 ур. невидимость — 1/длинный отдых, ИНТ). Чувствительность к солнечному свету. Язык: Подземный.",
-      "content_layer": "community_ref"
+      "traits_text": "Дуэргар (MPMM): ASI гибкий или дварфийские. Тёмное зрение 120. Псионическая стойкость: преимущество на спасброски от очарования и ошеломления. Сопротивление яду. Увеличение/уменьшение и Невидимость — расовые заклинания (с уровней по книге).",
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "яд"
+      ],
+      "trait_cards": [
+        {
+          "id": "psionic_fortitude",
+          "name_ru": "Псионическая стойкость",
+          "summary_ru": "Преимущество на спасброски, чтобы избежать или окончить очарование и ошеломление."
+        },
+        {
+          "id": "duergar_resilience",
+          "name_ru": "Устойчивость дуэргаров",
+          "summary_ru": "Сопротивление урону ядом."
+        }
+      ]
     },
     {
       "selectable": true,
@@ -329,7 +353,10 @@
         "medium"
       ],
       "traits_text": "Дварф (щитовой, SCAG): механика горного дварфа Forgotten Realms. +2 Тел, +2 Сил. Дварфские черты + владение лёгкими и средними доспехами.",
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "яд"
+      ]
     },
     {
       "selectable": true,
@@ -366,7 +393,10 @@
         "wis": 1
       },
       "traits_text": "Дварф (золотой, SCAG): механика холмового дварфа Forgotten Realms. +2 Тел, +1 Муд. Дварфские черты + Каменная стойкость (+1 хитов за уровень).",
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "яд"
+      ]
     },
     {
       "selectable": true,
@@ -816,7 +846,7 @@
       "name_en": "Eladrin",
       "parent_slug": "elf",
       "selectable": true,
-      "source": "mtof",
+      "source": "mpmm",
       "sort_order": 24,
       "speed": 30,
       "size": "medium",
@@ -833,8 +863,38 @@
       "skill_proficiencies": [
         "perception"
       ],
-      "traits_text": "Эльф (эладрин, MToF): +2 Лов, +1 Хар. Эльфийские черты. Фейский шаг: бонусным действием телепорт 30 фт (1/короткий отдых); с 3 ур. сезон меняет доп. эффект.",
-      "content_layer": "community_ref"
+      "traits_text": "Эладрин (MPMM): ASI гибкий. Тёмное зрение 60. Наследие фей. Шаг фей: бонусным действием телепорт до 30 фт (ПБ раз / длинный отдых). С 3 ур. сезонный эффект (осень/зима/весна/лето) при телепорте. Сезон можно сменить после длинного отдыха.",
+      "content_layer": "community_ref",
+      "trait_cards": [
+        {
+          "id": "fey_ancestry",
+          "name_ru": "Наследие фей",
+          "summary_ru": "Преимущество на спасброски от очарования; магия не может усыпить вас."
+        },
+        {
+          "id": "fey_step",
+          "name_ru": "Шаг фей",
+          "summary_ru": "Бонусным: телепорт 30 фт (ПБ/LR); с 3 ур. сезонный эффект."
+        }
+      ],
+      "season_choices": [
+        {
+          "id": "autumn",
+          "label_ru": "Осень"
+        },
+        {
+          "id": "winter",
+          "label_ru": "Зима"
+        },
+        {
+          "id": "spring",
+          "label_ru": "Весна"
+        },
+        {
+          "id": "summer",
+          "label_ru": "Лето"
+        }
+      ]
     },
     {
       "slug": "sea_elf",
@@ -842,7 +902,7 @@
       "name_en": "Sea Elf",
       "parent_slug": "elf",
       "selectable": true,
-      "source": "mtof",
+      "source": "mpmm",
       "sort_order": 25,
       "speed": 30,
       "size": "medium",
@@ -866,11 +926,31 @@
         "Лёгкий арбалет",
         "Сеть"
       ],
-      "traits_text": "Эльф (морской, MToF): +2 Лов, +1 Тел. Эльфийские черты. Дитя моря: плавание 30 фт, дыхание водой и воздухом. Владение копьём, трезубцем, лёгким арбалетом и сетью. Друг моря.",
+      "traits_text": "Морской эльф (MPMM): ASI гибкий или +2 Лов/+1 Тел. Тёмное зрение 60. Наследие фей. Скорость плавания равна ходьбе. Дитя моря: дыхание воздухом и водой; сопротивление холоду. Друг моря: можете передавать простые идеи любому зверю со скоростью плавания.",
       "movement": {
         "swim": 30
       },
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "холод"
+      ],
+      "trait_cards": [
+        {
+          "id": "fey_ancestry",
+          "name_ru": "Наследие фей",
+          "summary_ru": "Преимущество на спасброски от очарования; магия не может усыпить вас."
+        },
+        {
+          "id": "child_of_the_sea",
+          "name_ru": "Дитя моря",
+          "summary_ru": "Плавание = ходьба; дыхание воздухом и водой; сопротивление холоду."
+        },
+        {
+          "id": "friend_of_the_sea",
+          "name_ru": "Друг моря",
+          "summary_ru": "Передача простых идей зверям со скоростью плавания."
+        }
+      ]
     },
     {
       "slug": "shadar_kai",
@@ -878,7 +958,7 @@
       "name_en": "Shadar-kai",
       "parent_slug": "elf",
       "selectable": true,
-      "source": "mtof",
+      "source": "mpmm",
       "sort_order": 26,
       "speed": 30,
       "size": "medium",
@@ -895,8 +975,28 @@
       "skill_proficiencies": [
         "perception"
       ],
-      "traits_text": "Эльф (шадар-кай, MToF): +2 Лов, +1 Тел. Эльфийские черты. Сопротивление некротическому урону. Благословение Королевы Воронов: бонусным действием телепорт 30 фт (1/короткий отдых); с 3 ур. — сопротивление всему урону до начала следующего хода.",
-      "content_layer": "community_ref"
+      "traits_text": "Шадар-кай (MPMM): ASI гибкий. Тёмное зрение 60. Наследие фей. Сопротивление некротике. Благословение Королевы воронов: бонусным действием телепорт до 30 фт (ПБ раз / длинный отдых); с 3 ур. после телепорта — сопротивление всему урону до начала следующего хода.",
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "некротический"
+      ],
+      "trait_cards": [
+        {
+          "id": "fey_ancestry",
+          "name_ru": "Наследие фей",
+          "summary_ru": "Преимущество на спасброски от очарования; магия не может усыпить вас."
+        },
+        {
+          "id": "necrotic_resistance",
+          "name_ru": "Сопротивление некротике",
+          "summary_ru": "Сопротивление урону некротической энергией."
+        },
+        {
+          "id": "blessing_of_the_raven_queen",
+          "name_ru": "Благословение Королевы воронов",
+          "summary_ru": "Бонусным: телепорт 30 фт (ПБ/LR); с 3 ур. сопротивление всему урону до начала следующего хода."
+        }
+      ]
     },
     {
       "slug": "mark_of_shadow",
@@ -1301,7 +1401,10 @@
       ],
       "languages_choose": 0,
       "traits_text": "Полурослик (коренастый, 2014): +2 Лов, +1 Тел. Черты полурослика + устойчивость к яду.",
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "яд"
+      ]
     },
     {
       "slug": "ghostwise_halfling",
@@ -3762,7 +3865,10 @@
           "notes_ru": "список метки"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "электричество"
+      ]
     },
     {
       "slug": "half_orc",
@@ -4147,7 +4253,9 @@
       "speed": 30,
       "size": "medium",
       "darkvision": 60,
-      "damage_resistances": ["огонь"],
+      "damage_resistances": [
+        "огонь"
+      ],
       "ability_bonuses": {
         "cha": 2,
         "int": 1
