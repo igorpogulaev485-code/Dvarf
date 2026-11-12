@@ -71,6 +71,11 @@ GEAR_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("gear_i04_defense_v1.json"),
 )
 
+# Audited active-magic count after the I22 hide (docs/items-audit/count.md).
+# The first wave named gear_i* and everything after it may insert rows.
+# Those inserts are the only allowed growth of this count.
+I22_ACTIVE_MAGIC_COUNT = 445
+
 # I22. Slugs stay; rows are hidden, not deleted.
 I22_DEACTIVATE_SLUGS = (
     "boots_of_the_shifting_lands",
@@ -221,10 +226,19 @@ def is_magic_gear(data: Mapping[str, Any], *, is_active: bool) -> bool:
     return bool(effects)
 
 
-def planned_gear_rows() -> list[GearRecord]:
-    """Final gear rows after every wave, including I22 hide/rename."""
+def split_gear_waves_at_item_packs() -> tuple[tuple[WaveSpec, ...], tuple[WaveSpec, ...]]:
+    """Waves before the first ``gear_i*`` pack, then that pack and everything after."""
+    for index, spec in enumerate(GEAR_CATALOG_WAVES):
+        if spec.filename.startswith("gear_i"):
+            return GEAR_CATALOG_WAVES[:index], GEAR_CATALOG_WAVES[index:]
+    return GEAR_CATALOG_WAVES, ()
+
+
+def planned_gear_rows(waves: Sequence[WaveSpec] | None = None) -> list[GearRecord]:
+    """Gear rows after the given waves. Default is every wave, including the I22 hide."""
+    specs = GEAR_CATALOG_WAVES if waves is None else waves
     rows: dict[tuple[str, str, str], GearRecord] = {}
-    for spec in GEAR_CATALOG_WAVES:
+    for spec in specs:
         payload = _load_json(spec.filename)
         if spec.catalog_list:
             if not isinstance(payload, list):
@@ -249,6 +263,36 @@ def planned_gear_rows() -> list[GearRecord]:
             variant_varies=spec.deactivate_variant_varies,
         )
     return list(rows.values())
+
+
+def gear_row_key(row: GearRecord) -> tuple[str, str, str]:
+    return (row.kind, row.edition, row.slug)
+
+
+def active_magic_rows(rows: Sequence[GearRecord]) -> list[GearRecord]:
+    return [row for row in rows if is_magic_gear(row.data, is_active=row.is_active)]
+
+
+def item_pack_insert_keys() -> set[tuple[str, str, str]]:
+    """Keys listed under ``inserts`` from the first gear_i* wave onward."""
+    _before, after = split_gear_waves_at_item_packs()
+    keys: set[tuple[str, str, str]] = set()
+    for spec in after:
+        payload = _load_json(spec.filename)
+        if not isinstance(payload, dict):
+            continue
+        for item in payload.get("inserts") or []:
+            if not isinstance(item, dict):
+                continue
+            kind = item.get("kind")
+            slug = item.get("slug")
+            if kind not in GEAR_KINDS or not isinstance(slug, str) or not slug.strip():
+                continue
+            edition = item.get("rules_edition") or "2014"
+            if edition not in ("2014", "both"):
+                continue
+            keys.add((str(kind), str(edition), slug))
+    return keys
 
 
 def _merge_item(rows: dict[tuple[str, str, str], GearRecord], item: Mapping[str, Any]) -> None:
