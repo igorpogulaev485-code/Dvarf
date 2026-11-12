@@ -1,0 +1,5594 @@
+{
+  "version": 1,
+  "notes": "I07 / I27: карточки EGW, GGR, RLW, FTD и SCC, которых не было в каталоге.",
+  "inserts": [
+    {
+      "kind": "item",
+      "slug": "amethyst_lodestone",
+      "name_ru": "Аметистовый магнетит",
+      "name_en": "Amethyst Lodestone",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12001,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/2962-amethyst-lodestone/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Пока камень при вас, спасброски Силы с преимуществом. Заряды тратятся на заклинания гравитации. 6 зарядов, на рассвете 1к6.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 6,
+            "restore": "dawn",
+            "recharge_dice": "1d6"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "reverse_gravity",
+            "name_ru": "Изменение тяготения",
+            "charges": 3
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous",
+        "charges": {
+          "max": 6,
+          "restore": "dawn",
+          "recharge_dice": "1d6"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "grimoire_infinitus_dormant",
+      "name_ru": "Бесконечный гримуар (спящий)",
+      "name_en": "Grimoire Infinitus (Dormant)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12008,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2308-grimoire-infinitus/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Бесконечная книга заклинаний волшебника. Число подготовленных заклинаний увеличивается; ступень добавляет свойства.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "wizard"
+        ],
+        "weight_lb": 3,
+        "family_slug": "grimoire_infinitus",
+        "family_label_ru": "Бесконечный гримуар",
+        "variant_key": "dormant",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "grimoire_infinitus_awakened",
+      "name_ru": "Бесконечный гримуар (пробуждённый)",
+      "name_en": "Grimoire Infinitus (Awakened)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12009,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2308-grimoire-infinitus/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Бесконечная книга заклинаний волшебника. Число подготовленных заклинаний увеличивается; ступень добавляет свойства.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "wizard"
+        ],
+        "weight_lb": 3,
+        "family_slug": "grimoire_infinitus",
+        "family_label_ru": "Бесконечный гримуар",
+        "variant_key": "awakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "grimoire_infinitus_exalted",
+      "name_ru": "Бесконечный гримуар (возвышенный)",
+      "name_en": "Grimoire Infinitus (Exalted)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12010,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2308-grimoire-infinitus/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Бесконечная книга заклинаний волшебника. Число подготовленных заклинаний увеличивается; ступень добавляет свойства.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "wizard"
+        ],
+        "weight_lb": 3,
+        "family_slug": "grimoire_infinitus",
+        "family_label_ru": "Бесконечный гримуар",
+        "variant_key": "exalted",
+        "variant_label_ru": "возвышенный",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "brooch_of_living_essence",
+      "name_ru": "Брошь живого существа",
+      "name_en": "Brooch of Living Essence",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12011,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2284-brooch-of-living-essence/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Пока брошь надета, проверки типа существа считают вас гуманоидом, а мировоззрение — нейтральным.",
+        "effects": [],
+        "wear_slot": "neck",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "mace_of_the_black_crown_dormant",
+      "name_ru": "Булава черной короны (спящий)",
+      "name_en": "Mace of the Black Crown (Dormant)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12012,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2318-mace-of-the-black-crown/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Булава-артефакт, три ступени. Бонус к удару растёт со ступенью, остальное остаётся текстом. Атака и урон оружием +1. Сопротивление: огонь, яд.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "poison"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 4,
+        "magic_bonus": 1,
+        "family_slug": "mace_of_the_black_crown",
+        "family_label_ru": "Булава черной короны",
+        "variant_key": "dormant",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "дробящий",
+        "category": "simple",
+        "properties": [],
+        "ranged": false,
+        "base_weapon_slug": "mace"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "mace_of_the_black_crown_awakened",
+      "name_ru": "Булава черной короны (пробуждённый)",
+      "name_en": "Mace of the Black Crown (Awakened)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12013,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2318-mace-of-the-black-crown/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Булава-артефакт, три ступени. Бонус к удару растёт со ступенью, остальное остаётся текстом. Атака и урон оружием +2. Сопротивление: огонь, яд.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "poison"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 4,
+        "magic_bonus": 2,
+        "family_slug": "mace_of_the_black_crown",
+        "family_label_ru": "Булава черной короны",
+        "variant_key": "awakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "дробящий",
+        "category": "simple",
+        "properties": [],
+        "ranged": false,
+        "base_weapon_slug": "mace"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "mace_of_the_black_crown_exalted",
+      "name_ru": "Булава черной короны (возвышенный)",
+      "name_en": "Mace of the Black Crown (Exalted)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12014,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2318-mace-of-the-black-crown/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Булава-артефакт, три ступени. Бонус к удару растёт со ступенью, остальное остаётся текстом. Атака и урон оружием +3. Сопротивление: огонь, яд.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "poison"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 4,
+        "magic_bonus": 3,
+        "family_slug": "mace_of_the_black_crown",
+        "family_label_ru": "Булава черной короны",
+        "variant_key": "exalted",
+        "variant_label_ru": "возвышенный",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "дробящий",
+        "category": "simple",
+        "properties": [],
+        "ranged": false,
+        "base_weapon_slug": "mace"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ventilating_lungs",
+      "name_ru": "Вентилируемые легкие",
+      "name_en": "Ventilating Lungs",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12016,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2270-ventilating-lungs/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Заменяют лёгкие и дают дышать даже в антимагическом поле. Вне его поля есть дополнительные свойства.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "gust_of_wind",
+            "name_ru": "Порыв ветра",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "danoths_visor_dormant",
+      "name_ru": "Визор Данота (спящий)",
+      "name_en": "Danoth's Visor (Dormant)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12018,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2311-danoths-visor/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Очки трёх ступеней: от тёмного зрения и чтения магии до зрения сквозь стены и сквозь иллюзии.",
+        "effects": [],
+        "wear_slot": "eyes",
+        "stackable": false,
+        "family_slug": "danoth_s_visor",
+        "family_label_ru": "Визор Данота",
+        "variant_key": "dormant",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "danoths_visor_awakened",
+      "name_ru": "Визор Данота (пробуждённый)",
+      "name_en": "Danoth's Visor (Awakened)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12019,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2311-danoths-visor/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Очки трёх ступеней: от тёмного зрения и чтения магии до зрения сквозь стены и сквозь иллюзии.",
+        "effects": [],
+        "wear_slot": "eyes",
+        "stackable": false,
+        "family_slug": "danoth_s_visor",
+        "family_label_ru": "Визор Данота",
+        "variant_key": "awakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "danoths_visor_exalted",
+      "name_ru": "Визор Данота (возвышенный)",
+      "name_en": "Danoth's Visor (Exalted)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12020,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2311-danoths-visor/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Очки трёх ступеней: от тёмного зрения и чтения магии до зрения сквозь стены и сквозь иллюзии.",
+        "effects": [],
+        "wear_slot": "eyes",
+        "stackable": false,
+        "family_slug": "danoth_s_visor",
+        "family_label_ru": "Визор Данота",
+        "variant_key": "exalted",
+        "variant_label_ru": "возвышенный",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "will_of_the_talon_dormant",
+      "name_ru": "Воля когтя (спящий)",
+      "name_en": "Will of the Talon (Dormant)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12021,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2319-will-of-the-talon/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Кирка-артефакт, три ступени. Бонус к удару растёт, прочие свойства остаются текстом. Атака и урон оружием +1.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 2,
+        "magic_bonus": 1,
+        "family_slug": "will_of_the_talon",
+        "family_label_ru": "Воля когтя",
+        "variant_key": "dormant",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "properties": [],
+        "ranged": false,
+        "base_weapon_slug": "war_pick"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "will_of_the_talon_awakened",
+      "name_ru": "Воля когтя (пробуждённый)",
+      "name_en": "Will of the Talon (Awakened)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12022,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2319-will-of-the-talon/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Кирка-артефакт, три ступени. Бонус к удару растёт, прочие свойства остаются текстом. Атака и урон оружием +2. Сопротивление: кислота, холод, огонь, электричество, яд.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "resistance",
+            "damage_type": "acid"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "cold"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "lightning"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "poison"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 2,
+        "magic_bonus": 2,
+        "family_slug": "will_of_the_talon",
+        "family_label_ru": "Воля когтя",
+        "variant_key": "awakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "properties": [],
+        "ranged": false,
+        "base_weapon_slug": "war_pick"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "will_of_the_talon_exalted",
+      "name_ru": "Воля когтя (возвышенный)",
+      "name_en": "Will of the Talon (Exalted)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12023,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2319-will-of-the-talon/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Кирка-артефакт, три ступени. Бонус к удару растёт, прочие свойства остаются текстом. Атака и урон оружием +3. Сопротивление: кислота, холод, огонь, электричество, яд.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "resistance",
+            "damage_type": "acid"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "cold"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "lightning"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "poison"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 2,
+        "magic_bonus": 3,
+        "family_slug": "will_of_the_talon",
+        "family_label_ru": "Воля когтя",
+        "variant_key": "exalted",
+        "variant_label_ru": "возвышенный",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "properties": [],
+        "ranged": false,
+        "base_weapon_slug": "war_pick"
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "last_stand_armor",
+      "name_ru": "Доспех последней битвы",
+      "name_en": "Last Stand Armor",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12029,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2298-last-stand-armor/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Доспех +1 к КД. Если вы умираете в нём, доспех разрушается и изгоняет ближайших небожителей, фей и исчадий. КД +1. Базу выбираете при добавлении.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          }
+        ],
+        "wear_slot": "body_armor",
+        "stackable": false,
+        "magic_bonus": 1,
+        "armor_kind": "light",
+        "base_ac": 11,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "base_armor_slug": "leather_armor",
+        "weight_lb": 10,
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "slumbering_dragon_vessel",
+      "name_ru": "Драконий сосуд (спящий)",
+      "name_en": "Slumbering Dragon Vessel",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12030,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/3003-dragon-vessel/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Сосуд наполняется напитком или зельем раз в сутки. Редкость задаёт, что именно можно создать.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "dragon_vessel",
+        "family_label_ru": "Драконий сосуд",
+        "variant_key": "slumbering",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "stirring_dragon_vessel",
+      "name_ru": "Драконий сосуд (шевелящийся)",
+      "name_en": "Stirring Dragon Vessel",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12031,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/3003-dragon-vessel/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Сосуд наполняется напитком или зельем раз в сутки. Редкость задаёт, что именно можно создать.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "dragon_vessel",
+        "family_label_ru": "Драконий сосуд",
+        "variant_key": "stirring",
+        "variant_label_ru": "шевелящийся",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wakened_dragon_vessel",
+      "name_ru": "Драконий сосуд (пробуждённый)",
+      "name_en": "Wakened Dragon Vessel",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12032,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/3003-dragon-vessel/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Сосуд наполняется напитком или зельем раз в сутки. Редкость задаёт, что именно можно создать.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "dragon_vessel",
+        "family_label_ru": "Драконий сосуд",
+        "variant_key": "wakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ascendant_dragon_vessel",
+      "name_ru": "Драконий сосуд (высший)",
+      "name_en": "Ascendant Dragon Vessel",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12033,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/3003-dragon-vessel/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Сосуд наполняется напитком или зельем раз в сутки. Редкость задаёт, что именно можно создать.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "dragon_vessel",
+        "family_label_ru": "Драконий сосуд",
+        "variant_key": "ascendant",
+        "variant_label_ru": "высший",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rod_of_retribution",
+      "name_ru": "Жезл возмездия",
+      "name_en": "Rod of Retribution",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12035,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2285-rod-of-retribution/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Реакцией заряд заставляет обидчика в пределах 60 футов пройти спас Ловкости Сл 13: 2к10 электричества или половина. 3 заряда, на рассвете полностью.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 2,
+        "item_category": "focus",
+        "charges": {
+          "max": 3,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "feather_token",
+      "name_ru": "Жетон с перышком",
+      "name_en": "Feather Token",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12036,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2256-feather-token/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Если вы падаете хотя бы на 20 футов, жетон замедляет падение до 60 футов в раунд и гаснет после приземления.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": true,
+        "item_category": "consumable"
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "living_armor",
+      "name_ru": "Живой доспех",
+      "name_en": "Living Armor",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12037,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2272-living-armor/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Проклятый доспех +1 к КД и сопротивление некротической энергии, яду и психической энергии. Снять его можно только снятием проклятия, и его нужно кормить костями хитов. КД +1. Сопротивление: некротическая энергия, яд, психическая энергия. Базу выбираете при добавлении.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "resistance",
+            "damage_type": "necrotic"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "poison"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "psychic"
+          }
+        ],
+        "wear_slot": "body_armor",
+        "stackable": false,
+        "magic_bonus": 1,
+        "armor_kind": "light",
+        "base_ac": 11,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "base_armor_slug": "leather_armor",
+        "weight_lb": 10,
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "living_gloves",
+      "name_ru": "Живые перчатки",
+      "name_en": "Living Gloves",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12038,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2266-living-gloves/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Перчатки срастаются с кожей. При настройке выбираете владение ловкостью рук или воровскими инструментами.",
+        "effects": [],
+        "wear_slot": "hands",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "orb_of_shielding_fernian_basalt",
+      "name_ru": "Защитная сфера (Fernian Basalt)",
+      "name_en": "Orb of Shielding (Fernian Basalt)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12040,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2257-orb-of-shielding/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Сфера-фокус. Реакцией уменьшает урон своей плоскости на 1к4.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "family_slug": "orb_of_shielding",
+        "family_label_ru": "Защитная сфера",
+        "variant_key": "fernian_basalt",
+        "variant_label_ru": "Fernian Basalt",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "orb_of_shielding_irian_quartz",
+      "name_ru": "Защитная сфера (Irian Quartz)",
+      "name_en": "Orb of Shielding (Irian Quartz)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12041,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2257-orb-of-shielding/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Сфера-фокус. Реакцией уменьшает урон своей плоскости на 1к4.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "family_slug": "orb_of_shielding",
+        "family_label_ru": "Защитная сфера",
+        "variant_key": "irian_quartz",
+        "variant_label_ru": "Irian Quartz",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "orb_of_shielding_kythrian_skarn",
+      "name_ru": "Защитная сфера (Kythrian Skarn)",
+      "name_en": "Orb of Shielding (Kythrian Skarn)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12042,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2257-orb-of-shielding/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Сфера-фокус. Реакцией уменьшает урон своей плоскости на 1к4.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "family_slug": "orb_of_shielding",
+        "family_label_ru": "Защитная сфера",
+        "variant_key": "kythrian_skarn",
+        "variant_label_ru": "Kythrian Skarn",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "orb_of_shielding_lamannian_flint",
+      "name_ru": "Защитная сфера (Lamannian Flint)",
+      "name_en": "Orb of Shielding (Lamannian Flint)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12043,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2257-orb-of-shielding/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Сфера-фокус. Реакцией уменьшает урон своей плоскости на 1к4.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "family_slug": "orb_of_shielding",
+        "family_label_ru": "Защитная сфера",
+        "variant_key": "lamannian_flint",
+        "variant_label_ru": "Lamannian Flint",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "orb_of_shielding_mabaran_obsidian",
+      "name_ru": "Защитная сфера (Mabaran Obsidian)",
+      "name_en": "Orb of Shielding (Mabaran Obsidian)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12044,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2257-orb-of-shielding/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Сфера-фокус. Реакцией уменьшает урон своей плоскости на 1к4.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "family_slug": "orb_of_shielding",
+        "family_label_ru": "Защитная сфера",
+        "variant_key": "mabaran_obsidian",
+        "variant_label_ru": "Mabaran Obsidian",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "orb_of_shielding_risian_shale",
+      "name_ru": "Защитная сфера (Risian Shale)",
+      "name_en": "Orb of Shielding (Risian Shale)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12045,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2257-orb-of-shielding/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Сфера-фокус. Реакцией уменьшает урон своей плоскости на 1к4.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "family_slug": "orb_of_shielding",
+        "family_label_ru": "Защитная сфера",
+        "variant_key": "risian_shale",
+        "variant_label_ru": "Risian Shale",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "orb_of_shielding_shavarran_chert",
+      "name_ru": "Защитная сфера (Shavarran Chert)",
+      "name_en": "Orb of Shielding (Shavarran Chert)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12046,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2257-orb-of-shielding/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Сфера-фокус. Реакцией уменьшает урон своей плоскости на 1к4.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "family_slug": "orb_of_shielding",
+        "family_label_ru": "Защитная сфера",
+        "variant_key": "shavarran_chert",
+        "variant_label_ru": "Shavarran Chert",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "orb_of_shielding_xorian_marble",
+      "name_ru": "Защитная сфера (Xorian Marble)",
+      "name_en": "Orb of Shielding (Xorian Marble)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12047,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2257-orb-of-shielding/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Сфера-фокус. Реакцией уменьшает урон своей плоскости на 1к4.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "family_slug": "orb_of_shielding",
+        "family_label_ru": "Защитная сфера",
+        "variant_key": "xorian_marble",
+        "variant_label_ru": "Xorian Marble",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_dragons_majesty",
+      "name_ru": "Зелье величия дракона",
+      "name_en": "Potion of Dragon’s Majesty",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12048,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/2971-potion-of-dragons-majesty/",
+        "rarity": "legendary",
+        "requires_attunement": false,
+        "description_ru": "Выпив зелье, вы на время становитесь взрослым драконом того вида, чья чешуйка в нём плавает.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": true,
+        "item_category": "consumable"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_possibility",
+      "name_ru": "Зелье возможностей",
+      "name_en": "Potion of Possibility",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12049,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2299-potion-of-possibility/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Два осколка на 8 часов. Каждый можно потратить на дополнительный к20 или чтобы помешать чужому броску.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": true,
+        "item_category": "consumable"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "needle_of_mending",
+      "name_ru": "Игла починки",
+      "name_en": "Needle of Mending",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12051,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2290-needle-of-mending/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Игла становится кинжалом +1. Из неё можно сотворить починку. Атака и урон оружием +1.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "mending",
+            "name_ru": "Починка",
+            "charges": 0,
+            "unlimited": true
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 1,
+        "magic_bonus": 1,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "колющий",
+        "category": "simple",
+        "properties": [
+          "finesse",
+          "light",
+          "thrown"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "dagger",
+        "finesse": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "vox_seeker",
+      "name_ru": "Искатель голоса",
+      "name_en": "Vox Seeker",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12053,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2281-vox-seeker/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Заводной краб. Каждое действие завода даёт минуту работы, не больше десяти. Существом управляет мастер.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "speaking_stone",
+      "name_ru": "Камень общения",
+      "name_en": "Speaking Stone",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12055,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2273-speaking-stone/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Камень дальней связи. Гном с меткой письма может отправить сообщение на другой такой камень.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "dispelling_stone",
+      "name_ru": "Камень рассеивания",
+      "name_en": "Dispelling Stone",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12056,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2300-dispelling-stone/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Бросок до 30 футов гасит камень и заканчивает заклинания 5 круга и ниже в сфере 10 футов.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "acheron_blade",
+      "name_ru": "Клинок Ахерона",
+      "name_en": "Acheron Blade",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12057,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2291-acheron-blade/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Меч +1. Пока он при вас, вас не обращают как нежить. Удар и временные хиты восстанавливаются в сумерках. Атака и урон оружием +1. Базу выбираете при добавлении.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "magic_bonus": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "longsword",
+        "versatile_damage": "1к10",
+        "weight_lb": 3,
+        "allowed_base_weapon": [
+          "greatsword",
+          "longsword",
+          "rapier",
+          "scimitar",
+          "shortsword"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "blade_of_broken_mirrors_dormant",
+      "name_ru": "Клинок разбитых зеркал (спящий)",
+      "name_en": "Blade of Broken Mirrors (Dormant)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12058,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2320-blade-of-broken-mirrors/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Кинжал-артефакт, три ступени. Бонус и заклинания иллюзий растут со ступенью. Атака и урон оружием +1.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 1,
+        "magic_bonus": 1,
+        "family_slug": "blade_of_broken_mirrors",
+        "family_label_ru": "Клинок разбитых зеркал",
+        "variant_key": "dormant",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "колющий",
+        "category": "simple",
+        "properties": [
+          "finesse",
+          "light",
+          "thrown"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "dagger",
+        "finesse": true
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "blade_of_broken_mirrors_awakened",
+      "name_ru": "Клинок разбитых зеркал (пробуждённый)",
+      "name_en": "Blade of Broken Mirrors (Awakened)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12059,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2320-blade-of-broken-mirrors/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Кинжал-артефакт, три ступени. Бонус и заклинания иллюзий растут со ступенью. Атака и урон оружием +2.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fabricate",
+            "name_ru": "Изготовление",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "hallucinatory_terrain",
+            "name_ru": "Мираж",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "major_image",
+            "name_ru": "Образ",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "phantasmal_killer",
+            "name_ru": "Воображаемый убийца",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 1,
+        "magic_bonus": 2,
+        "family_slug": "blade_of_broken_mirrors",
+        "family_label_ru": "Клинок разбитых зеркал",
+        "variant_key": "awakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "колющий",
+        "category": "simple",
+        "properties": [
+          "finesse",
+          "light",
+          "thrown"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "dagger",
+        "finesse": true
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "blade_of_broken_mirrors_exalted",
+      "name_ru": "Клинок разбитых зеркал (возвышенный)",
+      "name_en": "Blade of Broken Mirrors (Exalted)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12060,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2320-blade-of-broken-mirrors/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Кинжал-артефакт, три ступени. Бонус и заклинания иллюзий растут со ступенью. Атака и урон оружием +3.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fabricate",
+            "name_ru": "Изготовление",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "hallucinatory_terrain",
+            "name_ru": "Мираж",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "major_image",
+            "name_ru": "Образ",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "phantasmal_killer",
+            "name_ru": "Воображаемый убийца",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 1,
+        "magic_bonus": 3,
+        "family_slug": "blade_of_broken_mirrors",
+        "family_label_ru": "Клинок разбитых зеркал",
+        "variant_key": "exalted",
+        "variant_label_ru": "возвышенный",
+        "single_attunement_family": true,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "колющий",
+        "category": "simple",
+        "properties": [
+          "finesse",
+          "light",
+          "thrown"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "dagger",
+        "finesse": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "infiltrators_key_dormant",
+      "name_ru": "Ключ лазутчика (спящий)",
+      "name_en": "Infiltrator's Key (Dormant)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12061,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2312-infiltrators-key/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Ключ вора, три ступени. Открывает замки как воровские инструменты и даёт преимущество на них. Атака и урон оружием +1.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "magic_bonus": 1,
+        "family_slug": "infiltrator_s_key",
+        "family_label_ru": "Ключ лазутчика",
+        "variant_key": "dormant",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "infiltrators_key_awakened",
+      "name_ru": "Ключ лазутчика (пробуждённый)",
+      "name_en": "Infiltrator's Key (Awakened)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12062,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2312-infiltrators-key/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Ключ вора, три ступени. Открывает замки как воровские инструменты и даёт преимущество на них. Атака и урон оружием +2.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "alter_self",
+            "name_ru": "Смена обличья",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "invisibility",
+            "name_ru": "Невидимость",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "knock",
+            "name_ru": "Открывание",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "pass_without_trace",
+            "name_ru": "Бесследное передвижение",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "magic_bonus": 2,
+        "family_slug": "infiltrator_s_key",
+        "family_label_ru": "Ключ лазутчика",
+        "variant_key": "awakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "infiltrators_key_exalted",
+      "name_ru": "Ключ лазутчика (возвышенный)",
+      "name_en": "Infiltrator's Key (Exalted)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12063,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2312-infiltrators-key/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Ключ вора, три ступени. Открывает замки как воровские инструменты и даёт преимущество на них. Атака и урон оружием +3.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "alter_self",
+            "name_ru": "Смена обличья",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "dimension_door",
+            "name_ru": "Переносящая дверь",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "gaseous_form",
+            "name_ru": "Газообразная форма",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "invisibility",
+            "name_ru": "Невидимость",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "knock",
+            "name_ru": "Открывание",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "mislead",
+            "name_ru": "Фальшивый двойник",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "pass_without_trace",
+            "name_ru": "Бесследное передвижение",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "magic_bonus": 3,
+        "family_slug": "infiltrator_s_key",
+        "family_label_ru": "Ключ лазутчика",
+        "variant_key": "exalted",
+        "variant_label_ru": "возвышенный",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "keycharm",
+      "name_ru": "Ключ-брелок",
+      "name_en": "Keycharm",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12064,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2259-keycharm/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Для заклинаний тревога, волшебный замок и охранный символ ключ получает сигнал, обходит замок или не запускает символ.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "attunement_races": [
+          "mark_of_warding"
+        ],
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "dyrrns_tentacle_whip",
+      "name_ru": "Кнут–щупальце Диррна",
+      "name_en": "Dyrrn’s Tentacle Whip",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12066,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2274-dyrrns-tentacle-whip/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Кнут +2, который врастает в руку. Броски атаки по вам совершаются с преимуществом. Атака и урон оружием +2.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 3,
+        "magic_bonus": 2,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "finesse",
+          "reach"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "whip",
+        "finesse": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_obscuring",
+      "name_ru": "Кольцо затуманивания",
+      "name_en": "Ring of Obscuring",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12068,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2286-ring-of-obscuring/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Заряд творит туманное облако с вас в центре на минуту без концентрации. 3 заряда, на рассвете 1к3.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fog_cloud",
+            "name_ru": "Туманное облако",
+            "charges": 1
+          }
+        ],
+        "wear_slot": "ring",
+        "stackable": false,
+        "item_category": "wondrous",
+        "charges": {
+          "max": 3,
+          "restore": "dawn",
+          "recharge_dice": "1d3"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "belashyrras_beholder_crown",
+      "name_ru": "Корона бехолдеров Белаширры",
+      "name_en": "Belashyrra’s Beholder Crown",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12070,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2277-belashyrras-beholder-crown/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Корона срастается с черепом. Заряды тратятся на лучи, как у глаза бехолдера. 10 зарядов, на рассвете 1к6+3.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 10,
+            "restore": "dawn",
+            "recharge_dice": "1d6+3"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "charm_person",
+            "name_ru": "Очарование личности",
+            "charges": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "sleep",
+            "name_ru": "Усыпление",
+            "charges": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "hold_person",
+            "name_ru": "Удержание личности",
+            "charges": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "ray_of_enfeeblement",
+            "name_ru": "Луч слабости",
+            "charges": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fear",
+            "name_ru": "Ужас",
+            "charges": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "slow",
+            "name_ru": "Замедление",
+            "charges": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "telekinesis",
+            "name_ru": "Телекинез",
+            "charges": 5
+          },
+          {
+            "type": "grant_spell",
+            "slug": "disintegrate",
+            "name_ru": "Распад",
+            "charges": 6
+          },
+          {
+            "type": "grant_spell",
+            "slug": "flesh_to_stone",
+            "name_ru": "Окаменение",
+            "charges": 6
+          },
+          {
+            "type": "grant_spell",
+            "slug": "finger_of_death",
+            "name_ru": "Перст смерти",
+            "charges": 7
+          }
+        ],
+        "wear_slot": "head",
+        "stackable": false,
+        "item_category": "wondrous",
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+3"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "moodmark_paint",
+      "name_ru": "Краска узоров настроения",
+      "name_en": "Moodmark Paint",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12072,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2166-moodmark-paint/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Краска на лице показывает узор настроения и держится, пока её не смоют.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "the_bloody_end_dormant",
+      "name_ru": "Кровавая смерть (спящий)",
+      "name_en": "The Bloody End (Dormant)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12074,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2321-the-bloody-end/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Моргенштерн-артефакт, три ступени. Бонус к удару растёт со ступенью. Атака и урон оружием +1.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "charm_person",
+            "name_ru": "Очарование личности",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "dominate_person",
+            "name_ru": "Подчинение личности",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fear",
+            "name_ru": "Ужас",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 4,
+        "magic_bonus": 1,
+        "family_slug": "the_bloody_end",
+        "family_label_ru": "Кровавая смерть",
+        "variant_key": "dormant",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "properties": [],
+        "ranged": false,
+        "base_weapon_slug": "morningstar"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "the_bloody_end_awakened",
+      "name_ru": "Кровавая смерть (пробуждённый)",
+      "name_en": "The Bloody End (Awakened)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12075,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2321-the-bloody-end/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Моргенштерн-артефакт, три ступени. Бонус к удару растёт со ступенью. Атака и урон оружием +2.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "charm_person",
+            "name_ru": "Очарование личности",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "dominate_person",
+            "name_ru": "Подчинение личности",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fear",
+            "name_ru": "Ужас",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 4,
+        "magic_bonus": 2,
+        "family_slug": "the_bloody_end",
+        "family_label_ru": "Кровавая смерть",
+        "variant_key": "awakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "properties": [],
+        "ranged": false,
+        "base_weapon_slug": "morningstar"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "the_bloody_end_exalted",
+      "name_ru": "Кровавая смерть (возвышенный)",
+      "name_en": "The Bloody End (Exalted)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12076,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2321-the-bloody-end/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Моргенштерн-артефакт, три ступени. Бонус к удару растёт со ступенью. Атака и урон оружием +3.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "charm_person",
+            "name_ru": "Очарование личности",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "dominate_person",
+            "name_ru": "Подчинение личности",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fear",
+            "name_ru": "Ужас",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 4,
+        "magic_bonus": 3,
+        "family_slug": "the_bloody_end",
+        "family_label_ru": "Кровавая смерть",
+        "variant_key": "exalted",
+        "variant_label_ru": "возвышенный",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "properties": [],
+        "ranged": false,
+        "base_weapon_slug": "morningstar"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "bloodaxe",
+      "name_ru": "Кровавый топор",
+      "name_en": "Bloodaxe",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12077,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2301-bloodaxe/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Секира +2. По живому существу ещё 1к6 некротической энергии, а добивание даёт 10 временных хитов. Атака и урон оружием +2.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 7,
+        "magic_bonus": 2,
+        "ability": "str",
+        "damage": "1к12",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "heavy",
+          "two-handed"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "greataxe"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "arcane_cannon",
+      "name_ru": "Магическая пушка",
+      "name_en": "Arcane Cannon",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12080,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2302-arcane-cannon/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Пушка без боеприпасов. Навести и выстрелить — два действия, затем пять минут перезарядки. Эффект выбирается при выстреле.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "luxon_beacon",
+      "name_ru": "Маяк Люксона",
+      "name_en": "Luxon Beacon",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12081,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2313-luxon-beacon/",
+        "rarity": "legendary",
+        "requires_attunement": false,
+        "description_ru": "Маяк даёт осколок возможности: дополнительный к20 или помеха чужому броску, пока осколок не потрачен.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "sword_of_the_paruns",
+      "name_ru": "Меч отцов",
+      "name_en": "Sword of the Paruns",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12082,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2194-sword-of-the-paruns/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Меч с бонусом к удару. Свойства гильдий остаются текстом, бонус к атаке и урону считается. Атака и урон оружием +1.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 3,
+        "magic_bonus": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "longsword",
+        "versatile_damage": "1к10"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "mizzium_mortar",
+      "name_ru": "Миззиевая мортира",
+      "name_en": "Mizzium Mortar",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12083,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2184-mizzium-mortar/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Мортира стреляет алхимическим снарядом. Дальность и урон зависят от заряда пороха. 4 заряда, на рассвете 1к4.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 4,
+            "restore": "dawn",
+            "recharge_dice": "1d4"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "item_category": "wondrous",
+        "charges": {
+          "max": 4,
+          "restore": "dawn",
+          "recharge_dice": "1d4"
+        }
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "mizzium_armor",
+      "name_ru": "Миззиевый доспех",
+      "name_en": "Mizzium Armor",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12084,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2183-mizzium-armor/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Средний или тяжёлый доспех, кроме шкурного. Критический удар по вам становится обычным. Успешный спас Силы или Телосложения от магии, который оставляет половину урона, обнуляет урон. Базу выбираете при добавлении.",
+        "effects": [],
+        "wear_slot": "body_armor",
+        "stackable": false,
+        "armor_kind": "medium",
+        "base_ac": 13,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "base_armor_slug": "chain_shirt",
+        "weight_lb": 20,
+        "allowed_base_armor": [
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "coin_of_delving",
+      "name_ru": "Монета спуска",
+      "name_en": "Coin of Delving",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12086,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2282-coin-of-delving/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Монета светит тусклым светом на 5 футов. По звону падения слышно, как глубоко она упала.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_sheath",
+      "name_ru": "Ножны волшебной палочки",
+      "name_en": "Wand Sheath",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12087,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2261-wand-sheath/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Ножны на руке кованого держат одну палочку: вложить действием, выдвинуть бонусным действием.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_races": [
+          "warforged"
+        ],
+        "item_category": "focus"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "slumbering_dragons_wrath_weapon",
+      "name_ru": "Оружие драконьего гнева (спящий)",
+      "name_en": "Slumbering Dragon's Wrath Weapon",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12088,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/3001-dragons-wrath-weapon/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Оружие, впитавшее дыхание дракона. Ступень задаёт бонус к удару, дополнительный урон и конус. Базу выбираете при добавлении.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "family_slug": "dragon_s_wrath_weapon",
+        "family_label_ru": "Оружие драконьего гнева",
+        "variant_key": "slumbering",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "longsword",
+        "versatile_damage": "1к10",
+        "weight_lb": 3,
+        "allowed_base_weapon": [
+          "club",
+          "dagger",
+          "greatclub",
+          "handaxe",
+          "javelin",
+          "light_hammer",
+          "mace",
+          "quarterstaff",
+          "sickle",
+          "spear",
+          "crossbow_light",
+          "dart",
+          "shortbow",
+          "sling",
+          "battleaxe",
+          "flail",
+          "glaive",
+          "greataxe",
+          "greatsword",
+          "halberd",
+          "lance",
+          "longsword",
+          "maul",
+          "morningstar",
+          "pike",
+          "rapier",
+          "scimitar",
+          "shortsword",
+          "trident",
+          "war_pick",
+          "warhammer",
+          "whip",
+          "blowgun",
+          "crossbow_hand",
+          "crossbow_heavy",
+          "longbow",
+          "net"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "stirring_dragons_wrath_weapon",
+      "name_ru": "Оружие драконьего гнева (шевелящийся)",
+      "name_en": "Stirring Dragon's Wrath Weapon",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12089,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/3001-dragons-wrath-weapon/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Оружие, впитавшее дыхание дракона. Ступень задаёт бонус к удару, дополнительный урон и конус. Атака и урон оружием +1. Базу выбираете при добавлении.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "magic_bonus": 1,
+        "family_slug": "dragon_s_wrath_weapon",
+        "family_label_ru": "Оружие драконьего гнева",
+        "variant_key": "stirring",
+        "variant_label_ru": "шевелящийся",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "longsword",
+        "versatile_damage": "1к10",
+        "weight_lb": 3,
+        "allowed_base_weapon": [
+          "club",
+          "dagger",
+          "greatclub",
+          "handaxe",
+          "javelin",
+          "light_hammer",
+          "mace",
+          "quarterstaff",
+          "sickle",
+          "spear",
+          "crossbow_light",
+          "dart",
+          "shortbow",
+          "sling",
+          "battleaxe",
+          "flail",
+          "glaive",
+          "greataxe",
+          "greatsword",
+          "halberd",
+          "lance",
+          "longsword",
+          "maul",
+          "morningstar",
+          "pike",
+          "rapier",
+          "scimitar",
+          "shortsword",
+          "trident",
+          "war_pick",
+          "warhammer",
+          "whip",
+          "blowgun",
+          "crossbow_hand",
+          "crossbow_heavy",
+          "longbow",
+          "net"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "wakened_dragons_wrath_weapon",
+      "name_ru": "Оружие драконьего гнева (пробуждённый)",
+      "name_en": "Wakened Dragon's Wrath Weapon",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12090,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/3001-dragons-wrath-weapon/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Оружие, впитавшее дыхание дракона. Ступень задаёт бонус к удару, дополнительный урон и конус. Атака и урон оружием +2. Базу выбираете при добавлении.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "magic_bonus": 2,
+        "family_slug": "dragon_s_wrath_weapon",
+        "family_label_ru": "Оружие драконьего гнева",
+        "variant_key": "wakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "longsword",
+        "versatile_damage": "1к10",
+        "weight_lb": 3,
+        "allowed_base_weapon": [
+          "club",
+          "dagger",
+          "greatclub",
+          "handaxe",
+          "javelin",
+          "light_hammer",
+          "mace",
+          "quarterstaff",
+          "sickle",
+          "spear",
+          "crossbow_light",
+          "dart",
+          "shortbow",
+          "sling",
+          "battleaxe",
+          "flail",
+          "glaive",
+          "greataxe",
+          "greatsword",
+          "halberd",
+          "lance",
+          "longsword",
+          "maul",
+          "morningstar",
+          "pike",
+          "rapier",
+          "scimitar",
+          "shortsword",
+          "trident",
+          "war_pick",
+          "warhammer",
+          "whip",
+          "blowgun",
+          "crossbow_hand",
+          "crossbow_heavy",
+          "longbow",
+          "net"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "ascendant_dragons_wrath_weapon",
+      "name_ru": "Оружие драконьего гнева (высший)",
+      "name_en": "Ascendant Dragon's Wrath Weapon",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12091,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/3001-dragons-wrath-weapon/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Оружие, впитавшее дыхание дракона. Ступень задаёт бонус к удару, дополнительный урон и конус. Атака и урон оружием +3. Базу выбираете при добавлении.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "magic_bonus": 3,
+        "family_slug": "dragon_s_wrath_weapon",
+        "family_label_ru": "Оружие драконьего гнева",
+        "variant_key": "ascendant",
+        "variant_label_ru": "высший",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "longsword",
+        "versatile_damage": "1к10",
+        "weight_lb": 3,
+        "allowed_base_weapon": [
+          "club",
+          "dagger",
+          "greatclub",
+          "handaxe",
+          "javelin",
+          "light_hammer",
+          "mace",
+          "quarterstaff",
+          "sickle",
+          "spear",
+          "crossbow_light",
+          "dart",
+          "shortbow",
+          "sling",
+          "battleaxe",
+          "flail",
+          "glaive",
+          "greataxe",
+          "greatsword",
+          "halberd",
+          "lance",
+          "longsword",
+          "maul",
+          "morningstar",
+          "pike",
+          "rapier",
+          "scimitar",
+          "shortsword",
+          "trident",
+          "war_pick",
+          "warhammer",
+          "whip",
+          "blowgun",
+          "crossbow_hand",
+          "crossbow_heavy",
+          "longbow",
+          "net"
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "weapon_of_certain_death",
+      "name_ru": "Оружие неминуемой гибели",
+      "name_en": "Weapon of Certain Death",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12092,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2293-weapon-of-certain-death/",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "Пока существо ранено этим оружием, оно не восстанавливает хиты до начала вашего следующего хода. Базу выбираете при добавлении.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "longsword",
+        "versatile_damage": "1к10",
+        "weight_lb": 3,
+        "allowed_base_weapon": [
+          "club",
+          "dagger",
+          "greatclub",
+          "handaxe",
+          "javelin",
+          "light_hammer",
+          "mace",
+          "quarterstaff",
+          "sickle",
+          "spear",
+          "crossbow_light",
+          "dart",
+          "shortbow",
+          "sling",
+          "battleaxe",
+          "flail",
+          "glaive",
+          "greataxe",
+          "greatsword",
+          "halberd",
+          "lance",
+          "longsword",
+          "maul",
+          "morningstar",
+          "pike",
+          "rapier",
+          "scimitar",
+          "shortsword",
+          "trident",
+          "war_pick",
+          "warhammer",
+          "whip",
+          "blowgun",
+          "crossbow_hand",
+          "crossbow_heavy",
+          "longbow"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "spellshard",
+      "name_ru": "Осколок чар",
+      "name_en": "Spellshard",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12096,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2262-spellshard/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Осколок хранит одну книгу до 320 страниц. Создатель может закрыть его паролем.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "hunters_coat",
+      "name_ru": "Охотничье пальто",
+      "name_en": "Hunter’s Coat",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12101,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2303-hunters-coat/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Кожаный доспех +1 к КД. Заряд добавляет 1к10 некротической энергии удару по раненому существу. КД +1. 3 заряда, на рассвете 1к3.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          }
+        ],
+        "wear_slot": "body_armor",
+        "stackable": false,
+        "weight_lb": 10,
+        "magic_bonus": 1,
+        "armor_kind": "light",
+        "base_ac": 11,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "base_armor_slug": "leather_armor",
+        "charges": {
+          "max": 3,
+          "restore": "dawn",
+          "recharge_dice": "1d3"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "cleansing_stone",
+      "name_ru": "Очищающий камень",
+      "name_en": "Cleansing Stone",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12102,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2263-cleansing-stone/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Прикосновение и действие смывают грязь с вас и с одежды.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "finders_goggles",
+      "name_ru": "Очки искателя",
+      "name_en": "Finder",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12103,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2267-finders-goggles/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Очки метки поиска. К проверке Проницательности можно добавить к4, а действием прочитать, кто последним трогал предмет.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "locate_creature",
+            "name_ru": "Поиск существа",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "eyes",
+        "stackable": false,
+        "attunement_races": [
+          "mark_of_finding_half_orc",
+          "mark_of_finding_human"
+        ],
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "pyroconverger",
+      "name_ru": "Пирослияние",
+      "name_en": "Pyroconverger",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12105,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2178-pyroconverger/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Алхимический жезл Иззетов. Заряд выпускает струю огня в линию.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "scribes_pen",
+      "name_ru": "Писчее перо",
+      "name_en": "Scribes Pen",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12106,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2264-scribes-pen/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Перо пишет по любой поверхности, видимо или невидимо. Метка письма всегда видит надпись.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "attunement_races": [
+          "mark_of_scribing"
+        ],
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "lash_of_shadows_dormant",
+      "name_ru": "Плеть теней (спящий)",
+      "name_en": "Lash of Shadows (Dormant)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12107,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2322-lash-of-shadows/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Кнут-артефакт, три ступени. Бонус к удару растёт, теневые свойства остаются текстом. Атака и урон оружием +1.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 3,
+        "magic_bonus": 1,
+        "family_slug": "lash_of_shadows",
+        "family_label_ru": "Плеть теней",
+        "variant_key": "dormant",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "finesse",
+          "reach"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "whip",
+        "finesse": true
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "lash_of_shadows_awakened",
+      "name_ru": "Плеть теней (пробуждённый)",
+      "name_en": "Lash of Shadows (Awakened)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12108,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2322-lash-of-shadows/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Кнут-артефакт, три ступени. Бонус к удару растёт, теневые свойства остаются текстом. Атака и урон оружием +2.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 3,
+        "magic_bonus": 2,
+        "family_slug": "lash_of_shadows",
+        "family_label_ru": "Плеть теней",
+        "variant_key": "awakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "finesse",
+          "reach"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "whip",
+        "finesse": true
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "lash_of_shadows_exalted",
+      "name_ru": "Плеть теней (возвышенный)",
+      "name_en": "Lash of Shadows (Exalted)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12109,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2322-lash-of-shadows/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Кнут-артефакт, три ступени. Бонус к удару растёт, теневые свойства остаются текстом. Атака и урон оружием +3.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 3,
+        "magic_bonus": 3,
+        "family_slug": "lash_of_shadows",
+        "family_label_ru": "Плеть теней",
+        "variant_key": "exalted",
+        "variant_label_ru": "возвышенный",
+        "single_attunement_family": true,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "finesse",
+          "reach"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "whip",
+        "finesse": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "cuddly_strixhaven_mascot",
+      "name_ru": "Плюшевый талисман Стриксхейвена",
+      "name_en": "Cuddly Strixhaven Mascot",
+      "rules_edition": "2014",
+      "source": "SCC 2014",
+      "sort_order": 12110,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "SCC",
+        "source_url": "https://5e14.dnd.su/items/3162-cuddly-strixhaven-mascot/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Мягкая игрушка маскота. Действием крепится к телу на час и успокаивает при страхе.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "verminshroud_dormant",
+      "name_ru": "Покров вредителей (спящий)",
+      "name_en": "Verminshroud (Dormant)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12111,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2314-verminshroud/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Плащ из крысиных шкур, три ступени. Обоняние, иммунитет к болезни и тёмное зрение уже на первой ступени.",
+        "effects": [
+          {
+            "type": "condition_immunity",
+            "slug": "disease",
+            "name": "болезнь"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "polymorph",
+            "name_ru": "Превращение",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "verminshroud",
+        "family_label_ru": "Покров вредителей",
+        "variant_key": "dormant",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "verminshroud_awakened",
+      "name_ru": "Покров вредителей (пробуждённый)",
+      "name_en": "Verminshroud (Awakened)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12112,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2314-verminshroud/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Плащ из крысиных шкур, три ступени. Обоняние, иммунитет к болезни и тёмное зрение уже на первой ступени. Сопротивление: яд.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "poison"
+          },
+          {
+            "type": "condition_immunity",
+            "slug": "disease",
+            "name": "болезнь"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "insect_plague",
+            "name_ru": "Нашествие насекомых",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "polymorph",
+            "name_ru": "Превращение",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "verminshroud",
+        "family_label_ru": "Покров вредителей",
+        "variant_key": "awakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "verminshroud_exalted",
+      "name_ru": "Покров вредителей (возвышенный)",
+      "name_en": "Verminshroud (Exalted)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12113,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2314-verminshroud/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Плащ из крысиных шкур, три ступени. Обоняние, иммунитет к болезни и тёмное зрение уже на первой ступени. Сопротивление: яд.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "poison"
+          },
+          {
+            "type": "condition_immunity",
+            "slug": "disease",
+            "name": "болезнь"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "insect_plague",
+            "name_ru": "Нашествие насекомых",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "polymorph",
+            "name_ru": "Превращение",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "verminshroud",
+        "family_label_ru": "Покров вредителей",
+        "variant_key": "exalted",
+        "variant_label_ru": "возвышенный",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "grovelthrash_dormant",
+      "name_ru": "Ползучий молотильщик (спящий)",
+      "name_en": "Grovelthrash (Dormant)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12114,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2323-grovelthrash/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Молот-артефакт, три ступени. Бонус к удару растёт со ступенью. Атака и урон оружием +1.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 2,
+        "magic_bonus": 1,
+        "family_slug": "grovelthrash",
+        "family_label_ru": "Ползучий молотильщик",
+        "variant_key": "dormant",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "дробящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "warhammer",
+        "versatile_damage": "1к10"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "grovelthrash_awakened",
+      "name_ru": "Ползучий молотильщик (пробуждённый)",
+      "name_en": "Grovelthrash (Awakened)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12115,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2323-grovelthrash/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Молот-артефакт, три ступени. Бонус к удару растёт со ступенью. Атака и урон оружием +2.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 2,
+        "magic_bonus": 2,
+        "family_slug": "grovelthrash",
+        "family_label_ru": "Ползучий молотильщик",
+        "variant_key": "awakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "дробящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "warhammer",
+        "versatile_damage": "1к10"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "grovelthrash_exalted",
+      "name_ru": "Ползучий молотильщик (возвышенный)",
+      "name_en": "Grovelthrash (Exalted)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12116,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2323-grovelthrash/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Молот-артефакт, три ступени. Бонус к удару растёт со ступенью. Атака и урон оружием +3.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "earthquake",
+            "name_ru": "Землетрясение",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "meld_into_stone",
+            "name_ru": "Слияние с камнем",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "stone_shape",
+            "name_ru": "Изменение формы камня",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 2,
+        "magic_bonus": 3,
+        "family_slug": "grovelthrash",
+        "family_label_ru": "Ползучий молотильщик",
+        "variant_key": "exalted",
+        "variant_label_ru": "возвышенный",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "дробящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "warhammer",
+        "versatile_damage": "1к10"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "dust_of_deliciousness",
+      "name_ru": "Порошок наслаждения",
+      "name_en": "Dust of Deliciousness",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12117,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2288-dust-of-deliciousness/",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "Пыль улучшает вкус еды. Едок час совершает проверки и спасброски Мудрости с помехой. Хватает на шесть порций.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": true,
+        "item_category": "consumable"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "reincarnation_dust",
+      "name_ru": "Порошок реинкарнации",
+      "name_en": "Reincarnation Dust",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12118,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2305-reincarnation-dust/",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "Пыль на останках гуманоида возвращает его к жизни новым телом, как реинкарнация, если душа согласна.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": true,
+        "item_category": "consumable"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_dunamancy",
+      "name_ru": "Посох дюнамантии",
+      "name_en": "Staff of dunamancy",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12119,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2304-staff-of-dunamancy/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Посох на 10 зарядов, на рассвете 1к6+4. Последний заряд: к20, при 1 посох рассыпается. Заряды творят заклинания дюнамантии. 10 зарядов, на рассвете 1к6+4.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 10,
+            "restore": "dawn",
+            "recharge_dice": "1d6+4",
+            "deplete": "destroy_on_1"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fortune_s_favor",
+            "name_ru": "Благословение удачи",
+            "charges": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "pulse_wave",
+            "name_ru": "Силовая волна",
+            "charges": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "gravity_sinkhole",
+            "name_ru": "Центр притяжения",
+            "charges": 4
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "wizard"
+        ],
+        "weight_lb": 4,
+        "item_category": "focus",
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+4"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_the_ivory_claw",
+      "name_ru": "Посох костяного когтя",
+      "name_en": "Staff of the Ivory Claw",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12120,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2294-staff-of-the-ivory-claw/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Пока посох в руке, атака заклинанием +1. Критическое попадание заклинанием добавляет 3к6 излучения. Атака заклинанием +1, пока в руке.",
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 1,
+            "applies_to": "attack",
+            "requires_held": true
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_spellcaster": true,
+        "weight_lb": 4,
+        "item_category": "focus"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "voyager_staff",
+      "name_ru": "Посох путешественника",
+      "name_en": "Voyager Staff",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12122,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2196-voyager-staff/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Посох путешественника. Свойства дороги и телепорта остаются текстом, заряды и заклинания считаются, если они заданы. Атака заклинанием +1, пока в руке. Атака и урон оружием +1. 10 зарядов, на рассвете 1к6+4.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "spellcasting_bonus",
+            "value": 1,
+            "applies_to": "attack",
+            "requires_held": true
+          },
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 10,
+            "restore": "dawn",
+            "recharge_dice": "1d6+4"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "misty_step",
+            "name_ru": "Туманный шаг",
+            "charges": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "blink",
+            "name_ru": "Мерцание",
+            "charges": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "banishment",
+            "name_ru": "Изгнание",
+            "charges": 4
+          },
+          {
+            "type": "grant_spell",
+            "slug": "passwall",
+            "name_ru": "Создание прохода",
+            "charges": 5
+          },
+          {
+            "type": "grant_spell",
+            "slug": "teleport",
+            "name_ru": "Телепортация",
+            "charges": 7
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_spellcaster": true,
+        "weight_lb": 4,
+        "magic_bonus": 1,
+        "item_category": "focus",
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+4"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "skyblinder_staff",
+      "name_ru": "Посох, ослепляющий небеса",
+      "name_en": "Skyblinder staff",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12125,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2179-skyblinder-staff/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Пока посох в руке, существа с полётом, которые видят вас, совершают атаки по вам с помехой. Атака заклинанием +1, пока в руке. Атака и урон оружием +1.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "spellcasting_bonus",
+            "value": 1,
+            "applies_to": "attack",
+            "requires_held": true
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 4,
+        "magic_bonus": 1,
+        "item_category": "focus"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "dragonhide_belt_1",
+      "name_ru": "Пояс из драконьей кожи +1",
+      "name_en": "+1 Dragonhide Belt",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12126,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/2964-dragonhide-belt/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Пояс монаха. Бонус к Сл способностей ци и раз в сутки действие возвращает ци, равное кости боевых искусств.",
+        "effects": [],
+        "wear_slot": "belt",
+        "stackable": false,
+        "attunement_classes": [
+          "monk"
+        ],
+        "family_slug": "dragonhide_belt",
+        "family_label_ru": "Пояс из драконьей кожи",
+        "variant_key": "1",
+        "variant_label_ru": "1",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "dragonhide_belt_2",
+      "name_ru": "Пояс из драконьей кожи +2",
+      "name_en": "+2 Dragonhide Belt",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12127,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/2964-dragonhide-belt/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Пояс монаха. Бонус к Сл способностей ци и раз в сутки действие возвращает ци, равное кости боевых искусств.",
+        "effects": [],
+        "wear_slot": "belt",
+        "stackable": false,
+        "attunement_classes": [
+          "monk"
+        ],
+        "family_slug": "dragonhide_belt",
+        "family_label_ru": "Пояс из драконьей кожи",
+        "variant_key": "2",
+        "variant_label_ru": "2",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "dragonhide_belt_3",
+      "name_ru": "Пояс из драконьей кожи +3",
+      "name_en": "+3 Dragonhide Belt",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12128,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/2964-dragonhide-belt/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Пояс монаха. Бонус к Сл способностей ци и раз в сутки действие возвращает ци, равное кости боевых искусств.",
+        "effects": [],
+        "wear_slot": "belt",
+        "stackable": false,
+        "attunement_classes": [
+          "monk"
+        ],
+        "family_slug": "dragonhide_belt",
+        "family_label_ru": "Пояс из драконьей кожи",
+        "variant_key": "3",
+        "variant_label_ru": "3",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "imbued_wood_fernian_ash",
+      "name_ru": "Пропитанная древесная фокусировка (Fernian Ash)",
+      "name_en": "Imbued Wood (Fernian Ash)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12129,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2265-imbued-wood-focus/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Фокус из фернийского ясеня. К одному броску урона (огонь) заклинания, сотворённого через этот фокус, +1.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "imbued_wood_focus",
+        "family_label_ru": "Пропитанная древесная фокусировка",
+        "variant_key": "fernian_ash",
+        "variant_label_ru": "Fernian Ash",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "imbued_wood_irian_rosewood",
+      "name_ru": "Пропитанная древесная фокусировка (Irian Rosewood)",
+      "name_en": "Imbued Wood (Irian Rosewood)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12130,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2265-imbued-wood-focus/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Фокус из ирианского палисандра. К одному броску урона (излучение) заклинания, сотворённого через этот фокус, +1.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "imbued_wood_focus",
+        "family_label_ru": "Пропитанная древесная фокусировка",
+        "variant_key": "irian_rosewood",
+        "variant_label_ru": "Irian Rosewood",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "imbued_wood_kythrian_manchineel",
+      "name_ru": "Пропитанная древесная фокусировка (Kythrian Manchineel)",
+      "name_en": "Imbued Wood (Kythrian Manchineel)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12131,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2265-imbued-wood-focus/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Фокус из китнийского манцинелла. К одному броску урона (кислота или яд) заклинания, сотворённого через этот фокус, +1.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "imbued_wood_focus",
+        "family_label_ru": "Пропитанная древесная фокусировка",
+        "variant_key": "kythrian_manchineel",
+        "variant_label_ru": "Kythrian Manchineel",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "imbued_wood_lamannian_oak",
+      "name_ru": "Пропитанная древесная фокусировка (Lamannian Oak)",
+      "name_en": "Imbued Wood (Lamannian Oak)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12132,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2265-imbued-wood-focus/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Фокус из ламаннийского дуба. К одному броску урона (электричество или звук) заклинания, сотворённого через этот фокус, +1.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "imbued_wood_focus",
+        "family_label_ru": "Пропитанная древесная фокусировка",
+        "variant_key": "lamannian_oak",
+        "variant_label_ru": "Lamannian Oak",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "imbued_wood_mabaran_ebony",
+      "name_ru": "Пропитанная древесная фокусировка (Mabaran Ebony)",
+      "name_en": "Imbued Wood (Mabaran Ebony)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12133,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2265-imbued-wood-focus/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Фокус из мабаранского эбена. К одному броску урона (некротическая энергия) заклинания, сотворённого через этот фокус, +1.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "imbued_wood_focus",
+        "family_label_ru": "Пропитанная древесная фокусировка",
+        "variant_key": "mabaran_ebony",
+        "variant_label_ru": "Mabaran Ebony",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "imbued_wood_risian_pine",
+      "name_ru": "Пропитанная древесная фокусировка (Risian Pine)",
+      "name_en": "Imbued Wood (Risian Pine)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12134,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2265-imbued-wood-focus/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Фокус из рисийской сосны. К одному броску урона (холод) заклинания, сотворённого через этот фокус, +1.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "imbued_wood_focus",
+        "family_label_ru": "Пропитанная древесная фокусировка",
+        "variant_key": "risian_pine",
+        "variant_label_ru": "Risian Pine",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "imbued_wood_shavarran_birch",
+      "name_ru": "Пропитанная древесная фокусировка (Shavarran Birch)",
+      "name_en": "Imbued Wood (Shavarran Birch)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12135,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2265-imbued-wood-focus/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Фокус из шаварранской берёзы. К одному броску урона (силовое поле) заклинания, сотворённого через этот фокус, +1.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "imbued_wood_focus",
+        "family_label_ru": "Пропитанная древесная фокусировка",
+        "variant_key": "shavarran_birch",
+        "variant_label_ru": "Shavarran Birch",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "imbued_wood_xorian_wenge",
+      "name_ru": "Пропитанная древесная фокусировка (Xorian Wenge)",
+      "name_en": "Imbued Wood (Xorian Wenge)",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12136,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2265-imbued-wood-focus/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Фокус из ксорианского венге. К одному броску урона (психическая энергия) заклинания, сотворённого через этот фокус, +1.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "imbued_wood_focus",
+        "family_label_ru": "Пропитанная древесная фокусировка",
+        "variant_key": "xorian_wenge",
+        "variant_label_ru": "Xorian Wenge",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wreath_of_the_prism_dormant",
+      "name_ru": "Радужный венец (спящий)",
+      "name_en": "Wreath of the Prism (Dormant)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12137,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2310-wreath-of-the-prism/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Венец трёх ступеней. Уже спящий даёт тёмное зрение и подчиняет слабого зверя, дракона или чудовище.",
+        "effects": [],
+        "wear_slot": "head",
+        "stackable": false,
+        "family_slug": "wreath_of_the_prism",
+        "family_label_ru": "Радужный венец",
+        "variant_key": "dormant",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wreath_of_the_prism_awakened",
+      "name_ru": "Радужный венец (пробуждённый)",
+      "name_en": "Wreath of the Prism (Awakened)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12138,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2310-wreath-of-the-prism/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Венец трёх ступеней. Уже спящий даёт тёмное зрение и подчиняет слабого зверя, дракона или чудовище.",
+        "effects": [],
+        "wear_slot": "head",
+        "stackable": false,
+        "family_slug": "wreath_of_the_prism",
+        "family_label_ru": "Радужный венец",
+        "variant_key": "awakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wreath_of_the_prism_exalted",
+      "name_ru": "Радужный венец (возвышенный)",
+      "name_en": "Wreath of the Prism (Exalted)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12139,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2310-wreath-of-the-prism/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Венец трёх ступеней. Уже спящий даёт тёмное зрение и подчиняет слабого зверя, дракона или чудовище.",
+        "effects": [],
+        "wear_slot": "head",
+        "stackable": false,
+        "family_slug": "wreath_of_the_prism",
+        "family_label_ru": "Радужный венец",
+        "variant_key": "exalted",
+        "variant_label_ru": "возвышенный",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "rakdos_riteknife",
+      "name_ru": "Ритуальный нож Ракдосов",
+      "name_en": "Rakdos Riteknife",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12140,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2199-rakdos-riteknife/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Кинжал культа. Убийство копит заряды души, которые можно выпустить взрывом. Атака и урон оружием +1.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 1,
+        "magic_bonus": 1,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "колющий",
+        "category": "simple",
+        "properties": [
+          "finesse",
+          "light",
+          "thrown"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "dagger",
+        "finesse": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "azorius_keyrune",
+      "name_ru": "Рунный ключ Азориуса",
+      "name_en": "Azorius Keyrune",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12141,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2185-azorius-keyrune/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Ключ Азориуса по слову становится гигантским орлом до 1 часа. Пока он в миле, вы можете говорить с ним мысленно и смотреть его глазами.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "boros_keyrune",
+      "name_ru": "Рунный ключ Бороса",
+      "name_en": "Boros Keyrune",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12142,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2186-boros-keyrune/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Ключ Бороса по слову становится ветераном до 8 часов.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "golgari_keyrune",
+      "name_ru": "Рунный ключ Голгари",
+      "name_en": "Golgari Keyrune",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12143,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2198-golgari-keyrune/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Ключ Голгари по слову становится гигантским скорпионом до 6 часов и держит с вами мысленную связь.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "gruul_keyrune",
+      "name_ru": "Рунный ключ Груул",
+      "name_en": "Gruul Keyrune",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12144,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2187-gruul-keyrune/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Ключ Груула по слову становится цератоком, рогатым зверем вроде носорога.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "dimir_keyrune",
+      "name_ru": "Рунный ключ Димир",
+      "name_en": "Dimir Keyrune",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12145,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2197-dimir-keyrune/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Ключ Димира по слову становится пожирателем разума.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "izzet_keyrune",
+      "name_ru": "Рунный ключ Иззет",
+      "name_en": "Izzet Keyrune",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12146,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2188-izzet-keyrune/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Ключ Иззета по слову становится гальваническим странным.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "orzhov_keyrune",
+      "name_ru": "Рунный ключ Орзова",
+      "name_en": "Orzhov Keyrune",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12147,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2189-orzhov-keyrune/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Ключ Орзова по слову становится крылатым труллом до 2 часов.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rakdos_keyrune",
+      "name_ru": "Рунный ключ Ракдоса",
+      "name_en": "Rakdos Keyrune",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12148,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2180-rakdos-keyrune/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Ключ Ракдоса по слову становится каклером до 1 часа.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "selesnya_keyrune",
+      "name_ru": "Рунный ключ Селезнии",
+      "name_en": "Selesnya Keyrune",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12149,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2190-selesnya-keyrune/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Ключ Селезнии по слову становится лютым волком на 8 часов.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "simic_keyrune",
+      "name_ru": "Рунный ключ Симиков",
+      "name_en": "Simic Keyrune",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12150,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2181-simic-keyrune/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Ключ Симиков по слову становится красисом 1 категории до 5 часов.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "sapphire_buckler",
+      "name_ru": "Сапфировый баклер",
+      "name_en": "Sapphire Buckler",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12152,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/2973-sapphire-buckler/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Щит из чешуи сапфирового дракона. Сопротивление психической энергии и звуку. Реакцией существо в 5 футах, которое вас ранило, получает 2к6 звука. Сопротивление: психическая энергия, звук.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "psychic"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "thunder"
+          }
+        ],
+        "wear_slot": "shield",
+        "stackable": false,
+        "weight_lb": 6,
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "base_armor_slug": "shield"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "ruins_wake_dormant",
+      "name_ru": "Сеющий разорение (спящий)",
+      "name_en": "Ruin's Wake (Dormant)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12154,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2324-ruins-wake/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Копьё-артефакт, три ступени. Бонус к удару растёт со ступенью. Атака и урон оружием +1.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 3,
+        "magic_bonus": 1,
+        "family_slug": "ruin_s_wake",
+        "family_label_ru": "Сеющий разорение",
+        "variant_key": "dormant",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "колющий",
+        "category": "simple",
+        "properties": [
+          "thrown",
+          "versatile"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "spear",
+        "versatile_damage": "1к8"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "ruins_wake_awakened",
+      "name_ru": "Сеющий разорение (пробуждённый)",
+      "name_en": "Ruin's Wake (Awakened)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12155,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2324-ruins-wake/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Копьё-артефакт, три ступени. Бонус к удару растёт со ступенью. Атака и урон оружием +2.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 3,
+        "magic_bonus": 2,
+        "family_slug": "ruin_s_wake",
+        "family_label_ru": "Сеющий разорение",
+        "variant_key": "awakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "колющий",
+        "category": "simple",
+        "properties": [
+          "thrown",
+          "versatile"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "spear",
+        "versatile_damage": "1к8"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "ruins_wake_exalted",
+      "name_ru": "Сеющий разорение (возвышенный)",
+      "name_en": "Ruin's Wake (Exalted)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12156,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2324-ruins-wake/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Копьё-артефакт, три ступени. Бонус к удару растёт со ступенью. Атака и урон оружием +3.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 3,
+        "magic_bonus": 3,
+        "family_slug": "ruin_s_wake",
+        "family_label_ru": "Сеющий разорение",
+        "variant_key": "exalted",
+        "variant_label_ru": "возвышенный",
+        "single_attunement_family": true,
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "колющий",
+        "category": "simple",
+        "properties": [
+          "thrown",
+          "versatile"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "spear",
+        "versatile_damage": "1к8"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "kyrzins_ooze",
+      "name_ru": "Слизь Кирзина",
+      "name_en": "Kyrzin’s Ooze",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12157,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2276-kyrzins-ooze/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Выпитая слизь даёт сопротивление кислоте и яду и иммунитет к отравленному состоянию. Сопротивление: кислота, яд.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "acid"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "poison"
+          },
+          {
+            "type": "condition_immunity",
+            "slug": "poisoned",
+            "name": "отравлен"
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "sunforger",
+      "name_ru": "Солнечный молот",
+      "name_en": "Sunforger",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12158,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2191-sunforger/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Боевой молот +2. Действием можно сотворить из него заклинание жреца или паладина подходящего круга, если оно вам известно. Атака и урон оружием +2.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 2,
+        "magic_bonus": 2,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "дробящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "warhammer",
+        "versatile_damage": "1к10"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "murgaxors_orb",
+      "name_ru": "Сфера Мургаксора",
+      "name_en": "Murgaxor’s Orb",
+      "rules_edition": "2014",
+      "source": "SCC 2014",
+      "sort_order": 12160,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "SCC",
+        "source_url": "https://5e14.dnd.su/items/3169-murgaxors-orb/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Злая сфера с разумом. Касание может проклясть гуманоида; сфера сама творит внушение.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "suggestion",
+            "name_ru": "Внушение",
+            "charges": 0,
+            "unlimited": true
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "battering_shield",
+      "name_ru": "Таранный щит",
+      "name_en": "Battering Shield",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12161,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2295-battering-shield/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Башенный щит +1 к КД сверх обычного щита. Заряд при толчке добавляет 10 футов или сбивает с ног. КД +1. 3 заряда, на рассвете 1к3.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          }
+        ],
+        "wear_slot": "shield",
+        "stackable": false,
+        "weight_lb": 6,
+        "magic_bonus": 1,
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "base_armor_slug": "shield",
+        "charges": {
+          "max": 3,
+          "restore": "dawn",
+          "recharge_dice": "1d3"
+        }
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "topaz_annihilator",
+      "name_ru": "Топазовый аннигилятор",
+      "name_en": "Topaz Annihilator",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12167,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/2974-topaz-annihilator/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Дальнобойное оружие 2к6 некротической энергии. Раз в сутки из него творится распад.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "disintegrate",
+            "name_ru": "Распад",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "ability": "dex",
+        "damage": "2к6",
+        "damage_type": "некротическая энергия",
+        "category": "martial",
+        "ranged": true,
+        "properties": []
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "corpse_slayer",
+      "name_ru": "Убийца мертвецов",
+      "name_en": "Corpse Slayer",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12169,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2296-corpse-slayer/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Оружие +1. По нежити ещё 1к8 урона оружия, и до вашего следующего хода нежить хуже проходит спасброски против обращения. Атака и урон оружием +1. Базу выбираете при добавлении.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "magic_bonus": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "longsword",
+        "versatile_damage": "1к10",
+        "weight_lb": 3,
+        "allowed_base_weapon": [
+          "club",
+          "dagger",
+          "greatclub",
+          "handaxe",
+          "javelin",
+          "light_hammer",
+          "mace",
+          "quarterstaff",
+          "sickle",
+          "spear",
+          "crossbow_light",
+          "dart",
+          "shortbow",
+          "sling",
+          "battleaxe",
+          "flail",
+          "glaive",
+          "greataxe",
+          "greatsword",
+          "halberd",
+          "lance",
+          "longsword",
+          "maul",
+          "morningstar",
+          "pike",
+          "rapier",
+          "scimitar",
+          "shortsword",
+          "trident",
+          "war_pick",
+          "warhammer",
+          "whip",
+          "blowgun",
+          "crossbow_hand",
+          "crossbow_heavy",
+          "longbow",
+          "net"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "earworm",
+      "name_ru": "Ушной червь",
+      "name_en": "Earworm",
+      "rules_edition": "2014",
+      "source": "RLW 2014",
+      "sort_order": 12171,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "RLW",
+        "source_url": "https://5e14.dnd.su/items/2268-earworm/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Червь за ухом даёт глубокую речь. Заряды тратятся на его заклинания. 4 заряда, на рассвете 1к4.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 4,
+            "restore": "dawn",
+            "recharge_dice": "1d4"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "dissonant_whispers",
+            "name_ru": "Диссонирующий шёпот",
+            "charges": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "detect_thoughts",
+            "name_ru": "Обнаружение мыслей",
+            "charges": 2
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous",
+        "charges": {
+          "max": 4,
+          "restore": "dawn",
+          "recharge_dice": "1d4"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "butchers_bib",
+      "name_ru": "Фартук мясника",
+      "name_en": "Butcher’s Bib",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12172,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2297-butchers-bib/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Раз в ход кости урона рукопашного оружия можно перебросить. Рубящий удар критически попадает на 19 и 20.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "slumbering_dragon_touched_focus",
+      "name_ru": "Фокусировка, затронутая драконом (спящий)",
+      "name_en": "Slumbering Dragon-Touched Focus",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12173,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/3002-dragon-touched-focus/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Фокус заклинателя и преимущество на инициативу. Ступень добавляет свойство драконьего рода; плоского бонуса к Сл нет.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_spellcaster": true,
+        "is_spell_focus": true,
+        "family_slug": "dragon_touched_focus",
+        "family_label_ru": "Фокусировка, затронутая драконом",
+        "variant_key": "slumbering",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "item_category": "focus"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "stirring_dragon_touched_focus",
+      "name_ru": "Фокусировка, затронутая драконом (шевелящийся)",
+      "name_en": "Stirring Dragon-Touched Focus",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12174,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/3002-dragon-touched-focus/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Фокус заклинателя и преимущество на инициативу. Ступень добавляет свойство драконьего рода; плоского бонуса к Сл нет.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_spellcaster": true,
+        "is_spell_focus": true,
+        "family_slug": "dragon_touched_focus",
+        "family_label_ru": "Фокусировка, затронутая драконом",
+        "variant_key": "stirring",
+        "variant_label_ru": "шевелящийся",
+        "single_attunement_family": true,
+        "item_category": "focus"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wakened_dragon_touched_focus",
+      "name_ru": "Фокусировка, затронутая драконом (пробуждённый)",
+      "name_en": "Wakened Dragon-Touched Focus",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12175,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/3002-dragon-touched-focus/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Фокус заклинателя и преимущество на инициативу. Ступень добавляет свойство драконьего рода; плоского бонуса к Сл нет.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "fizban_s_platinum_shield",
+            "name_ru": "Платиновый щит Физбана",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "hold_monster",
+            "name_ru": "Удержание чудовища",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "legend_lore",
+            "name_ru": "Знание легенд",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "telepathic_bond",
+            "name_ru": "Ментальная связь Рэри",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "raulothim_s_psychic_lance",
+            "name_ru": "Психическое копьё Раулотима",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "rime_s_binding_ice",
+            "name_ru": "Сковывающий лёд Раймы",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_spellcaster": true,
+        "is_spell_focus": true,
+        "family_slug": "dragon_touched_focus",
+        "family_label_ru": "Фокусировка, затронутая драконом",
+        "variant_key": "wakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "item_category": "focus"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ascendant_dragon_touched_focus",
+      "name_ru": "Фокусировка, затронутая драконом (высший)",
+      "name_en": "Ascendant Dragon-Touched Focus",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12176,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/3002-dragon-touched-focus/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Фокус заклинателя и преимущество на инициативу. Ступень добавляет свойство драконьего рода; плоского бонуса к Сл нет.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "fizban_s_platinum_shield",
+            "name_ru": "Платиновый щит Физбана",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "hold_monster",
+            "name_ru": "Удержание чудовища",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "legend_lore",
+            "name_ru": "Знание легенд",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "telepathic_bond",
+            "name_ru": "Ментальная связь Рэри",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "raulothim_s_psychic_lance",
+            "name_ru": "Психическое копьё Раулотима",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "rime_s_binding_ice",
+            "name_ru": "Сковывающий лёд Раймы",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_spellcaster": true,
+        "is_spell_focus": true,
+        "family_slug": "dragon_touched_focus",
+        "family_label_ru": "Фокусировка, затронутая драконом",
+        "variant_key": "ascendant",
+        "variant_label_ru": "высший",
+        "single_attunement_family": true,
+        "item_category": "focus"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "flail_of_tiamat",
+      "name_ru": "Цеп Тиамат",
+      "name_en": "Flail of Tiamat",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 12178,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/2968-flail-of-tiamat/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Цеп +3. Головы дают дополнительное дыхание; выбор головы остаётся текстом. Атака и урон оружием +3.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 2,
+        "magic_bonus": 3,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "дробящий",
+        "category": "martial",
+        "properties": [],
+        "ranged": false,
+        "base_weapon_slug": "flail"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "silken_spite_dormant",
+      "name_ru": "Шелковая ненависть (спящий)",
+      "name_en": "Silken Spite (Dormant)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12179,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2325-silken-spite/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Рапира-артефакт, три ступени. Бонус к удару растёт, яд и телепортация остаются текстом. Атака и урон оружием +1.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 2,
+        "magic_bonus": 1,
+        "family_slug": "silken_spite",
+        "family_label_ru": "Шелковая ненависть",
+        "variant_key": "dormant",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "ability": "dex",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "properties": [
+          "finesse"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "rapier",
+        "finesse": true
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "silken_spite_awakened",
+      "name_ru": "Шелковая ненависть (пробуждённый)",
+      "name_en": "Silken Spite (Awakened)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12180,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2325-silken-spite/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Рапира-артефакт, три ступени. Бонус к удару растёт, яд и телепортация остаются текстом. Атака и урон оружием +2.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "cloudkill",
+            "name_ru": "Облако смерти",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "darkness",
+            "name_ru": "Тьма",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "levitate",
+            "name_ru": "Левитация",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "web",
+            "name_ru": "Паутина",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 2,
+        "magic_bonus": 2,
+        "family_slug": "silken_spite",
+        "family_label_ru": "Шелковая ненависть",
+        "variant_key": "awakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "ability": "dex",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "properties": [
+          "finesse"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "rapier",
+        "finesse": true
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "silken_spite_exalted",
+      "name_ru": "Шелковая ненависть (возвышенный)",
+      "name_en": "Silken Spite (Exalted)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12181,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2325-silken-spite/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Рапира-артефакт, три ступени. Бонус к удару растёт, яд и телепортация остаются текстом. Атака и урон оружием +3.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "cloudkill",
+            "name_ru": "Облако смерти",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "darkness",
+            "name_ru": "Тьма",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "levitate",
+            "name_ru": "Левитация",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "web",
+            "name_ru": "Паутина",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 2,
+        "magic_bonus": 3,
+        "family_slug": "silken_spite",
+        "family_label_ru": "Шелковая ненависть",
+        "variant_key": "exalted",
+        "variant_label_ru": "возвышенный",
+        "single_attunement_family": true,
+        "ability": "dex",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "properties": [
+          "finesse"
+        ],
+        "ranged": false,
+        "base_weapon_slug": "rapier",
+        "finesse": true
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "hide_of_the_feral_guardian_dormant",
+      "name_ru": "Шкура дикого стража (спящий)",
+      "name_en": "Hide of the Feral Guardian (Dormant)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12183,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2316-hide-of-the-feral-guardian/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Кожаный доспех друида, три ступени. КД растёт. Пока ваши показатели заменены обликом другого существа, рукопашные атаки и урон получают тот же бонус. Раз в сутки из доспеха творится превращение. КД +1.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "polymorph",
+            "name_ru": "Превращение",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "body_armor",
+        "stackable": false,
+        "weight_lb": 13,
+        "magic_bonus": 1,
+        "family_slug": "hide_of_the_feral_guardian",
+        "family_label_ru": "Шкура дикого стража",
+        "variant_key": "dormant",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "armor_kind": "light",
+        "base_ac": 12,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "base_armor_slug": "studded_leather_armor"
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "hide_of_the_feral_guardian_awakened",
+      "name_ru": "Шкура дикого стража (пробуждённый)",
+      "name_en": "Hide of the Feral Guardian (Awakened)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12184,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2316-hide-of-the-feral-guardian/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Кожаный доспех друида, три ступени. КД растёт. Пока ваши показатели заменены обликом другого существа, рукопашные атаки и урон получают тот же бонус. Раз в сутки из доспеха творится превращение. КД +2.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "polymorph",
+            "name_ru": "Превращение",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "body_armor",
+        "stackable": false,
+        "weight_lb": 13,
+        "magic_bonus": 2,
+        "family_slug": "hide_of_the_feral_guardian",
+        "family_label_ru": "Шкура дикого стража",
+        "variant_key": "awakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "armor_kind": "light",
+        "base_ac": 12,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "base_armor_slug": "studded_leather_armor"
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "hide_of_the_feral_guardian_exalted",
+      "name_ru": "Шкура дикого стража (возвышенный)",
+      "name_en": "Hide of the Feral Guardian (Exalted)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12185,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2316-hide-of-the-feral-guardian/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Кожаный доспех друида, три ступени. КД растёт. Пока ваши показатели заменены обликом другого существа, рукопашные атаки и урон получают тот же бонус. Раз в сутки из доспеха творится превращение. КД +3.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "polymorph",
+            "name_ru": "Превращение",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "body_armor",
+        "stackable": false,
+        "weight_lb": 13,
+        "magic_bonus": 3,
+        "family_slug": "hide_of_the_feral_guardian",
+        "family_label_ru": "Шкура дикого стража",
+        "variant_key": "exalted",
+        "variant_label_ru": "возвышенный",
+        "single_attunement_family": true,
+        "armor_kind": "light",
+        "base_ac": 12,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "base_armor_slug": "studded_leather_armor"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "spies_murmur",
+      "name_ru": "Шпионский шёпот",
+      "name_en": "Spies’ Murmur",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12186,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2182-spies-murmur/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Серьга или брошь шепчет короткие сообщения другим таким же предметам в нескольких милях.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "stormgirdle_dormant",
+      "name_ru": "Штормовой пояс (спящий)",
+      "name_en": "Stormgirdle (Dormant)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12187,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2317-stormgirdle/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Пояс Корда, три ступени. Сопротивление электричеству и звуку и пол Силы уже на первой ступени. Сопротивление: электричество, звук. STR не ниже 21.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "lightning"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "thunder"
+          },
+          {
+            "type": "ability_score",
+            "ability": "str",
+            "value": 21
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "stormgirdle",
+        "family_label_ru": "Штормовой пояс",
+        "variant_key": "dormant",
+        "variant_label_ru": "спящий",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "stormgirdle_awakened",
+      "name_ru": "Штормовой пояс (пробуждённый)",
+      "name_en": "Stormgirdle (Awakened)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12188,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2317-stormgirdle/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Пояс Корда, три ступени. Сопротивление электричеству и звуку и пол Силы уже на первой ступени. Сопротивление: электричество, звук. STR не ниже 21.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "lightning"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "thunder"
+          },
+          {
+            "type": "ability_score",
+            "ability": "str",
+            "value": 21
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "stormgirdle",
+        "family_label_ru": "Штормовой пояс",
+        "variant_key": "awakened",
+        "variant_label_ru": "пробуждённый",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "stormgirdle_exalted",
+      "name_ru": "Штормовой пояс (возвышенный)",
+      "name_en": "Stormgirdle (Exalted)",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 12189,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "EGW",
+        "source_url": "https://5e14.dnd.su/items/2317-stormgirdle/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "Пояс Корда, три ступени. Сопротивление электричеству и звуку и пол Силы уже на первой ступени. Сопротивление: электричество, звук. STR не ниже 21.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "lightning"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "thunder"
+          },
+          {
+            "type": "ability_score",
+            "ability": "str",
+            "value": 21
+          },
+          {
+            "type": "grant_spell",
+            "slug": "control_weather",
+            "name_ru": "Власть над погодой",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "family_slug": "stormgirdle",
+        "family_label_ru": "Штормовой пояс",
+        "variant_key": "exalted",
+        "variant_label_ru": "возвышенный",
+        "single_attunement_family": true,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "pariahs_shield",
+      "name_ru": "Щит Парии",
+      "name_en": "Pariahs Shield",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 12190,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "GGR",
+        "source_url": "https://5e14.dnd.su/items/2192-pariahs-shield/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Щит. Пока вы его держите, враги рядом с вами хуже выбирают целью ваших союзников. КД +1.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          }
+        ],
+        "wear_slot": "shield",
+        "stackable": false,
+        "weight_lb": 6,
+        "magic_bonus": 1,
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "base_armor_slug": "shield"
+      }
+    }
+  ]
+}

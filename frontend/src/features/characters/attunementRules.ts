@@ -60,6 +60,11 @@ const RACE_LABEL_RU: Record<string, string> = {
   half_orc: 'полуорк',
   tiefling: 'тифлинг',
   dragonborn: 'драконорождённый',
+  warforged: 'кованый',
+  mark_of_finding_human: 'человек с меткой поиска',
+  mark_of_finding_half_orc: 'полуорк с меткой поиска',
+  mark_of_scribing: 'метка письма',
+  mark_of_warding: 'метка охраны',
 }
 
 const ALIGNMENT_GROUP_RU: Record<string, string> = {

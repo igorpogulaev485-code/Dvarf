@@ -1,0 +1,1816 @@
+{
+  "version": 1,
+  "notes": "I07 / I26: карточки XGE и TCE, которых не было в каталоге.",
+  "inserts": [
+    {
+      "kind": "item",
+      "slug": "astromancy_archive",
+      "name_ru": "Архив астромантии",
+      "name_en": "Astromancy archive",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12002,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2127-astromancy-archive/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Книга-фокус волшебника с заклинаниями прорицания. Заряд меняет подготовленное заклинание на прорицание из архива или добавляет к4 к чужому броску. 3 заряда, на рассвете 1к3.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "wizard"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 3,
+        "item_category": "focus",
+        "charges": {
+          "max": 3,
+          "restore": "dawn",
+          "recharge_dice": "1d3"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "astral_shard",
+      "name_ru": "Астральный осколок",
+      "name_en": "Astral shard",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12003,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2128-astral-shard/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Фокус чародея. Сразу после метамагии можно телепортироваться на 30 футов.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "sorcerer"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 1,
+        "item_category": "focus"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "atlas_of_endless_horizons",
+      "name_ru": "Атлас бесконечных горизонтов",
+      "name_en": "Atlas of endless horizons",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12004,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2129-atlas-of-endless-horizons/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Книга-фокус волшебника о переходах между планами. Заряды меняют подготовленное заклинание школы и помогают шагу сквозь пространство. 3 заряда, на рассвете 1к3.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "wizard"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 3,
+        "item_category": "focus",
+        "charges": {
+          "max": 3,
+          "restore": "dawn",
+          "recharge_dice": "1d3"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rhythm_makers_drum_1",
+      "name_ru": "Барабан задающего ритм +1",
+      "name_en": "+1 Rhythm-Maker's Drum",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12005,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2133-rhythm-makers-drum/",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": "Пока барабан в руке, растут атака и Сл заклинаний барда. Действием возвращает одно вдохновение барда, снова на рассвете. Атака и Сл заклинаний барда +1, пока в руке.",
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 1,
+            "applies_to": "both",
+            "requires_held": true,
+            "class_scoped": true
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "bard"
+        ],
+        "weight_lb": 3,
+        "family_slug": "rhythm_maker_s_drum",
+        "family_label_ru": "Барабан задающего ритм",
+        "variant_key": "1",
+        "variant_label_ru": "1",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rhythm_makers_drum_2",
+      "name_ru": "Барабан задающего ритм +2",
+      "name_en": "+2 Rhythm-Maker's Drum",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12006,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2133-rhythm-makers-drum/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Пока барабан в руке, растут атака и Сл заклинаний барда. Действием возвращает одно вдохновение барда, снова на рассвете. Атака и Сл заклинаний барда +2, пока в руке.",
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "both",
+            "requires_held": true,
+            "class_scoped": true
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "bard"
+        ],
+        "weight_lb": 3,
+        "family_slug": "rhythm_maker_s_drum",
+        "family_label_ru": "Барабан задающего ритм",
+        "variant_key": "2",
+        "variant_label_ru": "2",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rhythm_makers_drum_3",
+      "name_ru": "Барабан задающего ритм +3",
+      "name_en": "+3 Rhythm-Maker's Drum",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12007,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2133-rhythm-makers-drum/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Пока барабан в руке, растут атака и Сл заклинаний барда. Действием возвращает одно вдохновение барда, снова на рассвете. Атака и Сл заклинаний барда +3, пока в руке.",
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 3,
+            "applies_to": "both",
+            "requires_held": true,
+            "class_scoped": true
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "bard"
+        ],
+        "weight_lb": 3,
+        "family_slug": "rhythm_maker_s_drum",
+        "family_label_ru": "Барабан задающего ритм",
+        "variant_key": "3",
+        "variant_label_ru": "3",
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bead_of_nourishment",
+      "name_ru": "Бусина насыщения",
+      "name_en": "Bead of Nourishment",
+      "rules_edition": "2014",
+      "source": "XGE 2014",
+      "sort_order": 12015,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "XGE",
+        "source_url": "https://5e14.dnd.su/items/393-bead-of-nourishment/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Съеденная бусина кормит и поит одно существо на одни сутки.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": true,
+        "item_category": "consumable"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bell_branch",
+      "name_ru": "Ветвь с колокольчиками",
+      "name_en": "Bell branch",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12017,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2134-bell-branch/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Фокус друида или колдуна. Заряд обнаруживает иных существ по звону или творит защиту от добра и зла. 3 заряда, на рассвете 1к3.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "protection_from_evil_and_good",
+            "name_ru": "Защита от зла и добра",
+            "charges": 1
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "druid",
+          "warlock"
+        ],
+        "is_spell_focus": true,
+        "item_category": "focus",
+        "charges": {
+          "max": 3,
+          "restore": "dawn",
+          "recharge_dice": "1d3"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "fulminating_treatise",
+      "name_ru": "Гремящий трактат",
+      "name_en": "Fulminating treatise",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12024,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2135-fulminating-treatise/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Книга-фокус волшебника об эвокации. Заряд меняет подготовленное заклинание или усиливает урон эвокации. 3 заряда, на рассвете 1к3.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "wizard"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 3,
+        "item_category": "focus",
+        "charges": {
+          "max": 3,
+          "restore": "dawn",
+          "recharge_dice": "1d3"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "duplicitous_manuscript",
+      "name_ru": "Двойственная рукопись",
+      "name_en": "Duplicitous manuscript",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12025,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2136-duplicitous-manuscript/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Для вас это книга заклинаний иллюзий, для остальных — любовный роман. Заряды тратятся на свойства иллюзии. 3 заряда, на рассвете 1к3.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "wizard"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 3,
+        "item_category": "focus",
+        "charges": {
+          "max": 3,
+          "restore": "dawn",
+          "recharge_dice": "1d3"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "demonomicon_of_iggwilv",
+      "name_ru": "Демономикон Иггвилв",
+      "name_en": "Demonomicon of Iggwilv",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12026,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2138-demonomicon-of-iggwilv/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Артефакт-трактат о Бездне. Заряды и заклинания демонологии; часть свойств только текстом. 8 зарядов, на рассвете 1к8.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 8,
+            "restore": "dawn",
+            "recharge_dice": "1d8"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "magic_circle",
+            "name_ru": "Магический круг",
+            "charges": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "planar_binding",
+            "name_ru": "Планарные узы",
+            "charges": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "magic_jar",
+            "name_ru": "Волшебный сосуд",
+            "charges": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "planar_ally",
+            "name_ru": "Планарный союзник",
+            "charges": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "plane_shift",
+            "name_ru": "Уход в иной мир",
+            "charges": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "summon_fiend",
+            "name_ru": "Призыв духа исчадия",
+            "charges": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "hideous_laughter",
+            "name_ru": "Жуткий смех Таши",
+            "charges": 0,
+            "unlimited": true
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous",
+        "charges": {
+          "max": 8,
+          "restore": "dawn",
+          "recharge_dice": "1d8"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_conducting",
+      "name_ru": "Дирижёрская палочка",
+      "name_en": "Wand of conducting",
+      "rules_edition": "2014",
+      "source": "XGE 2014",
+      "sort_order": 12027,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "XGE",
+        "source_url": "https://5e14.dnd.su/items/396-wand-of-conducting/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Действием палочка играет оркестровую музыку. Проверка Выступления с ней идёт с преимуществом. 3 заряда, на рассвете полностью.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 1,
+        "item_category": "focus",
+        "charges": {
+          "max": 3,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "cast_off_armor",
+      "name_ru": "Доспех быстрого снятия",
+      "name_en": "Cast-Off Armor",
+      "rules_edition": "2014",
+      "source": "XGE 2014",
+      "sort_order": 12028,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "XGE",
+        "source_url": "https://5e14.dnd.su/items/397-cast-off-armor/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Этот доспех снимается одним действием. Базу выбираете при добавлении.",
+        "effects": [],
+        "wear_slot": "body_armor",
+        "stackable": false,
+        "armor_kind": "light",
+        "base_ac": 11,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "base_armor_slug": "leather_armor",
+        "weight_lb": 10,
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "smoldering_armor",
+      "name_ru": "Дымящий доспех",
+      "name_en": "Smoldering Armor",
+      "rules_edition": "2014",
+      "source": "XGE 2014",
+      "sort_order": 12034,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "XGE",
+        "source_url": "https://5e14.dnd.su/items/398-smoldering-armor/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Пока доспех надет, от него идёт безвредный дым без запаха. Базу выбираете при добавлении.",
+        "effects": [],
+        "wear_slot": "body_armor",
+        "stackable": false,
+        "armor_kind": "light",
+        "base_ac": 11,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "base_armor_slug": "leather_armor",
+        "weight_lb": 10,
+        "allowed_base_armor": [
+          "padded_armor",
+          "leather_armor",
+          "studded_leather_armor",
+          "hide_armor",
+          "chain_shirt",
+          "scale_mail",
+          "breastplate",
+          "half_plate_armor",
+          "ring_mail",
+          "chain_mail",
+          "splint_armor",
+          "plate_armor"
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ersatz_eye",
+      "name_ru": "Запасной глаз",
+      "name_en": "Ersatz Eye",
+      "rules_edition": "2014",
+      "source": "XGE 2014",
+      "sort_order": 12039,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "XGE",
+        "source_url": "https://5e14.dnd.su/items/399-ersatz-eye/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Глаз в глазнице видит как обычный, и вынуть его можете только вы.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "teeth_of_dahlver_nar",
+      "name_ru": "Зубы Дальвер-Нара",
+      "name_en": "Teeth of Dahlver-Nar",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12050,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2141-teeth-of-dahlver-nar/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Мешочек зубов-историй. Вынутый зуб вызывает эффект легенды; у мешочка есть бонус к КД, пока он при вас. КД +2. 8 зарядов, на рассвете полностью.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 2
+          },
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 8,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "counterspell",
+            "name_ru": "Контрзаклинание",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "create_undead",
+            "name_ru": "Сотворение нежити",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "dominate_monster",
+            "name_ru": "Подчинение чудовища",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "black_tentacles",
+            "name_ru": "Эвардовы чёрные щупальца",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "eyebite",
+            "name_ru": "Разящее око",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "magic_bonus": 2,
+        "item_category": "wondrous",
+        "charges": {
+          "max": 8,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "enduring_spellbook",
+      "name_ru": "Износостойкая книга заклинаний",
+      "name_en": "Enduring Spellbook",
+      "rules_edition": "2014",
+      "source": "XGE 2014",
+      "sort_order": 12052,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "XGE",
+        "source_url": "https://5e14.dnd.su/items/400-enduring-spellbook/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Книга заклинаний не боится воды и огня и не портится от обычных повреждений.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "devotees_censer",
+      "name_ru": "Кадило фанатика",
+      "name_en": "Devotee’s censer",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12054,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2143-devotees-censer/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Цеп и священный символ жреца или паладина. Удар добавляет 1к8 излучения. Бонусным действием на минуту дым лечит 1к4 в начале вашего хода.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "cleric",
+          "paladin"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 2,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "дробящий",
+        "category": "martial",
+        "properties": [],
+        "ranged": false,
+        "base_weapon_slug": "flail"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "heart_weavers_primer",
+      "name_ru": "Книга начинающего сердцееда",
+      "name_en": "Heart weaver’s primer",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12065,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2144-heart-weavers-primer/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Книга-фокус волшебника об очаровании. Заряд меняет подготовленное заклинание школы или помогает очарованию. 3 заряда, на рассвете 1к3.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "wizard"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 3,
+        "item_category": "focus",
+        "charges": {
+          "max": 3,
+          "restore": "dawn",
+          "recharge_dice": "1d3"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "planecallers_codex",
+      "name_ru": "Кодекс планолога",
+      "name_en": "Planecaller’s codex",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12067,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2149-planecallers-codex/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Книга-фокус волшебника о планах. Заряды тратятся на смену подготовленного заклинания и на вызов. 3 заряда, на рассвете 1к3.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "wizard"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 3,
+        "item_category": "focus",
+        "charges": {
+          "max": 3,
+          "restore": "dawn",
+          "recharge_dice": "1d3"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "revelers_concertina",
+      "name_ru": "Концертина гуляки",
+      "name_en": "Reveler’s concertina",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12069,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2207-revelers-concertina/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Пока концертина в руке, Сл заклинаний барда выше. Раз в сутки из неё творится неотразимая пляска. Сл заклинаний барда +2, пока в руке.",
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "dc",
+            "requires_held": true,
+            "class_scoped": true
+          },
+          {
+            "type": "grant_spell",
+            "slug": "irresistible_dance",
+            "name_ru": "Неудержимая пляска Отто",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "bard"
+        ],
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "cauldron_of_rebirth",
+      "name_ru": "Котёл перерождения",
+      "name_en": "Cauldron of rebirth",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12071,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2208-cauldron-of-rebirth/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Фокус и компонент для подсматривания. После долгого отдыха варится большое зелье лечения на сутки. Раз в 7 дней может поднять мёртвого.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "attunement_classes": [
+          "druid",
+          "warlock"
+        ],
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "crystalline_chronicle",
+      "name_ru": "Кристаллическая хроника",
+      "name_en": "Crystalline chronicle",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12073,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2209-crystalline-chronicle/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Кристалл хранит книгу заклинаний волшебника. Заряды помогают сменить подготовленное заклинание и сотворить часть списка. 3 заряда, на рассвете 1к3.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "wizard"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 3,
+        "item_category": "focus",
+        "charges": {
+          "max": 3,
+          "restore": "dawn",
+          "recharge_dice": "1d3"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "lyre_of_building",
+      "name_ru": "Лира строительства",
+      "name_en": "Lyre of building",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12078,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2210-lyre-of-building/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Лира чинит предмет, реакцией защищает объект от одного типа урона и раз в сутки творит строительные заклинания.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "fabricate",
+            "name_ru": "Изготовление",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "move_earth",
+            "name_ru": "Движение почвы",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "passwall",
+            "name_ru": "Создание прохода",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "summon_construct",
+            "name_ru": "Призыв духа конструкта",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "mending",
+            "name_ru": "Починка",
+            "charges": 0,
+            "unlimited": true
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "bard"
+        ],
+        "weight_lb": 2,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "lubas_tarokka_of_souls",
+      "name_ru": "Любина тарокка душ",
+      "name_en": "Luba’s tarokka of souls",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12079,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2212-lubas-tarokka-of-souls/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Колода душ. Вытянутая карта вызывает эффект; часть свойств только текстом.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "comprehend_languages",
+            "name_ru": "Понимание языков",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "detect_evil_and_good",
+            "name_ru": "Обнаружение зла и добра",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "detect_magic",
+            "name_ru": "Обнаружение магии",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "detect_poison_and_disease",
+            "name_ru": "Обнаружение болезней и яда",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "locate_object",
+            "name_ru": "Поиск предмета",
+            "uses": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "scrying",
+            "name_ru": "Наблюдение",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "mighty_servant_of_leuk_o",
+      "name_ru": "Могучий слуга Леук-о",
+      "name_en": "Mighty Servant of Leuk-o",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12085,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2529-mighty-servant-of-leuk-o/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Артефакт-машина, в которой сидит пилот. Ходьба, удары и прочность остаются текстом.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bead_of_refreshment",
+      "name_ru": "Освежающая бусина",
+      "name_en": "Bead of Refreshment",
+      "rules_edition": "2014",
+      "source": "XGE 2014",
+      "sort_order": 12093,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "XGE",
+        "source_url": "https://5e14.dnd.su/items/409-bead-of-refreshment/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Бусина делает до галлона жидкости холодной питьевой водой.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": true,
+        "item_category": "consumable"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "far_realm_shard",
+      "name_ru": "Осколок Дальнего Предела",
+      "name_en": "Far Realm Shard",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12094,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/3468-far-realm-shard/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Фокус чародея. После метамагии щупальце мешает выбранному существу.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "sorcerer"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 1,
+        "item_category": "focus"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "shadowfell_shard",
+      "name_ru": "Осколок Царства Теней",
+      "name_en": "Shadowfell shard",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12095,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2216-shadowfell-shard/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Фокус чародея. После метамагии цель до конца вашего следующего хода совершает следующий спасбросок с помехой.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "sorcerer"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 1,
+        "item_category": "focus"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "elemental_essence_shard_air",
+      "name_ru": "Осколок эссенции стихийных планов (Air)",
+      "name_en": "Elemental Essence Shard (Air)",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12097,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2218-elemental-essence-shard/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Осколок чародея, крепится к мелкой вещи и служит фокусом. После метамагии можно пролететь до 60 футов, не провоцируя атаки.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "sorcerer"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 1,
+        "family_slug": "elemental_essence_shard",
+        "family_label_ru": "Осколок эссенции стихийных планов",
+        "variant_key": "air",
+        "variant_label_ru": "Air",
+        "item_category": "focus"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "elemental_essence_shard_earth",
+      "name_ru": "Осколок эссенции стихийных планов (Earth)",
+      "name_en": "Elemental Essence Shard (Earth)",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12098,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2218-elemental-essence-shard/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Осколок чародея, крепится к мелкой вещи и служит фокусом. После метамагии до начала вашего следующего хода даёт сопротивление выбранному типу урона.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "sorcerer"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 1,
+        "family_slug": "elemental_essence_shard",
+        "family_label_ru": "Осколок эссенции стихийных планов",
+        "variant_key": "earth",
+        "variant_label_ru": "Earth",
+        "item_category": "focus"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "elemental_essence_shard_fire",
+      "name_ru": "Осколок эссенции стихийных планов (Fire)",
+      "name_en": "Elemental Essence Shard (Fire)",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12099,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2218-elemental-essence-shard/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Осколок чародея, крепится к мелкой вещи и служит фокусом. После метамагии видимая цель заклинания получает 2к10 огня в начале своего следующего хода.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "sorcerer"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 1,
+        "family_slug": "elemental_essence_shard",
+        "family_label_ru": "Осколок эссенции стихийных планов",
+        "variant_key": "fire",
+        "variant_label_ru": "Fire",
+        "item_category": "focus"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "elemental_essence_shard_water",
+      "name_ru": "Осколок эссенции стихийных планов (Water)",
+      "name_en": "Elemental Essence Shard (Water)",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12100,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2218-elemental-essence-shard/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Осколок чародея, крепится к мелкой вещи и служит фокусом. После метамагии волна в радиусе 10 футов: 2к6 холода и толчок на 10 футов при провале Силы.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "sorcerer"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 1,
+        "family_slug": "elemental_essence_shard",
+        "family_label_ru": "Осколок эссенции стихийных планов",
+        "variant_key": "water",
+        "variant_label_ru": "Water",
+        "item_category": "focus"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand_of_pyrotechnics",
+      "name_ru": "Палочка пиротехники",
+      "name_en": "Wand of Pyrotechnics",
+      "rules_edition": "2014",
+      "source": "XGE 2014",
+      "sort_order": 12104,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "XGE",
+        "source_url": "https://5e14.dnd.su/items/411-wand-of-pyrotechnics/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Палочка даёт вспышку света или клубы дыма, как заклинание пиротехники. 7 зарядов, на рассвете 1к6+1.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 7,
+            "restore": "dawn",
+            "recharge_dice": "1d6+1"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 1,
+        "item_category": "focus",
+        "charges": {
+          "max": 7,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_birdcalls",
+      "name_ru": "Посох птичьего щебета",
+      "name_en": "Staff of Birdcalls",
+      "rules_edition": "2014",
+      "source": "XGE 2014",
+      "sort_order": 12121,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "XGE",
+        "source_url": "https://5e14.dnd.su/items/417-staff-of-birdcalls/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Посох издаёт крик выбранной птицы, слышный на расстоянии. 10 зарядов, на рассвете 1к6+4.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 10,
+            "restore": "dawn",
+            "recharge_dice": "1d6+4"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 4,
+        "item_category": "focus",
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+4"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_adornment",
+      "name_ru": "Посох украшения",
+      "name_en": "Staff of Adornment",
+      "rules_edition": "2014",
+      "source": "XGE 2014",
+      "sort_order": 12123,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "XGE",
+        "source_url": "https://5e14.dnd.su/items/418-staff-of-adornment/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Посох удерживает до трёх крошечных вещей, которые кружатся вокруг верхушки.",
+        "effects": [],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 4,
+        "item_category": "focus"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_flowers",
+      "name_ru": "Посох цветов",
+      "name_en": "Staff of Flowers",
+      "rules_edition": "2014",
+      "source": "XGE 2014",
+      "sort_order": 12124,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "XGE",
+        "source_url": "https://5e14.dnd.su/items/419-staff-of-flowers/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Посох выращивает безвредный цветок в свободной клетке, которую вы видите. 10 зарядов, на рассвете 1к6+4.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 10,
+            "restore": "dawn",
+            "recharge_dice": "1d6+4"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "weight_lb": 4,
+        "item_category": "focus",
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+4"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "clothes_of_mending",
+      "name_ru": "Самочинящаяся одежда",
+      "name_en": "Clothes of Mending",
+      "rules_edition": "2014",
+      "source": "XGE 2014",
+      "sort_order": 12151,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "XGE",
+        "source_url": "https://5e14.dnd.su/items/423-clothes-of-mending/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Одежда сама зашивает мелкие порезы и прорехи, пока её носят.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "protective_verses",
+      "name_ru": "Сборник защитных стихов",
+      "name_en": "Protective verses",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12153,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2221-protective-verses/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Книга-фокус волшебника запирается как волшебный замок. Заряды тратятся на защиту и смену подготовленного заклинания. 3 заряда, на рассвете 1к3.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "wizard"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 3,
+        "item_category": "focus",
+        "charges": {
+          "max": 3,
+          "restore": "dawn",
+          "recharge_dice": "1d3"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "baba_yagas_mortar_and_pestle",
+      "name_ru": "Ступа и пест Бабы-яги",
+      "name_en": "Baba Yaga’s mortar and pestle",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12159,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2222-baba-yagas-mortar-and-pestle/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Артефакт. Ступа летает, пест становится посохом +3. Заряды и прочие свойства остаются текстом, бонус посоха считается. Атака и урон оружием +3. 12 зарядов, на рассвете полностью.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 12,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "magic_bonus": 3,
+        "item_category": "wondrous",
+        "charges": {
+          "max": 12,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "lifewell_tattoo",
+      "name_ru": "Татуировка жизненной энергии",
+      "name_en": "Lifewell Tattoo",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12162,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2476-lifewell-tattoo/",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "Сопротивление некротической энергии. Раз в сутки, упав до 0 хитов, остаётесь с 1. Сопротивление: некротическая энергия.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "necrotic"
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "blood_fury_tattoo",
+      "name_ru": "Татуировка кровавой ярости",
+      "name_en": "Blood Fury Tattoo",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12163,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2480-blood-fury-tattoo/",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": "10 зарядов, на рассвете все. Заряд добавляет 4к6 некротической энергии удару оружием и лечит вас на эту величину либо даёт ответный удар с преимуществом. 10 зарядов, на рассвете полностью.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 10,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous",
+        "charges": {
+          "max": 10,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "masquerade_tattoo",
+      "name_ru": "Татуировка маскарада",
+      "name_en": "Masquerade Tattoo",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12164,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2481-masquerade-tattoo/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Татуировка выглядит как вы захотите. Действием меняете облик одежды и лица не магией, а рисунком.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "disguise_self",
+            "name_ru": "Маскировка",
+            "uses": 1,
+            "restore": "dawn"
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "illuminators_tattoo",
+      "name_ru": "Татуировка просветителя",
+      "name_en": "Illuminator’s Tattoo",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12165,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2485-illuminators-tattoo/",
+        "rarity": "common",
+        "requires_attunement": true,
+        "description_ru": "Вы можете писать заклинания на коже. Книга заклинаний может быть этой татуировкой, и вы тратите вдвое меньше времени и золота на переписывание.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "shadowfell_brand_tattoo",
+      "name_ru": "Татуировка с клеймом Царства Теней",
+      "name_en": "Shadowfell Brand Tattoo",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12166,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2486-shadowfell-brand-tattoo/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Пока татуировка на коже, вы можете прятаться даже при слабом затемнении, а попав по вам атакой, существо получает помеху на следующую атаку по вам до конца вашего хода.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "crook_of_rao",
+      "name_ru": "Трость Рао",
+      "name_en": "Crook of Rao",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12168,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2487-crook-of-rao/",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "description_ru": "Посох изгоняет исчадий. Заряды творят изгнание и ауры; врата — особое свойство текстом. 6 зарядов, на рассвете 1к6.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 6,
+            "restore": "dawn",
+            "recharge_dice": "1d6"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "banishment",
+            "name_ru": "Изгнание",
+            "charges": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "beacon_of_hope",
+            "name_ru": "Маяк надежды",
+            "charges": 1
+          },
+          {
+            "type": "grant_spell",
+            "slug": "aura_of_life",
+            "name_ru": "Аура жизни",
+            "charges": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "aura_of_purity",
+            "name_ru": "Аура очищения",
+            "charges": 2
+          },
+          {
+            "type": "grant_spell",
+            "slug": "mass_cure_wounds",
+            "name_ru": "Множественное лечение ран",
+            "charges": 3
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous",
+        "charges": {
+          "max": 6,
+          "restore": "dawn",
+          "recharge_dice": "1d6"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "hewards_handy_spice_pouch",
+      "name_ru": "Удобный мешочек специй Хеварда",
+      "name_en": "Heward’s Handy Spice Pouch",
+      "rules_edition": "2014",
+      "source": "XGE 2014",
+      "sort_order": 12170,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "XGE",
+        "source_url": "https://5e14.dnd.su/items/435-hewards-handy-spice-pouch/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Мешочек выдаёт щепотку соли, перца или другой обычной приправы. 10 зарядов, на рассвете 1к6+4.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 10,
+            "restore": "dawn",
+            "recharge_dice": "1d6+4"
+          }
+        ],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous",
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+4"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "libram_of_souls_and_flesh",
+      "name_ru": "Фолиант души и плоти",
+      "name_en": "Libram of Souls and Flesh",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 12177,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "TCE",
+        "source_url": "https://5e14.dnd.su/items/2490-libram-of-souls-and-flesh/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": "Книга-фокус волшебника о нежити. Заряды меняют подготовленное заклинание некромантии или поднимают слугу. 3 заряда, на рассвете 1к3.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "charges",
+            "max": 3,
+            "restore": "dawn",
+            "recharge_dice": "1d3"
+          }
+        ],
+        "wear_slot": "held_main",
+        "stackable": false,
+        "attunement_classes": [
+          "wizard"
+        ],
+        "is_spell_focus": true,
+        "weight_lb": 3,
+        "item_category": "focus",
+        "charges": {
+          "max": 3,
+          "restore": "dawn",
+          "recharge_dice": "1d3"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "pole_of_angling",
+      "name_ru": "Шест рыболовства",
+      "name_en": "Pole of Angling",
+      "rules_edition": "2014",
+      "source": "XGE 2014",
+      "sort_order": 12182,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "XGE",
+        "source_url": "https://5e14.dnd.su/items/436-pole-of-angling/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "Десятифутовый шест по слову становится удочкой с леской и крючком.",
+        "effects": [],
+        "wear_slot": "none",
+        "stackable": false,
+        "item_category": "wondrous"
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "shield_of_expression",
+      "name_ru": "Щит экспрессии",
+      "name_en": "Shield of Expression",
+      "rules_edition": "2014",
+      "source": "XGE 2014",
+      "sort_order": 12191,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "source_book": "XGE",
+        "source_url": "https://5e14.dnd.su/items/440-shield-of-expression/",
+        "rarity": "common",
+        "requires_attunement": false,
+        "description_ru": "На лице щита появляется выбранное выражение или картинка.",
+        "effects": [],
+        "wear_slot": "shield",
+        "stackable": false,
+        "weight_lb": 6,
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "base_armor_slug": "shield"
+      }
+    }
+  ]
+}
