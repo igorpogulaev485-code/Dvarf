@@ -526,6 +526,90 @@ def test_i06_bases_and_dmg_cards(planned: list[GearRecord]) -> None:
     assert frost.data["effects"] == [{"type": "ability_score", "ability": "str", "value": 23}]
 
 
+def test_i07_xge_tce_settings_cards(planned: list[GearRecord]) -> None:
+    """I26/I27: missing XGE, TCE and setting cards, with I06 bases and I03 bonuses."""
+    drum = _by_slug(planned, "rhythm_makers_drum_1")
+    assert drum.data["requires_attunement"] is True
+    assert drum.data["attunement_classes"] == ["bard"]
+    assert drum.data["variant_key"] == "1"
+    assert drum.data["family_slug"]
+    bonus = next(row for row in drum.data["effects"] if row["type"] == "spellcasting_bonus")
+    assert bonus == {
+        "type": "spellcasting_bonus",
+        "value": 1,
+        "applies_to": "both",
+        "requires_held": True,
+        "class_scoped": True,
+    }
+    assert _by_slug(planned, "rhythm_makers_drum_2").data["rarity"] == "rare"
+    assert _by_slug(planned, "rhythm_makers_drum_3").data["rarity"] == "very_rare"
+
+    archive = _by_slug(planned, "astromancy_archive")
+    assert archive.data["rarity"] == "rare"
+    assert archive.data["requires_attunement"] is True
+    assert archive.data["attunement_classes"] == ["wizard"]
+    assert archive.data["is_spell_focus"] is True
+    assert not any(row["type"] == "spellcasting_bonus" for row in archive.data["effects"])
+
+    bead = _by_slug(planned, "bead_of_nourishment")
+    assert bead.data["rarity"] == "common"
+    assert bead.data["requires_attunement"] is False
+
+    armor = _by_slug(planned, "mizzium_armor")
+    assert armor.kind == "armor"
+    assert armor.data["rarity"] == "rare"
+    assert armor.data["requires_attunement"] is False
+    assert "hide_armor" not in armor.data["allowed_base_armor"]
+    assert "leather_armor" not in armor.data["allowed_base_armor"]
+    assert "chain_mail" in armor.data["allowed_base_armor"]
+    assert "breastplate" in armor.data["allowed_base_armor"]
+
+    gloves = _by_slug(planned, "living_gloves")
+    assert gloves.data["rarity"] == "uncommon"
+    assert gloves.data["requires_attunement"] is True
+
+    for slug, rarity in (
+        ("slumbering_dragon_vessel", "uncommon"),
+        ("stirring_dragon_vessel", "rare"),
+        ("wakened_dragon_vessel", "very_rare"),
+        ("ascendant_dragon_vessel", "legendary"),
+    ):
+        vessel = _by_slug(planned, slug)
+        assert vessel.data["rarity"] == rarity
+        assert vessel.data["requires_attunement"] is True
+        assert vessel.data["single_attunement_family"] is True
+
+    orb = _by_slug(planned, "murgaxors_orb")
+    assert orb.data["rarity"] == "legendary"
+    assert orb.data["requires_attunement"] is True
+    book = _by_slug(planned, "grimoire_infinitus_dormant")
+    assert book.data["rarity"] == "legendary"
+    assert book.data["attunement_classes"] == ["wizard"]
+    assert book.data["single_attunement_family"] is True
+
+    wrath = _by_slug(planned, "stirring_dragons_wrath_weapon")
+    assert wrath.kind == "weapon"
+    assert "longsword" in wrath.data["allowed_base_weapon"]
+    assert "net" in wrath.data["allowed_base_weapon"]
+    assert wrath.data["magic_bonus"] == 1
+    cast_off = _by_slug(planned, "cast_off_armor")
+    assert cast_off.kind == "armor"
+    assert "shield" not in cast_off.data["allowed_base_armor"]
+    assert "plate_armor" in cast_off.data["allowed_base_armor"]
+    acheron = _by_slug(planned, "acheron_blade")
+    assert set(acheron.data["allowed_base_weapon"]) == {
+        "shortsword",
+        "longsword",
+        "scimitar",
+        "greatsword",
+        "rapier",
+    }
+
+    hidden = [row for row in planned if row.slug in I22_DEACTIVATE_SLUGS]
+    assert len(hidden) == 13
+    assert all(not row.is_active for row in hidden)
+
+
 def test_i06_refresh_keeps_chosen_base_and_stamps_legacy(planned: list[GearRecord]) -> None:
     weapon = _by_slug(planned, "weapon_1")
     armor = _by_slug(planned, "armor_1")
