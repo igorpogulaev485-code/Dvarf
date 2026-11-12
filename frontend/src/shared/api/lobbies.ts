@@ -275,29 +275,8 @@ export type LobbyDetail = {
   sessions: SessionSummary[]
   /** JSON профиля видимости; нормализуется на клиенте */
   visibility_profile?: unknown
-  encounter_templates?: EncounterTemplate[]
   created_at: string
   updated_at: string
-}
-
-export type EncounterEntry = {
-  catalog_id?: string | null
-  slug?: string | null
-  name: string
-  count: number
-  hp_max?: number | null
-  ac?: number | null
-  speed?: number | null
-  xp?: number | null
-  custom?: boolean
-  actions?: CombatantAction[]
-}
-
-export type EncounterTemplate = {
-  id: string
-  name: string
-  entries: EncounterEntry[]
-  updated_at?: string | null
 }
 
 export type LobbyUpdatePayload = {
@@ -1246,7 +1225,7 @@ export type EncounterGenerateResult = {
   environments: string[]
 }
 
-/** B8: умный генератор (UI draft). */
+/** B8: умный генератор (UI draft) — эндпоинт оставлен; новый UI генератора позже. */
 export async function generateSessionEncounter(
   sessionId: string,
   payload: {
@@ -1261,48 +1240,6 @@ export async function generateSessionEncounter(
     `/sessions/${sessionId}/encounters/generate`,
     { method: 'POST', body: JSON.stringify(payload) },
   )
-}
-
-export async function createLobbyEncounterTemplate(
-  lobbyId: string,
-  payload: {
-    name: string
-    entries: EncounterEntry[]
-  },
-): Promise<LobbyDetail> {
-  return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/encounters`, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  })
-}
-
-export async function saveSessionEncounterTemplate(
-  sessionId: string,
-  payload: { name: string },
-): Promise<LobbyDetail> {
-  return apiRequest<LobbyDetail>(`/sessions/${sessionId}/encounters/save`, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  })
-}
-
-export async function deploySessionEncounterTemplate(
-  sessionId: string,
-  templateId: string,
-): Promise<SessionDetail> {
-  return apiRequest<SessionDetail>(
-    `/sessions/${sessionId}/encounters/${templateId}/deploy`,
-    { method: 'POST' },
-  )
-}
-
-export async function deleteLobbyEncounterTemplate(
-  lobbyId: string,
-  templateId: string,
-): Promise<LobbyDetail> {
-  return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/encounters/${templateId}`, {
-    method: 'DELETE',
-  })
 }
 
 /** Сколько XP ещё не раздано за поверженных в пачке/карточке. */

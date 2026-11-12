@@ -1,5 +1,5 @@
 /**
- * T3: локация + задействованные страницы на сессии; клик → превью.
+ * T3 / S-01: локация + задействованные страницы; без сеттинга — только «Привязать сеттинг».
  */
 import type { SessionLorePage } from '../../shared/api/lobbies'
 import { Button, Text } from '../../ui'
@@ -13,6 +13,7 @@ type Props = {
   hasSetting: boolean
   onOpenPage: (pageId: string) => void
   onEdit?: () => void
+  onBindSetting?: () => void
   onQuestStatus?: (page: SessionLorePage) => void
 }
 
@@ -29,9 +30,20 @@ export function SessionLorePanel({
   hasSetting,
   onOpenPage,
   onEdit,
+  onBindSetting,
   onQuestStatus,
 }: Props) {
-  if (!hasSetting) return null
+  if (!hasSetting) {
+    if (!isOwner || !onBindSetting) return null
+    return (
+      <div className="session-lore-panel session-lore-panel--bind" aria-label="Лор сессии">
+        <Button type="button" variant="secondary" disabled={busy} onClick={onBindSetting}>
+          Привязать сеттинг
+        </Button>
+      </div>
+    )
+  }
+
   const empty = !locationPage && involvedPages.length === 0
   if (empty && !isOwner) return null
 

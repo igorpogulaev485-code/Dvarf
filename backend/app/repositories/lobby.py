@@ -472,6 +472,18 @@ class LobbyRepository:
             )
         )
 
+    def list_open_session_ids_for_character(self, character_id: UUID) -> list[UUID]:
+        """Открытые сессии, где персонаж сидит за столом (L08)."""
+        rows = self.db.scalars(
+            select(SessionSeat.session_id)
+            .join(PlaySession, PlaySession.id == SessionSeat.session_id)
+            .where(
+                SessionSeat.character_id == character_id,
+                PlaySession.closed_at.is_(None),
+            )
+        ).all()
+        return list(rows)
+
     def add_seat(self, *, session_id: UUID, character_id: UUID) -> SessionSeat:
         seat = SessionSeat(session_id=session_id, character_id=character_id)
         self.db.add(seat)

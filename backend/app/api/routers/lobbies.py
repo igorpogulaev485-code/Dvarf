@@ -32,8 +32,6 @@ from app.schemas.lobby import (
     JoinLobbyRequest,
     EncounterGenerateRequest,
     EncounterGenerateResult,
-    EncounterTemplateCreateRequest,
-    EncounterTemplateSaveFromSessionRequest,
     InventoryTransferRequest,
     InventoryTransferResult,
     LeadTodayRequest,
@@ -473,23 +471,25 @@ def delete_session(
 
 
 @router.post("/sessions/{session_id}/seats", response_model=SessionDetail)
-def seat_character(
+async def seat_character(
     session_id: UUID,
     payload: SeatRequest,
     current_user: CurrentUser,
     db: DbSession,
 ) -> SessionDetail:
-    return LobbyService(db).seat_character(current_user, session_id, payload)
+    return await LobbyService(db).seat_character(current_user, session_id, payload)
 
 
 @router.delete("/sessions/{session_id}/seats/{character_id}", response_model=SessionDetail)
-def unseat_character(
+async def unseat_character(
     session_id: UUID,
     character_id: UUID,
     current_user: CurrentUser,
     db: DbSession,
 ) -> SessionDetail:
-    return LobbyService(db).unseat_character(current_user, session_id, character_id)
+    return await LobbyService(db).unseat_character(
+        current_user, session_id, character_id
+    )
 
 
 @router.patch(
@@ -714,65 +714,6 @@ async def transfer_lobby_inventory(
     db: DbSession,
 ) -> InventoryTransferResult:
     return await LobbyService(db).transfer_inventory(current_user, lobby_id, payload)
-
-
-@router.post(
-    "/lobbies/{lobby_id}/encounters",
-    response_model=LobbyDetail,
-    status_code=201,
-)
-def create_lobby_encounter(
-    lobby_id: UUID,
-    payload: EncounterTemplateCreateRequest,
-    current_user: CurrentUser,
-    db: DbSession,
-) -> LobbyDetail:
-    return LobbyService(db).create_encounter_template(current_user, lobby_id, payload)
-
-
-@router.delete(
-    "/lobbies/{lobby_id}/encounters/{template_id}",
-    response_model=LobbyDetail,
-)
-def delete_lobby_encounter(
-    lobby_id: UUID,
-    template_id: str,
-    current_user: CurrentUser,
-    db: DbSession,
-) -> LobbyDetail:
-    return LobbyService(db).delete_encounter_template(
-        current_user, lobby_id, template_id
-    )
-
-
-@router.post(
-    "/sessions/{session_id}/encounters/save",
-    response_model=LobbyDetail,
-)
-def save_session_encounter(
-    session_id: UUID,
-    payload: EncounterTemplateSaveFromSessionRequest,
-    current_user: CurrentUser,
-    db: DbSession,
-) -> LobbyDetail:
-    return LobbyService(db).save_encounter_from_session(
-        current_user, session_id, payload
-    )
-
-
-@router.post(
-    "/sessions/{session_id}/encounters/{template_id}/deploy",
-    response_model=SessionDetail,
-)
-async def deploy_session_encounter(
-    session_id: UUID,
-    template_id: str,
-    current_user: CurrentUser,
-    db: DbSession,
-) -> SessionDetail:
-    return await LobbyService(db).deploy_encounter_template(
-        current_user, session_id, template_id
-    )
 
 
 @router.post(

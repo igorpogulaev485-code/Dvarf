@@ -12,8 +12,6 @@ import { AwardLootDialog } from '../features/lobby/AwardLootDialog'
 import { AwardXpDialog } from '../features/lobby/AwardXpDialog'
 import { PietyAwardDialog } from '../features/lobby/PietyAwardDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
-import { EncounterGenerateDialog } from '../features/lobby/EncounterGenerateDialog'
-import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDialog'
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { SessionLoreBindDialog } from '../features/lobby/SessionLoreBindDialog'
 import { SessionLorePanel } from '../features/lobby/SessionLorePanel'
@@ -40,13 +38,10 @@ import {
   awardSessionXp,
   closeSession,
   createSessionRoll,
-  deleteLobbyEncounterTemplate,
   deleteSeatCompanion,
+  deleteSession,
   deleteSessionCombatant,
-  deploySessionEncounterTemplate,
-  createLobbyEncounterTemplate,
   createSettingPage,
-  generateSessionEncounter,
   getLobby,
   getSession,
   getSetting,
@@ -57,13 +52,10 @@ import {
   shareLobbyEffect,
   patchSessionCombat,
   patchSessionCombatant,
-  saveSessionEncounterTemplate,
   seatCharacter,
   startSessionCombat,
   unseatCharacter,
   updateSession,
-  type EncounterGenerateResult,
-  type EncounterTemplate,
   type SeatCondition,
   type SeatEffect,
   type SessionDetail,
@@ -73,12 +65,39 @@ import {
   type SettingArtifact,
   type SettingDetail,
   type SettingPage,
+  type SettingSummary,
 } from '../shared/api/lobbies'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text, Toast } from '../ui'
+
+const SIDE_PANEL_KEY = 'dvarf.session.sidePanelOpen'
 
 function sessionCanRun(session: { can_run_session?: boolean; is_owner?: boolean } | null | undefined): boolean {
   if (!session) return false
   return Boolean(session.can_run_session ?? session.is_owner)
+}
+
+function sessionCanSeeHidden(
+  session: { can_see_hidden?: boolean; can_run_session?: boolean; is_owner?: boolean } | null | undefined,
+): boolean {
+  if (!session) return false
+  return Boolean(session.can_see_hidden ?? session.can_run_session ?? session.is_owner)
+}
+
+function sessionCanDelete(
+  session: { can_delete_session?: boolean; is_owner?: boolean } | null | undefined,
+): boolean {
+  if (!session) return false
+  return Boolean(session.can_delete_session ?? session.is_owner)
+}
+
+function readSidePanelOpen(): boolean {
+  try {
+    const raw = localStorage.getItem(SIDE_PANEL_KEY)
+    if (raw === null) return true
+    return raw !== '0'
+  } catch {
+    return true
+  }
 }
 
 export function SessionDetailPage() {
@@ -113,13 +132,16 @@ export function SessionDetailPage() {
   const [xpOpen, setXpOpen] = useState(false)
   const [pietySeatId, setPietySeatId] = useState<string | null>(null)
   const [lootOpen, setLootOpen] = useState(false)
-  const [encounterOpen, setEncounterOpen] = useState(false)
-  const [generatorOpen, setGeneratorOpen] = useState(false)
-  const [generatorResult, setGeneratorResult] = useState<EncounterGenerateResult | null>(
-    null,
-  )
-  const [templates, setTemplates] = useState<EncounterTemplate[]>([])
   const [settingArtifacts, setSettingArtifacts] = useState<SettingArtifact[]>([])
+  const [lobbySettings, setLobbySettings] = useState<SettingSummary[]>([])
+  const [sidePanelOpen, setSidePanelOpen] = useState(readSidePanelOpen)
+  const [seatPickOpen, setSeatPickOpen] = useState(false)
+  const [seatPickId, setSeatPickId] = useState('')
+  const [bindSettingOpen, setBindSettingOpen] = useState(false)
+  const [bindSettingId, setBindSettingId] = useState('')
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleteConfirmName, setDeleteConfirmName] = useState('')
+  const [restStub, setRestStub] = useState<string | null>(null)
   const [handoffOpen, setHandoffOpen] = useState(false)
   const [handoffDraft, setHandoffDraft] = useState<SettingHandoffDraft | null>(null)
   const [handoffSetting, setHandoffSetting] = useState<SettingDetail | null>(null)
@@ -139,21 +161,17 @@ export function SessionDetailPage() {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
     setSession(detail)
     setOwnCharacterIds(new Set(chars.map((c) => c.id)))
-    if (sessionCanRun(detail)) {
+    try {
+      const lobby = await getLobby(detail.lobby_id)
+      setLobbySettings(lobby.settings ?? [])
+    } catch {
+      setLobbySettings([])
+    }
+    if (sessionCanRun(detail) && detail.setting_id) {
       try {
-        const lobby = await getLobby(detail.lobby_id)
-        setTemplates(lobby.encounter_templates ?? [])
+        const setting = await getSetting(detail.setting_id)
+        setSettingArtifacts(setting.artifacts ?? [])
       } catch {
-        setTemplates([])
-      }
-      if (detail.setting_id) {
-        try {
-          const setting = await getSetting(detail.setting_id)
-          setSettingArtifacts(setting.artifacts ?? [])
-        } catch {
-          setSettingArtifacts([])
-        }
-      } else {
         setSettingArtifacts([])
       }
     } else {
@@ -316,10 +334,26 @@ export function SessionDetailPage() {
     [session],
   )
 
+  const seatCandidates = useMemo(() => {
+    if (!session || session.closed_at) return []
+    return session.lobby_members.filter(
+      (m) => ownCharacterIds.has(m.character_id) && !presentIds.has(m.character_id),
+    )
+  }, [session, ownCharacterIds, presentIds])
+
   const visibility = useMemo(
     () => normalizeVisibilityProfile(session?.visibility_profile),
     [session?.visibility_profile],
   )
+
+  function toggleSidePanel(next: boolean) {
+    setSidePanelOpen(next)
+    try {
+      localStorage.setItem(SIDE_PANEL_KEY, next ? '1' : '0')
+    } catch {
+      /* ignore */
+    }
+  }
 
   async function run(action: () => Promise<void>) {
     setBusy(true)
@@ -462,7 +496,9 @@ export function SessionDetailPage() {
     )
   }
 
-  const historyOff = !sessionCanRun(session) && visibility.event_history === 'off'
+  const historyOff = !sessionCanSeeHidden(session) && visibility.event_history === 'off'
+  const canSeeHidden = sessionCanSeeHidden(session)
+  const canRun = sessionCanRun(session)
 
   return (
     <main className="page page--app page--lobby-hub">
@@ -479,6 +515,27 @@ export function SessionDetailPage() {
             <Link to={`/lobbies/${session.lobby_id}`}>← В лобби «{session.lobby_name}»</Link>
           </Text>
           <div className="session-top-actions">
+            {!session.closed_at && seatCandidates.length > 0 && !sessionCanRun(session) ? (
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={busy}
+                onClick={() => {
+                  if (seatCandidates.length === 1) {
+                    void run(async () => {
+                      const updated = await seatCharacter(session.id, seatCandidates[0].character_id)
+                      setSession(updated)
+                      setToast('Вы за столом')
+                    })
+                  } else {
+                    setSeatPickId(seatCandidates[0]?.character_id ?? '')
+                    setSeatPickOpen(true)
+                  }
+                }}
+              >
+                Сесть за стол
+              </Button>
+            ) : null}
             {sessionCanRun(session) && !session.closed_at ? (
               <Button type="button" variant="secondary" onClick={openAttendanceEditor} disabled={busy}>
                 Кто пришёл
@@ -490,13 +547,34 @@ export function SessionDetailPage() {
                 variant="secondary"
                 disabled={busy}
                 onClick={() => {
-                  setCloseTitle(`Итог: ${session.name}`)
-                  setCloseSummary('')
-                  setWriteJournal(true)
-                  setCloseOpen(true)
+                  void run(async () => {
+                    let latest = session
+                    if (latest.combat?.active) {
+                      latest = await patchSessionCombat(latest.id, { action: 'end' })
+                      setSession(latest)
+                      setToast('Бой окончен')
+                    }
+                    setCloseTitle(`Итог: ${latest.name}`)
+                    setCloseSummary('')
+                    setWriteJournal(true)
+                    setCloseOpen(true)
+                  })
                 }}
               >
                 Закрыть сессию
+              </Button>
+            ) : null}
+            {sessionCanDelete(session) ? (
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={busy}
+                onClick={() => {
+                  setDeleteConfirmName('')
+                  setDeleteOpen(true)
+                }}
+              >
+                Удалить сессию
               </Button>
             ) : null}
           </div>
@@ -548,138 +626,25 @@ export function SessionDetailPage() {
 
         <Panel title="Живой стол">
           <Stack gap={14}>
-            <SessionLiveTabs
-              active={liveTab}
-              onChange={setLiveTab}
-              moreBadge={letterBadgeCount}
-            />
+            <div className="session-live-tabs--mobile-only">
+              <SessionLiveTabs
+                active={liveTab}
+                onChange={setLiveTab}
+                moreBadge={letterBadgeCount}
+              />
+            </div>
 
-            {liveTab === 'table' ? (
-              <Stack gap={12}>
-                <SessionLorePanel
-                  hasSetting={Boolean(session.setting_id)}
-                  locationPage={session.location_page ?? null}
-                  involvedPages={session.involved_pages ?? []}
-                  isOwner={sessionCanRun(session) && !session.closed_at}
-                  busy={busy}
-                  onOpenPage={(id) => void openLorePreview(id)}
-                  onEdit={() => void openLoreBind()}
-                  onQuestStatus={(page) => {
-                    setQuestTarget(page)
-                    setQuestDialogOpen(true)
-                  }}
-                />
-                {!session.closed_at &&
-                (sessionCanRun(session) ||
-                  session.seats.some((s) => ownCharacterIds.has(s.character_id))) ? (
-                  <div className="session-table-toolbar">
-                    {sessionCanRun(session) && session.seats.length > 0 ? (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy}
-                        onClick={() => setConditionOpen(true)}
-                      >
-                        Состояние
-                      </Button>
-                    ) : null}
-                    {session.seats.length > 0 ? (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy}
-                        onClick={() => setEffectOpen(true)}
-                      >
-                        Эффект
-                      </Button>
-                    ) : null}
-                    {sessionCanRun(session) ? (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy}
-                        onClick={() => setCombatantOpen(true)}
-                      >
-                        + Противник
-                      </Button>
-                    ) : null}
-                    {sessionCanRun(session) && !session.combat?.active ? (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={
-                          busy ||
-                          (session.seats.length === 0 &&
-                            (session.combatants?.length ?? 0) === 0)
-                        }
-                        onClick={() => setCombatStartOpen(true)}
-                      >
-                        Бой
-                      </Button>
-                    ) : null}
-                    {sessionCanRun(session) ? (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy || session.seats.length === 0}
-                        onClick={() => setXpOpen(true)}
-                      >
-                        XP
-                      </Button>
-                    ) : null}
-                    {sessionCanRun(session) ? (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy || session.seats.length === 0}
-                        onClick={() => setLootOpen(true)}
-                      >
-                        Лут
-                      </Button>
-                    ) : null}
-                    {sessionCanRun(session) ? (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy}
-                        onClick={() => setEncounterOpen(true)}
-                      >
-                        Энкаунтер
-                      </Button>
-                    ) : null}
-                    {sessionCanRun(session) && session.setting_id && !session.closed_at ? (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy}
-                        onClick={() => void openRevealDialog()}
-                      >
-                        Раскрыть
-                      </Button>
-                    ) : null}
-                    {sessionCanRun(session) ? (
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy || session.seats.length === 0}
-                        onClick={() => {
-                          setGeneratorResult(null)
-                          setGeneratorOpen(true)
-                        }}
-                      >
-                        Генератор
-                      </Button>
-                    ) : null}
-                    <Text tone="muted" className="session-table-toolbar__hint">
-                      Генератор — подобрать бой. Энкаунтер — шаблон.
-                    </Text>
-                  </div>
-                ) : null}
-
+            <div
+              className={`session-live-desk${sidePanelOpen ? '' : ' is-side-collapsed'}`}
+            >
+              <div className="session-live-desk__rail session-live-desk__desktop-only">
+                <div className="session-live-desk__rail-head">
+                  <Text as="h3">Инициатива и лента</Text>
+                </div>
                 {session.combat?.active ? (
                   <CombatTrack
                     combat={session.combat}
-                    masterControls={sessionCanRun(session) && !session.closed_at}
+                    masterControls={canRun && !session.closed_at}
                     busy={busy}
                     onNext={() => {
                       void run(async () => {
@@ -716,29 +681,312 @@ export function SessionDetailPage() {
                       })
                     }}
                   />
-                ) : null}
-
-                {session.seats.length === 0 ? (
-                  <Text tone="muted">
-                    Игроков за столом нет.
-                    {sessionCanRun(session)
-                      ? ' Откройте «Кто пришёл» или посадите противников.'
-                      : ''}
-                  </Text>
                 ) : (
-                  <div className="session-table-grid">
-                    {session.seats.map((seat) => {
+                  <Text tone="muted">Бой ещё не начат — очередь появится здесь.</Text>
+                )}
+                <Stack gap={12}>
+                {historyOff ? (
+                  <Text tone="muted">Лента скрыта настройками видимости лобби.</Text>
+                ) : (
+                  <>
+                    <label className="session-feed-filter">
+                      <input
+                        type="checkbox"
+                        checked={rollsOnly}
+                        onChange={(e) => setRollsOnly(e.target.checked)}
+                      />
+                      Только броски
+                    </label>
+                    <SessionEventFeed events={events} />
+                  </>
+                )}
+                {!session.closed_at ? (
+                  <ManualRollForm
+                    seats={session.seats}
+                    ownCharacterIds={ownCharacterIds}
+                    isOwner={canRun}
+                    busy={busy}
+                    onSubmit={async (payload) => {
+                      await run(async () => {
+                        const created = await createSessionRoll(session.id, payload)
+                        setEvents((prev) => {
+                          if (prev.some((e) => e.id === created.id)) return prev
+                          if (rollsOnly && created.event_type !== 'roll') return prev
+                          return [created, ...prev]
+                        })
+                        setToast('Бросок в ленте')
+                        setLiveTab('feed')
+                      })
+                    }}
+                  />
+                ) : null}
+                </Stack>
+              </div>
+
+              <div className="session-live-desk__center">
+                <Stack gap={12}>
+                  <SessionLorePanel
+                    hasSetting={Boolean(session.setting_id)}
+                    locationPage={session.location_page ?? null}
+                    involvedPages={session.involved_pages ?? []}
+                    isOwner={canRun && !session.closed_at}
+                    busy={busy}
+                    onOpenPage={(id) => void openLorePreview(id)}
+                    onEdit={() => void openLoreBind()}
+                    onBindSetting={() => {
+                      setBindSettingId(lobbySettings[0]?.id ?? '')
+                      setBindSettingOpen(true)
+                    }}
+                    onQuestStatus={(page) => {
+                      setQuestTarget(page)
+                      setQuestDialogOpen(true)
+                    }}
+                  />
+                  {!session.closed_at && canRun ? (
+                  <div className="session-table-toolbar">
+                    <div className="session-toolbar-group" aria-label="Бой">
+                      <Text className="session-toolbar-group__label">Бой</Text>
+                      {!session.combat?.active ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={
+                            busy ||
+                            (session.seats.length === 0 &&
+                              (session.combatants?.length ?? 0) === 0)
+                          }
+                          onClick={() => setCombatStartOpen(true)}
+                        >
+                          Бой
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={busy}
+                          onClick={() => {
+                            void run(async () => {
+                              const updated = await patchSessionCombat(session.id, {
+                                action: 'end',
+                              })
+                              setSession(updated)
+                              setToast('Бой окончен')
+                              setXpOpen(true)
+                            })
+                          }}
+                        >
+                          Конец боя
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => setCombatantOpen(true)}
+                      >
+                        + Враги
+                      </Button>
+                      {session.seats.length > 0 ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={busy}
+                          onClick={() => setConditionOpen(true)}
+                        >
+                          Состояние
+                        </Button>
+                      ) : null}
+                      {session.seats.length > 0 ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={busy}
+                          onClick={() => setEffectOpen(true)}
+                        >
+                          Эффект
+                        </Button>
+                      ) : null}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled
+                        title="генератор боя будет позже"
+                      >
+                        Генератор
+                      </Button>
+                    </div>
+                    <div className="session-toolbar-group" aria-label="Награды">
+                      <Text className="session-toolbar-group__label">Награды</Text>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy || session.seats.length === 0}
+                        onClick={() => setXpOpen(true)}
+                      >
+                        Опыт
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy || session.seats.length === 0}
+                        onClick={() => setLootOpen(true)}
+                      >
+                        Лут
+                      </Button>
+                    </div>
+                    <div className="session-toolbar-group" aria-label="Сюжет">
+                      <Text className="session-toolbar-group__label">Сюжет</Text>
+                      {!session.setting_id ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={busy}
+                          onClick={() => {
+                            setBindSettingId(lobbySettings[0]?.id ?? '')
+                            setBindSettingOpen(true)
+                          }}
+                        >
+                          Привязать сеттинг
+                        </Button>
+                      ) : (
+                        <>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={busy}
+                            onClick={() => void openRevealDialog()}
+                          >
+                            Раскрыть
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={busy}
+                            onClick={() => void openLoreBind()}
+                          >
+                            Локация
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={busy || (session.involved_pages ?? []).every((p) => p.page_kind !== 'quest')}
+                            onClick={() => {
+                              const quest = (session.involved_pages ?? []).find(
+                                (p) => p.page_kind === 'quest',
+                              )
+                              if (!quest) {
+                                setToast('Нет квеста в лоре сессии')
+                                return
+                              }
+                              setQuestTarget(quest)
+                              setQuestDialogOpen(true)
+                            }}
+                          >
+                            Статус квеста
+                          </Button>
+                        </>
+                      )}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => setRestStub('Короткий отдых будет в S-07')}
+                      >
+                        Короткий отдых
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => setRestStub('Долгий отдых будет в S-07')}
+                      >
+                        Долгий отдых
+                      </Button>
+                    </div>
+                  </div>
+                  ) : null}
+                  {!session.closed_at &&
+                  !canRun &&
+                  session.seats.some((s) => ownCharacterIds.has(s.character_id)) ? (
+                    <div className="session-table-toolbar">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => setEffectOpen(true)}
+                      >
+                        Эффект
+                      </Button>
+                    </div>
+                  ) : null}
+
+                  <div className="session-live-desk__mobile-only">
+                    {session.combat?.active ? (
+                  <CombatTrack
+                    combat={session.combat}
+                    masterControls={canRun && !session.closed_at}
+                    busy={busy}
+                    onNext={() => {
+                      void run(async () => {
+                        const updated = await patchSessionCombat(session.id, {
+                          action: 'next',
+                        })
+                        setSession(updated)
+                      })
+                    }}
+                    onPrev={() => {
+                      void run(async () => {
+                        const updated = await patchSessionCombat(session.id, {
+                          action: 'prev',
+                        })
+                        setSession(updated)
+                      })
+                    }}
+                    onEnd={() => {
+                      void run(async () => {
+                        const updated = await patchSessionCombat(session.id, {
+                          action: 'end',
+                        })
+                        setSession(updated)
+                        setToast('Бой окончен')
+                        setXpOpen(true)
+                      })
+                    }}
+                    onSelect={(index) => {
+                      void run(async () => {
+                        const updated = await patchSessionCombat(session.id, {
+                          active_index: index,
+                        })
+                        setSession(updated)
+                      })
+                    }}
+                  />
+                    ) : null}
+                  </div>
+
+                  {session.seats.length === 0 ? (
+                    <Text tone="muted">
+                      Игроков за столом нет.
+                      {canRun
+                        ? ' Откройте «Кто пришёл» или посадите противников.'
+                        : seatCandidates.length > 0
+                          ? ' Можно сесть за стол самому.'
+                          : ''}
+                    </Text>
+                  ) : (
+                    <div className="session-table-grid">
+{session.seats.map((seat) => {
                       const isOwn = ownCharacterIds.has(seat.character_id)
-                      const canControl = sessionCanRun(session) || isOwn
+                      const canControl = canRun || isOwn
                       return (
                         <SessionTableCard
                           key={seat.character_id}
                           seat={seat}
                           visibility={visibility}
-                          revealAll={sessionCanRun(session)}
-                          masterControls={canControl && !session.closed_at}
+                          revealAll={canSeeHidden}
+                          masterControls={canControl && !session.closed_at && !session.is_observer}
                           busy={busy}
-                          sheetLabel={sessionCanRun(session) && !isOwn ? 'Смотреть' : 'Лист'}
+                          sheetLabel={canRun && !isOwn ? 'Смотреть' : 'Лист'}
                           onToggleInspiration={(next) => {
                             void run(async () => {
                               const updated = await patchSeatCombat(
@@ -750,7 +998,7 @@ export function SessionDetailPage() {
                             })
                           }}
                           onAwardPiety={
-                            sessionCanRun(session) && !session.closed_at
+                            canRun && !session.closed_at
                               ? () => setPietySeatId(seat.character_id)
                               : undefined
                           }
@@ -813,16 +1061,16 @@ export function SessionDetailPage() {
                         />
                       )
                     })}
-                  </div>
-                )}
+                    </div>
+                  )}
 
-                {(session.combatants?.length ?? 0) > 0 ? (
-                  <Stack gap={8}>
-                    <Text as="h3" className="session-enemies-title">
-                      Противники
-                    </Text>
-                    <div className="session-table-grid session-enemies-grid">
-                      {session.combatants!.map((enemy) => {
+                  {(session.combatants?.length ?? 0) > 0 ? (
+                    <Stack gap={8}>
+                      <Text as="h3" className="session-enemies-title">
+                        Противники
+                      </Text>
+                      <div className="session-table-grid session-enemies-grid">
+{session.combatants!.map((enemy) => {
                         const activeEntry =
                           session.combat?.active
                             ? session.combat.entries[session.combat.active_index]
@@ -835,12 +1083,12 @@ export function SessionDetailPage() {
                           key={enemy.id}
                           combatant={enemy}
                           visibility={visibility}
-                          revealAll={sessionCanRun(session)}
-                          masterControls={sessionCanRun(session) && !session.closed_at}
-                          forceAbilitiesOpen={Boolean(isActiveTurn && sessionCanRun(session))}
+                          revealAll={canSeeHidden}
+                          masterControls={canRun && !session.closed_at}
+                          forceAbilitiesOpen={Boolean(isActiveTurn && canRun)}
                           busy={busy}
                           canSaveToSetting={Boolean(
-                            sessionCanRun(session) &&
+                            canRun &&
                               !session.closed_at &&
                               session.setting_id,
                           )}
@@ -873,14 +1121,55 @@ export function SessionDetailPage() {
                         />
                         )
                       })}
-                    </div>
-                  </Stack>
-                ) : null}
-              </Stack>
-            ) : null}
+                      </div>
+                    </Stack>
+                  ) : null}
+                </Stack>
+              </div>
 
-            {liveTab === 'feed' ? (
-              <Stack gap={14}>
+              <aside className="session-live-desk__side session-live-desk__desktop-only">
+                <div className="session-live-desk__side-head">
+                  <Text as="h3">Заметки / Чат</Text>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="session-live-desk__side-toggle"
+                    onClick={() => toggleSidePanel(!sidePanelOpen)}
+                  >
+                    {sidePanelOpen ? 'Свернуть' : 'Открыть'}
+                  </Button>
+                </div>
+                <div className="session-live-desk__side-body">
+                  <Stack gap={16}>
+                <LobbyNotesPanel
+                  lobbyId={session.lobby_id}
+                  isOwner={canSeeHidden}
+                  compact
+                  defaultScope="party"
+                  ownCharacterOptions={session.lobby_members
+                    .filter((m) => ownCharacterIds.has(m.character_id))
+                    .map((m) => ({ id: m.character_id, name: m.character_name }))}
+                  onToast={setToast}
+                  onError={setError}
+                />
+                <LobbyChatsPanel
+                  lobbyId={session.lobby_id}
+                  isOwner={canSeeHidden}
+                  compact
+                  ownCharacterOptions={session.lobby_members
+                    .filter((m) => ownCharacterIds.has(m.character_id))
+                    .map((m) => ({ id: m.character_id, name: m.character_name }))}
+                  onToast={setToast}
+                  onError={setError}
+                />
+                  </Stack>
+                </div>
+              </aside>
+            </div>
+
+            <div className="session-live-desk__mobile-only">
+              {liveTab === 'feed' ? (
+                <Stack gap={14}>
                 {historyOff ? (
                   <Text tone="muted">Лента скрыта настройками видимости лобби.</Text>
                 ) : (
@@ -900,7 +1189,7 @@ export function SessionDetailPage() {
                   <ManualRollForm
                     seats={session.seats}
                     ownCharacterIds={ownCharacterIds}
-                    isOwner={sessionCanRun(session)}
+                    isOwner={canRun}
                     busy={busy}
                     onSubmit={async (payload) => {
                       await run(async () => {
@@ -916,14 +1205,13 @@ export function SessionDetailPage() {
                     }}
                   />
                 ) : null}
-              </Stack>
-            ) : null}
-
-            {liveTab === 'more' ? (
-              <Stack gap={16}>
+                </Stack>
+              ) : null}
+              {liveTab === 'more' ? (
+                <Stack gap={16}>
                 <LobbyNotesPanel
                   lobbyId={session.lobby_id}
-                  isOwner={sessionCanRun(session)}
+                  isOwner={canSeeHidden}
                   compact
                   defaultScope="party"
                   ownCharacterOptions={session.lobby_members
@@ -934,7 +1222,7 @@ export function SessionDetailPage() {
                 />
                 <LobbyChatsPanel
                   lobbyId={session.lobby_id}
-                  isOwner={sessionCanRun(session)}
+                  isOwner={canSeeHidden}
                   compact
                   ownCharacterOptions={session.lobby_members
                     .filter((m) => ownCharacterIds.has(m.character_id))
@@ -942,8 +1230,9 @@ export function SessionDetailPage() {
                   onToast={setToast}
                   onError={setError}
                 />
-              </Stack>
-            ) : null}
+                </Stack>
+              ) : null}
+            </div>
           </Stack>
         </Panel>
       </Stack>
@@ -1404,97 +1693,6 @@ export function SessionDetailPage() {
         }}
       />
 
-      <EncounterTemplatesDialog
-        open={encounterOpen}
-        busy={busy}
-        templates={templates}
-        canSaveFromTable={(session.combatants?.length ?? 0) > 0}
-        onClose={() => setEncounterOpen(false)}
-        onSaveFromTable={(name) => {
-          void run(async () => {
-            const lobby = await saveSessionEncounterTemplate(session.id, { name })
-            setTemplates(lobby.encounter_templates ?? [])
-            setToast(`Шаблон «${name}» сохранён`)
-          })
-        }}
-        onDeploy={(templateId) => {
-          void run(async () => {
-            const updated = await deploySessionEncounterTemplate(session.id, templateId)
-            setSession(updated)
-            setEncounterOpen(false)
-            setToast('Энкаунтер на столе')
-          })
-        }}
-        onDelete={(templateId) => {
-          void run(async () => {
-            const lobby = await deleteLobbyEncounterTemplate(
-              session.lobby_id,
-              templateId,
-            )
-            setTemplates(lobby.encounter_templates ?? [])
-            setToast('Шаблон удалён')
-          })
-        }}
-      />
-
-      <EncounterGenerateDialog
-        open={generatorOpen}
-        busy={busy}
-        result={generatorResult}
-        onClose={() => {
-          setGeneratorOpen(false)
-          setGeneratorResult(null)
-        }}
-        onInvalidate={() => setGeneratorResult(null)}
-        onGenerate={(payload) => {
-          void run(async () => {
-            const next = await generateSessionEncounter(session.id, payload)
-            setGeneratorResult(next)
-            if (!next.waves.some((w) => w.boss.options.length || w.pack.options.length)) {
-              setToast('Пустой пул — смени темы или локацию')
-            }
-          })
-        }}
-        onDeploy={({ boss, pack, packCount }) => {
-          void run(async () => {
-            let updated = await addSessionCombatants(session.id, {
-              slug: boss.slug,
-              count: 1,
-            })
-            updated = await addSessionCombatants(session.id, {
-              slug: pack.slug,
-              count: Math.max(1, Math.min(20, packCount)),
-            })
-            setSession(updated)
-            setGeneratorOpen(false)
-            setGeneratorResult(null)
-            setToast(
-              `На столе: ${boss.name_ru} + ${pack.name_ru}${
-                packCount > 1 ? `×${packCount}` : ''
-              }`,
-            )
-          })
-        }}
-        onSaveAsTemplate={({ name, boss, pack, packCount }) => {
-          void run(async () => {
-            const lobby = await createLobbyEncounterTemplate(session.lobby_id, {
-              name,
-              entries: [
-                { name: boss.name_ru, slug: boss.slug, count: 1, xp: boss.xp },
-                {
-                  name: pack.name_ru,
-                  slug: pack.slug,
-                  count: Math.max(1, Math.min(20, packCount)),
-                  xp: pack.xp,
-                },
-              ],
-            })
-            setTemplates(lobby.encounter_templates ?? [])
-            setToast(`Шаблон «${name}» сохранён`)
-          })
-        }}
-      />
-
       <Dialog
         open={companionOpen}
         title="Напарник"
@@ -1535,6 +1733,133 @@ export function SessionDetailPage() {
             </Field>
           </div>
         </Stack>
+      </Dialog>
+
+      <Dialog
+        open={seatPickOpen}
+        title="Сесть за стол"
+        primaryLabel={busy ? 'Сажаем…' : 'Сесть'}
+        secondaryLabel="Отмена"
+        busy={busy}
+        onPrimary={() => {
+          if (!seatPickId) return
+          void run(async () => {
+            const updated = await seatCharacter(session.id, seatPickId)
+            setSession(updated)
+            setSeatPickOpen(false)
+            setToast('Вы за столом')
+          })
+        }}
+        onSecondary={() => setSeatPickOpen(false)}
+      >
+        <Stack gap={12}>
+          <Text tone="muted">Выберите персонажа из состава лобби.</Text>
+          <Field label="Персонаж">
+            <select
+              className="ui-input"
+              value={seatPickId}
+              disabled={busy}
+              onChange={(e) => setSeatPickId(e.target.value)}
+            >
+              {seatCandidates.map((m) => (
+                <option key={m.character_id} value={m.character_id}>
+                  {m.character_name}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </Stack>
+      </Dialog>
+
+      <Dialog
+        open={bindSettingOpen}
+        title="Привязать сеттинг"
+        primaryLabel={busy ? 'Сохраняем…' : 'Привязать'}
+        secondaryLabel="Отмена"
+        busy={busy}
+        onPrimary={() => {
+          if (!bindSettingId) {
+            setToast('Сначала создайте сеттинг в лобби')
+            return
+          }
+          void run(async () => {
+            const next = await updateSession(session.id, { setting_id: bindSettingId })
+            setSession(next)
+            setBindSettingOpen(false)
+            setToast('Сеттинг привязан')
+            await reload()
+          })
+        }}
+        onSecondary={() => setBindSettingOpen(false)}
+      >
+        <Stack gap={12}>
+          {lobbySettings.length === 0 ? (
+            <Text tone="muted">
+              В лобби ещё нет сеттинга.{' '}
+              <a href={`/lobbies/${session.lobby_id}#setting`}>Создать в лобби</a>
+            </Text>
+          ) : (
+            <Field label="Сеттинг лобби">
+              <select
+                className="ui-input"
+                value={bindSettingId}
+                disabled={busy}
+                onChange={(e) => setBindSettingId(e.target.value)}
+              >
+                {lobbySettings.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )}
+        </Stack>
+      </Dialog>
+
+      <Dialog
+        open={deleteOpen}
+        title="Удалить сессию"
+        primaryLabel={busy ? 'Удаляем…' : 'Удалить'}
+        secondaryLabel="Отмена"
+        busy={busy}
+        onPrimary={() => {
+          if (deleteConfirmName.trim() !== session.name) {
+            setError('Введите точное название сессии')
+            return
+          }
+          void run(async () => {
+            await deleteSession(session.id)
+            setDeleteOpen(false)
+            navigate(`/lobbies/${session.lobby_id}#sessions`, {
+              state: { toast: 'Сессия удалена' },
+            })
+          })
+        }}
+        onSecondary={() => setDeleteOpen(false)}
+      >
+        <Stack gap={12}>
+          <Text tone="muted">
+            Удаление необратимо. Введите название сессии «{session.name}» для подтверждения.
+          </Text>
+          <Field label="Название сессии">
+            <Input
+              value={deleteConfirmName}
+              onChange={(e) => setDeleteConfirmName(e.target.value)}
+              placeholder={session.name}
+            />
+          </Field>
+        </Stack>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(restStub)}
+        title="Отдых"
+        primaryLabel="Понятно"
+        onPrimary={() => setRestStub(null)}
+        onSecondary={() => setRestStub(null)}
+      >
+        <Text tone="muted">{restStub}</Text>
       </Dialog>
 
       <Toast

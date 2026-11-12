@@ -8,8 +8,28 @@
 .session-table-toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 14px;
+  gap: 12px 18px;
+  align-items: flex-start;
+}
+
+.session-toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+}
+
+.session-toolbar-group__label {
+  margin: 0 4px 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
 }
 
 .session-table-toolbar__hint {
