@@ -94,6 +94,7 @@ from app.schemas.lobby import (
     JournalPageOut,
     LobbyCreateRequest,
     LobbyDetail,
+    LobbyMediaUsageOut,
     LobbyMemberOut,
     LobbyShareEffectRequest,
     LobbyShareEffectResponse,
@@ -857,6 +858,19 @@ class LobbyService:
             )
             for s in lobby.sessions
         ]
+        media_usage = None
+        if flags["can_edit_wiki"] or flags["can_manage_journal"]:
+            from app.services.media import LobbyMediaService
+
+            usage = LobbyMediaService(self.db).usage(lobby.id)
+            media_usage = LobbyMediaUsageOut(
+                used_bytes=usage.used_bytes,
+                free_bytes=usage.free_bytes,
+                limit_bytes=usage.limit_bytes,
+                used_mb=usage.used_mb,
+                free_mb=usage.free_mb,
+                limit_mb=usage.limit_mb,
+            )
         return LobbyDetail(
             id=lobby.id,
             name=lobby.name,
@@ -883,6 +897,7 @@ class LobbyService:
             settings=settings,
             sessions=sessions,
             visibility_profile=lobby.visibility_profile or {},
+            media_usage=media_usage,
             created_at=lobby.created_at,
             updated_at=lobby.updated_at,
         )

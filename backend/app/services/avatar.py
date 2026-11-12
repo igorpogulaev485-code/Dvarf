@@ -1,22 +1,10 @@
 from __future__ import annotations
 
-import io
 import time
 from pathlib import Path
 from uuid import UUID
 
-from PIL import Image, UnidentifiedImageError
-
-from app.core.config import settings
-from app.core.exceptions import AppError
-
-ALLOWED_CONTENT_TYPES = {
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-}
-MAX_UPLOAD_BYTES = 2 * 1024 * 1024
-AVATAR_SIZE = 256
+from app.services.media import AVATAR_MAX_SIDE, process_image, uploads_root
 
 
 def _ensure_dir(path: Path) -> Path:
@@ -25,11 +13,11 @@ def _ensure_dir(path: Path) -> Path:
 
 
 def avatar_dir() -> Path:
-    return _ensure_dir(Path(settings.uploads_dir) / "avatars")
+    return _ensure_dir(uploads_root() / "avatars")
 
 
 def character_avatar_dir() -> Path:
-    return _ensure_dir(Path(settings.uploads_dir) / "character-avatars")
+    return _ensure_dir(uploads_root() / "character-avatars")
 
 
 def avatar_path_for(user_id: UUID) -> Path:
@@ -57,44 +45,11 @@ def is_uploaded_character_avatar_url(url: str | None) -> bool:
     return bool(url and url.startswith("/uploads/character-avatars/"))
 
 
-def _process_image(data: bytes, content_type: str | None) -> bytes:
-    if content_type not in ALLOWED_CONTENT_TYPES:
-        raise AppError(
-            "Нужен файл JPEG, PNG или WebP",
-            code="invalid_avatar_type",
-            status_code=400,
-        )
-    if len(data) > MAX_UPLOAD_BYTES:
-        raise AppError(
-            "Файл слишком большой (максимум 2 МБ)",
-            code="avatar_too_large",
-            status_code=400,
-        )
-    if not data:
-        raise AppError("Пустой файл", code="empty_avatar", status_code=400)
-
-    try:
-        image = Image.open(io.BytesIO(data))
-        image.load()
-    except UnidentifiedImageError as exc:
-        raise AppError(
-            "Не удалось прочитать изображение",
-            code="invalid_avatar_image",
-            status_code=400,
-        ) from exc
-
-    image = image.convert("RGBA") if image.mode in {"P", "RGBA", "LA"} else image.convert("RGB")
-    image.thumbnail((AVATAR_SIZE, AVATAR_SIZE), Image.Resampling.LANCZOS)
-
-    buffer = io.BytesIO()
-    image.save(buffer, format="WEBP", quality=85, method=4)
-    return buffer.getvalue()
-
-
 def save_avatar_image(*, user_id: UUID, data: bytes, content_type: str | None) -> str:
-    payload = _process_image(data, content_type)
+    # Общий процессор: вход до 10 МБ; отображаемый размер аватарки — 256 px.
+    payload = process_image(data, max_side=AVATAR_MAX_SIDE, content_type=content_type)
     target = avatar_path_for(user_id)
-    target.write_bytes(payload)
+    target.write_bytes(payload.data)
     return public_avatar_url(user_id)
 
 
@@ -104,9 +59,9 @@ def save_character_avatar_image(
     data: bytes,
     content_type: str | None,
 ) -> str:
-    payload = _process_image(data, content_type)
+    payload = process_image(data, max_side=AVATAR_MAX_SIDE, content_type=content_type)
     target = character_avatar_path_for(character_id)
-    target.write_bytes(payload)
+    target.write_bytes(payload.data)
     return public_character_avatar_url(character_id)
 
 

@@ -248,6 +248,35 @@ export type SessionSummary = {
   updated_at: string
 }
 
+export type LobbyMediaKind = 'journal' | 'wiki' | 'map' | 'other'
+
+export type LobbyMediaUsage = {
+  used_bytes: number
+  free_bytes: number
+  limit_bytes: number
+  used_mb: number
+  free_mb: number
+  limit_mb: number
+}
+
+export type LobbyMedia = {
+  id: string
+  lobby_id: string
+  url: string
+  preview_url: string
+  bytes_on_disk: number
+  width: number
+  height: number
+  type: LobbyMediaKind
+  attached_to_id: string | null
+  is_primary: boolean
+  original_filename: string
+  uploaded_by: string
+  created_at: string
+  updated_at: string
+  quota_remaining_bytes?: number | null
+}
+
 export type LobbyDetail = {
   id: string
   name: string
@@ -275,6 +304,8 @@ export type LobbyDetail = {
   sessions: SessionSummary[]
   /** JSON профиля видимости; нормализуется на клиенте */
   visibility_profile?: unknown
+  /** Квота картинок лобби — только владелец/сомастер */
+  media_usage?: LobbyMediaUsage | null
   created_at: string
   updated_at: string
 }
@@ -608,6 +639,43 @@ export async function createLobby(name?: string): Promise<LobbyDetail> {
 
 export async function getLobby(id: string): Promise<LobbyDetail> {
   return apiRequest<LobbyDetail>(`/lobbies/${id}`)
+}
+
+export async function getLobbyMediaUsage(lobbyId: string): Promise<LobbyMediaUsage> {
+  return apiRequest<LobbyMediaUsage>(`/lobbies/${lobbyId}/media/usage`)
+}
+
+export async function uploadLobbyMedia(
+  lobbyId: string,
+  file: File,
+  options?: {
+    type?: LobbyMediaKind
+    attachedToId?: string | null
+    isPrimary?: boolean
+  },
+): Promise<LobbyMedia> {
+  const body = new FormData()
+  body.append('file', file)
+  body.append('type', options?.type ?? 'other')
+  if (options?.attachedToId) {
+    body.append('attached_to_id', options.attachedToId)
+  }
+  if (options?.isPrimary) {
+    body.append('is_primary', 'true')
+  }
+  return apiRequest<LobbyMedia>(`/lobbies/${lobbyId}/media`, {
+    method: 'POST',
+    body,
+  })
+}
+
+export async function deleteLobbyMedia(
+  lobbyId: string,
+  mediaId: string,
+): Promise<LobbyMediaUsage> {
+  return apiRequest<LobbyMediaUsage>(`/lobbies/${lobbyId}/media/${mediaId}`, {
+    method: 'DELETE',
+  })
 }
 
 export async function updateLobby(
