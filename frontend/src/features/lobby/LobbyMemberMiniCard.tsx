@@ -6,8 +6,10 @@ type Props = {
   member: LobbyMember
   busy?: boolean
   onRemove?: () => void
+  removeLabel?: string
   /** Подпись кнопки листа: «Лист» или «Смотреть» для мастера */
   sheetLabel?: string
+  seated?: boolean
 }
 
 function hpTone(current: number | null, max: number | null): 'ok' | 'warn' | 'down' | 'unknown' {
@@ -23,7 +25,9 @@ export function LobbyMemberMiniCard({
   member,
   busy,
   onRemove,
+  removeLabel = 'Убрать',
   sheetLabel = 'Лист',
+  seated = false,
 }: Props) {
   const subtitle = [member.character_race_name, member.character_class_name]
     .filter(Boolean)
@@ -41,6 +45,12 @@ export function LobbyMemberMiniCard({
         <div className="lobby-member-card__meta">
           <Text as="h3" className="lobby-member-card__name">
             {member.character_name}
+            {seated ? (
+              <Text as="span" tone="muted" className="lobby-member-card__seated">
+                {' '}
+                · за столом
+              </Text>
+            ) : null}
           </Text>
           <Text tone="muted" className="lobby-member-card__sub">
             ур. {member.character_level}
@@ -58,7 +68,7 @@ export function LobbyMemberMiniCard({
           </Link>
           {onRemove ? (
             <Button type="button" variant="secondary" disabled={busy} onClick={onRemove}>
-              Убрать
+              {removeLabel}
             </Button>
           ) : null}
         </div>

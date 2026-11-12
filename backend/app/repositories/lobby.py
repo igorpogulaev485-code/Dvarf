@@ -103,6 +103,23 @@ class LobbyRepository:
             )
         )
 
+    def get_membership_by_character(self, character_id: UUID) -> LobbyMember | None:
+        """L-04: персонаж не более чем в одном лобби."""
+        return self.db.scalar(
+            select(LobbyMember)
+            .where(LobbyMember.character_id == character_id)
+            .options(selectinload(LobbyMember.lobby))
+        )
+
+    def get_lobby_name(self, lobby_id: UUID) -> str | None:
+        return self.db.scalar(select(Lobby.name).where(Lobby.id == lobby_id))
+
+    def get_invite_row(self, code: str) -> Lobby | None:
+        """Только код и имя — без состава (метаданные до входа)."""
+        return self.db.scalar(
+            select(Lobby).where(Lobby.invite_code == code.upper())
+        )
+
     def is_owner_of_character_lobby(self, *, owner_id: UUID, character_id: UUID) -> bool:
         """Мастер хотя бы одного лобби, где этот персонаж в составе."""
         lobby_id = self.db.scalar(
@@ -507,6 +524,25 @@ class LobbyRepository:
     def remove_seat(self, seat: SessionSeat) -> None:
         self.db.delete(seat)
         self.db.flush()
+
+    def list_retained_seats(self, session_id: UUID) -> list[SessionSeat]:
+        return list(
+            self.db.scalars(
+                select(SessionSeat).where(
+                    SessionSeat.session_id == session_id,
+                    SessionSeat.retained_after_kick.is_not(None),
+                )
+            ).all()
+        )
+
+    def purge_retained_seats_for_session(self, session_id: UUID) -> int:
+        """Снять места, оставленные после кика (конец боя / закрытие сессии)."""
+        seats = self.list_retained_seats(session_id)
+        for seat in seats:
+            self.db.delete(seat)
+        if seats:
+            self.db.flush()
+        return len(seats)
 
     def get_characters_map(self, character_ids: list[UUID]) -> dict[UUID, Character]:
         if not character_ids:

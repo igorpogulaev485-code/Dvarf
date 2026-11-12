@@ -70,9 +70,11 @@ from app.schemas.lobby import (
     CombatantStudyResolveRequest,
     CombatantStudyRequest,
     CombatantStudySnapshotOut,
+    InviteMetaOut,
     JoinLobbyRequest,
     LeadTodayRequest,
     LobbyRoleAssignRequest,
+    RemoveLobbyMemberRequest,
     LobbyRoleOut,
     LobbyRoleRemoveRequest,
     LobbyTransferRequest,
@@ -868,6 +870,7 @@ class LobbyService:
                 setting_name=s.setting.name if s.setting else None,
                 name=s.name,
                 seat_count=len(s.seats),
+                seat_character_ids=[seat.character_id for seat in (s.seats or [])],
                 closed_at=s.closed_at,
                 created_at=s.created_at,
                 updated_at=s.updated_at,
@@ -976,11 +979,119 @@ class LobbyService:
         lobby = self._require_lobby(lobby_id)
         return self._to_detail(lobby, user)
 
+    def invite_meta(self, user: User, code: str) -> InviteMetaOut:
+        """Имя лобби по коду до входа. Auth есть, can_view_lobby не требуется."""
+        _ = user
+        cleaned = (code or "").strip().upper()
+        if len(cleaned) < 4:
+            raise AppError("Введите код лобби", code="invite_code_invalid", status_code=400)
+        lobby = self.lobbies.get_invite_row(cleaned)
+        if lobby is None:
+            raise NotFoundError("Код лобби не найден", code="invite_code_not_found")
+        return InviteMetaOut(code=lobby.invite_code, name=lobby.name, valid=True)
+
+    @staticmethod
+    def copy_character_name(base: str, existing_names: list[str]) -> str:
+        """Суффикс « (копия)» / « (копия N)» в лимите String(120)."""
+        names = set(existing_names)
+        for n in range(1, 10_000):
+            suffix = " (копия)" if n == 1 else f" (копия {n})"
+            max_base = max(0, 120 - len(suffix))
+            candidate = f"{base[:max_base]}{suffix}"
+            if candidate not in names:
+                return candidate
+        return f"{base[:110]} (копия)"[:120]
+
+    def _clone_character_row(self, source: Character, user: User) -> Character:
+        import copy
+
+        name = self.copy_character_name(
+            source.name or "Персонаж",
+            self.characters.list_names_for_user(user.id),
+        )
+        sheet = copy.deepcopy(source.sheet) if isinstance(source.sheet, dict) else {}
+        clone = Character(
+            id=uuid4(),
+            user_id=user.id,
+            name=name,
+            avatar_url=source.avatar_url,
+            is_draft=False,
+            level=source.level,
+            class_name=source.class_name,
+            race_name=source.race_name,
+            hp_current=source.hp_current,
+            hp_max=source.hp_max,
+            rules_edition=source.rules_edition,
+            sheet=sheet,
+            sheet_version=1,
+        )
+        self.db.add(clone)
+        self.db.flush()
+        return clone
+
+    def _leave_other_lobby_for_transfer(
+        self,
+        *,
+        user: User,
+        character_id: UUID,
+        target_lobby_id: UUID,
+    ) -> None:
+        other = self.lobbies.get_membership_by_character(character_id)
+        if other is None:
+            return
+        if other.lobby_id == target_lobby_id:
+            return
+        open_ids = self.lobbies.list_open_session_ids_for_character(character_id)
+        if open_ids:
+            other_name = (
+                other.lobby.name
+                if getattr(other, "lobby", None) is not None
+                else self.lobbies.get_lobby_name(other.lobby_id) or "другое лобби"
+            )
+            raise AppError(
+                f"Дождитесь конца сессии в лобби «{other_name}»",
+                code="character_in_open_session",
+                status_code=409,
+                data={
+                    "other_lobby_id": str(other.lobby_id),
+                    "other_lobby_name": other_name,
+                    "can_transfer": False,
+                },
+            )
+        other_lobby = self._require_lobby(other.lobby_id)
+        for session in other_lobby.sessions:
+            seat = self.lobbies.get_seat(session.id, character_id)
+            if seat is not None:
+                self.lobbies.remove_seat(seat)
+        self.lobbies.remove_member(other)
+        self.db.flush()
+
+    def _raise_already_in_other_lobby(self, other: LobbyMember) -> None:
+        other_name = (
+            other.lobby.name
+            if getattr(other, "lobby", None) is not None
+            else self.lobbies.get_lobby_name(other.lobby_id) or "другое лобби"
+        )
+        open_ids = self.lobbies.list_open_session_ids_for_character(other.character_id)
+        can_transfer = not open_ids
+        raise AppError(
+            f"Этот персонаж уже в лобби «{other_name}»",
+            code="character_in_other_lobby",
+            status_code=409,
+            data={
+                "other_lobby_id": str(other.lobby_id),
+                "other_lobby_name": other_name,
+                "can_transfer": can_transfer,
+            },
+        )
+
     def join_with_character(self, user: User, payload: JoinLobbyRequest) -> LobbyDetail:
         code = payload.code.strip().upper()
         lobby = self.lobbies.get_by_invite_code(code)
         if lobby is None:
             raise NotFoundError("Код лобби не найден", code="invite_code_not_found")
+
+        action = payload.action or "join"
 
         # Вход без персонажа → наблюдатель (идемпотентно, если уже comaster/observer).
         if payload.character_id is None:
@@ -1020,13 +1131,30 @@ class LobbyService:
         if character is None:
             raise NotFoundError("Персонаж не найден", code="character_not_found")
 
-        existing = self.lobbies.get_member(lobby.id, character.id)
+        join_character = character
+        if action == "copy":
+            join_character = self._clone_character_row(character, user)
+        else:
+            other = self.lobbies.get_membership_by_character(character.id)
+            if other is not None and other.lobby_id != lobby.id:
+                if action == "transfer":
+                    self._leave_other_lobby_for_transfer(
+                        user=user,
+                        character_id=character.id,
+                        target_lobby_id=lobby.id,
+                    )
+                else:
+                    self._raise_already_in_other_lobby(other)
+
+        existing = self.lobbies.get_member(lobby.id, join_character.id)
         if existing is None:
             self.lobbies.add_member(
                 lobby_id=lobby.id,
-                character_id=character.id,
+                character_id=join_character.id,
                 user_id=user.id,
             )
+            self.db.commit()
+        else:
             self.db.commit()
         lobby = self._require_lobby(lobby.id)
         return self._to_detail(lobby, user)
@@ -1046,19 +1174,119 @@ class LobbyService:
             status_code=400,
         )
 
-    def remove_member(self, user: User, lobby_id: UUID, character_id: UUID) -> LobbyDetail:
+    def _strip_pc_from_combat(self, session: PlaySession, character_id: UUID) -> None:
+        from sqlalchemy.orm.attributes import flag_modified
+
+        combat_raw = getattr(session, "combat", None) or {}
+        if not isinstance(combat_raw, dict) or not combat_raw.get("active"):
+            return
+        combatants = _parse_combatants(session.combatants)
+        state = _parse_combat_state(combat_raw, combatants=combatants)
+        cid = str(character_id)
+        entries = list(state.get("entries") or [])
+        if not any(e.get("kind") == "pc" and str(e.get("ref_id")) == cid for e in entries):
+            return
+        active_id = None
+        ai = int(state.get("active_index") or 0)
+        if 0 <= ai < len(entries):
+            active_id = entries[ai].get("id")
+        next_entries = [
+            e for e in entries if not (e.get("kind") == "pc" and str(e.get("ref_id")) == cid)
+        ]
+        state["entries"] = next_entries
+        if next_entries and active_id is not None:
+            state["active_index"] = next(
+                (i for i, e in enumerate(next_entries) if e.get("id") == active_id),
+                0,
+            )
+        else:
+            state["active_index"] = 0
+        session.combat = scmb.dump_combat_state(state)
+        flag_modified(session, "combat")
+
+    def _mark_pc_retained_in_combat(self, session: PlaySession, character_id: UUID) -> None:
+        """Крючок S-05: пометка в order, сторону не переключаем."""
+        from sqlalchemy.orm.attributes import flag_modified
+
+        combat_raw = getattr(session, "combat", None) or {}
+        if not isinstance(combat_raw, dict) or not combat_raw.get("active"):
+            return
+        combatants = _parse_combatants(session.combatants)
+        state = _parse_combat_state(combat_raw, combatants=combatants)
+        cid = str(character_id)
+        changed = False
+        for entry in state.get("entries") or []:
+            if entry.get("kind") == "pc" and str(entry.get("ref_id")) == cid:
+                entry["retained_after_kick"] = "until_combat_end"
+                # S-05 подставит сторону (ally/enemy); пока герой партии как был.
+                entry.setdefault("side_hook", None)
+                changed = True
+        if changed:
+            session.combat = scmb.dump_combat_state(state)
+            flag_modified(session, "combat")
+
+    def remove_member(
+        self,
+        user: User,
+        lobby_id: UUID,
+        character_id: UUID,
+        payload: RemoveLobbyMemberRequest | None = None,
+    ) -> LobbyDetail:
         lobby = self._require_lobby(lobby_id)
         member = self.lobbies.get_member(lobby_id, character_id)
         if member is None:
             raise NotFoundError("Персонаж не в лобби", code="lobby_member_not_found")
-        if lobby.owner_id != user.id and member.user_id != user.id:
-            raise AppError("Нельзя убрать чужого персонажа", code="forbidden", status_code=403)
 
-        # снять со всех сессий этого лобби
+        opts = payload or RemoveLobbyMemberRequest()
+        is_self = member.user_id == user.id
+        if not is_self:
+            # Из состава — только владелец (сомастер получает 403).
+            roles.require_owner(lobby, user)
+
+        open_ids = self.lobbies.list_open_session_ids_for_character(character_id)
+        seated_open = bool(open_ids)
+
+        if is_self and seated_open:
+            raise AppError(
+                "Дождитесь конца сессии или попросите мастера",
+                code="leave_blocked_by_session",
+                status_code=409,
+            )
+
+        if seated_open and not is_self:
+            if opts.combat_fate not in {"release", "retain"}:
+                raise AppError(
+                    "Выберите: отпустить персонажа или оставить до конца боя",
+                    code="combat_fate_required",
+                    status_code=400,
+                )
+
+        # Состав снимаем сразу; места/бой — по выбранной судьбе.
         for session in lobby.sessions:
+            if session.closed_at is not None:
+                continue
+            seat = self.lobbies.get_seat(session.id, character_id)
+            if seat is None:
+                continue
+            if opts.combat_fate == "retain" and not is_self:
+                seat.retained_after_kick = "until_combat_end"
+                self._mark_pc_retained_in_combat(session, character_id)
+            else:
+                self.lobbies.remove_seat(seat)
+                self._strip_pc_from_combat(session, character_id)
+
+        # Закрытые сессии: на всякий случай снять места без retention.
+        for session in lobby.sessions:
+            if session.closed_at is None:
+                continue
             seat = self.lobbies.get_seat(session.id, character_id)
             if seat is not None:
                 self.lobbies.remove_seat(seat)
+
+        if opts.delete_personal_notes and is_self:
+            from app.repositories.note import NoteRepository
+
+            NoteRepository(self.db).delete_personal_for_author(lobby_id, user.id)
 
         self.lobbies.remove_member(member)
         self.db.commit()
@@ -2081,6 +2309,10 @@ class LobbyService:
         self.db.commit()
         return self.get_session(user, session.id)
 
+    def purge_retained_seats(self, session_id: UUID) -> int:
+        """L-04: после конца боя / закрытия сессии снять места «оставить до конца боя»."""
+        return self.lobbies.purge_retained_seats_for_session(session_id)
+
     def get_session(self, user: User, session_id: UUID) -> SessionDetail:
         session = self.lobbies.get_session(session_id)
         if session is None:
@@ -2641,6 +2873,8 @@ class LobbyService:
                         self.lobbies.add_seat(session_id=session.id, character_id=lead.character_id)
 
         session.closed_at = datetime.now(timezone.utc)
+        # L-04: места, оставленные после кика, снимаем при закрытии сессии.
+        self.lobbies.purge_retained_seats_for_session(session.id)
         journal_out: JournalEntryOut | None = None
         if payload.write_journal:
             summary = (payload.summary or "").strip()
@@ -4434,6 +4668,8 @@ class LobbyService:
 
             session.combat = scmb.empty_combat(saved_waves=saved_waves)
             flag_modified(session, "combat")
+            # L-04: «оставить врагом/напарником» — место снимаем в конце боя.
+            self.lobbies.purge_retained_seats_for_session(session.id)
             self.db.commit()
             detail = self._session_detail(session, lobby, user)
             await _broadcast_session_changed(session.id)

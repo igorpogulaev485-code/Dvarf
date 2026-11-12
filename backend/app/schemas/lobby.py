@@ -330,6 +330,8 @@ class SessionSummary(BaseModel):
     setting_name: str | None = None
     name: str
     seat_count: int = 0
+    # L-04: кто за столом открытой сессии (дешёвая пометка «сейчас за столом»).
+    seat_character_ids: list[UUID] = Field(default_factory=list)
     closed_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
@@ -660,6 +662,29 @@ class JoinLobbyRequest(BaseModel):
     code: str = Field(min_length=4, max_length=16)
     # Без персонажа → вход наблюдателем (тот же код приглашения).
     character_id: UUID | None = None
+    # L-04: join (по умолчанию) | transfer из другого лобби | copy листа и вход копией.
+    action: Literal["join", "transfer", "copy"] = "join"
+
+
+class InviteMetaOut(BaseModel):
+    """Публичные метаданные кода до входа в состав (без состава и ролей)."""
+
+    code: str
+    name: str
+    valid: bool = True
+
+
+class RemoveLobbyMemberRequest(BaseModel):
+    """L-04: выход игрока / кик владельца.
+
+    combat_fate:
+      - release — сразу снять со стола и из боя;
+      - retain — оставить за столом/в бою до конца боя (крючок S-05);
+      - null — вне открытой сессии со столом не требуется.
+    """
+
+    combat_fate: Literal["release", "retain"] | None = None
+    delete_personal_notes: bool = False
 
 
 class AddLobbyMemberRequest(BaseModel):

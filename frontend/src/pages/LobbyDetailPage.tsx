@@ -5,6 +5,7 @@ import { InviteQr, joinUrlForCode } from '../features/lobby/InviteQr'
 import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
 import { LobbyHubTabs, type LobbyHubTabId } from '../features/lobby/LobbyHubTabs'
 import { LobbyJournalPanel } from '../features/lobby/LobbyJournalPanel'
+import { LeaveOrKickDialog } from '../features/lobby/LeaveOrKickDialog'
 import { LobbyMemberMiniCard } from '../features/lobby/LobbyMemberMiniCard'
 import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
 import { LobbyMediaQuotaPanel } from '../features/lobby/LobbyMediaQuotaPanel'
@@ -74,6 +75,12 @@ export function LobbyDetailPage() {
   const [lobbyDeleteOpen, setLobbyDeleteOpen] = useState(false)
   const [lobbyDeleteName, setLobbyDeleteName] = useState('')
   const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false)
+  const [memberAction, setMemberAction] = useState<{
+    mode: 'leave' | 'kick'
+    characterId: string
+    characterName: string
+    seated: boolean
+  } | null>(null)
   const [tab, setTab] = useState<LobbyHubTabId>(() => tabFromHash(location.hash))
   const [playerPreview, setPlayerPreview] = useState(false)
   const [visibilityDraft, setVisibilityDraft] = useState<VisibilityProfile>(
@@ -132,6 +139,15 @@ export function LobbyDetailPage() {
   }, [navigate, reload])
 
   const ownCharacterIds = useMemo(() => new Set(characters.map((c) => c.id)), [characters])
+
+  const seatedCharacterIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const session of lobby?.sessions ?? []) {
+      if (session.closed_at) continue
+      for (const id of session.seat_character_ids ?? []) ids.add(id)
+    }
+    return ids
+  }, [lobby?.sessions])
 
   async function run(action: () => Promise<void>) {
     setBusy(true)
@@ -272,20 +288,34 @@ export function LobbyDetailPage() {
               ) : (
                 <div className="lobby-member-grid">
                   {lobby.members.map((m) => {
-                    const isOwn = characters.some((c) => c.id === m.character_id)
+                    const isOwn = ownCharacterIds.has(m.character_id)
+                    const seated = seatedCharacterIds.has(m.character_id)
+                    const canKick = Boolean(lobby.is_owner) && !isOwn
+                    const canLeave = isOwn
                     return (
                       <LobbyMemberMiniCard
                         key={m.id}
                         member={m}
                         busy={busy}
+                        seated={seated}
                         sheetLabel={lobby.is_owner && !isOwn ? 'Смотреть' : 'Лист'}
+                        removeLabel={canLeave ? 'Покинуть' : 'Убрать'}
                         onRemove={
-                          lobby.is_owner
-                            ? () =>
-                                run(async () => {
-                                  const next = await removeLobbyMember(lobby.id, m.character_id)
-                                  setLobby(next)
+                          canKick || canLeave
+                            ? () => {
+                                if (canLeave && seated) {
+                                  setError(
+                                    'Дождитесь конца сессии или попросите мастера убрать персонажа',
+                                  )
+                                  return
+                                }
+                                setMemberAction({
+                                  mode: canLeave ? 'leave' : 'kick',
+                                  characterId: m.character_id,
+                                  characterName: m.character_name,
+                                  seated,
                                 })
+                              }
                             : undefined
                         }
                       />
@@ -770,6 +800,36 @@ export function LobbyDetailPage() {
           Старый код перестанет работать. Состав, дневник, сессии и картинки останутся на месте.
         </Text>
       </Dialog>
+
+      <LeaveOrKickDialog
+        open={memberAction != null}
+        mode={memberAction?.mode ?? 'leave'}
+        lobbyId={lobby.id}
+        lobbyName={lobby.name}
+        characterName={memberAction?.characterName ?? ''}
+        seatedInOpenSession={Boolean(memberAction?.seated)}
+        busy={busy}
+        onClose={() => setMemberAction(null)}
+        onConfirm={(opts) => {
+          if (!memberAction) return
+          const target = memberAction
+          void run(async () => {
+            const next = await removeLobbyMember(lobby.id, target.characterId, {
+              combat_fate: opts.combat_fate,
+              delete_personal_notes: opts.delete_personal_notes,
+            })
+            setLobby(next)
+            setMemberAction(null)
+            setToast(target.mode === 'leave' ? 'Вы покинули лобби' : 'Персонаж убран из состава')
+            if (target.mode === 'leave' && !next.members.some((m) => ownCharacterIds.has(m.character_id))) {
+              // остаёмся на хабе, если есть роль; иначе список лобби
+              if (next.role === 'none' && !next.is_owner) {
+                navigate('/lobbies')
+              }
+            }
+          })
+        }}
+      />
 
       <Toast message={toast} onClose={() => setToast(null)} />
     </main>
