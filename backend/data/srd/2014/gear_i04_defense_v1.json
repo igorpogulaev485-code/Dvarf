@@ -1,0 +1,1704 @@
+{
+  "updates": [
+    {
+      "kind": "item",
+      "slug": "bracers_of_defense",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 2,
+            "condition": "no_armor_no_shield"
+          },
+          {
+            "type": "custom_note",
+            "text": "+2 КД только без доспеха и щита."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "robe_of_the_archmagi",
+      "rules_edition": "2014",
+      "data": {
+        "wear_slot": "robe",
+        "effects": [
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "both",
+            "requires_held": false
+          },
+          {
+            "type": "custom_note",
+            "text": "КД 15+ЛОВ без другого доспеха (отдельная формула). +2 к атаке и Сл любых ваших заклинаний, пока надета. Преимущество на спасброски от заклинаний и других магических эффектов. Настройка: чародей, колдун или волшебник, цвет по мировоззрению."
+          },
+          {
+            "type": "ac_formula",
+            "base": 15,
+            "label": "Мантия архимага"
+          },
+          {
+            "type": "save_advantage",
+            "against": "magic"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "badge_of_the_watch",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 2,
+            "condition": "no_shield"
+          },
+          {
+            "type": "custom_note",
+            "text": "Авторитет Стражи Врат Балдура; преимущество на Запугивание там."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "barrier_tattoo_uncommon",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "ac_formula",
+            "base": 12,
+            "label": "Татуировка барьера (средняя)"
+          },
+          {
+            "type": "sheet_flag",
+            "flag": "barrier_tattoo_ac",
+            "value": 12
+          },
+          {
+            "type": "custom_note",
+            "text": "Без доспеха: КД = 12 + Лов."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "barrier_tattoo_rare",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "ac_formula",
+            "base": 15,
+            "label": "Татуировка барьера (редкая)",
+            "dex_cap": 2
+          },
+          {
+            "type": "sheet_flag",
+            "flag": "barrier_tattoo_ac",
+            "value": 15
+          },
+          {
+            "type": "custom_note",
+            "text": "Без доспеха: КД = 15 + Лов (макс +2)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "barrier_tattoo_very_rare",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "ac_formula",
+            "base": 18,
+            "label": "Татуировка барьера (очень редкая)",
+            "dex_cap": 0
+          },
+          {
+            "type": "sheet_flag",
+            "flag": "barrier_tattoo_ac",
+            "value": 18
+          },
+          {
+            "type": "custom_note",
+            "text": "Без доспеха: КД = 18 (как латы, без Лов)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "dwarven_plate",
+      "rules_edition": "2014",
+      "data": {
+        "base_ac": 18,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 2
+          },
+          {
+            "type": "sheet_flag",
+            "flag": "no_heavy_speed_penalty",
+            "value": true
+          },
+          {
+            "type": "custom_note",
+            "text": "+2 к КД; скорость не снижается от тяжести лат."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "demon_armor",
+      "rules_edition": "2014",
+      "data": {
+        "base_ac": 18,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Проклятие; атаки когтями 1к8+Сил+1; speak Abyssal. Снятие — remove curse и т.п."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "elven_chain",
+      "rules_edition": "2014",
+      "data": {
+        "base_ac": 13,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Владение средним не требуется; без помехи Скрытности. КД уже включает +1."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "glamoured_studded_leather_armor",
+      "rules_edition": "2014",
+      "data": {
+        "base_ac": 12,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Бонусным действием — иллюзорный вид одежды/доспеха до снятия."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "dragon_scale_mail",
+      "rules_edition": "2014",
+      "data": {
+        "base_ac": 14,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Выберите цвет чешуи — сопротивление соответствующему урону; преимущество на спас vs дыхание того типа."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "dragon_scale_mail_black",
+      "rules_edition": "2014",
+      "data": {
+        "base_ac": 14,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "resistance",
+            "damage_type": "acid"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания чёрного дракона."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "dragon_scale_mail_blue",
+      "rules_edition": "2014",
+      "data": {
+        "base_ac": 14,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "resistance",
+            "damage_type": "lightning"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания синего дракона."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "dragon_scale_mail_brass",
+      "rules_edition": "2014",
+      "data": {
+        "base_ac": 14,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания латунного дракона."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "dragon_scale_mail_bronze",
+      "rules_edition": "2014",
+      "data": {
+        "base_ac": 14,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "resistance",
+            "damage_type": "lightning"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания бронзового дракона."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "dragon_scale_mail_copper",
+      "rules_edition": "2014",
+      "data": {
+        "base_ac": 14,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "resistance",
+            "damage_type": "acid"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания медного дракона."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "dragon_scale_mail_gold",
+      "rules_edition": "2014",
+      "data": {
+        "base_ac": 14,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания золотого дракона."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "dragon_scale_mail_green",
+      "rules_edition": "2014",
+      "data": {
+        "base_ac": 14,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "resistance",
+            "damage_type": "poison"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания зелёного дракона."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "dragon_scale_mail_red",
+      "rules_edition": "2014",
+      "data": {
+        "base_ac": 14,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания красного дракона."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "dragon_scale_mail_silver",
+      "rules_edition": "2014",
+      "data": {
+        "base_ac": 14,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "resistance",
+            "damage_type": "cold"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания серебряного дракона."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "dragon_scale_mail_white",
+      "rules_edition": "2014",
+      "data": {
+        "base_ac": 14,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "resistance",
+            "damage_type": "cold"
+          },
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против дыхания белого дракона."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "frost_brand",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "custom_note",
+            "text": "+1к6 холода к урону; гасит немагический огонь в 10 фт."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_fire",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "resource",
+            "id": "staff_of_fire",
+            "max": 10,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fireball",
+            "uses": 10
+          },
+          {
+            "type": "custom_note",
+            "text": "burning hands / fireball / wall of fire"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_frost",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "cold"
+          },
+          {
+            "type": "resource",
+            "id": "staff_of_frost",
+            "max": 10,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "cone_of_cold",
+            "uses": 10
+          },
+          {
+            "type": "custom_note",
+            "text": "cone of cold / fog cloud / ice storm / wall of ice"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "skull_helm",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "necrotic"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "poison"
+          },
+          {
+            "type": "resistance",
+            "damage_type": "cold"
+          },
+          {
+            "type": "custom_note",
+            "text": "Skull helm (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rod_of_hellish_flames",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "custom_note",
+            "text": "Hellish flame rod (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "euryales_aegis",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "poison"
+          },
+          {
+            "type": "custom_note",
+            "text": "Легендарные свойства щита Эвриалы (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_invulnerability",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "slashing",
+            "nonmagical": true
+          },
+          {
+            "type": "resistance",
+            "damage_type": "piercing",
+            "nonmagical": true
+          },
+          {
+            "type": "resistance",
+            "damage_type": "bludgeoning",
+            "nonmagical": true
+          },
+          {
+            "type": "resource",
+            "id": "armor_invuln",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Заряд: на 10 мин сопротивление немагическому урону; раз в день — неуязвимость 10 мин к немагии."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "periapt_of_proof_against_poison",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "immunity",
+            "damage_type": "poison"
+          },
+          {
+            "type": "custom_note",
+            "text": "Иммунитет к состоянию «отравлен»; сопротивление яду."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_resistance_cold",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "cold",
+            "temporary": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Длится 1 час."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_resistance_fire",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "fire",
+            "temporary": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Длится 1 час."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_resistance_poison",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "poison",
+            "temporary": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Длится 1 час."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff_of_the_magi",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "spellcasting_bonus",
+            "value": 2,
+            "applies_to": "attack",
+            "requires_held": true
+          },
+          {
+            "type": "resource",
+            "id": "staff_of_the_magi",
+            "max": 50,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fireball",
+            "uses": 50
+          },
+          {
+            "type": "custom_note",
+            "text": "+2 к удару посохом (атака и урон) и только к атаке заклинанием. КД и спасброски не даёт. Это заклинательный фокус."
+          },
+          {
+            "type": "save_advantage",
+            "against": "spells"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "holy_avenger",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "custom_note",
+            "text": "Для паладина: +2к10 излучению по исчадиям/нежити; аура защиты от заклинаний 10 фт."
+          },
+          {
+            "type": "save_advantage",
+            "against": "magic",
+            "note": "вы и союзники в ауре"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "spellguard_shield",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Преимущество на спасброски против заклинаний; помеха напад. заклинаниям по вам."
+          },
+          {
+            "type": "save_advantage",
+            "against": "magic"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "scarab_of_protection",
+      "rules_edition": "2014",
+      "data": {
+        "effects": [
+          {
+            "type": "resource",
+            "id": "scarab_prot",
+            "max": 12,
+            "restore": "never"
+          },
+          {
+            "type": "custom_note",
+            "text": "12 зарядов против некромантии; потом рассыпается."
+          },
+          {
+            "type": "save_advantage",
+            "against": "spells"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_resistance",
+      "rules_edition": "2014",
+      "data": {
+        "family_slug": "ring_of_resistance",
+        "family_label_ru": "Кольца сопротивления",
+        "variant_key": "varies",
+        "variant_label_ru": "вид урона выбирает мастер"
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance",
+      "rules_edition": "2014",
+      "data": {
+        "family_slug": "armor_of_resistance",
+        "family_label_ru": "Доспехи сопротивления",
+        "variant_key": "varies",
+        "variant_label_ru": "вид урона выбирает мастер"
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_vulnerability",
+      "rules_edition": "2014",
+      "data": {
+        "family_slug": "armor_of_vulnerability",
+        "family_label_ru": "Доспехи уязвимости",
+        "variant_key": "varies",
+        "variant_label_ru": "вид урона выбирает мастер"
+      }
+    }
+  ],
+  "inserts": [
+    {
+      "kind": "item",
+      "slug": "ring_of_resistance_acid",
+      "rules_edition": "2014",
+      "name_ru": "Кольцо сопротивления (кислота)",
+      "name_en": "Ring of Resistance (Acid)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "item_category": "wondrous",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "source_book": "DMG",
+        "weight_lb": 0,
+        "family_slug": "ring_of_resistance",
+        "family_label_ru": "Кольца сопротивления",
+        "variant_key": "acid",
+        "variant_label_ru": "Кислота",
+        "description_ru": "Пока вы носите это кольцо, вы обладаете сопротивлением урону: кислота.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "acid"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: кислота."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_acid",
+      "rules_edition": "2014",
+      "name_ru": "Доспех сопротивления (кислота)",
+      "name_en": "Armor of Resistance (Acid)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "source_book": "DMG",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "family_slug": "armor_of_resistance",
+        "family_label_ru": "Доспехи сопротивления",
+        "variant_key": "acid",
+        "variant_label_ru": "Кислота",
+        "description_ru": "Пока вы носите этот доспех, вы обладаете сопротивлением урону: кислота. Шаблон лат; мастер может назначить другой доспех.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "acid"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: кислота."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_resistance_cold",
+      "rules_edition": "2014",
+      "name_ru": "Кольцо сопротивления (холод)",
+      "name_en": "Ring of Resistance (Cold)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "item_category": "wondrous",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "source_book": "DMG",
+        "weight_lb": 0,
+        "family_slug": "ring_of_resistance",
+        "family_label_ru": "Кольца сопротивления",
+        "variant_key": "cold",
+        "variant_label_ru": "Холод",
+        "description_ru": "Пока вы носите это кольцо, вы обладаете сопротивлением урону: холод.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "cold"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: холод."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_cold",
+      "rules_edition": "2014",
+      "name_ru": "Доспех сопротивления (холод)",
+      "name_en": "Armor of Resistance (Cold)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "source_book": "DMG",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "family_slug": "armor_of_resistance",
+        "family_label_ru": "Доспехи сопротивления",
+        "variant_key": "cold",
+        "variant_label_ru": "Холод",
+        "description_ru": "Пока вы носите этот доспех, вы обладаете сопротивлением урону: холод. Шаблон лат; мастер может назначить другой доспех.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "cold"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: холод."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_resistance_fire",
+      "rules_edition": "2014",
+      "name_ru": "Кольцо сопротивления (огонь)",
+      "name_en": "Ring of Resistance (Fire)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "item_category": "wondrous",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "source_book": "DMG",
+        "weight_lb": 0,
+        "family_slug": "ring_of_resistance",
+        "family_label_ru": "Кольца сопротивления",
+        "variant_key": "fire",
+        "variant_label_ru": "Огонь",
+        "description_ru": "Пока вы носите это кольцо, вы обладаете сопротивлением урону: огонь.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: огонь."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_fire",
+      "rules_edition": "2014",
+      "name_ru": "Доспех сопротивления (огонь)",
+      "name_en": "Armor of Resistance (Fire)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "source_book": "DMG",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "family_slug": "armor_of_resistance",
+        "family_label_ru": "Доспехи сопротивления",
+        "variant_key": "fire",
+        "variant_label_ru": "Огонь",
+        "description_ru": "Пока вы носите этот доспех, вы обладаете сопротивлением урону: огонь. Шаблон лат; мастер может назначить другой доспех.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "fire"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: огонь."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_resistance_force",
+      "rules_edition": "2014",
+      "name_ru": "Кольцо сопротивления (силовое поле)",
+      "name_en": "Ring of Resistance (Force)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "item_category": "wondrous",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "source_book": "DMG",
+        "weight_lb": 0,
+        "family_slug": "ring_of_resistance",
+        "family_label_ru": "Кольца сопротивления",
+        "variant_key": "force",
+        "variant_label_ru": "Силовое поле",
+        "description_ru": "Пока вы носите это кольцо, вы обладаете сопротивлением урону: силовое поле.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "force"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: силовое поле."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_force",
+      "rules_edition": "2014",
+      "name_ru": "Доспех сопротивления (силовое поле)",
+      "name_en": "Armor of Resistance (Force)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "source_book": "DMG",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "family_slug": "armor_of_resistance",
+        "family_label_ru": "Доспехи сопротивления",
+        "variant_key": "force",
+        "variant_label_ru": "Силовое поле",
+        "description_ru": "Пока вы носите этот доспех, вы обладаете сопротивлением урону: силовое поле. Шаблон лат; мастер может назначить другой доспех.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "force"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: силовое поле."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_resistance_lightning",
+      "rules_edition": "2014",
+      "name_ru": "Кольцо сопротивления (электричество)",
+      "name_en": "Ring of Resistance (Lightning)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "item_category": "wondrous",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "source_book": "DMG",
+        "weight_lb": 0,
+        "family_slug": "ring_of_resistance",
+        "family_label_ru": "Кольца сопротивления",
+        "variant_key": "lightning",
+        "variant_label_ru": "Электричество",
+        "description_ru": "Пока вы носите это кольцо, вы обладаете сопротивлением урону: электричество.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "lightning"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: электричество."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_lightning",
+      "rules_edition": "2014",
+      "name_ru": "Доспех сопротивления (электричество)",
+      "name_en": "Armor of Resistance (Lightning)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "source_book": "DMG",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "family_slug": "armor_of_resistance",
+        "family_label_ru": "Доспехи сопротивления",
+        "variant_key": "lightning",
+        "variant_label_ru": "Электричество",
+        "description_ru": "Пока вы носите этот доспех, вы обладаете сопротивлением урону: электричество. Шаблон лат; мастер может назначить другой доспех.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "lightning"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: электричество."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_resistance_necrotic",
+      "rules_edition": "2014",
+      "name_ru": "Кольцо сопротивления (некротическая энергия)",
+      "name_en": "Ring of Resistance (Necrotic)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "item_category": "wondrous",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "source_book": "DMG",
+        "weight_lb": 0,
+        "family_slug": "ring_of_resistance",
+        "family_label_ru": "Кольца сопротивления",
+        "variant_key": "necrotic",
+        "variant_label_ru": "Некротическая энергия",
+        "description_ru": "Пока вы носите это кольцо, вы обладаете сопротивлением урону: некротическая энергия.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "necrotic"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: некротическая энергия."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_necrotic",
+      "rules_edition": "2014",
+      "name_ru": "Доспех сопротивления (некротическая энергия)",
+      "name_en": "Armor of Resistance (Necrotic)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "source_book": "DMG",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "family_slug": "armor_of_resistance",
+        "family_label_ru": "Доспехи сопротивления",
+        "variant_key": "necrotic",
+        "variant_label_ru": "Некротическая энергия",
+        "description_ru": "Пока вы носите этот доспех, вы обладаете сопротивлением урону: некротическая энергия. Шаблон лат; мастер может назначить другой доспех.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "necrotic"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: некротическая энергия."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_resistance_poison",
+      "rules_edition": "2014",
+      "name_ru": "Кольцо сопротивления (яд)",
+      "name_en": "Ring of Resistance (Poison)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "item_category": "wondrous",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "source_book": "DMG",
+        "weight_lb": 0,
+        "family_slug": "ring_of_resistance",
+        "family_label_ru": "Кольца сопротивления",
+        "variant_key": "poison",
+        "variant_label_ru": "Яд",
+        "description_ru": "Пока вы носите это кольцо, вы обладаете сопротивлением урону: яд.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "poison"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: яд."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_poison",
+      "rules_edition": "2014",
+      "name_ru": "Доспех сопротивления (яд)",
+      "name_en": "Armor of Resistance (Poison)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "source_book": "DMG",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "family_slug": "armor_of_resistance",
+        "family_label_ru": "Доспехи сопротивления",
+        "variant_key": "poison",
+        "variant_label_ru": "Яд",
+        "description_ru": "Пока вы носите этот доспех, вы обладаете сопротивлением урону: яд. Шаблон лат; мастер может назначить другой доспех.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "poison"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: яд."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_resistance_psychic",
+      "rules_edition": "2014",
+      "name_ru": "Кольцо сопротивления (психическая энергия)",
+      "name_en": "Ring of Resistance (Psychic)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "item_category": "wondrous",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "source_book": "DMG",
+        "weight_lb": 0,
+        "family_slug": "ring_of_resistance",
+        "family_label_ru": "Кольца сопротивления",
+        "variant_key": "psychic",
+        "variant_label_ru": "Психическая энергия",
+        "description_ru": "Пока вы носите это кольцо, вы обладаете сопротивлением урону: психическая энергия.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "psychic"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: психическая энергия."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_psychic",
+      "rules_edition": "2014",
+      "name_ru": "Доспех сопротивления (психическая энергия)",
+      "name_en": "Armor of Resistance (Psychic)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "source_book": "DMG",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "family_slug": "armor_of_resistance",
+        "family_label_ru": "Доспехи сопротивления",
+        "variant_key": "psychic",
+        "variant_label_ru": "Психическая энергия",
+        "description_ru": "Пока вы носите этот доспех, вы обладаете сопротивлением урону: психическая энергия. Шаблон лат; мастер может назначить другой доспех.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "psychic"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: психическая энергия."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_resistance_radiant",
+      "rules_edition": "2014",
+      "name_ru": "Кольцо сопротивления (излучение)",
+      "name_en": "Ring of Resistance (Radiant)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "item_category": "wondrous",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "source_book": "DMG",
+        "weight_lb": 0,
+        "family_slug": "ring_of_resistance",
+        "family_label_ru": "Кольца сопротивления",
+        "variant_key": "radiant",
+        "variant_label_ru": "Излучение",
+        "description_ru": "Пока вы носите это кольцо, вы обладаете сопротивлением урону: излучение.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "radiant"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: излучение."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_radiant",
+      "rules_edition": "2014",
+      "name_ru": "Доспех сопротивления (излучение)",
+      "name_en": "Armor of Resistance (Radiant)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "source_book": "DMG",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "family_slug": "armor_of_resistance",
+        "family_label_ru": "Доспехи сопротивления",
+        "variant_key": "radiant",
+        "variant_label_ru": "Излучение",
+        "description_ru": "Пока вы носите этот доспех, вы обладаете сопротивлением урону: излучение. Шаблон лат; мастер может назначить другой доспех.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "radiant"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: излучение."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring_of_resistance_thunder",
+      "rules_edition": "2014",
+      "name_ru": "Кольцо сопротивления (звук)",
+      "name_en": "Ring of Resistance (Thunder)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "item_category": "wondrous",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "source_book": "DMG",
+        "weight_lb": 0,
+        "family_slug": "ring_of_resistance",
+        "family_label_ru": "Кольца сопротивления",
+        "variant_key": "thunder",
+        "variant_label_ru": "Звук",
+        "description_ru": "Пока вы носите это кольцо, вы обладаете сопротивлением урону: звук.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "thunder"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: звук."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_resistance_thunder",
+      "rules_edition": "2014",
+      "name_ru": "Доспех сопротивления (звук)",
+      "name_en": "Armor of Resistance (Thunder)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "source_book": "DMG",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "family_slug": "armor_of_resistance",
+        "family_label_ru": "Доспехи сопротивления",
+        "variant_key": "thunder",
+        "variant_label_ru": "Звук",
+        "description_ru": "Пока вы носите этот доспех, вы обладаете сопротивлением урону: звук. Шаблон лат; мастер может назначить другой доспех.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "thunder"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление: звук."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_vulnerability_bludgeoning",
+      "rules_edition": "2014",
+      "name_ru": "Доспех уязвимости (дробящий)",
+      "name_en": "Armor of Vulnerability (Bludgeoning)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "source_book": "DMG",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "family_slug": "armor_of_vulnerability",
+        "family_label_ru": "Доспехи уязвимости",
+        "variant_key": "bludgeoning",
+        "variant_label_ru": "Дробящий",
+        "description_ru": "Сопротивление урону «дробящий» и уязвимость к двум другим физическим видам, пока проклятие действует.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "bludgeoning"
+          },
+          {
+            "type": "vulnerability",
+            "damage_type": "piercing"
+          },
+          {
+            "type": "vulnerability",
+            "damage_type": "slashing"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление дробящий; уязвимость к остальным физическим видам, пока проклятие активно."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_vulnerability_piercing",
+      "rules_edition": "2014",
+      "name_ru": "Доспех уязвимости (колющий)",
+      "name_en": "Armor of Vulnerability (Piercing)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "source_book": "DMG",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "family_slug": "armor_of_vulnerability",
+        "family_label_ru": "Доспехи уязвимости",
+        "variant_key": "piercing",
+        "variant_label_ru": "Колющий",
+        "description_ru": "Сопротивление урону «колющий» и уязвимость к двум другим физическим видам, пока проклятие действует.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "piercing"
+          },
+          {
+            "type": "vulnerability",
+            "damage_type": "bludgeoning"
+          },
+          {
+            "type": "vulnerability",
+            "damage_type": "slashing"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление колющий; уязвимость к остальным физическим видам, пока проклятие активно."
+          }
+        ]
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "armor_of_vulnerability_slashing",
+      "rules_edition": "2014",
+      "name_ru": "Доспех уязвимости (рубящий)",
+      "name_en": "Armor of Vulnerability (Slashing)",
+      "source": "DMG 2014",
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "source_book": "DMG",
+        "magic_bonus": 0,
+        "base_armor_slug": "plate_armor",
+        "family_slug": "armor_of_vulnerability",
+        "family_label_ru": "Доспехи уязвимости",
+        "variant_key": "slashing",
+        "variant_label_ru": "Рубящий",
+        "description_ru": "Сопротивление урону «рубящий» и уязвимость к двум другим физическим видам, пока проклятие действует.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "slashing"
+          },
+          {
+            "type": "vulnerability",
+            "damage_type": "bludgeoning"
+          },
+          {
+            "type": "vulnerability",
+            "damage_type": "piercing"
+          },
+          {
+            "type": "custom_note",
+            "text": "Сопротивление рубящий; уязвимость к остальным физическим видам, пока проклятие активно."
+          }
+        ]
+      }
+    }
+  ]
+}

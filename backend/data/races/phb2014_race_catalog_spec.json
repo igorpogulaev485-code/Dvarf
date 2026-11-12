@@ -4147,6 +4147,7 @@
       "speed": 30,
       "size": "medium",
       "darkvision": 60,
+      "damage_resistances": ["огонь"],
       "ability_bonuses": {
         "cha": 2,
         "int": 1

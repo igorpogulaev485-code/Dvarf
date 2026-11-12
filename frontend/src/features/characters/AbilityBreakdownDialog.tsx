@@ -34,6 +34,8 @@ type AbilityBreakdownDialogProps = {
   onSaveProficiencyChange: (proficient: boolean) => void
   onModifiersChange: (next: BonusLine[]) => void
   onClose: () => void
+  /** Item note. The player chooses whether this save is against a spell. */
+  saveAdvantageNote?: string
 }
 
 function insertToken(expr: string, token: string, caret: number | null): string {
@@ -59,6 +61,7 @@ export function AbilityBreakdownDialog({
   onSaveProficiencyChange,
   onModifiersChange,
   onClose,
+  saveAdvantageNote = '',
 }: AbilityBreakdownDialogProps) {
   const scoreTarget = abilityBonusTarget(ability, 'score')
   const checkTarget = abilityBonusTarget(ability, 'check')
@@ -270,6 +273,11 @@ export function AbilityBreakdownDialog({
             Спас {formatModifier(saveStack.total)}
             {saveHint ? ` · ${saveHint}` : ''}
           </Text>
+          {saveAdvantageNote ? (
+            <Text tone="muted" className="ability-breakdown__channel-hint">
+              {saveAdvantageNote}. Применимо — включите преимущество на броске сами.
+            </Text>
+          ) : null}
           {renderRows(saveLines, 'save')}
         </section>
 

@@ -1,10 +1,23 @@
 /**
  * Aggregate active gear effects from inventory (equipped + attuned when required).
  * MVP: ac_bonus, sense, attack/damage bonus, ability_score / ability_mod,
- * spellcasting_bonus, resource (incl. free Channel Divinity).
+ * spellcasting_bonus, resource (incl. free Channel Divinity),
+ * conditional AC, AC formulas, resistances, save advantage.
  */
 
-import type { GearEffect, AbilityScoreKey } from '../../shared/dnd/gearCatalog'
+import type { CompetingAcFormula } from '../../shared/dnd/armor'
+import {
+  addDefense,
+  emptyDamageProfile,
+  formatDefenseList,
+  type DefenseLine,
+  type IncomingDamageProfile,
+} from '../../shared/dnd/damageTypes'
+import type {
+  AbilityScoreKey,
+  AcBonusCondition,
+  GearEffect,
+} from '../../shared/dnd/gearCatalog'
 import type { AttunementSlot } from './attunement'
 import { createBonusLine, type BonusLine } from './modifiers'
 import {
@@ -19,9 +32,26 @@ export type ActiveGearEffect = {
   itemName: string
 }
 
+export type ConditionalAcBonus = {
+  value: number
+  condition: AcBonusCondition
+  itemName: string
+}
+
+export type SaveAdvantageLine = {
+  against: 'spells' | 'magic'
+  itemName: string
+  itemId: string
+  note: string
+}
+
 export type AggregatedGearEffects = {
-  /** Flat AC from cloaks / rings / armor +N, etc. */
+  /** Flat AC from cloaks / rings / armor +N. Conditional bonuses are separate. */
   acBonus: number
+  /** +N that applies only without armor and/or a shield. */
+  conditionalAc: ConditionalAcBonus[]
+  /** Formulas that compete while no body armor is worn (robe, barrier tattoo). */
+  acFormulas: CompetingAcFormula[]
   /** Darkvision / blindsight / … — max range per sense key. */
   senses: Record<string, number>
   /** Fixed scores (gauntlets, belts). The highest floor wins; nothing is lowered. */
@@ -47,6 +77,12 @@ export type AggregatedGearEffects = {
    * Several classes (amulet: cleric and paladin) become several bonus lines.
    */
   spellcastingLines: SpellcastingGearLine[]
+  /** Standing damage resistances. Temporary rows (potions) are not included. */
+  resistances: DefenseLine[]
+  vulnerabilities: DefenseLine[]
+  immunities: DefenseLine[]
+  /** Advantage the player may turn on when the save matches. */
+  saveAdvantages: SaveAdvantageLine[]
   /** Charge pools from `resource` effects. */
   resources: Array<{
     key: string
@@ -124,6 +160,8 @@ export function attunedItemIdSet(attunements: AttunementSlot[]): Set<string> {
 export function emptyAggregatedGearEffects(): AggregatedGearEffects {
   return {
     acBonus: 0,
+    conditionalAc: [],
+    acFormulas: [],
     senses: {},
     abilityScores: {},
     abilityMods: {},
@@ -135,6 +173,10 @@ export function emptyAggregatedGearEffects(): AggregatedGearEffects {
     spellSlotDeltas: {},
     spellcastingBonus: 0,
     spellcastingLines: [],
+    resistances: [],
+    vulnerabilities: [],
+    immunities: [],
+    saveAdvantages: [],
     resources: [],
     companions: [],
     grantSpells: [],
@@ -272,9 +314,48 @@ export function aggregateGearEffects(input: {
       out.active.push({ effect, itemId: item.id, itemName: item.name || 'Без названия' })
 
       if (type === 'ac_bonus') {
-        const value = asNumber((effect as { value?: unknown }).value) ?? 0
-        out.acBonus += Math.floor(value)
-        if (value) out.notes.push(`${item.name || 'предмет'}: КД ${value >= 0 ? '+' : ''}${Math.floor(value)}`)
+        const value = Math.floor(asNumber((effect as { value?: unknown }).value) ?? 0)
+        const condition = readAcCondition((effect as { condition?: unknown }).condition)
+        if (condition) {
+          if (value) {
+            out.conditionalAc.push({
+              value,
+              condition,
+              itemName: item.name || 'предмет',
+            })
+            out.notes.push(
+              `${item.name || 'предмет'}: КД ${value >= 0 ? '+' : ''}${value} (${acConditionLabel(condition)})`,
+            )
+          }
+        } else {
+          out.acBonus += value
+          if (value) {
+            out.notes.push(
+              `${item.name || 'предмет'}: КД ${value >= 0 ? '+' : ''}${value}`,
+            )
+          }
+        }
+        continue
+      }
+
+      if (type === 'ac_formula') {
+        const base = asNumber((effect as { base?: unknown }).base)
+        if (base == null) continue
+        const dexRaw = (effect as { dex_cap?: unknown }).dex_cap
+        const dexCap =
+          dexRaw == null ? null : asNumber(dexRaw) == null ? null : Math.floor(asNumber(dexRaw) as number)
+        const label =
+          String((effect as { label?: unknown }).label ?? '').trim() ||
+          item.name ||
+          'Формула КД'
+        out.acFormulas.push({
+          label,
+          base: Math.floor(base),
+          dexCap,
+          allowsShield: (effect as { allows_shield?: unknown }).allows_shield !== false,
+        })
+        const dexNote = dexCap == null ? '+ЛОВ' : dexCap === 0 ? '' : `+ЛОВ≤${dexCap}`
+        out.notes.push(`${item.name || 'предмет'}: КД ${Math.floor(base)}${dexNote} без доспеха`)
         continue
       }
 
@@ -351,6 +432,60 @@ export function aggregateGearEffects(input: {
         out.skillBonuses[skill] = (out.skillBonuses[skill] ?? 0) + Math.floor(value)
         out.notes.push(
           `${item.name || 'предмет'}: ${skill} ${value >= 0 ? '+' : ''}${Math.floor(value)}`,
+        )
+        continue
+      }
+
+      if (type === 'save_advantage') {
+        const againstRaw = (effect as { against?: unknown }).against
+        const against = againstRaw === 'magic' ? 'magic' : againstRaw === 'spells' ? 'spells' : null
+        if (!against) continue
+        const note = String((effect as { note?: unknown }).note ?? '').trim()
+        out.saveAdvantages.push({
+          against,
+          itemName: item.name || 'предмет',
+          itemId: item.id,
+          note,
+        })
+        out.notes.push(
+          `${item.name || 'предмет'}: ${
+            against === 'magic'
+              ? 'преимущество против заклинаний и магических эффектов'
+              : 'преимущество против заклинаний'
+          }${note ? ` (${note})` : ''}`,
+        )
+        continue
+      }
+
+      if (type === 'resistance') {
+        if ((effect as { temporary?: unknown }).temporary === true) {
+          out.notes.push(`${item.name || 'предмет'}: временное сопротивление (бафы)`)
+          continue
+        }
+        const damageType = String((effect as { damage_type?: unknown }).damage_type ?? '')
+        addDefense(
+          out.resistances,
+          damageType,
+          item.name || 'предмет',
+          (effect as { nonmagical?: unknown }).nonmagical === true,
+        )
+        continue
+      }
+
+      if (type === 'vulnerability') {
+        addDefense(
+          out.vulnerabilities,
+          String((effect as { damage_type?: unknown }).damage_type ?? ''),
+          item.name || 'предмет',
+        )
+        continue
+      }
+
+      if (type === 'immunity') {
+        addDefense(
+          out.immunities,
+          String((effect as { damage_type?: unknown }).damage_type ?? ''),
+          item.name || 'предмет',
         )
         continue
       }
@@ -496,6 +631,21 @@ export function aggregateGearEffects(input: {
       }
     }
 
+    const magicBonus = Math.floor(item.magic_bonus ?? 0)
+    if (magicBonus) {
+      const hasAc = effects.some((row) => row.type === 'ac_bonus')
+      const hasAttack = effects.some((row) => row.type === 'attack_bonus')
+      const hasDamage = effects.some((row) => row.type === 'damage_bonus')
+      if (isArmorOrShield(item) && !hasAc) {
+        out.acBonus += magicBonus
+        out.notes.push(`${item.name || 'предмет'}: КД +${magicBonus}`)
+      }
+      if (isWeaponRow(item)) {
+        if (!hasAttack) itemAttack += magicBonus
+        if (!hasDamage) itemDamage += magicBonus
+      }
+    }
+
     if (itemAttack || itemDamage) {
       out.byItem[item.id] = { attackBonus: itemAttack, damageBonus: itemDamage }
       if (itemAttack) {
@@ -512,6 +662,125 @@ export function aggregateGearEffects(input: {
   }
 
   return out
+}
+
+const AC_CONDITIONS: AcBonusCondition[] = ['no_armor_no_shield', 'no_shield', 'no_armor']
+
+function readAcCondition(value: unknown): AcBonusCondition | null {
+  return AC_CONDITIONS.includes(value as AcBonusCondition) ? (value as AcBonusCondition) : null
+}
+
+function acConditionLabel(condition: AcBonusCondition): string {
+  if (condition === 'no_armor_no_shield') return 'без доспеха и щита'
+  if (condition === 'no_shield') return 'без щита'
+  return 'без доспеха'
+}
+
+function isArmorOrShield(item: InventoryItem): boolean {
+  return (
+    item.armor_kind === 'light' ||
+    item.armor_kind === 'medium' ||
+    item.armor_kind === 'heavy' ||
+    item.armor_kind === 'shield'
+  )
+}
+
+function isWeaponRow(item: InventoryItem): boolean {
+  if (isArmorOrShield(item)) return false
+  return item.weapon_grip != null || item.wear_slot === 'held_main' || item.wear_slot === 'held_off'
+}
+
+/** Flat magic AC plus conditional bonuses that match what is worn. */
+export function resolveGearAcBonus(
+  gear: Pick<AggregatedGearEffects, 'acBonus' | 'conditionalAc'>,
+  ctx: { wearingArmor: boolean; wearingShield: boolean },
+): { total: number; parts: string[] } {
+  const parts: string[] = []
+  let total = 0
+  if (gear.acBonus) {
+    total += gear.acBonus
+    parts.push(`магия +${gear.acBonus}`)
+  }
+  for (const row of gear.conditionalAc) {
+    const ok =
+      (row.condition === 'no_armor_no_shield' && !ctx.wearingArmor && !ctx.wearingShield) ||
+      (row.condition === 'no_shield' && !ctx.wearingShield) ||
+      (row.condition === 'no_armor' && !ctx.wearingArmor)
+    if (!ok || !row.value) continue
+    total += row.value
+    parts.push(`${row.itemName} +${row.value}`)
+  }
+  return { total, parts }
+}
+
+const TIEFLING_FIRE = 'огонь'
+
+/** Race list, with the PHB tiefling fire resistance when the stored grant is empty. */
+export function raceResistanceSources(input: {
+  slug?: string | null
+  damageResistances?: string[] | null
+}): string[] {
+  const listed = (input.damageResistances ?? []).map((row) => row.trim()).filter(Boolean)
+  if (listed.length) return listed
+  const slug = input.slug?.trim() ?? ''
+  if (slug === 'tiefling' || slug.startsWith('tiefling_')) return [TIEFLING_FIRE]
+  return []
+}
+
+export function sheetDamageProfile(input: {
+  raceSlug?: string | null
+  raceResistances?: string[] | null
+  gear?: Pick<AggregatedGearEffects, 'resistances' | 'vulnerabilities' | 'immunities'> | null
+}): IncomingDamageProfile {
+  const gear = input.gear ?? emptyAggregatedGearEffects()
+  const profile = emptyDamageProfile()
+  for (const raw of raceResistanceSources({
+    slug: input.raceSlug,
+    damageResistances: input.raceResistances,
+  })) {
+    addDefense(profile.resistances, raw, 'раса')
+  }
+  for (const row of gear.resistances) {
+    for (const source of row.sources.length ? row.sources : ['предмет']) {
+      addDefense(profile.resistances, row.type, source, row.nonmagical)
+    }
+  }
+  for (const row of gear.vulnerabilities) {
+    for (const source of row.sources.length ? row.sources : ['предмет']) {
+      addDefense(profile.vulnerabilities, row.type, source)
+    }
+  }
+  for (const row of gear.immunities) {
+    for (const source of row.sources.length ? row.sources : ['предмет']) {
+      addDefense(profile.immunities, row.type, source, row.nonmagical)
+    }
+  }
+  return profile
+}
+
+export function formatSaveAdvantageNote(rows: SaveAdvantageLine[]): string {
+  const parts: string[] = []
+  const spells = rows.filter((row) => row.against === 'spells')
+  const magic = rows.filter((row) => row.against === 'magic')
+  if (spells.length) {
+    parts.push(`Преимущество против заклинаний: ${spellAdvantageNames(spells)}`)
+  }
+  if (magic.length) {
+    parts.push(
+      `Преимущество против заклинаний и магических эффектов: ${spellAdvantageNames(magic)}`,
+    )
+  }
+  return parts.join(' · ')
+}
+
+function spellAdvantageNames(rows: SaveAdvantageLine[]): string {
+  return rows
+    .map((row) => (row.note ? `${row.itemName} (${row.note})` : row.itemName))
+    .join(', ')
+}
+
+export function formatResistanceSummary(profile: IncomingDamageProfile): string {
+  return formatDefenseList(profile.resistances)
 }
 
 function applyCappedBonus(score: number, bonus: number, max: number): number {

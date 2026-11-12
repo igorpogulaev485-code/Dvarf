@@ -108,6 +108,11 @@ export type InventoryItem = {
   /** Typed catalog effects (ac_bonus, sense, …) — active when equipped (+ attuned). */
   effects?: GearEffect[]
   /**
+   * Catalog magic bonus (+1 armor / weapon). The engine applies it only when
+   * the matching effect is missing, so a row that already has `ac_bonus` is not doubled.
+   */
+  magic_bonus?: number | null
+  /**
    * Spell Scroll: which spell this consumable holds.
    * Catalog blanks are level-only; binding is set when the item enters inventory.
    */
@@ -265,6 +270,7 @@ function readItem(raw: unknown, index: number): InventoryItem {
     alignment_color_gate: row.alignment_color_gate === true,
     robe_color: readRobeColor(row.robe_color),
     effects: readEffects(row.effects),
+    magic_bonus: readNullableNumber(row.magic_bonus),
     scroll_spell: readScrollSpell(row.scroll_spell),
   }
 }
@@ -361,6 +367,7 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         ...(item.alignment_color_gate ? { alignment_color_gate: true } : {}),
         ...(item.robe_color ? { robe_color: item.robe_color } : {}),
         effects: item.effects ?? [],
+        ...(item.magic_bonus ? { magic_bonus: item.magic_bonus } : {}),
         ...(item.scroll_spell
           ? {
               scroll_spell: {

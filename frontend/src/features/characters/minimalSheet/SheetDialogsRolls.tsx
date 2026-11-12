@@ -11,6 +11,7 @@ import { canWearArmor, armorProficiencyHint } from '../equipmentProficiency'
 import { listShieldItems, toggleShieldInHand } from '../heldEquip'
 import { HotConditionsDialog } from '../HotConditionsDialog'
 import { formatSkillRoll } from '../deskRolls'
+import { formatSaveAdvantageNote } from '../gearEffects'
 import { applyStrokeOfLuck, strokeOfLuckKind } from '../../../shared/dnd/strokeOfLuck'
 import { spendFeatureUse } from '../../../shared/dnd/featureResources'
 import { resolveClassFeatureSlug, type UnlockedFeature } from '../../../shared/dnd/classFeatures'
@@ -531,6 +532,7 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           model.setDraft((prev) => ({ ...prev, modifiers }))
         }
         onClose={() => model.setAbilityBreakdownKey(null)}
+        saveAdvantageNote={formatSaveAdvantageNote(model.gearEffects.saveAdvantages)}
       />
 
       <InitiativeBreakdownDialog

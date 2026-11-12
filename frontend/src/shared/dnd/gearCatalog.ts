@@ -32,6 +32,7 @@ export type GearRarity = (typeof GEAR_RARITIES)[number]
 export const WEAR_SLOTS = [
   'body_armor',
   'shield',
+  'robe',
   'cloak',
   'head',
   'eyes',
@@ -108,14 +109,24 @@ export type AbilityScoreKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
  * Typed gear effects (MVP union). Unknown types stay as notes — never throw.
  * Full engine lands in later GEAR slices.
  */
+export type AcBonusCondition = 'no_armor_no_shield' | 'no_shield' | 'no_armor'
+
 export type GearEffect =
-  | { type: 'ac_bonus'; value: number }
+  | { type: 'ac_bonus'; value: number; condition?: AcBonusCondition }
+  /**
+   * Alternate AC formula (robe 15+DEX, barrier tattoo). Competes with armor,
+   * natural armor, Unarmored Defense and mage armor; only the best applies.
+   * `dex_cap` null/omitted = full Dex, 0 = no Dex, N = cap.
+   */
+  | { type: 'ac_formula'; base: number; dex_cap?: number | null; label?: string }
   | { type: 'attack_bonus'; value: number }
   | { type: 'damage_bonus'; value: number }
   | { type: 'ability_score'; ability: AbilityScoreKey; value: number }
   | { type: 'ability_mod'; ability: AbilityScoreKey; value: number; max?: number }
   | { type: 'skill_bonus'; skill: string; value: number }
   | { type: 'save_bonus'; ability?: AbilityScoreKey; value: number }
+  /** Advantage the player may apply when the save matches `against`. */
+  | { type: 'save_advantage'; against: 'spells' | 'magic'; note?: string }
   | { type: 'sense'; sense: string; range_ft?: number }
   | { type: 'speed'; mode?: string; value_ft: number }
   | { type: 'spell_slots'; level: number; delta: number }
@@ -134,7 +145,16 @@ export type GearEffect =
     }
   /** Potion of Healing family — dice string like "2к4+2" / "2d4+2". */
   | { type: 'heal'; dice: string }
-  | { type: 'resistance'; damage_type: string }
+  | {
+      type: 'resistance'
+      damage_type: string
+      /** Only bludgeoning/piercing/slashing from a nonmagical source. */
+      nonmagical?: boolean
+      /** Duration belongs to the buff pack. Standing AC/HP math ignores these. */
+      temporary?: boolean
+    }
+  | { type: 'vulnerability'; damage_type: string }
+  | { type: 'immunity'; damage_type: string }
   | { type: 'resource'; id: string; max: number; restore?: ChargeRestore }
   | { type: 'companion'; kind: string; name_ru?: string }
   | { type: 'sheet_flag'; flag: string; value?: boolean | string | number }

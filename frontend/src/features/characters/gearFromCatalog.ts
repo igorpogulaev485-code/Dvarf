@@ -346,6 +346,7 @@ export function inventoryItemFromCatalog(input: {
     created.wear_slot = parsed.wear_slot
     created.requires_attunement = parsed.requires_attunement
     created.effects = parsed.effects
+    created.magic_bonus = parsed.magic_bonus || null
     // Carried in pack by default — draw («В руках») is a separate action.
     created.equipped = false
     const built = buildStartingWeaponAttacks({
@@ -398,6 +399,7 @@ export function inventoryItemFromCatalog(input: {
     created.wear_slot = parsed.wear_slot
     created.requires_attunement = parsed.requires_attunement
     created.effects = parsed.effects
+    created.magic_bonus = parsed.magic_bonus || null
     const equip =
       input.equipArmor !== false &&
       (created.armor_kind === 'light' ||

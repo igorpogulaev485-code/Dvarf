@@ -455,6 +455,26 @@
   line-height: 1.35;
 }
 
+.hp-pad__defenses {
+  padding: 0 16px 8px;
+}
+
+.hp-pad__types.chip-row {
+  padding: 0 16px 8px;
+  margin: 0;
+}
+
+.hp-pad__types .sheet-chip {
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  border-radius: 999px;
+}
+
+.hp-pad__nonmagical {
+  padding: 0 16px 10px;
+  font-size: 0.85rem;
+}
+
 .hp-pad__dice {
   display: grid;
   gap: 8px;

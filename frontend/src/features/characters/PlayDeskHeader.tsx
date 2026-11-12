@@ -27,6 +27,7 @@ import { HoverTipCard, VITAL_TIPS } from '../onboarding'
 import { NumberPadDialog } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
 import { HpPadDialog } from './HpPadDialog'
+import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
 import { MaxHpByLevelsDialog } from './MaxHpByLevelsDialog'
 import { XpLevelOffer } from './XpProgressField'
 import type { XpHistoryEntry } from './playDeskUi'
@@ -70,6 +71,7 @@ type PlayDeskHeaderProps = {
   constitutionMod: number
   hpCurrent: number | null
   hpMax: number | null
+  damageProfile?: IncomingDamageProfile
   play: PlayState
   autoAc: number
   acHint: string
@@ -136,6 +138,7 @@ export function PlayDeskHeader({
   constitutionMod,
   hpCurrent,
   hpMax,
+  damageProfile,
   play,
   autoAc,
   acHint,
@@ -754,6 +757,7 @@ export function PlayDeskHeader({
         onPlayChange={onPlayChange}
         onCombatChange={onCombatChange}
         onToast={onToast}
+        damageProfile={damageProfile}
       />
 
       <CoinPadDialog

@@ -23,6 +23,8 @@ type AbilitySkillsColumnProps = {
   proficiencyBonus: number
   auraSaveBonus?: number
   saveBonusExtra?: Partial<Record<AbilityKey | 'all', number>>
+  /** Standing item note. The player turns advantage on when the save matches. */
+  saveAdvantageNote?: string
   /** Extra flat bonus on ability checks (not skills). */
   checkBonusExtra?: Partial<Record<AbilityKey, number>>
   skillBonusExtra?: Record<string, number>
@@ -73,6 +75,7 @@ export function AbilitySkillsColumn({
   proficiencyBonus,
   auraSaveBonus = 0,
   saveBonusExtra = {},
+  saveAdvantageNote = '',
   checkBonusExtra = {},
   skillBonusExtra = {},
   onAbilityScoreChange,
@@ -123,6 +126,11 @@ export function AbilitySkillsColumn({
       <Text tone="muted" className="abil-column__hint">
         число → бросок · кружок → владение/эксп. · название → разборка
       </Text>
+      {saveAdvantageNote ? (
+        <Text tone="muted" className="abil-column__hint">
+          {saveAdvantageNote}. Включите преимущество на броске, если спасбросок подходит.
+        </Text>
+      ) : null}
       <div className="abil-column__list" id="abil-column-list">
         {order.map((key) => {
           const baseScore = abilities[key]
@@ -272,7 +280,9 @@ export function AbilitySkillsColumn({
                         }`}
                         title={
                           onRollSave
-                            ? `Спасбросок ${ABILITY_NAMES[key]} — бросок`
+                            ? `Спасбросок ${ABILITY_NAMES[key]} — бросок${
+                                saveAdvantageNote ? ` · ${saveAdvantageNote}` : ''
+                              }`
                             : 'Спасбросок'
                         }
                         onClick={() => {
