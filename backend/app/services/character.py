@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -20,6 +21,7 @@ from app.services.avatar import (
     is_uploaded_character_avatar_url,
     save_character_avatar_image,
 )
+from app.services.artifact_apply import hydrate_legacy_artifact_sheet
 from app.services.character_sheet import empty_character_sheet, extract_summary_from_sheet
 
 
@@ -27,9 +29,77 @@ def to_summary(character: Character) -> CharacterSummary:
     return CharacterSummary.model_validate(character)
 
 
-def to_detail(character: Character, *, can_edit: bool = True) -> CharacterDetail:
+def _legacy_artifact_ids(sheet: dict) -> list[str]:
+    inventory = sheet.get("inventory")
+    if not isinstance(inventory, dict):
+        return []
+    items = inventory.get("items")
+    if not isinstance(items, list):
+        return []
+    ids: list[str] = []
+    for item in items:
+        if not isinstance(item, dict) or item.get("artifact_live") is True:
+            continue
+        snap = item.get("artifact_snapshot") if isinstance(item.get("artifact_snapshot"), dict) else {}
+        abilities = snap.get("abilities") if isinstance(snap, dict) else None
+        if isinstance(abilities, list) and abilities:
+            continue
+        sid = str(item.get("setting_artifact_id") or snap.get("artifact_id") or "")
+        if sid:
+            ids.append(sid)
+    return ids
+
+
+def _needs_artifact_hydrate(sheet: dict) -> bool:
+    inventory = sheet.get("inventory")
+    if not isinstance(inventory, dict):
+        return False
+    items = inventory.get("items")
+    if not isinstance(items, list):
+        return False
+    for item in items:
+        if not isinstance(item, dict) or item.get("artifact_live") is True:
+            continue
+        if item.get("artifact_snapshot") or item.get("setting_artifact_id"):
+            return True
+        if item.get("item_kind") == "magic" and isinstance(item.get("magic_mods"), dict):
+            return True
+    return False
+
+
+def sheet_for_client(sheet: dict | None, db: Session | None) -> dict | None:
+    """Live artifact effects for sheets granted before item.effects existed."""
+    if not isinstance(sheet, dict) or db is None or not _needs_artifact_hydrate(sheet):
+        return sheet
+    cloned = copy.deepcopy(sheet)
+    artifacts: dict = {}
+    raw_ids = _legacy_artifact_ids(cloned)
+    if raw_ids:
+        from app.models.setting_artifact import SettingArtifact
+
+        uuids = []
+        for raw in raw_ids:
+            try:
+                uuids.append(UUID(str(raw)))
+            except ValueError:
+                continue
+        if uuids:
+            rows = db.query(SettingArtifact).filter(SettingArtifact.id.in_(uuids)).all()
+            artifacts = {str(row.id): row for row in rows}
+    return hydrate_legacy_artifact_sheet(cloned, artifacts)
+
+
+def to_detail(
+    character: Character,
+    *,
+    can_edit: bool = True,
+    db: Session | None = None,
+) -> CharacterDetail:
     data = CharacterDetail.model_validate(character)
-    return data.model_copy(update={"can_edit": can_edit})
+    sheet = sheet_for_client(data.sheet if isinstance(data.sheet, dict) else None, db)
+    if sheet is data.sheet:
+        return data.model_copy(update={"can_edit": can_edit})
+    return data.model_copy(update={"can_edit": can_edit, "sheet": sheet})
 
 
 class CharacterService:
@@ -52,13 +122,13 @@ class CharacterService:
         )
         self.db.commit()
         self.db.refresh(character)
-        return to_detail(character)
+        return to_detail(character, db=self.db)
 
     def get_mine(self, user: User, character_id: UUID) -> CharacterDetail:
         """Владелец — полный доступ; мастер лобби с этим персонажем — только просмотр."""
         character = self.characters.get_for_user(character_id, user.id)
         if character is not None:
-            return to_detail(character, can_edit=True)
+            return to_detail(character, can_edit=True, db=self.db)
 
         character = self.characters.get_active(character_id)
         if character is None:
@@ -68,7 +138,7 @@ class CharacterService:
             owner_id=user.id,
             character_id=character_id,
         ):
-            return to_detail(character, can_edit=False)
+            return to_detail(character, can_edit=False, db=self.db)
 
         raise AppError("Персонаж не найден", code="character_not_found", status_code=404)
 
@@ -128,7 +198,7 @@ class CharacterService:
         character.sheet_version += 1
         self.db.commit()
         self.db.refresh(character)
-        return to_detail(character)
+        return to_detail(character, db=self.db)
 
     def upload_avatar(
         self,
@@ -147,7 +217,7 @@ class CharacterService:
         )
         self.db.commit()
         self.db.refresh(character)
-        return to_detail(character)
+        return to_detail(character, db=self.db)
 
     def delete_avatar(self, user: User, character_id: UUID) -> CharacterDetail:
         character = self.characters.get_for_user(character_id, user.id)
@@ -158,7 +228,7 @@ class CharacterService:
         character.avatar_url = None
         self.db.commit()
         self.db.refresh(character)
-        return to_detail(character)
+        return to_detail(character, db=self.db)
 
     def delete_mine(self, user: User, character_id: UUID) -> None:
         character = self.characters.get_for_user(character_id, user.id)

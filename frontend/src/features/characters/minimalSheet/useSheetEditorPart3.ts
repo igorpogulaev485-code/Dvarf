@@ -135,6 +135,7 @@ export function useSheetEditorPart3(model: SheetModel) {
             requires_attunement: item.requires_attunement,
             magic_mods: extra.magic_mods ?? null,
             artifact_snapshot: extra.artifact_snapshot ?? null,
+            effects: item.effects,
           }
         }),
         attunedItemIds,

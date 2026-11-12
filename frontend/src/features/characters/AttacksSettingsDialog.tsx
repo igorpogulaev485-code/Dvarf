@@ -1,4 +1,6 @@
 import {
+  artifactAttackDamage,
+  artifactRequirementMet,
   createCustomAttack,
   isClassMartialArtsAttack,
   isRaceNaturalWeaponAttack,
@@ -111,15 +113,17 @@ export function AttacksSettingsDialog({
                 weaponAbility: attack.ability,
               })
             : attack.ability
+          const face = artifactAttackDamage(attack)
+          const requirementOk = artifactRequirementMet(attack, abilities)
           const baseDamage = monkWeapon
             ? effectiveMartialArtsDamage({
-                weaponDamage: attack.damage,
+                weaponDamage: face.damage,
                 martialArtsDie,
                 forceMartialArts: classMa,
               })
-            : attack.damage
+            : face.damage
           const gear =
-            !raceNatural && !classMa && attack.inventory_item_id && attack.held
+            !raceNatural && !classMa && attack.inventory_item_id && attack.held && requirementOk
               ? gearBonusesByItem?.[attack.inventory_item_id]
               : undefined
           const magicAtk = gear?.attackBonus ?? 0

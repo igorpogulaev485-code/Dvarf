@@ -34,6 +34,8 @@ export type AbilityCapInventoryItem = {
   requires_attunement?: boolean
   magic_mods?: Record<string, unknown> | null
   artifact_snapshot?: Record<string, unknown> | null
+  /** Live ability_mod effects — max is the same ceiling as the snapshot. */
+  effects?: Array<{ type?: string; ability?: string; max?: number }> | null
 }
 
 type ClassMaxFeature = {
@@ -126,6 +128,18 @@ export function abilityMaxSourcesFromInventory(
         ability: key,
         max: clampCeiling(readNumber(ab.max_score, DEFAULT_ABILITY_SCORE_MAX)),
         label: item.name || 'Артефакт',
+      })
+    }
+    for (const effect of item.effects ?? []) {
+      if (!effect || effect.type !== 'ability_mod') continue
+      if (effect.max == null || !Number.isFinite(effect.max)) continue
+      const key = String(effect.ability || '') as AbilityScoreKey
+      if (!ABILITY_SCORE_KEYS.includes(key)) continue
+      if (effect.max <= DEFAULT_ABILITY_SCORE_MAX) continue
+      out.push({
+        ability: key,
+        max: clampCeiling(effect.max),
+        label: item.name || 'Предмет',
       })
     }
     const mods = item.magic_mods ? asRecord(item.magic_mods) : {}

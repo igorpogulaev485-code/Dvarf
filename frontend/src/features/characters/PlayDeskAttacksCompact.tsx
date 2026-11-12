@@ -36,7 +36,7 @@ import {
   formatModifier,
   type AbilityKey,
 } from './sheetTypes'
-import type { WeaponAttack } from './AttacksPanel'
+import { artifactAttackDamage, artifactRequirementMet, type WeaponAttack } from './AttacksPanel'
 import { shillelaghDamage } from './shillelagh'
 import type { InventoryItem } from './inventory'
 import { isCastableSpellScroll } from './spellScroll'
@@ -82,6 +82,7 @@ type PlayDeskAttacksCompactProps = {
   /** Fired when a combat feature chip is toggled (e.g. Reckless → advantage). */
   onCombatFeatureToggle?: (featureId: string, active: boolean) => void
   onToggleHeld?: (attack: WeaponAttack) => void
+  onToggleActivation?: (attack: WeaponAttack) => void
   onSpendResource?: (id: string) => void
   /** Spend N from inventory qty (ammo, potions, …). Default 1. */
   onSpendConsumable?: (itemId: string, amount?: number) => void
@@ -138,6 +139,7 @@ export function PlayDeskAttacksCompact({
   hpTemp = 0,
   onCombatFeatureToggle,
   onToggleHeld,
+  onToggleActivation,
   onSpendResource,
   onSpendConsumable,
   onOpenConsumableSpendPad,
@@ -406,19 +408,23 @@ export function PlayDeskAttacksCompact({
                     weaponAbility: attack.ability,
                   })
                 : attack.ability
+            const face = artifactAttackDamage(attack)
+            const requirementOk = artifactRequirementMet(attack, abilities)
             const baseDamage = shillelaghOn
               ? shillelaghDamage(attack.damage)
               : monkWeapon
                 ? effectiveMartialArtsDamage({
-                    weaponDamage: attack.damage,
+                    weaponDamage: face.damage,
                     martialArtsDie,
                     forceMartialArts: unarmed,
                   })
-                : attack.damage
+                : face.damage
+            const shownType = face.damageType || attack.damage_type
             const mod = abilityModifier(abilities[attackAbility])
-            const gear = attack.inventory_item_id
-              ? gearBonusesByItem[attack.inventory_item_id]
-              : undefined
+            const gear =
+              attack.inventory_item_id && attack.held && requirementOk
+                ? gearBonusesByItem[attack.inventory_item_id]
+                : undefined
             const styleAtk = fightingStyleAttackBonusFromIds({
               styleIds: fightingStyleIds ?? (fightingStyleId ? [fightingStyleId] : []),
               weaponName: attack.name,
@@ -457,7 +463,13 @@ export function PlayDeskAttacksCompact({
               baseDamage +
               (dmgBonus ? `${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
             const meleeAttack = isMeleeWeaponAttackName(attack.name)
-            const dmgLine = `${dmg || '—'}${attack.damage_type ? ` ${attack.damage_type}` : ''}${
+            const attackMode =
+              attack.mode_active && attack.activation?.advantage
+                ? rollMode === 'disadvantage'
+                  ? 'normal'
+                  : 'advantage'
+                : rollMode
+            const dmgLine = `${dmg || '—'}${shownType ? ` ${shownType}` : ''}${
               divineStrike ? ` + ${divineStrike.label}` : ''
             }${meleeAttack && improvedSmite ? ` + ${improvedSmite.label}` : ''}${
               meleeAttack && symbioticRider ? ` + ${symbioticRider.label}` : ''
@@ -509,7 +521,7 @@ export function PlayDeskAttacksCompact({
                             ]
                           : []),
                       ],
-                      mode: rollMode,
+                      mode: attackMode,
                     })
                     onToast?.(strike.text)
                     smiteApplyLock.current = false
@@ -544,10 +556,32 @@ export function PlayDeskAttacksCompact({
                     {attack.held ? (
                       <span className="play-desk-compact__tag is-on">в руках</span>
                     ) : null}
+                    {attack.mode_active ? (
+                      <span className="play-desk-compact__tag is-on">режим</span>
+                    ) : null}
+                    {attack.req_score != null && !requirementOk ? (
+                      <span className="play-desk-compact__tag">
+                        {attack.req_ability?.toUpperCase()} {attack.req_score}+
+                      </span>
+                    ) : null}
                   </div>
                   <span className="play-desk-compact__mod">{formatModifier(attackBonus)}</span>
                   <span className="play-desk-compact__dmg">{dmgLine}</span>
                 </button>
+                {onToggleActivation && attack.activation && requirementOk ? (
+                  <button
+                    type="button"
+                    className={`play-desk-compact__hold${attack.mode_active ? ' is-on' : ''}`}
+                    onClick={() => onToggleActivation(attack)}
+                    title={
+                      attack.mode_active
+                        ? 'Выключить режим'
+                        : `${attack.activation.name}: ${attack.activation.active_damage}`
+                    }
+                  >
+                    {attack.mode_active ? 'режим' : 'вкл'}
+                  </button>
+                ) : null}
                 {onToggleHeld && attack.inventory_item_id ? (
                   <button
                     type="button"
