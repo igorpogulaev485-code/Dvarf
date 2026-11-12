@@ -454,3 +454,123 @@
   min-width: 8rem;
 }
 
+/* W-01: режим чтения / боковая вики */
+.setting-wiki-reader {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.setting-wiki-reader__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.setting-wiki-reader__toolbar .ui-field {
+  flex: 1;
+  min-width: 10rem;
+}
+
+.setting-wiki-reader__new {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.setting-wiki-reader__new.is-on {
+  border-color: var(--accent);
+}
+
+.setting-wiki-reader__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.setting-wiki-reader__body {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) 1fr;
+  gap: 12px;
+}
+
+.setting-wiki-reader--compact .setting-wiki-reader__body {
+  grid-template-columns: 1fr;
+}
+
+.setting-wiki-reader__toc-group ul,
+.setting-wiki-reader__recent ul,
+.setting-wiki-reader__quests ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.setting-wiki-reader__toc-group button,
+.setting-wiki-reader__recent button,
+.setting-wiki-reader__quests button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.setting-wiki-reader__toc-group button.is-on {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.setting-wiki-reader__card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2, var(--surface));
+}
+
+.setting-wiki-reader__card-row {
+  display: grid;
+  grid-template-columns: minmax(5rem, 8rem) 1fr;
+  gap: 8px;
+  font-size: 0.92rem;
+}
+
+.setting-wiki-reader__card-label {
+  color: var(--muted);
+}
+
+.setting-wiki-reader__quest-status {
+  margin-left: 8px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.lobby-setting-primary-banner {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--accent-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+

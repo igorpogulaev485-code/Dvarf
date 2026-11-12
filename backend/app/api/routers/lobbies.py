@@ -100,6 +100,7 @@ from app.schemas.lobby import (
     SessionUpdateRequest,
     SettingArtifactCreateRequest,
     SettingArtifactUpdateRequest,
+    SettingChoosePrimaryRequest,
     SettingCreateRequest,
     SettingDetail,
     SettingPageBulkCreateRequest,
@@ -485,6 +486,21 @@ def create_setting(
     db: DbSession,
 ) -> SettingSummary:
     return LobbyService(db).create_setting(current_user, lobby_id, payload)
+
+
+@router.post("/lobbies/{lobby_id}/settings/primary", response_model=LobbyDetail)
+def choose_primary_setting(
+    lobby_id: UUID,
+    payload: SettingChoosePrimaryRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> LobbyDetail:
+    """W-01: выбрать основной сеттинг; остальные активные → is_extra."""
+    return LobbyService(db).choose_primary_setting(
+        current_user,
+        lobby_id,
+        payload.setting_id,
+    )
 
 
 @router.get("/settings/{setting_id}", response_model=SettingDetail)

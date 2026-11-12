@@ -40,7 +40,11 @@ from app.dnd.encounter_budget import EncounterDifficulty
 from app.dnd.encounter_compose import compose_encounter
 from app.dnd.encounter_pool import monster_from_catalog_entry
 from app.dnd.setting_link_presets import reverse_label as mirror_link_label
-from app.dnd.setting_mentions import extract_mention_titles, titles_index
+from app.dnd.setting_mentions import (
+    extract_mention_titles,
+    mask_unrevealed_mentions,
+    titles_index,
+)
 from app.dnd.setting_tags import collect_all_tags, normalize_tags
 from app.dnd.setting_templates import (
     PAGE_KINDS,
@@ -931,7 +935,17 @@ class LobbyService:
         char_map = self.lobbies.get_characters_map([m.character_id for m in lobby.members])
         members = [_member_out(m, char_map.get(m.character_id)) for m in lobby.members]
         role_rows = list(getattr(lobby, "roles", None) or self.lobbies.list_roles(lobby.id))
-        settings = [SettingSummary.model_validate(s) for s in lobby.settings]
+        all_settings = list(lobby.settings or [])
+        active_settings = [s for s in all_settings if not bool(getattr(s, "is_extra", False))]
+        settings_need_primary = len(active_settings) > 1
+        if settings_need_primary and flags["can_edit_wiki"]:
+            # Мастеру показываем все активные, чтобы выбрать основной.
+            visible_settings = active_settings
+        else:
+            # Обычный список: только активные; при конфликте игроку — все активные
+            # (страницы лишних всё равно блокируются до выбора).
+            visible_settings = active_settings
+        settings = [SettingSummary.model_validate(s) for s in visible_settings]
         sessions = [
             SessionSummary(
                 id=s.id,
@@ -985,6 +999,7 @@ class LobbyService:
             members=members,
             roles=[self._role_out(r) for r in role_rows],
             settings=settings,
+            settings_need_primary=settings_need_primary,
             sessions=sessions,
             visibility_profile=lobby.visibility_profile or {},
             campaign_rules=self._campaign_rules_out(lobby),
@@ -1841,6 +1856,17 @@ class LobbyService:
     ) -> SettingSummary:
         lobby = self._require_lobby(lobby_id)
         self._require_wiki(lobby, user)
+        active = [
+            s
+            for s in (lobby.settings or [])
+            if not bool(getattr(s, "is_extra", False))
+        ]
+        if active:
+            raise AppError(
+                "В лобби уже есть сеттинг. Второй активный создать нельзя.",
+                code="setting_already_exists",
+                status_code=400,
+            )
         setting = self.lobbies.create_setting(
             lobby_id=lobby.id,
             name=(payload.name or "Новый сеттинг").strip() or "Новый сеттинг",
@@ -1849,6 +1875,46 @@ class LobbyService:
         self.db.commit()
         self.db.refresh(setting)
         return SettingSummary.model_validate(setting)
+
+    def choose_primary_setting(
+        self,
+        user: User,
+        lobby_id: UUID,
+        setting_id: UUID,
+    ) -> LobbyDetail:
+        """W-01: основной сеттинг; остальные активные → is_extra (корзина W-02)."""
+        lobby = self._require_lobby(lobby_id)
+        self._require_wiki(lobby, user)
+        chosen = self.lobbies.get_setting(setting_id)
+        if chosen is None or chosen.lobby_id != lobby.id:
+            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        for s in lobby.settings or []:
+            if s.id == chosen.id:
+                s.is_extra = False
+            elif not bool(getattr(s, "is_extra", False)):
+                s.is_extra = True
+        self.db.commit()
+        return self._to_detail(self._require_lobby(lobby_id), user)
+
+    def _require_setting_writable(self, setting: Setting) -> None:
+        if bool(getattr(setting, "is_extra", False)):
+            raise AppError(
+                "Этот сеттинг помечен как лишний. Выберите основной или дождитесь корзины.",
+                code="setting_is_extra",
+                status_code=400,
+            )
+        lobby = self._require_lobby(setting.lobby_id)
+        active = [
+            s
+            for s in (lobby.settings or [])
+            if not bool(getattr(s, "is_extra", False))
+        ]
+        if len(active) > 1:
+            raise AppError(
+                "В лобби несколько сеттингов — сначала выберите основной.",
+                code="settings_need_primary",
+                status_code=400,
+            )
 
     def update_setting(
         self,
@@ -1885,9 +1951,16 @@ class LobbyService:
         lobby = self._require_lobby(setting.lobby_id)
         self._require_view(lobby, user)
         see_gm = roles.can_see_hidden(self.db, lobby, user)
+        can_edit = roles.can_edit_wiki(self.db, lobby, user)
         detail = self._setting_detail(setting, see_as_gm=see_gm)
-        # флаг is_owner в SettingDetail = реальный владелец (для UI удаления лобби не нужен)
-        return detail.model_copy(update={"is_owner": roles.is_owner(lobby, user) or see_gm})
+        return detail.model_copy(
+            update={
+                "is_owner": roles.is_owner(lobby, user),
+                "can_edit_wiki": can_edit,
+                "can_see_hidden": see_gm,
+                "can_view_lobby": True,
+            }
+        )
 
     def _template_out(self, template) -> SettingPageTemplateOut:
         raw_schema = template.schema if isinstance(template.schema, list) else []
@@ -1943,12 +2016,12 @@ class LobbyService:
         return self.lobbies.get_setting_page_template(sys_id)
 
     def _setting_detail(self, setting: Setting, *, see_as_gm: bool, is_owner: bool | None = None) -> SettingDetail:
-        pages = self.lobbies.list_setting_pages(setting.id)
+        all_pages = self.lobbies.list_setting_pages(setting.id)
         links = self.lobbies.list_setting_page_links(setting.id)
         templates = self.lobbies.list_setting_page_templates(setting.id)
         artifacts = self.lobbies.list_setting_artifacts(setting.id) if see_as_gm else []
         if not see_as_gm:
-            pages = [p for p in pages if p.revealed]
+            pages = [p for p in all_pages if p.revealed]
             visible = {p.id for p in pages}
             links = [
                 link
@@ -1957,7 +2030,7 @@ class LobbyService:
                 and link.to_page_id in visible
                 and (getattr(link, "visibility", None) or "all") != "gm"
             ]
-            # Игроку не отдаём gm_only значения полей
+            # Игроку не отдаём gm_only значения полей; body — без сырых заголовков нераскрытых.
             filtered_pages = []
             for p in pages:
                 out = SettingPageOut.model_validate(p)
@@ -1973,12 +2046,20 @@ class LobbyService:
                     for k, v in (out.fields or {}).items()
                     if not schema_by_key.get(k, False)
                 }
+                masked_body = mask_unrevealed_mentions(out.body or "", all_pages)
                 # C7: gm_body никогда не отдаём игроку
                 filtered_pages.append(
-                    out.model_copy(update={"fields": public_fields, "gm_body": ""})
+                    out.model_copy(
+                        update={
+                            "fields": public_fields,
+                            "gm_body": "",
+                            "body": masked_body,
+                        }
+                    )
                 )
             pages_out = filtered_pages
         else:
+            pages = all_pages
             pages_out = [SettingPageOut.model_validate(p) for p in pages]
         title_by_id = {p.id: p.title for p in pages}
         base = SettingSummary.model_validate(setting)
@@ -1986,7 +2067,7 @@ class LobbyService:
         if not see_as_gm:
             # не светить legacy notes целиком — у игрока только раскрытые страницы
             data["world_notes"] = ""
-        owner_flag = see_as_gm if is_owner is None else is_owner
+        owner_flag = False if is_owner is None else is_owner
         return SettingDetail(
             **data,
             pages=pages_out,
@@ -2009,6 +2090,27 @@ class LobbyService:
             artifacts=[SettingArtifactOut.model_validate(a) for a in artifacts],
             is_owner=owner_flag,
         )
+
+    def _apply_revealed(
+        self,
+        page,
+        *,
+        revealed: bool,
+        setting_id: UUID,
+        reveal_subtree: bool,
+    ) -> int:
+        """Выставить revealed / revealed_at; вернуть число затронутых страниц."""
+        now = datetime.now(timezone.utc)
+        page.revealed = revealed
+        page.revealed_at = now if revealed else None
+        affected = 1
+        if reveal_subtree:
+            all_pages = self.lobbies.list_setting_pages(setting_id)
+            for child in self._descendant_pages(all_pages, page.id):
+                child.revealed = revealed
+                child.revealed_at = now if revealed else None
+                affected += 1
+        return affected
 
     def _sync_page_mentions(
         self,
@@ -2091,6 +2193,7 @@ class LobbyService:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
         self._require_wiki(lobby, user)
+        self._require_setting_writable(setting)
         parent_id = payload.parent_id
         if parent_id is not None:
             parent = self.lobbies.get_setting_page(parent_id)
@@ -2165,6 +2268,7 @@ class LobbyService:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
         self._require_wiki(lobby, user)
+        self._require_setting_writable(setting)
         titles = [t.strip() for t in payload.titles if t and t.strip()]
         if not titles:
             raise AppError("Нужно хотя бы одно имя", code="bulk_titles_empty", status_code=400)
@@ -2227,6 +2331,7 @@ class LobbyService:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
         self._require_wiki(lobby, user)
+        self._require_setting_writable(setting)
 
         if payload.title is not None:
             page.title = payload.title.strip() or "Без названия"
@@ -2255,11 +2360,12 @@ class LobbyService:
             page.sort_order = payload.sort_order
 
         if payload.revealed is not None:
-            page.revealed = payload.revealed
-            if payload.reveal_subtree:
-                all_pages = self.lobbies.list_setting_pages(setting.id)
-                for child in self._descendant_pages(all_pages, page.id):
-                    child.revealed = payload.revealed
+            self._apply_revealed(
+                page,
+                revealed=bool(payload.revealed),
+                setting_id=setting.id,
+                reveal_subtree=bool(payload.reveal_subtree),
+            )
 
         if payload.page_kind is not None:
             if payload.page_kind not in PAGE_KINDS:
@@ -4303,13 +4409,12 @@ class LobbyService:
             raise NotFoundError("Страница не найдена", code="setting_page_not_found")
 
         revealed = bool(payload.revealed)
-        page.revealed = revealed
-        affected = 1
-        if payload.reveal_subtree:
-            all_pages = self.lobbies.list_setting_pages(session.setting_id)
-            for child in self._descendant_pages(all_pages, page.id):
-                child.revealed = revealed
-                affected += 1
+        affected = self._apply_revealed(
+            page,
+            revealed=revealed,
+            setting_id=session.setting_id,
+            reveal_subtree=bool(payload.reveal_subtree),
+        )
 
         verb = "Открыто" if revealed else "Скрыто"
         subtree_note = " · ветка" if payload.reveal_subtree and affected > 1 else ""

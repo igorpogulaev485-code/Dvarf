@@ -42,6 +42,12 @@ class SettingPage(Base):
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     # C3: раскрытие игрокам
     revealed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # W-01: момент раскрытия (NULL = скрыта / ещё не раскрывали)
+    revealed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        default=None,
+    )
     # C5: тип + шаблон + значения полей
     page_kind: Mapped[str] = mapped_column(String(32), nullable=False, default="note", index=True)
     template_id: Mapped[uuid.UUID | None] = mapped_column(

@@ -28,6 +28,27 @@ export const SETTING_PAGE_KIND_LABELS: Record<SettingPageKind, string> = {
   note: 'Заметка',
 }
 
+/** W-01: подписи оглавления игрока (режим чтения). */
+export const SETTING_PAGE_KIND_READER_LABELS: Record<SettingPageKind, string> = {
+  location: 'Места',
+  npc: 'Люди',
+  faction: 'Фракции',
+  quest: 'Квесты',
+  item_lore: 'Предметы',
+  note: 'Заметки',
+}
+
+export const SETTING_READER_KIND_ORDER: SettingPageKind[] = [
+  'location',
+  'npc',
+  'faction',
+  'quest',
+  'item_lore',
+  'note',
+]
+
+export const TEMPLATE_CARD_KINDS: SettingPageKind[] = ['npc', 'location', 'item_lore']
+
 export const QUEST_STATUS_LABELS: Record<QuestStatus, string> = {
   planned: 'План',
   active: 'Активен',

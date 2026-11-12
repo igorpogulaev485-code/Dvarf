@@ -36,6 +36,7 @@ import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
 import { SessionTableCard } from '../features/lobby/SessionTableCard'
+import { SettingWikiReader } from '../features/lobby/SettingWikiReader'
 import { useSessionRealtime } from '../features/lobby/useSessionRealtime'
 import { letterBadge } from '../shared/api/chat'
 import { normalizeCampaignRules } from '../features/lobby/campaignRules'
@@ -165,6 +166,8 @@ export function SessionDetailPage() {
   const [settingArtifacts, setSettingArtifacts] = useState<SettingArtifact[]>([])
   const [lobbySettings, setLobbySettings] = useState<SettingSummary[]>([])
   const [sidePanelOpen, setSidePanelOpen] = useState(readSidePanelOpen)
+  const [sideTab, setSideTab] = useState<'notes' | 'wiki'>('notes')
+  const [wikiSetting, setWikiSetting] = useState<SettingDetail | null>(null)
   const [seatPickOpen, setSeatPickOpen] = useState(false)
   const [seatPickId, setSeatPickId] = useState('')
   const [bindSettingOpen, setBindSettingOpen] = useState(false)
@@ -1628,7 +1631,35 @@ export function SessionDetailPage() {
 
               <aside className="session-live-desk__side session-live-desk__desktop-only">
                 <div className="session-live-desk__side-head">
-                  <Text as="h3">Заметки / Чат</Text>
+                  <div className="session-live-desk__side-tabs" role="tablist" aria-label="Боковая панель">
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={sideTab === 'notes'}
+                      className={`session-live-desk__side-tab${sideTab === 'notes' ? ' is-on' : ''}`}
+                      onClick={() => setSideTab('notes')}
+                    >
+                      Заметки / Чат
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={sideTab === 'wiki'}
+                      className={`session-live-desk__side-tab${sideTab === 'wiki' ? ' is-on' : ''}`}
+                      onClick={() => {
+                        setSideTab('wiki')
+                        if (session.setting_id) {
+                          void getSetting(session.setting_id)
+                            .then(setWikiSetting)
+                            .catch(() => setWikiSetting(null))
+                        } else {
+                          setWikiSetting(null)
+                        }
+                      }}
+                    >
+                      Вики
+                    </button>
+                  </div>
                   <Button
                     type="button"
                     variant="ghost"
@@ -1639,6 +1670,7 @@ export function SessionDetailPage() {
                   </Button>
                 </div>
                 <div className="session-live-desk__side-body">
+                  {sideTab === 'notes' ? (
                   <Stack gap={16}>
                 <LobbyNotesPanel
                   lobbyId={session.lobby_id}
@@ -1663,6 +1695,41 @@ export function SessionDetailPage() {
                   onError={setError}
                 />
                   </Stack>
+                  ) : wikiSetting ? (
+                    <SettingWikiReader
+                      setting={wikiSetting}
+                      userKey={`session:${session.id}`}
+                      canEditWiki={Boolean(wikiSetting.can_edit_wiki)}
+                      canSeeHidden={sessionCanSeeHidden(session)}
+                      compact
+                    />
+                  ) : session.setting_id ? (
+                    <Text tone="muted">Загрузка вики…</Text>
+                  ) : sessionCanRun(session) || session.is_comaster ? (
+                    <SettingWikiReader
+                      setting={{
+                        id: '',
+                        lobby_id: session.lobby_id,
+                        name: '',
+                        world_notes: '',
+                        created_at: '',
+                        updated_at: '',
+                        pages: [],
+                        links: [],
+                        templates: [],
+                        all_tags: [],
+                        is_owner: false,
+                      }}
+                      userKey={`session:${session.id}`}
+                      canEditWiki={Boolean(session.is_owner || session.is_comaster)}
+                      canSeeHidden={sessionCanSeeHidden(session)}
+                      compact
+                      showBindHint
+                      onBindSetting={() => setBindSettingOpen(true)}
+                    />
+                  ) : (
+                    <Text tone="muted">К сессии не привязан сеттинг.</Text>
+                  )}
                 </div>
               </aside>
             </div>
@@ -1705,6 +1772,35 @@ export function SessionDetailPage() {
               ) : null}
               {liveTab === 'more' ? (
                 <Stack gap={16}>
+                <div className="session-live-desk__side-tabs" role="tablist" aria-label="Заметки и вики">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={sideTab === 'notes'}
+                    className={`session-live-desk__side-tab${sideTab === 'notes' ? ' is-on' : ''}`}
+                    onClick={() => setSideTab('notes')}
+                  >
+                    Заметки / Чат
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={sideTab === 'wiki'}
+                    className={`session-live-desk__side-tab${sideTab === 'wiki' ? ' is-on' : ''}`}
+                    onClick={() => {
+                      setSideTab('wiki')
+                      if (session.setting_id) {
+                        void getSetting(session.setting_id)
+                          .then(setWikiSetting)
+                          .catch(() => setWikiSetting(null))
+                      }
+                    }}
+                  >
+                    Вики
+                  </button>
+                </div>
+                {sideTab === 'notes' ? (
+                  <>
                 <LobbyNotesPanel
                   lobbyId={session.lobby_id}
                   canManageJournal={Boolean(session.is_owner || session.is_comaster)}
@@ -1727,6 +1823,20 @@ export function SessionDetailPage() {
                   onToast={setToast}
                   onError={setError}
                 />
+                  </>
+                ) : wikiSetting ? (
+                  <SettingWikiReader
+                    setting={wikiSetting}
+                    userKey={`session:${session.id}`}
+                    canEditWiki={Boolean(wikiSetting.can_edit_wiki)}
+                    canSeeHidden={sessionCanSeeHidden(session)}
+                    compact
+                  />
+                ) : session.setting_id ? (
+                  <Text tone="muted">Загрузка вики…</Text>
+                ) : (
+                  <Text tone="muted">К сессии не привязан сеттинг.</Text>
+                )}
                 </Stack>
               ) : null}
             </div>

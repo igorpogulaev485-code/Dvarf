@@ -37,6 +37,7 @@ import { ApiRequestError } from '../shared/api/client'
 import { exportNotes, type Note } from '../shared/api/notes'
 import {
   createJournalEntry,
+  choosePrimarySetting,
   createSession,
   createSetting,
   deleteLobby,
@@ -54,7 +55,11 @@ import {
 import { openProductSite } from '../shared/brand/creed20'
 import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
-type LocationState = { toast?: string }
+type LocationState = {
+  toast?: string
+  /** W-01: открыть форму сессии с уже выбранным сеттингом */
+  sessionSettingId?: string
+}
 
 function tabFromHash(hash: string): LobbyHubTabId {
   const value = hash.replace(/^#/, '')
@@ -186,7 +191,15 @@ export function LobbyDetailPage() {
   }, [lobbyId, tab])
 
   useEffect(() => {
-    if ((location.state as LocationState | null)?.toast) {
+    const state = location.state as LocationState | null
+    if (!state) return
+    if (state.sessionSettingId) {
+      setSessionSettingId(state.sessionSettingId)
+      setTab('sessions')
+      navigate(`${location.pathname}#sessions`, { replace: true, state: null })
+      return
+    }
+    if (state.toast) {
       navigate(location.pathname, { replace: true, state: null })
     }
   }, [location.pathname, location.state, navigate])
@@ -618,8 +631,38 @@ export function LobbyDetailPage() {
           <Panel title="Сеттинг">
             <Stack gap={12}>
               <Text tone="muted">
-                Мир / зона мастера. Не обязателен — сессию можно открыть ваншотом. Вики — фаза C.
+                В лобби один активный сеттинг. Сессию можно открыть ваншотом без сеттинга.
               </Text>
+              {lobby.settings_need_primary && canEditWiki ? (
+                <div className="lobby-setting-primary-banner" role="status">
+                  <Text>
+                    В лобби должен остаться один сеттинг. Выберите основной — остальные уйдут в
+                    корзину позже.
+                  </Text>
+                  <Stack gap={8}>
+                    {lobby.settings.map((s) => (
+                      <div className="list-row" key={s.id}>
+                        <div>
+                          <Link to={`/settings/${s.id}`}>{s.name}</Link>
+                        </div>
+                        <Button
+                          type="button"
+                          disabled={busy}
+                          onClick={() =>
+                            run(async () => {
+                              const next = await choosePrimarySetting(lobby.id, s.id)
+                              setLobby(next)
+                              setToast(`Основной сеттинг: ${s.name}`)
+                            })
+                          }
+                        >
+                          Сделать основным
+                        </Button>
+                      </div>
+                    ))}
+                  </Stack>
+                </div>
+              ) : null}
               {lobby.settings.map((s) => (
                 <div className="list-row" key={s.id}>
                   <div>
@@ -635,15 +678,12 @@ export function LobbyDetailPage() {
                           type="button"
                           variant="secondary"
                           disabled={busy}
-                          onClick={() =>
-                            run(async () => {
-                              const session = await createSession(lobby.id, {
-                                setting_id: s.id,
-                                name: `${s.name} — сессия`,
-                              })
-                              navigate(`/sessions/${session.id}`)
-                            })
-                          }
+                          onClick={() => {
+                            setSessionSettingId(s.id)
+                            setSessionName(`${s.name} — сессия`)
+                            setTab('sessions')
+                            navigate(`${location.pathname}#sessions`, { replace: true })
+                          }}
                         >
                           Сессия
                         </Button>
@@ -668,7 +708,7 @@ export function LobbyDetailPage() {
                   ) : null}
                 </div>
               ))}
-              {canEditWiki ? (
+              {canEditWiki && lobby.settings.length === 0 ? (
                 <form
                   className="inline-form"
                   onSubmit={(e: FormEvent) => {
