@@ -526,6 +526,17 @@ export async function syncLobbyInfusionEffects(
       target_character_id: string
       name: string
       ac_bonus?: number
+      slug?: string
+      kind?: string
+      charges?: number
+      mods?: Array<{
+        target: string
+        op: string
+        value?: number
+        dice?: string
+        condition?: string
+        once?: boolean
+      }>
     }>
   },
 ): Promise<{ applied: number; lobby: LobbyDetail }> {

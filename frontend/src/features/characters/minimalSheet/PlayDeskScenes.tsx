@@ -39,6 +39,7 @@ import {
 } from '../../../shared/dnd/activeEffects'
 import { resolveB04FeatureSpend } from '../b04FeatureSpend'
 import { resolveB05FeatureSpend } from '../b05FeatureSpend'
+import { resolveB06FeatureSpend } from '../b06FeatureSpend'
 import { UseAllyAbilityDialog } from '../UseAllyAbilityDialog'
 
 function mergeToolNames(base: string[], extra: string[]): string[] {
@@ -488,6 +489,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               raceResistances: model.draft.raceGrant?.damageResistances,
               gear: model.gearEffects,
               effects: model.draft.play.effects,
+              infusionResistances: model.infusionBonuses?.resistances,
             }),
           ),
           model.gearEffects.conditionImmunities,
@@ -526,7 +528,22 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                   proficiencyBonus: model.proficiencyBonus,
                 })
               : { kind: 'none' as const }
-          const action = b04.kind !== 'none' ? b04 : b05
+          const b06 =
+            b04.kind === 'none' && b05.kind === 'none'
+              ? resolveB06FeatureSpend({
+                  featureId: input.featureId,
+                  featureNameRu: input.featureNameRu,
+                  classEntryId: input.classEntryId,
+                  classLevel: input.classLevel,
+                  featurePicks: model.draft.featurePicks,
+                  abilities: model.draft.abilities,
+                  attunedMagicItemCount: (model.draft.attunements ?? []).filter(
+                    (slot: { item_id?: string | null }) => Boolean(slot.item_id),
+                  ).length,
+                })
+              : { kind: 'none' as const }
+          const action =
+            b04.kind !== 'none' ? b04 : b05.kind !== 'none' ? b05 : b06
           if (action.kind === 'heal') {
             model.setDraft((prev) => ({
               ...prev,
@@ -539,15 +556,25 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             return
           }
           if (action.kind === 'temp_hp') {
-            void model.applyFeatureBuff?.({
-              slug: 'dark_ones_blessing',
-              name: 'Благословение Темнейшего',
-              classLevel: input.classLevel,
-              casterMod:
-                typeof model.draft.abilities.cha === 'number'
-                  ? Math.floor((model.draft.abilities.cha - 10) / 2)
-                  : 0,
-            })
+            const amount = action.amount
+            const current = model.draft.play.hpTemp || 0
+            const applyTemp = () => {
+              model.setDraft((prev) => ({
+                ...prev,
+                play: { ...prev.play, hpTemp: amount },
+              }))
+            }
+            if (action.forceReplace || current <= 0) {
+              applyTemp()
+            } else if (model.askTempHpReplace) {
+              void model.askTempHpReplace({ current, incoming: amount }).then(
+                (choice: 'keep' | 'replace') => {
+                  if (choice === 'replace') applyTemp()
+                },
+              )
+            } else {
+              applyTemp()
+            }
             model.onToast(action.label)
             return
           }

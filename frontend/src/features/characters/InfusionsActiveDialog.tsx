@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { infusionById } from '../../shared/dnd/artificerInfusions'
+import {
+  infusionById,
+  RESISTANT_ARMOR_DAMAGE_TYPES,
+} from '../../shared/dnd/artificerInfusions'
 import { infusionAcceptsItem, infusionNeedsItem } from '../../shared/dnd/infusionItems'
 import {
   infusionCanTargetAlly,
@@ -10,7 +13,12 @@ import {
   type ActiveInfusionBinding,
   type InfusionTargetRef,
 } from '../../shared/dnd/infusionsActive'
-import { infusionShareAcBonus, infusionShareEffectName } from '../../shared/dnd/infusionEffects'
+import {
+  infusionShareAcBonus,
+  infusionShareEffectName,
+  infusionShareMods,
+  infusionShareSlug,
+} from '../../shared/dnd/infusionEffects'
 import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
 import { FEATURE_RESOURCE_PREFIX } from '../../shared/dnd/featureResources'
 import type { SheetResource } from '../../shared/dnd/rest'
@@ -58,6 +66,7 @@ type DraftRow = {
   infusionId: string
   target: InfusionTargetRef
   itemId: string | null
+  option: string | null
 }
 
 let draftKeySeq = 0
@@ -95,9 +104,11 @@ export function InfusionsActiveDialog({
       infusionId: row.infusionId,
       target: row.target,
       itemId: row.itemId ?? null,
+      option: row.option ?? null,
     })),
   )
   const [pendingId, setPendingId] = useState<string | null>(null)
+  const [pendingOption, setPendingOption] = useState('')
   const [pendingTarget, setPendingTarget] = useState<string>('')
   const [pendingItemId, setPendingItemId] = useState<string>('')
   const [pendingEditKey, setPendingEditKey] = useState<string | null>(null)
@@ -113,11 +124,13 @@ export function InfusionsActiveDialog({
         infusionId: row.infusionId,
         target: row.target,
         itemId: row.itemId ?? null,
+        option: row.option ?? null,
       })),
     )
     setPendingId(null)
     setPendingTarget('')
     setPendingItemId('')
+    setPendingOption('')
     setPendingEditKey(null)
   }, [open, initialBindings])
 
@@ -150,17 +163,25 @@ export function InfusionsActiveDialog({
     }
     const def = infusionById(infusionId)
     const needsItem = infusionNeedsItem(infusionId)
+    const needsResist = infusionId === 'resistant_armor'
     const canAlly = Boolean(def && infusionCanTargetAlly(def) && party.options.length > 1)
-    if (!needsItem && !canAlly) {
+    if (!needsItem && !canAlly && !needsResist) {
       setDraft((prev) => [
         ...prev,
-        { key: nextDraftKey(), infusionId, target: 'self', itemId: null },
+        {
+          key: nextDraftKey(),
+          infusionId,
+          target: 'self',
+          itemId: null,
+          option: null,
+        },
       ])
       return
     }
     setPendingId(infusionId)
     setPendingTarget('')
     setPendingItemId('')
+    setPendingOption(needsResist ? 'fire' : '')
     setPendingEditKey(null)
   }
 
@@ -173,6 +194,7 @@ export function InfusionsActiveDialog({
     }
     const target = resolveTarget(pendingTarget)
     const needsItem = infusionNeedsItem(pendingId) && target === 'self'
+    const needsResist = pendingId === 'resistant_armor'
     const eligible = items.filter((item) => infusionAcceptsItem(pendingId, item))
     if (needsItem && !eligible.some((item) => item.id === pendingItemId)) {
       onToast(
@@ -182,22 +204,36 @@ export function InfusionsActiveDialog({
       )
       return
     }
+    if (needsResist && !pendingOption.trim()) {
+      onToast('Выбери тип урона для «Стойкого доспеха»')
+      return
+    }
     const itemId = needsItem ? pendingItemId : null
+    const option = needsResist ? pendingOption.trim() : null
     if (pendingEditKey) {
       setDraft((prev) =>
         prev.map((row) =>
-          row.key === pendingEditKey ? { ...row, target, itemId: itemId ?? row.itemId } : row,
+          row.key === pendingEditKey
+            ? { ...row, target, itemId: itemId ?? row.itemId, option: option ?? row.option }
+            : row,
         ),
       )
     } else {
       setDraft((prev) => [
         ...prev,
-        { key: nextDraftKey(), infusionId: pendingId, target, itemId },
+        {
+          key: nextDraftKey(),
+          infusionId: pendingId,
+          target,
+          itemId,
+          option,
+        },
       ])
     }
     setPendingId(null)
     setPendingTarget('')
     setPendingItemId('')
+    setPendingOption('')
     setPendingEditKey(null)
   }
 
@@ -211,11 +247,32 @@ export function InfusionsActiveDialog({
     try {
       const res = await syncLobbyInfusionEffects(party.lobbyId, {
         source_character_id: characterId,
-        effects: allyRows.map((row) => ({
-          target_character_id: row.target,
-          name: infusionShareEffectName(row, artificerLevel),
-          ac_bonus: infusionShareAcBonus(row, artificerLevel),
-        })),
+        effects: allyRows.map((row) => {
+          const mods = infusionShareMods(row, artificerLevel).map((mod) => ({
+            target: String(mod.target),
+            op: String(mod.op),
+            ...(typeof mod.value === 'number' ? { value: mod.value } : {}),
+            ...(typeof mod.dice === 'string' && mod.dice ? { dice: mod.dice } : {}),
+            ...(typeof mod.condition === 'string' && mod.condition
+              ? { condition: mod.condition }
+              : {}),
+            ...(mod.once != null ? { once: Boolean(mod.once) } : {}),
+          }))
+          const ac = infusionShareAcBonus(row, artificerLevel)
+          const chargesMod = infusionShareMods(row, artificerLevel).find(
+            (m) => m.target === 'label' && String(m.condition || '').startsWith('infusion_charges_'),
+          )
+          return {
+            target_character_id: row.target,
+            name: infusionShareEffectName(row, artificerLevel),
+            ac_bonus: ac,
+            slug: infusionShareSlug(row),
+            kind: 'infusion',
+            mods,
+            charges:
+              typeof chargesMod?.value === 'number' ? Math.floor(chargesMod.value) : undefined,
+          }
+        }),
       })
       if (allyRows.length) {
         onToast(`Инфузии на союзников: ${res.applied}`)
@@ -236,6 +293,7 @@ export function InfusionsActiveDialog({
       infusionId: row.infusionId,
       target: row.target,
       itemId: row.itemId,
+      option: row.option,
     }))
     onFeaturePicksChange(
       setActiveInfusionBindings(featurePicks, classEntryId, bindings),
@@ -316,6 +374,22 @@ export function InfusionsActiveDialog({
                 </select>
               </label>
             ) : null}
+            {pendingId === 'resistant_armor' ? (
+              <label>
+                <Text tone="muted">Тип сопротивления</Text>
+                <select
+                  className="ui-input"
+                  value={pendingOption}
+                  onChange={(event) => setPendingOption(event.target.value)}
+                >
+                  {RESISTANT_ARMOR_DAMAGE_TYPES.map((row) => (
+                    <option key={row.id} value={row.id}>
+                      {row.nameRu}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             <div className="chip-row">
               <Button type="button" variant="primary" onClick={confirmPending}>
                 Подтвердить
@@ -327,6 +401,7 @@ export function InfusionsActiveDialog({
                   setPendingId(null)
                   setPendingTarget('')
                   setPendingItemId('')
+                  setPendingOption('')
                   setPendingEditKey(null)
                 }}
               >

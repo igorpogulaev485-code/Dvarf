@@ -20,6 +20,8 @@ export type ConsumableUndoSession = {
   logId: string
   /** Hit points before a healing or harm potion, so undo can put them back. */
   hpBefore?: number | null
+  /** B-06 duration potion effect to strip on undo. */
+  effectId?: string
 }
 
 export function formatConsumableSpendToast(

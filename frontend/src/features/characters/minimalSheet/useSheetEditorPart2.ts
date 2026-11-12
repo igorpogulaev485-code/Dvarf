@@ -793,7 +793,9 @@ export function useSheetEditorPart2(model: SheetModel) {
         classBonusFtMax: classBonusMax,
         featBonusFt: model.featSpeedBonusFt,
         gearBonusFt: gearEffects.speedBonusFt,
-      }) ?? 0) + song.speed
+      }) ?? 0) +
+      song.speed +
+      (model.infusionBonuses?.speedWalkBonusFt ?? 0)
     const effectMods = speedModsFromActiveEffects(model.draft.play.effects)
     return applySpeedModsToWalk(base, effectMods)
   }, [
@@ -806,6 +808,17 @@ export function useSheetEditorPart2(model: SheetModel) {
     model.featSpeedBonusFt,
     gearEffects.speedBonusFt,
     model.draft.play.effects,
+    model.infusionBonuses?.speedWalkBonusFt,
   ])
   model.displaySpeed = displaySpeed
+
+  const displayFlySpeed = useMemo(() => {
+    const mods = speedModsFromActiveEffects(model.draft.play.effects)
+    if (mods.flyEqualWalk) return displaySpeed
+    if (mods.flySpeedFt != null) {
+      return Math.max(model.draft.flySpeed ?? 0, mods.flySpeedFt)
+    }
+    return model.draft.flySpeed
+  }, [model.draft.play.effects, model.draft.flySpeed, displaySpeed])
+  model.displayFlySpeed = displayFlySpeed
 }

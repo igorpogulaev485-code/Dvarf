@@ -5,6 +5,7 @@
  * B-03 adds roll riders (damage dice chips), finer advantage filters, B03 specs.
  * B-04 adds class-feature specs (rage, BI, symbiotic…).
  * B-05 adds paladin/warlock/wizard/ranger/rogue/sorcerer feature specs.
+ * B-06 adds artificer elixirs/infusion-adjacent features + duration potions.
  */
 
 import {
@@ -29,6 +30,11 @@ import {
   B05_NAME_TO_SLUG,
   buildB05BuffSpec,
 } from './b05BuffSpecs'
+import {
+  B06_BUFF_SPEC_BUILDERS,
+  B06_NAME_TO_SLUG,
+  buildB06BuffSpec,
+} from './b06BuffSpecs'
 import type { AcMinFloor, CompetingAcFormula } from './armor'
 
 export type EffectKind =
@@ -588,6 +594,8 @@ export type SpeedModsFromEffects = {
   /** Multiply walk after bonuses (haste ×2). */
   walkMul: number
   flySpeedFt: number | null
+  /** Potion of Flying / similar: fly = current walk. */
+  flyEqualWalk: boolean
   climbEqualWalk: boolean
   climbSpeedFt: number | null
   notes: string[]
@@ -598,6 +606,7 @@ export function speedModsFromActiveEffects(effects: unknown): SpeedModsFromEffec
     walkBonusFt: 0,
     walkMul: 1,
     flySpeedFt: null,
+    flyEqualWalk: false,
     climbEqualWalk: false,
     climbSpeedFt: null,
     notes: [],
@@ -615,22 +624,73 @@ export function speedModsFromActiveEffects(effects: unknown): SpeedModsFromEffec
           out.walkBonusFt += Math.floor(mod.value)
         }
       }
-      if (mod.target === 'fly_speed' && typeof mod.value === 'number') {
-        const ft = Math.floor(mod.value)
-        out.flySpeedFt = out.flySpeedFt == null ? ft : Math.max(out.flySpeedFt, ft)
-        out.notes.push(`${effect.name}: полёт ${ft}`)
+      if (mod.target === 'fly_speed') {
+        if (mod.condition === 'equal_walk') {
+          out.flyEqualWalk = true
+          out.notes.push(`${effect.name}: полёт = ходьба`)
+        } else if (typeof mod.value === 'number') {
+          const ft = Math.floor(mod.value)
+          out.flySpeedFt = out.flySpeedFt == null ? ft : Math.max(out.flySpeedFt, ft)
+          out.notes.push(`${effect.name}: полёт ${ft}`)
+        }
       }
       if (mod.target === 'climb_speed') {
-        if (mod.condition === 'equal_walk' || mod.op === 'set') {
+        if (mod.condition === 'equal_walk') {
           out.climbEqualWalk = true
           out.notes.push(`${effect.name}: лазание = ходьба`)
+        } else if (mod.op === 'set' && typeof mod.value === 'number') {
+          out.climbSpeedFt = Math.floor(mod.value)
         } else if (typeof mod.value === 'number') {
           out.climbSpeedFt = Math.floor(mod.value)
+        } else if (mod.op === 'set') {
+          out.climbEqualWalk = true
+          out.notes.push(`${effect.name}: лазание = ходьба`)
         }
       }
     }
   }
   return out
+}
+
+export type AbilityScoreKey =
+  | 'str'
+  | 'dex'
+  | 'con'
+  | 'int'
+  | 'wis'
+  | 'cha'
+
+/** Ability floors from timed buffs (giant strength potions, etc.). */
+export function abilityFloorsFromActiveEffects(
+  effects: unknown,
+): Partial<Record<AbilityScoreKey, number>> {
+  const out: Partial<Record<AbilityScoreKey, number>> = {}
+  const keys = new Set<AbilityScoreKey>(['str', 'dex', 'con', 'int', 'wis', 'cha'])
+  for (const effect of activeEffectsList(effects)) {
+    for (const mod of effect.mods ?? []) {
+      if (mod.target !== 'ability_score' && mod.target !== 'ability_floor') continue
+      if (typeof mod.value !== 'number' || !Number.isFinite(mod.value)) continue
+      const key = String(mod.condition || '')
+        .trim()
+        .toLowerCase() as AbilityScoreKey
+      if (!keys.has(key)) continue
+      const floor = Math.floor(mod.value)
+      out[key] = Math.max(out[key] ?? 0, floor)
+    }
+  }
+  return out
+}
+
+/** Spell attack adds from shared infusion / buff effects on the sheet. */
+export function spellAttackBonusFromActiveEffects(effects: unknown): number {
+  let sum = 0
+  for (const effect of activeEffectsList(effects)) {
+    for (const mod of effect.mods ?? []) {
+      if (mod.target !== 'spell_attack' || mod.op !== 'add') continue
+      if (typeof mod.value === 'number') sum += Math.floor(mod.value)
+    }
+  }
+  return sum
 }
 
 export function applySpeedModsToWalk(baseWalk: number, mods: SpeedModsFromEffects): number {
@@ -1394,6 +1454,7 @@ const SPELL_NAME_TO_SLUG: Array<{ re: RegExp; slug: string }> = [
   { re: /^благословен|^bless$/i, slug: 'bless' },
   { re: /^щит\s*вер|^shield of faith$/i, slug: 'shield_of_faith' },
   { re: /^ободряющ|^emboldening/i, slug: 'emboldening_bond' },
+  ...B06_NAME_TO_SLUG,
   ...B05_NAME_TO_SLUG,
   ...B04_NAME_TO_SLUG,
   ...B03_NAME_TO_SLUG,
@@ -1406,6 +1467,7 @@ export function guessBuffSlug(name: string, catalogId?: string | null): string |
     .toLowerCase()
     .replace(/-/g, '_')
   if (id && B01_BUFF_SPECS[id]) return id
+  if (id && B06_BUFF_SPEC_BUILDERS[id]) return id
   if (id && B05_BUFF_SPEC_BUILDERS[id]) return id
   if (id && B04_BUFF_SPEC_BUILDERS[id]) return id
   if (id && B03_BUFF_SPEC_BUILDERS[id]) return id
@@ -1436,6 +1498,7 @@ export function guessBuffSlug(name: string, catalogId?: string | null): string |
   }
   if (id && aliases[id]) return aliases[id]
   const stripped = id.replace(/'/g, '')
+  if (stripped && B06_BUFF_SPEC_BUILDERS[stripped]) return stripped
   if (stripped && B05_BUFF_SPEC_BUILDERS[stripped]) return stripped
   if (stripped && B04_BUFF_SPEC_BUILDERS[stripped]) return stripped
   if (stripped && B03_BUFF_SPEC_BUILDERS[stripped]) return stripped
@@ -1499,6 +1562,7 @@ export function buildBuffEffect(input: {
   }
   const spec =
     B01_BUFF_SPECS[slug] ??
+    buildB06BuffSpec(slug, ctx) ??
     buildB05BuffSpec(slug, ctx) ??
     buildB04BuffSpec(slug, ctx) ??
     buildB03BuffSpec(slug, ctx) ??
