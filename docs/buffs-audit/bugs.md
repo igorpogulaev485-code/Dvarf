@@ -203,10 +203,20 @@
 - **Статус:** исправлено — зелья с длительностью накладывают эффект; 7 недостающих resistance-вариантов в каталоге; «чтение мыслей» 1 мин (ошибка отчёта в карточке «10 мин»).
 
 ## B26 — Черты с числами
-- **Пачка:** B-07 · **Статус:** ожидает пачки B-07
+- **Ожидалось:** Dual Wielder +1 КД при двух рукопашных в руках; Medium Armor Master maxDex 3 и без помехи Скрытности; Heavy Armor Master −3 немаг. Д/К/Р до сопротивления; Воодушевляющий лидер / Шеф-повар temp HP; Infernal Constitution resists; Shield Master / Defensive Duelist / дары драконов и великанов по таблице; ретест Alert/Mobile/Tough/Dragon Hide.
+- **Фактически (до пачки):** `ac_bonus_dual_wield` читался, но не шёл в КД; остальные — флаги/текст; Alert/Mobile/Tough/Dragon Hide уже работали.
+- **Где:** `b07FeatCombat.ts`, `b07BuffSpecs.ts`, `b07FeatureSpend.ts`, `useSheetEditorPart3`, `classicDerivedCombat`, `HpPadDialog`, `sheetDamageProfile`, `ClassFeaturesPanel`.
+- **Записи:** B-238…B-244, B-246, B-247, B-251, B-253, B-304…B-306, B-310, B-312, B-315
+- **Пачка:** B-07
+- **Статус:** исправлено — числа/сопротивления/temp HP на листе; реакция «по вам атакуют» / отталкивание — лобби 12–14; Alert/Mobile/Tough/Dragon Hide — уже исправлено (ретест).
 
 ## B27 — Черты с кубиками и перебросами
-- **Пачка:** B-07 · **Статус:** ожидает пачки B-07
+- **Ожидалось:** Везунчик (лишняя к20 / 3 кости и выбор любой при преим./помехе); Эльфийская точность 3к20; War Caster преимущество на концентрацию; Savage Attacker / Flames of Phlegethos / Bountiful Luck чипы; Second Chance счётчик на листе; прочие сеттинговые — по таблице.
+- **Фактически (до пачки):** счётчик «Удача» 3/LR без броска; UI «Удача» = Stroke of Luck плута; остальное — текст.
+- **Где:** `deskRolls.ts` (`rollCheckWithLucky`, `rollCheckElvenAccuracy`), `PlayDeskAttacksCompact`, `PlayDeskLayout`, `SheetDialogsRolls`, `sheetActions4` (War Caster), `b07BuffSpecs`.
+- **Записи:** B-245, B-248…B-250, B-254…B-257, B-307…B-309, B-311, B-313, B-314, B-316, B-317
+- **Пачка:** B-07
+- **Статус:** исправлено — кости/перебросы на листе; атака по вам / Второй шанс vs враг / Удар великанов сдвиг — часть → лобби 12–14; доступ к заклинаниям SCC/SDQ/BMT — уже через гранты (ретест / только метка где нет числа).
 
 ## B28 — Расы не по MPMM
 - **Пачка:** B-08 · **Статус:** ожидает пачки B-08

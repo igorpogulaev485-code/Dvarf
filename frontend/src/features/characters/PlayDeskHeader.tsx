@@ -76,6 +76,10 @@ type PlayDeskHeaderProps = {
   hasEvasion?: boolean
   /** B-05: Rogue/Hunter Uncanny Dodge — half damage from one attack (reaction). */
   hasUncannyDodge?: boolean
+  /** B-07: Heavy Armor Master flat reduction while in heavy. */
+  heavyArmorMaster?: boolean
+  /** B-07: Shield Master Dex-save reaction → 0 damage. */
+  hasShieldMasterEvasion?: boolean
   /** B-05: Draconic Resilience for max-HP-by-levels dialog. */
   draconicResilience?: boolean
   play: PlayState
@@ -147,6 +151,8 @@ export function PlayDeskHeader({
   damageProfile,
   hasEvasion = false,
   hasUncannyDodge = false,
+  heavyArmorMaster = false,
+  hasShieldMasterEvasion = false,
   draconicResilience = false,
   play,
   autoAc,
@@ -775,6 +781,8 @@ export function PlayDeskHeader({
         damageProfile={damageProfile}
         hasEvasion={hasEvasion}
         hasUncannyDodge={hasUncannyDodge}
+        heavyArmorMaster={heavyArmorMaster}
+        hasShieldMasterEvasion={hasShieldMasterEvasion}
       />
 
       <CoinPadDialog

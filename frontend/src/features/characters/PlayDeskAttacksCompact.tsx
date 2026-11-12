@@ -140,6 +140,21 @@ type PlayDeskAttacksCompactProps = {
   }> | null
   /** After hit: pass used rider effect ids (once / charge spend). */
   onConsumeDamageRiders?: (used: Array<{ effectId: string; once: boolean; spendCharge?: boolean }>) => void
+  /** B-07: Elven Accuracy when attack ability is Dex/Int/Wis/Cha + advantage. */
+  elvenAccuracy?: boolean
+  /** B-07: Lucky armed — extra d20, pick any (spend handled by parent). */
+  luckyArmed?: boolean
+  onLuckySpent?: () => void
+  /** B-07: Savage Attacker once/turn weapon damage reroll. */
+  savageAttacker?: boolean
+  /** B-07: Flames of Phlegethos — reroll 1s on fire damage. */
+  flamesOfPhlegethos?: boolean
+  /** B-07: after Lucky roll, parent may open pick UI. */
+  onLuckyPickNeeded?: (input: {
+    allDice: number[]
+    text: string
+    hitRoll: import('./deskRolls').CheckRoll
+  }) => void
 }
 
 function formatSpendTime(atMs: number): string {
@@ -197,6 +212,12 @@ export function PlayDeskAttacksCompact({
   onConsumeOnceBuffDice,
   damageRiders = null,
   onConsumeDamageRiders,
+  elvenAccuracy = false,
+  luckyArmed = false,
+  onLuckySpent,
+  savageAttacker = false,
+  flamesOfPhlegethos = false,
+  onLuckyPickNeeded,
 }: PlayDeskAttacksCompactProps) {
   const divineStrike = useMemo(() => divineStrikeRider(combatFeatures), [combatFeatures])
   const improvedSmite = useMemo(
@@ -603,12 +624,25 @@ export function PlayDeskAttacksCompact({
                       if (row.meleeOnly && !meleeAttack) return false
                       return riderEnabled(row)
                     })
+                    const useElven =
+                      elvenAccuracy &&
+                      attackMode === 'advantage' &&
+                      (attackAbility === 'dex' ||
+                        attackAbility === 'int' ||
+                        attackAbility === 'wis' ||
+                        attackAbility === 'cha')
                     const strike = resolveAttackRoll({
                       name: attack.name,
                       attackBonus,
                       damageExpr: dmg || baseDamage,
                       damageType: attack.damage_type,
                       bonusDice,
+                      elvenAccuracy: useElven,
+                      lucky: luckyArmed,
+                      savageAttacker: savageAttacker && (meleeAttack || unarmed),
+                      flamesOfPhlegethos:
+                        flamesOfPhlegethos &&
+                        /огн|fire/i.test(String(attack.damage_type || shownType || '')),
                       extraDamages: [
                         ...(divineStrike
                           ? [
@@ -647,7 +681,21 @@ export function PlayDeskAttacksCompact({
                       ],
                       mode: attackMode,
                     })
-                    onToast?.(strike.text)
+                    if (
+                      strike.needsPick &&
+                      strike.allDice &&
+                      strike.hitRoll &&
+                      onLuckyPickNeeded
+                    ) {
+                      onLuckyPickNeeded({
+                        allDice: strike.allDice,
+                        text: strike.text,
+                        hitRoll: strike.hitRoll,
+                      })
+                    } else {
+                      onToast?.(strike.text)
+                    }
+                    if (luckyArmed) onLuckySpent?.()
                     onConsumeOnceBuffDice?.()
                     if (activeRiders.length) {
                       onConsumeDamageRiders?.(

@@ -13,6 +13,12 @@ export type CheckRoll = DieRoll & {
   mode: DeskRollMode
   /** The other d20 when advantage/disadvantage was used. */
   otherDie?: number
+  /** All natural dice shown (Lucky pick / Elven Accuracy). */
+  allDice?: number[]
+  /** Player must pick which natural die to keep (Lucky R11). */
+  needsPick?: boolean
+  /** Label bit for format (эльф.точн. / удача). */
+  featLabel?: string
   /** Total before a feature floor (Indomitable Might) replaced it. */
   rawTotal?: number
   floorLabel?: string
@@ -52,7 +58,14 @@ export function rollCheck(
   const mod = Math.trunc(modifier)
   const first = rollDie(20, rng)
   if (mode === 'normal') {
-    return { die: first, sides: 20, modifier: mod, total: first + mod, mode }
+    return {
+      die: first,
+      sides: 20,
+      modifier: mod,
+      total: first + mod,
+      mode,
+      allDice: [first],
+    }
   }
   const second = rollDie(20, rng)
   const keep =
@@ -66,6 +79,87 @@ export function rollCheck(
     modifier: mod,
     total: keep + mod,
     mode,
+    allDice: [first, second],
+  }
+}
+
+/**
+ * Elven Accuracy (XGE): with advantage on Dex/Int/Wis/Cha attack — roll 3d20, keep highest.
+ */
+export function rollCheckElvenAccuracy(
+  modifier: number,
+  rng: () => number = Math.random,
+): CheckRoll {
+  const mod = Math.trunc(modifier)
+  const dice = [rollDie(20, rng), rollDie(20, rng), rollDie(20, rng)]
+  const keep = Math.max(...dice)
+  const sorted = [...dice].sort((a, b) => b - a)
+  return {
+    die: keep,
+    otherDie: sorted[1],
+    sides: 20,
+    modifier: mod,
+    total: keep + mod,
+    mode: 'advantage',
+    allDice: dice,
+    featLabel: 'эльф.точн.',
+  }
+}
+
+/**
+ * Lucky feat (PHB / R11): spend a luck point to add an extra d20, then pick any.
+ * - normal → 2 dice, pick any
+ * - advantage/disadvantage → 3 dice, pick any
+ */
+export function rollCheckWithLucky(
+  modifier: number,
+  mode: DeskRollMode = 'normal',
+  rng: () => number = Math.random,
+): CheckRoll {
+  const mod = Math.trunc(modifier)
+  if (mode === 'normal') {
+    const a = rollDie(20, rng)
+    const b = rollDie(20, rng)
+    return {
+      die: a,
+      otherDie: b,
+      sides: 20,
+      modifier: mod,
+      total: a + mod,
+      mode,
+      allDice: [a, b],
+      needsPick: true,
+      featLabel: 'удача',
+    }
+  }
+  const a = rollDie(20, rng)
+  const b = rollDie(20, rng)
+  const c = rollDie(20, rng)
+  const provisional =
+    mode === 'advantage' ? Math.max(a, b) : Math.min(a, b)
+  return {
+    die: provisional,
+    otherDie: mode === 'advantage' ? Math.min(a, b) : Math.max(a, b),
+    sides: 20,
+    modifier: mod,
+    total: provisional + mod,
+    mode,
+    allDice: [a, b, c],
+    needsPick: true,
+    featLabel: 'удача',
+  }
+}
+
+/** Apply the player's chosen natural die after a Lucky pick. */
+export function applyLuckyPick(roll: CheckRoll, chosenDie: number): CheckRoll {
+  const die = Math.max(1, Math.min(20, Math.floor(chosenDie)))
+  return {
+    ...roll,
+    die,
+    total: die + roll.modifier,
+    needsPick: false,
+    otherDie:
+      (roll.allDice ?? []).find((d) => d !== die) ?? roll.otherDie,
   }
 }
 
@@ -160,10 +254,24 @@ function modeLabel(mode: DeskRollMode): string {
 }
 
 export function formatCheckRoll(label: string, roll: CheckRoll): string {
-  const dice =
-    roll.mode !== 'normal' && roll.otherDie != null
-      ? `d20:${roll.die}/${roll.otherDie} ${modeLabel(roll.mode)}`
-      : `d20:${roll.die}`
+  const all = roll.allDice?.filter((n) => Number.isFinite(n)) ?? []
+  let dice: string
+  if (all.length >= 3) {
+    const shown = all.join('/')
+    const tag = roll.featLabel
+      ? ` ${roll.featLabel}`
+      : roll.mode !== 'normal'
+        ? ` ${modeLabel(roll.mode)}`
+        : ''
+    dice = `d20:${shown}${tag}`
+  } else if (roll.mode !== 'normal' && roll.otherDie != null) {
+    const tag = roll.featLabel ? ` ${roll.featLabel}` : ` ${modeLabel(roll.mode)}`
+    dice = `d20:${roll.die}/${roll.otherDie}${tag}`
+  } else if (all.length === 2 && roll.featLabel) {
+    dice = `d20:${all.join('/')} ${roll.featLabel}`
+  } else {
+    dice = `d20:${roll.die}`
+  }
   const floor =
     roll.rawTotal != null && roll.floorLabel && roll.rawTotal !== roll.total
       ? ` · ${roll.floorLabel}, было ${roll.rawTotal}`
@@ -182,6 +290,13 @@ export type AttackStrike = {
   /** Kept d20 is a natural 20. */
   crit: boolean
   die: number
+  /** Lucky: natural dice awaiting player pick. */
+  allDice?: number[]
+  needsPick?: boolean
+  /** Partial CheckRoll for applying Lucky pick after UI. */
+  hitRoll?: CheckRoll
+  /** Toast suffix when savage / phlegethos adjusted damage. */
+  damageNote?: string
 }
 
 function formatExtraDamage(
@@ -209,14 +324,83 @@ export function resolveAttackRoll(input: {
   bonusDice?: BonusDiePart[] | null
   mode?: DeskRollMode
   rng?: () => number
+  /** B-07: Elven Accuracy — 3d20 keep highest when advantage. */
+  elvenAccuracy?: boolean
+  /** B-07: Lucky — extra d20, player picks (needsPick on CheckRoll). */
+  lucky?: boolean
+  /** B-07: Savage Attacker — once/turn reroll weapon damage parts, keep any. */
+  savageAttacker?: boolean
+  /** B-07: Flames of Phlegethos — reroll 1s on fire damage. */
+  flamesOfPhlegethos?: boolean
 }): AttackStrike {
   const rng = input.rng ?? Math.random
   const mode = input.mode ?? 'normal'
-  const hit = rollCheck(input.attackBonus, mode, rng)
+  let hit: CheckRoll
+  if (input.lucky) {
+    hit = rollCheckWithLucky(input.attackBonus, mode, rng)
+  } else if (input.elvenAccuracy && mode === 'advantage') {
+    hit = rollCheckElvenAccuracy(input.attackBonus, rng)
+  } else {
+    hit = rollCheck(input.attackBonus, mode, rng)
+  }
   const bonus = rollBonusDiceParts(input.bonusDice, rng)
   // The kept d20 is the attack roll. Advantage can crit; disadvantage uses the lower die.
   const crit = hit.die === 20
-  const dmg = rollDamage(input.damageExpr, rng, { crit })
+  let dmg = rollDamage(input.damageExpr, rng, { crit })
+  const damageNotes: string[] = []
+  if (dmg && input.savageAttacker && dmg.parts.length > 0) {
+    const reroll = dmg.parts.map((sidesHint, i) => {
+      // Re-roll each weapon damage die; keep the higher face (player may pick either — we keep max for auto).
+      void sidesHint
+      const sides = (() => {
+        const parsed = parseDamageExpression(input.damageExpr)
+        return parsed?.sides ?? 8
+      })()
+      const again = rollDie(sides, rng)
+      return Math.max(dmg!.parts[i]!, again)
+    })
+    const sum = reroll.reduce((a, b) => a + b, 0) + dmg.modifier
+    dmg = {
+      ...dmg,
+      parts: reroll,
+      total: sum,
+      detail: `${reroll.join('+')}${
+        dmg.modifier === 0
+          ? ''
+          : dmg.modifier > 0
+            ? `+${dmg.modifier}`
+            : String(dmg.modifier)
+      } · дикий`,
+    }
+    damageNotes.push('дикий атакующий')
+  }
+  if (
+    dmg &&
+    input.flamesOfPhlegethos &&
+    /огн|fire/i.test(String(input.damageType || ''))
+  ) {
+    const reroll = dmg.parts.map((face) => {
+      if (face !== 1) return face
+      const parsed = parseDamageExpression(input.damageExpr)
+      return rollDie(parsed?.sides ?? 6, rng)
+    })
+    if (reroll.some((v, i) => v !== dmg!.parts[i])) {
+      const sum = reroll.reduce((a, b) => a + b, 0) + dmg.modifier
+      dmg = {
+        ...dmg,
+        parts: reroll,
+        total: sum,
+        detail: `${reroll.join('+')}${
+          dmg.modifier === 0
+            ? ''
+            : dmg.modifier > 0
+              ? `+${dmg.modifier}`
+              : String(dmg.modifier)
+        } · флегетос`,
+      }
+      damageNotes.push('пламя Флегетоса')
+    }
+  }
   const typeBit = input.damageType?.trim() ? ` ${input.damageType.trim()}` : ''
   const critBit = crit ? ' · критическое попадание' : ''
   const extras = [
@@ -229,7 +413,15 @@ export function resolveAttackRoll(input: {
   const text = !dmg
     ? `${formatCheckRoll(input.name, attackHit)}${bonus.text}${critBit} · урон ${input.damageExpr || '—'}${typeBit}${extraBit}`
     : `${formatCheckRoll(input.name, attackHit)}${bonus.text}${critBit} · урон ${dmg.total}${typeBit} (${dmg.detail})${extraBit}`
-  return { text, crit, die: hit.die }
+  return {
+    text,
+    crit,
+    die: hit.die,
+    allDice: hit.allDice,
+    needsPick: hit.needsPick,
+    hitRoll: hit,
+    damageNote: damageNotes.length ? damageNotes.join(' · ') : undefined,
+  }
 }
 
 export function formatAttackRoll(input: {
@@ -282,9 +474,17 @@ export function formatSkillRoll(
   floor?: { value: number; label: string } | null,
   dieFloor?: { value: number; label: string } | null,
   bonusDice?: BonusDiePart[] | null,
+  opts?: { lucky?: boolean; elvenAccuracy?: boolean },
 ): string {
   const roller = rng ?? Math.random
-  const rolled = rollCheck(modifier, mode, roller)
+  let rolled: CheckRoll
+  if (opts?.lucky) {
+    rolled = rollCheckWithLucky(modifier, mode, roller)
+  } else if (opts?.elvenAccuracy && mode === 'advantage') {
+    rolled = rollCheckElvenAccuracy(modifier, roller)
+  } else {
+    rolled = rollCheck(modifier, mode, roller)
+  }
   const withDie = dieFloor ? raiseNaturalDie(rolled, dieFloor.value, dieFloor.label) : rolled
   const roll = floor ? raiseCheckToFloor(withDie, floor.value, floor.label) : withDie
   const bonus = rollBonusDiceParts(bonusDice, roller)

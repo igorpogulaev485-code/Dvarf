@@ -962,6 +962,19 @@ export function installSheetActions4(model: SheetModel) {
     ) {
       fromFx = 'advantage'
     }
+    // B-07 War Caster: advantage on Constitution saves to maintain concentration.
+    if (
+      fromFx === 'normal' &&
+      String(abilityKey || '').toLowerCase() === 'con' &&
+      Boolean(model.draft.play.concentration) &&
+      (model.draft.featGrants ?? []).some((row: { applied?: { flags?: string[] } }) =>
+        (row.applied?.flags ?? []).some(
+          (f) => String(f).toLowerCase().replace(/-/g, '_') === 'war_caster',
+        ),
+      )
+    ) {
+      fromFx = 'advantage'
+    }
     return resolveRollMode(
       mergeDeskRollMode(model.deskRollMode, fromFx),
       model.exhaustionFlags().disadvantageOnAttacksAndSaves,

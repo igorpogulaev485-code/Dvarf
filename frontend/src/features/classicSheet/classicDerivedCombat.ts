@@ -19,6 +19,10 @@ import {
   sumFeatInitiativeBonus,
   sumFeatSpeedBonus,
 } from '../../shared/dnd/featGrants'
+import {
+  applyMediumArmorMasterCap,
+  dualWielderAcBonus,
+} from '../../shared/dnd/b07FeatCombat'
 import { initiativeBonusFromFeatures } from '../characters/featureCombatBonuses'
 import { listFightingStyleIds, readFeaturePicks } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonusFromIds } from '../../shared/dnd/fightingStyles'
@@ -201,10 +205,12 @@ export function classicAutoArmorClass(character: CharacterDetail): number {
     typeof asRecord(sheet.combat).ac_formula_key === 'string'
       ? String(asRecord(sheet.combat).ac_formula_key)
       : null
+  const featGrants = readFeatGrantLedger(sheet.feat_grants)
+  const armorForAc = applyMediumArmorMasterCap(pieces.armor, featGrants)
   const base = computeArmorClass({
     dexMod: mods.dex,
     abilityMods: mods,
-    armor: pieces.armor,
+    armor: armorForAc,
     shield: pieces.shield,
     naturalArmor,
     unarmoredDefense,
@@ -213,7 +219,6 @@ export function classicAutoArmorClass(character: CharacterDetail): number {
     acMinFloor: acMinFromActiveEffects(combatEffects),
   })
 
-  const featGrants = readFeatGrantLedger(sheet.feat_grants)
   const styleIds = listFightingStyleIds(readFeaturePicks(sheet.feature_picks))
   const fromFeat = fightingStyleFromFeatGrants(featGrants)
   if (fromFeat && !styleIds.includes(fromFeat)) styleIds.push(fromFeat)
@@ -224,6 +229,8 @@ export function classicAutoArmorClass(character: CharacterDetail): number {
 
   let coreAc = base.ac
   if (styleBonus > 0) coreAc += styleBonus
+  const dualWieldAc = dualWielderAcBonus(featGrants, inventory.items)
+  if (dualWieldAc > 0) coreAc += dualWieldAc
   const gearAc = resolveGearAcBonus(gear, {
     wearingArmor: Boolean(pieces.armor),
     wearingShield: Boolean(pieces.shield),

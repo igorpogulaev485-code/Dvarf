@@ -3076,6 +3076,60 @@ export function ClassFeaturesPanel({
                     </div>
                     <h3 className="feature-card__title">{feat.nameRu}</h3>
                     <Text>{body}</Text>
+                    {onFeatureBuffApply &&
+                    [
+                      'inspiring_leader',
+                      'chef',
+                      'defensive_duelist',
+                      'gift_of_the_metallic_dragon',
+                      'gift_of_the_chromatic_dragon',
+                      'bountiful_luck',
+                      'second_chance',
+                      'strike_of_the_giants',
+                      'squire_of_solamnia',
+                      'knight_of_the_crown',
+                      'knight_of_the_rose',
+                      'knight_of_the_sword',
+                      'adept_of_the_white_robes',
+                      'adept_of_the_red_robes',
+                      'flames_of_phlegethos',
+                    ].includes(String(feat.slug || '').toLowerCase()) ? (
+                      <div className="chip-row" style={{ marginTop: 8 }}>
+                        <button
+                          type="button"
+                          className="sheet-chip"
+                          onClick={() => {
+                            const slug = String(feat.slug || '').toLowerCase()
+                            const featureId =
+                              slug === 'gift_of_the_metallic_dragon'
+                                ? 'protective_wings'
+                                : slug === 'gift_of_the_chromatic_dragon'
+                                  ? 'chromatic_resistance'
+                                  : slug === 'squire_of_solamnia'
+                                    ? 'precise_strike'
+                                    : slug === 'knight_of_the_crown'
+                                      ? 'commanding_rally'
+                                      : slug === 'knight_of_the_rose'
+                                        ? 'bolstering_rally'
+                                        : slug === 'knight_of_the_sword'
+                                          ? 'demoralizing_strike'
+                                          : slug === 'adept_of_the_white_robes'
+                                            ? 'protective_ward'
+                                            : slug === 'adept_of_the_red_robes'
+                                              ? 'magical_balance'
+                                              : slug
+                            onFeatureBuffApply({
+                              featureId: `feat:${featureId}`,
+                              featureNameRu: feat.nameRu,
+                              classEntryId: 'feat',
+                              classLevel: characterLevel,
+                            })
+                          }}
+                        >
+                          Применить
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 )
               })}

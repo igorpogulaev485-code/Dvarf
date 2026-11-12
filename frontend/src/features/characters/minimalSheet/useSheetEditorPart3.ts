@@ -42,6 +42,10 @@ import { listShieldItems } from '../heldEquip'
 import { attunementsToSheet } from '../attunement'
 import { classLevelsToSheet } from '../classLevels'
 import { naturalArmorFromFeatGrants } from '../../../shared/dnd/featGrants'
+import {
+  applyMediumArmorMasterCap,
+  dualWielderAcBonus,
+} from '../../../shared/dnd/b07FeatCombat'
 import { proficiencyBonusForTotalLevel } from '../../../shared/dnd/classFeatures'
 import { classWalkSpeedBonusFt } from '../../../shared/dnd/classMovement'
 import { featurePicksToSheet } from '../../../shared/dnd/featurePicks'
@@ -703,10 +707,14 @@ export function useSheetEditorPart3(model: SheetModel) {
         ]
     const acMinFloor = acMinFromActiveEffects(effectsRaw)
     const preferredKey = model.draft.acFormulaKey
+    const armorForAc = applyMediumArmorMasterCap(
+      pieces.armor,
+      model.draft.featGrants,
+    )
     const withoutShield = computeArmorClass({
       dexMod: mods.dex,
       abilityMods: mods,
-      armor: pieces.armor,
+      armor: armorForAc,
       shield: null,
       naturalArmor,
       unarmoredDefense,
@@ -717,7 +725,7 @@ export function useSheetEditorPart3(model: SheetModel) {
     const base = computeArmorClass({
       dexMod: mods.dex,
       abilityMods: mods,
-      armor: pieces.armor,
+      armor: armorForAc,
       shield: pieces.shield,
       naturalArmor,
       unarmoredDefense,
@@ -734,6 +742,14 @@ export function useSheetEditorPart3(model: SheetModel) {
     if (styleBonus > 0) {
       coreAc += styleBonus
       gearSummary = `${gearSummary} · стиль +${styleBonus}`
+    }
+    const dualWieldAc = dualWielderAcBonus(
+      model.draft.featGrants,
+      model.draft.inventory.items,
+    )
+    if (dualWieldAc > 0) {
+      coreAc += dualWieldAc
+      gearSummary = `${gearSummary} · двуоружие +${dualWieldAc}`
     }
     const song = bladesongBonuses({
       resources: model.draft.play.resources,
@@ -793,6 +809,7 @@ export function useSheetEditorPart3(model: SheetModel) {
   }, [
     effectiveAbilities,
     model.draft.inventory.items,
+    model.draft.featGrants,
     model.draft.play.resources,
     model.draft.abilities.int,
     model.draft.raceGrant,

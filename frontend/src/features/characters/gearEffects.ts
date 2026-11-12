@@ -888,6 +888,8 @@ export function sheetDamageProfile(input: {
   effects?: unknown
   /** B-06: Resistant Armor on self (infusion aggregate). */
   infusionResistances?: string[] | null
+  /** B-07: feat flag resistances (infernal constitution, giant gifts…). */
+  featResistances?: Array<{ type: string; source: string }> | null
 }): IncomingDamageProfile {
   const gear = input.gear ?? emptyAggregatedGearEffects()
   const profile = emptyDamageProfile()
@@ -915,6 +917,10 @@ export function sheetDamageProfile(input: {
   for (const raw of input.infusionResistances ?? []) {
     const type = String(raw || '').trim()
     if (type) addDefense(profile.resistances, type, 'инфузия')
+  }
+  for (const row of input.featResistances ?? []) {
+    const type = String(row.type || '').trim()
+    if (type) addDefense(profile.resistances, type, row.source || 'черта')
   }
   if (input.effects != null) {
     for (const row of defensesFromActiveEffects(input.effects)) {
