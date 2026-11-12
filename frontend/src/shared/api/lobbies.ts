@@ -24,6 +24,9 @@ export type LobbySummary = {
   is_observer?: boolean
   role?: string
   member_count: number
+  /** L-03: есть незакрытая сессия */
+  has_open_session?: boolean
+  open_session_id?: string | null
   created_at: string
   updated_at: string
 }
@@ -688,8 +691,17 @@ export async function updateLobby(
   })
 }
 
-export async function deleteLobby(id: string): Promise<void> {
-  await apiRequest<void>(`/lobbies/${id}`, { method: 'DELETE' })
+export async function deleteLobby(id: string, confirmName: string): Promise<void> {
+  await apiRequest<void>(`/lobbies/${id}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ confirm_name: confirmName }),
+  })
+}
+
+export async function rotateLobbyInviteCode(lobbyId: string): Promise<LobbyDetail> {
+  return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/invite-code`, {
+    method: 'POST',
+  })
 }
 
 export async function joinLobby(
@@ -1540,9 +1552,12 @@ export function unclaimedDefeatXp(combatant: SessionCombatant): {
   }
 }
 
+/** @deprecated L-03: внешний QR снят — используйте InviteQr. */
 export function lobbyQrUrl(inviteCode: string): string {
-  const joinUrl = `${window.location.origin}/join/${inviteCode}`
-  return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(joinUrl)}`
+  // Заглушка без сети (не api.qrserver.com).
+  return `data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><text x="12" y="90" font-size="12">QR ${inviteCode}</text></svg>`,
+  )}`
 }
 
 export async function listSessionEvents(

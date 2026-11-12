@@ -93,6 +93,7 @@ from app.schemas.lobby import (
     JournalEntryUpdateRequest,
     JournalPageOut,
     LobbyCreateRequest,
+    LobbyDeleteRequest,
     LobbyDetail,
     LobbyMediaUsageOut,
     LobbyMemberOut,
@@ -823,8 +824,21 @@ class LobbyService:
             created_at=row.created_at,
         )
 
+    @staticmethod
+    def _open_session(lobby: Lobby) -> PlaySession | None:
+        """Самая свежая незакрытая сессия (closed_at is None), иначе None."""
+        open_sessions = [s for s in (getattr(lobby, "sessions", None) or []) if s.closed_at is None]
+        if not open_sessions:
+            return None
+        open_sessions.sort(
+            key=lambda s: (s.updated_at or s.created_at, s.created_at),
+            reverse=True,
+        )
+        return open_sessions[0]
+
     def _to_summary(self, lobby: Lobby, user: User) -> LobbySummary:
         flags = roles.permission_flags(self.db, lobby, user)
+        open_session = self._open_session(lobby)
         return LobbySummary(
             id=lobby.id,
             name=lobby.name,
@@ -834,6 +848,8 @@ class LobbyService:
             is_observer=flags["is_observer"],
             role=flags["role"],
             member_count=len(lobby.members),
+            has_open_session=open_session is not None,
+            open_session_id=open_session.id if open_session else None,
             created_at=lobby.created_at,
             updated_at=lobby.updated_at,
         )
@@ -871,11 +887,12 @@ class LobbyService:
                 free_mb=usage.free_mb,
                 limit_mb=usage.limit_mb,
             )
+        # L-03: код/ссылка видны всем, кто проходит can_view_lobby (деталь уже за _require_view).
         return LobbyDetail(
             id=lobby.id,
             name=lobby.name,
-            invite_code=lobby.invite_code if flags["is_owner"] else None,
-            join_path=f"/join/{lobby.invite_code}" if flags["is_owner"] else None,
+            invite_code=lobby.invite_code,
+            join_path=f"/join/{lobby.invite_code}",
             is_owner=flags["is_owner"],
             is_comaster=flags["is_comaster"],
             is_observer=flags["is_observer"],
@@ -934,11 +951,30 @@ class LobbyService:
         lobby = self._require_lobby(lobby_id)
         return self._to_detail(lobby, user)
 
-    def delete(self, user: User, lobby_id: UUID) -> None:
+    def delete(self, user: User, lobby_id: UUID, payload: LobbyDeleteRequest) -> None:
         lobby = self._require_lobby(lobby_id)
-        self._require_owner(lobby, user)
+        roles.require_can_delete_lobby(lobby, user)
+        if payload.confirm_name.strip() != lobby.name:
+            raise AppError(
+                "Введите точное название лобби для подтверждения",
+                code="delete_confirm_mismatch",
+                status_code=400,
+            )
+        from app.services.media import purge_lobby_media_dir
+
+        target_id = lobby.id
         self.lobbies.delete_lobby(lobby)
         self.db.commit()
+        # Файлы L-02: строки lobby_media снимает CASCADE; каталог на диске — вручную.
+        purge_lobby_media_dir(target_id)
+
+    def rotate_invite_code(self, user: User, lobby_id: UUID) -> LobbyDetail:
+        lobby = self._require_lobby(lobby_id)
+        roles.require_can_change_invite_code(lobby, user)
+        lobby.invite_code = self.lobbies.allocate_invite_code(exclude_lobby_id=lobby.id)
+        self.db.commit()
+        lobby = self._require_lobby(lobby_id)
+        return self._to_detail(lobby, user)
 
     def join_with_character(self, user: User, payload: JoinLobbyRequest) -> LobbyDetail:
         code = payload.code.strip().upper()

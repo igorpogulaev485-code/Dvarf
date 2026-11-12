@@ -569,8 +569,17 @@ class LobbySummary(BaseModel):
     is_observer: bool = False
     role: str = "none"
     member_count: int
+    # L-03: незакрытая PlaySession (closed_at is None); если несколько — самая свежая по updated_at.
+    has_open_session: bool = False
+    open_session_id: UUID | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class LobbyDeleteRequest(BaseModel):
+    """Подтверждение удаления лобби точным названием (как transfer)."""
+
+    confirm_name: str = Field(min_length=1, max_length=120)
 
 
 class LobbyMediaUsageOut(BaseModel):

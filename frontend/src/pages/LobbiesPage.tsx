@@ -99,12 +99,29 @@ export function LobbiesPage() {
                   <div>
                     <Text as="h2">{lobby.name}</Text>
                     <Text tone="muted">
-                      {lobby.is_owner ? 'Вы мастер' : 'Участник'} · персонажей:{' '}
-                      {lobby.member_count}
+                      {lobby.is_owner
+                        ? 'Вы мастер'
+                        : lobby.is_comaster
+                          ? 'Вы сомастер'
+                          : lobby.is_observer
+                            ? 'Вы наблюдатель'
+                            : 'Участник'}{' '}
+                      · персонажей: {lobby.member_count}
                       {lobby.invite_code ? ` · код ${lobby.invite_code}` : ''}
                     </Text>
+                    {lobby.has_open_session ? (
+                      <span className="lobby-list-live">Идёт игра</span>
+                    ) : null}
                   </div>
                   <div className="list-row__actions">
+                    {lobby.has_open_session && lobby.open_session_id ? (
+                      <Link
+                        className="ui-button ui-button--secondary"
+                        to={`/sessions/${lobby.open_session_id}`}
+                      >
+                        За стол
+                      </Link>
+                    ) : null}
                     <Link className="ui-button" to={`/lobbies/${lobby.id}`}>
                       Открыть
                     </Link>

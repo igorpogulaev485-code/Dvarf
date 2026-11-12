@@ -51,6 +51,7 @@ from app.schemas.lobby import (
     JournalEntryUpdateRequest,
     JournalPageOut,
     LobbyCreateRequest,
+    LobbyDeleteRequest,
     LobbyDetail,
     LobbyMediaOut,
     LobbyMediaUsageOut,
@@ -342,11 +343,23 @@ def update_lobby(
 @router.delete("/lobbies/{lobby_id}", status_code=204)
 def delete_lobby(
     lobby_id: UUID,
+    payload: LobbyDeleteRequest,
     current_user: CurrentUser,
     db: DbSession,
 ) -> Response:
-    LobbyService(db).delete(current_user, lobby_id)
+    LobbyService(db).delete(current_user, lobby_id, payload)
     return Response(status_code=204)
+
+
+@router.post("/lobbies/{lobby_id}/invite-code", response_model=LobbyDetail)
+async def rotate_lobby_invite_code(
+    lobby_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> LobbyDetail:
+    detail = LobbyService(db).rotate_invite_code(current_user, lobby_id)
+    await lobby_hub.broadcast(lobby_id, {"type": "lobby_resync"})
+    return detail
 
 
 @router.post("/lobbies/{lobby_id}/members", response_model=LobbyDetail)
