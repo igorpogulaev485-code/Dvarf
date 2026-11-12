@@ -126,7 +126,10 @@
         "allows_shield": true,
         "label_ru": "Броня автогнома"
       },
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "яд"
+      ]
     },
     {
       "slug": "dhampir",
@@ -258,7 +261,10 @@
         "medium",
         "small"
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "яд"
+      ]
     },
     {
       "slug": "kalashtar",
@@ -282,7 +288,10 @@
       "languages_choose": 1,
       "traits_text": "Калаштар (ERLW): ASI гибкий. Двойной разум (преимущество к спас. от очарования). Ментальная дисциплина (сопротивление психическому). Связь с духом (телепатия 60 фт). Раскол разума (реакция: сопротивление психическому; повтор спас. от очарования/испуганности).",
       "subrace_required": false,
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "психический"
+      ]
     },
     {
       "slug": "warforged",
@@ -317,7 +326,10 @@
         "armored_bonus": 1,
         "label_ru": "Встроенная защита"
       },
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "яд"
+      ]
     },
     {
       "slug": "loxodon",
@@ -634,6 +646,401 @@
       ],
       "feat_pick": true,
       "content_layer": "community_ref"
+    },
+    {
+      "slug": "aarakocra_eepc",
+      "name_ru": "Ааракокра (EEPC)",
+      "name_en": "Aarakocra (EEPC)",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "eepc",
+      "sort_order": 410,
+      "speed": 25,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {
+        "dex": 2,
+        "wis": 1
+      },
+      "languages": [
+        "Общий",
+        "Ааракокра",
+        "Ауран"
+      ],
+      "languages_choose": 0,
+      "movement": {
+        "fly": 50
+      },
+      "natural_weapons": [
+        {
+          "id": "talons",
+          "name_ru": "Когти",
+          "damage": "1к4",
+          "damage_type": "рубящий",
+          "ability": "str",
+          "proficient": true
+        }
+      ],
+      "subrace_required": false,
+      "content_layer": "community_ref",
+      "traits_text": "Ааракокра (EEPC/POA): +2 Лов, +1 Муд. Полёт 50 фт; нельзя летать в среднем или тяжёлом доспехе. Когти 1к4. Языки: Общий, ааракокра, ауран.",
+      "trait_cards": [
+        {
+          "id": "flight_eepc",
+          "name_ru": "Полёт",
+          "summary_ru": "Скорость полёта 50 фт; недоступна в среднем/тяжёлом доспехе."
+        }
+      ]
+    },
+    {
+      "slug": "genasi_air_eepc",
+      "name_ru": "Дженази воздуха (EEPC)",
+      "name_en": "Air Genasi (EEPC)",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "eepc",
+      "sort_order": 411,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {
+        "con": 2,
+        "dex": 1
+      },
+      "languages": [
+        "Общий",
+        "Первичный"
+      ],
+      "languages_choose": 0,
+      "subrace_required": false,
+      "content_layer": "community_ref",
+      "traits_text": "Дженази воздуха (EEPC): +2 Тел, +1 Лов. Нескончаемое дыхание. Слияние с ветром: Левитация 1/длинный отдых (Тел).",
+      "trait_cards": [
+        {
+          "id": "unending_breath",
+          "name_ru": "Нескончаемое дыхание",
+          "summary_ru": "Можете задерживать дыхание неограниченно, пока не недееспособны."
+        },
+        {
+          "id": "mingle_with_the_wind",
+          "name_ru": "Слияние с ветром",
+          "summary_ru": "1/длинный отдых — «Левитация» на себя без ячейки и компонентов (Тел)."
+        }
+      ]
+    },
+    {
+      "slug": "genasi_earth_eepc",
+      "name_ru": "Дженази земли (EEPC)",
+      "name_en": "Earth Genasi (EEPC)",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "eepc",
+      "sort_order": 412,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {
+        "con": 2,
+        "str": 1
+      },
+      "languages": [
+        "Общий",
+        "Первичный"
+      ],
+      "languages_choose": 0,
+      "subrace_required": false,
+      "content_layer": "community_ref",
+      "traits_text": "Дженази земли (EEPC): +2 Тел, +1 Сил. Хождение по земле. Слияние с камнем: Бесследное передвижение 1/длинный отдых (Тел).",
+      "trait_cards": [
+        {
+          "id": "earth_walk",
+          "name_ru": "Хождение по земле",
+          "summary_ru": "Трудная местность из земли или камня не стоит дополнительного перемещения."
+        },
+        {
+          "id": "merge_with_stone",
+          "name_ru": "Слияние с камнем",
+          "summary_ru": "1/длинный отдых — «Бесследное передвижение» (+10 Скрытность себе и союзникам в 30 фт; переключатель «в ауре»)."
+        }
+      ]
+    },
+    {
+      "slug": "genasi_fire_eepc",
+      "name_ru": "Дженази огня (EEPC)",
+      "name_en": "Fire Genasi (EEPC)",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "eepc",
+      "sort_order": 413,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "con": 2,
+        "int": 1
+      },
+      "languages": [
+        "Общий",
+        "Первичный"
+      ],
+      "languages_choose": 0,
+      "damage_resistances": [
+        "огонь"
+      ],
+      "subrace_required": false,
+      "content_layer": "community_ref",
+      "racial_spells": [
+        {
+          "id": "produce_flame",
+          "spell_slug": "produce_flame",
+          "name_ru": "Огненная ладонь",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "con"
+        },
+        {
+          "id": "burning_hands",
+          "spell_slug": "burning_hands",
+          "name_ru": "Пылающие руки",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "con",
+          "notes_ru": "1/длинный отдых"
+        }
+      ],
+      "traits_text": "Дженази огня (EEPC): +2 Тел, +1 Инт. Тёмное зрение 60. Сопротивление огню. Огненная ладонь; с 3 ур. Пылающие руки 1/длинный отдых (Тел).",
+      "trait_cards": [
+        {
+          "id": "fire_resistance",
+          "name_ru": "Сопротивление огню",
+          "summary_ru": "Сопротивление урону огнём."
+        }
+      ]
+    },
+    {
+      "slug": "genasi_water_eepc",
+      "name_ru": "Дженази воды (EEPC)",
+      "name_en": "Water Genasi (EEPC)",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "eepc",
+      "sort_order": 414,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {
+        "con": 2,
+        "wis": 1
+      },
+      "languages": [
+        "Общий",
+        "Первичный"
+      ],
+      "languages_choose": 0,
+      "damage_resistances": [
+        "кислота"
+      ],
+      "movement": {
+        "swim": 30
+      },
+      "subrace_required": false,
+      "content_layer": "community_ref",
+      "traits_text": "Дженази воды (EEPC): +2 Тел, +1 Муд. Сопротивление кислоте. Амфибия. Плавание 30 фт. Зов волны: создание/управление водой с уровней по книге.",
+      "trait_cards": [
+        {
+          "id": "acid_resistance",
+          "name_ru": "Сопротивление кислоте",
+          "summary_ru": "Сопротивление урону кислотой; амфибия; плавание 30 фт."
+        }
+      ]
+    },
+    {
+      "slug": "dragonborn_draconblood_egw",
+      "name_ru": "Драконокровный (EGW)",
+      "name_en": "Draconblood (EGW)",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "egw",
+      "sort_order": 415,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "int": 2,
+        "cha": 1
+      },
+      "languages": [
+        "Общий",
+        "Драконий"
+      ],
+      "languages_choose": 0,
+      "ancestry_choices": [
+        {
+          "id": "black",
+          "label_ru": "Чёрный",
+          "damage": "кислота",
+          "breath": "5×30 фт линия (Лов)"
+        },
+        {
+          "id": "blue",
+          "label_ru": "Синий",
+          "damage": "электричество",
+          "breath": "5×30 фт линия (Лов)"
+        },
+        {
+          "id": "brass",
+          "label_ru": "Латунный",
+          "damage": "огонь",
+          "breath": "5×30 фт линия (Лов)"
+        },
+        {
+          "id": "bronze",
+          "label_ru": "Бронзовый",
+          "damage": "электричество",
+          "breath": "5×30 фт линия (Лов)"
+        },
+        {
+          "id": "copper",
+          "label_ru": "Медный",
+          "damage": "кислота",
+          "breath": "5×30 фт линия (Лов)"
+        },
+        {
+          "id": "gold",
+          "label_ru": "Золотой",
+          "damage": "огонь",
+          "breath": "15 фт конус (Лов)"
+        },
+        {
+          "id": "green",
+          "label_ru": "Зелёный",
+          "damage": "яд",
+          "breath": "15 фт конус (Тел)"
+        },
+        {
+          "id": "red",
+          "label_ru": "Красный",
+          "damage": "огонь",
+          "breath": "15 фт конус (Лов)"
+        },
+        {
+          "id": "silver",
+          "label_ru": "Серебряный",
+          "damage": "холод",
+          "breath": "15 фт конус (Тел)"
+        },
+        {
+          "id": "white",
+          "label_ru": "Белый",
+          "damage": "холод",
+          "breath": "15 фт конус (Тел)"
+        }
+      ],
+      "subrace_required": false,
+      "content_layer": "community_ref",
+      "traits_text": "Драконокровный (EGW): +2 Инт, +1 Хар. Тёмное зрение 60. Драконье происхождение (сопротивление и дыхание). Сила личности: 1/короткий отдых — преимущество на одну проверку Харизмы (Запугивание или Убеждение).",
+      "trait_cards": [
+        {
+          "id": "forceful_presence",
+          "name_ru": "Сила личности",
+          "summary_ru": "1/короткий отдых: преимущество на одну проверку Харизмы (Запугивание или Убеждение)."
+        }
+      ]
+    },
+    {
+      "slug": "dragonborn_ravenite_egw",
+      "name_ru": "Равенит (EGW)",
+      "name_en": "Ravenite (EGW)",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "egw",
+      "sort_order": 416,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {
+        "str": 2,
+        "con": 1
+      },
+      "languages": [
+        "Общий",
+        "Драконий"
+      ],
+      "languages_choose": 0,
+      "ancestry_choices": [
+        {
+          "id": "black",
+          "label_ru": "Чёрный",
+          "damage": "кислота",
+          "breath": "5×30 фт линия (Лов)"
+        },
+        {
+          "id": "blue",
+          "label_ru": "Синий",
+          "damage": "электричество",
+          "breath": "5×30 фт линия (Лов)"
+        },
+        {
+          "id": "brass",
+          "label_ru": "Латунный",
+          "damage": "огонь",
+          "breath": "5×30 фт линия (Лов)"
+        },
+        {
+          "id": "bronze",
+          "label_ru": "Бронзовый",
+          "damage": "электричество",
+          "breath": "5×30 фт линия (Лов)"
+        },
+        {
+          "id": "copper",
+          "label_ru": "Медный",
+          "damage": "кислота",
+          "breath": "5×30 фт линия (Лов)"
+        },
+        {
+          "id": "gold",
+          "label_ru": "Золотой",
+          "damage": "огонь",
+          "breath": "15 фт конус (Лов)"
+        },
+        {
+          "id": "green",
+          "label_ru": "Зелёный",
+          "damage": "яд",
+          "breath": "15 фт конус (Тел)"
+        },
+        {
+          "id": "red",
+          "label_ru": "Красный",
+          "damage": "огонь",
+          "breath": "15 фт конус (Лов)"
+        },
+        {
+          "id": "silver",
+          "label_ru": "Серебряный",
+          "damage": "холод",
+          "breath": "15 фт конус (Тел)"
+        },
+        {
+          "id": "white",
+          "label_ru": "Белый",
+          "damage": "холод",
+          "breath": "15 фт конус (Тел)"
+        }
+      ],
+      "subrace_required": false,
+      "content_layer": "community_ref",
+      "traits_text": "Равенит (EGW): +2 Сил, +1 Тел. Драконье происхождение. Мстительный удар: когда получаете урон от существа в пределах вашей атаки, реакцией одна атака оружием по нему (1/короткий отдых).",
+      "trait_cards": [
+        {
+          "id": "vengeful_assault",
+          "name_ru": "Мстительный удар",
+          "summary_ru": "Реакция после урона от существа в досягаемости: одна атака оружием (1/короткий отдых)."
+        }
+      ]
     }
   ]
 }

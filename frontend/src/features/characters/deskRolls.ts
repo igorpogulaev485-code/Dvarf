@@ -150,6 +150,30 @@ export function rollCheckWithLucky(
   }
 }
 
+/**
+ * Halfling Lucky (PHB): when the d20 shows a natural 1 on an attack, check, or save,
+ * you may reroll — the new result is mandatory.
+ */
+export function applyHalflingLuckyReroll(
+  roll: CheckRoll,
+  rng: () => number = Math.random,
+): CheckRoll {
+  if (roll.die !== 1) return roll
+  const next = rollDie(20, rng)
+  const prevDice = roll.allDice?.length ? roll.allDice : [1]
+  return {
+    ...roll,
+    die: next,
+    otherDie: 1,
+    total: next + roll.modifier,
+    allDice: [...prevDice, next],
+    featLabel: roll.featLabel
+      ? `${roll.featLabel} · удача полур.`
+      : 'удача полур.',
+    needsPick: false,
+  }
+}
+
 /** Apply the player's chosen natural die after a Lucky pick. */
 export function applyLuckyPick(roll: CheckRoll, chosenDie: number): CheckRoll {
   const die = Math.max(1, Math.min(20, Math.floor(chosenDie)))

@@ -6,6 +6,12 @@ import { totalCharacterLevel } from '../../../shared/dnd/classLevels'
 import { hydrateAlwaysPreparedFromSubclassCatalog, hydrateAlwaysPreparedMechanics } from '../hydrateAlwaysPrepared'
 import { listCatalogEntries } from '../../../shared/api/catalog'
 import { resolveRaceGrantDef, resolveRaceMovement } from '../../../shared/dnd/raceGrants'
+import {
+  formatRaceSaveAdvantageNote,
+  raceFlightUsesArmorGate,
+  raceSaveAdvantageSources,
+  resolveDisplayFlySpeed,
+} from '../../../shared/dnd/b08RaceCombat'
 import { aggregateGearEffects } from '../gearEffects'
 import { fightingStyleFromFeatGrants, sumFeatInitiativeBonus, sumFeatPassiveBonus, type AppliedFeatGrant } from '../../../shared/dnd/featGrants'
 import { buildAsiFeatGrantFromCatalog, findMissingAsiFeatEntries, matchFeatCatalogEntry } from '../asiFeatHydrate'
@@ -137,6 +143,28 @@ export function useSheetEditorPart2(model: SheetModel) {
           }
           if (catalogDef?.traitsText && !nextGrant.traitsText?.trim()) {
             nextGrant = { ...nextGrant, traitsText: catalogDef.traitsText }
+          }
+          // B-08: refresh structured resists (dwarf poison, sea elf cold, …) and
+          // dragonborn ancestry damage when the ledger snapshot is empty.
+          if (catalogDef) {
+            let resists = [...(catalogDef.damageResistances ?? [])]
+            if (
+              resists.length === 0 &&
+              nextGrant.ancestryId &&
+              catalogDef.ancestryChoices.length > 0
+            ) {
+              const ancestry = catalogDef.ancestryChoices.find(
+                (row) => row.id === nextGrant.ancestryId,
+              )
+              if (ancestry?.damage) resists = [ancestry.damage]
+            }
+            const prevResists = nextGrant.damageResistances ?? []
+            const same =
+              resists.length === prevResists.length &&
+              resists.every((row, i) => row === prevResists[i])
+            if (!same && resists.length > 0) {
+              nextGrant = { ...nextGrant, damageResistances: resists }
+            }
           }
 
           const nextSpells = syncRaceSpellsForSheetState({
@@ -814,11 +842,35 @@ export function useSheetEditorPart2(model: SheetModel) {
 
   const displayFlySpeed = useMemo(() => {
     const mods = speedModsFromActiveEffects(model.draft.play.effects)
-    if (mods.flyEqualWalk) return displaySpeed
-    if (mods.flySpeedFt != null) {
-      return Math.max(model.draft.flySpeed ?? 0, mods.flySpeedFt)
-    }
-    return model.draft.flySpeed
-  }, [model.draft.play.effects, model.draft.flySpeed, displaySpeed])
+    const raceSlug = model.draft.raceGrant?.slug ?? null
+    const armorKind = armorPiecesForSpeed.armor?.kind ?? null
+    // B-08 / B29: racial flight (aarakocra, fairy, owlin, EEPC) gated by medium/heavy armor.
+    const applyArmorGate = raceFlightUsesArmorGate(raceSlug)
+    const resolved = resolveDisplayFlySpeed({
+      baseFly: model.draft.flySpeed,
+      walkSpeed: displaySpeed,
+      flyEqualWalk: mods.flyEqualWalk,
+      flySpeedFt: mods.flySpeedFt,
+      armorKind,
+      applyArmorGate,
+    })
+    model.displayFlySpeedNote = resolved.note
+    return resolved.fly
+  }, [
+    model.draft.play.effects,
+    model.draft.flySpeed,
+    model.draft.raceGrant?.slug,
+    displaySpeed,
+    armorPiecesForSpeed.armor?.kind,
+  ])
   model.displayFlySpeed = displayFlySpeed
+
+  model.raceSaveAdvantageNotes = useMemo(() => {
+    const rows = raceSaveAdvantageSources({
+      slug: model.draft.raceGrant?.slug ?? null,
+      parentSlug: model.draft.raceGrant?.parentSlug ?? null,
+    })
+    const note = formatRaceSaveAdvantageNote(rows)
+    return note ? note.split(' · ') : []
+  }, [model.draft.raceGrant?.slug, model.draft.raceGrant?.parentSlug])
 }

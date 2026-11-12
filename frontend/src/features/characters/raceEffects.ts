@@ -402,7 +402,15 @@ export function applyRaceGrantToDraft(input: {
     naturalWeapons,
     movement,
     activatedMovement: def.activatedMovement,
-    damageResistances: [...def.damageResistances],
+    damageResistances: (() => {
+      const base = [...def.damageResistances]
+      if (base.length) return base
+      if (picks.ancestryId) {
+        const ancestry = def.ancestryChoices.find((row) => row.id === picks.ancestryId)
+        if (ancestry?.damage) return [ancestry.damage]
+      }
+      return base
+    })(),
     combatBonuses: { ...def.combatBonuses },
     racialSpells,
   }

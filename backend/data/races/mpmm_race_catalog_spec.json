@@ -66,8 +66,8 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Аасимар (MPMM): ASI гибкий. Размер Средний или Маленький. Тёмное зрение 60. Сопротивление некротическому и излучению. Целительные руки. Носитель света (свет). Выбери разновидность в попапе (защитник / каратель / падший — Volo).",
-      "subrace_required": true,
+      "traits_text": "Аасимар (MPMM): ASI гибкий. Размер Средний или Маленький. Тёмное зрение 60. Сопротивление некротическому и излучению. Исцеляющие руки: действие, число к4 = ПБ (1/длинный отдых). Носитель света (Свет). На 3 уровне — Небесное откровение (небесные крылья / внутреннее сияние / некротический покров), бонусным на 1 минуту, 1/длинный отдых.",
+      "subrace_required": false,
       "racial_spells": [
         {
           "id": "light",
@@ -93,13 +93,38 @@
         },
         {
           "id": "healing_hands",
-          "name_ru": "Целительные руки",
-          "summary_ru": "Действием коснитесь существа и восстановите хиты, равные вашему уровню (1/длинный отдых). Volo; в тексте MotM — кости к4 = ПБ."
+          "name_ru": "Исцеляющие руки",
+          "summary_ru": "Действием коснитесь существа и бросьте число к4 = ПБ; сумма — лечение. 1/длинный отдых."
         },
         {
           "id": "light_bearer",
           "name_ru": "Носитель света",
           "summary_ru": "Вы знаете заговор «Свет». Базовая характеристика — Харизма."
+        },
+        {
+          "id": "celestial_revelation",
+          "name_ru": "Небесное откровение",
+          "summary_ru": "С 3 ур. выберите одно откровение навсегда; бонусным трансформация на 1 минуту (1/длинный отдых)."
+        }
+      ],
+      "revelation_choices": [
+        {
+          "id": "heavenly_wings",
+          "label_ru": "Небесные крылья",
+          "summary_ru": "Полёт = ходьба на время откровения.",
+          "from_level": 3
+        },
+        {
+          "id": "inner_radiance",
+          "label_ru": "Внутреннее сияние",
+          "summary_ru": "Свет 10/10; доп. излучение = ПБ.",
+          "from_level": 3
+        },
+        {
+          "id": "necrotic_shroud",
+          "label_ru": "Некротический покров",
+          "summary_ru": "Испуг в 10 фт; доп. некротика = ПБ.",
+          "from_level": 3
         }
       ]
     },
@@ -108,7 +133,7 @@
       "name_ru": "Аасимар-защитник",
       "name_en": "Protector Aasimar",
       "parent_slug": "aasimar",
-      "selectable": true,
+      "selectable": false,
       "source": "vgtm",
       "sort_order": 2011,
       "speed": 30,
@@ -179,14 +204,15 @@
           "recharge_ru": "1/длинный отдых",
           "summary_ru": "С 3 ур. действием: полёт со скоростью ходьбы и раз за ход доп. урон излучением = уровень (1 мин, 1/длинный отдых)."
         }
-      ]
+      ],
+      "notes_ru": "Устарело (VGM). Персонажи переводятся на аасимар MPMM (пачка B-08)."
     },
     {
       "slug": "aasimar_scourge",
       "name_ru": "Аасимар-каратель",
       "name_en": "Scourge Aasimar",
       "parent_slug": "aasimar",
-      "selectable": true,
+      "selectable": false,
       "source": "vgtm",
       "sort_order": 2012,
       "speed": 30,
@@ -246,14 +272,15 @@
           "summary_ru": "С 3 ур. действием на 1 мин (1/длинный отдых): свет; урон излучением себе и рядом; доп. излучение = уровень на одну атаку/заклинание за ход."
         }
       ],
-      "activated_movement": []
+      "activated_movement": [],
+      "notes_ru": "Устарело (VGM). Персонажи переводятся на аасимар MPMM (пачка B-08)."
     },
     {
       "slug": "aasimar_fallen",
       "name_ru": "Падший аасимар",
       "name_en": "Fallen Aasimar",
       "parent_slug": "aasimar",
-      "selectable": true,
+      "selectable": false,
       "source": "vgtm",
       "sort_order": 2013,
       "speed": 30,
@@ -313,7 +340,8 @@
           "summary_ru": "С 3 ур. действием на 1 мин (1/длинный отдых): испуг рядом; доп. некротический урон = уровень на одну атаку/заклинание за ход."
         }
       ],
-      "activated_movement": []
+      "activated_movement": [],
+      "notes_ru": "Устарело (VGM). Персонажи переводятся на аасимар MPMM (пачка B-08)."
     },
     {
       "slug": "bugbear",
@@ -540,7 +568,10 @@
       "languages_choose": 1,
       "traits_text": "Гит (MPMM): ASI гибкий. Выбери подрасу в попапе — гитъянки или гитцерай.",
       "subrace_required": true,
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "психический"
+      ]
     },
     {
       "slug": "githyanki",
@@ -594,7 +625,10 @@
           "casting_ability": "int"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "психический"
+      ]
     },
     {
       "slug": "githzerai",
@@ -648,7 +682,10 @@
           "casting_ability": "wis"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "психический"
+      ]
     },
     {
       "slug": "goblin",
@@ -696,7 +733,10 @@
       "languages_choose": 1,
       "traits_text": "Голиаф (MPMM): ASI гибкий. Маленький великан (мощное телосложение; считаешься большим для переноса/толкания). Каменная стойкость (реакция: 1к12+ТЕЛ урона, ПБ раз / длинный отдых). Горное происхождение (сопротивление холоду).",
       "subrace_required": false,
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "холод"
+      ]
     },
     {
       "slug": "harengon",
@@ -1410,7 +1450,10 @@
           "notes_ru": "ПБ раз / длинный отдых"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "холод"
+      ]
     },
     {
       "slug": "yuan_ti",
@@ -1469,7 +1512,10 @@
           "casting_ability": "cha"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "яд"
+      ]
     },
     {
       "slug": "genasi_air",
@@ -1626,7 +1672,10 @@
           "casting_ability": "con"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "огонь"
+      ]
     },
     {
       "slug": "genasi_water",
@@ -1681,7 +1730,10 @@
           "casting_ability": "wis"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "damage_resistances": [
+        "кислота"
+      ]
     }
   ]
 }

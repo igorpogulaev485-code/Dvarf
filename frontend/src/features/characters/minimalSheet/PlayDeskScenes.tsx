@@ -41,6 +41,7 @@ import { resolveB04FeatureSpend } from '../b04FeatureSpend'
 import { resolveB05FeatureSpend } from '../b05FeatureSpend'
 import { resolveB06FeatureSpend } from '../b06FeatureSpend'
 import { resolveB07FeatureSpend } from '../b07FeatureSpend'
+import { resolveB08FeatureSpend } from '../b08FeatureSpend'
 import { type CheckRoll } from '../deskRolls'
 import {
   featResistanceTypes,
@@ -184,6 +185,13 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             }) => {
               model.setLuckyPickPending?.(input)
             }}
+            onHalflingLuckyNeeded={(input: {
+              text: string
+              hitRoll: CheckRoll
+            }) => {
+              model.setHalflingLuckyPending?.(input)
+            }}
+            raceSlug={model.draft.raceGrant?.slug ?? null}
             savageAttacker={hasFeatFlag(model.draft.featGrants, 'savage_attacker')}
             flamesOfPhlegethos={hasFeatFlag(
               model.draft.featGrants,
@@ -577,6 +585,26 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                   abilities: model.draft.abilities,
                 })
               : { kind: 'none' as const }
+          const b08 =
+            b04.kind === 'none' &&
+            b05.kind === 'none' &&
+            b06.kind === 'none' &&
+            b07.kind === 'none'
+              ? resolveB08FeatureSpend({
+                  featureId: input.featureId,
+                  featureNameRu: input.featureNameRu,
+                  characterLevel: model.characterLevel,
+                  proficiencyBonus: model.proficiencyBonus,
+                  abilities: model.draft.abilities,
+                  raceSlug: model.draft.raceGrant?.slug ?? null,
+                  revelationId:
+                    (model.draft.raceGrant as { revelationId?: string | null } | null)
+                      ?.revelationId ?? null,
+                  seasonId:
+                    (model.draft.raceGrant as { seasonId?: string | null } | null)
+                      ?.seasonId ?? null,
+                })
+              : { kind: 'none' as const }
           const action =
             b04.kind !== 'none'
               ? b04
@@ -584,7 +612,9 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                 ? b05
                 : b06.kind !== 'none'
                   ? b06
-                  : b07
+                  : b07.kind !== 'none'
+                    ? b07
+                    : b08
           if (action.kind === 'heal') {
             model.setDraft((prev) => ({
               ...prev,

@@ -37,7 +37,10 @@ export function useSheetEditorPart5(model: SheetModel) {
       proficiencyBonus={model.proficiencyBonus}
       auraSaveBonus={model.auraSaveBonus}
       saveBonusExtra={mergedSaveExtras}
-      saveAdvantageNote={formatSaveAdvantageNote(model.gearEffects.saveAdvantages)}
+      saveAdvantageNote={formatSaveAdvantageNote(
+        model.gearEffects.saveAdvantages,
+        model.raceSaveAdvantageNotes ?? [],
+      )}
       checkBonusExtra={model.abilityCheckExtras}
       skillBonusExtra={Object.entries(model.featureSkillBonuses ?? {}).reduce(
         (acc: Record<string, number>, [key, value]) => {

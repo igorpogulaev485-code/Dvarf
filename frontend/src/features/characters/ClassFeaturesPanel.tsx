@@ -2789,6 +2789,30 @@ export function ClassFeaturesPanel({
                 const key = `race-trait:${trait.id}`
                 const open = openKeys.has(key)
                 const preview = previewSummary(trait.summaryRu)
+                const activatableRace = [
+                  'healing_hands',
+                  'celestial_revelation',
+                  'radiant_soul',
+                  'fey_step',
+                  'blessing_of_the_raven_queen',
+                  'stones_endurance',
+                  'shifting',
+                  'hungry_jaws',
+                  'feline_agility',
+                  'hidden_step',
+                  'fey_gift',
+                  'built_for_success',
+                  'starlight_step',
+                  'lucky_footwork',
+                  'mingle_with_the_wind',
+                  'merge_with_stone',
+                  'forceful_presence',
+                  'vengeful_assault',
+                  'chromatic_warding',
+                  'gem_flight',
+                  'githzerai_shield',
+                  'simic_carapace',
+                ].includes(trait.id)
                 if (!open) {
                   return (
                     <div key={key} className="feature-card feature-card--compact">
@@ -2831,6 +2855,24 @@ export function ClassFeaturesPanel({
                     {summaryParagraphs(trait.summaryRu).map((paragraph, index) => (
                       <Text key={`${key}:p:${index}`}>{paragraph}</Text>
                     ))}
+                    {onFeatureBuffApply && activatableRace ? (
+                      <div className="chip-row" style={{ marginTop: 8 }}>
+                        <button
+                          type="button"
+                          className="sheet-chip"
+                          onClick={() => {
+                            onFeatureBuffApply({
+                              featureId: `race:${trait.id}`,
+                              featureNameRu: trait.nameRu,
+                              classEntryId: 'race',
+                              classLevel: characterLevel,
+                            })
+                          }}
+                        >
+                          Применить
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 )
               })}

@@ -28,15 +28,17 @@ ttg.club / dnd.su — исторический gap-check / импорт, не So
 |------|------------|-------------|-------------|---------|
 | Ааракокра, багбир, … (корни без forks) | ✅ | — | ✅ | flexible ASI + Common+1 |
 | Дженази | ✅ parent + 4 | ✅ `subrace_required` | ✅ | воздух / земля / огонь / вода |
-| Аасимар | ✅ parent + 3 | ✅ `subrace_required` | ✅ | Volo: защитник / каратель / падший; размер M/S |
+| Аасимар | ✅ root MPMM (VGM forks `is_active=false`) | — без подрас | ✅ | B-08: «Небесное откровение» на 3 ур.; VGM-подрасы вне выбора |
 | Шифтер | ✅ parent + 4 | ✅ `subrace_required` | ✅ | зверошкур / длиннозуб / быстроног / дикий охотник |
 | Гит | ✅ parent + 2 | ✅ `subrace_required` | ✅ | гитъянки / гитцерай (больше не два корня) |
 | Кобольд | ✅ parent + 3 | ✅ `subrace_required` | ✅ | наследия: хитрость / неповиновение / драконье чародейство |
 
 ## Волна 3 — setting books (корни combobox)
 
-Спека: `backend/data/races/setting_race_catalog_spec.json` (18 корней).  
+Спека: `backend/data/races/setting_race_catalog_spec.json` (26 корней после B-08: + EEPC ааракокра/дженази ×4, + EGW драконокровный/равенит).  
 Срез с dnd.su минус уже залитые PHB/MPMM; без UA/Plane Shift/homebrew.
+
+**B-08 (2026-11-12):** эладрин / морской эльф / шадар-кай / дуэргар в PHB-спеке переведены на тексты MPMM; расовый полёт гейтится средним/тяжёлым доспехом; миграция `b08race9f4c2` (down `b07feat8d3a1`).
 
 | Блок | Расы | Prod verify |
 |------|------|-------------|

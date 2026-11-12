@@ -872,17 +872,31 @@ const TIEFLING_FIRE = 'огонь'
 export function raceResistanceSources(input: {
   slug?: string | null
   damageResistances?: string[] | null
+  /** Dragonborn ancestry damage type when grant list is empty. */
+  ancestryDamage?: string | null
 }): string[] {
   const listed = (input.damageResistances ?? []).map((row) => row.trim()).filter(Boolean)
   if (listed.length) return listed
   const slug = input.slug?.trim() ?? ''
   if (slug === 'tiefling' || slug.startsWith('tiefling_')) return [TIEFLING_FIRE]
+  const ancestry = (input.ancestryDamage || '').trim()
+  if (
+    ancestry &&
+    (slug === 'dragonborn' ||
+      slug.startsWith('dragonborn_') ||
+      slug.includes('draconblood') ||
+      slug.includes('ravenite'))
+  ) {
+    return [ancestry]
+  }
   return []
 }
 
 export function sheetDamageProfile(input: {
   raceSlug?: string | null
   raceResistances?: string[] | null
+  /** Dragonborn ancestry damage when grant list empty. */
+  ancestryDamage?: string | null
   gear?: Pick<AggregatedGearEffects, 'resistances' | 'vulnerabilities' | 'immunities'> | null
   /** B-02: resistances / immunities from combat.effects. */
   effects?: unknown
@@ -896,6 +910,7 @@ export function sheetDamageProfile(input: {
   for (const raw of raceResistanceSources({
     slug: input.raceSlug,
     damageResistances: input.raceResistances,
+    ancestryDamage: input.ancestryDamage,
   })) {
     addDefense(profile.resistances, raw, 'раса')
   }
@@ -934,8 +949,15 @@ export function sheetDamageProfile(input: {
   return profile
 }
 
-export function formatSaveAdvantageNote(rows: SaveAdvantageLine[]): string {
+export function formatSaveAdvantageNote(
+  rows: SaveAdvantageLine[],
+  extraNotes: string[] = [],
+): string {
   const parts: string[] = []
+  for (const note of extraNotes) {
+    const t = note.trim()
+    if (t) parts.push(t)
+  }
   const spells = rows.filter((row) => row.against === 'spells')
   const magic = rows.filter((row) => row.against === 'magic')
   if (spells.length) {
