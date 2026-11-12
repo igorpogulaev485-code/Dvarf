@@ -63,7 +63,7 @@ require "frontend/src/features/lobby/EnemyCard.tsx" "бой: карточка п
 require "frontend/src/features/lobby/AwardXpDialog.tsx" "бой: раздача XP"
 require "frontend/src/features/lobby/AwardLootDialog.tsx" "бой: лут на стол"
 require "frontend/src/features/characters/TransferDialog.tsx" "P2P передать"
-require "frontend/src/features/lobby/EncounterTemplatesDialog.tsx" "шаблоны энкаунтеров"
+# L-19/S-01: EncounterTemplatesDialog снесён
 require "frontend/src/features/lobby/EncounterGenerateDialog.tsx" "генератор боя B8"
 require "backend/app/dnd/encounter_compose.py" "генератор боя (backend)"
 

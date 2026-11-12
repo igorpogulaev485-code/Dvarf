@@ -29,7 +29,7 @@ import {
   type LobbyDetail,
 } from '../shared/api/lobbies'
 import { openProductSite } from '../shared/brand/creed20'
-import { Button, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
 type LocationState = { toast?: string }
 
@@ -63,6 +63,9 @@ export function LobbyDetailPage() {
   const [sessionSettingId, setSessionSettingId] = useState('')
   const [sessionPresentIds, setSessionPresentIds] = useState<Set<string>>(() => new Set())
   const [busy, setBusy] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
+  const [deleteConfirmName, setDeleteConfirmName] = useState('')
   const [tab, setTab] = useState<LobbyHubTabId>(() => tabFromHash(location.hash))
   const [playerPreview, setPlayerPreview] = useState(false)
   const [visibilityDraft, setVisibilityDraft] = useState<VisibilityProfile>(
@@ -310,18 +313,16 @@ export function LobbyDetailPage() {
                         <Link className="ui-button ui-button--secondary" to={`/sessions/${s.id}`}>
                           Открыть
                         </Link>
-                        {lobby.can_delete_session || lobby.is_owner ? (
+                        {lobby.can_delete_session ? (
                           <Button
                             type="button"
                             variant="secondary"
                             disabled={busy}
-                            onClick={() =>
-                              run(async () => {
-                                if (!confirm('Удалить сессию?')) return
-                                await deleteSession(s.id)
-                                await reload()
-                              })
-                            }
+                            onClick={() => {
+                              setDeleteTarget({ id: s.id, name: s.name })
+                              setDeleteConfirmName('')
+                              setDeleteConfirmOpen(true)
+                            }}
                           >
                             Удалить
                           </Button>
@@ -587,7 +588,48 @@ export function LobbyDetailPage() {
           </Stack>
         ) : null}
       </Stack>
-      <Toast message={toast} onClose={() => setToast(null)} />
+      
+      <Dialog
+        open={deleteConfirmOpen}
+        title="Удалить сессию"
+        primaryLabel={busy ? 'Удаляем…' : 'Удалить'}
+        secondaryLabel="Отмена"
+        busy={busy}
+        onPrimary={() => {
+          if (!deleteTarget) return
+          if (deleteConfirmName.trim() !== deleteTarget.name) {
+            setError('Введите точное название сессии')
+            return
+          }
+          void run(async () => {
+            await deleteSession(deleteTarget.id)
+            setDeleteConfirmOpen(false)
+            setDeleteTarget(null)
+            setToast('Сессия удалена')
+            await reload()
+          })
+        }}
+        onSecondary={() => {
+          setDeleteConfirmOpen(false)
+          setDeleteTarget(null)
+        }}
+      >
+        <Stack gap={12}>
+          <Text tone="muted">
+            Удаление необратимо. Введите название
+            {deleteTarget ? ` «${deleteTarget.name}»` : ''} для подтверждения.
+          </Text>
+          <Field label="Название сессии">
+            <Input
+              value={deleteConfirmName}
+              onChange={(e) => setDeleteConfirmName(e.target.value)}
+              placeholder={deleteTarget?.name ?? ''}
+            />
+          </Field>
+        </Stack>
+      </Dialog>
+
+<Toast message={toast} onClose={() => setToast(null)} />
     </main>
   )
 }

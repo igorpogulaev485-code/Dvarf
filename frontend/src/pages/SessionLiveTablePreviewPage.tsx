@@ -11,7 +11,6 @@ import { AwardLootDialog } from '../features/lobby/AwardLootDialog'
 import { AwardXpDialog } from '../features/lobby/AwardXpDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EncounterGenerateDialog } from '../features/lobby/EncounterGenerateDialog'
-import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDialog'
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { SessionLoreBindDialog } from '../features/lobby/SessionLoreBindDialog'
 import { SessionLorePanel } from '../features/lobby/SessionLorePanel'
@@ -31,7 +30,6 @@ import {
 } from '../features/lobby/visibilityProfile'
 import type {
   EncounterGenerateResult,
-  EncounterTemplate,
   SessionCombat,
   SessionCombatant,
   SessionEvent,
@@ -413,19 +411,6 @@ const DEMO_SETTING_PAGES: SettingPage[] = [
   },
 ]
 
-const SEED_TEMPLATES: EncounterTemplate[] = [
-  {
-    id: 'tpl-bridge',
-    name: 'Засада у моста',
-    entries: [
-      { name: 'Гоблин', count: 6, slug: 'goblin', hp_max: 7, ac: 15, xp: 50 },
-      { name: 'Волк', count: 2, slug: 'wolf', hp_max: 11, ac: 13, xp: 50 },
-      { name: 'Огр', count: 1, slug: 'ogre', hp_max: 59, ac: 11, xp: 450 },
-    ],
-    updated_at: new Date().toISOString(),
-  },
-]
-
 const SEED_EVENTS: SessionEvent[] = [
   {
     id: 'e1',
@@ -492,12 +477,10 @@ export function SessionLiveTablePreviewPage() {
   const [combatStartOpen, setCombatStartOpen] = useState(false)
   const [xpOpen, setXpOpen] = useState(false)
   const [lootOpen, setLootOpen] = useState(false)
-  const [encounterOpen, setEncounterOpen] = useState(false)
   const [generatorOpen, setGeneratorOpen] = useState(false)
   const [generatorResult, setGeneratorResult] = useState<EncounterGenerateResult | null>(
     null,
   )
-  const [templates, setTemplates] = useState<EncounterTemplate[]>(SEED_TEMPLATES)
   const [combat, setCombat] = useState<SessionCombat>({
     active: false,
     round: 1,
@@ -630,77 +613,77 @@ export function SessionLiveTablePreviewPage() {
                 />
                 {!closed ? (
                   <div className="session-table-toolbar">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setConditionOpen(true)}
-                    >
-                      Состояние
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setEffectOpen(true)}
-                    >
-                      Эффект
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setCombatantOpen(true)}
-                    >
-                      + Противник
-                    </Button>
-                    {!combat.active ? (
+                    <div className="session-toolbar-group" aria-label="Бой">
+                      <Text className="session-toolbar-group__label">Бой</Text>
+                      {!combat.active ? (
+                        <Button type="button" variant="secondary" onClick={() => setCombatStartOpen(true)}>
+                          Бой
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => {
+                            setCombat((prev) => ({ ...prev, active: false, entries: [], active_index: 0, round: 1 }))
+                            setToast('Бой окончен')
+                            setXpOpen(true)
+                          }}
+                        >
+                          Конец боя
+                        </Button>
+                      )}
+                      <Button type="button" variant="secondary" onClick={() => setCombatantOpen(true)}>
+                        + Враги
+                      </Button>
+                      <Button type="button" variant="secondary" onClick={() => setConditionOpen(true)}>
+                        Состояние
+                      </Button>
+                      <Button type="button" variant="secondary" onClick={() => setEffectOpen(true)}>
+                        Эффект
+                      </Button>
+                      <Button type="button" variant="secondary" disabled title="генератор боя будет позже">
+                        Генератор
+                      </Button>
+                    </div>
+                    <div className="session-toolbar-group" aria-label="Награды">
+                      <Text className="session-toolbar-group__label">Награды</Text>
+                      <Button type="button" variant="secondary" onClick={() => setXpOpen(true)}>
+                        Опыт
+                      </Button>
+                      <Button type="button" variant="secondary" onClick={() => setLootOpen(true)}>
+                        Лут
+                      </Button>
+                    </div>
+                    <div className="session-toolbar-group" aria-label="Сюжет">
+                      <Text className="session-toolbar-group__label">Сюжет</Text>
+                      <Button type="button" variant="secondary" onClick={() => setRevealOpen(true)}>
+                        Раскрыть
+                      </Button>
+                      <Button type="button" variant="secondary" onClick={() => setLoreBindOpen(true)}>
+                        Локация
+                      </Button>
                       <Button
                         type="button"
                         variant="secondary"
-                        onClick={() => setCombatStartOpen(true)}
+                        onClick={() => {
+                          const quest = involvedPages.find((p) => p.page_kind === 'quest')
+                          if (!quest) {
+                            setToast('Нет квеста в лоре сессии')
+                            return
+                          }
+                          setQuestTarget(quest)
+                          setQuestDialogOpen(true)
+                        }}
                       >
-                        Бой
+                        Статус квеста
                       </Button>
-                    ) : null}
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setXpOpen(true)}
-                    >
-                      XP
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setLootOpen(true)}
-                    >
-                      Лут
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setEncounterOpen(true)}
-                    >
-                      Энкаунтер
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setRevealOpen(true)}
-                    >
-                      Раскрыть
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => {
-                        setGeneratorResult(null)
-                        setGeneratorOpen(true)
-                      }}
-                    >
-                      Генератор
-                    </Button>
-                    <Text tone="muted" className="session-table-toolbar__hint">
-                      Генератор — подобрать бой. Энкаунтер — шаблон.
-                    </Text>
+                      <Button type="button" variant="secondary" onClick={() => setToast('Короткий отдых будет в S-07')}>
+                        Короткий отдых
+                      </Button>
+                      <Button type="button" variant="secondary" onClick={() => setToast('Долгий отдых будет в S-07')}>
+                        Долгий отдых
+                      </Button>
+                    </div>
                   </div>
                 ) : null}
                 {combat.active ? (
@@ -1199,70 +1182,6 @@ export function SessionLiveTablePreviewPage() {
         }}
       />
 
-      <EncounterTemplatesDialog
-        open={encounterOpen}
-        templates={templates}
-        canSaveFromTable={combatants.length > 0}
-        onClose={() => setEncounterOpen(false)}
-        onSaveFromTable={(name) => {
-          const entries = combatants.map((c) => ({
-            name: c.name,
-            count: Math.max(1, c.member_count ?? c.members?.length ?? 1),
-            slug: c.slug ?? null,
-            hp_max: c.hp_max,
-            ac: c.ac,
-            xp: c.xp ?? null,
-          }))
-          setTemplates((prev) => [
-            ...prev,
-            {
-              id: `tpl-${Date.now()}`,
-              name,
-              entries,
-              updated_at: new Date().toISOString(),
-            },
-          ])
-          setToast(`Шаблон «${name}» сохранён`)
-        }}
-        onDeploy={(templateId) => {
-          const tpl = templates.find((t) => t.id === templateId)
-          if (!tpl) return
-          const stamped = Date.now()
-          const next: SessionCombatant[] = tpl.entries.map((entry, i) => {
-            const count = Math.max(1, Math.min(20, entry.count))
-            const hp = entry.hp_max ?? 10
-            const id = `deploy-${stamped}-${i}`
-            return {
-              id,
-              name: entry.name,
-              hp_current: hp,
-              hp_max: hp,
-              alive_count: count,
-              member_count: count,
-              ac: entry.ac ?? 10,
-              speed: entry.speed ?? 30,
-              slug: entry.slug ?? undefined,
-              xp: entry.xp ?? 0,
-              xp_claimed_count: 0,
-              actions: [],
-              members: Array.from({ length: count }, (_, m) => ({
-                id: `${id}-m${m + 1}`,
-                name: count > 1 ? `${entry.name} ${m + 1}` : entry.name,
-                hp_current: hp,
-                hp_max: hp,
-              })),
-            }
-          })
-          setCombatants((prev) => [...prev, ...next])
-          setEncounterOpen(false)
-          setToast('Энкаунтер на столе')
-        }}
-        onDelete={(templateId) => {
-          setTemplates((prev) => prev.filter((t) => t.id !== templateId))
-          setToast('Шаблон удалён')
-        }}
-      />
-
       <EncounterGenerateDialog
         open={generatorOpen}
         result={generatorResult}
@@ -1343,26 +1262,6 @@ export function SessionLiveTablePreviewPage() {
               },
             })),
           })
-        }}
-        onSaveAsTemplate={({ name, boss, pack, packCount }) => {
-          setTemplates((prev) => [
-            ...prev,
-            {
-              id: `tpl-gen-${Date.now()}`,
-              name,
-              entries: [
-                { name: boss.name_ru, slug: boss.slug, count: 1, xp: boss.xp },
-                {
-                  name: pack.name_ru,
-                  slug: pack.slug,
-                  count: Math.max(1, packCount),
-                  xp: pack.xp,
-                },
-              ],
-              updated_at: new Date().toISOString(),
-            },
-          ])
-          setToast(`Шаблон «${name}» сохранён`)
         }}
         onDeploy={({ boss, pack, packCount }) => {
           const stamped = Date.now()

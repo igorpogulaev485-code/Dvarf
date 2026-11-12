@@ -152,7 +152,7 @@ class CharacterService:
 
         raise AppError("Персонаж не найден", code="character_not_found", status_code=404)
 
-    def update(
+    async def update(
         self,
         user: User,
         character_id: UUID,
@@ -208,7 +208,19 @@ class CharacterService:
         character.sheet_version += 1
         self.db.commit()
         self.db.refresh(character)
+        # L08: стол подтягивает хиты/имя/КД через session_changed → pullSession.
+        await self._broadcast_seated_sessions_changed(character.id)
         return to_detail(character, db=self.db)
+
+    async def _broadcast_seated_sessions_changed(self, character_id: UUID) -> None:
+        from app.realtime.hub import session_hub
+
+        session_ids = self.lobbies.list_open_session_ids_for_character(character_id)
+        for session_id in session_ids:
+            await session_hub.broadcast(
+                session_id,
+                {"type": "session_changed", "session_id": str(session_id)},
+            )
 
     def upload_avatar(
         self,

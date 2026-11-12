@@ -44,13 +44,13 @@ def get_character(
 
 
 @router.patch("/{character_id}", response_model=CharacterDetail)
-def update_character(
+async def update_character(
     character_id: UUID,
     payload: CharacterUpdateRequest,
     current_user: CurrentUser,
     db: DbSession,
 ) -> CharacterDetail:
-    return CharacterService(db).update(current_user, character_id, payload)
+    return await CharacterService(db).update(current_user, character_id, payload)
 
 
 @router.post("/{character_id}/avatar", response_model=CharacterDetail)

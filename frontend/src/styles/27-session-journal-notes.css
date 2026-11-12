@@ -512,3 +512,83 @@
   line-height: 1.45;
 }
 
+/* S-01: десктопный стол одним экраном */
+.session-live-desk {
+  display: grid;
+  gap: 14px;
+}
+
+.session-live-desk__side-toggle {
+  display: none;
+}
+
+.session-live-desk__rail,
+.session-live-desk__center,
+.session-live-desk__side {
+  min-width: 0;
+}
+
+.session-live-desk__rail-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.session-live-desk__side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.session-lore-panel--bind {
+  display: flex;
+  align-items: center;
+}
+
+@media (min-width: 1000px) {
+  .session-live-tabs--mobile-only {
+    display: none;
+  }
+
+  .session-live-desk {
+    grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.6fr) minmax(220px, 0.85fr);
+    align-items: start;
+    gap: 16px;
+  }
+
+  .session-live-desk.is-side-collapsed {
+    grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1fr) auto;
+  }
+
+  .session-live-desk__side-toggle {
+    display: inline-flex;
+  }
+
+  .session-live-desk.is-side-collapsed .session-live-desk__side {
+    width: auto;
+  }
+
+  .session-live-desk.is-side-collapsed .session-live-desk__side-body {
+    display: none;
+  }
+
+  .session-live-desk__rail .session-event-feed {
+    max-height: min(42vh, 420px);
+  }
+
+  .session-live-desk__mobile-only {
+    display: none !important;
+  }
+}
+
+@media (max-width: 999.98px) {
+  .session-live-desk__desktop-only {
+    display: none !important;
+  }
+}
+
