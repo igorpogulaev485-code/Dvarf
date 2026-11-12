@@ -16,14 +16,20 @@ import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel
 import { useLobbyRealtime } from '../features/lobby/useLobbyRealtime'
 import { VisibilitySettingsPanel } from '../features/lobby/VisibilitySettingsPanel'
 import {
+  journalHasNew,
+  markJournalSeen,
+  readJournalSeenAt,
+} from '../features/lobby/journalSeen'
+import {
   defaultVisibilityProfile,
   normalizeVisibilityProfile,
   type VisibilityProfile,
 } from '../features/lobby/visibilityProfile'
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
-import { exportNotes } from '../shared/api/notes'
+import { exportNotes, type Note } from '../shared/api/notes'
 import {
+  createJournalEntry,
   createSession,
   createSetting,
   deleteLobby,
@@ -89,6 +95,11 @@ export function LobbyDetailPage() {
     defaultVisibilityProfile(),
   )
   const [visibilityDirty, setVisibilityDirty] = useState(false)
+  const [lastJournalPublishedAt, setLastJournalPublishedAt] = useState<string | null>(null)
+  const [journalSeenAt, setJournalSeenAt] = useState<string | null>(null)
+  const [sendNote, setSendNote] = useState<Note | null>(null)
+  const [sendPublishNow, setSendPublishNow] = useState(false)
+  const [sendDeleteNote, setSendDeleteNote] = useState(false)
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getLobby(lobbyId), listCharacters()])
@@ -96,13 +107,34 @@ export function LobbyDetailPage() {
     setCharacters(chars)
     setVisibilityDraft(normalizeVisibilityProfile(detail.visibility_profile))
     setVisibilityDirty(false)
+    setLastJournalPublishedAt(detail.last_journal_published_at ?? null)
   }, [lobbyId])
+
+  useEffect(() => {
+    if (!lobbyId) return
+    const userKey = lobby?.owner_id ? `u:${lobby.owner_id}` : 'anon'
+    // seen keyed by lobby + viewer: use owner_id only as fallback until detail loads
+    const keyUser = lobby ? `viewer` : 'anon'
+    setJournalSeenAt(readJournalSeenAt(lobbyId, keyUser))
+    void userKey
+  }, [lobbyId, lobby])
 
   useLobbyRealtime(
     lobbyId,
     (data) => {
       if (data.type === 'lobby_resync') {
         void reload().catch(() => undefined)
+      }
+      if (data.type === 'journal_changed') {
+        if (data.published) {
+          setLastJournalPublishedAt(new Date().toISOString())
+        }
+        if (tab !== 'journal') {
+          // точка появится через journalHasNew
+        } else {
+          markJournalSeen(lobbyId, 'viewer')
+          setJournalSeenAt(new Date().toISOString())
+        }
       }
     },
     () => {
@@ -119,6 +151,13 @@ export function LobbyDetailPage() {
   useEffect(() => {
     setTab(tabFromHash(location.hash))
   }, [location.hash])
+
+  useEffect(() => {
+    if (tab !== 'journal' || !lobbyId) return
+    const at = lastJournalPublishedAt || new Date().toISOString()
+    markJournalSeen(lobbyId, 'viewer', at)
+    setJournalSeenAt(at)
+  }, [tab, lobbyId, lastJournalPublishedAt])
 
   useEffect(() => {
     let active = true
@@ -166,6 +205,11 @@ export function LobbyDetailPage() {
   function changeTab(next: LobbyHubTabId) {
     setTab(next)
     navigate({ pathname: location.pathname, hash: next }, { replace: true })
+    if (next === 'journal' && lobbyId) {
+      const at = lastJournalPublishedAt || new Date().toISOString()
+      markJournalSeen(lobbyId, 'viewer', at)
+      setJournalSeenAt(at)
+    }
   }
 
   function onVisibilityChange(next: VisibilityProfile) {
@@ -272,7 +316,13 @@ export function LobbyDetailPage() {
 
         <LobbySetupHints lobby={lobby} />
 
-        <LobbyHubTabs active={tab} onChange={changeTab} />
+        <LobbyHubTabs
+          active={tab}
+          onChange={changeTab}
+          journalHasNew={
+            tab !== 'journal' && journalHasNew(lastJournalPublishedAt, journalSeenAt)
+          }
+        />
 
         {tab === 'roster' ? (
           <Panel title="Состав кампании">
@@ -346,6 +396,11 @@ export function LobbyDetailPage() {
             isOwner={canManageJournal}
             settings={lobby.settings}
             sessions={lobby.sessions}
+            mediaUsage={lobby.media_usage ?? null}
+            onMediaUsageChange={(next) =>
+              setLobby((prev) => (prev ? { ...prev, media_usage: next } : prev))
+            }
+            onPublishedAt={setLastJournalPublishedAt}
             onToast={setToast}
             onError={setError}
           />
@@ -361,6 +416,15 @@ export function LobbyDetailPage() {
               .map((m) => ({ id: m.character_id, name: m.character_name }))}
             onToast={setToast}
             onError={setError}
+            onSendToJournal={
+              canManageJournal
+                ? (note) => {
+                    setSendNote(note)
+                    setSendPublishNow(false)
+                    setSendDeleteNote(false)
+                  }
+                : undefined
+            }
           />
         ) : null}
 
@@ -828,6 +892,59 @@ export function LobbyDetailPage() {
         <Text tone="muted">
           Старый код перестанет работать. Состав, дневник, сессии и картинки останутся на месте.
         </Text>
+      </Dialog>
+
+      <Dialog
+        open={sendNote != null}
+        title="В дневник"
+        primaryLabel={busy ? 'Переносим…' : sendPublishNow ? 'Опубликовать' : 'Черновик'}
+        secondaryLabel="Отмена"
+        busy={busy}
+        onPrimary={() => {
+          if (!sendNote) return
+          void run(async () => {
+            await createJournalEntry(lobby.id, {
+              entry_type: 'text',
+              title: sendNote.title,
+              body: sendNote.body,
+              is_draft: !sendPublishNow,
+              source_note_id: sendNote.id,
+              delete_source_note: sendDeleteNote,
+            })
+            setSendNote(null)
+            setToast(
+              sendPublishNow
+                ? 'Запись опубликована в дневнике'
+                : 'Черновик создан в дневнике',
+            )
+            if (sendDeleteNote) {
+              // список заметок обновит realtime notes_changed / ручной refresh при открытии
+            }
+          })
+        }}
+        onSecondary={() => setSendNote(null)}
+      >
+        <Stack gap={12}>
+          <Text tone="muted">
+            Перенос с общей доски. По умолчанию — черновик; запись на доске остаётся.
+          </Text>
+          <label className="journal-composer__draft">
+            <input
+              type="checkbox"
+              checked={sendPublishNow}
+              onChange={(e) => setSendPublishNow(e.target.checked)}
+            />
+            <span>Сразу опубликовать</span>
+          </label>
+          <label className="journal-composer__draft">
+            <input
+              type="checkbox"
+              checked={sendDeleteNote}
+              onChange={(e) => setSendDeleteNote(e.target.checked)}
+            />
+            <span>Удалить запись с доски после переноса</span>
+          </label>
+        </Stack>
       </Dialog>
 
       <LeaveOrKickDialog

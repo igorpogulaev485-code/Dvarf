@@ -20,9 +20,11 @@ const TABS: Array<{ id: LobbyHubTabId; label: string }> = [
 type Props = {
   active: LobbyHubTabId
   onChange: (id: LobbyHubTabId) => void
+  /** L-06: точка «новое» на вкладке Дневник */
+  journalHasNew?: boolean
 }
 
-export function LobbyHubTabs({ active, onChange }: Props) {
+export function LobbyHubTabs({ active, onChange, journalHasNew = false }: Props) {
   return (
     <nav className="lobby-hub-tabs" aria-label="Разделы лобби">
       <div className="lobby-hub-tabs__scroll">
@@ -35,6 +37,9 @@ export function LobbyHubTabs({ active, onChange }: Props) {
             onClick={() => onChange(tab.id)}
           >
             {tab.label}
+            {tab.id === 'journal' && journalHasNew ? (
+              <span className="lobby-hub-tab__dot" aria-label="Есть новое в дневнике" />
+            ) : null}
           </button>
         ))}
       </div>

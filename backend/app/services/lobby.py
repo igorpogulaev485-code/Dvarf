@@ -90,6 +90,7 @@ from app.schemas.lobby import (
     LootAwardResult,
     XpAwardRequest,
     XpAwardResult,
+    JournalChapterRef,
     JournalEntryCreateRequest,
     JournalEntryOut,
     JournalEntryUpdateRequest,
@@ -918,6 +919,7 @@ class LobbyService:
             sessions=sessions,
             visibility_profile=lobby.visibility_profile or {},
             media_usage=media_usage,
+            last_journal_published_at=self.lobbies.latest_journal_published_at(lobby.id),
             created_at=lobby.created_at,
             updated_at=lobby.updated_at,
         )
@@ -2642,10 +2644,14 @@ class LobbyService:
         *,
         is_owner: bool = True,
     ) -> JournalEntryOut:
+        from app.services.journal_markup import has_hidden_segments, mask_hidden_for_player
+        from app.services.media import media_api_url
+
         setting_name: str | None = None
         session_name: str | None = None
         page_id = entry.page_id
         page_title: str | None = None
+        chapter_title: str | None = None
         if entry.setting_id is not None:
             setting = self.lobbies.get_setting(entry.setting_id)
             setting_name = setting.name if setting else None
@@ -2661,14 +2667,34 @@ class LobbyService:
         if entry.from_session_id is not None:
             session = self.lobbies.get_session(entry.from_session_id)
             session_name = session.name if session else None
+        if entry.chapter_id is not None:
+            chapter = self.lobbies.get_journal_entry(entry.chapter_id)
+            if chapter is not None and chapter.entry_type == "chapter":
+                chapter_title = chapter.title
+
+        raw_body = entry.body or ""
+        body = raw_body if is_owner else mask_hidden_for_player(raw_body)
+        media_url = None
+        media_preview_url = None
+        if entry.media_id is not None:
+            media_url = media_api_url(entry.lobby_id, entry.media_id, preview=False)
+            media_preview_url = media_api_url(entry.lobby_id, entry.media_id, preview=True)
+
         return JournalEntryOut(
             id=entry.id,
             lobby_id=entry.lobby_id,
             author_user_id=entry.author_user_id,
             entry_type=entry.entry_type,
             title=entry.title,
-            body=entry.body,
+            body=body,
             image_url=entry.image_url,
+            is_draft=bool(entry.is_draft),
+            chapter_id=entry.chapter_id,
+            chapter_title=chapter_title,
+            media_id=entry.media_id,
+            media_url=media_url,
+            media_preview_url=media_preview_url,
+            has_hidden_segments=has_hidden_segments(raw_body) if is_owner else False,
             setting_id=entry.setting_id,
             setting_name=setting_name,
             page_id=page_id,
@@ -2679,6 +2705,81 @@ class LobbyService:
             updated_at=entry.updated_at,
         )
 
+    def _resolve_chapter_id(
+        self,
+        lobby: Lobby,
+        chapter_id: UUID | None,
+        *,
+        for_entry_type: str,
+    ) -> UUID | None:
+        if chapter_id is None:
+            return None
+        if for_entry_type == "chapter":
+            raise AppError(
+                "Глава не может входить в другую главу",
+                code="journal_chapter_nested",
+                status_code=400,
+            )
+        chapter = self.lobbies.get_journal_entry(chapter_id)
+        if (
+            chapter is None
+            or chapter.lobby_id != lobby.id
+            or chapter.entry_type != "chapter"
+        ):
+            raise AppError("Глава не найдена", code="journal_chapter_not_found", status_code=400)
+        return chapter.id
+
+    def _attach_journal_media(
+        self,
+        lobby: Lobby,
+        *,
+        media_id: UUID | None,
+        entry_id: UUID | None = None,
+    ) -> UUID | None:
+        if media_id is None:
+            return None
+        from app.models.lobby_media import LobbyMedia
+
+        row = self.db.get(LobbyMedia, media_id)
+        if row is None or row.lobby_id != lobby.id:
+            raise AppError("Медиа не найдено", code="lobby_media_not_found", status_code=400)
+        if row.kind != "journal":
+            raise AppError(
+                "Медиа должно быть типа journal",
+                code="lobby_media_kind_bad",
+                status_code=400,
+            )
+        if entry_id is not None:
+            row.attached_to_id = entry_id
+            self.db.flush()
+        return row.id
+
+    def _ensure_session_chapter(
+        self,
+        lobby: Lobby,
+        session: PlaySession,
+        user: User,
+    ) -> UUID:
+        existing = self.lobbies.get_session_journal_chapter(lobby.id, session.id)
+        if existing is not None:
+            return existing.id
+        title = (session.name or "").strip()
+        if not title:
+            title = session.created_at.strftime("%d.%m.%Y") if session.created_at else "Сессия"
+        chapter = CampaignJournalEntry(
+            lobby_id=lobby.id,
+            author_user_id=user.id,
+            entry_type="chapter",
+            title=title[:200],
+            body="",
+            is_draft=False,
+            from_session_id=session.id,
+            setting_id=session.setting_id,
+        )
+        self.lobbies.add_journal_entry(chapter)
+        self.db.flush()
+        return chapter.id
+
     def list_journal(
         self,
         user: User,
@@ -2686,19 +2787,65 @@ class LobbyService:
         *,
         offset: int = 0,
         limit: int = 20,
+        q: str | None = None,
+        chapter_id: UUID | None = None,
     ) -> JournalPageOut:
+        from app.services.journal_markup import strip_hidden_for_search
+
         lobby = self._require_lobby(lobby_id)
         self._require_view(lobby, user)
         is_owner = roles.can_manage_journal(self.db, lobby, user)
         limit = max(1, min(limit, 50))
         offset = max(0, offset)
-        total = self.lobbies.count_journal_entries(lobby_id)
-        items = self.lobbies.list_journal_entries(lobby_id, offset=offset, limit=limit)
+        query = (q or "").strip() or None
+        include_drafts = is_owner
+
+        if query and not is_owner:
+            # Игрок: скрытые куски не участвуют в поиске — фильтруем после выборки.
+            candidates = self.lobbies.list_journal_entries(
+                lobby_id,
+                offset=0,
+                limit=500,
+                include_drafts=False,
+                q=query,
+                chapter_id=chapter_id,
+            )
+            needle = query.casefold()
+            matched: list[CampaignJournalEntry] = []
+            for entry in candidates:
+                title_hit = needle in (entry.title or "").casefold()
+                open_body = strip_hidden_for_search(entry.body or "").casefold()
+                if title_hit or needle in open_body:
+                    matched.append(entry)
+            total = len(matched)
+            page_items = matched[offset : offset + limit]
+        else:
+            total = self.lobbies.count_journal_entries(
+                lobby_id,
+                include_drafts=include_drafts,
+                q=query,
+                chapter_id=chapter_id,
+            )
+            page_items = self.lobbies.list_journal_entries(
+                lobby_id,
+                offset=offset,
+                limit=limit,
+                include_drafts=include_drafts,
+                q=query,
+                chapter_id=chapter_id,
+            )
+
+        chapters = [
+            JournalChapterRef(id=c.id, title=c.title)
+            for c in self.lobbies.list_journal_chapters(lobby_id)
+        ]
         return JournalPageOut(
-            items=[self._journal_out(e, is_owner=is_owner) for e in items],
+            items=[self._journal_out(e, is_owner=is_owner) for e in page_items],
             total=total,
             offset=offset,
             limit=limit,
+            chapters=chapters,
+            last_journal_published_at=self.lobbies.latest_journal_published_at(lobby_id),
         )
 
     def create_journal_entry(
@@ -2724,6 +2871,28 @@ class LobbyService:
             )
         if entry_type not in JOURNAL_ENTRY_TYPES:
             raise AppError("Неизвестный тип поста", code="journal_type_invalid", status_code=400)
+
+        title = (payload.title or "").strip()
+        body = payload.body or ""
+
+        if payload.source_note_id is not None:
+            from app.repositories.note import NoteRepository
+
+            note = NoteRepository(self.db).get(payload.source_note_id)
+            if note is None or note.lobby_id != lobby.id:
+                raise NotFoundError("Заметка не найдена", code="note_not_found")
+            if note.scope != "party":
+                raise AppError(
+                    "В дневник переносится только общая доска",
+                    code="journal_note_scope",
+                    status_code=400,
+                )
+            if not title:
+                title = (note.title or "").strip()
+            if not body.strip():
+                body = note.body or ""
+            if entry_type == "text" and not title and not body.strip():
+                raise AppError("Пустой пост", code="empty_post", status_code=400)
 
         setting_id = payload.setting_id
         page_id = payload.page_id
@@ -2752,20 +2921,32 @@ class LobbyService:
                 if setting is None or setting.lobby_id != lobby.id:
                     raise AppError("Сеттинг не найден", code="setting_not_found", status_code=400)
 
+        media_id = self._attach_journal_media(lobby, media_id=payload.media_id)
         image_url = (payload.image_url or "").strip() or None
-        if entry_type == "image" and not image_url:
-            raise AppError("Укажите URL картинки", code="image_url_required", status_code=400)
+        if entry_type == "image" and not media_id and not image_url:
+            raise AppError(
+                "Загрузите картинку или укажите URL",
+                code="image_required",
+                status_code=400,
+            )
         if image_url and not (
             image_url.startswith("https://") or image_url.startswith("http://")
         ):
-            raise AppError("URL картинки должен начинаться с http(s)", code="image_url_invalid", status_code=400)
+            raise AppError(
+                "URL картинки должен начинаться с http(s)",
+                code="image_url_invalid",
+                status_code=400,
+            )
 
-        title = (payload.title or "").strip()
-        body = payload.body or ""
         if entry_type == "chapter" and not title:
             raise AppError("У главы нужен заголовок", code="title_required", status_code=400)
         if entry_type == "text" and not title and not body.strip():
             raise AppError("Пустой пост", code="empty_post", status_code=400)
+
+        chapter_id = self._resolve_chapter_id(
+            lobby, payload.chapter_id, for_entry_type=entry_type
+        )
+        is_draft = bool(payload.is_draft)
 
         entry = CampaignJournalEntry(
             lobby_id=lobby.id,
@@ -2773,11 +2954,24 @@ class LobbyService:
             entry_type=entry_type,
             title=title,
             body=body,
-            image_url=image_url if entry_type == "image" else None,
+            image_url=image_url if entry_type == "image" and media_id is None else None,
+            is_draft=is_draft,
+            chapter_id=chapter_id,
+            media_id=media_id,
             setting_id=setting_id if entry_type == "setting_link" else None,
             page_id=page_id if entry_type == "setting_link" else None,
         )
         self.lobbies.add_journal_entry(entry)
+        if media_id is not None:
+            self._attach_journal_media(lobby, media_id=media_id, entry_id=entry.id)
+
+        if payload.source_note_id is not None and payload.delete_source_note:
+            from app.repositories.note import NoteRepository
+
+            note = NoteRepository(self.db).get(payload.source_note_id)
+            if note is not None:
+                NoteRepository(self.db).delete(note)
+
         self.db.commit()
         self.db.refresh(entry)
         return self._journal_out(entry, is_owner=True)
@@ -2788,6 +2982,8 @@ class LobbyService:
         entry_id: UUID,
         payload: JournalEntryUpdateRequest,
     ) -> JournalEntryOut:
+        from app.services.journal_markup import reveal_all_hidden
+
         entry = self.lobbies.get_journal_entry(entry_id)
         if entry is None:
             raise NotFoundError("Пост не найден", code="journal_not_found")
@@ -2797,6 +2993,8 @@ class LobbyService:
             entry.title = payload.title.strip()
         if payload.body is not None:
             entry.body = payload.body
+        if payload.reveal_hidden:
+            entry.body = reveal_all_hidden(entry.body or "")
         if payload.clear_image:
             entry.image_url = None
         elif payload.image_url is not None:
@@ -2837,18 +3035,47 @@ class LobbyService:
                     status_code=400,
                 )
             entry.page_id = payload.page_id
+        if payload.clear_chapter:
+            entry.chapter_id = None
+        elif payload.chapter_id is not None:
+            entry.chapter_id = self._resolve_chapter_id(
+                lobby, payload.chapter_id, for_entry_type=entry.entry_type
+            )
+        if payload.clear_media:
+            if entry.media_id is not None:
+                from app.services.media import LobbyMediaService
+
+                LobbyMediaService(self.db).delete_for_attachment(
+                    lobby.id, "journal", entry.id
+                )
+            entry.media_id = None
+        elif payload.media_id is not None:
+            entry.media_id = self._attach_journal_media(
+                lobby, media_id=payload.media_id, entry_id=entry.id
+            )
+        if payload.is_draft is not None:
+            entry.is_draft = bool(payload.is_draft)
+        # touch updated_at for publish / reveal
+        entry.updated_at = datetime.now(timezone.utc)
         self.db.commit()
         self.db.refresh(entry)
         return self._journal_out(entry, is_owner=True)
 
-    def delete_journal_entry(self, user: User, entry_id: UUID) -> None:
+    def delete_journal_entry(self, user: User, entry_id: UUID) -> tuple[UUID, bool]:
+        """Удалить пост. Возвращает (lobby_id, was_published) для broadcast."""
+        from app.services.media import LobbyMediaService
+
         entry = self.lobbies.get_journal_entry(entry_id)
         if entry is None:
             raise NotFoundError("Пост не найден", code="journal_not_found")
         lobby = self._require_lobby(entry.lobby_id)
         self._require_journal(lobby, user)
+        was_published = not bool(entry.is_draft)
+        LobbyMediaService(self.db).delete_for_attachment(lobby.id, "journal", entry.id)
+        entry.media_id = None
         self.lobbies.delete_journal_entry(entry)
         self.db.commit()
+        return lobby.id, was_published
 
     def close_session(
         self,
@@ -2881,12 +3108,15 @@ class LobbyService:
             title = (payload.title or "").strip() or f"Итог: {session.name}"
             if not summary:
                 summary = f"Сессия «{session.name}» закрыта."
+            chapter_id = self._ensure_session_chapter(lobby, session, user)
             entry = CampaignJournalEntry(
                 lobby_id=lobby.id,
                 author_user_id=user.id,
                 entry_type="session_summary",
                 title=title,
                 body=summary,
+                is_draft=False,
+                chapter_id=chapter_id,
                 from_session_id=session.id,
                 setting_id=session.setting_id,
             )
@@ -3688,12 +3918,15 @@ class LobbyService:
                 summary = (
                     f"Квест «{page.title}» завершён ({label}) на сессии «{session.name}»."
                 )
+            chapter_id = self._ensure_session_chapter(lobby, session, user)
             entry = CampaignJournalEntry(
                 lobby_id=lobby.id,
                 author_user_id=user.id,
                 entry_type="quest_status",
                 title=j_title[:200],
                 body=summary,
+                is_draft=False,
+                chapter_id=chapter_id,
                 setting_id=session.setting_id,
                 page_id=page.id,
                 from_session_id=session.id,

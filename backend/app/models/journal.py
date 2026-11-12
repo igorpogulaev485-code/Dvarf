@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -36,6 +36,22 @@ class CampaignJournalEntry(Base):
     title: Mapped[str] = mapped_column(String(200), nullable=False, default="")
     body: Mapped[str] = mapped_column(Text, nullable=False, default="")
     image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # L-06: черновик видит только can_manage_journal
+    is_draft: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # L-06: опциональная глава-родитель (entry_type=chapter)
+    chapter_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("campaign_journal_entries.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    # L-06: файл через lobby_media (kind=journal)
+    media_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("lobby_media.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     setting_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("settings.id", ondelete="SET NULL"),
