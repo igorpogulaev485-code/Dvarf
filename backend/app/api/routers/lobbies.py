@@ -36,6 +36,10 @@ from app.schemas.lobby import (
     EncounterTemplateSaveFromSessionRequest,
     InventoryTransferRequest,
     InventoryTransferResult,
+    LeadTodayRequest,
+    LobbyRoleAssignRequest,
+    LobbyRoleRemoveRequest,
+    LobbyTransferRequest,
     LootAwardRequest,
     LootAwardResult,
     XpAwardRequest,
@@ -145,6 +149,56 @@ def join_lobby(
     db: DbSession,
 ) -> LobbyDetail:
     return LobbyService(db).join_with_character(current_user, payload)
+
+
+@router.post("/lobbies/{lobby_id}/roles", response_model=LobbyDetail)
+def assign_lobby_role(
+    lobby_id: UUID,
+    payload: LobbyRoleAssignRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> LobbyDetail:
+    return LobbyService(db).assign_role(current_user, lobby_id, payload)
+
+
+@router.post("/lobbies/{lobby_id}/roles/remove", response_model=LobbyDetail)
+def remove_lobby_role(
+    lobby_id: UUID,
+    payload: LobbyRoleRemoveRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> LobbyDetail:
+    return LobbyService(db).remove_role(current_user, lobby_id, payload)
+
+
+@router.post("/lobbies/{lobby_id}/transfer", response_model=LobbyDetail)
+def transfer_lobby(
+    lobby_id: UUID,
+    payload: LobbyTransferRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> LobbyDetail:
+    return LobbyService(db).transfer_ownership(current_user, lobby_id, payload)
+
+
+@router.post("/lobbies/{lobby_id}/lead-today", response_model=LobbyDetail)
+def assign_lead_today(
+    lobby_id: UUID,
+    payload: LeadTodayRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> LobbyDetail:
+    return LobbyService(db).assign_lead_today(current_user, lobby_id, payload)
+
+
+@router.delete("/lobbies/{lobby_id}/lead-today/{session_id}", response_model=LobbyDetail)
+def clear_lead_today(
+    lobby_id: UUID,
+    session_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> LobbyDetail:
+    return LobbyService(db).clear_lead_today(current_user, lobby_id, session_id)
 
 
 @router.get("/lobbies/{lobby_id}", response_model=LobbyDetail)

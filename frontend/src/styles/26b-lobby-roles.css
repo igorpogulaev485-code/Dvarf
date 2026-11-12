@@ -1,0 +1,31 @@
+/* L-01: роли лобби — рядом с хабом, без правок LOCK-маркеров. */
+
+.lobby-roles-block {
+  display: grid;
+  gap: 8px;
+}
+
+.lobby-roles-block__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.lobby-roles-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.lobby-roles-list__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.join-flow__observer {
+  margin-top: 8px;
+}

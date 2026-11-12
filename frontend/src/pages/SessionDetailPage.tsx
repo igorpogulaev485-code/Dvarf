@@ -76,6 +76,11 @@ import {
 } from '../shared/api/lobbies'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text, Toast } from '../ui'
 
+function sessionCanRun(session: { can_run_session?: boolean; is_owner?: boolean } | null | undefined): boolean {
+  if (!session) return false
+  return Boolean(session.can_run_session ?? session.is_owner)
+}
+
 export function SessionDetailPage() {
   const { sessionId = '' } = useParams()
   const [searchParams] = useSearchParams()
@@ -134,7 +139,7 @@ export function SessionDetailPage() {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
     setSession(detail)
     setOwnCharacterIds(new Set(chars.map((c) => c.id)))
-    if (detail.is_owner) {
+    if (sessionCanRun(detail)) {
       try {
         const lobby = await getLobby(detail.lobby_id)
         setTemplates(lobby.encounter_templates ?? [])
@@ -258,7 +263,7 @@ export function SessionDetailPage() {
     }
   }, [session, pageFromQuery])
 
-  isOwnerRef.current = Boolean(session?.is_owner)
+  isOwnerRef.current = sessionCanRun(session)
 
   useSessionRealtime(session?.id, {
     onEvent: (incoming) => {
@@ -288,8 +293,10 @@ export function SessionDetailPage() {
     },
   })
 
+  const canRunSession = sessionCanRun(session)
+
   useEffect(() => {
-    if (!session?.is_owner) {
+    if (!canRunSession || !session) {
       setLetterBadgeCount(0)
       return
     }
@@ -302,7 +309,7 @@ export function SessionDetailPage() {
     return () => {
       active = false
     }
-  }, [session?.is_owner, session?.lobby_id, liveTab])
+  }, [canRunSession, session, liveTab])
 
   const presentIds = useMemo(
     () => new Set(session?.seats.map((s) => s.character_id) ?? []),
@@ -455,7 +462,7 @@ export function SessionDetailPage() {
     )
   }
 
-  const historyOff = !session.is_owner && visibility.event_history === 'off'
+  const historyOff = !sessionCanRun(session) && visibility.event_history === 'off'
 
   return (
     <main className="page page--app page--lobby-hub">
@@ -472,12 +479,12 @@ export function SessionDetailPage() {
             <Link to={`/lobbies/${session.lobby_id}`}>← В лобби «{session.lobby_name}»</Link>
           </Text>
           <div className="session-top-actions">
-            {session.is_owner && !session.closed_at ? (
+            {sessionCanRun(session) && !session.closed_at ? (
               <Button type="button" variant="secondary" onClick={openAttendanceEditor} disabled={busy}>
                 Кто пришёл
               </Button>
             ) : null}
-            {session.is_owner && !session.closed_at ? (
+            {sessionCanRun(session) && !session.closed_at ? (
               <Button
                 type="button"
                 variant="secondary"
@@ -504,7 +511,7 @@ export function SessionDetailPage() {
 
         <Panel title="Сессия">
           <Stack gap={12}>
-            {session.is_owner && !session.closed_at ? (
+            {sessionCanRun(session) && !session.closed_at ? (
               <Field label="Название">
                 <Input
                   value={session.name}
@@ -553,7 +560,7 @@ export function SessionDetailPage() {
                   hasSetting={Boolean(session.setting_id)}
                   locationPage={session.location_page ?? null}
                   involvedPages={session.involved_pages ?? []}
-                  isOwner={session.is_owner && !session.closed_at}
+                  isOwner={sessionCanRun(session) && !session.closed_at}
                   busy={busy}
                   onOpenPage={(id) => void openLorePreview(id)}
                   onEdit={() => void openLoreBind()}
@@ -563,10 +570,10 @@ export function SessionDetailPage() {
                   }}
                 />
                 {!session.closed_at &&
-                (session.is_owner ||
+                (sessionCanRun(session) ||
                   session.seats.some((s) => ownCharacterIds.has(s.character_id))) ? (
                   <div className="session-table-toolbar">
-                    {session.is_owner && session.seats.length > 0 ? (
+                    {sessionCanRun(session) && session.seats.length > 0 ? (
                       <Button
                         type="button"
                         variant="secondary"
@@ -586,7 +593,7 @@ export function SessionDetailPage() {
                         Эффект
                       </Button>
                     ) : null}
-                    {session.is_owner ? (
+                    {sessionCanRun(session) ? (
                       <Button
                         type="button"
                         variant="secondary"
@@ -596,7 +603,7 @@ export function SessionDetailPage() {
                         + Противник
                       </Button>
                     ) : null}
-                    {session.is_owner && !session.combat?.active ? (
+                    {sessionCanRun(session) && !session.combat?.active ? (
                       <Button
                         type="button"
                         variant="secondary"
@@ -610,7 +617,7 @@ export function SessionDetailPage() {
                         Бой
                       </Button>
                     ) : null}
-                    {session.is_owner ? (
+                    {sessionCanRun(session) ? (
                       <Button
                         type="button"
                         variant="secondary"
@@ -620,7 +627,7 @@ export function SessionDetailPage() {
                         XP
                       </Button>
                     ) : null}
-                    {session.is_owner ? (
+                    {sessionCanRun(session) ? (
                       <Button
                         type="button"
                         variant="secondary"
@@ -630,7 +637,7 @@ export function SessionDetailPage() {
                         Лут
                       </Button>
                     ) : null}
-                    {session.is_owner ? (
+                    {sessionCanRun(session) ? (
                       <Button
                         type="button"
                         variant="secondary"
@@ -640,7 +647,7 @@ export function SessionDetailPage() {
                         Энкаунтер
                       </Button>
                     ) : null}
-                    {session.is_owner && session.setting_id && !session.closed_at ? (
+                    {sessionCanRun(session) && session.setting_id && !session.closed_at ? (
                       <Button
                         type="button"
                         variant="secondary"
@@ -650,7 +657,7 @@ export function SessionDetailPage() {
                         Раскрыть
                       </Button>
                     ) : null}
-                    {session.is_owner ? (
+                    {sessionCanRun(session) ? (
                       <Button
                         type="button"
                         variant="secondary"
@@ -672,7 +679,7 @@ export function SessionDetailPage() {
                 {session.combat?.active ? (
                   <CombatTrack
                     combat={session.combat}
-                    masterControls={session.is_owner && !session.closed_at}
+                    masterControls={sessionCanRun(session) && !session.closed_at}
                     busy={busy}
                     onNext={() => {
                       void run(async () => {
@@ -714,7 +721,7 @@ export function SessionDetailPage() {
                 {session.seats.length === 0 ? (
                   <Text tone="muted">
                     Игроков за столом нет.
-                    {session.is_owner
+                    {sessionCanRun(session)
                       ? ' Откройте «Кто пришёл» или посадите противников.'
                       : ''}
                   </Text>
@@ -722,16 +729,16 @@ export function SessionDetailPage() {
                   <div className="session-table-grid">
                     {session.seats.map((seat) => {
                       const isOwn = ownCharacterIds.has(seat.character_id)
-                      const canControl = session.is_owner || isOwn
+                      const canControl = sessionCanRun(session) || isOwn
                       return (
                         <SessionTableCard
                           key={seat.character_id}
                           seat={seat}
                           visibility={visibility}
-                          revealAll={session.is_owner}
+                          revealAll={sessionCanRun(session)}
                           masterControls={canControl && !session.closed_at}
                           busy={busy}
-                          sheetLabel={session.is_owner && !isOwn ? 'Смотреть' : 'Лист'}
+                          sheetLabel={sessionCanRun(session) && !isOwn ? 'Смотреть' : 'Лист'}
                           onToggleInspiration={(next) => {
                             void run(async () => {
                               const updated = await patchSeatCombat(
@@ -743,7 +750,7 @@ export function SessionDetailPage() {
                             })
                           }}
                           onAwardPiety={
-                            session.is_owner && !session.closed_at
+                            sessionCanRun(session) && !session.closed_at
                               ? () => setPietySeatId(seat.character_id)
                               : undefined
                           }
@@ -828,12 +835,12 @@ export function SessionDetailPage() {
                           key={enemy.id}
                           combatant={enemy}
                           visibility={visibility}
-                          revealAll={session.is_owner}
-                          masterControls={session.is_owner && !session.closed_at}
-                          forceAbilitiesOpen={Boolean(isActiveTurn && session.is_owner)}
+                          revealAll={sessionCanRun(session)}
+                          masterControls={sessionCanRun(session) && !session.closed_at}
+                          forceAbilitiesOpen={Boolean(isActiveTurn && sessionCanRun(session))}
                           busy={busy}
                           canSaveToSetting={Boolean(
-                            session.is_owner &&
+                            sessionCanRun(session) &&
                               !session.closed_at &&
                               session.setting_id,
                           )}
@@ -893,7 +900,7 @@ export function SessionDetailPage() {
                   <ManualRollForm
                     seats={session.seats}
                     ownCharacterIds={ownCharacterIds}
-                    isOwner={session.is_owner}
+                    isOwner={sessionCanRun(session)}
                     busy={busy}
                     onSubmit={async (payload) => {
                       await run(async () => {
@@ -916,7 +923,7 @@ export function SessionDetailPage() {
               <Stack gap={16}>
                 <LobbyNotesPanel
                   lobbyId={session.lobby_id}
-                  isOwner={session.is_owner}
+                  isOwner={sessionCanRun(session)}
                   compact
                   defaultScope="party"
                   ownCharacterOptions={session.lobby_members
@@ -927,7 +934,7 @@ export function SessionDetailPage() {
                 />
                 <LobbyChatsPanel
                   lobbyId={session.lobby_id}
-                  isOwner={session.is_owner}
+                  isOwner={sessionCanRun(session)}
                   compact
                   ownCharacterOptions={session.lobby_members
                     .filter((m) => ownCharacterIds.has(m.character_id))
@@ -1187,7 +1194,7 @@ export function SessionDetailPage() {
         page={previewPage}
         pages={loreSetting?.pages ?? []}
         templates={loreSetting?.templates ?? []}
-        isOwner={session.is_owner}
+        isOwner={sessionCanRun(session)}
         settingId={session.setting_id}
         onClose={() => setPreviewPageId(null)}
         onOpenPage={(id) => setPreviewPageId(id)}

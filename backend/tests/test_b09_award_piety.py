@@ -33,10 +33,12 @@ def test_award_piety_requires_owner():
     char = _character()
     svc, lobby = _service(owner.id, char)
     payload = PietyAwardRequest(character_id=char.id, delta=2)
-    with pytest.raises(AppError) as exc:
+    with patch("app.services.lobby_roles.can_award", return_value=False), pytest.raises(
+        AppError
+    ) as exc:
         asyncio.run(svc.award_piety(other, lobby.id, payload))
     assert exc.value.status_code == 403
-    assert exc.value.code == "lobby_owner_required"
+    assert exc.value.code == "lobby_award_required"
 
 
 def test_award_piety_character_must_be_in_lobby():
@@ -44,7 +46,9 @@ def test_award_piety_character_must_be_in_lobby():
     char = _character()
     svc, lobby = _service(owner.id, char, member=False)
     payload = PietyAwardRequest(character_id=char.id, delta=2)
-    with pytest.raises(AppError) as exc:
+    with patch("app.services.lobby_roles.can_award", return_value=True), pytest.raises(
+        AppError
+    ) as exc:
         asyncio.run(svc.award_piety(owner, lobby.id, payload))
     assert exc.value.code == "character_not_in_lobby"
 
@@ -53,7 +57,7 @@ def test_award_piety_updates_score_and_journal():
     owner = SimpleNamespace(id=uuid4(), display_name="ГМ", login=None, email=None)
     char = _character({"piety": {"god": "heliod", "score": 1, "journal": []}})
     svc, lobby = _service(owner.id, char)
-    with patch(
+    with patch("app.services.lobby_roles.can_award", return_value=True), patch(
         "app.services.sheet_effects.broadcast_sheet_effects_changed",
         new=AsyncMock(),
     ), patch("sqlalchemy.orm.attributes.flag_modified"):

@@ -8,8 +8,10 @@ from sqlalchemy.orm import Session, selectinload
 from app.models.character import Character
 from app.models.journal import CampaignJournalEntry
 from app.models.lobby import (
+    LOBBY_ROLE_LEAD_TODAY,
     Lobby,
     LobbyMember,
+    LobbyRole,
     PlaySession,
     SessionSeat,
     Setting,
@@ -28,6 +30,7 @@ class LobbyRepository:
             .where(Lobby.id == lobby_id)
             .options(
                 selectinload(Lobby.members),
+                selectinload(Lobby.roles),
                 selectinload(Lobby.settings),
                 selectinload(Lobby.sessions).selectinload(PlaySession.seats),
                 selectinload(Lobby.sessions).selectinload(PlaySession.setting),
@@ -35,15 +38,32 @@ class LobbyRepository:
         )
 
     def get_by_invite_code(self, code: str) -> Lobby | None:
-        return self.db.scalar(select(Lobby).where(Lobby.invite_code == code.upper()))
+        return self.db.scalar(
+            select(Lobby)
+            .where(Lobby.invite_code == code.upper())
+            .options(
+                selectinload(Lobby.members),
+                selectinload(Lobby.roles),
+            )
+        )
 
     def list_for_user(self, user_id: UUID) -> list[Lobby]:
         member_lobby_ids = select(LobbyMember.lobby_id).where(LobbyMember.user_id == user_id)
+        role_lobby_ids = select(LobbyRole.lobby_id).where(LobbyRole.user_id == user_id)
         return list(
             self.db.scalars(
                 select(Lobby)
-                .where(or_(Lobby.owner_id == user_id, Lobby.id.in_(member_lobby_ids)))
-                .options(selectinload(Lobby.members))
+                .where(
+                    or_(
+                        Lobby.owner_id == user_id,
+                        Lobby.id.in_(member_lobby_ids),
+                        Lobby.id.in_(role_lobby_ids),
+                    )
+                )
+                .options(
+                    selectinload(Lobby.members),
+                    selectinload(Lobby.roles),
+                )
                 .order_by(Lobby.updated_at.desc())
             ).all()
         )
@@ -322,7 +342,110 @@ class LobbyRepository:
                 selectinload(PlaySession.seats),
                 selectinload(PlaySession.setting),
                 selectinload(PlaySession.lobby).selectinload(Lobby.members),
+                selectinload(PlaySession.lobby).selectinload(Lobby.roles),
             )
+        )
+
+    def list_roles(self, lobby_id: UUID) -> list[LobbyRole]:
+        return list(
+            self.db.scalars(
+                select(LobbyRole)
+                .where(LobbyRole.lobby_id == lobby_id)
+                .order_by(LobbyRole.created_at.asc())
+            ).all()
+        )
+
+    def get_role(
+        self,
+        lobby_id: UUID,
+        user_id: UUID,
+        role: str,
+        *,
+        session_id: UUID | None = None,
+    ) -> LobbyRole | None:
+        stmt = select(LobbyRole).where(
+            LobbyRole.lobby_id == lobby_id,
+            LobbyRole.user_id == user_id,
+            LobbyRole.role == role,
+        )
+        if role == LOBBY_ROLE_LEAD_TODAY:
+            if session_id is None:
+                return None
+            stmt = stmt.where(LobbyRole.session_id == session_id)
+        else:
+            stmt = stmt.where(LobbyRole.session_id.is_(None))
+        return self.db.scalar(stmt.limit(1))
+
+    def get_lead_today_for_session(self, session_id: UUID) -> LobbyRole | None:
+        return self.db.scalar(
+            select(LobbyRole)
+            .where(
+                LobbyRole.session_id == session_id,
+                LobbyRole.role == LOBBY_ROLE_LEAD_TODAY,
+            )
+            .limit(1)
+        )
+
+    def add_role(
+        self,
+        *,
+        lobby_id: UUID,
+        user_id: UUID,
+        role: str,
+        assigned_by: UUID | None,
+        session_id: UUID | None = None,
+        character_fate: str | None = None,
+        character_id: UUID | None = None,
+    ) -> LobbyRole:
+        row = LobbyRole(
+            lobby_id=lobby_id,
+            user_id=user_id,
+            role=role,
+            assigned_by=assigned_by,
+            session_id=session_id,
+            character_fate=character_fate,
+            character_id=character_id,
+        )
+        self.db.add(row)
+        self.db.flush()
+        return row
+
+    def remove_role(self, role: LobbyRole) -> None:
+        self.db.delete(role)
+        self.db.flush()
+
+    def remove_roles_for_user(
+        self,
+        lobby_id: UUID,
+        user_id: UUID,
+        *,
+        roles: set[str] | None = None,
+    ) -> int:
+        stmt = select(LobbyRole).where(
+            LobbyRole.lobby_id == lobby_id,
+            LobbyRole.user_id == user_id,
+        )
+        if roles is not None:
+            stmt = stmt.where(LobbyRole.role.in_(roles))
+        rows = list(self.db.scalars(stmt).all())
+        for row in rows:
+            self.db.delete(row)
+        if rows:
+            self.db.flush()
+        return len(rows)
+
+    def clear_lead_today_for_session(self, session_id: UUID) -> LobbyRole | None:
+        row = self.get_lead_today_for_session(session_id)
+        if row is not None:
+            self.db.delete(row)
+            self.db.flush()
+        return row
+
+    def list_member_user_ids(self, lobby_id: UUID) -> set[UUID]:
+        return set(
+            self.db.scalars(
+                select(LobbyMember.user_id).where(LobbyMember.lobby_id == lobby_id)
+            ).all()
         )
 
     def create_session(

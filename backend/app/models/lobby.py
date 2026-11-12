@@ -65,6 +65,10 @@ class Lobby(Base):
         back_populates="lobby",
         cascade="all, delete-orphan",
     )
+    roles: Mapped[list["LobbyRole"]] = relationship(
+        back_populates="lobby",
+        cascade="all, delete-orphan",
+    )
     settings: Mapped[list[Setting]] = relationship(
         back_populates="lobby",
         cascade="all, delete-orphan",
@@ -73,6 +77,67 @@ class Lobby(Base):
         back_populates="lobby",
         cascade="all, delete-orphan",
     )
+
+
+# Роли без персонажа в составе: comaster / observer / lead_today (на сессию).
+LOBBY_ROLE_COMASTER = "comaster"
+LOBBY_ROLE_OBSERVER = "observer"
+LOBBY_ROLE_LEAD_TODAY = "lead_today"
+LOBBY_ROLE_VALUES = frozenset(
+    {LOBBY_ROLE_COMASTER, LOBBY_ROLE_OBSERVER, LOBBY_ROLE_LEAD_TODAY}
+)
+LEAD_TODAY_FATE_WAITING = "waiting"
+LEAD_TODAY_FATE_COMPANION = "companion"
+
+
+class LobbyRole(Base):
+    """Роль пользователя в лобби без строки lobby_members (character_id NOT NULL)."""
+
+    __tablename__ = "lobby_roles"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    lobby_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("lobbies.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    role: Mapped[str] = mapped_column(String(32), nullable=False)
+    session_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("play_sessions.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
+    assigned_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    # Для lead_today: waiting | companion; character_id персонажа ведущего.
+    character_fate: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    character_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("characters.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    lobby: Mapped[Lobby] = relationship(back_populates="roles")
 
 
 class LobbyMember(Base):
