@@ -113,12 +113,13 @@ export async function applySpellBuffToTargets(input: {
       duration: { unit: 'manual', started_at: new Date().toISOString() },
       mods: [],
     }
-    return applyBuiltEffect({ ...input, effect: fallback, targets })
+    return applyActiveEffectToTargets({ ...input, effect: fallback, targets })
   }
-  return applyBuiltEffect({ ...input, effect, targets })
+  return applyActiveEffectToTargets({ ...input, effect, targets })
 }
 
-async function applyBuiltEffect(input: {
+/** Apply a pre-built ActiveEffect to targets (spells + B-04 feature buffs). */
+export async function applyActiveEffectToTargets(input: {
   effect: ActiveEffect
   targets: string[]
   sourceCharacterId: string

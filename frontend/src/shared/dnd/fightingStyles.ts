@@ -166,3 +166,70 @@ export function fightingStyleAcBonusFromIds(input: {
   if (!input.wearingArmor) return 0
   return input.styleIds.some((id) => id === 'defense') ? 1 : 0
 }
+
+/**
+ * Dueling: +2 damage when attacking with a one-handed melee weapon while
+ * not holding another weapon (shield OK). PHB Fighting Style.
+ */
+export function fightingStyleDamageBonus(input: {
+  styleId: string | null | undefined
+  /** Current attack is one-handed melee (not two-handed, not ranged). */
+  oneHandedMelee: boolean
+  /** Another weapon is also equipped / held (not a shield). */
+  holdingAnotherWeapon: boolean
+}): number {
+  const style = fightingStyleById(input.styleId)
+  if (!style || style.id !== 'dueling') return 0
+  if (!input.oneHandedMelee) return 0
+  if (input.holdingAnotherWeapon) return 0
+  return 2
+}
+
+export function fightingStyleDamageBonusFromIds(input: {
+  styleIds: Array<string | null | undefined>
+  oneHandedMelee: boolean
+  holdingAnotherWeapon: boolean
+}): number {
+  let best = 0
+  for (const styleId of input.styleIds) {
+    best = Math.max(
+      best,
+      fightingStyleDamageBonus({
+        styleId,
+        oneHandedMelee: input.oneHandedMelee,
+        holdingAnotherWeapon: input.holdingAnotherWeapon,
+      }),
+    )
+  }
+  return best
+}
+
+/** Count equipped weapons (not shields) for Dueling eligibility. */
+export function countEquippedWeapons(
+  items: Array<{
+    equipped?: boolean
+    armor_kind?: string | null
+    weapon_grip?: string | null
+    name?: string
+    wear_slot?: string | null
+  }>,
+): number {
+  let n = 0
+  for (const item of items) {
+    if (!item.equipped) continue
+    if (item.armor_kind === 'shield') continue
+    const grip = item.weapon_grip
+    if (grip === 'one_hand' || grip === 'two_hand' || grip === 'versatile') {
+      n += 1
+      continue
+    }
+    const slot = item.wear_slot
+    if (slot === 'held_main' || slot === 'held_off') {
+      // Held non-shield without grip still counts if name looks like a weapon.
+      if (/меч|топор|кинжал|булав|молот|копь|рапир|секир|дубин|посох|лук|арбалет/i.test(item.name || '')) {
+        n += 1
+      }
+    }
+  }
+  return n
+}

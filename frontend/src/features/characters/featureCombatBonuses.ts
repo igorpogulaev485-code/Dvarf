@@ -142,14 +142,21 @@ export function symbioticNecroticRider(input: {
   features: Array<{ id: string }>
   resources: Array<{ id: string; activeLabel?: string }>
   hpTemp: number
+  /** B-04: prefer ActiveEffect slug when present. */
+  effects?: Array<{ slug?: string | null; inactive?: boolean | null }> | null
 }): DivineStrikeRider | null {
   if (!input.features.some((row) => row.id === 'symbiotic_entity')) return null
   if (Math.floor(input.hpTemp) <= 0) return null
-  const active = input.resources.some(
-    (row) =>
-      row.id.includes(':symbiotic_entity:') &&
-      (row.activeLabel ?? '').startsWith(SYMBIOTIC_ACTIVE_PREFIX),
+  const fromEffect = (input.effects ?? []).some(
+    (row) => row.slug === 'symbiotic_entity' && !row.inactive,
   )
+  const active =
+    fromEffect ||
+    input.resources.some(
+      (row) =>
+        row.id.includes(':symbiotic_entity:') &&
+        (row.activeLabel ?? '').startsWith(SYMBIOTIC_ACTIVE_PREFIX),
+    )
   if (!active) return null
   return {
     dice: '1d6',

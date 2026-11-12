@@ -1,4 +1,5 @@
 /** Диалоги отдыха и классовых ресурсов. */
+import { useState } from 'react'
 import type { SheetModel } from './sheetModel'
 import { dismissSelfFormsOnRest } from '../companions'
 import { applyConcentrationChangeToCompanions } from '../spellCompanions'
@@ -25,10 +26,26 @@ import { WarlockInvocationsDialog } from '../WarlockInvocationsDialog'
 import { PsionicDiceSpendDialog } from '../PsionicDiceSpendDialog'
 import { SoulTrinketsSpendDialog } from '../SoulTrinketsSpendDialog'
 import { RangerFavoredDeskDialog } from '../RangerFavoredDeskDialog'
+import { UseAllyAbilityDialog } from '../UseAllyAbilityDialog'
 import { abilityModifier } from '../sheetTypes'
 import { songOfRestDie } from '../../../shared/dnd/bardCollege'
+import { bardicInspirationDieLabel } from '../../../shared/dnd/bardInspirationSpend'
+import {
+  resolveB04BardicSpend,
+  resolveB04ChannelSpend,
+  resolveB04KiSpend,
+  resolveB04SuperioritySpend,
+} from '../b04FeatureSpend'
 
 export function SheetDialogsResources({ model }: { model: SheetModel }) {
+  const [pendingAllyBuff, setPendingAllyBuff] = useState<{
+    slug: string
+    name: string
+    die: string | null
+    classLevel?: number
+    casterMod?: number
+  } | null>(null)
+
   return (
     <>
       <RestDialog
@@ -126,6 +143,23 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           }))
           model.onToast(`${label}: −1 Божественный канал`)
           model.setChannelDivinitySpendId(null)
+          const action = resolveB04ChannelSpend(label, model.characterLevel)
+          if (action.kind === 'buff') {
+            if (action.targetsSelf === false) {
+              setPendingAllyBuff({
+                slug: action.slug,
+                name: action.name || label,
+                die: null,
+                classLevel: action.classLevel,
+              })
+            } else {
+              void model.applyFeatureBuff?.({
+                slug: action.slug,
+                name: action.name,
+                classLevel: action.classLevel,
+              })
+            }
+          }
         }}
         onHarnessDivinePower={({ resources, slots, message }) => {
           model.setDraft((prev) => ({
@@ -160,6 +194,14 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           }))
           model.onToast(`${label}: −${cost} ки`)
           model.setKiSpendId(null)
+          const action = resolveB04KiSpend(label)
+          if (action.kind === 'buff') {
+            void model.applyFeatureBuff?.({
+              slug: action.slug,
+              name: action.name,
+              option: action.option,
+            })
+          }
         }}
         onToast={model.onToast}
         onClose={() => model.setKiSpendId(null)}
@@ -347,10 +389,62 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           }))
           model.onToast(`${label}: −${cost} Бардовское вдохновение`)
           model.setBardicInspirationSpendId(null)
+          const die =
+            bardicInspirationDieLabel(
+              model.unlockedFeatures,
+              model.unlockedFeatures.find((f: { id: string }) => f.id === 'bardic_inspiration')
+                ?.classEntryId ?? '',
+            ) || '1к6'
+          const mapped = resolveB04BardicSpend(label, die)
+          if (mapped?.needsAlly) {
+            setPendingAllyBuff({
+              slug: mapped.slug,
+              name: mapped.name,
+              die,
+              classLevel: model.characterLevel,
+            })
+          } else if (mapped) {
+            void model.applyFeatureBuff?.({
+              slug: mapped.slug,
+              name: mapped.name,
+              option: die,
+              classLevel: model.characterLevel,
+            })
+          }
         }}
         onToast={model.onToast}
         onClose={() => model.setBardicInspirationSpendId(null)}
       />
+
+      {pendingAllyBuff ? (
+        <UseAllyAbilityDialog
+          open
+          characterId={String(model.baseCharacter.id)}
+          characterName={model.draft.name?.trim() || model.baseCharacter.name || 'Персонаж'}
+          abilityName={pendingAllyBuff.name}
+          targetCount={pendingAllyBuff.slug === 'mantle_of_inspiration' ? 3 : 1}
+          onClose={() => setPendingAllyBuff(null)}
+          onConfirm={(targetIds) => {
+            const targets =
+              targetIds.length > 0 ? targetIds : [String(model.baseCharacter.id)]
+            void model
+              .applyFeatureBuff?.({
+                slug: pendingAllyBuff.slug,
+                name: pendingAllyBuff.name,
+                targets,
+                option: pendingAllyBuff.die,
+                classLevel: pendingAllyBuff.classLevel,
+                casterMod: pendingAllyBuff.casterMod,
+              })
+              .then((res: { error?: string; applied?: number } | undefined) => {
+                if (res?.error) model.onToast(res.error)
+                else model.onToast(`${pendingAllyBuff.name}: целей ${targets.length}`)
+              })
+            setPendingAllyBuff(null)
+          }}
+          onToast={model.onToast}
+        />
+      ) : null}
 
       <LayOnHandsSpendDialog
         open={model.layOnHandsSpendId != null}
@@ -397,6 +491,32 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           }))
           model.onToast(`${label}: −${cost} кость превосходства`)
           model.setSuperioritySpendId(null)
+          const die =
+            model.unlockedFeatures.find((f: { id: string; scaleValue?: string }) =>
+              /superiority|боевой\s*мастер|ман[её]вр/i.test(f.id + (f.scaleValue || '')),
+            )?.scaleValue || '1к8'
+          const action = resolveB04SuperioritySpend(
+            label,
+            die,
+            abilityModifier(model.draft.abilities.cha ?? 10),
+          )
+          if (action.kind === 'buff') {
+            if (action.targetsSelf === false) {
+              setPendingAllyBuff({
+                slug: action.slug,
+                name: action.name || label,
+                die: action.option || die,
+                casterMod: action.casterMod ?? undefined,
+              })
+            } else {
+              void model.applyFeatureBuff?.({
+                slug: action.slug,
+                name: action.name,
+                option: action.option,
+                casterMod: action.casterMod,
+              })
+            }
+          }
         }}
         onToast={model.onToast}
         onClose={() => model.setSuperioritySpendId(null)}

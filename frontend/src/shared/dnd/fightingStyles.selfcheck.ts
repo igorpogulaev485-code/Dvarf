@@ -4,6 +4,7 @@
 import {
   fightingStyleAttackBonus,
   fightingStyleAcBonus,
+  fightingStyleDamageBonusFromIds,
   isRangedWeaponAttackName,
 } from './fightingStyles.ts'
 
@@ -31,6 +32,14 @@ assert(
 assert(
   fightingStyleAcBonus({ styleId: 'defense', wearingArmor: true }) === 1,
   'defense +1 AC',
+)
+assert(
+  fightingStyleDamageBonusFromIds({
+    styleIds: ['dueling'],
+    oneHandedMelee: true,
+    holdingAnotherWeapon: false,
+  }) === 2,
+  'dueling +2',
 )
 
 console.log('fightingStyles.selfcheck: ok')

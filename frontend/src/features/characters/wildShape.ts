@@ -233,7 +233,7 @@ export function resolveWildShapeOptions(input: {
       base(
         'symbiotic_entity',
         'Симбиотическая сущность',
-        'Временные хиты = 4×ур. друида; усиленный Halo на 10 мин.',
+        'Временные хиты = 4×ур. друида; Ореол спор удвоен на 10 мин.',
         1,
         'symbiotic_entity',
         true,

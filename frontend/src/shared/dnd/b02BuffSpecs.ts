@@ -12,9 +12,15 @@ export type BuffBuildContext = {
   /** Caster spellcasting ability modifier (heroism temp HP). */
   casterMod?: number | null
   /**
+   * Class level for feature specs (rage damage scale, symbiotic temp HP…).
+   * B-04; optional so B-02/B-03 builders stay unchanged.
+   */
+  classLevel?: number | null
+  /**
    * Player choice: ability key (enhance_ability), damage type
    * (protection_from_energy / elemental_weapon / absorb_elements),
-   * warm|cold (fire_shield), lower|upper (tasha guise), beast|tree (guardian).
+   * warm|cold (fire_shield), lower|upper (tasha guise), beast|tree (guardian),
+   * totem/starry constellation / inspiration die / etc. (B-04).
    */
   option?: string | null
 }

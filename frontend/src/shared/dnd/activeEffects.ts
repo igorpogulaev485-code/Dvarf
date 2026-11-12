@@ -3,6 +3,7 @@
  * Legacy rows (name only, `· +N КД`, ac_bonus) keep working.
  * B-02 adds collectors (temp_hp, ac_formula, speed, resist…) + B02 buff specs.
  * B-03 adds roll riders (damage dice chips), finer advantage filters, B03 specs.
+ * B-04 adds class-feature specs (rage, BI, symbiotic…).
  */
 
 import {
@@ -17,6 +18,11 @@ import {
   buildB03BuffSpec,
   riderDamageTypeRu,
 } from './b03BuffSpecs'
+import {
+  B04_BUFF_SPEC_BUILDERS,
+  B04_NAME_TO_SLUG,
+  buildB04BuffSpec,
+} from './b04BuffSpecs'
 import type { AcMinFloor, CompetingAcFormula } from './armor'
 
 export type EffectKind =
@@ -719,7 +725,42 @@ export function defensesFromActiveEffects(effects: unknown): EffectDefenseLine[]
   return out
 }
 
-export function weaponBonusesFromActiveEffects(effects: unknown): {
+export type WeaponBonusOpts = {
+  /** Melee weapon attack (not a ranged throw/shot). */
+  melee?: boolean
+  /** Ability used for the attack (str / dex…). */
+  ability?: string | null
+}
+
+function weaponModApplies(mod: { condition?: string | null }, opts?: WeaponBonusOpts): boolean {
+  const cond = String(mod.condition || '')
+    .trim()
+    .toLowerCase()
+  if (!cond) return true
+  // Damage-type / once riders are dice chips, not flat bonuses.
+  if (
+    cond === 'necrotic' ||
+    cond === 'radiant' ||
+    cond === 'once_per_turn' ||
+    cond.startsWith('next_melee_') ||
+    cond === 'marked_target' ||
+    cond.startsWith('in_aura') ||
+    cond === 'combat_inspiration_damage'
+  ) {
+    return false
+  }
+  if (cond === 'melee_str') {
+    return opts?.melee === true && String(opts.ability || '').toLowerCase() === 'str'
+  }
+  if (cond === 'melee') return opts?.melee === true
+  if (cond === 'ranged') return opts?.melee === false
+  return true
+}
+
+export function weaponBonusesFromActiveEffects(
+  effects: unknown,
+  opts?: WeaponBonusOpts,
+): {
   attack: number
   damage: number
 } {
@@ -727,6 +768,7 @@ export function weaponBonusesFromActiveEffects(effects: unknown): {
   let damage = 0
   for (const effect of activeEffectsList(effects)) {
     for (const mod of effect.mods ?? []) {
+      if (!weaponModApplies(mod, opts)) continue
       if (mod.target === 'weapon_attack' && typeof mod.value === 'number') {
         attack += Math.floor(mod.value)
       }
@@ -749,6 +791,18 @@ export function saveBonusFromActiveEffects(
       if (condition && mod.condition && mod.condition !== condition && mod.condition !== 'all') {
         continue
       }
+      if (typeof mod.value === 'number') sum += Math.floor(mod.value)
+    }
+  }
+  return sum
+}
+
+/** Flat attack adds from features (Guided Strike +10, War God's Blessing…). */
+export function attackBonusFromActiveEffects(effects: unknown): number {
+  let sum = 0
+  for (const effect of activeEffectsList(effects)) {
+    for (const mod of effect.mods ?? []) {
+      if (mod.target !== 'attack' || mod.op !== 'add') continue
       if (typeof mod.value === 'number') sum += Math.floor(mod.value)
     }
   }
@@ -969,8 +1023,31 @@ function advantageModApplies(
     }
     const ability = (opts?.abilityKey || '').toLowerCase()
     if (ability && (cond === ability || cond.split('_').includes(ability))) return true
+    // Ability-conditioned advantage (rage STR, enhance ability…): map skills → ability.
     if (mod.target === 'advantage' && ['str', 'dex', 'con', 'int', 'wis', 'cha'].includes(cond)) {
-      return true
+      const skillAbility: Record<string, string> = {
+        athletics: 'str',
+        acrobatics: 'dex',
+        sleight_of_hand: 'dex',
+        stealth: 'dex',
+        arcana: 'int',
+        history: 'int',
+        investigation: 'int',
+        nature: 'int',
+        religion: 'int',
+        animal_handling: 'wis',
+        insight: 'wis',
+        medicine: 'wis',
+        perception: 'wis',
+        survival: 'wis',
+        deception: 'cha',
+        intimidation: 'cha',
+        performance: 'cha',
+        persuasion: 'cha',
+      }
+      if (!ability) return false
+      if (ability === cond) return true
+      return skillAbility[ability] === cond
     }
     return false
   }
@@ -1233,6 +1310,7 @@ const SPELL_NAME_TO_SLUG: Array<{ re: RegExp; slug: string }> = [
   { re: /^благословен|^bless$/i, slug: 'bless' },
   { re: /^щит\s*вер|^shield of faith$/i, slug: 'shield_of_faith' },
   { re: /^ободряющ|^emboldening/i, slug: 'emboldening_bond' },
+  ...B04_NAME_TO_SLUG,
   ...B03_NAME_TO_SLUG,
   ...B02_NAME_TO_SLUG,
 ]
@@ -1243,6 +1321,7 @@ export function guessBuffSlug(name: string, catalogId?: string | null): string |
     .toLowerCase()
     .replace(/-/g, '_')
   if (id && B01_BUFF_SPECS[id]) return id
+  if (id && B04_BUFF_SPEC_BUILDERS[id]) return id
   if (id && B03_BUFF_SPEC_BUILDERS[id]) return id
   if (id && B02_BUFF_SPEC_BUILDERS[id]) return id
   // Common catalog_id aliases
@@ -1271,6 +1350,7 @@ export function guessBuffSlug(name: string, catalogId?: string | null): string |
   }
   if (id && aliases[id]) return aliases[id]
   const stripped = id.replace(/'/g, '')
+  if (stripped && B04_BUFF_SPEC_BUILDERS[stripped]) return stripped
   if (stripped && B03_BUFF_SPEC_BUILDERS[stripped]) return stripped
   if (stripped && B02_BUFF_SPEC_BUILDERS[stripped]) return stripped
   const label = name.trim()
@@ -1290,6 +1370,7 @@ export function buildBuffEffect(input: {
   slotLevel?: number | null
   spellLevel?: number | null
   casterMod?: number | null
+  classLevel?: number | null
   option?: string | null
 }): ActiveEffect | null {
   let slug =
@@ -1310,15 +1391,28 @@ export function buildBuffEffect(input: {
       slug = 'ceremony_coming_of_age'
     } else if (opt === 'wedding' || opt === 'венчание') slug = 'ceremony_wedding'
   }
+  // Starry form constellation pick.
+  if (
+    slug === 'starry_form' ||
+    /^зв[её]здн/i.test(input.name ?? '') ||
+    /starry_form/i.test(String(input.catalogId ?? ''))
+  ) {
+    const o = opt.toLowerCase()
+    if (o === 'archer' || o === 'лучник') slug = 'starry_form_archer'
+    else if (o === 'chalice' || o === 'чаша') slug = 'starry_form_chalice'
+    else if (o === 'dragon' || o === 'дракон') slug = 'starry_form_dragon'
+  }
   if (!slug) return null
   const ctx: BuffBuildContext = {
     slotLevel: input.slotLevel,
     spellLevel: input.spellLevel,
     casterMod: input.casterMod,
+    classLevel: input.classLevel,
     option: input.option,
   }
   const spec =
     B01_BUFF_SPECS[slug] ??
+    buildB04BuffSpec(slug, ctx) ??
     buildB03BuffSpec(slug, ctx) ??
     buildB02BuffSpec(slug, ctx)
   if (!spec) return null
@@ -1346,7 +1440,7 @@ export function buildBuffEffect(input: {
   }
 }
 
-/** True when this spell/catalog has a structured B-01/B-02/B-03 buff spec. */
+/** True when this spell/catalog has a structured B-01…B-04 buff spec. */
 export function hasBuffSpec(name: string, catalogId?: string | null): boolean {
   return guessBuffSlug(name, catalogId) != null
 }

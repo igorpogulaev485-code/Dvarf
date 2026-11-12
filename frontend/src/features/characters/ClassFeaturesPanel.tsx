@@ -242,6 +242,16 @@ type ClassFeaturesPanelProps = {
   onConcentrationChange?: (next: ConcentrationState | null) => void
   /** Spell catalog edition for Pact of the Tome cantrip picks. */
   edition?: RulesEdition
+  /**
+   * B-04: after a successful resource spend, apply structured ActiveEffect
+   * (rage, fighting spirit, second wind heal hook, …).
+   */
+  onFeatureBuffApply?: (input: {
+    featureId: string
+    featureNameRu: string
+    classEntryId: string
+    classLevel: number
+  }) => void
 }
 
 type FeatureFilter =
@@ -324,6 +334,7 @@ function FeatureResourceControls({
   onOpenRecovery,
   onFeatureSelfForm,
   onWizardFeatureUse,
+  onFeatureBuffApply,
   moonCombatWildShape = false,
   scaleText = null,
 }: {
@@ -342,6 +353,7 @@ function FeatureResourceControls({
   onOpenRecovery?: (resourceId: string) => void
   onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
   onWizardFeatureUse?: (request: WizardFeatureRequest) => void
+  onFeatureBuffApply?: ClassFeaturesPanelProps['onFeatureBuffApply']
   /** Circle of the Moon: Wild Shape is a bonus action. */
   moonCombatWildShape?: boolean
   scaleText?: string | null
@@ -826,6 +838,12 @@ function FeatureResourceControls({
                           : ''
                       }${summoned}`,
                 )
+                onFeatureBuffApply?.({
+                  featureId: feature.id,
+                  featureNameRu: feature.name_ru,
+                  classEntryId: feature.classEntryId,
+                  classLevel: feature.classLevel,
+                })
               } else {
                 onToast?.(result.message)
               }
@@ -1862,6 +1880,7 @@ function FeatureRow({
   charismaScore,
   wisdomScore,
   edition = '2014',
+  onFeatureBuffApply,
 }: {
   feature: UnlockedFeature
   unlockedFeatures: UnlockedFeature[]
@@ -1913,6 +1932,7 @@ function FeatureRow({
   charismaScore?: number
   wisdomScore?: number
   edition?: RulesEdition
+  onFeatureBuffApply?: ClassFeaturesPanelProps['onFeatureBuffApply']
 }) {
   const sourceLabel =
     feature.source === 'subclass'
@@ -2279,6 +2299,7 @@ function FeatureRow({
           onOpenRecovery={onOpenRecovery}
           onFeatureSelfForm={onFeatureSelfForm}
           onWizardFeatureUse={onWizardFeatureUse}
+          onFeatureBuffApply={onFeatureBuffApply}
           moonCombatWildShape={moonCombatWildShape}
           scaleText={scaleShown}
         />
@@ -2468,6 +2489,7 @@ export function ClassFeaturesPanel({
   concentration = null,
   onConcentrationChange,
   edition = '2014',
+  onFeatureBuffApply,
 }: ClassFeaturesPanelProps) {
   const [filter, setFilter] = useState<FeatureFilter>('all')
   const [search, setSearch] = useState('')
@@ -2938,6 +2960,7 @@ export function ClassFeaturesPanel({
                             classes={classes}
                             featGrants={featGrants}
                             characterLevel={characterLevel}
+                            onFeatureBuffApply={onFeatureBuffApply}
                             charismaScore={abilities?.cha}
                             wisdomScore={abilities?.wis}
                             edition={edition}
