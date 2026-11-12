@@ -451,6 +451,7 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
         ...prev,
         ...(patch.hpMax != null ? { hpMax: patch.hpMax } : {}),
         ...(patch.hpCurrent != null ? { hpCurrent: patch.hpCurrent } : {}),
+        ...(patch.inventory ? { inventory: patch.inventory } : {}),
         play: {
           ...prev.play,
           effects: applyEffectStacking(patch.effects),
@@ -471,7 +472,11 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
           sheet_version: patch.sheetVersion,
           ...(patch.hpMax != null ? { hp_max: patch.hpMax } : {}),
           ...(patch.hpCurrent != null ? { hp_current: patch.hpCurrent } : {}),
-          sheet: { ...sheet, combat },
+          sheet: {
+            ...sheet,
+            combat,
+            ...(patch.inventory ? { inventory: patch.inventory } : {}),
+          },
         }
       })
     },

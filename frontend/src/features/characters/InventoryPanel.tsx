@@ -345,6 +345,10 @@ type InventoryPanelProps = {
   onCastScroll?: (itemId: string) => void
   /** DMG p. 200: non-empty string disables «Кастовать свиток». */
   scrollCastBlock?: (item: InventoryItem) => string | null
+  /** S-07: передать предмет другому в лобби. */
+  onTransferItem?: (item: InventoryItem) => void
+  /** S-07: передать монеты. */
+  onTransferCoins?: () => void
 }
 
 export function InventoryPanel({
@@ -367,6 +371,8 @@ export function InventoryPanel({
   onToggleConsumableFavorite,
   onCastScroll,
   scrollCastBlock,
+  onTransferItem,
+  onTransferCoins,
 }: InventoryPanelProps) {
   const favoriteSet = useMemo(() => new Set(favoriteConsumableIds), [favoriteConsumableIds])
   const favoriteCount = favoriteConsumableIds.length
@@ -927,6 +933,11 @@ export function InventoryPanel({
           {renderBaseField(item)}
           <div className="inventory-card__view-actions">
             {renderEquipChip(item)}
+            {onTransferItem && item.qty > 0 && !nested ? (
+              <Button type="button" variant="secondary" onClick={() => onTransferItem(item)}>
+                Передать
+              </Button>
+            ) : null}
             <Button
               type="button"
               onClick={() =>
@@ -1197,6 +1208,11 @@ export function InventoryPanel({
 
         <div className="inventory-card__footer">
           {renderEquipChip(item)}
+          {onTransferItem && item.qty > 0 && !nested ? (
+            <Button type="button" variant="secondary" onClick={() => onTransferItem(item)}>
+              Передать
+            </Button>
+          ) : null}
           {canExpand(item) ? (
             <Button
               variant="secondary"
@@ -1365,6 +1381,11 @@ export function InventoryPanel({
             {formatCoinBreakdown(inventory.coins)}
           </span>
         </button>
+        {onTransferCoins ? (
+          <Button type="button" variant="secondary" onClick={onTransferCoins}>
+            Передать монеты
+          </Button>
+        ) : null}
 
         <div className="inventory-filters" role="tablist" aria-label="Фильтр инвентаря">
           {FILTERS.map((row) => (

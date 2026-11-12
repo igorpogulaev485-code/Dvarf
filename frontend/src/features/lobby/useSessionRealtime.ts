@@ -12,6 +12,15 @@ type SessionWsMessage =
   | { type: 'session_event'; event: SessionEvent }
   | { type: 'session_update'; session: SessionDetail }
   | { type: 'session_changed'; session_id?: string; event?: undefined; session?: undefined }
+  | {
+      type: 'party_rest'
+      kind?: 'short' | 'long'
+      gritty_rest?: boolean
+      summary?: string
+      short_label?: string
+      long_label?: string
+      session_id?: string
+    }
   | { type: 'pong' | 'ping' | string; event?: undefined; session?: undefined }
 
 type Handlers = {
@@ -19,6 +28,14 @@ type Handlers = {
   onSessionUpdate?: (session: SessionDetail) => void
   /** Сигнал без чужого снимка: забрать GET /sessions/{id} своим токеном. */
   onSessionChanged?: () => void
+  /** S-07: мастер запустил отдых партии. */
+  onPartyRest?: (msg: {
+    kind: 'short' | 'long'
+    gritty_rest?: boolean
+    summary?: string
+    short_label?: string
+    long_label?: string
+  }) => void
   /** Сокет отваливался: добрать состояние, которое могли пропустить. */
   onReconnect?: () => void
 }
@@ -104,6 +121,19 @@ export function useSessionRealtime(
           }
           if (data.type === 'session_changed') {
             handlersRef.current.onSessionChanged?.()
+          }
+          if (data.type === 'party_rest') {
+            const rest = data as Extract<SessionWsMessage, { type: 'party_rest' }>
+            const kind = rest.kind === 'long' ? 'long' : rest.kind === 'short' ? 'short' : null
+            if (kind) {
+              handlersRef.current.onPartyRest?.({
+                kind,
+                gritty_rest: Boolean(rest.gritty_rest),
+                summary: rest.summary,
+                short_label: rest.short_label,
+                long_label: rest.long_label,
+              })
+            }
           }
         } catch {
           // ignore non-json

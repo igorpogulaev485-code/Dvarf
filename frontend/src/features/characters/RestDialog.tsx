@@ -52,6 +52,10 @@ type RestDialogProps = {
   songOfRest?: { sides: number; label: string } | null
   /** Race slug — Verdan Black Blood Healing rerolls 1–2 on Hit Dice. */
   raceSlug?: string | null
+  /** S-07 / L-08: суровый реализм — 8 часов / 7 дней. */
+  grittyRest?: boolean
+  /** S-07: подсветка блока после «Короткий/Долгий отдых» со стола. */
+  preferKind?: 'short' | 'long' | null
   onPlayChange: (play: PlayState) => void
   onSpellsChange: (spells: SpellsState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
@@ -72,6 +76,8 @@ export function RestDialog({
   featureDesiredResources = [],
   songOfRest = null,
   raceSlug = null,
+  grittyRest = false,
+  preferKind = null,
   onPlayChange,
   onSpellsChange,
   onCombatChange,
@@ -282,8 +288,9 @@ export function RestDialog({
     >
       <Stack gap={14}>
         <Text tone="muted">
-          Короткий — кости хитов и сброс ресурсов «короткий». Продолжительный — полные HP, ячейки,
-          ресурсы и −1 истощение.
+          {grittyRest
+            ? 'Суровый реализм: короткий отдых — 8 часов, долгий — 7 дней. Восстановление хитов и ячеек — как обычно.'
+            : 'Короткий — кости хитов и сброс ресурсов «короткий». Продолжительный — полные HP, ячейки, ресурсы и −1 истощение.'}
         </Text>
 
         <div className="sheet-grid sheet-grid--2">
@@ -331,10 +338,13 @@ export function RestDialog({
           </Field>
         </div>
 
-        <div className="play-rest-block">
+        <div
+          className={`play-rest-block${preferKind === 'short' ? ' is-focus' : ''}`}
+          data-rest-kind="short"
+        >
           <div className="play-rest-block__head">
             <Text>
-              <strong>Короткий отдых</strong>
+              <strong>{grittyRest ? 'Короткий отдых (8 часов)' : 'Короткий отдых'}</strong>
             </Text>
             <span className="play-rest-block__count">
               кости {hitDiceCurrent}/{hitDiceMax}
@@ -435,13 +445,17 @@ export function RestDialog({
           </div>
         </div>
 
-        <div className="play-rest-block">
+        <div
+          className={`play-rest-block${preferKind === 'long' ? ' is-focus' : ''}`}
+          data-rest-kind="long"
+        >
           <Text>
-            <strong>Продолжительный отдых</strong>
+            <strong>{grittyRest ? 'Продолжительный отдых (7 дней)' : 'Продолжительный отдых'}</strong>
           </Text>
           <Text tone="muted">
             Полные HP, половина костей, ячейки/pact, ресурсы, −1 истощение, сброс спасбросков от
-            смерти.
+            смерти
+            {grittyRest ? ' · суровый реализм: 7 дней' : ''}.
           </Text>
           <div className="play-rest-actions">
             <Button type="button" onClick={doLongRest}>

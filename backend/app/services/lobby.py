@@ -86,8 +86,10 @@ from app.schemas.lobby import (
     EncounterMonsterOptionOut,
     EncounterRoleOut,
     EncounterWaveOut,
+    InventoryGrantRequest,
     InventoryTransferRequest,
     InventoryTransferResult,
+    PartyRestRequest,
     LootAwardRequest,
     LootAwardResult,
     XpAwardRequest,
@@ -6092,6 +6094,10 @@ class LobbyService:
             or payload.active_index is not None
         ) and cur is not None:
             if prev_active is None or prev_active.get("id") != cur.get("id"):
+                # S-07 / T-01: смена хода сбрасывает взаимодействие с предметом.
+                from app.services import session_table_s07 as s07
+
+                state = s07.clear_object_interactions(state)
                 if cur.get("kind") == "pc" and not cur.get("initiative_pending"):
                     await session_hub.broadcast(
                         session.id,
@@ -7181,7 +7187,8 @@ class LobbyService:
                 code="transfer_not_in_lobby",
                 status_code=400,
             )
-        if from_member.user_id != user.id and lobby.owner_id != user.id:
+        # S-07: только со своего листа (мастерская выдача — отдельно, «из воздуха»).
+        if from_member.user_id != user.id:
             raise AppError(
                 "Передавать можно только со своего листа",
                 code="forbidden",
@@ -7197,6 +7204,43 @@ class LobbyService:
             raise NotFoundError("Персонаж не найден", code="character_not_found")
 
         from sqlalchemy.orm.attributes import flag_modified
+        from app.services import session_combat as scmb
+        from app.services import session_table_s07 as s07
+        from app.services.sheet_effects import broadcast_sheet_effects_changed
+
+        # Сессия: явная или открытая, где оба за столом (лента + бой).
+        session = None
+        session_id = payload.session_id
+        if session_id is not None:
+            session = self.lobbies.get_session(session_id)
+            if (
+                session is None
+                or session.lobby_id != lobby.id
+                or session.closed_at is not None
+            ):
+                session = None
+        if session is None:
+            for sid in self.lobbies.list_open_session_ids_for_character(
+                payload.from_character_id
+            ):
+                cand = self.lobbies.get_session(sid)
+                if (
+                    cand is not None
+                    and cand.lobby_id == lobby.id
+                    and cand.closed_at is None
+                    and self.lobbies.get_seat(cand.id, payload.from_character_id) is not None
+                    and self.lobbies.get_seat(cand.id, payload.to_character_id) is not None
+                ):
+                    session = cand
+                    break
+
+        combat_state = None
+        if session is not None:
+            combatants = _parse_combatants(session.combatants)
+            combat_state = _parse_combat_state(session.combat, combatants=combatants)
+            s07.assert_player_transfer_in_combat(
+                combat_state, from_character_id=payload.from_character_id
+            )
 
         sender_sheet = dict(sender.sheet or {})
         receiver_sheet = dict(receiver.sheet or {})
@@ -7308,15 +7352,16 @@ class LobbyService:
         flag_modified(sender, "sheet")
         flag_modified(receiver, "sheet")
 
-        # Лента: если указана сессия и оба за столом — событие туда.
-        session_id = payload.session_id
-        if session_id is not None:
-            session = self.lobbies.get_session(session_id)
+        out_event = None
+        if session is not None:
+            if s07.combat_active(combat_state) and combat_state is not None:
+                combat_state = s07.mark_object_interaction(
+                    combat_state, payload.from_character_id
+                )
+                session.combat = scmb.dump_combat_state(combat_state)
+                flag_modified(session, "combat")
             if (
-                session is not None
-                and session.lobby_id == lobby.id
-                and session.closed_at is None
-                and self.lobbies.get_seat(session.id, payload.from_character_id) is not None
+                self.lobbies.get_seat(session.id, payload.from_character_id) is not None
                 and self.lobbies.get_seat(session.id, payload.to_character_id) is not None
             ):
                 event = SessionEvent(
@@ -7334,16 +7379,254 @@ class LobbyService:
                         "from_character_id": str(payload.from_character_id),
                         "to_character_id": str(payload.to_character_id),
                         "to_character_name": receiver.name,
+                        "summary": summary[:200],
                     },
                 )
                 self.lobbies.add_session_event(event)
+                self.db.flush()
+                out_event = SessionEventOut.model_validate(event)
 
         self.db.commit()
+
+        await broadcast_sheet_effects_changed(
+            self.lobbies, [payload.from_character_id, payload.to_character_id]
+        )
+        if session is not None:
+            await _broadcast_session_changed(session.id)
+            if out_event is not None:
+                await session_hub.broadcast(
+                    session.id,
+                    {"type": "session_event", "event": out_event.model_dump(mode="json")},
+                )
+
         return InventoryTransferResult(
             summary=summary,
             from_character_id=payload.from_character_id,
             to_character_id=payload.to_character_id,
             to_character_name=receiver.name,
+        )
+
+    async def grant_inventory(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: InventoryGrantRequest,
+    ) -> InventoryGrantResult:
+        """S-07: выдача мастером «из воздуха» (не сундук S-06). can_award, без отметки хода."""
+        from sqlalchemy.orm.attributes import flag_modified
+        from app.schemas.lobby import InventoryGrantResult
+        from app.services.sheet_effects import broadcast_sheet_effects_changed
+
+        session = self.lobbies.get_session(session_id)
+        if session is None:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lobby = session.lobby
+        self._require_award(lobby, user, session)
+        if session.closed_at is not None:
+            raise AppError("Сессия закрыта", code="session_closed", status_code=400)
+
+        seat_ids = {s.character_id for s in session.seats}
+        if payload.character_id not in seat_ids:
+            raise AppError(
+                "Выдать можно только персонажу за столом",
+                code="grant_not_seated",
+                status_code=400,
+            )
+
+        coin_labels = {"cp": "мм", "sp": "см", "ep": "эм", "gp": "зм", "pp": "пм"}
+        has_item = bool((payload.item_name or "").strip())
+        has_coins = bool(payload.coin_currency and payload.coin_amount)
+        if has_item == has_coins:
+            raise AppError(
+                "Укажите предмет или монеты",
+                code="grant_empty",
+                status_code=400,
+            )
+
+        char_map = self.lobbies.get_characters_map([payload.character_id])
+        character = char_map.get(payload.character_id)
+        if character is None:
+            raise NotFoundError("Персонаж не найден", code="character_not_found")
+
+        sheet = dict(character.sheet or {})
+        inventory = dict(sheet.get("inventory") or {})
+        coins = dict(inventory.get("coins") or {})
+        items = list(inventory.get("items") or []) if isinstance(inventory.get("items"), list) else []
+
+        if has_item:
+            name = (payload.item_name or "").strip()
+            qty = max(1, int(payload.item_qty or 1))
+            stacked = False
+            for j, rit in enumerate(items):
+                if (
+                    str(rit.get("name") or "") == name
+                    and not rit.get("catalog_id")
+                    and not bool(rit.get("equipped"))
+                ):
+                    rit = dict(rit)
+                    rit["qty"] = max(0, int(rit.get("qty") or 0)) + qty
+                    items[j] = rit
+                    stacked = True
+                    break
+            if not stacked:
+                items.append(
+                    {
+                        "id": str(uuid4()),
+                        "name": name,
+                        "catalog_id": None,
+                        "qty": qty,
+                        "weight_lb": None,
+                        "equipped": False,
+                        "armor_kind": "none",
+                        "base_ac": None,
+                        "notes": "",
+                        "item_kind": "gear",
+                    }
+                )
+            summary = (
+                f"Мастер → {character.name}: {name}"
+                + (f" ×{qty}" if qty > 1 else "")
+            )
+        else:
+            currency = payload.coin_currency or "gp"
+            amount = int(payload.coin_amount or 0)
+            try:
+                cur = int(coins.get(currency) or 0)
+            except (TypeError, ValueError):
+                cur = 0
+            coins[currency] = cur + amount
+            label = coin_labels.get(currency, currency)
+            summary = f"Мастер → {character.name}: {amount} {label}"
+
+        for key in ("cp", "sp", "ep", "gp", "pp"):
+            try:
+                coins[key] = int(coins.get(key) or 0)
+            except (TypeError, ValueError):
+                coins[key] = 0
+
+        inventory["coins"] = coins
+        inventory["items"] = items
+        sheet["inventory"] = inventory
+        character.sheet = sheet
+        character.sheet_version = int(character.sheet_version or 1) + 1
+        flag_modified(character, "sheet")
+
+        event = SessionEvent(
+            session_id=session.id,
+            event_type="transfer",
+            character_id=payload.character_id,
+            actor_user_id=user.id,
+            character_name="Мастер",
+            title="Выдача",
+            formula=None,
+            breakdown=summary[:200],
+            total=None,
+            is_master_roll=True,
+            payload={
+                "kind": "master_grant",
+                "to_character_id": str(payload.character_id),
+                "to_character_name": character.name,
+                "summary": summary[:200],
+            },
+        )
+        self.lobbies.add_session_event(event)
+        self.db.commit()
+        self.db.refresh(event)
+
+        detail = self._session_detail(session, lobby, user)
+        out_event = SessionEventOut.model_validate(event)
+        await broadcast_sheet_effects_changed(self.lobbies, [payload.character_id])
+        await _broadcast_session_changed(session.id)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_event", "event": out_event.model_dump(mode="json")},
+        )
+        return InventoryGrantResult(
+            session=detail,
+            summary=summary,
+            to_character_id=payload.character_id,
+            to_character_name=character.name,
+        )
+
+    async def start_party_rest(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: PartyRestRequest,
+    ) -> PartyRestResult:
+        """S-07: мастер открывает отдых партии у всех за столом (диалог на листах)."""
+        from app.realtime.hub import lobby_hub
+        from app.schemas.lobby import PartyRestResult
+        from app.services import session_table_s07 as s07
+
+        session, lobby = self._require_session_owner(user, session_id)
+        combatants = _parse_combatants(session.combatants)
+        combat_state = _parse_combat_state(session.combat, combatants=combatants)
+        if s07.combat_active(combat_state):
+            raise AppError(
+                "Во время боя отдых недоступен",
+                code="party_rest_in_combat",
+                status_code=400,
+            )
+        if not session.seats:
+            raise AppError(
+                "За столом никого нет",
+                code="party_rest_no_seats",
+                status_code=400,
+            )
+
+        copy = s07.gritty_rest_copy(getattr(lobby, "campaign_rules", None))
+        kind = payload.kind
+        label = copy["short_label"] if kind == "short" else copy["long_label"]
+        summary = f"{label} для партии"
+
+        event = SessionEvent(
+            session_id=session.id,
+            event_type="rest",
+            character_id=None,
+            actor_user_id=user.id,
+            character_name="Мастер",
+            title=label,
+            formula=None,
+            breakdown=summary[:200],
+            total=None,
+            is_master_roll=False,
+            payload={
+                "kind": "party_rest",
+                "rest_kind": kind,
+                "gritty_rest": copy["gritty_rest"],
+            },
+        )
+        self.lobbies.add_session_event(event)
+        self.db.commit()
+        self.db.refresh(event)
+
+        detail = self._session_detail(session, lobby, user)
+        out_event = SessionEventOut.model_validate(event)
+        rest_msg = {
+            "type": "party_rest",
+            "session_id": str(session.id),
+            "kind": kind,
+            "gritty_rest": copy["gritty_rest"],
+            "short_label": copy["short_label"],
+            "long_label": copy["long_label"],
+            "summary": summary,
+        }
+        await _broadcast_session_changed(session.id)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_event", "event": out_event.model_dump(mode="json")},
+        )
+        await session_hub.broadcast(session.id, rest_msg)
+        await lobby_hub.broadcast(lobby.id, rest_msg)
+
+        return PartyRestResult(
+            session=detail,
+            kind=kind,
+            gritty_rest=bool(copy["gritty_rest"]),
+            summary=summary,
+            short_label=str(copy["short_label"]),
+            long_label=str(copy["long_label"]),
         )
 
     def generate_encounter(

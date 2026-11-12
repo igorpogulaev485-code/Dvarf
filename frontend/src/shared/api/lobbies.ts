@@ -1803,6 +1803,50 @@ export async function transferLobbyInventory(
   })
 }
 
+export type InventoryGrantResult = {
+  session: SessionDetail
+  summary: string
+  to_character_id: string
+  to_character_name: string
+}
+
+/** S-07: мастер выдаёт предмет/монеты «из воздуха» (не сундук). */
+export async function grantSessionInventory(
+  sessionId: string,
+  payload: {
+    character_id: string
+    item_name?: string | null
+    item_qty?: number | null
+    coin_currency?: 'cp' | 'sp' | 'ep' | 'gp' | 'pp' | null
+    coin_amount?: number | null
+  },
+): Promise<InventoryGrantResult> {
+  return apiRequest<InventoryGrantResult>(`/sessions/${sessionId}/inventory-grants`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export type PartyRestResult = {
+  session: SessionDetail
+  kind: 'short' | 'long'
+  gritty_rest: boolean
+  summary: string
+  short_label: string
+  long_label: string
+}
+
+/** S-07: короткий/долгий отдых партии со стола. */
+export async function startPartyRest(
+  sessionId: string,
+  kind: 'short' | 'long',
+): Promise<PartyRestResult> {
+  return apiRequest<PartyRestResult>(`/sessions/${sessionId}/party-rest`, {
+    method: 'POST',
+    body: JSON.stringify({ kind }),
+  })
+}
+
 export type EncounterGenerateDifficulty = 'easy' | 'medium' | 'hard' | 'deadly'
 
 export type EncounterMonsterOption = {

@@ -16,6 +16,7 @@ import type { FeedFilter } from '../features/lobby/SessionEventFeed'
 import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
 import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
 import { LootChestBoard, RewardsDialog } from '../features/lobby/RewardsDialog'
+import { MasterGrantDialog } from '../features/lobby/MasterGrantDialog'
 import { PietyAwardDialog } from '../features/lobby/PietyAwardDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EnemyCard } from '../features/lobby/EnemyCard'
@@ -46,7 +47,9 @@ import {
   addSessionCombatants,
   awardLobbyPiety,
   awardSessionXp,
+  grantSessionInventory,
   sessionLootChest,
+  startPartyRest,
   closeSession,
   createSessionRoll,
   deleteSeatCompanion,
@@ -168,7 +171,8 @@ export function SessionDetailPage() {
   const [bindSettingId, setBindSettingId] = useState('')
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteConfirmName, setDeleteConfirmName] = useState('')
-  const [restStub, setRestStub] = useState<string | null>(null)
+  const [grantOpen, setGrantOpen] = useState(false)
+  const [grantSeatId, setGrantSeatId] = useState<string | null>(null)
   const [handoffOpen, setHandoffOpen] = useState(false)
   const [handoffDraft, setHandoffDraft] = useState<SettingHandoffDraft | null>(null)
   const [handoffSetting, setHandoffSetting] = useState<SettingDetail | null>(null)
@@ -341,6 +345,15 @@ export function SessionDetailPage() {
     },
     onSessionChanged: () => {
       pullSession()
+    },
+    onPartyRest: (msg) => {
+      if (isOwnerRef.current) return
+      setToast(
+        msg.summary ||
+          (msg.kind === 'short'
+            ? msg.short_label || 'Короткий отдых'
+            : msg.long_label || 'Долгий отдых') + ' — открой лист',
+      )
     },
     onReconnect: () => {
       pullSession()
@@ -1000,6 +1013,22 @@ export function SessionDetailPage() {
                       >
                         Добыча
                       </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={
+                          busy ||
+                          session.seats.length === 0 ||
+                          !(session.can_award || canRun)
+                        }
+                        title="Выдать предмет или монеты на лист (не сундук)"
+                        onClick={() => {
+                          setGrantSeatId(null)
+                          setGrantOpen(true)
+                        }}
+                      >
+                        Выдать
+                      </Button>
                     </div>
                     <div className="session-toolbar-group" aria-label="Сюжет">
                       <Text className="session-toolbar-group__label">Сюжет</Text>
@@ -1056,18 +1085,52 @@ export function SessionDetailPage() {
                       <Button
                         type="button"
                         variant="secondary"
-                        disabled={busy}
-                        onClick={() => setRestStub('Короткий отдых будет в S-07')}
+                        disabled={busy || Boolean(session.combat?.active)}
+                        title={
+                          session.combat?.active
+                            ? 'Во время боя отдых недоступен'
+                            : normalizeCampaignRules(session.campaign_rules).homebrew
+                                  .gritty_rest
+                              ? 'Суровый реализм: 8 часов'
+                              : undefined
+                        }
+                        onClick={() => {
+                          void run(async () => {
+                            const result = await startPartyRest(session.id, 'short')
+                            setSession(result.session)
+                            setToast(result.summary)
+                            await reloadEvents()
+                          })
+                        }}
                       >
-                        Короткий отдых
+                        {normalizeCampaignRules(session.campaign_rules).homebrew.gritty_rest
+                          ? 'Короткий отдых (8 ч)'
+                          : 'Короткий отдых'}
                       </Button>
                       <Button
                         type="button"
                         variant="secondary"
-                        disabled={busy}
-                        onClick={() => setRestStub('Долгий отдых будет в S-07')}
+                        disabled={busy || Boolean(session.combat?.active)}
+                        title={
+                          session.combat?.active
+                            ? 'Во время боя отдых недоступен'
+                            : normalizeCampaignRules(session.campaign_rules).homebrew
+                                  .gritty_rest
+                              ? 'Суровый реализм: 7 дней'
+                              : undefined
+                        }
+                        onClick={() => {
+                          void run(async () => {
+                            const result = await startPartyRest(session.id, 'long')
+                            setSession(result.session)
+                            setToast(result.summary)
+                            await reloadEvents()
+                          })
+                        }}
                       >
-                        Долгий отдых
+                        {normalizeCampaignRules(session.campaign_rules).homebrew.gritty_rest
+                          ? 'Долгий отдых (7 дн.)'
+                          : 'Долгий отдых'}
                       </Button>
                     </div>
                   </div>
@@ -2503,15 +2566,26 @@ export function SessionDetailPage() {
         </Stack>
       </Dialog>
 
-      <Dialog
-        open={Boolean(restStub)}
-        title="Отдых"
-        primaryLabel="Понятно"
-        onPrimary={() => setRestStub(null)}
-        onSecondary={() => setRestStub(null)}
-      >
-        <Text tone="muted">{restStub}</Text>
-      </Dialog>
+      <MasterGrantDialog
+        open={grantOpen}
+        busy={busy}
+        seats={session.seats}
+        initialCharacterId={grantSeatId}
+        onClose={() => {
+          setGrantOpen(false)
+          setGrantSeatId(null)
+        }}
+        onSubmit={(payload) => {
+          void run(async () => {
+            const result = await grantSessionInventory(session.id, payload)
+            setSession(result.session)
+            setToast(result.summary)
+            setGrantOpen(false)
+            setGrantSeatId(null)
+            await reloadEvents()
+          })
+        }}
+      />
 
       <Toast
         message={toast}

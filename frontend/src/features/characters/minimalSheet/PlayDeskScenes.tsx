@@ -1,5 +1,9 @@
 /** Сцены стола: бой, инвентарь, умения, заклинания, напарники, тексты. */
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { ApiRequestError } from '../../../shared/api/client'
+import { transferLobbyInventory } from '../../../shared/api/lobbies'
+import { TransferDialog, type TransferPeer } from '../TransferDialog'
+import { useLobbyParty } from '../../lobby/useLobbyParty'
 import { ignoresClassRaceLevel } from '../attunementRules'
 import { spellReadyToCast } from '../itemSpellCast'
 import { useScrollSpellClasses } from '../ScrollCastGate'
@@ -79,12 +83,40 @@ import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarl
 import { totalCharacterLevel } from '../../../shared/dnd/classLevels'
 import { RitualBookCopyDialog, ritualBookButtonLabel } from '../RitualBookCopyDialog'
 
+type DeskTransferMode =
+  | { kind: 'item'; itemId: string; itemName: string; maxQty: number }
+  | {
+      kind: 'coins'
+      balances: Record<'cp' | 'sp' | 'ep' | 'gp' | 'pp', number>
+    }
+
 export function PlayDeskScenes({ model }: { model: SheetModel }) {
   const [divineSmiteIntent, setDivineSmiteIntent] = useState<DivineSmiteIntent>({
     slotLevel: null,
     vsUndeadOrFiend: false,
   })
   const [ritualBookOpen, setRitualBookOpen] = useState(false)
+  const [transferBusy, setTransferBusy] = useState(false)
+  const [transferMode, setTransferMode] = useState<DeskTransferMode | null>(null)
+  const party = useLobbyParty(model.baseCharacter.id)
+  const transferPeers: TransferPeer[] = useMemo(
+    () =>
+      party.options
+        .filter((o) => !o.isSelf)
+        .map((o) => ({
+          lobby_id: party.lobbyId || model.baseCharacter.lobby_id || '',
+          lobby_name: party.lobbyName || 'Лобби',
+          character_id: o.character_id,
+          character_name: o.character_name,
+        }))
+        .filter((p) => Boolean(p.lobby_id)),
+    [
+      party.options,
+      party.lobbyId,
+      party.lobbyName,
+      model.baseCharacter.lobby_id,
+    ],
+  )
   const [pendingAllyBuff, setPendingAllyBuff] = useState<{
     slug: string
     name: string
@@ -435,6 +467,26 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         /* Header owns CoinPad only on wide desk; compact uses panel-local pad. */
         onOpenCoins={() => model.setCoinPadOpen(true)}
         onToast={model.onToast}
+        onTransferItem={(item) =>
+          setTransferMode({
+            kind: 'item',
+            itemId: item.id,
+            itemName: item.name || 'Предмет',
+            maxQty: Math.max(1, item.qty || 1),
+          })
+        }
+        onTransferCoins={() =>
+          setTransferMode({
+            kind: 'coins',
+            balances: {
+              cp: model.draft.inventory.coins.cp ?? 0,
+              sp: model.draft.inventory.coins.sp ?? 0,
+              ep: model.draft.inventory.coins.ep ?? 0,
+              gp: model.draft.inventory.coins.gp ?? 0,
+              pp: model.draft.inventory.coins.pp ?? 0,
+            },
+          })
+        }
         onChange={(inventory) =>
           model.setDraft((prev) => {
             const focusSpells = withSpellFocusFlags(prev.spells, inventory.items)
@@ -456,6 +508,68 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           })
         }
         onWeaponsChange={(weapons) => model.setDraft((prev) => ({ ...prev, weapons }))}
+      />
+      <TransferDialog
+        open={transferMode != null}
+        busy={transferBusy}
+        peers={transferPeers}
+        mode={transferMode}
+        onClose={() => setTransferMode(null)}
+        onSubmit={(payload) => {
+          const lobbyId = payload.lobby_id || party.lobbyId || model.baseCharacter.lobby_id
+          if (!lobbyId) {
+            model.onToast('Нужно быть в лобби, чтобы передать')
+            return
+          }
+          void (async () => {
+            setTransferBusy(true)
+            try {
+              const result = await transferLobbyInventory(lobbyId, {
+                from_character_id: model.baseCharacter.id,
+                to_character_id: payload.to_character_id,
+                item_id: payload.item_id,
+                qty: payload.qty,
+                coin_currency: payload.coin_currency,
+                coin_amount: payload.coin_amount,
+                session_id: model.baseCharacter.open_session_id ?? null,
+              })
+              // Локально сразу убрать у отправителя — получатель подтянет через WS.
+              model.setDraft((prev) => {
+                const inv = { ...prev.inventory }
+                if (payload.item_id) {
+                  const qty = Math.max(1, payload.qty ?? 1)
+                  inv.items = prev.inventory.items
+                    .map((row) => {
+                      if (row.id !== payload.item_id) return row
+                      const nextQty = Math.max(0, (row.qty || 0) - qty)
+                      return nextQty <= 0 ? null : { ...row, qty: nextQty }
+                    })
+                    .filter((row): row is NonNullable<typeof row> => row != null)
+                } else if (payload.coin_currency && payload.coin_amount) {
+                  const key = payload.coin_currency
+                  inv.coins = {
+                    ...prev.inventory.coins,
+                    [key]: Math.max(
+                      0,
+                      (prev.inventory.coins[key] ?? 0) - payload.coin_amount,
+                    ),
+                  }
+                }
+                return { ...prev, inventory: inv }
+              })
+              model.onToast(result.summary)
+              setTransferMode(null)
+            } catch (err) {
+              model.onToast(
+                err instanceof ApiRequestError
+                  ? err.message
+                  : 'Не удалось передать',
+              )
+            } finally {
+              setTransferBusy(false)
+            }
+          })()
+        }}
       />
       <AttunementDialog
         open={model.attunementDialogOpen}
