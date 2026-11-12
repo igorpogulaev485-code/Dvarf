@@ -7,14 +7,18 @@ from dataclasses import replace
 import pytest
 
 from app.services.gear_catalog_seed import (
+    I22_ACTIVE_MAGIC_COUNT,
     I22_DEACTIVATE_SLUGS,
     WAND_ID,
     WAND_SLUG,
     GearRecord,
+    active_magic_rows,
     diff_gear_catalog,
-    is_magic_gear,
+    gear_row_key,
+    item_pack_insert_keys,
     planned_gear_rows,
     refresh_character_sheet,
+    split_gear_waves_at_item_packs,
 )
 
 
@@ -35,8 +39,22 @@ def test_one_row_per_kind_slug(planned: list[GearRecord]) -> None:
 
 
 def test_active_magic_count_after_i22(planned: list[GearRecord]) -> None:
-    magic = [row for row in planned if is_magic_gear(row.data, is_active=row.is_active)]
-    assert len(magic) == 445
+    """I22 locks 445 active magic rows. Later gear_i* waves may only add inserts."""
+    before, _after = split_gear_waves_at_item_packs()
+    baseline_rows = planned_gear_rows(before)
+    baseline = active_magic_rows(baseline_rows)
+    assert len(baseline) == I22_ACTIVE_MAGIC_COUNT
+    base_keys = {gear_row_key(row) for row in baseline}
+    baseline_keys = {gear_row_key(row) for row in baseline_rows}
+    magic = active_magic_rows(planned)
+    magic_keys = {gear_row_key(row) for row in magic}
+    assert base_keys <= magic_keys
+    added = magic_keys - base_keys
+    new_inserts = item_pack_insert_keys() - baseline_keys
+    final_keys = {gear_row_key(row) for row in planned}
+    assert new_inserts <= final_keys
+    assert added == {key for key in new_inserts if key in magic_keys}
+    assert len(magic) == I22_ACTIVE_MAGIC_COUNT + len(added)
     hidden = [row for row in planned if row.slug in I22_DEACTIVATE_SLUGS]
     assert len(hidden) == 13
     assert all(not row.is_active for row in hidden)
