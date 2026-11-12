@@ -83,8 +83,10 @@ def test_raw_dsn_strips_sqlalchemy_driver() -> None:
 
 def test_roll_audience_hides_master_rolls() -> None:
     owner = uuid4()
-    assert _roll_audience(True, owner) == {owner}
-    assert _roll_audience(False, owner) is None
+    comaster = uuid4()
+    viewers = {owner, comaster}
+    assert _roll_audience(True, viewers) == viewers
+    assert _roll_audience(False, viewers) is None
 
 
 def test_encode_shrinks_oversized_session_dump() -> None:

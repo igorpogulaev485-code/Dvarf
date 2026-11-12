@@ -1,10 +1,28 @@
 import { apiRequest } from './client'
 
+export type LobbyRoleName = 'comaster' | 'observer' | 'lead_today'
+
+export type LobbyRole = {
+  id: string
+  lobby_id: string
+  user_id: string
+  role: LobbyRoleName
+  session_id: string | null
+  assigned_by: string | null
+  character_fate: 'waiting' | 'companion' | null
+  character_id: string | null
+  display_name: string | null
+  created_at: string
+}
+
 export type LobbySummary = {
   id: string
   name: string
   invite_code: string | null
   is_owner: boolean
+  is_comaster?: boolean
+  is_observer?: boolean
+  role?: string
   member_count: number
   created_at: string
   updated_at: string
@@ -236,8 +254,23 @@ export type LobbyDetail = {
   invite_code: string | null
   join_path: string | null
   is_owner: boolean
+  is_comaster?: boolean
+  is_observer?: boolean
+  can_run_session?: boolean
+  can_see_hidden?: boolean
+  can_edit_wiki?: boolean
+  can_manage_journal?: boolean
+  can_edit_campaign_rules?: boolean
+  can_award?: boolean
+  can_delete_lobby?: boolean
+  can_change_roles?: boolean
+  can_transfer_lobby?: boolean
+  can_change_invite_code?: boolean
+  can_delete_session?: boolean
+  role?: string
   owner_id: string
   members: LobbyMember[]
+  roles?: LobbyRole[]
   settings: SettingSummary[]
   sessions: SessionSummary[]
   /** JSON профиля видимости; нормализуется на клиенте */
@@ -412,6 +445,14 @@ export type SessionDetail = {
   setting_name: string | null
   name: string
   is_owner: boolean
+  is_comaster?: boolean
+  is_observer?: boolean
+  can_run_session?: boolean
+  can_see_hidden?: boolean
+  can_award?: boolean
+  can_delete_session?: boolean
+  role?: string
+  lead_today_user_id?: string | null
   seats: SessionSeat[]
   combatants?: SessionCombatant[]
   combat?: SessionCombat
@@ -505,10 +546,74 @@ export async function deleteLobby(id: string): Promise<void> {
   await apiRequest<void>(`/lobbies/${id}`, { method: 'DELETE' })
 }
 
-export async function joinLobby(code: string, characterId: string): Promise<LobbyDetail> {
+export async function joinLobby(
+  code: string,
+  characterId?: string | null,
+): Promise<LobbyDetail> {
   return apiRequest<LobbyDetail>('/lobbies/join', {
     method: 'POST',
-    body: JSON.stringify({ code, character_id: characterId }),
+    body: JSON.stringify({
+      code,
+      character_id: characterId || undefined,
+    }),
+  })
+}
+
+export async function assignLobbyRole(
+  lobbyId: string,
+  userId: string,
+  role: 'comaster' | 'observer',
+): Promise<LobbyDetail> {
+  return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/roles`, {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId, role }),
+  })
+}
+
+export async function removeLobbyRole(
+  lobbyId: string,
+  userId: string,
+  role?: 'comaster' | 'observer' | null,
+): Promise<LobbyDetail> {
+  return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/roles/remove`, {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId, role: role || undefined }),
+  })
+}
+
+export async function transferLobby(
+  lobbyId: string,
+  payload: {
+    new_owner_user_id: string
+    confirm_name: string
+    former_owner_fate: 'become_player' | 'leave'
+    former_owner_character_id?: string | null
+  },
+): Promise<LobbyDetail> {
+  return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/transfer`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function assignLeadToday(
+  lobbyId: string,
+  payload: {
+    user_id: string
+    session_id: string
+    character_fate?: 'waiting' | 'companion'
+    character_id?: string | null
+  },
+): Promise<LobbyDetail> {
+  return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/lead-today`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function clearLeadToday(lobbyId: string, sessionId: string): Promise<LobbyDetail> {
+  return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/lead-today/${sessionId}`, {
+    method: 'DELETE',
   })
 }
 

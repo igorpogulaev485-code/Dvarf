@@ -497,6 +497,39 @@ class SeatCompanionPatchRequest(BaseModel):
     conditions: list[SeatConditionOut] | None = None
 
 
+class LobbyRoleOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    lobby_id: UUID
+    user_id: UUID
+    role: Literal["comaster", "observer", "lead_today"]
+    session_id: UUID | None = None
+    assigned_by: UUID | None = None
+    character_fate: Literal["waiting", "companion"] | None = None
+    character_id: UUID | None = None
+    display_name: str | None = None
+    created_at: datetime
+
+
+class LobbyPermissionFlags(BaseModel):
+    is_owner: bool = False
+    is_comaster: bool = False
+    is_observer: bool = False
+    can_run_session: bool = False
+    can_see_hidden: bool = False
+    can_edit_wiki: bool = False
+    can_manage_journal: bool = False
+    can_edit_campaign_rules: bool = False
+    can_award: bool = False
+    can_delete_lobby: bool = False
+    can_change_roles: bool = False
+    can_transfer_lobby: bool = False
+    can_change_invite_code: bool = False
+    can_delete_session: bool = False
+    role: str = "none"
+
+
 class LobbySummary(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -504,6 +537,9 @@ class LobbySummary(BaseModel):
     name: str
     invite_code: str | None = None
     is_owner: bool
+    is_comaster: bool = False
+    is_observer: bool = False
+    role: str = "none"
     member_count: int
     created_at: datetime
     updated_at: datetime
@@ -515,8 +551,23 @@ class LobbyDetail(BaseModel):
     invite_code: str | None = None
     join_path: str | None = None
     is_owner: bool
+    is_comaster: bool = False
+    is_observer: bool = False
+    can_run_session: bool = False
+    can_see_hidden: bool = False
+    can_edit_wiki: bool = False
+    can_manage_journal: bool = False
+    can_edit_campaign_rules: bool = False
+    can_award: bool = False
+    can_delete_lobby: bool = False
+    can_change_roles: bool = False
+    can_transfer_lobby: bool = False
+    can_change_invite_code: bool = False
+    can_delete_session: bool = False
+    role: str = "none"
     owner_id: UUID
     members: list[LobbyMemberOut]
+    roles: list[LobbyRoleOut] = Field(default_factory=list)
     settings: list[SettingSummary]
     sessions: list[SessionSummary]
     visibility_profile: dict = Field(default_factory=dict)
@@ -541,11 +592,39 @@ class LobbyUpdateRequest(BaseModel):
 
 class JoinLobbyRequest(BaseModel):
     code: str = Field(min_length=4, max_length=16)
-    character_id: UUID
+    # Без персонажа → вход наблюдателем (тот же код приглашения).
+    character_id: UUID | None = None
 
 
 class AddLobbyMemberRequest(BaseModel):
     character_id: UUID
+
+
+class LobbyRoleAssignRequest(BaseModel):
+    user_id: UUID
+    role: Literal["comaster", "observer"]
+
+
+class LobbyRoleRemoveRequest(BaseModel):
+    user_id: UUID
+    role: Literal["comaster", "observer"] | None = None
+
+
+class LobbyTransferRequest(BaseModel):
+    new_owner_user_id: UUID
+    # Подтверждение: точное название лобби.
+    confirm_name: str = Field(min_length=1, max_length=120)
+    # Судьба прежнего владельца: стать игроком (нужен character_id) или выйти.
+    former_owner_fate: Literal["become_player", "leave"]
+    former_owner_character_id: UUID | None = None
+
+
+class LeadTodayRequest(BaseModel):
+    user_id: UUID
+    session_id: UUID
+    # Судьба персонажа ведущего на время сессии.
+    character_fate: Literal["waiting", "companion"] = "waiting"
+    character_id: UUID | None = None
 
 
 class SettingCreateRequest(BaseModel):
@@ -883,6 +962,14 @@ class SessionDetail(BaseModel):
     setting_name: str | None
     name: str
     is_owner: bool
+    is_comaster: bool = False
+    is_observer: bool = False
+    can_run_session: bool = False
+    can_see_hidden: bool = False
+    can_award: bool = False
+    can_delete_session: bool = False
+    role: str = "none"
+    lead_today_user_id: UUID | None = None
     seats: list[SessionSeatOut]
     combatants: list[SessionCombatantOut] = Field(default_factory=list)
     combat: SessionCombatOut = Field(default_factory=SessionCombatOut)

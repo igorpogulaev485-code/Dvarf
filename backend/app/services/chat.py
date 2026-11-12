@@ -11,6 +11,7 @@ from app.models.user import User
 from app.realtime.hub import lobby_hub
 from app.repositories.chat import ChatRepository
 from app.repositories.lobby import LobbyRepository
+from app.services import lobby_roles as roles
 from app.schemas.chat import (
     ChatChannelCreateRequest,
     ChatChannelOut,
@@ -35,8 +36,7 @@ class ChatService:
         lobby = self.lobbies.get(lobby_id)
         if lobby is None:
             raise NotFoundError("Лобби не найдено", code="lobby_not_found")
-        if lobby.owner_id != user.id and not any(m.user_id == user.id for m in lobby.members):
-            raise NotFoundError("Лобби не найдено", code="lobby_not_found")
+        roles.require_view(self.db, lobby, user)
         return lobby
 
     def _member_character_label(
@@ -87,7 +87,8 @@ class ChatService:
         lobby_id: UUID,
         payload: ChatChannelCreateRequest,
     ) -> ChatChannelOut:
-        self._require_lobby_view(lobby_id, user)
+        lobby = self._require_lobby_view(lobby_id, user)
+        roles.require_can_act_on_board(self.db, lobby, user)
         name = payload.name.strip()
         if not name:
             raise AppError("Укажите название канала", code="name_required", status_code=400)
@@ -129,12 +130,14 @@ class ChatService:
         if channel is None:
             raise NotFoundError("Канал не найден", code="channel_not_found")
         lobby = self._require_lobby_view(channel.lobby_id, user)
+        roles.require_can_act_on_board(self.db, lobby, user)
         body = payload.body.strip()
         if not body:
             raise AppError("Пустое сообщение", code="empty_message", status_code=400)
 
         character_id, character_name = None, None
-        if lobby.owner_id == user.id and payload.character_id is None:
+        can_master = roles.can_edit_wiki(self.db, lobby, user)
+        if can_master and payload.character_id is None:
             character_name = "Мастер"
         else:
             character_id, character_name = self._member_character_label(
@@ -142,7 +145,7 @@ class ChatService:
                 user,
                 payload.character_id,
             )
-            if character_name is None and lobby.owner_id == user.id:
+            if character_name is None and can_master:
                 character_name = "Мастер"
 
         message = ChatMessage(

@@ -10,6 +10,7 @@ from app.models.user import User
 from app.realtime.hub import lobby_hub
 from app.repositories.lobby import LobbyRepository
 from app.repositories.note import NoteRepository
+from app.services import lobby_roles as roles
 from app.schemas.note import NoteCreateRequest, NoteOut, NoteUpdateRequest
 
 NOTE_SCOPES = frozenset({"personal", "party", "master"})
@@ -25,14 +26,16 @@ class NoteService:
         lobby = self.lobbies.get(lobby_id)
         if lobby is None:
             raise NotFoundError("Лобби не найдено", code="lobby_not_found")
-        if lobby.owner_id != user.id and not any(m.user_id == user.id for m in lobby.members):
-            raise NotFoundError("Лобби не найдено", code="lobby_not_found")
+        roles.require_view(self.db, lobby, user)
         return lobby
 
     def _can_edit(self, note: Note, user: User, is_owner: bool) -> bool:
         if is_owner and note.scope in {"party", "master"}:
             return True
         return note.author_user_id == user.id
+
+    def _master_like(self, lobby, user: User) -> bool:
+        return roles.can_see_hidden(self.db, lobby, user)
 
     def _out(self, note: Note, user: User, is_owner: bool) -> NoteOut:
         return NoteOut(
@@ -80,7 +83,7 @@ class NoteService:
         scope: str | None = None,
     ) -> list[NoteOut]:
         lobby = self._require_lobby(lobby_id, user)
-        is_owner = lobby.owner_id == user.id
+        is_owner = self._master_like(lobby, user)
         if scope and scope not in NOTE_SCOPES:
             raise AppError("Неизвестный scope", code="scope_invalid", status_code=400)
         notes = self.notes.list_visible(
@@ -98,7 +101,8 @@ class NoteService:
         payload: NoteCreateRequest,
     ) -> NoteOut:
         lobby = self._require_lobby(lobby_id, user)
-        is_owner = lobby.owner_id == user.id
+        roles.require_can_act_on_board(self.db, lobby, user)
+        is_owner = self._master_like(lobby, user)
         scope = (payload.scope or "personal").strip().lower()
         if scope not in NOTE_SCOPES:
             raise AppError("Неизвестный scope", code="scope_invalid", status_code=400)
@@ -153,7 +157,7 @@ class NoteService:
         if note is None:
             raise NotFoundError("Заметка не найдена", code="note_not_found")
         lobby = self._require_lobby(note.lobby_id, user)
-        is_owner = lobby.owner_id == user.id
+        is_owner = self._master_like(lobby, user)
         if not self._can_edit(note, user, is_owner):
             raise AppError("Нельзя править чужую заметку", code="forbidden", status_code=403)
         if payload.title is not None:
@@ -173,7 +177,7 @@ class NoteService:
         if note is None:
             raise NotFoundError("Заметка не найдена", code="note_not_found")
         lobby = self._require_lobby(note.lobby_id, user)
-        is_owner = lobby.owner_id == user.id
+        is_owner = self._master_like(lobby, user)
         if not self._can_edit(note, user, is_owner):
             raise AppError("Нельзя удалить чужую заметку", code="forbidden", status_code=403)
         lobby_id = note.lobby_id

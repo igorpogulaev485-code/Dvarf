@@ -83,30 +83,37 @@ export function JoinLobbyPage() {
     }
   }
 
+  async function onJoinAsObserver() {
+    if (!codeReady) {
+      setError('Введите код лобби')
+      return
+    }
+    setBusy(true)
+    setError(null)
+    try {
+      const lobby = await joinLobby(code.trim(), null)
+      navigate(`/lobbies/${lobby.id}`, { state: { toast: 'Вы вошли как наблюдатель' } })
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : 'Не удалось войти наблюдателем')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <main className="page page--app">
       <Stack gap={20}>
         <AppHeader
           title="Вход в лобби"
-          subtitle="Код или QR от мастера → ваш персонаж в лобби"
+          subtitle="Код или QR от мастера → персонаж или наблюдатель"
           onOfficialSite={openProductSite}
         />
 
         <Panel title="Присоединиться">
           {loading ? (
             <Text tone="muted">Загрузка…</Text>
-          ) : characters.length === 0 ? (
-            <EmptyState
-              title="Нет персонажей"
-              description="Сначала создайте персонажа в своём ростере."
-              action={
-                <Link className="ui-button" to="/characters">
-                  К персонажам
-                </Link>
-              }
-            />
           ) : (
-            <form className="stack-form join-flow" onSubmit={onSubmit}>
+            <Stack gap={16}>
               <Field label="Код лобби">
                 <Input
                   className="join-flow__code"
@@ -121,79 +128,106 @@ export function JoinLobbyPage() {
                 />
               </Field>
 
-              {codeReady ? (
-                <div className="join-flow__preview" aria-live="polite">
-                  <Text as="h3" className="join-flow__preview-title">
-                    Стол по коду {code.trim()}
-                  </Text>
-                  <Text tone="muted">
-                    Выберите персонажа и подтвердите вход — мастер увидит его в лобби.
-                  </Text>
-                </div>
+              {characters.length === 0 ? (
+                <EmptyState
+                  title="Нет персонажей"
+                  description="Можно войти наблюдателем без персонажа или сначала создать героя."
+                  action={
+                    <Link className="ui-button" to="/characters">
+                      К персонажам
+                    </Link>
+                  }
+                />
               ) : (
-                <Text tone="muted">Введите код от мастера (минимум 4 символа).</Text>
+                <form className="stack-form join-flow" onSubmit={onSubmit}>
+                  {codeReady ? (
+                    <div className="join-flow__preview" aria-live="polite">
+                      <Text as="h3" className="join-flow__preview-title">
+                        Стол по коду {code.trim()}
+                      </Text>
+                      <Text tone="muted">
+                        Выберите персонажа и подтвердите вход — мастер увидит его в лобби.
+                      </Text>
+                    </div>
+                  ) : (
+                    <Text tone="muted">Введите код от мастера (минимум 4 символа).</Text>
+                  )}
+
+                  <div className="join-flow__select-field">
+                    <Field label="Какого персонажа добавить">
+                      <select
+                        className="ui-input join-flow__select"
+                        value={characterId}
+                        onChange={(e) => setCharacterId(e.target.value)}
+                        required
+                      >
+                        {characters.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name} · {c.class_name || 'без класса'}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+
+                  <fieldset className="join-flow__cards" disabled={!codeReady}>
+                    <legend className="join-flow__cards-legend">Какого персонажа добавить</legend>
+                    <div className="join-flow__card-list" role="listbox" aria-label="Персонажи">
+                      {characters.map((c) => {
+                        const active = c.id === characterId
+                        return (
+                          <button
+                            key={c.id}
+                            type="button"
+                            role="option"
+                            aria-selected={active}
+                            className={`join-char-card${active ? ' is-selected' : ''}`}
+                            onClick={() => setCharacterId(c.id)}
+                          >
+                            <span className="join-char-card__avatar" aria-hidden="true">
+                              {(c.name || '?').slice(0, 1).toUpperCase()}
+                            </span>
+                            <span className="join-char-card__body">
+                              <span className="join-char-card__name">{c.name}</span>
+                              <span className="join-char-card__meta">{characterMeta(c)}</span>
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </fieldset>
+
+                  {selected && codeReady ? (
+                    <Text tone="muted" className="join-flow__picked">
+                      К столу сядет: <strong>{selected.name}</strong>
+                    </Text>
+                  ) : null}
+
+                  <div className="join-thumb-cta">
+                    <Button type="submit" disabled={busy || !codeReady || !characterId}>
+                      {busy ? 'Входим…' : 'Сесть за стол'}
+                    </Button>
+                  </div>
+                </form>
               )}
 
-              {/* Desk: native select keeps current density */}
-              <div className="join-flow__select-field">
-                <Field label="Какого персонажа добавить">
-                  <select
-                    className="ui-input join-flow__select"
-                    value={characterId}
-                    onChange={(e) => setCharacterId(e.target.value)}
-                    required
-                  >
-                    {characters.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} · {c.class_name || 'без класса'}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-              </div>
-
-              {/* Phone: tappable character cards */}
-              <fieldset className="join-flow__cards" disabled={!codeReady}>
-                <legend className="join-flow__cards-legend">Какого персонажа добавить</legend>
-                <div className="join-flow__card-list" role="listbox" aria-label="Персонажи">
-                  {characters.map((c) => {
-                    const active = c.id === characterId
-                    return (
-                      <button
-                        key={c.id}
-                        type="button"
-                        role="option"
-                        aria-selected={active}
-                        className={`join-char-card${active ? ' is-selected' : ''}`}
-                        onClick={() => setCharacterId(c.id)}
-                      >
-                        <span className="join-char-card__avatar" aria-hidden="true">
-                          {(c.name || '?').slice(0, 1).toUpperCase()}
-                        </span>
-                        <span className="join-char-card__body">
-                          <span className="join-char-card__name">{c.name}</span>
-                          <span className="join-char-card__meta">{characterMeta(c)}</span>
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </fieldset>
-
-              {selected && codeReady ? (
-                <Text tone="muted" className="join-flow__picked">
-                  К столу сядет: <strong>{selected.name}</strong>
+              <div className="join-flow__observer">
+                <Text tone="muted">
+                  Сомастер и наблюдатель входят по тому же коду без персонажа. В сомастеры повышает
+                  только владелец.
                 </Text>
-              ) : null}
-
-              {error ? <Text tone="danger">{error}</Text> : null}
-
-              <div className="join-thumb-cta">
-                <Button type="submit" disabled={busy || !codeReady || !characterId}>
-                  {busy ? 'Входим…' : 'Сесть за стол'}
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={busy || !codeReady}
+                  onClick={() => void onJoinAsObserver()}
+                >
+                  Войти без персонажа (наблюдатель)
                 </Button>
               </div>
-            </form>
+
+              {error ? <Text tone="danger">{error}</Text> : null}
+            </Stack>
           )}
         </Panel>
 

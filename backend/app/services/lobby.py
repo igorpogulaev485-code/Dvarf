@@ -9,9 +9,21 @@ from app.core.exceptions import AppError, NotFoundError
 
 from app.models.character import Character
 from app.models.journal import CampaignJournalEntry
-from app.models.lobby import Lobby, LobbyMember, PlaySession, Setting
+from app.models.lobby import (
+    LEAD_TODAY_FATE_COMPANION,
+    LEAD_TODAY_FATE_WAITING,
+    LOBBY_ROLE_COMASTER,
+    LOBBY_ROLE_LEAD_TODAY,
+    LOBBY_ROLE_OBSERVER,
+    Lobby,
+    LobbyMember,
+    LobbyRole,
+    PlaySession,
+    Setting,
+)
 from app.models.session_event import SessionEvent
 from app.models.user import User
+from app.services import lobby_roles as roles
 from app.realtime.session_hub import session_hub
 from app.repositories.character import CharacterRepository
 from app.repositories.lobby import LobbyRepository
@@ -49,6 +61,11 @@ from app.schemas.lobby import (
     CombatantMemberOut,
     CombatantPatchRequest,
     JoinLobbyRequest,
+    LeadTodayRequest,
+    LobbyRoleAssignRequest,
+    LobbyRoleOut,
+    LobbyRoleRemoveRequest,
+    LobbyTransferRequest,
     SessionCombatOut,
     EncounterGenerateRequest,
     EncounterGenerateResult,
@@ -622,10 +639,10 @@ def _templates_to_storage(templates: list[EncounterTemplateOut]) -> list[dict]:
     return [t.model_dump(mode="json") for t in templates]
 
 
-def _roll_audience(is_master_roll: bool, owner_id: UUID) -> set[UUID] | None:
-    """Скрытый бросок мастера уходит только мастеру. Остальные события — всей комнате."""
+def _roll_audience(is_master_roll: bool, viewer_ids: set[UUID]) -> set[UUID] | None:
+    """Скрытый бросок мастера — только тем, кто can_see_hidden. Остальное — всей комнате."""
     if is_master_roll:
-        return {owner_id}
+        return set(viewer_ids)
     return None
 
 
@@ -651,34 +668,76 @@ class LobbyService:
         return lobby
 
     def _can_view(self, lobby: Lobby, user: User) -> bool:
-        if lobby.owner_id == user.id:
-            return True
-        return any(m.user_id == user.id for m in lobby.members)
+        return roles.can_view_lobby(self.db, lobby, user)
 
     def _require_view(self, lobby: Lobby, user: User) -> None:
-        if not self._can_view(lobby, user):
-            raise NotFoundError("Лобби не найдено", code="lobby_not_found")
+        roles.require_view(self.db, lobby, user)
 
     def _require_owner(self, lobby: Lobby, user: User) -> None:
-        if lobby.owner_id != user.id:
-            raise AppError("Только мастер лобби", code="lobby_owner_required", status_code=403)
+        roles.require_owner(lobby, user)
+
+    def _require_wiki(self, lobby: Lobby, user: User) -> None:
+        roles.require_can_edit_wiki(self.db, lobby, user)
+
+    def _require_journal(self, lobby: Lobby, user: User) -> None:
+        roles.require_can_manage_journal(self.db, lobby, user)
+
+    def _require_run(
+        self,
+        lobby: Lobby,
+        user: User,
+        session: PlaySession | None = None,
+    ) -> None:
+        roles.require_can_run_session(self.db, lobby, user, session)
+
+    def _require_award(
+        self,
+        lobby: Lobby,
+        user: User,
+        session: PlaySession | None = None,
+    ) -> None:
+        roles.require_can_award(self.db, lobby, user, session)
+
+    def _user_display(self, user_id: UUID) -> str | None:
+        row = self.db.get(User, user_id)
+        if row is None:
+            return None
+        return row.display_name or row.login or row.email
+
+    def _role_out(self, row: LobbyRole) -> LobbyRoleOut:
+        return LobbyRoleOut(
+            id=row.id,
+            lobby_id=row.lobby_id,
+            user_id=row.user_id,
+            role=row.role,  # type: ignore[arg-type]
+            session_id=row.session_id,
+            assigned_by=row.assigned_by,
+            character_fate=row.character_fate,  # type: ignore[arg-type]
+            character_id=row.character_id,
+            display_name=self._user_display(row.user_id),
+            created_at=row.created_at,
+        )
 
     def _to_summary(self, lobby: Lobby, user: User) -> LobbySummary:
-        is_owner = lobby.owner_id == user.id
+        flags = roles.permission_flags(self.db, lobby, user)
         return LobbySummary(
             id=lobby.id,
             name=lobby.name,
-            invite_code=lobby.invite_code if is_owner else None,
-            is_owner=is_owner,
+            invite_code=lobby.invite_code if flags["is_owner"] else None,
+            is_owner=flags["is_owner"],
+            is_comaster=flags["is_comaster"],
+            is_observer=flags["is_observer"],
+            role=flags["role"],
             member_count=len(lobby.members),
             created_at=lobby.created_at,
             updated_at=lobby.updated_at,
         )
 
     def _to_detail(self, lobby: Lobby, user: User) -> LobbyDetail:
-        is_owner = lobby.owner_id == user.id
+        flags = roles.permission_flags(self.db, lobby, user)
         char_map = self.lobbies.get_characters_map([m.character_id for m in lobby.members])
         members = [_member_out(m, char_map.get(m.character_id)) for m in lobby.members]
+        role_rows = list(getattr(lobby, "roles", None) or self.lobbies.list_roles(lobby.id))
         settings = [SettingSummary.model_validate(s) for s in lobby.settings]
         sessions = [
             SessionSummary(
@@ -694,20 +753,36 @@ class LobbyService:
             )
             for s in lobby.sessions
         ]
+        see_templates = flags["is_owner"] or flags["is_comaster"]
         return LobbyDetail(
             id=lobby.id,
             name=lobby.name,
-            invite_code=lobby.invite_code if is_owner else None,
-            join_path=f"/join/{lobby.invite_code}" if is_owner else None,
-            is_owner=is_owner,
+            invite_code=lobby.invite_code if flags["is_owner"] else None,
+            join_path=f"/join/{lobby.invite_code}" if flags["is_owner"] else None,
+            is_owner=flags["is_owner"],
+            is_comaster=flags["is_comaster"],
+            is_observer=flags["is_observer"],
+            can_run_session=flags["can_run_session"],
+            can_see_hidden=flags["can_see_hidden"],
+            can_edit_wiki=flags["can_edit_wiki"],
+            can_manage_journal=flags["can_manage_journal"],
+            can_edit_campaign_rules=flags["can_edit_campaign_rules"],
+            can_award=flags["can_award"],
+            can_delete_lobby=flags["can_delete_lobby"],
+            can_change_roles=flags["can_change_roles"],
+            can_transfer_lobby=flags["can_transfer_lobby"],
+            can_change_invite_code=flags["can_change_invite_code"],
+            can_delete_session=flags["can_delete_session"],
+            role=flags["role"],
             owner_id=lobby.owner_id,
             members=members,
+            roles=[self._role_out(r) for r in role_rows],
             settings=settings,
             sessions=sessions,
             visibility_profile=lobby.visibility_profile or {},
             encounter_templates=(
                 _parse_encounter_templates(getattr(lobby, "encounter_templates", None))
-                if is_owner
+                if see_templates
                 else []
             ),
             created_at=lobby.created_at,
@@ -758,6 +833,40 @@ class LobbyService:
         if lobby is None:
             raise NotFoundError("Код лобби не найден", code="invite_code_not_found")
 
+        # Вход без персонажа → наблюдатель (идемпотентно, если уже comaster/observer).
+        if payload.character_id is None:
+            if lobby.owner_id == user.id:
+                raise AppError(
+                    "Владелец уже в лобби",
+                    code="owner_already_in_lobby",
+                    status_code=400,
+                )
+            if roles.has_character_in_lobby(self.db, lobby.id, user.id):
+                raise AppError(
+                    "Сначала выйдите персонажем из состава, чтобы войти наблюдателем",
+                    code="player_has_character",
+                    status_code=400,
+                )
+            existing_role = self.lobbies.get_role(lobby.id, user.id, LOBBY_ROLE_OBSERVER)
+            existing_comaster = self.lobbies.get_role(lobby.id, user.id, LOBBY_ROLE_COMASTER)
+            if existing_role is None and existing_comaster is None:
+                self.lobbies.add_role(
+                    lobby_id=lobby.id,
+                    user_id=user.id,
+                    role=LOBBY_ROLE_OBSERVER,
+                    assigned_by=None,
+                )
+                self.db.commit()
+            lobby = self._require_lobby(lobby.id)
+            return self._to_detail(lobby, user)
+
+        if roles.is_comaster(self.db, lobby, user) or roles.is_observer(self.db, lobby, user):
+            raise AppError(
+                "Сомастер и наблюдатель входят без персонажа. Снимите роль, чтобы сесть игроком",
+                code="role_blocks_player_join",
+                status_code=400,
+            )
+
         character = self.characters.get_for_user(payload.character_id, user.id)
         if character is None:
             raise NotFoundError("Персонаж не найден", code="character_not_found")
@@ -807,6 +916,268 @@ class LobbyService:
         lobby = self._require_lobby(lobby_id)
         return self._to_detail(lobby, user)
 
+    def assign_role(
+        self,
+        user: User,
+        lobby_id: UUID,
+        payload: LobbyRoleAssignRequest,
+    ) -> LobbyDetail:
+        lobby = self._require_lobby(lobby_id)
+        roles.require_can_change_roles(lobby, user)
+        target_id = payload.user_id
+        if target_id == user.id:
+            raise AppError(
+                "Нельзя назначить роль самому себе",
+                code="cannot_self_assign_role",
+                status_code=400,
+            )
+        if target_id == lobby.owner_id:
+            raise AppError(
+                "Владелец уже мастер лобби",
+                code="owner_has_master_role",
+                status_code=400,
+            )
+        if roles.has_character_in_lobby(self.db, lobby.id, target_id):
+            raise AppError(
+                "Сначала снимите персонаж из состава — сомастер и наблюдатель без героя",
+                code="role_requires_no_character",
+                status_code=400,
+            )
+        if payload.role == LOBBY_ROLE_COMASTER:
+            observer = self.lobbies.get_role(lobby.id, target_id, LOBBY_ROLE_OBSERVER)
+            if observer is not None:
+                self.lobbies.remove_role(observer)
+            existing = self.lobbies.get_role(lobby.id, target_id, LOBBY_ROLE_COMASTER)
+            if existing is None:
+                self.lobbies.add_role(
+                    lobby_id=lobby.id,
+                    user_id=target_id,
+                    role=LOBBY_ROLE_COMASTER,
+                    assigned_by=user.id,
+                )
+        elif payload.role == LOBBY_ROLE_OBSERVER:
+            comaster = self.lobbies.get_role(lobby.id, target_id, LOBBY_ROLE_COMASTER)
+            if comaster is not None:
+                self.lobbies.remove_role(comaster)
+            existing = self.lobbies.get_role(lobby.id, target_id, LOBBY_ROLE_OBSERVER)
+            if existing is None:
+                self.lobbies.add_role(
+                    lobby_id=lobby.id,
+                    user_id=target_id,
+                    role=LOBBY_ROLE_OBSERVER,
+                    assigned_by=user.id,
+                )
+        else:
+            raise AppError("Неизвестная роль", code="role_invalid", status_code=400)
+        self.db.commit()
+        return self._to_detail(self._require_lobby(lobby_id), user)
+
+    def remove_role(
+        self,
+        user: User,
+        lobby_id: UUID,
+        payload: LobbyRoleRemoveRequest,
+    ) -> LobbyDetail:
+        lobby = self._require_lobby(lobby_id)
+        roles.require_can_change_roles(lobby, user)
+        role_filter = (
+            {payload.role}
+            if payload.role
+            else {LOBBY_ROLE_COMASTER, LOBBY_ROLE_OBSERVER}
+        )
+        removed = self.lobbies.remove_roles_for_user(
+            lobby.id,
+            payload.user_id,
+            roles=role_filter,
+        )
+        if removed == 0:
+            raise NotFoundError("Роль не найдена", code="lobby_role_not_found")
+        self.db.commit()
+        return self._to_detail(self._require_lobby(lobby_id), user)
+
+    def transfer_ownership(
+        self,
+        user: User,
+        lobby_id: UUID,
+        payload: LobbyTransferRequest,
+    ) -> LobbyDetail:
+        lobby = self._require_lobby(lobby_id)
+        roles.require_can_transfer(lobby, user)
+        if payload.confirm_name.strip() != lobby.name:
+            raise AppError(
+                "Введите точное название лобби для подтверждения",
+                code="transfer_confirm_mismatch",
+                status_code=400,
+            )
+        new_owner_id = payload.new_owner_user_id
+        if new_owner_id == user.id:
+            raise AppError(
+                "Лобби уже ваше",
+                code="transfer_same_owner",
+                status_code=400,
+            )
+        is_comaster = self.lobbies.get_role(lobby.id, new_owner_id, LOBBY_ROLE_COMASTER)
+        is_player = roles.has_character_in_lobby(self.db, lobby.id, new_owner_id)
+        if is_comaster is None and not is_player:
+            raise AppError(
+                "Новый владелец — из сомастеров или игроков лобби",
+                code="transfer_target_invalid",
+                status_code=400,
+            )
+
+        former_id = user.id
+        lobby.owner_id = new_owner_id
+        # Новый владелец перестаёт быть сомастером/наблюдателем.
+        self.lobbies.remove_roles_for_user(
+            lobby.id,
+            new_owner_id,
+            roles={LOBBY_ROLE_COMASTER, LOBBY_ROLE_OBSERVER},
+        )
+
+        if payload.former_owner_fate == "become_player":
+            if payload.former_owner_character_id is None:
+                raise AppError(
+                    "Укажите персонажа, чтобы остаться игроком",
+                    code="character_required",
+                    status_code=400,
+                )
+            character = self.characters.get_for_user(
+                payload.former_owner_character_id,
+                former_id,
+            )
+            if character is None:
+                raise NotFoundError("Персонаж не найден", code="character_not_found")
+            if self.lobbies.get_member(lobby.id, character.id) is None:
+                self.lobbies.add_member(
+                    lobby_id=lobby.id,
+                    character_id=character.id,
+                    user_id=former_id,
+                )
+        elif payload.former_owner_fate == "leave":
+            # Убрать персонажей бывшего владельца из состава и со столов.
+            for member in list(lobby.members):
+                if member.user_id != former_id:
+                    continue
+                for session in lobby.sessions:
+                    seat = self.lobbies.get_seat(session.id, member.character_id)
+                    if seat is not None:
+                        self.lobbies.remove_seat(seat)
+                self.lobbies.remove_member(member)
+            self.lobbies.remove_roles_for_user(
+                lobby.id,
+                former_id,
+                roles={LOBBY_ROLE_COMASTER, LOBBY_ROLE_OBSERVER, LOBBY_ROLE_LEAD_TODAY},
+            )
+        else:
+            raise AppError("Неизвестная судьба владельца", code="fate_invalid", status_code=400)
+
+        entry = CampaignJournalEntry(
+            lobby_id=lobby.id,
+            author_user_id=user.id,
+            entry_type="text",
+            title="Передача лобби",
+            body=(
+                f"Владение столом передано. Новый мастер: "
+                f"{self._user_display(new_owner_id) or str(new_owner_id)}."
+            ),
+        )
+        self.lobbies.add_journal_entry(entry)
+        self.db.commit()
+        return self._to_detail(self._require_lobby(lobby_id), user)
+
+    def assign_lead_today(
+        self,
+        user: User,
+        lobby_id: UUID,
+        payload: LeadTodayRequest,
+    ) -> LobbyDetail:
+        lobby = self._require_lobby(lobby_id)
+        roles.require_owner(lobby, user)
+        session = self.lobbies.get_session(payload.session_id)
+        if session is None or session.lobby_id != lobby.id:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        if session.closed_at is not None:
+            raise AppError("Сессия закрыта", code="session_closed", status_code=400)
+        if payload.user_id == lobby.owner_id:
+            raise AppError(
+                "Владелец уже ведёт стол",
+                code="owner_already_leads",
+                status_code=400,
+            )
+        if not roles.has_character_in_lobby(self.db, lobby.id, payload.user_id):
+            raise AppError(
+                "«Повести сегодня» только игроку с персонажем в составе",
+                code="lead_requires_player",
+                status_code=400,
+            )
+        fate = payload.character_fate or LEAD_TODAY_FATE_WAITING
+        if fate == LEAD_TODAY_FATE_COMPANION:
+            # C-01/C-02 ещё могут отсутствовать — принимаем fate, карточку не собираем.
+            pass
+        character_id = payload.character_id
+        if character_id is None:
+            for member in lobby.members:
+                if member.user_id == payload.user_id:
+                    character_id = member.character_id
+                    break
+        if character_id is None:
+            raise AppError(
+                "У игрока нет персонажа в лобби",
+                code="character_required",
+                status_code=400,
+            )
+        member = self.lobbies.get_member(lobby.id, character_id)
+        if member is None or member.user_id != payload.user_id:
+            raise AppError(
+                "Персонаж не принадлежит этому игроку в лобби",
+                code="character_mismatch",
+                status_code=400,
+            )
+
+        existing = self.lobbies.get_lead_today_for_session(session.id)
+        if existing is not None:
+            self.lobbies.remove_role(existing)
+
+        # Персонаж ведущего не сидит за столом как герой игрока.
+        seat = self.lobbies.get_seat(session.id, character_id)
+        if seat is not None:
+            self.lobbies.remove_seat(seat)
+
+        self.lobbies.add_role(
+            lobby_id=lobby.id,
+            user_id=payload.user_id,
+            role=LOBBY_ROLE_LEAD_TODAY,
+            assigned_by=user.id,
+            session_id=session.id,
+            character_fate=fate,
+            character_id=character_id,
+        )
+        self.db.commit()
+        return self._to_detail(self._require_lobby(lobby_id), user)
+
+    def clear_lead_today(
+        self,
+        user: User,
+        lobby_id: UUID,
+        session_id: UUID,
+    ) -> LobbyDetail:
+        lobby = self._require_lobby(lobby_id)
+        roles.require_owner(lobby, user)
+        session = self.lobbies.get_session(session_id)
+        if session is None or session.lobby_id != lobby.id:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lead = self.lobbies.clear_lead_today_for_session(session_id)
+        if lead is None:
+            raise NotFoundError("Нет ведущего на эту сессию", code="lead_today_not_found")
+        if lead.character_id is not None and (
+            (lead.character_fate or LEAD_TODAY_FATE_WAITING) == LEAD_TODAY_FATE_WAITING
+        ):
+            if self.lobbies.get_seat(session.id, lead.character_id) is None:
+                if self.lobbies.get_member(lobby.id, lead.character_id) is not None:
+                    self.lobbies.add_seat(session_id=session.id, character_id=lead.character_id)
+        self.db.commit()
+        return self._to_detail(self._require_lobby(lobby_id), user)
+
     def create_setting(
         self,
         user: User,
@@ -814,7 +1185,7 @@ class LobbyService:
         payload: SettingCreateRequest,
     ) -> SettingSummary:
         lobby = self._require_lobby(lobby_id)
-        self._require_owner(lobby, user)
+        self._require_wiki(lobby, user)
         setting = self.lobbies.create_setting(
             lobby_id=lobby.id,
             name=(payload.name or "Новый сеттинг").strip() or "Новый сеттинг",
@@ -834,7 +1205,7 @@ class LobbyService:
         if setting is None:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
-        self._require_owner(lobby, user)
+        self._require_wiki(lobby, user)
         if payload.name is not None:
             setting.name = payload.name.strip() or "Новый сеттинг"
         if payload.world_notes is not None:
@@ -848,7 +1219,7 @@ class LobbyService:
         if setting is None:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
-        self._require_owner(lobby, user)
+        self._require_wiki(lobby, user)
         self.lobbies.delete_setting(setting)
         self.db.commit()
 
@@ -858,7 +1229,10 @@ class LobbyService:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
         self._require_view(lobby, user)
-        return self._setting_detail(setting, is_owner=lobby.owner_id == user.id)
+        see_gm = roles.can_see_hidden(self.db, lobby, user)
+        detail = self._setting_detail(setting, see_as_gm=see_gm)
+        # флаг is_owner в SettingDetail = реальный владелец (для UI удаления лобби не нужен)
+        return detail.model_copy(update={"is_owner": roles.is_owner(lobby, user) or see_gm})
 
     def _template_out(self, template) -> SettingPageTemplateOut:
         raw_schema = template.schema if isinstance(template.schema, list) else []
@@ -913,12 +1287,12 @@ class LobbyService:
             return None
         return self.lobbies.get_setting_page_template(sys_id)
 
-    def _setting_detail(self, setting: Setting, *, is_owner: bool) -> SettingDetail:
+    def _setting_detail(self, setting: Setting, *, see_as_gm: bool, is_owner: bool | None = None) -> SettingDetail:
         pages = self.lobbies.list_setting_pages(setting.id)
         links = self.lobbies.list_setting_page_links(setting.id)
         templates = self.lobbies.list_setting_page_templates(setting.id)
-        artifacts = self.lobbies.list_setting_artifacts(setting.id) if is_owner else []
-        if not is_owner:
+        artifacts = self.lobbies.list_setting_artifacts(setting.id) if see_as_gm else []
+        if not see_as_gm:
             pages = [p for p in pages if p.revealed]
             visible = {p.id for p in pages}
             links = [
@@ -954,9 +1328,10 @@ class LobbyService:
         title_by_id = {p.id: p.title for p in pages}
         base = SettingSummary.model_validate(setting)
         data = base.model_dump()
-        if not is_owner:
+        if not see_as_gm:
             # не светить legacy notes целиком — у игрока только раскрытые страницы
             data["world_notes"] = ""
+        owner_flag = see_as_gm if is_owner is None else is_owner
         return SettingDetail(
             **data,
             pages=pages_out,
@@ -977,7 +1352,7 @@ class LobbyService:
             templates=[self._template_out(t) for t in templates],
             all_tags=collect_all_tags(pages_out),
             artifacts=[SettingArtifactOut.model_validate(a) for a in artifacts],
-            is_owner=is_owner,
+            is_owner=owner_flag,
         )
 
     def _sync_page_mentions(
@@ -1060,7 +1435,7 @@ class LobbyService:
         if setting is None:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
-        self._require_owner(lobby, user)
+        self._require_wiki(lobby, user)
         parent_id = payload.parent_id
         if parent_id is not None:
             parent = self.lobbies.get_setting_page(parent_id)
@@ -1122,7 +1497,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, is_owner=True)
+        return self._setting_detail(refreshed, see_as_gm=True)
 
     def bulk_create_setting_pages(
         self,
@@ -1134,7 +1509,7 @@ class LobbyService:
         if setting is None:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
-        self._require_owner(lobby, user)
+        self._require_wiki(lobby, user)
         titles = [t.strip() for t in payload.titles if t and t.strip()]
         if not titles:
             raise AppError("Нужно хотя бы одно имя", code="bulk_titles_empty", status_code=400)
@@ -1181,7 +1556,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, is_owner=True)
+        return self._setting_detail(refreshed, see_as_gm=True)
 
     def update_setting_page(
         self,
@@ -1196,7 +1571,7 @@ class LobbyService:
         if setting is None:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
-        self._require_owner(lobby, user)
+        self._require_wiki(lobby, user)
 
         if payload.title is not None:
             page.title = payload.title.strip() or "Без названия"
@@ -1292,7 +1667,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, is_owner=True)
+        return self._setting_detail(refreshed, see_as_gm=True)
 
     def delete_setting_page(self, user: User, page_id: UUID) -> SettingDetail:
         page = self.lobbies.get_setting_page(page_id)
@@ -1302,7 +1677,7 @@ class LobbyService:
         if setting is None:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
-        self._require_owner(lobby, user)
+        self._require_wiki(lobby, user)
         remaining = [
             p for p in self.lobbies.list_setting_pages(setting.id) if p.id != page_id
         ]
@@ -1316,7 +1691,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, is_owner=True)
+        return self._setting_detail(refreshed, see_as_gm=True)
 
     def create_setting_page_link(
         self,
@@ -1331,7 +1706,7 @@ class LobbyService:
         if setting is None:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
-        self._require_owner(lobby, user)
+        self._require_wiki(lobby, user)
 
         to_page = self.lobbies.get_setting_page(payload.to_page_id)
         if to_page is None or to_page.setting_id != setting.id:
@@ -1398,7 +1773,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, is_owner=True)
+        return self._setting_detail(refreshed, see_as_gm=True)
 
     def delete_setting_page_link(self, user: User, link_id: UUID) -> SettingDetail:
         link = self.lobbies.get_setting_page_link(link_id)
@@ -1411,12 +1786,12 @@ class LobbyService:
         if setting is None:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
-        self._require_owner(lobby, user)
+        self._require_wiki(lobby, user)
         self.lobbies.delete_setting_page_link(link)
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, is_owner=True)
+        return self._setting_detail(refreshed, see_as_gm=True)
 
     def create_setting_artifact(
         self,
@@ -1430,7 +1805,7 @@ class LobbyService:
         if setting is None:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
-        self._require_owner(lobby, user)
+        self._require_wiki(lobby, user)
         existing = self.lobbies.list_setting_artifacts(setting.id)
         sort_order = (
             payload.sort_order
@@ -1455,7 +1830,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, is_owner=True)
+        return self._setting_detail(refreshed, see_as_gm=True)
 
     def update_setting_artifact(
         self,
@@ -1472,7 +1847,7 @@ class LobbyService:
         if setting is None:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
-        self._require_owner(lobby, user)
+        self._require_wiki(lobby, user)
         if payload.name is not None:
             artifact.name = payload.name.strip()[:120] or artifact.name
         if payload.rarity is not None:
@@ -1502,7 +1877,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, is_owner=True)
+        return self._setting_detail(refreshed, see_as_gm=True)
 
     def delete_setting_artifact(self, user: User, artifact_id: UUID) -> SettingDetail:
         artifact = self.lobbies.get_setting_artifact(artifact_id)
@@ -1512,12 +1887,12 @@ class LobbyService:
         if setting is None:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
-        self._require_owner(lobby, user)
+        self._require_wiki(lobby, user)
         self.lobbies.delete_setting_artifact(artifact)
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, is_owner=True)
+        return self._setting_detail(refreshed, see_as_gm=True)
 
     def create_session(
         self,
@@ -1526,7 +1901,7 @@ class LobbyService:
         payload: SessionCreateRequest,
     ) -> SessionDetail:
         lobby = self._require_lobby(lobby_id)
-        self._require_owner(lobby, user)
+        self._require_run(lobby, user)
         setting: Setting | None = None
         if payload.setting_id is not None:
             setting = self.lobbies.get_setting(payload.setting_id)
@@ -1575,7 +1950,7 @@ class LobbyService:
         if session is None:
             raise NotFoundError("Сессия не найдена", code="session_not_found")
         lobby = session.lobby
-        self._require_owner(lobby, user)
+        self._require_run(lobby, user)
         if payload.name is not None:
             session.name = payload.name.strip() or session.name
         if payload.clear_setting:
@@ -1671,8 +2046,8 @@ class LobbyService:
                 "Сначала добавьте персонажа в лобби",
                 code="character_not_in_lobby",
             )
-        # сажать может мастер или владелец персонажа
-        if lobby.owner_id != user.id and member.user_id != user.id:
+        # сажать может ведущий стола или владелец персонажа
+        if not roles.can_run_session(self.db, lobby, user, session) and member.user_id != user.id:
             raise AppError("Нельзя посадить чужого персонажа", code="forbidden", status_code=403)
 
         if self.lobbies.get_seat(session.id, payload.character_id) is None:
@@ -1694,7 +2069,9 @@ class LobbyService:
         if seat is None:
             raise NotFoundError("Персонаж не за столом", code="seat_not_found")
         member = self.lobbies.get_member(lobby.id, character_id)
-        if lobby.owner_id != user.id and (member is None or member.user_id != user.id):
+        if not roles.can_run_session(self.db, lobby, user, session) and (
+            member is None or member.user_id != user.id
+        ):
             raise AppError("Нельзя убрать чужого персонажа", code="forbidden", status_code=403)
         self.lobbies.remove_seat(seat)
         self.db.commit()
@@ -1740,21 +2117,23 @@ class LobbyService:
             )
         members = [_member_out(m, char_map.get(m.character_id)) for m in lobby.members]
         combatants = [_combatant_out(c) for c in _parse_combatants(session.combatants)]
-        is_owner = lobby.owner_id == user.id
+        flags = roles.permission_flags(self.db, lobby, user, session=session)
+        see_hidden = flags["can_see_hidden"]
+        lead = self.lobbies.get_lead_today_for_session(session.id)
         location_page = None
         location_page_id = getattr(session, "location_page_id", None)
         if location_page_id is not None:
             location_page = self._lore_page_out(
                 self.lobbies.get_setting_page(location_page_id),
-                is_owner=is_owner,
+                is_owner=see_hidden,
             )
-            if location_page is None and not is_owner:
+            if location_page is None and not see_hidden:
                 location_page_id = None
         involved_raw = list(getattr(session, "involved_page_ids", None) or [])
         involved_pages: list[SessionLorePageOut] = []
         visible_involved_ids: list = []
         for pid in involved_raw:
-            out = self._lore_page_out(self.lobbies.get_setting_page(pid), is_owner=is_owner)
+            out = self._lore_page_out(self.lobbies.get_setting_page(pid), is_owner=see_hidden)
             if out is None:
                 continue
             involved_pages.append(out)
@@ -1766,14 +2145,22 @@ class LobbyService:
             setting_id=session.setting_id,
             setting_name=session.setting.name if session.setting else None,
             name=session.name,
-            is_owner=is_owner,
+            is_owner=flags["is_owner"],
+            is_comaster=flags["is_comaster"],
+            is_observer=flags["is_observer"],
+            can_run_session=flags["can_run_session"],
+            can_see_hidden=flags["can_see_hidden"],
+            can_award=flags["can_award"],
+            can_delete_session=flags["can_delete_session"],
+            role=flags["role"],
+            lead_today_user_id=lead.user_id if lead else None,
             seats=seats,
             combatants=combatants,
             combat=_combat_out(getattr(session, "combat", None) or {}),
             lobby_members=members,
             visibility_profile=lobby.visibility_profile or {},
-            location_page_id=location_page_id if is_owner else (location_page.id if location_page else None),
-            involved_page_ids=list(involved_raw) if is_owner else visible_involved_ids,
+            location_page_id=location_page_id if see_hidden else (location_page.id if location_page else None),
+            involved_page_ids=list(involved_raw) if see_hidden else visible_involved_ids,
             location_page=location_page,
             involved_pages=involved_pages,
             closed_at=session.closed_at,
@@ -1834,7 +2221,7 @@ class LobbyService:
     ) -> JournalPageOut:
         lobby = self._require_lobby(lobby_id)
         self._require_view(lobby, user)
-        is_owner = lobby.owner_id == user.id
+        is_owner = roles.can_manage_journal(self.db, lobby, user)
         limit = max(1, min(limit, 50))
         offset = max(0, offset)
         total = self.lobbies.count_journal_entries(lobby_id)
@@ -1853,7 +2240,7 @@ class LobbyService:
         payload: JournalEntryCreateRequest,
     ) -> JournalEntryOut:
         lobby = self._require_lobby(lobby_id)
-        self._require_owner(lobby, user)
+        self._require_journal(lobby, user)
         entry_type = (payload.entry_type or "text").strip().lower()
         if entry_type == "session_summary":
             raise AppError(
@@ -1937,7 +2324,7 @@ class LobbyService:
         if entry is None:
             raise NotFoundError("Пост не найден", code="journal_not_found")
         lobby = self._require_lobby(entry.lobby_id)
-        self._require_owner(lobby, user)
+        self._require_journal(lobby, user)
         if payload.title is not None:
             entry.title = payload.title.strip()
         if payload.body is not None:
@@ -1991,7 +2378,7 @@ class LobbyService:
         if entry is None:
             raise NotFoundError("Пост не найден", code="journal_not_found")
         lobby = self._require_lobby(entry.lobby_id)
-        self._require_owner(lobby, user)
+        self._require_journal(lobby, user)
         self.lobbies.delete_journal_entry(entry)
         self.db.commit()
 
@@ -2005,9 +2392,17 @@ class LobbyService:
         if session is None:
             raise NotFoundError("Сессия не найдена", code="session_not_found")
         lobby = session.lobby
-        self._require_owner(lobby, user)
+        self._require_run(lobby, user, session)
         if session.closed_at is not None:
             raise AppError("Сессия уже закрыта", code="session_already_closed", status_code=400)
+
+        # L-01: снять «повести сегодня» и вернуть персонажа за стол, если ждал.
+        lead = self.lobbies.clear_lead_today_for_session(session.id)
+        if lead is not None and lead.character_id is not None:
+            if (lead.character_fate or LEAD_TODAY_FATE_WAITING) == LEAD_TODAY_FATE_WAITING:
+                if self.lobbies.get_seat(session.id, lead.character_id) is None:
+                    if self.lobbies.get_member(lobby.id, lead.character_id) is not None:
+                        self.lobbies.add_seat(session_id=session.id, character_id=lead.character_id)
 
         session.closed_at = datetime.now(timezone.utc)
         journal_out: JournalEntryOut | None = None
@@ -2056,7 +2451,7 @@ class LobbyService:
             rolls_only=rolls_only,
             limit=100,
         )
-        is_owner = lobby.owner_id == user.id
+        is_owner = roles.can_see_hidden(self.db, lobby, user, session)
         profile = lobby.visibility_profile or {}
         history_mode = profile.get("event_history") or "active"
         out: list[SessionEventOut] = []
@@ -2083,10 +2478,12 @@ class LobbyService:
             raise NotFoundError("Сессия не найдена", code="session_not_found")
         lobby = session.lobby
         self._require_view(lobby, user)
+        roles.require_can_act_on_board(self.db, lobby, user)
 
         character_name: str | None = None
         character_id = payload.character_id
         is_master_roll = payload.is_master_roll
+        can_master = roles.can_run_session(self.db, lobby, user, session)
         if character_id is not None:
             member = self.lobbies.get_member(lobby.id, character_id)
             if member is None:
@@ -2095,7 +2492,7 @@ class LobbyService:
                     code="character_not_in_lobby",
                     status_code=400,
                 )
-            if lobby.owner_id != user.id and member.user_id != user.id:
+            if not can_master and member.user_id != user.id:
                 raise AppError(
                     "Нельзя бросить за чужого персонажа",
                     code="forbidden",
@@ -2110,9 +2507,9 @@ class LobbyService:
                     code="character_not_seated",
                     status_code=400,
                 )
-        elif lobby.owner_id != user.id:
+        elif not can_master:
             raise AppError(
-                "Только мастер может бросать без персонажа",
+                "Только ведущий может бросать без персонажа",
                 code="forbidden",
                 status_code=403,
             )
@@ -2137,10 +2534,16 @@ class LobbyService:
         self.db.commit()
         self.db.refresh(event)
         out = SessionEventOut.model_validate(event)
+        hidden_viewers = {lobby.owner_id, user.id}
+        for row in self.lobbies.list_roles(lobby.id):
+            if row.role == LOBBY_ROLE_COMASTER:
+                hidden_viewers.add(row.user_id)
+            if row.role == LOBBY_ROLE_LEAD_TODAY and row.session_id == session.id:
+                hidden_viewers.add(row.user_id)
         await session_hub.broadcast(
             session.id,
             {"type": "session_event", "event": out.model_dump(mode="json")},
-            only_user_ids=_roll_audience(is_master_roll, lobby.owner_id),
+            only_user_ids=_roll_audience(is_master_roll, hidden_viewers),
         )
         return out
 
@@ -2164,7 +2567,7 @@ class LobbyService:
         member = self.lobbies.get_member(lobby.id, character_id)
         if member is None:
             raise AppError("Персонаж не в лобби", code="character_not_in_lobby", status_code=400)
-        is_owner = lobby.owner_id == user.id
+        is_owner = roles.can_run_session(self.db, lobby, user, session)
         is_char_owner = member.user_id == user.id
         if not is_owner and not is_char_owner:
             raise AppError(
@@ -2272,7 +2675,8 @@ class LobbyService:
             raise NotFoundError("Лобби не найдено", code="lobby_not_found")
         source_member = self.lobbies.get_member(lobby.id, payload.source_character_id)
         if source_member is None or (
-            source_member.user_id != user.id and lobby.owner_id != user.id
+            source_member.user_id != user.id
+            and not roles.can_edit_wiki(self.db, lobby, user)
         ):
             raise AppError(
                 "Нельзя раздать эффект от этого персонажа",
@@ -2359,7 +2763,7 @@ class LobbyService:
         lobby = self.lobbies.get(lobby_id)
         if lobby is None:
             raise NotFoundError("Лобби не найдено", code="lobby_not_found")
-        self._require_owner(lobby, user)
+        self._require_award(lobby, user)
         member = self.lobbies.get_member(lobby.id, payload.character_id)
         if member is None:
             raise AppError(
@@ -2421,7 +2825,8 @@ class LobbyService:
             raise NotFoundError("Лобби не найдено", code="lobby_not_found")
         source_member = self.lobbies.get_member(lobby.id, payload.source_character_id)
         if source_member is None or (
-            source_member.user_id != user.id and lobby.owner_id != user.id
+            source_member.user_id != user.id
+            and not roles.can_edit_wiki(self.db, lobby, user)
         ):
             raise AppError(
                 "Нельзя раздать эффект от этого персонажа",
@@ -2602,11 +3007,12 @@ class LobbyService:
         return detail
 
     def _require_session_owner(self, user: User, session_id: UUID) -> tuple[PlaySession, Lobby]:
+        """Историческое имя: теперь can_run_session (владелец / сомастер / lead_today)."""
         session = self.lobbies.get_session(session_id)
         if session is None:
             raise NotFoundError("Сессия не найдена", code="session_not_found")
         lobby = session.lobby
-        self._require_owner(lobby, user)
+        self._require_run(lobby, user, session)
         if session.closed_at is not None:
             raise AppError("Сессия закрыта", code="session_closed", status_code=400)
         return session, lobby
@@ -3651,7 +4057,7 @@ class LobbyService:
         payload: EncounterTemplateCreateRequest,
     ) -> LobbyDetail:
         lobby = self._require_lobby(lobby_id)
-        self._require_owner(lobby, user)
+        self._require_run(lobby, user)
         from sqlalchemy.orm.attributes import flag_modified
 
         templates = _parse_encounter_templates(getattr(lobby, "encounter_templates", None))
@@ -3725,7 +4131,7 @@ class LobbyService:
         template_id: str,
     ) -> LobbyDetail:
         lobby = self._require_lobby(lobby_id)
-        self._require_owner(lobby, user)
+        self._require_run(lobby, user)
         from sqlalchemy.orm.attributes import flag_modified
 
         templates = _parse_encounter_templates(getattr(lobby, "encounter_templates", None))

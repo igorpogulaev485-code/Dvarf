@@ -6,6 +6,7 @@ import { LobbyHubTabs, type LobbyHubTabId } from '../features/lobby/LobbyHubTabs
 import { LobbyJournalPanel } from '../features/lobby/LobbyJournalPanel'
 import { LobbyMemberMiniCard } from '../features/lobby/LobbyMemberMiniCard'
 import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
+import { LobbyRolesPanel } from '../features/lobby/LobbyRolesPanel'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { VisibilitySettingsPanel } from '../features/lobby/VisibilitySettingsPanel'
 import {
@@ -149,13 +150,27 @@ export function LobbyDetailPage() {
   }
 
   const visibilityReadOnly = !lobby.is_owner || playerPreview
+  const canManageJournal = Boolean(lobby.can_manage_journal || lobby.is_owner)
+  const canEditWiki = Boolean(lobby.can_edit_wiki || lobby.is_owner)
+  const canRun = Boolean(lobby.can_run_session || lobby.is_owner || lobby.is_comaster)
+  const canDeleteLobby = Boolean(lobby.can_delete_lobby || lobby.is_owner)
+  const roleSubtitle =
+    lobby.role === 'comaster'
+      ? 'Вы сомастер'
+      : lobby.role === 'observer'
+        ? 'Вы наблюдатель'
+        : lobby.role === 'lead_today'
+          ? 'Вы ведёте сегодня'
+          : lobby.is_owner
+            ? 'Вы мастер этого лобби'
+            : 'Вы участник'
 
   return (
     <main className="page page--app page--lobby-hub">
       <Stack gap={16}>
         <AppHeader
           title={lobby.name}
-          subtitle={lobby.is_owner ? 'Вы мастер этого лобби' : 'Вы участник'}
+          subtitle={roleSubtitle}
           onOfficialSite={openProductSite}
         />
 
@@ -221,6 +236,17 @@ export function LobbyDetailPage() {
                   })}
                 </div>
               )}
+              <LobbyRolesPanel
+                lobby={lobby}
+                busy={busy}
+                onLobby={setLobby}
+                onToast={setToast}
+                onError={setError}
+                run={run}
+                ownCharacterId={
+                  lobby.members.find((m) => ownCharacterIds.has(m.character_id))?.character_id
+                }
+              />
             </Stack>
           </Panel>
         ) : null}
@@ -228,7 +254,7 @@ export function LobbyDetailPage() {
         {tab === 'journal' ? (
           <LobbyJournalPanel
             lobbyId={lobby.id}
-            isOwner={lobby.is_owner}
+            isOwner={canManageJournal}
             settings={lobby.settings}
             sessions={lobby.sessions}
             onToast={setToast}
@@ -239,7 +265,7 @@ export function LobbyDetailPage() {
         {tab === 'notes' ? (
           <LobbyNotesPanel
             lobbyId={lobby.id}
-            isOwner={lobby.is_owner}
+            isOwner={Boolean(lobby.can_see_hidden || lobby.is_owner || lobby.is_comaster)}
             ownCharacterOptions={lobby.members
               .filter((m) => ownCharacterIds.has(m.character_id))
               .map((m) => ({ id: m.character_id, name: m.character_name }))}
@@ -251,7 +277,7 @@ export function LobbyDetailPage() {
         {tab === 'chats' ? (
           <LobbyChatsPanel
             lobbyId={lobby.id}
-            isOwner={lobby.is_owner}
+            isOwner={Boolean(lobby.can_see_hidden || lobby.is_owner || lobby.is_comaster)}
             ownCharacterOptions={lobby.members
               .filter((m) => ownCharacterIds.has(m.character_id))
               .map((m) => ({ id: m.character_id, name: m.character_name }))}
@@ -284,7 +310,7 @@ export function LobbyDetailPage() {
                         <Link className="ui-button ui-button--secondary" to={`/sessions/${s.id}`}>
                           Открыть
                         </Link>
-                        {lobby.is_owner ? (
+                        {lobby.can_delete_session || lobby.is_owner ? (
                           <Button
                             type="button"
                             variant="secondary"
@@ -307,7 +333,7 @@ export function LobbyDetailPage() {
               </Stack>
             </Panel>
 
-            {lobby.is_owner ? (
+            {canRun ? (
               <Panel title="Новая сессия">
                 <form
                   className="stack-form"
@@ -384,43 +410,47 @@ export function LobbyDetailPage() {
                       {s.world_notes.trim() ? s.world_notes.slice(0, 80) : 'Мир пока пуст'}
                     </Text>
                   </div>
-                  {lobby.is_owner ? (
+                  {canEditWiki || canRun ? (
                     <div className="list-row__actions">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy}
-                        onClick={() =>
-                          run(async () => {
-                            const session = await createSession(lobby.id, {
-                              setting_id: s.id,
-                              name: `${s.name} — сессия`,
+                      {canRun ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={busy}
+                          onClick={() =>
+                            run(async () => {
+                              const session = await createSession(lobby.id, {
+                                setting_id: s.id,
+                                name: `${s.name} — сессия`,
+                              })
+                              navigate(`/sessions/${session.id}`)
                             })
-                            navigate(`/sessions/${session.id}`)
-                          })
-                        }
-                      >
-                        Сессия
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy}
-                        onClick={() =>
-                          run(async () => {
-                            if (!confirm('Удалить сеттинг? Сессии станут ваншотами.')) return
-                            await deleteSetting(s.id)
-                            await reload()
-                          })
-                        }
-                      >
-                        Удалить
-                      </Button>
+                          }
+                        >
+                          Сессия
+                        </Button>
+                      ) : null}
+                      {canEditWiki ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={busy}
+                          onClick={() =>
+                            run(async () => {
+                              if (!confirm('Удалить сеттинг? Сессии станут ваншотами.')) return
+                              await deleteSetting(s.id)
+                              await reload()
+                            })
+                          }
+                        >
+                          Удалить
+                        </Button>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>
               ))}
-              {lobby.is_owner ? (
+              {canEditWiki ? (
                 <form
                   className="inline-form"
                   onSubmit={(e: FormEvent) => {
@@ -536,7 +566,7 @@ export function LobbyDetailPage() {
               </div>
             ) : null}
 
-            {lobby.is_owner ? (
+            {canDeleteLobby ? (
               <Panel title="Опасная зона" className="ui-panel--danger">
                 <Button
                   type="button"
