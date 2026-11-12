@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { resourceShownCurrent, type SheetResource } from '../../shared/dnd/rest'
+import { isHarnessDivinePowerResourceId } from '../../shared/dnd/harnessDivinePower'
 import {
   listCombatConsumables,
   MAX_COMBAT_CONSUMABLE_FAVORITES,
@@ -192,6 +193,7 @@ export function PlayDeskAttacksCompact({
   const named = weapons.filter((row) => row.name.trim())
   const combatResources = resources.filter((row) => {
     if (row.max <= 0 || !row.name.trim()) return false
+    if (isHarnessDivinePowerResourceId(row.id)) return false
     if (row.track === 'stock') return true
     return row.used < row.max
   })

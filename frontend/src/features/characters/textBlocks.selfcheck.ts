@@ -98,5 +98,15 @@ const hotLegacy: SheetResource = {
 assert(resourceShowsOnHot(hotOn), 'explicit onHot true')
 assert(!resourceShowsOnHot(hotOff), 'explicit onHot false')
 assert(resourceShowsOnHot(hotLegacy), 'legacy undefined shows')
+assert(
+  !resourceShowsOnHot({
+    id: 'feat:cleric:harness_divine_power:c1',
+    name: 'Праведное восстановление',
+    max: 1,
+    used: 0,
+    reset: 'long',
+  }),
+  'HDP daily never on hot bar',
+)
 
 console.log('textBlocks.selfcheck OK')

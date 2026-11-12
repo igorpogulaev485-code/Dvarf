@@ -1,6 +1,7 @@
 import { resourceShownCurrent, type SheetResource } from '../../shared/dnd/rest'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
+import { isHarnessDivinePowerResourceId } from '../../shared/dnd/harnessDivinePower'
 
 type PlayDeskFeaturesCompactProps = {
   features: UnlockedFeature[]
@@ -23,7 +24,12 @@ export function PlayDeskFeaturesCompact({
   onOpenFull,
   onToast,
 }: PlayDeskFeaturesCompactProps) {
-  const namedResources = resources.filter((row) => row.max > 0 && row.name.trim())
+  const namedResources = resources.filter(
+    (row) =>
+      row.max > 0 &&
+      row.name.trim() &&
+      !isHarnessDivinePowerResourceId(row.id),
+  )
   const topFeatures = features.slice(0, 10)
   const feats = featGrants.filter((row) => row.nameRu.trim()).slice(0, 6)
 

@@ -2,15 +2,13 @@ import { useState } from 'react'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import { domainChannelEffect } from '../../shared/dnd/domainChannelEffect'
 import {
-  featureResourceId,
   findFeatureResource,
   spendFeatureUse,
   spendRemaining,
 } from '../../shared/dnd/featureResources'
 import {
-  applyHarnessDivinePower,
   harnessDivinePowerSlotCap,
-  spentSlotLevels,
+  HARNESS_DIVINE_POWER_POOL_ID,
 } from '../../shared/dnd/harnessDivinePower'
 import {
   getFeaturePick,
@@ -86,88 +84,36 @@ export function Pack03FeatureExtras(props: ExtraProps) {
   return null
 }
 
+/** Read-only hint: spend only via Channel Divinity dialog / item CD view. */
 function HarnessControls({
   feature,
   classSlug,
   resources,
-  onResourcesChange,
-  spells,
-  onSpellsChange,
   characterLevel,
-  onToast,
 }: ExtraProps) {
-  const [level, setLevel] = useState(1)
-  const daily = feature.resource?.pool_id
-    ? findFeatureResource(resources, classSlug, feature.resource.pool_id, feature.classEntryId)
-    : null
+  const daily = findFeatureResource(
+    resources,
+    classSlug,
+    HARNESS_DIVINE_POWER_POOL_ID,
+    feature.classEntryId,
+  )
   const channel = findFeatureResource(
     resources,
     classSlug,
     'channel_divinity',
     feature.classEntryId,
   )
-  const pb = proficiencyBonusForTotalLevel(characterLevel)
-  const cap = harnessDivinePowerSlotCap(pb)
-  const options = spentSlotLevels(spells.slots, cap)
+  const cap = harnessDivinePowerSlotCap(proficiencyBonusForTotalLevel(characterLevel))
   const dailyLeft = spendRemaining(daily)
   const channelLeft = spendRemaining(channel)
-  const picked = options.includes(level) ? level : (options[0] ?? 0)
-  const channelResourceId = featureResourceId(
-    classSlug,
-    'channel_divinity',
-    feature.classEntryId,
-  )
 
   return (
     <div className="feature-resource">
       <Text tone="muted">
-        Дневных {dailyLeft}/{daily?.max ?? 0} · канал {channelLeft}/{channel?.max ?? 0}. Потолок
-        круга: {cap}. Основное место — диалог Божественного канала (и заряд предмета).
+        Используй через Божественный канал (или заряд предмета вроде амулета). Дневных{' '}
+        {dailyLeft}/{daily?.max ?? 0} · канал класса {channelLeft}/{channel?.max ?? 0} · потолок
+        круга {cap}.
       </Text>
-      {options.length === 0 ? (
-        <Text tone="muted">Нет потраченных ячеек круга 1–{cap}.</Text>
-      ) : (
-        <label className="feature-resource__select">
-          <span className="sr-only">Потраченная ячейка</span>
-          <select
-            className="play-select"
-            value={picked}
-            onChange={(event) => setLevel(Number(event.target.value))}
-          >
-            {options.map((row) => (
-              <option key={row} value={row}>
-                {row} круг · потрачено {spells.slots[String(row)]?.used ?? 0}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
-      <div className="feature-resource__actions">
-        <Button
-          type="button"
-          disabled={!daily || !channel || dailyLeft <= 0 || channelLeft <= 0 || picked <= 0}
-          onClick={() => {
-            const result = applyHarnessDivinePower({
-              resources,
-              slots: spells.slots,
-              channelResourceId,
-              feature,
-              classSlug,
-              slotLevel: picked,
-              proficiencyBonus: pb,
-            })
-            if (!result.ok) {
-              onToast?.(result.reason)
-              return
-            }
-            onResourcesChange(result.resources)
-            onSpellsChange({ ...spells, slots: result.slots })
-            onToast?.(result.message)
-          }}
-        >
-          Вернуть ячейку
-        </Button>
-      </div>
     </div>
   )
 }

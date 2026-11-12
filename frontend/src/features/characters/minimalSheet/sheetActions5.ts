@@ -49,6 +49,8 @@ export function installSheetActions5(model: SheetModel) {
   model.openResourceSpendDialog = function openResourceSpendDialog(id: string): boolean {
     const row = model.draft.play.resources.find((item) => item.id === id)
     if (!row) return false
+    // HDP daily is not a direct spend surface — only via Channel Divinity dialog.
+    if (id.includes(':harness_divine_power:')) return false
     if (model.isSorceryPointsResource(row)) {
       model.setSorcerySpendId(id)
       return true
@@ -122,6 +124,12 @@ export function installSheetActions5(model: SheetModel) {
   }
 
   model.spendResourceOrOpenSorcery = function spendResourceOrOpenSorcery(id: string) {
+    if (id.includes(':harness_divine_power:')) {
+      model.onToast?.(
+        'Праведное восстановление — через Божественный канал (или заряд предмета)',
+      )
+      return
+    }
     if (model.openResourceSpendDialog(id)) return
     const current = model.draft.play.resources.find((item) => item.id === id)
     model.setDraft((prev) => ({

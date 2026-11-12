@@ -43,6 +43,28 @@ export function isHarnessDivinePowerFeature(
   return id === HARNESS_DIVINE_POWER_FEATURE_ID
 }
 
+/** Daily HDP pool id in sheet.resources (`feat:…:harness_divine_power:…`). */
+export function isHarnessDivinePowerResourceId(id: string): boolean {
+  return id.includes(`:${HARNESS_DIVINE_POWER_POOL_ID}:`)
+}
+
+/**
+ * Direct desk spend surfaces (hot bar, abilities compact) must not expose the
+ * daily HDP counter — spend only via Channel Divinity dialog / item CD view.
+ */
+export function resourceShowsAsDirectSpend(resource: {
+  id: string
+  max: number
+  name: string
+  onHot?: boolean
+  unlimited?: boolean
+}): boolean {
+  if (isHarnessDivinePowerResourceId(resource.id)) return false
+  if (resource.onHot === false) return false
+  if (resource.unlimited) return Boolean(resource.name.trim())
+  return resource.max > 0 && Boolean(resource.name.trim())
+}
+
 export function harnessDivinePowerSlotCap(proficiencyBonus: number): number {
   const pb = Math.max(1, Math.floor(proficiencyBonus))
   return Math.max(1, Math.ceil(pb / 2))
