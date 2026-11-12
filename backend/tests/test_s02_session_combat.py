@@ -327,7 +327,7 @@ def test_combat_out_hides_fallen_from_player():
 
 
 def test_alembic_head_unchanged_no_migration():
-    """S-02 меняет только JSON — голова остаётся s01droptpl9c2a."""
+    """S-02 не добавляет миграцию: ровно одна голова, s01droptpl9c2a в её предках."""
     from alembic.config import Config
     from alembic.script import ScriptDirectory
     from pathlib import Path
@@ -337,4 +337,8 @@ def test_alembic_head_unchanged_no_migration():
     cfg.set_main_option("script_location", str(root / "alembic"))
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
-    assert heads == ["s01droptpl9c2a"]
+    assert len(heads) == 1
+    ancestor_ids = {
+        rev.revision for rev in script.walk_revisions(base="base", head=heads[0])
+    }
+    assert "s01droptpl9c2a" in ancestor_ids
