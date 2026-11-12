@@ -11,9 +11,22 @@ export type Note = {
   character_name: string | null
   title: string
   body: string
+  shared_with_master: boolean
+  pinned: boolean
+  updated_by_user_id: string | null
+  updated_by_name: string | null
   created_at: string
   updated_at: string
   can_edit: boolean
+  can_delete: boolean
+  can_pin: boolean
+  can_share_with_master: boolean
+  can_send_to_journal: boolean
+}
+
+export type NotesExport = {
+  filename: string
+  content: string
 }
 
 export async function listNotes(
@@ -24,6 +37,10 @@ export async function listNotes(
   return apiRequest<Note[]>(`/lobbies/${lobbyId}/notes${q}`)
 }
 
+export async function exportNotes(lobbyId: string): Promise<NotesExport> {
+  return apiRequest<NotesExport>(`/lobbies/${lobbyId}/notes/export`)
+}
+
 export async function createNote(
   lobbyId: string,
   payload: {
@@ -31,6 +48,7 @@ export async function createNote(
     title?: string
     body?: string
     character_id?: string | null
+    pinned?: boolean
   },
 ): Promise<Note> {
   return apiRequest<Note>(`/lobbies/${lobbyId}/notes`, {
@@ -41,7 +59,13 @@ export async function createNote(
 
 export async function updateNote(
   noteId: string,
-  payload: { title?: string; body?: string },
+  payload: {
+    title?: string
+    body?: string
+    shared_with_master?: boolean
+    pinned?: boolean
+    updated_at?: string
+  },
 ): Promise<Note> {
   return apiRequest<Note>(`/notes/${noteId}`, {
     method: 'PATCH',

@@ -5,6 +5,7 @@ import { InviteQr, joinUrlForCode } from '../features/lobby/InviteQr'
 import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
 import { LobbyHubTabs, type LobbyHubTabId } from '../features/lobby/LobbyHubTabs'
 import { LobbyJournalPanel } from '../features/lobby/LobbyJournalPanel'
+import { downloadTextFile } from '../features/lobby/joinConflict'
 import { LeaveOrKickDialog } from '../features/lobby/LeaveOrKickDialog'
 import { LobbyMemberMiniCard } from '../features/lobby/LobbyMemberMiniCard'
 import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
@@ -21,6 +22,7 @@ import {
 } from '../features/lobby/visibilityProfile'
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
+import { exportNotes } from '../shared/api/notes'
 import {
   createSession,
   createSetting,
@@ -352,7 +354,8 @@ export function LobbyDetailPage() {
         {tab === 'notes' ? (
           <LobbyNotesPanel
             lobbyId={lobby.id}
-            isOwner={Boolean(lobby.can_see_hidden || lobby.is_owner || lobby.is_comaster)}
+            canManageJournal={canManageJournal}
+            settingId={lobby.settings[0]?.id ?? null}
             ownCharacterOptions={lobby.members
               .filter((m) => ownCharacterIds.has(m.character_id))
               .map((m) => ({ id: m.character_id, name: m.character_name }))}
@@ -683,7 +686,20 @@ export function LobbyDetailPage() {
                     Пропадут дневник, заметки, чаты, сессии и картинки лобби. Персонажи останутся у
                     игроков.
                   </Text>
-                  {/* L-05: сюда — «Скачать заметки» перед удалением. */}
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={busy}
+                    onClick={() =>
+                      void run(async () => {
+                        const file = await exportNotes(lobby.id)
+                        downloadTextFile(file.filename, file.content)
+                        setToast('Заметки скачаны')
+                      })
+                    }
+                  >
+                    Скачать заметки
+                  </Button>
                   <Button
                     type="button"
                     variant="danger"
@@ -769,7 +785,20 @@ export function LobbyDetailPage() {
             Пропадут дневник, заметки, чаты, сессии и картинки лобби. Персонажи останутся у игроков.
             Введите название «{lobby.name}» для подтверждения.
           </Text>
-          {/* L-05: крючок «Скачать заметки» перед удалением — экспорт ещё не готов. */}
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={busy}
+            onClick={() =>
+              void run(async () => {
+                const file = await exportNotes(lobby.id)
+                downloadTextFile(file.filename, file.content)
+                setToast('Заметки скачаны')
+              })
+            }
+          >
+            Скачать заметки
+          </Button>
           <Field label="Название лобби">
             <Input
               value={lobbyDeleteName}

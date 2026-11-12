@@ -90,7 +90,7 @@ from app.schemas.lobby import (
     SettingSummary,
     SettingUpdateRequest,
 )
-from app.schemas.note import NoteCreateRequest, NoteOut, NoteUpdateRequest
+from app.schemas.note import NoteCreateRequest, NoteOut, NotesExportOut, NoteUpdateRequest
 from app.models.lobby_media import LOBBY_MEDIA_KINDS, LobbyMedia
 from app.services.chat import ChatService
 from app.services.lobby import LobbyService
@@ -1201,6 +1201,15 @@ def list_notes(
     scope: str | None = Query(default=None),
 ) -> list[NoteOut]:
     return NoteService(db).list_notes(current_user, lobby_id, scope=scope)
+
+
+@router.get("/lobbies/{lobby_id}/notes/export", response_model=NotesExportOut)
+def export_notes(
+    lobby_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> NotesExportOut:
+    return NoteService(db).export_notes(current_user, lobby_id)
 
 
 @router.post(
