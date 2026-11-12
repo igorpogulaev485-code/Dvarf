@@ -180,6 +180,71 @@ export type UnarmoredDefense = {
   secondMod: AbilityModKey
 }
 
+/**
+ * One AC formula that competes when no body armor is worn
+ * (mage armor 13+DEX, robe 15+DEX, barrier tattoo).
+ * The highest result wins. A shield is added on top when the winner allows it.
+ */
+export type CompetingAcFormula = {
+  label: string
+  base: number
+  /** null/omitted = full Dex. 0 = ignore Dex. N = cap. */
+  dexCap?: number | null
+  allowsShield?: boolean
+}
+
+function dexContribution(dex: number, cap: number | null | undefined): number {
+  if (cap === 0) return 0
+  if (typeof cap === 'number' && Number.isFinite(cap)) return Math.min(Math.floor(cap), dex)
+  return dex
+}
+
+/** Mage armor is 13+DEX while the spell is up and no armor is worn. */
+export function mageArmorCompetingFormula(
+  concentrationName: string | null | undefined,
+): CompetingAcFormula | null {
+  const name = concentrationName?.trim() ?? ''
+  if (!name) return null
+  if (!/доспех мага|mage armor/i.test(name)) return null
+  return { label: 'Доспех мага', base: 13, dexCap: null, allowsShield: true }
+}
+
+type AcCandidate = {
+  ac: number
+  summary: string
+  allowsShield: boolean
+}
+
+function withShield(
+  candidate: AcCandidate,
+  shield: ShieldPiece | null,
+): { ac: number; summary: string } {
+  if (!shield || !candidate.allowsShield) {
+    return { ac: candidate.ac, summary: candidate.summary }
+  }
+  const bonus = Math.max(0, Math.floor(shield.baseAc || 2))
+  return {
+    ac: candidate.ac + bonus,
+    summary: `${candidate.summary} · щит +${bonus}`,
+  }
+}
+
+function bestCandidate(
+  candidates: AcCandidate[],
+  shield: ShieldPiece | null,
+): { ac: number; summary: string } {
+  let winner = candidates[0]
+  let winnerAc = withShield(winner, shield).ac
+  for (const candidate of candidates.slice(1)) {
+    const next = withShield(candidate, shield).ac
+    if (next > winnerAc) {
+      winner = candidate
+      winnerAc = next
+    }
+  }
+  return withShield(winner, shield)
+}
+
 export function computeArmorClass(input: {
   dexMod: number
   /** Full ability mods when natural armor uses CON/etc. */
@@ -187,8 +252,14 @@ export function computeArmorClass(input: {
   armor: ArmorPiece | null
   shield: ShieldPiece | null
   naturalArmor?: NaturalArmor | null
-  /** Used only when no body armor and no race natural armor. */
+  /** Used only when no body armor is worn. Competes with other unarmored formulas. */
   unarmoredDefense?: UnarmoredDefense | null
+  /**
+   * Extra formulas (robe, mage armor, barrier tattoo). Ignored while body armor
+   * is worn. The best of armor / natural / unarmored defense / these wins;
+   * a shield is added afterwards when that formula allows it.
+   */
+  extraFormulas?: CompetingAcFormula[] | null
 }): { ac: number; summary: string } {
   const dex = Math.floor(input.dexMod)
   const mods: Partial<Record<AbilityModKey, number>> = {
@@ -197,12 +268,12 @@ export function computeArmorClass(input: {
   }
   mods.dex = dex
 
-  let ac: number
-  const parts: string[] = []
   const natural = input.naturalArmor ?? null
   const ud = input.unarmoredDefense ?? null
 
   if (input.armor) {
+    let ac: number
+    const parts: string[] = []
     const maxDex = input.armor.maxDexBonus
     ac = bodyArmorAc(input.armor.kind, input.armor.baseAc, dex, maxDex)
     const name = input.armor.name || armorKindLabel(input.armor.kind)
@@ -223,43 +294,62 @@ export function computeArmorClass(input: {
       ac += Math.floor(armoredBonus)
       parts.push(`${natural?.labelRu ?? 'раса'} +${Math.floor(armoredBonus)}`)
     }
-  } else if (natural) {
-    ac = naturalArmorValue(natural, mods)
-    if (!natural.mod) {
-      parts.push(`${natural.labelRu} ${natural.base}`)
-    } else {
-      const modVal = Math.floor(mods[natural.mod] ?? 0)
-      const capped =
-        typeof natural.modCap === 'number' ? Math.min(natural.modCap, modVal) : modVal
-      const capNote =
-        typeof natural.modCap === 'number' ? `≤${natural.modCap}` : ''
-      parts.push(
-        `${natural.labelRu} ${natural.base}+${MOD_LABEL[natural.mod]}${capNote} ${
-          capped >= 0 ? '+' : ''
-        }${capped}`,
-      )
-    }
-  } else if (ud) {
-    const second = Math.floor(mods[ud.secondMod] ?? 0)
-    ac = 10 + dex + second
-    parts.push(
-      `${ud.labelRu} 10+ЛОВ${dex >= 0 ? '+' : ''}${dex}+${MOD_LABEL[ud.secondMod]}${
-        second >= 0 ? '+' : ''
-      }${second}`,
-    )
-  } else {
-    ac = 10 + dex
-    parts.push(`10+ЛОВ ${dex >= 0 ? '+' : ''}${dex}`)
-  }
-
-  if (input.shield) {
-    const shieldOk = !natural || Boolean(input.armor) || natural.allowsShield
-    if (shieldOk) {
+    if (input.shield) {
       const bonus = Math.max(0, Math.floor(input.shield.baseAc || 2))
       ac += bonus
       parts.push(`щит +${bonus}`)
     }
+    return { ac, summary: parts.join(' · ') }
   }
 
-  return { ac, summary: parts.join(' · ') }
+  const candidates: AcCandidate[] = []
+  if (natural) {
+    const ac = naturalArmorValue(natural, mods)
+    let summary: string
+    if (!natural.mod) {
+      summary = `${natural.labelRu} ${natural.base}`
+    } else {
+      const modVal = Math.floor(mods[natural.mod] ?? 0)
+      const capped =
+        typeof natural.modCap === 'number' ? Math.min(natural.modCap, modVal) : modVal
+      const capNote = typeof natural.modCap === 'number' ? `≤${natural.modCap}` : ''
+      summary = `${natural.labelRu} ${natural.base}+${MOD_LABEL[natural.mod]}${capNote} ${
+        capped >= 0 ? '+' : ''
+      }${capped}`
+    }
+    candidates.push({ ac, summary, allowsShield: natural.allowsShield })
+  }
+  if (ud) {
+    const second = Math.floor(mods[ud.secondMod] ?? 0)
+    candidates.push({
+      ac: 10 + dex + second,
+      summary: `${ud.labelRu} 10+ЛОВ${dex >= 0 ? '+' : ''}${dex}+${MOD_LABEL[ud.secondMod]}${
+        second >= 0 ? '+' : ''
+      }${second}`,
+      allowsShield: true,
+    })
+  }
+  candidates.push({
+    ac: 10 + dex,
+    summary: `10+ЛОВ ${dex >= 0 ? '+' : ''}${dex}`,
+    allowsShield: true,
+  })
+  for (const formula of input.extraFormulas ?? []) {
+    const dexPart = dexContribution(dex, formula.dexCap)
+    const base = Math.max(0, Math.floor(formula.base))
+    let summary = `${formula.label} ${base}`
+    if (formula.dexCap !== 0) {
+      summary +=
+        formula.dexCap == null
+          ? '+ЛОВ'
+          : `+ЛОВ≤${Math.floor(formula.dexCap)}`
+    }
+    candidates.push({
+      ac: base + dexPart,
+      summary,
+      allowsShield: formula.allowsShield !== false,
+    })
+  }
+
+  return bestCandidate(candidates, input.shield)
 }

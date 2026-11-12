@@ -5,7 +5,7 @@ import { getCharacter, updateCharacter } from '../../../shared/api/characters'
 import { ApiRequestError } from '../../../shared/api/client'
 import { publishSheetSync } from '../../../shared/sync/characterSheetChannel'
 import { formatClassSummary, totalCharacterLevel } from '../../../shared/dnd/classLevels'
-import { armorKindLabel, computeArmorClass } from '../../../shared/dnd/armor'
+import { armorKindLabel, computeArmorClass, mageArmorCompetingFormula } from '../../../shared/dnd/armor'
 import { bladesongBonuses } from '../../../shared/dnd/wizardTradition'
 import { buildSheetFormulaVars } from '../../../shared/dnd/formulas'
 import {
@@ -27,6 +27,7 @@ import {
   applyGearAbilityScores,
   attunedItemIdSet,
   gearDarkvisionFt,
+  resolveGearAcBonus,
 } from '../gearEffects'
 import { passiveScore, skillModifierFromState } from '../../../shared/dnd/passives'
 import { syncGearCompanions, syncGearGrantSpells, syncGearResources } from '../gearGrantsSync'
@@ -630,6 +631,12 @@ export function useSheetEditorPart3(model: SheetModel) {
       }
       return null
     })()
+    const mageArmor = pieces.armor
+      ? null
+      : mageArmorCompetingFormula(model.draft.play.concentration?.name)
+    const extraFormulas = pieces.armor
+      ? []
+      : [...model.gearEffects.acFormulas, ...(mageArmor ? [mageArmor] : [])]
     const withoutShield = computeArmorClass({
       dexMod: mods.dex,
       abilityMods: mods,
@@ -637,6 +644,7 @@ export function useSheetEditorPart3(model: SheetModel) {
       shield: null,
       naturalArmor,
       unarmoredDefense,
+      extraFormulas,
     })
     const base = computeArmorClass({
       dexMod: mods.dex,
@@ -645,6 +653,7 @@ export function useSheetEditorPart3(model: SheetModel) {
       shield: pieces.shield,
       naturalArmor,
       unarmoredDefense,
+      extraFormulas,
     })
     const styleBonus = fightingStyleAcBonusFromIds({
       styleIds: model.fightingStyleIds ?? [],
@@ -664,9 +673,13 @@ export function useSheetEditorPart3(model: SheetModel) {
       coreAc += song.ac
       gearSummary = `${gearSummary} · песнь +${song.ac}`
     }
-    if (model.gearEffects.acBonus) {
-      coreAc += model.gearEffects.acBonus
-      gearSummary = `${gearSummary} · магия +${model.gearEffects.acBonus}`
+    const gearAc = resolveGearAcBonus(model.gearEffects, {
+      wearingArmor: Boolean(pieces.armor),
+      wearingShield: Boolean(pieces.shield),
+    })
+    if (gearAc.total) {
+      coreAc += gearAc.total
+      gearSummary = `${gearSummary} · ${gearAc.parts.join(' · ')}`
     }
     const sharedInfusionAc = infusionAcFromSharedEffects(
       asRecord(asRecord(model.baseCharacter.sheet).combat).effects,
@@ -716,6 +729,9 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.raceCatalogRows,
     model.unlockedFeatures,
     model.gearEffects.acBonus,
+    model.gearEffects.conditionalAc,
+    model.gearEffects.acFormulas,
+    model.draft.play.concentration?.name,
     infusionBonuses.acBonus,
     model.baseCharacter.sheet,
     model.proficiencyBonus,

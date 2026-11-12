@@ -12,6 +12,7 @@ import { formatSkillRoll } from '../deskRolls'
 import { appendXpHistory } from '../playDeskUi'
 import { equippedArmorPieces } from '../inventory'
 import { abilityModifier } from '../sheetTypes'
+import { sheetDamageProfile } from '../gearEffects'
 import {
   alignmentNeedsClarification,
   alignmentSheetLabel,
@@ -20,6 +21,11 @@ import { COMPANION_KIND_SHORT } from './draft'
 
 export function PlayDeskTop({ model }: { model: SheetModel }) {
   const alignmentLabel = alignmentSheetLabel(model.draft.identity)
+  const damageProfile = sheetDamageProfile({
+    raceSlug: model.draft.raceGrant?.slug,
+    raceResistances: model.draft.raceGrant?.damageResistances,
+    gear: model.gearEffects,
+  })
   const alignmentHint = alignmentNeedsClarification(model.draft.identity)
     ? 'Уточните мировоззрение'
     : ''
@@ -51,6 +57,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             constitutionMod={abilityModifier(model.draft.abilities.con)}
             hpCurrent={model.draft.hpCurrent}
             hpMax={model.draft.hpMax}
+            damageProfile={damageProfile}
             play={model.draft.play}
             autoAc={model.armorClass.ac}
             acHint={model.armorClass.summary}
@@ -168,6 +175,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           level={model.characterLevel}
           hpCurrent={model.draft.hpCurrent}
           hpMax={model.draft.hpMax}
+          damageProfile={damageProfile}
           play={model.draft.play}
           autoAc={model.armorClass.ac}
           acOverride={model.draft.ac}

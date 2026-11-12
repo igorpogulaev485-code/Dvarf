@@ -22,6 +22,7 @@ import {
   exhaustionSpeedNote,
 } from '../../shared/dnd/exhaustion2014'
 import { IconCoin, IconJump, IconRest, IconSkull } from './deskIcons'
+import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
 
 const COLLAPSE_KEY = 'dvarf.mobileVitals.collapsed'
 
@@ -34,6 +35,7 @@ type MobileVitalsBarProps = {
   level: number
   hpCurrent: number | null
   hpMax: number | null
+  damageProfile?: IncomingDamageProfile
   play: PlayState
   autoAc: number
   acOverride: number | null
@@ -95,6 +97,7 @@ export function MobileVitalsBar({
   level,
   hpCurrent,
   hpMax,
+  damageProfile,
   play,
   autoAc,
   acOverride,
@@ -565,6 +568,7 @@ export function MobileVitalsBar({
           onPlayChange={onPlayChange}
           onCombatChange={onCombatChange}
           onToast={onToast}
+          damageProfile={damageProfile}
         />
         <CoinPadDialog
           open={coinPadOpen}

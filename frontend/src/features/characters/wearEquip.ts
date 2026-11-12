@@ -12,6 +12,7 @@ import type { InventoryItem } from './inventory'
 export const WEAR_SLOT_LABEL_RU: Record<WearSlot, string> = {
   body_armor: 'Доспех',
   shield: 'Щит',
+  robe: 'Мантия',
   cloak: 'Плащ',
   head: 'Голова',
   eyes: 'Глаза',
@@ -28,6 +29,7 @@ export const WEAR_SLOT_LABEL_RU: Record<WearSlot, string> = {
 
 /** Slots managed here (not body armor / shield / held weapons). */
 const WORN_SLOTS = new Set<WearSlot>([
+  'robe',
   'cloak',
   'head',
   'eyes',

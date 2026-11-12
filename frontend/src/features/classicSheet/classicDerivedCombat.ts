@@ -5,7 +5,8 @@
  */
 
 import type { CharacterDetail } from '../../shared/api/characters'
-import { computeArmorClass } from '../../shared/dnd/armor'
+import { computeArmorClass, mageArmorCompetingFormula } from '../../shared/dnd/armor'
+import { readConcentration } from '../../shared/dnd/concentration'
 import { unlockFeaturesForClasses } from '../../shared/dnd/classFeatures'
 import {
   fightingStyleFromFeatGrants,
@@ -27,7 +28,7 @@ import {
 import { totalCharacterLevel } from '../../shared/dnd/classLevels'
 import { readAttunements } from '../characters/attunement'
 import { readClassLevels } from '../characters/classLevels'
-import { aggregateGearEffects } from '../characters/gearEffects'
+import { aggregateGearEffects, resolveGearAcBonus } from '../characters/gearEffects'
 import { abilitiesWithGear } from '../characters/effectiveAbilities'
 import { attunementGateFromSheet } from '../characters/attunementRules'
 import { equippedArmorPieces, readInventory } from '../characters/inventory'
@@ -161,6 +162,11 @@ export function classicAutoArmorClass(character: CharacterDetail): number {
     return null
   })()
 
+  const concentration = readConcentration(asRecord(sheet.combat).concentration)
+  const mageArmor = pieces.armor ? null : mageArmorCompetingFormula(concentration?.name)
+  const extraFormulas = pieces.armor
+    ? []
+    : [...gear.acFormulas, ...(mageArmor ? [mageArmor] : [])]
   const base = computeArmorClass({
     dexMod: mods.dex,
     abilityMods: mods,
@@ -168,6 +174,7 @@ export function classicAutoArmorClass(character: CharacterDetail): number {
     shield: pieces.shield,
     naturalArmor,
     unarmoredDefense,
+    extraFormulas,
   })
 
   const featGrants = readFeatGrantLedger(sheet.feat_grants)
@@ -181,7 +188,11 @@ export function classicAutoArmorClass(character: CharacterDetail): number {
 
   let coreAc = base.ac
   if (styleBonus > 0) coreAc += styleBonus
-  if (gear.acBonus) coreAc += gear.acBonus
+  const gearAc = resolveGearAcBonus(gear, {
+    wearingArmor: Boolean(pieces.armor),
+    wearingShield: Boolean(pieces.shield),
+  })
+  if (gearAc.total) coreAc += gearAc.total
   const infusion = aggregateInfusionBonuses({
     featurePicks: readFeaturePicks(sheet.feature_picks),
     classes,

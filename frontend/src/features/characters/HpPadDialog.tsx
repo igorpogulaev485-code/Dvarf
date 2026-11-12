@@ -12,6 +12,16 @@ import {
   suggestedHitDieHeal,
 } from '../../shared/dnd/hitDice'
 import { Button, SlotPips } from '../../ui'
+import {
+  DAMAGE_TYPES,
+  adjustIncomingDamage,
+  damageTypeLabel,
+  emptyDamageProfile,
+  formatDefenseList,
+  isPhysicalDamage,
+  type DamageType,
+  type IncomingDamageProfile,
+} from '../../shared/dnd/damageTypes'
 import { acquireBodyScrollLock } from '../../ui/bodyScrollLock'
 import { withSyncedHitDiceSummary, type PlayState } from './play'
 
@@ -31,6 +41,8 @@ type HpPadDialogProps = {
   onPlayChange: (play: PlayState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
   onToast: (message: string) => void
+  /** Race + worn items. Damage is halved only when the player picks a type. */
+  damageProfile?: IncomingDamageProfile
 }
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'] as const
@@ -50,8 +62,12 @@ export function HpPadDialog({
   onPlayChange,
   onCombatChange,
   onToast,
+  damageProfile,
 }: HpPadDialogProps) {
   const [digits, setDigits] = useState('')
+  const [damageType, setDamageType] = useState<DamageType | null>(null)
+  const [nonmagical, setNonmagical] = useState(false)
+  const profile = damageProfile ?? emptyDamageProfile()
   const pools = play.hitDiceByClass
   const hitCurrent = totalHitDiceCurrent(pools)
   const hitMax = totalHitDiceMax(pools)
@@ -61,6 +77,8 @@ export function HpPadDialog({
   useEffect(() => {
     if (!open) return
     setDigits('')
+    setDamageType(null)
+    setNonmagical(false)
     const releaseScroll = acquireBodyScrollLock()
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -87,6 +105,16 @@ export function HpPadDialog({
 
   const delta = digits === '' ? 0 : Number(digits)
   const canApply = delta > 0
+  const adjusted = adjustIncomingDamage({
+    amount: delta,
+    type: damageType,
+    nonmagical,
+    profile,
+  })
+  const resistanceLabel = formatDefenseList(profile.resistances)
+  const vulnerabilityLabel = formatDefenseList(profile.vulnerabilities)
+  const immunityLabel = formatDefenseList(profile.immunities)
+  const showNonmagical = damageType != null && isPhysicalDamage(damageType)
 
   const poolHint = useMemo(() => {
     if (pools.length === 0) return 'Кости хитов появятся после выбора класса'
@@ -166,8 +194,46 @@ export function HpPadDialog({
 
         <div className="number-pad__display">
           <span className="number-pad__display-value">{digits === '' ? '0' : String(delta)}</span>
-          <span className="number-pad__display-hint">введи число, затем действие</span>
+          <span className="number-pad__display-hint">
+            {adjusted.note || 'введи число, затем действие'}
+          </span>
         </div>
+
+        {resistanceLabel || vulnerabilityLabel || immunityLabel ? (
+          <p className="hp-pad__hint hp-pad__defenses">
+            {resistanceLabel ? `Сопротивления: ${resistanceLabel}` : ''}
+            {vulnerabilityLabel
+              ? `${resistanceLabel ? ' · ' : ''}Уязвимости: ${vulnerabilityLabel}`
+              : ''}
+            {immunityLabel
+              ? `${resistanceLabel || vulnerabilityLabel ? ' · ' : ''}Иммунитеты: ${immunityLabel}`
+              : ''}
+          </p>
+        ) : null}
+
+        <div className="hp-pad__types chip-row" role="group" aria-label="Тип урона">
+          {DAMAGE_TYPES.map((type) => (
+            <button
+              key={type}
+              type="button"
+              className={`sheet-chip${damageType === type ? ' is-on' : ''}`}
+              aria-pressed={damageType === type}
+              onClick={() => setDamageType((prev) => (prev === type ? null : type))}
+            >
+              {damageTypeLabel(type)}
+            </button>
+          ))}
+        </div>
+        {showNonmagical ? (
+          <label className="sheet-check hp-pad__nonmagical">
+            <input
+              type="checkbox"
+              checked={nonmagical}
+              onChange={(event) => setNonmagical(event.target.checked)}
+            />
+            <span>Немагический удар</span>
+          </label>
+        ) : null}
 
         <div className="number-pad__keys" role="group" aria-label="Цифровая клавиатура">
           {KEYS.map((key) => (
@@ -211,7 +277,8 @@ export function HpPadDialog({
             variant="danger"
             disabled={!canApply}
             onClick={() => {
-              onDamage(delta)
+              onDamage(adjusted.amount)
+              if (adjusted.note) onToast(adjusted.note)
               setDigits('')
               onClose()
             }}

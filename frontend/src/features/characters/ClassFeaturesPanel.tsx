@@ -216,6 +216,8 @@ type ClassFeaturesPanelProps = {
   /** Summary surface: feats + race on the same glance list. */
   featGrants?: AppliedFeatGrant[]
   darkvision?: number
+  /** Race + active items: «Сопротивления: огонь». */
+  defenseSummary?: string
   raceName?: string
   /** Structured race traits (catalog trait_cards) or fallback from traitsText. */
   raceTraitCards?: RaceTraitCard[]
@@ -2446,6 +2448,7 @@ export function ClassFeaturesPanel({
   onToast,
   featGrants = [],
   darkvision = 0,
+  defenseSummary = '',
   raceName = '',
   raceTraitCards = [],
   raceTraitsText = '',
@@ -2580,7 +2583,7 @@ export function ClassFeaturesPanel({
   }, [raceTraitCards, raceTraitsText])
 
   const showRace =
-    (darkvision > 0 || resolvedRaceTraits.length > 0) &&
+    (darkvision > 0 || resolvedRaceTraits.length > 0 || Boolean(defenseSummary)) &&
     (filter === 'all' || filter === 'class')
   const showBackground =
     Boolean(backgroundFeature) && (filter === 'all' || filter === 'class')
@@ -2690,10 +2693,18 @@ export function ClassFeaturesPanel({
               {raceName || 'Раса'}
               <span className="feature-group__count">
                 {' '}
-                · {(darkvision > 0 ? 1 : 0) + resolvedRaceTraits.length}
+                · {(darkvision > 0 ? 1 : 0) + (defenseSummary ? 1 : 0) + resolvedRaceTraits.length}
               </span>
             </div>
             <div className="feature-list">
+              {defenseSummary ? (
+                <div className="feature-card feature-card--compact feature-card--static">
+                  <div className="feature-card__glance">
+                    <b className="feature-card__name">{defenseSummary}</b>
+                    <span className="inventory-role inventory-role--other">защита</span>
+                  </div>
+                </div>
+              ) : null}
               {darkvision > 0 ? (
                 <div className="feature-card feature-card--compact feature-card--static">
                   <div className="feature-card__glance">

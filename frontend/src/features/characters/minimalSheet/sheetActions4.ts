@@ -12,6 +12,7 @@ import { isPactChainActive, isPactChainSpellId, pactChainFamiliarSpellId, syncPa
 import { isWarlockClassName } from '../pactTomeEffects'
 import { toggleCombatConsumableFavorite } from '../combatConsumables'
 import { formatSkillRoll, resolveRollMode, type DeskRollMode } from '../deskRolls'
+import { formatSaveAdvantageNote } from '../gearEffects'
 import { isMantleCommandSpell, MANTLE_CONCENTRATION_ID, silverTongueApplies } from '../../../shared/dnd/bardCollege'
 import { exhaustionRollFlags } from '../../../shared/dnd/exhaustion2014'
 import {
@@ -856,6 +857,8 @@ export function installSheetActions4(model: SheetModel) {
         : exhaustion && model.deskRollMode !== 'disadvantage'
           ? ' · помеха от истощения'
           : ''
+    const spellAdvantage = formatSaveAdvantageNote(model.gearEffects.saveAdvantages)
+    const spellNote = spellAdvantage ? ` · ${spellAdvantage}` : ''
     model.emitToast(
       `${formatSkillRoll(
         `Спас · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
@@ -863,7 +866,7 @@ export function installSheetActions4(model: SheetModel) {
         model.saveRollMode(),
         undefined,
         null,
-      )}${note}${songNote}`,
+      )}${note}${songNote}${spellNote}`,
     )
   }
 

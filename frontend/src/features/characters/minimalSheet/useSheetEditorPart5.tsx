@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { isSelfForm } from '../companions'
 import { DEFAULT_ABILITY_SCORE_MAX, clampAbilityScore } from '../../../shared/dnd/abilityScoreCaps'
 import { AbilitySkillsColumn } from '../AbilitySkillsColumn'
+import { formatSaveAdvantageNote } from '../gearEffects'
 import { ABILITY_KEYS, type AbilityKey } from '../sheetTypes'
 import { cycleSkill } from './draft'
 
@@ -36,6 +37,7 @@ export function useSheetEditorPart5(model: SheetModel) {
       proficiencyBonus={model.proficiencyBonus}
       auraSaveBonus={model.auraSaveBonus}
       saveBonusExtra={mergedSaveExtras}
+      saveAdvantageNote={formatSaveAdvantageNote(model.gearEffects.saveAdvantages)}
       checkBonusExtra={model.abilityCheckExtras}
       skillBonusExtra={Object.entries(model.featureSkillBonuses ?? {}).reduce(
         (acc: Record<string, number>, [key, value]) => {

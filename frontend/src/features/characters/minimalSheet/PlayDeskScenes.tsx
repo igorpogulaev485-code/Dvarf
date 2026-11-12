@@ -22,6 +22,8 @@ import { equipInventoryItem, equippedArmorPieces } from '../inventory'
 import { withSpellFocusFlags } from '../spellFocus'
 import { syncWizardSpellbookWithInventory } from '../wizardSpellbookInventory'
 import { abilityModifier } from '../sheetTypes'
+import { sheetDamageProfile } from '../gearEffects'
+import { formatDefenseSummary } from '../../../shared/dnd/damageTypes'
 import { getFeaturePick } from '../../../shared/dnd/featurePicks'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
 import { totalCharacterLevel } from '../../../shared/dnd/classLevels'
@@ -311,6 +313,13 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         }
         featGrants={model.draft.featGrants}
         darkvision={model.effectiveDarkvisionFt}
+        defenseSummary={formatDefenseSummary(
+          sheetDamageProfile({
+            raceSlug: model.draft.raceGrant?.slug,
+            raceResistances: model.draft.raceGrant?.damageResistances,
+            gear: model.gearEffects,
+          }),
+        )}
         raceName={model.draft.raceName}
         raceTraitCards={model.draft.raceGrant?.traitCards ?? []}
         raceTraitsText={model.draft.raceGrant?.traitsText ?? ''}
