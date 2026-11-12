@@ -18,6 +18,11 @@ def load_encounter_calib() -> dict[str, Any]:
     return raw
 
 
+def clear_encounter_calib_cache() -> None:
+    """Для тестов после подмены файла."""
+    load_encounter_calib.cache_clear()
+
+
 def party_power_clip() -> tuple[float, float]:
     clip = load_encounter_calib().get("party_power_clip") or [0.85, 2.2]
     return float(clip[0]), float(clip[1])
@@ -61,8 +66,16 @@ def wave_profile_spec(profile: str) -> dict[str, Any]:
     return dict(table.get(profile) or {})
 
 
-def fly_budget_bonus() -> float:
-    return float(load_encounter_calib().get("fly_budget_bonus") or 1.0)
+def fly_budget_bonus(*, weak_ranged: bool = True) -> float:
+    """Множитель XP летунов: ≈+1 ступень при слабом дальнем, слабее при сильном."""
+    calib = load_encounter_calib()
+    if weak_ranged:
+        return float(
+            calib.get("fly_budget_bonus_weak_ranged")
+            or calib.get("fly_budget_bonus")
+            or 1.5
+        )
+    return float(calib.get("fly_budget_bonus_strong_ranged") or 1.15)
 
 
 def ranged_band_thresholds() -> tuple[float, float]:
@@ -73,7 +86,19 @@ def ranged_band_thresholds() -> tuple[float, float]:
     )
 
 
+def ranged_band_default_unclear() -> str:
+    raw = load_encounter_calib().get("ranged_band") or {}
+    val = str(raw.get("default_when_unclear") or "medium")
+    return val if val in {"low", "medium", "high"} else "medium"
+
+
+def candidates_per_role() -> int:
+    return max(2, min(5, int(load_encounter_calib().get("candidates_per_role") or 3)))
+
+
 __all__ = [
+    "candidates_per_role",
+    "clear_encounter_calib_cache",
     "composition_spec",
     "fly_budget_bonus",
     "homebrew_party_power_weights",
@@ -81,6 +106,7 @@ __all__ = [
     "monster_count_multipliers",
     "party_power_clip",
     "party_power_weights",
+    "ranged_band_default_unclear",
     "ranged_band_thresholds",
     "wave_profile_spec",
     "xp_thresholds_by_level",

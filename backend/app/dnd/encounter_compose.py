@@ -11,6 +11,7 @@ from app.dnd.encounter_budget import (
     encounter_xp_cost,
 )
 from app.dnd.encounter_calib import (
+    candidates_per_role,
     composition_spec,
     fly_budget_bonus,
     wave_profile_spec,
@@ -136,6 +137,14 @@ def compose_encounter(
             ranged_band=analysis.ranged_band,
         )
 
+    # Надбавка за полёт: ≈+1 ступень при слабом дальнем (params §3), слабее при сильном.
+    fly_mult = 1.0
+    if not exclude_fly and (flyers_warning or fly_mode in {"allow", "want"}):
+        fly_mult = fly_budget_bonus(weak_ranged=not analysis.anti_air_ok)
+        if fly_mult > 1.0 and flyers_warning:
+            notes.append("fly_budget_bonus_applied")
+
+    cand_limit = candidates_per_role()
     built: list[WaveProposal] = []
     for i, budget_xp in enumerate(wave_budgets):
         built.append(
@@ -145,7 +154,8 @@ def compose_encounter(
                 wave_index=i + 1,
                 style=style,
                 prefer_casters=prefer_casters,
-                apply_fly_bonus=flyers_warning or (fly_mode == "want"),
+                fly_mult=fly_mult,
+                cand_limit=cand_limit,
             )
         )
     return EncounterProposal(
@@ -196,9 +206,10 @@ def _allocate_wave_budgets(
         return budgets
 
     spec = wave_profile_spec("escalation")
-    start = float(spec.get("weight_start") or 0.7)
-    end = float(spec.get("weight_end") or 1.45)
-    exhaust = float(spec.get("exhaustion_penalty_last") or 0.18)
+    # лёгкая → средняя → босс (0.5…1.5 относительно средней доли)
+    start = float(spec.get("weight_start") or 0.5)
+    end = float(spec.get("weight_end") or 1.5)
+    exhaust = float(spec.get("exhaustion_penalty_last") or 0.25)
     if wave_n == 1:
         weights = [1.0]
     else:
@@ -222,14 +233,14 @@ def _compose_wave(
     wave_index: int,
     style: str,
     prefer_casters: bool,
-    apply_fly_bonus: bool,
+    fly_mult: float = 1.0,
+    cand_limit: int = 3,
 ) -> WaveProposal:
     spec = composition_spec(style)
     require_boss = bool(spec.get("require_boss", style != "horde"))
     require_pack = bool(spec.get("require_pack", style != "boss"))
     boss_share = float(spec.get("boss_share") or 0.0)
     boss_cap = float(spec.get("boss_cap") or 0.7)
-    fly_mult = fly_budget_bonus() if apply_fly_bonus else 1.0
 
     boss: RoleCandidates | None = None
     pack: RoleCandidates | None = None
@@ -249,7 +260,7 @@ def _compose_wave(
         boss_opts = pick_top_by_xp(
             boss_pool,
             target_xp=boss_target,
-            limit=3,
+            limit=cand_limit,
             prefer_casters=prefer_casters,
         )
         boss_xp = _effective_xp(boss_opts[0], fly_mult) if boss_opts else 0
@@ -276,7 +287,7 @@ def _compose_wave(
         pack_opts = pick_top_by_xp(
             pack_pool,
             target_xp=pack_target_each,
-            limit=3,
+            limit=cand_limit,
             prefer_casters=prefer_casters,
         )
         suggested = 0

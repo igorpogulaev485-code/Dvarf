@@ -262,30 +262,36 @@ export function EncounterGenerateDialog({
       }}
     >
       <Stack gap={14}>
-        {result?.party ? (
-          <Stack gap={4}>
-            <Text>
-              Партия: <strong>{result.party.member_count}</strong>
-              {result.party.levels.length
-                ? ` · ур. ${result.party.levels.join('/')}`
-                : ''}{' '}
-              · сила <strong>×{result.party.party_power.toFixed(2)}</strong> · дальний{' '}
-              <strong>{result.party.ranged_band_label}</strong>
-              {result.party.override_used ? ' · ручной расчёт' : ''}
-            </Text>
-            {result.party.homebrew_applied.length > 0 ? (
-              <Text tone="muted">
-                Домашние: {result.party.homebrew_applied.join(', ')}
-              </Text>
-            ) : (
-              <Text tone="muted">Домашние правила в сводке не отмечены</Text>
-            )}
-          </Stack>
-        ) : (
-          <Text tone="muted">
-            Бюджет по листам за столом. Ступень — ярлык модели, не сырой DMG.
+        <Stack gap={4}>
+          <Text as="h4" className="session-xp-recipients__title">
+            Партия
           </Text>
-        )}
+          {result?.party ? (
+            <>
+              <Text>
+                <strong>{result.party.member_count}</strong>
+                {result.party.levels.length
+                  ? ` героев, ур. ${result.party.levels.join('–')}`
+                  : ' героев'}{' '}
+                · сила <strong>×{result.party.party_power.toFixed(2)}</strong> · дальний:{' '}
+                <strong>{result.party.ranged_band_label}</strong>
+                {result.party.override_used ? ' · ручной расчёт' : ''}
+              </Text>
+              {result.party.homebrew_applied.length > 0 ? (
+                <Text tone="muted">
+                  Учли: {result.party.homebrew_applied.join(', ')}
+                </Text>
+              ) : (
+                <Text tone="muted">Домашние правила не включены или не влияют на бюджет</Text>
+              )}
+            </>
+          ) : (
+            <Text tone="muted">
+              После подбора — число, уровни, сила ×, дальний и учтённые домашние правила с
+              листов. Ступень — ярлык модели, не сырой DMG.
+            </Text>
+          )}
+        </Stack>
 
         <Stack gap={8}>
           <Text as="h4" className="session-xp-recipients__title">
@@ -529,7 +535,7 @@ export function EncounterGenerateDialog({
               <>
                 {wave.boss ? (
                   <RolePicker
-                    title={`Босс · ~${wave.budget_xp} XP волны`}
+                    title={`Босс · 2–3 кандидата · ~${wave.budget_xp} XP волны`}
                     options={wave.boss.options}
                     selectedSlug={boss?.slug ?? null}
                     onSelect={(slug) =>
@@ -540,7 +546,7 @@ export function EncounterGenerateDialog({
                 ) : null}
                 {wave.pack ? (
                   <RolePicker
-                    title={`Пачка ×${packCount || '—'}`}
+                    title={`Пачка · 2–3 кандидата · ×${packCount || '—'}`}
                     options={wave.pack.options}
                     selectedSlug={pack?.slug ?? null}
                     onSelect={(slug) =>

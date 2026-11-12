@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "notes": "G-01: калибровка генератора. Править здесь, без новой пачки. Без автопоправки «на 20 уровне легче».",
+  "version": 2,
+  "notes": "G-01: калибровка по generator_params.md (13.11.2026). Править здесь, без новой пачки. Без автопоправки «на 20 уровне легче». Надбавка за полёт ≈ +1 ступень при слабом дальнем; эскалация — лёгкая→средняя→босс с штрафом истощения на последней волне.",
   "party_power_clip": [0.85, 2.2],
   "party_power_weights": {
     "hp_per_20pct": 0.05,
@@ -15,10 +15,10 @@
     "resistance_proxy": 0.08
   },
   "homebrew_party_power": {
-    "potion_bonus_self": 0.02,
-    "gunpowder_exploding": 0.025,
+    "potion_bonus_self": 0.01,
+    "gunpowder_exploding": 0.01,
     "flanking_advantage": 0.02,
-    "feat_at_level_1": 0.03
+    "feat_at_level_1": 0.02
   },
   "xp_thresholds_by_level": {
     "1": [25, 50, 75, 100],
@@ -54,18 +54,21 @@
     "mixed": {
       "boss_share": 0.45,
       "boss_cap": 0.7,
+      "pack_share": 0.55,
       "require_boss": true,
       "require_pack": true
     },
     "boss": {
-      "boss_share": 0.85,
+      "boss_share": 0.9,
       "boss_cap": 1.0,
+      "pack_share": 0.1,
       "require_boss": true,
       "require_pack": false
     },
     "horde": {
       "boss_share": 0.0,
       "boss_cap": 0.0,
+      "pack_share": 1.0,
       "require_boss": false,
       "require_pack": true
     }
@@ -73,14 +76,19 @@
   "wave_profile": {
     "even": {},
     "escalation": {
-      "weight_start": 0.7,
-      "weight_end": 1.45,
-      "exhaustion_penalty_last": 0.18
+      "weight_start": 0.5,
+      "weight_end": 1.5,
+      "exhaustion_penalty_last": 0.25,
+      "notes": "лёгкая → средняя → босс с поддержкой; последняя ×(1 − exhaustion), партия уже без ячеек"
     }
   },
-  "fly_budget_bonus": 1.08,
+  "fly_budget_bonus_weak_ranged": 1.5,
+  "fly_budget_bonus_strong_ranged": 1.15,
+  "fly_budget_bonus": 1.5,
   "ranged_band": {
     "medium_min_share": 0.25,
-    "strong_min_share": 0.6
-  }
+    "strong_min_share": 0.6,
+    "default_when_unclear": "medium"
+  },
+  "candidates_per_role": 3
 }

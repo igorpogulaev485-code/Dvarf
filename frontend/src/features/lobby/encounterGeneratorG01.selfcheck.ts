@@ -14,8 +14,10 @@ function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
 }
 
-assert(ENCOUNTER_COMPOSITIONS.some((c) => c.id === 'mixed'), 'mixed default style')
-assert(ENCOUNTER_COMPOSITIONS.some((c) => c.id === 'horde'), 'horde style')
+assert(
+  ENCOUNTER_COMPOSITIONS.map((c) => c.id).join(',') === 'horde,boss,mixed',
+  '§5 order: толпа / босс / смешанный',
+)
 assert(ENCOUNTER_WAVE_PROFILES.some((p) => p.id === 'escalation'), 'escalation profile')
 assert(ENCOUNTER_FLYERS[0]?.id === 'auto', 'flyers default auto first')
 assert(
@@ -23,8 +25,8 @@ assert(
   'enemy_casters must not use ambiguous some',
 )
 assert(
-  ENCOUNTER_ENEMY_CASTERS.some((c) => c.id === 'any'),
-  'enemy_casters any = как выйдет',
+  ENCOUNTER_ENEMY_CASTERS.map((c) => c.id).join(',') === 'none,any,several',
+  'casters order: нет / как выйдет / несколько',
 )
 
 type DeployPick = {

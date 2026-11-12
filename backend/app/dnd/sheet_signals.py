@@ -10,7 +10,7 @@ import re
 from dataclasses import dataclass
 from typing import Any, Iterable
 
-from app.dnd.encounter_calib import ranged_band_thresholds
+from app.dnd.encounter_calib import ranged_band_default_unclear, ranged_band_thresholds
 from app.dnd.party_power import PartyPowerSignals, compute_party_power
 
 # Грубая «норма» для сравнения (не таблица класса — калибровочный якорь).
@@ -82,7 +82,7 @@ def analyze_party(
             levels=(),
             anti_air_ok=False,
             notes=("empty_party",),
-            ranged_band="low",
+            ranged_band=ranged_band_default_unclear(),
             ranged_ok_count=0,
             member_count=0,
         )

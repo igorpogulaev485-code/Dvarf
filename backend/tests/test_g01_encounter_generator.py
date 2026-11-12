@@ -78,12 +78,23 @@ def _pool() -> list[BestiaryMonsterRef]:
 
 
 def test_calib_loaded_and_clip():
+    from app.dnd.encounter_calib import clear_encounter_calib_cache, fly_budget_bonus
+
+    clear_encounter_calib_cache()
     calib = load_encounter_calib()
-    assert calib["version"] == 1
+    assert calib["version"] == 2
     lo, hi = party_power_clip()
     assert lo == 0.85 and hi == 2.2
-    assert "mixed" in calib["composition"]
-    assert "exhaustion_penalty_last" in calib["wave_profile"]["escalation"]
+    assert calib["composition"]["mixed"]["boss_share"] == 0.45
+    assert calib["composition"]["horde"]["pack_share"] == 1.0
+    esc = calib["wave_profile"]["escalation"]
+    assert esc["weight_start"] == 0.5
+    assert esc["weight_end"] == 1.5
+    assert esc["exhaustion_penalty_last"] == 0.25
+    # ≈ +1 ступень при слабом дальнем (params §3)
+    assert fly_budget_bonus(weak_ranged=True) == 1.5
+    assert fly_budget_bonus(weak_ranged=False) == 1.15
+    assert calib["candidates_per_role"] == 3
 
 
 def test_horde_has_no_mandatory_boss():
@@ -145,10 +156,13 @@ def test_escalation_last_wave_stronger_but_damped():
     assert len(prop.waves) == 3
     first, mid, last = prop.waves
     assert last.budget_xp > first.budget_xp
-    # не три полных средних боя: сумма ≈ один скорректированный бюджет
-    base = budget_base(prop.waves and (5, 5, 5, 5), EncounterDifficulty.medium)
+    assert mid.budget_xp >= first.budget_xp
+    # лёгкая→босс с истощением: не три полных средних
+    base = budget_base((5, 5, 5, 5), EncounterDifficulty.medium)
     assert prop.budget_total <= int(base * prop.party_power * 1.05) + 3
     assert last.budget_xp < first.budget_xp * 3
+    # первая заметно легче последней (профиль эскалации)
+    assert first.budget_xp < last.budget_xp * 0.85
 
 
 def test_flyers_auto_suppresses_when_ranged_weak():
@@ -185,7 +199,7 @@ def test_flyers_want_warns_when_ranged_weak():
         members=members,
         monsters=_pool(),
         difficulty=EncounterDifficulty.medium,
-        theme_ids=["beast"] if False else ["orc"],
+        theme_ids=["orc"],
         similar=True,
         environments=["холмы"],
         waves=1,
@@ -194,6 +208,26 @@ def test_flyers_want_warns_when_ranged_weak():
     )
     assert prop.flyers_warning is True
     assert "flyers_weak_ranged_warning" in prop.notes
+    assert "fly_budget_bonus_applied" in prop.notes
+
+
+def test_mixed_offers_up_to_three_candidates_per_role():
+    members = [
+        PartyMemberSnapshot(level=5, hp_max=40, sheet=_ranged_sheet()) for _ in range(4)
+    ]
+    prop = compose_encounter(
+        members=members,
+        monsters=_pool(),
+        difficulty=EncounterDifficulty.medium,
+        theme_ids=["orc"],
+        similar=True,
+        environments=["холмы"],
+        waves=1,
+        composition="mixed",
+    )
+    wave = prop.waves[0]
+    assert wave.boss and 1 <= len(wave.boss.options) <= 3
+    assert wave.pack and 1 <= len(wave.pack.options) <= 3
 
 
 def test_spellcasting_heuristic():

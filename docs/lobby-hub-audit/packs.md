@@ -149,7 +149,7 @@
 
 | ID | Ожидалось | Фактически | Где | Пачка | Статус |
 |---|---|---|---|---|---|
-| G01-1 | Справочник коэффициентов | `encounter_calib.json` + загрузчик; пороги/веса/эскалация/полёт/доли стилей | `backend/app/dnd/data/encounter_calib.json`, `encounter_calib.py` | G-01 | сделано |
+| G01-1 | Справочник коэффициентов | v2 по `generator_params.md`: пороги DMG, клип 0,85–2,2, полёт ×1,5/×1,15, эскалация 0,5→1,5 −25% истощение, доли стилей | `encounter_calib.json`, `encounter_calib.py` | G-01 | сделано |
 | G01-2 | API composition/wave_profile/flyers/casters + сводка | расширен `EncounterGenerateRequest`/`Result` + `party`; `save_to_wiki` → 400 крючок | schemas + `LobbyService.generate_encounter` | G-01 | сделано |
 | G01-3 | Стили толпа/босс/смешанный, эскалация, летуны | `compose_encounter` читает калибровку; предупреждение при слабом дальнем | `encounter_compose.py`, `encounter_pool.py` | G-01 | сделано |
 | G01-4 | Диалог на живом столе в «Сюжет», на стол S-02, вики крючок | доработан `EncounterGenerateDialog`; кнопка в Сюжет; «В шаблон» убрано; «В вики» disabled | SessionDetailPage + dialog | G-01 | сделано |
