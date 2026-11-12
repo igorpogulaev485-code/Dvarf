@@ -17,6 +17,7 @@ import { syncFeatureResources } from '../../../shared/dnd/featureResources'
 import { classWalkSpeedBonusFt, resolveWalkSpeedFt } from '../../../shared/dnd/classMovement'
 import {
   applySpeedModsToWalk,
+  initiativeBonusFromActiveEffects,
   speedModsFromActiveEffects,
 } from '../../../shared/dnd/activeEffects'
 import { applyFeatureSaveProficiencies, ironMindSaveKey, wisdomSaveAlreadyGranted } from '../../../shared/dnd/featureSaveProficiency'
@@ -668,8 +669,15 @@ export function useSheetEditorPart2(model: SheetModel) {
     [model.draft.raceGrant, proficiencyBonus],
   )
   model.raceInitiativeBonus = raceInitiativeBonus
+  const effectInitiativeBonus = useMemo(
+    () => initiativeBonusFromActiveEffects(model.draft.play.effects),
+    [model.draft.play.effects],
+  )
   const totalInitiativeBonus =
-    featInitiativeBonus + featureInitiativeBonus + raceInitiativeBonus
+    featInitiativeBonus +
+    featureInitiativeBonus +
+    raceInitiativeBonus +
+    effectInitiativeBonus
   model.totalInitiativeBonus = totalInitiativeBonus
   const fightingStyleIds = useMemo(() => {
     const ids = listFightingStyleIds(model.draft.featurePicks)

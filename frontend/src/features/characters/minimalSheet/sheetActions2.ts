@@ -222,9 +222,13 @@ export function installSheetActions2(model: SheetModel) {
       },
     })
     const conMod = abilityModifier(scores.con)
+    const draconicResilience = nextClasses.some((row) =>
+      /дракон|draconic/i.test(row.subclass_name || ''),
+    )
     const hpBuilt = buildMaxHpByLevels({
       classes: nextClasses.map((row) => ({ name: row.name, level: row.level })),
       constitutionMod: conMod,
+      draconicResilience,
     })
     const hitDiceByClass = syncHitDicePools({
       classes: nextClasses,

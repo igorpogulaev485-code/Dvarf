@@ -88,6 +88,12 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             hasEvasion={(model.unlockedFeatures ?? []).some(
               (f: { id?: string }) => f.id === 'evasion',
             )}
+            hasUncannyDodge={(model.unlockedFeatures ?? []).some(
+              (f: { id?: string }) => f.id === 'uncanny_dodge',
+            )}
+            draconicResilience={(model.unlockedFeatures ?? []).some(
+              (f: { id?: string }) => f.id === 'draconic_resilience',
+            )}
             play={model.draft.play}
             autoAc={model.armorClass.ac}
             acHint={model.armorClass.summary}
@@ -231,6 +237,12 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           damageProfile={damageProfile}
           hasEvasion={(model.unlockedFeatures ?? []).some(
             (f: { id?: string }) => f.id === 'evasion',
+          )}
+          hasUncannyDodge={(model.unlockedFeatures ?? []).some(
+            (f: { id?: string }) => f.id === 'uncanny_dodge',
+          )}
+          draconicResilience={(model.unlockedFeatures ?? []).some(
+            (f: { id?: string }) => f.id === 'draconic_resilience',
           )}
           play={model.draft.play}
           autoAc={model.armorClass.ac}

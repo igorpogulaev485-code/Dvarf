@@ -33,6 +33,9 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
         classes={model.draft.classes}
         abilities={model.draft.abilities}
         constitutionMod={abilityModifier(model.draft.abilities.con)}
+        draconicResilience={(model.unlockedFeatures ?? []).some(
+          (f: { id?: string }) => f.id === 'draconic_resilience',
+        )}
         onConfirm={model.applyLevelUp}
         onClose={() => model.setLevelUpOpen(false)}
       />

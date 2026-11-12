@@ -165,6 +165,34 @@ export function ActiveEffectsPanel({
                     Потратить удачу
                   </Button>
                 ) : null}
+                {effect.source_character_id &&
+                (effect.slug?.startsWith('aura_of_') ||
+                  effect.slug === 'exalted_champion') ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      const next = rows.map((row) => {
+                        if (row.id !== effect.id) return row
+                        const on = Boolean(row.inactive)
+                        return {
+                          ...row,
+                          inactive: on ? false : true,
+                          inactive_reason: on ? null : 'вне ауры',
+                        }
+                      })
+                      onChange(next)
+                      const nowOn = next.find((row) => row.id === effect.id)
+                      onToast?.(
+                        nowOn && !nowOn.inactive
+                          ? `${effect.name}: в ауре`
+                          : `${effect.name}: вне ауры`,
+                      )
+                    }}
+                  >
+                    {effect.inactive ? 'В ауре' : 'Вне ауры'}
+                  </Button>
+                ) : null}
                 <Button
                   type="button"
                   variant="ghost"

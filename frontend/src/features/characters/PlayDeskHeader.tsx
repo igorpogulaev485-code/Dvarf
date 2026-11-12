@@ -28,6 +28,7 @@ import { NumberPadDialog } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
 import { HpPadDialog } from './HpPadDialog'
 import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
+import { absorbDamageWithArcaneWard } from '../../shared/dnd/wizardTradition'
 import { MaxHpByLevelsDialog } from './MaxHpByLevelsDialog'
 import { XpLevelOffer } from './XpProgressField'
 import type { XpHistoryEntry } from './playDeskUi'
@@ -73,6 +74,10 @@ type PlayDeskHeaderProps = {
   hpMax: number | null
   damageProfile?: IncomingDamageProfile
   hasEvasion?: boolean
+  /** B-05: Rogue/Hunter Uncanny Dodge — half damage from one attack (reaction). */
+  hasUncannyDodge?: boolean
+  /** B-05: Draconic Resilience for max-HP-by-levels dialog. */
+  draconicResilience?: boolean
   play: PlayState
   autoAc: number
   acHint: string
@@ -141,6 +146,8 @@ export function PlayDeskHeader({
   hpMax,
   damageProfile,
   hasEvasion = false,
+  hasUncannyDodge = false,
+  draconicResilience = false,
   play,
   autoAc,
   acHint,
@@ -284,7 +291,8 @@ export function PlayDeskHeader({
   }
 
   function applyDamage(amount: number) {
-    let remaining = Math.max(0, amount)
+    const ward = absorbDamageWithArcaneWard(play.resources ?? [], amount)
+    let remaining = ward.remaining
     let nextTemp = hpTemp
     if (nextTemp > 0 && remaining > 0) {
       const absorbed = Math.min(nextTemp, remaining)
@@ -293,8 +301,13 @@ export function PlayDeskHeader({
     }
     const current = shownHpCurrent ?? 0
     const nextHp = Math.max(0, current - remaining)
-    if (nextTemp !== hpTemp) {
-      onPlayChange({ ...play, hpTemp: nextTemp })
+    if (ward.absorbed > 0 || nextTemp !== hpTemp) {
+      onPlayChange({
+        ...play,
+        resources: ward.resources,
+        hpTemp: nextTemp,
+      })
+      if (ward.note) onToast(ward.note)
     }
     onCombatChange({ hpCurrent: nextHp })
     if (remaining > 0) {
@@ -761,6 +774,7 @@ export function PlayDeskHeader({
         onToast={onToast}
         damageProfile={damageProfile}
         hasEvasion={hasEvasion}
+        hasUncannyDodge={hasUncannyDodge}
       />
 
       <CoinPadDialog
@@ -882,6 +896,7 @@ export function PlayDeskHeader({
         hitDie={hitDie}
         hpMax={hpMax}
         hpCurrent={hpCurrent}
+        draconicResilience={draconicResilience}
         onClose={() => setMaxDialogOpen(false)}
         onApply={({ hpMax: nextMax, hpCurrent: nextCurrent }) => {
           onCombatChange({ hpMax: nextMax, hpCurrent: nextCurrent })

@@ -87,14 +87,33 @@ export function hitDieForClass(input: {
 }
 
 /** PHB «Hit Points at Higher Levels» average: floor(die/2)+1 + CON. */
-export function averageHpGain(die: HitDie, constitutionMod: number): number {
+export function averageHpGain(
+  die: HitDie,
+  constitutionMod: number,
+  extras?: { draconicResilience?: boolean },
+): number {
   const avg = Math.floor(hitDieSides(die) / 2) + 1
-  return avg + Math.floor(constitutionMod)
+  const dragon = extras?.draconicResilience ? 1 : 0
+  return avg + Math.floor(constitutionMod) + dragon
 }
 
 /** PHB level 1: maximum of hit die + CON (min 1). */
-export function firstLevelHpMax(die: HitDie, constitutionMod: number): number {
-  return Math.max(1, hitDieSides(die) + Math.floor(constitutionMod))
+export function firstLevelHpMax(
+  die: HitDie,
+  constitutionMod: number,
+  extras?: { draconicResilience?: boolean },
+): number {
+  const dragon = extras?.draconicResilience ? 1 : 0
+  return Math.max(1, hitDieSides(die) + Math.floor(constitutionMod) + dragon)
+}
+
+/** +1 HP per sorcerer level with Draconic Resilience (PHB). */
+export function isDraconicSorcererClass(className: string): boolean {
+  const t = className.trim().toLowerCase()
+  return (
+    t.includes('чародей') ||
+    t.includes('sorcerer')
+  )
 }
 
 export type MaxHpLevelRow = {
@@ -113,13 +132,17 @@ export function buildMaxHpByLevels(input: {
   classes: Array<{ name: string; level: number }>
   constitutionMod: number
   fallbackDie?: HitDie | null
+  /** B-05: +1 HP per sorcerer level when Draconic Resilience is unlocked. */
+  draconicResilience?: boolean
 }): { rows: MaxHpLevelRow[]; total: number } | null {
   const rows: MaxHpLevelRow[] = []
   const named = input.classes.filter((row) => row.name.trim() && row.level > 0)
   if (named.length === 0) {
     const die = input.fallbackDie ?? null
     if (!die) return null
-    const gain = firstLevelHpMax(die, input.constitutionMod)
+    const gain = firstLevelHpMax(die, input.constitutionMod, {
+      draconicResilience: Boolean(input.draconicResilience),
+    })
     rows.push({ label: 'Ур. 1', die, gain, kind: 'max' })
     return { rows, total: gain }
   }
@@ -129,11 +152,14 @@ export function buildMaxHpByLevels(input: {
       hitDieForClass({ className: cls.name }) ?? input.fallbackDie ?? null
     if (!die) return
     const levels = Math.max(0, Math.floor(cls.level))
+    const dragon =
+      Boolean(input.draconicResilience) && isDraconicSorcererClass(cls.name)
     for (let lvl = 1; lvl <= levels; lvl += 1) {
       const isOriginFirst = classIndex === 0 && lvl === 1
+      const extras = { draconicResilience: dragon }
       const gain = isOriginFirst
-        ? firstLevelHpMax(die, input.constitutionMod)
-        : averageHpGain(die, input.constitutionMod)
+        ? firstLevelHpMax(die, input.constitutionMod, extras)
+        : averageHpGain(die, input.constitutionMod, extras)
       rows.push({
         label: `${cls.name.trim()} ${lvl}`,
         die,
