@@ -92,6 +92,8 @@ export function resourceShownCurrent(resource: SheetResource): number {
 /** Hot-bar visibility: explicit false hides; undefined/true shows (legacy + class pools). */
 export function resourceShowsOnHot(resource: SheetResource): boolean {
   if (resource.onHot === false) return false
+  // HDP daily is not a direct hot spend — only via Channel Divinity dialog / amulet.
+  if (resource.id.includes(':harness_divine_power:')) return false
   if (resource.unlimited) return Boolean(resource.name.trim())
   return resource.max > 0 && Boolean(resource.name.trim())
 }

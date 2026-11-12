@@ -15,9 +15,11 @@ import {
   harnessDivinePowerSlotCap,
   HARNESS_DIVINE_POWER_FEATURE_ID,
   HARNESS_DIVINE_POWER_POOL_ID,
+  isHarnessDivinePowerResourceId,
+  resourceShowsAsDirectSpend,
   spentSlotLevels,
 } from './harnessDivinePower.ts'
-import type { SheetResource } from './rest.ts'
+import { resourceShowsOnHot, type SheetResource } from './rest.ts'
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
@@ -379,6 +381,32 @@ function hdpFeature(unlocked: ReturnType<typeof unlockCleric>) {
     )
     assert(result.slots['1']?.used === 1, 'slot restored via amulet path')
   }
+}
+
+// Hot bar / abilities compact: daily HDP must not be a direct spend chip
+{
+  const dailyId = featureResourceId('cleric', HARNESS_DIVINE_POWER_POOL_ID, 'c1')
+  const channelId = featureResourceId('cleric', 'channel_divinity', 'c1')
+  const daily: SheetResource = {
+    id: dailyId,
+    name: 'Праведное восстановление',
+    max: 1,
+    used: 0,
+    reset: 'long',
+  }
+  const channel: SheetResource = {
+    id: channelId,
+    name: 'Божественный канал',
+    max: 1,
+    used: 0,
+    reset: 'short',
+  }
+  assert(isHarnessDivinePowerResourceId(dailyId), 'daily id detected')
+  assert(!isHarnessDivinePowerResourceId(channelId), 'CD id not HDP')
+  assert(!resourceShowsOnHot(daily), 'HDP daily hidden from hot bar')
+  assert(resourceShowsOnHot(channel), 'CD still on hot bar')
+  assert(!resourceShowsAsDirectSpend(daily), 'HDP not a direct desk spend')
+  assert(resourceShowsAsDirectSpend(channel), 'CD remains direct spend')
 }
 
 console.log('harnessDivinePower.selfcheck: ok')

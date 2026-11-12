@@ -5,6 +5,7 @@ import {
   SunSoulKiControls,
 } from './Pack09FeatureExtras'
 import { isPack03CustomSpend, Pack03FeatureExtras } from './Pack03FeatureExtras'
+import { isHarnessDivinePowerFeature } from '../../shared/dnd/harnessDivinePower'
 import { Pack04FeatureExtras } from './Pack04FeatureExtras'
 import { Pack05FeatureExtras, pack05CustomSpendFeature } from './Pack05FeatureExtras'
 import { Pack07FeatureExtras, pack07CustomSpendFeature } from './Pack07FeatureExtras'
@@ -2259,6 +2260,7 @@ function FeatureRow({
       ) : null}
       {replacementStatus === 'active' &&
       !isSunSoulVariableKi(feature.id) &&
+      !isHarnessDivinePowerFeature(feature.id) &&
       feature.id !== 'bolstering_magic' &&
       feature.id !== 'consult_the_spirits' ? (
         <FeatureResourceControls
