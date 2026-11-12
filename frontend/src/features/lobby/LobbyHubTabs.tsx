@@ -22,9 +22,16 @@ type Props = {
   onChange: (id: LobbyHubTabId) => void
   /** L-06: точка «новое» на вкладке Дневник */
   journalHasNew?: boolean
+  /** L-07: непрочитанные чаты / письма / шёпоты */
+  chatsBadgeCount?: number
 }
 
-export function LobbyHubTabs({ active, onChange, journalHasNew = false }: Props) {
+export function LobbyHubTabs({
+  active,
+  onChange,
+  journalHasNew = false,
+  chatsBadgeCount = 0,
+}: Props) {
   return (
     <nav className="lobby-hub-tabs" aria-label="Разделы лобби">
       <div className="lobby-hub-tabs__scroll">
@@ -39,6 +46,11 @@ export function LobbyHubTabs({ active, onChange, journalHasNew = false }: Props)
             {tab.label}
             {tab.id === 'journal' && journalHasNew ? (
               <span className="lobby-hub-tab__dot" aria-label="Есть новое в дневнике" />
+            ) : null}
+            {tab.id === 'chats' && chatsBadgeCount > 0 ? (
+              <span className="chat-badge" aria-label={`Непрочитано: ${chatsBadgeCount}`}>
+                {chatsBadgeCount}
+              </span>
             ) : null}
           </button>
         ))}

@@ -58,6 +58,50 @@ export type MasterLetterBadge = {
   items: MasterLetterSummary[]
 }
 
+export type WhisperPeer = {
+  user_id: string
+  label: string
+  is_master: boolean
+}
+
+export type WhisperThread = {
+  id: string
+  lobby_id: string
+  peer_user_id: string
+  peer_label: string
+  peer_is_master: boolean
+  last_message_at: string
+  unread_count: number
+  created_at: string
+}
+
+export type WhisperMessage = {
+  id: string
+  thread_id: string
+  author_user_id: string | null
+  character_id: string | null
+  character_name: string | null
+  body: string
+  created_at: string
+}
+
+export type WhisperFact = {
+  thread_id: string
+  lobby_id: string
+  user_a_id: string
+  user_b_id: string
+  label_a: string
+  label_b: string
+  last_message_at: string
+}
+
+export type ChatsBadge = {
+  letters: number
+  channels: number
+  whispers: number
+  total: number
+}
+
 export async function listChannels(lobbyId: string): Promise<ChatChannel[]> {
   return apiRequest<ChatChannel[]>(`/lobbies/${lobbyId}/channels`)
 }
@@ -117,6 +161,57 @@ export async function replyLetter(letterId: string, body: string): Promise<Maste
 
 export async function closeLetter(letterId: string): Promise<MasterLetter> {
   return apiRequest<MasterLetter>(`/letters/${letterId}/close`, { method: 'POST' })
+}
+
+export async function listWhisperPeers(lobbyId: string): Promise<WhisperPeer[]> {
+  return apiRequest<WhisperPeer[]>(`/lobbies/${lobbyId}/whispers/peers`)
+}
+
+export async function listWhispers(lobbyId: string): Promise<WhisperThread[]> {
+  return apiRequest<WhisperThread[]>(`/lobbies/${lobbyId}/whispers`)
+}
+
+export async function listWhisperFacts(lobbyId: string): Promise<WhisperFact[]> {
+  return apiRequest<WhisperFact[]>(`/lobbies/${lobbyId}/whispers/facts`)
+}
+
+export async function openWhisper(lobbyId: string, peerUserId: string): Promise<WhisperThread> {
+  return apiRequest<WhisperThread>(`/lobbies/${lobbyId}/whispers`, {
+    method: 'POST',
+    body: JSON.stringify({ peer_user_id: peerUserId }),
+  })
+}
+
+export async function listWhisperMessages(
+  threadId: string,
+  limit = 50,
+): Promise<WhisperMessage[]> {
+  return apiRequest<WhisperMessage[]>(`/whispers/${threadId}/messages?limit=${limit}`)
+}
+
+export async function postWhisperMessage(
+  threadId: string,
+  payload: { body: string; character_id?: string | null },
+): Promise<WhisperMessage> {
+  return apiRequest<WhisperMessage>(`/whispers/${threadId}/messages`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function chatsBadge(lobbyId: string): Promise<ChatsBadge> {
+  return apiRequest<ChatsBadge>(`/lobbies/${lobbyId}/chats/badge`)
+}
+
+export async function markChatRead(
+  lobbyId: string,
+  targetKind: 'channel' | 'whisper' | 'letter',
+  targetId: string,
+): Promise<ChatsBadge> {
+  return apiRequest<ChatsBadge>(`/lobbies/${lobbyId}/chats/read`, {
+    method: 'POST',
+    body: JSON.stringify({ target_kind: targetKind, target_id: targetId }),
+  })
 }
 
 export function lobbyWsUrl(lobbyId: string, accessToken: string): string {

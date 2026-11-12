@@ -1,6 +1,14 @@
 from app.models.catalog import CatalogEntry, CatalogKind, CatalogRulesEdition
 from app.models.character import Character, RulesEdition
-from app.models.chat import ChatChannel, ChatMessage, MasterLetter, MasterLetterMessage
+from app.models.chat import (
+    ChatChannel,
+    ChatMessage,
+    ChatReadCursor,
+    MasterLetter,
+    MasterLetterMessage,
+    WhisperMessage,
+    WhisperThread,
+)
 from app.models.journal import CampaignJournalEntry
 from app.models.lobby import Lobby, LobbyMember, LobbyRole, PlaySession, SessionSeat, Setting
 from app.models.lobby_media import LobbyMedia
@@ -30,6 +38,7 @@ __all__ = [
     "Character",
     "ChatChannel",
     "ChatMessage",
+    "ChatReadCursor",
     "EmailChangeToken",
     "EmailVerificationToken",
     "Lobby",
@@ -51,4 +60,6 @@ __all__ = [
     "SettingPageTemplate",
     "User",
     "UserIdentity",
+    "WhisperMessage",
+    "WhisperThread",
 ]

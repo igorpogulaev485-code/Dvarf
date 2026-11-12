@@ -114,6 +114,9 @@ def test_server_broadcasts_do_not_embed_foreign_visibility() -> None:
     assert "session_changed" in lobby
     assert '"type": "master_letter"' not in chat
     assert "letters_changed" in chat
+    assert "whisper_changed" in chat
+    assert "whisper_fact" in chat
+    assert '"type": "whisper_message"' not in chat
     assert "note_upsert" not in note
     assert "notes_changed" in note
 

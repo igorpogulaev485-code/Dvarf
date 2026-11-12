@@ -476,6 +476,23 @@
   gap: 8px;
 }
 
+.whisper-facts {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-soft) 35%, transparent);
+}
+
+.whisper-facts__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
 .letter-badge-row {
   display: flex;
   flex-wrap: wrap;

@@ -25,6 +25,7 @@ import {
   normalizeVisibilityProfile,
   type VisibilityProfile,
 } from '../features/lobby/visibilityProfile'
+import { chatsBadge, type ChatsBadge } from '../shared/api/chat'
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
 import { exportNotes, type Note } from '../shared/api/notes'
@@ -97,6 +98,12 @@ export function LobbyDetailPage() {
   const [visibilityDirty, setVisibilityDirty] = useState(false)
   const [lastJournalPublishedAt, setLastJournalPublishedAt] = useState<string | null>(null)
   const [journalSeenAt, setJournalSeenAt] = useState<string | null>(null)
+  const [chatsHubBadge, setChatsHubBadge] = useState<ChatsBadge>({
+    letters: 0,
+    channels: 0,
+    whispers: 0,
+    total: 0,
+  })
   const [sendNote, setSendNote] = useState<Note | null>(null)
   const [sendPublishNow, setSendPublishNow] = useState(false)
   const [sendDeleteNote, setSendDeleteNote] = useState(false)
@@ -136,11 +143,35 @@ export function LobbyDetailPage() {
           setJournalSeenAt(new Date().toISOString())
         }
       }
+      if (
+        data.type === 'letters_changed' ||
+        data.type === 'chat_message' ||
+        data.type === 'chat_refresh' ||
+        data.type === 'whisper_changed' ||
+        data.type === 'whisper_fact'
+      ) {
+        void chatsBadge(lobbyId)
+          .then(setChatsHubBadge)
+          .catch(() => undefined)
+      }
     },
     () => {
       void reload().catch(() => undefined)
     },
   )
+
+  useEffect(() => {
+    if (!lobbyId) return
+    let active = true
+    chatsBadge(lobbyId)
+      .then((b) => {
+        if (active) setChatsHubBadge(b)
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+  }, [lobbyId, tab])
 
   useEffect(() => {
     if ((location.state as LocationState | null)?.toast) {
@@ -322,6 +353,7 @@ export function LobbyDetailPage() {
           journalHasNew={
             tab !== 'journal' && journalHasNew(lastJournalPublishedAt, journalSeenAt)
           }
+          chatsBadgeCount={tab === 'chats' ? 0 : chatsHubBadge.total}
         />
 
         {tab === 'roster' ? (
@@ -431,12 +463,13 @@ export function LobbyDetailPage() {
         {tab === 'chats' ? (
           <LobbyChatsPanel
             lobbyId={lobby.id}
-            isOwner={Boolean(lobby.can_see_hidden || lobby.is_owner || lobby.is_comaster)}
+            isOwner={canManageJournal}
             ownCharacterOptions={lobby.members
               .filter((m) => ownCharacterIds.has(m.character_id))
               .map((m) => ({ id: m.character_id, name: m.character_name }))}
             onToast={setToast}
             onError={setError}
+            onBadgeChange={setChatsHubBadge}
           />
         ) : null}
 

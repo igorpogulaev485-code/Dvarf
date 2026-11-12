@@ -18,11 +18,19 @@ from app.schemas.chat import (
     ChatChannelOut,
     ChatMessageCreateRequest,
     ChatMessageOut,
+    ChatReadRequest,
+    ChatsBadgeOut,
     MasterLetterBadgeOut,
     MasterLetterCreateRequest,
     MasterLetterOut,
     MasterLetterReplyRequest,
     MasterLetterSummary,
+    WhisperCreateRequest,
+    WhisperFactOut,
+    WhisperMessageCreateRequest,
+    WhisperMessageOut,
+    WhisperPeerOut,
+    WhisperThreadOut,
 )
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
@@ -1223,6 +1231,90 @@ async def close_letter(
     db: DbSession,
 ) -> MasterLetterOut:
     return await ChatService(db).close_letter(current_user, letter_id)
+
+
+@router.get("/lobbies/{lobby_id}/whispers/peers", response_model=list[WhisperPeerOut])
+def list_whisper_peers(
+    lobby_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> list[WhisperPeerOut]:
+    return ChatService(db).list_whisper_peers(current_user, lobby_id)
+
+
+@router.get("/lobbies/{lobby_id}/whispers", response_model=list[WhisperThreadOut])
+def list_whispers(
+    lobby_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> list[WhisperThreadOut]:
+    return ChatService(db).list_whispers(current_user, lobby_id)
+
+
+@router.get("/lobbies/{lobby_id}/whispers/facts", response_model=list[WhisperFactOut])
+def list_whisper_facts(
+    lobby_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> list[WhisperFactOut]:
+    return ChatService(db).list_whisper_facts(current_user, lobby_id)
+
+
+@router.post(
+    "/lobbies/{lobby_id}/whispers",
+    response_model=WhisperThreadOut,
+    status_code=201,
+)
+def open_whisper(
+    lobby_id: UUID,
+    payload: WhisperCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> WhisperThreadOut:
+    return ChatService(db).open_whisper(current_user, lobby_id, payload)
+
+
+@router.get("/whispers/{thread_id}/messages", response_model=list[WhisperMessageOut])
+def list_whisper_messages(
+    thread_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+    limit: int = Query(default=50, ge=1, le=100),
+) -> list[WhisperMessageOut]:
+    return ChatService(db).list_whisper_messages(current_user, thread_id, limit=limit)
+
+
+@router.post(
+    "/whispers/{thread_id}/messages",
+    response_model=WhisperMessageOut,
+    status_code=201,
+)
+async def post_whisper_message(
+    thread_id: UUID,
+    payload: WhisperMessageCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> WhisperMessageOut:
+    return await ChatService(db).post_whisper_message(current_user, thread_id, payload)
+
+
+@router.get("/lobbies/{lobby_id}/chats/badge", response_model=ChatsBadgeOut)
+def chats_badge(
+    lobby_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> ChatsBadgeOut:
+    return ChatService(db).chats_badge(current_user, lobby_id)
+
+
+@router.post("/lobbies/{lobby_id}/chats/read", response_model=ChatsBadgeOut)
+def mark_chat_read(
+    lobby_id: UUID,
+    payload: ChatReadRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> ChatsBadgeOut:
+    return ChatService(db).mark_read(current_user, lobby_id, payload)
 
 
 @router.get("/lobbies/{lobby_id}/notes", response_model=list[NoteOut])

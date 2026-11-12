@@ -322,10 +322,10 @@ export function SessionDetailPage() {
     },
   })
 
-  const canRunSession = sessionCanRun(session)
+  const canManageLetters = Boolean(session?.is_owner || session?.is_comaster)
 
   useEffect(() => {
-    if (!canRunSession || !session) {
+    if (!canManageLetters || !session) {
       setLetterBadgeCount(0)
       return
     }
@@ -338,7 +338,7 @@ export function SessionDetailPage() {
     return () => {
       active = false
     }
-  }, [canRunSession, session, liveTab])
+  }, [canManageLetters, session, liveTab])
 
   const presentIds = useMemo(
     () => new Set(session?.seats.map((s) => s.character_id) ?? []),
@@ -1359,7 +1359,7 @@ export function SessionDetailPage() {
                 />
                 <LobbyChatsPanel
                   lobbyId={session.lobby_id}
-                  isOwner={canSeeHidden}
+                  isOwner={canManageLetters}
                   compact
                   ownCharacterOptions={session.lobby_members
                     .filter((m) => ownCharacterIds.has(m.character_id))
@@ -1428,7 +1428,7 @@ export function SessionDetailPage() {
                 />
                 <LobbyChatsPanel
                   lobbyId={session.lobby_id}
-                  isOwner={canSeeHidden}
+                  isOwner={canManageLetters}
                   compact
                   ownCharacterOptions={session.lobby_members
                     .filter((m) => ownCharacterIds.has(m.character_id))
