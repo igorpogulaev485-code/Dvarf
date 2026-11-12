@@ -47,11 +47,14 @@ import { applyInstantDice, instantDice } from '../gearCharges'
 import { type SheetSpell } from '../spells'
 import { abilityModifier, formatModifier, type AbilityKey } from '../sheetTypes'
 import {
+  applyEffectStacking,
   clampHpAfterMaxLoss,
   hpMaxBonusFromSingleEffect,
   parseActiveEffects,
+  tempHpGrantFromEffect,
   type ActiveEffect,
 } from '../../../shared/dnd/activeEffects'
+import { buildPotionBuffEffect } from '../../../shared/dnd/b06PotionBuffs'
 
 export function useSheetEditorPart4(model: SheetModel) {
 
@@ -393,18 +396,45 @@ export function useSheetEditorPart4(model: SheetModel) {
       if (consumableUndoRef.current?.token === session.token) {
         consumableUndoRef.current = null
       }
-      model.setDraft((prev) => ({
-        ...prev,
-        ...(session.hpBefore !== undefined ? { hpCurrent: session.hpBefore } : {}),
-        inventory: {
-          ...prev.inventory,
-          items: prev.inventory.items.map((row) =>
-            row.id === session.itemId
-              ? { ...row, qty: (row.qty ?? 0) + session.amount }
-              : row,
-          ),
-        },
-      }))
+      model.setDraft((prev) => {
+        let effects = prev.play.effects
+        let hpMax = prev.hpMax
+        let hpCurrent =
+          session.hpBefore !== undefined ? session.hpBefore : prev.hpCurrent
+        if (session.effectId) {
+          const prevRows = parseActiveEffects(prev.play.effects)
+          const removed = prevRows.find((row) => row.id === session.effectId)
+          effects = prevRows.filter((row) => row.id !== session.effectId)
+          if (removed) {
+            const lost = hpMaxBonusFromSingleEffect({ ...removed, inactive: false })
+            if (lost > 0 && hpMax != null) {
+              const clamped = clampHpAfterMaxLoss({
+                hpCurrent: hpCurrent ?? 0,
+                hpMaxBefore: hpMax,
+                lostMax: lost,
+              })
+              hpMax = clamped.hpMax
+              hpCurrent = clamped.hpCurrent
+            }
+          }
+        }
+        return {
+          ...prev,
+          ...(session.hpBefore !== undefined || session.effectId
+            ? { hpCurrent }
+            : {}),
+          ...(session.effectId ? { hpMax } : {}),
+          inventory: {
+            ...prev.inventory,
+            items: prev.inventory.items.map((row) =>
+              row.id === session.itemId
+                ? { ...row, qty: (row.qty ?? 0) + session.amount }
+                : row,
+            ),
+          },
+          play: { ...prev.play, effects },
+        }
+      })
       setConsumableSpendLog((prev) => markConsumableSpendUndone(prev, session.logId))
       model.onToast(formatConsumableUndoToast(session.name, session.amount))
     },
@@ -427,6 +457,7 @@ export function useSheetEditorPart4(model: SheetModel) {
       const dice = heal ?? harm
       let hpBefore: number | null | undefined
       let hpAfter: number | null = null
+      let hpMaxAfter: number | null = null
       const diceLines: string[] = []
       if (dice) {
         if (heal && model.draft.hpMax == null) {
@@ -448,6 +479,29 @@ export function useSheetEditorPart4(model: SheetModel) {
         }
         hpAfter = hp
       }
+
+      // B-06: duration potions apply ActiveEffect (kind: item) after qty spend.
+      const potionFx =
+        spendAmount >= 1
+          ? buildPotionBuffEffect({
+              catalogId: item.catalog_id,
+              name: item.name,
+              sourceCharacterId: model.baseCharacter?.id ?? null,
+              sourceName: model.draft.name,
+              hpMax: model.draft.hpMax,
+            })
+          : null
+      if (potionFx?.slug === 'potion_of_giant_size') {
+        const maxBonus = hpMaxBonusFromSingleEffect(potionFx)
+        if (maxBonus > 0) {
+          const prevMax = model.draft.hpMax ?? 0
+          const prevHp = hpAfter ?? model.draft.hpCurrent ?? 0
+          hpMaxAfter = prevMax + maxBonus
+          hpAfter = Math.min(hpMaxAfter, (prevHp || 0) + maxBonus)
+          if (hpBefore === undefined) hpBefore = model.draft.hpCurrent
+        }
+      }
+
       const logId = newConsumableSpendId()
       const token = Date.now()
       const session: ConsumableUndoSession = {
@@ -457,20 +511,50 @@ export function useSheetEditorPart4(model: SheetModel) {
         amount: spendAmount,
         logId,
         ...(hpBefore !== undefined ? { hpBefore } : {}),
+        ...(potionFx ? { effectId: potionFx.id } : {}),
       }
       consumableUndoRef.current = session
-      model.setDraft((prev) => ({
-        ...prev,
-        ...(hpAfter != null ? { hpCurrent: hpAfter } : {}),
-        inventory: {
-          ...prev.inventory,
-          items: prev.inventory.items.map((row) =>
-            row.id === itemId
-              ? { ...row, qty: Math.max(0, (row.qty ?? 0) - spendAmount) }
-              : row,
-          ),
-        },
-      }))
+      model.setDraft((prev) => {
+        let effects = prev.play.effects
+        if (potionFx) {
+          effects = applyEffectStacking([
+            ...parseActiveEffects(prev.play.effects),
+            potionFx,
+          ])
+        }
+        return {
+          ...prev,
+          ...(hpAfter != null ? { hpCurrent: hpAfter } : {}),
+          ...(hpMaxAfter != null ? { hpMax: hpMaxAfter } : {}),
+          inventory: {
+            ...prev.inventory,
+            items: prev.inventory.items.map((row) =>
+              row.id === itemId
+                ? { ...row, qty: Math.max(0, (row.qty ?? 0) - spendAmount) }
+                : row,
+            ),
+          },
+          play: { ...prev.play, effects },
+        }
+      })
+
+      if (potionFx) {
+        const tempGrant = tempHpGrantFromEffect(potionFx)
+        if (tempGrant != null && tempGrant > 0 && model.askTempHpReplace) {
+          const current = model.draft.play.hpTemp || 0
+          void model.askTempHpReplace({ current, incoming: tempGrant }).then(
+            (choice: 'keep' | 'replace') => {
+              if (choice === 'replace' || current <= 0) {
+                model.setDraft((prev) => ({
+                  ...prev,
+                  play: { ...prev.play, hpTemp: tempGrant },
+                }))
+              }
+            },
+          )
+        }
+      }
+
       setConsumableSpendLog((prev) =>
         appendConsumableSpendLog(prev, {
           id: logId,
@@ -482,7 +566,9 @@ export function useSheetEditorPart4(model: SheetModel) {
       )
       const drinkNote = diceLines.length
         ? ` · ${diceLines.join(' · ')}${harm?.note ? ` · ${harm.note}` : ''}`
-        : ''
+        : potionFx
+          ? ` · эффект: ${potionFx.name}`
+          : ''
       model.onToast({
         message: `${formatConsumableSpendToast(item.name, spendAmount, nextQty)}${drinkNote}`,
         durationMs: 8000,
@@ -493,7 +579,17 @@ export function useSheetEditorPart4(model: SheetModel) {
         },
       })
     },
-    [model.draft.inventory.items, model.onToast, undoConsumableSpend],
+    [
+      model.draft.inventory.items,
+      model.draft.hpMax,
+      model.draft.hpCurrent,
+      model.draft.name,
+      model.draft.play.hpTemp,
+      model.baseCharacter?.id,
+      model.onToast,
+      model.askTempHpReplace,
+      undoConsumableSpend,
+    ],
   )
   model.spendConsumableFromDesk = spendConsumableFromDesk
 

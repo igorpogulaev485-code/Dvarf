@@ -28,9 +28,36 @@ export type ArtificerInfusionEffects = {
   abilityFloor?: { ability: AbilityScoreKey; score: number }
   /** Goggles of Night etc. */
   darkvisionFt?: number
+  /** Arcane Propulsion Armor: walk speed +5 ft (TCE p.20), not «floor 30». */
+  speedWalkBonusFt?: number
+  /** Helm of Awareness. */
+  initiativeAdvantage?: boolean
+  /**
+   * Resistant Armor: damage type chosen at infusion time (binding.option).
+   * When set on the def as `true`, look up the chosen type from the binding.
+   */
+  resistanceFromOption?: boolean
+  /** Flat resistance type when known (replicate items). */
+  resistance?: string
+  /** Mind Sharpener / Armor of Magical Strength / Repulsion Shield charges. */
+  charges?: number
   /** Attunement required for the infused / replicated item. */
   requiresAttunement?: boolean
 }
+
+/** TCE Resistant Armor damage types (not bludgeoning/piercing/slashing). */
+export const RESISTANT_ARMOR_DAMAGE_TYPES = [
+  { id: 'thunder', nameRu: 'звук' },
+  { id: 'radiant', nameRu: 'излучение' },
+  { id: 'acid', nameRu: 'кислота' },
+  { id: 'necrotic', nameRu: 'некротика' },
+  { id: 'fire', nameRu: 'огонь' },
+  { id: 'psychic', nameRu: 'психическая энергия' },
+  { id: 'force', nameRu: 'силовое поле' },
+  { id: 'cold', nameRu: 'холод' },
+  { id: 'lightning', nameRu: 'электричество' },
+  { id: 'poison', nameRu: 'яд' },
+] as const
 
 export type ArtificerInfusionDef = {
   id: string
@@ -87,10 +114,10 @@ const CORE_INFUSIONS: ArtificerInfusionDef[] = [
     nameRu: 'Доспех чародейской тяги',
     nameEn: 'Arcane Propulsion Armor',
     minLevel: 14,
-    summaryRu: 'Доспех: скорость ходьбы 30+; интегральные перчатки; силовая атака 1к8.',
+    summaryRu: 'Доспех: скорость ходьбы +5 фт; интегральные перчатки; силовая атака 1к8.',
     abilityRu:
-      'Инфузия доспеха (требует настроиться). Скорость ходьбы не ниже 30 фт.; перчатки нельзя снять; вместо руки — силовая дистанционная атака 1к8, бонусным можно совершить её после атаки Оружием Действием.',
-    effects: {},
+      'Инфузия доспеха (требует настроиться). Скорость ходьбы +5 фт (TCE с. 20); перчатки нельзя снять; вместо руки — силовая атака 1к8 силовым полем, метательная 20/60, возвращается.',
+    effects: { speedWalkBonusFt: 5, requiresAttunement: true },
   },
   {
     id: 'armor_of_magical_strength',
@@ -99,7 +126,7 @@ const CORE_INFUSIONS: ArtificerInfusionDef[] = [
     summaryRu: 'Доспех: можно добавить Инт к проверке/спасброску Силы (6 зарядов).',
     abilityRu:
       'Инфузия доспеха (настройка). Когда проваливаешь проверку Силы или спасбросок Силы, можешь потратить 1 заряд и добавить модификатор Интеллекта к результату (после броска, до исхода). 6 зарядов; 1к6 восстанавливается на рассвете.',
-    effects: { requiresAttunement: true },
+    effects: { requiresAttunement: true, charges: 6 },
   },
   {
     id: 'boots_of_the_winding_path',
@@ -149,7 +176,7 @@ const CORE_INFUSIONS: ArtificerInfusionDef[] = [
     summaryRu: 'Шлем: преимущество к инициативе; нельзя застать врасплох.',
     abilityRu:
       'Инфузия шлема или головного убора (настройка). Носитель получает преимущество к инициативе и не может быть застигнут врасплох, пока в сознании.',
-    effects: { requiresAttunement: true },
+    effects: { requiresAttunement: true, initiativeAdvantage: true },
   },
   {
     id: 'homunculus_servant',
@@ -167,7 +194,7 @@ const CORE_INFUSIONS: ArtificerInfusionDef[] = [
     summaryRu: 'Доспех/мантия: при провале концентрации — успех (4 заряда).',
     abilityRu:
       'Инфузия доспеха или мантии. Когда носитель проваливает спасбросок для поддержания концентрации, может потратить 1 заряд и преуспеть вместо этого. 4 заряда; 1к4 восстанавливается на рассвете.',
-    effects: {},
+    effects: { charges: 4 },
   },
   {
     id: 'radiant_weapon',
@@ -204,7 +231,7 @@ const CORE_INFUSIONS: ArtificerInfusionDef[] = [
     summaryRu: 'Щит +1 КД; реакцией оттолкнуть на 15 фт. (4 заряда).',
     abilityRu:
       'Инфузия щита (настройка). +1 КД. Реакцией при попадании рукопашной атакой — оттолкнуть атакующего на 15 фт. (4 заряда; 1к4 на рассвете).',
-    effects: { acBonus: 1, requiresAttunement: true },
+    effects: { acBonus: 1, requiresAttunement: true, charges: 4 },
   },
   {
     id: 'resistant_armor',
@@ -213,8 +240,8 @@ const CORE_INFUSIONS: ArtificerInfusionDef[] = [
     minLevel: 6,
     summaryRu: 'Доспех: сопротивление одному типу урона (выбор при инфузии).',
     abilityRu:
-      'Инфузия доспеха (настройка). Носитель получает сопротивление одному типу урона на выбор при инфузии: звук, кислота, огонь, холод, молния, дробящий, колющий или рубящий.',
-    effects: { requiresAttunement: true },
+      'Инфузия доспеха (настройка). Носитель получает сопротивление одному типу урона на выбор при инфузии: звук, излучение, кислота, некротика, огонь, психическая энергия, силовое поле, холод, электричество или яд (TCE).',
+    effects: { requiresAttunement: true, resistanceFromOption: true },
   },
   {
     id: 'returning_weapon',
@@ -233,7 +260,7 @@ const CORE_INFUSIONS: ArtificerInfusionDef[] = [
     summaryRu: 'Действием восстанови ячейку ≤3 круга 1× / рассвет.',
     abilityRu:
       'Инфузия кольца (настройка). Действием носитель восстанавливает одну потраченную ячейку 3 круга или ниже. 1 раз до рассвета.',
-    effects: { requiresAttunement: true },
+    effects: { requiresAttunement: true, charges: 1 },
   },
   {
     id: REPLICATE_MAGIC_ITEM_ID,

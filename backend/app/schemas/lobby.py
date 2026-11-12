@@ -432,11 +432,15 @@ class SeatCombatPatchRequest(BaseModel):
 
 
 class InfusionEffectShare(BaseModel):
-    """One ally-bound infusion mark. ac_bonus feeds the target's sheet AC."""
+    """One ally-bound infusion mark. ac_bonus + mods feed the target's sheet."""
 
     target_character_id: UUID
     name: str = Field(min_length=1, max_length=160)
     ac_bonus: int = Field(default=0, ge=0, le=20)
+    slug: str | None = Field(default=None, max_length=80)
+    kind: str | None = Field(default=None, max_length=40)
+    charges: int | None = Field(default=None, ge=0, le=99)
+    mods: list[EffectModOut] = Field(default_factory=list)
 
 
 class LobbySyncInfusionEffectsRequest(BaseModel):

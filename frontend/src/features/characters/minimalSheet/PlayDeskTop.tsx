@@ -25,10 +25,21 @@ import {
 import { COMPANION_KIND_SHORT } from './draft'
 import { ActiveEffectsPanel } from '../ActiveEffectsPanel'
 
+function initiativeAdvantageFromSheet(model: SheetModel): 'advantage' | 'disadvantage' | 'normal' {
+  const fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
+    rollKind: 'initiative',
+  })
+  if (model.infusionBonuses?.initiativeAdvantage) {
+    if (fromFx === 'disadvantage') return 'normal'
+    return 'advantage'
+  }
+  return fromFx
+}
+
 function formatInitiativeToast(model: SheetModel): string {
   const mode = mergeDeskRollMode(
     model.effectiveRollMode(),
-    resolveAdvantageFromEffects(model.draft.play.effects, { rollKind: 'initiative' }),
+    initiativeAdvantageFromSheet(model),
   )
   const bonus = listRollDieChips(model.draft.play.effects ?? [], 'initiative').map((chip) => ({
     dice: chip.dice,
@@ -52,6 +63,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
     raceResistances: model.draft.raceGrant?.damageResistances,
     gear: model.gearEffects,
     effects: model.draft.play.effects,
+    infusionResistances: model.infusionBonuses?.resistances,
   })
   const alignmentHint = alignmentNeedsClarification(model.draft.identity)
     ? 'Уточните мировоззрение'
@@ -126,7 +138,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             speed={model.displaySpeed}
             climbSpeed={model.draft.climbSpeed}
             swimSpeed={model.draft.swimSpeed}
-            flySpeed={model.draft.flySpeed}
+            flySpeed={model.displayFlySpeed ?? model.draft.flySpeed}
             jumpLongFt={model.jump.longFt}
             jumpHighFt={model.jump.highFt}
             movementHint={model.classSpeedHint}

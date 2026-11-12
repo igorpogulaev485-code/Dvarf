@@ -28,6 +28,8 @@ import {
 export const INFUSIONS_ACTIVE_FEATURE_ID = 'infusions_active'
 export const INFUSIONS_ACTIVE_TARGETS_FEATURE_ID = 'infusions_active_targets'
 export const INFUSIONS_ACTIVE_ITEMS_FEATURE_ID = 'infusions_active_items'
+/** Parallel to items: resistant_armor damage type, etc. */
+export const INFUSIONS_ACTIVE_OPTIONS_FEATURE_ID = 'infusions_active_options'
 
 export type InfusionTargetRef = 'self' | string
 
@@ -39,6 +41,8 @@ export type ActiveInfusionBinding = {
   replicateItemSlug?: string | null
   /** Inventory row this infusion sits on. Absent → no weapon/AC bonus. */
   itemId?: string | null
+  /** Resistant Armor damage type (fire, thunder, …). */
+  option?: string | null
 }
 
 function slugFromId(infusionId: string): string | null {
@@ -160,14 +164,23 @@ export function listActiveInfusionBindings(
   )
     .split(',')
     .map((part) => part.trim())
+  const optionTokens = (
+    getFeaturePick(featurePicks, classEntryId, INFUSIONS_ACTIVE_OPTIONS_FEATURE_ID) ??
+    ''
+  )
+    .split(',')
+    .map((part) => part.trim())
   return tokens.map((infusionId, i) => {
     const rawItem = itemTokens[i] ?? ''
     const itemId = rawItem && rawItem !== '-' ? rawItem : null
+    const rawOpt = optionTokens[i] ?? ''
+    const option = rawOpt && rawOpt !== '-' ? rawOpt : null
     return {
       infusionId,
       target: targets[i] ?? 'self',
       replicateItemSlug: slugFromId(infusionId),
       itemId,
+      option,
     }
   })
 }
@@ -211,6 +224,7 @@ export function setActiveInfusionBindings(
       target: row.target || 'self',
       replicateItemSlug: slugFromId(id),
       itemId: row.itemId?.trim() || null,
+      option: row.option?.trim() || null,
     })
   }
   const tokens = cleaned.map((row) => row.infusionId)
@@ -234,6 +248,15 @@ export function setActiveInfusionBindings(
     classEntryId,
     INFUSIONS_ACTIVE_ITEMS_FEATURE_ID,
     itemPick,
+  )
+  const optionPick = cleaned.some((row) => row.option)
+    ? cleaned.map((row) => row.option || '-').join(',')
+    : null
+  next = setFeaturePick(
+    next,
+    classEntryId,
+    INFUSIONS_ACTIVE_OPTIONS_FEATURE_ID,
+    optionPick,
   )
   return next
 }

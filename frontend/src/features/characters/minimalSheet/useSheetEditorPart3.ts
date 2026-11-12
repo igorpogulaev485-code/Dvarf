@@ -7,9 +7,11 @@ import { publishSheetSync } from '../../../shared/sync/characterSheetChannel'
 import { formatClassSummary, totalCharacterLevel } from '../../../shared/dnd/classLevels'
 import { armorKindLabel, computeArmorClass, mageArmorCompetingFormula } from '../../../shared/dnd/armor'
 import {
+  abilityFloorsFromActiveEffects,
   acFormulasFromActiveEffects,
   acMinFromActiveEffects,
   speedModsFromActiveEffects,
+  spellAttackBonusFromActiveEffects,
 } from '../../../shared/dnd/activeEffects'
 import { bladesongBonuses } from '../../../shared/dnd/wizardTradition'
 import { buildSheetFormulaVars } from '../../../shared/dnd/formulas'
@@ -441,15 +443,19 @@ export function useSheetEditorPart3(model: SheetModel) {
   model.infusionBonuses = infusionBonuses
 
   /** One list: sheet lines + class-scoped gear + held attuned focus infusion. */
-  const spellCastModifiers = useMemo(
-    () =>
-      appendSpellCastModifiers({
-        modifiers: model.draft.modifiers,
-        gear: model.gearEffects,
-        infusionSpellAttack: infusionBonuses.spellAttackBonus,
-      }),
-    [model.draft.modifiers, model.gearEffects, infusionBonuses.spellAttackBonus],
-  )
+  const spellCastModifiers = useMemo(() => {
+    const fromEffects = spellAttackBonusFromActiveEffects(model.draft.play.effects)
+    return appendSpellCastModifiers({
+      modifiers: model.draft.modifiers,
+      gear: model.gearEffects,
+      infusionSpellAttack: infusionBonuses.spellAttackBonus + fromEffects,
+    })
+  }, [
+    model.draft.modifiers,
+    model.gearEffects,
+    infusionBonuses.spellAttackBonus,
+    model.draft.play.effects,
+  ])
   model.spellCastModifiers = spellCastModifiers
 
   const effectiveDarkvisionFt = useMemo(
@@ -485,13 +491,22 @@ export function useSheetEditorPart3(model: SheetModel) {
       model.draft.modifiers,
       ownFormulaVars,
     )
-    return applyGearAbilityScores(boosted, model.gearEffects, infusionBonuses.abilityFloor)
+    const effectFloors = abilityFloorsFromActiveEffects(model.draft.play.effects)
+    const mergedFloors = { ...infusionBonuses.abilityFloor }
+    for (const key of ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const) {
+      const a = mergedFloors[key] ?? 0
+      const b = effectFloors[key] ?? 0
+      const best = Math.max(a, b)
+      if (best > 0) mergedFloors[key] = best
+    }
+    return applyGearAbilityScores(boosted, model.gearEffects, mergedFloors)
   }, [
     model.draft.abilities,
     model.draft.modifiers,
     ownFormulaVars,
     model.gearEffects,
     infusionBonuses.abilityFloor,
+    model.draft.play.effects,
   ])
   model.gearAbilities = gearAbilities
 

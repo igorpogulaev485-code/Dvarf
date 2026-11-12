@@ -2365,23 +2365,42 @@ class LobbyService:
             if not name:
                 continue
             bonus = int(row.ac_bonus)
-            by_target.setdefault(row.target_character_id, []).append(
-                {
-                    "id": str(uuid4()),
-                    "name": name,
-                    "source_character_id": str(payload.source_character_id),
-                    "source_name": source.name,
-                    "linked_concentration": False,
-                    "origin": INFUSION_ORIGIN,
-                    "kind": "infusion",
-                    "slug": "enhanced_defense",
-                    "ac_bonus": bonus,
-                    "mods": (
-                        [{"target": "ac", "op": "add", "value": bonus}] if bonus > 0 else []
-                    ),
-                    "duration": {"unit": "permanent"},
-                }
-            )
+            slug = (row.slug or "").strip() or "enhanced_defense"
+            kind = (row.kind or "").strip() or "infusion"
+            mods: list[dict] = []
+            if row.mods:
+                for mod in row.mods:
+                    entry: dict = {
+                        "target": mod.target,
+                        "op": mod.op or "add",
+                    }
+                    if mod.value is not None:
+                        entry["value"] = mod.value
+                    if mod.dice:
+                        entry["dice"] = mod.dice
+                    if mod.condition:
+                        entry["condition"] = mod.condition
+                    if mod.once is not None:
+                        entry["once"] = bool(mod.once)
+                    mods.append(entry)
+            elif bonus > 0:
+                mods = [{"target": "ac", "op": "add", "value": bonus}]
+            effect_row: dict = {
+                "id": str(uuid4()),
+                "name": name,
+                "source_character_id": str(payload.source_character_id),
+                "source_name": source.name,
+                "linked_concentration": False,
+                "origin": INFUSION_ORIGIN,
+                "kind": kind,
+                "slug": slug,
+                "ac_bonus": bonus,
+                "mods": mods,
+                "duration": {"unit": "permanent"},
+            }
+            if row.charges is not None:
+                effect_row["charges"] = int(row.charges)
+            by_target.setdefault(row.target_character_id, []).append(effect_row)
 
         applied = 0
         touched: list[UUID] = []

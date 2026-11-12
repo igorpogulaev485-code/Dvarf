@@ -886,6 +886,8 @@ export function sheetDamageProfile(input: {
   gear?: Pick<AggregatedGearEffects, 'resistances' | 'vulnerabilities' | 'immunities'> | null
   /** B-02: resistances / immunities from combat.effects. */
   effects?: unknown
+  /** B-06: Resistant Armor on self (infusion aggregate). */
+  infusionResistances?: string[] | null
 }): IncomingDamageProfile {
   const gear = input.gear ?? emptyAggregatedGearEffects()
   const profile = emptyDamageProfile()
@@ -909,6 +911,10 @@ export function sheetDamageProfile(input: {
     for (const source of row.sources.length ? row.sources : ['предмет']) {
       addDefense(profile.immunities, row.type, source, row.nonmagical)
     }
+  }
+  for (const raw of input.infusionResistances ?? []) {
+    const type = String(raw || '').trim()
+    if (type) addDefense(profile.resistances, type, 'инфузия')
   }
   if (input.effects != null) {
     for (const row of defensesFromActiveEffects(input.effects)) {

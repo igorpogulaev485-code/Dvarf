@@ -1,0 +1,265 @@
+{
+  "version": 1,
+  "notes": "B-06: missing Potion of Resistance variants (DMG 10 types). temporary:true so gear aggregate skips standing resist.",
+  "inserts": [
+    {
+      "kind": "item",
+      "slug": "potion_of_resistance_acid",
+      "rules_edition": "2014",
+      "name_ru": "Зелье сопротивления кислоте",
+      "name_en": "Potion of Resistance (Кислота)",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 300,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "family_slug": "potion_of_resistance",
+        "family_label_ru": "Зелья сопротивления",
+        "description_ru": "Сопротивление (кислота) на 1 час.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "acid",
+            "temporary": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Длится 1 час."
+          }
+        ],
+        "variant_key": "acid",
+        "variant_label_ru": "Кислота"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_resistance_force",
+      "rules_edition": "2014",
+      "name_ru": "Зелье сопротивления силовому полю",
+      "name_en": "Potion of Resistance (Силовое поле)",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 300,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "family_slug": "potion_of_resistance",
+        "family_label_ru": "Зелья сопротивления",
+        "description_ru": "Сопротивление (силовое поле) на 1 час.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "force",
+            "temporary": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Длится 1 час."
+          }
+        ],
+        "variant_key": "force",
+        "variant_label_ru": "Силовое поле"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_resistance_lightning",
+      "rules_edition": "2014",
+      "name_ru": "Зелье сопротивления молнии",
+      "name_en": "Potion of Resistance (Молния)",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 300,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "family_slug": "potion_of_resistance",
+        "family_label_ru": "Зелья сопротивления",
+        "description_ru": "Сопротивление (молния) на 1 час.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "lightning",
+            "temporary": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Длится 1 час."
+          }
+        ],
+        "variant_key": "lightning",
+        "variant_label_ru": "Молния"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_resistance_necrotic",
+      "rules_edition": "2014",
+      "name_ru": "Зелье сопротивления некротике",
+      "name_en": "Potion of Resistance (Некротика)",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 300,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "family_slug": "potion_of_resistance",
+        "family_label_ru": "Зелья сопротивления",
+        "description_ru": "Сопротивление (некротика) на 1 час.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "necrotic",
+            "temporary": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Длится 1 час."
+          }
+        ],
+        "variant_key": "necrotic",
+        "variant_label_ru": "Некротика"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_resistance_psychic",
+      "rules_edition": "2014",
+      "name_ru": "Зелье сопротивления психической энергии",
+      "name_en": "Potion of Resistance (Психический)",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 300,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "family_slug": "potion_of_resistance",
+        "family_label_ru": "Зелья сопротивления",
+        "description_ru": "Сопротивление (психический) на 1 час.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "psychic",
+            "temporary": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Длится 1 час."
+          }
+        ],
+        "variant_key": "psychic",
+        "variant_label_ru": "Психический"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_resistance_radiant",
+      "rules_edition": "2014",
+      "name_ru": "Зелье сопротивления излучению",
+      "name_en": "Potion of Resistance (Излучение)",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 300,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "family_slug": "potion_of_resistance",
+        "family_label_ru": "Зелья сопротивления",
+        "description_ru": "Сопротивление (излучение) на 1 час.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "radiant",
+            "temporary": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Длится 1 час."
+          }
+        ],
+        "variant_key": "radiant",
+        "variant_label_ru": "Излучение"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potion_of_resistance_thunder",
+      "rules_edition": "2014",
+      "name_ru": "Зелье сопротивления звуку",
+      "name_en": "Potion of Resistance (Звук)",
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 300,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "family_slug": "potion_of_resistance",
+        "family_label_ru": "Зелья сопротивления",
+        "description_ru": "Сопротивление (звук) на 1 час.",
+        "effects": [
+          {
+            "type": "resistance",
+            "damage_type": "thunder",
+            "temporary": true
+          },
+          {
+            "type": "custom_note",
+            "text": "Длится 1 час."
+          }
+        ],
+        "variant_key": "thunder",
+        "variant_label_ru": "Звук"
+      }
+    }
+  ]
+}

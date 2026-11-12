@@ -7,6 +7,7 @@
 import type { ClassLevelEntry } from './classLevels'
 import {
   infusionById,
+  parseReplicateItemRef,
   replicateItemBySlug,
   resolveActiveInfusionEffects,
   resolveInfusionNumericBonus,
@@ -20,6 +21,7 @@ import {
 } from './infusionsActive'
 import { infusionAcceptsItem, type InfusionItemShape } from './infusionItems'
 import type { FeaturePicksState } from './featurePicks'
+import type { EffectMod } from './activeEffects'
 
 export type InfusionBonuses = {
   acBonus: number
@@ -29,6 +31,10 @@ export type InfusionBonuses = {
   saveBonus: number
   darkvisionFt: number
   abilityFloor: Partial<Record<AbilityScoreKey, number>>
+  /** Arcane Propulsion Armor etc. */
+  speedWalkBonusFt: number
+  initiativeAdvantage: boolean
+  resistances: string[]
   /** Short RU chips for AC / attack summaries. */
   labels: string[]
   /** Weapon +hit/+dmg keyed by the infused inventory row. Empty item → no bonus. */
@@ -46,6 +52,9 @@ const EMPTY: InfusionBonuses = {
   saveBonus: 0,
   darkvisionFt: 0,
   abilityFloor: {},
+  speedWalkBonusFt: 0,
+  initiativeAdvantage: false,
+  resistances: [],
   labels: [],
   weaponByItem: {},
   activeDefs: [],
@@ -80,6 +89,7 @@ function accumulateEffects(
   input: { wearingArmor: boolean; wearingShield: boolean },
   acc: InfusionBonuses,
   def: ArtificerInfusionDef,
+  binding?: ActiveInfusionBinding,
 ): void {
   acc.activeDefs.push(def)
   if (!fx) {
@@ -120,12 +130,33 @@ function accumulateEffects(
     )
   }
 
+  if (fx.speedWalkBonusFt) {
+    acc.speedWalkBonusFt += fx.speedWalkBonusFt
+    acc.labels.push(`${label} +${fx.speedWalkBonusFt} фт`)
+  }
+
+  if (fx.initiativeAdvantage) {
+    acc.initiativeAdvantage = true
+    acc.labels.push(`${label}: преимущество к инициативе`)
+  }
+
+  const resist =
+    fx.resistance ||
+    (fx.resistanceFromOption ? binding?.option?.trim() || null : null)
+  if (resist) {
+    acc.resistances.push(resist)
+    acc.labels.push(`${label}: сопротивление ${resist}`)
+  }
+
   if (
     !ac &&
     !fx.acBonusUnarmoredUnshielded &&
     !sAtk &&
     !fx.saveBonus &&
-    !fx.abilityFloor
+    !fx.abilityFloor &&
+    !fx.speedWalkBonusFt &&
+    !fx.initiativeAdvantage &&
+    !resist
   ) {
     acc.labels.push(label)
   }
@@ -159,6 +190,9 @@ export function aggregateInfusionBonuses(input: {
     saveBonus: 0,
     darkvisionFt: 0,
     abilityFloor: {},
+    speedWalkBonusFt: 0,
+    initiativeAdvantage: false,
+    resistances: [],
     labels: [],
     weaponByItem: {},
     activeDefs: [],
@@ -180,7 +214,7 @@ export function aggregateInfusionBonuses(input: {
         binding.replicateItemSlug,
       )
       const label = displayName(binding, def)
-      accumulateEffects(label, fx, level, input, acc, def)
+      accumulateEffects(label, fx, level, input, acc, def, binding)
       if (!fx) continue
       const itemId = binding.itemId?.trim() || ''
       const item = itemId ? input.items?.find((row) => row.id === itemId) : undefined
@@ -264,6 +298,104 @@ export function infusionShareAcBonus(
   return resolveInfusionNumericBonus(fx.acBonus, artificerLevel)
 }
 
+/** Core infusion id used as effect.slug on the ally sheet. */
+export function infusionShareSlug(binding: ActiveInfusionBinding): string {
+  const parsed = parseReplicateItemRef(binding.infusionId)
+  if (parsed?.slug) return `replicate_${parsed.slug}`
+  const id = binding.infusionId.trim().toLowerCase()
+  return id || 'enhanced_defense'
+}
+
+/** Structured B-01 mods for ally infusion sync (weapon/focus/resist/init/speed). */
+export function infusionShareMods(
+  binding: ActiveInfusionBinding,
+  artificerLevel: number,
+): EffectMod[] {
+  const fx = resolveActiveInfusionEffects(
+    binding.infusionId,
+    binding.replicateItemSlug,
+  )
+  if (!fx) return []
+  const mods: EffectMod[] = []
+  const ac = resolveInfusionNumericBonus(fx.acBonus, artificerLevel)
+  if (ac) mods.push({ target: 'ac', op: 'add', value: ac })
+  if (fx.acBonusUnarmoredUnshielded) {
+    mods.push({
+      target: 'ac',
+      op: 'add',
+      value: fx.acBonusUnarmoredUnshielded,
+      condition: 'no_armor_no_shield',
+    })
+  }
+  const wAtk = resolveInfusionNumericBonus(fx.weaponAttackBonus, artificerLevel)
+  const wDmg = resolveInfusionNumericBonus(fx.weaponDamageBonus, artificerLevel)
+  if (wAtk) mods.push({ target: 'weapon_attack', op: 'add', value: wAtk })
+  if (wDmg) mods.push({ target: 'weapon_damage', op: 'add', value: wDmg })
+  const sAtk = resolveInfusionNumericBonus(fx.spellAttackBonus, artificerLevel)
+  if (sAtk) mods.push({ target: 'spell_attack', op: 'add', value: sAtk })
+  if (fx.saveBonus) {
+    mods.push({ target: 'save', op: 'add', value: fx.saveBonus, condition: 'all' })
+  }
+  if (fx.abilityFloor) {
+    mods.push({
+      target: 'ability_score',
+      op: 'set',
+      value: fx.abilityFloor.score,
+      condition: fx.abilityFloor.ability,
+    })
+  }
+  if (fx.speedWalkBonusFt) {
+    mods.push({ target: 'speed', op: 'add', value: fx.speedWalkBonusFt })
+  }
+  if (fx.initiativeAdvantage) {
+    mods.push({ target: 'advantage', op: 'advantage', condition: 'initiative' })
+  }
+  const resist =
+    fx.resistance ||
+    (fx.resistanceFromOption ? binding.option?.trim() || null : null)
+  if (resist) {
+    mods.push({ target: 'resistance', op: 'set', condition: resist })
+  }
+  if (fx.charges) {
+    mods.push({
+      target: 'label',
+      op: 'set',
+      value: fx.charges,
+      condition: `infusion_charges_${infusionShareSlug(binding)}`,
+    })
+  }
+  // Radiant weapon light / repulsion push — sheet label; enemy push → lobby 12–14.
+  if (binding.infusionId.includes('radiant_weapon')) {
+    mods.push({ target: 'label', op: 'set', condition: 'radiant_weapon_light' })
+    mods.push({ target: 'label', op: 'set', condition: 'radiant_weapon_blind' })
+  }
+  if (binding.infusionId.includes('repulsion_shield')) {
+    mods.push({ target: 'label', op: 'set', condition: 'repulsion_shield_push' })
+  }
+  if (binding.infusionId.includes('mind_sharpener')) {
+    mods.push({
+      target: 'label',
+      op: 'set',
+      condition: 'mind_sharpener_concentration',
+    })
+  }
+  if (binding.infusionId.includes('armor_of_magical_strength')) {
+    mods.push({
+      target: 'label',
+      op: 'set',
+      condition: 'armor_of_magical_strength',
+    })
+  }
+  if (binding.infusionId.includes('spell_refueling_ring')) {
+    mods.push({
+      target: 'label',
+      op: 'set',
+      condition: 'spell_refueling_ring',
+    })
+  }
+  return mods
+}
+
 /** RU label for lobby share-effect on an ally. */
 export function infusionShareEffectName(
   binding: ActiveInfusionBinding,
@@ -298,5 +430,11 @@ export function infusionShareEffectName(
   if (fx?.abilityFloor) {
     bits.push(`${fx.abilityFloor.ability.toUpperCase()}≥${fx.abilityFloor.score}`)
   }
+  if (fx?.speedWalkBonusFt) bits.push(`+${fx.speedWalkBonusFt} фт`)
+  if (fx?.initiativeAdvantage) bits.push('преим. инициатива')
+  const resist =
+    fx?.resistance ||
+    (fx?.resistanceFromOption ? binding.option?.trim() || null : null)
+  if (resist) bits.push(`сопр. ${resist}`)
   return bits.join(' · ')
 }

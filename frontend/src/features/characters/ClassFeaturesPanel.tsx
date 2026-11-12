@@ -2324,7 +2324,13 @@ function FeatureRow({
         feature.id === 'psychic_defenses' ||
         feature.id === 'wind_soul' ||
         feature.id === 'supernatural_resistance' ||
-        feature.id === 'unyielding_spirit') ? (
+        feature.id === 'unyielding_spirit' ||
+        feature.id === 'flash_of_genius' ||
+        feature.id === 'soul_of_artifice' ||
+        feature.id === 'fortified_position' ||
+        feature.id === 'armor_model' ||
+        feature.id === 'defensive_field' ||
+        feature.id === 'eldritch_cannon') ? (
         <Button
           type="button"
           variant="secondary"
