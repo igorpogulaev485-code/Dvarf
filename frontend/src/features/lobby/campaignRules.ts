@@ -30,7 +30,7 @@ export type CampaignRules = {
     hp_on_level_up: HpOnLevelUp
   }
   homebrew: Record<HomebrewKey, boolean> & { inspiration_stack_max: number }
-  progression: { mode: ProgressionMode }
+  progression: { mode: ProgressionMode; xp_remainder: number }
   inspiration_after_roll: boolean
   enemies_ac_visible: boolean
   custom_rules: string[]
@@ -141,7 +141,7 @@ export function defaultCampaignRules(): CampaignRules {
       feat_at_level_1: false,
       encumbrance: false,
     },
-    progression: { mode: 'xp' },
+    progression: { mode: 'xp', xp_remainder: 0 },
     inspiration_after_roll: false,
     enemies_ac_visible: false,
     custom_rules: [],
@@ -189,8 +189,13 @@ export function normalizeCampaignRules(raw: unknown): CampaignRules {
 
   const prog = obj.progression
   if (prog && typeof prog === 'object') {
-    const mode = (prog as Record<string, unknown>).mode
+    const p = prog as Record<string, unknown>
+    const mode = p.mode
     if (mode === 'xp' || mode === 'milestones') base.progression.mode = mode
+    const rem = Number(p.xp_remainder)
+    base.progression.xp_remainder = Number.isFinite(rem)
+      ? Math.max(0, Math.floor(rem))
+      : 0
   }
 
   if ('inspiration_after_roll' in obj) {

@@ -132,6 +132,8 @@ DEFAULT_CAMPAIGN_RULES: dict[str, Any] = {
     },
     "progression": {
         "mode": "xp",  # xp | milestones
+        # S-06: копилка остатка XP между выдачами (не колонка Alembic)
+        "xp_remainder": 0,
     },
     # S-03: раньше жило в visibility_profile
     "inspiration_after_roll": False,
@@ -206,6 +208,12 @@ def normalize_campaign_rules(raw: object | None) -> dict[str, Any]:
         mode = prog.get("mode")
         if mode in ("xp", "milestones"):
             base["progression"]["mode"] = mode
+        # S-06: остаток XP — сохраняем при нормализации
+        try:
+            rem = int(prog.get("xp_remainder") or 0)
+        except (TypeError, ValueError):
+            rem = 0
+        base["progression"]["xp_remainder"] = max(0, rem)
 
     if "inspiration_after_roll" in raw:
         base["inspiration_after_roll"] = _as_bool(raw.get("inspiration_after_roll"), False)

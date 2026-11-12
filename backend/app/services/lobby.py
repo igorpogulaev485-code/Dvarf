@@ -376,6 +376,9 @@ def _parse_members(raw: object, *, fallback_name: str, hp_current: int, hp_max: 
                 item.get("hp_current") if item.get("hp_current") is not None else m_max
             )
             m_temp = int(item.get("hp_temp") or 0) if isinstance(item.get("hp_temp"), int) else 0
+            outcome = str(item.get("outcome") or "").strip().lower() or None
+            if outcome not in {"killed", "fled", "surrendered"}:
+                outcome = None
             members.append(
                 {
                     "id": mid,
@@ -383,6 +386,7 @@ def _parse_members(raw: object, *, fallback_name: str, hp_current: int, hp_max: 
                     "hp_current": max(0, min(m_max, m_cur)),
                     "hp_max": m_max,
                     "hp_temp": max(0, m_temp),
+                    "outcome": outcome,
                 }
             )
     if not members:
@@ -393,6 +397,7 @@ def _parse_members(raw: object, *, fallback_name: str, hp_current: int, hp_max: 
                 "hp_current": max(0, min(max(1, hp_max), hp_current)),
                 "hp_max": max(1, hp_max),
                 "hp_temp": 0,
+                "outcome": None,
             }
         )
     return members
@@ -541,6 +546,12 @@ def _parse_combatants(raw: object) -> list[dict]:
             "reaction_hint": (
                 str(item["reaction_hint"]) if item.get("reaction_hint") else None
             ),
+            "outcome": (
+                str(item["outcome"]).strip().lower()
+                if str(item.get("outcome") or "").strip().lower()
+                in {"killed", "fled", "surrendered"}
+                else None
+            ),
         }
         _sync_combatant_summary(row)
         out.append(row)
@@ -645,6 +656,11 @@ def _combatant_out(
         last_damage_note=(
             str(row["last_damage_note"]) if row.get("last_damage_note") else None
         ),
+        outcome=(
+            str(row["outcome"])
+            if row.get("outcome") in {"killed", "fled", "surrendered"}
+            else None
+        ),
     )
 
 
@@ -735,6 +751,29 @@ def _combat_out(
         if see_hidden
         else []
     )
+    from app.schemas.lobby import LootChestOut, PendingRewardsOut
+    from app.services import session_rewards as rewards
+
+    pending_raw = filtered.get("pending_rewards")
+    pending_out = None
+    if isinstance(pending_raw, dict):
+        pending_out = PendingRewardsOut(**rewards.normalize_pending_rewards(pending_raw))
+
+    loot_raw = filtered.get("loot_chest")
+    loot_out = None
+    if isinstance(loot_raw, dict):
+        chest = rewards.normalize_loot_chest(loot_raw)
+        # Игроку без on_table — только если мастер смотрит; иначе скрываем содержимое
+        if see_hidden or chest.get("on_table"):
+            loot_out = LootChestOut(
+                on_table=bool(chest.get("on_table")),
+                items=chest.get("items") or [],
+                coins=chest.get("coins") or {},
+                log=chest.get("log") or [],
+            )
+        else:
+            loot_out = None
+
     return SessionCombatOut(
         active=bool(filtered["active"]),
         round=int(filtered["round"]),
@@ -763,6 +802,8 @@ def _combat_out(
             CombatSideOut(id=s["id"], label=s["label"])
             for s in sides.parse_sides_registry(filtered.get("sides"))
         ],
+        pending_rewards=pending_out,
+        loot_chest=loot_out,
     )
 
 
@@ -4363,6 +4404,39 @@ class LobbyService:
             target["ac"] = int(payload.ac)
         if payload.reveal_statblock is True:
             target["statblock_revealed"] = True
+        if payload.outcome is not None:
+            # S-06: сбежал / сдался / сброс
+            raw_out = str(payload.outcome).strip().lower()
+            if raw_out in {"", "none", "null", "clear"}:
+                target["outcome"] = None
+                if payload.member_id:
+                    for m in target.get("members") or []:
+                        if m.get("id") == payload.member_id:
+                            m["outcome"] = None
+            elif raw_out in {"killed", "fled", "surrendered"}:
+                if payload.member_id:
+                    found = False
+                    for m in target.get("members") or []:
+                        if m.get("id") == payload.member_id:
+                            m["outcome"] = raw_out
+                            found = True
+                            break
+                    if not found:
+                        raise NotFoundError(
+                            "Боец пачки не найден",
+                            code="combatant_member_not_found",
+                        )
+                else:
+                    target["outcome"] = raw_out
+                    # одиночка / вся пачка одним исходом
+                    for m in target.get("members") or []:
+                        m["outcome"] = raw_out
+            else:
+                raise AppError(
+                    "Исход: killed, fled или surrendered",
+                    code="combatant_outcome_bad",
+                    status_code=400,
+                )
         if payload.conditions is not None:
             combat_state_preview = _parse_combat_state(
                 session.combat, combatants=combatants
@@ -5668,7 +5742,34 @@ class LobbyService:
                 },
             )
 
-            session.combat = scmb.empty_combat(saved_waves=saved_waves)
+            # S-06: снимок опыта до очистки стола + пустой сундук (если ещё нет)
+            from app.services import session_rewards as rewards
+
+            pending = rewards.build_pending_rewards(
+                combatants=combatants,
+                combat_state=state,
+                seats=list(session.seats or []),
+                difficulty=(
+                    str(payload.difficulty)
+                    if getattr(payload, "difficulty", None)
+                    in {"easy", "medium", "hard", "deadly"}
+                    else None
+                ),
+            )
+            prev_chest = state.get("loot_chest")
+            chest = (
+                rewards.normalize_loot_chest(prev_chest)
+                if isinstance(prev_chest, dict)
+                else rewards.empty_loot_chest()
+            )
+            # После боя сундук для окна наград — пустой черновик (не на столе)
+            if not chest.get("on_table"):
+                chest = rewards.empty_loot_chest()
+            session.combat = scmb.empty_combat(
+                saved_waves=saved_waves,
+                pending_rewards=pending,
+                loot_chest=chest,
+            )
             flag_modified(session, "combat")
             # L-04: «оставить врагом/напарником» — место снимаем в конце боя.
             self.lobbies.purge_retained_seats_for_session(session.id)
@@ -6019,6 +6120,10 @@ class LobbyService:
         session, lobby = self._require_session_owner(user, session_id)
         from sqlalchemy.orm.attributes import flag_modified
 
+        from app.schemas.lobby import XpLevelUpNotice
+        from app.services import session_rewards as rewards
+        from app.services.campaign_rules import normalize_campaign_rules
+
         if session.closed_at is not None:
             raise AppError("Сессия закрыта", code="session_closed", status_code=400)
 
@@ -6032,7 +6137,6 @@ class LobbyService:
                     status_code=400,
                 )
             targets.append(cid)
-        # unique preserve order
         seen: set[UUID] = set()
         unique_targets: list[UUID] = []
         for cid in targets:
@@ -6043,41 +6147,169 @@ class LobbyService:
         if not unique_targets:
             raise AppError("Нет получателей XP", code="xp_no_recipients", status_code=400)
 
-        if payload.per_character_xp is not None:
-            each = int(payload.per_character_xp)
-            total = each * len(unique_targets)
-        elif payload.total_xp is not None:
-            total = int(payload.total_xp)
-            each = total // len(unique_targets)
-            total = each * len(unique_targets)  # без остатка «в стол» — ровная раздача
-        else:
-            raise AppError(
-                "Укажите total_xp или per_character_xp",
-                code="xp_amount_required",
-                status_code=400,
-            )
-        if each < 0:
-            raise AppError("XP не может быть отрицательным", code="xp_negative", status_code=400)
+        rules = normalize_campaign_rules(getattr(lobby, "campaign_rules", None))
+        mode = "milestones" if payload.milestones is True else rewards.progression_mode(rules)
+        if payload.milestones is False:
+            mode = "xp"
 
-        char_map = self.lobbies.get_characters_map(unique_targets)
+        bank = rewards.get_xp_remainder(rules)
+        per_recipient: dict[str, int] = {str(c): 0 for c in unique_targets}
+        leveled_up: list[XpLevelUpNotice] = []
         recipient_names: list[str] = []
-        for cid in unique_targets:
-            character = char_map.get(cid)
-            if character is None:
-                raise NotFoundError("Персонаж не найден", code="character_not_found")
-            sheet = dict(character.sheet or {})
-            identity = dict(sheet.get("identity") or {})
-            current = identity.get("experience")
-            try:
-                cur_xp = int(current or 0)
-            except (TypeError, ValueError):
-                cur_xp = 0
-            identity["experience"] = max(0, cur_xp + each)
-            sheet["identity"] = identity
-            character.sheet = sheet
-            character.sheet_version = int(character.sheet_version or 1) + 1
-            flag_modified(character, "sheet")
-            recipient_names.append(character.name)
+        each = 0
+        total = 0
+        remainder = 0
+        remainder_banked = 0
+
+        char_ids_needed = list(unique_targets)
+        for bonus in payload.bonuses or []:
+            if bonus.character_id not in seat_ids:
+                raise AppError(
+                    "Бонус XP только персонажам за столом",
+                    code="xp_bonus_not_seated",
+                    status_code=400,
+                )
+            if bonus.character_id not in char_ids_needed:
+                char_ids_needed.append(bonus.character_id)
+        if (
+            payload.remainder_mode == "give"
+            and payload.remainder_character_id is not None
+            and payload.remainder_character_id not in char_ids_needed
+        ):
+            if payload.remainder_character_id not in seat_ids:
+                raise AppError(
+                    "Остаток XP только персонажу за столом",
+                    code="xp_remainder_not_seated",
+                    status_code=400,
+                )
+            char_ids_needed.append(payload.remainder_character_id)
+
+        char_map = self.lobbies.get_characters_map(char_ids_needed)
+
+        if mode == "milestones":
+            # Вехи: повысить уровень отмеченным; сумму CR в листы не пишем
+            for cid in unique_targets:
+                character = char_map.get(cid)
+                if character is None:
+                    raise NotFoundError("Персонаж не найден", code="character_not_found")
+                sheet, new_level = rewards.bump_character_level(
+                    dict(character.sheet or {}), delta=1
+                )
+                character.sheet = sheet
+                character.sheet_version = int(character.sheet_version or 1) + 1
+                flag_modified(character, "sheet")
+                recipient_names.append(character.name)
+                leveled_up.append(
+                    XpLevelUpNotice(
+                        character_id=cid,
+                        name=character.name,
+                        level=new_level,
+                        experience=int(
+                            (sheet.get("identity") or {}).get("experience") or 0
+                        ),
+                    )
+                )
+            each = 0
+            total = 0
+            formula = "Вехи: +1 уровень"
+            title = "Вехи"
+        else:
+            include_bank = bool(payload.include_bank)
+            if payload.per_character_xp is not None:
+                each = int(payload.per_character_xp)
+                total = each * len(unique_targets)
+                remainder = 0
+                pool_used = total
+            elif payload.total_xp is not None:
+                pool = int(payload.total_xp)
+                if include_bank:
+                    pool += bank
+                    bank = 0
+                each, remainder = rewards.split_xp(pool, len(unique_targets))
+                total = each * len(unique_targets)
+                pool_used = pool
+            else:
+                raise AppError(
+                    "Укажите total_xp или per_character_xp",
+                    code="xp_amount_required",
+                    status_code=400,
+                )
+            if each < 0:
+                raise AppError(
+                    "XP не может быть отрицательным", code="xp_negative", status_code=400
+                )
+
+            for cid in unique_targets:
+                per_recipient[str(cid)] = each
+
+            if remainder > 0:
+                if payload.remainder_mode == "give":
+                    rid = payload.remainder_character_id
+                    if rid is None or rid not in seat_ids:
+                        raise AppError(
+                            "Укажите, кому отдать остаток XP",
+                            code="xp_remainder_target",
+                            status_code=400,
+                        )
+                    per_recipient[str(rid)] = int(per_recipient.get(str(rid), 0)) + remainder
+                    remainder_banked = 0
+                    remainder = 0
+                else:
+                    bank += remainder
+                    remainder_banked = remainder
+
+            # Бонусы за отыгрыш / находчивость
+            for bonus in payload.bonuses or []:
+                per_recipient[str(bonus.character_id)] = int(
+                    per_recipient.get(str(bonus.character_id), 0)
+                ) + int(bonus.amount)
+
+            for cid_s, amount in list(per_recipient.items()):
+                if amount <= 0:
+                    continue
+                cid = UUID(cid_s)
+                character = char_map.get(cid)
+                if character is None:
+                    raise NotFoundError("Персонаж не найден", code="character_not_found")
+                sheet, meta = rewards.apply_xp_to_identity(
+                    dict(character.sheet or {}), amount
+                )
+                character.sheet = sheet
+                character.sheet_version = int(character.sheet_version or 1) + 1
+                flag_modified(character, "sheet")
+                if cid in unique_targets or amount:
+                    if character.name not in recipient_names:
+                        recipient_names.append(character.name)
+                if meta.get("leveled_up"):
+                    leveled_up.append(
+                        XpLevelUpNotice(
+                            character_id=cid,
+                            name=character.name,
+                            level=int(meta["level"]),
+                            experience=int(meta["after"]),
+                        )
+                    )
+
+            # Если остаток отдали тому, кого не было в unique_targets — имя в ленту
+            for cid in unique_targets:
+                ch = char_map.get(cid)
+                if ch and ch.name not in recipient_names:
+                    recipient_names.append(ch.name)
+
+            awarded_total_with_bonus = sum(per_recipient.values())
+            total = awarded_total_with_bonus
+            formula = (
+                f"+{each} XP"
+                if len(unique_targets) == 1
+                else f"+{each} XP × {len(unique_targets)}"
+            )
+            if remainder_banked:
+                formula = f"{formula} · остаток {remainder_banked} в копилку"
+            title = "Опыт" if (payload.source or "manual") == "combat" else "Опыт (вручную)"
+
+            rules = rewards.set_xp_remainder(rules, bank)
+            lobby.campaign_rules = rules
+            flag_modified(lobby, "campaign_rules")
 
         if payload.claim_combatant_ids:
             combatants = _parse_combatants(session.combatants)
@@ -6086,44 +6318,66 @@ class LobbyService:
             for row in combatants:
                 if row["id"] not in claim:
                     continue
-                members = row.get("members") or []
-                dead = (
-                    sum(1 for m in members if int(m.get("hp_current") or 0) <= 0)
-                    if members
-                    else (1 if int(row.get("hp_current") or 0) <= 0 else 0)
+                info = rewards.combatant_defeat_counts(row)
+                row["xp_claimed_count"] = max(
+                    int(row.get("xp_claimed_count") or 0), int(info["dead"])
                 )
-                # Фиксируем, сколько поверженных уже учли — следующие убийства дораздадут.
-                row["xp_claimed_count"] = max(int(row.get("xp_claimed_count") or 0), dead)
                 changed = True
             if changed:
                 session.combatants = combatants
                 flag_modified(session, "combatants")
 
+        if payload.clear_pending_rewards:
+            combat_state = scmb.parse_combat_state(
+                session.combat, combatants=_parse_combatants(session.combatants)
+            )
+            combat_state["pending_rewards"] = None
+            session.combat = scmb.dump_combat_state(combat_state)
+            flag_modified(session, "combat")
+
         source = (payload.source or "manual").strip()[:32] or "manual"
         note = (payload.note or "").strip()
-        title = "Опыт" if source == "combat" else "Опыт (вручную)"
         breakdown = ", ".join(recipient_names)
         if note:
             breakdown = f"{breakdown} · {note}"
+        if mode == "milestones":
+            formula = "Вехи: +1 уровень"
+            title = "Вехи"
+
         event = SessionEvent(
             session_id=session.id,
-            event_type="xp",
+            event_type="xp" if mode == "xp" else "milestone",
             character_id=None,
             actor_user_id=user.id,
             character_name="Мастер",
             title=title[:200],
-            formula=f"+{each} XP" if len(unique_targets) == 1 else f"+{each} XP × {len(unique_targets)}",
+            formula=formula[:200],
             breakdown=breakdown[:200],
             total=total if total > 0 else None,
             is_master_roll=False,
             payload={
                 "source": source,
+                "mode": mode,
                 "awarded_each": each,
                 "awarded_total": total,
                 "character_ids": [str(c) for c in unique_targets],
                 "names": recipient_names,
                 "note": note or None,
                 "claim_combatant_ids": list(payload.claim_combatant_ids or []),
+                "remainder_banked": remainder_banked,
+                "xp_remainder": rewards.get_xp_remainder(
+                    getattr(lobby, "campaign_rules", None)
+                ),
+                "per_recipient": per_recipient,
+                "leveled_up": [x.model_dump(mode="json") for x in leveled_up],
+                "bonuses": [
+                    {
+                        "character_id": str(b.character_id),
+                        "amount": b.amount,
+                        "reason": b.reason,
+                    }
+                    for b in (payload.bonuses or [])
+                ],
             },
         )
         self.lobbies.add_session_event(event)
@@ -6137,11 +6391,44 @@ class LobbyService:
             session.id,
             {"type": "session_event", "event": out_event.model_dump(mode="json")},
         )
+        # Тосты игрокам: +N опыта / новый уровень
+        for cid_s, amount in per_recipient.items():
+            if amount <= 0:
+                continue
+            await session_hub.broadcast(
+                session.id,
+                {
+                    "type": "xp_toast",
+                    "character_id": cid_s,
+                    "amount": amount,
+                    "leveled_up": any(
+                        str(n.character_id) == cid_s for n in leveled_up
+                    ),
+                },
+            )
+        for notice in leveled_up:
+            if mode == "milestones" or True:
+                await session_hub.broadcast(
+                    session.id,
+                    {
+                        "type": "level_up_toast",
+                        "character_id": str(notice.character_id),
+                        "name": notice.name,
+                        "level": notice.level,
+                    },
+                )
+
         return XpAwardResult(
             session=detail,
             awarded_each=each,
             awarded_total=total,
             recipients=recipient_names,
+            remainder=remainder_banked,
+            remainder_banked=remainder_banked,
+            xp_remainder=rewards.get_xp_remainder(getattr(lobby, "campaign_rules", None)),
+            mode=mode,
+            leveled_up=leveled_up,
+            per_recipient=per_recipient,
         )
 
     async def award_loot(
@@ -6343,6 +6630,531 @@ class LobbyService:
             session=detail,
             summary=summary,
             recipient_names=recipient_names,
+        )
+
+    def _apply_loot_bucket_to_character(self, character: Character, bucket: dict) -> None:
+        """Внутренний: монеты + предметы (и артефакты) в лист."""
+        from sqlalchemy.orm.attributes import flag_modified
+        from app.services.artifact_apply import apply_artifact_to_sheet
+
+        coin_keys = ("cp", "sp", "ep", "gp", "pp")
+        sheet = dict(character.sheet or {})
+        inventory = dict(sheet.get("inventory") or {})
+        coins = dict(inventory.get("coins") or {})
+        for key in coin_keys:
+            try:
+                cur = int(coins.get(key) or 0)
+            except (TypeError, ValueError):
+                cur = 0
+            coins[key] = max(0, cur + int((bucket.get("coins") or {}).get(key) or 0))
+        items = list(inventory.get("items") or [])
+        if not isinstance(items, list):
+            items = []
+        inventory["coins"] = {k: int(coins.get(k) or 0) for k in coin_keys}
+        inventory["items"] = items
+        sheet["inventory"] = inventory
+
+        for entry in bucket.get("items") or []:
+            artifact_id = entry.get("artifact_id")
+            if artifact_id is not None:
+                aid = artifact_id if not isinstance(artifact_id, str) else UUID(str(artifact_id))
+                artifact = self.lobbies.get_setting_artifact(aid)
+                if artifact is None:
+                    raise NotFoundError(
+                        "Артефакт не найден",
+                        code="setting_artifact_not_found",
+                    )
+                apply_artifact_to_sheet(sheet, artifact=artifact, qty=int(entry.get("qty") or 1))
+            else:
+                inv = dict(sheet.get("inventory") or {})
+                inv_items = list(inv.get("items") or [])
+                if not isinstance(inv_items, list):
+                    inv_items = []
+                inv_items.append(
+                    {
+                        "id": str(uuid4()),
+                        "name": entry.get("name") or "Предмет",
+                        "catalog_id": None,
+                        "qty": int(entry.get("qty") or 1),
+                        "weight_lb": None,
+                        "equipped": False,
+                        "armor_kind": "none",
+                        "base_ac": None,
+                        "notes": entry.get("notes") or "",
+                        "item_kind": "gear",
+                    }
+                )
+                inv["items"] = inv_items
+                if "coins" not in inv:
+                    inv["coins"] = {k: int(coins.get(k) or 0) for k in coin_keys}
+                sheet["inventory"] = inv
+
+        character.sheet = sheet
+        character.sheet_version = int(character.sheet_version or 1) + 1
+        flag_modified(character, "sheet")
+
+    async def loot_chest(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: "LootChestRequest",
+    ) -> "LootChestResult":
+        """S-06: сундук добычи + генератор (контракт для G-01)."""
+        from sqlalchemy.orm.attributes import flag_modified
+
+        from app.schemas.lobby import LootChestOut, LootChestResult
+        from app.services import session_rewards as rewards
+
+        session = self.lobbies.get_session(session_id)
+        if session is None:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lobby = session.lobby
+        if session.closed_at is not None:
+            raise AppError("Сессия закрыта", code="session_closed", status_code=400)
+
+        action = payload.action
+        combat_state = scmb.parse_combat_state(
+            session.combat, combatants=_parse_combatants(session.combatants)
+        )
+        chest = rewards.normalize_loot_chest(combat_state.get("loot_chest"))
+        pending = rewards.normalize_pending_rewards(combat_state.get("pending_rewards"))
+        meta: dict = {}
+        summary = ""
+        seat_ids = {s.character_id for s in session.seats}
+        event_payload: dict | None = None
+
+        def _save_chest(next_chest: dict) -> None:
+            nonlocal chest
+            chest = rewards.normalize_loot_chest(next_chest)
+            combat_state["loot_chest"] = chest
+            session.combat = scmb.dump_combat_state(combat_state)
+            flag_modified(session, "combat")
+
+        def _require_award() -> None:
+            roles.require_can_award(self.db, lobby, user, session)
+
+        def _party_level() -> int:
+            if pending and pending.get("party_avg_level"):
+                return int(pending["party_avg_level"])
+            levels = [
+                int(getattr(s, "character_level", 1) or 1) for s in (session.seats or [])
+            ]
+            return int(round(sum(levels) / len(levels))) if levels else 1
+
+        if action == "set":
+            _require_award()
+            items = []
+            for row in payload.items or []:
+                parsed = rewards.normalize_loot_item(
+                    {
+                        "id": row.id or str(uuid4()),
+                        "name": row.name,
+                        "qty": row.qty,
+                        "notes": row.notes,
+                        "artifact_id": str(row.artifact_id) if row.artifact_id else None,
+                        "catalog_slug": row.catalog_slug,
+                        "magic_table": row.magic_table,
+                    }
+                )
+                if parsed:
+                    items.append(parsed)
+            next_chest = rewards.empty_loot_chest()
+            next_chest["on_table"] = chest.get("on_table", False)
+            next_chest["log"] = list(chest.get("log") or [])
+            next_chest["items"] = items
+            next_chest["coins"] = (
+                rewards.normalize_coins(payload.coins.model_dump())
+                if payload.coins
+                else rewards.empty_coins()
+            )
+            _save_chest(next_chest)
+            summary = "Сундук обновлён"
+
+        elif action == "put_on_table":
+            _require_award()
+            if payload.items is not None or payload.coins is not None:
+                # можно сразу задать содержимое
+                items = []
+                for row in payload.items or []:
+                    parsed = rewards.normalize_loot_item(
+                        {
+                            "id": row.id or str(uuid4()),
+                            "name": row.name,
+                            "qty": row.qty,
+                            "notes": row.notes,
+                            "artifact_id": str(row.artifact_id) if row.artifact_id else None,
+                            "catalog_slug": row.catalog_slug,
+                            "magic_table": row.magic_table,
+                        }
+                    )
+                    if parsed:
+                        items.append(parsed)
+                chest["items"] = items if payload.items is not None else chest["items"]
+                if payload.coins is not None:
+                    chest["coins"] = rewards.normalize_coins(payload.coins.model_dump())
+            chest["on_table"] = True
+            chest = rewards.append_loot_log(chest, text="Добыча на столе", who="Мастер")
+            _save_chest(chest)
+            summary = "Добыча на столе"
+            event_payload = {"kind": "loot_on_table"}
+
+        elif action in {"generate", "quick_add"}:
+            _require_award()
+            kind = payload.kind if action == "quick_add" else None
+            if kind == "legend":
+                meta = {"notes": ["Легенда только вручную — авторолл отключён"]}
+                summary = "Легенда — добавьте вручную"
+            else:
+                difficulty = payload.difficulty or (
+                    pending.get("difficulty") if pending else None
+                )
+                chest, gen_meta = rewards.fill_loot_chest(
+                    chest,
+                    party_level=_party_level(),
+                    difficulty=difficulty,
+                    kind=kind,
+                    has_humanoids=bool(pending and pending.get("has_humanoids")),
+                    has_beasts=bool(pending and pending.get("has_beasts")),
+                    replace=bool(payload.replace) if action == "generate" else False,
+                    seed=payload.seed,
+                )
+                meta = gen_meta
+                _save_chest(chest)
+                summary = (
+                    "Подобрана добыча"
+                    if action == "generate"
+                    else f"Добавлено: {kind or 'лут'}"
+                )
+
+        elif action == "remove_item":
+            _require_award()
+            if not payload.item_id:
+                raise AppError("Укажите item_id", code="loot_item_required", status_code=400)
+            chest, _taken = rewards.take_item_from_chest(
+                chest, item_id=payload.item_id, qty=payload.qty or 9999
+            )
+            _save_chest(chest)
+            summary = "Строка удалена"
+
+        elif action == "reroll_item":
+            _require_award()
+            if not payload.item_id:
+                raise AppError("Укажите item_id", code="loot_item_required", status_code=400)
+            old = next(
+                (i for i in chest.get("items") or [] if i.get("id") == payload.item_id),
+                None,
+            )
+            if old is None:
+                raise NotFoundError("Предмет в сундуке не найден", code="loot_item_not_found")
+            table = old.get("magic_table") or "A"
+            from app.dnd import loot_tables as loot_tbl
+            import random as _random
+
+            rng = _random.Random(payload.seed)
+            rolled = loot_tbl._pick_magic(table if table in loot_tbl.MAGIC_BY_TABLE else "A", rng)
+            rolled = rewards.normalize_loot_item({**rolled, "id": old["id"], "qty": old.get("qty") or 1})
+            chest["items"] = [
+                rolled if i.get("id") == payload.item_id else i
+                for i in (chest.get("items") or [])
+            ]
+            _save_chest(chest)
+            summary = f"Переброс: {rolled['name'] if rolled else '—'}"
+
+        elif action == "award":
+            _require_award()
+            grants = payload.grants or []
+            if not grants:
+                raise AppError("Нет долей лута", code="loot_empty", status_code=400)
+            # Переиспользуем award_loot через внутренний bucket
+            by_char: dict[UUID, dict] = {}
+            lines: list[str] = []
+            for grant in grants:
+                if grant.character_id not in seat_ids:
+                    raise AppError(
+                        "Лут только персонажам за столом",
+                        code="loot_not_seated",
+                        status_code=400,
+                    )
+                bucket = by_char.setdefault(
+                    grant.character_id,
+                    {"items": [], "coins": rewards.empty_coins()},
+                )
+                if grant.item is not None:
+                    qty = max(1, int(grant.item.qty))
+                    name = (grant.item.name or "").strip() or "Предмет"
+                    aid = grant.item.artifact_id
+                    bucket["items"].append(
+                        {
+                            "name": name,
+                            "qty": qty,
+                            "notes": grant.item.notes,
+                            "artifact_id": aid,
+                        }
+                    )
+                    lines.append(f"{name}×{qty}" if qty > 1 else name)
+                    # снять из сундука по имени/id если есть
+                    if grant.item.artifact_id:
+                        match = next(
+                            (
+                                i
+                                for i in chest.get("items") or []
+                                if i.get("artifact_id") == str(grant.item.artifact_id)
+                            ),
+                            None,
+                        )
+                    else:
+                        match = next(
+                            (
+                                i
+                                for i in chest.get("items") or []
+                                if i.get("name") == name
+                            ),
+                            None,
+                        )
+                    if match:
+                        chest, _ = rewards.take_item_from_chest(
+                            chest, item_id=str(match["id"]), qty=qty
+                        )
+                if grant.coins is not None:
+                    raw = grant.coins.model_dump()
+                    for key in rewards.COIN_KEYS:
+                        amount = max(0, int(raw.get(key) or 0))
+                        bucket["coins"][key] += amount
+                    chest, _ = rewards.take_coins_from_chest(chest, raw)
+                    coin_txt = rewards.format_coins(raw)
+                    if coin_txt != "0":
+                        lines.append(coin_txt)
+
+            char_map = self.lobbies.get_characters_map(list(by_char.keys()))
+            names: list[str] = []
+            for cid, bucket in by_char.items():
+                character = char_map.get(cid)
+                if character is None:
+                    raise NotFoundError("Персонаж не найден", code="character_not_found")
+                self._apply_loot_bucket_to_character(character, bucket)
+                names.append(character.name)
+            if payload.clear_chest or True:
+                # после «Выдать» сундук остаётся с остатком; on_table снимаем если пуст
+                if (
+                    not chest.get("items")
+                    and rewards.coins_total(chest.get("coins") or {}) == 0
+                ):
+                    chest["on_table"] = False
+            _save_chest(chest)
+            summary = ", ".join(lines[:8]) or "Выдано"
+            event_payload = {
+                "kind": "loot_award",
+                "names": names,
+                "lines": lines,
+                "note": (payload.note or "").strip() or None,
+            }
+            recipient_breakdown = ", ".join(names)
+
+        elif action == "claim":
+            roles.require_can_act_on_board(self.db, lobby, user)
+            if roles.is_observer(self.db, lobby, user) and not roles.is_owner(lobby, user):
+                raise AppError("Наблюдатель не забирает добычу", code="forbidden", status_code=403)
+            if not chest.get("on_table"):
+                raise AppError("Добычи на столе нет", code="loot_not_on_table", status_code=400)
+            if payload.character_id is None or payload.character_id not in seat_ids:
+                raise AppError(
+                    "Забрать можно только своим героем за столом",
+                    code="loot_claim_seat",
+                    status_code=400,
+                )
+            # свой персонаж?
+            seat = next(
+                (s for s in session.seats if s.character_id == payload.character_id),
+                None,
+            )
+            member = self.lobbies.get_member(lobby.id, payload.character_id)
+            if member is None or member.user_id != user.id:
+                if not roles.can_award(self.db, lobby, user, session):
+                    raise AppError(
+                        "Можно забирать только со своего места",
+                        code="forbidden",
+                        status_code=403,
+                    )
+            taken_items = []
+            taken_coins = rewards.empty_coins()
+            if payload.item_id:
+                chest, taken = rewards.take_item_from_chest(
+                    chest, item_id=payload.item_id, qty=payload.qty or 1
+                )
+                if taken is None:
+                    raise NotFoundError(
+                        "Предмет в сундуке не найден", code="loot_item_not_found"
+                    )
+                taken_items.append(taken)
+            if payload.coins is not None:
+                chest, taken_coins = rewards.take_coins_from_chest(
+                    chest, payload.coins.model_dump()
+                )
+            if not taken_items and rewards.coins_total(taken_coins) <= 0:
+                raise AppError("Нечего забирать", code="loot_claim_empty", status_code=400)
+
+            char_map = self.lobbies.get_characters_map([payload.character_id])
+            character = char_map.get(payload.character_id)
+            if character is None:
+                raise NotFoundError("Персонаж не найден", code="character_not_found")
+            self._apply_loot_bucket_to_character(
+                character, {"items": taken_items, "coins": taken_coins}
+            )
+            who = character.name
+            bits = [f"{t['name']}×{t['qty']}" if t["qty"] > 1 else t["name"] for t in taken_items]
+            if rewards.coins_total(taken_coins) > 0:
+                bits.append(rewards.format_coins(taken_coins))
+            text = f"забрал {', '.join(bits)}"
+            chest = rewards.append_loot_log(
+                chest,
+                text=text,
+                who=who,
+                character_id=str(payload.character_id),
+            )
+            _save_chest(chest)
+            summary = f"{who} {text}"
+            event_payload = {"kind": "loot_claim", "text": summary}
+
+        elif action == "split_coins":
+            _require_award() if not chest.get("on_table") else None
+            if chest.get("on_table"):
+                roles.require_can_act_on_board(self.db, lobby, user)
+            else:
+                _require_award()
+            n = len(session.seats or [])
+            if n <= 0:
+                raise AppError("За столом никого", code="loot_no_seats", status_code=400)
+            each, rem = rewards.split_coins_evenly(chest.get("coins") or {}, n)
+            if rewards.coins_total(each) <= 0:
+                raise AppError("Нечего делить", code="loot_split_empty", status_code=400)
+            char_map = self.lobbies.get_characters_map([s.character_id for s in session.seats])
+            names = []
+            for seat in session.seats:
+                character = char_map.get(seat.character_id)
+                if character is None:
+                    continue
+                self._apply_loot_bucket_to_character(
+                    character, {"items": [], "coins": each}
+                )
+                names.append(character.name)
+            chest["coins"] = rem
+            chest = rewards.append_loot_log(
+                chest,
+                text=f"монеты поровну: {rewards.format_coins(each)}",
+                who="Стол",
+            )
+            _save_chest(chest)
+            summary = f"Поровну: {rewards.format_coins(each)}"
+            event_payload = {"kind": "loot_split", "names": names}
+
+        elif action == "reassign":
+            _require_award()
+            if payload.character_id is None or payload.character_id not in seat_ids:
+                raise AppError(
+                    "Укажите персонажа за столом",
+                    code="loot_reassign_seat",
+                    status_code=400,
+                )
+            if not payload.item_id:
+                raise AppError("Укажите item_id", code="loot_item_required", status_code=400)
+            chest, taken = rewards.take_item_from_chest(
+                chest, item_id=payload.item_id, qty=payload.qty or 1
+            )
+            if taken is None:
+                raise NotFoundError("Предмет в сундуке не найден", code="loot_item_not_found")
+            char_map = self.lobbies.get_characters_map([payload.character_id])
+            character = char_map.get(payload.character_id)
+            if character is None:
+                raise NotFoundError("Персонаж не найден", code="character_not_found")
+            self._apply_loot_bucket_to_character(
+                character, {"items": [taken], "coins": rewards.empty_coins()}
+            )
+            chest = rewards.append_loot_log(
+                chest,
+                text=f"мастер передал {taken['name']} → {character.name}",
+                who="Мастер",
+                character_id=str(payload.character_id),
+            )
+            _save_chest(chest)
+            summary = f"{taken['name']} → {character.name}"
+
+        elif action == "close":
+            _require_award()
+            if payload.remainder == "discard":
+                chest = rewards.empty_loot_chest()
+                summary = "Добыча закрыта, остаток убран"
+            else:
+                # вернуть мастеру в сундук (черновик)
+                chest["on_table"] = False
+                chest = rewards.append_loot_log(
+                    chest, text="Добыча закрыта, остаток у мастера", who="Мастер"
+                )
+                summary = "Добыча закрыта, остаток у мастера"
+            _save_chest(chest)
+            event_payload = {"kind": "loot_close", "remainder": payload.remainder}
+
+        else:
+            raise AppError("Неизвестное действие сундука", code="loot_action_bad", status_code=400)
+
+        if event_payload is not None:
+            event = SessionEvent(
+                session_id=session.id,
+                event_type="loot",
+                character_id=None,
+                actor_user_id=user.id,
+                character_name="Мастер" if action != "claim" else (
+                    next(
+                        (
+                            s.character_name
+                            for s in session.seats
+                            if s.character_id == payload.character_id
+                        ),
+                        "Игрок",
+                    )
+                    if hasattr(session.seats[0], "character_name")
+                    else "Игрок"
+                ),
+                title="Добыча",
+                formula=None,
+                breakdown=summary[:200],
+                total=None,
+                is_master_roll=False,
+                payload=event_payload,
+            )
+            # character_name for claim — лучше имя из листа
+            if action == "claim" and payload.character_id:
+                ch = self.lobbies.get_characters_map([payload.character_id]).get(
+                    payload.character_id
+                )
+                if ch:
+                    event.character_name = ch.name
+                    event.character_id = payload.character_id
+            self.lobbies.add_session_event(event)
+
+        self.db.commit()
+        detail = self._session_detail(session, lobby, user)
+        await _broadcast_session_changed(session.id)
+        if event_payload is not None:
+            # event may exist
+            pass
+        await session_hub.broadcast(
+            session.id,
+            {
+                "type": "loot_chest",
+                "chest": rewards.normalize_loot_chest(chest),
+                "summary": summary,
+            },
+        )
+        return LootChestResult(
+            session=detail,
+            chest=LootChestOut(
+                on_table=bool(chest.get("on_table")),
+                items=chest.get("items") or [],
+                coins=chest.get("coins") or {},
+                log=chest.get("log") or [],
+            ),
+            summary=summary,
+            meta=meta,
         )
 
     async def transfer_inventory(

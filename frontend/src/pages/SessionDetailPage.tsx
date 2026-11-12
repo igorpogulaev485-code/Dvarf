@@ -15,8 +15,7 @@ import { ReactionPromptDialog } from '../features/lobby/ReactionPromptDialog'
 import type { FeedFilter } from '../features/lobby/SessionEventFeed'
 import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
 import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
-import { AwardLootDialog } from '../features/lobby/AwardLootDialog'
-import { AwardXpDialog } from '../features/lobby/AwardXpDialog'
+import { LootChestBoard, RewardsDialog } from '../features/lobby/RewardsDialog'
 import { PietyAwardDialog } from '../features/lobby/PietyAwardDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EnemyCard } from '../features/lobby/EnemyCard'
@@ -46,8 +45,8 @@ import {
   addSeatCompanion,
   addSessionCombatants,
   awardLobbyPiety,
-  awardSessionLoot,
   awardSessionXp,
+  sessionLootChest,
   closeSession,
   createSessionRoll,
   deleteSeatCompanion,
@@ -157,10 +156,9 @@ export function SessionDetailPage() {
   const [endCombatThenClose, setEndCombatThenClose] = useState(false)
   const [initRollEntry, setInitRollEntry] = useState<CombatEntry | null>(null)
   const [sideEntry, setSideEntry] = useState<CombatEntry | null>(null)
-  const [xpOpen, setXpOpen] = useState(false)
-  const [lootOpenAfterXp, setLootOpenAfterXp] = useState(false)
+  const [rewardsOpen, setRewardsOpen] = useState(false)
+  const [rewardsFocus, setRewardsFocus] = useState<'combat' | 'manual' | 'loot'>('combat')
   const [pietySeatId, setPietySeatId] = useState<string | null>(null)
-  const [lootOpen, setLootOpen] = useState(false)
   const [settingArtifacts, setSettingArtifacts] = useState<SettingArtifact[]>([])
   const [lobbySettings, setLobbySettings] = useState<SettingSummary[]>([])
   const [sidePanelOpen, setSidePanelOpen] = useState(readSidePanelOpen)
@@ -559,8 +557,8 @@ export function SessionDetailPage() {
     setSession(updated)
     setCombatEndOpen(false)
     setToast('Бой завершён')
-    setLootOpenAfterXp(true)
-    setXpOpen(true)
+    setRewardsFocus('combat')
+    setRewardsOpen(true)
     await reloadEvents()
     // Диалог закрытия сессии — после наград (afterCombatRewards)
   }
@@ -984,7 +982,10 @@ export function SessionDetailPage() {
                         type="button"
                         variant="secondary"
                         disabled={busy || session.seats.length === 0}
-                        onClick={() => setXpOpen(true)}
+                        onClick={() => {
+                          setRewardsFocus('manual')
+                          setRewardsOpen(true)
+                        }}
                       >
                         Опыт
                       </Button>
@@ -992,9 +993,12 @@ export function SessionDetailPage() {
                         type="button"
                         variant="secondary"
                         disabled={busy || session.seats.length === 0}
-                        onClick={() => setLootOpen(true)}
+                        onClick={() => {
+                          setRewardsFocus('loot')
+                          setRewardsOpen(true)
+                        }}
                       >
-                        Лут
+                        Добыча
                       </Button>
                     </div>
                     <div className="session-toolbar-group" aria-label="Сюжет">
@@ -1321,6 +1325,59 @@ export function SessionDetailPage() {
                     </div>
                   )}
 
+                  {session.combat?.loot_chest?.on_table ? (
+                    <LootChestBoard
+                      chest={session.combat.loot_chest}
+                      seats={session.seats}
+                      canAward={Boolean(session.can_award || canRun)}
+                      ownCharacterIds={ownCharacterIds}
+                      busy={busy}
+                      onClaim={(payload) => {
+                        void run(async () => {
+                          const result = await sessionLootChest(session.id, {
+                            action: 'claim',
+                            ...payload,
+                          })
+                          setSession(result.session)
+                          setToast(result.summary || 'Забрал')
+                          await reloadEvents()
+                        })
+                      }}
+                      onSplit={() => {
+                        void run(async () => {
+                          const result = await sessionLootChest(session.id, {
+                            action: 'split_coins',
+                          })
+                          setSession(result.session)
+                          setToast(result.summary || 'Поровну')
+                          await reloadEvents()
+                        })
+                      }}
+                      onReassign={(payload) => {
+                        void run(async () => {
+                          const result = await sessionLootChest(session.id, {
+                            action: 'reassign',
+                            ...payload,
+                          })
+                          setSession(result.session)
+                          setToast(result.summary || 'Передано')
+                          await reloadEvents()
+                        })
+                      }}
+                      onClose={(remainder) => {
+                        void run(async () => {
+                          const result = await sessionLootChest(session.id, {
+                            action: 'close',
+                            remainder,
+                          })
+                          setSession(result.session)
+                          setToast(result.summary || 'Добыча закрыта')
+                          await reloadEvents()
+                        })
+                      }}
+                    />
+                  ) : null}
+
                   {(session.combatants?.length ?? 0) > 0 ? (
                     <Stack gap={8}>
                       <Text as="h3" className="session-enemies-title">
@@ -1367,6 +1424,27 @@ export function SessionDetailPage() {
                                     (e) => e.kind === 'enemy' && e.ref_id === enemy.id,
                                   )
                                   if (entry) setSideEntry(entry)
+                                }
+                              : undefined
+                          }
+                          onOutcome={
+                            canRun && !session.closed_at
+                              ? (outcome) => {
+                                  void run(async () => {
+                                    const updated = await patchSessionCombatant(
+                                      session.id,
+                                      enemy.id,
+                                      { outcome },
+                                    )
+                                    setSession(updated)
+                                    setToast(
+                                      outcome === 'fled'
+                                        ? 'Сбежал'
+                                        : outcome === 'surrendered'
+                                          ? 'Сдался'
+                                          : 'Исход сброшен',
+                                    )
+                                  })
                                 }
                               : undefined
                           }
@@ -2175,37 +2253,56 @@ export function SessionDetailPage() {
         }}
       />
 
-      <AwardXpDialog
-        open={xpOpen}
+      <RewardsDialog
+        open={rewardsOpen}
         busy={busy}
+        focus={rewardsFocus}
         seats={session.seats}
         combatants={session.combatants ?? []}
+        pendingRewards={session.combat?.pending_rewards}
+        lootChest={session.combat?.loot_chest}
+        campaignRules={campaignRules}
+        artifacts={settingArtifacts}
         onClose={() => {
-          setXpOpen(false)
-          if (lootOpenAfterXp) {
-            setLootOpenAfterXp(false)
-            setLootOpen(true)
-          } else {
-            afterCombatRewards()
-          }
+          setRewardsOpen(false)
+          afterCombatRewards()
         }}
-        onSubmit={(payload) => {
+        onAwardXp={(payload) => {
           void run(async () => {
             const result = await awardSessionXp(session.id, payload)
             setSession(result.session)
-            setXpOpen(false)
-            setToast(
-              result.awarded_each > 0
-                ? `+${result.awarded_each} XP · ${result.recipients.join(', ')}`
-                : 'XP: 0',
-            )
-            await reloadEvents()
-            if (lootOpenAfterXp) {
-              setLootOpenAfterXp(false)
-              setLootOpen(true)
+            const leveled = result.leveled_up ?? []
+            if (leveled.length > 0) {
+              setToast(
+                result.mode === 'milestones'
+                  ? `Новый уровень! ${leveled.map((x) => x.name).join(', ')}`
+                  : `Новый уровень! Повысить · ${leveled.map((x) => x.name).join(', ')}`,
+              )
+            } else if (result.mode === 'milestones') {
+              setToast('Вехи: уровень повышен')
             } else {
-              afterCombatRewards()
+              const mine = Object.entries(result.per_recipient || {}).find(([cid]) =>
+                ownCharacterIds.has(cid),
+              )
+              setToast(
+                mine
+                  ? `+${mine[1]} опыта`
+                  : result.awarded_each > 0
+                    ? `+${result.awarded_each} XP · ${result.recipients.join(', ')}`
+                    : result.awarded_total > 0
+                      ? `Опыт: ${result.awarded_total}`
+                      : 'Опыт: 0',
+              )
             }
+            await reloadEvents()
+          })
+        }}
+        onChest={(payload) => {
+          void run(async () => {
+            const result = await sessionLootChest(session.id, payload)
+            setSession(result.session)
+            if (result.summary) setToast(result.summary)
+            await reloadEvents()
           })
         }}
       />
@@ -2243,27 +2340,6 @@ export function SessionDetailPage() {
             )
             setPietySeatId(null)
             setToast(`Благочестие: ${delta > 0 ? '+' : ''}${delta} → ${result.score}`)
-          })
-        }}
-      />
-
-      <AwardLootDialog
-        open={lootOpen}
-        busy={busy}
-        seats={session.seats}
-        artifacts={settingArtifacts}
-        onClose={() => {
-          setLootOpen(false)
-          afterCombatRewards()
-        }}
-        onSubmit={(payload) => {
-          void run(async () => {
-            const result = await awardSessionLoot(session.id, payload)
-            setSession(result.session)
-            setLootOpen(false)
-            setToast(`Лут: ${result.summary}`)
-            await reloadEvents()
-            afterCombatRewards()
           })
         }}
       />

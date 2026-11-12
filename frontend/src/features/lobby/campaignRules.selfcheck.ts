@@ -32,6 +32,7 @@ assert(defaults.homebrew.encumbrance === false, 'encumbrance off')
 assert(defaults.inspiration_after_roll === false, 'inspiration after roll off')
 assert(defaults.enemies_ac_visible === false, 'enemy ac hidden')
 assert(defaults.progression.mode === 'xp', 'xp default')
+assert(defaults.progression.xp_remainder === 0, 'xp remainder default')
 
 const normalized = normalizeCampaignRules({
   homebrew: { potion_bonus_self: true, inspiration_stack_max: 99 },

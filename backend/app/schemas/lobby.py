@@ -938,6 +938,8 @@ class SessionCombatantOut(BaseModel):
     """Подсказка ведущему после урона (реакция — S-04)."""
     reaction_hint: str | None = None
     last_damage_note: str | None = None
+    """S-06: сбежал / сдался (XP как за поверженного)."""
+    outcome: str | None = None
 
 
 class CombatSideOut(BaseModel):
@@ -991,6 +993,51 @@ class CombatWaveReminderOut(BaseModel):
     due: bool = False
 
 
+class PendingRewardsOut(BaseModel):
+    """S-06: снимок опыта после «Завершить бой» (враги уже убраны со стола)."""
+
+    xp_pool: int = 0
+    defeats: list[dict] = Field(default_factory=list)
+    claim_combatant_ids: list[str] = Field(default_factory=list)
+    participant_character_ids: list[str] = Field(default_factory=list)
+    default_excluded_ids: list[str] = Field(default_factory=list)
+    dead_ids: list[str] = Field(default_factory=list)
+    absent_ids: list[str] = Field(default_factory=list)
+    traitor_ids: list[str] = Field(default_factory=list)
+    party_avg_level: int = 1
+    difficulty: str | None = None
+    has_humanoids: bool = False
+    has_beasts: bool = False
+
+
+class LootChestItemOut(BaseModel):
+    id: str
+    name: str
+    qty: int = 1
+    notes: str | None = None
+    artifact_id: str | None = None
+    catalog_slug: str | None = None
+    magic_table: str | None = None
+
+
+class LootChestLogOut(BaseModel):
+    id: str
+    who: str | None = None
+    text: str
+    character_id: str | None = None
+
+
+class LootChestOut(BaseModel):
+    """S-06: сундук добычи (черновик мастера или на столе)."""
+
+    on_table: bool = False
+    items: list[LootChestItemOut] = Field(default_factory=list)
+    coins: dict[str, int] = Field(
+        default_factory=lambda: {"cp": 0, "sp": 0, "ep": 0, "gp": 0, "pp": 0}
+    )
+    log: list[LootChestLogOut] = Field(default_factory=list)
+
+
 class SessionCombatOut(BaseModel):
     active: bool = False
     round: int = 1
@@ -1010,6 +1057,10 @@ class SessionCombatOut(BaseModel):
     wave_reminders: list[CombatWaveReminderOut] = Field(default_factory=list)
     """S-05: реестр сторон боя (Партия / Враги / …)."""
     sides: list[CombatSideOut] = Field(default_factory=list)
+    """S-06: снимок наград после боя."""
+    pending_rewards: PendingRewardsOut | None = None
+    """S-06: сундук добычи."""
+    loot_chest: LootChestOut | None = None
 
 
 class CombatEntryInput(BaseModel):
@@ -1084,8 +1135,20 @@ class CombatInitiativeRequest(BaseModel):
     advantage: bool | None = None
 
 
+class XpBonusAwardIn(BaseModel):
+    """S-06: +за отыгрыш / +за находчивость одному."""
+
+    character_id: UUID
+    amount: int = Field(ge=1, le=10_000_000)
+    reason: str = Field(default="", max_length=120)
+
+
 class XpAwardRequest(BaseModel):
-    """Раздать XP сидящим: пул делится поровну, либо фиксированная сумма каждому."""
+    """Раздать XP сидящим: пул делится поровну, либо фиксированная сумма каждому.
+
+    S-06: остаток не отбрасывается (bank / give); вехи — mode из campaign_rules
+    или явный milestones=true.
+    """
 
     character_ids: list[UUID] = Field(min_length=1)
     total_xp: int | None = Field(default=None, ge=0, le=10_000_000)
@@ -1094,6 +1157,23 @@ class XpAwardRequest(BaseModel):
     note: str | None = Field(default=None, max_length=240)
     """Пометить этих противников как уже учтённых в XP (после боя)."""
     claim_combatant_ids: list[str] | None = None
+    """S-06: включить копилку остатка лобби в пул."""
+    include_bank: bool = True
+    """S-06: куда деть остаток от деления — bank (копилка) или give (одному)."""
+    remainder_mode: str = Field(default="bank", pattern="^(bank|give)$")
+    remainder_character_id: UUID | None = None
+    bonuses: list[XpBonusAwardIn] = Field(default_factory=list)
+    """S-06: принудительно режим вех (иначе читаем campaign_rules.progression.mode)."""
+    milestones: bool | None = None
+    """S-06: очистить pending_rewards после утверждения."""
+    clear_pending_rewards: bool = False
+
+
+class XpLevelUpNotice(BaseModel):
+    character_id: UUID
+    name: str
+    level: int
+    experience: int
 
 
 class XpAwardResult(BaseModel):
@@ -1101,6 +1181,12 @@ class XpAwardResult(BaseModel):
     awarded_each: int
     awarded_total: int
     recipients: list[str]
+    remainder: int = 0
+    remainder_banked: int = 0
+    xp_remainder: int = 0
+    mode: str = "xp"
+    leveled_up: list[XpLevelUpNotice] = Field(default_factory=list)
+    per_recipient: dict[str, int] = Field(default_factory=dict)
 
 
 class LootCoinsIn(BaseModel):
@@ -1131,12 +1217,73 @@ class LootGrantIn(BaseModel):
 class LootAwardRequest(BaseModel):
     grants: list[LootGrantIn] = Field(min_length=1)
     note: str | None = Field(default=None, max_length=240)
+    """S-06: после выдачи очистить/обновить сундук (предметы из grants снимаются, если clear_chest)."""
+    clear_chest: bool = False
 
 
 class LootAwardResult(BaseModel):
     session: "SessionDetail"
     summary: str
     recipient_names: list[str]
+
+
+class LootChestItemIn(BaseModel):
+    id: str | None = Field(default=None, max_length=80)
+    name: str = Field(default="", max_length=120)
+    qty: int = Field(default=1, ge=1, le=9999)
+    notes: str | None = Field(default=None, max_length=240)
+    artifact_id: UUID | None = None
+    catalog_slug: str | None = Field(default=None, max_length=80)
+    magic_table: str | None = Field(default=None, max_length=8)
+
+
+class LootChestRequest(BaseModel):
+    """S-06: операции с сундуком добычи.
+
+    action:
+      set — заменить содержимое (мастер)
+      put_on_table — положить на стол
+      award — выдать по grants (как /loot) и снять из сундука
+      claim — игрок забирает себе item_id / coins
+      split_coins — поровну монеты за столом
+      reassign — мастер отдаёт item персонажу
+      close — закрыть добычу на столе (remainder=return|discard)
+      generate — «Подобрать добычу» (G-01 тот же контракт)
+      quick_add — Мелочь/Припасы/Ценности/Магия/Редкая магия/Легенда/Трофеи
+      reroll_item — перебросить одну строку
+      remove_item — удалить строку
+    """
+
+    action: str = Field(
+        pattern=(
+            "^(set|put_on_table|award|claim|split_coins|reassign|close|"
+            "generate|quick_add|reroll_item|remove_item)$"
+        )
+    )
+    items: list[LootChestItemIn] | None = None
+    coins: LootCoinsIn | None = None
+    grants: list[LootGrantIn] | None = None
+    note: str | None = Field(default=None, max_length=240)
+    item_id: str | None = Field(default=None, max_length=80)
+    qty: int | None = Field(default=None, ge=1, le=9999)
+    character_id: UUID | None = None
+    kind: str | None = Field(
+        default=None,
+        pattern="^(trinkets|supplies|valuables|magic|rare_magic|legend|trophies)$",
+    )
+    difficulty: str | None = Field(
+        default=None, pattern="^(easy|medium|hard|deadly)$"
+    )
+    replace: bool = False
+    remainder: str = Field(default="return", pattern="^(return|discard)$")
+    seed: int | None = None
+
+
+class LootChestResult(BaseModel):
+    session: "SessionDetail"
+    chest: LootChestOut
+    summary: str = ""
+    meta: dict = Field(default_factory=dict)
 
 
 class InventoryTransferRequest(BaseModel):
@@ -1191,6 +1338,10 @@ class CombatantPatchRequest(BaseModel):
     member_damages: list[CombatantMemberDamage] | None = None
     """G12: открыть статблок всей партии."""
     reveal_statblock: bool | None = None
+    """S-06: killed|fled|surrendered|'' — исход для XP (пустая строка сбрасывает)."""
+    outcome: str | None = Field(
+        default=None, max_length=16
+    )
 
 
 class CombatantStudyRequest(BaseModel):
