@@ -52,11 +52,13 @@ from app.dnd.setting_templates import (
 from app.dnd.sheet_signals import PartyMemberSnapshot
 from app.dnd.xp import xp_from_cr
 from app.services import session_combat as scmb
+from app.services import session_sides as sides
 from app.services import session_table_s03 as s03
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
     CombatEntryOut,
     CombatFallenOut,
+    CombatSideOut,
     CombatInitiativeRequest,
     CombatPatchRequest,
     CombatStartRequest,
@@ -683,6 +685,7 @@ def _parse_combat_state(raw: object, *, combatants: list[dict] | None = None) ->
 
 
 def _combat_entry_out(e: dict) -> CombatEntryOut:
+    kind = str(e.get("kind") or "")
     return CombatEntryOut(
         id=e["id"],
         kind=e["kind"],
@@ -697,6 +700,11 @@ def _combat_entry_out(e: dict) -> CombatEntryOut:
         alive_count=e.get("alive_count"),
         member_count=e.get("member_count"),
         member_tones=list(e.get("member_tones") or []),
+        side=str(e.get("side") or sides.default_side_for_kind(kind)),
+        side_hidden=bool(e.get("side_hidden")),
+        retained_after_kick=(
+            str(e["retained_after_kick"]) if e.get("retained_after_kick") else None
+        ),
     )
 
 
@@ -751,6 +759,10 @@ def _combat_out(
         fallen=[CombatFallenOut(**f) for f in filtered.get("fallen") or []],
         saved_waves=[CombatWaveOut(**w) for w in filtered.get("saved_waves") or []],
         wave_reminders=reminders,
+        sides=[
+            CombatSideOut(id=s["id"], label=s["label"])
+            for s in sides.parse_sides_registry(filtered.get("sides"))
+        ],
     )
 
 
@@ -1300,7 +1312,7 @@ class LobbyService:
         flag_modified(session, "combat")
 
     def _mark_pc_retained_in_combat(self, session: PlaySession, character_id: UUID) -> None:
-        """Крючок S-05: пометка в order, сторону не переключаем."""
+        """L-04 → S-05: оставить в бою → по умолчанию сторона «Враги»."""
         from sqlalchemy.orm.attributes import flag_modified
 
         combat_raw = getattr(session, "combat", None) or {}
@@ -1313,8 +1325,15 @@ class LobbyService:
         for entry in state.get("entries") or []:
             if entry.get("kind") == "pc" and str(entry.get("ref_id")) == cid:
                 entry["retained_after_kick"] = "until_combat_end"
-                # S-05 подставит сторону (ally/enemy); пока герой партии как был.
-                entry.setdefault("side_hook", None)
+                sides.set_entry_side(
+                    entry,
+                    side=sides.SIDE_ENEMIES,
+                    side_hidden=False,
+                )
+                state["sides"] = sides.ensure_side_in_registry(
+                    sides.parse_sides_registry(state.get("sides")),
+                    sides.SIDE_ENEMIES,
+                )
                 changed = True
         if changed:
             session.combat = scmb.dump_combat_state(state)
@@ -3606,6 +3625,20 @@ class LobbyService:
                         from sqlalchemy.orm.attributes import flag_modified as _fm
 
                         combat_state["waiting_reaction"] = True
+                        # S-05: ход скрытого предателя + урон герою → раскрытие.
+                        entries = combat_state.get("entries") or []
+                        ai = int(combat_state.get("active_index") or 0)
+                        actor_entry = entries[ai] if 0 <= ai < len(entries) else None
+                        target_entry = sides.find_entry_for_ref(
+                            combat_state, kind="pc", ref_id=str(character_id)
+                        )
+                        if actor_entry is not None and applied > 0:
+                            sides.maybe_reveal_on_hostile(
+                                combat_state,
+                                actor_entry=actor_entry,
+                                target_entry=target_entry,
+                                target_kind="pc",
+                            )
                         session.combat = scmb.dump_combat_state(combat_state)
                         _fm(session, "combat")
 
@@ -4737,6 +4770,7 @@ class LobbyService:
         released_wave_ids = {w["id"] for w in waves if w.get("released")}
 
         entries: list[dict] = []
+        sides_reg = sides.default_sides_registry()
         for item in payload.entries:
             ref = item.ref_id.strip()
             pending = bool(item.initiative_pending) or item.initiative is None
@@ -4745,6 +4779,12 @@ class LobbyService:
                 wid = item.wave_id or wave_by_combatant.get(ref)
                 if wid and wid not in released_wave_ids:
                     continue
+            side = sides.default_side_for_kind(item.kind)
+            # combatant мог уже нести сторону (редко) — подхватить
+            if item.kind == "enemy" and ref in by_id and by_id[ref].get("side"):
+                side = sides.normalize_side_id(
+                    by_id[ref].get("side"), fallback=sides.SIDE_ENEMIES
+                )
             entries.append(
                 {
                     "id": str(uuid4()),
@@ -4757,12 +4797,20 @@ class LobbyService:
                     "dex_mod": item.dex_mod,
                     "wave_id": item.wave_id or wave_by_combatant.get(ref),
                     "defer_to_next_round": False,
+                    "side": side,
+                    "side_hidden": False,
+                    "side_mask": None,
                 }
             )
+            sides_reg = sides.ensure_side_in_registry(sides_reg, side)
         entries = _sort_combat_entries(entries)
         for e in entries:
             if e.get("kind") == "enemy":
                 scmb.enrich_enemy_entry(e, by_id.get(e["ref_id"]))
+                # синхронизировать сторону на combatant
+                c = by_id.get(e["ref_id"])
+                if c is not None:
+                    c["side"] = e.get("side") or sides.SIDE_ENEMIES
 
         session.combatants = list(by_id.values()) if by_id else combatants
         # preserve order of original list with updates
@@ -4786,6 +4834,7 @@ class LobbyService:
                 "entries": entries,
                 "waves": waves,
                 "fallen": [],
+                "sides": sides_reg,
                 "saved_waves": list(
                     (session.combat or {}).get("saved_waves") or []
                 )
@@ -5405,6 +5454,34 @@ class LobbyService:
                             enemy["reaction_hint"] = "Есть ли реакция на этот урон?"
                             state["waiting_reaction"] = True
 
+        # S-05: скрытая сторона раскрывается при враждебном ударе по прежней стороне.
+        attacker_entry = sides.find_entry_for_ref(
+            state, kind="enemy", ref_id=str(attacker.get("id") or "")
+        )
+        target_entry = None
+        if target_kind == "pc":
+            target_entry = sides.find_entry_for_ref(
+                state, kind="pc", ref_id=str(payload.target_ref_id)
+            )
+        elif target_kind == "companion":
+            target_entry = sides.find_entry_for_ref(
+                state,
+                kind="companion",
+                ref_id=str(payload.target_ref_id),
+                companion_id=payload.companion_id,
+            )
+        elif target_kind == "enemy":
+            target_entry = sides.find_entry_for_ref(
+                state, kind="enemy", ref_id=str(payload.target_ref_id)
+            )
+        if hit:
+            sides.maybe_reveal_on_hostile(
+                state,
+                actor_entry=attacker_entry,
+                target_entry=target_entry,
+                target_kind=target_kind,
+            )
+
         # КД врага игрокам не светим в ленте
         feed_line = s04.format_feed_line(
             actor=actor_name,
@@ -5635,6 +5712,11 @@ class LobbyService:
                     "dex_mod": c.get("dex_mod") if isinstance(c.get("dex_mod"), int) else None,
                     "wave_id": wave["id"],
                     "defer_to_next_round": False,
+                    "side": sides.normalize_side_id(
+                        c.get("side"), fallback=sides.SIDE_ENEMIES
+                    ),
+                    "side_hidden": bool(c.get("side_hidden")),
+                    "side_mask": None,
                 }
                 # ведущий может сразу задать инициативу через entries отдельно;
                 # здесь — «ждём бросок» / ввод мастером
@@ -5688,6 +5770,76 @@ class LobbyService:
                 if payload.dice_on_table is not None
                 else not bool(state.get("dice_on_table"))
             )
+            session.combat = scmb.dump_combat_state(state)
+            flag_modified(session, "combat")
+            self.db.commit()
+            detail = self._session_detail(session, lobby, user)
+            await _broadcast_session_changed(session.id)
+            return detail
+
+        if payload.action in {"set_side", "reveal_side"}:
+            # Только can_run_session (уже через _require_session_owner).
+            if not state.get("active"):
+                raise AppError("Бой не начат", code="combat_inactive", status_code=400)
+            entry_id = (payload.entry_id or "").strip()
+            if not entry_id:
+                raise AppError("Укажите entry_id", code="entry_id_required", status_code=400)
+            entry = sides.find_entry_by_id(state, entry_id)
+            if entry is None:
+                raise NotFoundError("Участник боя не найден", code="combat_entry_not_found")
+            sides_reg = sides.parse_sides_registry(state.get("sides"))
+            if payload.action == "reveal_side":
+                sides.reveal_entry_side(entry)
+            else:
+                side_raw = (payload.side or "").strip()
+                label = (payload.side_label or "").strip() or None
+                if not side_raw and label:
+                    side_raw = sides.slugify_side_label(label)
+                if not side_raw:
+                    raise AppError("Укажите сторону", code="side_required", status_code=400)
+                existing_ids = {s["id"] for s in sides_reg}
+                # уже известный id — как есть; иначе ярлык → slug
+                if side_raw in existing_ids or side_raw in sides.DEFAULT_SIDE_LABELS:
+                    side_id = side_raw
+                elif sides.looks_like_side_id(side_raw):
+                    side_id = sides.normalize_side_id(side_raw)
+                else:
+                    if not label:
+                        label = side_raw
+                    side_id = sides.slugify_side_label(label or side_raw)
+                if not side_id:
+                    raise AppError("Некорректная сторона", code="side_invalid", status_code=400)
+                # новая сторона — добавить в реестр
+                if side_id not in existing_ids:
+                    if not label and side_id not in sides.DEFAULT_SIDE_LABELS:
+                        label = side_id
+                    # коллизия slug → суффикс
+                    base = side_id
+                    n = 2
+                    while side_id in existing_ids:
+                        side_id = f"{base}_{n}"[:32]
+                        n += 1
+                    sides_reg = sides.ensure_side_in_registry(sides_reg, side_id, label)
+                elif label:
+                    sides_reg = sides.ensure_side_in_registry(sides_reg, side_id, label)
+                sides.set_entry_side(
+                    entry,
+                    side=side_id,
+                    side_hidden=(
+                        bool(payload.side_hidden)
+                        if payload.side_hidden is not None
+                        else bool(entry.get("side_hidden"))
+                    ),
+                )
+                if entry.get("kind") == "enemy":
+                    by_c = {str(c.get("id")): c for c in combatants}
+                    c = by_c.get(str(entry.get("ref_id")))
+                    if c is not None:
+                        c["side"] = side_id
+                        c["side_hidden"] = bool(entry.get("side_hidden"))
+                        session.combatants = combatants
+                        flag_modified(session, "combatants")
+            state["sides"] = sides_reg
             session.combat = scmb.dump_combat_state(state)
             flag_modified(session, "combat")
             self.db.commit()

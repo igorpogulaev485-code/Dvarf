@@ -7,6 +7,7 @@ from typing import Any, Literal
 from uuid import UUID
 
 from app.services import session_combat as scmb
+from app.services import session_sides as sides
 from app.services.campaign_rules import homebrew_enabled
 from app.services.session_table_s03 import normalize_damage_type
 
@@ -385,19 +386,57 @@ def build_combat_targets(
 ) -> list[dict]:
     """
     Контракт для T-01/T-02 и атаки врага.
-    side / is_ally — крючок под S-05 (пока party vs enemies).
+    side / is_ally — S-05: сторона из очереди; is_ally относительно зрителя.
     """
     filtered_state, visible_combatants = scmb.filter_combat_for_viewer(
         combat_state, combatants, see_hidden=see_hidden
     )
-    del filtered_state  # visible entries not required for target list shape
+    # Сторона актёра: ПК зрителя (истинная для механики; видимая — для чужих масок).
+    viewer_side = sides.SIDE_PARTY
+    viewer_uid = str(viewer_user_id) if viewer_user_id else None
+    for seat in seats:
+        if viewer_uid and str(seat.get("user_id") or "") == viewer_uid:
+            pc_entry = sides.find_entry_for_ref(
+                combat_state,
+                kind="pc",
+                ref_id=str(seat.get("character_id") or seat.get("id") or ""),
+            )
+            viewer_side = sides.true_side(pc_entry, kind_fallback="pc")
+            break
+    else:
+        # мастер / без места: «свои» = Партия (атака врага целится в !is_ally)
+        viewer_side = sides.SIDE_PARTY
+
     targets: list[dict] = []
+
+    def _row_side_and_ally(kind: str, ref_id: str, companion_id: str | None = None) -> tuple[str, bool]:
+        entry = sides.find_entry_for_ref(
+            combat_state, kind=kind, ref_id=ref_id, companion_id=companion_id
+        )
+        # Видимая сторона для UI; is_ally по истине для мастера/сервера,
+        # для игрока скрытый предатель остаётся «своим» в списке до раскрытия.
+        vis = sides.visible_side(entry, see_hidden=see_hidden, kind_fallback=kind)
+        if see_hidden:
+            ally = sides.is_ally_of(
+                viewer_side, entry, use_true=True, kind_fallback=kind
+            )
+        else:
+            ally = sides.is_same_side(viewer_side, vis) or sides.is_ally_of(
+                viewer_side, entry, use_true=False, see_hidden=False, kind_fallback=kind
+            )
+            # если у зрителя истинная сторона уже не party — считаем по истине
+            if viewer_side != sides.SIDE_PARTY:
+                ally = sides.is_ally_of(
+                    viewer_side, entry, use_true=True, kind_fallback=kind
+                )
+        return vis, ally
 
     for seat in seats:
         cid = str(seat.get("character_id") or seat.get("id") or "")
         if not cid:
             continue
         conditions = list(seat.get("conditions") or [])
+        side, is_ally = _row_side_and_ally("pc", cid)
         targets.append(
             {
                 "id": cid,
@@ -408,8 +447,8 @@ def build_combat_targets(
                 "hp_max": seat.get("hp_max"),
                 "ac": seat.get("ac"),
                 "conditions": conditions,
-                "side": "party",
-                "is_ally": True,
+                "side": side,
+                "is_ally": is_ally,
                 "user_id": str(seat["user_id"]) if seat.get("user_id") else None,
                 "companion_id": None,
                 "member_id": None,
@@ -421,6 +460,7 @@ def build_combat_targets(
             comp_id = str(companion.get("id") or "")
             if not comp_id:
                 continue
+            c_side, c_ally = _row_side_and_ally("companion", cid, comp_id)
             targets.append(
                 {
                     "id": f"{cid}:{comp_id}",
@@ -432,8 +472,8 @@ def build_combat_targets(
                     "hp_max": companion.get("hp_max"),
                     "ac": companion.get("ac"),
                     "conditions": list(companion.get("conditions") or []),
-                    "side": "party",
-                    "is_ally": True,
+                    "side": c_side,
+                    "is_ally": c_ally,
                     "user_id": str(seat["user_id"]) if seat.get("user_id") else None,
                     "member_id": None,
                 }
@@ -443,6 +483,20 @@ def build_combat_targets(
         cid = str(c.get("id") or "")
         if not cid:
             continue
+        # сторона врага: entry или поле combatant
+        enemy_entry = sides.find_entry_for_ref(combat_state, kind="enemy", ref_id=cid)
+        side_src = enemy_entry if enemy_entry is not None else {
+            "kind": "enemy",
+            "side": c.get("side") or sides.SIDE_ENEMIES,
+            "side_hidden": c.get("side_hidden"),
+        }
+        e_vis = sides.visible_side(side_src, see_hidden=see_hidden, kind_fallback="enemy")
+        if see_hidden:
+            e_ally = sides.is_ally_of(
+                viewer_side, side_src, use_true=True, kind_fallback="enemy"
+            )
+        else:
+            e_ally = sides.is_same_side(viewer_side, e_vis)
         members = c.get("members") if isinstance(c.get("members"), list) else []
         if members:
             for m in members:
@@ -462,8 +516,8 @@ def build_combat_targets(
                         "hp_max": m.get("hp_max") if see_hidden or c.get("statblock_revealed") else None,
                         "ac": c.get("ac") if see_hidden else None,
                         "conditions": list(c.get("conditions") or []),
-                        "side": "enemies",
-                        "is_ally": False,
+                        "side": e_vis,
+                        "is_ally": e_ally,
                         "user_id": None,
                         "companion_id": None,
                     }
@@ -480,12 +534,13 @@ def build_combat_targets(
                     "hp_max": c.get("hp_max") if see_hidden or c.get("statblock_revealed") else None,
                     "ac": c.get("ac") if see_hidden else None,
                     "conditions": list(c.get("conditions") or []),
-                    "side": "enemies",
-                    "is_ally": False,
+                    "side": e_vis,
+                    "is_ally": e_ally,
                     "user_id": None,
                     "companion_id": None,
                 }
             )
+    del filtered_state
     return targets
 
 

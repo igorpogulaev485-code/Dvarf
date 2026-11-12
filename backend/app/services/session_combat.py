@@ -10,6 +10,7 @@ import random
 from uuid import uuid4
 
 from app.services.sheet_effects import parse_effects
+from app.services import session_sides as sides
 
 
 def ability_mod(score: int | None) -> int:
@@ -161,6 +162,7 @@ def _parse_entry(item: dict) -> dict | None:
             pending = True
             initiative = None
     wave_id = item.get("wave_id")
+    side_fields = sides.entry_side_fields_from_raw({**item, "kind": kind})
     return {
         "id": str(item.get("id") or "").strip() or str(uuid4()),
         "kind": kind,
@@ -187,6 +189,7 @@ def _parse_entry(item: dict) -> dict | None:
             if isinstance(item.get("member_tones"), list)
             else []
         ),
+        **side_fields,
     }
 
 
@@ -248,6 +251,7 @@ def parse_combat_state(raw: object, *, combatants: list[dict] | None = None) -> 
             "waves": waves,
             "fallen": [],
             "saved_waves": [],
+            "sides": sides.default_sides_registry(),
         }
 
     entries: list[dict] = []
@@ -304,6 +308,11 @@ def parse_combat_state(raw: object, *, combatants: list[dict] | None = None) -> 
     if pending_fumble is not None and not isinstance(pending_fumble, dict):
         pending_fumble = None
 
+    sides_reg = sides.parse_sides_registry(raw.get("sides"))
+    # подтянуть стороны из entries в реестр
+    for e in entries:
+        sides_reg = sides.ensure_side_in_registry(sides_reg, sides.true_side(e))
+
     return {
         "active": active,
         "round": max(1, int(raw.get("round") or 1)),
@@ -323,6 +332,7 @@ def parse_combat_state(raw: object, *, combatants: list[dict] | None = None) -> 
         "waves": waves,
         "fallen": fallen if active else [],
         "saved_waves": saved_waves,
+        "sides": sides_reg,
     }
 
 
@@ -407,6 +417,10 @@ def filter_combat_for_viewer(
         for e in state.get("entries") or []
         if not (e.get("kind") == "enemy" and e.get("ref_id") in hidden_combatant_ids)
     ]
+    # S-05: игроку скрытая сторона маскируется; мастер видит истину.
+    entries = [
+        sides.redact_entry_sides_for_viewer(e, see_hidden=see_hidden) for e in entries
+    ]
     fallen = list(state.get("fallen") or []) if see_hidden else []
     out = {
         **state,
@@ -414,6 +428,7 @@ def filter_combat_for_viewer(
         "entries": entries,
         "fallen": fallen,
         "saved_waves": list(state.get("saved_waves") or []) if see_hidden else [],
+        "sides": sides.parse_sides_registry(state.get("sides")),
     }
     # поправить active_index после фильтра
     if out["entries"]:
@@ -424,6 +439,10 @@ def filter_combat_for_viewer(
 
 
 def dump_combat_state(state: dict) -> dict:
+    entries = list(state.get("entries") or [])
+    sides_reg = sides.parse_sides_registry(state.get("sides"))
+    for e in entries:
+        sides_reg = sides.ensure_side_in_registry(sides_reg, sides.true_side(e))
     return {
         "active": bool(state.get("active")),
         "round": max(1, int(state.get("round") or 1)),
@@ -433,10 +452,11 @@ def dump_combat_state(state: dict) -> dict:
         "reaction_character_id": state.get("reaction_character_id"),
         "reaction_hint": state.get("reaction_hint"),
         "pending_fumble": state.get("pending_fumble"),
-        "entries": list(state.get("entries") or []),
+        "entries": entries,
         "waves": list(state.get("waves") or []),
         "fallen": list(state.get("fallen") or []),
         "saved_waves": list(state.get("saved_waves") or []),
+        "sides": sides_reg,
     }
 
 
@@ -454,6 +474,7 @@ def empty_combat(*, saved_waves: list[dict] | None = None) -> dict:
         "waves": [],
         "fallen": [],
         "saved_waves": list(saved_waves or []),
+        "sides": sides.default_sides_registry(),
     }
 
 

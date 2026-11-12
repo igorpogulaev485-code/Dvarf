@@ -46,6 +46,10 @@ type Props = {
   yourTurn?: boolean
   /** Заглушка экономики хода до T-01 */
   showTurnEconomyStub?: boolean
+  /** S-05: подпись стороны (ведущему — истина) */
+  sideLabelText?: string | null
+  sideHidden?: boolean
+  onSideClick?: () => void
 }
 
 function CompanionCard({
@@ -208,6 +212,9 @@ export function SessionTableCard({
   onDeathSavesChange,
   yourTurn = false,
   showTurnEconomyStub = false,
+  sideLabelText = null,
+  sideHidden = false,
+  onSideClick,
 }: Props) {
   const profile = normalizeVisibilityProfile(visibility)
   const fields = profile.fields
@@ -352,6 +359,24 @@ export function SessionTableCard({
                 Благочестие ±
                 {seat.piety_score != null ? ` · ${seat.piety_score}` : ''}
               </button>
+            ) : null}
+            {masterControls && onSideClick ? (
+              <button
+                type="button"
+                className="session-side-btn"
+                disabled={busy}
+                aria-label="Сторона"
+                title="Сторона в бою"
+                onClick={onSideClick}
+              >
+                Сторона
+                {sideLabelText ? ` · ${sideLabelText}` : ''}
+                {sideHidden ? ' · скрыта' : ''}
+              </button>
+            ) : sideLabelText ? (
+              <span className="session-side-chip" title="Сторона">
+                {sideLabelText}
+              </span>
             ) : null}
           </div>
 

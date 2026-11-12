@@ -522,6 +522,11 @@ export type SessionCombatant = {
 
 export type CombatEntryKind = 'pc' | 'companion' | 'enemy'
 
+export type CombatSide = {
+  id: string
+  label: string
+}
+
 export type CombatEntry = {
   id: string
   kind: CombatEntryKind | string
@@ -536,6 +541,10 @@ export type CombatEntry = {
   alive_count?: number | null
   member_count?: number | null
   member_tones?: string[]
+  /** S-05 */
+  side?: string
+  side_hidden?: boolean
+  retained_after_kick?: string | null
 }
 
 export type CombatWave = {
@@ -576,6 +585,8 @@ export type SessionCombat = {
   fallen?: CombatFallen[]
   saved_waves?: CombatWave[]
   wave_reminders?: CombatWaveReminder[]
+  /** S-05: реестр сторон */
+  sides?: CombatSide[]
 }
 
 export type SessionLorePage = {
@@ -1407,6 +1418,8 @@ export async function patchSessionCombat(
       | 'set_waiting_reaction'
       | 'set_dice_on_table'
       | 'resolve_fumble'
+      | 'set_side'
+      | 'reveal_side'
       | null
     active_index?: number
     round?: number
@@ -1419,6 +1432,11 @@ export async function patchSessionCombat(
     waiting_reaction?: boolean
     dice_on_table?: boolean
     fumble_consequence_id?: string | null
+    /** S-05 */
+    entry_id?: string
+    side?: string
+    side_label?: string | null
+    side_hidden?: boolean | null
   },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(`/sessions/${sessionId}/combat`, {

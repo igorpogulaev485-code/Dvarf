@@ -29,6 +29,8 @@ import { SettingTableRevealDialog } from '../features/lobby/SettingTableRevealDi
 import { draftFromCombatant, type SettingHandoffDraft } from '../features/lobby/settingHandoff'
 import { StartCombatDialog } from '../features/lobby/StartCombatDialog'
 import { EndCombatDialog } from '../features/lobby/EndCombatDialog'
+import { SideSwitchDialog } from '../features/lobby/SideSwitchDialog'
+import { sideLabel as combatSideLabel } from '../features/lobby/combatSides'
 import { InitiativeRollDialog } from '../features/lobby/InitiativeRollDialog'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
@@ -154,6 +156,7 @@ export function SessionDetailPage() {
   const [combatEndOpen, setCombatEndOpen] = useState(false)
   const [endCombatThenClose, setEndCombatThenClose] = useState(false)
   const [initRollEntry, setInitRollEntry] = useState<CombatEntry | null>(null)
+  const [sideEntry, setSideEntry] = useState<CombatEntry | null>(null)
   const [xpOpen, setXpOpen] = useState(false)
   const [lootOpenAfterXp, setLootOpenAfterXp] = useState(false)
   const [pietySeatId, setPietySeatId] = useState<string | null>(null)
@@ -777,6 +780,7 @@ export function SessionDetailPage() {
                         setSession(updated)
                       })
                     }}
+                    onSideClick={(entry) => setSideEntry(entry)}
                   />
                 ) : (
                   <Text tone="muted">Бой ещё не начат — очередь появится здесь.</Text>
@@ -1141,6 +1145,7 @@ export function SessionDetailPage() {
                         setSession(updated)
                       })
                     }}
+                    onSideClick={(entry) => setSideEntry(entry)}
                   />
                     ) : null}
                   </div>
@@ -1171,6 +1176,31 @@ export function SessionDetailPage() {
                           isOwner={isOwn && !session.closed_at && !session.is_observer}
                           busy={busy}
                           sheetLabel={canRun && !isOwn ? 'Смотреть' : 'Лист'}
+                          sideLabelText={(() => {
+                            const entry = session.combat?.entries?.find(
+                              (e) => e.kind === 'pc' && e.ref_id === seat.character_id,
+                            )
+                            return entry
+                              ? combatSideLabel(entry.side, session.combat?.sides)
+                              : session.combat?.active
+                                ? combatSideLabel('party', session.combat?.sides)
+                                : null
+                          })()}
+                          sideHidden={Boolean(
+                            session.combat?.entries?.find(
+                              (e) => e.kind === 'pc' && e.ref_id === seat.character_id,
+                            )?.side_hidden,
+                          )}
+                          onSideClick={
+                            canRun && session.combat?.active && !session.closed_at
+                              ? () => {
+                                  const entry = session.combat?.entries?.find(
+                                    (e) => e.kind === 'pc' && e.ref_id === seat.character_id,
+                                  )
+                                  if (entry) setSideEntry(entry)
+                                }
+                              : undefined
+                          }
                           onToggleInspiration={(next) => {
                             void run(async () => {
                               const updated = await patchSeatCombat(
@@ -1315,6 +1345,31 @@ export function SessionDetailPage() {
                           masterControls={canRun && !session.closed_at}
                           forceAbilitiesOpen={Boolean(isActiveTurn && canRun)}
                           busy={busy}
+                          sideLabelText={(() => {
+                            const entry = session.combat?.entries?.find(
+                              (e) => e.kind === 'enemy' && e.ref_id === enemy.id,
+                            )
+                            return entry
+                              ? combatSideLabel(entry.side, session.combat?.sides)
+                              : session.combat?.active
+                                ? combatSideLabel('enemies', session.combat?.sides)
+                                : null
+                          })()}
+                          sideHidden={Boolean(
+                            session.combat?.entries?.find(
+                              (e) => e.kind === 'enemy' && e.ref_id === enemy.id,
+                            )?.side_hidden,
+                          )}
+                          onSideClick={
+                            canRun && session.combat?.active && !session.closed_at
+                              ? () => {
+                                  const entry = session.combat?.entries?.find(
+                                    (e) => e.kind === 'enemy' && e.ref_id === enemy.id,
+                                  )
+                                  if (entry) setSideEntry(entry)
+                                }
+                              : undefined
+                          }
                           canSaveToSetting={Boolean(
                             canRun &&
                               !session.closed_at &&
@@ -1967,6 +2022,39 @@ export function SessionDetailPage() {
         onConfirm={(payload) => {
           void run(async () => {
             await finishCombat(payload)
+          })
+        }}
+      />
+
+      <SideSwitchDialog
+        open={sideEntry != null}
+        busy={busy}
+        entry={sideEntry}
+        sides={session.combat?.sides ?? []}
+        onClose={() => setSideEntry(null)}
+        onReveal={(entryId) => {
+          void run(async () => {
+            const updated = await patchSessionCombat(session.id, {
+              action: 'reveal_side',
+              entry_id: entryId,
+            })
+            setSession(updated)
+            setSideEntry(null)
+            setToast('Сторона раскрыта')
+          })
+        }}
+        onSubmit={(payload) => {
+          void run(async () => {
+            const updated = await patchSessionCombat(session.id, {
+              action: 'set_side',
+              entry_id: payload.entry_id,
+              side: payload.side,
+              side_label: payload.side_label,
+              side_hidden: payload.side_hidden,
+            })
+            setSession(updated)
+            setSideEntry(null)
+            setToast('Сторона обновлена')
           })
         }}
       />

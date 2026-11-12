@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { CombatantAction, SessionCombatant, SessionDetail } from '../../shared/api/lobbies'
 import { Button, Dialog, Field, NumberInput, Stack, Text } from '../../ui'
-import { targetsFromSession, type CombatTarget } from './combatTargets'
+import { SIDE_ENEMIES, findEntrySide } from './combatSides'
+import {
+  defaultHostileTargets,
+  targetsFromSession,
+  type CombatTarget,
+} from './combatTargets'
 
 export type EnemyAttackSubmit = {
   attacker_combatant_id: string
@@ -54,9 +59,19 @@ export function EnemyAttackDialog({
   onClose,
   onSubmit,
 }: Props) {
-  const targets = useMemo(() => targetsFromSession(session), [session])
-  const partyTargets = targets.filter((t) => t.side === 'party')
-  const defaultTarget = partyTargets[0] ?? targets[0] ?? null
+  const attackerSide = useMemo(() => {
+    if (!combatant) return SIDE_ENEMIES
+    return (
+      findEntrySide(session.combat, 'enemy', combatant.id) ||
+      SIDE_ENEMIES
+    )
+  }, [combatant, session.combat])
+  const targets = useMemo(
+    () => targetsFromSession(session, { actorSide: attackerSide }),
+    [session, attackerSide],
+  )
+  const hostile = defaultHostileTargets(targets, attackerSide)
+  const defaultTarget = hostile[0] ?? targets[0] ?? null
 
   const [targetId, setTargetId] = useState(defaultTarget?.id ?? '')
   const [attackTotal, setAttackTotal] = useState<number | null>(null)
@@ -165,6 +180,7 @@ export function EnemyAttackDialog({
               <option key={t.id} value={t.id}>
                 {t.name}
                 {t.kind === 'enemy' ? ' (враг)' : t.kind === 'companion' ? ' (напарник)' : ''}
+                {t.is_ally ? ' · свой' : ''}
                 {t.ac != null && t.kind !== 'enemy' ? ` · КД ${t.ac}` : ''}
               </option>
             ))}

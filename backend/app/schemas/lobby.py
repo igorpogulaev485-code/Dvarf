@@ -940,6 +940,13 @@ class SessionCombatantOut(BaseModel):
     last_damage_note: str | None = None
 
 
+class CombatSideOut(BaseModel):
+    """S-05: сторона в реестре боя."""
+
+    id: str
+    label: str
+
+
 class CombatEntryOut(BaseModel):
     id: str
     kind: str  # pc | companion | enemy
@@ -955,6 +962,10 @@ class CombatEntryOut(BaseModel):
     member_count: int | None = None
     """ok | warn | down — цвета состояния членов группы в очереди."""
     member_tones: list[str] = Field(default_factory=list)
+    """S-05: сторона (игроку — видимая маска, если скрыта)."""
+    side: str = "party"
+    side_hidden: bool = False
+    retained_after_kick: str | None = None
 
 
 class CombatWaveOut(BaseModel):
@@ -997,6 +1008,8 @@ class SessionCombatOut(BaseModel):
     fallen: list[CombatFallenOut] = Field(default_factory=list)
     saved_waves: list[CombatWaveOut] = Field(default_factory=list)
     wave_reminders: list[CombatWaveReminderOut] = Field(default_factory=list)
+    """S-05: реестр сторон боя (Партия / Враги / …)."""
+    sides: list[CombatSideOut] = Field(default_factory=list)
 
 
 class CombatEntryInput(BaseModel):
@@ -1031,7 +1044,7 @@ class CombatPatchRequest(BaseModel):
 
     action: str | None = None
     # next | prev | end | release_wave | restore_fallen | set_waiting_reaction
-    # | set_dice_on_table | resolve_fumble
+    # | set_dice_on_table | resolve_fumble | set_side | reveal_side
     active_index: int | None = Field(default=None, ge=0)
     round: int | None = Field(default=None, ge=1)
     entries: list[CombatEntryInput] | None = None
@@ -1047,6 +1060,14 @@ class CombatPatchRequest(BaseModel):
     dice_on_table: bool | None = None
     """S-04: id последствия fumble (drop_weapon | hit_ally | lose_reaction)."""
     fumble_consequence_id: str | None = Field(default=None, max_length=40)
+    """S-05: id записи очереди для set_side / reveal_side."""
+    entry_id: str | None = Field(default=None, max_length=80)
+    """S-05: сторона (party / enemies / id из реестра / новый slug)."""
+    side: str | None = Field(default=None, max_length=40)
+    """S-05: ярлык новой стороны (Культисты)."""
+    side_label: str | None = Field(default=None, max_length=80)
+    """S-05: скрыть истинную сторону до раскрытия."""
+    side_hidden: bool | None = None
 
 
 class CombatInitiativeRequest(BaseModel):
