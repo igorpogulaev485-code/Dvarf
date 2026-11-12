@@ -334,4 +334,68 @@ const wizardHoldsPearl = aggregateGearEffects({
 })
 assert(wizardHoldsPearl.acBonus === 1, 'a wizard keeps the pearl bonus')
 
+const orcsplitter = item({
+  name: 'Рассекатель орков',
+  catalog_slug: 'orcsplitter',
+  attunement_alternatives: [
+    { races: ['dwarf'] },
+    { classes: ['fighter'] },
+    { classes: ['paladin'], alignments: ['good'] },
+  ],
+  effects: [{ type: 'attack_bonus', value: 2 }],
+})
+const scissors = item({
+  name: 'Ножницы, отсекающие тени',
+  catalog_slug: 'scissors_of_shadow_snipping',
+  attunement_alternatives: [
+    { races: ['fairy', 'satyr', 'centaur'] },
+    { spellcaster: true },
+  ],
+  effects: [{ type: 'custom_note', text: 'тень' }],
+})
+
+function gate(subject: InventoryItem, character: AttunementCharacter) {
+  return attunementChoiceReason({
+    item: subject,
+    slots: [slot],
+    items: [subject],
+    currentSlotId: slot.id,
+    character,
+  })
+}
+
+const evilPaladin: AttunementCharacter = {
+  ...fighter,
+  classes: [cls('Паладин', 5)],
+  alignmentSlug: 'lawful_evil',
+}
+const goodPaladin: AttunementCharacter = { ...evilPaladin, alignmentSlug: 'lawful_good' }
+const dwarfWizard: AttunementCharacter = {
+  ...dwarf,
+  classes: [cls('Волшебник', 5)],
+  alignmentSlug: 'neutral',
+}
+const fairy: AttunementCharacter = {
+  ...fighter,
+  classes: [cls('Варвар', 3)],
+  raceCatalogId: 'fairy',
+  raceSlug: 'fairy',
+  raceParentSlug: null,
+}
+
+assert(!gate(orcsplitter, fighter).blocked, 'fighter attunes Orcsplitter')
+assert(!gate(orcsplitter, dwarfWizard).blocked, 'dwarf attunes Orcsplitter')
+assert(!gate(orcsplitter, goodPaladin).blocked, 'good paladin attunes Orcsplitter')
+assert(gate(orcsplitter, evilPaladin).blocked, 'evil paladin does not attune Orcsplitter')
+assert(gate(orcsplitter, who('Волшебник', 5)).blocked, 'human wizard does not attune Orcsplitter')
+assert(!gate(orcsplitter, { ...thief, alignmentSlug: 'chaotic_evil' }).blocked, 'thief 13 bypasses race and class')
+assert(!gate(scissors, fairy).blocked, 'fairy attunes the scissors')
+assert(!gate(scissors, who('Волшебник', 1)).blocked, 'spellcaster attunes the scissors')
+assert(gate(scissors, fighter).blocked, 'fighter does not attune the scissors')
+assert(!gate(scissors, thief).blocked, 'thief 13 bypasses fey and spellcaster')
+assert(
+  !gate(hammer, dwarf).blocked,
+  'a plain race gate still works beside the OR rules',
+)
+
 console.log('attunementRules.selfcheck: ok')

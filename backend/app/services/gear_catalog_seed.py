@@ -30,7 +30,7 @@ _migration_logger = logging.getLogger("alembic.runtime.migration")
 
 GEAR_KINDS = frozenset({"item", "weapon", "armor"})
 MAGIC_RARITIES = frozenset(
-    {"common", "uncommon", "rare", "very_rare", "legendary", "artifact"}
+    {"common", "uncommon", "rare", "very_rare", "legendary", "artifact", "varies"}
 )
 CATALOG_NAMESPACE = uuid.NAMESPACE_URL
 
@@ -75,6 +75,7 @@ GEAR_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("gear_xge_tce_fill_v1.json"),
     WaveSpec("gear_settings_fill_v1.json"),
     WaveSpec("gear_other_fill_1_v1.json"),
+    WaveSpec("gear_other_fill_2_v1.json"),
 )
 
 # Audited active-magic count after the I22 hide (docs/items-audit/count.md).

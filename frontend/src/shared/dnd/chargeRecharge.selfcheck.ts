@@ -39,4 +39,21 @@ const rested = applyLongRest({
 assert(rested.resources.find((row) => row.id === 'a')!.used === 0, 'long pool still refills')
 assert((rested.rechargeLines ?? []).some((line) => line.includes('Посох мага')), 'dawn line on long rest')
 
+const jewel: SheetResource = {
+  id: 'gear-res:jewel:charges',
+  name: 'Драгоценность трёх молитв (пробуждённая): заряды',
+  max: 5,
+  used: 4,
+  reset: 'dawn',
+  rechargeDice: '3',
+}
+const fixed = rechargeFormulaResources([jewel], () => 0.99)
+assert(fixed.resources[0]!.used === 1, 'fixed 3 restores 1+3, not the whole pool')
+assert(fixed.lines[0]!.includes('3 = 3'), fixed.lines[0]!)
+assert(fixed.lines[0]!.includes('1 → 4'), fixed.lines[0]!)
+
+const full: SheetResource = { ...jewel, id: 'full', max: 3, used: 3, rechargeDice: undefined }
+const refilled = rechargeFormulaResources([full])
+assert(refilled.resources[0]!.used === 0, 'dawn without a formula still refills')
+
 console.log('chargeRecharge.selfcheck: ok')

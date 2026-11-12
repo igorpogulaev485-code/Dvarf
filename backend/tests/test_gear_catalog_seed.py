@@ -729,3 +729,92 @@ def test_i06_refresh_keeps_chosen_base_and_stamps_legacy(planned: list[GearRecor
     assert kept["base_armor_slug"] == "chain_mail"
     _again_armor, armor_changed = refresh_character_sheet(kept_sheet, planned)
     assert armor_changed == 0
+
+
+def test_i09_other_books_and_i08_tails(planned: list[GearRecord]) -> None:
+    """I09 fills the remaining adventure cards and closes the I08 tails."""
+    changes, stats = diff_gear_catalog(planned)
+    assert changes == []
+    assert stats.inserted == 0
+    assert stats.updated == 0
+
+    added = [row for row in planned if row.sort_order >= 13301]
+    assert len(added) == 162
+    assert len({row.slug for row in added}) == 162
+
+    skull = _by_slug(planned, "amulet_of_the_black_skull")
+    assert skull.data["rarity"] == "very_rare"
+    assert skull.data["requires_attunement"] is True
+    assert skull.data["charges"] == {"max": 6, "restore": "dawn", "recharge_dice": "1d6"}
+
+    bone = _by_slug(planned, "saint_markovias_thighbone")
+    assert bone.kind == "weapon"
+    assert bone.data["rarity"] == "rare"
+    assert bone.data["requires_attunement"] is True
+    assert bone.data["base_weapon_slug"] == "mace"
+
+    spear = _by_slug(planned, "blood_spear")
+    assert spear.data["rarity"] == "uncommon"
+    assert spear.data["requires_attunement"] is True
+    assert spear.data["magic_bonus"] == 2
+    assert spear.data["base_weapon_slug"] == "spear"
+
+    crystal = _by_slug(planned, "stonespeaker_crystal")
+    assert crystal.data["rarity"] == "rare"
+    assert crystal.data["requires_attunement"] is True
+    assert crystal.data["charges"]["recharge_dice"] == "1d6+4"
+
+    scroll = _by_slug(planned, "nether_scroll_of_azumar")
+    assert scroll.data["rarity"] == "legendary"
+    assert scroll.data["requires_attunement"] is False
+
+    assert sum(1 for row in planned if row.slug == WAND_SLUG) == 1
+    assert not any(row.slug == "wand_of_viscid_globs" and row.is_active for row in planned)
+    assert _by_slug(planned, "spider_staff").data["source_book"] == "LMOP"
+    assert _by_slug(planned, "staff_of_defense").data["source_book"] == "LMOP"
+
+    orc = _by_slug(planned, "orcsplitter")
+    assert orc.data["attunement_alternatives"] == [
+        {"races": ["dwarf"]},
+        {"classes": ["fighter"]},
+        {"classes": ["paladin"], "alignments": ["good"]},
+    ]
+    jewel = _by_slug(planned, "jewel_of_three_prayers_awakened")
+    assert jewel.data["charges"]["recharge_dice"] == "3"
+    assert jewel.data["family_slug"] == "jewel_of_three_prayers"
+    exalted = _by_slug(planned, "jewel_of_three_prayers_exalted")
+    assert exalted.data["charges"]["recharge_dice"] == "3"
+    assert _by_slug(planned, "faerie_dust").name_ru == "Пыль пикси"
+    assert _by_slug(planned, "pixie_dust").name_ru == "Пыльца пикси"
+    assert _by_slug(planned, "faerie_dust").slug != _by_slug(planned, "pixie_dust").slug
+    thrower = _by_slug(planned, "elven_thrower")
+    assert thrower.data["base_weapon_slug"] == "spear"
+    assert thrower.data["magic_bonus"] == 3
+    assert "2к8" in thrower.data["description_ru"]
+    assert _by_slug(planned, "living_loot_satchel").data["rarity"] == "varies"
+    hidden = [row for row in planned if row.slug in I22_DEACTIVATE_SLUGS]
+    assert len(hidden) == 13
+    assert all(not row.is_active for row in hidden)
+
+    sheet = {
+        "inventory": {
+            "items": [
+                {
+                    "id": "axe",
+                    "name": "Рассекатель орков",
+                    "catalog_id": orc.id,
+                    "catalog_slug": "orcsplitter",
+                    "notes": "мой",
+                    "effects": [],
+                }
+            ]
+        },
+        "resources": [],
+    }
+    updated, changed = refresh_character_sheet(sheet, planned)
+    row = updated["inventory"]["items"][0]
+    assert row["notes"] == "мой"
+    assert row["attunement_alternatives"][2]["classes"] == ["paladin"]
+    assert changed == 1
+    _again, changed_again = refresh_character_sheet(updated, planned)
+    assert changed_again == 0

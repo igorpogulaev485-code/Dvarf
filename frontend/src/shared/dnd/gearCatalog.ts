@@ -26,6 +26,8 @@ export const GEAR_RARITIES = [
   'legendary',
   'artifact',
   'none',
+  /** Acquisitions Incorporated and a few adventure gems: rarity depends on the copy. */
+  'varies',
 ] as const
 export type GearRarity = (typeof GEAR_RARITIES)[number]
 
@@ -619,6 +621,7 @@ export const GEAR_RARITY_LABEL_RU: Record<GearRarity, string> = {
   legendary: 'легендарный',
   artifact: 'артефакт',
   none: 'без редкости',
+  varies: 'редкость варьируется',
 }
 
 function readProperties(value: unknown): string[] {
