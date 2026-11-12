@@ -36,6 +36,8 @@ type ClassSetupDialogProps = {
   edition: RulesEdition
   onConfirm: (picks: ClassGrantPicks) => void
   onClose: () => void
+  /** L-16: принудительный стартовый набор (снаряжение / золото). */
+  forcedStartingKit?: 'class_equipment' | 'class_gold' | 'fixed_gold' | null
 }
 
 function skillLabel(key: string): string {
@@ -62,6 +64,7 @@ export function ClassSetupDialog({
   edition,
   onConfirm,
   onClose,
+  forcedStartingKit = null,
 }: ClassSetupDialogProps) {
   const pkg = def ? packageForMode(def, mode) : null
   const skillNeed = pkg?.skillChoices?.count ?? 0
@@ -72,7 +75,14 @@ export function ClassSetupDialog({
   }, [def, mode])
   const toolOptions = def ? packageForMode(def, mode).toolChoices?.from ?? [] : []
   const equipmentLines = def && mode === 'start' ? equipmentLinesFor(def) : []
-  const equipmentPackages = def && mode === 'start' ? equipmentPackagesFor(def) : []
+  const allEquipmentPackages = def && mode === 'start' ? equipmentPackagesFor(def) : []
+  const equipmentPackages = useMemo(() => {
+    if (!forcedStartingKit) return allEquipmentPackages
+    if (forcedStartingKit === 'class_equipment') {
+      return allEquipmentPackages.filter((row) => row.id === PHB_LINES_PACKAGE_ID)
+    }
+    return allEquipmentPackages.filter((row) => row.id === 'gold')
+  }, [allEquipmentPackages, forcedStartingKit])
   const blockedSkills = useMemo(() => new Set(blockedSkillKeys), [blockedSkillKeys])
   const blockedTools = useMemo(
     () => new Set(blockedToolNames.map((name) => name.trim().toLowerCase())),
@@ -90,7 +100,13 @@ export function ClassSetupDialog({
     const lines = mode === 'start' ? equipmentLinesFor(def) : []
     setSkills([])
     setTools([])
-    setEquipmentPackageId(lines.length > 0 ? PHB_LINES_PACKAGE_ID : null)
+    let initialPkg: string | null = lines.length > 0 ? PHB_LINES_PACKAGE_ID : null
+    if (forcedStartingKit === 'class_gold' || forcedStartingKit === 'fixed_gold') {
+      initialPkg = 'gold'
+    } else if (forcedStartingKit === 'class_equipment' && lines.length > 0) {
+      initialPkg = PHB_LINES_PACKAGE_ID
+    }
+    setEquipmentPackageId(initialPkg)
     const initial: Record<string, ClassEquipmentLinePick> = {}
     for (const line of lines) {
       if (line.options.length === 1) {
@@ -99,7 +115,7 @@ export function ClassSetupDialog({
     }
     setLinePicks(initial)
     setFocusSelection(null)
-  }, [open, def, mode])
+  }, [open, def, mode, forcedStartingKit])
 
   // Multiclass with only fixed armor/weapons (друид, колдун…): nothing to pick —
   // apply empty picks immediately so the dialog does not sit waiting for «Отмена».

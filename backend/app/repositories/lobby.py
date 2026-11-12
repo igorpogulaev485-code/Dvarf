@@ -157,6 +157,28 @@ class LobbyRepository:
             lobby_id=lobby_id,
             character_id=character_id,
             user_id=user_id,
+            start_rules_ok=True,
+            start_rules_waived=False,
+        )
+        self.db.add(member)
+        self.db.flush()
+        return member
+
+    def add_member_with_flags(
+        self,
+        *,
+        lobby_id: UUID,
+        character_id: UUID,
+        user_id: UUID,
+        start_rules_ok: bool = True,
+        start_rules_waived: bool = False,
+    ) -> LobbyMember:
+        member = LobbyMember(
+            lobby_id=lobby_id,
+            character_id=character_id,
+            user_id=user_id,
+            start_rules_ok=bool(start_rules_ok),
+            start_rules_waived=bool(start_rules_waived),
         )
         self.db.add(member)
         self.db.flush()

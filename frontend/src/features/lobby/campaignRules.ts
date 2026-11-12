@@ -1,7 +1,23 @@
-/** L-08: правила кампании лобби — типы, дефолты, справочник 11 домашних ключей. */
+/** L-08/L-16: правила кампании лобби — типы, дефолты, домашние + правила старта. */
 
 export type HpOnLevelUp = 'average' | 'roll'
 export type ProgressionMode = 'xp' | 'milestones'
+export type StartAbilityMethod = 'standard_array' | 'point_buy' | 'roll' | 'any'
+export type StartingKitMode = 'class_equipment' | 'class_gold' | 'fixed_gold'
+
+export type StartingKit =
+  | { mode: 'class_equipment' }
+  | { mode: 'class_gold' }
+  | { mode: 'fixed_gold'; gp: number }
+
+export type StartRules = {
+  level: number
+  ability_method: StartAbilityMethod
+  allowed_sources: string[]
+  starting_kit: StartingKit
+  banned_races: string[]
+  banned_classes: string[]
+}
 
 export type HomebrewKey =
   | 'potion_bonus_self'
@@ -23,6 +39,175 @@ export type HomebrewCatalogEntry = {
   source: string
 }
 
+export type BookSourceEntry = {
+  id: string
+  label: string
+  aliases: string[]
+}
+
+/** Канон ↔ алиасы из фактических catalog.source (см. backend book_sources.py). */
+export const BOOK_SOURCE_CATALOG: BookSourceEntry[] = [
+  {
+    id: 'phb',
+    label: "Player's Handbook",
+    aliases: ['phb', 'PHB', 'PHB 2014', 'phb-2014', 'srd-5.1', 'srd', 'SRD 5.1 (sample)'],
+  },
+  {
+    id: 'tce',
+    label: "Tasha's Cauldron of Everything",
+    aliases: ['tce', 'TCE', 'TCE 2014', 'tce-2014', 'tasha', 'tcoe', 'TCoE'],
+  },
+  {
+    id: 'xge',
+    label: "Xanathar's Guide to Everything",
+    aliases: ['xge', 'XGE', 'XGE 2014', 'xge-2014', 'xgte', 'XGtE'],
+  },
+  {
+    id: 'mpmm',
+    label: 'Mordenkainen Presents: Monsters of the Multiverse',
+    aliases: ['mpmm', 'MPMM', 'ttg:MPMM'],
+  },
+  {
+    id: 'scag',
+    label: "Sword Coast Adventurer's Guide",
+    aliases: ['scag', 'SCAG', 'SCAG 2014'],
+  },
+  {
+    id: 'egw',
+    label: "Explorer's Guide to Wildemount",
+    aliases: ['egw', 'EGW', 'EGW 2014', 'egw-2014', 'egtw', 'EGtW'],
+  },
+  {
+    id: 'mot',
+    label: 'Mythic Odysseys of Theros',
+    aliases: ['mot', 'MOT', 'MOT 2014'],
+  },
+  {
+    id: 'vgm',
+    label: "Volo's Guide to Monsters",
+    aliases: ['vgm', 'VGM', 'vgtm', 'ttg:VGM'],
+  },
+  {
+    id: 'mtf',
+    label: "Mordenkainen's Tome of Foes",
+    aliases: ['mtf', 'MTF', 'ttg:MTF'],
+  },
+  {
+    id: 'erlw',
+    label: 'Eberron: Rising from the Last War',
+    aliases: ['erlw', 'ERLW', 'RLW 2014', 'ttg:ERLW', 'erftlw'],
+  },
+  {
+    id: 'ggr',
+    label: "Guildmasters' Guide to Ravnica",
+    aliases: ['ggr', 'GGR', 'GGR 2014', 'ttg:GGR', 'ggtr', 'ggtr-2014'],
+  },
+  {
+    id: 'ftd',
+    label: "Fizban's Treasury of Dragons",
+    aliases: ['ftd', 'FTD', 'FTD 2014', 'ftd-2014', 'ttg:FTD'],
+  },
+  {
+    id: 'ai',
+    label: 'Acquisitions Incorporated',
+    aliases: ['ai', 'AI', 'AI 2014', 'ai-2014'],
+  },
+  {
+    id: 'dmg',
+    label: "Dungeon Master's Guide",
+    aliases: ['dmg', 'DMG', 'DMG 2014'],
+  },
+  {
+    id: 'eepc',
+    label: "Elemental Evil Player's Companion",
+    aliases: ['eepc', 'EEPC'],
+  },
+]
+
+const ALIAS_TO_CANON: Record<string, string> = (() => {
+  const map: Record<string, string> = {}
+  for (const entry of BOOK_SOURCE_CATALOG) {
+    map[entry.id.toLowerCase()] = entry.id
+    for (const alias of entry.aliases) map[alias.trim().toLowerCase()] = entry.id
+  }
+  return map
+})()
+
+export function canonicalizeSource(raw: unknown): string | null {
+  if (raw == null) return null
+  const text = String(raw).trim()
+  if (!text) return null
+  const direct = ALIAS_TO_CANON[text.toLowerCase()]
+  if (direct) return direct
+  if (text.includes('+') || text.includes('|')) {
+    const parts = text
+      .replace(/\|/g, '+')
+      .split('+')
+      .map((p) => p.trim())
+      .filter(Boolean)
+    for (const part of parts) {
+      const mapped = ALIAS_TO_CANON[part.toLowerCase()]
+      if (mapped) return mapped
+    }
+  }
+  return null
+}
+
+export function expandAllowedSources(allowed: string[]): Set<string> {
+  const out = new Set<string>()
+  for (const item of allowed) {
+    const canon = canonicalizeSource(item) || item.trim().toLowerCase()
+    out.add(canon)
+    const entry = BOOK_SOURCE_CATALOG.find((b) => b.id === canon)
+    if (entry) {
+      out.add(canon.toLowerCase())
+      for (const alias of entry.aliases) out.add(alias.trim().toLowerCase())
+    } else {
+      out.add(item.trim().toLowerCase())
+    }
+  }
+  return out
+}
+
+export function sourceMatchesAllowed(rawSource: unknown, allowedCanon: string[]): boolean {
+  if (rawSource == null) return true
+  const text = String(rawSource).trim()
+  if (!text) return true
+  const allowed = expandAllowedSources(allowedCanon)
+  const parts = text
+    .replace(/\|/g, '+')
+    .split('+')
+    .map((p) => p.trim())
+    .filter(Boolean)
+  if (parts.length > 1) {
+    let knownOk = false
+    for (const part of parts) {
+      const canon = canonicalizeSource(part)
+      const key = (canon || part).toLowerCase()
+      if (allowed.has(key) || allowed.has(part.toLowerCase())) {
+        knownOk = true
+        continue
+      }
+      if (!canon && !(part.toLowerCase() in ALIAS_TO_CANON)) continue
+      return false
+    }
+    return knownOk
+  }
+  const canon = canonicalizeSource(text)
+  if (canon && allowed.has(canon.toLowerCase())) return true
+  return allowed.has(text.toLowerCase())
+}
+
+/** Виды каталога, которые режет фильтр книг (навыки/состояния/инвентарь — нет). */
+export const FILTERED_CATALOG_KINDS = new Set([
+  'race',
+  'class',
+  'subclass',
+  'feat',
+  'spell',
+  'background',
+])
+
 export type CampaignRules = {
   edition_2014: {
     feats_instead_of_asi: boolean
@@ -34,6 +219,7 @@ export type CampaignRules = {
   inspiration_after_roll: boolean
   enemies_ac_visible: boolean
   custom_rules: string[]
+  start: StartRules
 }
 
 export const HOMEBREW_KEYS: HomebrewKey[] = [
@@ -120,6 +306,17 @@ export const HOMEBREW_CATALOG: HomebrewCatalogEntry[] = [
   },
 ]
 
+export function defaultStartRules(): StartRules {
+  return {
+    level: 1,
+    ability_method: 'any',
+    allowed_sources: ['phb'],
+    starting_kit: { mode: 'class_equipment' },
+    banned_races: [],
+    banned_classes: [],
+  }
+}
+
 export function defaultCampaignRules(): CampaignRules {
   return {
     edition_2014: {
@@ -145,7 +342,68 @@ export function defaultCampaignRules(): CampaignRules {
     inspiration_after_roll: false,
     enemies_ac_visible: false,
     custom_rules: [],
+    start: defaultStartRules(),
   }
+}
+
+export function normalizeStartRules(raw: unknown): StartRules {
+  const base = defaultStartRules()
+  if (!raw || typeof raw !== 'object') return base
+  const obj = raw as Record<string, unknown>
+  const level = Number(obj.level)
+  base.level = Number.isFinite(level) ? Math.max(1, Math.min(20, Math.floor(level))) : 1
+  const method = obj.ability_method
+  if (
+    method === 'standard_array' ||
+    method === 'point_buy' ||
+    method === 'roll' ||
+    method === 'any'
+  ) {
+    base.ability_method = method
+  }
+  if (Array.isArray(obj.allowed_sources)) {
+    const seen = new Set<string>()
+    const cleaned: string[] = []
+    for (const item of obj.allowed_sources) {
+      const canon = canonicalizeSource(item) || String(item || '')
+        .trim()
+        .toLowerCase()
+      if (!canon || seen.has(canon)) continue
+      seen.add(canon)
+      cleaned.push(canon)
+    }
+    base.allowed_sources = cleaned.length ? cleaned : ['phb']
+  }
+  const kit = obj.starting_kit
+  if (kit && typeof kit === 'object') {
+    const k = kit as Record<string, unknown>
+    if (k.mode === 'fixed_gold') {
+      const gp = Number(k.gp)
+      base.starting_kit = {
+        mode: 'fixed_gold',
+        gp: Number.isFinite(gp) ? Math.max(0, Math.floor(gp)) : 0,
+      }
+    } else if (k.mode === 'class_gold' || k.mode === 'class_equipment') {
+      base.starting_kit = { mode: k.mode }
+    }
+  }
+  const slugList = (value: unknown): string[] => {
+    if (!Array.isArray(value)) return []
+    const seen = new Set<string>()
+    const out: string[] = []
+    for (const item of value) {
+      const slug = String(item || '')
+        .trim()
+        .toLowerCase()
+      if (!slug || seen.has(slug)) continue
+      seen.add(slug)
+      out.push(slug)
+    }
+    return out
+  }
+  base.banned_races = slugList(obj.banned_races)
+  base.banned_classes = slugList(obj.banned_classes)
+  return base
 }
 
 function asBool(value: unknown, fallback: boolean): boolean {
@@ -219,7 +477,45 @@ export function normalizeCampaignRules(raw: unknown): CampaignRules {
       .slice(0, 50)
   }
 
+  base.start = normalizeStartRules(obj.start)
+
   return base
+}
+
+const ABILITY_METHOD_LABEL: Record<StartAbilityMethod, string> = {
+  standard_array: 'стандартный набор',
+  point_buy: 'покупка очков',
+  roll: 'броски',
+  any: 'любой метод',
+}
+
+const KIT_LABEL: Record<StartingKitMode, string> = {
+  class_equipment: 'снаряжение класса',
+  class_gold: 'золото по таблице класса',
+  fixed_gold: 'фиксированное золото',
+}
+
+/** Сводка правил старта (для входа / игрока). */
+export function summarizeStartRules(start: StartRules): string[] {
+  const lines: string[] = []
+  lines.push(`Стартовый уровень: ${start.level}`)
+  lines.push(`Характеристики: ${ABILITY_METHOD_LABEL[start.ability_method]}`)
+  const books = start.allowed_sources
+    .map((id) => BOOK_SOURCE_CATALOG.find((b) => b.id === id)?.label || id)
+    .join(', ')
+  lines.push(`Книги: ${books || 'PHB'}`)
+  if (start.starting_kit.mode === 'fixed_gold') {
+    lines.push(`Стартовый набор: ${start.starting_kit.gp} зм`)
+  } else {
+    lines.push(`Стартовый набор: ${KIT_LABEL[start.starting_kit.mode]}`)
+  }
+  if (start.banned_races.length) {
+    lines.push(`Запрещённые расы: ${start.banned_races.join(', ')}`)
+  }
+  if (start.banned_classes.length) {
+    lines.push(`Запрещённые классы: ${start.banned_classes.join(', ')}`)
+  }
+  return lines
 }
 
 /** Сводка включённых правил для игрока (только чтение). */
@@ -251,6 +547,7 @@ export function summarizeEnabledRules(rules: CampaignRules): string[] {
   for (const text of rules.custom_rules) {
     lines.push(text)
   }
+  lines.push(...summarizeStartRules(rules.start))
   return lines
 }
 

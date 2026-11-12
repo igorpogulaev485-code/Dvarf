@@ -10,8 +10,10 @@ import {
 import { getMe } from '../shared/api/auth'
 import { getCharacter, type CharacterDetail } from '../shared/api/characters'
 import { parseCharacterInOtherLobby } from '../features/lobby/joinConflict'
+import { parseStartRulesMismatch } from '../features/lobby/joinStartMismatch'
 import { ApiRequestError } from '../shared/api/client'
 import {
+  createHeroForLobbyHref,
   getLobbyInviteMeta,
   joinLobby,
   type CharacterInOtherLobbyData,
@@ -56,6 +58,8 @@ export function CharacterDetailPage() {
   const [lobbyError, setLobbyError] = useState<string | null>(null)
   const [lobbyName, setLobbyName] = useState<string | null>(null)
   const [lobbyConflict, setLobbyConflict] = useState<CharacterInOtherLobbyData | null>(null)
+  const [startMismatch, setStartMismatch] = useState<string[] | null>(null)
+  const [lobbyMetaId, setLobbyMetaId] = useState<string | null>(null)
   const [joining, setJoining] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
   const moreRef = useRef<HTMLDivElement | null>(null)
@@ -179,12 +183,15 @@ export function CharacterDetailPage() {
     setLobbyCode('')
     setLobbyError(null)
     setLobbyName(null)
+    setLobbyMetaId(null)
     setLobbyConflict(null)
+    setStartMismatch(null)
   }
 
   useEffect(() => {
     if (!lobbyOpen || lobbyCode.trim().length < 4) {
       setLobbyName(null)
+      setLobbyMetaId(null)
       return
     }
     let active = true
@@ -192,10 +199,12 @@ export function CharacterDetailPage() {
       .then((meta) => {
         if (!active) return
         setLobbyName(meta.name)
+        setLobbyMetaId(meta.lobby_id ?? null)
       })
       .catch((err: unknown) => {
         if (!active) return
         setLobbyName(null)
+        setLobbyMetaId(null)
         if (err instanceof ApiRequestError && err.status === 404) {
           setLobbyError('Код лобби не найден')
         }
@@ -223,22 +232,41 @@ export function CharacterDetailPage() {
     }
   }, [moreOpen])
 
-  async function joinWithCode(action: JoinLobbyAction = 'join') {
+  async function joinWithCode(action: JoinLobbyAction = 'join', acknowledge = false) {
     if (!character || !lobbyCode.trim()) return
     setJoining(true)
     setLobbyError(null)
     try {
-      const lobby = await joinLobby(lobbyCode.trim(), character.id, action)
+      const result = await joinLobby(lobbyCode.trim(), character.id, action, {
+        acknowledgeStartMismatch: acknowledge,
+      })
       setLobbyConflict(null)
+      setStartMismatch(null)
+      if (action === 'copy' && result.cloned_character_id) {
+        setLobbyOpen(false)
+        navigate(
+          createHeroForLobbyHref({
+            lobbyId: result.lobby.id,
+            code: lobbyCode.trim(),
+            characterId: result.cloned_character_id,
+          }),
+        )
+        return
+      }
       setLobbyCode('')
       setLobbyOpen(false)
-      navigate(`/lobbies/${lobby.id}`, {
+      navigate(`/lobbies/${result.lobby.id}`, {
         state: { toast: `${character.name} добавлен в лобби` },
       })
     } catch (err) {
       const parsed = parseCharacterInOtherLobby(err)
       if (parsed && action === 'join') {
         setLobbyConflict(parsed)
+        return
+      }
+      const mismatch = parseStartRulesMismatch(err)
+      if (mismatch && (action === 'join' || action === 'transfer')) {
+        setStartMismatch(mismatch.mismatches)
         return
       }
       setLobbyError(err instanceof ApiRequestError ? err.message : 'Не удалось войти в лобби')
@@ -408,7 +436,10 @@ export function CharacterDetailPage() {
         }
         secondaryLabel="Отмена"
         onPrimary={() =>
-          void joinWithCode(lobbyConflict ? 'transfer' : 'join')
+          void joinWithCode(
+            lobbyConflict ? 'transfer' : 'join',
+            Boolean(startMismatch),
+          )
         }
         onSecondary={closeLobbyDialog}
         busy={joining}
@@ -433,6 +464,23 @@ export function CharacterDetailPage() {
               Вход в лобби «{lobbyName}»
             </Text>
           ) : null}
+          {startMismatch ? (
+            <Stack gap={8}>
+              <Text>Не по правилам старта этого лобби:</Text>
+              <ul className="campaign-rules-summary">
+                {startMismatch.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+              <Button
+                type="button"
+                disabled={joining}
+                onClick={() => void joinWithCode('join', true)}
+              >
+                Всё равно войти
+              </Button>
+            </Stack>
+          ) : null}
           {lobbyConflict ? (
             <Stack gap={8}>
               <Text>
@@ -452,6 +500,17 @@ export function CharacterDetailPage() {
                 Копировать персонажа
               </Button>
             </Stack>
+          ) : null}
+          {lobbyMetaId ? (
+            <Link
+              className="ui-button ui-button--secondary"
+              to={createHeroForLobbyHref({
+                lobbyId: lobbyMetaId,
+                code: lobbyCode.trim(),
+              })}
+            >
+              Создать героя для этого лобби
+            </Link>
           ) : null}
           {lobbyError ? <Text tone="danger">{lobbyError}</Text> : null}
         </Stack>

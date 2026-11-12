@@ -46,6 +46,7 @@ from app.schemas.lobby import (
     CombatantStudyRequest,
     CombatantStudyResolveRequest,
     InviteMetaOut,
+    JoinLobbyOut,
     JoinLobbyRequest,
     RemoveLobbyMemberRequest,
     EncounterGenerateRequest,
@@ -199,13 +200,26 @@ def lobby_invite_meta(
     return LobbyService(db).invite_meta(current_user, code)
 
 
-@router.post("/lobbies/join", response_model=LobbyDetail)
+@router.post("/lobbies/join", response_model=JoinLobbyOut)
 async def join_lobby(
     payload: JoinLobbyRequest,
     current_user: CurrentUser,
     db: DbSession,
+) -> JoinLobbyOut:
+    result = LobbyService(db).join_with_character(current_user, payload)
+    await lobby_hub.broadcast(result.lobby.id, {"type": "lobby_resync"})
+    return result
+
+
+@router.post("/lobbies/{lobby_id}/members/{character_id}/waive-start-rules", response_model=LobbyDetail)
+async def waive_start_rules(
+    lobby_id: UUID,
+    character_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
 ) -> LobbyDetail:
-    detail = LobbyService(db).join_with_character(current_user, payload)
+    """L-16: мастер/сомастер снимает пометку «не по правилам старта»."""
+    detail = LobbyService(db).waive_start_rules(current_user, lobby_id, character_id)
     await lobby_hub.broadcast(detail.id, {"type": "lobby_resync"})
     return detail
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   BackgroundSetupDialog,
   type BackgroundSetupConfirm,
@@ -70,6 +70,21 @@ import {
   type CharacterDetail,
 } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
+import {
+  getLobby,
+  getLobbyInviteMeta,
+  joinLobby,
+} from '../shared/api/lobbies'
+import {
+  FILTERED_CATALOG_KINDS,
+  normalizeCampaignRules,
+  normalizeStartRules,
+  sourceMatchesAllowed,
+  summarizeStartRules,
+  type CampaignRules,
+  type StartRules,
+} from '../features/lobby/campaignRules'
+import type { AbilityMethod } from '../shared/dnd/pointBuy'
 import {
   applyClassAsiBonuses,
   type AbilityKey,
@@ -348,11 +363,22 @@ function hasSubclassSelected(row: {
   return Boolean(row.subclass_catalog_id || row.subclass_name.trim())
 }
 
+function stepsForPipeline(
+  raceSetup: CreatePipelineState['raceSetup'],
+  forceFeat = false,
+): CreatePipelineStepId[] {
+  const base = visiblePipelineSteps(raceSetup)
+  if (!forceFeat || base.includes('feat')) return base
+  const withoutRace = base.filter((id) => id !== 'race')
+  return ['race', 'feat', ...withoutRace]
+}
+
 function nextVisibleStep(
   current: CreatePipelineStepId,
   raceSetup: CreatePipelineState['raceSetup'],
+  forceFeat = false,
 ): CreatePipelineStepId | null {
-  const steps = visiblePipelineSteps(raceSetup)
+  const steps = stepsForPipeline(raceSetup, forceFeat)
   const index = steps.indexOf(current)
   if (index < 0) return steps[0] ?? null
   return steps[index + 1] ?? null
@@ -361,19 +387,40 @@ function nextVisibleStep(
 function prevVisibleStep(
   current: CreatePipelineStepId,
   raceSetup: CreatePipelineState['raceSetup'],
+  forceFeat = false,
 ): CreatePipelineStepId | null {
-  const steps = visiblePipelineSteps(raceSetup)
+  const steps = stepsForPipeline(raceSetup, forceFeat)
   const index = steps.indexOf(current)
   if (index <= 0) return null
   return steps[index - 1] ?? null
 }
 
+function filterCatalogByStartRules(
+  rows: CatalogEntry[],
+  start: StartRules | null,
+  kind: string,
+): CatalogEntry[] {
+  if (!start || !FILTERED_CATALOG_KINDS.has(kind)) return rows
+  return rows.filter((row) => {
+    if (kind === 'race' && start.banned_races.includes(row.slug)) return false
+    if (kind === 'class' && start.banned_classes.includes(row.slug)) return false
+    return sourceMatchesAllowed(row.source, start.allowed_sources)
+  })
+}
+
 export function CreateCharacterPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const lobbyIdParam = searchParams.get('lobbyId')
+  const inviteCodeParam = searchParams.get('code')
   const { characterId: routeCharacterId } = useParams<{ characterId?: string }>()
   const [userId, setUserId] = useState<string | null>(null)
   const onboarding = useOnboardingState(userId)
   const [state, setState] = useState<CreatePipelineState>(() => loadOrCreatePipelineState())
+  const [lobbyStart, setLobbyStart] = useState<StartRules | null>(null)
+  const [lobbyCampaign, setLobbyCampaign] = useState<CampaignRules | null>(null)
+  const [lobbyJoinCode, setLobbyJoinCode] = useState<string | null>(inviteCodeParam)
+  const [lobbyContextId, setLobbyContextId] = useState<string | null>(lobbyIdParam)
 
   useEffect(() => {
     let active = true
@@ -388,10 +435,76 @@ export function CreateCharacterPage() {
       active = false
     }
   }, [])
+
+  useEffect(() => {
+    if (!lobbyIdParam && !inviteCodeParam) {
+      setLobbyStart(null)
+      setLobbyCampaign(null)
+      return
+    }
+    let active = true
+    async function loadLobbyRules() {
+      try {
+        if (inviteCodeParam) {
+          const meta = await getLobbyInviteMeta(inviteCodeParam)
+          if (!active) return
+          const start = normalizeStartRules(meta.start ?? meta.campaign_rules_start)
+          setLobbyStart(start)
+          setLobbyJoinCode(meta.code || inviteCodeParam)
+          if (meta.lobby_id) setLobbyContextId(meta.lobby_id)
+          // full campaign (feat_at_level_1) — если есть доступ к лобби
+          if (meta.lobby_id) {
+            try {
+              const detail = await getLobby(meta.lobby_id)
+              if (!active) return
+              const rules = normalizeCampaignRules(detail.campaign_rules)
+              setLobbyCampaign(rules)
+              setLobbyStart(rules.start)
+            } catch {
+              setLobbyCampaign(null)
+            }
+          }
+          return
+        }
+        if (lobbyIdParam) {
+          const detail = await getLobby(lobbyIdParam)
+          if (!active) return
+          const rules = normalizeCampaignRules(detail.campaign_rules)
+          setLobbyCampaign(rules)
+          setLobbyStart(rules.start)
+          setLobbyContextId(detail.id)
+          setLobbyJoinCode(detail.invite_code || inviteCodeParam)
+        }
+      } catch {
+        if (!active) return
+        /* без контекста — обычное создание */
+      }
+    }
+    void loadLobbyRules()
+    return () => {
+      active = false
+    }
+  }, [lobbyIdParam, inviteCodeParam])
+
+  useEffect(() => {
+    if (!lobbyStart) return
+    if (lobbyStart.ability_method === 'any') return
+    if (state.abilityMethod !== lobbyStart.ability_method) {
+      setState((prev) => ({
+        ...prev,
+        abilityMethod: lobbyStart.ability_method as AbilityMethod,
+      }))
+    }
+  }, [lobbyStart, state.abilityMethod])
+
   const [backgrounds, setBackgrounds] = useState<CatalogEntry[]>([])
   const [classes, setClasses] = useState<CatalogEntry[]>([])
   const [races, setRaces] = useState<CatalogEntry[]>([])
   const [feats, setFeats] = useState<CatalogEntry[]>([])
+  const [allBackgrounds, setAllBackgrounds] = useState<CatalogEntry[]>([])
+  const [allClasses, setAllClasses] = useState<CatalogEntry[]>([])
+  const [allRaces, setAllRaces] = useState<CatalogEntry[]>([])
+  const [allFeats, setAllFeats] = useState<CatalogEntry[]>([])
   const [selectedBackground, setSelectedBackground] = useState<CatalogEntry | null>(null)
   const [selectedClass, setSelectedClass] = useState<CatalogEntry | null>(null)
   const [selectedRace, setSelectedRace] = useState<CatalogEntry | null>(null)
@@ -503,7 +616,7 @@ export function CreateCharacterPage() {
     listCatalogEntries({ kind: 'race', edition: '2014' })
       .then((race) => {
         if (!active) return
-        setRaces(race.filter((row) => isRaceComboboxRoot(row) && row.is_active))
+        setAllRaces(race.filter((row) => isRaceComboboxRoot(row) && row.is_active))
       })
       .catch((err: unknown) => {
         if (!active) return
@@ -517,9 +630,9 @@ export function CreateCharacterPage() {
     ])
       .then(([bg, cls, featRows]) => {
         if (!active) return
-        setBackgrounds(bg.filter((row) => !row.parent_id))
-        setClasses(cls.filter((row) => !row.parent_id && row.is_active))
-        setFeats(featRows.filter((row) => row.is_active))
+        setAllBackgrounds(bg.filter((row) => !row.parent_id))
+        setAllClasses(cls.filter((row) => !row.parent_id && row.is_active))
+        setAllFeats(featRows.filter((row) => row.is_active))
       })
       .catch(() => {
         // Non-blocking warm; step handlers will surface errors if still empty.
@@ -530,12 +643,20 @@ export function CreateCharacterPage() {
   }, [])
 
   useEffect(() => {
+    setRaces(filterCatalogByStartRules(allRaces, lobbyStart, 'race'))
+    setClasses(filterCatalogByStartRules(allClasses, lobbyStart, 'class'))
+    setBackgrounds(filterCatalogByStartRules(allBackgrounds, lobbyStart, 'background'))
+    setFeats(filterCatalogByStartRules(allFeats, lobbyStart, 'feat'))
+  }, [allRaces, allClasses, allBackgrounds, allFeats, lobbyStart])
+
+  useEffect(() => {
     if (!routeCharacterId) return
     let active = true
     getCharacter(routeCharacterId)
       .then((character) => {
         if (!active) return
-        if (!character.is_draft) {
+        // L-16: копия под правила старта — правим в пайплайне даже если не draft.
+        if (!character.is_draft && !lobbyIdParam) {
           navigate(`/characters/${character.id}`, { replace: true })
           return
         }
@@ -558,7 +679,21 @@ export function CreateCharacterPage() {
     return () => {
       active = false
     }
-  }, [navigate, routeCharacterId])
+  }, [navigate, routeCharacterId, lobbyIdParam])
+
+  const abilityMethodsAllowed = useMemo((): AbilityMethod[] | null => {
+    if (!lobbyStart || lobbyStart.ability_method === 'any') return null
+    return [lobbyStart.ability_method as AbilityMethod]
+  }, [lobbyStart])
+
+  const featAtLevel1 = Boolean(lobbyCampaign?.homebrew.feat_at_level_1)
+  const startLevel = lobbyStart?.level ?? null
+  const forcedKit = lobbyStart?.starting_kit.mode ?? null
+  const lobbyStartSummary = useMemo(
+    () => (lobbyStart ? summarizeStartRules(lobbyStart) : []),
+    [lobbyStart],
+  )
+
 
   const finalAbilities = useMemo(
     () => mergeRacialBonuses(state.baseAbilities, racialBonuses),
@@ -720,8 +855,8 @@ export function CreateCharacterPage() {
   }, [state.classGrantPicks, state.classes])
 
   const visibleSteps = useMemo(
-    () => visiblePipelineSteps(state.raceSetup),
-    [state.raceSetup],
+    () => stepsForPipeline(state.raceSetup, featAtLevel1),
+    [state.raceSetup, featAtLevel1],
   )
 
   const raceGrantDef = useMemo(() => {
@@ -1290,7 +1425,7 @@ export function CreateCharacterPage() {
 
   function goToStep(next: CreatePipelineStepId) {
     const current = state.step
-    const steps = visiblePipelineSteps(state.raceSetup)
+    const steps = stepsForPipeline(state.raceSetup, featAtLevel1)
     const nextIdx = stepIndex(next, steps)
     const curIdx = stepIndex(current, steps)
     if (nextIdx < 0 || nextIdx > curIdx) return
@@ -1307,7 +1442,7 @@ export function CreateCharacterPage() {
   }
 
   function advanceFrom(step: CreatePipelineStepId) {
-    const next = nextVisibleStep(step, state.raceSetup)
+    const next = nextVisibleStep(step, state.raceSetup, featAtLevel1)
     if (next) patchState({ step: next })
   }
 
@@ -1367,6 +1502,37 @@ export function CreateCharacterPage() {
         navigate('/characters')
         return
       }
+
+      // L-16: после создания сразу вход в лобби, если можно сесть игроком.
+      if (lobbyJoinCode && lobbyContextId) {
+        try {
+          const joined = await joinLobby(lobbyJoinCode, saved.id, 'join', {
+            acknowledgeStartMismatch: true,
+          })
+          onboarding.markCreateHintsSeen()
+          navigate(`/lobbies/${joined.lobby.id}`, {
+            state: { toast: 'Герой создан и добавлен в лобби' },
+          })
+          return
+        } catch (joinErr) {
+          // owner_already_in_lobby / role_blocks_player_join — герой создан без посадки.
+          if (
+            joinErr instanceof ApiRequestError &&
+            (joinErr.code === 'owner_already_in_lobby' ||
+              joinErr.code === 'role_blocks_player_join')
+          ) {
+            onboarding.markCreateHintsSeen()
+            navigate(`/characters/${saved.id}`, {
+              state: {
+                toast: 'Герой создан по правилам лобби (без посадки в состав)',
+              },
+            })
+            return
+          }
+          // иначе покажем лист; пользователь войдёт сам
+        }
+      }
+
       onboarding.markCreateHintsSeen()
       onboarding.queueAfterCreate()
       navigate(`/characters/${saved.id}`, {
@@ -1505,12 +1671,13 @@ export function CreateCharacterPage() {
       return
     }
     const entryId = state.classEntryId || createClassLevel().id
+    const initialLevel = startLevel ?? 1
     const nextClasses = [
       createClassLevel({
         id: entryId,
         name: entry.name_ru,
         catalog_id: entry.id,
-        level: 1,
+        level: initialLevel,
       }),
     ]
     const classChanged =
@@ -1839,6 +2006,7 @@ export function CreateCharacterPage() {
         baseAbilities={state.baseAbilities}
         racialBonuses={racialBonuses}
         classSlug={state.classRef?.slug ?? null}
+        allowedMethods={abilityMethodsAllowed}
         onMethodChange={(method) => patchState({ abilityMethod: method })}
         onBaseChange={(baseAbilities) =>
           patchState({ baseAbilities, stepDirty: { ...state.stepDirty, abilities: true } })
@@ -1890,20 +2058,24 @@ export function CreateCharacterPage() {
         hasCasterClass={hasCasterClass}
         featNoteRu={featNote}
         onClassesChange={(next) => {
+          let clamped = next
+          if (startLevel != null && next.length === 1) {
+            clamped = next.map((row) => ({ ...row, level: startLevel }))
+          }
           const removedEntry =
-            (state.classes?.length ?? 0) > next.length ||
-            state.classes.some((row) => !next.some((n) => n.id === row.id))
+            (state.classes?.length ?? 0) > clamped.length ||
+            state.classes.some((row) => !clamped.some((n) => n.id === row.id))
           if (removedEntry) {
             setSpells(
               resetSpellsForClassChange({
                 prev: spells,
-                remainingClasses: next,
+                remainingClasses: clamped,
                 dropUntagged: false,
               }),
             )
           }
           setState((prev) => {
-            const merged = next.map((row) => {
+            const merged = clamped.map((row) => {
               const old = prev.classes.find((item) => item.id === row.id)
               if (!old) return row
               return {
@@ -2031,14 +2203,25 @@ export function CreateCharacterPage() {
     )
   }
 
-  const backTarget = prevVisibleStep(step, state.raceSetup)
+  const backTarget = prevVisibleStep(step, state.raceSetup, featAtLevel1)
 
   return (
     <main className="page page--app page--create-pipeline">
       <div className="create-pipeline__topbar">
         <Link to="/characters">← К списку</Link>
-        <Text tone="muted">Создание · D&D 2014</Text>
+        <Text tone="muted">
+          {lobbyStart
+            ? 'Создание для лобби · D&D 2014'
+            : 'Создание · D&D 2014'}
+        </Text>
       </div>
+      {lobbyStartSummary.length ? (
+        <ul className="campaign-rules-summary">
+          {lobbyStartSummary.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      ) : null}
       {error ? <Text tone="danger">{error}</Text> : null}
       <CreatePipelineShell
         step={step}
@@ -2251,6 +2434,7 @@ export function CreateCharacterPage() {
         blockedSkillKeys={blockedSkillKeys}
         blockedToolNames={blockedToolNames}
         edition="2014"
+        forcedStartingKit={classSetup?.mode === 'start' ? forcedKit : null}
         onClose={() => setClassSetup(null)}
         onConfirm={(picks: ClassGrantPicks) => {
           const entryId = classSetup?.classEntryId ?? state.classEntryId

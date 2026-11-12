@@ -1,12 +1,17 @@
-/** L-08: раздел «Правила кампании» в настройках лобби. */
-import { useState } from 'react'
+/** L-08/L-16: раздел «Правила кампании» в настройках лобби. */
+import { useEffect, useState } from 'react'
+import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import { Button, Field, NumberInput, Panel, Stack, Text } from '../../ui'
 import {
+  BOOK_SOURCE_CATALOG,
   HOMEBREW_CATALOG,
+  summarizeStartRules,
   type CampaignRules,
   type HomebrewKey,
   type HpOnLevelUp,
   type ProgressionMode,
+  type StartAbilityMethod,
+  type StartingKitMode,
   summarizeEnabledRules,
 } from './campaignRules'
 import type { EventHistoryMode } from './visibilityProfile'
@@ -18,6 +23,8 @@ type Props = {
   readOnly?: boolean
   onChange: (next: CampaignRules) => void
   onEventHistoryChange: (mode: EventHistoryMode) => void
+  /** Кнопка «Создать героя для этого лобби» (один пайплайн). */
+  createHeroHref?: string | null
 }
 
 function RuleTip({ tip, source }: { tip: string; source: string }) {
@@ -75,15 +82,226 @@ function ToggleRow({
   )
 }
 
+function StartRulesEditor({
+  rules,
+  readOnly,
+  onChange,
+  races,
+  classes,
+}: {
+  rules: CampaignRules
+  readOnly?: boolean
+  onChange: (next: CampaignRules) => void
+  races: CatalogEntry[]
+  classes: CatalogEntry[]
+}) {
+  const start = rules.start
+
+  function patchStart(partial: Partial<CampaignRules['start']>) {
+    if (readOnly) return
+    onChange({ ...rules, start: { ...rules.start, ...partial } })
+  }
+
+  function toggleSource(id: string) {
+    if (readOnly) return
+    const has = start.allowed_sources.includes(id)
+    const next = has
+      ? start.allowed_sources.filter((s) => s !== id)
+      : [...start.allowed_sources, id]
+    patchStart({ allowed_sources: next.length ? next : ['phb'] })
+  }
+
+  function toggleSlug(
+    key: 'banned_races' | 'banned_classes',
+    slug: string,
+  ) {
+    if (readOnly) return
+    const list = start[key]
+    const has = list.includes(slug)
+    patchStart({
+      [key]: has ? list.filter((s) => s !== slug) : [...list, slug],
+    })
+  }
+
+  const methodOpts: { id: StartAbilityMethod; label: string }[] = [
+    { id: 'any', label: 'Любой' },
+    { id: 'standard_array', label: 'Стандартный набор' },
+    { id: 'point_buy', label: 'Покупка очков' },
+    { id: 'roll', label: 'Броски' },
+  ]
+  const kitOpts: { id: StartingKitMode; label: string }[] = [
+    { id: 'class_equipment', label: 'Снаряжение класса' },
+    { id: 'class_gold', label: 'Золото класса' },
+    { id: 'fixed_gold', label: 'Фикс. золото' },
+  ]
+
+  return (
+    <div className="campaign-start-rules">
+      <Text as="h3">Правила старта</Text>
+      <Text tone="muted">
+        Уровень, метод характеристик, книги, стартовый набор, запреты рас и классов.
+      </Text>
+      <Stack gap={12}>
+        <Field label="Стартовый уровень" hint="Создание «для этого лобби» — ровно этот уровень">
+          <NumberInput
+            min={1}
+            max={20}
+            emptyValue={1}
+            value={start.level}
+            disabled={readOnly}
+            onValueChange={(v) =>
+              patchStart({ level: Math.max(1, Math.min(20, v ?? 1)) })
+            }
+          />
+        </Field>
+
+        <div>
+          <Text tone="muted">Метод характеристик</Text>
+          <div className="chip-row">
+            {methodOpts.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                disabled={readOnly}
+                className={`sheet-chip${start.ability_method === opt.id ? ' is-on' : ''}`}
+                onClick={() => patchStart({ ability_method: opt.id })}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <Text tone="muted">Разрешённые книги</Text>
+          <Text tone="muted">По умолчанию только PHB (+ SRD). Остальное — явно.</Text>
+          <div className="chip-row campaign-start-rules__books">
+            {BOOK_SOURCE_CATALOG.map((book) => (
+              <button
+                key={book.id}
+                type="button"
+                disabled={readOnly}
+                className={`sheet-chip${start.allowed_sources.includes(book.id) ? ' is-on' : ''}`}
+                onClick={() => toggleSource(book.id)}
+                title={book.aliases.join(', ')}
+              >
+                {book.id.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <Text tone="muted">Стартовый набор</Text>
+          <div className="chip-row">
+            {kitOpts.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                disabled={readOnly}
+                className={`sheet-chip${start.starting_kit.mode === opt.id ? ' is-on' : ''}`}
+                onClick={() => {
+                  if (opt.id === 'fixed_gold') {
+                    const gp =
+                      start.starting_kit.mode === 'fixed_gold' ? start.starting_kit.gp : 0
+                    patchStart({ starting_kit: { mode: 'fixed_gold', gp } })
+                  } else {
+                    patchStart({ starting_kit: { mode: opt.id } })
+                  }
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          {start.starting_kit.mode === 'fixed_gold' ? (
+            <Field label="Золото (зм)" hint="Целое ≥ 0">
+              <NumberInput
+                min={0}
+                max={1_000_000}
+                emptyValue={0}
+                value={start.starting_kit.gp}
+                disabled={readOnly}
+                onValueChange={(v) =>
+                  patchStart({
+                    starting_kit: { mode: 'fixed_gold', gp: Math.max(0, v ?? 0) },
+                  })
+                }
+              />
+            </Field>
+          ) : null}
+        </div>
+
+        <div>
+          <Text tone="muted">Запрещённые расы</Text>
+          <div className="chip-row">
+            {races.map((row) => (
+              <button
+                key={row.id}
+                type="button"
+                disabled={readOnly}
+                className={`sheet-chip${start.banned_races.includes(row.slug) ? ' is-on' : ''}`}
+                onClick={() => toggleSlug('banned_races', row.slug)}
+              >
+                {row.name_ru || row.slug}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <Text tone="muted">Запрещённые классы</Text>
+          <div className="chip-row">
+            {classes.map((row) => (
+              <button
+                key={row.id}
+                type="button"
+                disabled={readOnly}
+                className={`sheet-chip${start.banned_classes.includes(row.slug) ? ' is-on' : ''}`}
+                onClick={() => toggleSlug('banned_classes', row.slug)}
+              >
+                {row.name_ru || row.slug}
+              </button>
+            ))}
+          </div>
+        </div>
+      </Stack>
+    </div>
+  )
+}
+
 export function CampaignRulesPanel({
   rules,
   eventHistory,
   readOnly,
   onChange,
   onEventHistoryChange,
+  createHeroHref,
 }: Props) {
   const [customDraft, setCustomDraft] = useState('')
+  const [races, setRaces] = useState<CatalogEntry[]>([])
+  const [classes, setClasses] = useState<CatalogEntry[]>([])
   const summary = summarizeEnabledRules(rules)
+  const startSummary = summarizeStartRules(rules.start)
+
+  useEffect(() => {
+    let active = true
+    Promise.all([
+      listCatalogEntries({ kind: 'race', edition: '2014' }),
+      listCatalogEntries({ kind: 'class', edition: '2014' }),
+    ])
+      .then(([raceRows, classRows]) => {
+        if (!active) return
+        setRaces(raceRows.filter((r) => !r.parent_id))
+        setClasses(classRows.filter((r) => !r.parent_id))
+      })
+      .catch(() => {
+        /* каталог опционален для формы */
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   function patchHomebrew(key: HomebrewKey, value: boolean) {
     if (readOnly) return
@@ -134,9 +352,19 @@ export function CampaignRulesPanel({
           ) : (
             <Text tone="muted">Нет включённых особых правил.</Text>
           )}
-          <Text tone="muted" className="campaign-rules-later">
-            Правила старта (уровень, характеристики, книги) появятся позже
-          </Text>
+          <div>
+            <Text as="h3">Правила старта</Text>
+            <ul className="campaign-rules-summary">
+              {startSummary.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+          </div>
+          {createHeroHref ? (
+            <a className="ui-button ui-button--secondary" href={createHeroHref}>
+              Создать героя для этого лобби
+            </a>
+          ) : null}
         </Stack>
       </Panel>
     )
@@ -348,9 +576,18 @@ export function CampaignRulesPanel({
           </Stack>
         </div>
 
-        <Text tone="muted" className="campaign-rules-later">
-          Правила старта (уровень, характеристики, книги) появятся позже
-        </Text>
+        <StartRulesEditor
+          rules={rules}
+          onChange={onChange}
+          races={races}
+          classes={classes}
+        />
+
+        {createHeroHref ? (
+          <a className="ui-button ui-button--secondary" href={createHeroHref}>
+            Создать героя для этого лобби
+          </a>
+        ) : null}
       </Stack>
     </Panel>
   )

@@ -102,6 +102,18 @@
 | L08-3 | 11 домашних + текст + справочник | HOMEBREW_CATALOG FE/BE; зелье toast; остальные — флаг/крючок | campaign_rules.py + campaignRules.ts | L-08 | сделано |
 | L08-4 | Скрытность | броски→event_history; КД→enemies_ac_visible; death→hidden_death_saves | CampaignRulesPanel + EnemyCard + seats | L-08 | сделано |
 | L08-5 | S-03/S-06 в разделе | inspiration_after_roll перенесён; xp/milestones; без дубля в видимости | VisibilitySettingsPanel − галочка | L-08 | сделано |
-| L08-6 | Место под L-16 | строка «появятся позже» | CampaignRulesPanel | L-08 | сделано |
+| L08-6 | Место под L-16 | строка «появятся позже» | CampaignRulesPanel | L-08 | сделано → заменено в L-16 |
 | G-01 | Генератор | только поле в GET лобби/сессии | LobbyDetail / SessionDetail | G-01 | перенесено |
 | — | Крит max+dice | не делали, ключ отвергается | lobby.update | L-08 | сделано (отказ) |
+
+## L-16 — Правила старта
+
+| ID | Ожидалось | Фактически | Где | Пачка | Статус |
+|---|---|---|---|---|---|
+| L16-1 | `campaign_rules.start` + колонка пометки состава | ключ `start` в JSON; `start_rules_ok`/`start_rules_waived`; миграция `l16start7c4e2` down=`l08rules9f2a1` | campaign_rules.py + alembic | L-16 | сделано |
+| L16-2 | UI «Правила старта» вместо заглушки | поля уровня/метода/книг/набора/запретов; алиасы книг | CampaignRulesPanel + book_sources | L-16 | сделано |
+| L16-3 | «Создать героя для этого лобби» | `?lobbyId=&code=`; InviteMeta + start; автовход после сохранения | CreateCharacterPage + invite meta | L-16 | сделано |
+| L16-4 | Вход готовым с предупреждением и пометкой | 409 `start_rules_mismatch`; waive; автопересчёт листа | join + LobbyMemberMiniCard | L-16 | сделано |
+| L16-5 | Копия → правка → вход | `action=copy` клонирует без join; пайплайн; затем join | lobby service + Join/Character pages | L-16 | сделано |
+| L-08 | Не затирать homebrew/xp_remainder | merge_campaign_rules | lobby.update | L-16 | сделано |
+| L-04 | Не вторая кнопка копии | та же copy, новая цепочка | — | L-16 | сделано |

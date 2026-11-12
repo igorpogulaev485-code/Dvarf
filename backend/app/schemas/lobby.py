@@ -20,6 +20,9 @@ class LobbyMemberOut(BaseModel):
     character_race_name: str | None = None
     hp_current: int | None = None
     hp_max: int | None = None
+    # L-16: false → пометка «не по правилам старта» для мастера.
+    start_rules_ok: bool = True
+    start_rules_waived: bool = False
 
 
 class SettingSummary(BaseModel):
@@ -667,8 +670,10 @@ class JoinLobbyRequest(BaseModel):
     code: str = Field(min_length=4, max_length=16)
     # Без персонажа → вход наблюдателем (тот же код приглашения).
     character_id: UUID | None = None
-    # L-04: join (по умолчанию) | transfer из другого лобби | copy листа и вход копией.
+    # L-04/L-16: join | transfer | copy (клон без входа → правка → вход).
     action: Literal["join", "transfer", "copy"] = "join"
+    # L-16: войти несмотря на расхождения с правилами старта.
+    acknowledge_start_mismatch: bool = False
 
 
 class InviteMetaOut(BaseModel):
@@ -677,6 +682,25 @@ class InviteMetaOut(BaseModel):
     code: str
     name: str
     valid: bool = True
+    lobby_id: UUID | None = None
+    # L-16: нормализованные правила старта (или весь start-блок).
+    start: dict = Field(default_factory=dict)
+    campaign_rules_start: dict | None = None
+
+
+class JoinLobbyOut(BaseModel):
+    """Ответ на /lobbies/join: деталь лобби + опционально id клона (action=copy)."""
+
+    lobby: LobbyDetail
+    cloned_character_id: UUID | None = None
+    start_rules_ok: bool | None = None
+    start_mismatches: list[str] = Field(default_factory=list)
+
+
+class WaiveStartRulesRequest(BaseModel):
+    """Снять пометку «не по правилам старта» вручную."""
+
+    character_id: UUID
 
 
 class RemoveLobbyMemberRequest(BaseModel):

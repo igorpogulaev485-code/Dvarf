@@ -10,6 +10,9 @@ type Props = {
   /** Подпись кнопки листа: «Лист» или «Смотреть» для мастера */
   sheetLabel?: string
   seated?: boolean
+  /** L-16: мастер может снять пометку вручную */
+  onWaiveStartRules?: () => void
+  canWaiveStartRules?: boolean
 }
 
 function hpTone(current: number | null, max: number | null): 'ok' | 'warn' | 'down' | 'unknown' {
@@ -28,12 +31,15 @@ export function LobbyMemberMiniCard({
   removeLabel = 'Убрать',
   sheetLabel = 'Лист',
   seated = false,
+  onWaiveStartRules,
+  canWaiveStartRules,
 }: Props) {
   const subtitle = [member.character_race_name, member.character_class_name]
     .filter(Boolean)
     .join(' · ')
   const tone = hpTone(member.hp_current, member.hp_max)
   const initial = ((member.character_name ?? '').trim().charAt(0) || '?').toUpperCase()
+  const startMark = member.start_rules_ok === false
 
   return (
     <article className="lobby-member-card">
@@ -56,6 +62,11 @@ export function LobbyMemberMiniCard({
             ур. {member.character_level}
             {subtitle ? ` · ${subtitle}` : ''}
           </Text>
+          {startMark ? (
+            <Text tone="danger" className="lobby-member-card__start-mark">
+              не по правилам старта
+            </Text>
+          ) : null}
           {member.hp_max != null ? (
             <Text tone="muted" className="lobby-member-card__hp-text">
               HP {member.hp_current ?? 0}/{member.hp_max}
@@ -66,6 +77,11 @@ export function LobbyMemberMiniCard({
           <Link className="ui-button ui-button--ghost" to={`/characters/${member.character_id}`}>
             {sheetLabel}
           </Link>
+          {startMark && canWaiveStartRules && onWaiveStartRules ? (
+            <Button type="button" variant="ghost" disabled={busy} onClick={onWaiveStartRules}>
+              Допустить
+            </Button>
+          ) : null}
           {onRemove ? (
             <Button type="button" variant="secondary" disabled={busy} onClick={onRemove}>
               {removeLabel}

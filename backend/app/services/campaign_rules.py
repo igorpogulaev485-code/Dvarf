@@ -110,6 +110,28 @@ HOMEBREW_CATALOG: dict[str, dict[str, str]] = {
     },
 }
 
+ABILITY_METHODS: tuple[str, ...] = (
+    "standard_array",
+    "point_buy",
+    "roll",
+    "any",
+)
+
+STARTING_KIT_MODES: tuple[str, ...] = (
+    "class_equipment",
+    "class_gold",
+    "fixed_gold",
+)
+
+DEFAULT_START_RULES: dict[str, Any] = {
+    "level": 1,
+    "ability_method": "any",
+    "allowed_sources": ["phb"],
+    "starting_kit": {"mode": "class_equipment"},
+    "banned_races": [],
+    "banned_classes": [],
+}
+
 DEFAULT_CAMPAIGN_RULES: dict[str, Any] = {
     "edition_2014": {
         "feats_instead_of_asi": True,
@@ -140,6 +162,8 @@ DEFAULT_CAMPAIGN_RULES: dict[str, Any] = {
     # КД врагов для игроков (дефолт скрыт). Броски мастера — через event_history.
     "enemies_ac_visible": False,
     "custom_rules": [],
+    # L-16: правила старта (уровень, метод, книги, набор, запреты)
+    "start": deepcopy(DEFAULT_START_RULES),
 }
 
 
@@ -171,8 +195,70 @@ def _as_int(value: Any, default: int, *, min_v: int = 1, max_v: int = 20) -> int
     return max(min_v, min(max_v, n))
 
 
+def _slug_list(raw: Any, *, limit: int = 200) -> list[str]:
+    if not isinstance(raw, list):
+        return []
+    out: list[str] = []
+    seen: set[str] = set()
+    for item in raw:
+        slug = str(item or "").strip().lower()
+        if not slug or slug in seen:
+            continue
+        seen.add(slug)
+        out.append(slug[:80])
+        if len(out) >= limit:
+            break
+    return out
+
+
+def normalize_start_rules(raw: object | None) -> dict[str, Any]:
+    """Normalize campaign_rules.start with L-16 defaults."""
+    from app.services.book_sources import canonicalize_source
+
+    base = deepcopy(DEFAULT_START_RULES)
+    if not isinstance(raw, dict):
+        return base
+
+    base["level"] = _as_int(raw.get("level"), 1, min_v=1, max_v=20)
+
+    method = raw.get("ability_method")
+    if method in ABILITY_METHODS:
+        base["ability_method"] = method
+
+    sources_raw = raw.get("allowed_sources")
+    if isinstance(sources_raw, list):
+        cleaned: list[str] = []
+        seen: set[str] = set()
+        for item in sources_raw:
+            canon = canonicalize_source(item) or str(item or "").strip().lower()
+            if not canon or canon in seen:
+                continue
+            seen.add(canon)
+            cleaned.append(canon)
+        base["allowed_sources"] = cleaned or ["phb"]
+    else:
+        base["allowed_sources"] = ["phb"]
+
+    kit = raw.get("starting_kit")
+    if isinstance(kit, dict):
+        mode = kit.get("mode")
+        if mode == "fixed_gold":
+            gp = _as_int(kit.get("gp"), 0, min_v=0, max_v=1_000_000)
+            base["starting_kit"] = {"mode": "fixed_gold", "gp": gp}
+        elif mode in ("class_equipment", "class_gold"):
+            base["starting_kit"] = {"mode": mode}
+        else:
+            base["starting_kit"] = {"mode": "class_equipment"}
+    else:
+        base["starting_kit"] = {"mode": "class_equipment"}
+
+    base["banned_races"] = _slug_list(raw.get("banned_races"))
+    base["banned_classes"] = _slug_list(raw.get("banned_classes"))
+    return base
+
+
 def normalize_campaign_rules(raw: object | None) -> dict[str, Any]:
-    """Normalize arbitrary JSON into the L-08 shape with defaults."""
+    """Normalize arbitrary JSON into the L-08+L-16 shape with defaults."""
     base = default_campaign_rules()
     if not isinstance(raw, dict):
         return base
@@ -235,7 +321,40 @@ def normalize_campaign_rules(raw: object | None) -> dict[str, Any]:
                     cleaned.append(text[:500])
         base["custom_rules"] = cleaned[:50]
 
+    # L-16: start всегда нормализован (дефолт если ключа нет)
+    base["start"] = normalize_start_rules(raw.get("start"))
+
     return base
+
+
+def merge_campaign_rules(current: object | None, incoming: dict[str, Any]) -> dict[str, Any]:
+    """Merge PATCH payload with existing rules so L-08/S-06 keys are not wiped."""
+    cur = normalize_campaign_rules(current)
+    if not isinstance(incoming, dict):
+        return cur
+    merged = deepcopy(cur)
+
+    for key in (
+        "edition_2014",
+        "homebrew",
+        "progression",
+        "start",
+    ):
+        part = incoming.get(key)
+        if isinstance(part, dict):
+            base_part = merged.get(key) if isinstance(merged.get(key), dict) else {}
+            next_part = dict(base_part)
+            next_part.update(part)
+            # S-06: если PATCH не прислал xp_remainder — оставить копилку
+            if key == "progression" and "xp_remainder" not in part:
+                next_part["xp_remainder"] = cur["progression"]["xp_remainder"]
+            merged[key] = next_part
+
+    for key in ("inspiration_after_roll", "enemies_ac_visible", "custom_rules"):
+        if key in incoming:
+            merged[key] = incoming[key]
+
+    return normalize_campaign_rules(merged)
 
 
 def migrate_inspiration_from_visibility(

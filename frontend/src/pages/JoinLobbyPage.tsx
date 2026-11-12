@@ -2,12 +2,19 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
 import { parseCharacterInOtherLobby } from '../features/lobby/joinConflict'
+import { parseStartRulesMismatch } from '../features/lobby/joinStartMismatch'
+import {
+  normalizeStartRules,
+  summarizeStartRules,
+} from '../features/lobby/campaignRules'
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError, getAccessToken } from '../shared/api/client'
 import {
+  createHeroForLobbyHref,
   getLobbyInviteMeta,
   joinLobby,
   type CharacterInOtherLobbyData,
+  type InviteMeta,
   type JoinLobbyAction,
 } from '../shared/api/lobbies'
 import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
@@ -32,8 +39,10 @@ export function JoinLobbyPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lobbyName, setLobbyName] = useState<string | null>(null)
+  const [inviteMeta, setInviteMeta] = useState<InviteMeta | null>(null)
   const [metaError, setMetaError] = useState<string | null>(null)
   const [conflict, setConflict] = useState<CharacterInOtherLobbyData | null>(null)
+  const [startMismatch, setStartMismatch] = useState<string[] | null>(null)
 
   const codeReady = code.trim().length >= 4
   const selected = useMemo(
@@ -73,6 +82,7 @@ export function JoinLobbyPage() {
   useEffect(() => {
     if (!getAccessToken() || !codeReady) {
       setLobbyName(null)
+      setInviteMeta(null)
       setMetaError(null)
       return
     }
@@ -82,11 +92,13 @@ export function JoinLobbyPage() {
       .then((meta) => {
         if (!active) return
         setLobbyName(meta.name)
+        setInviteMeta(meta)
         setMetaError(null)
       })
       .catch((err: unknown) => {
         if (!active) return
         setLobbyName(null)
+        setInviteMeta(null)
         if (err instanceof ApiRequestError && err.status === 404) {
           setMetaError('Код лобби не найден')
           return
@@ -98,7 +110,21 @@ export function JoinLobbyPage() {
     }
   }, [code, codeReady])
 
-  async function doJoin(action: JoinLobbyAction) {
+  const startSummary = useMemo(() => {
+    if (!inviteMeta) return []
+    const start = inviteMeta.start ?? inviteMeta.campaign_rules_start
+    return summarizeStartRules(normalizeStartRules(start))
+  }, [inviteMeta])
+
+  const createHeroHref = useMemo(() => {
+    if (!inviteMeta?.lobby_id) return null
+    return createHeroForLobbyHref({
+      lobbyId: inviteMeta.lobby_id,
+      code: code.trim() || inviteMeta.code,
+    })
+  }, [inviteMeta, code])
+
+  async function doJoin(action: JoinLobbyAction, acknowledge = false) {
     if (!characterId) {
       setError('Выберите персонажа')
       return
@@ -110,13 +136,34 @@ export function JoinLobbyPage() {
     setBusy(true)
     setError(null)
     try {
-      const lobby = await joinLobby(code.trim(), characterId, action)
+      const result = await joinLobby(code.trim(), characterId, action, {
+        acknowledgeStartMismatch: acknowledge,
+      })
       setConflict(null)
-      navigate(`/lobbies/${lobby.id}`, { state: { toast: 'Персонаж добавлен в лобби' } })
+      setStartMismatch(null)
+      if (action === 'copy' && result.cloned_character_id) {
+        const lobbyId = result.lobby.id
+        const href = createHeroForLobbyHref({
+          lobbyId,
+          code: code.trim(),
+          characterId: result.cloned_character_id,
+        })
+        navigate(href)
+        return
+      }
+      navigate(`/lobbies/${result.lobby.id}`, {
+        state: { toast: 'Персонаж добавлен в лобби' },
+      })
     } catch (err) {
       const parsed = parseCharacterInOtherLobby(err)
       if (parsed && action === 'join') {
         setConflict(parsed)
+        setError(null)
+        return
+      }
+      const mismatch = parseStartRulesMismatch(err)
+      if (mismatch && (action === 'join' || action === 'transfer')) {
+        setStartMismatch(mismatch.mismatches)
         setError(null)
         return
       }
@@ -140,8 +187,10 @@ export function JoinLobbyPage() {
     setError(null)
     setConflict(null)
     try {
-      const lobby = await joinLobby(code.trim(), null)
-      navigate(`/lobbies/${lobby.id}`, { state: { toast: 'Вы вошли как наблюдатель' } })
+      const result = await joinLobby(code.trim(), null)
+      navigate(`/lobbies/${result.lobby.id}`, {
+        state: { toast: 'Вы вошли как наблюдатель' },
+      })
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось войти наблюдателем')
     } finally {
@@ -204,6 +253,18 @@ export function JoinLobbyPage() {
                       <Text tone="muted">
                         Выберите персонажа и подтвердите вход — мастер увидит его в лобби.
                       </Text>
+                      {startSummary.length ? (
+                        <ul className="campaign-rules-summary">
+                          {startSummary.map((line) => (
+                            <li key={line}>{line}</li>
+                          ))}
+                        </ul>
+                      ) : null}
+                      {createHeroHref ? (
+                        <Link className="ui-button ui-button--secondary" to={createHeroHref}>
+                          Создать героя для этого лобби
+                        </Link>
+                      ) : null}
                     </div>
                   ) : (
                     <Text tone="muted">Введите код от мастера (минимум 4 символа).</Text>
@@ -265,7 +326,36 @@ export function JoinLobbyPage() {
                     </Text>
                   ) : null}
 
-                  {conflict ? (
+                  {startMismatch ? (
+                    <Stack gap={10} className="join-flow__conflict">
+                      <Text>Не по правилам старта этого лобби:</Text>
+                      <ul className="campaign-rules-summary">
+                        {startMismatch.map((line) => (
+                          <li key={line}>{line}</li>
+                        ))}
+                      </ul>
+                      <div
+                        className="join-thumb-cta"
+                        style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}
+                      >
+                        <Button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => void doJoin('join', true)}
+                        >
+                          Всё равно войти
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          disabled={busy}
+                          onClick={() => setStartMismatch(null)}
+                        >
+                          Отмена
+                        </Button>
+                      </div>
+                    </Stack>
+                  ) : conflict ? (
                     <Stack gap={10} className="join-flow__conflict">
                       <Text>
                         Этот персонаж уже в лобби «{conflict.other_lobby_name}». Перевести сюда?
