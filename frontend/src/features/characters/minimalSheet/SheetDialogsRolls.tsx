@@ -12,6 +12,11 @@ import { canWearArmor, armorProficiencyHint } from '../equipmentProficiency'
 import { listShieldItems, toggleShieldInHand } from '../heldEquip'
 import { HotConditionsDialog } from '../HotConditionsDialog'
 import { formatSkillRoll } from '../deskRolls'
+import {
+  listRollDieChips,
+  mergeDeskRollMode,
+  resolveAdvantageFromEffects,
+} from '../../../shared/dnd/activeEffects'
 import { formatSaveAdvantageNote } from '../gearEffects'
 import { applyStrokeOfLuck, strokeOfLuckKind } from '../../../shared/dnd/strokeOfLuck'
 import { spendFeatureUse } from '../../../shared/dnd/featureResources'
@@ -552,8 +557,25 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           model.setDraft((prev) => ({ ...prev, modifiers }))
         }
         onRoll={() => {
+          const mode = mergeDeskRollMode(
+            model.effectiveRollMode(),
+            resolveAdvantageFromEffects(model.draft.play.effects, {
+              rollKind: 'initiative',
+            }),
+          )
+          const bonus = listRollDieChips(model.draft.play.effects ?? [], 'initiative').map(
+            (chip) => ({ dice: chip.dice, label: chip.name }),
+          )
           model.emitToast(
-            formatSkillRoll('Инициатива', model.initiativeValue, model.effectiveRollMode()),
+            formatSkillRoll(
+              'Инициатива',
+              model.initiativeValue,
+              mode,
+              undefined,
+              undefined,
+              null,
+              bonus,
+            ),
           )
         }}
         onClose={() => model.setInitiativeBreakdownOpen(false)}

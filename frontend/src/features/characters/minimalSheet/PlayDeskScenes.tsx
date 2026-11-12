@@ -32,6 +32,8 @@ import { syncWizardSpellbookWithInventory } from '../wizardSpellbookInventory'
 import { abilityModifier } from '../sheetTypes'
 import { sheetDamageProfile } from '../gearEffects'
 import {
+  consumeRollDieChips,
+  effectsEndingOnAttackCast,
   listRollDieChips,
   weaponBonusesFromActiveEffects,
 } from '../../../shared/dnd/activeEffects'
@@ -153,17 +155,65 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               dice: chip.dice,
               label: chip.name,
             }))}
+            damageRiders={listRollDieChips(model.draft.play.effects ?? [], 'damage').map((chip) => ({
+              effectId: chip.effectId,
+              name: chip.name,
+              dice: chip.dice,
+              once: chip.once,
+              damageType: chip.damageType ?? null,
+              optional: chip.optional,
+              defaultChecked: chip.defaultChecked,
+              meleeOnly: String(chip.condition || '').startsWith('next_melee_'),
+              spendCharge: chip.spendCharge,
+            }))}
             onConsumeOnceBuffDice={() => {
               const chips = listRollDieChips(model.draft.play.effects ?? [], 'attack').filter(
                 (chip) => chip.once,
               )
+              const ending = effectsEndingOnAttackCast(model.draft.play.effects ?? [])
+              if (ending.length) {
+                const names = ending.map((row) => row.name).join(', ')
+                const ok =
+                  typeof window !== 'undefined'
+                    ? window.confirm(`Закончить «${names}»?`)
+                    : true
+                if (ok) {
+                  const drop = new Set(ending.map((row) => row.id))
+                  model.setDraft((prev) => ({
+                    ...prev,
+                    play: {
+                      ...prev.play,
+                      effects: (prev.play.effects ?? []).filter((row) => !drop.has(row.id)),
+                    },
+                  }))
+                }
+              }
               if (!chips.length) return
-              const removeIds = new Set(chips.map((chip) => chip.effectId))
               model.setDraft((prev) => ({
                 ...prev,
                 play: {
                   ...prev.play,
-                  effects: (prev.play.effects ?? []).filter((row) => !removeIds.has(row.id)),
+                  effects: consumeRollDieChips(prev.play.effects ?? [], chips),
+                },
+              }))
+            }}
+            onConsumeDamageRiders={(used) => {
+              if (!used.length) return
+              model.setDraft((prev) => ({
+                ...prev,
+                play: {
+                  ...prev.play,
+                  effects: consumeRollDieChips(
+                    prev.play.effects ?? [],
+                    used.map((row) => ({
+                      effectId: row.effectId,
+                      name: '',
+                      dice: '',
+                      once: row.once,
+                      rollKind: 'damage' as const,
+                      spendCharge: row.spendCharge,
+                    })),
+                  ),
                 },
               }))
             }}

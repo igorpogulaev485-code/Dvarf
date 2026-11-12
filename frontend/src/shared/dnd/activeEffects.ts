@@ -2,6 +2,7 @@
  * B-01: sheet.combat.effects — duration, mods registry, stacking, rest expiry.
  * Legacy rows (name only, `· +N КД`, ac_bonus) keep working.
  * B-02 adds collectors (temp_hp, ac_formula, speed, resist…) + B02 buff specs.
+ * B-03 adds roll riders (damage dice chips), finer advantage filters, B03 specs.
  */
 
 import {
@@ -10,6 +11,12 @@ import {
   buildB02BuffSpec,
   type BuffBuildContext,
 } from './b02BuffSpecs'
+import {
+  B03_BUFF_SPEC_BUILDERS,
+  B03_NAME_TO_SLUG,
+  buildB03BuffSpec,
+  riderDamageTypeRu,
+} from './b03BuffSpecs'
 import type { AcMinFloor, CompetingAcFormula } from './armor'
 
 export type EffectKind =
@@ -77,13 +84,26 @@ export type ActiveEffect = {
   inactive_reason?: string | null
 }
 
+export type EffectRollKind = 'attack' | 'save' | 'check' | 'damage' | 'initiative'
+
 export type RollDieChip = {
   effectId: string
   name: string
   dice: string
   once: boolean
-  /** attack | save | check */
-  rollKind: 'attack' | 'save' | 'check'
+  rollKind: EffectRollKind
+  /** RU damage type for damage riders (огонь, излучение…). */
+  damageType?: string | null
+  /** Mod condition (marked_target, next_melee_fire, in_aura…). */
+  condition?: string | null
+  /**
+   * Player opt-in chip (Р12 / Р14 sheet half): e.g. «по помеченной цели», «в ауре».
+   * Default checked unless defaultChecked === false.
+   */
+  optional?: boolean
+  defaultChecked?: boolean
+  /** Decrement effect.charges when this chip is used (flame arrows). */
+  spendCharge?: boolean
 }
 
 /** Extensible mod registry — B-02…B-09 add kinds here. */
@@ -94,8 +114,50 @@ export type ModApplicator = {
   rollChip?: (
     mod: EffectMod,
     effect: ActiveEffect,
-    rollKind: 'attack' | 'save' | 'check',
+    rollKind: EffectRollKind,
   ) => RollDieChip | null
+}
+
+function chipFromMod(
+  mod: EffectMod,
+  effect: ActiveEffect,
+  rollKind: EffectRollKind,
+  extras?: Partial<RollDieChip>,
+): RollDieChip | null {
+  const dice = typeof mod.dice === 'string' && mod.dice.trim() ? mod.dice.trim() : null
+  if (!dice) return null
+  return {
+    effectId: effect.id,
+    name: effect.name,
+    dice,
+    once: Boolean(mod.once),
+    rollKind,
+    condition: mod.condition ?? null,
+    damageType: riderDamageTypeRu(mod.condition) ?? extras?.damageType ?? null,
+    ...extras,
+  }
+}
+
+function isOptionalRiderCondition(condition: string | null | undefined): boolean {
+  const c = String(condition || '')
+  return (
+    c === 'marked_target' ||
+    c.startsWith('marked_target_') ||
+    c.startsWith('in_aura') ||
+    c === 'shadow_blade_psychic' ||
+    c === 'flame_arrows_fire'
+  )
+}
+
+function optionalLabelFor(condition: string | null | undefined, effectName: string): string {
+  const c = String(condition || '')
+  if (c === 'marked_target' || c.startsWith('marked_target_')) {
+    return `${effectName} · по помеченной цели`
+  }
+  if (c.startsWith('in_aura')) return `${effectName} · в ауре`
+  if (c === 'shadow_blade_psychic') return `${effectName} · клинок`
+  if (c === 'flame_arrows_fire') return `${effectName} · боеприпас`
+  return effectName
 }
 
 const MOD_REGISTRY: Record<string, ModApplicator> = {
@@ -107,29 +169,56 @@ const MOD_REGISTRY: Record<string, ModApplicator> = {
   },
   roll_die: {
     rollChip: (mod, effect, rollKind) => {
-      if (mod.op !== 'roll_die' && mod.target !== 'attack' && mod.target !== 'save' && mod.target !== 'check') {
-        // handled below by target match
-      }
       const dice = typeof mod.dice === 'string' && mod.dice.trim() ? mod.dice.trim() : '1d4'
       const target = String(mod.target || '')
-      if (target !== rollKind && target !== 'attack_save' && !(target === 'attack' && rollKind === 'attack')) {
-        if (target === 'attack_save') {
-          if (rollKind !== 'attack' && rollKind !== 'save') return null
-        } else if (target !== rollKind) {
-          return null
-        }
-      }
       if (target === 'attack' && rollKind !== 'attack') return null
       if (target === 'save' && rollKind !== 'save') return null
       if (target === 'check' && rollKind !== 'check') return null
       if (target === 'attack_save' && rollKind !== 'attack' && rollKind !== 'save') return null
+      if (target === 'initiative' && rollKind !== 'initiative') return null
+      if (
+        target !== 'attack' &&
+        target !== 'save' &&
+        target !== 'check' &&
+        target !== 'attack_save' &&
+        target !== 'initiative' &&
+        target !== 'roll_die'
+      ) {
+        return null
+      }
       return {
         effectId: effect.id,
         name: effect.name,
         dice,
         once: Boolean(mod.once),
         rollKind,
+        condition: mod.condition ?? null,
       }
+    },
+  },
+  weapon_damage: {
+    rollChip: (mod, effect, rollKind) => {
+      if (rollKind !== 'damage') return null
+      if (mod.op !== 'roll_die' && !(typeof mod.dice === 'string' && mod.dice.trim())) {
+        return null
+      }
+      const optional = isOptionalRiderCondition(mod.condition)
+      return chipFromMod(mod, effect, 'damage', {
+        name: optional ? optionalLabelFor(mod.condition, effect.name) : effect.name,
+        optional,
+        defaultChecked: optional ? true : undefined,
+        spendCharge: String(mod.condition || '').includes('flame_arrows'),
+        once: Boolean(mod.once),
+      })
+    },
+  },
+  initiative: {
+    rollChip: (mod, effect, rollKind) => {
+      if (rollKind !== 'initiative') return null
+      if (mod.op !== 'roll_die' && !(typeof mod.dice === 'string' && mod.dice.trim())) {
+        return null
+      }
+      return chipFromMod(mod, effect, 'initiative')
     },
   },
 }
@@ -731,28 +820,164 @@ export function clampHpAfterMaxLoss(input: {
   return { hpMax, hpCurrent }
 }
 
+export type ListRollDieChipsOpts = {
+  /** Melee weapon attack — required for next_melee_* riders (absorb elements). */
+  melee?: boolean
+  /** Include optional chips (marked target / in aura). Default true. */
+  includeOptional?: boolean
+}
+
 export function listRollDieChips(
   effects: unknown,
-  rollKind: 'attack' | 'save' | 'check',
+  rollKind: EffectRollKind,
+  opts?: ListRollDieChipsOpts,
 ): RollDieChip[] {
   const parsed = applyEffectStacking(parseActiveEffects(effects))
   const chips: RollDieChip[] = []
+  const includeOptional = opts?.includeOptional !== false
   for (const effect of parsed) {
     if (effect.inactive) continue
     for (const mod of effect.mods ?? []) {
-      const isRollDie =
-        mod.op === 'roll_die' ||
-        (typeof mod.dice === 'string' &&
-          (mod.target === 'attack' ||
-            mod.target === 'save' ||
-            mod.target === 'check' ||
-            mod.target === 'attack_save'))
-      if (!isRollDie) continue
-      const chip = MOD_REGISTRY.roll_die.rollChip?.(mod, effect, rollKind)
-      if (chip) chips.push(chip)
+      const target = String(mod.target || '')
+      const hasDice = typeof mod.dice === 'string' && Boolean(mod.dice.trim())
+
+      // Classic B-01 attack/save/check / initiative dice.
+      if (
+        rollKind === 'attack' ||
+        rollKind === 'save' ||
+        rollKind === 'check' ||
+        rollKind === 'initiative'
+      ) {
+        const isClassic =
+          mod.op === 'roll_die' ||
+          (hasDice &&
+            (target === 'attack' ||
+              target === 'save' ||
+              target === 'check' ||
+              target === 'attack_save' ||
+              target === 'initiative'))
+        if (isClassic) {
+          const app =
+            target === 'initiative'
+              ? MOD_REGISTRY.initiative
+              : MOD_REGISTRY.roll_die
+          const chip = app.rollChip?.(mod, effect, rollKind)
+          if (chip) chips.push(chip)
+          continue
+        }
+      }
+
+      // B-03 damage riders: weapon_damage.dice and legacy label+dice.
+      if (rollKind === 'damage' && hasDice) {
+        if (target === 'weapon_damage' || (target === 'label' && hasDice)) {
+          if (String(mod.condition || '').startsWith('next_melee_') && opts?.melee === false) {
+            continue
+          }
+          if (target === 'weapon_damage') {
+            const chip = MOD_REGISTRY.weapon_damage.rollChip?.(mod, effect, 'damage')
+            if (chip) {
+              if (chip.optional && !includeOptional) continue
+              chips.push(chip)
+            }
+            continue
+          }
+          // label + dice (legacy absorb / shadow blade before B-03 rewrite)
+          const optional = isOptionalRiderCondition(mod.condition)
+          if (optional && !includeOptional) continue
+          const chip = chipFromMod(mod, effect, 'damage', {
+            name: optional ? optionalLabelFor(mod.condition, effect.name) : effect.name,
+            optional,
+            defaultChecked: optional ? true : undefined,
+            once: Boolean(mod.once) || String(mod.condition || '').startsWith('next_melee_'),
+          })
+          if (chip) chips.push(chip)
+        }
+      }
     }
   }
   return chips
+}
+
+export type AdvantageRollKind = 'attack' | 'save' | 'check' | 'initiative'
+
+function advantageModApplies(
+  mod: EffectMod,
+  opts?: {
+    condition?: string | null
+    rollKind?: AdvantageRollKind | null
+    abilityKey?: string | null
+  },
+): boolean {
+  const isAdv =
+    mod.op === 'advantage' ||
+    mod.target === 'advantage' ||
+    mod.op === 'disadvantage' ||
+    mod.target === 'disadvantage'
+  if (!isAdv) return false
+  const cond = (mod.condition || '').trim()
+  if (opts?.condition) {
+    if (cond && cond !== opts.condition) return false
+    return true
+  }
+  const rollKind = opts?.rollKind
+  if (!rollKind) return true
+  if (!cond) return true
+
+  // Enemy-facing marks — not applied to the character's own rolls.
+  if (
+    cond === 'attacks_vs_you' ||
+    cond === 'ranged_vs_you' ||
+    cond === 'ranged_weapon_vs_in_sphere' ||
+    cond === 'blur'
+  ) {
+    return false
+  }
+
+  if (rollKind === 'attack') {
+    if (
+      cond === 'attack' ||
+      cond === 'weapon_attack' ||
+      cond === 'weapon_attack_once' ||
+      cond === 'str_attack' ||
+      cond === 'dex_wis_attack' ||
+      cond === 'all'
+    ) {
+      return true
+    }
+    return false
+  }
+  if (rollKind === 'save') {
+    if (mod.target === 'save' || cond === 'save' || cond === 'all' || cond === 'spells') {
+      return true
+    }
+    const ability = (opts?.abilityKey || '').toLowerCase()
+    if (ability && (cond === ability || cond.split('_').includes(ability))) return true
+    if (cond === 'death' && ability === 'death') return true
+    // Bare advantage target with ability condition (enhance-like on checks only) — skip for saves
+    // unless target is save.
+    if (mod.target === 'advantage' && ['str', 'dex', 'con', 'int', 'wis', 'cha'].includes(cond)) {
+      return false
+    }
+    return mod.target === 'save'
+  }
+  if (rollKind === 'check') {
+    if (cond === 'check' || cond === 'all') return true
+    if (cond === 'find_marked_target') {
+      // Perception / Survival when seeking the mark — player uses optional desk mode; auto for those skills.
+      const skill = (opts?.abilityKey || '').toLowerCase()
+      return skill === 'perception' || skill === 'survival' || skill === 'wis'
+    }
+    const ability = (opts?.abilityKey || '').toLowerCase()
+    if (ability && (cond === ability || cond.split('_').includes(ability))) return true
+    if (mod.target === 'advantage' && ['str', 'dex', 'con', 'int', 'wis', 'cha'].includes(cond)) {
+      return true
+    }
+    return false
+  }
+  if (rollKind === 'initiative') {
+    return cond === 'initiative' || cond === 'all' || cond === 'check'
+  }
+  return false
 }
 
 /**
@@ -761,7 +986,11 @@ export function listRollDieChips(
  */
 export function resolveAdvantageFromEffects(
   effects: unknown,
-  opts?: { condition?: string | null },
+  opts?: {
+    condition?: string | null
+    rollKind?: AdvantageRollKind | null
+    abilityKey?: string | null
+  },
 ): 'advantage' | 'disadvantage' | 'normal' {
   const parsed = applyEffectStacking(parseActiveEffects(effects))
   let adv = 0
@@ -769,7 +998,7 @@ export function resolveAdvantageFromEffects(
   for (const effect of parsed) {
     if (effect.inactive) continue
     for (const mod of effect.mods ?? []) {
-      if (opts?.condition && mod.condition && mod.condition !== opts.condition) continue
+      if (!advantageModApplies(mod, opts)) continue
       if (mod.op === 'advantage' || mod.target === 'advantage') adv += 1
       if (mod.op === 'disadvantage' || mod.target === 'disadvantage') dis += 1
     }
@@ -778,6 +1007,84 @@ export function resolveAdvantageFromEffects(
   if (adv > 0) return 'advantage'
   if (dis > 0) return 'disadvantage'
   return 'normal'
+}
+
+/** Merge manual desk toggle with effect-sourced advantage (PHB cancel rule). */
+export function mergeDeskRollMode(
+  desk: 'normal' | 'advantage' | 'disadvantage',
+  fromEffects: 'advantage' | 'disadvantage' | 'normal',
+): 'normal' | 'advantage' | 'disadvantage' {
+  let adv = desk === 'advantage' ? 1 : 0
+  let dis = desk === 'disadvantage' ? 1 : 0
+  if (fromEffects === 'advantage') adv += 1
+  if (fromEffects === 'disadvantage') dis += 1
+  if (adv > 0 && dis > 0) return 'normal'
+  if (adv > 0) return 'advantage'
+  if (dis > 0) return 'disadvantage'
+  return 'normal'
+}
+
+/** Effects that should prompt «закончить Невидимость?» on attack/cast. */
+export function effectsEndingOnAttackCast(effects: unknown): ActiveEffect[] {
+  return applyEffectStacking(parseActiveEffects(effects)).filter(
+    (row) =>
+      !row.inactive &&
+      (row.mods ?? []).some(
+        (mod) =>
+          mod.target === 'label' && mod.condition === 'invisible_ends_on_attack_cast',
+      ),
+  )
+}
+
+/**
+ * After a confirmed hit / roll: drop once riders (and optionally whole effect),
+ * spend charges (flame arrows / mirror images handled separately).
+ */
+export function consumeRollDieChips(
+  effects: ActiveEffect[],
+  chips: RollDieChip[],
+): ActiveEffect[] {
+  if (!chips.length) return effects
+  const onceIds = new Set(chips.filter((c) => c.once).map((c) => c.effectId))
+  const chargeIds = new Set(chips.filter((c) => c.spendCharge).map((c) => c.effectId))
+  // Also clear once advantage mods when damage once of same effect is consumed (zephyr).
+  return effects
+    .map((row) => {
+      if (onceIds.has(row.id)) {
+        // Strip once mods; if nothing mechanical left besides labels/speed-once, drop effect
+        // when all once damage/advantage mods are gone and slug is a one-hit smite-like.
+        const remaining = (row.mods ?? []).filter((mod) => !mod.once)
+        const smiteLike =
+          Boolean(row.slug?.includes('smite')) || row.slug === 'true_strike'
+        if (smiteLike || remaining.length === 0) return null
+        // Absorb Elements / Zephyr: keep resistance / labels; strip once riders only.
+        return { ...row, mods: remaining }
+      }
+      if (chargeIds.has(row.id) && typeof row.charges === 'number') {
+        const next = Math.max(0, row.charges - 1)
+        if (next <= 0 && row.slug === 'flame_arrows') return null
+        return { ...row, charges: next }
+      }
+      return row
+    })
+    .filter((row): row is ActiveEffect => row != null)
+}
+
+export function decrementEffectCharges(
+  effects: ActiveEffect[],
+  effectId: string,
+  by = 1,
+): ActiveEffect[] {
+  return effects
+    .map((row) => {
+      if (row.id !== effectId) return row
+      const next = Math.max(0, (row.charges ?? 0) - by)
+      if (next <= 0 && (row.slug === 'mirror_image' || row.slug === 'flame_arrows')) {
+        return null
+      }
+      return { ...row, charges: next }
+    })
+    .filter((row): row is ActiveEffect => row != null)
 }
 
 export function tickEffectRound(effect: ActiveEffect): ActiveEffect | null {
@@ -926,6 +1233,7 @@ const SPELL_NAME_TO_SLUG: Array<{ re: RegExp; slug: string }> = [
   { re: /^благословен|^bless$/i, slug: 'bless' },
   { re: /^щит\s*вер|^shield of faith$/i, slug: 'shield_of_faith' },
   { re: /^ободряющ|^emboldening/i, slug: 'emboldening_bond' },
+  ...B03_NAME_TO_SLUG,
   ...B02_NAME_TO_SLUG,
 ]
 
@@ -935,6 +1243,7 @@ export function guessBuffSlug(name: string, catalogId?: string | null): string |
     .toLowerCase()
     .replace(/-/g, '_')
   if (id && B01_BUFF_SPECS[id]) return id
+  if (id && B03_BUFF_SPEC_BUILDERS[id]) return id
   if (id && B02_BUFF_SPEC_BUILDERS[id]) return id
   // Common catalog_id aliases
   const aliases: Record<string, string> = {
@@ -953,11 +1262,17 @@ export function guessBuffSlug(name: string, catalogId?: string | null): string |
     ashardalon_s_stride: 'ashardalons_stride',
     ashardalons_stride: 'ashardalons_stride',
     ceremony: 'ceremony_wedding',
+    hunter_s_mark: 'hunters_mark',
+    hunters_mark: 'hunters_mark',
+    crusader_s_mantle: 'crusaders_mantle',
+    otiluke_s_resilient_sphere: 'otilukes_resilient_sphere',
+    fortune_s_favor: 'fortunes_favor',
+    gift_of_alacrity: 'gift_of_alacrity',
   }
   if (id && aliases[id]) return aliases[id]
-  if (id && id.replace(/'/g, '') in B02_BUFF_SPEC_BUILDERS) {
-    return id.replace(/'/g, '')
-  }
+  const stripped = id.replace(/'/g, '')
+  if (stripped && B03_BUFF_SPEC_BUILDERS[stripped]) return stripped
+  if (stripped && B02_BUFF_SPEC_BUILDERS[stripped]) return stripped
   const label = name.trim()
   for (const row of SPELL_NAME_TO_SLUG) {
     if (row.re.test(label)) return row.slug
@@ -977,10 +1292,24 @@ export function buildBuffEffect(input: {
   casterMod?: number | null
   option?: string | null
 }): ActiveEffect | null {
-  const slug =
+  let slug =
     input.slug ||
     guessBuffSlug(input.name ?? '', input.catalogId) ||
     null
+  // Ceremony rites: option picks dedication / coming_of_age / wedding.
+  const opt = (input.option || '').trim()
+  if (
+    opt &&
+    (slug === 'ceremony_wedding' ||
+      slug === 'ceremony' ||
+      /^церемони/i.test(input.name ?? '') ||
+      /ceremony/i.test(String(input.catalogId ?? '')))
+  ) {
+    if (opt === 'dedication' || opt === 'посвящение') slug = 'ceremony_dedication'
+    else if (opt === 'coming_of_age' || opt === 'становление') {
+      slug = 'ceremony_coming_of_age'
+    } else if (opt === 'wedding' || opt === 'венчание') slug = 'ceremony_wedding'
+  }
   if (!slug) return null
   const ctx: BuffBuildContext = {
     slotLevel: input.slotLevel,
@@ -990,6 +1319,7 @@ export function buildBuffEffect(input: {
   }
   const spec =
     B01_BUFF_SPECS[slug] ??
+    buildB03BuffSpec(slug, ctx) ??
     buildB02BuffSpec(slug, ctx)
   if (!spec) return null
   const startedAt = new Date().toISOString()
@@ -1016,7 +1346,7 @@ export function buildBuffEffect(input: {
   }
 }
 
-/** True when this spell/catalog has a structured B-01/B-02 buff spec. */
+/** True when this spell/catalog has a structured B-01/B-02/B-03 buff spec. */
 export function hasBuffSpec(name: string, catalogId?: string | null): boolean {
   return guessBuffSlug(name, catalogId) != null
 }
