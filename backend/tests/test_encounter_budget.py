@@ -6,6 +6,7 @@ from app.dnd.encounter_budget import (
     monster_count_multiplier,
     threshold_for_level,
 )
+from app.dnd.encounter_calib import load_encounter_calib
 from app.dnd.encounter_themes import (
     expand_theme_ids,
     monster_matches_themes,
@@ -93,3 +94,14 @@ def test_party_power_clamped_and_grows() -> None:
     assert weak == 1.0
     assert strong > 1.3
     assert strong <= 2.2
+
+
+def test_calib_thresholds_match_dmg_level_5() -> None:
+    calib = load_encounter_calib()
+    assert calib["xp_thresholds_by_level"]["5"] == [250, 500, 750, 1100]
+    with_homebrew = compute_party_power(
+        PartyPowerSignals(),
+        homebrew_keys=["feat_at_level_1", "flanking_advantage"],
+    )
+    assert with_homebrew > 1.0
+    assert with_homebrew <= 2.2

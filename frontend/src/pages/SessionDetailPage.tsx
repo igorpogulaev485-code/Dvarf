@@ -19,6 +19,10 @@ import { LootChestBoard, RewardsDialog } from '../features/lobby/RewardsDialog'
 import { MasterGrantDialog } from '../features/lobby/MasterGrantDialog'
 import { PietyAwardDialog } from '../features/lobby/PietyAwardDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
+import {
+  EncounterGenerateDialog,
+  type EncounterDeployPick,
+} from '../features/lobby/EncounterGenerateDialog'
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { SessionLoreBindDialog } from '../features/lobby/SessionLoreBindDialog'
 import { SessionLorePanel } from '../features/lobby/SessionLorePanel'
@@ -57,6 +61,7 @@ import {
   deleteSession,
   deleteSessionCombatant,
   createSettingPage,
+  generateSessionEncounter,
   getLobby,
   getSession,
   getSetting,
@@ -77,6 +82,8 @@ import {
   startSessionCombat,
   type CombatantAction,
   type CombatEntry,
+  type CombatEntryInput,
+  type EncounterGenerateResult,
   unseatCharacter,
   updateSession,
   type SeatCondition,
@@ -97,6 +104,104 @@ const SIDE_PANEL_KEY = 'dvarf.session.sidePanelOpen'
 function sessionCanRun(session: { can_run_session?: boolean; is_owner?: boolean } | null | undefined): boolean {
   if (!session) return false
   return Boolean(session.can_run_session ?? session.is_owner)
+}
+
+/** G-01: высадка через S-02 (combatants + start / скрытые волны). */
+async function deployGeneratorToTable(
+  session: SessionDetail,
+  picks: EncounterDeployPick[],
+): Promise<SessionDetail> {
+  const active = Boolean(session.combat?.active)
+  let latest = session
+  const waveIds = new Map<number, string[]>()
+
+  let nextHiddenWave = 2
+  if (active) {
+    for (const w of session.combat?.waves ?? []) {
+      nextHiddenWave = Math.max(nextHiddenWave, (w.index ?? 1) + 1)
+    }
+  }
+
+  for (const pick of picks) {
+    const roles: Array<{ slug: string; count: number }> = []
+    if (pick.boss) roles.push({ slug: pick.boss.slug, count: 1 })
+    if (pick.pack && pick.packCount >= 1) {
+      roles.push({ slug: pick.pack.slug, count: pick.packCount })
+    }
+    if (roles.length === 0) continue
+
+    const waveIndex = active ? nextHiddenWave : pick.waveIndex
+    const condition =
+      pick.waveIndex <= 1 ? 'сразу' : `волна ${pick.waveIndex}`
+    const ids: string[] = []
+    for (const role of roles) {
+      const before = new Set((latest.combatants ?? []).map((c) => c.id))
+      latest = await addSessionCombatants(session.id, {
+        slug: role.slug,
+        count: role.count,
+        wave_index: waveIndex,
+        wave_condition_text: condition,
+      })
+      const added = (latest.combatants ?? []).filter((c) => !before.has(c.id))
+      for (const row of added) ids.push(row.id)
+    }
+    waveIds.set(pick.waveIndex, ids)
+    if (active) nextHiddenWave += 1
+  }
+
+  if (active) return latest
+
+  const entries: CombatEntryInput[] = []
+  for (const seat of latest.seats) {
+    entries.push({
+      kind: 'pc',
+      ref_id: seat.character_id,
+      name: seat.character_name,
+      initiative: null,
+      initiative_pending: true,
+      dex_mod: seat.dex_mod ?? null,
+    })
+    for (const companion of seat.companions ?? []) {
+      entries.push({
+        kind: 'companion',
+        ref_id: seat.character_id,
+        companion_id: companion.id,
+        name: `${companion.name} (${seat.character_name})`,
+        initiative: null,
+        initiative_pending: true,
+        dex_mod: null,
+      })
+    }
+  }
+  for (const [, ids] of waveIds) {
+    for (const id of ids) {
+      const enemy = (latest.combatants ?? []).find((c) => c.id === id)
+      const label =
+        enemy && (enemy.member_count ?? 1) > 1
+          ? `${enemy.name} ×${enemy.alive_count ?? enemy.member_count}`
+          : enemy?.name || 'Враг'
+      entries.push({
+        kind: 'enemy',
+        ref_id: id,
+        name: label,
+        initiative: 10 + (enemy?.dex_mod ?? 0),
+        initiative_pending: false,
+        dex_mod: enemy?.dex_mod ?? null,
+      })
+    }
+  }
+
+  const waves = [...waveIds.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([index, combatant_ids]) => ({
+      index,
+      condition_text: index <= 1 ? 'сразу' : `волна ${index}`,
+      combatant_ids,
+      released: index === 1 ? true : false,
+    }))
+
+  if (entries.length === 0 || waves.length === 0) return latest
+  return startSessionCombat(session.id, { entries, waves })
 }
 
 function sessionCanSeeHidden(
@@ -155,6 +260,10 @@ export function SessionDetailPage() {
   const [conditionOpen, setConditionOpen] = useState(false)
   const [effectOpen, setEffectOpen] = useState(false)
   const [combatantOpen, setCombatantOpen] = useState(false)
+  const [generatorOpen, setGeneratorOpen] = useState(false)
+  const [generatorResult, setGeneratorResult] = useState<EncounterGenerateResult | null>(
+    null,
+  )
   const [combatStartOpen, setCombatStartOpen] = useState(false)
   const [combatEndOpen, setCombatEndOpen] = useState(false)
   const [endCombatThenClose, setEndCombatThenClose] = useState(false)
@@ -983,14 +1092,6 @@ export function SessionDetailPage() {
                           Эффект
                         </Button>
                       ) : null}
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled
-                        title="генератор боя будет позже"
-                      >
-                        Генератор
-                      </Button>
                     </div>
                     <div className="session-toolbar-group" aria-label="Награды">
                       <Text className="session-toolbar-group__label">Награды</Text>
@@ -1085,6 +1186,22 @@ export function SessionDetailPage() {
                           </Button>
                         </>
                       )}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy || session.seats.length === 0}
+                        title={
+                          session.seats.length === 0
+                            ? 'Нужна партия за столом'
+                            : 'Подобрать бой по листам'
+                        }
+                        onClick={() => {
+                          setGeneratorResult(null)
+                          setGeneratorOpen(true)
+                        }}
+                      >
+                        Генератор
+                      </Button>
                       <Button
                         type="button"
                         variant="secondary"
@@ -2241,6 +2358,36 @@ export function SessionDetailPage() {
                 : n > 1
                   ? `На столе: ${n}`
                   : 'Противник на столе',
+            )
+          })
+        }}
+      />
+
+      <EncounterGenerateDialog
+        open={generatorOpen}
+        busy={busy}
+        result={generatorResult}
+        onClose={() => {
+          setGeneratorOpen(false)
+          setGeneratorResult(null)
+        }}
+        onInvalidate={() => setGeneratorResult(null)}
+        onGenerate={(payload) => {
+          void run(async () => {
+            const next = await generateSessionEncounter(session.id, payload)
+            setGeneratorResult(next)
+          })
+        }}
+        onDeploy={(picks) => {
+          void run(async () => {
+            const updated = await deployGeneratorToTable(session, picks)
+            setSession(updated)
+            setGeneratorOpen(false)
+            setGeneratorResult(null)
+            setToast(
+              session.combat?.active
+                ? 'Волны добавлены в бой'
+                : 'Бой начат из генератора',
             )
           })
         }}

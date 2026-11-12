@@ -69,3 +69,27 @@ export const ENCOUNTER_THEMES = [
 ] as const
 
 export type EncounterThemeId = (typeof ENCOUNTER_THEMES)[number]['id']
+
+export const ENCOUNTER_COMPOSITIONS = [
+  { id: 'mixed', label: 'Смешанный' },
+  { id: 'horde', label: 'Толпа' },
+  { id: 'boss', label: 'Босс' },
+] as const
+
+export const ENCOUNTER_WAVE_PROFILES = [
+  { id: 'even', label: 'Поровну' },
+  { id: 'escalation', label: 'Эскалация' },
+] as const
+
+export const ENCOUNTER_FLYERS = [
+  { id: 'auto', label: 'Авто' },
+  { id: 'allow', label: 'Можно' },
+  { id: 'want', label: 'Хочу' },
+  { id: 'none', label: 'Без' },
+] as const
+
+export const ENCOUNTER_ENEMY_CASTERS = [
+  { id: 'any', label: 'Как выйдет' },
+  { id: 'none', label: 'Нет' },
+  { id: 'several', label: 'Несколько' },
+] as const

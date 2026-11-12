@@ -89,6 +89,7 @@ from app.schemas.lobby import (
     EncounterGenerateRequest,
     EncounterGenerateResult,
     EncounterMonsterOptionOut,
+    EncounterPartySummaryOut,
     EncounterRoleOut,
     EncounterWaveOut,
     InventoryGrantRequest,
@@ -7902,49 +7903,81 @@ class LobbyService:
         session_id: UUID,
         payload: EncounterGenerateRequest,
     ) -> EncounterGenerateResult:
-        """B8: предложить босс+пачку по листам за столом (UI draft)."""
+        """G-01: генератор боя — стиль/волны/летуны/кастеры; вики — крючок до W-03."""
+        from app.services.campaign_rules import (
+            HOMEBREW_CATALOG,
+            homebrew_enabled,
+            normalize_campaign_rules,
+        )
+
         session, lobby = self._require_session_owner(user, session_id)
         if session.closed_at is not None:
             raise AppError("Сессия закрыта", code="session_closed", status_code=400)
-        if not session.seats:
+
+        # W-03 ещё нет: тип страницы combat не заводим
+        if payload.save_to_wiki or payload.parent_page_id:
             raise AppError(
-                "За столом никого нет — нечего анализировать",
-                code="encounter_no_seats",
+                "Вики боёв ещё нет — страница «Бой» появится в W-03",
+                code="wiki_combat_not_ready",
                 status_code=400,
             )
 
-        seat_ids = [s.character_id for s in session.seats]
-        chars = self.lobbies.get_characters_map(seat_ids)
+        rules = normalize_campaign_rules(getattr(lobby, "campaign_rules", None))
+        homebrew_keys = [
+            key
+            for key in (
+                "potion_bonus_self",
+                "gunpowder_exploding",
+                "flanking_advantage",
+                "feat_at_level_1",
+            )
+            if homebrew_enabled(rules, key)
+        ]
 
+        override_used = False
         members: list[PartyMemberSnapshot] = []
-        for seat in session.seats:
-            ch = chars.get(seat.character_id)
-            if ch is None:
-                continue
-            sheet = ch.sheet if isinstance(ch.sheet, dict) else {}
-            extras = _seat_combat_fields(ch)
-            effects = extras.get("effects") or []
-            effect_names = tuple(
-                str(e.get("name") or "")
-                for e in effects
-                if isinstance(e, dict)
-            )
-            members.append(
-                PartyMemberSnapshot(
-                    level=int(ch.level or 1),
-                    hp_max=ch.hp_max if isinstance(ch.hp_max, int) else None,
-                    sheet=sheet,
-                    seat_effects=effect_names,
-                    race_name=ch.race_name,
-                    class_name=ch.class_name,
+        if payload.party_count_override and payload.party_level_override:
+            override_used = True
+            lvl = int(payload.party_level_override)
+            for _ in range(int(payload.party_count_override)):
+                members.append(PartyMemberSnapshot(level=lvl, hp_max=None, sheet={}))
+        else:
+            if not session.seats:
+                raise AppError(
+                    "За столом никого нет — нечего анализировать",
+                    code="encounter_no_seats",
+                    status_code=400,
                 )
-            )
-        if not members:
-            raise AppError(
-                "Не удалось прочитать листы за столом",
-                code="encounter_no_sheets",
-                status_code=400,
-            )
+            seat_ids = [s.character_id for s in session.seats]
+            chars = self.lobbies.get_characters_map(seat_ids)
+            for seat in session.seats:
+                ch = chars.get(seat.character_id)
+                if ch is None:
+                    continue
+                sheet = ch.sheet if isinstance(ch.sheet, dict) else {}
+                extras = _seat_combat_fields(ch)
+                effects = extras.get("effects") or []
+                effect_names = tuple(
+                    str(e.get("name") or "")
+                    for e in effects
+                    if isinstance(e, dict)
+                )
+                members.append(
+                    PartyMemberSnapshot(
+                        level=int(ch.level or 1),
+                        hp_max=ch.hp_max if isinstance(ch.hp_max, int) else None,
+                        sheet=sheet,
+                        seat_effects=effect_names,
+                        race_name=ch.race_name,
+                        class_name=ch.class_name,
+                    )
+                )
+            if not members:
+                raise AppError(
+                    "Не удалось прочитать листы за столом",
+                    code="encounter_no_sheets",
+                    status_code=400,
+                )
 
         catalog_rows = self.catalog.list_bestiary_for_generator(edition="2014")
         monsters = []
@@ -7964,6 +7997,9 @@ class LobbyService:
         except ValueError as exc:
             raise AppError("Неизвестная сложность", code="bad_difficulty", status_code=400) from exc
 
+        from app.dnd.sheet_signals import analyze_party
+
+        analysis = analyze_party(members, homebrew_keys=homebrew_keys)
         proposal = compose_encounter(
             members=members,
             monsters=monsters,
@@ -7972,9 +8008,22 @@ class LobbyService:
             theme_ids=list(payload.theme_ids),
             similar=bool(payload.similar),
             waves=int(payload.waves),
+            party_analysis=analysis,
+            composition=payload.composition,  # type: ignore[arg-type]
+            wave_profile=payload.wave_profile,  # type: ignore[arg-type]
+            flyers=payload.flyers,  # type: ignore[arg-type]
+            enemy_casters=payload.enemy_casters,  # type: ignore[arg-type]
+            homebrew_keys=homebrew_keys,
         )
 
-        def _role(role) -> EncounterRoleOut:
+        ranged_labels = {"low": "мало", "medium": "средне", "high": "много"}
+        homebrew_labels = [
+            HOMEBREW_CATALOG.get(k, {}).get("label") or k for k in homebrew_keys
+        ]
+
+        def _role(role) -> EncounterRoleOut | None:
+            if role is None:
+                return None
             return EncounterRoleOut(
                 role=role.role,  # type: ignore[arg-type]
                 suggested_count=role.suggested_count,
@@ -7987,6 +8036,7 @@ class LobbyService:
                         type=o.type_en or None,
                         subtype=o.subtype,
                         fly=o.fly,
+                        caster=bool(getattr(o, "caster", False)),
                     )
                     for o in role.options
                 ],
@@ -8001,6 +8051,22 @@ class LobbyService:
             theme_ids=list(payload.theme_ids),
             similar=bool(payload.similar),
             environments=list(payload.environments or []),
+            composition=proposal.composition,
+            wave_profile=proposal.wave_profile,
+            flyers=proposal.flyers,
+            enemy_casters=proposal.enemy_casters,
+            flyers_warning=proposal.flyers_warning,
+            wiki_save_available=False,
+            party=EncounterPartySummaryOut(
+                member_count=analysis.member_count or len(analysis.levels),
+                levels=list(analysis.levels),
+                party_power=round(proposal.party_power, 4),
+                ranged_band=analysis.ranged_band,  # type: ignore[arg-type]
+                ranged_band_label=ranged_labels.get(analysis.ranged_band, "мало"),
+                anti_air_ok=analysis.anti_air_ok,
+                homebrew_applied=homebrew_labels,
+                override_used=override_used,
+            ),
             waves=[
                 EncounterWaveOut(
                     wave_index=w.wave_index,

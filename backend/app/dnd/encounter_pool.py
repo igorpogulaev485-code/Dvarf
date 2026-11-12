@@ -1,12 +1,19 @@
-"""B8: фильтр пула бестиария — environment ∩ themes ∩ anti-fly."""
+"""B8/G-01: фильтр пула бестиария — environment ∩ themes ∩ fly ∩ casters."""
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any, Iterable, Sequence
 
 from app.dnd.encounter_themes import expand_theme_ids, monster_matches_themes
 from app.dnd.xp import xp_from_cr
+
+_SPELLCASTING_RE = re.compile(
+    r"использовани[ея]\s+заклинаний|spellcasting|врожд[её]нн\w*\s+колдов|"
+    r"innate\s+spellcasting|заклинатель",
+    re.I,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -21,8 +28,32 @@ class BestiaryMonsterRef:
     subtype: str | None
     environments: tuple[str, ...]
     fly: bool
+    caster: bool = False
     hp_average: int | None = None
     ac: int | None = None
+
+
+def monster_has_spellcasting(data: dict[str, Any]) -> bool:
+    """Эвристика кастера по трейтам/тегам бестиария 2014."""
+    for key in ("traits", "actions", "bonus_actions"):
+        rows = data.get(key)
+        if not isinstance(rows, list):
+            continue
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            blob = " ".join(
+                str(row.get(k) or "")
+                for k in ("name_ru", "name_en", "text_ru", "text_en", "name")
+            )
+            if _SPELLCASTING_RE.search(blob):
+                return True
+    tags = data.get("tags")
+    if isinstance(tags, list):
+        for tag in tags:
+            if _SPELLCASTING_RE.search(str(tag)):
+                return True
+    return False
 
 
 def monster_from_catalog_entry(entry: dict[str, Any]) -> BestiaryMonsterRef | None:
@@ -60,6 +91,7 @@ def monster_from_catalog_entry(entry: dict[str, Any]) -> BestiaryMonsterRef | No
         subtype=subtype,
         environments=tuple(envs),
         fly=fly,
+        caster=monster_has_spellcasting(data),
         hp_average=int(hp) if isinstance(hp, int) else None,
         ac=int(ac) if isinstance(ac, int) else None,
     )
@@ -72,6 +104,8 @@ def filter_monster_pool(
     theme_ids: Sequence[str] | None = None,
     similar: bool = False,
     exclude_fly: bool = False,
+    exclude_casters: bool = False,
+    prefer_casters: bool = False,
     min_xp: int = 0,
     max_xp: int | None = None,
 ) -> list[BestiaryMonsterRef]:
@@ -83,9 +117,10 @@ def filter_monster_pool(
     for m in monsters:
         if exclude_fly and m.fly:
             continue
+        if exclude_casters and m.caster:
+            continue
         if env_set and m.environments and not (env_set & set(m.environments)):
             continue
-        # если у монстра нет environment — пропускаем только когда фильтр локации задан
         if env_set and not m.environments:
             continue
         if themes and not monster_matches_themes(
@@ -99,6 +134,13 @@ def filter_monster_pool(
         if max_xp is not None and m.xp > max_xp:
             continue
         out.append(m)
+
+    if prefer_casters:
+        casters = [m for m in out if m.caster]
+        if casters:
+            # кастеры впереди, но пул не режем — pick_top учтёт порядок близости XP
+            rest = [m for m in out if not m.caster]
+            return casters + rest
     return out
 
 
@@ -107,13 +149,18 @@ def pick_top_by_xp(
     *,
     target_xp: int,
     limit: int = 3,
+    prefer_casters: bool = False,
 ) -> list[BestiaryMonsterRef]:
-    """2–3 кандидата ближе всего к target_xp (для роли босса)."""
+    """2–3 кандидата ближе всего к target_xp (для роли)."""
     scored = sorted(
         monsters,
-        key=lambda m: (abs(m.xp - target_xp), -m.xp, m.name_ru),
+        key=lambda m: (
+            0 if (prefer_casters and m.caster) else 1,
+            abs(m.xp - target_xp),
+            -m.xp,
+            m.name_ru,
+        ),
     )
-    # уникальные slug
     seen: set[str] = set()
     picks: list[BestiaryMonsterRef] = []
     for m in scored:

@@ -109,8 +109,9 @@ def test_strong_party_deadly_compose_has_boss_and_pack() -> None:
     assert prop.party_power > 1.3
     assert prop.budget_total > budget_base(levels, EncounterDifficulty.deadly)
     wave = prop.waves[0]
-    assert wave.boss.options
-    assert wave.pack.options
+    assert wave.boss and wave.boss.options
+    assert wave.pack and wave.pack.options
     assert wave.pack.suggested_count >= 1
+    # тема orc — виверна не в пуле; летуны при anti_air_ok допустимы
     assert all(not o.fly for o in wave.boss.options)
     assert all(not o.fly for o in wave.pack.options)
