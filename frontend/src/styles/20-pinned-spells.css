@@ -1,59 +1,101 @@
 /*
- * Desk hot strip (≥960): wrap pinned chips; overflow resources live in «Ещё»
- * (no horizontal scroll — UX A1).
+ * Desk hot strip (≥960): one horizontal row; overflow scrolls with edge hints
+ * (fade + arrow buttons on PlayDeskHotBar wrap). Owner override of UX A1 «Ещё».
  */
+.play-desk__hot-wrap {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+}
+
 .play-desk--wide .play-desk__hot {
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   min-width: 0;
   max-width: 100%;
   width: 100%;
   box-sizing: border-box;
-  overflow-x: hidden;
-  overflow-y: visible;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
 }
 
 .play-desk--wide .play-desk__hot-item {
   flex: 0 0 auto;
+  scroll-snap-align: start;
 }
 
 .play-desk--wide .play-desk__hot-item--wide {
-  flex: 1 1 180px;
-  min-width: min(160px, 100%);
-  max-width: 100%;
+  flex: 0 0 auto;
+  min-width: min(200px, 72%);
+  max-width: min(360px, 85%);
 }
 
 .play-desk--wide .play-desk__hot-item--res {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-width: 120px;
 }
 
-.play-desk__hot-more {
-  position: relative;
-  flex: 0 0 auto;
-  align-self: stretch;
-}
-
-.play-desk__hot-more-btn {
-  min-width: 72px;
-  height: 100%;
-  font-weight: 600;
-}
-
-.play-desk__hot-more-panel {
+.play-desk__hot-fade {
   position: absolute;
-  z-index: 40;
-  top: calc(100% + 4px);
+  top: 0;
+  bottom: 0;
+  width: 36px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.play-desk__hot-fade--left {
+  left: 0;
+  background: linear-gradient(to right, #fff 35%, transparent);
+}
+
+.play-desk__hot-fade--right {
   right: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  min-width: min(320px, 80vw);
-  max-width: min(480px, 92vw);
-  padding: 8px;
+  background: linear-gradient(to left, #fff 35%, transparent);
+}
+
+.play-desk__hot-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  padding: 0;
   border: 1px solid var(--desk-line);
-  border-radius: 10px;
+  border-radius: 8px;
   background: #fff;
+  color: var(--desk-ink);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 0 rgba(45, 45, 42, 0.06);
+}
+
+.play-desk__hot-arrow:hover {
+  background: var(--desk-accent-soft);
+  border-color: var(--desk-line);
+}
+
+.play-desk__hot-arrow:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--desk-accent) 45%, white);
+  outline-offset: 1px;
+}
+
+.play-desk__hot-arrow--left {
+  left: 4px;
+}
+
+.play-desk__hot-arrow--right {
+  right: 4px;
 }
 
 .play-desk__hot-item {

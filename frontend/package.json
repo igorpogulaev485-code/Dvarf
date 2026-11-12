@@ -36,7 +36,8 @@
     "selfcheck:jump-distance": "tsx src/shared/dnd/jumpDistance.selfcheck.ts",
     "selfcheck:spells-settings-slots": "tsx src/features/characters/spellsSettings.visibleSlots.selfcheck.ts",
     "selfcheck:enemy-pack-roster": "tsx --tsconfig tsconfig.app.json src/features/lobby/enemyPackRoster.selfcheck.ts",
-    "selfcheck:artifact-gear": "tsx --tsconfig tsconfig.app.json src/features/characters/artifactGear.selfcheck.ts"
+    "selfcheck:artifact-gear": "tsx --tsconfig tsconfig.app.json src/features/characters/artifactGear.selfcheck.ts",
+    "selfcheck:hot-bar-scroll": "tsx --tsconfig tsconfig.app.json src/features/characters/PlayDeskHotBar.selfcheck.ts"
   },
   "dependencies": {
     "react": "^19.2.8",
