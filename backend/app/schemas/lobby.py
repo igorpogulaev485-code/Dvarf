@@ -783,6 +783,12 @@ class CombatantActionOut(BaseModel):
     name_ru: str
     text_ru: str = ""
     name_en: str | None = None
+    # S-04: структурированные поля атаки / спасброска (из статблока или своего НПС)
+    attack_bonus: int | None = None
+    damage_dice: str | None = None
+    damage_type: str | None = None
+    save_dc: int | None = None
+    save_ability: str | None = None
 
 
 class EncounterEntryOut(BaseModel):
@@ -979,6 +985,13 @@ class SessionCombatOut(BaseModel):
     round: int = 1
     active_index: int = 0
     waiting_reaction: bool = False
+    """S-04: общий режим «Кубики на столе» (без новой колонки)."""
+    dice_on_table: bool = False
+    """S-04: кому адресована реакция (character_id), если waiting_reaction."""
+    reaction_character_id: str | None = None
+    reaction_hint: str | None = None
+    """S-04: ожидаем выбор последствия fumble_on_1."""
+    pending_fumble: dict | None = None
     entries: list[CombatEntryOut] = Field(default_factory=list)
     waves: list[CombatWaveOut] = Field(default_factory=list)
     fallen: list[CombatFallenOut] = Field(default_factory=list)
@@ -1018,6 +1031,7 @@ class CombatPatchRequest(BaseModel):
 
     action: str | None = None
     # next | prev | end | release_wave | restore_fallen | set_waiting_reaction
+    # | set_dice_on_table | resolve_fumble
     active_index: int | None = Field(default=None, ge=0)
     round: int | None = Field(default=None, ge=1)
     entries: list[CombatEntryInput] | None = None
@@ -1029,6 +1043,10 @@ class CombatPatchRequest(BaseModel):
     """Краткая строка итога в ленту при end."""
     summary: str | None = Field(default=None, max_length=240)
     waiting_reaction: bool | None = None
+    """S-04: переключатель «Кубики на столе»."""
+    dice_on_table: bool | None = None
+    """S-04: id последствия fumble (drop_weapon | hit_ally | lose_reaction)."""
+    fumble_consequence_id: str | None = Field(default=None, max_length=40)
 
 
 class CombatInitiativeRequest(BaseModel):
@@ -1328,6 +1346,85 @@ class SessionRollCreateRequest(BaseModel):
     """Клиент сообщает, что бросок уже с преимуществом (потраченное вдохновение)."""
     used_inspiration: bool = False
     advantage: bool = False
+    """S-04: число с физических кубиков / режима стола → значок 🎲 в ленте."""
+    physical_dice: bool = False
+    """S-04: скрытый бросок игрока (видят автор и ведущие)."""
+    is_hidden: bool = False
+    """S-04: метка категории для фильтра ленты (combat | roll)."""
+    category: str | None = Field(default=None, max_length=40)
+
+
+class CombatAttackRequest(BaseModel):
+    """S-04: атака / действие врага или своего НПС по цели."""
+
+    attacker_combatant_id: str = Field(min_length=1, max_length=80)
+    action_name: str = Field(min_length=1, max_length=200)
+    action_block: str = Field(
+        default="actions",
+        pattern="^(traits|actions|bonus_actions|reactions|legendary_actions)$",
+    )
+    target_kind: str = Field(pattern="^(pc|companion|enemy)$")
+    target_ref_id: str = Field(min_length=1, max_length=80)
+    target_member_id: str | None = Field(default=None, max_length=80)
+    companion_id: str | None = Field(default=None, max_length=80)
+    # roll | manual | table_hit | table_miss | table_save | table_fail
+    mode: str = Field(
+        default="roll",
+        pattern="^(roll|manual|table_hit|table_miss|table_save|table_fail)$",
+    )
+    attack_total: int | None = Field(default=None, ge=-20, le=99)
+    attack_natural: int | None = Field(default=None, ge=1, le=20)
+    damage_total: int | None = Field(default=None, ge=0, le=9999)
+    damage_type: str | None = Field(default=None, max_length=40)
+    flanking: bool = False
+    advantage: bool | None = None
+    disadvantage: bool | None = None
+    physical_dice: bool = False
+
+
+class CombatAttackResult(BaseModel):
+    session: "SessionDetail"
+    event: SessionEventOut | None = None
+    hit: bool | None = None
+    damage_applied: int | None = None
+    damage_note: str | None = None
+    waiting_reaction: bool = False
+    fumble_pending: bool = False
+    feed_line: str | None = None
+
+
+class CombatReactionRequest(BaseModel):
+    """S-04: объявить реакцию или пропустить."""
+
+    action: str = Field(pattern="^(declare|skip)$")
+    character_id: UUID
+    """Крючок T-01: имя эффекта (Щит и т. п.) — не блокируем по «реакция потрачена»."""
+    effect_name: str | None = Field(default=None, max_length=120)
+
+
+class CombatTargetOut(BaseModel):
+    id: str
+    kind: str
+    ref_id: str
+    name: str
+    hp_current: int | None = None
+    hp_max: int | None = None
+    ac: int | None = None
+    conditions: list = Field(default_factory=list)
+    side: str = "party"
+    is_ally: bool = True
+    user_id: str | None = None
+    companion_id: str | None = None
+    member_id: str | None = None
+
+
+class CombatTargetsOut(BaseModel):
+    """S-04 / контракт T-01: видимые цели боя для этого зрителя."""
+
+    session_id: UUID
+    dice_on_table: bool = False
+    waiting_reaction: bool = False
+    targets: list[CombatTargetOut] = Field(default_factory=list)
 
 
 class SeatRequest(BaseModel):

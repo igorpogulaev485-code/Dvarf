@@ -9,8 +9,9 @@ export type ManualRollPayload = {
   breakdown?: string | null
   total: number
   is_master_roll?: boolean
+  physical_dice?: boolean
+  is_hidden?: boolean
 }
-
 type Props = {
   seats: SessionSeat[]
   /** id персонажей текущего пользователя (для выбора «за кого») */
@@ -39,6 +40,7 @@ export function ManualRollForm({
   const [breakdown, setBreakdown] = useState('')
   const [total, setTotal] = useState<number | null>(null)
   const [masterHidden, setMasterHidden] = useState(false)
+  const [playerHidden, setPlayerHidden] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
 
   const canChooseMaster = isOwner
@@ -68,9 +70,12 @@ export function ManualRollForm({
       breakdown: breakdown.trim() || null,
       total,
       is_master_roll: isMaster || (isOwner && masterHidden),
+      physical_dice: true,
+      is_hidden: !isMaster && !isOwner && playerHidden,
     })
     setBreakdown('')
     setTotal(null)
+    setPlayerHidden(false)
   }
 
   if (!isOwner && ownSeats.length === 0) {
@@ -88,7 +93,8 @@ export function ManualRollForm({
           Физический куб
         </Text>
         <Text tone="muted" className="manual-roll-form__hint">
-          Введите результат с кости — без онлайн-генератора.
+          Свободный бросок без цели (проверка, которую мастер попросил устно). Атаки врагов —
+          с карточки; режим «Кубики на столе» — переключатель у ленты.
         </Text>
 
         <Field label="Кто">
@@ -155,6 +161,18 @@ export function ManualRollForm({
               onChange={(e) => setMasterHidden(e.target.checked)}
             />
             Скрытый бросок мастера
+          </label>
+        ) : null}
+
+        {!isOwner && actor && actor !== MASTER_VALUE ? (
+          <label className="manual-roll-form__check">
+            <input
+              type="checkbox"
+              checked={playerHidden}
+              disabled={busy}
+              onChange={(e) => setPlayerHidden(e.target.checked)}
+            />
+            Скрытый бросок (видите вы и мастер)
           </label>
         ) : null}
 

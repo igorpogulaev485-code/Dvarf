@@ -346,6 +346,8 @@ def _member_out(member: LobbyMember, character: Character | None) -> LobbyMember
 def _action_blocks(raw: object) -> list[dict]:
     if not isinstance(raw, list):
         return []
+    from app.services.session_table_s04 import enrich_action_block
+
     out: list[dict] = []
     for item in raw:
         if not isinstance(item, dict):
@@ -353,17 +355,7 @@ def _action_blocks(raw: object) -> list[dict]:
         name = str(item.get("name_ru") or item.get("name") or "").strip()
         if not name:
             continue
-        out.append(
-            {
-                "name_ru": name,
-                "text_ru": str(item.get("text_ru") or item.get("text") or "").strip(),
-                "name_en": (
-                    str(item["name_en"]).strip()
-                    if item.get("name_en")
-                    else None
-                ),
-            }
-        )
+        out.append(enrich_action_block(item))
     return out
 
 
@@ -740,6 +732,20 @@ def _combat_out(
         round=int(filtered["round"]),
         active_index=int(filtered["active_index"]),
         waiting_reaction=bool(filtered.get("waiting_reaction")),
+        dice_on_table=bool(filtered.get("dice_on_table")),
+        reaction_character_id=(
+            str(filtered["reaction_character_id"])
+            if filtered.get("reaction_character_id")
+            else None
+        ),
+        reaction_hint=(
+            str(filtered["reaction_hint"]) if filtered.get("reaction_hint") else None
+        ),
+        pending_fumble=(
+            filtered.get("pending_fumble")
+            if isinstance(filtered.get("pending_fumble"), dict)
+            else None
+        ),
         entries=[_combat_entry_out(e) for e in filtered.get("entries") or []],
         waves=[CombatWaveOut(**w) for w in filtered.get("waves") or []],
         fallen=[CombatFallenOut(**f) for f in filtered.get("fallen") or []],
@@ -748,9 +754,14 @@ def _combat_out(
     )
 
 
-def _roll_audience(is_master_roll: bool, viewer_ids: set[UUID]) -> set[UUID] | None:
-    """Скрытый бросок мастера — только тем, кто can_see_hidden. Остальное — всей комнате."""
-    if is_master_roll:
+def _roll_audience(
+    is_master_roll: bool,
+    viewer_ids: set[UUID],
+    *,
+    is_hidden: bool = False,
+) -> set[UUID] | None:
+    """Скрытый бросок мастера/игрока — только viewer_ids. Иначе всей комнате."""
+    if is_master_roll or is_hidden:
         return set(viewer_ids)
     return None
 
@@ -3229,7 +3240,10 @@ class LobbyService:
         session_id: UUID,
         *,
         rolls_only: bool = False,
+        feed_filter: str | None = None,
     ) -> list[SessionEventOut]:
+        from app.services import session_table_s04 as s04
+
         session = self.lobbies.get_session(session_id)
         if session is None:
             raise NotFoundError("Сессия не найдена", code="session_not_found")
@@ -3237,7 +3251,7 @@ class LobbyService:
         self._require_view(lobby, user)
         events = self.lobbies.list_session_events(
             session_id,
-            rolls_only=rolls_only,
+            rolls_only=rolls_only or feed_filter == "rolls",
             limit=100,
         )
         is_owner = roles.can_see_hidden(self.db, lobby, user, session)
@@ -3253,7 +3267,17 @@ class LobbyService:
                 and event.is_master_roll
             ):
                 continue
+            payload = event.payload if isinstance(event.payload, dict) else {}
+            # S-04: скрытый бросок игрока — автор и ведущие
+            if payload.get("is_hidden") and not event.is_master_roll:
+                if not is_owner and event.actor_user_id != user.id:
+                    continue
             out.append(SessionEventOut.model_validate(event))
+        if feed_filter and feed_filter not in ("all", "rolls"):
+            filtered = s04.filter_events_by_feed(out, feed_filter=feed_filter)
+            return list(filtered)
+        if feed_filter == "rolls":
+            return [e for e in out if e.event_type == "roll"]
         return out
 
     async def create_manual_roll(
@@ -3339,13 +3363,20 @@ class LobbyService:
 
                         _fm_sheet2(roll_char, "sheet")
 
+        is_hidden = bool(getattr(payload, "is_hidden", False)) and not is_master_roll
+        physical_dice = bool(getattr(payload, "physical_dice", False))
+        category = getattr(payload, "category", None) or "roll"
+        title = payload.title.strip() or "Бросок"
+        if physical_dice and "🎲" not in title:
+            # Значок в формуле/payload; лента дорисует по physical_dice
+            pass
         event = SessionEvent(
             session_id=session.id,
             event_type="roll",
             character_id=character_id,
             actor_user_id=user.id,
             character_name=character_name,
-            title=payload.title.strip() or "Бросок",
+            title=title,
             formula=payload.formula,
             breakdown=payload.breakdown,
             total=payload.total,
@@ -3354,6 +3385,10 @@ class LobbyService:
                 "advantage": advantage_applied,
                 "inspiration_used": inspiration_used,
                 "inspiration_after_roll": after_roll,
+                "physical_dice": physical_dice,
+                "is_hidden": is_hidden,
+                "category": category,
+                "from_sheet": category == "sheet",
             },
         )
         self.lobbies.add_session_event(event)
@@ -3369,7 +3404,9 @@ class LobbyService:
         await session_hub.broadcast(
             session.id,
             {"type": "session_event", "event": out.model_dump(mode="json")},
-            only_user_ids=_roll_audience(is_master_roll, hidden_viewers),
+            only_user_ids=_roll_audience(
+                is_master_roll, hidden_viewers, is_hidden=is_hidden
+            ),
         )
         return out
 
@@ -4894,6 +4931,569 @@ class LobbyService:
         )
         return detail
 
+    def list_combat_targets(
+        self,
+        user: User,
+        session_id: UUID,
+    ):
+        """S-04 / T-01: видимые цели боя для текущего зрителя."""
+        from app.schemas.lobby import CombatTargetOut, CombatTargetsOut
+        from app.services import session_table_s04 as s04
+
+        session = self.lobbies.get_session(session_id)
+        if session is None:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lobby = session.lobby
+        self._require_view(lobby, user)
+        see_hidden = roles.can_see_hidden(self.db, lobby, user, session)
+        combatants = _parse_combatants(session.combatants)
+        state = _parse_combat_state(session.combat, combatants=combatants)
+        seat_ids = [s.character_id for s in session.seats]
+        char_map = self.lobbies.get_characters_map(seat_ids)
+        seats_raw: list[dict] = []
+        for seat in session.seats:
+            character = char_map.get(seat.character_id)
+            extras = _seat_combat_fields(character)
+            member = next(
+                (m for m in lobby.members if m.character_id == seat.character_id),
+                None,
+            )
+            seats_raw.append(
+                {
+                    "character_id": str(seat.character_id),
+                    "character_name": character.name if character else "Персонаж",
+                    "hp_current": character.hp_current if character else None,
+                    "hp_max": character.hp_max if character else None,
+                    "ac": extras.get("ac"),
+                    "conditions": extras.get("conditions") or [],
+                    "companions": extras.get("companions") or [],
+                    "user_id": member.user_id if member else None,
+                }
+            )
+        rows = s04.build_combat_targets(
+            seats=seats_raw,
+            combatants=combatants,
+            combat_state=state,
+            see_hidden=see_hidden,
+            viewer_user_id=user.id,
+        )
+        return CombatTargetsOut(
+            session_id=session.id,
+            dice_on_table=bool(state.get("dice_on_table")),
+            waiting_reaction=bool(state.get("waiting_reaction")),
+            targets=[CombatTargetOut(**r) for r in rows],
+        )
+
+    async def resolve_combat_reaction(
+        self,
+        user: User,
+        session_id: UUID,
+        payload,
+    ) -> SessionDetail:
+        """S-04: объявить реакцию / пропустить — снимает waiting_reaction."""
+        from sqlalchemy.orm.attributes import flag_modified
+
+        session = self.lobbies.get_session(session_id)
+        if session is None:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lobby = session.lobby
+        self._require_view(lobby, user)
+        roles.require_can_act_on_board(self.db, lobby, user)
+
+        character_id = payload.character_id
+        member = self.lobbies.get_member(lobby.id, character_id)
+        can_run = roles.can_run_session(self.db, lobby, user, session)
+        if member is None or (member.user_id != user.id and not can_run):
+            raise AppError(
+                "Реакцию объявляет владелец героя или ведущий",
+                code="forbidden",
+                status_code=403,
+            )
+        if self.lobbies.get_seat(session.id, character_id) is None:
+            raise AppError(
+                "Персонаж не за столом",
+                code="character_not_seated",
+                status_code=400,
+            )
+
+        combatants = _parse_combatants(session.combatants)
+        state = _parse_combat_state(session.combat, combatants=combatants)
+        char_map = self.lobbies.get_characters_map([character_id])
+        character = char_map.get(character_id)
+        name = character.name if character else "Герой"
+
+        state["waiting_reaction"] = False
+        state["reaction_character_id"] = None
+        state["reaction_hint"] = None
+        # Крючок T-01: не проверяем «реакция уже потрачена».
+        session.combat = scmb.dump_combat_state(state)
+        flag_modified(session, "combat")
+
+        declared = payload.action == "declare"
+        effect = (payload.effect_name or "").strip() or None
+        title = (
+            f"{name}: реакция{(' — ' + effect) if effect else ''}"
+            if declared
+            else f"{name}: пропускает реакцию"
+        )
+        event = SessionEvent(
+            session_id=session.id,
+            event_type="combat",
+            character_id=character_id,
+            actor_user_id=user.id,
+            character_name=name,
+            title=title,
+            is_master_roll=False,
+            payload={
+                "category": "combat",
+                "combat_journal": True,
+                "reaction": payload.action,
+                "effect_name": effect,
+            },
+        )
+        self.lobbies.add_session_event(event)
+        self.db.commit()
+        detail = self._session_detail(session, lobby, user)
+        await _broadcast_session_changed(session.id)
+        await session_hub.broadcast(
+            session.id,
+            {
+                "type": "session_event",
+                "event": SessionEventOut.model_validate(event).model_dump(mode="json"),
+            },
+        )
+        return detail
+
+    async def resolve_combat_attack(
+        self,
+        user: User,
+        session_id: UUID,
+        payload,
+    ):
+        """S-04: атака / действие врага → цель → бросок/попал → урон S-03 → реакция."""
+        from sqlalchemy.orm.attributes import flag_modified
+
+        from app.schemas.lobby import CombatAttackResult
+        from app.services import session_table_s04 as s04
+
+        session = self.lobbies.get_session(session_id)
+        if session is None:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lobby = session.lobby
+        self._require_view(lobby, user)
+        roles.require_can_run_session(self.db, lobby, user, session)
+
+        if session.closed_at is not None:
+            raise AppError("Сессия закрыта", code="session_closed", status_code=400)
+
+        combatants = _parse_combatants(session.combatants)
+        state = _parse_combat_state(session.combat, combatants=combatants)
+        attacker = next(
+            (c for c in combatants if str(c.get("id")) == payload.attacker_combatant_id),
+            None,
+        )
+        if attacker is None:
+            raise NotFoundError("Враг не найден", code="combatant_not_found")
+
+        block_key = payload.action_block or "actions"
+        actions = list(attacker.get(block_key) or [])
+        action_raw = next(
+            (
+                a
+                for a in actions
+                if isinstance(a, dict)
+                and str(a.get("name_ru") or "") == payload.action_name
+            ),
+            None,
+        )
+        if action_raw is None and actions:
+            # fallback: первое действие с похожим именем
+            action_raw = next(
+                (
+                    a
+                    for a in actions
+                    if isinstance(a, dict)
+                    and payload.action_name.lower()
+                    in str(a.get("name_ru") or "").lower()
+                ),
+                actions[0] if isinstance(actions[0], dict) else {},
+            )
+        stats = s04.parse_action_stats(action_raw if isinstance(action_raw, dict) else {})
+        action_name = stats["name_ru"] or payload.action_name
+        actor_name = str(attacker.get("name") or "Враг")
+
+        rules = getattr(lobby, "campaign_rules", None)
+        advantage = bool(payload.advantage)
+        disadvantage = bool(payload.disadvantage)
+        if payload.flanking and s04.flanking_gives_advantage(rules):
+            advantage = True
+
+        mode = payload.mode
+        dice_on_table = bool(state.get("dice_on_table"))
+        physical = bool(payload.physical_dice) or mode.startswith("table_") or (
+            mode == "manual"
+        )
+
+        hit: bool | None = None
+        outcome: str | None = None
+        attack_natural: int | None = None
+        attack_total: int | None = None
+        fumble_pending = False
+        damage_applied: int | None = None
+        damage_note: str | None = None
+        target_name = "цель"
+        target_ac: int | None = None
+        is_enemy_target = payload.target_kind == "enemy"
+        reaction_character_id: UUID | None = None
+
+        # --- цель ---
+        target_kind = payload.target_kind
+        if target_kind == "pc":
+            try:
+                pc_id = UUID(str(payload.target_ref_id))
+            except ValueError as exc:
+                raise AppError("Некорректный id цели", code="bad_target", status_code=400) from exc
+            if self.lobbies.get_seat(session.id, pc_id) is None:
+                raise AppError("Герой не за столом", code="target_not_seated", status_code=400)
+            char_map = self.lobbies.get_characters_map([pc_id])
+            character = char_map.get(pc_id)
+            if character is None:
+                raise NotFoundError("Персонаж не найден", code="character_not_found")
+            target_name = character.name
+            extras = _seat_combat_fields(character)
+            target_ac = extras.get("ac")
+            reaction_character_id = pc_id
+        elif target_kind == "companion":
+            try:
+                pc_id = UUID(str(payload.target_ref_id))
+            except ValueError as exc:
+                raise AppError("Некорректный id цели", code="bad_target", status_code=400) from exc
+            char_map = self.lobbies.get_characters_map([pc_id])
+            character = char_map.get(pc_id)
+            if character is None:
+                raise NotFoundError("Персонаж не найден", code="character_not_found")
+            companions = _parse_companions((character.sheet or {}).get("companions"))
+            companion = next(
+                (c for c in companions if str(c.get("id")) == str(payload.companion_id)),
+                None,
+            )
+            if companion is None:
+                raise NotFoundError("Напарник не найден", code="companion_not_found")
+            target_name = str(companion.get("name") or "Напарник")
+            target_ac = companion.get("ac")
+            reaction_character_id = pc_id
+        else:
+            enemy = next(
+                (c for c in combatants if str(c.get("id")) == payload.target_ref_id),
+                None,
+            )
+            if enemy is None:
+                raise NotFoundError("Цель-враг не найдена", code="target_not_found")
+            members = enemy.get("members") or []
+            member = None
+            if payload.target_member_id:
+                member = next(
+                    (m for m in members if str(m.get("id")) == payload.target_member_id),
+                    None,
+                )
+            if member is None:
+                member = next((m for m in members if int(m.get("hp_current") or 0) > 0), None)
+            target_name = str(
+                (member or {}).get("name") or enemy.get("name") or "Враг"
+            )
+            target_ac = enemy.get("ac")
+
+        # --- разрешение попадания / спасброска ---
+        is_save = mode in ("table_save", "table_fail") or (
+            stats["kind"] == "save" and stats["attack_bonus"] is None
+        )
+
+        if mode == "table_miss":
+            hit = False
+            outcome = "промах"
+            physical = True
+        elif mode == "table_hit":
+            hit = True
+            outcome = "попал"
+            physical = True
+        elif mode == "table_save":
+            hit = False  # спас = без полного урона; упрощённо: «спас»
+            outcome = "спас"
+            physical = True
+        elif mode == "table_fail":
+            hit = True
+            outcome = "провал"
+            physical = True
+        elif is_save and mode in ("roll", "manual"):
+            # Для спасброска mode roll/manual: attack_total = бросок цели; сравниваем с DC
+            dc = stats["save_dc"] or 10
+            if mode == "manual":
+                total = int(payload.attack_total or 0)
+                attack_natural = payload.attack_natural
+            else:
+                rolled = s04.resolve_attack_roll(
+                    attack_bonus=0,
+                    mode="roll",
+                    advantage=advantage,
+                    disadvantage=disadvantage,
+                )
+                total = int(rolled["total"])
+                attack_natural = rolled.get("natural")
+            attack_total = total
+            hit = total < dc  # провал спасброска → эффект/урон
+            outcome = "провал" if hit else "спас"
+        else:
+            bonus = int(stats["attack_bonus"] or 0)
+            rolled = s04.resolve_attack_roll(
+                attack_bonus=bonus,
+                mode=mode if mode in ("roll", "manual") else "roll",
+                attack_total=payload.attack_total,
+                attack_natural=payload.attack_natural,
+                advantage=advantage,
+                disadvantage=disadvantage,
+            )
+            attack_natural = rolled.get("natural")
+            attack_total = int(rolled["total"])
+            physical = physical or bool(rolled.get("physical"))
+            if target_ac is None:
+                # без КД — считаем попаданием только по явному table_*; иначе «бросок»
+                hit = True
+                outcome = f"бросок {attack_total}"
+            else:
+                hit = attack_total >= int(target_ac)
+                outcome = "попал" if hit else "промах"
+
+            if (
+                hit is False
+                and attack_natural == 1
+                and s04.fumble_on_natural_1(rules)
+                and mode != "table_miss"
+            ):
+                # Голый «Промах» без числа не ставит nat 1; roll/manual с 1 — да.
+                fumble_pending = True
+                state["pending_fumble"] = {
+                    "actor": actor_name,
+                    "action_name": action_name,
+                    "target": target_name,
+                }
+
+        # --- урон ---
+        damage_type = (
+            s03.normalize_damage_type(payload.damage_type)
+            or stats.get("damage_type")
+        )
+        if hit and mode not in ("table_miss", "table_save"):
+            if payload.damage_total is not None:
+                raw_dmg = int(payload.damage_total)
+            elif stats.get("damage_dice"):
+                raw_dmg, _ = s04.roll_damage_dice(stats["damage_dice"])
+            else:
+                raw_dmg = 0
+
+            if target_kind == "pc" and reaction_character_id is not None:
+                character = self.lobbies.get_characters_map([reaction_character_id]).get(
+                    reaction_character_id
+                )
+                assert character is not None
+                sheet = dict(character.sheet or {})
+                combat = dict(sheet.get("combat") or {})
+                applied = raw_dmg
+                if applied > 0 and damage_type:
+                    defs = s03.defenses_from_sheet_combat(combat)
+                    applied, damage_note = s03.adjust_incoming_damage(
+                        applied,
+                        damage_type,
+                        resistances=defs["damage_resistances"],
+                        immunities=defs["damage_immunities"],
+                        vulnerabilities=defs["damage_vulnerabilities"],
+                    )
+                hp_max = max(1, int(character.hp_max or 1))
+                hp_cur = int(
+                    character.hp_current if character.hp_current is not None else hp_max
+                )
+                hp_temp = int(combat.get("hp_temp") or 0)
+                hp_cur, hp_temp = s03.apply_damage_through_temp_hp(
+                    hp_cur, hp_temp, applied, hp_max=hp_max
+                )
+                character.hp_current = hp_cur
+                combat["hp_temp"] = hp_temp
+                combat["hp_current"] = hp_cur
+                if hp_cur <= 0:
+                    combat["is_dying"] = True
+                else:
+                    combat["is_dying"] = False
+                    combat["death_successes"] = 0
+                    combat["death_fails"] = 0
+                sheet["combat"] = combat
+                character.sheet = sheet
+                flag_modified(character, "sheet")
+                damage_applied = applied
+                if applied > 0:
+                    state["waiting_reaction"] = True
+                    state["reaction_character_id"] = str(reaction_character_id)
+                    state["reaction_hint"] = "Есть ли реакция на этот урон?"
+            elif target_kind == "companion" and reaction_character_id is not None:
+                character = self.lobbies.get_characters_map([reaction_character_id]).get(
+                    reaction_character_id
+                )
+                assert character is not None
+                sheet = dict(character.sheet or {})
+                companions = _parse_companions(sheet.get("companions"))
+                companion = next(
+                    (
+                        c
+                        for c in companions
+                        if str(c.get("id")) == str(payload.companion_id)
+                    ),
+                    None,
+                )
+                if companion is not None:
+                    applied = raw_dmg
+                    hp_max = max(1, int(companion.get("hp_max") or 1))
+                    hp_cur = int(companion.get("hp_current") or hp_max)
+                    hp_temp = int(companion.get("hp_temp") or 0)
+                    hp_cur, hp_temp = s03.apply_damage_through_temp_hp(
+                        hp_cur, hp_temp, applied, hp_max=hp_max
+                    )
+                    companion["hp_current"] = hp_cur
+                    companion["hp_temp"] = hp_temp
+                    sheet["companions"] = companions
+                    character.sheet = sheet
+                    flag_modified(character, "sheet")
+                    damage_applied = applied
+            elif target_kind == "enemy":
+                enemy = next(
+                    (c for c in combatants if str(c.get("id")) == payload.target_ref_id),
+                    None,
+                )
+                if enemy is not None:
+                    defenses = {
+                        "damage_resistances": list(enemy.get("damage_resistances") or []),
+                        "damage_immunities": list(enemy.get("damage_immunities") or []),
+                        "damage_vulnerabilities": list(
+                            enemy.get("damage_vulnerabilities") or []
+                        ),
+                    }
+                    members = list(enemy.get("members") or [])
+                    member = None
+                    if payload.target_member_id:
+                        member = next(
+                            (
+                                m
+                                for m in members
+                                if str(m.get("id")) == payload.target_member_id
+                            ),
+                            None,
+                        )
+                    if member is None:
+                        member = next(
+                            (m for m in members if int(m.get("hp_current") or 0) > 0),
+                            members[0] if members else None,
+                        )
+                    if member is not None:
+                        note = _apply_member_damage(
+                            member,
+                            raw_dmg,
+                            damage_type=damage_type,
+                            defenses=defenses,
+                        )
+                        damage_note = note
+                        damage_applied = raw_dmg
+                        enemy["members"] = members
+                        _sync_combatant_summary(enemy)
+                        if raw_dmg > 0:
+                            enemy["reaction_hint"] = "Есть ли реакция на этот урон?"
+                            state["waiting_reaction"] = True
+
+        # КД врага игрокам не светим в ленте
+        feed_line = s04.format_feed_line(
+            actor=actor_name,
+            target=target_name,
+            action_name=action_name,
+            outcome=outcome,
+            damage=damage_applied if hit else None,
+            damage_type=damage_type if hit else None,
+            physical=physical or dice_on_table and mode.startswith("table_"),
+            hide_enemy_ac=is_enemy_target,
+            enemy_ac=target_ac if not is_enemy_target else None,
+            show_ac_to_master=False,
+        )
+
+        session.combatants = combatants
+        flag_modified(session, "combatants")
+        if state.get("active"):
+            state, combatants = scmb.sync_fallen_from_combatants(state, combatants)
+            session.combatants = combatants
+            flag_modified(session, "combatants")
+        session.combat = scmb.dump_combat_state(state)
+        flag_modified(session, "combat")
+
+        event = SessionEvent(
+            session_id=session.id,
+            event_type="roll" if attack_total is not None else "combat",
+            actor_user_id=user.id,
+            character_name=actor_name,
+            title=feed_line,
+            formula=(
+                f"1d20{stats['attack_bonus']:+d}"
+                if stats.get("attack_bonus") is not None and attack_total is not None
+                else None
+            ),
+            breakdown=(
+                f"{attack_natural}+{stats['attack_bonus']}"
+                if attack_natural is not None and stats.get("attack_bonus") is not None
+                else None
+            ),
+            total=attack_total,
+            is_master_roll=False,
+            payload={
+                "category": "combat",
+                "combat_journal": True,
+                "physical_dice": physical,
+                "hit": hit,
+                "damage_applied": damage_applied,
+                "damage_type": damage_type,
+                "damage_note": damage_note,
+                "target_kind": target_kind,
+                "target_name": target_name,
+                "attacker_combatant_id": payload.attacker_combatant_id,
+                "action_name": action_name,
+                "fumble_pending": fumble_pending,
+                # КД врага только в master payload-служебном поле, не в title
+                "target_ac_master": target_ac if is_enemy_target else target_ac,
+            },
+        )
+        self.lobbies.add_session_event(event)
+        self.db.commit()
+        self.db.refresh(event)
+
+        detail = self._session_detail(session, lobby, user)
+        if (
+            reaction_character_id is not None
+            and state.get("waiting_reaction")
+            and target_kind == "pc"
+        ):
+            for seat in detail.seats:
+                if seat.character_id == reaction_character_id:
+                    seat.reaction_hint = "Есть ли реакция на этот урон?"
+                    break
+        await _broadcast_session_changed(session.id)
+        out_event = SessionEventOut.model_validate(event)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_event", "event": out_event.model_dump(mode="json")},
+        )
+        return CombatAttackResult(
+            session=detail,
+            event=out_event,
+            hit=hit,
+            damage_applied=damage_applied,
+            damage_note=damage_note,
+            waiting_reaction=bool(state.get("waiting_reaction")),
+            fumble_pending=fumble_pending,
+            feed_line=feed_line,
+        )
+
     async def patch_combat(
         self,
         user: User,
@@ -5072,11 +5672,84 @@ class LobbyService:
                 if payload.waiting_reaction is not None
                 else True
             )
+            if not state["waiting_reaction"]:
+                state["reaction_character_id"] = None
+                state["reaction_hint"] = None
             session.combat = scmb.dump_combat_state(state)
             flag_modified(session, "combat")
             self.db.commit()
             detail = self._session_detail(session, lobby, user)
             await _broadcast_session_changed(session.id)
+            return detail
+
+        if payload.action == "set_dice_on_table":
+            state["dice_on_table"] = (
+                bool(payload.dice_on_table)
+                if payload.dice_on_table is not None
+                else not bool(state.get("dice_on_table"))
+            )
+            session.combat = scmb.dump_combat_state(state)
+            flag_modified(session, "combat")
+            self.db.commit()
+            detail = self._session_detail(session, lobby, user)
+            await _broadcast_session_changed(session.id)
+            return detail
+
+        if payload.action == "resolve_fumble":
+            from app.services.session_table_s04 import FUMBLE_CONSEQUENCES
+
+            pending = state.get("pending_fumble")
+            if not isinstance(pending, dict):
+                raise AppError(
+                    "Нет ожидающего провала на 1",
+                    code="fumble_not_pending",
+                    status_code=400,
+                )
+            cid = payload.fumble_consequence_id
+            label = next(
+                (c["label"] for c in FUMBLE_CONSEQUENCES if c["id"] == cid),
+                None,
+            )
+            if not label:
+                raise AppError(
+                    "Неизвестное последствие провала",
+                    code="fumble_unknown",
+                    status_code=400,
+                )
+            state["pending_fumble"] = None
+            session.combat = scmb.dump_combat_state(state)
+            flag_modified(session, "combat")
+            actor = str(pending.get("actor") or "Враг")
+            action_name = str(pending.get("action_name") or "Атака")
+            event = SessionEvent(
+                session_id=session.id,
+                event_type="combat",
+                actor_user_id=user.id,
+                character_name=actor,
+                title=f"{actor}: {action_name} — провал на 1: {label}",
+                formula=None,
+                breakdown=None,
+                total=None,
+                is_master_roll=False,
+                payload={
+                    "category": "combat",
+                    "combat_journal": True,
+                    "fumble_consequence": cid,
+                },
+            )
+            self.lobbies.add_session_event(event)
+            self.db.commit()
+            detail = self._session_detail(session, lobby, user)
+            await _broadcast_session_changed(session.id)
+            await session_hub.broadcast(
+                session.id,
+                {
+                    "type": "session_event",
+                    "event": SessionEventOut.model_validate(event).model_dump(
+                        mode="json"
+                    ),
+                },
+            )
             return detail
 
         if payload.entries is not None:
@@ -5127,7 +5800,14 @@ class LobbyService:
         # S-03: эффекты с длительностью в раундах снимаются при смене раунда очереди.
         new_round = int(state.get("round") or 1)
         if new_round > prev_round:
+            from app.services import session_table_s04 as s04
+
             rounds_passed = new_round - prev_round
+            # L-08 / S-04: инициатива каждый раунд — помечаем pending (бросок/кубики на столе)
+            if s04.should_reroll_initiative(getattr(lobby, "campaign_rules", None)):
+                for entry in state.get("entries") or []:
+                    entry["initiative_pending"] = True
+                    entry["initiative"] = None
             for c in combatants:
                 effects = list(c.get("effects") or [])
                 c["effects"] = s03.tick_effects_rounds(effects, rounds_passed=rounds_passed)

@@ -19,6 +19,38 @@
   accent-color: var(--accent);
 }
 
+.session-feed-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.session-feed-filter-btn {
+  min-height: 32px;
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.session-feed-filter-btn.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.session-attack-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .session-event-feed {
   list-style: none;
   margin: 0;

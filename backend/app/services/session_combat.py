@@ -240,6 +240,10 @@ def parse_combat_state(raw: object, *, combatants: list[dict] | None = None) -> 
             "round": 1,
             "active_index": 0,
             "waiting_reaction": False,
+            "dice_on_table": False,
+            "reaction_character_id": None,
+            "reaction_hint": None,
+            "pending_fumble": None,
             "entries": [],
             "waves": waves,
             "fallen": [],
@@ -296,11 +300,25 @@ def parse_combat_state(raw: object, *, combatants: list[dict] | None = None) -> 
     else:
         active_index = 0
 
+    pending_fumble = raw.get("pending_fumble")
+    if pending_fumble is not None and not isinstance(pending_fumble, dict):
+        pending_fumble = None
+
     return {
         "active": active,
         "round": max(1, int(raw.get("round") or 1)),
         "active_index": active_index,
         "waiting_reaction": bool(raw.get("waiting_reaction")),
+        "dice_on_table": bool(raw.get("dice_on_table")),
+        "reaction_character_id": (
+            str(raw["reaction_character_id"])
+            if raw.get("reaction_character_id")
+            else None
+        ),
+        "reaction_hint": (
+            str(raw["reaction_hint"])[:240] if raw.get("reaction_hint") else None
+        ),
+        "pending_fumble": pending_fumble,
         "entries": entries if active else [],
         "waves": waves,
         "fallen": fallen if active else [],
@@ -411,6 +429,10 @@ def dump_combat_state(state: dict) -> dict:
         "round": max(1, int(state.get("round") or 1)),
         "active_index": int(state.get("active_index") or 0),
         "waiting_reaction": bool(state.get("waiting_reaction")),
+        "dice_on_table": bool(state.get("dice_on_table")),
+        "reaction_character_id": state.get("reaction_character_id"),
+        "reaction_hint": state.get("reaction_hint"),
+        "pending_fumble": state.get("pending_fumble"),
         "entries": list(state.get("entries") or []),
         "waves": list(state.get("waves") or []),
         "fallen": list(state.get("fallen") or []),
@@ -424,6 +446,10 @@ def empty_combat(*, saved_waves: list[dict] | None = None) -> dict:
         "round": 1,
         "active_index": 0,
         "waiting_reaction": False,
+        "dice_on_table": False,
+        "reaction_character_id": None,
+        "reaction_hint": None,
+        "pending_fumble": None,
         "entries": [],
         "waves": [],
         "fallen": [],
@@ -506,6 +532,8 @@ def advance_turn(state: dict, *, direction: int = 1) -> dict:
     state["active_index"] = idx
     state["round"] = round_no
     state["waiting_reaction"] = False
+    state["reaction_character_id"] = None
+    state["reaction_hint"] = None
     return state
 
 

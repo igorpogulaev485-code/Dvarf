@@ -41,6 +41,7 @@ import {
   monkAttackAbility,
 } from '../../shared/dnd/martialArts'
 import { resolveAttackRoll, type BonusDiePart, type DeskRollMode } from './deskRolls'
+import { postSheetRollToSession } from './postSheetRollToSession'
 import { attackSuppressedByEmptyStack } from './attacksInventorySync'
 import {
   abilityModifier,
@@ -112,6 +113,9 @@ type PlayDeskAttacksCompactProps = {
   consumableSpendLog?: ConsumableSpendLogEntry[]
   onUndoConsumableSpend?: (logId: string) => void
   onToast?: (message: string) => void
+  /** S-04: открытая сессия для ленты бросков с листа */
+  openSessionId?: string | null
+  characterId?: string | null
   onOpenSettings: () => void
   /** Empty-state CTA: open attacks settings (add / sync weapons). */
   onAddAttack?: () => void
@@ -209,6 +213,8 @@ export function PlayDeskAttacksCompact({
   consumableSpendLog = [],
   onUndoConsumableSpend,
   onToast,
+  openSessionId = null,
+  characterId = null,
   onOpenSettings,
   onAddAttack,
   onOpenInventory,
@@ -714,6 +720,18 @@ export function PlayDeskAttacksCompact({
                       })
                     } else {
                       onToast?.(strike.text)
+                      if (characterId && strike.hitRoll) {
+                        void postSheetRollToSession({
+                          openSessionId,
+                          characterId,
+                          title: `Атака: ${attack.name}`,
+                          total: strike.hitRoll.total,
+                          formula: `1d20${attackBonus >= 0 ? '+' : ''}${attackBonus}`,
+                          breakdown: `${strike.hitRoll.die}${
+                            attackBonus >= 0 ? '+' : ''
+                          }${attackBonus}`,
+                        })
+                      }
                     }
                     if (luckyArmed) onLuckySpent?.()
                     onConsumeOnceBuffDice?.()
