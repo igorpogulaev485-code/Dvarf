@@ -14,6 +14,7 @@ Create Date: 2026-11-12
 from __future__ import annotations
 
 import json
+import uuid
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Sequence, Union
@@ -29,6 +30,10 @@ depends_on: Union[str, Sequence[str], None] = None
 PHB_SPEC = Path("data/races/phb2014_race_catalog_spec.json")
 MPMM_SPEC = Path("data/races/mpmm_race_catalog_spec.json")
 SETTING_SPEC = Path("data/races/setting_race_catalog_spec.json")
+
+# Deterministic ids for *new* inserts only — never reuse the old 11111111-…210 block
+# (those pkeys are already taken by other catalog rows on prod).
+_RACE_ID_NS = uuid.UUID("b08face9-4c2a-4ace-9ace-0b08face0caf")
 
 PATCH_KEYS = (
     "speed",
@@ -88,18 +93,33 @@ NEW_SETTING_SLUGS = (
     "dragonborn_ravenite_egw",
 )
 
-# Stable UUIDs after setting wave (...1206).
-STABLE_NEW_IDS: dict[str, str] = {
-    "aarakocra_eepc": "11111111-1111-4111-8111-111111111210",
-    "genasi_air_eepc": "11111111-1111-4111-8111-111111111211",
-    "genasi_earth_eepc": "11111111-1111-4111-8111-111111111212",
-    "genasi_fire_eepc": "11111111-1111-4111-8111-111111111213",
-    "genasi_water_eepc": "11111111-1111-4111-8111-111111111214",
-    "dragonborn_draconblood_egw": "11111111-1111-4111-8111-111111111215",
-    "dragonborn_ravenite_egw": "11111111-1111-4111-8111-111111111216",
-}
+# Legacy hardcoded ids from the first B-08 draft (collide with prod catalog_entries).
+# Kept only so tests can occupy them and prove the fixed upsert ignores them.
+LEGACY_HARDCODED_IDS: tuple[str, ...] = tuple(
+    f"11111111-1111-4111-8111-11111111121{i}" for i in range(7)
+)
 
 MIGRATION_MARKER = "b08_mpmm_race_remap_v1"
+
+
+def new_race_entry_id(slug: str) -> str:
+    """uuid5 from slug — stable across reruns, independent of the ...210 block."""
+    return str(uuid.uuid5(_RACE_ID_NS, f"race:2014:{slug}"))
+
+
+def lookup_race_id(conn: Any, slug: str) -> str | None:
+    row = conn.execute(
+        sa.text(
+            """
+            SELECT id FROM catalog_entries
+            WHERE kind = 'race'
+              AND rules_edition = '2014'
+              AND slug = :slug
+            """
+        ),
+        {"slug": slug},
+    ).mappings().first()
+    return str(row["id"]) if row else None
 
 
 def _find_spec(rel: Path) -> Path:
@@ -175,25 +195,43 @@ def _patch_existing_row(conn: Any, slug: str, race: dict[str, Any]) -> None:
     )
 
 
-def _upsert_new_race(conn: Any, race: dict[str, Any], id_by_slug: dict[str, str]) -> None:
+def _upsert_new_race(conn: Any, race: dict[str, Any], id_by_slug: dict[str, str]) -> str:
+    """Upsert by (kind='race', slug, edition). New rows get uuid5(slug), never legacy …210 ids."""
     slug = race["slug"]
-    stable = STABLE_NEW_IDS[slug]
     parent_slug = race.get("parent_slug")
-    parent_id = id_by_slug.get(parent_slug) if parent_slug else None
+    parent_id = None
+    if parent_slug:
+        parent_id = id_by_slug.get(parent_slug) or lookup_race_id(conn, parent_slug)
+        if parent_id:
+            id_by_slug[parent_slug] = parent_id
     data = _catalog_data(race)
-    existing = conn.execute(
-        sa.text(
-            """
-            SELECT id FROM catalog_entries
-            WHERE kind = 'race' AND rules_edition = '2014' AND slug = :slug
-            """
-        ),
-        {"slug": slug},
-    ).mappings().first()
-    if existing:
+    existing_id = id_by_slug.get(slug) or lookup_race_id(conn, slug)
+    if existing_id:
         _patch_existing_row(conn, slug, race)
-        id_by_slug[slug] = str(existing["id"])
-        return
+        # Keep parent_id in sync when the row already exists.
+        conn.execute(
+            sa.text(
+                """
+                UPDATE catalog_entries
+                SET parent_id = CAST(:parent_id AS uuid),
+                    source = COALESCE(:source, source),
+                    sort_order = COALESCE(:sort_order, sort_order),
+                    is_active = true,
+                    updated_at = now()
+                WHERE id = CAST(:id AS uuid)
+                """
+            ),
+            {
+                "id": existing_id,
+                "parent_id": parent_id,
+                "source": race.get("source") or "eepc",
+                "sort_order": int(race.get("sort_order") or 999),
+            },
+        )
+        id_by_slug[slug] = existing_id
+        return existing_id
+
+    entry_id = new_race_entry_id(slug)
     conn.execute(
         sa.text(
             """
@@ -217,7 +255,7 @@ def _upsert_new_race(conn: Any, race: dict[str, Any], id_by_slug: dict[str, str]
             """
         ),
         {
-            "id": stable,
+            "id": entry_id,
             "slug": slug,
             "name_ru": race.get("name_ru") or slug,
             "name_en": race.get("name_en"),
@@ -227,7 +265,8 @@ def _upsert_new_race(conn: Any, race: dict[str, Any], id_by_slug: dict[str, str]
             "data": json.dumps(data, ensure_ascii=False),
         },
     )
-    id_by_slug[slug] = stable
+    id_by_slug[slug] = entry_id
+    return entry_id
 
 
 def _sheet_slug(sheet: dict[str, Any]) -> str | None:
@@ -608,6 +647,20 @@ def downgrade() -> None:
                 """
             ),
             {"id": char["id"], "sheet": json.dumps(sheet, ensure_ascii=False)},
+        )
+
+    # Delete only races this migration inserts (by slug — never by hardcoded id).
+    for slug in NEW_SETTING_SLUGS:
+        conn.execute(
+            sa.text(
+                """
+                DELETE FROM catalog_entries
+                WHERE kind = 'race'
+                  AND rules_edition = '2014'
+                  AND slug = :slug
+                """
+            ),
+            {"slug": slug},
         )
 
     for slug in DEACTIVATE_SLUGS:
