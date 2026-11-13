@@ -136,8 +136,13 @@ export function AttunementEditor({
           <div key={slot.id} className="attune-card">
             <div className="attune-card__head">
               <strong>Слот {index + 1}</strong>
-              <button type="button" className="linkish" onClick={() => removeSlot(slot.id)}>
-                Удалить
+              <button
+                type="button"
+                className="attune-card__remove"
+                onClick={() => removeSlot(slot.id)}
+                aria-label={`Снять слот ${index + 1}`}
+              >
+                Снять
               </button>
             </div>
             <Field label="Из инвентаря (нужна настройка, ещё не настроено)">

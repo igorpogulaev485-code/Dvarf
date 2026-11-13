@@ -212,25 +212,26 @@ button.play-desk-vital:hover,
   width: 1.05rem;
   height: 1.05rem;
   color: var(--desk-accent, var(--accent));
-  opacity: 0.92;
   flex-shrink: 0;
 }
 
 .play-desk-vital b {
   display: block;
   font-family: var(--font-display);
-  font-size: 1.2rem;
+  font-size: 1.32rem;
   line-height: 1;
   color: var(--desk-ink, var(--ink));
+  font-variant-numeric: tabular-nums;
 }
 
 .play-desk-vital > span {
   display: block;
   margin-top: 0;
-  font-size: 0.62rem;
+  font-size: 0.7rem;
+  font-weight: 600;
   color: var(--desk-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  text-transform: none;
+  letter-spacing: 0.01em;
 }
 
 .play-desk-vital--shield b {
@@ -292,8 +293,8 @@ button.play-desk-vital:hover,
 }
 
 .play-desk-vital--jump b {
-  font-size: 1rem;
-  letter-spacing: -0.03em;
+  font-size: 1.1rem;
+  letter-spacing: -0.02em;
   white-space: nowrap;
 }
 
@@ -526,7 +527,7 @@ button.play-desk-vital:hover,
 
 .play-desk-header__hp strong {
   font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
-  font-size: 1.35rem;
+  font-size: 1.45rem;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   color: var(--danger, #b42318);
@@ -535,6 +536,7 @@ button.play-desk-vital:hover,
 .play-desk-header__hp small {
   display: block;
   color: var(--desk-muted);
-  font-size: 0.72rem;
+  font-size: 0.76rem;
+  font-weight: 600;
 }
 

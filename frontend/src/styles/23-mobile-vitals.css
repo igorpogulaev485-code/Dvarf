@@ -241,18 +241,19 @@
 }
 
 .mobile-vitals__chip b {
-  font-size: 1rem;
+  font-size: 1.12rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
+  color: var(--ink);
 }
 
 .mobile-vitals__chip span {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: #5f584e;
+  text-transform: none;
+  letter-spacing: 0.01em;
 }
 
 .mobile-vitals__hp-row {
@@ -290,7 +291,7 @@
 }
 
 .mobile-vitals__hp-num {
-  font-size: 1.45rem;
+  font-size: 1.55rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--accent);
@@ -302,9 +303,9 @@
 }
 
 .mobile-vitals__hp-lab {
-  font-size: 0.68rem;
-  font-weight: 500;
-  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #5f584e;
 }
 
 .mobile-vitals__hp.is-danger .mobile-vitals__hp-lab {

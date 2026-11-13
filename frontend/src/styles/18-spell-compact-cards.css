@@ -147,8 +147,9 @@
   color: var(--desk-accent, var(--accent));
 }
 
-.play-desk-compact__slot-pip.is-pact.is-on {
+.play-desk-compact__slot-pip.is-pact.is-on::after {
   background: var(--desk-accent, var(--accent));
+  border-color: var(--desk-accent, var(--accent));
 }
 
 .play-desk-compact__spell-top {

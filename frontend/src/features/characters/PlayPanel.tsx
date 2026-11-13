@@ -257,10 +257,11 @@ export function PlayPanel({
                   <button
                     type="button"
                     className="tag-chip__remove"
-                    title="Снять"
+                    title="Снять истощение"
+                    aria-label="Снять истощение"
                     onClick={() => setExhaustion(0)}
                   >
-                    ×
+                    Снять
                   </button>
                 </span>
               ) : null}
@@ -293,10 +294,11 @@ export function PlayPanel({
                     <button
                       type="button"
                       className="tag-chip__remove"
-                      title="Снять"
+                      title={`Снять: ${resolveConditionName(ref)}`}
+                      aria-label={`Снять: ${resolveConditionName(ref)}`}
                       onClick={() => removeCondition(ref)}
                     >
-                      ×
+                      Снять
                     </button>
                   </span>
                 )

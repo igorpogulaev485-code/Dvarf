@@ -102,17 +102,19 @@
 }
 
 .inventory-fav {
-  min-width: 2rem;
-  height: 2rem;
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  height: 44px;
   border-radius: 10px;
   border: 1px solid var(--line);
   background: #fff;
-  color: var(--muted);
+  color: #5f584e;
   font: inherit;
-  font-size: 1rem;
+  font-size: 1.05rem;
   line-height: 1;
   cursor: pointer;
-  padding: 0 6px;
+  padding: 0 8px;
 }
 
 .inventory-fav.is-on {
@@ -221,8 +223,8 @@
 .play-desk--mobile .inventory-equip,
 .play-desk--mobile .inventory-fav,
 .play-desk--mobile .inventory-card__chevron-btn {
-  min-height: 40px;
-  min-width: 40px;
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .play-desk--mobile .inventory-coins--pad {
