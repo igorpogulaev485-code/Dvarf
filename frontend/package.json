@@ -49,6 +49,7 @@
     "selfcheck:m02-combat-first-screen": "tsx --tsconfig tsconfig.app.json src/features/characters/m02CombatFirstScreen.selfcheck.ts",
     "selfcheck:ux-sc01-scene-frame": "tsx --tsconfig tsconfig.app.json src/features/characters/uxSc01SceneFrame.selfcheck.ts",
     "selfcheck:ux-sc02-combat-map": "tsx --tsconfig tsconfig.app.json src/features/characters/uxSc02CombatMap.selfcheck.ts",
+    "selfcheck:ux-sc03-other-scenes": "tsx --tsconfig tsconfig.app.json src/features/characters/uxSc03OtherScenes.selfcheck.ts",
     "selfcheck:m04-create-mobile": "tsx --tsconfig tsconfig.app.json src/features/createPipeline/m04CreateMobile.selfcheck.ts",
     "selfcheck:onboarding-display": "tsx --tsconfig tsconfig.app.json src/features/onboarding/onboardingDisplay.selfcheck.ts",
     "selfcheck:onboarding-copy": "tsx --tsconfig tsconfig.app.json src/features/onboarding/onboardingCopy.selfcheck.ts",
