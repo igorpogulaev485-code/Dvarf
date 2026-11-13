@@ -205,6 +205,7 @@ export function JoinLobbyPage() {
           title="Вход в лобби"
           subtitle="Код или QR от мастера → персонаж или наблюдатель"
           onOfficialSite={openProductSite}
+          lobbyMobileShell
         />
 
         <Panel title="Присоединиться">

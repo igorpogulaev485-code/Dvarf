@@ -3,7 +3,8 @@ export type SessionLiveTabId = 'table' | 'feed' | 'more'
 const TABS: Array<{ id: SessionLiveTabId; label: string }> = [
   { id: 'table', label: 'Стол' },
   { id: 'feed', label: 'Лента' },
-  { id: 'more', label: 'Ещё' },
+  /** LV-01 P04: не «Ещё» — совпадало с меню шапки «…» */
+  { id: 'more', label: 'Заметки' },
 ]
 
 type Props = {
@@ -21,6 +22,7 @@ export function SessionLiveTabs({ active, onChange, moreBadge = 0 }: Props) {
             key={tab.id}
             type="button"
             className={`session-live-tab${active === tab.id ? ' is-active' : ''}`}
+            aria-label={tab.label}
             aria-current={active === tab.id ? 'page' : undefined}
             onClick={() => onChange(tab.id)}
           >

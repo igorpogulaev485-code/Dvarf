@@ -474,7 +474,8 @@
   border-radius: 16px;
   background: var(--card);
   overflow: hidden;
-  min-width: 0;
+  /* LV-01: не схлопываться в буквенную полоску в узком центре стола */
+  min-width: min(100%, 240px);
 }
 
 .session-table-card__hp {
@@ -668,7 +669,9 @@
   margin: 0;
   font-size: 1rem;
   line-height: 1.25;
-  overflow-wrap: anywhere;
+  /* LV-01: перенос по словам, не по буквам («Г / р / о / к») */
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .session-table-card__insp {
@@ -683,7 +686,8 @@
   margin: 0;
   font-size: 0.82rem;
   line-height: 1.3;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .session-table-card__stats {
