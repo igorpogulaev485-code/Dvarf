@@ -63,6 +63,7 @@ class LobbyRepository:
                 .options(
                     selectinload(Lobby.members),
                     selectinload(Lobby.roles),
+                    selectinload(Lobby.sessions),
                 )
                 .order_by(Lobby.updated_at.desc())
             ).all()
@@ -80,6 +81,19 @@ class LobbyRepository:
         self.db.add(lobby)
         self.db.flush()
         return lobby
+
+    def allocate_invite_code(self, *, exclude_lobby_id: UUID | None = None) -> str:
+        """Новый уникальный код (ретрай коллизий, как при create)."""
+        code = generate_invite_code()
+        for _ in range(8):
+            q = select(Lobby.id).where(Lobby.invite_code == code)
+            if exclude_lobby_id is not None:
+                q = q.where(Lobby.id != exclude_lobby_id)
+            exists = self.db.scalar(q)
+            if exists is None:
+                return code
+            code = generate_invite_code()
+        return code
 
     def get_member(self, lobby_id: UUID, character_id: UUID) -> LobbyMember | None:
         return self.db.scalar(

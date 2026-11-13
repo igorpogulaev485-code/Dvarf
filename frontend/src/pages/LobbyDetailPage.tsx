@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
+import { InviteQr, joinUrlForCode } from '../features/lobby/InviteQr'
 import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
 import { LobbyHubTabs, type LobbyHubTabId } from '../features/lobby/LobbyHubTabs'
 import { LobbyJournalPanel } from '../features/lobby/LobbyJournalPanel'
@@ -8,7 +9,9 @@ import { LobbyMemberMiniCard } from '../features/lobby/LobbyMemberMiniCard'
 import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
 import { LobbyMediaQuotaPanel } from '../features/lobby/LobbyMediaQuotaPanel'
 import { LobbyRolesPanel } from '../features/lobby/LobbyRolesPanel'
+import { LobbySetupHints } from '../features/lobby/LobbySetupHints'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
+import { useLobbyRealtime } from '../features/lobby/useLobbyRealtime'
 import { VisibilitySettingsPanel } from '../features/lobby/VisibilitySettingsPanel'
 import {
   defaultVisibilityProfile,
@@ -24,8 +27,8 @@ import {
   deleteSession,
   deleteSetting,
   getLobby,
-  lobbyQrUrl,
   removeLobbyMember,
+  rotateLobbyInviteCode,
   updateLobby,
   type LobbyDetail,
   type LobbyMediaUsage,
@@ -68,6 +71,9 @@ export function LobbyDetailPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const [deleteConfirmName, setDeleteConfirmName] = useState('')
+  const [lobbyDeleteOpen, setLobbyDeleteOpen] = useState(false)
+  const [lobbyDeleteName, setLobbyDeleteName] = useState('')
+  const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false)
   const [tab, setTab] = useState<LobbyHubTabId>(() => tabFromHash(location.hash))
   const [playerPreview, setPlayerPreview] = useState(false)
   const [visibilityDraft, setVisibilityDraft] = useState<VisibilityProfile>(
@@ -82,6 +88,18 @@ export function LobbyDetailPage() {
     setVisibilityDraft(normalizeVisibilityProfile(detail.visibility_profile))
     setVisibilityDirty(false)
   }, [lobbyId])
+
+  useLobbyRealtime(
+    lobbyId,
+    (data) => {
+      if (data.type === 'lobby_resync') {
+        void reload().catch(() => undefined)
+      }
+    },
+    () => {
+      void reload().catch(() => undefined)
+    },
+  )
 
   useEffect(() => {
     if ((location.state as LocationState | null)?.toast) {
@@ -159,6 +177,7 @@ export function LobbyDetailPage() {
   const canEditWiki = Boolean(lobby.can_edit_wiki || lobby.is_owner)
   const canRun = Boolean(lobby.can_run_session || lobby.is_owner || lobby.is_comaster)
   const canDeleteLobby = Boolean(lobby.can_delete_lobby || lobby.is_owner)
+  const canChangeInvite = Boolean(lobby.can_change_invite_code || lobby.is_owner)
   const roleSubtitle =
     lobby.role === 'comaster'
       ? 'Вы сомастер'
@@ -183,24 +202,57 @@ export function LobbyDetailPage() {
           <Text>
             <Link to="/lobbies">← Все лобби</Link>
           </Text>
-          {lobby.is_owner && lobby.invite_code ? (
-            <div className="lobby-hub-code">
-              <Text tone="muted">Код комнаты</Text>
-              <button
-                type="button"
-                className="lobby-hub-code__value"
-                onClick={async () => {
-                  await navigator.clipboard.writeText(lobby.invite_code ?? '')
-                  setToast('Код скопирован')
-                }}
-              >
-                {lobby.invite_code}
-              </button>
+          {lobby.invite_code ? (
+            <div className="lobby-hub-invite">
+              <div className="lobby-hub-code">
+                <Text tone="muted">Код комнаты</Text>
+                <button
+                  type="button"
+                  className="lobby-hub-code__value"
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(lobby.invite_code ?? '')
+                    setToast('Код скопирован')
+                  }}
+                >
+                  {lobby.invite_code}
+                </button>
+                {canChangeInvite ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={busy}
+                    onClick={() => setRotateConfirmOpen(true)}
+                  >
+                    Новый код
+                  </Button>
+                ) : null}
+              </div>
+              <div className="lobby-hub-invite__meta">
+                <Text tone="muted">
+                  Ссылка:{' '}
+                  <Link to={lobby.join_path || `/join/${lobby.invite_code}`}>
+                    {lobby.join_path || `/join/${lobby.invite_code}`}
+                  </Link>
+                </Text>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(joinUrlForCode(lobby.invite_code!))
+                    setToast('Ссылка скопирована')
+                  }}
+                >
+                  Копировать ссылку
+                </Button>
+                <InviteQr inviteCode={lobby.invite_code} lobbyName={lobby.name} size={120} />
+              </div>
             </div>
           ) : null}
         </div>
 
         {error ? <Text tone="danger">{error}</Text> : null}
+
+        <LobbySetupHints lobby={lobby} />
 
         <LobbyHubTabs active={tab} onChange={changeTab} />
 
@@ -484,9 +536,9 @@ export function LobbyDetailPage() {
 
         {tab === 'settings' ? (
           <Stack gap={16}>
-            {lobby.is_owner ? (
-              <Panel title="Настройки комнаты">
-                <Stack gap={12}>
+            <Panel title="Настройки комнаты">
+              <Stack gap={12}>
+                {lobby.is_owner ? (
                   <Field label="Название">
                     <Input
                       value={lobby.name}
@@ -499,45 +551,48 @@ export function LobbyDetailPage() {
                       }
                     />
                   </Field>
-                  <Field label="Код лобби">
-                    <div className="invite-code-row">
-                      <Input readOnly value={lobby.invite_code ?? ''} />
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={async () => {
-                          if (!lobby.invite_code) return
-                          await navigator.clipboard.writeText(lobby.invite_code)
-                          setToast('Код скопирован')
-                        }}
-                      >
-                        Копировать
-                      </Button>
-                    </div>
-                  </Field>
-                  <Text tone="muted">
-                    Игрок открывает{' '}
-                    <Link to={lobby.join_path || `/join/${lobby.invite_code}`}>
-                      {lobby.join_path || `/join/${lobby.invite_code}`}
-                    </Link>{' '}
-                    и выбирает персонажа.
-                  </Text>
-                  {lobby.invite_code ? (
-                    <img
-                      className="invite-qr"
-                      src={lobbyQrUrl(lobby.invite_code)}
-                      alt={`QR для входа в лобби ${lobby.name}`}
-                      width={180}
-                      height={180}
-                    />
-                  ) : null}
-                </Stack>
-              </Panel>
-            ) : (
-              <Panel title="Настройки комнаты">
-                <Text tone="muted">Только мастер меняет название и приглашение.</Text>
-              </Panel>
-            )}
+                ) : (
+                  <Text tone="muted">Название меняет только мастер.</Text>
+                )}
+                {lobby.invite_code ? (
+                  <>
+                    <Field label="Код лобби">
+                      <div className="invite-code-row">
+                        <Input readOnly value={lobby.invite_code} />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(lobby.invite_code ?? '')
+                            setToast('Код скопирован')
+                          }}
+                        >
+                          Копировать
+                        </Button>
+                        {canChangeInvite ? (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={busy}
+                            onClick={() => setRotateConfirmOpen(true)}
+                          >
+                            Новый код
+                          </Button>
+                        ) : null}
+                      </div>
+                    </Field>
+                    <Text tone="muted">
+                      Игрок открывает{' '}
+                      <Link to={lobby.join_path || `/join/${lobby.invite_code}`}>
+                        {lobby.join_path || `/join/${lobby.invite_code}`}
+                      </Link>{' '}
+                      и выбирает персонажа.
+                    </Text>
+                    <InviteQr inviteCode={lobby.invite_code} lobbyName={lobby.name} />
+                  </>
+                ) : null}
+              </Stack>
+            </Panel>
 
             {lobby.media_usage || canEditWiki || canManageJournal ? (
               <LobbyMediaQuotaPanel
@@ -593,32 +648,37 @@ export function LobbyDetailPage() {
 
             {canDeleteLobby ? (
               <Panel title="Опасная зона" className="ui-panel--danger">
-                <Button
-                  type="button"
-                  variant="danger"
-                  disabled={busy}
-                  onClick={() =>
-                    run(async () => {
-                      if (!confirm('Удалить лобби со всеми сеттингами и сессиями?')) return
-                      await deleteLobby(lobby.id)
-                      navigate('/lobbies')
-                    })
-                  }
-                >
-                  Удалить комнату
-                </Button>
+                <Stack gap={10}>
+                  <Text tone="muted">
+                    Пропадут дневник, заметки, чаты, сессии и картинки лобби. Персонажи останутся у
+                    игроков.
+                  </Text>
+                  {/* L-05: сюда — «Скачать заметки» перед удалением. */}
+                  <Button
+                    type="button"
+                    variant="danger"
+                    disabled={busy}
+                    onClick={() => {
+                      setLobbyDeleteName('')
+                      setLobbyDeleteOpen(true)
+                    }}
+                  >
+                    Удалить комнату
+                  </Button>
+                </Stack>
               </Panel>
             ) : null}
           </Stack>
         ) : null}
       </Stack>
-      
+
       <Dialog
         open={deleteConfirmOpen}
         title="Удалить сессию"
         primaryLabel={busy ? 'Удаляем…' : 'Удалить'}
         secondaryLabel="Отмена"
         busy={busy}
+        primaryVariant="danger"
         onPrimary={() => {
           if (!deleteTarget) return
           if (deleteConfirmName.trim() !== deleteTarget.name) {
@@ -653,7 +713,65 @@ export function LobbyDetailPage() {
         </Stack>
       </Dialog>
 
-<Toast message={toast} onClose={() => setToast(null)} />
+      <Dialog
+        open={lobbyDeleteOpen}
+        title="Удалить лобби"
+        primaryLabel={busy ? 'Удаляем…' : 'Удалить навсегда'}
+        secondaryLabel="Отмена"
+        busy={busy}
+        primaryVariant="danger"
+        primaryDisabled={lobbyDeleteName.trim() !== lobby.name}
+        onPrimary={() => {
+          if (lobbyDeleteName.trim() !== lobby.name) {
+            setError('Введите точное название лобби')
+            return
+          }
+          void run(async () => {
+            await deleteLobby(lobby.id, lobbyDeleteName.trim())
+            setLobbyDeleteOpen(false)
+            navigate('/lobbies')
+          })
+        }}
+        onSecondary={() => setLobbyDeleteOpen(false)}
+      >
+        <Stack gap={12}>
+          <Text tone="muted">
+            Пропадут дневник, заметки, чаты, сессии и картинки лобби. Персонажи останутся у игроков.
+            Введите название «{lobby.name}» для подтверждения.
+          </Text>
+          {/* L-05: крючок «Скачать заметки» перед удалением — экспорт ещё не готов. */}
+          <Field label="Название лобби">
+            <Input
+              value={lobbyDeleteName}
+              onChange={(e) => setLobbyDeleteName(e.target.value)}
+              placeholder={lobby.name}
+            />
+          </Field>
+        </Stack>
+      </Dialog>
+
+      <Dialog
+        open={rotateConfirmOpen}
+        title="Новый код приглашения"
+        primaryLabel={busy ? 'Меняем…' : 'Выпустить новый код'}
+        secondaryLabel="Отмена"
+        busy={busy}
+        onPrimary={() => {
+          void run(async () => {
+            const next = await rotateLobbyInviteCode(lobby.id)
+            setLobby(next)
+            setRotateConfirmOpen(false)
+            setToast('Новый код действует, старый больше не подходит')
+          })
+        }}
+        onSecondary={() => setRotateConfirmOpen(false)}
+      >
+        <Text tone="muted">
+          Старый код перестанет работать. Состав, дневник, сессии и картинки останутся на месте.
+        </Text>
+      </Dialog>
+
+      <Toast message={toast} onClose={() => setToast(null)} />
     </main>
   )
 }

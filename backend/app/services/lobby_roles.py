@@ -316,6 +316,15 @@ def require_can_delete_lobby(lobby: Lobby, user: User) -> None:
         )
 
 
+def require_can_change_invite_code(lobby: Lobby, user: User) -> None:
+    if not can_change_invite_code(lobby, user):
+        raise AppError(
+            "Только владелец меняет код приглашения",
+            code="lobby_invite_required",
+            status_code=403,
+        )
+
+
 def require_can_delete_session(lobby: Lobby, user: User) -> None:
     if not can_delete_session(lobby, user):
         raise AppError(

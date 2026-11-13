@@ -37,6 +37,79 @@
   color: var(--accent);
 }
 
+/* L-03: код + ссылка + QR в шапке хаба */
+.lobby-hub-invite {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.lobby-hub-invite__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+  max-width: 100%;
+}
+
+.lobby-setup-hints__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lobby-setup-hints__step {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.lobby-setup-hints__step.is-done {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.lobby-setup-hints__mark {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--card);
+}
+
+.lobby-setup-hints__step.is-done .lobby-setup-hints__mark {
+  background: color-mix(in srgb, var(--success) 18%, var(--card));
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.lobby-list-live {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.invite-qr--pending {
+  background: color-mix(in srgb, var(--line) 35%, transparent);
+  border-radius: 8px;
+}
+
 .lobby-hub-tabs {
   position: sticky;
   top: 0;

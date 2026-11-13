@@ -92,6 +92,18 @@ def lobby_media_dir(lobby_id: UUID) -> Path:
     return _ensure_dir(uploads_root() / "lobbies" / str(lobby_id))
 
 
+def lobby_media_root(lobby_id: UUID) -> Path:
+    """Каталог медиа лобби без mkdir (для очистки при удалении)."""
+    return uploads_root() / "lobbies" / str(lobby_id)
+
+
+def purge_lobby_media_dir(lobby_id: UUID) -> None:
+    """Снести каталог uploads/lobbies/{id}/ после удаления лобби (L-03 / L-02)."""
+    path = lobby_media_root(lobby_id)
+    if path.exists():
+        shutil.rmtree(path, ignore_errors=True)
+
+
 def lobby_media_paths(lobby_id: UUID, media_id: UUID) -> tuple[Path, Path]:
     base = lobby_media_dir(lobby_id)
     return base / f"{media_id}.webp", base / f"{media_id}_p.webp"
