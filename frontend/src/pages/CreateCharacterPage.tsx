@@ -36,7 +36,7 @@ import {
 } from '../features/createPipeline/catalogCardMeta'
 import { CatalogDetailPanel } from '../features/createPipeline/CatalogDetailPanel'
 import { CreatePipelineShell } from '../features/createPipeline/CreatePipelineShell'
-import { StepHint, useOnboardingState } from '../features/onboarding'
+import { EDITION_HINT, StepHint, useOnboardingState } from '../features/onboarding'
 import { getMe } from '../shared/api/auth'
 import { hydratePipelineFromSheet } from '../features/createPipeline/createPipelineSheet'
 import { applyPipelineToSheet } from '../features/createPipeline/pipelineApply'
@@ -2219,6 +2219,7 @@ export function CreateCharacterPage() {
             ? 'Создание для лобби · D&D 2014'
             : 'Создание · D&D 2014'}
         </Text>
+        <p className="onboarding-edition-hint">{EDITION_HINT}</p>
       </div>
       {lobbyStartSummary.length ? (
         <ul className="campaign-rules-summary">
@@ -2234,7 +2235,7 @@ export function CreateCharacterPage() {
         title="Создание персонажа"
         subtitle="Раса → черта* → предыстория → класс → характеристики → прокачка"
         stepHint={
-          <StepHint step={step} visible={onboarding.state.segment !== 'skip'} />
+          <StepHint step={step} visible={onboarding.showCreateHints} />
         }
         cards={cards}
         detail={detail}

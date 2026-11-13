@@ -109,11 +109,25 @@ assert(
   'desktop missing checklist+badge → help',
 )
 assert(
+  resolveSheetTourAnchor('checklist', 'needs-setup', {
+    narrow: false,
+    hasVisible: (a) => a === 'checklist' || a === 'needs-setup',
+  }) === 'needs-setup',
+  'desktop prefers needs-setup over checklist',
+)
+assert(
   resolveSheetTourAnchor('checklist', 'checklist', {
     narrow: false,
     hasVisible: (a) => a === 'checklist',
   }) === 'checklist',
-  'desktop keeps checklist when visible',
+  'desktop falls back to checklist when badge missing',
+)
+assert(
+  resolveSheetTourAnchor('combat_header', 'combat-header', {
+    narrow: false,
+    hasVisible: (a) => a === 'combat-vitals',
+  }) === 'combat-vitals',
+  'combat step prefers vitals row',
 )
 assert(
   resolveSheetTourAnchor('actions', 'actions', {

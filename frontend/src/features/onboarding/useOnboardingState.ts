@@ -88,6 +88,10 @@ export function useOnboardingState(userId?: string | null) {
     }))
   }, [commit])
 
+  /**
+   * Kept for storage compatibility: panel «?» buttons were removed from the sheet.
+   * ONB-03 may reuse dismissedPanelHelp if tips return.
+   */
   const dismissPanelHelp = useCallback(
     (id: OnboardingPanelId) => {
       commit((prev) =>
@@ -99,6 +103,7 @@ export function useOnboardingState(userId?: string | null) {
     [commit],
   )
 
+  /** Marks that the help drawer was opened (progress flag; UI does not gate on it). */
   const markHelpOpened = useCallback(() => {
     commit((prev) => ({ ...prev, helpOpened: true }))
   }, [commit])

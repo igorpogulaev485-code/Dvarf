@@ -111,7 +111,7 @@ export function AbilitySkillsColumn({
   }
 
   return (
-    <div className="abil-column">
+    <div className="abil-column" data-onboarding="abilities">
       <div className="abil-column__toolbar">
         <button
           type="button"

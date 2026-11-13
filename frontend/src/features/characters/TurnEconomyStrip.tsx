@@ -1,6 +1,8 @@
 import { TurnEconomyChips } from './TurnEconomyChips'
 import { TurnEconomyCombatActions } from './TurnEconomyCombatActions'
 import type { TurnEconomyMarkKey, TurnEconomyState } from '../../shared/dnd/turnEconomy'
+import { HoverTipCard } from '../onboarding/ValueTip'
+import { TURN_TIPS } from '../onboarding/valueTips.ru'
 import { Button, Text } from '../../ui'
 
 type Props = {
@@ -26,6 +28,8 @@ type Props = {
   onToggleMoved?: () => void
   onOfferSkill?: (skillKey: 'investigation' | 'perception' | 'stealth') => void
   onToast?: (message: string) => void
+  /** Absolute beginner (dnd_new): hover tips on turn controls. */
+  showValueTips?: boolean
 }
 
 /**
@@ -52,6 +56,7 @@ export function TurnEconomyStrip({
   onToggleMoved,
   onOfferSkill,
   onToast,
+  showValueTips = false,
 }: Props) {
   // Вне боя: без полоски «Твой ход», только «Новый ход» + личные кубики.
   if (!combatActive) {
@@ -59,9 +64,12 @@ export function TurnEconomyStrip({
     return (
       <div className="turn-economy-strip turn-economy-strip--idle" role="region" aria-label="Новый ход">
         <div className="turn-economy-strip__row">
-          <Button type="button" variant="secondary" onClick={onBeginTurn}>
-            Новый ход
-          </Button>
+          <span className={showValueTips ? 'has-onboarding-tip' : undefined}>
+            <Button type="button" variant="secondary" onClick={onBeginTurn}>
+              Новый ход
+            </Button>
+            {showValueTips ? <HoverTipCard tip={TURN_TIPS.newTurn} /> : null}
+          </span>
           <label
             className={`turn-economy-strip__dice${diceLockedByMaster ? ' is-locked' : ''}`}
             title="Бросок живыми кубиками: Попал/Промах или своё число, без цифрового броска"
@@ -107,15 +115,21 @@ export function TurnEconomyStrip({
       </div>
 
       <div className="turn-economy-strip__row">
-        <TurnEconomyChips
-          state={turnEconomy}
-          onToggle={onToggleMark}
-          onToggleMoved={yourTurn ? onToggleMoved : undefined}
-        />
+        <span className={showValueTips ? 'has-onboarding-tip' : undefined}>
+          <TurnEconomyChips
+            state={turnEconomy}
+            onToggle={onToggleMark}
+            onToggleMoved={yourTurn ? onToggleMoved : undefined}
+          />
+          {showValueTips ? <HoverTipCard tip={TURN_TIPS.marks} /> : null}
+        </span>
         {yourTurn ? (
-          <Button type="button" variant="secondary" onClick={onBeginTurn}>
-            Начало моего хода
-          </Button>
+          <span className={showValueTips ? 'has-onboarding-tip' : undefined}>
+            <Button type="button" variant="secondary" onClick={onBeginTurn}>
+              Начало моего хода
+            </Button>
+            {showValueTips ? <HoverTipCard tip={TURN_TIPS.newTurn} /> : null}
+          </span>
         ) : null}
         <label
           className={`turn-economy-strip__dice${diceLockedByMaster ? ' is-locked' : ''}`}

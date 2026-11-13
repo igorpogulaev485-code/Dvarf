@@ -36,22 +36,26 @@ export function hasVisibleOnboardingAnchor(anchor: string, root: ParentNode = do
 
 /**
  * Pick the tour spotlight id for a step.
- * Desktop checklist may sit below the fold — caller scrolls; if the node is
- * gone after M-packs, fall back to needs-setup badge or «Справка».
+ * ONB-02: prefer narrow vitals / needs-setup over whole header / checklist below fold.
  */
 export function resolveSheetTourAnchor(
   stepId: SheetTourStepId,
   preferred: string,
   opts: { narrow: boolean; hasVisible: (anchor: string) => boolean },
 ): string {
+  if (stepId === 'combat_header') {
+    if (opts.hasVisible('combat-vitals')) return 'combat-vitals'
+    return preferred
+  }
   if (opts.narrow) {
     if (stepId === 'checklist') return 'help'
     return preferred
   }
   if (stepId === 'checklist') {
-    if (opts.hasVisible('checklist')) return 'checklist'
+    // Prefer visible badge / help over checklist below the fold.
     if (opts.hasVisible('needs-setup')) return 'needs-setup'
     if (opts.hasVisible('help')) return 'help'
+    if (opts.hasVisible('checklist')) return 'checklist'
     return preferred
   }
   return preferred

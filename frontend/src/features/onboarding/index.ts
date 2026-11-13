@@ -1,7 +1,6 @@
 export { CharacterReadyDialog } from './CharacterReadyDialog'
 export { HelpDrawer } from './HelpDrawer'
 export { OnboardingChecklist } from './OnboardingChecklist'
-export { PanelHelpButton } from './PanelHelpButton'
 export { SheetTour } from './SheetTour'
 export { StepHint } from './StepHint'
 export { HoverTipCard, ValueTip } from './ValueTip'
@@ -35,6 +34,7 @@ export {
   MODIFIER_TIP,
   SCENE_TIPS,
   SCENES_STRIP_TIP,
+  TURN_TIPS,
   VITAL_TIPS,
   panelExplain,
 } from './valueTips.ru'

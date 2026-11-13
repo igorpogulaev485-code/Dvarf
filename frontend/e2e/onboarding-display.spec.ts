@@ -30,18 +30,30 @@ test.describe('ONB-01 welcome dismiss ≠ skip', () => {
   })
 })
 
-test.describe('ONB-01 sheet tour', () => {
-  test('five steps keep a coach card; missing anchor does not crash', async ({ page }) => {
+test.describe('ONB-02 sheet tour copy + anchors', () => {
+  test('five steps keep a coach card; step 5 prefers needs-setup; missing anchor does not crash', async ({
+    page,
+  }, testInfo) => {
     await openPreview(page, 'tour')
     const coach = page.locator('.onboarding-coach')
     await expect(coach).toBeVisible()
     await expect(page.locator('.onboarding-coach__blocker')).toBeVisible()
 
-    for (let i = 0; i < 4; i += 1) {
+    await expect(page.getByRole('heading', { name: 'Шапка боя' })).toBeVisible()
+    await expect(coach).toContainText(/ход|действи/i)
+
+    await page.getByRole('button', { name: 'Далее' }).click()
+    await expect(page.getByRole('heading', { name: 'Сцены' })).toBeVisible()
+    await expect(coach).not.toContainText(/\bjob\b/i)
+
+    for (let i = 0; i < 3; i += 1) {
       await page.getByRole('button', { name: 'Далее' }).click()
       await expect(coach).toBeVisible()
     }
     await expect(page.getByRole('button', { name: 'Готово' })).toBeVisible()
+    if (!testInfo.project.name.includes('mobile')) {
+      await expect(page.getByRole('heading', { name: /Нужно настроить/i })).toBeVisible()
+    }
 
     // Remove anchors mid-tour and ensure UI stays usable.
     await page.evaluate(() => {
@@ -51,6 +63,16 @@ test.describe('ONB-01 sheet tour', () => {
     await expect(page.locator('.onboarding-coach')).toHaveCount(0)
   })
 
+  test('welcome choices are equal-weight buttons; skip still advances', async ({ page }) => {
+    await openPreview(page)
+    const choices = page.locator('.onboarding-welcome__choice')
+    await expect(choices).toHaveCount(3)
+    await page.getByRole('button', { name: /Пропустить подсказки/i }).click()
+    await expect(page.getByText(/Создать персонажа/i).first()).toBeVisible()
+  })
+})
+
+test.describe('ONB-01 sheet tour overlay', () => {
   test('tour overlay blocks clicks to underlying controls', async ({ page }) => {
     await openPreview(page, 'tour')
     await expect(page.locator('.onboarding-coach')).toBeVisible()

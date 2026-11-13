@@ -474,7 +474,7 @@ export function MobileVitalsBar({
   }
 
   return (
-    <section className="mobile-vitals" aria-label="Боевой статус">
+    <section className="mobile-vitals" aria-label="Боевой статус" data-onboarding="combat-vitals">
       {/* M-01 / M05 (Q4): name on its own full-width row */}
       <button
         type="button"

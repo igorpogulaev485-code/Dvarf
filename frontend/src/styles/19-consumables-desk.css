@@ -340,6 +340,15 @@
   max-width: 100%;
 }
 
+/* Tour spotlight wraps only scene tabs — not roll-mode chips. */
+.play-desk__mode-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
 .play-desk__mode {
   border: 1px solid var(--desk-line);
   background: #fff;
