@@ -639,6 +639,8 @@ class LobbyDetail(BaseModel):
     settings: list[SettingSummary]
     sessions: list[SessionSummary]
     visibility_profile: dict = Field(default_factory=dict)
+    # L-08: правила кампании (варианты 2014, домашние, прогрессия, КД врагов)
+    campaign_rules: dict = Field(default_factory=dict)
     media_usage: LobbyMediaUsageOut | None = None
     # L-06: время последней публикации в дневнике (для точки «новое»)
     last_journal_published_at: datetime | None = None
@@ -658,6 +660,7 @@ class LobbyCreateRequest(BaseModel):
 class LobbyUpdateRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
     visibility_profile: dict | None = None
+    campaign_rules: dict | None = None
 
 
 class JoinLobbyRequest(BaseModel):
@@ -1194,6 +1197,8 @@ class SessionDetail(BaseModel):
     combat: SessionCombatOut = Field(default_factory=SessionCombatOut)
     lobby_members: list[LobbyMemberOut]
     visibility_profile: dict = Field(default_factory=dict)
+    # L-08: те же правила, что в детали лобби (генератор / стол)
+    campaign_rules: dict = Field(default_factory=dict)
     # T3
     location_page_id: UUID | None = None
     involved_page_ids: list[UUID] = Field(default_factory=list)

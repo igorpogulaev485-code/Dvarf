@@ -29,6 +29,7 @@ import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/Sessio
 import { SessionTableCard } from '../features/lobby/SessionTableCard'
 import { useSessionRealtime } from '../features/lobby/useSessionRealtime'
 import { letterBadge } from '../shared/api/chat'
+import { normalizeCampaignRules } from '../features/lobby/campaignRules'
 import { normalizeVisibilityProfile } from '../features/lobby/visibilityProfile'
 import { listCharacters } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
@@ -355,6 +356,10 @@ export function SessionDetailPage() {
   const visibility = useMemo(
     () => normalizeVisibilityProfile(session?.visibility_profile),
     [session?.visibility_profile],
+  )
+  const campaignRules = useMemo(
+    () => normalizeCampaignRules(session?.campaign_rules),
+    [session?.campaign_rules],
   )
 
   function toggleSidePanel(next: boolean) {
@@ -1218,6 +1223,7 @@ export function SessionDetailPage() {
                           key={enemy.id}
                           combatant={enemy}
                           visibility={visibility}
+                          enemiesAcVisible={campaignRules.enemies_ac_visible}
                           revealAll={canSeeHidden}
                           masterControls={canRun && !session.closed_at}
                           forceAbilitiesOpen={Boolean(isActiveTurn && canRun)}

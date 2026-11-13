@@ -61,6 +61,7 @@ import {
   coinWeightLb,
   carryingCapacityLb,
   coinsToGp,
+  encumbranceTier,
   formatCoinBreakdown,
   formatGpTotal,
   formatLb,
@@ -316,6 +317,8 @@ type InventoryPanelProps = {
   edition: RulesEdition
   inventory: InventoryState
   strengthScore: number
+  /** L-08: вариант PHB «Нагрузка» из правил кампании. */
+  encumbranceVariant?: boolean
   /** Sheet armor proficiencies — blocks wearing untrained armor/shields. */
   armorProficiency: ArmorProficiency
   weapons?: WeaponAttack[]
@@ -348,6 +351,7 @@ export function InventoryPanel({
   edition,
   inventory,
   strengthScore,
+  encumbranceVariant = false,
   armorProficiency,
   weapons = [],
   onChange,
@@ -424,7 +428,12 @@ export function InventoryPanel({
   const coinsLb = coinWeightLb(inventory.coins)
   const totalLb = totalCarriedLb(inventory.coins, weighable)
   const capacityLb = carryingCapacityLb(strengthScore)
-  const overEncumbered = totalLb > capacityLb
+  const variantTier = encumbranceVariant
+    ? encumbranceTier(strengthScore, totalLb)
+    : null
+  const overEncumbered = encumbranceVariant
+    ? variantTier != null && variantTier.tier !== 'none'
+    : totalLb > capacityLb
   const ordered = orderInventoryItems(inventory.items)
   const weightIncomplete = inventory.items.some((item) => {
     if (item.parent_id) return false
@@ -1333,7 +1342,11 @@ export function InventoryPanel({
           </div>
           {overEncumbered ? (
             <Text tone="danger" className="inventory-summary__over">
-              Перегруз: больше лимита переноски (СИЛ × 15).
+              {encumbranceVariant && variantTier
+                ? variantTier.tier === 'heavily'
+                  ? `Сильная нагрузка (>10×Сил): скорость −${variantTier.speedPenalty} фт, помеха на Сил/Лов/Тел.`
+                  : `Нагрузка (>5×Сил): скорость −${variantTier.speedPenalty} фт.`
+                : 'Перегруз: больше лимита переноски (СИЛ × 15).'}
             </Text>
           ) : null}
         </div>

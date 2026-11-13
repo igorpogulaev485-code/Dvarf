@@ -328,6 +328,8 @@ export type LobbyDetail = {
   sessions: SessionSummary[]
   /** JSON профиля видимости; нормализуется на клиенте */
   visibility_profile?: unknown
+  /** L-08: правила кампании */
+  campaign_rules?: unknown
   /** Квота картинок лобби — только владелец/сомастер */
   media_usage?: LobbyMediaUsage | null
   /** L-06: время последней публикации в дневнике */
@@ -339,6 +341,7 @@ export type LobbyDetail = {
 export type LobbyUpdatePayload = {
   name?: string
   visibility_profile?: unknown
+  campaign_rules?: unknown
 }
 
 export type SeatCondition = {
@@ -593,6 +596,8 @@ export type SessionDetail = {
   combat?: SessionCombat
   lobby_members: LobbyMember[]
   visibility_profile?: unknown
+  /** L-08 */
+  campaign_rules?: unknown
   /** T3 */
   location_page_id?: string | null
   involved_page_ids?: string[]

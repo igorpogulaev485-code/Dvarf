@@ -14,7 +14,13 @@ import { LobbyRolesPanel } from '../features/lobby/LobbyRolesPanel'
 import { LobbySetupHints } from '../features/lobby/LobbySetupHints'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { useLobbyRealtime } from '../features/lobby/useLobbyRealtime'
+import { CampaignRulesPanel } from '../features/lobby/CampaignRulesPanel'
 import { VisibilitySettingsPanel } from '../features/lobby/VisibilitySettingsPanel'
+import {
+  defaultCampaignRules,
+  normalizeCampaignRules,
+  type CampaignRules,
+} from '../features/lobby/campaignRules'
 import {
   journalHasNew,
   markJournalSeen,
@@ -96,6 +102,8 @@ export function LobbyDetailPage() {
     defaultVisibilityProfile(),
   )
   const [visibilityDirty, setVisibilityDirty] = useState(false)
+  const [rulesDraft, setRulesDraft] = useState<CampaignRules>(defaultCampaignRules())
+  const [rulesDirty, setRulesDirty] = useState(false)
   const [lastJournalPublishedAt, setLastJournalPublishedAt] = useState<string | null>(null)
   const [journalSeenAt, setJournalSeenAt] = useState<string | null>(null)
   const [chatsHubBadge, setChatsHubBadge] = useState<ChatsBadge>({
@@ -114,6 +122,8 @@ export function LobbyDetailPage() {
     setCharacters(chars)
     setVisibilityDraft(normalizeVisibilityProfile(detail.visibility_profile))
     setVisibilityDirty(false)
+    setRulesDraft(normalizeCampaignRules(detail.campaign_rules))
+    setRulesDirty(false)
     setLastJournalPublishedAt(detail.last_journal_published_at ?? null)
   }, [lobbyId])
 
@@ -248,6 +258,11 @@ export function LobbyDetailPage() {
     setVisibilityDirty(true)
   }
 
+  function onRulesChange(next: CampaignRules) {
+    setRulesDraft(next)
+    setRulesDirty(true)
+  }
+
   if (loading) {
     return (
       <main className="page page--app">
@@ -266,6 +281,8 @@ export function LobbyDetailPage() {
   }
 
   const visibilityReadOnly = !lobby.is_owner || playerPreview
+  const canEditRules = Boolean(lobby.can_edit_campaign_rules || lobby.is_owner || lobby.is_comaster)
+  const rulesReadOnly = !canEditRules || playerPreview
   const canManageJournal = Boolean(lobby.can_manage_journal || lobby.is_owner)
   const canEditWiki = Boolean(lobby.can_edit_wiki || lobby.is_owner)
   const canRun = Boolean(lobby.can_run_session || lobby.is_owner || lobby.is_comaster)
@@ -744,6 +761,43 @@ export function LobbyDetailPage() {
                 onToast={setToast}
                 onError={setError}
               />
+            ) : null}
+
+            <CampaignRulesPanel
+              rules={rulesDraft}
+              eventHistory={visibilityDraft.event_history}
+              readOnly={rulesReadOnly}
+              onChange={onRulesChange}
+              onEventHistoryChange={(mode) => {
+                onVisibilityChange({ ...visibilityDraft, event_history: mode })
+                setRulesDirty(true)
+              }}
+            />
+
+            {canEditRules && !playerPreview ? (
+              <div className="inline-actions">
+                <Button
+                  type="button"
+                  disabled={busy || (!rulesDirty && !visibilityDirty)}
+                  onClick={() =>
+                    run(async () => {
+                      const next = await updateLobby(lobby.id, {
+                        campaign_rules: rulesDraft,
+                        // Владелец — полный профиль; сомастер — event_history (скрытность бросков).
+                        visibility_profile: visibilityDraft,
+                      })
+                      setLobby(next)
+                      setRulesDraft(normalizeCampaignRules(next.campaign_rules))
+                      setVisibilityDraft(normalizeVisibilityProfile(next.visibility_profile))
+                      setRulesDirty(false)
+                      setVisibilityDirty(false)
+                      setToast('Правила кампании сохранены')
+                    })
+                  }
+                >
+                  Сохранить правила
+                </Button>
+              </div>
             ) : null}
 
             <VisibilitySettingsPanel

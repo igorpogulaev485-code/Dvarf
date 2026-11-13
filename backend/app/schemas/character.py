@@ -31,6 +31,9 @@ class CharacterDetail(CharacterSummary):
     sheet: dict[str, Any]
     # True для владельца; False если мастер лобби смотрит чужой лист
     can_edit: bool = True
+    # L-08: если персонаж в лобби — правила кампании для листа (мультикласс, нагрузка…)
+    lobby_id: UUID | None = None
+    campaign_rules: dict | None = None
 
 
 class CharacterCreateRequest(BaseModel):

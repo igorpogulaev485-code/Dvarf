@@ -75,6 +75,8 @@ export type MinimalSheetEditorProps = {
   onSaved: (character: CharacterDetail) => void
   onToast: (message: ToastInput) => void
   onRemoteSave?: (message: Extract<SheetSyncMessage, { type: 'sheet-saved' }>) => void
+  /** L-08: override lobby campaign_rules (иначе из character.campaign_rules). */
+  campaignRules?: unknown
 }
 
 export type Draft = {

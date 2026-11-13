@@ -18,6 +18,8 @@ type Props = {
   masterControls?: boolean
   revealAll?: boolean
   visibility?: VisibilityProfile
+  /** L-08: КД врагов видно игрокам (дефолт скрыт). Мастер всегда видит. */
+  enemiesAcVisible?: boolean
   busy?: boolean
   /** Раскрыть возможности сразу (активный ход в B4) */
   forceAbilitiesOpen?: boolean
@@ -106,6 +108,7 @@ export function EnemyCard({
   masterControls = false,
   revealAll = false,
   visibility,
+  enemiesAcVisible = false,
   busy,
   forceAbilitiesOpen = false,
   onDamage,
@@ -169,7 +172,10 @@ export function EnemyCard({
     isMaster ||
     (statblockVisible && !numbersHidden && profile.fields.health.hp === 'active')
   const showHpColor = isMaster || profile.fields.health.hp !== 'off'
-  const showAc = statblockVisible && combatant.ac != null
+  // L-08: КД по умолчанию скрыт; видно мастеру, после G12 reveal, или если enemies_ac_visible.
+  const showAc =
+    combatant.ac != null &&
+    (isMaster || enemiesAcVisible || statblockVisible)
   const showSpeed = statblockVisible && combatant.speed != null
   const showConditions =
     isMaster ||

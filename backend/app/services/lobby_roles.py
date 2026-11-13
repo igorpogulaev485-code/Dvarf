@@ -139,6 +139,15 @@ def can_edit_campaign_rules(db: Session, lobby: Lobby, user: User) -> bool:
     return is_owner(lobby, user) or is_comaster(db, lobby, user)
 
 
+def require_can_edit_campaign_rules(db: Session, lobby: Lobby, user: User) -> None:
+    if not can_edit_campaign_rules(db, lobby, user):
+        raise AppError(
+            "Нет прав менять правила кампании",
+            code="lobby_campaign_rules_required",
+            status_code=403,
+        )
+
+
 def can_award(
     db: Session,
     lobby: Lobby,
