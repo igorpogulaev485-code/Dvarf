@@ -39,6 +39,7 @@ import {
 } from '../gearEffects'
 import { passiveScore, skillModifierFromState } from '../../../shared/dnd/passives'
 import { syncGearCompanions, syncGearGrantSpells, syncGearResources } from '../gearGrantsSync'
+import { syncArtifactSetBonuses } from '../artifactGear'
 import { listShieldItems } from '../heldEquip'
 import { attunementsToSheet } from '../attunement'
 import { classLevelsToSheet } from '../classLevels'
@@ -174,6 +175,32 @@ export function useSheetEditorPart3(model: SheetModel) {
     return resolved
   }, [model.draft.classes, model.draft.inventory.items, attunedItemIds, model.draft.piety])
   model.abilityCeilings = abilityCeilings
+
+  // W-04: пересчёт бонусов сета при смене экипировки / аттюна
+  useEffect(() => {
+    model.setDraft((prev) => {
+      if (!prev.artifactSets?.length) return prev
+      const sheetLike: Record<string, unknown> = {
+        inventory: { items: prev.inventory.items },
+        attunements: prev.attunements,
+        artifact_sets: prev.artifactSets,
+      }
+      const synced = syncArtifactSetBonuses(sheetLike)
+      const inv = synced.inventory as { items?: unknown[] } | undefined
+      const nextItems = Array.isArray(inv?.items) ? inv!.items! : prev.inventory.items
+      const bonusKey = (items: unknown[]) =>
+        items
+          .filter((row) => row && typeof row === 'object' && (row as { artifact_set_bonus?: boolean }).artifact_set_bonus)
+          .map((row) => String((row as { id?: string }).id || ''))
+          .sort()
+          .join('|')
+      if (bonusKey(prev.inventory.items) === bonusKey(nextItems)) return prev
+      return {
+        ...prev,
+        inventory: { ...prev.inventory, items: nextItems as typeof prev.inventory.items },
+      }
+    })
+  }, [model.draft.inventory.items, model.draft.attunements, model.draft.artifactSets])
 
   // Keep gear-granted companions / charge pools / spells / slot deltas in sync.
   useEffect(() => {
@@ -958,6 +985,7 @@ export function useSheetEditorPart3(model: SheetModel) {
       sheet.resources = playSheet.resources
       Object.assign(sheet, inventoryToSheet(draftSnap.inventory))
       Object.assign(sheet, attunementsToSheet(draftSnap.attunements))
+      sheet.artifact_sets = draftSnap.artifactSets ?? []
       Object.assign(sheet, spellsToSheet(draftSnap.spells))
       Object.assign(sheet, textBlocksToSheet(draftSnap.textBlocks))
       Object.assign(sheet, modifiersToSheet(draftSnap.modifiers))

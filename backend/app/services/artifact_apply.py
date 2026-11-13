@@ -1661,3 +1661,214 @@ def _unbake_legacy_item(
             deltas[key] = count
     if deltas:
         spells["gear_slot_deltas"] = deltas
+
+
+# --- W-04: бонусы сетов (складываются по порогам 2 / 3 / 4+) ---
+
+SET_BONUS_MARKER = "artifact_set_bonus"
+SET_DEFS_KEY = "artifact_sets"
+
+
+def normalize_set_threshold(raw: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(raw, dict):
+        return None
+    try:
+        pieces = int(raw.get("pieces") or 0)
+    except (TypeError, ValueError):
+        return None
+    if pieces not in (2, 3, 4):
+        return None
+    abilities = normalize_abilities(raw.get("abilities") or [])
+    player_text = str(raw.get("player_text") or "").strip()[:2000]
+    return {"pieces": pieces, "abilities": abilities, "player_text": player_text}
+
+
+def normalize_set_thresholds(raw: object) -> list[dict[str, Any]]:
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, Any]] = []
+    seen: set[int] = set()
+    for item in raw[:8]:
+        row = normalize_set_threshold(item if isinstance(item, dict) else None)
+        if not row or row["pieces"] in seen:
+            continue
+        seen.add(row["pieces"])
+        out.append(row)
+    out.sort(key=lambda r: int(r["pieces"]))
+    return out
+
+
+def set_def_from_row(artifact_set: Any) -> dict[str, Any]:
+    """Снимок сета для листа (пересчёт без БД)."""
+    if isinstance(artifact_set, dict):
+        sid = str(artifact_set.get("id") or "")
+        name = str(artifact_set.get("name") or "Сет")
+        member_ids = [
+            str(x)
+            for x in (artifact_set.get("member_ids") or artifact_set.get("artifact_ids") or [])
+            if x
+        ]
+        thresholds = normalize_set_thresholds(artifact_set.get("thresholds") or [])
+    else:
+        sid = str(getattr(artifact_set, "id", "") or "")
+        name = str(getattr(artifact_set, "name", "") or "Сет")
+        members = getattr(artifact_set, "members", None) or []
+        member_ids = []
+        for m in members:
+            aid = getattr(m, "artifact_id", None)
+            if aid is not None:
+                member_ids.append(str(aid))
+            elif isinstance(m, dict) and m.get("artifact_id"):
+                member_ids.append(str(m["artifact_id"]))
+        if not member_ids:
+            for x in getattr(artifact_set, "artifact_ids", None) or []:
+                member_ids.append(str(x))
+        thresholds = normalize_set_thresholds(getattr(artifact_set, "thresholds", None) or [])
+    return {
+        "id": sid,
+        "name": name[:120] or "Сет",
+        "member_ids": member_ids,
+        "thresholds": thresholds,
+    }
+
+
+def merge_set_defs_on_sheet(
+    sheet: dict[str, Any],
+    sets: list[Any] | None,
+) -> list[dict[str, Any]]:
+    """Дописать/обновить определения сетов на листе."""
+    existing = sheet.get(SET_DEFS_KEY)
+    by_id: dict[str, dict[str, Any]] = {}
+    if isinstance(existing, list):
+        for row in existing:
+            if isinstance(row, dict) and row.get("id"):
+                by_id[str(row["id"])] = set_def_from_row(row)
+    for raw in sets or []:
+        row = set_def_from_row(raw)
+        if row["id"]:
+            by_id[row["id"]] = row
+    merged = list(by_id.values())
+    sheet[SET_DEFS_KEY] = merged
+    return merged
+
+
+def count_active_set_pieces(sheet: dict[str, Any], member_ids: list[str] | set[str]) -> int:
+    """Сколько частей сета надето (и аттюнено, если требуется)."""
+    wanted = {str(x) for x in member_ids if x}
+    if not wanted:
+        return 0
+    inventory = sheet.get("inventory") if isinstance(sheet.get("inventory"), dict) else {}
+    items = inventory.get("items") if isinstance(inventory.get("items"), list) else []
+    attuned = _attuned_ids(sheet)
+    counted: set[str] = set()
+    for raw in items:
+        if not isinstance(raw, dict):
+            continue
+        if raw.get(SET_BONUS_MARKER):
+            continue
+        sid = str(raw.get("setting_artifact_id") or "")
+        if not sid or sid not in wanted or sid in counted:
+            continue
+        if not raw.get("equipped"):
+            continue
+        if raw.get("requires_attunement") and str(raw.get("id") or "") not in attuned:
+            continue
+        counted.add(sid)
+    return len(counted)
+
+
+def _strip_set_bonus_items(sheet: dict[str, Any]) -> list[dict[str, Any]]:
+    inventory = _ensure_dict(sheet, "inventory")
+    items = list(inventory.get("items") or [])
+    if not isinstance(items, list):
+        items = []
+    kept = [row for row in items if isinstance(row, dict) and not row.get(SET_BONUS_MARKER)]
+    inventory["items"] = kept
+    sheet["inventory"] = inventory
+    return kept
+
+
+def recompute_set_bonuses(
+    sheet: dict[str, Any],
+    sets: list[Any] | None = None,
+) -> dict[str, Any]:
+    """Пересчитать синтетические предметы бонусов сета.
+
+    Надеты 2 — порог 2; 3 — пороги 2+3; 4+ — все три. Свойства частей не трогаем.
+    """
+    if not isinstance(sheet, dict):
+        return {"active": {}, "items_added": 0}
+    defs = merge_set_defs_on_sheet(sheet, sets) if sets is not None else (
+        [set_def_from_row(r) for r in (sheet.get(SET_DEFS_KEY) or []) if isinstance(r, dict)]
+        if isinstance(sheet.get(SET_DEFS_KEY), list)
+        else []
+    )
+    sheet[SET_DEFS_KEY] = defs
+    _strip_set_bonus_items(sheet)
+    inventory = _ensure_dict(sheet, "inventory")
+    items = list(inventory.get("items") or [])
+    if not isinstance(items, list):
+        items = []
+
+    active: dict[str, int] = {}
+    added = 0
+    for sdef in defs:
+        sid = str(sdef.get("id") or "")
+        name = str(sdef.get("name") or "Сет")
+        members = sdef.get("member_ids") or []
+        count = count_active_set_pieces(sheet, members)
+        if sid:
+            active[sid] = count
+        thresholds = normalize_set_thresholds(sdef.get("thresholds") or [])
+        for thr in thresholds:
+            pieces = int(thr["pieces"])
+            if count < pieces:
+                continue
+            abilities = thr.get("abilities") or []
+            player_text = str(thr.get("player_text") or "")
+            notes = player_text or f"Бонус сета «{name}» за {pieces}+ частей"
+            item_id = f"set-bonus:{sid}:t{pieces}"
+            items.append(
+                {
+                    "id": item_id,
+                    "name": f"{name} ({pieces}+)"[:120],
+                    "catalog_id": None,
+                    "qty": 1,
+                    "weight_lb": None,
+                    "equipped": True,
+                    "armor_kind": "none",
+                    "base_ac": None,
+                    "notes": notes[:2000],
+                    "item_kind": "magic",
+                    SET_BONUS_MARKER: True,
+                    "set_id": sid,
+                    "threshold_pieces": pieces,
+                    "effects": effects_from_abilities(abilities),
+                    "magic_mods": sum_passive_bonuses(abilities),
+                    "artifact_live": True,
+                    "requires_attunement": False,
+                }
+            )
+            added += 1
+
+    inventory["items"] = items
+    if "coins" not in inventory:
+        inventory["coins"] = {"cp": 0, "sp": 0, "ep": 0, "gp": 0, "pp": 0}
+    sheet["inventory"] = inventory
+    return {"active": active, "items_added": added}
+
+
+def apply_artifact_to_sheet_with_sets(
+    sheet: dict[str, Any],
+    *,
+    artifact: Any,
+    qty: int = 1,
+    sets: list[Any] | None = None,
+) -> dict[str, Any]:
+    """Выдача артефакта + пересчёт бонусов сета (тот же движок effects)."""
+    result = apply_artifact_to_sheet(sheet, artifact=artifact, qty=qty)
+    if sets is not None:
+        recompute_set_bonuses(sheet, sets)
+    else:
+        recompute_set_bonuses(sheet, None)
+    return result

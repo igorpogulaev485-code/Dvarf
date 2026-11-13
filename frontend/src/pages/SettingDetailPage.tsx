@@ -43,6 +43,7 @@ import {
 } from '../features/lobby/settingRecent'
 import { ApiRequestError } from '../shared/api/client'
 import { SettingArtifactsPanel } from '../features/lobby/SettingArtifactsPanel'
+import { SettingArtifactSetsPanel } from '../features/lobby/SettingArtifactSetsPanel'
 import { SettingWikiReader } from '../features/lobby/SettingWikiReader'
 import {
   TEMPLATE_CARD_KINDS,
@@ -52,9 +53,11 @@ import {
   bulkCreateSettingPages,
   copyWikiPages,
   createSettingArtifact,
+  createSettingArtifactSet,
   createSettingPage,
   createSettingPageLink,
   deleteSettingArtifact,
+  deleteSettingArtifactSet,
   deleteSettingPage,
   deleteSettingPageLink,
   getLobby,
@@ -65,6 +68,7 @@ import {
   restoreSettingPage,
   updateSetting,
   updateSettingArtifact,
+  updateSettingArtifactSet,
   updateSettingPage,
   type SettingDetail,
   type SettingPageTemplateField,
@@ -106,6 +110,7 @@ export function SettingDetailPage() {
   const [kindFilter, setKindFilter] = useState<SettingPageKind | 'all'>('all')
   const [tagFilter, setTagFilter] = useState('')
   const [draftTags, setDraftTags] = useState<string[]>([])
+  const [draftArtifactId, setDraftArtifactId] = useState('')
   const [tagDraft, setTagDraft] = useState('')
   const [recentIds, setRecentIds] = useState<string[]>([])
   const [quickOpen, setQuickOpen] = useState(false)
@@ -230,6 +235,7 @@ export function SettingDetailPage() {
     setDraftQuestStatus(page?.quest_status ?? '')
     setDraftTags(page?.tags ?? [])
     setDraftParentId(page?.parent_id ?? '')
+    setDraftArtifactId(page?.artifact_id ?? '')
     setTagDraft('')
     if ((page?.page_kind ?? 'note') === 'combat') {
       setDraftCombatFields(normalizeCombatPageFields(page?.fields ?? {}))
@@ -317,6 +323,8 @@ export function SettingDetailPage() {
         tags: normalizeClientTags(draftTags),
         expected_updated_at: selected.updated_at,
         force_overwrite: forceOverwrite,
+        artifact_id: draftKind === 'item_lore' && draftArtifactId ? draftArtifactId : null,
+        clear_artifact: draftKind !== 'item_lore' || !draftArtifactId,
       })
       applyDetail(next, selected.id)
       setConflictOpen(false)
@@ -777,6 +785,62 @@ export function SettingDetailPage() {
           />
         ) : null}
 
+        {isOwner ? (
+          <SettingArtifactSetsPanel
+            artifacts={setting.artifacts ?? []}
+            sets={setting.artifact_sets ?? []}
+            busy={busy}
+            onCreate={async (payload) => {
+              setBusy(true)
+              setError(null)
+              try {
+                const next = await createSettingArtifactSet(setting.id, payload)
+                applyDetail(next, selectedId)
+                setToast(`Сет «${payload.name}» создан`)
+              } catch (err) {
+                setError(
+                  err instanceof ApiRequestError ? err.message : 'Не удалось создать сет',
+                )
+                throw err
+              } finally {
+                setBusy(false)
+              }
+            }}
+            onUpdate={async (id, payload) => {
+              setBusy(true)
+              setError(null)
+              try {
+                const next = await updateSettingArtifactSet(id, payload)
+                applyDetail(next, selectedId)
+                setToast('Сет сохранён')
+              } catch (err) {
+                setError(
+                  err instanceof ApiRequestError ? err.message : 'Не удалось сохранить сет',
+                )
+                throw err
+              } finally {
+                setBusy(false)
+              }
+            }}
+            onDelete={async (id) => {
+              setBusy(true)
+              setError(null)
+              try {
+                const next = await deleteSettingArtifactSet(id)
+                applyDetail(next, selectedId)
+                setToast('Сет удалён')
+              } catch (err) {
+                setError(
+                  err instanceof ApiRequestError ? err.message : 'Не удалось удалить сет',
+                )
+                throw err
+              } finally {
+                setBusy(false)
+              }
+            }}
+          />
+        ) : null}
+
         {canEditWiki ? (
         <div className="setting-wiki">
           <aside className="setting-wiki__nav">
@@ -996,6 +1060,26 @@ export function SettingDetailPage() {
                       {(Object.keys(QUEST_STATUS_LABELS) as QuestStatus[]).map((s) => (
                         <option key={s} value={s}>
                           {QUEST_STATUS_LABELS[s]}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                ) : null}
+                {isOwner && draftKind === 'item_lore' ? (
+                  <Field
+                    label="Артефакт легенды"
+                    hint="После раскрытия страницы игроки видят имя, картинку и описание артефакта"
+                  >
+                    <select
+                      className="ui-input"
+                      value={draftArtifactId}
+                      disabled={busy}
+                      onChange={(e) => setDraftArtifactId(e.target.value)}
+                    >
+                      <option value="">Не связан</option>
+                      {(setting.artifacts ?? []).map((a) => (
+                        <option key={a.id} value={a.id}>
+                          {a.name}
                         </option>
                       ))}
                     </select>

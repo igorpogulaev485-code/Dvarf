@@ -146,8 +146,12 @@ from app.schemas.lobby import (
     WikiCombatPageOut,
     SessionSummary,
     SessionUpdateRequest,
+    KnownLegendOut,
     SettingArtifactCreateRequest,
     SettingArtifactOut,
+    SettingArtifactSetCreateRequest,
+    SettingArtifactSetOut,
+    SettingArtifactSetUpdateRequest,
     SettingArtifactUpdateRequest,
     SettingCreateRequest,
     SettingDetail,
@@ -1991,7 +1995,15 @@ class LobbyService:
             see_gm = False
         detail = self._setting_detail(setting, see_as_gm=see_gm if not in_trash or can_edit else False)
         if in_trash and not can_edit:
-            detail = detail.model_copy(update={"pages": [], "links": [], "artifacts": []})
+            detail = detail.model_copy(
+                update={
+                    "pages": [],
+                    "links": [],
+                    "artifacts": [],
+                    "artifact_sets": [],
+                    "known_legends": [],
+                }
+            )
         return detail.model_copy(
             update={
                 "is_owner": roles.is_owner(lobby, user),
@@ -2086,11 +2098,68 @@ class LobbyService:
             return None
         return self.lobbies.get_setting_page_template(sys_id)
 
+    def _artifact_set_out(self, artifact_set) -> SettingArtifactSetOut:
+        members = list(getattr(artifact_set, "members", None) or [])
+        members_sorted = sorted(
+            members,
+            key=lambda m: (getattr(m, "sort_order", 0), str(getattr(m, "artifact_id", ""))),
+        )
+        return SettingArtifactSetOut(
+            id=artifact_set.id,
+            setting_id=artifact_set.setting_id,
+            name=artifact_set.name,
+            description=artifact_set.description or "",
+            artifact_ids=[m.artifact_id for m in members_sorted],
+            thresholds=list(artifact_set.thresholds or []),
+            sort_order=artifact_set.sort_order,
+            created_at=artifact_set.created_at,
+            updated_at=artifact_set.updated_at,
+        )
+
+    def _known_legends_for_setting(
+        self,
+        *,
+        setting_id: UUID,
+        pages_out: list[SettingPageOut],
+        artifacts_by_id: dict,
+    ) -> list[KnownLegendOut]:
+        """Раскрытый item_lore с artifact_id → известная легенда (без сырых abilities)."""
+        legends: list[KnownLegendOut] = []
+        seen: set[UUID] = set()
+        for page in pages_out:
+            if getattr(page, "page_kind", None) != "item_lore":
+                continue
+            if not getattr(page, "revealed", False):
+                continue
+            aid = getattr(page, "artifact_id", None)
+            if aid is None or aid in seen:
+                continue
+            art = artifacts_by_id.get(aid)
+            if art is None:
+                continue
+            seen.add(aid)
+            legends.append(
+                KnownLegendOut(
+                    artifact_id=aid,
+                    name=str(getattr(art, "name", "") or page.title or "Легенда"),
+                    description=str(getattr(art, "description", "") or ""),
+                    page_id=page.id,
+                    primary_image=getattr(page, "primary_image", None),
+                )
+            )
+        legends.sort(key=lambda L: L.name.lower())
+        return legends
+
     def _setting_detail(self, setting: Setting, *, see_as_gm: bool, is_owner: bool | None = None) -> SettingDetail:
         all_pages = self.lobbies.list_setting_pages(setting.id)
         links = self.lobbies.list_setting_page_links(setting.id)
         templates = self.lobbies.list_setting_page_templates(setting.id)
-        artifacts = self.lobbies.list_setting_artifacts(setting.id) if see_as_gm else []
+        all_artifacts = self.lobbies.list_setting_artifacts(setting.id)
+        artifacts = all_artifacts if see_as_gm else []
+        list_sets = getattr(self.lobbies, "list_setting_artifact_sets", None)
+        artifact_sets_rows = (
+            list_sets(setting.id) if see_as_gm and callable(list_sets) else []
+        )
         if not see_as_gm:
             # W-03: combat никогда не отдаём игроку, даже если revealed=true
             pages = [
@@ -2157,6 +2226,19 @@ class LobbyService:
             # не светить legacy notes целиком — у игрока только раскрытые страницы
             data["world_notes"] = ""
         owner_flag = False if is_owner is None else is_owner
+        artifacts_by_id = {a.id: a for a in all_artifacts}
+        # Для легенд игроку нужны только раскрытые страницы (уже в pages_out).
+        # Мастеру — тоже только revealed item_lore (нераскрытые в «известных» не входят).
+        legend_pages = [
+            p
+            for p in pages_out
+            if getattr(p, "page_kind", None) == "item_lore" and getattr(p, "revealed", False)
+        ]
+        known_legends = self._known_legends_for_setting(
+            setting_id=setting.id,
+            pages_out=legend_pages,
+            artifacts_by_id=artifacts_by_id,
+        )
         return SettingDetail(
             **data,
             pages=pages_out,
@@ -2177,6 +2259,8 @@ class LobbyService:
             templates=[self._template_out(t) for t in templates],
             all_tags=collect_all_tags(pages_out),
             artifacts=[SettingArtifactOut.model_validate(a) for a in artifacts],
+            artifact_sets=[self._artifact_set_out(s) for s in artifact_sets_rows],
+            known_legends=known_legends,
             is_owner=owner_flag,
             in_trash=getattr(setting, "deleted_at", None) is not None,
         )
@@ -2348,6 +2432,11 @@ class LobbyService:
             quest_status = default_quest_status(page_kind)
         if quest_status is not None and quest_status not in QUEST_STATUSES:
             raise AppError("Неверный статус квеста", code="quest_status_bad", status_code=400)
+        artifact_id = self._resolve_page_artifact_link(
+            setting_id=setting.id,
+            page_kind=page_kind,
+            artifact_id=payload.artifact_id,
+        )
         created = self.lobbies.create_setting_page(
             setting_id=setting.id,
             title=(payload.title or "Новая страница").strip() or "Новая страница",
@@ -2360,6 +2449,7 @@ class LobbyService:
             fields=fields,
             quest_status=quest_status,
             tags=normalize_tags(payload.tags),
+            artifact_id=artifact_id,
         )
         # W-03: combat всегда скрыт от игроков
         if page_kind == "combat":
@@ -2579,6 +2669,20 @@ class LobbyService:
 
         if payload.tags is not None:
             page.tags = normalize_tags(payload.tags)
+
+        # W-04: связь item_lore ↔ артефакт
+        if payload.clear_artifact:
+            page.artifact_id = None
+        elif payload.artifact_id is not None or payload.page_kind is not None:
+            kind = page.page_kind or "note"
+            if kind != "item_lore":
+                page.artifact_id = None
+            elif payload.artifact_id is not None:
+                page.artifact_id = self._resolve_page_artifact_link(
+                    setting_id=setting.id,
+                    page_kind=kind,
+                    artifact_id=payload.artifact_id,
+                )
 
         if payload.body is not None:
             # W-02: молчаливое создание пустых страниц отключено (create_missing всегда False).
@@ -2807,6 +2911,166 @@ class LobbyService:
         lobby = self._require_lobby(setting.lobby_id)
         self._require_wiki(lobby, user)
         self.lobbies.delete_setting_artifact(artifact)
+        self.db.commit()
+        refreshed = self.lobbies.get_setting(setting.id)
+        assert refreshed is not None
+        return self._setting_detail(refreshed, see_as_gm=True)
+
+    def _resolve_page_artifact_link(
+        self,
+        *,
+        setting_id: UUID,
+        page_kind: str,
+        artifact_id: UUID | None,
+    ) -> UUID | None:
+        """W-04: artifact_id только для item_lore и только из этого сеттинга."""
+        if artifact_id is None:
+            return None
+        if page_kind != "item_lore":
+            return None
+        art = self.lobbies.get_setting_artifact(artifact_id)
+        if art is None or art.setting_id != setting_id:
+            raise AppError(
+                "Артефакт не из этого сеттинга",
+                code="page_artifact_bad",
+                status_code=400,
+            )
+        return art.id
+
+    def _replace_set_members(
+        self,
+        *,
+        setting_id: UUID,
+        set_id: UUID,
+        artifact_ids: list[UUID],
+        exclude_set_id: UUID | None = None,
+    ) -> None:
+        seen: set[UUID] = set()
+        ordered: list[UUID] = []
+        for aid in artifact_ids:
+            if aid in seen:
+                continue
+            seen.add(aid)
+            ordered.append(aid)
+        if len(ordered) > 20:
+            raise AppError(
+                "Слишком много частей сета",
+                code="artifact_set_too_many",
+                status_code=400,
+            )
+        for aid in ordered:
+            art = self.lobbies.get_setting_artifact(aid)
+            if art is None or art.setting_id != setting_id:
+                raise AppError(
+                    "Артефакт не из этого сеттинга",
+                    code="artifact_set_member_bad",
+                    status_code=400,
+                )
+            membership = self.lobbies.find_artifact_set_membership(aid)
+            if membership is not None and (
+                exclude_set_id is None or membership.set_id != exclude_set_id
+            ):
+                raise AppError(
+                    "Артефакт уже в другом сете",
+                    code="artifact_already_in_set",
+                    status_code=400,
+                )
+        self.lobbies.clear_artifact_set_members(set_id)
+        for idx, aid in enumerate(ordered):
+            self.lobbies.add_artifact_set_member(
+                set_id=set_id,
+                artifact_id=aid,
+                sort_order=idx,
+            )
+
+    def create_setting_artifact_set(
+        self,
+        user: User,
+        setting_id: UUID,
+        payload: SettingArtifactSetCreateRequest,
+    ) -> SettingDetail:
+        from app.services.artifact_apply import normalize_set_thresholds
+
+        setting = self.lobbies.get_setting(setting_id)
+        if setting is None:
+            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        lobby = self._require_lobby(setting.lobby_id)
+        self._require_wiki(lobby, user)
+        existing = self.lobbies.list_setting_artifact_sets(setting.id)
+        sort_order = (
+            payload.sort_order
+            if payload.sort_order is not None
+            else (max((s.sort_order for s in existing), default=-1) + 1)
+        )
+        thresholds = normalize_set_thresholds(
+            [t.model_dump() for t in payload.thresholds]
+        )
+        row = self.lobbies.create_setting_artifact_set(
+            setting_id=setting.id,
+            name=(payload.name or "Новый сет").strip()[:120] or "Новый сет",
+            description=(payload.description or "").strip()[:4000],
+            thresholds=thresholds,
+            sort_order=sort_order,
+        )
+        self._replace_set_members(
+            setting_id=setting.id,
+            set_id=row.id,
+            artifact_ids=list(payload.artifact_ids or []),
+            exclude_set_id=row.id,
+        )
+        self.db.commit()
+        refreshed = self.lobbies.get_setting(setting.id)
+        assert refreshed is not None
+        return self._setting_detail(refreshed, see_as_gm=True)
+
+    def update_setting_artifact_set(
+        self,
+        user: User,
+        set_id: UUID,
+        payload: SettingArtifactSetUpdateRequest,
+    ) -> SettingDetail:
+        from app.services.artifact_apply import normalize_set_thresholds
+
+        artifact_set = self.lobbies.get_setting_artifact_set(set_id)
+        if artifact_set is None:
+            raise NotFoundError("Сет не найден", code="artifact_set_not_found")
+        setting = self.lobbies.get_setting(artifact_set.setting_id)
+        if setting is None:
+            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        lobby = self._require_lobby(setting.lobby_id)
+        self._require_wiki(lobby, user)
+        if payload.name is not None:
+            artifact_set.name = payload.name.strip()[:120] or artifact_set.name
+        if payload.description is not None:
+            artifact_set.description = payload.description.strip()[:4000]
+        if payload.thresholds is not None:
+            artifact_set.thresholds = normalize_set_thresholds(
+                [t.model_dump() for t in payload.thresholds]
+            )
+        if payload.sort_order is not None:
+            artifact_set.sort_order = payload.sort_order
+        if payload.artifact_ids is not None:
+            self._replace_set_members(
+                setting_id=setting.id,
+                set_id=artifact_set.id,
+                artifact_ids=list(payload.artifact_ids),
+                exclude_set_id=artifact_set.id,
+            )
+        self.db.commit()
+        refreshed = self.lobbies.get_setting(setting.id)
+        assert refreshed is not None
+        return self._setting_detail(refreshed, see_as_gm=True)
+
+    def delete_setting_artifact_set(self, user: User, set_id: UUID) -> SettingDetail:
+        artifact_set = self.lobbies.get_setting_artifact_set(set_id)
+        if artifact_set is None:
+            raise NotFoundError("Сет не найден", code="artifact_set_not_found")
+        setting = self.lobbies.get_setting(artifact_set.setting_id)
+        if setting is None:
+            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        lobby = self._require_lobby(setting.lobby_id)
+        self._require_wiki(lobby, user)
+        self.lobbies.delete_setting_artifact_set(artifact_set)
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
@@ -6957,8 +7221,13 @@ class LobbyService:
             inventory["items"] = items
             sheet["inventory"] = inventory
 
-            from app.services.artifact_apply import apply_artifact_to_sheet
+            from app.services.artifact_apply import (
+                apply_artifact_to_sheet,
+                recompute_set_bonuses,
+                set_def_from_row,
+            )
 
+            awarded_setting_ids: set[UUID] = set()
             for entry in bucket["items"]:
                 artifact_id = entry.get("artifact_id")
                 if artifact_id is not None:
@@ -6969,6 +7238,7 @@ class LobbyService:
                             code="setting_artifact_not_found",
                         )
                     apply_artifact_to_sheet(sheet, artifact=artifact, qty=entry["qty"])
+                    awarded_setting_ids.add(artifact.setting_id)
                 else:
                     inv = dict(sheet.get("inventory") or {})
                     inv_items = list(inv.get("items") or [])
@@ -6992,6 +7262,16 @@ class LobbyService:
                     if "coins" not in inv:
                         inv["coins"] = {k: int(coins.get(k) or 0) for k in coin_keys}
                     sheet["inventory"] = inv
+
+            # W-04: подтянуть определения сетов сеттинга и пересчитать бонусы
+            set_defs: list[dict] = []
+            for sid in awarded_setting_ids:
+                for row in self.lobbies.list_setting_artifact_sets(sid):
+                    set_defs.append(set_def_from_row(row))
+            if set_defs:
+                recompute_set_bonuses(sheet, set_defs)
+            else:
+                recompute_set_bonuses(sheet, None)
 
             character.sheet = sheet
             character.sheet_version = int(character.sheet_version or 1) + 1
@@ -7045,7 +7325,11 @@ class LobbyService:
     def _apply_loot_bucket_to_character(self, character: Character, bucket: dict) -> None:
         """Внутренний: монеты + предметы (и артефакты) в лист."""
         from sqlalchemy.orm.attributes import flag_modified
-        from app.services.artifact_apply import apply_artifact_to_sheet
+        from app.services.artifact_apply import (
+            apply_artifact_to_sheet,
+            recompute_set_bonuses,
+            set_def_from_row,
+        )
 
         coin_keys = ("cp", "sp", "ep", "gp", "pp")
         sheet = dict(character.sheet or {})
@@ -7064,6 +7348,7 @@ class LobbyService:
         inventory["items"] = items
         sheet["inventory"] = inventory
 
+        awarded_setting_ids: set[UUID] = set()
         for entry in bucket.get("items") or []:
             artifact_id = entry.get("artifact_id")
             if artifact_id is not None:
@@ -7075,6 +7360,7 @@ class LobbyService:
                         code="setting_artifact_not_found",
                     )
                 apply_artifact_to_sheet(sheet, artifact=artifact, qty=int(entry.get("qty") or 1))
+                awarded_setting_ids.add(artifact.setting_id)
             else:
                 inv = dict(sheet.get("inventory") or {})
                 inv_items = list(inv.get("items") or [])
@@ -7098,6 +7384,15 @@ class LobbyService:
                 if "coins" not in inv:
                     inv["coins"] = {k: int(coins.get(k) or 0) for k in coin_keys}
                 sheet["inventory"] = inv
+
+        set_defs: list[dict] = []
+        for sid in awarded_setting_ids:
+            for row in self.lobbies.list_setting_artifact_sets(sid):
+                set_defs.append(set_def_from_row(row))
+        if set_defs:
+            recompute_set_bonuses(sheet, set_defs)
+        else:
+            recompute_set_bonuses(sheet, None)
 
         character.sheet = sheet
         character.sheet_version = int(character.sheet_version or 1) + 1

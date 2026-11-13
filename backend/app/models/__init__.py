@@ -15,6 +15,7 @@ from app.models.lobby_media import LobbyMedia
 from app.models.note import Note
 from app.models.session_event import SessionEvent
 from app.models.setting_artifact import SettingArtifact
+from app.models.setting_artifact_set import SettingArtifactSet, SettingArtifactSetMember
 from app.models.setting_page import SettingPage
 from app.models.setting_page_link import SettingPageLink
 from app.models.setting_page_template import SettingPageTemplate
@@ -56,6 +57,8 @@ __all__ = [
     "SessionSeat",
     "Setting",
     "SettingArtifact",
+    "SettingArtifactSet",
+    "SettingArtifactSetMember",
     "SettingPage",
     "SettingPageLink",
     "SettingPageTemplate",

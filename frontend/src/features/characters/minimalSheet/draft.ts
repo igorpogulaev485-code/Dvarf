@@ -102,6 +102,8 @@ export type Draft = {
   weapons: WeaponAttack[]
   inventory: InventoryState
   attunements: AttunementSlot[]
+  /** W-04: снимки сетов для пересчёта бонусов на листе */
+  artifactSets: Array<Record<string, unknown>>
   spells: SpellsState
   play: PlayState
   textBlocks: TextBlock[]
@@ -367,6 +369,9 @@ export function buildDraft(character: CharacterDetail): Draft {
       }
     })(),
     attunements: readAttunements(sheet),
+    artifactSets: Array.isArray(sheet.artifact_sets)
+      ? (sheet.artifact_sets as Array<Record<string, unknown>>)
+      : [],
     play: withSyncedHitDiceSummary({
       ...play,
       hitDiceByClass,

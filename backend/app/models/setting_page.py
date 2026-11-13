@@ -60,6 +60,14 @@ class SettingPage(Base):
     quest_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
     # C9: теги для фильтра mid-session
     tags: Mapped[list[str]] = mapped_column(ARRAY(String(48)), nullable=False, default=list)
+    # W-04: связь страницы-предмета (item_lore) с артефактом сеттинга
+    artifact_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("setting_artifacts.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+        default=None,
+    )
     # W-02: soft-delete (корзина 30 дней)
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),

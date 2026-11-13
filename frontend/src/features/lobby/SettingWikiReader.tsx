@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type {
+  KnownLegend,
   SettingDetail,
   SettingPage,
   SettingPageTemplateField,
@@ -68,9 +69,16 @@ export function SettingWikiReader({
   )
 
   const pages = setting.pages
+  const legends: KnownLegend[] = setting.known_legends ?? []
   const latest = useMemo(() => latestRevealedAt(pages), [pages])
   const hasNew = wikiRevealHasNew(latest, seenAt)
   const recent = useMemo(() => recentRevealedPages(pages, 10), [pages])
+  const selectedLegend = useMemo(() => {
+    if (!selectedId) return null
+    const page = pages.find((p) => p.id === selectedId)
+    if (!page?.artifact_id) return null
+    return legends.find((l) => l.artifact_id === page.artifact_id) ?? null
+  }, [selectedId, pages, legends])
 
   useEffect(() => {
     // Первое открытие: запомнить время, точку не показывать.
@@ -241,10 +249,19 @@ export function SettingWikiReader({
                   })}
                 </div>
               ) : null}
-              {/* W-04: известные легенды — место под блок */}
-              {selected.page_kind === 'item_lore' ? (
-                <div className="setting-wiki-reader__legends" aria-label="Известные легенды">
-                  <Text tone="muted">Известные легенды появятся позже.</Text>
+              {selected.page_kind === 'item_lore' && selectedLegend ? (
+                <div className="setting-wiki-reader__legends" aria-label="Легенда предмета">
+                  <Text as="h4">{selectedLegend.name}</Text>
+                  {selectedLegend.primary_image ? (
+                    <WikiReaderImage media={selectedLegend.primary_image} label="Картинка легенды" />
+                  ) : selected.primary_image ? (
+                    <WikiReaderImage media={selected.primary_image} label="Картинка легенды" />
+                  ) : null}
+                  {selectedLegend.description ? (
+                    <Text>{selectedLegend.description}</Text>
+                  ) : (
+                    <Text tone="muted">Описание легенды пока пусто.</Text>
+                  )}
                 </div>
               ) : null}
               <SettingMentionBody
@@ -258,6 +275,31 @@ export function SettingWikiReader({
             <Text tone="muted">Выберите страницу в оглавлении.</Text>
           )}
         </div>
+      </div>
+
+      <div className="setting-wiki-reader__legends-list" aria-label="Известные легенды">
+        <Text as="h4">Известные легенды</Text>
+        {legends.length === 0 ? (
+          <Text tone="muted">Пока ничего не раскрыто.</Text>
+        ) : (
+          <ul>
+            {legends.map((L) => (
+              <li key={L.artifact_id}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (L.page_id) setSelectedId(L.page_id)
+                  }}
+                >
+                  {L.name}
+                </button>
+                {L.description ? (
+                  <Text tone="muted"> — {L.description.slice(0, 120)}{L.description.length > 120 ? '…' : ''}</Text>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="setting-wiki-reader__quests" aria-label="Журнал квестов">
