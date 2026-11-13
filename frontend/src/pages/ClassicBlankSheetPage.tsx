@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { ClassicPrintSheet } from '../features/classicSheet/ClassicPrintSheet'
 import {
   setClassicSheetLayout,
@@ -51,15 +51,9 @@ function blankCharacter(layout: ClassicSheetLayout): CharacterDetail {
 
 /** Empty official-style blank for pencil — no character API, no fixtures. */
 export function ClassicBlankSheetPage() {
-  const [params, setParams] = useSearchParams()
-  const layoutParam = params.get('layout') === '2024' ? '2024' : '2014'
-  const [layout, setLayout] = useState<ClassicSheetLayout>(layoutParam)
+  // FIX-01: пустой бланк только 2014.
+  const layout: ClassicSheetLayout = '2014'
   const character = useMemo(() => blankCharacter(layout), [layout])
-
-  const changeLayout = (next: ClassicSheetLayout) => {
-    setLayout(next)
-    setParams({ layout: next })
-  }
 
   return (
     <div className="classic-print-page" data-testid="classic-blank-sheet">
@@ -68,7 +62,7 @@ export function ClassicBlankSheetPage() {
           <Link to="/characters">← К персонажам</Link>
           <div>
             Пустой бланк
-            <small>Без данных персонажа · макет {layout}</small>
+            <small>Без данных персонажа · макет 2014</small>
           </div>
           <p className="classic-print-banner">
             Чистые страницы под карандаш. Для заполненного бланка откройте классический лист
@@ -78,16 +72,9 @@ export function ClassicBlankSheetPage() {
         <div className="classic-toolbar-actions">
           <div className="classic-layout-switch" role="group" aria-label="Макет пустого бланка">
             <span className="classic-layout-switch__label">Макет</span>
-            {(['2014', '2024'] as const).map((year) => (
-              <button
-                key={year}
-                type="button"
-                className={layout === year ? 'is-active' : undefined}
-                onClick={() => changeLayout(year)}
-              >
-                {year}
-              </button>
-            ))}
+            <button type="button" className="is-active" disabled>
+              2014
+            </button>
           </div>
           <div className="classic-print-cta">
             <Button variant="secondary" onClick={() => window.print()}>

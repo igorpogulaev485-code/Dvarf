@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { SessionCombatant, SessionSeat } from '../../shared/api/lobbies'
 import { unclaimedDefeatXp } from '../../shared/api/lobbies'
+import { formatClassLevelLabel } from '../../shared/dnd/classLevels'
 import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 
 type Mode = 'combat' | 'manual'
@@ -210,8 +211,11 @@ export function AwardXpDialog({
                     />
                     <span>
                       {seat.character_name}
-                      {seat.character_class_name
-                        ? ` · ${seat.character_class_name} ${seat.character_level}`
+                      {seat.character_class_name || seat.character_level
+                        ? ` · ${formatClassLevelLabel(
+                            seat.character_class_name,
+                            seat.character_level,
+                          )}`
                         : ''}
                     </span>
                   </label>

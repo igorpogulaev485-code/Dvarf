@@ -8,6 +8,7 @@ import type {
   SettingArtifact,
 } from '../../shared/api/lobbies'
 import { unclaimedDefeatXp } from '../../shared/api/lobbies'
+import { formatClassLevelLabel } from '../../shared/dnd/classLevels'
 import type { CampaignRules } from './campaignRules'
 import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
 
@@ -600,8 +601,11 @@ export function RewardsDialog({
                       />
                       <span>
                         {seat.character_name}
-                        {seat.character_class_name
-                          ? ` · ${seat.character_class_name} ${seat.character_level}`
+                        {seat.character_class_name || seat.character_level
+                          ? ` · ${formatClassLevelLabel(
+                              seat.character_class_name,
+                              seat.character_level,
+                            )}`
                           : ''}
                         {tags.length ? ` (${tags.join(', ')})` : ''}
                       </span>

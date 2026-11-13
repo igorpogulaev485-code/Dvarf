@@ -1,4 +1,6 @@
+import { lazy, Suspense } from 'react'
 import type { CharacterDetail } from '../../shared/api/characters'
+import { formatClassLevelLabel } from '../../shared/dnd/classLevels'
 import {
   ABILITY_KEYS,
   ABILITY_LABELS,
@@ -72,10 +74,14 @@ import {
   type ClassicSheetLayout,
 } from './classicSheetLayout'
 import { ClassicTextBlock } from './ClassicTextBlock'
-import { ClassicPrint2024 } from './ClassicPrint2024'
 import { ClassicFitViewport } from './ClassicFitViewport'
 import { ClassicFitInput } from './ClassicFitInput'
 import './classicPrint.css'
+
+/** FIX-01: 2024-бланк не тянем в чанк 2014 — убирает лишний парсинг при печати. */
+const ClassicPrint2024 = lazy(() =>
+  import('./ClassicPrint2024').then((m) => ({ default: m.ClassicPrint2024 })),
+)
 
 type Props = {
   character: CharacterDetail
@@ -90,7 +96,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
   const pencilBlanks = readClassicPencilBlanks(c)
   const extraNotePages = readClassicExtraNotePages(c)
 
-  const classAndLevel = [c.class_name, c.level].filter(Boolean).join(' ')
+  const classAndLevel = formatClassLevelLabel(c.class_name, c.level)
   const coins = inventoryCoins(c)
   const weaponsBase = classicWeaponRows(c)
   const weapons =
@@ -164,7 +170,9 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
     <ClassicFitViewport key={sheetLayout}>
     <div className="classic-stack">
       {sheetLayout === '2024' ? (
-        <ClassicPrint2024 character={c} onPrintSettings={onPrintSettings} />
+        <Suspense fallback={null}>
+          <ClassicPrint2024 character={c} onPrintSettings={onPrintSettings} />
+        </Suspense>
       ) : (
         <>
       <article className="classic-sheet classic-page1" aria-label="Классический лист 2014, страница 1">

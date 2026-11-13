@@ -2283,6 +2283,50 @@ class LobbyService:
         legends.sort(key=lambda L: L.name.lower())
         return legends
 
+    def _with_setting_rights(
+        self,
+        detail: SettingDetail,
+        *,
+        user: User,
+        lobby: Lobby,
+        setting: Setting | None = None,
+    ) -> SettingDetail:
+        """FIX-01: мутации вики должны отдавать can_edit_wiki / is_owner как get_setting.
+
+        Иначе фронт после save видит флаги False и переключает мастера в вид игрока.
+        """
+        in_trash = (
+            getattr(setting, "deleted_at", None) is not None
+            if setting is not None
+            else bool(detail.in_trash)
+        )
+        see_gm = roles.can_see_hidden(self.db, lobby, user)
+        can_edit = roles.can_edit_wiki(self.db, lobby, user)
+        return detail.model_copy(
+            update={
+                "is_owner": roles.is_owner(lobby, user),
+                "can_edit_wiki": can_edit,
+                "can_see_hidden": see_gm and not in_trash,
+                "can_view_lobby": True,
+                "in_trash": in_trash,
+            }
+        )
+
+    def _setting_detail_for_editor(
+        self,
+        setting: Setting,
+        *,
+        user: User,
+        lobby: Lobby,
+    ) -> SettingDetail:
+        """Полный GM-срез сеттинга после create/update + флаги прав."""
+        return self._with_setting_rights(
+            self._setting_detail(setting, see_as_gm=True),
+            user=user,
+            lobby=lobby,
+            setting=setting,
+        )
+
     def _setting_detail(self, setting: Setting, *, see_as_gm: bool, is_owner: bool | None = None) -> SettingDetail:
         all_pages = self.lobbies.list_setting_pages(setting.id)
         links = self.lobbies.list_setting_page_links(setting.id)
@@ -2339,10 +2383,10 @@ class LobbyService:
         else:
             pages = all_pages
             pages_out = [SettingPageOut.model_validate(p) for p in pages]
-            pages_out = [
-                wiki_combat_ops.enrich_combat_page_out(out, catalog=self.catalog)
-                for out in pages_out
-            ]
+            # FIX-01 / bug8: бестиарий один раз на ответ, не на каждую страницу «Бой»
+            pages_out = wiki_combat_ops.enrich_combat_pages_out(
+                pages_out, catalog=self.catalog
+            )
         # W-02: картинки L-02 на страницах
         try:
             pages_out = self.wiki().enrich_pages_with_media(
@@ -2598,7 +2642,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, see_as_gm=True)
+        return self._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     def bulk_create_setting_pages(
         self,
@@ -2658,7 +2702,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, see_as_gm=True)
+        return self._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     def update_setting_page(
         self,
@@ -2842,7 +2886,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, see_as_gm=True)
+        return self._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     def delete_setting_page(self, user: User, page_id: UUID) -> SettingDetail:
         """W-02: DELETE → корзина. Окончательное — purge."""
@@ -2928,7 +2972,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, see_as_gm=True)
+        return self._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     def delete_setting_page_link(self, user: User, link_id: UUID) -> SettingDetail:
         link = self.lobbies.get_setting_page_link(link_id)
@@ -2946,7 +2990,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, see_as_gm=True)
+        return self._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     def create_setting_artifact(
         self,
@@ -2985,7 +3029,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, see_as_gm=True)
+        return self._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     def update_setting_artifact(
         self,
@@ -3032,7 +3076,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, see_as_gm=True)
+        return self._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     def delete_setting_artifact(self, user: User, artifact_id: UUID) -> SettingDetail:
         artifact = self.lobbies.get_setting_artifact(artifact_id)
@@ -3047,7 +3091,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, see_as_gm=True)
+        return self._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     def _resolve_page_artifact_link(
         self,
@@ -3154,7 +3198,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, see_as_gm=True)
+        return self._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     def update_setting_artifact_set(
         self,
@@ -3192,7 +3236,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, see_as_gm=True)
+        return self._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     def delete_setting_artifact_set(self, user: User, set_id: UUID) -> SettingDetail:
         artifact_set = self.lobbies.get_setting_artifact_set(set_id)
@@ -3207,7 +3251,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed, see_as_gm=True)
+        return self._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     def create_session(
         self,

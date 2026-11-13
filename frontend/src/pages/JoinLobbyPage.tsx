@@ -21,7 +21,15 @@ import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
 import { Button, EmptyState, Field, Input, Panel, Stack, Text } from '../ui'
 
 function characterMeta(c: CharacterSummary): string {
-  const bits = [c.race_name, c.class_name, c.level != null ? `ур. ${c.level}` : null].filter(
+  const bits = [
+    c.race_name,
+    // FIX-01: class_name часто уже «Воин 1» — не дублировать «ур. N»
+    c.class_name
+      ? c.class_name
+      : c.level != null
+        ? `ур. ${c.level}`
+        : null,
+  ].filter(
     Boolean,
   )
   return bits.join(' · ') || 'Без расы/класса'

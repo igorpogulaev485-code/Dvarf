@@ -223,6 +223,7 @@ export function AttacksPanel({
   const [attackBreakdown, setAttackBreakdown] = useState<{
     name: string
     parts: AttackBonusPart[]
+    inventoryItemId?: string | null
   } | null>(null)
 
   function updateAttack(id: string, patch: Partial<WeaponAttack>) {
@@ -436,7 +437,11 @@ export function AttacksPanel({
                     className="attack-card__stat-value attack-card__stat-value--btn"
                     title="Разбор бонуса атаки"
                     onClick={() =>
-                      setAttackBreakdown({ name: attack.name, parts: attackParts })
+                      setAttackBreakdown({
+                        name: attack.name,
+                        parts: attackParts,
+                        inventoryItemId: attack.inventory_item_id,
+                      })
                     }
                   >
                     {formatModifier(attackBonus)}
@@ -613,6 +618,15 @@ export function AttacksPanel({
         attackName={attackBreakdown?.name ?? ''}
         parts={attackBreakdown?.parts ?? []}
         formulaVars={formulaVars}
+        inventoryItemId={attackBreakdown?.inventoryItemId}
+        onOpenItem={
+          onOpenItem
+            ? (itemId) => {
+                setAttackBreakdown(null)
+                onOpenItem(itemId)
+              }
+            : undefined
+        }
         onClose={() => setAttackBreakdown(null)}
       />
     </Panel>

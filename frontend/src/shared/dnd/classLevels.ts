@@ -36,6 +36,28 @@ export function formatClassSummary(classes: ClassLevelEntry[]): string {
   return parts.join(' / ')
 }
 
+/**
+ * FIX-01: class_name на карточке/бланке уже часто = formatClassSummary («Воин 1»).
+ * Не дописывать level второй раз → «Воин 1 1».
+ */
+export function formatClassLevelLabel(
+  className: string | null | undefined,
+  level: number | null | undefined,
+): string {
+  const name = (className ?? '').trim()
+  if (!name) {
+    return level != null && Number.isFinite(level) ? `ур. ${Math.floor(level)}` : ''
+  }
+  // Уже сводка с уровнями: «Воин 1» или «Воин 2 / Плут 1»
+  if (/(?:^|\/ )\S.+ \d+\s*$/.test(name) || / \d+ \//.test(name) || /\d\s*$/.test(name)) {
+    return name
+  }
+  if (level != null && Number.isFinite(level)) {
+    return `${name} ${Math.floor(level)}`
+  }
+  return name
+}
+
 export function primaryClassName(classes: ClassLevelEntry[]): string {
   const first = classes.find((row) => row.name.trim())
   return first?.name.trim() ?? ''
