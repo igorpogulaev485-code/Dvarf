@@ -48,6 +48,11 @@ import {
   isSightReliantSkill,
 } from '../../../shared/dnd/o08ActionsCoverConditions'
 import {
+  isSpareTheDyingSpell,
+  mergeInspirationAdvantage,
+  stabilizePlayPatch,
+} from '../../../shared/dnd/o09DeathInspirationAmmo'
+import {
   MAGICAL_GUIDANCE_SHEET_NAME,
   primalKnowledgeAbilityOverride,
 } from '../../../shared/dnd/o02TashaFeatures'
@@ -493,6 +498,61 @@ export function installSheetActions4(model: SheetModel) {
       }
     }
     const successToast = (message: string) => {
+      let spareNote = ''
+      if (isSpareTheDyingSpell(spell)) {
+        const allyIds = choice.allyTargetIds ?? []
+        model.setDraft((prev) => {
+          let next = prev
+          if (allyIds.length === 0) {
+            const dyingCompanion = prev.companions.find(
+              (c) => (c.stats.hp ?? 0) <= 0 && (c.death?.failures ?? 0) < 3,
+            )
+            if (dyingCompanion) {
+              next = {
+                ...prev,
+                companions: prev.companions.map((c) =>
+                  c.id === dyingCompanion.id
+                    ? {
+                        ...c,
+                        death: {
+                          successes: 3,
+                          failures: c.death?.failures ?? 0,
+                        },
+                      }
+                    : c,
+                ),
+              }
+            } else if (prev.play.isDying || (prev.hpCurrent ?? 0) <= 0) {
+              next = {
+                ...prev,
+                play: { ...prev.play, ...stabilizePlayPatch() },
+              }
+            }
+          } else {
+            const idSet = new Set(allyIds)
+            next = {
+              ...prev,
+              companions: prev.companions.map((c) =>
+                idSet.has(c.id)
+                  ? {
+                      ...c,
+                      death: {
+                        successes: 3,
+                        failures: c.death?.failures ?? 0,
+                      },
+                    }
+                  : c,
+              ),
+              play:
+                idSet.has(String(model.character?.id ?? '')) || idSet.has('self')
+                  ? { ...prev.play, ...stabilizePlayPatch() }
+                  : prev.play,
+            }
+          }
+          return next
+        })
+        spareNote = ' · стабилизация (Уход за умирающим)'
+      }
       castSucceeded = true
       teApi?.spendCast({
         timing: castTiming,
@@ -502,7 +562,9 @@ export function installSheetActions4(model: SheetModel) {
         quickened,
       })
       const full =
-        metaNotes.length > 0 ? `${message} · ${metaNotes.join(' · ')}` : message
+        metaNotes.length > 0
+          ? `${message}${spareNote} · ${metaNotes.join(' · ')}`
+          : `${message}${spareNote}`
       model.onToast(full)
       const sourceId = String(model.baseCharacter.id)
       void (async () => {
@@ -1159,6 +1221,11 @@ export function installSheetActions4(model: SheetModel) {
     return { value: score, label: 'неукротимая мощь' }
   }
 
+  function withInspirationMode(mode: DeskRollMode): DeskRollMode {
+    if (!model.inspirationRollArmed) return mode
+    return mergeInspirationAdvantage(mode) as DeskRollMode
+  }
+
   model.effectiveRollMode = function effectiveRollMode(skillKey?: string): DeskRollMode {
     const armor = skillKey === 'stealth' && model.stealthArmorDisadvantage
     const exhaustion = model.exhaustionFlags().disadvantageOnChecks
@@ -1184,9 +1251,12 @@ export function installSheetActions4(model: SheetModel) {
       fromCond.mode,
     )
     const base = resolveRollMode(withFx, armor || exhaustion)
-    if (!song) return base
-    if (base === 'disadvantage') return 'normal'
-    return 'advantage'
+    const withSong = !song
+      ? base
+      : base === 'disadvantage'
+        ? 'normal'
+        : 'advantage'
+    return withInspirationMode(withSong)
   }
 
   model.attackRollMode = function attackRollMode(): DeskRollMode {
@@ -1199,12 +1269,14 @@ export function installSheetActions4(model: SheetModel) {
       fearSourceVisible: true,
       invisibleDiscovered: false,
     })
-    return resolveRollMode(
-      mergeDeskRollMode(
-        mergeDeskRollMode(model.deskRollMode, fromFx),
-        fromCond.mode,
+    return withInspirationMode(
+      resolveRollMode(
+        mergeDeskRollMode(
+          mergeDeskRollMode(model.deskRollMode, fromFx),
+          fromCond.mode,
+        ),
+        model.exhaustionFlags().disadvantageOnAttacksAndSaves,
       ),
-      model.exhaustionFlags().disadvantageOnAttacksAndSaves,
     )
   }
 
@@ -1240,9 +1312,11 @@ export function installSheetActions4(model: SheetModel) {
       rollKind: 'save',
       abilityKey: abilityKey ?? null,
     })
-    return resolveRollMode(
-      mergeDeskRollMode(mergeDeskRollMode(model.deskRollMode, fromFx), fromCond.mode),
-      model.exhaustionFlags().disadvantageOnAttacksAndSaves,
+    return withInspirationMode(
+      resolveRollMode(
+        mergeDeskRollMode(mergeDeskRollMode(model.deskRollMode, fromFx), fromCond.mode),
+        model.exhaustionFlags().disadvantageOnAttacksAndSaves,
+      ),
     )
   }
 
@@ -1307,7 +1381,8 @@ export function installSheetActions4(model: SheetModel) {
       model.strengthCheckFloor(base === 'str'),
       silver ? { value: 10, label: 'серебряный язык' } : null,
       bonusDice,
-    )}${note}${profNote}`
+    )}${note}${profNote}${model.inspirationRollArmed ? ' · вдохновение' : ''}`
+    if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
     model.emitToast(text)
     const te = model.turnEconomyApi as
       | {
@@ -1386,7 +1461,8 @@ export function installSheetActions4(model: SheetModel) {
       model.strengthCheckFloor(key === 'str'),
       null,
       bonusDice,
-    )}${note}`
+    )}${note}${model.inspirationRollArmed ? ' · вдохновение' : ''}`
+    if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
     model.emitToast(text)
     const te = model.turnEconomyApi as
       | {
@@ -1484,6 +1560,7 @@ export function installSheetActions4(model: SheetModel) {
     if (teSave?.diceOnTable && teSave.openTableSave) {
       teSave.openTableSave(saveTitle)
       if (saveProfNote) model.emitToast(`${saveTitle}${saveProfNote}`)
+      if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
     } else {
       model.emitToast(
         `${formatSkillRoll(
@@ -1494,8 +1571,11 @@ export function installSheetActions4(model: SheetModel) {
           null,
           null,
           bonusDice,
-        )}${note}${songNote}${coverNote}${spellNote}${saveProfNote}`,
+        )}${note}${songNote}${coverNote}${spellNote}${saveProfNote}${
+          model.inspirationRollArmed ? ' · вдохновение' : ''
+        }`,
       )
+      if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
     }
     consumeOnceBuffDice('save')
   }

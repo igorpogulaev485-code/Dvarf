@@ -615,3 +615,20 @@
   gap: 8px;
 }
 
+.hp-pad__death-roll {
+  justify-self: start;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--danger, #9f2d2d) 40%, var(--line, #e5e0d4));
+  background: #fff;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--danger, #9f2d2d);
+}
+
+.hp-pad__death-roll:hover {
+  background: #fff4f4;
+}
+

@@ -30,6 +30,15 @@ import {
   damageTypeIsPiercing,
   damageTypeIsSlashing,
 } from '../../shared/dnd/o05CombatFeats'
+import {
+  AMMO_BIND_HINT,
+  STABILIZE_MEDICINE_HINT,
+  ammoKindForWeapon,
+  listMatchingAmmoStacks,
+  resolveAmmoConsume,
+  weaponIsThrownStack,
+  weaponNeedsAmmunition,
+} from '../../shared/dnd/o09DeathInspirationAmmo'
 import { hasFeatFlag } from '../../shared/dnd/b07FeatCombat'
 import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
 import { equippedArmorPieces } from './inventory'
@@ -331,6 +340,17 @@ type PlayDeskAttacksCompactProps = {
   /** B-07: Lucky armed — extra d20, pick any (spend handled by parent). */
   luckyArmed?: boolean
   onLuckySpent?: () => void
+  /** O-09: Inspiration armed — advantage on this attack (spend handled by parent). */
+  inspirationArmed?: boolean
+  onInspirationSpent?: () => void
+  /** O-09: inventory item ids with repeating_shot infusion (no ammo spend). */
+  repeatingShotItemIds?: string[]
+  /** O-09: bind ammo stack to weapon attack card. */
+  onBindAmmo?: (attackId: string, ammoItemId: string | null) => void
+  /** O-09: decrement thrown stack qty on the attack card. */
+  onSpendAttackQty?: (attackId: string, amount?: number) => void
+  /** O-09: Medicine stabilize (action). */
+  onMedicineStabilize?: (targetId: string) => void
   /** B-07: Savage Attacker once/turn weapon damage reroll. */
   savageAttacker?: boolean
   /** B-07: Flames of Phlegethos — reroll 1s on fire damage. */
@@ -446,6 +466,12 @@ export function PlayDeskAttacksCompact({
   elvenAccuracy = false,
   luckyArmed = false,
   onLuckySpent,
+  inspirationArmed = false,
+  onInspirationSpent,
+  repeatingShotItemIds = [],
+  onBindAmmo,
+  onSpendAttackQty,
+  onMedicineStabilize,
   savageAttacker = false,
   flamesOfPhlegethos = false,
   onLuckyPickNeeded,
@@ -498,6 +524,13 @@ export function PlayDeskAttacksCompact({
   const [twfBonusArmed, setTwfBonusArmed] = useState(false)
   const [healerTargetId, setHealerTargetId] = useState<string | null>(null)
   const [healerMode, setHealerMode] = useState<'stabilize' | 'heal' | null>(null)
+  const [stabilizeMedicineOpen, setStabilizeMedicineOpen] = useState(false)
+  const [stabilizeTargetId, setStabilizeTargetId] = useState<string | null>(null)
+  const [ammoPickAttackId, setAmmoPickAttackId] = useState<string | null>(null)
+  const repeatingShotSet = useMemo(
+    () => new Set(repeatingShotItemIds),
+    [repeatingShotItemIds],
+  )
   const [o03Dialog, setO03Dialog] = useState<
     | null
     | 'disarm'
@@ -1297,6 +1330,10 @@ export function PlayDeskAttacksCompact({
               setHealerMode('heal')
               setHealerTargetId(null)
             }}
+            onO09Stabilize={() => {
+              setStabilizeMedicineOpen(true)
+              setStabilizeTargetId(null)
+            }}
             onO05GrapplerPin={() => {
               openActionGrapple(['shove_prone'], 'Борец: опрокинуть схваченного')
             }}
@@ -1833,6 +1870,66 @@ export function PlayDeskAttacksCompact({
               </button>
             </div>
           ) : null}
+          {stabilizeMedicineOpen ? (
+            <div
+              className="chip-row"
+              style={{ marginBottom: 8 }}
+              role="group"
+              aria-label="Стабилизировать · Медицина"
+            >
+              <span className="sheet-chip is-stub" title={STABILIZE_MEDICINE_HINT}>
+                Стабилизировать · Медицина 10
+              </span>
+              {(turnEco?.targets ?? [])
+                .filter((t) => t.is_ally || t.kind === 'pc')
+                .map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className={`sheet-chip${stabilizeTargetId === t.id ? ' is-on' : ''}`}
+                    onClick={() => setStabilizeTargetId(t.id)}
+                  >
+                    {t.name}
+                  </button>
+                ))}
+              {companions
+                .filter((c) => (c.stats.hp ?? 0) <= 0 && (c.death?.failures ?? 0) < 3)
+                .map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={`sheet-chip${stabilizeTargetId === c.id ? ' is-on' : ''}`}
+                    onClick={() => setStabilizeTargetId(c.id)}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              <button
+                type="button"
+                className="sheet-chip"
+                disabled={!stabilizeTargetId || !turnEco?.canFeature('action').ok}
+                onClick={() => {
+                  if (!stabilizeTargetId || !turnEco?.canFeature('action').ok) return
+                  turnEco.spendFeature('action')
+                  onMedicineStabilize?.(stabilizeTargetId)
+                  setStabilizeMedicineOpen(false)
+                  setStabilizeTargetId(null)
+                }}
+              >
+                Бросок Медицины
+              </button>
+              <button
+                type="button"
+                className="sheet-chip"
+                onClick={() => {
+                  setStabilizeMedicineOpen(false)
+                  setStabilizeTargetId(null)
+                }}
+              >
+                Отмена
+              </button>
+            </div>
+          ) : null}
           <DisarmDialog
             open={o03Dialog === 'disarm'}
             characterId={characterId ?? ''}
@@ -2313,6 +2410,21 @@ export function PlayDeskAttacksCompact({
                 damageExpr: baseDamage,
                 twoHanded: grip === 'two_hand',
               })
+            const rowWeaponItem = attack.inventory_item_id
+              ? inventoryItems.find((row) => row.id === attack.inventory_item_id)
+              : undefined
+            const needsAmmo = weaponNeedsAmmunition({
+              name: attack.name,
+              catalogSlug:
+                rowWeaponItem?.catalog_slug ?? rowWeaponItem?.base_weapon_slug,
+              baseWeaponSlug: rowWeaponItem?.base_weapon_slug,
+            })
+            const ammoKind = ammoKindForWeapon({
+              name: attack.name,
+              catalogSlug:
+                rowWeaponItem?.catalog_slug ?? rowWeaponItem?.base_weapon_slug,
+              baseWeaponSlug: rowWeaponItem?.base_weapon_slug,
+            })
             const pointBlankDis = rangedPointBlankDisadvantage({
               attackName: attack.name,
               within5ft,
@@ -2438,6 +2550,76 @@ export function PlayDeskAttacksCompact({
                       if (!gate.ok) {
                         onToast?.(gate.reason)
                         return
+                      }
+                    }
+                    const weaponItem = attack.inventory_item_id
+                      ? inventoryItems.find((row) => row.id === attack.inventory_item_id)
+                      : undefined
+                    const needsAmmo = weaponNeedsAmmunition({
+                      name: attack.name,
+                      catalogSlug: weaponItem?.catalog_slug ?? weaponItem?.base_weapon_slug,
+                      baseWeaponSlug: weaponItem?.base_weapon_slug,
+                      properties: null,
+                    })
+                    const thrownStack = weaponIsThrownStack({
+                      name: attack.name,
+                      catalogSlug: weaponItem?.catalog_slug ?? weaponItem?.base_weapon_slug,
+                      baseWeaponSlug: weaponItem?.base_weapon_slug,
+                      qty: attack.qty ?? weaponItem?.qty ?? null,
+                    })
+                    const ammoKind = ammoKindForWeapon({
+                      name: attack.name,
+                      catalogSlug: weaponItem?.catalog_slug ?? weaponItem?.base_weapon_slug,
+                      baseWeaponSlug: weaponItem?.base_weapon_slug,
+                    })
+                    const repeatingShot =
+                      Boolean(attack.inventory_item_id) &&
+                      repeatingShotSet.has(attack.inventory_item_id!)
+                    let pendingAmmoSpend: { itemId: string; note: string } | null = null
+                    let pendingThrownSpend: { itemId: string | null; note: string } | null =
+                      null
+                    if (needsAmmo) {
+                      const decision = resolveAmmoConsume({
+                        needsAmmo: true,
+                        repeatingShot,
+                        boundItemId: attack.ammo_item_id,
+                        items: inventoryItems,
+                        ammoKind,
+                      })
+                      if (!decision.ok) {
+                        onToast?.(decision.reason)
+                        if (decision.needPick) setAmmoPickAttackId(attack.id)
+                        return
+                      }
+                      if (decision.spend) {
+                        pendingAmmoSpend = {
+                          itemId: decision.itemId,
+                          note: decision.note,
+                        }
+                        if (!attack.ammo_item_id) {
+                          onBindAmmo?.(attack.id, decision.itemId)
+                        }
+                      } else if (decision.note) {
+                        onToast?.(decision.note)
+                      }
+                    } else if (thrownStack) {
+                      const qty =
+                        weaponItem?.qty ??
+                        (attack.qty != null && attack.qty > 0 ? attack.qty : null)
+                      if (qty != null && qty <= 0) {
+                        onToast?.('Нет метательного оружия в стопке')
+                        return
+                      }
+                      if (weaponItem && (weaponItem.qty ?? 0) > 0) {
+                        pendingThrownSpend = {
+                          itemId: weaponItem.id,
+                          note: `${weaponItem.name} ×${Math.max(0, (weaponItem.qty ?? 0) - 1)}`,
+                        }
+                      } else if (attack.qty != null && attack.qty > 0) {
+                        pendingThrownSpend = {
+                          itemId: null,
+                          note: `${attack.name} ×${Math.max(0, attack.qty - 1)}`,
+                        }
                       }
                     }
                     const activeRiders = (damageRiders ?? []).filter((row) => {
@@ -2567,6 +2749,18 @@ export function PlayDeskAttacksCompact({
                         }
                       }
                       if (luckyArmed) onLuckySpent?.()
+                      if (inspirationArmed) onInspirationSpent?.()
+                      if (pendingAmmoSpend) {
+                        onSpendConsumable?.(pendingAmmoSpend.itemId, 1)
+                        onToast?.(`Боеприпас −1 · ${pendingAmmoSpend.note}`)
+                      } else if (pendingThrownSpend) {
+                        if (pendingThrownSpend.itemId) {
+                          onSpendConsumable?.(pendingThrownSpend.itemId, 1)
+                        } else {
+                          onSpendAttackQty?.(attack.id, 1)
+                        }
+                        onToast?.(`Метательное −1 · ${pendingThrownSpend.note}`)
+                      }
                       onConsumeOnceBuffDice?.()
                       if (activeRiders.length) {
                         onConsumeDamageRiders?.(
@@ -2788,6 +2982,18 @@ export function PlayDeskAttacksCompact({
                       onLuckyPickNeeded
                     ) {
                       turnEco?.spendAttack()
+                      if (pendingAmmoSpend) {
+                        onSpendConsumable?.(pendingAmmoSpend.itemId, 1)
+                        onToast?.(`Боеприпас −1 · ${pendingAmmoSpend.note}`)
+                      } else if (pendingThrownSpend) {
+                        if (pendingThrownSpend.itemId) {
+                          onSpendConsumable?.(pendingThrownSpend.itemId, 1)
+                        } else {
+                          onSpendAttackQty?.(attack.id, 1)
+                        }
+                        onToast?.(`Метательное −1 · ${pendingThrownSpend.note}`)
+                      }
+                      if (inspirationArmed) onInspirationSpent?.()
                       onLuckyPickNeeded({
                         allDice: strike.allDice,
                         text: strike.text,
@@ -2804,6 +3010,18 @@ export function PlayDeskAttacksCompact({
                     ) {
                       onToast?.(strike.text)
                       turnEco?.spendAttack()
+                      if (pendingAmmoSpend) {
+                        onSpendConsumable?.(pendingAmmoSpend.itemId, 1)
+                        onToast?.(`Боеприпас −1 · ${pendingAmmoSpend.note}`)
+                      } else if (pendingThrownSpend) {
+                        if (pendingThrownSpend.itemId) {
+                          onSpendConsumable?.(pendingThrownSpend.itemId, 1)
+                        } else {
+                          onSpendAttackQty?.(attack.id, 1)
+                        }
+                        onToast?.(`Метательное −1 · ${pendingThrownSpend.note}`)
+                      }
+                      if (inspirationArmed) onInspirationSpent?.()
                       onHalflingLuckyNeeded({
                         text: strike.text,
                         hitRoll: strike.hitRoll,
@@ -2928,6 +3146,42 @@ export function PlayDeskAttacksCompact({
                   </span>
                   <span className="play-desk-compact__dmg">{dmgLine}</span>
                 </button>
+                {needsAmmo && onBindAmmo ? (
+                  <div
+                    className="chip-row"
+                    style={{ gridColumn: '1 / -1', marginTop: 4 }}
+                    role="group"
+                    aria-label={AMMO_BIND_HINT}
+                  >
+                    <span className="sheet-chip is-stub">боеприпас</span>
+                    {listMatchingAmmoStacks(inventoryItems, ammoKind ?? 'arrow').map((stack) => (
+                      <button
+                        key={stack.id}
+                        type="button"
+                        className={`sheet-chip${
+                          attack.ammo_item_id === stack.id ||
+                          (!attack.ammo_item_id && ammoPickAttackId === attack.id)
+                            ? ' is-on'
+                            : ''
+                        }`}
+                        title={AMMO_BIND_HINT}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          onBindAmmo(
+                            attack.id,
+                            attack.ammo_item_id === stack.id ? null : stack.id,
+                          )
+                          setAmmoPickAttackId(null)
+                        }}
+                      >
+                        {stack.name} ×{stack.qty}
+                      </button>
+                    ))}
+                    {ammoPickAttackId === attack.id ? (
+                      <span className="sheet-chip is-stub">выберите стопку</span>
+                    ) : null}
+                  </div>
+                ) : null}
                 {onToggleActivation && attack.activation && requirementOk ? (
                   <button
                     type="button"

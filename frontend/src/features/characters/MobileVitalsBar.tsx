@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { clampDeathMarks, type HitDie } from '../../shared/dnd/hitDice'
+import {
+  applyDamageAtZeroHp,
+  DEATH_SAVE_HINT,
+  resolveDeathSaveRoll,
+  stabilizePlayPatch,
+} from '../../shared/dnd/o09DeathInspirationAmmo'
+import { rollCheck } from './deskRolls'
 import type { CharacterDetail } from '../../shared/api/characters'
 import { formatModifier } from './sheetTypes'
 import type { CoinPurse } from '../../shared/dnd/weight'
@@ -254,7 +261,7 @@ export function MobileVitalsBar({
     }
   }
 
-  function applyDamage(amount: number) {
+  function applyDamage(amount: number, opts?: { critical?: boolean }) {
     const ward = absorbDamageWithArcaneWard(play.resources ?? [], amount)
     let left = ward.remaining
     let temp = play.hpTemp
@@ -264,11 +271,60 @@ export function MobileVitalsBar({
       left -= soak
     }
     const cur = shownHpCurrent ?? 0
+    const alreadyAtZero = cur <= 0
     const next = Math.max(0, cur - left)
-    onPlayChange({ ...play, resources: ward.resources, hpTemp: temp })
+    let nextPlay: PlayState = {
+      ...play,
+      resources: ward.resources,
+      hpTemp: temp,
+    }
     if (ward.note) onToast(ward.note)
+    if (alreadyAtZero && left > 0 && isDying) {
+      const death = applyDamageAtZeroHp({
+        damageToHp: left,
+        hpMax: shownHpMax,
+        isCritical: Boolean(opts?.critical),
+        deathFails: play.deathFails,
+      })
+      nextPlay = {
+        ...nextPlay,
+        isDying: true,
+        deathFails: death.deathFails,
+      }
+      if (death.note) onToast(death.note)
+    } else if (next <= 0 && !play.isDying) {
+      nextPlay = { ...nextPlay, isDying: true }
+      onToast('Хиты ≤ 0 — спасброски смерти')
+    }
+    onPlayChange(nextPlay)
     onCombatChange({ hpCurrent: next })
-    if (left > 0) onDamaged?.(left)
+    if (left > 0 && !alreadyAtZero) onDamaged?.(left)
+  }
+
+  function rollDeathSave() {
+    if (!isDying) return
+    const check = rollCheck(0, 'normal')
+    const result = resolveDeathSaveRoll(check.die, play.deathSuccesses, play.deathFails)
+    const diceNote =
+      check.otherDie != null ? `к20=${check.die}/${check.otherDie}` : `к20=${check.die}`
+    if (result.revived) {
+      onCombatChange({ hpCurrent: 1 })
+      onPlayChange({ ...play, ...stabilizePlayPatch() })
+      onToast(`${result.note} · ${diceNote}`)
+      return
+    }
+    if (result.stabilized) {
+      onPlayChange({ ...play, ...stabilizePlayPatch() })
+      onToast(`${result.note} · ${diceNote}`)
+      return
+    }
+    onPlayChange({
+      ...play,
+      isDying: true,
+      deathSuccesses: result.successes,
+      deathFails: result.fails,
+    })
+    onToast(`${result.note} · ${diceNote}`)
   }
 
   function deathCard() {
@@ -316,6 +372,14 @@ export function MobileVitalsBar({
             }
           />
         </div>
+        <button
+          type="button"
+          className="mobile-vitals__death-roll"
+          title={DEATH_SAVE_HINT}
+          onClick={rollDeathSave}
+        >
+          Спас от смерти
+        </button>
       </div>
     )
   }

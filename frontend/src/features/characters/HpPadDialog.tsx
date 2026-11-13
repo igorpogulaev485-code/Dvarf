@@ -13,6 +13,12 @@ import {
   rollHitDieFace,
   suggestedHitDieHeal,
 } from '../../shared/dnd/hitDice'
+import {
+  DEATH_SAVE_HINT,
+  resolveDeathSaveRoll,
+  stabilizePlayPatch,
+} from '../../shared/dnd/o09DeathInspirationAmmo'
+import { rollCheck } from './deskRolls'
 import { Button, SlotPips } from '../../ui'
 import {
   DAMAGE_TYPES,
@@ -38,7 +44,7 @@ type HpPadDialogProps = {
   onOpenMaxSettings: () => void
   onHeal: (amount: number) => void
   /** Real HP loss after temp soak; amount is total damage rolled. */
-  onDamage: (amount: number) => void
+  onDamage: (amount: number, opts?: { critical?: boolean }) => void
   onSetTemp: (temp: number) => void
   onPlayChange: (play: PlayState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
@@ -125,6 +131,8 @@ export function HpPadDialog({
   const [shieldMasterOn, setShieldMasterOn] = useState(false)
   /** O-07 Parry. */
   const [parryOn, setParryOn] = useState(false)
+  /** O-09: critical hit while dying → two death-save failures. */
+  const [criticalHit, setCriticalHit] = useState(false)
   const profile = damageProfile ?? emptyDamageProfile()
   const pools = play.hitDiceByClass
   const hitCurrent = totalHitDiceCurrent(pools)
@@ -141,6 +149,7 @@ export function HpPadDialog({
     setUncannyDodgeOn(false)
     setShieldMasterOn(false)
     setParryOn(false)
+    setCriticalHit(false)
     const releaseScroll = acquireBodyScrollLock()
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -559,7 +568,7 @@ export function HpPadDialog({
             variant="danger"
             disabled={!canApply}
             onClick={() => {
-              onDamage(adjusted.amount)
+              onDamage(adjusted.amount, { critical: criticalHit && showDeath })
               if (adjusted.note) onToast(adjusted.note)
               if (parryOn && hasParry) onParryUsed?.()
               setDigits('')
@@ -569,6 +578,19 @@ export function HpPadDialog({
             Урон
           </Button>
         </div>
+        {showDeath ? (
+          <div className="chip-row" role="group" aria-label="Урон при 0 хитах">
+            <button
+              type="button"
+              className={`sheet-chip${criticalHit ? ' is-on' : ''}`}
+              aria-pressed={criticalHit}
+              title="Критический удар по умирающему: два провала"
+              onClick={() => setCriticalHit((prev) => !prev)}
+            >
+              крит (2 провала)
+            </button>
+          </div>
+        ) : null}
 
         <div className="hp-pad__settings">
           <div className="hp-pad__settings-head">
@@ -662,6 +684,45 @@ export function HpPadDialog({
                 }
               />
             </div>
+            {(play.isDying || current <= 0) ? (
+              <button
+                type="button"
+                className="hp-pad__death-roll"
+                title={DEATH_SAVE_HINT}
+                onClick={() => {
+                  const check = rollCheck(0, 'normal')
+                  const result = resolveDeathSaveRoll(
+                    check.die,
+                    play.deathSuccesses,
+                    play.deathFails,
+                  )
+                  const diceNote =
+                    check.otherDie != null
+                      ? `к20=${check.die}/${check.otherDie}`
+                      : `к20=${check.die}`
+                  if (result.revived) {
+                    onCombatChange({ hpCurrent: 1 })
+                    onPlayChange({ ...play, ...stabilizePlayPatch() })
+                    onToast(`${result.note} · ${diceNote}`)
+                    return
+                  }
+                  if (result.stabilized) {
+                    onPlayChange({ ...play, ...stabilizePlayPatch() })
+                    onToast(`${result.note} · ${diceNote}`)
+                    return
+                  }
+                  onPlayChange({
+                    ...play,
+                    isDying: true,
+                    deathSuccesses: result.successes,
+                    deathFails: result.fails,
+                  })
+                  onToast(`${result.note} · ${diceNote}`)
+                }}
+              >
+                Спас от смерти
+              </button>
+            ) : null}
           </div>
         ) : null}
       </div>

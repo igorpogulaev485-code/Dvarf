@@ -47,6 +47,11 @@ export type WeaponAttack = {
   qty?: number | null
   /** Linked inventory row — held state mirrors item.equipped. */
   inventory_item_id?: string | null
+  /**
+   * O-09: default ammunition stack for weapons with the ammunition property.
+   * Thrown stacks spend their own qty / inventory_item_id instead.
+   */
+  ammo_item_id?: string | null
   /** In hand right now (synced from inventory when linked). */
   held?: boolean
   /** Setting-artifact mode (Секира бури: 1d12 → 2d12). */

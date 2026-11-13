@@ -107,6 +107,33 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                     удача {model.luckyPointsRemaining()}
                   </button>
                 ) : null}
+                {model.draft.inspiration || model.inspirationRollArmed ? (
+                  <button
+                    type="button"
+                    className={`play-desk__roll-mode-btn${
+                      model.inspirationRollArmed ? ' is-on' : ''
+                    }`}
+                    aria-pressed={Boolean(model.inspirationRollArmed)}
+                    title="Потратить вдохновение: преимущество на один бросок атаки, проверки или спаса"
+                    onClick={() => {
+                      if (model.inspirationRollArmed) {
+                        model.setInspirationRollArmed?.(false)
+                        return
+                      }
+                      if (!model.draft.inspiration) {
+                        model.onToast?.('Нет вдохновения')
+                        return
+                      }
+                      if (model.deskRollMode === 'advantage') {
+                        model.onToast?.('Уже есть преимущество')
+                        return
+                      }
+                      model.setInspirationRollArmed?.(true)
+                    }}
+                  >
+                    вдохн.
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   className="play-desk__roll-mode-btn"
@@ -271,6 +298,33 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                     удача {model.luckyPointsRemaining()}
                   </button>
                 ) : null}
+                {model.draft.inspiration || model.inspirationRollArmed ? (
+                  <button
+                    type="button"
+                    className={`mobile-combat-roll__btn${
+                      model.inspirationRollArmed ? ' is-on' : ''
+                    }`}
+                    aria-pressed={Boolean(model.inspirationRollArmed)}
+                    title="Потратить вдохновение: преимущество на один бросок атаки, проверки или спаса"
+                    onClick={() => {
+                      if (model.inspirationRollArmed) {
+                        model.setInspirationRollArmed?.(false)
+                        return
+                      }
+                      if (!model.draft.inspiration) {
+                        model.onToast?.('Нет вдохновения')
+                        return
+                      }
+                      if (model.deskRollMode === 'advantage') {
+                        model.onToast?.('Уже есть преимущество')
+                        return
+                      }
+                      model.setInspirationRollArmed?.(true)
+                    }}
+                  >
+                    вдохн.
+                  </button>
+                ) : null}
 <button
                   type="button"
                   className="mobile-combat-roll__btn mobile-combat-roll__btn--history"
@@ -335,6 +389,33 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                     удача {model.luckyPointsRemaining()}
                   </button>
                 ) : null}
+                {model.draft.inspiration || model.inspirationRollArmed ? (
+                  <button
+                    type="button"
+                    className={`mobile-combat-roll__btn${
+                      model.inspirationRollArmed ? ' is-on' : ''
+                    }`}
+                    aria-pressed={Boolean(model.inspirationRollArmed)}
+                    title="Потратить вдохновение: преимущество на один бросок атаки, проверки или спаса"
+                    onClick={() => {
+                      if (model.inspirationRollArmed) {
+                        model.setInspirationRollArmed?.(false)
+                        return
+                      }
+                      if (!model.draft.inspiration) {
+                        model.onToast?.('Нет вдохновения')
+                        return
+                      }
+                      if (model.deskRollMode === 'advantage') {
+                        model.onToast?.('Уже есть преимущество')
+                        return
+                      }
+                      model.setInspirationRollArmed?.(true)
+                    }}
+                  >
+                    вдохн.
+                  </button>
+                ) : null}
 <button
                 type="button"
                 className="mobile-combat-roll__btn mobile-combat-roll__btn--history"
@@ -396,6 +477,33 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                     }
                   >
                     удача {model.luckyPointsRemaining()}
+                  </button>
+                ) : null}
+                {model.draft.inspiration || model.inspirationRollArmed ? (
+                  <button
+                    type="button"
+                    className={`mobile-combat-roll__btn${
+                      model.inspirationRollArmed ? ' is-on' : ''
+                    }`}
+                    aria-pressed={Boolean(model.inspirationRollArmed)}
+                    title="Потратить вдохновение: преимущество на один бросок атаки, проверки или спаса"
+                    onClick={() => {
+                      if (model.inspirationRollArmed) {
+                        model.setInspirationRollArmed?.(false)
+                        return
+                      }
+                      if (!model.draft.inspiration) {
+                        model.onToast?.('Нет вдохновения')
+                        return
+                      }
+                      if (model.deskRollMode === 'advantage') {
+                        model.onToast?.('Уже есть преимущество')
+                        return
+                      }
+                      model.setInspirationRollArmed?.(true)
+                    }}
+                  >
+                    вдохн.
                   </button>
                 ) : null}
 <button

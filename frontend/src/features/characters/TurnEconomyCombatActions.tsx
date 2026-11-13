@@ -155,6 +155,8 @@ type Props = {
   onO08Help?: () => void
   onO08Ready?: () => void
   onO08ReadyTrigger?: () => void
+  /** O-09: Medicine DC 10 stabilize (action). */
+  onO09Stabilize?: () => void
   /** O-01: открыть диалог Захват/Толчок. */
   onGrappleShove?: () => void
   /** O-05: боевые черты. */
@@ -241,6 +243,7 @@ export function TurnEconomyCombatActions({
   onO08Help,
   onO08Ready,
   onO08ReadyTrigger,
+  onO09Stabilize,
   onGrappleShove,
   o05,
   onO05GwmBonus,
@@ -527,6 +530,24 @@ export function TurnEconomyCombatActions({
           }}
         >
           Подготовка
+        </button>
+      ) : null}
+      {onO09Stabilize ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!actionGate.ok}
+          title={
+            actionGate.ok
+              ? 'Стабилизировать: действие · Медицина Сл 10 · успех — цель стабильна при 0 хитах'
+              : actionGate.reason
+          }
+          onClick={() => {
+            if (!actionGate.ok) return
+            onO09Stabilize()
+          }}
+        >
+          Стабилизировать
         </button>
       ) : null}
       {te.readyPrepared ? (
