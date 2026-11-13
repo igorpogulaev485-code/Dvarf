@@ -20,6 +20,7 @@ import {
   castingTimeToEconomyMark,
   emptyTurnEconomy,
   inferFeatureTiming,
+  markClearBlocked,
   readTurnEconomy,
   resetTurnEconomy,
   resolveHideTiming,
@@ -220,5 +221,20 @@ assert(
   readTurnEconomy(serializeTurnEconomy(s)).disengagedThisTurn,
   'disengage round-trip',
 )
+
+// L-21: отметки мастера / неожиданность
+s = emptyTurnEconomy()
+s = {
+  ...s,
+  reaction: true,
+  gmLocks: ['reaction'],
+  surprised: false,
+}
+assert(markClearBlocked(s, 'reaction', { asGm: false }), 'player blocked clearing gm lock')
+assert(!markClearBlocked(s, 'reaction', { asGm: true }), 'gm may clear gm lock')
+s = { ...s, surprised: true, action: true, gmLocks: ['action', 'bonus', 'reaction', 'object_interaction'] }
+assert(markClearBlocked(s, 'action', { asGm: true }), 'surprise blocks even gm clear')
+assert(Boolean(serializeTurnEconomy(s).surprised), 'serialize surprised')
+assert(readTurnEconomy(serializeTurnEconomy(s)).gmLocks.includes('reaction'), 'gmLocks round-trip')
 
 console.log('turnEconomy.selfcheck: ok')

@@ -189,6 +189,7 @@ def _parse_entry(item: dict) -> dict | None:
         "dex_mod": int(dex_mod) if isinstance(dex_mod, int) else None,
         "wave_id": str(wave_id) if wave_id else None,
         "defer_to_next_round": bool(item.get("defer_to_next_round")),
+        "surprised": bool(item.get("surprised")),
         "alive_count": (
             int(item["alive_count"])
             if isinstance(item.get("alive_count"), int)
@@ -630,6 +631,13 @@ def advance_turn(state: dict, *, direction: int = 1) -> dict:
         steps += 1
         cur = entries[idx]
         if cur.get("defer_to_next_round"):
+            continue
+        # L-21: враг/напарник «врасплох» пропускает первый ход (как defer).
+        if direction >= 0 and cur.get("surprised") and cur.get("kind") in {
+            "enemy",
+            "companion",
+        }:
+            cur["surprised"] = False
             continue
         break
     state["entries"] = entries

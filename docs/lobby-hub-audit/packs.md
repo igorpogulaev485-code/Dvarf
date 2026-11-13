@@ -190,3 +190,13 @@
 | G01-4 | Диалог на живом столе в «Сюжет», на стол S-02, вики | «В вики» включено при `can_edit_wiki` | SessionDetailPage + dialog | G-01 / W-03 | сделано |
 | G01-5 | Оценка на странице «Бой» | DMG через `budget_base` + `encounter_xp_cost` (без party_power) | wiki_combat.estimate_combat_dmg | W-03 | сделано |
 | — | Лут генератора | не вызываем `fill_loot_chest` | тест G-01 | G-01 | сделано (отказ) |
+
+## L-21 — Отметки хода мастером, награды офлайн, неожиданность
+
+| ID | Ожидалось | Фактически | Где | Пачка | Статус |
+|---|---|---|---|---|---|
+| L21-1 | Чипы у любого героя; мастер/сомастер отмечает через seat combat; лента; игрок не снимает отметки мастера | `turn_economy` в `patch_seat_combat` + `gm_locks`; чипы на всех карточках в бою | lobby.py, SessionTableCard, TurnEconomyChips | L-21 | сделано |
+| L21-2 | Награды доезжают до листа офлайн | seated-only по решению 10:22; UX «Кто пришёл» + «Выдать» | RewardsDialog, MasterGrantDialog, AwardXpDialog | L-21 | сделано (решение: только за столом) |
+| L21-3 | Неожиданность PHB 2014 в начале боя; Бдительный; враги пропускают 1-й ход | `surprised` на entry; диалог старта; skip enemy; lock на листе | StartCombatDialog, session_combat, session_turn_economy | L-21 | сделано |
+| — | Миграция | нет (JSON листа / session.combat) | — | L-21 | уже было |
+| — | Решения 10:22 | (1) снимает только мастер; (2) награды только сидящим; (3) surprise только в начале боя; (4) после CL-01 | decisions | L-21 | сделано |

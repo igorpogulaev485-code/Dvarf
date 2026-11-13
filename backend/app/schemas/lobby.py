@@ -640,6 +640,10 @@ class SessionSeatOut(BaseModel):
     death_fails: int | None = None
     """Подсказка после урона со стола (S-04 проводит реакцию)."""
     reaction_hint: str | None = None
+    """L-21: снимок sheet.combat.turn_economy для чипов на карточке стола."""
+    turn_economy: dict | None = None
+    """L-21: «Бдительный» / no_surprise_while_conscious в сознании — нельзя застать врасплох."""
+    surprise_immune: bool = False
     seated_at: datetime
 
 
@@ -654,6 +658,16 @@ class PietyAwardResult(BaseModel):
     god: str | None
     score: int
     journal_entry: dict
+
+
+class SeatTurnEconomyPatch(BaseModel):
+    """L-21: частичная правка отметок хода на чужом/своём герое за столом."""
+
+    action: bool | None = None
+    bonus: bool | None = None
+    reaction: bool | None = None
+    object_interaction: bool | None = None
+    moved: bool | None = None
 
 
 class SeatCombatPatchRequest(BaseModel):
@@ -672,6 +686,8 @@ class SeatCombatPatchRequest(BaseModel):
     grant_temp_hp: int | None = Field(default=None, ge=0, le=9999)
     death_successes: int | None = Field(default=None, ge=0, le=3)
     death_fails: int | None = Field(default=None, ge=0, le=3)
+    """L-21: отметки экономики хода (мастер/сомастер или владелец)."""
+    turn_economy: SeatTurnEconomyPatch | None = None
 
 
 class InfusionEffectShare(BaseModel):
@@ -1234,6 +1250,8 @@ class CombatEntryOut(BaseModel):
     dex_mod: int | None = None
     wave_id: str | None = None
     defer_to_next_round: bool = False
+    """L-21: застигнут врасплох до конца своего первого хода."""
+    surprised: bool = False
     alive_count: int | None = None
     member_count: int | None = None
     """ok | warn | down — цвета состояния членов группы в очереди."""
@@ -1349,6 +1367,8 @@ class CombatEntryInput(BaseModel):
     initiative_pending: bool = False
     dex_mod: int | None = Field(default=None, ge=-10, le=10)
     wave_id: str | None = Field(default=None, max_length=80)
+    """L-21: застигнут врасплох в начале боя (не волна, не опоздавший)."""
+    surprised: bool = False
 
 
 class CombatWaveInput(BaseModel):

@@ -89,6 +89,10 @@ export type TurnEconomyState = {
   readySpellId: string | null
   readySpellName: string | null
   readySpellLevel: number | null
+  /** L-21: отметки, которые поставил мастер — игрок не снимает. */
+  gmLocks: Array<TurnEconomyMarkKey | 'moved'>
+  /** L-21: застигнут врасплох до конца первого хода. */
+  surprised: boolean
 }
 
 export type TurnSpendBlock = {
@@ -140,6 +144,8 @@ export function emptyTurnEconomy(): TurnEconomyState {
     readySpellId: null,
     readySpellName: null,
     readySpellLevel: null,
+    gmLocks: [],
+    surprised: false,
   }
 }
 
@@ -301,6 +307,24 @@ export function readTurnEconomy(raw: unknown): TurnEconomyState {
         ? Math.max(0, Math.floor(n))
         : null
     })(),
+    gmLocks: (() => {
+      const rawLocks = row.gm_locks ?? row.gmLocks
+      if (!Array.isArray(rawLocks)) return []
+      const out: Array<TurnEconomyMarkKey | 'moved'> = []
+      for (const item of rawLocks) {
+        if (
+          item === 'action' ||
+          item === 'bonus' ||
+          item === 'reaction' ||
+          item === 'object_interaction' ||
+          item === 'moved'
+        ) {
+          if (!out.includes(item)) out.push(item)
+        }
+      }
+      return out
+    })(),
+    surprised: Boolean(row.surprised),
   }
 }
 
@@ -355,7 +379,29 @@ export function serializeTurnEconomy(
     ready_spell_id: state.readySpellId,
     ready_spell_name: state.readySpellName,
     ready_spell_level: state.readySpellLevel,
+    gm_locks: [...(state.gmLocks ?? [])],
+    surprised: Boolean(state.surprised),
   }
+}
+
+/** L-21: игрок не снимает отметку мастера / блок неожиданности. */
+export function markClearBlocked(
+  state: TurnEconomyState,
+  mark: TurnEconomyMarkKey,
+  opts: { asGm: boolean },
+): boolean {
+  if (state.surprised) return true
+  if (opts.asGm) return false
+  return (state.gmLocks ?? []).includes(mark)
+}
+
+export function movementClearBlocked(
+  state: TurnEconomyState,
+  opts: { asGm: boolean },
+): boolean {
+  if (state.surprised) return true
+  if (opts.asGm) return false
+  return (state.gmLocks ?? []).includes('moved')
 }
 
 export function markIsSpent(
