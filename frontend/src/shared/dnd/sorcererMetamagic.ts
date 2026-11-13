@@ -1,4 +1,4 @@
-/** PHB 2014 sorcerer Metamagic options. */
+/** PHB 2014 + TCE sorcerer Metamagic options. */
 
 export type MetamagicDef = {
   id: string
@@ -8,6 +8,8 @@ export type MetamagicDef = {
   /** Fixed SP cost, or null when cost = spell slot level (Twinned; cantrip = 1). */
   costPoints: number | null
   summaryRu: string
+  /** TCE option — gated by lobby book / badge outside lobby. */
+  sourceBook?: 'tce'
 }
 
 export const SORCERER_METAMAGIC: MetamagicDef[] = [
@@ -75,7 +77,44 @@ export const SORCERER_METAMAGIC: MetamagicDef[] = [
     costPoints: null,
     summaryRu: 'Заклинание на одну цель → вторая цель в пределах дистанции.',
   },
+  {
+    id: 'seeking',
+    nameRu: 'Ищущее заклинание',
+    nameEn: 'Seeking Spell',
+    costRu: '2',
+    costPoints: 2,
+    sourceBook: 'tce',
+    summaryRu:
+      'TCE: при промахе атакой заклинания — переброс к20 (новый результат обязателен). Можно вместе с другой метамагией на этот каст.',
+  },
+  {
+    id: 'transmuted',
+    nameRu: 'Преобразованное заклинание',
+    nameEn: 'Transmuted Spell',
+    costRu: '1',
+    costPoints: 1,
+    sourceBook: 'tce',
+    summaryRu:
+      'TCE: если заклинание наносит звук, кислоту, огонь, холод, электричество или яд — сменить на другой тип из этого списка.',
+  },
 ]
+
+export const TCE_METAMAGIC_IDS = ['seeking', 'transmuted'] as const
+
+/** Damage types Transmuted Spell may swap among (5e14 / TCE). */
+export const TRANSMUTED_DAMAGE_TYPES = [
+  { id: 'thunder', nameRu: 'звук' },
+  { id: 'acid', nameRu: 'кислота' },
+  { id: 'fire', nameRu: 'огонь' },
+  { id: 'cold', nameRu: 'холод' },
+  { id: 'lightning', nameRu: 'электричество' },
+  { id: 'poison', nameRu: 'яд' },
+] as const
+
+export function isTceMetamagic(id: string | null | undefined): boolean {
+  if (!id) return false
+  return metamagicById(id)?.sourceBook === 'tce'
+}
 
 /** PHB Flexible Casting: SP cost to create a spell slot of the given level. */
 export const FLEXIBLE_CASTING_SLOT_COST: Record<number, number> = {

@@ -66,6 +66,7 @@ import { syncPactBladeAttack } from '../pactBladeAttack'
 import { syncRangerConclaveSpells } from '../rangerConclaveSpells'
 import { syncSorcererOriginSpells } from '../sorcererOriginSpells'
 import { syncDruidicWarriorCantrips } from '../druidicWarrior'
+import { syncBlessedWarriorCantrips } from '../blessedWarrior'
 import { stripForgeBlessing } from '../forgeBlessing'
 import { syncDruidCircleSpells } from '../druidCircleSpells'
 import { reconcileDruidStartWeapons } from '../classEffects'
@@ -332,6 +333,18 @@ export function useSheetEditorPart3(model: SheetModel) {
   useEffect(() => {
     model.setDraft((prev) => {
       const synced = syncDruidicWarriorCantrips({
+        spells: prev.spells,
+        featurePicks: prev.featurePicks,
+        classes: prev.classes,
+      })
+      if (!synced.changed) return prev
+      return { ...prev, spells: synced.spells }
+    })
+  }, [model.draft.classes, model.draft.featurePicks])
+
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const synced = syncBlessedWarriorCantrips({
         spells: prev.spells,
         featurePicks: prev.featurePicks,
         classes: prev.classes,

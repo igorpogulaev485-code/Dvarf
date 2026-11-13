@@ -561,6 +561,33 @@ export function useSheetEditorPart4(model: SheetModel) {
       const heal = instantDice(item.effects, 'heal')
       const harm = heal ? null : instantDice(item.effects, 'harm')
       const dice = heal ?? harm
+      // L-08 / O-01: gate turn economy before spending the consumable.
+      let economyNote = ''
+      const homebrew = (model.campaignRulesRaw as { homebrew?: { potion_bonus_self?: boolean } } | null)
+        ?.homebrew
+      const teApi = model.turnEconomyApi as
+        | {
+            canFeature: (t: 'action' | 'bonus' | 'reaction') => { ok: boolean; reason?: string }
+            spendFeature: (t: 'action' | 'bonus' | 'reaction') => void
+          }
+        | undefined
+      let potionTiming: 'action' | 'bonus' | null = null
+      if (heal) {
+        potionTiming = homebrew?.potion_bonus_self ? 'bonus' : 'action'
+        if (teApi) {
+          const gate = teApi.canFeature(potionTiming)
+          if (!gate.ok) {
+            model.onToast(
+              potionTiming === 'bonus'
+                ? 'Бонусное действие уже потрачено — зелье себе сейчас нельзя'
+                : gate.reason || 'Действие уже потрачено — зелье сейчас нельзя',
+            )
+            return
+          }
+        }
+        economyNote =
+          potionTiming === 'bonus' ? ' · бонусное действие (себе)' : ' · действие'
+      }
       let hpBefore: number | null | undefined
       let hpAfter: number | null = null
       let hpMaxAfter: number | null = null
@@ -620,6 +647,9 @@ export function useSheetEditorPart4(model: SheetModel) {
         ...(potionFx ? { effectId: potionFx.id } : {}),
       }
       consumableUndoRef.current = session
+      if (potionTiming && teApi) {
+        teApi.spendFeature(potionTiming)
+      }
       model.setDraft((prev) => {
         let effects = prev.play.effects
         if (potionFx) {
@@ -675,15 +705,6 @@ export function useSheetEditorPart4(model: SheetModel) {
         : potionFx
           ? ` · эффект: ${potionFx.name}`
           : ''
-      // L-08: potion_bonus_self — себе бонусное, другому действие (крючок T-01).
-      let economyNote = ''
-      const homebrew = (model.campaignRulesRaw as { homebrew?: { potion_bonus_self?: boolean } } | null)
-        ?.homebrew
-      if (heal && homebrew?.potion_bonus_self) {
-        economyNote = ' · бонусное действие (себе)'
-      } else if (heal) {
-        economyNote = ' · действие'
-      }
       model.onToast({
         message: `${formatConsumableSpendToast(item.name, spendAmount, nextQty)}${drinkNote}${economyNote}`,
         durationMs: 8000,
@@ -702,6 +723,7 @@ export function useSheetEditorPart4(model: SheetModel) {
       model.draft.play.hpTemp,
       model.baseCharacter?.id,
       model.campaignRulesRaw,
+      model.turnEconomyApi,
       model.onToast,
       model.askTempHpReplace,
       undoConsumableSpend,

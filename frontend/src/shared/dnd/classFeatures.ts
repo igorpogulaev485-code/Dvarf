@@ -39,8 +39,8 @@ import {
 import { KENSEI_WEAPONS } from './kenseiWeapons'
 import { MONK_ELEMENTAL_DISCIPLINES } from './monkElementalDisciplines'
 import {
-  WARLOCK_INVOCATIONS,
   WARLOCK_PACT_BOONS,
+  warlockInvocationPickerIds,
 } from './warlockInvocations'
 
 export type AbilityScoreKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
@@ -617,7 +617,7 @@ export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] 
     return SORCERER_METAMAGIC.map((row) => row.id)
   }
   if (choice.options_from === 'warlock_invocations') {
-    return WARLOCK_INVOCATIONS.map((row) => row.id)
+    return warlockInvocationPickerIds()
   }
   if (choice.options_from === 'warlock_pact_boons') {
     return WARLOCK_PACT_BOONS.map((row) => row.id)

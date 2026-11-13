@@ -1,10 +1,17 @@
-/** PHB Battle Master maneuvers (core set for sheet picks). */
+/** PHB + TCE Battle Master maneuvers (core set for sheet picks). */
 
 export type ManeuverDef = {
   id: string
   nameRu: string
   nameEn: string
   summaryRu: string
+  /** TCE option — gated by lobby book / badge outside lobby. */
+  sourceBook?: 'tce'
+  /**
+   * Display label in the superiority-die spend dialog.
+   * Ambush must say «Приём: Засада» so it is not confused with T-02 Hide.
+   */
+  spendLabelRu?: string
 }
 
 export const BATTLE_MASTER_MANEUVERS: ManeuverDef[] = [
@@ -104,7 +111,72 @@ export const BATTLE_MASTER_MANEUVERS: ManeuverDef[] = [
     nameEn: 'Trip Attack',
     summaryRu: 'При попадании: +кость урона; Large или меньше — спас Сил. или сбит с ног.',
   },
+  // TCE — O-01
+  {
+    id: 'grappling_strike',
+    nameRu: 'Атака с захватом',
+    nameEn: 'Grappling Strike',
+    sourceBook: 'tce',
+    summaryRu:
+      'TCE: сразу после попадания рукопашным оружием в свой ход бонусным — попытка захвата; кость к проверке Атлетики.',
+  },
+  {
+    id: 'quick_toss',
+    nameRu: 'Быстрый бросок',
+    nameEn: 'Quick Toss',
+    sourceBook: 'tce',
+    summaryRu:
+      'TCE: бонусным — дальнобойная атака метательным (можно выхватить частью действия); при попадании кость к урону.',
+  },
+  {
+    id: 'brace',
+    nameRu: 'Готовность',
+    nameEn: 'Brace',
+    sourceBook: 'tce',
+    summaryRu:
+      'TCE: реакция, когда видимое существо входит в досягаемость твоего рукопашного оружия — одна атака этим оружием, при попадании кость к урону.',
+  },
+  {
+    id: 'ambush',
+    nameRu: 'Засада',
+    nameEn: 'Ambush',
+    sourceBook: 'tce',
+    spendLabelRu: 'Приём: Засада',
+    summaryRu:
+      'TCE: кость к проверке Скрытности или к инициативе, если не недееспособен.',
+  },
+  {
+    id: 'commanding_presence',
+    nameRu: 'Командирский напор',
+    nameEn: 'Commanding Presence',
+    sourceBook: 'tce',
+    summaryRu: 'TCE: кость к Запугиванию, Выступлению или Убеждению.',
+  },
+  {
+    id: 'bait_and_switch',
+    nameRu: 'Подмена',
+    nameEn: 'Bait and Switch',
+    sourceBook: 'tce',
+    summaryRu:
+      'TCE: в свой ход, существо в 5 фт согласно и не недееспособно; ≥5 фт движения — меняетесь местами без провокации; кость — бонус к КД до начала твоего следующего хода (себе или этому существу).',
+  },
+  {
+    id: 'tactical_assessment',
+    nameRu: 'Тактическая оценка',
+    nameEn: 'Tactical Assessment',
+    sourceBook: 'tce',
+    summaryRu: 'TCE: кость к Проницательности, Истории или Расследованию.',
+  },
 ]
+
+export const TCE_MANEUVER_IDS = BATTLE_MASTER_MANEUVERS.filter(
+  (row) => row.sourceBook === 'tce',
+).map((row) => row.id)
+
+export function isTceManeuver(id: string | null | undefined): boolean {
+  if (!id) return false
+  return maneuverById(id)?.sourceBook === 'tce'
+}
 
 export function maneuversKnownCount(classLevel: number): number {
   if (classLevel >= 15) return 9
@@ -121,4 +193,10 @@ export function maneuverById(id: string | null | undefined): ManeuverDef | null 
 
 export function maneuverLabel(id: string): string {
   return maneuverById(id)?.nameRu || id
+}
+
+/** Label for the superiority-die spend dialog (Ambush → «Приём: Засада»). */
+export function maneuverSpendLabel(id: string): string {
+  const def = maneuverById(id)
+  return def?.spendLabelRu || def?.nameRu || id
 }

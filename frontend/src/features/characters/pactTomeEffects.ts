@@ -59,7 +59,16 @@ export function getPactBoonId(
   classEntryId: string,
 ): WarlockPactBoonId | null {
   const raw = getFeaturePick(featurePicks, classEntryId, PACT_BOON_FEATURE_ID)
-  if (raw === 'blade' || raw === 'chain' || raw === 'tome') return raw
+  if (raw === 'blade' || raw === 'chain' || raw === 'tome' || raw === 'talisman') {
+    return raw
+  }
+  // O-01 compat: старый лист с pact_of_the_talisman как воззванием → договор талисмана.
+  const invocations = getFeaturePickList(
+    featurePicks,
+    classEntryId,
+    'eldritch_invocations',
+  )
+  if (invocations.includes('pact_of_the_talisman')) return 'talisman'
   return null
 }
 
@@ -68,6 +77,13 @@ export function isPactTomeActive(
   classEntryId: string,
 ): boolean {
   return getPactBoonId(featurePicks, classEntryId) === 'tome'
+}
+
+export function isPactTalismanActive(
+  featurePicks: FeaturePicksState,
+  classEntryId: string,
+): boolean {
+  return getPactBoonId(featurePicks, classEntryId) === 'talisman'
 }
 
 export function listPactTomeCantripSlugs(

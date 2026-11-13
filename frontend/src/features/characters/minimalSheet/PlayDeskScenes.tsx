@@ -227,6 +227,27 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             hasCunningAction={(model.unlockedFeatures ?? []).some(
               (f: { id?: string }) => f.id === 'cunning_action',
             )}
+            tceAllowed={
+              model.campaignRulesRaw == null
+                ? false
+                : normalizeCampaignRules(model.campaignRulesRaw).start.allowed_sources.includes(
+                    'tce',
+                  )
+            }
+            knownInvocationIds={(() => {
+              const ids: string[] = []
+              for (const row of model.draft.classes) {
+                if (!/колдун|warlock/i.test(row.name)) continue
+                const raw =
+                  model.draft.featurePicks.values[`${row.id}:eldritch_invocations`] ?? ''
+                for (const id of raw.split(',')) {
+                  const t = id.trim()
+                  if (t) ids.push(t)
+                }
+              }
+              return ids
+            })()}
+            featurePicks={model.draft.featurePicks}
             spells={model.draft.spells}
             onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
             divineSmiteIntent={divineSmiteIntent}
@@ -656,6 +677,13 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         subclassTransitionByEntryId={model.subclassTransitionByEntryId}
         requestedFilter={model.featuresFilterRequest}
         onRequestedFilterConsumed={() => model.setFeaturesFilterRequest(null)}
+        tceAllowed={
+          model.campaignRulesRaw == null
+            ? null
+            : normalizeCampaignRules(model.campaignRulesRaw).start.allowed_sources.includes(
+                'tce',
+              )
+        }
         resources={model.draft.play.resources}
         onResourcesChange={(resources) =>
           model.setDraft((prev) => ({

@@ -491,13 +491,21 @@ export function invocationPrerequisiteError(
   if (!def) return null
   const level = Math.max(0, Math.floor(warlockLevel))
   const pactId =
-    pact === 'blade' || pact === 'chain' || pact === 'tome' ? (pact as WarlockPactBoonId) : null
+    pact === 'blade' || pact === 'chain' || pact === 'tome' || pact === 'talisman'
+      ? (pact as WarlockPactBoonId)
+      : null
   if (def.minLevel != null && level < def.minLevel) {
     return `${def.nameRu}: нужно ${def.minLevel} уровень колдуна`
   }
   if (def.requiresPact && def.requiresPact !== pactId) {
     const pactName =
-      def.requiresPact === 'blade' ? 'Клинок' : def.requiresPact === 'chain' ? 'Цепь' : 'Гримуар'
+      def.requiresPact === 'blade'
+        ? 'Клинок'
+        : def.requiresPact === 'chain'
+          ? 'Цепь'
+          : def.requiresPact === 'tome'
+            ? 'Гримуар'
+            : 'Талисман'
     return `${def.nameRu}: нужен договор «${pactName}»`
   }
   return null

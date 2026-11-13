@@ -38,12 +38,24 @@ export const DRUID_CANTRIP_NAMES = [
   'Shillelagh',
 ] as const
 
+/** PHB cleric cantrips for TCE Blessed Warrior (paladin fighting style). */
+export const CLERIC_CANTRIP_NAMES = [
+  'Guidance',
+  'Light',
+  'Mending',
+  'Resistance',
+  'Sacred Flame',
+  'Spare the Dying',
+  'Thaumaturgy',
+] as const
+
 /** Necromancy cantrips in the bundled catalog (Death domain). */
 export const NECROMANCY_CANTRIP_NAMES = ['Chill Touch', 'Spare the Dying'] as const
 
 export const CANTRIP_PRESETS: Record<string, readonly string[]> = {
   wizard_cantrips: WIZARD_CANTRIP_NAMES,
   druid_cantrips: DRUID_CANTRIP_NAMES,
+  cleric_cantrips: CLERIC_CANTRIP_NAMES,
   necromancy_cantrips: NECROMANCY_CANTRIP_NAMES,
   druidcraft_or_prestidigitation: ['Druidcraft', 'Prestidigitation'],
   druidcraft_or_thaumaturgy: ['Druidcraft', 'Thaumaturgy'],
@@ -71,6 +83,7 @@ const CANTRIP_LABEL_RU: Record<string, string> = {
   Resistance: 'Сопротивление',
   Shillelagh: 'Дубинка',
   'Spare the Dying': 'Уход за умирающим',
+  'Sacred Flame': 'Священное пламя',
 }
 
 export function bonusCantripLabelRu(nameEn: string): string | null {

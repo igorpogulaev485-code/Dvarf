@@ -32,6 +32,7 @@ import {
   choiceOptionsAtLevel,
   type FeatureChoiceDef,
 } from '../../shared/dnd/classFeatures'
+import { filterTceCatalogOptions } from '../../shared/dnd/filterTceCatalogOptions'
 import {
   collectExpertiseOptionIdsFromPicks,
   isExpertiseChoice,
@@ -409,11 +410,22 @@ function FeatureChoiceStepBody({
       classEntryId: step.classEntryId,
       featureId: step.featureId,
     })
-    const ids = (
-      choice.options_from === 'artificer_infusions'
-        ? infusionOptionIdsAtLevel(step.classLevel)
-        : choiceOptionsAtLevel(choice, step.classLevel)
-    ).filter((id) => !takenStyles.has(id))
+    const selectedIds = multi
+      ? getFeaturePickList(featurePicks, step.classEntryId, step.featureId)
+      : selected
+        ? [selected]
+        : []
+    const ids = filterTceCatalogOptions({
+      options: (
+        choice.options_from === 'artificer_infusions'
+          ? infusionOptionIdsAtLevel(step.classLevel)
+          : choiceOptionsAtLevel(choice, step.classLevel)
+      ).filter((id) => !takenStyles.has(id)),
+      optionsFrom: choice.options_from,
+      // Guided create is usually outside a live lobby book gate.
+      tceAllowed: null,
+      selectedIds,
+    })
     return ids.map((id) => ({
       id,
       label: choiceOptionLabel(id, choice),
@@ -427,6 +439,8 @@ function FeatureChoiceStepBody({
     step.classEntryId,
     step.featureId,
     step.classLevel,
+    multi,
+    selected,
   ])
 
   const selectedDef = fightingStyleById(selected)
