@@ -321,6 +321,7 @@ export function LobbyDetailPage() {
           title={lobby.name}
           subtitle={roleSubtitle}
           onOfficialSite={openProductSite}
+          lobbyMobileShell
         />
 
         <div className="lobby-hub-top">

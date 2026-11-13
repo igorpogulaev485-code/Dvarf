@@ -174,7 +174,7 @@
 
 @media (min-width: 640px) {
   .session-table-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
   }
 
   .manual-roll-form__row {
@@ -183,9 +183,14 @@
 }
 
 @media (min-width: 1000px) {
-  /* Не больше 3 колонок — иначе карточки узкие и «вытянутые» */
+  /* LV-01: auto-fit с минимумом — одна-две карточки не делят центр на три полоски */
   .session-table-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    max-width: 100%;
+  }
+
+  .session-enemies-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
   }
 }
 
@@ -732,13 +737,27 @@
   }
 
   .session-live-desk {
-    grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.6fr) minmax(220px, 0.85fr);
+    /* LV-01: центр не сжимается ниже читаемой карточки при открытых «Заметках/Чате» */
+    grid-template-columns: minmax(220px, 0.85fr) minmax(320px, 1.7fr) minmax(200px, 0.8fr);
     align-items: start;
     gap: 16px;
   }
 
   .session-live-desk.is-side-collapsed {
-    grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1fr) auto;
+    grid-template-columns: minmax(220px, 0.85fr) minmax(320px, 1fr) auto;
+  }
+
+  .session-live-desk__center {
+    min-width: 280px;
+  }
+
+  /* Дубль «Твой ход»: на десктопе достаточно акцента на карточке */
+  .session-your-turn-banner {
+    display: none;
+  }
+
+  .session-live-mobile-panel {
+    display: none !important;
   }
 
   .session-live-desk__side-toggle {
@@ -765,6 +784,126 @@
 @media (max-width: 999.98px) {
   .session-live-desk__desktop-only {
     display: none !important;
+  }
+
+  /* LV-01 P01: вкладки подменяют центр, а не дописывают панель под сценой */
+  .session-live-desk.is-mobile-tab-feed .session-live-desk__center,
+  .session-live-desk.is-mobile-tab-more .session-live-desk__center {
+    display: none !important;
+  }
+
+  .session-live-desk.is-mobile-tab-table ~ .session-live-mobile-panel {
+    display: none !important;
+  }
+
+  .session-live-mobile-panel {
+    display: grid;
+    gap: 14px;
+  }
+
+  /* LV-01 P02: лор и чужие карточки / враги ниже первого экрана игрока */
+  .session-live-below-fold {
+    margin-top: 8px;
+  }
+
+  .session-combat-track--compact {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .session-combat-track--compact .session-combat-track__title,
+  .session-combat-track--compact .session-combat-track__actions,
+  .session-combat-track--compact .session-combat-reminders,
+  .session-combat-track--compact .session-combat-waves,
+  .session-combat-track--compact .session-combat-fallen {
+    display: none;
+  }
+
+  .session-combat-track--compact .session-combat-track__head {
+    margin: 0;
+  }
+
+  .session-combat-track--compact .session-combat-order__chip {
+    min-height: 36px;
+    padding: 4px 10px;
+    font-size: 0.82rem;
+  }
+
+  .session-seat-cta {
+    display: grid;
+    gap: 8px;
+  }
+
+  .session-seat-cta .ui-button {
+    min-height: 48px;
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .session-panel--chrome-mobile-hide {
+    display: none;
+  }
+
+  /* LV-01 P02: порядок первого экрана игрока — ход → карточки → инициатива → остальное */
+  .session-center--player-focus > .ui-stack > .session-center-slot--cta {
+    order: 0;
+  }
+
+  .session-center--player-focus > .ui-stack > .session-center-slot--turn {
+    order: 1;
+  }
+
+  .session-center--player-focus > .ui-stack > .session-center-slot--cards {
+    order: 2;
+  }
+
+  .session-center--player-focus > .ui-stack > .session-center-slot--init {
+    order: 3;
+  }
+
+  .session-center--player-focus > .ui-stack > .session-center-slot--lore,
+  .session-center--player-focus > .ui-stack > .session-center-slot--below {
+    order: 4;
+  }
+
+  .session-center--player-focus > .ui-stack > .session-center-slot--toolbar {
+    order: 5;
+  }
+
+  .session-center--player-focus > .ui-stack {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* LV-01 P09: кабинет в «…» только на мобилке лобби/стола/входа */
+@media (max-width: 999.98px) {
+  .app-header--lobby-shell .app-header__user,
+  .app-header--lobby-shell .app-header__actions > a.ui-button[href='/cabinet'] {
+    display: none !important;
+  }
+
+  .app-header--lobby-shell .app-header__actions {
+    width: auto;
+    margin-left: auto;
+    justify-content: flex-end;
+  }
+
+  .app-header--lobby-shell .app-nav__link {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 10px;
+  }
+
+  .app-header--lobby-shell .app-header__more-btn {
+    width: 44px;
+    min-width: 44px;
+    max-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    max-height: 44px;
+    flex-basis: 44px;
   }
 }
 

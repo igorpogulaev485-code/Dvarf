@@ -9,6 +9,11 @@ type AppHeaderProps = {
   subtitle?: string
   user?: Pick<User, 'avatar_url' | 'display_name' | 'email' | 'full_name'> | null
   onOfficialSite: () => void
+  /**
+   * LV-01 P09: на мобилке лобби/стола/входа «Личный кабинет» только в меню «…».
+   * На `/characters` не включать — зона M-пачек.
+   */
+  lobbyMobileShell?: boolean
 }
 
 const NAV = [
@@ -16,7 +21,13 @@ const NAV = [
   { to: '/lobbies', label: 'Лобби', end: false },
 ] as const
 
-export function AppHeader({ title, subtitle, user, onOfficialSite }: AppHeaderProps) {
+export function AppHeader({
+  title,
+  subtitle,
+  user,
+  onOfficialSite,
+  lobbyMobileShell = false,
+}: AppHeaderProps) {
   const nickname = user?.display_name?.trim() || user?.email || 'Профиль'
   const [moreOpen, setMoreOpen] = useState(false)
 
@@ -30,7 +41,7 @@ export function AppHeader({ title, subtitle, user, onOfficialSite }: AppHeaderPr
   }, [moreOpen])
 
   return (
-    <header className="app-header">
+    <header className={`app-header${lobbyMobileShell ? ' app-header--lobby-shell' : ''}`}>
       <div className="app-header__brand">
         <Text as="h1">{title}</Text>
         {subtitle ? <Text tone="muted">{subtitle}</Text> : null}

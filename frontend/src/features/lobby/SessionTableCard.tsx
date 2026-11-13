@@ -72,6 +72,8 @@ type Props = {
   sideLabelText?: string | null
   sideHidden?: boolean
   onSideClick?: () => void
+  /** LV-01 P12: «Эффект» на своей карточке у игрока */
+  onApplyEffect?: () => void
 }
 
 function CompanionCard({
@@ -316,6 +318,7 @@ export function SessionTableCard({
   sideLabelText = null,
   sideHidden = false,
   onSideClick,
+  onApplyEffect,
 }: Props) {
   const profile = normalizeVisibilityProfile(visibility)
   const fields = profile.fields
@@ -653,6 +656,16 @@ export function SessionTableCard({
             <Link className="ui-button ui-button--ghost" to={`/characters/${seat.character_id}`}>
               {sheetLabel}
             </Link>
+            {isOwner && onApplyEffect ? (
+              <button
+                type="button"
+                className="ui-button ui-button--ghost"
+                disabled={busy}
+                onClick={onApplyEffect}
+              >
+                Эффект
+              </button>
+            ) : null}
             {canSpendInspiration ? (
               <button
                 type="button"

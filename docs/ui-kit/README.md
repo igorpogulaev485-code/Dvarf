@@ -426,6 +426,7 @@ Live-эталоны в продукте (уже близки к киту): Inven
 | Ширина хаба | `.page.page--lobby-hub` расширяется media (1120→1560), не узкий 720 на desktop |
 | Код комнаты | `.lobby-hub-code__value` mono, accent, копируется кликом |
 | Доска / эталон | `boards/dvarf-ui-kit-lobbies.jpg` · артефакты `a1-roster-*-desktop.png` |
+| Живой стол (LV-01) | Мобильные вкладки `.session-live-tabs` **подменяют** центр (`is-mobile-tab-*`); подпись третьей вкладки — **«Заметки»** (не «Ещё»). Карточка `.session-table-card` — `min-width` ≥240px, `overflow-wrap: break-word` (не `anywhere`). Десктоп ≥1000: три колонки, центр `minmax(320px, …)`. Кабинет в шапке на мобилке лобби — только в «…» (`app-header--lobby-shell`), не на `/characters`. |
 
 Связанные блоки в том же LOCK-хвосте CSS (тоже священны): Session A2–A3, Journal A4, Chats A5, Notes A6, бой B1–B8, вики C1–C4, артефакты D1 (`.setting-wiki*`, `.setting-artifact*`).
 

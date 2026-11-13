@@ -62,6 +62,7 @@ export function LobbiesPage() {
           title="Лобби"
           subtitle="Место игры: код и QR для игроков, внутри — сеттинг и сессии"
           onOfficialSite={openProductSite}
+          lobbyMobileShell
         />
 
         <Panel title="Создать лобби">

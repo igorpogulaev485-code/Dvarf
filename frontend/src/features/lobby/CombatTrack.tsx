@@ -23,6 +23,8 @@ type Props = {
   onRestoreFallen?: (fallenId: string) => void
   /** S-05: смена стороны с чипа очереди */
   onSideClick?: (entry: CombatEntry) => void
+  /** LV-01: узкая полоса инициативы на первом экране игрока (телефон) */
+  compact?: boolean
 }
 
 function kindLabel(kind: string): string {
@@ -78,6 +80,7 @@ export function CombatTrack({
   onReleaseWave,
   onRestoreFallen,
   onSideClick,
+  compact = false,
 }: Props) {
   if (!combat.active) return null
   const active: CombatEntry | undefined = combat.entries[combat.active_index]
@@ -85,7 +88,10 @@ export function CombatTrack({
   const reminders = combat.wave_reminders ?? []
 
   return (
-    <section className="session-combat-track" aria-label="Инициатива">
+    <section
+      className={`session-combat-track${compact ? ' session-combat-track--compact' : ''}`}
+      aria-label="Инициатива"
+    >
       <div className="session-combat-track__head">
         <Text as="h3" className="session-combat-track__title">
           Бой · раунд {combat.round}

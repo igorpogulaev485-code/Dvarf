@@ -607,6 +607,7 @@ export function SettingDetailPage() {
           title={setting.name}
           subtitle={canEditWiki ? 'Сеттинг — вики мира' : 'Сеттинг — раскрытые страницы'}
           onOfficialSite={openProductSite}
+          lobbyMobileShell
         />
         <Text>
           <Link to={`/lobbies/${setting.lobby_id}`}>← В лобби</Link>
