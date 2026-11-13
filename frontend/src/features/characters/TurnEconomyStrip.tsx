@@ -51,10 +51,16 @@ export function TurnEconomyStrip({
   showValueTips = false,
 }: Props) {
   // Вне боя: без полоски «Твой ход», только «Новый ход» + личные кубики.
+  // SC-06 / M-02: одна строка, без дубля «Кубики на столе» в шапке атак.
   if (!combatActive) {
     if (!showNewTurnButton) return null
     return (
-      <div className="turn-economy-strip turn-economy-strip--idle" role="region" aria-label="Новый ход">
+      <div
+        className="turn-economy-strip turn-economy-strip--idle"
+        role="region"
+        aria-label="Новый ход"
+        data-sc06-turn-row="idle"
+      >
         <div className="turn-economy-strip__row">
           <span className={showValueTips ? 'has-onboarding-tip' : undefined}>
             <Button type="button" variant="secondary" onClick={onBeginTurn}>

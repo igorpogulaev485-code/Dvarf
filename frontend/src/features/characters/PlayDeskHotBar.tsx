@@ -270,6 +270,7 @@ export function PlayDeskHotBar({
       : null,
   ].filter(Boolean) as string[]
   // SC-01 / решение 13.11 18:05: пустые блоки («нет», «—») свёрнуты.
+  // SC-06: пустые состояния + нет концентрации = одна узкая кнопка (Б → диалог).
   const conditionsLabel = parts.length > 0 ? parts.join(', ') : null
   const conditionsOn = parts.length > 0
   const hotResources = resources.filter(resourceShowsOnHot)
@@ -280,6 +281,7 @@ export function PlayDeskHotBar({
     ? hotResources.slice(MOBILE_HOT_PINNED_RESOURCE_COUNT)
     : []
   const concOn = Boolean(concentration)
+  const emptyChrome = !conditionsOn && !concOn
   const scrollerRef = useRef<HTMLDivElement | null>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
@@ -381,13 +383,24 @@ export function PlayDeskHotBar({
           </button>
         </>
       ) : null}
-      <div className="play-desk__hot" ref={scrollerRef} aria-label="Боевая полоса">
+      <div
+        className={`play-desk__hot${emptyChrome ? ' play-desk__hot--empty-chrome' : ''}`}
+        ref={scrollerRef}
+        aria-label="Боевая полоса"
+        data-sc06-hot-empty={emptyChrome ? '1' : '0'}
+      >
         <button
           type="button"
           className={`play-desk__hot-item play-desk__hot-item--btn${
-            conditionsOn ? ' play-desk__hot-item--wide is-on' : ' play-desk__hot-item--compact'
+            conditionsOn
+              ? ' play-desk__hot-item--wide is-on'
+              : ' play-desk__hot-item--compact play-desk__hot-item--empty-row'
           }`}
-          title="Нажми, чтобы изменить состояния"
+          title={
+            emptyChrome
+              ? 'Состояния и концентрация — открыть'
+              : 'Нажми, чтобы изменить состояния'
+          }
           aria-pressed={conditionsOn}
           onClick={onOpenConditions}
         >

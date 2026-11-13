@@ -169,6 +169,11 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             </div>
           ) : null}
 
+          {/*
+            SC-06: «Новый ход» сразу после шапки/вкладок, до горячей полосы и навыков —
+            на 390 первый экран «Бой» доходит до оружия.
+          */}
+          <TurnEconomyDeskHost model={model}>
           <PlayDeskHotBar
             conditionNames={model.hotConditionNames}
             exhaustion={model.draft.play.exhaustion}
@@ -549,10 +554,9 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             </p>
           ) : null}
 
-      <TurnEconomyDeskHost model={model}>
         <SheetIdentityDialog model={model} />
         <PlayDeskScenes model={model} />
-      </TurnEconomyDeskHost>
+          </TurnEconomyDeskHost>
 
       {model.error ? <Text tone="danger">{model.error}</Text> : null}
 

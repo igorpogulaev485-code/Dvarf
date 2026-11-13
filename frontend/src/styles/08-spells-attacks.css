@@ -634,9 +634,10 @@ button.spells-settings__derived-stat--btn:hover {
   gap: 8px;
 }
 
+/* SC-06: плотность перенесена в 22-mobile-shell.css */
 .play-desk--mobile .turn-economy-strip {
-  margin: 0 0 8px;
-  padding: 8px 10px;
+  margin: 0;
+  padding: 4px 8px;
 }
 
 /* SC-01/SC-02: слот «Ещё / Действия хода» на панели атак. */
