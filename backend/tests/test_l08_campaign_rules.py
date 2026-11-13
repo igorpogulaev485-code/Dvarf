@@ -23,14 +23,29 @@ from app.services.campaign_rules import (
 from app.services import session_table_s03 as s03
 
 
-def test_exactly_eleven_homebrew_keys_and_catalog():
-    assert len(HOMEBREW_KEYS) == 11
-    assert len(HOMEBREW_CATALOG) == 11
+def test_homebrew_keys_and_catalog_include_o03_master_rules():
+    # Старые 11 (12.11) + 10 O-03 (13.11). Крит «максимум + бросок» вне списка.
+    assert len(HOMEBREW_KEYS) == 21
+    assert len(HOMEBREW_CATALOG) == 21
     assert set(HOMEBREW_KEYS) == set(HOMEBREW_CATALOG)
     assert "crit_max_plus_dice" not in HOMEBREW_KEYS
     assert "crit_maximum_plus_roll" not in HOMEBREW_KEYS
+    for key in (
+        "dmg_disarm",
+        "dmg_mark",
+        "dmg_overrun",
+        "dmg_tumble",
+        "dmg_shove_aside",
+        "dmg_climb_bigger",
+        "xge_identify_spell",
+        "dmg_falling",
+        "dmg_adamantine_weapon",
+        "xge_no_long_rest",
+    ):
+        assert key in HOMEBREW_KEYS
+        assert HOMEBREW_CATALOG[key]["source"]
     public = catalog_public()
-    assert len(public) == 11
+    assert len(public) == 21
     assert all(row["tip"] and row["source"] and row["label"] for row in public)
 
 
@@ -42,6 +57,8 @@ def test_defaults():
     assert d["homebrew"]["hidden_death_saves"] is True
     assert d["homebrew"]["encumbrance"] is False
     assert d["homebrew"]["flanking_advantage"] is False
+    assert d["homebrew"]["dmg_disarm"] is False
+    assert d["homebrew"]["xge_no_long_rest"] is False
     assert d["inspiration_after_roll"] is False
     assert d["enemies_ac_visible"] is False
     assert d["progression"]["mode"] == "xp"
@@ -57,6 +74,8 @@ def test_normalize_and_inspiration_migration():
     )
     assert rules["homebrew"]["potion_bonus_self"] is True
     assert rules["homebrew"]["inspiration_stack_max"] == 20
+    assert rules["homebrew"]["dmg_disarm"] is False
+    assert rules["homebrew"]["xge_no_long_rest"] is False
     assert rules["custom_rules"] == ["дом", "ещё"]
 
     migrated = migrate_inspiration_from_visibility(

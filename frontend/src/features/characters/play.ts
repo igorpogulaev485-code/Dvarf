@@ -61,6 +61,11 @@ export type PlayState = {
   effects: ActiveEffect[]
   /** T-01: отметки хода (действие / бонусное / реакция / взаимодействие). */
   turnEconomy: TurnEconomyState
+  /**
+   * O-03 / XGE: сколько суток подряд уже учтено без длинного отдыха
+   * (следующая Сл = 10 + days × 5). Сбрасывается длинным отдыхом.
+   */
+  noLongRestDays?: number
 }
 
 export type { ConcentrationState }
@@ -209,6 +214,7 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
     shillelagh: readShillelagh(combat.shillelagh),
     effects: parseActiveEffects(combat.effects),
     turnEconomy: readTurnEconomy(combat.turn_economy),
+    noLongRestDays: Math.max(0, Math.floor(readNumber(combat.no_long_rest_days, 0))),
   }
 }
 
@@ -227,6 +233,7 @@ export function playToSheet(play: PlayState): {
     shillelagh: ShillelaghState | null
     effects: ReturnType<typeof serializeActiveEffect>[]
     turn_economy: ReturnType<typeof serializeTurnEconomy>
+    no_long_rest_days: number
   }
   resources: SheetResource[]
 } {
@@ -259,6 +266,7 @@ export function playToSheet(play: PlayState): {
       shillelagh: play.shillelagh ?? null,
       effects: (play.effects ?? []).map(serializeActiveEffect),
       turn_economy: serializeTurnEconomy(play.turnEconomy ?? emptyTurnEconomy()),
+      no_long_rest_days: Math.max(0, Math.floor(play.noLongRestDays ?? 0)),
     },
     resources: play.resources.map((item) => clampResource(item)),
   }

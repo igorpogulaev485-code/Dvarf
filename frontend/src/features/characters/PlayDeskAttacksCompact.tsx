@@ -3,6 +3,17 @@ import { useTurnEconomy } from './TurnEconomyContext'
 import { TurnEconomyChips } from './TurnEconomyChips'
 import { TurnEconomyCombatActions } from './TurnEconomyCombatActions'
 import { GrappleShoveDialog } from './GrappleShoveDialog'
+import {
+  ClimbBiggerDialog,
+  DisarmDialog,
+  FallingDialog,
+  IdentifySpellDialog,
+  MarkDialog,
+  NoLongRestDialog,
+  OverrunTumbleDialog,
+} from './O03MasterRulesDialogs'
+import { adamantineObjectHitIsCrit } from '../../shared/dnd/o03DmgActions'
+import type { HomebrewKey } from '../lobby/campaignRules'
 import { CombatTargetPicker } from './CombatTargetPicker'
 import { EnterOwnNumberDialog } from './EnterOwnNumberDialog'
 import type { CombatTarget } from '../lobby/combatTargets'
@@ -123,6 +134,12 @@ type PlayDeskAttacksCompactProps = {
   hasCunningAction?: boolean
   /** O-01: TCE book on in lobby (table buttons). */
   tceAllowed?: boolean
+  /** O-03: включённые ключи правил мастера (homebrew). */
+  masterRules?: Partial<Record<HomebrewKey, boolean>>
+  /** O-03: счётчик суток без длинного отдыха. */
+  noLongRestDays?: number
+  onNoLongRestResolved?: (next: { days: number; exhaustionDelta: number }) => void
+  onFallingSelf?: (damage: number, prone: boolean) => void
   /** O-01: known warlock invocation ids. */
   knownInvocationIds?: string[]
   /** O-01: feature picks for grappling_strike / superiority. */
@@ -245,6 +262,10 @@ export function PlayDeskAttacksCompact({
   combatFeatures = [],
   hasCunningAction = false,
   tceAllowed = false,
+  masterRules = {},
+  noLongRestDays = 0,
+  onNoLongRestResolved,
+  onFallingSelf,
   knownInvocationIds = [],
   featurePicks,
   spells = null,
@@ -288,6 +309,20 @@ export function PlayDeskAttacksCompact({
 }: PlayDeskAttacksCompactProps) {
   const turnEco = useTurnEconomy()
   const [grappleOpen, setGrappleOpen] = useState(false)
+  const [o03Dialog, setO03Dialog] = useState<
+    | null
+    | 'disarm'
+    | 'mark'
+    | 'overrun'
+    | 'tumble'
+    | 'climb'
+    | 'identify'
+    | 'falling'
+    | 'noLongRest'
+  >(null)
+  const [markedTarget, setMarkedTarget] = useState<{ id: string; name: string } | null>(null)
+  const [markOppUsed, setMarkOppUsed] = useState(false)
+  const [targetIsObject, setTargetIsObject] = useState(false)
   const [focusedAimOffer, setFocusedAimOffer] = useState<{
     attackName: string
     baseTotal: number | null
@@ -335,6 +370,8 @@ export function PlayDeskAttacksCompact({
     breakdown?: string
     tableMode?: boolean
     crit?: boolean
+    /** O-03: оружие/боеприпас помечен адамантином. */
+    adamantine?: boolean
   } | null>(null)
   const finishAttackRef = useRef<
     | ((opts?: {
@@ -569,6 +606,16 @@ export function PlayDeskAttacksCompact({
             onToggleMoved={turnEco.toggleMoved}
             className="chip-row"
           />
+          {masterRules.dmg_adamantine_weapon ? (
+            <label className="field" style={{ marginBottom: 4 }}>
+              <input
+                type="checkbox"
+                checked={targetIsObject}
+                onChange={(e) => setTargetIsObject(e.target.checked)}
+              />{' '}
+              Цель — предмет (адамантин → автокрит)
+            </label>
+          ) : null}
           <TurnEconomyCombatActions
             hasCunningAction={
               hasCunningAction ||
@@ -585,6 +632,33 @@ export function PlayDeskAttacksCompact({
             hasChainMaster={hasChainMaster}
             hasTalismanRebuke={hasTalismanRebuke}
             onGrappleShove={() => setGrappleOpen(true)}
+            o03={{
+              disarm: Boolean(masterRules.dmg_disarm),
+              mark: Boolean(masterRules.dmg_mark),
+              overrun: Boolean(masterRules.dmg_overrun),
+              tumble: Boolean(masterRules.dmg_tumble),
+              climbBigger: Boolean(masterRules.dmg_climb_bigger),
+              identifySpell: Boolean(masterRules.xge_identify_spell),
+              falling: Boolean(masterRules.dmg_falling),
+              noLongRest: Boolean(masterRules.xge_no_long_rest),
+              hasMarkedTarget: Boolean(markedTarget),
+              markOppAvailable: Boolean(markedTarget) && !markOppUsed,
+            }}
+            onO03Disarm={() => setO03Dialog('disarm')}
+            onO03Mark={() => setO03Dialog('mark')}
+            onO03MarkOpportunity={() => {
+              if (!markedTarget || markOppUsed) return
+              setMarkOppUsed(true)
+              onToast?.(
+                `Провоцированная по метке · ${markedTarget.name} · преимущество · реакция не потрачена`,
+              )
+            }}
+            onO03Overrun={() => setO03Dialog('overrun')}
+            onO03Tumble={() => setO03Dialog('tumble')}
+            onO03ClimbBigger={() => setO03Dialog('climb')}
+            onO03IdentifySpell={() => setO03Dialog('identify')}
+            onO03Falling={() => setO03Dialog('falling')}
+            onO03NoLongRest={() => setO03Dialog('noLongRest')}
             onToast={onToast}
             onOfferSkill={(key) => {
               const labels: Record<string, string> = {
@@ -606,6 +680,7 @@ export function PlayDeskAttacksCompact({
             offerGrapplingStrike={
               knowsGrapplingStrike && Boolean(turnEco?.canFeature('bonus').ok)
             }
+            allowShoveAside={Boolean(masterRules.dmg_shove_aside)}
             onSpendGrapplingStrike={() => {
               if (!turnEco?.canFeature('bonus').ok) return false
               // Prefer Battle Master pool, then Superior Technique d6.
@@ -622,6 +697,64 @@ export function PlayDeskAttacksCompact({
             }}
             onToast={onToast}
             onClose={() => setGrappleOpen(false)}
+          />
+          <DisarmDialog
+            open={o03Dialog === 'disarm'}
+            characterId={characterId ?? ''}
+            attackBonus={
+              abilityModifier(abilities.str ?? 10) + proficiencyBonus
+            }
+            onToast={onToast}
+            onClose={() => setO03Dialog(null)}
+          />
+          <MarkDialog
+            open={o03Dialog === 'mark'}
+            onMark={(t) => {
+              setMarkedTarget({ id: t.id, name: t.name })
+              setMarkOppUsed(false)
+              onToast?.(`Метка · ${t.name} · до конца следующего хода`)
+            }}
+            onClose={() => setO03Dialog(null)}
+          />
+          <OverrunTumbleDialog
+            open={o03Dialog === 'overrun' || o03Dialog === 'tumble'}
+            mode={o03Dialog === 'tumble' ? 'tumble' : 'overrun'}
+            characterId={characterId ?? ''}
+            athleticsMod={abilityModifier(abilities.str ?? 10) + proficiencyBonus}
+            acrobaticsMod={abilityModifier(abilities.dex ?? 10) + proficiencyBonus}
+            onToast={onToast}
+            onClose={() => setO03Dialog(null)}
+          />
+          <ClimbBiggerDialog
+            open={o03Dialog === 'climb'}
+            characterId={characterId ?? ''}
+            athleticsMod={abilityModifier(abilities.str ?? 10) + proficiencyBonus}
+            acrobaticsMod={abilityModifier(abilities.dex ?? 10) + proficiencyBonus}
+            onToast={onToast}
+            onClose={() => setO03Dialog(null)}
+          />
+          <IdentifySpellDialog
+            open={o03Dialog === 'identify'}
+            characterId={characterId ?? ''}
+            arcanaMod={abilityModifier(abilities.int ?? 10) + proficiencyBonus}
+            onToast={onToast}
+            onClose={() => setO03Dialog(null)}
+          />
+          <FallingDialog
+            open={o03Dialog === 'falling'}
+            characterId={characterId ?? ''}
+            onApplySelfDamage={onFallingSelf}
+            onToast={onToast}
+            onClose={() => setO03Dialog(null)}
+          />
+          <NoLongRestDialog
+            open={o03Dialog === 'noLongRest'}
+            characterId={characterId ?? ''}
+            conMod={abilityModifier(abilities.con ?? 10)}
+            daysAlready={noLongRestDays}
+            onResolved={(next) => onNoLongRestResolved?.(next)}
+            onToast={onToast}
+            onClose={() => setO03Dialog(null)}
           />
         </>
       ) : null}
@@ -1064,11 +1197,15 @@ export function PlayDeskAttacksCompact({
 
                     // Кубики на столе: выбор цели + Попал/Промах
                     if (turnEco?.diceOnTable && turnEco.combatActive) {
+                      const boundForTable = attack.inventory_item_id
+                        ? inventoryItems.find((row) => row.id === attack.inventory_item_id)
+                        : undefined
                       finishAttackRef.current = finishAttack
                       setPendingAttack({
                         name: attack.name,
                         attackBonus,
                         tableMode: true,
+                        adamantine: Boolean(boundForTable?.adamantine),
                       })
                       return
                     }
@@ -1153,6 +1290,19 @@ export function PlayDeskAttacksCompact({
                       ],
                       mode: attackMode,
                     })
+                    const boundItem = attack.inventory_item_id
+                      ? inventoryItems.find((row) => row.id === attack.inventory_item_id)
+                      : undefined
+                    const adamCrit =
+                      Boolean(masterRules.dmg_adamantine_weapon) &&
+                      adamantineObjectHitIsCrit({
+                        adamantine: Boolean(boundItem?.adamantine),
+                        targetIsObject,
+                      })
+                    const strikeCrit = Boolean(strike.crit || adamCrit)
+                    if (adamCrit) {
+                      onToast?.('Адамантин · цель — предмет → автоматический критический удар')
+                    }
                     if (
                       strike.needsPick &&
                       strike.allDice &&
@@ -1198,7 +1348,7 @@ export function PlayDeskAttacksCompact({
                         formula,
                         breakdown,
                         tableMode: false,
-                        crit: strike.crit,
+                        crit: strikeCrit,
                       })
                       return
                     }
@@ -1208,7 +1358,7 @@ export function PlayDeskAttacksCompact({
                       hitTotal: strike.hitRoll?.total,
                       formula,
                       breakdown,
-                      crit: strike.crit,
+                      crit: strikeCrit,
                     })
                   }}
                 >
@@ -1628,11 +1778,21 @@ export function PlayDeskAttacksCompact({
         setPendingAttack(null)
       }}
       onTableHit={(target, damageTotal) => {
+        const adamCrit =
+          Boolean(masterRules.dmg_adamantine_weapon) &&
+          adamantineObjectHitIsCrit({
+            adamantine: Boolean(pendingAttack?.adamantine),
+            targetIsObject,
+          })
+        if (adamCrit) {
+          onToast?.('Адамантин · цель — предмет → автоматический критический удар')
+        }
         finishAttackRef.current?.({
           target,
           tableHit: true,
           physicalDice: true,
           damageTotal,
+          crit: adamCrit,
         })
         setPendingAttack(null)
       }}

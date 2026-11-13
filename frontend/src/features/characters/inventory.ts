@@ -162,6 +162,8 @@ export type InventoryItem = {
    * Catalog blanks are level-only; binding is set when the item enters inventory.
    */
   scroll_spell?: ScrollSpellBinding | null
+  /** O-03: адамантиновое оружие / боеприпас (без миграции — в JSON предмета). */
+  adamantine?: boolean
 }
 
 export type InventoryState = {
@@ -209,6 +211,7 @@ export function createInventoryItem(): InventoryItem {
     wear_slot: null,
     requires_attunement: false,
     effects: [],
+    adamantine: false,
   }
 }
 
@@ -311,6 +314,7 @@ function readItem(raw: unknown, index: number): InventoryItem {
     max_dex_bonus: readNullableNumber(row.max_dex_bonus),
     strength_requirement: readNullableNumber(row.strength_requirement),
     notes: typeof row.notes === 'string' ? row.notes : '',
+    adamantine: row.adamantine === true,
     parent_id: typeof row.parent_id === 'string' ? row.parent_id : null,
     container_kind: readContainerKind(row.container_kind),
     container_expanded: Boolean(row.container_expanded),
@@ -444,6 +448,7 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         max_dex_bonus: item.max_dex_bonus ?? null,
         strength_requirement: item.strength_requirement ?? null,
         notes: item.notes,
+        ...(item.adamantine ? { adamantine: true } : {}),
         parent_id: item.parent_id ?? null,
         container_kind: item.container_kind ?? 'none',
         container_expanded: Boolean(item.container_expanded),

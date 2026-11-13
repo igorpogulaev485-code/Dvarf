@@ -235,6 +235,43 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                     'tce',
                   )
             }
+            masterRules={normalizeCampaignRules(model.campaignRulesRaw).homebrew}
+            noLongRestDays={model.draft.play.noLongRestDays ?? 0}
+            onNoLongRestResolved={({ days, exhaustionDelta }) => {
+              model.setDraft((prev) => ({
+                ...prev,
+                play: {
+                  ...prev.play,
+                  noLongRestDays: days,
+                  exhaustion: Math.min(
+                    6,
+                    Math.max(0, (prev.play.exhaustion ?? 0) + exhaustionDelta),
+                  ),
+                },
+              }))
+            }}
+            onFallingSelf={(damage, prone) => {
+              model.setDraft((prev) => {
+                const nextHp = Math.max(0, (prev.hpCurrent ?? 0) - Math.max(0, damage))
+                let conditions = prev.play.conditions ?? []
+                if (prone && !conditions.some((c) => c.slug === 'prone')) {
+                  conditions = [
+                    ...conditions,
+                    {
+                      slug: 'prone',
+                      name: 'Опрокинутый',
+                      catalog_id: null,
+                      level: 1,
+                    },
+                  ]
+                }
+                return {
+                  ...prev,
+                  hpCurrent: nextHp,
+                  play: { ...prev.play, conditions },
+                }
+              })
+            }}
             knownInvocationIds={(() => {
               const ids: string[] = []
               for (const row of model.draft.classes) {

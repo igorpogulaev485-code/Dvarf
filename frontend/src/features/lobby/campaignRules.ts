@@ -31,6 +31,31 @@ export type HomebrewKey =
   | 'gritty_rest'
   | 'feat_at_level_1'
   | 'encumbrance'
+  /** O-03: правила мастера DMG/XGE (решение 13.11). */
+  | 'dmg_disarm'
+  | 'dmg_mark'
+  | 'dmg_overrun'
+  | 'dmg_tumble'
+  | 'dmg_shove_aside'
+  | 'dmg_climb_bigger'
+  | 'xge_identify_spell'
+  | 'dmg_falling'
+  | 'dmg_adamantine_weapon'
+  | 'xge_no_long_rest'
+
+/** Ключи O-03 — блок «Правила мастера» в панели лобби. */
+export const MASTER_HOMEBREW_KEYS: HomebrewKey[] = [
+  'dmg_disarm',
+  'dmg_mark',
+  'dmg_overrun',
+  'dmg_tumble',
+  'dmg_shove_aside',
+  'dmg_climb_bigger',
+  'xge_identify_spell',
+  'dmg_falling',
+  'dmg_adamantine_weapon',
+  'xge_no_long_rest',
+]
 
 export type HomebrewCatalogEntry = {
   key: HomebrewKey
@@ -222,6 +247,7 @@ export type CampaignRules = {
   start: StartRules
 }
 
+/** Старые 11 (решение 12.11) + 10 правил мастера O-03 (решение 13.11). Крит «максимум + бросок» вне списка. */
 export const HOMEBREW_KEYS: HomebrewKey[] = [
   'potion_bonus_self',
   'inspiration_stack',
@@ -234,6 +260,7 @@ export const HOMEBREW_KEYS: HomebrewKey[] = [
   'gritty_rest',
   'feat_at_level_1',
   'encumbrance',
+  ...MASTER_HOMEBREW_KEYS,
 ]
 
 /** Те же тексты, что backend/app/services/campaign_rules.py HOMEBREW_CATALOG. */
@@ -304,6 +331,66 @@ export const HOMEBREW_CATALOG: HomebrewCatalogEntry[] = [
     tip: 'Учёт веса и грузоподъёмности: >5×Сил — скорость −10 фт, >10×Сил — −20 фт и помеха на проверки/атаки/спасброски с Силой, Ловкостью и Телосложением.',
     source: 'PHB 2014 (вариант «Нагрузка»)',
   },
+  {
+    key: 'dmg_disarm',
+    label: 'Обезоруживание',
+    tip: 'Вместо одной атаки оружием: бросок атаки против Силы (Атлетика) или Ловкости (Акробатика) цели. Успех — цель роняет предмет, урона нет. Помеха атакующему, если предмет в двух руках; преимущество/помеха цели по размеру.',
+    source: 'DMG 2014, гл. 9',
+  },
+  {
+    key: 'dmg_mark',
+    label: 'Метка',
+    tip: 'При рукопашной атаке можно пометить цель. До конца твоего следующего хода провоцированные атаки по помеченной цели — с преимуществом и не тратят реакцию (не больше одной такой атаки в ход; нельзя, если реакция запрещена).',
+    source: 'DMG 2014, гл. 9',
+  },
+  {
+    key: 'dmg_overrun',
+    label: 'Пробегание',
+    tip: 'Действием или бонусным: Сила (Атлетика) против Атлетики цели (преимущество, если ты крупнее). Успех — один раз в этот ход можно пройти сквозь пространство цели (без карты — пометка в ленте).',
+    source: 'DMG 2014, гл. 9',
+  },
+  {
+    key: 'dmg_tumble',
+    label: 'Кувырок',
+    tip: 'Действием или бонусным: Ловкость (Акробатика) против Акробатики цели. Успех — один раз в этот ход можно пройти сквозь пространство цели (без карты — пометка в ленте).',
+    source: 'DMG 2014, гл. 9',
+  },
+  {
+    key: 'dmg_shove_aside',
+    label: 'Толкание в сторону',
+    tip: 'Вместо одной атаки: обычное состязание толчка, но Атлетика атакующего с помехой. Успех — цель смещается на 5 фт в другое пространство в досягаемости (не сбита с ног и не оттолкнута от тебя).',
+    source: 'DMG 2014, гл. 9',
+  },
+  {
+    key: 'dmg_climb_bigger',
+    label: 'Взбирание на большее существо',
+    tip: 'Меньшее существо действием: Атлетика или Акробатика против Акробатики цели. Успех — «на существе», атаки по нему с преимуществом, перемещается вместе с ним. Большее действием может сбросить: его Атлетика против Атлетики или Акробатики меньшего.',
+    source: 'DMG 2014, гл. 9',
+  },
+  {
+    key: 'xge_identify_spell',
+    label: 'Распознать заклинание',
+    tip: 'Реакцией, когда видимое существо накладывает заклинание: проверка Магии (Анализ) Сл 15 + уровень заклинания. Успех — узнаёшь заклинание; провал — не распознал.',
+    source: 'XGE',
+  },
+  {
+    key: 'dmg_falling',
+    label: 'Падение',
+    tip: '1к6 дробящего за каждые 10 фт падения, максимум 20к6. При уроне больше 0 — состояние «Опрокинутый». Скорость падения XGE (500 фт в первый ход и т. д.) — подсказка, без симуляции раундов.',
+    source: 'PHB / XGE',
+  },
+  {
+    key: 'dmg_adamantine_weapon',
+    label: 'Адамантиновое оружие',
+    tip: 'Оружие и боеприпасы можно пометить как адамантиновые. Попадание таким оружием/боеприпасом по предмету (не существу) — автоматический критический удар.',
+    source: 'DMG 2014',
+  },
+  {
+    key: 'xge_no_long_rest',
+    label: 'Сутки без длинного отдыха',
+    tip: 'После 24 часов без длинного отдыха — спасбросок Телосложения Сл 10, при провале +1 истощение. Каждые следующие сутки Сл +5. Длинный отдых сбрасывает счётчик. Не путать с «Суровым реализмом».',
+    source: 'XGE',
+  },
 ]
 
 export function defaultStartRules(): StartRules {
@@ -337,6 +424,16 @@ export function defaultCampaignRules(): CampaignRules {
       gritty_rest: false,
       feat_at_level_1: false,
       encumbrance: false,
+      dmg_disarm: false,
+      dmg_mark: false,
+      dmg_overrun: false,
+      dmg_tumble: false,
+      dmg_shove_aside: false,
+      dmg_climb_bigger: false,
+      xge_identify_spell: false,
+      dmg_falling: false,
+      dmg_adamantine_weapon: false,
+      xge_no_long_rest: false,
     },
     progression: { mode: 'xp', xp_remainder: 0 },
     inspiration_after_roll: false,
