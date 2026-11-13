@@ -377,6 +377,74 @@ a.ui-button--primary {
   border-color: color-mix(in srgb, var(--accent) 20%, white);
 }
 
+/* Segmented tabs (kit) — one row, equal segments */
+.ui-segmented {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0;
+  min-width: 0;
+  max-width: 100%;
+  min-height: var(--control-h-md);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.ui-segmented--sm {
+  min-height: var(--control-h-sm);
+}
+
+.ui-segmented__item {
+  appearance: none;
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 10px;
+  border: none;
+  border-inline-end: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.ui-segmented__item:last-child {
+  border-inline-end: none;
+}
+
+.ui-segmented__item:hover:not(.is-on) {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent-soft) 45%, transparent);
+}
+
+.ui-segmented__item.is-on {
+  background: var(--accent);
+  color: #f8fffb;
+}
+
+.ui-segmented--sm .ui-segmented__item {
+  padding: 0 8px;
+  font-size: 0.82rem;
+}
+
+/* Icon-only kit button face (collapse chevron etc.) */
+.ui-button--icon {
+  width: var(--control-h-md);
+  min-width: var(--control-h-md);
+  padding: 0;
+}
+
 .ui-button--ghost {
   background: transparent;
   color: var(--ink);

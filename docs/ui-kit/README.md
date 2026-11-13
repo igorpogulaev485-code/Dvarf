@@ -424,6 +424,8 @@ LOCK-доски §2b–2l не переписываем; меняется пор
 | `Button` | `size="sm"` → `ui-button--sm` | 32 |
 | `Button` | `size="md"` (дефолт) | 36 |
 | `Button` | `size="lg"` → `ui-button--lg` | 44 |
+| `Button` | `ui-button--icon` (квадрат под height size) | как size |
+| `SegmentedControl` | `.ui-segmented` / `__item` / `--sm`; active = accent | md 36 / sm 32 |
 | `Input` / `NumberInput` | `size`, `narrow`, классы `ui-input--sm/md/lg`, `--narrow`, `--touch`, `--title`, `--slot`, `--prep`, `--center` | по киту |
 
 **Запрет:** в стилях страниц/фич нельзя писать `.something .ui-button { min-height/padding/font-size… }`. Нужен вариант — добавь в кит, на экране выбери пропом. Selfcheck: `npm run selfcheck:uikit-no-overrides`.

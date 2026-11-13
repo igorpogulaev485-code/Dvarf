@@ -122,7 +122,17 @@ import {
   type SettingSummary,
   type WikiCombatPage,
 } from '../shared/api/lobbies'
-import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+import {
+  Button,
+  Dialog,
+  Field,
+  Input,
+  Panel,
+  SegmentedControl,
+  Stack,
+  Text,
+  Toast,
+} from '../ui'
 
 const SIDE_PANEL_KEY = 'dvarf.session.sidePanelOpen'
 
@@ -2157,38 +2167,19 @@ export function SessionDetailPage() {
 
               <aside className="session-live-desk__side session-live-desk__desktop-only">
                 <div className="session-live-desk__side-head">
-                  <div className="session-live-desk__side-tabs" role="tablist" aria-label="Боковая панель">
-                    <Button
-                      type="button"
-                      role="tab"
-                      size="md"
-                      variant={sideTab === 'notes' ? 'secondary' : 'ghost'}
-                      aria-selected={sideTab === 'notes'}
-                      className={`session-live-desk__side-tab${sideTab === 'notes' ? ' is-on' : ''}`}
-                      onClick={() => setSideTab('notes')}
-                    >
-                      Заметки
-                    </Button>
-                    <Button
-                      type="button"
-                      role="tab"
-                      size="md"
-                      variant={sideTab === 'chat' ? 'secondary' : 'ghost'}
-                      aria-selected={sideTab === 'chat'}
-                      className={`session-live-desk__side-tab${sideTab === 'chat' ? ' is-on' : ''}`}
-                      onClick={() => setSideTab('chat')}
-                    >
-                      Чат
-                    </Button>
-                    <Button
-                      type="button"
-                      role="tab"
-                      size="md"
-                      variant={sideTab === 'wiki' ? 'secondary' : 'ghost'}
-                      aria-selected={sideTab === 'wiki'}
-                      className={`session-live-desk__side-tab${sideTab === 'wiki' ? ' is-on' : ''}`}
-                      onClick={() => {
-                        setSideTab('wiki')
+                  <SegmentedControl
+                    className="session-live-desk__side-tabs"
+                    aria-label="Боковая панель"
+                    size="sm"
+                    value={sideTab}
+                    options={[
+                      { id: 'notes', label: 'Заметки' },
+                      { id: 'chat', label: 'Чат' },
+                      { id: 'wiki', label: 'Вики' },
+                    ]}
+                    onChange={(id) => {
+                      setSideTab(id)
+                      if (id === 'wiki') {
                         if (session.setting_id) {
                           void getSetting(session.setting_id)
                             .then(setWikiSetting)
@@ -2196,19 +2187,19 @@ export function SessionDetailPage() {
                         } else {
                           setWikiSetting(null)
                         }
-                      }}
-                    >
-                      Вики
-                    </Button>
-                  </div>
+                      }
+                    }}
+                  />
                   <Button
                     type="button"
                     variant="ghost"
                     size="md"
-                    className="session-live-desk__side-toggle"
+                    className="session-live-desk__side-toggle ui-button--icon"
+                    aria-label={sidePanelOpen ? 'Свернуть панель' : 'Открыть панель'}
+                    title={sidePanelOpen ? 'Свернуть' : 'Открыть'}
                     onClick={() => toggleSidePanel(!sidePanelOpen)}
                   >
-                    {sidePanelOpen ? 'Свернуть' : 'Открыть'}
+                    {sidePanelOpen ? '‹' : '›'}
                   </Button>
                 </div>
                 <div className="session-live-desk__side-body">

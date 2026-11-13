@@ -1,5 +1,7 @@
 export { Button } from './Button'
 export type { ButtonSize } from './Button'
+export { SegmentedControl } from './SegmentedControl'
+export type { SegmentedOption } from './SegmentedControl'
 export { Combobox } from './Combobox'
 export type { ComboboxOption } from './Combobox'
 export { Dialog } from './Dialog'

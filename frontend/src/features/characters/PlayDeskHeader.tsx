@@ -615,7 +615,7 @@ export function PlayDeskHeader({
                   onToggleShield()
                 }}
               >
-                щит
+                <IconShield className="play-desk-vital__shield-tog-ico" aria-hidden />
               </button>
             ) : null}
             {showValueTips ? <HoverTipCard tip={VITAL_TIPS.ac} /> : null}

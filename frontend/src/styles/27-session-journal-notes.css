@@ -784,20 +784,24 @@
 
 .session-live-desk__side-head {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 10px;
+  min-width: 0;
 }
 
 .session-live-desk__side-tabs {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
-/* Tabs are kit Button size=md */
+.session-live-desk__side-toggle.ui-button--icon {
+  flex: 0 0 auto;
+}
 
 .session-lore-panel--bind {
   display: flex;
