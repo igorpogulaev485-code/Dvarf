@@ -6,6 +6,7 @@ import type {
   SessionSeat,
 } from '../../shared/api/lobbies'
 import { Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
+import { seatCompanionInInitiativeSeed } from './companionCombatSeat'
 
 type DraftRow = CombatEntryInput & {
   key: string
@@ -51,6 +52,8 @@ export function StartCombatDialog({
         waveIndex: 1,
       })
       for (const companion of seat.companions ?? []) {
+        // C-02: «ход хозяина» — не отдельная строка инициативы.
+        if (!seatCompanionInInitiativeSeed(companion)) continue
         rows.push({
           key: `comp-${seat.character_id}-${companion.id}`,
           kind: 'companion',
@@ -59,7 +62,7 @@ export function StartCombatDialog({
           name: `${companion.name} (${seat.character_name})`,
           initiative: null,
           initiative_pending: true,
-          dex_mod: null,
+          dex_mod: companion.dex_mod ?? null,
           waveIndex: 1,
         })
       }

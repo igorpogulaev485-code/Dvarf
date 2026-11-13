@@ -62,45 +62,46 @@ const SPELL_NAPARNIK_DEFAULTS: Record<
     kind: 'other',
     control: 'own_initiative',
   },
+  // C-02 Н5: Summon* Таши — ход хозяина, команда бесплатно (control with_master).
   summon_aberration: {
     titleRu: 'Дух аберрации',
     kind: 'other',
-    control: 'bonus_action_command',
+    control: 'with_master',
   },
   summon_beast: {
     titleRu: 'Дух зверя',
     kind: 'other',
-    control: 'bonus_action_command',
+    control: 'with_master',
   },
   summon_celestial: {
     titleRu: 'Дух небожителя',
     kind: 'other',
-    control: 'bonus_action_command',
+    control: 'with_master',
   },
   summon_construct: {
     titleRu: 'Дух конструкта',
     kind: 'other',
-    control: 'bonus_action_command',
+    control: 'with_master',
   },
   summon_draconic_spirit: {
     titleRu: 'Дух дракона',
     kind: 'other',
-    control: 'bonus_action_command',
+    control: 'with_master',
   },
   summon_elemental: {
     titleRu: 'Дух стихии',
     kind: 'other',
-    control: 'bonus_action_command',
+    control: 'with_master',
   },
   summon_fey: {
     titleRu: 'Дух феи',
     kind: 'other',
-    control: 'bonus_action_command',
+    control: 'with_master',
   },
   summon_fiend: {
     titleRu: 'Дух исчадия',
     kind: 'other',
-    control: 'bonus_action_command',
+    control: 'with_master',
   },
   summon_greater_demon: {
     titleRu: 'Высший демон',
@@ -115,12 +116,12 @@ const SPELL_NAPARNIK_DEFAULTS: Record<
   summon_shadowspawn: {
     titleRu: 'Дух тени',
     kind: 'other',
-    control: 'bonus_action_command',
+    control: 'with_master',
   },
   summon_undead: {
     titleRu: 'Дух нежити',
     kind: 'other',
-    control: 'bonus_action_command',
+    control: 'with_master',
   },
 }
 
@@ -261,6 +262,9 @@ export function applySpellCastToCompanions(input: {
       active: true,
       death: null,
       control: fromTemplate?.control ?? existing.control,
+      initiativeMode:
+        fromTemplate?.initiativeMode ?? existing.initiativeMode,
+      commandCost: fromTemplate?.commandCost ?? existing.commandCost,
       stats: {
         hp: hpMax != null ? hpMax : existing.stats.hp != null && existing.stats.hp > 0 ? existing.stats.hp : 1,
         hp_max: hpMax,

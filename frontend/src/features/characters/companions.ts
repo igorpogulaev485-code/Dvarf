@@ -60,6 +60,21 @@ export type CompanionControlMode =
   | 'with_master'
   | 'other'
 
+/** C-02 Н5: whose initiative (replaces mixed `control`). */
+export type CompanionInitiativeMode = 'with_master' | 'own_initiative'
+
+/** C-02 Н5: host command cost. */
+export type CompanionCommandCost = 'none' | 'action' | 'bonus' | 'reaction'
+
+/** Per-companion turn marks (Н11) — not the host turnEconomy. */
+export type CompanionTurnMarks = {
+  action: boolean
+  bonus: boolean
+  reaction: boolean
+  commanded: boolean
+  dodge: boolean
+}
+
 export type CompanionDeathState = {
   successes: number
   failures: number
@@ -109,7 +124,21 @@ export type CompanionEntry = {
    * At most one should be true; enforced in UI helpers.
    */
   is_primary: boolean
+  /**
+   * Legacy single field (pre-C-02). Prefer initiativeMode + commandCost.
+   * Kept for old cards / notes; migrated on read.
+   */
   control: CompanionControlMode
+  /** C-02: acts on host turn vs own initiative row. */
+  initiativeMode: CompanionInitiativeMode
+  /** C-02: what the host spends to command. */
+  commandCost: CompanionCommandCost
+  /**
+   * C-02 Н12: master-added story companion (bestiary/wiki) — death saves at 0.
+   */
+  story: boolean
+  /** C-02 Н11: own action / bonus / reaction + dodge / commanded. */
+  turnMarks: CompanionTurnMarks
   source: CompanionSource | null
   /** Set when role === self_form. */
   form: ActiveFormMeta | null
@@ -254,19 +283,204 @@ export function defaultNatureForKind(kind: CompanionKind): CompanionNature {
 }
 
 export function defaultControlForKind(kind: CompanionKind): CompanionControlMode {
+  const modes = defaultCombatModesForKind(kind)
   if (kind === 'transformed_self') return 'with_master'
-  if (
-    kind === 'beast_companion' ||
-    kind === 'primal_companion' ||
-    kind === 'drake' ||
-    kind === 'steel_defender' ||
-    kind === 'eldritch_cannon'
-  ) {
-    return 'bonus_action_command'
-  }
-  if (kind === 'familiar') return 'with_master'
-  return 'own_initiative'
+  if (modes.initiativeMode === 'own_initiative') return 'own_initiative'
+  if (modes.commandCost === 'bonus') return 'bonus_action_command'
+  if (modes.commandCost === 'reaction') return 'reaction'
+  return 'with_master'
 }
+
+const TASHA_SUMMON_FEATURES = new Set([
+  'spell:summon_aberration',
+  'spell:summon_beast',
+  'spell:summon_celestial',
+  'spell:summon_construct',
+  'spell:summon_draconic_spirit',
+  'spell:summon_elemental',
+  'spell:summon_fey',
+  'spell:summon_fiend',
+  'spell:summon_shadowspawn',
+  'spell:summon_undead',
+  'summon_aberration',
+  'summon_beast',
+  'summon_celestial',
+  'summon_construct',
+  'summon_draconic_spirit',
+  'summon_elemental',
+  'summon_fey',
+  'summon_fiend',
+  'summon_shadowspawn',
+  'summon_undead',
+])
+
+const CONJURE_OWN_FEATURES = new Set([
+  'spell:conjure_animals',
+  'spell:conjure_celestial',
+  'spell:conjure_elemental',
+  'spell:conjure_fey',
+  'spell:conjure_minor_elementals',
+  'spell:conjure_woodland_beings',
+  'spell:find_familiar',
+  'conjure_animals',
+  'conjure_celestial',
+  'conjure_elemental',
+  'conjure_fey',
+  'conjure_minor_elementals',
+  'conjure_woodland_beings',
+  'find_familiar',
+])
+
+const ANIMATE_DEAD_FEATURES = new Set([
+  'spell:animate_dead',
+  'spell:create_undead',
+  'animate_dead',
+  'create_undead',
+])
+
+/** C-02 Н5 table defaults by kind (without spell feature). */
+export function defaultCombatModesForKind(kind: CompanionKind): {
+  initiativeMode: CompanionInitiativeMode
+  commandCost: CompanionCommandCost
+} {
+  switch (kind) {
+    case 'beast_companion':
+      return { initiativeMode: 'with_master', commandCost: 'action' }
+    case 'primal_companion':
+    case 'steel_defender':
+    case 'eldritch_cannon':
+    case 'drake':
+    case 'ally':
+      return { initiativeMode: 'with_master', commandCost: 'bonus' }
+    case 'familiar':
+      return { initiativeMode: 'own_initiative', commandCost: 'none' }
+    case 'transformed_self':
+      return { initiativeMode: 'with_master', commandCost: 'none' }
+    default:
+      return { initiativeMode: 'own_initiative', commandCost: 'none' }
+  }
+}
+
+/** C-02 Н5: kind + spell source + story flag. */
+export function defaultCombatModesForCompanion(input: {
+  kind: CompanionKind
+  source?: CompanionSource | null
+  story?: boolean
+}): { initiativeMode: CompanionInitiativeMode; commandCost: CompanionCommandCost } {
+  const feature = (input.source?.feature ?? '').trim().toLowerCase()
+  if (input.story) {
+    return { initiativeMode: 'own_initiative', commandCost: 'none' }
+  }
+  if (ANIMATE_DEAD_FEATURES.has(feature)) {
+    return { initiativeMode: 'own_initiative', commandCost: 'bonus' }
+  }
+  if (TASHA_SUMMON_FEATURES.has(feature) || feature.startsWith('spell:summon_')) {
+    return { initiativeMode: 'with_master', commandCost: 'none' }
+  }
+  if (CONJURE_OWN_FEATURES.has(feature) || feature.startsWith('spell:conjure_')) {
+    return { initiativeMode: 'own_initiative', commandCost: 'none' }
+  }
+  return defaultCombatModesForKind(input.kind)
+}
+
+export function mapLegacyControlToCombatModes(
+  control: CompanionControlMode,
+): { initiativeMode: CompanionInitiativeMode; commandCost: CompanionCommandCost } {
+  switch (control) {
+    case 'bonus_action_command':
+      return { initiativeMode: 'with_master', commandCost: 'bonus' }
+    case 'reaction':
+      return { initiativeMode: 'with_master', commandCost: 'reaction' }
+    case 'with_master':
+      return { initiativeMode: 'with_master', commandCost: 'none' }
+    case 'own_initiative':
+      return { initiativeMode: 'own_initiative', commandCost: 'none' }
+    case 'other':
+    default:
+      return { initiativeMode: 'own_initiative', commandCost: 'none' }
+  }
+}
+
+/**
+ * In-memory migration on read (C-02):
+ * - explicit `control: other` → do not apply kind defaults;
+ * - known kinds / sources → table defaults (fixes beast / familiar / spirit);
+ * - else map old control.
+ */
+export function resolveCombatModesOnRead(input: {
+  kind: CompanionKind
+  control: CompanionControlMode
+  source: CompanionSource | null
+  story?: boolean
+  initiativeMode?: CompanionInitiativeMode | null
+  commandCost?: CompanionCommandCost | null
+}): { initiativeMode: CompanionInitiativeMode; commandCost: CompanionCommandCost } {
+  if (input.initiativeMode && input.commandCost) {
+    return {
+      initiativeMode: input.initiativeMode,
+      commandCost: input.commandCost,
+    }
+  }
+  if (input.control === 'other') {
+    return mapLegacyControlToCombatModes('other')
+  }
+  const known =
+    input.kind === 'beast_companion' ||
+    input.kind === 'primal_companion' ||
+    input.kind === 'steel_defender' ||
+    input.kind === 'eldritch_cannon' ||
+    input.kind === 'drake' ||
+    input.kind === 'familiar' ||
+    input.kind === 'ally' ||
+    Boolean(input.source?.feature) ||
+    Boolean(input.story)
+  if (known) {
+    return defaultCombatModesForCompanion({
+      kind: input.kind,
+      source: input.source,
+      story: input.story,
+    })
+  }
+  return mapLegacyControlToCombatModes(input.control)
+}
+
+export function deriveLegacyControl(input: {
+  initiativeMode: CompanionInitiativeMode
+  commandCost: CompanionCommandCost
+  previousControl?: CompanionControlMode
+}): CompanionControlMode {
+  if (input.previousControl === 'other') return 'other'
+  if (input.initiativeMode === 'own_initiative') return 'own_initiative'
+  if (input.commandCost === 'bonus') return 'bonus_action_command'
+  if (input.commandCost === 'reaction') return 'reaction'
+  if (input.commandCost === 'action') return 'bonus_action_command'
+  return 'with_master'
+}
+
+export function emptyCompanionTurnMarks(): CompanionTurnMarks {
+  return {
+    action: false,
+    bonus: false,
+    reaction: false,
+    commanded: false,
+    dodge: false,
+  }
+}
+
+export function readCompanionTurnMarks(raw: unknown): CompanionTurnMarks {
+  if (!raw || typeof raw !== 'object') return emptyCompanionTurnMarks()
+  const row = raw as Record<string, unknown>
+  return {
+    action: Boolean(row.action),
+    bonus: Boolean(row.bonus),
+    reaction: Boolean(row.reaction),
+    commanded: Boolean(row.commanded),
+    dodge: Boolean(row.dodge),
+  }
+}
+
+const INITIATIVE_SET = new Set<string>(['with_master', 'own_initiative'])
+const COMMAND_COST_SET = new Set<string>(['none', 'action', 'bonus', 'reaction'])
 
 export function defaultRoleForKind(kind: CompanionKind): CompanionRole {
   return kind === 'transformed_self' ? 'self_form' : 'ally'
@@ -517,13 +731,29 @@ export function createCompanion(partial?: Partial<CompanionEntry>): CompanionEnt
   const nature =
     partial?.nature ??
     (role === 'self_form' ? 'summoned' : defaultNatureForKind(kind))
-  const control =
-    partial?.control ??
-    (role === 'self_form' ? 'with_master' : defaultControlForKind(kind))
+  const story = Boolean(partial?.story)
   const source =
     partial?.source === undefined
       ? ({ kind: 'manual', labelRu: 'Вручную' } satisfies CompanionSource)
       : partial.source
+  const modes =
+    partial?.initiativeMode && partial?.commandCost
+      ? {
+          initiativeMode: partial.initiativeMode,
+          commandCost: partial.commandCost,
+        }
+      : role === 'self_form'
+        ? {
+            initiativeMode: 'with_master' as const,
+            commandCost: 'none' as const,
+          }
+        : defaultCombatModesForCompanion({ kind, source, story })
+  const control =
+    partial?.control ??
+    deriveLegacyControl({
+      initiativeMode: modes.initiativeMode,
+      commandCost: modes.commandCost,
+    })
   const form =
     role === 'self_form'
       ? (partial?.form ?? {
@@ -551,6 +781,12 @@ export function createCompanion(partial?: Partial<CompanionEntry>): CompanionEnt
     active: partial?.active ?? true,
     is_primary: partial?.is_primary ?? false,
     control,
+    initiativeMode: modes.initiativeMode,
+    commandCost: modes.commandCost,
+    story,
+    turnMarks: partial?.turnMarks
+      ? readCompanionTurnMarks(partial.turnMarks)
+      : emptyCompanionTurnMarks(),
     source,
     form,
     stats: {
@@ -670,6 +906,40 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
             entered_at: null,
           })
         : readFormMeta(row.form)
+    const source =
+      readSource(row.source) ??
+      (typeof row.source_item_id === 'string'
+        ? {
+            kind: 'item' as const,
+            labelRu:
+              typeof row.source_name === 'string' && row.source_name.trim()
+                ? row.source_name
+                : 'Из предмета',
+          }
+        : null)
+    const story = Boolean(row.story)
+    const rawInit =
+      typeof row.initiativeMode === 'string' && INITIATIVE_SET.has(row.initiativeMode)
+        ? (row.initiativeMode as CompanionInitiativeMode)
+        : null
+    const rawCost =
+      typeof row.commandCost === 'string' && COMMAND_COST_SET.has(row.commandCost)
+        ? (row.commandCost as CompanionCommandCost)
+        : null
+    const modes =
+      role === 'self_form'
+        ? {
+            initiativeMode: 'with_master' as const,
+            commandCost: 'none' as const,
+          }
+        : resolveCombatModesOnRead({
+            kind,
+            control,
+            source,
+            story,
+            initiativeMode: rawInit,
+            commandCost: rawCost,
+          })
     result.push({
       id: row.id,
       kind,
@@ -683,17 +953,11 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
       active: typeof row.active === 'boolean' ? row.active : true,
       is_primary: typeof row.is_primary === 'boolean' ? row.is_primary : false,
       control,
-      source:
-        readSource(row.source) ??
-        (typeof row.source_item_id === 'string'
-          ? {
-              kind: 'item' as const,
-              labelRu:
-                typeof row.source_name === 'string' && row.source_name.trim()
-                  ? row.source_name
-                  : 'Из предмета',
-            }
-          : null),
+      initiativeMode: modes.initiativeMode,
+      commandCost: modes.commandCost,
+      story,
+      turnMarks: readCompanionTurnMarks(row.turnMarks),
+      source,
       form,
       stats: {
         hp:
@@ -1017,9 +1281,12 @@ export function setCompanionActive(
   return { ...row, active }
 }
 
-/** Restore a dismissed summon/construct (stand-in for re-summon until cast wiring). */
+/**
+ * Restore a dismissed summon/construct / fallen permanent slot
+ * (stand-in for re-summon / repair until cast wiring).
+ * Living story companions use heal + death clear instead when appropriate.
+ */
 export function restoreCompanion(row: CompanionEntry): CompanionEntry {
-  if (row.nature === 'living') return row
   const hpMax = row.stats.hp_max
   return {
     ...row,
@@ -1060,6 +1327,10 @@ export function mergeSubclassCompanions(input: {
       active: prev.active,
       is_primary: prev.is_primary,
       control: prev.control,
+      initiativeMode: prev.initiativeMode ?? created.initiativeMode,
+      commandCost: prev.commandCost ?? created.commandCost,
+      story: prev.story ?? created.story,
+      turnMarks: prev.turnMarks ?? created.turnMarks,
       // Template refresh: hp_max/ac/speed/actions from grant; keep current HP + death.
       stats: {
         hp: prev.stats.hp,
