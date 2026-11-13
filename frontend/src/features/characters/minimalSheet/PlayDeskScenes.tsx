@@ -424,6 +424,18 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               model.setHalflingLuckyPending?.(input)
             }}
             raceSlug={model.draft.raceGrant?.slug ?? null}
+            ancestryId={model.draft.raceGrant?.ancestryId ?? null}
+            ftdAllowed={
+              model.campaignRulesRaw == null
+                ? null
+                : normalizeCampaignRules(
+                    model.campaignRulesRaw,
+                  ).start.allowed_sources.some(
+                    (s) =>
+                      String(s).toLowerCase() === 'ftd' ||
+                      /\bftd\b|fizban/i.test(String(s)),
+                  )
+            }
             savageAttacker={hasFeatFlag(model.draft.featGrants, 'savage_attacker')}
             flamesOfPhlegethos={hasFeatFlag(
               model.draft.featGrants,

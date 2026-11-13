@@ -16,6 +16,12 @@ import {
   markOrcishFuryBonusUsed,
   o05TceVisible,
 } from '../../shared/dnd/o05CombatFeats'
+import {
+  DEVILS_SIGHT_HINT,
+  PROTECTION_REACTION_HINT,
+  TWO_WEAPON_BONUS_HINT,
+  canProtectionReaction,
+} from '../../shared/dnd/o06StylesBreathInvocations'
 
 export type O03MasterRuleFlags = {
   disarm?: boolean
@@ -55,6 +61,30 @@ type Props = {
   hasChainMaster?: boolean
   /** O-01: Порицание талисмана — реакция. */
   hasTalismanRebuke?: boolean
+  /** O-06: стиль «Защита». */
+  hasProtectionStyle?: boolean
+  shieldInHandForProtection?: boolean
+  /** O-06: бонусная атака вторым оружием (доступна и без стиля). */
+  showTwoWeaponBonus?: boolean
+  twoWeaponBonusGate?: { ok: boolean; reason?: string }
+  onTwoWeaponBonus?: () => void
+  /** O-06: Дьявольское зрение. */
+  hasDevilsSight?: boolean
+  /** O-06: оружие дыхания / FTD 5 ур. */
+  o06Breath?: {
+    label: string
+    hint: string
+    disabled?: boolean
+    disabledReason?: string
+    onClick: () => void
+  } | null
+  o06FtdExtra?: Array<{
+    label: string
+    hint: string
+    disabled?: boolean
+    disabledReason?: string
+    onClick: () => void
+  }>
   /** O-01: открыть диалог Захват/Толчок. */
   onGrappleShove?: () => void
   /** O-05: боевые черты. */
@@ -118,6 +148,14 @@ export function TurnEconomyCombatActions({
   hasBlindFighting = false,
   hasChainMaster = false,
   hasTalismanRebuke = false,
+  hasProtectionStyle = false,
+  shieldInHandForProtection = false,
+  showTwoWeaponBonus = false,
+  twoWeaponBonusGate,
+  onTwoWeaponBonus,
+  hasDevilsSight = false,
+  o06Breath = null,
+  o06FtdExtra = [],
   onGrappleShove,
   o05,
   onO05GwmBonus,
@@ -531,6 +569,95 @@ export function TurnEconomyCombatActions({
           Слепое зрение 10 фт
         </button>
       ) : null}
+
+      {hasDevilsSight ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          title={DEVILS_SIGHT_HINT}
+          onClick={() => {
+            onToast?.(DEVILS_SIGHT_HINT)
+          }}
+        >
+          Дьявольское зрение 120 фт
+        </button>
+      ) : null}
+
+      {showTwoWeaponBonus && onTwoWeaponBonus ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!(twoWeaponBonusGate?.ok ?? false)}
+          title={
+            twoWeaponBonusGate?.ok
+              ? TWO_WEAPON_BONUS_HINT
+              : twoWeaponBonusGate?.reason || TWO_WEAPON_BONUS_HINT
+          }
+          onClick={() => onTwoWeaponBonus()}
+        >
+          Атака вторым оружием
+        </button>
+      ) : null}
+
+      {hasProtectionStyle
+        ? (() => {
+            const protGate = canProtectionReaction(turnEco.turnEconomy, {
+              hasProtectionStyle: true,
+              shieldInHand: shieldInHandForProtection,
+            })
+            return (
+              <button
+                type="button"
+                className="sheet-chip"
+                disabled={!protGate.ok}
+                title={protGate.ok ? PROTECTION_REACTION_HINT : protGate.reason}
+                onClick={() => {
+                  if (!canProtectionReaction(turnEco.turnEconomy, {
+                    hasProtectionStyle: true,
+                    shieldInHand: shieldInHandForProtection,
+                  }).ok) {
+                    return
+                  }
+                  turnEco.spendFeature('reaction')
+                  onToast?.(
+                    'Защита: реакция · помеха на атаку по союзнику в 5 фт (ты видишь атакующего)',
+                  )
+                }}
+              >
+                Защита
+              </button>
+            )
+          })()
+        : null}
+
+      {o06Breath ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={Boolean(o06Breath.disabled)}
+          title={
+            o06Breath.disabled
+              ? o06Breath.disabledReason || o06Breath.hint
+              : o06Breath.hint
+          }
+          onClick={() => o06Breath.onClick()}
+        >
+          {o06Breath.label}
+        </button>
+      ) : null}
+
+      {(o06FtdExtra ?? []).map((row) => (
+        <button
+          key={row.label}
+          type="button"
+          className="sheet-chip"
+          disabled={Boolean(row.disabled)}
+          title={row.disabled ? row.disabledReason || row.hint : row.hint}
+          onClick={() => row.onClick()}
+        >
+          {row.label}
+        </button>
+      ))}
 
       {hasInterception ? (
         <button

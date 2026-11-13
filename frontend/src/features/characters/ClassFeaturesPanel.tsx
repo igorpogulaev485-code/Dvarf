@@ -2924,6 +2924,8 @@ export function ClassFeaturesPanel({
                   'vengeful_assault',
                   'chromatic_warding',
                   'gem_flight',
+                  'breath_weapon',
+                  'metallic_breath_weapon',
                   'githzerai_shield',
                   'simic_carapace',
                 ].includes(trait.id)

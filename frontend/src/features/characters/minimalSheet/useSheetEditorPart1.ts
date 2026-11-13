@@ -14,7 +14,11 @@ import { ownedFeatEnumsFromLedger, sumFeatSpeedBonus } from '../../../shared/dnd
 import { clampCharacterLevel } from '../../../shared/dnd/experience'
 import { desiredResourcesFromFeatures } from '../../../shared/dnd/featureResources'
 import { filterActiveFeaturesForPlay } from '../../../shared/dnd/featureReplacement'
-import { resolveClassFeatureSlug, unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
+import {
+  proficiencyBonusForTotalLevel,
+  resolveClassFeatureSlug,
+  unlockFeaturesForClasses,
+} from '../../../shared/dnd/classFeatures'
 import { martialArtsDieFromFeatures } from '../../../shared/dnd/martialArts'
 import { type FeatureSelfFormRequest, type WildShapeForkRequest } from '../ClassFeaturesPanel'
 import { characterHasMagicSources } from '../magicSources'
@@ -23,6 +27,7 @@ import { buildDraft, type MinimalSheetEditorProps } from './draft'
 import { useSheetEffectsRealtime } from '../useSheetEffectsRealtime'
 import { applyEffectStacking } from '../../../shared/dnd/activeEffects'
 import { appendSuperiorTechniqueResources } from '../superiorTechnique'
+import { appendDragonbornBreathResources } from '../../../shared/dnd/o06StylesBreathInvocations'
 
 export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditorProps) {
   model.character = props.character
@@ -317,20 +322,47 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
     [unlockedFeatures, draft.featurePicks],
   )
   model.playActiveFeatures = playActiveFeatures
-  const featureDesiredResources = useMemo(
-    () =>
-      appendSuperiorTechniqueResources({
-        desired: desiredResourcesFromFeatures({
-          features: playActiveFeatures,
-          characterLevel,
-          abilities: draft.abilities,
-          featurePicks: draft.featurePicks,
-        }),
+  const featureDesiredResources = useMemo(() => {
+    const withStyle = appendSuperiorTechniqueResources({
+      desired: desiredResourcesFromFeatures({
+        features: playActiveFeatures,
+        characterLevel,
+        abilities: draft.abilities,
         featurePicks: draft.featurePicks,
-        classes: draft.classes,
       }),
-    [playActiveFeatures, characterLevel, draft.abilities, draft.featurePicks, draft.classes],
-  )
+      featurePicks: draft.featurePicks,
+      classes: draft.classes,
+    })
+    const ftdAllowed =
+      model.campaignRulesRaw == null
+        ? null
+        : Boolean(
+            (
+              (model.campaignRulesRaw as { start?: { allowed_sources?: string[] } })
+                ?.start?.allowed_sources ?? []
+            ).some(
+              (s) =>
+                String(s).toLowerCase() === 'ftd' || /\bftd\b|fizban/i.test(String(s)),
+            ),
+          )
+    return appendDragonbornBreathResources({
+      desired: withStyle,
+      raceSlug: draft.raceGrant?.slug ?? null,
+      ancestryId: draft.raceGrant?.ancestryId ?? null,
+      characterLevel,
+      proficiencyBonus: proficiencyBonusForTotalLevel(characterLevel),
+      ftdAllowed,
+    })
+  }, [
+    playActiveFeatures,
+    characterLevel,
+    draft.abilities,
+    draft.featurePicks,
+    draft.classes,
+    draft.raceGrant?.slug,
+    draft.raceGrant?.ancestryId,
+    model.campaignRulesRaw,
+  ])
   model.featureDesiredResources = featureDesiredResources
   /** Show spells split when the sheet has any magic source (class/archetype/race/feat/gear). */
   const hasMagicSources = useMemo(

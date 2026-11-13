@@ -34,6 +34,28 @@ import { hasFeatFlag } from '../../shared/dnd/b07FeatCombat'
 import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
 import { equippedArmorPieces } from './inventory'
 import {
+  breathWeaponDamageExpr,
+  breathWeaponResourceId,
+  breathWeaponSaveDc,
+  canTwoWeaponBonusAttack,
+  chromaticWardingResourceId,
+  dragonbornBreathKind,
+  ftdTableVisible,
+  gemFlightResourceId,
+  hasDevilsSight,
+  hasFightingStyle,
+  listHeldMeleeWeapons,
+  markTwoWeaponBonusReady,
+  markTwoWeaponBonusUsed,
+  metallicBreathResourceId,
+  resolveDragonbornAncestryBreath,
+  rollBreathWeaponDamage,
+  twoWeaponBonusDamageAbilityMod,
+  weaponIsLightMelee,
+  weaponIsOneHandedMelee,
+  weaponQualifiesForGreatWeaponFighting,
+} from '../../shared/dnd/o06StylesBreathInvocations'
+import {
   ClimbBiggerDialog,
   DisarmDialog,
   FallingDialog,
@@ -277,6 +299,10 @@ type PlayDeskAttacksCompactProps = {
   }) => void
   /** B-08: Halfling Lucky — natural 1 on attack. */
   raceSlug?: string | null
+  /** O-06: dragonborn ancestry id for breath. */
+  ancestryId?: string | null
+  /** O-06: Fizban book allowed in lobby (null = вне лобби). */
+  ftdAllowed?: boolean | null
   onHalflingLuckyNeeded?: (input: {
     text: string
     hitRoll: import('./deskRolls').CheckRoll
@@ -373,6 +399,8 @@ export function PlayDeskAttacksCompact({
   flamesOfPhlegethos = false,
   onLuckyPickNeeded,
   raceSlug = null,
+  ancestryId = null,
+  ftdAllowed = null,
   onHalflingLuckyNeeded,
   featGrants = null,
   spellAbilityMod = 0,
@@ -395,6 +423,8 @@ export function PlayDeskAttacksCompact({
   const [within5ft, setWithin5ft] = useState(false)
   const [grappledTarget, setGrappledTarget] = useState(false)
   const [chargerPlus5Next, setChargerPlus5Next] = useState(false)
+  /** O-06: next attack is the TWF off-hand bonus (ability mod rules). */
+  const [twfBonusArmed, setTwfBonusArmed] = useState(false)
   const [healerTargetId, setHealerTargetId] = useState<string | null>(null)
   const [healerMode, setHealerMode] = useState<'stabilize' | 'heal' | null>(null)
   const [o03Dialog, setO03Dialog] = useState<
@@ -447,6 +477,22 @@ export function PlayDeskAttacksCompact({
       : []
   const hasInterception = tceAllowed && styleIds.includes('interception')
   const hasBlindFighting = tceAllowed && styleIds.includes('blind_fighting')
+  const hasProtectionStyle = hasFightingStyle(styleIds, 'protection')
+  const hasTwoWeaponStyle = hasFightingStyle(styleIds, 'two_weapon_fighting')
+  const hasGwfStyle = hasFightingStyle(styleIds, 'great_weapon_fighting')
+  const hasDevilsSightChip = hasDevilsSight(knownInvocationIds)
+  const hasDualWielder = hasFeatFlag(featGrants, 'dual_wielder')
+  const heldMelee = listHeldMeleeWeapons(inventoryItems)
+  const breathKind = dragonbornBreathKind(raceSlug)
+  const breathAncestry = resolveDragonbornAncestryBreath({
+    raceSlug,
+    ancestryId,
+  })
+  const breathPool = resources?.find((r) => r.id === breathWeaponResourceId())
+  const breathLeft = breathPool
+    ? Math.max(0, breathPool.max - breathPool.used)
+    : 0
+  const ftdOk = ftdTableVisible(ftdAllowed)
   const hasChainMaster =
     tceAllowed && knownInvocationIds.includes('investment_of_the_chain_master')
   const hasTalismanRebuke =
@@ -866,6 +912,153 @@ export function PlayDeskAttacksCompact({
             hasBlindFighting={hasBlindFighting}
             hasChainMaster={hasChainMaster}
             hasTalismanRebuke={hasTalismanRebuke}
+            hasProtectionStyle={hasProtectionStyle}
+            shieldInHandForProtection={shieldInHand}
+            hasDevilsSight={hasDevilsSightChip}
+            showTwoWeaponBonus={heldMelee.length >= 2}
+            twoWeaponBonusGate={
+              turnEco
+                ? canTwoWeaponBonusAttack(turnEco.turnEconomy, {
+                    hasDualWielder,
+                    heldMelee,
+                  })
+                : { ok: false, reason: 'Нет экономики хода' }
+            }
+            onTwoWeaponBonus={() => {
+              if (!turnEco) return
+              const gate = canTwoWeaponBonusAttack(turnEco.turnEconomy, {
+                hasDualWielder,
+                heldMelee,
+              })
+              if (!gate.ok) return
+              turnEco.patchTurnEconomy(markTwoWeaponBonusUsed)
+              setTwfBonusArmed(true)
+              const modNote = hasTwoWeaponStyle
+                ? 'к урону добавляется модификатор характеристики (стиль)'
+                : 'к урону модификатор характеристики не добавляется (кроме отрицательного)'
+              onToast?.(
+                `Атака вторым оружием: бонусное · ${modNote}. Выбери оружие во второй руке.`,
+              )
+            }}
+            o06Breath={
+              breathKind && breathAncestry
+                ? {
+                    label: 'Оружие дыхания',
+                    hint: `${breathAncestry.shapeRu} · ${breathWeaponDamageExpr({
+                      kind: breathKind,
+                      characterLevel,
+                      damageType: breathAncestry.damage,
+                    })} · Сл ${breathWeaponSaveDc({
+                      conMod: abilityModifier(abilities.con),
+                      proficiencyBonus,
+                    })}`,
+                    disabled:
+                      !turnEco?.canFeature('action').ok || breathLeft <= 0,
+                    disabledReason: (() => {
+                      if (breathLeft <= 0) return 'Оружие дыхания уже потрачено'
+                      const gate = turnEco?.canFeature('action')
+                      return gate && !gate.ok ? gate.reason : undefined
+                    })(),
+                    onClick: () => {
+                      if (!turnEco || !breathKind || !breathAncestry) return
+                      if (!turnEco.canFeature('action').ok) return
+                      if (breathLeft <= 0) return
+                      turnEco.spendFeature('action')
+                      const rolled = rollBreathWeaponDamage({
+                        kind: breathKind,
+                        characterLevel,
+                        damageType: breathAncestry.damage,
+                      })
+                      const dc = breathWeaponSaveDc({
+                        conMod: abilityModifier(abilities.con),
+                        proficiencyBonus,
+                      })
+                      const saveRu =
+                        breathAncestry.save === 'con' ? 'Тел' : 'Лов'
+                      onToast?.(
+                        `Оружие дыхания: ${breathAncestry.shapeRu} · Сл ${dc} (${saveRu}) · урон ${rolled.total} ${breathAncestry.damage} (${rolled.detail}). Цели в линии/конусе — подтверди вручную.`,
+                      )
+                      if (breathPool && onSpendResource) {
+                        onSpendResource(breathPool.id)
+                      } else if (breathPool && onResourcesChange && resources) {
+                        onResourcesChange(
+                          resources.map((row) =>
+                            row.id === breathPool.id
+                              ? { ...row, used: Math.min(row.max, row.used + 1) }
+                              : row,
+                          ),
+                        )
+                      }
+                    },
+                  }
+                : null
+            }
+            o06FtdExtra={(() => {
+              if (!breathKind || breathKind !== 'ftd' || !ftdOk) return []
+              if (characterLevel < 5) return []
+              const extras: Array<{
+                label: string
+                hint: string
+                disabled?: boolean
+                disabledReason?: string
+                onClick: () => void
+              }> = []
+              if (raceSlug === 'dragonborn_chromatic') {
+                const pool = resources?.find(
+                  (r) => r.id === chromaticWardingResourceId(),
+                )
+                const left = pool ? Math.max(0, pool.max - pool.used) : 0
+                extras.push({
+                  label: 'Защита цветного дракона',
+                  hint: 'Иммунитет к своему типу урона на 1 мин (1/длинный)',
+                  disabled: left <= 0,
+                  disabledReason: 'Уже использовано',
+                  onClick: () => {
+                    onToast?.(
+                      `Защита цветного дракона: иммунитет к ${breathAncestry?.damage || 'типу происхождения'} на 1 мин`,
+                    )
+                    if (pool && onSpendResource) onSpendResource(pool.id)
+                  },
+                })
+              }
+              if (raceSlug === 'dragonborn_gem') {
+                const pool = resources?.find(
+                  (r) => r.id === gemFlightResourceId(),
+                )
+                const left = pool ? Math.max(0, pool.max - pool.used) : 0
+                extras.push({
+                  label: 'Спектральные крылья',
+                  hint: 'Полёт = скорость ходьбы на 1 мин (БМ раз / длинный)',
+                  disabled: left <= 0,
+                  disabledReason: 'Нет использований',
+                  onClick: () => {
+                    onToast?.(
+                      'Спектральные крылья: полёт со скоростью ходьбы на 1 минуту',
+                    )
+                    if (pool && onSpendResource) onSpendResource(pool.id)
+                  },
+                })
+              }
+              if (raceSlug === 'dragonborn_metallic') {
+                const pool = resources?.find(
+                  (r) => r.id === metallicBreathResourceId(),
+                )
+                const left = pool ? Math.max(0, pool.max - pool.used) : 0
+                extras.push({
+                  label: 'Металлическое дыхание',
+                  hint: 'Изнуряющее или отталкивающее (1/длинный) — выбери эффект по 5e14',
+                  disabled: left <= 0,
+                  disabledReason: 'Уже использовано',
+                  onClick: () => {
+                    onToast?.(
+                      'Металлическое оружие дыхания: изнуряющее (помеха на атаки/проверки) или отталкивающее (толчок 20 фт + prone) — 15 фт конус, Сл как у дыхания',
+                    )
+                    if (pool && onSpendResource) onSpendResource(pool.id)
+                  },
+                })
+              }
+              return extras
+            })()}
             onGrappleShove={() => {
               setGrappleSpend('attack')
               setGrappleModes(undefined)
@@ -1551,8 +1744,15 @@ export function PlayDeskAttacksCompact({
               effectAtk +
               powerMods.attackDelta
             const profDiceOn = Boolean(masterRules.dmg_proficiency_dice) && proficient
+            const abilityDmgMod =
+              twfBonusArmed && meleeAttack && !unarmed
+                ? twoWeaponBonusDamageAbilityMod({
+                    abilityMod: mod,
+                    hasTwoWeaponFightingStyle: hasTwoWeaponStyle,
+                  })
+                : mod
             const dmgBonus =
-              mod +
+              abilityDmgMod +
               (gear?.damageBonus ?? 0) +
               infusionDmg +
               flatFxDamage +
@@ -1561,6 +1761,15 @@ export function PlayDeskAttacksCompact({
             const dmg =
               baseDamage +
               (dmgBonus ? `${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
+            const gwfApplies =
+              hasGwfStyle &&
+              meleeAttack &&
+              !unarmed &&
+              weaponQualifiesForGreatWeaponFighting({
+                weaponName: attack.name,
+                damageExpr: baseDamage,
+                twoHanded: grip === 'two_hand',
+              })
             const pointBlankDis = rangedPointBlankDisadvantage({
               attackName: attack.name,
               within5ft,
@@ -1589,7 +1798,9 @@ export function PlayDeskAttacksCompact({
               divineStrike ? ` + ${divineStrike.label}` : ''
             }${meleeAttack && improvedSmite ? ` + ${improvedSmite.label}` : ''}${
               meleeAttack && symbioticRider ? ` + ${symbioticRider.label}` : ''
-            }${powerKind ? ' · −5/+10' : ''}${chargerFlat ? ' · +5 Налётчик' : ''}`
+            }${powerKind ? ' · −5/+10' : ''}${chargerFlat ? ' · +5 Налётчик' : ''}${
+              twfBonusArmed && meleeAttack ? ' · 2-е оружие' : ''
+            }${gwfApplies ? ' · GWF' : ''}`
             const iconKind = attackRowIconKind({
               name: attack.name,
               ability: attackAbility,
@@ -1832,6 +2043,19 @@ export function PlayDeskAttacksCompact({
                         attackAbility === 'int' ||
                         attackAbility === 'wis' ||
                         attackAbility === 'cha')
+                    if (
+                      meleeAttack &&
+                      !unarmed &&
+                      (hasDualWielder
+                        ? weaponIsOneHandedMelee(attack.name)
+                        : weaponIsLightMelee(attack.name))
+                    ) {
+                      turnEco?.patchTurnEconomy(markTwoWeaponBonusReady)
+                    }
+                    if (twfBonusArmed) {
+                      setTwfBonusArmed(false)
+                      setChargerPlus5Next(false)
+                    }
                     const strike = resolveAttackRoll({
                       name: attack.name,
                       attackBonus: effectiveAttackBonus,
@@ -1844,6 +2068,7 @@ export function PlayDeskAttacksCompact({
                       flamesOfPhlegethos:
                         flamesOfPhlegethos &&
                         /огн|fire/i.test(String(attack.damage_type || shownType || '')),
+                      greatWeaponFighting: gwfApplies,
                       extraDamages: [
                         ...(divineStrike
                           ? [

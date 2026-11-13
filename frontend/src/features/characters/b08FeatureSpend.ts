@@ -262,11 +262,25 @@ export function resolveB08FeatureSpend(input: {
     }
   }
 
-  if (id === 'chromatic_warding' || /цветн.*защит/i.test(name)) {
+  if (id === 'chromatic_warding' || /цветн.*защит|защит.*цветн/i.test(name)) {
     return {
       kind: 'buff',
       slug: 'chromatic_warding',
-      name: 'Цветная защита',
+      name: 'Защита цветного дракона',
+      targetsSelf: true,
+    }
+  }
+
+  if (
+    id === 'breath_weapon' ||
+    id === 'metallic_breath_weapon' ||
+    /оружие\s*дыхани/i.test(name)
+  ) {
+    // Combat spend is handled on the Play Desk strip (O-06); card applies a label.
+    return {
+      kind: 'buff',
+      slug: 'breath_weapon',
+      name: 'Оружие дыхания',
       targetsSelf: true,
     }
   }

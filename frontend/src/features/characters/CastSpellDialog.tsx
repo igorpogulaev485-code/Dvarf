@@ -48,6 +48,14 @@ import { artificerFocusGate } from './artificerFocus'
 import { isSpellSelfFormCast } from './spellForms'
 import { type BonusLine, withSpellCastBonuses } from './modifiers'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
+import {
+  agonizingBlastDamageBonus,
+  eldritchBlastBeamCount,
+  formatEldritchBlastDamagePreview,
+  hasRepellingBlast,
+  isEldritchBlastSpell,
+  REPELLING_BLAST_HINT,
+} from '../../shared/dnd/o06StylesBreathInvocations'
 
 /**
  * Ally-target heuristics live IN this module on purpose.
@@ -223,6 +231,8 @@ type CastSpellDialogProps = {
   voiceOfAuthority?: boolean
   /** Draconic Elemental Affinity: +CHA on one roll of this damage type. */
   elementalAffinity?: { damageType: string; amount: number } | null
+  /** O-06: выбранные воззвания колдуна. */
+  knownInvocationIds?: string[]
   /** Feature / ki pools, for cards that do not spend a spell slot. */
   resources?: SheetResource[]
   /** T-02: выбранные варианты метамагии чародея (id из sorcererMetamagic). */
@@ -265,6 +275,7 @@ export function CastSpellDialog({
   embodimentRemaining = 0,
   voiceOfAuthority = false,
   elementalAffinity = null,
+  knownInvocationIds = [],
   resources,
   metamagicIds = [],
   magicalInspirationAvailable = false,
@@ -599,7 +610,24 @@ export function CastSpellDialog({
           fallbackAbility: spells.casting_ability,
         })
       : null
-    return resolveCastEffectSummary(rulesSpell, {
+    const chaMod = abilities ? abilityModifier(abilities.cha) : 0
+    const isEb = isEldritchBlastSpell({
+      name: rulesSpell.name ?? spell?.name,
+      catalogId: spell?.catalog_id,
+      slug: (rulesSpell as { slug?: string }).slug,
+    })
+    const agonizing = agonizingBlastDamageBonus({
+      knownInvocationIds,
+      chaMod,
+      spellName: rulesSpell.name ?? spell?.name,
+      catalogId: spell?.catalog_id,
+      slug: (rulesSpell as { slug?: string }).slug,
+    })
+    const affinity =
+      agonizing !== 0
+        ? { damageType: 'силовое поле', amount: agonizing }
+        : elementalAffinity
+    const summary = resolveCastEffectSummary(rulesSpell, {
       characterLevel,
       slotLevel: castSlot || rulesSpell.level,
       spellMod: resolved?.ability ? abilityModifier(abilities![resolved.ability]) : null,
@@ -607,14 +635,35 @@ export function CastSpellDialog({
         ? SPELLCASTING_ABILITY_LABELS[resolved.ability]
         : null,
       damageChoice,
-      affinity: elementalAffinity,
+      affinity,
     })
+    if (!isEb) return summary
+    const beams = eldritchBlastBeamCount(characterLevel)
+    const preview = formatEldritchBlastDamagePreview({
+      characterLevel,
+      chaMod,
+      hasAgonizing: agonizing !== 0,
+    })
+    const lines = [...summary.lines]
+    if (beams > 1) {
+      lines.unshift(`${beams} луча · каждый: ${preview.replace(/\s*×\d+\s*луча/, '')}`)
+    }
+    if (hasRepellingBlast(knownInvocationIds)) {
+      lines.push(REPELLING_BLAST_HINT)
+    }
+    return {
+      effect: beams > 1 ? preview : summary.effect || preview,
+      scaled: summary.scaled || beams > 1 || agonizing !== 0,
+      lines,
+    }
   }, [
     rulesSpell,
+    spell,
     characterLevel,
     castSlot,
     damageChoice,
     elementalAffinity,
+    knownInvocationIds,
     abilities,
     castProfiles,
     proficiencyBonus,
