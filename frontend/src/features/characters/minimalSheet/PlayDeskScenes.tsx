@@ -98,6 +98,15 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
   const [ritualBookOpen, setRitualBookOpen] = useState(false)
   const [transferBusy, setTransferBusy] = useState(false)
   const [transferMode, setTransferMode] = useState<DeskTransferMode | null>(null)
+  /** U09: deep-link from attack → inventory card. */
+  const [focusInventoryItemId, setFocusInventoryItemId] = useState<string | null>(null)
+
+  function openInventoryItem(itemId: string) {
+    model.setDeskMode('explore')
+    model.setActivePanel('inventory')
+    setFocusInventoryItemId(itemId)
+  }
+
   const party = useLobbyParty(model.baseCharacter.id)
   const transferPeers: TransferPeer[] = useMemo(
     () =>
@@ -321,6 +330,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               model.setDeskMode('explore')
               model.setActivePanel('inventory')
             }}
+            onOpenItem={openInventoryItem}
+            formulaVars={model.formulaVarsBase}
             onCombatFeatureToggle={(featureId, active) => {
               if (featureId === 'reckless_attack') {
                 model.setDeskRollMode(active ? 'advantage' : 'normal')
@@ -400,8 +411,10 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             weaponProficiency={model.draft.identity.weapons}
             gearBonusesByItem={model.gearEffects.byItem}
             martialArtsDie={model.martialArtsDie}
+            formulaVars={model.formulaVarsBase}
             onChange={(weapons) => model.setDraft((prev) => ({ ...prev, weapons }))}
             onClose={() => model.setAttacksSettingsOpen(false)}
+            onOpenItem={openInventoryItem}
             onToggleHeld={(attack) => {
               if (!attack.inventory_item_id) return
               model.setDraft((prev) => {
@@ -436,6 +449,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           infusionByItem={model.infusionBonuses.weaponByItem}
           shillelagh={model.draft.play.shillelagh ?? null}
           martialArtsDie={model.martialArtsDie}
+          formulaVars={model.formulaVarsBase}
+          onOpenItem={openInventoryItem}
           onChange={(weapons) => model.setDraft((prev) => ({ ...prev, weapons }))}
           onToggleHeld={(attack) => {
             if (!attack.inventory_item_id) return
@@ -480,6 +495,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         onOpenAttunement={() => model.setAttunementDialogOpen(true)}
         /* Header owns CoinPad only on wide desk; compact uses panel-local pad. */
         onOpenCoins={() => model.setCoinPadOpen(true)}
+        focusItemId={focusInventoryItemId}
+        onFocusItemConsumed={() => setFocusInventoryItemId(null)}
         onToast={model.onToast}
         onTransferItem={(item) =>
           setTransferMode({
@@ -1197,6 +1214,10 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             identity: { ...prev.identity, physique },
           }))
         }
+        onOpenFeatures={() => {
+          model.setDeskMode('features')
+          model.setActivePanel('features')
+        }}
       />
 
       </div>

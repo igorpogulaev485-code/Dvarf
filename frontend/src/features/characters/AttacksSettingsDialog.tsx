@@ -21,6 +21,13 @@ import {
   type AbilityKey,
 } from './sheetTypes'
 import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
+import { useState } from 'react'
+import type { FormulaVars } from '../../shared/dnd/formulas'
+import {
+  buildAttackBonusParts,
+  type AttackBonusPart,
+} from './attackBonusBreakdown'
+import { AttackBonusBreakdownDialog } from './AttackBonusBreakdownDialog'
 
 type AttacksSettingsDialogProps = {
   open: boolean
@@ -30,8 +37,11 @@ type AttacksSettingsDialogProps = {
   weaponProficiency: WeaponProficiency
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
   martialArtsDie?: string | null
+  formulaVars?: FormulaVars
   onChange: (weapons: WeaponAttack[]) => void
   onToggleHeld?: (attack: WeaponAttack) => void
+  /** U09: open linked inventory item (closes settings, jumps to inventory). */
+  onOpenItem?: (itemId: string) => void
   onClose: () => void
 }
 
@@ -52,10 +62,17 @@ export function AttacksSettingsDialog({
   weaponProficiency,
   gearBonusesByItem,
   martialArtsDie = null,
+  formulaVars = {},
   onChange,
   onToggleHeld,
+  onOpenItem,
   onClose,
 }: AttacksSettingsDialogProps) {
+  const [attackBreakdown, setAttackBreakdown] = useState<{
+    name: string
+    parts: AttackBonusPart[]
+  } | null>(null)
+
   function updateAttack(id: string, patch: Partial<WeaponAttack>) {
     onChange(weapons.map((item) => (item.id === id ? { ...item, ...patch } : item)))
   }
@@ -73,6 +90,7 @@ export function AttacksSettingsDialog({
   }
 
   return (
+    <>
     <Dialog
       open={open}
       title="Настройки атак"
@@ -137,8 +155,14 @@ export function AttacksSettingsDialog({
               attackId: attack.id,
             })
           const abilityDmg = abilityModifier(abilities[attackAbility])
-          const attackBonus =
-            abilityDmg + (proficient ? proficiencyBonus : 0) + magicAtk
+          const attackParts = buildAttackBonusParts({
+            abilityKey: attackAbility,
+            abilityMod: abilityDmg,
+            proficient,
+            proficiencyBonus,
+            magicBonus: magicAtk,
+          })
+          const attackBonus = abilityDmg + (proficient ? proficiencyBonus : 0) + magicAtk
           const totalDmgBonus = abilityDmg + magicDmg
           const damageDisplay =
             baseDamage && totalDmgBonus
@@ -205,7 +229,16 @@ export function AttacksSettingsDialog({
 
               <div className="attack-card__stats" aria-label="Бонус атаки и урон">
                 <div className="attack-card__stat">
-                  <span className="attack-card__stat-value">{formatModifier(attackBonus)}</span>
+                  <button
+                    type="button"
+                    className="attack-card__stat-value attack-card__stat-value--btn"
+                    title="Разбор бонуса атаки"
+                    onClick={() =>
+                      setAttackBreakdown({ name: attack.name, parts: attackParts })
+                    }
+                  >
+                    {formatModifier(attackBonus)}
+                  </button>
                   <span className="attack-card__stat-label">
                     атака
                     {magicAtk ? (
@@ -329,6 +362,20 @@ export function AttacksSettingsDialog({
                     {attack.held ? 'В руках' : 'Убран'}
                   </button>
                 ) : null}
+                {linked && attack.inventory_item_id && onOpenItem ? (
+                  <button
+                    type="button"
+                    className="sheet-chip"
+                    onClick={() => {
+                      const itemId = attack.inventory_item_id
+                      if (!itemId) return
+                      onClose()
+                      onOpenItem(itemId)
+                    }}
+                  >
+                    Открыть предмет
+                  </button>
+                ) : null}
                 <span
                   className={`sheet-chip${proficient ? ' is-on' : ''}`}
                   title={
@@ -364,5 +411,13 @@ export function AttacksSettingsDialog({
         })}
       </Stack>
     </Dialog>
+    <AttackBonusBreakdownDialog
+      open={Boolean(attackBreakdown)}
+      attackName={attackBreakdown?.name ?? ''}
+      parts={attackBreakdown?.parts ?? []}
+      formulaVars={formulaVars}
+      onClose={() => setAttackBreakdown(null)}
+    />
+    </>
   )
 }

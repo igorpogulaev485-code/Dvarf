@@ -349,6 +349,9 @@ type InventoryPanelProps = {
   onTransferItem?: (item: InventoryItem) => void
   /** S-07: передать монеты. */
   onTransferCoins?: () => void
+  /** U09: open this item card once (from attack → inventory jump). */
+  focusItemId?: string | null
+  onFocusItemConsumed?: () => void
 }
 
 export function InventoryPanel({
@@ -373,6 +376,8 @@ export function InventoryPanel({
   scrollCastBlock,
   onTransferItem,
   onTransferCoins,
+  focusItemId = null,
+  onFocusItemConsumed,
 }: InventoryPanelProps) {
   const favoriteSet = useMemo(() => new Set(favoriteConsumableIds), [favoriteConsumableIds])
   const favoriteCount = favoriteConsumableIds.length
@@ -390,6 +395,28 @@ export function InventoryPanel({
   const onChangeRef = useRef(onChange)
   inventoryRef.current = inventory
   onChangeRef.current = onChange
+
+  useEffect(() => {
+    if (!focusItemId) return
+    const exists = inventory.items.some((item) => item.id === focusItemId)
+    if (!exists) {
+      onFocusItemConsumed?.()
+      return
+    }
+    setFilter('all')
+    setOpenId(focusItemId)
+    setEditingIds((ids) => {
+      const copy = new Set(ids)
+      copy.delete(focusItemId)
+      return copy
+    })
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(`inventory-card-${focusItemId}`)
+        ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    })
+    onFocusItemConsumed?.()
+  }, [focusItemId, inventory.items, onFocusItemConsumed])
 
   useEffect(() => {
     let cancelled = false
