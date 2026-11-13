@@ -1241,6 +1241,7 @@ export function SessionLiveTablePreviewPage() {
         onInvalidate={() => setGeneratorResult(null)}
         onGenerate={(payload) => {
           const theme = payload.theme_ids[0] ?? 'orc'
+          const composition = payload.composition ?? 'mixed'
           const bossName =
             theme === 'undead'
               ? 'Вампир'
@@ -1257,7 +1258,7 @@ export function SessionLiveTablePreviewPage() {
                 : payload.difficulty === 'easy'
                   ? 1000
                   : 2000
-          const waveN = Math.max(1, payload.waves)
+          const waveN = Math.max(1, payload.waves ?? 1)
           const per = Math.floor(budget / waveN)
           setGeneratorResult({
             difficulty: payload.difficulty,
@@ -1266,53 +1267,63 @@ export function SessionLiveTablePreviewPage() {
             anti_air_ok: true,
             notes: payload.similar ? ['preview', 'similar'] : ['preview'],
             theme_ids: payload.theme_ids,
-            similar: payload.similar,
+            similar: Boolean(payload.similar),
             environments: payload.environments ?? [],
+            composition,
+            wave_profile: payload.wave_profile ?? 'even',
+            flyers: payload.flyers ?? 'auto',
+            enemy_casters: payload.enemy_casters ?? 'any',
+            flyers_warning: false,
+            wiki_save_available: false,
+            party: {
+              member_count: 4,
+              levels: [5, 5, 5, 5],
+              party_power: 1.35,
+              ranged_band: 'medium',
+              ranged_band_label: 'средне',
+              anti_air_ok: true,
+              homebrew_applied: [],
+              override_used: false,
+            },
             waves: Array.from({ length: waveN }, (_, i) => ({
               wave_index: i + 1,
               budget_xp: per,
-              boss: {
-                role: 'boss',
-                suggested_count: 1,
-                options: [
-                  {
-                    slug: `preview-boss-${theme}`,
-                    name_ru: bossName,
-                    cr: '4',
-                    xp: 1100,
-                    subtype: theme === 'orc' ? 'орк' : null,
-                  },
-                  {
-                    slug: `preview-boss-alt-${theme}`,
-                    name_ru: `${bossName} (альт)`,
-                    cr: '3',
-                    xp: 700,
-                  },
-                ],
-              },
-              pack: {
-                role: 'pack',
-                suggested_count: theme === 'undead' ? 6 : 4,
-                options: [
-                  {
-                    slug: `preview-pack-${theme}`,
-                    name_ru: packName,
-                    cr: '1/2',
-                    xp: 100,
-                    subtype: theme === 'orc' ? 'орк' : null,
-                  },
-                  {
-                    slug: `preview-pack-alt-${theme}`,
-                    name_ru: `${packName} разведчик`,
-                    cr: '1/4',
-                    xp: 50,
-                  },
-                ],
-              },
+              boss:
+                composition === 'horde'
+                  ? null
+                  : {
+                      role: 'boss' as const,
+                      suggested_count: 1,
+                      options: [
+                        {
+                          slug: `preview-boss-${theme}`,
+                          name_ru: bossName,
+                          cr: '4',
+                          xp: 1100,
+                          subtype: theme === 'orc' ? 'орк' : null,
+                        },
+                      ],
+                    },
+              pack:
+                composition === 'boss'
+                  ? null
+                  : {
+                      role: 'pack' as const,
+                      suggested_count: theme === 'undead' ? 6 : 4,
+                      options: [
+                        {
+                          slug: `preview-pack-${theme}`,
+                          name_ru: packName,
+                          cr: '1/2',
+                          xp: 100,
+                          subtype: theme === 'orc' ? 'орк' : null,
+                        },
+                      ],
+                    },
             })),
           })
         }}
-        onDeploy={({ boss, pack, packCount }) => {
+        onDeploy={(picks) => {
           const stamped = Date.now()
           const mk = (
             opt: { slug: string; name_ru: string; xp?: number },
@@ -1342,18 +1353,18 @@ export function SessionLiveTablePreviewPage() {
               })),
             }
           }
-          setCombatants((prev) => [
-            ...prev,
-            mk(boss, 1, 0),
-            mk(pack, Math.max(1, packCount), 1),
-          ])
+          const added: SessionCombatant[] = []
+          let i = 0
+          for (const pick of picks) {
+            if (pick.boss) added.push(mk(pick.boss, 1, i++))
+            if (pick.pack && pick.packCount >= 1) {
+              added.push(mk(pick.pack, Math.max(1, pick.packCount), i++))
+            }
+          }
+          setCombatants((prev) => [...prev, ...added])
           setGeneratorOpen(false)
           setGeneratorResult(null)
-          setToast(
-            `На столе: ${boss.name_ru} + ${pack.name_ru}${
-              packCount > 1 ? `×${packCount}` : ''
-            }`,
-          )
+          setToast(`На столе: ${added.map((a) => a.name).join(', ') || 'пусто'}`)
         }}
       />
 

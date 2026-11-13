@@ -132,8 +132,8 @@ def test_matrix_difficulty_x_theme_produces_boss_and_pack() -> None:
             assert prop.budget_total >= budget_base(levels, diff)
             assert prop.waves, f"{diff}/{theme_id}"
             wave = prop.waves[0]
-            assert wave.boss.options, f"no boss for {diff}/{theme_id}"
-            assert wave.pack.options, f"no pack for {diff}/{theme_id}"
+            assert wave.boss and wave.boss.options, f"no boss for {diff}/{theme_id}"
+            assert wave.pack and wave.pack.options, f"no pack for {diff}/{theme_id}"
             # летающие отфильтрованы только если anti_air слабый — здесь ok, но
             # тема demon+similar может дать дьявола-беса с fly — допустимо при anti_air_ok
             if not prop.anti_air_ok:

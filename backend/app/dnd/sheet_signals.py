@@ -10,6 +10,7 @@ import re
 from dataclasses import dataclass
 from typing import Any, Iterable
 
+from app.dnd.encounter_calib import ranged_band_default_unclear, ranged_band_thresholds
 from app.dnd.party_power import PartyPowerSignals, compute_party_power
 
 # Грубая «норма» для сравнения (не таблица класса — калибровочный якорь).
@@ -61,18 +62,29 @@ class PartyAnalysis:
     levels: tuple[int, ...]
     anti_air_ok: bool
     notes: tuple[str, ...]
+    # G-01: мало / средне / много дальнего
+    ranged_band: str = "low"
+    ranged_ok_count: int = 0
+    member_count: int = 0
 
 
-def analyze_party(members: Iterable[PartyMemberSnapshot]) -> PartyAnalysis:
+def analyze_party(
+    members: Iterable[PartyMemberSnapshot],
+    *,
+    homebrew_keys: list[str] | tuple[str, ...] | None = None,
+) -> PartyAnalysis:
     rows = list(members)
     if not rows:
         signals = PartyPowerSignals()
         return PartyAnalysis(
             signals=signals,
-            party_power=compute_party_power(signals),
+            party_power=compute_party_power(signals, homebrew_keys=homebrew_keys),
             levels=(),
             anti_air_ok=False,
             notes=("empty_party",),
+            ranged_band=ranged_band_default_unclear(),
+            ranged_ok_count=0,
+            member_count=0,
         )
 
     levels = tuple(max(1, min(20, int(m.level))) for m in rows)
@@ -88,6 +100,7 @@ def analyze_party(members: Iterable[PartyMemberSnapshot]) -> PartyAnalysis:
     dpr_scores: list[float] = []
     resist_scores: list[float] = []
     anti_air = False
+    ranged_ok = 0
     notes: list[str] = []
 
     for m in rows:
@@ -119,6 +132,7 @@ def analyze_party(members: Iterable[PartyMemberSnapshot]) -> PartyAnalysis:
         )
         if _member_anti_air_ok(sheet):
             anti_air = True
+            ranged_ok += 1
 
     n = len(rows)
     signals = PartyPowerSignals(
@@ -136,12 +150,24 @@ def analyze_party(members: Iterable[PartyMemberSnapshot]) -> PartyAnalysis:
     if not anti_air:
         notes.append("anti_air_weak")
 
+    share = ranged_ok / n if n else 0.0
+    med_min, strong_min = ranged_band_thresholds()
+    if share >= strong_min:
+        ranged_band = "high"
+    elif share >= med_min:
+        ranged_band = "medium"
+    else:
+        ranged_band = "low"
+
     return PartyAnalysis(
         signals=signals,
-        party_power=compute_party_power(signals),
+        party_power=compute_party_power(signals, homebrew_keys=homebrew_keys),
         levels=levels,
         anti_air_ok=anti_air,
         notes=tuple(notes),
+        ranged_band=ranged_band,
+        ranged_ok_count=ranged_ok,
+        member_count=n,
     )
 
 

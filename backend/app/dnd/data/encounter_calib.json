@@ -1,0 +1,94 @@
+{
+  "version": 2,
+  "notes": "G-01: калибровка по generator_params.md (13.11.2026). Править здесь, без новой пачки. Без автопоправки «на 20 уровне легче». Надбавка за полёт ≈ +1 ступень при слабом дальнем; эскалация — лёгкая→средняя→босс с штрафом истощения на последней волне.",
+  "party_power_clip": [0.85, 2.2],
+  "party_power_weights": {
+    "hp_per_20pct": 0.05,
+    "ac_per_2": 0.04,
+    "slot_richness": 0.1,
+    "resource_ready": 0.08,
+    "attunement_per_slot": 0.04,
+    "consumable_ready": 0.06,
+    "companion": 0.05,
+    "concentration_buff": 0.03,
+    "dpr_quantile": 0.15,
+    "resistance_proxy": 0.08
+  },
+  "homebrew_party_power": {
+    "potion_bonus_self": 0.01,
+    "gunpowder_exploding": 0.01,
+    "flanking_advantage": 0.02,
+    "feat_at_level_1": 0.02
+  },
+  "xp_thresholds_by_level": {
+    "1": [25, 50, 75, 100],
+    "2": [50, 100, 150, 200],
+    "3": [75, 150, 225, 400],
+    "4": [125, 250, 375, 500],
+    "5": [250, 500, 750, 1100],
+    "6": [300, 600, 900, 1400],
+    "7": [350, 750, 1100, 1700],
+    "8": [450, 900, 1400, 2100],
+    "9": [550, 1100, 1600, 2400],
+    "10": [600, 1200, 1900, 2800],
+    "11": [800, 1600, 2400, 3600],
+    "12": [1000, 2000, 3000, 4500],
+    "13": [1100, 2200, 3400, 5100],
+    "14": [1250, 2500, 3800, 5700],
+    "15": [1400, 2800, 4300, 6400],
+    "16": [1600, 3200, 4800, 7200],
+    "17": [2000, 3900, 5900, 8800],
+    "18": [2100, 4200, 6300, 9500],
+    "19": [2400, 4900, 7300, 10900],
+    "20": [2800, 5700, 8500, 12700]
+  },
+  "monster_count_multipliers": [
+    [1, 1.0],
+    [2, 1.5],
+    [3, 2.0],
+    [7, 2.5],
+    [11, 3.0],
+    [15, 4.0]
+  ],
+  "composition": {
+    "mixed": {
+      "boss_share": 0.45,
+      "boss_cap": 0.7,
+      "pack_share": 0.55,
+      "require_boss": true,
+      "require_pack": true
+    },
+    "boss": {
+      "boss_share": 0.9,
+      "boss_cap": 1.0,
+      "pack_share": 0.1,
+      "require_boss": true,
+      "require_pack": false
+    },
+    "horde": {
+      "boss_share": 0.0,
+      "boss_cap": 0.0,
+      "pack_share": 1.0,
+      "require_boss": false,
+      "require_pack": true
+    }
+  },
+  "wave_profile": {
+    "even": {},
+    "escalation": {
+      "weight_start": 0.5,
+      "weight_end": 1.5,
+      "exhaustion_penalty_last": 0.25,
+      "notes": "лёгкая → средняя → босс с поддержкой; последняя ×(1 − exhaustion), партия уже без ячеек"
+    }
+  },
+  "fly_budget_bonus_weak_ranged": 1.5,
+  "fly_budget_bonus_strong_ranged": 1.15,
+  "fly_budget_bonus": 1.5,
+  "ranged_band": {
+    "medium_min_share": 0.25,
+    "strong_min_share": 0.6,
+    "default_when_unclear": "medium"
+  },
+  "candidates_per_role": 3
+}

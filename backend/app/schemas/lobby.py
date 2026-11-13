@@ -901,13 +901,23 @@ class EncounterEntryOut(BaseModel):
 
 
 class EncounterGenerateRequest(BaseModel):
-    """B8: запрос генератора (UI ещё draft)."""
+    """G-01: генератор боя на живом столе."""
 
     difficulty: Literal["easy", "medium", "hard", "deadly"] = "medium"
     environments: list[str] = Field(default_factory=list)
     theme_ids: list[str] = Field(default_factory=list, min_length=1)
     similar: bool = False
     waves: int = Field(default=1, ge=1, le=8)
+    composition: Literal["horde", "boss", "mixed"] = "mixed"
+    wave_profile: Literal["even", "escalation"] = "even"
+    flyers: Literal["auto", "allow", "want", "none"] = "auto"
+    enemy_casters: Literal["none", "any", "several"] = "any"
+    # «Ещё»: считать как N героев уровня L (выкл. = None)
+    party_count_override: int | None = Field(default=None, ge=1, le=12)
+    party_level_override: int | None = Field(default=None, ge=1, le=20)
+    # W-03 ещё нет — поле отвергаем крючком
+    save_to_wiki: bool | None = None
+    parent_page_id: str | None = Field(default=None, max_length=80)
 
 
 class EncounterMonsterOptionOut(BaseModel):
@@ -918,19 +928,31 @@ class EncounterMonsterOptionOut(BaseModel):
     type: str | None = None
     subtype: str | None = None
     fly: bool = False
+    caster: bool = False
 
 
 class EncounterRoleOut(BaseModel):
     role: Literal["boss", "pack"]
     options: list[EncounterMonsterOptionOut] = Field(default_factory=list)
-    suggested_count: int = 1
+    suggested_count: int = 0
 
 
 class EncounterWaveOut(BaseModel):
     wave_index: int
     budget_xp: int
-    boss: EncounterRoleOut
-    pack: EncounterRoleOut
+    boss: EncounterRoleOut | None = None
+    pack: EncounterRoleOut | None = None
+
+
+class EncounterPartySummaryOut(BaseModel):
+    member_count: int
+    levels: list[int] = Field(default_factory=list)
+    party_power: float
+    ranged_band: Literal["low", "medium", "high"] = "low"
+    ranged_band_label: str = "мало"
+    anti_air_ok: bool = False
+    homebrew_applied: list[str] = Field(default_factory=list)
+    override_used: bool = False
 
 
 class EncounterGenerateResult(BaseModel):
@@ -943,6 +965,13 @@ class EncounterGenerateResult(BaseModel):
     theme_ids: list[str] = Field(default_factory=list)
     similar: bool = False
     environments: list[str] = Field(default_factory=list)
+    composition: str = "mixed"
+    wave_profile: str = "even"
+    flyers: str = "auto"
+    enemy_casters: str = "any"
+    flyers_warning: bool = False
+    party: EncounterPartySummaryOut | None = None
+    wiki_save_available: bool = False
 
 
 class CombatantMemberOut(BaseModel):

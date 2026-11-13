@@ -2009,6 +2009,11 @@ export async function startPartyRest(
 }
 
 export type EncounterGenerateDifficulty = 'easy' | 'medium' | 'hard' | 'deadly'
+export type EncounterComposition = 'horde' | 'boss' | 'mixed'
+export type EncounterWaveProfile = 'even' | 'escalation'
+export type EncounterFlyers = 'auto' | 'allow' | 'want' | 'none'
+export type EncounterEnemyCasters = 'none' | 'any' | 'several'
+export type EncounterRangedBand = 'low' | 'medium' | 'high'
 
 export type EncounterMonsterOption = {
   slug: string
@@ -2018,6 +2023,7 @@ export type EncounterMonsterOption = {
   type?: string | null
   subtype?: string | null
   fly?: boolean
+  caster?: boolean
 }
 
 export type EncounterRoleProposal = {
@@ -2029,8 +2035,19 @@ export type EncounterRoleProposal = {
 export type EncounterWaveProposal = {
   wave_index: number
   budget_xp: number
-  boss: EncounterRoleProposal
-  pack: EncounterRoleProposal
+  boss?: EncounterRoleProposal | null
+  pack?: EncounterRoleProposal | null
+}
+
+export type EncounterPartySummary = {
+  member_count: number
+  levels: number[]
+  party_power: number
+  ranged_band: EncounterRangedBand | string
+  ranged_band_label: string
+  anti_air_ok: boolean
+  homebrew_applied: string[]
+  override_used: boolean
 }
 
 export type EncounterGenerateResult = {
@@ -2043,18 +2060,35 @@ export type EncounterGenerateResult = {
   theme_ids: string[]
   similar: boolean
   environments: string[]
+  composition?: EncounterComposition | string
+  wave_profile?: EncounterWaveProfile | string
+  flyers?: EncounterFlyers | string
+  enemy_casters?: EncounterEnemyCasters | string
+  flyers_warning?: boolean
+  party?: EncounterPartySummary | null
+  wiki_save_available?: boolean
 }
 
-/** B8: умный генератор (UI draft) — эндпоинт оставлен; новый UI генератора позже. */
+export type EncounterGeneratePayload = {
+  difficulty: EncounterGenerateDifficulty
+  environments?: string[]
+  theme_ids: string[]
+  similar?: boolean
+  waves?: number
+  composition?: EncounterComposition
+  wave_profile?: EncounterWaveProfile
+  flyers?: EncounterFlyers
+  enemy_casters?: EncounterEnemyCasters
+  party_count_override?: number | null
+  party_level_override?: number | null
+  save_to_wiki?: boolean
+  parent_page_id?: string | null
+}
+
+/** G-01: умный генератор боя на живом столе. */
 export async function generateSessionEncounter(
   sessionId: string,
-  payload: {
-    difficulty: EncounterGenerateDifficulty
-    environments?: string[]
-    theme_ids: string[]
-    similar?: boolean
-    waves?: number
-  },
+  payload: EncounterGeneratePayload,
 ): Promise<EncounterGenerateResult> {
   return apiRequest<EncounterGenerateResult>(
     `/sessions/${sessionId}/encounters/generate`,

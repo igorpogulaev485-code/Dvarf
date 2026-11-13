@@ -69,3 +69,29 @@ export const ENCOUNTER_THEMES = [
 ] as const
 
 export type EncounterThemeId = (typeof ENCOUNTER_THEMES)[number]['id']
+
+/** Порядок как в generator_params §5: толпа / босс / смешанный. */
+export const ENCOUNTER_COMPOSITIONS = [
+  { id: 'horde', label: 'Толпа' },
+  { id: 'boss', label: 'Босс' },
+  { id: 'mixed', label: 'Смешанный' },
+] as const
+
+export const ENCOUNTER_WAVE_PROFILES = [
+  { id: 'even', label: 'Поровну' },
+  { id: 'escalation', label: 'Эскалация (лёгкая → босс)' },
+] as const
+
+export const ENCOUNTER_FLYERS = [
+  { id: 'auto', label: 'Авто' },
+  { id: 'allow', label: 'Можно' },
+  { id: 'want', label: 'Хочу' },
+  { id: 'none', label: 'Без' },
+] as const
+
+/** Порядок: нет / как выйдет / несколько (params §2). */
+export const ENCOUNTER_ENEMY_CASTERS = [
+  { id: 'none', label: 'Нет' },
+  { id: 'any', label: 'Как выйдет' },
+  { id: 'several', label: 'Несколько' },
+] as const
