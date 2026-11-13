@@ -5,9 +5,11 @@ import type { OnboardingSegment } from './types'
 type WelcomeDialogProps = {
   open: boolean
   onChoose: (segment: OnboardingSegment) => void
+  /** Backdrop / Escape — close without picking a segment (not skip). */
+  onDismiss?: () => void
 }
 
-export function WelcomeDialog({ open, onChoose }: WelcomeDialogProps) {
+export function WelcomeDialog({ open, onChoose, onDismiss }: WelcomeDialogProps) {
   return (
     <Dialog
       open={open}
@@ -16,6 +18,7 @@ export function WelcomeDialog({ open, onChoose }: WelcomeDialogProps) {
       secondaryLabel={WELCOME.skip}
       onPrimary={() => onChoose('dnd_new')}
       onSecondary={() => onChoose('skip')}
+      onDismiss={onDismiss}
       size="wide"
     >
       <Stack gap={12}>

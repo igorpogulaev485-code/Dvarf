@@ -127,14 +127,23 @@
   position: fixed;
   inset: 0;
   z-index: 90;
-  pointer-events: none;
+  pointer-events: auto;
+}
+
+.onboarding-coach__blocker {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: transparent;
+  pointer-events: auto;
 }
 
 .onboarding-coach__dim {
   position: absolute;
   inset: 0;
+  z-index: 0;
   background: rgba(28, 25, 23, 0.5);
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .onboarding-coach__hole {
@@ -146,10 +155,6 @@
   background: transparent;
   pointer-events: none;
   z-index: 1;
-}
-
-.onboarding-coach__dim {
-  z-index: 0;
 }
 
 .onboarding-coach__card {
@@ -191,7 +196,8 @@
 .onboarding-drawer-root {
   position: fixed;
   inset: 0;
-  z-index: 85;
+  /* Above mobile Bottom Scene Nav (50) and sheet chrome so help is not click-through (B10). */
+  z-index: 200;
 }
 
 .onboarding-drawer__backdrop {
@@ -388,6 +394,21 @@
   font-weight: 600;
 }
 
+@media (max-width: 959px) {
+  .onboarding-preview__desk-modes {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    z-index: 40;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fffdf9;
+  }
+}
+
 .onboarding-preview--clean .onboarding-preview__stage {
   border: 0;
   background: transparent;
@@ -436,6 +457,11 @@
   font-weight: 500;
   white-space: normal;
   pointer-events: none;
+}
+
+/* During sheet tour, hide value tips so they cannot cover the coach card (B11). */
+body.onboarding-tour-active .onboarding-hover-tip__card--fixed {
+  visibility: hidden !important;
 }
 
 @media (max-width: 959px) {

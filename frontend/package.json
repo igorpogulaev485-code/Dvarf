@@ -47,7 +47,9 @@
     "selfcheck:needs-setup": "tsx --tsconfig tsconfig.app.json src/features/characters/needsSetup.selfcheck.ts",
     "selfcheck:m01-mobile-header": "tsx --tsconfig tsconfig.app.json src/features/characters/m01MobileHeader.selfcheck.ts",
     "selfcheck:m02-combat-first-screen": "tsx --tsconfig tsconfig.app.json src/features/characters/m02CombatFirstScreen.selfcheck.ts",
-    "selfcheck:m04-create-mobile": "tsx --tsconfig tsconfig.app.json src/features/createPipeline/m04CreateMobile.selfcheck.ts"
+    "selfcheck:m04-create-mobile": "tsx --tsconfig tsconfig.app.json src/features/createPipeline/m04CreateMobile.selfcheck.ts",
+    "selfcheck:onboarding-display": "tsx --tsconfig tsconfig.app.json src/features/onboarding/onboardingDisplay.selfcheck.ts",
+    "test:e2e:onboarding": "playwright test --config=playwright.onboarding.config.ts"
   },
   "dependencies": {
     "qrcode": "^1.5.4",
@@ -56,6 +58,7 @@
     "react-router-dom": "^7.18.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
     "@types/node": "^24.13.3",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19.2.18",

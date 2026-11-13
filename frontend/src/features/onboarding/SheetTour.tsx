@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { hasVisibleOnboardingAnchor, resolveSheetTourAnchor } from './anchors'
 import { Coachmark } from './Coachmark'
 import { TOUR_STEPS } from './copy.ru'
 import type { SheetTourStepId } from './types'
@@ -9,13 +10,13 @@ type SheetTourProps = {
   onSkip: () => void
 }
 
-function resolveAnchor(stepId: SheetTourStepId, fallback: string): string {
-  // Mobile: left rail (abilities + checklist) is hidden — point at visible controls.
+function pickAnchor(stepId: SheetTourStepId, fallback: string): string {
   const narrow =
     typeof window !== 'undefined' && window.matchMedia('(max-width: 959px)').matches
-  if (!narrow) return fallback
-  if (stepId === 'checklist') return 'help'
-  return fallback
+  return resolveSheetTourAnchor(stepId, fallback, {
+    narrow,
+    hasVisible: (anchor) => hasVisibleOnboardingAnchor(anchor),
+  })
 }
 
 export function SheetTour({ open, onComplete, onSkip }: SheetTourProps) {
@@ -50,7 +51,7 @@ export function SheetTour({ open, onComplete, onSkip }: SheetTourProps) {
   if (!open || !step) return null
 
   const isLast = index >= steps.length - 1
-  const anchor = resolveAnchor(step.id, step.anchor)
+  const anchor = pickAnchor(step.id, step.anchor)
 
   return (
     <Coachmark

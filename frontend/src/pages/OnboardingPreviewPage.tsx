@@ -35,7 +35,7 @@ const SCENES: Array<{ id: Scene; label: string }> = [
   { id: 'create', label: '3. Create hint' },
   { id: 'ready', label: '4. Персонаж готов' },
   { id: 'tour', label: '5. Sheet tour' },
-  { id: 'panels', label: '6. Кнопки ?' },
+  { id: 'panels', label: '6. Hover tips' },
   { id: 'help', label: '7. Справка' },
   { id: 'checklist', label: '8. Чеклист' },
 ]
@@ -52,11 +52,13 @@ export function OnboardingPreviewPage() {
       : 'welcome'
   const [createStep, setCreateStep] = useState<CreatePipelineStepId>('race')
   const [helpOpenOverride, setHelpOpenOverride] = useState(true)
+  const [welcomeOpen, setWelcomeOpen] = useState(true)
 
   const setScene = (next: Scene) => {
     const nextParams: Record<string, string> = {}
     if (next !== 'welcome') nextParams.scene = next
     if (clean) nextParams.clean = '1'
+    if (next === 'welcome') setWelcomeOpen(true)
     setParams(nextParams)
   }
 
@@ -93,8 +95,20 @@ export function OnboardingPreviewPage() {
             <div className="onboarding-preview__fake-page">
               <Text as="h2">Мои персонажи</Text>
               <Text tone="muted">список за диалогом…</Text>
+              {!welcomeOpen ? (
+                <Button type="button" onClick={() => setWelcomeOpen(true)}>
+                  Показать welcome снова
+                </Button>
+              ) : null}
             </div>
-            <WelcomeDialog open onChoose={() => setScene('empty')} />
+            <WelcomeDialog
+              open={welcomeOpen}
+              onChoose={() => {
+                setWelcomeOpen(false)
+                setScene('empty')
+              }}
+              onDismiss={() => setWelcomeOpen(false)}
+            />
           </section>
         ) : null}
 
@@ -166,12 +180,6 @@ export function OnboardingPreviewPage() {
               >
                 Шапка боя · КД · хиты · инициатива
               </div>
-              <div
-                className="onboarding-preview__anchor"
-                data-onboarding="desk-modes"
-              >
-                Бой · Исследование · Общение
-              </div>
               <div className="onboarding-preview__anchor" data-onboarding="abilities">
                 СИЛ ЛОВ ТЕЛ ИНТ МДР ХАР + навыки
               </div>
@@ -180,6 +188,13 @@ export function OnboardingPreviewPage() {
               </div>
               <div data-onboarding="checklist">
                 <OnboardingChecklist compact />
+              </div>
+              {/* Mobile: scenes live in the bottom tab bar — keep a fixed band for placement checks. */}
+              <div
+                className="onboarding-preview__anchor onboarding-preview__desk-modes"
+                data-onboarding="desk-modes"
+              >
+                Бой · Исследование · Общение · Напарники · Способности
               </div>
             </div>
             <SheetTour open onComplete={() => setScene('panels')} onSkip={() => setScene('panels')} />

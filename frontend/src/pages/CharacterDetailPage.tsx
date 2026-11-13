@@ -100,9 +100,15 @@ export function CharacterDetailPage() {
 
   useEffect(() => {
     const state = location.state as LocationState | null
+    // onboardingReady is a one-shot backup if storage race dropped pending flags (B5).
+    if (state?.onboardingReady) {
+      onboarding.queueAfterCreate()
+    }
     if (state?.toast || state?.createGuide || state?.startingLevel || state?.onboardingReady) {
       navigate(location.pathname, { replace: true, state: null })
     }
+    // Intentionally only react to navigation state — not onboarding identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- queue once per location.state
   }, [location.pathname, location.state, navigate])
 
   useEffect(() => {
