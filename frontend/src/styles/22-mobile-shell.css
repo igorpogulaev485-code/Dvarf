@@ -58,6 +58,30 @@
   min-width: min(148px, 58vw);
   max-width: min(180px, 70vw);
 }
+
+/* M-01 / M01 (Q2): combat effects — two rows, no sideways clip */
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot {
+  display: flex;
+  flex-wrap: wrap;
+  overflow-x: hidden;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: auto;
+}
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--wide {
+  flex: 1 1 calc(50% - 3px);
+  min-width: 0;
+  max-width: none;
+}
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--res,
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--res-compact {
+  flex: 1 1 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-fade,
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-arrow {
+  display: none;
+}
 .play-desk--mobile .play-desk__step {
   width: 32px;
   height: 32px;

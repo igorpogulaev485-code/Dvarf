@@ -301,7 +301,7 @@
     padding: 0;
   }
 
-  /* Hot/skills strips scroll inside the desk — never widen the page */
+  /* Skills strip still scrolls; combat hot-wrap stacks (M-01 / M01). */
   .play-desk--mobile .play-desk__hot {
     max-width: 100%;
     width: 100%;
@@ -317,6 +317,21 @@
 
   .play-desk--mobile .play-desk__hot-item--res {
     min-width: min(104px, 48vw);
+  }
+
+  .play-desk--mobile .play-desk__hot-wrap .play-desk__hot {
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+  }
+
+  .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--wide {
+    min-width: 0;
+  }
+
+  .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--res,
+  .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--res-compact {
+    min-width: 0;
+    max-width: 100%;
   }
 }
 

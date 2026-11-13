@@ -605,6 +605,54 @@ button.play-desk-header__identity:hover {
   left: auto;
 }
 
+/* M-01 / M02: collapsed chip — icon + count */
+.needs-setup--icon .needs-setup__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 8px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.needs-setup__bang {
+  display: inline-grid;
+  place-items: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--desk-accent, var(--accent)) 22%, white);
+  color: var(--desk-accent, var(--accent));
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.needs-setup__count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* M-01 / M03: sheet list is in-flow inside Dialog, not absolute */
+.needs-setup__sheet .needs-setup__list {
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+  z-index: auto;
+  min-width: 0;
+  max-width: none;
+  max-height: min(50vh, 360px);
+  width: 100%;
+  box-shadow: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
 
 /* B-01 active effects block */
 .active-effects {
