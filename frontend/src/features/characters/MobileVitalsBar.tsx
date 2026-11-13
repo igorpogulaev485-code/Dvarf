@@ -24,6 +24,8 @@ import {
 import { IconCoin, IconJump, IconRest, IconSkull } from './deskIcons'
 import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
 import { absorbDamageWithArcaneWard } from '../../shared/dnd/wizardTradition'
+import { NeedsSetupIndicator } from './NeedsSetupIndicator'
+import type { NeedsSetupItem } from './needsSetup'
 
 const COLLAPSE_KEY = 'dvarf.mobileVitals.collapsed'
 
@@ -90,6 +92,9 @@ type MobileVitalsBarProps = {
   onToast: (message: string) => void
   /** Absolute beginner: long-press tip on КД / хиты. */
   showValueTips?: boolean
+  /** B20: pending setup items. */
+  needsSetupItems?: NeedsSetupItem[]
+  onNeedsSetupSelect?: (item: NeedsSetupItem) => void
 }
 
 function readCollapsed(): boolean {
@@ -154,6 +159,8 @@ export function MobileVitalsBar({
   onDamaged,
   onToast,
   showValueTips = false,
+  needsSetupItems = [],
+  onNeedsSetupSelect,
 }: MobileVitalsBarProps) {
   const [collapsed, setCollapsed] = useState(readCollapsed)
   const [hpPadOpen, setHpPadOpen] = useState(false)
@@ -198,8 +205,8 @@ export function MobileVitalsBar({
   if (shownFly != null) altModes.push({ key: 'fly', label: 'полёт', value: shownFly })
   const speedTitle =
     [
-      shownSpeed != null ? `ход ${shownSpeed}` : null,
-      ...altModes.map((mode) => `${mode.label} ${mode.value}`),
+      shownSpeed != null ? `ход ${shownSpeed} фт` : null,
+      ...altModes.map((mode) => `${mode.label} ${mode.value} фт`),
       movementHint,
       speedExhaustNote,
     ]
@@ -309,10 +316,19 @@ export function MobileVitalsBar({
         <button
           type="button"
           className="mobile-vitals__collapse-who"
+          title="Открыть основное"
+          aria-label={`Основное: ${name || 'Без имени'}`}
           onClick={onOpenIdentity}
         >
           <strong>{name || 'Без имени'}</strong>
         </button>
+        {onNeedsSetupSelect ? (
+          <NeedsSetupIndicator
+            items={needsSetupItems}
+            onSelect={onNeedsSetupSelect}
+            compact
+          />
+        ) : null}
         <button
           type="button"
           className={`mobile-vitals__collapse-hp${hpPulse ? ' is-pulse' : ''}${
@@ -368,13 +384,29 @@ export function MobileVitalsBar({
           onOpen={onOpenIdentity}
           onChanged={onAvatarChanged}
         />
-        <button type="button" className="mobile-vitals__who-text" onClick={onOpenIdentity}>
-          <span className="mobile-vitals__name">{name || 'Без имени'}</span>
+        <button
+          type="button"
+          className="mobile-vitals__who-text"
+          title="Открыть основное"
+          aria-label={`Основное: ${name || 'Без имени'}`}
+          onClick={onOpenIdentity}
+        >
+          <span className="mobile-vitals__identity-hint">Основное</span>
+          <span className="mobile-vitals__name" title={name || undefined}>
+            {name || 'Без имени'}
+          </span>
           <span className="mobile-vitals__meta">
             {whoMeta}
             {level ? ` · ур. ${level}` : ''}
           </span>
         </button>
+        {onNeedsSetupSelect ? (
+          <NeedsSetupIndicator
+            items={needsSetupItems}
+            onSelect={onNeedsSetupSelect}
+            compact
+          />
+        ) : null}
         <button
           type="button"
           className={`mobile-vitals__insp${inspiration ? ' is-on' : ''}`}
@@ -441,6 +473,11 @@ export function MobileVitalsBar({
           className={`mobile-vitals__chip${altModes.length ? ' mobile-vitals__chip--speed' : ''}`}
           role="listitem"
           title={speedTitle}
+          aria-label={
+            speedTitle
+              ? `Скорость: ${speedTitle}`
+              : 'Скорость не задана'
+          }
         >
           <b>{shownSpeed == null && altModes[0] ? altModes[0].value : shownSpeed == null ? '—' : shownSpeed}</b>
           <span>
@@ -450,7 +487,7 @@ export function MobileVitalsBar({
             <ul className="mobile-vitals__modes" aria-label="Дополнительные скорости">
               {altModes.map((mode) => (
                 <li key={mode.key}>
-                  {mode.label} {mode.value}
+                  {mode.label} {mode.value} фт
                 </li>
               ))}
             </ul>

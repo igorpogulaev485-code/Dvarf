@@ -49,6 +49,8 @@ import {
   formatJumpTitle,
 } from '../../shared/dnd/jumpDistance'
 import { formatModifier } from './sheetTypes'
+import { NeedsSetupIndicator } from './NeedsSetupIndicator'
+import type { NeedsSetupItem } from './needsSetup'
 
 type SpeedMode = {
   key: 'walk' | 'climb' | 'swim' | 'fly'
@@ -138,6 +140,9 @@ type PlayDeskHeaderProps = {
   hadozeeDodgeReduction?: number | null
   /** Race slug for Hit Die traits (Verdan Black Blood). */
   raceSlug?: string | null
+  /** B20: pending setup items for the header indicator. */
+  needsSetupItems?: NeedsSetupItem[]
+  onNeedsSetupSelect?: (item: NeedsSetupItem) => void
 }
 
 export function PlayDeskHeader({
@@ -198,9 +203,12 @@ export function PlayDeskHeader({
   coinPadOpen: coinPadOpenProp,
   onCoinPadOpenChange,
   showValueTips = false,
+  needsSetupItems = [],
+  onNeedsSetupSelect,
 }: PlayDeskHeaderProps) {
   const alignmentLabel = alignment.trim()
   const editionLabel = String(rulesEdition).trim() || '2014'
+  const [nameExpanded, setNameExpanded] = useState(false)
   const classRows = classes.filter((row) => row.name.trim() && row.level > 0)
   const classChips =
     classRows.length > 0
@@ -281,9 +289,9 @@ export function PlayDeskHeader({
   const speedTitle =
     [
       primarySpeed
-        ? `${primarySpeed.key === 'walk' ? 'ход' : primarySpeed.label} ${primarySpeed.value}`
+        ? `${primarySpeed.key === 'walk' ? 'ход' : primarySpeed.label} ${primarySpeed.value} фт`
         : null,
-      ...secondarySpeeds.map((mode) => `${mode.label} ${mode.value}`),
+      ...secondarySpeeds.map((mode) => `${mode.label} ${mode.value} фт`),
       movementHint,
       speedExhaustNote,
     ]
@@ -338,20 +346,41 @@ export function PlayDeskHeader({
       <div className="play-desk-header__who">
         {/* 1) Имя · Раса · Мировоззрение · издание */}
         <div className="play-desk-header__who-line">
-          <h1 className="play-desk-header__name">{name || 'Без имени'}</h1>
+          <h1 className="play-desk-header__name-wrap">
+            <button
+              type="button"
+              className={`play-desk-header__name${nameExpanded ? ' is-expanded' : ''}`}
+              title={
+                nameExpanded
+                  ? 'Свернуть имя'
+                  : name
+                    ? `Полное имя: ${name}. Нажми, чтобы раскрыть`
+                    : undefined
+              }
+              aria-expanded={nameExpanded}
+              onClick={() => setNameExpanded((prev) => !prev)}
+            >
+              {name || 'Без имени'}
+            </button>
+          </h1>
           {onOpenIdentity ? (
             <button
               type="button"
               className="play-desk-header__identity play-desk-header__sub--btn"
+              aria-label="Основное: имя, раса, мировоззрение, предыстория"
               title={
                 alignmentHint
                   ? alignmentHint
                   : alignmentLabel
-                    ? 'Открыть основное (мировоззрение, предыстория…)'
-                    : 'Мировоззрение не задано — нажми, чтобы указать'
+                    ? 'Основное — мировоззрение, предыстория…'
+                    : 'Основное — мировоззрение не задано, нажми чтобы указать'
               }
               onClick={onOpenIdentity}
             >
+              <span className="play-desk-header__identity-action">Основное</span>
+              <span className="play-desk-header__dot" aria-hidden>
+                ·
+              </span>
               <span>{raceLabel}</span>
               <span className="play-desk-header__dot" aria-hidden>
                 ·
@@ -384,6 +413,12 @@ export function PlayDeskHeader({
             </p>
           )}
         </div>
+        {onNeedsSetupSelect ? (
+          <NeedsSetupIndicator
+            items={needsSetupItems}
+            onSelect={onNeedsSetupSelect}
+          />
+        ) : null}
 
         {/* 2) Классы */}
         {classChips.length > 0 ? (
@@ -504,6 +539,17 @@ export function PlayDeskHeader({
               primarySpeed && primarySpeed.key !== 'walk' ? ' play-desk-vital--alt-primary' : ''
             }${showValueTips ? ' has-onboarding-tip' : ''}`}
             title={showValueTips ? undefined : speedTitle}
+            aria-label={
+              primarySpeed
+                ? `Скорость ${primarySpeed.value} фт${
+                    secondarySpeeds.length
+                      ? ` · ${secondarySpeeds
+                          .map((m) => `${m.label} ${m.value} фт`)
+                          .join(' · ')}`
+                      : ''
+                  }`
+                : 'Скорость не задана'
+            }
           >
             <IconBoot className="play-desk-vital__icon" />
             <b>{primarySpeed ? primarySpeed.value : '—'}</b>
@@ -520,12 +566,12 @@ export function PlayDeskHeader({
             <div
               className="play-desk-vital play-desk-vital--modes"
               aria-label="Дополнительные скорости"
-              title={secondarySpeeds.map((m) => `${m.label} ${m.value}`).join(' · ')}
+              title={secondarySpeeds.map((m) => `${m.label} ${m.value} фт`).join(' · ')}
             >
               <ul className="play-desk-vital__tags">
                 {secondarySpeeds.map((mode) => (
                   <li key={mode.key} className="play-desk-vital__tag">
-                    {mode.label} {mode.value}
+                    {mode.label} {mode.value} фт
                   </li>
                 ))}
               </ul>
