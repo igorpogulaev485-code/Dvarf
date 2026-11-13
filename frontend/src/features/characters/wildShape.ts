@@ -249,7 +249,7 @@ export function resolveWildShapeOptions(input: {
       base(
         'wildfire_spirit',
         'Дух дикого огня',
-        'Призвать духа на 1 час (статы из бестиария, HP 5+5×ур.).',
+        'Призвать духа на 1 час (статы из бестиария, хиты 5+5×ур.).',
         1,
         'summon_wildfire_spirit',
         true,
@@ -608,7 +608,7 @@ export function applyWildCompanion(input: {
     actions:
       pick?.actions_text ||
       'Как фамильяр («Поиск фамильяра»): не атакует; телепатия; передача касания. Тип — фея.',
-    notes: `Wild Companion (Tasha) · фея · ${hours} ч. · исчезнет по истечении`,
+    notes: `Дикий спутник (TCE) · фея · ${hours} ч. · исчезнет по истечении`,
     source: {
       kind: 'class',
       labelRu: 'Дикий спутник',
@@ -710,7 +710,7 @@ export function applyWildfireSpirit(input: {
     notes:
       existing?.notes?.trim() ||
       fromTemplate?.notes ||
-      `Summon Wildfire Spirit · 1 ч. · HP = 5 + 5×ур. друида = ${hp} (TCE)`,
+      `Призыв духа дикого огня · 1 ч. · хиты = 5 + 5×ур. друида = ${hp} (TCE)`,
     resources: existing?.resources ?? fromTemplate?.resources ?? [],
     source: {
       kind: 'subclass',
@@ -891,8 +891,8 @@ export function healSelfForm(input: {
     ok: true,
     message:
       healed > 0
-        ? `${form.name || 'Облик'}: +${healed} HP (${before}→${after})`
-        : `${form.name || 'Облик'}: уже полный HP`,
+        ? `${form.name || 'Облик'}: +${healed} хитов (${before}→${after})`
+        : `${form.name || 'Облик'}: уже полные хиты`,
   }
 }
 

@@ -249,7 +249,7 @@ export function HpPadDialog({
       return
     }
     if (hpMax == null) {
-      onToast('Сначала задай максимум HP')
+      onToast('Сначала задай максимум хитов')
       return
     }
     const spent = spendHitDieFromPool(pools, pool.classEntryId)
@@ -278,7 +278,7 @@ export function HpPadDialog({
         : `бросок ${face.final} + ТЕЛ`
       : 'среднее + ТЕЛ'
     onToast(
-      `Кость ${pool.className} (${pool.die}): +${Math.max(0, healed - current)} HP (${detail})`,
+      `Кость ${pool.className} (${pool.die}): +${Math.max(0, healed - current)} хитов (${detail})`,
     )
   }
 
@@ -450,7 +450,7 @@ export function HpPadDialog({
             onClick={() => {
               onSetTemp(Math.max(0, delta))
               setDigits('')
-              onToast(delta > 0 ? `Временные HP: ${delta}` : 'Временные HP сброшены')
+              onToast(delta > 0 ? `Временные хиты: ${delta}` : 'Временные хиты сброшены')
             }}
           >
             Временные

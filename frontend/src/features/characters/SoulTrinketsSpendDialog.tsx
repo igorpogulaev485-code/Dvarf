@@ -73,7 +73,7 @@ export function SoulTrinketsSpendDialog({
         </Text>
 
         {options.length === 0 ? (
-          <Text tone="muted">Нет опций — нужен плут Phantom 9+.</Text>
+          <Text tone="muted">Нет опций — нужен плут Фантом 9+.</Text>
         ) : (
           <div className="sorcery-spend-list">
             {options.map((option) => (

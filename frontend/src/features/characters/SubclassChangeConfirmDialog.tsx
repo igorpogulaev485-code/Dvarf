@@ -41,7 +41,7 @@ export function SubclassChangeConfirmDialog({
     >
       <Stack gap={12}>
         <Text>
-          «{fromName || '—'}» → «{toName}». Уровень класса ({classLevel}), хиты и ASI не меняются.
+          «{fromName || '—'}» → «{toName}». Уровень класса ({classLevel}), хиты и Увеличение характеристик не меняются.
         </Text>
 
         <div className="chip-row">

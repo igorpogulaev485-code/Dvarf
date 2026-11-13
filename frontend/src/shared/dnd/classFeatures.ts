@@ -1573,6 +1573,6 @@ export function optionalFeatureBadgeRu(feature: {
   source_book?: string
 }): string | null {
   if (!feature.optional) return null
-  if (feature.source_book === 'tcoe') return 'Tasha · опционально'
+  if (feature.source_book === 'tcoe') return 'TCE · опционально'
   return 'опционально'
 }

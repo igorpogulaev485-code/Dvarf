@@ -110,7 +110,7 @@ export function Pack09FeatureExtras({
     const controlled = unlocked.some((row) => row.id === 'controlled_surge')
     return (
       <div className="feature-resource">
-        <Text tone="muted">Таблица Дикого всплеска (TCoE), d8:</Text>
+        <Text tone="muted">Таблица Дикого всплеска (TCE), d8:</Text>
         <Stack gap={4}>
           {WILD_SURGE_TABLE.map((row) => (
             <Text key={row.roll} tone="muted">

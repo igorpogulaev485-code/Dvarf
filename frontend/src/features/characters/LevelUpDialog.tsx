@@ -248,7 +248,7 @@ export function LevelUpDialog({
             ) : null}
             <Text tone="muted">
               Как на create: пороги PHB на новый класс и на уже взятые. Не хватает характеристик —
-              класс не выбрать, пока не поднимешь ASI / не перераспределишь.
+              класс не выбрать, пока не поднимешь Увеличение характеристик / не перераспределишь.
             </Text>
           </Stack>
         )}
@@ -275,11 +275,11 @@ export function LevelUpDialog({
         {hpMode === 'average' ? (
           <Text tone="muted">
             {hitDie && averageGain != null
-              ? `Среднее по ${hitDie}: ⌊${hitDie.slice(1)}/2⌋+1 + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod}) = +${averageGain} к макс. HP`
-              : 'Не удалось определить кость хитов класса — выбери класс из справочника или введи HP вручную.'}
+              ? `Среднее по ${hitDie}: ⌊${hitDie.slice(1)}/2⌋+1 + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod}) = +${averageGain} к макс. хитам`
+              : 'Не удалось определить кость хитов класса — выбери класс из справочника или введи хиты вручную.'}
           </Text>
         ) : (
-          <Field label="Прибавка к макс. HP" hint="Бросок кости + модификатор ТЕЛ">
+          <Field label="Прибавка к макс. хитам" hint="Бросок кости + модификатор ТЕЛ">
             <NumberInput
               min={1}
               emptyValue={null}
@@ -293,18 +293,18 @@ export function LevelUpDialog({
           <Text tone="muted">
             {mode === 'same'
               ? hitDie == null && hpMode === 'average'
-                ? 'Нужна кость хитов класса или ручной ввод HP.'
+                ? 'Нужна кость хитов класса или ручной ввод хитов.'
                 : hpMode === 'manual' && manualHp == null
-                  ? 'Укажи прибавку к HP.'
+                  ? 'Укажи прибавку к хитам.'
                   : 'Выбери класс, в который идёт уровень.'
               : multiclassGate && !multiclassGate.ok
                 ? multiclassGate.reason
                 : !newCatalogId
                   ? 'Выбери класс из справочника (не свободный текст).'
                   : hpMode === 'manual' && manualHp == null
-                    ? 'Укажи прибавку к HP.'
+                    ? 'Укажи прибавку к хитам.'
                     : hitDie == null && hpMode === 'average'
-                      ? 'Нужна кость хитов или ручной ввод HP.'
+                      ? 'Нужна кость хитов или ручной ввод хитов.'
                       : 'Укажи новый класс из справочника.'}
           </Text>
         ) : null}

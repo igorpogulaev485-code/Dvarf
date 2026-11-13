@@ -164,7 +164,7 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
             )
           }
           if (jumpTo > 1) {
-            model.onToast(`Уровень класса → ${jumpTo}. Дальше — умения и ASI.`)
+            model.onToast(`Уровень класса → ${jumpTo}. Дальше — умения и Увеличение характеристик.`)
             model.setPendingStartingLevel(1)
             model.onCreateGuideConsumed?.()
           }

@@ -71,7 +71,7 @@ function primalTemplate(
       defaultName: 'Зверь моря',
       stats: { hp, hp_max: hp, ac, speed: 5 },
       actions: `Атака +${bonus + 2} (модификатор хозяина в игре). Плавание 60 фт.`,
-      notes: 'Tasha: Primal Companion · Beast of the Sea',
+      notes: 'TCE: Первобытный спутник · Зверь моря',
       nature: 'living',
       control: 'bonus_action_command',
     }
@@ -82,7 +82,7 @@ function primalTemplate(
       defaultName: 'Зверь неба',
       stats: { hp, hp_max: hp, ac, speed: 5 },
       actions: `Атака +${bonus + 2}. Полёт 60 фт.`,
-      notes: 'Tasha: Primal Companion · Beast of the Sky',
+      notes: 'TCE: Первобытный спутник · Зверь неба',
       nature: 'living',
       control: 'bonus_action_command',
     }
@@ -92,7 +92,7 @@ function primalTemplate(
     defaultName: 'Зверь земли',
     stats: { hp, hp_max: hp, ac, speed: 40 },
     actions: `Атака +${bonus + 2}. Лазание 40 фт.`,
-    notes: 'Tasha: Primal Companion · Beast of the Land',
+    notes: 'TCE: Первобытный спутник · Зверь суши',
     nature: 'living',
     control: 'bonus_action_command',
   }
@@ -107,12 +107,12 @@ function steelDefenderTemplate(ctx: CompanionTemplateContext): CompanionTemplate
     kind: 'steel_defender',
     defaultName: 'Стальной защитник',
     stats: { hp, hp_max: hp, ac: 15, speed: 40 },
-    actions: `Force-Empowered Rend +${bonus + Math.max(intMod, 0)}; Repair.`,
-    notes: 'Tasha: Steel Defender (HP = 2 + INT + 5×ур. артификатора)',
+    actions: `Силовой разрыв +${bonus + Math.max(intMod, 0)}; Починка.`,
+    notes: 'TCE: Стальной защитник (хиты = 2 + Инт + 5×ур. изобретателя)',
     nature: 'construct',
     control: 'bonus_action_command',
     resources: [
-      { id: 'repair', name: 'Repair', max: 3, used: 0, reset: 'long' },
+      { id: 'repair', name: 'Починка', max: 3, used: 0, reset: 'long' },
     ],
   }
 }
@@ -132,14 +132,14 @@ function eldritchCannonTemplate(
   const actionByVariant: Record<string, string> = {
     flamethrower: 'Огнемёт: конус 15 фт., ловкость, 2к8 огонь',
     force_ballista: 'Силовая баллиста: +бонус атаки, 2к8 сила, толчок 5 фт.',
-    protector: 'Защитник: temp HP = 1к8 + INT модификатор в радиусе 10 фт.',
+    protector: 'Защитник: временные хиты = 1к8 + мод. Инт в радиусе 10 фт.',
   }
   return {
     kind: 'eldritch_cannon',
     defaultName: name,
     stats: { hp, hp_max: hp, ac: 18, speed: 0 },
     actions: actionByVariant[variant] ?? 'Активация бонусным действием хозяина',
-    notes: 'Tasha: Eldritch Cannon (HP = 5×ур. артификатора, КД 18)',
+    notes: 'TCE: Мистическая пушка (хиты = 5×ур. изобретателя, КД 18)',
     nature: 'construct',
     control: 'bonus_action_command',
     resources: [
@@ -224,7 +224,7 @@ function wildfireSpiritTemplate(ctx: CompanionTemplateContext): CompanionTemplat
       `Семя пламени: ${atkLabel} 1к6+${bonus} огонь (60 фт.)`,
       `Огненная телепортация: 1к6+${bonus} огонь (спас Ловк., 15 фт.)`,
     ].join('\n'),
-    notes: `Summon Wildfire Spirit · HP = 5 + 5×ур. = ${hp} (TCE) · парит`,
+    notes: `Призыв духа дикого огня · хиты = 5 + 5×ур. = ${hp} (TCE) · парит`,
     nature: 'summoned',
     control: 'bonus_action_command',
     initiativeMode: 'with_master',
@@ -268,7 +268,7 @@ function tashaSpiritTemplate(input: {
     defaultName: input.titleRu,
     stats: { hp, hp_max: hp, ac, speed: input.speed },
     actions: `Атака +${atk} (мод. заклинаний хозяина). Мультиатака — по таблице духа.`,
-    notes: `Tasha/Fizban spirit · ячейка ${slot}${input.notesExtra ? ` · ${input.notesExtra}` : ''}`,
+    notes: `Дух (TCE/Fizban) · ячейка ${slot}${input.notesExtra ? ` · ${input.notesExtra}` : ''}`,
     nature: 'summoned',
     // C-02 Н5: Summon* — ход хозяина, команда бесплатно.
     control: 'with_master',
@@ -328,7 +328,7 @@ const SUMMON_SPELL_TEMPLATES: Record<
       hpPerAbove: 10,
       speed: 30,
       ctx,
-      notesExtra: 'Skeletal: HP base 20',
+      notesExtra: 'Скелет: хиты база 20',
     }),
   summon_aberration: (ctx) =>
     tashaSpiritTemplate({

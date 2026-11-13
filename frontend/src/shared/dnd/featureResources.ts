@@ -799,7 +799,7 @@ export function grantOneOnInitiativeIfEmpty(input: {
       resources: input.resources,
       ok: false,
       via: null,
-      message: 'Ещё есть кости — Relentless не срабатывает',
+      message: 'Ещё есть кости — Неутомимый не срабатывает',
     }
   }
   if (pool.used <= 0) {

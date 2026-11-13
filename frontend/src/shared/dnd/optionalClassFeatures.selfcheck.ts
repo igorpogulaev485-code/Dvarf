@@ -64,7 +64,7 @@ assert(steady, 'rogue L3 unlocks steady_aim')
 assert(steady.optional === true, 'steady_aim optional flag survives unlock')
 assert(steady.name_ru === 'Точное прицеливание', 'steady_aim RU name')
 assert(
-  optionalFeatureBadgeRu(steady) === 'Tasha · опционально',
+  optionalFeatureBadgeRu(steady) === 'TCE · опционально',
   'optional badge label',
 )
 

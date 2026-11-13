@@ -317,7 +317,7 @@ function featureCanExpand(feature: UnlockedFeature): boolean {
 }
 
 function featSourceLabel(source: AppliedFeatGrant['source']): string {
-  if (source.kind === 'asi') return 'ASI'
+  if (source.kind === 'asi') return 'Увеличение характеристик'
   if (source.kind === 'race') return 'раса'
   if (source.kind === 'background') return 'предыстория'
   return 'вручную'
@@ -1810,7 +1810,7 @@ function FeatureReplacementControls({
         <Text tone="muted">
           {taken
             ? `Заменяет ${targetLabel}.`
-            : `Альтернатива ${targetLabel} (Tasha). На столе будет только выбранный набор.`}
+            : `Альтернатива ${targetLabel} (TCE). На столе будет только выбранный набор.`}
         </Text>
         <div className="feature-resource__actions">
           {taken ? (
@@ -3037,7 +3037,7 @@ export function ClassFeaturesPanel({
                           }
                         >
                           <b className="feature-card__name">История повышений характеристик</b>
-                          <span className="inventory-role inventory-role--armor">ASI</span>
+                          <span className="inventory-role inventory-role--armor">Увел. характеристик</span>
                           <span className="inventory-card__glance-spacer" aria-hidden />
                           <span className="feature-card__preview">
                             {asiRows.length} запис.

@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Warlock + official patrons for sheet unlock",
     "edition": "2014",
     "source": "phb+scag+xgte+tcoe+vrgr",
-    "notes_ru": "Pact Magic — в casterProgression (short rest). Инвокации multi-pick. Pact Boon choice. Mystic Arcanum 6–9 = 1× long. Архетипы — каркас. H4b depth wave 2: casters/artificer/druid scales·pools. · TCoE optional class features."
+    "notes_ru": "Магия договора — в прогрессия заклинателя (короткий отдых). Инвокации мультивыбор. Дар договора choice. Мистический арканум 6–9 = 1× long. Архетипы — каркас. глубина H4b wave 2: casters/artificer/druid scales·pools. · TCE опциональные умения класса."
   },
   "class_slug": "warlock",
   "features": [
@@ -92,7 +92,7 @@
       "level": 4,
       "name_ru": "Мистическая универсальность",
       "name_en": "Eldritch Versatility",
-      "summary_ru": "Tasha (optional): когда берёшь ASI, можешь заменить один заговор колдуна, одно воззвание или (если есть) выбор договора Пакт.",
+      "summary_ru": "TCE (опционально): когда берёшь Увеличение характеристик, можешь заменить один заговор колдуна, одно воззвание или (если есть) выбор договора Пакт.",
       "kind": "passive",
       "optional": true,
       "source_book": "tcoe"
@@ -600,7 +600,7 @@
         "level": 1,
         "name_ru": "Проклятие хексблейда",
         "name_en": "Hexblade's Curse",
-        "summary_ru": "Бонусным: проклясть видимое существо в 30 фт. — бонус к урону = PB, крит на 19–20, при смерти хиты = ур. колдуна + Хар. 1× / короткий или прод. отдых.",
+        "summary_ru": "Бонусным: проклясть видимое существо в 30 фт. — бонус к урону = БМ, крит на 19–20, при смерти хиты = ур. колдуна + Хар. 1× / короткий или прод. отдых.",
         "kind": "bonus",
         "resource": {
           "uses": 1,
@@ -674,7 +674,7 @@
         "level": 1,
         "name_ru": "Щупальце глубин",
         "name_en": "Tentacle of the Deeps",
-        "summary_ru": "Бонусным: создать щупальце в 60 фт. (атака, урон, затруднённая местность). PB раз / прод. отдых. Урон растёт на 6/10.",
+        "summary_ru": "Бонусным: создать щупальце в 60 фт. (атака, урон, затруднённая местность). БМ раз / прод. отдых. Урон растёт на 6/10.",
         "kind": "bonus",
         "resource": {
           "uses": 2,
@@ -733,7 +733,7 @@
         "level": 10,
         "name_ru": "Хватающие щупальца",
         "name_en": "Grasping Tentacles",
-        "summary_ru": "При Evard's black tentacles: хиты = мод. Хар. при касте; концентрация не от урона; бонусным — урон+замедление.",
+        "summary_ru": "При Чёрные щупальца Эварда: хиты = мод. Хар. при касте; концентрация не от урона; бонусным — урон+замедление.",
         "kind": "passive",
         "scale": {
           "label_ru": "Evard's",
@@ -782,7 +782,7 @@
         "level": 1,
         "name_ru": "Гнев джинна",
         "name_en": "Genie's Wrath",
-        "summary_ru": "1× / ход при попадании атакой: +PB урона типа джинна.",
+        "summary_ru": "1× / ход при попадании атакой: +БМ урона типа джинна.",
         "kind": "passive",
         "scale": {
           "label_ru": "Урон 1×/ход",
@@ -810,7 +810,7 @@
         "scale": {
           "label_ru": "Полёт / сопр.",
           "by_level": {
-            "6": "PB раз / long rest: полёт 10 мин + сопр."
+            "6": "PB раз / продолжительный отдых: полёт 10 мин + сопр."
           }
         }
       },

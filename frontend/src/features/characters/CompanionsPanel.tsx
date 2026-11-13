@@ -97,14 +97,14 @@ function statsPreview(row: CompanionEntry): string {
   if (isSelfForm(row)) {
     const hp = row.stats.hp
     const max = row.stats.hp_max
-    if (hp != null && max != null) return `HP ${hp}/${max}`
-    if (hp != null) return `HP ${hp}`
+    if (hp != null && max != null) return `хиты ${hp}/${max}`
+    if (hp != null) return `хиты ${hp}`
     return 'хиты хозяина'
   }
   const bits = [
     !isCompanionStatEmpty(row.stats.ac) ? `КД ${row.stats.ac}` : null,
     !isCompanionStatEmpty(row.stats.hp) || !isCompanionStatEmpty(row.stats.hp_max)
-      ? `${row.stats.hp ?? '—'}/${row.stats.hp_max ?? '—'} HP`
+      ? `${row.stats.hp ?? '—'}/${row.stats.hp_max ?? '—'} хитов`
       : null,
     !isCompanionStatEmpty(row.stats.speed) ? `${row.stats.speed} фт.` : null,
     row.stats.speed_fly != null ? `полёт ${row.stats.speed_fly}` : null,
@@ -883,7 +883,7 @@ export function CompanionsPanel({
                               ),
                             )
                             setHealById((prev) => ({ ...prev, [row.id]: null }))
-                            onToast?.(`${row.name}: +${amount} HP`)
+                            onToast?.(`${row.name}: +${amount} хитов`)
                           }}
                         >
                           Вылечить
@@ -1010,14 +1010,14 @@ export function CompanionsPanel({
                             })
                             onToast?.(
                               result.overflow > 0
-                                ? `Облик сброшен · хозяину −${result.overflow} HP`
+                                ? `Облик сброшен · хозяину −${result.overflow} хитов`
                                 : `Облик сброшен: ${result.formName || ''}`,
                             )
                           } else if (result.overflow > 0) {
                             onToast?.(`Урон хозяину −${result.overflow}`)
                           } else {
                             onToast?.(
-                              `${result.formName || 'Облик'}: −${amount} HP`,
+                              `${result.formName || 'Облик'}: −${amount} хитов`,
                             )
                           }
                         }}
@@ -1039,7 +1039,7 @@ export function CompanionsPanel({
                 spells &&
                 onSpellsChange ? (
                   <div className="companion-moon-heal">
-                    <Text>Исцелить ячейкой (Moon · бонусным)</Text>
+                    <Text>Исцелить ячейкой (Круг луны · бонусным)</Text>
                     <Text tone="muted">
                       1к8 × уровень ячейки, не выше макс. хитов облика.
                     </Text>

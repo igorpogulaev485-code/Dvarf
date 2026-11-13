@@ -221,7 +221,7 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         }}
       >
         <Text>
-          Урон {model.concDamageAsk?.damage ?? 0} HP. Спас концентрации Сл{' '}
+          Урон {model.concDamageAsk?.damage ?? 0} хитов. Спас концентрации Сл{' '}
           {model.concDamageAsk?.dc ?? 10}
           {model.concDamageAsk?.spellName ? ` («${model.concDamageAsk.spellName}»)` : ''}. Удержал?
         </Text>

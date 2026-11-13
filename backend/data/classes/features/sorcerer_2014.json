@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Sorcerer + official origins for sheet unlock",
     "edition": "2014",
     "source": "phb+xgte+tcoe+dragonlance",
-    "notes_ru": "Очки чародейства = ур. с 2. Метамагия — picks. Гибкое колдовство — вручную через очки/ячейки. Архетипы — каркас. H4b depth wave 2: casters/artificer/druid scales·pools. · TCoE optional class features."
+    "notes_ru": "Очки чародейства = ур. с 2. Метамагия — выборы. Гибкое колдовство — вручную через очки/ячейки. Архетипы — каркас. глубина H4b wave 2: casters/artificer/druid scales·pools. · TCE опциональные умения класса."
   },
   "class_slug": "sorcerer",
   "features": [
@@ -115,7 +115,7 @@
       "level": 4,
       "name_ru": "Чародейская универсальность",
       "name_en": "Sorcerous Versatility",
-      "summary_ru": "Tasha (optional): когда берёшь ASI, можешь заменить один заговор чародея или одну метамагию.",
+      "summary_ru": "TCE (опционально): когда берёшь Увеличение характеристик, можешь заменить один заговор чародея или одну метамагию.",
       "kind": "passive",
       "optional": true,
       "source_book": "tcoe"
@@ -125,7 +125,7 @@
       "level": 5,
       "name_ru": "Магическое наставление",
       "name_en": "Magical Guidance",
-      "summary_ru": "Tasha (optional): при провале проверки характеристики можешь потратить 1 очко чародейства и перебросить d20; новый результат обязателен.",
+      "summary_ru": "TCE (опционально): при провале проверки характеристики можешь потратить 1 очко чародейства и перебросить d20; новый результат обязателен.",
       "kind": "passive",
       "optional": true,
       "source_book": "tcoe",
@@ -340,7 +340,7 @@
         "level": 1,
         "name_ru": "Всплеск дикой магии",
         "name_en": "Wild Magic Surge",
-        "summary_ru": "При касте заклинания чародея ≥1 ур. МИ может потребовать d20: на 1 — бросок таблицы Wild Magic Surge.",
+        "summary_ru": "При касте заклинания чародея ≥1 ур. МИ может потребовать d20: на 1 — бросок таблицы Всплеск дикой магии.",
         "kind": "passive",
         "scale": {
           "label_ru": "Триггер",
@@ -389,7 +389,7 @@
         "level": 14,
         "name_ru": "Контролируемый хаос",
         "name_en": "Controlled Chaos",
-        "summary_ru": "При броске по таблице Wild Magic Surge кидай дважды и выбери результат.",
+        "summary_ru": "При броске по таблице Всплеск дикой магии кидай дважды и выбери результат.",
         "kind": "passive",
         "scale": {
           "label_ru": "Таблица всплеска",
@@ -419,7 +419,7 @@
         "level": 1,
         "name_ru": "Голос ветра",
         "name_en": "Wind Speaker",
-        "summary_ru": "Язык Primordial (и диалекты Auran/Aquan/Ignan/Terran).",
+        "summary_ru": "Язык Первозданный (и диалекты Ауран/Акван/Игнан/Терран).",
         "kind": "passive",
         "scale": {
           "label_ru": "Языки",
@@ -597,7 +597,7 @@
           "uses": 0,
           "recharge": "long_rest",
           "pool_id": "eyes_of_the_dark_darkness",
-          "pool_name_ru": "Тьма (Eyes of the Dark)",
+          "pool_name_ru": "Тьма (Глаза тьмы)",
           "track": "spend",
           "linked_spend": {
             "pool_id": "sorcery_points",
@@ -683,7 +683,7 @@
         "level": 1,
         "name_ru": "Псионические заклинания",
         "name_en": "Psionic Spells",
-        "summary_ru": "Доп. известные заклинания архетипа; замены при ASI.",
+        "summary_ru": "Доп. известные заклинания архетипа; замены при Увеличение характеристик.",
         "kind": "passive",
         "scale": {
           "label_ru": "Известные",
@@ -751,7 +751,7 @@
         "level": 14,
         "name_ru": "Откровение во плоти",
         "name_en": "Revelation in Flesh",
-        "summary_ru": "Бонусным: потрать 1 очко чародейства или использование — мутация на 10 мин. (плавание/полёт/скольжение/видеть невидимое). PB раз / прод. как альтернатива очкам.",
+        "summary_ru": "Бонусным: потрать 1 очко чародейства или использование — мутация на 10 мин. (плавание/полёт/скольжение/видеть невидимое). БМ раз / прод. как альтернатива очкам.",
         "kind": "bonus",
         "resource": {
           "uses": 2,
@@ -784,7 +784,7 @@
         "level": 1,
         "name_ru": "Магия часового механизма",
         "name_en": "Clockwork Magic",
-        "summary_ru": "Доп. известные заклинания порядка; замены при ASI.",
+        "summary_ru": "Доп. известные заклинания порядка; замены при Увеличение характеристик.",
         "kind": "passive",
         "scale": {
           "label_ru": "Заклинания",
@@ -853,7 +853,7 @@
         "scale": {
           "label_ru": "Транс",
           "by_level": {
-            "14": "1× long rest или 5 очков"
+            "14": "1× продолжительный отдых или 5 очков"
           }
         }
       },
@@ -899,7 +899,7 @@
         "summary_ru": "Священное пламя бьёт две цели в пределах дистанции.",
         "kind": "passive",
         "scale": {
-          "label_ru": "Sacred Flame",
+          "label_ru": "Священное пламя",
           "by_level": {
             "1": "две цели в пределах дистанции"
           }
@@ -941,7 +941,7 @@
         "scale": {
           "label_ru": "Отдых",
           "by_level": {
-            "6": "после short/long rest можно сменить фазу бесплатно"
+            "6": "после short/продолжительный отдых можно сменить фазу бесплатно"
           }
         }
       },

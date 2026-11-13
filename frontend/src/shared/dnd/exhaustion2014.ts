@@ -57,5 +57,5 @@ export function exhaustionSpeedNote(level: number): string | null {
 }
 
 export function exhaustionHpNote(level: number): string | null {
-  return clampExhaustionLevel(level) >= 4 ? 'истощение: макс. HP ÷2' : null
+  return clampExhaustionLevel(level) >= 4 ? 'истощение: макс. хиты ÷2' : null
 }

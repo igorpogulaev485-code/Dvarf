@@ -3,7 +3,7 @@
     "purpose": "2014 Cleric + all 14 official domains for sheet unlock",
     "edition": "2014",
     "source": "phb+dmg+scag+xgte+tcoe",
-    "notes_ru": "14 доменов. Channel Divinity — общий пул (Turn Undead + cd_*). DI: success_lock 7 дней. Always-prepared/grants — в каталоге. H4b depth wave 2: casters/artificer/druid scales·pools. · TCoE optional class features."
+    "notes_ru": "14 доменов. Божественный канал — общий пул (Изгнание нежити + cd_*). DI: success_lock 7 дней. всегда подготовлены/grants — в каталоге. глубина H4b wave 2: casters/artificer/druid scales·pools. · TCE опциональные умения класса."
   },
   "class_slug": "cleric",
   "features": [
@@ -28,7 +28,7 @@
       "level": 2,
       "name_ru": "Божественный канал",
       "name_en": "Channel Divinity",
-      "summary_ru": "Общий пул на Turn Undead и опции домена. Сброс на коротком или продолжительном отдыхе.",
+      "summary_ru": "Общий пул на Изгнание нежити и опции домена. Сброс на коротком или продолжительном отдыхе.",
       "kind": "resource",
       "resource": {
         "uses": 1,
@@ -48,7 +48,7 @@
       "level": 2,
       "name_ru": "Изгнание нежити",
       "name_en": "Turn Undead",
-      "summary_ru": "Действием Channel Divinity: нежить в 30 фт. спас Мудрости или изгнана 1 мин.",
+      "summary_ru": "Действием Божественный канал: нежить в 30 фт. спас Мудрости или изгнана 1 мин.",
       "kind": "action",
       "resource": {
         "uses": 1,
@@ -107,7 +107,7 @@
       "level": 4,
       "name_ru": "Универсальность заговора",
       "name_en": "Cantrip Versatility",
-      "summary_ru": "Tasha (optional): когда берёшь ASI, можешь заменить один известный заговор жреца на другой из списка жреца.",
+      "summary_ru": "TCE (опционально): когда берёшь Увеличение характеристик, можешь заменить один известный заговор жреца на другой из списка жреца.",
       "kind": "passive",
       "optional": true,
       "source_book": "tcoe"
@@ -152,7 +152,7 @@
       "level": 8,
       "name_ru": "Благословенные удары",
       "name_en": "Blessed Strikes",
-      "summary_ru": "Tasha (optional): альтернатива Divine Strike / Potent Spellcasting домена. Раз в ход +1к8 урона излучением к атаке оружием или к урону заговора жреца.",
+      "summary_ru": "TCE (опционально): альтернатива Божественный удар / Мощное колдовство домена. Раз в ход +1к8 урона излучением к атаке оружием или к урону заговора жреца.",
       "kind": "passive",
       "optional": true,
       "source_book": "tcoe",
@@ -238,7 +238,7 @@
         "level": 1,
         "name_ru": "Благословение знания",
         "name_en": "Blessings of Knowledge",
-        "summary_ru": "Выучи два языка. Выбери 2 навыка из: Arcana, History, Nature, Religion — владение и компетентность.",
+        "summary_ru": "Выучи два языка. Выбери 2 навыка из: Магия, История, Природа, Религия — владение и компетентность.",
         "kind": "passive",
         "choice": {
           "id": "knowledge_skills",
@@ -316,7 +316,7 @@
         "level": 17,
         "name_ru": "Видения прошлого",
         "name_en": "Visions of the Past",
-        "summary_ru": "Медитация: читать историю предмета или места (см. PHB). (Channel Divinity / доменное умение — см. PHB).",
+        "summary_ru": "Медитация: читать историю предмета или места (см. PHB). (Божественный канал / доменное умение — см. PHB).",
         "kind": "action",
         "resource": {
           "uses": 1,
@@ -402,7 +402,7 @@
         "level": 17,
         "name_ru": "Высшее исцеление",
         "name_en": "Supreme Healing",
-        "summary_ru": "Лечение заклинаниями и Channel Divinity всегда использует максимум на костях.",
+        "summary_ru": "Лечение заклинаниями и Божественный канал всегда использует максимум на костях.",
         "kind": "passive",
         "scale": {
           "label_ru": "Кости лечения",
@@ -472,7 +472,7 @@
         "summary_ru": "Оберегающую вспышку можно использовать, когда атакуют другое существо в 30 фт.",
         "kind": "passive",
         "scale": {
-          "label_ru": "Warding Flare",
+          "label_ru": "Оберегающая вспышка",
           "by_level": {
             "6": "можно на союзника в 30 фт."
           }
@@ -890,7 +890,7 @@
         "level": 6,
         "name_ru": "Неотвратимое разрушение",
         "name_en": "Inescapable Destruction",
-        "summary_ru": "Некротический урон от твоих заклинаний и Channel Divinity игнорирует сопротивление некротическому.",
+        "summary_ru": "Некротический урон от твоих заклинаний и Божественный канал игнорирует сопротивление некротическому.",
         "kind": "passive",
         "scale": {
           "label_ru": "Некротика",
@@ -949,7 +949,7 @@
         "level": 2,
         "name_ru": "Канал: Чародейское изгнание",
         "name_en": "Channel Divinity: Arcane Abjuration",
-        "summary_ru": "Действием (тратит канал): изгнать небожителя/элементаля/фею/исчадие (как Turn Undead). С 5 ур. — банш при провале по КР.",
+        "summary_ru": "Действием (тратит канал): изгнать небожителя/элементаля/фею/исчадие (как Изгнание нежити). С 5 ур. — банш при провале по КР.",
         "kind": "action",
         "resource": {
           "uses": 1,
@@ -1346,7 +1346,7 @@
         "level": 17,
         "name_ru": "Обширная связь",
         "name_en": "Expansive Bond",
-        "summary_ru": "Дистанция связи 60 фт.; Protective Bond даёт сопротивление принятому урону.",
+        "summary_ru": "Дистанция связи 60 фт.; Защитная связь даёт сопротивление принятому урону.",
         "kind": "passive",
         "scale": {
           "label_ru": "Связь",

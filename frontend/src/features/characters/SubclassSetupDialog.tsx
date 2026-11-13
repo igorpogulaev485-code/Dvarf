@@ -384,7 +384,7 @@ export function SubclassSetupDialog({
               </div>
               {selectedBestiary ? (
                 <Text tone="muted">
-                  Выбрано: {selectedBestiary.name_ru} · КД {selectedBestiary.ac} · HP{' '}
+                  Выбрано: {selectedBestiary.name_ru} · КД {selectedBestiary.ac} · хиты{' '}
                   {selectedBestiary.hp}
                   {crAboveQuarter(selectedBestiary.cr)
                     ? ' · не по правилам (КР)'
