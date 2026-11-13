@@ -34,6 +34,8 @@ from app.services.sheet_effects import (
     effect_suggestions_from_sheet,
     INFUSION_ORIGIN,
     parse_effects,
+    read_infusion_ally_share,
+    write_infusion_ally_share,
 )
 from app.repositories.catalog import CatalogRepository
 from app.dnd.encounter_budget import EncounterDifficulty
@@ -1491,6 +1493,7 @@ class LobbyService:
             )
 
         existing = self.lobbies.get_member(lobby.id, character.id)
+        newly_joined = existing is None
         if existing is None:
             self.lobbies.add_member_with_flags(
                 lobby_id=lobby.id,
@@ -1504,6 +1507,12 @@ class LobbyService:
             existing.start_rules_ok = ok if not getattr(existing, "start_rules_waived", False) else True
             self.db.commit()
         lobby = self._require_lobby(lobby.id)
+        # L-20: догон инфузий при входе (и когда вошёл сам изобретатель).
+        touched = self.apply_infusion_catchup(lobby.id) if newly_joined else []
+        if touched:
+            self.db.commit()
+            lobby = self._require_lobby(lobby.id)
+        self._pending_sheet_effect_ids = touched
         return JoinLobbyOut(
             lobby=self._to_detail(lobby, user),
             start_rules_ok=ok,
@@ -4466,94 +4475,198 @@ class LobbyService:
         await _broadcast_session_changed(session.id)
         return detail
 
+    def _require_own_lobby_source(
+        self,
+        user: User,
+        lobby: Lobby,
+        source_character_id: UUID,
+    ) -> Character:
+        """L-20: эффект/инфузия «от героя» — только от своего персонажа в этом лобби."""
+        source = self.characters.get_for_user(source_character_id, user.id)
+        if source is None:
+            raise AppError(
+                "Нельзя раздать эффект от чужого персонажа — только от своего",
+                code="forbidden",
+                status_code=403,
+            )
+        source_member = self.lobbies.get_member(lobby.id, source_character_id)
+        if source_member is None:
+            raise AppError(
+                "Персонаж-источник не в этом лобби",
+                code="forbidden",
+                status_code=403,
+            )
+        return source
+
+    def _apply_infusion_rows_to_lobby(
+        self,
+        *,
+        lobby: Lobby,
+        source: Character,
+        effect_rows: list[dict],
+    ) -> list[UUID]:
+        """Replace this source's infusion marks on current lobby members. Returns touched ids."""
+        member_ids = [member.character_id for member in lobby.members]
+        char_map = self.lobbies.get_characters_map(member_ids)
+        by_target: dict[UUID, list[dict]] = {}
+        for row in effect_rows:
+            try:
+                tid = UUID(str(row.get("target_character_id")))
+            except (TypeError, ValueError):
+                continue
+            name = str(row.get("name") or "").strip()
+            if not name:
+                continue
+            try:
+                bonus = int(row.get("ac_bonus") or 0)
+            except (TypeError, ValueError):
+                bonus = 0
+            slug = str(row.get("slug") or "").strip() or "enhanced_defense"
+            kind = str(row.get("kind") or "").strip() or "infusion"
+            mods = row.get("mods") if isinstance(row.get("mods"), list) else []
+            if not mods and bonus > 0:
+                mods = [{"target": "ac", "op": "add", "value": bonus}]
+            effect_row: dict = {
+                "id": str(row.get("id") or uuid4()),
+                "name": name,
+                "source_character_id": str(source.id),
+                "source_name": source.name,
+                "linked_concentration": False,
+                "origin": INFUSION_ORIGIN,
+                "kind": kind,
+                "slug": slug,
+                "ac_bonus": bonus,
+                "mods": mods,
+                "duration": {"unit": "permanent"},
+            }
+            if row.get("charges") is not None:
+                try:
+                    effect_row["charges"] = int(row["charges"])
+                except (TypeError, ValueError):
+                    pass
+            by_target.setdefault(tid, []).append(effect_row)
+
+        touched: list[UUID] = []
+        for character_id in member_ids:
+            if character_id == source.id:
+                continue
+            target = char_map.get(character_id)
+            if target is None:
+                continue
+            replacements = by_target.get(character_id, [])
+            changed = apply_infusion_effect_sync(
+                target,
+                source_id=str(source.id),
+                source_name=source.name,
+                replacements=replacements,
+            )
+            if changed:
+                touched.append(character_id)
+        return touched
+
+    def apply_infusion_catchup(self, lobby_id: UUID) -> list[UUID]:
+        """L-20: догон инфузий при входе — снимок с листов изобретателей → члены лобби."""
+        lobby = self.lobbies.get(lobby_id)
+        if lobby is None:
+            return []
+        member_ids = [m.character_id for m in lobby.members]
+        char_map = self.lobbies.get_characters_map(member_ids)
+        touched: list[UUID] = []
+        for character_id in member_ids:
+            source = char_map.get(character_id)
+            if source is None:
+                continue
+            rows = read_infusion_ally_share(source.sheet)
+            if not rows:
+                continue
+            # Не передавать «слугу-гомункула» (как на фронте): снимок уже без него.
+            touched.extend(
+                self._apply_infusion_rows_to_lobby(
+                    lobby=lobby,
+                    source=source,
+                    effect_rows=rows,
+                )
+            )
+        # unique preserve order
+        seen: set[UUID] = set()
+        unique: list[UUID] = []
+        for cid in touched:
+            if cid in seen:
+                continue
+            seen.add(cid)
+            unique.append(cid)
+        return unique
+
     async def share_effect(
         self,
         user: User,
         lobby_id: UUID,
         payload: LobbyShareEffectRequest,
     ) -> LobbyShareEffectResponse:
+        """L-20: тонкая обёртка стола → CharacterService.apply_effects (один писатель)."""
         lobby = self.lobbies.get(lobby_id)
         if lobby is None:
             raise NotFoundError("Лобби не найдено", code="lobby_not_found")
-        source_member = self.lobbies.get_member(lobby.id, payload.source_character_id)
-        if source_member is None or (
-            source_member.user_id != user.id
-            and not roles.can_edit_wiki(self.db, lobby, user)
-        ):
-            raise AppError(
-                "Нельзя раздать эффект от этого персонажа",
-                code="forbidden",
-                status_code=403,
-            )
-
-        char_map = self.lobbies.get_characters_map(
-            [payload.source_character_id, *payload.target_character_ids]
-        )
-        source = char_map.get(payload.source_character_id)
-        if source is None:
-            raise NotFoundError("Персонаж-источник не найден", code="character_not_found")
+        self._require_own_lobby_source(user, lobby, payload.source_character_id)
 
         name = payload.name.strip()
         if not name:
             raise AppError("Укажите название эффекта", code="effect_name_required", status_code=400)
 
-        linked = bool(payload.linked_concentration)
-        source_combat = (
-            (source.sheet or {}).get("combat") if isinstance(source.sheet, dict) else None
-        )
-        source_conc = (
-            source_combat.get("concentration") if isinstance(source_combat, dict) else None
-        )
-        if linked and not _parse_concentration(source_conc):
-            linked = False
-
-        effect_extra: dict = {"name": name, "linked_concentration": linked}
-        if payload.kind:
-            effect_extra["kind"] = payload.kind
-        if payload.slug:
-            effect_extra["slug"] = payload.slug
-        if payload.origin:
-            effect_extra["origin"] = payload.origin
-        if payload.ac_bonus is not None:
-            effect_extra["ac_bonus"] = payload.ac_bonus
-        if payload.charges is not None:
-            effect_extra["charges"] = payload.charges
-        if payload.mods:
-            effect_extra["mods"] = [m.model_dump(exclude_none=True) for m in payload.mods]
-        if payload.duration is not None:
-            effect_extra["duration"] = payload.duration.model_dump(exclude_none=True)
-
-        applied = 0
-        touched: list[UUID] = []
+        # Только цели из этого лобби (стол).
+        lobby_targets: list[UUID] = []
         seen: set[UUID] = set()
         for target_id in payload.target_character_ids:
             if target_id in seen:
                 continue
             seen.add(target_id)
-            member = self.lobbies.get_member(lobby.id, target_id)
-            if member is None:
+            if self.lobbies.get_member(lobby.id, target_id) is None:
                 continue
-            target = char_map.get(target_id)
-            if target is None:
-                continue
-            append_effect(
-                target,
-                effect_id=str(uuid4()),
-                name=name,
-                source_character_id=str(payload.source_character_id),
-                source_name=source.name,
-                linked_concentration=linked,
-                effect=effect_extra,
-            )
-            applied += 1
-            touched.append(target_id)
+            lobby_targets.append(target_id)
+        if not lobby_targets:
+            detail = self.get(user, lobby_id)
+            return LobbyShareEffectResponse(applied=0, lobby=detail)
 
-        self.db.commit()
-        from app.services.sheet_effects import broadcast_sheet_effects_changed
+        from app.schemas.character import (
+            ActiveEffectIn,
+            ApplyEffectsRequest,
+            EffectDurationIn,
+            EffectModIn,
+        )
+        from app.services.character import CharacterService
 
-        await broadcast_sheet_effects_changed(self.lobbies, touched)
+        mods_in = [
+            EffectModIn.model_validate(m.model_dump(exclude_none=True))
+            for m in (payload.mods or [])
+        ]
+        duration_in = (
+            EffectDurationIn.model_validate(payload.duration.model_dump(exclude_none=True))
+            if payload.duration is not None
+            else None
+        )
+        effect = ActiveEffectIn(
+            name=name,
+            linked_concentration=bool(payload.linked_concentration),
+            kind=payload.kind,
+            slug=payload.slug,
+            origin=payload.origin,
+            ac_bonus=payload.ac_bonus,
+            charges=payload.charges,
+            mods=mods_in,
+            duration=duration_in,
+        )
+        apply_payload = ApplyEffectsRequest(
+            target_character_ids=lobby_targets,
+            effect=effect,
+            linked_concentration=bool(payload.linked_concentration),
+        )
+        result = await CharacterService(self.db).apply_effects(
+            user,
+            payload.source_character_id,
+            apply_payload,
+        )
         detail = self.get(user, lobby_id)
-        return LobbyShareEffectResponse(applied=applied, lobby=detail)
+        return LobbyShareEffectResponse(applied=result.applied, lobby=detail)
 
     async def award_piety(
         self,
@@ -4625,30 +4738,18 @@ class LobbyService:
         lobby = self.lobbies.get(lobby_id)
         if lobby is None:
             raise NotFoundError("Лобби не найдено", code="lobby_not_found")
-        source_member = self.lobbies.get_member(lobby.id, payload.source_character_id)
-        if source_member is None or (
-            source_member.user_id != user.id
-            and not roles.can_edit_wiki(self.db, lobby, user)
-        ):
-            raise AppError(
-                "Нельзя раздать эффект от этого персонажа",
-                code="forbidden",
-                status_code=403,
-            )
+        source = self._require_own_lobby_source(user, lobby, payload.source_character_id)
 
-        member_ids = [member.character_id for member in lobby.members]
-        char_map = self.lobbies.get_characters_map(member_ids)
-        source = char_map.get(payload.source_character_id)
-        if source is None:
-            raise NotFoundError("Персонаж-источник не найден", code="character_not_found")
-
-        by_target: dict[UUID, list[dict]] = {}
+        snapshot_rows: list[dict] = []
         for row in payload.effects:
             name = row.name.strip()
             if not name:
                 continue
+            # «Слуга-гомункул» на союзника не передаём.
+            slug = (row.slug or "").strip().lower()
+            if "homunculus" in slug or "гомункул" in name.lower():
+                continue
             bonus = int(row.ac_bonus)
-            slug = (row.slug or "").strip() or "enhanced_defense"
             kind = (row.kind or "").strip() or "infusion"
             mods: list[dict] = []
             if row.mods:
@@ -4671,38 +4772,37 @@ class LobbyService:
             effect_row: dict = {
                 "id": str(uuid4()),
                 "name": name,
+                "target_character_id": str(row.target_character_id),
                 "source_character_id": str(payload.source_character_id),
                 "source_name": source.name,
                 "linked_concentration": False,
                 "origin": INFUSION_ORIGIN,
                 "kind": kind,
-                "slug": slug,
+                "slug": (row.slug or "").strip() or "enhanced_defense",
                 "ac_bonus": bonus,
                 "mods": mods,
                 "duration": {"unit": "permanent"},
             }
             if row.charges is not None:
                 effect_row["charges"] = int(row.charges)
-            by_target.setdefault(row.target_character_id, []).append(effect_row)
+            snapshot_rows.append(effect_row)
 
+        # Снимок на листе источника — для догона, когда цель войдёт позже.
+        write_infusion_ally_share(source, snapshot_rows)
+
+        touched = self._apply_infusion_rows_to_lobby(
+            lobby=lobby,
+            source=source,
+            effect_rows=snapshot_rows,
+        )
         applied = 0
-        touched: list[UUID] = []
-        for character_id in member_ids:
-            if character_id == payload.source_character_id:
+        for row in snapshot_rows:
+            try:
+                tid = UUID(str(row.get("target_character_id")))
+            except (TypeError, ValueError):
                 continue
-            target = char_map.get(character_id)
-            if target is None:
-                continue
-            replacements = by_target.get(character_id, [])
-            changed = apply_infusion_effect_sync(
-                target,
-                source_id=str(payload.source_character_id),
-                source_name=source.name,
-                replacements=replacements,
-            )
-            if changed:
-                applied += len(replacements)
-                touched.append(character_id)
+            if tid in touched:
+                applied += 1
 
         self.db.commit()
         from app.services.sheet_effects import broadcast_sheet_effects_changed

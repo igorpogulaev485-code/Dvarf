@@ -36,6 +36,31 @@ ROUNDS_PER_MINUTE = 10
 ROUNDS_PER_HOUR = 600
 
 INFUSION_ORIGIN = "infusion"
+# L-20: снимок последней раздачи инфузий на союзников (лист изобретателя).
+INFUSION_ALLY_SHARE_KEY = "infusion_ally_share"
+
+
+def read_infusion_ally_share(sheet: object) -> list[dict]:
+    """Строки последней sync-раздачи инфузий с листа источника."""
+    if not isinstance(sheet, dict):
+        return []
+    raw = sheet.get(INFUSION_ALLY_SHARE_KEY)
+    if not isinstance(raw, list):
+        return []
+    out: list[dict] = []
+    for row in raw:
+        if isinstance(row, dict) and row.get("target_character_id"):
+            out.append(dict(row))
+    return out
+
+
+def write_infusion_ally_share(character: Character, rows: list[dict]) -> None:
+    """Сохранить снимок раздачи на лист источника (источник истины для догона)."""
+    sheet = dict(character.sheet or {})
+    sheet[INFUSION_ALLY_SHARE_KEY] = rows
+    character.sheet = sheet
+    character.sheet_version = int(character.sheet_version or 1) + 1
+    flag_modified(character, "sheet")
 
 
 def _duration_to_rounds(duration: dict) -> int | None:

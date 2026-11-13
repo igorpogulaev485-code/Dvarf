@@ -483,6 +483,7 @@ export function PlayDeskAttacksCompact({
           <TurnEconomyChips
             state={turnEco.turnEconomy}
             onToggle={turnEco.toggleMark}
+            onToggleMoved={turnEco.toggleMoved}
             className="chip-row"
           />
           <TurnEconomyCombatActions
@@ -490,6 +491,7 @@ export function PlayDeskAttacksCompact({
               hasCunningAction ||
               combatFeatures.some((f) => f.id === 'cunning_action')
             }
+            hasSteadyAim={combatFeatures.some((f) => f.id === 'steady_aim')}
             onOfferSkill={(key) => {
               const labels: Record<string, string> = {
                 investigation: 'Анализ',

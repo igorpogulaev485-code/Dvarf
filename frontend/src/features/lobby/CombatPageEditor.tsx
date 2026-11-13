@@ -432,8 +432,8 @@ function WaveBestiaryAdd({
   disabled?: boolean
   onAdd: (entry: CatalogEntry) => void
 }) {
+  /** L-20: живой поиск по имени как в AddCombatantDialog (не slug без подсказок). */
   const [query, setQuery] = useState('')
-  const [picked, setPicked] = useState<CatalogEntry | null>(null)
   return (
     <div className="inline-actions" style={{ alignItems: 'flex-end' }}>
       <Field label="Добавить из бестиария">
@@ -442,26 +442,16 @@ function WaveBestiaryAdd({
           edition="2014"
           value={query}
           disabled={disabled}
-          placeholder="Гоблин, огр…"
+          placeholder="Гоблин, огр, волк…"
+          commitOnSelect
           onChange={(label, entry) => {
             setQuery(label)
-            setPicked(entry)
+            if (!entry || disabled) return
+            onAdd(entry)
+            setQuery('')
           }}
         />
       </Field>
-      <Button
-        type="button"
-        variant="secondary"
-        disabled={disabled || !picked}
-        onClick={() => {
-          if (!picked) return
-          onAdd(picked)
-          setQuery('')
-          setPicked(null)
-        }}
-      >
-        + Добавить
-      </Button>
     </div>
   )
 }

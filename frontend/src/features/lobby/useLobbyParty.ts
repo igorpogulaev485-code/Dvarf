@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
-import { listCharacters } from '../../shared/api/characters'
-import { getLobby, listLobbies, type LobbyMember } from '../../shared/api/lobbies'
+import { getCharacter, listCharacters } from '../../shared/api/characters'
+import {
+  getLobby,
+  getSession,
+  listLobbies,
+  type LobbyMember,
+} from '../../shared/api/lobbies'
 
 export type AllyPickDemo = {
   lobbyName: string
@@ -13,10 +18,20 @@ export type PartyOption = {
   isSelf: boolean
 }
 
-/** Участники лобби текущего персонажа + собственные персонажи игрока (Р25). */
+type UseLobbyPartyOptions = {
+  /** Явный lobbyId (query со стола / проп / сессия). */
+  preferredLobbyId?: string | null
+}
+
+/**
+ * Участники лобби текущего персонажа + собственные персонажи игрока (Р25).
+ * L-20: не обходим все лобби серией getLobby и не берём «первое из списка».
+ * Текущее = preferredLobbyId → лобби открытой сессии персонажа → character.lobby_id.
+ */
 export function useLobbyParty(
   characterId: string | undefined,
   demo: AllyPickDemo | null = null,
+  opts: UseLobbyPartyOptions = {},
 ): {
   loading: boolean
   lobbyId: string | null
@@ -25,6 +40,7 @@ export function useLobbyParty(
   setLobbyId: (id: string | null) => void
   lobbies: Array<{ id: string; name: string }>
 } {
+  const preferredLobbyId = opts.preferredLobbyId ?? null
   const [lobbyId, setLobbyId] = useState<string | null>(demo ? 'demo-lobby' : null)
   const [lobbies, setLobbies] = useState<Array<{ id: string; name: string }>>([])
   const [members, setMembers] = useState<LobbyMember[]>([])
@@ -61,24 +77,65 @@ export function useLobbyParty(
     }
     let active = true
     setLoading(true)
-    Promise.all([listLobbies(), listCharacters()])
-      .then(async ([list, chars]) => {
+    Promise.all([getCharacter(characterId), listCharacters(), listLobbies()])
+      .then(async ([detail, chars, list]) => {
         if (!active) return
         setOwnChars(chars.map((c) => ({ id: c.id, name: c.name })))
-        const found: Array<{ id: string; name: string }> = []
-        for (const summary of list) {
-          const detail = await getLobby(summary.id)
-          if (!active) return
-          if (detail.members.some((m) => m.character_id === characterId)) {
-            found.push({ id: summary.id, name: summary.name })
+
+        let sessionLobbyId: string | null = null
+        const openSessionId = detail.open_session_id?.trim() || null
+        if (openSessionId) {
+          try {
+            const session = await getSession(openSessionId)
+            if (!active) return
+            if (session?.lobby_id) sessionLobbyId = session.lobby_id
+          } catch {
+            // сессия могла закрыться — падаем на lobby_id листа
           }
         }
+
+        const membershipId = detail.lobby_id?.trim() || null
+        // Кандидаты, где этот персонаж реально состоит (L-04: обычно один).
+        const candidateIds = new Set<string>()
+        if (membershipId) candidateIds.add(membershipId)
+        if (sessionLobbyId) candidateIds.add(sessionLobbyId)
+        if (preferredLobbyId) candidateIds.add(preferredLobbyId)
+
+        const found: Array<{ id: string; name: string }> = []
+        for (const summary of list) {
+          if (candidateIds.size > 0 && !candidateIds.has(summary.id)) continue
+          // Без серии getLobby по всем лобби: если кандидатов нет — не угадываем found[0].
+          if (candidateIds.size === 0) continue
+          found.push({ id: summary.id, name: summary.name })
+        }
+        // Если listLobbies ещё не знает имя, но id есть — добавим заглушку.
+        for (const id of candidateIds) {
+          if (!found.some((f) => f.id === id)) {
+            const fromList = list.find((s) => s.id === id)
+            found.push({ id, name: fromList?.name ?? 'Лобби' })
+          }
+        }
+
         if (!active) return
         setLobbies(found)
-        setLobbyId(found[0]?.id ?? null)
+
+        const resolved =
+          (preferredLobbyId && found.some((f) => f.id === preferredLobbyId)
+            ? preferredLobbyId
+            : null) ||
+          (sessionLobbyId && found.some((f) => f.id === sessionLobbyId)
+            ? sessionLobbyId
+            : null) ||
+          membershipId ||
+          (found.length === 1 ? found[0]!.id : null)
+
+        setLobbyId(resolved)
       })
       .catch(() => {
-        if (active) setLobbies([])
+        if (active) {
+          setLobbies([])
+          setLobbyId(null)
+        }
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -86,7 +143,7 @@ export function useLobbyParty(
     return () => {
       active = false
     }
-  }, [characterId, demo])
+  }, [characterId, demo, preferredLobbyId])
 
   useEffect(() => {
     if (demo || !lobbyId || !characterId) return

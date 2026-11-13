@@ -14,7 +14,9 @@ const MARKS: TurnEconomyMarkKey[] = [
 type Props = {
   state: TurnEconomyState
   onToggle: (mark: TurnEconomyMarkKey) => void
-  /** Visual-only «Движение» (Э2) — не кликается. */
+  /** L-20: кликабельная отметка «Движение» (для Точного прицеливания). */
+  onToggleMoved?: () => void
+  /** Visual-only stub, если нет onToggleMoved. */
   showMovementStub?: boolean
   className?: string
   chipClassName?: string
@@ -32,6 +34,7 @@ function isOn(state: TurnEconomyState, mark: TurnEconomyMarkKey): boolean {
 export function TurnEconomyChips({
   state,
   onToggle,
+  onToggleMoved,
   showMovementStub = false,
   className = 'chip-row',
   chipClassName = 'sheet-chip',
@@ -58,12 +61,34 @@ export function TurnEconomyChips({
           </button>
         )
       })}
-      {showMovementStub ? (
+      {onToggleMoved ? (
+        <button
+          type="button"
+          className={`${chipClassName}${state.moved ? ' is-on' : ''}`}
+          aria-pressed={state.moved}
+          title={
+            state.moved
+              ? 'Уже двигался — нажмите, чтобы снять'
+              : 'Отметить перемещение в этот ход'
+          }
+          onClick={onToggleMoved}
+        >
+          Движение
+        </button>
+      ) : showMovementStub ? (
         <span
           className={`${chipClassName} is-stub`}
           title="Перемещение не учитываем (пока нет онлайн-карты)"
         >
           Движение
+        </span>
+      ) : null}
+      {state.steadyAim ? (
+        <span
+          className={`${chipClassName} is-on`}
+          title="Точное прицеливание: преимущество на следующую атаку, скорость 0"
+        >
+          Прицел
         </span>
       ) : null}
     </div>

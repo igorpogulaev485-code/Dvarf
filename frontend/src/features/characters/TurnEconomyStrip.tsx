@@ -21,6 +21,8 @@ type Props = {
   diceLockedByMaster: boolean
   onDiceOnTableChange: (next: boolean) => void
   hasCunningAction?: boolean
+  hasSteadyAim?: boolean
+  onToggleMoved?: () => void
   onOfferSkill?: (skillKey: 'investigation' | 'perception' | 'stealth') => void
 }
 
@@ -43,6 +45,8 @@ export function TurnEconomyStrip({
   diceLockedByMaster,
   onDiceOnTableChange,
   hasCunningAction = false,
+  hasSteadyAim = false,
+  onToggleMoved,
   onOfferSkill,
 }: Props) {
   // Вне боя: без полоски «Твой ход», только «Новый ход» + личные кубики.
@@ -99,7 +103,11 @@ export function TurnEconomyStrip({
       </div>
 
       <div className="turn-economy-strip__row">
-        <TurnEconomyChips state={turnEconomy} onToggle={onToggleMark} />
+        <TurnEconomyChips
+          state={turnEconomy}
+          onToggle={onToggleMark}
+          onToggleMoved={yourTurn ? onToggleMoved : undefined}
+        />
         {yourTurn ? (
           <Button type="button" variant="secondary" onClick={onBeginTurn}>
             Начало моего хода
@@ -128,6 +136,7 @@ export function TurnEconomyStrip({
       {yourTurn ? (
         <TurnEconomyCombatActions
           hasCunningAction={hasCunningAction}
+          hasSteadyAim={hasSteadyAim}
           onOfferSkill={onOfferSkill}
         />
       ) : null}

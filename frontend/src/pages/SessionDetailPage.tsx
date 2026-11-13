@@ -2277,6 +2277,7 @@ export function SessionDetailPage() {
         open={effectOpen}
         seats={session.seats}
         combatants={session.combatants ?? []}
+        ownCharacterIds={ownCharacterIds}
         preferredSourceId={
           session.seats.find((s) => ownCharacterIds.has(s.character_id))?.character_id ??
           null
