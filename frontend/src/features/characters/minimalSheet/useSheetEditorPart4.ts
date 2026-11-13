@@ -319,6 +319,13 @@ export function useSheetEditorPart4(model: SheetModel) {
   } | null>(null)
   model.pendingFamiliar = pendingFamiliar
   model.setPendingFamiliar = setPendingFamiliar
+  const [pendingCreaturePick, setPendingCreaturePick] = useState<{
+    spell: SheetSpell
+    slotLevel: number
+    kind: import('../CompanionCreaturePickDialog').CompanionCreaturePickKind
+  } | null>(null)
+  model.pendingCreaturePick = pendingCreaturePick
+  model.setPendingCreaturePick = setPendingCreaturePick
   const [deskCastScrollId, setDeskCastScrollId] = useState<string | null>(null)
   model.deskCastScrollId = deskCastScrollId
   const [deskScrollLock, setDeskScrollLock] = useState<{

@@ -15,6 +15,7 @@ import {
 import {
   conjureAnimalsCounts,
   conjureFeyCrMax,
+  conjureWoodlandOrMinorCounts,
   tceSpiritStats,
 } from '../../shared/dnd/summonSpellPreview'
 import { proficiencyBonusForLevel } from './spells'
@@ -387,36 +388,67 @@ const SUMMON_SPELL_TEMPLATES: Record<
     const counts = conjureAnimalsCounts(slot)
     return conjureGroupTemplate(
       'Призванные звери',
-      `Призыв животных · ячейка ${slot} · множитель ×${counts.multiplier}: КР≤2 → ${counts.cr2}, КР≤1 → ${counts.cr1}, КР≤½ → ${counts.crHalf}, КР≤¼ → ${counts.crQuarter}. Статы зверей — у Мастера`,
+      `Призыв животных · ячейка ${slot} · множитель ×${counts.multiplier}: КР≤2 → ${counts.cr2}, КР≤1 → ${counts.cr1}, КР≤½ → ${counts.crHalf}, КР≤¼ → ${counts.crQuarter}. Выбери зверей в пикере (только по типу и КР)`,
     )
   },
-  conjure_woodland_beings: () =>
-    conjureGroupTemplate(
+  conjure_woodland_beings: (ctx) => {
+    const slot = Math.max(4, Math.floor(ctx.slotLevel ?? 4))
+    const counts = conjureWoodlandOrMinorCounts(slot)
+    return conjureGroupTemplate(
       'Лесные обитатели',
-      'Conjure Woodland Beings: варианты КР. Статы — бестиарий/Мастер',
-    ),
-  conjure_minor_elementals: () =>
-    conjureGroupTemplate(
+      `Призыв лесных обитателей · ячейка ${slot} · множитель ×${counts.multiplier}: КР≤2 → ${counts.cr2}, КР≤1 → ${counts.cr1}, КР≤½ → ${counts.crHalf}, КР≤¼ → ${counts.crQuarter}. Выбери существо в пикере (только феи по КР)`,
+    )
+  },
+  conjure_minor_elementals: (ctx) => {
+    const slot = Math.max(4, Math.floor(ctx.slotLevel ?? 4))
+    const counts = conjureWoodlandOrMinorCounts(slot)
+    return conjureGroupTemplate(
       'Малые элементали',
-      'Conjure Minor Elementals: варианты КР. Статы — бестиарий/Мастер',
-    ),
-  conjure_elemental: () =>
-    conjureGroupTemplate(
+      `Призыв малых элементалей · ячейка ${slot} · множитель ×${counts.multiplier}: КР≤2 → ${counts.cr2}, КР≤1 → ${counts.cr1}, КР≤½ → ${counts.crHalf}, КР≤¼ → ${counts.crQuarter}. Выбери существо в пикере`,
+    )
+  },
+  conjure_elemental: (ctx) => {
+    const slot = Math.max(5, Math.floor(ctx.slotLevel ?? 5))
+    return conjureGroupTemplate(
       'Призванный элементаль',
-      'Conjure Elemental: один элементаль КР≤5 (выше ячейкой). Статы — бестиарий',
-    ),
+      `Призыв элементаля · ячейка ${slot} · один элементаль КР≤${5 + Math.max(0, slot - 5)}. Выбери в пикере`,
+    )
+  },
   conjure_fey: (ctx) => {
     const slot = Math.max(6, Math.floor(ctx.slotLevel ?? 6))
     const cr = conjureFeyCrMax(slot)
     return conjureGroupTemplate(
       'Призванная фея',
-      `Призыв феи · ячейка ${slot} · одно существо КР≤${cr} (база 6, +1 за круг выше 6). Статы — бестиарий`,
+      `Призыв феи · ячейка ${slot} · одно существо КР≤${cr} (база 6, +1 за круг выше 6). Выбери в пикере`,
     )
   },
-  conjure_celestial: () =>
-    conjureGroupTemplate(
+  conjure_celestial: (ctx) => {
+    const slot = Math.max(7, Math.floor(ctx.slotLevel ?? 7))
+    const cr = slot >= 9 ? 5 : 4
+    return conjureGroupTemplate(
       'Призванный небожитель',
-      'Conjure Celestial: КР≤4 (7-й+ → КР≤5). Статы — бестиарий',
+      `Призыв небожителя · ячейка ${slot} · КР≤${cr}. Выбери в пикере`,
+    )
+  },
+  find_steed: () =>
+    conjureGroupTemplate(
+      'Скакун',
+      'Поиск скакуна: выбери облик в пикере (боевой конь, пони, верблюд, лось, мастифф)',
+    ),
+  find_greater_steed: () =>
+    conjureGroupTemplate(
+      'Высший скакун',
+      'Поиск высшего скакуна: выбери облик в пикере (грифон, пегас, …)',
+    ),
+  animate_dead: () =>
+    conjureGroupTemplate(
+      'Нежить',
+      'Восставший труп: выбери скелет или зомби и число по ячейке',
+    ),
+  create_undead: () =>
+    conjureGroupTemplate(
+      'Нежить',
+      'Сотворение нежити (только ночью): выбери тип и число по ячейке',
     ),
   summon_greater_demon: () =>
     conjureGroupTemplate(

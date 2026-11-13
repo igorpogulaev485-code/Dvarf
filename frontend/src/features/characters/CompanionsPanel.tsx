@@ -699,11 +699,54 @@ export function CompanionsPanel({
                 {!selfForm ? (
                   <Stack gap={8}>
                     <Text tone="muted">{companionCombatSummary(row)}</Text>
+                    {row.pack ? (
+                      <Text tone="muted">
+                        Пачка: {row.pack.alive_count}/{row.pack.member_count} живых · хиты{' '}
+                        {row.pack.member_hp.map((hp) => (hp > 0 ? '●' : '○')).join(' ')}
+                        {row.pack.member_hp.length < row.pack.alive_count
+                          ? ''
+                          : ` (${row.pack.member_hp.join('/')})`}
+                      </Text>
+                    ) : null}
+                    {row.undead_control ? (
+                      <span className="attack-held-tag">
+                        {row.undead_control.controlled
+                          ? row.undead_control.labelRu
+                          : 'без контроля'}
+                      </span>
+                    ) : null}
                     {row.story ? (
                       <span className="attack-held-tag is-on">сюжетный</span>
                     ) : null}
                     {row.turnMarks?.dodge ? (
                       <span className="attack-held-tag">Уклонение</span>
+                    ) : null}
+                    {(row.steed_spirit_type ||
+                      row.source?.feature?.includes('find_steed') ||
+                      row.source?.feature?.includes('mount:') ||
+                      row.id.includes(':mount:')) &&
+                    row.active ? (
+                      <label className="chip-row">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(row.mounted)}
+                          onChange={(e) => {
+                            onChange(
+                              companions.map((c) =>
+                                c.id === row.id
+                                  ? { ...c, mounted: e.target.checked }
+                                  : c,
+                              ),
+                            )
+                          }}
+                        />
+                        <Text>
+                          Верхом
+                          {row.mounted
+                            ? ' · скакун: только Рывок / Отход / Уклонение; заклинания «на себя» — и на скакуна'
+                            : ''}
+                        </Text>
+                      </label>
                     ) : null}
                     <div className="chip-row">
                       <span className="attack-held-tag">

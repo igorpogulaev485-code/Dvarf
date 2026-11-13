@@ -320,6 +320,23 @@ def _parse_companions(raw: object) -> list[dict]:
         turn_marks = item.get("turnMarks")
         if isinstance(turn_marks, dict):
             dodge = bool(turn_marks.get("dodge"))
+        # C-03 pack companions («Волк ×8»)
+        pack_raw = item.get("pack") if isinstance(item.get("pack"), dict) else None
+        pack_alive = None
+        pack_members = None
+        pack_member_hp = None
+        if pack_raw:
+            if isinstance(pack_raw.get("alive_count"), int):
+                pack_alive = int(pack_raw["alive_count"])
+            if isinstance(pack_raw.get("member_count"), int):
+                pack_members = int(pack_raw["member_count"])
+            if isinstance(pack_raw.get("member_hp"), list):
+                pack_member_hp = [
+                    int(v)
+                    for v in pack_raw["member_hp"]
+                    if isinstance(v, (int, float))
+                ]
+        mounted = bool(item.get("mounted")) if item.get("mounted") is not None else False
         row = {
             "id": cid,
             "name": name,
@@ -348,6 +365,10 @@ def _parse_companions(raw: object) -> list[dict]:
             "attack_damage": str(item.get("attack_damage") or "").strip() or None,
             "attack_damage_type": str(item.get("attack_damage_type") or "").strip() or None,
             "attack_range_kind": str(item.get("attack_range_kind") or "").strip() or None,
+            "alive_count": pack_alive,
+            "member_count": pack_members,
+            "member_hp": pack_member_hp,
+            "mounted": mounted,
         }
         out.append(row)
     return out

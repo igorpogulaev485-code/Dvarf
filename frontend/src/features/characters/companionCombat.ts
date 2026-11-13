@@ -9,6 +9,7 @@ import {
   deriveLegacyControl,
   emptyCompanionTurnMarks,
   isSelfForm,
+  isSteedCompanion,
   readCompanionTurnMarks,
   type CompanionCommandCost,
   type CompanionEntry,
@@ -19,6 +20,12 @@ import {
   resolveCombatModesOnRead,
 } from './companions'
 import { isPermanentCompanionSlot, isWildfireSpiritCompanion } from './companionBackfill'
+import {
+  applyDamageToCompanionPack,
+  companionPackHpTotal,
+  healCompanionPack,
+  syncCompanionNameWithPack,
+} from './companionPack'
 
 export type {
   CompanionInitiativeMode,
@@ -81,10 +88,22 @@ export function isStoryCompanion(row: CompanionEntry): boolean {
   return Boolean(row.story)
 }
 
-/** Death saves at 0 HP: story always; PHB beast / primal / drake — no (пал). */
+/** Death saves at 0 HP: story always; gear mounts (living item); PHB beast / primal / drake — no (пал). */
 export function companionUsesDeathSaves(row: CompanionEntry): boolean {
   if (isSelfForm(row)) return false
   if (isStoryCompanion(row)) return true
+  // C-03: bought mount from gear — living, death saves (C03-4).
+  if (
+    row.source?.kind === 'item' &&
+    row.nature === 'living' &&
+    (row.id.startsWith('gear-companion:mount:') ||
+      /скакун|лошад|конь|пони|верблюд|мастиф/i.test(row.source.labelRu + row.name))
+  ) {
+    return true
+  }
+  if (row.source?.kind === 'item' && row.nature === 'living' && row.id.includes(':mount:')) {
+    return true
+  }
   if (
     row.kind === 'beast_companion' ||
     row.kind === 'primal_companion' ||
@@ -93,6 +112,26 @@ export function companionUsesDeathSaves(row: CompanionEntry): boolean {
     return false
   }
   return false
+}
+
+/** C-03: while mounted, steed may only Dash / Disengage / Dodge. */
+export function steedMountedActionOptions(row: CompanionEntry): string[] | null {
+  if (!row.mounted) return null
+  const isMount =
+    isSteedCompanion(row) ||
+    row.source?.kind === 'item' ||
+    row.id.includes(':mount:')
+  if (!isMount) return null
+  return ['Рывок', 'Отход', 'Уклонение']
+}
+
+export function steedSharesSelfOnlySpells(row: CompanionEntry): boolean {
+  if (!row.mounted) return false
+  return (
+    isSteedCompanion(row) ||
+    row.source?.kind === 'item' ||
+    row.id.includes(':mount:')
+  )
 }
 
 /**
@@ -107,6 +146,55 @@ export function applyCompanionHpChange(
     return { ...row, stats: { ...row.stats, hp } }
   }
   const nextHp = Math.max(0, Math.floor(hp))
+
+  // C-03 pack: map total HP change onto member dots.
+  if (row.pack) {
+    const curTotal = companionPackHpTotal(row.pack)
+    if (nextHp >= curTotal) {
+      const healedPack = healCompanionPack(row.pack, nextHp - curTotal)
+      // Revive only up to current alive; full revive uses resize elsewhere.
+      const synced = syncCompanionNameWithPack({
+        ...row,
+        pack: healedPack,
+        active: healedPack.alive_count > 0,
+        death: healedPack.alive_count > 0 ? null : row.death,
+      })
+      return synced
+    }
+    const damaged = applyDamageToCompanionPack(row.pack, curTotal - nextHp)
+    const synced = syncCompanionNameWithPack({
+      ...row,
+      pack: damaged,
+      death: null,
+    })
+    if (damaged.alive_count > 0) {
+      return { ...synced, active: true }
+    }
+    // Pack wiped — same as 0 HP on the card.
+    if (companionUsesDeathSaves(row)) {
+      return {
+        ...synced,
+        active: false,
+        stats: { ...synced.stats, hp: 0 },
+        death: row.death ?? { successes: 0, failures: 0 },
+      }
+    }
+    if (isPermanentCompanionSlot(row) || isWildfireSpiritCompanion(row)) {
+      return {
+        ...synced,
+        active: false,
+        stats: { ...synced.stats, hp: 0 },
+        death: null,
+      }
+    }
+    return {
+      ...synced,
+      active: false,
+      stats: { ...synced.stats, hp: 0 },
+      death: null,
+    }
+  }
+
   if (nextHp > 0) {
     const healed = applyHpChange(row, nextHp)
     return {
@@ -131,13 +219,14 @@ export function applyCompanionHpChange(
     }
   }
 
-  // Permanent slot (spirit, defender, drake, beast, cannon, …): fallen, stay on strip.
+  // Permanent slot (spirit, defender, drake, beast, cannon, steed, …): fallen, stay on strip.
   if (isPermanentCompanionSlot(row) || isWildfireSpiritCompanion(row)) {
     return {
       ...row,
       active: false,
       stats: { ...row.stats, hp: 0 },
       death: null,
+      mounted: false,
     }
   }
 

@@ -13,7 +13,9 @@ import {
   type CompanionTemplatePatch,
 } from './companionTemplates'
 import {
+  isHomunculusCompanion,
   isSelfForm,
+  isSteedCompanion,
   type CompanionEntry,
 } from './companions'
 
@@ -38,6 +40,8 @@ export function isWildfireSpiritCompanion(row: CompanionEntry): boolean {
 /** Permanent slot stays on the strip even when inactive («не призван»). */
 export function isPermanentCompanionSlot(row: CompanionEntry): boolean {
   if (isSelfForm(row)) return false
+  // C-03: Find Steed / Homunculus Servant keep the strip slot when fallen.
+  if (isSteedCompanion(row) || isHomunculusCompanion(row)) return true
   if (row.source?.kind === 'spell') return false
   if (row.source?.kind === 'subclass' || row.source?.kind === 'feature') return true
   if (row.source?.kind === 'class') return true

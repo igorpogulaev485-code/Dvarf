@@ -50,10 +50,41 @@ export function conjureAnimalsCounts(slotLevel: number): ConjureAnimalsCount {
   }
 }
 
+/** PHB Conjure Woodland Beings / Minor Elementals: ×2 at 6th, ×3 at 8th. */
+export function conjureWoodlandOrMinorMultiplier(slotLevel: number): number {
+  const slot = Math.max(4, Math.floor(slotLevel) || 4)
+  if (slot >= 8) return 3
+  if (slot >= 6) return 2
+  return 1
+}
+
+export function conjureWoodlandOrMinorCounts(slotLevel: number): ConjureAnimalsCount {
+  const multiplier = conjureWoodlandOrMinorMultiplier(slotLevel)
+  return {
+    multiplier,
+    cr2: 1 * multiplier,
+    cr1: 2 * multiplier,
+    crHalf: 4 * multiplier,
+    crQuarter: 8 * multiplier,
+  }
+}
+
 /** PHB Conjure Fey: CR 6, +1 for each slot level above 6th. */
 export function conjureFeyCrMax(slotLevel: number): number {
   const slot = slotOf(slotLevel, 6)
   return 6 + Math.max(0, slot - 6)
+}
+
+/** PHB Conjure Elemental: CR 5, +1 per slot above 5th. */
+export function conjureElementalCrMax(slotLevel: number): number {
+  const slot = slotOf(slotLevel, 5)
+  return 5 + Math.max(0, slot - 5)
+}
+
+/** PHB Conjure Celestial: CR ≤4, CR ≤5 at 9th. */
+export function conjureCelestialCrMax(slotLevel: number): number {
+  const slot = slotOf(slotLevel, 7)
+  return slot >= 9 ? 5 : 4
 }
 
 export type TceSpiritStats = {
@@ -133,10 +164,29 @@ function spiritPreview(stats: TceSpiritStats, slot: number): SummonPreview {
   }
 }
 
-function kindFromName(name: string): 'animals' | 'fey' | 'beast' | 'spirit-fey' | 'elemental' | null {
+function kindFromName(
+  name: string,
+):
+  | 'animals'
+  | 'woodland'
+  | 'minor-elementals'
+  | 'elemental-phb'
+  | 'celestial-phb'
+  | 'fey'
+  | 'beast'
+  | 'spirit-fey'
+  | 'elemental'
+  | null {
   const key = normName(name)
   if (!key) return null
   if (key.includes('призыв животных') || key.includes('conjure animals')) return 'animals'
+  if (key.includes('призыв лесных') || key.includes('conjure woodland')) return 'woodland'
+  if (key.includes('малых элементал') || key.includes('conjure minor elemental'))
+    return 'minor-elementals'
+  if (key.includes('призыв элементаля') || key.includes('conjure elemental'))
+    return 'elemental-phb'
+  if (key.includes('призыв небожителя') || key.includes('conjure celestial'))
+    return 'celestial-phb'
   if (key.includes('призыв духа зверя') || key.includes('summon beast')) return 'beast'
   if (key.includes('призыв духа феи') || key.includes('summon fey')) return 'spirit-fey'
   if (key.includes('призыв духа стихии') || key.includes('summon elemental')) return 'elemental'
@@ -151,9 +201,13 @@ export function summonCastPreview(
 ): SummonPreview | null {
   const kind = kindFromName(spell.name ?? '')
   if (!kind) return null
-  if (kind === 'animals') {
-    const slot = slotOf(slotLevel, 3)
-    const counts = conjureAnimalsCounts(slot)
+  if (kind === 'animals' || kind === 'woodland' || kind === 'minor-elementals') {
+    const min = kind === 'animals' ? 3 : 4
+    const slot = slotOf(slotLevel, min)
+    const counts =
+      kind === 'animals'
+        ? conjureAnimalsCounts(slot)
+        : conjureWoodlandOrMinorCounts(slot)
     return {
       effect: `×${counts.multiplier}: ${counts.cr2}/${counts.cr1}/${counts.crHalf}/${counts.crQuarter}`,
       scaled: counts.multiplier > 1,
@@ -177,6 +231,24 @@ export function summonCastPreview(
         'База заклинания — КР 6; +1 за каждый круг ячейки выше 6-го',
         'Одна фея или дух в облике зверя. Карточка берёт предел ячейки, не базовый КР',
       ],
+    }
+  }
+  if (kind === 'elemental-phb') {
+    const slot = slotOf(slotLevel, 5)
+    const cr = conjureElementalCrMax(slot)
+    return {
+      effect: `один элементаль, КР ≤${cr}`,
+      scaled: cr > 5,
+      lines: [`Ячейка ${slot}: предел КР ≤${cr}`, 'При срыве концентрации — враждебен 1 час'],
+    }
+  }
+  if (kind === 'celestial-phb') {
+    const slot = slotOf(slotLevel, 7)
+    const cr = conjureCelestialCrMax(slot)
+    return {
+      effect: `один небожитель, КР ≤${cr}`,
+      scaled: cr > 4,
+      lines: [`Ячейка ${slot}: предел КР ≤${cr}`],
     }
   }
   const spirit =

@@ -6,6 +6,7 @@ import { healCompanionsOnRest } from '../companionCombat'
 import { applyConcentrationChangeToCompanions } from '../spellCompanions'
 import { SpellFormDialog } from '../SpellFormDialog'
 import { FamiliarPickDialog } from '../FamiliarPickDialog'
+import { CompanionCreaturePickDialog } from '../CompanionCreaturePickDialog'
 import { spendFeatureUse } from '../../../shared/dnd/featureResources'
 import { FeatureSelfFormDialog, type FeatureSelfFormDialogResult } from '../FeatureSelfFormDialog'
 import { shapechangerFormLimits } from '../featureForms'
@@ -417,6 +418,34 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           onClose={() => {
             model.setPendingFamiliar(null)
             model.onToast('Фамильяр не выбран — каст уже списан; можно кастануть снова')
+          }}
+        />
+      ) : null}
+
+      {model.pendingCreaturePick ? (
+        <CompanionCreaturePickDialog
+          open
+          kind={model.pendingCreaturePick.kind}
+          spell={model.pendingCreaturePick.spell}
+          slotLevel={model.pendingCreaturePick.slotLevel}
+          companions={model.draft.companions}
+          edition={model.rulesEdition === '2024' ? '2024' : '2014'}
+          undeadThralls={Boolean(
+            model.draft.classes.some((row) => {
+              if (!/волшебник|wizard/i.test(row.name)) return false
+              if (row.level < 6) return false
+              const slug = model.subclassSlugByEntryId?.[row.id] || ''
+              return slug === 'school_of_necromancy' || /некромант/i.test(row.subclass_name || '')
+            }),
+          )}
+          wizardLevel={
+            model.draft.classes.find((row) => /волшебник|wizard/i.test(row.name))?.level ?? 1
+          }
+          proficiencyBonus={model.proficiencyBonus ?? 2}
+          onConfirm={model.applyCreaturePickResult}
+          onClose={() => {
+            model.setPendingCreaturePick(null)
+            model.onToast('Существо не выбрано — каст уже списан; можно кастануть снова')
           }}
         />
       ) : null}

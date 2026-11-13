@@ -66,3 +66,29 @@ def test_sheet_companions_raw_preserves_extra_fields():
     raw = _sheet_companions_raw(sheet)
     assert raw[0]["story"] is True
     assert raw[0]["notes"] == "keep me"
+
+
+def test_parse_companions_c03_pack_and_mounted():
+    raw = [
+        {
+            "id": "p1",
+            "name": "Волк ×2",
+            "active": True,
+            "initiativeMode": "own_initiative",
+            "commandCost": "none",
+            "mounted": False,
+            "stats": {"hp": 22, "hp_max": 22, "ac": 13},
+            "pack": {
+                "member_count": 2,
+                "alive_count": 2,
+                "member_hp": [11, 11],
+                "unit_name_ru": "Волк",
+                "unit_hp_max": 11,
+            },
+        }
+    ]
+    out = _parse_companions(raw)
+    assert out[0]["alive_count"] == 2
+    assert out[0]["member_count"] == 2
+    assert out[0]["member_hp"] == [11, 11]
+    assert out[0]["mounted"] is False

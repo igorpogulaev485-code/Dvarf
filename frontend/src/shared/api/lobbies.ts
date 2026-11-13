@@ -521,6 +521,11 @@ export type SeatCompanion = {
   attack_damage?: string | null
   attack_damage_type?: string | null
   attack_range_kind?: string | null
+  /** C-03 pack */
+  alive_count?: number | null
+  member_count?: number | null
+  member_hp?: number[] | null
+  mounted?: boolean
 }
 
 export type SeatConcentration = {
