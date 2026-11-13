@@ -9,8 +9,14 @@ import {
 } from '../features/onboarding'
 import { getMe } from '../shared/api/auth'
 import { getCharacter, type CharacterDetail } from '../shared/api/characters'
+import { parseCharacterInOtherLobby } from '../features/lobby/joinConflict'
 import { ApiRequestError } from '../shared/api/client'
-import { joinLobby } from '../shared/api/lobbies'
+import {
+  getLobbyInviteMeta,
+  joinLobby,
+  type CharacterInOtherLobbyData,
+  type JoinLobbyAction,
+} from '../shared/api/lobbies'
 import {
   Button,
   Dialog,
@@ -48,6 +54,8 @@ export function CharacterDetailPage() {
   const [lobbyOpen, setLobbyOpen] = useState(false)
   const [lobbyCode, setLobbyCode] = useState('')
   const [lobbyError, setLobbyError] = useState<string | null>(null)
+  const [lobbyName, setLobbyName] = useState<string | null>(null)
+  const [lobbyConflict, setLobbyConflict] = useState<CharacterInOtherLobbyData | null>(null)
   const [joining, setJoining] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
   const moreRef = useRef<HTMLDivElement | null>(null)
@@ -170,7 +178,32 @@ export function CharacterDetailPage() {
     setLobbyOpen(false)
     setLobbyCode('')
     setLobbyError(null)
+    setLobbyName(null)
+    setLobbyConflict(null)
   }
+
+  useEffect(() => {
+    if (!lobbyOpen || lobbyCode.trim().length < 4) {
+      setLobbyName(null)
+      return
+    }
+    let active = true
+    getLobbyInviteMeta(lobbyCode.trim())
+      .then((meta) => {
+        if (!active) return
+        setLobbyName(meta.name)
+      })
+      .catch((err: unknown) => {
+        if (!active) return
+        setLobbyName(null)
+        if (err instanceof ApiRequestError && err.status === 404) {
+          setLobbyError('Код лобби не найден')
+        }
+      })
+    return () => {
+      active = false
+    }
+  }, [lobbyOpen, lobbyCode])
 
   useEffect(() => {
     if (!moreOpen) return
@@ -190,18 +223,24 @@ export function CharacterDetailPage() {
     }
   }, [moreOpen])
 
-  async function joinWithCode() {
+  async function joinWithCode(action: JoinLobbyAction = 'join') {
     if (!character || !lobbyCode.trim()) return
     setJoining(true)
     setLobbyError(null)
     try {
-      const lobby = await joinLobby(lobbyCode.trim(), character.id)
+      const lobby = await joinLobby(lobbyCode.trim(), character.id, action)
+      setLobbyConflict(null)
       setLobbyCode('')
       setLobbyOpen(false)
       navigate(`/lobbies/${lobby.id}`, {
         state: { toast: `${character.name} добавлен в лобби` },
       })
     } catch (err) {
+      const parsed = parseCharacterInOtherLobby(err)
+      if (parsed && action === 'join') {
+        setLobbyConflict(parsed)
+        return
+      }
       setLobbyError(err instanceof ApiRequestError ? err.message : 'Не удалось войти в лобби')
     } finally {
       setJoining(false)
@@ -358,22 +397,62 @@ export function CharacterDetailPage() {
       <Dialog
         open={lobbyOpen}
         title="Вступить в лобби кодом"
-        primaryLabel={joining ? 'Добавляем…' : 'Добавить этого персонажа'}
+        primaryLabel={
+          lobbyConflict
+            ? joining
+              ? '…'
+              : 'Перевести сюда'
+            : joining
+              ? 'Добавляем…'
+              : 'Добавить этого персонажа'
+        }
         secondaryLabel="Отмена"
-        onPrimary={() => void joinWithCode()}
+        onPrimary={() =>
+          void joinWithCode(lobbyConflict ? 'transfer' : 'join')
+        }
         onSecondary={closeLobbyDialog}
         busy={joining}
-        primaryDisabled={!lobbyCode.trim()}
+        primaryDisabled={
+          !lobbyCode.trim() || Boolean(lobbyConflict && !lobbyConflict.can_transfer)
+        }
       >
         <Stack gap={10}>
           <Field label="Код от мастера" hint="Или отсканируйте QR → /join/КОД">
             <Input
               value={lobbyCode}
-              onChange={(e) => setLobbyCode(e.target.value.toUpperCase())}
+              onChange={(e) => {
+                setLobbyCode(e.target.value.toUpperCase())
+                setLobbyConflict(null)
+              }}
               placeholder="ABC123"
               autoComplete="off"
             />
           </Field>
+          {lobbyName ? (
+            <Text>
+              Вход в лобби «{lobbyName}»
+            </Text>
+          ) : null}
+          {lobbyConflict ? (
+            <Stack gap={8}>
+              <Text>
+                Этот персонаж уже в лобби «{lobbyConflict.other_lobby_name}». Перевести сюда?
+              </Text>
+              {!lobbyConflict.can_transfer ? (
+                <Text tone="danger">
+                  Дождитесь конца сессии в лобби «{lobbyConflict.other_lobby_name}».
+                </Text>
+              ) : null}
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={joining}
+                onClick={() => void joinWithCode('copy')}
+              >
+                Копировать персонажа
+              </Button>
+            </Stack>
+          ) : null}
           {lobbyError ? <Text tone="danger">{lobbyError}</Text> : null}
         </Stack>
       </Dialog>

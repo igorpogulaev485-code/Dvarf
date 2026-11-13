@@ -1,9 +1,15 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
+import { parseCharacterInOtherLobby } from '../features/lobby/joinConflict'
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError, getAccessToken } from '../shared/api/client'
-import { joinLobby } from '../shared/api/lobbies'
+import {
+  getLobbyInviteMeta,
+  joinLobby,
+  type CharacterInOtherLobbyData,
+  type JoinLobbyAction,
+} from '../shared/api/lobbies'
 import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
 import { Button, EmptyState, Field, Input, Panel, Stack, Text } from '../ui'
 
@@ -25,6 +31,9 @@ export function JoinLobbyPage() {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [lobbyName, setLobbyName] = useState<string | null>(null)
+  const [metaError, setMetaError] = useState<string | null>(null)
+  const [conflict, setConflict] = useState<CharacterInOtherLobbyData | null>(null)
 
   const codeReady = code.trim().length >= 4
   const selected = useMemo(
@@ -61,8 +70,35 @@ export function JoinLobbyPage() {
     }
   }, [code, navigate, routeCode])
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault()
+  useEffect(() => {
+    if (!getAccessToken() || !codeReady) {
+      setLobbyName(null)
+      setMetaError(null)
+      return
+    }
+    let active = true
+    const trimmed = code.trim()
+    getLobbyInviteMeta(trimmed)
+      .then((meta) => {
+        if (!active) return
+        setLobbyName(meta.name)
+        setMetaError(null)
+      })
+      .catch((err: unknown) => {
+        if (!active) return
+        setLobbyName(null)
+        if (err instanceof ApiRequestError && err.status === 404) {
+          setMetaError('Код лобби не найден')
+          return
+        }
+        setMetaError(err instanceof ApiRequestError ? err.message : 'Не удалось проверить код')
+      })
+    return () => {
+      active = false
+    }
+  }, [code, codeReady])
+
+  async function doJoin(action: JoinLobbyAction) {
     if (!characterId) {
       setError('Выберите персонажа')
       return
@@ -74,13 +110,25 @@ export function JoinLobbyPage() {
     setBusy(true)
     setError(null)
     try {
-      const lobby = await joinLobby(code.trim(), characterId)
+      const lobby = await joinLobby(code.trim(), characterId, action)
+      setConflict(null)
       navigate(`/lobbies/${lobby.id}`, { state: { toast: 'Персонаж добавлен в лобби' } })
     } catch (err) {
+      const parsed = parseCharacterInOtherLobby(err)
+      if (parsed && action === 'join') {
+        setConflict(parsed)
+        setError(null)
+        return
+      }
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось войти в лобби')
     } finally {
       setBusy(false)
     }
+  }
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault()
+    await doJoin('join')
   }
 
   async function onJoinAsObserver() {
@@ -90,6 +138,7 @@ export function JoinLobbyPage() {
     }
     setBusy(true)
     setError(null)
+    setConflict(null)
     try {
       const lobby = await joinLobby(code.trim(), null)
       navigate(`/lobbies/${lobby.id}`, { state: { toast: 'Вы вошли как наблюдатель' } })
@@ -118,7 +167,10 @@ export function JoinLobbyPage() {
                 <Input
                   className="join-flow__code"
                   value={code}
-                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  onChange={(e) => {
+                    setCode(e.target.value.toUpperCase())
+                    setConflict(null)
+                  }}
                   placeholder="ABC123"
                   autoCapitalize="characters"
                   autoCorrect="off"
@@ -143,7 +195,11 @@ export function JoinLobbyPage() {
                   {codeReady ? (
                     <div className="join-flow__preview" aria-live="polite">
                       <Text as="h3" className="join-flow__preview-title">
-                        Стол по коду {code.trim()}
+                        {lobbyName
+                          ? `Вход в лобби «${lobbyName}»`
+                          : metaError
+                            ? metaError
+                            : `Проверяем код ${code.trim()}…`}
                       </Text>
                       <Text tone="muted">
                         Выберите персонажа и подтвердите вход — мастер увидит его в лобби.
@@ -158,7 +214,10 @@ export function JoinLobbyPage() {
                       <select
                         className="ui-input join-flow__select"
                         value={characterId}
-                        onChange={(e) => setCharacterId(e.target.value)}
+                        onChange={(e) => {
+                          setCharacterId(e.target.value)
+                          setConflict(null)
+                        }}
                         required
                       >
                         {characters.map((c) => (
@@ -182,7 +241,10 @@ export function JoinLobbyPage() {
                             role="option"
                             aria-selected={active}
                             className={`join-char-card${active ? ' is-selected' : ''}`}
-                            onClick={() => setCharacterId(c.id)}
+                            onClick={() => {
+                              setCharacterId(c.id)
+                              setConflict(null)
+                            }}
                           >
                             <span className="join-char-card__avatar" aria-hidden="true">
                               {(c.name || '?').slice(0, 1).toUpperCase()}
@@ -203,11 +265,49 @@ export function JoinLobbyPage() {
                     </Text>
                   ) : null}
 
-                  <div className="join-thumb-cta">
-                    <Button type="submit" disabled={busy || !codeReady || !characterId}>
-                      {busy ? 'Входим…' : 'Сесть за стол'}
-                    </Button>
-                  </div>
+                  {conflict ? (
+                    <Stack gap={10} className="join-flow__conflict">
+                      <Text>
+                        Этот персонаж уже в лобби «{conflict.other_lobby_name}». Перевести сюда?
+                      </Text>
+                      {!conflict.can_transfer ? (
+                        <Text tone="danger">
+                          Дождитесь конца сессии в лобби «{conflict.other_lobby_name}».
+                        </Text>
+                      ) : null}
+                      <div className="join-thumb-cta" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <Button
+                          type="button"
+                          disabled={busy || !conflict.can_transfer}
+                          onClick={() => void doJoin('transfer')}
+                        >
+                          Перевести сюда
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={busy}
+                          onClick={() => void doJoin('copy')}
+                        >
+                          Копировать персонажа
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          disabled={busy}
+                          onClick={() => setConflict(null)}
+                        >
+                          Отмена
+                        </Button>
+                      </div>
+                    </Stack>
+                  ) : (
+                    <div className="join-thumb-cta">
+                      <Button type="submit" disabled={busy || !codeReady || !characterId || !!metaError}>
+                        {busy ? 'Входим…' : 'Сесть за стол'}
+                      </Button>
+                    </div>
+                  )}
                 </form>
               )}
 
@@ -219,7 +319,7 @@ export function JoinLobbyPage() {
                 <Button
                   type="button"
                   variant="secondary"
-                  disabled={busy || !codeReady}
+                  disabled={busy || !codeReady || !!metaError}
                   onClick={() => void onJoinAsObserver()}
                 >
                   Войти без персонажа (наблюдатель)

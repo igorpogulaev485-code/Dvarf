@@ -246,9 +246,30 @@ export type SessionSummary = {
   setting_name: string | null
   name: string
   seat_count: number
+  /** L-04: персонажи за столом (открытой сессии) */
+  seat_character_ids?: string[]
   closed_at?: string | null
   created_at: string
   updated_at: string
+}
+
+export type InviteMeta = {
+  code: string
+  name: string
+  valid: boolean
+}
+
+export type JoinLobbyAction = 'join' | 'transfer' | 'copy'
+
+export type RemoveLobbyMemberPayload = {
+  combat_fate?: 'release' | 'retain' | null
+  delete_personal_notes?: boolean
+}
+
+export type CharacterInOtherLobbyData = {
+  other_lobby_id: string
+  other_lobby_name: string
+  can_transfer: boolean
 }
 
 export type LobbyMediaKind = 'journal' | 'wiki' | 'map' | 'other'
@@ -704,15 +725,21 @@ export async function rotateLobbyInviteCode(lobbyId: string): Promise<LobbyDetai
   })
 }
 
+export async function getLobbyInviteMeta(code: string): Promise<InviteMeta> {
+  return apiRequest<InviteMeta>(`/lobbies/invite/${encodeURIComponent(code.trim())}`)
+}
+
 export async function joinLobby(
   code: string,
   characterId?: string | null,
+  action: JoinLobbyAction = 'join',
 ): Promise<LobbyDetail> {
   return apiRequest<LobbyDetail>('/lobbies/join', {
     method: 'POST',
     body: JSON.stringify({
       code,
       character_id: characterId || undefined,
+      action,
     }),
   })
 }
@@ -872,9 +899,14 @@ export async function shareLobbyEffect(
 export async function removeLobbyMember(
   lobbyId: string,
   characterId: string,
+  payload?: RemoveLobbyMemberPayload,
 ): Promise<LobbyDetail> {
   return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/members/${characterId}`, {
     method: 'DELETE',
+    body: JSON.stringify({
+      combat_fate: payload?.combat_fate ?? null,
+      delete_personal_notes: payload?.delete_personal_notes ?? false,
+    }),
   })
 }
 

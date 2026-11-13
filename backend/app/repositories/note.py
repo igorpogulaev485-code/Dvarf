@@ -49,3 +49,25 @@ class NoteRepository:
     def delete(self, note: Note) -> None:
         self.db.delete(note)
         self.db.flush()
+
+    def list_personal_for_author(self, lobby_id: UUID, user_id: UUID) -> list[Note]:
+        """Личные заметки автора в лобби (ключ возврата — author + lobby, без character_id)."""
+        return list(
+            self.db.scalars(
+                select(Note)
+                .where(
+                    Note.lobby_id == lobby_id,
+                    Note.author_user_id == user_id,
+                    Note.scope == "personal",
+                )
+                .order_by(Note.updated_at.desc())
+            ).all()
+        )
+
+    def delete_personal_for_author(self, lobby_id: UUID, user_id: UUID) -> int:
+        notes = self.list_personal_for_author(lobby_id, user_id)
+        for note in notes:
+            self.db.delete(note)
+        if notes:
+            self.db.flush()
+        return len(notes)

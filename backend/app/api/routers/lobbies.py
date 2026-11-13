@@ -33,7 +33,9 @@ from app.schemas.lobby import (
     CombatantPatchRequest,
     CombatantStudyRequest,
     CombatantStudyResolveRequest,
+    InviteMetaOut,
     JoinLobbyRequest,
+    RemoveLobbyMemberRequest,
     EncounterGenerateRequest,
     EncounterGenerateResult,
     InventoryTransferRequest,
@@ -169,13 +171,25 @@ def create_lobby(
     return LobbyService(db).create(current_user, payload)
 
 
+@router.get("/lobbies/invite/{code}", response_model=InviteMetaOut)
+def lobby_invite_meta(
+    code: str,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> InviteMetaOut:
+    """Имя лобби по коду до входа в состав. can_view_lobby не требуется."""
+    return LobbyService(db).invite_meta(current_user, code)
+
+
 @router.post("/lobbies/join", response_model=LobbyDetail)
-def join_lobby(
+async def join_lobby(
     payload: JoinLobbyRequest,
     current_user: CurrentUser,
     db: DbSession,
 ) -> LobbyDetail:
-    return LobbyService(db).join_with_character(current_user, payload)
+    detail = LobbyService(db).join_with_character(current_user, payload)
+    await lobby_hub.broadcast(detail.id, {"type": "lobby_resync"})
+    return detail
 
 
 @router.post("/lobbies/{lobby_id}/roles", response_model=LobbyDetail)
@@ -414,13 +428,21 @@ async def sync_lobby_infusion_effects(
 
 
 @router.delete("/lobbies/{lobby_id}/members/{character_id}", response_model=LobbyDetail)
-def remove_lobby_member(
+async def remove_lobby_member(
     lobby_id: UUID,
     character_id: UUID,
     current_user: CurrentUser,
     db: DbSession,
+    payload: RemoveLobbyMemberRequest | None = None,
 ) -> LobbyDetail:
-    return LobbyService(db).remove_member(current_user, lobby_id, character_id)
+    detail = LobbyService(db).remove_member(
+        current_user,
+        lobby_id,
+        character_id,
+        payload,
+    )
+    await lobby_hub.broadcast(lobby_id, {"type": "lobby_resync"})
+    return detail
 
 
 @router.post("/lobbies/{lobby_id}/settings", response_model=SettingSummary, status_code=201)
@@ -566,13 +588,15 @@ def delete_setting(
 
 
 @router.post("/lobbies/{lobby_id}/sessions", response_model=SessionDetail, status_code=201)
-def create_session(
+async def create_session(
     lobby_id: UUID,
     payload: SessionCreateRequest,
     current_user: CurrentUser,
     db: DbSession,
 ) -> SessionDetail:
-    return LobbyService(db).create_session(current_user, lobby_id, payload)
+    detail = LobbyService(db).create_session(current_user, lobby_id, payload)
+    await lobby_hub.broadcast(lobby_id, {"type": "lobby_resync"})
+    return detail
 
 
 @router.get("/sessions/{session_id}", response_model=SessionDetail)
@@ -849,7 +873,10 @@ async def patch_session_combat(
     current_user: CurrentUser,
     db: DbSession,
 ) -> SessionDetail:
-    return await LobbyService(db).patch_combat(current_user, session_id, payload)
+    detail = await LobbyService(db).patch_combat(current_user, session_id, payload)
+    if payload.action == "end":
+        await lobby_hub.broadcast(detail.lobby_id, {"type": "lobby_resync"})
+    return detail
 
 
 @router.post(
@@ -953,13 +980,15 @@ def list_session_events(
     "/sessions/{session_id}/close",
     response_model=SessionCloseResponse,
 )
-def close_session(
+async def close_session(
     session_id: UUID,
     payload: SessionCloseRequest,
     current_user: CurrentUser,
     db: DbSession,
 ) -> SessionCloseResponse:
-    return LobbyService(db).close_session(current_user, session_id, payload)
+    result = LobbyService(db).close_session(current_user, session_id, payload)
+    await lobby_hub.broadcast(result.session.lobby_id, {"type": "lobby_resync"})
+    return result
 
 
 @router.get("/lobbies/{lobby_id}/journal", response_model=JournalPageOut)

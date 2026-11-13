@@ -45,6 +45,15 @@ class CharacterRepository:
             )
         )
 
+    def list_names_for_user(self, user_id: UUID) -> list[str]:
+        rows = self.db.scalars(
+            select(Character.name).where(
+                Character.user_id == user_id,
+                Character.deleted_at.is_(None),
+            )
+        ).all()
+        return [str(n) for n in rows]
+
     def create(
         self,
         *,

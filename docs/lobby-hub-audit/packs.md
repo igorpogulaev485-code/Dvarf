@@ -38,5 +38,20 @@
 | L03-5 | «Новый код» у владельца | `POST /lobbies/{id}/invite-code` + `require_can_change_invite_code` + WS lobby_resync | API + roles + hub | L-03 | сделано |
 | L03-6 | Удаление с вводом названия + purge медиа | DELETE body `confirm_name`, `purge_lobby_media_dir` | lobby service + media + Dialog | L-03 | сделано |
 | L03-7 | Заготовки боёв не трогать | рабочие ссылки не найдены (уже S-01) | — | L-03 | уже было |
-| L-04 | Состав / выход | не делали | — | L-04 | перенесено |
-| L-05 | Скачать заметки | крючок-комментарий у удаления | LobbyDetailPage | L-05 | перенесено |
+| L-04 | Состав / выход | сделано в L-04 | см. раздел L-04 | L-04 | сделано |
+| L-05 | Скачать заметки | крючок-комментарий у удаления; L-04 даёт мин. скачать/удалить при выходе | LobbyDetailPage / LeaveOrKickDialog | L-05 | перенесено |
+
+## L-04 — Состав, один персонаж — одно лобби, выход
+
+| ID | Ожидалось | Фактически | Где | Пачка | Статус |
+|---|---|---|---|---|---|
+| L04-1 | Вход показывает имя лобби | `GET /lobbies/invite/{code}` + UI на Join и диалоге листа | routers + JoinLobbyPage + CharacterDetailPage | L-04 | сделано |
+| L04-2 | Один персонаж — одно лобби; перевод/блок сессии | unique `character_id`, join action transfer, 409 + data | migration + lobby service | L-04 | сделано |
+| L04-3 | Копия персонажа с суффиксом | `action=copy`, deepcopy sheet, имя « (копия)» | lobby service | L-04 | сделано |
+| L04-4 | Живой состав/сессии на хабе | `lobby_resync` на join/remove/session create/close/combat end; seat_character_ids | hub + LobbyDetailPage | L-04 | сделано |
+| L04-5 | Покинуть лобби + заметки | кнопка, диалог Скачать/Удалить, блок при сессии | LeaveOrKickDialog | L-04 | сделано |
+| L04-6 | Кик владельца с подтверждением и судьбой в бою | require_owner; release/retain + retained_after_kick | remove_member + session_seats | L-04 | сделано |
+| L04-7 | Возврат по коду тянет заметки | заметки не удаляются сами; ключ author+lobby | note repo + join | L-04 | сделано |
+| L-05 | Полный экспорт/редактор заметок | только мин. скачать/удалить при выходе | — | L-05 | перенесено |
+| S-05 | Стороны в бою | крючок side_hook / retained_after_kick | session_seats + combat entry | S-05 | перенесено |
+| L-16 | Копия под правила старта | не расширяли | — | L-16 | перенесено |

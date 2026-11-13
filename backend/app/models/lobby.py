@@ -141,6 +141,8 @@ class LobbyMember(Base):
     __tablename__ = "lobby_members"
     __table_args__ = (
         UniqueConstraint("lobby_id", "character_id", name="uq_lobby_members_lobby_character"),
+        # L-04: персонаж не более чем в одном лобби.
+        UniqueConstraint("character_id", name="uq_lobby_members_character"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -310,5 +312,8 @@ class SessionSeat(Base):
         server_default=func.now(),
         nullable=False,
     )
+    # L-04 / крючок S-05: после кика из состава место держим до конца боя.
+    # Значения: None | "until_combat_end". Сторону в бою S-05 выставит позже.
+    retained_after_kick: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
     session: Mapped[PlaySession] = relationship(back_populates="seats")

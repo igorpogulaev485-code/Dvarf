@@ -1,17 +1,25 @@
 export type ApiError = {
   detail?: string | unknown[]
   code?: string
+  data?: Record<string, unknown>
 }
 
 export class ApiRequestError extends Error {
   status: number
   code?: string
+  data?: Record<string, unknown>
 
-  constructor(message: string, status: number, code?: string) {
+  constructor(
+    message: string,
+    status: number,
+    code?: string,
+    data?: Record<string, unknown>,
+  ) {
     super(message)
     this.name = 'ApiRequestError'
     this.status = status
     this.code = code
+    this.data = data
   }
 }
 
@@ -228,7 +236,7 @@ export async function apiRequest<T>(
   const data = (await response.json().catch(() => ({}))) as ApiError & T
 
   if (!response.ok) {
-    throw new ApiRequestError(errorMessage(data), response.status, data.code)
+    throw new ApiRequestError(errorMessage(data), response.status, data.code, data.data)
   }
 
   return data
