@@ -6,7 +6,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppError, ConflictError
-from app.models.character import Character
+from app.models.character import Character, RulesEdition
 from app.models.user import User
 from app.repositories.character import CharacterRepository
 from app.repositories.lobby import LobbyRepository
@@ -149,6 +149,14 @@ class CharacterService:
         return [to_summary(item) for item in self.characters.list_for_user(user.id)]
 
     def create(self, user: User, payload: CharacterCreateRequest) -> CharacterDetail:
+        # FIX-hide2024: создание 2024 закрыто до готовности редакции (полный флаг — P24-01).
+        edition = payload.rules_edition
+        if edition == RulesEdition.edition_2024 or edition == "2024":
+            raise AppError(
+                "Редакция 2024 ещё не открыта",
+                code="rules_edition_closed",
+                status_code=400,
+            )
         name = (payload.name or "Новый персонаж").strip() or "Новый персонаж"
         character = self.characters.create(
             user_id=user.id,
