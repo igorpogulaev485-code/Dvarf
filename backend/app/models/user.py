@@ -4,8 +4,10 @@ import enum
 import uuid
 from datetime import datetime
 
+from typing import Any
+
 from sqlalchemy import DateTime, Enum, ForeignKey, String, UniqueConstraint, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -39,6 +41,12 @@ class User(Base):
         String(16),
         nullable=False,
         default="identity",
+    )
+    # ONB-03 — durable tip progress (welcome/segment/tours); NULL = never synced.
+    onboarding: Mapped[dict[str, Any] | None] = mapped_column(
+        JSONB,
+        nullable=True,
+        default=None,
     )
     email_verified_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),

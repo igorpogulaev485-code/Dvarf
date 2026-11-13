@@ -5,6 +5,7 @@ import {
   CharacterReadyDialog,
   HelpDrawer,
   SheetTour,
+  WelcomeDialog,
   useOnboardingState,
 } from '../features/onboarding'
 import { getMe } from '../shared/api/auth'
@@ -81,6 +82,7 @@ export function CharacterDetailPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [helpOpen, setHelpOpen] = useState(false)
   const [tourArmed, setTourArmed] = useState(false)
+  const [welcomeSessionHide, setWelcomeSessionHide] = useState(false)
   const onboarding = useOnboardingState(userId)
   const closeToast = useCallback(() => setToastState(null), [])
 
@@ -416,7 +418,14 @@ export function CharacterDetailPage() {
         }}
       />
       <SheetTour
-        open={Boolean(character) && !loading && tourArmed && !onboarding.showReadyBridge}
+        open={
+          Boolean(character) &&
+          !loading &&
+          tourArmed &&
+          onboarding.showSheetTour &&
+          !onboarding.showReadyBridge &&
+          !onboarding.showWelcome
+        }
         onComplete={() => {
           onboarding.completeSheetTour()
           setTourArmed(false)
@@ -426,7 +435,35 @@ export function CharacterDetailPage() {
           setTourArmed(false)
         }}
       />
-      <HelpDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <WelcomeDialog
+        open={
+          Boolean(userId) &&
+          onboarding.showWelcome &&
+          onboarding.hydrated &&
+          !welcomeSessionHide
+        }
+        onChoose={(segment) => {
+          setWelcomeSessionHide(false)
+          onboarding.completeWelcome(segment)
+          if (segment !== 'skip') {
+            onboarding.armSheetTour()
+            setTourArmed(true)
+          } else {
+            setTourArmed(false)
+          }
+        }}
+        onDismiss={() => setWelcomeSessionHide(true)}
+      />
+      <HelpDrawer
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        onRestartTips={() => {
+          setWelcomeSessionHide(false)
+          onboarding.restartTips()
+          onboarding.markHelpOpened()
+          setTourArmed(true)
+        }}
+      />
 
       <Dialog
         open={lobbyOpen}

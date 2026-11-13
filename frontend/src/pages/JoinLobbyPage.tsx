@@ -212,7 +212,7 @@ export function JoinLobbyPage() {
           {loading ? (
             <Text tone="muted">Загрузка…</Text>
           ) : (
-            <Stack gap={16}>
+            <Stack gap={16} data-onboarding="lobby-join">
               <Field label="Код лобби">
                 <Input
                   className="join-flow__code"

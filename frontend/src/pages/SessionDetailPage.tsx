@@ -52,6 +52,8 @@ import { normalizeCampaignRules } from '../features/lobby/campaignRules'
 import { targetsFromSession } from '../features/lobby/combatTargets'
 import { MoraleCheckDialog } from '../features/characters/O04MasterRulesDialogs'
 import { normalizeVisibilityProfile } from '../features/lobby/visibilityProfile'
+import { LobbyTour, useOnboardingState } from '../features/onboarding'
+import { getMe } from '../shared/api/auth'
 import { getCharacter, listCharacters } from '../shared/api/characters'
 import {
   emptyTurnEconomy,
@@ -259,6 +261,8 @@ export function SessionDetailPage() {
   const navigate = useNavigate()
   const [session, setSession] = useState<SessionDetail | null>(null)
   const [ownCharacterIds, setOwnCharacterIds] = useState<Set<string>>(() => new Set())
+  const [userId, setUserId] = useState<string | null>(null)
+  const onboarding = useOnboardingState(userId)
   const [ownTurnEconomy, setOwnTurnEconomy] = useState<TurnEconomyState>(() =>
     emptyTurnEconomy(),
   )
@@ -337,6 +341,20 @@ export function SessionDetailPage() {
   const isOwnerRef = useRef(false)
   /** T5: ?page= из дневника — открыть превью один раз */
   const pageDeepLinkDone = useRef(false)
+
+  useEffect(() => {
+    let active = true
+    void getMe()
+      .then((me) => {
+        if (active) setUserId(me.id)
+      })
+      .catch(() => {
+        if (active) setUserId(null)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
@@ -1133,7 +1151,10 @@ export function SessionDetailPage() {
             <div
               className={`session-live-desk${sidePanelOpen ? '' : ' is-side-collapsed'} is-mobile-tab-${liveTab}`}
             >
-              <div className="session-live-desk__rail session-live-desk__desktop-only">
+              <div
+                className="session-live-desk__rail session-live-desk__desktop-only"
+                data-onboarding="lobby-initiative"
+              >
                 <div className="session-live-desk__rail-head">
                   <Text as="h3">Инициатива и лента</Text>
                 </div>
@@ -1315,9 +1336,13 @@ export function SessionDetailPage() {
               >
                 <Stack gap={12}>
                   {!session.closed_at && seatCandidates.length > 0 && !canRun ? (
-                    <div className="session-center-slot session-center-slot--cta session-seat-cta">
+                    <div
+                      className="session-center-slot session-center-slot--cta session-seat-cta"
+                      data-onboarding="lobby-seat"
+                    >
                       <Button
                         type="button"
+                        data-onboarding="lobby-seat-cta"
                         disabled={busy}
                         onClick={() => {
                           if (seatCandidates.length === 1) {
@@ -1345,6 +1370,7 @@ export function SessionDetailPage() {
                     <div
                       className="session-center-slot session-center-slot--turn session-your-turn-banner"
                       role="status"
+                      data-onboarding="lobby-your-turn-banner"
                     >
                       Твой ход
                     </div>
@@ -1353,6 +1379,7 @@ export function SessionDetailPage() {
                     <div
                       className="session-center-slot session-center-slot--master-hint session-master-mobile-hint"
                       role="note"
+                      data-onboarding="lobby-master-hint"
                     >
                       Удобнее с компьютера — здесь основные действия боя
                     </div>
@@ -1396,7 +1423,10 @@ export function SessionDetailPage() {
                     />
                   </div>
                   {!session.closed_at && canRun ? (
-                  <div className="session-center-slot session-center-slot--toolbar session-table-toolbar session-table-toolbar--master">
+                  <div
+                    className="session-center-slot session-center-slot--toolbar session-table-toolbar session-table-toolbar--master"
+                    data-onboarding="lobby-master-toolbar"
+                  >
                     <div className="session-toolbar-group session-toolbar-group--primary" aria-label="Бой">
                       <Text className="session-toolbar-group__label">Бой</Text>
                       {!session.combat?.active ? (
@@ -3521,6 +3551,13 @@ export function SessionDetailPage() {
           </Link>
         </div>
       ) : null}
+
+      <LobbyTour
+        open={Boolean(session) && onboarding.showLobbyTour && onboarding.hydrated}
+        isMaster={Boolean(session && sessionCanRun(session))}
+        onComplete={() => onboarding.completeLobbyTour()}
+        onSkip={() => onboarding.skipLobbyTour()}
+      />
     </main>
   )
 }

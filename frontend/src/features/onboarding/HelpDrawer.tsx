@@ -25,9 +25,10 @@ const PANEL_ORDER: OnboardingPanelId[] = [
 type HelpDrawerProps = {
   open: boolean
   onClose: () => void
+  onRestartTips?: () => void
 }
 
-export function HelpDrawer({ open, onClose }: HelpDrawerProps) {
+export function HelpDrawer({ open, onClose, onRestartTips }: HelpDrawerProps) {
   useEffect(() => {
     if (!open) return
     const release = acquireBodyScrollLock()
@@ -70,6 +71,23 @@ export function HelpDrawer({ open, onClose }: HelpDrawerProps) {
         </header>
         <div className="onboarding-drawer__body">
           <Stack gap={16}>
+            {onRestartTips ? (
+              <section className="onboarding-drawer__restart">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    onRestartTips()
+                    onClose()
+                  }}
+                >
+                  {HELP_DRAWER.restartTips}
+                </Button>
+                <Text tone="muted" className="onboarding-drawer__muted">
+                  {HELP_DRAWER.restartTipsHint}
+                </Text>
+              </section>
+            ) : null}
+
             <section>
               <Text as="h3" className="onboarding-drawer__section">
                 {HELP_DRAWER.mapTitle}
@@ -84,6 +102,28 @@ export function HelpDrawer({ open, onClose }: HelpDrawerProps) {
             </section>
 
             <section>
+              <Text as="h3" className="onboarding-drawer__section">
+                {HELP_DRAWER.knowledgeTitle}
+              </Text>
+              <ul className="onboarding-drawer__list onboarding-drawer__knowledge">
+                {HELP_DRAWER.knowledge.map((row) => (
+                  <li key={row.id}>
+                    {row.status === 'anchor' && 'href' in row && row.href ? (
+                      <a href={row.href} className="onboarding-drawer__knowledge-link">
+                        {row.label}
+                      </a>
+                    ) : (
+                      <>
+                        <span>{row.label}</span>{' '}
+                        <span className="onboarding-drawer__soon">скоро</span>
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section id="onboarding-help-panels">
               <Text as="h3" className="onboarding-drawer__section">
                 Блоки листа
               </Text>
@@ -100,7 +140,7 @@ export function HelpDrawer({ open, onClose }: HelpDrawerProps) {
               </ul>
             </section>
 
-            <section>
+            <section id="onboarding-help-terms">
               <Text as="h3" className="onboarding-drawer__section">
                 {HELP_DRAWER.termsTitle}
               </Text>

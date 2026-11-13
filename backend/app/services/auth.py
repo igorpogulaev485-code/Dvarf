@@ -37,10 +37,27 @@ from app.schemas.auth import (
     RevokeSessionsResponse,
     TokenResponse,
 )
-from app.schemas.user import UserResponse, UserUpdateRequest
+from app.schemas.user import OnboardingStatePayload, UserResponse, UserUpdateRequest
 from app.services.oauth.base import OAuthProfile
 
 logger = logging.getLogger(__name__)
+
+
+def normalize_onboarding_payload(raw: object | None) -> OnboardingStatePayload | None:
+    """Parse stored JSONB / PATCH body into a stable payload; None if empty/unset."""
+    if raw is None:
+        return None
+    if isinstance(raw, OnboardingStatePayload):
+        return raw
+    if not isinstance(raw, dict):
+        return None
+    if not raw:
+        return None
+    try:
+        return OnboardingStatePayload.model_validate(raw)
+    except Exception:
+        logger.warning("Ignoring invalid users.onboarding payload")
+        return None
 
 
 def serialize_user(user: User) -> UserResponse:
@@ -50,6 +67,7 @@ def serialize_user(user: User) -> UserResponse:
         theme_id = "wis"
     if ability_colors not in {"identity", "theme"}:
         ability_colors = "identity"
+    onboarding = normalize_onboarding_payload(getattr(user, "onboarding", None))
     return UserResponse(
         id=user.id,
         email=user.email,
@@ -60,6 +78,7 @@ def serialize_user(user: User) -> UserResponse:
         avatar_url=user.avatar_url,
         theme_id=theme_id,  # type: ignore[arg-type]
         ability_colors=ability_colors,  # type: ignore[arg-type]
+        onboarding=onboarding,
         email_verified_at=user.email_verified_at,
         created_at=user.created_at,
         updated_at=user.updated_at,
@@ -435,6 +454,19 @@ class AuthService:
             self.db.add(user)
         if "ability_colors" in data and data["ability_colors"] is not None:
             user.ability_colors = data["ability_colors"]
+            self.db.add(user)
+        if "onboarding" in data:
+            # Explicit null clears server progress (e.g. «Показать подсказки снова»).
+            raw = data["onboarding"]
+            if raw is None:
+                user.onboarding = None
+            elif isinstance(raw, OnboardingStatePayload):
+                user.onboarding = raw.model_dump(mode="json")
+            elif isinstance(raw, dict):
+                parsed = normalize_onboarding_payload(raw)
+                user.onboarding = parsed.model_dump(mode="json") if parsed else None
+            else:
+                user.onboarding = None
             self.db.add(user)
         self.db.commit()
         loaded = self.users.get_by_id(user_id)

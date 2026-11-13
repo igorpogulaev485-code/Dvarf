@@ -4,7 +4,9 @@ import {
   ONBOARDING_STORAGE_KEY,
   type OnboardingPanelId,
   type OnboardingSegment,
+  type OnboardingServerPayload,
   type OnboardingState,
+  toServerPayload,
 } from './types'
 
 function storageKey(userId?: string | null): string {
@@ -16,7 +18,7 @@ function isPanelId(value: unknown): value is OnboardingPanelId {
   return typeof value === 'string' && value.length > 0
 }
 
-function isSegment(value: unknown): value is OnboardingSegment {
+export function isSegment(value: unknown): value is OnboardingSegment {
   return value === 'dnd_new' || value === 'product_new' || value === 'skip'
 }
 
@@ -34,12 +36,14 @@ export function loadOnboardingState(userId?: string | null): OnboardingState {
       createHintVersion:
         typeof parsed.createHintVersion === 'number' ? parsed.createHintVersion : 0,
       sheetTourDone: Boolean(parsed.sheetTourDone),
+      lobbyTourDone: Boolean(parsed.lobbyTourDone),
       dismissedPanelHelp: Array.isArray(parsed.dismissedPanelHelp)
         ? parsed.dismissedPanelHelp.filter(isPanelId)
         : [],
       helpOpened: Boolean(parsed.helpOpened),
       pendingReadyBridge: Boolean(parsed.pendingReadyBridge),
       pendingSheetTour: Boolean(parsed.pendingSheetTour),
+      pendingLobbyTour: Boolean(parsed.pendingLobbyTour),
     }
   } catch {
     return defaultOnboardingState()
@@ -71,6 +75,7 @@ export function mergeOnboardingState(
   secondary: OnboardingState,
 ): OnboardingState {
   const sheetTourDone = primary.sheetTourDone || secondary.sheetTourDone
+  const lobbyTourDone = primary.lobbyTourDone || secondary.lobbyTourDone
   const dismissed = new Set([...primary.dismissedPanelHelp, ...secondary.dismissedPanelHelp])
   return {
     version: 1,
@@ -78,12 +83,15 @@ export function mergeOnboardingState(
     welcomeDone: primary.welcomeDone || secondary.welcomeDone,
     createHintVersion: Math.max(primary.createHintVersion, secondary.createHintVersion),
     sheetTourDone,
+    lobbyTourDone,
     dismissedPanelHelp: Array.from(dismissed),
     helpOpened: primary.helpOpened || secondary.helpOpened,
     pendingReadyBridge:
       !sheetTourDone && (primary.pendingReadyBridge || secondary.pendingReadyBridge),
     pendingSheetTour:
       !sheetTourDone && (primary.pendingSheetTour || secondary.pendingSheetTour),
+    pendingLobbyTour:
+      !lobbyTourDone && (primary.pendingLobbyTour || secondary.pendingLobbyTour),
   }
 }
 
@@ -101,8 +109,10 @@ export function loadOnboardingStateForUser(userId?: string | null): OnboardingSt
     anon.welcomeDone === anonDefault.welcomeDone &&
     anon.createHintVersion === anonDefault.createHintVersion &&
     anon.sheetTourDone === anonDefault.sheetTourDone &&
+    anon.lobbyTourDone === anonDefault.lobbyTourDone &&
     anon.pendingReadyBridge === anonDefault.pendingReadyBridge &&
     anon.pendingSheetTour === anonDefault.pendingSheetTour &&
+    anon.pendingLobbyTour === anonDefault.pendingLobbyTour &&
     anon.helpOpened === anonDefault.helpOpened &&
     anon.dismissedPanelHelp.length === 0
   if (anonUntouched) return named
@@ -122,3 +132,88 @@ export function shouldRunSheetTour(state: OnboardingState): boolean {
   if (state.sheetTourDone) return false
   return state.pendingSheetTour
 }
+
+export function shouldRunLobbyTour(state: OnboardingState): boolean {
+  if (state.segment === 'skip') return false
+  if (state.lobbyTourDone) return false
+  // First visit: run when never done. After «Показать снова» pendingLobbyTour arms it.
+  return true
+}
+
+export function isServerOnboardingEmpty(
+  server: OnboardingServerPayload | null | undefined,
+): boolean {
+  if (!server) return true
+  return (
+    !server.welcomeDone &&
+    server.segment == null &&
+    !server.sheetTourDone &&
+    !server.lobbyTourDone
+  )
+}
+
+export function hasLocalDurableProgress(state: OnboardingState): boolean {
+  return (
+    state.welcomeDone ||
+    state.segment != null ||
+    state.sheetTourDone ||
+    state.lobbyTourDone ||
+    state.createHintVersion > 0
+  )
+}
+
+/**
+ * After `/auth/me`: server is source of truth for durable flags.
+ * Empty server + local progress → keep local and upload once.
+ * Session pending* flags stay local.
+ */
+export function applyServerOnboarding(
+  local: OnboardingState,
+  server: OnboardingServerPayload | null | undefined,
+): { state: OnboardingState; shouldUpload: boolean } {
+  if (isServerOnboardingEmpty(server)) {
+    if (hasLocalDurableProgress(local)) {
+      return { state: local, shouldUpload: true }
+    }
+    return { state: local, shouldUpload: false }
+  }
+  const sheetTourDone = Boolean(server!.sheetTourDone)
+  const lobbyTourDone = Boolean(server!.lobbyTourDone)
+  const segment = isSegment(server!.segment) ? server!.segment : local.segment
+  return {
+    state: {
+      ...local,
+      welcomeDone: Boolean(server!.welcomeDone),
+      segment,
+      sheetTourDone,
+      lobbyTourDone,
+      createHintVersion:
+        typeof server!.createHintVersion === 'number'
+          ? Math.max(local.createHintVersion, server!.createHintVersion)
+          : local.createHintVersion,
+      helpOpened: server!.helpOpened ? true : local.helpOpened,
+      pendingReadyBridge: !sheetTourDone && local.pendingReadyBridge,
+      pendingSheetTour: !sheetTourDone && local.pendingSheetTour,
+      pendingLobbyTour: !lobbyTourDone && local.pendingLobbyTour,
+    },
+    shouldUpload: false,
+  }
+}
+
+/** Reset tours for «Показать подсказки снова». Keeps segment unless it was skip. */
+export function restartTipsState(prev: OnboardingState): OnboardingState {
+  const wasSkip = prev.segment === 'skip'
+  return {
+    ...prev,
+    segment: wasSkip ? null : prev.segment,
+    welcomeDone: wasSkip ? false : Boolean(prev.segment) || prev.welcomeDone,
+    sheetTourDone: false,
+    lobbyTourDone: false,
+    pendingReadyBridge: false,
+    pendingSheetTour: !wasSkip && prev.segment != null,
+    pendingLobbyTour: true,
+    createHintVersion: 0,
+  }
+}
+
+export { toServerPayload }

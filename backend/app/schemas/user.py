@@ -8,6 +8,24 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 ThemeId = Literal["str", "dex", "con", "int", "wis", "cha"]
 AbilityColorsMode = Literal["identity", "theme"]
+OnboardingSegment = Literal["dnd_new", "product_new", "skip"]
+
+
+class OnboardingStatePayload(BaseModel):
+    """Durable onboarding flags stored on the user (ONB-03).
+
+    Session-only pendingReadyBridge / pendingSheetTour stay in the browser.
+    """
+
+    model_config = ConfigDict(extra="ignore")
+
+    version: Literal[1] = 1
+    welcomeDone: bool = False
+    segment: OnboardingSegment | None = None
+    sheetTourDone: bool = False
+    lobbyTourDone: bool = False
+    createHintVersion: int | None = None
+    helpOpened: bool | None = None
 
 
 def _blank_to_none(value: str | None) -> str | None:
@@ -46,6 +64,7 @@ class UserResponse(BaseModel):
     avatar_url: str | None = None
     theme_id: ThemeId = "wis"
     ability_colors: AbilityColorsMode = "identity"
+    onboarding: OnboardingStatePayload | None = None
     email_verified_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
@@ -58,6 +77,7 @@ class UserUpdateRequest(BaseModel):
     phone: str | None = Field(default=None, max_length=32)
     theme_id: ThemeId | None = None
     ability_colors: AbilityColorsMode | None = None
+    onboarding: OnboardingStatePayload | None = None
 
     @field_validator("display_name", "full_name", mode="before")
     @classmethod

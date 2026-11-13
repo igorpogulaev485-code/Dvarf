@@ -8,6 +8,7 @@ import {
   CharacterReadyDialog,
   HelpDrawer,
   HoverTipCard,
+  LobbyTour,
   OnboardingChecklist,
   PANEL_HELP,
   SheetTour,
@@ -28,6 +29,7 @@ type Scene =
   | 'panels'
   | 'create'
   | 'checklist'
+  | 'lobby'
 
 const SCENES: Array<{ id: Scene; label: string }> = [
   { id: 'welcome', label: '1. Welcome' },
@@ -38,6 +40,7 @@ const SCENES: Array<{ id: Scene; label: string }> = [
   { id: 'panels', label: '6. Hover tips' },
   { id: 'help', label: '7. Справка' },
   { id: 'checklist', label: '8. Чеклист' },
+  { id: 'lobby', label: '9. Lobby tour' },
 ]
 
 const SCENE_IDS = new Set(SCENES.map((s) => s.id))
@@ -53,6 +56,7 @@ export function OnboardingPreviewPage() {
   const [createStep, setCreateStep] = useState<CreatePipelineStepId>('race')
   const [helpOpenOverride, setHelpOpenOverride] = useState(true)
   const [welcomeOpen, setWelcomeOpen] = useState(true)
+  const [restartArmed, setRestartArmed] = useState(false)
 
   const setScene = (next: Scene) => {
     const nextParams: Record<string, string> = {}
@@ -237,12 +241,80 @@ export function OnboardingPreviewPage() {
           <section className="onboarding-preview__stage" data-shot="help">
             <Text tone="muted">Сцена: кнопка «Справка» в шапке</Text>
             <Button onClick={() => setHelpOpenOverride(true)}>Справка</Button>
+            {restartArmed ? (
+              <div className="onboarding-preview__fake-desk">
+                <div
+                  className="onboarding-preview__anchor onboarding-preview__anchor--lg"
+                  data-onboarding="combat-header"
+                >
+                  Шапка боя (тур после «Показать снова»)
+                </div>
+                <div className="onboarding-preview__anchor" data-onboarding="needs-setup">
+                  Нужно настроить
+                </div>
+                <div className="onboarding-preview__anchor" data-onboarding="abilities">
+                  Характеристики
+                </div>
+                <div className="onboarding-preview__anchor" data-onboarding="actions">
+                  Атаки
+                </div>
+                <div
+                  className="onboarding-preview__anchor onboarding-preview__desk-modes"
+                  data-onboarding="desk-modes"
+                >
+                  Сцены
+                </div>
+                <SheetTour
+                  open
+                  onComplete={() => {
+                    setRestartArmed(false)
+                    setScene('lobby')
+                  }}
+                  onSkip={() => setRestartArmed(false)}
+                />
+              </div>
+            ) : null}
             <HelpDrawer
-              open={helpOpenOverride}
+              open={helpOpenOverride && !restartArmed}
               onClose={() => {
                 setHelpOpenOverride(false)
                 setScene('checklist')
               }}
+              onRestartTips={() => {
+                setHelpOpenOverride(false)
+                setRestartArmed(true)
+              }}
+            />
+          </section>
+        ) : null}
+
+        {scene === 'lobby' ? (
+          <section className="onboarding-preview__stage" data-shot="lobby">
+            <div className="onboarding-preview__fake-desk">
+              <div className="onboarding-preview__anchor" data-onboarding="lobby-seat">
+                Сесть за стол
+              </div>
+              <div className="onboarding-preview__anchor" data-onboarding="lobby-your-turn">
+                Твой ход · своя карточка
+              </div>
+              <div className="onboarding-preview__anchor" data-onboarding="lobby-turn-chips">
+                Действие · Бонусное · Реакция · Движение
+              </div>
+              <div className="onboarding-preview__anchor" data-onboarding="lobby-initiative">
+                Узкая инициатива
+              </div>
+              <div
+                className="onboarding-preview__anchor onboarding-preview__desk-modes"
+                data-onboarding="lobby-mobile-tabs"
+              >
+                Стол · Лента · Заметки
+              </div>
+            </div>
+            <LobbyTour
+              open
+              isMaster={false}
+              onComplete={() => setScene('checklist')}
+              onSkip={() => setScene('checklist')}
             />
           </section>
         ) : null}

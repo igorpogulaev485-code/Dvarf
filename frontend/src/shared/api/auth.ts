@@ -1,4 +1,5 @@
 import { apiRequest, clearTokens, setTokens } from './client'
+import type { OnboardingServerPayload } from '../../features/onboarding/types'
 import {
   applyAccountAppearance,
   clearCachedAppearance,
@@ -18,6 +19,8 @@ export type User = {
   /** Required on /auth/me — preflight guards schema; optional only if API regressed. */
   theme_id?: ThemeId
   ability_colors?: AbilityColorsMode
+  /** ONB-03 — durable tip progress; null/omit = never synced on server. */
+  onboarding?: OnboardingServerPayload | null
   email_verified_at: string | null
   created_at: string
   updated_at: string
@@ -30,6 +33,7 @@ export type UserUpdatePayload = {
   phone?: string | null
   theme_id?: ThemeId
   ability_colors?: AbilityColorsMode
+  onboarding?: OnboardingServerPayload | null
 }
 
 export type TokenResponse = {
