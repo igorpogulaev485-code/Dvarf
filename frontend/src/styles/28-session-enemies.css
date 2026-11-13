@@ -85,6 +85,16 @@
   padding: 0;
 }
 
+.session-toolbar-more__desk-note {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 0.86rem;
+}
+
+.session-toolbar-group--mvp {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
 .session-table-settings__actions {
   display: flex;
   flex-wrap: wrap;

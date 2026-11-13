@@ -282,7 +282,7 @@ export function CombatTrack({
                     <Button
                       type="button"
                       variant="ghost"
-                      className="session-combat-order__roll"
+                      className="session-combat-order__roll session-combat-order__side-action"
                       disabled={busy}
                       onClick={() => onSideClick(entry)}
                     >

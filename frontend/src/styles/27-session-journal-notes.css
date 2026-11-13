@@ -862,13 +862,86 @@
 
   .session-center--master-desk > .ui-stack > .session-center-slot--cta,
   .session-center--master-desk > .ui-stack > .session-center-slot--turn,
-  .session-center--master-desk > .ui-stack > .session-center-slot--init {
+  .session-center--master-desk > .ui-stack > .session-center-slot--init,
+  .session-center--master-desk > .ui-stack > .session-center-slot--master-hint {
     order: 0;
+  }
+
+  /* LV-05: баннер и мобильные куски тулбара — только телефон */
+  .session-master-mobile-hint,
+  .session-toolbar-mobile-only {
+    display: none !important;
   }
 }
 
 @media (max-width: 999.98px) {
   .session-live-desk__desktop-only {
+    display: none !important;
+  }
+
+  /* LV-05: десктопные группы наград / дубли шапки — не на телефоне */
+  .session-toolbar-desktop-only {
+    display: none !important;
+  }
+
+  /* На телефоне «Кто пришёл» / настройки — в MVP-тулбаре и «Ещё» */
+  .session-top-actions--master-chrome {
+    display: none;
+  }
+
+  .session-master-mobile-hint {
+    display: block;
+    margin: 0;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--accent-soft) 55%, var(--card));
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.35;
+  }
+
+  /* LV-05: мастер на телефоне — ход → MVP-тулбар → карточки → лор */
+  .session-center--master-desk > .ui-stack {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .session-center--master-desk > .ui-stack > .session-center-slot--master-hint {
+    order: 0;
+  }
+
+  .session-center--master-desk > .ui-stack > .session-center-slot--init {
+    order: 1;
+  }
+
+  .session-center--master-desk > .ui-stack > .session-center-slot--toolbar {
+    order: 2;
+  }
+
+  .session-center--master-desk > .ui-stack > .session-center-slot--cards {
+    order: 3;
+  }
+
+  .session-center--master-desk > .ui-stack > .session-center-slot--lore,
+  .session-center--master-desk > .ui-stack > .session-center-slot--below {
+    order: 4;
+  }
+
+  .session-center--master-desk > .ui-stack > .session-center-slot--cta,
+  .session-center--master-desk > .ui-stack > .session-center-slot--turn {
+    order: 0;
+  }
+
+  /* Смена сторон — только десктоп / «Ещё» не тащим в чипы на телефоне */
+  .session-center--master-desk .session-combat-order__side-action {
+    display: none !important;
+  }
+
+  /* Волны/павшие не должны съедать первый экран MVP */
+  .session-center--master-desk .session-combat-waves,
+  .session-center--master-desk .session-combat-fallen,
+  .session-center--master-desk .session-combat-reminders {
     display: none !important;
   }
 
