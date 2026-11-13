@@ -59,6 +59,21 @@ type HpPadDialogProps = {
   hadozeeDodgeReduction?: number | null
   /** Race slug — Verdan Black Blood Healing on Hit Dice. */
   raceSlug?: string | null
+  /** O-07: Парирование — реакция + кость превосходства. */
+  hasParry?: boolean
+  /** Precomputed cut (die face + Dex mod), or null to hide. */
+  parryReduction?: number | null
+  /** Called when damage applied with Parry on — spend reaction + die. */
+  onParryUsed?: () => void
+  /** O-07: suggest Shield before applying attack damage. */
+  offerShieldReaction?: boolean
+  onCastShield?: () => void
+  /** O-07: Absorb Elements when damage type matches. */
+  offerAbsorbElements?: boolean
+  onCastAbsorbElements?: () => void
+  /** O-07: Hellish Rebuke after being hit. */
+  offerHellishRebuke?: boolean
+  onCastHellishRebuke?: () => void
 }
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'] as const
@@ -86,6 +101,15 @@ export function HpPadDialog({
   stonesEnduranceReduction = null,
   hadozeeDodgeReduction = null,
   raceSlug = null,
+  hasParry = false,
+  parryReduction = null,
+  onParryUsed,
+  offerShieldReaction = false,
+  onCastShield,
+  offerAbsorbElements = false,
+  onCastAbsorbElements,
+  offerHellishRebuke = false,
+  onCastHellishRebuke,
 }: HpPadDialogProps) {
   const blackBlood = hasBlackBloodHealing(raceSlug)
   const [digits, setDigits] = useState('')
@@ -99,6 +123,8 @@ export function HpPadDialog({
   const [uncannyDodgeOn, setUncannyDodgeOn] = useState(false)
   /** B-07 Shield Master: success on Dex save for half → 0. */
   const [shieldMasterOn, setShieldMasterOn] = useState(false)
+  /** O-07 Parry. */
+  const [parryOn, setParryOn] = useState(false)
   const profile = damageProfile ?? emptyDamageProfile()
   const pools = play.hitDiceByClass
   const hitCurrent = totalHitDiceCurrent(pools)
@@ -114,6 +140,7 @@ export function HpPadDialog({
     setEvasionMode(null)
     setUncannyDodgeOn(false)
     setShieldMasterOn(false)
+    setParryOn(false)
     const releaseScroll = acquireBodyScrollLock()
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -157,13 +184,24 @@ export function HpPadDialog({
     const half = Math.floor(afterEvasion.amount / 2)
     return { amount: half, note: `Увёртливость: ${afterEvasion.amount} → ${half}` }
   })()
-  const afterShieldMaster = (() => {
-    if (!hasShieldMasterEvasion || !shieldMasterOn || afterUncanny.amount <= 0) {
+  const afterParry = (() => {
+    const cut = parryReduction ?? 0
+    if (!hasParry || !parryOn || cut <= 0 || afterUncanny.amount <= 0) {
       return { amount: afterUncanny.amount, note: '' }
+    }
+    const next = Math.max(0, afterUncanny.amount - cut)
+    return {
+      amount: next,
+      note: `Парирование: −${cut} · ${afterUncanny.amount} → ${next}`,
+    }
+  })()
+  const afterShieldMaster = (() => {
+    if (!hasShieldMasterEvasion || !shieldMasterOn || afterParry.amount <= 0) {
+      return { amount: afterParry.amount, note: '' }
     }
     return {
       amount: 0,
-      note: `Мастер щитов (успех): ${afterUncanny.amount} → 0`,
+      note: `Мастер щитов (успех): ${afterParry.amount} → 0`,
     }
   })()
   const afterHeavyArmor = (() => {
@@ -212,6 +250,7 @@ export function HpPadDialog({
     note: [
       afterEvasion.note,
       afterUncanny.note,
+      afterParry.note,
       afterShieldMaster.note,
       afterHeavyArmor.note,
       afterStones.note,
@@ -404,6 +443,55 @@ export function HpPadDialog({
             </button>
           </div>
         ) : null}
+        {hasParry && parryReduction != null && parryReduction > 0 ? (
+          <div className="chip-row" role="group" aria-label="Парирование">
+            <button
+              type="button"
+              className={`sheet-chip${parryOn ? ' is-on' : ''}`}
+              aria-pressed={parryOn}
+              title="Реакция · рукопашная атака оружием · кость превосходства + Ловк."
+              onClick={() => setParryOn((prev) => !prev)}
+            >
+              Парирование: −{parryReduction}
+            </button>
+          </div>
+        ) : null}
+        {offerShieldReaction && onCastShield ? (
+          <div className="chip-row" role="group" aria-label="Щит">
+            <button
+              type="button"
+              className="sheet-chip"
+              title="Реакция · +5 КД к этой атаке · ячейка 1+"
+              onClick={() => onCastShield()}
+            >
+              Щит (реакция)
+            </button>
+          </div>
+        ) : null}
+        {offerAbsorbElements && onCastAbsorbElements ? (
+          <div className="chip-row" role="group" aria-label="Поглощение стихий">
+            <button
+              type="button"
+              className="sheet-chip"
+              title="Реакция · сопротивление этому урону до начала вашего след. хода"
+              onClick={() => onCastAbsorbElements()}
+            >
+              Поглощение стихий
+            </button>
+          </div>
+        ) : null}
+        {offerHellishRebuke && onCastHellishRebuke ? (
+          <div className="chip-row" role="group" aria-label="Адское возмездие">
+            <button
+              type="button"
+              className="sheet-chip"
+              title="Реакция · урон огнём атаковавшему"
+              onClick={() => onCastHellishRebuke()}
+            >
+              Адское возмездие
+            </button>
+          </div>
+        ) : null}
         {stonesEnduranceReduction != null && stonesEnduranceReduction > 0 ? (
           <div className="chip-row" role="group" aria-label="Каменная стойкость">
             <button
@@ -473,6 +561,7 @@ export function HpPadDialog({
             onClick={() => {
               onDamage(adjusted.amount)
               if (adjusted.note) onToast(adjusted.note)
+              if (parryOn && hasParry) onParryUsed?.()
               setDigits('')
               onClose()
             }}

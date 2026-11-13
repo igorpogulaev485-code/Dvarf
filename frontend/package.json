@@ -28,6 +28,7 @@
     "selfcheck:optional-class-features": "tsx src/shared/dnd/optionalClassFeatures.selfcheck.ts",
     "selfcheck:o02-tasha-features": "tsx src/shared/dnd/o02TashaFeatures.selfcheck.ts",
     "selfcheck:o06-styles-breath": "tsx src/shared/dnd/o06StylesBreathInvocations.selfcheck.ts",
+    "selfcheck:o07-reactions": "tsx src/shared/dnd/o07Reactions.selfcheck.ts",
     "selfcheck:feature-replacement": "tsx src/shared/dnd/featureReplacement.selfcheck.ts",
     "selfcheck:background-feature": "tsx src/shared/dnd/backgroundFeature.selfcheck.ts",
     "selfcheck:consumable-spend": "tsx src/features/characters/consumableSpend.selfcheck.ts",

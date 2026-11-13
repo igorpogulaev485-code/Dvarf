@@ -71,6 +71,14 @@ export type TurnEconomyState = {
   /** O-06: Attack action with light/one-hand melee → TWF bonus ready. */
   twoWeaponBonusReady: boolean
   twoWeaponBonusUsed: boolean
+  /**
+   * O-07 / O-08: Отход в этот ход (Хитрое действие или действие «Отход»).
+   * Блокирует обычную провокацию «вышла»; «Страж» обходит на выходе.
+   */
+  disengagedThisTurn: boolean
+  /** O-07: Мастер древкового — бонусный конец готов после атаки древковым. */
+  polearmBonusReady: boolean
+  polearmBonusUsed: boolean
 }
 
 export type TurnSpendBlock = {
@@ -113,6 +121,9 @@ export function emptyTurnEconomy(): TurnEconomyState {
     slasherUsedThisTurn: false,
     twoWeaponBonusReady: false,
     twoWeaponBonusUsed: false,
+    disengagedThisTurn: false,
+    polearmBonusReady: false,
+    polearmBonusUsed: false,
   }
 }
 
@@ -236,6 +247,15 @@ export function readTurnEconomy(raw: unknown): TurnEconomyState {
     twoWeaponBonusUsed: Boolean(
       row.two_weapon_bonus_used ?? row.twoWeaponBonusUsed,
     ),
+    disengagedThisTurn: Boolean(
+      row.disengaged_this_turn ?? row.disengagedThisTurn,
+    ),
+    polearmBonusReady: Boolean(
+      row.polearm_bonus_ready ?? row.polearmBonusReady,
+    ),
+    polearmBonusUsed: Boolean(
+      row.polearm_bonus_used ?? row.polearmBonusUsed,
+    ),
   }
 }
 
@@ -281,6 +301,9 @@ export function serializeTurnEconomy(
     slasher_used_this_turn: Boolean(state.slasherUsedThisTurn),
     two_weapon_bonus_ready: Boolean(state.twoWeaponBonusReady),
     two_weapon_bonus_used: Boolean(state.twoWeaponBonusUsed),
+    disengaged_this_turn: Boolean(state.disengagedThisTurn),
+    polearm_bonus_ready: Boolean(state.polearmBonusReady),
+    polearm_bonus_used: Boolean(state.polearmBonusUsed),
   }
 }
 
@@ -429,12 +452,18 @@ export function applyCunningBonus(
   if (state.bonus) return state
   const next: TurnEconomyState = { ...state, bonus: true }
   if (kind === 'dash') next.dashedThisTurn = true
+  if (kind === 'disengage') next.disengagedThisTurn = true
   return next
 }
 
 /** O-05 / O-08: действие «Рывок» (не Хитрое) — только флаг, отметку тратит вызывающий. */
 export function markDashed(state: TurnEconomyState): TurnEconomyState {
   return { ...state, dashedThisTurn: true }
+}
+
+/** O-07 / O-08: действие «Отход» — флаг для провокаций (Страж обходит на выходе). */
+export function markDisengagedThisTurn(state: TurnEconomyState): TurnEconomyState {
+  return { ...state, disengagedThisTurn: true }
 }
 
 export { STEADY_AIM_HINT }

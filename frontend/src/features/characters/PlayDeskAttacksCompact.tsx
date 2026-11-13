@@ -65,6 +65,29 @@ import {
   OverrunTumbleDialog,
 } from './O03MasterRulesDialogs'
 import {
+  CounterspellDialog,
+  NamedTargetDialog,
+  OpportunityAttackDialog,
+} from './O07ReactionDialogs'
+import {
+  WAR_CASTER_SOMATIC_NOTE,
+  canOpportunityAttack,
+  holdingPolearmBonusWeapon,
+  holdingPolearmOpportunityWeapon,
+  listReactionSpells,
+  hasReactionSpellSlot,
+  markPolearmBonusUsed,
+  noteAttackWeaponForPolearmBonus,
+  reactionSpellTriggerHint,
+  warCasterOpportunitySpellOk,
+} from '../../shared/dnd/o07Reactions'
+import {
+  listKnownManeuvers,
+  martialAdeptManeuverIds,
+  superiorityDieLabel,
+} from '../../shared/dnd/superiorityDiceSpend'
+import type { SheetSpell } from './spells'
+import {
   CleaveDialog,
   HeroPointSpendDialog,
   LingeringInjuryDialog,
@@ -317,6 +340,8 @@ type PlayDeskAttacksCompactProps = {
   onHealerHeal?: (amount: number, label: string, targetId: string) => boolean
   /** O-05: стабилизация Целителя. */
   onHealerStabilize?: (targetId: string) => boolean
+  /** O-07: открыть каст заклинания-реакции. */
+  onCastSpell?: (spell: SheetSpell) => void
 }
 
 function formatSpendTime(atMs: number): string {
@@ -407,9 +432,17 @@ export function PlayDeskAttacksCompact({
   hitDiceTotal = 1,
   onHealerHeal,
   onHealerStabilize,
+  onCastSpell,
 }: PlayDeskAttacksCompactProps) {
   const turnEco = useTurnEconomy()
   const [grappleOpen, setGrappleOpen] = useState(false)
+  const [o07Dialog, setO07Dialog] = useState<
+    null | 'oa' | 'counterspell' | 'sentinel' | 'mage_slayer' | 'riposte'
+  >(null)
+  const [reactionAttackArmed, setReactionAttackArmed] = useState(false)
+  /** Reaction already spent (riposte) — finishAttack must not spend again. */
+  const [reactionPreSpent, setReactionPreSpent] = useState(false)
+  const [polearmButtArmed, setPolearmButtArmed] = useState(false)
   const [grappleSpend, setGrappleSpend] = useState<
     'attack' | 'bonus' | 'action' | 'none'
   >('attack')
@@ -520,6 +553,53 @@ export function PlayDeskAttacksCompact({
   const hasPiercer = hasFeatFlag(featGrants, 'piercer')
   const hasSlasher = hasFeatFlag(featGrants, 'slasher')
   const hasGunner = hasFeatFlag(featGrants, 'gunner')
+  const hasSentinel = hasFeatFlag(featGrants, 'sentinel')
+  const hasPolearmMaster = hasFeatFlag(featGrants, 'polearm_master')
+  const hasMageSlayer = hasFeatFlag(featGrants, 'mage_slayer')
+  const hasWarCaster = hasFeatFlag(featGrants, 'war_caster')
+  const holdingPolearmOa = holdingPolearmOpportunityWeapon(inventoryItems)
+  const holdingPolearmBonus = holdingPolearmBonusWeapon(inventoryItems)
+  const adeptManeuverIds = martialAdeptManeuverIds(featGrants)
+  const knownManeuverIds = useMemo(() => {
+    const ids = new Set<string>(adeptManeuverIds)
+    if (featurePicks) {
+      for (const row of combatFeatures) {
+        if (!row.classEntryId) continue
+        for (const m of listKnownManeuvers(
+          featurePicks,
+          row.classEntryId,
+          adeptManeuverIds,
+        )) {
+          ids.add(m.id)
+        }
+      }
+    }
+    return ids
+  }, [adeptManeuverIds, combatFeatures, featurePicks])
+  const knowsParry = knownManeuverIds.has('parry')
+  const knowsRiposte = knownManeuverIds.has('riposte')
+  const superiorityPool = resources.find(
+    (row) =>
+      (/:superiority_dice:/.test(row.id) ||
+        /:superiority_dice_st:/.test(row.id) ||
+        /superiority_die_adept/.test(row.id)) &&
+      row.used < row.max,
+  )
+  const hasSuperiorityDie = Boolean(superiorityPool)
+  const reactionSpellRows = useMemo(() => {
+    const listed = listReactionSpells(spells)
+    return listed.map((row) => {
+      const hasSlot = hasReactionSpellSlot(spells?.slots, row.level)
+      return {
+        id: row.id,
+        name: row.name,
+        kind: row.kind,
+        hint: reactionSpellTriggerHint(row.kind),
+        disabled: !hasSlot,
+        disabledReason: hasSlot ? undefined : 'нет ячейки нужного круга',
+      }
+    })
+  }, [spells])
   const shieldInHand = Boolean(equippedArmorPieces(inventoryItems).shield)
   const healerKit = findHealerKitItem(inventoryItems)
   const holdingHandCrossbow = weapons.some(
@@ -1154,7 +1234,15 @@ export function PlayDeskAttacksCompact({
             onO03Tumble={() => setO03Dialog('tumble')}
             onO03ClimbBigger={() => setO03Dialog('climb')}
             onO03IdentifySpell={() => setO03Dialog('identify')}
-            onO03Falling={() => setO03Dialog('falling')}
+            onO03Falling={() => {
+              setO03Dialog('falling')
+              const feather = reactionSpellRows.find((r) => r.kind === 'feather_fall')
+              if (feather && !feather.disabled && turnEco?.canFeature('reaction').ok) {
+                onToast?.(
+                  `Падение: доступно «${feather.name}» реакцией — кнопка в группе «Реакции»`,
+                )
+              }
+            }}
             onO03NoLongRest={() => setO03Dialog('noLongRest')}
             o04={{
               cleave: Boolean(masterRules.dmg_cleave),
@@ -1170,6 +1258,59 @@ export function PlayDeskAttacksCompact({
             }}
             onO04Morale={() => setO04Dialog('morale')}
             onO04HeroPoints={() => setO04Dialog('hero')}
+            o07={{
+              hasSentinel,
+              hasPolearmMaster,
+              hasMageSlayer,
+              hasWarCaster,
+              holdingPolearmOa,
+              holdingPolearmBonus,
+              knowsParry,
+              knowsRiposte,
+              hasSuperiorityDie,
+              reactionSpells: reactionSpellRows,
+            }}
+            onO07OpportunityAttack={() => setO07Dialog('oa')}
+            onO07SentinelAttack={() => setO07Dialog('sentinel')}
+            onO07MageSlayerAttack={() => setO07Dialog('mage_slayer')}
+            onO07Riposte={() => setO07Dialog('riposte')}
+            onO07ParryHint={() => {
+              onToast?.(
+                'Парирование: открой pad хитов при уроне рукопашной атакой оружием — чип снизит урон на кость+Ловк. и потратит реакцию с костью',
+              )
+            }}
+            onO07PolearmBonus={() => {
+              if (!turnEco) return
+              const gateOk = turnEco.turnEconomy.polearmBonusReady && !turnEco.turnEconomy.bonus
+              if (!gateOk) return
+              turnEco.patchTurnEconomy(markPolearmBonusUsed)
+              setPolearmButtArmed(true)
+              onToast?.(
+                'Конец древка: бонусное · 1к4 дробящего · сделай рукопашную атаку тем же оружием (модификатор как у основной)',
+              )
+            }}
+            onO07CastReactionSpell={(spellId) => {
+              const spell = spells?.known?.find((s) => s.id === spellId)
+              if (!spell) {
+                onToast?.('Заклинание не найдено на листе')
+                return
+              }
+              if (onCastSpell) onCastSpell(spell as SheetSpell)
+              else onToast?.(`Кастани «${spell.name}» реакцией из панели заклинаний`)
+            }}
+            onO07CastReactionGeneric={() => {
+              const first =
+                reactionSpellRows.find((r) => r.kind === 'other' && !r.disabled) ??
+                reactionSpellRows.find((r) => !r.disabled)
+              if (!first) {
+                onToast?.('Нет доступных заклинаний-реакций')
+                return
+              }
+              const spell = spells?.known?.find((s) => s.id === first.id)
+              if (spell && onCastSpell) onCastSpell(spell as SheetSpell)
+              else onToast?.('Выбери заклинание со временем «реакция» в панели заклинаний')
+            }}
+            onO07Counterspell={() => setO07Dialog('counterspell')}
             onToast={onToast}
             onOfferSkill={(key) => {
               const labels: Record<string, string> = {
@@ -1181,6 +1322,151 @@ export function PlayDeskAttacksCompact({
                 key === 'stealth'
                   ? `Засада · бросьте «${labels[key]}» из полосы навыков или введите число`
                   : `Поиск · бросьте «Анализ»/«Внимательность» из полосы навыков или введите число`,
+              )
+            }}
+          />
+          <OpportunityAttackDialog
+            open={o07Dialog === 'oa'}
+            onClose={() => setO07Dialog(null)}
+            canEnterReach={hasPolearmMaster && holdingPolearmOa}
+            hasSentinel={hasSentinel}
+            hasWarCaster={hasWarCaster}
+            onConfirm={(opts) => {
+              if (!turnEco) return
+              const gate = canOpportunityAttack(turnEco.turnEconomy, {
+                trigger: opts.trigger,
+                hasSentinel,
+                hasPolearmMaster,
+                holdingPolearmOa,
+                targetDisengaged: opts.targetDisengaged,
+              })
+              if (!gate.ok) {
+                onToast?.(gate.reason)
+                return
+              }
+              if (opts.mode === 'spell') {
+                turnEco.spendFeature('reaction')
+                const candidates =
+                  spells?.known?.filter((s) =>
+                    warCasterOpportunitySpellOk({
+                      name: s.name,
+                      casting_time: s.casting_time,
+                      range: s.range,
+                      notes: s.notes,
+                      description: s.description,
+                    }),
+                  ) ?? []
+                const pick =
+                  candidates.find((s) => /огненн.*снаряд|fire\s*bolt/i.test(s.name)) ??
+                  candidates[0]
+                onToast?.(
+                  `Атака по возможности · заклинанием · ${opts.targetName}${
+                    opts.trigger === 'enter' ? ' · вошла в досягаемость' : ''
+                  }. ${WAR_CASTER_SOMATIC_NOTE}. Если каст отметил действие — сними вручную (это была реакция).`,
+                )
+                if (pick && onCastSpell) onCastSpell(pick as SheetSpell)
+                else
+                  onToast?.(
+                    'Выбери одноцелевое заклинание со временем «1 действие» (например «Огненный снаряд»)',
+                  )
+                return
+              }
+              setReactionPreSpent(false)
+              setReactionAttackArmed(true)
+              onToast?.(
+                `Атака по возможности · ${opts.targetName}${
+                  opts.trigger === 'enter' ? ' · вошла в досягаемость' : ' · вышла из досягаемости'
+                } · сделай одну рукопашную атаку оружием (реакция спишется при броске)`,
+              )
+            }}
+          />
+          <CounterspellDialog
+            open={o07Dialog === 'counterspell'}
+            onClose={() => setO07Dialog(null)}
+            spellcastingMod={spellAbilityMod || spellMod || 0}
+            proficiencyBonus={proficiencyBonus}
+            onConfirm={(opts) => {
+              const spell = spells?.known?.find(
+                (s) =>
+                  /контрзаклинание|counterspell/i.test(s.name) ||
+                  s.catalog_id === 'counterspell',
+              )
+              if (spell && onCastSpell) {
+                onCastSpell(spell as SheetSpell)
+              } else if (turnEco?.canFeature('reaction').ok) {
+                turnEco.spendFeature('reaction')
+              }
+              const enemy = opts.enemySpellName
+                ? ` («${opts.enemySpellName}»)`
+                : ''
+              onToast?.(
+                opts.auto
+                  ? `Контрзаклинание${enemy}: успех без проверки (ячейка ${opts.slotLevel} > круг ${opts.targetLevel})`
+                  : `Контрзаклинание${enemy}: проверка Сл ${opts.checkDc} · бонус ${opts.checkBonus >= 0 ? '+' : ''}${opts.checkBonus}`,
+              )
+            }}
+          />
+          <NamedTargetDialog
+            open={o07Dialog === 'sentinel'}
+            onClose={() => setO07Dialog(null)}
+            title="Страж: атака"
+            hint="Существо в 5 фт атаковало не вас. Реакция · одна рукопашная атака оружием."
+            confirmLabel="Атаковать"
+            onConfirm={(targetName) => {
+              if (!turnEco?.canFeature('reaction').ok) return
+              setReactionPreSpent(false)
+              setReactionAttackArmed(true)
+              onToast?.(
+                `Страж: атака по ${targetName} · сделай рукопашную атаку оружием (реакция при броске)`,
+              )
+            }}
+          />
+          <NamedTargetDialog
+            open={o07Dialog === 'mage_slayer'}
+            onClose={() => setO07Dialog(null)}
+            title="Убийца магов"
+            hint="Существо в 5 фт кастует. Подтверди «в 5 фт». Реакция · рукопашная атака оружием. Помеха на первый спас концентрации от твоего урона до конца твоего следующего хода."
+            confirmLabel="Атаковать"
+            onConfirm={(targetName) => {
+              if (!turnEco?.canFeature('reaction').ok) return
+              setReactionPreSpent(false)
+              setReactionAttackArmed(true)
+              onToast?.(
+                `Убийца магов: атака по ${targetName} (в 5 фт) · помеха на спас концентрации от твоего урона до конца твоего след. хода`,
+              )
+            }}
+          />
+          <NamedTargetDialog
+            open={o07Dialog === 'riposte'}
+            onClose={() => setO07Dialog(null)}
+            title="Ответный удар"
+            hint="Существо промахнулось по тебе рукопашной атакой. Реакция + кость превосходства · атака оружием + кость к урону."
+            confirmLabel="Ответный удар"
+            onConfirm={(targetName) => {
+              if (!turnEco || !superiorityPool) return
+              const gate = turnEco.canFeature('reaction')
+              if (!gate.ok) {
+                onToast?.(gate.reason)
+                return
+              }
+              turnEco.spendFeature('reaction')
+              if (onSpendResource) onSpendResource(superiorityPool.id)
+              else if (onResourcesChange && resources) {
+                onResourcesChange(
+                  resources.map((row) =>
+                    row.id === superiorityPool.id
+                      ? { ...row, used: Math.min(row.max, row.used + 1) }
+                      : row,
+                  ),
+                )
+              }
+              setReactionPreSpent(true)
+              setReactionAttackArmed(true)
+              const die =
+                superiorityDieLabel(combatFeatures, superiorityPool.id.split(':')[0] || '') ||
+                'кость'
+              onToast?.(
+                `Ответный удар по ${targetName}: атака оружием + ${die} к урону · реакция и кость потрачены`,
               )
             }}
           />
@@ -1855,9 +2141,22 @@ export function PlayDeskAttacksCompact({
                       breakdown?: string
                       crit?: boolean
                     }) => {
-                      turnEco?.spendAttack()
+                      const asReaction = reactionAttackArmed
+                      if (asReaction) {
+                        if (!reactionPreSpent) {
+                          turnEco?.spendFeature('reaction')
+                        }
+                        setReactionAttackArmed(false)
+                        setReactionPreSpent(false)
+                      } else {
+                        turnEco?.spendAttack()
+                      }
                       if (chargerPlus5Next && meleeAttack && !unarmed) {
                         setChargerPlus5Next(false)
+                      }
+                      if (polearmButtArmed) {
+                        setPolearmButtArmed(false)
+                        onToast?.('Конец древка: урон 1к4 дробящего (добавь к броску урона)')
                       }
                       const hitOk =
                         Boolean(opts?.tableHit) ||
@@ -1886,8 +2185,19 @@ export function PlayDeskAttacksCompact({
                           } else if (meleeAttack && !unarmed && opts?.crit) {
                             next = markGwmBonusReady(next)
                           }
+                          if (!asReaction && meleeAttack && !unarmed) {
+                            next = noteAttackWeaponForPolearmBonus(next, {
+                              weaponName: attack.name,
+                              hasPolearmMaster,
+                            })
+                          }
                           return next
                         })
+                        if (asReaction && hasSentinel) {
+                          onToast?.(
+                            'Страж: скорость цели 0 до конца текущего хода',
+                          )
+                        }
                         if (tceAllowed && hasCrusher && damageTypeIsBludgeoning(shownType)) {
                           if (!turnEco?.turnEconomy.crusherUsedThisTurn) {
                             turnEco?.patchTurnEconomy(markCrusherUsed)

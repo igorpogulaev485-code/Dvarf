@@ -525,6 +525,11 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               })
               return true
             }}
+            onCastSpell={(spell) => {
+              void spellReadyToCast(spell, model.rulesEdition).then((ready) =>
+                model.setDeskCastSpell(ready),
+              )
+            }}
             bonusDice={listRollDieChips(model.draft.play.effects ?? [], 'attack').map((chip) => ({
               dice: chip.dice,
               label: chip.name,

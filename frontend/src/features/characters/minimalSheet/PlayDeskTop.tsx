@@ -19,6 +19,17 @@ import {
   hasFeatFlag,
 } from '../../../shared/dnd/b07FeatCombat'
 import {
+  listKnownManeuvers,
+  martialAdeptManeuverIds,
+  superiorityDieLabel,
+} from '../../../shared/dnd/superiorityDiceSpend'
+import {
+  hasReactionSpellSlot,
+  listReactionSpells,
+  parseSuperiorityDieSides,
+} from '../../../shared/dnd/o07Reactions'
+import { spellReadyToCast } from '../itemSpellCast'
+import {
   listRollDieChips,
   mergeDeskRollMode,
   resolveAdvantageFromEffects,
@@ -90,6 +101,105 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
       : null
   const hadozeeCut =
     raceSlug === 'hadozee' ? 4 + Math.max(1, model.characterLevel ?? 1) : null
+
+  const adeptIds = martialAdeptManeuverIds(model.draft.featGrants)
+  const knowsParry = (() => {
+    const ids = new Set(adeptIds)
+    for (const row of model.draft.classes ?? []) {
+      for (const m of listKnownManeuvers(
+        model.draft.featurePicks,
+        row.id,
+        adeptIds,
+      )) {
+        ids.add(m.id)
+      }
+    }
+    return ids.has('parry')
+  })()
+  const superiorityPool = (model.draft.play.resources ?? []).find(
+    (row: { id: string; used: number; max: number }) =>
+      (/:superiority_dice:/.test(row.id) ||
+        /:superiority_dice_st:/.test(row.id) ||
+        /superiority_die_adept/.test(row.id)) &&
+      row.used < row.max,
+  )
+  const teApi = model.turnEconomyApi as
+    | {
+        canFeature?: (t: 'reaction') => { ok: boolean }
+        spendFeature?: (t: 'reaction') => void
+      }
+    | undefined
+  const reactionFree = teApi?.canFeature?.('reaction')?.ok !== false
+  const dieSides = (() => {
+    if (!superiorityPool) return 8
+    const classEntryId = String(superiorityPool.id).split(':')[0] || ''
+    const label = superiorityDieLabel(
+      model.unlockedFeatures ?? [],
+      classEntryId,
+    )
+    return parseSuperiorityDieSides(label)
+  })()
+  // Preview cut = mid die + Dex (table rolls the face; chip shows expected).
+  const parryReduction =
+    knowsParry && superiorityPool && reactionFree
+      ? Math.ceil((dieSides + 1) / 2) +
+        abilityModifier(model.draft.abilities.dex ?? 10)
+      : null
+  const reactionSpells = listReactionSpells(model.draft.spells)
+  const hasShieldSpell = reactionSpells.some(
+    (s) =>
+      s.kind === 'shield' &&
+      hasReactionSpellSlot(model.draft.spells.slots, s.level),
+  )
+  const hasAbsorbSpell = reactionSpells.some(
+    (s) =>
+      s.kind === 'absorb_elements' &&
+      hasReactionSpellSlot(model.draft.spells.slots, s.level),
+  )
+  const hasHellishSpell = reactionSpells.some(
+    (s) =>
+      s.kind === 'hellish_rebuke' &&
+      hasReactionSpellSlot(model.draft.spells.slots, s.level),
+  )
+  const openReactionSpell = (kind: string) => {
+    const spell = reactionSpells.find((s) => s.kind === kind)
+    if (!spell) {
+      model.onToast('Заклинание не найдено на листе')
+      return
+    }
+    void spellReadyToCast(spell as never, model.rulesEdition).then((ready) =>
+      model.setDeskCastSpell(ready),
+    )
+  }
+  const onParryUsed = () => {
+    teApi?.spendFeature?.('reaction')
+    if (!superiorityPool) return
+    const poolId = superiorityPool.id
+    model.setDraft((prev) => ({
+      ...prev,
+      play: {
+        ...prev.play,
+        resources: prev.play.resources.map((row) =>
+          row.id === poolId
+            ? { ...row, used: Math.min(row.max, row.used + 1) }
+            : row,
+        ),
+      },
+    }))
+    model.onToast('Парирование: реакция и кость превосходства потрачены')
+  }
+  const o07HpPad = {
+    hasParry: Boolean(knowsParry && superiorityPool && reactionFree),
+    parryReduction,
+    onParryUsed,
+    offerShieldReaction: Boolean(hasShieldSpell && reactionFree),
+    onCastShield: () => openReactionSpell('shield'),
+    offerAbsorbElements: Boolean(hasAbsorbSpell && reactionFree),
+    onCastAbsorbElements: () => openReactionSpell('absorb_elements'),
+    offerHellishRebuke: Boolean(hasHellishSpell && reactionFree),
+    onCastHellishRebuke: () => openReactionSpell('hellish_rebuke'),
+  }
+
   const alignmentHint = alignmentNeedsClarification(model.draft.identity)
     ? 'Уточните мировоззрение'
     : ''
@@ -227,6 +337,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             hadozeeDodgeReduction={hadozeeCut}
             raceSlug={model.draft.raceGrant?.slug ?? null}
             hasShieldMasterEvasion={hasShieldMasterEvasion}
+            {...o07HpPad}
             draconicResilience={(model.unlockedFeatures ?? []).some(
               (f: { id?: string }) => f.id === 'draconic_resilience',
             )}
@@ -406,6 +517,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           stonesEnduranceReduction={stonesCut}
           hadozeeDodgeReduction={hadozeeCut}
           raceSlug={model.draft.raceGrant?.slug ?? null}
+          {...o07HpPad}
           draconicResilience={(model.unlockedFeatures ?? []).some(
             (f: { id?: string }) => f.id === 'draconic_resilience',
           )}
