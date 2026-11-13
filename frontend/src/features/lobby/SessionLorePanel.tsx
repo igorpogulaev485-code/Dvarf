@@ -1,5 +1,6 @@
 /**
  * T3 / S-01: локация + задействованные страницы; без сеттинга — только «Привязать сеттинг».
+ * SC-05: если сеттинг привязан — показываем имя, не пустой инпут посреди стола.
  */
 import type { SessionLorePage, WikiCombatPage } from '../../shared/api/lobbies'
 import { Button, Text } from '../../ui'
@@ -11,6 +12,8 @@ type Props = {
   isOwner: boolean
   busy?: boolean
   hasSetting: boolean
+  /** SC-05: имя привязанного сеттинга */
+  settingName?: string | null
   onOpenPage: (pageId: string) => void
   onEdit?: () => void
   onBindSetting?: () => void
@@ -28,6 +31,7 @@ export function SessionLorePanel({
   isOwner,
   busy,
   hasSetting,
+  settingName = null,
   onOpenPage,
   onEdit,
   onBindSetting,
@@ -54,24 +58,36 @@ export function SessionLorePanel({
   if (empty && !isOwner) return null
 
   const showCombatPages = !compact && combatPages && combatPages.length > 0 && onPickCombat
+  const title = settingName
+    ? settingName
+    : compact
+      ? 'Лор'
+      : 'Лор за столом'
 
   return (
     <div
       className={`session-lore-panel${compact ? ' session-lore-panel--compact' : ''}`}
       aria-label="Лор сессии"
+      data-setting-name={settingName || undefined}
     >
       <div className="session-lore-panel__head">
         <Text as="h3" className="session-lore-panel__title">
-          {compact ? 'Лор' : 'Лор за столом'}
+          {title}
         </Text>
         {isOwner && onEdit ? (
           <Button type="button" variant="ghost" disabled={busy} onClick={onEdit}>
-            {empty ? 'Привязать' : 'Изменить'}
+            {empty ? 'Локация' : 'Изменить'}
           </Button>
         ) : null}
       </div>
       {empty ? (
-        compact ? null : (
+        compact ? (
+          settingName ? (
+            <Text tone="muted" className="session-lore-panel__setting-hint">
+              Сеттинг привязан — выберите локацию
+            </Text>
+          ) : null
+        ) : (
           <Text tone="muted">Локация и НПС/квесты сессии — для превью без ухода в вики.</Text>
         )
       ) : (

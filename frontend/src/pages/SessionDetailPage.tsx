@@ -1382,12 +1382,13 @@ export function SessionDetailPage() {
                       role="note"
                       data-onboarding="lobby-master-hint"
                     >
-                      Удобнее с компьютера — здесь основные действия боя
+                      С телефона — бой и враги; награды и вики — в меню
                     </div>
                   ) : null}
                   <div className="session-center-slot session-center-slot--lore">
                     <SessionLorePanel
                       hasSetting={Boolean(session.setting_id)}
+                      settingName={session.setting_name ?? null}
                       locationPage={session.location_page ?? null}
                       involvedPages={session.involved_pages ?? []}
                       isOwner={canRun && !session.closed_at}
@@ -1427,13 +1428,18 @@ export function SessionDetailPage() {
                   <div
                     className="session-center-slot session-center-slot--toolbar session-table-toolbar session-table-toolbar--master"
                     data-onboarding="lobby-master-toolbar"
+                    data-sc05-gm-toolbar
                   >
-                    <div className="session-toolbar-group session-toolbar-group--primary" aria-label="Бой">
-                      <Text className="session-toolbar-group__label">Бой</Text>
+                    {/* А: бой и враги сразу; без подписи-чипа «БОЙ» рядом с кнопкой «Бой» */}
+                    <div
+                      className="session-toolbar-group session-toolbar-group--primary"
+                      aria-label="Бой"
+                      data-sc05-primary
+                    >
                       {!session.combat?.active ? (
                         <Button
                           type="button"
-                          variant="secondary"
+                          variant="primary"
                           disabled={
                             busy ||
                             (session.seats.length === 0 &&
@@ -1459,122 +1465,95 @@ export function SessionDetailPage() {
                       <Button
                         type="button"
                         variant="secondary"
-                        className="session-toolbar-desktop-only"
                         disabled={busy}
                         onClick={() => setCombatantOpen(true)}
                       >
                         + Враги
                       </Button>
-                      {session.seats.length > 0 ? (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          className="session-toolbar-desktop-only"
-                          disabled={busy}
-                          onClick={() => setConditionOpen(true)}
-                        >
-                          Состояние
-                        </Button>
-                      ) : null}
-                      {session.seats.length > 0 ? (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          className="session-toolbar-desktop-only"
-                          disabled={busy}
-                          onClick={() => setEffectOpen(true)}
-                        >
-                          Эффект
-                        </Button>
-                      ) : null}
-                    </div>
-                    <div
-                      className={`session-toolbar-group session-toolbar-group--rewards session-toolbar-desktop-only${
-                        !session.combat?.active
-                          ? ' session-toolbar-group--rewards-spotlight'
-                          : ''
-                      }`}
-                      aria-label="Награды"
-                    >
-                      <Text className="session-toolbar-group__label">Награды</Text>
-                      <Button
-                        type="button"
-                        variant={!session.combat?.active ? 'primary' : 'secondary'}
-                        disabled={busy || session.seats.length === 0}
-                        onClick={() => {
-                          setRewardsFocus('manual')
-                          setRewardsOpen(true)
-                        }}
-                      >
-                        Опыт
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={!session.combat?.active ? 'primary' : 'secondary'}
-                        disabled={busy || session.seats.length === 0}
-                        onClick={() => {
-                          setRewardsFocus('loot')
-                          setRewardsOpen(true)
-                        }}
-                      >
-                        Добыча
-                      </Button>
                       <Button
                         type="button"
                         variant="secondary"
-                        disabled={
-                          busy ||
-                          session.seats.length === 0 ||
-                          !(session.can_award || canRun)
-                        }
-                        title="Выдать предмет или монеты на лист (не сундук)"
-                        onClick={() => {
-                          setGrantSeatId(null)
-                          setGrantOpen(true)
-                        }}
-                      >
-                        Выдать
-                      </Button>
-                    </div>
-                    <div
-                      className="session-toolbar-group session-toolbar-group--mvp session-toolbar-mobile-only"
-                      aria-label="Стол с телефона"
-                    >
-                      <Button
-                        type="button"
-                        variant="secondary"
+                        className="session-toolbar-mobile-only"
                         disabled={busy}
                         onClick={openAttendanceEditor}
                       >
                         Кто пришёл
                       </Button>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy || session.seats.length === 0}
-                        onClick={() => setSimpleXpOpen(true)}
-                      >
-                        Опыт
-                      </Button>
                     </div>
-                    <details className="session-toolbar-more">
-                      <summary className="session-toolbar-more__summary">Ещё действия</summary>
+                    {/* Б: опыт / добыча / выдать — один клик «Награды» */}
+                    <details
+                      className={`session-toolbar-more session-toolbar-rewards${
+                        !session.combat?.active
+                          ? ' session-toolbar-group--rewards-spotlight'
+                          : ''
+                      }`}
+                      data-sc05-rewards
+                    >
+                      <summary className="session-toolbar-more__summary">Награды</summary>
                       <div className="session-toolbar-more__body">
-                        <Text tone="muted" className="session-toolbar-mobile-only session-toolbar-more__desk-note">
-                          Полная добыча, генератор и вики — удобнее с компьютера.
-                        </Text>
-                        <div
-                          className="session-toolbar-group session-toolbar-mobile-only"
-                          aria-label="Дополнительно на телефоне"
-                        >
+                        <div className="session-toolbar-group" aria-label="Награды">
                           <Button
                             type="button"
                             variant="secondary"
-                            disabled={busy}
-                            onClick={() => setCombatantOpen(true)}
+                            className="session-toolbar-desktop-only"
+                            disabled={busy || session.seats.length === 0}
+                            onClick={() => {
+                              setRewardsFocus('manual')
+                              setRewardsOpen(true)
+                            }}
                           >
-                            + Враги
+                            Опыт
                           </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            className="session-toolbar-mobile-only"
+                            disabled={busy || session.seats.length === 0}
+                            onClick={() => setSimpleXpOpen(true)}
+                          >
+                            Опыт
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={busy || session.seats.length === 0}
+                            title="Полный диалог добычи удобнее с компьютера"
+                            onClick={() => {
+                              setRewardsFocus('loot')
+                              setRewardsOpen(true)
+                            }}
+                          >
+                            Добыча
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={
+                              busy ||
+                              session.seats.length === 0 ||
+                              !(session.can_award || canRun)
+                            }
+                            title="Выдать предмет или монеты на лист (не сундук)"
+                            onClick={() => {
+                              setGrantSeatId(null)
+                              setGrantOpen(true)
+                            }}
+                          >
+                            Выдать
+                          </Button>
+                        </div>
+                      </div>
+                    </details>
+                    <details className="session-toolbar-more" data-sc05-more>
+                      <summary className="session-toolbar-more__summary">Ещё действия</summary>
+                      <div className="session-toolbar-more__body">
+                        <Text tone="muted" className="session-toolbar-mobile-only session-toolbar-more__desk-note">
+                          Генератор и вики удобнее с компьютера.
+                        </Text>
+                        <div
+                          className="session-toolbar-group"
+                          aria-label="Состояние и эффекты"
+                        >
                           {session.seats.length > 0 ? (
                             <Button
                               type="button"
@@ -1595,36 +1574,9 @@ export function SessionDetailPage() {
                               Эффект
                             </Button>
                           ) : null}
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            disabled={busy || session.seats.length === 0}
-                            title="Полный диалог добычи удобнее с компьютера"
-                            onClick={() => {
-                              setRewardsFocus('loot')
-                              setRewardsOpen(true)
-                            }}
-                          >
-                            Добыча
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            disabled={
-                              busy ||
-                              session.seats.length === 0 ||
-                              !(session.can_award || canRun)
-                            }
-                            onClick={() => {
-                              setGrantSeatId(null)
-                              setGrantOpen(true)
-                            }}
-                          >
-                            Выдать
-                          </Button>
                         </div>
                         <div className="session-toolbar-group" aria-label="Сюжет и вики">
-                          <Text className="session-toolbar-group__label">Сюжет</Text>
+                          <span className="session-toolbar-group__caption">Сюжет</span>
                           <Button
                             type="button"
                             variant="secondary"
@@ -1687,6 +1639,7 @@ export function SessionDetailPage() {
                             <Button
                               type="button"
                               variant="secondary"
+                              className="session-toolbar-desktop-only"
                               disabled={busy}
                               onClick={() => {
                                 setBindSettingId(lobbySettings[0]?.id ?? '')

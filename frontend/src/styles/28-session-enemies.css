@@ -34,12 +34,14 @@
   gap: 6px;
 }
 
-.session-toolbar-group__label {
+/* SC-05: подпись-категория — текст, не chip-кнопка (без UPPERCASE «БОЙ») */
+.session-toolbar-group__label,
+.session-toolbar-group__caption {
   margin: 0 4px 0 0;
   font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--muted);
 }
 
@@ -50,10 +52,16 @@
 
 .session-toolbar-more {
   min-width: 0;
+  flex: 0 1 auto;
+  align-self: flex-start;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: color-mix(in srgb, var(--card) 88%, transparent);
   padding: 0;
+}
+
+.session-table-toolbar--master > .session-toolbar-more:not([open]) {
+  max-width: max-content;
 }
 
 .session-toolbar-more__summary {
@@ -64,6 +72,9 @@
   color: var(--muted);
   padding: 8px 12px;
   user-select: none;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .session-toolbar-more__summary::-webkit-details-marker {
@@ -93,6 +104,28 @@
 
 .session-toolbar-group--mvp {
   border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
+/* SC-05: первичная группа — Бой / +Враги / Кто пришёл */
+.session-table-toolbar--master .session-toolbar-group--primary {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 45%, var(--card));
+}
+
+.session-table-toolbar--master .session-toolbar-group--primary .ui-button,
+.session-table-toolbar--master .session-toolbar-rewards .session-toolbar-more__summary,
+.session-table-toolbar--master .session-toolbar-more .session-toolbar-more__summary,
+.session-table-toolbar--master .session-toolbar-more__body .ui-button {
+  min-height: 44px;
+}
+
+.session-toolbar-rewards.session-toolbar-group--rewards-spotlight {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 70%, var(--card));
+}
+
+.session-toolbar-rewards.session-toolbar-group--rewards-spotlight > .session-toolbar-more__summary {
+  color: var(--accent);
 }
 
 .session-table-settings__actions {
