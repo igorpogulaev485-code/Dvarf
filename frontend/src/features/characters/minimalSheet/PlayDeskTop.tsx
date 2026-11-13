@@ -705,6 +705,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                   <b>{row.name || 'Без имени'}</b>
                   <span>
                     {inForm ? 'В облике' : isPrimary ? 'Основной' : kind}
+                    {row.mounted ? ' · верхом' : ''}
                     {row.stats.hp != null ? ` · ${row.stats.hp} хитов` : ''}
                   </span>
                 </span>

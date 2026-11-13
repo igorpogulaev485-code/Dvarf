@@ -95,11 +95,9 @@ import {
   markReadyPrepared,
 } from '../../shared/dnd/turnEconomy'
 import {
-  MOUNTED_HINT,
   findActiveMount,
   hostIsMounted,
   hasMountedCombatantFeat,
-  mountControlNote,
   mountSizeFromSlugOrName,
   mountedCombatantMeleeAdvantage,
   mountedCombatantRangedDisadvantage,
@@ -2152,16 +2150,7 @@ export function PlayDeskAttacksCompact({
         </div>
       ) : null}
 
-      {isMountedNow && activeMount ? (
-        <div className="chip-row" style={{ marginBottom: 8 }} role="group" aria-label="Верхом">
-          <span
-            className="sheet-chip is-on"
-            title={`${MOUNTED_HINT} · ${mountControlNote(activeMount)}`}
-          >
-            Верхом · {activeMount.name || 'скакун'}
-          </span>
-        </div>
-      ) : null}
+      {/* SC-03: статус верхом/скакун — только сцена «Напарники» и модификаторы в окне атаки, не ряд на вкладке. */}
 
       {turnEco ? (
         <TurnEconomyCombatActions
