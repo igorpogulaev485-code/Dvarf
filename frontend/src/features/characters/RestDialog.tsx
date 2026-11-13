@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   spendHitDieFromPool,
   totalHitDiceCurrent,
@@ -14,7 +14,6 @@ import {
   suggestedHitDieHeal,
   type HitDie,
 } from '../../shared/dnd/hitDice'
-import { applyLongRest, applyShortRest } from '../../shared/dnd/rest'
 import {
   hitDieHealWithSong,
   stripMantleCommand,
@@ -38,6 +37,41 @@ import {
 } from '../../ui'
 import { withSyncedHitDiceSummary, type PlayState } from './play'
 import { recoverGrantCastsOnRest, type SpellsState } from './spells'
+import {
+  buildHitDieHealPreview,
+  buildLongRestSummary,
+  buildShortRestResourcesSummary,
+} from './restSummary'
+import type { ActiveEffect } from '../../shared/dnd/activeEffects'
+import type { RestResult } from '../../shared/dnd/rest'
+
+type RestKind = 'short' | 'long'
+
+type ConfirmState =
+  | {
+      kind: 'hit-die'
+      amount: number
+      beforeHp: number
+      nextHp: number
+      die: HitDie
+      songBonus: number
+      blackNote: string
+      songNote: string
+      poolId: string | null
+    }
+  | {
+      kind: 'short-resources'
+      lines: string[]
+      result: ReturnType<typeof buildShortRestResourcesSummary>['result']
+    }
+  | {
+      kind: 'long'
+      lines: string[]
+      result: RestResult & {
+        effects?: ActiveEffect[]
+        removed_effects?: ActiveEffect[]
+      }
+    }
 
 type RestDialogProps = {
   open: boolean
@@ -88,6 +122,8 @@ export function RestDialog({
   const blackBlood = hasBlackBloodHealing(raceSlug)
   const pools = play.hitDiceByClass ?? []
   const [spendPoolId, setSpendPoolId] = useState('')
+  const [tab, setTab] = useState<RestKind>('short')
+  const [confirm, setConfirm] = useState<ConfirmState | null>(null)
   const activePool =
     pools.find((row) => row.classEntryId === spendPoolId) ??
     pools.find((row) => row.current > 0) ??
@@ -108,16 +144,134 @@ export function RestDialog({
     return suggestedHeal
   }, [healAmount, suggestedHeal])
 
+  useEffect(() => {
+    if (!open) {
+      setConfirm(null)
+      return
+    }
+    setConfirm(null)
+    setTab(preferKind === 'long' ? 'long' : 'short')
+  }, [open, preferKind])
+
   function patchPlay(partial: Partial<PlayState>) {
     onPlayChange({ ...play, ...partial })
   }
 
-  function doShortRestResources() {
-    const result = applyShortRest({
+  const hitDiePreview = useMemo(() => {
+    if (blackBlood) return null
+    const songBonus =
+      songOfRest && songRoll != null ? Math.max(0, Math.floor(songRoll)) : 0
+    const base = healValue ?? 0
+    const amount = hitDieHealWithSong(base, songBonus)
+    return buildHitDieHealPreview({
+      hpCurrent,
+      hpMax,
+      healAmount: amount,
+    })
+  }, [blackBlood, songOfRest, songRoll, healValue, hpCurrent, hpMax])
+
+  function requestHitDieSpend() {
+    if (pools.length > 0) {
+      if (!activePool || activePool.current <= 0) {
+        onToast('Нужна кость хитов и хотя бы 1 доступная')
+        return
+      }
+    } else if (!play.hitDie || play.hitDiceCurrent <= 0) {
+      onToast('Нужна кость хитов и хотя бы 1 доступная')
+      return
+    }
+    if (hpMax == null) {
+      onToast('Задай максимум хитов перед коротким отдыхом')
+      return
+    }
+    const die = activeDie
+    if (!die) {
+      onToast('Сначала выбери кость хитов')
+      return
+    }
+    const songBonus = songOfRest
+      ? Math.max(0, Math.floor(songRoll ?? rollDie(songOfRest.sides)))
+      : 0
+    const face = blackBlood
+      ? rollHitDieFace({
+          die,
+          constitutionMod,
+          blackBloodHealing: true,
+        })
+      : null
+    const baseHeal = face ? face.heal : (healValue ?? 0)
+    const amount = hitDieHealWithSong(baseHeal, songBonus)
+    const beforeHp = hpCurrent ?? 0
+    const healed = applyHitDieHeal({
+      hpCurrent,
+      hpMax,
+      healAmount: amount,
+    })
+    if (healed == null) {
+      onToast('Не удалось посчитать хиты')
+      return
+    }
+    const blackNote = face?.note ? ` · ${face.note}` : ''
+    const songNote = songOfRest
+      ? ` · Песнь отдыха ${songOfRest.label}: +${songBonus}`
+      : ''
+    setConfirm({
+      kind: 'hit-die',
+      amount,
+      beforeHp,
+      nextHp: healed,
+      die,
+      songBonus,
+      blackNote,
+      songNote,
+      poolId: pools.length > 0 && activePool ? activePool.classEntryId : null,
+    })
+  }
+
+  function applyHitDieConfirm(state: Extract<ConfirmState, { kind: 'hit-die' }>) {
+    if (state.poolId) {
+      const nextPools = spendHitDieFromPool(pools, state.poolId)
+      if (!nextPools) {
+        onToast('Нет доступных костей этого класса')
+        setConfirm(null)
+        return
+      }
+      const pool = pools.find((row) => row.classEntryId === state.poolId)
+      onPlayChange(
+        withSyncedHitDiceSummary({
+          ...play,
+          hitDiceByClass: nextPools,
+        }),
+      )
+      onCombatChange({ hpCurrent: state.nextHp })
+      onToast(
+        `${pool?.className ?? 'Класс'} ${state.die}: +${state.amount} хитов (${state.beforeHp} → ${state.nextHp}/${hpMax})${state.blackNote}${state.songNote}`,
+      )
+      setConfirm(null)
+      return
+    }
+    const nextDice = spendHitDie(play.hitDiceCurrent)
+    patchPlay({ hitDiceCurrent: nextDice })
+    onCombatChange({ hpCurrent: state.nextHp })
+    onToast(
+      `Кость ${state.die}: +${state.amount} хитов (${state.beforeHp} → ${state.nextHp}/${hpMax})${state.blackNote}${state.songNote}`,
+    )
+    setConfirm(null)
+  }
+
+  function requestShortRestResources() {
+    const { lines, result } = buildShortRestResourcesSummary({
       resources: play.resources,
       pact_slots: spells.pact_slots,
       effects: play.effects ?? [],
     })
+    setConfirm({ kind: 'short-resources', lines, result })
+  }
+
+  function applyShortRestConfirm(
+    state: Extract<ConfirmState, { kind: 'short-resources' }>,
+  ) {
+    const result = state.result
     const removed = result.removed_effects?.length ?? 0
     patchPlay({
       resources: finishWizardResourcesOnRest(result.resources, 'short'),
@@ -136,95 +290,35 @@ export function RestDialog({
     onCompanionRest?.('short')
     onToast(
       spells.pact_slots
-        ? `Короткий отдых: ресурсы «короткий» + pact-ячейки восстановлены${
+        ? `Короткий отдых: ресурсы «короткий» + ячейки договора восстановлены${
             removed ? ` · снято эффектов: ${removed}` : ''
           }`
         : `Сброшены ресурсы со сбросом «короткий»${
             removed ? ` · снято эффектов: ${removed}` : ''
           }`,
     )
+    setConfirm(null)
   }
 
-  function spendHitDieOnShortRest() {
-    if (pools.length > 0) {
-      if (!activePool || activePool.current <= 0) {
-        onToast('Нужна кость хитов и хотя бы 1 доступная')
-        return
-      }
-    } else if (!play.hitDie || play.hitDiceCurrent <= 0) {
-      onToast('Нужна кость хитов и хотя бы 1 доступная')
-      return
-    }
-    if (hpMax == null) {
-      onToast('Задай максимум HP перед коротким отдыхом')
-      return
-    }
-    const die = activeDie
-    if (!die) {
-      onToast('Сначала выбери кость хитов')
-      return
-    }
-    const songBonus = songOfRest
-      ? Math.max(0, Math.floor(songRoll ?? rollDie(songOfRest.sides)))
-      : 0
-    // Verdan Black Blood: always roll the die (reroll 1–2). Others keep the manual/average pad.
-    const face = blackBlood
-      ? rollHitDieFace({
-          die,
-          constitutionMod,
-          blackBloodHealing: true,
-        })
-      : null
-    const baseHeal = face ? face.heal : (healValue ?? 0)
-    const amount = hitDieHealWithSong(baseHeal, songBonus)
-    const beforeHp = hpCurrent ?? 0
-    const nextHp = applyHitDieHeal({
-      hpCurrent,
-      hpMax,
-      healAmount: amount,
-    })
-    const blackNote = face?.note ? ` · ${face.note}` : ''
-    const songNote = songOfRest
-      ? ` · Песнь отдыха ${songOfRest.label}: +${songBonus}`
-      : ''
-    if (pools.length > 0 && activePool) {
-      const nextPools = spendHitDieFromPool(pools, activePool.classEntryId)
-      if (!nextPools) {
-        onToast('Нет доступных костей этого класса')
-        return
-      }
-      onPlayChange(
-        withSyncedHitDiceSummary({
-          ...play,
-          hitDiceByClass: nextPools,
-        }),
-      )
-      onCombatChange({ hpCurrent: nextHp })
-      onToast(
-        `${activePool.className} ${die}: +${amount} HP (${beforeHp} → ${nextHp}/${hpMax})${blackNote}${songNote}`,
-      )
-      return
-    }
-    const nextDice = spendHitDie(play.hitDiceCurrent)
-    patchPlay({ hitDiceCurrent: nextDice })
-    onCombatChange({ hpCurrent: nextHp })
-    onToast(
-      `Кость ${die}: +${amount} HP (${beforeHp} → ${nextHp}/${hpMax})${blackNote}${songNote}`,
-    )
-  }
-
-  function doLongRest() {
-    const result = applyLongRest({
+  function requestLongRest() {
+    const { lines, result } = buildLongRestSummary({
       resources: play.resources,
       slots: spells.slots,
       pact_slots: spells.pact_slots,
       exhaustion: play.exhaustion,
+      hp_current: hpCurrent,
       hp_max: hpMax,
+      hp_temp: play.hpTemp,
       hit_dice_current: hitDiceCurrent,
       hit_dice_max: hitDiceMax,
       hit_dice_by_class: pools.length > 0 ? pools : undefined,
       effects: play.effects ?? [],
     })
+    setConfirm({ kind: 'long', lines, result })
+  }
+
+  function applyLongRestConfirm(state: Extract<ConfirmState, { kind: 'long' }>) {
+    const result = state.result
     const resources = finishWizardResourcesOnRest(
       grantStockOnLongRestIfEmpty(result.resources, featureDesiredResources),
       'long',
@@ -271,10 +365,41 @@ export function RestDialog({
       ? ` · ${result.rechargeLines.join(' · ')}`
       : ''
     onToast(
-      `Продолжительный отдых: HP, кости, ячейки, ресурсы сброшены${exhaustionNote}${rechargeNote}`,
+      `Продолжительный отдых: хиты, кости, ячейки, ресурсы сброшены${exhaustionNote}${rechargeNote}`,
     )
+    setConfirm(null)
     onClose()
   }
+
+  function applyConfirm() {
+    if (!confirm) return
+    if (confirm.kind === 'hit-die') applyHitDieConfirm(confirm)
+    else if (confirm.kind === 'short-resources') applyShortRestConfirm(confirm)
+    else applyLongRestConfirm(confirm)
+  }
+
+  const confirmTitle =
+    confirm?.kind === 'hit-die'
+      ? 'Потратить кость хитов?'
+      : confirm?.kind === 'short-resources'
+        ? 'Сброс коротких ресурсов'
+        : confirm?.kind === 'long'
+          ? grittyRest
+            ? 'Продолжительный отдых (7 дней)'
+            : 'Продолжительный отдых'
+          : ''
+
+  const confirmLines =
+    confirm?.kind === 'hit-die'
+      ? [
+          `Хиты ${confirm.beforeHp} → ${confirm.nextHp}${hpMax != null ? `/${hpMax}` : ''}`,
+          `+${confirm.amount} хитов · кость ${confirm.die}`,
+          ...(confirm.songNote ? [confirm.songNote.replace(/^ · /, '')] : []),
+          ...(confirm.blackNote ? [confirm.blackNote.replace(/^ · /, '')] : []),
+        ]
+      : confirm?.kind === 'short-resources' || confirm?.kind === 'long'
+        ? confirm.lines
+        : []
 
   return (
     <Dialog
@@ -290,7 +415,7 @@ export function RestDialog({
         <Text tone="muted">
           {grittyRest
             ? 'Суровый реализм: короткий отдых — 8 часов, долгий — 7 дней. Восстановление хитов и ячеек — как обычно.'
-            : 'Короткий — кости хитов и сброс ресурсов «короткий». Продолжительный — полные HP, ячейки, ресурсы и −1 истощение.'}
+            : 'Короткий — кости хитов и сброс ресурсов «короткий». Продолжительный — полные хиты, ячейки, ресурсы и −1 истощение.'}
         </Text>
 
         <div className="sheet-grid sheet-grid--2">
@@ -328,7 +453,7 @@ export function RestDialog({
               </select>
             </Field>
           )}
-          <Field label="Временные HP">
+          <Field label="Временные хиты">
             <NumberInput
               min={0}
               emptyValue={0}
@@ -338,131 +463,198 @@ export function RestDialog({
           </Field>
         </div>
 
-        <div
-          className={`play-rest-block${preferKind === 'short' ? ' is-focus' : ''}`}
-          data-rest-kind="short"
-        >
-          <div className="play-rest-block__head">
+        {confirm ? (
+          <div className="play-rest-summary" role="region" aria-label="Сводка отдыха">
             <Text>
-              <strong>{grittyRest ? 'Короткий отдых (8 часов)' : 'Короткий отдых'}</strong>
+              <strong>{confirmTitle}</strong>
             </Text>
-            <span className="play-rest-block__count">
-              кости {hitDiceCurrent}/{hitDiceMax}
-              {activeDie ? ` · ${activeDie}` : ''}
-            </span>
+            <ul className="play-rest-summary__list">
+              {confirmLines.map((line) => (
+                <li key={line}>{line}</li>
+              ))}
+            </ul>
+            <div className="play-rest-actions">
+              <Button type="button" variant="secondary" onClick={() => setConfirm(null)}>
+                Назад
+              </Button>
+              <Button type="button" onClick={applyConfirm}>
+                Применить
+              </Button>
+            </div>
           </div>
-          {pools.length > 0 ? (
-            <div className="play-hit-dice">
-              {pools.map((pool) => (
-                <div key={pool.classEntryId} className="play-hit-dice__pool">
+        ) : (
+          <>
+            <div className="play-rest-tabs" role="tablist" aria-label="Вид отдыха">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === 'short'}
+                className={`play-rest-tabs__btn${tab === 'short' ? ' is-on' : ''}`}
+                onClick={() => setTab('short')}
+              >
+                {grittyRest ? 'Короткий (8 ч)' : 'Короткий'}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === 'long'}
+                className={`play-rest-tabs__btn${tab === 'long' ? ' is-on' : ''}`}
+                onClick={() => setTab('long')}
+              >
+                {grittyRest ? 'Продолжительный (7 дн.)' : 'Продолжительный'}
+              </button>
+            </div>
+
+            {tab === 'short' ? (
+              <div
+                className={`play-rest-block${preferKind === 'short' ? ' is-focus' : ''}`}
+                data-rest-kind="short"
+                role="tabpanel"
+              >
+                <div className="play-rest-block__head">
                   <Text>
                     <strong>
-                      {pool.className} · {pool.die}
-                    </strong>{' '}
-                    {pool.current}/{pool.max}
+                      {grittyRest ? 'Короткий отдых (8 часов)' : 'Короткий отдых'}
+                    </strong>
                   </Text>
-                  <SlotPips
-                    max={Math.max(1, pool.max)}
-                    used={Math.max(0, pool.max - pool.current)}
-                    fillMode="available"
-                    label={`Кости ${pool.className}`}
-                    summary={`${pool.current} из ${pool.max}`}
-                    onChange={(used) => {
-                      const nextPools = pools.map((row) =>
-                        row.classEntryId === pool.classEntryId
-                          ? {
-                              ...row,
-                              current: clampHitDiceCurrent(pool.max - used, pool.max),
-                            }
-                          : row,
-                      )
-                      onPlayChange(
-                        withSyncedHitDiceSummary({
-                          ...play,
-                          hitDiceByClass: nextPools,
-                        }),
-                      )
-                    }}
-                  />
+                  <span className="play-rest-block__count">
+                    кости {hitDiceCurrent}/{hitDiceMax}
+                    {activeDie ? ` · ${activeDie}` : ''}
+                  </span>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <SlotPips
-              max={Math.max(1, hitDiceMax)}
-              used={Math.max(0, hitDiceMax - hitDiceCurrent)}
-              fillMode="available"
-              label="Доступные кости хитов"
-              summary={`${hitDiceCurrent} из ${hitDiceMax}`}
-              onChange={(used) =>
-                patchPlay({
-                  hitDiceCurrent: clampHitDiceCurrent(hitDiceMax - used, hitDiceMax),
-                })
-              }
-            />
-          )}
-          <div className="play-hit-heal">
-            {blackBlood ? (
-              <Text tone="muted">
-                Чёрная кровь (вердан): при трате кости хитов выпадение 1 или 2
-                перебрасывается автоматически — результат в журнале отдыха.
-              </Text>
-            ) : null}
-            <Field label={blackBlood ? 'HP за кость (бросок)' : 'HP за кость'}>
-              <NumberInput
-                min={0}
-                emptyValue={0}
-                value={healValue}
-                onValueChange={(value) => setHealAmount(value ?? 0)}
-                disabled={!activeDie || blackBlood}
-              />
-            </Field>
-            {songOfRest ? (
-              <Field label={`Песнь отдыха ${songOfRest.label}`}>
-                <NumberInput
-                  min={1}
-                  max={songOfRest.sides}
-                  emptyValue={0}
-                  value={songRoll}
-                  onValueChange={(value) => setSongRoll(value)}
-                />
-              </Field>
-            ) : null}
-            <div className="play-hit-heal__actions">
-              <Button
-                type="button"
-                disabled={!activeDie || hitDiceCurrent <= 0 || hpMax == null}
-                onClick={spendHitDieOnShortRest}
+                {pools.length > 0 ? (
+                  <div className="play-hit-dice">
+                    {pools.map((pool) => (
+                      <div key={pool.classEntryId} className="play-hit-dice__pool">
+                        <Text>
+                          <strong>
+                            {pool.className} · {pool.die}
+                          </strong>{' '}
+                          {pool.current}/{pool.max}
+                        </Text>
+                        <SlotPips
+                          max={Math.max(1, pool.max)}
+                          used={Math.max(0, pool.max - pool.current)}
+                          fillMode="available"
+                          label={`Кости ${pool.className}`}
+                          summary={`${pool.current} из ${pool.max}`}
+                          onChange={(used) => {
+                            const nextPools = pools.map((row) =>
+                              row.classEntryId === pool.classEntryId
+                                ? {
+                                    ...row,
+                                    current: clampHitDiceCurrent(pool.max - used, pool.max),
+                                  }
+                                : row,
+                            )
+                            onPlayChange(
+                              withSyncedHitDiceSummary({
+                                ...play,
+                                hitDiceByClass: nextPools,
+                              }),
+                            )
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <SlotPips
+                    max={Math.max(1, hitDiceMax)}
+                    used={Math.max(0, hitDiceMax - hitDiceCurrent)}
+                    fillMode="available"
+                    label="Доступные кости хитов"
+                    summary={`${hitDiceCurrent} из ${hitDiceMax}`}
+                    onChange={(used) =>
+                      patchPlay({
+                        hitDiceCurrent: clampHitDiceCurrent(hitDiceMax - used, hitDiceMax),
+                      })
+                    }
+                  />
+                )}
+                <div className="play-hit-heal">
+                  {blackBlood ? (
+                    <Text tone="muted">
+                      Чёрная кровь (вердан): при трате кости хитов выпадение 1 или 2
+                      перебрасывается автоматически — результат в сводке перед применением.
+                    </Text>
+                  ) : null}
+                  <Field
+                    label={
+                      blackBlood ? 'Хиты за кость (бросок)' : 'Хиты за кость'
+                    }
+                  >
+                    <NumberInput
+                      min={0}
+                      emptyValue={0}
+                      value={healValue}
+                      onValueChange={(value) => setHealAmount(value ?? 0)}
+                      disabled={!activeDie || blackBlood}
+                    />
+                  </Field>
+                  {songOfRest ? (
+                    <Field label={`Песнь отдыха ${songOfRest.label}`}>
+                      <NumberInput
+                        min={1}
+                        max={songOfRest.sides}
+                        emptyValue={0}
+                        value={songRoll}
+                        onValueChange={(value) => setSongRoll(value)}
+                      />
+                    </Field>
+                  ) : null}
+                  {hitDiePreview && activeDie && hitDiceCurrent > 0 && hpMax != null ? (
+                    <p className="play-rest-preview" aria-live="polite">
+                      {hitDiePreview.line}
+                      {spells.pact_slots && spells.pact_slots.max > 0
+                        ? ' · ячейки договора восстановятся при сбросе коротких ресурсов'
+                        : ''}
+                    </p>
+                  ) : null}
+                  <div className="play-hit-heal__actions">
+                    <Button
+                      type="button"
+                      disabled={!activeDie || hitDiceCurrent <= 0 || hpMax == null}
+                      onClick={requestHitDieSpend}
+                    >
+                      {activeDie && healValue != null
+                        ? `Потратить кость · +${Math.max(0, Math.floor(healValue))} хитов`
+                        : 'Потратить кость'}
+                    </Button>
+                    <Button type="button" variant="secondary" onClick={requestShortRestResources}>
+                      Сброс коротких ресурсов
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div
+                className={`play-rest-block${preferKind === 'long' ? ' is-focus' : ''}`}
+                data-rest-kind="long"
+                role="tabpanel"
               >
-                {activeDie && healValue != null
-                  ? `Потратить кость · +${Math.max(0, Math.floor(healValue))} HP`
-                  : 'Потратить кость'}
-              </Button>
-              <Button type="button" variant="secondary" onClick={doShortRestResources}>
-                Сброс коротких ресурсов
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className={`play-rest-block${preferKind === 'long' ? ' is-focus' : ''}`}
-          data-rest-kind="long"
-        >
-          <Text>
-            <strong>{grittyRest ? 'Продолжительный отдых (7 дней)' : 'Продолжительный отдых'}</strong>
-          </Text>
-          <Text tone="muted">
-            Полные HP, половина костей, ячейки/pact, ресурсы, −1 истощение, сброс спасбросков от
-            смерти
-            {grittyRest ? ' · суровый реализм: 7 дней' : ''}.
-          </Text>
-          <div className="play-rest-actions">
-            <Button type="button" onClick={doLongRest}>
-              Продолжительный отдых
-            </Button>
-          </div>
-        </div>
+                <Text>
+                  <strong>
+                    {grittyRest
+                      ? 'Продолжительный отдых (7 дней)'
+                      : 'Продолжительный отдых'}
+                  </strong>
+                </Text>
+                <Text tone="muted">
+                  Полные хиты, половина костей, ячейки и ячейки договора, ресурсы, −1 истощение,
+                  сброс спасбросков от смерти
+                  {grittyRest ? ' · суровый реализм: 7 дней' : ''}. Перед применением — сводка
+                  изменений.
+                </Text>
+                <div className="play-rest-actions">
+                  <Button type="button" onClick={requestLongRest}>
+                    Сводка и применение…
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </Stack>
     </Dialog>
   )

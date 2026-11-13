@@ -3,8 +3,12 @@ import { createPortal } from 'react-dom'
 import { Button } from '../../ui'
 import { acquireBodyScrollLock } from '../../ui/bodyScrollLock'
 import { coinsToGp, formatGpTotal, type CoinPurse } from '../../shared/dnd/weight'
-
-type CoinKey = keyof CoinPurse
+import {
+  COIN_META,
+  formatCoinApplyPreview,
+  previewCoinApply,
+  type CoinKey,
+} from './coinPadPreview'
 
 type CoinPadDialogProps = {
   open: boolean
@@ -16,14 +20,6 @@ type CoinPadDialogProps = {
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'] as const
 
-const COIN_META: Array<{ key: CoinKey; label: string; short: string }> = [
-  { key: 'gp', label: 'Золото', short: 'З' },
-  { key: 'sp', label: 'Серебро', short: 'С' },
-  { key: 'cp', label: 'Медь', short: 'М' },
-  { key: 'pp', label: 'Платина', short: 'П' },
-  { key: 'ep', label: 'Электрум', short: 'Э' },
-]
-
 export function CoinPadDialog({
   open,
   coins,
@@ -33,18 +29,31 @@ export function CoinPadDialog({
 }: CoinPadDialogProps) {
   const [coin, setCoin] = useState<CoinKey>('gp')
   const [digits, setDigits] = useState('')
+  const [resetOpen, setResetOpen] = useState(false)
+  const [resetConfirmKey, setResetConfirmKey] = useState<CoinKey | null>(null)
 
   useEffect(() => {
     if (!open) return
     setDigits('')
     setCoin('gp')
+    setResetOpen(false)
+    setResetConfirmKey(null)
     const releaseScroll = acquireBodyScrollLock()
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         event.preventDefault()
+        if (resetConfirmKey) {
+          setResetConfirmKey(null)
+          return
+        }
+        if (resetOpen) {
+          setResetOpen(false)
+          return
+        }
         onClose()
         return
       }
+      if (resetOpen || resetConfirmKey) return
       if (event.key >= '0' && event.key <= '9') {
         event.preventDefault()
         setDigits((prev) => (prev + event.key).replace(/^0+(?=\d)/, '').slice(0, 8))
@@ -60,11 +69,20 @@ export function CoinPadDialog({
       releaseScroll()
       document.removeEventListener('keydown', onKeyDown)
     }
-  }, [open, onClose])
+  }, [open, onClose, resetOpen, resetConfirmKey])
 
   const delta = digits === '' ? 0 : Number(digits)
   const canApply = delta > 0
   const totalGp = useMemo(() => coinsToGp(coins), [coins])
+  const takePreview = useMemo(
+    () => formatCoinApplyPreview(coins, coin, delta, 1),
+    [coins, coin, delta],
+  )
+  const givePreview = useMemo(
+    () => formatCoinApplyPreview(coins, coin, delta, -1),
+    [coins, coin, delta],
+  )
+  const activeMeta = COIN_META.find((row) => row.key === coin)
 
   function press(key: (typeof KEYS)[number]) {
     if (key === 'C') {
@@ -80,15 +98,24 @@ export function CoinPadDialog({
 
   function apply(sign: 1 | -1) {
     if (!canApply) return
-    const next = Math.max(0, coins[coin] + sign * delta)
-    onChange({ ...coins, [coin]: next })
+    const { after, next } = previewCoinApply(coins, coin, delta, sign)
+    onChange(next)
     const meta = COIN_META.find((row) => row.key === coin)
     onToast(
       sign > 0
-        ? `+${delta} ${meta?.label ?? coin} · теперь ${next}`
-        : `−${delta} ${meta?.label ?? coin} · теперь ${next}`,
+        ? `+${delta} ${meta?.label ?? coin} · теперь ${after}`
+        : `−${delta} ${meta?.label ?? coin} · теперь ${after}`,
     )
     setDigits('')
+  }
+
+  function confirmReset(key: CoinKey) {
+    if (coins[key] <= 0) return
+    onChange({ ...coins, [key]: 0 })
+    const meta = COIN_META.find((row) => row.key === key)
+    onToast(`${meta?.label ?? key} сброшено`)
+    setResetConfirmKey(null)
+    setResetOpen(false)
   }
 
   if (!open) return null
@@ -110,7 +137,7 @@ export function CoinPadDialog({
       >
         <div className="number-pad__head">
           <h2 id="coin-pad-title" className="ui-text ui-dialog__title">
-            Монеты
+            Кошелёк
           </h2>
           <button type="button" className="number-pad__close" onClick={onClose} aria-label="Закрыть">
             ×
@@ -122,7 +149,8 @@ export function CoinPadDialog({
           <div className="coin-pad__balances">
             {COIN_META.map((row) => (
               <span key={row.key} className={coin === row.key ? 'is-on' : ''}>
-                <b>{row.short}</b> {coins[row.key]}
+                <b>{row.label}</b>
+                <em aria-hidden="true">({row.short})</em> {coins[row.key]}
               </span>
             ))}
           </div>
@@ -138,7 +166,7 @@ export function CoinPadDialog({
             >
               {COIN_META.map((row) => (
                 <option key={row.key} value={row.key}>
-                  {row.short} · {row.label} ({coins[row.key]})
+                  {row.label} ({row.short}) · {coins[row.key]}
                 </option>
               ))}
             </select>
@@ -147,8 +175,17 @@ export function CoinPadDialog({
 
         <div className="number-pad__display" aria-live="polite">
           <span className="number-pad__display-value">{digits === '' ? '0' : String(delta)}</span>
-          <span className="number-pad__display-hint">введи число · взять / отдать</span>
+          <span className="number-pad__display-hint">
+            {activeMeta ? `${activeMeta.label} · взять / отдать` : 'введи число · взять / отдать'}
+          </span>
         </div>
+
+        {canApply ? (
+          <div className="coin-pad__preview" aria-live="polite">
+            <p>{takePreview}</p>
+            {coins[coin] > 0 ? <p>{givePreview}</p> : null}
+          </div>
+        ) : null}
 
         <div className="coin-pad__body">
           <div className="number-pad__keys" role="group" aria-label="Цифровая клавиатура">
@@ -163,23 +200,59 @@ export function CoinPadDialog({
               </button>
             ))}
           </div>
-          <div className="coin-pad__zeros">
-            {COIN_META.map((row) => (
+
+          <div className="coin-pad__danger">
+            {!resetOpen ? (
               <button
-                key={row.key}
                 type="button"
-                className="coin-pad__zero"
-                disabled={coins[row.key] <= 0}
-                title={`${row.label} = 0`}
+                className="coin-pad__danger-toggle"
                 onClick={() => {
-                  if (coins[row.key] <= 0) return
-                  onChange({ ...coins, [row.key]: 0 })
-                  onToast(`${row.label} сброшено`)
+                  setResetOpen(true)
+                  setResetConfirmKey(null)
                 }}
               >
-                {row.short}=0
+                Сброс монеты…
               </button>
-            ))}
+            ) : resetConfirmKey == null ? (
+              <div className="coin-pad__reset-menu" role="group" aria-label="Сброс монеты">
+                <p className="coin-pad__reset-hint">Обнулить одну монету (с подтверждением):</p>
+                <div className="coin-pad__reset-list">
+                  {COIN_META.map((row) => (
+                    <button
+                      key={row.key}
+                      type="button"
+                      className="coin-pad__reset-item"
+                      disabled={coins[row.key] <= 0}
+                      onClick={() => setResetConfirmKey(row.key)}
+                    >
+                      {row.label} = 0
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="coin-pad__danger-toggle"
+                  onClick={() => setResetOpen(false)}
+                >
+                  Отмена
+                </button>
+              </div>
+            ) : (
+              <div className="coin-pad__reset-confirm" role="group" aria-label="Подтверждение сброса">
+                <p>
+                  Обнулить {COIN_META.find((row) => row.key === resetConfirmKey)?.label}? Сейчас{' '}
+                  {coins[resetConfirmKey]}.
+                </p>
+                <div className="coin-pad__reset-confirm-actions">
+                  <Button type="button" variant="secondary" onClick={() => setResetConfirmKey(null)}>
+                    Отмена
+                  </Button>
+                  <Button type="button" variant="danger" onClick={() => confirmReset(resetConfirmKey)}>
+                    Обнулить
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

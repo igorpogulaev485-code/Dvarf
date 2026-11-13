@@ -128,6 +128,57 @@
   font-variant-numeric: tabular-nums;
 }
 
+.play-rest-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.play-rest-tabs__btn {
+  font: inherit;
+  font-size: 0.88rem;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.play-rest-tabs__btn.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.play-rest-preview {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px dashed var(--line);
+  background: color-mix(in srgb, var(--accent-soft) 35%, white);
+  font-size: 0.88rem;
+  color: var(--ink);
+}
+
+.play-rest-summary {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card, #fff);
+}
+
+.play-rest-summary__list {
+  margin: 0;
+  padding-left: 1.2em;
+  display: grid;
+  gap: 4px;
+  font-size: 0.92rem;
+}
+
 .combat-stat--pulse {
   animation: combat-hp-pulse 900ms ease;
 }

@@ -546,7 +546,7 @@ export function MobileVitalsBar({
               ? 'при смерти'
               : play.hpTemp > 0
                 ? `Хиты · врем. +${play.hpTemp}`
-                : 'Хиты · tap → pad'}
+                : 'Хиты · нажми, чтобы изменить'}
           </span>
           {showValueTips ? <HoverTipCard tip={VITAL_TIPS.hp} /> : null}
         </button>
