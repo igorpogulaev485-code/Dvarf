@@ -116,7 +116,11 @@ export function ClassicSheetPreviewPage() {
         </div>
       </header>
       <ClassicSheetUiProvider editing={editing}>
-        <ClassicPrintSheet character={character} onPatch={applyPatch} layout={layout} />
+        <ClassicPrintSheet
+          character={character}
+          onPrintSettings={applyPatch}
+          layout={layout}
+        />
       </ClassicSheetUiProvider>
     </div>
   )

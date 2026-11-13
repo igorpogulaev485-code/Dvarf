@@ -11,8 +11,8 @@ type Props = {
 }
 
 /**
- * Scales the Letter stack to the window width on screen.
- * Print media disables transform so pages stay 8.5×11in.
+ * Scales the A4 stack to the window width on screen.
+ * Print media disables transform so pages stay 210×297 mm.
  */
 export function ClassicFitViewport({ children }: Props) {
   const hostRef = useRef<HTMLDivElement>(null)

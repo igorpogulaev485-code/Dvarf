@@ -1,28 +1,39 @@
 # Классический лист ↔ продукт (контракт)
 
-Classic — не отдельное приложение. Это **второй UI того же `CharacterDetail` / `sheet`**, что и Play Desk.  
+Classic — **не второй редактор**. Это **read-only бланк для печати / PDF** того же `CharacterDetail` / `sheet`, что и Play Desk.  
+Играть за экраном — в Play Desk. На игры часто приходят с распечаткой.  
 Деплой classic без Play Desk / лобби / кабинета = снова overwrite.  
-Связано: [`INCIDENT_OVERWRITE_2026-10-17.md`](INCIDENT_OVERWRITE_2026-10-17.md).
+Связано: [`INCIDENT_OVERWRITE_2026-10-17.md`](INCIDENT_OVERWRITE_2026-10-17.md), UI-кит §2r.
 
 ---
 
-## Связь с продуктом (проверено на tip restore)
+## Связь с продуктом
 
 | Узел | Как связано | Файлы / маркеры |
 |------|-------------|-----------------|
-| Маршрут | `/characters/:characterId/classic` | `App.tsx`, `LazyClassicSheetPage` |
-| Вход с цифрового листа | ссылки «классический бланк» | `CharacterDetailPage.tsx` |
-| Данные | тот же `getCharacter` / `updateCharacter` | `ClassicSheetPage.tsx` → `shared/api/characters` |
-| Документ sheet | правки через `ClassicPatch` → `sheet` | `classicSheet/fromApi.ts` |
-| Синхронизация вкладок | BroadcastChannel с Play Desk | `shared/sync/characterSheetChannel` — `sheet-saved` |
-| Макет 2014 / 2024 | `sheet.ui.classic_sheet_layout` | `classicSheetLayout.ts`, `ClassicPrint2024.tsx` |
-| Паритет атак / оружия | те же поля, что digital | `classicWeapons.ts` |
-| КД / инициатива / скорость | Play Desk считает live; `combat.ac`/`initiative` = override (null→auto). Classic показывает то же | `classicDerivedCombat.ts` (2014+2024) |
-| Спеллы / карточки | sheet spells + карточки | `classicSpells.ts`, `classicSpellCards.ts` |
-| Заметки / текст-блоки | `text_blocks` + classic mirrors | `fromApi.mergeClassicTextBlocks`, `classicNotes.ts` |
-| Состояния / attunement | `combat.conditions`, `sheet.attunements` | `classicConditions.ts`, `classicAttunement.ts` |
-| Фон бланка | picker → sheet | `ClassicBackgroundPicker.tsx` |
-| Превью без персонажа | sample character | `ClassicSheetPreviewPage` + `sampleClassicCharacter.ts` |
+| Маршрут персонажа | `/characters/:characterId/classic` | `App.tsx`, `LazyClassicSheetPage` |
+| Пустой бланк | `/classic/blank?layout=2014\|2024` (без API) | `ClassicBlankSheetPage.tsx` |
+| Вход с цифрового листа | ссылки «классический бланк» | `CharacterDetailPage.tsx`, `CharacterCard.tsx` |
+| Данные | только чтение `getCharacter` / `sheet` | `ClassicSheetPage.tsx` |
+| Настройки печати | узкий PATCH **только** `sheet.ui.classic_*` | `classicPrintSettings.ts`, `classicSheetLayout.ts`, `classicBlockFonts.ts` |
+| Документ sheet (игровые поля) | **не пишется** с бланка | Play Desk → `updateCharacter` |
+| Синхронизация вкладок | на classic **нет** BroadcastChannel | Play Desk остаётся источником правды |
+| Макет 2014 / 2024 | `sheet.ui.classic_sheet_layout` | печатная форма, не `rules_edition` |
+| Карандаш / доп. заметки | `classic_pencil_blanks`, `classic_extra_note_pages` | панель `no-print` |
+| Типографика печати | `classic_block_fonts`, `classic_text_style`, `classic_block_sizes`, `classic_global_font_scale` | «Правка печати» |
+| Холст | **A4** 210×297 mm, `@page { size: A4 }` | `classicPrint.css`, `classicPageSize.ts` |
+| Напарники | страница(и) по 6 слотов, overflow → ещё страница | `classicCompanions.ts`, `classicOverflow.ts` |
+| Переполнение текста/списков | доп. страницы-продолжения, не `overflow: hidden` | `classicOverflow.ts` |
+
+**Разрешённые записи с classic** (и только они):
+
+- `sheet.ui.classic_sheet_layout`
+- `sheet.ui.classic_block_fonts`
+- `sheet.ui.classic_pencil_blanks`
+- `sheet.ui.classic_extra_note_pages`
+- `sheet.ui.classic_text_style`
+- `sheet.ui.classic_block_sizes`
+- `sheet.ui.classic_global_font_scale`
 
 **Не меняет** `rules_edition` персонажа: переключатель 2014/2024 — только макет бланка.
 
@@ -34,8 +45,8 @@ Classic **нельзя** деплоить без:
 
 1. Play Desk: `PlayDeskHeader`, `PlayDeskHotBar`, `MinimalSheetEditor`
 2. API персонажа + кабинет/аватар/лобби (общий prod lineage)
-3. Полный каталог `classicSheet/` (≥10 файлов; на live сейчас 17)
-4. `ClassicPrint2024` + `classicSheetLayout` + weapons/spell cards
+3. Полный каталог `classicSheet/` (≥10 файлов)
+4. `ClassicPrint2024` + `classicSheetLayout` + weapons/spell cards + A4 print CSS
 
 Иначе preflight / live-count должны **упасть** (см. `deploy/preflight-prod.sh`, `preflight-live.sh`).
 
@@ -46,20 +57,19 @@ Classic **нельзя** деплоить без:
 Перед merge / деплоем:
 
 - [ ] `rg "path=\"/characters/:characterId/classic\"" frontend/src/App.tsx`
-- [ ] Ссылки на `/classic` в `CharacterDetailPage` живы
+- [ ] `rg "path=\"/classic/blank\"" frontend/src/App.tsx`
+- [ ] Ссылки на `/classic` в `CharacterDetailPage` / `CharacterCard` живы
 - [ ] `ClassicPrintSheet` умеет ветку 2024 → `ClassicPrint2024`
-- [ ] `createSheetSyncChannel` / `publishSheetSync` в `ClassicSheetPage`
-- [ ] `fromApi` пишет в тот же `sheet`, что Play Desk
+- [ ] `ClassicSheetPage` **не** публикует BroadcastChannel и не пишет игровые поля
+- [ ] `@page` / `.classic-sheet` — A4, не Letter
 - [ ] counts: `classicSheet` ≥ 10, `characters` ≥ 80
-- [ ] live tip — ancestor вашей ветки; сеттинг-маркеры не выкинуты
 
 После деплоя:
 
 ```bash
 curl -fsS http://201.34.132.252/health
-ssh … 'test -f /opt/dvarf/frontend/src/features/classicSheet/ClassicPrint2024.tsx'
-ssh … 'test -f /opt/dvarf/frontend/src/features/characters/PlayDeskHotBar.tsx'
-# в UI: персонаж → «классический» → правки → вернуться на digital → данные те же
+# в UI: персонаж → «классический» → подпись «Только для печати» → Печать/PDF (A4)
+# настройки печати меняют только sheet.ui.classic_*; Play Desk данные те же
 ```
 
 ---
@@ -67,8 +77,9 @@ ssh … 'test -f /opt/dvarf/frontend/src/features/characters/PlayDeskHotBar.tsx'
 ## Типичные ошибки (не повторять)
 
 1. Залить «только classic» с тонкой ветки → пропадает Play Desk.
-2. Залить сеттинг мимо tip с classic → classic снова 3 файла.
-3. Считать наличие `ClassicPrintSheet.tsx` достаточным — без 2024/parity это тонкий stub.
-4. Ломать `characterSheetChannel` / `sheet_version` — classic и digital разъедутся.
-5. Показывать пользователю `<!-- dvarf-bg-* -->` из гранта предыстории — UI обязан звать `stripDvarfInternalMarkers` (Play Desk + classic).
-6. Не класть `.character-card*` в `classicPrint.css` — lazy CSS classic отравляет список персонажей (кнопка «Открыть» наезжает на имя).
+2. Вернуть запись имени/хитов/заклинаний с бланка — нарушает §2r / CL-01.
+3. Считать `/dev/classic-sheet-preview` пустым бланком — для пустого есть `/classic/blank`.
+4. Letter 8.5×11 вместо A4.
+5. Обрезать длинные списки/`overflow: hidden` вместо страниц-продолжений.
+6. Показывать пользователю `<!-- dvarf-bg-* -->` — UI обязан звать `stripDvarfInternalMarkers`.
+7. Не класть `.character-card*` в `classicPrint.css` — lazy CSS classic отравляет список персонажей.

@@ -2,9 +2,10 @@ import { asRecord, readNumber } from '../characters/sheetTypes'
 import type { CharacterDetail } from '../../shared/api/characters'
 import { cloneSheet, type ClassicPatch } from './fromApi'
 
-export const CLASSIC_BLOCK_FONT_MIN = 5
-export const CLASSIC_BLOCK_FONT_MAX = 12
-export const CLASSIC_BLOCK_FONT_DEFAULT = 8
+/** Floor matches CL01 autofit min (7 pt). */
+export const CLASSIC_BLOCK_FONT_MIN = 7
+export const CLASSIC_BLOCK_FONT_MAX = 14
+export const CLASSIC_BLOCK_FONT_DEFAULT = 9
 
 /** Point size for a classic text block, clamped 5–12. */
 export function clampClassicFontSize(raw: unknown): number {

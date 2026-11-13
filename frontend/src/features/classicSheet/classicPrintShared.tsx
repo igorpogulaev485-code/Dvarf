@@ -2,32 +2,49 @@ import { useLayoutEffect, useRef, type CSSProperties } from 'react'
 import type { CharacterDetail } from '../../shared/api/characters'
 import { proficiencyBonusForTotalLevel } from '../../shared/dnd/classFeatures'
 import { asRecord } from '../characters/sheetTypes'
+import { CLASSIC_FIT_MIN_PT } from './classicPrintSettings'
 
 export function Expanding({
   value,
-  onChange,
   printMaxHeight,
   ariaLabel,
   className,
   fill,
   style: styleProp,
+  readOnly = true,
 }: {
   value: string
-  onChange: (value: string) => void
+  onChange?: (value: string) => void
   printMaxHeight?: string
   ariaLabel?: string
   className?: string
   /** Stretch to fill a growable panel instead of hugging text height. */
   fill?: boolean
   style?: CSSProperties
+  readOnly?: boolean
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
   useLayoutEffect(() => {
-    if (fill) return
     const el = ref.current
     if (!el) return
-    el.style.height = '0px'
-    el.style.height = `${Math.max(el.scrollHeight, 24)}px`
+    if (!fill) {
+      el.style.height = '0px'
+      el.style.height = `${Math.max(el.scrollHeight, 24)}px`
+    }
+    const computed = getComputedStyle(el)
+    const cssMax = parseFloat(computed.getPropertyValue('--classic-fit-max-pt'))
+    const start =
+      (Number.isFinite(cssMax) && cssMax > 0
+        ? cssMax
+        : parseFloat(computed.fontSize) * (72 / 96)) || 8
+    let size = start
+    el.style.fontSize = `${size}pt`
+    const overflows = () =>
+      el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1
+    while (size > CLASSIC_FIT_MIN_PT && fill && overflows()) {
+      size -= 0.25
+      el.style.fontSize = `${size}pt`
+    }
   }, [value, fill])
   const style: CSSProperties = {
     ...(printMaxHeight ? ({ ['--print-max-height']: printMaxHeight } as CSSProperties) : null),
@@ -44,7 +61,8 @@ export function Expanding({
       aria-label={ariaLabel}
       rows={1}
       style={style}
-      onChange={(e) => onChange(e.target.value)}
+      readOnly={readOnly}
+      tabIndex={readOnly ? -1 : undefined}
     />
   )
 }
@@ -58,10 +76,17 @@ export function Bubble({
   filled: boolean
   /** Double-filled look for expertise (classic skill bubble). */
   expertise?: boolean
-  onClick: () => void
+  onClick?: () => void
   label?: string
 }) {
   const state = expertise ? 'is-expertise' : filled ? 'is-filled' : ''
+  if (!onClick) {
+    return (
+      <span className="classic-bubble-btn classic-bubble-btn--static" aria-label={label}>
+        <span className={`classic-bubble ${state}`.trim()} />
+      </span>
+    )
+  }
   return (
     <button type="button" className="classic-bubble-btn" onClick={onClick} aria-label={label}>
       <span className={`classic-bubble ${state}`.trim()} />

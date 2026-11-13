@@ -11,7 +11,7 @@ import {
 import { asRecord } from '../characters/sheetTypes'
 import { mergeClassicTextBlocks, type ClassicPatch } from './fromApi'
 
-/** How many note cards to aim for on one Letter page. */
+/** How many note cards to aim for on one A4 page. */
 export const CLASSIC_NOTES_PER_PAGE = 6
 
 function isCustomNoteKey(key: string): boolean {
@@ -80,7 +80,7 @@ export function chunkClassicNotePages(notes: TextBlock[]): TextBlock[][] {
   return pages
 }
 
-/** First N slots for a Letter notes grid (null = empty card). */
+/** First N slots for a A4 notes grid (null = empty card). */
 export function paddedClassicNoteSlots(
   notes: TextBlock[],
   slots = CLASSIC_NOTES_PER_PAGE,

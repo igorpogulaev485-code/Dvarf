@@ -241,6 +241,8 @@ function emptyIdentity(): IdentityExtras {
     alignmentText: '',
     gender: null,
     size: 'medium',
+    playerName: '',
+    carry: '',
     darkvision: 0,
     armor: { ...EMPTY_ARMOR },
     weapons: { ...EMPTY_WEAPONS, extras: [] },

@@ -1,26 +1,31 @@
 import {
   useLayoutEffect,
   useRef,
+  type CSSProperties,
   type InputHTMLAttributes,
 } from 'react'
+import { CLASSIC_FIT_MIN_PT } from './classicPrintSettings'
 
-type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> & {
+type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'onChange'> & {
   /** Max font-size in px (from CSS when omitted). */
   maxFontPx?: number
-  /** Min font-size in px before giving up. */
+  /** Min font-size in px before giving up (default ≈ 7pt). */
   minFontPx?: number
 }
 
+const DEFAULT_MIN_PX = Math.round((CLASSIC_FIT_MIN_PT * 96) / 72)
+
 /**
- * Single-line header field: shrinks font so long values (names) stay readable
- * instead of clipping inside the Letter blank.
+ * Single-line header field: shrinks font so long values stay readable
+ * instead of clipping inside the A4 blank. Always read-only on classic print.
  */
 export function ClassicFitInput({
   value,
   maxFontPx,
-  minFontPx = 9,
+  minFontPx = DEFAULT_MIN_PX,
   className,
   style,
+  readOnly = true,
   ...rest
 }: Props) {
   const ref = useRef<HTMLInputElement>(null)
@@ -39,7 +44,6 @@ export function ClassicFitInput({
           : parseFloat(computed.fontSize) || 18)
       let size = start
       el.style.fontSize = `${size}px`
-      // Reset so scrollWidth reflects unclipped text.
       while (size > minFontPx && el.scrollWidth > el.clientWidth + 1) {
         size -= 0.5
         el.style.fontSize = `${size}px`
@@ -53,13 +57,17 @@ export function ClassicFitInput({
     return () => ro.disconnect()
   }, [value, maxFontPx, minFontPx])
 
+  const mergedStyle: CSSProperties = { ...style }
+
   return (
     <input
       ref={ref}
       type="text"
       className={['classic-fit-input', className].filter(Boolean).join(' ')}
       value={value}
-      style={style}
+      style={mergedStyle}
+      readOnly={readOnly}
+      tabIndex={readOnly ? -1 : undefined}
       {...rest}
     />
   )
