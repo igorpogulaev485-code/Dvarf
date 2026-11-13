@@ -415,9 +415,13 @@ export function AttacksPanel({
               </div>
 
               <div className="attack-card__name">
-                <Field label="Оружие или артефакт">
+                <Field label="Оружие или артефакт" labelSrOnly>
                   {raceNatural ? (
-                    <Input value={attack.name} readOnly className="attack-card__name-input" />
+                    <Input
+                      value={attack.name}
+                      readOnly
+                      className="ui-input--title attack-card__name-input"
+                    />
                   ) : (
                     <CatalogCombobox
                       kinds={['weapon', 'item']}
@@ -425,6 +429,7 @@ export function AttacksPanel({
                       value={attack.name}
                       placeholder="Боевой молот, Молот бури…"
                       onChange={(value, selected) => applyCatalog(attack.id, value, selected)}
+                      inputClassName="ui-input--title"
                     />
                   )}
                 </Field>

@@ -204,6 +204,7 @@ export function AttacksSettingsDialog({
               <div className="attack-card__name">
                 <Field
                   label="Название"
+                  labelSrOnly
                   hint={
                     linked
                       ? 'Из инвентаря — имя правится там'
@@ -216,7 +217,7 @@ export function AttacksSettingsDialog({
                 >
                   <Input
                     value={attack.name}
-                    className="attack-card__name-input"
+                    className="ui-input--title attack-card__name-input"
                     readOnly={raceNatural || classMa || linked}
                     placeholder="Своя атака"
                     onChange={

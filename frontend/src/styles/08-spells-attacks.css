@@ -268,23 +268,7 @@ button.spells-settings__derived-stat--btn:hover {
   width: max-content;
 }
 
-.spells-settings .pact-settings .ui-input,
-.ui-dialog__body .spells-settings .pact-settings .ui-input {
-  width: 3.25rem;
-  padding: 5px 0;
-  border-radius: 8px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-}
-
-.spells-settings__prep .ui-input,
-.ui-dialog__body .spells-settings__prep .ui-input {
-  padding: 6px 8px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-}
+/* Pact/prep fields: apply kit classes ui-input--slot / ui-input--prep in TSX */
 
 .spells-settings-dialog__books {
   display: flex;
@@ -430,26 +414,7 @@ button.spells-settings__derived-stat--btn:hover {
   align-items: center;
 }
 
-.attack-card__name .ui-field__label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.attack-card__name .ui-input,
-.attack-card__name .ui-combobox .ui-input,
-.attack-card__name-input {
-  font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: var(--ink);
-}
+/* Name field: kit ui-field__label--sr + ui-input--title */
 
 .attack-card__stats {
   display: grid;

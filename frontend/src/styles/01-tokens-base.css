@@ -189,6 +189,82 @@ input {
   padding: 12px 14px;
   background: #fff;
   color: var(--ink);
+  box-sizing: border-box;
+  line-height: 1.25;
+}
+
+/* Kit input sizes (Ilya usability rhythm) — use via Input/NumberInput props */
+.ui-input--sm {
+  min-height: var(--control-h-sm);
+  padding: 4px 10px;
+  font-size: 0.85rem;
+}
+
+.ui-input--md {
+  min-height: var(--control-h-md);
+  padding: 6px 12px;
+  font-size: 0.92rem;
+}
+
+.ui-input--lg {
+  min-height: var(--control-h-lg);
+  padding: 10px 14px;
+  font-size: 0.95rem;
+}
+
+/* Amount / «Число» — wide enough for placeholder, centered */
+.ui-input--narrow {
+  width: 6.75rem;
+  min-width: 6.75rem;
+  max-width: 8rem;
+  text-align: center;
+}
+
+.ui-input--center {
+  text-align: center;
+}
+
+/* iOS: ≥16px prevents auto-zoom on focus */
+.ui-input--touch {
+  font-size: 16px;
+}
+
+/* Compact spell slot / prep cells */
+.ui-input--slot {
+  width: 3.25rem;
+  padding: 5px 0;
+  border-radius: 8px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.ui-input--prep {
+  padding: 6px 8px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* Serif title field (attack / text block names) */
+.ui-input--title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Visually hidden field label (a11y) */
+.ui-field__label--sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .ui-input:focus {
@@ -299,6 +375,74 @@ a.ui-button--primary {
   background: var(--accent-soft);
   color: var(--accent);
   border-color: color-mix(in srgb, var(--accent) 20%, white);
+}
+
+/* Segmented tabs (kit) — one row, equal segments */
+.ui-segmented {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0;
+  min-width: 0;
+  max-width: 100%;
+  min-height: var(--control-h-md);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.ui-segmented--sm {
+  min-height: var(--control-h-sm);
+}
+
+.ui-segmented__item {
+  appearance: none;
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 10px;
+  border: none;
+  border-inline-end: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.ui-segmented__item:last-child {
+  border-inline-end: none;
+}
+
+.ui-segmented__item:hover:not(.is-on) {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent-soft) 45%, transparent);
+}
+
+.ui-segmented__item.is-on {
+  background: var(--accent);
+  color: #f8fffb;
+}
+
+.ui-segmented--sm .ui-segmented__item {
+  padding: 0 8px;
+  font-size: 0.82rem;
+}
+
+/* Icon-only kit button face (collapse chevron etc.) */
+.ui-button--icon {
+  width: var(--control-h-md);
+  min-width: var(--control-h-md);
+  padding: 0;
 }
 
 .ui-button--ghost {

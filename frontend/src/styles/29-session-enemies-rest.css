@@ -71,57 +71,44 @@
   margin-left: auto;
 }
 
-/* LV-02 P08: обёртка с peek следующего чипа (fade справа) */
+/* UIKIT-01: очередь — компактные карточки на всю ширину колонки (не вертикальные пилюли) */
 .session-combat-order-wrap {
   position: relative;
   min-width: 0;
-}
-
-.session-combat-order-wrap::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 32px;
-  pointer-events: none;
-  border-radius: 0 12px 12px 0;
-  background: linear-gradient(
-    to right,
-    transparent,
-    color-mix(in srgb, var(--panel) 92%, #78716c)
-  );
+  width: 100%;
 }
 
 .session-combat-order {
   list-style: none;
   margin: 0;
-  padding: 0 28px 0 0;
+  padding: 0;
   display: flex;
+  flex-direction: column;
   flex-wrap: nowrap;
   gap: 8px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x proximity;
-  scroll-padding-inline: 8px 40px;
+  overflow: visible;
+  width: 100%;
 }
 
 .session-combat-order__chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: var(--control-h-md);
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   padding: 6px 12px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 12px;
   background: var(--card);
   color: inherit;
   font: inherit;
   font-size: 0.9rem;
   white-space: nowrap;
   cursor: pointer;
-  scroll-snap-align: start;
-  flex-shrink: 0;
+  box-sizing: border-box;
+  text-align: left;
 }
 
 .session-combat-order__chip:disabled {
@@ -210,11 +197,12 @@
 
 .session-combat-order__under {
   list-style: none;
-  margin: 4px 0 0 28px;
-  padding: 0;
+  margin: 0;
+  padding: 0 0 0 4px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .session-combat-order__under-chip {
@@ -245,15 +233,33 @@
 }
 
 .session-combat-order > li {
-  display: inline-flex;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
-.session-combat-order__roll {
-  min-height: 32px;
-  padding: 4px 10px;
-  font-size: 0.8rem;
+.session-combat-order > li > .session-combat-order__chip {
+  flex: 1 1 10rem;
+  width: auto;
+  min-width: min(100%, 10rem);
+  max-width: 100%;
+}
+
+.session-combat-order__under {
+  flex: 1 1 100%;
+}
+
+.session-combat-order__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  flex: 0 0 auto;
 }
 
 .session-combat-waves,
@@ -383,9 +389,11 @@
 }
 
 .session-combat-order__name {
-  /* LV-02: имена не сжимать и не резать по буквам */
-  overflow-wrap: normal;
-  word-break: normal;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .session-init-list__surprise {
@@ -706,28 +714,7 @@
   }
 }
 
-/* S-05: сторона на карточке / в очереди */
-.session-side-btn {
-  border: 1px solid var(--line);
-  background: var(--card);
-  border-radius: 10px;
-  padding: 4px 10px;
-  font: inherit;
-  font-size: 0.82rem;
-  cursor: pointer;
-  color: var(--ink);
-  white-space: nowrap;
-}
-
-.session-side-btn:hover:not(:disabled) {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-}
-
-.session-side-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
+/* S-05: сторона — kit Button (см. SessionTableCard); chip только для read-only */
 
 .session-side-chip {
   font-size: 0.78rem;
@@ -746,6 +733,11 @@
   font-size: 0.72rem;
   color: var(--muted);
   margin-left: 4px;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 40%;
 }
 
 

@@ -35,7 +35,7 @@ export function formatJumpTitle(jump: JumpDistances): string {
   )
 }
 
-/** Short face label under the N/M chip (UX audit / M-01 M10). */
+/** Short face label under the N/M chip (one line; detail in title). */
 export function formatJumpFaceLabel(): string {
-  return 'прыжок · дл./выс.'
+  return 'Прыжок'
 }

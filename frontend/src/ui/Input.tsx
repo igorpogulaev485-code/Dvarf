@@ -1,7 +1,26 @@
 import type { InputHTMLAttributes } from 'react'
 
-type InputProps = InputHTMLAttributes<HTMLInputElement>
+export type InputSize = 'sm' | 'md' | 'lg'
 
-export function Input({ className = '', ...props }: InputProps) {
-  return <input className={`ui-input ${className}`.trim()} {...props} />
+type InputProps = InputHTMLAttributes<HTMLInputElement> & {
+  /** Kit control rhythm; default matches legacy field padding. */
+  size?: InputSize
+  /** Compact width for amount / «Число» fields — placeholder stays readable. */
+  narrow?: boolean
+}
+
+export function Input({
+  className = '',
+  size,
+  narrow = false,
+  ...props
+}: InputProps) {
+  const sizeClass = size ? `ui-input--${size}` : ''
+  const narrowClass = narrow ? 'ui-input--narrow' : ''
+  return (
+    <input
+      className={`ui-input ${sizeClass} ${narrowClass} ${className}`.trim()}
+      {...props}
+    />
+  )
 }

@@ -112,12 +112,13 @@ export function Dialog({
         {showActions ? (
           <div className="ui-dialog__actions">
             {secondaryLabel && onSecondary ? (
-              <Button variant="ghost" onClick={onSecondary}>
+              <Button variant="ghost" size="md" onClick={onSecondary}>
                 {secondaryLabel}
               </Button>
             ) : null}
             <Button
               variant={primaryVariant}
+              size="lg"
               onClick={onPrimary}
               disabled={busy || primaryDisabled}
             >

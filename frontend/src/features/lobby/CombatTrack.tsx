@@ -242,7 +242,12 @@ export function CombatTrack({
                     <span className="session-combat-order__init">
                       {entry.initiative_pending ? '?' : entry.initiative ?? '—'}
                     </span>
-                    <span className="session-combat-order__name">
+                    <span
+                      className="session-combat-order__name"
+                      title={
+                        entry.surprised ? `${entry.name} · врасплох` : entry.name
+                      }
+                    >
                       {entry.name}
                       {entry.surprised ? ' · врасплох' : ''}
                     </span>
@@ -267,27 +272,32 @@ export function CombatTrack({
                       ))}
                     </ul>
                   ) : null}
-                  {(canRollOwn || canRollMaster) && onRollInitiative ? (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      className="session-combat-order__roll"
-                      disabled={busy}
-                      onClick={() => onRollInitiative(entry)}
-                    >
-                      Бросить инициативу
-                    </Button>
-                  ) : null}
-                  {masterControls && onSideClick ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="session-combat-order__roll session-combat-order__side-action"
-                      disabled={busy}
-                      onClick={() => onSideClick(entry)}
-                    >
-                      Сторона
-                    </Button>
+                  {(canRollOwn || canRollMaster || (masterControls && onSideClick)) ? (
+                    <div className="session-combat-order__actions">
+                      {(canRollOwn || canRollMaster) && onRollInitiative ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          disabled={busy}
+                          onClick={() => onRollInitiative(entry)}
+                        >
+                          Бросить инициативу
+                        </Button>
+                      ) : null}
+                      {masterControls && onSideClick ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="session-combat-order__side-action"
+                          disabled={busy}
+                          onClick={() => onSideClick(entry)}
+                        >
+                          Сторона
+                        </Button>
+                      ) : null}
+                    </div>
                   ) : null}
                 </li>
               )

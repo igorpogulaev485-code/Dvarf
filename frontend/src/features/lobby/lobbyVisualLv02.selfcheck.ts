@@ -1,5 +1,6 @@
 /**
- * LV-02: чипы хода ≥44 px, липкая своя карточка, peek инициативы.
+ * LV-02: чипы хода ≥44 px, липкая своя карточка, читаемая инициатива.
+ * UIKIT-01: действия карточки — kit Button size lg (без .ui-button override).
  * Selfcheck по исходникам — без рантайма.
  */
 import assert from 'node:assert/strict'
@@ -15,24 +16,34 @@ assert.match(enemiesRest, /\.session-turn-chip\s*\{[^}]*min-height:\s*44px/)
 assert.match(enemiesRest, /\.session-turn-chip\s*\{[^}]*min-width:\s*44px/)
 assert.match(enemiesRest, /session-combat-order-wrap/)
 assert.match(enemiesRest, /session-combat-track__progress/)
+assert.match(
+  enemiesRest,
+  /\.session-combat-order\s*\{[\s\S]*?flex-direction:\s*column/,
+)
+assert.match(
+  enemiesRest,
+  /\.session-combat-order__name\s*\{[\s\S]*?text-overflow:\s*ellipsis/,
+)
 assert.doesNotMatch(
   enemiesRest,
   /\.session-turn-chip\s*\{[^}]*min-height:\s*28px/,
 )
 
 const journal = read('src/styles/27-session-journal-notes.css')
-assert.match(
+assert.doesNotMatch(
   journal,
-  /\.session-table-card__actions\s+\.ui-button\s*\{[^}]*min-height:\s*44px/,
+  /\.session-table-card__actions\s+\.ui-button\s*\{[^}]*min-height/,
 )
 assert.match(journal, /\.session-seat-stack\.is-your-turn\s*\{[^}]*position:\s*sticky/)
 assert.match(journal, /session-center-slot--init[\s\S]*order:\s*2/)
 assert.match(journal, /session-center-slot--cards[\s\S]*order:\s*3/)
 
+const card = read('src/features/lobby/SessionTableCard.tsx')
+assert.match(card, /ui-button--lg/)
+
 const track = read('src/features/lobby/CombatTrack.tsx')
 assert.match(track, /ход \{turnNumber\} из \{turnTotal\}/)
 assert.match(track, /session-combat-order-wrap/)
-assert.match(track, /scrollBy/)
 
 const chips = read('src/features/characters/TurnEconomyChips.tsx')
 assert.match(chips, /markClearBlocked/)

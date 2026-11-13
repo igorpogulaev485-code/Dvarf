@@ -39,10 +39,7 @@
   color: var(--accent);
 }
 
-.ability-card .ui-input {
-  text-align: center;
-  padding: 8px;
-}
+/* Use kit Input size="sm" + ui-input--center on ability fields */
 
 .chip-row {
   display: flex;

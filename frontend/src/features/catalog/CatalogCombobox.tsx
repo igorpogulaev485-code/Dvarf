@@ -22,6 +22,8 @@ type CatalogComboboxProps = {
   filterEntry?: (entry: CatalogEntry) => boolean
   /** Typing searches only. The parent hears a change when an option is chosen. */
   commitOnSelect?: boolean
+  /** Extra kit classes on the input (e.g. ui-input--title). */
+  inputClassName?: string
   onChange: (value: string, selected: CatalogEntry | null) => void
 }
 
@@ -80,6 +82,7 @@ export function CatalogCombobox({
   optionLabel,
   filterEntry,
   commitOnSelect = false,
+  inputClassName,
   onChange,
 }: CatalogComboboxProps) {
   const [options, setOptions] = useState<ComboboxOption[]>([])
@@ -155,6 +158,7 @@ export function CatalogCombobox({
       placeholder={placeholder}
       disabled={disabled}
       loading={loading}
+      inputClassName={inputClassName}
       commitOnSelect={commitOnSelect}
       onChange={(next) => {
         if (commitOnSelect) return

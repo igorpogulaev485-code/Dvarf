@@ -1,8 +1,9 @@
 import { useEffect, useState, type InputHTMLAttributes } from 'react'
+import type { InputSize } from './Input'
 
 type NumberInputProps = Omit<
   InputHTMLAttributes<HTMLInputElement>,
-  'type' | 'value' | 'onChange' | 'onBlur'
+  'type' | 'value' | 'onChange' | 'onBlur' | 'size'
 > & {
   value: number | null
   min?: number
@@ -11,6 +12,9 @@ type NumberInputProps = Omit<
   integer?: boolean
   emptyValue?: number | null
   onValueChange: (value: number | null) => void
+  size?: InputSize
+  /** Compact width for amount / «Число» — kit variant, not page CSS. */
+  narrow?: boolean
 }
 
 function clampNumber(value: number, min?: number, max?: number): number {
@@ -32,6 +36,8 @@ export function NumberInput({
   emptyValue = null,
   onValueChange,
   className = '',
+  size,
+  narrow = false,
   ...props
 }: NumberInputProps) {
   const [text, setText] = useState(value == null ? '' : String(value))
@@ -56,11 +62,13 @@ export function NumberInput({
     onValueChange(next)
   }
 
+  const sizeClass = size ? `ui-input--${size}` : ''
+  const narrowClass = narrow ? 'ui-input--narrow' : ''
   return (
     <input
       {...props}
       type="number"
-      className={`ui-input ${className}`.trim()}
+      className={`ui-input ${sizeClass} ${narrowClass} ${className}`.trim()}
       min={min}
       max={max}
       value={text}

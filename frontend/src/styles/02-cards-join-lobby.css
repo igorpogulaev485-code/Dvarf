@@ -111,25 +111,9 @@
   gap: 10px;
 }
 
+/* Heights come from kit `a.ui-button` — page only ensures no underline. */
 .app-header__actions a.ui-button {
   text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--control-h-lg);
-}
-
-/* SC-07: кнопки списка лобби / тулбара — тот же ритм, карточки не раздувать */
-.character-list-toolbar .ui-button,
-.character-list-toolbar .create-character .ui-button,
-.invite-desk .ui-button,
-.join-flow .ui-button {
-  min-height: var(--control-h-md);
-}
-
-.character-list-toolbar > .ui-button,
-.character-list-toolbar .create-character > .ui-button {
-  min-height: var(--control-h-lg);
 }
 
 .toolbar {

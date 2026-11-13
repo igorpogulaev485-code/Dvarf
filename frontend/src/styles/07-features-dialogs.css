@@ -286,13 +286,7 @@
   background: #fffdf9;
 }
 
-.ui-dialog__actions .ui-button {
-  min-height: var(--control-h-md);
-  padding: 8px 12px;
-  font-size: 0.9rem;
-}
-
-/* SC-07: одна primary справа (flex-end уже на .ui-dialog__actions) */
+/* Kit Dialog layout: primary справа (высоты — через Button size prop) */
 .ui-dialog__actions .ui-button--primary {
   order: 2;
 }

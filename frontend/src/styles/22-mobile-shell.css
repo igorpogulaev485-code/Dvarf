@@ -172,7 +172,12 @@
     padding: 10px 14px max(12px, env(safe-area-inset-bottom, 0px));
   }
 
-  .ui-dialog__actions .ui-button {
+  .ui-dialog__actions {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .ui-dialog__actions > * {
     flex: 1 1 calc(50% - 4px);
     justify-content: center;
   }
@@ -449,9 +454,14 @@
   gap: 8px;
 }
 
-.cast-recovery .ui-button {
+.cast-recovery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cast-recovery > * {
   flex: 1 1 calc(50% - 4px);
-  min-height: 44px;
   justify-content: center;
 }
 

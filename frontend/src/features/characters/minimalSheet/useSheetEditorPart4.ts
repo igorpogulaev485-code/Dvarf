@@ -61,6 +61,8 @@ import { buildPotionBuffEffect } from '../../../shared/dnd/b06PotionBuffs'
 export function useSheetEditorPart4(model: SheetModel) {
 
   const flushAutosave = useCallback(async () => {
+    // Master viewing another sheet: API returns can_edit=false — never PATCH.
+    if (model.character.can_edit === false) return
     if (model.conflictOpenRef.current) return
     if (model.saveInFlightRef.current) {
       model.pendingResaveRef.current = true
@@ -76,10 +78,15 @@ export function useSheetEditorPart4(model: SheetModel) {
         void flushAutosave()
       }
     }
-  }, [model.persistDraft])
+  }, [model.persistDraft, model.character.can_edit])
   model.flushAutosave = flushAutosave
 
   useEffect(() => {
+    if (model.character.can_edit === false) {
+      model.setSaveStatus('saved')
+      model.setError(null)
+      return
+    }
     if (model.skipAutosaveRef.current) {
       model.skipAutosaveRef.current = false
       return
@@ -93,17 +100,18 @@ export function useSheetEditorPart4(model: SheetModel) {
     return () => {
       if (model.autosaveTimerRef.current) window.clearTimeout(model.autosaveTimerRef.current)
     }
-  }, [model.draft, model.conflictOpen, flushAutosave])
+  }, [model.draft, model.conflictOpen, flushAutosave, model.character.can_edit])
 
   useEffect(() => {
     const onVis = () => {
+      if (model.character.can_edit === false) return
       if (document.visibilityState === 'hidden' && model.saveStatusRef.current === 'dirty') {
         void flushAutosave()
       }
     }
     window.addEventListener('visibilitychange', onVis)
     return () => window.removeEventListener('visibilitychange', onVis)
-  }, [flushAutosave])
+  }, [flushAutosave, model.character.can_edit])
 
   useEffect(() => {
     return () => {

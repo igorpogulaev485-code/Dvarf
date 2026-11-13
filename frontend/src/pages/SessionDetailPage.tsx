@@ -122,7 +122,17 @@ import {
   type SettingSummary,
   type WikiCombatPage,
 } from '../shared/api/lobbies'
-import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+import {
+  Button,
+  Dialog,
+  Field,
+  Input,
+  Panel,
+  SegmentedControl,
+  Stack,
+  Text,
+  Toast,
+} from '../ui'
 
 const SIDE_PANEL_KEY = 'dvarf.session.sidePanelOpen'
 
@@ -404,6 +414,7 @@ export function SessionDetailPage() {
   }
 
   const reloadEvents = useCallback(async () => {
+    if (!sessionId) return
     const list = await listSessionEvents(sessionId, {
       feedFilter: feedFilter === 'all' ? undefined : feedFilter,
       rollsOnly: feedFilter === 'rolls',
@@ -462,17 +473,25 @@ export function SessionDetailPage() {
     }
   }, [navigate, reload])
 
+  // UIKIT-01: restore feed from history on load/refresh (sessionId, not session object churn)
   useEffect(() => {
-    if (!session) return
-    let active = true
-    reloadEvents().catch((err: unknown) => {
-      if (!active) return
-      setError(err instanceof ApiRequestError ? err.message : 'Не удалось загрузить ленту')
+    if (!sessionId) return
+    let cancelled = false
+    void listSessionEvents(sessionId, {
+      feedFilter: feedFilter === 'all' ? undefined : feedFilter,
+      rollsOnly: feedFilter === 'rolls',
     })
+      .then((list) => {
+        if (!cancelled) setEvents(list)
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        setError(err instanceof ApiRequestError ? err.message : 'Не удалось загрузить ленту')
+      })
     return () => {
-      active = false
+      cancelled = true
     }
-  }, [session, reloadEvents])
+  }, [sessionId, feedFilter])
 
   // T5: дневник → /sessions/{id}?page=… → превью лора
   useEffect(() => {
@@ -1106,6 +1125,7 @@ export function SessionDetailPage() {
               <Button
                 type="button"
                 variant="secondary"
+                size="lg"
                 className="session-toolbar-desktop-only"
                 onClick={openAttendanceEditor}
                 disabled={busy}
@@ -1117,6 +1137,7 @@ export function SessionDetailPage() {
               <Button
                 type="button"
                 variant="ghost"
+                size="lg"
                 className="session-toolbar-desktop-only"
                 disabled={busy}
                 title="Переименовать, закрыть или удалить стол"
@@ -1440,6 +1461,7 @@ export function SessionDetailPage() {
                         <Button
                           type="button"
                           variant="primary"
+                          size="lg"
                           disabled={
                             busy ||
                             (session.seats.length === 0 &&
@@ -1453,6 +1475,7 @@ export function SessionDetailPage() {
                         <Button
                           type="button"
                           variant="danger"
+                          size="lg"
                           disabled={busy}
                           onClick={() => {
                             setEndCombatThenClose(false)
@@ -1465,6 +1488,7 @@ export function SessionDetailPage() {
                       <Button
                         type="button"
                         variant="secondary"
+                        size="lg"
                         disabled={busy}
                         onClick={() => setCombatantOpen(true)}
                       >
@@ -1473,6 +1497,7 @@ export function SessionDetailPage() {
                       <Button
                         type="button"
                         variant="secondary"
+                        size="lg"
                         className="session-toolbar-mobile-only"
                         disabled={busy}
                         onClick={openAttendanceEditor}
@@ -2142,32 +2167,19 @@ export function SessionDetailPage() {
 
               <aside className="session-live-desk__side session-live-desk__desktop-only">
                 <div className="session-live-desk__side-head">
-                  <div className="session-live-desk__side-tabs" role="tablist" aria-label="Боковая панель">
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={sideTab === 'notes'}
-                      className={`session-live-desk__side-tab${sideTab === 'notes' ? ' is-on' : ''}`}
-                      onClick={() => setSideTab('notes')}
-                    >
-                      Заметки
-                    </button>
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={sideTab === 'chat'}
-                      className={`session-live-desk__side-tab${sideTab === 'chat' ? ' is-on' : ''}`}
-                      onClick={() => setSideTab('chat')}
-                    >
-                      Чат
-                    </button>
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={sideTab === 'wiki'}
-                      className={`session-live-desk__side-tab${sideTab === 'wiki' ? ' is-on' : ''}`}
-                      onClick={() => {
-                        setSideTab('wiki')
+                  <SegmentedControl
+                    className="session-live-desk__side-tabs"
+                    aria-label="Боковая панель"
+                    size="sm"
+                    value={sideTab}
+                    options={[
+                      { id: 'notes', label: 'Заметки' },
+                      { id: 'chat', label: 'Чат' },
+                      { id: 'wiki', label: 'Вики' },
+                    ]}
+                    onChange={(id) => {
+                      setSideTab(id)
+                      if (id === 'wiki') {
                         if (session.setting_id) {
                           void getSetting(session.setting_id)
                             .then(setWikiSetting)
@@ -2175,18 +2187,19 @@ export function SessionDetailPage() {
                         } else {
                           setWikiSetting(null)
                         }
-                      }}
-                    >
-                      Вики
-                    </button>
-                  </div>
+                      }
+                    }}
+                  />
                   <Button
                     type="button"
                     variant="ghost"
-                    className="session-live-desk__side-toggle"
+                    size="md"
+                    className="session-live-desk__side-toggle ui-button--icon"
+                    aria-label={sidePanelOpen ? 'Свернуть панель' : 'Открыть панель'}
+                    title={sidePanelOpen ? 'Свернуть' : 'Открыть'}
                     onClick={() => toggleSidePanel(!sidePanelOpen)}
                   >
-                    {sidePanelOpen ? 'Свернуть' : 'Открыть'}
+                    {sidePanelOpen ? '‹' : '›'}
                   </Button>
                 </div>
                 <div className="session-live-desk__side-body">

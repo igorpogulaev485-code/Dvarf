@@ -569,15 +569,17 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
               : 'sheet-autosave'
           }
         >
-          {model.reloading
-            ? 'Обновляем…'
-            : model.saveStatus === 'saving'
-              ? 'Сохраняем…'
-              : model.saveStatus === 'dirty'
-                ? 'Сохраним через мгновение…'
-                : model.saveStatus === 'error'
-                  ? 'Ошибка сохранения'
-                  : 'Сохранено'}
+          {model.character.can_edit === false
+            ? 'Только просмотр'
+            : model.reloading
+              ? 'Обновляем…'
+              : model.saveStatus === 'saving'
+                ? 'Сохраняем…'
+                : model.saveStatus === 'dirty'
+                  ? 'Сохраним через мгновение…'
+                  : model.saveStatus === 'error'
+                    ? 'Ошибка сохранения'
+                    : 'Сохранено'}
         </Text>
         <Text tone="muted">
           Редакция {model.baseCharacter.rules_edition} · v{model.sheetVersion}

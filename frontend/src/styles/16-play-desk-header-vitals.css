@@ -102,14 +102,16 @@ button.play-desk-header__xp:hover .play-desk-header__xp-bar {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 8px;
+  padding: 0 10px;
   border-radius: 999px;
   border: 1px solid var(--desk-line);
   background: #fff;
   font: inherit;
   font-size: 0.68rem;
   color: inherit;
-  height: fit-content;
+  min-height: 30px;
+  height: 30px;
+  box-sizing: border-box;
   white-space: nowrap;
 }
 
@@ -168,7 +170,7 @@ button.play-desk-header__chip {
 .play-desk-header__vitals {
   display: flex;
   flex-wrap: nowrap;
-  gap: clamp(6px, 1.1vw, 14px);
+  gap: clamp(6px, 1.1vw, 12px);
   align-items: center;
   width: 100%;
   max-width: none;
@@ -177,16 +179,20 @@ button.play-desk-header__chip {
   padding-inline: 2px;
 }
 
+/* Equal StatTile-like vitals: one size in one baseline */
 .play-desk-vital {
   position: relative;
   display: grid;
   justify-items: center;
   align-content: center;
   gap: 2px;
-  width: 58px;
-  min-width: 58px;
+  width: 64px;
+  min-width: 64px;
+  max-width: 64px;
   height: 64px;
-  padding: 6px 6px 5px;
+  min-height: 64px;
+  flex: 0 0 64px;
+  padding: 6px 4px 5px;
   border-radius: 12px;
   background: var(--card, #fff);
   border: 1px solid var(--desk-line);
@@ -245,39 +251,48 @@ button.play-desk-vital:hover,
 }
 
 .play-desk-vital--jump .play-desk-vital__label-row {
-  font-size: 0.66rem;
+  font-size: 0.7rem;
   letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .play-desk-vital--shield b {
   color: var(--desk-accent);
 }
 
-/* Icon + value + label + «щит» chip — taller than the 64px vitals. */
+/* Shield toggle: corner icon only — never overlaps «КД» label */
 .play-desk-vital--shield {
-  height: auto;
-  min-height: 64px;
-  padding: 5px 6px 4px;
-  gap: 1px;
+  position: relative;
+  padding: 6px 4px 5px;
+  gap: 2px;
   align-self: center;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .play-desk-vital__shield-tog {
-  margin-top: 1px;
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  margin: 0;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
   border: 1px solid var(--desk-line);
   background: color-mix(in srgb, var(--desk-chip, #e7e1d4) 40%, white);
   border-radius: 999px;
-  padding: 1px 7px;
+  padding: 0;
   font: inherit;
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  line-height: 1;
   color: var(--desk-muted);
   cursor: pointer;
-  line-height: 1.2;
-  max-width: 100%;
+  z-index: 1;
+}
+
+.play-desk-vital__shield-tog-ico {
+  width: 10px;
+  height: 10px;
+  display: block;
 }
 
 .play-desk-vital__shield-tog:hover:not(:disabled) {
@@ -297,15 +312,7 @@ button.play-desk-vital:hover,
   cursor: not-allowed;
 }
 
-.play-desk-vital--speed {
-  width: 58px;
-  min-width: 58px;
-}
-
-.play-desk-vital--jump {
-  width: 66px;
-  min-width: 66px;
-}
+/* speed/jump use the same 64×64 StatTile size as other vitals */
 
 .play-desk-vital--jump b {
   font-size: 1.1rem;
@@ -435,8 +442,9 @@ button.play-desk-vital:hover,
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: var(--control-h-sm);
-  padding: 4px 10px;
+  min-height: 30px;
+  height: 30px;
+  padding: 0 10px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
   border: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 22%, var(--desk-line));
