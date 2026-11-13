@@ -19,6 +19,7 @@ import { SettingPagePreviewDialog } from '../features/lobby/SettingPagePreviewDi
 import { SettingTableHandoffDialog } from '../features/lobby/SettingTableHandoffDialog'
 import { SettingTableRevealDialog } from '../features/lobby/SettingTableRevealDialog'
 import { draftFromCombatant, type SettingHandoffDraft } from '../features/lobby/settingHandoff'
+import { questStatusLabel } from '../features/lobby/settingKinds'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
@@ -651,7 +652,7 @@ export function SessionLiveTablePreviewPage() {
                         Опыт
                       </Button>
                       <Button type="button" variant="secondary" onClick={() => setLootOpen(true)}>
-                        Лут
+                        Добыча
                       </Button>
                     </div>
                     <div className="session-toolbar-group" aria-label="Сюжет">
@@ -1210,7 +1211,7 @@ export function SessionLiveTablePreviewPage() {
             )
           })
           setLootOpen(false)
-          setToast(`Лут: ${bits.slice(0, 4).join(', ')}`)
+          setToast(`Добыча: ${bits.slice(0, 4).join(', ')}`)
           setEvents((prev) => [
             {
               id: `loot-${Date.now()}`,
@@ -1219,7 +1220,7 @@ export function SessionLiveTablePreviewPage() {
               character_id: null,
               actor_user_id: null,
               character_name: 'Мастер',
-              title: 'Лут',
+              title: 'Добыча',
               formula: null,
               breakdown: names.join(', '),
               total: null,
@@ -1428,14 +1429,7 @@ export function SessionLiveTablePreviewPage() {
             ),
           )
           const page = wikiPages.find((p) => p.id === payload.page_id)
-          const labels: Record<string, string> = {
-            planned: 'План',
-            active: 'Активен',
-            done: 'Готово',
-            failed: 'Провал',
-          }
-          const label = labels[payload.quest_status] ?? payload.quest_status
-          const title = `Квест: ${label} · ${page?.title ?? ''}`
+          const title = `Квест: ${questStatusLabel(payload.quest_status)} · ${page?.title ?? ''}`
           setEvents((prev) => [
             {
               id: `ev-quest-${Date.now()}`,

@@ -135,7 +135,7 @@
 }
 
 .session-combat-order__chip.is-enemy:not(.is-active) {
-  border-color: color-mix(in srgb, #b45309 30%, var(--line));
+  border-color: color-mix(in srgb, var(--warn) 30%, var(--line));
 }
 
 .session-combat-order__init {
@@ -197,7 +197,7 @@
 }
 
 .session-combat-order__dot.is-warn {
-  background: #b45309;
+  background: var(--warn);
 }
 
 .session-combat-order__dot.is-down {
@@ -288,7 +288,7 @@
 .session-combat-track__reaction {
   margin: 0;
   font-weight: 650;
-  color: #b45309;
+  color: var(--warn);
 }
 
 .session-your-turn-banner {

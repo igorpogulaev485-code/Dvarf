@@ -3,7 +3,7 @@
  */
 import type { SessionLorePage, WikiCombatPage } from '../../shared/api/lobbies'
 import { Button, Text } from '../../ui'
-import { pageKindLabel, QUEST_STATUS_LABELS, type QuestStatus } from './settingKinds'
+import { pageKindLabel, questStatusLabel } from './settingKinds'
 
 type Props = {
   locationPage: SessionLorePage | null
@@ -20,11 +20,6 @@ type Props = {
   onPickCombat?: (page: WikiCombatPage) => void
   /** LV-04: одна строка на десктопе мастера — карточки героев в первом экране */
   compact?: boolean
-}
-
-function questStatusLabel(status: string | null | undefined): string {
-  if (!status) return ''
-  return QUEST_STATUS_LABELS[status as QuestStatus] ?? status
 }
 
 export function SessionLorePanel({

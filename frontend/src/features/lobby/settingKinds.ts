@@ -65,6 +65,12 @@ export const QUEST_STATUS_LABELS: Record<QuestStatus, string> = {
   failed: 'Провал',
 }
 
+/** RU-подпись статуса квеста; неизвестный ключ — без сырого английского. */
+export function questStatusLabel(status: string | null | undefined): string {
+  if (!status) return ''
+  return QUEST_STATUS_LABELS[status as QuestStatus] ?? 'Статус неизвестен'
+}
+
 export function pageKindLabel(kind: string | undefined | null): string {
   if (!kind) return SETTING_PAGE_KIND_LABELS.note
   return SETTING_PAGE_KIND_LABELS[kind as SettingPageKind] ?? kind

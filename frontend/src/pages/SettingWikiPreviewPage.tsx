@@ -8,11 +8,10 @@ import { SettingQuickCreateDialog } from '../features/lobby/SettingQuickCreateDi
 import { SETTING_LINK_PRESETS, reverseLinkLabel } from '../features/lobby/settingLinkPresets'
 import { extractMentionTitles } from '../features/lobby/settingMentions'
 import {
-  QUEST_STATUS_LABELS,
   SETTING_PAGE_KIND_LABELS,
   SETTING_PAGE_KINDS,
   pageKindLabel,
-  type QuestStatus,
+  questStatusLabel,
   type SettingPageKind,
 } from '../features/lobby/settingKinds'
 import {
@@ -625,8 +624,7 @@ export function SettingWikiPreviewPage() {
                 <Text tone="muted">Тип: {pageKindLabel(selected.page_kind)}</Text>
                 {selected.page_kind === 'quest' ? (
                   <Text tone="muted">
-                    Статус:{' '}
-                    {QUEST_STATUS_LABELS[(selected.quest_status as QuestStatus) || 'planned']}
+                    Статус: {questStatusLabel(selected.quest_status || 'planned')}
                   </Text>
                 ) : null}
                 <div className="setting-wiki-tags">

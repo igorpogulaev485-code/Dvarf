@@ -7,7 +7,6 @@ import {
   BOOK_SOURCE_CATALOG,
   HOMEBREW_CATALOG,
   MASTER_HOMEBREW_KEYS,
-  summarizeStartRules,
   type CampaignRules,
   type HomebrewKey,
   type HpOnLevelUp,
@@ -189,7 +188,7 @@ function StartRulesEditor({
                 disabled={readOnly}
                 className={`sheet-chip${start.allowed_sources.includes(book.id) ? ' is-on' : ''}`}
                 onClick={() => toggleSource(book.id)}
-                title={book.aliases.join(', ')}
+                title={`${book.label_ru} · ${book.aliases.join(', ')}`}
               >
                 {book.id.toUpperCase()}
               </button>
@@ -288,7 +287,6 @@ export function CampaignRulesPanel({
   const [races, setRaces] = useState<CatalogEntry[]>([])
   const [classes, setClasses] = useState<CatalogEntry[]>([])
   const summary = summarizeEnabledRules(rules)
-  const startSummary = summarizeStartRules(rules.start)
 
   useEffect(() => {
     let active = true
@@ -360,6 +358,7 @@ export function CampaignRulesPanel({
   }
 
   if (readOnly) {
+    // LV-06 P13: одна сводка — summarizeEnabledRules уже включает правила старта.
     return (
       <Panel title="Правила кампании">
         <Stack gap={12}>
@@ -373,14 +372,6 @@ export function CampaignRulesPanel({
           ) : (
             <Text tone="muted">Нет включённых особых правил.</Text>
           )}
-          <div>
-            <Text as="h3">Правила старта</Text>
-            <ul className="campaign-rules-summary">
-              {startSummary.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-          </div>
           {createHeroHref ? (
             <a className="ui-button ui-button--secondary" href={createHeroHref}>
               Создать героя для этого лобби

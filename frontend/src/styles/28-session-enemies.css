@@ -216,13 +216,13 @@ button.session-effect-tag {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  border: 1px solid color-mix(in srgb, #0f766e 40%, var(--line));
-  background: color-mix(in srgb, #0f766e 12%, white);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, white);
   border-radius: 999px;
   padding: 6px 11px;
   font-size: 0.8rem;
   font-weight: 700;
-  color: #0f766e;
+  color: var(--accent);
   line-height: 1.2;
 }
 
@@ -233,8 +233,8 @@ button.session-concentration-tag {
 }
 
 .session-concentration-tag.is-removable:hover:not(:disabled) {
-  border-color: #0f766e;
-  background: color-mix(in srgb, #0f766e 20%, white);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, white);
 }
 
 .session-table-card__concentration {
@@ -390,11 +390,11 @@ button.session-concentration-tag {
 }
 
 .session-companion-card--down {
-  border-color: color-mix(in srgb, #b42318 35%, var(--line));
+  border-color: color-mix(in srgb, var(--down) 35%, var(--line));
 }
 
 .session-companion-card--warn {
-  border-color: color-mix(in srgb, #b54708 35%, var(--line));
+  border-color: color-mix(in srgb, var(--warn) 35%, var(--line));
 }
 
 /* —— B3 enemies on session table —— */
@@ -410,7 +410,7 @@ button.session-concentration-tag {
 }
 
 .session-enemies-grid .session-enemy-card {
-  border-top: 3px solid color-mix(in srgb, #9a3412 55%, var(--line));
+  border-top: 3px solid color-mix(in srgb, var(--abil-str) 55%, var(--line));
 }
 
 .session-enemy-card {
@@ -509,11 +509,11 @@ button.session-concentration-tag {
 }
 
 .session-enemy-card--warn {
-  border-color: color-mix(in srgb, #b54708 35%, var(--line));
+  border-color: color-mix(in srgb, var(--warn) 35%, var(--line));
 }
 
 .session-enemy-card--down {
-  border-color: color-mix(in srgb, #b42318 35%, var(--line));
+  border-color: color-mix(in srgb, var(--down) 35%, var(--line));
 }
 
 .session-enemy-card__top {
@@ -622,11 +622,11 @@ button.session-concentration-tag {
 }
 
 .session-enemy-kit-chip--reaction {
-  border-color: color-mix(in srgb, #b45309 40%, var(--line));
+  border-color: color-mix(in srgb, var(--warn) 40%, var(--line));
 }
 
 .session-enemy-kit-chip--legendary {
-  border-color: color-mix(in srgb, #a16207 45%, var(--line));
+  border-color: color-mix(in srgb, var(--abil-con) 45%, var(--line));
 }
 
 .session-enemy-kit-chip.is-active,

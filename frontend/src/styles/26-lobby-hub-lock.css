@@ -256,7 +256,7 @@
 }
 
 .lobby-member-card__hp--warn {
-  background: #b54708;
+  background: var(--warn);
 }
 
 .lobby-member-card__hp--down {
@@ -625,7 +625,7 @@
 }
 
 .session-table-card__hp--warn {
-  background: #b54708;
+  background: var(--warn);
 }
 
 .session-table-card__hp--down {
@@ -659,11 +659,11 @@
 }
 
 .session-hp-bar--warn::after {
-  background: #b54708;
+  background: var(--warn);
 }
 
 .session-hp-bar--critical::after {
-  background: #9f1239;
+  background: var(--danger);
 }
 
 .session-hp-bar--down::after {
@@ -678,7 +678,7 @@
 }
 
 .session-table-card__chip--hp.is-critical {
-  color: #9f1239;
+  color: var(--danger);
 }
 
 .session-death-saves {
@@ -759,7 +759,7 @@
 }
 
 .session-defense-chip.is-vuln {
-  border-color: #b54708;
+  border-color: var(--warn);
 }
 
 .session-study-form,
@@ -853,13 +853,13 @@
 }
 
 .session-table-card__chip--hp.is-warn {
-  border-color: color-mix(in srgb, #b54708 35%, var(--line));
-  color: #b54708;
+  border-color: color-mix(in srgb, var(--warn) 35%, var(--line));
+  color: var(--warn);
 }
 
 .session-table-card__chip--hp.is-down {
-  border-color: color-mix(in srgb, #b42318 35%, var(--line));
-  color: #b42318;
+  border-color: color-mix(in srgb, var(--down) 35%, var(--line));
+  color: var(--down);
 }
 
 .session-table-card__actions {

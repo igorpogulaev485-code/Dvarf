@@ -204,7 +204,7 @@ export function AwardLootDialog({
   return (
     <Dialog
       open={open}
-      title="Лут"
+      title="Добыча"
       primaryLabel="Выдать"
       secondaryLabel="Отмена"
       busy={busy}
