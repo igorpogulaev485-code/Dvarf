@@ -171,7 +171,8 @@ function phbBeastStub(): CompanionTemplatePatch {
     actions: '',
     notes: 'PHB: зверь КР ≤ ¼ — выбери из бестиария или заполни статы вручную',
     nature: 'living',
-    control: 'bonus_action_command',
+    // PHB: команда за действие хозяина (цена команды — C-02; режим пока other).
+    control: 'other',
   }
 }
 
@@ -192,12 +193,30 @@ function familiarStub(): CompanionTemplatePatch {
 function wildfireSpiritTemplate(ctx: CompanionTemplateContext): CompanionTemplatePatch {
   const level = Math.max(1, Math.floor(ctx.hostClassLevel || ctx.characterLevel || 1))
   const hp = wildfireSpiritHp(level)
+  const bonus = pb(ctx)
+  const atk = spellAttack(ctx)
+  const atkLabel = ctx.spellMod != null ? `+${atk}` : `+${bonus}(+мод. закл.)`
   return {
-    kind: 'other',
+    // Unified with subclass grant kind (was 'other' vs 'ally').
+    kind: 'ally',
     defaultName: 'Дух дикого огня',
-    stats: { hp, hp_max: hp, ac: 13, speed: 30 },
-    actions: 'Семя пламени; Огненная телепортация (см. TCE / бестиарий).',
-    notes: `Summon Wildfire Spirit · HP = 5 + 5×ур. = ${hp} (TCE)`,
+    stats: {
+      hp,
+      hp_max: hp,
+      ac: 13,
+      speed: 30,
+      speed_fly: 30,
+      str: 10,
+      dex: 14,
+      con: 14,
+      immunities:
+        'огонь; очарование, испуг, захват, сбивание с ног, опутанность',
+    },
+    actions: [
+      `Семя пламени: ${atkLabel} 1к6+${bonus} огонь (60 фт.)`,
+      `Огненная телепортация: 1к6+${bonus} огонь (спас Ловк., 15 фт.)`,
+    ].join('\n'),
+    notes: `Summon Wildfire Spirit · HP = 5 + 5×ур. = ${hp} (TCE) · парит`,
     nature: 'summoned',
     control: 'bonus_action_command',
   }
@@ -433,8 +452,13 @@ export function resolveCompanionTemplate(input: {
     if (value.includes('sky')) return primalTemplate('beast_of_the_sky', input.ctx)
     if (value.includes('land')) return primalTemplate('beast_of_the_land', input.ctx)
   }
-  if (id.includes('wildfire')) {
+  if (id.includes('wildfire') || (id.includes('spirit') && value.includes('wildfire'))) {
     return wildfireSpiritTemplate(input.ctx)
+  }
+  // Name-only open_text (rangers_companion): PHB stub; type/primal handled via
+  // companion_type pick in applySubclassGrantToDraft / resolveCompanionTemplate value.
+  if (id.includes('rangers_companion') || (id.includes('companion') && !id.includes('type'))) {
+    return phbBeastStub()
   }
   return null
 }

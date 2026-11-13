@@ -2643,7 +2643,7 @@ export function CreateCharacterPage() {
             setPausedWizardForSubclass(null)
           }
         }}
-        onConfirm={(picks: SubclassGrantPicks) => {
+        onConfirm={({ picks }) => {
           if (!subclassSetup) return
           commitSubclassSetup(
             subclassSetup.classEntryId,

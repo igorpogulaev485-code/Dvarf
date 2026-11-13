@@ -65,9 +65,16 @@ import {
   IconResource,
   attackRowIconKind,
 } from './attackIcons'
+import type { CompanionEntry } from './companions'
+import { listCompanionAttacksForHost } from './companionAttacks'
 
 type PlayDeskAttacksCompactProps = {
   weapons: WeaponAttack[]
+  /** C-01: active companion attacks (not self_form). */
+  companions?: CompanionEntry[]
+  /** Spellcasting mod for companion attacks that use host spell attack. */
+  spellMod?: number | null
+  characterLevel?: number
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
@@ -188,6 +195,9 @@ function formatSpendTime(atMs: number): string {
 
 export function PlayDeskAttacksCompact({
   weapons,
+  companions = [],
+  spellMod = null,
+  characterLevel = 1,
   abilities,
   proficiencyBonus,
   gearBonusesByItem = {},
@@ -243,6 +253,15 @@ export function PlayDeskAttacksCompact({
   onHalflingLuckyNeeded,
 }: PlayDeskAttacksCompactProps) {
   const turnEco = useTurnEconomy()
+  const companionAttacks = useMemo(
+    () =>
+      listCompanionAttacksForHost(companions, {
+        characterLevel,
+        spellMod,
+        proficiencyBonus,
+      }),
+    [companions, characterLevel, spellMod, proficiencyBonus],
+  )
   const [pendingAttack, setPendingAttack] = useState<{
     name: string
     attackBonus: number
@@ -1000,6 +1019,66 @@ export function PlayDeskAttacksCompact({
             )
           })
         )}
+
+        {companionAttacks.map((atk) => (
+          <div key={atk.id} className="play-desk-compact__row is-dense">
+            <button
+              type="button"
+              className="play-desk-compact__hit"
+              disabled={Boolean(turnEco && !turnEco.canAttack().ok)}
+              title={
+                turnEco && !turnEco.canAttack().ok
+                  ? 'Действие уже потрачено'
+                  : undefined
+              }
+              onClick={() => {
+                const gate = turnEco?.canAttack()
+                if (gate && !gate.ok) {
+                  onToast?.(
+                    'reason' in gate && typeof gate.reason === 'string'
+                      ? gate.reason
+                      : 'Действие уже потрачено',
+                  )
+                  return
+                }
+                const strike = resolveAttackRoll({
+                  name: `${atk.companionName}: ${atk.name}`,
+                  attackBonus: atk.attackBonus,
+                  damageExpr: atk.damageExpr,
+                  damageType: atk.damageType,
+                  mode: rollMode,
+                })
+                turnEco?.spendAttack()
+                onToast?.(strike.text)
+                if (openSessionId && characterId) {
+                  void postSheetRollToSession({
+                    openSessionId,
+                    characterId,
+                    title: `${atk.companionName}: ${atk.name}`,
+                    total: strike.hitRoll?.total ?? 0,
+                    formula: `1d20${atk.attackBonus >= 0 ? '+' : ''}${atk.attackBonus}`,
+                    breakdown: strike.hitRoll
+                      ? `${strike.hitRoll.die}${atk.attackBonus >= 0 ? '+' : ''}${atk.attackBonus}`
+                      : undefined,
+                  })
+                }
+              }}
+            >
+              <div className="play-desk-compact__row-main">
+                <IconMelee className="play-desk-compact__row-icon" />
+                <b>{atk.name}</b>
+                <span className="play-desk-compact__tag">{atk.sourceLabel}</span>
+              </div>
+              <span className="play-desk-compact__mod">
+                {atk.attackBonus >= 0 ? `+${atk.attackBonus}` : String(atk.attackBonus)}
+              </span>
+              <span className="play-desk-compact__dmg">
+                {atk.damageExpr}
+                {atk.damageType ? ` ${atk.damageType}` : ''}
+              </span>
+            </button>
+          </div>
+        ))}
 
         {combatResources.map((row) => {
           const remaining = resourceShownCurrent(row)

@@ -28,6 +28,8 @@ import { type IdentityExtras } from '../identity'
 import { reapplyRaceOverlays, syncRaceSpellsForSheetState, type RaceGrantDraftSlice } from '../raceEffects'
 import { characterHasCasterClass, highestSpellSlotLevelForClasses } from '../../../shared/dnd/casterProgression'
 import { withSpellFocusFlags } from '../spellFocus'
+import { abilityModifier } from '../sheetTypes'
+import type { BestiaryFormPick } from '../wildShape'
 import type { Draft } from './draft'
 
 export function installSheetActions1(model: SheetModel) {
@@ -388,6 +390,7 @@ export function installSheetActions1(model: SheetModel) {
     previousCatalogId?: string | null
     previousSlug?: string
     advanceWizardAfter?: boolean
+    companionBestiaryPicks?: Record<string, BestiaryFormPick | null | undefined>
   }) {
     let summary: string | null = null
     const changeMode = input.changeMode ?? 'initial'
@@ -404,6 +407,16 @@ export function installSheetActions1(model: SheetModel) {
       )
       const classLevel =
         prev.classes.find((row) => row.id === input.classEntryId)?.level ?? 1
+      const castingAbility =
+        input.def.sheetGrants.caster?.ability ??
+        prev.subclassGrants.find((row) => row.classEntryId === input.classEntryId)
+          ?.caster?.ability ??
+        null
+      const spellMod = castingAbility
+        ? abilityModifier(
+            (prev.abilities as Record<string, number>)[castingAbility] ?? 10,
+          )
+        : abilityModifier(prev.abilities.wis ?? 10)
       const applied = applySubclassGrantToDraft({
         draft: model.subclassSliceFrom(prev),
         classEntryId: input.classEntryId,
@@ -414,6 +427,10 @@ export function installSheetActions1(model: SheetModel) {
         previousDef: input.previousDef ?? null,
         changeMode,
         classLevel,
+        characterLevel: totalCharacterLevel(prev.classes),
+        hostIntMod: abilityModifier(prev.abilities.int ?? 10),
+        spellMod,
+        companionBestiaryPicks: input.companionBestiaryPicks,
         changedAtClassLevel: input.changedAtClassLevel ?? classLevel,
         previousNameRu: input.previousNameRu,
         previousCatalogId: input.previousCatalogId,

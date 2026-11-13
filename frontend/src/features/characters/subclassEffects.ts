@@ -28,7 +28,56 @@ import {
 import type { ArmorProficiency, IdentityExtras, WeaponProficiency } from './identity'
 import type { AppliedRaceGrant } from '../../shared/dnd/raceGrants'
 import type { CompanionEntry } from './companions'
-import { createCompanion, revokeCompanionsForSubclass } from './companions'
+import {
+  mergeSubclassCompanions,
+  revokeCompanionsForSubclass,
+} from './companions'
+import {
+  companionFromSubclassTemplate,
+} from './companionBackfill'
+import {
+  resolveCompanionTemplate,
+  type CompanionTemplateContext,
+} from './companionTemplates'
+import {
+  mergeBestiaryPickIntoCompanion,
+} from './bestiaryCompanionStats'
+import type { BestiaryFormPick } from './wildShape'
+
+function readBestiaryPickFromPicks(
+  values: Record<string, unknown>,
+  choiceId: string,
+): BestiaryFormPick | null {
+  const raw = values[`${choiceId}_bestiary`] ?? values.rangers_companion_bestiary
+  if (typeof raw !== 'string' || !raw.trim()) return null
+  try {
+    const parsed = JSON.parse(raw) as Partial<BestiaryFormPick>
+    if (typeof parsed.slug !== 'string' || typeof parsed.name_ru !== 'string') {
+      return null
+    }
+    return {
+      slug: parsed.slug,
+      name_ru: parsed.name_ru,
+      catalog_id: typeof parsed.catalog_id === 'string' ? parsed.catalog_id : null,
+      cr: typeof parsed.cr === 'string' ? parsed.cr : '0',
+      type: typeof parsed.type === 'string' ? parsed.type : 'beast',
+      ac: typeof parsed.ac === 'number' ? parsed.ac : 10,
+      hp: typeof parsed.hp === 'number' ? parsed.hp : 1,
+      speed_walk: typeof parsed.speed_walk === 'number' ? parsed.speed_walk : 30,
+      speed_swim: parsed.speed_swim,
+      speed_fly: parsed.speed_fly,
+      speed_climb: parsed.speed_climb,
+      str: parsed.str,
+      dex: parsed.dex,
+      con: parsed.con,
+      resistances: parsed.resistances,
+      immunities: parsed.immunities,
+      actions_text: typeof parsed.actions_text === 'string' ? parsed.actions_text : '',
+    }
+  } catch {
+    return null
+  }
+}
 import type { TextBlock } from './textBlocks'
 import { enrichAlwaysPreparedSheetSpell } from './alwaysPreparedSpellEnrichment'
 import {
@@ -579,6 +628,17 @@ export function applySubclassGrantToDraft(input: {
   previousSlug?: string
   /** Highest slot level the character can cast — gates domain/oath spells. */
   maxSpellLevel?: number
+  /** Character total level — proficiency for companion templates. */
+  characterLevel?: number
+  /** INT modifier — Steel Defender HP. */
+  hostIntMod?: number
+  /** Spellcasting ability mod — Wildfire / Tasha attack lines. */
+  spellMod?: number
+  /**
+   * Beast Master PHB: bestiary pick chosen in SubclassSetupDialog.
+   * Keyed by choice id (usually `rangers_companion`).
+   */
+  companionBestiaryPicks?: Record<string, BestiaryFormPick | null | undefined>
 }): { draft: SubclassGrantDraftSlice; summary: string } | null {
   const picks = input.picks ?? emptySubclassPicks()
   const changeMode = input.changeMode ?? 'initial'
@@ -690,6 +750,24 @@ export function applySubclassGrantToDraft(input: {
   const weapons: WeaponProficiency = { ...cleared.identity.weapons }
   for (const key of weaponKeys) weapons[key] = true
 
+  const classLevel = Math.min(
+    20,
+    Math.max(
+      1,
+      Math.floor(input.classLevel ?? input.changedAtClassLevel ?? input.def.grantsLevel),
+    ),
+  )
+  const characterLevel = Math.min(
+    20,
+    Math.max(1, Math.floor(input.characterLevel ?? classLevel)),
+  )
+  const templateCtx: CompanionTemplateContext = {
+    hostClassLevel: classLevel,
+    characterLevel,
+    hostIntMod: input.hostIntMod,
+    spellMod: input.spellMod,
+  }
+
   const companionsFromPicks: CompanionEntry[] = []
   for (const choice of input.def.choices) {
     const raw = picks.values[choice.id]
@@ -699,40 +777,124 @@ export function applySubclassGrantToDraft(input: {
     // Only an explicit companion choice. Totem spirits and drake essence
     // are effect types; a substring match used to mint a false naparnik.
     if (choice.appliesTo !== 'companion') continue
-    const kind =
-      id.includes('defender')
-        ? 'steel_defender'
-        : id.includes('drake')
-          ? 'drake'
-          : id.includes('cannon')
-            ? 'eldritch_cannon'
-            : id.includes('familiar')
-              ? 'familiar'
-              : id.includes('spirit') || id.includes('wildfire')
-                ? 'ally'
-                : 'beast_companion'
+
     const displayName =
       choice.kind === 'single'
         ? choice.fromLabelsRu?.[value] ?? value
         : value
-    companionsFromPicks.push(
-      createCompanion({
-        kind,
-        name: displayName,
-        notes:
-          choice.kind === 'single' && choice.fromLabelsRu?.[value]
-            ? `Вариант: ${choice.fromLabelsRu[value]}`
-            : '',
-        source: {
-          kind: 'subclass',
-          labelRu: `Архетип: ${input.def.slug}`,
-          classEntryId: input.classEntryId,
-          subclassSlug: input.def.slug,
-          feature: choice.id,
-        },
-      }),
-    )
+
+    // Beast Master: companion_type pick (PHB vs Tasha) — no silent default.
+    const companionTypeRaw = picks.values['companion_type']
+    const companionType =
+      typeof companionTypeRaw === 'string' ? companionTypeRaw.trim() : ''
+
+    // Н4: no silent default for Beast Master — companion_type must be set in setup UI.
+    const templatePickValue =
+      id.includes('rangers_companion') && companionType
+        ? companionType
+        : choice.kind === 'single'
+          ? value
+          : value
+
+    const template = resolveCompanionTemplate({
+      choiceId:
+        id.includes('rangers_companion') && companionType
+          ? companionType.startsWith('beast_of_')
+            ? 'companion_type'
+            : choice.id
+          : choice.id,
+      pickValue: templatePickValue,
+      ctx: templateCtx,
+    })
+
+    const source = {
+      kind: 'subclass' as const,
+      labelRu: `Архетип: ${input.def.slug}`,
+      classEntryId: input.classEntryId,
+      subclassSlug: input.def.slug,
+      feature: choice.id,
+    }
+
+    const variantNote =
+      choice.kind === 'single' && choice.fromLabelsRu?.[value]
+        ? `Вариант: ${choice.fromLabelsRu[value]} (тип можно сменить при следующем призыве)`
+        : companionType
+          ? companionType.startsWith('beast_of_')
+            ? 'Tasha: Первобытный спутник'
+            : companionType.includes('phb')
+              ? 'PHB: зверь из Книги игрока'
+              : ''
+          : ''
+
+    let created = template
+      ? companionFromSubclassTemplate({
+          template,
+          name: displayName,
+          source,
+          notesExtra: variantNote,
+        })
+      : companionFromSubclassTemplate({
+          template: {
+            kind: id.includes('defender')
+              ? 'steel_defender'
+              : id.includes('drake')
+                ? 'drake'
+                : id.includes('cannon')
+                  ? 'eldritch_cannon'
+                  : id.includes('wildfire') || id.includes('spirit')
+                    ? 'ally'
+                    : 'beast_companion',
+            defaultName: displayName,
+            stats: { hp: null, hp_max: null, ac: null, speed: null },
+            actions: '',
+            notes: variantNote,
+            nature: 'living',
+          },
+          name: displayName,
+          source,
+        })
+
+    const bestiaryPick =
+      input.companionBestiaryPicks?.[choice.id] ??
+      readBestiaryPickFromPicks(picks.values, choice.id)
+    if (
+      bestiaryPick &&
+      created.kind === 'beast_companion' &&
+      (!companionType || companionType === 'phb_beast_cr_1_4')
+    ) {
+      created = {
+        ...mergeBestiaryPickIntoCompanion({
+          companion: created,
+          pick: bestiaryPick,
+        }),
+        active: false,
+      }
+    }
+
+    // C01-6: PHB/Tasha beast «просто есть» с уровня архетипа — сразу активен.
+    // Дух / пушка — слот «не призван», пока не призвали (C01-1).
+    if (
+      created.kind === 'beast_companion' ||
+      created.kind === 'primal_companion'
+    ) {
+      created = { ...created, active: true }
+    }
+
+    companionsFromPicks.push(created)
   }
+
+  const companionsMerged = mergeSubclassCompanions({
+    previous: cleared.companions,
+    next: companionsFromPicks,
+  })
+  // Keep unrelated companions (manual / spell / other class).
+  const keptOthers = cleared.companions.filter((row) => {
+    if (row.source?.classEntryId !== input.classEntryId) return true
+    const feature = row.source?.feature?.trim() ?? ''
+    if (!feature) return true
+    return !companionsFromPicks.some((c) => c.source?.feature === feature)
+  })
+  const companionsNext = [...keptOthers, ...companionsMerged]
 
   const sharedCap =
     typeof input.maxSpellLevel === 'number' && Number.isFinite(input.maxSpellLevel)
@@ -740,13 +902,6 @@ export function applySubclassGrantToDraft(input: {
       : 9
   const grantedSpellIds: string[] = []
   let known = [...cleared.spells.known]
-  const classLevel = Math.min(
-    20,
-    Math.max(
-      1,
-      Math.floor(input.classLevel ?? input.changedAtClassLevel ?? input.def.grantsLevel),
-    ),
-  )
   // Prefer RAW class-alone cap; sharedCap only if parent progression unknown.
   const maxSpellLevel = aloneMaxSpellLevelForParent(
     input.def.parentSlug,
@@ -828,7 +983,7 @@ export function applySubclassGrantToDraft(input: {
       ...cleared.subclassGrants.filter((row) => row.classEntryId !== input.classEntryId),
       nextGrant,
     ],
-    companions: [...cleared.companions, ...companionsFromPicks],
+    companions: companionsNext,
     spells: { ...cleared.spells, known },
     identity: {
       ...cleared.identity,

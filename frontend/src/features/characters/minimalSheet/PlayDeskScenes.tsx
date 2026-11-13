@@ -187,6 +187,17 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                   ]
                 : model.draft.weapons
             }
+            companions={model.draft.companions}
+            characterLevel={model.characterLevel}
+            spellMod={abilityModifier(
+              model.effectiveAbilities[
+                model.draft.spells.casting_ability === 'int' ||
+                model.draft.spells.casting_ability === 'wis' ||
+                model.draft.spells.casting_ability === 'cha'
+                  ? model.draft.spells.casting_ability
+                  : 'wis'
+              ],
+            )}
             openSessionId={model.character.open_session_id}
             characterId={model.character.id}
             hpTemp={model.draft.play.hpTemp}
@@ -1137,6 +1148,19 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         spells={model.draft.spells}
         onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
         onToast={model.onToast}
+        attackHost={{
+          characterLevel: model.characterLevel,
+          proficiencyBonus: model.proficiencyBonus,
+          spellMod: abilityModifier(
+            model.effectiveAbilities[
+              model.draft.spells.casting_ability === 'int' ||
+              model.draft.spells.casting_ability === 'wis' ||
+              model.draft.spells.casting_ability === 'cha'
+                ? model.draft.spells.casting_ability
+                : 'wis'
+            ],
+          ),
+        }}
         onFormDamaged={(damage) => {
           if (!model.draft.play.concentration || damage <= 0) return
           model.setConcDamageAsk({

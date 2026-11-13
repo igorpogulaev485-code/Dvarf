@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { canSpendSlot, spendSpellSlot } from '../../shared/dnd/spells'
 import {
   Button,
@@ -24,6 +24,17 @@ import {
   type CompanionEntry,
   type CompanionKind,
 } from './companions'
+import {
+  companionStatusChip,
+  isCompanionStatEmpty,
+  shouldShowOnCompanionStrip,
+} from './companionBackfill'
+import {
+  parseCompanionActionAttacks,
+  type CompanionAttackHostContext,
+} from './companionAttacks'
+import { resolveAttackRoll } from './deskRolls'
+import { useTurnEconomy } from './TurnEconomyContext'
 import type { SpellsState } from './spells'
 import { healSelfForm, moonHealDiceCount, rollDice } from './wildShape'
 
@@ -40,6 +51,12 @@ type CompanionsPanelProps = {
   onCastPactChainFamiliar?: () => void
   /** Damage to a beast form is damage to you: offer a concentration save. */
   onFormDamaged?: (damage: number) => void
+  /** For one-click companion attacks (Н3). */
+  attackHost?: CompanionAttackHostContext
+  onSpendHostAttack?: () => void
+  canHostAttack?: () => { ok: boolean; reason?: string }
+  /** Focus / expand a card (from strip «Настроить»). */
+  focusCompanionId?: string | null
 }
 
 const KIND_SHORT: Record<CompanionKind, string> = {
@@ -72,11 +89,22 @@ function statsPreview(row: CompanionEntry): string {
     return 'хиты хозяина'
   }
   const bits = [
-    row.stats.ac != null ? `КД ${row.stats.ac}` : null,
-    row.stats.hp != null ? `${row.stats.hp} HP` : null,
-    row.stats.speed != null ? `${row.stats.speed} фт.` : null,
+    !isCompanionStatEmpty(row.stats.ac) ? `КД ${row.stats.ac}` : null,
+    !isCompanionStatEmpty(row.stats.hp) || !isCompanionStatEmpty(row.stats.hp_max)
+      ? `${row.stats.hp ?? '—'}/${row.stats.hp_max ?? '—'} HP`
+      : null,
+    !isCompanionStatEmpty(row.stats.speed) ? `${row.stats.speed} фт.` : null,
+    row.stats.speed_fly != null ? `полёт ${row.stats.speed_fly}` : null,
   ].filter(Boolean)
   return bits.join(' · ')
+}
+
+function isIncompleteCompanion(row: CompanionEntry): boolean {
+  if (isSelfForm(row)) return false
+  return (
+    isCompanionStatEmpty(row.stats.ac) ||
+    (isCompanionStatEmpty(row.stats.hp) && isCompanionStatEmpty(row.stats.hp_max))
+  )
 }
 
 function roleClass(kind: CompanionKind): string {
@@ -129,7 +157,16 @@ export function CompanionsPanel({
   onToast,
   onCastPactChainFamiliar,
   onFormDamaged,
+  attackHost,
+  onSpendHostAttack,
+  canHostAttack,
+  focusCompanionId = null,
 }: CompanionsPanelProps) {
+  const turnEco = useTurnEconomy()
+  const spendHostAttack = onSpendHostAttack ?? (() => turnEco?.spendAttack())
+  const checkHostAttack =
+    canHostAttack ??
+    (() => turnEco?.canAttack() ?? { ok: true as const })
   const hasFamiliar = companions.some((row) => row.kind === 'familiar')
   const [filter, setFilter] = useState<CompanionFilter>('all')
   const [openIds, setOpenIds] = useState<Set<string>>(() => {
@@ -139,13 +176,24 @@ export function CompanionsPanel({
   const [addForkOpen, setAddForkOpen] = useState(false)
   const [damageById, setDamageById] = useState<Record<string, number | null>>({})
 
+  useEffect(() => {
+    if (!focusCompanionId) return
+    setOpenIds((prev) => new Set(prev).add(focusCompanionId))
+  }, [focusCompanionId])
+
   const ordered = useMemo(
     () => sortCompanionsForDisplay(companions),
     [companions],
   )
 
+  // Glance/list: hide inactive temporary spell summons; keep permanent «не призван».
   const visible = useMemo(
-    () => ordered.filter((row) => matchesFilter(row, filter)),
+    () =>
+      ordered.filter((row) => {
+        if (!matchesFilter(row, filter)) return false
+        if (filter === 'ally' || filter === 'sourced') return true
+        return shouldShowOnCompanionStrip(row)
+      }),
     [ordered, filter],
   )
 
@@ -352,6 +400,8 @@ export function CompanionsPanel({
               ? formSourceBadgeRu(row.form)
               : kindShort
             const stats = statsPreview(row)
+            const incomplete = isIncompleteCompanion(row)
+            const statusChip = companionStatusChip(row)
             const preview =
               stats ||
               (row.notes.trim()
@@ -364,10 +414,15 @@ export function CompanionsPanel({
                   !companions.some((c) => c.is_primary) &&
                   ordered.find((c) => !isSelfForm(c))?.id === row.id)
             const hasFormHp = selfForm && row.stats.hp != null
+            const cardAttacks =
+              attackHost && row.active && !selfForm
+                ? parseCompanionActionAttacks(row, attackHost)
+                : []
             const cardClass = [
               'companion-card',
               open ? 'companion-card--expand' : 'companion-card--compact',
               selfForm ? 'companion-card--self-form' : '',
+              !row.active && !selfForm ? 'companion-card--inactive' : '',
             ]
               .filter(Boolean)
               .join(' ')
@@ -395,6 +450,9 @@ export function CompanionsPanel({
                         {badgeLabel}
                       </span>
                     ) : null}
+                    {statusChip ? (
+                      <span className="attack-held-tag">{statusChip}</span>
+                    ) : null}
                     {isPrimary ? (
                       <span className="attack-held-tag is-on">основной</span>
                     ) : null}
@@ -405,6 +463,44 @@ export function CompanionsPanel({
                     <span className="companion-card__preview">{preview}</span>
                   </button>
                   <div className="inventory-card__glance-actions">
+                    {incomplete ? (
+                      <button
+                        type="button"
+                        className="sheet-chip"
+                        onClick={() => toggle(row.id)}
+                      >
+                        Настроить
+                      </button>
+                    ) : null}
+                    {cardAttacks.slice(0, 2).map((atk) => (
+                      <button
+                        key={atk.id}
+                        type="button"
+                        className="sheet-chip"
+                        disabled={Boolean(checkHostAttack && !checkHostAttack().ok)}
+                        onClick={() => {
+                          const gate = checkHostAttack?.()
+                          if (gate && !gate.ok) {
+                            onToast?.(
+                              ('reason' in gate && typeof gate.reason === 'string'
+                                ? gate.reason
+                                : null) || 'Действие уже потрачено',
+                            )
+                            return
+                          }
+                          const strike = resolveAttackRoll({
+                            name: `${atk.companionName}: ${atk.name}`,
+                            attackBonus: atk.attackBonus,
+                            damageExpr: atk.damageExpr,
+                            damageType: atk.damageType,
+                          })
+                          spendHostAttack?.()
+                          onToast?.(strike.text)
+                        }}
+                      >
+                        {atk.name}
+                      </button>
+                    ))}
                     <button
                       type="button"
                       className="inventory-card__chevron-btn"
@@ -440,6 +536,9 @@ export function CompanionsPanel({
                       <Text tone="muted">Это ты</Text>
                     </>
                   ) : null}
+                  {statusChip ? (
+                    <span className="attack-held-tag">{statusChip}</span>
+                  ) : null}
                   {isPrimary ? (
                     <span className="attack-held-tag is-on">основной</span>
                   ) : null}
@@ -454,6 +553,39 @@ export function CompanionsPanel({
                     свернуть
                   </button>
                 </div>
+                {cardAttacks.length > 0 ? (
+                  <div className="chip-row">
+                    {cardAttacks.map((atk) => (
+                      <button
+                        key={atk.id}
+                        type="button"
+                        className="sheet-chip"
+                        disabled={Boolean(checkHostAttack && !checkHostAttack().ok)}
+                        onClick={() => {
+                          const gate = checkHostAttack?.()
+                          if (gate && !gate.ok) {
+                            onToast?.(
+                              ('reason' in gate && typeof gate.reason === 'string'
+                                ? gate.reason
+                                : null) || 'Действие уже потрачено',
+                            )
+                            return
+                          }
+                          const strike = resolveAttackRoll({
+                            name: `${atk.companionName}: ${atk.name}`,
+                            attackBonus: atk.attackBonus,
+                            damageExpr: atk.damageExpr,
+                            damageType: atk.damageType,
+                          })
+                          spendHostAttack?.()
+                          onToast?.(strike.text)
+                        }}
+                      >
+                        {atk.name}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
 
                 <div className="sheet-grid sheet-grid--2">
                   <Field label="Имя">

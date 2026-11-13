@@ -517,13 +517,14 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
             model.setPausedWizardForSubclass(null)
           }
         }}
-        onConfirm={(picks) => {
+        onConfirm={({ picks, companionBestiaryPicks }) => {
           if (!model.subclassSetup) return
           model.commitSubclassGrant({
             classEntryId: model.subclassSetup.classEntryId,
             selected: model.subclassSetup.selected,
             def: model.subclassSetup.def,
             picks,
+            companionBestiaryPicks,
             copyOldTextToNotes: model.subclassSetup.copyOldTextToNotes,
             previousDef: model.subclassSetup.previousDef,
             changeMode: model.subclassSetup.changeMode,
