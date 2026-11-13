@@ -1,6 +1,7 @@
 /* ——— Mobile UI Kit shell (<960) ——— */
+/* M-02 / M04: clear Bottom Scene Nav (tabs ~48 + chrome) so «Новый ход» is not covered */
 .play-desk--mobile {
-  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
 }
 
 .play-desk--mobile .play-desk__left {
@@ -253,21 +254,89 @@
   flex: 1.15;
 }
 
-/* Mobile combat density: keep body ≥14px, tighten meta/gaps */
+/* M-02 / M06: skill names fully readable — 2-col wrap, no word clip / silent x-scroll */
+.play-desk--mobile .play-desk__hot--skills,
+.play-desk--mobile .play-desk__hot--skills-mobile {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow-x: hidden;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: auto;
+  align-items: stretch;
+}
+
 .play-desk--mobile .play-desk__hot--skills .play-desk__hot-item {
-  flex: 0 0 auto;
-  min-width: min(100px, 38vw);
-  max-width: 46vw;
-  min-height: 40px;
+  flex: none;
+  min-width: 0;
+  max-width: none;
+  width: 100%;
+  min-height: 44px;
   padding: 6px 8px;
+  white-space: normal;
 }
 
 .play-desk--mobile .play-desk__hot--skills .play-desk__hot-item span {
+  display: block;
   font-size: 0.78rem;
+  line-height: 1.2;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  word-break: normal;
+  overflow-wrap: anywhere;
 }
 
 .play-desk--mobile .play-desk__hot--skills .play-desk__hot-item b {
   font-size: 0.9rem;
+}
+
+.play-desk--mobile .play-desk__hot-more--skills {
+  grid-column: 1 / -1;
+  position: relative;
+}
+
+.play-desk--mobile .play-desk__hot-more--skills .play-desk__hot-more-btn {
+  width: 100%;
+  min-height: 44px;
+  justify-content: center;
+  text-align: center;
+}
+
+.play-desk--mobile .play-desk__hot-more--skills .play-desk__hot-more-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  left: 0;
+  right: 0;
+  min-width: 0;
+  max-width: none;
+  width: 100%;
+}
+
+/* M-02 / M07: mobile resource overflow «Ещё N» sits in the stacked hot wrap */
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-more {
+  flex: 1 1 100%;
+  position: relative;
+  min-width: 0;
+}
+
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-more-btn {
+  width: 100%;
+  min-height: 44px;
+  justify-content: center;
+  text-align: center;
+  font-weight: 600;
+}
+
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-more-panel {
+  left: 0;
+  right: 0;
+  min-width: 0;
+  max-width: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .play-desk--mobile .play-desk-compact__hit,

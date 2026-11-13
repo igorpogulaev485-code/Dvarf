@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import type { ConcentrationState } from './play'
 import { resourceShowsOnHot, type SheetResource } from '../../shared/dnd/rest'
@@ -9,6 +9,9 @@ import {
   IconPouch,
 } from './deskIcons'
 
+/** Phone: how many resource chips stay visible before «Ещё». */
+export const MOBILE_HOT_PINNED_RESOURCE_COUNT = 2
+
 type PlayDeskHotBarProps = {
   conditionNames: string[]
   exhaustion: number
@@ -17,6 +20,11 @@ type PlayDeskHotBarProps = {
   onOpenConditions?: () => void
   onClearConcentration?: () => void
   onResourceUsedChange: (id: string, used: number) => void
+  /**
+   * M-02 / M07: phone overflow = pinned + «Ещё N» (no silent sideways scroll).
+   * Desktop (≥960) keeps the scroll row with edge arrows (§2l / UX restore).
+   */
+  mobileMoreOverflow?: boolean
 }
 
 /** Pure edge flags for the hot-bar scroller (selfcheck + UI). */
@@ -173,6 +181,72 @@ function scrollHotBarByApproxOneItem(el: HTMLElement, dir: -1 | 1) {
   el.scrollBy({ left: -((prev?.offsetWidth ?? 140) + gap), behavior: 'smooth' })
 }
 
+function MoreResources({
+  overflowResources,
+  onResourceUsedChange,
+}: {
+  overflowResources: SheetResource[]
+  onResourceUsedChange: (id: string, used: number) => void
+}) {
+  const moreId = useId()
+  const [moreOpen, setMoreOpen] = useState(false)
+  const moreWrapRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!moreOpen) return
+    function onDocPointer(event: MouseEvent) {
+      const root = moreWrapRef.current
+      if (!root) return
+      if (event.target instanceof Node && root.contains(event.target)) return
+      setMoreOpen(false)
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') setMoreOpen(false)
+    }
+    document.addEventListener('mousedown', onDocPointer)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDocPointer)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [moreOpen])
+
+  if (overflowResources.length === 0) return null
+
+  return (
+    <div className="play-desk__hot-more" ref={moreWrapRef}>
+      <button
+        type="button"
+        className={`play-desk__hot-item play-desk__hot-item--btn play-desk__hot-more-btn${
+          moreOpen ? ' is-on' : ''
+        }`}
+        aria-expanded={moreOpen}
+        aria-controls={moreId}
+        title="Остальные ресурсы"
+        onClick={() => setMoreOpen((open) => !open)}
+      >
+        Ещё {overflowResources.length}
+      </button>
+      {moreOpen ? (
+        <div
+          id={moreId}
+          className="play-desk__hot-more-panel"
+          role="region"
+          aria-label="Остальные ресурсы"
+        >
+          {overflowResources.map((row) => (
+            <ResourceChip
+              key={row.id}
+              row={row}
+              onResourceUsedChange={onResourceUsedChange}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 /** Combat strip under modes: conditions, concentration, resource pips.
  * Initiative / inspiration / exhaustion / rest live in PlayDeskHeader. */
 export function PlayDeskHotBar({
@@ -183,6 +257,7 @@ export function PlayDeskHotBar({
   onOpenConditions,
   onClearConcentration,
   onResourceUsedChange,
+  mobileMoreOverflow = false,
 }: PlayDeskHotBarProps) {
   const exhaustionStage =
     exhaustion > 0 ? conditionLevelLabel('exhaustion', exhaustion) : null
@@ -197,12 +272,23 @@ export function PlayDeskHotBar({
   const conditionsLabel = parts.length > 0 ? parts.join(', ') : 'нет'
   const conditionsOn = parts.length > 0
   const hotResources = resources.filter(resourceShowsOnHot)
+  const pinnedResources = mobileMoreOverflow
+    ? hotResources.slice(0, MOBILE_HOT_PINNED_RESOURCE_COUNT)
+    : hotResources
+  const overflowResources = mobileMoreOverflow
+    ? hotResources.slice(MOBILE_HOT_PINNED_RESOURCE_COUNT)
+    : []
   const concOn = Boolean(concentration)
   const scrollerRef = useRef<HTMLDivElement | null>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
 
   const updateScrollHints = () => {
+    if (mobileMoreOverflow) {
+      setCanScrollLeft(false)
+      setCanScrollRight(false)
+      return
+    }
     const el = scrollerRef.current
     if (!el) return
     const edges = hotBarScrollEdges(el.scrollLeft, el.clientWidth, el.scrollWidth)
@@ -212,9 +298,18 @@ export function PlayDeskHotBar({
 
   useLayoutEffect(() => {
     updateScrollHints()
-  }, [hotResources.length, conditionsLabel, concOn, concentration?.name])
+  }, [
+    hotResources.length,
+    conditionsLabel,
+    concOn,
+    concentration?.name,
+    mobileMoreOverflow,
+    pinnedResources.length,
+    overflowResources.length,
+  ])
 
   useEffect(() => {
+    if (mobileMoreOverflow) return
     const el = scrollerRef.current
     if (!el) return
 
@@ -243,7 +338,13 @@ export function PlayDeskHotBar({
       ro.disconnect()
       window.removeEventListener('resize', updateScrollHints)
     }
-  }, [hotResources.length, conditionsLabel, concOn, concentration?.name])
+  }, [
+    hotResources.length,
+    conditionsLabel,
+    concOn,
+    concentration?.name,
+    mobileMoreOverflow,
+  ])
 
   return (
     <div className="play-desk__hot-wrap">
@@ -315,13 +416,19 @@ export function PlayDeskHotBar({
             <span className="play-desk__hot-label">Концентрация: —</span>
           )}
         </div>
-        {hotResources.map((row) => (
+        {pinnedResources.map((row) => (
           <ResourceChip
             key={row.id}
             row={row}
             onResourceUsedChange={onResourceUsedChange}
           />
         ))}
+        {mobileMoreOverflow ? (
+          <MoreResources
+            overflowResources={overflowResources}
+            onResourceUsedChange={onResourceUsedChange}
+          />
+        ) : null}
       </div>
     </div>
   )

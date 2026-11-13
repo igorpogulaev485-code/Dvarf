@@ -172,6 +172,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             exhaustion={model.draft.play.exhaustion}
             concentration={model.draft.play.concentration}
             resources={model.draft.play.resources}
+            mobileMoreOverflow={!model.isPlayDesk}
             onOpenConditions={() => model.setHotConditionsOpen(true)}
             onClearConcentration={() => model.clearConcentrationDismissingCompanions(null)}
             onResourceUsedChange={(id, used) => {
@@ -345,6 +346,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
               ariaLabel="Навыки боя"
               skills={model.modeSkillChips('combat')}
               onSkillClick={model.rollModeSkill}
+              mobileOverflow={!model.isPlayDesk}
             />
           ) : null}
 
@@ -435,6 +437,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
               ariaLabel="Навыки исследования"
               skills={model.modeSkillChips('explore')}
               onSkillClick={model.rollModeSkill}
+              mobileOverflow={!model.isPlayDesk}
             />
           ) : null}
 
@@ -525,6 +528,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
               ariaLabel="Навыки общения"
               skills={model.modeSkillChips('social')}
               onSkillClick={model.rollModeSkill}
+              mobileOverflow={!model.isPlayDesk}
             />
           ) : null}
 

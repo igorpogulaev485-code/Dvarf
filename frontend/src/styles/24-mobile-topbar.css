@@ -301,7 +301,7 @@
     padding: 0;
   }
 
-  /* Skills strip still scrolls; combat hot-wrap stacks (M-01 / M01). */
+  /* M-02: skills use grid (no silent x-scroll); combat hot-wrap stacks (M-01). */
   .play-desk--mobile .play-desk__hot {
     max-width: 100%;
     width: 100%;
@@ -310,9 +310,19 @@
     overscroll-behavior-x: contain;
   }
 
+  .play-desk--mobile .play-desk__hot--skills,
+  .play-desk--mobile .play-desk__hot--skills-mobile {
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+  }
+
   .play-desk--mobile .play-desk__hot-item,
   .play-desk--mobile .play-desk__hot-item--wide {
     min-width: min(132px, 62vw);
+  }
+
+  .play-desk--mobile .play-desk__hot--skills .play-desk__hot-item {
+    min-width: 0;
   }
 
   .play-desk--mobile .play-desk__hot-item--res {
