@@ -244,9 +244,17 @@ button.play-desk-vital:hover,
   white-space: nowrap;
 }
 
+.play-desk-vital--jump {
+  width: 72px;
+  min-width: 72px;
+}
+
 .play-desk-vital--jump .play-desk-vital__label-row {
   font-size: 0.66rem;
   letter-spacing: 0;
+  white-space: normal;
+  text-wrap: balance;
+  max-width: 100%;
 }
 
 .play-desk-vital--shield b {
