@@ -37,6 +37,7 @@ import { getActiveSelfForm } from '../companions'
 import { healSelfForm, rollDice, starryFormDice } from '../wildShape'
 import { TextBlocksPanel } from '../TextBlocksPanel'
 import { PlayDeskAttacksCompact } from '../PlayDeskAttacksCompact'
+import { spendSpellSlot } from '../../../shared/dnd/spells'
 import { PlayDeskSpellsCompact } from '../PlayDeskSpellsCompact'
 import { equipInventoryItem, equippedArmorPieces } from '../inventory'
 import { withSpellFocusFlags } from '../spellFocus'
@@ -234,6 +235,26 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             )}
             openSessionId={model.character.open_session_id}
             characterId={model.character.id}
+            characterName={model.draft.name?.trim() || model.baseCharacter.name || null}
+            playConditions={model.draft.play.conditions}
+            onAddPlayEffect={(effect) => {
+              model.setDraft((prev) => ({
+                ...prev,
+                play: {
+                  ...prev.play,
+                  effects: [...(prev.play.effects ?? []), effect],
+                },
+              }))
+            }}
+            onSpendReadySpellSlot={(level) => {
+              const result = spendSpellSlot(model.draft.spells.slots, level)
+              if (!result.ok) return false
+              model.setDraft((prev) => ({
+                ...prev,
+                spells: { ...prev.spells, slots: result.slots },
+              }))
+              return true
+            }}
             hpTemp={model.draft.play.hpTemp}
             abilities={model.effectiveAbilities}
             proficiencyBonus={model.proficiencyBonus}

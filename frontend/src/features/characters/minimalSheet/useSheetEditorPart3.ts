@@ -61,6 +61,10 @@ import {
 } from '../featureCombatBonuses'
 import { aggregateInfusionBonuses } from '../../../shared/dnd/infusionEffects'
 import { infusionAcFromSharedEffects } from '../../../shared/dnd/infusionItems'
+import {
+  coverBonusBeyondEffects,
+  hasFortifiedHalfCover,
+} from '../../../shared/dnd/o08ActionsCoverConditions'
 import { beastPhysicalOverlay } from '../wildShape'
 import { syncPactBladeAttack } from '../pactBladeAttack'
 import { syncRangerConclaveSpells } from '../rangerConclaveSpells'
@@ -881,6 +885,15 @@ export function useSheetEditorPart3(model: SheetModel) {
       coreAc += sharedInfusionAc
       gearSummary = `${gearSummary} · эффекты +${sharedInfusionAc}`
     }
+    // O-08: ручное укрытие — не складывать с «Укреплённой позицией» той же ступени
+    const coverExtra = coverBonusBeyondEffects({
+      cover: model.draft.play.cover,
+      hasFortifiedHalfCover: hasFortifiedHalfCover(effectsRaw),
+    })
+    if (coverExtra > 0) {
+      coreAc += coverExtra
+      gearSummary = `${gearSummary} · укрытие +${coverExtra}`
+    }
     const formulaVars = buildSheetFormulaVars({
       mods,
       proficiencyBonus: model.proficiencyBonus,
@@ -927,6 +940,7 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.gearEffects.acFormulas,
     model.draft.play.concentration?.name,
     model.draft.play.effects,
+    model.draft.play.cover,
     model.draft.acFormulaKey,
     infusionBonuses.acBonus,
     model.baseCharacter.sheet,

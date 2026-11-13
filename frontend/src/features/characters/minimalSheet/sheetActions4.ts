@@ -41,6 +41,13 @@ import { formatSaveAdvantageNote } from '../gearEffects'
 import { isMantleCommandSpell, MANTLE_CONCENTRATION_ID, silverTongueApplies } from '../../../shared/dnd/bardCollege'
 import { exhaustionRollFlags } from '../../../shared/dnd/exhaustion2014'
 import {
+  conditionModeForSelf,
+  coverBonusBeyondEffects,
+  hasFortifiedHalfCover,
+  isHearingReliantSkill,
+  isSightReliantSkill,
+} from '../../../shared/dnd/o08ActionsCoverConditions'
+import {
   MAGICAL_GUIDANCE_SHEET_NAME,
   primalKnowledgeAbilityOverride,
 } from '../../../shared/dnd/o02TashaFeatures'
@@ -1165,7 +1172,17 @@ export function installSheetActions4(model: SheetModel) {
       rollKind: 'check',
       abilityKey: skillKey ?? null,
     })
-    const withFx = mergeDeskRollMode(model.deskRollMode, fromFx)
+    const fromCond = conditionModeForSelf(model.draft.play.conditions, {
+      rollKind: 'check',
+      skillKey: skillKey ?? null,
+      sightOnlyCheck: isSightReliantSkill(skillKey),
+      hearingOnlyCheck: isHearingReliantSkill(skillKey),
+      fearSourceVisible: true,
+    })
+    const withFx = mergeDeskRollMode(
+      mergeDeskRollMode(model.deskRollMode, fromFx),
+      fromCond.mode,
+    )
     const base = resolveRollMode(withFx, armor || exhaustion)
     if (!song) return base
     if (base === 'disadvantage') return 'normal'
@@ -1176,8 +1193,17 @@ export function installSheetActions4(model: SheetModel) {
     const fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
       rollKind: 'attack',
     })
+    const fromCond = conditionModeForSelf(model.draft.play.conditions, {
+      rollKind: 'attack',
+      attackReach: 'melee',
+      fearSourceVisible: true,
+      invisibleDiscovered: false,
+    })
     return resolveRollMode(
-      mergeDeskRollMode(model.deskRollMode, fromFx),
+      mergeDeskRollMode(
+        mergeDeskRollMode(model.deskRollMode, fromFx),
+        fromCond.mode,
+      ),
       model.exhaustionFlags().disadvantageOnAttacksAndSaves,
     )
   }
@@ -1210,8 +1236,12 @@ export function installSheetActions4(model: SheetModel) {
     ) {
       fromFx = 'advantage'
     }
+    const fromCond = conditionModeForSelf(model.draft.play.conditions, {
+      rollKind: 'save',
+      abilityKey: abilityKey ?? null,
+    })
     return resolveRollMode(
-      mergeDeskRollMode(model.deskRollMode, fromFx),
+      mergeDeskRollMode(mergeDeskRollMode(model.deskRollMode, fromFx), fromCond.mode),
       model.exhaustionFlags().disadvantageOnAttacksAndSaves,
     )
   }
@@ -1389,8 +1419,17 @@ export function installSheetActions4(model: SheetModel) {
     const effectSave =
       saveBonusFromActiveEffects(model.draft.play.effects, key) +
       saveBonusFromActiveEffects(model.draft.play.effects, 'all')
-    const rolledMod = mod + (song?.active ? song.concentrationSave : 0) + effectSave
+    const coverSave =
+      key === 'dex'
+        ? coverBonusBeyondEffects({
+            cover: model.draft.play.cover,
+            hasFortifiedHalfCover: hasFortifiedHalfCover(model.draft.play.effects),
+          })
+        : 0
+    const rolledMod =
+      mod + (song?.active ? song.concentrationSave : 0) + effectSave + coverSave
     const songNote = song?.active ? ` · песнь +${song.concentrationSave}` : ''
+    const coverNote = coverSave > 0 ? ` · укрытие +${coverSave}` : ''
     const exhaustion = model.exhaustionFlags().disadvantageOnAttacksAndSaves
     const note =
       exhaustion && model.deskRollMode === 'advantage'
@@ -1455,7 +1494,7 @@ export function installSheetActions4(model: SheetModel) {
           null,
           null,
           bonusDice,
-        )}${note}${songNote}${spellNote}${saveProfNote}`,
+        )}${note}${songNote}${coverNote}${spellNote}${saveProfNote}`,
       )
     }
     consumeOnceBuffDice('save')

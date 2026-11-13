@@ -79,6 +79,16 @@ export type TurnEconomyState = {
   /** O-07: Мастер древкового — бонусный конец готов после атаки древковым. */
   polearmBonusReady: boolean
   polearmBonusUsed: boolean
+  /**
+   * O-08: «Подготовка» — действие потрачено, ждёт реакции «Сработало».
+   * Сгорает при начале своего хода (resetTurnEconomy).
+   */
+  readyPrepared: boolean
+  readyTrigger: string
+  readyKind: 'attack' | 'dash' | 'disengage' | 'dodge' | 'spell' | null
+  readySpellId: string | null
+  readySpellName: string | null
+  readySpellLevel: number | null
 }
 
 export type TurnSpendBlock = {
@@ -124,6 +134,12 @@ export function emptyTurnEconomy(): TurnEconomyState {
     disengagedThisTurn: false,
     polearmBonusReady: false,
     polearmBonusUsed: false,
+    readyPrepared: false,
+    readyTrigger: '',
+    readyKind: null,
+    readySpellId: null,
+    readySpellName: null,
+    readySpellLevel: null,
   }
 }
 
@@ -256,6 +272,35 @@ export function readTurnEconomy(raw: unknown): TurnEconomyState {
     polearmBonusUsed: Boolean(
       row.polearm_bonus_used ?? row.polearmBonusUsed,
     ),
+    readyPrepared: Boolean(row.ready_prepared ?? row.readyPrepared),
+    readyTrigger:
+      typeof (row.ready_trigger ?? row.readyTrigger) === 'string'
+        ? String(row.ready_trigger ?? row.readyTrigger)
+        : '',
+    readyKind: (() => {
+      const k = row.ready_kind ?? row.readyKind
+      return k === 'attack' ||
+        k === 'dash' ||
+        k === 'disengage' ||
+        k === 'dodge' ||
+        k === 'spell'
+        ? k
+        : null
+    })(),
+    readySpellId:
+      typeof (row.ready_spell_id ?? row.readySpellId) === 'string'
+        ? String(row.ready_spell_id ?? row.readySpellId)
+        : null,
+    readySpellName:
+      typeof (row.ready_spell_name ?? row.readySpellName) === 'string'
+        ? String(row.ready_spell_name ?? row.readySpellName)
+        : null,
+    readySpellLevel: (() => {
+      const n = row.ready_spell_level ?? row.readySpellLevel
+      return typeof n === 'number' && Number.isFinite(n)
+        ? Math.max(0, Math.floor(n))
+        : null
+    })(),
   }
 }
 
@@ -304,6 +349,12 @@ export function serializeTurnEconomy(
     disengaged_this_turn: Boolean(state.disengagedThisTurn),
     polearm_bonus_ready: Boolean(state.polearmBonusReady),
     polearm_bonus_used: Boolean(state.polearmBonusUsed),
+    ready_prepared: Boolean(state.readyPrepared),
+    ready_trigger: state.readyTrigger || '',
+    ready_kind: state.readyKind,
+    ready_spell_id: state.readySpellId,
+    ready_spell_name: state.readySpellName,
+    ready_spell_level: state.readySpellLevel,
   }
 }
 
@@ -464,6 +515,44 @@ export function markDashed(state: TurnEconomyState): TurnEconomyState {
 /** O-07 / O-08: действие «Отход» — флаг для провокаций (Страж обходит на выходе). */
 export function markDisengagedThisTurn(state: TurnEconomyState): TurnEconomyState {
   return { ...state, disengagedThisTurn: true }
+}
+
+/** O-08: записать подготовку (после траты действия). */
+export function markReadyPrepared(
+  state: TurnEconomyState,
+  opts: {
+    trigger: string
+    kind: TurnEconomyState['readyKind']
+    spellId?: string | null
+    spellName?: string | null
+    spellLevel?: number | null
+  },
+): TurnEconomyState {
+  return {
+    ...state,
+    readyPrepared: true,
+    readyTrigger: opts.trigger.trim(),
+    readyKind: opts.kind,
+    readySpellId: opts.spellId ?? null,
+    readySpellName: opts.spellName ?? null,
+    readySpellLevel:
+      typeof opts.spellLevel === 'number' && Number.isFinite(opts.spellLevel)
+        ? Math.max(0, Math.floor(opts.spellLevel))
+        : null,
+  }
+}
+
+/** O-08: снять подготовку после «Сработало» или сгорания. */
+export function clearReadyPrepared(state: TurnEconomyState): TurnEconomyState {
+  return {
+    ...state,
+    readyPrepared: false,
+    readyTrigger: '',
+    readyKind: null,
+    readySpellId: null,
+    readySpellName: null,
+    readySpellLevel: null,
+  }
 }
 
 export { STEADY_AIM_HINT }

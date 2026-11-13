@@ -35,6 +35,28 @@ import {
   canRiposteReaction,
   canSentinelAttack,
 } from '../../shared/dnd/o07Reactions'
+import {
+  DASH_ACTION_HINT,
+  DISENGAGE_ACTION_HINT,
+  DODGE_ACTION_HINT,
+  HELP_ACTION_HINT,
+  READY_ACTION_HINT,
+  applyDashAction,
+  applyDisengageAction,
+  canDashAction,
+  canDisengageAction,
+  canDodgeAction,
+  canHelpAction,
+  canReadyAction,
+  canTriggerReady,
+  isIncapacitatedLike,
+} from '../../shared/dnd/o08ActionsCoverConditions'
+import {
+  clearReadyPrepared,
+  markDashed,
+  markDisengagedThisTurn,
+} from '../../shared/dnd/turnEconomy'
+import type { ConditionRef } from '../../shared/dnd/conditions'
 
 export type O03MasterRuleFlags = {
   disarm?: boolean
@@ -127,6 +149,12 @@ type Props = {
   onO07CastReactionSpell?: (spellId: string) => void
   onO07CastReactionGeneric?: () => void
   onO07Counterspell?: () => void
+  /** O-08: PHB действия хода. */
+  playConditions?: ConditionRef[] | null
+  onO08Dodge?: () => void
+  onO08Help?: () => void
+  onO08Ready?: () => void
+  onO08ReadyTrigger?: () => void
   /** O-01: открыть диалог Захват/Толчок. */
   onGrappleShove?: () => void
   /** O-05: боевые черты. */
@@ -208,6 +236,11 @@ export function TurnEconomyCombatActions({
   onO07CastReactionSpell,
   onO07CastReactionGeneric,
   onO07Counterspell,
+  playConditions = null,
+  onO08Dodge,
+  onO08Help,
+  onO08Ready,
+  onO08ReadyTrigger,
   onGrappleShove,
   o05,
   onO05GwmBonus,
@@ -242,19 +275,59 @@ export function TurnEconomyCombatActions({
   const turnEco = useTurnEconomy()
   if (!turnEco) return null
 
-  const searchGate = turnEco.canSearch()
-  const hideGate = turnEco.canHide(hasCunningAction)
+  const incapEarly = isIncapacitatedLike(playConditions)
+  const searchGate = incapEarly.blocked
+    ? { ok: false as const, reason: incapEarly.reason, mark: 'action' as const }
+    : turnEco.canSearch()
+  const hideGate = incapEarly.blocked
+    ? { ok: false as const, reason: incapEarly.reason, mark: 'action' as const }
+    : turnEco.canHide(hasCunningAction)
   const steadyGate = hasSteadyAim ? turnEco.canSteadyAim() : { ok: false as const, reason: '', mark: 'bonus' as const }
-  const cunningGate = hasCunningAction ? turnEco.canCunningBonus() : { ok: false as const, reason: '', mark: 'bonus' as const }
-  const attackGate = turnEco.canAttack()
-  const actionGate = turnEco.canFeature('action')
-  const reactionGate = turnEco.canFeature('reaction')
-  const bonusGate = turnEco.canFeature('bonus')
+  const cunningGate = incapEarly.blocked
+    ? { ok: false as const, reason: incapEarly.reason, mark: 'bonus' as const }
+    : hasCunningAction
+      ? turnEco.canCunningBonus()
+      : { ok: false as const, reason: '', mark: 'bonus' as const }
+  const attackGate = incapEarly.blocked
+    ? { ok: false as const, reason: incapEarly.reason, mark: 'action' as const }
+    : turnEco.canAttack()
+  const actionGate = incapEarly.blocked
+    ? { ok: false as const, reason: incapEarly.reason, mark: 'action' as const }
+    : turnEco.canFeature('action')
+  const reactionGate = incapEarly.blocked
+    ? { ok: false as const, reason: incapEarly.reason, mark: 'reaction' as const }
+    : turnEco.canFeature('reaction')
+  const bonusGate = incapEarly.blocked
+    ? { ok: false as const, reason: incapEarly.reason, mark: 'bonus' as const }
+    : turnEco.canFeature('bonus')
   const kiFueledGate = hasKiFueledAttack
     ? canKiFueledAttack(turnEco.turnEconomy)
     : { ok: false as const, reason: '', mark: 'bonus' as const }
 
   const te = turnEco.turnEconomy
+  const dashGate = incapEarly.blocked
+    ? { ok: false as const, reason: incapEarly.reason, mark: 'action' as const }
+    : canDashAction(te)
+  const disengageGate = incapEarly.blocked
+    ? { ok: false as const, reason: incapEarly.reason, mark: 'action' as const }
+    : canDisengageAction(te)
+  const dodgeGate = incapEarly.blocked
+    ? { ok: false as const, reason: incapEarly.reason, mark: 'action' as const }
+    : canDodgeAction(te)
+  const helpGate = incapEarly.blocked
+    ? { ok: false as const, reason: incapEarly.reason, mark: 'action' as const }
+    : canHelpAction(te)
+  const readyGate = incapEarly.blocked
+    ? { ok: false as const, reason: incapEarly.reason, mark: 'action' as const }
+    : canReadyAction(te)
+  const readyFireGate = canTriggerReady(te, {
+    prepared: te.readyPrepared,
+    trigger: te.readyTrigger,
+    kind: te.readyKind,
+    spellId: te.readySpellId,
+    spellName: te.readySpellName,
+    spellLevel: te.readySpellLevel,
+  })
   const tceOn = o05TceVisible(o05?.tceAllowed)
   const gwmGate = o05?.greatWeaponMaster
     ? canGwmBonusAttack(te, true)
@@ -383,6 +456,112 @@ export function TurnEconomyCombatActions({
           Засада
         </button>
       )}
+
+      {/* O-08: PHB действия (не Хитрое) — отдельный слот от бонусного Отход/Рывок плута */}
+      <button
+        type="button"
+        className="sheet-chip"
+        disabled={!dashGate.ok}
+        title={dashGate.ok ? DASH_ACTION_HINT : dashGate.reason}
+        onClick={() => {
+          if (!canDashAction(turnEco.turnEconomy).ok) return
+          turnEco.patchTurnEconomy((s) => applyDashAction(s))
+          onToast?.('Рывок (действие)')
+        }}
+      >
+        Рывок
+      </button>
+      <button
+        type="button"
+        className="sheet-chip"
+        disabled={!disengageGate.ok}
+        title={disengageGate.ok ? DISENGAGE_ACTION_HINT : disengageGate.reason}
+        onClick={() => {
+          if (!canDisengageAction(turnEco.turnEconomy).ok) return
+          turnEco.patchTurnEconomy((s) => applyDisengageAction(s))
+          onToast?.('Отход')
+        }}
+      >
+        Отход
+      </button>
+      <button
+        type="button"
+        className="sheet-chip"
+        disabled={!dodgeGate.ok}
+        title={dodgeGate.ok ? DODGE_ACTION_HINT : dodgeGate.reason}
+        onClick={() => {
+          if (!canDodgeAction(turnEco.turnEconomy).ok) return
+          if (onO08Dodge) {
+            onO08Dodge()
+            return
+          }
+          turnEco.spendFeature('action')
+          onToast?.('Уклонение')
+        }}
+      >
+        Уклонение
+      </button>
+      {onO08Help ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!helpGate.ok}
+          title={helpGate.ok ? HELP_ACTION_HINT : helpGate.reason}
+          onClick={() => {
+            if (!canHelpAction(turnEco.turnEconomy).ok) return
+            onO08Help()
+          }}
+        >
+          Помощь
+        </button>
+      ) : null}
+      {onO08Ready ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!readyGate.ok}
+          title={readyGate.ok ? READY_ACTION_HINT : readyGate.reason}
+          onClick={() => {
+            if (!canReadyAction(turnEco.turnEconomy).ok) return
+            onO08Ready()
+          }}
+        >
+          Подготовка
+        </button>
+      ) : null}
+      {te.readyPrepared ? (
+        <button
+          type="button"
+          className="sheet-chip is-on"
+          disabled={!readyFireGate.ok}
+          title={
+            readyFireGate.ok
+              ? `Сработало: ${te.readyTrigger || 'триггер'} → ${te.readyKind || 'действие'} · реакция`
+              : readyFireGate.reason
+          }
+          onClick={() => {
+            if (!readyFireGate.ok) return
+            if (onO08ReadyTrigger) {
+              onO08ReadyTrigger()
+              return
+            }
+            turnEco.spendFeature('reaction')
+            turnEco.patchTurnEconomy((s) => {
+              let next = clearReadyPrepared(s)
+              if (te.readyKind === 'dash') next = markDashed(next)
+              if (te.readyKind === 'disengage') next = markDisengagedThisTurn(next)
+              return next
+            })
+            onToast?.(
+              `Подготовка сработала: ${te.readyKind || 'действие'}${
+                te.readyTrigger ? ` · ${te.readyTrigger}` : ''
+              }`,
+            )
+          }}
+        >
+          Сработало
+        </button>
+      ) : null}
 
       {hasSteadyAim ? (
         <button

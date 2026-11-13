@@ -21,6 +21,10 @@ import type { RulesEdition } from '../../shared/api/characters'
 import { Button, Combobox, Dialog, Field, Text, type ComboboxOption } from '../../ui'
 import { IconConditions, IconExhaustion } from './deskIcons'
 import type { PlayState } from './play'
+import {
+  coverLabelRu,
+  type CoverLevel,
+} from '../../shared/dnd/o08ActionsCoverConditions'
 
 type HotConditionsDialogProps = {
   open: boolean
@@ -287,6 +291,35 @@ export function HotConditionsDialog({
           ) : (
             <p className="hot-conditions__exh-stage">Нет истощения — проверки и скорость как обычно</p>
           )}
+        </section>
+
+        <section className="hot-conditions__card" aria-label="Укрытие">
+          <div className="hot-conditions__card-head">
+            <span className="hot-conditions__card-title">Укрытие</span>
+            <span className="hot-conditions__count">
+              {coverLabelRu(play.cover ?? 'none')}
+            </span>
+          </div>
+          <Text tone="muted">
+            Ручная пометка PHB: ½ → +2 КД/Ловк., ¾ → +5, полное — нельзя выбрать целью.
+            «Укреплённая позиция» не складывается с тем же полуукрытием.
+          </Text>
+          <div className="chip-row" role="group" aria-label="Уровень укрытия">
+            {(['none', 'half', 'three_quarters', 'total'] as CoverLevel[]).map((lvl) => (
+              <button
+                key={lvl}
+                type="button"
+                className={`sheet-chip${(play.cover ?? 'none') === lvl ? ' is-on' : ''}`}
+                aria-pressed={(play.cover ?? 'none') === lvl}
+                onClick={() => {
+                  patchPlay({ cover: lvl })
+                  onToast(`Укрытие: ${coverLabelRu(lvl)}`)
+                }}
+              >
+                {lvl === 'none' ? 'Нет' : coverLabelRu(lvl)}
+              </button>
+            ))}
+          </div>
         </section>
 
         <section className="hot-conditions__card" aria-label="Активные состояния">

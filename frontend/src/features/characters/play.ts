@@ -39,6 +39,10 @@ import {
 } from '../../shared/dnd/rest'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 import { readShillelagh, type ShillelaghState } from './shillelagh'
+import {
+  readCoverLevel,
+  type CoverLevel,
+} from '../../shared/dnd/o08ActionsCoverConditions'
 
 export type PlayState = {
   conditions: ConditionRef[]
@@ -66,6 +70,11 @@ export type PlayState = {
    * (следующая Сл = 10 + days × 5). Сбрасывается длинным отдыхом.
    */
   noLongRestDays?: number
+  /**
+   * O-08: ручное укрытие на себе (½ / ¾ / полное).
+   * Хранится в sheet.combat.cover.
+   */
+  cover?: CoverLevel
 }
 
 export type { ConcentrationState }
@@ -215,6 +224,7 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
     effects: parseActiveEffects(combat.effects),
     turnEconomy: readTurnEconomy(combat.turn_economy),
     noLongRestDays: Math.max(0, Math.floor(readNumber(combat.no_long_rest_days, 0))),
+    cover: readCoverLevel(combat.cover),
   }
 }
 
@@ -234,6 +244,7 @@ export function playToSheet(play: PlayState): {
     effects: ReturnType<typeof serializeActiveEffect>[]
     turn_economy: ReturnType<typeof serializeTurnEconomy>
     no_long_rest_days: number
+    cover: CoverLevel
   }
   resources: SheetResource[]
 } {
@@ -267,6 +278,7 @@ export function playToSheet(play: PlayState): {
       effects: (play.effects ?? []).map(serializeActiveEffect),
       turn_economy: serializeTurnEconomy(play.turnEconomy ?? emptyTurnEconomy()),
       no_long_rest_days: Math.max(0, Math.floor(play.noLongRestDays ?? 0)),
+      cover: readCoverLevel(play.cover),
     },
     resources: play.resources.map((item) => clampResource(item)),
   }

@@ -69,6 +69,27 @@ import {
   NamedTargetDialog,
   OpportunityAttackDialog,
 } from './O07ReactionDialogs'
+import { HelpActionDialog, ReadyActionDialog } from './O08ActionDialogs'
+import {
+  buildDodgeActionEffect,
+  buildHelpAdvantageEffect,
+  conditionModeForSelf,
+  conditionModeVsTarget,
+  coverAcForAttacker,
+  coverIgnoreKind,
+  coverLabelRu,
+  mergeRollModes,
+  type CoverLevel,
+} from '../../shared/dnd/o08ActionsCoverConditions'
+import {
+  castingTimeToEconomyMark,
+  clearReadyPrepared,
+  markDashed,
+  markDisengagedThisTurn,
+  markReadyPrepared,
+} from '../../shared/dnd/turnEconomy'
+import type { ConditionRef } from '../../shared/dnd/conditions'
+import { applyCharacterEffects } from '../../shared/api/characters'
 import {
   WAR_CASTER_SOMATIC_NOTE,
   canOpportunityAttack,
@@ -342,6 +363,11 @@ type PlayDeskAttacksCompactProps = {
   onHealerStabilize?: (targetId: string) => boolean
   /** O-07: открыть каст заклинания-реакции. */
   onCastSpell?: (spell: SheetSpell) => void
+  /** O-08: состояния и эффекты листа. */
+  playConditions?: ConditionRef[] | null
+  onAddPlayEffect?: (effect: ActiveEffect) => void
+  onSpendReadySpellSlot?: (level: number) => boolean
+  characterName?: string | null
 }
 
 function formatSpendTime(atMs: number): string {
@@ -433,12 +459,24 @@ export function PlayDeskAttacksCompact({
   onHealerHeal,
   onHealerStabilize,
   onCastSpell,
+  playConditions = null,
+  onAddPlayEffect,
+  onSpendReadySpellSlot,
+  characterName = null,
 }: PlayDeskAttacksCompactProps) {
   const turnEco = useTurnEconomy()
   const [grappleOpen, setGrappleOpen] = useState(false)
   const [o07Dialog, setO07Dialog] = useState<
     null | 'oa' | 'counterspell' | 'sentinel' | 'mage_slayer' | 'riposte'
   >(null)
+  const [o08Dialog, setO08Dialog] = useState<null | 'help' | 'ready'>(null)
+  const [targetCover, setTargetCover] = useState<CoverLevel>('none')
+  const [targetDodging, setTargetDodging] = useState(false)
+  const [fearSourceVisible, setFearSourceVisible] = useState(true)
+  const [invisibleDiscovered, setInvisibleDiscovered] = useState(false)
+  const [targetProne, setTargetProne] = useState(false)
+  const [targetRestrained, setTargetRestrained] = useState(false)
+  const [targetParalyzedClose, setTargetParalyzedClose] = useState(false)
   const [reactionAttackArmed, setReactionAttackArmed] = useState(false)
   /** Reaction already spent (riposte) — finishAttack must not spend again. */
   const [reactionPreSpent, setReactionPreSpent] = useState(false)
@@ -977,6 +1015,72 @@ export function PlayDeskAttacksCompact({
             </div>
           ) : null}
 
+          {/* O-08: укрытие цели и ситуационные галочки */}
+          <div className="chip-row" style={{ marginBottom: 8 }} role="group" aria-label="Укрытие цели">
+            {(['none', 'half', 'three_quarters', 'total'] as CoverLevel[]).map((lvl) => (
+              <button
+                key={lvl}
+                type="button"
+                className={`sheet-chip${targetCover === lvl ? ' is-on' : ''}`}
+                aria-pressed={targetCover === lvl}
+                title={coverLabelRu(lvl)}
+                onClick={() => setTargetCover(lvl)}
+              >
+                {lvl === 'none' ? 'Без укрытия' : coverLabelRu(lvl)}
+              </button>
+            ))}
+          </div>
+          <div className="chip-row" style={{ marginBottom: 8 }}>
+            <label className="field" style={{ margin: 0 }}>
+              <input
+                type="checkbox"
+                checked={targetDodging}
+                onChange={(e) => setTargetDodging(e.target.checked)}
+              />{' '}
+              Цель уклоняется
+            </label>
+            <label className="field" style={{ margin: 0 }}>
+              <input
+                type="checkbox"
+                checked={targetProne}
+                onChange={(e) => setTargetProne(e.target.checked)}
+              />{' '}
+              Цель опрокинута
+            </label>
+            <label className="field" style={{ margin: 0 }}>
+              <input
+                type="checkbox"
+                checked={targetRestrained}
+                onChange={(e) => setTargetRestrained(e.target.checked)}
+              />{' '}
+              Цель опутана
+            </label>
+            <label className="field" style={{ margin: 0 }}>
+              <input
+                type="checkbox"
+                checked={targetParalyzedClose}
+                onChange={(e) => setTargetParalyzedClose(e.target.checked)}
+              />{' '}
+              Паралич/без сознания в 5 фт
+            </label>
+            <label className="field" style={{ margin: 0 }}>
+              <input
+                type="checkbox"
+                checked={fearSourceVisible}
+                onChange={(e) => setFearSourceVisible(e.target.checked)}
+              />{' '}
+              Источник страха виден
+            </label>
+            <label className="field" style={{ margin: 0 }}>
+              <input
+                type="checkbox"
+                checked={invisibleDiscovered}
+                onChange={(e) => setInvisibleDiscovered(e.target.checked)}
+              />{' '}
+              Невидимый обнаружен
+            </label>
+          </div>
+
           <TurnEconomyCombatActions
             hasCunningAction={
               hasCunningAction ||
@@ -1311,6 +1415,49 @@ export function PlayDeskAttacksCompact({
               else onToast?.('Выбери заклинание со временем «реакция» в панели заклинаний')
             }}
             onO07Counterspell={() => setO07Dialog('counterspell')}
+            playConditions={playConditions}
+            onO08Dodge={() => {
+              if (!turnEco?.canFeature('action').ok) return
+              turnEco.spendFeature('action')
+              const fx = buildDodgeActionEffect()
+              onAddPlayEffect?.(fx)
+              onToast?.('Уклонение · атаки по вам с помехой, спас Ловк. с преимуществом')
+            }}
+            onO08Help={() => setO08Dialog('help')}
+            onO08Ready={() => setO08Dialog('ready')}
+            onO08ReadyTrigger={() => {
+              if (!turnEco) return
+              const te = turnEco.turnEconomy
+              const gate = turnEco.canFeature('reaction')
+              if (!gate.ok) {
+                onToast?.(gate.reason)
+                return
+              }
+              turnEco.spendFeature('reaction')
+              const kind = te.readyKind
+              turnEco.patchTurnEconomy((s) => {
+                let next = clearReadyPrepared(s)
+                if (kind === 'dash') next = markDashed(next)
+                if (kind === 'disengage') next = markDisengagedThisTurn(next)
+                return next
+              })
+              if (kind === 'dodge') {
+                onAddPlayEffect?.(buildDodgeActionEffect())
+              }
+              if (kind === 'attack') {
+                setReactionAttackArmed(true)
+                setReactionPreSpent(true)
+              }
+              if (kind === 'spell' && te.readySpellId) {
+                const spell = spells?.known?.find((s) => s.id === te.readySpellId)
+                if (spell && onCastSpell) onCastSpell(spell as SheetSpell)
+              }
+              onToast?.(
+                `Подготовка сработала: ${kind || 'действие'}${
+                  te.readyTrigger ? ` · ${te.readyTrigger}` : ''
+                }`,
+              )
+            }}
             onToast={onToast}
             onOfferSkill={(key) => {
               const labels: Record<string, string> = {
@@ -1433,6 +1580,116 @@ export function PlayDeskAttacksCompact({
               setReactionAttackArmed(true)
               onToast?.(
                 `Убийца магов: атака по ${targetName} (в 5 фт) · помеха на спас концентрации от твоего урона до конца твоего след. хода`,
+              )
+            }}
+          />
+          <HelpActionDialog
+            open={o08Dialog === 'help'}
+            onClose={() => setO08Dialog(null)}
+            allies={(turnEco?.targets ?? [])
+              .filter((t) => t.is_ally)
+              .map((t) => ({ id: t.id, name: t.name }))}
+            foes={(turnEco?.targets ?? [])
+              .filter((t) => !t.is_ally)
+              .map((t) => ({ id: t.id, name: t.name }))}
+            onConfirm={async (opts) => {
+              if (!turnEco?.canFeature('action').ok) return
+              turnEco.spendFeature('action')
+              const fx = buildHelpAdvantageEffect({
+                forAttack: opts.forAttack,
+                againstTargetName: opts.foeName,
+                sourceName: characterName,
+                sourceCharacterId: characterId,
+              })
+              const targetId = opts.allyId
+              if (targetId && characterId) {
+                try {
+                  await applyCharacterEffects(characterId, {
+                    target_character_ids: [targetId],
+                    effect: {
+                      id: fx.id,
+                      name: fx.name,
+                      kind: fx.kind ?? 'feature',
+                      slug: fx.slug ?? 'help_action',
+                      duration: fx.duration
+                        ? {
+                            unit: String(fx.duration.unit),
+                            value:
+                              typeof fx.duration.value === 'number'
+                                ? fx.duration.value
+                                : undefined,
+                            started_at: fx.duration.started_at ?? undefined,
+                            started_round: fx.duration.started_round ?? undefined,
+                            remaining_rounds:
+                              typeof fx.duration.remaining_rounds === 'number'
+                                ? fx.duration.remaining_rounds
+                                : undefined,
+                          }
+                        : undefined,
+                      mods: (fx.mods ?? []).map((m) => ({
+                        target: String(m.target),
+                        op: String(m.op),
+                        value: m.value ?? undefined,
+                        dice: m.dice ?? undefined,
+                        condition: m.condition ?? undefined,
+                        once: m.once ?? undefined,
+                      })),
+                    },
+                  })
+                  onToast?.(
+                    `Помощь · ${opts.allyName}${
+                      opts.foeName ? ` против ${opts.foeName}` : ''
+                    } · преимущество до вашего следующего хода`,
+                  )
+                } catch {
+                  onToast?.(
+                    `Помощь · ${opts.allyName}: эффект не доставлен (нет сессии?) · союзник включает преимущество сам`,
+                  )
+                }
+              } else {
+                onToast?.(
+                  `Помощь · ${opts.allyName || 'союзник'}: в ленту · преимущество на проверку/атаку`,
+                )
+              }
+            }}
+          />
+          <ReadyActionDialog
+            open={o08Dialog === 'ready'}
+            onClose={() => setO08Dialog(null)}
+            actionSpells={(spells?.known ?? [])
+              .filter((s) => castingTimeToEconomyMark(s.casting_time) === 'action')
+              .map((s) => ({
+                id: s.id,
+                name: s.name,
+                level: Math.max(0, Math.floor(s.level ?? 0)),
+              }))}
+            onConfirm={(opts) => {
+              if (!turnEco?.canFeature('action').ok) return
+              if (opts.kind === 'spell' && (opts.spellLevel ?? 0) > 0) {
+                const ok = onSpendReadySpellSlot?.(opts.spellLevel ?? 1)
+                if (ok === false) {
+                  onToast?.(`Нет ячеек ${opts.spellLevel}-го уровня`)
+                  return
+                }
+              }
+              turnEco.spendFeature('action')
+              turnEco.patchTurnEconomy((s) =>
+                markReadyPrepared(s, {
+                  trigger: opts.trigger,
+                  kind: opts.kind,
+                  spellId: opts.spellId,
+                  spellName: opts.spellName,
+                  spellLevel: opts.spellLevel,
+                }),
+              )
+              onToast?.(
+                `Подготовка: ${opts.kind}${
+                  opts.spellName ? ` «${opts.spellName}»` : ''
+                } · триггер «${opts.trigger}»${
+                  opts.kind === 'spell' && (opts.spellLevel ?? 0) > 0
+                    ? ' · ячейка потрачена'
+                    : ''
+                }`,
               )
             }}
           />
@@ -2080,13 +2337,77 @@ export function PlayDeskAttacksCompact({
               if (attackMode === 'advantage') attackMode = 'normal'
               else if (attackMode === 'normal') attackMode = 'disadvantage'
             }
+            // O-08: свои состояния + состояния/укрытие цели
+            const selfCondMode = conditionModeForSelf(playConditions, {
+              rollKind: 'attack',
+              attackReach: meleeAttack ? 'melee' : 'ranged',
+              fearSourceVisible,
+              invisibleDiscovered,
+            })
+            const targetCondExtra: ConditionRef[] = []
+            if (targetProne) {
+              targetCondExtra.push({ slug: 'prone', name: 'Опрокинутый', catalog_id: null })
+            }
+            if (targetRestrained) {
+              targetCondExtra.push({
+                slug: 'restrained',
+                name: 'Опутанный',
+                catalog_id: null,
+              })
+            }
+            if (targetParalyzedClose) {
+              targetCondExtra.push({
+                slug: 'paralyzed',
+                name: 'Парализованный',
+                catalog_id: null,
+              })
+            }
+            const vsTargetMode = conditionModeVsTarget({
+              targetConditions: targetCondExtra,
+              targetDodging,
+              attackReach: meleeAttack ? 'melee' : 'ranged',
+              within5ft: targetParalyzedClose || within5ft,
+              invisibleDiscovered,
+            })
+            attackMode = mergeRollModes(
+              attackMode,
+              selfCondMode.mode,
+              vsTargetMode.mode,
+            ) as DeskRollMode
+            const isSpellAtk = isSpellAttackName(attack.name)
+            const coverIgnore = coverIgnoreKind({
+              isRangedWeaponAttack: !meleeAttack && !isSpellAtk,
+              isSpellAttack: isSpellAtk,
+              featGrants,
+            })
+            const coverVs = coverAcForAttacker({
+              cover: targetCover,
+              ignore: coverIgnore,
+            })
+            const coverBlocked = coverVs.blocked
+            const coverBonusNote =
+              coverVs.bonus > 0
+                ? ` · укрытие цели +${coverVs.bonus} КД`
+                : coverIgnore !== 'none' &&
+                    (targetCover === 'half' || targetCover === 'three_quarters')
+                  ? ' · укрытие игнор.'
+                  : ''
+            const condNote = [
+              ...selfCondMode.reasons,
+              ...vsTargetMode.reasons,
+              vsTargetMode.autoCritReason,
+            ]
+              .filter(Boolean)
+              .join(' · ')
             const dmgLine = `${dmg || '—'}${shownType ? ` ${shownType}` : ''}${
               divineStrike ? ` + ${divineStrike.label}` : ''
             }${meleeAttack && improvedSmite ? ` + ${improvedSmite.label}` : ''}${
               meleeAttack && symbioticRider ? ` + ${symbioticRider.label}` : ''
             }${powerKind ? ' · −5/+10' : ''}${chargerFlat ? ' · +5 Налётчик' : ''}${
               twfBonusArmed && meleeAttack ? ' · 2-е оружие' : ''
-            }${gwfApplies ? ' · GWF' : ''}`
+            }${gwfApplies ? ' · GWF' : ''}${coverBonusNote}${
+              condNote ? ` · ${condNote}` : ''
+            }`
             const iconKind = attackRowIconKind({
               name: attack.name,
               ability: attackAbility,
@@ -2098,13 +2419,20 @@ export function PlayDeskAttacksCompact({
                   type="button"
                   className="play-desk-compact__hit"
                   aria-label={`${attack.name}, атака ${formatModifier(attackBonus)}, урон ${dmgLine}`}
-                  disabled={Boolean(turnEco && !turnEco.canAttack().ok)}
+                  disabled={Boolean(
+                    coverBlocked || (turnEco && !turnEco.canAttack().ok),
+                  )}
                   title={(() => {
+                    if (coverBlocked) return coverVs.reason || 'Полное укрытие'
                     const gate = turnEco?.canAttack()
                     if (gate && !gate.ok) return gate.reason
                     return 'Бросок атаки и урона'
                   })()}
                   onClick={() => {
+                    if (coverBlocked) {
+                      onToast?.(coverVs.reason || 'Полное укрытие — цель нельзя выбрать')
+                      return
+                    }
                     if (turnEco) {
                       const gate = turnEco.canAttack()
                       if (!gate.ok) {
