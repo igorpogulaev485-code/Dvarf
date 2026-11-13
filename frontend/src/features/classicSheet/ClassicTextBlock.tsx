@@ -9,6 +9,7 @@ import {
   setClassicBlockFontSize,
 } from './classicBlockFonts'
 import { Expanding } from './classicPrintShared'
+import { useClassicSheetUi } from './classicSheetUi'
 
 type Props = {
   blockId: string
@@ -22,7 +23,7 @@ type Props = {
   fill?: boolean
 }
 
-/** Textarea + LSS-style per-block font size (number only, not printed). */
+/** Textarea + LSS-style per-block font size (controls only in «Правка»). */
 export function ClassicTextBlock({
   blockId,
   character,
@@ -34,25 +35,32 @@ export function ClassicTextBlock({
   className,
   fill,
 }: Props) {
+  const { editing } = useClassicSheetUi()
   const size = readClassicBlockFontSize(character, blockId)
   const style = { fontSize: `${size}pt` } as CSSProperties
 
   return (
-    <div className="classic-text-block">
-      <input
-        type="number"
-        className="classic-text-block__size no-print"
-        min={CLASSIC_BLOCK_FONT_MIN}
-        max={CLASSIC_BLOCK_FONT_MAX}
-        step={1}
-        value={size}
-        aria-label={`Размер шрифта: ${ariaLabel ?? blockId}`}
-        title="Размер шрифта"
-        onChange={(e) => {
-          const next = clampClassicFontSize(Number(e.target.value))
-          onPatch(setClassicBlockFontSize(character, blockId, next))
-        }}
-      />
+    <div
+      className={['classic-text-block', editing ? 'classic-text-block--editing' : '']
+        .filter(Boolean)
+        .join(' ')}
+    >
+      {editing ? (
+        <input
+          type="number"
+          className="classic-text-block__size no-print"
+          min={CLASSIC_BLOCK_FONT_MIN}
+          max={CLASSIC_BLOCK_FONT_MAX}
+          step={1}
+          value={size}
+          aria-label={`Размер шрифта: ${ariaLabel ?? blockId}`}
+          title="Размер шрифта"
+          onChange={(e) => {
+            const next = clampClassicFontSize(Number(e.target.value))
+            onPatch(setClassicBlockFontSize(character, blockId, next))
+          }}
+        />
+      ) : null}
       <Expanding
         value={value}
         onChange={onChange}

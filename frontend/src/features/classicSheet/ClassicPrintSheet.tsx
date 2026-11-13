@@ -80,6 +80,8 @@ import {
 } from './classicSheetLayout'
 import { ClassicTextBlock } from './ClassicTextBlock'
 import { ClassicPrint2024 } from './ClassicPrint2024'
+import { ClassicFitViewport } from './ClassicFitViewport'
+import { ClassicFitInput } from './ClassicFitInput'
 import './classicPrint.css'
 
 type Props = {
@@ -134,6 +136,7 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
     (skillFlags(c, 'perception').is_expertise ? proficiency : 0)
 
   return (
+    <ClassicFitViewport key={sheetLayout}>
     <div className="classic-stack">
       {sheetLayout === '2024' ? (
         <ClassicPrint2024 character={c} onPatch={onPatch} />
@@ -147,7 +150,11 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
           </div>
           <label className="classic-name">
             <span>Имя персонажа</span>
-            <input value={c.name} onChange={(e) => patch({ name: e.target.value })} />
+            <ClassicFitInput
+              value={c.name}
+              onChange={(e) => patch({ name: e.target.value })}
+              aria-label="Имя персонажа"
+            />
           </label>
           <div className="classic-meta">
             <label>
@@ -556,7 +563,11 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
           </div>
           <label className="classic-name">
             <span>Имя персонажа</span>
-            <input value={c.name} onChange={(e) => patch({ name: e.target.value })} />
+            <ClassicFitInput
+              value={c.name}
+              onChange={(e) => patch({ name: e.target.value })}
+              aria-label="Имя персонажа"
+            />
           </label>
           <div className="classic-physique">
             <label>
@@ -677,9 +688,10 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
           </div>
           <label className="classic-name">
             <span>Класс заклинателя</span>
-            <input
+            <ClassicFitInput
               value={c.class_name ?? ''}
               onChange={(e) => patch({ class_name: e.target.value || null })}
+              aria-label="Класс заклинателя"
             />
           </label>
           {castProfiles.length > 1 ? (
@@ -770,7 +782,11 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
           </div>
           <label className="classic-name">
             <span>Имя персонажа</span>
-            <input value={c.name} onChange={(e) => patch({ name: e.target.value })} />
+            <ClassicFitInput
+              value={c.name}
+              onChange={(e) => patch({ name: e.target.value })}
+              aria-label="Имя персонажа"
+            />
           </label>
           <div className="classic-companions-banner">
             <strong>Напарники</strong>
@@ -869,7 +885,11 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
             </div>
             <label className="classic-name">
               <span>Имя персонажа</span>
-              <input value={c.name} onChange={(e) => patch({ name: e.target.value })} />
+              <ClassicFitInput
+                value={c.name}
+                onChange={(e) => patch({ name: e.target.value })}
+                aria-label="Имя персонажа"
+              />
             </label>
             <div className="classic-companions-banner">
               <strong>Заметки</strong>
@@ -1019,6 +1039,7 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
         </article>
       ))}
     </div>
+    </ClassicFitViewport>
   )
 
   function renderCantrips() {

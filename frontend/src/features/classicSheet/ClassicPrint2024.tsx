@@ -66,6 +66,7 @@ import {
   setClassicNoteText,
 } from './classicNotes'
 import { ClassicTextBlock } from './ClassicTextBlock'
+import { ClassicFitInput } from './ClassicFitInput'
 
 type Props = {
   character: CharacterDetail
@@ -144,7 +145,11 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
         <header className="classic-lss-top">
           <div className="classic-lss-id">
             <label className="classic-lss-name">
-              <input value={c.name} onChange={(e) => patch({ name: e.target.value })} />
+              <ClassicFitInput
+                value={c.name}
+                onChange={(e) => patch({ name: e.target.value })}
+                aria-label="Имя персонажа"
+              />
               <span>Имя персонажа</span>
             </label>
             <div className="classic-lss-id-grid">
