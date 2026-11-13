@@ -71,15 +71,39 @@
   margin-left: auto;
 }
 
+/* LV-02 P08: обёртка с peek следующего чипа (fade справа) */
+.session-combat-order-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.session-combat-order-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 32px;
+  pointer-events: none;
+  border-radius: 0 12px 12px 0;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--panel) 92%, #78716c)
+  );
+}
+
 .session-combat-order {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 28px 0 0;
   display: flex;
   flex-wrap: nowrap;
   gap: 8px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 8px 40px;
 }
 
 .session-combat-order__chip {
@@ -96,6 +120,8 @@
   font-size: 0.9rem;
   white-space: nowrap;
   cursor: pointer;
+  scroll-snap-align: start;
+  flex-shrink: 0;
 }
 
 .session-combat-order__chip:disabled {
@@ -292,22 +318,28 @@
 .session-table-card__turn-stub {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   margin: 0 0 8px;
 }
 
+/* LV-02 P03: чипы экономики хода ≥44×44 (игрок и мастер, телефон и десктоп) */
 .session-turn-chip {
   display: inline-flex;
   align-items: center;
-  min-height: 28px;
-  padding: 2px 10px;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 14px;
   border: 1px dashed var(--line);
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 0.85rem;
+  line-height: 1.2;
   color: var(--muted);
   background: transparent;
   cursor: pointer;
   font-family: inherit;
+  white-space: nowrap;
 }
 
 .session-turn-chip.is-on {
@@ -338,7 +370,22 @@
 .session-table-card__turn-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
+  align-items: center;
+}
+
+.session-combat-track__progress {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 650;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.session-combat-order__name {
+  /* LV-02: имена не сжимать и не резать по буквам */
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .session-init-list__surprise {
