@@ -178,7 +178,11 @@ export function OnboardingPreviewPage() {
                 className="onboarding-preview__anchor onboarding-preview__anchor--lg"
                 data-onboarding="combat-header"
               >
-                Шапка боя · КД · хиты · инициатива
+                Шапка боя
+                <div data-onboarding="combat-vitals">КД · хиты · инициатива</div>
+              </div>
+              <div className="onboarding-preview__anchor" data-onboarding="needs-setup">
+                Нужно настроить: 2
               </div>
               <div className="onboarding-preview__anchor" data-onboarding="abilities">
                 СИЛ ЛОВ ТЕЛ ИНТ МДР ХАР + навыки
@@ -189,6 +193,9 @@ export function OnboardingPreviewPage() {
               <div data-onboarding="checklist">
                 <OnboardingChecklist compact />
               </div>
+              <button type="button" data-onboarding="help">
+                Справка
+              </button>
               {/* Mobile: scenes live in the bottom tab bar — keep a fixed band for placement checks. */}
               <div
                 className="onboarding-preview__anchor onboarding-preview__desk-modes"

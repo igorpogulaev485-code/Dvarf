@@ -40,7 +40,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
       <PlayDeskTop model={model} />
 
       <div className="play-desk__body">
-        <aside className="play-desk__left" data-onboarding="abilities">
+        <aside className="play-desk__left">
           {model.abilityColumn}
           <div className="play-desk__rail-foot">
             {model.passivesCompact}
@@ -53,20 +53,22 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
 
         <div className="play-desk__stage">
           {model.isPlayDesk ? (
-            <div className="play-desk__modes" data-onboarding="desk-modes" aria-label="Сцены листа">
-              {MODE_LABELS.map(({ id: mode, label }) => (
-                <button
-                  key={mode}
-                  type="button"
-                  className={`play-desk__mode${model.draft.sheetUi.deskMode === mode ? ' is-on' : ''}${
-                    model.showValueTips ? ' has-onboarding-tip' : ''
-                  }`}
-                  onClick={() => model.setDeskMode(mode)}
-                >
-                  {label}
-                  {model.showValueTips ? <HoverTipCard tip={SCENE_TIPS[mode]} /> : null}
-                </button>
-              ))}
+            <div className="play-desk__modes" aria-label="Сцены листа">
+              <div className="play-desk__mode-tabs" data-onboarding="desk-modes" role="group" aria-label="Вкладки сцен">
+                {MODE_LABELS.map(({ id: mode, label }) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    className={`play-desk__mode${model.draft.sheetUi.deskMode === mode ? ' is-on' : ''}${
+                      model.showValueTips ? ' has-onboarding-tip' : ''
+                    }`}
+                    onClick={() => model.setDeskMode(mode)}
+                  >
+                    {label}
+                    {model.showValueTips ? <HoverTipCard tip={SCENE_TIPS[mode]} /> : null}
+                  </button>
+                ))}
+              </div>
               <div
                 className="play-desk__roll-mode"
                 role="group"

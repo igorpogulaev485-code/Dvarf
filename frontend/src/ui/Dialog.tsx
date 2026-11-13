@@ -24,6 +24,8 @@ type DialogProps = {
    * (e.g. Welcome: dismiss ≠ «Пропустить подсказки»).
    */
   onDismiss?: () => void
+  /** When false, hide the default footer (custom actions live in children). */
+  showActions?: boolean
 }
 
 export function Dialog({
@@ -40,6 +42,7 @@ export function Dialog({
   size = 'default',
   closeOnBackdrop,
   onDismiss,
+  showActions = true,
 }: DialogProps) {
   // Cancel / Escape stay available even when primary is busy or disabled.
   const canClose = Boolean(onDismiss || onSecondary)
@@ -106,20 +109,22 @@ export function Dialog({
           {title}
         </h2>
         <div className="ui-dialog__body">{children}</div>
-        <div className="ui-dialog__actions">
-          {secondaryLabel && onSecondary ? (
-            <Button variant="ghost" onClick={onSecondary}>
-              {secondaryLabel}
+        {showActions ? (
+          <div className="ui-dialog__actions">
+            {secondaryLabel && onSecondary ? (
+              <Button variant="ghost" onClick={onSecondary}>
+                {secondaryLabel}
+              </Button>
+            ) : null}
+            <Button
+              variant={primaryVariant}
+              onClick={onPrimary}
+              disabled={busy || primaryDisabled}
+            >
+              {primaryLabel}
             </Button>
-          ) : null}
-          <Button
-            variant={primaryVariant}
-            onClick={onPrimary}
-            disabled={busy || primaryDisabled}
-          >
-            {primaryLabel}
-          </Button>
-        </div>
+          </div>
+        ) : null}
       </div>
     </div>,
     document.body,

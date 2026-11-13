@@ -15,22 +15,37 @@ export function WelcomeDialog({ open, onChoose, onDismiss }: WelcomeDialogProps)
       open={open}
       title={WELCOME.title}
       primaryLabel={WELCOME.dndNew}
-      secondaryLabel={WELCOME.skip}
       onPrimary={() => onChoose('dnd_new')}
-      onSecondary={() => onChoose('skip')}
       onDismiss={onDismiss}
       size="wide"
+      showActions={false}
     >
       <Stack gap={12}>
         <Text>{WELCOME.body}</Text>
         <Text tone="muted">{WELCOME.question}</Text>
-        <button
-          type="button"
-          className="onboarding-welcome__alt"
-          onClick={() => onChoose('product_new')}
-        >
-          {WELCOME.productNew}
-        </button>
+        <div className="onboarding-welcome__choices" role="group" aria-label={WELCOME.question}>
+          <button
+            type="button"
+            className="onboarding-welcome__choice"
+            onClick={() => onChoose('dnd_new')}
+          >
+            {WELCOME.dndNew}
+          </button>
+          <button
+            type="button"
+            className="onboarding-welcome__choice"
+            onClick={() => onChoose('product_new')}
+          >
+            {WELCOME.productNew}
+          </button>
+          <button
+            type="button"
+            className="onboarding-welcome__choice onboarding-welcome__choice--muted"
+            onClick={() => onChoose('skip')}
+          >
+            {WELCOME.skip}
+          </button>
+        </div>
       </Stack>
     </Dialog>
   )

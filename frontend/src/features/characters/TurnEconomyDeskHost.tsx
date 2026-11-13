@@ -371,6 +371,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
           else setSkillOffer('search')
         }}
         onToast={(msg) => model.onToast?.(msg)}
+        showValueTips={Boolean(model.showValueTips)}
       />
       {children}
       <InitiativeRollDialog

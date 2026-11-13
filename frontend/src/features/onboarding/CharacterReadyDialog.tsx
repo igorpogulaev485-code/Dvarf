@@ -7,6 +7,12 @@ type CharacterReadyDialogProps = {
   onOpenSkipTour: () => void
 }
 
+function readyBody(): string {
+  if (typeof window === 'undefined') return READY_BRIDGE.bodyDesktop
+  const narrow = window.matchMedia('(max-width: 959px)').matches
+  return narrow ? READY_BRIDGE.bodyMobile : READY_BRIDGE.bodyDesktop
+}
+
 export function CharacterReadyDialog({
   open,
   onOpenWithTour,
@@ -23,7 +29,7 @@ export function CharacterReadyDialog({
       size="wide"
     >
       <Stack gap={10}>
-        <Text>{READY_BRIDGE.body}</Text>
+        <Text>{readyBody()}</Text>
       </Stack>
     </Dialog>
   )

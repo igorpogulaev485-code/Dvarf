@@ -36,7 +36,12 @@ export function SheetTour({ open, onComplete, onSkip }: SheetTourProps) {
     if (narrow && step.id === 'desk_modes') {
       return (
         'Это не «ещё меню», а сцены за столом: Бой, Исследование, Общение, Напарники, Способности. ' +
-        'Одна сцена = один job, лишнее спрятано. Начни с «Бой»; позже зажми вкладку — коротко напомним.'
+        'Одна сцена = один контекст, лишнее спрятано. Начни с «Бой»; позже зажми вкладку — коротко напомним.'
+      )
+    }
+    if (narrow && step.id === 'actions') {
+      return (
+        'Жесты игры: ударить или колдовать. Рядом чипы хода — отмечай действие, бонусное и реакцию, когда потратил.'
       )
     }
     if (narrow && step.id === 'checklist') {
@@ -45,7 +50,20 @@ export function SheetTour({ open, onComplete, onSkip }: SheetTourProps) {
     if (narrow && step.id === 'abilities') {
       return 'Характеристики открываются из шапки («Характеристики ▸» или «СИЛ»). Мастер просит проверку — бросок оттуда.'
     }
+    if (narrow && step.id === 'combat_header') {
+      return (
+        'Хиты, КД, скорость — живые числа сверху. В бою отмечай действие / бонусное / реакцию; «Новый ход» сбрасывает отметки.'
+      )
+    }
     return step.body
+  }, [step])
+
+  const tourTitle = useMemo(() => {
+    if (!step) return ''
+    const narrow =
+      typeof window !== 'undefined' && window.matchMedia('(max-width: 959px)').matches
+    if (narrow && step.id === 'checklist') return 'Справка под рукой'
+    return step.title
   }, [step])
 
   if (!open || !step) return null
@@ -57,7 +75,7 @@ export function SheetTour({ open, onComplete, onSkip }: SheetTourProps) {
     <Coachmark
       open={open}
       anchorSelector={`[data-onboarding="${anchor}"]`}
-      title={step.title}
+      title={tourTitle}
       body={tourBody}
       stepLabel={stepLabel}
       primaryLabel={isLast ? 'Готово' : 'Далее'}

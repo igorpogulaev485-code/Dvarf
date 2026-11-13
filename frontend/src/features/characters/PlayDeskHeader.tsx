@@ -531,11 +531,16 @@ export function PlayDeskHeader({
         {/* 3) Опыт — полоска; под ней: порог ур. | ещё N | порог след. */}
         <button
           type="button"
-          className="play-desk-header__xp"
-          title={`Опыт ${formatXp(xp.xp)}. ${xpLabel}. Нажми, чтобы начислить или убавить`}
+          className={`play-desk-header__xp${showValueTips ? ' has-onboarding-tip' : ''}`}
+          title={
+            showValueTips
+              ? undefined
+              : `Опыт ${formatXp(xp.xp)}. ${xpLabel}. Нажми, чтобы начислить или убавить`
+          }
           aria-label={`Опыт ${formatXp(xp.xp)}. ${xpRemainLabel}. Открыть клавиатуру`}
           onClick={() => setXpPadOpen(true)}
         >
+          {showValueTips ? <HoverTipCard tip={VITAL_TIPS.xp} /> : null}
           <div className="play-desk-header__xp-row">
             <span className="play-desk-header__xp-level">ур. {level}</span>
             <div className="play-desk-header__xp-track">
@@ -555,7 +560,7 @@ export function PlayDeskHeader({
       </div>
 
       <div className="play-desk-header__mid">
-        <div className="play-desk-header__vitals">
+        <div className="play-desk-header__vitals" data-onboarding="combat-vitals">
           <div
             className={`play-desk-vital play-desk-vital--shield${
               shieldInHand ? ' is-shield-on' : ''
@@ -788,19 +793,22 @@ export function PlayDeskHeader({
         <div className="play-desk-header__right-tools">
           <button
             type="button"
-            className="play-desk-header__coin"
+            className={`play-desk-header__coin${showValueTips ? ' has-onboarding-tip' : ''}`}
             aria-label={`${formatGpTotal(coinsToGp(coins))} зм — кошелёк`}
-            aria-describedby="play-desk-coin-tip"
+            aria-describedby={showValueTips ? undefined : 'play-desk-coin-tip'}
             onClick={() => setCoinPadOpen(true)}
           >
             <IconCoin className="play-desk-header__btn-icon" />
             <span aria-hidden="true">{formatGpTotal(coinsToGp(coins))} зм</span>
-            <span id="play-desk-coin-tip" className="play-desk-header__coin-tip" role="tooltip">
-              <b>Кошелёк</b>
-              <strong>≈ {formatGpTotal(coinsToGp(coins))} зм</strong>
-              <em>{formatCoinBreakdown(coins)}</em>
-              <small>Нажми — взять / отдать</small>
-            </span>
+            {showValueTips ? <HoverTipCard tip={VITAL_TIPS.coins} /> : null}
+            {showValueTips ? null : (
+              <span id="play-desk-coin-tip" className="play-desk-header__coin-tip" role="tooltip">
+                <b>Кошелёк</b>
+                <strong>≈ {formatGpTotal(coinsToGp(coins))} зм</strong>
+                <em>{formatCoinBreakdown(coins)}</em>
+                <small>Нажми — взять / отдать</small>
+              </span>
+            )}
           </button>
           <button
             type="button"

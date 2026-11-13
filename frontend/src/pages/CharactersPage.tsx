@@ -21,6 +21,7 @@ import {
 } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
 import {
+  EDITION_HINT,
   EMPTY_CHARACTERS,
   HelpDrawer,
   WelcomeDialog,
@@ -243,6 +244,7 @@ export function CharactersPage() {
               ) : (
                 <Stack gap={8}>
                   <CreateCharacterButton onCreate={handleCreate} />
+                  <p className="onboarding-edition-hint">{EDITION_HINT}</p>
                   <Button
                     type="button"
                     variant="ghost"
