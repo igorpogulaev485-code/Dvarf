@@ -5,7 +5,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any
 
-# Старые 11 ключей (решение 12.11) + 10 правил мастера O-03 (решение 13.11).
+# Старые 11 (12.11) + 10 O-03 + 7 O-04 (13.11).
 # Крит «максимум + бросок» не входит.
 HOMEBREW_KEYS: tuple[str, ...] = (
     "potion_bonus_self",
@@ -30,6 +30,14 @@ HOMEBREW_KEYS: tuple[str, ...] = (
     "dmg_falling",
     "dmg_adamantine_weapon",
     "xge_no_long_rest",
+    # O-04: продвинутые правила мастера DMG
+    "dmg_cleave",
+    "dmg_massive_damage",
+    "dmg_lingering_injuries",
+    "dmg_morale",
+    "dmg_hero_points",
+    "dmg_epic_heroism",
+    "dmg_proficiency_dice",
 )
 
 MASTER_HOMEBREW_KEYS: tuple[str, ...] = (
@@ -43,6 +51,13 @@ MASTER_HOMEBREW_KEYS: tuple[str, ...] = (
     "dmg_falling",
     "dmg_adamantine_weapon",
     "xge_no_long_rest",
+    "dmg_cleave",
+    "dmg_massive_damage",
+    "dmg_lingering_injuries",
+    "dmg_morale",
+    "dmg_hero_points",
+    "dmg_epic_heroism",
+    "dmg_proficiency_dice",
 )
 
 # Справочник подсказок: короткое имя + описание + источник. Тот же набор ключей на фронте.
@@ -113,7 +128,10 @@ HOMEBREW_CATALOG: dict[str, dict[str, str]] = {
     },
     "gritty_rest": {
         "label": "Суровый реализм",
-        "tip": "Короткий отдых — 8 часов. Длинный отдых — 7 дней.",
+        "tip": (
+            "Короткий отдых — 8 часов. Длинный отдых — 7 дней. "
+            "Взаимоисключается с «Эпическим героизмом»."
+        ),
         "source": "DMG 2014",
     },
     "feat_at_level_1": {
@@ -226,6 +244,70 @@ HOMEBREW_CATALOG: dict[str, dict[str, str]] = {
         ),
         "source": "XGE",
     },
+    "dmg_cleave": {
+        "label": "Разрубание",
+        "tip": (
+            "Если рукопашная атака оружием опускает существо до 0 хитов и есть "
+            "остаток урона — можно перенести остаток на другое существо в 5 фт "
+            "(и в досягаемости), если исходный бросок атаки попал бы по нему. "
+            "Новая атака не тратится."
+        ),
+        "source": "DMG 2014, гл. 9",
+    },
+    "dmg_massive_damage": {
+        "label": "Массивный урон",
+        "tip": (
+            "Урон из одного источника ≥ половины максимума хитов — спасбросок "
+            "Телосложения Сл 15, иначе эффект из таблицы «Системный шок» DMG."
+        ),
+        "source": "DMG 2014, гл. 9",
+    },
+    "dmg_lingering_injuries": {
+        "label": "Незаживающие раны",
+        "tip": (
+            "Бросок по таблице незаживающих ран DMG при критическом ударе, "
+            "при падении до 0 хитов или при провале спаса массивного урона "
+            "(если тот включён). Эффект хранится на листе, пока не вылечат "
+            "по тексту строки."
+        ),
+        "source": "DMG 2014, гл. 9",
+    },
+    "dmg_morale": {
+        "label": "Мораль",
+        "tip": (
+            "Мастер может вызвать проверку морали для врагов: спасбросок "
+            "Мудрости Сл 10 (помеха / автопровал при подавляющем превосходстве). "
+            "Провал — бежит или сдаётся. Игроков этим правилом не гоняет."
+        ),
+        "source": "DMG 2014, гл. 9",
+    },
+    "dmg_hero_points": {
+        "label": "Очки героя",
+        "tip": (
+            "На 1 уровне — 5 очков. При повышении уровня остаток сгорает, "
+            "новый запас = 5 + половина уровня (вниз). Трата: после броска d20 "
+            "до исхода — +1к6; либо автоматически стабилизировать умирающего / "
+            "успех на спасброске от смерти."
+        ),
+        "source": "DMG 2014",
+    },
+    "dmg_epic_heroism": {
+        "label": "Эпический героизм",
+        "tip": (
+            "Короткий отдых — 5 минут, длинный — 1 час. Взаимоисключается "
+            "с «Суровым реализмом»: включение одного снимает другое."
+        ),
+        "source": "DMG 2014",
+    },
+    "dmg_proficiency_dice": {
+        "label": "Кости мастерства",
+        "tip": (
+            "Вместо фиксированного бонуса мастерства к атаке, проверке и "
+            "спасброску бросается кость: БМ 2→к4, 3→к6, 4→к8, 5→к10, 6→к12. "
+            "Числовые Сл и «половина БМ» остаются числом."
+        ),
+        "source": "DMG 2014",
+    },
 }
 
 ABILITY_METHODS: tuple[str, ...] = (
@@ -279,6 +361,13 @@ DEFAULT_CAMPAIGN_RULES: dict[str, Any] = {
         "dmg_falling": False,
         "dmg_adamantine_weapon": False,
         "xge_no_long_rest": False,
+        "dmg_cleave": False,
+        "dmg_massive_damage": False,
+        "dmg_lingering_injuries": False,
+        "dmg_morale": False,
+        "dmg_hero_points": False,
+        "dmg_epic_heroism": False,
+        "dmg_proficiency_dice": False,
     },
     "progression": {
         "mode": "xp",  # xp | milestones

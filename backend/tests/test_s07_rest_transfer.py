@@ -87,6 +87,23 @@ def test_gritty_rest_copy():
     plain = s07.gritty_rest_copy(normalize_campaign_rules({}))
     assert plain["gritty_rest"] is False
 
+    epic = s07.gritty_rest_copy(
+        normalize_campaign_rules({"homebrew": {"dmg_epic_heroism": True}})
+    )
+    assert epic.get("epic_heroism") is True
+    assert epic["gritty_rest"] is False
+    assert "5" in epic["short_label"]
+    assert "1" in epic["long_label"]
+
+    # Конфликт: UI снимает второй; бэкенд отдаёт эпический.
+    both = s07.gritty_rest_copy(
+        normalize_campaign_rules(
+            {"homebrew": {"gritty_rest": True, "dmg_epic_heroism": True}}
+        )
+    )
+    assert both.get("epic_heroism") is True
+    assert both["gritty_rest"] is False
+
 
 def test_observer_cannot_award_grant():
     from app.models.lobby import LOBBY_ROLE_OBSERVER

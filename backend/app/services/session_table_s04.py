@@ -8,7 +8,7 @@ from uuid import UUID
 
 from app.services import session_combat as scmb
 from app.services import session_sides as sides
-from app.services.campaign_rules import homebrew_enabled
+from app.services.campaign_rules import HOMEBREW_KEYS, homebrew_enabled
 from app.services.session_table_s03 import normalize_damage_type
 
 # Последствия fumble_on_1 (каталог L-08) — мастер выбирает одно.
@@ -110,19 +110,7 @@ ABILITY_RU: dict[str, str] = {
 
 def homebrew_flag(campaign_rules: object | None, key: str, default: bool = False) -> bool:
     """Обёртка над L-08 homebrew_enabled с явным default, если ключа нет в каталоге."""
-    if key not in (
-        "potion_bonus_self",
-        "inspiration_stack",
-        "flanking_advantage",
-        "gunpowder_exploding",
-        "hidden_death_saves",
-        "fumble_on_1",
-        "group_initiative",
-        "reroll_initiative_each_round",
-        "gritty_rest",
-        "feat_at_level_1",
-        "encumbrance",
-    ):
+    if key not in HOMEBREW_KEYS:
         return default
     return bool(homebrew_enabled(campaign_rules, key))
 
@@ -592,6 +580,11 @@ def potion_bonus_self_enabled(campaign_rules: object | None) -> bool:
 def gritty_rest_enabled(campaign_rules: object | None) -> bool:
     """Крючок S-07."""
     return homebrew_flag(campaign_rules, "gritty_rest", False)
+
+
+def epic_heroism_enabled(campaign_rules: object | None) -> bool:
+    """O-04: эпический героизм (взаимоисключается с gritty_rest в UI)."""
+    return homebrew_flag(campaign_rules, "dmg_epic_heroism", False)
 
 
 def _as_optional_int(value: object) -> int | None:

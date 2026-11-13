@@ -45,6 +45,7 @@ import {
   primalKnowledgeAbilityOverride,
 } from '../../../shared/dnd/o02TashaFeatures'
 import { normalizeCampaignRules } from '../../lobby/campaignRules'
+import { proficiencyRollContribution } from '../../../shared/dnd/o04DmgAdvanced'
 import {
   MODE_DEFAULT_PANEL,
   MODE_SKILL_KEYS,
@@ -1199,15 +1200,43 @@ export function installSheetActions4(model: SheetModel) {
       ),
     )
     const bonusDice = buffDiceFor('check')
+    const homebrew = normalizeCampaignRules(model.campaignRulesRaw).homebrew
+    const skillProficient = Boolean(
+      (model.draft.skills as Record<string, { is_proficient?: boolean }>)[skill.key]
+        ?.is_proficient,
+    )
+    let rollMod = skill.mod
+    let profNote = ''
+    if (homebrew.dmg_proficiency_dice && skillProficient) {
+      const pb = Math.max(0, Math.floor(model.proficiencyBonus ?? 0))
+      const teDice = (model.turnEconomyApi as { diceOnTable?: boolean } | undefined)?.diceOnTable
+      if (teDice) {
+        // В режиме кубиков на столе игрок вводит d20; кость мастерства — отдельно в тосте-подсказке.
+        rollMod = skill.mod - pb
+        const sides =
+          pb === 2 ? 4 : pb === 3 ? 6 : pb === 4 ? 8 : pb === 5 ? 10 : pb >= 6 ? 12 : 0
+        profNote = sides
+          ? ` · кость мастерства вместо БМ +${pb} (добавьте выпавшее к${sides} вручную)`
+          : ''
+      } else {
+        const rolled = proficiencyRollContribution({
+          proficient: true,
+          proficiencyBonus: pb,
+          diceEnabled: true,
+        })
+        rollMod = skill.mod - pb + rolled.value
+        profNote = ` · ${rolled.label} вместо БМ +${pb}`
+      }
+    }
     const text = `${formatSkillRoll(
       skill.label,
-      skill.mod,
+      rollMod,
       mode,
       undefined,
       model.strengthCheckFloor(base === 'str'),
       silver ? { value: 10, label: 'серебряный язык' } : null,
       bonusDice,
-    )}${note}`
+    )}${note}${profNote}`
     model.emitToast(text)
     const te = model.turnEconomyApi as
       | {
@@ -1335,6 +1364,32 @@ export function installSheetActions4(model: SheetModel) {
     const spellNote = spellAdvantage ? ` · ${spellAdvantage}` : ''
     const bonusDice = buffDiceFor('save')
     const saveTitle = `Спас · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`
+    const homebrewSave = normalizeCampaignRules(model.campaignRulesRaw).homebrew
+    const saveProficient = Boolean(
+      (model.draft.saves as Record<string, boolean> | undefined)?.[key],
+    )
+    let saveRollMod = rolledMod
+    let saveProfNote = ''
+    if (homebrewSave.dmg_proficiency_dice && saveProficient) {
+      const pb = Math.max(0, Math.floor(model.proficiencyBonus ?? 0))
+      const teDice = (model.turnEconomyApi as { diceOnTable?: boolean } | undefined)?.diceOnTable
+      if (teDice) {
+        saveRollMod = rolledMod - pb
+        const sides =
+          pb === 2 ? 4 : pb === 3 ? 6 : pb === 4 ? 8 : pb === 5 ? 10 : pb >= 6 ? 12 : 0
+        saveProfNote = sides
+          ? ` · кость мастерства вместо БМ +${pb} (добавьте к${sides} вручную)`
+          : ''
+      } else {
+        const rolled = proficiencyRollContribution({
+          proficient: true,
+          proficiencyBonus: pb,
+          diceEnabled: true,
+        })
+        saveRollMod = rolledMod - pb + rolled.value
+        saveProfNote = ` · ${rolled.label} вместо БМ +${pb}`
+      }
+    }
     const teSave = model.turnEconomyApi as
       | {
           diceOnTable?: boolean
@@ -1348,17 +1403,18 @@ export function installSheetActions4(model: SheetModel) {
       | undefined
     if (teSave?.diceOnTable && teSave.openTableSave) {
       teSave.openTableSave(saveTitle)
+      if (saveProfNote) model.emitToast(`${saveTitle}${saveProfNote}`)
     } else {
       model.emitToast(
         `${formatSkillRoll(
           saveTitle,
-          rolledMod,
+          saveRollMod,
           model.saveRollMode(key),
           undefined,
           null,
           null,
           bonusDice,
-        )}${note}${songNote}${spellNote}`,
+        )}${note}${songNote}${spellNote}${saveProfNote}`,
       )
     }
     consumeOnceBuffDice('save')

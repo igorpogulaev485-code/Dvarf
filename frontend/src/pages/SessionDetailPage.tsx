@@ -48,6 +48,8 @@ import { SettingWikiReader } from '../features/lobby/SettingWikiReader'
 import { useSessionRealtime } from '../features/lobby/useSessionRealtime'
 import { letterBadge } from '../shared/api/chat'
 import { normalizeCampaignRules } from '../features/lobby/campaignRules'
+import { targetsFromSession } from '../features/lobby/combatTargets'
+import { MoraleCheckDialog } from '../features/characters/O04MasterRulesDialogs'
 import { normalizeVisibilityProfile } from '../features/lobby/visibilityProfile'
 import { getCharacter, listCharacters, updateCharacter } from '../shared/api/characters'
 import {
@@ -280,6 +282,7 @@ export function SessionDetailPage() {
   const [conditionOpen, setConditionOpen] = useState(false)
   const [effectOpen, setEffectOpen] = useState(false)
   const [combatantOpen, setCombatantOpen] = useState(false)
+  const [moraleOpen, setMoraleOpen] = useState(false)
   const [generatorOpen, setGeneratorOpen] = useState(false)
   const [generatorResult, setGeneratorResult] = useState<EncounterGenerateResult | null>(
     null,
@@ -1229,6 +1232,21 @@ export function SessionDetailPage() {
                       >
                         + Враги
                       </Button>
+                      {normalizeCampaignRules(session.campaign_rules).homebrew.dmg_morale ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={busy || !session.combat?.active}
+                          title={
+                            session.combat?.active
+                              ? 'Проверка морали врагов (спас Мудрости Сл 10)'
+                              : 'Нужен активный бой'
+                          }
+                          onClick={() => setMoraleOpen(true)}
+                        >
+                          Проверка морали
+                        </Button>
+                      ) : null}
                       {session.seats.length > 0 ? (
                         <Button
                           type="button"
@@ -1372,7 +1390,10 @@ export function SessionDetailPage() {
                             : normalizeCampaignRules(session.campaign_rules).homebrew
                                   .gritty_rest
                               ? 'Суровый реализм: 8 часов'
-                              : undefined
+                              : normalizeCampaignRules(session.campaign_rules).homebrew
+                                    .dmg_epic_heroism
+                                ? 'Эпический героизм: 5 минут'
+                                : undefined
                         }
                         onClick={() => {
                           void run(async () => {
@@ -1385,7 +1406,10 @@ export function SessionDetailPage() {
                       >
                         {normalizeCampaignRules(session.campaign_rules).homebrew.gritty_rest
                           ? 'Короткий отдых (8 ч)'
-                          : 'Короткий отдых'}
+                          : normalizeCampaignRules(session.campaign_rules).homebrew
+                                .dmg_epic_heroism
+                            ? 'Короткий отдых (5 мин)'
+                            : 'Короткий отдых'}
                       </Button>
                       <Button
                         type="button"
@@ -1397,7 +1421,10 @@ export function SessionDetailPage() {
                             : normalizeCampaignRules(session.campaign_rules).homebrew
                                   .gritty_rest
                               ? 'Суровый реализм: 7 дней'
-                              : undefined
+                              : normalizeCampaignRules(session.campaign_rules).homebrew
+                                    .dmg_epic_heroism
+                                ? 'Эпический героизм: 1 час'
+                                : undefined
                         }
                         onClick={() => {
                           void run(async () => {
@@ -1410,7 +1437,10 @@ export function SessionDetailPage() {
                       >
                         {normalizeCampaignRules(session.campaign_rules).homebrew.gritty_rest
                           ? 'Долгий отдых (7 дн.)'
-                          : 'Долгий отдых'}
+                          : normalizeCampaignRules(session.campaign_rules).homebrew
+                                .dmg_epic_heroism
+                            ? 'Долгий отдых (1 ч)'
+                            : 'Долгий отдых'}
                       </Button>
                     </div>
                   </div>
@@ -2545,6 +2575,15 @@ export function SessionDetailPage() {
             )
           })
         }}
+      />
+
+      <MoraleCheckDialog
+        open={moraleOpen}
+        sessionId={session.id}
+        enemies={targetsFromSession(session).filter((t) => t.kind === 'enemy')}
+        diceOnTable={Boolean(session.combat?.dice_on_table)}
+        onToast={(msg) => setToast(msg)}
+        onClose={() => setMoraleOpen(false)}
       />
 
       <EncounterGenerateDialog

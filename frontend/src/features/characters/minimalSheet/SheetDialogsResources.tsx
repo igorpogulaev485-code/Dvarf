@@ -69,9 +69,14 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         featureDesiredResources={model.featureDesiredResources}
         songOfRest={songOfRestDie(model.unlockedFeatures ?? [])}
         raceSlug={model.draft.raceGrant?.slug ?? null}
-        grittyRest={Boolean(
-          normalizeCampaignRules(model.campaignRulesRaw).homebrew.gritty_rest,
-        )}
+        grittyRest={(() => {
+          const hb = normalizeCampaignRules(model.campaignRulesRaw).homebrew
+          return Boolean(hb.gritty_rest)
+        })()}
+        epicHeroism={(() => {
+          const hb = normalizeCampaignRules(model.campaignRulesRaw).homebrew
+          return Boolean(hb.dmg_epic_heroism && !hb.gritty_rest)
+        })()}
         preferKind={model.restPreferKind ?? null}
         cantripFormulas={(() => {
           const tceOn =

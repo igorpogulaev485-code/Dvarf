@@ -23,10 +23,10 @@ from app.services.campaign_rules import (
 from app.services import session_table_s03 as s03
 
 
-def test_homebrew_keys_and_catalog_include_o03_master_rules():
-    # Старые 11 (12.11) + 10 O-03 (13.11). Крит «максимум + бросок» вне списка.
-    assert len(HOMEBREW_KEYS) == 21
-    assert len(HOMEBREW_CATALOG) == 21
+def test_homebrew_keys_and_catalog_include_o03_o04_master_rules():
+    # Старые 11 (12.11) + 10 O-03 + 7 O-04 (13.11). Крит «максимум + бросок» вне списка.
+    assert len(HOMEBREW_KEYS) == 28
+    assert len(HOMEBREW_CATALOG) == 28
     assert set(HOMEBREW_KEYS) == set(HOMEBREW_CATALOG)
     assert "crit_max_plus_dice" not in HOMEBREW_KEYS
     assert "crit_maximum_plus_roll" not in HOMEBREW_KEYS
@@ -41,11 +41,18 @@ def test_homebrew_keys_and_catalog_include_o03_master_rules():
         "dmg_falling",
         "dmg_adamantine_weapon",
         "xge_no_long_rest",
+        "dmg_cleave",
+        "dmg_massive_damage",
+        "dmg_lingering_injuries",
+        "dmg_morale",
+        "dmg_hero_points",
+        "dmg_epic_heroism",
+        "dmg_proficiency_dice",
     ):
         assert key in HOMEBREW_KEYS
         assert HOMEBREW_CATALOG[key]["source"]
     public = catalog_public()
-    assert len(public) == 21
+    assert len(public) == 28
     assert all(row["tip"] and row["source"] and row["label"] for row in public)
 
 
@@ -59,6 +66,9 @@ def test_defaults():
     assert d["homebrew"]["flanking_advantage"] is False
     assert d["homebrew"]["dmg_disarm"] is False
     assert d["homebrew"]["xge_no_long_rest"] is False
+    assert d["homebrew"]["dmg_cleave"] is False
+    assert d["homebrew"]["dmg_epic_heroism"] is False
+    assert d["homebrew"]["dmg_proficiency_dice"] is False
     assert d["inspiration_after_roll"] is False
     assert d["enemies_ac_visible"] is False
     assert d["progression"]["mode"] == "xp"
@@ -76,6 +86,9 @@ def test_normalize_and_inspiration_migration():
     assert rules["homebrew"]["inspiration_stack_max"] == 20
     assert rules["homebrew"]["dmg_disarm"] is False
     assert rules["homebrew"]["xge_no_long_rest"] is False
+    assert rules["homebrew"]["dmg_cleave"] is False
+    assert rules["homebrew"]["dmg_hero_points"] is False
+    assert rules["homebrew"]["dmg_massive_damage"] is False
     assert rules["custom_rules"] == ["дом", "ещё"]
 
     migrated = migrate_inspiration_from_visibility(

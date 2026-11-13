@@ -16,6 +16,15 @@ export type O03MasterRuleFlags = {
   markOppAvailable?: boolean
 }
 
+export type O04MasterRuleFlags = {
+  cleave?: boolean
+  massiveDamage?: boolean
+  lingeringInjuries?: boolean
+  morale?: boolean
+  heroPoints?: boolean
+  proficiencyDice?: boolean
+}
+
 type Props = {
   /** Есть умение «Хитрое действие» (плут). */
   hasCunningAction: boolean
@@ -44,6 +53,11 @@ type Props = {
   onO03IdentifySpell?: () => void
   onO03Falling?: () => void
   onO03NoLongRest?: () => void
+  /** O-04: флаги и кнопки. */
+  o04?: O04MasterRuleFlags
+  onO04LingeringInjury?: () => void
+  onO04Morale?: () => void
+  onO04HeroPoints?: () => void
   /** Предложить бросок навыка после траты (не обязательный автобросок). */
   onOfferSkill?: (skillKey: 'investigation' | 'perception' | 'stealth') => void
   onToast?: (message: string) => void
@@ -73,6 +87,10 @@ export function TurnEconomyCombatActions({
   onO03IdentifySpell,
   onO03Falling,
   onO03NoLongRest,
+  o04,
+  onO04LingeringInjury,
+  onO04Morale,
+  onO04HeroPoints,
   onOfferSkill,
   onToast,
   className = 'chip-row',
@@ -377,6 +395,39 @@ export function TurnEconomyCombatActions({
           onClick={() => onO03NoLongRest()}
         >
           24 ч без отдыха
+        </button>
+      ) : null}
+
+      {o04?.lingeringInjuries && onO04LingeringInjury ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          title="Ручной бросок по таблице незаживающих ран DMG"
+          onClick={() => onO04LingeringInjury()}
+        >
+          Бросок раны
+        </button>
+      ) : null}
+
+      {o04?.morale && onO04Morale ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          title="Проверка морали врагов (спас Мудрости Сл 10)"
+          onClick={() => onO04Morale()}
+        >
+          Проверка морали
+        </button>
+      ) : null}
+
+      {o04?.heroPoints && onO04HeroPoints ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          title="Потратить очко героя (+1к6 к d20 или стабилизация)"
+          onClick={() => onO04HeroPoints()}
+        >
+          Очко героя
         </button>
       ) : null}
 
