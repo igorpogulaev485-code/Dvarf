@@ -402,15 +402,21 @@ export function installSheetActions4(model: SheetModel) {
         return false
       }
     }
-    // Э8: списать очки чародейства за «Ускоренное» до проведения каста
-    if (quickened) {
+    // Э8 / O-01: списать очки чародейства за метамагию до проведения каста
+    const seeking = Boolean(choice.seeking)
+    const transmutedType =
+      typeof choice.transmutedType === 'string' && choice.transmutedType.trim()
+        ? choice.transmutedType.trim()
+        : null
+    const metaSpCost = (quickened ? 2 : 0) + (seeking ? 2 : 0) + (transmutedType ? 1 : 0)
+    if (metaSpCost > 0) {
       const pool = model.draft.play.resources.find((row: { id: string; name: string }) =>
         model.isSorceryPointsResource(row),
       )
       const left = pool ? Math.max(0, pool.max - pool.used) : 0
-      if (!pool || left < 2) {
+      if (!pool || left < metaSpCost) {
         model.onToast(
-          `Не хватает очков чародейства для «Ускоренного» (нужно 2, есть ${left})`,
+          `Не хватает очков чародейства для метамагии (нужно ${metaSpCost}, есть ${left})`,
         )
         return false
       }
@@ -420,10 +426,28 @@ export function installSheetActions4(model: SheetModel) {
         play: {
           ...prev.play,
           resources: prev.play.resources.map((row) =>
-            row.id === poolId ? { ...row, used: row.used + 2 } : row,
+            row.id === poolId ? { ...row, used: row.used + metaSpCost } : row,
           ),
         },
       }))
+    }
+    const metaNotes: string[] = []
+    if (seeking) {
+      metaNotes.push('Ищущее: при промахе перебрось к20 (новый результат обязателен)')
+    }
+    if (transmutedType) {
+      const typeRu =
+        (
+          {
+            thunder: 'звук',
+            acid: 'кислота',
+            fire: 'огонь',
+            cold: 'холод',
+            lightning: 'электричество',
+            poison: 'яд',
+          } as Record<string, string>
+        )[transmutedType] ?? transmutedType
+      metaNotes.push(`Преобразованное: тип урона → ${typeRu}`)
     }
     const successToast = (message: string) => {
       castSucceeded = true
@@ -434,7 +458,9 @@ export function installSheetActions4(model: SheetModel) {
         id: spell.id,
         quickened,
       })
-      model.onToast(message)
+      const full =
+        metaNotes.length > 0 ? `${message} · ${metaNotes.join(' · ')}` : message
+      model.onToast(full)
       const sourceId = String(model.baseCharacter.id)
       void (async () => {
         if (spell.concentration) {
@@ -1326,7 +1352,8 @@ export function installSheetActions4(model: SheetModel) {
   model.isSuperiorityDiceResource = function isSuperiorityDiceResource(row: { id: string; name: string }): boolean {
     return (
       /:superiority_dice:/.test(row.id) ||
-      /кости превосходства/i.test(row.name) ||
+      /:superiority_dice_st:/.test(row.id) ||
+      /кость\s*превосходства|кости превосходства/i.test(row.name) ||
       /superiority dice/i.test(row.name)
     )
   }

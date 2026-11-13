@@ -1,4 +1,4 @@
-/** PHB 2014 Eldritch Invocations (core set for sheet picks). */
+/** PHB 2014 + TCE Eldritch Invocations (core set for sheet picks). */
 
 export type WarlockInvocationDef = {
   id: string
@@ -7,8 +7,15 @@ export type WarlockInvocationDef = {
   /** Minimum warlock level, if any. */
   minLevel?: number
   /** Pact boon prerequisite. */
-  requiresPact?: 'blade' | 'chain' | 'tome'
+  requiresPact?: 'blade' | 'chain' | 'tome' | 'talisman'
   summaryRu: string
+  /** TCE option — gated by lobby book / badge outside lobby. */
+  sourceBook?: 'tce'
+  /**
+   * Legacy id kept for sheet compatibility but no longer offered in the picker.
+   * (pact_of_the_talisman → pact boon «talisman»).
+   */
+  deprecatedAsInvocation?: boolean
 }
 
 export const WARLOCK_INVOCATIONS: WarlockInvocationDef[] = [
@@ -187,7 +194,75 @@ export const WARLOCK_INVOCATIONS: WarlockInvocationDef[] = [
     id: 'pact_of_the_talisman',
     nameRu: 'Договор талисмана',
     nameEn: 'Pact of the Talisman',
-    summaryRu: 'Носитель талисмана при провале проверки может добавить 1к4 (БМ раз / долгий отдых).',
+    sourceBook: 'tce',
+    deprecatedAsInvocation: true,
+    summaryRu:
+      'Устаревший id: теперь договор «Талисман». Носитель при провале проверки добавляет 1к4 (БМ раз / долгий отдых).',
+  },
+  // TCE — O-01
+  {
+    id: 'investment_of_the_chain_master',
+    nameRu: 'Дар мастера цепи',
+    nameEn: 'Investment of the Chain Master',
+    requiresPact: 'chain',
+    sourceBook: 'tce',
+    summaryRu:
+      'TCE: при «Поиске фамильяра» — полёт или плавание 40 фт; бонусным приказать фамильяру «Атака»; атаки оружием фамильяра магические; Сл спасбросков = Сл заклинаний колдуна; реакцией — сопротивление урону фамильяра.',
+  },
+  {
+    id: 'gift_of_the_protectors',
+    nameRu: 'Дар защитников',
+    nameEn: 'Gift of the Protectors',
+    minLevel: 9,
+    requiresPact: 'tome',
+    sourceBook: 'tce',
+    summaryRu:
+      'TCE: страница имён (до БМ); когда хиты записанного опускаются до 0 и он не умирает сразу — остаются 1 хит, 1 раз / долгий отдых на всех.',
+  },
+  {
+    id: 'protection_of_the_talisman',
+    nameRu: 'Защита талисмана',
+    nameEn: 'Protection of the Talisman',
+    minLevel: 7,
+    requiresPact: 'talisman',
+    sourceBook: 'tce',
+    summaryRu: 'TCE: носитель при провале спасброска добавляет 1к4, БМ раз / долгий отдых.',
+  },
+  {
+    id: 'rebuke_of_the_talisman',
+    nameRu: 'Порицание талисмана',
+    nameEn: 'Rebuke of the Talisman',
+    requiresPact: 'talisman',
+    sourceBook: 'tce',
+    summaryRu:
+      'TCE: реакция, когда по носителю попадают и ты видишь атакующего в 30 фт — урон психической энергией = БМ и толчок на 10 фт от носителя.',
+  },
+  {
+    id: 'bond_of_the_talisman',
+    nameRu: 'Связь с талисманом',
+    nameEn: 'Bond of the Talisman',
+    minLevel: 12,
+    requiresPact: 'talisman',
+    sourceBook: 'tce',
+    summaryRu:
+      'TCE: действием телепорт к носителю (или он к тебе), один план, БМ раз / долгий отдых.',
+  },
+  {
+    id: 'far_scribe',
+    nameRu: 'Книжник из дали',
+    nameEn: 'Far Scribe',
+    minLevel: 5,
+    requiresPact: 'tome',
+    sourceBook: 'tce',
+    summaryRu: 'TCE: каст «Послания» без компонентов выбранным именам (без ячейки).',
+  },
+  {
+    id: 'undying_servitude',
+    nameRu: 'Бессмертный раб',
+    nameEn: 'Undying Servitude',
+    minLevel: 5,
+    sourceBook: 'tce',
+    summaryRu: 'TCE: «Восставший труп» без ячейки, 1 раз / долгий отдых.',
   },
 ]
 
@@ -210,6 +285,22 @@ export function invocationById(id: string | null | undefined): WarlockInvocation
 
 export function invocationLabel(id: string): string {
   return invocationById(id)?.nameRu || id
+}
+
+export const TCE_INVOCATION_IDS = WARLOCK_INVOCATIONS.filter(
+  (row) => row.sourceBook === 'tce' && !row.deprecatedAsInvocation,
+).map((row) => row.id)
+
+export function isTceInvocation(id: string | null | undefined): boolean {
+  if (!id) return false
+  return invocationById(id)?.sourceBook === 'tce'
+}
+
+/** Ids offered in the invocation picker (excludes deprecated pact_of_the_talisman). */
+export function warlockInvocationPickerIds(): string[] {
+  return WARLOCK_INVOCATIONS.filter((row) => !row.deprecatedAsInvocation).map(
+    (row) => row.id,
+  )
 }
 
 /**
@@ -246,6 +337,18 @@ export const INVOCATION_CASTS: InvocationCastDef[] = [
   { invocationId: 'whispers_of_the_grave', mode: 'at_will', nameEn: 'Speak with Dead' },
   { invocationId: 'master_of_myriad_forms', mode: 'at_will', nameEn: 'Alter Self' },
   { invocationId: 'visions_of_distant_realms', mode: 'at_will', nameEn: 'Arcane Eye' },
+  {
+    invocationId: 'far_scribe',
+    mode: 'at_will',
+    nameEn: 'Sending',
+  },
+  {
+    invocationId: 'undying_servitude',
+    mode: 'at_will',
+    nameEn: 'Animate Dead',
+    fixedLevel: 3,
+    limitPerLongRest: 1,
+  },
 ]
 
 export function invocationCastById(id: string | null | undefined): InvocationCastDef | null {
@@ -253,13 +356,24 @@ export function invocationCastById(id: string | null | undefined): InvocationCas
   return INVOCATION_CASTS.find((row) => row.invocationId === id) ?? null
 }
 
-export const WARLOCK_PACT_BOONS = [
+export type WarlockPactBoonDef = {
+  id: 'blade' | 'chain' | 'tome' | 'talisman'
+  nameRu: string
+  sourceBook?: 'tce'
+}
+
+export const WARLOCK_PACT_BOONS: WarlockPactBoonDef[] = [
   { id: 'blade', nameRu: 'Клинок' },
   { id: 'chain', nameRu: 'Цепь' },
   { id: 'tome', nameRu: 'Гримуар' },
-] as const
+  { id: 'talisman', nameRu: 'Талисман', sourceBook: 'tce' },
+]
 
-export type WarlockPactBoonId = (typeof WARLOCK_PACT_BOONS)[number]['id']
+export type WarlockPactBoonId = WarlockPactBoonDef['id']
+
+export function isTcePactBoon(id: string | null | undefined): boolean {
+  return id === 'talisman'
+}
 
 /**
  * Systemic grants attached to a pact boon choice (slice F).
@@ -292,5 +406,9 @@ export const WARLOCK_PACT_BOON_GRANTS: Record<
     },
     notesRu:
       'Три заговора из списков любого класса. Не входят в лимит заговоров колдуна.',
+  },
+  talisman: {
+    notesRu:
+      'TCE: носитель талисмана при провале проверки характеристики добавляет 1к4 (применений = БМ / долгий отдых). Замена — 1-часовая церемония на отдыхе.',
   },
 }

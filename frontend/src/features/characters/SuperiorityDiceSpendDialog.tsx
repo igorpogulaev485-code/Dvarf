@@ -5,6 +5,7 @@ import { FEATURE_RESOURCE_PREFIX } from '../../shared/dnd/featureResources'
 import type { SheetResource } from '../../shared/dnd/rest'
 import {
   listSuperioritySpendOptions,
+  SUPERIORITY_DICE_ST_POOL,
   superiorityDieLabel,
 } from '../../shared/dnd/superiorityDiceSpend'
 import { Button, Dialog, Stack, Text } from '../../ui'
@@ -21,7 +22,7 @@ type SuperiorityDiceSpendDialogProps = {
 
 function parseSuperiorityResourceId(
   id: string,
-): { classSlug: string; classEntryId: string } | null {
+): { classSlug: string; classEntryId: string; poolId: string } | null {
   if (!id.startsWith(FEATURE_RESOURCE_PREFIX)) return null
   const rest = id.slice(FEATURE_RESOURCE_PREFIX.length)
   const parts = rest.split(':')
@@ -29,8 +30,8 @@ function parseSuperiorityResourceId(
   const classSlug = parts[0]!
   const poolId = parts.slice(1, -1).join(':')
   const classEntryId = parts[parts.length - 1]!
-  if (poolId !== 'superiority_dice') return null
-  return { classSlug, classEntryId }
+  if (poolId !== 'superiority_dice' && poolId !== SUPERIORITY_DICE_ST_POOL) return null
+  return { classSlug, classEntryId, poolId }
 }
 
 export function SuperiorityDiceSpendDialog({
@@ -51,11 +52,14 @@ export function SuperiorityDiceSpendDialog({
       features,
       featurePicks,
       classEntryId: parsed.classEntryId,
+      poolId: parsed.poolId,
     })
   }, [features, featurePicks, parsed])
 
   const dieLabel = parsed
-    ? superiorityDieLabel(features, parsed.classEntryId)
+    ? parsed.poolId === SUPERIORITY_DICE_ST_POOL
+      ? 'к6'
+      : superiorityDieLabel(features, parsed.classEntryId)
     : null
 
   function spend(label: string, cost: number) {

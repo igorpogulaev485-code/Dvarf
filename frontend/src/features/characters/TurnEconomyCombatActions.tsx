@@ -6,18 +6,36 @@ type Props = {
   hasCunningAction: boolean
   /** L-20: «Точное прицеливание» (TCE, плут 3+). */
   hasSteadyAim?: boolean
+  /** O-01: Перехват (TCE fighting style). */
+  hasInterception?: boolean
+  /** O-01: Сражение вслепую — пометка слепого зрения. */
+  hasBlindFighting?: boolean
+  /** O-01: Дар мастера цепи — бонусная атака фамильяра / реакция. */
+  hasChainMaster?: boolean
+  /** O-01: Порицание талисмана — реакция. */
+  hasTalismanRebuke?: boolean
+  /** O-01: открыть диалог Захват/Толчок. */
+  onGrappleShove?: () => void
   /** Предложить бросок навыка после траты (не обязательный автобросок). */
   onOfferSkill?: (skillKey: 'investigation' | 'perception' | 'stealth') => void
+  onToast?: (message: string) => void
   className?: string
 }
 
 /**
- * T-02 Э9 / L-20: «Поиск», «Хитрое действие» (Засада / Отход / Рывок), «Точное прицеливание».
+ * T-02 Э9 / L-20 / O-01: «Поиск», «Хитрое действие», «Точное прицеливание»,
+ * «Захват / Толчок», Перехват и кнопки воззваний TCE.
  */
 export function TurnEconomyCombatActions({
   hasCunningAction,
   hasSteadyAim = false,
+  hasInterception = false,
+  hasBlindFighting = false,
+  hasChainMaster = false,
+  hasTalismanRebuke = false,
+  onGrappleShove,
   onOfferSkill,
+  onToast,
   className = 'chip-row',
 }: Props) {
   const turnEco = useTurnEconomy()
@@ -27,6 +45,9 @@ export function TurnEconomyCombatActions({
   const hideGate = turnEco.canHide(hasCunningAction)
   const steadyGate = hasSteadyAim ? turnEco.canSteadyAim() : { ok: false as const, reason: '', mark: 'bonus' as const }
   const cunningGate = hasCunningAction ? turnEco.canCunningBonus() : { ok: false as const, reason: '', mark: 'bonus' as const }
+  const attackGate = turnEco.canAttack()
+  const reactionGate = turnEco.canFeature('reaction')
+  const bonusGate = turnEco.canFeature('bonus')
 
   return (
     <div className={className} role="group" aria-label="Действия боя">
@@ -138,6 +159,125 @@ export function TurnEconomyCombatActions({
           }}
         >
           Точное прицеливание
+        </button>
+      ) : null}
+
+      {onGrappleShove ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!attackGate.ok}
+          title={
+            attackGate.ok
+              ? 'Захват или толчок вместо одной атаки (не всё действие)'
+              : attackGate.reason
+          }
+          onClick={() => {
+            if (!turnEco.canAttack().ok) return
+            onGrappleShove()
+          }}
+        >
+          Захват / Толчок
+        </button>
+      ) : null}
+
+      {hasBlindFighting ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          title="Сражение вслепую: слепое зрение 10 фт (без карты)"
+          onClick={() => {
+            onToast?.(
+              'Сражение вслепую: слепое зрение 10 фт — видишь в 10 фт даже ослеплённым или в темноте; невидимое — если оно не спряталось',
+            )
+          }}
+        >
+          Слепое зрение 10 фт
+        </button>
+      ) : null}
+
+      {hasInterception ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!reactionGate.ok}
+          title={
+            reactionGate.ok
+              ? 'Перехват: реакция · союзник в 5 фт получил попадание · снизить урон на 1к10+БМ'
+              : reactionGate.reason
+          }
+          onClick={() => {
+            if (!turnEco.canFeature('reaction').ok) return
+            turnEco.spendFeature('reaction')
+            onToast?.(
+              'Перехват: реакция · снизь урон союзнику на 1к10+БМ (не ниже 0). В руках — щит или простое/воинское оружие.',
+            )
+          }}
+        >
+          Перехват
+        </button>
+      ) : null}
+
+      {hasChainMaster ? (
+        <>
+          <button
+            type="button"
+            className="sheet-chip"
+            disabled={!bonusGate.ok}
+            title={
+              bonusGate.ok
+                ? 'Дар мастера цепи: бонусным приказать фамильяру действие «Атака»'
+                : bonusGate.reason
+            }
+            onClick={() => {
+              if (!turnEco.canFeature('bonus').ok) return
+              turnEco.spendFeature('bonus')
+              onToast?.('Дар мастера цепи: фамильяр совершает действие «Атака» (бонусное)')
+            }}
+          >
+            Атака фамильяра
+          </button>
+          <button
+            type="button"
+            className="sheet-chip"
+            disabled={!reactionGate.ok}
+            title={
+              reactionGate.ok
+                ? 'Дар мастера цепи: реакцией дать фамильяру сопротивление к полученному урону'
+                : reactionGate.reason
+            }
+            onClick={() => {
+              if (!turnEco.canFeature('reaction').ok) return
+              turnEco.spendFeature('reaction')
+              onToast?.(
+                'Дар мастера цепи: реакция · фамильяр получает сопротивление к этому урону',
+              )
+            }}
+          >
+            Сопр. фамильяра
+          </button>
+        </>
+      ) : null}
+
+      {hasTalismanRebuke ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!reactionGate.ok}
+          title={
+            reactionGate.ok
+              ? 'Порицание талисмана: реакция · урон психической = БМ и толчок на 10 фт'
+              : reactionGate.reason
+          }
+          onClick={() => {
+            if (!turnEco.canFeature('reaction').ok) return
+            turnEco.spendFeature('reaction')
+            onToast?.(
+              'Порицание талисмана: реакция · урон психической энергией = БМ, толчок на 10 фт от носителя',
+            )
+          }}
+        >
+          Порицание талисмана
         </button>
       ) : null}
 

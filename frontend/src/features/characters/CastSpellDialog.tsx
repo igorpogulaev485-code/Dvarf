@@ -32,6 +32,7 @@ import {
   isCounterspellOrDispel,
   wizardLeveledCastGate,
 } from '../../shared/dnd/wizardTradition'
+import { TRANSMUTED_DAMAGE_TYPES } from '../../shared/dnd/sorcererMetamagic'
 import { Button, Dialog, Stack, Text } from '../../ui'
 import { AllyTargetFields } from '../lobby/AllyTargetFields'
 import { useLobbyParty, type AllyPickDemo } from '../lobby/useLobbyParty'
@@ -163,6 +164,10 @@ export type CastChoice = {
   buffOption?: string | null
   /** T-02 Э8: метамагия «Ускоренное заклинание» — каст как бонусное. */
   quickened?: boolean
+  /** O-01: TCE «Ищущее заклинание» — 2 очка, переброс к20 при промахе атакой. */
+  seeking?: boolean
+  /** O-01: TCE «Преобразованное заклинание» — новый тип урона из списка. */
+  transmutedType?: string | null
 }
 
 type CastSpellDialogProps = {
@@ -353,6 +358,9 @@ export function CastSpellDialog({
   const [powerSurge, setPowerSurge] = useState(false)
   const [useEmbodiment, setUseEmbodiment] = useState(false)
   const [useQuickened, setUseQuickened] = useState(false)
+  const [useSeeking, setUseSeeking] = useState(false)
+  const [useTransmuted, setUseTransmuted] = useState(false)
+  const [transmutedType, setTransmutedType] = useState<string>('cold')
   const [buffOption, setBuffOption] = useState<string>('str')
   const isTransformSelf = spell != null && isSpellSelfFormCast(spell)
   const catalogSlug = String(spell?.catalog_id ?? '')
@@ -454,6 +462,9 @@ export function CastSpellDialog({
     if (!open) return
     setConsumeMaterial(true)
     setUseQuickened(false)
+    setUseSeeking(false)
+    setUseTransmuted(false)
+    setTransmutedType('cold')
     setTargetSlots(Array.from({ length: targetCount }, () => ''))
   }, [open, spell?.id, targetCount])
 
@@ -759,16 +770,37 @@ export function CastSpellDialog({
     return pool ? Math.max(0, pool.max - pool.used) : 0
   }, [resources])
   const knowsQuickened = metamagicIds.includes('quickened')
+  const knowsSeeking = metamagicIds.includes('seeking')
+  const knowsTransmuted = metamagicIds.includes('transmuted')
   const castingIsAction = !/бонус|реакц|мин|час|bonus|reaction|minute|hour/i.test(
     spell.casting_time ?? '',
   )
   const quickenedCost = 2
+  const seekingCost = 2
+  const transmutedCost = 1
   const offerQuickened = Boolean(
     knowsQuickened &&
       castingIsAction &&
       !useRitual &&
       !useEmbodiment &&
       sorceryLeft >= quickenedCost,
+  )
+  /** Seeking can stack with another metamagic on the same cast. */
+  const spAfterQuickened =
+    offerQuickened && useQuickened ? sorceryLeft - quickenedCost : sorceryLeft
+  const offerSeeking = Boolean(
+    knowsSeeking && !useRitual && spAfterQuickened >= seekingCost,
+  )
+  const spellDamageText = String(
+    spell.damage ?? (spell as { damage_type?: string }).damage_type ?? '',
+  )
+  const transmutable = /звук|кисл|огн|холод|электр|яд|thunder|acid|fire|cold|lightning|poison/i.test(
+    spellDamageText,
+  )
+  const spAfterSeeking =
+    offerSeeking && useSeeking ? spAfterQuickened - seekingCost : spAfterQuickened
+  const offerTransmuted = Boolean(
+    knowsTransmuted && !useRitual && transmutable && spAfterSeeking >= transmutedCost,
   )
 
   const grantLabel = selectedGrant?.label ?? 'Грант'
@@ -839,6 +871,11 @@ export function CastSpellDialog({
           powerSurge: powerSurgeOffer && powerSurge,
           embodimentOfLaw: offerEmbodiment && useEmbodiment && !useRitual && !useGrant,
           quickened: offerQuickened && useQuickened && !useRitual && !useGrant,
+          seeking: offerSeeking && useSeeking && !useRitual && !useGrant,
+          transmutedType:
+            offerTransmuted && useTransmuted && !useRitual && !useGrant
+              ? transmutedType
+              : null,
           usePact:
             !isCantrip &&
             !useGrant &&
@@ -1379,6 +1416,43 @@ export function CastSpellDialog({
                     ? `, не хватает: ${sorceryLeft}`
                     : `, осталось ${sorceryLeft}`}
                   )
+                </label>
+              ) : null}
+              {knowsSeeking && !useRitual ? (
+                <label className="field">
+                  <input
+                    type="checkbox"
+                    checked={useSeeking && offerSeeking}
+                    disabled={!offerSeeking && !useSeeking}
+                    onChange={(event) => setUseSeeking(event.target.checked)}
+                  />{' '}
+                  Ищущее заклинание: при промахе атакой — переброс к20 (−{seekingCost} очк.
+                  {spAfterQuickened < seekingCost
+                    ? `, не хватает: ${spAfterQuickened}`
+                    : `, осталось ${spAfterQuickened}`}
+                  ). Можно вместе с другой метамагией.
+                </label>
+              ) : null}
+              {knowsTransmuted && !useRitual && transmutable ? (
+                <label className="field">
+                  <input
+                    type="checkbox"
+                    checked={useTransmuted && offerTransmuted}
+                    disabled={!offerTransmuted && !useTransmuted}
+                    onChange={(event) => setUseTransmuted(event.target.checked)}
+                  />{' '}
+                  Преобразованное заклинание (−{transmutedCost} очк.): сменить тип урона на{' '}
+                  <select
+                    value={transmutedType}
+                    disabled={!useTransmuted}
+                    onChange={(event) => setTransmutedType(event.target.value)}
+                  >
+                    {TRANSMUTED_DAMAGE_TYPES.map((row) => (
+                      <option key={row.id} value={row.id}>
+                        {row.nameRu}
+                      </option>
+                    ))}
+                  </select>
                 </label>
               ) : null}
             </div>

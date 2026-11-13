@@ -5,7 +5,13 @@ import {
   fightingStyleAttackBonus,
   fightingStyleAcBonus,
   fightingStyleDamageBonusFromIds,
+  fightingStyleThrownDamageBonusFromIds,
+  FIGHTER_FIGHTING_STYLES,
+  PALADIN_FIGHTING_STYLES,
+  RANGER_FIGHTING_STYLES,
+  fightingStyleById,
   isRangedWeaponAttackName,
+  unarmedFightingDie,
 } from './fightingStyles.ts'
 
 function assert(cond: unknown, msg: string): asserts cond {
@@ -41,5 +47,20 @@ assert(
   }) === 2,
   'dueling +2',
 )
+
+assert(
+  fightingStyleThrownDamageBonusFromIds({
+    styleIds: ['thrown_weapon_fighting'],
+    weaponName: 'Метательный топорик',
+    thrownRanged: true,
+  }) === 2,
+  'thrown style +2',
+)
+assert(unarmedFightingDie({ styleIds: ['unarmed_fighting'], holdingWeaponOrShield: false }) === '1d8', 'unarmed d8')
+assert(unarmedFightingDie({ styleIds: ['unarmed_fighting'], holdingWeaponOrShield: true }) === '1d6', 'unarmed d6')
+assert(fightingStyleById('blessed_warrior')?.nameRu === 'Благословенный воин', 'blessed name')
+assert(FIGHTER_FIGHTING_STYLES.includes('interception'), 'fighter interception')
+assert(PALADIN_FIGHTING_STYLES.includes('blessed_warrior'), 'paladin blessed')
+assert(RANGER_FIGHTING_STYLES.includes('druidic_warrior'), 'ranger druidic kept')
 
 console.log('fightingStyles.selfcheck: ok')

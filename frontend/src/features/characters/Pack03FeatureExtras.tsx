@@ -32,6 +32,20 @@ import {
   isDruidicWarriorActive,
 } from './druidicWarrior'
 import {
+  BLESSED_WARRIOR_CANTRIPS_ID,
+  BLESSED_WARRIOR_LIMIT,
+  BLESSED_WARRIOR_STYLE,
+  blessedWarriorCantripOptions,
+  isBlessedWarriorActive,
+} from './blessedWarrior'
+import {
+  SUPERIOR_TECHNIQUE_STYLE,
+  getSuperiorTechniqueManeuverId,
+  isSuperiorTechniqueActive,
+  setSuperiorTechniqueManeuver,
+  superiorTechniqueManeuverOptions,
+} from './superiorTechnique'
+import {
   applyForgeBlessing,
   listForgeBlessingCandidates,
 } from './forgeBlessing'
@@ -81,6 +95,14 @@ export function Pack03FeatureExtras(props: ExtraProps) {
   if (effect) return <ChannelControls {...props} effectTitle={effect.title} />
   if (props.feature.id === 'iron_mind') return <IronMindControls {...props} />
   if (props.feature.id === 'fighting_style_ranger') return <DruidicWarriorCantrips {...props} />
+  if (props.feature.id === 'fighting_style_paladin') return <BlessedWarriorCantrips {...props} />
+  if (
+    props.feature.id === 'fighting_style' ||
+    props.feature.id === 'fighting_style_fighter' ||
+    props.feature.id === 'additional_fighting_style'
+  ) {
+    return <SuperiorTechniqueManeuver {...props} />
+  }
   return null
 }
 
@@ -371,6 +393,107 @@ function DruidicWarriorCantrips({
                 )
                 onFeaturePicksChange(next)
                 onToast?.(`Воин-друид: ${option.label}`)
+              }}
+            >
+              {on ? `✓ ${option.label}` : option.label}
+            </Button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function BlessedWarriorCantrips({
+  feature,
+  featurePicks,
+  onFeaturePicksChange,
+  onToast,
+}: ExtraProps) {
+  const style = getFeaturePick(featurePicks, feature.classEntryId, feature.id)
+  if (style !== BLESSED_WARRIOR_STYLE && !isBlessedWarriorActive(featurePicks, feature.classEntryId)) {
+    return null
+  }
+  const selected = getFeaturePickList(
+    featurePicks,
+    feature.classEntryId,
+    BLESSED_WARRIOR_CANTRIPS_ID,
+  )
+  const options = blessedWarriorCantripOptions()
+  return (
+    <div className="feature-resource">
+      <Text>
+        Заговоры жреца ({selected.length}/{BLESSED_WARRIOR_LIMIT}), базовая характеристика ХАР, вне
+        лимита. При новом уровне паладина можно заменить один: сними и выбери другой.
+      </Text>
+      <div className="feature-resource__actions">
+        {options.map((option) => {
+          const on = selected.includes(option.id)
+          return (
+            <Button
+              key={option.id}
+              type="button"
+              onClick={() => {
+                const next = toggleFeaturePickInList(
+                  featurePicks,
+                  feature.classEntryId,
+                  BLESSED_WARRIOR_CANTRIPS_ID,
+                  option.id,
+                  BLESSED_WARRIOR_LIMIT,
+                )
+                onFeaturePicksChange(next)
+                onToast?.(`Благословенный воин: ${option.label}`)
+              }}
+            >
+              {on ? `✓ ${option.label}` : option.label}
+            </Button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function SuperiorTechniqueManeuver({
+  feature,
+  featurePicks,
+  onFeaturePicksChange,
+  onToast,
+}: ExtraProps) {
+  const style = getFeaturePick(featurePicks, feature.classEntryId, feature.id)
+  if (
+    style !== SUPERIOR_TECHNIQUE_STYLE &&
+    !isSuperiorTechniqueActive(featurePicks, feature.classEntryId)
+  ) {
+    return null
+  }
+  const selected = getSuperiorTechniqueManeuverId(featurePicks, feature.classEntryId)
+  const options = superiorTechniqueManeuverOptions()
+  return (
+    <div className="feature-resource">
+      <Text>
+        Превосходная техника: один приём + кость превосходства к6 (складывается с костями Мастера
+        боевых искусств).
+      </Text>
+      <div className="feature-resource__actions">
+        {options.map((option) => {
+          const on = selected === option.id
+          return (
+            <Button
+              key={option.id}
+              type="button"
+              onClick={() => {
+                const next = setSuperiorTechniqueManeuver(
+                  featurePicks,
+                  feature.classEntryId,
+                  on ? null : option.id,
+                )
+                onFeaturePicksChange(next)
+                onToast?.(
+                  on
+                    ? 'Превосходная техника: приём снят'
+                    : `Превосходная техника: ${option.label}`,
+                )
               }}
             >
               {on ? `✓ ${option.label}` : option.label}

@@ -22,6 +22,7 @@ import { blockPlainText, withBlockPlainText } from '../textBlocks'
 import { buildDraft, type MinimalSheetEditorProps } from './draft'
 import { useSheetEffectsRealtime } from '../useSheetEffectsRealtime'
 import { applyEffectStacking } from '../../../shared/dnd/activeEffects'
+import { appendSuperiorTechniqueResources } from '../superiorTechnique'
 
 export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditorProps) {
   model.character = props.character
@@ -318,13 +319,17 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
   model.playActiveFeatures = playActiveFeatures
   const featureDesiredResources = useMemo(
     () =>
-      desiredResourcesFromFeatures({
-        features: playActiveFeatures,
-        characterLevel,
-        abilities: draft.abilities,
+      appendSuperiorTechniqueResources({
+        desired: desiredResourcesFromFeatures({
+          features: playActiveFeatures,
+          characterLevel,
+          abilities: draft.abilities,
+          featurePicks: draft.featurePicks,
+        }),
         featurePicks: draft.featurePicks,
+        classes: draft.classes,
       }),
-    [playActiveFeatures, characterLevel, draft.abilities, draft.featurePicks],
+    [playActiveFeatures, characterLevel, draft.abilities, draft.featurePicks, draft.classes],
   )
   model.featureDesiredResources = featureDesiredResources
   /** Show spells split when the sheet has any magic source (class/archetype/race/feat/gear). */

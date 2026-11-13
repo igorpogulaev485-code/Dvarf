@@ -51,7 +51,7 @@ import {
   learnReplicateMagicItem,
   unlearnInfusionPick,
 } from '../../shared/dnd/infusionsActive'
-import { maneuverById } from '../../shared/dnd/battleMasterManeuvers'
+import { isTceManeuver, maneuverById } from '../../shared/dnd/battleMasterManeuvers'
 import { elementalDisciplineById } from '../../shared/dnd/monkElementalDisciplines'
 import { kenseiPairError } from '../../shared/dnd/kenseiWeapons'
 import { featureChoiceOptionLabel } from '../../shared/dnd/featureChoiceOptionLabel'
@@ -60,11 +60,14 @@ import { WizardCapstonePicks } from './WizardCapstonePicks'
 import type { WizardFeatureRequest } from './WizardFeatureUseDialog'
 import {
   FLEXIBLE_CASTING_SLOT_COST,
+  isTceMetamagic,
   metamagicById,
   metamagicSpendCost,
 } from '../../shared/dnd/sorcererMetamagic'
 import {
   invocationById,
+  isTceInvocation,
+  isTcePactBoon,
   WARLOCK_PACT_BOONS,
 } from '../../shared/dnd/warlockInvocations'
 import {
@@ -119,7 +122,9 @@ import {
   isFeatureChoiceComplete,
   listUnlockedExpertiseKeys,
 } from '../../shared/dnd/pendingFeatureChoices'
-import { fightingStyleById } from '../../shared/dnd/fightingStyles'
+import { fightingStyleById, isTceFightingStyle } from '../../shared/dnd/fightingStyles'
+import { filterTceCatalogOptions } from '../../shared/dnd/filterTceCatalogOptions'
+import { TCE_OPTIONAL_BADGE_RU } from '../../shared/dnd/tceOptions'
 import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
 import type { BackgroundFeatureCard } from '../../shared/dnd/backgroundGrants'
 import type { RaceTraitCard } from '../../shared/dnd/raceTraitCards'
@@ -141,6 +146,7 @@ import { PactTomeCantripsPicker } from './PactTomeCantripsPicker'
 import {
   isPactTomeActive,
   isPactTomeCantripsComplete,
+  isPactTalismanActive,
   PACT_BOON_FEATURE_ID,
 } from './pactTomeEffects'
 import { isPactChainActive } from './pactChainEffects'
@@ -257,6 +263,11 @@ type ClassFeaturesPanelProps = {
   /** B20: external request to switch filter (e.g. «Нужно настроить»). */
   requestedFilter?: string | null
   onRequestedFilterConsumed?: () => void
+  /**
+   * O-01: TCE book gate for styles / maneuvers / metamagic / invocations.
+   * null = sheet outside lobby (show with badge); true/false = lobby books.
+   */
+  tceAllowed?: boolean | null
 }
 
 type FeatureFilter =
@@ -1013,6 +1024,7 @@ function FeatureChoiceControls({
   tools,
   expertiseKeys,
   onToast,
+  tceAllowed = null,
 }: {
   feature: UnlockedFeature
   featurePicks: FeaturePicksState
@@ -1021,6 +1033,8 @@ function FeatureChoiceControls({
   tools: string[]
   expertiseKeys: Array<{ classEntryId: string; featureId: string }>
   onToast?: (message: string) => void
+  /** null = вне лобби (показывать TCE с бейджем); true/false = книга Таши в лобби. */
+  tceAllowed?: boolean | null
 }) {
   const choice = feature.choice
   const [pendingReplicate, setPendingReplicate] = useState(false)
@@ -1031,32 +1045,6 @@ function FeatureChoiceControls({
     classEntryId: feature.classEntryId,
     featureId: feature.id,
   })
-  const options = (
-    isExpertiseChoice(choice)
-      ? listExpertiseOptions({
-          skills,
-          tools,
-          excludeOptionIds: collectExpertiseOptionIdsFromPicks({
-            featurePicks,
-            expertiseKeys,
-            except: { classEntryId: feature.classEntryId, featureId: feature.id },
-          }),
-        }).map((row) => row.id)
-      : choice.options_from === 'artificer_infusions'
-        ? infusionOptionIdsAtLevel(feature.classLevel)
-        : choiceOptionsAtLevel(choice, feature.classLevel)
-  ).filter((id) => !takenStyles.has(id))
-  const pactBoonId = getFeaturePick(featurePicks, feature.classEntryId, 'pact_boon')
-  const visibleOptions =
-    choice.options_from === 'monk_elemental_disciplines'
-      ? options.filter((id) => {
-          const disc = elementalDisciplineById(id)
-          if (!disc || disc.id === 'elemental_attunement') return false
-          return disc.minLevel == null || disc.minLevel <= feature.classLevel
-        })
-      : choice.options_from === 'warlock_invocations'
-        ? options
-        : options
   const maxPicks = resolveChoiceMaxPicks(choice, feature.classLevel)
   const multi = maxPicks > 1 || Boolean(choice.max_picks_by_level) || Boolean(choice.max_picks && choice.max_picks > 1)
   const selectedListRaw = multi
@@ -1071,6 +1059,54 @@ function FeatureChoiceControls({
   const selected = multi
     ? null
     : getFeaturePick(featurePicks, feature.classEntryId, feature.id)
+  const selectedIdsForTce = multi
+    ? selectedList
+    : selected
+      ? [selected]
+      : []
+  const options = filterTceCatalogOptions({
+    options: (
+      isExpertiseChoice(choice)
+        ? listExpertiseOptions({
+            skills,
+            tools,
+            excludeOptionIds: collectExpertiseOptionIdsFromPicks({
+              featurePicks,
+              expertiseKeys,
+              except: { classEntryId: feature.classEntryId, featureId: feature.id },
+            }),
+          }).map((row) => row.id)
+        : choice.options_from === 'artificer_infusions'
+          ? infusionOptionIdsAtLevel(feature.classLevel)
+          : choiceOptionsAtLevel(choice, feature.classLevel)
+    ).filter((id) => !takenStyles.has(id)),
+    optionsFrom: choice.options_from,
+    tceAllowed: tceAllowed ?? null,
+    selectedIds: selectedIdsForTce,
+  })
+  const pactBoonId = getFeaturePick(featurePicks, feature.classEntryId, 'pact_boon')
+  const visibleOptions =
+    choice.options_from === 'monk_elemental_disciplines'
+      ? options.filter((id) => {
+          const disc = elementalDisciplineById(id)
+          if (!disc || disc.id === 'elemental_attunement') return false
+          return disc.minLevel == null || disc.minLevel <= feature.classLevel
+        })
+      : choice.options_from === 'warlock_invocations'
+        ? options
+        : options
+  const showTceBadge = tceAllowed === null
+  function optionLabelWithTce(optionId: string): string {
+    const base = choiceOptionLabel(optionId)
+    if (!showTceBadge) return base
+    const tce =
+      isTceFightingStyle(optionId) ||
+      isTceManeuver(optionId) ||
+      isTceMetamagic(optionId) ||
+      isTceInvocation(optionId) ||
+      isTcePactBoon(optionId)
+    return tce ? `${base} · ${TCE_OPTIONAL_BADGE_RU}` : base
+  }
   const selectedDef = fightingStyleById(selected)
   const selectedMeta = selectedList.map((id) => metamagicById(id)).filter(Boolean)
   const selectedLabel = multi
@@ -1268,7 +1304,7 @@ function FeatureChoiceControls({
             <option value="">— выбрать —</option>
             {visibleOptions.map((optionId) => (
               <option key={optionId} value={optionId}>
-                {choiceOptionLabel(optionId)}
+                {optionLabelWithTce(optionId)}
               </option>
             ))}
           </select>
@@ -1276,7 +1312,7 @@ function FeatureChoiceControls({
       ) : (
         <div className="feature-resource__actions">
           {visibleOptions.map((optionId) => {
-            const label = choiceOptionLabel(optionId)
+            const label = optionLabelWithTce(optionId)
             const replicateLearn = isReplicateLearnOption(optionId)
             const replicateKnown = selectedList.filter((id) =>
               id.startsWith(`${REPLICATE_MAGIC_ITEM_ID}:`),
@@ -1923,6 +1959,7 @@ function FeatureRow({
   wisdomScore,
   edition = '2014',
   onFeatureBuffApply,
+  tceAllowed = null,
 }: {
   feature: UnlockedFeature
   unlockedFeatures: UnlockedFeature[]
@@ -1975,6 +2012,7 @@ function FeatureRow({
   wisdomScore?: number
   edition?: RulesEdition
   onFeatureBuffApply?: ClassFeaturesPanelProps['onFeatureBuffApply']
+  tceAllowed?: boolean | null
 }) {
   const sourceLabel =
     feature.source === 'subclass'
@@ -2205,6 +2243,7 @@ function FeatureRow({
           tools={tools}
           expertiseKeys={expertiseKeys}
           onToast={onToast}
+          tceAllowed={tceAllowed}
         />
       ) : null}
       {replacementStatus === 'active' &&
@@ -2266,6 +2305,15 @@ function FeatureRow({
               Призвать фамильяра…
             </Button>
           </div>
+        </div>
+      ) : null}
+      {feature.id === PACT_BOON_FEATURE_ID &&
+      isPactTalismanActive(featurePicks, feature.classEntryId) ? (
+        <div className="feature-resource">
+          <Text tone="muted">
+            {WARLOCK_PACT_BOON_GRANTS.talisman.notesRu ||
+              'Носитель талисмана при провале проверки добавляет 1к4 (БМ раз / долгий отдых).'}
+          </Text>
         </div>
       ) : null}
       {replacementStatus === 'active' ? (
@@ -2578,6 +2626,7 @@ export function ClassFeaturesPanel({
   onFeatureBuffApply,
   requestedFilter = null,
   onRequestedFilterConsumed,
+  tceAllowed = null,
 }: ClassFeaturesPanelProps) {
   const [filter, setFilter] = useState<FeatureFilter>('all')
   const [search, setSearch] = useState('')
@@ -3102,6 +3151,7 @@ export function ClassFeaturesPanel({
                             featGrants={featGrants}
                             characterLevel={characterLevel}
                             onFeatureBuffApply={onFeatureBuffApply}
+                            tceAllowed={tceAllowed}
                             charismaScore={abilities?.cha}
                             wisdomScore={abilities?.wis}
                             edition={edition}

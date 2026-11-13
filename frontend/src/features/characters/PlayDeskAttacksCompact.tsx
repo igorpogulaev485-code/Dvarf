@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { useTurnEconomy } from './TurnEconomyContext'
 import { TurnEconomyChips } from './TurnEconomyChips'
 import { TurnEconomyCombatActions } from './TurnEconomyCombatActions'
+import { GrappleShoveDialog } from './GrappleShoveDialog'
 import { CombatTargetPicker } from './CombatTargetPicker'
 import { EnterOwnNumberDialog } from './EnterOwnNumberDialog'
 import type { CombatTarget } from '../lobby/combatTargets'
@@ -17,7 +18,9 @@ import {
   countEquippedWeapons,
   fightingStyleAttackBonusFromIds,
   fightingStyleDamageBonusFromIds,
+  fightingStyleThrownDamageBonusFromIds,
 } from '../../shared/dnd/fightingStyles'
+import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
 import {
   attackBonusFromActiveEffects,
   weaponBonusesFromActiveEffects,
@@ -108,6 +111,12 @@ type PlayDeskAttacksCompactProps = {
   combatFeatures?: UnlockedFeature[]
   /** T-02: «Хитрое действие» — Засада бонусным. */
   hasCunningAction?: boolean
+  /** O-01: TCE book on in lobby (table buttons). */
+  tceAllowed?: boolean
+  /** O-01: known warlock invocation ids. */
+  knownInvocationIds?: string[]
+  /** O-01: feature picks for grappling_strike / superiority. */
+  featurePicks?: FeaturePicksState
   /** Shared spell slots. Divine Smite spends one only after a melee hit. */
   spells?: SpellsState | null
   onSpellsChange?: (spells: SpellsState) => void
@@ -225,6 +234,9 @@ export function PlayDeskAttacksCompact({
   favoriteConsumableIds = [],
   combatFeatures = [],
   hasCunningAction = false,
+  tceAllowed = false,
+  knownInvocationIds = [],
+  featurePicks,
   spells = null,
   onSpellsChange,
   divineSmiteIntent,
@@ -265,6 +277,27 @@ export function PlayDeskAttacksCompact({
   onHalflingLuckyNeeded,
 }: PlayDeskAttacksCompactProps) {
   const turnEco = useTurnEconomy()
+  const [grappleOpen, setGrappleOpen] = useState(false)
+  const styleIds = fightingStyleIds?.length
+    ? fightingStyleIds
+    : fightingStyleId
+      ? [fightingStyleId]
+      : []
+  const hasInterception = tceAllowed && styleIds.includes('interception')
+  const hasBlindFighting = tceAllowed && styleIds.includes('blind_fighting')
+  const hasChainMaster =
+    tceAllowed && knownInvocationIds.includes('investment_of_the_chain_master')
+  const hasTalismanRebuke =
+    tceAllowed && knownInvocationIds.includes('rebuke_of_the_talisman')
+  const knowsGrapplingStrike = Boolean(
+    featurePicks &&
+      Object.values(featurePicks.values).some((raw) =>
+        raw
+          .split(',')
+          .map((s) => s.trim())
+          .includes('grappling_strike'),
+      ),
+  )
   const companionAttacks = useMemo(
     () =>
       listCompanionAttacksForHost(companions, {
@@ -508,6 +541,12 @@ export function PlayDeskAttacksCompact({
               combatFeatures.some((f) => f.id === 'cunning_action')
             }
             hasSteadyAim={combatFeatures.some((f) => f.id === 'steady_aim')}
+            hasInterception={hasInterception}
+            hasBlindFighting={hasBlindFighting}
+            hasChainMaster={hasChainMaster}
+            hasTalismanRebuke={hasTalismanRebuke}
+            onGrappleShove={() => setGrappleOpen(true)}
+            onToast={onToast}
             onOfferSkill={(key) => {
               const labels: Record<string, string> = {
                 investigation: 'Анализ',
@@ -520,6 +559,30 @@ export function PlayDeskAttacksCompact({
                   : `Поиск · бросьте «Анализ»/«Внимательность» из полосы навыков или введите число`,
               )
             }}
+          />
+          <GrappleShoveDialog
+            open={grappleOpen}
+            characterId={characterId ?? ''}
+            athleticsMod={abilityModifier(abilities.str ?? 10) + proficiencyBonus}
+            offerGrapplingStrike={
+              knowsGrapplingStrike && Boolean(turnEco?.canFeature('bonus').ok)
+            }
+            onSpendGrapplingStrike={() => {
+              if (!turnEco?.canFeature('bonus').ok) return false
+              // Prefer Battle Master pool, then Superior Technique d6.
+              const pool =
+                resources.find((row) => /:superiority_dice:/.test(row.id) && row.used < row.max) ??
+                resources.find((row) => /:superiority_dice_st:/.test(row.id) && row.used < row.max)
+              if (!pool) {
+                onToast?.('Нет кости превосходства для «Атаки с захватом»')
+                return false
+              }
+              turnEco.spendFeature('bonus')
+              onSpendResource?.(pool.id)
+              return true
+            }}
+            onToast={onToast}
+            onClose={() => setGrappleOpen(false)}
           />
         </>
       ) : null}
@@ -683,11 +746,17 @@ export function PlayDeskAttacksCompact({
             const oneHandedMelee =
               meleeAttack && !unarmed && grip !== 'two_hand'
             const equippedWeaponCount = countEquippedWeapons(inventoryItems)
-            const styleDmg = fightingStyleDamageBonusFromIds({
-              styleIds,
-              oneHandedMelee,
-              holdingAnotherWeapon: equippedWeaponCount > 1,
-            })
+            const styleDmg =
+              fightingStyleDamageBonusFromIds({
+                styleIds,
+                oneHandedMelee,
+                holdingAnotherWeapon: equippedWeaponCount > 1,
+              }) +
+              fightingStyleThrownDamageBonusFromIds({
+                styleIds,
+                weaponName: attack.name,
+                thrownRanged: !meleeAttack,
+              })
             const fxWeapon = weaponBonusesFromActiveEffects(activeEffects ?? [], {
               melee: meleeAttack || unarmed,
               ability: attackAbility,
