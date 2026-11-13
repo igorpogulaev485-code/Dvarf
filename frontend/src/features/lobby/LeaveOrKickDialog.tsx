@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react'
-import {
-  downloadTextFile,
-  formatPersonalNotesExport,
-} from './joinConflict'
-import { deleteNote, listNotes } from '../../shared/api/notes'
+import { downloadTextFile } from './joinConflict'
+import { deleteNote, exportNotes, listNotes } from '../../shared/api/notes'
 import { Button, Dialog, Stack, Text } from '../../ui'
 
 type Mode = 'leave' | 'kick'
@@ -28,13 +25,14 @@ export function LeaveOrKickDialog({
   open,
   mode,
   lobbyId,
-  lobbyName,
+  lobbyName: _lobbyName,
   characterName,
   seatedInOpenSession,
   busy,
   onClose,
   onConfirm,
 }: Props) {
+  void _lobbyName
   const [deleteNotes, setDeleteNotes] = useState(false)
   const [combatFate, setCombatFate] = useState<'release' | 'retain'>('release')
   const [notesBusy, setNotesBusy] = useState(false)
@@ -51,10 +49,10 @@ export function LeaveOrKickDialog({
     setNotesBusy(true)
     setNotesHint(null)
     try {
-      const notes = await listNotes(lobbyId, 'personal')
-      const text = formatPersonalNotesExport(lobbyName, notes)
-      downloadTextFile(`zametki-${lobbyName}.txt`, text)
-      setNotesHint(notes.length ? `Скачано: ${notes.length}` : 'Личных заметок нет')
+      // L-05: полный экспорт (не минимальный формат L-04)
+      const file = await exportNotes(lobbyId)
+      downloadTextFile(file.filename, file.content)
+      setNotesHint(file.content.includes('(пусто)') ? 'Заметок нет' : 'Скачано')
     } catch {
       setNotesHint('Не удалось скачать заметки')
     } finally {

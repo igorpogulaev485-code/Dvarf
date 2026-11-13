@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import or_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.note import Note
@@ -17,25 +17,28 @@ class NoteRepository:
         lobby_id: UUID,
         *,
         user_id: UUID,
-        is_owner: bool,
+        can_manage_journal: bool,
         scope: str | None = None,
     ) -> list[Note]:
+        """Видимость L-05: чужие personal скрыты, кроме shared_with_master для journal mgr."""
         stmt = select(Note).where(Note.lobby_id == lobby_id)
         if scope:
             stmt = stmt.where(Note.scope == scope)
-        if is_owner:
-            # мастер: всё
-            pass
-        else:
-            stmt = stmt.where(
-                or_(
-                    Note.scope == "party",
-                    Note.author_user_id == user_id,
-                )
+
+        own = Note.author_user_id == user_id
+        party = Note.scope == "party"
+        if can_manage_journal:
+            master_block = Note.scope == "master"
+            shared_personal = and_(
+                Note.scope == "personal",
+                Note.shared_with_master.is_(True),
             )
-            # игроки не видят master-заметки
+            stmt = stmt.where(or_(own, party, master_block, shared_personal))
+        else:
+            stmt = stmt.where(or_(own, party))
             stmt = stmt.where(Note.scope != "master")
-        stmt = stmt.order_by(Note.updated_at.desc())
+
+        stmt = stmt.order_by(Note.pinned.desc(), Note.updated_at.desc())
         return list(self.db.scalars(stmt).all())
 
     def get(self, note_id: UUID) -> Note | None:
@@ -62,6 +65,21 @@ class NoteRepository:
                 )
                 .order_by(Note.updated_at.desc())
             ).all()
+        )
+
+    def list_for_export(
+        self,
+        lobby_id: UUID,
+        *,
+        user_id: UUID,
+        can_manage_journal: bool,
+    ) -> list[Note]:
+        """Те же правила видимости, что list_visible, для текстового экспорта."""
+        return self.list_visible(
+            lobby_id,
+            user_id=user_id,
+            can_manage_journal=can_manage_journal,
+            scope=None,
         )
 
     def delete_personal_for_author(self, lobby_id: UUID, user_id: UUID) -> int:

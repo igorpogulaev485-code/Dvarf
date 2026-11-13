@@ -1347,7 +1347,8 @@ export function SessionDetailPage() {
                   <Stack gap={16}>
                 <LobbyNotesPanel
                   lobbyId={session.lobby_id}
-                  isOwner={canSeeHidden}
+                  canManageJournal={Boolean(session.is_owner || session.is_comaster)}
+                  settingId={session.setting_id}
                   compact
                   defaultScope="party"
                   ownCharacterOptions={session.lobby_members
@@ -1415,7 +1416,8 @@ export function SessionDetailPage() {
                 <Stack gap={16}>
                 <LobbyNotesPanel
                   lobbyId={session.lobby_id}
-                  isOwner={canSeeHidden}
+                  canManageJournal={Boolean(session.is_owner || session.is_comaster)}
+                  settingId={session.setting_id}
                   compact
                   defaultScope="party"
                   ownCharacterOptions={session.lobby_members

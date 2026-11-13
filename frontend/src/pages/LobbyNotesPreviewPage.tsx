@@ -7,23 +7,40 @@ import { LobbyHubTabs, type LobbyHubTabId } from '../features/lobby/LobbyHubTabs
 import type { Note, NoteScope } from '../shared/api/notes'
 import { Button, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
-const SEED: Note[] = [
-  {
-    id: 'n1',
+function seedNote(partial: Partial<Note> & Pick<Note, 'id' | 'scope' | 'title' | 'body'>): Note {
+  const now = new Date().toISOString()
+  return {
     lobby_id: 'lob1',
-    scope: 'party',
     author_user_id: 'u0',
     character_id: null,
     character_name: null,
+    shared_with_master: false,
+    pinned: false,
+    updated_by_user_id: 'u0',
+    updated_by_name: 'Мастер',
+    created_at: now,
+    updated_at: now,
+    can_edit: true,
+    can_delete: true,
+    can_pin: partial.scope === 'party',
+    can_share_with_master: partial.scope === 'personal',
+    can_send_to_journal: partial.scope === 'party',
+    ...partial,
+  }
+}
+
+const SEED: Note[] = [
+  seedNote({
+    id: 'n1',
+    scope: 'party',
     title: 'План на мост',
-    body: 'Лира идёт первой. Вирра держит лечение. Не шуметь до сигнала.',
+    body: 'Лира идёт первой. Вирра держит лечение. Не шуметь до сигнала.\n- [ ] сигнал\n[[Мост]]',
     created_at: new Date(Date.now() - 3600000).toISOString(),
     updated_at: new Date(Date.now() - 3600000).toISOString(),
-    can_edit: true,
-  },
-  {
+    pinned: true,
+  }),
+  seedNote({
     id: 'n2',
-    lobby_id: 'lob1',
     scope: 'personal',
     author_user_id: 'u5',
     character_id: 'c5',
@@ -32,21 +49,17 @@ const SEED: Note[] = [
     body: 'Три спирали — как в гримуаре дяди. Спросить мастера после сессии.',
     created_at: new Date(Date.now() - 7200000).toISOString(),
     updated_at: new Date(Date.now() - 7200000).toISOString(),
-    can_edit: true,
-  },
-  {
+    updated_by_user_id: 'u5',
+    updated_by_name: 'Торин',
+  }),
+  seedNote({
     id: 'n3',
-    lobby_id: 'lob1',
     scope: 'master',
-    author_user_id: 'u0',
-    character_id: null,
-    character_name: null,
     title: 'Секрет главы 5',
     body: 'Не открывать культ раньше времени. Торин может узнать знак.',
     created_at: new Date(Date.now() - 86400000).toISOString(),
     updated_at: new Date(Date.now() - 86400000).toISOString(),
-    can_edit: true,
-  },
+  }),
 ]
 
 function scopeLabel(scope: string): string {
@@ -86,8 +99,7 @@ export function LobbyNotesPreviewPage() {
           <Panel title="Заметки">
             <Stack gap={12}>
               <Text tone="muted">
-                Личный блокнот, общая доска пати и мастерские заметки (мастер видит и чужие
-                личные).
+                Личный блокнот и общая доска; личные скрыты от мастера, пока не «Показать мастеру».
               </Text>
               <div className="chat-mode-tabs">
                 {(['all', 'personal', 'party', 'master'] as const).map((s) => (
@@ -108,19 +120,14 @@ export function LobbyNotesPreviewPage() {
                   onSubmit={(e) => {
                     e.preventDefault()
                     setNotes((prev) => [
-                      {
+                      seedNote({
                         id: `local-${Date.now()}`,
-                        lobby_id: 'lob1',
                         scope,
-                        author_user_id: 'u0',
                         character_id: scope === 'personal' ? 'c1' : null,
                         character_name: scope === 'personal' ? 'Эларион' : null,
                         title: title.trim(),
                         body,
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString(),
-                        can_edit: true,
-                      },
+                      }),
                       ...prev,
                     ])
                     setTitle('')
