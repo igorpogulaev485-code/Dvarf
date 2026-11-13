@@ -550,6 +550,12 @@
   color: var(--accent);
 }
 
+/* LV-05: последняя строка «Кто пришёл» не под липким футером диалога */
+.ui-dialog .session-attendance-list {
+  padding-bottom: 16px;
+  scroll-padding-bottom: 16px;
+}
+
 @media (min-width: 900px) {
   .session-attendance-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
