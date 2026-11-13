@@ -81,7 +81,10 @@ export type HomebrewCatalogEntry = {
 
 export type BookSourceEntry = {
   id: string
+  /** EN id для каталога / алиасов. */
   label: string
+  /** RU подпись в сводке правил и на /join (5e14.dnd.su / UX-21). */
+  label_ru: string
   aliases: string[]
 }
 
@@ -90,76 +93,91 @@ export const BOOK_SOURCE_CATALOG: BookSourceEntry[] = [
   {
     id: 'phb',
     label: "Player's Handbook",
+    label_ru: 'Книга игрока',
     aliases: ['phb', 'PHB', 'PHB 2014', 'phb-2014', 'srd-5.1', 'srd', 'SRD 5.1 (sample)'],
   },
   {
     id: 'tce',
     label: "Tasha's Cauldron of Everything",
+    label_ru: 'Котел Таши',
     aliases: ['tce', 'TCE', 'TCE 2014', 'tce-2014', 'tasha', 'tcoe', 'TCoE'],
   },
   {
     id: 'xge',
     label: "Xanathar's Guide to Everything",
+    label_ru: 'Руководство Занатара',
     aliases: ['xge', 'XGE', 'XGE 2014', 'xge-2014', 'xgte', 'XGtE'],
   },
   {
     id: 'mpmm',
     label: 'Mordenkainen Presents: Monsters of the Multiverse',
+    label_ru: 'Монстры Мультивселенной',
     aliases: ['mpmm', 'MPMM', 'ttg:MPMM'],
   },
   {
     id: 'scag',
     label: "Sword Coast Adventurer's Guide",
+    label_ru: 'Путеводитель по Побережью Мечей',
     aliases: ['scag', 'SCAG', 'SCAG 2014'],
   },
   {
     id: 'egw',
     label: "Explorer's Guide to Wildemount",
+    label_ru: 'Путеводитель по Вайлдмаунту',
     aliases: ['egw', 'EGW', 'EGW 2014', 'egw-2014', 'egtw', 'EGtW'],
   },
   {
     id: 'mot',
     label: 'Mythic Odysseys of Theros',
+    label_ru: 'Мифические одиссеи Тероса',
     aliases: ['mot', 'MOT', 'MOT 2014'],
   },
   {
     id: 'vgm',
     label: "Volo's Guide to Monsters",
+    label_ru: 'Бестиарий Воло',
     aliases: ['vgm', 'VGM', 'vgtm', 'ttg:VGM'],
   },
   {
     id: 'mtf',
     label: "Mordenkainen's Tome of Foes",
+    label_ru: 'Том врагов Морденкайнена',
     aliases: ['mtf', 'MTF', 'ttg:MTF'],
   },
   {
     id: 'erlw',
     label: 'Eberron: Rising from the Last War',
+    label_ru: 'Эберрон: восстание из Последней войны',
     aliases: ['erlw', 'ERLW', 'RLW 2014', 'ttg:ERLW', 'erftlw'],
   },
   {
     id: 'ggr',
     label: "Guildmasters' Guide to Ravnica",
+    label_ru: 'Путеводитель гильдмастеров по Равнике',
     aliases: ['ggr', 'GGR', 'GGR 2014', 'ttg:GGR', 'ggtr', 'ggtr-2014'],
   },
   {
     id: 'ftd',
     label: "Fizban's Treasury of Dragons",
+    label_ru: 'Сокровищница драконов Физбана',
     aliases: ['ftd', 'FTD', 'FTD 2014', 'ftd-2014', 'ttg:FTD'],
   },
   {
     id: 'ai',
     label: 'Acquisitions Incorporated',
+    label_ru: 'Acquisitions Incorporated',
     aliases: ['ai', 'AI', 'AI 2014', 'ai-2014'],
   },
   {
     id: 'dmg',
     label: "Dungeon Master's Guide",
+    label_ru: 'Руководство мастера',
     aliases: ['dmg', 'DMG', 'DMG 2014'],
   },
   {
     id: 'eepc',
     label: "Elemental Evil Player's Companion",
+    label_ru: 'Спутник игрока по Злу Стихий',
     aliases: ['eepc', 'EEPC'],
   },
 ]
@@ -662,9 +680,12 @@ export function summarizeStartRules(start: StartRules): string[] {
   lines.push(`Стартовый уровень: ${start.level}`)
   lines.push(`Характеристики: ${ABILITY_METHOD_LABEL[start.ability_method]}`)
   const books = start.allowed_sources
-    .map((id) => BOOK_SOURCE_CATALOG.find((b) => b.id === id)?.label || id)
+    .map((id) => {
+      const entry = BOOK_SOURCE_CATALOG.find((b) => b.id === id)
+      return entry?.label_ru || entry?.label || id
+    })
     .join(', ')
-  lines.push(`Книги: ${books || 'PHB'}`)
+  lines.push(`Книги: ${books || 'Книга игрока'}`)
   if (start.starting_kit.mode === 'fixed_gold') {
     lines.push(`Стартовый набор: ${start.starting_kit.gp} зм`)
   } else {

@@ -83,10 +83,27 @@ assert(sourceMatchesAllowed('xgte', ['xge']), 'xge alias')
 assert(BOOK_SOURCE_CATALOG.length >= 4, 'book catalog')
 assert(normalizeStartRules(null).banned_races.length === 0, 'start empty bans')
 assert(summarizeStartRules(normalized.start).some((l) => /уровень/i.test(l)), 'start summary')
+assert(
+  summarizeStartRules(normalized.start).some((l) => /Книга игрока|Котел Таши/.test(l)),
+  'start books RU',
+)
+assert(
+  BOOK_SOURCE_CATALOG.every((b) => typeof b.label_ru === 'string' && b.label_ru.length > 0),
+  'every book has label_ru',
+)
+assert(
+  !summarizeStartRules(defaults.start).some((l) => /Player's Handbook/.test(l)),
+  'no EN Player Handbook in summary',
+)
 
 const summary = summarizeEnabledRules(normalized)
 assert(summary.some((line) => /зелье/i.test(line)), 'summary has potion')
 assert(summary.some((line) => /Стартовый уровень/i.test(line)), 'summary has start')
+// LV-06: start rules once inside enabled summary (no separate duplicate block in UI)
+assert(
+  summary.filter((line) => /Стартовый уровень/i.test(line)).length === 1,
+  'start level once in summary',
+)
 
 const light = encumbranceSpeedPenalty(10, 51)
 assert(light.tier === 'encumbered' && light.speedPenalty === 10, '5x str')

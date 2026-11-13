@@ -26,11 +26,10 @@ function WikiReaderImage({ media, label }: { media: LobbyMedia; label: string })
   )
 }
 import {
-  QUEST_STATUS_LABELS,
+  questStatusLabel,
   SETTING_PAGE_KIND_READER_LABELS,
   SETTING_READER_KIND_ORDER,
   TEMPLATE_CARD_KINDS,
-  type QuestStatus,
   type SettingPageKind,
 } from './settingKinds'
 import { filterSettingPages, templateForPage } from './settingPages'
@@ -314,7 +313,7 @@ export function SettingWikiReader({
                   {q.title}
                 </button>
                 <span className="setting-wiki-reader__quest-status">
-                  {QUEST_STATUS_LABELS[(q.quest_status || 'planned') as QuestStatus]}
+                  {questStatusLabel(q.quest_status || 'planned')}
                 </span>
               </li>
             ))}

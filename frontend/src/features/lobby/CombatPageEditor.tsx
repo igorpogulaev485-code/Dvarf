@@ -294,7 +294,7 @@ export function CombatPageEditor({
         </Button>
       </div>
 
-      <Text as="h3">Лут (заготовка)</Text>
+      <Text as="h3">Добыча (заготовка)</Text>
       <div className="inline-actions">
         {(['cp', 'sp', 'ep', 'gp', 'pp'] as const).map((k) => (
           <Field key={k} label={k.toUpperCase()}>
