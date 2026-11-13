@@ -229,7 +229,7 @@ class WikiService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self.lobby_svc._setting_detail(refreshed, see_as_gm=True)
+        return self.lobby_svc._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     # ----------------------------------------------------------------- trash
     def purge_expired(self, *, lobby_id: UUID | None = None) -> int:
@@ -336,7 +336,7 @@ class WikiService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self.lobby_svc._setting_detail(refreshed, see_as_gm=True)
+        return self.lobby_svc._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     def restore_setting(self, user: User, setting_id: UUID) -> SettingSummary:
         setting = self.lobbies.get_setting(setting_id)
@@ -389,7 +389,9 @@ class WikiService:
                 status_code=400,
             )
         if page.deleted_at is None:
-            return self.lobby_svc._setting_detail(setting, see_as_gm=True)
+            return self.lobby_svc._setting_detail_for_editor(
+                setting, user=user, lobby=lobby
+            )
         page.deleted_at = None
         # Родитель в корзине → в корень, чтобы не висела «невидимая» ветка.
         if page.parent_id is not None:
@@ -399,7 +401,7 @@ class WikiService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self.lobby_svc._setting_detail(refreshed, see_as_gm=True)
+        return self.lobby_svc._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     def purge_setting(self, user: User, setting_id: UUID) -> None:
         setting = self.lobbies.get_setting(setting_id)
@@ -440,7 +442,7 @@ class WikiService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self.lobby_svc._setting_detail(refreshed, see_as_gm=True)
+        return self.lobby_svc._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     def list_trash(self, user: User, lobby_id: UUID) -> SettingTrashListOut:
         lobby = self.lobby_svc._require_lobby(lobby_id)
@@ -678,7 +680,7 @@ class WikiService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(target.id)
         assert refreshed is not None
-        return self.lobby_svc._setting_detail(refreshed, see_as_gm=True)
+        return self.lobby_svc._setting_detail_for_editor(refreshed, user=user, lobby=lobby)
 
     # ------------------------------------------------------------- conflict
     def check_conflict(

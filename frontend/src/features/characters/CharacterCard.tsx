@@ -5,6 +5,7 @@ import {
   type CharacterSummary,
 } from '../../shared/api/characters'
 import { ApiRequestError } from '../../shared/api/client'
+import { formatClassLevelLabel } from '../../shared/dnd/classLevels'
 import { Button, Dialog, Stack, Text } from '../../ui'
 import type { CharacterListTag } from './characterListPrefs'
 
@@ -36,11 +37,7 @@ export function CharacterCard({ character, tags = [], onDeleted }: CharacterCard
   const navigate = useNavigate()
   const subtitleBits = [
     character.race_name,
-    character.class_name
-      ? `${character.class_name} ${character.level}`
-      : character.level
-        ? `ур. ${character.level}`
-        : null,
+    formatClassLevelLabel(character.class_name, character.level) || null,
     character.rules_edition,
   ].filter(Boolean)
   const subtitle = subtitleBits.join(' · ')

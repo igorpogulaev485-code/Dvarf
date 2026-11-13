@@ -2271,7 +2271,10 @@ export function SessionDetailPage() {
                       canSeeHidden={sessionCanSeeHidden(session)}
                       compact
                       showBindHint
-                      onBindSetting={() => setBindSettingOpen(true)}
+                      onBindSetting={() => {
+                        setBindSettingId(lobbySettings[0]?.id ?? '')
+                        setBindSettingOpen(true)
+                      }}
                     />
                   ) : (
                     <Text tone="muted">К сессии не привязан сеттинг.</Text>
@@ -3370,12 +3373,15 @@ export function SessionDetailPage() {
         secondaryLabel="Отмена"
         busy={busy}
         onPrimary={() => {
-          if (!bindSettingId) {
+          // FIX-01: select может визуально показывать первый пункт при value='',
+          // а state пустой — берём предвыбор / первый сеттинг лобби.
+          const id = bindSettingId || lobbySettings[0]?.id || ''
+          if (!id) {
             setToast('Сначала создайте сеттинг в лобби')
             return
           }
           void run(async () => {
-            const next = await updateSession(session.id, { setting_id: bindSettingId })
+            const next = await updateSession(session.id, { setting_id: id })
             setSession(next)
             setBindSettingOpen(false)
             setToast('Сеттинг привязан')
@@ -3394,7 +3400,7 @@ export function SessionDetailPage() {
             <Field label="Сеттинг лобби">
               <select
                 className="ui-input"
-                value={bindSettingId}
+                value={bindSettingId || lobbySettings[0]?.id || ''}
                 disabled={busy}
                 onChange={(e) => setBindSettingId(e.target.value)}
               >

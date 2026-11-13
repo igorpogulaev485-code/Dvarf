@@ -741,6 +741,7 @@ export function PlayDeskAttacksCompact({
   const [attackBreakdown, setAttackBreakdown] = useState<{
     name: string
     parts: AttackBonusPart[]
+    inventoryItemId?: string | null
   } | null>(null)
   const [pendingAttack, setPendingAttack] = useState<{
     name: string
@@ -2996,19 +2997,29 @@ export function PlayDeskAttacksCompact({
                       })
                     }
 
-                    // Кубики на столе: выбор цели + Попал/Промах
-                    if (turnEco?.diceOnTable && turnEco.combatActive) {
-                      const boundForTable = attack.inventory_item_id
-                        ? inventoryItems.find((row) => row.id === attack.inventory_item_id)
-                        : undefined
-                      finishAttackRef.current = finishAttack
-                      setPendingAttack({
-                        name: attack.name,
+                    // FIX-01: «Кубики на столе» — не бросать цифрово.
+                    // В активном бою: цель + Попал/Промах; иначе — «Ввести своё число».
+                    if (turnEco?.diceOnTable) {
+                      if (turnEco.combatActive) {
+                        const boundForTable = attack.inventory_item_id
+                          ? inventoryItems.find((row) => row.id === attack.inventory_item_id)
+                          : undefined
+                        finishAttackRef.current = finishAttack
+                        setPendingAttack({
+                          name: attack.name,
+                          attackBonus: effectiveAttackBonus,
+                          tableMode: true,
+                          adamantine: Boolean(boundForTable?.adamantine),
+                          meleeWeapon: Boolean(meleeAttack && !unarmed),
+                        })
+                        return
+                      }
+                      setEnterNumberCtx({
+                        title: `Атака: ${attack.name}`,
                         attackBonus: effectiveAttackBonus,
-                        tableMode: true,
-                        adamantine: Boolean(boundForTable?.adamantine),
-                        meleeWeapon: Boolean(meleeAttack && !unarmed),
+                        attackName: attack.name,
                       })
+                      setEnterNumberOpen(true)
                       return
                     }
 
@@ -3277,13 +3288,21 @@ export function PlayDeskAttacksCompact({
                     onClick={(event) => {
                       event.preventDefault()
                       event.stopPropagation()
-                      setAttackBreakdown({ name: attack.name, parts: attackParts })
+                      setAttackBreakdown({
+                        name: attack.name,
+                        parts: attackParts,
+                        inventoryItemId: attack.inventory_item_id,
+                      })
                     }}
                     onKeyDown={(event) => {
                       if (event.key !== 'Enter' && event.key !== ' ') return
                       event.preventDefault()
                       event.stopPropagation()
-                      setAttackBreakdown({ name: attack.name, parts: attackParts })
+                      setAttackBreakdown({
+                        name: attack.name,
+                        parts: attackParts,
+                        inventoryItemId: attack.inventory_item_id,
+                      })
                     }}
                   >
                     {formatModifier(attackBonus)}
@@ -3384,6 +3403,15 @@ export function PlayDeskAttacksCompact({
                       ? gate.reason
                       : 'Действие уже потрачено',
                   )
+                  return
+                }
+                if (turnEco?.diceOnTable) {
+                  setEnterNumberCtx({
+                    title: `${atk.companionName}: ${atk.name}`,
+                    attackBonus: atk.attackBonus,
+                    attackName: atk.name,
+                  })
+                  setEnterNumberOpen(true)
                   return
                 }
                 const strike = resolveAttackRoll({
@@ -3805,6 +3833,15 @@ export function PlayDeskAttacksCompact({
       attackName={attackBreakdown?.name ?? ''}
       parts={attackBreakdown?.parts ?? []}
       formulaVars={formulaVars}
+      inventoryItemId={attackBreakdown?.inventoryItemId}
+      onOpenItem={
+        onOpenItem
+          ? (itemId) => {
+              setAttackBreakdown(null)
+              onOpenItem(itemId)
+            }
+          : undefined
+      }
       onClose={() => setAttackBreakdown(null)}
     />
     </>

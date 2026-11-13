@@ -262,7 +262,23 @@ export function SettingDetailPage() {
   }
 
   function applyDetail(next: SettingDetail, preferPageId?: string | null) {
-    setSetting(next)
+    // FIX-01: если ответ мутации без флагов прав — не ронять мастера в вид игрока.
+    setSetting((prev) => {
+      const canEdit =
+        next.can_edit_wiki === true ||
+        next.is_owner === true ||
+        prev?.can_edit_wiki === true ||
+        prev?.is_owner === true
+      return {
+        ...next,
+        can_edit_wiki: canEdit || Boolean(next.can_edit_wiki),
+        is_owner: Boolean(next.is_owner) || Boolean(prev?.is_owner),
+        can_see_hidden:
+          next.can_see_hidden === true ||
+          prev?.can_see_hidden === true ||
+          canEdit,
+      }
+    })
     setSettingName(next.name)
     const pick =
       (preferPageId && next.pages.some((p) => p.id === preferPageId) && preferPageId) ||

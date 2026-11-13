@@ -24,8 +24,6 @@ def xp_lookup_from_catalog(catalog) -> dict[str, int]:
     """slug → xp из бестиария 2014 (для оценки DMG)."""
     out: dict[str, int] = {}
     try:
-        from app.models.catalog import CatalogKind
-
         rows = catalog.list_bestiary_for_generator(edition="2014")
     except Exception:  # noqa: BLE001
         return out
@@ -48,12 +46,36 @@ def build_combat_estimate(
     return CombatEstimateOut(**raw)
 
 
-def enrich_combat_page_out(out: SettingPageOut, *, catalog=None) -> SettingPageOut:
+def enrich_combat_page_out(
+    out: SettingPageOut,
+    *,
+    catalog=None,
+    xp_by_slug: dict[str, int] | None = None,
+) -> SettingPageOut:
     if out.page_kind != "combat":
         return out
     fields = wc.normalize_combat_fields(out.fields)
-    estimate = build_combat_estimate(fields, catalog=catalog)
+    if xp_by_slug is not None:
+        raw = wc.estimate_combat_dmg(fields, xp_by_slug=xp_by_slug)
+        estimate = CombatEstimateOut(**raw)
+    else:
+        estimate = build_combat_estimate(fields, catalog=catalog)
     return out.model_copy(update={"fields": fields, "combat_estimate": estimate})
+
+
+def enrich_combat_pages_out(
+    pages_out: list[SettingPageOut],
+    *,
+    catalog=None,
+) -> list[SettingPageOut]:
+    """Оценка боя для всех combat-страниц; бестиарий грузим один раз (не N+1)."""
+    if not any(p.page_kind == "combat" for p in pages_out):
+        return pages_out
+    xp_map = xp_lookup_from_catalog(catalog) if catalog is not None else {}
+    return [
+        enrich_combat_page_out(out, xp_by_slug=xp_map) if out.page_kind == "combat" else out
+        for out in pages_out
+    ]
 
 
 def picks_to_wave_dicts(picks: list[EncounterWikiPickIn] | None) -> list[dict[str, Any]]:
@@ -85,19 +107,18 @@ def picks_to_wave_dicts(picks: list[EncounterWikiPickIn] | None) -> list[dict[st
 def list_wiki_combat_pages_for_session(
     *,
     pages: list,
-    location_page_id: UUID | None,
+    location_page_id: UUID | None = None,
     involved_page_ids: list[UUID] | None = None,
 ) -> list[WikiCombatPageOut]:
-    """Дочерние «Бой» локации сессии + бои под активными квестами involved."""
-    by_id = {p.id: p for p in pages}
-    parents: set[UUID] = set()
-    if location_page_id:
-        parents.add(location_page_id)
-    for pid in involved_page_ids or []:
-        parent = by_id.get(pid)
-        if parent is not None and getattr(parent, "page_kind", None) == "quest":
-            parents.add(pid)
+    """Все страницы «Бой» сеттинга (не удалённые).
 
+    FIX-01: раньше отдавали только детей location_page_id / involved-квестов —
+    после сохранения в вики список «Бой из вики» оставался пустым, если локация
+    сессии не совпадала с родителем. Фильтр «бои этой локации» — на клиенте.
+    location_page_id / involved_page_ids оставлены в сигнатуре для совместимости.
+    """
+    del location_page_id, involved_page_ids  # API compat; filter is client-side
+    by_id = {p.id: p for p in pages}
     out: list[WikiCombatPageOut] = []
     for p in pages:
         if getattr(p, "page_kind", None) != "combat":
@@ -105,8 +126,6 @@ def list_wiki_combat_pages_for_session(
         if getattr(p, "deleted_at", None) is not None:
             continue
         parent_id = getattr(p, "parent_id", None)
-        if parent_id not in parents:
-            continue
         parent = by_id.get(parent_id) if parent_id else None
         out.append(
             WikiCombatPageOut(

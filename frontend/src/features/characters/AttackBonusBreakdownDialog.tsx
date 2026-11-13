@@ -15,6 +15,9 @@ type AttackBonusBreakdownDialogProps = {
   /** Same collapsed VariablePicker shell as AC / initiative (B6 V2) — read-only here. */
   formulaVars: FormulaVars
   onClose: () => void
+  /** FIX-01: ссылка на предмет оружия в разборе атаки. */
+  inventoryItemId?: string | null
+  onOpenItem?: (itemId: string) => void
 }
 
 /** U09 / B8: read-only attack bonus breakdown (BM + ability + magic + other). */
@@ -24,6 +27,8 @@ export function AttackBonusBreakdownDialog({
   parts,
   formulaVars,
   onClose,
+  inventoryItemId,
+  onOpenItem,
 }: AttackBonusBreakdownDialogProps) {
   const total = sumAttackBonusParts(parts)
   const summary = parts
@@ -32,6 +37,7 @@ export function AttackBonusBreakdownDialog({
       return part.hint ? `${bit} (${part.hint})` : bit
     })
     .join(' · ')
+  const canOpenItem = Boolean(inventoryItemId && onOpenItem)
 
   return (
     <Dialog
@@ -58,6 +64,21 @@ export function AttackBonusBreakdownDialog({
             <span>атака</span>
           </div>
         </div>
+
+        {canOpenItem ? (
+          <div className="inline-actions" style={{ marginBottom: 8 }}>
+            <button
+              type="button"
+              className="sheet-chip"
+              onClick={() => {
+                if (!inventoryItemId || !onOpenItem) return
+                onOpenItem(inventoryItemId)
+              }}
+            >
+              Открыть предмет
+            </button>
+          </div>
+        ) : null}
 
         <section className="ac-breakdown__section">
           <h3 className="ac-breakdown__label">Из чего сложилось</h3>
