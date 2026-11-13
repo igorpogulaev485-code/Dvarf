@@ -145,6 +145,21 @@
   padding-top: 14px;
 }
 
+.manual-roll-form--collapsed {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.manual-roll-form__head-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .manual-roll-form__heading {
   margin: 0;
   font-size: 1rem;
@@ -153,6 +168,19 @@
 .manual-roll-form__hint {
   margin: 0;
   font-size: 0.88rem;
+}
+
+.session-center-empty {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  width: 100%;
+  min-height: 120px;
+  padding: 12px 0;
+}
+
+.session-side-pane[hidden] {
+  display: none !important;
 }
 
 .manual-roll-form__row {
@@ -807,6 +835,15 @@
 
   .session-live-desk__center {
     min-width: 280px;
+    min-height: min(70vh, 640px);
+  }
+
+  .session-center-slot--cards {
+    width: 100%;
+  }
+
+  .session-center-slot--cards .session-table-grid {
+    width: 100%;
   }
 
   /* Дубль «Твой ход»: на десктопе достаточно акцента на карточке */

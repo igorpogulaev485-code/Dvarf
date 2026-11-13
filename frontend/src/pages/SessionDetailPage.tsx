@@ -314,7 +314,7 @@ export function SessionDetailPage() {
   const [settingArtifacts, setSettingArtifacts] = useState<SettingArtifact[]>([])
   const [lobbySettings, setLobbySettings] = useState<SettingSummary[]>([])
   const [sidePanelOpen, setSidePanelOpen] = useState(readSidePanelOpen)
-  const [sideTab, setSideTab] = useState<'notes' | 'wiki'>('notes')
+  const [sideTab, setSideTab] = useState<'notes' | 'chat' | 'wiki'>('notes')
   const [wikiSetting, setWikiSetting] = useState<SettingDetail | null>(null)
   const [seatPickOpen, setSeatPickOpen] = useState(false)
   const [seatPickId, setSeatPickId] = useState('')
@@ -1310,6 +1310,7 @@ export function SessionDetailPage() {
                     ownCharacterIds={ownCharacterIds}
                     isOwner={canRun}
                     busy={busy}
+                    diceOnTable={Boolean(session.combat?.dice_on_table)}
                     onSubmit={async (payload) => {
                       await run(async () => {
                         const created = await createSessionRoll(session.id, payload)
@@ -1905,14 +1906,25 @@ export function SessionDetailPage() {
                   </div>
 
                   {session.seats.length === 0 ? (
-                    <Text tone="muted" className="session-center-slot session-center-slot--cards">
-                      Игроков за столом нет.
-                      {canRun
-                        ? ' Откройте «Кто пришёл» или посадите противников.'
-                        : seatCandidates.length > 0
-                          ? ' Можно сесть за стол самому.'
-                          : ''}
-                    </Text>
+                    <div className="session-center-slot session-center-slot--cards session-center-empty">
+                      <Text tone="muted">
+                        {canRun
+                          ? 'За столом никого. Отметьте «Кто пришёл» или добавьте противников.'
+                          : seatCandidates.length > 0
+                            ? 'За столом никого — сядьте сами кнопкой выше.'
+                            : 'За столом никого.'}
+                      </Text>
+                      {canRun && !session.closed_at ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={busy}
+                          onClick={openAttendanceEditor}
+                        >
+                          Кто пришёл
+                        </Button>
+                      ) : null}
+                    </div>
                   ) : (
                     <div className="session-center-slot session-center-slot--cards">
                       {primarySeats.length > 0 ? (
@@ -2185,7 +2197,16 @@ export function SessionDetailPage() {
                       className={`session-live-desk__side-tab${sideTab === 'notes' ? ' is-on' : ''}`}
                       onClick={() => setSideTab('notes')}
                     >
-                      Заметки / Чат
+                      Заметки
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={sideTab === 'chat'}
+                      className={`session-live-desk__side-tab${sideTab === 'chat' ? ' is-on' : ''}`}
+                      onClick={() => setSideTab('chat')}
+                    >
+                      Чат
                     </button>
                     <button
                       type="button"
@@ -2216,69 +2237,85 @@ export function SessionDetailPage() {
                   </Button>
                 </div>
                 <div className="session-live-desk__side-body">
-                  {sideTab === 'notes' ? (
-                  <Stack gap={16}>
-                <LobbyNotesPanel
-                  lobbyId={session.lobby_id}
-                  canManageJournal={Boolean(session.is_owner || session.is_comaster)}
-                  settingId={session.setting_id}
-                  compact
-                  defaultScope="party"
-                  ownCharacterOptions={session.lobby_members
-                    .filter((m) => ownCharacterIds.has(m.character_id))
-                    .map((m) => ({ id: m.character_id, name: m.character_name }))}
-                  onToast={setToast}
-                  onError={setError}
-                />
-                <LobbyChatsPanel
-                  lobbyId={session.lobby_id}
-                  isOwner={canManageLetters}
-                  compact
-                  ownCharacterOptions={session.lobby_members
-                    .filter((m) => ownCharacterIds.has(m.character_id))
-                    .map((m) => ({ id: m.character_id, name: m.character_name }))}
-                  onToast={setToast}
-                  onError={setError}
-                />
-                  </Stack>
-                  ) : wikiSetting ? (
-                    <SettingWikiReader
-                      setting={wikiSetting}
-                      userKey={`session:${session.id}`}
-                      canEditWiki={Boolean(wikiSetting.can_edit_wiki)}
-                      canSeeHidden={sessionCanSeeHidden(session)}
+                  {/* Keep notes/chat mounted so draft text survives tab switches (SC-04). */}
+                  <div
+                    className="session-side-pane"
+                    hidden={sideTab !== 'notes'}
+                    data-side-pane="notes"
+                  >
+                    <LobbyNotesPanel
+                      lobbyId={session.lobby_id}
+                      canManageJournal={Boolean(session.is_owner || session.is_comaster)}
+                      settingId={session.setting_id}
                       compact
+                      defaultScope="party"
+                      ownCharacterOptions={session.lobby_members
+                        .filter((m) => ownCharacterIds.has(m.character_id))
+                        .map((m) => ({ id: m.character_id, name: m.character_name }))}
+                      onToast={setToast}
+                      onError={setError}
                     />
-                  ) : session.setting_id ? (
-                    <Text tone="muted">Загрузка вики…</Text>
-                  ) : sessionCanRun(session) || session.is_comaster ? (
-                    <SettingWikiReader
-                      setting={{
-                        id: '',
-                        lobby_id: session.lobby_id,
-                        name: '',
-                        world_notes: '',
-                        created_at: '',
-                        updated_at: '',
-                        pages: [],
-                        links: [],
-                        templates: [],
-                        all_tags: [],
-                        is_owner: false,
-                      }}
-                      userKey={`session:${session.id}`}
-                      canEditWiki={Boolean(session.is_owner || session.is_comaster)}
-                      canSeeHidden={sessionCanSeeHidden(session)}
+                  </div>
+                  <div
+                    className="session-side-pane"
+                    hidden={sideTab !== 'chat'}
+                    data-side-pane="chat"
+                  >
+                    <LobbyChatsPanel
+                      lobbyId={session.lobby_id}
+                      isOwner={canManageLetters}
                       compact
-                      showBindHint
-                      onBindSetting={() => {
-                        setBindSettingId(lobbySettings[0]?.id ?? '')
-                        setBindSettingOpen(true)
-                      }}
+                      ownCharacterOptions={session.lobby_members
+                        .filter((m) => ownCharacterIds.has(m.character_id))
+                        .map((m) => ({ id: m.character_id, name: m.character_name }))}
+                      onToast={setToast}
+                      onError={setError}
                     />
-                  ) : (
-                    <Text tone="muted">К сессии не привязан сеттинг.</Text>
-                  )}
+                  </div>
+                  <div
+                    className="session-side-pane"
+                    hidden={sideTab !== 'wiki'}
+                    data-side-pane="wiki"
+                  >
+                    {wikiSetting ? (
+                      <SettingWikiReader
+                        setting={wikiSetting}
+                        userKey={`session:${session.id}`}
+                        canEditWiki={Boolean(wikiSetting.can_edit_wiki)}
+                        canSeeHidden={sessionCanSeeHidden(session)}
+                        compact
+                      />
+                    ) : session.setting_id ? (
+                      <Text tone="muted">Загрузка вики…</Text>
+                    ) : sessionCanRun(session) || session.is_comaster ? (
+                      <SettingWikiReader
+                        setting={{
+                          id: '',
+                          lobby_id: session.lobby_id,
+                          name: '',
+                          world_notes: '',
+                          created_at: '',
+                          updated_at: '',
+                          pages: [],
+                          links: [],
+                          templates: [],
+                          all_tags: [],
+                          is_owner: false,
+                        }}
+                        userKey={`session:${session.id}`}
+                        canEditWiki={Boolean(session.is_owner || session.is_comaster)}
+                        canSeeHidden={sessionCanSeeHidden(session)}
+                        compact
+                        showBindHint
+                        onBindSetting={() => {
+                          setBindSettingId(lobbySettings[0]?.id ?? '')
+                          setBindSettingOpen(true)
+                        }}
+                      />
+                    ) : (
+                      <Text tone="muted">К сессии не привязан сеттинг.</Text>
+                    )}
+                  </div>
                 </div>
               </aside>
             </div>
@@ -2301,6 +2338,7 @@ export function SessionDetailPage() {
                     ownCharacterIds={ownCharacterIds}
                     isOwner={canRun}
                     busy={busy}
+                    diceOnTable={Boolean(session.combat?.dice_on_table)}
                     onSubmit={async (payload) => {
                       await run(async () => {
                         const created = await createSessionRoll(session.id, payload)
@@ -2321,7 +2359,7 @@ export function SessionDetailPage() {
               ) : null}
               {liveTab === 'more' ? (
                 <Stack gap={16}>
-                <div className="session-live-desk__side-tabs" role="tablist" aria-label="Заметки и вики">
+                <div className="session-live-desk__side-tabs" role="tablist" aria-label="Заметки, чат и вики">
                   <button
                     type="button"
                     role="tab"
@@ -2329,7 +2367,16 @@ export function SessionDetailPage() {
                     className={`session-live-desk__side-tab${sideTab === 'notes' ? ' is-on' : ''}`}
                     onClick={() => setSideTab('notes')}
                   >
-                    Заметки / Чат
+                    Заметки
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={sideTab === 'chat'}
+                    className={`session-live-desk__side-tab${sideTab === 'chat' ? ' is-on' : ''}`}
+                    onClick={() => setSideTab('chat')}
+                  >
+                    Чат
                   </button>
                   <button
                     type="button"
@@ -2348,44 +2395,59 @@ export function SessionDetailPage() {
                     Вики
                   </button>
                 </div>
-                {sideTab === 'notes' ? (
-                  <>
-                <LobbyNotesPanel
-                  lobbyId={session.lobby_id}
-                  canManageJournal={Boolean(session.is_owner || session.is_comaster)}
-                  settingId={session.setting_id}
-                  compact
-                  defaultScope="party"
-                  ownCharacterOptions={session.lobby_members
-                    .filter((m) => ownCharacterIds.has(m.character_id))
-                    .map((m) => ({ id: m.character_id, name: m.character_name }))}
-                  onToast={setToast}
-                  onError={setError}
-                />
-                <LobbyChatsPanel
-                  lobbyId={session.lobby_id}
-                  isOwner={canManageLetters}
-                  compact
-                  ownCharacterOptions={session.lobby_members
-                    .filter((m) => ownCharacterIds.has(m.character_id))
-                    .map((m) => ({ id: m.character_id, name: m.character_name }))}
-                  onToast={setToast}
-                  onError={setError}
-                />
-                  </>
-                ) : wikiSetting ? (
-                  <SettingWikiReader
-                    setting={wikiSetting}
-                    userKey={`session:${session.id}`}
-                    canEditWiki={Boolean(wikiSetting.can_edit_wiki)}
-                    canSeeHidden={sessionCanSeeHidden(session)}
+                <div
+                  className="session-side-pane"
+                  hidden={sideTab !== 'notes'}
+                  data-side-pane="notes"
+                >
+                  <LobbyNotesPanel
+                    lobbyId={session.lobby_id}
+                    canManageJournal={Boolean(session.is_owner || session.is_comaster)}
+                    settingId={session.setting_id}
                     compact
+                    defaultScope="party"
+                    ownCharacterOptions={session.lobby_members
+                      .filter((m) => ownCharacterIds.has(m.character_id))
+                      .map((m) => ({ id: m.character_id, name: m.character_name }))}
+                    onToast={setToast}
+                    onError={setError}
                   />
-                ) : session.setting_id ? (
-                  <Text tone="muted">Загрузка вики…</Text>
-                ) : (
-                  <Text tone="muted">К сессии не привязан сеттинг.</Text>
-                )}
+                </div>
+                <div
+                  className="session-side-pane"
+                  hidden={sideTab !== 'chat'}
+                  data-side-pane="chat"
+                >
+                  <LobbyChatsPanel
+                    lobbyId={session.lobby_id}
+                    isOwner={canManageLetters}
+                    compact
+                    ownCharacterOptions={session.lobby_members
+                      .filter((m) => ownCharacterIds.has(m.character_id))
+                      .map((m) => ({ id: m.character_id, name: m.character_name }))}
+                    onToast={setToast}
+                    onError={setError}
+                  />
+                </div>
+                <div
+                  className="session-side-pane"
+                  hidden={sideTab !== 'wiki'}
+                  data-side-pane="wiki"
+                >
+                  {wikiSetting ? (
+                    <SettingWikiReader
+                      setting={wikiSetting}
+                      userKey={`session:${session.id}`}
+                      canEditWiki={Boolean(wikiSetting.can_edit_wiki)}
+                      canSeeHidden={sessionCanSeeHidden(session)}
+                      compact
+                    />
+                  ) : session.setting_id ? (
+                    <Text tone="muted">Загрузка вики…</Text>
+                  ) : (
+                    <Text tone="muted">К сессии не привязан сеттинг.</Text>
+                  )}
+                </div>
                 </Stack>
               ) : null}
             </div>

@@ -942,6 +942,7 @@ export function SessionLiveTablePreviewPage() {
                   seats={seats}
                   ownCharacterIds={new Set(['c1'])}
                   isOwner
+                  diceOnTable={false}
                   onSubmit={(payload) => {
                     const next: SessionEvent = {
                       id: `local-${Date.now()}`,

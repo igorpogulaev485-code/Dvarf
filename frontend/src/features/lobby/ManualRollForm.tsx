@@ -18,6 +18,8 @@ type Props = {
   ownCharacterIds: Set<string>
   isOwner: boolean
   busy?: boolean
+  /** В — раскрыть форму, если мастер включил «Кубики на столе» */
+  diceOnTable?: boolean
   onSubmit: (payload: ManualRollPayload) => Promise<void> | void
 }
 
@@ -28,12 +30,16 @@ export function ManualRollForm({
   ownCharacterIds,
   isOwner,
   busy = false,
+  diceOnTable = false,
   onSubmit,
 }: Props) {
   const ownSeats = seats.filter((s) => ownCharacterIds.has(s.character_id))
   const defaultActor =
     ownSeats[0]?.character_id ?? (isOwner ? MASTER_VALUE : '')
 
+  /** Б — по клику; В — сам, если «Кубики на столе» */
+  const [userOpen, setUserOpen] = useState(false)
+  const open = Boolean(diceOnTable) || userOpen
   const [actor, setActor] = useState(defaultActor)
   const [title, setTitle] = useState('Бросок')
   const [formula, setFormula] = useState('')
@@ -86,15 +92,31 @@ export function ManualRollForm({
     )
   }
 
+  if (!open) {
+    return (
+      <div className="manual-roll-form manual-roll-form--collapsed">
+        <Button type="button" variant="secondary" onClick={() => setUserOpen(true)}>
+          Записать живой куб
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <form className="manual-roll-form" onSubmit={(e) => void handleSubmit(e)}>
       <Stack gap={10}>
-        <Text as="h3" className="manual-roll-form__heading">
-          Физический куб
-        </Text>
+        <div className="manual-roll-form__head-row">
+          <Text as="h3" className="manual-roll-form__heading">
+            Живой куб
+          </Text>
+          {!diceOnTable ? (
+            <Button type="button" variant="ghost" onClick={() => setUserOpen(false)}>
+              Свернуть
+            </Button>
+          ) : null}
+        </div>
         <Text tone="muted" className="manual-roll-form__hint">
-          Свободный бросок без цели (проверка, которую мастер попросил устно). Атаки врагов —
-          с карточки; режим «Кубики на столе» — переключатель у ленты.
+          Свободный бросок без цели. Атаки врагов — с карточки.
         </Text>
 
         <Field label="Кто">
