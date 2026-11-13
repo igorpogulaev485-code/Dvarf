@@ -1,5 +1,6 @@
 /**
  * SC-01 scene frame: weapon-first combat panel, «Ещё» slot, no carpet.
+ * SC-02 moved cover out of «Ещё» into attack dialogs — keep order invariants.
  * Run: npx tsx --tsconfig tsconfig.app.json src/features/characters/uxSc01SceneFrame.selfcheck.ts
  */
 import assert from 'node:assert/strict'
@@ -33,19 +34,18 @@ const firstScreen = attacks.slice(headIdx, detailsIdx)
 assert.doesNotMatch(firstScreen, /Без укрытия/)
 assert.doesNotMatch(firstScreen, /Стабилизировать/)
 assert.doesNotMatch(firstScreen, /TurnEconomyCombatActions/)
-assert.doesNotMatch(firstScreen, /TurnEconomyChips/)
 
-// Inside «Ещё»: cover row + combat actions stay available.
+// Inside «Ещё»: PHB actions stay; cover left the tab in SC-02.
 const moreBody = attacks.slice(detailsIdx, detailsEndIdx)
-assert.match(moreBody, /Без укрытия/)
+assert.doesNotMatch(moreBody, /Без укрытия/)
 assert.match(moreBody, /TurnEconomyCombatActions/)
-assert.match(moreBody, /turnEco\.combatActive\s*\?\s*\(\s*<TurnEconomyChips/)
+assert.match(moreBody, /mode="more"/)
 
 // After «Ещё»: optional hero chips then weapons (эталон a2ea6e18).
 const afterMore = attacks.slice(detailsEndIdx, listIdx)
 assert.match(afterMore, /deskCombatFeatures/)
 assert.doesNotMatch(afterMore, /Без укрытия/)
-assert.doesNotMatch(afterMore, /TurnEconomyCombatActions/)
+assert.match(afterMore, /mode="everyTurn"/)
 
 // M-02: one «Кубики на столе» in TurnEconomyStrip; not in attacks head.
 assert.match(strip, /Кубики на столе/)

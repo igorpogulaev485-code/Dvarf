@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 
 type Props = {
@@ -10,6 +10,8 @@ type Props = {
   busy?: boolean
   onClose: () => void
   onConfirm: (payload: { total: number; d20?: number; physical_dice: true }) => void
+  /** SC-02: укрытие / состояния цели в окне «кубики на столе». */
+  modifiersSlot?: ReactNode
 }
 
 /**
@@ -23,6 +25,7 @@ export function EnterOwnNumberDialog({
   busy = false,
   onClose,
   onConfirm,
+  modifiersSlot,
 }: Props) {
   const [value, setValue] = useState<number | null>(null)
 
@@ -57,6 +60,7 @@ export function EnterOwnNumberDialog({
         <Text tone="muted">
           Число с живого кубика. В ленту уйдёт с пометкой «кубик на столе».
         </Text>
+        {modifiersSlot}
         <Field label={mode === 'd20' ? 'Выпало на d20' : 'Итог'}>
           <NumberInput
             value={value}

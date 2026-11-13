@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { CombatTarget } from '../lobby/combatTargets'
 import { Button, Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 
@@ -18,6 +18,8 @@ type Props = {
   /** Паритет с EnemyAttackDialog: урон в том же окне при «Попал». */
   onTableHit?: (target: CombatTarget, damageTotal: number) => void
   onTableMiss?: (target: CombatTarget) => void
+  /** SC-02: укрытие / состояния цели (свёрнутый блок). */
+  modifiersSlot?: ReactNode
 }
 
 /**
@@ -36,6 +38,7 @@ export function CombatTargetPicker({
   diceOnTable = false,
   onTableHit,
   onTableMiss,
+  modifiersSlot,
 }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [damageTotal, setDamageTotal] = useState<number | null>(null)
@@ -89,6 +92,7 @@ export function CombatTargetPicker({
       size="default"
     >
       <Stack gap={10}>
+        {modifiersSlot}
         {list.length === 0 ? (
           <Text tone="muted">Нет подходящих целей в текущем бою.</Text>
         ) : (

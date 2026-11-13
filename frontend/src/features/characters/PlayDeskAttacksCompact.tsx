@@ -5,8 +5,6 @@ import { TurnEconomyCombatActions } from './TurnEconomyCombatActions'
 import { GrappleShoveDialog, type GrappleShoveMode } from './GrappleShoveDialog'
 import { TelekineticShoveDialog } from './TelekineticShoveDialog'
 import {
-  POWER_ATTACK_HINT_GWM,
-  POWER_ATTACK_HINT_SS,
   findHealerKitItem,
   healerFeatHealAmount,
   isHandCrossbowName,
@@ -86,7 +84,6 @@ import {
   conditionModeVsTarget,
   coverAcForAttacker,
   coverIgnoreKind,
-  coverLabelRu,
   mergeRollModes,
   type CoverLevel,
 } from '../../shared/dnd/o08ActionsCoverConditions'
@@ -98,10 +95,7 @@ import {
   markReadyPrepared,
 } from '../../shared/dnd/turnEconomy'
 import {
-  MOUNTED_COMBATANT_ADV_HINT,
-  MOUNTED_COMBATANT_RANGED_DIS_HINT,
   MOUNTED_HINT,
-  UNDERWATER_HINT,
   findActiveMount,
   hostIsMounted,
   hasMountedCombatantFeat,
@@ -155,6 +149,10 @@ import {
 import type { HomebrewKey } from '../lobby/campaignRules'
 import { CombatTargetPicker } from './CombatTargetPicker'
 import { EnterOwnNumberDialog } from './EnterOwnNumberDialog'
+import {
+  TargetModifiersFields,
+  type TargetModifiersValue,
+} from './TargetModifiersFields'
 import type { CombatTarget } from '../lobby/combatTargets'
 import { resourceShownCurrent, type SheetResource } from '../../shared/dnd/rest'
 import { isHarnessDivinePowerResourceId } from '../../shared/dnd/harnessDivinePower'
@@ -510,7 +508,7 @@ export function PlayDeskAttacksCompact({
   onSpendReadySpellSlot,
   characterName = null,
   underwaterSelf = false,
-  onUnderwaterSelfChange,
+  onUnderwaterSelfChange: _onUnderwaterSelfChange,
   swimSpeed = null,
 }: PlayDeskAttacksCompactProps) {
   const turnEco = useTurnEconomy()
@@ -709,8 +707,6 @@ export function PlayDeskAttacksCompact({
   const holdingHandCrossbow = weapons.some(
     (w) => w.held && isHandCrossbowName(w.name),
   )
-  const showPowerAttackChip = hasGwm || hasSharpshooter
-
   function openBonusGrapple(
     modes: GrappleShoveMode[],
     title: string,
@@ -756,6 +752,9 @@ export function PlayDeskAttacksCompact({
     adamantine?: boolean
     /** O-04: рукопашная атака оружием — для разрубания. */
     meleeWeapon?: boolean
+    /** SC-02: бросок после подтверждения цели/модификаторов. */
+    deferred?: boolean
+    attackId?: string
   } | null>(null)
   const finishAttackRef = useRef<
     | ((opts?: {
@@ -773,6 +772,10 @@ export function PlayDeskAttacksCompact({
       }) => void)
     | null
   >(null)
+  /** SC-02: после окна цели — повторить клик атаки уже с модификаторами. */
+  const skipAttackDeferRef = useRef(false)
+  const flushAttackTargetRef = useRef<CombatTarget | null>(null)
+  const attackHitButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const [enterNumberOpen, setEnterNumberOpen] = useState(false)
   const [enterNumberCtx, setEnterNumberCtx] = useState<{
     title: string
@@ -947,6 +950,67 @@ export function PlayDeskAttacksCompact({
     setOpenStrike(null)
   }
 
+  const targetModifiersValue: TargetModifiersValue = {
+    cover: targetCover,
+    dodging: targetDodging,
+    prone: targetProne,
+    restrained: targetRestrained,
+    paralyzedClose: targetParalyzedClose,
+    fearSourceVisible,
+    invisibleDiscovered,
+    underwater: targetUnderwater,
+    isMounted: targetIsMounted,
+    aimAtMount: attackAimAtMount,
+    dismissRiderRangedDis,
+    smallerThanMount: targetSmallerThanMount,
+    isObject: targetIsObject,
+    powerAttackOn,
+    longRangeMarked,
+    within5ft,
+    grappledByMe: grappledTarget,
+  }
+
+  const patchTargetModifiers = (patch: Partial<TargetModifiersValue>) => {
+    if (patch.cover !== undefined) setTargetCover(patch.cover)
+    if (patch.dodging !== undefined) setTargetDodging(patch.dodging)
+    if (patch.prone !== undefined) setTargetProne(patch.prone)
+    if (patch.restrained !== undefined) setTargetRestrained(patch.restrained)
+    if (patch.paralyzedClose !== undefined) setTargetParalyzedClose(patch.paralyzedClose)
+    if (patch.fearSourceVisible !== undefined) setFearSourceVisible(patch.fearSourceVisible)
+    if (patch.invisibleDiscovered !== undefined) setInvisibleDiscovered(patch.invisibleDiscovered)
+    if (patch.underwater !== undefined) setTargetUnderwater(patch.underwater)
+    if (patch.isMounted !== undefined) setTargetIsMounted(patch.isMounted)
+    if (patch.aimAtMount !== undefined) setAttackAimAtMount(patch.aimAtMount)
+    if (patch.dismissRiderRangedDis !== undefined) setDismissRiderRangedDis(patch.dismissRiderRangedDis)
+    if (patch.smallerThanMount !== undefined) setTargetSmallerThanMount(patch.smallerThanMount)
+    if (patch.isObject !== undefined) setTargetIsObject(patch.isObject)
+    if (patch.powerAttackOn !== undefined) setPowerAttackOn(patch.powerAttackOn)
+    if (patch.longRangeMarked !== undefined) setLongRangeMarked(patch.longRangeMarked)
+    if (patch.within5ft !== undefined) setWithin5ft(patch.within5ft)
+    if (patch.grappledByMe !== undefined) setGrappledTarget(patch.grappledByMe)
+  }
+
+  const targetModifiersSlot = (
+    <TargetModifiersFields
+      value={targetModifiersValue}
+      onChange={patchTargetModifiers}
+      flags={{
+        showAdamantineObject: Boolean(masterRules.dmg_adamantine_weapon),
+        hasGwm,
+        hasSharpshooter,
+        hasCrossbowExpert,
+        hasGunner,
+        hasGrappler,
+        hasMountedCombatant,
+        isMountedNow,
+        mountSizeLabel: activeMount
+          ? mountSizeFromSlugOrName(activeMount.name || activeMount.id)
+          : null,
+      }}
+    />
+  )
+
+
   return (
     <>
     <div className="play-desk-compact" data-onboarding="actions">
@@ -968,260 +1032,39 @@ export function PlayDeskAttacksCompact({
       {turnEco ? (
         <>
           {/*
-            SC-01: каркас сцен — постоянный ковёр PHB/укрытия/отметок с первого экрана
-            уходит в «Ещё / Действия хода» (уровень Б). Полная раскладка А/Б/В — SC-02.
-            Отметки хода (решение 13.11 18:05) — только при активном бое.
+            SC-02: карта А/Б/В — отметки хода (В) только в бою; PHB в «Ещё» (Б);
+            укрытие/состояния цели только в окне атаки (17:42).
           */}
-          <details className="play-desk-attacks-more">
-            <summary className="play-desk-attacks-more__summary">
-              Ещё / Действия хода
-            </summary>
-            <div className="play-desk-attacks-more__body">
           {turnEco.combatActive ? (
             <TurnEconomyChips
               state={turnEco.turnEconomy}
               onToggle={turnEco.toggleMark}
               onToggleMoved={turnEco.toggleMoved}
-              className="chip-row"
+              className="chip-row play-desk-turn-marks"
             />
           ) : null}
-          {masterRules.dmg_adamantine_weapon ? (
-            <label className="field" style={{ marginBottom: 4 }}>
-              <input
-                type="checkbox"
-                checked={targetIsObject}
-                onChange={(e) => setTargetIsObject(e.target.checked)}
-              />{' '}
-              Цель — предмет (адамантин → автокрит)
-            </label>
-          ) : null}
-          {showPowerAttackChip ? (
-            <div className="chip-row" style={{ marginBottom: 8 }} role="group" aria-label="Силовой удар">
+          <details className="play-desk-attacks-more">
+            <summary className="play-desk-attacks-more__summary">
+              Ещё / Действия хода
+            </summary>
+            <div className="play-desk-attacks-more__body">
+          {hasGwm ? (
+            <div className="chip-row" style={{ marginBottom: 8 }}>
               <button
                 type="button"
-                className={`sheet-chip${powerAttackOn ? ' is-on' : ''}`}
-                title={
-                  hasGwm && hasSharpshooter
-                    ? `${POWER_ATTACK_HINT_GWM} · ${POWER_ATTACK_HINT_SS}`
-                    : hasGwm
-                      ? POWER_ATTACK_HINT_GWM
-                      : POWER_ATTACK_HINT_SS
-                }
-                onClick={() => setPowerAttackOn((v) => !v)}
-              >
-                {hasGwm && hasSharpshooter
-                  ? 'Силовой удар −5/+10'
-                  : hasGwm
-                    ? 'Мастер большого оружия −5/+10'
-                    : 'Меткий стрелок −5/+10'}
-              </button>
-              {hasSharpshooter ? (
-                <label className="field" style={{ margin: 0 }}>
-                  <input
-                    type="checkbox"
-                    checked={longRangeMarked}
-                    onChange={(e) => setLongRangeMarked(e.target.checked)}
-                  />{' '}
-                  Дальняя дистанция
-                </label>
-              ) : null}
-              {hasCrossbowExpert || hasGunner || hasSharpshooter ? (
-                <label className="field" style={{ margin: 0 }}>
-                  <input
-                    type="checkbox"
-                    checked={within5ft}
-                    onChange={(e) => setWithin5ft(e.target.checked)}
-                  />{' '}
-                  В 5 фт
-                </label>
-              ) : null}
-            </div>
-          ) : hasCrossbowExpert || hasGunner ? (
-            <div className="chip-row" style={{ marginBottom: 8 }}>
-              <label className="field" style={{ margin: 0 }}>
-                <input
-                  type="checkbox"
-                  checked={within5ft}
-                  onChange={(e) => setWithin5ft(e.target.checked)}
-                />{' '}
-                В 5 фт (дальнобойная)
-              </label>
-            </div>
-          ) : null}
-
-          {hasGrappler || hasGwm ? (
-            <div className="chip-row" style={{ marginBottom: 8 }}>
-              {hasGrappler ? (
-                <label className="field" style={{ margin: 0 }}>
-                  <input
-                    type="checkbox"
-                    checked={grappledTarget}
-                    onChange={(e) => setGrappledTarget(e.target.checked)}
-                  />{' '}
-                  Цель схвачена мной (преимущество)
-                </label>
-              ) : null}
-              {hasGwm ? (
-                <button
-                  type="button"
-                  className="sheet-chip"
-                  title="Отметить добивание рукопашным оружием в этот ход (хиты цели → 0)"
-                  onClick={() => {
-                    turnEco?.patchTurnEconomy(markMeleeWeaponCritOrKill)
-                    onToast?.('Мастер большого оружия: добивание отмечено · бонусная атака доступна')
-                  }}
-                >
-                  Добивание (0 хитов)
-                </button>
-              ) : null}
-            </div>
-          ) : null}
-
-          {/* O-08: укрытие цели и ситуационные галочки */}
-          <div className="chip-row" style={{ marginBottom: 8 }} role="group" aria-label="Укрытие цели">
-            {(['none', 'half', 'three_quarters', 'total'] as CoverLevel[]).map((lvl) => (
-              <button
-                key={lvl}
-                type="button"
-                className={`sheet-chip${targetCover === lvl ? ' is-on' : ''}`}
-                aria-pressed={targetCover === lvl}
-                title={coverLabelRu(lvl)}
-                onClick={() => setTargetCover(lvl)}
-              >
-                {lvl === 'none' ? 'Без укрытия' : coverLabelRu(lvl)}
-              </button>
-            ))}
-          </div>
-          <div className="chip-row" style={{ marginBottom: 8 }}>
-            <label className="field" style={{ margin: 0 }}>
-              <input
-                type="checkbox"
-                checked={targetDodging}
-                onChange={(e) => setTargetDodging(e.target.checked)}
-              />{' '}
-              Цель уклоняется
-            </label>
-            <label className="field" style={{ margin: 0 }}>
-              <input
-                type="checkbox"
-                checked={targetProne}
-                onChange={(e) => setTargetProne(e.target.checked)}
-              />{' '}
-              Цель опрокинута
-            </label>
-            <label className="field" style={{ margin: 0 }}>
-              <input
-                type="checkbox"
-                checked={targetRestrained}
-                onChange={(e) => setTargetRestrained(e.target.checked)}
-              />{' '}
-              Цель опутана
-            </label>
-            <label className="field" style={{ margin: 0 }}>
-              <input
-                type="checkbox"
-                checked={targetParalyzedClose}
-                onChange={(e) => setTargetParalyzedClose(e.target.checked)}
-              />{' '}
-              Паралич/без сознания в 5 фт
-            </label>
-            <label className="field" style={{ margin: 0 }}>
-              <input
-                type="checkbox"
-                checked={fearSourceVisible}
-                onChange={(e) => setFearSourceVisible(e.target.checked)}
-              />{' '}
-              Источник страха виден
-            </label>
-            <label className="field" style={{ margin: 0 }}>
-              <input
-                type="checkbox"
-                checked={invisibleDiscovered}
-                onChange={(e) => setInvisibleDiscovered(e.target.checked)}
-              />{' '}
-              Невидимый обнаружен
-            </label>
-          </div>
-
-          {/* O-10: верхом / под водой */}
-          <div className="chip-row" style={{ marginBottom: 8 }} role="group" aria-label="Верхом и под водой">
-            <button
-              type="button"
-              className={`sheet-chip${underwaterSelf ? ' is-on' : ''}`}
-              aria-pressed={underwaterSelf}
-              title={UNDERWATER_HINT}
-              onClick={() => onUnderwaterSelfChange?.(!underwaterSelf)}
-            >
-              Под водой{underwaterSelf ? ' · вы' : ''}
-            </button>
-            <label className="field" style={{ margin: 0 }} title={UNDERWATER_HINT}>
-              <input
-                type="checkbox"
-                checked={targetUnderwater}
-                onChange={(e) => setTargetUnderwater(e.target.checked)}
-              />{' '}
-              Цель под водой
-            </label>
-            {isMountedNow && activeMount ? (
-              <span className="sheet-chip is-on" title={`${MOUNTED_HINT} · ${mountControlNote(activeMount)}`}>
-                Верхом · {activeMount.name || 'скакун'}
-              </span>
-            ) : null}
-            {hasMountedCombatant && isMountedNow ? (
-              <label className="field" style={{ margin: 0 }} title={MOUNTED_COMBATANT_ADV_HINT}>
-                <input
-                  type="checkbox"
-                  checked={targetSmallerThanMount}
-                  onChange={(e) => setTargetSmallerThanMount(e.target.checked)}
-                />{' '}
-                Цель меньше скакуна
-                {activeMount
-                  ? ` (${mountSizeFromSlugOrName(activeMount.name || activeMount.id)})`
-                  : ''}
-              </label>
-            ) : null}
-            <label className="field" style={{ margin: 0 }}>
-              <input
-                type="checkbox"
-                checked={targetIsMounted}
-                onChange={(e) => {
-                  setTargetIsMounted(e.target.checked)
-                  if (!e.target.checked) {
-                    setAttackAimAtMount(false)
-                    setDismissRiderRangedDis(false)
-                  }
+                className="sheet-chip"
+                title="Отметить добивание рукопашным оружием в этот ход (хиты цели → 0)"
+                onClick={() => {
+                  turnEco?.patchTurnEconomy(markMeleeWeaponCritOrKill)
+                  onToast?.('Мастер большого оружия: добивание отмечено · бонусная атака доступна')
                 }}
-              />{' '}
-              Цель верхом
-            </label>
-            {targetIsMounted ? (
-              <>
-                <label className="field" style={{ margin: 0 }}>
-                  <input
-                    type="checkbox"
-                    checked={attackAimAtMount}
-                    onChange={(e) => setAttackAimAtMount(e.target.checked)}
-                  />{' '}
-                  Бью по скакуну
-                </label>
-                <label
-                  className="field"
-                  style={{ margin: 0 }}
-                  title={MOUNTED_COMBATANT_RANGED_DIS_HINT}
-                >
-                  <input
-                    type="checkbox"
-                    checked={!dismissRiderRangedDis && !attackAimAtMount}
-                    disabled={attackAimAtMount}
-                    onChange={(e) => setDismissRiderRangedDis(!e.target.checked)}
-                  />{' '}
-                  Помеха дальним по всаднику
-                </label>
-              </>
-            ) : null}
-          </div>
-
+              >
+                Добивание (0 хитов)
+              </button>
+            </div>
+          ) : null}
           <TurnEconomyCombatActions
+            mode="more"
             hasCunningAction={
               hasCunningAction ||
               combatFeatures.some((f) => f.id === 'cunning_action')
@@ -2309,6 +2152,66 @@ export function PlayDeskAttacksCompact({
         </div>
       ) : null}
 
+      {isMountedNow && activeMount ? (
+        <div className="chip-row" style={{ marginBottom: 8 }} role="group" aria-label="Верхом">
+          <span
+            className="sheet-chip is-on"
+            title={`${MOUNTED_HINT} · ${mountControlNote(activeMount)}`}
+          >
+            Верхом · {activeMount.name || 'скакун'}
+          </span>
+        </div>
+      ) : null}
+
+      {turnEco ? (
+        <TurnEconomyCombatActions
+          mode="everyTurn"
+          className="chip-row play-desk-every-turn"
+          hasCunningAction={
+            hasCunningAction ||
+            combatFeatures.some((f) => f.id === 'cunning_action')
+          }
+          hasSteadyAim={
+            tceAllowed && combatFeatures.some((f) => f.id === 'steady_aim')
+          }
+          showTwoWeaponBonus={heldMelee.length >= 2}
+          twoWeaponBonusGate={
+            canTwoWeaponBonusAttack(turnEco.turnEconomy, {
+              hasDualWielder,
+              heldMelee,
+            })
+          }
+          onTwoWeaponBonus={() => {
+            const gate = canTwoWeaponBonusAttack(turnEco.turnEconomy, {
+              hasDualWielder,
+              heldMelee,
+            })
+            if (!gate.ok) return
+            turnEco.patchTurnEconomy(markTwoWeaponBonusUsed)
+            setTwfBonusArmed(true)
+            const modNote = hasTwoWeaponStyle
+              ? 'к урону добавляется модификатор характеристики (стиль)'
+              : 'к урону модификатор характеристики не добавляется (кроме отрицательного)'
+            onToast?.(
+              `Атака вторым оружием: бонусное · ${modNote}. Выбери оружие во второй руке.`,
+            )
+          }}
+          onOfferSkill={(key) => {
+            const labels: Record<string, string> = {
+              investigation: 'Анализ',
+              perception: 'Внимательность',
+              stealth: 'Скрытность',
+            }
+            onToast?.(
+              key === 'stealth'
+                ? `Засада · бросьте «${labels[key]}» из полосы навыков или введите число`
+                : `Поиск · бросьте «Анализ»/«Внимательность» из полосы навыков или введите число`,
+            )
+          }}
+          onToast={onToast}
+        />
+      ) : null}
+
       <div className="play-desk-compact__list play-desk-compact__list--dense">
         {named.length === 0 ? (
           <div
@@ -2680,14 +2583,17 @@ export function PlayDeskAttacksCompact({
                   type="button"
                   className="play-desk-compact__hit"
                   aria-label={`${attack.name}, атака ${formatModifier(attackBonus)}, урон ${dmgLine}`}
-                  disabled={Boolean(
-                    coverBlocked || (turnEco && !turnEco.canAttack().ok),
-                  )}
+                  ref={(el) => {
+                    attackHitButtonRefs.current[attack.id] = el
+                  }}
+                  disabled={Boolean(turnEco && !turnEco.canAttack().ok)}
                   title={(() => {
                     if (uwMode.autoMiss) {
                       return uwMode.autoMissReason || 'Промах под водой'
                     }
-                    if (coverVs.blocked) return coverVs.reason || 'Полное укрытие'
+                    if (coverVs.blocked) {
+                      return 'Полное укрытие — снимите в «+ Укрытие / состояние цели»'
+                    }
                     const gate = turnEco?.canAttack()
                     if (gate && !gate.ok) return gate.reason
                     return 'Бросок атаки и урона'
@@ -2698,6 +2604,29 @@ export function PlayDeskAttacksCompact({
                         uwMode.autoMissReason ||
                           'Под водой: дальнобойная дальше обычной дистанции — промах',
                       )
+                      return
+                    }
+                    if (coverBlocked) {
+                      if (skipAttackDeferRef.current) {
+                        skipAttackDeferRef.current = false
+                        flushAttackTargetRef.current = null
+                        onToast?.(coverVs.reason || 'Полное укрытие — атака невозможна')
+                        return
+                      }
+                      onToast?.(
+                        coverVs.reason ||
+                          'Полное укрытие — снимите в «+ Укрытие / состояние цели»',
+                      )
+                      if (turnEco?.combatActive) {
+                        setPendingAttack({
+                          name: attack.name,
+                          attackBonus,
+                          tableMode: Boolean(turnEco.diceOnTable),
+                          deferred: true,
+                          attackId: attack.id,
+                          meleeWeapon: Boolean(meleeAttack && !unarmed),
+                        })
+                      }
                       return
                     }
                     if (coverVs.blocked) {
@@ -3025,6 +2954,7 @@ export function PlayDeskAttacksCompact({
                           tableMode: true,
                           adamantine: Boolean(boundForTable?.adamantine),
                           meleeWeapon: Boolean(meleeAttack && !unarmed),
+                          attackId: attack.id,
                         })
                         return
                       }
@@ -3036,6 +2966,22 @@ export function PlayDeskAttacksCompact({
                       setEnterNumberOpen(true)
                       return
                     }
+
+                    // SC-02: сначала окно цели/модификаторов, бросок — после подтверждения.
+                    if (turnEco?.combatActive && !skipAttackDeferRef.current) {
+                      setPendingAttack({
+                        name: attack.name,
+                        attackBonus: effectiveAttackBonus,
+                        tableMode: false,
+                        deferred: true,
+                        attackId: attack.id,
+                        meleeWeapon: Boolean(meleeAttack && !unarmed),
+                      })
+                      return
+                    }
+                    const flushedTarget = flushAttackTargetRef.current
+                    flushAttackTargetRef.current = null
+                    skipAttackDeferRef.current = false
 
                     const useElven =
                       elvenAccuracy &&
@@ -3204,22 +3150,8 @@ export function PlayDeskAttacksCompact({
                       : undefined
 
                     finishAttackRef.current = finishAttack
-                    if (turnEco?.combatActive) {
-                      setPendingAttack({
-                        name: attack.name,
-                        attackBonus: effectiveAttackBonus,
-                        strikeText: strike.text,
-                        hitTotal: strike.hitRoll?.total,
-                        formula,
-                        breakdown,
-                        tableMode: false,
-                        crit: strikeCrit,
-                        meleeWeapon: Boolean(meleeAttack && !unarmed),
-                      })
-                      return
-                    }
-
                     finishAttack({
+                      target: flushedTarget,
                       strikeText: strike.text,
                       hitTotal: strike.hitRoll?.total,
                       formula,
@@ -3714,10 +3646,25 @@ export function PlayDeskAttacksCompact({
       filter="foes"
       mobile={isMobile}
       diceOnTable={Boolean(pendingAttack?.tableMode)}
-      onClose={() => setPendingAttack(null)}
+      modifiersSlot={targetModifiersSlot}
+      onClose={() => {
+        skipAttackDeferRef.current = false
+        flushAttackTargetRef.current = null
+        setPendingAttack(null)
+      }}
       onPick={(target) => {
         if (!pendingAttack || pendingAttack.tableMode) {
           setPendingAttack(null)
+          return
+        }
+        if (pendingAttack.deferred && pendingAttack.attackId) {
+          const attackId = pendingAttack.attackId
+          flushAttackTargetRef.current = target
+          skipAttackDeferRef.current = true
+          setPendingAttack(null)
+          queueMicrotask(() => {
+            attackHitButtonRefs.current[attackId]?.click()
+          })
           return
         }
         finishAttackRef.current?.({
@@ -3826,6 +3773,7 @@ export function PlayDeskAttacksCompact({
       open={enterNumberOpen}
       title={enterNumberCtx?.title ?? 'Ввести своё число'}
       mode="total"
+      modifiersSlot={enterNumberCtx ? targetModifiersSlot : undefined}
       onClose={() => setEnterNumberOpen(false)}
       onConfirm={({ total }) => {
         if (characterId && enterNumberCtx) {
