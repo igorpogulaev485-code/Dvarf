@@ -34,10 +34,11 @@ assert.equal(
   'attacks head must not duplicate dice toggle',
 )
 
-// M06 — skill wrap + «Ещё»
-assert.equal(MOBILE_SKILL_PINNED_COUNT, 4)
+// M06 / SC-06 — skill wrap 2×2: 3 pinned + «Ещё» в 4-й ячейке
+assert.equal(MOBILE_SKILL_PINNED_COUNT, 3)
 assert.match(skills, /mobileOverflow/)
 assert.match(skills, /Ещё \{/)
+assert.match(skills, /play-desk__hot-more--skills-cell/)
 assert.match(layout, /mobileOverflow=\{!model\.isPlayDesk\}/)
 assert.match(shell, /play-desk__hot--skills-mobile|play-desk__hot--skills/)
 assert.match(shell, /grid-template-columns:\s*repeat\(2/)

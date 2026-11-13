@@ -60,10 +60,13 @@
   max-width: min(180px, 70vw);
 }
 
-/* M-01 / M01 (Q2): combat effects — two rows, no sideways clip */
+/* M-01 / M01 (Q2): combat effects — wrap, no sideways clip */
+/* SC-06: пустой хром и ресурсы компактно в ряд, не на всю ширину каждый */
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot {
   display: flex;
   flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
   overflow-x: hidden;
   overflow-y: visible;
   -webkit-overflow-scrolling: auto;
@@ -73,11 +76,23 @@
   min-width: 0;
   max-width: none;
 }
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--compact,
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--empty-row {
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 40px;
+  padding: 4px 8px;
+}
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--res,
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--res-compact {
-  flex: 1 1 100%;
+  flex: 1 1 calc(50% - 3px);
   min-width: 0;
-  max-width: 100%;
+  max-width: none;
+  min-height: 40px;
+  padding: 4px 8px;
+}
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot--empty-chrome {
+  align-items: center;
 }
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-fade,
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-arrow {
@@ -255,10 +270,14 @@
 }
 
 /* M-02 / M06: skill names fully readable — 2-col wrap, no word clip / silent x-scroll */
+/* SC-06: плотнее по вертикали; «Ещё» — 4-я ячейка 2×2, не третий ряд */
 .play-desk--mobile .play-desk__hot--skills,
 .play-desk--mobile .play-desk__hot--skills-mobile {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  margin: 0;
   overflow-x: hidden;
   overflow-y: visible;
   -webkit-overflow-scrolling: auto;
@@ -270,15 +289,15 @@
   min-width: 0;
   max-width: none;
   width: 100%;
-  min-height: 44px;
-  padding: 6px 8px;
+  min-height: 40px;
+  padding: 4px 6px;
   white-space: normal;
 }
 
 .play-desk--mobile .play-desk__hot--skills .play-desk__hot-item span {
   display: block;
-  font-size: 0.78rem;
-  line-height: 1.2;
+  font-size: 0.74rem;
+  line-height: 1.15;
   white-space: normal;
   overflow: visible;
   text-overflow: unset;
@@ -287,25 +306,30 @@
 }
 
 .play-desk--mobile .play-desk__hot--skills .play-desk__hot-item b {
-  font-size: 0.9rem;
+  font-size: 0.86rem;
 }
 
 .play-desk--mobile .play-desk__hot-more--skills {
-  grid-column: 1 / -1;
   position: relative;
+  min-width: 0;
+}
+
+.play-desk--mobile .play-desk__hot-more--skills-cell {
+  grid-column: auto;
 }
 
 .play-desk--mobile .play-desk__hot-more--skills .play-desk__hot-more-btn {
   width: 100%;
-  min-height: 44px;
+  min-height: 40px;
   justify-content: center;
   text-align: center;
+  padding: 4px 6px;
 }
 
 .play-desk--mobile .play-desk__hot-more--skills .play-desk__hot-more-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
+  gap: 4px;
   left: 0;
   right: 0;
   min-width: 0;
@@ -322,10 +346,11 @@
 
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-more-btn {
   width: 100%;
-  min-height: 44px;
+  min-height: 40px;
   justify-content: center;
   text-align: center;
   font-weight: 600;
+  padding: 4px 8px;
 }
 
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-more-panel {
@@ -365,6 +390,57 @@
 .play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__mod,
 .play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__dmg {
   font-size: 0.84rem;
+}
+
+/* SC-06: плотный первый экран «Бой» — меньше вертикальных полей до оружия */
+.play-desk--mobile .play-desk__stage {
+  gap: 6px;
+}
+
+.play-desk--mobile .turn-economy-strip,
+.play-desk--mobile .turn-economy-strip--idle {
+  margin: 0;
+  padding: 4px 8px;
+  gap: 4px;
+}
+
+.play-desk--mobile .turn-economy-strip__row {
+  flex-wrap: nowrap;
+  gap: 8px;
+  align-items: center;
+  min-height: 40px;
+}
+
+.play-desk--mobile .turn-economy-strip__dice {
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.play-desk--mobile .mobile-combat-seg-stack {
+  gap: 4px;
+}
+
+.play-desk--mobile .mobile-combat-seg__btn,
+.play-desk--mobile .mobile-combat-roll__btn {
+  min-height: 40px;
+  padding: 4px 8px;
+}
+
+.play-desk--mobile .play-desk-attacks-more {
+  margin: 0 0 6px;
+}
+
+.play-desk--mobile .play-desk-attacks-more__summary {
+  padding: 6px 10px;
+  font-size: 0.82rem;
+}
+
+.play-desk--mobile .play-desk-compact__head {
+  margin-bottom: 4px;
+}
+
+.play-desk--mobile .play-desk-compact__list--dense {
+  gap: 4px;
 }
 
 .cast-recovery {

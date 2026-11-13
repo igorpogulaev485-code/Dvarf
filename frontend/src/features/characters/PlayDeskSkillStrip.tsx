@@ -9,8 +9,11 @@ export type PlayDeskSkillChip = {
   trained?: boolean
 }
 
-/** How many skill chips stay visible on phone before «Ещё». */
-export const MOBILE_SKILL_PINNED_COUNT = 4
+/**
+ * How many skill chips stay visible on phone before «Ещё».
+ * SC-06: 3 + «Ещё» = ровно 2×2, без третьего ряда на всю ширину.
+ */
+export const MOBILE_SKILL_PINNED_COUNT = 3
 
 type PlayDeskSkillStripProps = {
   ariaLabel: string
@@ -91,7 +94,10 @@ export function PlayDeskSkillStrip({
         <SkillChipButton key={skill.key} skill={skill} onSkillClick={onSkillClick} />
       ))}
       {overflow.length > 0 ? (
-        <div className="play-desk__hot-more play-desk__hot-more--skills" ref={moreWrapRef}>
+        <div
+          className="play-desk__hot-more play-desk__hot-more--skills play-desk__hot-more--skills-cell"
+          ref={moreWrapRef}
+        >
           <button
             type="button"
             className={`play-desk__hot-item play-desk__hot-item--btn play-desk__hot-more-btn${
