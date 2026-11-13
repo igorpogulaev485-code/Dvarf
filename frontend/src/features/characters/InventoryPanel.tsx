@@ -1286,7 +1286,7 @@ export function InventoryPanel({
       <Stack gap={12}>
         <Text tone="muted">
           Ноша и вещи. Строка — взгляд; клик — детали (одна открыта). ★ — в расходники боя. Монеты —
-          через pad.
+          через кошелёк.
         </Text>
 
         <div className="inventory-panel__toolbar">
@@ -1397,12 +1397,12 @@ export function InventoryPanel({
         <button
           type="button"
           className="inventory-coins inventory-coins--pad"
-          aria-label="Монеты — открыть pad"
+          aria-label="Монеты — открыть кошелёк"
           onClick={openCoinsPad}
         >
           <span className="inventory-coins__total">
             <strong>{formatGpTotal(coinsToGp(inventory.coins))} зм</strong>
-            <span>кошелёк · pad</span>
+            <span>кошелёк</span>
           </span>
           <span className="inventory-coins__breakdown">
             {formatCoinBreakdown(inventory.coins)}

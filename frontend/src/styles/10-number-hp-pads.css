@@ -209,6 +209,12 @@
   margin-right: 2px;
 }
 
+.coin-pad__balances em {
+  margin-right: 2px;
+  font-style: normal;
+  opacity: 0.75;
+}
+
 .coin-pad__select {
   padding: 0 16px 10px;
 }
@@ -220,32 +226,97 @@
   color: var(--muted);
 }
 
+.coin-pad__preview {
+  margin: 0 16px 8px;
+  padding: 8px 10px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-soft) 35%, white);
+  display: grid;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+
+.coin-pad__preview p {
+  margin: 0;
+}
+
 .coin-pad__body {
   display: grid;
   gap: 8px;
 }
 
-.coin-pad__zeros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+.coin-pad__danger {
   padding: 0 16px 8px;
+  display: grid;
+  gap: 8px;
 }
 
-.coin-pad__zero {
+.coin-pad__danger-toggle {
   font: inherit;
-  font-size: 0.72rem;
-  padding: 4px 8px;
+  font-size: 0.8rem;
+  padding: 6px 10px;
   border-radius: 8px;
   border: 1px solid var(--line);
   background: #fff;
   cursor: pointer;
   color: var(--muted);
+  justify-self: start;
 }
 
-.coin-pad__zero:disabled {
+.coin-pad__danger-toggle:hover {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--line));
+}
+
+.coin-pad__reset-menu,
+.coin-pad__reset-confirm {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.coin-pad__reset-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.coin-pad__reset-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.coin-pad__reset-item {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.coin-pad__reset-item:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+.coin-pad__reset-confirm p {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.coin-pad__reset-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .hot-conditions {
