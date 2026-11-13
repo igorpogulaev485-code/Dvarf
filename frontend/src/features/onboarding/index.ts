@@ -14,6 +14,21 @@ export {
   type OnboardingSegment,
   type OnboardingState,
 } from './types'
+export {
+  clearOnboardingState,
+  loadOnboardingState,
+  loadOnboardingStateForUser,
+  mergeOnboardingState,
+  saveOnboardingState,
+  shouldRunSheetTour,
+  shouldShowCreateHints,
+} from './storage'
+export {
+  hasVisibleOnboardingAnchor,
+  isElementVisible,
+  queryVisibleAnchor,
+  resolveSheetTourAnchor,
+} from './anchors'
 export { EDITION_HINT, EMPTY_CHARACTERS, PANEL_HELP } from './copy.ru'
 export {
   ABILITY_TIPS,

@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Button, Stack, Text } from '../../ui'
+import { acquireBodyScrollLock } from '../../ui/bodyScrollLock'
 import { HELP_DRAWER, PANEL_HELP, TERMS } from './copy.ru'
 import type { OnboardingPanelId } from './types'
 
@@ -26,6 +28,22 @@ type HelpDrawerProps = {
 }
 
 export function HelpDrawer({ open, onClose }: HelpDrawerProps) {
+  useEffect(() => {
+    if (!open) return
+    const release = acquireBodyScrollLock()
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onClose()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      release()
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open, onClose])
+
   if (!open) return null
 
   return createPortal(
@@ -41,7 +59,6 @@ export function HelpDrawer({ open, onClose }: HelpDrawerProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="onboarding-help-drawer-title"
-        style={{ position: 'fixed', top: 0, right: 0, bottom: 0 }}
       >
         <header className="onboarding-drawer__header">
           <h2 id="onboarding-help-drawer-title" className="ui-text">

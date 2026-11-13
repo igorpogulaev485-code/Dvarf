@@ -92,6 +92,7 @@ export function NeedsSetupIndicator({
       className={`needs-setup${compact ? ' needs-setup--compact' : ''}${
         iconOnly ? ' needs-setup--icon' : ''
       }${open ? ' is-open' : ''}`}
+      data-onboarding="needs-setup"
     >
       <button
         type="button"

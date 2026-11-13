@@ -17,8 +17,13 @@ type DialogProps = {
   /** Primary button style; use `danger` for destructive confirms. */
   primaryVariant?: 'primary' | 'secondary' | 'ghost' | 'danger'
   size?: 'default' | 'wide' | 'xl'
-  /** Close when clicking the dimmed backdrop. Default: true if onSecondary is set. */
+  /** Close when clicking the dimmed backdrop. Default: true if onSecondary or onDismiss is set. */
   closeOnBackdrop?: boolean
+  /**
+   * Backdrop / Escape handler. When set, closes without calling onSecondary
+   * (e.g. Welcome: dismiss ≠ «Пропустить подсказки»).
+   */
+  onDismiss?: () => void
 }
 
 export function Dialog({
@@ -34,9 +39,10 @@ export function Dialog({
   primaryVariant = 'primary',
   size = 'default',
   closeOnBackdrop,
+  onDismiss,
 }: DialogProps) {
   // Cancel / Escape stay available even when primary is busy or disabled.
-  const canClose = Boolean(onSecondary)
+  const canClose = Boolean(onDismiss || onSecondary)
   const backdropCloses = closeOnBackdrop ?? canClose
 
   useEffect(() => {
@@ -45,9 +51,13 @@ export function Dialog({
     const releaseScroll = acquireBodyScrollLock()
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape' && canClose && onSecondary) {
+      if (event.key === 'Escape' && canClose) {
         event.preventDefault()
-        onSecondary()
+        if (onDismiss) {
+          onDismiss()
+          return
+        }
+        onSecondary?.()
       }
     }
 
@@ -56,7 +66,7 @@ export function Dialog({
       releaseScroll()
       document.removeEventListener('keydown', onKeyDown)
     }
-  }, [open, canClose, onSecondary])
+  }, [open, canClose, onSecondary, onDismiss])
 
   if (!open) {
     return null
@@ -64,7 +74,12 @@ export function Dialog({
 
   function handleBackdropClick(event: MouseEvent<HTMLDivElement>) {
     if (event.target !== event.currentTarget) return
-    if (!backdropCloses || !onSecondary) return
+    if (!backdropCloses) return
+    if (onDismiss) {
+      onDismiss()
+      return
+    }
+    if (!onSecondary) return
     onSecondary()
   }
 

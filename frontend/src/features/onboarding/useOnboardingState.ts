@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import {
-  loadOnboardingState,
+  loadOnboardingStateForUser,
   saveOnboardingState,
   shouldRunSheetTour,
   shouldShowCreateHints,
@@ -8,16 +8,18 @@ import {
 import { CREATE_HINT_VERSION, type OnboardingPanelId, type OnboardingSegment, type OnboardingState } from './types'
 
 export function useOnboardingState(userId?: string | null) {
-  const [state, setState] = useState<OnboardingState>(() => loadOnboardingState(userId))
+  const [state, setState] = useState<OnboardingState>(() => loadOnboardingStateForUser(userId))
 
   useEffect(() => {
-    setState(loadOnboardingState(userId))
+    setState(loadOnboardingStateForUser(userId))
   }, [userId])
 
   const commit = useCallback(
     (updater: (prev: OnboardingState) => OnboardingState) => {
       setState((prev) => {
         const next = updater(prev)
+        // Prefer the named key once we know the user; otherwise keep anon so a
+        // later userId adopt can merge (B7).
         saveOnboardingState(next, userId)
         return next
       })

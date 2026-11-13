@@ -51,7 +51,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
           </div>
         </aside>
 
-        <div className="play-desk__stage" data-onboarding="actions">
+        <div className="play-desk__stage">
           {model.isPlayDesk ? (
             <div className="play-desk__modes" data-onboarding="desk-modes" aria-label="Сцены листа">
               {MODE_LABELS.map(({ id: mode, label }) => (
@@ -194,7 +194,12 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
           {!model.isPlayDesk && model.draft.sheetUi.deskMode === 'combat' ? (
             <div className="mobile-combat-seg-stack">
               {model.hasMagicSources ? (
-              <div className="mobile-combat-seg" role="tablist" aria-label="Бой">
+              <div
+                className="mobile-combat-seg"
+                role="tablist"
+                aria-label="Бой"
+                data-onboarding="actions"
+              >
                 <button
                   type="button"
                   role="tab"

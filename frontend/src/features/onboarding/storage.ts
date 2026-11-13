@@ -57,6 +57,61 @@ export function saveOnboardingState(
   }
 }
 
+export function clearOnboardingState(userId?: string | null): void {
+  try {
+    localStorage.removeItem(storageKey(userId))
+  } catch {
+    // ignore
+  }
+}
+
+/** Merge two progress blobs — keeps pending tour/bridge across the userId race (B7). */
+export function mergeOnboardingState(
+  primary: OnboardingState,
+  secondary: OnboardingState,
+): OnboardingState {
+  const sheetTourDone = primary.sheetTourDone || secondary.sheetTourDone
+  const dismissed = new Set([...primary.dismissedPanelHelp, ...secondary.dismissedPanelHelp])
+  return {
+    version: 1,
+    segment: primary.segment ?? secondary.segment,
+    welcomeDone: primary.welcomeDone || secondary.welcomeDone,
+    createHintVersion: Math.max(primary.createHintVersion, secondary.createHintVersion),
+    sheetTourDone,
+    dismissedPanelHelp: Array.from(dismissed),
+    helpOpened: primary.helpOpened || secondary.helpOpened,
+    pendingReadyBridge:
+      !sheetTourDone && (primary.pendingReadyBridge || secondary.pendingReadyBridge),
+    pendingSheetTour:
+      !sheetTourDone && (primary.pendingSheetTour || secondary.pendingSheetTour),
+  }
+}
+
+/**
+ * Load for a signed-in user: adopt anonymous-key progress written before `/auth/me`
+ * returned an id, then clear the anonymous key so it cannot overwrite later.
+ */
+export function loadOnboardingStateForUser(userId?: string | null): OnboardingState {
+  if (!userId) return loadOnboardingState(null)
+  const named = loadOnboardingState(userId)
+  const anon = loadOnboardingState(null)
+  const anonDefault = defaultOnboardingState()
+  const anonUntouched =
+    anon.segment === anonDefault.segment &&
+    anon.welcomeDone === anonDefault.welcomeDone &&
+    anon.createHintVersion === anonDefault.createHintVersion &&
+    anon.sheetTourDone === anonDefault.sheetTourDone &&
+    anon.pendingReadyBridge === anonDefault.pendingReadyBridge &&
+    anon.pendingSheetTour === anonDefault.pendingSheetTour &&
+    anon.helpOpened === anonDefault.helpOpened &&
+    anon.dismissedPanelHelp.length === 0
+  if (anonUntouched) return named
+  const merged = mergeOnboardingState(named, anon)
+  saveOnboardingState(merged, userId)
+  clearOnboardingState(null)
+  return merged
+}
+
 export function shouldShowCreateHints(state: OnboardingState): boolean {
   if (state.segment === 'skip') return false
   return state.createHintVersion < CREATE_HINT_VERSION

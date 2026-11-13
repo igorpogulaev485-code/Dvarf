@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
   AppHeader,
   CharacterList,
@@ -43,6 +43,7 @@ function listSubtitle(user: User | null, shown: number, total: number): string {
 
 export function CharactersPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [characters, setCharacters] = useState<CharacterSummary[]>([])
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -53,7 +54,13 @@ export function CharactersPage() {
   const [filterTagIds, setFilterTagIds] = useState<string[]>([])
   const [tagsOpen, setTagsOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  /** Soft-close welcome (backdrop/Escape) without writing skip — show again next visit. */
+  const [welcomeSessionHide, setWelcomeSessionHide] = useState(false)
   const onboarding = useOnboardingState(user?.id ?? null)
+
+  useEffect(() => {
+    setWelcomeSessionHide(false)
+  }, [location.key])
 
   const closeToast = useCallback(() => setToast(null), [])
 
@@ -270,8 +277,9 @@ export function CharactersPage() {
         onChange={updatePrefs}
       />
       <WelcomeDialog
-        open={Boolean(user) && !loading && onboarding.showWelcome}
+        open={Boolean(user) && !loading && onboarding.showWelcome && !welcomeSessionHide}
         onChoose={onboarding.completeWelcome}
+        onDismiss={() => setWelcomeSessionHide(true)}
       />
       <HelpDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
       <Toast message={toast} onClose={closeToast} />

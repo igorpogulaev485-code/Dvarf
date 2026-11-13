@@ -948,7 +948,7 @@ export function PlayDeskAttacksCompact({
 
   return (
     <>
-    <div className="play-desk-compact">
+    <div className="play-desk-compact" data-onboarding="actions">
       <div className="play-desk-compact__head">
         <h3>Атаки</h3>
         <div className="play-desk-compact__head-actions">

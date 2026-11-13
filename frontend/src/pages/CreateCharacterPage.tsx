@@ -1504,12 +1504,15 @@ export function CreateCharacterPage() {
       }
 
       // L-16: после создания сразу вход в лобби, если можно сесть игроком.
+      // Онбординг листа не сжигаем: queueAfterCreate оставляет мост/тур на первое
+      // открытие листа после выхода из лобби (B5). Логику посадки L-21 не трогаем.
       if (lobbyJoinCode && lobbyContextId) {
         try {
           const joined = await joinLobby(lobbyJoinCode, saved.id, 'join', {
             acknowledgeStartMismatch: true,
           })
           onboarding.markCreateHintsSeen()
+          onboarding.queueAfterCreate()
           navigate(`/lobbies/${joined.lobby.id}`, {
             state: { toast: 'Герой создан и добавлен в лобби' },
           })
@@ -1522,9 +1525,11 @@ export function CreateCharacterPage() {
               joinErr.code === 'role_blocks_player_join')
           ) {
             onboarding.markCreateHintsSeen()
+            onboarding.queueAfterCreate()
             navigate(`/characters/${saved.id}`, {
               state: {
                 toast: 'Герой создан по правилам лобби (без посадки в состав)',
+                onboardingReady: true,
               },
             })
             return
