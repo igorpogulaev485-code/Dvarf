@@ -482,6 +482,52 @@ button.spells-settings__derived-stat--btn:hover {
   letter-spacing: -0.02em;
 }
 
+.attack-card__stat-value--btn {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  text-align: inherit;
+}
+
+.attack-card__stat-value--btn:hover,
+.attack-card__stat-value--btn:focus-visible {
+  text-decoration: underline;
+}
+
+.attack-bonus-breakdown__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attack-bonus-breakdown__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.attack-bonus-breakdown__label {
+  min-width: 0;
+}
+
+.attack-bonus-breakdown__hint {
+  font-weight: 500;
+  color: var(--desk-muted, var(--muted));
+}
+
+.attack-bonus-breakdown__value {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--desk-accent, var(--accent));
+}
+
 /* T-01: полоска хода (не LOCK-шапка виталов) */
 .turn-economy-strip {
   display: flex;

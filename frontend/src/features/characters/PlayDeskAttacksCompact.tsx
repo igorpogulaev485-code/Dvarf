@@ -55,8 +55,14 @@ import {
   type AbilityKey,
 } from './sheetTypes'
 import { artifactAttackDamage, artifactRequirementMet, type WeaponAttack } from './AttacksPanel'
+import {
+  buildAttackBonusParts,
+  type AttackBonusPart,
+} from './attackBonusBreakdown'
+import { AttackBonusBreakdownDialog } from './AttackBonusBreakdownDialog'
 import { shillelaghDamage } from './shillelagh'
 import type { InventoryItem } from './inventory'
+import type { FormulaVars } from '../../shared/dnd/formulas'
 import { isCastableSpellScroll } from './spellScroll'
 import {
   IconConsumable,
@@ -136,6 +142,10 @@ type PlayDeskAttacksCompactProps = {
   onAddAttack?: () => void
   /** Empty-state CTA: jump to inventory (equip → attacks). */
   onOpenInventory?: () => void
+  /** U09: open linked inventory item card. */
+  onOpenItem?: (itemId: string) => void
+  /** Sheet formula vars for the attack-bonus breakdown VariablePicker shell. */
+  formulaVars?: FormulaVars
   /** When true and no weapons — compact empty (pure caster). */
   preferMagicEmpty?: boolean
   rollMode?: DeskRollMode
@@ -237,6 +247,8 @@ export function PlayDeskAttacksCompact({
   onOpenSettings,
   onAddAttack,
   onOpenInventory,
+  onOpenItem,
+  formulaVars = {},
   preferMagicEmpty = false,
   rollMode = 'normal',
   bonusDice = null,
@@ -262,6 +274,10 @@ export function PlayDeskAttacksCompact({
       }),
     [companions, characterLevel, spellMod, proficiencyBonus],
   )
+  const [attackBreakdown, setAttackBreakdown] = useState<{
+    name: string
+    parts: AttackBonusPart[]
+  } | null>(null)
   const [pendingAttack, setPendingAttack] = useState<{
     name: string
     attackBonus: number
@@ -706,14 +722,26 @@ export function PlayDeskAttacksCompact({
                   ),
                 )
             const fxAttackFlat = attackBonusFromActiveEffects(activeEffects ?? [])
+            const proficient = Boolean(attack.is_proficient || unarmed)
+            const magicAtk = gear?.attackBonus ?? 0
+            const effectAtk = flatFxAttack + fxAttackFlat
+            const attackParts = buildAttackBonusParts({
+              abilityKey: attackAbility,
+              abilityMod: mod,
+              proficient,
+              proficiencyBonus,
+              magicBonus: magicAtk,
+              styleBonus: styleAtk,
+              infusionBonus: infusionAtk,
+              effectBonus: effectAtk,
+            })
             const attackBonus =
               mod +
-              (attack.is_proficient || unarmed ? proficiencyBonus : 0) +
-              (gear?.attackBonus ?? 0) +
+              (proficient ? proficiencyBonus : 0) +
+              magicAtk +
               styleAtk +
               infusionAtk +
-              flatFxAttack +
-              fxAttackFlat
+              effectAtk
             const dmgBonus =
               mod +
               (gear?.damageBonus ?? 0) +
@@ -990,7 +1018,26 @@ export function PlayDeskAttacksCompact({
                       </span>
                     ) : null}
                   </div>
-                  <span className="play-desk-compact__mod">{formatModifier(attackBonus)}</span>
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    className="play-desk-compact__mod play-desk-compact__mod--breakdown"
+                    title="Разбор бонуса атаки"
+                    aria-label={`Бонус атаки ${formatModifier(attackBonus)}, разбор`}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      setAttackBreakdown({ name: attack.name, parts: attackParts })
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key !== 'Enter' && event.key !== ' ') return
+                      event.preventDefault()
+                      event.stopPropagation()
+                      setAttackBreakdown({ name: attack.name, parts: attackParts })
+                    }}
+                  >
+                    {formatModifier(attackBonus)}
+                  </span>
                   <span className="play-desk-compact__dmg">{dmgLine}</span>
                 </button>
                 {onToggleActivation && attack.activation && requirementOk ? (
@@ -1015,6 +1062,16 @@ export function PlayDeskAttacksCompact({
                     title={attack.held ? 'Убрать из рук' : 'Взять в руки'}
                   >
                     {attack.held ? 'удерж.' : 'взять'}
+                  </button>
+                ) : null}
+                {onOpenItem && attack.inventory_item_id ? (
+                  <button
+                    type="button"
+                    className="play-desk-compact__hold"
+                    onClick={() => onOpenItem(attack.inventory_item_id!)}
+                    title="Открыть предмет в инвентаре"
+                  >
+                    предмет
                   </button>
                 ) : null}
               </div>
@@ -1382,6 +1439,13 @@ export function PlayDeskAttacksCompact({
         }
         setEnterNumberOpen(false)
       }}
+    />
+    <AttackBonusBreakdownDialog
+      open={Boolean(attackBreakdown)}
+      attackName={attackBreakdown?.name ?? ''}
+      parts={attackBreakdown?.parts ?? []}
+      formulaVars={formulaVars}
+      onClose={() => setAttackBreakdown(null)}
     />
     </>
   )

@@ -479,6 +479,19 @@
   text-align: right;
 }
 
+/* U09: click bonus → breakdown (not the attack roll). */
+.play-desk-compact__mod--breakdown {
+  cursor: pointer;
+  border-radius: 6px;
+  outline: none;
+}
+
+.play-desk-compact__mod--breakdown:hover,
+.play-desk-compact__mod--breakdown:focus-visible {
+  text-decoration: underline;
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, transparent);
+}
+
 .play-desk-compact__row.is-attack .play-desk-compact__dmg {
   font-variant-numeric: tabular-nums;
 }

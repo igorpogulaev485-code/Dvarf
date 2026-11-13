@@ -43,6 +43,8 @@ type TextBlocksPanelProps = {
   /** B10: рост / вес / возраст / глаза / кожа / волосы */
   physique?: PhysiqueFields
   onPhysiqueChange?: (physique: PhysiqueFields) => void
+  /** U11: jump to class features instead of a second abilities catalog here. */
+  onOpenFeatures?: () => void
 }
 
 const PHYSIQUE_FIELDS: Array<{ key: keyof PhysiqueFields; label: string; placeholder: string }> =
@@ -57,12 +59,11 @@ const PHYSIQUE_FIELDS: Array<{ key: keyof PhysiqueFields; label: string; placeho
 
 const RESET_OPTIONS: ResourceReset[] = ['short', 'long', 'manual']
 
-type TextFilter = 'all' | 'personality' | 'features' | 'notes' | 'resource' | 'hidden'
+type TextFilter = 'all' | 'personality' | 'notes' | 'resource' | 'hidden'
 
 const FILTERS: Array<{ id: TextFilter; label: string }> = [
   { id: 'all', label: 'Все' },
   { id: 'personality', label: 'Личность' },
-  { id: 'features', label: 'Умения' },
   { id: 'notes', label: 'Заметки' },
   { id: 'resource', label: 'С ресурсом' },
   { id: 'hidden', label: 'Скрытые' },
@@ -155,6 +156,7 @@ export function TextBlocksPanel({
   onResourcesChange,
   physique,
   onPhysiqueChange,
+  onOpenFeatures,
 }: TextBlocksPanelProps) {
   // B10: start on personality — not the full technical dump.
   const [filter, setFilter] = useState<TextFilter>('personality')
@@ -170,14 +172,20 @@ export function TextBlocksPanel({
 
   const visibleBlocks = useMemo(() => {
     const filtered = blocks.filter((block) => {
-      if (filter === 'all') return !block.isHidden
+      if (filter === 'all') {
+        // U11: abilities catalog lives in «Способности»; keep player notes/personality.
+        return !block.isHidden && blockBucket(block) !== 'features'
+      }
       if (filter === 'hidden') return block.isHidden
-      if (filter === 'resource') return blockHasResource(block) && !block.isHidden
+      if (filter === 'resource') {
+        return (
+          blockHasResource(block) &&
+          !block.isHidden &&
+          blockBucket(block) !== 'features'
+        )
+      }
       if (filter === 'personality') {
         return !block.isHidden && blockBucket(block) === 'personality'
-      }
-      if (filter === 'features') {
-        return !block.isHidden && blockBucket(block) === 'features'
       }
       return !block.isHidden && blockBucket(block) === 'notes'
     })
@@ -760,6 +768,18 @@ export function TextBlocksPanel({
     >
       <p className="text-panel__lede">
         Сначала личность и внешность. Умения класса — во вкладке «Способности».
+        {onOpenFeatures ? (
+          <>
+            {' '}
+            <button
+              type="button"
+              className="play-desk-compact__link"
+              onClick={onOpenFeatures}
+            >
+              Открыть в Способностях
+            </button>
+          </>
+        ) : null}
       </p>
 
       <Stack gap={12}>

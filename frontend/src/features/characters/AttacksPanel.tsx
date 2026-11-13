@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
+import type { FormulaVars } from '../../shared/dnd/formulas'
 import { parseWeaponCatalogData } from '../../shared/dnd/gearCatalog'
 import { fightingStyleAttackBonusFromIds } from '../../shared/dnd/fightingStyles'
 import {
@@ -22,6 +24,11 @@ import { isWeaponProficient } from './equipmentProficiency'
 import type { WeaponProficiency } from './identity'
 import { syncAttacksHeldFromInventory } from './attacksInventorySync'
 import { shillelaghDamage } from './shillelagh'
+import {
+  buildAttackBonusParts,
+  type AttackBonusPart,
+} from './attackBonusBreakdown'
+import { AttackBonusBreakdownDialog } from './AttackBonusBreakdownDialog'
 
 export { syncAttacksHeldFromInventory }
 
@@ -149,6 +156,9 @@ type AttacksPanelProps = {
   infusionByItem?: Record<string, { attack: number; damage: number }>
   /** Shillelagh: this attack uses the caster's ability and a d8. */
   shillelagh?: { attackId: string; ability: AbilityKey } | null
+  formulaVars?: FormulaVars
+  /** U09: open linked inventory item card. */
+  onOpenItem?: (itemId: string) => void
 }
 
 /** Empty custom attack card («Своё» / Добавить атаку). */
@@ -202,7 +212,14 @@ export function AttacksPanel({
   infusionDamageBonus = 0,
   infusionByItem,
   shillelagh = null,
+  formulaVars = {},
+  onOpenItem,
 }: AttacksPanelProps) {
+  const [attackBreakdown, setAttackBreakdown] = useState<{
+    name: string
+    parts: AttackBonusPart[]
+  } | null>(null)
+
   function updateAttack(id: string, patch: Partial<WeaponAttack>) {
     onChange(weapons.map((item) => (item.id === id ? { ...item, ...patch } : item)))
   }
@@ -319,13 +336,22 @@ export function AttacksPanel({
                   ),
                 )
               : 0
+          const abilityDmg = abilityModifier(abilities[attackAbility])
+          const attackParts = buildAttackBonusParts({
+            abilityKey: attackAbility,
+            abilityMod: abilityDmg,
+            proficient,
+            proficiencyBonus,
+            magicBonus: magicAtk,
+            styleBonus: styleAtk,
+            infusionBonus: infusionAtk,
+          })
           const attackBonus =
-            abilityModifier(abilities[attackAbility]) +
+            abilityDmg +
             (proficient ? proficiencyBonus : 0) +
             magicAtk +
             styleAtk +
             infusionAtk
-          const abilityDmg = abilityModifier(abilities[attackAbility])
           const totalDmgBonus = abilityDmg + magicDmg + infusionDmg
           const damageDisplay =
             baseDamage && totalDmgBonus
@@ -400,7 +426,16 @@ export function AttacksPanel({
 
               <div className="attack-card__stats" aria-label="Бонус атаки и урон">
                 <div className="attack-card__stat">
-                  <span className="attack-card__stat-value">{formatModifier(attackBonus)}</span>
+                  <button
+                    type="button"
+                    className="attack-card__stat-value attack-card__stat-value--btn"
+                    title="Разбор бонуса атаки"
+                    onClick={() =>
+                      setAttackBreakdown({ name: attack.name, parts: attackParts })
+                    }
+                  >
+                    {formatModifier(attackBonus)}
+                  </button>
                   <span className="attack-card__stat-label">
                     атака
                     {magicAtk ? (
@@ -525,6 +560,15 @@ export function AttacksPanel({
                     {attack.held ? 'В руках' : 'Убран'}
                   </button>
                 ) : null}
+                {attack.inventory_item_id && onOpenItem ? (
+                  <button
+                    type="button"
+                    className="sheet-chip"
+                    onClick={() => onOpenItem(attack.inventory_item_id!)}
+                  >
+                    Открыть предмет
+                  </button>
+                ) : null}
                 <span
                   className={`sheet-chip${proficient ? ' is-on' : ''}`}
                   title={
@@ -559,6 +603,13 @@ export function AttacksPanel({
           )
         })}
       </Stack>
+      <AttackBonusBreakdownDialog
+        open={Boolean(attackBreakdown)}
+        attackName={attackBreakdown?.name ?? ''}
+        parts={attackBreakdown?.parts ?? []}
+        formulaVars={formulaVars}
+        onClose={() => setAttackBreakdown(null)}
+      />
     </Panel>
   )
 }
