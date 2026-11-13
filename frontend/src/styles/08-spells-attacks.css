@@ -639,12 +639,58 @@ button.spells-settings__derived-stat--btn:hover {
   padding: 8px 10px;
 }
 
-/* SC-01: временный слот «Ещё / Действия хода» на панели атак (каркас сцен). */
+/* SC-01/SC-02: слот «Ещё / Действия хода» на панели атак. */
 .play-desk-attacks-more {
   margin: 0 0 10px;
   border: 1px solid var(--desk-line, var(--line));
   border-radius: 10px;
   background: color-mix(in srgb, var(--desk-card, var(--card)) 88%, transparent);
+}
+
+.play-desk-turn-marks {
+  margin: 0 0 8px;
+}
+
+.play-desk-every-turn {
+  margin: 0 0 8px;
+}
+
+/* SC-02: укрытие / состояния цели — свёрнутый блок в окне атаки. */
+.target-modifiers {
+  display: grid;
+  gap: 6px;
+}
+
+.target-modifiers__toggle {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+  cursor: pointer;
+  text-align: left;
+}
+
+.target-modifiers__toggle.is-open,
+.target-modifiers__toggle.has-active {
+  color: var(--desk-ink, var(--ink));
+}
+
+.target-modifiers__hint {
+  font-weight: 500;
+  color: var(--desk-muted, var(--muted));
+}
+
+.target-modifiers__panel {
+  display: grid;
+  gap: 4px;
+  padding: 8px 0 2px;
 }
 
 .play-desk-attacks-more__summary {

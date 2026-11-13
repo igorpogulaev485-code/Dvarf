@@ -206,6 +206,11 @@ type Props = {
   onOfferSkill?: (skillKey: 'investigation' | 'perception' | 'stealth') => void
   onToast?: (message: string) => void
   className?: string
+  /**
+   * SC-02: `everyTurn` — только Хитрое / Точное прицеливание / второе оружие (А у атак).
+   * `more` — PHB и остальное без этих чипов (Б в «Ещё»). По умолчанию `all`.
+   */
+  mode?: 'all' | 'more' | 'everyTurn'
 }
 
 /**
@@ -274,6 +279,7 @@ export function TurnEconomyCombatActions({
   onOfferSkill,
   onToast,
   className = 'chip-row',
+  mode = 'all',
 }: Props) {
   const turnEco = useTurnEconomy()
   if (!turnEco) return null
@@ -362,27 +368,8 @@ export function TurnEconomyCombatActions({
       ? canOrcishFuryBonus(te, true)
       : { ok: false as const, reason: '', mark: 'bonus' as const }
 
-  return (
-    <div className={className} role="group" aria-label="Действия боя">
-      <button
-        type="button"
-        className="sheet-chip"
-        disabled={!searchGate.ok}
-        title={
-          searchGate.ok
-            ? 'Тратит действие · затем можно бросить Анализ или Внимательность'
-            : searchGate.reason
-        }
-        onClick={() => {
-          const gate = turnEco.canSearch()
-          if (!gate.ok) return
-          turnEco.spendSearch()
-          onOfferSkill?.('investigation')
-        }}
-      >
-        Поиск
-      </button>
-
+  const everyTurnChips = (
+    <>
       {hasCunningAction ? (
         <div className="chip-row" role="group" aria-label="Хитрое действие">
           <span className="sheet-chip is-stub" title="Хитрое действие (плут)">
@@ -439,7 +426,76 @@ export function TurnEconomyCombatActions({
             Рывок
           </button>
         </div>
-      ) : (
+      ) : null}
+      {hasSteadyAim ? (
+        <button
+          type="button"
+          className={`sheet-chip${turnEco.turnEconomy.steadyAim ? ' is-on' : ''}`}
+          disabled={!steadyGate.ok}
+          title={steadyGate.ok ? STEADY_AIM_HINT : steadyGate.reason}
+          onClick={() => {
+            if (!turnEco.canSteadyAim().ok) return
+            turnEco.spendSteadyAim()
+          }}
+        >
+          Точное прицеливание
+        </button>
+      ) : null}
+      {showTwoWeaponBonus && onTwoWeaponBonus ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!(twoWeaponBonusGate?.ok ?? false)}
+          title={
+            twoWeaponBonusGate?.ok
+              ? TWO_WEAPON_BONUS_HINT
+              : twoWeaponBonusGate?.reason || TWO_WEAPON_BONUS_HINT
+          }
+          onClick={() => onTwoWeaponBonus()}
+        >
+          Атака вторым оружием
+        </button>
+      ) : null}
+    </>
+  )
+
+  if (mode === 'everyTurn') {
+    if (!hasCunningAction && !hasSteadyAim && !(showTwoWeaponBonus && onTwoWeaponBonus)) {
+      return null
+    }
+    return (
+      <div className={className} role="group" aria-label="Классовые действия хода">
+        {everyTurnChips}
+      </div>
+    )
+  }
+
+  const hideEveryTurn = mode === 'more'
+
+  return (
+    <div className={className} role="group" aria-label="Действия боя">
+      <button
+        type="button"
+        className="sheet-chip"
+        disabled={!searchGate.ok}
+        title={
+          searchGate.ok
+            ? 'Тратит действие · затем можно бросить Анализ или Внимательность'
+            : searchGate.reason
+        }
+        onClick={() => {
+          const gate = turnEco.canSearch()
+          if (!gate.ok) return
+          turnEco.spendSearch()
+          onOfferSkill?.('investigation')
+        }}
+      >
+        Поиск
+      </button>
+
+      {!hideEveryTurn ? everyTurnChips : null}
+
+      {!hasCunningAction ? (
         <button
           type="button"
           className="sheet-chip"
@@ -458,7 +514,7 @@ export function TurnEconomyCombatActions({
         >
           Засада
         </button>
-      )}
+      ) : null}
 
       {/* O-08: PHB действия (не Хитрое) — отдельный слот от бонусного Отход/Рывок плута */}
       <button
@@ -581,21 +637,6 @@ export function TurnEconomyCombatActions({
           }}
         >
           Сработало
-        </button>
-      ) : null}
-
-      {hasSteadyAim ? (
-        <button
-          type="button"
-          className={`sheet-chip${turnEco.turnEconomy.steadyAim ? ' is-on' : ''}`}
-          disabled={!steadyGate.ok}
-          title={steadyGate.ok ? STEADY_AIM_HINT : steadyGate.reason}
-          onClick={() => {
-            if (!turnEco.canSteadyAim().ok) return
-            turnEco.spendSteadyAim()
-          }}
-        >
-          Точное прицеливание
         </button>
       ) : null}
 
@@ -832,22 +873,6 @@ export function TurnEconomyCombatActions({
           }}
         >
           Дьявольское зрение 120 фт
-        </button>
-      ) : null}
-
-      {showTwoWeaponBonus && onTwoWeaponBonus ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!(twoWeaponBonusGate?.ok ?? false)}
-          title={
-            twoWeaponBonusGate?.ok
-              ? TWO_WEAPON_BONUS_HINT
-              : twoWeaponBonusGate?.reason || TWO_WEAPON_BONUS_HINT
-          }
-          onClick={() => onTwoWeaponBonus()}
-        >
-          Атака вторым оружием
         </button>
       ) : null}
 
