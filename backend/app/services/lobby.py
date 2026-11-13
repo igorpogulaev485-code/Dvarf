@@ -228,7 +228,46 @@ def _parse_conditions(raw: object) -> list[dict]:
     return out
 
 
+def _companion_int(value: object) -> int | None:
+    return value if isinstance(value, int) else None
+
+
+def _companion_stats_dict(item: dict) -> dict:
+    raw = item.get("stats")
+    return raw if isinstance(raw, dict) else {}
+
+
+def _sheet_companions_raw(sheet: dict) -> list:
+    """Full sheet companion rows (preserve rich CompanionEntry fields)."""
+    raw = sheet.get("companions")
+    if not isinstance(raw, list):
+        return []
+    return [item for item in raw if isinstance(item, dict)]
+
+
+def _set_companion_vitals(
+    item: dict,
+    *,
+    hp_current: int | None = None,
+    hp_max: int | None = None,
+    ac: int | None = None,
+) -> None:
+    """Write HP/AC to both root (legacy seat) and stats (Play Desk)."""
+    stats = dict(_companion_stats_dict(item))
+    if hp_current is not None:
+        item["hp_current"] = hp_current
+        stats["hp"] = hp_current
+    if hp_max is not None:
+        item["hp_max"] = hp_max
+        stats["hp_max"] = hp_max
+    if ac is not None:
+        item["ac"] = ac
+        stats["ac"] = ac
+    item["stats"] = stats
+
+
 def _parse_companions(raw: object) -> list[dict]:
+    """Seat-facing view: HP/AC from stats.* with root fallback (C-02)."""
     if not isinstance(raw, list):
         return []
     out: list[dict] = []
@@ -239,12 +278,64 @@ def _parse_companions(raw: object) -> list[dict]:
         name = str(item.get("name") or "").strip()
         if not cid or not name:
             continue
+        stats = _companion_stats_dict(item)
+        hp_current = _companion_int(stats.get("hp"))
+        if hp_current is None:
+            hp_current = _companion_int(item.get("hp_current"))
+        hp_max = _companion_int(stats.get("hp_max"))
+        if hp_max is None:
+            hp_max = _companion_int(item.get("hp_max"))
+        ac = _companion_int(stats.get("ac"))
+        if ac is None:
+            ac = _companion_int(item.get("ac"))
+        dex_score = _companion_int(stats.get("dex"))
+        dex_mod = _ability_mod(dex_score) if dex_score is not None else None
+        initiative_mode = str(item.get("initiativeMode") or "").strip() or None
+        if initiative_mode not in ("with_master", "own_initiative"):
+            # Legacy control → initiative
+            control = str(item.get("control") or "").strip()
+            if control in ("bonus_action_command", "reaction", "with_master"):
+                initiative_mode = "with_master"
+            elif control == "own_initiative":
+                initiative_mode = "own_initiative"
+            else:
+                initiative_mode = None
+        command_cost = str(item.get("commandCost") or "").strip() or None
+        if command_cost not in ("none", "action", "bonus", "reaction"):
+            command_cost = None
+        active = item.get("active") if isinstance(item.get("active"), bool) else None
+        story = bool(item.get("story")) if item.get("story") is not None else False
+        death = item.get("death") if isinstance(item.get("death"), dict) else None
+        death_successes = (
+            int(death.get("successes") or 0)
+            if death and isinstance(death.get("successes"), int)
+            else None
+        )
+        death_fails = (
+            int(death.get("failures") or 0)
+            if death and isinstance(death.get("failures"), int)
+            else None
+        )
+        dodge = False
+        turn_marks = item.get("turnMarks")
+        if isinstance(turn_marks, dict):
+            dodge = bool(turn_marks.get("dodge"))
         row = {
             "id": cid,
             "name": name,
-            "hp_current": item.get("hp_current") if isinstance(item.get("hp_current"), int) else None,
-            "hp_max": item.get("hp_max") if isinstance(item.get("hp_max"), int) else None,
-            "ac": item.get("ac") if isinstance(item.get("ac"), int) else None,
+            "hp_current": hp_current,
+            "hp_max": hp_max,
+            "ac": ac,
+            "dex_mod": dex_mod,
+            "active": active,
+            "initiative_mode": initiative_mode,
+            "command_cost": command_cost,
+            "story": story,
+            "kind": str(item.get("kind") or "").strip() or None,
+            "role": str(item.get("role") or "").strip() or None,
+            "dodge": dodge,
+            "death_successes": death_successes,
+            "death_fails": death_fails,
             "conditions": _parse_conditions(item.get("conditions")),
             "type": str(item.get("type") or "").strip() or None,
             "duration": str(item.get("duration") or "").strip() or None,
@@ -4608,17 +4699,66 @@ class LobbyService:
     ) -> SessionDetail:
         session, lobby, character = self._require_seat_actor(user, session_id, character_id)
         sheet = dict(character.sheet or {})
-        companions = _parse_companions(sheet.get("companions"))
-        companions.append(
-            {
-                "id": str(uuid4()),
-                "name": payload.name.strip(),
-                "hp_current": payload.hp_current if payload.hp_current is not None else payload.hp_max,
-                "hp_max": payload.hp_max,
-                "ac": payload.ac,
-                "conditions": [],
-            }
+        companions = _sheet_companions_raw(sheet)
+        hp_max = payload.hp_max
+        hp_cur = (
+            payload.hp_current if payload.hp_current is not None else payload.hp_max
         )
+        initiative_mode = payload.initiative_mode or (
+            "own_initiative" if payload.story else "with_master"
+        )
+        command_cost = payload.command_cost or "none"
+        stats: dict = {
+            "hp": hp_cur,
+            "hp_max": hp_max,
+            "ac": payload.ac,
+            "speed": payload.speed,
+        }
+        if payload.dex is not None:
+            stats["dex"] = payload.dex
+        if payload.str_score is not None:
+            stats["str"] = payload.str_score
+        if payload.con is not None:
+            stats["con"] = payload.con
+        row = {
+            "id": str(uuid4()),
+            "name": payload.name.strip(),
+            "kind": payload.kind or "other",
+            "role": "ally",
+            "nature": payload.nature or "living",
+            "active": True,
+            "story": bool(payload.story),
+            "initiativeMode": initiative_mode,
+            "commandCost": command_cost,
+            "control": (
+                "own_initiative"
+                if initiative_mode == "own_initiative"
+                else "with_master"
+            ),
+            "source": {
+                "kind": "manual",
+                "labelRu": "Сюжетный (мастер)" if payload.story else "Вручную",
+            },
+            "bestiary_ref": payload.bestiary_ref,
+            "bestiary_name_ru": payload.bestiary_name_ru or payload.name.strip(),
+            "stats": stats,
+            "hp_current": hp_cur,
+            "hp_max": hp_max,
+            "ac": payload.ac,
+            "actions": payload.actions or "",
+            "notes": payload.notes or "",
+            "resources": [],
+            "death": None,
+            "turnMarks": {
+                "action": False,
+                "bonus": False,
+                "reaction": False,
+                "commanded": False,
+                "dodge": False,
+            },
+            "conditions": [],
+        }
+        companions.append(row)
         sheet["companions"] = companions
         character.sheet = sheet
         character.sheet_version = int(character.sheet_version or 1) + 1
@@ -4640,20 +4780,38 @@ class LobbyService:
     ) -> SessionDetail:
         session, lobby, character = self._require_seat_actor(user, session_id, character_id)
         sheet = dict(character.sheet or {})
-        companions = _parse_companions(sheet.get("companions"))
+        companions = _sheet_companions_raw(sheet)
         found = False
         for item in companions:
-            if item["id"] != companion_id:
+            if str(item.get("id") or "") != companion_id:
                 continue
             found = True
             if payload.name is not None:
                 item["name"] = payload.name.strip()
-            if payload.hp_current is not None:
-                item["hp_current"] = payload.hp_current
-            if payload.hp_max is not None:
-                item["hp_max"] = payload.hp_max
-            if payload.ac is not None:
-                item["ac"] = payload.ac
+            if (
+                payload.hp_current is not None
+                or payload.hp_max is not None
+                or payload.ac is not None
+            ):
+                _set_companion_vitals(
+                    item,
+                    hp_current=payload.hp_current,
+                    hp_max=payload.hp_max,
+                    ac=payload.ac,
+                )
+            if payload.initiative_mode is not None:
+                item["initiativeMode"] = payload.initiative_mode
+            if payload.command_cost is not None:
+                item["commandCost"] = payload.command_cost
+            if payload.active is not None:
+                item["active"] = payload.active
+            if payload.death_successes is not None or payload.death_fails is not None:
+                death = item.get("death") if isinstance(item.get("death"), dict) else {}
+                if payload.death_successes is not None:
+                    death["successes"] = max(0, min(3, int(payload.death_successes)))
+                if payload.death_fails is not None:
+                    death["failures"] = max(0, min(3, int(payload.death_fails)))
+                item["death"] = death
             if payload.conditions is not None:
                 item["conditions"] = [
                     {"slug": c.slug, "name": c.name, "catalog_id": c.catalog_id}
@@ -4681,8 +4839,8 @@ class LobbyService:
     ) -> SessionDetail:
         session, lobby, character = self._require_seat_actor(user, session_id, character_id)
         sheet = dict(character.sheet or {})
-        companions = _parse_companions(sheet.get("companions"))
-        next_list = [c for c in companions if c["id"] != companion_id]
+        companions = _sheet_companions_raw(sheet)
+        next_list = [c for c in companions if str(c.get("id") or "") != companion_id]
         if len(next_list) == len(companions):
             raise NotFoundError("Напарник не найден", code="companion_not_found")
         sheet["companions"] = next_list
@@ -6110,7 +6268,7 @@ class LobbyService:
                 )
                 assert character is not None
                 sheet = dict(character.sheet or {})
-                companions = _parse_companions(sheet.get("companions"))
+                companions = _sheet_companions_raw(sheet)
                 companion = next(
                     (
                         c
@@ -6121,14 +6279,23 @@ class LobbyService:
                 )
                 if companion is not None:
                     applied = raw_dmg
-                    hp_max = max(1, int(companion.get("hp_max") or 1))
-                    hp_cur = int(companion.get("hp_current") or hp_max)
+                    stats = _companion_stats_dict(companion)
+                    hp_max_raw = _companion_int(stats.get("hp_max"))
+                    if hp_max_raw is None:
+                        hp_max_raw = _companion_int(companion.get("hp_max"))
+                    hp_max = max(1, int(hp_max_raw or 1))
+                    hp_cur_raw = _companion_int(stats.get("hp"))
+                    if hp_cur_raw is None:
+                        hp_cur_raw = _companion_int(companion.get("hp_current"))
+                    hp_cur = int(hp_cur_raw if hp_cur_raw is not None else hp_max)
                     hp_temp = int(companion.get("hp_temp") or 0)
                     hp_cur, hp_temp = s03.apply_damage_through_temp_hp(
                         hp_cur, hp_temp, applied, hp_max=hp_max
                     )
-                    companion["hp_current"] = hp_cur
+                    _set_companion_vitals(companion, hp_current=hp_cur)
                     companion["hp_temp"] = hp_temp
+                    if hp_cur <= 0:
+                        companion["active"] = False
                     sheet["companions"] = companions
                     character.sheet = sheet
                     flag_modified(character, "sheet")

@@ -6,6 +6,8 @@ import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
 import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { AddCombatantDialog } from '../features/lobby/AddCombatantDialog'
+import { AddStoryCompanionDialog } from '../features/lobby/AddStoryCompanionDialog'
+import { seatCompanionInInitiativeSeed } from '../features/lobby/companionCombatSeat'
 import {
   EnemyAttackDialog,
   blockFromKitKind,
@@ -69,6 +71,7 @@ import {
   closeSession,
   createSessionRoll,
   deleteSeatCompanion,
+  patchSeatCompanion,
   deleteSession,
   deleteSessionCombatant,
   createSettingPage,
@@ -112,7 +115,7 @@ import {
   type SettingSummary,
   type WikiCombatPage,
 } from '../shared/api/lobbies'
-import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text, Toast } from '../ui'
+import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
 const SIDE_PANEL_KEY = 'dvarf.session.sidePanelOpen'
 
@@ -177,6 +180,7 @@ async function deployGeneratorToTable(
       dex_mod: seat.dex_mod ?? null,
     })
     for (const companion of seat.companions ?? []) {
+      if (!seatCompanionInInitiativeSeed(companion)) continue
       entries.push({
         kind: 'companion',
         ref_id: seat.character_id,
@@ -184,7 +188,7 @@ async function deployGeneratorToTable(
         name: `${companion.name} (${seat.character_name})`,
         initiative: null,
         initiative_pending: true,
-        dex_mod: null,
+        dex_mod: companion.dex_mod ?? null,
       })
     }
   }
@@ -273,9 +277,6 @@ export function SessionDetailPage() {
   const [letterBadgeCount, setLetterBadgeCount] = useState(0)
   const [companionOpen, setCompanionOpen] = useState(false)
   const [companionHostId, setCompanionHostId] = useState<string | null>(null)
-  const [companionName, setCompanionName] = useState('')
-  const [companionHp, setCompanionHp] = useState<number | null>(11)
-  const [companionAc, setCompanionAc] = useState<number | null>(13)
   const [conditionOpen, setConditionOpen] = useState(false)
   const [effectOpen, setEffectOpen] = useState(false)
   const [combatantOpen, setCombatantOpen] = useState(false)
@@ -939,6 +940,7 @@ export function SessionDetailPage() {
                 {session.combat?.active ? (
                   <CombatTrack
                     combat={session.combat}
+                    seats={session.seats}
                     masterControls={canRun && !session.closed_at}
                     busy={busy}
                     onNext={() => {
@@ -1432,6 +1434,7 @@ export function SessionDetailPage() {
                     {session.combat?.active ? (
                   <CombatTrack
                     combat={session.combat}
+                    seats={session.seats}
                     masterControls={canRun && !session.closed_at}
                     busy={busy}
                     onNext={() => {
@@ -1653,9 +1656,6 @@ export function SessionDetailPage() {
                             canControl && !session.closed_at
                               ? () => {
                                   setCompanionHostId(seat.character_id)
-                                  setCompanionName('')
-                                  setCompanionHp(11)
-                                  setCompanionAc(13)
                                   setCompanionOpen(true)
                                 }
                               : undefined
@@ -1670,6 +1670,21 @@ export function SessionDetailPage() {
                               setSession(updated)
                             })
                           }}
+                          onPatchCompanion={
+                            canControl && !session.closed_at
+                              ? (companionId, patch) => {
+                                  void run(async () => {
+                                    const updated = await patchSeatCompanion(
+                                      session.id,
+                                      seat.character_id,
+                                      companionId,
+                                      patch,
+                                    )
+                                    setSession(updated)
+                                  })
+                                }
+                              : undefined
+                          }
                         />
                       )
                     })}
@@ -2994,47 +3009,28 @@ export function SessionDetailPage() {
         }}
       />
 
-      <Dialog
+      <AddStoryCompanionDialog
         open={companionOpen}
-        title="Напарник"
-        primaryLabel={busy ? 'Добавляем…' : 'Добавить'}
-        secondaryLabel="Отмена"
         busy={busy}
-        onPrimary={() => {
-          if (!companionHostId || !companionName.trim()) return
+        hostName={
+          session.seats.find((s) => s.character_id === companionHostId)?.character_name ??
+          null
+        }
+        onClose={() => setCompanionOpen(false)}
+        onSubmit={(payload) => {
+          if (!companionHostId) return
           void run(async () => {
-            const updated = await addSeatCompanion(session.id, companionHostId, {
-              name: companionName.trim(),
-              hp_current: companionHp,
-              hp_max: companionHp,
-              ac: companionAc,
-            })
+            const updated = await addSeatCompanion(session.id, companionHostId, payload)
             setSession(updated)
             setCompanionOpen(false)
-            setToast('Напарник за столом')
+            setToast(
+              payload.story
+                ? 'Сюжетный напарник отдан игроку'
+                : 'Напарник за столом',
+            )
           })
         }}
-        onSecondary={() => setCompanionOpen(false)}
-      >
-        <Stack gap={12}>
-          <Text tone="muted">Отдельная карточка под хозяином — видно союзникам по видимости.</Text>
-          <Field label="Имя">
-            <Input
-              value={companionName}
-              onChange={(e) => setCompanionName(e.target.value)}
-              placeholder="Волк / скакун / фамильяр"
-            />
-          </Field>
-          <div className="manual-roll-form__row">
-            <Field label="ХП">
-              <NumberInput value={companionHp} min={0} max={9999} onValueChange={setCompanionHp} />
-            </Field>
-            <Field label="КД">
-              <NumberInput value={companionAc} min={0} max={40} onValueChange={setCompanionAc} />
-            </Field>
-          </div>
-        </Stack>
-      </Dialog>
+      />
 
       <Dialog
         open={seatPickOpen}

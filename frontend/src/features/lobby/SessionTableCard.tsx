@@ -46,6 +46,15 @@ type Props = {
   onClearConcentration?: () => void
   onAddCompanion?: () => void
   onRemoveCompanion?: (companionId: string) => void
+  /** C-02: master (or owner) patches companion HP / death saves at the table. */
+  onPatchCompanion?: (
+    companionId: string,
+    patch: {
+      hp_current?: number | null
+      death_successes?: number | null
+      death_fails?: number | null
+    },
+  ) => void
   onDamage?: (payload: TypedDamagePayload) => void
   onDeathSavesChange?: (successes: number, fails: number) => void
   /** S-02: подсветка «Твой ход» */
@@ -65,11 +74,17 @@ function CompanionCard({
   masterControls,
   busy,
   onRemove,
+  onPatch,
 }: {
   companion: SeatCompanion
   masterControls?: boolean
   busy?: boolean
   onRemove?: () => void
+  onPatch?: (patch: {
+    hp_current?: number | null
+    death_successes?: number | null
+    death_fails?: number | null
+  }) => void
 }) {
   const tone = hpBand(companion.hp_current, companion.hp_max)
   const ratio = hpRatio(companion.hp_current, companion.hp_max)
@@ -80,6 +95,22 @@ function CompanionCard({
   const ac = companion.ac != null ? `КД ${companion.ac}` : null
   const typeBit = companion.type?.trim() || null
   const durationBit = companion.duration?.trim() || null
+  const initBit =
+    companion.initiative_mode === 'with_master'
+      ? 'ход хозяина'
+      : companion.initiative_mode === 'own_initiative'
+        ? 'своя иниц.'
+        : null
+  const costBit =
+    companion.command_cost === 'action'
+      ? 'команда · действие'
+      : companion.command_cost === 'bonus'
+        ? 'команда · бонусное'
+        : companion.command_cost === 'none'
+          ? 'команда бесплатно'
+          : companion.command_cost === 'reaction'
+            ? 'команда · реакция'
+            : null
   const attackBit = companion.attack_damage
     ? (() => {
         const bonus = companion.attack_bonus ?? 0
@@ -96,6 +127,10 @@ function CompanionCard({
         return [sign, companion.attack_damage, dtype, range].filter(Boolean).join(' ')
       })()
     : null
+  const showDeath =
+    companion.story ||
+    (companion.death_successes != null && companion.death_fails != null) ||
+    ((companion.hp_current ?? 1) <= 0 && companion.story)
 
   return (
     <article className={`session-companion-card session-companion-card--${tone}`}>
@@ -109,18 +144,65 @@ function CompanionCard({
           <Text as="h4" className="session-companion-card__name">
             {companion.name}
             <span className="session-companion-card__tag">
-              {typeBit || 'напарник'}
+              {companion.story
+                ? 'сюжетный'
+                : typeBit || 'напарник'}
             </span>
+            {companion.dodge ? (
+              <span className="session-companion-card__tag">Уклонение</span>
+            ) : null}
+            {companion.active === false ? (
+              <span className="session-companion-card__tag">
+                {(companion.hp_current ?? 1) <= 0 ? 'пал' : 'не призван'}
+              </span>
+            ) : null}
           </Text>
           <Text tone="muted" className="session-companion-card__stat">
             {hp}
             {ac ? ` · ${ac}` : ''}
             {durationBit ? ` · ${durationBit}` : ''}
           </Text>
+          {initBit || costBit ? (
+            <Text tone="muted" className="session-companion-card__stat">
+              {[initBit, costBit].filter(Boolean).join(' · ')}
+            </Text>
+          ) : null}
           {attackBit ? (
             <Text tone="muted" className="session-companion-card__stat">
               Атака {attackBit}
             </Text>
+          ) : null}
+          {showDeath ? (
+            <DeathSavePips
+              successes={companion.death_successes ?? 0}
+              fails={companion.death_fails ?? 0}
+              editable={Boolean(masterControls && onPatch)}
+              busy={busy}
+              onChange={(successes, fails) =>
+                onPatch?.({ death_successes: successes, death_fails: fails })
+              }
+            />
+          ) : null}
+          {masterControls && onPatch ? (
+            <div className="session-companion-card__hp-edit">
+              <label>
+                ХП
+                <input
+                  className="ui-input"
+                  type="number"
+                  min={0}
+                  max={9999}
+                  disabled={busy}
+                  defaultValue={companion.hp_current ?? 0}
+                  onBlur={(e) => {
+                    const next = Number(e.target.value)
+                    if (!Number.isFinite(next)) return
+                    if (next === (companion.hp_current ?? 0)) return
+                    onPatch({ hp_current: Math.max(0, Math.floor(next)) })
+                  }}
+                />
+              </label>
+            </div>
           ) : null}
           {companion.conditions.length > 0 ? (
             <div className="session-table-card__conditions">
@@ -216,6 +298,7 @@ export function SessionTableCard({
   onClearConcentration,
   onAddCompanion,
   onRemoveCompanion,
+  onPatchCompanion,
   onDamage,
   onDeathSavesChange,
   yourTurn = false,
@@ -584,6 +667,11 @@ export function SessionTableCard({
           busy={busy}
           onRemove={
             onRemoveCompanion ? () => onRemoveCompanion(companion.id) : undefined
+          }
+          onPatch={
+            onPatchCompanion
+              ? (patch) => onPatchCompanion(companion.id, patch)
+              : undefined
           }
         />
       ))}

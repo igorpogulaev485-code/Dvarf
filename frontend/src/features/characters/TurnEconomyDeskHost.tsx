@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import type { SheetModel } from './minimalSheet/sheetModel'
-import { applyBeginMyTurn } from './beginMyTurn'
+import { applyBeginMyTurnWithCompanions } from './beginMyTurn'
 import { TurnEconomyStrip } from './TurnEconomyStrip'
 import {
   TurnEconomyProvider,
@@ -59,10 +59,17 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
   const [skillOffer, setSkillOffer] = useState<'search' | 'stealth' | null>(null)
 
   const beginMyTurn = useCallback(() => {
-    model.setDraft((prev) => ({
-      ...prev,
-      play: applyBeginMyTurn(prev.play),
-    }))
+    model.setDraft((prev) => {
+      const next = applyBeginMyTurnWithCompanions({
+        play: prev.play,
+        companions: prev.companions,
+      })
+      return {
+        ...prev,
+        play: next.play,
+        companions: next.companions,
+      }
+    })
   }, [model])
 
   const combat = useSheetSessionCombat(openSessionId, characterId, {

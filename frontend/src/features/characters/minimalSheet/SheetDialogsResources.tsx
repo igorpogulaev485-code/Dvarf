@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import type { SheetModel } from './sheetModel'
 import { dismissSelfFormsOnRest } from '../companions'
+import { healCompanionsOnRest } from '../companionCombat'
 import { applyConcentrationChangeToCompanions } from '../spellCompanions'
 import { SpellFormDialog } from '../SpellFormDialog'
 import { FamiliarPickDialog } from '../FamiliarPickDialog'
@@ -93,10 +94,14 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           model.setDraft((prev) => {
             const result = dismissSelfFormsOnRest(prev.companions, kind)
             dismissed = result.dismissedNames
-            return { ...prev, companions: result.companions }
+            // C-02 Н9: heal companions after resource reset / form dismiss (Р26 effects untouched).
+            const companions = healCompanionsOnRest(result.companions, kind)
+            return { ...prev, companions }
           })
           if (dismissed.length) {
             model.onToast(`Отдых: облик сброшен (${dismissed.join(', ')})`)
+          } else if (kind === 'long') {
+            model.onToast('Отдых: напарники восстановлены по правилам')
           }
         }}
         onToast={model.onToast}

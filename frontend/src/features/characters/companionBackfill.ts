@@ -59,9 +59,15 @@ export function shouldShowOnCompanionStrip(row: CompanionEntry): boolean {
 export function companionStatusChip(row: CompanionEntry): string | null {
   if (isSelfForm(row)) return null
   if (!row.active) {
+    if ((row.stats.hp ?? 1) <= 0 && isPermanentCompanionSlot(row)) return 'пал'
+    if (row.death && (row.death.successes > 0 || row.death.failures > 0)) {
+      return 'спасброски'
+    }
+    if ((row.stats.hp ?? 1) <= 0 && row.story) return 'спасброски'
     if (isPermanentCompanionSlot(row)) return 'не призван'
     return 'неактивен'
   }
+  if (row.turnMarks?.dodge) return 'Уклонение'
   return null
 }
 

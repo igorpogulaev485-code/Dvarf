@@ -1,4 +1,8 @@
-import type { CombatEntry, SessionCombat } from '../../shared/api/lobbies'
+import type {
+  CombatEntry,
+  SessionCombat,
+  SessionSeat,
+} from '../../shared/api/lobbies'
 import { Button, Text } from '../../ui'
 import { sideLabel } from './combatSides'
 
@@ -8,6 +12,8 @@ type Props = {
   busy?: boolean
   /** Свои персонажи — кнопка броска инициативы */
   ownCharacterIds?: Set<string>
+  /** C-02: with_master companions shown under host chip */
+  seats?: SessionSeat[]
   onNext?: () => void
   onPrev?: () => void
   onEnd?: () => void
@@ -39,11 +45,31 @@ function MemberDots({ tones }: { tones?: string[] }) {
 /**
  * Очередь инициативы + чей ход. S-02: pending, волны, павшие, «ждём реакцию».
  */
+function withMasterUnderHost(
+  seats: SessionSeat[] | undefined,
+  characterId: string,
+): { id: string; name: string; dodge?: boolean }[] {
+  const seat = seats?.find((s) => s.character_id === characterId)
+  if (!seat) return []
+  return (seat.companions ?? [])
+    .filter(
+      (c) =>
+        c.active !== false &&
+        c.role !== 'self_form' &&
+        c.kind !== 'transformed_self' &&
+        (c.initiative_mode === 'with_master' ||
+          // Legacy control-mapped seats always send initiative_mode after C-02 parse.
+          false),
+    )
+    .map((c) => ({ id: c.id, name: c.name, dodge: Boolean(c.dodge) }))
+}
+
 export function CombatTrack({
   combat,
   masterControls = false,
   busy,
   ownCharacterIds,
+  seats,
   onNext,
   onPrev,
   onEnd,
@@ -138,11 +164,13 @@ export function CombatTrack({
           {combat.entries.map((entry, index) => {
             const isActive = index === combat.active_index
             const canRollOwn =
-              entry.kind === 'pc' &&
+              (entry.kind === 'pc' || entry.kind === 'companion') &&
               entry.initiative_pending &&
               ownCharacterIds?.has(entry.ref_id)
             const canRollMaster =
               masterControls && entry.initiative_pending && Boolean(onRollInitiative)
+            const underHost =
+              entry.kind === 'pc' ? withMasterUnderHost(seats, entry.ref_id) : []
             return (
               <li key={entry.id}>
                 <button
@@ -167,6 +195,19 @@ export function CombatTrack({
                   ) : null}
                   <MemberDots tones={entry.member_tones} />
                 </button>
+                {underHost.length > 0 ? (
+                  <ul className="session-combat-order__under">
+                    {underHost.map((c) => (
+                      <li key={c.id}>
+                        <span className="session-combat-order__under-chip">
+                          {c.name}
+                          {c.dodge ? ' · Уклонение' : ''}
+                          <span className="session-combat-order__kind"> · ход хозяина</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
                 {(canRollOwn || canRollMaster) && onRollInitiative ? (
                   <Button
                     type="button"

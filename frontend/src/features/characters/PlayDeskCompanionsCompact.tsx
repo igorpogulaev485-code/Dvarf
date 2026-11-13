@@ -5,6 +5,7 @@ import {
   isCompanionStatEmpty,
   shouldShowOnCompanionStrip,
 } from './companionBackfill'
+import { companionCombatSummary } from './companionCombat'
 import {
   listCompanionAttacksForHost,
   type CompanionAttackHostContext,
@@ -127,6 +128,11 @@ export function PlayDeskCompanionsCompact({
                     ) : null}
                   </div>
                   <p>{bits.join(' · ')}</p>
+                  {!incomplete && !isSelfForm(row) ? (
+                    <p className="play-desk-compact__card-hint">
+                      {companionCombatSummary(row)}
+                    </p>
+                  ) : null}
                   {incomplete ? (
                     <p className="play-desk-compact__card-hint">Не заполнено</p>
                   ) : actionPreview ? (

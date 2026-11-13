@@ -3,9 +3,12 @@
 import { wildfireSpiritHp } from './bestiaryCompanionStats'
 import {
   createCompanion,
+  defaultCombatModesForCompanion,
   defaultControlForKind,
   defaultNatureForKind,
+  type CompanionCommandCost,
   type CompanionEntry,
+  type CompanionInitiativeMode,
   type CompanionKind,
   type CompanionResource,
 } from './companions'
@@ -35,6 +38,8 @@ export type CompanionTemplatePatch = {
   notes: string
   nature?: CompanionEntry['nature']
   control?: CompanionEntry['control']
+  initiativeMode?: CompanionInitiativeMode
+  commandCost?: CompanionCommandCost
   resources?: CompanionResource[]
 }
 
@@ -171,8 +176,10 @@ function phbBeastStub(): CompanionTemplatePatch {
     actions: '',
     notes: 'PHB: зверь КР ≤ ¼ — выбери из бестиария или заполни статы вручную',
     nature: 'living',
-    // PHB: команда за действие хозяина (цена команды — C-02; режим пока other).
-    control: 'other',
+    // C-02 Н5: ход хозяина, команда за действие.
+    control: 'bonus_action_command',
+    initiativeMode: 'with_master',
+    commandCost: 'action',
   }
 }
 
@@ -219,6 +226,8 @@ function wildfireSpiritTemplate(ctx: CompanionTemplateContext): CompanionTemplat
     notes: `Summon Wildfire Spirit · HP = 5 + 5×ур. = ${hp} (TCE) · парит`,
     nature: 'summoned',
     control: 'bonus_action_command',
+    initiativeMode: 'with_master',
+    commandCost: 'bonus',
   }
 }
 
@@ -260,7 +269,10 @@ function tashaSpiritTemplate(input: {
     actions: `Атака +${atk} (мод. заклинаний хозяина). Мультиатака — по таблице духа.`,
     notes: `Tasha/Fizban spirit · ячейка ${slot}${input.notesExtra ? ` · ${input.notesExtra}` : ''}`,
     nature: 'summoned',
-    control: 'bonus_action_command',
+    // C-02 Н5: Summon* — ход хозяина, команда бесплатно.
+    control: 'with_master',
+    initiativeMode: 'with_master',
+    commandCost: 'none',
   }
 }
 
@@ -281,7 +293,9 @@ function tceSpiritCard(
     actions: `Атака +${atk} · ${stats.attacks} атак. · ${stats.attackRu}. Скорость ${stats.speedRu}.`,
     notes: `${stats.titleRu} · ячейка ${Math.max(kind === 'beast' ? 2 : kind === 'fey' ? 3 : 4, Math.floor(ctx.slotLevel ?? 0))} · КД ${stats.ac} · ${hpNote}`,
     nature: 'summoned',
-    control: 'bonus_action_command',
+    control: 'with_master',
+    initiativeMode: 'with_master',
+    commandCost: 'none',
   }
 }
 
@@ -479,11 +493,23 @@ export function companionFromTemplate(input: {
   source: CompanionEntry['source']
 }): CompanionEntry {
   const kind = input.template.kind
+  const modes =
+    input.template.initiativeMode && input.template.commandCost
+      ? {
+          initiativeMode: input.template.initiativeMode,
+          commandCost: input.template.commandCost,
+        }
+      : defaultCombatModesForCompanion({
+          kind,
+          source: input.source,
+        })
   return createCompanion({
     kind,
     name: input.name?.trim() || input.template.defaultName,
     nature: input.template.nature ?? defaultNatureForKind(kind),
     control: input.template.control ?? defaultControlForKind(kind),
+    initiativeMode: modes.initiativeMode,
+    commandCost: modes.commandCost,
     stats: { ...input.template.stats },
     actions: input.template.actions,
     notes: input.template.notes,

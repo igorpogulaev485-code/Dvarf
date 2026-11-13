@@ -12,6 +12,7 @@ import {
 } from '../../ui'
 import {
   COMPANION_KIND_LABELS,
+  clampDeathMarks,
   companionMovementLine,
   companionSourceLabel,
   createCompanion,
@@ -20,6 +21,7 @@ import {
   formSourceBadgeRu,
   getActiveSelfForm,
   isSelfForm,
+  restoreCompanion,
   sortCompanionsForDisplay,
   type CompanionEntry,
   type CompanionKind,
@@ -27,8 +29,19 @@ import {
 import {
   companionStatusChip,
   isCompanionStatEmpty,
+  isPermanentCompanionSlot,
   shouldShowOnCompanionStrip,
 } from './companionBackfill'
+import {
+  applyCompanionHpChange,
+  companionCombatSummary,
+  companionNeedsCommand,
+  companionUsesDeathSaves,
+  dismissCompanion,
+  issueCompanionCommand,
+  COMMAND_COST_LABELS,
+  INITIATIVE_MODE_LABELS,
+} from './companionCombat'
 import {
   parseCompanionActionAttacks,
   type CompanionAttackHostContext,
@@ -167,6 +180,7 @@ export function CompanionsPanel({
   const checkHostAttack =
     canHostAttack ??
     (() => turnEco?.canAttack() ?? { ok: true as const })
+  const [healById, setHealById] = useState<Record<string, number | null>>({})
   const hasFamiliar = companions.some((row) => row.kind === 'familiar')
   const [filter, setFilter] = useState<CompanionFilter>('all')
   const [openIds, setOpenIds] = useState<Set<string>>(() => {
@@ -629,9 +643,17 @@ export function CompanionsPanel({
                       min={0}
                       emptyValue={null}
                       value={row.stats.hp}
-                      onValueChange={(hp) =>
-                        update(row.id, { stats: { ...row.stats, hp } })
-                      }
+                      onValueChange={(hp) => {
+                        if (selfForm) {
+                          update(row.id, { stats: { ...row.stats, hp } })
+                          return
+                        }
+                        onChange(
+                          companions.map((c) =>
+                            c.id === row.id ? applyCompanionHpChange(c, hp) : c,
+                          ),
+                        )
+                      }}
                     />
                   </Field>
                   <Field label="КД">
@@ -672,6 +694,237 @@ export function CompanionsPanel({
                 ) : null}
                 {row.actions.trim() ? (
                   <Text tone="muted">Атаки и действия: {row.actions}</Text>
+                ) : null}
+
+                {!selfForm ? (
+                  <Stack gap={8}>
+                    <Text tone="muted">{companionCombatSummary(row)}</Text>
+                    {row.story ? (
+                      <span className="attack-held-tag is-on">сюжетный</span>
+                    ) : null}
+                    {row.turnMarks?.dodge ? (
+                      <span className="attack-held-tag">Уклонение</span>
+                    ) : null}
+                    <div className="chip-row">
+                      <span className="attack-held-tag">
+                        Д {row.turnMarks?.action ? '✓' : '·'}
+                      </span>
+                      <span className="attack-held-tag">
+                        Б {row.turnMarks?.bonus ? '✓' : '·'}
+                      </span>
+                      <span className="attack-held-tag">
+                        Р {row.turnMarks?.reaction ? '✓' : '·'}
+                      </span>
+                    </div>
+                    {row.active ? (
+                      <div className="sheet-actions">
+                        {companionNeedsCommand(row) || row.commandCost === 'none' ? (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => {
+                              const eco = turnEco?.turnEconomy ?? {
+                                action: false,
+                                bonus: false,
+                                reaction: false,
+                              }
+                              const result = issueCompanionCommand(row, eco)
+                              if (result.blockedReason) {
+                                onToast?.(result.blockedReason)
+                                return
+                              }
+                              if (result.hostMark === 'action') turnEco?.spendAttack()
+                              else if (result.hostMark === 'bonus') {
+                                turnEco?.spendFeature('bonus')
+                              } else if (result.hostMark === 'reaction') {
+                                turnEco?.spendFeature('reaction')
+                              }
+                              onChange(
+                                companions.map((c) =>
+                                  c.id === row.id ? result.companion : c,
+                                ),
+                              )
+                              onToast?.(
+                                result.hostMark
+                                  ? `Команда · ${COMMAND_COST_LABELS[result.hostMark === 'action' ? 'action' : result.hostMark === 'bonus' ? 'bonus' : 'reaction']}`
+                                  : 'Команда (бесплатно)',
+                              )
+                            }}
+                          >
+                            {row.commandCost === 'none'
+                              ? 'Команда (бесплатно)'
+                              : `Команда · ${COMMAND_COST_LABELS[row.commandCost].replace('Команда · ', '')}`}
+                          </Button>
+                        ) : null}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            onChange(
+                              companions.map((c) =>
+                                c.id === row.id ? dismissCompanion(c) : c,
+                              ),
+                            )
+                            onToast?.(
+                              isPermanentCompanionSlot(row)
+                                ? `${row.name}: отпущен → не призван`
+                                : `${row.name}: отпущен`,
+                            )
+                          }}
+                        >
+                          Отпустить
+                        </Button>
+                        {!row.active && isPermanentCompanionSlot(row) ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => {
+                              onChange(
+                                companions.map((c) =>
+                                  c.id === row.id ? restoreCompanion(c) : c,
+                                ),
+                              )
+                              onToast?.(`${row.name}: возвращён`)
+                            }}
+                          >
+                            Вернуть
+                          </Button>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {!row.active && !companionNeedsCommand(row) ? (
+                      <div className="sheet-actions">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            onChange(
+                              companions.map((c) =>
+                                c.id === row.id ? dismissCompanion(c) : c,
+                              ),
+                            )
+                          }}
+                        >
+                          Отпустить
+                        </Button>
+                      </div>
+                    ) : null}
+                    <div className="sheet-grid sheet-grid--2">
+                      <Field label="Вылечить на">
+                        <NumberInput
+                          min={1}
+                          emptyValue={null}
+                          value={healById[row.id] ?? null}
+                          onValueChange={(v) =>
+                            setHealById((prev) => ({ ...prev, [row.id]: v }))
+                          }
+                        />
+                      </Field>
+                      <div className="sheet-actions" style={{ alignItems: 'flex-end' }}>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={!healById[row.id] || healById[row.id]! <= 0}
+                          onClick={() => {
+                            const amount = healById[row.id] ?? 0
+                            if (amount <= 0) return
+                            const cur = row.stats.hp ?? 0
+                            const max = row.stats.hp_max
+                            const next =
+                              max != null
+                                ? Math.min(max, cur + amount)
+                                : cur + amount
+                            onChange(
+                              companions.map((c) =>
+                                c.id === row.id ? applyCompanionHpChange(c, next) : c,
+                              ),
+                            )
+                            setHealById((prev) => ({ ...prev, [row.id]: null }))
+                            onToast?.(`${row.name}: +${amount} HP`)
+                          }}
+                        >
+                          Вылечить
+                        </Button>
+                      </div>
+                    </div>
+                    {(companionUsesDeathSaves(row) || row.death) &&
+                    (row.stats.hp ?? 1) <= 0 ? (
+                      <div className="sheet-grid sheet-grid--2">
+                        <Field label="Спасброски · успехи">
+                          <NumberInput
+                            min={0}
+                            max={3}
+                            emptyValue={0}
+                            value={row.death?.successes ?? 0}
+                            onValueChange={(v) =>
+                              update(row.id, {
+                                death: {
+                                  successes: clampDeathMarks(v ?? 0),
+                                  failures: row.death?.failures ?? 0,
+                                },
+                              })
+                            }
+                          />
+                        </Field>
+                        <Field label="Провалы">
+                          <NumberInput
+                            min={0}
+                            max={3}
+                            emptyValue={0}
+                            value={row.death?.failures ?? 0}
+                            onValueChange={(v) =>
+                              update(row.id, {
+                                death: {
+                                  successes: row.death?.successes ?? 0,
+                                  failures: clampDeathMarks(v ?? 0),
+                                },
+                              })
+                            }
+                          />
+                        </Field>
+                      </div>
+                    ) : null}
+                    <div className="sheet-grid sheet-grid--2">
+                      <Field label="Инициатива">
+                        <select
+                          className="ui-input"
+                          value={row.initiativeMode}
+                          onChange={(e) =>
+                            update(row.id, {
+                              initiativeMode: e.target.value as CompanionEntry['initiativeMode'],
+                            })
+                          }
+                        >
+                          {(Object.keys(INITIATIVE_MODE_LABELS) as Array<
+                            CompanionEntry['initiativeMode']
+                          >).map((key) => (
+                            <option key={key} value={key}>
+                              {INITIATIVE_MODE_LABELS[key]}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                      <Field label="Цена команды">
+                        <select
+                          className="ui-input"
+                          value={row.commandCost}
+                          onChange={(e) =>
+                            update(row.id, {
+                              commandCost: e.target.value as CompanionEntry['commandCost'],
+                            })
+                          }
+                        >
+                          {(Object.keys(COMMAND_COST_LABELS) as Array<
+                            CompanionEntry['commandCost']
+                          >).map((key) => (
+                            <option key={key} value={key}>
+                              {COMMAND_COST_LABELS[key]}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                    </div>
+                  </Stack>
                 ) : null}
 
                 {selfForm && hasFormHp && row.active ? (

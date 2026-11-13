@@ -540,6 +540,17 @@ class SeatCompanionOut(BaseModel):
     hp_current: int | None = None
     hp_max: int | None = None
     ac: int | None = None
+    # C-02: DEX mod from stats.dex for own-initiative rows.
+    dex_mod: int | None = None
+    active: bool | None = None
+    initiative_mode: str | None = None
+    command_cost: str | None = None
+    story: bool = False
+    kind: str | None = None
+    role: str | None = None
+    dodge: bool = False
+    death_successes: int | None = None
+    death_fails: int | None = None
     conditions: list[SeatConditionOut] = Field(default_factory=list)
     type: str | None = None
     duration: str | None = None
@@ -704,6 +715,22 @@ class SeatCompanionCreateRequest(BaseModel):
     hp_current: int | None = Field(default=None, ge=0, le=9999)
     hp_max: int | None = Field(default=None, ge=0, le=9999)
     ac: int | None = Field(default=None, ge=0, le=40)
+    # C-02 story companion from bestiary / manual.
+    story: bool = False
+    bestiary_ref: str | None = Field(default=None, max_length=120)
+    bestiary_name_ru: str | None = Field(default=None, max_length=120)
+    initiative_mode: Literal["with_master", "own_initiative"] | None = None
+    command_cost: Literal["none", "action", "bonus", "reaction"] | None = None
+    kind: str | None = Field(default=None, max_length=40)
+    nature: str | None = Field(default=None, max_length=40)
+    speed: int | None = Field(default=None, ge=0, le=999)
+    dex: int | None = Field(default=None, ge=1, le=30)
+    str_score: int | None = Field(default=None, ge=1, le=30, alias="str")
+    con: int | None = Field(default=None, ge=1, le=30)
+    actions: str | None = Field(default=None, max_length=4000)
+    notes: str | None = Field(default=None, max_length=2000)
+
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class SeatCompanionPatchRequest(BaseModel):
@@ -712,6 +739,11 @@ class SeatCompanionPatchRequest(BaseModel):
     hp_max: int | None = Field(default=None, ge=0, le=9999)
     ac: int | None = Field(default=None, ge=0, le=40)
     conditions: list[SeatConditionOut] | None = None
+    initiative_mode: Literal["with_master", "own_initiative"] | None = None
+    command_cost: Literal["none", "action", "bonus", "reaction"] | None = None
+    active: bool | None = None
+    death_successes: int | None = Field(default=None, ge=0, le=3)
+    death_fails: int | None = Field(default=None, ge=0, le=3)
 
 
 class LobbyRoleOut(BaseModel):

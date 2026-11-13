@@ -502,6 +502,17 @@ export type SeatCompanion = {
   hp_current: number | null
   hp_max: number | null
   ac: number | null
+  /** C-02: from stats.dex */
+  dex_mod?: number | null
+  active?: boolean | null
+  initiative_mode?: 'with_master' | 'own_initiative' | string | null
+  command_cost?: 'none' | 'action' | 'bonus' | 'reaction' | string | null
+  story?: boolean
+  kind?: string | null
+  role?: string | null
+  dodge?: boolean
+  death_successes?: number | null
+  death_fails?: number | null
   conditions: SeatCondition[]
   type?: string | null
   duration?: string | null
@@ -1544,6 +1555,19 @@ export async function addSeatCompanion(
     hp_current?: number | null
     hp_max?: number | null
     ac?: number | null
+    story?: boolean
+    bestiary_ref?: string | null
+    bestiary_name_ru?: string | null
+    initiative_mode?: 'with_master' | 'own_initiative'
+    command_cost?: 'none' | 'action' | 'bonus' | 'reaction'
+    kind?: string | null
+    nature?: string | null
+    speed?: number | null
+    dex?: number | null
+    str?: number | null
+    con?: number | null
+    actions?: string | null
+    notes?: string | null
   },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(
@@ -1565,6 +1589,11 @@ export async function patchSeatCompanion(
     hp_max?: number | null
     ac?: number | null
     conditions?: SeatCondition[]
+    initiative_mode?: 'with_master' | 'own_initiative'
+    command_cost?: 'none' | 'action' | 'bonus' | 'reaction'
+    active?: boolean
+    death_successes?: number | null
+    death_fails?: number | null
   },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(
