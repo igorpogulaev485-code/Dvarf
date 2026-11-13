@@ -1,5 +1,6 @@
 export { CharacterReadyDialog } from './CharacterReadyDialog'
 export { HelpDrawer } from './HelpDrawer'
+export { LobbyTour } from './LobbyTour'
 export { OnboardingChecklist } from './OnboardingChecklist'
 export { SheetTour } from './SheetTour'
 export { StepHint } from './StepHint'
@@ -11,14 +12,21 @@ export {
   defaultOnboardingState,
   type OnboardingPanelId,
   type OnboardingSegment,
+  type OnboardingServerPayload,
   type OnboardingState,
+  toServerPayload,
 } from './types'
 export {
+  applyServerOnboarding,
   clearOnboardingState,
+  hasLocalDurableProgress,
+  isServerOnboardingEmpty,
   loadOnboardingState,
   loadOnboardingStateForUser,
   mergeOnboardingState,
+  restartTipsState,
   saveOnboardingState,
+  shouldRunLobbyTour,
   shouldRunSheetTour,
   shouldShowCreateHints,
 } from './storage'

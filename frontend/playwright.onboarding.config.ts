@@ -9,7 +9,7 @@ const BASE = process.env.ONB_E2E_BASE || `http://127.0.0.1:${PORT}`
  */
 export default defineConfig({
   testDir: './e2e',
-  testMatch: '**/onboarding-display.spec.ts',
+  testMatch: '**/onboarding-*.spec.ts',
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,

@@ -283,7 +283,14 @@ export function CharactersPage() {
         onChoose={onboarding.completeWelcome}
         onDismiss={() => setWelcomeSessionHide(true)}
       />
-      <HelpDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <HelpDrawer
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        onRestartTips={() => {
+          onboarding.restartTips()
+          onboarding.markHelpOpened()
+        }}
+      />
       <Toast message={toast} onClose={closeToast} />
     </main>
   )

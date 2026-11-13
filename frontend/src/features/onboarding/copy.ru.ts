@@ -55,8 +55,58 @@ export const HELP_DRAWER = {
       text: 'Общий стол с мастером и пати по коду или QR. Отсюда садишься за стол со своим героем.',
     },
   ],
+  knowledgeTitle: 'База знаний (задел)',
+  knowledge: [
+    { id: 'lobby-roles', label: 'Лобби и роли', status: 'soon' as const },
+    { id: 'turn-economy', label: 'Экономика хода', status: 'anchor' as const, href: '#onboarding-help-terms' },
+    { id: 'optional-rules', label: 'Опциональные правила мастера', status: 'soon' as const },
+    { id: 'rest', label: 'Отдых', status: 'anchor' as const, href: '#onboarding-help-panels' },
+    { id: 'companions', label: 'Напарники', status: 'anchor' as const, href: '#onboarding-help-panels' },
+    { id: 'classic-print', label: 'Классический лист и печать', status: 'anchor' as const, href: '#onboarding-help-panels' },
+    {
+      id: 'paper-at-table',
+      label: 'Игрок с бумажным листом за столом',
+      status: 'soon' as const,
+    },
+  ],
+  restartTips: 'Показать подсказки снова',
+  restartTipsHint:
+    'Снова пройдём короткий тур листа и, когда сядете за стол, тур лобби. Сегмент сохранится, если вы его уже выбирали.',
   termsTitle: 'Короткие термины',
   close: 'Закрыть',
+}
+
+export const LOBBY_TOUR = {
+  player: [
+    {
+      id: 'seat' as const,
+      anchor: 'lobby-seat',
+      title: 'Как сесть за стол',
+      body:
+        'Входите по коду или QR от мастера, затем нажмите «Сесть за стол» со своим героем. Без посадки вы наблюдатель.',
+    },
+    {
+      id: 'combat_view' as const,
+      anchor: 'lobby-your-turn',
+      title: 'Что видно в бою',
+      body:
+        'Когда ваш ход — плашка «Твой ход» и своя карточка. Слева (на телефоне — во вкладках) узкая инициатива: кто сейчас ходит.',
+    },
+    {
+      id: 'turn_economy' as const,
+      anchor: 'lobby-turn-chips',
+      title: 'Экономика хода',
+      body:
+        'На своей карточке отметьте действие, бонусное, реакцию и движение, когда потратили. Есть и другие жесты (Помощь…), полный список — позже в базе знаний.',
+    },
+  ],
+  master: {
+    id: 'master_desk' as const,
+    anchor: 'lobby-master-toolbar',
+    title: 'Вы ведёте стол',
+    body:
+      'Стол удобнее с компьютера: отметки хода игроков и награды — в панели мастера. Лута и генератора встреч в мобильном MVP нет — это не про первые две минуты.',
+  },
 }
 
 export const TERMS: Array<{ term: string; meaning: string }> = [

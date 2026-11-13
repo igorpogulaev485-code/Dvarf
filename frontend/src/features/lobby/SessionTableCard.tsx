@@ -382,15 +382,26 @@ export function SessionTableCard({
     (masterControls || isOwner) && Boolean(seat.inspiration) && Boolean(onSpendInspiration)
 
   return (
-    <div className={`session-seat-stack${yourTurn ? ' is-your-turn' : ''}`}>
+    <div
+      className={`session-seat-stack${yourTurn ? ' is-your-turn' : ''}`}
+      {...(isOwner ? { 'data-onboarding': 'lobby-own-card' } : {})}
+    >
       <article className={`session-table-card${yourTurn ? ' is-your-turn' : ''}`}>
         {yourTurn ? (
-          <p className="session-table-card__your-turn" role="status">
+          <p
+            className="session-table-card__your-turn"
+            role="status"
+            {...(isOwner ? { 'data-onboarding': 'lobby-your-turn' } : {})}
+          >
             Твой ход
           </p>
         ) : null}
         {showTurnEconomyStub ? (
-          <div className="session-table-card__turn-stub" aria-label="Экономика хода">
+          <div
+            className="session-table-card__turn-stub"
+            aria-label="Экономика хода"
+            {...(isOwner ? { 'data-onboarding': 'lobby-turn-chips' } : {})}
+          >
             {surprised || turnEconomy?.surprised ? (
               <p className="session-table-card__surprised" role="status">
                 врасплох

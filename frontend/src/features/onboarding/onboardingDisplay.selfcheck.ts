@@ -41,6 +41,8 @@ const anonPending = {
   welcomeDone: true,
   pendingReadyBridge: true,
   pendingSheetTour: true,
+  lobbyTourDone: false,
+  pendingLobbyTour: false,
 }
 const namedEmpty = defaultOnboardingState()
 const merged = mergeOnboardingState(namedEmpty, anonPending)
