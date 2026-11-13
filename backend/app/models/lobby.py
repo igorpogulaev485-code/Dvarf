@@ -219,6 +219,13 @@ class Setting(Base):
     world_notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
     # W-01: лишний сеттинг (после выбора основного); корзина — W-02.
     is_extra: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # W-02: soft-delete (корзина 30 дней); сессии с setting_id остаются привязаны.
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        default=None,
+        index=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

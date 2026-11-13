@@ -37,13 +37,14 @@ def _lobby(owner_id, settings=None):
     )
 
 
-def _setting(lobby_id, *, is_extra=False, name="Мир"):
+def _setting(lobby_id, *, is_extra=False, name="Мир", deleted_at=None):
     return SimpleNamespace(
         id=uuid4(),
         lobby_id=lobby_id,
         name=name,
         world_notes="",
         is_extra=is_extra,
+        deleted_at=deleted_at,
         created_at=datetime.now(timezone.utc),
         updated_at=datetime.now(timezone.utc),
         pages=[],
@@ -67,6 +68,7 @@ def _page(setting_id, *, title="Стр", body="", revealed=False, revealed_at=No
         fields=kw.get("fields", {}),
         quest_status=kw.get("quest_status"),
         tags=kw.get("tags", []),
+        deleted_at=kw.get("deleted_at"),
         created_at=now,
         updated_at=now,
     )
@@ -94,8 +96,11 @@ class FakeLobbies:
         self.lobby.settings.append(s)
         return s
 
-    def list_setting_pages(self, setting_id):
-        return [p for p in self.pages if p.setting_id == setting_id]
+    def list_setting_pages(self, setting_id, *, include_deleted=False):
+        rows = [p for p in self.pages if p.setting_id == setting_id]
+        if not include_deleted:
+            rows = [p for p in rows if getattr(p, "deleted_at", None) is None]
+        return rows
 
     def get_setting_page(self, page_id):
         for p in self.pages:
@@ -131,6 +136,7 @@ class FakeLobbies:
 class FakeDB:
     def __init__(self):
         self.committed = False
+        self.added = []
 
     def commit(self):
         self.committed = True
@@ -140,6 +146,15 @@ class FakeDB:
 
     def flush(self):
         pass
+
+    def add(self, obj):
+        self.added.append(obj)
+
+    def delete(self, obj):
+        pass
+
+    def get(self, model, pk):  # noqa: ANN001
+        return None
 
     def scalar(self, stmt):  # noqa: ANN001
         return None
@@ -213,6 +228,12 @@ def _svc(lobby, monkeypatch, *, pages=None, settings=None, wiki_users=None, see_
                 limit_mb=0,
             )
 
+        def delete_for_attachment(self, *a, **k):
+            return 0
+
+        def copy_to_lobby(self, *a, **k):
+            raise NotImplementedError
+
     monkeypatch.setattr("app.services.media.LobbyMediaService", _FakeMedia)
     return svc
 
@@ -261,7 +282,9 @@ def test_choose_primary_marks_extra(monkeypatch):
     svc = _svc(lobby, monkeypatch, settings=[a, b])
     detail = svc.choose_primary_setting(owner, lobby.id, a.id)
     assert a.is_extra is False
+    assert a.deleted_at is None
     assert b.is_extra is True
+    assert b.deleted_at is not None
     assert detail.settings_need_primary is False
 
 

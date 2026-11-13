@@ -33,6 +33,7 @@ class SettingSummary(BaseModel):
     name: str
     world_notes: str
     is_extra: bool = False
+    deleted_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -87,8 +88,13 @@ class SettingPageOut(BaseModel):
     fields: dict[str, str | int | float | bool | None] = Field(default_factory=dict)
     quest_status: QuestStatus | None = None
     tags: list[str] = Field(default_factory=list)
+    deleted_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
+    # W-02: картинки L-02 (wiki/map), заполняются в _setting_detail
+    media: list["LobbyMediaOut"] = Field(default_factory=list)
+    primary_image: "LobbyMediaOut | None" = None
+    map_image: "LobbyMediaOut | None" = None
 
 
 LinkKind = Literal["semantic", "mention"]
@@ -253,6 +259,8 @@ class SettingDetail(SettingSummary):
     can_edit_wiki: bool = False
     can_see_hidden: bool = False
     can_view_lobby: bool = True
+    # W-02: сеттинг в корзине — сессии остаются, вики помечаем
+    in_trash: bool = False
 
 
 class SettingChoosePrimaryRequest(BaseModel):
@@ -302,9 +310,59 @@ class SettingPageUpdateRequest(BaseModel):
     fields: dict[str, str | int | float | bool | None] | None = None
     quest_status: QuestStatus | None = None
     clear_quest_status: bool = False
-    # C6: если @Новое_Имя не найдено — создать страницу note
+    # W-02: флаг снят из рабочего потока (молчание False; игнорируется)
     create_missing_mentions: bool = False
     tags: list[str] | None = None
+    # W-02: оптимистичная блокировка; 409 setting_page_conflict
+    expected_updated_at: datetime | None = None
+    force_overwrite: bool = False
+
+
+class SettingPageVersionOut(BaseModel):
+    id: UUID
+    page_id: UUID
+    setting_id: UUID
+    created_by: UUID | None = None
+    author_name: str = ""
+    snapshot: dict = Field(default_factory=dict)
+    created_at: datetime
+
+
+class SettingTrashItemOut(BaseModel):
+    kind: Literal["setting", "page"]
+    id: UUID
+    setting_id: UUID
+    title: str
+    deleted_at: datetime | None = None
+    expires_at: datetime | None = None
+
+
+class SettingTrashListOut(BaseModel):
+    items: list[SettingTrashItemOut] = Field(default_factory=list)
+
+
+class WikiMentionSimilarOut(BaseModel):
+    id: UUID
+    title: str
+    page_kind: SettingPageKind = "note"
+    score: float = 0.0
+
+
+class WikiMentionResolveOut(BaseModel):
+    query: str
+    exact_page_id: UUID | None = None
+    exact_title: str | None = None
+    similar: list[WikiMentionSimilarOut] = Field(default_factory=list)
+
+
+class WikiCopyRequest(BaseModel):
+    source_page_id: UUID
+    include_subtree: bool = False
+    target_parent_id: UUID | None = None
+
+
+class WikiMentionResolveQuery(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
 
 
 class SettingPageLinkCreateRequest(BaseModel):

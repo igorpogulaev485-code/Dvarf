@@ -129,5 +129,18 @@
 | W01-5 | revealed_at + «что нового» | колонка; localStorage курсор; список 10 | model + wikiRevealSeen | W-01 | сделано |
 | W01-6 | Журнал квестов | список раскрытых quest в reader | SettingWikiReader | W-01 | сделано |
 | W01-7 | Вики во боковой панели стола | вкладка «Вики» рядом с заметками/чатом | SessionDetailPage | W-01 | сделано |
-| W-02 | Корзина / картинки / create_missing | не включали | — | W-02 | перенесено |
+| W-02 | Корзина / картинки / create_missing | см. раздел W-02 | — | W-02 | сделано |
 | W-04 | Известные легенды | место под блок, список пуст | SettingWikiReader | W-04 | перенесено |
+
+## W-02 — Вики: картинки, история, корзина, перенос и совместная правка
+
+| ID | Ожидалось | Фактически | Где | Пачка | Статус |
+|---|---|---|---|---|---|
+| W02-1 | Картинки L-02 wiki/map, главная/карта, квота | media на SettingPageOut; upload kind=wiki/map; квота освобождается при окончательном удалении (не при soft-delete) | WikiPageMediaPanel + media.py + wiki.py | W-02 | сделано |
+| W02-2 | История 20 + вернуть | setting_page_versions; restore пишет новую версию | wiki.py + WikiPageHistoryPanel | W-02 | сделано |
+| W02-3 | Корзина 30д страниц/сеттингов; is_extra → trash | deleted_at; purge при обращении; сессии остаются | migration w02wiki0a2e0f + wiki trash API | W-02 | сделано |
+| W02-4 | Черновик = нераскрытое | без нового статуса | — | W-02 | уже было |
+| W02-5 | @без совпадения: Создать/Похожие | create_missing игнор; resolve + UI assist | WikiMentionAssist + resolve endpoint | W-02 | сделано |
+| W02-6 | Копия из лобби с can_edit_wiki | хелпер wiki_copy_access (легко сменить) | wiki_copy_access.py + copy endpoint | W-02 | сделано / нужно решение владельца (правило доступа) |
+| W02-7 | Сейчас правит + конфликт 409 | lobby WS wiki_editing; expected_updated_at | wiki_presence + SettingDetailPage | W-02 | сделано |
+| W-03/W-04 | Бой / артефакты | не трогали | — | W-03/W-04 | перенесено |

@@ -60,6 +60,13 @@ class SettingPage(Base):
     quest_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
     # C9: теги для фильтра mid-session
     tags: Mapped[list[str]] = mapped_column(ARRAY(String(48)), nullable=False, default=list)
+    # W-02: soft-delete (корзина 30 дней)
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        default=None,
+        index=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

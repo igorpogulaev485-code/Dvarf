@@ -52,6 +52,7 @@ export type SettingSummary = {
   name: string
   world_notes: string
   is_extra?: boolean
+  deleted_at?: string | null
   created_at: string
   updated_at: string
 }
@@ -100,8 +101,12 @@ export type SettingPage = {
   fields: Record<string, string | number | boolean | null>
   quest_status: QuestStatus | null
   tags: string[]
+  deleted_at?: string | null
   created_at: string
   updated_at: string
+  media?: LobbyMedia[]
+  primary_image?: LobbyMedia | null
+  map_image?: LobbyMedia | null
 }
 
 export type SettingPageLinkKind = 'semantic' | 'mention'
@@ -245,6 +250,39 @@ export type SettingDetail = SettingSummary & {
   can_edit_wiki?: boolean
   can_see_hidden?: boolean
   can_view_lobby?: boolean
+  /** W-02: сеттинг в корзине */
+  in_trash?: boolean
+}
+
+export type SettingPageVersion = {
+  id: string
+  page_id: string
+  setting_id: string
+  created_by: string | null
+  author_name: string
+  snapshot: Record<string, unknown>
+  created_at: string
+}
+
+export type SettingTrashItem = {
+  kind: 'setting' | 'page'
+  id: string
+  setting_id: string
+  title: string
+  deleted_at: string | null
+  expires_at: string | null
+}
+
+export type WikiMentionResolve = {
+  query: string
+  exact_page_id: string | null
+  exact_title: string | null
+  similar: Array<{
+    id: string
+    title: string
+    page_kind: SettingPageKind
+    score: number
+  }>
 }
 
 export type SessionSummary = {
@@ -1171,6 +1209,8 @@ export async function updateSettingPage(
     clear_quest_status?: boolean
     create_missing_mentions?: boolean
     tags?: string[]
+    expected_updated_at?: string | null
+    force_overwrite?: boolean
   },
 ): Promise<SettingDetail> {
   return apiRequest<SettingDetail>(`/settings/pages/${pageId}`, {
@@ -1183,6 +1223,70 @@ export async function deleteSettingPage(pageId: string): Promise<SettingDetail> 
   return apiRequest<SettingDetail>(`/settings/pages/${pageId}`, {
     method: 'DELETE',
   })
+}
+
+export async function restoreSetting(settingId: string): Promise<SettingSummary> {
+  return apiRequest<SettingSummary>(`/settings/${settingId}/restore`, { method: 'POST' })
+}
+
+export async function purgeSetting(settingId: string): Promise<void> {
+  await apiRequest<void>(`/settings/${settingId}/purge`, { method: 'DELETE' })
+}
+
+export async function restoreSettingPage(pageId: string): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/pages/${pageId}/restore`, { method: 'POST' })
+}
+
+export async function purgeSettingPage(pageId: string): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/pages/${pageId}/purge`, { method: 'DELETE' })
+}
+
+export async function listWikiTrash(lobbyId: string): Promise<{ items: SettingTrashItem[] }> {
+  return apiRequest<{ items: SettingTrashItem[] }>(`/lobbies/${lobbyId}/wiki/trash`)
+}
+
+export async function listSettingPageVersions(pageId: string): Promise<SettingPageVersion[]> {
+  return apiRequest<SettingPageVersion[]>(`/settings/pages/${pageId}/versions`)
+}
+
+export async function restoreSettingPageVersion(
+  pageId: string,
+  versionId: string,
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(
+    `/settings/pages/${pageId}/versions/${versionId}/restore`,
+    { method: 'POST' },
+  )
+}
+
+export async function resolveWikiMention(
+  settingId: string,
+  title: string,
+): Promise<WikiMentionResolve> {
+  const q = new URLSearchParams({ title })
+  return apiRequest<WikiMentionResolve>(
+    `/settings/${settingId}/mentions/resolve?${q.toString()}`,
+  )
+}
+
+export async function copyWikiPages(
+  settingId: string,
+  payload: {
+    source_page_id: string
+    include_subtree?: boolean
+    target_parent_id?: string | null
+  },
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/${settingId}/pages/copy`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function listSettingPageEditors(
+  pageId: string,
+): Promise<Array<{ page_id: string; user_id: string; display_name: string }>> {
+  return apiRequest(`/settings/pages/${pageId}/editors`)
 }
 
 export async function createSettingPageLink(

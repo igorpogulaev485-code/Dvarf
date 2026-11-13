@@ -11,6 +11,19 @@ import type {
 } from '../../shared/api/lobbies'
 import { Button, Field, Input, Text } from '../../ui'
 import { SettingMentionBody } from './SettingMentionBody'
+import { useAuthedMediaUrl } from './useAuthedMediaUrl'
+import type { LobbyMedia } from '../../shared/api/lobbies'
+
+function WikiReaderImage({ media, label }: { media: LobbyMedia; label: string }) {
+  const url = useAuthedMediaUrl(media.preview_url || media.url)
+  if (!url) return null
+  return (
+    <figure className="wiki-media-thumb">
+      <img src={url} alt={media.original_filename || label} />
+      <figcaption>{label}</figcaption>
+    </figure>
+  )
+}
 import {
   QUEST_STATUS_LABELS,
   SETTING_PAGE_KIND_READER_LABELS,
@@ -123,6 +136,11 @@ export function SettingWikiReader({
 
   return (
     <div className={`setting-wiki-reader${compact ? ' setting-wiki-reader--compact' : ''}`}>
+      {setting.in_trash ? (
+        <div className="wiki-trash-banner">
+          <Text>Сеттинг в корзине — сессия остаётся привязанной.</Text>
+        </div>
+      ) : null}
       <div className="setting-wiki-reader__toolbar">
         <Field label="Поиск">
           <Input
@@ -200,6 +218,12 @@ export function SettingWikiReader({
           {selected ? (
             <>
               <Text as="h3">{selected.title}</Text>
+              {selected.primary_image ? (
+                <WikiReaderImage media={selected.primary_image} label="Главная картинка" />
+              ) : null}
+              {selected.page_kind === 'location' && selected.map_image ? (
+                <WikiReaderImage media={selected.map_image} label="Карта" />
+              ) : null}
               {cardFields.length > 0 ? (
                 <div className="setting-wiki-reader__card" aria-label="Поля шаблона">
                   {cardFields.map((f) => {

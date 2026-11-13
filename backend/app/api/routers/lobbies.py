@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from uuid import UUID
 
 from fastapi import APIRouter, File, Form, Query, Response, UploadFile, WebSocket, WebSocketDisconnect
@@ -13,6 +14,7 @@ from app.models.user import User
 from app.realtime.hub import lobby_hub, session_hub
 from app.repositories.auth_session import AuthSessionRepository
 from app.repositories.user import UserRepository
+from app.services import wiki_presence
 from app.schemas.chat import (
     ChatChannelCreateRequest,
     ChatChannelOut,
@@ -107,8 +109,12 @@ from app.schemas.lobby import (
     SettingPageCreateRequest,
     SettingPageLinkCreateRequest,
     SettingPageUpdateRequest,
+    SettingPageVersionOut,
     SettingSummary,
+    SettingTrashListOut,
     SettingUpdateRequest,
+    WikiCopyRequest,
+    WikiMentionResolveOut,
 )
 from app.schemas.note import NoteCreateRequest, NoteOut, NotesExportOut, NoteUpdateRequest
 from app.models.lobby_media import LOBBY_MEDIA_KINDS, LobbyMedia
@@ -169,12 +175,68 @@ async def _ws_reject(websocket: WebSocket, code: int) -> None:
     await websocket.close(code=code)
 
 
-async def _ws_text_loop(websocket: WebSocket) -> None:
-    """Держим сокет. Текст ping — ответ {"type":"pong"}, остальное игнорируем."""
+async def _ws_text_loop(
+    websocket: WebSocket,
+    *,
+    lobby_id: UUID | None = None,
+    user_id: UUID | None = None,
+    display_name: str = "",
+) -> None:
+    """Держим сокет. ping→pong; W-02 wiki_editing heartbeat."""
     while True:
         text = await websocket.receive_text()
         if text == "ping":
             await websocket.send_text('{"type":"pong"}')
+            continue
+        if lobby_id is None or user_id is None:
+            continue
+        try:
+            data = json.loads(text)
+        except Exception:  # noqa: BLE001
+            continue
+        if not isinstance(data, dict):
+            continue
+        msg_type = data.get("type")
+        if msg_type == "wiki_editing":
+            raw_page = data.get("page_id")
+            if not raw_page:
+                continue
+            try:
+                page_id = UUID(str(raw_page))
+            except Exception:  # noqa: BLE001
+                continue
+            wiki_presence.touch(
+                lobby_id=lobby_id,
+                page_id=page_id,
+                user_id=user_id,
+                display_name=display_name,
+            )
+            await lobby_hub.broadcast(
+                lobby_id,
+                {
+                    "type": "wiki_editing",
+                    "page_id": str(page_id),
+                    "user_id": str(user_id),
+                    "display_name": display_name or "Мастер",
+                },
+            )
+        elif msg_type == "wiki_editing_stop":
+            raw_page = data.get("page_id")
+            if not raw_page:
+                continue
+            try:
+                page_id = UUID(str(raw_page))
+            except Exception:  # noqa: BLE001
+                continue
+            wiki_presence.clear(lobby_id=lobby_id, page_id=page_id, user_id=user_id)
+            await lobby_hub.broadcast(
+                lobby_id,
+                {
+                    "type": "wiki_editing_stop",
+                    "page_id": str(page_id),
+                    "user_id": str(user_id),
+                },
+            )
 
 
 @router.get("/lobbies", response_model=list[LobbySummary])
@@ -631,8 +693,145 @@ def delete_setting(
     current_user: CurrentUser,
     db: DbSession,
 ) -> Response:
+    """W-02: в корзину (soft-delete)."""
     LobbyService(db).delete_setting(current_user, setting_id)
     return Response(status_code=204)
+
+
+@router.get(
+    "/lobbies/{lobby_id}/wiki/trash",
+    response_model=SettingTrashListOut,
+)
+def list_wiki_trash(
+    lobby_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingTrashListOut:
+    return LobbyService(db).wiki().list_trash(current_user, lobby_id)
+
+
+@router.post("/settings/{setting_id}/restore", response_model=SettingSummary)
+def restore_setting(
+    setting_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingSummary:
+    return LobbyService(db).wiki().restore_setting(current_user, setting_id)
+
+
+@router.delete("/settings/{setting_id}/purge", status_code=204)
+def purge_setting(
+    setting_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> Response:
+    LobbyService(db).wiki().purge_setting(current_user, setting_id)
+    return Response(status_code=204)
+
+
+@router.post("/settings/pages/{page_id}/restore", response_model=SettingDetail)
+def restore_setting_page(
+    page_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).wiki().restore_page(current_user, page_id)
+
+
+@router.delete("/settings/pages/{page_id}/purge", response_model=SettingDetail)
+def purge_setting_page(
+    page_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).wiki().purge_page(current_user, page_id)
+
+
+@router.get(
+    "/settings/pages/{page_id}/versions",
+    response_model=list[SettingPageVersionOut],
+)
+def list_setting_page_versions(
+    page_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> list[SettingPageVersionOut]:
+    return LobbyService(db).wiki().list_versions(current_user, page_id)
+
+
+@router.post(
+    "/settings/pages/{page_id}/versions/{version_id}/restore",
+    response_model=SettingDetail,
+)
+def restore_setting_page_version(
+    page_id: UUID,
+    version_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).wiki().restore_version(current_user, page_id, version_id)
+
+
+@router.get(
+    "/settings/{setting_id}/mentions/resolve",
+    response_model=WikiMentionResolveOut,
+)
+def resolve_wiki_mention(
+    setting_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+    title: str = Query(..., min_length=1, max_length=200),
+) -> WikiMentionResolveOut:
+    return LobbyService(db).wiki().resolve_mention(current_user, setting_id, title)
+
+
+@router.post(
+    "/settings/{setting_id}/pages/copy",
+    response_model=SettingDetail,
+    status_code=201,
+)
+def copy_wiki_pages(
+    setting_id: UUID,
+    payload: WikiCopyRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).wiki().copy_from_lobby(current_user, setting_id, payload)
+
+
+@router.get(
+    "/settings/pages/{page_id}/media",
+    response_model=list[LobbyMediaOut],
+)
+def list_setting_page_media(
+    page_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> list[LobbyMediaOut]:
+    return LobbyService(db).wiki().list_page_media(current_user, page_id)
+
+
+@router.get("/settings/pages/{page_id}/editors")
+def list_page_editors(
+    page_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> list[dict]:
+    """W-02: кто сейчас правит страницу (presence)."""
+    page, setting, lobby = LobbyService(db).wiki()._page_setting_lobby(page_id)
+    from app.services import lobby_roles as roles
+
+    roles.require_can_edit_wiki(db, lobby, current_user)
+    rows = wiki_presence.editors_for_page(lobby_id=lobby.id, page_id=page.id)
+    return [
+        {
+            "page_id": str(r.page_id),
+            "user_id": str(r.user_id),
+            "display_name": r.display_name,
+        }
+        for r in rows
+        if r.user_id != current_user.id
+    ]
 
 
 @router.post("/lobbies/{lobby_id}/sessions", response_model=SessionDetail, status_code=201)
@@ -1525,10 +1724,28 @@ async def lobby_ws(lobby_id: UUID, websocket: WebSocket) -> None:
     finally:
         db.close()
 
+    display_name = (
+        getattr(user, "display_name", None) or getattr(user, "login", None) or "Мастер"
+    )
     await lobby_hub.connect(lobby_id, websocket, user_id=user_id)
     try:
-        await _ws_text_loop(websocket)
+        await _ws_text_loop(
+            websocket,
+            lobby_id=lobby_id,
+            user_id=user_id,
+            display_name=str(display_name)[:120],
+        )
     except WebSocketDisconnect:
         pass
     finally:
+        cleared = wiki_presence.clear_user_lobby(lobby_id=lobby_id, user_id=user_id)
+        for page_id in cleared:
+            await lobby_hub.broadcast(
+                lobby_id,
+                {
+                    "type": "wiki_editing_stop",
+                    "page_id": str(page_id),
+                    "user_id": str(user_id),
+                },
+            )
         await lobby_hub.disconnect(lobby_id, websocket)

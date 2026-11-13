@@ -574,3 +574,69 @@
   gap: 10px;
 }
 
+/* W-02 */
+.wiki-media-panel,
+.wiki-history-panel,
+.wiki-mention-assist,
+.wiki-copy-panel,
+.wiki-trash-panel {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wiki-media-panel__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.wiki-media-thumb {
+  margin: 0;
+  max-width: 160px;
+}
+
+.wiki-media-thumb img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+}
+
+.wiki-history-panel__list,
+.wiki-mention-assist__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wiki-history-panel__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.wiki-conflict-banner {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  background: var(--accent-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wiki-trash-banner {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--accent-soft);
+}
+
