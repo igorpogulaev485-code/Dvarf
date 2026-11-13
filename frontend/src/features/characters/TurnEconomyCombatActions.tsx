@@ -1,11 +1,14 @@
 import { useTurnEconomy } from './TurnEconomyContext'
 import { STEADY_AIM_HINT } from '../../shared/dnd/turnEconomy'
+import { canKiFueledAttack } from '../../shared/dnd/o02TashaFeatures'
 
 type Props = {
   /** Есть умение «Хитрое действие» (плут). */
   hasCunningAction: boolean
   /** L-20: «Точное прицеливание» (TCE, плут 3+). */
   hasSteadyAim?: boolean
+  /** O-02: «Атака на ци» (монах, TCE). */
+  hasKiFueledAttack?: boolean
   /** O-01: Перехват (TCE fighting style). */
   hasInterception?: boolean
   /** O-01: Сражение вслепую — пометка слепого зрения. */
@@ -29,6 +32,7 @@ type Props = {
 export function TurnEconomyCombatActions({
   hasCunningAction,
   hasSteadyAim = false,
+  hasKiFueledAttack = false,
   hasInterception = false,
   hasBlindFighting = false,
   hasChainMaster = false,
@@ -48,6 +52,9 @@ export function TurnEconomyCombatActions({
   const attackGate = turnEco.canAttack()
   const reactionGate = turnEco.canFeature('reaction')
   const bonusGate = turnEco.canFeature('bonus')
+  const kiFueledGate = hasKiFueledAttack
+    ? canKiFueledAttack(turnEco.turnEconomy)
+    : { ok: false as const, reason: '', mark: 'bonus' as const }
 
   return (
     <div className={className} role="group" aria-label="Действия боя">
@@ -159,6 +166,32 @@ export function TurnEconomyCombatActions({
           }}
         >
           Точное прицеливание
+        </button>
+      ) : null}
+
+      {hasKiFueledAttack ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!kiFueledGate.ok}
+          title={
+            kiFueledGate.ok
+              ? 'Атака на ци: бонусная безоружная или атака оружием монаха'
+              : kiFueledGate.reason
+          }
+          onClick={() => {
+            const gate = canKiFueledAttack(turnEco.turnEconomy)
+            if (!gate.ok) {
+              onToast?.(gate.reason)
+              return
+            }
+            turnEco.spendFeature('bonus')
+            onToast?.(
+              'Атака на ци: бонусная безоружная атака или атака оружием монаха',
+            )
+          }}
+        >
+          Атака на ци
         </button>
       ) : null}
 

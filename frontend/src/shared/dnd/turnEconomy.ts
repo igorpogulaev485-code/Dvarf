@@ -41,6 +41,15 @@ export type TurnEconomyState = {
    * преимущество на следующую атаку, скорость 0 до конца хода.
    */
   steadyAim: boolean
+  /**
+   * O-02: в этот ход потратили ци как действие или бонусное
+   * (для «Атака на ци»).
+   */
+  kiSpentAs: TurnCastTiming | null
+  /** O-02: «Благословенные удары» уже сработали в этот ход. */
+  blessedStrikesUsed: boolean
+  /** O-02: доп. урон «Избранного противника» уже в этот ход. */
+  favoredFoeDamageUsed: boolean
 }
 
 export type TurnSpendBlock = {
@@ -64,6 +73,9 @@ export function emptyTurnEconomy(): TurnEconomyState {
     castsThisTurn: [],
     moved: false,
     steadyAim: false,
+    kiSpentAs: null,
+    blessedStrikesUsed: false,
+    favoredFoeDamageUsed: false,
   }
 }
 
@@ -121,6 +133,11 @@ export function readTurnEconomy(raw: unknown): TurnEconomyState {
     typeof extraRaw === 'number' && Number.isFinite(extraRaw)
       ? Math.max(0, Math.floor(extraRaw))
       : 0
+  const kiRaw = row.ki_spent_as ?? row.kiSpentAs
+  const kiSpentAs: TurnCastTiming | null =
+    kiRaw === 'action' || kiRaw === 'bonus' || kiRaw === 'reaction'
+      ? kiRaw
+      : null
   return {
     action: Boolean(row.action),
     bonus: Boolean(row.bonus),
@@ -133,6 +150,13 @@ export function readTurnEconomy(raw: unknown): TurnEconomyState {
     castsThisTurn,
     moved: Boolean(row.moved),
     steadyAim: Boolean(row.steady_aim ?? row.steadyAim),
+    kiSpentAs,
+    blessedStrikesUsed: Boolean(
+      row.blessed_strikes_used ?? row.blessedStrikesUsed,
+    ),
+    favoredFoeDamageUsed: Boolean(
+      row.favored_foe_damage_used ?? row.favoredFoeDamageUsed,
+    ),
   }
 }
 
@@ -155,6 +179,9 @@ export function serializeTurnEconomy(
     })),
     moved: Boolean(state.moved),
     steady_aim: Boolean(state.steadyAim),
+    ki_spent_as: state.kiSpentAs,
+    blessed_strikes_used: Boolean(state.blessedStrikesUsed),
+    favored_foe_damage_used: Boolean(state.favoredFoeDamageUsed),
   }
 }
 

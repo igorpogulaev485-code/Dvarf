@@ -40,6 +40,10 @@ import {
   resolveB04SuperioritySpend,
 } from '../b04FeatureSpend'
 import { resolveB05ChannelSpend } from '../b05FeatureSpend'
+import {
+  bonusCantripLabelRu,
+  WIZARD_CANTRIP_NAMES,
+} from '../../../shared/dnd/bonusCantrips'
 
 export function SheetDialogsResources({ model }: { model: SheetModel }) {
   const [pendingAllyBuff, setPendingAllyBuff] = useState<{
@@ -69,6 +73,48 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           normalizeCampaignRules(model.campaignRulesRaw).homebrew.gritty_rest,
         )}
         preferKind={model.restPreferKind ?? null}
+        cantripFormulas={(() => {
+          const tceOn =
+            model.campaignRulesRaw != null &&
+            normalizeCampaignRules(model.campaignRulesRaw).start.allowed_sources.includes(
+              'tce',
+            )
+          const hasFeature = (model.playActiveFeatures ?? model.unlockedFeatures ?? []).some(
+            (f: { id?: string }) => f.id === 'cantrip_formulas',
+          )
+          if (!tceOn || !hasFeature) return null
+          const known = (model.draft.spells.known ?? [])
+            .filter(
+              (s: { level?: number; class_slug?: string | null; name?: string }) =>
+                (s.level ?? 1) === 0 &&
+                (s.class_slug === 'wizard' || /волшебник|wizard/i.test(String(s.class_slug ?? ''))),
+            )
+            .map((s: { id: string; name: string }) => ({ id: s.id, name: s.name }))
+          if (!known.length) return null
+          const knownNames = new Set(known.map((k: { name: string }) => k.name.toLowerCase()))
+          const catalog = WIZARD_CANTRIP_NAMES.filter(
+            (en) => !knownNames.has((bonusCantripLabelRu(en) || en).toLowerCase()),
+          ).map((en) => ({
+            id: en,
+            name: bonusCantripLabelRu(en) || en,
+          }))
+          if (!catalog.length) return null
+          return {
+            known,
+            catalog,
+            onSwap: (fromId: string, _toCatalogId: string, toName: string) => {
+              model.setDraft((prev) => ({
+                ...prev,
+                spells: {
+                  ...prev.spells,
+                  known: prev.spells.known.map((row) =>
+                    row.id === fromId ? { ...row, name: toName, catalog_id: null } : row,
+                  ),
+                },
+              }))
+            },
+          }
+        })()}
         onPlayChange={(play) =>
           model.setDraft((prev) => {
             const result = applyConcentrationChangeToCompanions({
@@ -215,11 +261,26 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           }
         }}
         onHarnessDivinePower={({ resources, slots, message }) => {
+          const teApi = model.turnEconomyApi as
+            | {
+                canFeature?: (t: 'action' | 'bonus' | 'reaction') => {
+                  ok: boolean
+                  reason?: string
+                }
+                spendFeature?: (t: 'action' | 'bonus' | 'reaction') => void
+              }
+            | undefined
+          const gate = teApi?.canFeature?.('bonus')
+          if (gate && !gate.ok) {
+            model.onToast(gate.reason || 'Бонусное уже потрачено')
+            return
+          }
           model.setDraft((prev) => ({
             ...prev,
             play: { ...prev.play, resources },
             spells: { ...prev.spells, slots },
           }))
+          teApi?.spendFeature?.('bonus')
           model.onToast(message)
           model.setChannelDivinitySpendId(null)
         }}
@@ -231,8 +292,25 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         open={model.kiSpendId != null}
         resource={model.kiResource}
         features={model.unlockedFeatures}
-        onSpend={(label, cost) => {
+        onSpend={(label, cost, timing) => {
           if (!model.kiSpendId) return
+          const teApi = model.turnEconomyApi as
+            | {
+                canFeature?: (t: 'action' | 'bonus' | 'reaction') => {
+                  ok: boolean
+                  reason?: string
+                }
+                spendFeature?: (t: 'action' | 'bonus' | 'reaction') => void
+                markKiSpent?: (t: 'action' | 'bonus' | 'reaction') => void
+              }
+            | undefined
+          if (timing === 'action' || timing === 'bonus' || timing === 'reaction') {
+            const gate = teApi?.canFeature?.(timing)
+            if (gate && !gate.ok) {
+              model.onToast(gate.reason || 'Отметка хода уже занята')
+              return
+            }
+          }
           model.setDraft((prev) => ({
             ...prev,
             play: {
@@ -245,6 +323,10 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
               }),
             },
           }))
+          if (timing === 'action' || timing === 'bonus' || timing === 'reaction') {
+            teApi?.spendFeature?.(timing)
+            teApi?.markKiSpent?.(timing)
+          }
           model.onToast(`${label}: −${cost} ки`)
           model.setKiSpendId(null)
           const action = resolveB04KiSpend(label)

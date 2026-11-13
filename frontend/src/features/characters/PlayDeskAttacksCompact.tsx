@@ -34,6 +34,16 @@ import {
   improvedDivineSmiteRider,
   symbioticNecroticRider,
 } from './featureCombatBonuses'
+import {
+  blessedStrikesRider,
+  canUseBlessedStrikes,
+  canUseFavoredFoeDamage,
+  favoredFoeDamageDie,
+  favoredFoeDamageLabel,
+  focusedAimBonus,
+  focusedAimKiClamp,
+  hasO02Feature,
+} from '../../shared/dnd/o02TashaFeatures'
 import { DivineSmiteCombatBlock } from './DivineSmiteCombatBlock'
 import {
   decideSmiteSlotClick,
@@ -278,6 +288,11 @@ export function PlayDeskAttacksCompact({
 }: PlayDeskAttacksCompactProps) {
   const turnEco = useTurnEconomy()
   const [grappleOpen, setGrappleOpen] = useState(false)
+  const [focusedAimOffer, setFocusedAimOffer] = useState<{
+    attackName: string
+    baseTotal: number | null
+  } | null>(null)
+  const [focusedAimKi, setFocusedAimKi] = useState(1)
   const styleIds = fightingStyleIds?.length
     ? fightingStyleIds
     : fightingStyleId
@@ -346,10 +361,29 @@ export function PlayDeskAttacksCompact({
   const isMobile =
     typeof window !== 'undefined' && window.matchMedia('(max-width: 959px)').matches
   const divineStrike = useMemo(() => divineStrikeRider(combatFeatures), [combatFeatures])
+  const blessedStrikes = useMemo(
+    () =>
+      blessedStrikesRider({
+        features: combatFeatures,
+        tceAllowed,
+      }),
+    [combatFeatures, tceAllowed],
+  )
   const improvedSmite = useMemo(
     () => improvedDivineSmiteRider(combatFeatures),
     [combatFeatures],
   )
+  const hasFocusedAim =
+    tceAllowed && hasO02Feature(combatFeatures, 'focused_aim')
+  const hasFavoredFoe =
+    tceAllowed && hasO02Feature(combatFeatures, 'favored_foe')
+  const rangerLevel =
+    combatFeatures.find((f) => f.id === 'favored_foe')?.classLevel ??
+    characterLevel
+  const kiResource = resources.find((row) => /:ki:/.test(row.id)) ?? null
+  const kiLeft = kiResource
+    ? Math.max(0, kiResource.max - kiResource.used)
+    : 0
   const symbioticRider = useMemo(
     () =>
       symbioticNecroticRider({
@@ -540,7 +574,12 @@ export function PlayDeskAttacksCompact({
               hasCunningAction ||
               combatFeatures.some((f) => f.id === 'cunning_action')
             }
-            hasSteadyAim={combatFeatures.some((f) => f.id === 'steady_aim')}
+            hasSteadyAim={
+              tceAllowed && combatFeatures.some((f) => f.id === 'steady_aim')
+            }
+            hasKiFueledAttack={
+              tceAllowed && combatFeatures.some((f) => f.id === 'ki_fueled_attack')
+            }
             hasInterception={hasInterception}
             hasBlindFighting={hasBlindFighting}
             hasChainMaster={hasChainMaster}
@@ -655,6 +694,64 @@ export function PlayDeskAttacksCompact({
           onSlotClick={applySmiteSlot}
           onMiss={markSmiteMiss}
         />
+      ) : null}
+
+      {focusedAimOffer && hasFocusedAim ? (
+        <div
+          className="chip-row"
+          style={{ marginBottom: 8 }}
+          role="group"
+          aria-label="Сосредоточенный прицел"
+        >
+          <span className="sheet-chip is-stub" title="TCE · на промахе">
+            Сосредоточенный прицел
+          </span>
+          {[1, 2, 3].map((n) => {
+            const cost = focusedAimKiClamp(n)
+            const bonus = focusedAimBonus(cost)
+            return (
+              <button
+                key={cost}
+                type="button"
+                className={`sheet-chip${focusedAimKi === cost ? ' is-on' : ''}`}
+                disabled={!kiResource || kiLeft < cost || !onSpendResource}
+                title={
+                  !kiResource
+                    ? 'Пул ки не найден'
+                    : kiLeft < cost
+                      ? `Не хватает ки (нужно ${cost}, есть ${kiLeft})`
+                      : `Потратить ${cost} ци · +${bonus} к броску атаки`
+                }
+                onClick={() => {
+                  if (!kiResource || !onSpendResource || kiLeft < cost) return
+                  setFocusedAimKi(cost)
+                  for (let i = 0; i < cost; i += 1) onSpendResource(kiResource.id)
+                  onToast?.(
+                    `Сосредоточенный прицел: −${cost} ци · +${bonus} к броску атаки`,
+                  )
+                  if (turnEco?.diceOnTable) {
+                    setEnterNumberCtx({
+                      title: `Атака: ${focusedAimOffer.attackName} (+${bonus})`,
+                      attackBonus: bonus,
+                      attackName: focusedAimOffer.attackName,
+                    })
+                    setEnterNumberOpen(true)
+                  }
+                  setFocusedAimOffer(null)
+                }}
+              >
+                {cost} ци (+{bonus})
+              </button>
+            )
+          })}
+          <button
+            type="button"
+            className="sheet-chip"
+            onClick={() => setFocusedAimOffer(null)}
+          >
+            Отмена
+          </button>
+        </div>
       ) : null}
 
       <div className="play-desk-compact__list play-desk-compact__list--dense">
@@ -895,6 +992,42 @@ export function PlayDeskAttacksCompact({
                         text = `${attack.name}: попал${dmg} 🎲`
                       } else if (opts?.tableMiss) text = `${attack.name}: промах 🎲`
                       if (text) onToast?.(text)
+                      if (
+                        (opts?.tableHit ||
+                          (opts?.hitTotal != null && !opts?.tableMiss)) &&
+                        blessedStrikes &&
+                        turnEco &&
+                        canUseBlessedStrikes(turnEco.turnEconomy)
+                      ) {
+                        turnEco.markBlessedStrikesUsed()
+                      }
+                      if (
+                        (opts?.tableHit ||
+                          (opts?.hitTotal != null && !opts?.tableMiss)) &&
+                        hasFavoredFoe &&
+                        turnEco &&
+                        canUseFavoredFoeDamage(turnEco.turnEconomy) &&
+                        (activeEffects ?? []).some(
+                          (e) => e.slug === 'favored_foe' && !e.inactive,
+                        )
+                      ) {
+                        turnEco.markFavoredFoeDamageUsed()
+                      }
+                      if (
+                        hasFavoredFoe &&
+                        (opts?.tableHit ||
+                          (opts?.hitTotal != null && !opts?.tableMiss))
+                      ) {
+                        onToast?.(
+                          'Избранный противник: можно пометить цель (концентрация, пул БМ)',
+                        )
+                      }
+                      if (opts?.tableMiss && hasFocusedAim) {
+                        setFocusedAimOffer({
+                          attackName: attack.name,
+                          baseTotal: opts.hitTotal ?? null,
+                        })
+                      }
                       const total =
                         opts?.manualTotal ??
                         opts?.hitTotal ??
@@ -966,6 +1099,29 @@ export function PlayDeskAttacksCompact({
                                 expression: divineStrike.dice,
                                 type: divineStrike.type ?? attack.damage_type,
                                 label: divineStrike.rollLabel ?? divineStrike.label,
+                              },
+                            ]
+                          : []),
+                        ...(blessedStrikes &&
+                        (!turnEco || canUseBlessedStrikes(turnEco.turnEconomy))
+                          ? [
+                              {
+                                expression: blessedStrikes.dice,
+                                type: blessedStrikes.type,
+                                label: blessedStrikes.label,
+                              },
+                            ]
+                          : []),
+                        ...(hasFavoredFoe &&
+                        (!turnEco || canUseFavoredFoeDamage(turnEco.turnEconomy)) &&
+                        (activeEffects ?? []).some(
+                          (e) => e.slug === 'favored_foe' && !e.inactive,
+                        )
+                          ? [
+                              {
+                                expression: favoredFoeDamageDie(rangerLevel),
+                                type: null,
+                                label: favoredFoeDamageLabel(rangerLevel),
                               },
                             ]
                           : []),

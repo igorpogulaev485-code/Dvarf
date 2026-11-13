@@ -21,6 +21,7 @@ import { AttunementDialog } from '../AttunementDialog'
 import { filledAttunementCount, maxAttunementsForClasses } from '../attunement'
 import { InventoryPanel } from '../InventoryPanel'
 import { normalizeCampaignRules } from '../../lobby/campaignRules'
+import { INSTINCTIVE_POUNCE_HINT } from '../../../shared/dnd/o02TashaFeatures'
 import { AttacksSettingsDialog } from '../AttacksSettingsDialog'
 import { SpellsPanel } from '../SpellsPanel'
 import { SpellsSettingsDialog } from '../SpellsSettingsDialog'
@@ -755,6 +756,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                   classLevel: input.classLevel,
                   abilities: model.draft.abilities,
                   proficiencyBonus: model.proficiencyBonus,
+                  martialArtsDie: model.martialArtsDie,
                 })
               : { kind: 'none' as const }
           const b06 =
@@ -883,7 +885,23 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             })
             .then((res: { error?: string } | undefined) => {
               if (res?.error) model.onToast(res.error)
-              else if (action.slug === 'rage') model.onToast('В ярости')
+              else if (action.slug === 'rage') {
+                const tceOn =
+                  model.campaignRulesRaw != null &&
+                  normalizeCampaignRules(model.campaignRulesRaw).start.allowed_sources.includes(
+                    'tce',
+                  )
+                const pounce =
+                  tceOn &&
+                  (model.playActiveFeatures ?? []).some(
+                    (f: { id?: string }) => f.id === 'instinctive_pounce',
+                  )
+                model.onToast(
+                  pounce
+                    ? `В ярости · ${INSTINCTIVE_POUNCE_HINT}`
+                    : 'В ярости',
+                )
+              }
             })
         }}
         onOpenInfusions={(classEntryId) => {

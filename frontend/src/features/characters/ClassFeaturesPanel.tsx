@@ -381,9 +381,13 @@ function FeatureResourceControls({
   const [diceToSpend, setDiceToSpend] = useState(1)
   const turnEco = useTurnEconomy()
   const isActionSurge = feature.id === 'action_surge'
+  const kindTiming =
+    feature.kind === 'bonus' || feature.kind === 'reaction' || feature.kind === 'action'
+      ? feature.kind
+      : null
   const featureTiming = inferFeatureTiming(
     feature.summary_ru,
-    moonCombatWildShape && feature.id === 'wild_shape' ? 'bonus' : null,
+    moonCombatWildShape && feature.id === 'wild_shape' ? 'bonus' : kindTiming,
   )
   const gateFeatureSpend = (): boolean => {
     // Э7: Всплеск сам отметку хода не тратит — только даёт доп. действие.
@@ -402,6 +406,12 @@ function FeatureResourceControls({
       return
     }
     turnEco?.spendFeature(featureTiming)
+    if (
+      (resource?.pool_id === 'ki' || resource?.linked_spend?.pool_id === 'ki') &&
+      (feature.kind === 'action' || feature.kind === 'bonus')
+    ) {
+      turnEco?.markKiSpent(featureTiming)
+    }
   }
   const resource = feature.resource
   if (!resource?.pool_id) return null

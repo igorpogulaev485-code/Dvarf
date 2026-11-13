@@ -90,6 +90,12 @@ type RestDialogProps = {
   grittyRest?: boolean
   /** S-07: подсветка блока после «Короткий/Долгий отдых» со стола. */
   preferKind?: 'short' | 'long' | null
+  /** O-02: Формулы заговоров (TCE wizard) — один раз за этот короткий отдых. */
+  cantripFormulas?: {
+    known: Array<{ id: string; name: string }>
+    catalog: Array<{ id: string; name: string }>
+    onSwap: (fromId: string, toCatalogId: string, toName: string) => void
+  } | null
   onPlayChange: (play: PlayState) => void
   onSpellsChange: (spells: SpellsState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
@@ -112,6 +118,7 @@ export function RestDialog({
   raceSlug = null,
   grittyRest = false,
   preferKind = null,
+  cantripFormulas = null,
   onPlayChange,
   onSpellsChange,
   onCombatChange,
@@ -124,6 +131,9 @@ export function RestDialog({
   const [spendPoolId, setSpendPoolId] = useState('')
   const [tab, setTab] = useState<RestKind>('short')
   const [confirm, setConfirm] = useState<ConfirmState | null>(null)
+  const [cantripFromId, setCantripFromId] = useState('')
+  const [cantripToId, setCantripToId] = useState('')
+  const [cantripSwapped, setCantripSwapped] = useState(false)
   const activePool =
     pools.find((row) => row.classEntryId === spendPoolId) ??
     pools.find((row) => row.current > 0) ??
@@ -151,7 +161,10 @@ export function RestDialog({
     }
     setConfirm(null)
     setTab(preferKind === 'long' ? 'long' : 'short')
-  }, [open, preferKind])
+    setCantripSwapped(false)
+    setCantripFromId(cantripFormulas?.known[0]?.id ?? '')
+    setCantripToId(cantripFormulas?.catalog[0]?.id ?? '')
+  }, [open, preferKind, cantripFormulas])
 
   function patchPlay(partial: Partial<PlayState>) {
     onPlayChange({ ...play, ...partial })
@@ -522,6 +535,62 @@ export function RestDialog({
                     {activeDie ? ` · ${activeDie}` : ''}
                   </span>
                 </div>
+                {cantripFormulas && cantripFormulas.known.length > 0 ? (
+                  <div className="feature-resource">
+                    <Text>
+                      <strong>Формулы заговоров</strong>
+                      {cantripSwapped ? ' · уже заменён за этот отдых' : ''}
+                    </Text>
+                    <Text tone="muted">
+                      Один раз за этот короткий отдых: замени один известный заговор
+                      волшебника на другой из списка волшебника.
+                    </Text>
+                    <label className="feature-resource__select">
+                      <span className="sr-only">Заменить заговор</span>
+                      <select
+                        className="play-select"
+                        value={cantripFromId}
+                        disabled={cantripSwapped}
+                        onChange={(e) => setCantripFromId(e.target.value)}
+                      >
+                        {cantripFormulas.known.map((row) => (
+                          <option key={row.id} value={row.id}>
+                            {row.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="feature-resource__select">
+                      <span className="sr-only">Новый заговор</span>
+                      <select
+                        className="play-select"
+                        value={cantripToId}
+                        disabled={cantripSwapped}
+                        onChange={(e) => setCantripToId(e.target.value)}
+                      >
+                        {cantripFormulas.catalog.map((row) => (
+                          <option key={row.id} value={row.id}>
+                            {row.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={cantripSwapped || !cantripFromId || !cantripToId}
+                      onClick={() => {
+                        const to = cantripFormulas.catalog.find((r) => r.id === cantripToId)
+                        if (!to) return
+                        cantripFormulas.onSwap(cantripFromId, to.id, to.name)
+                        setCantripSwapped(true)
+                        onToast(`Формулы заговоров: заменён на «${to.name}»`)
+                      }}
+                    >
+                      Заменить заговор
+                    </Button>
+                  </div>
+                ) : null}
                 {pools.length > 0 ? (
                   <div className="play-hit-dice">
                     {pools.map((pool) => (

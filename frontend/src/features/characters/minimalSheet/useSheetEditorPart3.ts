@@ -64,6 +64,8 @@ import { infusionAcFromSharedEffects } from '../../../shared/dnd/infusionItems'
 import { beastPhysicalOverlay } from '../wildShape'
 import { syncPactBladeAttack } from '../pactBladeAttack'
 import { syncRangerConclaveSpells } from '../rangerConclaveSpells'
+import { syncPrimalAwarenessSpells } from '../primalAwarenessSpells'
+import { isReplacementTaken } from '../../../shared/dnd/featureReplacement'
 import { syncSorcererOriginSpells } from '../sorcererOriginSpells'
 import { syncDruidicWarriorCantrips } from '../druidicWarrior'
 import { syncBlessedWarriorCantrips } from '../blessedWarrior'
@@ -329,6 +331,24 @@ export function useSheetEditorPart3(model: SheetModel) {
       return { ...prev, spells: synced.spells }
     })
   }, [model.draft.classes, model.subclassSlugByEntryId])
+
+  // O-02: TCE Primal Awareness always-prepared + 1 free cast / long rest.
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const hasFeature = (model.unlockedFeatures ?? []).some(
+        (f: { id?: string; classEntryId?: string }) =>
+          f.id === 'primal_awareness_tasha' &&
+          isReplacementTaken(prev.featurePicks, f.classEntryId ?? '', f.id ?? ''),
+      )
+      const synced = syncPrimalAwarenessSpells({
+        spells: prev.spells,
+        classes: prev.classes,
+        hasFeature,
+      })
+      if (!synced.changed) return prev
+      return { ...prev, spells: synced.spells }
+    })
+  }, [model.draft.classes, model.draft.featurePicks, model.unlockedFeatures])
 
   useEffect(() => {
     model.setDraft((prev) => {
