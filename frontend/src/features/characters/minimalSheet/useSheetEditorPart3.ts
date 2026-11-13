@@ -39,6 +39,9 @@ import {
 } from '../gearEffects'
 import { passiveScore, skillModifierFromState } from '../../../shared/dnd/passives'
 import { syncGearCompanions, syncGearGrantSpells, syncGearResources } from '../gearGrantsSync'
+import { syncMountCompanions } from '../mountGearCompanions'
+import { syncHomunculusCompanion } from '../homunculusCompanion'
+import { proficiencyBonusForLevel } from '../spells'
 import { syncArtifactSetBonuses } from '../artifactGear'
 import { listShieldItems } from '../heldEquip'
 import { attunementsToSheet } from '../attunement'
@@ -203,10 +206,25 @@ export function useSheetEditorPart3(model: SheetModel) {
   }, [model.draft.inventory.items, model.draft.attunements, model.draft.artifactSets])
 
   // Keep gear-granted companions / charge pools / spells / slot deltas in sync.
+  // C-03: also mount inventory cards + Homunculus Servant infusion.
   useEffect(() => {
     model.setDraft((prev) => {
       const resources = syncGearResources(prev.play.resources, model.gearEffects)
-      const companions = syncGearCompanions(prev.companions, model.gearEffects)
+      let companions = syncGearCompanions(prev.companions, model.gearEffects)
+      companions = syncMountCompanions(companions, prev.inventory.items)
+      const art = prev.classes.find((row) => /изобретател|artificer/i.test(row.name))
+      const intScore = model.effectiveAbilities?.int ?? prev.abilities?.int ?? 10
+      const spellMod = abilityModifier(intScore)
+      const pb = proficiencyBonusForLevel(model.characterLevel || 1)
+      companions = syncHomunculusCompanion({
+        companions,
+        featurePicks: prev.featurePicks,
+        artificerClassEntryId: art?.id ?? null,
+        artificerLevel: art?.level ?? 1,
+        intelligenceMod: spellMod,
+        characterLevel: model.characterLevel || 1,
+        spellAttackBonus: spellMod + pb,
+      })
       const spells = syncGearGrantSpells(prev.spells, model.gearEffects)
       const sameRes =
         resources.length === prev.play.resources.length &&
@@ -222,7 +240,16 @@ export function useSheetEditorPart3(model: SheetModel) {
         })
       const sameComp =
         companions.length === prev.companions.length &&
-        companions.every((row, index) => prev.companions[index]?.id === row.id)
+        companions.every((row, index) => {
+          const cur = prev.companions[index]
+          return (
+            cur &&
+            cur.id === row.id &&
+            cur.active === row.active &&
+            cur.stats.hp === row.stats.hp &&
+            cur.stats.hp_max === row.stats.hp_max
+          )
+        })
       const sameSpells =
         spells.known.length === prev.spells.known.length &&
         spells.known.every((row, index) => prev.spells.known[index]?.id === row.id) &&
@@ -241,7 +268,14 @@ export function useSheetEditorPart3(model: SheetModel) {
         play: { ...prev.play, resources },
       }
     })
-  }, [model.gearEffects])
+  }, [
+    model.gearEffects,
+    model.draft.inventory.items,
+    model.draft.featurePicks,
+    model.draft.classes,
+    model.characterLevel,
+    model.effectiveAbilities?.int,
+  ])
 
   // Sorcerer origin spells (Aberrant, Clockwork, Divine, Shadow, Lunar).
   useEffect(() => {

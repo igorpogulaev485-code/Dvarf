@@ -32,6 +32,26 @@ const SPELL_NAPARNIK_DEFAULTS: Record<
     kind: 'familiar',
     control: 'own_initiative',
   },
+  find_steed: {
+    titleRu: 'Скакун',
+    kind: 'other',
+    control: 'with_master',
+  },
+  find_greater_steed: {
+    titleRu: 'Высший скакун',
+    kind: 'other',
+    control: 'with_master',
+  },
+  animate_dead: {
+    titleRu: 'Нежить',
+    kind: 'other',
+    control: 'bonus_action_command',
+  },
+  create_undead: {
+    titleRu: 'Нежить',
+    kind: 'other',
+    control: 'bonus_action_command',
+  },
   conjure_animals: {
     titleRu: 'Призванные звери',
     kind: 'other',
@@ -130,6 +150,19 @@ const NAME_KEY_TO_SLUG: Record<string, string> = {
   'find-familiar': 'find_familiar',
   'поиск-фамильяра': 'find_familiar',
   'find_familiar': 'find_familiar',
+  'find-steed': 'find_steed',
+  'поиск-скакуна': 'find_steed',
+  find_steed: 'find_steed',
+  'find-greater-steed': 'find_greater_steed',
+  'поиск-высшего-скакуна': 'find_greater_steed',
+  find_greater_steed: 'find_greater_steed',
+  'animate-dead': 'animate_dead',
+  'восставший-труп': 'animate_dead',
+  'оживление-мертвецов': 'animate_dead',
+  animate_dead: 'animate_dead',
+  'create-undead': 'create_undead',
+  'сотворение-нежити': 'create_undead',
+  create_undead: 'create_undead',
   'conjure-animals': 'conjure_animals',
   'призыв-животных': 'conjure_animals',
   'conjure-celestial': 'conjure_celestial',
@@ -184,6 +217,18 @@ export function resolveSpellNaparnikSlug(spell: SheetSpell): string | null {
   if (compact in SPELL_NAPARNIK_DEFAULTS) return compact
   if (compact.includes('фамильяр') || compact.includes('familiar')) {
     return 'find_familiar'
+  }
+  if (compact.includes('высшего-скакуна') || compact.includes('greater_steed')) {
+    return 'find_greater_steed'
+  }
+  if (compact.includes('скакуна') || compact.includes('find_steed')) {
+    return 'find_steed'
+  }
+  if (compact.includes('восставший') || compact.includes('animate_dead')) {
+    return 'animate_dead'
+  }
+  if (compact.includes('сотворение-нежити') || compact.includes('create_undead')) {
+    return 'create_undead'
   }
   if (compact.startsWith('summon_') || compact.startsWith('conjure_')) {
     if (EXCLUDED_SLUGS.has(compact)) return null
@@ -349,7 +394,11 @@ export function dismissCompanionsForEndedConcentration(input: {
     if (!matchesEndedConcentration(row, input.ended!)) return row
     if (!row.active && (row.stats.hp ?? 1) <= 0) return row
     const name = row.name.trim() || row.source?.labelRu || 'Напарник'
-    if (row.source?.feature === 'spell:conjure_elemental') {
+    if (
+      row.source?.feature === 'spell:conjure_elemental' ||
+      row.source?.feature === 'spell:conjure_fey'
+    ) {
+      // C-03: Conjure Fey hostility matches Conjure Elemental (PHB).
       hostileNames.push(name)
       const mark = 'враждебен: концентрация снята, исчезнет через 1 час'
       return {

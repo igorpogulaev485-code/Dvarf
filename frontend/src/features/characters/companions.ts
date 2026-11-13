@@ -75,6 +75,29 @@ export type CompanionTurnMarks = {
   dodge: boolean
 }
 
+/** C-03: identical creatures as one card «Волк ×8» (like enemy packs S-02). */
+export type CompanionPackState = {
+  member_count: number
+  alive_count: number
+  /** Per-member current HP (length tracks living; drops when a member dies). */
+  member_hp: number[]
+  /** Base name without ×N, e.g. «Волк». */
+  unit_name_ru: string
+  /** Max HP of one member (for dots / revive). */
+  unit_hp_max: number
+}
+
+/** C-03: spirit type for Find Steed / Greater Steed. */
+export type SteedSpiritType = 'celestial' | 'fey' | 'fiend'
+
+/** C-03: undead control mark (soft 24h — no hard realtime timer). */
+export type UndeadControlState = {
+  /** Human label, e.g. «контроль 24 часа». */
+  labelRu: string
+  /** False when host/master revoked control. */
+  controlled: boolean
+}
+
 export type CompanionDeathState = {
   successes: number
   failures: number
@@ -155,6 +178,10 @@ export type CompanionEntry = {
     str?: number | null
     dex?: number | null
     con?: number | null
+    /** C-03: steed INT floor / Tasha homunculus mental scores. */
+    int?: number | null
+    wis?: number | null
+    cha?: number | null
     resistances?: string | null
     immunities?: string | null
   }
@@ -162,6 +189,14 @@ export type CompanionEntry = {
   resources: CompanionResource[]
   actions: string
   notes: string
+  /** C-03 pack of identical creatures. */
+  pack: CompanionPackState | null
+  /** C-03: host is mounted on this steed. */
+  mounted: boolean
+  /** C-03 Find Steed spirit type. */
+  steed_spirit_type: SteedSpiritType | null
+  /** C-03 Animate Dead / Create Undead control. */
+  undead_control: UndeadControlState | null
 }
 
 /**
@@ -338,6 +373,40 @@ const ANIMATE_DEAD_FEATURES = new Set([
   'create_undead',
 ])
 
+const STEED_FEATURES = new Set([
+  'spell:find_steed',
+  'spell:find_greater_steed',
+  'find_steed',
+  'find_greater_steed',
+])
+
+const HOMUNCULUS_FEATURES = new Set([
+  'homunculus_servant',
+  'infusion:homunculus_servant',
+])
+
+/** C-03: Find Steed / Greater Steed share one permanent slot. */
+export function isSteedCompanion(row: {
+  source?: CompanionSource | null
+  steed_spirit_type?: SteedSpiritType | null
+}): boolean {
+  const feature = (row.source?.feature ?? '').trim().toLowerCase()
+  if (STEED_FEATURES.has(feature)) return true
+  return row.steed_spirit_type != null
+}
+
+/** C-03: Homunculus Servant infusion card. */
+export function isHomunculusCompanion(row: {
+  source?: CompanionSource | null
+}): boolean {
+  const feature = (row.source?.feature ?? '').trim().toLowerCase()
+  return HOMUNCULUS_FEATURES.has(feature)
+}
+
+export function isAnimateDeadFeature(feature: string | null | undefined): boolean {
+  return ANIMATE_DEAD_FEATURES.has((feature ?? '').trim().toLowerCase())
+}
+
 /** C-02 Н5 table defaults by kind (without spell feature). */
 export function defaultCombatModesForKind(kind: CompanionKind): {
   initiativeMode: CompanionInitiativeMode
@@ -373,6 +442,10 @@ export function defaultCombatModesForCompanion(input: {
   }
   if (ANIMATE_DEAD_FEATURES.has(feature)) {
     return { initiativeMode: 'own_initiative', commandCost: 'bonus' }
+  }
+  if (STEED_FEATURES.has(feature) || HOMUNCULUS_FEATURES.has(feature)) {
+    // C-03: steed always host turn; homunculus like steel defender.
+    return { initiativeMode: 'with_master', commandCost: 'bonus' }
   }
   if (TASHA_SUMMON_FEATURES.has(feature) || feature.startsWith('spell:summon_')) {
     return { initiativeMode: 'with_master', commandCost: 'none' }
@@ -552,12 +625,18 @@ function optionalCompanionStats(
   const str = optionalNumber(stats.str)
   const dex = optionalNumber(stats.dex)
   const con = optionalNumber(stats.con)
+  const intScore = optionalNumber(stats.int)
+  const wis = optionalNumber(stats.wis)
+  const cha = optionalNumber(stats.cha)
   if (fly != null) out.speed_fly = fly
   if (swim != null) out.speed_swim = swim
   if (climb != null) out.speed_climb = climb
   if (str != null) out.str = str
   if (dex != null) out.dex = dex
   if (con != null) out.con = con
+  if (intScore != null) out.int = intScore
+  if (wis != null) out.wis = wis
+  if (cha != null) out.cha = cha
   if (typeof stats.resistances === 'string' && stats.resistances.trim()) {
     out.resistances = stats.resistances.trim()
   }
@@ -565,6 +644,65 @@ function optionalCompanionStats(
     out.immunities = stats.immunities.trim()
   }
   return out
+}
+
+export function emptyCompanionPack(): CompanionPackState | null {
+  return null
+}
+
+export function readCompanionPack(raw: unknown): CompanionPackState | null {
+  if (!raw || typeof raw !== 'object') return null
+  const row = raw as Record<string, unknown>
+  const member_count = Math.max(
+    0,
+    Math.floor(typeof row.member_count === 'number' ? row.member_count : 0),
+  )
+  const alive_count = Math.max(
+    0,
+    Math.min(
+      member_count,
+      Math.floor(typeof row.alive_count === 'number' ? row.alive_count : 0),
+    ),
+  )
+  const unit_hp_max = Math.max(
+    1,
+    Math.floor(typeof row.unit_hp_max === 'number' ? row.unit_hp_max : 1),
+  )
+  const unit_name_ru =
+    typeof row.unit_name_ru === 'string' && row.unit_name_ru.trim()
+      ? row.unit_name_ru.trim()
+      : 'Существо'
+  const member_hp = Array.isArray(row.member_hp)
+    ? row.member_hp
+        .filter((v): v is number => typeof v === 'number' && Number.isFinite(v))
+        .map((v) => Math.max(0, Math.floor(v)))
+        .slice(0, alive_count)
+    : Array.from({ length: alive_count }, () => unit_hp_max)
+  if (member_count <= 0) return null
+  return { member_count, alive_count, member_hp, unit_name_ru, unit_hp_max }
+}
+
+export function packDisplayName(unitNameRu: string, aliveCount: number): string {
+  const base = unitNameRu.trim() || 'Существо'
+  return `${base} ×${Math.max(0, Math.floor(aliveCount))}`
+}
+
+export function readSteedSpiritType(raw: unknown): SteedSpiritType | null {
+  if (raw === 'celestial' || raw === 'fey' || raw === 'fiend') return raw
+  return null
+}
+
+export function readUndeadControl(raw: unknown): UndeadControlState | null {
+  if (!raw || typeof raw !== 'object') return null
+  const row = raw as Record<string, unknown>
+  const labelRu =
+    typeof row.labelRu === 'string' && row.labelRu.trim()
+      ? row.labelRu.trim()
+      : 'контроль 24 часа'
+  return {
+    labelRu,
+    controlled: row.controlled !== false,
+  }
 }
 
 /** Walk plus fly / swim / climb, for the companion card. */
@@ -800,6 +938,10 @@ export function createCompanion(partial?: Partial<CompanionEntry>): CompanionEnt
     resources: (partial?.resources ?? []).map(clampCompanionResource),
     actions: partial?.actions ?? '',
     notes: partial?.notes ?? '',
+    pack: partial?.pack === undefined ? null : partial.pack,
+    mounted: Boolean(partial?.mounted),
+    steed_spirit_type: partial?.steed_spirit_type ?? null,
+    undead_control: partial?.undead_control ?? null,
   }
 }
 
@@ -988,6 +1130,10 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
           : typeof row.duration === 'string'
             ? row.duration
             : '',
+      pack: readCompanionPack(row.pack),
+      mounted: Boolean(row.mounted),
+      steed_spirit_type: readSteedSpiritType(row.steed_spirit_type),
+      undead_control: readUndeadControl(row.undead_control),
     })
   }
   return normalizeSelfForms(result)

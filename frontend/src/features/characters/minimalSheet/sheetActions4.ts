@@ -2,10 +2,20 @@
 import type { SheetModel } from './sheetModel'
 import type { Draft } from './draft'
 import { type CompanionEntry } from '../companions'
-import { applyConcentrationChangeToCompanions, applySpellCastToCompanions } from '../spellCompanions'
+import {
+  applyConcentrationChangeToCompanions,
+  applySpellCastToCompanions,
+  resolveSpellNaparnikSlug,
+} from '../spellCompanions'
 import { isSpellSelfFormCast, resolveSpellSelfFormSlug } from '../spellForms'
 import { type SpellFormDialogResult } from '../SpellFormDialog'
 import { type FamiliarPickDialogResult } from '../FamiliarPickDialog'
+import type {
+  CompanionCreaturePickKind,
+  CompanionCreaturePickResult,
+} from '../CompanionCreaturePickDialog'
+import { isConjurePickSpell } from '../conjureCompanions'
+import { isFindSteedSpellSlug } from '../steedCompanions'
 import { isFindFamiliarSpell, resolveFamiliarCastMode } from '../familiarForms'
 import { wildShapeCastBlock } from '../wildShape'
 import { type AttunementSlot } from '../attunement'
@@ -270,6 +280,37 @@ export function installSheetActions4(model: SheetModel) {
     return true
   }
 
+  model.openDeskCreaturePickerIfNeeded = function openDeskCreaturePickerIfNeeded(
+    spell: SheetSpell,
+    slotLevel: number,
+  ): boolean {
+    const slug = resolveSpellNaparnikSlug(spell)
+    if (!slug) return false
+    let kind: CompanionCreaturePickKind | null = null
+    if (isFindSteedSpellSlug(slug)) {
+      kind = {
+        type: 'steed',
+        slug: slug as 'find_steed' | 'find_greater_steed',
+      }
+    } else if (slug === 'animate_dead' || slug === 'create_undead') {
+      kind = { type: 'undead', slug }
+    } else if (isConjurePickSpell(slug)) {
+      kind = {
+        type: 'conjure',
+        slug: slug as
+          | 'conjure_animals'
+          | 'conjure_woodland_beings'
+          | 'conjure_minor_elementals'
+          | 'conjure_elemental'
+          | 'conjure_fey'
+          | 'conjure_celestial',
+      }
+    }
+    if (!kind) return false
+    model.setPendingCreaturePick({ spell, slotLevel, kind })
+    return true
+  }
+
   model.applySpellSelfFormResult = function applySpellSelfFormResult(result: SpellFormDialogResult) {
     model.setDraft((prev) => ({
       ...prev,
@@ -284,6 +325,14 @@ export function installSheetActions4(model: SheetModel) {
     model.setDraft((prev) => ({ ...prev, companions: result.companions }))
     if (result.toast) model.onToast(result.toast)
     model.setPendingFamiliar(null)
+  }
+
+  model.applyCreaturePickResult = function applyCreaturePickResult(
+    result: CompanionCreaturePickResult,
+  ) {
+    model.setDraft((prev) => ({ ...prev, companions: result.companions }))
+    if (result.toast) model.onToast(result.toast)
+    model.setPendingCreaturePick(null)
   }
 
   function wizardCastFollowUp(
@@ -644,11 +693,17 @@ export function installSheetActions4(model: SheetModel) {
     const wantsForm = model.openDeskSelfFormPickerIfNeeded(spell, choice)
     const wantsFamiliar =
       !wantsForm && model.openDeskFamiliarPickerIfNeeded(spell, familiarSlot)
+    const wantsCreaturePick =
+      !wantsForm &&
+      !wantsFamiliar &&
+      model.openDeskCreaturePickerIfNeeded(spell, familiarSlot || naparnikSlot)
     const formNote = wantsForm
       ? ' · выбери форму'
       : wantsFamiliar
         ? ' · выбери фамильяра'
-        : ''
+        : wantsCreaturePick
+          ? ' · выбери существо'
+          : ''
 
     if (atWillCast) {
       if (spell.concentration) model.applyDeskConcentration(spell)
@@ -692,7 +747,7 @@ export function installSheetActions4(model: SheetModel) {
     if (spell.level <= 0) {
       if (spell.concentration) model.applyDeskConcentration(spell)
       const naparnikNote =
-        wantsForm || wantsFamiliar
+        wantsForm || wantsFamiliar || wantsCreaturePick
           ? ''
           : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
       model.onToast(
@@ -730,7 +785,7 @@ export function installSheetActions4(model: SheetModel) {
         ),
       )
       const naparnikNote =
-        wantsForm || wantsFamiliar
+        wantsForm || wantsFamiliar || wantsCreaturePick
           ? ''
           : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
       const wardNote = wizardCastFollowUp(spell, spell.level, choice)
@@ -770,7 +825,7 @@ export function installSheetActions4(model: SheetModel) {
       }
       if (spell.concentration) model.applyDeskConcentration(spell)
       const naparnikNote =
-        wantsForm || wantsFamiliar
+        wantsForm || wantsFamiliar || wantsCreaturePick
           ? ''
           : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
       const wardNote = wizardCastFollowUp(spell, spell.level, choice)
@@ -814,7 +869,7 @@ export function installSheetActions4(model: SheetModel) {
         ),
       )
       const naparnikNote =
-        wantsForm || wantsFamiliar
+        wantsForm || wantsFamiliar || wantsCreaturePick
           ? ''
           : model.applyDeskNaparnikFromCast(spell, pactResult.pact.level)
       const wardNote = wizardCastFollowUp(spell, pactResult.pact.level, choice)
@@ -840,7 +895,7 @@ export function installSheetActions4(model: SheetModel) {
       ),
     )
     const naparnikNote =
-      wantsForm || wantsFamiliar
+      wantsForm || wantsFamiliar || wantsCreaturePick
         ? ''
         : model.applyDeskNaparnikFromCast(spell, choice.slotLevel)
     const upcast =
