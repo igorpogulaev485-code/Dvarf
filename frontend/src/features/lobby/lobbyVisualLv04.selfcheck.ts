@@ -15,11 +15,14 @@ const page = read('src/pages/SessionDetailPage.tsx')
 assert.match(page, /session-center--master-desk/)
 assert.match(page, /session-table-toolbar--master/)
 assert.match(page, /session-toolbar-group--rewards-spotlight/)
+assert.match(page, /session-toolbar-rewards/)
 assert.match(page, /Ещё действия/)
 assert.match(page, /Настройки стола/)
 assert.match(page, /variant="danger"/)
 assert.match(page, /compact=\{canRun\}/)
 assert.match(page, /Сесть за стол как/)
+assert.match(page, /data-sc05-gm-toolbar/)
+assert.match(page, /settingName=\{session\.setting_name/)
 assert.doesNotMatch(
   page,
   /session-top-actions[\s\S]*Удалить сессию[\s\S]*<\/div>\s*<\/div>\s*\{error/,

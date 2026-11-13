@@ -179,12 +179,17 @@
 }
 
 .session-lore-panel--compact .session-lore-panel__title {
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted);
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--ink);
   font-family: inherit;
+}
+
+.session-lore-panel--compact .session-lore-panel__setting-hint {
+  margin: 0;
+  font-size: 0.78rem;
 }
 
 .session-lore-panel--compact .session-lore-panel__chips {
