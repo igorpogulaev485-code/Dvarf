@@ -220,8 +220,14 @@ export function AwardXpDialog({
             })}
           </ul>
           {seats.length === 0 ? (
-            <Text tone="muted">За столом никого — посади игроков.</Text>
-          ) : null}
+            <Text tone="muted">
+              За столом никого — посади игроков в «Кто пришёл» (в т.ч. офлайн).
+            </Text>
+          ) : (
+            <Text tone="muted">
+              Опыт сразу на лист. Офлайн-игрока сначала посади через «Кто пришёл».
+            </Text>
+          )}
         </Stack>
 
         <Field label="Заметка (необязательно)">

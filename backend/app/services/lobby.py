@@ -62,6 +62,7 @@ from app.dnd.xp import xp_from_cr
 from app.services import session_combat as scmb
 from app.services import session_sides as sides
 from app.services import session_table_s03 as s03
+from app.services import session_turn_economy as stec
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
     CombatEntryOut,
@@ -413,6 +414,8 @@ def _seat_combat_fields(character: Character | None) -> dict:
             "damage_resistances": [],
             "damage_immunities": [],
             "damage_vulnerabilities": [],
+            "turn_economy": None,
+            "surprise_immune": False,
         }
     sheet = character.sheet or {}
     combat = sheet.get("combat") or {}
@@ -439,6 +442,12 @@ def _seat_combat_fields(character: Character | None) -> dict:
     is_dying = bool(combat.get("is_dying")) or (
         character.hp_current is not None and int(character.hp_current) <= 0
     )
+    te_raw = combat.get("turn_economy") if isinstance(combat, dict) else None
+    turn_economy = stec.read_turn_economy(te_raw) if isinstance(te_raw, dict) else None
+    surprise_immune = stec.sheet_surprise_immune(
+        sheet if isinstance(sheet, dict) else {},
+        hp_current=character.hp_current,
+    )
     return {
         "piety_score": piety_score,
         "piety_god": piety_god,
@@ -458,6 +467,8 @@ def _seat_combat_fields(character: Character | None) -> dict:
         "passive_perception": _passive_from_sheet(sheet, "perception", "wis"),
         "passive_insight": _passive_from_sheet(sheet, "insight", "wis"),
         "passive_investigation": _passive_from_sheet(sheet, "investigation", "int"),
+        "turn_economy": turn_economy,
+        "surprise_immune": surprise_immune,
         **defenses,
     }
 
@@ -847,6 +858,7 @@ def _combat_entry_out(e: dict) -> CombatEntryOut:
         dex_mod=e.get("dex_mod") if isinstance(e.get("dex_mod"), int) else None,
         wave_id=e.get("wave_id"),
         defer_to_next_round=bool(e.get("defer_to_next_round")),
+        surprised=bool(e.get("surprised")),
         alive_count=e.get("alive_count"),
         member_count=e.get("member_count"),
         member_tones=list(e.get("member_tones") or []),
@@ -3499,6 +3511,8 @@ class LobbyService:
                     death_successes=int(extras["death_successes"]) if show_death else None,
                     death_fails=int(extras["death_fails"]) if show_death else None,
                     reaction_hint=None,
+                    turn_economy=extras.get("turn_economy"),
+                    surprise_immune=bool(extras.get("surprise_immune")),
                     seated_at=seat.seated_at,
                 )
             )
@@ -4454,6 +4468,60 @@ class LobbyService:
                         session.combat = scmb.dump_combat_state(combat_state)
                         _fm(session, "combat")
 
+        turn_economy_changed = False
+        turn_mark_event: SessionEvent | None = None
+        if payload.turn_economy is not None:
+            patch = {
+                "action": payload.turn_economy.action,
+                "bonus": payload.turn_economy.bonus,
+                "reaction": payload.turn_economy.reaction,
+                "object_interaction": payload.turn_economy.object_interaction,
+                "moved": payload.turn_economy.moved,
+            }
+            if any(v is not None for v in patch.values()):
+                try:
+                    next_te, changes = stec.apply_mark_patch(
+                        combat.get("turn_economy"),
+                        patch,
+                        as_gm=can_run,
+                    )
+                except PermissionError as exc:
+                    code = str(exc)
+                    if code == "surprise_locked":
+                        raise AppError(
+                            "Застигнут врасплох — отметки нельзя снять до конца первого хода",
+                            code="surprise_locked",
+                            status_code=400,
+                        ) from exc
+                    raise AppError(
+                        "Отметку мастера может снять только мастер или сомастер",
+                        code="gm_mark_locked",
+                        status_code=403,
+                    ) from exc
+                combat["turn_economy"] = next_te
+                turn_economy_changed = bool(changes)
+                if can_run and changes:
+                    phrase = stec.mark_feed_phrase(changes)
+                    if phrase:
+                        turn_mark_event = SessionEvent(
+                            session_id=session.id,
+                            event_type="combat",
+                            character_id=character_id,
+                            actor_user_id=user.id,
+                            character_name="Мастер",
+                            title=f"Мастер у {character.name}: {phrase}",
+                            is_master_roll=False,
+                            payload={
+                                "category": "combat",
+                                "combat_journal": True,
+                                "turn_economy": True,
+                                "changes": [
+                                    {"mark": k, "spent": spent} for k, spent in changes
+                                ],
+                            },
+                        )
+                        self.lobbies.add_session_event(turn_mark_event)
+
         from sqlalchemy.orm.attributes import flag_modified
 
         flag_modified(character, "sheet")
@@ -4462,7 +4530,7 @@ class LobbyService:
             clear_linked_effects_for_caster(self.lobbies, character_id)
 
         self.db.commit()
-        if cleared_concentration:
+        if cleared_concentration or turn_economy_changed:
             from app.services.sheet_effects import broadcast_sheet_effects_changed
 
             await broadcast_sheet_effects_changed(self.lobbies, [character_id])
@@ -4473,6 +4541,16 @@ class LobbyService:
                     seat.reaction_hint = reaction_hint
                     break
         await _broadcast_session_changed(session.id)
+        if turn_mark_event is not None:
+            await session_hub.broadcast(
+                session.id,
+                {
+                    "type": "session_event",
+                    "event": SessionEventOut.model_validate(turn_mark_event).model_dump(
+                        mode="json"
+                    ),
+                },
+            )
         return detail
 
     def _require_own_lobby_source(
@@ -5771,8 +5849,20 @@ class LobbyService:
         }
         released_wave_ids = {w["id"] for w in waves if w.get("released")}
 
+        # L-21: заранее собрать листы героев для иммунитета «Бдительный».
+        pc_ids: list[UUID] = []
+        for item in payload.entries:
+            if item.kind != "pc":
+                continue
+            try:
+                pc_ids.append(UUID(str(item.ref_id.strip())))
+            except (TypeError, ValueError):
+                continue
+        pc_map = self.lobbies.get_characters_map(pc_ids) if pc_ids else {}
+
         entries: list[dict] = []
         sides_reg = sides.default_sides_registry()
+        surprise_names: list[str] = []
         for item in payload.entries:
             ref = item.ref_id.strip()
             pending = bool(item.initiative_pending) or item.initiative is None
@@ -5787,6 +5877,23 @@ class LobbyService:
                 side = sides.normalize_side_id(
                     by_id[ref].get("side"), fallback=sides.SIDE_ENEMIES
                 )
+            surprised = bool(item.surprised)
+            if surprised and item.kind == "pc":
+                try:
+                    cid = UUID(ref)
+                except (TypeError, ValueError):
+                    cid = None
+                ch = pc_map.get(cid) if cid is not None else None
+                sheet = ch.sheet if ch is not None and isinstance(ch.sheet, dict) else {}
+                if stec.sheet_surprise_immune(
+                    sheet,
+                    hp_current=ch.hp_current if ch is not None else None,
+                ):
+                    raise AppError(
+                        f"{item.name.strip()}: Бдительный — нельзя застать врасплох",
+                        code="surprise_immune",
+                        status_code=400,
+                    )
             entries.append(
                 {
                     "id": str(uuid4()),
@@ -5799,12 +5906,33 @@ class LobbyService:
                     "dex_mod": item.dex_mod,
                     "wave_id": item.wave_id or wave_by_combatant.get(ref),
                     "defer_to_next_round": False,
+                    "surprised": surprised,
                     "side": side,
                     "side_hidden": False,
                     "side_mask": None,
                 }
             )
+            if surprised:
+                surprise_names.append(item.name.strip())
             sides_reg = sides.ensure_side_in_registry(sides_reg, side)
+
+        # Напарники «в ход хозяина» делят судьбу хозяина.
+        host_surprised = {
+            e["ref_id"]
+            for e in entries
+            if e.get("kind") == "pc" and e.get("surprised")
+        }
+        for e in entries:
+            if (
+                e.get("kind") == "companion"
+                and e.get("ref_id") in host_surprised
+                and not e.get("surprised")
+            ):
+                # собственная инициатива: если хозяин врасплох — тоже метка на entry
+                e["surprised"] = True
+                if e.get("name") not in surprise_names:
+                    surprise_names.append(str(e.get("name") or "Напарник"))
+
         entries = _sort_combat_entries(entries)
         for e in entries:
             if e.get("kind") == "enemy":
@@ -5827,11 +5955,45 @@ class LobbyService:
         session.combatants = ordered
         flag_modified(session, "combatants")
 
+        # L-21: на листах застигнутых героев — блок первого хода.
+        surprised_pc_ids: list[UUID] = []
+        for e in entries:
+            if e.get("kind") != "pc" or not e.get("surprised"):
+                continue
+            try:
+                cid = UUID(str(e["ref_id"]))
+            except (TypeError, ValueError):
+                continue
+            ch = pc_map.get(cid)
+            if ch is None:
+                continue
+            sheet = dict(ch.sheet or {})
+            combat_sheet = dict(sheet.get("combat") or {})
+            combat_sheet["turn_economy"] = stec.apply_surprise_lock(
+                combat_sheet.get("turn_economy")
+            )
+            sheet["combat"] = combat_sheet
+            ch.sheet = sheet
+            ch.sheet_version = int(ch.sheet_version or 1) + 1
+            flag_modified(ch, "sheet")
+            surprised_pc_ids.append(cid)
+
+        start_index = 0
+        while start_index < len(entries):
+            cur0 = entries[start_index]
+            if cur0.get("surprised") and cur0.get("kind") in {"enemy", "companion"}:
+                cur0["surprised"] = False
+                start_index += 1
+                continue
+            break
+        if entries:
+            start_index = min(start_index, len(entries) - 1)
+
         session.combat = scmb.dump_combat_state(
             {
                 "active": True,
                 "round": 1,
-                "active_index": 0,
+                "active_index": start_index,
                 "waiting_reaction": False,
                 "entries": entries,
                 "waves": waves,
@@ -5845,9 +6007,46 @@ class LobbyService:
             }
         )
         flag_modified(session, "combat")
+
+        surprise_event: SessionEvent | None = None
+        if surprise_names:
+            title = ", ".join(surprise_names[:6])
+            if len(surprise_names) > 6:
+                title += "…"
+            surprise_event = SessionEvent(
+                session_id=session.id,
+                event_type="combat",
+                character_id=None,
+                actor_user_id=user.id,
+                character_name="Мастер",
+                title=f"Врасплох: {title}",
+                is_master_roll=False,
+                payload={
+                    "category": "combat",
+                    "combat_journal": True,
+                    "surprised": True,
+                    "names": surprise_names,
+                },
+            )
+            self.lobbies.add_session_event(surprise_event)
+
         self.db.commit()
+        if surprised_pc_ids:
+            from app.services.sheet_effects import broadcast_sheet_effects_changed
+
+            await broadcast_sheet_effects_changed(self.lobbies, surprised_pc_ids)
         detail = self._session_detail(session, lobby, user)
         await _broadcast_session_changed(session.id)
+        if surprise_event is not None:
+            await session_hub.broadcast(
+                session.id,
+                {
+                    "type": "session_event",
+                    "event": SessionEventOut.model_validate(surprise_event).model_dump(
+                        mode="json"
+                    ),
+                },
+            )
         return detail
 
     async def roll_combat_initiative(
@@ -6669,7 +6868,32 @@ class LobbyService:
             )
             self.lobbies.add_session_event(event)
 
-            # T-01 hook: сброс отметок хода у всех — событие turn_economy_reset
+            # T-01 / L-21: сброс отметок хода и меток неожиданности на листах.
+            end_touch: list[UUID] = []
+            seat_ids_end = [s.character_id for s in session.seats]
+            end_map = self.lobbies.get_characters_map(seat_ids_end)
+            for cid in seat_ids_end:
+                ch = end_map.get(cid)
+                if ch is None:
+                    continue
+                sheet = dict(ch.sheet or {})
+                combat_sheet = dict(sheet.get("combat") or {})
+                te = combat_sheet.get("turn_economy")
+                if not isinstance(te, dict):
+                    continue
+                if te.get("surprised") or te.get("gm_locks") or any(
+                    te.get(k) for k in ("action", "bonus", "reaction", "moved")
+                ):
+                    combat_sheet["turn_economy"] = stec.empty_turn_economy()
+                    sheet["combat"] = combat_sheet
+                    ch.sheet = sheet
+                    ch.sheet_version = int(ch.sheet_version or 1) + 1
+                    flag_modified(ch, "sheet")
+                    end_touch.append(cid)
+            if end_touch:
+                from app.services.sheet_effects import broadcast_sheet_effects_changed
+
+                await broadcast_sheet_effects_changed(self.lobbies, end_touch)
             await session_hub.broadcast(
                 session.id,
                 {
@@ -7041,10 +7265,11 @@ class LobbyService:
                     ch.sheet = sheet
                     flag_modified(ch, "sheet")
 
-        # T-01 hook: начало хода героя
+        # T-01 / L-21: смена хода — сброс экономики, снятие неожиданности.
         cur = None
         if state.get("entries") and 0 <= int(state.get("active_index") or 0) < len(state["entries"]):
             cur = state["entries"][int(state["active_index"])]
+        sheet_touch_ids: list[UUID] = []
         if (
             payload.action in ("next", "prev")
             or payload.active_index is not None
@@ -7054,7 +7279,56 @@ class LobbyService:
                 from app.services import session_table_s07 as s07
 
                 state = s07.clear_object_interactions(state)
+
+                # Конец хода застигнутого героя → снять блок.
+                if (
+                    prev_active
+                    and prev_active.get("kind") == "pc"
+                    and prev_active.get("surprised")
+                ):
+                    for e in state.get("entries") or []:
+                        if e.get("id") == prev_active.get("id"):
+                            e["surprised"] = False
+                            break
+                    try:
+                        prev_cid = UUID(str(prev_active.get("ref_id")))
+                    except (TypeError, ValueError):
+                        prev_cid = None
+                    if prev_cid is not None:
+                        ch_map = self.lobbies.get_characters_map([prev_cid])
+                        ch = ch_map.get(prev_cid)
+                        if ch is not None:
+                            sheet = dict(ch.sheet or {})
+                            combat_sheet = dict(sheet.get("combat") or {})
+                            combat_sheet["turn_economy"] = stec.clear_surprise_and_reset(
+                                combat_sheet.get("turn_economy")
+                            )
+                            sheet["combat"] = combat_sheet
+                            ch.sheet = sheet
+                            ch.sheet_version = int(ch.sheet_version or 1) + 1
+                            flag_modified(ch, "sheet")
+                            sheet_touch_ids.append(prev_cid)
+
                 if cur.get("kind") == "pc" and not cur.get("initiative_pending"):
+                    try:
+                        cid = UUID(str(cur.get("ref_id")))
+                    except (TypeError, ValueError):
+                        cid = None
+                    if cid is not None:
+                        ch_map = self.lobbies.get_characters_map([cid])
+                        ch = ch_map.get(cid)
+                        if ch is not None:
+                            sheet = dict(ch.sheet or {})
+                            combat_sheet = dict(sheet.get("combat") or {})
+                            combat_sheet["turn_economy"] = stec.reset_for_turn_start(
+                                combat_sheet.get("turn_economy")
+                            )
+                            sheet["combat"] = combat_sheet
+                            ch.sheet = sheet
+                            ch.sheet_version = int(ch.sheet_version or 1) + 1
+                            flag_modified(ch, "sheet")
+                            if cid not in sheet_touch_ids:
+                                sheet_touch_ids.append(cid)
                     await session_hub.broadcast(
                         session.id,
                         {
@@ -7069,6 +7343,10 @@ class LobbyService:
         session.combat = scmb.dump_combat_state(state)
         flag_modified(session, "combat")
         self.db.commit()
+        if sheet_touch_ids:
+            from app.services.sheet_effects import broadcast_sheet_effects_changed
+
+            await broadcast_sheet_effects_changed(self.lobbies, sheet_touch_ids)
         detail = self._session_detail(session, lobby, user)
         await _broadcast_session_changed(session.id)
         return detail

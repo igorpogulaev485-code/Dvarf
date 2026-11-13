@@ -584,6 +584,10 @@ export type SessionSeat = {
   death_successes?: number | null
   death_fails?: number | null
   reaction_hint?: string | null
+  /** L-21: снимок sheet.combat.turn_economy */
+  turn_economy?: Record<string, unknown> | null
+  /** L-21: Бдительный / no_surprise_while_conscious */
+  surprise_immune?: boolean
   seated_at: string
 }
 
@@ -701,6 +705,8 @@ export type CombatEntry = {
   dex_mod?: number | null
   wave_id?: string | null
   defer_to_next_round?: boolean
+  /** L-21 */
+  surprised?: boolean
   alive_count?: number | null
   member_count?: number | null
   member_tones?: string[]
@@ -1541,6 +1547,13 @@ export async function patchSeatCombat(
     grant_temp_hp?: number
     death_successes?: number
     death_fails?: number
+    turn_economy?: {
+      action?: boolean
+      bonus?: boolean
+      reaction?: boolean
+      object_interaction?: boolean
+      moved?: boolean
+    }
   },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(
@@ -1728,6 +1741,8 @@ export type CombatEntryInput = {
   initiative_pending?: boolean
   dex_mod?: number | null
   wave_id?: string | null
+  /** L-21: застигнут врасплох при старте боя */
+  surprised?: boolean
 }
 
 export type CombatWaveInput = {

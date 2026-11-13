@@ -1,5 +1,7 @@
 import {
   TURN_MARK_LABELS,
+  markClearBlocked,
+  movementClearBlocked,
   type TurnEconomyMarkKey,
   type TurnEconomyState,
 } from '../../shared/dnd/turnEconomy'
@@ -18,6 +20,10 @@ type Props = {
   onToggleMoved?: () => void
   /** Visual-only stub, если нет onToggleMoved. */
   showMovementStub?: boolean
+  /** L-21: мастер может снимать свои/чужие отметки; игрок — нет. */
+  asGm?: boolean
+  /** Только просмотр (чипы без клика). */
+  readOnly?: boolean
   className?: string
   chipClassName?: string
   ariaLabel?: string
@@ -36,6 +42,8 @@ export function TurnEconomyChips({
   onToggle,
   onToggleMoved,
   showMovementStub = false,
+  asGm = false,
+  readOnly = false,
   className = 'chip-row',
   chipClassName = 'sheet-chip',
   ariaLabel = 'Отметки хода',
@@ -44,18 +52,29 @@ export function TurnEconomyChips({
     <div className={className} role="group" aria-label={ariaLabel}>
       {MARKS.map((mark) => {
         const on = isOn(state, mark)
+        const locked = readOnly || (on && markClearBlocked(state, mark, { asGm }))
         return (
           <button
             key={mark}
             type="button"
-            className={`${chipClassName}${on ? ' is-on' : ''}`}
+            className={`${chipClassName}${on ? ' is-on' : ''}${locked ? ' is-locked' : ''}`}
             aria-pressed={on}
+            disabled={locked}
             title={
-              on
-                ? 'Потрачено — нажмите, чтобы снять'
-                : 'Свободно — нажмите, чтобы отметить'
+              locked
+                ? state.surprised
+                  ? 'Врасплох — до конца первого хода'
+                  : readOnly
+                    ? TURN_MARK_LABELS[mark]
+                    : 'Отметку мастера снимает только мастер'
+                : on
+                  ? 'Потрачено — нажмите, чтобы снять'
+                  : 'Свободно — нажмите, чтобы отметить'
             }
-            onClick={() => onToggle(mark)}
+            onClick={() => {
+              if (locked) return
+              onToggle(mark)
+            }}
           >
             {TURN_MARK_LABELS[mark]}
           </button>
@@ -64,12 +83,21 @@ export function TurnEconomyChips({
       {onToggleMoved ? (
         <button
           type="button"
-          className={`${chipClassName}${state.moved ? ' is-on' : ''}`}
+          className={`${chipClassName}${state.moved ? ' is-on' : ''}${
+            state.moved && movementClearBlocked(state, { asGm }) ? ' is-locked' : ''
+          }`}
           aria-pressed={state.moved}
+          disabled={Boolean(
+            readOnly || (state.moved && movementClearBlocked(state, { asGm })),
+          )}
           title={
-            state.moved
-              ? 'Уже двигался — нажмите, чтобы снять'
-              : 'Отметить перемещение в этот ход'
+            state.moved && movementClearBlocked(state, { asGm })
+              ? state.surprised
+                ? 'Врасплох — до конца первого хода'
+                : 'Отметку мастера снимает только мастер'
+              : state.moved
+                ? 'Уже двигался — нажмите, чтобы снять'
+                : 'Отметить перемещение в этот ход'
           }
           onClick={onToggleMoved}
         >
@@ -77,10 +105,22 @@ export function TurnEconomyChips({
         </button>
       ) : showMovementStub ? (
         <span
-          className={`${chipClassName} is-stub`}
-          title="Перемещение не учитываем (пока нет онлайн-карты)"
+          className={`${chipClassName}${state.moved ? ' is-on' : ''} is-stub`}
+          title={
+            state.surprised
+              ? 'Врасплох'
+              : 'Перемещение не учитываем (пока нет онлайн-карты)'
+          }
         >
           Движение
+        </span>
+      ) : null}
+      {state.surprised ? (
+        <span
+          className={`${chipClassName} is-on`}
+          title="Застигнут врасплох до конца первого хода"
+        >
+          врасплох
         </span>
       ) : null}
       {state.steadyAim ? (

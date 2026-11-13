@@ -59,10 +59,15 @@ type Props = {
   onDeathSavesChange?: (successes: number, fails: number) => void
   /** S-02: подсветка «Твой ход» */
   yourTurn?: boolean
-  /** T-01: живые отметки хода (вместо заглушки) */
+  /** T-01 / L-21: чипы экономики хода на карточке */
   showTurnEconomyStub?: boolean
   turnEconomy?: TurnEconomyState | null
   onToggleTurnMark?: (mark: TurnEconomyMarkKey) => void
+  onToggleMoved?: () => void
+  /** L-21: мастер снимает любые отметки; игрок — только свои незаблокированные */
+  turnEconomyAsGm?: boolean
+  /** L-21: метка «врасплох» с entry боя */
+  surprised?: boolean
   /** S-05: подпись стороны (ведущему — истина) */
   sideLabelText?: string | null
   sideHidden?: boolean
@@ -305,6 +310,9 @@ export function SessionTableCard({
   showTurnEconomyStub = false,
   turnEconomy = null,
   onToggleTurnMark,
+  onToggleMoved,
+  turnEconomyAsGm = false,
+  surprised = false,
   sideLabelText = null,
   sideHidden = false,
   onSideClick,
@@ -378,12 +386,23 @@ export function SessionTableCard({
             Твой ход
           </p>
         ) : null}
-        {yourTurn && showTurnEconomyStub ? (
+        {showTurnEconomyStub ? (
           <div className="session-table-card__turn-stub" aria-label="Экономика хода">
+            {surprised || turnEconomy?.surprised ? (
+              <p className="session-table-card__surprised" role="status">
+                врасплох
+              </p>
+            ) : null}
             <TurnEconomyChips
               state={turnEconomy ?? emptyTurnEconomy()}
-              onToggle={(mark) => onToggleTurnMark?.(mark)}
-              showMovementStub
+              onToggle={(mark) => {
+                if (!onToggleTurnMark) return
+                onToggleTurnMark(mark)
+              }}
+              onToggleMoved={onToggleMoved}
+              showMovementStub={!onToggleMoved}
+              asGm={Boolean(turnEconomyAsGm)}
+              readOnly={!onToggleTurnMark}
               className="session-table-card__turn-chips"
               chipClassName="session-turn-chip"
             />

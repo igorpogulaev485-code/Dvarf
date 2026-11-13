@@ -225,8 +225,40 @@ class CharacterService:
             character.is_draft = payload.is_draft
 
         if payload.sheet is not None:
-            character.sheet = payload.sheet
-            summary = extract_summary_from_sheet(payload.sheet)
+            # L-21: владелец не может снять отметки мастера / блок неожиданности
+            # через updateCharacter — мержим turn_economy.
+            from app.services import session_turn_economy as stec
+
+            prev_sheet = character.sheet if isinstance(character.sheet, dict) else {}
+            prev_combat = (
+                prev_sheet.get("combat")
+                if isinstance(prev_sheet.get("combat"), dict)
+                else {}
+            )
+            next_sheet = (
+                dict(payload.sheet) if isinstance(payload.sheet, dict) else payload.sheet
+            )
+            if isinstance(next_sheet, dict):
+                next_combat = (
+                    dict(next_sheet.get("combat") or {})
+                    if isinstance(next_sheet.get("combat"), dict)
+                    or next_sheet.get("combat") is None
+                    else {}
+                )
+                if "turn_economy" in next_combat or isinstance(
+                    prev_combat.get("turn_economy"), dict
+                ):
+                    next_combat["turn_economy"] = stec.merge_owner_turn_economy_write(
+                        prev_combat.get("turn_economy"),
+                        next_combat.get("turn_economy"),
+                    )
+                    next_sheet["combat"] = next_combat
+                character.sheet = next_sheet
+            else:
+                character.sheet = payload.sheet
+            summary = extract_summary_from_sheet(
+                character.sheet if isinstance(character.sheet, dict) else payload.sheet
+            )
             if payload.hp_current is None and "hp_current" in summary:
                 character.hp_current = summary["hp_current"]
             if payload.hp_max is None and "hp_max" in summary:

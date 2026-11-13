@@ -179,14 +179,17 @@ export function CombatTrack({
                     entry.kind === 'enemy' ? ' is-enemy' : ''
                   }${entry.initiative_pending ? ' is-pending' : ''}${
                     entry.defer_to_next_round ? ' is-deferred' : ''
-                  }`}
+                  }${entry.surprised ? ' is-surprised' : ''}`}
                   disabled={busy || !masterControls}
                   onClick={() => onSelect?.(index)}
                 >
                   <span className="session-combat-order__init">
                     {entry.initiative_pending ? '?' : entry.initiative ?? '—'}
                   </span>
-                  <span className="session-combat-order__name">{entry.name}</span>
+                  <span className="session-combat-order__name">
+                    {entry.name}
+                    {entry.surprised ? ' · врасплох' : ''}
+                  </span>
                   {entry.side ? (
                     <span className="session-combat-order__side">
                       {sideLabel(entry.side, combat.sides)}

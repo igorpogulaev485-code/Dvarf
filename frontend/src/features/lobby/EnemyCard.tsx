@@ -44,6 +44,8 @@ type Props = {
   onSideClick?: () => void
   /** S-06: сбежал / сдался / сброс */
   onOutcome?: (outcome: 'fled' | 'surrendered' | '') => void
+  /** L-21: застигнут врасплох (первый ход пропускает) */
+  surprised?: boolean
 }
 
 type KitItem = CombatantAction & { kind: string }
@@ -133,6 +135,7 @@ export function EnemyCard({
   sideHidden = false,
   onSideClick,
   onOutcome,
+  surprised = false,
 }: Props) {
   const [abilitiesOpen, setAbilitiesOpen] = useState(forceAbilitiesOpen)
   const [rosterOpen, setRosterOpen] = useState(false)
@@ -256,6 +259,11 @@ export function EnemyCard({
             {combatant.name}
             {isPack ? (
               <span className="session-enemy-card__pack-tag">пачка</span>
+            ) : null}
+            {surprised ? (
+              <span className="session-enemy-card__pack-tag" title="Пропустит первый ход">
+                врасплох
+              </span>
             ) : null}
           </Text>
           {meta ? (

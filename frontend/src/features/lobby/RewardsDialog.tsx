@@ -576,6 +576,10 @@ export function RewardsDialog({
                 Все за столом
               </button>
             </div>
+            <Text tone="muted">
+              Только сидящие за столом. Офлайн-героя посади в «Кто пришёл» — опыт ляжет на
+              цифровой лист без открытия приложения.
+            </Text>
             <ul className="session-xp-recipients">
               {seats.map((seat) => {
                 const on = selectedIds.has(seat.character_id)
@@ -703,6 +707,9 @@ export function RewardsDialog({
           </Text>
           <Text tone="muted">
             Пустой сундук после боя. Наполните, затем «Выдать» или «Положить на стол».
+            Награды получают только герои за столом — офлайн-игрока посади через «Кто
+            пришёл». Если игрок приложение не открывал, лучше жать «Выдать», а не
+            «Положить на стол».
           </Text>
 
           <div className="session-rewards__quick">

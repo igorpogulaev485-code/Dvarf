@@ -51,11 +51,13 @@ import { normalizeCampaignRules } from '../features/lobby/campaignRules'
 import { targetsFromSession } from '../features/lobby/combatTargets'
 import { MoraleCheckDialog } from '../features/characters/O04MasterRulesDialogs'
 import { normalizeVisibilityProfile } from '../features/lobby/visibilityProfile'
-import { getCharacter, listCharacters, updateCharacter } from '../shared/api/characters'
+import { getCharacter, listCharacters } from '../shared/api/characters'
 import {
   emptyTurnEconomy,
+  markClearBlocked,
+  movementClearBlocked,
   readTurnEconomy,
-  serializeTurnEconomy,
+  setMoved,
   toggleTurnMark,
   type TurnEconomyMarkKey,
   type TurnEconomyState,
@@ -259,7 +261,10 @@ export function SessionDetailPage() {
   const [ownTurnEconomy, setOwnTurnEconomy] = useState<TurnEconomyState>(() =>
     emptyTurnEconomy(),
   )
-  const [ownTurnSheetVersion, setOwnTurnSheetVersion] = useState<number | null>(null)
+  /** L-21: локальные оверрайды чипов до ответа API (по character_id). */
+  const [seatTurnOverrides, setSeatTurnOverrides] = useState<
+    Record<string, TurnEconomyState>
+  >({})
   const [events, setEvents] = useState<SessionEvent[]>([])
   const [feedFilter, setFeedFilter] = useState<FeedFilter>('all')
   const [liveTab, setLiveTab] = useState<SessionLiveTabId>('table')
@@ -710,7 +715,6 @@ export function SessionDetailPage() {
   useEffect(() => {
     if (!yourTurnCharacterId) {
       setOwnTurnEconomy(emptyTurnEconomy())
-      setOwnTurnSheetVersion(null)
       return
     }
     let cancelled = false
@@ -719,7 +723,6 @@ export function SessionDetailPage() {
         if (cancelled) return
         const combat = asRecord(asRecord(detail.sheet).combat)
         setOwnTurnEconomy(readTurnEconomy(combat.turn_economy))
-        setOwnTurnSheetVersion(detail.sheet_version)
       })
       .catch(() => null)
     return () => {
@@ -727,29 +730,82 @@ export function SessionDetailPage() {
     }
   }, [yourTurnCharacterId, session?.combat?.active_index, session?.combat?.round])
 
-  const onToggleOwnTurnMark = useCallback(
-    (mark: TurnEconomyMarkKey) => {
-      if (!yourTurnCharacterId || ownTurnSheetVersion == null) return
-      const next = toggleTurnMark(ownTurnEconomy, mark)
-      setOwnTurnEconomy(next)
-      void getCharacter(yourTurnCharacterId)
-        .then((detail) => {
-          const sheet = { ...(detail.sheet as Record<string, unknown>) }
-          const combat = { ...asRecord(sheet.combat), turn_economy: serializeTurnEconomy(next) }
-          sheet.combat = combat
-          return updateCharacter(yourTurnCharacterId, {
-            sheet_version: detail.sheet_version,
-            sheet,
-          })
-        })
-        .then((fresh) => {
-          setOwnTurnSheetVersion(fresh.sheet_version)
-          const combat = asRecord(asRecord(fresh.sheet).combat)
-          setOwnTurnEconomy(readTurnEconomy(combat.turn_economy))
-        })
-        .catch(() => null)
+  const seatTurnEconomyFor = useCallback(
+    (characterId: string): TurnEconomyState => {
+      if (seatTurnOverrides[characterId]) return seatTurnOverrides[characterId]
+      if (yourTurnCharacterId === characterId) return ownTurnEconomy
+      const seat = session?.seats.find((s) => s.character_id === characterId)
+      return readTurnEconomy(seat?.turn_economy ?? null)
     },
-    [yourTurnCharacterId, ownTurnEconomy, ownTurnSheetVersion],
+    [seatTurnOverrides, yourTurnCharacterId, ownTurnEconomy, session?.seats],
+  )
+
+  const onToggleSeatTurnMark = useCallback(
+    (characterId: string, mark: TurnEconomyMarkKey, asGm: boolean) => {
+      if (!session || session.closed_at || session.is_observer) return
+      const current = seatTurnEconomyFor(characterId)
+      const spent =
+        mark === 'action'
+          ? current.action
+          : mark === 'bonus'
+            ? current.bonus
+            : mark === 'reaction'
+              ? current.reaction
+              : current.objectInteraction
+      if (spent && markClearBlocked(current, mark, { asGm })) return
+      const next = toggleTurnMark(current, mark)
+      setSeatTurnOverrides((prev) => ({ ...prev, [characterId]: next }))
+      if (yourTurnCharacterId === characterId) setOwnTurnEconomy(next)
+      void run(async () => {
+        try {
+          const updated = await patchSeatCombat(session.id, characterId, {
+            turn_economy: {
+              action: next.action,
+              bonus: next.bonus,
+              reaction: next.reaction,
+              object_interaction: next.objectInteraction,
+              moved: next.moved,
+            },
+          })
+          setSession(updated)
+          const seat = updated.seats.find((s) => s.character_id === characterId)
+          const fresh = readTurnEconomy(seat?.turn_economy ?? null)
+          if (yourTurnCharacterId === characterId) setOwnTurnEconomy(fresh)
+        } finally {
+          setSeatTurnOverrides((prev) => {
+            const copy = { ...prev }
+            delete copy[characterId]
+            return copy
+          })
+        }
+      })
+    },
+    [session, seatTurnEconomyFor, yourTurnCharacterId],
+  )
+
+  const onToggleSeatMoved = useCallback(
+    (characterId: string, asGm: boolean) => {
+      if (!session || session.closed_at || session.is_observer) return
+      const current = seatTurnEconomyFor(characterId)
+      if (current.moved && movementClearBlocked(current, { asGm })) return
+      const next = setMoved(current, !current.moved)
+      setSeatTurnOverrides((prev) => ({ ...prev, [characterId]: next }))
+      void run(async () => {
+        try {
+          const updated = await patchSeatCombat(session.id, characterId, {
+            turn_economy: { moved: next.moved },
+          })
+          setSession(updated)
+        } finally {
+          setSeatTurnOverrides((prev) => {
+            const copy = { ...prev }
+            delete copy[characterId]
+            return copy
+          })
+        }
+      })
+    },
+    [session, seatTurnEconomyFor],
   )
 
   if (!session && !error) {
@@ -1542,20 +1598,35 @@ export function SessionDetailPage() {
 {session.seats.map((seat) => {
                       const isOwn = ownCharacterIds.has(seat.character_id)
                       const canControl = canRun || isOwn
+                      const combatActive = Boolean(session.combat?.active)
+                      const seatSurprised = Boolean(
+                        session.combat?.entries?.find(
+                          (e) => e.kind === 'pc' && e.ref_id === seat.character_id,
+                        )?.surprised,
+                      )
+                      const showChips =
+                        combatActive &&
+                        (canControl || Boolean(seat.turn_economy) || seatSurprised)
+                      const asGm = Boolean(canRun && !session.is_observer)
                       return (
                         <SessionTableCard
                           key={seat.character_id}
                           seat={seat}
                           yourTurn={yourTurnCharacterId === seat.character_id}
-                          showTurnEconomyStub={yourTurnCharacterId === seat.character_id}
+                          showTurnEconomyStub={showChips}
                           turnEconomy={
-                            yourTurnCharacterId === seat.character_id
-                              ? ownTurnEconomy
-                              : null
+                            showChips ? seatTurnEconomyFor(seat.character_id) : null
                           }
+                          turnEconomyAsGm={asGm}
+                          surprised={seatSurprised}
                           onToggleTurnMark={
-                            yourTurnCharacterId === seat.character_id
-                              ? onToggleOwnTurnMark
+                            canControl && !session.closed_at && !session.is_observer
+                              ? (mark) => onToggleSeatTurnMark(seat.character_id, mark, asGm)
+                              : undefined
+                          }
+                          onToggleMoved={
+                            canControl && !session.closed_at && !session.is_observer
+                              ? () => onToggleSeatMoved(seat.character_id, asGm)
                               : undefined
                           }
                           visibility={visibility}
@@ -1797,6 +1868,11 @@ export function SessionDetailPage() {
                           revealAll={canSeeHidden}
                           masterControls={canRun && !session.closed_at}
                           forceAbilitiesOpen={Boolean(isActiveTurn && canRun)}
+                          surprised={Boolean(
+                            session.combat?.entries?.find(
+                              (e) => e.kind === 'enemy' && e.ref_id === enemy.id,
+                            )?.surprised,
+                          )}
                           busy={busy}
                           sideLabelText={(() => {
                             const entry = session.combat?.entries?.find(

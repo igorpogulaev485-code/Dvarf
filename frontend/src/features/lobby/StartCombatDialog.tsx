@@ -11,6 +11,7 @@ import { seatCompanionInInitiativeSeed } from './companionCombatSeat'
 type DraftRow = CombatEntryInput & {
   key: string
   waveIndex: number
+  surpriseImmune?: boolean
 }
 
 type Props = {
@@ -50,6 +51,8 @@ export function StartCombatDialog({
         initiative_pending: true,
         dex_mod: seat.dex_mod ?? null,
         waveIndex: 1,
+        surprised: false,
+        surpriseImmune: Boolean(seat.surprise_immune),
       })
       for (const companion of seat.companions ?? []) {
         // C-02: «ход хозяина» — не отдельная строка инициативы.
@@ -64,6 +67,7 @@ export function StartCombatDialog({
           initiative_pending: true,
           dex_mod: companion.dex_mod ?? null,
           waveIndex: 1,
+          surprised: false,
         })
       }
     }
@@ -82,6 +86,7 @@ export function StartCombatDialog({
         initiative_pending: false,
         dex_mod: enemy.dex_mod ?? null,
         waveIndex: 1,
+        surprised: false,
       })
     }
     return rows
@@ -132,7 +137,16 @@ export function StartCombatDialog({
         onSubmit({
           waves: finalWaves,
           entries: rows.map(
-            ({ kind, ref_id, companion_id, name, initiative, initiative_pending, dex_mod }) => ({
+            ({
+              kind,
+              ref_id,
+              companion_id,
+              name,
+              initiative,
+              initiative_pending,
+              dex_mod,
+              surprised,
+            }) => ({
               kind,
               ref_id,
               companion_id,
@@ -140,6 +154,7 @@ export function StartCombatDialog({
               initiative: initiative_pending || initiative == null ? null : initiative,
               initiative_pending: Boolean(initiative_pending || initiative == null),
               dex_mod,
+              surprised: Boolean(surprised),
             }),
           ),
         })
@@ -149,7 +164,8 @@ export function StartCombatDialog({
         <Text tone="muted">
           Волна 1 сразу на столе. Остальные скрыты, пока не выпустишь. Игроки бросают инициативу
           сами; за врагов можно вписать число сейчас или позже. Бой можно начать и без противников —
-          герои бьют друг друга выбором цели.
+          герои бьют друг друга выбором цели. Неожиданность — только здесь, в начале боя (не при
+          волне и не у опоздавшего).
         </Text>
         {rows.length === 0 ? (
           <Text tone="muted">Некого сажать в бой — посади игроков или противников.</Text>
@@ -222,6 +238,32 @@ export function StartCombatDialog({
                     }}
                   />
                 </Field>
+                <label
+                  className={`session-init-list__surprise${
+                    row.surpriseImmune ? ' is-immune' : ''
+                  }`}
+                  title={
+                    row.surpriseImmune
+                      ? 'Бдительный — нельзя застать врасплох'
+                      : 'Застигнут врасплох: без действия, бонусного, реакции и движения до конца первого хода'
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    checked={Boolean(row.surprised) && !row.surpriseImmune}
+                    disabled={busy || Boolean(row.surpriseImmune)}
+                    aria-label={`Врасплох ${row.name}`}
+                    onChange={(e) => {
+                      const on = e.target.checked
+                      setRows((prev) =>
+                        prev.map((r) =>
+                          r.key === row.key ? { ...r, surprised: on } : r,
+                        ),
+                      )
+                    }}
+                  />
+                  {row.surpriseImmune ? 'Бдительный' : 'врасплох'}
+                </label>
               </li>
             ))}
           </ul>
