@@ -165,6 +165,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
 
           {!model.isPlayDesk && model.draft.sheetUi.deskMode === 'combat' ? (
             <div className="mobile-combat-seg-stack">
+              {model.hasMagicSources ? (
               <div className="mobile-combat-seg" role="tablist" aria-label="Бой">
                 <button
                   type="button"
@@ -193,7 +194,8 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                   Заклинания
                 </button>
               </div>
-              {model.activePanel === 'spells' ? (
+              ) : null}
+              {model.hasMagicSources && model.activePanel === 'spells' ? (
                 <div
                   className="mobile-combat-seg mobile-combat-seg--spell"
                   role="tablist"

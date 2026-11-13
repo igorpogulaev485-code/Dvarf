@@ -73,7 +73,7 @@ export function SuperiorityDiceSpendDialog({
   return (
     <Dialog
       open={open}
-      title="Кости превосходства"
+      title={resource?.name?.trim() || 'Кости превосходства'}
       size="wide"
       primaryLabel="Закрыть"
       onPrimary={onClose}

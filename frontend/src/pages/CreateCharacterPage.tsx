@@ -2753,6 +2753,7 @@ export function CreateCharacterPage() {
         }
         spells={spells}
         learnMode="spellbook"
+        learnBudgets={spellLearnBudgets}
         onChange={setSpells}
         onClose={() => setSpellsOpen(null)}
       />

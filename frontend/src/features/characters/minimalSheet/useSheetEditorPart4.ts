@@ -740,10 +740,15 @@ export function useSheetEditorPart4(model: SheetModel) {
       if (!model.hasMagicSources) {
         reopenSplitWhenMagicArrivesRef.current = true
         if (model.draft.sheetUi.deskSplit) model.patchSheetUi({ deskSplit: false })
+        // U05: phone combat tab «Заклинания» only when magic sources exist.
+        if (model.activePanel === 'spells') model.setActivePanel('attacks')
       } else {
         reopenSplitWhenMagicArrivesRef.current = false
       }
       return
+    }
+    if (!model.hasMagicSources && model.activePanel === 'spells') {
+      model.setActivePanel('attacks')
     }
     if (model.hasMagicSources && reopenSplitWhenMagicArrivesRef.current) {
       reopenSplitWhenMagicArrivesRef.current = false

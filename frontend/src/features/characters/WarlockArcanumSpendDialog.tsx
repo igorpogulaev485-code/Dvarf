@@ -83,7 +83,7 @@ export function WarlockArcanumSpendDialog({
   return (
     <Dialog
       open={open}
-      title="Мистический арканум"
+      title={resource?.name?.trim() || 'Мистический арканум'}
       size="wide"
       primaryLabel="Закрыть"
       onPrimary={onClose}

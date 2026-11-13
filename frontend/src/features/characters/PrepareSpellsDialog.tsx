@@ -1,12 +1,18 @@
 import { useMemo, useState } from 'react'
 import {
+  formatNamedPrepareBudgets,
+} from '../../shared/dnd/castProfiles'
+import type { SpellLearnBudget } from '../../shared/dnd/casterProgression'
+import {
   spellAccessUiCopy,
   type SpellLearnModeUi,
 } from '../../shared/dnd/spellAccessUi'
 import { countsTowardPrepareLimit, levelLabel } from '../../shared/dnd/spells'
 import { Dialog, Stack, Text } from '../../ui'
 import {
+  countAlwaysPreparedLeveled,
   countPreparedLeveled,
+  countPreparedLeveledBySlug,
   groupSpellsByLevel,
   isGrantedSpellHighlight,
   isPreparedLocked,
@@ -25,11 +31,35 @@ type PrepareSpellsDialogProps = {
    * prepared_list casters prepare in Grimoire; known have no daily prepare.
    */
   learnMode?: SpellLearnModeUi | null
+  /** M2: per-class prepare budgets (same source as desk meta chips). */
+  learnBudgets?: SpellLearnBudget[] | null
   onChange: (spells: SpellsState) => void
   onClose: () => void
 }
 
 type Tab = 'prepared' | 'available'
+
+function prepareCapForSpell(
+  spell: SheetSpell,
+  learnBudgets: SpellLearnBudget[] | null | undefined,
+  fallbackMax: number | null,
+): { maxPrepared: number | null; scopeSlug: string | null } {
+  const slug = (spell.class_slug ?? '').trim().toLowerCase()
+  const prepareRows =
+    learnBudgets?.filter(
+      (row) => row.maxPrepared != null && (row.maxPrepared ?? 0) > 0,
+    ) ?? []
+  if (slug && prepareRows.length > 0) {
+    const row = prepareRows.find((item) => item.slug === slug)
+    if (row?.maxPrepared != null) {
+      return {
+        maxPrepared: row.maxPrepared,
+        scopeSlug: prepareRows.length > 1 ? slug : null,
+      }
+    }
+  }
+  return { maxPrepared: fallbackMax, scopeSlug: null }
+}
 
 /**
  * Wizard morning prep: pick today's set from the spellbook.
@@ -39,6 +69,7 @@ export function PrepareSpellsDialog({
   open,
   spells,
   learnMode = 'spellbook',
+  learnBudgets = null,
   onChange,
   onClose,
 }: PrepareSpellsDialogProps) {
@@ -46,8 +77,30 @@ export function PrepareSpellsDialog({
   const uiCopy = spellAccessUiCopy(learnMode ?? 'spellbook')
 
   const preparedCount = countPreparedLeveled(spells.known)
-  const limitLabel =
-    spells.max_prepared == null ? String(preparedCount) : `${preparedCount}/${spells.max_prepared}`
+  const alwaysPreparedCount = countAlwaysPreparedLeveled(spells.known)
+  const preparedBySlug = useMemo(
+    () => countPreparedLeveledBySlug(spells.known),
+    [spells.known],
+  )
+  const prepareRows = useMemo(
+    () =>
+      (learnBudgets ?? []).filter(
+        (row) => row.maxPrepared != null && (row.maxPrepared ?? 0) > 0,
+      ),
+    [learnBudgets],
+  )
+  /** Multiclass: named per-class chips. Mono: keep «N/M» (Селестия 9/9). */
+  const limitLabel = (() => {
+    if (prepareRows.length > 1) {
+      const named = formatNamedPrepareBudgets(learnBudgets ?? [], preparedBySlug, {
+        alwaysPrepared: alwaysPreparedCount,
+      })
+      if (named) return named.replace(/^подг\.\s*/, '')
+    }
+    return spells.max_prepared == null
+      ? String(preparedCount)
+      : `${preparedCount}/${spells.max_prepared}`
+  })()
 
   const bookSpells = useMemo(
     () =>
@@ -83,20 +136,39 @@ export function PrepareSpellsDialog({
     if (isPreparedLocked(spell)) return
     const nextPrepared = !spell.prepared
     if (bookLost && nextPrepared) return
+    const { maxPrepared, scopeSlug } = prepareCapForSpell(
+      spell,
+      learnBudgets,
+      spells.max_prepared,
+    )
     onChange({
       ...spells,
-      known: setSpellPrepared(spells.known, spell.id, nextPrepared, spells.max_prepared),
+      known: setSpellPrepared(
+        spells.known,
+        spell.id,
+        nextPrepared,
+        maxPrepared,
+        scopeSlug ? { scopeSlug } : undefined,
+      ),
     })
   }
 
   function renderSpellRow(spell: SheetSpell) {
     const lock = preparedLockChip(spell)
     const source = spellSourceBadge(spell)
+    const { maxPrepared, scopeSlug } = prepareCapForSpell(
+      spell,
+      learnBudgets,
+      spells.max_prepared,
+    )
+    const usedForCap = scopeSlug
+      ? (preparedBySlug[scopeSlug] ?? 0)
+      : preparedCount
     const atCap =
       !spell.prepared &&
       !lock &&
-      spells.max_prepared != null &&
-      preparedCount >= spells.max_prepared
+      maxPrepared != null &&
+      usedForCap >= maxPrepared
     const cannotPrepare = bookLost && !spell.prepared
     return (
       <li

@@ -1542,15 +1542,28 @@ export function isAvailableToCast(
   return false
 }
 
+export type PrepareCapScope = {
+  /**
+   * When set, the prepare cap is checked only against spells of this class_slug
+   * (multiclass morning prep / per-class budgets). Omit for a global sheet cap.
+   */
+  scopeSlug?: string | null
+}
+
 export function canPrepareSpell(
   known: SheetSpell[],
   spell: SheetSpell,
   maxPrepared: number | null,
+  options?: PrepareCapScope,
 ): boolean {
   if (isPreparedLocked(spell)) return true
   if (!countsTowardPrepareLimit(spell.level)) return true
   if (spell.prepared) return true
   if (maxPrepared == null) return true
+  const scope = (options?.scopeSlug ?? '').trim().toLowerCase()
+  if (scope) {
+    return (countPreparedLeveledBySlug(known)[scope] ?? 0) < maxPrepared
+  }
   return countPreparedLeveled(known) < maxPrepared
 }
 
@@ -1559,13 +1572,16 @@ export function setSpellPrepared(
   spellId: string,
   prepared: boolean,
   maxPrepared: number | null,
+  options?: PrepareCapScope,
 ): SheetSpell[] {
   return known.map((spell) => {
     if (spell.id !== spellId) return spell
     if (spell.level <= 0 || isPreparedLocked(spell)) {
       return { ...spell, prepared: true }
     }
-    if (prepared && !canPrepareSpell(known, spell, maxPrepared)) return spell
+    if (prepared && !canPrepareSpell(known, spell, maxPrepared, options)) {
+      return spell
+    }
     return { ...spell, prepared }
   })
 }

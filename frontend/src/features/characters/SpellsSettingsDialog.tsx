@@ -10,6 +10,7 @@ import {
   type SpellcastingSuggestion,
   type SubclassCasterOverlay,
 } from '../../shared/dnd/casterProgression'
+import { resolveSpellLearnBudgets } from '../../shared/dnd/castProfiles'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
   SPELLCASTING_ABILITIES,
@@ -155,6 +156,17 @@ export function SpellsSettingsDialog({
         abilityModFor: (ability) => abilityModifier(abilities[ability]),
       }),
     [classRows, subclassCasters, abilities],
+  )
+
+  const learnBudgets = useMemo(
+    () =>
+      resolveSpellLearnBudgets({
+        classes: classRows,
+        subclassCasters,
+        abilityModFor: (ability) => abilityModifier(abilities[ability]),
+        proficiencyBonus,
+      }),
+    [classRows, subclassCasters, abilities, proficiencyBonus],
   )
 
   const abilityKey = spells.casting_ability
@@ -819,6 +831,7 @@ export function SpellsSettingsDialog({
         open={prepareOpen && learnBudget?.mode === 'spellbook'}
         spells={spells}
         learnMode="spellbook"
+        learnBudgets={learnBudgets}
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
       />

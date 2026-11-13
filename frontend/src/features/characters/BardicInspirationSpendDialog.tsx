@@ -68,7 +68,7 @@ export function BardicInspirationSpendDialog({
   return (
     <Dialog
       open={open}
-      title="Бардовское вдохновение"
+      title={resource?.name?.trim() || 'Бардовское вдохновение'}
       size="wide"
       primaryLabel="Закрыть"
       onPrimary={onClose}
