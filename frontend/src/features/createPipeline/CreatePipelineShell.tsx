@@ -1,4 +1,10 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import { Button, Dialog, Stack, Text } from '../../ui'
 import {
   CREATE_PIPELINE_STEP_LABELS,
@@ -28,6 +34,28 @@ type CreatePipelineShellProps = {
   detailPrimary?: boolean
 }
 
+/** Pure edge flags for the mobile step strip (selfcheck + UI). */
+export function createPipelineStepsScrollEdges(
+  scrollLeft: number,
+  clientWidth: number,
+  scrollWidth: number,
+  epsilon = 1,
+): { canScrollLeft: boolean; canScrollRight: boolean } {
+  if (scrollWidth <= clientWidth + epsilon) {
+    return { canScrollLeft: false, canScrollRight: false }
+  }
+  return {
+    canScrollLeft: scrollLeft > epsilon,
+    canScrollRight: scrollLeft + clientWidth < scrollWidth - epsilon,
+  }
+}
+
+function scrollStepsByApproxOneChip(el: HTMLElement, direction: 1 | -1) {
+  const chip = el.querySelector<HTMLElement>('.create-pipeline__step')
+  const delta = chip ? chip.offsetWidth + 8 : Math.max(120, el.clientWidth * 0.45)
+  el.scrollBy({ left: direction * delta, behavior: 'smooth' })
+}
+
 export function CreatePipelineShell({
   step,
   steps = CREATE_PIPELINE_STEPS,
@@ -43,6 +71,9 @@ export function CreatePipelineShell({
   detailPrimary = false,
 }: CreatePipelineShellProps) {
   const [summaryOpen, setSummaryOpen] = useState(false)
+  const stepsRef = useRef<HTMLElement | null>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
   const currentIndex = steps.indexOf(step)
   const stepNumber = currentIndex >= 0 ? currentIndex + 1 : 1
   const stepTotal = steps.length
@@ -52,8 +83,46 @@ export function CreatePipelineShell({
     setSummaryOpen(false)
   }, [step])
 
+  const updateScrollHints = () => {
+    const el = stepsRef.current
+    if (!el) return
+    const edges = createPipelineStepsScrollEdges(el.scrollLeft, el.clientWidth, el.scrollWidth)
+    setCanScrollLeft(edges.canScrollLeft)
+    setCanScrollRight(edges.canScrollRight)
+  }
+
+  useLayoutEffect(() => {
+    const el = stepsRef.current
+    if (!el) return
+    const active = el.querySelector<HTMLElement>('.create-pipeline__step--active')
+    active?.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' })
+    updateScrollHints()
+  }, [step, stepTotal])
+
+  useEffect(() => {
+    const el = stepsRef.current
+    if (!el) return
+
+    const onScroll = () => updateScrollHints()
+    el.addEventListener('scroll', onScroll, { passive: true })
+
+    const ro = new ResizeObserver(() => updateScrollHints())
+    ro.observe(el)
+    for (const child of Array.from(el.children)) {
+      if (child instanceof HTMLElement) ro.observe(child)
+    }
+    window.addEventListener('resize', updateScrollHints)
+
+    return () => {
+      el.removeEventListener('scroll', onScroll)
+      ro.disconnect()
+      window.removeEventListener('resize', updateScrollHints)
+    }
+  }, [stepTotal])
+
   const summaryBody = detailPrimary ? cards : detail
   const summaryTitle = detailPrimary ? 'Сводка' : 'Сводка выбора'
+  const closeSummary = () => setSummaryOpen(false)
 
   return (
     <div
@@ -96,33 +165,79 @@ export function CreatePipelineShell({
           </div>
         </div>
 
-        <nav className="create-pipeline__steps" aria-label="Шаги создания">
-          {steps.map((id, index) => {
-            const active = id === step
-            const done = index < currentIndex
-            const reachable = index <= currentIndex
-            const className = [
-              'create-pipeline__step',
-              active ? 'create-pipeline__step--active' : '',
-              done ? 'create-pipeline__step--done' : '',
-              !reachable ? 'create-pipeline__step--locked' : '',
-            ]
-              .filter(Boolean)
-              .join(' ')
-            return (
+        <div className="create-pipeline__steps-wrap">
+          {canScrollLeft ? (
+            <>
+              <div
+                className="create-pipeline__steps-fade create-pipeline__steps-fade--left"
+                aria-hidden="true"
+              />
               <button
-                key={id}
                 type="button"
-                className={className}
-                disabled={!reachable || !onStepClick}
-                onClick={() => onStepClick?.(id)}
+                className="create-pipeline__steps-arrow create-pipeline__steps-arrow--left"
+                aria-label="Прокрутить шаги влево"
+                onClick={() => {
+                  const el = stepsRef.current
+                  if (el) scrollStepsByApproxOneChip(el, -1)
+                }}
               >
-                <span className="create-pipeline__step-index">{index + 1}</span>
-                <span>{CREATE_PIPELINE_STEP_LABELS[id]}</span>
+                ‹
               </button>
-            )
-          })}
-        </nav>
+            </>
+          ) : null}
+          {canScrollRight ? (
+            <>
+              <div
+                className="create-pipeline__steps-fade create-pipeline__steps-fade--right"
+                aria-hidden="true"
+              />
+              <button
+                type="button"
+                className="create-pipeline__steps-arrow create-pipeline__steps-arrow--right"
+                aria-label="Прокрутить шаги вправо"
+                onClick={() => {
+                  const el = stepsRef.current
+                  if (el) scrollStepsByApproxOneChip(el, 1)
+                }}
+              >
+                ›
+              </button>
+            </>
+          ) : null}
+          <nav
+            ref={stepsRef}
+            className="create-pipeline__steps"
+            aria-label="Шаги создания"
+          >
+            {steps.map((id, index) => {
+              const active = id === step
+              const done = index < currentIndex
+              const reachable = index <= currentIndex
+              const className = [
+                'create-pipeline__step',
+                active ? 'create-pipeline__step--active' : '',
+                done ? 'create-pipeline__step--done' : '',
+                !reachable ? 'create-pipeline__step--locked' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  className={className}
+                  disabled={!reachable || !onStepClick}
+                  onClick={() => onStepClick?.(id)}
+                >
+                  <span className="create-pipeline__step-index">{index + 1}</span>
+                  <span className="create-pipeline__step-label">
+                    {CREATE_PIPELINE_STEP_LABELS[id]}
+                  </span>
+                </button>
+              )
+            })}
+          </nav>
+        </div>
       </header>
 
       <div className="create-pipeline__body">
@@ -159,9 +274,8 @@ export function CreatePipelineShell({
         title={summaryTitle}
         size="wide"
         primaryLabel="Закрыть"
-        secondaryLabel="Отмена"
-        onPrimary={() => setSummaryOpen(false)}
-        onSecondary={() => setSummaryOpen(false)}
+        onPrimary={closeSummary}
+        onSecondary={closeSummary}
         closeOnBackdrop
       >
         <div className="create-pipeline__summary-sheet">{summaryBody}</div>

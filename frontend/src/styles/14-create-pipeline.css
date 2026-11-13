@@ -352,6 +352,13 @@
     display: none;
   }
 
+  /* M11 / Q5: keep horizontal step strip; fade + arrow show there is more */
+  .create-pipeline__steps-wrap {
+    position: relative;
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .create-pipeline__steps {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -359,6 +366,7 @@
     scrollbar-width: none;
     gap: 6px;
     padding-bottom: 2px;
+    overscroll-behavior-x: contain;
   }
 
   .create-pipeline__steps::-webkit-scrollbar {
@@ -370,6 +378,73 @@
     min-height: 40px;
     padding: 6px 10px;
     font-size: 0.8rem;
+    max-width: none;
+    white-space: nowrap;
+  }
+
+  .create-pipeline__step-label {
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .create-pipeline__steps-fade {
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 2px;
+    width: 40px;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .create-pipeline__steps-fade--left {
+    left: 0;
+    background: linear-gradient(
+      to right,
+      var(--panel, #fffdf8) 35%,
+      transparent
+    );
+  }
+
+  .create-pipeline__steps-fade--right {
+    right: 0;
+    background: linear-gradient(
+      to left,
+      var(--panel, #fffdf8) 35%,
+      transparent
+    );
+  }
+
+  .create-pipeline__steps-arrow {
+    display: inline-flex;
+    position: absolute;
+    top: 50%;
+    z-index: 3;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--card, #fff);
+    color: var(--ink);
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 0 rgba(45, 45, 42, 0.06);
+  }
+
+  .create-pipeline__steps-arrow--left {
+    left: 4px;
+  }
+
+  .create-pipeline__steps-arrow--right {
+    right: 4px;
   }
 
   .create-pipeline__body {

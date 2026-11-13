@@ -102,7 +102,7 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
               </div>
             </Field>
             <Field
-              label="Опыт (XP)"
+              label="Опыт"
               htmlFor="sheet-xp"
               hint="Начисление не поднимает уровень само — после порога жми «+1 уровень» / ссылку ниже."
             >
