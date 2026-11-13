@@ -161,6 +161,8 @@ export type CastChoice = {
    * (protection_from_energy / elemental_weapon), warm|cold (fire_shield), …
    */
   buffOption?: string | null
+  /** T-02 Э8: метамагия «Ускоренное заклинание» — каст как бонусное. */
+  quickened?: boolean
 }
 
 type CastSpellDialogProps = {
@@ -216,6 +218,8 @@ type CastSpellDialogProps = {
   elementalAffinity?: { damageType: string; amount: number } | null
   /** Feature / ki pools, for cards that do not spend a spell slot. */
   resources?: SheetResource[]
+  /** T-02: выбранные варианты метамагии чародея (id из sorcererMetamagic). */
+  metamagicIds?: string[]
   /**
    * Spell scroll: these numbers replace the character's attack and DC.
    * Item bonuses from the sheet are not added.
@@ -253,6 +257,7 @@ export function CastSpellDialog({
   voiceOfAuthority = false,
   elementalAffinity = null,
   resources,
+  metamagicIds = [],
   statLock = null,
   scrollItemId = null,
 }: CastSpellDialogProps) {
@@ -347,6 +352,7 @@ export function CastSpellDialog({
   const [useFeature, setUseFeature] = useState(false)
   const [powerSurge, setPowerSurge] = useState(false)
   const [useEmbodiment, setUseEmbodiment] = useState(false)
+  const [useQuickened, setUseQuickened] = useState(false)
   const [buffOption, setBuffOption] = useState<string>('str')
   const isTransformSelf = spell != null && isSpellSelfFormCast(spell)
   const catalogSlug = String(spell?.catalog_id ?? '')
@@ -447,6 +453,7 @@ export function CastSpellDialog({
   useEffect(() => {
     if (!open) return
     setConsumeMaterial(true)
+    setUseQuickened(false)
     setTargetSlots(Array.from({ length: targetCount }, () => ''))
   }, [open, spell?.id, targetCount])
 
@@ -742,6 +749,27 @@ export function CastSpellDialog({
   const offerEmbodiment = Boolean(
     embodimentRemaining > 0 && enchantment && !isCantrip && !notOneAction,
   )
+  const sorceryLeft = useMemo(() => {
+    const pool = (resources ?? []).find(
+      (row) =>
+        row.id.includes('sorcery_points') ||
+        /очки чародейства/i.test(row.name) ||
+        /sorcery points/i.test(row.name),
+    )
+    return pool ? Math.max(0, pool.max - pool.used) : 0
+  }, [resources])
+  const knowsQuickened = metamagicIds.includes('quickened')
+  const castingIsAction = !/бонус|реакц|мин|час|bonus|reaction|minute|hour/i.test(
+    spell.casting_time ?? '',
+  )
+  const quickenedCost = 2
+  const offerQuickened = Boolean(
+    knowsQuickened &&
+      castingIsAction &&
+      !useRitual &&
+      !useEmbodiment &&
+      sorceryLeft >= quickenedCost,
+  )
 
   const grantLabel = selectedGrant?.label ?? 'Грант'
   const activeRestLabel = isCantrip
@@ -810,6 +838,7 @@ export function CastSpellDialog({
           useMastery: !isCantrip && useMastery && masteryAvailable,
           powerSurge: powerSurgeOffer && powerSurge,
           embodimentOfLaw: offerEmbodiment && useEmbodiment && !useRitual && !useGrant,
+          quickened: offerQuickened && useQuickened && !useRitual && !useGrant,
           usePact:
             !isCantrip &&
             !useGrant &&
@@ -1325,9 +1354,31 @@ export function CastSpellDialog({
                   <input
                     type="checkbox"
                     checked={useEmbodiment}
-                    onChange={(event) => setUseEmbodiment(event.target.checked)}
+                    onChange={(event) => {
+                      setUseEmbodiment(event.target.checked)
+                      if (event.target.checked) setUseQuickened(false)
+                    }}
                   />{' '}
                   Воплощение закона: бонусное действие (−1 заряд, осталось {embodimentRemaining})
+                </label>
+              ) : null}
+              {knowsQuickened && castingIsAction && !useRitual ? (
+                <label className="field">
+                  <input
+                    type="checkbox"
+                    checked={useQuickened && offerQuickened}
+                    disabled={!offerQuickened && !useQuickened}
+                    onChange={(event) => {
+                      setUseQuickened(event.target.checked)
+                      if (event.target.checked) setUseEmbodiment(false)
+                    }}
+                  />{' '}
+                  Ускоренное заклинание: бонусное действие (−{quickenedCost} очк.
+                  чародейства
+                  {sorceryLeft < quickenedCost
+                    ? `, не хватает: ${sorceryLeft}`
+                    : `, осталось ${sorceryLeft}`}
+                  )
                 </label>
               ) : null}
             </div>

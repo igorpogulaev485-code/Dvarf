@@ -319,12 +319,16 @@ export function installSheetActions4(model: SheetModel) {
     const ritualCastEarly = Boolean(choice.ritual && spell.ritual && spell.level > 0)
     const teApi = model.turnEconomyApi as
       | {
-          canCast: (t: 'action' | 'bonus' | 'reaction' | null) => { ok: boolean; reason?: string }
+          canCast: (
+            t: 'action' | 'bonus' | 'reaction' | null,
+            level?: number,
+          ) => { ok: boolean; reason?: string }
           spendCast: (input: {
             timing: 'action' | 'bonus' | 'reaction' | null
             name: string
             level: number
             id?: string
+            quickened?: boolean
           }) => void
         }
       | undefined
@@ -336,13 +340,41 @@ export function installSheetActions4(model: SheetModel) {
       ? toMark(spell.casting_time)
       : 'action'
     if (choice.embodimentOfLaw) castTiming = 'bonus'
+    // Э8: «Ускоренное» переводит каст действием → бонусное
+    const quickened =
+      Boolean(choice.quickened) &&
+      (castTiming === 'action' || castTiming == null)
+    if (quickened) castTiming = 'bonus'
     if (ritualCastEarly) castTiming = null
     if (teApi) {
-      const gate = teApi.canCast(castTiming)
+      const gate = teApi.canCast(castTiming, spell.level)
       if (!gate.ok) {
         model.onToast(gate.reason ?? 'уже потрачено — сними отметку вручную')
         return false
       }
+    }
+    // Э8: списать очки чародейства за «Ускоренное» до проведения каста
+    if (quickened) {
+      const pool = model.draft.play.resources.find((row: { id: string; name: string }) =>
+        model.isSorceryPointsResource(row),
+      )
+      const left = pool ? Math.max(0, pool.max - pool.used) : 0
+      if (!pool || left < 2) {
+        model.onToast(
+          `Не хватает очков чародейства для «Ускоренного» (нужно 2, есть ${left})`,
+        )
+        return false
+      }
+      const poolId = pool.id
+      model.setDraft((prev) => ({
+        ...prev,
+        play: {
+          ...prev.play,
+          resources: prev.play.resources.map((row) =>
+            row.id === poolId ? { ...row, used: row.used + 2 } : row,
+          ),
+        },
+      }))
     }
     const successToast = (message: string) => {
       castSucceeded = true
@@ -351,6 +383,7 @@ export function installSheetActions4(model: SheetModel) {
         name: spell.name || 'Заклинание',
         level: spell.level,
         id: spell.id,
+        quickened,
       })
       model.onToast(message)
       const sourceId = String(model.baseCharacter.id)

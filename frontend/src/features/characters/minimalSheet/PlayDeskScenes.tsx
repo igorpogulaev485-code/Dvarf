@@ -204,6 +204,9 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             inventoryItems={model.draft.inventory.items}
             favoriteConsumableIds={model.draft.sheetUi.combatConsumableFavoriteIds}
             combatFeatures={model.playActiveFeatures}
+            hasCunningAction={(model.unlockedFeatures ?? []).some(
+              (f: { id?: string }) => f.id === 'cunning_action',
+            )}
             spells={model.draft.spells}
             onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
             divineSmiteIntent={divineSmiteIntent}

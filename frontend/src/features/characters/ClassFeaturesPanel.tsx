@@ -366,11 +366,14 @@ function FeatureResourceControls({
       : null
   const [diceToSpend, setDiceToSpend] = useState(1)
   const turnEco = useTurnEconomy()
+  const isActionSurge = feature.id === 'action_surge'
   const featureTiming = inferFeatureTiming(
     feature.summary_ru,
     moonCombatWildShape && feature.id === 'wild_shape' ? 'bonus' : null,
   )
   const gateFeatureSpend = (): boolean => {
+    // Э7: Всплеск сам отметку хода не тратит — только даёт доп. действие.
+    if (isActionSurge) return true
     if (!turnEco) return true
     const gate = turnEco.canFeature(featureTiming)
     if (!gate.ok) {
@@ -380,6 +383,10 @@ function FeatureResourceControls({
     return true
   }
   const markFeatureSpend = () => {
+    if (isActionSurge) {
+      turnEco?.grantActionSurge()
+      return
+    }
     turnEco?.spendFeature(featureTiming)
   }
   const resource = feature.resource
@@ -860,13 +867,15 @@ function FeatureResourceControls({
                     ? ` · ${summon.kind === 'ally' ? 'напарник' : 'спутник'}: ${summon.name_ru}`
                     : ''
                 onToast?.(
-                  perUseCap != null && spendAmount != null
-                    ? `Потрачено ${spendAmount}к6: лечение на сумму костей и ${spendAmount} временных хитов, существо в 120 фт.`
-                    : `${feature.name_ru}${via}${
-                        (scaleText ?? feature.scaleValue)
-                          ? ` · ${scaleText ?? feature.scaleValue}`
-                          : ''
-                      }${summoned}`,
+                  isActionSurge
+                    ? `${feature.name_ru}: +1 дополнительное действие`
+                    : perUseCap != null && spendAmount != null
+                      ? `Потрачено ${spendAmount}к6: лечение на сумму костей и ${spendAmount} временных хитов, существо в 120 фт.`
+                      : `${feature.name_ru}${via}${
+                          (scaleText ?? feature.scaleValue)
+                            ? ` · ${scaleText ?? feature.scaleValue}`
+                            : ''
+                        }${summoned}`,
                 )
                 onFeatureBuffApply?.({
                   featureId: feature.id,

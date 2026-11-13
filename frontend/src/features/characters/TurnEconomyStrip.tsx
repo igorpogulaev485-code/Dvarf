@@ -1,4 +1,5 @@
 import { TurnEconomyChips } from './TurnEconomyChips'
+import { TurnEconomyCombatActions } from './TurnEconomyCombatActions'
 import type { TurnEconomyMarkKey, TurnEconomyState } from '../../shared/dnd/turnEconomy'
 import { Button, Text } from '../../ui'
 
@@ -19,6 +20,8 @@ type Props = {
   diceOnTable: boolean
   diceLockedByMaster: boolean
   onDiceOnTableChange: (next: boolean) => void
+  hasCunningAction?: boolean
+  onOfferSkill?: (skillKey: 'investigation' | 'perception' | 'stealth') => void
 }
 
 /**
@@ -39,6 +42,8 @@ export function TurnEconomyStrip({
   diceOnTable,
   diceLockedByMaster,
   onDiceOnTableChange,
+  hasCunningAction = false,
+  onOfferSkill,
 }: Props) {
   // Вне боя: без полоски «Твой ход», только «Новый ход» + личные кубики.
   if (!combatActive) {
@@ -120,6 +125,12 @@ export function TurnEconomyStrip({
           ) : null}
         </label>
       </div>
+      {yourTurn ? (
+        <TurnEconomyCombatActions
+          hasCunningAction={hasCunningAction}
+          onOfferSkill={onOfferSkill}
+        />
+      ) : null}
     </div>
   )
 }
