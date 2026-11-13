@@ -140,6 +140,16 @@ type PlayDeskHeaderProps = {
   hadozeeDodgeReduction?: number | null
   /** Race slug for Hit Die traits (Verdan Black Blood). */
   raceSlug?: string | null
+  /** O-07: Парирование в pad хитов. */
+  hasParry?: boolean
+  parryReduction?: number | null
+  onParryUsed?: () => void
+  offerShieldReaction?: boolean
+  onCastShield?: () => void
+  offerAbsorbElements?: boolean
+  onCastAbsorbElements?: () => void
+  offerHellishRebuke?: boolean
+  onCastHellishRebuke?: () => void
   /** B20: pending setup items for the header indicator. */
   needsSetupItems?: NeedsSetupItem[]
   onNeedsSetupSelect?: (item: NeedsSetupItem) => void
@@ -167,6 +177,15 @@ export function PlayDeskHeader({
   stonesEnduranceReduction = null,
   hadozeeDodgeReduction = null,
   raceSlug = null,
+  hasParry = false,
+  parryReduction = null,
+  onParryUsed,
+  offerShieldReaction = false,
+  onCastShield,
+  offerAbsorbElements = false,
+  onCastAbsorbElements,
+  offerHellishRebuke = false,
+  onCastHellishRebuke,
   draconicResilience = false,
   play,
   autoAc,
@@ -841,6 +860,15 @@ export function PlayDeskHeader({
         stonesEnduranceReduction={stonesEnduranceReduction}
         hadozeeDodgeReduction={hadozeeDodgeReduction}
         raceSlug={raceSlug}
+        hasParry={hasParry}
+        parryReduction={parryReduction}
+        onParryUsed={onParryUsed}
+        offerShieldReaction={offerShieldReaction}
+        onCastShield={onCastShield}
+        offerAbsorbElements={offerAbsorbElements}
+        onCastAbsorbElements={onCastAbsorbElements}
+        offerHellishRebuke={offerHellishRebuke}
+        onCastHellishRebuke={onCastHellishRebuke}
       />
 
       <CoinPadDialog

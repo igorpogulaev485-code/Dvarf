@@ -22,6 +22,19 @@ import {
   TWO_WEAPON_BONUS_HINT,
   canProtectionReaction,
 } from '../../shared/dnd/o06StylesBreathInvocations'
+import {
+  MAGE_SLAYER_ATTACK_HINT,
+  OPPORTUNITY_ATTACK_HINT,
+  PARRY_HINT,
+  POLEARM_BONUS_HINT,
+  RIPOSTE_HINT,
+  SENTINEL_ATTACK_HINT,
+  canMageSlayerAttack,
+  canParryReaction,
+  canPolearmBonusAttack,
+  canRiposteReaction,
+  canSentinelAttack,
+} from '../../shared/dnd/o07Reactions'
 
 export type O03MasterRuleFlags = {
   disarm?: boolean
@@ -85,6 +98,35 @@ type Props = {
     disabledReason?: string
     onClick: () => void
   }>
+  /** O-07: реакции и древковое. */
+  o07?: {
+    hasSentinel?: boolean
+    hasPolearmMaster?: boolean
+    hasMageSlayer?: boolean
+    hasWarCaster?: boolean
+    holdingPolearmOa?: boolean
+    holdingPolearmBonus?: boolean
+    knowsParry?: boolean
+    knowsRiposte?: boolean
+    hasSuperiorityDie?: boolean
+    reactionSpells?: Array<{
+      id: string
+      name: string
+      kind: string
+      hint: string
+      disabled?: boolean
+      disabledReason?: string
+    }>
+  }
+  onO07OpportunityAttack?: () => void
+  onO07SentinelAttack?: () => void
+  onO07MageSlayerAttack?: () => void
+  onO07Riposte?: () => void
+  onO07ParryHint?: () => void
+  onO07PolearmBonus?: () => void
+  onO07CastReactionSpell?: (spellId: string) => void
+  onO07CastReactionGeneric?: () => void
+  onO07Counterspell?: () => void
   /** O-01: открыть диалог Захват/Толчок. */
   onGrappleShove?: () => void
   /** O-05: боевые черты. */
@@ -156,6 +198,16 @@ export function TurnEconomyCombatActions({
   hasDevilsSight = false,
   o06Breath = null,
   o06FtdExtra = [],
+  o07,
+  onO07OpportunityAttack,
+  onO07SentinelAttack,
+  onO07MageSlayerAttack,
+  onO07Riposte,
+  onO07ParryHint,
+  onO07PolearmBonus,
+  onO07CastReactionSpell,
+  onO07CastReactionGeneric,
+  onO07Counterspell,
   onGrappleShove,
   o05,
   onO05GwmBonus,
@@ -679,6 +731,172 @@ export function TurnEconomyCombatActions({
         >
           Перехват
         </button>
+      ) : null}
+
+      {/* O-07: Реакции (отдельная группа, не смешивать с Поиск/Засада) */}
+      {o07 || onO07OpportunityAttack ? (
+        <div className="chip-row" role="group" aria-label="Реакции">
+          <span className="sheet-chip is-stub" title="Реакции (1/раунд)">
+            Реакции
+          </span>
+          {onO07OpportunityAttack ? (
+            <button
+              type="button"
+              className="sheet-chip"
+              disabled={!reactionGate.ok}
+              title={reactionGate.ok ? OPPORTUNITY_ATTACK_HINT : reactionGate.reason}
+              onClick={() => onO07OpportunityAttack()}
+            >
+              Атака по возможности
+            </button>
+          ) : null}
+          {o07?.hasSentinel && onO07SentinelAttack
+            ? (() => {
+                const gate = canSentinelAttack(turnEco.turnEconomy, true)
+                return (
+                  <button
+                    type="button"
+                    className="sheet-chip"
+                    disabled={!gate.ok}
+                    title={gate.ok ? SENTINEL_ATTACK_HINT : gate.reason}
+                    onClick={() => onO07SentinelAttack()}
+                  >
+                    Страж: атака
+                  </button>
+                )
+              })()
+            : null}
+          {o07?.hasMageSlayer && onO07MageSlayerAttack
+            ? (() => {
+                const gate = canMageSlayerAttack(turnEco.turnEconomy, true)
+                return (
+                  <button
+                    type="button"
+                    className="sheet-chip"
+                    disabled={!gate.ok}
+                    title={gate.ok ? MAGE_SLAYER_ATTACK_HINT : gate.reason}
+                    onClick={() => onO07MageSlayerAttack()}
+                  >
+                    Убийца магов
+                  </button>
+                )
+              })()
+            : null}
+          {o07?.knowsRiposte && onO07Riposte
+            ? (() => {
+                const gate = canRiposteReaction(turnEco.turnEconomy, {
+                  knowsRiposte: true,
+                  hasSuperiorityDie: Boolean(o07.hasSuperiorityDie),
+                })
+                return (
+                  <button
+                    type="button"
+                    className="sheet-chip"
+                    disabled={!gate.ok}
+                    title={gate.ok ? RIPOSTE_HINT : gate.reason}
+                    onClick={() => onO07Riposte()}
+                  >
+                    Ответный удар
+                  </button>
+                )
+              })()
+            : null}
+          {o07?.knowsParry && onO07ParryHint
+            ? (() => {
+                const gate = canParryReaction(turnEco.turnEconomy, {
+                  knowsParry: true,
+                  hasSuperiorityDie: Boolean(o07.hasSuperiorityDie),
+                })
+                return (
+                  <button
+                    type="button"
+                    className="sheet-chip"
+                    disabled={!gate.ok}
+                    title={gate.ok ? `${PARRY_HINT} · предложит pad хитов при уроне` : gate.reason}
+                    onClick={() => onO07ParryHint()}
+                  >
+                    Парирование
+                  </button>
+                )
+              })()
+            : null}
+          {o07?.hasPolearmMaster && onO07PolearmBonus
+            ? (() => {
+                const gate = canPolearmBonusAttack(turnEco.turnEconomy, {
+                  hasPolearmMaster: true,
+                  holdingPolearm: Boolean(o07.holdingPolearmBonus),
+                })
+                return (
+                  <button
+                    type="button"
+                    className="sheet-chip"
+                    disabled={!gate.ok}
+                    title={gate.ok ? POLEARM_BONUS_HINT : gate.reason}
+                    onClick={() => onO07PolearmBonus()}
+                  >
+                    Конец древка (к4)
+                  </button>
+                )
+              })()
+            : null}
+          {(o07?.reactionSpells ?? []).map((row) => {
+            if (row.kind === 'counterspell' && onO07Counterspell) {
+              return (
+                <button
+                  key={row.id}
+                  type="button"
+                  className="sheet-chip"
+                  disabled={Boolean(row.disabled) || !reactionGate.ok}
+                  title={
+                    row.disabled
+                      ? row.disabledReason || row.hint
+                      : reactionGate.ok
+                        ? `${row.name}: ${row.hint}`
+                        : reactionGate.reason
+                  }
+                  onClick={() => onO07Counterspell()}
+                >
+                  {row.name}
+                </button>
+              )
+            }
+            return (
+              <button
+                key={row.id}
+                type="button"
+                className="sheet-chip"
+                disabled={Boolean(row.disabled) || !reactionGate.ok}
+                title={
+                  row.disabled
+                    ? row.disabledReason || row.hint
+                    : reactionGate.ok
+                      ? `${row.name}: ${row.hint}`
+                      : reactionGate.reason
+                }
+                onClick={() => onO07CastReactionSpell?.(row.id)}
+              >
+                {row.name}
+              </button>
+            )
+          })}
+          {onO07CastReactionGeneric &&
+          (o07?.reactionSpells?.some((r) => r.kind === 'other') ||
+            (o07?.reactionSpells?.length ?? 0) > 0) ? (
+            <button
+              type="button"
+              className="sheet-chip"
+              disabled={!reactionGate.ok}
+              title={
+                reactionGate.ok
+                  ? 'Открыть каст заклинания со временем «реакция»'
+                  : reactionGate.reason
+              }
+              onClick={() => onO07CastReactionGeneric()}
+            >
+              Кастануть реакцией
+            </button>
+          ) : null}
+        </div>
       ) : null}
 
       {hasChainMaster ? (

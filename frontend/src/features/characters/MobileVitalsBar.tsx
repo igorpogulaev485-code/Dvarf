@@ -50,6 +50,16 @@ type MobileVitalsBarProps = {
   hadozeeDodgeReduction?: number | null
   /** Race slug for Hit Die traits (Verdan Black Blood). */
   raceSlug?: string | null
+  /** O-07 */
+  hasParry?: boolean
+  parryReduction?: number | null
+  onParryUsed?: () => void
+  offerShieldReaction?: boolean
+  onCastShield?: () => void
+  offerAbsorbElements?: boolean
+  onCastAbsorbElements?: () => void
+  offerHellishRebuke?: boolean
+  onCastHellishRebuke?: () => void
   draconicResilience?: boolean
   play: PlayState
   autoAc: number
@@ -122,6 +132,15 @@ export function MobileVitalsBar({
   stonesEnduranceReduction = null,
   hadozeeDodgeReduction = null,
   raceSlug = null,
+  hasParry = false,
+  parryReduction = null,
+  onParryUsed,
+  offerShieldReaction = false,
+  onCastShield,
+  offerAbsorbElements = false,
+  onCastAbsorbElements,
+  offerHellishRebuke = false,
+  onCastHellishRebuke,
   hasShieldMasterEvasion = false,
   draconicResilience = false,
   play,
@@ -636,6 +655,15 @@ export function MobileVitalsBar({
           hadozeeDodgeReduction={hadozeeDodgeReduction}
           hasShieldMasterEvasion={hasShieldMasterEvasion}
           raceSlug={raceSlug}
+          hasParry={hasParry}
+          parryReduction={parryReduction}
+          onParryUsed={onParryUsed}
+          offerShieldReaction={offerShieldReaction}
+          onCastShield={onCastShield}
+          offerAbsorbElements={offerAbsorbElements}
+          onCastAbsorbElements={onCastAbsorbElements}
+          offerHellishRebuke={offerHellishRebuke}
+          onCastHellishRebuke={onCastHellishRebuke}
         />
         <CoinPadDialog
           open={coinPadOpen}

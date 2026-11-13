@@ -212,4 +212,13 @@ const rawAim = serializeTurnEconomy(applySteadyAim(emptyTurnEconomy()))
 assert(rawAim.steady_aim === true && rawAim.moved === false, 'serialize steady_aim')
 assert(readTurnEconomy(rawAim).steadyAim === true, 'read steadyAim')
 
+// O-07: Отход → disengagedThisTurn (Страж / O-08)
+s = emptyTurnEconomy()
+s = applyCunningBonus(s, 'disengage')
+assert(s.disengagedThisTurn && s.bonus, 'cunning disengage flag')
+assert(
+  readTurnEconomy(serializeTurnEconomy(s)).disengagedThisTurn,
+  'disengage round-trip',
+)
+
 console.log('turnEconomy.selfcheck: ok')
