@@ -1,5 +1,6 @@
 import type { CombatEntry, SessionCombat } from '../../shared/api/lobbies'
 import { Button, Text } from '../../ui'
+import { sideLabel } from './combatSides'
 
 type Props = {
   combat: SessionCombat
@@ -14,6 +15,8 @@ type Props = {
   onRollInitiative?: (entry: CombatEntry) => void
   onReleaseWave?: (waveId: string) => void
   onRestoreFallen?: (fallenId: string) => void
+  /** S-05: смена стороны с чипа очереди */
+  onSideClick?: (entry: CombatEntry) => void
 }
 
 function kindLabel(kind: string): string {
@@ -48,6 +51,7 @@ export function CombatTrack({
   onRollInitiative,
   onReleaseWave,
   onRestoreFallen,
+  onSideClick,
 }: Props) {
   if (!combat.active) return null
   const active: CombatEntry | undefined = combat.entries[combat.active_index]
@@ -155,6 +159,12 @@ export function CombatTrack({
                     {entry.initiative_pending ? '?' : entry.initiative ?? '—'}
                   </span>
                   <span className="session-combat-order__name">{entry.name}</span>
+                  {entry.side ? (
+                    <span className="session-combat-order__side">
+                      {sideLabel(entry.side, combat.sides)}
+                      {entry.side_hidden ? ' · скрыта' : ''}
+                    </span>
+                  ) : null}
                   <MemberDots tones={entry.member_tones} />
                 </button>
                 {(canRollOwn || canRollMaster) && onRollInitiative ? (
@@ -166,6 +176,17 @@ export function CombatTrack({
                     onClick={() => onRollInitiative(entry)}
                   >
                     Бросить инициативу
+                  </Button>
+                ) : null}
+                {masterControls && onSideClick ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="session-combat-order__roll"
+                    disabled={busy}
+                    onClick={() => onSideClick(entry)}
+                  >
+                    Сторона
                   </Button>
                 ) : null}
               </li>

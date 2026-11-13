@@ -34,12 +34,21 @@ const targets = targetsFromSession({
       ],
     },
   ],
+  combat: {
+    entries: [
+      { kind: 'pc', ref_id: 'pc1', side: 'party' },
+      { kind: 'companion', ref_id: 'pc1', companion_id: 'c1', side: 'party' },
+      { kind: 'enemy', ref_id: 'e1', side: 'enemies' },
+    ],
+  },
 })
 
 assert(targets.some((t) => t.kind === 'pc' && t.name === 'Торин'), 'pc target')
 assert(targets.some((t) => t.kind === 'companion'), 'companion target')
 assert(targets.some((t) => t.kind === 'enemy' && t.name === 'Огр'), 'living enemy')
 assert(!targets.some((t) => t.name === 'Огр 2'), 'dead enemy excluded')
+assert(targets.find((t) => t.name === 'Торин')?.is_ally === true, 'pc ally')
+assert(targets.find((t) => t.name === 'Огр')?.is_ally === false, 'enemy not ally')
 assert(blockFromKitKind('бонус') === 'bonus_actions', 'kit kind map')
 assert(blockFromKitKind('действие') === 'actions', 'action kit')
 

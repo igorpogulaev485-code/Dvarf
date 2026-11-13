@@ -573,3 +573,45 @@
   }
 }
 
+/* S-05: сторона на карточке / в очереди */
+.session-side-btn {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 10px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.session-side-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.session-side-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.session-side-chip {
+  font-size: 0.78rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.session-enemy-card__top-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.session-combat-order__side {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-left: 4px;
+}
+

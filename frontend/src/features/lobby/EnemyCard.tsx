@@ -38,6 +38,10 @@ type Props = {
   onRevealStatblock?: () => void
   onShareStudy?: () => void
   studyCharacterName?: string | null
+  /** S-05 */
+  sideLabelText?: string | null
+  sideHidden?: boolean
+  onSideClick?: () => void
 }
 
 type KitItem = CombatantAction & { kind: string }
@@ -123,6 +127,9 @@ export function EnemyCard({
   onResolveStudy,
   onRevealStatblock,
   onShareStudy,
+  sideLabelText = null,
+  sideHidden = false,
+  onSideClick,
 }: Props) {
   const [abilitiesOpen, setAbilitiesOpen] = useState(forceAbilitiesOpen)
   const [rosterOpen, setRosterOpen] = useState(false)
@@ -254,17 +261,34 @@ export function EnemyCard({
             </Text>
           ) : null}
         </div>
-        {masterControls && onRemove ? (
-          <button
-            type="button"
-            className="session-enemy-card__remove"
-            disabled={busy}
-            title="Убрать со стола"
-            onClick={onRemove}
-          >
-            ×
-          </button>
-        ) : null}
+        <div className="session-enemy-card__top-actions">
+          {masterControls && onSideClick ? (
+            <button
+              type="button"
+              className="session-side-btn"
+              disabled={busy}
+              title="Сторона в бою"
+              onClick={onSideClick}
+            >
+              Сторона
+              {sideLabelText ? ` · ${sideLabelText}` : ''}
+              {sideHidden ? ' · скрыта' : ''}
+            </button>
+          ) : sideLabelText ? (
+            <span className="session-side-chip">{sideLabelText}</span>
+          ) : null}
+          {masterControls && onRemove ? (
+            <button
+              type="button"
+              className="session-enemy-card__remove"
+              disabled={busy}
+              title="Убрать со стола"
+              onClick={onRemove}
+            >
+              ×
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {showHpColor || showAc || showSpeed || (isMaster && isDead) ? (

@@ -1,4 +1,13 @@
-/** S-04: общие цели боя для атаки врага и контракта T-01/T-02. */
+/** S-04/S-05: общие цели боя для атаки врага и контракта T-01/T-02. */
+
+import {
+  SIDE_ENEMIES,
+  SIDE_PARTY,
+  defaultSideForKind,
+  findEntrySide,
+  foesOf,
+  isAllySide,
+} from './combatSides'
 
 export type CombatTargetKind = 'pc' | 'companion' | 'enemy'
 
@@ -11,7 +20,7 @@ export type CombatTarget = {
   hp_max?: number | null
   ac?: number | null
   conditions?: unknown[]
-  /** Крючок S-05: party | enemies | … */
+  /** S-05: party | enemies | … */
   side: string
   is_ally: boolean
   user_id?: string | null
@@ -26,41 +35,58 @@ export type CombatTargetsPayload = {
   targets: CombatTarget[]
 }
 
+export { alliesOf, foesOf, isAllySide, SIDE_PARTY, SIDE_ENEMIES } from './combatSides'
+
 /** Локальная сборка целей из SessionDetail (пока API не ответил / офлайн). */
-export function targetsFromSession(detail: {
-  seats?: Array<{
-    character_id: string
-    character_name: string
-    hp_current?: number | null
-    hp_max?: number | null
-    ac?: number | null
-    conditions?: unknown[]
-    companions?: Array<{
-      id: string
-      name: string
+export function targetsFromSession(
+  detail: {
+    seats?: Array<{
+      character_id: string
+      character_name: string
       hp_current?: number | null
       hp_max?: number | null
       ac?: number | null
       conditions?: unknown[]
-    }> | null
-  }>
-  combatants?: Array<{
-    id: string
-    name: string
-    ac?: number | null
-    conditions?: unknown[]
-    members?: Array<{
+      companions?: Array<{
+        id: string
+        name: string
+        hp_current?: number | null
+        hp_max?: number | null
+        ac?: number | null
+        conditions?: unknown[]
+      }> | null
+    }>
+    combatants?: Array<{
       id: string
       name: string
-      hp_current: number
-      hp_max: number
+      ac?: number | null
+      conditions?: unknown[]
+      side?: string | null
+      members?: Array<{
+        id: string
+        name: string
+        hp_current: number
+        hp_max: number
+      }> | null
+      hp_current?: number | null
+      hp_max?: number | null
     }> | null
-    hp_current?: number | null
-    hp_max?: number | null
-  }> | null
-}): CombatTarget[] {
+    combat?: {
+      entries?: Array<{
+        kind: string
+        ref_id: string
+        companion_id?: string | null
+        side?: string | null
+      }>
+    } | null
+  },
+  opts?: { actorSide?: string | null },
+): CombatTarget[] {
+  const actorSide = opts?.actorSide ?? SIDE_PARTY
+  const combat = detail.combat
   const out: CombatTarget[] = []
   for (const seat of detail.seats ?? []) {
+    const side = findEntrySide(combat, 'pc', seat.character_id)
     out.push({
       id: seat.character_id,
       kind: 'pc',
@@ -70,10 +96,11 @@ export function targetsFromSession(detail: {
       hp_max: seat.hp_max,
       ac: seat.ac,
       conditions: seat.conditions ?? [],
-      side: 'party',
-      is_ally: true,
+      side,
+      is_ally: isAllySide(actorSide, side),
     })
     for (const c of seat.companions ?? []) {
+      const cSide = findEntrySide(combat, 'companion', seat.character_id, c.id)
       out.push({
         id: `${seat.character_id}:${c.id}`,
         kind: 'companion',
@@ -84,12 +111,16 @@ export function targetsFromSession(detail: {
         hp_max: c.hp_max,
         ac: c.ac,
         conditions: c.conditions ?? [],
-        side: 'party',
-        is_ally: true,
+        side: cSide,
+        is_ally: isAllySide(actorSide, cSide),
       })
     }
   }
   for (const enemy of detail.combatants ?? []) {
+    const eSide =
+      findEntrySide(combat, 'enemy', enemy.id) ||
+      enemy.side ||
+      defaultSideForKind('enemy')
     const members = enemy.members?.length
       ? enemy.members.filter((m) => m.hp_current > 0)
       : null
@@ -105,8 +136,8 @@ export function targetsFromSession(detail: {
           hp_max: m.hp_max,
           ac: enemy.ac,
           conditions: enemy.conditions ?? [],
-          side: 'enemies',
-          is_ally: false,
+          side: eSide,
+          is_ally: isAllySide(actorSide, eSide),
         })
       }
     } else {
@@ -119,10 +150,18 @@ export function targetsFromSession(detail: {
         hp_max: enemy.hp_max,
         ac: enemy.ac,
         conditions: enemy.conditions ?? [],
-        side: 'enemies',
-        is_ally: false,
+        side: eSide,
+        is_ally: isAllySide(actorSide, eSide),
       })
     }
   }
   return out
+}
+
+/** Цели по умолчанию для атаки врага: не своей стороны (обычно не партия). */
+export function defaultHostileTargets(
+  targets: CombatTarget[],
+  attackerSide: string = SIDE_ENEMIES,
+): CombatTarget[] {
+  return foesOf(targets, attackerSide)
 }
