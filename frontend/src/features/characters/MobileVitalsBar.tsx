@@ -417,6 +417,8 @@ export function MobileVitalsBar({
             items={needsSetupItems}
             onSelect={onNeedsSetupSelect}
             compact
+            iconOnly
+            asSheet
           />
         ) : null}
         <button
@@ -432,24 +434,27 @@ export function MobileVitalsBar({
                 ? `При смерти · успехи ${play.deathSuccesses} · провалы ${play.deathFails}`
                 : undefined
           }
+          aria-label={
+            isDying
+              ? `Хиты ${hpLabel}. При смерти: успехи ${play.deathSuccesses}, провалы ${play.deathFails}`
+              : `Хиты ${hpLabel}`
+          }
         >
           {isDying ? (
             <span className="mobile-vitals__collapse-death">
               <IconSkull className="mobile-vitals__collapse-skull" />
-              {hpLabel}
+              <span className="mobile-vitals__collapse-hp-num">{hpLabel}</span>
+              <span
+                className="mobile-vitals__collapse-marks"
+                title={`Успехи ${play.deathSuccesses} · провалы ${play.deathFails}`}
+              >
+                {play.deathSuccesses}&nbsp;/&nbsp;{play.deathFails}
+              </span>
             </span>
           ) : (
             hpLabel
           )}
           {showValueTips ? <HoverTipCard tip={VITAL_TIPS.hp} /> : null}
-        </button>
-        <button
-          type="button"
-          className="mobile-vitals__collapse-abil"
-          data-onboarding="abilities"
-          onClick={onOpenAbilities}
-        >
-          СИЛ
         </button>
         <button
           type="button"
@@ -466,6 +471,19 @@ export function MobileVitalsBar({
 
   return (
     <section className="mobile-vitals" aria-label="Боевой статус">
+      {/* M-01 / M05 (Q4): name on its own full-width row */}
+      <button
+        type="button"
+        className="mobile-vitals__name-row"
+        title="Открыть основное"
+        aria-label={`Основное: ${name || 'Без имени'}`}
+        onClick={onOpenIdentity}
+      >
+        <span className="mobile-vitals__identity-hint">Основное</span>
+        <span className="mobile-vitals__name" title={name || undefined}>
+          {name || 'Без имени'}
+        </span>
+      </button>
       <div className="mobile-vitals__who">
         <CharacterAvatarControl
           character={character}
@@ -474,27 +492,18 @@ export function MobileVitalsBar({
           onOpen={onOpenIdentity}
           onChanged={onAvatarChanged}
         />
-        <button
-          type="button"
-          className="mobile-vitals__who-text"
-          title="Открыть основное"
-          aria-label={`Основное: ${name || 'Без имени'}`}
-          onClick={onOpenIdentity}
-        >
-          <span className="mobile-vitals__identity-hint">Основное</span>
-          <span className="mobile-vitals__name" title={name || undefined}>
-            {name || 'Без имени'}
-          </span>
+        <div className="mobile-vitals__who-text">
           <span className="mobile-vitals__meta">
             {whoMeta}
             {level ? ` · ур. ${level}` : ''}
           </span>
-        </button>
+        </div>
         {onNeedsSetupSelect ? (
           <NeedsSetupIndicator
             items={needsSetupItems}
             onSelect={onNeedsSetupSelect}
             compact
+            asSheet
           />
         ) : null}
         <button

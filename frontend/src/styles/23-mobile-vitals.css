@@ -26,6 +26,24 @@
   flex-shrink: 0;
 }
 
+/* M-01 / M05 (Q4): name alone on a full-width row */
+.mobile-vitals__name-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
 .mobile-vitals__who-text {
   flex: 1;
   min-width: 0;
@@ -37,7 +55,6 @@
   background: transparent;
   padding: 0;
   text-align: left;
-  cursor: pointer;
   font: inherit;
   color: inherit;
 }
@@ -47,13 +64,10 @@
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--accent);
-  line-height: 1.15;
-  /* B14: long names wrap up to two lines */
+  line-height: 1.2;
   white-space: normal;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  overflow: visible;
+  display: block;
   word-break: break-word;
   max-width: 100%;
 }
@@ -75,15 +89,17 @@
   font-size: 0.75rem;
   color: var(--muted);
   font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow: visible;
+  word-break: break-word;
+  line-height: 1.25;
   max-width: 100%;
 }
 
 .mobile-vitals__insp {
   flex-shrink: 0;
-  min-height: 36px;
+  min-height: 44px;
+  min-width: 44px;
   padding: 0 10px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -405,12 +421,18 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  flex-wrap: nowrap;
+}
+
+.mobile-vitals__collapse-hp-num {
+  font-variant-numeric: tabular-nums;
 }
 
 .mobile-vitals__collapse-skull {
   width: 0.85rem;
   height: 0.85rem;
   color: var(--danger, #9f2d2d);
+  flex-shrink: 0;
 }
 
 .mobile-vitals__tool {
@@ -483,12 +505,12 @@
 .mobile-vitals--collapsed {
   flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   padding: 8px 10px;
 }
 
 .mobile-vitals__collapse-who {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   border: 0;
   background: transparent;
@@ -501,7 +523,7 @@
 .mobile-vitals__collapse-who strong {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   font-family: var(--font-display, "Source Serif 4", Georgia, serif);
   font-size: 0.95rem;
   color: var(--accent);
@@ -513,8 +535,8 @@
 
 .mobile-vitals__collapse-hp {
   flex-shrink: 0;
-  min-height: 36px;
-  padding: 0 10px;
+  min-height: 44px;
+  padding: 0 8px;
   border: 1.5px solid var(--accent);
   border-radius: 10px;
   background: var(--card);
@@ -530,9 +552,18 @@
   color: var(--danger);
 }
 
+.mobile-vitals__collapse-marks {
+  margin-left: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--danger, #9f2d2d);
+  white-space: nowrap;
+}
+
 .mobile-vitals__collapse-abil {
   flex-shrink: 0;
-  min-height: 36px;
+  min-height: 44px;
   padding: 0 10px;
   border: 0;
   border-radius: 999px;
@@ -546,8 +577,9 @@
 
 .mobile-vitals__expand {
   flex-shrink: 0;
-  width: 36px;
-  min-height: 36px;
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--card);
