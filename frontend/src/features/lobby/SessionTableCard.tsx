@@ -18,6 +18,12 @@ import {
   normalizeVisibilityProfile,
   type VisibilityProfile,
 } from './visibilityProfile'
+import { TurnEconomyChips } from '../characters/TurnEconomyChips'
+import {
+  emptyTurnEconomy,
+  type TurnEconomyMarkKey,
+  type TurnEconomyState,
+} from '../../shared/dnd/turnEconomy'
 
 type Props = {
   seat: SessionSeat
@@ -44,8 +50,10 @@ type Props = {
   onDeathSavesChange?: (successes: number, fails: number) => void
   /** S-02: подсветка «Твой ход» */
   yourTurn?: boolean
-  /** Заглушка экономики хода до T-01 */
+  /** T-01: живые отметки хода (вместо заглушки) */
   showTurnEconomyStub?: boolean
+  turnEconomy?: TurnEconomyState | null
+  onToggleTurnMark?: (mark: TurnEconomyMarkKey) => void
   /** S-05: подпись стороны (ведущему — истина) */
   sideLabelText?: string | null
   sideHidden?: boolean
@@ -212,6 +220,8 @@ export function SessionTableCard({
   onDeathSavesChange,
   yourTurn = false,
   showTurnEconomyStub = false,
+  turnEconomy = null,
+  onToggleTurnMark,
   sideLabelText = null,
   sideHidden = false,
   onSideClick,
@@ -286,11 +296,14 @@ export function SessionTableCard({
           </p>
         ) : null}
         {yourTurn && showTurnEconomyStub ? (
-          <div className="session-table-card__turn-stub" aria-label="Экономика хода (крючок T-01)">
-            <span className="session-turn-chip">Действие</span>
-            <span className="session-turn-chip">Бонусное</span>
-            <span className="session-turn-chip">Реакция</span>
-            <span className="session-turn-chip">Движение</span>
+          <div className="session-table-card__turn-stub" aria-label="Экономика хода">
+            <TurnEconomyChips
+              state={turnEconomy ?? emptyTurnEconomy()}
+              onToggle={(mark) => onToggleTurnMark?.(mark)}
+              showMovementStub
+              className="session-table-card__turn-chips"
+              chipClassName="session-turn-chip"
+            />
           </div>
         ) : null}
         <div

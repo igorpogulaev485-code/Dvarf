@@ -1349,6 +1349,25 @@ export function tickAllEffectsOneRound(effects: ActiveEffect[]): ActiveEffect[] 
   return out
 }
 
+/**
+ * T-01: в начале своего хода снять эффекты «до начала своего следующего хода»
+ * (например «Щит»). Не трогает реестр mods и тик раундов стола (S-03).
+ */
+export function expireEffectsUntilSourceNextTurnEnd(
+  effects: ActiveEffect[] | null | undefined,
+): { kept: ActiveEffect[]; removed: ActiveEffect[] } {
+  const kept: ActiveEffect[] = []
+  const removed: ActiveEffect[] = []
+  for (const row of effects ?? []) {
+    if (row.duration?.unit === 'until_source_next_turn_end') {
+      removed.push(row)
+    } else {
+      kept.push(row)
+    }
+  }
+  return { kept, removed }
+}
+
 export function formatEffectRemaining(effect: ActiveEffect): string {
   const d = effect.duration
   if (!d) return ''

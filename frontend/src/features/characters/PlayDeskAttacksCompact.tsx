@@ -1,4 +1,9 @@
 import { useMemo, useRef, useState } from 'react'
+import { useTurnEconomy } from './TurnEconomyContext'
+import { TurnEconomyChips } from './TurnEconomyChips'
+import { CombatTargetPicker } from './CombatTargetPicker'
+import { EnterOwnNumberDialog } from './EnterOwnNumberDialog'
+import type { CombatTarget } from '../lobby/combatTargets'
 import { resourceShownCurrent, type SheetResource } from '../../shared/dnd/rest'
 import { isHarnessDivinePowerResourceId } from '../../shared/dnd/harnessDivinePower'
 import {
@@ -233,6 +238,40 @@ export function PlayDeskAttacksCompact({
   raceSlug = null,
   onHalflingLuckyNeeded,
 }: PlayDeskAttacksCompactProps) {
+  const turnEco = useTurnEconomy()
+  const [pendingAttack, setPendingAttack] = useState<{
+    name: string
+    attackBonus: number
+    strikeText?: string
+    hitTotal?: number
+    formula?: string
+    breakdown?: string
+    tableMode?: boolean
+    crit?: boolean
+  } | null>(null)
+  const finishAttackRef = useRef<
+    | ((opts?: {
+        target?: CombatTarget | null
+        physicalDice?: boolean
+        tableHit?: boolean
+        tableMiss?: boolean
+        manualTotal?: number
+        strikeText?: string
+        hitTotal?: number
+        formula?: string
+        breakdown?: string
+        crit?: boolean
+      }) => void)
+    | null
+  >(null)
+  const [enterNumberOpen, setEnterNumberOpen] = useState(false)
+  const [enterNumberCtx, setEnterNumberCtx] = useState<{
+    title: string
+    attackBonus: number
+    attackName: string
+  } | null>(null)
+  const isMobile =
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 959px)').matches
   const divineStrike = useMemo(() => divineStrikeRider(combatFeatures), [combatFeatures])
   const improvedSmite = useMemo(
     () => improvedDivineSmiteRider(combatFeatures),
@@ -381,10 +420,29 @@ export function PlayDeskAttacksCompact({
   }
 
   return (
+    <>
     <div className="play-desk-compact">
       <div className="play-desk-compact__head">
         <h3>Атаки</h3>
         <div className="play-desk-compact__head-actions">
+          {turnEco ? (
+            <label
+              className="play-desk-compact__dice-toggle"
+              title={
+                turnEco.diceLockedByMaster
+                  ? 'Включено мастером на столе'
+                  : 'Бросок живыми кубиками: Попал/Промах или своё число'
+              }
+            >
+              <input
+                type="checkbox"
+                checked={turnEco.diceOnTable}
+                disabled={turnEco.diceLockedByMaster}
+                onChange={(e) => turnEco.setPersonalDiceOnTable(e.target.checked)}
+              />
+              Кубики на столе
+            </label>
+          ) : null}
           <button
             type="button"
             className="play-desk-compact__link play-desk-compact__link--settings"
@@ -395,6 +453,14 @@ export function PlayDeskAttacksCompact({
           </button>
         </div>
       </div>
+
+      {turnEco ? (
+        <TurnEconomyChips
+          state={turnEco.turnEconomy}
+          onToggle={turnEco.toggleMark}
+          className="chip-row"
+        />
+      ) : null}
 
       {deskCombatFeatures.length > 0 ? (
         <div className="chip-row" style={{ marginBottom: 8 }}>
@@ -632,12 +698,91 @@ export function PlayDeskAttacksCompact({
                   type="button"
                   className="play-desk-compact__hit"
                   aria-label={`${attack.name}, атака ${formatModifier(attackBonus)}, урон ${dmgLine}`}
-                  title="Бросок атаки и урона"
+                  disabled={Boolean(turnEco && !turnEco.canAttack().ok)}
+                  title={(() => {
+                    const gate = turnEco?.canAttack()
+                    if (gate && !gate.ok) return gate.reason
+                    return 'Бросок атаки и урона'
+                  })()}
                   onClick={() => {
+                    if (turnEco) {
+                      const gate = turnEco.canAttack()
+                      if (!gate.ok) {
+                        onToast?.(gate.reason)
+                        return
+                      }
+                    }
                     const activeRiders = (damageRiders ?? []).filter((row) => {
                       if (row.meleeOnly && !meleeAttack) return false
                       return riderEnabled(row)
                     })
+                    const finishAttack = (opts?: {
+                      target?: CombatTarget | null
+                      physicalDice?: boolean
+                      tableHit?: boolean
+                      tableMiss?: boolean
+                      manualTotal?: number
+                      strikeText?: string
+                      hitTotal?: number
+                      formula?: string
+                      breakdown?: string
+                      crit?: boolean
+                    }) => {
+                      turnEco?.spendAttack()
+                      if (luckyArmed) onLuckySpent?.()
+                      onConsumeOnceBuffDice?.()
+                      if (activeRiders.length) {
+                        onConsumeDamageRiders?.(
+                          activeRiders.map((row) => ({
+                            effectId: row.effectId,
+                            once: row.once,
+                            spendCharge: row.spendCharge,
+                          })),
+                        )
+                      }
+                      const physical =
+                        Boolean(opts?.physicalDice) || Boolean(turnEco?.diceOnTable)
+                      let text = opts?.strikeText ?? ''
+                      if (opts?.tableHit) text = `${attack.name}: попал 🎲`
+                      else if (opts?.tableMiss) text = `${attack.name}: промах 🎲`
+                      if (text) onToast?.(text)
+                      const total =
+                        opts?.manualTotal ??
+                        opts?.hitTotal ??
+                        (opts?.tableHit ? 1 : opts?.tableMiss ? 0 : 0)
+                      if (characterId && (opts?.hitTotal != null || opts?.manualTotal != null || opts?.tableHit || opts?.tableMiss)) {
+                        void postSheetRollToSession({
+                          openSessionId: openSessionId ?? turnEco?.openSessionId,
+                          characterId,
+                          title: `Атака: ${attack.name}`,
+                          total,
+                          formula: opts?.formula ?? null,
+                          breakdown: opts?.breakdown ?? null,
+                          physicalDice: physical,
+                          targetName: opts?.target?.name ?? null,
+                        })
+                      }
+                      smiteApplyLock.current = false
+                      setOpenStrike({
+                        name: attack.name,
+                        melee: meleeAttack,
+                        crit: Boolean(opts?.crit),
+                        text: text || attack.name,
+                        smiteApplied: false,
+                      })
+                    }
+
+                    // Кубики на столе: выбор цели + Попал/Промах
+                    if (turnEco?.diceOnTable && turnEco.combatActive) {
+                      finishAttackRef.current = finishAttack
+                      setPendingAttack({
+                        name: attack.name,
+                        attackBonus,
+                        tableMode: true,
+                      })
+                      return
+                    }
+
                     const useElven =
                       elvenAccuracy &&
                       attackMode === 'advantage' &&
@@ -701,12 +846,15 @@ export function PlayDeskAttacksCompact({
                       strike.hitRoll &&
                       onLuckyPickNeeded
                     ) {
+                      turnEco?.spendAttack()
                       onLuckyPickNeeded({
                         allDice: strike.allDice,
                         text: strike.text,
                         hitRoll: strike.hitRoll,
                       })
-                    } else if (
+                      return
+                    }
+                    if (
                       strike.die === 1 &&
                       strike.hitRoll &&
                       onHalflingLuckyNeeded &&
@@ -714,43 +862,40 @@ export function PlayDeskAttacksCompact({
                         Boolean(raceSlug && raceSlug.includes('halfling')))
                     ) {
                       onToast?.(strike.text)
+                      turnEco?.spendAttack()
                       onHalflingLuckyNeeded({
                         text: strike.text,
                         hitRoll: strike.hitRoll,
                       })
-                    } else {
-                      onToast?.(strike.text)
-                      if (characterId && strike.hitRoll) {
-                        void postSheetRollToSession({
-                          openSessionId,
-                          characterId,
-                          title: `Атака: ${attack.name}`,
-                          total: strike.hitRoll.total,
-                          formula: `1d20${attackBonus >= 0 ? '+' : ''}${attackBonus}`,
-                          breakdown: `${strike.hitRoll.die}${
-                            attackBonus >= 0 ? '+' : ''
-                          }${attackBonus}`,
-                        })
-                      }
+                      return
                     }
-                    if (luckyArmed) onLuckySpent?.()
-                    onConsumeOnceBuffDice?.()
-                    if (activeRiders.length) {
-                      onConsumeDamageRiders?.(
-                        activeRiders.map((row) => ({
-                          effectId: row.effectId,
-                          once: row.once,
-                          spendCharge: row.spendCharge,
-                        })),
-                      )
+
+                    const formula = `1d20${attackBonus >= 0 ? '+' : ''}${attackBonus}`
+                    const breakdown = strike.hitRoll
+                      ? `${strike.hitRoll.die}${attackBonus >= 0 ? '+' : ''}${attackBonus}`
+                      : undefined
+
+                    finishAttackRef.current = finishAttack
+                    if (turnEco?.combatActive) {
+                      setPendingAttack({
+                        name: attack.name,
+                        attackBonus,
+                        strikeText: strike.text,
+                        hitTotal: strike.hitRoll?.total,
+                        formula,
+                        breakdown,
+                        tableMode: false,
+                        crit: strike.crit,
+                      })
+                      return
                     }
-                    smiteApplyLock.current = false
-                    setOpenStrike({
-                      name: attack.name,
-                      melee: meleeAttack,
+
+                    finishAttack({
+                      strikeText: strike.text,
+                      hitTotal: strike.hitRoll?.total,
+                      formula,
+                      breakdown,
                       crit: strike.crit,
-                      text: strike.text,
-                      smiteApplied: false,
                     })
                   }}
                 >
@@ -1034,6 +1179,89 @@ export function PlayDeskAttacksCompact({
           </div>
         ) : null}
       </div>
+      {openStrike ? (
+        <div className="play-desk-compact__enter-number">
+          <button
+            type="button"
+            className="play-desk-compact__link"
+            onClick={() => {
+              setEnterNumberCtx({
+                title: `Атака: ${openStrike.name}`,
+                attackBonus: 0,
+                attackName: openStrike.name,
+              })
+              setEnterNumberOpen(true)
+            }}
+          >
+            Ввести своё число
+          </button>
+        </div>
+      ) : null}
     </div>
+    <CombatTargetPicker
+      open={Boolean(pendingAttack)}
+      title={
+        pendingAttack
+          ? `Цель атаки: ${pendingAttack.name}`
+          : 'Цель атаки'
+      }
+      targets={turnEco?.targets ?? []}
+      filter="foes"
+      mobile={isMobile}
+      diceOnTable={Boolean(pendingAttack?.tableMode)}
+      onClose={() => setPendingAttack(null)}
+      onPick={(target) => {
+        if (!pendingAttack || pendingAttack.tableMode) {
+          setPendingAttack(null)
+          return
+        }
+        finishAttackRef.current?.({
+          target,
+          strikeText: pendingAttack.strikeText,
+          hitTotal: pendingAttack.hitTotal,
+          formula: pendingAttack.formula,
+          breakdown: pendingAttack.breakdown,
+          crit: pendingAttack.crit,
+        })
+        setPendingAttack(null)
+      }}
+      onTableHit={(target) => {
+        finishAttackRef.current?.({
+          target,
+          tableHit: true,
+          physicalDice: true,
+        })
+        setPendingAttack(null)
+      }}
+      onTableMiss={(target) => {
+        finishAttackRef.current?.({
+          target,
+          tableMiss: true,
+          physicalDice: true,
+        })
+        setPendingAttack(null)
+      }}
+    />
+    <EnterOwnNumberDialog
+      open={enterNumberOpen}
+      title={enterNumberCtx?.title ?? 'Ввести своё число'}
+      mode="total"
+      onClose={() => setEnterNumberOpen(false)}
+      onConfirm={({ total }) => {
+        if (characterId && enterNumberCtx) {
+          void postSheetRollToSession({
+            openSessionId: openSessionId ?? turnEco?.openSessionId,
+            characterId,
+            title: enterNumberCtx.title,
+            total,
+            physicalDice: true,
+          })
+          onToast?.(`${enterNumberCtx.attackName}: ${total} 🎲 (кубик на столе)`)
+          turnEco?.spendAttack()
+        }
+        setEnterNumberOpen(false)
+      }}
+    />
+    </>
   )
 }

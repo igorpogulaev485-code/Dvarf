@@ -47,7 +47,16 @@ import { useSessionRealtime } from '../features/lobby/useSessionRealtime'
 import { letterBadge } from '../shared/api/chat'
 import { normalizeCampaignRules } from '../features/lobby/campaignRules'
 import { normalizeVisibilityProfile } from '../features/lobby/visibilityProfile'
-import { listCharacters } from '../shared/api/characters'
+import { getCharacter, listCharacters, updateCharacter } from '../shared/api/characters'
+import {
+  emptyTurnEconomy,
+  readTurnEconomy,
+  serializeTurnEconomy,
+  toggleTurnMark,
+  type TurnEconomyMarkKey,
+  type TurnEconomyState,
+} from '../shared/dnd/turnEconomy'
+import { asRecord } from '../features/characters/sheetTypes'
 import { ApiRequestError } from '../shared/api/client'
 import {
   addSeatCompanion,
@@ -241,6 +250,10 @@ export function SessionDetailPage() {
   const navigate = useNavigate()
   const [session, setSession] = useState<SessionDetail | null>(null)
   const [ownCharacterIds, setOwnCharacterIds] = useState<Set<string>>(() => new Set())
+  const [ownTurnEconomy, setOwnTurnEconomy] = useState<TurnEconomyState>(() =>
+    emptyTurnEconomy(),
+  )
+  const [ownTurnSheetVersion, setOwnTurnSheetVersion] = useState<number | null>(null)
   const [events, setEvents] = useState<SessionEvent[]>([])
   const [feedFilter, setFeedFilter] = useState<FeedFilter>('all')
   const [liveTab, setLiveTab] = useState<SessionLiveTabId>('table')
@@ -681,6 +694,60 @@ export function SessionDetailPage() {
     })
   }
 
+  const activeCombatEntry =
+    session?.combat?.active ? session.combat.entries[session.combat.active_index] : undefined
+  const yourTurnCharacterId =
+    activeCombatEntry?.kind === 'pc' &&
+    !activeCombatEntry.initiative_pending &&
+    ownCharacterIds.has(activeCombatEntry.ref_id)
+      ? activeCombatEntry.ref_id
+      : null
+
+  useEffect(() => {
+    if (!yourTurnCharacterId) {
+      setOwnTurnEconomy(emptyTurnEconomy())
+      setOwnTurnSheetVersion(null)
+      return
+    }
+    let cancelled = false
+    void getCharacter(yourTurnCharacterId)
+      .then((detail) => {
+        if (cancelled) return
+        const combat = asRecord(asRecord(detail.sheet).combat)
+        setOwnTurnEconomy(readTurnEconomy(combat.turn_economy))
+        setOwnTurnSheetVersion(detail.sheet_version)
+      })
+      .catch(() => null)
+    return () => {
+      cancelled = true
+    }
+  }, [yourTurnCharacterId, session?.combat?.active_index, session?.combat?.round])
+
+  const onToggleOwnTurnMark = useCallback(
+    (mark: TurnEconomyMarkKey) => {
+      if (!yourTurnCharacterId || ownTurnSheetVersion == null) return
+      const next = toggleTurnMark(ownTurnEconomy, mark)
+      setOwnTurnEconomy(next)
+      void getCharacter(yourTurnCharacterId)
+        .then((detail) => {
+          const sheet = { ...(detail.sheet as Record<string, unknown>) }
+          const combat = { ...asRecord(sheet.combat), turn_economy: serializeTurnEconomy(next) }
+          sheet.combat = combat
+          return updateCharacter(yourTurnCharacterId, {
+            sheet_version: detail.sheet_version,
+            sheet,
+          })
+        })
+        .then((fresh) => {
+          setOwnTurnSheetVersion(fresh.sheet_version)
+          const combat = asRecord(asRecord(fresh.sheet).combat)
+          setOwnTurnEconomy(readTurnEconomy(combat.turn_economy))
+        })
+        .catch(() => null)
+    },
+    [yourTurnCharacterId, ownTurnEconomy, ownTurnSheetVersion],
+  )
+
   if (!session && !error) {
     return (
       <main className="page page--app page--lobby-hub">
@@ -697,14 +764,6 @@ export function SessionDetailPage() {
     )
   }
 
-  const activeCombatEntry =
-    session.combat?.active ? session.combat.entries[session.combat.active_index] : undefined
-  const yourTurnCharacterId =
-    activeCombatEntry?.kind === 'pc' &&
-    !activeCombatEntry.initiative_pending &&
-    ownCharacterIds.has(activeCombatEntry.ref_id)
-      ? activeCombatEntry.ref_id
-      : null
   const finishCombat = async (payload: {
     keep_unreleased_waves: boolean
     summary: string
@@ -1456,6 +1515,16 @@ export function SessionDetailPage() {
                           seat={seat}
                           yourTurn={yourTurnCharacterId === seat.character_id}
                           showTurnEconomyStub={yourTurnCharacterId === seat.character_id}
+                          turnEconomy={
+                            yourTurnCharacterId === seat.character_id
+                              ? ownTurnEconomy
+                              : null
+                          }
+                          onToggleTurnMark={
+                            yourTurnCharacterId === seat.character_id
+                              ? onToggleOwnTurnMark
+                              : undefined
+                          }
                           visibility={visibility}
                           revealAll={canSeeHidden}
                           masterControls={canRun && !session.closed_at && !session.is_observer}

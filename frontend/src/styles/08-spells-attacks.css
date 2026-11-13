@@ -482,3 +482,114 @@ button.spells-settings__derived-stat--btn:hover {
   letter-spacing: -0.02em;
 }
 
+/* T-01: полоска хода (не LOCK-шапка виталов) */
+.turn-economy-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+}
+
+.turn-economy-strip__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.turn-economy-strip__headline {
+  margin: 0;
+  font-weight: 650;
+  font-size: 0.95rem;
+}
+
+.turn-economy-strip__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.turn-economy-strip__dice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.turn-economy-strip__dice.is-locked {
+  cursor: default;
+  color: var(--muted);
+}
+
+.turn-economy-strip__hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.play-desk-compact__dice-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 8px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.play-desk-compact__enter-number {
+  margin-top: 6px;
+}
+
+.combat-target-picker__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.combat-target-picker__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.combat-target-picker__item.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.combat-target-picker__meta {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.combat-target-picker__table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.play-desk--mobile .turn-economy-strip {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+}
+
