@@ -26,9 +26,12 @@
     min-height: 40px;
   }
 
-  .ui-input {
+  /* M18: ≥16px so iOS does not zoom the page on focus */
+  .ui-input,
+  textarea.ui-input,
+  .create-pipeline__select {
     padding: 10px 12px;
-    font-size: 0.95rem;
+    font-size: 16px;
   }
 
   .ui-panel {
@@ -405,10 +408,22 @@
   font-size: 1.25rem;
 }
 
+.create-pipeline__steps-wrap {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .create-pipeline__steps {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* Desktop: no overflow strip — hide mobile scroll hints */
+.create-pipeline__steps-fade,
+.create-pipeline__steps-arrow {
+  display: none;
 }
 
 .create-pipeline__footer-mid {

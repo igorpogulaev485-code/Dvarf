@@ -321,6 +321,14 @@
   font-size: 0.95rem;
 }
 
+/* M18: phone dialogs (Основное, создание) — keep ≥16px to avoid iOS focus zoom */
+@media (max-width: 959px) {
+  .ui-dialog__body .ui-input,
+  .ui-dialog__body textarea.ui-input {
+    font-size: 16px;
+  }
+}
+
 /* Combobox dropdown: flow in scroll body so it is never clipped off-screen */
 .ui-dialog__body .ui-combobox__list {
   position: static;

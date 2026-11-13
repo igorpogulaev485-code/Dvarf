@@ -46,7 +46,8 @@
     "selfcheck:hot-bar-scroll": "tsx --tsconfig tsconfig.app.json src/features/characters/PlayDeskHotBar.selfcheck.ts",
     "selfcheck:needs-setup": "tsx --tsconfig tsconfig.app.json src/features/characters/needsSetup.selfcheck.ts",
     "selfcheck:m01-mobile-header": "tsx --tsconfig tsconfig.app.json src/features/characters/m01MobileHeader.selfcheck.ts",
-    "selfcheck:m02-combat-first-screen": "tsx --tsconfig tsconfig.app.json src/features/characters/m02CombatFirstScreen.selfcheck.ts"
+    "selfcheck:m02-combat-first-screen": "tsx --tsconfig tsconfig.app.json src/features/characters/m02CombatFirstScreen.selfcheck.ts",
+    "selfcheck:m04-create-mobile": "tsx --tsconfig tsconfig.app.json src/features/createPipeline/m04CreateMobile.selfcheck.ts"
   },
   "dependencies": {
     "qrcode": "^1.5.4",
