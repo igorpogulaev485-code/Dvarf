@@ -6,6 +6,7 @@ import {
   setClassicSheetLayout,
   type ClassicSheetLayout,
 } from '../features/classicSheet/classicSheetLayout'
+import { ClassicSheetUiProvider } from '../features/classicSheet/classicSheetUi'
 import type { ClassicPatch } from '../features/classicSheet/fromApi'
 import {
   getCharacter,
@@ -25,6 +26,7 @@ export function ClassicSheetPage() {
   const [character, setCharacter] = useState<CharacterDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<'loading' | 'saving' | 'saved'>('loading')
+  const [editing, setEditing] = useState(false)
   const saveTimer = useRef<number | null>(null)
   const versionRef = useRef(0)
   const latestRef = useRef<CharacterDetail | null>(null)
@@ -151,6 +153,15 @@ export function ClassicSheetPage() {
             ))}
             <span className="classic-layout-switch__hint">только отображение</span>
           </div>
+          <button
+            type="button"
+            className={['classic-edit-toggle', editing ? 'is-active' : ''].filter(Boolean).join(' ')}
+            aria-pressed={editing}
+            disabled={!character}
+            onClick={() => setEditing((v) => !v)}
+          >
+            Правка
+          </button>
           <Button variant="secondary" onClick={() => window.print()}>
             Печать / PDF
           </Button>
@@ -162,7 +173,9 @@ export function ClassicSheetPage() {
         </Text>
       ) : null}
       {character ? (
-        <ClassicPrintSheet character={character} onPatch={handlePatch} />
+        <ClassicSheetUiProvider editing={editing}>
+          <ClassicPrintSheet character={character} onPatch={handlePatch} />
+        </ClassicSheetUiProvider>
       ) : null}
     </div>
   )

@@ -106,6 +106,57 @@
   opacity: 0.55;
 }
 
+.classic-edit-toggle {
+  min-width: 4.5rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 0.4rem;
+  background: rgb(0 0 0 / 22%);
+  color: #e8e4db;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.classic-edit-toggle:hover:not(:disabled) {
+  background: rgb(255 255 255 / 10%);
+}
+
+.classic-edit-toggle.is-active {
+  background: #f5f2eb;
+  color: #1f2420;
+}
+
+.classic-edit-toggle:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Screen: scale Letter stack to window width (print resets transform). */
+.classic-fit-viewport {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.classic-fit-spacer {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.classic-fit-scaled {
+  flex: 0 0 auto;
+  will-change: transform;
+}
+
+.classic-fit-scaled > .classic-stack {
+  width: max-content;
+  max-width: none;
+  margin: 0 auto;
+}
+
 .classic-background-picker {
   max-width: 8.5in;
   margin: 0 auto 0.75rem;
@@ -301,6 +352,9 @@
   font-weight: 650;
   border-bottom: none;
   min-height: 1.55rem;
+  --classic-fit-max-px: 19.5;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .classic-meta {
@@ -856,7 +910,7 @@
   margin: 0;
 }
 
-.classic-text-block > .classic-expand {
+.classic-text-block--editing > .classic-expand {
   padding-right: 2rem;
 }
 
@@ -1596,6 +1650,8 @@
   background: transparent;
   padding: 0.04rem 0;
   line-height: 1.15;
+  --classic-fit-max-px: 19.2;
+  overflow: hidden;
 }
 
 .classic-lss-name span,
@@ -2453,7 +2509,9 @@
 @media print {
   .classic-print-toolbar,
   .no-print,
-  .classic-background-picker {
+  .classic-background-picker,
+  .classic-edit-toggle,
+  .classic-text-block__size {
     display: none !important;
   }
 
@@ -2461,6 +2519,24 @@
     background: #fff;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+
+  .classic-fit-viewport,
+  .classic-fit-spacer {
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  .classic-fit-scaled {
+    transform: none !important;
+    width: auto !important;
+    margin: 0 !important;
+  }
+
+  .classic-fit-scaled > .classic-stack {
+    width: auto;
   }
 
   .classic-stack {
@@ -2512,25 +2588,18 @@
   margin: 0;
 }
 
-/* Narrow screens: Letter canvas stays full size; page scrolls horizontally. */
+/* Narrow screens: fit-viewport scales down; toolbar stays usable. */
 @media screen and (max-width: 900px) {
-  .classic-print-page {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
   .classic-print-toolbar {
     position: sticky;
+    top: 0;
     left: 0;
     width: 100%;
     box-sizing: border-box;
   }
 
-  .classic-stack {
+  .classic-fit-scaled > .classic-stack {
     padding: 0.65rem;
-    justify-items: start;
-    width: max-content;
-    min-width: 100%;
   }
 
   .classic-background-picker {

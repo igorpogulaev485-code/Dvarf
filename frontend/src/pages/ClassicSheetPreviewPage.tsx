@@ -5,6 +5,7 @@ import {
   setClassicSheetLayout,
   type ClassicSheetLayout,
 } from '../features/classicSheet/classicSheetLayout'
+import { ClassicSheetUiProvider } from '../features/classicSheet/classicSheetUi'
 import {
   sampleClassic2014Character,
   sampleQuackClassicCharacter,
@@ -23,6 +24,7 @@ const FIXTURES: Record<FixtureId, CharacterDetail> = {
 export function ClassicSheetPreviewPage() {
   const [fixture, setFixture] = useState<FixtureId>('quack')
   const [character, setCharacter] = useState<CharacterDetail>(FIXTURES.quack)
+  const [editing, setEditing] = useState(false)
   const layout = readClassicSheetLayout(character)
 
   const applyPatch = (patch: {
@@ -100,12 +102,22 @@ export function ClassicSheetPreviewPage() {
             ))}
             <span className="classic-layout-switch__hint">только отображение</span>
           </div>
+          <button
+            type="button"
+            className={['classic-edit-toggle', editing ? 'is-active' : ''].filter(Boolean).join(' ')}
+            aria-pressed={editing}
+            onClick={() => setEditing((v) => !v)}
+          >
+            Правка
+          </button>
           <Button variant="secondary" onClick={() => window.print()}>
             Печать / PDF
           </Button>
         </div>
       </header>
-      <ClassicPrintSheet character={character} onPatch={applyPatch} layout={layout} />
+      <ClassicSheetUiProvider editing={editing}>
+        <ClassicPrintSheet character={character} onPatch={applyPatch} layout={layout} />
+      </ClassicSheetUiProvider>
     </div>
   )
 }
