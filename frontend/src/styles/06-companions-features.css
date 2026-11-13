@@ -61,14 +61,25 @@
 }
 
 .sheet-chip {
-  padding: 10px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 6px 12px;
+  min-height: var(--control-h-md);
   font-weight: 600;
+  line-height: 1.25;
 }
 
+/* Block chips (setup lists) keep taller padding */
 .sheet-chip--block {
   display: block;
   width: 100%;
   text-align: left;
+  justify-content: flex-start;
+  align-items: flex-start;
+  min-height: var(--control-h-lg);
+  padding: 10px 12px;
 }
 
 .sheet-chip__title {

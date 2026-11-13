@@ -168,12 +168,13 @@ export function OpportunityAttackDialog({
           </div>
         ) : null}
 
-        <div className="ui-dialog__actions" style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+        <div className="ui-dialog__actions" style={{ marginTop: 16 }}>
           <Button type="button" variant="secondary" onClick={onClose}>
             Отмена
           </Button>
           <Button
             type="button"
+            variant="primary"
             disabled={leaveBlocked || enterBlocked}
             onClick={() => {
               onConfirm({
@@ -303,12 +304,13 @@ export function CounterspellDialog({
             ? `Успех без проверки (ячейка ${slotLevel} > круг ${targetLevel})`
             : `Проверка характеристики заклинателя Сл ${dc} · бонус ${checkBonus >= 0 ? '+' : ''}${checkBonus}`}
         </p>
-        <div className="ui-dialog__actions" style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+        <div className="ui-dialog__actions" style={{ marginTop: 16 }}>
           <Button type="button" variant="secondary" onClick={onClose}>
             Отмена
           </Button>
           <Button
             type="button"
+            variant="primary"
             onClick={() => {
               onConfirm({
                 targetLevel,
@@ -397,12 +399,13 @@ export function NamedTargetDialog({
             style={{ display: 'block', width: '100%', marginTop: 4 }}
           />
         </label>
-        <div className="ui-dialog__actions" style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+        <div className="ui-dialog__actions" style={{ marginTop: 16 }}>
           <Button type="button" variant="secondary" onClick={onClose}>
             Отмена
           </Button>
           <Button
             type="button"
+            variant="primary"
             onClick={() => {
               onConfirm(targetName.trim() || 'цель')
               onClose()

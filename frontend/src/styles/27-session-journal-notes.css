@@ -203,6 +203,23 @@
   accent-color: var(--accent);
 }
 
+/* SC-07: одна primary справа у живого куба */
+.manual-roll-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.manual-roll-form__actions .ui-button {
+  min-height: var(--control-h-md);
+}
+
+.manual-roll-form__actions .ui-button--primary {
+  min-height: var(--control-h-lg);
+}
+
 @media (min-width: 640px) {
   .session-table-grid {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));

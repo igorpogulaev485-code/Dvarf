@@ -40,6 +40,10 @@
   --motion-fast: 120ms;
   --motion-sheet: 220ms;
   --motion-mode: 180ms;
+  /* SC-07: единый ритм контролов (sm / md / lg) — UX-07 */
+  --control-h-sm: 32px;
+  --control-h-md: 36px;
+  --control-h-lg: 44px;
 }
 
 /* Wave B — account theme swaps only accent tokens (docs/ui-kit §2n) */
@@ -212,7 +216,7 @@ a.ui-button:visited {
   justify-content: center;
   box-sizing: border-box;
   line-height: 1.25;
-  min-height: 44px;
+  min-height: var(--control-h-lg);
 }
 
 a.ui-button--ghost {
@@ -228,12 +232,29 @@ a.ui-button--primary {
 }
 
 .ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   border: 1px solid transparent;
   border-radius: 12px;
-  padding: 10px 14px;
+  padding: 8px 14px;
+  min-height: var(--control-h-md);
   cursor: pointer;
   font-weight: 600;
   font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.ui-button--sm {
+  min-height: var(--control-h-sm);
+  padding: 4px 10px;
+  font-size: 0.85rem;
+}
+
+.ui-button--lg {
+  min-height: var(--control-h-lg);
+  padding: 10px 16px;
 }
 
 .sheet-topbar {
@@ -252,7 +273,7 @@ a.ui-button--primary {
 .sheet-topbar__actions .ui-button {
   padding: 6px 12px;
   font-size: 0.88rem;
-  min-height: 36px;
+  min-height: var(--control-h-md);
 }
 
 .ui-button--danger {
