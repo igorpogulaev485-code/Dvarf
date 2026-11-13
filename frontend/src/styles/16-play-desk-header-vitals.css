@@ -247,6 +247,10 @@ button.play-desk-vital:hover,
 .play-desk-vital--jump {
   width: 72px;
   min-width: 72px;
+  height: auto;
+  min-height: 64px;
+  overflow: visible;
+  align-self: center;
 }
 
 .play-desk-vital--jump .play-desk-vital__label-row {
