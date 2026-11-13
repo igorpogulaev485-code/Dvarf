@@ -967,12 +967,24 @@ export function PlayDeskAttacksCompact({
 
       {turnEco ? (
         <>
-          <TurnEconomyChips
-            state={turnEco.turnEconomy}
-            onToggle={turnEco.toggleMark}
-            onToggleMoved={turnEco.toggleMoved}
-            className="chip-row"
-          />
+          {/*
+            SC-01: каркас сцен — постоянный ковёр PHB/укрытия/отметок с первого экрана
+            уходит в «Ещё / Действия хода» (уровень Б). Полная раскладка А/Б/В — SC-02.
+            Отметки хода (решение 13.11 18:05) — только при активном бое.
+          */}
+          <details className="play-desk-attacks-more">
+            <summary className="play-desk-attacks-more__summary">
+              Ещё / Действия хода
+            </summary>
+            <div className="play-desk-attacks-more__body">
+          {turnEco.combatActive ? (
+            <TurnEconomyChips
+              state={turnEco.turnEconomy}
+              onToggle={turnEco.toggleMark}
+              onToggleMoved={turnEco.toggleMoved}
+              className="chip-row"
+            />
+          ) : null}
           {masterRules.dmg_adamantine_weapon ? (
             <label className="field" style={{ marginBottom: 4 }}>
               <input
@@ -1604,6 +1616,8 @@ export function PlayDeskAttacksCompact({
               )
             }}
           />
+            </div>
+          </details>
           <OpportunityAttackDialog
             open={o07Dialog === 'oa'}
             onClose={() => setO07Dialog(null)}

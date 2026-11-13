@@ -639,3 +639,45 @@ button.spells-settings__derived-stat--btn:hover {
   padding: 8px 10px;
 }
 
+/* SC-01: временный слот «Ещё / Действия хода» на панели атак (каркас сцен). */
+.play-desk-attacks-more {
+  margin: 0 0 10px;
+  border: 1px solid var(--desk-line, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--desk-card, var(--card)) 88%, transparent);
+}
+
+.play-desk-attacks-more__summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+  padding: 8px 12px;
+}
+
+.play-desk-attacks-more__summary::-webkit-details-marker {
+  display: none;
+}
+
+.play-desk-attacks-more[open] .play-desk-attacks-more__summary {
+  color: var(--desk-ink, var(--ink));
+  border-bottom: 1px solid var(--desk-line, var(--line));
+}
+
+.play-desk-attacks-more__body {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px 10px;
+}
+
+.play-desk__hot-item--compact {
+  flex: 0 0 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--desk-muted, var(--muted));
+}
+
