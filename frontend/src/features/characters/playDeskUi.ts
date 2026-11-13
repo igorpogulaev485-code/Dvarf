@@ -46,6 +46,11 @@ export type SheetUiState = {
   xpHistory: XpHistoryEntry[]
   /** Desk dice rolls (attacks, checks, …). Newest first; persisted on the sheet. */
   rollHistory: RollHistoryEntry[]
+  /**
+   * T-01: личный «Кубики на столе». Вне сессии и когда мастер выключил режим —
+   * игрок может включить себе. Если мастер включил на столе — принудительно вкл.
+   */
+  diceOnTablePref: boolean
 }
 
 const MAX_XP_HISTORY = 40
@@ -192,6 +197,7 @@ export function readSheetUi(sheet: Record<string, unknown>): SheetUiState {
     ),
     xpHistory: normalizeXpHistory(ui.xp_history),
     rollHistory: normalizeRollHistory(ui.roll_history),
+    diceOnTablePref: ui.dice_on_table_pref === true,
   }
 }
 
@@ -204,6 +210,7 @@ export function sheetUiToPatch(ui: SheetUiState): Record<string, unknown> {
     combat_consumable_favorites: ui.combatConsumableFavoriteIds,
     xp_history: ui.xpHistory,
     roll_history: ui.rollHistory,
+    dice_on_table_pref: Boolean(ui.diceOnTablePref),
   }
 }
 

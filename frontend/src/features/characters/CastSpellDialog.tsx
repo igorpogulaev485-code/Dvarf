@@ -35,6 +35,7 @@ import {
 import { Button, Dialog, Stack, Text } from '../../ui'
 import { AllyTargetFields } from '../lobby/AllyTargetFields'
 import { useLobbyParty, type AllyPickDemo } from '../lobby/useLobbyParty'
+import { useTurnEconomy } from './TurnEconomyContext'
 import {
   listCastGrantOptions,
   type SheetSpell,
@@ -385,6 +386,18 @@ export function CastSpellDialog({
     Array.from({ length: targetCount }, () => ''),
   )
   const party = useLobbyParty(showTargets ? characterId : undefined, allyDemo)
+  const turnEco = useTurnEconomy()
+  /** T-01: в активном бою цели союзников — из контракта S-04, не второй список. */
+  const allyOptions =
+    showTargets && turnEco?.combatActive && turnEco.targets.length > 0
+      ? turnEco.targets
+          .filter((t) => t.is_ally)
+          .map((t) => ({
+            character_id: t.kind === 'pc' ? t.ref_id : t.id,
+            character_name: t.name,
+            isSelf: Boolean(characterId && t.kind === 'pc' && t.ref_id === characterId),
+          }))
+      : party.options
 
   const rulesSpell = useMemo(
     () => (spell ? withBundledRules(spell) : null),
@@ -1441,10 +1454,12 @@ export function CastSpellDialog({
                   return next
                 })
               }}
-              options={party.options}
-              loading={party.loading}
+              options={allyOptions}
+              loading={party.loading && !(turnEco?.combatActive && turnEco.targets.length > 0)}
               busy={busy}
-              lobbyName={party.lobbyName}
+              lobbyName={
+                turnEco?.combatActive ? 'Текущий бой' : party.lobbyName
+              }
               lobbies={party.lobbies}
               lobbyId={party.lobbyId}
               onLobbyIdChange={party.setLobbyId}

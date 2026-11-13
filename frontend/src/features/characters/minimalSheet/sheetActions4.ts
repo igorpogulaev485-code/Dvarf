@@ -316,8 +316,42 @@ export function installSheetActions4(model: SheetModel) {
 
   model.runDeskCast = function runDeskCast(spell: SheetSpell, choice: CastChoice): boolean {
     let castSucceeded = false
+    const ritualCastEarly = Boolean(choice.ritual && spell.ritual && spell.level > 0)
+    const teApi = model.turnEconomyApi as
+      | {
+          canCast: (t: 'action' | 'bonus' | 'reaction' | null) => { ok: boolean; reason?: string }
+          spendCast: (input: {
+            timing: 'action' | 'bonus' | 'reaction' | null
+            name: string
+            level: number
+            id?: string
+          }) => void
+        }
+      | undefined
+    const toMark =
+      (model.castingTimeToEconomyMark as
+        | ((raw: unknown) => 'action' | 'bonus' | 'reaction' | null)
+        | undefined) ?? null
+    let castTiming: 'action' | 'bonus' | 'reaction' | null = toMark
+      ? toMark(spell.casting_time)
+      : 'action'
+    if (choice.embodimentOfLaw) castTiming = 'bonus'
+    if (ritualCastEarly) castTiming = null
+    if (teApi) {
+      const gate = teApi.canCast(castTiming)
+      if (!gate.ok) {
+        model.onToast(gate.reason ?? 'уже потрачено — сними отметку вручную')
+        return false
+      }
+    }
     const successToast = (message: string) => {
       castSucceeded = true
+      teApi?.spendCast({
+        timing: castTiming,
+        name: spell.name || 'Заклинание',
+        level: spell.level,
+        id: spell.id,
+      })
       model.onToast(message)
       const sourceId = String(model.baseCharacter.id)
       void (async () => {
@@ -1006,17 +1040,34 @@ export function installSheetActions4(model: SheetModel) {
       ),
     )
     const bonusDice = buffDiceFor('check')
-    model.emitToast(
-      `${formatSkillRoll(
-        skill.label,
-        skill.mod,
-        mode,
-        undefined,
-        model.strengthCheckFloor(base === 'str'),
-        silver ? { value: 10, label: 'серебряный язык' } : null,
-        bonusDice,
-      )}${note}`,
-    )
+    const text = `${formatSkillRoll(
+      skill.label,
+      skill.mod,
+      mode,
+      undefined,
+      model.strengthCheckFloor(base === 'str'),
+      silver ? { value: 10, label: 'серебряный язык' } : null,
+      bonusDice,
+    )}${note}`
+    model.emitToast(text)
+    const te = model.turnEconomyApi as
+      | {
+          diceOnTable?: boolean
+          openEnterOwnNumber?: (o: {
+            title: string
+            mode?: 'total' | 'd20'
+            modifier?: number
+          }) => void
+          postRoll?: (o: { title: string; total: number; physicalDice?: boolean }) => void
+        }
+      | undefined
+    if (te?.diceOnTable && te.openEnterOwnNumber) {
+      te.openEnterOwnNumber({
+        title: `Проверка: ${skill.label}`,
+        mode: 'd20',
+        modifier: skill.mod,
+      })
+    }
     consumeOnceBuffDice('check')
   }
 
@@ -1052,17 +1103,33 @@ export function installSheetActions4(model: SheetModel) {
           ? ' · помеха от истощения'
           : ''
     const bonusDice = buffDiceFor('check')
-    model.emitToast(
-      `${formatSkillRoll(
-        `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
-        mod,
-        model.effectiveRollMode(),
-        undefined,
-        model.strengthCheckFloor(key === 'str'),
-        null,
-        bonusDice,
-      )}${note}`,
-    )
+    const text = `${formatSkillRoll(
+      `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
+      mod,
+      model.effectiveRollMode(),
+      undefined,
+      model.strengthCheckFloor(key === 'str'),
+      null,
+      bonusDice,
+    )}${note}`
+    model.emitToast(text)
+    const te = model.turnEconomyApi as
+      | {
+          diceOnTable?: boolean
+          openEnterOwnNumber?: (o: {
+            title: string
+            mode?: 'total' | 'd20'
+            modifier?: number
+          }) => void
+        }
+      | undefined
+    if (te?.diceOnTable && te.openEnterOwnNumber) {
+      te.openEnterOwnNumber({
+        title: `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
+        mode: 'd20',
+        modifier: mod,
+      })
+    }
     consumeOnceBuffDice('check')
   }
 
@@ -1092,17 +1159,33 @@ export function installSheetActions4(model: SheetModel) {
     )
     const spellNote = spellAdvantage ? ` · ${spellAdvantage}` : ''
     const bonusDice = buffDiceFor('save')
-    model.emitToast(
-      `${formatSkillRoll(
-        `Спас · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
-        rolledMod,
-        model.saveRollMode(key),
-        undefined,
-        null,
-        null,
-        bonusDice,
-      )}${note}${songNote}${spellNote}`,
-    )
+    const saveTitle = `Спас · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`
+    const teSave = model.turnEconomyApi as
+      | {
+          diceOnTable?: boolean
+          openTableSave?: (title: string) => void
+          openEnterOwnNumber?: (o: {
+            title: string
+            mode?: 'total' | 'd20'
+            modifier?: number
+          }) => void
+        }
+      | undefined
+    if (teSave?.diceOnTable && teSave.openTableSave) {
+      teSave.openTableSave(saveTitle)
+    } else {
+      model.emitToast(
+        `${formatSkillRoll(
+          saveTitle,
+          rolledMod,
+          model.saveRollMode(key),
+          undefined,
+          null,
+          null,
+          bonusDice,
+        )}${note}${songNote}${spellNote}`,
+      )
+    }
     consumeOnceBuffDice('save')
   }
 

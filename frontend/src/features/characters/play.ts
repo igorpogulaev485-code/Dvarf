@@ -14,6 +14,12 @@ import {
   type ActiveEffect,
 } from '../../shared/dnd/activeEffects'
 import {
+  emptyTurnEconomy,
+  readTurnEconomy,
+  serializeTurnEconomy,
+  type TurnEconomyState,
+} from '../../shared/dnd/turnEconomy'
+import {
   primaryHitDie,
   readHitDicePools,
   totalHitDiceCurrent,
@@ -53,6 +59,8 @@ export type PlayState = {
   shillelagh?: ShillelaghState | null
   /** B-01: sheet.combat.effects (buffs, infusions, duration). */
   effects: ActiveEffect[]
+  /** T-01: отметки хода (действие / бонусное / реакция / взаимодействие). */
+  turnEconomy: TurnEconomyState
 }
 
 export type { ConcentrationState }
@@ -200,6 +208,7 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
     concentration: readConcentration(combat.concentration),
     shillelagh: readShillelagh(combat.shillelagh),
     effects: parseActiveEffects(combat.effects),
+    turnEconomy: readTurnEconomy(combat.turn_economy),
   }
 }
 
@@ -217,6 +226,7 @@ export function playToSheet(play: PlayState): {
     concentration: ConcentrationState | null
     shillelagh: ShillelaghState | null
     effects: ReturnType<typeof serializeActiveEffect>[]
+    turn_economy: ReturnType<typeof serializeTurnEconomy>
   }
   resources: SheetResource[]
 } {
@@ -248,6 +258,7 @@ export function playToSheet(play: PlayState): {
         : clearConcentration(),
       shillelagh: play.shillelagh ?? null,
       effects: (play.effects ?? []).map(serializeActiveEffect),
+      turn_economy: serializeTurnEconomy(play.turnEconomy ?? emptyTurnEconomy()),
     },
     resources: play.resources.map((item) => clampResource(item)),
   }

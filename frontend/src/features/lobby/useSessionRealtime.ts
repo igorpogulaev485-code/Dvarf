@@ -21,6 +21,18 @@ type SessionWsMessage =
       long_label?: string
       session_id?: string
     }
+  | {
+      type: 'turn_started'
+      character_id?: string
+      entry_id?: string
+      round?: number
+      session_id?: string
+    }
+  | {
+      type: 'turn_economy_reset'
+      reason?: string
+      session_id?: string
+    }
   | { type: 'pong' | 'ping' | string; event?: undefined; session?: undefined }
 
 type Handlers = {
@@ -36,6 +48,14 @@ type Handlers = {
     short_label?: string
     long_label?: string
   }) => void
+  /** T-01 / S-02: ход перешёл к герою (kind=pc, не pending). */
+  onTurnStarted?: (payload: {
+    character_id: string
+    entry_id?: string
+    round?: number
+  }) => void
+  /** T-01 / S-02: сброс отметок (конец боя и т.п.). */
+  onTurnEconomyReset?: (payload: { reason?: string }) => void
   /** Сокет отваливался: добрать состояние, которое могли пропустить. */
   onReconnect?: () => void
 }
@@ -134,6 +154,27 @@ export function useSessionRealtime(
                 long_label: rest.long_label,
               })
             }
+          }
+          if (data.type === 'turn_started') {
+            const turn = data as Extract<SessionWsMessage, { type: 'turn_started' }>
+            const cid =
+              typeof turn.character_id === 'string' ? turn.character_id.trim() : ''
+            if (cid) {
+              handlersRef.current.onTurnStarted?.({
+                character_id: cid,
+                entry_id: turn.entry_id,
+                round: turn.round,
+              })
+            }
+          }
+          if (data.type === 'turn_economy_reset') {
+            const reset = data as Extract<
+              SessionWsMessage,
+              { type: 'turn_economy_reset' }
+            >
+            handlersRef.current.onTurnEconomyReset?.({
+              reason: reset.reason,
+            })
           }
         } catch {
           // ignore non-json

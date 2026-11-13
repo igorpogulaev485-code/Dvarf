@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { useTurnEconomy } from './TurnEconomyContext'
+import { inferFeatureTiming } from '../../shared/dnd/turnEconomy'
 import {
   isSunSoulVariableKi,
   Pack09FeatureExtras,
@@ -363,6 +365,23 @@ function FeatureResourceControls({
       ? Math.max(1, Math.floor(feature.classLevel / 2))
       : null
   const [diceToSpend, setDiceToSpend] = useState(1)
+  const turnEco = useTurnEconomy()
+  const featureTiming = inferFeatureTiming(
+    feature.summary_ru,
+    moonCombatWildShape && feature.id === 'wild_shape' ? 'bonus' : null,
+  )
+  const gateFeatureSpend = (): boolean => {
+    if (!turnEco) return true
+    const gate = turnEco.canFeature(featureTiming)
+    if (!gate.ok) {
+      onToast?.(gate.reason)
+      return false
+    }
+    return true
+  }
+  const markFeatureSpend = () => {
+    turnEco?.spendFeature(featureTiming)
+  }
   const resource = feature.resource
   if (!resource?.pool_id) return null
   const poolId = resource.pool_id
@@ -388,10 +407,19 @@ function FeatureResourceControls({
         <div className="feature-resource__actions">
           <Button
             type="button"
-            disabled={Boolean(resource.blocked_while_heavy_armor) && wearingHeavyArmor}
+            disabled={
+              (Boolean(resource.blocked_while_heavy_armor) && wearingHeavyArmor) ||
+              Boolean(turnEco && !turnEco.canFeature(featureTiming).ok)
+            }
+            title={(() => {
+              const gate = turnEco?.canFeature(featureTiming)
+              return gate && !gate.ok ? gate.reason : undefined
+            })()}
             onClick={() => {
+              if (!gateFeatureSpend()) return
               const result = spendFeatureUse({ resources, feature, classSlug })
               onResourcesChange(result.resources)
+              if (result.ok) markFeatureSpend()
               onToast?.(result.ok ? `${feature.name_ru}: без лимита` : result.message)
             }}
           >
@@ -793,6 +821,7 @@ function FeatureResourceControls({
                 else onToast?.('Выбор ячеек недоступен')
                 return
               }
+              if (!gateFeatureSpend()) return
               const result = spendFeatureUse({
                 resources,
                 feature,
@@ -801,6 +830,7 @@ function FeatureResourceControls({
               })
               onResourcesChange(result.resources)
               if (result.ok) {
+                markFeatureSpend()
                 const summon = feature.summon
                 if (summon && onCompanionsChange) {
                   const next = applyFeatureSummon({

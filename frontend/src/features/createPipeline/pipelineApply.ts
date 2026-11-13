@@ -147,6 +147,7 @@ import {
   withSyncedHitDiceSummary,
   type PlayState,
 } from '../characters/play'
+import { emptyTurnEconomy } from '../../shared/dnd/turnEconomy'
 import {
   ABILITY_KEYS,
   SKILL_DEFS,
@@ -820,6 +821,7 @@ function serializeSheet(input: {
     deathFails: 0,
     concentration: null,
     effects: [],
+    turnEconomy: emptyTurnEconomy(),
   })
   const playSheet = playToSheet(play)
 

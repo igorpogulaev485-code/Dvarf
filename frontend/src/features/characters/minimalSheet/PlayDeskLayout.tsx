@@ -24,6 +24,7 @@ import { PlayDeskScenes } from './PlayDeskScenes'
 import { SheetDialogsRolls } from './SheetDialogsRolls'
 import { SheetDialogsResources } from './SheetDialogsResources'
 import { SheetDialogsSetup } from './SheetDialogsSetup'
+import { TurnEconomyDeskHost } from '../TurnEconomyDeskHost'
 
 export function PlayDeskLayout({ model }: { model: SheetModel }) {
   return (
@@ -423,8 +424,10 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             </p>
           ) : null}
 
-      <SheetIdentityDialog model={model} />
-      <PlayDeskScenes model={model} />
+      <TurnEconomyDeskHost model={model}>
+        <SheetIdentityDialog model={model} />
+        <PlayDeskScenes model={model} />
+      </TurnEconomyDeskHost>
 
       {model.error ? <Text tone="danger">{model.error}</Text> : null}
 
