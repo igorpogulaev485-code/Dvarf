@@ -12,6 +12,12 @@
   align-items: flex-start;
 }
 
+/* LV-04: плотный первый ряд мастера — карточки в первом экране */
+.session-table-toolbar--master {
+  gap: 8px 12px;
+  align-items: center;
+}
+
 .session-toolbar-group {
   display: flex;
   flex-wrap: wrap;
@@ -23,6 +29,11 @@
   background: color-mix(in srgb, var(--card) 88%, transparent);
 }
 
+.session-table-toolbar--master .session-toolbar-group {
+  padding: 6px 8px;
+  gap: 6px;
+}
+
 .session-toolbar-group__label {
   margin: 0 4px 0 0;
   font-size: 0.78rem;
@@ -30,6 +41,54 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+.session-toolbar-group--rewards-spotlight {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 70%, var(--card));
+}
+
+.session-toolbar-more {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  padding: 0;
+}
+
+.session-toolbar-more__summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 8px 12px;
+  user-select: none;
+}
+
+.session-toolbar-more__summary::-webkit-details-marker {
+  display: none;
+}
+
+.session-toolbar-more[open] .session-toolbar-more__summary {
+  color: var(--ink);
+  border-bottom: 1px solid var(--line);
+}
+
+.session-toolbar-more__body {
+  padding: 8px;
+}
+
+.session-toolbar-more__body .session-toolbar-group {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.session-table-settings__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .session-table-toolbar__hint {

@@ -315,6 +315,9 @@ export function SessionDetailPage() {
   const [bindSettingId, setBindSettingId] = useState('')
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteConfirmName, setDeleteConfirmName] = useState('')
+  /** LV-04: переименование / закрыть / удалить — не в первом экране стола */
+  const [tableSettingsOpen, setTableSettingsOpen] = useState(false)
+  const [renameDraft, setRenameDraft] = useState('')
   const [grantOpen, setGrantOpen] = useState(false)
   const [grantSeatId, setGrantSeatId] = useState<string | null>(null)
   const [handoffOpen, setHandoffOpen] = useState(false)
@@ -1086,37 +1089,15 @@ export function SessionDetailPage() {
             {sessionCanRun(session) && !session.closed_at ? (
               <Button
                 type="button"
-                variant="secondary"
+                variant="ghost"
                 disabled={busy}
+                title="Переименовать, закрыть или удалить стол"
                 onClick={() => {
-                  void run(async () => {
-                    let latest = session
-                    if (latest.combat?.active) {
-                      setEndCombatThenClose(true)
-                      setCombatEndOpen(true)
-                      return
-                    }
-                    setCloseTitle(`Итог: ${latest.name}`)
-                    setCloseSummary('')
-                    setWriteJournal(true)
-                    setCloseOpen(true)
-                  })
+                  setRenameDraft(session.name)
+                  setTableSettingsOpen(true)
                 }}
               >
-                Закрыть сессию
-              </Button>
-            ) : null}
-            {sessionCanDelete(session) ? (
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={busy}
-                onClick={() => {
-                  setDeleteConfirmName('')
-                  setDeleteOpen(true)
-                }}
-              >
-                Удалить сессию
+                Настройки стола
               </Button>
             ) : null}
           </div>
@@ -1127,24 +1108,6 @@ export function SessionDetailPage() {
             Сессия закрыта.{' '}
             <Link to={`/lobbies/${session.lobby_id}#journal`}>Открыть дневник</Link>
           </Text>
-        ) : null}
-
-        {/* LV-01: игроку дубль «Сессия»/имя не нужен (есть AppHeader); мастеру — только переименование */}
-        {canRun && !session.closed_at ? (
-          <Panel title="Название стола" className="session-panel--rename">
-            <Field label="Название">
-              <Input
-                value={session.name}
-                onChange={(e) => setSession({ ...session, name: e.target.value })}
-                onBlur={() =>
-                  run(async () => {
-                    const next = await updateSession(session.id, { name: session.name })
-                    setSession(next)
-                  })
-                }
-              />
-            </Field>
-          </Panel>
         ) : null}
 
         <Panel title="Живой стол">
@@ -1334,7 +1297,11 @@ export function SessionDetailPage() {
               </div>
 
               <div
-                className={`session-live-desk__center${!canRun ? ' session-center--player-focus' : ''}`}
+                className={`session-live-desk__center${
+                  !canRun
+                    ? ' session-center--player-focus'
+                    : ' session-center--master-desk'
+                }`}
               >
                 <Stack gap={12}>
                   {!session.closed_at && seatCandidates.length > 0 && !canRun ? (
@@ -1379,6 +1346,7 @@ export function SessionDetailPage() {
                       involvedPages={session.involved_pages ?? []}
                       isOwner={canRun && !session.closed_at}
                       busy={busy}
+                      compact={canRun}
                       onOpenPage={(id) => void openLorePreview(id)}
                       onEdit={() => void openLoreBind()}
                       onBindSetting={() => {
@@ -1410,8 +1378,8 @@ export function SessionDetailPage() {
                     />
                   </div>
                   {!session.closed_at && canRun ? (
-                  <div className="session-center-slot session-center-slot--toolbar session-table-toolbar">
-                    <div className="session-toolbar-group" aria-label="Бой">
+                  <div className="session-center-slot session-center-slot--toolbar session-table-toolbar session-table-toolbar--master">
+                    <div className="session-toolbar-group session-toolbar-group--primary" aria-label="Бой">
                       <Text className="session-toolbar-group__label">Бой</Text>
                       {!session.combat?.active ? (
                         <Button
@@ -1429,7 +1397,7 @@ export function SessionDetailPage() {
                       ) : (
                         <Button
                           type="button"
-                          variant="secondary"
+                          variant="danger"
                           disabled={busy}
                           onClick={() => {
                             setEndCombatThenClose(false)
@@ -1442,69 +1410,11 @@ export function SessionDetailPage() {
                       <Button
                         type="button"
                         variant="secondary"
-                        disabled={busy || Boolean(session.combat?.active)}
-                        title={
-                          session.combat?.active
-                            ? 'Бой уже идёт'
-                            : !session.setting_id
-                              ? 'Нужен сеттинг сессии'
-                              : 'Высадить страницу «Бой» из вики'
-                        }
-                        onClick={() => {
-                          setWikiCombatPickId(wikiCombats[0]?.id ?? '')
-                          setWikiCombatPickOpen(true)
-                          if (wikiCombats.length === 0 && session.setting_id) {
-                            void run(async () => {
-                              const wiki = await listSessionWikiCombats(session.id)
-                              setWikiCombats(wiki.pages ?? [])
-                            })
-                          }
-                        }}
-                      >
-                        Из вики
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy || !session.setting_id}
-                        title={
-                          !session.setting_id
-                            ? 'Нужен сеттинг сессии'
-                            : 'Список страниц «Бой» сеттинга'
-                        }
-                        onClick={() => {
-                          setWikiCombatListOpen(true)
-                          void run(async () => {
-                            const wiki = await listSessionWikiCombats(session.id)
-                            setWikiCombats(wiki.pages ?? [])
-                          })
-                        }}
-                      >
-                        Бои локации
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="secondary"
                         disabled={busy}
                         onClick={() => setCombatantOpen(true)}
                       >
                         + Враги
                       </Button>
-                      {normalizeCampaignRules(session.campaign_rules).homebrew.dmg_morale ? (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          disabled={busy || !session.combat?.active}
-                          title={
-                            session.combat?.active
-                              ? 'Проверка морали врагов (спас Мудрости Сл 10)'
-                              : 'Нужен активный бой'
-                          }
-                          onClick={() => setMoraleOpen(true)}
-                        >
-                          Проверка морали
-                        </Button>
-                      ) : null}
                       {session.seats.length > 0 ? (
                         <Button
                           type="button"
@@ -1526,11 +1436,18 @@ export function SessionDetailPage() {
                         </Button>
                       ) : null}
                     </div>
-                    <div className="session-toolbar-group" aria-label="Награды">
+                    <div
+                      className={`session-toolbar-group session-toolbar-group--rewards${
+                        !session.combat?.active
+                          ? ' session-toolbar-group--rewards-spotlight'
+                          : ''
+                      }`}
+                      aria-label="Награды"
+                    >
                       <Text className="session-toolbar-group__label">Награды</Text>
                       <Button
                         type="button"
-                        variant="secondary"
+                        variant={!session.combat?.active ? 'primary' : 'secondary'}
                         disabled={busy || session.seats.length === 0}
                         onClick={() => {
                           setRewardsFocus('manual')
@@ -1541,7 +1458,7 @@ export function SessionDetailPage() {
                       </Button>
                       <Button
                         type="button"
-                        variant="secondary"
+                        variant={!session.combat?.active ? 'primary' : 'secondary'}
                         disabled={busy || session.seats.length === 0}
                         onClick={() => {
                           setRewardsFocus('loot')
@@ -1567,140 +1484,219 @@ export function SessionDetailPage() {
                         Выдать
                       </Button>
                     </div>
-                    <div className="session-toolbar-group" aria-label="Сюжет">
-                      <Text className="session-toolbar-group__label">Сюжет</Text>
-                      {!session.setting_id ? (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          disabled={busy}
-                          onClick={() => {
-                            setBindSettingId(lobbySettings[0]?.id ?? '')
-                            setBindSettingOpen(true)
-                          }}
-                        >
-                          Привязать сеттинг
-                        </Button>
-                      ) : (
-                        <>
+                    <details className="session-toolbar-more">
+                      <summary className="session-toolbar-more__summary">Ещё действия</summary>
+                      <div className="session-toolbar-more__body">
+                        <div className="session-toolbar-group" aria-label="Сюжет и вики">
+                          <Text className="session-toolbar-group__label">Сюжет</Text>
                           <Button
                             type="button"
                             variant="secondary"
-                            disabled={busy}
-                            onClick={() => void openRevealDialog()}
-                          >
-                            Раскрыть
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            disabled={busy}
-                            onClick={() => void openLoreBind()}
-                          >
-                            Локация
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            disabled={busy || (session.involved_pages ?? []).every((p) => p.page_kind !== 'quest')}
+                            disabled={busy || Boolean(session.combat?.active)}
+                            title={
+                              session.combat?.active
+                                ? 'Бой уже идёт'
+                                : !session.setting_id
+                                  ? 'Нужен сеттинг сессии'
+                                  : 'Высадить страницу «Бой» из вики'
+                            }
                             onClick={() => {
-                              const quest = (session.involved_pages ?? []).find(
-                                (p) => p.page_kind === 'quest',
-                              )
-                              if (!quest) {
-                                setToast('Нет квеста в лоре сессии')
-                                return
+                              setWikiCombatPickId(wikiCombats[0]?.id ?? '')
+                              setWikiCombatPickOpen(true)
+                              if (wikiCombats.length === 0 && session.setting_id) {
+                                void run(async () => {
+                                  const wiki = await listSessionWikiCombats(session.id)
+                                  setWikiCombats(wiki.pages ?? [])
+                                })
                               }
-                              setQuestTarget(quest)
-                              setQuestDialogOpen(true)
                             }}
                           >
-                            Статус квеста
+                            Из вики
                           </Button>
-                        </>
-                      )}
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy || session.seats.length === 0}
-                        title={
-                          session.seats.length === 0
-                            ? 'Нужна партия за столом'
-                            : 'Подобрать бой по листам'
-                        }
-                        onClick={() => {
-                          setGeneratorResult(null)
-                          setGeneratorOpen(true)
-                          if (session.setting_id && !loreSetting && !wikiSetting) {
-                            void ensureLoreSetting()
-                          }
-                        }}
-                      >
-                        Генератор
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy || Boolean(session.combat?.active)}
-                        title={
-                          session.combat?.active
-                            ? 'Во время боя отдых недоступен'
-                            : normalizeCampaignRules(session.campaign_rules).homebrew
-                                  .gritty_rest
-                              ? 'Суровый реализм: 8 часов'
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={busy || !session.setting_id}
+                            title={
+                              !session.setting_id
+                                ? 'Нужен сеттинг сессии'
+                                : 'Список страниц «Бой» сеттинга'
+                            }
+                            onClick={() => {
+                              setWikiCombatListOpen(true)
+                              void run(async () => {
+                                const wiki = await listSessionWikiCombats(session.id)
+                                setWikiCombats(wiki.pages ?? [])
+                              })
+                            }}
+                          >
+                            Бои локации
+                          </Button>
+                          {normalizeCampaignRules(session.campaign_rules).homebrew.dmg_morale ? (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              disabled={busy || !session.combat?.active}
+                              title={
+                                session.combat?.active
+                                  ? 'Проверка морали врагов (спас Мудрости Сл 10)'
+                                  : 'Нужен активный бой'
+                              }
+                              onClick={() => setMoraleOpen(true)}
+                            >
+                              Проверка морали
+                            </Button>
+                          ) : null}
+                          {!session.setting_id ? (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              disabled={busy}
+                              onClick={() => {
+                                setBindSettingId(lobbySettings[0]?.id ?? '')
+                                setBindSettingOpen(true)
+                              }}
+                            >
+                              Привязать сеттинг
+                            </Button>
+                          ) : (
+                            <>
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                disabled={busy}
+                                onClick={() => void openRevealDialog()}
+                              >
+                                Раскрыть
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                disabled={busy}
+                                onClick={() => void openLoreBind()}
+                              >
+                                Локация
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                disabled={
+                                  busy ||
+                                  (session.involved_pages ?? []).every(
+                                    (p) => p.page_kind !== 'quest',
+                                  )
+                                }
+                                onClick={() => {
+                                  const quest = (session.involved_pages ?? []).find(
+                                    (p) => p.page_kind === 'quest',
+                                  )
+                                  if (!quest) {
+                                    setToast('Нет квеста в лоре сессии')
+                                    return
+                                  }
+                                  setQuestTarget(quest)
+                                  setQuestDialogOpen(true)
+                                }}
+                              >
+                                Статус квеста
+                              </Button>
+                            </>
+                          )}
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={busy || session.seats.length === 0}
+                            title={
+                              session.seats.length === 0
+                                ? 'Нужна партия за столом'
+                                : 'Подобрать бой по листам'
+                            }
+                            onClick={() => {
+                              setGeneratorResult(null)
+                              setGeneratorOpen(true)
+                              if (session.setting_id && !loreSetting && !wikiSetting) {
+                                void ensureLoreSetting()
+                              }
+                            }}
+                          >
+                            Генератор
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={busy || Boolean(session.combat?.active)}
+                            title={
+                              session.combat?.active
+                                ? 'Во время боя отдых недоступен'
+                                : normalizeCampaignRules(session.campaign_rules).homebrew
+                                      .gritty_rest
+                                  ? 'Суровый реализм: 8 часов'
+                                  : normalizeCampaignRules(session.campaign_rules).homebrew
+                                        .dmg_epic_heroism
+                                    ? 'Эпический героизм: 5 минут'
+                                    : undefined
+                            }
+                            onClick={() => {
+                              void run(async () => {
+                                const result = await startPartyRest(session.id, 'short')
+                                setSession(result.session)
+                                setToast(result.summary)
+                                await reloadEvents()
+                              })
+                            }}
+                          >
+                            {normalizeCampaignRules(session.campaign_rules).homebrew.gritty_rest
+                              ? 'Короткий отдых (8 ч)'
                               : normalizeCampaignRules(session.campaign_rules).homebrew
                                     .dmg_epic_heroism
-                                ? 'Эпический героизм: 5 минут'
-                                : undefined
-                        }
-                        onClick={() => {
-                          void run(async () => {
-                            const result = await startPartyRest(session.id, 'short')
-                            setSession(result.session)
-                            setToast(result.summary)
-                            await reloadEvents()
-                          })
-                        }}
-                      >
-                        {normalizeCampaignRules(session.campaign_rules).homebrew.gritty_rest
-                          ? 'Короткий отдых (8 ч)'
-                          : normalizeCampaignRules(session.campaign_rules).homebrew
-                                .dmg_epic_heroism
-                            ? 'Короткий отдых (5 мин)'
-                            : 'Короткий отдых'}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        disabled={busy || Boolean(session.combat?.active)}
-                        title={
-                          session.combat?.active
-                            ? 'Во время боя отдых недоступен'
-                            : normalizeCampaignRules(session.campaign_rules).homebrew
-                                  .gritty_rest
-                              ? 'Суровый реализм: 7 дней'
+                                ? 'Короткий отдых (5 мин)'
+                                : 'Короткий отдых'}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={busy || Boolean(session.combat?.active)}
+                            title={
+                              session.combat?.active
+                                ? 'Во время боя отдых недоступен'
+                                : normalizeCampaignRules(session.campaign_rules).homebrew
+                                      .gritty_rest
+                                  ? 'Суровый реализм: 7 дней'
+                                  : normalizeCampaignRules(session.campaign_rules).homebrew
+                                        .dmg_epic_heroism
+                                    ? 'Эпический героизм: 1 час'
+                                    : undefined
+                            }
+                            onClick={() => {
+                              void run(async () => {
+                                const result = await startPartyRest(session.id, 'long')
+                                setSession(result.session)
+                                setToast(result.summary)
+                                await reloadEvents()
+                              })
+                            }}
+                          >
+                            {normalizeCampaignRules(session.campaign_rules).homebrew.gritty_rest
+                              ? 'Долгий отдых (7 дн.)'
                               : normalizeCampaignRules(session.campaign_rules).homebrew
                                     .dmg_epic_heroism
-                                ? 'Эпический героизм: 1 час'
-                                : undefined
-                        }
-                        onClick={() => {
-                          void run(async () => {
-                            const result = await startPartyRest(session.id, 'long')
-                            setSession(result.session)
-                            setToast(result.summary)
-                            await reloadEvents()
-                          })
-                        }}
-                      >
-                        {normalizeCampaignRules(session.campaign_rules).homebrew.gritty_rest
-                          ? 'Долгий отдых (7 дн.)'
-                          : normalizeCampaignRules(session.campaign_rules).homebrew
-                                .dmg_epic_heroism
-                            ? 'Долгий отдых (1 ч)'
-                            : 'Долгий отдых'}
-                      </Button>
-                    </div>
+                                ? 'Долгий отдых (1 ч)'
+                                : 'Долгий отдых'}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            disabled={busy}
+                            onClick={() => {
+                              setRenameDraft(session.name)
+                              setTableSettingsOpen(true)
+                            }}
+                          >
+                            Настройки стола
+                          </Button>
+                        </div>
+                      </div>
+                    </details>
                   </div>
                   ) : null}
 
@@ -3236,6 +3232,77 @@ export function SessionDetailPage() {
               </select>
             </Field>
           )}
+        </Stack>
+      </Dialog>
+
+      <Dialog
+        open={tableSettingsOpen}
+        title="Настройки стола"
+        primaryLabel={busy ? 'Сохраняем…' : 'Сохранить название'}
+        secondaryLabel="Закрыть"
+        busy={busy}
+        onPrimary={() => {
+          const nextName = renameDraft.trim()
+          if (!nextName) {
+            setError('Название стола не может быть пустым')
+            return
+          }
+          void run(async () => {
+            const next = await updateSession(session.id, { name: nextName })
+            setSession(next)
+            setTableSettingsOpen(false)
+            setToast('Название стола обновлено')
+          })
+        }}
+        onSecondary={() => setTableSettingsOpen(false)}
+      >
+        <Stack gap={14}>
+          <Text tone="muted">
+            Переименование и закрытие стола — здесь. Приглашение (код / QR) — в хабе лобби.
+            Удаление — только с подтверждением имени.
+          </Text>
+          <Field label="Название">
+            <Input
+              value={renameDraft}
+              onChange={(e) => setRenameDraft(e.target.value)}
+              disabled={busy}
+            />
+          </Field>
+          <div className="session-table-settings__actions">
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={busy}
+              onClick={() => {
+                setTableSettingsOpen(false)
+                if (session.combat?.active) {
+                  setEndCombatThenClose(true)
+                  setCombatEndOpen(true)
+                  return
+                }
+                setCloseTitle(`Итог: ${session.name}`)
+                setCloseSummary('')
+                setWriteJournal(true)
+                setCloseOpen(true)
+              }}
+            >
+              Закрыть сессию
+            </Button>
+            {sessionCanDelete(session) ? (
+              <Button
+                type="button"
+                variant="danger"
+                disabled={busy}
+                onClick={() => {
+                  setTableSettingsOpen(false)
+                  setDeleteConfirmName('')
+                  setDeleteOpen(true)
+                }}
+              >
+                Удалить сессию
+              </Button>
+            ) : null}
+          </div>
         </Stack>
       </Dialog>
 

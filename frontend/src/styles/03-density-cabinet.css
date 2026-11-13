@@ -163,6 +163,49 @@
   padding: 10px 12px;
 }
 
+/* LV-04: лор в одну строку у мастера — не выталкивает карточки */
+.session-lore-panel--compact {
+  padding: 4px 8px;
+  border-radius: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+}
+
+.session-lore-panel--compact .session-lore-panel__head {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.session-lore-panel--compact .session-lore-panel__title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: inherit;
+}
+
+.session-lore-panel--compact .session-lore-panel__chips {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.session-lore-panel--compact .session-lore-chip {
+  padding: 2px 8px;
+  font-size: 0.82rem;
+}
+
+.session-lore-panel--compact .session-lore-chip__kind {
+  display: none;
+}
+
+.session-lore-panel--compact .session-lore-chip__status {
+  padding: 2px 6px;
+  font-size: 0.7rem;
+}
+
 .session-lore-panel__head {
   display: flex;
   align-items: center;

@@ -18,6 +18,8 @@ type Props = {
   /** W-03: бои под текущей локацией. */
   combatPages?: WikiCombatPage[]
   onPickCombat?: (page: WikiCombatPage) => void
+  /** LV-04: одна строка на десктопе мастера — карточки героев в первом экране */
+  compact?: boolean
 }
 
 function questStatusLabel(status: string | null | undefined): string {
@@ -37,11 +39,15 @@ export function SessionLorePanel({
   onQuestStatus,
   combatPages,
   onPickCombat,
+  compact = false,
 }: Props) {
   if (!hasSetting) {
     if (!isOwner || !onBindSetting) return null
     return (
-      <div className="session-lore-panel session-lore-panel--bind" aria-label="Лор сессии">
+      <div
+        className={`session-lore-panel session-lore-panel--bind${compact ? ' session-lore-panel--compact' : ''}`}
+        aria-label="Лор сессии"
+      >
         <Button type="button" variant="secondary" disabled={busy} onClick={onBindSetting}>
           Привязать сеттинг
         </Button>
@@ -52,11 +58,16 @@ export function SessionLorePanel({
   const empty = !locationPage && involvedPages.length === 0
   if (empty && !isOwner) return null
 
+  const showCombatPages = !compact && combatPages && combatPages.length > 0 && onPickCombat
+
   return (
-    <div className="session-lore-panel" aria-label="Лор сессии">
+    <div
+      className={`session-lore-panel${compact ? ' session-lore-panel--compact' : ''}`}
+      aria-label="Лор сессии"
+    >
       <div className="session-lore-panel__head">
         <Text as="h3" className="session-lore-panel__title">
-          Лор за столом
+          {compact ? 'Лор' : 'Лор за столом'}
         </Text>
         {isOwner && onEdit ? (
           <Button type="button" variant="ghost" disabled={busy} onClick={onEdit}>
@@ -65,7 +76,9 @@ export function SessionLorePanel({
         ) : null}
       </div>
       {empty ? (
-        <Text tone="muted">Локация и НПС/квесты сессии — для превью без ухода в вики.</Text>
+        compact ? null : (
+          <Text tone="muted">Локация и НПС/квесты сессии — для превью без ухода в вики.</Text>
+        )
       ) : (
         <div className="session-lore-panel__chips">
           {locationPage ? (
@@ -76,8 +89,14 @@ export function SessionLorePanel({
               onClick={() => onOpenPage(locationPage.id)}
               title={`Локация · ${pageKindLabel(locationPage.page_kind)}`}
             >
-              <span className="session-lore-chip__kind">локация</span>
-              {locationPage.title}
+              {compact ? (
+                locationPage.title
+              ) : (
+                <>
+                  <span className="session-lore-chip__kind">локация</span>
+                  {locationPage.title}
+                </>
+              )}
             </button>
           ) : null}
           {involvedPages.map((p) => (
@@ -89,13 +108,19 @@ export function SessionLorePanel({
                 onClick={() => onOpenPage(p.id)}
                 title={pageKindLabel(p.page_kind)}
               >
-                <span className="session-lore-chip__kind">
-                  {pageKindLabel(p.page_kind)}
-                  {p.page_kind === 'quest' && p.quest_status
-                    ? ` · ${questStatusLabel(p.quest_status)}`
-                    : ''}
-                </span>
-                {p.title}
+                {compact ? (
+                  p.title
+                ) : (
+                  <>
+                    <span className="session-lore-chip__kind">
+                      {pageKindLabel(p.page_kind)}
+                      {p.page_kind === 'quest' && p.quest_status
+                        ? ` · ${questStatusLabel(p.quest_status)}`
+                        : ''}
+                    </span>
+                    {p.title}
+                  </>
+                )}
               </button>
               {isOwner && p.page_kind === 'quest' && onQuestStatus ? (
                 <button
@@ -112,20 +137,20 @@ export function SessionLorePanel({
           ))}
         </div>
       )}
-      {combatPages && combatPages.length > 0 && onPickCombat ? (
+      {showCombatPages ? (
         <div className="session-lore-panel__combats">
           <Text as="h4" className="session-lore-panel__title">
             Бои этой локации
           </Text>
           <div className="session-lore-panel__chips">
-            {combatPages.map((p) => (
+            {combatPages!.map((p) => (
               <button
                 key={p.id}
                 type="button"
                 className="session-lore-chip"
                 disabled={busy}
                 title={p.parent_title ? `под «${p.parent_title}»` : 'Бой из вики'}
-                onClick={() => onPickCombat(p)}
+                onClick={() => onPickCombat!(p)}
               >
                 <span className="session-lore-chip__kind">бой</span>
                 {p.title}
