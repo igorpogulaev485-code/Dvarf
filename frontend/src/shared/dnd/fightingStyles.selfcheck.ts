@@ -62,5 +62,8 @@ assert(fightingStyleById('blessed_warrior')?.nameRu === 'Благословен�
 assert(FIGHTER_FIGHTING_STYLES.includes('interception'), 'fighter interception')
 assert(PALADIN_FIGHTING_STYLES.includes('blessed_warrior'), 'paladin blessed')
 assert(RANGER_FIGHTING_STYLES.includes('druidic_warrior'), 'ranger druidic kept')
+assert(fightingStyleById('great_weapon_fighting')?.nameRu === 'Сражение большим оружием', 'GWF name')
+assert(fightingStyleById('two_weapon_fighting')?.nameRu === 'Сражение двумя оружиями', 'TWF name')
+assert(fightingStyleById('protection')?.nameRu === 'Защита', 'Protection name')
 
 console.log('fightingStyles.selfcheck: ok')

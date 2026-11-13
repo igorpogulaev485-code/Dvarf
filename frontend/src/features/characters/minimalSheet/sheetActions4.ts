@@ -86,6 +86,13 @@ import {
   elementalAffinityPreview,
   normalizeLunarPhase,
 } from '../../../shared/dnd/pack04SorcererWarlock'
+import {
+  REPELLING_BLAST_HINT,
+  agonizingBlastDamageBonus,
+  formatEldritchBlastDamagePreview,
+  hasRepellingBlast,
+  isEldritchBlastSpell,
+} from '../../../shared/dnd/o06StylesBreathInvocations'
 import { resolveSpellCastStats } from '../../../shared/dnd/castProfiles'
 import {
   canCastLeveledSpell,
@@ -652,7 +659,7 @@ export function installSheetActions4(model: SheetModel) {
       fallbackAbility: model.draft.spells.casting_ability,
     })
     const sorc = model.draft.classes.find((row) => /чародей|sorcerer/i.test(row.name))
-    const affinity = sorc
+    const elementalAffinity = sorc
       ? elementalAffinityPreview({
           subclassSlug: model.subclassSlugByEntryId?.[sorc.id] || sorc.subclass_name,
           sorcererLevel: sorc.level,
@@ -660,7 +667,28 @@ export function installSheetActions4(model: SheetModel) {
           chaMod: abilityModifier(model.effectiveAbilities.cha),
         })
       : null
-    const { effect, scaled } = resolveCastEffect(spell, {
+    const warlockInvocationIds: string[] = []
+    for (const row of model.draft.classes) {
+      if (!/колдун|warlock/i.test(row.name)) continue
+      const raw =
+        model.draft.featurePicks.values[`${row.id}:eldritch_invocations`] ?? ''
+      for (const id of raw.split(',')) {
+        const t = id.trim()
+        if (t) warlockInvocationIds.push(t)
+      }
+    }
+    const chaMod = abilityModifier(model.effectiveAbilities.cha)
+    const agonizing = agonizingBlastDamageBonus({
+      knownInvocationIds: warlockInvocationIds,
+      chaMod,
+      spellName: spell.name,
+      catalogId: spell.catalog_id,
+    })
+    const affinity =
+      agonizing !== 0
+        ? { damageType: 'силовое поле', amount: agonizing }
+        : elementalAffinity
+    let { effect, scaled } = resolveCastEffect(spell, {
       characterLevel: model.characterLevel,
       slotLevel: slotForEffect || spell.level,
       spellMod: castStats.ability
@@ -672,6 +700,19 @@ export function installSheetActions4(model: SheetModel) {
       damageChoice: choice.damageChoice,
       affinity,
     })
+    if (
+      isEldritchBlastSpell({ name: spell.name, catalogId: spell.catalog_id })
+    ) {
+      effect = formatEldritchBlastDamagePreview({
+        characterLevel: model.characterLevel,
+        chaMod,
+        hasAgonizing: agonizing !== 0,
+      })
+      scaled = true
+      if (hasRepellingBlast(warlockInvocationIds)) {
+        effect = `${effect} · ${REPELLING_BLAST_HINT}`
+      }
+    }
     if (choice.noSlot) {
       const spent = spendItemCharges(
         model.draft.play.resources,

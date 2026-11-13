@@ -1,4 +1,5 @@
 import { formatModifier } from './sheetTypes'
+import { applyGreatWeaponFightingReroll } from '../../shared/dnd/o06StylesBreathInvocations'
 
 export type DeskRollMode = 'normal' | 'advantage' | 'disadvantage'
 
@@ -356,6 +357,11 @@ export function resolveAttackRoll(input: {
   savageAttacker?: boolean
   /** B-07: Flames of Phlegethos — reroll 1s on fire damage. */
   flamesOfPhlegethos?: boolean
+  /**
+   * O-06: Great Weapon Fighting — reroll 1–2 on weapon damage dice only
+   * (not smite / hunters mark extras).
+   */
+  greatWeaponFighting?: boolean
 }): AttackStrike {
   const rng = input.rng ?? Math.random
   const mode = input.mode ?? 'normal'
@@ -372,6 +378,31 @@ export function resolveAttackRoll(input: {
   const crit = hit.die === 20
   let dmg = rollDamage(input.damageExpr, rng, { crit })
   const damageNotes: string[] = []
+  if (dmg && input.greatWeaponFighting && dmg.parts.length > 0) {
+    const parsed = parseDamageExpression(input.damageExpr)
+    const sides = parsed?.sides ?? 6
+    const gwf = applyGreatWeaponFightingReroll({
+      parts: dmg.parts,
+      sides,
+      rng,
+    })
+    if (gwf.changed) {
+      const sum = gwf.parts.reduce((a, b) => a + b, 0) + dmg.modifier
+      dmg = {
+        ...dmg,
+        parts: gwf.parts,
+        total: sum,
+        detail: `${gwf.parts.join('+')}${
+          dmg.modifier === 0
+            ? ''
+            : dmg.modifier > 0
+              ? `+${dmg.modifier}`
+              : String(dmg.modifier)
+        } · GWF`,
+      }
+      damageNotes.push(...gwf.notes)
+    }
+  }
   if (dmg && input.savageAttacker && dmg.parts.length > 0) {
     const reroll = dmg.parts.map((sidesHint, i) => {
       // Re-roll each weapon damage die; keep the higher face (player may pick either — we keep max for auto).

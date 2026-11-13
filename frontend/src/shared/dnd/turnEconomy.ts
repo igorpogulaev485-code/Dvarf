@@ -68,6 +68,9 @@ export type TurnEconomyState = {
   crusherUsedThisTurn: boolean
   piercerUsedThisTurn: boolean
   slasherUsedThisTurn: boolean
+  /** O-06: Attack action with light/one-hand melee → TWF bonus ready. */
+  twoWeaponBonusReady: boolean
+  twoWeaponBonusUsed: boolean
 }
 
 export type TurnSpendBlock = {
@@ -108,6 +111,8 @@ export function emptyTurnEconomy(): TurnEconomyState {
     crusherUsedThisTurn: false,
     piercerUsedThisTurn: false,
     slasherUsedThisTurn: false,
+    twoWeaponBonusReady: false,
+    twoWeaponBonusUsed: false,
   }
 }
 
@@ -225,6 +230,12 @@ export function readTurnEconomy(raw: unknown): TurnEconomyState {
     slasherUsedThisTurn: Boolean(
       row.slasher_used_this_turn ?? row.slasherUsedThisTurn,
     ),
+    twoWeaponBonusReady: Boolean(
+      row.two_weapon_bonus_ready ?? row.twoWeaponBonusReady,
+    ),
+    twoWeaponBonusUsed: Boolean(
+      row.two_weapon_bonus_used ?? row.twoWeaponBonusUsed,
+    ),
   }
 }
 
@@ -268,6 +279,8 @@ export function serializeTurnEconomy(
     crusher_used_this_turn: Boolean(state.crusherUsedThisTurn),
     piercer_used_this_turn: Boolean(state.piercerUsedThisTurn),
     slasher_used_this_turn: Boolean(state.slasherUsedThisTurn),
+    two_weapon_bonus_ready: Boolean(state.twoWeaponBonusReady),
+    two_weapon_bonus_used: Boolean(state.twoWeaponBonusUsed),
   }
 }
 

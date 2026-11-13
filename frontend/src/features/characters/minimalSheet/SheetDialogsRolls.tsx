@@ -269,6 +269,19 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           )
         }
         elementalAffinity={elementalAffinity}
+        knownInvocationIds={(() => {
+          const ids: string[] = []
+          for (const row of model.draft.classes) {
+            if (!/колдун|warlock/i.test(row.name)) continue
+            const raw =
+              model.draft.featurePicks.values[`${row.id}:eldritch_invocations`] ?? ''
+            for (const id of raw.split(',')) {
+              const t = id.trim()
+              if (t) ids.push(t)
+            }
+          }
+          return ids
+        })()}
         abilities={model.effectiveAbilities}
         proficiencyBonus={model.proficiencyBonus}
         castProfiles={model.spellcastingSync.castProfiles}

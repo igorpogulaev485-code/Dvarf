@@ -449,6 +449,15 @@ export const B08_BUFF_SPEC_BUILDERS: Record<string, SpecBuilder> = {
     mods: [{ target: 'label', op: 'set', condition: 'unending_breath' }],
   }),
 
+  breath_weapon: (_ctx) => ({
+    name: 'Оружие дыхания',
+    slug: 'breath_weapon',
+    kind: 'race',
+    concentration: false,
+    duration: untilShortRest(),
+    mods: [{ target: 'label', op: 'set', condition: 'breath_weapon_spent' }],
+  }),
+
   earth_walk: (_ctx) => ({
     name: 'Хождение по земле',
     slug: 'earth_walk',
@@ -495,5 +504,6 @@ export const B08_NAME_TO_SLUG: Array<{ re: RegExp; slug: string }> = [
   { re: /^псионик.*щит/i, slug: 'githzerai_shield' },
   { re: /^панцирь/i, slug: 'simic_carapace' },
   { re: /^нескончаем.*дыхан/i, slug: 'unending_breath' },
+  { re: /^оружие\s*дыхани/i, slug: 'breath_weapon' },
   { re: /^хождение\s*по\s*земле/i, slug: 'earth_walk' },
 ]
