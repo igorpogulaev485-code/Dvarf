@@ -11,7 +11,7 @@ import type { ClassicPatch } from './fromApi'
 
 export { COMPANION_KIND_LABELS }
 
-/** How many companion slots to show on classic P4 (fill Letter page). */
+/** How many companion slots to show on classic P4 (fill A4 page). */
 export const CLASSIC_COMPANION_SLOTS = 6
 
 export function classicCompanions(character: CharacterDetail): CompanionEntry[] {

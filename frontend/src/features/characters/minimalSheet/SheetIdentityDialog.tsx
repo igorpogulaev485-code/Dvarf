@@ -545,6 +545,30 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                 {raceSizeLabel(model.draft.raceGrant?.size || model.draft.identity.size)}
               </Text>
             </Field>
+            <Field
+              label="Имя игрока"
+              htmlFor="sheet-player-name"
+              hint="На классическом бланке — поле «Имя игрока»."
+            >
+              <Input
+                id="sheet-player-name"
+                value={model.draft.identity.playerName}
+                onChange={(e) =>
+                  model.patchIdentity({ playerName: e.target.value })
+                }
+              />
+            </Field>
+            <Field
+              label="Грузоподъёмность"
+              htmlFor="sheet-carry"
+              hint="Заметка для бланка 2024 (поле carry). Расчёт веса инвентаря — отдельно на столе."
+            >
+              <Input
+                id="sheet-carry"
+                value={model.draft.identity.carry}
+                onChange={(e) => model.patchIdentity({ carry: e.target.value })}
+              />
+            </Field>
           </div>
           <div className="sheet-grid sheet-grid--2">
             <Field

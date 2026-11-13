@@ -46,6 +46,10 @@ export type IdentityExtras = {
   /** Character gender from create-pipeline / identity editor. */
   gender: CharacterGender | null
   size: string
+  /** Player name on the print blank (`identity.player_name`). */
+  playerName: string
+  /** Carry capacity note on 2024 blank (`identity.carry`). */
+  carry: string
   darkvision: number
   armor: ArmorProficiency
   weapons: WeaponProficiency
@@ -117,6 +121,8 @@ export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtr
     ...readAlignmentFields(identity),
     gender: parseCharacterGender(identity.gender),
     size: typeof identity.size === 'string' && identity.size.trim() ? identity.size : 'medium',
+    playerName: typeof identity.player_name === 'string' ? identity.player_name : '',
+    carry: typeof identity.carry === 'string' ? identity.carry : '',
     darkvision: Math.max(0, Math.floor(readNumber(combat.darkvision, 0))),
     armor: {
       light: Boolean(armor.light),
@@ -163,6 +169,8 @@ export function identityExtrasToSheet(extras: IdentityExtras): {
       alignment_text: extras.alignmentText.trim() || null,
       gender: extras.gender,
       size: extras.size.trim() || 'medium',
+      player_name: extras.playerName.trim() || null,
+      carry: extras.carry.trim() || null,
       race_applied_languages: extras.raceAppliedLanguages
         .map((item) => item.trim())
         .filter(Boolean),

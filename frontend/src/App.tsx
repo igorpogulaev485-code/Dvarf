@@ -4,6 +4,7 @@ import { AuthDebugPage } from './pages/AuthDebugPage'
 import { CharactersPage } from './pages/CharactersPage'
 import { ConsumablesTapGuardPreviewPage } from './pages/ConsumablesTapGuardPreviewPage'
 import { LegalPage } from './pages/LegalPage'
+import { ClassicBlankSheetPage } from './pages/ClassicBlankSheetPage'
 import { ClassicSheetPreviewPage } from './pages/ClassicSheetPreviewPage'
 import { OnboardingPreviewPage } from './pages/OnboardingPreviewPage'
 import { QuackCreateSpellsPreviewPage } from './pages/QuackCreateSpellsPreviewPage'
@@ -76,6 +77,7 @@ export default function App() {
         <Route path="/dev/quack-spell-preview" element={<QuackSpellPreviewPage />} />
         <Route path="/dev/quack-create-spells-preview" element={<QuackCreateSpellsPreviewPage />} />
         <Route path="/dev/classic-sheet-preview" element={<ClassicSheetPreviewPage />} />
+        <Route path="/classic/blank" element={<ClassicBlankSheetPage />} />
         <Route path="/login" element={<LoginRoute />} />
         {import.meta.env.DEV ? (
           <Route

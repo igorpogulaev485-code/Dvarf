@@ -1,5 +1,4 @@
 import type { CharacterDetail } from '../../shared/api/characters'
-import { ClassicSpellScrolls } from './ClassicSpellScrolls'
 import {
   ABILITY_NAMES,
   SKILL_DEFS,
@@ -8,16 +7,14 @@ import {
   type AbilityKey,
 } from '../characters/sheetTypes'
 import type { SheetSpell } from '../characters/spells'
+import type { ClassicPatch } from './fromApi'
 import {
-  applyClassicEdits,
   combatField,
-  cycleSkillMastery,
   equipmentItemsLine,
   equipmentNotes,
   identityField,
   inventoryCoins,
   isSaveProficient,
-  setCoins,
   skillFlags,
   classicFeaturesTraitsValue,
   textBlockValue,
@@ -25,22 +22,16 @@ import {
 import {
   classicAttunementFilled,
   classicAttunementLimit,
-  patchClassicAttunementCount,
 } from './classicAttunement'
 import { classicConditionsLabel } from './classicConditions'
-import { classicWeaponRows, patchClassicWeapon } from './classicWeapons'
+import { classicWeaponRows } from './classicWeapons'
 import {
   classicCastProfiles,
   classicSpellAbilityLabel,
   classicSpellStats,
   classicSpellsState,
-  parseCastingAbilityInput,
-  setCastingAbility,
-  setSlotExpended,
-  setSlotTotal,
-  setSpellNameAt,
-  toggleSpellPrepared,
 } from './classicSpells'
+import { readClassicPencilBlanks } from './classicPrintSettings'
 import { SPELLCASTING_ABILITY_LABELS } from '../../shared/dnd/spells'
 import {
   Bubble,
@@ -48,7 +39,6 @@ import {
   asRecordNotes,
   brandYearLabel,
   clampMarks,
-  numOrNull,
 } from './classicPrintShared'
 import { classicCombatDisplay, classicEffectiveAbilities } from './classicDerivedCombat'
 import {
@@ -57,20 +47,17 @@ import {
   recognizeAlignment,
 } from '../../shared/dnd/alignments'
 import {
-  addClassicNote,
   classicNoteLabel,
   classicNoteText,
   listClassicNotes,
   paddedClassicNoteSlots,
-  setClassicNoteLabel,
-  setClassicNoteText,
 } from './classicNotes'
 import { ClassicTextBlock } from './ClassicTextBlock'
 import { ClassicFitInput } from './ClassicFitInput'
 
 type Props = {
   character: CharacterDetail
-  onPatch: (patch: ReturnType<typeof applyClassicEdits>) => void
+  onPrintSettings?: (patch: ClassicPatch) => void
 }
 
 const SKILLS_BY_ABILITY: Record<AbilityKey, typeof SKILL_DEFS> = {
@@ -93,14 +80,11 @@ const SPELL_TABLE_ROWS = 28
  * Classic 2024 printable layout — LSS-style 4 pages (display only).
  * Same paper tokens as 2014; structure follows Long Story Short 2024 blank.
  */
-export function ClassicPrint2024({ character: c, onPatch }: Props) {
+export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
   const combatNum = (key: string): string => classicCombatDisplay(c, key)
 
   const combatBool = (key: string): boolean => Boolean(combatField(c, key))
 
-  const patch = (edits: Parameters<typeof applyClassicEdits>[1]) => {
-    onPatch(applyClassicEdits(c, edits))
-  }
 
   const proficiency = Number(asProfBonus(c))
   const hitDiceTotal = String(c.level || '')
@@ -131,7 +115,8 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
     (skillFlags(c, 'perception').is_proficient ? proficiency : 0) +
     (skillFlags(c, 'perception').is_expertise ? proficiency : 0)
 
-  const spellRows = buildSpellTableRows(spells.known)
+  const pencilBlanks = readClassicPencilBlanks(c)
+  const { first: spellRows, rest: spellOverflow } = buildSpellTableRows(spells.known, pencilBlanks)
   const customNotes = listClassicNotes(c)
   const noteSlots = paddedClassicNoteSlots(customNotes)
 
@@ -147,7 +132,6 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
             <label className="classic-lss-name">
               <ClassicFitInput
                 value={c.name}
-                onChange={(e) => patch({ name: e.target.value })}
                 aria-label="Имя персонажа"
               />
               <span>Имя персонажа</span>
@@ -164,22 +148,19 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               <label>
                 <input
                   value={c.class_name ?? ''}
-                  onChange={(e) => patch({ class_name: e.target.value || null })}
-                />
+                 readOnly />
                 <span>Класс</span>
               </label>
               <label>
                 <input
                   value={c.race_name ?? ''}
-                  onChange={(e) => patch({ race_name: e.target.value || null })}
-                />
+                 readOnly />
                 <span>Вид</span>
               </label>
               <label>
                 <input
                   value={String(identityField(c, 'subclass') ?? '')}
-                  onChange={(e) => patch({ identity: { subclass: e.target.value || null } })}
-                />
+                 readOnly />
                 <span>Подкласс</span>
               </label>
             </div>
@@ -190,17 +171,13 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               <input
                 type="number"
                 value={c.level}
-                onChange={(e) => patch({ level: Number(e.target.value) || 1 })}
-              />
+               readOnly />
               <span>Уровень</span>
             </label>
             <label>
               <input
                 value={String(identityField(c, 'experience') ?? '')}
-                onChange={(e) =>
-                  patch({ identity: { experience: Number(e.target.value) || 0 } })
-                }
-              />
+               readOnly />
               <span>Опыт</span>
             </label>
           </div>
@@ -211,15 +188,12 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               <input
                 value={combatNum('ac')}
                 aria-label="Класс доспеха"
-                onChange={(e) => patch({ combat: { ac: numOrNull(e.target.value) } })}
-              />
+               readOnly />
               <label className="classic-lss-ac__shield-flag">
                 <Bubble
                   filled={combatBool('shield_equipped')}
                   label="Щит"
-                  onClick={() =>
-                    patch({ combat: { shield_equipped: !combatBool('shield_equipped') } })
-                  }
+
                 />
                 Щит
               </label>
@@ -233,24 +207,19 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                 <label>
                   <input
                     value={c.hp_current ?? ''}
-                    onChange={(e) => patch({ hp_current: numOrNull(e.target.value) })}
-                  />
+                   readOnly />
                   <span>Тек.</span>
                 </label>
                 <label>
                   <input
                     value={combatNum('hp_temp')}
-                    onChange={(e) =>
-                      patch({ combat: { hp_temp: Number(e.target.value) || 0 } })
-                    }
-                  />
+                   readOnly />
                   <span>Врем.</span>
                 </label>
                 <label>
                   <input
                     value={c.hp_max ?? ''}
-                    onChange={(e) => patch({ hp_max: numOrNull(e.target.value) })}
-                  />
+                   readOnly />
                   <span>Макс.</span>
                 </label>
               </div>
@@ -260,20 +229,13 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               <label>
                 <input
                   value={`${hitDiceCurrent} / ${hitDiceTotal}`}
-                  onChange={(e) => {
-                    const m = e.target.value.match(/(\d+)/)
-                    patch({
-                      combat: { hp_dice_current: m ? Number(m[1]) : null },
-                    })
-                  }}
-                />
+                 readOnly />
                 <span>Текущие</span>
               </label>
               <label>
                 <input
                   value={String(combatField(c, 'hit_die') ?? '') || 'к6'}
-                  onChange={(e) => patch({ combat: { hit_die: e.target.value || null } })}
-                />
+                 readOnly />
                 <span>Кость</span>
               </label>
             </div>
@@ -286,11 +248,6 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                     key={`s${i}`}
                     filled={deathSuccesses > i}
                     label={`Успех ${i + 1}`}
-                    onClick={() =>
-                      patch({
-                        combat: { death_successes: deathSuccesses === i + 1 ? i : i + 1 },
-                      })
-                    }
                   />
                 ))}
               </div>
@@ -301,11 +258,6 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                     key={`f${i}`}
                     filled={deathFails > i}
                     label={`Провал ${i + 1}`}
-                    onClick={() =>
-                      patch({
-                        combat: { death_fails: deathFails === i + 1 ? i : i + 1 },
-                      })
-                    }
                   />
                 ))}
               </div>
@@ -328,8 +280,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               <input
                 type="number"
                 value={proficiency}
-                onChange={(e) => patch({ proficiencyBonus: Number(e.target.value) || 0 })}
-              />
+               readOnly />
             </div>
             <div className="classic-lss-ability-cols">
               <div>
@@ -339,7 +290,6 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                     ability={key}
                     character={c}
                     proficiency={proficiency}
-                    onPatch={patch}
                   />
                 ))}
               </div>
@@ -350,7 +300,6 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                     ability={key}
                     character={c}
                     proficiency={proficiency}
-                    onPatch={patch}
                   />
                 ))}
               </div>
@@ -363,11 +312,6 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                   key={`ex${i}`}
                   filled={exhaustion > i}
                   label={`Истощение ${i + 1}`}
-                  onClick={() =>
-                    patch({
-                      combat: { exhaustion: exhaustion === i + 1 ? i : i + 1 },
-                    })
-                  }
                 />
               ))}
             </div>
@@ -387,7 +331,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                     <Bubble
                       filled={combatBool(key)}
                       label={label}
-                      onClick={() => patch({ combat: { [key]: !combatBool(key) } })}
+
                     />
                     {label}
                   </label>
@@ -406,7 +350,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                     <Bubble
                       filled={combatBool(key)}
                       label={label}
-                      onClick={() => patch({ combat: { [key]: !combatBool(key) } })}
+
                     />
                     {label}
                   </label>
@@ -417,12 +361,11 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                 <ClassicTextBlock
                   blockId="tools_languages"
                   character={c}
-                  onPatch={onPatch}
+                  onPrintSettings={onPrintSettings}
                   fill
                   value={asRecordNotes(c)}
                   printMaxHeight="2.4rem"
                   ariaLabel="Инструменты и языки"
-                  onChange={(otherProficiencies) => patch({ otherProficiencies })}
                 />
               </div>
             </div>
@@ -431,8 +374,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               <input
                 type="checkbox"
                 checked={Boolean(combatField(c, 'inspiration'))}
-                onChange={(e) => patch({ combat: { inspiration: e.target.checked } })}
-              />
+               disabled />
               Героическое вдохновение
             </label>
           </div>
@@ -442,17 +384,13 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               <label>
                 <input
                   value={combatNum('initiative')}
-                  onChange={(e) =>
-                    patch({ combat: { initiative: numOrNull(e.target.value) } })
-                  }
-                />
+                 readOnly />
                 <span>Инициатива</span>
               </label>
               <label>
                 <input
                   value={combatNum('speed')}
-                  onChange={(e) => patch({ combat: { speed: numOrNull(e.target.value) } })}
-                />
+                 readOnly />
                 <span>Скорость</span>
               </label>
               <label>
@@ -482,30 +420,17 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                     value={row.name}
                     aria-label={`Оружие ${idx + 1}: название`}
                     placeholder="—"
-                    onChange={(e) =>
-                      onPatch(patchClassicWeapon(c, idx, { name: e.target.value }))
-                    }
-                  />
+                   readOnly />
                   <input
                     value={row.attackBonus}
                     aria-label={`Оружие ${idx + 1}: бонус`}
                     placeholder="—"
-                    onChange={(e) =>
-                      onPatch(
-                        patchClassicWeapon(c, idx, { attackBonus: e.target.value }),
-                      )
-                    }
-                  />
+                   readOnly />
                   <input
                     value={row.damageLine}
                     aria-label={`Оружие ${idx + 1}: урон`}
                     placeholder="—"
-                    onChange={(e) =>
-                      onPatch(
-                        patchClassicWeapon(c, idx, { damageLine: e.target.value }),
-                      )
-                    }
-                  />
+                   readOnly />
                   <span />
                 </div>
               ))}
@@ -516,28 +441,25 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               <ClassicTextBlock
                 blockId="traits"
                 character={c}
-                onPatch={onPatch}
+                onPrintSettings={onPrintSettings}
                 fill
                 value={classicFeaturesTraitsValue(c)}
                 printMaxHeight="9rem"
                 ariaLabel="Умения и способности"
-                onChange={(value) => patch({ textBlocks: { traits: value } })}
               />
               <div className="classic-caption">Умения и способности</div>
             </div>
 
             <div className="classic-lss-p1-bottom">
               <div className="classic-panel classic-panel--grow">
-                <ClassicSpellScrolls character={c} onPatch={onPatch} />
                 <ClassicTextBlock
                   blockId="attacks"
                   character={c}
-                  onPatch={onPatch}
+                  onPrintSettings={onPrintSettings}
                   fill
                   value={textBlockValue(c, 'attacks')}
                   printMaxHeight="3.5rem"
                   ariaLabel="Атаки и заклинания"
-                  onChange={(value) => patch({ textBlocks: { attacks: value } })}
                 />
                 <div className="classic-caption">Атаки и заклинания</div>
               </div>
@@ -545,12 +467,11 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                 <ClassicTextBlock
                   blockId="feats"
                   character={c}
-                  onPatch={onPatch}
+                  onPrintSettings={onPrintSettings}
                   fill
                   value={textBlockValue(c, 'feats')}
                   printMaxHeight="3.5rem"
                   ariaLabel="Черты"
-                  onChange={(value) => patch({ textBlocks: { feats: value } })}
                 />
                 <div className="classic-caption">Черты</div>
               </div>
@@ -579,12 +500,11 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
             <ClassicTextBlock
               blockId="allies"
               character={c}
-              onPatch={onPatch}
+              onPrintSettings={onPrintSettings}
               fill
               value={textBlockValue(c, 'allies')}
               printMaxHeight="10rem"
               ariaLabel="Союзники и организации"
-              onChange={(value) => patch({ textBlocks: { allies: value } })}
             />
             <div className="classic-caption">Союзники и организации</div>
           </section>
@@ -592,12 +512,11 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
             <ClassicTextBlock
               blockId="quests"
               character={c}
-              onPatch={onPatch}
+              onPrintSettings={onPrintSettings}
               fill
               value={textBlockValue(c, 'quests')}
               printMaxHeight="16rem"
               ariaLabel="Цели и задачи"
-              onChange={(value) => patch({ textBlocks: { quests: value } })}
             />
             <div className="classic-caption">Цели и задачи</div>
           </section>
@@ -605,12 +524,11 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
             <ClassicTextBlock
               blockId="free"
               character={c}
-              onPatch={onPatch}
+              onPrintSettings={onPrintSettings}
               fill
               value={textBlockValue(c, 'free')}
               printMaxHeight="8rem"
               ariaLabel="Дополнительные способности и умения"
-              onChange={(value) => patch({ textBlocks: { free: value } })}
             />
             <div className="classic-caption">Дополнительные способности и умения</div>
           </section>
@@ -618,12 +536,11 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
             <ClassicTextBlock
               blockId="treasure"
               character={c}
-              onPatch={onPatch}
+              onPrintSettings={onPrintSettings}
               fill
               value={textBlockValue(c, 'treasure')}
               printMaxHeight="8rem"
               ariaLabel="Сокровища"
-              onChange={(value) => patch({ textBlocks: { treasure: value } })}
             />
             <div className="classic-caption">Сокровища</div>
           </section>
@@ -644,11 +561,6 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
             <strong>Заметки</strong>
             <span>Свободные блоки из цифрового листа — не секции бланка</span>
           </div>
-          <div className="classic-notes-toolbar no-print">
-            <button type="button" onClick={() => onPatch(addClassicNote(c))}>
-              Добавить заметку
-            </button>
-          </div>
         </header>
         <div className="classic-lss-notes-grid">
           {noteSlots.map((block, i) =>
@@ -659,19 +571,16 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                   value={classicNoteLabel(block)}
                   placeholder="Название заметки"
                   aria-label="Название заметки"
-                  onChange={(e) =>
-                    onPatch(setClassicNoteLabel(c, block.key, e.target.value))
-                  }
-                />
+                 readOnly />
                 <ClassicTextBlock
                   blockId={`note_${block.key}`}
                   character={c}
-                  onPatch={onPatch}
+                  onPrintSettings={onPrintSettings}
                   fill
                   value={classicNoteText(block)}
                   printMaxHeight="9rem"
                   ariaLabel={classicNoteLabel(block)}
-                  onChange={(value) => onPatch(setClassicNoteText(c, block.key, value))}
+
                 />
                 <div className="classic-caption">Заметка</div>
               </section>
@@ -727,10 +636,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                   <input
                     value={classicSpellAbilityLabel(spells.casting_ability)}
                     placeholder="ИНТ / МУД / ХАР"
-                    onChange={(e) =>
-                      onPatch(setCastingAbility(c, parseCastingAbilityInput(e.target.value)))
-                    }
-                  />
+                   readOnly />
                   <span>Характеристика</span>
                 </label>
                 <label>
@@ -759,33 +665,25 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               <label>
                 <input
                   value={String(identityField(c, 'size') ?? '')}
-                  onChange={(e) => patch({ identity: { size: e.target.value || null } })}
-                />
+                 readOnly />
                 <span>Размер</span>
               </label>
               <label>
                 <input
                   value={String(identityField(c, 'carry') ?? '')}
-                  onChange={(e) => patch({ identity: { carry: e.target.value || null } })}
-                />
+                 readOnly />
                 <span>Грузоподъёмность</span>
               </label>
               <label>
                 <input
                   value={String(identityField(c, 'jump_high') ?? '')}
-                  onChange={(e) =>
-                    patch({ identity: { jump_high: e.target.value || null } })
-                  }
-                />
+                 readOnly />
                 <span>Прыжок в.</span>
               </label>
               <label>
                 <input
                   value={String(identityField(c, 'jump_long') ?? '')}
-                  onChange={(e) =>
-                    patch({ identity: { jump_long: e.target.value || null } })
-                  }
-                />
+                 readOnly />
                 <span>Прыжок д.</span>
               </label>
             </div>
@@ -805,15 +703,6 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                           key={i}
                           filled={i < slot.used}
                           label={`Ячейка ${level}, ${i + 1}`}
-                          onClick={() =>
-                            onPatch(
-                              setSlotExpended(
-                                c,
-                                level,
-                                slot.used === i + 1 ? i : i + 1,
-                              ),
-                            )
-                          }
                         />
                       ))}
                     </div>
@@ -822,10 +711,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                       className="classic-lss-slot__max"
                       title="Всего ячеек"
                       value={slot.max || ''}
-                      onChange={(e) =>
-                        onPatch(setSlotTotal(c, level, Number(e.target.value) || 0))
-                      }
-                    />
+                     readOnly />
                   </div>
                 )
               })}
@@ -851,9 +737,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                       className="classic-bubble-btn"
                       aria-label="Подготовлено"
                       disabled={!row}
-                      onClick={() => {
-                        if (row) onPatch(toggleSpellPrepared(c, row.id))
-                      }}
+
                     >
                       <span
                         className={`classic-bubble ${row?.prepared ? 'is-filled' : ''}`}
@@ -864,18 +748,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                     </span>
                     <input
                       value={row?.name ?? ''}
-                      onChange={(e) => {
-                        if (!row) return
-                        onPatch(
-                          setSpellNameAt(
-                            c,
-                            row.level,
-                            indexOfSpellAtLevel(spells.known, row),
-                            e.target.value,
-                          ),
-                        )
-                      }}
-                    />
+                     readOnly />
                     <span>{row?.casting_time ?? ''}</span>
                     <span>{row?.range ?? ''}</span>
                     <span className={row?.concentration ? 'is-on' : ''}>
@@ -900,12 +773,11 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               <ClassicTextBlock
                 blockId="appearance"
                 character={c}
-                onPatch={onPatch}
+                onPrintSettings={onPrintSettings}
                 fill
                 value={textBlockValue(c, 'appearance')}
                 printMaxHeight="6rem"
                 ariaLabel="Внешность"
-                onChange={(value) => patch({ textBlocks: { appearance: value } })}
               />
               <div className="classic-caption">Внешность</div>
             </div>
@@ -914,7 +786,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               <ClassicTextBlock
                 blockId="background_story"
                 character={c}
-                onPatch={onPatch}
+                onPrintSettings={onPrintSettings}
                 fill
                 value={[
                   textBlockValue(c, 'background'),
@@ -927,21 +799,12 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                   .join('\n')}
                 printMaxHeight="8rem"
                 ariaLabel="Предыстория и личные качества"
-                onChange={(value) => patch({ textBlocks: { background: value } })}
               />
               <label className="classic-lss-alignment">
                 <span>Мировоззрение</span>
                 <select
                   value={alignmentSlug}
-                  onChange={(e) =>
-                    patch({
-                      identity: {
-                        alignment: e.target.value || null,
-                        alignment_text: null,
-                      },
-                    })
-                  }
-                >
+                 disabled>
                   <option value="">—</option>
                   {ALIGNMENTS.map((row) => (
                     <option key={row.slug} value={row.slug}>
@@ -963,12 +826,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                     </span>
                     <input
                       value={coins[k]}
-                      onChange={(e) =>
-                        onPatch({
-                          sheet: setCoins(c, { ...coins, [k]: e.target.value }),
-                        })
-                      }
-                    />
+                     readOnly />
                   </label>
                 ))}
               </div>
@@ -980,12 +838,11 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               <ClassicTextBlock
                 blockId="equipment"
                 character={c}
-                onPatch={onPatch}
+                onPrintSettings={onPrintSettings}
                 fill
                 value={equipmentNotes(c)}
                 printMaxHeight="8rem"
                 ariaLabel="Заметки по снаряжению"
-                onChange={(value) => patch({ equipmentNotes: value })}
               />
               <div className="classic-lss-attune">
                 <span>Настройка</span>
@@ -994,14 +851,6 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                     key={`a${i}`}
                     filled={attunement > i}
                     label={`Настройка ${i + 1}`}
-                    onClick={() =>
-                      onPatch(
-                        patchClassicAttunementCount(
-                          c,
-                          attunement === i + 1 ? i : i + 1,
-                        ),
-                      )
-                    }
                   />
                 ))}
                 {attunement > attunementLimit ? (
@@ -1013,6 +862,40 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
           </div>
         </div>
       </article>
+      {spellOverflow.length > 0 ? (
+        <article
+          className="classic-sheet classic-lss classic-lss-p4 classic-lss-p4--cont"
+          aria-label="Классический лист 2024 — заклинания · продолжение"
+        >
+          <header className="classic-lss-notes-head">
+            <div className="classic-brand">
+              <strong>D&amp;D</strong>
+              <span>{brandYearLabel('2024')}</span>
+            </div>
+            <div className="classic-companions-banner">
+              <strong>Заклинания · продолжение</strong>
+              <span>{c.name}</span>
+            </div>
+          </header>
+          <div className="classic-lss-spell-table">
+            <div className="classic-lss-spell-table__head">
+              <span>Подг.</span>
+              <span>Название</span>
+              <span>Ур.</span>
+            </div>
+            {spellOverflow.map((row) => (
+              <div className="classic-lss-spell-row" key={row.id}>
+                <span className="classic-bubble-btn classic-bubble-btn--static" aria-label="Подготовлено">
+                  <span className={`classic-bubble ${row.prepared ? 'is-filled' : ''}`} />
+                </span>
+                <input value={row.name} readOnly />
+                <span>{row.level}</span>
+              </div>
+            ))}
+          </div>
+        </article>
+      ) : null}
+
     </>
   )
 }
@@ -1021,12 +904,10 @@ function AbilityBlock({
   ability,
   character: c,
   proficiency,
-  onPatch,
 }: {
   ability: AbilityKey
   character: CharacterDetail
   proficiency: number
-  onPatch: (edits: Parameters<typeof applyClassicEdits>[1]) => void
 }) {
   const score = classicEffectiveAbilities(c)[ability]
   const mod = abilityModifier(score)
@@ -1045,10 +926,7 @@ function AbilityBlock({
           <input
             type="number"
             value={score}
-            onChange={(e) =>
-              onPatch({ abilities: { [ability]: Number(e.target.value) || 0 } })
-            }
-          />
+           readOnly />
           <em>Знач.</em>
         </div>
       </div>
@@ -1057,7 +935,6 @@ function AbilityBlock({
           <Bubble
             filled={saveProf}
             label={`Спасбросок ${ABILITY_NAMES[ability]}`}
-            onClick={() => onPatch({ saveProficiency: { [ability]: !saveProf } })}
           />
           <strong>{formatModifier(saveBonus)}</strong>
           <span>Спасбросок</span>
@@ -1072,8 +949,7 @@ function AbilityBlock({
               <Bubble
                 filled={flags.is_proficient || flags.is_expertise}
                 expertise={flags.is_expertise}
-                label={`${skill.label} (клик: нет → владение → экспертиза)`}
-                onClick={() => onPatch(cycleSkillMastery(c, skill.key))}
+                label={skill.label}
               />
               <strong>{formatModifier(bonus)}</strong>
               <span>{skill.label}</span>
@@ -1090,22 +966,21 @@ function clampExhaustion(value: number): number {
   return Math.max(0, Math.min(6, Math.floor(value)))
 }
 
-function buildSpellTableRows(known: SheetSpell[]): Array<SheetSpell | null> {
+function buildSpellTableRows(
+  known: SheetSpell[],
+  pencilBlanks: boolean,
+): { first: Array<SheetSpell | null>; rest: SheetSpell[] } {
   const ordered = [...known].sort((a, b) => {
     if (a.level !== b.level) return a.level - b.level
     return a.name.localeCompare(b.name, 'ru')
   })
-  const rows: Array<SheetSpell | null> = [...ordered]
-  while (rows.length < SPELL_TABLE_ROWS) rows.push(null)
-  return rows.slice(0, SPELL_TABLE_ROWS)
-}
-
-function indexOfSpellAtLevel(known: SheetSpell[], row: SheetSpell): number {
-  const atLevel = known.filter((s) => s.level === row.level)
-  return Math.max(
-    0,
-    atLevel.findIndex((s) => s.id === row.id),
-  )
+  const first = ordered.slice(0, SPELL_TABLE_ROWS)
+  const rest = ordered.slice(SPELL_TABLE_ROWS)
+  const rows: Array<SheetSpell | null> = [...first]
+  if (pencilBlanks || rest.length === 0) {
+    while (rows.length < SPELL_TABLE_ROWS) rows.push(null)
+  }
+  return { first: rows, rest }
 }
 
 function hasMaterial(spell: SheetSpell | null): boolean {

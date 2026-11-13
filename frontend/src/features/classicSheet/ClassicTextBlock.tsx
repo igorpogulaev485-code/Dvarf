@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import { useCallback, useRef, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
 import type { CharacterDetail } from '../../shared/api/characters'
 import type { ClassicPatch } from './fromApi'
 import {
@@ -10,26 +10,33 @@ import {
 } from './classicBlockFonts'
 import { Expanding } from './classicPrintShared'
 import { useClassicSheetUi } from './classicSheetUi'
+import {
+  classicLineHeightCss,
+  classicPrintFontFamilyCss,
+  readClassicBlockSize,
+  readClassicGlobalFontScale,
+  readClassicTextStyle,
+  setClassicBlockSize,
+} from './classicPrintSettings'
 
 type Props = {
   blockId: string
   character: CharacterDetail
-  onPatch: (patch: ClassicPatch) => void
+  /** Narrow print-settings patch only (classic_* ui). */
+  onPrintSettings?: (patch: ClassicPatch) => void
   value: string
-  onChange: (value: string) => void
   printMaxHeight?: string
   ariaLabel?: string
   className?: string
   fill?: boolean
 }
 
-/** Textarea + LSS-style per-block font size (controls only in «Правка»). */
+/** Read-only print text block + LSS-style font/size controls in «Правка печати». */
 export function ClassicTextBlock({
   blockId,
   character,
-  onPatch,
+  onPrintSettings,
   value,
-  onChange,
   printMaxHeight,
   ariaLabel,
   className,
@@ -37,15 +44,71 @@ export function ClassicTextBlock({
 }: Props) {
   const { editing } = useClassicSheetUi()
   const size = readClassicBlockFontSize(character, blockId)
-  const style = { fontSize: `${size}pt` } as CSSProperties
+  const scale = readClassicGlobalFontScale(character)
+  const textStyle = readClassicTextStyle(character)
+  const storedSize = readClassicBlockSize(character, blockId)
+  const dragRef = useRef<{ startY: number; startH: number } | null>(null)
+
+  const effectivePt = Math.max(
+    CLASSIC_BLOCK_FONT_MIN,
+    Math.round(size * scale * 10) / 10,
+  )
+
+  const style = {
+    fontSize: `${effectivePt}pt`,
+    lineHeight: classicLineHeightCss(textStyle.lineHeight),
+    textAlign: textStyle.align,
+    fontFamily: classicPrintFontFamilyCss(textStyle.fontFamily),
+    ...(storedSize?.heightRem
+      ? { ['--print-max-height']: `${storedSize.heightRem}rem`, minHeight: `${storedSize.heightRem}rem` }
+      : null),
+  } as CSSProperties
+
+  const heightHint = storedSize?.heightRem
+    ? `${storedSize.heightRem}rem`
+    : printMaxHeight
+
+  const onResizePointerDown = useCallback(
+    (e: ReactPointerEvent<HTMLButtonElement>) => {
+      if (!onPrintSettings || !editing) return
+      e.preventDefault()
+      const host = (e.currentTarget.parentElement as HTMLElement | null)
+      const startH =
+        storedSize?.heightRem ??
+        (host ? host.getBoundingClientRect().height / 16 : 8)
+      dragRef.current = { startY: e.clientY, startH }
+      e.currentTarget.setPointerCapture(e.pointerId)
+    },
+    [editing, onPrintSettings, storedSize?.heightRem],
+  )
+
+  const onResizePointerMove = useCallback(
+    (e: ReactPointerEvent<HTMLButtonElement>) => {
+      if (!dragRef.current || !onPrintSettings) return
+      const dy = (e.clientY - dragRef.current.startY) / 16
+      const next = Math.max(2, Math.min(40, dragRef.current.startH + dy))
+      onPrintSettings(setClassicBlockSize(character, blockId, { heightRem: next }))
+    },
+    [blockId, character, onPrintSettings],
+  )
+
+  const onResizePointerUp = useCallback((e: ReactPointerEvent<HTMLButtonElement>) => {
+    dragRef.current = null
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    } catch {
+      /* ignore */
+    }
+  }, [])
 
   return (
     <div
       className={['classic-text-block', editing ? 'classic-text-block--editing' : '']
         .filter(Boolean)
         .join(' ')}
+      data-block-id={blockId}
     >
-      {editing ? (
+      {editing && onPrintSettings ? (
         <input
           type="number"
           className="classic-text-block__size no-print"
@@ -54,22 +117,34 @@ export function ClassicTextBlock({
           step={1}
           value={size}
           aria-label={`Размер шрифта: ${ariaLabel ?? blockId}`}
-          title="Размер шрифта"
+          title="Размер шрифта блока (верхняя граница автоподгонки)"
           onChange={(e) => {
             const next = clampClassicFontSize(Number(e.target.value))
-            onPatch(setClassicBlockFontSize(character, blockId, next))
+            onPrintSettings(setClassicBlockFontSize(character, blockId, next))
           }}
         />
       ) : null}
       <Expanding
         value={value}
-        onChange={onChange}
-        printMaxHeight={printMaxHeight}
+        printMaxHeight={heightHint}
         ariaLabel={ariaLabel}
         className={className}
         fill={fill}
         style={style}
+        readOnly
       />
+      {editing && onPrintSettings ? (
+        <button
+          type="button"
+          className="classic-text-block__resize no-print"
+          aria-label={`Изменить высоту: ${ariaLabel ?? blockId}`}
+          title="Потяните, чтобы изменить высоту блока на печати"
+          onPointerDown={onResizePointerDown}
+          onPointerMove={onResizePointerMove}
+          onPointerUp={onResizePointerUp}
+          onPointerCancel={onResizePointerUp}
+        />
+      ) : null}
     </div>
   )
 }
