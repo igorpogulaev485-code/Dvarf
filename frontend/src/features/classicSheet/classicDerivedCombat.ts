@@ -28,6 +28,11 @@ import { listFightingStyleIds, readFeaturePicks } from '../../shared/dnd/feature
 import { fightingStyleAcBonusFromIds } from '../../shared/dnd/fightingStyles'
 import { aggregateInfusionBonuses } from '../../shared/dnd/infusionEffects'
 import { infusionAcFromSharedEffects } from '../../shared/dnd/infusionItems'
+import {
+  coverBonusBeyondEffects,
+  hasFortifiedHalfCover,
+  readCoverLevel,
+} from '../../shared/dnd/o08ActionsCoverConditions'
 import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
 import {
   initiativeBonusFromRaceGrant,
@@ -243,7 +248,14 @@ export function classicAutoArmorClass(character: CharacterDetail): number {
     wearingShield: Boolean(pieces.shield),
   })
   if (infusion.acBonus) coreAc += infusion.acBonus
-  coreAc += infusionAcFromSharedEffects(asRecord(sheet.combat).effects)
+  const combatRow = asRecord(sheet.combat)
+  const effectsRaw = combatRow.effects
+  coreAc += infusionAcFromSharedEffects(effectsRaw)
+  // O-08: manual cover (no double-stack with fortified half-cover)
+  coreAc += coverBonusBeyondEffects({
+    cover: readCoverLevel(combatRow.cover),
+    hasFortifiedHalfCover: hasFortifiedHalfCover(effectsRaw),
+  })
 
   const proficiencyBonus = Number(asProfBonus(character))
   const formulaVars = buildSheetFormulaVars({
