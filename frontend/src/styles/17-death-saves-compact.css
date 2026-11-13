@@ -334,17 +334,40 @@
 
 .play-desk-compact__slot-pips {
   display: flex;
-  gap: 3px;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
 }
 
+/* B16: visual square ~18px; hit-area 44×44 so pact/slot taps don't miss */
 .play-desk-compact__slot-pip {
-  width: 12px;
-  height: 12px;
+  position: relative;
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  margin: 0;
   padding: 0;
-  border-radius: 3px;
-  border: 1px solid var(--desk-accent);
-  background: #fff;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
   cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.play-desk-compact__slot-pip::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  box-sizing: border-box;
+  border-radius: 4px;
+  border: 1.5px solid var(--desk-accent);
+  background: #fff;
+  pointer-events: none;
 }
 
 .play-desk-compact__slot-pip:disabled {
@@ -352,7 +375,7 @@
   cursor: default;
 }
 
-.play-desk-compact__slot-pip.is-on {
+.play-desk-compact__slot-pip.is-on::after {
   background: var(--desk-accent);
 }
 

@@ -68,9 +68,20 @@
   line-height: 1.25;
 }
 .play-desk--mobile .play-desk__pip {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+}
+
+.play-desk--mobile .abil-prof-pip,
+.play-desk--mobile .abil-skill__roll,
+.play-desk--mobile .play-desk-compact__slot-pip,
+.play-desk--mobile .attune-card__remove,
+.play-desk--mobile .tag-chip__remove {
+  min-width: 44px;
+  min-height: 44px;
 }
 .play-desk--mobile .play-desk-compact__cons-main {
   min-height: 44px;

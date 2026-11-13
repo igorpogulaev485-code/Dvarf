@@ -156,7 +156,8 @@
 .play-desk {
   /* Alias kit tokens — no parallel mint/teal theme */
   --desk-ink: var(--ink);
-  --desk-muted: var(--muted);
+  /* B15: secondary desk labels — stronger than kit --muted (WCAG ~6.6:1 on panel) */
+  --desk-muted: #5f584e;
   --desk-line: var(--line);
   --desk-panel: var(--panel);
   --desk-accent: var(--accent);

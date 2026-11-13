@@ -336,10 +336,11 @@ export function HotConditionsDialog({
                     <button
                       type="button"
                       className="tag-chip__remove"
-                      title="Снять"
+                      title={`Снять: ${resolveConditionName(ref)}`}
+                      aria-label={`Снять: ${resolveConditionName(ref)}`}
                       onClick={() => applyConditionRef(ref, 'remove')}
                     >
-                      ×
+                      Снять
                     </button>
                   </span>
                 )

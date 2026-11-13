@@ -31,7 +31,7 @@
 .slot-pips__row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .slot-pips__stepper {
@@ -80,8 +80,11 @@
 }
 
 .slot-pip {
-  width: 28px;
-  height: 28px;
+  box-sizing: border-box;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
   border: 2px solid color-mix(in srgb, var(--accent) 45%, var(--line));
   border-radius: 8px;
@@ -218,12 +221,23 @@
 }
 
 .tag-chip__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
   border: 0;
+  border-radius: 8px;
   background: transparent;
   color: inherit;
   cursor: pointer;
-  padding: 0 4px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 0.78rem;
   font-weight: 700;
+  line-height: 1;
 }
 
 .tag-chip__level {
@@ -320,6 +334,37 @@
 .attune-card__head strong {
   font-family: var(--font-display);
   color: var(--accent);
+}
+
+/* B16: «Снять» — явная подпись и hit-area ≥ 44×44 */
+.attune-card__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 650;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.attune-card__remove:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.attune-card__remove:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, white);
+  outline-offset: 2px;
 }
 
 .play-death {
@@ -547,5 +592,21 @@
   padding: 0;
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+/* Hot-bar / sticky «Снять» — readable label + finger-sized target */
+.play-desk__hot-item .linkish,
+.combat-sticky__concentration .linkish {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  background: color-mix(in srgb, var(--accent-soft) 50%, white);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
 }
 
