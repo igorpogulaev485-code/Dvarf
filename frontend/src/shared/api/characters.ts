@@ -25,6 +25,8 @@ export type CharacterDetail = CharacterSummary & {
   /** L-08: персонаж в лобби — правила кампании для листа */
   lobby_id?: string | null
   campaign_rules?: unknown
+  /** S-04: открытая сессия, где персонаж сидит (лента бросков с листа) */
+  open_session_id?: string | null
 }
 
 export async function listCharacters(): Promise<CharacterSummary[]> {

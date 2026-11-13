@@ -34,6 +34,8 @@ class CharacterDetail(CharacterSummary):
     # L-08: если персонаж в лобби — правила кампании для листа (мультикласс, нагрузка…)
     lobby_id: UUID | None = None
     campaign_rules: dict | None = None
+    # S-04: открытая сессия, где персонаж сидит за столом (для ленты бросков с листа)
+    open_session_id: UUID | None = None
 
 
 class CharacterCreateRequest(BaseModel):

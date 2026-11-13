@@ -26,6 +26,8 @@ type Props = {
   /** Урон с типом; без memberId — первый живой */
   onDamage?: (payload: TypedDamagePayload & { memberId?: string }) => void
   onRemove?: () => void
+  /** S-04: клик по действию статблока → диалог атаки */
+  onAttackAction?: (action: CombatantAction, kitKind: string) => void
   /** T1: сохранить в вики сеттинга сессии */
   canSaveToSetting?: boolean
   onSaveToSetting?: () => void
@@ -113,6 +115,7 @@ export function EnemyCard({
   forceAbilitiesOpen = false,
   onDamage,
   onRemove,
+  onAttackAction,
   canSaveToSetting = false,
   onSaveToSetting,
   canStudy = false,
@@ -364,12 +367,28 @@ export function EnemyCard({
               className={`session-enemy-kit-chip session-enemy-kit-chip--${item.kind === 'черта' ? 'trait' : item.kind === 'реакция' ? 'reaction' : item.kind === 'легенд.' ? 'legendary' : 'action'}${
                 focusAbility === item.name_ru && abilitiesOpen ? ' is-active' : ''
               }`}
-              title={`${item.kind}: ${item.name_ru}`}
+              title={
+                masterControls && onAttackAction
+                  ? `Атака: ${item.name_ru}`
+                  : `${item.kind}: ${item.name_ru}`
+              }
               disabled={busy}
-              onClick={() => openAbility(item.name_ru)}
+              onClick={() => {
+                if (masterControls && onAttackAction && item.kind !== 'черта') {
+                  onAttackAction(item, item.kind)
+                  return
+                }
+                openAbility(item.name_ru)
+              }}
             >
               <span className="session-enemy-kit-chip__kind">{item.kind}</span>
               {item.name_ru}
+              {masterControls && item.attack_bonus != null ? (
+                <span className="session-enemy-kit-chip__bonus">
+                  {item.attack_bonus >= 0 ? '+' : ''}
+                  {item.attack_bonus}
+                </span>
+              ) : null}
             </button>
           ))}
         </div>

@@ -6,6 +6,13 @@ import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
 import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { AddCombatantDialog } from '../features/lobby/AddCombatantDialog'
+import {
+  EnemyAttackDialog,
+  blockFromKitKind,
+  type EnemyAttackSubmit,
+} from '../features/lobby/EnemyAttackDialog'
+import { ReactionPromptDialog } from '../features/lobby/ReactionPromptDialog'
+import type { FeedFilter } from '../features/lobby/SessionEventFeed'
 import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
 import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
 import { AwardLootDialog } from '../features/lobby/AwardLootDialog'
@@ -55,12 +62,15 @@ import {
   shareLobbyEffect,
   patchSessionCombat,
   patchSessionCombatant,
+  resolveSessionCombatAttack,
+  resolveSessionCombatReaction,
   resolveStudySessionCombatant,
   shareStudiedSessionCombatant,
   studySessionCombatant,
   rollSessionCombatInitiative,
   seatCharacter,
   startSessionCombat,
+  type CombatantAction,
   type CombatEntry,
   unseatCharacter,
   updateSession,
@@ -116,8 +126,12 @@ export function SessionDetailPage() {
   const [session, setSession] = useState<SessionDetail | null>(null)
   const [ownCharacterIds, setOwnCharacterIds] = useState<Set<string>>(() => new Set())
   const [events, setEvents] = useState<SessionEvent[]>([])
-  const [rollsOnly, setRollsOnly] = useState(false)
+  const [feedFilter, setFeedFilter] = useState<FeedFilter>('all')
   const [liveTab, setLiveTab] = useState<SessionLiveTabId>('table')
+  const [attackOpen, setAttackOpen] = useState(false)
+  const [attackCombatant, setAttackCombatant] = useState<SessionCombatant | null>(null)
+  const [attackAction, setAttackAction] = useState<CombatantAction | null>(null)
+  const [attackBlock, setAttackBlock] = useState<EnemyAttackSubmit['action_block']>('actions')
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -192,9 +206,12 @@ export function SessionDetailPage() {
   }, [sessionId])
 
   const reloadEvents = useCallback(async () => {
-    const list = await listSessionEvents(sessionId, { rollsOnly })
+    const list = await listSessionEvents(sessionId, {
+      feedFilter: feedFilter === 'all' ? undefined : feedFilter,
+      rollsOnly: feedFilter === 'rolls',
+    })
     setEvents(list)
-  }, [sessionId, rollsOnly])
+  }, [sessionId, feedFilter])
 
   const pullGate = useRef({ inflight: false, again: false })
   const pullSessionRef = useRef<() => void>(() => undefined)
@@ -299,7 +316,14 @@ export function SessionDetailPage() {
     onEvent: (incoming) => {
       setEvents((prev) => {
         if (prev.some((e) => e.id === incoming.id)) return prev
-        if (rollsOnly && incoming.event_type !== 'roll') return prev
+        if (feedFilter === 'rolls' && incoming.event_type !== 'roll') return prev
+        if (
+          feedFilter === 'combat' &&
+          incoming.event_type !== 'combat' &&
+          !(incoming.payload as { combat_journal?: boolean } | undefined)?.combat_journal
+        ) {
+          return prev
+        }
         return [incoming, ...prev]
       })
       // T2/T4: игрокам toast при reveal / квесте (мастер уже тостнул локально)
@@ -758,20 +782,83 @@ export function SessionDetailPage() {
                   <Text tone="muted">Бой ещё не начат — очередь появится здесь.</Text>
                 )}
                 <Stack gap={12}>
+                {canRun && !session.closed_at ? (
+                  <label className="manual-roll-form__check">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(session.combat?.dice_on_table)}
+                      disabled={busy}
+                      onChange={() => {
+                        void run(async () => {
+                          const updated = await patchSessionCombat(session.id, {
+                            action: 'set_dice_on_table',
+                            dice_on_table: !session.combat?.dice_on_table,
+                          })
+                          setSession(updated)
+                          setToast(
+                            updated.combat?.dice_on_table
+                              ? 'Кубики на столе включены'
+                              : 'Обычный цифровой бросок',
+                          )
+                        })
+                      }}
+                    />
+                    Кубики на столе
+                  </label>
+                ) : session.combat?.dice_on_table ? (
+                  <Text tone="muted">Режим: кубики на столе</Text>
+                ) : null}
+                {session.combat?.waiting_reaction && canRun ? (
+                  <Text className="session-combat-track__reaction">
+                    ждём реакцию
+                    {session.combat.reaction_hint ? ` — ${session.combat.reaction_hint}` : ''}
+                  </Text>
+                ) : null}
+                {session.combat?.pending_fumble && canRun ? (
+                  <Stack gap={6}>
+                    <Text>
+                      Провал на 1: {session.combat.pending_fumble.actor} —{' '}
+                      {session.combat.pending_fumble.action_name}
+                    </Text>
+                    <div className="session-attack-actions">
+                      {(
+                        [
+                          ['drop_weapon', 'Уронил оружие'],
+                          ['hit_ally', 'Задел союзника'],
+                          ['lose_reaction', 'Потерял реакцию'],
+                        ] as const
+                      ).map(([id, label]) => (
+                        <Button
+                          key={id}
+                          type="button"
+                          variant="ghost"
+                          disabled={busy}
+                          onClick={() => {
+                            void run(async () => {
+                              const updated = await patchSessionCombat(session.id, {
+                                action: 'resolve_fumble',
+                                fumble_consequence_id: id,
+                              })
+                              setSession(updated)
+                              await reloadEvents()
+                              setToast(label)
+                            })
+                          }}
+                        >
+                          {label}
+                        </Button>
+                      ))}
+                    </div>
+                  </Stack>
+                ) : null}
                 {historyOff ? (
                   <Text tone="muted">Лента скрыта настройками видимости лобби.</Text>
                 ) : (
-                  <>
-                    <label className="session-feed-filter">
-                      <input
-                        type="checkbox"
-                        checked={rollsOnly}
-                        onChange={(e) => setRollsOnly(e.target.checked)}
-                      />
-                      Только броски
-                    </label>
-                    <SessionEventFeed events={events} />
-                  </>
+                  <SessionEventFeed
+                    events={events}
+                    filter={feedFilter}
+                    onFilterChange={setFeedFilter}
+                  />
                 )}
                 {!session.closed_at ? (
                   <ManualRollForm
@@ -784,7 +871,7 @@ export function SessionDetailPage() {
                         const created = await createSessionRoll(session.id, payload)
                         setEvents((prev) => {
                           if (prev.some((e) => e.id === created.id)) return prev
-                          if (rollsOnly && created.event_type !== 'roll') return prev
+                          if (feedFilter === 'rolls' && created.event_type !== 'roll') return prev
                           return [created, ...prev]
                         })
                         setToast('Бросок в ленте')
@@ -1297,6 +1384,12 @@ export function SessionDetailPage() {
                               setToast('Карточка показана партии')
                             })
                           }}
+                          onAttackAction={(action, kitKind) => {
+                            setAttackCombatant(enemy)
+                            setAttackAction(action)
+                            setAttackBlock(blockFromKitKind(kitKind))
+                            setAttackOpen(true)
+                          }}
                           onDamage={(payload) => {
                             void run(async () => {
                               const updated = await patchSessionCombatant(
@@ -1384,17 +1477,11 @@ export function SessionDetailPage() {
                 {historyOff ? (
                   <Text tone="muted">Лента скрыта настройками видимости лобби.</Text>
                 ) : (
-                  <>
-                    <label className="session-feed-filter">
-                      <input
-                        type="checkbox"
-                        checked={rollsOnly}
-                        onChange={(e) => setRollsOnly(e.target.checked)}
-                      />
-                      Только броски
-                    </label>
-                    <SessionEventFeed events={events} />
-                  </>
+                  <SessionEventFeed
+                    events={events}
+                    filter={feedFilter}
+                    onFilterChange={setFeedFilter}
+                  />
                 )}
                 {!session.closed_at ? (
                   <ManualRollForm
@@ -1407,7 +1494,9 @@ export function SessionDetailPage() {
                         const created = await createSessionRoll(session.id, payload)
                         setEvents((prev) => {
                           if (prev.some((e) => e.id === created.id)) return prev
-                          if (rollsOnly && created.event_type !== 'roll') return prev
+                          if (feedFilter === 'rolls' && created.event_type !== 'roll') {
+                            return prev
+                          }
                           return [created, ...prev]
                         })
                         setToast('Бросок в ленте')
@@ -1920,6 +2009,80 @@ export function SessionDetailPage() {
             setInitRollEntry(null)
             setToast('Инициатива записана')
             await reloadEvents()
+          })
+        }}
+      />
+
+      <EnemyAttackDialog
+        open={attackOpen}
+        busy={busy}
+        combatant={attackCombatant}
+        action={attackAction}
+        actionBlock={attackBlock}
+        session={session}
+        diceOnTable={Boolean(session.combat?.dice_on_table)}
+        flankingEnabled={Boolean(campaignRules.homebrew.flanking_advantage)}
+        onClose={() => {
+          setAttackOpen(false)
+          setAttackCombatant(null)
+          setAttackAction(null)
+        }}
+        onSubmit={async (payload) => {
+          await run(async () => {
+            const result = await resolveSessionCombatAttack(session.id, payload)
+            setSession(result.session)
+            if (result.event) {
+              setEvents((prev) => {
+                if (prev.some((e) => e.id === result.event!.id)) return prev
+                return [result.event!, ...prev]
+              })
+            }
+            setAttackOpen(false)
+            setAttackCombatant(null)
+            setAttackAction(null)
+            setToast(result.feed_line || (result.hit ? 'Попадание' : 'Промах'))
+          })
+        }}
+      />
+
+      <ReactionPromptDialog
+        open={Boolean(
+          session.combat?.waiting_reaction &&
+            session.combat.reaction_character_id &&
+            ownCharacterIds.has(session.combat.reaction_character_id) &&
+            !canRun,
+        )}
+        busy={busy}
+        characterName={
+          session.seats.find(
+            (s) => s.character_id === session.combat?.reaction_character_id,
+          )?.character_name ?? 'Герой'
+        }
+        hint={session.combat?.reaction_hint}
+        onDeclare={() => {
+          const cid = session.combat?.reaction_character_id
+          if (!cid) return
+          void run(async () => {
+            const updated = await resolveSessionCombatReaction(session.id, {
+              action: 'declare',
+              character_id: cid,
+            })
+            setSession(updated)
+            await reloadEvents()
+            setToast('Реакция объявлена')
+          })
+        }}
+        onSkip={() => {
+          const cid = session.combat?.reaction_character_id
+          if (!cid) return
+          void run(async () => {
+            const updated = await resolveSessionCombatReaction(session.id, {
+              action: 'skip',
+              character_id: cid,
+            })
+            setSession(updated)
+            await reloadEvents()
+            setToast('Реакция пропущена')
           })
         }}
       />

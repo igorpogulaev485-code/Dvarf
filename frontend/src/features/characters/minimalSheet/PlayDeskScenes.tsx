@@ -155,6 +155,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                   ]
                 : model.draft.weapons
             }
+            openSessionId={model.character.open_session_id}
+            characterId={model.character.id}
             hpTemp={model.draft.play.hpTemp}
             abilities={model.effectiveAbilities}
             proficiencyBonus={model.proficiencyBonus}

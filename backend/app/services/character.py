@@ -109,12 +109,14 @@ def to_detail(
     sheet = sheet_for_client(data.sheet if isinstance(data.sheet, dict) else None, db)
     lobby_id = None
     campaign_rules = None
+    open_session_id = None
     if db is not None:
         from app.models.lobby import Lobby as LobbyModel
         from app.repositories.lobby import LobbyRepository
         from app.services.campaign_rules import migrate_inspiration_from_visibility
 
-        membership = LobbyRepository(db).get_membership_by_character(character.id)
+        repo = LobbyRepository(db)
+        membership = repo.get_membership_by_character(character.id)
         if membership is not None:
             lobby = db.get(LobbyModel, membership.lobby_id)
             if lobby is not None:
@@ -123,7 +125,15 @@ def to_detail(
                     getattr(lobby, "campaign_rules", None) or {},
                     lobby.visibility_profile or {},
                 )
-    updates: dict = {"can_edit": can_edit, "lobby_id": lobby_id, "campaign_rules": campaign_rules}
+        open_ids = repo.list_open_session_ids_for_character(character.id)
+        if open_ids:
+            open_session_id = open_ids[0]
+    updates: dict = {
+        "can_edit": can_edit,
+        "lobby_id": lobby_id,
+        "campaign_rules": campaign_rules,
+        "open_session_id": open_session_id,
+    }
     if sheet is not data.sheet:
         updates["sheet"] = sheet
     return data.model_copy(update=updates)

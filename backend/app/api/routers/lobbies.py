@@ -34,9 +34,13 @@ from app.schemas.chat import (
 )
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
+    CombatAttackRequest,
+    CombatAttackResult,
     CombatInitiativeRequest,
     CombatPatchRequest,
+    CombatReactionRequest,
     CombatStartRequest,
+    CombatTargetsOut,
     CombatantCreateRequest,
     CombatantPatchRequest,
     CombatantStudyRequest,
@@ -888,6 +892,51 @@ async def patch_session_combat(
 
 
 @router.post(
+    "/sessions/{session_id}/combat/attack",
+    response_model=CombatAttackResult,
+)
+async def resolve_session_combat_attack(
+    session_id: UUID,
+    payload: CombatAttackRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> CombatAttackResult:
+    """S-04: атака / действие врага по цели."""
+    return await LobbyService(db).resolve_combat_attack(
+        current_user, session_id, payload
+    )
+
+
+@router.post(
+    "/sessions/{session_id}/combat/reaction",
+    response_model=SessionDetail,
+)
+async def resolve_session_combat_reaction(
+    session_id: UUID,
+    payload: CombatReactionRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionDetail:
+    """S-04: объявить реакцию или пропустить."""
+    return await LobbyService(db).resolve_combat_reaction(
+        current_user, session_id, payload
+    )
+
+
+@router.get(
+    "/sessions/{session_id}/combat/targets",
+    response_model=CombatTargetsOut,
+)
+def list_session_combat_targets(
+    session_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> CombatTargetsOut:
+    """S-04 / T-01: участники боя, видимые зрителю (состояния, сторона-крючок)."""
+    return LobbyService(db).list_combat_targets(current_user, session_id)
+
+
+@router.post(
     "/sessions/{session_id}/reveal-page",
     response_model=SessionRevealPageResult,
 )
@@ -982,11 +1031,17 @@ def list_session_events(
     current_user: CurrentUser,
     db: DbSession,
     rolls_only: bool = Query(default=False),
+    feed_filter: str | None = Query(
+        default=None,
+        pattern="^(all|combat|rolls)$",
+        description="S-04: фильтр ленты Всё / Бой / Броски",
+    ),
 ) -> list[SessionEventOut]:
     return LobbyService(db).list_session_events(
         current_user,
         session_id,
         rolls_only=rolls_only,
+        feed_filter=feed_filter,
     )
 
 

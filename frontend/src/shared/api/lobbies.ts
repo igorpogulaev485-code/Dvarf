@@ -432,6 +432,12 @@ export type CombatantAction = {
   name_ru: string
   text_ru?: string
   name_en?: string | null
+  /** S-04 */
+  attack_bonus?: number | null
+  damage_dice?: string | null
+  damage_type?: string | null
+  save_dc?: number | null
+  save_ability?: string | null
 }
 
 export type CombatantMember = {
@@ -560,6 +566,11 @@ export type SessionCombat = {
   round: number
   active_index: number
   waiting_reaction?: boolean
+  /** S-04 */
+  dice_on_table?: boolean
+  reaction_character_id?: string | null
+  reaction_hint?: string | null
+  pending_fumble?: { actor?: string; action_name?: string; target?: string } | null
   entries: CombatEntry[]
   waves?: CombatWave[]
   fallen?: CombatFallen[]
@@ -1394,6 +1405,8 @@ export async function patchSessionCombat(
       | 'release_wave'
       | 'restore_fallen'
       | 'set_waiting_reaction'
+      | 'set_dice_on_table'
+      | 'resolve_fumble'
       | null
     active_index?: number
     round?: number
@@ -1404,12 +1417,96 @@ export async function patchSessionCombat(
     keep_unreleased_waves?: boolean
     summary?: string
     waiting_reaction?: boolean
+    dice_on_table?: boolean
+    fumble_consequence_id?: string | null
   },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(`/sessions/${sessionId}/combat`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
   })
+}
+
+export type CombatAttackPayload = {
+  attacker_combatant_id: string
+  action_name: string
+  action_block?: string
+  target_kind: 'pc' | 'companion' | 'enemy'
+  target_ref_id: string
+  target_member_id?: string | null
+  companion_id?: string | null
+  mode: 'roll' | 'manual' | 'table_hit' | 'table_miss' | 'table_save' | 'table_fail'
+  attack_total?: number | null
+  attack_natural?: number | null
+  damage_total?: number | null
+  damage_type?: string | null
+  flanking?: boolean
+  advantage?: boolean | null
+  disadvantage?: boolean | null
+  physical_dice?: boolean
+}
+
+export type CombatAttackResult = {
+  session: SessionDetail
+  event?: SessionEvent | null
+  hit?: boolean | null
+  damage_applied?: number | null
+  damage_note?: string | null
+  waiting_reaction?: boolean
+  fumble_pending?: boolean
+  feed_line?: string | null
+}
+
+export async function resolveSessionCombatAttack(
+  sessionId: string,
+  payload: CombatAttackPayload,
+): Promise<CombatAttackResult> {
+  return apiRequest<CombatAttackResult>(`/sessions/${sessionId}/combat/attack`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function resolveSessionCombatReaction(
+  sessionId: string,
+  payload: {
+    action: 'declare' | 'skip'
+    character_id: string
+    effect_name?: string | null
+  },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(`/sessions/${sessionId}/combat/reaction`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export type CombatTargetsResponse = {
+  session_id: string
+  dice_on_table: boolean
+  waiting_reaction: boolean
+  targets: Array<{
+    id: string
+    kind: 'pc' | 'companion' | 'enemy' | string
+    ref_id: string
+    name: string
+    hp_current?: number | null
+    hp_max?: number | null
+    ac?: number | null
+    conditions?: unknown[]
+    side: string
+    is_ally: boolean
+    user_id?: string | null
+    companion_id?: string | null
+    member_id?: string | null
+  }>
+}
+
+/** S-04 / T-01: видимые цели боя. */
+export async function listSessionCombatTargets(
+  sessionId: string,
+): Promise<CombatTargetsResponse> {
+  return apiRequest<CombatTargetsResponse>(`/sessions/${sessionId}/combat/targets`)
 }
 
 export type XpAwardResult = {
@@ -1646,9 +1743,14 @@ export function lobbyQrUrl(inviteCode: string): string {
 
 export async function listSessionEvents(
   sessionId: string,
-  opts?: { rollsOnly?: boolean },
+  opts?: { rollsOnly?: boolean; feedFilter?: 'all' | 'combat' | 'rolls' },
 ): Promise<SessionEvent[]> {
-  const q = opts?.rollsOnly ? '?rolls_only=true' : ''
+  const params = new URLSearchParams()
+  if (opts?.rollsOnly) params.set('rolls_only', 'true')
+  if (opts?.feedFilter && opts.feedFilter !== 'all') {
+    params.set('feed_filter', opts.feedFilter)
+  }
+  const q = params.toString() ? `?${params.toString()}` : ''
   return apiRequest<SessionEvent[]>(`/sessions/${sessionId}/events${q}`)
 }
 
@@ -1661,6 +1763,11 @@ export async function createSessionRoll(
     breakdown?: string | null
     total: number
     is_master_roll?: boolean
+    physical_dice?: boolean
+    is_hidden?: boolean
+    category?: string | null
+    used_inspiration?: boolean
+    advantage?: boolean
   },
 ): Promise<SessionEvent> {
   return apiRequest<SessionEvent>(`/sessions/${sessionId}/rolls`, {

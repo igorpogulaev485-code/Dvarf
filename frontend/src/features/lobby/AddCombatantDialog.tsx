@@ -20,7 +20,14 @@ type Props = {
     ac?: number | null
     speed?: number | null
     count: number
-    actions?: { name_ru: string; text_ru: string }[]
+    actions?: {
+      name_ru: string
+      text_ru: string
+      attack_bonus?: number | null
+      damage_dice?: string | null
+      damage_type?: string | null
+      save_dc?: number | null
+    }[]
     wave_condition_text?: string | null
   }) => void
 }
@@ -39,7 +46,12 @@ export function AddCombatantDialog({
   const [customName, setCustomName] = useState('')
   const [customHp, setCustomHp] = useState<number | null>(30)
   const [customAc, setCustomAc] = useState<number | null>(15)
-  const [customAction, setCustomAction] = useState('')
+  const [actionName, setActionName] = useState('Атака')
+  const [actionBonus, setActionBonus] = useState<number | null>(5)
+  const [actionDamage, setActionDamage] = useState('1к8+3')
+  const [actionDamageType, setActionDamageType] = useState('рубящего')
+  const [actionSaveDc, setActionSaveDc] = useState<number | null>(null)
+  const [actionText, setActionText] = useState('')
   const [waveCondition, setWaveCondition] = useState('')
 
   useEffect(() => {
@@ -51,7 +63,12 @@ export function AddCombatantDialog({
     setCustomName('')
     setCustomHp(30)
     setCustomAc(15)
-    setCustomAction('')
+    setActionName('Атака')
+    setActionBonus(5)
+    setActionDamage('1к8+3')
+    setActionDamageType('рубящего')
+    setActionSaveDc(null)
+    setActionText('')
     setWaveCondition('')
   }, [open])
 
@@ -65,7 +82,7 @@ export function AddCombatantDialog({
     <Dialog
       open={open}
       title="Посадить противника"
-      primaryLabel={mode === 'bestiary' ? 'На стол' : 'Создать НПС'}
+      primaryLabel={mode === 'bestiary' ? 'Настол' : 'Создать НПС'}
       secondaryLabel="Отмена"
       busy={busy}
       primaryDisabled={!canSubmit}
@@ -85,9 +102,28 @@ export function AddCombatantDialog({
           })
           return
         }
-        const actions = customAction.trim()
-          ? [{ name_ru: 'Действие', text_ru: customAction.trim() }]
-          : []
+        const name = actionName.trim() || 'Действие'
+        const text =
+          actionText.trim() ||
+          [
+            actionBonus != null ? `+${actionBonus} к попаданию` : null,
+            actionDamage.trim()
+              ? `${actionDamage.trim()} ${actionDamageType.trim()}`.trim()
+              : null,
+            actionSaveDc != null ? `Сл ${actionSaveDc}` : null,
+          ]
+            .filter(Boolean)
+            .join(', ')
+        const actions = [
+          {
+            name_ru: name,
+            text_ru: text,
+            attack_bonus: actionBonus,
+            damage_dice: actionDamage.trim() || null,
+            damage_type: actionDamageType.trim() || null,
+            save_dc: actionSaveDc,
+          },
+        ]
         onSubmit({
           name: customName.trim(),
           hp_max: customHp ?? undefined,
@@ -168,11 +204,53 @@ export function AddCombatantDialog({
                 <NumberInput value={customAc} onValueChange={setCustomAc} min={0} max={40} />
               </Field>
             </div>
-            <Field label="Действие (кратко)">
+            <Text as="h4">Действие</Text>
+            <Field label="Название">
               <Input
-                value={customAction}
-                onChange={(e) => setCustomAction(e.target.value)}
-                placeholder="Рукопашная +5, 1к8+3…"
+                value={actionName}
+                onChange={(e) => setActionName(e.target.value)}
+                placeholder="Дубина"
+              />
+            </Field>
+            <div className="session-combatant-custom-row">
+              <Field label="Бонус атаки">
+                <NumberInput
+                  value={actionBonus}
+                  onValueChange={setActionBonus}
+                  min={-10}
+                  max={30}
+                  emptyValue={null}
+                />
+              </Field>
+              <Field label="Урон">
+                <Input
+                  value={actionDamage}
+                  onChange={(e) => setActionDamage(e.target.value)}
+                  placeholder="2к8+4"
+                />
+              </Field>
+              <Field label="Тип">
+                <Input
+                  value={actionDamageType}
+                  onChange={(e) => setActionDamageType(e.target.value)}
+                  placeholder="дробящего"
+                />
+              </Field>
+            </div>
+            <Field label="СЛ спасброска" hint="если действие требует спас">
+              <NumberInput
+                value={actionSaveDc}
+                onValueChange={setActionSaveDc}
+                min={1}
+                max={40}
+                emptyValue={null}
+              />
+            </Field>
+            <Field label="Текст (необязательно)">
+              <Input
+                value={actionText}
+                onChange={(e) => setActionText(e.target.value)}
+                placeholder="Краткое описание"
               />
             </Field>
           </>
@@ -188,7 +266,7 @@ export function AddCombatantDialog({
         </Field>
         {count > 1 ? (
           <Text tone="muted">
-            На стол одной пачкой ({count}). Быстрый урон — первому живому; в «Составе» —
+            Настол одной пачкой ({count}). Быстрый урон — первому живому; в «Составе» —
             кому сколько.
           </Text>
         ) : null}
