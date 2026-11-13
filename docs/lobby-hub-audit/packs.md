@@ -117,3 +117,17 @@
 | L16-5 | Копия → правка → вход | `action=copy` клонирует без join; пайплайн; затем join | lobby service + Join/Character pages | L-16 | сделано |
 | L-08 | Не затирать homebrew/xp_remainder | merge_campaign_rules | lobby.update | L-16 | сделано |
 | L-04 | Не вторая кнопка копии | та же copy, новая цепочка | — | L-16 | сделано |
+
+## W-01 — Вики: один сеттинг, доступ и чтение
+
+| ID | Ожидалось | Фактически | Где | Пачка | Статус |
+|---|---|---|---|---|---|
+| W01-1 | Один активный сеттинг; баннер при нескольких | `is_extra`; POST второго → 400; `settings/primary`; форма «+» только если пусто | lobby service + LobbyDetailPage | W-01 | сделано |
+| W01-2 | world_notes → note при хвосте | миграция создаёт «Заметки мира» только если тела нет в страницах; «Мир» не переименовываем | `w01wiki8d3a4` | W-01 | сделано |
+| W01-3 | Сессия из сеттинга через attendance | кнопка ведёт на #sessions с выбранным сеттингом | LobbyDetailPage / SettingDetailPage | W-01 | сделано |
+| W01-4 | Чтение: оглавление, поиск, маскировка, права | `mask_unrevealed_mentions`; флаги can_edit_wiki/can_see_hidden; SettingWikiReader | setting_mentions + SettingWikiReader | W-01 | сделано |
+| W01-5 | revealed_at + «что нового» | колонка; localStorage курсор; список 10 | model + wikiRevealSeen | W-01 | сделано |
+| W01-6 | Журнал квестов | список раскрытых quest в reader | SettingWikiReader | W-01 | сделано |
+| W01-7 | Вики во боковой панели стола | вкладка «Вики» рядом с заметками/чатом | SessionDetailPage | W-01 | сделано |
+| W-02 | Корзина / картинки / create_missing | не включали | — | W-02 | перенесено |
+| W-04 | Известные легенды | место под блок, список пуст | SettingWikiReader | W-04 | перенесено |

@@ -217,6 +217,8 @@ class Setting(Base):
     name: Mapped[str] = mapped_column(String(120), nullable=False, default="Новый сеттинг")
     # Legacy: C1 мигрирует в setting_pages; поле остаётся для превью в списке лобби.
     world_notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # W-01: лишний сеттинг (после выбора основного); корзина — W-02.
+    is_extra: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

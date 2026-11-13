@@ -51,6 +51,7 @@ export type SettingSummary = {
   lobby_id: string
   name: string
   world_notes: string
+  is_extra?: boolean
   created_at: string
   updated_at: string
 }
@@ -93,6 +94,7 @@ export type SettingPage = {
   gm_body: string
   sort_order: number
   revealed: boolean
+  revealed_at?: string | null
   page_kind: SettingPageKind
   template_id: string | null
   fields: Record<string, string | number | boolean | null>
@@ -239,6 +241,10 @@ export type SettingDetail = SettingSummary & {
   all_tags: string[]
   artifacts?: SettingArtifact[]
   is_owner: boolean
+  /** W-01: права L-01 */
+  can_edit_wiki?: boolean
+  can_see_hidden?: boolean
+  can_view_lobby?: boolean
 }
 
 export type SessionSummary = {
@@ -337,6 +343,8 @@ export type LobbyDetail = {
   members: LobbyMember[]
   roles?: LobbyRole[]
   settings: SettingSummary[]
+  /** W-01: несколько активных сеттингов — выбрать основной */
+  settings_need_primary?: boolean
   sessions: SessionSummary[]
   /** JSON профиля видимости; нормализуется на клиенте */
   visibility_profile?: unknown
@@ -1077,6 +1085,16 @@ export async function createSetting(
   return apiRequest<SettingSummary>(`/lobbies/${lobbyId}/settings`, {
     method: 'POST',
     body: JSON.stringify(payload),
+  })
+}
+
+export async function choosePrimarySetting(
+  lobbyId: string,
+  settingId: string,
+): Promise<LobbyDetail> {
+  return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/settings/primary`, {
+    method: 'POST',
+    body: JSON.stringify({ setting_id: settingId }),
   })
 }
 

@@ -30,9 +30,13 @@ import {
 } from '../features/lobby/settingRecent'
 import { ApiRequestError } from '../shared/api/client'
 import { SettingArtifactsPanel } from '../features/lobby/SettingArtifactsPanel'
+import { SettingWikiReader } from '../features/lobby/SettingWikiReader'
+import {
+  TEMPLATE_CARD_KINDS,
+  type SettingPageKind as KindForCard,
+} from '../features/lobby/settingKinds'
 import {
   bulkCreateSettingPages,
-  createSession,
   createSettingArtifact,
   createSettingPage,
   createSettingPageLink,
@@ -411,8 +415,11 @@ export function SettingDetailPage() {
     }
   }
 
-  const isOwner = setting?.is_owner ?? false
+  const canEditWiki = Boolean(setting?.can_edit_wiki ?? setting?.is_owner)
+  const canSeeHidden = Boolean(setting?.can_see_hidden ?? setting?.is_owner)
+  const isOwner = canEditWiki
   const schemaFields: SettingPageTemplateField[] = activeTemplate?.schema ?? []
+  const readerUserKey = setting ? `lobby:${setting.lobby_id}` : 'anon'
 
   if (!setting && !error) {
     return (
@@ -435,7 +442,7 @@ export function SettingDetailPage() {
       <Stack gap={20}>
         <AppHeader
           title={setting.name}
-          subtitle={isOwner ? 'Сеттинг — вики мира' : 'Сеттинг — раскрытые страницы'}
+          subtitle={canEditWiki ? 'Сеттинг — вики мира' : 'Сеттинг — раскрытые страницы'}
           onOfficialSite={openProductSite}
         />
         <Text>
@@ -444,7 +451,7 @@ export function SettingDetailPage() {
         {error ? <Text tone="danger">{error}</Text> : null}
 
         <Panel title="Сеттинг">
-          {isOwner ? (
+          {canEditWiki ? (
             <form className="stack-form" onSubmit={saveMeta}>
               <Field label="Название">
                 <Input value={settingName} onChange={(e) => setSettingName(e.target.value)} />
@@ -457,22 +464,10 @@ export function SettingDetailPage() {
                   type="button"
                   variant="secondary"
                   disabled={busy}
-                  onClick={async () => {
-                    setBusy(true)
-                    try {
-                      const session = await createSession(setting.lobby_id, {
-                        setting_id: setting.id,
-                        name: `${setting.name} — сессия`,
-                      })
-                      navigate(`/sessions/${session.id}`)
-                    } catch (err) {
-                      setError(
-                        err instanceof ApiRequestError
-                          ? err.message
-                          : 'Не удалось открыть сессию',
-                      )
-                      setBusy(false)
-                    }
+                  onClick={() => {
+                    navigate(`/lobbies/${setting.lobby_id}#sessions`, {
+                      state: { sessionSettingId: setting.id },
+                    })
                   }}
                 >
                   Открыть сессию в этом сеттинге
@@ -483,6 +478,17 @@ export function SettingDetailPage() {
             <Text tone="muted">Мастер ещё не раскрыл всё — ниже только то, что видно игрокам.</Text>
           )}
         </Panel>
+
+        {!canEditWiki ? (
+          <Panel title="Чтение вики">
+            <SettingWikiReader
+              setting={setting}
+              userKey={readerUserKey}
+              canEditWiki={false}
+              canSeeHidden={canSeeHidden}
+            />
+          </Panel>
+        ) : null}
 
         {isOwner ? (
           <SettingArtifactsPanel
@@ -539,6 +545,7 @@ export function SettingDetailPage() {
           />
         ) : null}
 
+        {canEditWiki ? (
         <div className="setting-wiki">
           <aside className="setting-wiki__nav">
             <div className="setting-wiki__nav-head">
@@ -567,7 +574,7 @@ export function SettingDetailPage() {
             <Field label="Поиск">
               <Input
                 value={searchQuery}
-                placeholder="Название или тег…"
+                placeholder="Название, текст или тег…"
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </Field>
@@ -661,6 +668,24 @@ export function SettingDetailPage() {
           <section className="setting-wiki__editor">
             {selected ? (
               <Stack gap={12}>
+                {TEMPLATE_CARD_KINDS.includes(selected.page_kind as KindForCard) &&
+                schemaFields.some((f) => !f.gm_only) ? (
+                  <div className="setting-wiki-reader__card" aria-label="Поля шаблона">
+                    {schemaFields
+                      .filter((f) => !f.gm_only)
+                      .map((field) => {
+                        const raw = draftFields[field.key] ?? selected.fields?.[field.key]
+                        const value =
+                          raw == null || raw === '' ? '—' : String(raw)
+                        return (
+                          <div key={field.key} className="setting-wiki-reader__card-row">
+                            <span className="setting-wiki-reader__card-label">{field.label}</span>
+                            <span>{value}</span>
+                          </div>
+                        )
+                      })}
+                  </div>
+                ) : null}
                 <Field label="Заголовок страницы">
                   <Input
                     value={draftTitle}
@@ -1081,6 +1106,7 @@ export function SettingDetailPage() {
             )}
           </section>
         </div>
+        ) : null}
       </Stack>
       <SettingQuickCreateDialog
         open={quickOpen && isOwner}

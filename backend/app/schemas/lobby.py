@@ -32,6 +32,7 @@ class SettingSummary(BaseModel):
     lobby_id: UUID
     name: str
     world_notes: str
+    is_extra: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -80,6 +81,7 @@ class SettingPageOut(BaseModel):
     gm_body: str = ""
     sort_order: int = 0
     revealed: bool = False
+    revealed_at: datetime | None = None
     page_kind: SettingPageKind = "note"
     template_id: UUID | None = None
     fields: dict[str, str | int | float | bool | None] = Field(default_factory=dict)
@@ -247,6 +249,16 @@ class SettingDetail(SettingSummary):
     all_tags: list[str] = Field(default_factory=list)
     artifacts: list[SettingArtifactOut] = Field(default_factory=list)
     is_owner: bool = False
+    # W-01: права L-01, не путать is_owner с правкой вики
+    can_edit_wiki: bool = False
+    can_see_hidden: bool = False
+    can_view_lobby: bool = True
+
+
+class SettingChoosePrimaryRequest(BaseModel):
+    """W-01: выбрать основной сеттинг; остальные → is_extra."""
+
+    setting_id: UUID
 
 
 class SettingPageCreateRequest(BaseModel):
@@ -640,6 +652,8 @@ class LobbyDetail(BaseModel):
     members: list[LobbyMemberOut]
     roles: list[LobbyRoleOut] = Field(default_factory=list)
     settings: list[SettingSummary]
+    # W-01: больше одного активного (is_extra=false) — мастер выбирает основной
+    settings_need_primary: bool = False
     sessions: list[SessionSummary]
     visibility_profile: dict = Field(default_factory=dict)
     # L-08: правила кампании (варианты 2014, домашние, прогрессия, КД врагов)
