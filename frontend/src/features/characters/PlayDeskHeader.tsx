@@ -157,6 +157,10 @@ type PlayDeskHeaderProps = {
   onCastAbsorbElements?: () => void
   offerHellishRebuke?: boolean
   onCastHellishRebuke?: () => void
+  /** O-10: Mounted Combatant — redirect hit to mount. */
+  canRedirectToMount?: boolean
+  mountName?: string | null
+  onRedirectDamageToMount?: (amount: number, note: string) => void
   /** B20: pending setup items for the header indicator. */
   needsSetupItems?: NeedsSetupItem[]
   onNeedsSetupSelect?: (item: NeedsSetupItem) => void
@@ -193,6 +197,9 @@ export function PlayDeskHeader({
   onCastAbsorbElements,
   offerHellishRebuke = false,
   onCastHellishRebuke,
+  canRedirectToMount = false,
+  mountName = null,
+  onRedirectDamageToMount,
   draconicResilience = false,
   play,
   autoAc,
@@ -934,6 +941,9 @@ export function PlayDeskHeader({
         onCastAbsorbElements={onCastAbsorbElements}
         offerHellishRebuke={offerHellishRebuke}
         onCastHellishRebuke={onCastHellishRebuke}
+        canRedirectToMount={canRedirectToMount}
+        mountName={mountName}
+        onRedirectDamageToMount={onRedirectDamageToMount}
       />
 
       <CoinPadDialog

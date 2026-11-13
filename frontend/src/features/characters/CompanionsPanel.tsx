@@ -43,6 +43,13 @@ import {
   INITIATIVE_MODE_LABELS,
 } from './companionCombat'
 import {
+  MOUNT_FALL_DEX_DC,
+  MOUNT_FALL_HINT,
+  isMountCompanionLike,
+  mountControlNote,
+  resolveMountFallDexSave,
+} from '../../shared/dnd/o10MountedUnderwater'
+import {
   parseCompanionActionAttacks,
   type CompanionAttackHostContext,
 } from './companionAttacks'
@@ -70,6 +77,16 @@ type CompanionsPanelProps = {
   canHostAttack?: () => { ok: boolean; reason?: string }
   /** Focus / expand a card (from strip «Настроить»). */
   focusCompanionId?: string | null
+  /**
+   * O-10: when mount hits 0 / is knocked while host is mounted —
+   * host failed Dex DC 10 → mark prone (and toast already says dismounted).
+   */
+  onHostProneFromMountFall?: () => void
+  /** O-10: optional Dex save total for mount-fall (default: prompt via toast). */
+  onMountFallDexSave?: (opts: {
+    mountName: string
+    onResolved: (rollTotal: number) => void
+  }) => void
 }
 
 const KIND_SHORT: Record<CompanionKind, string> = {
@@ -174,6 +191,8 @@ export function CompanionsPanel({
   onSpendHostAttack,
   canHostAttack,
   focusCompanionId = null,
+  onHostProneFromMountFall,
+  onMountFallDexSave,
 }: CompanionsPanelProps) {
   const turnEco = useTurnEconomy()
   const spendHostAttack = onSpendHostAttack ?? (() => turnEco?.spendAttack())
@@ -181,12 +200,55 @@ export function CompanionsPanel({
     canHostAttack ??
     (() => turnEco?.canAttack() ?? { ok: true as const })
   const [healById, setHealById] = useState<Record<string, number | null>>({})
+  const [mountFallPendingId, setMountFallPendingId] = useState<string | null>(null)
+  const [mountFallRoll, setMountFallRoll] = useState<number | null>(null)
   const hasFamiliar = companions.some((row) => row.kind === 'familiar')
   const [filter, setFilter] = useState<CompanionFilter>('all')
   const [openIds, setOpenIds] = useState<Set<string>>(() => {
     const active = getActiveSelfForm(companions)
     return active ? new Set([active.id]) : new Set()
   })
+
+  function applyMountHpAndMaybeFall(row: CompanionEntry, hp: number | null) {
+    const wasMounted = Boolean(row.mounted)
+    const prevHp = row.stats.hp
+    const next = applyCompanionHpChange(row, hp)
+    const droppedToZero =
+      wasMounted &&
+      isMountCompanionLike(row) &&
+      (prevHp == null || prevHp > 0) &&
+      (next.stats.hp ?? 0) <= 0
+    if (!droppedToZero) {
+      onChange(
+        companions.map((c) => (c.id === row.id ? next : c)),
+      )
+      return
+    }
+    // Clear mounted on the fallen mount immediately; offer Dex save for host.
+    const cleared = { ...next, mounted: false }
+    onChange(
+      companions.map((c) => (c.id === row.id ? cleared : c)),
+    )
+    onToast?.(MOUNT_FALL_HINT)
+    setMountFallPendingId(row.id)
+    setMountFallRoll(null)
+    if (onMountFallDexSave) {
+      onMountFallDexSave({
+        mountName: row.name,
+        onResolved: (rollTotal) => {
+          finishMountFallSave(row.name, rollTotal)
+        },
+      })
+    }
+  }
+
+  function finishMountFallSave(mountName: string, rollTotal: number) {
+    const result = resolveMountFallDexSave({ rollTotal })
+    setMountFallPendingId(null)
+    setMountFallRoll(null)
+    onToast?.(`${mountName}: ${result.note}`)
+    if (result.prone) onHostProneFromMountFall?.()
+  }
   const [addForkOpen, setAddForkOpen] = useState(false)
   const [damageById, setDamageById] = useState<Record<string, number | null>>({})
 
@@ -648,11 +710,7 @@ export function CompanionsPanel({
                           update(row.id, { stats: { ...row.stats, hp } })
                           return
                         }
-                        onChange(
-                          companions.map((c) =>
-                            c.id === row.id ? applyCompanionHpChange(c, hp) : c,
-                          ),
-                        )
+                        applyMountHpAndMaybeFall(row, hp)
                       }}
                     />
                   </Field>
@@ -721,32 +779,96 @@ export function CompanionsPanel({
                     {row.turnMarks?.dodge ? (
                       <span className="attack-held-tag">Уклонение</span>
                     ) : null}
-                    {(row.steed_spirit_type ||
-                      row.source?.feature?.includes('find_steed') ||
-                      row.source?.feature?.includes('mount:') ||
-                      row.id.includes(':mount:')) &&
-                    row.active ? (
-                      <label className="chip-row">
-                        <input
-                          type="checkbox"
-                          checked={Boolean(row.mounted)}
-                          onChange={(e) => {
-                            onChange(
-                              companions.map((c) =>
-                                c.id === row.id
-                                  ? { ...c, mounted: e.target.checked }
-                                  : c,
-                              ),
-                            )
-                          }}
-                        />
-                        <Text>
-                          Верхом
-                          {row.mounted
-                            ? ' · скакун: только Рывок / Отход / Уклонение; заклинания «на себя» — и на скакуна'
-                            : ''}
+                    {isMountCompanionLike(row) && row.active ? (
+                      <div className="chip-row" style={{ flexWrap: 'wrap', gap: 8 }}>
+                        <label className="chip-row">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(row.mounted)}
+                            onChange={(e) => {
+                              const nextMounted = e.target.checked
+                              onChange(
+                                companions.map((c) => {
+                                  if (c.id === row.id) {
+                                    return { ...c, mounted: nextMounted }
+                                  }
+                                  // Only one mount at a time.
+                                  if (nextMounted && c.mounted) {
+                                    return { ...c, mounted: false }
+                                  }
+                                  return c
+                                }),
+                              )
+                              onToast?.(
+                                nextMounted
+                                  ? `${row.name}: верхом · ${mountControlNote({ ...row, mounted: true })}`
+                                  : `${row.name}: спешились`,
+                              )
+                            }}
+                          />
+                          <Text>
+                            Верхом
+                            {row.mounted
+                              ? ` · ${mountControlNote(row)}; только Рывок / Отход / Уклонение`
+                              : ''}
+                          </Text>
+                        </label>
+                        {row.mounted ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => {
+                              onChange(
+                                companions.map((c) =>
+                                  c.id === row.id ? { ...c, mounted: false } : c,
+                                ),
+                              )
+                              onToast?.(`${row.name}: спешились`)
+                            }}
+                          >
+                            Спешиться
+                          </Button>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {mountFallPendingId === row.id ? (
+                      <div className="sheet-actions" style={{ flexWrap: 'wrap' }}>
+                        <Text tone="muted">
+                          Спас Ловк. Сл {MOUNT_FALL_DEX_DC} (спешиться на ноги)
                         </Text>
-                      </label>
+                        <NumberInput
+                          min={1}
+                          max={30}
+                          emptyValue={null}
+                          value={mountFallRoll}
+                          onValueChange={(v) => setMountFallRoll(v)}
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={mountFallRoll == null}
+                          onClick={() => {
+                            if (mountFallRoll == null) return
+                            finishMountFallSave(row.name, mountFallRoll)
+                          }}
+                        >
+                          Итог спаса
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => finishMountFallSave(row.name, 1)}
+                        >
+                          Провал
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => finishMountFallSave(row.name, 10)}
+                        >
+                          Успех
+                        </Button>
+                      </div>
                     ) : null}
                     <div className="chip-row">
                       <span className="attack-held-tag">

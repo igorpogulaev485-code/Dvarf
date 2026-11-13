@@ -199,6 +199,34 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
     offerHellishRebuke: Boolean(hasHellishSpell && reactionFree),
     onCastHellishRebuke: () => openReactionSpell('hellish_rebuke'),
   }
+  const activeMount = (model.draft.companions ?? []).find(
+    (c) => c.mounted && c.active !== false,
+  )
+  const o10HpPad = {
+    canRedirectToMount: Boolean(
+      hasFeatFlag(model.draft.featGrants, 'mounted_combatant') && activeMount,
+    ),
+    mountName: activeMount?.name ?? null,
+    onRedirectDamageToMount: (amount: number, note: string) => {
+      if (!activeMount) return
+      const mountId = activeMount.id
+      const cur = Number(activeMount.stats?.hp ?? 0)
+      const nextHp = Math.max(0, cur - Math.max(0, amount))
+      model.setDraft((prev) => ({
+        ...prev,
+        companions: prev.companions.map((c) =>
+          c.id === mountId
+            ? {
+                ...c,
+                stats: { ...c.stats, hp: nextHp },
+                ...(nextHp <= 0 ? { mounted: false } : {}),
+              }
+            : c,
+        ),
+      }))
+      model.onToast(note || `Урон скакуну −${amount}`)
+    },
+  }
 
   const alignmentHint = alignmentNeedsClarification(model.draft.identity)
     ? 'Уточните мировоззрение'
@@ -338,6 +366,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             raceSlug={model.draft.raceGrant?.slug ?? null}
             hasShieldMasterEvasion={hasShieldMasterEvasion}
             {...o07HpPad}
+            {...o10HpPad}
             draconicResilience={(model.unlockedFeatures ?? []).some(
               (f: { id?: string }) => f.id === 'draconic_resilience',
             )}
@@ -518,6 +547,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           hadozeeDodgeReduction={hadozeeCut}
           raceSlug={model.draft.raceGrant?.slug ?? null}
           {...o07HpPad}
+          {...o10HpPad}
           draconicResilience={(model.unlockedFeatures ?? []).some(
             (f: { id?: string }) => f.id === 'draconic_resilience',
           )}

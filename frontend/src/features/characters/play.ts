@@ -75,6 +75,11 @@ export type PlayState = {
    * Хранится в sheet.combat.cover.
    */
   cover?: CoverLevel
+  /**
+   * O-10: пометка «под водой» (ситуация, не L-08).
+   * Хранится в sheet.combat.underwater.
+   */
+  underwater?: boolean
 }
 
 export type { ConcentrationState }
@@ -225,6 +230,7 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
     turnEconomy: readTurnEconomy(combat.turn_economy),
     noLongRestDays: Math.max(0, Math.floor(readNumber(combat.no_long_rest_days, 0))),
     cover: readCoverLevel(combat.cover),
+    underwater: Boolean(combat.underwater),
   }
 }
 
@@ -245,6 +251,7 @@ export function playToSheet(play: PlayState): {
     turn_economy: ReturnType<typeof serializeTurnEconomy>
     no_long_rest_days: number
     cover: CoverLevel
+    underwater: boolean
   }
   resources: SheetResource[]
 } {
@@ -279,6 +286,7 @@ export function playToSheet(play: PlayState): {
       turn_economy: serializeTurnEconomy(play.turnEconomy ?? emptyTurnEconomy()),
       no_long_rest_days: Math.max(0, Math.floor(play.noLongRestDays ?? 0)),
       cover: readCoverLevel(play.cover),
+      underwater: Boolean(play.underwater),
     },
     resources: play.resources.map((item) => clampResource(item)),
   }

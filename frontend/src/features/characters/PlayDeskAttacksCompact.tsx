@@ -97,6 +97,21 @@ import {
   markDisengagedThisTurn,
   markReadyPrepared,
 } from '../../shared/dnd/turnEconomy'
+import {
+  MOUNTED_COMBATANT_ADV_HINT,
+  MOUNTED_COMBATANT_RANGED_DIS_HINT,
+  MOUNTED_HINT,
+  UNDERWATER_HINT,
+  findActiveMount,
+  hostIsMounted,
+  hasMountedCombatantFeat,
+  mountControlNote,
+  mountSizeFromSlugOrName,
+  mountedCombatantMeleeAdvantage,
+  mountedCombatantRangedDisadvantage,
+  underwaterAttackMode,
+} from '../../shared/dnd/o10MountedUnderwater'
+import { isRangedWeaponAttackName } from '../../shared/dnd/fightingStyles'
 import type { ConditionRef } from '../../shared/dnd/conditions'
 import { applyCharacterEffects } from '../../shared/api/characters'
 import {
@@ -388,6 +403,11 @@ type PlayDeskAttacksCompactProps = {
   onAddPlayEffect?: (effect: ActiveEffect) => void
   onSpendReadySpellSlot?: (level: number) => boolean
   characterName?: string | null
+  /** O-10: пометка «под водой» с листа. */
+  underwaterSelf?: boolean
+  onUnderwaterSelfChange?: (next: boolean) => void
+  /** O-10: скорость плавания (фт) — снимает помеху рукопашным под водой. */
+  swimSpeed?: number | null
 }
 
 function formatSpendTime(atMs: number): string {
@@ -489,6 +509,9 @@ export function PlayDeskAttacksCompact({
   onAddPlayEffect,
   onSpendReadySpellSlot,
   characterName = null,
+  underwaterSelf = false,
+  onUnderwaterSelfChange,
+  swimSpeed = null,
 }: PlayDeskAttacksCompactProps) {
   const turnEco = useTurnEconomy()
   const [grappleOpen, setGrappleOpen] = useState(false)
@@ -503,6 +526,12 @@ export function PlayDeskAttacksCompact({
   const [targetProne, setTargetProne] = useState(false)
   const [targetRestrained, setTargetRestrained] = useState(false)
   const [targetParalyzedClose, setTargetParalyzedClose] = useState(false)
+  /** O-10 situation marks on attack strip. */
+  const [targetUnderwater, setTargetUnderwater] = useState(false)
+  const [targetSmallerThanMount, setTargetSmallerThanMount] = useState(false)
+  const [targetIsMounted, setTargetIsMounted] = useState(false)
+  const [attackAimAtMount, setAttackAimAtMount] = useState(false)
+  const [dismissRiderRangedDis, setDismissRiderRangedDis] = useState(false)
   const [reactionAttackArmed, setReactionAttackArmed] = useState(false)
   /** Reaction already spent (riposte) — finishAttack must not spend again. */
   const [reactionPreSpent, setReactionPreSpent] = useState(false)
@@ -628,6 +657,10 @@ export function PlayDeskAttacksCompact({
   const hasPolearmMaster = hasFeatFlag(featGrants, 'polearm_master')
   const hasMageSlayer = hasFeatFlag(featGrants, 'mage_slayer')
   const hasWarCaster = hasFeatFlag(featGrants, 'war_caster')
+  const hasMountedCombatant = hasMountedCombatantFeat(featGrants)
+  const activeMount = findActiveMount(companions)
+  const isMountedNow = hostIsMounted(companions)
+  const hasSwim = (swimSpeed ?? 0) > 0
   const holdingPolearmOa = holdingPolearmOpportunityWeapon(inventoryItems)
   const holdingPolearmBonus = holdingPolearmBonusWeapon(inventoryItems)
   const adeptManeuverIds = martialAdeptManeuverIds(featGrants)
@@ -1112,6 +1145,84 @@ export function PlayDeskAttacksCompact({
               />{' '}
               Невидимый обнаружен
             </label>
+          </div>
+
+          {/* O-10: верхом / под водой */}
+          <div className="chip-row" style={{ marginBottom: 8 }} role="group" aria-label="Верхом и под водой">
+            <button
+              type="button"
+              className={`sheet-chip${underwaterSelf ? ' is-on' : ''}`}
+              aria-pressed={underwaterSelf}
+              title={UNDERWATER_HINT}
+              onClick={() => onUnderwaterSelfChange?.(!underwaterSelf)}
+            >
+              Под водой{underwaterSelf ? ' · вы' : ''}
+            </button>
+            <label className="field" style={{ margin: 0 }} title={UNDERWATER_HINT}>
+              <input
+                type="checkbox"
+                checked={targetUnderwater}
+                onChange={(e) => setTargetUnderwater(e.target.checked)}
+              />{' '}
+              Цель под водой
+            </label>
+            {isMountedNow && activeMount ? (
+              <span className="sheet-chip is-on" title={`${MOUNTED_HINT} · ${mountControlNote(activeMount)}`}>
+                Верхом · {activeMount.name || 'скакун'}
+              </span>
+            ) : null}
+            {hasMountedCombatant && isMountedNow ? (
+              <label className="field" style={{ margin: 0 }} title={MOUNTED_COMBATANT_ADV_HINT}>
+                <input
+                  type="checkbox"
+                  checked={targetSmallerThanMount}
+                  onChange={(e) => setTargetSmallerThanMount(e.target.checked)}
+                />{' '}
+                Цель меньше скакуна
+                {activeMount
+                  ? ` (${mountSizeFromSlugOrName(activeMount.name || activeMount.id)})`
+                  : ''}
+              </label>
+            ) : null}
+            <label className="field" style={{ margin: 0 }}>
+              <input
+                type="checkbox"
+                checked={targetIsMounted}
+                onChange={(e) => {
+                  setTargetIsMounted(e.target.checked)
+                  if (!e.target.checked) {
+                    setAttackAimAtMount(false)
+                    setDismissRiderRangedDis(false)
+                  }
+                }}
+              />{' '}
+              Цель верхом
+            </label>
+            {targetIsMounted ? (
+              <>
+                <label className="field" style={{ margin: 0 }}>
+                  <input
+                    type="checkbox"
+                    checked={attackAimAtMount}
+                    onChange={(e) => setAttackAimAtMount(e.target.checked)}
+                  />{' '}
+                  Бью по скакуну
+                </label>
+                <label
+                  className="field"
+                  style={{ margin: 0 }}
+                  title={MOUNTED_COMBATANT_RANGED_DIS_HINT}
+                >
+                  <input
+                    type="checkbox"
+                    checked={!dismissRiderRangedDis && !attackAimAtMount}
+                    disabled={attackAimAtMount}
+                    onChange={(e) => setDismissRiderRangedDis(!e.target.checked)}
+                  />{' '}
+                  Помеха дальним по всаднику
+                </label>
+              </>
+            ) : null}
           </div>
 
           <TurnEconomyCombatActions
@@ -2481,12 +2592,39 @@ export function PlayDeskAttacksCompact({
               within5ft: targetParalyzedClose || within5ft,
               invisibleDiscovered,
             })
+            const isSpellAtk = isSpellAttackName(attack.name)
+            const rangedWeapon =
+              !meleeAttack && !isSpellAtk && isRangedWeaponAttackName(attack.name)
+            const uwMode = underwaterAttackMode({
+              underwater: underwaterSelf,
+              attackReach: meleeAttack ? 'melee' : 'ranged',
+              weaponName: attack.name,
+              damageType: shownType,
+              hasSwimSpeed: hasSwim,
+              longRange: longRangeMarked,
+              isSpellAttack: isSpellAtk,
+            })
+            const mcAdv = mountedCombatantMeleeAdvantage({
+              hasFeat: hasMountedCombatant,
+              mounted: isMountedNow,
+              meleeWeaponAttack: meleeAttack && !isSpellAtk,
+              targetSmallerThanMount,
+              targetMounted: targetIsMounted,
+            })
+            const mcRangedDis = mountedCombatantRangedDisadvantage({
+              hasFeat: true,
+              targetMounted: targetIsMounted && !attackAimAtMount,
+              rangedWeaponAttack: Boolean(rangedWeapon),
+              dismissed: dismissRiderRangedDis || attackAimAtMount,
+            })
             attackMode = mergeRollModes(
               attackMode,
               selfCondMode.mode,
               vsTargetMode.mode,
+              uwMode.mode,
+              mcAdv.mode,
+              mcRangedDis.mode,
             ) as DeskRollMode
-            const isSpellAtk = isSpellAttackName(attack.name)
             const coverIgnore = coverIgnoreKind({
               isRangedWeaponAttack: !meleeAttack && !isSpellAtk,
               isSpellAttack: isSpellAtk,
@@ -2496,7 +2634,7 @@ export function PlayDeskAttacksCompact({
               cover: targetCover,
               ignore: coverIgnore,
             })
-            const coverBlocked = coverVs.blocked
+            const coverBlocked = coverVs.blocked || Boolean(uwMode.autoMiss)
             const coverBonusNote =
               coverVs.bonus > 0
                 ? ` · укрытие цели +${coverVs.bonus} КД`
@@ -2504,10 +2642,23 @@ export function PlayDeskAttacksCompact({
                     (targetCover === 'half' || targetCover === 'three_quarters')
                   ? ' · укрытие игнор.'
                   : ''
+            const fireResistNote =
+              targetUnderwater && /огонь|fire/i.test(String(shownType || ''))
+                ? ' · цель под водой · сопр. огню'
+                : ''
+            const mountAimNote = attackAimAtMount
+              ? ' · по скакуну'
+              : targetIsMounted
+                ? ' · по всаднику'
+                : ''
             const condNote = [
               ...selfCondMode.reasons,
               ...vsTargetMode.reasons,
               vsTargetMode.autoCritReason,
+              ...uwMode.reasons,
+              ...mcAdv.reasons,
+              ...mcRangedDis.reasons,
+              uwMode.autoMissReason,
             ]
               .filter(Boolean)
               .join(' · ')
@@ -2517,7 +2668,7 @@ export function PlayDeskAttacksCompact({
               meleeAttack && symbioticRider ? ` + ${symbioticRider.label}` : ''
             }${powerKind ? ' · −5/+10' : ''}${chargerFlat ? ' · +5 Налётчик' : ''}${
               twfBonusArmed && meleeAttack ? ' · 2-е оружие' : ''
-            }${gwfApplies ? ' · GWF' : ''}${coverBonusNote}${
+            }${gwfApplies ? ' · GWF' : ''}${coverBonusNote}${fireResistNote}${mountAimNote}${
               condNote ? ` · ${condNote}` : ''
             }`
             const iconKind = attackRowIconKind({
@@ -2535,13 +2686,23 @@ export function PlayDeskAttacksCompact({
                     coverBlocked || (turnEco && !turnEco.canAttack().ok),
                   )}
                   title={(() => {
-                    if (coverBlocked) return coverVs.reason || 'Полное укрытие'
+                    if (uwMode.autoMiss) {
+                      return uwMode.autoMissReason || 'Промах под водой'
+                    }
+                    if (coverVs.blocked) return coverVs.reason || 'Полное укрытие'
                     const gate = turnEco?.canAttack()
                     if (gate && !gate.ok) return gate.reason
                     return 'Бросок атаки и урона'
                   })()}
                   onClick={() => {
-                    if (coverBlocked) {
+                    if (uwMode.autoMiss) {
+                      onToast?.(
+                        uwMode.autoMissReason ||
+                          'Под водой: дальнобойная дальше обычной дистанции — промах',
+                      )
+                      return
+                    }
+                    if (coverVs.blocked) {
                       onToast?.(coverVs.reason || 'Полное укрытие — цель нельзя выбрать')
                       return
                     }
