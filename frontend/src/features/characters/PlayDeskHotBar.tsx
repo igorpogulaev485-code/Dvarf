@@ -269,7 +269,8 @@ export function PlayDeskHotBar({
         : `Истощение ${exhaustion}`
       : null,
   ].filter(Boolean) as string[]
-  const conditionsLabel = parts.length > 0 ? parts.join(', ') : 'нет'
+  // SC-01 / решение 13.11 18:05: пустые блоки («нет», «—») свёрнуты.
+  const conditionsLabel = parts.length > 0 ? parts.join(', ') : null
   const conditionsOn = parts.length > 0
   const hotResources = resources.filter(resourceShowsOnHot)
   const pinnedResources = mobileMoreOverflow
@@ -383,8 +384,8 @@ export function PlayDeskHotBar({
       <div className="play-desk__hot" ref={scrollerRef} aria-label="Боевая полоса">
         <button
           type="button"
-          className={`play-desk__hot-item play-desk__hot-item--wide play-desk__hot-item--btn${
-            conditionsOn ? ' is-on' : ''
+          className={`play-desk__hot-item play-desk__hot-item--btn${
+            conditionsOn ? ' play-desk__hot-item--wide is-on' : ' play-desk__hot-item--compact'
           }`}
           title="Нажми, чтобы изменить состояния"
           aria-pressed={conditionsOn}
@@ -392,30 +393,22 @@ export function PlayDeskHotBar({
         >
           <IconConditions className="play-desk__hot-icon" />
           <span className="play-desk__hot-label">
-            Состояния: {conditionsLabel}
+            {conditionsOn ? `Состояния: ${conditionsLabel}` : 'Состояния'}
           </span>
         </button>
-        <div
-          className={`play-desk__hot-item play-desk__hot-item--wide${
-            concOn ? ' is-on' : ''
-          }`}
-        >
-          <IconConcentration className="play-desk__hot-icon" />
-          {concentration ? (
-            <>
-              <span className="play-desk__hot-label">
-                Концентрация: <strong>{concentration.name}</strong>
-              </span>
-              {onClearConcentration ? (
-                <button type="button" className="linkish" onClick={onClearConcentration}>
-                  Снять
-                </button>
-              ) : null}
-            </>
-          ) : (
-            <span className="play-desk__hot-label">Концентрация: —</span>
-          )}
-        </div>
+        {concentration ? (
+          <div className="play-desk__hot-item play-desk__hot-item--wide is-on">
+            <IconConcentration className="play-desk__hot-icon" />
+            <span className="play-desk__hot-label">
+              Концентрация: <strong>{concentration.name}</strong>
+            </span>
+            {onClearConcentration ? (
+              <button type="button" className="linkish" onClick={onClearConcentration}>
+                Снять
+              </button>
+            ) : null}
+          </div>
+        ) : null}
         {pinnedResources.map((row) => (
           <ResourceChip
             key={row.id}

@@ -24,12 +24,9 @@ export function ActiveEffectsPanel({
   onHeroismTurnStart,
 }: Props) {
   const rows = applyEffectStacking(effects ?? [])
+  // SC-01: empty effects → render nothing (no empty muted placeholder).
   if (rows.length === 0) {
-    return (
-      <div className="active-effects panel" data-testid="active-effects">
-        <Text tone="muted">Нет активных эффектов</Text>
-      </div>
-    )
+    return null
   }
 
   const hasHeroism = rows.some((row) => row.slug === 'heroism' && !row.inactive)

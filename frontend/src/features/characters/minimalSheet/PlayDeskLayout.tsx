@@ -348,12 +348,16 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             </div>
           ) : null}
 
-          {model.draft.sheetUi.deskMode === 'combat' ? (
+          {/*
+            SC-01 / решение 13.11 17:42: на десктопе полоска навыков боя скрыта
+            (дубль левой колонки). На телефоне оставляем.
+          */}
+          {!model.isPlayDesk && model.draft.sheetUi.deskMode === 'combat' ? (
             <PlayDeskSkillStrip
               ariaLabel="Навыки боя"
               skills={model.modeSkillChips('combat')}
               onSkillClick={model.rollModeSkill}
-              mobileOverflow={!model.isPlayDesk}
+              mobileOverflow
             />
           ) : null}
 

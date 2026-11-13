@@ -1,5 +1,3 @@
-import { TurnEconomyChips } from './TurnEconomyChips'
-import { TurnEconomyCombatActions } from './TurnEconomyCombatActions'
 import type { TurnEconomyMarkKey, TurnEconomyState } from '../../shared/dnd/turnEconomy'
 import { HoverTipCard } from '../onboarding/ValueTip'
 import { TURN_TIPS } from '../onboarding/valueTips.ru'
@@ -34,6 +32,8 @@ type Props = {
 
 /**
  * T-01: отдельная полоска над сценами (не LOCK-шапка виталов).
+ * SC-01: отметки хода и PHB — в «Ещё / Действия хода» на панели атак;
+ * здесь «Новый ход» / статус боя и единственный «Кубики на столе» (M-02).
  */
 export function TurnEconomyStrip({
   combatActive,
@@ -42,20 +42,12 @@ export function TurnEconomyStrip({
   activeName,
   turnsUntil,
   initiativePending,
-  turnEconomy,
-  onToggleMark,
   onBeginTurn,
   onRollInitiative,
   showNewTurnButton,
   diceOnTable,
   diceLockedByMaster,
   onDiceOnTableChange,
-  hasCunningAction = false,
-  hasSteadyAim = false,
-  hasKiFueledAttack = false,
-  onToggleMoved,
-  onOfferSkill,
-  onToast,
   showValueTips = false,
 }: Props) {
   // Вне боя: без полоски «Твой ход», только «Новый ход» + личные кубики.
@@ -114,15 +106,12 @@ export function TurnEconomyStrip({
         ) : null}
       </div>
 
+      {/*
+        SC-01: отметки хода и PHB-действия переехали в «Ещё / Действия хода»
+        на панели атак. Здесь остаются статус боя, «Начало моего хода» и
+        единственный «Кубики на столе» (M-02 / M13).
+      */}
       <div className="turn-economy-strip__row">
-        <span className={showValueTips ? 'has-onboarding-tip' : undefined}>
-          <TurnEconomyChips
-            state={turnEconomy}
-            onToggle={onToggleMark}
-            onToggleMoved={yourTurn ? onToggleMoved : undefined}
-          />
-          {showValueTips ? <HoverTipCard tip={TURN_TIPS.marks} /> : null}
-        </span>
         {yourTurn ? (
           <span className={showValueTips ? 'has-onboarding-tip' : undefined}>
             <Button type="button" variant="secondary" onClick={onBeginTurn}>
@@ -151,15 +140,6 @@ export function TurnEconomyStrip({
           ) : null}
         </label>
       </div>
-      {yourTurn ? (
-        <TurnEconomyCombatActions
-          hasCunningAction={hasCunningAction}
-          hasSteadyAim={hasSteadyAim}
-          hasKiFueledAttack={hasKiFueledAttack}
-          onOfferSkill={onOfferSkill}
-          onToast={onToast}
-        />
-      ) : null}
     </div>
   )
 }
