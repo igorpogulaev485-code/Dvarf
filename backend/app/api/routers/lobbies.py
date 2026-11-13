@@ -42,7 +42,9 @@ from app.schemas.lobby import (
     CombatPatchRequest,
     CombatReactionRequest,
     CombatStartRequest,
+    CombatFromWikiRequest,
     CombatTargetsOut,
+    WikiCombatPagesOut,
     CombatantCreateRequest,
     CombatantPatchRequest,
     CombatantStudyRequest,
@@ -1092,6 +1094,33 @@ async def start_session_combat(
     db: DbSession,
 ) -> SessionDetail:
     return await LobbyService(db).start_combat(current_user, session_id, payload)
+
+
+@router.post(
+    "/sessions/{session_id}/combat/from-wiki",
+    response_model=SessionDetail,
+)
+async def start_session_combat_from_wiki(
+    session_id: UUID,
+    payload: CombatFromWikiRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionDetail:
+    """W-03: высадить страницу «Бой» на стол (волны S-02)."""
+    return await LobbyService(db).combat_from_wiki(current_user, session_id, payload)
+
+
+@router.get(
+    "/sessions/{session_id}/wiki-combats",
+    response_model=WikiCombatPagesOut,
+)
+def list_session_wiki_combats(
+    session_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> WikiCombatPagesOut:
+    """W-03: «Бои этой локации» (+ бои под квестами involved)."""
+    return LobbyService(db).list_session_wiki_combats(current_user, session_id)
 
 
 @router.post(

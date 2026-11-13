@@ -246,7 +246,7 @@ def test_request_rejects_unknown_enemy_casters_name():
 
 
 def test_generate_wiki_hook_and_no_loot(monkeypatch):
-    """save_to_wiki → 400; fill_loot_chest не вызывается."""
+    """W-03: save_to_wiki без parent → 400; fill_loot_chest не вызывается; wiki доступен."""
     session_id = uuid4()
     user = SimpleNamespace(id=uuid4())
     lobby = SimpleNamespace(id=uuid4(), campaign_rules={"homebrew": {}})
@@ -257,6 +257,7 @@ def test_generate_wiki_hook_and_no_loot(monkeypatch):
         seats=[SimpleNamespace(character_id=uuid4())],
         combatants=[],
         combat={"active": False},
+        setting_id=uuid4(),
     )
     char = SimpleNamespace(
         level=3,
@@ -293,6 +294,10 @@ def test_generate_wiki_hook_and_no_loot(monkeypatch):
         "app.services.session_rewards.fill_loot_chest",
         lambda *a, **k: loot_calls.append(1) or ({}, {}),
     )
+    monkeypatch.setattr(
+        "app.services.lobby_roles.can_edit_wiki",
+        lambda *a, **k: True,
+    )
 
     with pytest.raises(AppError) as exc:
         svc.generate_encounter(
@@ -301,7 +306,7 @@ def test_generate_wiki_hook_and_no_loot(monkeypatch):
             EncounterGenerateRequest(theme_ids=["orc"], save_to_wiki=True),
         )
     assert exc.value.status_code == 400
-    assert exc.value.code == "wiki_combat_not_ready"
+    assert exc.value.code == "combat_parent_required"
 
     result = svc.generate_encounter(
         user,
@@ -314,19 +319,18 @@ def test_generate_wiki_hook_and_no_loot(monkeypatch):
             waves=1,
         ),
     )
-    assert result.wiki_save_available is False
+    assert result.wiki_save_available is True
     assert result.party is not None
     assert result.composition == "horde"
     assert loot_calls == []
 
 
-def test_alembic_single_head_no_g01_migration():
+def test_alembic_single_head_includes_w02_ancestor():
     cfg = Config("alembic.ini")
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1
-    # голова цепочки W-02; G-01 миграций не добавлял
-    assert any(
-        rev.revision == "w02wiki0a2e0f"
-        for rev in script.walk_revisions()
-    )
+    # W-02 остаётся в предках; голова после W-03 — не хардкодим имя
+    revs = {rev.revision for rev in script.walk_revisions()}
+    assert "w02wiki0a2e0f" in revs
+    assert "w03cmbt7b4e2a" in revs

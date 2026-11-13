@@ -64,6 +64,47 @@ export type SettingPageKind =
   | 'quest'
   | 'item_lore'
   | 'note'
+  | 'combat'
+
+/** Значения fields: скаляры шаблона или вложенный JSON (W-03 бой). */
+export type SettingPageFieldValue = string | number | boolean | null | unknown
+
+export type CombatEstimate = {
+  party_levels: number[]
+  monster_count: number
+  xp_raw: number
+  xp_adjusted: number
+  unknown_xp_count: number
+  thresholds?: Record<string, number> | null
+  band?: string | null
+  note?: string | null
+  breakdown?: Array<Record<string, unknown>>
+}
+
+export type WikiCombatPage = {
+  id: string
+  title: string
+  parent_id?: string | null
+  parent_title?: string | null
+  parent_kind?: SettingPageKind | null
+  updated_at?: string | null
+}
+
+export type CombatFromWikiPayload = {
+  page_id: string
+}
+
+export type EncounterWikiPick = {
+  wave_index: number
+  condition_text?: string | null
+  boss_slug?: string | null
+  boss_name?: string | null
+  boss_xp?: number | null
+  pack_slug?: string | null
+  pack_name?: string | null
+  pack_xp?: number | null
+  pack_count?: number
+}
 
 export type QuestStatus = 'planned' | 'active' | 'done' | 'failed'
 
@@ -98,7 +139,7 @@ export type SettingPage = {
   revealed_at?: string | null
   page_kind: SettingPageKind
   template_id: string | null
-  fields: Record<string, string | number | boolean | null>
+  fields: Record<string, SettingPageFieldValue>
   quest_status: QuestStatus | null
   tags: string[]
   deleted_at?: string | null
@@ -107,6 +148,8 @@ export type SettingPage = {
   media?: LobbyMedia[]
   primary_image?: LobbyMedia | null
   map_image?: LobbyMedia | null
+  /** W-03: оценка DMG для страницы «Бой» (только GM). */
+  combat_estimate?: CombatEstimate | null
 }
 
 export type SettingPageLinkKind = 'semantic' | 'mention'
@@ -653,6 +696,8 @@ export type SessionCombat = {
   pending_rewards?: PendingRewards | null
   /** S-06: сундук добычи */
   loot_chest?: LootChest | null
+  /** W-03: страница «Бой», с которой высадили волны. */
+  wiki_combat_page_id?: string | null
 }
 
 export type PendingRewards = {
@@ -1163,7 +1208,7 @@ export async function createSettingPage(
     parent_id?: string | null
     page_kind?: SettingPageKind
     template_id?: string | null
-    fields?: Record<string, string | number | boolean | null>
+    fields?: Record<string, SettingPageFieldValue>
     quest_status?: QuestStatus | null
     tags?: string[]
   },
@@ -1204,7 +1249,7 @@ export async function updateSettingPage(
     page_kind?: SettingPageKind
     template_id?: string | null
     clear_template?: boolean
-    fields?: Record<string, string | number | boolean | null>
+    fields?: Record<string, SettingPageFieldValue>
     quest_status?: QuestStatus | null
     clear_quest_status?: boolean
     create_missing_mentions?: boolean
@@ -2067,6 +2112,8 @@ export type EncounterGenerateResult = {
   flyers_warning?: boolean
   party?: EncounterPartySummary | null
   wiki_save_available?: boolean
+  /** W-03: id созданной страницы «Бой», если save_to_wiki. */
+  wiki_page_id?: string | null
 }
 
 export type EncounterGeneratePayload = {
@@ -2083,6 +2130,8 @@ export type EncounterGeneratePayload = {
   party_level_override?: number | null
   save_to_wiki?: boolean
   parent_page_id?: string | null
+  wiki_title?: string | null
+  wiki_picks?: EncounterWikiPick[] | null
 }
 
 /** G-01: умный генератор боя на живом столе. */
@@ -2093,6 +2142,26 @@ export async function generateSessionEncounter(
   return apiRequest<EncounterGenerateResult>(
     `/sessions/${sessionId}/encounters/generate`,
     { method: 'POST', body: JSON.stringify(payload) },
+  )
+}
+
+/** W-03: высадить страницу «Бой» на стол. 400 combat_already_active если бой идёт. */
+export async function startCombatFromWiki(
+  sessionId: string,
+  pageId: string,
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(`/sessions/${sessionId}/combat/from-wiki`, {
+    method: 'POST',
+    body: JSON.stringify({ page_id: pageId } satisfies CombatFromWikiPayload),
+  })
+}
+
+/** W-03: список страниц «Бой» сеттинга сессии. */
+export async function listSessionWikiCombats(
+  sessionId: string,
+): Promise<{ pages: WikiCombatPage[] }> {
+  return apiRequest<{ pages: WikiCombatPage[] }>(
+    `/sessions/${sessionId}/wiki-combats`,
   )
 }
 

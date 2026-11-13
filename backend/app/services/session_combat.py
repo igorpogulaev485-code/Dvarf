@@ -272,6 +272,8 @@ def parse_combat_state(raw: object, *, combatants: list[dict] | None = None) -> 
             "loot_chest": None,
             # S-07: взаимодействия с предметом в текущий ход (крючок T-01)
             "object_interactions": {},
+            # W-03: страница вики, с которой высадили бой
+            "wiki_combat_page_id": None,
         }
 
     entries: list[dict] = []
@@ -368,6 +370,12 @@ def parse_combat_state(raw: object, *, combatants: list[dict] | None = None) -> 
         "loot_chest": loot_chest,
         # S-07
         "object_interactions": _parse_object_interactions(raw.get("object_interactions")),
+        # W-03
+        "wiki_combat_page_id": (
+            str(raw["wiki_combat_page_id"])
+            if raw.get("wiki_combat_page_id")
+            else None
+        ),
     }
 
 
@@ -506,6 +514,11 @@ def dump_combat_state(state: dict) -> dict:
         "object_interactions": _parse_object_interactions(
             state.get("object_interactions")
         ),
+        "wiki_combat_page_id": (
+            str(state["wiki_combat_page_id"])
+            if state.get("wiki_combat_page_id")
+            else None
+        ),
     }
     return out
 
@@ -515,6 +528,7 @@ def empty_combat(
     saved_waves: list[dict] | None = None,
     pending_rewards: dict | None = None,
     loot_chest: dict | None = None,
+    wiki_combat_page_id: str | None = None,
 ) -> dict:
     """Конец боя: очередь пуста, но S-06 снимок наград и сундук остаются."""
     from app.services import session_rewards as rewards
@@ -540,6 +554,10 @@ def empty_combat(
             else None
         ),
         "object_interactions": {},
+        # сохраняем до утверждения наград / очистки сундука
+        "wiki_combat_page_id": (
+            str(wiki_combat_page_id) if wiki_combat_page_id else None
+        ),
     }
 
 

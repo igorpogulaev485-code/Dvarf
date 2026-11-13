@@ -46,6 +46,7 @@ from app.dnd.setting_mentions import (
     titles_index,
 )
 from app.dnd.setting_tags import collect_all_tags, normalize_tags
+from app.dnd import wiki_combat as wiki_combat_fields
 from app.dnd.setting_templates import (
     PAGE_KINDS,
     QUEST_STATUSES,
@@ -53,6 +54,7 @@ from app.dnd.setting_templates import (
     default_quest_status,
     empty_fields_for_schema,
 )
+from app.services import wiki_combat_ops as wiki_combat_ops
 from app.dnd.sheet_signals import PartyMemberSnapshot
 from app.dnd.xp import xp_from_cr
 from app.services import session_combat as scmb
@@ -138,6 +140,10 @@ from app.schemas.lobby import (
     SessionRevealPageResult,
     SessionRollCreateRequest,
     SessionSeatOut,
+    CombatEstimateOut,
+    CombatFromWikiRequest,
+    WikiCombatPagesOut,
+    WikiCombatPageOut,
     SessionSummary,
     SessionUpdateRequest,
     SettingArtifactCreateRequest,
@@ -814,6 +820,11 @@ def _combat_out(
         ],
         pending_rewards=pending_out,
         loot_chest=loot_out,
+        wiki_combat_page_id=(
+            str(filtered["wiki_combat_page_id"])
+            if filtered.get("wiki_combat_page_id")
+            else None
+        ),
     )
 
 
@@ -2012,6 +2023,35 @@ class LobbyService:
             is_system=template.setting_id is None,
         )
 
+    def _ensure_combat_system_template(self):
+        """W-03: системный шаблон combat по page_kind (без UUID в SYSTEM_TEMPLATE_IDS)."""
+        existing = self.lobbies.get_system_template_by_kind("combat")
+        if existing is not None:
+            return existing
+        meta = wiki_combat_fields.COMBAT_SYSTEM_TEMPLATE
+        return self.lobbies.create_setting_page_template(
+            page_kind="combat",
+            name=str(meta["name"]),
+            body_seed=str(meta.get("body_seed") or ""),
+            schema=list(meta.get("schema") or []),
+            setting_id=None,
+            enabled=True,
+        )
+
+    def _validate_combat_parent(self, parent, *, setting_id: UUID) -> None:
+        if parent is None or parent.setting_id != setting_id:
+            raise AppError(
+                "Родительская страница не из этого сеттинга",
+                code="page_parent_bad",
+                status_code=400,
+            )
+        if parent.page_kind not in wiki_combat_fields.COMBAT_PARENT_KINDS:
+            raise AppError(
+                "Страница «Бой» только под локацией или квестом",
+                code="combat_parent_bad",
+                status_code=400,
+            )
+
     def _resolve_page_template(
         self,
         *,
@@ -2038,7 +2078,9 @@ class LobbyService:
                     status_code=400,
                 )
             return template
-        # Системный шаблон по типу
+        # W-03: combat — upsert/резолв по page_kind, не по зашитому UUID
+        if page_kind == "combat":
+            return self._ensure_combat_system_template()
         sys_id = SYSTEM_TEMPLATE_IDS.get(page_kind)
         if sys_id is None:
             return None
@@ -2050,7 +2092,12 @@ class LobbyService:
         templates = self.lobbies.list_setting_page_templates(setting.id)
         artifacts = self.lobbies.list_setting_artifacts(setting.id) if see_as_gm else []
         if not see_as_gm:
-            pages = [p for p in all_pages if p.revealed]
+            # W-03: combat никогда не отдаём игроку, даже если revealed=true
+            pages = [
+                p
+                for p in all_pages
+                if p.revealed and getattr(p, "page_kind", None) != "combat"
+            ]
             visible = {p.id for p in pages}
             links = [
                 link
@@ -2090,6 +2137,10 @@ class LobbyService:
         else:
             pages = all_pages
             pages_out = [SettingPageOut.model_validate(p) for p in pages]
+            pages_out = [
+                wiki_combat_ops.enrich_combat_page_out(out, catalog=self.catalog)
+                for out in pages_out
+            ]
         # W-02: картинки L-02 на страницах
         try:
             pages_out = self.wiki().enrich_pages_with_media(
@@ -2138,16 +2189,26 @@ class LobbyService:
         setting_id: UUID,
         reveal_subtree: bool,
     ) -> int:
-        """Выставить revealed / revealed_at; вернуть число затронутых страниц."""
+        """Выставить revealed / revealed_at; вернуть число затронутых страниц.
+
+        W-03: страницы «Бой» игрокам не видны никогда — revealed игнорируется.
+        """
         now = datetime.now(timezone.utc)
-        page.revealed = revealed
-        page.revealed_at = now if revealed else None
+
+        def _set(target, value: bool) -> None:
+            if getattr(target, "page_kind", None) == "combat":
+                target.revealed = False
+                target.revealed_at = None
+                return
+            target.revealed = value
+            target.revealed_at = now if value else None
+
+        _set(page, revealed)
         affected = 1
         if reveal_subtree:
             all_pages = self.lobbies.list_setting_pages(setting_id)
             for child in self._descendant_pages(all_pages, page.id):
-                child.revealed = revealed
-                child.revealed_at = now if revealed else None
+                _set(child, revealed)
                 affected += 1
         return affected
 
@@ -2234,6 +2295,8 @@ class LobbyService:
         self._require_wiki(lobby, user)
         self._require_setting_writable(setting)
         parent_id = payload.parent_id
+        page_kind = payload.page_kind or "note"
+        parent = None
         if parent_id is not None:
             parent = self.lobbies.get_setting_page(parent_id)
             if parent is None or parent.setting_id != setting.id:
@@ -2242,6 +2305,14 @@ class LobbyService:
                     code="page_parent_bad",
                     status_code=400,
                 )
+        if page_kind == "combat":
+            if parent is None:
+                raise AppError(
+                    "Странице «Бой» нужен родитель — локация или квест",
+                    code="combat_parent_required",
+                    status_code=400,
+                )
+            self._validate_combat_parent(parent, setting_id=setting.id)
         siblings = [
             p
             for p in self.lobbies.list_setting_pages(setting.id)
@@ -2252,7 +2323,6 @@ class LobbyService:
             if payload.sort_order is not None
             else (max((p.sort_order for p in siblings), default=-1) + 1)
         )
-        page_kind = payload.page_kind or "note"
         template = self._resolve_page_template(
             setting_id=setting.id,
             page_kind=page_kind,
@@ -2260,9 +2330,16 @@ class LobbyService:
         )
         template_id = template.id if template is not None else None
         schema = template.schema if template is not None else []
-        fields = empty_fields_for_schema(schema if isinstance(schema, list) else [])
-        if payload.fields:
-            fields.update({str(k): v for k, v in payload.fields.items()})
+        if page_kind == "combat":
+            fields = wiki_combat_ops.empty_fields_for_combat_template(
+                schema if isinstance(schema, list) else []
+            )
+            if payload.fields:
+                fields = wiki_combat_fields.merge_combat_fields(fields, payload.fields)
+        else:
+            fields = empty_fields_for_schema(schema if isinstance(schema, list) else [])
+            if payload.fields:
+                fields.update({str(k): v for k, v in payload.fields.items()})
         body = payload.body if payload.body else (
             (template.body_seed or "") if template is not None else ""
         )
@@ -2284,6 +2361,10 @@ class LobbyService:
             quest_status=quest_status,
             tags=normalize_tags(payload.tags),
         )
+        # W-03: combat всегда скрыт от игроков
+        if page_kind == "combat":
+            created.revealed = False
+            created.revealed_at = None
         if body:
             self._sync_page_mentions(
                 setting_id=setting.id,
@@ -2433,6 +2514,9 @@ class LobbyService:
                 page.quest_status = "planned"
             if page.page_kind != "quest":
                 page.quest_status = None
+            if page.page_kind == "combat":
+                page.revealed = False
+                page.revealed_at = None
         if payload.clear_template:
             page.template_id = None
         elif payload.template_id is not None or payload.page_kind is not None:
@@ -2445,16 +2529,47 @@ class LobbyService:
             if template is not None:
                 page.template_id = template.id
                 if payload.template_id is not None:
-                    base = empty_fields_for_schema(
-                        template.schema if isinstance(template.schema, list) else []
-                    )
-                    merged = dict(base)
-                    merged.update(page.fields or {})
-                    page.fields = merged
+                    if kind == "combat":
+                        base = wiki_combat_ops.empty_fields_for_combat_template(
+                            template.schema if isinstance(template.schema, list) else []
+                        )
+                        page.fields = wiki_combat_fields.merge_combat_fields(
+                            base, page.fields
+                        )
+                    else:
+                        base = empty_fields_for_schema(
+                            template.schema if isinstance(template.schema, list) else []
+                        )
+                        merged = dict(base)
+                        merged.update(page.fields or {})
+                        page.fields = merged
         if payload.fields is not None:
-            merged = dict(page.fields or {})
-            merged.update({str(k): v for k, v in payload.fields.items()})
-            page.fields = merged
+            if (payload.page_kind or page.page_kind or "note") == "combat":
+                page.fields = wiki_combat_fields.merge_combat_fields(
+                    page.fields, payload.fields
+                )
+            else:
+                merged = dict(page.fields or {})
+                merged.update({str(k): v for k, v in payload.fields.items()})
+                page.fields = merged
+        # W-03: родитель combat — только location/quest
+        effective_kind = page.page_kind or "note"
+        if effective_kind == "combat":
+            parent = (
+                self.lobbies.get_setting_page(page.parent_id)
+                if page.parent_id is not None
+                else None
+            )
+            if parent is None:
+                raise AppError(
+                    "Странице «Бой» нужен родитель — локация или квест",
+                    code="combat_parent_required",
+                    status_code=400,
+                )
+            self._validate_combat_parent(parent, setting_id=setting.id)
+            page.revealed = False
+            page.revealed_at = None
+            page.fields = wiki_combat_fields.normalize_combat_fields(page.fields)
         if payload.clear_quest_status:
             page.quest_status = None
         elif payload.quest_status is not None:
@@ -6032,13 +6147,34 @@ class LobbyService:
                 if isinstance(prev_chest, dict)
                 else rewards.empty_loot_chest()
             )
+            wiki_page_id = state.get("wiki_combat_page_id")
             # После боя сундук для окна наград — пустой черновик (не на столе)
+            # W-03: если бой из вики — предзаполнить заготовкой (не fill_loot_chest)
             if not chest.get("on_table"):
                 chest = rewards.empty_loot_chest()
+                if wiki_page_id:
+                    try:
+                        wiki_page = self.lobbies.get_setting_page(UUID(str(wiki_page_id)))
+                    except (TypeError, ValueError):
+                        wiki_page = None
+                    if (
+                        wiki_page is not None
+                        and getattr(wiki_page, "page_kind", None) == "combat"
+                    ):
+                        fields = wiki_combat_fields.normalize_combat_fields(
+                            wiki_page.fields
+                        )
+                        prep = fields.get("loot") or {}
+                        if (prep.get("items") or []) or any(
+                            int((prep.get("coins") or {}).get(k) or 0) > 0
+                            for k in ("cp", "sp", "ep", "gp", "pp")
+                        ):
+                            chest = wiki_combat_fields.loot_prep_to_chest(prep)
             session.combat = scmb.empty_combat(
                 saved_waves=saved_waves,
                 pending_rewards=pending,
                 loot_chest=chest,
+                wiki_combat_page_id=str(wiki_page_id) if wiki_page_id else None,
             )
             flag_modified(session, "combat")
             # L-04: «оставить врагом/напарником» — место снимаем в конце боя.
@@ -7897,13 +8033,192 @@ class LobbyService:
             long_label=str(copy["long_label"]),
         )
 
+    def list_session_wiki_combats(
+        self,
+        user: User,
+        session_id: UUID,
+    ) -> WikiCombatPagesOut:
+        """W-03: «Бои этой локации» (+ бои под квестами involved)."""
+        session, lobby = self._require_session_owner(user, session_id)
+        if session.setting_id is None:
+            return WikiCombatPagesOut(pages=[])
+        pages = self.lobbies.list_setting_pages(session.setting_id)
+        involved_ids: list[UUID] = []
+        raw_involved = getattr(session, "involved_page_ids", None)
+        if isinstance(raw_involved, list):
+            for item in raw_involved:
+                try:
+                    involved_ids.append(UUID(str(item)))
+                except (TypeError, ValueError):
+                    continue
+        return WikiCombatPagesOut(
+            pages=wiki_combat_ops.list_wiki_combat_pages_for_session(
+                pages=pages,
+                location_page_id=getattr(session, "location_page_id", None),
+                involved_page_ids=involved_ids,
+            )
+        )
+
+    def create_wiki_combat_page(
+        self,
+        *,
+        user: User,
+        lobby: Lobby,
+        setting_id: UUID,
+        parent_page_id: UUID,
+        title: str,
+        waves: list[dict],
+        loot: dict | None = None,
+        party_levels: list[int] | None = None,
+        body: str = "",
+    ):
+        """Стабильный контракт W-03/G-01: создать скрытую страницу «Бой»."""
+        self._require_wiki(lobby, user)
+        setting = self.lobbies.get_setting(setting_id)
+        if setting is None:
+            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        self._require_setting_writable(setting)
+        parent = self.lobbies.get_setting_page(parent_page_id)
+        self._validate_combat_parent(parent, setting_id=setting.id)
+        template = self._ensure_combat_system_template()
+        fields = wiki_combat_ops.empty_fields_for_combat_template(
+            template.schema if isinstance(template.schema, list) else []
+        )
+        fields = wiki_combat_fields.merge_combat_fields(
+            fields,
+            {
+                "waves": waves,
+                "loot": loot or {"items": [], "coins": {}},
+                "party_levels": list(party_levels or []),
+            },
+        )
+        siblings = [
+            p
+            for p in self.lobbies.list_setting_pages(setting.id)
+            if p.parent_id == parent_page_id
+        ]
+        sort_order = max((p.sort_order for p in siblings), default=-1) + 1
+        page = self.lobbies.create_setting_page(
+            setting_id=setting.id,
+            title=(title or "Бой").strip() or "Бой",
+            body=body or "",
+            gm_body="",
+            parent_id=parent_page_id,
+            sort_order=sort_order,
+            page_kind="combat",
+            template_id=template.id,
+            fields=fields,
+            quest_status=None,
+            tags=[],
+        )
+        page.revealed = False
+        page.revealed_at = None
+        self.db.flush()
+        return page
+
+    async def combat_from_wiki(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: CombatFromWikiRequest,
+    ) -> SessionDetail:
+        """W-03: высадить страницу «Бой» на стол. Если бой уже идёт — отказ."""
+        from sqlalchemy.orm.attributes import flag_modified
+
+        session, lobby = self._require_session_owner(user, session_id)
+        if session.closed_at is not None:
+            raise AppError("Сессия закрыта", code="session_closed", status_code=400)
+        combatants_now = _parse_combatants(session.combatants)
+        state_now = _parse_combat_state(session.combat, combatants=combatants_now)
+        if state_now.get("active"):
+            raise AppError(
+                "Бой уже идёт — завершите его перед высадкой из вики",
+                code="combat_already_active",
+                status_code=400,
+            )
+        if session.setting_id is None:
+            raise AppError(
+                "К сессии не привязан сеттинг",
+                code="session_no_setting",
+                status_code=400,
+            )
+        page = self.lobbies.get_setting_page(payload.page_id)
+        if (
+            page is None
+            or page.setting_id != session.setting_id
+            or getattr(page, "deleted_at", None) is not None
+        ):
+            raise NotFoundError("Страница боя не найдена", code="setting_page_not_found")
+        if page.page_kind != "combat":
+            raise AppError(
+                "Нужна страница типа «Бой»",
+                code="page_kind_bad",
+                status_code=400,
+            )
+        fields = wiki_combat_fields.normalize_combat_fields(page.fields)
+        waves = fields.get("waves") or []
+        if not any(w.get("combatants") for w in waves):
+            raise AppError(
+                "На странице «Бой» нет врагов",
+                code="wiki_combat_empty",
+                status_code=400,
+            )
+
+        wave_ids: dict[int, list[str]] = {}
+        wave_conditions: dict[int, str | None] = {}
+        for wave in waves:
+            index = int(wave.get("index") or 1)
+            condition = wave.get("condition_text")
+            wave_conditions[index] = condition
+            ids: list[str] = []
+            for row in wave.get("combatants") or []:
+                before = {c["id"] for c in _parse_combatants(session.combatants)}
+                create_req = wiki_combat_ops.combatant_create_from_wiki_row(
+                    row, wave_index=index, condition=condition
+                )
+                # add_combatants коммитит и возвращает detail — обновляем session
+                await self.add_combatants(user, session_id, create_req)
+                session = self.lobbies.get_session(session_id) or session
+                after = _parse_combatants(session.combatants)
+                for c in after:
+                    if c["id"] not in before:
+                        ids.append(c["id"])
+            wave_ids[index] = ids
+
+        session = self.lobbies.get_session(session_id)
+        assert session is not None
+        detail_seats = self._session_detail(session, lobby, user).seats
+        start_req = wiki_combat_ops.build_start_request_after_wiki_land(
+            seats=detail_seats,
+            wave_ids=wave_ids,
+            wave_conditions=wave_conditions,
+            combatants=_parse_combatants(session.combatants),
+        )
+        if not start_req.entries or not start_req.waves:
+            raise AppError(
+                "Не удалось собрать волны из вики",
+                code="wiki_combat_empty",
+                status_code=400,
+            )
+        detail = await self.start_combat(user, session_id, start_req)
+        # запомнить страницу для предзаполнения сундука
+        session = self.lobbies.get_session(session_id)
+        assert session is not None
+        combatants = _parse_combatants(session.combatants)
+        state = _parse_combat_state(session.combat, combatants=combatants)
+        state["wiki_combat_page_id"] = str(page.id)
+        session.combat = scmb.dump_combat_state(state)
+        flag_modified(session, "combat")
+        self.db.commit()
+        return self._session_detail(session, lobby, user)
+
     def generate_encounter(
         self,
         user: User,
         session_id: UUID,
         payload: EncounterGenerateRequest,
     ) -> EncounterGenerateResult:
-        """G-01: генератор боя — стиль/волны/летуны/кастеры; вики — крючок до W-03."""
+        """G-01: генератор боя; W-03 подключает save_to_wiki → страница «Бой»."""
         from app.services.campaign_rules import (
             HOMEBREW_CATALOG,
             homebrew_enabled,
@@ -7914,13 +8229,75 @@ class LobbyService:
         if session.closed_at is not None:
             raise AppError("Сессия закрыта", code="session_closed", status_code=400)
 
-        # W-03 ещё нет: тип страницы combat не заводим
+        wiki_page_id = None
         if payload.save_to_wiki or payload.parent_page_id:
-            raise AppError(
-                "Вики боёв ещё нет — страница «Бой» появится в W-03",
-                code="wiki_combat_not_ready",
-                status_code=400,
+            # «Повести сегодня» ведёт стол, но вики не пишет
+            if not roles.can_edit_wiki(self.db, lobby, user):
+                raise AppError(
+                    "Сохранить бой в вики может только мастер или сомастер",
+                    code="wiki_forbidden",
+                    status_code=403,
+                )
+            if not payload.parent_page_id:
+                raise AppError(
+                    "Укажите локацию или квест (parent_page_id)",
+                    code="combat_parent_required",
+                    status_code=400,
+                )
+            if not payload.wiki_picks:
+                raise AppError(
+                    "Выберите врагов волн для сохранения в вики",
+                    code="wiki_picks_required",
+                    status_code=400,
+                )
+            try:
+                parent_uuid = UUID(str(payload.parent_page_id))
+            except (TypeError, ValueError) as exc:
+                raise AppError(
+                    "Некорректный parent_page_id",
+                    code="combat_parent_bad",
+                    status_code=400,
+                ) from exc
+            if session.setting_id is None:
+                raise AppError(
+                    "К сессии не привязан сеттинг",
+                    code="session_no_setting",
+                    status_code=400,
+                )
+            waves = wiki_combat_ops.picks_to_wave_dicts(payload.wiki_picks)
+            if not waves:
+                raise AppError(
+                    "Нечего сохранять в вики — пустые волны",
+                    code="wiki_picks_required",
+                    status_code=400,
+                )
+            levels: list[int] = []
+            if payload.party_count_override and payload.party_level_override:
+                levels = [int(payload.party_level_override)] * int(
+                    payload.party_count_override
+                )
+            else:
+                seat_ids = [s.character_id for s in session.seats]
+                chars = self.lobbies.get_characters_map(seat_ids)
+                for seat in session.seats:
+                    ch = chars.get(seat.character_id)
+                    if ch is not None:
+                        levels.append(int(ch.level or 1))
+            page = self.create_wiki_combat_page(
+                user=user,
+                lobby=lobby,
+                setting_id=session.setting_id,
+                parent_page_id=parent_uuid,
+                title=(payload.wiki_title or "Бой из генератора").strip()
+                or "Бой из генератора",
+                waves=waves,
+                loot=None,
+                party_levels=levels,
             )
+            self.db.commit()
+            wiki_page_id = page.id
+            # дальше отдаём обычный результат генерации + wiki_page_id
+            # (повторный compose ниже — тот же контракт ответа)
 
         rules = normalize_campaign_rules(getattr(lobby, "campaign_rules", None))
         homebrew_keys = [
@@ -8056,7 +8433,8 @@ class LobbyService:
             flyers=proposal.flyers,
             enemy_casters=proposal.enemy_casters,
             flyers_warning=proposal.flyers_warning,
-            wiki_save_available=False,
+            wiki_save_available=True,
+            wiki_page_id=wiki_page_id,
             party=EncounterPartySummaryOut(
                 member_count=analysis.member_count or len(analysis.levels),
                 levels=list(analysis.levels),

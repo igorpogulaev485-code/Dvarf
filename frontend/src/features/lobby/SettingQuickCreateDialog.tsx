@@ -8,6 +8,7 @@ import type {
 } from '../../shared/api/lobbies'
 import { Button, Dialog, Field, Input, Stack, Text } from '../../ui'
 import {
+  COMBAT_PARENT_KINDS,
   SETTING_PAGE_KIND_LABELS,
   SETTING_PAGE_KINDS,
   pageKindLabel,
@@ -17,7 +18,7 @@ type Props = {
   open: boolean
   busy?: boolean
   templates: SettingPageTemplate[]
-  parentOptions: { id: string; title: string }[]
+  parentOptions: { id: string; title: string; page_kind?: SettingPageKind }[]
   defaultParentId?: string | null
   onClose: () => void
   onCreate: (payload: {
@@ -48,6 +49,13 @@ export function SettingQuickCreateDialog({
     [templates, pageKind],
   )
 
+  const filteredParents = useMemo(() => {
+    if (pageKind !== 'combat') return parentOptions
+    return parentOptions.filter(
+      (p) => p.page_kind && COMBAT_PARENT_KINDS.includes(p.page_kind),
+    )
+  }, [pageKind, parentOptions])
+
   const effectiveTemplateId = useMemo(() => {
     if (templateId && kindTemplates.some((t) => t.id === templateId)) {
       return templateId
@@ -66,6 +74,12 @@ export function SettingQuickCreateDialog({
     return one ? [one] : []
   }, [bulk, namesText])
 
+  const combatNeedsParent = pageKind === 'combat'
+  const canCreate =
+    titles.length > 0 &&
+    (Boolean(effectiveTemplateId) || pageKind === 'combat') &&
+    (!combatNeedsParent || Boolean(parentId))
+
   function resetAndClose() {
     setNamesText('')
     setBulk(false)
@@ -79,10 +93,10 @@ export function SettingQuickCreateDialog({
       primaryLabel={titles.length > 1 ? `Создать ${titles.length}` : 'Создать'}
       secondaryLabel="Отмена"
       busy={busy}
-      primaryDisabled={titles.length === 0 || !effectiveTemplateId}
+      primaryDisabled={!canCreate}
       onSecondary={resetAndClose}
       onPrimary={() => {
-        if (titles.length === 0) return
+        if (!canCreate) return
         onCreate({
           page_kind: pageKind,
           template_id: effectiveTemplateId || null,
@@ -105,6 +119,15 @@ export function SettingQuickCreateDialog({
               const next = e.target.value as SettingPageKind
               setPageKind(next)
               setTemplateId('')
+              if (next === 'combat') {
+                const ok = parentOptions.find(
+                  (p) =>
+                    p.id === parentId &&
+                    p.page_kind &&
+                    COMBAT_PARENT_KINDS.includes(p.page_kind),
+                )
+                if (!ok) setParentId('')
+              }
             }}
           >
             {SETTING_PAGE_KINDS.map((kind) => (
@@ -122,7 +145,9 @@ export function SettingQuickCreateDialog({
             onChange={(e) => setTemplateId(e.target.value)}
           >
             {kindTemplates.length === 0 ? (
-              <option value="">Нет шаблона</option>
+              <option value="">
+                {pageKind === 'combat' ? 'Системный «Бой»' : 'Нет шаблона'}
+              </option>
             ) : (
               kindTemplates.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -133,16 +158,26 @@ export function SettingQuickCreateDialog({
             )}
           </select>
         </Field>
-        <Field label="Родитель (опционально)">
+        <Field
+          label={combatNeedsParent ? 'Родитель (обязательно)' : 'Родитель (опционально)'}
+          hint={
+            combatNeedsParent ? 'Только локация или квест' : undefined
+          }
+        >
           <select
             className="ui-input"
             value={parentId}
             disabled={busy}
             onChange={(e) => setParentId(e.target.value)}
           >
-            <option value="">Корень</option>
-            {parentOptions.map((p) => (
+            <option value="">
+              {combatNeedsParent ? 'Выбери локацию или квест' : 'Корень'}
+            </option>
+            {filteredParents.map((p) => (
               <option key={p.id} value={p.id}>
+                {p.page_kind
+                  ? `${SETTING_PAGE_KIND_LABELS[p.page_kind]} · `
+                  : ''}
                 {p.title || 'Без названия'}
               </option>
             ))}
@@ -186,7 +221,7 @@ export function SettingQuickCreateDialog({
               placeholder="Например: Рассветный порт"
               onChange={(e) => setNamesText(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && titles.length === 1 && effectiveTemplateId) {
+                if (e.key === 'Enter' && canCreate && titles.length === 1) {
                   e.preventDefault()
                   onCreate({
                     page_kind: pageKind,

@@ -291,6 +291,47 @@ class LobbyRepository:
 
         return self.db.get(SettingPageTemplate, template_id)
 
+    def get_system_template_by_kind(self, page_kind: str):
+        """Системный шаблон по page_kind (setting_id IS NULL). W-03: combat без UUID в SYSTEM_TEMPLATE_IDS."""
+        from app.models.setting_page_template import SettingPageTemplate
+
+        return self.db.scalars(
+            select(SettingPageTemplate)
+            .where(SettingPageTemplate.setting_id.is_(None))
+            .where(SettingPageTemplate.page_kind == page_kind)
+            .where(SettingPageTemplate.enabled.is_(True))
+            .order_by(SettingPageTemplate.created_at.asc())
+            .limit(1)
+        ).first()
+
+    def create_setting_page_template(
+        self,
+        *,
+        page_kind: str,
+        name: str,
+        body_seed: str = "",
+        schema: list | None = None,
+        setting_id=None,
+        enabled: bool = True,
+        template_id=None,
+    ):
+        from uuid import uuid4
+
+        from app.models.setting_page_template import SettingPageTemplate
+
+        row = SettingPageTemplate(
+            id=template_id or uuid4(),
+            setting_id=setting_id,
+            page_kind=page_kind,
+            name=name,
+            body_seed=body_seed or "",
+            schema=list(schema or []),
+            enabled=enabled,
+        )
+        self.db.add(row)
+        self.db.flush()
+        return row
+
     def delete_setting_page(self, page) -> None:
         self.db.delete(page)
         self.db.flush()
