@@ -954,6 +954,11 @@ export function useSheetEditorPart3(model: SheetModel) {
     /** After a version conflict we already rebased once — do not loop. */
     conflictRetry?: boolean
   }) => {
+    if (model.character.can_edit === false) {
+      model.setSaveStatus('saved')
+      model.setError(null)
+      return false
+    }
     const quiet = options?.quiet ?? false
     const draftSnap = model.draftRef.current
     const baseSnap = model.baseCharacterRef.current

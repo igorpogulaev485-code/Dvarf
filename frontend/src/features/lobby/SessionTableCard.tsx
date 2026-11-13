@@ -664,13 +664,16 @@ export function SessionTableCard({
           ) : null}
 
           <div className="session-table-card__actions">
-            <Link className="ui-button ui-button--ghost" to={`/characters/${seat.character_id}`}>
+            <Link
+              className="ui-button ui-button--ghost ui-button--lg"
+              to={`/characters/${seat.character_id}`}
+            >
               {sheetLabel}
             </Link>
             {isOwner && onApplyEffect ? (
               <button
                 type="button"
-                className="ui-button ui-button--ghost"
+                className="ui-button ui-button--ghost ui-button--lg"
                 disabled={busy}
                 onClick={onApplyEffect}
               >
@@ -680,7 +683,7 @@ export function SessionTableCard({
             {canSpendInspiration ? (
               <button
                 type="button"
-                className="ui-button ui-button--ghost"
+                className="ui-button ui-button--ghost ui-button--lg"
                 disabled={busy}
                 title="Преимущество на следующий бросок (до броска)"
                 onClick={onSpendInspiration}
@@ -691,7 +694,7 @@ export function SessionTableCard({
             {masterControls && onAddCompanion ? (
               <button
                 type="button"
-                className="ui-button ui-button--ghost"
+                className="ui-button ui-button--ghost ui-button--lg"
                 disabled={busy}
                 onClick={onAddCompanion}
               >

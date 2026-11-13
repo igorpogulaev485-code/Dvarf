@@ -142,9 +142,13 @@
     gap: 8px;
   }
 
-  .identity-dialog .languages-tools-add .ui-button {
+  .identity-dialog .languages-tools-add {
+    display: grid;
+    gap: 8px;
+  }
+
+  .identity-dialog .languages-tools-add > * {
     width: 100%;
-    min-height: 44px;
     justify-content: center;
   }
 

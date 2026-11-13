@@ -733,6 +733,13 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.session-typed-damage__temp-label {
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .session-typed-damage__hint,

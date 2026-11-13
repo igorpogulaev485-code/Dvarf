@@ -51,7 +51,8 @@ export function TypedDamageForm({
   return (
     <form className="session-typed-damage" onSubmit={onForm}>
       <NumberInput
-        className="session-enemy-card__damage-input"
+        size="md"
+        narrow
         value={amount}
         min={1}
         max={9999}
@@ -63,7 +64,7 @@ export function TypedDamageForm({
         onValueChange={setAmount}
       />
       <select
-        className="ui-input session-typed-damage__type"
+        className="ui-input ui-input--md session-typed-damage__type"
         value={damageType}
         disabled={busy}
         aria-label="Тип урона"
@@ -76,12 +77,18 @@ export function TypedDamageForm({
           </option>
         ))}
       </select>
-      <Button type="submit" variant="secondary" disabled={busy || disabledDeal || !hasAmount}>
+      <Button
+        type="submit"
+        variant="secondary"
+        size="md"
+        disabled={busy || disabledDeal || !hasAmount}
+      >
         Урон
       </Button>
       <Button
         type="button"
         variant="ghost"
+        size="md"
         disabled={busy || disabledHeal || !hasAmount}
         onClick={() => submit(true)}
       >
@@ -89,8 +96,12 @@ export function TypedDamageForm({
       </Button>
       {showTempHp ? (
         <label className="session-typed-damage__temp">
-          <Text tone="muted">Врем. HP</Text>
+          <Text tone="muted" className="session-typed-damage__temp-label">
+            Врем. HP
+          </Text>
           <NumberInput
+            size="md"
+            narrow
             value={tempHp}
             min={1}
             max={9999}

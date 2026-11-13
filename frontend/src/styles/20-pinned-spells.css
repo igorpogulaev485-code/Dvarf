@@ -361,9 +361,9 @@ button.play-desk__hot-res-name {
   border-radius: 12px;
   background: #fff;
   padding: 10px 10px 20px;
-  overflow: auto;
-  max-height: min(72vh, 920px);
-  scroll-padding-bottom: 24px;
+  /* UIKIT-01 desktop: no inner clip / empty right void — page scrolls */
+  overflow: visible;
+  max-height: none;
 }
 
 .play-desk__stage-panel[hidden] {

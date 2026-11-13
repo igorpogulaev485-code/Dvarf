@@ -404,6 +404,7 @@ export function SessionDetailPage() {
   }
 
   const reloadEvents = useCallback(async () => {
+    if (!sessionId) return
     const list = await listSessionEvents(sessionId, {
       feedFilter: feedFilter === 'all' ? undefined : feedFilter,
       rollsOnly: feedFilter === 'rolls',
@@ -462,17 +463,25 @@ export function SessionDetailPage() {
     }
   }, [navigate, reload])
 
+  // UIKIT-01: restore feed from history on load/refresh (sessionId, not session object churn)
   useEffect(() => {
-    if (!session) return
-    let active = true
-    reloadEvents().catch((err: unknown) => {
-      if (!active) return
-      setError(err instanceof ApiRequestError ? err.message : 'Не удалось загрузить ленту')
+    if (!sessionId) return
+    let cancelled = false
+    void listSessionEvents(sessionId, {
+      feedFilter: feedFilter === 'all' ? undefined : feedFilter,
+      rollsOnly: feedFilter === 'rolls',
     })
+      .then((list) => {
+        if (!cancelled) setEvents(list)
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return
+        setError(err instanceof ApiRequestError ? err.message : 'Не удалось загрузить ленту')
+      })
     return () => {
-      active = false
+      cancelled = true
     }
-  }, [session, reloadEvents])
+  }, [sessionId, feedFilter])
 
   // T5: дневник → /sessions/{id}?page=… → превью лора
   useEffect(() => {
@@ -1440,6 +1449,7 @@ export function SessionDetailPage() {
                         <Button
                           type="button"
                           variant="primary"
+                          size="lg"
                           disabled={
                             busy ||
                             (session.seats.length === 0 &&
@@ -1453,6 +1463,7 @@ export function SessionDetailPage() {
                         <Button
                           type="button"
                           variant="danger"
+                          size="lg"
                           disabled={busy}
                           onClick={() => {
                             setEndCombatThenClose(false)
@@ -1465,6 +1476,7 @@ export function SessionDetailPage() {
                       <Button
                         type="button"
                         variant="secondary"
+                        size="lg"
                         disabled={busy}
                         onClick={() => setCombatantOpen(true)}
                       >
@@ -1473,6 +1485,7 @@ export function SessionDetailPage() {
                       <Button
                         type="button"
                         variant="secondary"
+                        size="lg"
                         className="session-toolbar-mobile-only"
                         disabled={busy}
                         onClick={openAttendanceEditor}

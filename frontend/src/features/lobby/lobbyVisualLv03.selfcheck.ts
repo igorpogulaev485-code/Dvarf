@@ -45,7 +45,9 @@ assert.match(
 
 const journal = read('src/styles/27-session-journal-notes.css')
 assert.match(journal, /chat-composer--sticky/)
-assert.match(journal, /chat-composer__input[\s\S]*font-size:\s*16px|\.chat-composer__input,\s*\n\.chat-composer \.ui-textarea[\s\S]*font-size:\s*16px/)
+assert.match(chats, /ui-input--touch/)
+const tokens = read('src/styles/01-tokens-base.css')
+assert.match(tokens, /\.ui-input--touch\s*\{[\s\S]*?font-size:\s*16px/)
 assert.match(journal, /\.chat-mode-tab\s*\{/)
 
 // LV-01/LV-02 не откатываем

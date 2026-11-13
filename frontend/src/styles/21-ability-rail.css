@@ -568,15 +568,15 @@
     align-items: start;
   }
 
+  /* UIKIT-01: на десктопе страница скроллится целиком — без внутренней обрезки рельса */
   .play-desk__left {
-    position: sticky;
-    top: 12px;
-    max-height: calc(100vh - 24px);
-    overflow: auto;
+    position: static;
+    max-height: none;
+    overflow: visible;
   }
 
   .play-desk__stage {
-    min-height: 60vh;
+    min-height: 0;
   }
 }
 

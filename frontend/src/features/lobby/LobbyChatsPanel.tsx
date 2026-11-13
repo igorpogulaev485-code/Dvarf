@@ -472,7 +472,7 @@ export function LobbyChatsPanel({
                     }}
                   >
                     <textarea
-                      className="ui-input ui-textarea chat-composer__input"
+                      className="ui-input ui-input--touch ui-textarea chat-composer__input"
                       rows={compact ? 2 : 3}
                       value={draft}
                       disabled={busy}
@@ -832,7 +832,7 @@ export function LobbyChatsPanel({
                       }}
                     >
                       <textarea
-                        className="ui-input ui-textarea chat-composer__input"
+                        className="ui-input ui-input--touch ui-textarea chat-composer__input"
                         rows={compact ? 2 : 3}
                         value={whisperDraft}
                         disabled={busy}

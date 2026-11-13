@@ -1103,6 +1103,7 @@ export function SpellsPanel({
                       hint={tablePact != null ? `табл. ${tablePact.max}` : undefined}
                     >
                       <NumberInput
+                        className="ui-input--slot"
                         min={0}
                         max={10}
                         emptyValue={0}

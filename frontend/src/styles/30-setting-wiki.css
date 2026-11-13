@@ -74,18 +74,6 @@
   padding: 14px;
 }
 
-/* SC-07: редактор может быть просторным; кнопки — в ритме контролов */
-.setting-wiki .inline-actions .ui-button,
-.setting-wiki-links .ui-button,
-.setting-wiki__editor .ui-button {
-  min-height: var(--control-h-md);
-}
-
-.setting-wiki .inline-actions .ui-button--primary,
-.setting-wiki__editor .ui-button--primary {
-  min-height: var(--control-h-lg);
-}
-
 /* C2: связи / бэклинки */
 .setting-wiki-links {
   margin-top: 8px;

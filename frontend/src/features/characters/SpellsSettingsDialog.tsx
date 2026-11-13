@@ -469,6 +469,7 @@ export function SpellsSettingsDialog({
                     }
                   >
                     <NumberInput
+                      className="ui-input--prep"
                       min={0}
                       max={50}
                       emptyValue={null}
@@ -576,6 +577,7 @@ export function SpellsSettingsDialog({
                         }
                       >
                         <NumberInput
+                          className="ui-input--slot"
                           min={0}
                           max={10}
                           emptyValue={0}

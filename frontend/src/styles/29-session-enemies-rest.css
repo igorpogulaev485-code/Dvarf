@@ -71,46 +71,27 @@
   margin-left: auto;
 }
 
-/* LV-02 P08: обёртка с peek следующего чипа (fade справа) */
+/* UIKIT-01: очередь читаема целиком — перенос, без fade-обрезания имён */
 .session-combat-order-wrap {
   position: relative;
   min-width: 0;
 }
 
-.session-combat-order-wrap::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 32px;
-  pointer-events: none;
-  border-radius: 0 12px 12px 0;
-  background: linear-gradient(
-    to right,
-    transparent,
-    color-mix(in srgb, var(--panel) 92%, #78716c)
-  );
-}
-
 .session-combat-order {
   list-style: none;
   margin: 0;
-  padding: 0 28px 0 0;
+  padding: 0;
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 8px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x proximity;
-  scroll-padding-inline: 8px 40px;
+  overflow-x: visible;
 }
 
 .session-combat-order__chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: var(--control-h-md);
   padding: 6px 12px;
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -118,10 +99,10 @@
   color: inherit;
   font: inherit;
   font-size: 0.9rem;
-  white-space: nowrap;
+  white-space: normal;
   cursor: pointer;
-  scroll-snap-align: start;
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  max-width: 100%;
 }
 
 .session-combat-order__chip:disabled {
@@ -383,9 +364,9 @@
 }
 
 .session-combat-order__name {
-  /* LV-02: имена не сжимать и не резать по буквам */
-  overflow-wrap: normal;
+  overflow-wrap: anywhere;
   word-break: normal;
+  min-width: 0;
 }
 
 .session-init-list__surprise {
@@ -746,6 +727,8 @@
   font-size: 0.72rem;
   color: var(--muted);
   margin-left: 4px;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 

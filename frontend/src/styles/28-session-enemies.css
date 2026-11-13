@@ -113,10 +113,9 @@
   background: color-mix(in srgb, var(--accent-soft) 45%, var(--card));
 }
 
-.session-table-toolbar--master .session-toolbar-group--primary .ui-button,
+/* Toolbar summary height follows kit lg; buttons use Button size prop */
 .session-table-toolbar--master .session-toolbar-rewards .session-toolbar-more__summary,
-.session-table-toolbar--master .session-toolbar-more .session-toolbar-more__summary,
-.session-table-toolbar--master .session-toolbar-more__body .ui-button {
+.session-table-toolbar--master .session-toolbar-more .session-toolbar-more__summary {
   min-height: var(--control-h-lg);
 }
 
@@ -586,11 +585,6 @@ button.session-concentration-tag {
   align-items: center;
 }
 
-.session-enemy-card__hp-controls .ui-button {
-  min-height: 36px;
-  padding-inline: 12px;
-}
-
 .session-enemy-card__damage {
   display: flex;
   flex-wrap: wrap;
@@ -598,12 +592,6 @@ button.session-concentration-tag {
   align-items: center;
   flex: 1 1 auto;
   min-width: 0;
-}
-
-.session-enemy-card__damage-input {
-  width: 5.5rem;
-  min-height: 36px;
-  text-align: center;
 }
 
 .session-enemy-card__kit {

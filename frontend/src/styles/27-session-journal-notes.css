@@ -1,11 +1,9 @@
-/* LV-02 P03: «Лист» / «Потратить вдохновение» ≥44 px на карточке стола */
-.session-table-card__actions .ui-button {
-  min-height: 44px;
-  min-width: 44px;
-  padding: 8px 14px;
-  font-size: 0.9rem;
-  line-height: 1.2;
-  box-sizing: border-box;
+/* Card actions: touch target via kit Button size="lg" (no .ui-button overrides). */
+.session-table-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
 }
 
 .session-feed-filter {
@@ -203,21 +201,13 @@
   accent-color: var(--accent);
 }
 
-/* SC-07: одна primary справа у живого куба */
+/* Layout only — button sizes via kit Button size prop */
 .manual-roll-form__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
   align-items: center;
-}
-
-.manual-roll-form__actions .ui-button {
-  min-height: var(--control-h-md);
-}
-
-.manual-roll-form__actions .ui-button--primary {
-  min-height: var(--control-h-lg);
 }
 
 @media (min-width: 640px) {
@@ -579,12 +569,7 @@
   gap: 8px;
 }
 
-/* LV-03 / P11: липкий ввод над клавиатурой, ≥16px анти-зум iOS */
-.chat-composer__input,
-.chat-composer .ui-textarea,
-.chat-composer .ui-input {
-  font-size: 16px;
-}
+/* LV-03 / P11: sticky chrome; font via kit ui-input--touch on the field */
 
 .chat-composer--sticky {
   position: sticky;
@@ -960,9 +945,8 @@
     display: none !important;
   }
 
-  .session-table-toolbar--master .session-toolbar-group--primary .ui-button,
   .session-table-toolbar--master .session-toolbar-more__summary {
-    min-height: 44px;
+    min-height: var(--control-h-lg);
   }
 
   /* LV-05: мастер на телефоне — ход → MVP-тулбар → карточки → лор */
@@ -1061,12 +1045,6 @@
   .session-seat-cta {
     display: grid;
     gap: 8px;
-  }
-
-  .session-seat-cta .ui-button {
-    min-height: 48px;
-    font-size: 1.05rem;
-    font-weight: 700;
   }
 
   .session-panel--chrome-mobile-hide {

@@ -13,6 +13,8 @@ type ComboboxProps = {
   disabled?: boolean
   loading?: boolean
   emptyHint?: string
+  /** Extra classes on the kit input (e.g. ui-input--title). */
+  inputClassName?: string
   /**
    * Search text stays local until an option is chosen.
    * Blur and Escape restore `value` and do not notify the parent.
@@ -31,6 +33,7 @@ export function Combobox({
   disabled,
   loading = false,
   emptyHint = 'Нет совпадений — можно оставить свой вариант',
+  inputClassName = '',
   commitOnSelect = false,
   onChange,
   onSelectOption,
@@ -74,7 +77,7 @@ export function Combobox({
     <div className="ui-combobox" ref={rootRef}>
       <input
         id={inputId}
-        className="ui-input"
+        className={`ui-input ${inputClassName}`.trim()}
         value={commitOnSelect ? draft : value}
         disabled={disabled}
         placeholder={placeholder}
