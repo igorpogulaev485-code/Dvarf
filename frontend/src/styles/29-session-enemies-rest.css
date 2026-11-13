@@ -615,3 +615,67 @@
   margin-left: 4px;
 }
 
+
+/* S-06: окно Награды + добыча на столе */
+.session-rewards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.session-rewards__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.session-rewards__loot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.session-rewards__row-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.session-loot-board {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--card) 88%, var(--accent) 12%);
+  display: grid;
+  gap: 10px;
+}
+
+.session-loot-board__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.session-loot-board__close {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.session-loot-board__log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+@media (max-width: 900px) {
+  .session-rewards {
+    grid-template-columns: 1fr;
+  }
+}

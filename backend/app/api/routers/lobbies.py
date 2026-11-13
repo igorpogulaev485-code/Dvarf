@@ -58,6 +58,8 @@ from app.schemas.lobby import (
     LobbyTransferRequest,
     LootAwardRequest,
     LootAwardResult,
+    LootChestRequest,
+    LootChestResult,
     XpAwardRequest,
     XpAwardResult,
     JournalEntryCreateRequest,
@@ -996,6 +998,20 @@ async def award_session_loot(
     db: DbSession,
 ) -> LootAwardResult:
     return await LobbyService(db).award_loot(current_user, session_id, payload)
+
+
+@router.post(
+    "/sessions/{session_id}/loot/chest",
+    response_model=LootChestResult,
+)
+async def session_loot_chest(
+    session_id: UUID,
+    payload: LootChestRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> LootChestResult:
+    """S-06: сундук добычи (выдача / стол / генератор). Контракт для G-01."""
+    return await LobbyService(db).loot_chest(current_user, session_id, payload)
 
 
 @router.post(

@@ -42,6 +42,8 @@ type Props = {
   sideLabelText?: string | null
   sideHidden?: boolean
   onSideClick?: () => void
+  /** S-06: сбежал / сдался / сброс */
+  onOutcome?: (outcome: 'fled' | 'surrendered' | '') => void
 }
 
 type KitItem = CombatantAction & { kind: string }
@@ -130,6 +132,7 @@ export function EnemyCard({
   sideLabelText = null,
   sideHidden = false,
   onSideClick,
+  onOutcome,
 }: Props) {
   const [abilitiesOpen, setAbilitiesOpen] = useState(forceAbilitiesOpen)
   const [rosterOpen, setRosterOpen] = useState(false)
@@ -470,6 +473,32 @@ export function EnemyCard({
             >
               В сеттинг
             </Button>
+          ) : null}
+          {onOutcome ? (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={busy}
+                className={combatant.outcome === 'fled' ? 'is-on' : undefined}
+                onClick={() =>
+                  onOutcome(combatant.outcome === 'fled' ? '' : 'fled')
+                }
+              >
+                Сбежал
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={busy}
+                className={combatant.outcome === 'surrendered' ? 'is-on' : undefined}
+                onClick={() =>
+                  onOutcome(combatant.outcome === 'surrendered' ? '' : 'surrendered')
+                }
+              >
+                Сдался
+              </Button>
+            </>
           ) : null}
         </div>
       ) : (

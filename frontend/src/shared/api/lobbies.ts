@@ -450,6 +450,8 @@ export type CombatantMember = {
   hp_label?: string | null
   hp_ratio?: number | null
   hp_numbers_hidden?: boolean
+  /** S-06 */
+  outcome?: string | null
 }
 
 export type CombatantStudySnapshot = {
@@ -518,6 +520,8 @@ export type SessionCombatant = {
   suggested_study_dc?: number | null
   reaction_hint?: string | null
   last_damage_note?: string | null
+  /** S-06: killed | fled | surrendered */
+  outcome?: string | null
 }
 
 export type CombatEntryKind = 'pc' | 'companion' | 'enemy'
@@ -587,6 +591,49 @@ export type SessionCombat = {
   wave_reminders?: CombatWaveReminder[]
   /** S-05: реестр сторон */
   sides?: CombatSide[]
+  /** S-06: снимок опыта после боя */
+  pending_rewards?: PendingRewards | null
+  /** S-06: сундук добычи */
+  loot_chest?: LootChest | null
+}
+
+export type PendingRewards = {
+  xp_pool: number
+  defeats?: Array<{
+    combatant_id?: string
+    name?: string
+    unclaimed?: number
+    xp_each?: number
+    total?: number
+    outcome?: string | null
+  }>
+  claim_combatant_ids?: string[]
+  participant_character_ids?: string[]
+  default_excluded_ids?: string[]
+  dead_ids?: string[]
+  absent_ids?: string[]
+  traitor_ids?: string[]
+  party_avg_level?: number
+  difficulty?: string | null
+  has_humanoids?: boolean
+  has_beasts?: boolean
+}
+
+export type LootChestItem = {
+  id: string
+  name: string
+  qty: number
+  notes?: string | null
+  artifact_id?: string | null
+  catalog_slug?: string | null
+  magic_table?: string | null
+}
+
+export type LootChest = {
+  on_table: boolean
+  items: LootChestItem[]
+  coins: { cp?: number; sp?: number; ep?: number; gp?: number; pp?: number }
+  log?: Array<{ id: string; who?: string | null; text: string; character_id?: string | null }>
 }
 
 export type SessionLorePage = {
@@ -1300,6 +1347,8 @@ export async function patchSessionCombatant(
     conditions?: SeatCondition[]
     effects?: SeatEffect[]
     reveal_statblock?: boolean
+    /** S-06: killed | fled | surrendered | '' */
+    outcome?: string | null
   },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(`/sessions/${sessionId}/combatants/${combatantId}`, {
@@ -1532,6 +1581,17 @@ export type XpAwardResult = {
   awarded_each: number
   awarded_total: number
   recipients: string[]
+  remainder?: number
+  remainder_banked?: number
+  xp_remainder?: number
+  mode?: string
+  leveled_up?: Array<{
+    character_id: string
+    name: string
+    level: number
+    experience: number
+  }>
+  per_recipient?: Record<string, number>
 }
 
 export async function awardSessionXp(
@@ -1543,6 +1603,12 @@ export async function awardSessionXp(
     source?: string
     note?: string | null
     claim_combatant_ids?: string[]
+    include_bank?: boolean
+    remainder_mode?: 'bank' | 'give'
+    remainder_character_id?: string | null
+    bonuses?: Array<{ character_id: string; amount: number; reason?: string }>
+    milestones?: boolean | null
+    clear_pending_rewards?: boolean
   },
 ): Promise<XpAwardResult> {
   return apiRequest<XpAwardResult>(`/sessions/${sessionId}/xp`, {
@@ -1628,9 +1694,85 @@ export async function awardSessionLoot(
       }
     }>
     note?: string | null
+    clear_chest?: boolean
   },
 ): Promise<LootAwardResult> {
   return apiRequest<LootAwardResult>(`/sessions/${sessionId}/loot`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export type LootChestResult = {
+  session: SessionDetail
+  chest: LootChest
+  summary: string
+  meta?: Record<string, unknown>
+}
+
+export type LootChestAction =
+  | 'set'
+  | 'put_on_table'
+  | 'award'
+  | 'claim'
+  | 'split_coins'
+  | 'reassign'
+  | 'close'
+  | 'generate'
+  | 'quick_add'
+  | 'reroll_item'
+  | 'remove_item'
+
+export async function sessionLootChest(
+  sessionId: string,
+  payload: {
+    action: LootChestAction
+    items?: Array<{
+      id?: string
+      name?: string
+      qty?: number
+      notes?: string | null
+      artifact_id?: string | null
+      catalog_slug?: string | null
+      magic_table?: string | null
+    }>
+    coins?: { cp?: number; sp?: number; ep?: number; gp?: number; pp?: number }
+    grants?: Array<{
+      character_id: string
+      item?: {
+        name?: string
+        qty: number
+        notes?: string | null
+        artifact_id?: string | null
+      }
+      coins?: {
+        cp?: number
+        sp?: number
+        ep?: number
+        gp?: number
+        pp?: number
+      }
+    }>
+    note?: string | null
+    item_id?: string | null
+    qty?: number | null
+    character_id?: string | null
+    kind?:
+      | 'trinkets'
+      | 'supplies'
+      | 'valuables'
+      | 'magic'
+      | 'rare_magic'
+      | 'legend'
+      | 'trophies'
+      | null
+    difficulty?: 'easy' | 'medium' | 'hard' | 'deadly' | null
+    replace?: boolean
+    remainder?: 'return' | 'discard'
+    seed?: number | null
+  },
+): Promise<LootChestResult> {
+  return apiRequest<LootChestResult>(`/sessions/${sessionId}/loot/chest`, {
     method: 'POST',
     body: JSON.stringify(payload),
   })
@@ -1715,7 +1857,16 @@ export async function generateSessionEncounter(
   )
 }
 
-/** Сколько XP ещё не раздано за поверженных в пачке/карточке. */
+function memberDefeatedForXp(member: {
+  hp_current: number
+  outcome?: string | null
+}): boolean {
+  const o = (member.outcome || '').toLowerCase()
+  if (o === 'fled' || o === 'surrendered') return true
+  return member.hp_current <= 0
+}
+
+/** Сколько XP ещё не раздано за поверженных в пачке/карточке (S-06: +сбежал/сдался). */
 export function unclaimedDefeatXp(combatant: SessionCombatant): {
   dead: number
   claimed: number
@@ -1726,12 +1877,20 @@ export function unclaimedDefeatXp(combatant: SessionCombatant): {
 } {
   const xpEach = Math.max(0, combatant.xp ?? 0)
   const members = combatant.members ?? []
-  const dead =
-    members.length > 0
-      ? members.filter((m) => m.hp_current <= 0).length
-      : combatant.hp_current <= 0
-        ? 1
-        : 0
+  const outcome = (combatant.outcome || '').toLowerCase()
+  let dead: number
+  if (members.length > 0) {
+    dead = members.filter((m) =>
+      memberDefeatedForXp({
+        hp_current: m.hp_current,
+        outcome: (m as { outcome?: string | null }).outcome ?? outcome,
+      }),
+    ).length
+  } else if (outcome === 'fled' || outcome === 'surrendered') {
+    dead = 1
+  } else {
+    dead = combatant.hp_current <= 0 ? 1 : 0
+  }
   const claimedRaw =
     typeof combatant.xp_claimed_count === 'number'
       ? combatant.xp_claimed_count

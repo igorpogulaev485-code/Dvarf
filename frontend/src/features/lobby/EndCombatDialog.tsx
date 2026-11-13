@@ -15,7 +15,7 @@ type Props = {
 
 /**
  * S-02: завершение боя — вопрос про невыпущенные волны + строка итога.
- * Дальше страница открывает награды (S-06 / временный AwardXpDialog).
+ * Дальше страница открывает единое окно «Награды» (S-06).
  */
 export function EndCombatDialog({ open, busy = false, combat, onClose, onConfirm }: Props) {
   const unreleased = (combat?.waves ?? []).filter((w) => !w.released)
@@ -45,7 +45,7 @@ export function EndCombatDialog({ open, busy = false, combat, onClose, onConfirm
     >
       <Stack gap={12}>
         <Text tone="muted">
-          Выпущенные и павшие враги уйдут со стола. Откроется окно наград (опыт / лут).
+          Выпущенные и павшие враги уйдут со стола. Откроется окно «Награды» (опыт и сундук добычи).
         </Text>
         {unreleased.length > 0 ? (
           <Stack gap={8}>

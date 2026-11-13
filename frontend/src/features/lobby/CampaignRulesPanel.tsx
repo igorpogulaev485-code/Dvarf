@@ -200,14 +200,22 @@ export function CampaignRulesPanel({
                 type="button"
                 className={`sheet-chip${rules.progression.mode === opt.id ? ' is-on' : ''}`}
                 onClick={() =>
-                  onChange({ ...rules, progression: { mode: opt.id } })
+                  onChange({
+                    ...rules,
+                    progression: {
+                      ...rules.progression,
+                      mode: opt.id,
+                    },
+                  })
                 }
               >
                 {opt.label}
               </button>
             ))}
           </div>
-          <Text tone="muted">S-06 подключит сундук/награды к выбранному режиму.</Text>
+          <Text tone="muted">
+            Окно «Награды» на сессии читает этот режим: опыт или повышение по вехам.
+          </Text>
         </div>
 
         <div>

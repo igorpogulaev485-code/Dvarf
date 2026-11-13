@@ -252,6 +252,9 @@ def parse_combat_state(raw: object, *, combatants: list[dict] | None = None) -> 
             "fallen": [],
             "saved_waves": [],
             "sides": sides.default_sides_registry(),
+            # S-06
+            "pending_rewards": None,
+            "loot_chest": None,
         }
 
     entries: list[dict] = []
@@ -313,6 +316,16 @@ def parse_combat_state(raw: object, *, combatants: list[dict] | None = None) -> 
     for e in entries:
         sides_reg = sides.ensure_side_in_registry(sides_reg, sides.true_side(e))
 
+    from app.services import session_rewards as rewards
+
+    pending_rewards = rewards.normalize_pending_rewards(raw.get("pending_rewards"))
+    loot_raw = raw.get("loot_chest")
+    loot_chest = (
+        rewards.normalize_loot_chest(loot_raw)
+        if isinstance(loot_raw, dict)
+        else None
+    )
+
     return {
         "active": active,
         "round": max(1, int(raw.get("round") or 1)),
@@ -333,6 +346,9 @@ def parse_combat_state(raw: object, *, combatants: list[dict] | None = None) -> 
         "fallen": fallen if active else [],
         "saved_waves": saved_waves,
         "sides": sides_reg,
+        # S-06: переживают конец боя
+        "pending_rewards": pending_rewards,
+        "loot_chest": loot_chest,
     }
 
 
@@ -443,7 +459,16 @@ def dump_combat_state(state: dict) -> dict:
     sides_reg = sides.parse_sides_registry(state.get("sides"))
     for e in entries:
         sides_reg = sides.ensure_side_in_registry(sides_reg, sides.true_side(e))
-    return {
+    from app.services import session_rewards as rewards
+
+    pending = rewards.normalize_pending_rewards(state.get("pending_rewards"))
+    loot_raw = state.get("loot_chest")
+    loot = (
+        rewards.normalize_loot_chest(loot_raw)
+        if isinstance(loot_raw, dict)
+        else None
+    )
+    out = {
         "active": bool(state.get("active")),
         "round": max(1, int(state.get("round") or 1)),
         "active_index": int(state.get("active_index") or 0),
@@ -457,10 +482,21 @@ def dump_combat_state(state: dict) -> dict:
         "fallen": list(state.get("fallen") or []),
         "saved_waves": list(state.get("saved_waves") or []),
         "sides": sides_reg,
+        "pending_rewards": pending,
+        "loot_chest": loot,
     }
+    return out
 
 
-def empty_combat(*, saved_waves: list[dict] | None = None) -> dict:
+def empty_combat(
+    *,
+    saved_waves: list[dict] | None = None,
+    pending_rewards: dict | None = None,
+    loot_chest: dict | None = None,
+) -> dict:
+    """Конец боя: очередь пуста, но S-06 снимок наград и сундук остаются."""
+    from app.services import session_rewards as rewards
+
     return {
         "active": False,
         "round": 1,
@@ -475,6 +511,12 @@ def empty_combat(*, saved_waves: list[dict] | None = None) -> dict:
         "fallen": [],
         "saved_waves": list(saved_waves or []),
         "sides": sides.default_sides_registry(),
+        "pending_rewards": rewards.normalize_pending_rewards(pending_rewards),
+        "loot_chest": (
+            rewards.normalize_loot_chest(loot_chest)
+            if isinstance(loot_chest, dict)
+            else None
+        ),
     }
 
 
