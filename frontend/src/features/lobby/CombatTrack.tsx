@@ -26,6 +26,11 @@ type Props = {
   onSideClick?: (entry: CombatEntry) => void
   /** LV-01: узкая полоса инициативы на первом экране игрока (телефон) */
   compact?: boolean
+  /**
+   * LV-04: «Завершить бой» — одна кнопка в тулбаре группы «Бой» (danger).
+   * В рельсе/полосе инициативы по умолчанию не дублируем.
+   */
+  showEndAction?: boolean
 }
 
 function kindLabel(kind: string): string {
@@ -76,6 +81,7 @@ export function CombatTrack({
   onNext,
   onPrev,
   onEnd,
+  showEndAction = false,
   onSelect,
   onRollInitiative,
   onReleaseWave,
@@ -164,9 +170,11 @@ export function CombatTrack({
             <Button type="button" variant="secondary" disabled={busy} onClick={onNext}>
               Следующий ход
             </Button>
-            <Button type="button" variant="ghost" disabled={busy} onClick={onEnd}>
-              Завершить бой
-            </Button>
+            {showEndAction && onEnd ? (
+              <Button type="button" variant="ghost" disabled={busy} onClick={onEnd}>
+                Завершить бой
+              </Button>
+            ) : null}
           </div>
         ) : null}
       </div>

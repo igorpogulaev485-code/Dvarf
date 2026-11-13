@@ -837,6 +837,34 @@
   .session-live-desk__mobile-only {
     display: none !important;
   }
+
+  /* LV-04: мастер — тулбар и карточки выше лора, лор компактный */
+  .session-center--master-desk > .ui-stack {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .session-center--master-desk > .ui-stack > .session-center-slot--toolbar {
+    order: 1;
+  }
+
+  .session-center--master-desk > .ui-stack > .session-center-slot--cards {
+    order: 2;
+  }
+
+  .session-center--master-desk > .ui-stack > .session-center-slot--lore {
+    order: 3;
+  }
+
+  .session-center--master-desk > .ui-stack > .session-center-slot--below {
+    order: 4;
+  }
+
+  .session-center--master-desk > .ui-stack > .session-center-slot--cta,
+  .session-center--master-desk > .ui-stack > .session-center-slot--turn,
+  .session-center--master-desk > .ui-stack > .session-center-slot--init {
+    order: 0;
+  }
 }
 
 @media (max-width: 999.98px) {
