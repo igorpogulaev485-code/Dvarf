@@ -5,6 +5,7 @@ import { Button, Field, NumberInput, Panel, Stack, Text } from '../../ui'
 import {
   BOOK_SOURCE_CATALOG,
   HOMEBREW_CATALOG,
+  MASTER_HOMEBREW_KEYS,
   summarizeStartRules,
   type CampaignRules,
   type HomebrewKey,
@@ -14,6 +15,10 @@ import {
   type StartingKitMode,
   summarizeEnabledRules,
 } from './campaignRules'
+
+const MASTER_KEY_SET = new Set<HomebrewKey>(MASTER_HOMEBREW_KEYS)
+const LEGACY_HOMEBREW_CATALOG = HOMEBREW_CATALOG.filter((e) => !MASTER_KEY_SET.has(e.key))
+const MASTER_HOMEBREW_CATALOG = HOMEBREW_CATALOG.filter((e) => MASTER_KEY_SET.has(e.key))
 import type { EventHistoryMode } from './visibilityProfile'
 
 type Props = {
@@ -460,7 +465,7 @@ export function CampaignRulesPanel({
         <div>
           <Text as="h3">Домашние правила</Text>
           <Stack gap={8}>
-            {HOMEBREW_CATALOG.map((entry) => (
+            {LEGACY_HOMEBREW_CATALOG.map((entry) => (
               <div key={entry.key}>
                 <ToggleRow
                   label={entry.label}
@@ -488,6 +493,27 @@ export function CampaignRulesPanel({
                     />
                   </Field>
                 ) : null}
+              </div>
+            ))}
+          </Stack>
+        </div>
+
+        <div>
+          <Text as="h3">Правила мастера (DMG / Xanathar)</Text>
+          <Text tone="muted">
+            Варианты из DMG гл. 9 и XGE. Каждый переключатель по умолчанию выкл.; подсказка «?» —
+            текст и источник.
+          </Text>
+          <Stack gap={8}>
+            {MASTER_HOMEBREW_CATALOG.map((entry) => (
+              <div key={entry.key}>
+                <ToggleRow
+                  label={entry.label}
+                  tip={entry.tip}
+                  source={entry.source}
+                  checked={rules.homebrew[entry.key]}
+                  onChange={(v) => patchHomebrew(entry.key, v)}
+                />
               </div>
             ))}
           </Stack>

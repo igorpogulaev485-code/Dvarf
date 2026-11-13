@@ -3,6 +3,7 @@ import {
   BOOK_SOURCE_CATALOG,
   HOMEBREW_CATALOG,
   HOMEBREW_KEYS,
+  MASTER_HOMEBREW_KEYS,
   canonicalizeSource,
   defaultCampaignRules,
   encumbranceSpeedPenalty,
@@ -17,8 +18,10 @@ function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
 }
 
-assert(HOMEBREW_KEYS.length === 11, 'exactly 11 homebrew keys')
-assert(HOMEBREW_CATALOG.length === 11, 'catalog length 11')
+// Старые 11 (12.11) + 10 O-03 (13.11). Крит «максимум + бросок» вне списка.
+assert(HOMEBREW_KEYS.length === 21, '21 homebrew keys (11 + O-03)')
+assert(HOMEBREW_CATALOG.length === 21, 'catalog length 21')
+assert(MASTER_HOMEBREW_KEYS.length === 10, '10 master rule keys')
 assert(
   !HOMEBREW_KEYS.includes('crit_max_plus_dice' as never),
   'no crit max+dice key',
@@ -27,6 +30,10 @@ assert(
   HOMEBREW_CATALOG.every((row) => HOMEBREW_KEYS.includes(row.key)),
   'catalog keys match',
 )
+assert(
+  MASTER_HOMEBREW_KEYS.every((k) => HOMEBREW_KEYS.includes(k)),
+  'master keys in HOMEBREW_KEYS',
+)
 
 const defaults = defaultCampaignRules()
 assert(defaults.edition_2014.feats_instead_of_asi === true, 'feats default on')
@@ -34,6 +41,9 @@ assert(defaults.edition_2014.multiclass === true, 'multiclass default on')
 assert(defaults.edition_2014.hp_on_level_up === 'average', 'hp average')
 assert(defaults.homebrew.hidden_death_saves === true, 'death saves hidden default')
 assert(defaults.homebrew.encumbrance === false, 'encumbrance off')
+assert(defaults.homebrew.dmg_disarm === false, 'disarm off')
+assert(defaults.homebrew.dmg_falling === false, 'falling off')
+assert(defaults.homebrew.xge_no_long_rest === false, 'no long rest off')
 assert(defaults.inspiration_after_roll === false, 'inspiration after roll off')
 assert(defaults.enemies_ac_visible === false, 'enemy ac hidden')
 assert(defaults.progression.mode === 'xp', 'xp default')
@@ -51,6 +61,8 @@ const normalized = normalizeCampaignRules({
 })
 assert(normalized.homebrew.potion_bonus_self === true, 'potion on')
 assert(normalized.homebrew.inspiration_stack_max === 20, 'stack max clamped')
+assert(normalized.homebrew.dmg_disarm === false, 'missing O-03 key → false')
+assert(normalized.homebrew.xge_identify_spell === false, 'missing identify → false')
 assert(normalized.custom_rules.length === 1, 'custom cleaned')
 assert(normalized.progression.xp_remainder === 4, 'xp remainder kept')
 assert(normalized.start.level === 3, 'start level 3')

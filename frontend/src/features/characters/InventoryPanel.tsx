@@ -1233,6 +1233,19 @@ export function InventoryPanel({
           />
         </Field>
 
+        {item.weapon_grip || /боеприпас|стрел|болт|ammo|arrow|bolt/i.test(item.name) ? (
+          <label className="field">
+            <input
+              type="checkbox"
+              checked={Boolean(item.adamantine)}
+              onChange={(event) =>
+                updateItem(item.id, { adamantine: event.target.checked })
+              }
+            />{' '}
+            Адамантиновое (оружие / боеприпас)
+          </label>
+        ) : null}
+
         <div className="inventory-card__footer">
           {renderEquipChip(item)}
           {onTransferItem && item.qty > 0 && !nested ? (

@@ -350,6 +350,8 @@ export function RestDialog({
         deathFails: 0,
         concentration: null,
         effects: result.effects ?? play.effects ?? [],
+        // O-03 / XGE: длинный отдых сбрасывает счётчик суток без отдыха
+        noLongRestDays: 0,
       }),
     )
     if (removed) {

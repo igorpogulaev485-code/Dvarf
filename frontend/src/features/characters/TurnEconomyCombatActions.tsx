@@ -2,6 +2,20 @@ import { useTurnEconomy } from './TurnEconomyContext'
 import { STEADY_AIM_HINT } from '../../shared/dnd/turnEconomy'
 import { canKiFueledAttack } from '../../shared/dnd/o02TashaFeatures'
 
+export type O03MasterRuleFlags = {
+  disarm?: boolean
+  mark?: boolean
+  overrun?: boolean
+  tumble?: boolean
+  climbBigger?: boolean
+  identifySpell?: boolean
+  falling?: boolean
+  noLongRest?: boolean
+  /** Метка уже стоит — показать «Провоцированная по метке». */
+  hasMarkedTarget?: boolean
+  markOppAvailable?: boolean
+}
+
 type Props = {
   /** Есть умение «Хитрое действие» (плут). */
   hasCunningAction: boolean
@@ -19,6 +33,17 @@ type Props = {
   hasTalismanRebuke?: boolean
   /** O-01: открыть диалог Захват/Толчок. */
   onGrappleShove?: () => void
+  /** O-03: флаги правил мастера и колбэки кнопок. */
+  o03?: O03MasterRuleFlags
+  onO03Disarm?: () => void
+  onO03Mark?: () => void
+  onO03MarkOpportunity?: () => void
+  onO03Overrun?: () => void
+  onO03Tumble?: () => void
+  onO03ClimbBigger?: () => void
+  onO03IdentifySpell?: () => void
+  onO03Falling?: () => void
+  onO03NoLongRest?: () => void
   /** Предложить бросок навыка после траты (не обязательный автобросок). */
   onOfferSkill?: (skillKey: 'investigation' | 'perception' | 'stealth') => void
   onToast?: (message: string) => void
@@ -38,6 +63,16 @@ export function TurnEconomyCombatActions({
   hasChainMaster = false,
   hasTalismanRebuke = false,
   onGrappleShove,
+  o03,
+  onO03Disarm,
+  onO03Mark,
+  onO03MarkOpportunity,
+  onO03Overrun,
+  onO03Tumble,
+  onO03ClimbBigger,
+  onO03IdentifySpell,
+  onO03Falling,
+  onO03NoLongRest,
   onOfferSkill,
   onToast,
   className = 'chip-row',
@@ -50,6 +85,7 @@ export function TurnEconomyCombatActions({
   const steadyGate = hasSteadyAim ? turnEco.canSteadyAim() : { ok: false as const, reason: '', mark: 'bonus' as const }
   const cunningGate = hasCunningAction ? turnEco.canCunningBonus() : { ok: false as const, reason: '', mark: 'bonus' as const }
   const attackGate = turnEco.canAttack()
+  const actionGate = turnEco.canFeature('action')
   const reactionGate = turnEco.canFeature('reaction')
   const bonusGate = turnEco.canFeature('bonus')
   const kiFueledGate = hasKiFueledAttack
@@ -211,6 +247,136 @@ export function TurnEconomyCombatActions({
           }}
         >
           Захват / Толчок
+        </button>
+      ) : null}
+
+      {o03?.disarm && onO03Disarm ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!attackGate.ok}
+          title={
+            attackGate.ok
+              ? 'Обезоруживание: вместо одной атаки · урона нет'
+              : attackGate.reason
+          }
+          onClick={() => {
+            if (!turnEco.canAttack().ok) return
+            onO03Disarm()
+          }}
+        >
+          Обезоруживание
+        </button>
+      ) : null}
+
+      {o03?.mark && onO03Mark ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          title="Метка: пометить цель рукопашной атаки"
+          onClick={() => onO03Mark()}
+        >
+          Метка
+        </button>
+      ) : null}
+
+      {o03?.mark && o03.hasMarkedTarget && onO03MarkOpportunity ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!o03.markOppAvailable}
+          title={
+            o03.markOppAvailable
+              ? 'Провоцированная по метке: преимущество, не тратит реакцию (1/ход)'
+              : 'Уже использована в этот ход или реакция запрещена'
+          }
+          onClick={() => onO03MarkOpportunity()}
+        >
+          Провоцированная по метке
+        </button>
+      ) : null}
+
+      {o03?.overrun && onO03Overrun ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!actionGate.ok && !bonusGate.ok}
+          title="Пробегание: действие или бонусное · Атлетика vs Атлетика"
+          onClick={() => onO03Overrun()}
+        >
+          Пробегание
+        </button>
+      ) : null}
+
+      {o03?.tumble && onO03Tumble ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!actionGate.ok && !bonusGate.ok}
+          title="Кувырок: действие или бонусное · Акробатика vs Акробатика"
+          onClick={() => onO03Tumble()}
+        >
+          Кувырок
+        </button>
+      ) : null}
+
+      {o03?.climbBigger && onO03ClimbBigger ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!actionGate.ok}
+          title={
+            actionGate.ok
+              ? 'Взбирание на большее существо · действие'
+              : actionGate.reason
+          }
+          onClick={() => {
+            if (!turnEco.canFeature('action').ok) return
+            onO03ClimbBigger()
+          }}
+        >
+          Взбирание
+        </button>
+      ) : null}
+
+      {o03?.identifySpell && onO03IdentifySpell ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!reactionGate.ok}
+          title={
+            reactionGate.ok
+              ? 'Распознать заклинание: реакция · Анализ Сл 15+ур.'
+              : reactionGate.reason
+          }
+          onClick={() => {
+            if (!turnEco.canFeature('reaction').ok) return
+            onO03IdentifySpell()
+          }}
+        >
+          Распознать заклинание
+        </button>
+      ) : null}
+
+      {o03?.falling && onO03Falling ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          title="Калькулятор падения: 1к6 / 10 фт, макс. 20к6"
+          onClick={() => onO03Falling()}
+        >
+          Падение
+        </button>
+      ) : null}
+
+      {o03?.noLongRest && onO03NoLongRest ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          title="Прошло 24 часа без длинного отдыха → спас Тел"
+          onClick={() => onO03NoLongRest()}
+        >
+          24 ч без отдыха
         </button>
       ) : null}
 

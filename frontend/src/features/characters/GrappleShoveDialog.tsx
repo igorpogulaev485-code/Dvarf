@@ -15,7 +15,7 @@ import { postSheetRollToSession } from './postSheetRollToSession'
 import { useTurnEconomy } from './TurnEconomyContext'
 import { Button, Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 
-export type GrappleShoveMode = 'grapple' | 'shove_prone' | 'shove_push'
+export type GrappleShoveMode = 'grapple' | 'shove_prone' | 'shove_push' | 'shove_aside'
 
 type Props = {
   open: boolean
@@ -24,6 +24,8 @@ type Props = {
   /** Known grappling_strike maneuver + free bonus + superiority die available. */
   offerGrapplingStrike?: boolean
   onSpendGrapplingStrike?: () => boolean
+  /** O-03: вариант «Толкание в сторону» (dmg_shove_aside). */
+  allowShoveAside?: boolean
   onToast?: (message: string) => void
   onClose: () => void
 }
@@ -39,6 +41,7 @@ export function GrappleShoveDialog({
   athleticsMod,
   offerGrapplingStrike = false,
   onSpendGrapplingStrike,
+  allowShoveAside = false,
   onToast,
   onClose,
 }: Props) {
@@ -142,12 +145,23 @@ export function GrappleShoveDialog({
 
     let athTotal: number
     let athNatural: number | null = null
+    const shoveAsideDisadvantage = mode === 'shove_aside'
     if (diceOnTable) {
       if (manualAth == null || !Number.isFinite(manualAth)) {
-        setError('Введи результат проверки Атлетики')
+        setError(
+          shoveAsideDisadvantage
+            ? 'Введи результат Атлетики с помехой (меньшее из двух)'
+            : 'Введи результат проверки Атлетики',
+        )
         return
       }
       athTotal = manualAth + strikeBonus
+    } else if (shoveAsideDisadvantage) {
+      const a = rollD20(athleticsMod)
+      const b = rollD20(athleticsMod)
+      const picked = a.total <= b.total ? a : b
+      athNatural = picked.natural
+      athTotal = picked.total + strikeBonus
     } else {
       const rolled = rollD20(athleticsMod)
       athNatural = rolled.natural
@@ -173,13 +187,16 @@ export function GrappleShoveDialog({
         ? 'Захват'
         : mode === 'shove_prone'
           ? 'Толчок (сбить с ног)'
-          : 'Толчок (на 5 фт)'
+          : mode === 'shove_aside'
+            ? 'Толкание в сторону'
+            : 'Толчок (на 5 фт)'
     const strikeNote = useGrapplingStrike
       ? ` · Атака с захватом (+${strikeBonus})`
       : ''
+    const disadvNote = shoveAsideDisadvantage ? ' (помеха)' : ''
     const rollNote = diceOnTable
-      ? `Атлетика ${athTotal} vs ${contested}`
-      : `Атлетика ${athTotal}${athNatural != null ? ` (к20=${athNatural}+${athleticsMod})` : ''} vs ${contested}`
+      ? `Атлетика ${athTotal}${disadvNote} vs ${contested}`
+      : `Атлетика ${athTotal}${disadvNote}${athNatural != null ? ` (к20=${athNatural}+${athleticsMod})` : ''} vs ${contested}`
 
     setBusy(true)
     try {
@@ -193,7 +210,9 @@ export function GrappleShoveDialog({
       const outcome = success
         ? mode === 'shove_push'
           ? `успех · ${selected.name} оттолкнут на 5 фт`
-          : `успех · ${selected.name}`
+          : mode === 'shove_aside'
+            ? `успех · ${selected.name} смещён на 5 фт`
+            : `успех · ${selected.name}`
         : `провал · ${selected.name}`
       const line = `${modeRu}${strikeNote}: ${rollNote} → ${outcome}`
       onToast?.(line)
@@ -241,18 +260,28 @@ export function GrappleShoveDialog({
               ['grapple', 'Захват'],
               ['shove_prone', 'Толчок: сбить с ног'],
               ['shove_push', 'Толчок: на 5 фт'],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              className={`sheet-chip${mode === id ? ' is-on' : ''}`}
-              onClick={() => setMode(id)}
-            >
-              {label}
-            </button>
-          ))}
+            ] as Array<[GrappleShoveMode, string]>
+          )
+            .concat(
+              allowShoveAside ? [['shove_aside', 'Толкание в сторону']] : [],
+            )
+            .map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                className={`sheet-chip${mode === id ? ' is-on' : ''}`}
+                onClick={() => setMode(id)}
+              >
+                {label}
+              </button>
+            ))}
         </div>
+        {mode === 'shove_aside' ? (
+          <Text tone="muted">
+            Атлетика атакующего с помехой. Успех — цель смещается на 5 фт в другое пространство в
+            досягаемости (не «сбит с ног» и не «от себя»).
+          </Text>
+        ) : null}
 
         <Field label="Цель">
           {foes.length === 0 ? (
