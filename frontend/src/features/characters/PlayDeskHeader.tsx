@@ -18,6 +18,13 @@ import {
 } from '../../shared/dnd/experience'
 import { clampDeathMarks, type HitDie } from '../../shared/dnd/hitDice'
 import {
+  applyDamageAtZeroHp,
+  DEATH_SAVE_HINT,
+  resolveDeathSaveRoll,
+  stabilizePlayPatch,
+} from '../../shared/dnd/o09DeathInspirationAmmo'
+import { rollCheck } from './deskRolls'
+import {
   coinsToGp,
   formatCoinBreakdown,
   formatGpTotal,
@@ -332,7 +339,7 @@ export function PlayDeskHeader({
     }
   }
 
-  function applyDamage(amount: number) {
+  function applyDamage(amount: number, opts?: { critical?: boolean }) {
     const ward = absorbDamageWithArcaneWard(play.resources ?? [], amount)
     let remaining = ward.remaining
     let nextTemp = hpTemp
@@ -342,22 +349,70 @@ export function PlayDeskHeader({
       remaining -= absorbed
     }
     const current = shownHpCurrent ?? 0
+    const alreadyAtZero = current <= 0
     const nextHp = Math.max(0, current - remaining)
-    if (ward.absorbed > 0 || nextTemp !== hpTemp) {
-      onPlayChange({
-        ...play,
-        resources: ward.resources,
-        hpTemp: nextTemp,
+    let nextPlay = {
+      ...play,
+      ...(ward.absorbed > 0 || nextTemp !== hpTemp
+        ? { resources: ward.resources, hpTemp: nextTemp }
+        : {}),
+    }
+    if (ward.note) onToast(ward.note)
+    if (alreadyAtZero && remaining > 0 && (play.isDying || atZeroHp)) {
+      const death = applyDamageAtZeroHp({
+        damageToHp: remaining,
+        hpMax: shownHpMax,
+        isCritical: Boolean(opts?.critical),
+        deathFails: play.deathFails,
       })
-      if (ward.note) onToast(ward.note)
-    }
-    onCombatChange({ hpCurrent: nextHp })
-    if (remaining > 0) {
-      onDamaged?.(remaining)
-    }
-    if (nextHp <= 0 && !play.isDying) {
+      nextPlay = {
+        ...nextPlay,
+        isDying: true,
+        deathFails: death.deathFails,
+      }
+      if (death.note) onToast(death.note)
+    } else if (nextHp <= 0 && !play.isDying) {
+      nextPlay = { ...nextPlay, isDying: true }
       onToast('Хиты ≤ 0 — спасброски смерти в шапке или в окне хитов')
     }
+    if (
+      ward.absorbed > 0 ||
+      nextTemp !== hpTemp ||
+      nextPlay.isDying !== play.isDying ||
+      nextPlay.deathFails !== play.deathFails
+    ) {
+      onPlayChange(nextPlay)
+    }
+    onCombatChange({ hpCurrent: nextHp })
+    if (remaining > 0 && !alreadyAtZero) {
+      onDamaged?.(remaining)
+    }
+  }
+
+  function rollDeathSave() {
+    if (!(play.isDying || atZeroHp)) return
+    const check = rollCheck(0, 'normal')
+    const result = resolveDeathSaveRoll(check.die, play.deathSuccesses, play.deathFails)
+    const diceNote =
+      check.otherDie != null ? `к20=${check.die}/${check.otherDie}` : `к20=${check.die}`
+    if (result.revived) {
+      onCombatChange({ hpCurrent: 1 })
+      onPlayChange({ ...play, ...stabilizePlayPatch() })
+      onToast(`${result.note} · ${diceNote}`)
+      return
+    }
+    if (result.stabilized) {
+      onPlayChange({ ...play, ...stabilizePlayPatch() })
+      onToast(`${result.note} · ${diceNote}`)
+      return
+    }
+    onPlayChange({
+      ...play,
+      isDying: true,
+      deathSuccesses: result.successes,
+      deathFails: result.fails,
+    })
+    onToast(`${result.note} · ${diceNote}`)
   }
 
   return (
@@ -828,6 +883,16 @@ export function PlayDeskHeader({
                     }
                   />
                 </div>
+                {deathTracksActive ? (
+                  <button
+                    type="button"
+                    className="play-desk-header__death-roll"
+                    title={DEATH_SAVE_HINT}
+                    onClick={rollDeathSave}
+                  >
+                    Спас от смерти
+                  </button>
+                ) : null}
               </div>
             ) : null}
           </div>

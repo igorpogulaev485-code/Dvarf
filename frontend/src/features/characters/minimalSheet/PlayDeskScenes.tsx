@@ -37,6 +37,12 @@ import { getActiveSelfForm } from '../companions'
 import { healSelfForm, rollDice, starryFormDice } from '../wildShape'
 import { TextBlocksPanel } from '../TextBlocksPanel'
 import { PlayDeskAttacksCompact } from '../PlayDeskAttacksCompact'
+import { formatCheckRoll, rollCheck } from '../deskRolls'
+import {
+  medicineStabilizes,
+  stabilizePlayPatch,
+} from '../../../shared/dnd/o09DeathInspirationAmmo'
+import { listActiveInfusionBindings } from '../../../shared/dnd/infusionsActive'
 import { spendSpellSlot } from '../../../shared/dnd/spells'
 import { PlayDeskSpellsCompact } from '../PlayDeskSpellsCompact'
 import { equipInventoryItem, equippedArmorPieces } from '../inventory'
@@ -430,6 +436,93 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             onLuckySpent={() => {
               model.spendLuckyPoint?.()
               model.setLuckyRollArmed?.(false)
+            }}
+            inspirationArmed={Boolean(model.inspirationRollArmed)}
+            onInspirationSpent={() => {
+              model.spendInspirationForRoll?.()
+            }}
+            repeatingShotItemIds={(() => {
+              const ids: string[] = []
+              for (const entry of model.draft.classes) {
+                const bindings = listActiveInfusionBindings(
+                  model.draft.featurePicks,
+                  entry.id,
+                )
+                for (const row of bindings) {
+                  if (
+                    row.itemId &&
+                    (row.infusionId === 'repeating_shot' ||
+                      row.infusionId.startsWith('repeating_shot'))
+                  ) {
+                    ids.push(row.itemId)
+                  }
+                }
+              }
+              return ids
+            })()}
+            onBindAmmo={(attackId, ammoItemId) => {
+              model.setDraft((prev) => ({
+                ...prev,
+                weapons: prev.weapons.map((row) =>
+                  row.id === attackId ? { ...row, ammo_item_id: ammoItemId } : row,
+                ),
+              }))
+            }}
+            onSpendAttackQty={(attackId, amount = 1) => {
+              const n = Math.max(1, Math.floor(amount))
+              model.setDraft((prev) => ({
+                ...prev,
+                weapons: prev.weapons.map((row) => {
+                  if (row.id !== attackId || row.qty == null) return row
+                  return { ...row, qty: Math.max(0, row.qty - n) }
+                }),
+              }))
+            }}
+            onMedicineStabilize={(targetId) => {
+              const mod = model.skillModFor?.('medicine') ?? 0
+              const mode = model.effectiveRollMode?.('medicine') ?? model.deskRollMode
+              const check = rollCheck(mod, mode)
+              if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
+              const ok = medicineStabilizes(check.total)
+              model.onToast?.(
+                `${formatCheckRoll('Медицина (стабилизация)', check)} vs 10 · ${
+                  ok ? 'успех' : 'провал'
+                }`,
+              )
+              if (!ok) return
+              model.setDraft((prev) => {
+                const companion = prev.companions.find((c) => c.id === targetId)
+                if (companion) {
+                  return {
+                    ...prev,
+                    companions: prev.companions.map((c) =>
+                      c.id === targetId
+                        ? {
+                            ...c,
+                            death: {
+                              successes: 3,
+                              failures: c.death?.failures ?? 0,
+                            },
+                          }
+                        : c,
+                    ),
+                  }
+                }
+                if (
+                  targetId.includes(String(model.character?.id ?? '')) ||
+                  targetId === 'self'
+                ) {
+                  return {
+                    ...prev,
+                    play: {
+                      ...prev.play,
+                      ...stabilizePlayPatch(),
+                    },
+                  }
+                }
+                return prev
+              })
+              model.onToast?.(`Стабилизирован · ${targetId}`)
             }}
             onLuckyPickNeeded={(input: {
               allDice: number[]

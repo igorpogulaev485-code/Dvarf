@@ -182,6 +182,8 @@ export function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
           : typeof row.source_item_id === 'string'
             ? row.source_item_id
             : null,
+      ammo_item_id:
+        typeof row.ammo_item_id === 'string' ? row.ammo_item_id : null,
       held: Boolean(row.held),
       activation: readWeaponActivation(row.activation),
       mode_active: row.mode_active === true,

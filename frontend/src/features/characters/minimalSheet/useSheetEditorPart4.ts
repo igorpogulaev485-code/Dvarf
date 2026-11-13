@@ -416,6 +416,19 @@ export function useSheetEditorPart4(model: SheetModel) {
   const [luckyRollArmed, setLuckyRollArmed] = useState(false)
   model.luckyRollArmed = luckyRollArmed
   model.setLuckyRollArmed = setLuckyRollArmed
+  /** O-09: Inspiration (PHB) — advantage on next attack/check/save (not death save). */
+  const [inspirationRollArmed, setInspirationRollArmed] = useState(false)
+  model.inspirationRollArmed = inspirationRollArmed
+  model.setInspirationRollArmed = setInspirationRollArmed
+  model.spendInspirationForRoll = function spendInspirationForRoll() {
+    if (!model.draft.inspiration) {
+      model.onToast?.('Нет вдохновения')
+      return false
+    }
+    model.setDraft((prev) => ({ ...prev, inspiration: false }))
+    setInspirationRollArmed(false)
+    return true
+  }
   const [luckyPickPending, setLuckyPickPending] = useState<{
     allDice: number[]
     text: string
