@@ -37,7 +37,8 @@
     "selfcheck:spells-settings-slots": "tsx src/features/characters/spellsSettings.visibleSlots.selfcheck.ts",
     "selfcheck:enemy-pack-roster": "tsx --tsconfig tsconfig.app.json src/features/lobby/enemyPackRoster.selfcheck.ts",
     "selfcheck:artifact-gear": "tsx --tsconfig tsconfig.app.json src/features/characters/artifactGear.selfcheck.ts",
-    "selfcheck:hot-bar-scroll": "tsx --tsconfig tsconfig.app.json src/features/characters/PlayDeskHotBar.selfcheck.ts"
+    "selfcheck:hot-bar-scroll": "tsx --tsconfig tsconfig.app.json src/features/characters/PlayDeskHotBar.selfcheck.ts",
+    "selfcheck:needs-setup": "tsx --tsconfig tsconfig.app.json src/features/characters/needsSetup.selfcheck.ts"
   },
   "dependencies": {
     "qrcode": "^1.5.4",

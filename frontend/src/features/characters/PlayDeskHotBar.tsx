@@ -35,6 +35,25 @@ export function hotBarScrollEdges(
   }
 }
 
+function HotResourceName({ name }: { name: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const long = name.trim().length > 18
+  if (!long) {
+    return <span className="play-desk__hot-res-name">{name}</span>
+  }
+  return (
+    <button
+      type="button"
+      className={`play-desk__hot-res-name${expanded ? ' is-expanded' : ''}`}
+      title={expanded ? 'Свернуть название' : name}
+      aria-expanded={expanded}
+      onClick={() => setExpanded((prev) => !prev)}
+    >
+      {name}
+    </button>
+  )
+}
+
 function ResourceChip({
   row,
   onResourceUsedChange,
@@ -49,9 +68,7 @@ function ResourceChip({
       <div className="play-desk__hot-item play-desk__hot-item--res play-desk__hot-item--res-compact">
         <span className="play-desk__hot-res-head">
           <IconPouch className="play-desk__hot-icon" />
-          <span className="play-desk__hot-res-name" title={row.name}>
-            {row.name}
-          </span>
+          <HotResourceName name={row.name} />
         </span>
         <div className="play-desk__stepper" role="group" aria-label={`${row.name}: без лимита`}>
           <span className="play-desk__stepper-value">без лимита</span>
@@ -67,9 +84,7 @@ function ResourceChip({
     >
       <span className="play-desk__hot-res-head">
         <IconPouch className="play-desk__hot-icon" />
-        <span className="play-desk__hot-res-name" title={row.name}>
-          {row.name}
-        </span>
+        <HotResourceName name={row.name} />
       </span>
       {compact ? (
         <div

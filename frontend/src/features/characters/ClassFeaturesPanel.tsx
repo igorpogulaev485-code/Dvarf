@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTurnEconomy } from './TurnEconomyContext'
 import { inferFeatureTiming } from '../../shared/dnd/turnEconomy'
 import {
@@ -254,6 +254,9 @@ type ClassFeaturesPanelProps = {
     classEntryId: string
     classLevel: number
   }) => void
+  /** B20: external request to switch filter (e.g. «Нужно настроить»). */
+  requestedFilter?: string | null
+  onRequestedFilterConsumed?: () => void
 }
 
 type FeatureFilter =
@@ -2573,6 +2576,8 @@ export function ClassFeaturesPanel({
   onConcentrationChange,
   edition = '2014',
   onFeatureBuffApply,
+  requestedFilter = null,
+  onRequestedFilterConsumed,
 }: ClassFeaturesPanelProps) {
   const [filter, setFilter] = useState<FeatureFilter>('all')
   const [search, setSearch] = useState('')
@@ -2580,6 +2585,17 @@ export function ClassFeaturesPanel({
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
   const [customDraftName, setCustomDraftName] = useState('')
   const [customDraftSummary, setCustomDraftSummary] = useState('')
+
+  useEffect(() => {
+    if (!requestedFilter) return
+    const allowed = FEATURE_FILTERS.some((row) => row.id === requestedFilter)
+    if (!allowed) {
+      onRequestedFilterConsumed?.()
+      return
+    }
+    setFilter(requestedFilter as FeatureFilter)
+    onRequestedFilterConsumed?.()
+  }, [requestedFilter, onRequestedFilterConsumed])
 
   const features = useMemo(
     () =>

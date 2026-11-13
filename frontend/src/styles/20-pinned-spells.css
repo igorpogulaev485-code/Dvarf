@@ -170,13 +170,34 @@
 }
 
 .play-desk__hot-res-name {
-  display: block;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font-weight: 600;
   color: var(--desk-ink);
   max-width: 140px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.2;
+  text-align: left;
+}
+
+button.play-desk__hot-res-name {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+
+.play-desk__hot-res-name.is-expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  max-width: min(240px, 70vw);
+  overflow: visible;
 }
 
 .play-desk__pips {

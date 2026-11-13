@@ -48,6 +48,27 @@
   font-weight: 700;
   color: var(--accent);
   line-height: 1.15;
+  /* B14: long names wrap up to two lines */
+  white-space: normal;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  word-break: break-word;
+  max-width: 100%;
+}
+
+.mobile-vitals__name.is-expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
+.mobile-vitals__identity-hint {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.02em;
 }
 
 .mobile-vitals__meta {
@@ -460,13 +481,16 @@
 }
 
 .mobile-vitals__collapse-who strong {
-  display: block;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font-family: var(--font-display, "Source Serif 4", Georgia, serif);
   font-size: 0.95rem;
   color: var(--accent);
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
+  line-height: 1.15;
 }
 
 .mobile-vitals__collapse-hp {

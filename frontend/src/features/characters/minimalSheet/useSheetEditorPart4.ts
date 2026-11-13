@@ -118,6 +118,16 @@ export function useSheetEditorPart4(model: SheetModel) {
   const [identityOpen, setIdentityOpen] = useState(false)
   model.identityOpen = identityOpen
   model.setIdentityOpen = setIdentityOpen
+  /** B20: jump from «Нужно настроить» → filter in ClassFeaturesPanel. */
+  const [featuresFilterRequest, setFeaturesFilterRequest] = useState<
+    'needs_setup' | null
+  >(null)
+  model.featuresFilterRequest = featuresFilterRequest
+  model.setFeaturesFilterRequest = setFeaturesFilterRequest
+  /** B20: jump to a companion card. */
+  const [focusCompanionId, setFocusCompanionId] = useState<string | null>(null)
+  model.focusCompanionId = focusCompanionId
+  model.setFocusCompanionId = setFocusCompanionId
   const [restOpen, setRestOpen] = useState(false)
   model.restOpen = restOpen
   model.setRestOpen = setRestOpen

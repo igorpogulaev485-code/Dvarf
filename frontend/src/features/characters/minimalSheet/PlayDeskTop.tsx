@@ -1,4 +1,5 @@
 /** Шапка стола, полоска жизни на телефоне и док напарников. */
+import { useMemo } from 'react'
 import type { SheetModel } from './sheetModel'
 import { isSelfForm } from '../companions'
 import { formatRaceMovementHint } from '../../../shared/dnd/raceGrants'
@@ -28,6 +29,10 @@ import {
 } from '../../../shared/dnd/alignments'
 import { COMPANION_KIND_SHORT } from './draft'
 import { ActiveEffectsPanel } from '../ActiveEffectsPanel'
+import {
+  buildNeedsSetupItems,
+  type NeedsSetupItem,
+} from '../needsSetup'
 
 function initiativeAdvantageFromSheet(model: SheetModel): 'advantage' | 'disadvantage' | 'normal' {
   const fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
@@ -92,6 +97,54 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
     (row: { id: string; dismissed?: boolean; text_ru: string }) =>
       row.id === 'race_updated_mpmm' && !row.dismissed,
   )
+
+  const needsSetupItems = useMemo(
+    () =>
+      buildNeedsSetupItems({
+        unlocked: model.unlockedFeatures ?? [],
+        featurePicks: model.draft.featurePicks,
+        classAsi: model.draft.classAsi ?? [],
+        learnBudgets: model.spellLearnBudgets ?? [],
+        known: model.draft.spells.known,
+        alignment: model.draft.identity.alignment ?? '',
+        alignmentText: model.draft.identity.alignmentText ?? '',
+        companions: model.draft.companions,
+      }),
+    [
+      model.unlockedFeatures,
+      model.draft.featurePicks,
+      model.draft.classAsi,
+      model.spellLearnBudgets,
+      model.draft.spells.known,
+      model.draft.identity.alignment,
+      model.draft.identity.alignmentText,
+      model.draft.companions,
+    ],
+  )
+
+  function handleNeedsSetupSelect(item: NeedsSetupItem) {
+    if (item.kind === 'feature_choice' || item.kind === 'asi') {
+      model.setFeaturesFilterRequest('needs_setup')
+      model.setDeskMode('features')
+      model.setActivePanel('features')
+      return
+    }
+    if (item.kind === 'spells') {
+      model.setDeskMode('combat')
+      model.setActivePanel('spells')
+      model.setSpellsSettingsOpen(true)
+      return
+    }
+    if (item.kind === 'alignment') {
+      model.setIdentityOpen(true)
+      return
+    }
+    if (item.kind === 'companion' && item.targetId) {
+      model.setFocusCompanionId(item.targetId)
+      model.setDeskMode('companions')
+      model.setActivePanel('companions')
+    }
+  }
 
   return (
     <>
@@ -265,6 +318,8 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             coinPadOpen={model.coinPadOpen}
             onCoinPadOpenChange={model.setCoinPadOpen}
             showValueTips={model.showValueTips}
+            needsSetupItems={needsSetupItems}
+            onNeedsSetupSelect={handleNeedsSetupSelect}
             onCombatChange={(patch) =>
               model.setDraft((prev) => {
                 const nextHp =
@@ -471,6 +526,8 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           }}
           onToast={model.onToast}
           showValueTips={model.showValueTips}
+          needsSetupItems={needsSetupItems}
+          onNeedsSetupSelect={handleNeedsSetupSelect}
         />
         <ActiveEffectsPanel
           effects={model.draft.play.effects ?? []}

@@ -654,6 +654,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         abilities={model.draft.abilities}
         subclassSlugByEntryId={model.subclassSlugByEntryId}
         subclassTransitionByEntryId={model.subclassTransitionByEntryId}
+        requestedFilter={model.featuresFilterRequest}
+        onRequestedFilterConsumed={() => model.setFeaturesFilterRequest(null)}
         resources={model.draft.play.resources}
         onResourcesChange={(resources) =>
           model.setDraft((prev) => ({
@@ -1155,6 +1157,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
       <CompanionsPanel
         companions={model.draft.companions}
         onChange={(companions) => model.setDraft((prev) => ({ ...prev, companions }))}
+        focusCompanionId={model.focusCompanionId}
         hostHp={model.draft.hpCurrent}
         onHostHpChange={(hp) =>
           model.setDraft((prev) => ({ ...prev, hpCurrent: hp }))
