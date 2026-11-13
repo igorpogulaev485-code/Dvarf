@@ -28,6 +28,7 @@ import {
 } from '../../../shared/dnd/activeEffects'
 import { applyFeatureSaveProficiencies, ironMindSaveKey, wisdomSaveAlreadyGranted } from '../../../shared/dnd/featureSaveProficiency'
 import { revokeFalseSubclassCompanions } from '../companions'
+import { backfillCompanionStatsFromTemplates } from '../companionBackfill'
 import {
   fighterSkillAndLanguageGrants,
   hydrateTotemSpiritFromGrants,
@@ -312,17 +313,44 @@ export function useSheetEditorPart2(model: SheetModel) {
     })
   }, [model.unlockedFeatures, model.draft.featurePicks])
 
+  const companionBackfillToastSent = useRef(false)
   useEffect(() => {
     model.setDraft((prev) => {
-      const companions = revokeFalseSubclassCompanions(prev.companions)
+      const revoked = revokeFalseSubclassCompanions(prev.companions)
+      const hostClassLevel = Math.max(
+        1,
+        ...prev.classes.map((row) => Math.floor(row.level) || 1),
+        1,
+      )
+      const backfilled = backfillCompanionStatsFromTemplates({
+        companions: revoked,
+        ctx: {
+          hostClassLevel,
+          characterLevel: totalCharacterLevel(prev.classes),
+          hostIntMod: abilityModifier(prev.abilities.int ?? 10),
+          spellMod: abilityModifier(prev.abilities.wis ?? 10),
+        },
+      })
       const featurePicks = dropDuplicateFightingStyles(
         hydrateTotemSpiritFromGrants({
           featurePicks: prev.featurePicks,
           subclassGrants: prev.subclassGrants,
         }).featurePicks,
       )
-      if (companions === prev.companions && featurePicks === prev.featurePicks) return prev
-      return { ...prev, companions, featurePicks }
+      if (
+        backfilled.companions === prev.companions &&
+        revoked === prev.companions &&
+        featurePicks === prev.featurePicks
+      ) {
+        return prev
+      }
+      if (backfilled.filledCount > 0 && !companionBackfillToastSent.current) {
+        companionBackfillToastSent.current = true
+        queueMicrotask(() => {
+          model.onToast?.('Напарники дозаполнены по способностям')
+        })
+      }
+      return { ...prev, companions: backfilled.companions, featurePicks }
     })
   }, [model.draft.companions, model.draft.featurePicks, model.draft.subclassGrants])
 

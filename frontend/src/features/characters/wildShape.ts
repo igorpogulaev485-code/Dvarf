@@ -18,6 +18,10 @@ import {
   type FormSourceKind,
 } from './companions'
 import { wildfireSpiritHp } from './bestiaryCompanionStats'
+import {
+  companionFromTemplate,
+  resolveCompanionTemplate,
+} from './companionTemplates'
 import { createKnownForm, upsertKnownForm, type KnownForm } from './knownForms'
 
 export type WildShapeLimits = {
@@ -614,43 +618,116 @@ export function applyWildCompanion(input: {
   return [...withoutOld, familiar]
 }
 
+function isWildfireSpiritRow(row: CompanionEntry): boolean {
+  const feature = row.source?.feature?.trim().toLowerCase() ?? ''
+  if (feature === 'wildfire_spirit' || feature === 'summon_wildfire_spirit') {
+    return true
+  }
+  const ref = (row.bestiary_ref ?? '').toLowerCase()
+  if (ref.includes('wildfire')) return true
+  if (/дикого огня/i.test(row.bestiary_name_ru ?? '') || /дикого огня/i.test(row.name)) {
+    return row.kind === 'ally' || row.kind === 'other'
+  }
+  return false
+}
+
 export function applyWildfireSpirit(input: {
   companions: CompanionEntry[]
   druidLevel: number
   pick?: BestiaryFormPick | null
+  /** Character level for proficiency on Flame Seed (defaults to druidLevel). */
+  characterLevel?: number
+  spellMod?: number | null
 }): CompanionEntry[] {
   const level = Math.max(1, Math.floor(input.druidLevel) || 1)
   // TCE: 5 + 5×druid level. Never the catalog average alone.
   const hp = wildfireSpiritHp(level)
-  const withoutOld = input.companions.filter(
-    (row) => row.source?.feature !== 'summon_wildfire_spirit',
-  )
-  const spirit = createCompanion({
-    kind: 'other',
+  const existing = input.companions.find(isWildfireSpiritRow)
+  const template = resolveCompanionTemplate({
+    choiceId: 'wildfire_spirit',
+    pickValue: '',
+    ctx: {
+      hostClassLevel: level,
+      characterLevel: Math.max(1, Math.floor(input.characterLevel ?? level)),
+      spellMod: input.spellMod ?? undefined,
+    },
+  })
+  const fromTemplate = template
+    ? companionFromTemplate({
+        template,
+        name:
+          existing?.name?.trim() ||
+          input.pick?.name_ru ||
+          template.defaultName,
+        source: existing?.source ?? {
+          kind: 'subclass',
+          labelRu: 'Дух дикого огня',
+          feature: 'wildfire_spirit',
+        },
+      })
+    : null
+
+  const activated = createCompanion({
+    ...(fromTemplate ?? {}),
+    id: existing?.id,
+    kind: 'ally',
     role: 'ally',
-    name: input.pick?.name_ru ?? 'Дух дикого огня',
-    bestiary_ref: input.pick?.catalog_id ?? input.pick?.slug ?? 'wildfire_spirit',
-    bestiary_name_ru: input.pick?.name_ru ?? 'Дух дикого огня',
+    name:
+      existing?.name?.trim() ||
+      input.pick?.name_ru ||
+      fromTemplate?.name ||
+      'Дух дикого огня',
+    bestiary_ref:
+      existing?.bestiary_ref ??
+      input.pick?.catalog_id ??
+      input.pick?.slug ??
+      'wildfire_spirit',
+    bestiary_name_ru:
+      existing?.bestiary_name_ru ?? input.pick?.name_ru ?? 'Дух дикого огня',
     nature: 'summoned',
     control: 'bonus_action_command',
     active: true,
+    is_primary: existing?.is_primary ?? false,
+    avatar_url: existing?.avatar_url ?? null,
     stats: {
+      ...(fromTemplate?.stats ?? {}),
       hp,
       hp_max: hp,
-      ac: input.pick?.ac ?? 13,
-      speed: input.pick?.speed_walk ?? 30,
+      ac: fromTemplate?.stats.ac ?? input.pick?.ac ?? 13,
+      speed: fromTemplate?.stats.speed ?? input.pick?.speed_walk ?? 30,
+      speed_fly: fromTemplate?.stats.speed_fly ?? input.pick?.speed_fly ?? 30,
+      str: fromTemplate?.stats.str ?? 10,
+      dex: fromTemplate?.stats.dex ?? 14,
+      con: fromTemplate?.stats.con ?? 14,
+      immunities:
+        fromTemplate?.stats.immunities ??
+        'огонь; очарование, испуг, захват, сбивание с ног, опутанность',
     },
     actions:
+      fromTemplate?.actions ||
       input.pick?.actions_text ||
       'Семя пламени; Огненная телепортация (см. TCE / бестиарий).',
-    notes: `Summon Wildfire Spirit · 1 ч. · HP = 5 + 5×ур. друида = ${hp} (TCE)`,
+    notes:
+      existing?.notes?.trim() ||
+      fromTemplate?.notes ||
+      `Summon Wildfire Spirit · 1 ч. · HP = 5 + 5×ур. друида = ${hp} (TCE)`,
+    resources: existing?.resources ?? fromTemplate?.resources ?? [],
     source: {
       kind: 'subclass',
-      labelRu: 'Дух дикого огня',
-      feature: 'summon_wildfire_spirit',
+      labelRu: existing?.source?.labelRu ?? 'Дух дикого огня',
+      classEntryId: existing?.source?.classEntryId,
+      subclassSlug: existing?.source?.subclassSlug,
+      // Keep grant feature id when present so the card stays one with the archetype slot.
+      feature: existing?.source?.feature?.includes('wildfire')
+        ? existing.source.feature
+        : 'wildfire_spirit',
     },
   })
-  return [...withoutOld, spirit]
+
+  if (existing) {
+    return input.companions.map((row) => (row.id === existing.id ? activated : row))
+  }
+  return [...input.companions, activated]
 }
 
 export function starryFormDice(druidLevel: number): '1к8' | '2к8' {

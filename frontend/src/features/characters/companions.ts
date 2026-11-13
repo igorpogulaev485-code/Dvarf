@@ -737,6 +737,8 @@ const REAL_SUBCLASS_COMPANION_FEATURES = new Set([
   'eldritch_cannon',
   'steel_defender_name',
   'wildfire_spirit',
+  // Wild Shape summon path writes this feature id — keep the card.
+  'summon_wildfire_spirit',
   'rangers_companion',
   'drake_companion',
 ])

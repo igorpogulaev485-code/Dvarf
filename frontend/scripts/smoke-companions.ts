@@ -861,7 +861,7 @@ assert(manualDrop.companions.every((c) => c.role !== 'self_form'), 'manual dismi
 
 // --- F6: bestiary ally stats + Shapechanger ---
 assert(wildfireSpiritHp(6) === 35, 'wildfire 5+5×6')
-assert(wildfireSpiritHp(1) === 15, 'wildfire L1')
+assert(wildfireSpiritHp(1) === 10, 'wildfire L1')
 // Catalog pick with hp=10 must NOT override scaling
 const fireScaled = applyWildfireSpirit({
   companions: [],
@@ -877,14 +877,15 @@ const fireScaled = applyWildfireSpirit({
     actions_text: 'Семя',
   },
 })
-assert(fireScaled[0]?.stats.hp_max === 40, 'wildfire ignores catalog avg alone')
+// TCE: 5 + 5×level → L6 = 35 (never catalog average 10 alone).
+assert(fireScaled[0]?.stats.hp_max === 35, 'wildfire ignores catalog avg alone')
 
 const wfTpl = resolveCompanionTemplate({
   choiceId: 'summon_wildfire_spirit',
   pickValue: '',
   ctx: { hostClassLevel: 5, characterLevel: 5, spellMod: 3 },
 })
-assert(wfTpl?.stats.hp_max === 35, 'template wildfire L5 = 35')
+assert(wfTpl?.stats.hp_max === 30, 'template wildfire L5 = 30')
 
 const scLim = shapechangerFormLimits()
 assert(scLim.maxCr === 1 && scLim.allowedTypes.includes('beast'), 'shapechanger limits')
