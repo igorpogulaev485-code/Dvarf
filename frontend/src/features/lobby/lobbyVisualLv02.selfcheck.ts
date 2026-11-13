@@ -16,7 +16,14 @@ assert.match(enemiesRest, /\.session-turn-chip\s*\{[^}]*min-height:\s*44px/)
 assert.match(enemiesRest, /\.session-turn-chip\s*\{[^}]*min-width:\s*44px/)
 assert.match(enemiesRest, /session-combat-order-wrap/)
 assert.match(enemiesRest, /session-combat-track__progress/)
-assert.match(enemiesRest, /\.session-combat-order\s*\{[\s\S]*?flex-wrap:\s*wrap/)
+assert.match(
+  enemiesRest,
+  /\.session-combat-order\s*\{[\s\S]*?flex-direction:\s*column/,
+)
+assert.match(
+  enemiesRest,
+  /\.session-combat-order__name\s*\{[\s\S]*?text-overflow:\s*ellipsis/,
+)
 assert.doesNotMatch(
   enemiesRest,
   /\.session-turn-chip\s*\{[^}]*min-height:\s*28px/,

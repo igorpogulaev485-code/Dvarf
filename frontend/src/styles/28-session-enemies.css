@@ -12,9 +12,9 @@
   align-items: flex-start;
 }
 
-/* LV-04: плотный первый ряд мастера — карточки в первом экране */
+/* LV-04 / UIKIT-01: один ряд, одна базовая линия, без отдельных рамок групп */
 .session-table-toolbar--master {
-  gap: 8px 12px;
+  gap: 8px;
   align-items: center;
 }
 
@@ -30,8 +30,11 @@
 }
 
 .session-table-toolbar--master .session-toolbar-group {
-  padding: 6px 8px;
-  gap: 6px;
+  padding: 0;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  border-radius: 0;
 }
 
 /* SC-05: подпись-категория — текст, не chip-кнопка (без UPPERCASE «БОЙ») */
@@ -60,6 +63,13 @@
   padding: 0;
 }
 
+.session-table-toolbar--master > .session-toolbar-more {
+  align-self: center;
+  border: none;
+  background: transparent;
+  border-radius: 0;
+}
+
 .session-table-toolbar--master > .session-toolbar-more:not([open]) {
   max-width: max-content;
 }
@@ -76,6 +86,17 @@
   display: inline-flex;
   align-items: center;
   box-sizing: border-box;
+}
+
+/* Closed summary = kit secondary lg button face */
+.session-table-toolbar--master .session-toolbar-more__summary {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font-weight: 600;
+  padding: 8px 14px;
+  min-height: 44px;
 }
 
 .session-toolbar-more__summary::-webkit-details-marker {
@@ -107,10 +128,10 @@
   border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
 }
 
-/* SC-05: первичная группа — Бой / +Враги / Кто пришёл */
+/* SC-05: первичная группа — Бой / +Враги / Кто пришёл (без отдельной рамки) */
 .session-table-toolbar--master .session-toolbar-group--primary {
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
-  background: color-mix(in srgb, var(--accent-soft) 45%, var(--card));
+  border: none;
+  background: transparent;
 }
 
 /* Toolbar summary height follows kit lg; buttons use Button size prop */
@@ -161,22 +182,11 @@
   color: var(--accent);
 }
 
-.session-piety-btn {
-  min-height: 44px;
-  padding: 0 12px;
-  border: 1px solid var(--line);
-  background: var(--card);
-  border-radius: 12px;
-  font-size: 0.82rem;
-  line-height: 1.1;
-  cursor: pointer;
-  color: var(--muted);
-  flex-shrink: 0;
-}
-
-.session-piety-btn:hover:not(:disabled) {
-  border-color: var(--accent);
-  color: var(--accent);
+.session-table-card__top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
 }
 
 .session-table-card__conditions {

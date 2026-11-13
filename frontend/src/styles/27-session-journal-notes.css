@@ -793,26 +793,11 @@
 .session-live-desk__side-tabs {
   display: inline-flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
+  align-items: center;
 }
 
-.session-live-desk__side-tab {
-  appearance: none;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.92rem;
-  padding: 4px 8px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.session-live-desk__side-tab.is-on {
-  color: var(--text);
-  border-color: var(--border);
-  background: var(--card);
-}
+/* Tabs are kit Button size=md */
 
 .session-lore-panel--bind {
   display: flex;

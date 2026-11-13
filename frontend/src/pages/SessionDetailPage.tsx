@@ -1115,6 +1115,7 @@ export function SessionDetailPage() {
               <Button
                 type="button"
                 variant="secondary"
+                size="lg"
                 className="session-toolbar-desktop-only"
                 onClick={openAttendanceEditor}
                 disabled={busy}
@@ -1126,6 +1127,7 @@ export function SessionDetailPage() {
               <Button
                 type="button"
                 variant="ghost"
+                size="lg"
                 className="session-toolbar-desktop-only"
                 disabled={busy}
                 title="Переименовать, закрыть или удалить стол"
@@ -2156,27 +2158,33 @@ export function SessionDetailPage() {
               <aside className="session-live-desk__side session-live-desk__desktop-only">
                 <div className="session-live-desk__side-head">
                   <div className="session-live-desk__side-tabs" role="tablist" aria-label="Боковая панель">
-                    <button
+                    <Button
                       type="button"
                       role="tab"
+                      size="md"
+                      variant={sideTab === 'notes' ? 'secondary' : 'ghost'}
                       aria-selected={sideTab === 'notes'}
                       className={`session-live-desk__side-tab${sideTab === 'notes' ? ' is-on' : ''}`}
                       onClick={() => setSideTab('notes')}
                     >
                       Заметки
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       role="tab"
+                      size="md"
+                      variant={sideTab === 'chat' ? 'secondary' : 'ghost'}
                       aria-selected={sideTab === 'chat'}
                       className={`session-live-desk__side-tab${sideTab === 'chat' ? ' is-on' : ''}`}
                       onClick={() => setSideTab('chat')}
                     >
                       Чат
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       role="tab"
+                      size="md"
+                      variant={sideTab === 'wiki' ? 'secondary' : 'ghost'}
                       aria-selected={sideTab === 'wiki'}
                       className={`session-live-desk__side-tab${sideTab === 'wiki' ? ' is-on' : ''}`}
                       onClick={() => {
@@ -2191,11 +2199,12 @@ export function SessionDetailPage() {
                       }}
                     >
                       Вики
-                    </button>
+                    </Button>
                   </div>
                   <Button
                     type="button"
                     variant="ghost"
+                    size="md"
                     className="session-live-desk__side-toggle"
                     onClick={() => toggleSidePanel(!sidePanelOpen)}
                   >

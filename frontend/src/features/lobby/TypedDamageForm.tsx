@@ -79,7 +79,7 @@ export function TypedDamageForm({
       </select>
       <Button
         type="submit"
-        variant="secondary"
+        variant="primary"
         size="md"
         disabled={busy || disabledDeal || !hasAmount}
       >
@@ -87,7 +87,7 @@ export function TypedDamageForm({
       </Button>
       <Button
         type="button"
-        variant="ghost"
+        variant="secondary"
         size="md"
         disabled={busy || disabledHeal || !hasAmount}
         onClick={() => submit(true)}

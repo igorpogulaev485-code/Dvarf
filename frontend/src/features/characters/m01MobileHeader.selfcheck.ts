@@ -46,9 +46,9 @@ assert.match(vitals, /asSheet/)
 assert.match(vitals, /mobile-vitals__name-row/)
 assert.match(vitalsCss, /\.mobile-vitals__name-row/)
 
-// M10 — jump chip says «прыжок»
+// M10 — jump chip short face «Прыжок» (дл./выс. в title)
 const jump = formatJumpFaceLabel()
 assert.ok(jump.toLowerCase().includes('прыжок'), jump)
-assert.ok(jump.includes('дл'), jump)
+assert.equal(jump, 'Прыжок')
 
 console.log('m01MobileHeader.selfcheck: ok')

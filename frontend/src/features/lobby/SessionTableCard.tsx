@@ -5,7 +5,7 @@ import type {
   SeatEffect,
   SessionSeat,
 } from '../../shared/api/lobbies'
-import { Text } from '../../ui'
+import { Button, Text } from '../../ui'
 import { TypedDamageForm, type TypedDamagePayload } from './TypedDamageForm'
 import {
   bandFromRatio,
@@ -472,41 +472,45 @@ export function SessionTableCard({
                 ★
               </span>
             ) : null}
-            {masterControls && onAwardPiety ? (
-              <button
-                type="button"
-                className="session-piety-btn"
-                disabled={busy}
-                aria-label="Благочестие ±"
-                title={
-                  seat.piety_score != null
-                    ? `Благочестие: ${seat.piety_score}`
-                    : 'Благочестие'
-                }
-                onClick={onAwardPiety}
-              >
-                Благочестие ±
-                {seat.piety_score != null ? ` · ${seat.piety_score}` : ''}
-              </button>
-            ) : null}
-            {masterControls && onSideClick ? (
-              <button
-                type="button"
-                className="session-side-btn"
-                disabled={busy}
-                aria-label="Сторона"
-                title="Сторона в бою"
-                onClick={onSideClick}
-              >
-                Сторона
-                {sideLabelText ? ` · ${sideLabelText}` : ''}
-                {sideHidden ? ' · скрыта' : ''}
-              </button>
-            ) : sideLabelText ? (
-              <span className="session-side-chip" title="Сторона">
-                {sideLabelText}
-              </span>
-            ) : null}
+            <div className="session-table-card__top-actions">
+              {masterControls && onAwardPiety ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="md"
+                  disabled={busy}
+                  aria-label="Благочестие ±"
+                  title={
+                    seat.piety_score != null
+                      ? `Благочестие: ${seat.piety_score}`
+                      : 'Благочестие'
+                  }
+                  onClick={onAwardPiety}
+                >
+                  Благочестие ±
+                  {seat.piety_score != null ? ` · ${seat.piety_score}` : ''}
+                </Button>
+              ) : null}
+              {masterControls && onSideClick ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="md"
+                  disabled={busy}
+                  aria-label="Сторона"
+                  title="Сторона в бою"
+                  onClick={onSideClick}
+                >
+                  Сторона
+                  {sideLabelText ? ` · ${sideLabelText}` : ''}
+                  {sideHidden ? ' · скрыта' : ''}
+                </Button>
+              ) : sideLabelText ? (
+                <span className="session-side-chip" title="Сторона">
+                  {sideLabelText}
+                </span>
+              ) : null}
+            </div>
           </div>
 
           {hasVitalChips ? (
