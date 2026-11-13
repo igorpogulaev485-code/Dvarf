@@ -10,6 +10,7 @@ import { FeatureSelfFormDialog, type FeatureSelfFormDialogResult } from '../Feat
 import { shapechangerFormLimits } from '../featureForms'
 import { WildShapeDialog } from '../WildShapeDialog'
 import { RestDialog } from '../RestDialog'
+import { normalizeCampaignRules } from '../../lobby/campaignRules'
 import { SorceryPointsSpendDialog } from '../SorceryPointsSpendDialog'
 import { ChannelDivinitySpendDialog } from '../ChannelDivinitySpendDialog'
 import { KiSpendDialog } from '../KiSpendDialog'
@@ -62,6 +63,10 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         featureDesiredResources={model.featureDesiredResources}
         songOfRest={songOfRestDie(model.unlockedFeatures ?? [])}
         raceSlug={model.draft.raceGrant?.slug ?? null}
+        grittyRest={Boolean(
+          normalizeCampaignRules(model.campaignRulesRaw).homebrew.gritty_rest,
+        )}
+        preferKind={model.restPreferKind ?? null}
         onPlayChange={(play) =>
           model.setDraft((prev) => {
             const result = applyConcentrationChangeToCompanions({
@@ -95,7 +100,10 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           }
         }}
         onToast={model.onToast}
-        onClose={() => model.setRestOpen(false)}
+        onClose={() => {
+          model.setRestOpen(false)
+          model.setRestPreferKind?.(null)
+        }}
       />
 
       <SorceryPointsSpendDialog

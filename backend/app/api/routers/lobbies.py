@@ -50,8 +50,12 @@ from app.schemas.lobby import (
     RemoveLobbyMemberRequest,
     EncounterGenerateRequest,
     EncounterGenerateResult,
+    InventoryGrantRequest,
+    InventoryGrantResult,
     InventoryTransferRequest,
     InventoryTransferResult,
+    PartyRestRequest,
+    PartyRestResult,
     LeadTodayRequest,
     LobbyRoleAssignRequest,
     LobbyRoleRemoveRequest,
@@ -1025,6 +1029,34 @@ async def transfer_lobby_inventory(
     db: DbSession,
 ) -> InventoryTransferResult:
     return await LobbyService(db).transfer_inventory(current_user, lobby_id, payload)
+
+
+@router.post(
+    "/sessions/{session_id}/inventory-grants",
+    response_model=InventoryGrantResult,
+)
+async def grant_session_inventory(
+    session_id: UUID,
+    payload: InventoryGrantRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> InventoryGrantResult:
+    """S-07: мастер выдаёт предмет/монеты «из воздуха» (не сундук S-06)."""
+    return await LobbyService(db).grant_inventory(current_user, session_id, payload)
+
+
+@router.post(
+    "/sessions/{session_id}/party-rest",
+    response_model=PartyRestResult,
+)
+async def start_session_party_rest(
+    session_id: UUID,
+    payload: PartyRestRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> PartyRestResult:
+    """S-07: короткий/долгий отдых партии со стола."""
+    return await LobbyService(db).start_party_rest(current_user, session_id, payload)
 
 
 @router.post(

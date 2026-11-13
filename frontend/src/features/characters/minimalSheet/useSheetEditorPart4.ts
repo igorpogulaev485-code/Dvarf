@@ -28,6 +28,8 @@ import { getFeaturePickList } from '../../../shared/dnd/featurePicks'
 import { isPactChainActive } from '../pactChainEffects'
 import { isWarlockClassName } from '../pactTomeEffects'
 import { parseInfusionSlotsResourceId } from '../InfusionsActiveDialog'
+import { useLobbyParty } from '../../lobby/useLobbyParty'
+import { useLobbyRealtime } from '../../lobby/useLobbyRealtime'
 import { armorGivesStealthDisadvantage, type DeskRollMode } from '../deskRolls'
 import {
   appendRollHistory,
@@ -119,6 +121,28 @@ export function useSheetEditorPart4(model: SheetModel) {
   const [restOpen, setRestOpen] = useState(false)
   model.restOpen = restOpen
   model.setRestOpen = setRestOpen
+  const [restPreferKind, setRestPreferKind] = useState<'short' | 'long' | null>(null)
+  model.restPreferKind = restPreferKind
+  model.setRestPreferKind = setRestPreferKind
+
+  // S-07: мастер запускает отдых партии → открыть тот же RestDialog на листе.
+  const partyForRest = useLobbyParty(model.baseCharacter?.id)
+  useLobbyRealtime(partyForRest.lobbyId, (data) => {
+    if (data.type !== 'party_rest') return
+    const kind = data.kind === 'long' ? 'long' : data.kind === 'short' ? 'short' : null
+    if (!kind) return
+    const sessionId = model.baseCharacter?.open_session_id
+    if (sessionId && data.session_id && String(data.session_id) !== String(sessionId)) {
+      return
+    }
+    setRestPreferKind(kind)
+    setRestOpen(true)
+    const label =
+      kind === 'short'
+        ? String(data.short_label || 'Короткий отдых')
+        : String(data.long_label || 'Долгий отдых')
+    model.onToast?.(`${label}: открой окно и заверши отдых на листе`)
+  })
   const [sorcerySpendId, setSorcerySpendId] = useState<string | null>(null)
   model.sorcerySpendId = sorcerySpendId
   model.setSorcerySpendId = setSorcerySpendId

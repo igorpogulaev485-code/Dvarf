@@ -677,10 +677,20 @@ export function SessionLiveTablePreviewPage() {
                       >
                         Статус квеста
                       </Button>
-                      <Button type="button" variant="secondary" onClick={() => setToast('Короткий отдых будет в S-07')}>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={Boolean(combat.active)}
+                        onClick={() => setToast('Превью: отдых партии — на проде через S-07')}
+                      >
                         Короткий отдых
                       </Button>
-                      <Button type="button" variant="secondary" onClick={() => setToast('Долгий отдых будет в S-07')}>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={Boolean(combat.active)}
+                        onClick={() => setToast('Превью: отдых партии — на проде через S-07')}
+                      >
                         Долгий отдых
                       </Button>
                     </div>

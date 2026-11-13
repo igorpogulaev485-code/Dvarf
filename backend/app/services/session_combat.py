@@ -19,6 +19,21 @@ def ability_mod(score: int | None) -> int:
     return (int(score) - 10) // 2
 
 
+def _parse_object_interactions(raw: object) -> dict[str, int]:
+    """S-07: счётчик взаимодействий с предметом за текущий ход (крючок T-01)."""
+    if not isinstance(raw, dict):
+        return {}
+    out: dict[str, int] = {}
+    for key, value in raw.items():
+        try:
+            n = int(value)
+        except (TypeError, ValueError):
+            continue
+        if n > 0 and key:
+            out[str(key)] = n
+    return out
+
+
 def initiative_bonus_from_sheet(sheet: dict | None) -> tuple[int, bool]:
     """Бонус инициативы и преимущество из уже существующих эффектов листа.
 
@@ -255,6 +270,8 @@ def parse_combat_state(raw: object, *, combatants: list[dict] | None = None) -> 
             # S-06
             "pending_rewards": None,
             "loot_chest": None,
+            # S-07: взаимодействия с предметом в текущий ход (крючок T-01)
+            "object_interactions": {},
         }
 
     entries: list[dict] = []
@@ -349,6 +366,8 @@ def parse_combat_state(raw: object, *, combatants: list[dict] | None = None) -> 
         # S-06: переживают конец боя
         "pending_rewards": pending_rewards,
         "loot_chest": loot_chest,
+        # S-07
+        "object_interactions": _parse_object_interactions(raw.get("object_interactions")),
     }
 
 
@@ -484,6 +503,9 @@ def dump_combat_state(state: dict) -> dict:
         "sides": sides_reg,
         "pending_rewards": pending,
         "loot_chest": loot,
+        "object_interactions": _parse_object_interactions(
+            state.get("object_interactions")
+        ),
     }
     return out
 
@@ -517,6 +539,7 @@ def empty_combat(
             if isinstance(loot_chest, dict)
             else None
         ),
+        "object_interactions": {},
     }
 
 

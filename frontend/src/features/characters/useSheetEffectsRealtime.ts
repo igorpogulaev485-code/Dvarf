@@ -1,6 +1,7 @@
 /**
  * B-01 / B04 / Р15: live-refresh combat.effects via lobby WS (#299) or 15s poll.
  * B-02: also pull hp_max / hp_current / hp_temp so Aid / temp HP land on allies.
+ * S-07: также inventory (передача / выдача мастером).
  */
 import { useEffect, useRef } from 'react'
 import { getCharacter } from '../../shared/api/characters'
@@ -8,6 +9,7 @@ import { useLobbyRealtime } from '../lobby/useLobbyRealtime'
 import { useLobbyParty } from '../lobby/useLobbyParty'
 import { parseActiveEffects, type ActiveEffect } from '../../shared/dnd/activeEffects'
 import { asRecord } from './sheetTypes'
+import { readInventory, type InventoryState } from './inventory'
 
 const POLL_MS = 15_000
 
@@ -17,6 +19,8 @@ export type SheetEffectsCombatPatch = {
   hpMax?: number | null
   hpCurrent?: number | null
   hpTemp?: number | null
+  /** S-07: полный кошелёк и вещи с сервера. */
+  inventory?: InventoryState
 }
 
 type Args = {
@@ -59,6 +63,7 @@ export function useSheetEffectsRealtime({
         hpMax,
         hpCurrent,
         hpTemp,
+        inventory: readInventory(fresh.sheet),
       })
     } catch {
       // ignore transient network errors

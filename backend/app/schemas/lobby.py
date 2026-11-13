@@ -1305,6 +1305,38 @@ class InventoryTransferResult(BaseModel):
     to_character_name: str
 
 
+class InventoryGrantRequest(BaseModel):
+    """S-07: мастер выдаёт предмет/монеты «из воздуха» на лист за столом."""
+
+    character_id: UUID
+    item_name: str | None = Field(default=None, max_length=120)
+    item_qty: int | None = Field(default=None, ge=1, le=9999)
+    coin_currency: str | None = Field(default=None, pattern="^(cp|sp|ep|gp|pp)$")
+    coin_amount: int | None = Field(default=None, ge=1, le=1_000_000)
+
+
+class InventoryGrantResult(BaseModel):
+    session: "SessionDetail"
+    summary: str
+    to_character_id: UUID
+    to_character_name: str
+
+
+class PartyRestRequest(BaseModel):
+    """S-07: мастер запускает короткий/долгий отдых всей партии."""
+
+    kind: Literal["short", "long"]
+
+
+class PartyRestResult(BaseModel):
+    session: "SessionDetail"
+    kind: Literal["short", "long"]
+    gritty_rest: bool = False
+    summary: str
+    short_label: str = "Короткий отдых"
+    long_label: str = "Долгий отдых"
+
+
 class CombatantCreateRequest(BaseModel):
     """Посадить 1..N как одну карточку-пачку из бестиария или свой НПС."""
 
