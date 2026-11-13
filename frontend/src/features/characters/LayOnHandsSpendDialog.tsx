@@ -39,7 +39,7 @@ export function LayOnHandsSpendDialog({
   return (
     <Dialog
       open={open}
-      title="Возложение рук"
+      title={resource?.name?.trim() || 'Возложение рук'}
       size="wide"
       primaryLabel="Закрыть"
       onPrimary={onClose}

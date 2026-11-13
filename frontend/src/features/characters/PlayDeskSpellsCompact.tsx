@@ -226,16 +226,19 @@ export function PlayDeskSpellsCompact({
     return alwaysPreparedCount > 0 ? `${base} · всегда ${alwaysPreparedCount}` : base
   })()
   const cantripLabel = (() => {
+    const tomeExtra = countLockedFeatureCantrips(spells.known)
     if (learnBudgets && learnBudgets.length > 0) {
       return formatNamedCantripBudgets(
         learnBudgets,
         countLearnedCantripsBySlug(spells.known),
-        { tomeExtra: countLockedFeatureCantrips(spells.known) },
+        { tomeExtra },
       )
     }
-    if (learnBudget?.cantrips != null) {
+    // Hide «заг. 0/0» for paladin / ranger; keep racial / feat grants.
+    if (learnBudget?.cantrips != null && learnBudget.cantrips > 0) {
       return `заг. ${learnedCantrips}/${learnBudget.cantrips}`
     }
+    if (tomeExtra > 0) return `Гримуар ${tomeExtra}`
     return null
   })()
   /**
@@ -508,6 +511,7 @@ export function PlayDeskSpellsCompact({
           open={prepareOpen && learnBudget?.mode === 'spellbook'}
           spells={spells}
           learnMode="spellbook"
+          learnBudgets={learnBudgets}
           onChange={onSpellsChange}
           onClose={() => setPrepareOpen(false)}
         />

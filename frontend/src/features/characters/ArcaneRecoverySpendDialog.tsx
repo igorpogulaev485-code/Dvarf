@@ -97,7 +97,7 @@ export function ArcaneRecoverySpendDialog({
   return (
     <Dialog
       open={open}
-      title={featureName}
+      title={resource?.name?.trim() || featureName}
       size="wide"
       primaryLabel="Закрыть"
       onPrimary={onClose}

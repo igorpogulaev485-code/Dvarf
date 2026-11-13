@@ -446,21 +446,27 @@ export function shortCastProfileLabel(labelRu: string): string {
 /**
  * Named cantrip meta: «Изобретатель 4/4 · Колдун 3/3».
  * `countsBySlug` from sheet known (player cantrips only).
+ * Classes with cantrips budget 0 (paladin / ranger) are omitted — no «Паладин 0/0».
+ * Racial / feat / tome grants stay via `tomeExtra` («Гримуар N»).
  */
 export function formatNamedCantripBudgets(
   budgets: SpellLearnBudget[],
   countsBySlug: Record<string, number>,
   options?: { tomeExtra?: number },
 ): string | null {
-  if (budgets.length === 0) return null
-  const parts = budgets.map((row) => {
-    const used = countsBySlug[row.slug] ?? 0
-    return `${shortCastProfileLabel(row.labelRu)} ${used}/${row.cantrips}`
-  })
+  if (budgets.length === 0 && !(options?.tomeExtra && options.tomeExtra > 0)) {
+    return null
+  }
+  const parts = budgets
+    .filter((row) => row.cantrips > 0)
+    .map((row) => {
+      const used = countsBySlug[row.slug] ?? 0
+      return `${shortCastProfileLabel(row.labelRu)} ${used}/${row.cantrips}`
+    })
   if (options?.tomeExtra && options.tomeExtra > 0) {
     parts.push(`Гримуар ${options.tomeExtra}`)
   }
-  return parts.join(' · ')
+  return parts.length > 0 ? parts.join(' · ') : null
 }
 
 /**

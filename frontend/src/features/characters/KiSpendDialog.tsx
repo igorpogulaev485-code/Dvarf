@@ -74,7 +74,7 @@ export function KiSpendDialog({
   return (
     <Dialog
       open={open}
-      title="Ки"
+      title={resource?.name?.trim() || 'Ки'}
       size="wide"
       primaryLabel="Закрыть"
       onPrimary={onClose}

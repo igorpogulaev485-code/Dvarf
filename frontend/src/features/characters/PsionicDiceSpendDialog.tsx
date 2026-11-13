@@ -69,7 +69,7 @@ export function PsionicDiceSpendDialog({
   return (
     <Dialog
       open={open}
-      title="Пси-кости"
+      title={resource?.name?.trim() || 'Пси-кости'}
       size="wide"
       primaryLabel="Закрыть"
       onPrimary={onClose}

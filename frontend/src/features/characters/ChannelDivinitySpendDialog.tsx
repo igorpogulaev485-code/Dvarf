@@ -122,10 +122,12 @@ export function ChannelDivinitySpendDialog({
     })
   }
 
+  const dialogTitle = resource?.name?.trim() || 'Божественный канал'
+
   return (
     <Dialog
       open={open}
-      title="Божественный канал"
+      title={dialogTitle}
       size="wide"
       primaryLabel="Закрыть"
       onPrimary={onClose}

@@ -59,7 +59,7 @@ export function SoulTrinketsSpendDialog({
   return (
     <Dialog
       open={open}
-      title="Частицы души"
+      title={resource?.name?.trim() || 'Частицы души'}
       size="wide"
       primaryLabel="Закрыть"
       onPrimary={onClose}

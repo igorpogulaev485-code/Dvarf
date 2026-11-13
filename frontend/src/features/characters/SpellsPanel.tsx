@@ -893,25 +893,38 @@ export function SpellsPanel({
                 : prepareLimitLabel}
             </strong>
           </div>
-          {learnBudget?.cantrips != null || learnBudgets.length > 0 ? (
-            <div className="spells-summary__stat">
-              <span className="spells-summary__label">Заговоры</span>
-              <strong
-                title={
-                  formatNamedCantripBudgets(
-                    learnBudgets,
-                    countLearnedCantripsBySlug(spells.known),
-                    { tomeExtra: countLockedFeatureCantrips(spells.known) },
-                  ) ?? undefined
-                }
-              >
-                {countLearnedCantrips(spells.known)}/
-                {learnBudgets.length > 1
-                  ? totalCantripsBudget(learnBudgets)
-                  : (learnBudget?.cantrips ?? totalCantripsBudget(learnBudgets))}
-              </strong>
-            </div>
-          ) : null}
+          {(() => {
+            const tomeExtra = countLockedFeatureCantrips(spells.known)
+            const namedCantrips = formatNamedCantripBudgets(
+              learnBudgets,
+              countLearnedCantripsBySlug(spells.known),
+              { tomeExtra },
+            )
+            const cantripCap =
+              learnBudgets.length > 1
+                ? totalCantripsBudget(learnBudgets)
+                : (learnBudget?.cantrips ?? totalCantripsBudget(learnBudgets))
+            // U04: no «0/0» when no class has a cantrip budget (and no tome grants).
+            if (!namedCantrips && !(cantripCap != null && cantripCap > 0) && tomeExtra <= 0) {
+              return null
+            }
+            return (
+              <div className="spells-summary__stat">
+                <span className="spells-summary__label">Заговоры</span>
+                <strong title={namedCantrips ?? undefined}>
+                  {namedCantrips && learnBudgets.length > 1
+                    ? namedCantrips
+                    : `${countLearnedCantrips(spells.known)}/${
+                        cantripCap != null && cantripCap > 0
+                          ? cantripCap
+                          : tomeExtra > 0
+                            ? tomeExtra
+                            : 0
+                      }`}
+                </strong>
+              </div>
+            )
+          })()}
         </div>
 
         <div className="chip-row spells-focus-chips">
@@ -1421,6 +1434,7 @@ export function SpellsPanel({
         open={prepareOpen && learnBudget?.mode === 'spellbook'}
         spells={spells}
         learnMode="spellbook"
+        learnBudgets={learnBudgets}
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
       />

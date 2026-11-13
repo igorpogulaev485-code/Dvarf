@@ -90,7 +90,7 @@ export function SorceryPointsSpendDialog({
   return (
     <Dialog
       open={open}
-      title="Очки чародейства"
+      title={resource?.name?.trim() || 'Очки чародейства'}
       size="wide"
       primaryLabel="Закрыть"
       onPrimary={onClose}

@@ -169,6 +169,23 @@ assert(
   named === 'Изобретатель 4/4 · Колдун 2/3 · Гримуар 3',
   `named meta got ${named}`,
 )
+// U04: classes with cantrips=0 (paladin / ranger) must not render «0/0».
+const noCantripNamed = formatNamedCantripBudgets(
+  [
+    { mode: 'known', slug: 'ranger', labelRu: 'Следопыт', cantrips: 0, leveledKnown: 5, maxPrepared: null },
+    { mode: 'prepared_list', slug: 'paladin', labelRu: 'Паладин', cantrips: 0, leveledKnown: null, maxPrepared: 6 },
+  ],
+  { ranger: 0, paladin: 0 },
+)
+assert(noCantripNamed === null, `U04 zero cantrips got ${noCantripNamed}`)
+const tomeOnly = formatNamedCantripBudgets(
+  [
+    { mode: 'prepared_list', slug: 'paladin', labelRu: 'Паладин', cantrips: 0, leveledKnown: null, maxPrepared: 6 },
+  ],
+  { paladin: 0 },
+  { tomeExtra: 2 },
+)
+assert(tomeOnly === 'Гримуар 2', `U04 tome-only got ${tomeOnly}`)
 const namedPrep = formatNamedPrepareBudgets(
   [
     { mode: 'prepared_list', slug: 'cleric', labelRu: 'Жрец', cantrips: 3, leveledKnown: null, maxPrepared: 9 },
