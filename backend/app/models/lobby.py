@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -179,6 +179,20 @@ class LobbyMember(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
+    )
+    # L-16: соответствует правилам старта; false → пометка «не по правилам старта».
+    start_rules_ok: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+        server_default="true",
+    )
+    # Ручной допуск мастера: не сбрасывается при пересчёте листа, пока правила не сменят.
+    start_rules_waived: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
     )
 
     lobby: Mapped[Lobby] = relationship(back_populates="members")

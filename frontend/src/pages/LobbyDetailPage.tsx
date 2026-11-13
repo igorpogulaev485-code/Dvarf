@@ -42,10 +42,12 @@ import {
   deleteLobby,
   deleteSession,
   deleteSetting,
+  createHeroForLobbyHref,
   getLobby,
   removeLobbyMember,
   rotateLobbyInviteCode,
   updateLobby,
+  waiveMemberStartRules,
   type LobbyDetail,
   type LobbyMediaUsage,
 } from '../shared/api/lobbies'
@@ -401,6 +403,20 @@ export function LobbyDetailPage() {
                         seated={seated}
                         sheetLabel={lobby.is_owner && !isOwn ? 'Смотреть' : 'Лист'}
                         removeLabel={canLeave ? 'Покинуть' : 'Убрать'}
+                        canWaiveStartRules={canEditRules}
+                        onWaiveStartRules={
+                          canEditRules && m.start_rules_ok === false
+                            ? () =>
+                                run(async () => {
+                                  const next = await waiveMemberStartRules(
+                                    lobby.id,
+                                    m.character_id,
+                                  )
+                                  setLobby(next)
+                                  setToast('Пометка снята')
+                                })
+                            : undefined
+                        }
                         onRemove={
                           canKick || canLeave
                             ? () => {
@@ -767,6 +783,10 @@ export function LobbyDetailPage() {
               rules={rulesDraft}
               eventHistory={visibilityDraft.event_history}
               readOnly={rulesReadOnly}
+              createHeroHref={createHeroForLobbyHref({
+                lobbyId: lobby.id,
+                code: lobby.invite_code,
+              })}
               onChange={onRulesChange}
               onEventHistoryChange={(mode) => {
                 onVisibilityChange({ ...visibilityDraft, event_history: mode })

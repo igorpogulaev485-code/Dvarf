@@ -26,6 +26,8 @@ type AbilitiesStepProps = {
   classSlug: string | null
   onMethodChange: (method: AbilityMethod) => void
   onBaseChange: (scores: AbilityScores) => void
+  /** L-16: если задано — показать только эти методы (вкл. скрытие manual). */
+  allowedMethods?: AbilityMethod[] | null
 }
 
 type MethodCard = {
@@ -74,7 +76,12 @@ export function AbilitiesStep({
   classSlug,
   onMethodChange,
   onBaseChange,
+  allowedMethods,
 }: AbilitiesStepProps) {
+  const methodCards =
+    allowedMethods && allowedMethods.length > 0
+      ? METHOD_CARDS.filter((card) => allowedMethods.includes(card.id))
+      : METHOD_CARDS
   const remaining = pointBuyRemaining(baseAbilities)
   const usedArrayValues = ABILITY_ORDER.map((key) => baseAbilities[key]).filter((v) => v > 0)
   const [rollDetails, setRollDetails] = useState<
@@ -135,7 +142,7 @@ export function AbilitiesStep({
       </Text>
 
       <div className="create-pipeline__method-cards" role="group" aria-label="Метод характеристик">
-        {METHOD_CARDS.map((card) => {
+        {methodCards.map((card) => {
           const selected = method === card.id
           return (
             <button

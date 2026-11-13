@@ -73,6 +73,7 @@ from app.schemas.lobby import (
     CombatantStudyRequest,
     CombatantStudySnapshotOut,
     InviteMetaOut,
+    JoinLobbyOut,
     JoinLobbyRequest,
     LeadTodayRequest,
     LobbyRoleAssignRequest,
@@ -344,6 +345,8 @@ def _member_out(member: LobbyMember, character: Character | None) -> LobbyMember
         character_race_name=character.race_name if character else None,
         hp_current=character.hp_current if character else None,
         hp_max=character.hp_max if character else None,
+        start_rules_ok=bool(getattr(member, "start_rules_ok", True)),
+        start_rules_waived=bool(getattr(member, "start_rules_waived", False)),
     )
 
 
@@ -1067,6 +1070,8 @@ class LobbyService:
                         status_code=403,
                     )
         if payload.campaign_rules is not None:
+            from app.services.campaign_rules import merge_campaign_rules
+
             if not isinstance(payload.campaign_rules, dict):
                 raise AppError(
                     "Некорректные правила кампании",
@@ -1091,7 +1096,14 @@ class LobbyService:
                         code="campaign_rules_banned_key",
                         status_code=400,
                     )
-            normalized = normalize_campaign_rules(payload.campaign_rules)
+            prev_start = normalize_campaign_rules(getattr(lobby, "campaign_rules", None)).get(
+                "start"
+            )
+            # Мержим с текущим JSON: не затираем xp_remainder / homebrew при частичном PATCH.
+            normalized = merge_campaign_rules(
+                getattr(lobby, "campaign_rules", None),
+                payload.campaign_rules,
+            )
             lobby.campaign_rules = normalized
             flag_modified(lobby, "campaign_rules")
             # Совместимость S-03: дублируем inspiration_after_roll в visibility_profile.
@@ -1100,6 +1112,8 @@ class LobbyService:
                 bool(normalized.get("inspiration_after_roll")),
             )
             flag_modified(lobby, "visibility_profile")
+            if prev_start != normalized.get("start"):
+                self._recompute_start_rules_flags(lobby, only_non_waived=True)
         self.db.commit()
         lobby = self._require_lobby(lobby_id)
         return self._to_detail(lobby, user)
@@ -1131,6 +1145,8 @@ class LobbyService:
 
     def invite_meta(self, user: User, code: str) -> InviteMetaOut:
         """Имя лобби по коду до входа. Auth есть, can_view_lobby не требуется."""
+        from app.services.campaign_rules import normalize_campaign_rules
+
         _ = user
         cleaned = (code or "").strip().upper()
         if len(cleaned) < 4:
@@ -1138,7 +1154,16 @@ class LobbyService:
         lobby = self.lobbies.get_invite_row(cleaned)
         if lobby is None:
             raise NotFoundError("Код лобби не найден", code="invite_code_not_found")
-        return InviteMetaOut(code=lobby.invite_code, name=lobby.name, valid=True)
+        rules = normalize_campaign_rules(getattr(lobby, "campaign_rules", None))
+        start = rules.get("start") if isinstance(rules.get("start"), dict) else {}
+        return InviteMetaOut(
+            code=lobby.invite_code,
+            name=lobby.name,
+            valid=True,
+            lobby_id=lobby.id,
+            start=start,
+            campaign_rules_start=start,
+        )
 
     @staticmethod
     def copy_character_name(base: str, existing_names: list[str]) -> str:
@@ -1165,7 +1190,8 @@ class LobbyService:
             user_id=user.id,
             name=name,
             avatar_url=source.avatar_url,
-            is_draft=False,
+            # L-16: копия правится в пайплайне до входа в лобби.
+            is_draft=True,
             level=source.level,
             class_name=source.class_name,
             race_name=source.race_name,
@@ -1235,7 +1261,9 @@ class LobbyService:
             },
         )
 
-    def join_with_character(self, user: User, payload: JoinLobbyRequest) -> LobbyDetail:
+    def join_with_character(self, user: User, payload: JoinLobbyRequest) -> JoinLobbyOut:
+        from app.services.start_rules import check_character_start_rules
+
         code = payload.code.strip().upper()
         lobby = self.lobbies.get_by_invite_code(code)
         if lobby is None:
@@ -1268,7 +1296,7 @@ class LobbyService:
                 )
                 self.db.commit()
             lobby = self._require_lobby(lobby.id)
-            return self._to_detail(lobby, user)
+            return JoinLobbyOut(lobby=self._to_detail(lobby, user))
 
         if roles.is_comaster(self.db, lobby, user) or roles.is_observer(self.db, lobby, user):
             raise AppError(
@@ -1281,33 +1309,126 @@ class LobbyService:
         if character is None:
             raise NotFoundError("Персонаж не найден", code="character_not_found")
 
-        join_character = character
+        # L-16: copy = клон без посадки; правка в пайплайне, затем join копией.
         if action == "copy":
-            join_character = self._clone_character_row(character, user)
-        else:
-            other = self.lobbies.get_membership_by_character(character.id)
-            if other is not None and other.lobby_id != lobby.id:
-                if action == "transfer":
-                    self._leave_other_lobby_for_transfer(
-                        user=user,
-                        character_id=character.id,
-                        target_lobby_id=lobby.id,
-                    )
-                else:
-                    self._raise_already_in_other_lobby(other)
+            clone = self._clone_character_row(character, user)
+            self.db.commit()
+            lobby = self._require_lobby(lobby.id)
+            return JoinLobbyOut(
+                lobby=self._to_detail(lobby, user),
+                cloned_character_id=clone.id,
+            )
 
-        existing = self.lobbies.get_member(lobby.id, join_character.id)
+        other = self.lobbies.get_membership_by_character(character.id)
+        if other is not None and other.lobby_id != lobby.id:
+            if action == "transfer":
+                self._leave_other_lobby_for_transfer(
+                    user=user,
+                    character_id=character.id,
+                    target_lobby_id=lobby.id,
+                )
+            else:
+                self._raise_already_in_other_lobby(other)
+
+        mismatches = check_character_start_rules(
+            character=character,
+            campaign_rules=getattr(lobby, "campaign_rules", None),
+        )
+        ok = not mismatches
+        if mismatches and not payload.acknowledge_start_mismatch:
+            raise AppError(
+                "Персонаж не по правилам старта этого лобби",
+                code="start_rules_mismatch",
+                status_code=409,
+                data={
+                    "mismatches": mismatches,
+                    "lobby_id": str(lobby.id),
+                    "lobby_name": lobby.name,
+                },
+            )
+
+        existing = self.lobbies.get_member(lobby.id, character.id)
         if existing is None:
-            self.lobbies.add_member(
+            self.lobbies.add_member_with_flags(
                 lobby_id=lobby.id,
-                character_id=join_character.id,
+                character_id=character.id,
                 user_id=user.id,
+                start_rules_ok=ok,
+                start_rules_waived=False,
             )
             self.db.commit()
         else:
+            existing.start_rules_ok = ok if not getattr(existing, "start_rules_waived", False) else True
             self.db.commit()
         lobby = self._require_lobby(lobby.id)
+        return JoinLobbyOut(
+            lobby=self._to_detail(lobby, user),
+            start_rules_ok=ok,
+            start_mismatches=mismatches,
+        )
+
+    def waive_start_rules(
+        self,
+        user: User,
+        lobby_id: UUID,
+        character_id: UUID,
+    ) -> LobbyDetail:
+        """Мастер/сомастер снимает пометку «не по правилам старта» вручную."""
+        lobby = self._require_lobby(lobby_id)
+        roles.require_can_edit_campaign_rules(self.db, lobby, user)
+        member = self.lobbies.get_member(lobby.id, character_id)
+        if member is None:
+            raise NotFoundError("Персонаж не в составе лобби", code="member_not_found")
+        member.start_rules_ok = True
+        member.start_rules_waived = True
+        self.db.commit()
+        lobby = self._require_lobby(lobby_id)
         return self._to_detail(lobby, user)
+
+    def _recompute_start_rules_flags(
+        self,
+        lobby: Lobby,
+        *,
+        only_non_waived: bool = True,
+        character_id: UUID | None = None,
+    ) -> None:
+        from app.services.start_rules import start_rules_ok
+
+        members = list(getattr(lobby, "members", None) or [])
+        for member in members:
+            if character_id is not None and member.character_id != character_id:
+                continue
+            if only_non_waived and getattr(member, "start_rules_waived", False):
+                continue
+            character = self.characters.get_active(member.character_id)
+            if character is None:
+                continue
+            ok = start_rules_ok(
+                character=character,
+                campaign_rules=getattr(lobby, "campaign_rules", None),
+            )
+            member.start_rules_ok = ok
+            if ok:
+                # Авто-снятие пометки при соответствии — waive больше не нужен.
+                member.start_rules_waived = False
+
+    def recompute_member_start_rules_for_character(self, character_id: UUID) -> None:
+        """Пересчёт пометки при сохранении листа (если персонаж в лобби)."""
+        membership = self.lobbies.get_membership_by_character(character_id)
+        if membership is None:
+            return
+        lobby = self.lobbies.get(membership.lobby_id)
+        if lobby is None:
+            return
+        if getattr(membership, "start_rules_waived", False):
+            # Ручной допуск держится, даже если лист ещё не подходит.
+            membership.start_rules_ok = True
+            return
+        self._recompute_start_rules_flags(
+            lobby,
+            only_non_waived=True,
+            character_id=character_id,
+        )
 
     def add_own_member(
         self,

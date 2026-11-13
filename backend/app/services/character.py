@@ -233,11 +233,33 @@ class CharacterService:
                 character.hp_max = summary["hp_max"]
 
         character.sheet_version += 1
+        # L-16: пересчёт пометки «не по правилам старта» если герой в лобби.
+        self._recompute_start_rules_mark(character)
         self.db.commit()
         self.db.refresh(character)
         # L08: стол подтягивает хиты/имя/КД через session_changed → pullSession.
         await self._broadcast_seated_sessions_changed(character.id)
         return to_detail(character, db=self.db)
+
+    def _recompute_start_rules_mark(self, character: Character) -> None:
+        from app.services.start_rules import start_rules_ok
+
+        membership = self.lobbies.get_membership_by_character(character.id)
+        if membership is None:
+            return
+        if getattr(membership, "start_rules_waived", False):
+            membership.start_rules_ok = True
+            return
+        lobby = self.lobbies.get(membership.lobby_id)
+        if lobby is None:
+            return
+        ok = start_rules_ok(
+            character=character,
+            campaign_rules=getattr(lobby, "campaign_rules", None),
+        )
+        membership.start_rules_ok = ok
+        if ok:
+            membership.start_rules_waived = False
 
     async def _broadcast_seated_sessions_changed(self, character_id: UUID) -> None:
         from app.realtime.hub import session_hub

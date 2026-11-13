@@ -42,6 +42,8 @@ export type LobbyMember = {
   character_race_name: string | null
   hp_current: number | null
   hp_max: number | null
+  start_rules_ok?: boolean
+  start_rules_waived?: boolean
 }
 
 export type SettingSummary = {
@@ -257,9 +259,19 @@ export type InviteMeta = {
   code: string
   name: string
   valid: boolean
+  lobby_id?: string | null
+  start?: unknown
+  campaign_rules_start?: unknown
 }
 
 export type JoinLobbyAction = 'join' | 'transfer' | 'copy'
+
+export type JoinLobbyResult = {
+  lobby: LobbyDetail
+  cloned_character_id?: string | null
+  start_rules_ok?: boolean | null
+  start_mismatches?: string[]
+}
 
 export type RemoveLobbyMemberPayload = {
   combat_fate?: 'release' | 'retain' | null
@@ -854,15 +866,42 @@ export async function joinLobby(
   code: string,
   characterId?: string | null,
   action: JoinLobbyAction = 'join',
-): Promise<LobbyDetail> {
-  return apiRequest<LobbyDetail>('/lobbies/join', {
+  options?: { acknowledgeStartMismatch?: boolean },
+): Promise<JoinLobbyResult> {
+  return apiRequest<JoinLobbyResult>('/lobbies/join', {
     method: 'POST',
     body: JSON.stringify({
       code,
       character_id: characterId || undefined,
       action,
+      acknowledge_start_mismatch: Boolean(options?.acknowledgeStartMismatch),
     }),
   })
+}
+
+export async function waiveMemberStartRules(
+  lobbyId: string,
+  characterId: string,
+): Promise<LobbyDetail> {
+  return apiRequest<LobbyDetail>(
+    `/lobbies/${lobbyId}/members/${characterId}/waive-start-rules`,
+    { method: 'POST' },
+  )
+}
+
+/** Ссылка на пайплайн создания с контекстом лобби (L-16). */
+export function createHeroForLobbyHref(opts: {
+  lobbyId: string
+  code?: string | null
+  characterId?: string | null
+}): string {
+  const params = new URLSearchParams()
+  params.set('lobbyId', opts.lobbyId)
+  if (opts.code) params.set('code', opts.code)
+  const base = opts.characterId
+    ? `/characters/create/${opts.characterId}`
+    : '/characters/create'
+  return `${base}?${params.toString()}`
 }
 
 export async function assignLobbyRole(
