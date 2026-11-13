@@ -1,6 +1,21 @@
 import { useTurnEconomy } from './TurnEconomyContext'
 import { STEADY_AIM_HINT } from '../../shared/dnd/turnEconomy'
 import { canKiFueledAttack } from '../../shared/dnd/o02TashaFeatures'
+import {
+  GWM_BONUS_ATTACK_HINT,
+  canChargerBonus,
+  canCrossbowExpertBonus,
+  canGwmBonusAttack,
+  canOrcishFuryBonus,
+  canShieldMasterShove,
+  canTavernBrawlerGrapple,
+  canTelekineticShove,
+  markChargerBonusUsed,
+  markCrossbowExpertBonusUsed,
+  markGwmBonusUsed,
+  markOrcishFuryBonusUsed,
+  o05TceVisible,
+} from '../../shared/dnd/o05CombatFeats'
 
 export type O03MasterRuleFlags = {
   disarm?: boolean
@@ -42,6 +57,33 @@ type Props = {
   hasTalismanRebuke?: boolean
   /** O-01: открыть диалог Захват/Толчок. */
   onGrappleShove?: () => void
+  /** O-05: боевые черты. */
+  o05?: {
+    greatWeaponMaster?: boolean
+    charger?: boolean
+    crossbowExpert?: boolean
+    holdingHandCrossbow?: boolean
+    tavernBrawler?: boolean
+    healer?: boolean
+    hasHealerKit?: boolean
+    grappler?: boolean
+    shieldMaster?: boolean
+    shieldInHand?: boolean
+    telekinetic?: boolean
+    orcishFury?: boolean
+    tceAllowed?: boolean
+  }
+  onO05GwmBonus?: () => void
+  onO05ChargerAttack?: () => void
+  onO05ChargerShove?: () => void
+  onO05CrossbowBonus?: () => void
+  onO05TavernGrapple?: () => void
+  onO05HealerStabilize?: () => void
+  onO05HealerHeal?: () => void
+  onO05GrapplerPin?: () => void
+  onO05ShieldShove?: () => void
+  onO05Telekinetic?: () => void
+  onO05OrcishFury?: () => void
   /** O-03: флаги правил мастера и колбэки кнопок. */
   o03?: O03MasterRuleFlags
   onO03Disarm?: () => void
@@ -77,6 +119,18 @@ export function TurnEconomyCombatActions({
   hasChainMaster = false,
   hasTalismanRebuke = false,
   onGrappleShove,
+  o05,
+  onO05GwmBonus,
+  onO05ChargerAttack,
+  onO05ChargerShove,
+  onO05CrossbowBonus,
+  onO05TavernGrapple,
+  onO05HealerStabilize,
+  onO05HealerHeal,
+  onO05GrapplerPin,
+  onO05ShieldShove,
+  onO05Telekinetic,
+  onO05OrcishFury,
   o03,
   onO03Disarm,
   onO03Mark,
@@ -109,6 +163,38 @@ export function TurnEconomyCombatActions({
   const kiFueledGate = hasKiFueledAttack
     ? canKiFueledAttack(turnEco.turnEconomy)
     : { ok: false as const, reason: '', mark: 'bonus' as const }
+
+  const te = turnEco.turnEconomy
+  const tceOn = o05TceVisible(o05?.tceAllowed)
+  const gwmGate = o05?.greatWeaponMaster
+    ? canGwmBonusAttack(te, true)
+    : { ok: false as const, reason: '', mark: 'bonus' as const }
+  const chargerGate = o05?.charger
+    ? canChargerBonus(te, true)
+    : { ok: false as const, reason: '', mark: 'bonus' as const }
+  const xbowGate = o05?.crossbowExpert
+    ? canCrossbowExpertBonus(te, {
+        hasFeat: true,
+        holdingHandCrossbow: Boolean(o05.holdingHandCrossbow),
+      })
+    : { ok: false as const, reason: '', mark: 'bonus' as const }
+  const tavernGate = o05?.tavernBrawler
+    ? canTavernBrawlerGrapple(te, true)
+    : { ok: false as const, reason: '', mark: 'bonus' as const }
+  const shieldGate = o05?.shieldMaster
+    ? canShieldMasterShove(te, {
+        hasFeat: true,
+        shieldInHand: Boolean(o05.shieldInHand),
+      })
+    : { ok: false as const, reason: '', mark: 'bonus' as const }
+  const teleGate =
+    tceOn && o05?.telekinetic
+      ? canTelekineticShove(te, true)
+      : { ok: false as const, reason: '', mark: 'bonus' as const }
+  const orcGate =
+    tceOn && o05?.orcishFury
+      ? canOrcishFuryBonus(te, true)
+      : { ok: false as const, reason: '', mark: 'bonus' as const }
 
   return (
     <div className={className} role="group" aria-label="Действия боя">
@@ -528,6 +614,254 @@ export function TurnEconomyCombatActions({
           }}
         >
           Порицание талисмана
+        </button>
+      ) : null}
+
+      {o05?.greatWeaponMaster && onO05GwmBonus ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!gwmGate.ok}
+          title={gwmGate.ok ? GWM_BONUS_ATTACK_HINT : gwmGate.reason}
+          onClick={() => {
+            if (!canGwmBonusAttack(turnEco.turnEconomy, true).ok) return
+            turnEco.patchTurnEconomy(markGwmBonusUsed)
+            onO05GwmBonus()
+            onToast?.('Мастер большого оружия: бонусная рукопашная атака оружием')
+          }}
+        >
+          Атака Мастера большого оружия
+        </button>
+      ) : null}
+
+      {o05?.charger ? (
+        <div className="chip-row" role="group" aria-label="Налётчик">
+          <span className="sheet-chip is-stub" title="Налётчик">
+            Налётчик
+          </span>
+          {onO05ChargerAttack ? (
+            <button
+              type="button"
+              className="sheet-chip"
+              disabled={!chargerGate.ok}
+              title={
+                chargerGate.ok
+                  ? 'Бонусная рукопашная атака оружием · +5 к урону при попадании'
+                  : chargerGate.reason
+              }
+              onClick={() => {
+                if (!canChargerBonus(turnEco.turnEconomy, true).ok) return
+                turnEco.patchTurnEconomy((s) => {
+                  const next = markChargerBonusUsed(s)
+                  return { ...next, bonus: true }
+                })
+                onO05ChargerAttack()
+                onToast?.('Налётчик: бонусная атака · +5 к урону при попадании')
+              }}
+            >
+              Удар (+5)
+            </button>
+          ) : null}
+          {onO05ChargerShove ? (
+            <button
+              type="button"
+              className="sheet-chip"
+              disabled={!chargerGate.ok}
+              title={
+                chargerGate.ok
+                  ? 'Бонусный толчок (состязание Атлетики)'
+                  : chargerGate.reason
+              }
+              onClick={() => {
+                if (!canChargerBonus(turnEco.turnEconomy, true).ok) return
+                onO05ChargerShove()
+              }}
+            >
+              Толчок
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {o05?.crossbowExpert && onO05CrossbowBonus ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!xbowGate.ok}
+          title={
+            xbowGate.ok
+              ? 'Эксперт в арбалетах: бонусная атака ручным арбалетом'
+              : xbowGate.reason
+          }
+          onClick={() => {
+            if (
+              !canCrossbowExpertBonus(turnEco.turnEconomy, {
+                hasFeat: true,
+                holdingHandCrossbow: Boolean(o05.holdingHandCrossbow),
+              }).ok
+            ) {
+              return
+            }
+            turnEco.patchTurnEconomy((s) => {
+              const next = markCrossbowExpertBonusUsed(s)
+              return { ...next, bonus: true }
+            })
+            onO05CrossbowBonus()
+            onToast?.('Эксперт в арбалетах: бонусная атака ручным арбалетом')
+          }}
+        >
+          Выстрел ручным арбалетом
+        </button>
+      ) : null}
+
+      {o05?.tavernBrawler && onO05TavernGrapple ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!tavernGate.ok}
+          title={
+            tavernGate.ok
+              ? 'Драчун: бонусным попытка захвата после безоружной/импровизированной'
+              : tavernGate.reason
+          }
+          onClick={() => {
+            if (!canTavernBrawlerGrapple(turnEco.turnEconomy, true).ok) return
+            onO05TavernGrapple()
+          }}
+        >
+          Захват (Драчун)
+        </button>
+      ) : null}
+
+      {o05?.healer && o05.hasHealerKit ? (
+        <div className="chip-row" role="group" aria-label="Целитель">
+          <span className="sheet-chip is-stub" title="Целитель · набор целителя">
+            Целитель
+          </span>
+          {onO05HealerStabilize ? (
+            <button
+              type="button"
+              className="sheet-chip"
+              disabled={!actionGate.ok}
+              title={
+                actionGate.ok
+                  ? 'Действием стабилизировать (успех без Медицины) · 1 использование набора'
+                  : actionGate.reason
+              }
+              onClick={() => {
+                if (!turnEco.canFeature('action').ok) return
+                onO05HealerStabilize()
+              }}
+            >
+              Стабилизировать
+            </button>
+          ) : null}
+          {onO05HealerHeal ? (
+            <button
+              type="button"
+              className="sheet-chip"
+              disabled={!actionGate.ok}
+              title={
+                actionGate.ok
+                  ? 'Действием 1к6+4+кости хитов · 1 использование · 1 цель до отдыха'
+                  : actionGate.reason
+              }
+              onClick={() => {
+                if (!turnEco.canFeature('action').ok) return
+                onO05HealerHeal()
+              }}
+            >
+              Лечить
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {o05?.grappler && onO05GrapplerPin ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!actionGate.ok}
+          title={
+            actionGate.ok
+              ? 'Борец: действием опрокинуть схваченного (состязание Атлетики)'
+              : actionGate.reason
+          }
+          onClick={() => {
+            if (!turnEco.canFeature('action').ok) return
+            onO05GrapplerPin()
+          }}
+        >
+          Опрокинуть схваченного
+        </button>
+      ) : null}
+
+      {o05?.shieldMaster && onO05ShieldShove ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!shieldGate.ok}
+          title={
+            shieldGate.ok
+              ? 'Мастер щита: бонусный толчок щитом после действия «Атака»'
+              : shieldGate.reason
+          }
+          onClick={() => {
+            if (
+              !canShieldMasterShove(turnEco.turnEconomy, {
+                hasFeat: true,
+                shieldInHand: Boolean(o05.shieldInHand),
+              }).ok
+            ) {
+              return
+            }
+            onO05ShieldShove()
+          }}
+        >
+          Толчок щитом
+        </button>
+      ) : null}
+
+      {tceOn && o05?.telekinetic && onO05Telekinetic ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!teleGate.ok}
+          title={
+            teleGate.ok
+              ? 'Телекинез: бонусным толкнуть существо в 30 фт (состязание хар-ки)'
+              : teleGate.reason
+          }
+          onClick={() => {
+            if (!canTelekineticShove(turnEco.turnEconomy, true).ok) return
+            onO05Telekinetic()
+          }}
+        >
+          Толчок (Телекинез)
+        </button>
+      ) : null}
+
+      {tceOn && o05?.orcishFury && onO05OrcishFury ? (
+        <button
+          type="button"
+          className="sheet-chip"
+          disabled={!orcGate.ok}
+          title={
+            orcGate.ok
+              ? 'Орочья ярость: бонусная атака тем же оружием после попадания'
+              : orcGate.reason
+          }
+          onClick={() => {
+            if (!canOrcishFuryBonus(turnEco.turnEconomy, true).ok) return
+            turnEco.patchTurnEconomy((s) => {
+              const next = markOrcishFuryBonusUsed(s)
+              return { ...next, bonus: true }
+            })
+            onO05OrcishFury()
+            onToast?.('Орочья ярость: бонусная атака тем же оружием')
+          }}
+        >
+          Атака Орочьей ярости
         </button>
       ) : null}
 

@@ -2,7 +2,37 @@ import { useMemo, useRef, useState } from 'react'
 import { useTurnEconomy } from './TurnEconomyContext'
 import { TurnEconomyChips } from './TurnEconomyChips'
 import { TurnEconomyCombatActions } from './TurnEconomyCombatActions'
-import { GrappleShoveDialog } from './GrappleShoveDialog'
+import { GrappleShoveDialog, type GrappleShoveMode } from './GrappleShoveDialog'
+import { TelekineticShoveDialog } from './TelekineticShoveDialog'
+import {
+  POWER_ATTACK_HINT_GWM,
+  POWER_ATTACK_HINT_SS,
+  findHealerKitItem,
+  healerFeatHealAmount,
+  isHandCrossbowName,
+  isImprovisedWeaponName,
+  isSpellAttackName,
+  isUnarmedAttackName,
+  markCrusherUsed,
+  markGwmBonusReady,
+  markMeleeWeaponCritOrKill,
+  markPiercerUsed,
+  markShieldMasterShoveUsed,
+  markSlasherUsed,
+  markUnarmedOrImprovisedHit,
+  markWeaponHitThisTurn,
+  powerAttackModifiers,
+  rangedLongRangeDisadvantage,
+  rangedPointBlankDisadvantage,
+  resolvePowerAttackKind,
+  tavernBrawlerUnarmedDamage,
+  damageTypeIsBludgeoning,
+  damageTypeIsPiercing,
+  damageTypeIsSlashing,
+} from '../../shared/dnd/o05CombatFeats'
+import { hasFeatFlag } from '../../shared/dnd/b07FeatCombat'
+import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
+import { equippedArmorPieces } from './inventory'
 import {
   ClimbBiggerDialog,
   DisarmDialog,
@@ -251,6 +281,16 @@ type PlayDeskAttacksCompactProps = {
     text: string
     hitRoll: import('./deskRolls').CheckRoll
   }) => void
+  /** O-05: ledger черт для боевых кнопок. */
+  featGrants?: AppliedFeatGrant[] | null
+  /** O-05: мод заклинательной хар-ки (Телекинез). */
+  spellAbilityMod?: number
+  /** O-05: число костей хитов для Целителя. */
+  hitDiceTotal?: number
+  /** O-05: применить лечение Целителя к цели (лист/союзник). */
+  onHealerHeal?: (amount: number, label: string, targetId: string) => boolean
+  /** O-05: стабилизация Целителя. */
+  onHealerStabilize?: (targetId: string) => boolean
 }
 
 function formatSpendTime(atMs: number): string {
@@ -334,9 +374,29 @@ export function PlayDeskAttacksCompact({
   onLuckyPickNeeded,
   raceSlug = null,
   onHalflingLuckyNeeded,
+  featGrants = null,
+  spellAbilityMod = 0,
+  hitDiceTotal = 1,
+  onHealerHeal,
+  onHealerStabilize,
 }: PlayDeskAttacksCompactProps) {
   const turnEco = useTurnEconomy()
   const [grappleOpen, setGrappleOpen] = useState(false)
+  const [grappleSpend, setGrappleSpend] = useState<
+    'attack' | 'bonus' | 'action' | 'none'
+  >('attack')
+  const [grappleModes, setGrappleModes] = useState<GrappleShoveMode[] | undefined>(
+    undefined,
+  )
+  const [grappleTitle, setGrappleTitle] = useState<string | undefined>(undefined)
+  const [telekineticOpen, setTelekineticOpen] = useState(false)
+  const [powerAttackOn, setPowerAttackOn] = useState(false)
+  const [longRangeMarked, setLongRangeMarked] = useState(false)
+  const [within5ft, setWithin5ft] = useState(false)
+  const [grappledTarget, setGrappledTarget] = useState(false)
+  const [chargerPlus5Next, setChargerPlus5Next] = useState(false)
+  const [healerTargetId, setHealerTargetId] = useState<string | null>(null)
+  const [healerMode, setHealerMode] = useState<'stabilize' | 'heal' | null>(null)
   const [o03Dialog, setO03Dialog] = useState<
     | null
     | 'disarm'
@@ -400,6 +460,45 @@ export function PlayDeskAttacksCompact({
           .includes('grappling_strike'),
       ),
   )
+  const hasGwm = hasFeatFlag(featGrants, 'great_weapon_master')
+  const hasSharpshooter = hasFeatFlag(featGrants, 'sharpshooter')
+  const hasCharger = hasFeatFlag(featGrants, 'charger')
+  const hasCrossbowExpert = hasFeatFlag(featGrants, 'crossbow_expert')
+  const hasTavernBrawler = hasFeatFlag(featGrants, 'tavern_brawler')
+  const hasHealer = hasFeatFlag(featGrants, 'healer')
+  const hasGrappler = hasFeatFlag(featGrants, 'grappler')
+  const hasShieldMaster = hasFeatFlag(featGrants, 'shield_master')
+  const hasTelekinetic = hasFeatFlag(featGrants, 'telekinetic')
+  const hasOrcishFury = hasFeatFlag(featGrants, 'orcish_fury')
+  const hasCrusher = hasFeatFlag(featGrants, 'crusher')
+  const hasPiercer = hasFeatFlag(featGrants, 'piercer')
+  const hasSlasher = hasFeatFlag(featGrants, 'slasher')
+  const hasGunner = hasFeatFlag(featGrants, 'gunner')
+  const shieldInHand = Boolean(equippedArmorPieces(inventoryItems).shield)
+  const healerKit = findHealerKitItem(inventoryItems)
+  const holdingHandCrossbow = weapons.some(
+    (w) => w.held && isHandCrossbowName(w.name),
+  )
+  const showPowerAttackChip = hasGwm || hasSharpshooter
+
+  function openBonusGrapple(
+    modes: GrappleShoveMode[],
+    title: string,
+    afterOpen?: () => void,
+  ) {
+    setGrappleSpend('bonus')
+    setGrappleModes(modes)
+    setGrappleTitle(title)
+    setGrappleOpen(true)
+    afterOpen?.()
+  }
+
+  function openActionGrapple(modes: GrappleShoveMode[], title: string) {
+    setGrappleSpend('action')
+    setGrappleModes(modes)
+    setGrappleTitle(title)
+    setGrappleOpen(true)
+  }
   const companionAttacks = useMemo(
     () =>
       listCompanionAttacksForHost(companions, {
@@ -670,6 +769,88 @@ export function PlayDeskAttacksCompact({
               Цель — предмет (адамантин → автокрит)
             </label>
           ) : null}
+          {showPowerAttackChip ? (
+            <div className="chip-row" style={{ marginBottom: 8 }} role="group" aria-label="Силовой удар">
+              <button
+                type="button"
+                className={`sheet-chip${powerAttackOn ? ' is-on' : ''}`}
+                title={
+                  hasGwm && hasSharpshooter
+                    ? `${POWER_ATTACK_HINT_GWM} · ${POWER_ATTACK_HINT_SS}`
+                    : hasGwm
+                      ? POWER_ATTACK_HINT_GWM
+                      : POWER_ATTACK_HINT_SS
+                }
+                onClick={() => setPowerAttackOn((v) => !v)}
+              >
+                {hasGwm && hasSharpshooter
+                  ? 'Силовой удар −5/+10'
+                  : hasGwm
+                    ? 'Мастер большого оружия −5/+10'
+                    : 'Меткий стрелок −5/+10'}
+              </button>
+              {hasSharpshooter ? (
+                <label className="field" style={{ margin: 0 }}>
+                  <input
+                    type="checkbox"
+                    checked={longRangeMarked}
+                    onChange={(e) => setLongRangeMarked(e.target.checked)}
+                  />{' '}
+                  Дальняя дистанция
+                </label>
+              ) : null}
+              {hasCrossbowExpert || hasGunner || hasSharpshooter ? (
+                <label className="field" style={{ margin: 0 }}>
+                  <input
+                    type="checkbox"
+                    checked={within5ft}
+                    onChange={(e) => setWithin5ft(e.target.checked)}
+                  />{' '}
+                  В 5 фт
+                </label>
+              ) : null}
+            </div>
+          ) : hasCrossbowExpert || hasGunner ? (
+            <div className="chip-row" style={{ marginBottom: 8 }}>
+              <label className="field" style={{ margin: 0 }}>
+                <input
+                  type="checkbox"
+                  checked={within5ft}
+                  onChange={(e) => setWithin5ft(e.target.checked)}
+                />{' '}
+                В 5 фт (дальнобойная)
+              </label>
+            </div>
+          ) : null}
+
+          {hasGrappler || hasGwm ? (
+            <div className="chip-row" style={{ marginBottom: 8 }}>
+              {hasGrappler ? (
+                <label className="field" style={{ margin: 0 }}>
+                  <input
+                    type="checkbox"
+                    checked={grappledTarget}
+                    onChange={(e) => setGrappledTarget(e.target.checked)}
+                  />{' '}
+                  Цель схвачена мной (преимущество)
+                </label>
+              ) : null}
+              {hasGwm ? (
+                <button
+                  type="button"
+                  className="sheet-chip"
+                  title="Отметить добивание рукопашным оружием в этот ход (хиты цели → 0)"
+                  onClick={() => {
+                    turnEco?.patchTurnEconomy(markMeleeWeaponCritOrKill)
+                    onToast?.('Мастер большого оружия: добивание отмечено · бонусная атака доступна')
+                  }}
+                >
+                  Добивание (0 хитов)
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+
           <TurnEconomyCombatActions
             hasCunningAction={
               hasCunningAction ||
@@ -685,7 +866,76 @@ export function PlayDeskAttacksCompact({
             hasBlindFighting={hasBlindFighting}
             hasChainMaster={hasChainMaster}
             hasTalismanRebuke={hasTalismanRebuke}
-            onGrappleShove={() => setGrappleOpen(true)}
+            onGrappleShove={() => {
+              setGrappleSpend('attack')
+              setGrappleModes(undefined)
+              setGrappleTitle(undefined)
+              setGrappleOpen(true)
+            }}
+            o05={{
+              greatWeaponMaster: hasGwm,
+              charger: hasCharger,
+              crossbowExpert: hasCrossbowExpert,
+              holdingHandCrossbow,
+              tavernBrawler: hasTavernBrawler,
+              healer: hasHealer,
+              hasHealerKit: Boolean(healerKit),
+              grappler: hasGrappler,
+              shieldMaster: hasShieldMaster,
+              shieldInHand,
+              telekinetic: hasTelekinetic,
+              orcishFury: hasOrcishFury,
+              tceAllowed,
+            }}
+            onO05GwmBonus={() => {
+              onToast?.('Сделай одну рукопашную атаку оружием (бонусное уже отмечено)')
+            }}
+            onO05ChargerAttack={() => {
+              setChargerPlus5Next(true)
+              onToast?.('Следующая рукопашная атака оружием: +5 к урону (Налётчик)')
+            }}
+            onO05ChargerShove={() => {
+              openBonusGrapple(
+                ['shove_prone', 'shove_push'],
+                'Налётчик: толчок',
+                () => {
+                  turnEco?.patchTurnEconomy((s) => ({
+                    ...s,
+                    chargerBonusUsed: true,
+                  }))
+                },
+              )
+            }}
+            onO05CrossbowBonus={() => {
+              onToast?.('Сделай одну атаку ручным арбалетом (бонусное уже отмечено)')
+            }}
+            onO05TavernGrapple={() => {
+              openBonusGrapple(['grapple'], 'Драчун: захват')
+            }}
+            onO05HealerStabilize={() => {
+              setHealerMode('stabilize')
+              setHealerTargetId(null)
+            }}
+            onO05HealerHeal={() => {
+              setHealerMode('heal')
+              setHealerTargetId(null)
+            }}
+            onO05GrapplerPin={() => {
+              openActionGrapple(['shove_prone'], 'Борец: опрокинуть схваченного')
+            }}
+            onO05ShieldShove={() => {
+              openBonusGrapple(
+                ['shove_prone', 'shove_push'],
+                'Мастер щита: толчок',
+                () => {
+                  turnEco?.patchTurnEconomy(markShieldMasterShoveUsed)
+                },
+              )
+            }}
+            onO05Telekinetic={() => setTelekineticOpen(true)}
+            onO05OrcishFury={() => {
+              onToast?.('Сделай одну атаку тем же оружием (бонусное уже отмечено)')
+            }}
             o03={{
               disarm: Boolean(masterRules.dmg_disarm),
               mark: Boolean(masterRules.dmg_mark),
@@ -746,9 +996,14 @@ export function PlayDeskAttacksCompact({
             characterId={characterId ?? ''}
             athleticsMod={abilityModifier(abilities.str ?? 10) + proficiencyBonus}
             offerGrapplingStrike={
-              knowsGrapplingStrike && Boolean(turnEco?.canFeature('bonus').ok)
+              grappleSpend === 'attack' &&
+              knowsGrapplingStrike &&
+              Boolean(turnEco?.canFeature('bonus').ok)
             }
             allowShoveAside={Boolean(masterRules.dmg_shove_aside)}
+            spendTiming={grappleSpend}
+            allowedModes={grappleModes}
+            titleOverride={grappleTitle}
             onSpendGrapplingStrike={() => {
               if (!turnEco?.canFeature('bonus').ok) return false
               // Prefer Battle Master pool, then Superior Technique d6.
@@ -764,8 +1019,84 @@ export function PlayDeskAttacksCompact({
               return true
             }}
             onToast={onToast}
-            onClose={() => setGrappleOpen(false)}
+            onClose={() => {
+              setGrappleOpen(false)
+              setGrappleSpend('attack')
+              setGrappleModes(undefined)
+              setGrappleTitle(undefined)
+            }}
           />
+          <TelekineticShoveDialog
+            open={telekineticOpen}
+            characterId={characterId ?? ''}
+            spellAbilityMod={spellAbilityMod}
+            onToast={onToast}
+            onClose={() => setTelekineticOpen(false)}
+          />
+          {healerMode ? (
+            <div className="chip-row" style={{ marginBottom: 8 }} role="group" aria-label="Целитель · цель">
+              <span className="sheet-chip is-stub">
+                Целитель: {healerMode === 'stabilize' ? 'стабилизировать' : 'лечить'}
+              </span>
+              {(turnEco?.targets ?? [])
+                .filter((t) => t.is_ally || t.kind === 'pc')
+                .map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className={`sheet-chip${healerTargetId === t.id ? ' is-on' : ''}`}
+                    onClick={() => setHealerTargetId(t.id)}
+                  >
+                    {t.name}
+                  </button>
+                ))}
+              <button
+                type="button"
+                className="sheet-chip"
+                disabled={!healerTargetId || !healerKit || !turnEco?.canFeature('action').ok}
+                onClick={() => {
+                  if (!healerTargetId || !healerKit) return
+                  if (!turnEco?.canFeature('action').ok) return
+                  const usedKey = `o05_healer_used:${healerTargetId}`
+                  const already = (activeEffects ?? []).some(
+                    (e) => e.slug === usedKey && !e.inactive,
+                  )
+                  if (healerMode === 'heal' && already) {
+                    onToast?.('Эту цель уже лечили чертой «Целитель» с последнего отдыха')
+                    return
+                  }
+                  turnEco.spendFeature('action')
+                  onSpendConsumable?.(healerKit.id, 1)
+                  if (healerMode === 'stabilize') {
+                    const ok = onHealerStabilize?.(healerTargetId) ?? true
+                    onToast?.(
+                      ok
+                        ? `Целитель: ${healerTargetId} стабилизирован (набор −1)`
+                        : 'Не удалось стабилизировать',
+                    )
+                  } else {
+                    const heal = healerFeatHealAmount(hitDiceTotal)
+                    const ok = onHealerHeal?.(heal.amount, heal.label, healerTargetId) ?? true
+                    onToast?.(ok ? `${heal.label} · набор −1` : heal.label)
+                  }
+                  setHealerMode(null)
+                  setHealerTargetId(null)
+                }}
+              >
+                Подтвердить
+              </button>
+              <button
+                type="button"
+                className="sheet-chip"
+                onClick={() => {
+                  setHealerMode(null)
+                  setHealerTargetId(null)
+                }}
+              >
+                Отмена
+              </button>
+            </div>
+          ) : null}
           <DisarmDialog
             open={o03Dialog === 'disarm'}
             characterId={characterId ?? ''}
@@ -1099,7 +1430,7 @@ export function PlayDeskAttacksCompact({
                 : attack.ability
             const face = artifactAttackDamage(attack)
             const requirementOk = artifactRequirementMet(attack, abilities)
-            const baseDamage = shillelaghOn
+            const rawBaseDamage = shillelaghOn
               ? shillelaghDamage(attack.damage)
               : monkWeapon
                 ? effectiveMartialArtsDamage({
@@ -1108,6 +1439,17 @@ export function PlayDeskAttacksCompact({
                     forceMartialArts: unarmed,
                   })
                 : face.damage
+            const featUnarmed = hasTavernBrawler
+              ? (featGrants ?? [])
+                  .map((g) => g.applied.unarmedDamage)
+                  .find((d) => Boolean(d))
+              : null
+            const baseDamage =
+              unarmed && hasTavernBrawler
+                ? tavernBrawlerUnarmedDamage(featUnarmed || rawBaseDamage)
+                : isImprovisedWeaponName(attack.name) && hasTavernBrawler
+                  ? tavernBrawlerUnarmedDamage(rawBaseDamage || '1к4')
+                  : rawBaseDamage
             const shownType = face.damageType || attack.damage_type
             const mod = abilityModifier(abilities[attackAbility])
             const gear =
@@ -1189,33 +1531,65 @@ export function PlayDeskAttacksCompact({
               // Для подписи кнопки — числовой БМ; фактический бросок кости — в onClick.
               diceEnabled: false,
             })
+            const powerKind = resolvePowerAttackKind({
+              attackName: attack.name,
+              isWeaponAttack: !isSpellAttackName(attack.name),
+              hasGreatWeaponMaster: hasGwm,
+              hasSharpshooter: hasSharpshooter,
+              powerAttackOn,
+              proficient,
+            })
+            const powerMods = powerAttackModifiers(powerKind)
+            const chargerFlat =
+              chargerPlus5Next && meleeAttack && !unarmed ? 5 : 0
             const attackBonus =
               mod +
               pbContrib.value +
               magicAtk +
               styleAtk +
               infusionAtk +
-              effectAtk
+              effectAtk +
+              powerMods.attackDelta
             const profDiceOn = Boolean(masterRules.dmg_proficiency_dice) && proficient
             const dmgBonus =
               mod +
               (gear?.damageBonus ?? 0) +
               infusionDmg +
-              flatFxDamage
+              flatFxDamage +
+              powerMods.damageDelta +
+              chargerFlat
             const dmg =
               baseDamage +
               (dmgBonus ? `${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
-            const attackMode =
+            const pointBlankDis = rangedPointBlankDisadvantage({
+              attackName: attack.name,
+              within5ft,
+              hasCrossbowExpert,
+              hasGunner,
+            })
+            const longRangeDis = rangedLongRangeDisadvantage({
+              hasSharpshooter,
+              longRangeMarked,
+            })
+            let attackMode: DeskRollMode =
               attack.mode_active && attack.activation?.advantage
                 ? rollMode === 'disadvantage'
                   ? 'normal'
                   : 'advantage'
                 : rollMode
+            if (hasGrappler && grappledTarget && meleeAttack) {
+              if (attackMode === 'disadvantage') attackMode = 'normal'
+              else if (attackMode === 'normal') attackMode = 'advantage'
+            }
+            if (pointBlankDis || longRangeDis) {
+              if (attackMode === 'advantage') attackMode = 'normal'
+              else if (attackMode === 'normal') attackMode = 'disadvantage'
+            }
             const dmgLine = `${dmg || '—'}${shownType ? ` ${shownType}` : ''}${
               divineStrike ? ` + ${divineStrike.label}` : ''
             }${meleeAttack && improvedSmite ? ` + ${improvedSmite.label}` : ''}${
               meleeAttack && symbioticRider ? ` + ${symbioticRider.label}` : ''
-            }`
+            }${powerKind ? ' · −5/+10' : ''}${chargerFlat ? ' · +5 Налётчик' : ''}`
             const iconKind = attackRowIconKind({
               name: attack.name,
               ability: attackAbility,
@@ -1253,7 +1627,8 @@ export function PlayDeskAttacksCompact({
                       magicAtk +
                       styleAtk +
                       infusionAtk +
-                      effectAtk
+                      effectAtk +
+                      powerMods.attackDelta
                     if (pbNote) onToast?.(pbNote)
 
                     const finishAttack = (opts?: {
@@ -1270,6 +1645,78 @@ export function PlayDeskAttacksCompact({
                       crit?: boolean
                     }) => {
                       turnEco?.spendAttack()
+                      if (chargerPlus5Next && meleeAttack && !unarmed) {
+                        setChargerPlus5Next(false)
+                      }
+                      const hitOk =
+                        Boolean(opts?.tableHit) ||
+                        (opts?.hitTotal != null && !opts?.tableMiss)
+                      if (hitOk) {
+                        turnEco?.patchTurnEconomy((s) => {
+                          let next = markWeaponHitThisTurn(s)
+                          if (
+                            unarmed ||
+                            isUnarmedAttackName(attack.name) ||
+                            isImprovisedWeaponName(attack.name)
+                          ) {
+                            next = markUnarmedOrImprovisedHit(next)
+                          }
+                          if (
+                            meleeAttack &&
+                            !unarmed &&
+                            (opts?.crit ||
+                              (opts?.target?.hp_current != null &&
+                                opts.damageTotal != null &&
+                                opts.damageTotal >= opts.target.hp_current) ||
+                              (opts?.target?.hp_current != null &&
+                                opts.target.hp_current <= 0))
+                          ) {
+                            next = markMeleeWeaponCritOrKill(next)
+                          } else if (meleeAttack && !unarmed && opts?.crit) {
+                            next = markGwmBonusReady(next)
+                          }
+                          return next
+                        })
+                        if (tceAllowed && hasCrusher && damageTypeIsBludgeoning(shownType)) {
+                          if (!turnEco?.turnEconomy.crusherUsedThisTurn) {
+                            turnEco?.patchTurnEconomy(markCrusherUsed)
+                            onToast?.(
+                              opts?.crit
+                                ? 'Дробитель: сдвиг 5 фт · атаки по цели с преимуществом до вашего следующего хода'
+                                : 'Дробитель: можно сдвинуть цель на 5 фт (пометка в ленте)',
+                            )
+                          }
+                        }
+                        if (tceAllowed && hasPiercer && damageTypeIsPiercing(shownType)) {
+                          if (!turnEco?.turnEconomy.piercerUsedThisTurn) {
+                            turnEco?.patchTurnEconomy(markPiercerUsed)
+                            onToast?.(
+                              opts?.crit
+                                ? 'Пронзатель: переброс одной кости урона · крит — ещё одна кость оружия'
+                                : 'Пронзатель: можно перебросить одну кость урона (новый результат обязателен)',
+                            )
+                          }
+                        }
+                        if (tceAllowed && hasSlasher && damageTypeIsSlashing(shownType)) {
+                          if (!turnEco?.turnEconomy.slasherUsedThisTurn) {
+                            turnEco?.patchTurnEconomy(markSlasherUsed)
+                            onToast?.(
+                              opts?.crit
+                                ? 'Рубака: −10 фт скорости · помеха на атаки цели до вашего следующего хода'
+                                : 'Рубака: цель −10 фт скорости до вашего следующего хода',
+                            )
+                          }
+                        }
+                        if (
+                          tceAllowed &&
+                          hasOrcishFury &&
+                          !isSpellAttackName(attack.name)
+                        ) {
+                          onToast?.(
+                            'Орочья ярость: можно добавить кость урона оружия (1/отдых) или бонусную атаку',
+                          )
+                        }
+                      }
                       if (luckyArmed) onLuckySpent?.()
                       onConsumeOnceBuffDice?.()
                       if (activeRiders.length) {

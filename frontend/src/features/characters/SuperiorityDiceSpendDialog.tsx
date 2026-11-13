@@ -1,11 +1,14 @@
 import { useMemo } from 'react'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
+import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
 import { FEATURE_RESOURCE_PREFIX } from '../../shared/dnd/featureResources'
 import type { SheetResource } from '../../shared/dnd/rest'
 import {
   listSuperioritySpendOptions,
+  martialAdeptManeuverIds,
   SUPERIORITY_DICE_ST_POOL,
+  SUPERIORITY_DIE_ADEPT_POOL,
   superiorityDieLabel,
 } from '../../shared/dnd/superiorityDiceSpend'
 import { Button, Dialog, Stack, Text } from '../../ui'
@@ -15,6 +18,8 @@ type SuperiorityDiceSpendDialogProps = {
   resource: SheetResource | null
   features: UnlockedFeature[]
   featurePicks: FeaturePicksState
+  /** O-05: Martial Adept maneuvers from feat ledger. */
+  featGrants?: AppliedFeatGrant[] | null
   onSpend: (label: string, cost: number) => void
   onToast: (message: string) => void
   onClose: () => void
@@ -23,6 +28,13 @@ type SuperiorityDiceSpendDialogProps = {
 function parseSuperiorityResourceId(
   id: string,
 ): { classSlug: string; classEntryId: string; poolId: string } | null {
+  if (id.includes(SUPERIORITY_DIE_ADEPT_POOL)) {
+    return {
+      classSlug: 'feat',
+      classEntryId: 'martial_adept',
+      poolId: SUPERIORITY_DIE_ADEPT_POOL,
+    }
+  }
   if (!id.startsWith(FEATURE_RESOURCE_PREFIX)) return null
   const rest = id.slice(FEATURE_RESOURCE_PREFIX.length)
   const parts = rest.split(':')
@@ -30,7 +42,13 @@ function parseSuperiorityResourceId(
   const classSlug = parts[0]!
   const poolId = parts.slice(1, -1).join(':')
   const classEntryId = parts[parts.length - 1]!
-  if (poolId !== 'superiority_dice' && poolId !== SUPERIORITY_DICE_ST_POOL) return null
+  if (
+    poolId !== 'superiority_dice' &&
+    poolId !== SUPERIORITY_DICE_ST_POOL &&
+    poolId !== SUPERIORITY_DIE_ADEPT_POOL
+  ) {
+    return null
+  }
   return { classSlug, classEntryId, poolId }
 }
 
@@ -39,12 +57,14 @@ export function SuperiorityDiceSpendDialog({
   resource,
   features,
   featurePicks,
+  featGrants = null,
   onSpend,
   onToast,
   onClose,
 }: SuperiorityDiceSpendDialogProps) {
   const remaining = resource ? Math.max(0, resource.max - resource.used) : 0
   const parsed = resource ? parseSuperiorityResourceId(resource.id) : null
+  const adeptIds = useMemo(() => martialAdeptManeuverIds(featGrants), [featGrants])
 
   const options = useMemo(() => {
     if (!parsed) return []
@@ -53,11 +73,13 @@ export function SuperiorityDiceSpendDialog({
       featurePicks,
       classEntryId: parsed.classEntryId,
       poolId: parsed.poolId,
+      martialAdeptManeuverIds: adeptIds,
     })
-  }, [features, featurePicks, parsed])
+  }, [features, featurePicks, parsed, adeptIds])
 
   const dieLabel = parsed
-    ? parsed.poolId === SUPERIORITY_DICE_ST_POOL
+    ? parsed.poolId === SUPERIORITY_DICE_ST_POOL ||
+      parsed.poolId === SUPERIORITY_DIE_ADEPT_POOL
       ? 'к6'
       : superiorityDieLabel(features, parsed.classEntryId)
     : null
@@ -92,38 +114,29 @@ export function SuperiorityDiceSpendDialog({
 
         {options.length === 0 ? (
           <Text tone="muted">
-            Нет известных манёвров — выбери их в умениях (Боевое превосходство, с 3
-            ур. Мастера боя).
+            Нет известных манёвров — выбери их в умениях (Боевое превосходство) или в черте
+            «Боевой адепт».
           </Text>
         ) : (
           <div className="sorcery-spend-list">
             {options.map((option) => (
               <div key={option.key} className="sorcery-spend-row">
-                <div className="sorcery-spend-row__text">
-                  <b>{option.nameRu}</b>
-                  <span>{option.summaryRu}</span>
+                <div>
+                  <div className="sorcery-spend-row__title">{option.nameRu}</div>
+                  <div className="sorcery-spend-row__hint">{option.summaryRu}</div>
                 </div>
                 <Button
                   type="button"
                   variant="secondary"
-                  disabled={option.cost > remaining}
+                  disabled={remaining < option.cost}
                   onClick={() => spend(option.nameRu, option.cost)}
                 >
-                  −{option.cost}
+                  Потратить
                 </Button>
               </div>
             ))}
           </div>
         )}
-
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={remaining <= 0}
-          onClick={() => spend(resource?.name || 'Кость превосходства', 1)}
-        >
-          Просто −1 кость
-        </Button>
       </Stack>
     </Dialog>
   )

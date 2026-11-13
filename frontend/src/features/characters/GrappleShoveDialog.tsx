@@ -26,6 +26,15 @@ type Props = {
   onSpendGrapplingStrike?: () => boolean
   /** O-03: вариант «Толкание в сторону» (dmg_shove_aside). */
   allowShoveAside?: boolean
+  /**
+   * O-05: по умолчанию тратит атаку (O-01).
+   * `bonus` — бонусное (Драчун / Налётчик / Мастер щита).
+   * `action` — действие (Борец: опрокинуть схваченного); если уже потрачено снаружи — `none`.
+   */
+  spendTiming?: 'attack' | 'bonus' | 'action' | 'none'
+  /** Ограничить режимы (например только толчки для Мастера щита). */
+  allowedModes?: GrappleShoveMode[]
+  titleOverride?: string
   onToast?: (message: string) => void
   onClose: () => void
 }
@@ -42,11 +51,19 @@ export function GrappleShoveDialog({
   offerGrapplingStrike = false,
   onSpendGrapplingStrike,
   allowShoveAside = false,
+  spendTiming = 'attack',
+  allowedModes,
+  titleOverride,
   onToast,
   onClose,
 }: Props) {
   const turnEco = useTurnEconomy()
-  const [mode, setMode] = useState<GrappleShoveMode>('grapple')
+  const modes: GrappleShoveMode[] = allowedModes?.length
+    ? allowedModes
+    : allowShoveAside
+      ? ['grapple', 'shove_prone', 'shove_push', 'shove_aside']
+      : ['grapple', 'shove_prone', 'shove_push']
+  const [mode, setMode] = useState<GrappleShoveMode>(modes[0] ?? 'grapple')
   const [targetId, setTargetId] = useState<string | null>(null)
   const [targetContested, setTargetContested] = useState<number | null>(null)
   const [useGrapplingStrike, setUseGrapplingStrike] = useState(false)
@@ -62,7 +79,7 @@ export function GrappleShoveDialog({
 
   useEffect(() => {
     if (!open) {
-      setMode('grapple')
+      setMode(modes[0] ?? 'grapple')
       setTargetId(null)
       setTargetContested(null)
       setUseGrapplingStrike(false)
@@ -71,7 +88,7 @@ export function GrappleShoveDialog({
       setBusy(false)
       setError(null)
     }
-  }, [open])
+  }, [open, modes[0]])
 
   async function applyCondition(target: CombatTarget, slug: 'grappled' | 'prone', name: string) {
     const sessionId = turnEco?.openSessionId
@@ -120,14 +137,21 @@ export function GrappleShoveDialog({
       setError('Выбери цель')
       return
     }
-    const gate = turnEco?.canAttack()
+    const gate =
+      spendTiming === 'bonus'
+        ? turnEco?.canFeature('bonus')
+        : spendTiming === 'action'
+          ? turnEco?.canFeature('action')
+          : spendTiming === 'none'
+            ? { ok: true as const }
+            : turnEco?.canAttack()
     if (gate && !gate.ok) {
       setError(gate.reason)
       return
     }
 
     let strikeBonus = 0
-    if (useGrapplingStrike && mode === 'grapple') {
+    if (useGrapplingStrike && mode === 'grapple' && spendTiming === 'attack') {
       if (!onSpendGrapplingStrike?.()) {
         setError('Не удалось потратить бонусное и кость превосходства для «Атаки с захватом»')
         return
@@ -180,7 +204,9 @@ export function GrappleShoveDialog({
     }
 
     const success = athTotal >= contested
-    turnEco?.spendAttack()
+    if (spendTiming === 'bonus') turnEco?.spendFeature('bonus')
+    else if (spendTiming === 'action') turnEco?.spendFeature('action')
+    else if (spendTiming === 'attack') turnEco?.spendAttack()
 
     const modeRu =
       mode === 'grapple'
@@ -193,6 +219,12 @@ export function GrappleShoveDialog({
     const strikeNote = useGrapplingStrike
       ? ` · Атака с захватом (+${strikeBonus})`
       : ''
+    const timingNote =
+      spendTiming === 'bonus'
+        ? ' · бонусное'
+        : spendTiming === 'action'
+          ? ' · действие'
+          : ''
     const disadvNote = shoveAsideDisadvantage ? ' (помеха)' : ''
     const rollNote = diceOnTable
       ? `Атлетика ${athTotal}${disadvNote} vs ${contested}`
@@ -214,7 +246,7 @@ export function GrappleShoveDialog({
             ? `успех · ${selected.name} смещён на 5 фт`
             : `успех · ${selected.name}`
         : `провал · ${selected.name}`
-      const line = `${modeRu}${strikeNote}: ${rollNote} → ${outcome}`
+      const line = `${modeRu}${strikeNote}${timingNote}: ${rollNote} → ${outcome}`
       onToast?.(line)
       void postSheetRollToSession({
         openSessionId: turnEco?.openSessionId,
@@ -237,7 +269,7 @@ export function GrappleShoveDialog({
   return (
     <Dialog
       open={open}
-      title="Захват / Толчок"
+      title={titleOverride ?? 'Захват / Толчок'}
       primaryLabel="Провести"
       secondaryLabel="Отмена"
       busy={busy}
@@ -249,9 +281,13 @@ export function GrappleShoveDialog({
     >
       <Stack gap={12}>
         <Text tone="muted">
-          Тратит одну атаку из действия «Атака» (не всё действие). Цель не более чем на одну
-          категорию больше и в досягаемости; нужна свободная рука для захвата. Состязание Сила
-          (Атлетика) против Атлетики или Акробатики цели.
+          {spendTiming === 'bonus'
+            ? 'Тратит бонусное действие. '
+            : spendTiming === 'action' || spendTiming === 'none'
+              ? 'Тратит действие. '
+              : 'Тратит одну атаку из действия «Атака» (не всё действие). '}
+          Цель не более чем на одну категорию больше и в досягаемости; нужна свободная рука для
+          захвата. Состязание Сила (Атлетика) против Атлетики или Акробатики цели.
         </Text>
 
         <div className="chip-row" role="group" aria-label="Режим">
@@ -260,11 +296,13 @@ export function GrappleShoveDialog({
               ['grapple', 'Захват'],
               ['shove_prone', 'Толчок: сбить с ног'],
               ['shove_push', 'Толчок: на 5 фт'],
+              ...(allowShoveAside
+                ? ([['shove_aside', 'Толкание в сторону']] as Array<
+                    [GrappleShoveMode, string]
+                  >)
+                : []),
             ] as Array<[GrappleShoveMode, string]>
-          )
-            .concat(
-              allowShoveAside ? [['shove_aside', 'Толкание в сторону']] : [],
-            )
+          ).filter(([id]) => modes.includes(id))
             .map(([id, label]) => (
               <button
                 key={id}

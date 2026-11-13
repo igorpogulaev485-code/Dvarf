@@ -345,23 +345,51 @@ function applyPackage(input: {
 
   let resources = [...input.draft.resources]
   if (input.applied.resource) {
-    const id = resourceId(input.grantId, input.applied.resource.pool_id)
-    if (sign > 0) {
-      if (!resources.some((row) => row.id === id)) {
-        const max = resolveFeatResourceMax(
-          input.applied.resource,
-          input.draft.totalLevel,
+    const poolId = input.applied.resource.pool_id
+    const isAdept = poolId === 'superiority_die_adept'
+    const classSuperiority = resources.find((row) =>
+      /:superiority_dice:/.test(row.id),
+    )
+    // O-05 Martial Adept: if class superiority dice exist — +1 to that pool
+    // (same die); otherwise grant the feat d6 pool.
+    if (isAdept && classSuperiority) {
+      if (sign > 0) {
+        resources = resources.map((row) =>
+          row.id === classSuperiority.id
+            ? { ...row, max: row.max + 1 }
+            : row,
         )
-        resources.push({
-          id,
-          name: input.applied.resource.pool_name_ru,
-          max,
-          used: 0,
-          reset: input.applied.resource.recovery === 'short_rest' ? 'short' : 'long',
-        })
+      } else {
+        resources = resources.map((row) =>
+          row.id === classSuperiority.id
+            ? {
+                ...row,
+                max: Math.max(1, row.max - 1),
+                used: Math.min(row.used, Math.max(1, row.max - 1)),
+              }
+            : row,
+        )
       }
     } else {
-      resources = resources.filter((row) => row.id !== id)
+      const id = resourceId(input.grantId, poolId)
+      if (sign > 0) {
+        if (!resources.some((row) => row.id === id)) {
+          const max = resolveFeatResourceMax(
+            input.applied.resource,
+            input.draft.totalLevel,
+          )
+          resources.push({
+            id,
+            name: input.applied.resource.pool_name_ru,
+            max,
+            used: 0,
+            reset:
+              input.applied.resource.recovery === 'short_rest' ? 'short' : 'long',
+          })
+        }
+      } else {
+        resources = resources.filter((row) => row.id !== id)
+      }
     }
   }
 

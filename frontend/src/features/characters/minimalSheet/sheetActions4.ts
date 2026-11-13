@@ -1470,6 +1470,7 @@ export function installSheetActions4(model: SheetModel) {
     return (
       /:superiority_dice:/.test(row.id) ||
       /:superiority_dice_st:/.test(row.id) ||
+      /superiority_die_adept/.test(row.id) ||
       /кость\s*превосходства|кости превосходства/i.test(row.name) ||
       /superiority dice/i.test(row.name)
     )
