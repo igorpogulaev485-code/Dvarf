@@ -67,6 +67,10 @@ type MobileVitalsBarProps = {
   onCastAbsorbElements?: () => void
   offerHellishRebuke?: boolean
   onCastHellishRebuke?: () => void
+  /** O-10: Mounted Combatant redirect. */
+  canRedirectToMount?: boolean
+  mountName?: string | null
+  onRedirectDamageToMount?: (amount: number, note: string) => void
   draconicResilience?: boolean
   play: PlayState
   autoAc: number
@@ -148,6 +152,9 @@ export function MobileVitalsBar({
   onCastAbsorbElements,
   offerHellishRebuke = false,
   onCastHellishRebuke,
+  canRedirectToMount = false,
+  mountName = null,
+  onRedirectDamageToMount,
   hasShieldMasterEvasion = false,
   draconicResilience = false,
   play,
@@ -728,6 +735,9 @@ export function MobileVitalsBar({
           onCastAbsorbElements={onCastAbsorbElements}
           offerHellishRebuke={offerHellishRebuke}
           onCastHellishRebuke={onCastHellishRebuke}
+          canRedirectToMount={canRedirectToMount}
+          mountName={mountName}
+          onRedirectDamageToMount={onRedirectDamageToMount}
         />
         <CoinPadDialog
           open={coinPadOpen}

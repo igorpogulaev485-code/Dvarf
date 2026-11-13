@@ -472,6 +472,20 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         onPlayChange={(play) => model.setDraft((prev) => ({ ...prev, play }))}
         onToast={model.onToast}
         onClose={() => model.setHotConditionsOpen(false)}
+        mountedActive={Boolean(
+          (model.draft.companions ?? []).some(
+            (c: { mounted?: boolean; active?: boolean }) =>
+              c.mounted && c.active !== false,
+          ),
+        )}
+        mountedLabel={
+          (
+            (model.draft.companions ?? []).find(
+              (c: { mounted?: boolean; active?: boolean; name?: string }) =>
+                c.mounted && c.active !== false,
+            ) as { name?: string } | undefined
+          )?.name ?? null
+        }
         immuneWarning={
           (model.unlockedFeatures ?? []).some(
             (feature: { id?: string }) => feature.id === 'fungal_body',

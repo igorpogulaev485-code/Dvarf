@@ -25,6 +25,10 @@ import {
   coverLabelRu,
   type CoverLevel,
 } from '../../shared/dnd/o08ActionsCoverConditions'
+import {
+  MOUNTED_HINT,
+  UNDERWATER_HINT,
+} from '../../shared/dnd/o10MountedUnderwater'
 
 type HotConditionsDialogProps = {
   open: boolean
@@ -35,6 +39,9 @@ type HotConditionsDialogProps = {
   onClose: () => void
   /** Ask before marking a condition the character is immune to. */
   immuneWarning?: { slugs: string[]; reason: string } | null
+  /** O-10: host currently riding (from companion.mounted). */
+  mountedActive?: boolean
+  mountedLabel?: string | null
 }
 
 type ConditionOption = {
@@ -52,6 +59,8 @@ export function HotConditionsDialog({
   onToast,
   onClose,
   immuneWarning = null,
+  mountedActive = false,
+  mountedLabel = null,
 }: HotConditionsDialogProps) {
   const [catalogConditions, setCatalogConditions] = useState<CatalogEntry[]>([])
   const [query, setQuery] = useState('')
@@ -320,6 +329,49 @@ export function HotConditionsDialog({
               </button>
             ))}
           </div>
+        </section>
+
+        <section
+          className={`hot-conditions__card${play.underwater ? ' is-on' : ''}`}
+          aria-label="Под водой"
+        >
+          <div className="hot-conditions__card-head">
+            <span className="hot-conditions__card-title">Под водой</span>
+            <span className="hot-conditions__count">
+              {play.underwater ? 'да' : 'нет'}
+            </span>
+          </div>
+          <Text tone="muted">{UNDERWATER_HINT}</Text>
+          <div className="chip-row" role="group" aria-label="Пометка под водой">
+            <button
+              type="button"
+              className={`sheet-chip${play.underwater ? ' is-on' : ''}`}
+              aria-pressed={Boolean(play.underwater)}
+              onClick={() => {
+                const next = !play.underwater
+                patchPlay({ underwater: next })
+                onToast(next ? 'Под водой' : 'Не под водой')
+              }}
+            >
+              {play.underwater ? 'Под водой · вкл.' : 'Под водой'}
+            </button>
+          </div>
+        </section>
+
+        <section
+          className={`hot-conditions__card${mountedActive ? ' is-on' : ''}`}
+          aria-label="Верхом"
+        >
+          <div className="hot-conditions__card-head">
+            <span className="hot-conditions__card-title">Верхом</span>
+            <span className="hot-conditions__count">
+              {mountedActive ? mountedLabel || 'да' : 'нет'}
+            </span>
+          </div>
+          <Text tone="muted">
+            {MOUNTED_HINT} Включается на карточке скакуна (Напарники), без активного
+            скакуна пометки нет.
+          </Text>
         </section>
 
         <section className="hot-conditions__card" aria-label="Активные состояния">

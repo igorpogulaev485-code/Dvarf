@@ -71,6 +71,7 @@ export function companionStatusChip(row: CompanionEntry): string | null {
     if (isPermanentCompanionSlot(row)) return 'не призван'
     return 'неактивен'
   }
+  if (row.mounted) return 'верхом'
   if (row.turnMarks?.dodge) return 'Уклонение'
   return null
 }

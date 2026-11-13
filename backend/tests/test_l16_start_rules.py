@@ -229,7 +229,15 @@ def test_join_mismatch_requires_ack(monkeypatch):
     char_id = uuid4()
     character = SimpleNamespace(id=char_id, user_id=user.id, level=5, sheet={})
 
+    # L-20: after ack join, apply_infusion_catchup calls lobbies.get +
+    # get_characters_map. FakeRepo must expose them (prod LobbyRepo has .get).
+    if not hasattr(target, "members") or target.members is None:
+        target.members = []
+
     class FakeRepo:
+        def get(self, lid):
+            return target if lid == target.id else None
+
         def get_by_invite_code(self, code):
             return target
 
@@ -241,6 +249,9 @@ def test_join_mismatch_requires_ack(monkeypatch):
 
         def get_role(self, *a, **k):
             return None
+
+        def get_characters_map(self, ids):
+            return {}
 
         def add_member_with_flags(self, **kwargs):
             return SimpleNamespace(**kwargs)

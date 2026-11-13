@@ -30,6 +30,11 @@ import {
   type DamageType,
   type IncomingDamageProfile,
 } from '../../shared/dnd/damageTypes'
+import {
+  MOUNTED_COMBATANT_REDIRECT_HINT,
+  UNDERWATER_HINT,
+  withUnderwaterFireResistance,
+} from '../../shared/dnd/o10MountedUnderwater'
 import { acquireBodyScrollLock } from '../../ui/bodyScrollLock'
 import { withSyncedHitDiceSummary, type PlayState } from './play'
 
@@ -80,6 +85,13 @@ type HpPadDialogProps = {
   /** O-07: Hellish Rebuke after being hit. */
   offerHellishRebuke?: boolean
   onCastHellishRebuke?: () => void
+  /**
+   * O-10: Mounted Combatant — accept hit on mount instead.
+   * When applied with redirect on, parent should damage the mount and skip host HP.
+   */
+  canRedirectToMount?: boolean
+  mountName?: string | null
+  onRedirectDamageToMount?: (amount: number, note: string) => void
 }
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'] as const
@@ -116,6 +128,9 @@ export function HpPadDialog({
   onCastAbsorbElements,
   offerHellishRebuke = false,
   onCastHellishRebuke,
+  canRedirectToMount = false,
+  mountName = null,
+  onRedirectDamageToMount,
 }: HpPadDialogProps) {
   const blackBlood = hasBlackBloodHealing(raceSlug)
   const [digits, setDigits] = useState('')
@@ -133,7 +148,15 @@ export function HpPadDialog({
   const [parryOn, setParryOn] = useState(false)
   /** O-09: critical hit while dying → two death-save failures. */
   const [criticalHit, setCriticalHit] = useState(false)
-  const profile = damageProfile ?? emptyDamageProfile()
+  /** O-10: Mounted Combatant redirect. */
+  const [redirectToMount, setRedirectToMount] = useState(false)
+  const baseProfile = damageProfile ?? emptyDamageProfile()
+  const profile = play.underwater
+    ? {
+        ...baseProfile,
+        resistances: withUnderwaterFireResistance(baseProfile.resistances, true),
+      }
+    : baseProfile
   const pools = play.hitDiceByClass
   const hitCurrent = totalHitDiceCurrent(pools)
   const hitMax = totalHitDiceMax(pools)
@@ -150,6 +173,7 @@ export function HpPadDialog({
     setShieldMasterOn(false)
     setParryOn(false)
     setCriticalHit(false)
+    setRedirectToMount(false)
     const releaseScroll = acquireBodyScrollLock()
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -406,6 +430,24 @@ export function HpPadDialog({
             <span>Немагический удар</span>
           </label>
         ) : null}
+        {play.underwater ? (
+          <p className="hp-pad__hint" title={UNDERWATER_HINT}>
+            Под водой · сопротивление огню
+          </p>
+        ) : null}
+        {canRedirectToMount && onRedirectDamageToMount ? (
+          <label className="sheet-check" title={MOUNTED_COMBATANT_REDIRECT_HINT}>
+            <input
+              type="checkbox"
+              checked={redirectToMount}
+              onChange={(event) => setRedirectToMount(event.target.checked)}
+            />
+            <span>
+              Перенести на скакуна
+              {mountName ? ` (${mountName})` : ''} · Верховой боец
+            </span>
+          </label>
+        ) : null}
         {hasEvasion ? (
           <div className="chip-row" role="group" aria-label="Уклонение (спасбросок Ловкости)">
             <button
@@ -568,6 +610,19 @@ export function HpPadDialog({
             variant="danger"
             disabled={!canApply}
             onClick={() => {
+              if (redirectToMount && canRedirectToMount && onRedirectDamageToMount) {
+                const note = [
+                  adjusted.note,
+                  `Верховой боец: урон на скакуна${mountName ? ` «${mountName}»` : ''}`,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')
+                onRedirectDamageToMount(adjusted.amount, note)
+                if (parryOn && hasParry) onParryUsed?.()
+                setDigits('')
+                onClose()
+                return
+              }
               onDamage(adjusted.amount, { critical: criticalHit && showDeath })
               if (adjusted.note) onToast(adjusted.note)
               if (parryOn && hasParry) onParryUsed?.()

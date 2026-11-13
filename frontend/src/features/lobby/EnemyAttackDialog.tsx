@@ -23,6 +23,7 @@ export type EnemyAttackSubmit = {
   damage_type?: string | null
   flanking?: boolean
   advantage?: boolean
+  disadvantage?: boolean
   physical_dice?: boolean
 }
 
@@ -78,6 +79,8 @@ export function EnemyAttackDialog({
   const [attackNatural, setAttackNatural] = useState<number | null>(null)
   const [damageTotal, setDamageTotal] = useState<number | null>(null)
   const [flanking, setFlanking] = useState(false)
+  /** O-10 Q5-A: propose disadvantage on ranged vs mounted rider. */
+  const [riderRangedDis, setRiderRangedDis] = useState(true)
   const [localError, setLocalError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -87,6 +90,7 @@ export function EnemyAttackDialog({
     setAttackNatural(null)
     setDamageTotal(null)
     setFlanking(false)
+    setRiderRangedDis(true)
     setLocalError(null)
   }, [open, defaultTarget?.id, action?.name_ru])
 
@@ -96,6 +100,30 @@ export function EnemyAttackDialog({
   const isSave =
     action?.save_dc != null &&
     (action.attack_bonus == null || action.attack_bonus === undefined)
+
+  const targetSeatMounted = useMemo(() => {
+    if (!selected || selected.kind !== 'pc') return false
+    const seat = session.seats?.find((s) => s.character_id === selected.ref_id)
+    return Boolean(
+      seat?.companions?.some((c) => c.mounted && c.active !== false),
+    )
+  }, [selected, session.seats])
+
+  const looksRangedWeapon =
+    !isSave &&
+    Boolean(
+      action &&
+        (action.attack_bonus != null ||
+          /лук|арбалет|дротик|пращ|пистолет|мушкет|сеть|bow|crossbow|dart|sling|net|firearm/i.test(
+            action.name_ru || '',
+          )),
+    ) &&
+    !/рукопаш|melee|коготь|укус|рог|копье|трезубец|меч|топор|молот|булав/i.test(
+      action?.name_ru || '',
+    )
+
+  const proposeRiderDis =
+    targetSeatMounted && looksRangedWeapon && selected?.kind === 'pc'
 
   async function run(mode: EnemyAttackSubmit['mode']) {
     if (!combatant || !action || !selected) {
@@ -129,6 +157,8 @@ export function EnemyAttackDialog({
       damage_type: action.damage_type ?? null,
       flanking,
       advantage: flanking && flankingEnabled ? true : undefined,
+      disadvantage:
+        proposeRiderDis && riderRangedDis ? true : undefined,
       physical_dice: diceOnTable || mode.startsWith('table_') || mode === 'manual',
     })
   }
@@ -197,6 +227,24 @@ export function EnemyAttackDialog({
             />
             Фланг (преимущество)
           </label>
+        ) : null}
+
+        {proposeRiderDis ? (
+          <label className="manual-roll-form__check">
+            <input
+              type="checkbox"
+              checked={riderRangedDis}
+              disabled={busy}
+              onChange={(e) => setRiderRangedDis(e.target.checked)}
+            />
+            Помеха дальним по всаднику (Верховой боец · можно снять)
+          </label>
+        ) : null}
+        {selected?.kind === 'pc' && targetSeatMounted ? (
+          <Text tone="muted">
+            Цель верхом — в списке целей также есть скакун (удар по всаднику или по
+            скакуну).
+          </Text>
         ) : null}
 
         {diceOnTable ? (

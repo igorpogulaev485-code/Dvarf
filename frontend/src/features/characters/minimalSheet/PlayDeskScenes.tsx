@@ -243,6 +243,15 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             characterId={model.character.id}
             characterName={model.draft.name?.trim() || model.baseCharacter.name || null}
             playConditions={model.draft.play.conditions}
+            underwaterSelf={Boolean(model.draft.play.underwater)}
+            onUnderwaterSelfChange={(next) => {
+              model.setDraft((prev) => ({
+                ...prev,
+                play: { ...prev.play, underwater: next },
+              }))
+              model.onToast?.(next ? 'Под водой' : 'Не под водой')
+            }}
+            swimSpeed={model.draft.swimSpeed}
             onAddPlayEffect={(effect) => {
               model.setDraft((prev) => ({
                 ...prev,
@@ -1599,6 +1608,25 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             spellName: model.draft.play.concentration.name,
             dc: Math.max(10, Math.floor(damage / 2)),
           })
+        }}
+        onHostProneFromMountFall={() => {
+          const prone = {
+            slug: 'prone',
+            name: 'Опрокинутый',
+            catalog_id: null as string | null,
+            level: null as number | null,
+          }
+          model.setDraft((prev) => {
+            const list = prev.play.conditions ?? []
+            if (list.some((c: { slug?: string }) => c.slug === 'prone')) {
+              return prev
+            }
+            return {
+              ...prev,
+              play: { ...prev.play, conditions: [...list, prone] },
+            }
+          })
+          model.onToast?.('Скакун упал: вы опрокинуты')
         }}
         onCastPactChainFamiliar={
           model.pactChainFamiliarReady
