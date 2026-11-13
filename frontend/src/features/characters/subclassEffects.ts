@@ -820,7 +820,7 @@ export function applySubclassGrantToDraft(input: {
         ? `Вариант: ${choice.fromLabelsRu[value]} (тип можно сменить при следующем призыве)`
         : companionType
           ? companionType.startsWith('beast_of_')
-            ? 'Tasha: Первобытный спутник'
+            ? 'TCE: Первобытный спутник'
             : companionType.includes('phb')
               ? 'PHB: зверь из Книги игрока'
               : ''

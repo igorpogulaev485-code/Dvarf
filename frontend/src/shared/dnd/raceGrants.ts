@@ -1056,7 +1056,7 @@ export function validateRaceGrantPicks(input: {
       modeId: picks.abilityBonusModeId,
     })
     if (!mode) {
-      return modes.length > 1 ? 'Выбери вариант увеличения характеристик' : 'Нет режима ASI'
+      return modes.length > 1 ? 'Выбери вариант увеличения характеристик' : 'Нет режима увеличения характеристик'
     }
     const need = abilityBonusModeSlotCount(mode)
     if (picks.abilityBonusKeys.length !== need) {
@@ -1211,7 +1211,7 @@ export function formatRaceGrantSummary(input: {
     `размер ${RACE_SIZE_LABELS[size]}`,
     `ТЗ ${input.def.darkvision || 'нет'}`,
     `языки: ${langs}`,
-    asi ? `ASI: ${asi}` : null,
+    asi ? `Увеличение характеристик: ${asi}` : null,
     naturalWeapons,
     racialSpells,
   ]

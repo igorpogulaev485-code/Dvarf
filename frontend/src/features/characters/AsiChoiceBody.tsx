@@ -42,7 +42,7 @@ export function AsiChoiceBody({
           ? '+2 к одной характеристике, +1 к двум (максимум 20) или одна черта из каталога.'
           : '+2 к одной характеристике или +1 к двум (максимум 20). Черты выключены правилами кампании.'}
       </Text>
-      <div className="chip-row" role="group" aria-label="Вариант ASI">
+      <div className="chip-row" role="group" aria-label="Вариант увеличения характеристик">
         {CLASS_ASI_MODE_OPTIONS.map((row) => (
           <Button
             key={row.id}

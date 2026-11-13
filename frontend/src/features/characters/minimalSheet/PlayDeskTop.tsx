@@ -563,7 +563,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                   <b>{row.name || 'Без имени'}</b>
                   <span>
                     {inForm ? 'В облике' : isPrimary ? 'Основной' : kind}
-                    {row.stats.hp != null ? ` · ${row.stats.hp} HP` : ''}
+                    {row.stats.hp != null ? ` · ${row.stats.hp} хитов` : ''}
                   </span>
                 </span>
                 <span className="play-desk__comp-hp">

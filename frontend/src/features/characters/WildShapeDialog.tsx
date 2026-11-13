@@ -457,7 +457,7 @@ export function WildShapeDialog({
             </Stack>
             <Text tone="muted">
               Альтернативы кругов видны, если архетип разблокировал умение. Дикий спутник
-              (Tasha) — на этой же развилке.
+              (TCE) — на этой же развилке.
             </Text>
           </>
         ) : null}
@@ -483,7 +483,7 @@ export function WildShapeDialog({
                 variant="secondary"
                 onClick={() => confirmFamiliar(p)}
               >
-                {p.name_ru} · CR {p.cr} · КД {p.ac} · HP {p.hp}
+                {p.name_ru} · CR {p.cr} · КД {p.ac} · хиты {p.hp}
                 {p.speed_fly ? ` · полёт ${p.speed_fly}` : ''}
               </Button>
             ))}
@@ -519,7 +519,7 @@ export function WildShapeDialog({
                     variant="secondary"
                     onClick={() => confirmBeast(p)}
                   >
-                    {p.name_ru} · CR {p.cr} · КД {p.ac} · HP {p.hp}
+                    {p.name_ru} · CR {p.cr} · КД {p.ac} · хиты {p.hp}
                   </Button>
                 ))}
               </Stack>
@@ -534,7 +534,7 @@ export function WildShapeDialog({
                     variant="secondary"
                     onClick={() => confirmBeast(p)}
                   >
-                    {p.name_ru} · CR {p.cr} · КД {p.ac} · HP {p.hp}
+                    {p.name_ru} · CR {p.cr} · КД {p.ac} · хиты {p.hp}
                     {(p.speed_fly ?? 0) > 0 ? ' · полёт' : ''}
                     {(p.speed_swim ?? 0) > 0 ? ' · плав.' : ''}
                   </Button>
@@ -593,7 +593,7 @@ export function WildShapeDialog({
             {elementalPreview ? (
               <Text tone="muted">
                 {elementalPreview.name_ru ?? elementalKeyToSlug(elementalKey)?.name_ru}: КД{' '}
-                {elementalPreview.ac} · HP {elementalPreview.hp} · CR{' '}
+                {elementalPreview.ac} · хиты {elementalPreview.hp} · CR{' '}
                 {elementalPreview.cr}
                 {(elementalPreview.speed_fly ?? 0) > 0 ? ' · полёт' : ''}
                 {(elementalPreview.speed_swim ?? 0) > 0 ? ' · плав.' : ''}

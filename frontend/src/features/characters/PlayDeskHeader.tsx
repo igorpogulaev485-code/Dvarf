@@ -337,7 +337,7 @@ export function PlayDeskHeader({
       onDamaged?.(remaining)
     }
     if (nextHp <= 0 && !play.isDying) {
-      onToast('HP ≤ 0 — спасброски смерти в шапке или в pad хитов')
+      onToast('Хиты ≤ 0 — спасброски смерти в шапке или в окне хитов')
     }
   }
 

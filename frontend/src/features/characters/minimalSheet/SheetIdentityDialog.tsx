@@ -448,7 +448,7 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                 model.draft.featGrants.map((row) => {
                   const sourceLabel =
                     row.source.kind === 'asi'
-                      ? `ASI · ур. ${row.source.atClassLevel}`
+                      ? `Увел. характеристик · ур. ${row.source.atClassLevel}`
                       : row.source.kind === 'race'
                         ? 'Раса'
                         : row.source.kind === 'background'

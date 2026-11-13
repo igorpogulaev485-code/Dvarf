@@ -137,7 +137,7 @@ export function CombatStickyHeader({
           </button>
           <span
             className={`combat-chip combat-chip--static${exhaustion > 0 ? ' is-on' : ''}`}
-            title="Меняется в диалоге состояний (hot-bar)"
+            title="Меняется в диалоге состояний (полоса ресурсов)"
           >
             <span className="combat-chip__full">Истощение {exhaustion}</span>
             <span className="combat-chip__short" aria-hidden>
@@ -217,12 +217,12 @@ export function CombatStickyHeader({
           className={`combat-stat${hpPulse ? ' combat-stat--pulse' : ''}`}
           title={hpTitle}
         >
-          <span className="combat-stat__label">HP</span>
+          <span className="combat-stat__label">Хиты</span>
           <div className="combat-sticky__hp">
             <button
               type="button"
               className="combat-hp-open"
-              aria-label={`Текущие HP ${hpCurrent ?? 'не заданы'}. Прибавить или отнять`}
+              aria-label={`Текущие хиты ${hpCurrent ?? 'не заданы'}. Прибавить или отнять`}
               onClick={() => setCurrentPadOpen(true)}
             >
               <span className="combat-hp-open__value">
@@ -234,7 +234,7 @@ export function CombatStickyHeader({
             <button
               type="button"
               className="combat-hp-open combat-hp-open--max"
-              aria-label={`Максимум HP ${hpMax ?? 'не задан'}. Собрать по уровням`}
+              aria-label={`Максимум хитов ${hpMax ?? 'не задан'}. Собрать по уровням`}
               onClick={() => setMaxDialogOpen(true)}
             >
               <span className="combat-hp-open__value">
@@ -274,7 +274,7 @@ export function CombatStickyHeader({
 
       <NumberPadDialog
         open={currentPadOpen}
-        title="Текущие HP"
+        title="Текущие хиты"
         current={currentValue}
         min={0}
         max={maxValue ?? undefined}

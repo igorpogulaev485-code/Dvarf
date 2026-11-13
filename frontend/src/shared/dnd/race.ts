@@ -247,7 +247,7 @@ export function formatRaceApplySummary(effects: RaceEffectData): string {
     `скорость ${effects.speed}`,
     `ТЗ ${effects.darkvision || 'нет'}`,
     `языки: ${langs}${choose}`,
-    asi ? `ASI в тексте (вручную: ${asi})` : null,
+    asi ? `Увеличение характеристик в тексте (вручную: ${asi})` : null,
   ]
     .filter(Boolean)
     .join(' · ')

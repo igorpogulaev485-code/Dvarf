@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Ranger class + official archetypes for sheet unlock",
     "edition": "2014",
     "source": "phb+xgte+tcoe+ftd",
-    "notes_ru": "Класс: Favored Enemy / Natural Explorer (picks), Fighting Style, half-caster, Primeval Awareness (slot). Архетипы — каркас умений; глубокая полировка позже. H4b depth: martial/half-caster pools/scales/linked ki·BI. · TCoE optional class features."
+    "notes_ru": "Класс: Избранный враг / Исследователь природы (выборы), Боевой стиль, half-caster, Первобытная осведомлённость (slot). Архетипы — каркас умений; глубокая полировка позже. глубина H4b: военный/полукастер pools/scales/linked ki·BI. · TCE опциональные умения класса."
   },
   "class_slug": "ranger",
   "features": [
@@ -54,7 +54,7 @@
       "level": 1,
       "name_ru": "Ловкий исследователь",
       "name_en": "Deft Explorer",
-      "summary_ru": "Tasha (optional): альтернатива «Исследователь природы». Canny (компетентность + язык), Roving (скорость +5 / лазание+плавание на 6), Tireless (вр. хиты PB×, сброс истощения на 10).",
+      "summary_ru": "TCE (опционально): альтернатива «Исследователь природы». Проницательный (компетентность + язык), Странник (скорость +5 / лазание+плавание на 6), Неутомимый (вр. хиты БМ×, сброс истощения на 10).",
       "kind": "passive",
       "optional": true,
       "source_book": "tcoe",
@@ -65,7 +65,7 @@
       "level": 1,
       "name_ru": "Избранный противник",
       "name_en": "Favored Foe",
-      "summary_ru": "Tasha (optional): альтернатива «Избранный враг». Пометь цель при попадании (конц. без слота, PB раз / долгий) — +1к4 (+1к6 / +1к8) урона раз в ход.",
+      "summary_ru": "TCE (опционально): альтернатива «Избранный враг». Пометь цель при попадании (конц. без слота, БМ раз / долгий) — +1к4 (+1к6 / +1к8) урона раз в ход.",
       "kind": "passive",
       "optional": true,
       "source_book": "tcoe",
@@ -107,7 +107,7 @@
       "level": 2,
       "name_ru": "Фокус заклинаний",
       "name_en": "Spellcasting Focus",
-      "summary_ru": "Tasha (optional): можешь использовать друидический фокус как фокус заклинаний следопыта.",
+      "summary_ru": "TCE (опционально): можешь использовать друидический фокус как фокус заклинаний следопыта.",
       "kind": "passive",
       "optional": true,
       "source_book": "tcoe"
@@ -137,9 +137,9 @@
     {
       "id": "primal_awareness_tasha",
       "level": 3,
-      "name_ru": "Первобытная осведомлённость (Tasha)",
+      "name_ru": "Первобытная осведомлённость (TCE)",
       "name_en": "Primal Awareness",
-      "summary_ru": "Tasha (optional): альтернатива PHB Primeval Awareness. Получаешь Speaks with Animals и всегда-готовые ритуалы по таблице (бесплатный каст 1× / долгий на заклинание).",
+      "summary_ru": "TCE (опционально): альтернатива Первобытная осведомлённость (PHB). Получаешь Разговор с животными и всегда-готовые ритуалы по таблице (бесплатный каст 1× / долгий на заклинание).",
       "kind": "passive",
       "optional": true,
       "source_book": "tcoe",
@@ -167,7 +167,7 @@
       "level": 4,
       "name_ru": "Боевая универсальность",
       "name_en": "Martial Versatility",
-      "summary_ru": "Tasha (optional): когда берёшь ASI, можешь заменить один боевой стиль на другой, доступный следопыту.",
+      "summary_ru": "TCE (опционально): когда берёшь Увеличение характеристик, можешь заменить один боевой стиль на другой, доступный следопыту.",
       "kind": "passive",
       "optional": true,
       "source_book": "tcoe"
@@ -218,7 +218,7 @@
       "level": 10,
       "name_ru": "Природная завеса",
       "name_en": "Nature's Veil",
-      "summary_ru": "Tasha (optional): альтернатива «Скрытность на виду». Бонусным — невидимость до начала следующего хода. PB раз / долгий отдых.",
+      "summary_ru": "TCE (опционально): альтернатива «Скрытность на виду». Бонусным — невидимость до начала следующего хода. БМ раз / долгий отдых.",
       "kind": "bonus",
       "optional": true,
       "source_book": "tcoe",
@@ -385,7 +385,7 @@
         "level": 3,
         "name_ru": "Спутник следопыта",
         "name_en": "Ranger's Companion",
-        "summary_ru": "PHB: зверь КР≤¼ с бонусами мастерства. Tasha: Primal Companion (Beast of the Land/Sea/Sky). Команда бонусным.",
+        "summary_ru": "PHB: зверь КР≤¼ с бонусами мастерства. TCE: Первобытный спутник (Зверь суши/моря/неба). Команда бонусным.",
         "kind": "passive",
         "choice": {
           "id": "companion_type",
@@ -859,7 +859,7 @@
         "level": 3,
         "name_ru": "Дар драконов",
         "name_en": "Draconic Gift",
-        "summary_ru": "Thaumaturgy; язык Draconic. Выбери тип урона дрейка (кислота/холод/огонь/молния/яд).",
+        "summary_ru": "Чудотворство; язык Драконий. Выбери тип урона дрейка (кислота/холод/огонь/молния/яд).",
         "kind": "passive",
         "choice": {
           "id": "drake_damage_type",
@@ -884,7 +884,7 @@
         "level": 3,
         "name_ru": "Призыв дрейка",
         "name_en": "Drake Companion",
-        "summary_ru": "Действием призвать дрейка на 1 ч. (статблок TCoE). 1× / прод. отдых или ячейка ≥1.",
+        "summary_ru": "Действием призвать дрейка на 1 ч. (статблок TCE). 1× / прод. отдых или ячейка ≥1.",
         "kind": "action",
         "resource": {
           "uses": 1,

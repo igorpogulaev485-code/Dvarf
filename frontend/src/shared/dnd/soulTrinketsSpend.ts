@@ -35,7 +35,7 @@ export function listSoulTrinketBurnOptions(
       classEntryId,
       nameRu: 'Могильный вопль (сжечь частицу)',
       summaryRu:
-        'После Скрытой атаки — вопль без траты заряда воплей (с 9 ур. Phantom).',
+        'После Скрытой атаки — вопль без траты заряда воплей (с 9 ур. Фантома).',
     })
   }
 

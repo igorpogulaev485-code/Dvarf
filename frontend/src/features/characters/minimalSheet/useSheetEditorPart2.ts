@@ -504,8 +504,8 @@ export function useSheetEditorPart2(model: SheetModel) {
           if (applied > 0) {
             model.onToast(
               applied === 1
-                ? `Восстановлена черта ASI «${names[0]}»`
-                : `Восстановлены черты ASI: ${names.join(', ')}`,
+                ? `Восстановлено Увеличение характеристик: черта «${names[0]}»`
+                : `Восстановлено Увеличение характеристик: черты ${names.join(', ')}`,
             )
           }
           return next

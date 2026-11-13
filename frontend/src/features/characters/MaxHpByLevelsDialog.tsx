@@ -80,7 +80,7 @@ export function MaxHpByLevelsDialog({
   return (
     <Dialog
       open={open}
-      title="Макс. HP по уровням"
+      title="Макс. хиты по уровням"
       primaryLabel="Применить"
       secondaryLabel="Отмена"
       primaryDisabled={!canApply}
@@ -126,7 +126,7 @@ export function MaxHpByLevelsDialog({
                 ))}
               </ul>
               <p className="hp-levels__total">
-                Итого макс. HP: <strong>{built.total}</strong>
+                Итого макс. хиты: <strong>{built.total}</strong>
                 {hpMax != null ? ` · было ${hpMax}` : ''}
               </p>
             </div>
@@ -137,7 +137,7 @@ export function MaxHpByLevelsDialog({
             </Text>
           )
         ) : (
-          <Field label="Максимум HP" hint="Свой итог, если бросал кости или хоумбрю">
+          <Field label="Максимум хитов" hint="Свой итог, если бросал кости или хоумбрю">
             <NumberInput
               min={1}
               emptyValue={null}
@@ -154,7 +154,7 @@ export function MaxHpByLevelsDialog({
             onChange={(event) => setFillCurrent(event.target.checked)}
           />
           <span>
-            Выставить текущие HP = макс.
+            Выставить текущие хиты = макс.
             {nextMax != null && nextCurrent != null
               ? ` (${hpCurrent ?? '—'} → ${nextCurrent})`
               : ''}

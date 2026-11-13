@@ -104,7 +104,7 @@ export function validateClassAsiPicks(input: {
   abilities: Record<AbilityKey, number>
 }): { ok: true; bonuses: Partial<Record<AbilityKey, number>> } | { ok: false; reason: string } {
   const mode = CLASS_ASI_MODE_OPTIONS.find((row) => row.id === input.modeId)
-  if (!mode) return { ok: false, reason: 'Неизвестный вариант ASI' }
+  if (!mode) return { ok: false, reason: 'Неизвестный вариант увеличения характеристик' }
   if (input.keys.length !== mode.amounts.length) {
     return { ok: false, reason: `Выбери ${mode.amounts.length} характеристику(и)` }
   }

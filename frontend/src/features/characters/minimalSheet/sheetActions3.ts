@@ -376,7 +376,7 @@ export function installSheetActions3(model: SheetModel) {
       return model.mergeSubclassSlice(withRaceSpells, reconciled.slice)
     })
     model.setLevelUpOpen(false)
-    const hpNote = ` · HP +${Math.max(0, Math.floor(choice.hpGain))}`
+    const hpNote = ` · хиты +${Math.max(0, Math.floor(choice.hpGain))}`
     const slotNote = tableChanged ? ' · ячейки по таблице 2014' : ''
     model.onToast(
       choice.type === 'same'
@@ -483,13 +483,13 @@ export function installSheetActions3(model: SheetModel) {
     })
     model.setPendingAsi(null)
     if (featGrant) {
-      model.onToast(`ASI → черта «${featGrant.nameRu}»`)
+      model.onToast(`Увеличение характеристик → черта «${featGrant.nameRu}»`)
       return
     }
     const bits = Object.entries(entry.bonuses)
       .filter(([, amount]) => amount)
       .map(([key, amount]) => `${ABILITY_LABELS[key as AbilityKey]}+${amount}`)
-    model.onToast(bits.length ? `ASI: ${bits.join(', ')}` : 'ASI записан')
+    model.onToast(bits.length ? `Увеличение характеристик: ${bits.join(', ')}` : 'Увеличение характеристик записано')
   }
 
   model.finishWizardQueue = function finishWizardQueue(prev: GuidedWizardSession) {
