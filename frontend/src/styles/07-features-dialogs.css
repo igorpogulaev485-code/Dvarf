@@ -287,9 +287,19 @@
 }
 
 .ui-dialog__actions .ui-button {
-  min-height: 40px;
+  min-height: var(--control-h-md);
   padding: 8px 12px;
   font-size: 0.9rem;
+}
+
+/* SC-07: одна primary справа (flex-end уже на .ui-dialog__actions) */
+.ui-dialog__actions .ui-button--primary {
+  order: 2;
+}
+
+.ui-dialog__actions .ui-button--ghost,
+.ui-dialog__actions .ui-button--secondary {
+  order: 1;
 }
 
 /* Keep long dialog content readable; lists stay inside scroll area */

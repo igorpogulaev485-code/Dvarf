@@ -200,9 +200,11 @@ export function ManualRollForm({
 
         {localError ? <Text tone="danger">{localError}</Text> : null}
 
-        <Button type="submit" disabled={busy}>
-          {busy ? 'Отправляем…' : 'Записать бросок'}
-        </Button>
+        <div className="manual-roll-form__actions">
+          <Button type="submit" variant="primary" disabled={busy}>
+            {busy ? 'Отправляем…' : 'Записать бросок'}
+          </Button>
+        </div>
       </Stack>
     </form>
   )

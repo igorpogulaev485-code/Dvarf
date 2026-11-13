@@ -644,3 +644,18 @@
   font-weight: 600;
 }
 
+/* SC-07: кабинет — выровнять кнопки, не раздувать карточки */
+.page--cabinet .ui-button,
+.cabinet-layout .ui-button,
+.cabinet-avatar-actions .ui-button,
+.cabinet-provider-row .ui-button {
+  min-height: var(--control-h-md);
+  padding: 6px 12px;
+  font-size: 0.9rem;
+}
+
+.page--cabinet .ui-button--primary,
+.cabinet-layout .ui-button--primary {
+  min-height: var(--control-h-lg);
+}
+

@@ -350,14 +350,20 @@
 }
 
 .play-desk__mode {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   border: 1px solid var(--desk-line);
   background: #fff;
   border-radius: 999px;
-  padding: 7px 14px;
+  padding: 6px 14px;
+  min-height: var(--control-h-md);
   font: inherit;
   font-size: 0.86rem;
   font-weight: 600;
   cursor: pointer;
+  line-height: 1.25;
 }
 
 .play-desk__mode.is-on {
@@ -375,15 +381,21 @@
 }
 
 .play-desk__roll-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   border: 0;
   border-right: 1px solid var(--desk-line);
   background: transparent;
   padding: 6px 10px;
+  min-height: var(--control-h-md);
   font: inherit;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   color: var(--desk-muted);
+  line-height: 1.25;
 }
 
 .play-desk__roll-mode-btn:last-child {
