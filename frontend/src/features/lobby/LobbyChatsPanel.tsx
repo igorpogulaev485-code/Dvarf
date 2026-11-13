@@ -310,10 +310,12 @@ export function LobbyChatsPanel({
           </Text>
         ) : null}
 
-        <div className="chat-mode-tabs">
+        <div className="chat-mode-tabs" role="tablist" aria-label="Режимы чата">
           <button
             type="button"
-            className={`session-live-tab${mode === 'channels' ? ' is-active' : ''}`}
+            role="tab"
+            aria-selected={mode === 'channels'}
+            className={`chat-mode-tab${mode === 'channels' ? ' is-active' : ''}`}
             onClick={() => setMode('channels')}
           >
             Каналы
@@ -325,7 +327,9 @@ export function LobbyChatsPanel({
           </button>
           <button
             type="button"
-            className={`session-live-tab${mode === 'letters' ? ' is-active' : ''}`}
+            role="tab"
+            aria-selected={mode === 'letters'}
+            className={`chat-mode-tab${mode === 'letters' ? ' is-active' : ''}`}
             onClick={() => setMode('letters')}
           >
             Письмо мастеру
@@ -342,7 +346,9 @@ export function LobbyChatsPanel({
           </button>
           <button
             type="button"
-            className={`session-live-tab${mode === 'whispers' ? ' is-active' : ''}`}
+            role="tab"
+            aria-selected={mode === 'whispers'}
+            className={`chat-mode-tab${mode === 'whispers' ? ' is-active' : ''}`}
             onClick={() => setMode('whispers')}
           >
             Шёпот
@@ -449,7 +455,7 @@ export function LobbyChatsPanel({
                     )}
                   </ul>
                   <form
-                    className="chat-composer"
+                    className={`chat-composer${compact ? '' : ' chat-composer--sticky'}`}
                     onSubmit={(e) => {
                       e.preventDefault()
                       if (!draft.trim() || !activeChannelId) return
@@ -466,7 +472,7 @@ export function LobbyChatsPanel({
                     }}
                   >
                     <textarea
-                      className="ui-input ui-textarea"
+                      className="ui-input ui-textarea chat-composer__input"
                       rows={compact ? 2 : 3}
                       value={draft}
                       disabled={busy}
@@ -808,7 +814,7 @@ export function LobbyChatsPanel({
                       )}
                     </ul>
                     <form
-                      className="chat-composer"
+                      className={`chat-composer${compact ? '' : ' chat-composer--sticky'}`}
                       onSubmit={(e) => {
                         e.preventDefault()
                         if (!whisperDraft.trim() || !activeWhisperId) return
@@ -826,7 +832,7 @@ export function LobbyChatsPanel({
                       }}
                     >
                       <textarea
-                        className="ui-input ui-textarea"
+                        className="ui-input ui-textarea chat-composer__input"
                         rows={compact ? 2 : 3}
                         value={whisperDraft}
                         disabled={busy}

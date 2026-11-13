@@ -402,8 +402,32 @@
 /* —— Chats + master letters (A5) —— */
 .chat-mode-tabs {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  scroll-padding-inline: 8px;
+}
+
+.chat-mode-tab {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.chat-mode-tab.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 .chat-badge {
@@ -510,6 +534,26 @@
   gap: 8px;
 }
 
+/* LV-03 / P11: липкий ввод над клавиатурой, ≥16px анти-зум iOS */
+.chat-composer__input,
+.chat-composer .ui-textarea,
+.chat-composer .ui-input {
+  font-size: 16px;
+}
+
+.chat-composer--sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  margin-top: 8px;
+  padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--panel) 0%, transparent),
+    color-mix(in srgb, var(--panel) 92%, white) 28%
+  );
+}
+
 .chat-inline-actions {
   display: flex;
   flex-wrap: wrap;
@@ -572,6 +616,17 @@
   .chat-layout:not(.chat-layout--compact) {
     grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
     align-items: start;
+  }
+
+  .chat-mode-tabs {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .chat-composer--sticky {
+    position: static;
+    padding: 0;
+    background: transparent;
   }
 }
 

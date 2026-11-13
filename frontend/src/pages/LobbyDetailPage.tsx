@@ -122,6 +122,10 @@ export function LobbyDetailPage() {
   const [sendNote, setSendNote] = useState<Note | null>(null)
   const [sendPublishNow, setSendPublishNow] = useState(false)
   const [sendDeleteNote, setSendDeleteNote] = useState(false)
+  /** LV-03: приглашение свёрнуто на узком экране, на десктопе открыто */
+  const [inviteOpen, setInviteOpen] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : false,
+  )
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getLobby(lobbyId), listCharacters()])
@@ -326,52 +330,69 @@ export function LobbyDetailPage() {
 
         <div className="lobby-hub-top">
           <Text>
-            <Link to="/lobbies">← Все лобби</Link>
+            <Link to="/lobbies" className="lobby-hub-back">
+              ← Все лобби
+            </Link>
           </Text>
           {lobby.invite_code ? (
-            <div className="lobby-hub-invite">
-              <div className="lobby-hub-code">
-                <Text tone="muted">Код комнаты</Text>
-                <button
-                  type="button"
-                  className="lobby-hub-code__value"
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(lobby.invite_code ?? '')
-                    setToast('Код скопирован')
-                  }}
-                >
-                  {lobby.invite_code}
-                </button>
-                {canChangeInvite ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    disabled={busy}
-                    onClick={() => setRotateConfirmOpen(true)}
-                  >
-                    Новый код
-                  </Button>
-                ) : null}
-              </div>
-              <div className="lobby-hub-invite__meta">
-                <Text tone="muted">
-                  Ссылка:{' '}
-                  <Link to={lobby.join_path || `/join/${lobby.invite_code}`}>
-                    {lobby.join_path || `/join/${lobby.invite_code}`}
-                  </Link>
-                </Text>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(joinUrlForCode(lobby.invite_code!))
-                    setToast('Ссылка скопирована')
-                  }}
-                >
-                  Копировать ссылку
-                </Button>
-                <InviteQr inviteCode={lobby.invite_code} lobbyName={lobby.name} size={120} />
-              </div>
+            <div className={`lobby-hub-invite-acc${inviteOpen ? ' is-open' : ''}`}>
+              <button
+                type="button"
+                className="lobby-hub-invite-acc__toggle"
+                aria-expanded={inviteOpen}
+                onClick={() => setInviteOpen((open) => !open)}
+              >
+                <span>Приглашение · код {lobby.invite_code}</span>
+                <span className="lobby-hub-invite-acc__chevron" aria-hidden>
+                  {inviteOpen ? '▾' : '▸'}
+                </span>
+              </button>
+              {inviteOpen ? (
+                <div className="lobby-hub-invite">
+                  <div className="lobby-hub-code">
+                    <Text tone="muted">Код комнаты</Text>
+                    <button
+                      type="button"
+                      className="lobby-hub-code__value"
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(lobby.invite_code ?? '')
+                        setToast('Код скопирован')
+                      }}
+                    >
+                      {lobby.invite_code}
+                    </button>
+                    {canChangeInvite ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => setRotateConfirmOpen(true)}
+                      >
+                        Новый код
+                      </Button>
+                    ) : null}
+                  </div>
+                  <div className="lobby-hub-invite__meta">
+                    <Text tone="muted">
+                      Ссылка:{' '}
+                      <Link to={lobby.join_path || `/join/${lobby.invite_code}`}>
+                        {lobby.join_path || `/join/${lobby.invite_code}`}
+                      </Link>
+                    </Text>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={async () => {
+                        await navigator.clipboard.writeText(joinUrlForCode(lobby.invite_code!))
+                        setToast('Ссылка скопирована')
+                      }}
+                    >
+                      Копировать ссылку
+                    </Button>
+                    <InviteQr inviteCode={lobby.invite_code} lobbyName={lobby.name} size={120} />
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
@@ -393,14 +414,12 @@ export function LobbyDetailPage() {
           <Panel title="Состав кампании">
             <Stack gap={12}>
               <Text tone="muted">
-                Упрощённые карточки участников (ориентир ~8, бывает 3–10). Полные статы — в сессии.
-                Персонажи попадают в лобби только по коду / QR со своего аккаунта — своих из
-                ростера здесь не сажаем.
+                Карточки состава. Полные статы — за столом. Вход только по коду / QR со своего
+                аккаунта.
               </Text>
               {lobby.members.length === 0 ? (
                 <Text tone="muted">
-                  Пока никого. Раздай код комнаты — каждый участник (и мастер тоже) входит со
-                  своим персонажем через «В лобби» /join.
+                  Пока никого. Раздай код — каждый входит со своим персонажем через /join.
                 </Text>
               ) : (
                 <div className="lobby-member-grid">
@@ -530,37 +549,53 @@ export function LobbyDetailPage() {
                 {lobby.sessions.length === 0 ? (
                   <Text tone="muted">Пока нет сессий.</Text>
                 ) : (
-                  lobby.sessions.map((s) => (
-                    <div className="list-row" key={s.id}>
-                      <div>
-                        <Link to={`/sessions/${s.id}`}>{s.name}</Link>
-                        <Text tone="muted">
-                          {s.setting_name ? `Сеттинг: ${s.setting_name}` : 'Ваншот'} · пришло:{' '}
-                          {s.seat_count}
-                          {s.closed_at ? ' · закрыта' : ''}
-                        </Text>
-                      </div>
-                      <div className="list-row__actions">
-                        <Link className="ui-button ui-button--secondary" to={`/sessions/${s.id}`}>
-                          Открыть
-                        </Link>
-                        {lobby.can_delete_session ? (
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            disabled={busy}
-                            onClick={() => {
-                              setDeleteTarget({ id: s.id, name: s.name })
-                              setDeleteConfirmName('')
-                              setDeleteConfirmOpen(true)
-                            }}
+                  [...lobby.sessions]
+                    .sort((a, b) => {
+                      const aOpen = a.closed_at ? 0 : 1
+                      const bOpen = b.closed_at ? 0 : 1
+                      if (aOpen !== bOpen) return bOpen - aOpen
+                      return 0
+                    })
+                    .map((s) => (
+                      <div
+                        className={`list-row${s.closed_at ? '' : ' list-row--live'}`}
+                        key={s.id}
+                      >
+                        <div>
+                          <Link to={`/sessions/${s.id}`}>{s.name}</Link>
+                          <Text tone="muted">
+                            {s.setting_name ? `Сеттинг: ${s.setting_name}` : 'Ваншот'} · пришло:{' '}
+                            {s.seat_count}
+                            {s.closed_at ? ' · закрыта' : ''}
+                          </Text>
+                          {!s.closed_at ? (
+                            <span className="lobby-list-live">Сейчас открыта</span>
+                          ) : null}
+                        </div>
+                        <div className="list-row__actions">
+                          <Link
+                            className="ui-button ui-button--secondary"
+                            to={`/sessions/${s.id}`}
                           >
-                            Удалить
-                          </Button>
-                        ) : null}
+                            Открыть
+                          </Link>
+                          {lobby.can_delete_session ? (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              disabled={busy}
+                              onClick={() => {
+                                setDeleteTarget({ id: s.id, name: s.name })
+                                setDeleteConfirmName('')
+                                setDeleteConfirmOpen(true)
+                              }}
+                            >
+                              Удалить
+                            </Button>
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))
                 )}
               </Stack>
             </Panel>
@@ -759,41 +794,10 @@ export function LobbyDetailPage() {
                   <Text tone="muted">Название меняет только мастер.</Text>
                 )}
                 {lobby.invite_code ? (
-                  <>
-                    <Field label="Код лобби">
-                      <div className="invite-code-row">
-                        <Input readOnly value={lobby.invite_code} />
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          onClick={async () => {
-                            await navigator.clipboard.writeText(lobby.invite_code ?? '')
-                            setToast('Код скопирован')
-                          }}
-                        >
-                          Копировать
-                        </Button>
-                        {canChangeInvite ? (
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            disabled={busy}
-                            onClick={() => setRotateConfirmOpen(true)}
-                          >
-                            Новый код
-                          </Button>
-                        ) : null}
-                      </div>
-                    </Field>
-                    <Text tone="muted">
-                      Игрок открывает{' '}
-                      <Link to={lobby.join_path || `/join/${lobby.invite_code}`}>
-                        {lobby.join_path || `/join/${lobby.invite_code}`}
-                      </Link>{' '}
-                      и выбирает персонажа.
-                    </Text>
-                    <InviteQr inviteCode={lobby.invite_code} lobbyName={lobby.name} />
-                  </>
+                  <Text tone="muted">
+                    Код, ссылка и QR — в блоке «Приглашение» сверху (без дубля на каждом табе).
+                    {canChangeInvite ? ' Смена кода — там же.' : ''}
+                  </Text>
                 ) : null}
               </Stack>
             </Panel>

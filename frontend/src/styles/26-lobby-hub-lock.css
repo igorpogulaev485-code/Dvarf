@@ -105,9 +105,81 @@
   font-weight: 600;
 }
 
+/* LV-03: список лобби — создание за кнопкой, живые сверху */
+.lobbies-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+}
+
+.lobbies-toolbar__hint {
+  margin: 0;
+  flex: 1 1 12rem;
+}
+
+.lobbies-list__item.is-live {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.list-row--live {
+  border-radius: 12px;
+  padding: 4px 0;
+}
+
 .invite-qr--pending {
   background: color-mix(in srgb, var(--line) 35%, transparent);
   border-radius: 8px;
+}
+
+/* LV-03: приглашение-аккордеон (не выталкивает сессии на мобилке) */
+.lobby-hub-invite-acc {
+  width: min(100%, 420px);
+  margin-left: auto;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  overflow: hidden;
+}
+
+.lobby-hub-invite-acc__toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.lobby-hub-invite-acc__chevron {
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.lobby-hub-invite-acc.is-open .lobby-hub-invite {
+  padding: 0 14px 14px;
+  justify-content: flex-start;
+}
+
+.lobby-hub-invite-acc .lobby-hub-invite__meta {
+  align-items: flex-start;
+}
+
+.lobby-hub-back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 0;
+  font-weight: 600;
 }
 
 .lobby-hub-tabs {
@@ -117,6 +189,16 @@
   margin: 0 -4px;
   padding: 4px 0 8px;
   background: linear-gradient(180deg, color-mix(in srgb, var(--panel) 96%, transparent) 60%, transparent);
+  /* LV-03: peek edges on narrow */
+  display: grid;
+  grid-template-columns: 0 minmax(0, 1fr) 0;
+  align-items: stretch;
+}
+
+.lobby-hub-tabs__edge {
+  display: none;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .lobby-hub-tabs__scroll {
@@ -127,6 +209,8 @@
   padding: 4px 4px 6px;
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
+  scroll-padding-inline: 12px;
+  grid-column: 1 / -1;
 }
 
 .lobby-hub-tab {
@@ -239,8 +323,9 @@
 
 .lobby-member-card__actions .ui-button {
   flex: 0 0 auto;
-  min-height: 40px;
-  padding: 8px 12px;
+  /* LV-03 / P14: тач ≥44 px */
+  min-height: 44px;
+  padding: 10px 14px;
   font-size: 0.9rem;
 }
 
@@ -318,14 +403,60 @@
   }
 }
 
+@media (max-width: 767px) {
+  .lobby-hub-tabs {
+    grid-template-columns: 12px minmax(0, 1fr) 12px;
+  }
+
+  .lobby-hub-tabs__edge {
+    display: block;
+    grid-row: 1;
+  }
+
+  .lobby-hub-tabs__edge--start {
+    grid-column: 1;
+    background: linear-gradient(90deg, var(--panel), transparent);
+  }
+
+  .lobby-hub-tabs__edge--end {
+    grid-column: 3;
+    background: linear-gradient(270deg, var(--panel), transparent);
+  }
+
+  .lobby-hub-tabs__scroll {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    padding-inline: 12px;
+  }
+
+  /* peek следующего таба */
+  .lobby-hub-tabs__scroll::after {
+    content: '';
+    flex: 0 0 28px;
+  }
+}
+
 @media (min-width: 768px) {
   .page.page--lobby-hub {
     width: min(100% - 48px, 1120px);
   }
 
+  .lobby-hub-tabs {
+    display: block;
+  }
+
+  .lobby-hub-tabs__edge {
+    display: none;
+  }
+
   .lobby-hub-tabs__scroll {
     flex-wrap: wrap;
     overflow: visible;
+  }
+
+  .lobby-hub-invite-acc {
+    width: auto;
+    max-width: min(100%, 520px);
   }
 }
 
