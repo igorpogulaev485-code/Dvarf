@@ -1,8 +1,11 @@
+/* LV-02 P03: «Лист» / «Потратить вдохновение» ≥44 px на карточке стола */
 .session-table-card__actions .ui-button {
-  min-height: 36px;
-  padding: 6px 10px;
-  font-size: 0.88rem;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 14px;
+  font-size: 0.9rem;
   line-height: 1.2;
+  box-sizing: border-box;
 }
 
 .session-feed-filter {
@@ -812,11 +815,17 @@
   }
 
   .session-combat-track--compact .session-combat-track__title,
+  .session-combat-track--compact .session-combat-track__now,
   .session-combat-track--compact .session-combat-track__actions,
   .session-combat-track--compact .session-combat-reminders,
   .session-combat-track--compact .session-combat-waves,
   .session-combat-track--compact .session-combat-fallen {
     display: none;
+  }
+
+  /* LV-02: на узкой полосе оставляем «ход N из M» */
+  .session-combat-track--compact .session-combat-track__progress {
+    font-size: 0.8rem;
   }
 
   .session-combat-track--compact .session-combat-track__head {
@@ -844,7 +853,7 @@
     display: none;
   }
 
-  /* LV-01 P02: порядок первого экрана игрока — ход → карточки → инициатива → остальное */
+  /* LV-01/LV-02: ход → узкая инициатива → своя карточка → остальное */
   .session-center--player-focus > .ui-stack > .session-center-slot--cta {
     order: 0;
   }
@@ -853,11 +862,11 @@
     order: 1;
   }
 
-  .session-center--player-focus > .ui-stack > .session-center-slot--cards {
+  .session-center--player-focus > .ui-stack > .session-center-slot--init {
     order: 2;
   }
 
-  .session-center--player-focus > .ui-stack > .session-center-slot--init {
+  .session-center--player-focus > .ui-stack > .session-center-slot--cards {
     order: 3;
   }
 
@@ -873,6 +882,19 @@
   .session-center--player-focus > .ui-stack {
     display: flex;
     flex-direction: column;
+  }
+
+  /* LV-02: своя карточка липкая на телефоне во время хода (не на десктопе) */
+  .session-seat-stack.is-your-turn {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--panel);
+    padding-bottom: 4px;
+  }
+
+  .session-seat-stack.is-your-turn > .session-table-card {
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--ink) 12%, transparent);
   }
 }
 

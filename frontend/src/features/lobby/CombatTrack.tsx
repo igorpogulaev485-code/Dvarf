@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import type {
   CombatEntry,
   SessionCombat,
@@ -82,10 +83,45 @@ export function CombatTrack({
   onSideClick,
   compact = false,
 }: Props) {
-  if (!combat.active) return null
-  const active: CombatEntry | undefined = combat.entries[combat.active_index]
+  const orderRef = useRef<HTMLOListElement>(null)
+  const activeItemRef = useRef<HTMLLIElement>(null)
+
+  const active: CombatEntry | undefined = combat.active
+    ? combat.entries[combat.active_index]
+    : undefined
   const pendingWaves = (combat.waves ?? []).filter((w) => !w.released)
   const reminders = combat.wave_reminders ?? []
+  const turnTotal = combat.entries.length
+  const turnNumber =
+    turnTotal > 0 ? Math.min(Math.max(combat.active_index, 0) + 1, turnTotal) : 0
+
+  // LV-02 P08: держать текущий чип в кадре с peek следующего
+  useEffect(() => {
+    if (!combat.active || turnTotal === 0) return
+    const order = orderRef.current
+    const item = activeItemRef.current
+    if (!order || !item) return
+    const orderRect = order.getBoundingClientRect()
+    const itemRect = item.getBoundingClientRect()
+    const peek = 36
+    let delta = 0
+    if (itemRect.left < orderRect.left + 8) {
+      delta = itemRect.left - orderRect.left - 8
+    } else {
+      const next = item.nextElementSibling as HTMLElement | null
+      const rightEdge = next
+        ? Math.min(next.getBoundingClientRect().right, itemRect.right + peek)
+        : itemRect.right
+      if (rightEdge > orderRect.right - 8) {
+        delta = rightEdge - orderRect.right + 8
+      }
+    }
+    if (delta !== 0) {
+      order.scrollBy({ left: delta, behavior: 'smooth' })
+    }
+  }, [combat.active, combat.active_index, turnTotal])
+
+  if (!combat.active) return null
 
   return (
     <section
@@ -96,6 +132,11 @@ export function CombatTrack({
         <Text as="h3" className="session-combat-track__title">
           Бой · раунд {combat.round}
         </Text>
+        {turnTotal > 0 ? (
+          <Text className="session-combat-track__progress" aria-live="polite">
+            ход {turnNumber} из {turnTotal}
+          </Text>
+        ) : null}
         {active ? (
           <Text className="session-combat-track__now">
             Ход:{' '}
@@ -166,83 +207,85 @@ export function CombatTrack({
       ) : null}
 
       {combat.entries.length > 0 ? (
-        <ol className="session-combat-order">
-          {combat.entries.map((entry, index) => {
-            const isActive = index === combat.active_index
-            const canRollOwn =
-              (entry.kind === 'pc' || entry.kind === 'companion') &&
-              entry.initiative_pending &&
-              ownCharacterIds?.has(entry.ref_id)
-            const canRollMaster =
-              masterControls && entry.initiative_pending && Boolean(onRollInitiative)
-            const underHost =
-              entry.kind === 'pc' ? withMasterUnderHost(seats, entry.ref_id) : []
-            return (
-              <li key={entry.id}>
-                <button
-                  type="button"
-                  className={`session-combat-order__chip${isActive ? ' is-active' : ''}${
-                    entry.kind === 'enemy' ? ' is-enemy' : ''
-                  }${entry.initiative_pending ? ' is-pending' : ''}${
-                    entry.defer_to_next_round ? ' is-deferred' : ''
-                  }${entry.surprised ? ' is-surprised' : ''}`}
-                  disabled={busy || !masterControls}
-                  onClick={() => onSelect?.(index)}
-                >
-                  <span className="session-combat-order__init">
-                    {entry.initiative_pending ? '?' : entry.initiative ?? '—'}
-                  </span>
-                  <span className="session-combat-order__name">
-                    {entry.name}
-                    {entry.surprised ? ' · врасплох' : ''}
-                  </span>
-                  {entry.side ? (
-                    <span className="session-combat-order__side">
-                      {sideLabel(entry.side, combat.sides)}
-                      {entry.side_hidden ? ' · скрыта' : ''}
+        <div className="session-combat-order-wrap">
+          <ol className="session-combat-order" ref={orderRef}>
+            {combat.entries.map((entry, index) => {
+              const isActive = index === combat.active_index
+              const canRollOwn =
+                (entry.kind === 'pc' || entry.kind === 'companion') &&
+                entry.initiative_pending &&
+                ownCharacterIds?.has(entry.ref_id)
+              const canRollMaster =
+                masterControls && entry.initiative_pending && Boolean(onRollInitiative)
+              const underHost =
+                entry.kind === 'pc' ? withMasterUnderHost(seats, entry.ref_id) : []
+              return (
+                <li key={entry.id} ref={isActive ? activeItemRef : undefined}>
+                  <button
+                    type="button"
+                    className={`session-combat-order__chip${isActive ? ' is-active' : ''}${
+                      entry.kind === 'enemy' ? ' is-enemy' : ''
+                    }${entry.initiative_pending ? ' is-pending' : ''}${
+                      entry.defer_to_next_round ? ' is-deferred' : ''
+                    }${entry.surprised ? ' is-surprised' : ''}`}
+                    disabled={busy || !masterControls}
+                    onClick={() => onSelect?.(index)}
+                  >
+                    <span className="session-combat-order__init">
+                      {entry.initiative_pending ? '?' : entry.initiative ?? '—'}
                     </span>
+                    <span className="session-combat-order__name">
+                      {entry.name}
+                      {entry.surprised ? ' · врасплох' : ''}
+                    </span>
+                    {entry.side ? (
+                      <span className="session-combat-order__side">
+                        {sideLabel(entry.side, combat.sides)}
+                        {entry.side_hidden ? ' · скрыта' : ''}
+                      </span>
+                    ) : null}
+                    <MemberDots tones={entry.member_tones} />
+                  </button>
+                  {underHost.length > 0 ? (
+                    <ul className="session-combat-order__under">
+                      {underHost.map((c) => (
+                        <li key={c.id}>
+                          <span className="session-combat-order__under-chip">
+                            {c.name}
+                            {c.dodge ? ' · Уклонение' : ''}
+                            <span className="session-combat-order__kind"> · ход хозяина</span>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
                   ) : null}
-                  <MemberDots tones={entry.member_tones} />
-                </button>
-                {underHost.length > 0 ? (
-                  <ul className="session-combat-order__under">
-                    {underHost.map((c) => (
-                      <li key={c.id}>
-                        <span className="session-combat-order__under-chip">
-                          {c.name}
-                          {c.dodge ? ' · Уклонение' : ''}
-                          <span className="session-combat-order__kind"> · ход хозяина</span>
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-                {(canRollOwn || canRollMaster) && onRollInitiative ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    className="session-combat-order__roll"
-                    disabled={busy}
-                    onClick={() => onRollInitiative(entry)}
-                  >
-                    Бросить инициативу
-                  </Button>
-                ) : null}
-                {masterControls && onSideClick ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="session-combat-order__roll"
-                    disabled={busy}
-                    onClick={() => onSideClick(entry)}
-                  >
-                    Сторона
-                  </Button>
-                ) : null}
-              </li>
-            )
-          })}
-        </ol>
+                  {(canRollOwn || canRollMaster) && onRollInitiative ? (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="session-combat-order__roll"
+                      disabled={busy}
+                      onClick={() => onRollInitiative(entry)}
+                    >
+                      Бросить инициативу
+                    </Button>
+                  ) : null}
+                  {masterControls && onSideClick ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="session-combat-order__roll"
+                      disabled={busy}
+                      onClick={() => onSideClick(entry)}
+                    >
+                      Сторона
+                    </Button>
+                  ) : null}
+                </li>
+              )
+            })}
+          </ol>
+        </div>
       ) : null}
 
       {masterControls && (combat.fallen?.length ?? 0) > 0 ? (
