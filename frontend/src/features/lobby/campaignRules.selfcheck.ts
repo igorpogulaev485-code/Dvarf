@@ -18,10 +18,10 @@ function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
 }
 
-// Старые 11 (12.11) + 10 O-03 (13.11). Крит «максимум + бросок» вне списка.
-assert(HOMEBREW_KEYS.length === 21, '21 homebrew keys (11 + O-03)')
-assert(HOMEBREW_CATALOG.length === 21, 'catalog length 21')
-assert(MASTER_HOMEBREW_KEYS.length === 10, '10 master rule keys')
+// Старые 11 (12.11) + 10 O-03 + 7 O-04 (13.11). Крит «максимум + бросок» вне списка.
+assert(HOMEBREW_KEYS.length === 28, '28 homebrew keys (11 + O-03 + O-04)')
+assert(HOMEBREW_CATALOG.length === 28, 'catalog length 28')
+assert(MASTER_HOMEBREW_KEYS.length === 17, '17 master rule keys')
 assert(
   !HOMEBREW_KEYS.includes('crit_max_plus_dice' as never),
   'no crit max+dice key',
@@ -44,6 +44,13 @@ assert(defaults.homebrew.encumbrance === false, 'encumbrance off')
 assert(defaults.homebrew.dmg_disarm === false, 'disarm off')
 assert(defaults.homebrew.dmg_falling === false, 'falling off')
 assert(defaults.homebrew.xge_no_long_rest === false, 'no long rest off')
+assert(defaults.homebrew.dmg_cleave === false, 'cleave off')
+assert(defaults.homebrew.dmg_massive_damage === false, 'massive off')
+assert(defaults.homebrew.dmg_lingering_injuries === false, 'injuries off')
+assert(defaults.homebrew.dmg_morale === false, 'morale off')
+assert(defaults.homebrew.dmg_hero_points === false, 'hero points off')
+assert(defaults.homebrew.dmg_epic_heroism === false, 'epic off')
+assert(defaults.homebrew.dmg_proficiency_dice === false, 'prof dice off')
 assert(defaults.inspiration_after_roll === false, 'inspiration after roll off')
 assert(defaults.enemies_ac_visible === false, 'enemy ac hidden')
 assert(defaults.progression.mode === 'xp', 'xp default')
@@ -63,6 +70,9 @@ assert(normalized.homebrew.potion_bonus_self === true, 'potion on')
 assert(normalized.homebrew.inspiration_stack_max === 20, 'stack max clamped')
 assert(normalized.homebrew.dmg_disarm === false, 'missing O-03 key → false')
 assert(normalized.homebrew.xge_identify_spell === false, 'missing identify → false')
+assert(normalized.homebrew.dmg_cleave === false, 'missing O-04 cleave → false')
+assert(normalized.homebrew.dmg_epic_heroism === false, 'missing epic → false')
+assert(normalized.homebrew.dmg_proficiency_dice === false, 'missing prof dice → false')
 assert(normalized.custom_rules.length === 1, 'custom cleaned')
 assert(normalized.progression.xp_remainder === 4, 'xp remainder kept')
 assert(normalized.start.level === 3, 'start level 3')

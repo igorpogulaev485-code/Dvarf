@@ -9,7 +9,7 @@ from typing import Any
 from uuid import UUID
 
 from app.core.exceptions import AppError
-from app.services.session_table_s04 import gritty_rest_enabled
+from app.services.session_table_s04 import epic_heroism_enabled, gritty_rest_enabled
 
 
 def combat_active(state: dict | None) -> bool:
@@ -113,11 +113,34 @@ def normalize_object_interactions(raw: object) -> dict[str, int]:
 
 
 def gritty_rest_copy(campaign_rules: object | None) -> dict[str, Any]:
-    """Подписи для UI: обычный / суровый реализм."""
+    """Подписи для UI: обычный / суровый реализм / эпический героизм (O-04).
+
+    При конфликте обоих флагов приоритет у эпического (UI снимает второй).
+    """
+    epic = epic_heroism_enabled(campaign_rules)
     gritty = gritty_rest_enabled(campaign_rules)
+    if epic and not gritty:
+        return {
+            "gritty_rest": False,
+            "epic_heroism": True,
+            "short_label": "Короткий отдых (5 минут)",
+            "long_label": "Долгий отдых (1 час)",
+            "short_hint": "Эпический героизм: короткий отдых — 5 минут.",
+            "long_hint": "Эпический героизм: долгий отдых — 1 час.",
+        }
+    if epic and gritty:
+        return {
+            "gritty_rest": False,
+            "epic_heroism": True,
+            "short_label": "Короткий отдых (5 минут)",
+            "long_label": "Долгий отдых (1 час)",
+            "short_hint": "Эпический героизм: короткий отдых — 5 минут.",
+            "long_hint": "Эпический героизм: долгий отдых — 1 час.",
+        }
     if gritty:
         return {
             "gritty_rest": True,
+            "epic_heroism": False,
             "short_label": "Короткий отдых (8 часов)",
             "long_label": "Долгий отдых (7 дней)",
             "short_hint": "Суровый реализм: короткий отдых — 8 часов.",
@@ -125,6 +148,7 @@ def gritty_rest_copy(campaign_rules: object | None) -> dict[str, Any]:
         }
     return {
         "gritty_rest": False,
+        "epic_heroism": False,
         "short_label": "Короткий отдых",
         "long_label": "Долгий отдых",
         "short_hint": "Короткий отдых: кости хитов и сброс ресурсов «короткий».",

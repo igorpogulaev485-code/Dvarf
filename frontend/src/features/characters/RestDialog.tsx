@@ -43,6 +43,10 @@ import {
   buildShortRestResourcesSummary,
 } from './restSummary'
 import type { ActiveEffect } from '../../shared/dnd/activeEffects'
+import {
+  restDurationLabels,
+  restDurationVariant,
+} from '../../shared/dnd/o04DmgAdvanced'
 import type { RestResult } from '../../shared/dnd/rest'
 
 type RestKind = 'short' | 'long'
@@ -88,6 +92,8 @@ type RestDialogProps = {
   raceSlug?: string | null
   /** S-07 / L-08: суровый реализм — 8 часов / 7 дней. */
   grittyRest?: boolean
+  /** O-04: эпический героизм — 5 минут / 1 час (взаимоисключается с gritty). */
+  epicHeroism?: boolean
   /** S-07: подсветка блока после «Короткий/Долгий отдых» со стола. */
   preferKind?: 'short' | 'long' | null
   /** O-02: Формулы заговоров (TCE wizard) — один раз за этот короткий отдых. */
@@ -117,6 +123,7 @@ export function RestDialog({
   songOfRest = null,
   raceSlug = null,
   grittyRest = false,
+  epicHeroism = false,
   preferKind = null,
   cantripFormulas = null,
   onPlayChange,
@@ -393,15 +400,20 @@ export function RestDialog({
     else applyLongRestConfirm(confirm)
   }
 
+  const restLabels = restDurationLabels(
+    restDurationVariant({
+      gritty_rest: grittyRest,
+      dmg_epic_heroism: epicHeroism && !grittyRest,
+    }),
+  )
+
   const confirmTitle =
     confirm?.kind === 'hit-die'
       ? 'Потратить кость хитов?'
       : confirm?.kind === 'short-resources'
         ? 'Сброс коротких ресурсов'
         : confirm?.kind === 'long'
-          ? grittyRest
-            ? 'Продолжительный отдых (7 дней)'
-            : 'Продолжительный отдых'
+          ? restLabels.longLabel.replace('Долгий', 'Продолжительный')
           : ''
 
   const confirmLines =
@@ -430,7 +442,9 @@ export function RestDialog({
         <Text tone="muted">
           {grittyRest
             ? 'Суровый реализм: короткий отдых — 8 часов, долгий — 7 дней. Восстановление хитов и ячеек — как обычно.'
-            : 'Короткий — кости хитов и сброс ресурсов «короткий». Продолжительный — полные хиты, ячейки, ресурсы и −1 истощение.'}
+            : epicHeroism
+              ? 'Эпический героизм: короткий отдых — 5 минут, долгий — 1 час. Восстановление хитов и ячеек — как обычно.'
+              : 'Короткий — кости хитов и сброс ресурсов «короткий». Продолжительный — полные хиты, ячейки, ресурсы и −1 истощение.'}
         </Text>
 
         <div className="sheet-grid sheet-grid--2">
@@ -507,7 +521,7 @@ export function RestDialog({
                 className={`play-rest-tabs__btn${tab === 'short' ? ' is-on' : ''}`}
                 onClick={() => setTab('short')}
               >
-                {grittyRest ? 'Короткий (8 ч)' : 'Короткий'}
+                {restLabels.chipShort}
               </button>
               <button
                 type="button"
@@ -516,7 +530,7 @@ export function RestDialog({
                 className={`play-rest-tabs__btn${tab === 'long' ? ' is-on' : ''}`}
                 onClick={() => setTab('long')}
               >
-                {grittyRest ? 'Продолжительный (7 дн.)' : 'Продолжительный'}
+                {restLabels.chipLong}
               </button>
             </div>
 
@@ -528,9 +542,7 @@ export function RestDialog({
               >
                 <div className="play-rest-block__head">
                   <Text>
-                    <strong>
-                      {grittyRest ? 'Короткий отдых (8 часов)' : 'Короткий отдых'}
-                    </strong>
+                    <strong>{restLabels.shortLabel}</strong>
                   </Text>
                   <span className="play-rest-block__count">
                     кости {hitDiceCurrent}/{hitDiceMax}
@@ -705,17 +717,17 @@ export function RestDialog({
                 role="tabpanel"
               >
                 <Text>
-                  <strong>
-                    {grittyRest
-                      ? 'Продолжительный отдых (7 дней)'
-                      : 'Продолжительный отдых'}
-                  </strong>
+                  <strong>{restLabels.longLabel.replace('Долгий', 'Продолжительный')}</strong>
                 </Text>
                 <Text tone="muted">
                   Полные хиты, половина костей, ячейки и ячейки договора, ресурсы, −1 истощение,
                   сброс спасбросков от смерти
-                  {grittyRest ? ' · суровый реализм: 7 дней' : ''}. Перед применением — сводка
-                  изменений.
+                  {grittyRest
+                    ? ' · суровый реализм: 7 дней'
+                    : epicHeroism
+                      ? ' · эпический героизм: 1 час'
+                      : ''}
+                  . Перед применением — сводка изменений.
                 </Text>
                 <div className="play-rest-actions">
                   <Button type="button" onClick={requestLongRest}>

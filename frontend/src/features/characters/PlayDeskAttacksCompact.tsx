@@ -12,7 +12,26 @@ import {
   NoLongRestDialog,
   OverrunTumbleDialog,
 } from './O03MasterRulesDialogs'
+import {
+  CleaveDialog,
+  HeroPointSpendDialog,
+  LingeringInjuryDialog,
+  MassiveDamageDialog,
+  MoraleCheckDialog,
+  ProficiencyDieDialog,
+} from './O04MasterRulesDialogs'
 import { adamantineObjectHitIsCrit } from '../../shared/dnd/o03DmgActions'
+import {
+  cleaveOverflow,
+  proficiencyRollContribution,
+  triggersMassiveDamage,
+  type LingeringInjuryRow,
+  type SystemShockRow,
+} from '../../shared/dnd/o04DmgAdvanced'
+import {
+  heroPointsRemaining,
+  spendHeroPoint,
+} from '../../shared/dnd/heroPoints'
 import type { HomebrewKey } from '../lobby/campaignRules'
 import { CombatTargetPicker } from './CombatTargetPicker'
 import { EnterOwnNumberDialog } from './EnterOwnNumberDialog'
@@ -140,6 +159,12 @@ type PlayDeskAttacksCompactProps = {
   noLongRestDays?: number
   onNoLongRestResolved?: (next: { days: number; exhaustionDelta: number }) => void
   onFallingSelf?: (damage: number, prone: boolean) => void
+  /** O-04: обновить ресурсы (очки героя). */
+  onResourcesChange?: (resources: SheetResource[]) => void
+  /** O-04: записать незаживающую рану на лист. */
+  onApplyLingeringInjury?: (row: LingeringInjuryRow) => void
+  /** O-04: применить эффект системного шока к себе. */
+  onApplySystemShockSelf?: (row: SystemShockRow) => void
   /** O-01: known warlock invocation ids. */
   knownInvocationIds?: string[]
   /** O-01: feature picks for grappling_strike / superiority. */
@@ -266,6 +291,9 @@ export function PlayDeskAttacksCompact({
   noLongRestDays = 0,
   onNoLongRestResolved,
   onFallingSelf,
+  onResourcesChange,
+  onApplyLingeringInjury,
+  onApplySystemShockSelf,
   knownInvocationIds = [],
   featurePicks,
   spells = null,
@@ -320,6 +348,30 @@ export function PlayDeskAttacksCompact({
     | 'falling'
     | 'noLongRest'
   >(null)
+  const [o04Dialog, setO04Dialog] = useState<
+    | null
+    | 'cleave'
+    | 'massive'
+    | 'injury'
+    | 'morale'
+    | 'hero'
+    | 'profDie'
+  >(null)
+  const [cleaveCtx, setCleaveCtx] = useState<{
+    overflow: number
+    attackTotal: number | null
+    excludeTargetId: string | null
+  } | null>(null)
+  const [massiveCtx, setMassiveCtx] = useState<{
+    label: string
+    damage: number
+    hpMax: number | null
+    self: boolean
+  } | null>(null)
+  const [injuryReason, setInjuryReason] = useState('вручную')
+  const [profDiePending, setProfDiePending] = useState<{
+    resolve: (roll: number) => void
+  } | null>(null)
   const [markedTarget, setMarkedTarget] = useState<{ id: string; name: string } | null>(null)
   const [markOppUsed, setMarkOppUsed] = useState(false)
   const [targetIsObject, setTargetIsObject] = useState(false)
@@ -372,6 +424,8 @@ export function PlayDeskAttacksCompact({
     crit?: boolean
     /** O-03: оружие/боеприпас помечен адамантином. */
     adamantine?: boolean
+    /** O-04: рукопашная атака оружием — для разрубания. */
+    meleeWeapon?: boolean
   } | null>(null)
   const finishAttackRef = useRef<
     | ((opts?: {
@@ -659,6 +713,20 @@ export function PlayDeskAttacksCompact({
             onO03IdentifySpell={() => setO03Dialog('identify')}
             onO03Falling={() => setO03Dialog('falling')}
             onO03NoLongRest={() => setO03Dialog('noLongRest')}
+            o04={{
+              cleave: Boolean(masterRules.dmg_cleave),
+              massiveDamage: Boolean(masterRules.dmg_massive_damage),
+              lingeringInjuries: Boolean(masterRules.dmg_lingering_injuries),
+              morale: Boolean(masterRules.dmg_morale),
+              heroPoints: Boolean(masterRules.dmg_hero_points),
+              proficiencyDice: Boolean(masterRules.dmg_proficiency_dice),
+            }}
+            onO04LingeringInjury={() => {
+              setInjuryReason('вручную')
+              setO04Dialog('injury')
+            }}
+            onO04Morale={() => setO04Dialog('morale')}
+            onO04HeroPoints={() => setO04Dialog('hero')}
             onToast={onToast}
             onOfferSkill={(key) => {
               const labels: Record<string, string> = {
@@ -755,6 +823,87 @@ export function PlayDeskAttacksCompact({
             onResolved={(next) => onNoLongRestResolved?.(next)}
             onToast={onToast}
             onClose={() => setO03Dialog(null)}
+          />
+          <CleaveDialog
+            open={o04Dialog === 'cleave' && Boolean(cleaveCtx)}
+            characterId={characterId ?? ''}
+            overflow={cleaveCtx?.overflow ?? 0}
+            attackTotal={cleaveCtx?.attackTotal ?? null}
+            excludeTargetId={cleaveCtx?.excludeTargetId}
+            onToast={onToast}
+            onClose={() => {
+              setO04Dialog(null)
+              setCleaveCtx(null)
+            }}
+          />
+          <MassiveDamageDialog
+            open={o04Dialog === 'massive' && Boolean(massiveCtx)}
+            characterId={characterId}
+            targetLabel={massiveCtx?.label ?? ''}
+            damage={massiveCtx?.damage ?? 0}
+            hpMax={massiveCtx?.hpMax ?? null}
+            conMod={abilityModifier(abilities.con ?? 10)}
+            diceOnTable={Boolean(turnEco?.diceOnTable)}
+            onApplyShock={(row) => {
+              if (massiveCtx?.self) onApplySystemShockSelf?.(row)
+              else onToast?.(`Системный шок на цели: ${row.nameRu} — примените на карточке`)
+            }}
+            onFailedSave={() => {
+              if (masterRules.dmg_lingering_injuries) {
+                setInjuryReason('провал спаса массивного урона')
+              }
+            }}
+            onToast={onToast}
+            onClose={() => {
+              const needInjury =
+                masterRules.dmg_lingering_injuries &&
+                injuryReason === 'провал спаса массивного урона'
+              setMassiveCtx(null)
+              if (needInjury) setO04Dialog('injury')
+              else setO04Dialog(null)
+            }}
+          />
+          <LingeringInjuryDialog
+            open={o04Dialog === 'injury'}
+            characterId={characterId}
+            reason={injuryReason}
+            diceOnTable={Boolean(turnEco?.diceOnTable)}
+            onApplyInjury={(row) => onApplyLingeringInjury?.(row)}
+            onToast={onToast}
+            onClose={() => setO04Dialog(null)}
+          />
+          <MoraleCheckDialog
+            open={o04Dialog === 'morale'}
+            onToast={onToast}
+            onClose={() => setO04Dialog(null)}
+          />
+          <HeroPointSpendDialog
+            open={o04Dialog === 'hero'}
+            remaining={heroPointsRemaining(resources)}
+            level={characterLevel}
+            isDying={false}
+            diceOnTable={Boolean(turnEco?.diceOnTable)}
+            onSpendD6={() => {
+              const next = spendHeroPoint(resources)
+              if (next.ok) onResourcesChange?.(next.resources)
+            }}
+            onStabilizeOrDeathSuccess={() => {
+              const next = spendHeroPoint(resources)
+              if (next.ok) onResourcesChange?.(next.resources)
+            }}
+            onToast={onToast}
+            onClose={() => setO04Dialog(null)}
+          />
+          <ProficiencyDieDialog
+            open={o04Dialog === 'profDie'}
+            proficiencyBonus={proficiencyBonus}
+            onConfirm={(roll) => {
+              profDiePending?.resolve(roll)
+            }}
+            onClose={() => {
+              setO04Dialog(null)
+              setProfDiePending(null)
+            }}
           />
         </>
       ) : null}
@@ -1034,13 +1183,20 @@ export function PlayDeskAttacksCompact({
               infusionBonus: infusionAtk,
               effectBonus: effectAtk,
             })
+            const pbContrib = proficiencyRollContribution({
+              proficient,
+              proficiencyBonus,
+              // Для подписи кнопки — числовой БМ; фактический бросок кости — в onClick.
+              diceEnabled: false,
+            })
             const attackBonus =
               mod +
-              (proficient ? proficiencyBonus : 0) +
+              pbContrib.value +
               magicAtk +
               styleAtk +
               infusionAtk +
               effectAtk
+            const profDiceOn = Boolean(masterRules.dmg_proficiency_dice) && proficient
             const dmgBonus =
               mod +
               (gear?.damageBonus ?? 0) +
@@ -1089,6 +1245,17 @@ export function PlayDeskAttacksCompact({
                       if (row.meleeOnly && !meleeAttack) return false
                       return riderEnabled(row)
                     })
+
+                    const runAttackWithPb = (pbValue: number, pbNote: string) => {
+                    const effectiveAttackBonus =
+                      mod +
+                      pbValue +
+                      magicAtk +
+                      styleAtk +
+                      infusionAtk +
+                      effectAtk
+                    if (pbNote) onToast?.(pbNote)
+
                     const finishAttack = (opts?: {
                       target?: CombatTarget | null
                       physicalDice?: boolean
@@ -1203,9 +1370,10 @@ export function PlayDeskAttacksCompact({
                       finishAttackRef.current = finishAttack
                       setPendingAttack({
                         name: attack.name,
-                        attackBonus,
+                        attackBonus: effectiveAttackBonus,
                         tableMode: true,
                         adamantine: Boolean(boundForTable?.adamantine),
+                        meleeWeapon: Boolean(meleeAttack && !unarmed),
                       })
                       return
                     }
@@ -1219,7 +1387,7 @@ export function PlayDeskAttacksCompact({
                         attackAbility === 'cha')
                     const strike = resolveAttackRoll({
                       name: attack.name,
-                      attackBonus,
+                      attackBonus: effectiveAttackBonus,
                       damageExpr: dmg || baseDamage,
                       damageType: attack.damage_type,
                       bonusDice,
@@ -1333,22 +1501,23 @@ export function PlayDeskAttacksCompact({
                       return
                     }
 
-                    const formula = `1d20${attackBonus >= 0 ? '+' : ''}${attackBonus}`
+                    const formula = `1d20${effectiveAttackBonus >= 0 ? '+' : ''}${effectiveAttackBonus}`
                     const breakdown = strike.hitRoll
-                      ? `${strike.hitRoll.die}${attackBonus >= 0 ? '+' : ''}${attackBonus}`
+                      ? `${strike.hitRoll.die}${effectiveAttackBonus >= 0 ? '+' : ''}${effectiveAttackBonus}`
                       : undefined
 
                     finishAttackRef.current = finishAttack
                     if (turnEco?.combatActive) {
                       setPendingAttack({
                         name: attack.name,
-                        attackBonus,
+                        attackBonus: effectiveAttackBonus,
                         strikeText: strike.text,
                         hitTotal: strike.hitRoll?.total,
                         formula,
                         breakdown,
                         tableMode: false,
                         crit: strikeCrit,
+                        meleeWeapon: Boolean(meleeAttack && !unarmed),
                       })
                       return
                     }
@@ -1360,6 +1529,40 @@ export function PlayDeskAttacksCompact({
                       breakdown,
                       crit: strikeCrit,
                     })
+                    } // end runAttackWithPb
+
+                    if (profDiceOn) {
+                      if (turnEco?.diceOnTable) {
+                        setProfDiePending({
+                          resolve: (roll) => {
+                            setO04Dialog(null)
+                            setProfDiePending(null)
+                            runAttackWithPb(
+                              roll,
+                              `Кость мастерства к${proficiencyRollContribution({
+                                proficient: true,
+                                proficiencyBonus,
+                                diceEnabled: true,
+                                forcedRoll: roll,
+                              }).sides}=${roll} вместо БМ +${proficiencyBonus}`,
+                            )
+                          },
+                        })
+                        setO04Dialog('profDie')
+                        return
+                      }
+                      const rolled = proficiencyRollContribution({
+                        proficient: true,
+                        proficiencyBonus,
+                        diceEnabled: true,
+                      })
+                      runAttackWithPb(
+                        rolled.value,
+                        `Кость мастерства: ${rolled.label} вместо БМ +${proficiencyBonus}`,
+                      )
+                      return
+                    }
+                    runAttackWithPb(proficient ? proficiencyBonus : 0, '')
                   }}
                 >
                   <div className="play-desk-compact__row-main">
@@ -1787,13 +1990,77 @@ export function PlayDeskAttacksCompact({
         if (adamCrit) {
           onToast?.('Адамантин · цель — предмет → автоматический критический удар')
         }
+        const isCrit = Boolean(adamCrit || pendingAttack?.crit)
         finishAttackRef.current?.({
           target,
           tableHit: true,
           physicalDice: true,
           damageTotal,
-          crit: adamCrit,
+          crit: isCrit,
         })
+        const dmg = Math.max(0, Math.floor(damageTotal ?? 0))
+        const hpBefore = target.hp_current
+        let opened: 'cleave' | 'massive' | 'injury' | null = null
+        if (
+          masterRules.dmg_cleave &&
+          pendingAttack?.meleeWeapon &&
+          hpBefore != null &&
+          Number.isFinite(hpBefore)
+        ) {
+          const cleave = cleaveOverflow({
+            enabled: true,
+            meleeWeapon: true,
+            hpBefore,
+            damage: dmg,
+          })
+          if (cleave.qualifies) {
+            setCleaveCtx({
+              overflow: cleave.overflow,
+              attackTotal: pendingAttack.hitTotal ?? pendingAttack.attackBonus,
+              excludeTargetId: target.id,
+            })
+            setO04Dialog('cleave')
+            opened = 'cleave'
+          }
+        }
+        const massive = triggersMassiveDamage({
+          enabled: Boolean(masterRules.dmg_massive_damage),
+          damage: dmg,
+          hpMax: target.hp_max ?? null,
+        })
+        if (massive) {
+          setMassiveCtx({
+            label: target.name,
+            damage: dmg,
+            hpMax: target.hp_max ?? null,
+            self: false,
+          })
+          if (!opened) {
+            setO04Dialog('massive')
+            opened = 'massive'
+          } else {
+            onToast?.(
+              `Массивный урон · ${target.name}: после разрубания откройте спас Тел Сл 15 (кнопка/повтор)`,
+            )
+          }
+        }
+        if (masterRules.dmg_lingering_injuries && isCrit) {
+          setInjuryReason('критический удар')
+          if (!opened) {
+            setO04Dialog('injury')
+            opened = 'injury'
+          } else {
+            onToast?.('Незаживающая рана (крит): после текущего диалога — «Бросок раны»')
+          }
+        } else if (
+          masterRules.dmg_lingering_injuries &&
+          hpBefore != null &&
+          dmg >= hpBefore
+        ) {
+          setInjuryReason('падение до 0 хитов')
+          if (!opened) setO04Dialog('injury')
+          else onToast?.('Незаживающая рана (0 хитов): после текущего диалога — «Бросок раны»')
+        }
         setPendingAttack(null)
       }}
       onTableMiss={(target) => {

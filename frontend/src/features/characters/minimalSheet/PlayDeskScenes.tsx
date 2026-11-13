@@ -1,5 +1,5 @@
 /** Сцены стола: бой, инвентарь, умения, заклинания, напарники, тексты. */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ApiRequestError } from '../../../shared/api/client'
 import { transferLobbyInventory } from '../../../shared/api/lobbies'
 import { TransferDialog, type TransferPeer } from '../TransferDialog'
@@ -21,6 +21,10 @@ import { AttunementDialog } from '../AttunementDialog'
 import { filledAttunementCount, maxAttunementsForClasses } from '../attunement'
 import { InventoryPanel } from '../InventoryPanel'
 import { normalizeCampaignRules } from '../../lobby/campaignRules'
+import {
+  ensureHeroPointsResource,
+  refreshHeroPointsOnLevelUp,
+} from '../../../shared/dnd/heroPoints'
 import { INSTINCTIVE_POUNCE_HINT } from '../../../shared/dnd/o02TashaFeatures'
 import { AttacksSettingsDialog } from '../AttacksSettingsDialog'
 import { SpellsPanel } from '../SpellsPanel'
@@ -101,6 +105,26 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
   const [transferMode, setTransferMode] = useState<DeskTransferMode | null>(null)
   /** U09: deep-link from attack → inventory card. */
   const [focusInventoryItemId, setFocusInventoryItemId] = useState<string | null>(null)
+  const prevHeroLevelRef = useRef<number | null>(null)
+
+  // O-04: очки героя — выдать при включении правила; при левелапе сжечь остаток.
+  useEffect(() => {
+    const hb = normalizeCampaignRules(model.campaignRulesRaw).homebrew
+    if (!hb.dmg_hero_points) return
+    const level = model.characterLevel || 1
+    const prevLv = prevHeroLevelRef.current
+    prevHeroLevelRef.current = level
+    model.setDraft((prev) => {
+      let resources = prev.play.resources
+      if (prevLv != null && prevLv !== level) {
+        resources = refreshHeroPointsOnLevelUp(resources, level, true)
+      } else {
+        resources = ensureHeroPointsResource(resources, level, true)
+      }
+      if (resources === prev.play.resources) return prev
+      return { ...prev, play: { ...prev.play, resources } }
+    })
+  }, [model.campaignRulesRaw, model.characterLevel, model.setDraft])
 
   function openInventoryItem(itemId: string) {
     model.setDeskMode('explore')
@@ -269,6 +293,95 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                   ...prev,
                   hpCurrent: nextHp,
                   play: { ...prev.play, conditions },
+                }
+              })
+            }}
+            onResourcesChange={(resources) => {
+              model.setDraft((prev) => ({
+                ...prev,
+                play: { ...prev.play, resources },
+              }))
+            }}
+            onApplyLingeringInjury={(row) => {
+              model.setDraft((prev) => {
+                const slug = `lingering_injury:${row.key}`
+                const conditions = prev.play.conditions ?? []
+                if (conditions.some((c) => c.slug === slug)) return prev
+                const effects = prev.play.effects ?? []
+                const effectId = `lingering:${row.key}:${Date.now()}`
+                return {
+                  ...prev,
+                  play: {
+                    ...prev.play,
+                    conditions: [
+                      ...conditions,
+                      {
+                        slug,
+                        name: row.nameRu,
+                        catalog_id: null,
+                        level: 1,
+                      },
+                    ],
+                    effects: [
+                      ...effects,
+                      {
+                        id: effectId,
+                        slug,
+                        name: `${row.nameRu}: ${row.effectRu}`,
+                        kind: 'feature',
+                        origin: 'Незаживающая рана (DMG)',
+                        duration: { unit: 'permanent' },
+                        mods: [],
+                      },
+                    ],
+                  },
+                }
+              })
+            }}
+            onApplySystemShockSelf={(row) => {
+              model.setDraft((prev) => {
+                let hpCurrent = prev.hpCurrent
+                let play = { ...prev.play }
+                if (row.apply === 'drop_0' || row.apply === 'drop_0_stable') {
+                  hpCurrent = 0
+                  play = {
+                    ...play,
+                    isDying: row.apply === 'drop_0',
+                    deathSuccesses: 0,
+                    deathFails: 0,
+                  }
+                }
+                let conditions = play.conditions ?? []
+                if (row.apply === 'stunned' && !conditions.some((c) => c.slug === 'stunned')) {
+                  conditions = [
+                    ...conditions,
+                    {
+                      slug: 'stunned',
+                      name: 'Ошеломлённый',
+                      catalog_id: null,
+                      level: 1,
+                    },
+                  ]
+                }
+                if (
+                  (row.apply === 'no_reactions' ||
+                    row.apply === 'no_reactions_disadvantage') &&
+                  !conditions.some((c) => c.slug === 'system_shock_no_reactions')
+                ) {
+                  conditions = [
+                    ...conditions,
+                    {
+                      slug: 'system_shock_no_reactions',
+                      name: 'Без реакций (шок)',
+                      catalog_id: null,
+                      level: 1,
+                    },
+                  ]
+                }
+                return {
+                  ...prev,
+                  hpCurrent,
+                  play: { ...play, conditions },
                 }
               })
             }}

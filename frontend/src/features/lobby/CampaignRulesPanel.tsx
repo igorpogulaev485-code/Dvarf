@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import { Button, Field, NumberInput, Panel, Stack, Text } from '../../ui'
+import { mutuallyExclusiveRestFlags } from '../../shared/dnd/o04DmgAdvanced'
 import {
   BOOK_SOURCE_CATALOG,
   HOMEBREW_CATALOG,
@@ -310,6 +311,21 @@ export function CampaignRulesPanel({
 
   function patchHomebrew(key: HomebrewKey, value: boolean) {
     if (readOnly) return
+    if (key === 'gritty_rest' || key === 'dmg_epic_heroism') {
+      const rest = mutuallyExclusiveRestFlags({
+        key,
+        value,
+        current: {
+          gritty_rest: Boolean(rules.homebrew.gritty_rest),
+          dmg_epic_heroism: Boolean(rules.homebrew.dmg_epic_heroism),
+        },
+      })
+      onChange({
+        ...rules,
+        homebrew: { ...rules.homebrew, ...rest },
+      })
+      return
+    }
     onChange({
       ...rules,
       homebrew: { ...rules.homebrew, [key]: value },

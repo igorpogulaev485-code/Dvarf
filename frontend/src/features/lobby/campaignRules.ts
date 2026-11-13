@@ -42,8 +42,16 @@ export type HomebrewKey =
   | 'dmg_falling'
   | 'dmg_adamantine_weapon'
   | 'xge_no_long_rest'
+  /** O-04: продвинутые правила мастера DMG (решение 13.11). */
+  | 'dmg_cleave'
+  | 'dmg_massive_damage'
+  | 'dmg_lingering_injuries'
+  | 'dmg_morale'
+  | 'dmg_hero_points'
+  | 'dmg_epic_heroism'
+  | 'dmg_proficiency_dice'
 
-/** Ключи O-03 — блок «Правила мастера» в панели лобби. */
+/** Ключи O-03 + O-04 — блок «Правила мастера» в панели лобби. */
 export const MASTER_HOMEBREW_KEYS: HomebrewKey[] = [
   'dmg_disarm',
   'dmg_mark',
@@ -55,6 +63,13 @@ export const MASTER_HOMEBREW_KEYS: HomebrewKey[] = [
   'dmg_falling',
   'dmg_adamantine_weapon',
   'xge_no_long_rest',
+  'dmg_cleave',
+  'dmg_massive_damage',
+  'dmg_lingering_injuries',
+  'dmg_morale',
+  'dmg_hero_points',
+  'dmg_epic_heroism',
+  'dmg_proficiency_dice',
 ]
 
 export type HomebrewCatalogEntry = {
@@ -247,7 +262,7 @@ export type CampaignRules = {
   start: StartRules
 }
 
-/** Старые 11 (решение 12.11) + 10 правил мастера O-03 (решение 13.11). Крит «максимум + бросок» вне списка. */
+/** Старые 11 (12.11) + 10 O-03 + 7 O-04 (13.11). Крит «максимум + бросок» вне списка. */
 export const HOMEBREW_KEYS: HomebrewKey[] = [
   'potion_bonus_self',
   'inspiration_stack',
@@ -316,7 +331,7 @@ export const HOMEBREW_CATALOG: HomebrewCatalogEntry[] = [
   {
     key: 'gritty_rest',
     label: 'Суровый реализм',
-    tip: 'Короткий отдых — 8 часов. Длинный отдых — 7 дней.',
+    tip: 'Короткий отдых — 8 часов. Длинный отдых — 7 дней. Взаимоисключается с «Эпическим героизмом».',
     source: 'DMG 2014',
   },
   {
@@ -391,6 +406,48 @@ export const HOMEBREW_CATALOG: HomebrewCatalogEntry[] = [
     tip: 'После 24 часов без длинного отдыха — спасбросок Телосложения Сл 10, при провале +1 истощение. Каждые следующие сутки Сл +5. Длинный отдых сбрасывает счётчик. Не путать с «Суровым реализмом».',
     source: 'XGE',
   },
+  {
+    key: 'dmg_cleave',
+    label: 'Разрубание',
+    tip: 'Если рукопашная атака оружием опускает существо до 0 хитов и есть остаток урона — можно перенести остаток на другое существо в 5 фт (и в досягаемости), если исходный бросок атаки попал бы по нему. Новая атака не тратится.',
+    source: 'DMG 2014, гл. 9',
+  },
+  {
+    key: 'dmg_massive_damage',
+    label: 'Массивный урон',
+    tip: 'Урон из одного источника ≥ половины максимума хитов — спасбросок Телосложения Сл 15, иначе эффект из таблицы «Системный шок» DMG.',
+    source: 'DMG 2014, гл. 9',
+  },
+  {
+    key: 'dmg_lingering_injuries',
+    label: 'Незаживающие раны',
+    tip: 'Бросок по таблице незаживающих ран DMG при критическом ударе, при падении до 0 хитов или при провале спаса массивного урона (если тот включён). Эффект хранится на листе, пока не вылечат по тексту строки.',
+    source: 'DMG 2014, гл. 9',
+  },
+  {
+    key: 'dmg_morale',
+    label: 'Мораль',
+    tip: 'Мастер может вызвать проверку морали для врагов: спасбросок Мудрости Сл 10 (помеха / автопровал при подавляющем превосходстве). Провал — бежит или сдаётся. Игроков этим правилом не гоняет.',
+    source: 'DMG 2014, гл. 9',
+  },
+  {
+    key: 'dmg_hero_points',
+    label: 'Очки героя',
+    tip: 'На 1 уровне — 5 очков. При повышении уровня остаток сгорает, новый запас = 5 + половина уровня (вниз). Трата: после броска d20 до исхода — +1к6; либо автоматически стабилизировать умирающего / успех на спасброске от смерти.',
+    source: 'DMG 2014',
+  },
+  {
+    key: 'dmg_epic_heroism',
+    label: 'Эпический героизм',
+    tip: 'Короткий отдых — 5 минут, длинный — 1 час. Взаимоисключается с «Суровым реализмом»: включение одного снимает другое.',
+    source: 'DMG 2014',
+  },
+  {
+    key: 'dmg_proficiency_dice',
+    label: 'Кости мастерства',
+    tip: 'Вместо фиксированного бонуса мастерства к атаке, проверке и спасброску бросается кость: БМ 2→к4, 3→к6, 4→к8, 5→к10, 6→к12. Числовые Сл и «половина БМ» остаются числом.',
+    source: 'DMG 2014',
+  },
 ]
 
 export function defaultStartRules(): StartRules {
@@ -434,6 +491,13 @@ export function defaultCampaignRules(): CampaignRules {
       dmg_falling: false,
       dmg_adamantine_weapon: false,
       xge_no_long_rest: false,
+      dmg_cleave: false,
+      dmg_massive_damage: false,
+      dmg_lingering_injuries: false,
+      dmg_morale: false,
+      dmg_hero_points: false,
+      dmg_epic_heroism: false,
+      dmg_proficiency_dice: false,
     },
     progression: { mode: 'xp', xp_remainder: 0 },
     inspiration_after_roll: false,
