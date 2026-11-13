@@ -952,24 +952,7 @@ export function PlayDeskAttacksCompact({
       <div className="play-desk-compact__head">
         <h3>Атаки</h3>
         <div className="play-desk-compact__head-actions">
-          {turnEco ? (
-            <label
-              className="play-desk-compact__dice-toggle"
-              title={
-                turnEco.diceLockedByMaster
-                  ? 'Включено мастером на столе'
-                  : 'Бросок живыми кубиками: Попал/Промах или своё число'
-              }
-            >
-              <input
-                type="checkbox"
-                checked={turnEco.diceOnTable}
-                disabled={turnEco.diceLockedByMaster}
-                onChange={(e) => turnEco.setPersonalDiceOnTable(e.target.checked)}
-              />
-              Кубики на столе
-            </label>
-          ) : null}
+          {/* M-02 / M13: «Кубики на столе» only on TurnEconomyStrip next to «Новый ход». */}
           <button
             type="button"
             className="play-desk-compact__link play-desk-compact__link--settings"

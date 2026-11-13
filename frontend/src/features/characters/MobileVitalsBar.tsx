@@ -34,7 +34,8 @@ import { absorbDamageWithArcaneWard } from '../../shared/dnd/wizardTradition'
 import { NeedsSetupIndicator } from './NeedsSetupIndicator'
 import type { NeedsSetupItem } from './needsSetup'
 
-const COLLAPSE_KEY = 'dvarf.mobileVitals.collapsed'
+/** v2: M-02 / Q1 defaults to collapsed; old key often stored «0» from M-01 mounts. */
+const COLLAPSE_KEY = 'dvarf.mobileVitals.collapsed.v2'
 
 type MobileVitalsBarProps = {
   character: CharacterDetail
@@ -118,11 +119,14 @@ type MobileVitalsBarProps = {
   onNeedsSetupSelect?: (item: NeedsSetupItem) => void
 }
 
+/** M-02 / Q1: on first visit the phone header starts collapsed. */
 function readCollapsed(): boolean {
   try {
-    return localStorage.getItem(COLLAPSE_KEY) === '1'
+    const raw = localStorage.getItem(COLLAPSE_KEY)
+    if (raw === null) return true
+    return raw === '1'
   } catch {
-    return false
+    return true
   }
 }
 
