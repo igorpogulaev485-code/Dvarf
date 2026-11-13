@@ -16,7 +16,6 @@ import {
 } from '../features/characters/characterListPrefs'
 import { getMe, type User } from '../shared/api/auth'
 import {
-  createCharacter,
   listCharacters,
   type CharacterSummary,
 } from '../shared/api/characters'
@@ -47,7 +46,6 @@ export function CharactersPage() {
   const [characters, setCharacters] = useState<CharacterSummary[]>([])
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
@@ -127,26 +125,9 @@ export function CharactersPage() {
     )
   }
 
-  async function handleCreate(request: CreateCharacterRequest) {
-    if (request.edition === '2014') {
-      navigate('/characters/create')
-      return
-    }
-    setCreating(true)
-    setError(null)
-    try {
-      const created = await createCharacter(request.edition)
-      navigate(`/characters/${created.id}`, {
-        state: {
-          toast: 'Персонаж создан — сначала предыстория, потом класс, потом раса',
-          createGuide: 'background-first',
-        },
-      })
-    } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : 'Не удалось создать персонажа')
-    } finally {
-      setCreating(false)
-    }
+  function handleCreate(_request: CreateCharacterRequest) {
+    // 2024 скрыт до готовности редакции — только пошаговая форма 2014.
+    navigate('/characters/create')
   }
 
   const titleCount = loading ? '' : ` (${characters.length})`
@@ -166,7 +147,7 @@ export function CharactersPage() {
         />
 
         <section className="toolbar character-list-toolbar">
-          <CreateCharacterButton pending={creating} onCreate={handleCreate} />
+          <CreateCharacterButton onCreate={handleCreate} />
           <Button
             type="button"
             variant="ghost"
@@ -254,7 +235,7 @@ export function CharactersPage() {
                 </Button>
               ) : (
                 <Stack gap={8}>
-                  <CreateCharacterButton pending={creating} onCreate={handleCreate} />
+                  <CreateCharacterButton onCreate={handleCreate} />
                   <Button
                     type="button"
                     variant="ghost"

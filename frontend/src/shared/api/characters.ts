@@ -46,6 +46,10 @@ export async function createCharacter(
   name?: string,
   options?: { isDraft?: boolean },
 ): Promise<CharacterDetail> {
+  // FIX-hide2024: UI path for 2024 is closed until the edition is ready.
+  if (rulesEdition === '2024') {
+    throw new Error('Редакция 2024 ещё не открыта')
+  }
   return apiRequest<CharacterDetail>('/characters', {
     method: 'POST',
     body: JSON.stringify({
