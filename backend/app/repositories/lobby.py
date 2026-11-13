@@ -573,12 +573,34 @@ class LobbyRepository:
         self.db.flush()
         return event
 
-    def count_journal_entries(self, lobby_id: UUID) -> int:
+    def _journal_visibility_filter(self, lobby_id: UUID, *, include_drafts: bool):
+        clauses = [CampaignJournalEntry.lobby_id == lobby_id]
+        if not include_drafts:
+            clauses.append(CampaignJournalEntry.is_draft.is_(False))
+        return clauses
+
+    def count_journal_entries(
+        self,
+        lobby_id: UUID,
+        *,
+        include_drafts: bool = True,
+        q: str | None = None,
+        chapter_id: UUID | None = None,
+    ) -> int:
+        clauses = self._journal_visibility_filter(lobby_id, include_drafts=include_drafts)
+        if q:
+            like = f"%{q}%"
+            clauses.append(
+                (CampaignJournalEntry.title.ilike(like))
+                | (CampaignJournalEntry.body.ilike(like))
+            )
+        if chapter_id is not None:
+            clauses.append(CampaignJournalEntry.chapter_id == chapter_id)
         return int(
             self.db.scalar(
                 select(func.count())
                 .select_from(CampaignJournalEntry)
-                .where(CampaignJournalEntry.lobby_id == lobby_id)
+                .where(*clauses)
             )
             or 0
         )
@@ -589,15 +611,60 @@ class LobbyRepository:
         *,
         offset: int = 0,
         limit: int = 20,
+        include_drafts: bool = True,
+        q: str | None = None,
+        chapter_id: UUID | None = None,
     ) -> list[CampaignJournalEntry]:
+        clauses = self._journal_visibility_filter(lobby_id, include_drafts=include_drafts)
+        if q:
+            like = f"%{q}%"
+            clauses.append(
+                (CampaignJournalEntry.title.ilike(like))
+                | (CampaignJournalEntry.body.ilike(like))
+            )
+        if chapter_id is not None:
+            clauses.append(CampaignJournalEntry.chapter_id == chapter_id)
         stmt = (
             select(CampaignJournalEntry)
-            .where(CampaignJournalEntry.lobby_id == lobby_id)
+            .where(*clauses)
             .order_by(CampaignJournalEntry.created_at.desc())
             .offset(offset)
             .limit(limit)
         )
         return list(self.db.scalars(stmt).all())
+
+    def list_journal_chapters(self, lobby_id: UUID) -> list[CampaignJournalEntry]:
+        stmt = (
+            select(CampaignJournalEntry)
+            .where(
+                CampaignJournalEntry.lobby_id == lobby_id,
+                CampaignJournalEntry.entry_type == "chapter",
+                CampaignJournalEntry.is_draft.is_(False),
+            )
+            .order_by(CampaignJournalEntry.created_at.asc())
+        )
+        return list(self.db.scalars(stmt).all())
+
+    def get_session_journal_chapter(
+        self,
+        lobby_id: UUID,
+        session_id: UUID,
+    ) -> CampaignJournalEntry | None:
+        return self.db.scalar(
+            select(CampaignJournalEntry).where(
+                CampaignJournalEntry.lobby_id == lobby_id,
+                CampaignJournalEntry.entry_type == "chapter",
+                CampaignJournalEntry.from_session_id == session_id,
+            )
+        )
+
+    def latest_journal_published_at(self, lobby_id: UUID):
+        return self.db.scalar(
+            select(func.max(CampaignJournalEntry.updated_at)).where(
+                CampaignJournalEntry.lobby_id == lobby_id,
+                CampaignJournalEntry.is_draft.is_(False),
+            )
+        )
 
     def get_journal_entry(self, entry_id: UUID) -> CampaignJournalEntry | None:
         return self.db.scalar(

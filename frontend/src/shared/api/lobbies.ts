@@ -330,6 +330,8 @@ export type LobbyDetail = {
   visibility_profile?: unknown
   /** Квота картинок лобби — только владелец/сомастер */
   media_usage?: LobbyMediaUsage | null
+  /** L-06: время последней публикации в дневнике */
+  last_journal_published_at?: string | null
   created_at: string
   updated_at: string
 }
@@ -609,6 +611,11 @@ export type JournalEntryType =
   | 'session_summary'
   | 'quest_status'
 
+export type JournalChapterRef = {
+  id: string
+  title: string
+}
+
 export type JournalEntry = {
   id: string
   lobby_id: string
@@ -617,6 +624,13 @@ export type JournalEntry = {
   title: string
   body: string
   image_url: string | null
+  is_draft?: boolean
+  chapter_id?: string | null
+  chapter_title?: string | null
+  media_id?: string | null
+  media_url?: string | null
+  media_preview_url?: string | null
+  has_hidden_segments?: boolean
   setting_id: string | null
   setting_name: string | null
   page_id: string | null
@@ -632,6 +646,39 @@ export type JournalPage = {
   total: number
   offset: number
   limit: number
+  chapters?: JournalChapterRef[]
+  last_journal_published_at?: string | null
+}
+
+export type JournalEntryCreatePayload = {
+  entry_type: JournalEntryType | string
+  title?: string
+  body?: string
+  image_url?: string | null
+  setting_id?: string | null
+  page_id?: string | null
+  is_draft?: boolean
+  chapter_id?: string | null
+  media_id?: string | null
+  source_note_id?: string | null
+  delete_source_note?: boolean
+}
+
+export type JournalEntryUpdatePayload = {
+  title?: string
+  body?: string
+  image_url?: string | null
+  setting_id?: string | null
+  clear_setting?: boolean
+  clear_image?: boolean
+  page_id?: string | null
+  clear_page?: boolean
+  is_draft?: boolean
+  chapter_id?: string | null
+  clear_chapter?: boolean
+  media_id?: string | null
+  clear_media?: boolean
+  reveal_hidden?: boolean
 }
 
 export type SessionEvent = {
@@ -1625,28 +1672,33 @@ export function sessionWsUrl(sessionId: string, accessToken: string): string {
 
 export async function listJournal(
   lobbyId: string,
-  opts?: { offset?: number; limit?: number },
+  opts?: { offset?: number; limit?: number; q?: string; chapterId?: string | null },
 ): Promise<JournalPage> {
   const params = new URLSearchParams()
   if (opts?.offset != null) params.set('offset', String(opts.offset))
   if (opts?.limit != null) params.set('limit', String(opts.limit))
+  if (opts?.q) params.set('q', opts.q)
+  if (opts?.chapterId) params.set('chapter_id', opts.chapterId)
   const q = params.toString()
   return apiRequest<JournalPage>(`/lobbies/${lobbyId}/journal${q ? `?${q}` : ''}`)
 }
 
 export async function createJournalEntry(
   lobbyId: string,
-  payload: {
-    entry_type: JournalEntryType | string
-    title?: string
-    body?: string
-    image_url?: string | null
-    setting_id?: string | null
-    page_id?: string | null
-  },
+  payload: JournalEntryCreatePayload,
 ): Promise<JournalEntry> {
   return apiRequest<JournalEntry>(`/lobbies/${lobbyId}/journal`, {
     method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function updateJournalEntry(
+  entryId: string,
+  payload: JournalEntryUpdatePayload,
+): Promise<JournalEntry> {
+  return apiRequest<JournalEntry>(`/journal/${entryId}`, {
+    method: 'PATCH',
     body: JSON.stringify(payload),
   })
 }

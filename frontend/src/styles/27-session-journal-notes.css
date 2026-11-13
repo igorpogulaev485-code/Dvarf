@@ -277,6 +277,88 @@
   color: var(--accent);
 }
 
+.journal-composer__draft {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.journal-entry.is-draft {
+  opacity: 0.92;
+}
+
+.journal-entry__draft-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, var(--muted));
+}
+
+.journal-entry__hidden {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: inherit;
+  padding: 0 2px;
+  border-radius: 4px;
+}
+
+.journal-toc {
+  display: grid;
+  gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+.journal-toc__heading {
+  margin: 0;
+  font-size: 0.95rem;
+  font-family: var(--font-display);
+}
+
+.journal-toc__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.journal-toc__link {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.journal-toc__link:hover {
+  text-decoration: underline;
+}
+
+.journal-search {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.lobby-hub-tab__dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  vertical-align: middle;
+}
+
 /* —— Chats + master letters (A5) —— */
 .chat-mode-tabs {
   display: flex;

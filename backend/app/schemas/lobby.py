@@ -640,6 +640,8 @@ class LobbyDetail(BaseModel):
     sessions: list[SessionSummary]
     visibility_profile: dict = Field(default_factory=dict)
     media_usage: LobbyMediaUsageOut | None = None
+    # L-06: время последней публикации в дневнике (для точки «новое»)
+    last_journal_published_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -1202,6 +1204,11 @@ class SessionDetail(BaseModel):
     updated_at: datetime
 
 
+class JournalChapterRef(BaseModel):
+    id: UUID
+    title: str
+
+
 class JournalEntryOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -1212,6 +1219,13 @@ class JournalEntryOut(BaseModel):
     title: str
     body: str
     image_url: str | None = None
+    is_draft: bool = False
+    chapter_id: UUID | None = None
+    chapter_title: str | None = None
+    media_id: UUID | None = None
+    media_url: str | None = None
+    media_preview_url: str | None = None
+    has_hidden_segments: bool = False
     setting_id: UUID | None = None
     setting_name: str | None = None
     # C4: страница вики (если не раскрыта — скрыта у игрока)
@@ -1228,6 +1242,8 @@ class JournalPageOut(BaseModel):
     total: int
     offset: int
     limit: int
+    chapters: list[JournalChapterRef] = Field(default_factory=list)
+    last_journal_published_at: datetime | None = None
 
 
 class JournalEntryCreateRequest(BaseModel):
@@ -1237,6 +1253,12 @@ class JournalEntryCreateRequest(BaseModel):
     image_url: str | None = Field(default=None, max_length=500)
     setting_id: UUID | None = None
     page_id: UUID | None = None
+    is_draft: bool = False
+    chapter_id: UUID | None = None
+    media_id: UUID | None = None
+    # L-06: перенос с общей доски
+    source_note_id: UUID | None = None
+    delete_source_note: bool = False
 
 
 class JournalEntryUpdateRequest(BaseModel):
@@ -1248,6 +1270,13 @@ class JournalEntryUpdateRequest(BaseModel):
     clear_image: bool = False
     page_id: UUID | None = None
     clear_page: bool = False
+    is_draft: bool | None = None
+    chapter_id: UUID | None = None
+    clear_chapter: bool = False
+    media_id: UUID | None = None
+    clear_media: bool = False
+    # Снять {{скрыто}}…{{/скрыто}} — текст становится обычным
+    reveal_hidden: bool = False
 
 
 class SessionCloseRequest(BaseModel):

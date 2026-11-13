@@ -904,9 +904,15 @@ async def update_session_quest_status(
     db: DbSession,
 ) -> SessionQuestStatusResult:
     """T4: статус квеста mid-session → лента + опционально дневник."""
-    return await LobbyService(db).update_session_quest_status(
+    result = await LobbyService(db).update_session_quest_status(
         current_user, session_id, payload
     )
+    if result.journal_entry is not None:
+        await lobby_hub.broadcast(
+            result.session.lobby_id,
+            {"type": "journal_changed", "published": True},
+        )
+    return result
 
 
 @router.post(
@@ -988,6 +994,11 @@ async def close_session(
 ) -> SessionCloseResponse:
     result = LobbyService(db).close_session(current_user, session_id, payload)
     await lobby_hub.broadcast(result.session.lobby_id, {"type": "lobby_resync"})
+    if result.journal_entry is not None:
+        await lobby_hub.broadcast(
+            result.session.lobby_id,
+            {"type": "journal_changed", "published": True},
+        )
     return result
 
 
@@ -998,12 +1009,16 @@ def list_journal(
     db: DbSession,
     offset: int = Query(default=0, ge=0),
     limit: int = Query(default=20, ge=1, le=50),
+    q: str | None = Query(default=None, max_length=200),
+    chapter_id: UUID | None = Query(default=None),
 ) -> JournalPageOut:
     return LobbyService(db).list_journal(
         current_user,
         lobby_id,
         offset=offset,
         limit=limit,
+        q=q,
+        chapter_id=chapter_id,
     )
 
 
@@ -1012,32 +1027,49 @@ def list_journal(
     response_model=JournalEntryOut,
     status_code=201,
 )
-def create_journal_entry(
+async def create_journal_entry(
     lobby_id: UUID,
     payload: JournalEntryCreateRequest,
     current_user: CurrentUser,
     db: DbSession,
 ) -> JournalEntryOut:
-    return LobbyService(db).create_journal_entry(current_user, lobby_id, payload)
+    out = LobbyService(db).create_journal_entry(current_user, lobby_id, payload)
+    # Черновики игрокам не светим в теле события — только флаг published.
+    await lobby_hub.broadcast(
+        lobby_id,
+        {"type": "journal_changed", "published": not out.is_draft},
+    )
+    return out
 
 
 @router.patch("/journal/{entry_id}", response_model=JournalEntryOut)
-def update_journal_entry(
+async def update_journal_entry(
     entry_id: UUID,
     payload: JournalEntryUpdateRequest,
     current_user: CurrentUser,
     db: DbSession,
 ) -> JournalEntryOut:
-    return LobbyService(db).update_journal_entry(current_user, entry_id, payload)
+    out = LobbyService(db).update_journal_entry(current_user, entry_id, payload)
+    # published=True → клиент ставит точку «новое» (публикация / раскрытие / правка поста).
+    became_or_stays_public = not out.is_draft
+    await lobby_hub.broadcast(
+        out.lobby_id,
+        {"type": "journal_changed", "published": became_or_stays_public},
+    )
+    return out
 
 
 @router.delete("/journal/{entry_id}", status_code=204)
-def delete_journal_entry(
+async def delete_journal_entry(
     entry_id: UUID,
     current_user: CurrentUser,
     db: DbSession,
 ) -> Response:
-    LobbyService(db).delete_journal_entry(current_user, entry_id)
+    lobby_id, was_published = LobbyService(db).delete_journal_entry(current_user, entry_id)
+    await lobby_hub.broadcast(
+        lobby_id,
+        {"type": "journal_changed", "published": was_published},
+    )
     return Response(status_code=204)
 
 

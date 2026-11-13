@@ -24,7 +24,7 @@
 | L02-3 | API upload/delete/serve, права owner/comaster | POST/DELETE/GET media + usage; StaticFiles без lobbies | routers/lobbies.py, main.py | L-02 | сделано |
 | L02-4 | Счётчик на хабе + временная загрузка | Панель «Картинки лобби» во вкладке Настройки | `LobbyMediaQuotaPanel.tsx` | L-02 | сделано |
 | L02-5 | Крючки wiki/map/lobby_avatar без вики | `attach_to_wiki_page`, `attach_map_to_location`, `attach_lobby_avatar`, `copy_to_lobby`, `delete_for_attachment` | `LobbyMediaService` | L-02 | сделано |
-| L-06 | Загрузка в дневник | API/хелперы готовы; UI дневника не трогали | — | L-06 | перенесено |
+| L-06 | Загрузка в дневник | сделано в L-06 (kind=journal) | см. раздел L-06 | L-06 | сделано |
 | W-02 | Картинки вики | kind=wiki/map, is_primary, copy_to_lobby | — | W-02 | перенесено |
 
 ## L-03 — Подсказка, список, приглашения, удаление
@@ -66,4 +66,18 @@
 | L05-4 | Закрепление, поиск, задачи, [[вики]] | pinned, client search, noteBody, SettingMentionBody | panel + CSS | L-05 | сделано |
 | L05-5 | Экспорт в панель / Покинуть / удаление лобби | `GET …/notes/export`, крючки L-03/L-04 | API + LeaveOrKick + LobbyDetail | L-05 | сделано |
 | L05-6 | Крючок «В дневник» | неактивная кнопка / onSendToJournal | LobbyNotesPanel | L-05 | сделано |
-| L-06 | Дневник | только крючок | — | L-06 | перенесено |
+| L-06 | Дневник | сделано в L-06 | см. раздел L-06 | L-06 | сделано |
+
+## L-06 — Дневник кампании
+
+| ID | Ожидалось | Фактически | Где | Пачка | Статус |
+|---|---|---|---|---|---|
+| L06-1 | Живое обновление + точка «новое» | WS `journal_changed` (без тела черновиков); last-seen в localStorage; `last_journal_published_at` | hub + LobbyJournalPanel + LobbyHubTabs + journalSeen | L-06 | сделано |
+| L06-2 | Черновики → «Опубликовать» / обратно | `is_draft`; игроку в GET не отдаём | model + lobby service + JournalEntryCard | L-06 | сделано |
+| L06-3 | Скрытые куски `{{скрыто}}…{{/скрыто}}` | mask/reveal; заглушка «скрыто» игроку | journal_markup + update reveal_hidden | L-06 | сделано |
+| L06-4 | Оглавление, поиск, сессия в главу | chapters в JournalPageOut; q; `_ensure_session_chapter` | list_journal + close/quest | L-06 | сделано |
+| L06-5 | Картинки файлом L-02 kind=journal | media_id + upload; delete_for_attachment; счётчик в композере | JournalComposer + media | L-06 | сделано |
+| L06-6 | Перенос с доски одной кнопкой | крючок L-05 `onSendToJournal` + диалог; дефолт черновик | LobbyDetailPage + create source_note_id | L-06 | сделано |
+| — | Пагинация 20 | PAGE_SIZE=20 на фронте | LobbyJournalPanel | L-06 | сделано |
+| W-02 | Картинки вики | не трогали | — | W-02 | перенесено |
+| — | Спойлеры в свободном тексте ссылок вики | не разбирали — мастер отвечает за текст | — | — | нужно решение владельца (оставить как есть) |

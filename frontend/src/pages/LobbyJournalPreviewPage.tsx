@@ -173,6 +173,7 @@ export function LobbyJournalPreviewPage() {
 
               {composerOpen ? (
                 <JournalComposer
+                  lobbyId="lob1"
                   settings={DEMO_SETTINGS}
                   onSubmit={(payload) => {
                     const next: JournalEntry = {
@@ -183,6 +184,9 @@ export function LobbyJournalPreviewPage() {
                       title: payload.title,
                       body: payload.body,
                       image_url: payload.image_url ?? null,
+                      is_draft: Boolean(payload.is_draft),
+                      chapter_id: payload.chapter_id ?? null,
+                      media_id: payload.media_id ?? null,
                       setting_id: payload.setting_id ?? null,
                       setting_name:
                         payload.setting_id === 'set1' ? 'Серые Болота' : null,
