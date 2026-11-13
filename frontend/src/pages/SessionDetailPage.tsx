@@ -22,7 +22,9 @@ import { CombatTrack } from '../features/lobby/CombatTrack'
 import {
   EncounterGenerateDialog,
   type EncounterDeployPick,
+  type EncounterWikiParent,
 } from '../features/lobby/EncounterGenerateDialog'
+import { COMBAT_PARENT_KINDS } from '../features/lobby/settingKinds'
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { SessionLoreBindDialog } from '../features/lobby/SessionLoreBindDialog'
 import { SessionLorePanel } from '../features/lobby/SessionLorePanel'
@@ -66,6 +68,7 @@ import {
   getSession,
   getSetting,
   listSessionEvents,
+  listSessionWikiCombats,
   revealSessionPage,
   updateSessionQuestStatus,
   patchSeatCombat,
@@ -79,11 +82,13 @@ import {
   studySessionCombatant,
   rollSessionCombatInitiative,
   seatCharacter,
+  startCombatFromWiki,
   startSessionCombat,
   type CombatantAction,
   type CombatEntry,
   type CombatEntryInput,
   type EncounterGenerateResult,
+  type EncounterWikiPick,
   unseatCharacter,
   updateSession,
   type SeatCondition,
@@ -96,6 +101,7 @@ import {
   type SettingDetail,
   type SettingPage,
   type SettingSummary,
+  type WikiCombatPage,
 } from '../shared/api/lobbies'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text, Toast } from '../ui'
 
@@ -264,6 +270,10 @@ export function SessionDetailPage() {
   const [generatorResult, setGeneratorResult] = useState<EncounterGenerateResult | null>(
     null,
   )
+  const [wikiCombats, setWikiCombats] = useState<WikiCombatPage[]>([])
+  const [wikiCombatPickOpen, setWikiCombatPickOpen] = useState(false)
+  const [wikiCombatListOpen, setWikiCombatListOpen] = useState(false)
+  const [wikiCombatPickId, setWikiCombatPickId] = useState('')
   const [combatStartOpen, setCombatStartOpen] = useState(false)
   const [combatEndOpen, setCombatEndOpen] = useState(false)
   const [endCombatThenClose, setEndCombatThenClose] = useState(false)
@@ -314,13 +324,38 @@ export function SessionDetailPage() {
       try {
         const setting = await getSetting(detail.setting_id)
         setSettingArtifacts(setting.artifacts ?? [])
+        setLoreSetting(setting)
       } catch {
         setSettingArtifacts([])
       }
+      try {
+        const wiki = await listSessionWikiCombats(detail.id)
+        setWikiCombats(wiki.pages ?? [])
+      } catch {
+        setWikiCombats([])
+      }
     } else {
       setSettingArtifacts([])
+      setWikiCombats([])
     }
   }, [sessionId])
+
+  function picksToWikiPicks(picks: EncounterDeployPick[]): EncounterWikiPick[] {
+    return picks
+      .filter((p) => p.boss || (p.pack && p.packCount >= 1))
+      .map((p) => ({
+        wave_index: p.waveIndex,
+        condition_text:
+          p.waveIndex <= 1 ? 'сразу' : 'когда пала предыдущая',
+        boss_slug: p.boss?.slug ?? null,
+        boss_name: p.boss?.name_ru ?? null,
+        boss_xp: p.boss?.xp ?? null,
+        pack_slug: p.pack?.slug ?? null,
+        pack_name: p.pack?.name_ru ?? null,
+        pack_xp: p.pack?.xp ?? null,
+        pack_count: p.pack && p.packCount >= 1 ? p.packCount : 0,
+      }))
+  }
 
   const reloadEvents = useCallback(async () => {
     const list = await listSessionEvents(sessionId, {
@@ -1033,6 +1068,24 @@ export function SessionDetailPage() {
                       setQuestTarget(page)
                       setQuestDialogOpen(true)
                     }}
+                    combatPages={
+                      session.location_page_id
+                        ? wikiCombats.filter(
+                            (p) => p.parent_id === session.location_page_id,
+                          )
+                        : wikiCombats
+                    }
+                    onPickCombat={(page) => {
+                      if (session.combat?.active) {
+                        setToast('Бой уже идёт')
+                        return
+                      }
+                      void run(async () => {
+                        const updated = await startCombatFromWiki(session.id, page.id)
+                        setSession(updated)
+                        setToast(`Бой «${page.title}» со стола вики`)
+                      })
+                    }}
                   />
                   {!session.closed_at && canRun ? (
                   <div className="session-table-toolbar">
@@ -1064,6 +1117,49 @@ export function SessionDetailPage() {
                           Завершить бой
                         </Button>
                       )}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy || Boolean(session.combat?.active)}
+                        title={
+                          session.combat?.active
+                            ? 'Бой уже идёт'
+                            : !session.setting_id
+                              ? 'Нужен сеттинг сессии'
+                              : 'Высадить страницу «Бой» из вики'
+                        }
+                        onClick={() => {
+                          setWikiCombatPickId(wikiCombats[0]?.id ?? '')
+                          setWikiCombatPickOpen(true)
+                          if (wikiCombats.length === 0 && session.setting_id) {
+                            void run(async () => {
+                              const wiki = await listSessionWikiCombats(session.id)
+                              setWikiCombats(wiki.pages ?? [])
+                            })
+                          }
+                        }}
+                      >
+                        Из вики
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy || !session.setting_id}
+                        title={
+                          !session.setting_id
+                            ? 'Нужен сеттинг сессии'
+                            : 'Список страниц «Бой» сеттинга'
+                        }
+                        onClick={() => {
+                          setWikiCombatListOpen(true)
+                          void run(async () => {
+                            const wiki = await listSessionWikiCombats(session.id)
+                            setWikiCombats(wiki.pages ?? [])
+                          })
+                        }}
+                      >
+                        Бои локации
+                      </Button>
                       <Button
                         type="button"
                         variant="secondary"
@@ -1198,6 +1294,9 @@ export function SessionDetailPage() {
                         onClick={() => {
                           setGeneratorResult(null)
                           setGeneratorOpen(true)
+                          if (session.setting_id && !loreSetting && !wikiSetting) {
+                            void ensureLoreSetting()
+                          }
                         }}
                       >
                         Генератор
@@ -2367,6 +2466,20 @@ export function SessionDetailPage() {
         open={generatorOpen}
         busy={busy}
         result={generatorResult}
+        canEditWiki={Boolean(
+          (wikiSetting ?? loreSetting)?.can_edit_wiki ??
+            (wikiSetting ?? loreSetting)?.is_owner,
+        )}
+        parentPageId={session.location_page_id ?? null}
+        wikiParents={((wikiSetting ?? loreSetting)?.pages ?? [])
+          .filter((p) => COMBAT_PARENT_KINDS.includes(p.page_kind))
+          .map(
+            (p): EncounterWikiParent => ({
+              id: p.id,
+              title: p.title,
+              page_kind: p.page_kind,
+            }),
+          )}
         onClose={() => {
           setGeneratorOpen(false)
           setGeneratorResult(null)
@@ -2391,7 +2504,155 @@ export function SessionDetailPage() {
             )
           })
         }}
+        onSaveToWiki={(picks, parentPageId, title) => {
+          void run(async () => {
+            const diffRaw = generatorResult?.difficulty
+            const difficulty =
+              diffRaw === 'easy' ||
+              diffRaw === 'medium' ||
+              diffRaw === 'hard' ||
+              diffRaw === 'deadly'
+                ? diffRaw
+                : 'medium'
+            const next = await generateSessionEncounter(session.id, {
+              difficulty,
+              theme_ids: generatorResult?.theme_ids?.length
+                ? generatorResult.theme_ids
+                : ['humanoid'],
+              environments: generatorResult?.environments,
+              similar: generatorResult?.similar,
+              waves: generatorResult?.waves?.length || undefined,
+              composition: (generatorResult?.composition as
+                | 'horde'
+                | 'boss'
+                | 'mixed'
+                | undefined) ?? 'mixed',
+              wave_profile: (generatorResult?.wave_profile as
+                | 'even'
+                | 'escalation'
+                | undefined) ?? 'even',
+              flyers: (generatorResult?.flyers as
+                | 'auto'
+                | 'allow'
+                | 'want'
+                | 'none'
+                | undefined) ?? 'auto',
+              enemy_casters: (generatorResult?.enemy_casters as
+                | 'none'
+                | 'any'
+                | 'several'
+                | undefined) ?? 'any',
+              save_to_wiki: true,
+              parent_page_id: parentPageId,
+              wiki_title: title,
+              wiki_picks: picksToWikiPicks(picks),
+            })
+            setGeneratorResult(next)
+            if (next.wiki_page_id) {
+              setToast('Страница боя сохранена в вики')
+              try {
+                const wiki = await listSessionWikiCombats(session.id)
+                setWikiCombats(wiki.pages ?? [])
+              } catch {
+                /* ignore */
+              }
+            } else {
+              setToast('Запрос в вики отправлен')
+            }
+          })
+        }}
       />
+
+      <Dialog
+        open={wikiCombatPickOpen}
+        title="Бой из вики"
+        primaryLabel="На стол"
+        secondaryLabel="Отмена"
+        busy={busy}
+        primaryDisabled={!wikiCombatPickId || Boolean(session.combat?.active)}
+        onSecondary={() => setWikiCombatPickOpen(false)}
+        onPrimary={() => {
+          if (!wikiCombatPickId) return
+          void run(async () => {
+            const updated = await startCombatFromWiki(session.id, wikiCombatPickId)
+            setSession(updated)
+            setWikiCombatPickOpen(false)
+            const title =
+              wikiCombats.find((p) => p.id === wikiCombatPickId)?.title ?? 'Бой'
+            setToast(`Бой «${title}» со стола вики`)
+          })
+        }}
+      >
+        <Stack gap={10}>
+          <Text tone="muted">Выбери страницу «Бой» — волны высадятся на стол.</Text>
+          {wikiCombats.length === 0 ? (
+            <Text tone="muted">Пока нет страниц боя в сеттинге.</Text>
+          ) : (
+            <Field label="Страница">
+              <select
+                className="ui-input"
+                value={wikiCombatPickId}
+                disabled={busy}
+                onChange={(e) => setWikiCombatPickId(e.target.value)}
+              >
+                <option value="">—</option>
+                {wikiCombats.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title}
+                    {p.parent_title ? ` · ${p.parent_title}` : ''}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )}
+        </Stack>
+      </Dialog>
+
+      <Dialog
+        open={wikiCombatListOpen}
+        title="Бои локации"
+        primaryLabel="Закрыть"
+        busy={busy}
+        onPrimary={() => setWikiCombatListOpen(false)}
+        onSecondary={() => setWikiCombatListOpen(false)}
+        secondaryLabel="Отмена"
+      >
+        <Stack gap={10}>
+          {wikiCombats.length === 0 ? (
+            <Text tone="muted">Нет страниц «Бой» в сеттинге сессии.</Text>
+          ) : (
+            <ul className="setting-wiki-links__list">
+              {wikiCombats.map((p) => (
+                <li key={p.id} className="setting-wiki-links__row">
+                  <button
+                    type="button"
+                    className="setting-wiki-links__jump"
+                    disabled={busy || Boolean(session.combat?.active)}
+                    title={
+                      session.combat?.active
+                        ? 'Бой уже идёт'
+                        : p.parent_title
+                          ? `под «${p.parent_title}»`
+                          : undefined
+                    }
+                    onClick={() => {
+                      void run(async () => {
+                        const updated = await startCombatFromWiki(session.id, p.id)
+                        setSession(updated)
+                        setWikiCombatListOpen(false)
+                        setToast(`Бой «${p.title}» со стола вики`)
+                      })
+                    }}
+                  >
+                    {p.title}
+                    {p.parent_title ? ` · ${p.parent_title}` : ''}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Stack>
+      </Dialog>
 
       <StartCombatDialog
         open={combatStartOpen}

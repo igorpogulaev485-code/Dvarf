@@ -12,6 +12,7 @@ PAGE_KINDS = (
     "quest",
     "item_lore",
     "note",
+    "combat",
 )
 
 PAGE_KIND_LABELS_RU: dict[str, str] = {
@@ -21,6 +22,7 @@ PAGE_KIND_LABELS_RU: dict[str, str] = {
     "quest": "Квест",
     "item_lore": "Предмет",
     "note": "Заметка",
+    "combat": "Бой",
 }
 
 QUEST_STATUSES = ("planned", "active", "done", "failed")

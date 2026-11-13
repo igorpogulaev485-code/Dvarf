@@ -143,15 +143,26 @@
 | W02-5 | @без совпадения: Создать/Похожие | create_missing игнор; resolve + UI assist | WikiMentionAssist + resolve endpoint | W-02 | сделано |
 | W02-6 | Копия из лобби с can_edit_wiki | хелпер wiki_copy_access (легко сменить) | wiki_copy_access.py + copy endpoint | W-02 | сделано / нужно решение владельца (правило доступа) |
 | W02-7 | Сейчас правит + конфликт 409 | lobby WS wiki_editing; expected_updated_at | wiki_presence + SettingDetailPage | W-02 | сделано |
-| W-03/W-04 | Бой / артефакты | не трогали | — | W-03/W-04 | перенесено |
+| W-03/W-04 | Бой / артефакты | см. W-03; W-04 отдельно | — | W-03/W-04 | W-03 сделано / W-04 перенесено |
+
+## W-03 — Вики: страница «Бой» и «Бой → из вики»
+
+| ID | Ожидалось | Фактически | Где | Пачка | Статус |
+|---|---|---|---|---|---|
+| W03-1 | Тип `combat`, fields JSON, скрыт от игроков, оценка DMG | PAGE_KINDS+схемы; шаблон upsert по page_kind; `_setting_detail`/`_apply_revealed`; `CombatPageEditor` | wiki_combat.py + lobby + SettingDetailPage | W-03 | сделано |
+| W03-2 | Заготовка лута → сундук S-06 | `fields.loot`; при end + `wiki_combat_page_id` предзаполнение; не `fill_loot_chest` | lobby patch_combat end | W-03 | сделано |
+| W03-3 | «Бои этой локации» | `GET …/wiki-combats`; UI на столе | list_session_wiki_combats + SessionDetailPage | W-03 | сделано |
+| W03-4 | «Бой → из вики» | `POST …/combat/from-wiki`; отказ если бой уже идёт (`combat_already_active`) | combat_from_wiki | W-03 | сделано |
+| W03-5 | Крючок G-01 «в вики» | `save_to_wiki`+`parent_page_id`+`wiki_picks`; право `can_edit_wiki`; `wiki_save_available=true` | generate_encounter + EncounterGenerateDialog | W-03 | сделано |
+| — | Миграция шаблона | `w03cmbt7b4e2a` down=`w02wiki0a2e0f`; id uuid4 в рантайме | alembic | W-03 | сделано |
 
 ## G-01 — Генератор боя в продукт
 
 | ID | Ожидалось | Фактически | Где | Пачка | Статус |
 |---|---|---|---|---|---|
 | G01-1 | Справочник коэффициентов | v2 по `generator_params.md`: пороги DMG, клип 0,85–2,2, полёт ×1,5/×1,15, эскалация 0,5→1,5 −25% истощение, доли стилей | `encounter_calib.json`, `encounter_calib.py` | G-01 | сделано |
-| G01-2 | API composition/wave_profile/flyers/casters + сводка | расширен `EncounterGenerateRequest`/`Result` + `party`; `save_to_wiki` → 400 крючок | schemas + `LobbyService.generate_encounter` | G-01 | сделано |
+| G01-2 | API composition/wave_profile/flyers/casters + сводка | расширен `EncounterGenerateRequest`/`Result` + `party`; `save_to_wiki` подключён в W-03 | schemas + `LobbyService.generate_encounter` | G-01 | сделано (вики → W-03) |
 | G01-3 | Стили толпа/босс/смешанный, эскалация, летуны | `compose_encounter` читает калибровку; предупреждение при слабом дальнем | `encounter_compose.py`, `encounter_pool.py` | G-01 | сделано |
-| G01-4 | Диалог на живом столе в «Сюжет», на стол S-02, вики крючок | доработан `EncounterGenerateDialog`; кнопка в Сюжет; «В шаблон» убрано; «В вики» disabled | SessionDetailPage + dialog | G-01 | сделано |
-| G01-5 | Оценка на странице «Бой» | W-03 нет на ветке | — | G-01 | перенесено (W-03) |
+| G01-4 | Диалог на живом столе в «Сюжет», на стол S-02, вики | «В вики» включено при `can_edit_wiki` | SessionDetailPage + dialog | G-01 / W-03 | сделано |
+| G01-5 | Оценка на странице «Бой» | DMG через `budget_base` + `encounter_xp_cost` (без party_power) | wiki_combat.estimate_combat_dmg | W-03 | сделано |
 | — | Лут генератора | не вызываем `fill_loot_chest` | тест G-01 | G-01 | сделано (отказ) |

@@ -45,7 +45,11 @@ SettingPageKind = Literal[
     "quest",
     "item_lore",
     "note",
+    "combat",
 ]
+
+# W-03: fields страницы «Бой» — вложенный JSON (волны/лут), колонка JSONB без изменений.
+SettingPageFields = dict[str, object]
 
 QuestStatus = Literal["planned", "active", "done", "failed"]
 
@@ -85,7 +89,7 @@ class SettingPageOut(BaseModel):
     revealed_at: datetime | None = None
     page_kind: SettingPageKind = "note"
     template_id: UUID | None = None
-    fields: dict[str, str | int | float | bool | None] = Field(default_factory=dict)
+    fields: SettingPageFields = Field(default_factory=dict)
     quest_status: QuestStatus | None = None
     tags: list[str] = Field(default_factory=list)
     deleted_at: datetime | None = None
@@ -95,6 +99,8 @@ class SettingPageOut(BaseModel):
     media: list["LobbyMediaOut"] = Field(default_factory=list)
     primary_image: "LobbyMediaOut | None" = None
     map_image: "LobbyMediaOut | None" = None
+    # W-03: оценка DMG для страницы «Бой» (только GM)
+    combat_estimate: "CombatEstimateOut | None" = None
 
 
 LinkKind = Literal["semantic", "mention"]
@@ -277,7 +283,7 @@ class SettingPageCreateRequest(BaseModel):
     sort_order: int | None = None
     page_kind: SettingPageKind = "note"
     template_id: UUID | None = None
-    fields: dict[str, str | int | float | bool | None] | None = None
+    fields: SettingPageFields | None = None
     quest_status: QuestStatus | None = None
     tags: list[str] | None = None
 
@@ -307,7 +313,7 @@ class SettingPageUpdateRequest(BaseModel):
     page_kind: SettingPageKind | None = None
     template_id: UUID | None = None
     clear_template: bool = False
-    fields: dict[str, str | int | float | bool | None] | None = None
+    fields: SettingPageFields | None = None
     quest_status: QuestStatus | None = None
     clear_quest_status: bool = False
     # W-02: флаг снят из рабочего потока (молчание False; игнорируется)
@@ -316,6 +322,55 @@ class SettingPageUpdateRequest(BaseModel):
     # W-02: оптимистичная блокировка; 409 setting_page_conflict
     expected_updated_at: datetime | None = None
     force_overwrite: bool = False
+
+
+class CombatEstimateOut(BaseModel):
+    """W-03: оценка сложности страницы «Бой» по DMG 2014 (без party_power)."""
+
+    party_levels: list[int] = Field(default_factory=list)
+    monster_count: int = 0
+    xp_raw: int = 0
+    xp_adjusted: int = 0
+    unknown_xp_count: int = 0
+    thresholds: dict[str, int] | None = None
+    band: str | None = None
+    note: str | None = None
+    breakdown: list[dict] = Field(default_factory=list)
+
+
+class CombatFromWikiRequest(BaseModel):
+    """W-03: высадить страницу «Бой» на стол (волны S-02)."""
+
+    page_id: UUID
+
+
+class WikiCombatPageOut(BaseModel):
+    """Краткая карточка боя вики для списка «Бои этой локации»."""
+
+    id: UUID
+    title: str
+    parent_id: UUID | None = None
+    parent_title: str | None = None
+    parent_kind: SettingPageKind | None = None
+    updated_at: datetime | None = None
+
+
+class WikiCombatPagesOut(BaseModel):
+    pages: list[WikiCombatPageOut] = Field(default_factory=list)
+
+
+class EncounterWikiPickIn(BaseModel):
+    """Выбор волны генератора для save_to_wiki."""
+
+    wave_index: int = Field(ge=1, le=20)
+    condition_text: str | None = Field(default=None, max_length=240)
+    boss_slug: str | None = Field(default=None, max_length=80)
+    boss_name: str | None = Field(default=None, max_length=120)
+    boss_xp: int | None = Field(default=None, ge=0)
+    pack_slug: str | None = Field(default=None, max_length=80)
+    pack_name: str | None = Field(default=None, max_length=120)
+    pack_xp: int | None = Field(default=None, ge=0)
+    pack_count: int = Field(default=0, ge=0, le=20)
 
 
 class SettingPageVersionOut(BaseModel):
@@ -915,9 +970,11 @@ class EncounterGenerateRequest(BaseModel):
     # «Ещё»: считать как N героев уровня L (выкл. = None)
     party_count_override: int | None = Field(default=None, ge=1, le=12)
     party_level_override: int | None = Field(default=None, ge=1, le=20)
-    # W-03 ещё нет — поле отвергаем крючком
+    # W-03: сохранить выбранные волны страницей «Бой» (нужны picks + parent)
     save_to_wiki: bool | None = None
     parent_page_id: str | None = Field(default=None, max_length=80)
+    wiki_title: str | None = Field(default=None, max_length=200)
+    wiki_picks: list[EncounterWikiPickIn] | None = None
 
 
 class EncounterMonsterOptionOut(BaseModel):
@@ -971,7 +1028,8 @@ class EncounterGenerateResult(BaseModel):
     enemy_casters: str = "any"
     flyers_warning: bool = False
     party: EncounterPartySummaryOut | None = None
-    wiki_save_available: bool = False
+    wiki_save_available: bool = True
+    wiki_page_id: UUID | None = None
 
 
 class CombatantMemberOut(BaseModel):
@@ -1186,6 +1244,8 @@ class SessionCombatOut(BaseModel):
     pending_rewards: PendingRewardsOut | None = None
     """S-06: сундук добычи."""
     loot_chest: LootChestOut | None = None
+    """W-03: id страницы «Бой», с которой высадили волны (для предзаполнения сундука)."""
+    wiki_combat_page_id: str | None = None
 
 
 class CombatEntryInput(BaseModel):

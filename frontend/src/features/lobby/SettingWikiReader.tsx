@@ -90,7 +90,8 @@ export function SettingWikiReader({
   }
 
   const filtered = useMemo(
-    () => filterSettingPages(pages, { query }),
+    () =>
+      filterSettingPages(pages, { query }).filter((p) => p.page_kind !== 'combat'),
     [pages, query],
   )
 
@@ -98,6 +99,7 @@ export function SettingWikiReader({
     const map = new Map<SettingPageKind, SettingPage[]>()
     for (const kind of SETTING_READER_KIND_ORDER) map.set(kind, [])
     for (const p of filtered) {
+      if (p.page_kind === 'combat') continue
       const kind = (p.page_kind || 'note') as SettingPageKind
       const list = map.get(kind) ?? []
       list.push(p)

@@ -7,8 +7,10 @@ import type {
   EncounterGenerateResult,
   EncounterMonsterOption,
   EncounterWaveProfile,
+  SettingPageKind,
 } from '../../shared/api/lobbies'
-import { Button, Dialog, Field, NumberInput, Stack, Text } from '../../ui'
+import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
+import { SETTING_PAGE_KIND_LABELS } from './settingKinds'
 import {
   ENCOUNTER_COMPOSITIONS,
   ENCOUNTER_DIFFICULTIES,
@@ -33,6 +35,12 @@ export type EncounterDeployPick = {
   packCount: number
 }
 
+export type EncounterWikiParent = {
+  id: string
+  title: string
+  page_kind: SettingPageKind
+}
+
 type Props = {
   open: boolean
   busy?: boolean
@@ -42,6 +50,18 @@ type Props = {
   onGenerate: (payload: EncounterGeneratePayload) => void
   /** Высадка всех выбранных волн через существующие S-02 эндпоинты. */
   onDeploy: (picks: EncounterDeployPick[]) => void
+  /** W-03: можно ли писать в вики сеттинга. */
+  canEditWiki?: boolean
+  /** Локации/квесты для родителя страницы «Бой». */
+  wikiParents?: EncounterWikiParent[]
+  /** Предвыбранный родитель (локация сессии). */
+  parentPageId?: string | null
+  /** Сохранить выбранные волны страницей «Бой». */
+  onSaveToWiki?: (
+    picks: EncounterDeployPick[],
+    parentPageId: string,
+    title: string,
+  ) => void
 }
 
 /**
@@ -55,6 +75,10 @@ export function EncounterGenerateDialog({
   onInvalidate,
   onGenerate,
   onDeploy,
+  canEditWiki = false,
+  wikiParents = [],
+  parentPageId = null,
+  onSaveToWiki,
 }: Props) {
   const [difficulty, setDifficulty] = useState<EncounterDifficultyId>('medium')
   const [waves, setWaves] = useState<number | null>(1)
@@ -72,6 +96,8 @@ export function EncounterGenerateDialog({
   const [waveIndex, setWaveIndex] = useState(0)
   const [bossByWave, setBossByWave] = useState<Record<number, string | null>>({})
   const [packByWave, setPackByWave] = useState<Record<number, string | null>>({})
+  const [wikiParentId, setWikiParentId] = useState('')
+  const [wikiTitle, setWikiTitle] = useState('')
 
   useEffect(() => {
     if (!open) return
@@ -91,7 +117,9 @@ export function EncounterGenerateDialog({
     setWaveIndex(0)
     setBossByWave({})
     setPackByWave({})
-  }, [open])
+    setWikiParentId(parentPageId ?? '')
+    setWikiTitle('')
+  }, [open, parentPageId])
 
   const themesByGroup = useMemo(() => {
     return {
@@ -190,6 +218,15 @@ export function EncounterGenerateDialog({
       deployPicks.some(
         (p) => p.boss || (p.pack && p.packCount >= 1),
       ),
+  )
+
+  const effectiveWikiParent = wikiParentId || parentPageId || ''
+  const canSaveToWiki = Boolean(
+    canEditWiki &&
+      onSaveToWiki &&
+      result?.wiki_save_available !== false &&
+      canDeploy &&
+      effectiveWikiParent,
   )
 
   function toggleTheme(id: string) {
@@ -564,6 +601,37 @@ export function EncounterGenerateDialog({
               <Text tone="muted">Пустой пул — смени темы или локацию.</Text>
             )}
 
+            {canEditWiki && onSaveToWiki ? (
+              <Stack gap={8}>
+                {wikiParents.length > 0 || !parentPageId ? (
+                  <Field label="Родитель в вики">
+                    <select
+                      className="ui-input"
+                      value={effectiveWikiParent}
+                      disabled={busy}
+                      onChange={(e) => setWikiParentId(e.target.value)}
+                    >
+                      <option value="">Локация или квест</option>
+                      {wikiParents.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {SETTING_PAGE_KIND_LABELS[p.page_kind] ?? p.page_kind} ·{' '}
+                          {p.title || 'Без названия'}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                ) : null}
+                <Field label="Название страницы боя" hint="Пусто — сгенерирует сервер">
+                  <Input
+                    value={wikiTitle}
+                    disabled={busy}
+                    placeholder="Засада у моста"
+                    onChange={(e) => setWikiTitle(e.target.value)}
+                  />
+                </Field>
+              </Stack>
+            ) : null}
+
             <div className="session-gen-actions">
               <Button
                 type="button"
@@ -576,8 +644,24 @@ export function EncounterGenerateDialog({
               <Button
                 type="button"
                 variant="secondary"
-                disabled
-                title="Страница «Бой» в вики появится в W-03"
+                disabled={busy || !canSaveToWiki}
+                title={
+                  !canEditWiki
+                    ? 'Нет прав на вики'
+                    : !canDeploy
+                      ? 'Сначала выбери кандидатов волн'
+                      : !effectiveWikiParent
+                        ? 'Укажи родителя (локация или квест)'
+                        : 'Сохранить страницу «Бой» в вики'
+                }
+                onClick={() => {
+                  if (!canSaveToWiki || !onSaveToWiki || !effectiveWikiParent) return
+                  onSaveToWiki(
+                    deployPicks,
+                    effectiveWikiParent,
+                    wikiTitle.trim() || 'Бой',
+                  )
+                }}
               >
                 В вики
               </Button>

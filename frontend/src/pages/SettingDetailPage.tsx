@@ -2,6 +2,12 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
 import { openProductSite } from '../shared/brand/creed20'
+import {
+  CombatPageEditor,
+  emptyCombatPageFields,
+  normalizeCombatPageFields,
+  type CombatPageFields,
+} from '../features/lobby/CombatPageEditor'
 import { SettingMentionBody } from '../features/lobby/SettingMentionBody'
 import { SettingQuickCreateDialog } from '../features/lobby/SettingQuickCreateDialog'
 import { WikiMentionAssist } from '../features/lobby/WikiMentionAssist'
@@ -12,6 +18,7 @@ import { getAccessToken } from '../shared/api/client'
 import { lobbyWsUrl } from '../shared/api/chat'
 import { SETTING_LINK_PRESETS } from '../features/lobby/settingLinkPresets'
 import {
+  COMBAT_PARENT_KINDS,
   QUEST_STATUS_LABELS,
   SETTING_PAGE_KIND_LABELS,
   SETTING_PAGE_KINDS,
@@ -84,6 +91,10 @@ export function SettingDetailPage() {
   const [draftBody, setDraftBody] = useState('')
   const [draftGmBody, setDraftGmBody] = useState('')
   const [draftFields, setDraftFields] = useState<Record<string, string>>({})
+  const [draftCombatFields, setDraftCombatFields] = useState<CombatPageFields>(
+    emptyCombatPageFields,
+  )
+  const [draftParentId, setDraftParentId] = useState<string>('')
   const [draftKind, setDraftKind] = useState<SettingPageKind>('note')
   const [draftQuestStatus, setDraftQuestStatus] = useState<QuestStatus | ''>('')
   const [settingName, setSettingName] = useState('')
@@ -218,12 +229,20 @@ export function SettingDetailPage() {
     setDraftKind(page?.page_kind ?? 'note')
     setDraftQuestStatus(page?.quest_status ?? '')
     setDraftTags(page?.tags ?? [])
+    setDraftParentId(page?.parent_id ?? '')
     setTagDraft('')
+    if ((page?.page_kind ?? 'note') === 'combat') {
+      setDraftCombatFields(normalizeCombatPageFields(page?.fields ?? {}))
+      setDraftFields({})
+      return
+    }
     const nextFields: Record<string, string> = {}
     for (const [k, v] of Object.entries(page?.fields ?? {})) {
+      if (v != null && typeof v === 'object') continue
       nextFields[k] = v == null ? '' : String(v)
     }
     setDraftFields(nextFields)
+    setDraftCombatFields(emptyCombatPageFields())
   }
 
   function addDraftTag(raw: string) {
@@ -268,15 +287,31 @@ export function SettingDetailPage() {
 
   async function savePage(forceOverwrite = false) {
     if (!selected) return
+    if (draftKind === 'combat' && !draftParentId) {
+      setError('Страница «Бой» нужна под локацией или квестом')
+      return
+    }
     setBusy(true)
     setError(null)
     try {
+      const fields =
+        draftKind === 'combat'
+          ? {
+              ...draftCombatFields,
+              loot: {
+                items: draftCombatFields.loot.items.filter((it) => it.name.trim()),
+                coins: draftCombatFields.loot.coins,
+              },
+            }
+          : draftFields
       const next = await updateSettingPage(selected.id, {
         title: draftTitle,
         body: draftBody,
         gm_body: draftGmBody,
         page_kind: draftKind,
-        fields: draftFields,
+        fields,
+        parent_id: draftParentId || null,
+        clear_parent: !draftParentId,
         quest_status: draftKind === 'quest' ? draftQuestStatus || 'planned' : undefined,
         clear_quest_status: draftKind !== 'quest',
         tags: normalizeClientTags(draftTags),
@@ -328,6 +363,10 @@ export function SettingDetailPage() {
     titles: string[]
   }) {
     if (!setting) return
+    if (payload.page_kind === 'combat' && !payload.parent_id) {
+      setError('Страница «Бой» нужна под локацией или квестом')
+      return
+    }
     setBusy(true)
     setError(null)
     try {
@@ -338,6 +377,8 @@ export function SettingDetailPage() {
           parent_id: payload.parent_id,
           page_kind: payload.page_kind,
           template_id: payload.template_id,
+          fields:
+            payload.page_kind === 'combat' ? emptyCombatPageFields() : undefined,
         })
       } else {
         next = await bulkCreateSettingPages(setting.id, {
@@ -896,6 +937,13 @@ export function SettingDetailPage() {
                         if (next === 'quest' && !draftQuestStatus) {
                           setDraftQuestStatus('planned')
                         }
+                        if (next === 'combat') {
+                          setDraftCombatFields((prev) =>
+                            prev.waves.length
+                              ? prev
+                              : emptyCombatPageFields(),
+                          )
+                        }
                       }}
                     >
                       {SETTING_PAGE_KINDS.map((kind) => (
@@ -908,6 +956,33 @@ export function SettingDetailPage() {
                 ) : (
                   <Text tone="muted">Тип: {pageKindLabel(selected.page_kind)}</Text>
                 )}
+                {isOwner && draftKind === 'combat' ? (
+                  <Field
+                    label="Родитель"
+                    hint="Только локация или квест — игроки бой не видят"
+                  >
+                    <select
+                      className="ui-input"
+                      value={draftParentId}
+                      disabled={busy}
+                      onChange={(e) => setDraftParentId(e.target.value)}
+                    >
+                      <option value="">Выбери локацию или квест</option>
+                      {setting.pages
+                        .filter(
+                          (p) =>
+                            p.id !== selected.id &&
+                            COMBAT_PARENT_KINDS.includes(p.page_kind),
+                        )
+                        .map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {SETTING_PAGE_KIND_LABELS[p.page_kind]} ·{' '}
+                            {p.title || 'Без названия'}
+                          </option>
+                        ))}
+                    </select>
+                  </Field>
+                ) : null}
                 {draftKind === 'quest' || selected.page_kind === 'quest' ? (
                   <Field label="Статус квеста">
                     <select
@@ -981,7 +1056,18 @@ export function SettingDetailPage() {
                     </div>
                   ) : null}
                 </div>
-                {schemaFields.length > 0 ? (
+                {draftKind === 'combat' || selected.page_kind === 'combat' ? (
+                  isOwner ? (
+                    <CombatPageEditor
+                      value={draftCombatFields}
+                      estimate={selected.combat_estimate}
+                      busy={busy}
+                      onChange={setDraftCombatFields}
+                    />
+                  ) : (
+                    <Text tone="muted">Страница боя видна только мастеру.</Text>
+                  )
+                ) : schemaFields.length > 0 ? (
                   <div className="setting-wiki-fields">
                     <Text as="h3">Поля шаблона</Text>
                     {schemaFields.map((field) => {
@@ -1161,25 +1247,31 @@ export function SettingDetailPage() {
                 ) : null}
                 {isOwner ? (
                   <>
-                    <div className="setting-wiki-reveal">
-                      <label className="setting-wiki-reveal__toggle">
-                        <input
-                          type="checkbox"
-                          checked={selected.revealed}
+                    {draftKind === 'combat' || selected.page_kind === 'combat' ? (
+                      <Text tone="muted">
+                        Страница «Бой» всегда скрыта от игроков — раскрытие недоступно.
+                      </Text>
+                    ) : (
+                      <div className="setting-wiki-reveal">
+                        <label className="setting-wiki-reveal__toggle">
+                          <input
+                            type="checkbox"
+                            checked={selected.revealed}
+                            disabled={busy}
+                            onChange={(e) => void setRevealed(e.target.checked, false)}
+                          />
+                          <span>Раскрыто игрокам</span>
+                        </label>
+                        <Button
+                          type="button"
+                          variant="ghost"
                           disabled={busy}
-                          onChange={(e) => void setRevealed(e.target.checked, false)}
-                        />
-                        <span>Раскрыто игрокам</span>
-                      </label>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        disabled={busy}
-                        onClick={() => void setRevealed(!selected.revealed, true)}
-                      >
-                        {selected.revealed ? 'Скрыть ветку' : 'Раскрыть ветку'}
-                      </Button>
-                    </div>
+                          onClick={() => void setRevealed(!selected.revealed, true)}
+                        >
+                          {selected.revealed ? 'Скрыть ветку' : 'Раскрыть ветку'}
+                        </Button>
+                      </div>
+                    )}
                     <div className="inline-actions">
                       <Button type="button" disabled={busy} onClick={() => void savePage()}>
                         Сохранить страницу
@@ -1423,7 +1515,11 @@ export function SettingDetailPage() {
         open={quickOpen && isOwner}
         busy={busy}
         templates={setting.templates ?? []}
-        parentOptions={setting.pages.map((p) => ({ id: p.id, title: p.title }))}
+        parentOptions={setting.pages.map((p) => ({
+          id: p.id,
+          title: p.title,
+          page_kind: p.page_kind,
+        }))}
         defaultParentId={selectedId}
         onClose={() => setQuickOpen(false)}
         onCreate={(payload) => void handleQuickCreate(payload)}

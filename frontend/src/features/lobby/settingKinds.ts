@@ -7,6 +7,10 @@ export type SettingPageKind =
   | 'quest'
   | 'item_lore'
   | 'note'
+  | 'combat'
+
+/** Игрок в режиме чтения никогда не видит «Бой». */
+export type SettingReaderPageKind = Exclude<SettingPageKind, 'combat'>
 
 export type QuestStatus = 'planned' | 'active' | 'done' | 'failed'
 
@@ -17,6 +21,7 @@ export const SETTING_PAGE_KINDS: SettingPageKind[] = [
   'quest',
   'item_lore',
   'note',
+  'combat',
 ]
 
 export const SETTING_PAGE_KIND_LABELS: Record<SettingPageKind, string> = {
@@ -26,10 +31,11 @@ export const SETTING_PAGE_KIND_LABELS: Record<SettingPageKind, string> = {
   quest: 'Квест',
   item_lore: 'Предмет',
   note: 'Заметка',
+  combat: 'Бой',
 }
 
-/** W-01: подписи оглавления игрока (режим чтения). */
-export const SETTING_PAGE_KIND_READER_LABELS: Record<SettingPageKind, string> = {
+/** W-01: подписи оглавления игрока (режим чтения). Без combat. */
+export const SETTING_PAGE_KIND_READER_LABELS: Record<SettingReaderPageKind, string> = {
   location: 'Места',
   npc: 'Люди',
   faction: 'Фракции',
@@ -38,7 +44,7 @@ export const SETTING_PAGE_KIND_READER_LABELS: Record<SettingPageKind, string> = 
   note: 'Заметки',
 }
 
-export const SETTING_READER_KIND_ORDER: SettingPageKind[] = [
+export const SETTING_READER_KIND_ORDER: SettingReaderPageKind[] = [
   'location',
   'npc',
   'faction',
@@ -48,6 +54,9 @@ export const SETTING_READER_KIND_ORDER: SettingPageKind[] = [
 ]
 
 export const TEMPLATE_CARD_KINDS: SettingPageKind[] = ['npc', 'location', 'item_lore']
+
+/** W-03: страница «Бой» только под локацией или квестом. */
+export const COMBAT_PARENT_KINDS: SettingPageKind[] = ['location', 'quest']
 
 export const QUEST_STATUS_LABELS: Record<QuestStatus, string> = {
   planned: 'План',
