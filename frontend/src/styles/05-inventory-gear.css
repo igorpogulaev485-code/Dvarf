@@ -200,6 +200,13 @@
   display: none;
 }
 
+/* M-03 / M17: social filter chips wrap so «Скрытые» is fully readable */
+.play-desk--mobile .text-panel .inventory-filters {
+  flex-wrap: wrap;
+  overflow-x: visible;
+  row-gap: 6px;
+}
+
 .play-desk--mobile .inventory-filter {
   flex: 0 0 auto;
   min-height: 40px;
@@ -585,6 +592,49 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+}
+
+/* M-03 / M19: long «Сверхъестественный дар» wraps above select, not over it */
+.piety-panel__field .ui-text {
+  white-space: normal;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.piety-panel__toggle {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 8px 0;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.piety-panel__toggle strong {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.piety-panel__toggle-meta {
+  font-size: 0.82rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 959px) {
+  .play-desk--mobile .piety-panel__row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .piety-panel__score {

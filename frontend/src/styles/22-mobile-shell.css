@@ -409,9 +409,10 @@
   padding: 4px 2px;
   border: 0;
   background: transparent;
-  color: var(--muted);
+  /* M-03 / M12: larger short labels; keep ≥ UX-16 contrast (ink mix, not weaker muted) */
+  color: color-mix(in srgb, var(--ink) 78%, var(--muted));
   font: inherit;
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   border-radius: 10px;
@@ -441,6 +442,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+/* M-03: clear Bottom Scene Nav for social / features / companions lists */
+.play-desk--mobile .text-panel,
+.play-desk--mobile .features-panel,
+.play-desk--mobile .companions-panel,
+.play-desk--mobile .piety-panel {
+  padding-bottom: 16px;
 }
 
 @media (min-width: 960px) {
