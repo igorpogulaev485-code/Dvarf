@@ -5,14 +5,18 @@ import {
   applyActionSurge,
   applyAttackSpend,
   applyCastSpend,
+  applyCunningBonus,
   applyFeatureSpend,
   applyHideSpend,
   applySearchSpend,
+  applySteadyAim,
   canCastByBonusSpellRule,
   canCastSpell,
   canSpendAttack,
   canSpendCast,
+  canSpendCunningBonus,
   canSpendSearch,
+  canSpendSteadyAim,
   castingTimeToEconomyMark,
   emptyTurnEconomy,
   inferFeatureTiming,
@@ -20,6 +24,7 @@ import {
   resetTurnEconomy,
   resolveHideTiming,
   serializeTurnEconomy,
+  setMoved,
   toggleTurnMark,
   turnsUntilOwn,
 } from './turnEconomy'
@@ -184,5 +189,27 @@ s = emptyTurnEconomy()
 s = { ...s, bonus: true }
 const hideFallback = resolveHideTiming(s, true)
 assert(hideFallback.ok && hideFallback.timing === 'action', 'rogue hide fallback action')
+
+// ——— L-20: Точное прицеливание / Хитрое действие ———
+s = emptyTurnEconomy()
+assert(canSpendSteadyAim(s).ok, 'steady aim ok at start')
+s = applySteadyAim(s)
+assert(s.bonus && s.steadyAim, 'steady aim spends bonus + flag')
+assert(!canSpendSteadyAim(s).ok, 'second steady aim blocked')
+s = applyAttackSpend(s)
+assert(!s.steadyAim && s.action, 'attack clears steadyAim advantage')
+
+s = emptyTurnEconomy()
+s = setMoved(s, true)
+assert(!canSpendSteadyAim(s).ok, 'moved blocks steady aim')
+
+s = emptyTurnEconomy()
+assert(canSpendCunningBonus(s).ok, 'cunning dash/disengage ok')
+s = applyCunningBonus(s)
+assert(s.bonus && !canSpendCunningBonus(s).ok, 'cunning bonus spent')
+
+const rawAim = serializeTurnEconomy(applySteadyAim(emptyTurnEconomy()))
+assert(rawAim.steady_aim === true && rawAim.moved === false, 'serialize steady_aim')
+assert(readTurnEconomy(rawAim).steadyAim === true, 'read steadyAim')
 
 console.log('turnEconomy.selfcheck: ok')

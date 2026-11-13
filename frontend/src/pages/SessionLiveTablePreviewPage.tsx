@@ -1018,6 +1018,7 @@ export function SessionLiveTablePreviewPage() {
         open={effectOpen}
         seats={seats}
         preferredSourceId="c2"
+        ownCharacterIds={new Set(['c2'])}
         onClose={() => setEffectOpen(false)}
         combatants={combatants}
         onApply={(effect, targets) => {

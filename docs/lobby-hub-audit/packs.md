@@ -167,6 +167,19 @@
 | W03-5 | Крючок G-01 «в вики» | `save_to_wiki`+`parent_page_id`+`wiki_picks`; право `can_edit_wiki`; `wiki_save_available=true` | generate_encounter + EncounterGenerateDialog | W-03 | сделано |
 | — | Миграция шаблона | `w03cmbt7b4e2a` down=`w02wiki0a2e0f`; id uuid4 в рантайме | alembic | W-03 | сделано |
 
+## L-20 — Раздача эффектов и синхрон инфузий
+
+| ID | Ожидалось | Фактически | Где | Пачка | Статус |
+|---|---|---|---|---|---|
+| L20-1 | Один путь записи эффекта | `share_effect` → `CharacterService.apply_effects` → `append_effect`; sync-инфузий отдельно | lobby.py + character.py | L-20 | сделано |
+| L20-2 | Только от своего персонажа | убран обход `can_edit_wiki`; ApplyEffectDialog — только own seats | lobby.py + ApplyEffectDialog | L-20 | сделано |
+| L20-3 | Партия = текущее лобби/сессия | `useLobbyParty`: preferred / open_session / character.lobby_id, без found[0] | useLobbyParty.ts | L-20 | сделано |
+| L20-4 | Догон инфузий при входе | снимок `sheet.infusion_ally_share` + catchup в join | sheet_effects.py + lobby join | L-20 | сделано |
+| L20-5 | Концентрация / ауры | clear-concentration не трогали; ауры по-прежнему вручную | character.py | L-20 | уже было |
+| Доп. W-03 | Живой поиск монстров в вики «Бой» | CatalogCombobox commitOnSelect как AddCombatantDialog | CombatPageEditor | L-20 | сделано |
+| Доп. T-02 | Точное прицеливание + Хитрое действие | turnEconomy steadyAim / cunning dash·disengage·hide | turnEconomy.ts + полоска | L-20 | сделано |
+| — | Миграция | нет | — | L-20 | уже было |
+
 ## G-01 — Генератор боя в продукт
 
 | ID | Ожидалось | Фактически | Где | Пачка | Статус |

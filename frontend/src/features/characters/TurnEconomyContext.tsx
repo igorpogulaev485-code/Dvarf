@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react'
 import type { CombatTarget } from '../lobby/combatTargets'
 import type {
+  CunningBonusKind,
   HideSpendTiming,
   TurnCastTiming,
   TurnEconomyMarkKey,
@@ -11,6 +12,7 @@ import type {
 export type TurnEconomyContextValue = {
   turnEconomy: TurnEconomyState
   toggleMark: (mark: TurnEconomyMarkKey) => void
+  toggleMoved: () => void
   beginMyTurn: () => void
   /** Эффективный режим кубиков (сессия ИЛИ личный). */
   diceOnTable: boolean
@@ -39,6 +41,10 @@ export type TurnEconomyContextValue = {
   spendSearch: () => void
   canHide: (hasCunningAction: boolean) => TurnSpendResult & { timing?: HideSpendTiming }
   spendHide: (timing: HideSpendTiming) => void
+  canSteadyAim: () => TurnSpendResult
+  spendSteadyAim: () => void
+  canCunningBonus: () => TurnSpendResult
+  spendCunningBonus: (kind: CunningBonusKind) => void
   postRoll: (opts: {
     title: string
     total: number

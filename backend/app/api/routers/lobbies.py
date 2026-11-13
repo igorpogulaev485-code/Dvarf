@@ -273,8 +273,14 @@ async def join_lobby(
     current_user: CurrentUser,
     db: DbSession,
 ) -> JoinLobbyOut:
-    result = LobbyService(db).join_with_character(current_user, payload)
+    svc = LobbyService(db)
+    result = svc.join_with_character(current_user, payload)
     await lobby_hub.broadcast(result.lobby.id, {"type": "lobby_resync"})
+    touched = getattr(svc, "_pending_sheet_effect_ids", None) or []
+    if touched:
+        from app.services.sheet_effects import broadcast_sheet_effects_changed
+
+        await broadcast_sheet_effects_changed(svc.lobbies, touched)
     return result
 
 

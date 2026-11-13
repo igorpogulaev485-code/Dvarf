@@ -12,19 +12,27 @@ import {
   applyActionSurge,
   applyAttackSpend,
   applyCastSpend,
+  applyCunningBonus,
   applyFeatureSpend,
   applyHideSpend,
   applySearchSpend,
+  applySteadyAim,
   canCastSpell,
   canSpendAttack,
+  canSpendCunningBonus,
   canSpendFeature,
   canSpendSearch,
+  canSpendSteadyAim,
   castingTimeToEconomyMark,
   resolveHideTiming,
+  setMoved,
+  type CunningBonusKind,
   type HideSpendTiming,
   type TurnCastTiming,
   type TurnEconomyMarkKey,
 } from '../../shared/dnd/turnEconomy'
+import type { ActiveEffect } from '../../shared/dnd/activeEffects'
+import { normalizeCampaignRules } from '../lobby/campaignRules'
 import { postSheetRollToSession } from './postSheetRollToSession'
 import {
   rollSessionCombatInitiative,
@@ -105,6 +113,19 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
     [model],
   )
 
+  const toggleMoved = useCallback(() => {
+    model.setDraft((prev) => {
+      const te = prev.play.turnEconomy ?? emptyTurnEconomy()
+      return {
+        ...prev,
+        play: {
+          ...prev.play,
+          turnEconomy: setMoved(te, !te.moved),
+        },
+      }
+    })
+  }, [model])
+
   const setPersonalDiceOnTable = useCallback(
     (next: boolean) => {
       if (diceLockedByMaster) return
@@ -133,6 +154,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
     () => ({
       turnEconomy: economy,
       toggleMark,
+      toggleMoved,
       beginMyTurn,
       diceOnTable,
       diceLockedByMaster,
@@ -163,6 +185,60 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
       canHide: (hasCunningAction) => resolveHideTiming(economy, hasCunningAction),
       spendHide: (timing: HideSpendTiming) =>
         patchEconomy((te) => applyHideSpend(te, timing)),
+      canSteadyAim: () => canSpendSteadyAim(economy),
+      spendSteadyAim: () => {
+        if (!canSpendSteadyAim(economy).ok) return
+        model.setDraft((prev) => {
+          const te = prev.play.turnEconomy ?? emptyTurnEconomy()
+          const nextTe = applySteadyAim(te)
+          const effect: ActiveEffect = {
+            id:
+              typeof crypto !== 'undefined' && 'randomUUID' in crypto
+                ? crypto.randomUUID()
+                : `steady-aim-${Date.now()}`,
+            name: 'Точное прицеливание',
+            kind: 'feature',
+            slug: 'steady_aim',
+            origin: 'feature',
+            source_character_id: characterId || null,
+            source_name: null,
+            linked_concentration: false,
+            mods: [
+              { target: 'advantage', op: 'advantage', condition: 'attack', once: true },
+              { target: 'speed', op: 'set', value: 0 },
+            ],
+            duration: { unit: 'until_source_next_turn_end' },
+          }
+          const withoutOld = (prev.play.effects ?? []).filter(
+            (row) => row.slug !== 'steady_aim',
+          )
+          return {
+            ...prev,
+            play: {
+              ...prev.play,
+              turnEconomy: nextTe,
+              effects: [...withoutOld, effect],
+            },
+          }
+        })
+      },
+      canCunningBonus: () => canSpendCunningBonus(economy),
+      spendCunningBonus: (kind: CunningBonusKind) => {
+        if (!canSpendCunningBonus(economy).ok) return
+        patchEconomy(applyCunningBonus)
+        const label =
+          kind === 'dash' ? 'Рывок' : kind === 'disengage' ? 'Отход' : 'Засада'
+        if (characterId) {
+          void postSheetRollToSession({
+            openSessionId,
+            characterId,
+            title: `Хитрое действие: ${label}`,
+            total: 0,
+            formula: null,
+            breakdown: 'бонусное действие',
+          })
+        }
+      },
       postRoll: (opts) => {
         if (!characterId) return
         void postSheetRollToSession({
@@ -193,6 +269,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
     [
       economy,
       toggleMark,
+      toggleMoved,
       beginMyTurn,
       diceOnTable,
       diceLockedByMaster,
@@ -203,6 +280,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
       openSessionId,
       characterId,
       patchEconomy,
+      model,
     ],
   )
 
@@ -217,6 +295,19 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
       (f) => f.id === 'cunning_action',
     ),
   )
+  const campaignRules = normalizeCampaignRules(
+    (model as { campaignRulesRaw?: unknown }).campaignRulesRaw ??
+      model.character?.campaign_rules ??
+      null,
+  )
+  const tceAllowed = campaignRules.start.allowed_sources.includes('tce')
+  const hasSteadyAim =
+    tceAllowed &&
+    Boolean(
+      (model.unlockedFeatures as Array<{ id?: string }> | undefined)?.some(
+        (f) => f.id === 'steady_aim',
+      ),
+    )
 
   const rollOfferedSkill = useCallback(
     (key: 'investigation' | 'perception' | 'stealth') => {
@@ -263,6 +354,8 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
         diceLockedByMaster={diceLockedByMaster}
         onDiceOnTableChange={setPersonalDiceOnTable}
         hasCunningAction={hasCunningAction}
+        hasSteadyAim={hasSteadyAim}
+        onToggleMoved={toggleMoved}
         onOfferSkill={(key) => {
           if (key === 'stealth') setSkillOffer('stealth')
           else setSkillOffer('search')

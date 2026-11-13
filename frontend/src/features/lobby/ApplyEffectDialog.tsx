@@ -9,6 +9,8 @@ type Props = {
   combatants?: SessionCombatant[]
   /** Предпочтительный кастер (свой персонаж), если есть */
   preferredSourceId?: string | null
+  /** L-20: только свои персонажи могут быть источником «от героя». */
+  ownCharacterIds?: Set<string> | ReadonlySet<string> | null
   busy?: boolean
   onClose: () => void
   onApply: (effect: SeatEffect, targets: ConditionTarget[]) => void
@@ -27,19 +29,29 @@ const SUGGESTIONS = [
 /**
  * Жест: выдать баф/эффект герою или врагу.
  * Эффекты с длительностью в раундах снимаются сами по очереди S-02.
+ * L-20: «От кого» — только свои места; мастер без героя не выбирает чужого кастера.
  */
 export function ApplyEffectDialog({
   open,
   seats,
   combatants = [],
   preferredSourceId = null,
+  ownCharacterIds = null,
   busy = false,
   onClose,
   onApply,
 }: Props) {
+  const ownSeats = useMemo(() => {
+    if (!ownCharacterIds || ownCharacterIds.size === 0) {
+      // Без списка своих — пустой источник (не подставляем чужих).
+      return [] as SessionSeat[]
+    }
+    return seats.filter((s) => ownCharacterIds.has(s.character_id))
+  }, [seats, ownCharacterIds])
+
   const casters = useMemo(
-    () => seats.filter((s) => Boolean(s.concentration)),
-    [seats],
+    () => ownSeats.filter((s) => Boolean(s.concentration)),
+    [ownSeats],
   )
 
   const [name, setName] = useState('')
@@ -53,9 +65,11 @@ export function ApplyEffectDialog({
     if (!open) return
     setSelected(new Set())
     const preferred =
-      (preferredSourceId && seats.find((s) => s.character_id === preferredSourceId)) ||
+      (preferredSourceId &&
+        ownSeats.find((s) => s.character_id === preferredSourceId)) ||
       casters[0] ||
-      seats.find((s) => (s.effect_suggestions?.length ?? 0) > 0) ||
+      ownSeats.find((s) => (s.effect_suggestions?.length ?? 0) > 0) ||
+      ownSeats[0] ||
       null
     setSourceId(preferred?.character_id ?? null)
     setLinkConcentration(Boolean(preferred?.concentration))
@@ -63,9 +77,9 @@ export function ApplyEffectDialog({
     setName(fromSheet ?? '')
     setDurationRounds('10')
     setAcBonus(fromSheet === 'Щит веры' ? '2' : '')
-  }, [open, preferredSourceId, casters, seats])
+  }, [open, preferredSourceId, casters, ownSeats])
 
-  const sourceSeat = seats.find((s) => s.character_id === sourceId) ?? null
+  const sourceSeat = ownSeats.find((s) => s.character_id === sourceId) ?? null
   const sheetSuggestions = sourceSeat?.effect_suggestions ?? []
   const suggestions = useMemo(() => {
     const merged: string[] = []
@@ -88,6 +102,7 @@ export function ApplyEffectDialog({
   )
   const allSelected = allIds.length > 0 && selected.size === allIds.length
   const canLink = Boolean(sourceSeat?.concentration)
+  const hasOwnCaster = ownSeats.length > 0
 
   const effect = useMemo((): SeatEffect | null => {
     const trimmed = name.trim()
@@ -138,6 +153,9 @@ export function ApplyEffectDialog({
       onSecondary={onClose}
       onPrimary={() => {
         if (!effect || selected.size === 0) return
+        // Без своего кастера нельзя повесить эффект «от героя» на союзников через share-effect.
+        const seatTargets = [...selected].filter((k) => k.startsWith('seat:'))
+        if (seatTargets.length > 0 && !effect.source_character_id) return
         const targets: ConditionTarget[] = []
         for (const key of selected) {
           if (key.startsWith('seat:')) targets.push({ kind: 'seat', id: key.slice(5) })
@@ -151,6 +169,12 @@ export function ApplyEffectDialog({
           Баф на героя или врага. Если задана длительность в раундах — эффект снимется сам по
           очереди боя. Связь с концентрацией на врагов не распространяется автоматически.
         </Text>
+
+        {!hasOwnCaster ? (
+          <Text tone="muted">
+            Нет своего персонажа за столом — эффект «от героя» этим диалогом выдать нельзя.
+          </Text>
+        ) : null}
 
         <Field label="Название">
           <Input
@@ -199,7 +223,7 @@ export function ApplyEffectDialog({
           </Field>
         </div>
 
-        {casters.length > 0 ? (
+        {hasOwnCaster ? (
           <Field label="От кого (кастер)">
             <select
               className="ui-input"
@@ -208,12 +232,11 @@ export function ApplyEffectDialog({
               onChange={(e) => {
                 const next = e.target.value || null
                 setSourceId(next)
-                const seat = seats.find((s) => s.character_id === next)
+                const seat = ownSeats.find((s) => s.character_id === next)
                 setLinkConcentration(Boolean(seat?.concentration))
               }}
             >
-              <option value="">Без источника</option>
-              {seats.map((seat) => (
+              {ownSeats.map((seat) => (
                 <option key={seat.character_id} value={seat.character_id}>
                   {seat.character_name}
                   {seat.concentration ? ` · конц.: ${seat.concentration.name}` : ''}

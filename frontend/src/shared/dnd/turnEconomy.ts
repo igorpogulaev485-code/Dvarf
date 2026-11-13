@@ -34,6 +34,13 @@ export type TurnEconomyState = {
   /** Чем потратили основное действие в этот ход. */
   actionSpentAs: ActionSpentAs
   castsThisTurn: TurnCastRecord[]
+  /** L-20 / T-02: перемещался ли в этот ход (для «Точного прицеливания»). */
+  moved: boolean
+  /**
+   * L-20 / T-02: «Точное прицеливание» активно —
+   * преимущество на следующую атаку, скорость 0 до конца хода.
+   */
+  steadyAim: boolean
 }
 
 export type TurnSpendBlock = {
@@ -55,6 +62,8 @@ export function emptyTurnEconomy(): TurnEconomyState {
     extraActions: 0,
     actionSpentAs: null,
     castsThisTurn: [],
+    moved: false,
+    steadyAim: false,
   }
 }
 
@@ -122,6 +131,8 @@ export function readTurnEconomy(raw: unknown): TurnEconomyState {
     extraActions,
     actionSpentAs,
     castsThisTurn,
+    moved: Boolean(row.moved),
+    steadyAim: Boolean(row.steady_aim ?? row.steadyAim),
   }
 }
 
@@ -142,6 +153,8 @@ export function serializeTurnEconomy(
       timing: c.timing,
       ...(c.quickened ? { quickened: true } : {}),
     })),
+    moved: Boolean(state.moved),
+    steady_aim: Boolean(state.steadyAim),
   }
 }
 
@@ -211,21 +224,80 @@ export function canSpendAttack(state: TurnEconomyState): TurnSpendResult {
 }
 
 export function applyAttackSpend(state: TurnEconomyState): TurnEconomyState {
-  if (!state.action) {
-    return { ...state, action: true, actionSpentAs: 'attack' }
+  // L-20: атака после «Точного прицеливания» снимает преимущество
+  // (скорость 0 держит эффект на листе до сброса хода).
+  const base: TurnEconomyState = state.steadyAim
+    ? { ...state, steadyAim: false }
+    : state
+  if (!base.action) {
+    return { ...base, action: true, actionSpentAs: 'attack' }
   }
-  if (state.actionSpentAs === 'attack') {
-    return state
+  if (base.actionSpentAs === 'attack') {
+    return base
   }
-  if (state.extraActions > 0) {
+  if (base.extraActions > 0) {
     return {
-      ...state,
-      extraActions: state.extraActions - 1,
-      actionSpentAs: state.actionSpentAs ?? 'attack',
+      ...base,
+      extraActions: base.extraActions - 1,
+      actionSpentAs: base.actionSpentAs ?? 'attack',
     }
   }
-  return state
+  return base
 }
+
+const STEADY_AIM_HINT =
+  'Точное прицеливание: бонусным — преимущество на следующую атаку, если ещё не двигался; скорость 0 до конца хода'
+
+/** L-20 / T-02: «Точное прицеливание» (TCE, плут 3+). */
+export function canSpendSteadyAim(state: TurnEconomyState): TurnSpendResult {
+  if (state.moved) {
+    return {
+      ok: false,
+      reason: 'уже двигался в этот ход',
+      mark: 'bonus',
+    }
+  }
+  if (state.steadyAim) {
+    return {
+      ok: false,
+      reason: 'уже прицелился в этот ход',
+      mark: 'bonus',
+    }
+  }
+  if (state.bonus) return block('bonus')
+  return { ok: true }
+}
+
+export function applySteadyAim(state: TurnEconomyState): TurnEconomyState {
+  if (!canSpendSteadyAim(state).ok) return state
+  return {
+    ...state,
+    bonus: true,
+    steadyAim: true,
+  }
+}
+
+export function setMoved(
+  state: TurnEconomyState,
+  moved: boolean,
+): TurnEconomyState {
+  return { ...state, moved: Boolean(moved) }
+}
+
+export type CunningBonusKind = 'dash' | 'disengage' | 'hide'
+
+/** L-20: Хитрое действие — Рывок / Отход бонусным (без карты — только отметка). */
+export function canSpendCunningBonus(state: TurnEconomyState): TurnSpendResult {
+  if (state.bonus) return block('bonus')
+  return { ok: true }
+}
+
+export function applyCunningBonus(state: TurnEconomyState): TurnEconomyState {
+  if (state.bonus) return state
+  return { ...state, bonus: true }
+}
+
+export { STEADY_AIM_HINT }
 
 /**
  * Время каста → отметка. Ритуал/минута/час → null (не тратит боевую отметку).
