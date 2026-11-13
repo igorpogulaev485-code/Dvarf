@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
 import {
@@ -10,11 +10,21 @@ import { ApiRequestError } from '../shared/api/client'
 import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
 import { Button, EmptyState, Field, Input, Panel, Stack, Text } from '../ui'
 
+function sortLobbiesLiveFirst(items: LobbySummary[]): LobbySummary[] {
+  return [...items].sort((a, b) => {
+    const aLive = a.has_open_session ? 1 : 0
+    const bLive = b.has_open_session ? 1 : 0
+    if (aLive !== bLive) return bLive - aLive
+    return a.name.localeCompare(b.name, 'ru')
+  })
+}
+
 export function LobbiesPage() {
   const navigate = useNavigate()
   const [items, setItems] = useState<LobbySummary[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
 
@@ -41,6 +51,8 @@ export function LobbiesPage() {
     }
   }, [navigate])
 
+  const sortedItems = useMemo(() => sortLobbiesLiveFirst(items), [items])
+
   async function onCreate(e: FormEvent) {
     e.preventDefault()
     setCreating(true)
@@ -65,37 +77,57 @@ export function LobbiesPage() {
           lobbyMobileShell
         />
 
-        <Panel title="Создать лобби">
-          <form className="inline-form" onSubmit={onCreate}>
-            <Field label="Название">
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Стол пятницы, кампания…"
-              />
-            </Field>
-            <Button type="submit" disabled={creating}>
-              {creating ? 'Создаём…' : '+ Создать лобби'}
-            </Button>
-          </form>
-          <Text tone="muted">
-            После создания вы — мастер этого лобби. Код и QR появятся на странице лобби.
+        <div className="lobbies-toolbar">
+          <Button
+            type="button"
+            variant={createOpen ? 'secondary' : 'primary'}
+            aria-expanded={createOpen}
+            onClick={() => setCreateOpen((open) => !open)}
+          >
+            {createOpen ? 'Скрыть форму' : 'Создать'}
+          </Button>
+          <Text tone="muted" className="lobbies-toolbar__hint">
+            Свои столы и живые игры — ниже. Новое лобби — кнопка «Создать».
           </Text>
-        </Panel>
+        </div>
+
+        {createOpen ? (
+          <Panel title="Создать лобби">
+            <form className="inline-form" onSubmit={onCreate}>
+              <Field label="Название">
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Стол пятницы, кампания…"
+                  autoFocus
+                />
+              </Field>
+              <Button type="submit" disabled={creating}>
+                {creating ? 'Создаём…' : '+ Создать лобби'}
+              </Button>
+            </form>
+            <Text tone="muted">
+              После создания вы — мастер этого лобби. Код и QR появятся на странице лобби.
+            </Text>
+          </Panel>
+        ) : null}
 
         {error ? <Text tone="danger">{error}</Text> : null}
 
         {loading ? (
           <Text tone="muted">Загружаем лобби…</Text>
-        ) : items.length === 0 ? (
+        ) : sortedItems.length === 0 ? (
           <EmptyState
             title="Пока нет лобби"
-            description="Создайте своё или зайдите по коду / QR с персонажем."
+            description="Нажмите «Создать» или зайдите по коду / QR с персонажем."
           />
         ) : (
           <Stack gap={12} className="lobbies-list">
-            {items.map((lobby) => (
-              <Panel key={lobby.id}>
+            {sortedItems.map((lobby) => (
+              <Panel
+                key={lobby.id}
+                className={lobby.has_open_session ? 'lobbies-list__item is-live' : 'lobbies-list__item'}
+              >
                 <div className="list-row">
                   <div>
                     <Text as="h2">{lobby.name}</Text>
