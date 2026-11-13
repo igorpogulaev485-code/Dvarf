@@ -236,7 +236,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
       canCunningBonus: () => canSpendCunningBonus(economy),
       spendCunningBonus: (kind: CunningBonusKind) => {
         if (!canSpendCunningBonus(economy).ok) return
-        patchEconomy(applyCunningBonus)
+        patchEconomy((s) => applyCunningBonus(s, kind))
         const label =
           kind === 'dash' ? 'Рывок' : kind === 'disengage' ? 'Отход' : 'Засада'
         if (characterId) {
@@ -250,6 +250,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
           })
         }
       },
+      patchTurnEconomy: (fn) => patchEconomy(fn),
       postRoll: (opts) => {
         if (!characterId) return
         void postSheetRollToSession({

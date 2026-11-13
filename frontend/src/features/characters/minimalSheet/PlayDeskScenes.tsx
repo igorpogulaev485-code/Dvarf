@@ -429,6 +429,90 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               model.draft.featGrants,
               'flames_of_phlegethos',
             )}
+            featGrants={model.draft.featGrants}
+            spellAbilityMod={abilityModifier(
+              model.effectiveAbilities[
+                model.draft.spells.casting_ability === 'int' ||
+                model.draft.spells.casting_ability === 'wis' ||
+                model.draft.spells.casting_ability === 'cha'
+                  ? model.draft.spells.casting_ability
+                  : 'int'
+              ] ?? 10,
+            )}
+            hitDiceTotal={Math.max(
+              1,
+              (model.draft.play.hitDiceByClass ?? []).reduce(
+                (sum: number, row: { max?: number }) => sum + Math.max(0, row.max ?? 0),
+                0,
+              ) || model.totalLevel || 1,
+            )}
+            onHealerStabilize={(targetId) => {
+              model.onToast?.(`Целитель: стабилизация · цель ${targetId}`)
+              model.setDraft((prev) => {
+                const slug = `o05_healer_used:${targetId}`
+                const effects = prev.play.effects ?? []
+                if (effects.some((e) => e.slug === slug)) return prev
+                const mark: import('../../../shared/dnd/activeEffects').ActiveEffect = {
+                  id: `healer-${targetId}-${Date.now()}`,
+                  slug,
+                  name: 'Целитель: цель уже лечили',
+                  kind: 'feature',
+                  origin: 'Целитель',
+                  duration: { unit: 'until_short_rest', value: 1 },
+                  mods: [],
+                }
+                return {
+                  ...prev,
+                  play: {
+                    ...prev.play,
+                    effects: [...effects, mark],
+                    ...(targetId.includes(String(model.character?.id ?? ''))
+                      ? {
+                          isDying: false,
+                          deathSuccesses: 0,
+                          deathFails: 0,
+                        }
+                      : {}),
+                  },
+                }
+              })
+              return true
+            }}
+            onHealerHeal={(amount, label, targetId) => {
+              model.onToast?.(label)
+              model.setDraft((prev) => {
+                const slug = `o05_healer_used:${targetId}`
+                const effects = prev.play.effects ?? []
+                const mark: import('../../../shared/dnd/activeEffects').ActiveEffect = {
+                  id: `healer-${targetId}-${Date.now()}`,
+                  slug,
+                  name: 'Целитель: цель уже лечили',
+                  kind: 'feature',
+                  origin: 'Целитель',
+                  duration: { unit: 'until_short_rest', value: 1 },
+                  mods: [],
+                }
+                const nextEffects = effects.some((e) => e.slug === slug)
+                  ? effects
+                  : [...effects, mark]
+                const selfId = String(model.character?.id ?? '')
+                const healSelf =
+                  targetId === selfId ||
+                  targetId.endsWith(selfId) ||
+                  targetId.includes(`pc:${selfId}`)
+                return {
+                  ...prev,
+                  hpCurrent: healSelf
+                    ? Math.min(
+                        prev.hpMax ?? 999,
+                        (prev.hpCurrent ?? 0) + Math.max(0, amount),
+                      )
+                    : prev.hpCurrent,
+                  play: { ...prev.play, effects: nextEffects },
+                }
+              })
+              return true
+            }}
             bonusDice={listRollDieChips(model.draft.play.effects ?? [], 'attack').map((chip) => ({
               dice: chip.dice,
               label: chip.name,

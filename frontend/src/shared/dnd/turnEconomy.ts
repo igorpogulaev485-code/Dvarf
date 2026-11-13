@@ -50,6 +50,24 @@ export type TurnEconomyState = {
   blessedStrikesUsed: boolean
   /** O-02: доп. урон «Избранного противника» уже в этот ход. */
   favoredFoeDamageUsed: boolean
+  /** O-05: Рывок (действие или Хитрое действие) в этот ход. */
+  dashedThisTurn: boolean
+  /** O-05: действие «Атака» уже было в этот ход. */
+  attackActionThisTurn: boolean
+  /** O-05: крит/добивание рукопашным → бонус GWM. */
+  gwmBonusReady: boolean
+  meleeWeaponCritOrKillThisTurn: boolean
+  gwmBonusUsed: boolean
+  /** O-05: попадание оружием / безоружной-импровизированной. */
+  weaponHitThisTurn: boolean
+  unarmedOrImprovisedHitThisTurn: boolean
+  chargerBonusUsed: boolean
+  crossbowExpertBonusUsed: boolean
+  orcishFuryBonusUsed: boolean
+  shieldMasterShoveUsed: boolean
+  crusherUsedThisTurn: boolean
+  piercerUsedThisTurn: boolean
+  slasherUsedThisTurn: boolean
 }
 
 export type TurnSpendBlock = {
@@ -76,6 +94,20 @@ export function emptyTurnEconomy(): TurnEconomyState {
     kiSpentAs: null,
     blessedStrikesUsed: false,
     favoredFoeDamageUsed: false,
+    dashedThisTurn: false,
+    attackActionThisTurn: false,
+    gwmBonusReady: false,
+    meleeWeaponCritOrKillThisTurn: false,
+    gwmBonusUsed: false,
+    weaponHitThisTurn: false,
+    unarmedOrImprovisedHitThisTurn: false,
+    chargerBonusUsed: false,
+    crossbowExpertBonusUsed: false,
+    orcishFuryBonusUsed: false,
+    shieldMasterShoveUsed: false,
+    crusherUsedThisTurn: false,
+    piercerUsedThisTurn: false,
+    slasherUsedThisTurn: false,
   }
 }
 
@@ -157,6 +189,42 @@ export function readTurnEconomy(raw: unknown): TurnEconomyState {
     favoredFoeDamageUsed: Boolean(
       row.favored_foe_damage_used ?? row.favoredFoeDamageUsed,
     ),
+    dashedThisTurn: Boolean(row.dashed_this_turn ?? row.dashedThisTurn),
+    attackActionThisTurn: Boolean(
+      row.attack_action_this_turn ?? row.attackActionThisTurn,
+    ),
+    gwmBonusReady: Boolean(row.gwm_bonus_ready ?? row.gwmBonusReady),
+    meleeWeaponCritOrKillThisTurn: Boolean(
+      row.melee_weapon_crit_or_kill_this_turn ??
+        row.meleeWeaponCritOrKillThisTurn,
+    ),
+    gwmBonusUsed: Boolean(row.gwm_bonus_used ?? row.gwmBonusUsed),
+    weaponHitThisTurn: Boolean(
+      row.weapon_hit_this_turn ?? row.weaponHitThisTurn,
+    ),
+    unarmedOrImprovisedHitThisTurn: Boolean(
+      row.unarmed_or_improvised_hit_this_turn ??
+        row.unarmedOrImprovisedHitThisTurn,
+    ),
+    chargerBonusUsed: Boolean(row.charger_bonus_used ?? row.chargerBonusUsed),
+    crossbowExpertBonusUsed: Boolean(
+      row.crossbow_expert_bonus_used ?? row.crossbowExpertBonusUsed,
+    ),
+    orcishFuryBonusUsed: Boolean(
+      row.orcish_fury_bonus_used ?? row.orcishFuryBonusUsed,
+    ),
+    shieldMasterShoveUsed: Boolean(
+      row.shield_master_shove_used ?? row.shieldMasterShoveUsed,
+    ),
+    crusherUsedThisTurn: Boolean(
+      row.crusher_used_this_turn ?? row.crusherUsedThisTurn,
+    ),
+    piercerUsedThisTurn: Boolean(
+      row.piercer_used_this_turn ?? row.piercerUsedThisTurn,
+    ),
+    slasherUsedThisTurn: Boolean(
+      row.slasher_used_this_turn ?? row.slasherUsedThisTurn,
+    ),
   }
 }
 
@@ -182,6 +250,24 @@ export function serializeTurnEconomy(
     ki_spent_as: state.kiSpentAs,
     blessed_strikes_used: Boolean(state.blessedStrikesUsed),
     favored_foe_damage_used: Boolean(state.favoredFoeDamageUsed),
+    dashed_this_turn: Boolean(state.dashedThisTurn),
+    attack_action_this_turn: Boolean(state.attackActionThisTurn),
+    gwm_bonus_ready: Boolean(state.gwmBonusReady),
+    melee_weapon_crit_or_kill_this_turn: Boolean(
+      state.meleeWeaponCritOrKillThisTurn,
+    ),
+    gwm_bonus_used: Boolean(state.gwmBonusUsed),
+    weapon_hit_this_turn: Boolean(state.weaponHitThisTurn),
+    unarmed_or_improvised_hit_this_turn: Boolean(
+      state.unarmedOrImprovisedHitThisTurn,
+    ),
+    charger_bonus_used: Boolean(state.chargerBonusUsed),
+    crossbow_expert_bonus_used: Boolean(state.crossbowExpertBonusUsed),
+    orcish_fury_bonus_used: Boolean(state.orcishFuryBonusUsed),
+    shield_master_shove_used: Boolean(state.shieldMasterShoveUsed),
+    crusher_used_this_turn: Boolean(state.crusherUsedThisTurn),
+    piercer_used_this_turn: Boolean(state.piercerUsedThisTurn),
+    slasher_used_this_turn: Boolean(state.slasherUsedThisTurn),
   }
 }
 
@@ -253,9 +339,13 @@ export function canSpendAttack(state: TurnEconomyState): TurnSpendResult {
 export function applyAttackSpend(state: TurnEconomyState): TurnEconomyState {
   // L-20: атака после «Точного прицеливания» снимает преимущество
   // (скорость 0 держит эффект на листе до сброса хода).
-  const base: TurnEconomyState = state.steadyAim
+  const withSteady: TurnEconomyState = state.steadyAim
     ? { ...state, steadyAim: false }
     : state
+  const base: TurnEconomyState = {
+    ...withSteady,
+    attackActionThisTurn: true,
+  }
   if (!base.action) {
     return { ...base, action: true, actionSpentAs: 'attack' }
   }
@@ -319,9 +409,19 @@ export function canSpendCunningBonus(state: TurnEconomyState): TurnSpendResult {
   return { ok: true }
 }
 
-export function applyCunningBonus(state: TurnEconomyState): TurnEconomyState {
+export function applyCunningBonus(
+  state: TurnEconomyState,
+  kind?: CunningBonusKind,
+): TurnEconomyState {
   if (state.bonus) return state
-  return { ...state, bonus: true }
+  const next: TurnEconomyState = { ...state, bonus: true }
+  if (kind === 'dash') next.dashedThisTurn = true
+  return next
+}
+
+/** O-05 / O-08: действие «Рывок» (не Хитрое) — только флаг, отметку тратит вызывающий. */
+export function markDashed(state: TurnEconomyState): TurnEconomyState {
+  return { ...state, dashedThisTurn: true }
 }
 
 export { STEADY_AIM_HINT }

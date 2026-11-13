@@ -11,6 +11,7 @@ import {
 
 export const SUPERIOR_TECHNIQUE_MANEUVER_PICK = 'superior_technique_maneuver'
 export const SUPERIORITY_DICE_ST_POOL = 'superiority_dice_st'
+export const SUPERIORITY_DIE_ADEPT_POOL = 'superiority_die_adept'
 
 export type SuperioritySpendOption = {
   key: string
@@ -46,6 +47,7 @@ export function superiorityDieLabel(
 export function listKnownManeuvers(
   featurePicks: FeaturePicksState,
   classEntryId: string,
+  extraManeuverIds?: string[] | null,
 ): ManeuverDef[] {
   const ids = [
     ...getFeaturePickList(featurePicks, classEntryId, 'combat_superiority'),
@@ -54,6 +56,9 @@ export function listKnownManeuvers(
     getFeaturePickList(featurePicks, classEntryId, SUPERIOR_TECHNIQUE_MANEUVER_PICK)[0] ??
     getFeaturePick(featurePicks, classEntryId, SUPERIOR_TECHNIQUE_MANEUVER_PICK)
   if (st && !ids.includes(st)) ids.push(st)
+  for (const id of extraManeuverIds ?? []) {
+    if (id && !ids.includes(id)) ids.push(id)
+  }
 
   const rows: ManeuverDef[] = []
   const seen = new Set<string>()
@@ -68,14 +73,35 @@ export function listKnownManeuvers(
   return rows
 }
 
+/** O-05: maneuvers from Martial Adept feat enum_multi picks. */
+export function martialAdeptManeuverIds(
+  featGrants:
+    | Array<{ applied?: { enumMultiPicks?: Record<string, string[]> } | null }>
+    | null
+    | undefined,
+): string[] {
+  const out: string[] = []
+  for (const grant of featGrants ?? []) {
+    const list = grant.applied?.enumMultiPicks?.maneuvers
+    if (!list?.length) continue
+    for (const id of list) {
+      if (id && !out.includes(id)) out.push(id)
+    }
+  }
+  return out
+}
+
 export function listSuperioritySpendOptions(input: {
   features: UnlockedFeature[]
   featurePicks: FeaturePicksState
   classEntryId: string
   /** When spending from Superior Technique d6 pool. */
   poolId?: string | null
+  /** O-05: Martial Adept maneuver ids. */
+  martialAdeptManeuverIds?: string[] | null
 }): SuperioritySpendOption[] {
   const poolId = input.poolId ?? 'superiority_dice'
+  const adeptIds = input.martialAdeptManeuverIds ?? []
   const hasBattleMasterPool = input.features.some(
     (f) =>
       f.classEntryId === input.classEntryId &&
@@ -103,9 +129,27 @@ export function listSuperioritySpendOptions(input: {
     ]
   }
 
-  if (!hasBattleMasterPool && !stManeuver) return []
+  if (poolId === SUPERIORITY_DIE_ADEPT_POOL) {
+    return adeptIds
+      .map((id) => maneuverById(id))
+      .filter((def): def is ManeuverDef => Boolean(def))
+      .map((def) => ({
+        key: `adept:${def.id}`,
+        maneuverId: def.id,
+        classEntryId: input.classEntryId,
+        nameRu: `${def.spendLabelRu || def.nameRu} (к6 · Боевой адепт)`,
+        summaryRu: def.summaryRu,
+        cost: 1,
+      }))
+  }
 
-  return listKnownManeuvers(input.featurePicks, input.classEntryId).map((def) => ({
+  if (!hasBattleMasterPool && !stManeuver && adeptIds.length === 0) return []
+
+  return listKnownManeuvers(
+    input.featurePicks,
+    input.classEntryId,
+    adeptIds,
+  ).map((def) => ({
     key: `${input.classEntryId}:${def.id}`,
     maneuverId: def.id,
     classEntryId: input.classEntryId,

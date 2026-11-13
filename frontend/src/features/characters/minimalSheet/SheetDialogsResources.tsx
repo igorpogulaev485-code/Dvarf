@@ -645,6 +645,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         resource={model.superiorityResource}
         features={model.unlockedFeatures}
         featurePicks={model.draft.featurePicks}
+        featGrants={model.draft.featGrants}
         onSpend={(label, cost) => {
           if (!model.superioritySpendId) return
           model.setDraft((prev) => ({

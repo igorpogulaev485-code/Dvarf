@@ -51,6 +51,8 @@ export type TurnEconomyContextValue = {
   spendSteadyAim: () => void
   canCunningBonus: () => TurnSpendResult
   spendCunningBonus: (kind: CunningBonusKind) => void
+  /** O-05: произвольный патч отметок хода (крит GWM, рывок, хиты…). */
+  patchTurnEconomy: (fn: (te: TurnEconomyState) => TurnEconomyState) => void
   postRoll: (opts: {
     title: string
     total: number
