@@ -9,13 +9,19 @@ import {
 import { useSheetSessionCombat } from './useSheetSessionCombat'
 import { emptyTurnEconomy } from '../../shared/dnd/turnEconomy'
 import {
+  applyActionSurge,
   applyAttackSpend,
   applyCastSpend,
   applyFeatureSpend,
+  applyHideSpend,
+  applySearchSpend,
+  canCastSpell,
   canSpendAttack,
-  canSpendCast,
   canSpendFeature,
+  canSpendSearch,
   castingTimeToEconomyMark,
+  resolveHideTiming,
+  type HideSpendTiming,
   type TurnCastTiming,
   type TurnEconomyMarkKey,
 } from '../../shared/dnd/turnEconomy'
@@ -25,6 +31,7 @@ import {
 } from '../../shared/api/lobbies'
 import { InitiativeRollDialog } from '../lobby/InitiativeRollDialog'
 import { EnterOwnNumberDialog } from './EnterOwnNumberDialog'
+import { SKILL_DEFS } from './sheetTypes'
 import { Button, Dialog, Stack, Text } from '../../ui'
 type Props = {
   model: SheetModel
@@ -49,6 +56,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
   } | null>(null)
   const [tableSaveOpen, setTableSaveOpen] = useState(false)
   const [tableSaveTitle, setTableSaveTitle] = useState('Спасбросок')
+  const [skillOffer, setSkillOffer] = useState<'search' | 'stealth' | null>(null)
 
   const beginMyTurn = useCallback(() => {
     model.setDraft((prev) => ({
@@ -129,7 +137,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
       targets: combat.targets,
       canAttack: () => canSpendAttack(economy),
       spendAttack: () => patchEconomy(applyAttackSpend),
-      canCast: (timing) => canSpendCast(economy, timing),
+      canCast: (timing, level = 0) => canCastSpell(economy, { timing, level }),
       spendCast: (input) =>
         patchEconomy((te) =>
           applyCastSpend(te, {
@@ -137,10 +145,17 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
             name: input.name,
             level: input.level,
             id: input.id,
+            quickened: input.quickened,
           }),
         ),
       canFeature: (timing) => canSpendFeature(economy, timing),
       spendFeature: (timing) => patchEconomy((te) => applyFeatureSpend(te, timing)),
+      grantActionSurge: () => patchEconomy(applyActionSurge),
+      canSearch: () => canSpendSearch(economy),
+      spendSearch: () => patchEconomy(applySearchSpend),
+      canHide: (hasCunningAction) => resolveHideTiming(economy, hasCunningAction),
+      spendHide: (timing: HideSpendTiming) =>
+        patchEconomy((te) => applyHideSpend(te, timing)),
       postRoll: (opts) => {
         if (!characterId) return
         void postSheetRollToSession({
@@ -190,6 +205,38 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
 
   const activeName = combat.activeEntry?.name ?? null
   const showNewTurn = !combat.combatActive
+  const hasCunningAction = Boolean(
+    (model.unlockedFeatures as Array<{ id?: string }> | undefined)?.some(
+      (f) => f.id === 'cunning_action',
+    ),
+  )
+
+  const rollOfferedSkill = useCallback(
+    (key: 'investigation' | 'perception' | 'stealth') => {
+      const def = SKILL_DEFS.find((s) => s.key === key)
+      const label = def?.label ?? key
+      const mod =
+        typeof model.skillModFor === 'function'
+          ? Number(model.skillModFor(key) ?? 0)
+          : 0
+      const rollSkill = model.rollModeSkill as
+        | ((s: { key: string; label: string; mod: number }) => void)
+        | undefined
+      if (diceOnTable) {
+        setEnterCtx({
+          title: `Проверка: ${label}`,
+          mode: 'd20',
+          modifier: mod,
+        })
+        setEnterOpen(true)
+        setSkillOffer(null)
+        return
+      }
+      rollSkill?.({ key, label, mod })
+      setSkillOffer(null)
+    },
+    [diceOnTable, model],
+  )
 
   return (
     <TurnEconomyProvider value={ctx}>
@@ -208,6 +255,11 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
         diceOnTable={diceOnTable}
         diceLockedByMaster={diceLockedByMaster}
         onDiceOnTableChange={setPersonalDiceOnTable}
+        hasCunningAction={hasCunningAction}
+        onOfferSkill={(key) => {
+          if (key === 'stealth') setSkillOffer('stealth')
+          else setSkillOffer('search')
+        }}
       />
       {children}
       <InitiativeRollDialog
@@ -269,6 +321,37 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
           setEnterOpen(false)
         }}
       />
+      <Dialog
+        open={skillOffer != null}
+        title={skillOffer === 'stealth' ? 'Засада' : 'Поиск'}
+        primaryLabel="Позже"
+        primaryVariant="secondary"
+        secondaryLabel="Отмена"
+        closeOnBackdrop
+        onPrimary={() => setSkillOffer(null)}
+        onSecondary={() => setSkillOffer(null)}
+      >
+        <Stack gap={10}>
+          <Text tone="muted">
+            Отметка поставлена. Можно сразу бросить навык — или закрыть и бросить
+            из полосы навыков (обычный чип навыка отметку не тратит).
+          </Text>
+          {skillOffer === 'stealth' ? (
+            <Button type="button" onClick={() => rollOfferedSkill('stealth')}>
+              Скрытность
+            </Button>
+          ) : (
+            <div className="combat-target-picker__table-actions">
+              <Button type="button" onClick={() => rollOfferedSkill('investigation')}>
+                Анализ
+              </Button>
+              <Button type="button" onClick={() => rollOfferedSkill('perception')}>
+                Внимательность
+              </Button>
+            </div>
+          )}
+        </Stack>
+      </Dialog>
       <Dialog
         open={tableSaveOpen}
         title={tableSaveTitle}

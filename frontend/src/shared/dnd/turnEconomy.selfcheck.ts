@@ -2,20 +2,27 @@
  * node --experimental-strip-types src/shared/dnd/turnEconomy.selfcheck.ts
  */
 import {
+  applyActionSurge,
   applyAttackSpend,
   applyCastSpend,
   applyFeatureSpend,
+  applyHideSpend,
+  applySearchSpend,
+  canCastByBonusSpellRule,
+  canCastSpell,
   canSpendAttack,
   canSpendCast,
+  canSpendSearch,
   castingTimeToEconomyMark,
   emptyTurnEconomy,
   inferFeatureTiming,
   readTurnEconomy,
   resetTurnEconomy,
+  resolveHideTiming,
   serializeTurnEconomy,
   toggleTurnMark,
   turnsUntilOwn,
-} from './turnEconomy.ts'
+} from './turnEconomy'
 
 function assert(cond: unknown, msg: string): void {
   if (!cond) throw new Error(msg)
@@ -97,5 +104,85 @@ assert(
   turnsUntilOwn([{ kind: 'pc', ref_id: 'me' }], 0, 'me') === 0,
   'own turn = 0',
 )
+
+// ——— T-02: Э6 бонусное заклинание ———
+// Бонусное «Духовное оружие» + действие «Огненный снаряд» (не заговор) — нельзя
+s = emptyTurnEconomy()
+s = applyCastSpend(s, { timing: 'bonus', name: 'Духовное оружие', level: 2 })
+assert(!canCastByBonusSpellRule(s, { timing: 'action', level: 1 }).ok, 'bonus then firebolt leveled blocked')
+// + заговор действием — можно
+assert(canCastByBonusSpellRule(s, { timing: 'action', level: 0 }).ok, 'bonus then cantrip ok')
+assert(canCastSpell(s, { timing: 'action', level: 0 }).ok, 'canCastSpell cantrip ok')
+assert(!canCastSpell(s, { timing: 'action', level: 3 }).ok, 'canCastSpell fireball blocked')
+
+// Чародей: бонусные «Мелкие друзья» + «Огненный шар» — нельзя; + «Огненный снаряд» — можно
+s = emptyTurnEconomy()
+s = applyCastSpend(s, { timing: 'bonus', name: 'Мелкие друзья', level: 0 })
+assert(!canCastByBonusSpellRule(s, { timing: 'action', level: 3 }).ok, 'friends + fireball no')
+assert(canCastByBonusSpellRule(s, { timing: 'action', level: 0 }).ok, 'friends + fire bolt ok')
+
+// Жрец: действие «Лечение ран» + бонусное «Духовное оружие» — нельзя
+s = emptyTurnEconomy()
+s = applyCastSpend(s, { timing: 'action', name: 'Лечение ран', level: 1 })
+assert(!canCastByBonusSpellRule(s, { timing: 'bonus', level: 2 }).ok, 'cure + spiritual weapon no')
+assert(canCastByBonusSpellRule(s, { timing: 'bonus', level: 0 }).ok, 'cure + bonus cantrip ok')
+// «Щит» реакцией после любого каста — можно
+assert(canCastByBonusSpellRule(s, { timing: 'reaction', level: 1 }).ok, 'shield reaction ok')
+assert(canSpendCast(s, 'reaction').ok, 'reaction mark free')
+
+// «Щит веры» действием + «Щит» реакцией — можно
+s = emptyTurnEconomy()
+s = applyCastSpend(s, { timing: 'action', name: 'Щит веры', level: 1 })
+assert(canCastSpell(s, { timing: 'reaction', level: 1 }).ok, 'shield of faith + shield ok')
+
+// ——— T-02: Э7 Всплеск ———
+s = emptyTurnEconomy()
+s = applyCastSpend(s, { timing: 'action', name: 'Огненный снаряд', level: 0 })
+assert(!canSpendCast(s, 'action').ok, 'second action cast blocked without surge')
+s = applyActionSurge(s)
+assert(s.extraActions === 1, 'surge grants extra action')
+assert(canSpendCast(s, 'action').ok, 'surge unlocks second action cast')
+assert(canCastByBonusSpellRule(s, { timing: 'action', level: 3 }).ok, 'surge second leveled ok')
+s = applyCastSpend(s, { timing: 'action', name: 'Огненный шар', level: 3 })
+assert(s.extraActions === 0 && s.castsThisTurn.length === 2, 'surge spent on second cast')
+s = resetTurnEconomy(s)
+assert(s.extraActions === 0, 'reset burns unused surge action')
+
+// ——— T-02: Э8 Ускоренное ———
+s = emptyTurnEconomy()
+s = applyCastSpend(s, {
+  timing: 'bonus',
+  name: 'Огненный шар',
+  level: 3,
+  quickened: true,
+})
+assert(s.bonus && !s.action && s.castsThisTurn[0]?.quickened, 'quickened spends bonus')
+assert(canCastByBonusSpellRule(s, { timing: 'action', level: 0 }).ok, 'quickened then cantrip ok')
+assert(!canCastByBonusSpellRule(s, { timing: 'action', level: 3 }).ok, 'quickened then fireball no')
+
+// ——— T-02: Э9 Поиск / Засада ———
+s = emptyTurnEconomy()
+assert(canSpendSearch(s).ok, 'search ok')
+s = applySearchSpend(s)
+assert(s.action && s.actionSpentAs === 'search', 'search spends action')
+assert(!canSpendSearch(s).ok, 'second search blocked')
+
+s = emptyTurnEconomy()
+const hideRogue = resolveHideTiming(s, true)
+assert(hideRogue.ok && hideRogue.timing === 'bonus', 'rogue hide = bonus')
+s = applyHideSpend(s, 'bonus')
+assert(s.bonus && !s.action, 'rogue hide marked bonus')
+
+s = emptyTurnEconomy()
+const hideFighter = resolveHideTiming(s, false)
+assert(hideFighter.ok && hideFighter.timing === 'action', 'fighter hide = action')
+s = applyHideSpend(s, 'action')
+assert(s.action && s.actionSpentAs === 'search', 'fighter hide marked action')
+
+// Rogue: bonus spent → hide falls back to action
+s = emptyTurnEconomy()
+s = { ...s, bonus: true }
+const hideFallback = resolveHideTiming(s, true)
+assert(hideFallback.ok && hideFallback.timing === 'action', 'rogue hide fallback action')
 
 console.log('turnEconomy.selfcheck: ok')

@@ -278,6 +278,104 @@ export function canSpendCast(
   return block('action')
 }
 
+/**
+ * Э6: правило бонусного заклинания (PHB 2014).
+ * Реакция не входит. Заговор = уровень 0.
+ * — если бонусным уже было заклинание → действием только заговор;
+ * — если действием уже было заклинание → бонусно только заговор.
+ * Второе заклинание действием через доп. действие (Всплеск) — ок, если бонусного каста не было.
+ */
+export const BONUS_SPELL_RULE_ACTION_HINT =
+  'В этот ход бонусным уже было заклинание — действием можно только заговор'
+
+export const BONUS_SPELL_RULE_BONUS_HINT =
+  'После заклинания действием бонусно можно только заговор'
+
+export function canCastByBonusSpellRule(
+  state: TurnEconomyState,
+  input: { timing: TurnCastTiming | null; level: number },
+): TurnSpendResult {
+  const timing = input.timing
+  if (timing == null || timing === 'reaction') return { ok: true }
+  const prior = state.castsThisTurn.filter((c) => c.timing !== 'reaction')
+  const hadBonus = prior.some((c) => c.timing === 'bonus')
+  const hadAction = prior.some((c) => c.timing === 'action')
+  const isCantrip = Math.max(0, Math.floor(input.level)) <= 0
+  if (timing === 'bonus') {
+    if (hadAction && !isCantrip) {
+      return { ok: false, reason: BONUS_SPELL_RULE_BONUS_HINT, mark: 'bonus' }
+    }
+    return { ok: true }
+  }
+  // action
+  if (hadBonus && !isCantrip) {
+    return { ok: false, reason: BONUS_SPELL_RULE_ACTION_HINT, mark: 'action' }
+  }
+  return { ok: true }
+}
+
+/** Отметка + правило двух заклинаний (для каста и режима «только списать»). */
+export function canCastSpell(
+  state: TurnEconomyState,
+  input: { timing: TurnCastTiming | null; level: number },
+): TurnSpendResult {
+  const markGate = canSpendCast(state, input.timing)
+  if (!markGate.ok) return markGate
+  return canCastByBonusSpellRule(state, input)
+}
+
+/** Э7: «Всплеск действий» — +1 доп. действие, само умение отметку не тратит. */
+export function applyActionSurge(state: TurnEconomyState): TurnEconomyState {
+  return {
+    ...state,
+    extraActions: state.extraActions + 1,
+  }
+}
+
+export type HideSpendTiming = 'action' | 'bonus'
+
+/**
+ * Э9: «Засада» — действие; при «Хитром действии» и свободном бонусном — бонусное;
+ * если бонусное занято, а действие свободно — действием.
+ */
+export function resolveHideTiming(
+  state: TurnEconomyState,
+  hasCunningAction: boolean,
+): TurnSpendResult & { timing?: HideSpendTiming } {
+  if (hasCunningAction && !state.bonus) {
+    return { ok: true, timing: 'bonus' }
+  }
+  if (!state.action || state.extraActions > 0) {
+    return { ok: true, timing: 'action' }
+  }
+  return block('action')
+}
+
+export function canSpendSearch(state: TurnEconomyState): TurnSpendResult {
+  if (!state.action || state.extraActions > 0) return { ok: true }
+  return block('action')
+}
+
+export function applySearchSpend(state: TurnEconomyState): TurnEconomyState {
+  if (!state.action) {
+    return { ...state, action: true, actionSpentAs: 'search' }
+  }
+  if (state.extraActions > 0) {
+    return { ...state, extraActions: state.extraActions - 1 }
+  }
+  return state
+}
+
+export function applyHideSpend(
+  state: TurnEconomyState,
+  timing: HideSpendTiming,
+): TurnEconomyState {
+  if (timing === 'bonus') {
+    return { ...state, bonus: true }
+  }
+  return applySearchSpend(state)
+}
+
 export function applyCastSpend(
   state: TurnEconomyState,
   input: {

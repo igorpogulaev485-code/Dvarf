@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react'
 import type { CombatTarget } from '../lobby/combatTargets'
 import type {
+  HideSpendTiming,
   TurnCastTiming,
   TurnEconomyMarkKey,
   TurnEconomyState,
@@ -22,15 +23,22 @@ export type TurnEconomyContextValue = {
   targets: CombatTarget[]
   canAttack: () => TurnSpendResult
   spendAttack: () => void
-  canCast: (timing: TurnCastTiming | null) => TurnSpendResult
+  canCast: (timing: TurnCastTiming | null, level?: number) => TurnSpendResult
   spendCast: (input: {
     timing: TurnCastTiming | null
     name: string
     level: number
     id?: string
+    quickened?: boolean
   }) => void
   canFeature: (timing: TurnCastTiming) => TurnSpendResult
   spendFeature: (timing: TurnCastTiming) => void
+  /** Э7: Всплеск действий → +1 доп. действие (отметку не тратит). */
+  grantActionSurge: () => void
+  canSearch: () => TurnSpendResult
+  spendSearch: () => void
+  canHide: (hasCunningAction: boolean) => TurnSpendResult & { timing?: HideSpendTiming }
+  spendHide: (timing: HideSpendTiming) => void
   postRoll: (opts: {
     title: string
     total: number

@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useTurnEconomy } from './TurnEconomyContext'
 import { TurnEconomyChips } from './TurnEconomyChips'
+import { TurnEconomyCombatActions } from './TurnEconomyCombatActions'
 import { CombatTargetPicker } from './CombatTargetPicker'
 import { EnterOwnNumberDialog } from './EnterOwnNumberDialog'
 import type { CombatTarget } from '../lobby/combatTargets'
@@ -92,6 +93,8 @@ type PlayDeskAttacksCompactProps = {
   favoriteConsumableIds?: string[]
   /** Combat-desk class features (e.g. Reckless Attack). */
   combatFeatures?: UnlockedFeature[]
+  /** T-02: «Хитрое действие» — Засада бонусным. */
+  hasCunningAction?: boolean
   /** Shared spell slots. Divine Smite spends one only after a melee hit. */
   spells?: SpellsState | null
   onSpellsChange?: (spells: SpellsState) => void
@@ -201,6 +204,7 @@ export function PlayDeskAttacksCompact({
   inventoryItems,
   favoriteConsumableIds = [],
   combatFeatures = [],
+  hasCunningAction = false,
   spells = null,
   onSpellsChange,
   divineSmiteIntent,
@@ -255,6 +259,7 @@ export function PlayDeskAttacksCompact({
         physicalDice?: boolean
         tableHit?: boolean
         tableMiss?: boolean
+        damageTotal?: number | null
         manualTotal?: number
         strikeText?: string
         hitTotal?: number
@@ -455,11 +460,31 @@ export function PlayDeskAttacksCompact({
       </div>
 
       {turnEco ? (
-        <TurnEconomyChips
-          state={turnEco.turnEconomy}
-          onToggle={turnEco.toggleMark}
-          className="chip-row"
-        />
+        <>
+          <TurnEconomyChips
+            state={turnEco.turnEconomy}
+            onToggle={turnEco.toggleMark}
+            className="chip-row"
+          />
+          <TurnEconomyCombatActions
+            hasCunningAction={
+              hasCunningAction ||
+              combatFeatures.some((f) => f.id === 'cunning_action')
+            }
+            onOfferSkill={(key) => {
+              const labels: Record<string, string> = {
+                investigation: 'Анализ',
+                perception: 'Внимательность',
+                stealth: 'Скрытность',
+              }
+              onToast?.(
+                key === 'stealth'
+                  ? `Засада · бросьте «${labels[key]}» из полосы навыков или введите число`
+                  : `Поиск · бросьте «Анализ»/«Внимательность» из полосы навыков или введите число`,
+              )
+            }}
+          />
+        </>
       ) : null}
 
       {deskCombatFeatures.length > 0 ? (
@@ -721,6 +746,7 @@ export function PlayDeskAttacksCompact({
                       physicalDice?: boolean
                       tableHit?: boolean
                       tableMiss?: boolean
+                      damageTotal?: number | null
                       manualTotal?: number
                       strikeText?: string
                       hitTotal?: number
@@ -743,18 +769,31 @@ export function PlayDeskAttacksCompact({
                       const physical =
                         Boolean(opts?.physicalDice) || Boolean(turnEco?.diceOnTable)
                       let text = opts?.strikeText ?? ''
-                      if (opts?.tableHit) text = `${attack.name}: попал 🎲`
-                      else if (opts?.tableMiss) text = `${attack.name}: промах 🎲`
+                      if (opts?.tableHit) {
+                        const dmg =
+                          opts.damageTotal != null && Number.isFinite(opts.damageTotal)
+                            ? ` · урон ${opts.damageTotal}`
+                            : ''
+                        text = `${attack.name}: попал${dmg} 🎲`
+                      } else if (opts?.tableMiss) text = `${attack.name}: промах 🎲`
                       if (text) onToast?.(text)
                       const total =
                         opts?.manualTotal ??
                         opts?.hitTotal ??
-                        (opts?.tableHit ? 1 : opts?.tableMiss ? 0 : 0)
+                        (opts?.tableHit
+                          ? opts.damageTotal != null && Number.isFinite(opts.damageTotal)
+                            ? opts.damageTotal
+                            : 1
+                          : opts?.tableMiss
+                            ? 0
+                            : 0)
                       if (characterId && (opts?.hitTotal != null || opts?.manualTotal != null || opts?.tableHit || opts?.tableMiss)) {
                         void postSheetRollToSession({
                           openSessionId: openSessionId ?? turnEco?.openSessionId,
                           characterId,
-                          title: `Атака: ${attack.name}`,
+                          title: opts?.tableHit
+                            ? `Атака: ${attack.name} · урон`
+                            : `Атака: ${attack.name}`,
                           total,
                           formula: opts?.formula ?? null,
                           breakdown: opts?.breakdown ?? null,
@@ -1225,11 +1264,12 @@ export function PlayDeskAttacksCompact({
         })
         setPendingAttack(null)
       }}
-      onTableHit={(target) => {
+      onTableHit={(target, damageTotal) => {
         finishAttackRef.current?.({
           target,
           tableHit: true,
           physicalDice: true,
+          damageTotal,
         })
         setPendingAttack(null)
       }}

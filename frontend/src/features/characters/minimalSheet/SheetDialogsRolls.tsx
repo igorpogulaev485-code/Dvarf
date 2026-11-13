@@ -256,6 +256,7 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           (row: { id: string }) => row.id === 'voice_of_authority',
         )}
         resources={model.draft.play.resources}
+        metamagicIds={model.sorcererMetamagicIds ?? []}
         elementalAffinity={elementalAffinity}
         abilities={model.effectiveAbilities}
         proficiencyBonus={model.proficiencyBonus}
