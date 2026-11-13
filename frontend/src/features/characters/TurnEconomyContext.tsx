@@ -35,6 +35,12 @@ export type TurnEconomyContextValue = {
   }) => void
   canFeature: (timing: TurnCastTiming) => TurnSpendResult
   spendFeature: (timing: TurnCastTiming) => void
+  /** O-02: отметить трату ци действием/бонусным (для «Атака на ци»). */
+  markKiSpent: (timing: TurnCastTiming) => void
+  /** O-02: «Благословенные удары» сработали в этот ход. */
+  markBlessedStrikesUsed: () => void
+  /** O-02: доп. урон «Избранного противника» в этот ход. */
+  markFavoredFoeDamageUsed: () => void
   /** Э7: Всплеск действий → +1 доп. действие (отметку не тратит). */
   grantActionSurge: () => void
   canSearch: () => TurnSpendResult

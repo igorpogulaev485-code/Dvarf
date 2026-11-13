@@ -164,6 +164,12 @@ export function useSheetEditorPart4(model: SheetModel) {
   const [kiSpendId, setKiSpendId] = useState<string | null>(null)
   model.kiSpendId = kiSpendId
   model.setKiSpendId = setKiSpendId
+  const [magicalGuidanceOffer, setMagicalGuidanceOffer] = useState<{
+    label: string
+    mod: number
+  } | null>(null)
+  model.magicalGuidanceOffer = magicalGuidanceOffer
+  model.setMagicalGuidanceOffer = setMagicalGuidanceOffer
   const [bardicInspirationSpendId, setBardicInspirationSpendId] = useState<
     string | null
   >(null)

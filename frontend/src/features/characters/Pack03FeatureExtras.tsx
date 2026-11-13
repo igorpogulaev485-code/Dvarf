@@ -132,9 +132,9 @@ function HarnessControls({
   return (
     <div className="feature-resource">
       <Text tone="muted">
-        Используй через Божественный канал (или заряд предмета вроде амулета). Дневных{' '}
-        {dailyLeft}/{daily?.max ?? 0} · канал класса {channelLeft}/{channel?.max ?? 0} · потолок
-        круга {cap}.
+        Бонусное действие. Используй через Божественный канал (или заряд предмета вроде
+        амулета). Дневных {dailyLeft}/{daily?.max ?? 0} · канал класса {channelLeft}/
+        {channel?.max ?? 0} · потолок круга {cap}.
       </Text>
     </div>
   )

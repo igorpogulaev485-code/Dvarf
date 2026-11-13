@@ -168,6 +168,8 @@ export type CastChoice = {
   seeking?: boolean
   /** O-01: TCE «Преобразованное заклинание» — новый тип урона из списка. */
   transmutedType?: string | null
+  /** O-02: Магическое вдохновение — добавить кость BI к урону/лечению одной цели. */
+  magicalInspiration?: boolean
 }
 
 type CastSpellDialogProps = {
@@ -225,6 +227,8 @@ type CastSpellDialogProps = {
   resources?: SheetResource[]
   /** T-02: выбранные варианты метамагии чародея (id из sorcererMetamagic). */
   metamagicIds?: string[]
+  /** O-02: у кастера есть «Магическое вдохновение» и книга Таши вкл. */
+  magicalInspirationAvailable?: boolean
   /**
    * Spell scroll: these numbers replace the character's attack and DC.
    * Item bonuses from the sheet are not added.
@@ -263,6 +267,7 @@ export function CastSpellDialog({
   elementalAffinity = null,
   resources,
   metamagicIds = [],
+  magicalInspirationAvailable = false,
   statLock = null,
   scrollItemId = null,
 }: CastSpellDialogProps) {
@@ -360,6 +365,7 @@ export function CastSpellDialog({
   const [useQuickened, setUseQuickened] = useState(false)
   const [useSeeking, setUseSeeking] = useState(false)
   const [useTransmuted, setUseTransmuted] = useState(false)
+  const [useMagicalInspiration, setUseMagicalInspiration] = useState(false)
   const [transmutedType, setTransmutedType] = useState<string>('cold')
   const [buffOption, setBuffOption] = useState<string>('str')
   const isTransformSelf = spell != null && isSpellSelfFormCast(spell)
@@ -876,6 +882,10 @@ export function CastSpellDialog({
             offerTransmuted && useTransmuted && !useRitual && !useGrant
               ? transmutedType
               : null,
+          magicalInspiration:
+            magicalInspirationAvailable &&
+            useMagicalInspiration &&
+            !useRitual,
           usePact:
             !isCantrip &&
             !useGrant &&
@@ -1453,6 +1463,17 @@ export function CastSpellDialog({
                       </option>
                     ))}
                   </select>
+                </label>
+              ) : null}
+              {magicalInspirationAvailable && !useRitual ? (
+                <label className="field">
+                  <input
+                    type="checkbox"
+                    checked={useMagicalInspiration}
+                    onChange={(event) => setUseMagicalInspiration(event.target.checked)}
+                  />{' '}
+                  Магическое вдохновение: добавить кость BI цели к урону или лечению
+                  одной цели (кость тратится)
                 </label>
               ) : null}
             </div>

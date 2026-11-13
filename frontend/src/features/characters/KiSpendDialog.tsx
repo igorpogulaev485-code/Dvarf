@@ -12,7 +12,7 @@ type KiSpendDialogProps = {
   open: boolean
   resource: SheetResource | null
   features: UnlockedFeature[]
-  onSpend: (label: string, cost: number) => void
+  onSpend: (label: string, cost: number, timing?: 'action' | 'bonus' | 'reaction') => void
   onToast: (message: string) => void
   onClose: () => void
 }
@@ -58,6 +58,20 @@ export function KiSpendDialog({
     return option.cost
   }
 
+  function timingFor(
+    option: KiSpendOption | null,
+  ): 'action' | 'bonus' | 'reaction' | undefined {
+    if (!option) return undefined
+    const feature = features.find(
+      (f) => f.id === option.featureId && f.classEntryId === option.classEntryId,
+    )
+    if (feature?.kind === 'bonus' || feature?.kind === 'reaction' || feature?.kind === 'action') {
+      return feature.kind
+    }
+    // Passive ki spends (оглушающий удар, прицел…) — экономику хода не тратят.
+    return undefined
+  }
+
   function spend(option: KiSpendOption | null, label: string, cost: number) {
     if (remaining <= 0) {
       onToast('Нет очков ки')
@@ -67,8 +81,7 @@ export function KiSpendDialog({
       onToast(`Не хватает ки (нужно ${cost}, есть ${remaining})`)
       return
     }
-    onSpend(label, cost)
-    void option
+    onSpend(label, cost, timingFor(option))
   }
 
   return (

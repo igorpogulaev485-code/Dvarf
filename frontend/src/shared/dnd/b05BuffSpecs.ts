@@ -619,6 +619,27 @@ export const B05_BUFF_SPEC_BUILDERS: Record<string, SpecBuilder> = {
     duration: untilSourceTurn(),
     mods: [{ target: 'label', op: 'set', condition: 'invisible' }],
   }),
+  favored_foe: (ctx) => {
+    const level = classLevelOf(ctx, 1)
+    const dice = level >= 14 ? '1d8' : level >= 6 ? '1d6' : '1d4'
+    return {
+      name: 'Избранный противник',
+      slug: 'favored_foe',
+      kind: 'feature',
+      concentration: true,
+      duration: minutes(1),
+      mods: [
+        {
+          target: 'weapon_damage',
+          op: 'roll_die',
+          dice,
+          once: true,
+          condition: 'marked_target',
+        },
+        { target: 'label', op: 'set', condition: 'favored_foe_mark' },
+      ],
+    }
+  },
   dreadful_strikes: (ctx) => {
     const dice = classLevelOf(ctx, 1) >= 11 ? '1d6' : '1d4'
     return {
@@ -923,6 +944,10 @@ export const B05_NAME_TO_SLUG: Array<{ re: RegExp; slug: string }> = [
     slug: 'supernatural_defense',
   },
   { re: /^завес\w*\s*природ|^природн\w*\s*завес|^nature'?s?\s*veil/iu, slug: 'natures_veil' },
+  {
+    re: /^избранн\w*\s*противник|^favored\s*foe/iu,
+    slug: 'favored_foe',
+  },
   { re: /^ужас\w*\s*удар|^dreadful\s*strikes/iu, slug: 'dreadful_strikes' },
   {
     re: /^жутк\w*\s*преследовател|^ужасн\w*\s*засад|^dread\s*ambusher/iu,

@@ -22,8 +22,10 @@ type Props = {
   onDiceOnTableChange: (next: boolean) => void
   hasCunningAction?: boolean
   hasSteadyAim?: boolean
+  hasKiFueledAttack?: boolean
   onToggleMoved?: () => void
   onOfferSkill?: (skillKey: 'investigation' | 'perception' | 'stealth') => void
+  onToast?: (message: string) => void
 }
 
 /**
@@ -46,8 +48,10 @@ export function TurnEconomyStrip({
   onDiceOnTableChange,
   hasCunningAction = false,
   hasSteadyAim = false,
+  hasKiFueledAttack = false,
   onToggleMoved,
   onOfferSkill,
+  onToast,
 }: Props) {
   // Вне боя: без полоски «Твой ход», только «Новый ход» + личные кубики.
   if (!combatActive) {
@@ -137,7 +141,9 @@ export function TurnEconomyStrip({
         <TurnEconomyCombatActions
           hasCunningAction={hasCunningAction}
           hasSteadyAim={hasSteadyAim}
+          hasKiFueledAttack={hasKiFueledAttack}
           onOfferSkill={onOfferSkill}
+          onToast={onToast}
         />
       ) : null}
     </div>

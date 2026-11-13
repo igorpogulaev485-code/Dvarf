@@ -17,6 +17,7 @@ import {
   formatCheckRoll,
   formatSkillRoll,
 } from '../deskRolls'
+// formatSkillRoll used by O-02 Magical Guidance reroll toast
 import {
   listRollDieChips,
   mergeDeskRollMode,
@@ -29,6 +30,7 @@ import { resolveClassFeatureSlug, type UnlockedFeature } from '../../../shared/d
 import { setConcentration } from '../../../shared/dnd/concentration'
 import { equippedArmorPieces } from '../inventory'
 import { CastSpellDialog } from '../CastSpellDialog'
+import { normalizeCampaignRules } from '../../lobby/campaignRules'
 import { listActiveInfusionBindings } from '../../../shared/dnd/infusionsActive'
 import { ScrollCastGate, useScrollSpellClasses } from '../ScrollCastGate'
 import {
@@ -257,6 +259,15 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         )}
         resources={model.draft.play.resources}
         metamagicIds={model.sorcererMetamagicIds ?? []}
+        magicalInspirationAvailable={
+          model.campaignRulesRaw != null &&
+          normalizeCampaignRules(model.campaignRulesRaw).start.allowed_sources.includes(
+            'tce',
+          ) &&
+          (model.playActiveFeatures ?? model.unlockedFeatures ?? []).some(
+            (f: { id?: string }) => f.id === 'magical_inspiration',
+          )
+        }
         elementalAffinity={elementalAffinity}
         abilities={model.effectiveAbilities}
         proficiencyBonus={model.proficiencyBonus}
@@ -541,6 +552,70 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           <Text>
             На к20 выпала 1. Удача полурослика: можете перебросить — новый результат
             обязателен.
+          </Text>
+        </Stack>
+      </Dialog>
+
+      <Dialog
+        open={model.magicalGuidanceOffer != null}
+        title="Магическое наставление"
+        primaryLabel="Перебросить (−1 очко)"
+        secondaryLabel="Не сейчас"
+        onPrimary={() => {
+          const offer = model.magicalGuidanceOffer
+          if (!offer) return
+          const sp = model.draft.play.resources.find(
+            (row: { id: string; name: string }) =>
+              row.id.includes(':sorcery_points:') ||
+              /очки чародейства/i.test(row.name),
+          )
+          if (!sp || sp.used >= sp.max) {
+            model.onToast('Нет очков чародейства')
+            model.setMagicalGuidanceOffer?.(null)
+            return
+          }
+          model.setDraft((prev: typeof model.draft) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) =>
+                row.id === sp.id
+                  ? { ...row, used: Math.min(row.max, row.used + 1) }
+                  : row,
+              ),
+            },
+          }))
+          const te = model.turnEconomyApi as
+            | {
+                diceOnTable?: boolean
+                openEnterOwnNumber?: (o: {
+                  title: string
+                  mode?: 'total' | 'd20'
+                  modifier?: number
+                }) => void
+              }
+            | undefined
+          if (te?.diceOnTable && te.openEnterOwnNumber) {
+            te.openEnterOwnNumber({
+              title: `Переброс: ${offer.label}`,
+              mode: 'd20',
+              modifier: offer.mod,
+            })
+            model.onToast(
+              `Магическое наставление: −1 очко · введи новый результат (обязателен)`,
+            )
+          } else {
+            const text = formatSkillRoll(offer.label, offer.mod, 'normal')
+            model.emitToast?.(`Магическое наставление: −1 очко · ${text}`)
+          }
+          model.setMagicalGuidanceOffer?.(null)
+        }}
+        onSecondary={() => model.setMagicalGuidanceOffer?.(null)}
+      >
+        <Stack gap={8}>
+          <Text>
+            При провале проверки «{model.magicalGuidanceOffer?.label}» можно потратить 1
+            очко чародейства и перебросить d20 — новый результат обязателен.
           </Text>
         </Stack>
       </Dialog>

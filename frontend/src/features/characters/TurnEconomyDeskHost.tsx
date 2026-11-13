@@ -31,6 +31,12 @@ import {
   type TurnCastTiming,
   type TurnEconomyMarkKey,
 } from '../../shared/dnd/turnEconomy'
+import {
+  hasO02Feature,
+  markBlessedStrikesUsed as markBlessedStrikesUsedState,
+  markFavoredFoeDamageUsed as markFavoredFoeDamageUsedState,
+  markKiSpent as markKiSpentState,
+} from '../../shared/dnd/o02TashaFeatures'
 import type { ActiveEffect } from '../../shared/dnd/activeEffects'
 import { normalizeCampaignRules } from '../lobby/campaignRules'
 import { postSheetRollToSession } from './postSheetRollToSession'
@@ -179,6 +185,11 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
         ),
       canFeature: (timing) => canSpendFeature(economy, timing),
       spendFeature: (timing) => patchEconomy((te) => applyFeatureSpend(te, timing)),
+      markKiSpent: (timing) => patchEconomy((te) => markKiSpentState(te, timing)),
+      markBlessedStrikesUsed: () =>
+        patchEconomy((te) => markBlessedStrikesUsedState(te)),
+      markFavoredFoeDamageUsed: () =>
+        patchEconomy((te) => markFavoredFoeDamageUsedState(te)),
       grantActionSurge: () => patchEconomy(applyActionSurge),
       canSearch: () => canSpendSearch(economy),
       spendSearch: () => patchEconomy(applySearchSpend),
@@ -301,13 +312,10 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
       null,
   )
   const tceAllowed = campaignRules.start.allowed_sources.includes('tce')
-  const hasSteadyAim =
-    tceAllowed &&
-    Boolean(
-      (model.unlockedFeatures as Array<{ id?: string }> | undefined)?.some(
-        (f) => f.id === 'steady_aim',
-      ),
-    )
+  const unlocked = (model.unlockedFeatures as Array<{ id?: string }> | undefined) ?? []
+  const hasSteadyAim = tceAllowed && unlocked.some((f) => f.id === 'steady_aim')
+  const hasKiFueledAttack =
+    tceAllowed && hasO02Feature(unlocked, 'ki_fueled_attack')
 
   const rollOfferedSkill = useCallback(
     (key: 'investigation' | 'perception' | 'stealth') => {
@@ -355,11 +363,13 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
         onDiceOnTableChange={setPersonalDiceOnTable}
         hasCunningAction={hasCunningAction}
         hasSteadyAim={hasSteadyAim}
+        hasKiFueledAttack={hasKiFueledAttack}
         onToggleMoved={toggleMoved}
         onOfferSkill={(key) => {
           if (key === 'stealth') setSkillOffer('stealth')
           else setSkillOffer('search')
         }}
+        onToast={(msg) => model.onToast?.(msg)}
       />
       {children}
       <InitiativeRollDialog

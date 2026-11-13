@@ -1,7 +1,7 @@
 /**
  * TCE Harness Divine Power (Праведное восстановление).
  *
- * Action: expend ONE Channel Divinity use (class pool or item free charge)
+ * Bonus action: expend ONE Channel Divinity use (class pool or item free charge)
  * AND one daily HDP use to regain one expended spell slot of level ≤ ceil(PB/2).
  *
  * Daily uses by class level (owner table for this product):

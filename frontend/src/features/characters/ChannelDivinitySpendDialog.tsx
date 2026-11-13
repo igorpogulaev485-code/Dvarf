@@ -170,8 +170,8 @@ export function ChannelDivinitySpendDialog({
                     <div className="sorcery-spend-row__text">
                       <b>{feature.name_ru}</b>
                       <span>
-                        Дневных {dailyLeft}/{daily?.max ?? 0} · потолок круга {slotCap}.{' '}
-                        {feature.summary_ru || feature.kind}
+                        Бонусное · дневных {dailyLeft}/{daily?.max ?? 0} · потолок круга{' '}
+                        {slotCap}. {feature.summary_ru || feature.kind}
                       </span>
                       {slotOptions.length === 0 ? (
                         <span>Нет потраченных ячеек круга 1–{slotCap}.</span>

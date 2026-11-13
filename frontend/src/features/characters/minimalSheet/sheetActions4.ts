@@ -41,6 +41,11 @@ import { formatSaveAdvantageNote } from '../gearEffects'
 import { isMantleCommandSpell, MANTLE_CONCENTRATION_ID, silverTongueApplies } from '../../../shared/dnd/bardCollege'
 import { exhaustionRollFlags } from '../../../shared/dnd/exhaustion2014'
 import {
+  MAGICAL_GUIDANCE_SHEET_NAME,
+  primalKnowledgeAbilityOverride,
+} from '../../../shared/dnd/o02TashaFeatures'
+import { normalizeCampaignRules } from '../../lobby/campaignRules'
+import {
   MODE_DEFAULT_PANEL,
   MODE_SKILL_KEYS,
   defaultDeskSplitForMode,
@@ -448,6 +453,29 @@ export function installSheetActions4(model: SheetModel) {
           } as Record<string, string>
         )[transmutedType] ?? transmutedType
       metaNotes.push(`Преобразованное: тип урона → ${typeRu}`)
+    }
+    if (choice.magicalInspiration) {
+      metaNotes.push(
+        'Магическое вдохновение: добавь кость BI цели к урону/лечению одной цели — кость тратится',
+      )
+      // If self holds a BI die buff, consume it.
+      const hasBi = (model.draft.play.effects ?? []).some(
+        (e: { slug?: string | null; inactive?: boolean | null }) =>
+          e.slug === 'bardic_inspiration' && !e.inactive,
+      )
+      if (hasBi) {
+        model.setDraft((prev) => ({
+          ...prev,
+          play: {
+            ...prev.play,
+            effects: (prev.play.effects ?? []).map((e) =>
+              e.slug === 'bardic_inspiration' && !e.inactive
+                ? { ...e, inactive: true }
+                : e,
+            ),
+          },
+        }))
+      }
     }
     const successToast = (message: string) => {
       castSucceeded = true
@@ -1024,9 +1052,26 @@ export function installSheetActions4(model: SheetModel) {
     if (!def) return 0
     const state = model.draft.skills[skillKey]
     const abilities = model.effectiveAbilities ?? model.draft.abilities
+    const raging = (model.draft.play.effects ?? []).some(
+      (e: { slug?: string | null; inactive?: boolean | null }) =>
+        e.slug === 'rage' && !e.inactive,
+    )
+    const tceAllowed =
+      model.campaignRulesRaw == null
+        ? false
+        : normalizeCampaignRules(model.campaignRulesRaw).start.allowed_sources.includes('tce')
+    const useStr = primalKnowledgeAbilityOverride({
+      skillKey,
+      raging,
+      hasPrimalKnowledge: (model.playActiveFeatures ?? model.unlockedFeatures ?? []).some(
+        (f: { id?: string }) => f.id === 'primal_knowledge',
+      ),
+      tceAllowed,
+    })
+    const abilityKey = useStr ?? def.base
     return (
       skillModifierFromState({
-        abilityMod: abilityModifier(abilities[def.base]),
+        abilityMod: abilityModifier(abilities[abilityKey]),
         proficiencyBonus: model.proficiencyBonus,
         isProficient: state?.is_proficient ?? false,
         isExpertise: state?.is_expertise ?? false,
@@ -1171,6 +1216,7 @@ export function installSheetActions4(model: SheetModel) {
             title: string
             mode?: 'total' | 'd20'
             modifier?: number
+            onDone?: (total: number) => void
           }) => void
           postRoll?: (o: { title: string; total: number; physicalDice?: boolean }) => void
         }
@@ -1181,6 +1227,21 @@ export function installSheetActions4(model: SheetModel) {
         mode: 'd20',
         modifier: skill.mod,
       })
+    }
+    // O-02: Магическое наставление — предложить переброс при провале (игрок решает).
+    const tceForGuidance =
+      model.campaignRulesRaw == null
+        ? false
+        : normalizeCampaignRules(model.campaignRulesRaw).start.allowed_sources.includes('tce')
+    const hasGuidance = (model.playActiveFeatures ?? model.unlockedFeatures ?? []).some(
+      (f: { id?: string }) => f.id === 'magical_guidance',
+    )
+    if (tceForGuidance && hasGuidance && typeof model.setMagicalGuidanceOffer === 'function') {
+      model.setMagicalGuidanceOffer({
+        label: skill.label,
+        mod: skill.mod,
+      })
+      model.emitToast(`${MAGICAL_GUIDANCE_SHEET_NAME}: при провале можно перебросить за 1 очко`)
     }
     consumeOnceBuffDice('check')
   }

@@ -6,6 +6,7 @@ import {
   darkOnesBlessingTempHp,
   inspiringSmiteTempPool,
 } from '../../shared/dnd/b05BuffSpecs'
+import { quickenedHealingAmount } from '../../shared/dnd/o02TashaFeatures'
 
 export type B05SpendAction =
   | {
@@ -56,6 +57,8 @@ export function resolveB05FeatureSpend(input: {
   classLevel: number
   abilities?: { cha?: number; int?: number; con?: number; wis?: number } | null
   proficiencyBonus?: number
+  /** O-02: Martial Arts die label for Quickened Healing (e.g. "1к8"). */
+  martialArtsDie?: string | null
   rng?: () => number
 }): B05SpendAction {
   const id = input.featureId
@@ -135,6 +138,22 @@ export function resolveB05FeatureSpend(input: {
       name: 'Завеса природы',
       targetsSelf: true,
     }
+  }
+  if (id === 'favored_foe') {
+    return {
+      kind: 'buff',
+      slug: 'favored_foe',
+      name: 'Избранный противник',
+      targetsSelf: true,
+    }
+  }
+  if (id === 'quickened_healing') {
+    const heal = quickenedHealingAmount(
+      input.martialArtsDie,
+      input.proficiencyBonus ?? 2,
+      rng,
+    )
+    return { kind: 'heal', amount: heal.amount, label: heal.label }
   }
   if (id === 'dread_ambusher') {
     return {
