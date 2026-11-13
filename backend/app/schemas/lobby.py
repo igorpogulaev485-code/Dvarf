@@ -101,6 +101,8 @@ class SettingPageOut(BaseModel):
     map_image: "LobbyMediaOut | None" = None
     # W-03: оценка DMG для страницы «Бой» (только GM)
     combat_estimate: "CombatEstimateOut | None" = None
+    # W-04: связь item_lore ↔ артефакт
+    artifact_id: UUID | None = None
 
 
 LinkKind = Literal["semantic", "mention"]
@@ -252,6 +254,54 @@ class SettingArtifactUpdateRequest(BaseModel):
     sort_order: int | None = None
 
 
+class ArtifactSetThresholdIn(BaseModel):
+    """Порог сета: бонусы той же модели, что abilities артефакта."""
+
+    pieces: Literal[2, 3, 4]
+    abilities: list[ArtifactAbilityIn] = Field(default_factory=list)
+    player_text: str = Field(default="", max_length=2000)
+
+
+class SettingArtifactSetOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    setting_id: UUID
+    name: str
+    description: str = ""
+    artifact_ids: list[UUID] = Field(default_factory=list)
+    thresholds: list[dict] = Field(default_factory=list)
+    sort_order: int = 0
+    created_at: datetime
+    updated_at: datetime
+
+
+class SettingArtifactSetCreateRequest(BaseModel):
+    name: str = Field(default="Новый сет", max_length=120)
+    description: str = Field(default="", max_length=4000)
+    artifact_ids: list[UUID] = Field(default_factory=list, max_length=20)
+    thresholds: list[ArtifactSetThresholdIn] = Field(default_factory=list, max_length=8)
+    sort_order: int | None = None
+
+
+class SettingArtifactSetUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, max_length=120)
+    description: str | None = Field(default=None, max_length=4000)
+    artifact_ids: list[UUID] | None = Field(default=None, max_length=20)
+    thresholds: list[ArtifactSetThresholdIn] | None = Field(default=None, max_length=8)
+    sort_order: int | None = None
+
+
+class KnownLegendOut(BaseModel):
+    """Известная легенда для игрока: имя, описание, картинка — без скрытой механики."""
+
+    artifact_id: UUID
+    name: str
+    description: str = ""
+    page_id: UUID | None = None
+    primary_image: "LobbyMediaOut | None" = None
+
+
 class SettingDetail(SettingSummary):
     """C1–C9 + D1: страницы, связи, шаблоны, теги; артефакты у мастера."""
 
@@ -260,6 +310,10 @@ class SettingDetail(SettingSummary):
     templates: list[SettingPageTemplateOut] = Field(default_factory=list)
     all_tags: list[str] = Field(default_factory=list)
     artifacts: list[SettingArtifactOut] = Field(default_factory=list)
+    # W-04: сеты — только мастеру (can_see_hidden); игроку пусто
+    artifact_sets: list[SettingArtifactSetOut] = Field(default_factory=list)
+    # W-04: известные легенды (раскрытые item_lore ↔ артефакт)
+    known_legends: list[KnownLegendOut] = Field(default_factory=list)
     is_owner: bool = False
     # W-01: права L-01, не путать is_owner с правкой вики
     can_edit_wiki: bool = False
@@ -286,6 +340,8 @@ class SettingPageCreateRequest(BaseModel):
     fields: SettingPageFields | None = None
     quest_status: QuestStatus | None = None
     tags: list[str] | None = None
+    # W-04: связь item_lore ↔ артефакт
+    artifact_id: UUID | None = None
 
 
 class SettingPageBulkCreateRequest(BaseModel):
@@ -322,6 +378,9 @@ class SettingPageUpdateRequest(BaseModel):
     # W-02: оптимистичная блокировка; 409 setting_page_conflict
     expected_updated_at: datetime | None = None
     force_overwrite: bool = False
+    # W-04: связь item_lore ↔ артефакт
+    artifact_id: UUID | None = None
+    clear_artifact: bool = False
 
 
 class CombatEstimateOut(BaseModel):

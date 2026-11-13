@@ -150,6 +150,8 @@ export type SettingPage = {
   map_image?: LobbyMedia | null
   /** W-03: оценка DMG для страницы «Бой» (только GM). */
   combat_estimate?: CombatEstimate | null
+  /** W-04: связь item_lore ↔ артефакт */
+  artifact_id?: string | null
 }
 
 export type SettingPageLinkKind = 'semantic' | 'mention'
@@ -281,6 +283,42 @@ export type SettingArtifactUpdatePayload = SettingArtifactCreatePayload & {
   clear_weight?: boolean
 }
 
+export type ArtifactSetThreshold = {
+  pieces: 2 | 3 | 4
+  abilities: ArtifactAbility[]
+  player_text?: string
+}
+
+export type SettingArtifactSet = {
+  id: string
+  setting_id: string
+  name: string
+  description: string
+  artifact_ids: string[]
+  thresholds: ArtifactSetThreshold[]
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export type SettingArtifactSetCreatePayload = {
+  name?: string
+  description?: string
+  artifact_ids?: string[]
+  thresholds?: ArtifactSetThreshold[]
+  sort_order?: number
+}
+
+export type SettingArtifactSetUpdatePayload = SettingArtifactSetCreatePayload
+
+export type KnownLegend = {
+  artifact_id: string
+  name: string
+  description: string
+  page_id?: string | null
+  primary_image?: LobbyMedia | null
+}
+
 export type SettingDetail = SettingSummary & {
   pages: SettingPage[]
   links: SettingPageLink[]
@@ -288,6 +326,10 @@ export type SettingDetail = SettingSummary & {
   /** C9: уникальные теги по видимым страницам */
   all_tags: string[]
   artifacts?: SettingArtifact[]
+  /** W-04: сеты — только мастеру */
+  artifact_sets?: SettingArtifactSet[]
+  /** W-04: известные легенды */
+  known_legends?: KnownLegend[]
   is_owner: boolean
   /** W-01: права L-01 */
   can_edit_wiki?: boolean
@@ -1256,6 +1298,9 @@ export async function updateSettingPage(
     tags?: string[]
     expected_updated_at?: string | null
     force_overwrite?: boolean
+    /** W-04 */
+    artifact_id?: string | null
+    clear_artifact?: boolean
   },
 ): Promise<SettingDetail> {
   return apiRequest<SettingDetail>(`/settings/pages/${pageId}`, {
@@ -1374,6 +1419,32 @@ export async function updateSettingArtifact(
   return apiRequest<SettingDetail>(`/settings/artifacts/${artifactId}`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
+  })
+}
+
+export async function createSettingArtifactSet(
+  settingId: string,
+  payload: SettingArtifactSetCreatePayload,
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/${settingId}/artifact-sets`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function updateSettingArtifactSet(
+  setId: string,
+  payload: SettingArtifactSetUpdatePayload,
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/artifact-sets/${setId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteSettingArtifactSet(setId: string): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/artifact-sets/${setId}`, {
+    method: 'DELETE',
   })
 }
 

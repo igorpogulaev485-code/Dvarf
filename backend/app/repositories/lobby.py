@@ -245,6 +245,7 @@ class LobbyRepository:
         quest_status: str | None = None,
         gm_body: str = "",
         tags: list[str] | None = None,
+        artifact_id: UUID | None = None,
     ):
         from app.models.setting_page import SettingPage
 
@@ -260,6 +261,7 @@ class LobbyRepository:
             fields=fields if fields is not None else {},
             quest_status=quest_status,
             tags=list(tags) if tags is not None else [],
+            artifact_id=artifact_id,
         )
         self.db.add(page)
         self.db.flush()
@@ -424,6 +426,72 @@ class LobbyRepository:
     def delete_setting_artifact(self, artifact) -> None:
         self.db.delete(artifact)
         self.db.flush()
+
+    def list_setting_artifact_sets(self, setting_id: UUID) -> list:
+        from app.models.setting_artifact_set import SettingArtifactSet
+
+        return list(
+            self.db.scalars(
+                select(SettingArtifactSet)
+                .where(SettingArtifactSet.setting_id == setting_id)
+                .options(selectinload(SettingArtifactSet.members))
+                .order_by(
+                    SettingArtifactSet.sort_order.asc(),
+                    SettingArtifactSet.created_at.asc(),
+                )
+            ).all()
+        )
+
+    def get_setting_artifact_set(self, set_id: UUID):
+        from app.models.setting_artifact_set import SettingArtifactSet
+
+        return self.db.scalar(
+            select(SettingArtifactSet)
+            .where(SettingArtifactSet.id == set_id)
+            .options(selectinload(SettingArtifactSet.members))
+        )
+
+    def create_setting_artifact_set(self, **kwargs):
+        from app.models.setting_artifact_set import SettingArtifactSet
+
+        row = SettingArtifactSet(**kwargs)
+        self.db.add(row)
+        self.db.flush()
+        return row
+
+    def delete_setting_artifact_set(self, artifact_set) -> None:
+        self.db.delete(artifact_set)
+        self.db.flush()
+
+    def clear_artifact_set_members(self, set_id: UUID) -> None:
+        from app.models.setting_artifact_set import SettingArtifactSetMember
+
+        for row in self.db.scalars(
+            select(SettingArtifactSetMember).where(SettingArtifactSetMember.set_id == set_id)
+        ).all():
+            self.db.delete(row)
+        self.db.flush()
+
+    def add_artifact_set_member(self, *, set_id: UUID, artifact_id: UUID, sort_order: int = 0):
+        from app.models.setting_artifact_set import SettingArtifactSetMember
+
+        row = SettingArtifactSetMember(
+            set_id=set_id,
+            artifact_id=artifact_id,
+            sort_order=sort_order,
+        )
+        self.db.add(row)
+        self.db.flush()
+        return row
+
+    def find_artifact_set_membership(self, artifact_id: UUID):
+        from app.models.setting_artifact_set import SettingArtifactSetMember
+
+        return self.db.scalar(
+            select(SettingArtifactSetMember).where(
+                SettingArtifactSetMember.artifact_id == artifact_id
+            )
+        )
 
     def delete_setting(self, setting: Setting) -> None:
         self.db.delete(setting)

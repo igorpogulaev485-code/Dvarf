@@ -103,6 +103,8 @@ from app.schemas.lobby import (
     SessionRollCreateRequest,
     SessionUpdateRequest,
     SettingArtifactCreateRequest,
+    SettingArtifactSetCreateRequest,
+    SettingArtifactSetUpdateRequest,
     SettingArtifactUpdateRequest,
     SettingChoosePrimaryRequest,
     SettingCreateRequest,
@@ -677,6 +679,39 @@ def delete_setting_artifact(
     db: DbSession,
 ) -> SettingDetail:
     return LobbyService(db).delete_setting_artifact(current_user, artifact_id)
+
+
+@router.post(
+    "/settings/{setting_id}/artifact-sets",
+    response_model=SettingDetail,
+    status_code=201,
+)
+def create_setting_artifact_set(
+    setting_id: UUID,
+    payload: SettingArtifactSetCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).create_setting_artifact_set(current_user, setting_id, payload)
+
+
+@router.patch("/settings/artifact-sets/{set_id}", response_model=SettingDetail)
+def update_setting_artifact_set(
+    set_id: UUID,
+    payload: SettingArtifactSetUpdateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).update_setting_artifact_set(current_user, set_id, payload)
+
+
+@router.delete("/settings/artifact-sets/{set_id}", response_model=SettingDetail)
+def delete_setting_artifact_set(
+    set_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).delete_setting_artifact_set(current_user, set_id)
 
 
 @router.patch("/settings/{setting_id}", response_model=SettingSummary)

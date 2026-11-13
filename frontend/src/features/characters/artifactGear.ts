@@ -207,7 +207,13 @@ function needsHydrate(sheet: Record<string, unknown>): boolean {
  * Already-live rows (artifact_live) are left alone.
  */
 export function hydrateArtifactSheet(sheet: Record<string, unknown>): Record<string, unknown> {
-  if (!needsHydrate(sheet)) return sheet
+  if (!needsHydrate(sheet)) {
+    // W-04: даже без legacy-hydrate пересчитать бонусы сета
+    if (Array.isArray(sheet.artifact_sets) && sheet.artifact_sets.length) {
+      return syncArtifactSetBonuses(structuredClone(sheet))
+    }
+    return sheet
+  }
   const next = structuredClone(sheet)
   const inventory = asRecord(next.inventory)
   const items = Array.isArray(inventory.items) ? inventory.items : []
@@ -268,7 +274,147 @@ export function hydrateArtifactSheet(sheet: Record<string, unknown>): Record<str
   next.spells = spells
   inventory.items = items
   next.inventory = inventory
-  return next
+  return syncArtifactSetBonuses(next)
+}
+
+const SET_BONUS_MARKER = 'artifact_set_bonus'
+const SET_DEFS_KEY = 'artifact_sets'
+
+type SetDef = {
+  id: string
+  name: string
+  member_ids: string[]
+  thresholds: Array<{
+    pieces: number
+    abilities: Array<Record<string, unknown>>
+    player_text?: string
+  }>
+}
+
+function readSetDefs(sheet: Record<string, unknown>): SetDef[] {
+  const raw = sheet[SET_DEFS_KEY]
+  if (!Array.isArray(raw)) return []
+  const out: SetDef[] = []
+  for (const row of raw) {
+    if (!row || typeof row !== 'object') continue
+    const rec = row as Record<string, unknown>
+    const id = String(rec.id || '')
+    if (!id) continue
+    const memberIds = Array.isArray(rec.member_ids)
+      ? rec.member_ids.map((x) => String(x))
+      : Array.isArray(rec.artifact_ids)
+        ? rec.artifact_ids.map((x) => String(x))
+        : []
+    const thresholds: SetDef['thresholds'] = []
+    if (Array.isArray(rec.thresholds)) {
+      for (const thr of rec.thresholds) {
+        if (!thr || typeof thr !== 'object') continue
+        const t = thr as Record<string, unknown>
+        const pieces = num(t.pieces)
+        if (pieces !== 2 && pieces !== 3 && pieces !== 4) continue
+        const abilities = Array.isArray(t.abilities)
+          ? t.abilities.filter(
+              (a): a is Record<string, unknown> => Boolean(a) && typeof a === 'object',
+            )
+          : []
+        thresholds.push({
+          pieces,
+          abilities,
+          player_text: String(t.player_text || ''),
+        })
+      }
+    }
+    thresholds.sort((a, b) => a.pieces - b.pieces)
+    out.push({
+      id,
+      name: String(rec.name || 'Сет'),
+      member_ids: memberIds,
+      thresholds,
+    })
+  }
+  return out
+}
+
+function countActiveSetPieces(
+  sheet: Record<string, unknown>,
+  memberIds: string[],
+  attuned: Set<string>,
+): number {
+  const wanted = new Set(memberIds.filter(Boolean))
+  if (!wanted.size) return 0
+  const items = asRecord(sheet.inventory).items
+  if (!Array.isArray(items)) return 0
+  const counted = new Set<string>()
+  for (const raw of items) {
+    if (!raw || typeof raw !== 'object') continue
+    const item = raw as Record<string, unknown>
+    if (item[SET_BONUS_MARKER]) continue
+    const sid = String(item.setting_artifact_id || '')
+    if (!sid || !wanted.has(sid) || counted.has(sid)) continue
+    if (!item.equipped) continue
+    if (item.requires_attunement && !attuned.has(String(item.id || ''))) continue
+    counted.add(sid)
+  }
+  return counted.size
+}
+
+/**
+ * W-04: пересчитать синтетические предметы бонусов сета (складываются 2 / 3 / 4+).
+ * Свойства самих частей не трогает.
+ */
+export function syncArtifactSetBonuses(
+  sheet: Record<string, unknown>,
+): Record<string, unknown> {
+  const defs = readSetDefs(sheet)
+  const inventory = asRecord(sheet.inventory)
+  const items = Array.isArray(inventory.items) ? [...inventory.items] : []
+  const kept = items.filter((raw) => {
+    if (!raw || typeof raw !== 'object') return true
+    return !(raw as Record<string, unknown>)[SET_BONUS_MARKER]
+  })
+  const attuned = new Set<string>()
+  if (Array.isArray(sheet.attunements)) {
+    for (const slot of sheet.attunements) {
+      const id = asRecord(slot).item_id
+      if (typeof id === 'string') attuned.add(id)
+    }
+  }
+  const nextItems = [...kept]
+  for (const sdef of defs) {
+    const count = countActiveSetPieces(
+      { ...sheet, inventory: { ...inventory, items: kept } },
+      sdef.member_ids,
+      attuned,
+    )
+    for (const thr of sdef.thresholds) {
+      if (count < thr.pieces) continue
+      const effects = effectsFromAbilities(thr.abilities)
+      const notes =
+        thr.player_text || `Бонус сета «${sdef.name}» за ${thr.pieces}+ частей`
+      nextItems.push({
+        id: `set-bonus:${sdef.id}:t${thr.pieces}`,
+        name: `${sdef.name} (${thr.pieces}+)`,
+        catalog_id: null,
+        qty: 1,
+        weight_lb: null,
+        equipped: true,
+        armor_kind: 'none',
+        base_ac: null,
+        notes,
+        item_kind: 'magic',
+        [SET_BONUS_MARKER]: true,
+        set_id: sdef.id,
+        threshold_pieces: thr.pieces,
+        effects,
+        artifact_live: true,
+        requires_attunement: false,
+      })
+    }
+  }
+  inventory.items = nextItems
+  sheet.inventory = inventory
+  sheet[SET_DEFS_KEY] = defs
+  return sheet
 }
 
 function unbake(
