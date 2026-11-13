@@ -42,8 +42,12 @@ def _fallback_message(hub: str, room_id: UUID, message: dict[str, Any]) -> dict[
     kind = str(message.get("type") or "")
     if kind == "chat_message" or kind.startswith("chat"):
         return {"type": "chat_refresh"}
+    if kind.startswith("whisper"):
+        return {"type": "whisper_changed"}
     if kind.startswith("note"):
         return {"type": "notes_changed"}
+    if kind.startswith("journal"):
+        return {"type": "journal_changed"}
     return {"type": "letters_changed"}
 
 
