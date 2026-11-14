@@ -15,7 +15,7 @@
   display: flex;
   flex-wrap: nowrap;
   gap: 6px;
-  align-items: stretch;
+  align-items: center;
   min-width: 0;
   max-width: 100%;
   width: 100%;
@@ -25,7 +25,12 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
+  /* HOT-01: small lead/trail pad; kit ScrollRow end-spacer grows for fade clear.
+   * Snap is JS-driven — CSS snap fights settle. */
+  scroll-snap-type: none;
+  padding-inline: 6px;
+  padding-block: 4px;
+  scroll-padding-inline: 40px;
 }
 
 .play-desk__hot-wrap .play-desk__hot-item,
@@ -69,11 +74,13 @@
   border-radius: 10px;
   padding: 7px 10px;
   font-size: 0.78rem;
+  line-height: 1.25;
   min-width: 72px;
   color: var(--desk-ink);
 }
 
-.play-desk__hot-item b {
+/* Skills strip still uses <b> for the mod — keep local, not for hot labels */
+.play-desk__hot--skills .play-desk__hot-item b {
   display: block;
   font-size: 1rem;
   margin-top: 2px;
@@ -110,6 +117,82 @@
   color: var(--desk-ink);
 }
 
+/* HOT-01: «Состояния» — fixed width (no grow from chip count); chips + +N */
+.play-desk__hot-wrap .play-desk__hot-item--states,
+.ui-scroll-row.play-desk__hot-wrap > .play-desk__hot > .play-desk__hot-item--states {
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 11.5rem;
+  min-width: 11.5rem;
+  max-width: 11.5rem;
+  display: grid;
+  gap: 4px;
+  padding: 6px 8px;
+  align-content: start;
+  min-height: 52px;
+  text-align: left;
+  color: var(--desk-ink);
+  background: var(--desk-accent-soft);
+  border-color: var(--desk-line);
+}
+
+.play-desk__hot-cond-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.play-desk__hot-cond-chip {
+  flex: 0 0 auto;
+  max-width: 7.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-sizing: border-box;
+  min-height: 22px;
+  padding: 1px 7px;
+  border: 1px solid var(--desk-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--desk-ink);
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.play-desk__hot-cond-more {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 1px 8px;
+  border: 1px solid var(--desk-line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--desk-accent-soft) 70%, white);
+  color: var(--desk-ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.play-desk__hot-cond-measure {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: var(--play-desk-hot-cond-measure-w, 11.5rem);
+}
+
 .play-desk__hot-icon {
   width: 1.15rem;
   height: 1.15rem;
@@ -120,6 +203,9 @@
 .play-desk__hot-label {
   flex: 1 1 auto;
   min-width: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.25;
 }
 
 .play-desk__hot-item--res {
@@ -130,6 +216,10 @@
   display: grid;
   gap: 4px;
   padding: 6px 8px;
+  /* HOT-01: equal card height — one-line title + pips row */
+  align-content: start;
+  min-height: 52px;
+  box-sizing: border-box;
 }
 
 .play-desk__hot-res-head {
@@ -137,37 +227,20 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
+  min-height: 1.25em;
 }
 
 .play-desk__hot-res-name {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  display: block;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--desk-ink);
   max-width: 140px;
   overflow: hidden;
-  white-space: normal;
-  word-break: break-word;
-  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: 1.25;
   text-align: left;
-}
-
-button.play-desk__hot-res-name {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  cursor: pointer;
-  color: inherit;
-}
-
-.play-desk__hot-res-name.is-expanded {
-  display: block;
-  -webkit-line-clamp: unset;
-  max-width: min(240px, 70vw);
-  overflow: visible;
 }
 
 .play-desk__pips {

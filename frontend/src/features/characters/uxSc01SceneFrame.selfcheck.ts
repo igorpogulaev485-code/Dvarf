@@ -58,7 +58,7 @@ assert.match(
   layout,
   /UIKIT-02: полоска навыков[\s\S]*?deskMode === 'combat'[\s\S]{0,200}?PlayDeskSkillStrip/,
 )
-assert.match(layout, /PlayDeskSkillStrip[\s\S]{0,240}?mobileOverflow=\{!model\.isPlayDesk\}/)
+assert.match(layout, /PlayDeskSkillStrip[\s\S]{0,240}?mobileOverflow=\{false\}/)
 assert.doesNotMatch(
   layout,
   /mobile-combat-seg-stack[\s\S]{0,800}?PlayDeskSkillStrip/,
@@ -68,7 +68,9 @@ assert.doesNotMatch(
 assert.match(effects, /if \(rows\.length === 0\) \{\s*return null/s)
 assert.doesNotMatch(effects, /tone="muted">Нет активных/)
 assert.doesNotMatch(hot, /Концентрация: —/)
-assert.match(hot, /conditionsOn \? `Состояния: \$\{conditionsLabel\}` : 'Состояния'/)
+assert.match(hot, /play-desk__hot-item--states/)
+assert.match(hot, /play-desk__hot-cond-more/)
+assert.match(hot, /HotConditionsDialog|onOpenConditions/)
 assert.match(hot, /\{concentration \? \(/)
 
 console.log('uxSc01SceneFrame.selfcheck: ok')

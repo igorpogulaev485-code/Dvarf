@@ -65,7 +65,10 @@
   display: flex;
   flex-wrap: nowrap;
   gap: 4px;
-  padding: 4px;
+  /* HOT-01: rim 4–6px; kit ScrollRow end-spacer grows for fade clear at max */
+  padding: 4px 6px;
+  scroll-padding-inline: 52px;
+  scroll-snap-type: none;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
@@ -80,6 +83,15 @@
   width: max-content;
   min-width: 0;
   max-width: none;
+}
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--states,
+.play-desk--mobile
+  .ui-scroll-row.play-desk__hot-wrap
+  > .play-desk__hot
+  > .play-desk__hot-item--states {
+  width: 10.5rem;
+  min-width: 10.5rem;
+  max-width: 10.5rem;
 }
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--compact,
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--empty-row {
@@ -107,7 +119,17 @@
 }
 .play-desk--mobile .play-desk__hot-label {
   font-size: 0.78rem;
+  font-weight: 600;
   line-height: 1.25;
+}
+.play-desk--mobile .play-desk__hot-res-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 120px;
 }
 /* UIKIT-02: ячейки/заряды остаются плотными (gap 4px); 44px — только прочие controls */
 .play-desk--mobile .play-desk__pip {

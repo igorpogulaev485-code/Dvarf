@@ -29,7 +29,7 @@ assert.equal(MOBILE_HOT_PINNED_RESOURCE_COUNT, 2)
 assert.equal(src.includes('mobileMoreOverflow'), true)
 assert.equal(src.includes('play-desk__hot-more'), true)
 assert.match(src, /Ещё \{/)
-assert.match(src, /play-desk__pips/)
+assert.match(src, /ResourcePips/)
 assert.match(src, /shouldUseCompactResourceTrack/)
 
 const css = readFileSync(
@@ -38,14 +38,27 @@ const css = readFileSync(
 )
 assert.match(
   css,
-  /\.play-desk__hot-wrap\s+\.play-desk__hot\s*\{[\s\S]*?flex-wrap:\s*nowrap/,
+  /\.play-desk__hot-wrap\s+\.play-desk__hot[\s\S]*?\{[\s\S]*?flex-wrap:\s*nowrap/,
 )
 assert.match(css, /\.play-desk__pips\s*\{[\s\S]*?gap:\s*4px/)
 assert.match(css, /\.play-desk__pip\s*\{[\s\S]*?width:\s*18px/)
+assert.match(css, /scroll-padding-inline:\s*40px/)
+assert.match(css, /padding-inline:\s*6px/)
+assert.doesNotMatch(css, /(?<!scroll-)padding-inline:\s*40px/)
+assert.match(css, /\.play-desk__hot-res-name\s*\{[\s\S]*?text-overflow:\s*ellipsis/)
+assert.match(css, /\.play-desk__hot-label\s*\{[\s\S]*?font-size:\s*0\.78rem/)
+assert.match(css, /\.play-desk__hot-item--states/)
+assert.match(css, /width:\s*11\.5rem/)
+assert.match(src, /play-desk__hot-item--states/)
+assert.match(src, /play-desk__hot-cond-more/)
+assert.match(src, /STATES_MORE_RESERVE_PX/)
+assert.doesNotMatch(src, /is-expanded/)
+assert.match(src, /title=\{label/)
 const scrollSrc = readFileSync(
   join(dirname(fileURLToPath(import.meta.url)), '../../ui/ScrollRow.tsx'),
   'utf8',
 )
+assert.match(scrollSrc, /snapScrollLeft/)
 assert.match(scrollSrc, /ui-scroll-row__edge/)
 assert.equal(scrollSrc.includes('Прокрутить влево'), true)
 assert.equal(scrollSrc.includes('Прокрутить вправо'), true)

@@ -840,7 +840,8 @@ a.ui-button--primary {
   appearance: none;
   -webkit-appearance: none;
   background: transparent;
-  pointer-events: auto;
+  /* HOT-01: fade is visual only — clicks pass to pips; only the chevron is hit-target */
+  pointer-events: none;
 }
 
 .ui-scroll-row__edge--left {
@@ -869,6 +870,9 @@ a.ui-button--primary {
   justify-content: center;
   width: 22px;
   height: 22px;
+  margin: 0;
+  padding: 0;
+  border: 0;
   border-radius: 999px;
   background: color-mix(in srgb, var(--ink, #2d2d2a) 28%, transparent);
   color: #fff;
@@ -876,21 +880,33 @@ a.ui-button--primary {
   font-weight: 700;
   line-height: 1;
   box-shadow: 0 1px 3px color-mix(in srgb, var(--ink, #2d2d2a) 18%, transparent);
-  pointer-events: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: auto;
 }
 
 .ui-scroll-row__edge:hover .ui-scroll-row__chevron,
-.ui-scroll-row__edge:focus-visible .ui-scroll-row__chevron {
+.ui-scroll-row__chevron:hover,
+.ui-scroll-row__chevron:focus-visible {
   background: color-mix(in srgb, var(--ink, #2d2d2a) 42%, transparent);
 }
 
-.ui-scroll-row__edge:focus-visible {
-  outline: none;
-}
-
-.ui-scroll-row__edge:focus-visible .ui-scroll-row__chevron {
+.ui-scroll-row__chevron:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent, #5a6b3d) 55%, white);
   outline-offset: 2px;
+}
+
+/* HOT-01: trailing spacer — grows so max scroll clears left fade without pull-back */
+.ui-scroll-row__end-spacer {
+  flex: 0 0 auto;
+  align-self: stretch;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 /* Desk paper surfaces: fade into white card strip */

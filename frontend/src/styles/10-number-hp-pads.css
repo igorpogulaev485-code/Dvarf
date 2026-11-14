@@ -322,6 +322,9 @@
 .hot-conditions {
   display: grid;
   gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .hot-conditions__card {
@@ -331,6 +334,9 @@
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--card, #fff);
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .hot-conditions__card.is-on {
@@ -343,6 +349,8 @@
   justify-content: space-between;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .hot-conditions__card-title {
@@ -351,6 +359,7 @@
   gap: 6px;
   font-weight: 650;
   color: var(--ink, var(--desk-ink));
+  min-width: 0;
 }
 
 .hot-conditions__icon {
@@ -364,34 +373,83 @@
   font-size: 0.78rem;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hot-conditions__exh-select {
   width: auto;
   min-width: 11rem;
   max-width: 16rem;
+  box-sizing: border-box;
 }
 
 .hot-conditions__exh-stage {
   margin: 0;
   font-size: 0.85rem;
   color: var(--muted);
+  overflow-wrap: anywhere;
 }
 
 .hot-conditions__active {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  min-width: 0;
 }
 
 .hot-conditions__quick {
   max-height: 11rem;
   overflow: auto;
   padding-right: 2px;
+  min-width: 0;
 }
 
 .hot-conditions__quick .sheet-chip {
   cursor: pointer;
+}
+
+.hot-conditions .chip-row {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.hot-conditions .ui-text,
+.hot-conditions p {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* Phone / narrow: fit dialog width — select under title, chips wrap */
+@media (max-width: 959px) {
+  .hot-conditions__card-head {
+    flex-wrap: wrap;
+  }
+
+  .hot-conditions__card[aria-label='Истощение'] .hot-conditions__card-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .hot-conditions__exh-select {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .hot-conditions .chip-row {
+    flex-wrap: wrap;
+  }
+
+  .hot-conditions .chip-row .sheet-chip {
+    flex: 0 1 auto;
+    max-width: 100%;
+  }
 }
 
 .tag-chip.is-on {
