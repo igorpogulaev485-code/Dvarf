@@ -1,70 +1,57 @@
-/* 3) Опыт — полоска; под ней: старт ур. | ещё N | конец ур. */
+/* UIKIT-02 P1: XP — thin bar inline in meta line */
 .play-desk-header__xp {
   margin: 0;
-  display: block;
-  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   min-width: 0;
-  max-width: none;
+  max-width: 100%;
+  flex: 1 1 7rem;
   padding: 0;
   border: 0;
   background: transparent;
   font: inherit;
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   color: var(--desk-muted);
   text-align: left;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .play-desk-header__xp-row {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 8px;
-  align-items: center;
-  min-width: 0;
+  display: contents;
 }
 
 .play-desk-header__xp-level {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  color: var(--desk-ink, var(--ink));
+  flex: 0 0 auto;
 }
 
 .play-desk-header__xp-track {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
+  display: contents;
 }
 
 .play-desk-header__xp-nums {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 6px;
-  align-items: baseline;
-  font-size: 0.66rem;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
-  line-height: 1.2;
-  color: var(--desk-muted);
+  display: none;
 }
 
-.play-desk-header__xp-floor {
-  justify-self: start;
-  white-space: nowrap;
+.play-desk-header__xp-floor,
+.play-desk-header__xp-next {
+  display: none;
 }
 
 .play-desk-header__xp-remain {
-  justify-self: center;
   white-space: nowrap;
-  overflow: visible;
-  color: var(--desk-ink, var(--ink));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--desk-muted);
   font-weight: 600;
-  /* SC-07: «ещё N» не обрезать на широкой шапке */
-  min-width: max-content;
-}
-
-.play-desk-header__xp-next {
-  justify-self: end;
-  white-space: nowrap;
+  font-size: 0.62rem;
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 button.play-desk-header__xp:hover .play-desk-header__xp-bar {
@@ -85,25 +72,27 @@ button.play-desk-header__xp:hover .play-desk-header__xp-bar {
 }
 
 .play-desk-header__stack {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 4px;
+  align-items: center;
   align-content: center;
-  min-height: 64px;
+  min-height: 0;
 }
 
 .play-desk-header__chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 0 10px;
+  gap: 3px;
+  padding: 0 8px;
   border-radius: 999px;
   border: 1px solid var(--desk-line);
   background: #fff;
   font: inherit;
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   color: inherit;
-  min-height: 30px;
-  height: 30px;
+  min-height: 28px;
+  height: 28px;
   box-sizing: border-box;
   white-space: nowrap;
 }
@@ -126,18 +115,16 @@ button.play-desk-header__chip {
 }
 
 .play-desk-header__exh-hint {
-  align-self: center;
-  max-width: 120px;
-  font-size: 0.68rem;
-  color: var(--danger, #9f2d2d);
-  line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* P1: stage text lives in chip title — don't grow header */
+  display: none;
 }
 
 .play-desk-header__xp-bar {
-  height: 8px;
+  display: block;
+  flex: 1 1 4.5rem;
+  min-width: 3.5rem;
+  max-width: 7rem;
+  height: 5px;
   border-radius: 999px;
   background: var(--desk-chip, #e7e1d4);
   overflow: hidden;
@@ -163,36 +150,36 @@ button.play-desk-header__chip {
 .play-desk-header__vitals {
   display: flex;
   flex-wrap: wrap;
-  gap: clamp(6px, 1.1vw, 12px);
+  gap: clamp(4px, 0.8vw, 8px);
   align-items: center;
   width: 100%;
   max-width: none;
-  justify-content: space-evenly;
+  justify-content: flex-start;
   box-sizing: border-box;
-  padding-inline: 2px;
+  padding-inline: 0;
 }
 
-/* Equal StatTile-like vitals: one size in one baseline */
+/* UIKIT-02 P1: denser vitals (~48px) — one baseline with HP */
 .play-desk-vital {
   position: relative;
   display: grid;
   justify-items: center;
   align-content: center;
-  gap: 2px;
-  width: 64px;
-  min-width: 64px;
-  max-width: 64px;
-  height: 64px;
-  min-height: 64px;
-  flex: 0 0 64px;
-  padding: 6px 4px 5px;
-  border-radius: 12px;
+  gap: 0;
+  width: 52px;
+  min-width: 52px;
+  max-width: 52px;
+  height: 48px;
+  min-height: 48px;
+  flex: 0 0 52px;
+  padding: 3px 2px 2px;
+  border-radius: 10px;
   background: var(--card, #fff);
   border: 1px solid var(--desk-line);
   text-align: center;
   font: inherit;
   color: inherit;
-  box-shadow: 0 1px 0 rgba(45, 45, 42, 0.03);
+  box-shadow: none;
   box-sizing: border-box;
 }
 
@@ -215,8 +202,8 @@ button.play-desk-vital:hover,
 }
 
 .play-desk-vital__icon {
-  width: 1.05rem;
-  height: 1.05rem;
+  width: 0.85rem;
+  height: 0.85rem;
   color: var(--desk-accent, var(--accent));
   flex-shrink: 0;
 }
@@ -224,7 +211,7 @@ button.play-desk-vital:hover,
 .play-desk-vital b {
   display: block;
   font-family: var(--font-display);
-  font-size: 1.32rem;
+  font-size: 1.05rem;
   line-height: 1;
   color: var(--desk-ink, var(--ink));
   font-variant-numeric: tabular-nums;
@@ -234,17 +221,17 @@ button.play-desk-vital:hover,
 .play-desk-vital__label-row {
   display: block;
   margin-top: 0;
-  font-size: 0.7rem;
+  font-size: 0.58rem;
   font-weight: 600;
   color: var(--desk-muted);
   text-transform: none;
   letter-spacing: 0.01em;
-  line-height: 1.2;
+  line-height: 1.15;
   white-space: nowrap;
 }
 
 .play-desk-vital--jump .play-desk-vital__label-row {
-  font-size: 0.7rem;
+  font-size: 0.58rem;
   letter-spacing: 0;
   white-space: nowrap;
 }
@@ -259,14 +246,14 @@ button.play-desk-vital:hover,
  */
 .play-desk-vital--shield {
   position: relative;
-  width: 68px;
-  min-width: 68px;
-  max-width: 68px;
-  flex-basis: 68px;
-  height: 72px;
-  min-height: 72px;
-  padding: 4px 4px 16px;
-  gap: 1px;
+  width: 56px;
+  min-width: 56px;
+  max-width: 56px;
+  flex-basis: 56px;
+  height: 48px;
+  min-height: 48px;
+  padding: 2px 2px 14px;
+  gap: 0;
   align-self: center;
   overflow: hidden;
 }
@@ -274,7 +261,7 @@ button.play-desk-vital:hover,
 .play-desk-vital__shield-tog {
   position: absolute;
   left: 50%;
-  bottom: 2px;
+  bottom: 1px;
   transform: translateX(-50%);
   margin: 0;
   width: auto;
@@ -286,16 +273,16 @@ button.play-desk-vital:hover,
   border: 1px solid var(--desk-line);
   background: color-mix(in srgb, var(--desk-chip, #e7e1d4) 40%, white);
   border-radius: 999px;
-  padding: 0 6px;
+  padding: 0 5px;
   font: inherit;
-  font-size: 0.58rem;
+  font-size: 0.52rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: none;
-  line-height: 1.2;
+  line-height: 1.15;
   color: var(--desk-muted);
   cursor: pointer;
-  max-width: calc(100% - 4px);
+  max-width: calc(100% - 2px);
   white-space: nowrap;
   z-index: 1;
 }
@@ -320,7 +307,7 @@ button.play-desk-vital:hover,
 /* speed/jump use the same 64×64 StatTile size as other vitals */
 
 .play-desk-vital--jump b {
-  font-size: 1.1rem;
+  font-size: 0.92rem;
   letter-spacing: -0.02em;
   white-space: nowrap;
 }
@@ -336,16 +323,12 @@ button.play-desk-vital:hover,
   letter-spacing: 0.02em;
 }
 
-/* Alt speeds live INSIDE the speed tile — tile grows with chips. */
+/* P1 base — overridden below for row layout + fixed 48px height */
 .play-desk-vital--speed-wide {
   width: auto;
-  min-width: 64px;
+  min-width: 52px;
   max-width: none;
-  height: auto;
-  min-height: 64px;
   flex: 0 0 auto;
-  padding: 5px 6px 6px;
-  gap: 3px;
   align-self: center;
 }
 
@@ -354,25 +337,55 @@ button.play-desk-vital:hover,
   margin: 0;
   padding: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   flex-wrap: nowrap;
   gap: 2px;
   justify-content: center;
-  align-items: stretch;
-  width: 100%;
-  max-width: 100%;
+  align-items: center;
+  width: auto;
+  max-width: none;
   min-width: 0;
   grid-column: 1 / -1;
 }
 
+/* P1: alt speeds sit beside the walk value — tile stays ~48px tall */
+.play-desk-vital--speed-wide {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 48px;
+  min-height: 48px;
+  max-height: 48px;
+  padding: 2px 6px;
+}
+
+.play-desk-vital--speed-wide > .play-desk-vital__icon,
+.play-desk-vital--speed-wide > b,
+.play-desk-vital--speed-wide > .play-desk-vital__label-row {
+  flex: 0 0 auto;
+}
+
+.play-desk-vital--speed-wide > b {
+  font-size: 1.05rem;
+}
+
+.play-desk-vital--speed-wide .play-desk-vital__tags {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 1px;
+}
+
 .play-desk-vital__tag {
-  padding: 1px 5px;
+  padding: 0 4px;
   border-radius: 999px;
   border: 1px solid var(--desk-line);
   background: color-mix(in srgb, var(--desk-chip, #e7e1d4) 45%, white);
-  font-size: 0.58rem;
+  font-size: 0.5rem;
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.2;
   color: var(--desk-ink, var(--ink));
   white-space: nowrap;
   text-align: center;
@@ -440,17 +453,18 @@ button.play-desk-vital:hover,
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-left: 0;
-  /* Pin coins / rest / HP / death — never clip when the name is long. */
   flex: 0 0 auto;
   min-width: 0;
 }
 
 .play-desk-header__right-tools {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   flex: 0 0 auto;
+  align-items: center;
   align-content: center;
 }
 
@@ -459,15 +473,15 @@ button.play-desk-vital:hover,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 30px;
-  height: 30px;
-  padding: 0 10px;
+  gap: 4px;
+  min-height: 28px;
+  height: 28px;
+  padding: 0 8px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
   border: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 22%, var(--desk-line));
   font: inherit;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
   color: var(--desk-accent, var(--accent));
@@ -548,11 +562,11 @@ button.play-desk-vital:hover,
   display: flex;
   flex-direction: column;
   justify-content: center;
-  /* SC-07: запас под трёхзначные хиты (999/999) */
-  min-width: 148px;
-  min-height: 64px;
-  padding: 8px 12px;
-  border-radius: 12px;
+  min-width: 108px;
+  min-height: 48px;
+  height: 48px;
+  padding: 4px 10px;
+  border-radius: 10px;
   background: #fff;
   border: 1px solid #efc2c2;
   box-shadow: inset 0 0 0 1px #fff4f4;
@@ -570,16 +584,18 @@ button.play-desk-vital:hover,
 
 .play-desk-header__hp strong {
   font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
-  font-size: 1.45rem;
+  font-size: 1.15rem;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   color: var(--danger, #b42318);
+  line-height: 1.1;
 }
 
 .play-desk-header__hp small {
   display: block;
   color: var(--desk-muted);
-  font-size: 0.76rem;
+  font-size: 0.62rem;
   font-weight: 600;
+  line-height: 1.15;
 }
 

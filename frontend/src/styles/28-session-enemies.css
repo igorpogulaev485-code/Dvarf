@@ -387,9 +387,10 @@ button.session-concentration-tag {
   margin: 0;
   font-size: 0.7rem;
   line-height: 1.25;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  overflow-wrap: anywhere;
 }
 
 .session-companion-card__remove {

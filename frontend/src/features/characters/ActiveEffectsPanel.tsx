@@ -6,7 +6,7 @@ import {
   tickAllEffectsOneRound,
   type ActiveEffect,
 } from '../../shared/dnd/activeEffects'
-import { Button, Text } from '../../ui'
+import { Button } from '../../ui'
 import { rollDamage } from './deskRolls'
 
 type Props = {
@@ -33,10 +33,7 @@ export function ActiveEffectsPanel({
 
   return (
     <div className="active-effects active-effects--strip" data-testid="active-effects">
-      <Text as="span" className="active-effects__label" tone="muted">
-        Эффекты
-      </Text>
-      <div className="active-effects__chips" role="list">
+      <div className="active-effects__chips" role="list" aria-label="Активные эффекты">
         {rows.map((effect) => {
           const remaining = formatEffectRemaining(effect)
           const from = effect.source_name

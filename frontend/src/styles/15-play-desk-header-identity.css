@@ -177,22 +177,21 @@
   border-radius: 16px;
   background: var(--desk-panel);
   box-shadow: 0 1px 0 rgba(26, 36, 32, 0.06);
-  padding: 12px;
+  padding: 8px 10px;
   overflow: hidden;
 }
 
 .play-desk__top {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 12px;
+  gap: 4px 8px;
   align-items: center;
   min-width: 0;
-  padding: 4px 2px 10px;
   border-bottom: 1px solid var(--desk-line);
   background:
     linear-gradient(90deg, var(--accent-soft) 0%, var(--desk-panel) 45%, #f7f1e6 100%);
-  margin: -12px -12px 0;
-  padding: 12px 14px;
+  margin: -8px -10px 0;
+  padding: 4px 8px 5px;
 }
 
 .play-desk:not(.play-desk--wide) .play-desk__top {
@@ -215,15 +214,34 @@
   line-height: 1.15;
 }
 
-.play-desk__dock {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+/* UIKIT-02 P1: companions dock → one chip (full list on «Напарники» scene) */
+.play-desk__dock-chip {
+  grid-column: 1 / -1;
+  justify-self: start;
+  display: inline-flex;
   align-items: center;
-  padding: 8px 10px;
+  gap: 4px;
+  margin: 0;
+  padding: 2px 10px;
+  min-height: 28px;
   border: 1px solid var(--desk-line);
-  border-radius: 12px;
-  background: #f0f5f2;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--desk-accent-soft) 55%, white);
+  color: var(--desk-ink);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.play-desk__dock-chip:hover {
+  border-color: color-mix(in srgb, var(--desk-accent) 40%, var(--desk-line));
+  color: var(--desk-accent);
+}
+
+.play-desk__dock {
+  display: none;
 }
 
 .play-desk__dock-label {
@@ -305,7 +323,7 @@
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 8px 12px;
+  gap: 6px 8px;
   min-width: 0;
   max-width: 100%;
   overflow: visible;
@@ -317,38 +335,68 @@
 }
 
 .play-desk-header__who {
-  /* Shrink when the name is long — never push HP / death off-screen.
-     Stay in one row with vitals (no full-width wrap — that made the
-     header look «разъехавшейся» on iPad).
-     SC-07: чуть шире на 1440, чтобы XP «ещё N» и имя не обрезались. */
-  flex: 0 1 auto;
+  /* UIKIT-02 P1: compact who — name + one meta line with XP */
+  flex: 0 1 14rem;
   width: auto;
   min-width: 0;
-  max-width: min(340px, 28vw);
+  max-width: min(280px, 26vw);
   display: grid;
-  gap: 5px;
+  gap: 1px;
   justify-items: stretch;
+  align-content: center;
+  overflow: hidden;
 }
 
 @media (min-width: 1280px) {
   .play-desk-header__who {
-    max-width: min(380px, 26vw);
+    flex-basis: 16rem;
+    max-width: min(340px, 28vw);
   }
 }
 
-/* 3+ classes: give the who column room so chips stay in ONE row
-   (not a 2×2 wrap under the narrow single-class cap). */
 .play-desk-header__who:has(.play-desk-header__classes.is-many) {
-  max-width: min(640px, 52vw);
+  max-width: min(420px, 40vw);
 }
 
-/* 1) Имя · Раса · Мировоззрение · издание */
 .play-desk-header__who-line {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 4px 8px;
+  gap: 2px 6px;
   min-width: 0;
+}
+
+.play-desk-header__meta-line {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px 6px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  height: 24px;
+}
+
+.play-desk-header__meta-line > * {
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.play-desk-header__meta-line .play-desk-header__classes {
+  flex: 0 1 auto;
+}
+
+.play-desk-header__meta-line .needs-setup {
+  flex: 0 0 auto;
+}
+
+.play-desk-header__meta-line .play-desk-header__xp {
+  flex: 0 1 6rem;
+  min-width: 4rem;
+}
+
+.play-desk-header__meta-line .play-desk-header__xp-remain {
+  display: none;
 }
 
 .play-desk-header__name-wrap {
@@ -360,17 +408,16 @@
 .play-desk-header__name {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.12rem;
   line-height: 1.15;
   color: var(--desk-accent, var(--accent));
-  /* B14: up to two lines; click expands (is-expanded). */
-  white-space: normal;
+  /* P1: one line by default; click expands if clipped */
+  white-space: nowrap;
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  text-overflow: ellipsis;
+  display: block;
   max-width: 100%;
-  word-break: break-word;
+  word-break: normal;
 }
 
 button.play-desk-header__name {
@@ -384,9 +431,10 @@ button.play-desk-header__name {
 }
 
 .play-desk-header__name.is-expanded {
-  display: block;
-  -webkit-line-clamp: unset;
+  white-space: normal;
   overflow: visible;
+  text-overflow: unset;
+  word-break: break-word;
 }
 
 .desk-icon {
@@ -401,11 +449,12 @@ button.play-desk-header__name {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0 0.35em;
+  gap: 0 0.3em;
   margin: 0;
   color: var(--desk-muted);
-  font-size: 0.84rem;
-  line-height: 1.25;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  max-width: 100%;
 }
 
 .play-desk-header__dot {
@@ -432,26 +481,27 @@ button.play-desk-header__name {
 
 .play-desk-header__class-chip {
   display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.35em;
   flex: 0 1 auto;
   min-width: 0;
-  padding: 2px 8px;
+  padding: 1px 7px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 28%, var(--desk-line));
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 70%, white);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.25;
   color: var(--desk-ink, var(--ink));
   white-space: nowrap;
   max-width: 100%;
 }
 
 .play-desk-header__class-chip.has-subclass {
-  border-radius: 10px;
-  padding: 3px 9px 4px;
+  border-radius: 999px;
+  padding: 1px 7px;
 }
 
 .play-desk-header__class-main {
@@ -462,14 +512,15 @@ button.play-desk-header__name {
 }
 
 .play-desk-header__class-archetype {
-  max-width: 14rem;
+  max-width: 10rem;
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 0.62rem;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.2;
   color: var(--desk-accent, var(--accent));
 }
+
 
 .play-desk-header__classes.is-many .play-desk-header__class-chip {
   font-size: 0.66rem;
@@ -606,9 +657,9 @@ button.play-desk-header__identity:hover {
 }
 
 .needs-setup--compact .needs-setup__btn {
-  font-size: 0.68rem;
-  padding: 4px 8px;
-  min-height: 32px;
+  font-size: 0.62rem;
+  padding: 1px 6px;
+  min-height: 22px;
 }
 
 .needs-setup--compact .needs-setup__list {
@@ -665,13 +716,31 @@ button.play-desk-header__identity:hover {
 }
 
 
-/* B-01 / UIKIT-02: active effects — compact chip strip under header */
-.play-desk__top > .active-effects {
+/* B-01 / UIKIT-02 P1: effects + companions chip — one strip */
+.play-desk__top > .play-desk__top-extras {
   grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+  margin: 0;
+}
+
+.play-desk__top-extras > .active-effects {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.play-desk__top-extras > .play-desk__dock-chip {
+  grid-column: auto;
+  justify-self: auto;
+  flex: 0 0 auto;
 }
 
 .active-effects {
-  margin: 0.35rem 0 0;
+  margin: 0;
   padding: 0;
   border: none;
   background: transparent;
@@ -682,23 +751,19 @@ button.play-desk-header__identity:hover {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 8px;
+  gap: 4px 6px;
   min-width: 0;
 }
 
 .active-effects__label {
-  flex: 0 0 auto;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  display: none;
 }
 
 .active-effects__chips {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 4px 6px;
   min-width: 0;
   flex: 1 1 auto;
 }
@@ -706,15 +771,16 @@ button.play-desk-header__identity:hover {
 .active-effects__chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  max-width: 100%;
+  gap: 2px;
+  max-width: min(100%, 22rem);
   min-width: 0;
-  padding: 2px 4px 2px 8px;
+  padding: 1px 2px 1px 7px;
   border: 1px solid var(--desk-line, var(--line));
   border-radius: 999px;
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
-  font-size: 0.78rem;
-  line-height: 1.25;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  min-height: 26px;
 }
 
 .active-effects__chip.is-inactive {

@@ -428,25 +428,27 @@ export function PlayDeskHeader({
   return (
     <section className="play-desk-header" aria-label="Шапка стола">
       <div className="play-desk-header__who">
-        {/* 1) Имя · Раса · Мировоззрение · издание */}
-        <div className="play-desk-header__who-line">
-          <h1 className="play-desk-header__name-wrap">
-            <button
-              type="button"
-              className={`play-desk-header__name${nameExpanded ? ' is-expanded' : ''}`}
-              title={
-                nameExpanded
-                  ? 'Свернуть имя'
-                  : name
-                    ? `Полное имя: ${name}. Нажми, чтобы раскрыть`
-                    : undefined
-              }
-              aria-expanded={nameExpanded}
-              onClick={() => setNameExpanded((prev) => !prev)}
-            >
-              {name || 'Без имени'}
-            </button>
-          </h1>
+        {/* 1) Имя — одна строка; клик раскрывает, если не влезло */}
+        <h1 className="play-desk-header__name-wrap">
+          <button
+            type="button"
+            className={`play-desk-header__name${nameExpanded ? ' is-expanded' : ''}`}
+            title={
+              nameExpanded
+                ? 'Свернуть имя'
+                : name
+                  ? `Полное имя: ${name}. Нажми, чтобы раскрыть`
+                  : undefined
+            }
+            aria-expanded={nameExpanded}
+            onClick={() => setNameExpanded((prev) => !prev)}
+          >
+            {name || 'Без имени'}
+          </button>
+        </h1>
+
+        {/* 2) Раса · класс · ур. · XP — одна компактная строка */}
+        <div className="play-desk-header__meta-line">
           {onOpenIdentity ? (
             <button
               type="button"
@@ -456,31 +458,11 @@ export function PlayDeskHeader({
                 alignmentHint
                   ? alignmentHint
                   : alignmentLabel
-                    ? 'Основное — мировоззрение, предыстория…'
-                    : 'Основное — мировоззрение не задано, нажми чтобы указать'
+                    ? `${raceLabel} · ${alignmentLabel} · ${editionLabel}`
+                    : `${raceLabel} · мировоззрение не задано · ${editionLabel}`
               }
               onClick={onOpenIdentity}
             >
-              <span className="play-desk-header__identity-action">Основное</span>
-              <span className="play-desk-header__dot" aria-hidden>
-                ·
-              </span>
-              <span>{raceLabel}</span>
-              <span className="play-desk-header__dot" aria-hidden>
-                ·
-              </span>
-              {alignmentLabel ? (
-                <span className="play-desk-header__alignment">{alignmentLabel}</span>
-              ) : (
-                <span className="play-desk-header__alignment is-empty">мировоззрение</span>
-              )}
-              <span className="play-desk-header__dot" aria-hidden>
-                ·
-              </span>
-              <span className="play-desk-header__edition">{editionLabel}</span>
-            </button>
-          ) : (
-            <p className="play-desk-header__identity">
               <span>{raceLabel}</span>
               {alignmentLabel ? (
                 <>
@@ -490,76 +472,68 @@ export function PlayDeskHeader({
                   <span className="play-desk-header__alignment">{alignmentLabel}</span>
                 </>
               ) : null}
-              <span className="play-desk-header__dot" aria-hidden>
-                ·
-              </span>
-              <span className="play-desk-header__edition">{editionLabel}</span>
+            </button>
+          ) : (
+            <p className="play-desk-header__identity">
+              <span>{raceLabel}</span>
             </p>
           )}
-        </div>
-        {onNeedsSetupSelect ? (
-          <NeedsSetupIndicator
-            items={needsSetupItems}
-            onSelect={onNeedsSetupSelect}
-          />
-        ) : null}
-
-        {/* 2) Классы */}
-        {classChips.length > 0 ? (
-          <ul
-            className={`play-desk-header__classes${classChips.length >= 3 ? ' is-many' : ''}`}
-            aria-label="Классы"
+          {classChips.length > 0 ? (
+            <ul
+              className={`play-desk-header__classes${classChips.length >= 3 ? ' is-many' : ''}`}
+              aria-label="Классы"
+            >
+              {classChips.map((chip) => (
+                <li
+                  key={chip.id}
+                  className={`play-desk-header__class-chip${
+                    chip.subclass ? ' has-subclass' : ''
+                  }`}
+                  title={
+                    chip.subclass ? `${chip.label} · ${chip.subclass}` : chip.label
+                  }
+                >
+                  <span className="play-desk-header__class-main">{chip.label}</span>
+                  {chip.subclass ? (
+                    <span className="play-desk-header__class-archetype">
+                      {' · '}
+                      {chip.subclass}
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {onNeedsSetupSelect ? (
+            <NeedsSetupIndicator
+              items={needsSetupItems}
+              onSelect={onNeedsSetupSelect}
+              compact
+            />
+          ) : null}
+          <button
+            type="button"
+            className={`play-desk-header__xp${showValueTips ? ' has-onboarding-tip' : ''}`}
+            title={
+              showValueTips
+                ? undefined
+                : `Опыт ${formatXp(xp.xp)}. ${xpLabel}. Нажми, чтобы начислить или убавить`
+            }
+            aria-label={`Опыт ${formatXp(xp.xp)}. ${xpRemainLabel}. Открыть клавиатуру`}
+            onClick={() => setXpPadOpen(true)}
           >
-            {classChips.map((chip) => (
-              <li
-                key={chip.id}
-                className={`play-desk-header__class-chip${
-                  chip.subclass ? ' has-subclass' : ''
-                }`}
-                title={
-                  chip.subclass ? `${chip.label} · ${chip.subclass}` : chip.label
-                }
-              >
-                <span className="play-desk-header__class-main">{chip.label}</span>
-                {chip.subclass ? (
-                  <span className="play-desk-header__class-archetype">
-                    {chip.subclass}
-                  </span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-
-        {/* 3) Опыт — полоска; под ней: порог ур. | ещё N | порог след. */}
-        <button
-          type="button"
-          className={`play-desk-header__xp${showValueTips ? ' has-onboarding-tip' : ''}`}
-          title={
-            showValueTips
-              ? undefined
-              : `Опыт ${formatXp(xp.xp)}. ${xpLabel}. Нажми, чтобы начислить или убавить`
-          }
-          aria-label={`Опыт ${formatXp(xp.xp)}. ${xpRemainLabel}. Открыть клавиатуру`}
-          onClick={() => setXpPadOpen(true)}
-        >
-          {showValueTips ? <HoverTipCard tip={VITAL_TIPS.xp} /> : null}
-          <div className="play-desk-header__xp-row">
+            {showValueTips ? <HoverTipCard tip={VITAL_TIPS.xp} /> : null}
             <span className="play-desk-header__xp-level">ур. {level}</span>
-            <div className="play-desk-header__xp-track">
-              <div className="play-desk-header__xp-bar" aria-hidden>
-                <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
-              </div>
-              <div className="play-desk-header__xp-nums">
-                <span className="play-desk-header__xp-floor">{formatXp(xp.floor)}</span>
-                <span className="play-desk-header__xp-remain">{xpRemainLabel}</span>
-                <span className="play-desk-header__xp-next">
-                  {xp.nextThreshold == null ? '—' : formatXp(xp.nextThreshold)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </button>
+            <span
+              className="play-desk-header__xp-bar"
+              aria-hidden
+              title={xpRemainLabel}
+            >
+              <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
+            </span>
+            <span className="play-desk-header__xp-remain">{xpRemainLabel}</span>
+          </button>
+        </div>
       </div>
 
       <div className="play-desk-header__mid">

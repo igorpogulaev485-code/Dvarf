@@ -615,13 +615,14 @@
   }
 }
 
-@media (min-width: 1280px) {
+/* Keep 2-up through iPad landscape / 1280 so names + turn chips fit */
+@media (min-width: 1440px) {
   .session-table-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 1600px) {
+@media (min-width: 1800px) {
   .session-table-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -936,12 +937,12 @@
   margin: 0;
   font-size: 1rem;
   line-height: 1.25;
-  /* UIKIT-02: одна строка с многоточием; полное имя в title */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  overflow-wrap: normal;
-  word-break: normal;
+  /* UIKIT-02: имя целиком — перенос, не обрезка */
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .session-table-card__insp {
@@ -957,11 +958,11 @@
   margin: 0;
   font-size: 0.82rem;
   line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  overflow-wrap: normal;
-  word-break: normal;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .session-table-card__stats {

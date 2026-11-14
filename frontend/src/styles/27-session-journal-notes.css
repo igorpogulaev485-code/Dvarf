@@ -825,23 +825,32 @@
   }
 
   .session-live-desk {
-    /* LV-01: центр не сжимается ниже читаемой карточки при открытых «Заметках/Чате» */
-    grid-template-columns: minmax(220px, 0.85fr) minmax(320px, 1.7fr) minmax(200px, 0.8fr);
+    /* UIKIT-02: центр забирает всё свободное место (minmax(0,1fr)) */
+    grid-template-columns: minmax(200px, 0.7fr) minmax(0, 1fr) minmax(180px, 0.65fr);
     align-items: start;
-    gap: 16px;
+    gap: 14px;
   }
 
   .session-live-desk.is-side-collapsed {
-    grid-template-columns: minmax(220px, 0.85fr) minmax(320px, 1fr) auto;
+    grid-template-columns: minmax(200px, 0.7fr) minmax(0, 1fr) auto;
   }
 
   .session-live-desk__center {
-    min-width: 280px;
+    min-width: 0;
+    width: 100%;
     min-height: min(70vh, 640px);
+  }
+
+  .session-live-desk__center > .ui-stack,
+  .session-center--master-desk > .ui-stack,
+  .session-center--player-focus > .ui-stack {
+    width: 100%;
+    min-width: 0;
   }
 
   .session-center-slot--cards {
     width: 100%;
+    min-width: 0;
   }
 
   .session-center-slot--cards .session-table-grid {

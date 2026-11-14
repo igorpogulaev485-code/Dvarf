@@ -366,20 +366,50 @@ a.ui-button--primary {
 .sheet-topbar {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .sheet-topbar__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 
 .sheet-topbar__actions .ui-button {
-  padding: 6px 12px;
-  font-size: 0.88rem;
-  min-height: var(--control-h-md);
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  min-height: 28px;
+}
+
+/* UIKIT-02 P1: play sheet chrome — one thin row */
+.sheet-topbar--play {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 8px;
+  min-height: 28px;
+  margin: 0 0 4px;
+  padding: 0;
+}
+
+.sheet-topbar--play .back-link {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.sheet-topbar--play .ui-button {
+  min-height: 28px;
+  padding: 0 8px;
+  font-size: 0.78rem;
+}
+
+.sheet-topbar--play .sheet-topbar__actions {
+  gap: 4px;
 }
 
 .ui-button--danger {

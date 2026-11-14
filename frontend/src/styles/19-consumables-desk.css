@@ -140,54 +140,58 @@
  * tight who, full-size vitals that wrap, compact effect chips.
  * Do NOT shrink StatTiles — wrap the mid vitals row instead.
  */
+/* UIKIT-02 P1: keep one compact header row on iPad/1024 — do not wrap mid to 100% */
 @media (max-width: 1180px) {
   .play-desk--wide .play-desk__top {
     min-width: 0;
-    gap: 8px;
+    gap: 6px 8px;
   }
 
   .play-desk--wide .play-desk-header {
-    flex-wrap: wrap;
-    gap: 6px 8px;
+    flex-wrap: nowrap;
+    gap: 4px 6px;
     min-width: 0;
-    align-items: flex-start;
+    align-items: center;
   }
 
   .play-desk--wide .play-desk-header__who {
-    /* Room for 2-line name; avoid 3-line crush next to vitals */
-    max-width: min(240px, 28vw);
-    flex: 0 1 auto;
+    max-width: min(200px, 22vw);
+    flex: 0 1 11rem;
   }
 
   .play-desk--wide .play-desk-header__who:has(.play-desk-header__classes.is-many) {
-    max-width: min(420px, 42vw);
+    max-width: min(260px, 28vw);
   }
 
   .play-desk--wide .play-desk-header__name {
-    font-size: 1.2rem;
-    -webkit-line-clamp: 2;
+    font-size: 1.02rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    -webkit-line-clamp: unset;
   }
 
   .play-desk--wide .play-desk-header__identity {
-    font-size: 0.78rem;
+    font-size: 0.68rem;
   }
 
   .play-desk--wide .play-desk-header__mid {
-    flex: 1 1 100%;
+    flex: 1 1 auto;
     min-width: 0;
-    margin-left: 0;
+    margin-left: 4px;
     overflow: visible;
   }
 
   .play-desk--wide .play-desk-header__vitals {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: flex-start;
-    gap: 6px 8px;
+    gap: 4px;
   }
 
   .play-desk--wide .play-desk-header__right {
     flex: 0 0 auto;
-    margin-left: auto;
+    margin-left: 0;
   }
 
   .play-desk--wide .play-desk-header__stack {
@@ -195,8 +199,10 @@
   }
 
   .play-desk--wide .play-desk-header__chip {
-    padding: 3px 6px;
-    font-size: 0.62rem;
+    padding: 0 6px;
+    font-size: 0.6rem;
+    min-height: 26px;
+    height: 26px;
   }
 }
 

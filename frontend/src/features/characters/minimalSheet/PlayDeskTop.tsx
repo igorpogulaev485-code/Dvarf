@@ -1,7 +1,6 @@
 /** Шапка стола, полоска жизни на телефоне и док напарников. */
 import { useMemo } from 'react'
 import type { SheetModel } from './sheetModel'
-import { isSelfForm } from '../companions'
 import { formatRaceMovementHint } from '../../../shared/dnd/raceGrants'
 import { syncAttacksHeldFromInventory } from '../AttacksPanel'
 import { canWearArmor, armorProficiencyHint } from '../equipmentProficiency'
@@ -38,7 +37,6 @@ import {
   alignmentNeedsClarification,
   alignmentSheetLabel,
 } from '../../../shared/dnd/alignments'
-import { COMPANION_KIND_SHORT } from './draft'
 import { ActiveEffectsPanel } from '../ActiveEffectsPanel'
 import {
   buildNeedsSetupItems,
@@ -331,7 +329,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
         <div className="play-desk__top" data-onboarding="combat-header">
           <CharacterAvatarControl
             character={model.baseCharacter}
-            size="md"
+            size="sm"
             showActions={false}
             onOpen={() => model.setIdentityOpen(true)}
             onChanged={(updated) => {
@@ -517,12 +515,33 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               })
             }}
           />
-          <ActiveEffectsPanel
-            effects={model.draft.play.effects ?? []}
-            onChange={(effects) => model.applyEffectsChange?.(effects)}
-            onToast={model.onToast}
-            onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
-          />
+          {(model.draft.play.effects ?? []).length > 0 ||
+          model.dockCompanions.length > 0 ? (
+            <div className="play-desk__top-extras">
+              <ActiveEffectsPanel
+                effects={model.draft.play.effects ?? []}
+                onChange={(effects) => model.applyEffectsChange?.(effects)}
+                onToast={model.onToast}
+                onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
+              />
+              {model.dockCompanions.length > 0 ? (
+                <button
+                  type="button"
+                  className="play-desk__dock-chip"
+                  aria-label={`Напарники ${model.dockCompanions.length}`}
+                  title={model.dockCompanions
+                    .map((row) => row.name || 'Без имени')
+                    .join(', ')}
+                  onClick={() => {
+                    model.setDeskMode('companions')
+                    model.setActivePanel('companions')
+                  }}
+                >
+                  Напарники {model.dockCompanions.length}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       ) : (
         <div className="play-desk__mobile-chrome" data-onboarding="combat-header">
@@ -679,49 +698,24 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           onToast={model.onToast}
           onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
         />
+        {model.dockCompanions.length > 0 ? (
+          <button
+            type="button"
+            className="play-desk__dock-chip"
+            aria-label={`Напарники ${model.dockCompanions.length}`}
+            title={model.dockCompanions
+              .map((row) => row.name || 'Без имени')
+              .join(', ')}
+            onClick={() => {
+              model.setDeskMode('companions')
+              model.setActivePanel('companions')
+            }}
+          >
+            Напарники {model.dockCompanions.length}
+          </button>
+        ) : null}
         </div>
       )}
-
-      {model.isPlayDesk && model.dockCompanions.length > 0 ? (
-        <div className="play-desk__dock" aria-label="Напарники">
-          <span className="play-desk__dock-label">Напарники</span>
-          {model.dockCompanions.map((row, index) => {
-            const initial = (row.name.trim()[0] || '?').toUpperCase()
-            const isPrimary = index === 0
-            const inForm = isSelfForm(row) && row.active
-            const kind = COMPANION_KIND_SHORT[row.kind] ?? 'Спутник'
-            return (
-              <button
-                key={row.id}
-                type="button"
-                className={`play-desk__comp${isPrimary ? ' is-primary' : ''}${inForm ? ' is-form' : ''}`}
-                onClick={() => {
-                  model.setDeskMode('companions')
-                  model.setActivePanel('companions')
-                }}
-              >
-                <span className="play-desk__comp-face" aria-hidden>
-                  {initial}
-                </span>
-                <span className="play-desk__comp-text">
-                  <b>{row.name || 'Без имени'}</b>
-                  <span>
-                    {inForm ? 'В облике' : isPrimary ? 'Основной' : kind}
-                    {row.mounted ? ' · верхом' : ''}
-                    {row.stats.hp != null ? ` · ${row.stats.hp} хитов` : ''}
-                  </span>
-                </span>
-                <span className="play-desk__comp-hp">
-                  {row.stats.hp != null ? row.stats.hp : '—'}
-                </span>
-              </button>
-            )
-          })}
-          <p className="play-desk__dock-note">
-            Док всегда виден. Полный список — панель «Напарники».
-          </p>
-        </div>
-      ) : null}
     </>
   )
 }

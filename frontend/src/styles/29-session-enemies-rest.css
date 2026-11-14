@@ -334,13 +334,13 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  min-height: 44px;
-  min-width: 44px;
-  padding: 8px 14px;
+  min-height: 32px;
+  min-width: 0;
+  padding: 4px 8px;
   border: 1px dashed var(--line);
   border-radius: 999px;
-  font-size: 0.85rem;
-  line-height: 1.2;
+  font-size: 0.72rem;
+  line-height: 1.15;
   color: var(--muted);
   background: transparent;
   cursor: pointer;
@@ -375,9 +375,18 @@
 
 .session-table-card__turn-chips {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
+}
+
+.session-table-card__turn-stub {
+  width: 100%;
+}
+
+.session-turn-chip {
+  flex: 0 1 auto;
 }
 
 .session-combat-track__progress {

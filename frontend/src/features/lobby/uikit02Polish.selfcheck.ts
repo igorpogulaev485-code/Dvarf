@@ -18,6 +18,10 @@ const lock = read('src/styles/26-lobby-hub-lock.css')
 assert.match(lock, /\.session-table-card__identity/)
 assert.match(
   lock,
+  /\.session-table-card__name\s*\{[\s\S]*?overflow-wrap:\s*anywhere/,
+)
+assert.doesNotMatch(
+  lock,
   /\.session-table-card__name\s*\{[\s\S]*?text-overflow:\s*ellipsis/,
 )
 
@@ -126,6 +130,7 @@ assert.match(
   /\.session-table-grid\s*\{[\s\S]*?align-items:\s*start[\s\S]*?repeat\(2,\s*minmax\(0,\s*1fr\)/,
 )
 assert.match(lock, /\.session-table-card\s*\{[\s\S]*?min-width:\s*0/)
+assert.match(lock, /min-width:\s*1440px[\s\S]*?repeat\(3,\s*minmax\(0,\s*1fr\)/)
 
 /* T-01 / UIKIT-02: attack target chips first, «Атаковать {имя}» */
 const picker = read('src/features/characters/CombatTargetPicker.tsx')
