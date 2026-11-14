@@ -354,13 +354,20 @@ async function shotDarkvision(page, path) {
 }
 
 async function shotSpeedMenu(page, path) {
-  // Phone VitalTileMenu only (<960). Open summary, clip panel.
-  const summary = page.locator('.mobile-vitals__speed > summary, .mobile-vitals__speed .ui-vital-menu__summary').first()
+  // Phone: VitalTileMenu; desktop (≥960): play-desk-speed-menu on speed face.
+  const summary = page
+    .locator(
+      [
+        '.mobile-vitals__speed > summary',
+        '.mobile-vitals__speed .ui-vital-menu__summary',
+        '.play-desk-speed-menu > summary',
+      ].join(', '),
+    )
+    .first()
   if (!(await summary.count())) {
-    // Desktop: no +N menu — skip file
     writeFileSync(
       `${ART}/_speed-menu-skip.txt`,
-      'no VitalTileMenu at this width (desktop speed tile has no +N popover)\n',
+      'no speed menu host at this width\n',
       { flag: 'a' },
     )
     return null
@@ -369,9 +376,13 @@ async function shotSpeedMenu(page, path) {
   await page.waitForTimeout(350)
   const box = await page.evaluate(() => {
     const panel =
+      document.querySelector('.ui-vital-menu__panel.ui-menu__panel--portal') ||
       document.querySelector('.ui-vital-menu__panel') ||
+      document.querySelector('.ui-menu__panel--portal') ||
       document.querySelector('.ui-menu__panel')
-    const host = document.querySelector('.mobile-vitals__speed')
+    const host =
+      document.querySelector('.mobile-vitals__speed') ||
+      document.querySelector('.play-desk-speed-menu')
     const els = [host, panel].filter(Boolean)
     if (!els.length) return null
     let top = Infinity
@@ -470,7 +481,9 @@ for (const w of ROGUE_WIDTHS) {
   await openSheet(page, ROGUE)
   await openMobileAbilities(page, w)
   const out = `${ART}/left-panel-rogue-${w}.png`
-  await shotRogueExpertise(page, out)
+  // 390: full left/abilities panel (expertise clip alone was a broken crop)
+  if (w <= 390) await shotLeftPanel(page, out)
+  else await shotRogueExpertise(page, out)
   report.files.push({ file: out, w, kind: 'rogue' })
   console.log('rogue', w, out)
 }
@@ -562,13 +575,14 @@ for (const who of [
   }
 }
 
-// Speed +N menu: kit only on phone; still attempt 1440 for report honesty
-for (const w of [1440, 390]) {
+// Speed menu: phone VitalTileMenu + desktop play-desk-speed-menu
+for (const w of [1440, 1024, 390]) {
   await page.setViewportSize({ width: w, height: w <= 390 ? 900 : 1100 })
   await openSheet(page, ROGUE)
   if (w <= 390) {
-    // Ensure mobile vitals visible
     await page.waitForSelector('.mobile-vitals__speed', { timeout: 10_000 }).catch(() => {})
+  } else {
+    await page.waitForSelector('.play-desk-speed-menu', { timeout: 10_000 }).catch(() => {})
   }
   const out = `${ART}/speed-menu-open-${w}.png`
   const box = await shotSpeedMenu(page, out)
@@ -578,6 +592,7 @@ for (const w of [1440, 390]) {
   } else {
     console.log('speed-menu skipped', w)
   }
+  await page.keyboard.press('Escape').catch(() => {})
 }
 
 writeFileSync(`${ART}/lp01-capture-report.json`, JSON.stringify(report, null, 2))

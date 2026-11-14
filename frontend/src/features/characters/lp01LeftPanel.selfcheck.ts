@@ -83,7 +83,16 @@ const passivesPart = read('src/features/characters/minimalSheet/useSheetEditorPa
 assert.match(passivesPart, /DarkvisionSense/)
 const mobileVitals = read('src/features/characters/MobileVitalsBar.tsx')
 assert.match(mobileVitals, /onAltSpeedChange/)
-assert.match(mobileVitals, /ui-vital-menu__row--edit/)
+assert.match(mobileVitals, /SpeedModesMenuBody/)
+const speedMenu = read('src/features/characters/SpeedModesMenuBody.tsx')
+assert.match(speedMenu, /ui-vital-menu__row--edit/)
+assert.match(speedMenu, /лазание|плавание|полёт/)
+const header = read('src/features/characters/PlayDeskHeader.tsx')
+assert.match(header, /play-desk-speed-menu/)
+assert.match(header, /SpeedModesMenuBody/)
+assert.match(header, /onAltSpeedChange/)
+assert.match(railCss, /align-content:\s*start/)
+assert.match(railCss, /ownership-summary__chips[\s\S]*flex-wrap:\s*wrap/)
 
 // Editor: hints in ?, selected chips solid + check
 assert.doesNotMatch(

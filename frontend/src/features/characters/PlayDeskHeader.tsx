@@ -35,10 +35,12 @@ import { HoverTipCard, VITAL_TIPS } from '../onboarding'
 import {
   ChipStack,
   ClassChipRow,
+  DetailsMenu,
   NumberPadDialog,
   VitalTile,
   XpTrack,
 } from '../../ui'
+import { SpeedModesMenuBody } from './SpeedModesMenuBody'
 import { CoinPadDialog } from './CoinPadDialog'
 import { HpPadDialog } from './HpPadDialog'
 import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
@@ -137,6 +139,12 @@ type PlayDeskHeaderProps = {
   onOpenInitiative?: () => void
   /** Open speed breakdown / buffs (same shell as AC / initiative). */
   onOpenSpeed?: () => void
+  /** Edit climb/swim/fly from the speed-tile popover (same body as phone +N). */
+  onAltSpeedChange?: (patch: {
+    climbSpeed?: number | null
+    swimSpeed?: number | null
+    flySpeed?: number | null
+  }) => void
   onPlayChange: (play: PlayState) => void
   onCoinsChange: (coins: CoinPurse) => void
   onCombatChange: (patch: {
@@ -240,6 +248,7 @@ export function PlayDeskHeader({
   onInitiativeRoll,
   onOpenInitiative,
   onOpenSpeed,
+  onAltSpeedChange,
   onPlayChange,
   onCoinsChange,
   onCombatChange,
@@ -591,97 +600,69 @@ export function PlayDeskHeader({
           >
             {showValueTips ? <HoverTipCard tip={VITAL_TIPS.ac} /> : null}
           </VitalTile>
-          {onOpenSpeed ? (
-            <button
-              type="button"
-              className={`play-desk-vital play-desk-vital--speed play-desk-vital--clickable${
-                secondarySpeeds.length ? ' play-desk-vital--speed-wide' : ''
-              }${
-                primarySpeed && primarySpeed.key !== 'walk' ? ' play-desk-vital--alt-primary' : ''
-              }${showValueTips ? ' has-onboarding-tip' : ''}`}
-              title={
-                showValueTips
-                  ? undefined
-                  : `${speedTitle}. Нажми — разборка и бонусы`
-              }
-              aria-label={
-                primarySpeed
-                  ? `Скорость ${primarySpeed.value} фт${
-                      secondarySpeeds.length
-                        ? ` · ${secondarySpeeds
-                            .map((m) => `${m.label} ${m.value} фт`)
-                            .join(' · ')}`
-                        : ''
-                    }. Открыть разборку`
-                  : 'Скорость не задана. Открыть разборку'
-              }
-              onClick={onOpenSpeed}
-            >
-              <span className="play-desk-vital__stack">
-                <IconBoot className="play-desk-vital__icon" />
-                <b>{primarySpeed ? primarySpeed.value : '—'}</b>
-                <span className="play-desk-vital__label-row">
-                  {primarySpeed
-                    ? primarySpeed.key === 'walk'
-                      ? 'Скор.'
-                      : primarySpeed.label
-                    : 'Скор.'}
+          <DetailsMenu
+            className={`play-desk-speed-menu${
+              secondarySpeeds.length ? ' play-desk-speed-menu--wide' : ''
+            }`}
+            summaryClassName={`play-desk-vital play-desk-vital--speed play-desk-vital--clickable${
+              secondarySpeeds.length ? ' play-desk-vital--speed-wide' : ''
+            }${
+              primarySpeed && primarySpeed.key !== 'walk' ? ' play-desk-vital--alt-primary' : ''
+            }${showValueTips ? ' has-onboarding-tip' : ''}`}
+            panelClassName="ui-vital-menu__panel"
+            title={
+              showValueTips
+                ? undefined
+                : `${speedTitle}. Нажми — все скорости`
+            }
+            aria-label={
+              primarySpeed
+                ? `Скорость ${primarySpeed.value} фт${
+                    secondarySpeeds.length
+                      ? ` · ${secondarySpeeds
+                          .map((m) => `${m.label} ${m.value} фт`)
+                          .join(' · ')}`
+                      : ''
+                  }. Открыть список скоростей`
+                : 'Скорость не задана. Открыть список скоростей'
+            }
+            summary={
+              <>
+                <span className="play-desk-vital__stack">
+                  <IconBoot className="play-desk-vital__icon" />
+                  <b>{primarySpeed ? primarySpeed.value : '—'}</b>
+                  <span className="play-desk-vital__label-row">
+                    {primarySpeed
+                      ? primarySpeed.key === 'walk'
+                        ? 'Скор.'
+                        : primarySpeed.label
+                      : 'Скор.'}
+                  </span>
                 </span>
-              </span>
-              {secondarySpeeds.length > 0 ? (
-                <ul className="play-desk-vital__tags" aria-label="Дополнительные скорости">
-                  {secondarySpeeds.map((mode) => (
-                    <li key={mode.key} className="play-desk-vital__tag">
-                      {mode.label} {mode.value}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-              {showValueTips ? <HoverTipCard tip={VITAL_TIPS.speed} /> : null}
-            </button>
-          ) : (
-            <div
-              className={`play-desk-vital play-desk-vital--speed${
-                secondarySpeeds.length ? ' play-desk-vital--speed-wide' : ''
-              }${
-                primarySpeed && primarySpeed.key !== 'walk' ? ' play-desk-vital--alt-primary' : ''
-              }${showValueTips ? ' has-onboarding-tip' : ''}`}
-              title={showValueTips ? undefined : speedTitle}
-              aria-label={
-                primarySpeed
-                  ? `Скорость ${primarySpeed.value} фт${
-                      secondarySpeeds.length
-                        ? ` · ${secondarySpeeds
-                            .map((m) => `${m.label} ${m.value} фт`)
-                            .join(' · ')}`
-                        : ''
-                    }`
-                  : 'Скорость не задана'
-              }
-            >
-              <span className="play-desk-vital__stack">
-                <IconBoot className="play-desk-vital__icon" />
-                <b>{primarySpeed ? primarySpeed.value : '—'}</b>
-                <span className="play-desk-vital__label-row">
-                  {primarySpeed
-                    ? primarySpeed.key === 'walk'
-                      ? 'Скор.'
-                      : primarySpeed.label
-                    : 'Скор.'}
-                </span>
-              </span>
-              {secondarySpeeds.length > 0 ? (
-                <ul className="play-desk-vital__tags" aria-label="Дополнительные скорости">
-                  {secondarySpeeds.map((mode) => (
-                    <li key={mode.key} className="play-desk-vital__tag">
-                      {mode.label} {mode.value}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-              {showValueTips ? <HoverTipCard tip={VITAL_TIPS.speed} /> : null}
-            </div>
-          )}
+                {secondarySpeeds.length > 0 ? (
+                  <ul className="play-desk-vital__tags" aria-label="Дополнительные скорости">
+                    {secondarySpeeds.map((mode) => (
+                      <li key={mode.key} className="play-desk-vital__tag">
+                        {mode.label} {mode.value}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                {showValueTips ? <HoverTipCard tip={VITAL_TIPS.speed} /> : null}
+              </>
+            }
+          >
+            <SpeedModesMenuBody
+              walkFt={shownSpeed}
+              climbSpeed={climbSpeed}
+              swimSpeed={swimSpeed}
+              flySpeed={flySpeed}
+              speedExhaustNote={speedExhaustNote}
+              onAltSpeedChange={onAltSpeedChange}
+              onOpenBreakdown={onOpenSpeed}
+              hostDetailsClass="play-desk-speed-menu"
+            />
+          </DetailsMenu>
           {jumpLongFt != null && jumpHighFt != null ? (
             <div
               className={`play-desk-vital play-desk-vital--jump${

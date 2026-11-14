@@ -308,6 +308,57 @@ button.play-desk-vital:hover,
   letter-spacing: 0.02em;
 }
 
+/*
+ * Desktop speed tile → same VitalTileMenu body as phone.
+ * Host is DetailsMenu; the SUMMARY keeps the locked vital face (pixel chrome).
+ * Do not change tile size / neighbors / vitals grid — only open the panel.
+ */
+.play-desk-header__vitals > .play-desk-speed-menu.ui-menu {
+  display: block;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  width: 52px;
+  min-width: 52px;
+  max-width: 52px;
+  height: 48px;
+  min-height: 48px;
+  flex: 0 0 52px;
+  align-self: center;
+  position: relative;
+}
+
+.play-desk-header__vitals > .play-desk-speed-menu.play-desk-speed-menu--wide {
+  width: auto;
+  min-width: 52px;
+  max-width: none;
+  flex: 0 0 auto;
+}
+
+.play-desk-speed-menu > summary.play-desk-vital {
+  /* Reset kit .ui-menu__summary chrome so the face matches the locked vital */
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  min-height: 48px;
+  max-height: 48px;
+  flex: none;
+  /* .play-desk-vital padding / border / radius / bg already apply */
+}
+
+.play-desk-speed-menu > summary.play-desk-vital::-webkit-details-marker {
+  display: none;
+}
+
+.play-desk-speed-menu[open] > summary.play-desk-vital {
+  border-color: color-mix(in srgb, var(--desk-accent) 35%, var(--desk-line));
+}
+
 /* Speed: icon above value, «Скор.» below (like Jump/Init/BM); alts column right */
 .play-desk-vital__stack {
   display: grid;

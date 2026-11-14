@@ -44,7 +44,8 @@ import {
 import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
 import { absorbDamageWithArcaneWard } from '../../shared/dnd/wizardTradition'
 import type { NeedsSetupItem } from './needsSetup'
-import { NumberInput, VitalTile, VitalTileMenu } from '../../ui'
+import { VitalTile, VitalTileMenu } from '../../ui'
+import { SpeedModesMenuBody } from './SpeedModesMenuBody'
 
 /** v2: M-02 / Q1 defaults to collapsed; old key often stored «0» from M-01 mounts. */
 const COLLAPSE_KEY = 'dvarf.mobileVitals.collapsed.v2'
@@ -615,88 +616,17 @@ export function MobileVitalsBar({
               : 'Скорость не задана. Открыть список скоростей'
           }
           menu={
-            <>
-              <ul className="ui-vital-menu__list" role="list">
-                <li className="ui-vital-menu__row">
-                  <span className="ui-vital-menu__row-label">ходьба</span>
-                  <span className="ui-vital-menu__row-value">
-                    {shownSpeed == null ? '—' : `${shownSpeed} фт`}
-                  </span>
-                </li>
-                {(
-                  [
-                    {
-                      key: 'climb' as const,
-                      label: 'лазание',
-                      value: climbSpeed,
-                      patch: (n: number | null) =>
-                        onAltSpeedChange?.({ climbSpeed: n }),
-                    },
-                    {
-                      key: 'swim' as const,
-                      label: 'плавание',
-                      value: swimSpeed,
-                      patch: (n: number | null) =>
-                        onAltSpeedChange?.({ swimSpeed: n }),
-                    },
-                    {
-                      key: 'fly' as const,
-                      label: 'полёт',
-                      value: flySpeed,
-                      patch: (n: number | null) =>
-                        onAltSpeedChange?.({ flySpeed: n }),
-                    },
-                  ] as const
-                ).map((row) => (
-                  <li key={row.key} className="ui-vital-menu__row ui-vital-menu__row--edit">
-                    <span className="ui-vital-menu__row-label">{row.label}</span>
-                    {onAltSpeedChange ? (
-                      <NumberInput
-                        className="ui-vital-menu__input"
-                        size="sm"
-                        narrow
-                        min={0}
-                        emptyValue={null}
-                        value={row.value}
-                        onValueChange={(next) => row.patch(next)}
-                        onClick={(event) => event.stopPropagation()}
-                        aria-label={`${row.label}, фт`}
-                        title="пусто = нет"
-                      />
-                    ) : (
-                      <span className="ui-vital-menu__row-value">
-                        {row.value == null ? '—' : `${row.value} фт`}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-              {withoutExhaustionLine ? (
-                <p className="ui-vital-menu__note">{withoutExhaustionLine}</p>
-              ) : null}
-              {speedExhaustNote ? (
-                <p className="ui-vital-menu__note">{speedExhaustNote}</p>
-              ) : null}
-              {onOpenSpeed ? (
-                <button
-                  type="button"
-                  className="ui-vital-menu__action"
-                  onClick={(event) => {
-                    event.preventDefault()
-                    event.stopPropagation()
-                    // Panel is portaled — close the host details by class.
-                    document
-                      .querySelectorAll('details.mobile-vitals__speed[open]')
-                      .forEach((el) => {
-                        if (el instanceof HTMLDetailsElement) el.open = false
-                      })
-                    onOpenSpeed()
-                  }}
-                >
-                  Разборка и бонусы
-                </button>
-              ) : null}
-            </>
+            <SpeedModesMenuBody
+              walkFt={shownSpeed}
+              climbSpeed={climbSpeed}
+              swimSpeed={swimSpeed}
+              flySpeed={flySpeed}
+              withoutExhaustionLine={withoutExhaustionLine}
+              speedExhaustNote={speedExhaustNote}
+              onAltSpeedChange={onAltSpeedChange}
+              onOpenBreakdown={onOpenSpeed}
+              hostDetailsClass="mobile-vitals__speed"
+            />
           }
         />
         {jumpLongFt != null && jumpHighFt != null ? (

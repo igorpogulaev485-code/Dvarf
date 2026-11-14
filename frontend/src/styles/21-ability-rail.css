@@ -624,7 +624,7 @@
   display: grid;
   grid-template-columns: 5.6rem minmax(0, 1fr);
   gap: 6px;
-  align-items: center;
+  align-items: start;
   min-width: 0;
 }
 
@@ -635,6 +635,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding-top: 3px;
 }
 
 .ownership-summary__empty {
@@ -644,17 +645,21 @@
 
 .ownership-summary__chips {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 4px;
   align-items: center;
+  align-content: flex-start;
   min-width: 0;
+  /* Hard cap: two chip rows; JS hides the rest behind +N */
+  max-height: calc(2 * (1.25em + 8px) + 4px);
   overflow: hidden;
 }
 
 .ownership-summary__chip {
   flex: 0 1 auto;
-  min-width: 0;
-  max-width: 7.5rem;
+  /* Prefer wrap over squeezing below ~10 characters */
+  min-width: min(100%, 10ch);
+  max-width: 100%;
   padding: 2px 7px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
@@ -801,6 +806,13 @@
   padding: 12px;
   display: grid;
   gap: 12px;
+  /* Do not stretch cards into the tall drawer — height = content */
+  align-content: start;
+}
+
+.play-desk-drawer__body > .ui-panel {
+  height: fit-content;
+  align-self: start;
 }
 
 /* Narrow drawer: keep climb/swim/fly on one label line so the row stays level. */

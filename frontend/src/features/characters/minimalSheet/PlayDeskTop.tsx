@@ -454,6 +454,12 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             }
             onOpenInitiative={() => model.setInitiativeBreakdownOpen(true)}
             onOpenSpeed={() => model.setSpeedBreakdownOpen(true)}
+            onAltSpeedChange={(patch) =>
+              model.setDraft((prev) => ({
+                ...prev,
+                ...patch,
+              }))
+            }
             onInitiativeRoll={() => model.emitToast(formatInitiativeToast(model))}
             onPlayChange={(play) => model.setDraft((prev) => ({ ...prev, play }))}
             onCoinsChange={(coins) =>

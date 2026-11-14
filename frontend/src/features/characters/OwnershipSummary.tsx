@@ -1,4 +1,10 @@
-import type { KeyboardEvent, MouseEvent } from 'react'
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+} from 'react'
 import { DetailsMenu } from '../../ui'
 import {
   ARMOR_PROF_OPTIONS,
@@ -6,8 +12,6 @@ import {
   type ArmorProficiency,
   type WeaponProficiency,
 } from './identity'
-
-const VISIBLE_MAX = 3
 
 type OwnershipSummaryProps = {
   armor: ArmorProficiency
@@ -24,6 +28,75 @@ function ChipRow({
   label: string
   chips: string[]
 }) {
+  const chipsRef = useRef<HTMLDivElement>(null)
+  const [visibleCount, setVisibleCount] = useState(chips.length)
+
+  useLayoutEffect(() => {
+    const root = chipsRef.current
+    if (!root || chips.length === 0) {
+      setVisibleCount(chips.length)
+      return
+    }
+
+    const measure = () => {
+      const chipEls = [
+        ...root.querySelectorAll<HTMLElement>('[data-own-chip]'),
+      ]
+      const moreEl = root.querySelector<HTMLElement>('[data-own-more]')
+      if (chipEls.length === 0) {
+        setVisibleCount(0)
+        return
+      }
+
+      // Reveal everything for a clean geometry pass.
+      chipEls.forEach((el) => {
+        el.style.display = ''
+      })
+      if (moreEl) moreEl.style.display = 'none'
+
+      const firstTop = chipEls[0].offsetTop
+      const rowH = Math.max(chipEls[0].offsetHeight, 1)
+      const maxBottom = firstTop + rowH * 2 + 6
+
+      let fit = chipEls.length
+      for (let i = 0; i < chipEls.length; i += 1) {
+        if (chipEls[i].offsetTop + chipEls[i].offsetHeight > maxBottom + 1) {
+          fit = i
+          break
+        }
+      }
+
+      if (fit >= chips.length) {
+        setVisibleCount(chips.length)
+        return
+      }
+
+      // Need +N — shrink until the badge stays inside two rows.
+      if (!moreEl) {
+        setVisibleCount(fit)
+        return
+      }
+      moreEl.style.display = ''
+      let next = Math.max(0, fit)
+      while (next > 0) {
+        for (let i = 0; i < chipEls.length; i += 1) {
+          chipEls[i].style.display = i < next ? '' : 'none'
+        }
+        // Update +N label text for width; React will sync on setState.
+        const badge = moreEl.querySelector('.ownership-summary__more-btn')
+        if (badge) badge.textContent = `+${chips.length - next}`
+        if (moreEl.offsetTop + moreEl.offsetHeight <= maxBottom + 1) break
+        next -= 1
+      }
+      setVisibleCount(next)
+    }
+
+    measure()
+    const ro = new ResizeObserver(() => measure())
+    ro.observe(root)
+    return () => ro.disconnect()
+  }, [chips])
+
   if (chips.length === 0) {
     return (
       <div className="ownership-summary__row">
@@ -33,38 +106,43 @@ function ChipRow({
     )
   }
 
-  const shown = chips.slice(0, VISIBLE_MAX)
-  const overflow = chips.slice(VISIBLE_MAX)
+  const overflow = chips.slice(visibleCount)
 
   return (
     <div className="ownership-summary__row">
       <span className="ownership-summary__label">{label}</span>
-      <div className="ownership-summary__chips">
-        {shown.map((chip) => (
-          <span key={chip} className="ownership-summary__chip">
+      <div className="ownership-summary__chips" ref={chipsRef}>
+        {chips.map((chip, index) => (
+          <span
+            key={chip}
+            data-own-chip=""
+            className="ownership-summary__chip"
+            title={chip}
+            style={index >= visibleCount ? { display: 'none' } : undefined}
+          >
             {chip}
           </span>
         ))}
-        {overflow.length > 0 ? (
-          <span
-            className="ownership-summary__more-wrap"
-            onClick={(event: MouseEvent) => event.stopPropagation()}
-            onKeyDown={(event: KeyboardEvent) => event.stopPropagation()}
+        <span
+          data-own-more=""
+          className="ownership-summary__more-wrap"
+          style={overflow.length === 0 ? { display: 'none' } : undefined}
+          onClick={(event: MouseEvent) => event.stopPropagation()}
+          onKeyDown={(event: KeyboardEvent) => event.stopPropagation()}
+        >
+          <DetailsMenu
+            className="ownership-summary__more"
+            summaryClassName="ownership-summary__more-btn"
+            panelClassName="ownership-summary__more-panel"
+            summary={`+${overflow.length}`}
           >
-            <DetailsMenu
-              className="ownership-summary__more"
-              summaryClassName="ownership-summary__more-btn"
-              panelClassName="ownership-summary__more-panel"
-              summary={`+${overflow.length}`}
-            >
-              <ul className="ownership-summary__more-list">
-                {overflow.map((chip) => (
-                  <li key={chip}>{chip}</li>
-                ))}
-              </ul>
-            </DetailsMenu>
-          </span>
-        ) : null}
+            <ul className="ownership-summary__more-list">
+              {overflow.map((chip) => (
+                <li key={chip}>{chip}</li>
+              ))}
+            </ul>
+          </DetailsMenu>
+        </span>
       </div>
     </div>
   )
