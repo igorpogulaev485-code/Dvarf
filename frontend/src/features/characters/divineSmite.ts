@@ -6,6 +6,8 @@
 import type { FeatureSlotSpendDef } from '../../shared/dnd/classFeatures'
 import { slotSpendDiceCount } from '../../shared/dnd/classFeatures'
 import { isRangedWeaponAttackName } from '../../shared/dnd/fightingStyles'
+import type { SpellSlotState } from '../../shared/dnd/spells'
+import { clampSlot } from '../../shared/dnd/spells'
 import { rollDamage } from './deskRolls'
 
 export const DIVINE_SMITE_FEATURE_ID = 'divine_smite'
@@ -14,6 +16,42 @@ export type DivineSmiteIntent = {
   /** Circle prepared for the next confirmed melee hit. Null = choose after the roll. */
   slotLevel: number | null
   vsUndeadOrFiend: boolean
+}
+
+/**
+ * Circles the character actually has (max > 0), within the feature's min/max.
+ * Empty pools stay listed but are shown inactive by the UI.
+ */
+export function divineSmitePresentLevels(
+  spend: FeatureSlotSpendDef,
+  slots: Record<string, SpellSlotState>,
+): number[] {
+  const levels: number[] = []
+  for (let level = spend.min_slot; level <= spend.max_slot; level += 1) {
+    const slot = clampSlot(slots[String(level)] ?? { max: 0, used: 0 })
+    if (slot.max > 0) levels.push(level)
+  }
+  return levels
+}
+
+/**
+ * After an attack roll: natural 1 never offers smite; natural 20 forces crit.
+ * Existing crit/natural flags win — no AC hit logic here.
+ */
+export function resolveSmiteAfterAttack(input: {
+  naturalDie?: number | null
+  critFlag?: boolean
+  tableMiss?: boolean
+}): { offer: boolean; crit: boolean; autoMiss: boolean } {
+  const die =
+    typeof input.naturalDie === 'number' && Number.isFinite(input.naturalDie)
+      ? Math.floor(input.naturalDie)
+      : null
+  if (input.tableMiss || die === 1) {
+    return { offer: false, crit: false, autoMiss: true }
+  }
+  const crit = Boolean(input.critFlag) || die === 20
+  return { offer: true, crit, autoMiss: false }
 }
 
 export type DivineSmiteDice = {
@@ -99,6 +137,30 @@ export function decideSmiteSlotClick(input: {
 }
 
 /** Radiant extra for one confirmed hit. Crit doubles the dice inside `rollDamage`. */
+export function rollDivineSmiteExtra(input: {
+  spend: FeatureSlotSpendDef
+  slotLevel: number
+  vsUndeadOrFiend: boolean
+  crit: boolean
+  rng?: () => number
+}): { line: string; total: number; chip: string } | null {
+  const dice = divineSmiteDice(input)
+  const rolled = rollDamage(dice.expression, input.rng ?? Math.random, {
+    crit: input.crit,
+  })
+  if (!rolled) return null
+  const vs = dice.undeadDice ? ', нежить/исчадие' : ''
+  const critNote = input.crit ? ', крит' : ''
+  const vsChip = dice.undeadDice ? ' · нежить' : ''
+  const critChip = input.crit ? ' · крит' : ''
+  return {
+    total: rolled.total,
+    line: ` + ${rolled.total} излучением (Божественная кара, ${dice.formulaRu}${vs}${critNote}, ${rolled.detail})`,
+    chip: `${rolled.total} излучением · ${dice.formulaRu}${vsChip}${critChip}`,
+  }
+}
+
+/** Radiant extra for one confirmed hit. Crit doubles the dice inside `rollDamage`. */
 export function formatDivineSmiteExtra(input: {
   spend: FeatureSlotSpendDef
   slotLevel: number
@@ -106,12 +168,5 @@ export function formatDivineSmiteExtra(input: {
   crit: boolean
   rng?: () => number
 }): string {
-  const dice = divineSmiteDice(input)
-  const rolled = rollDamage(dice.expression, input.rng ?? Math.random, {
-    crit: input.crit,
-  })
-  if (!rolled) return ''
-  const vs = dice.undeadDice ? ', нежить/исчадие' : ''
-  const critNote = input.crit ? ', крит' : ''
-  return ` + ${rolled.total} излучением (Божественная кара, ${dice.formulaRu}${vs}${critNote}, ${rolled.detail})`
+  return rollDivineSmiteExtra(input)?.line ?? ''
 }

@@ -1,6 +1,6 @@
 /**
- * SC-01 scene frame: weapon-first combat panel, «Ещё» slot, no carpet.
- * SC-02 moved cover out of «Ещё» into attack dialogs — keep order invariants.
+ * SC-01 scene frame: weapon-first combat panel, turn actions, no carpet.
+ * CMB-02: «Действия хода» = grouped tabs (not details «Ещё»).
  * Run: npx tsx --tsconfig tsconfig.app.json src/features/characters/uxSc01SceneFrame.selfcheck.ts
  */
 import assert from 'node:assert/strict'
@@ -17,36 +17,32 @@ const effects = readFileSync(join(here, 'ActiveEffectsPanel.tsx'), 'utf8')
 const hot = readFileSync(join(here, 'PlayDeskHotBar.tsx'), 'utf8')
 
 const headIdx = attacks.indexOf('<h3>Атаки</h3>')
-const detailsIdx = attacks.indexOf('<details className="play-desk-attacks-more">')
-const detailsEndIdx = attacks.indexOf('</details>', detailsIdx)
+const turnIdx = attacks.indexOf('play-desk-turn-actions-wrap')
 const listIdx = attacks.indexOf(
   'play-desk-compact__list play-desk-compact__list--dense',
-  detailsEndIdx,
+  turnIdx,
 )
 assert.ok(headIdx >= 0, 'attacks head')
-assert.ok(detailsIdx > headIdx, '«Ещё» after head')
-assert.ok(detailsEndIdx > detailsIdx, '«Ещё» closes')
-assert.ok(listIdx > detailsEndIdx, 'weapon list after «Ещё»')
+assert.ok(turnIdx > headIdx, 'turn actions after head')
+assert.ok(listIdx > turnIdx, 'weapon list after turn actions')
 
-assert.match(attacks, /Ещё \/ Действия хода/)
+assert.match(attacks, /Действия хода|play-desk-turn-actions/)
+assert.doesNotMatch(attacks, /Ещё \/ Действия хода/)
 
-// First-screen chrome (before opening «Ещё») must not show cover / PHB carpet.
-const firstScreen = attacks.slice(headIdx, detailsIdx)
+// First-screen chrome (before opening a group) must not show cover carpet.
+const firstScreen = attacks.slice(headIdx, turnIdx)
 assert.doesNotMatch(firstScreen, /Без укрытия/)
 assert.doesNotMatch(firstScreen, /Стабилизировать/)
-assert.doesNotMatch(firstScreen, /TurnEconomyCombatActions/)
 
-// Inside «Ещё»: PHB actions stay; cover left the tab in SC-02.
-const moreBody = attacks.slice(detailsIdx, detailsEndIdx)
-assert.doesNotMatch(moreBody, /Без укрытия/)
-assert.match(moreBody, /TurnEconomyCombatActions/)
-assert.match(moreBody, /mode="more"/)
+// TurnEconomyCombatActions is the grouped control (not buried only in details).
+assert.match(attacks, /TurnEconomyCombatActions/)
+assert.match(attacks, /mode="all"/)
+assert.doesNotMatch(attacks, /mode="everyTurn"/)
 
-// After «Ещё»: optional hero chips then weapons (эталон a2ea6e18).
-const afterMore = attacks.slice(detailsEndIdx, listIdx)
-assert.match(afterMore, /deskCombatFeatures/)
-assert.doesNotMatch(afterMore, /Без укрытия/)
-assert.match(afterMore, /mode="everyTurn"/)
+// After turn chrome: optional hero chips then weapons.
+const afterTurn = attacks.slice(turnIdx, listIdx)
+assert.match(afterTurn, /deskCombatFeatures/)
+assert.doesNotMatch(afterTurn, /Без укрытия/)
 
 // SCN-01: «Кубики на столе» / «Новый ход» in SceneTurnControls; not in attacks head.
 assert.match(sceneTurn, /Кубики на столе/)
@@ -58,7 +54,6 @@ assert.doesNotMatch(strip, /TurnEconomyCombatActions/)
 assert.doesNotMatch(strip, /<TurnEconomyChips/)
 assert.match(hot, /play-desk__hot-item--states-empty|data-scn01-states-empty/)
 
-// UIKIT-02: полоска навыков сцены снова на десктопе/планшете (как до SC-01).
 assert.match(
   layout,
   /UIKIT-02: полоска навыков[\s\S]*?deskMode === 'combat'[\s\S]{0,200}?PlayDeskSkillStrip/,
@@ -69,7 +64,6 @@ assert.doesNotMatch(
   /mobile-combat-seg-stack[\s\S]{0,800}?PlayDeskSkillStrip/,
 )
 
-// Empty effects / hot empties collapsed.
 assert.match(effects, /if \(rows\.length === 0\) \{\s*return null/s)
 assert.doesNotMatch(effects, /tone="muted">Нет активных/)
 assert.doesNotMatch(hot, /Концентрация: —/)

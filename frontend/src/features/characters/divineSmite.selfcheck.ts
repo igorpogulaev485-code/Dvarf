@@ -6,9 +6,11 @@ import { rollDamage } from './deskRolls.ts'
 import {
   decideSmiteSlotClick,
   divineSmiteDice,
+  divineSmitePresentLevels,
   divineSmiteSpendOf,
   formatDivineSmiteExtra,
   isMeleeWeaponAttackName,
+  resolveSmiteAfterAttack,
 } from './divineSmite.ts'
 import { improvedDivineSmiteRider } from './featureCombatBonuses.ts'
 
@@ -152,6 +154,19 @@ assert(
   'feature exposes the smite spend',
 )
 assert(divineSmiteSpendOf([{ id: 'lay_on_hands' }]) == null, 'paladin 1 has no smite control')
+
+const nat1 = resolveSmiteAfterAttack({ naturalDie: 1 })
+assert(!nat1.offer && nat1.autoMiss, 'nat 1 closes without smite')
+const nat20 = resolveSmiteAfterAttack({ naturalDie: 20 })
+assert(nat20.offer && nat20.crit, 'nat 20 auto-crits smite')
+assert(
+  divineSmitePresentLevels(spend, {
+    '1': { max: 4, used: 0 },
+    '2': { max: 2, used: 2 },
+    '3': { max: 0, used: 0 },
+  }).join(',') === '1,2',
+  'only circles with max>0 are present',
+)
 
 function paladinFeatures(level: number) {
   return unlockFeaturesForClasses({

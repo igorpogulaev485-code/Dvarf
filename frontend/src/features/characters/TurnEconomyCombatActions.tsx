@@ -1,3 +1,4 @@
+import { useState, type ReactNode } from 'react'
 import { useTurnEconomy } from './TurnEconomyContext'
 import { STEADY_AIM_HINT } from '../../shared/dnd/turnEconomy'
 import { canKiFueledAttack } from '../../shared/dnd/o02TashaFeatures'
@@ -57,6 +58,11 @@ import {
   markDisengagedThisTurn,
 } from '../../shared/dnd/turnEconomy'
 import type { ConditionRef } from '../../shared/dnd/conditions'
+import {
+  TURN_GROUP_EMPTY_HINT,
+  TURN_GROUP_LABELS,
+  type TurnActionGroupId,
+} from './turnActionGroups'
 
 export type O03MasterRuleFlags = {
   disarm?: boolean
@@ -207,8 +213,9 @@ type Props = {
   onToast?: (message: string) => void
   className?: string
   /**
-   * SC-02: `everyTurn` — только Хитрое / Точное прицеливание / второе оружие (А у атак).
-   * `more` — PHB и остальное без этих чипов (Б в «Ещё»). По умолчанию `all`.
+   * CMB-02: grouped UI is the only face. Legacy modes kept for call-site compat:
+   * `everyTurn` alone returns null (chips live inside groups).
+   * `more` / `all` — full grouped Действие · Бонусное · Реакция.
    */
   mode?: 'all' | 'more' | 'everyTurn'
 }
@@ -368,1076 +375,1455 @@ export function TurnEconomyCombatActions({
       ? canOrcishFuryBonus(te, true)
       : { ok: false as const, reason: '', mark: 'bonus' as const }
 
-  const everyTurnChips = (
-    <>
-      {hasCunningAction ? (
-        <div className="chip-row" role="group" aria-label="Хитрое действие">
-          <span className="sheet-chip is-stub" title="Хитрое действие (плут)">
-            Хитрое действие
-          </span>
-          <button
-            type="button"
-            className="sheet-chip"
-            disabled={!hideGate.ok}
-            title={
-              hideGate.ok
-                ? 'Хитрое действие: Засада · тратит бонусное · затем можно бросить Скрытность'
-                : hideGate.reason
-            }
-            onClick={() => {
-              const gate = turnEco.canHide(hasCunningAction)
-              if (!gate.ok || !gate.timing) return
-              turnEco.spendHide(gate.timing)
-              onOfferSkill?.('stealth')
-            }}
-          >
-            Засада
-          </button>
-          <button
-            type="button"
-            className="sheet-chip"
-            disabled={!cunningGate.ok}
-            title={
-              cunningGate.ok
-                ? 'Хитрое действие: Отход · бонусное · без карты только отметка и лента'
-                : cunningGate.reason
-            }
-            onClick={() => {
-              if (!turnEco.canCunningBonus().ok) return
-              turnEco.spendCunningBonus('disengage')
-            }}
-          >
-            Отход
-          </button>
-          <button
-            type="button"
-            className="sheet-chip"
-            disabled={!cunningGate.ok}
-            title={
-              cunningGate.ok
-                ? 'Хитрое действие: Рывок · бонусное · без карты только отметка и лента'
-                : cunningGate.reason
-            }
-            onClick={() => {
-              if (!turnEco.canCunningBonus().ok) return
-              turnEco.spendCunningBonus('dash')
-            }}
-          >
-            Рывок
-          </button>
-        </div>
-      ) : null}
-      {hasSteadyAim ? (
-        <button
-          type="button"
-          className={`sheet-chip${turnEco.turnEconomy.steadyAim ? ' is-on' : ''}`}
-          disabled={!steadyGate.ok}
-          title={steadyGate.ok ? STEADY_AIM_HINT : steadyGate.reason}
-          onClick={() => {
-            if (!turnEco.canSteadyAim().ok) return
-            turnEco.spendSteadyAim()
-          }}
-        >
-          Точное прицеливание
-        </button>
-      ) : null}
-      {showTwoWeaponBonus && onTwoWeaponBonus && twoWeaponBonusGate?.ok ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          title={TWO_WEAPON_BONUS_HINT}
-          onClick={() => onTwoWeaponBonus()}
-        >
-          Атака вторым оружием
-        </button>
-      ) : null}
-    </>
-  )
+
+  const [openGroup, setOpenGroup] = useState<TurnActionGroupId | null>(null)
 
   if (mode === 'everyTurn') {
-    if (!hasCunningAction && !hasSteadyAim && !(showTwoWeaponBonus && onTwoWeaponBonus)) {
-      return null
+    // CMB-02: everyTurn row removed — chips live inside groups.
+    return null
+  }
+
+  const teState = turnEco.turnEconomy
+  const actionSpent = teState.action
+  const bonusSpent = teState.bonus
+  const reactionSpent = teState.reaction
+
+  const toggleGroup = (group: TurnActionGroupId) => {
+    setOpenGroup((prev) => (prev === group ? null : group))
+  }
+
+  type Chip = {
+    key: string
+    tier: 'personal' | 'common' | 'more' | 'info'
+    groups: TurnActionGroupId[]
+    node: ReactNode
+  }
+
+  const chips: Chip[] = []
+
+  const push = (
+    key: string,
+    groups: TurnActionGroupId[],
+    tier: Chip['tier'],
+    node: ReactNode,
+  ) => {
+    if (!node) return
+    chips.push({ key, groups, tier, node })
+  }
+
+  // —— Bonus / Action: Cunning Action ——
+  if (hasCunningAction) {
+    push(
+      'cunning_hide',
+      ['bonus', 'action'],
+      'personal',
+      <button
+        key="cunning_hide"
+        type="button"
+        className="sheet-chip"
+        disabled={!hideGate.ok}
+        title={
+          hideGate.ok
+            ? 'Хитрое действие: Засада · тратит бонусное · затем можно бросить Скрытность'
+            : hideGate.reason
+        }
+        onClick={() => {
+          const gate = turnEco.canHide(hasCunningAction)
+          if (!gate.ok || !gate.timing) return
+          turnEco.spendHide(gate.timing)
+          onOfferSkill?.('stealth')
+        }}
+      >
+        Хитрое действие: Засада
+      </button>,
+    )
+    push(
+      'cunning_disengage',
+      ['bonus', 'action'],
+      'personal',
+      <button
+        key="cunning_disengage"
+        type="button"
+        className="sheet-chip"
+        disabled={!cunningGate.ok}
+        title={
+          cunningGate.ok
+            ? 'Хитрое действие: Отход · бонусное · без карты только отметка и лента'
+            : cunningGate.reason
+        }
+        onClick={() => {
+          if (!turnEco.canCunningBonus().ok) return
+          turnEco.spendCunningBonus('disengage')
+        }}
+      >
+        Хитрое действие: Отход
+      </button>,
+    )
+    push(
+      'cunning_dash',
+      ['bonus', 'action'],
+      'personal',
+      <button
+        key="cunning_dash"
+        type="button"
+        className="sheet-chip"
+        disabled={!cunningGate.ok}
+        title={
+          cunningGate.ok
+            ? 'Хитрое действие: Рывок · бонусное · без карты только отметка и лента'
+            : cunningGate.reason
+        }
+        onClick={() => {
+          if (!turnEco.canCunningBonus().ok) return
+          turnEco.spendCunningBonus('dash')
+        }}
+      >
+        Хитрое действие: Рывок
+      </button>,
+    )
+  }
+
+  if (hasSteadyAim) {
+    push(
+      'steady_aim',
+      ['bonus'],
+      'personal',
+      <button
+        key="steady_aim"
+        type="button"
+        className={`sheet-chip${turnEco.turnEconomy.steadyAim ? ' is-on' : ''}`}
+        disabled={!steadyGate.ok}
+        title={steadyGate.ok ? STEADY_AIM_HINT : steadyGate.reason}
+        onClick={() => {
+          if (!turnEco.canSteadyAim().ok) return
+          turnEco.spendSteadyAim()
+        }}
+      >
+        Точное прицеливание
+      </button>,
+    )
+  }
+
+  if (showTwoWeaponBonus && onTwoWeaponBonus && twoWeaponBonusGate?.ok) {
+    push(
+      'two_weapon',
+      ['bonus'],
+      'personal',
+      <button
+        key="two_weapon"
+        type="button"
+        className="sheet-chip"
+        title={TWO_WEAPON_BONUS_HINT}
+        onClick={() => onTwoWeaponBonus()}
+      >
+        Атака вторым оружием
+      </button>,
+    )
+  }
+
+  if (hasKiFueledAttack) {
+    push(
+      'ki_fueled',
+      ['bonus'],
+      'personal',
+      <button
+        key="ki_fueled"
+        type="button"
+        className="sheet-chip"
+        disabled={!kiFueledGate.ok}
+        title={
+          kiFueledGate.ok
+            ? 'Атака на ци: бонусная безоружная или атака оружием монаха'
+            : kiFueledGate.reason
+        }
+        onClick={() => {
+          const gate = canKiFueledAttack(turnEco.turnEconomy)
+          if (!gate.ok) {
+            onToast?.(gate.reason)
+            return
+          }
+          turnEco.spendFeature('bonus')
+          onToast?.('Атака на ци: бонусная безоружная атака или атака оружием монаха')
+        }}
+      >
+        Атака на ци
+      </button>,
+    )
+  }
+
+  // —— Common actions ——
+  push(
+    'search',
+    ['action'],
+    'common',
+    <button
+      key="search"
+      type="button"
+      className="sheet-chip"
+      disabled={!searchGate.ok}
+      title={
+        searchGate.ok
+          ? 'Тратит действие · затем можно бросить Анализ или Внимательность'
+          : searchGate.reason
+      }
+      onClick={() => {
+        const gate = turnEco.canSearch()
+        if (!gate.ok) return
+        turnEco.spendSearch()
+        onOfferSkill?.('investigation')
+      }}
+    >
+      Поиск
+    </button>,
+  )
+
+  if (!hasCunningAction) {
+    push(
+      'hide',
+      ['action'],
+      'common',
+      <button
+        key="hide"
+        type="button"
+        className="sheet-chip"
+        disabled={!hideGate.ok}
+        title={
+          hideGate.ok
+            ? 'Тратит действие · затем можно бросить Скрытность'
+            : hideGate.reason
+        }
+        onClick={() => {
+          const gate = turnEco.canHide(false)
+          if (!gate.ok || !gate.timing) return
+          turnEco.spendHide(gate.timing)
+          onOfferSkill?.('stealth')
+        }}
+      >
+        Засада
+      </button>,
+    )
+  }
+
+  push(
+    'dash',
+    ['action'],
+    'common',
+    <button
+      key="dash"
+      type="button"
+      className="sheet-chip"
+      disabled={!dashGate.ok}
+      title={dashGate.ok ? DASH_ACTION_HINT : dashGate.reason}
+      onClick={() => {
+        if (!canDashAction(turnEco.turnEconomy).ok) return
+        turnEco.patchTurnEconomy((s) => applyDashAction(s))
+        onToast?.('Рывок (действие)')
+      }}
+    >
+      Рывок
+    </button>,
+  )
+  push(
+    'disengage',
+    ['action'],
+    'common',
+    <button
+      key="disengage"
+      type="button"
+      className="sheet-chip"
+      disabled={!disengageGate.ok}
+      title={disengageGate.ok ? DISENGAGE_ACTION_HINT : disengageGate.reason}
+      onClick={() => {
+        if (!canDisengageAction(turnEco.turnEconomy).ok) return
+        turnEco.patchTurnEconomy((s) => applyDisengageAction(s))
+        onToast?.('Отход')
+      }}
+    >
+      Отход
+    </button>,
+  )
+  push(
+    'dodge',
+    ['action'],
+    'common',
+    <button
+      key="dodge"
+      type="button"
+      className="sheet-chip"
+      disabled={!dodgeGate.ok}
+      title={dodgeGate.ok ? DODGE_ACTION_HINT : dodgeGate.reason}
+      onClick={() => {
+        if (!canDodgeAction(turnEco.turnEconomy).ok) return
+        if (onO08Dodge) {
+          onO08Dodge()
+          return
+        }
+        turnEco.spendFeature('action')
+        onToast?.('Уклонение')
+      }}
+    >
+      Уклонение
+    </button>,
+  )
+  if (onO08Help) {
+    push(
+      'help',
+      ['action'],
+      'common',
+      <button
+        key="help"
+        type="button"
+        className="sheet-chip"
+        disabled={!helpGate.ok}
+        title={helpGate.ok ? HELP_ACTION_HINT : helpGate.reason}
+        onClick={() => {
+          if (!canHelpAction(turnEco.turnEconomy).ok) return
+          onO08Help()
+        }}
+      >
+        Помощь
+      </button>,
+    )
+  }
+  if (onO08Ready) {
+    push(
+      'ready',
+      ['action'],
+      'common',
+      <button
+        key="ready"
+        type="button"
+        className="sheet-chip"
+        disabled={!readyGate.ok}
+        title={readyGate.ok ? READY_ACTION_HINT : readyGate.reason}
+        onClick={() => {
+          if (!canReadyAction(turnEco.turnEconomy).ok) return
+          onO08Ready()
+        }}
+      >
+        Подготовка
+      </button>,
+    )
+  }
+  if (onO09Stabilize) {
+    push(
+      'stabilize',
+      ['action'],
+      'common',
+      <button
+        key="stabilize"
+        type="button"
+        className="sheet-chip"
+        disabled={!actionGate.ok}
+        title={
+          actionGate.ok
+            ? 'Стабилизировать: действие · Медицина Сл 10 · успех — цель стабильна при 0 хитах'
+            : actionGate.reason
+        }
+        onClick={() => {
+          if (!actionGate.ok) return
+          onO09Stabilize()
+        }}
+      >
+        Стабилизировать
+      </button>,
+    )
+  }
+  if (onGrappleShove) {
+    push(
+      'grapple_shove',
+      ['action'],
+      'common',
+      <button
+        key="grapple_shove"
+        type="button"
+        className="sheet-chip"
+        disabled={!attackGate.ok}
+        title={
+          attackGate.ok
+            ? 'Захват или толчок вместо одной атаки (не всё действие)'
+            : attackGate.reason
+        }
+        onClick={() => {
+          if (!turnEco.canAttack().ok) return
+          onGrappleShove()
+        }}
+      >
+        Захват / Толчок
+      </button>,
+    )
+  }
+  if (o03?.disarm && onO03Disarm) {
+    push(
+      'disarm',
+      ['action'],
+      'common',
+      <button
+        key="disarm"
+        type="button"
+        className="sheet-chip"
+        disabled={!attackGate.ok}
+        title={
+          attackGate.ok
+            ? 'Обезоруживание: вместо одной атаки · урона нет'
+            : attackGate.reason
+        }
+        onClick={() => {
+          if (!turnEco.canAttack().ok) return
+          onO03Disarm()
+        }}
+      >
+        Обезоруживание
+      </button>,
+    )
+  }
+
+  if (te.readyPrepared) {
+    push(
+      'ready_fire',
+      ['reaction'],
+      'common',
+      <button
+        key="ready_fire"
+        type="button"
+        className="sheet-chip is-on"
+        disabled={!readyFireGate.ok}
+        title={
+          readyFireGate.ok
+            ? `Сработало: ${te.readyTrigger || 'триггер'} → ${te.readyKind || 'действие'} · реакция`
+            : readyFireGate.reason
+        }
+        onClick={() => {
+          if (!readyFireGate.ok) return
+          if (onO08ReadyTrigger) {
+            onO08ReadyTrigger()
+            return
+          }
+          turnEco.spendFeature('reaction')
+          turnEco.patchTurnEconomy((s) => {
+            let next = clearReadyPrepared(s)
+            if (te.readyKind === 'dash') next = markDashed(next)
+            if (te.readyKind === 'disengage') next = markDisengagedThisTurn(next)
+            return next
+          })
+          onToast?.(
+            `Подготовка сработала: ${te.readyKind || 'действие'}${
+              te.readyTrigger ? ` · ${te.readyTrigger}` : ''
+            }`,
+          )
+        }}
+      >
+        Сработало
+      </button>,
+    )
+  }
+
+  // —— Reactions common ——
+  if (onO07OpportunityAttack) {
+    push(
+      'opportunity',
+      ['reaction'],
+      'common',
+      <button
+        key="opportunity"
+        type="button"
+        className="sheet-chip"
+        disabled={!reactionGate.ok}
+        title={reactionGate.ok ? OPPORTUNITY_ATTACK_HINT : reactionGate.reason}
+        onClick={() => onO07OpportunityAttack()}
+      >
+        Атака по возможности
+      </button>,
+    )
+  }
+
+  // —— Personal reactions / bonus / action from feats ——
+  if (o07?.hasSentinel && onO07SentinelAttack) {
+    const gate = canSentinelAttack(turnEco.turnEconomy, true)
+    push(
+      'sentinel',
+      ['reaction'],
+      'personal',
+      <button
+        key="sentinel"
+        type="button"
+        className="sheet-chip"
+        disabled={!gate.ok}
+        title={gate.ok ? SENTINEL_ATTACK_HINT : gate.reason}
+        onClick={() => onO07SentinelAttack()}
+      >
+        Страж: атака
+      </button>,
+    )
+  }
+  if (o07?.hasMageSlayer && onO07MageSlayerAttack) {
+    const gate = canMageSlayerAttack(turnEco.turnEconomy, true)
+    push(
+      'mage_slayer',
+      ['reaction'],
+      'personal',
+      <button
+        key="mage_slayer"
+        type="button"
+        className="sheet-chip"
+        disabled={!gate.ok}
+        title={gate.ok ? MAGE_SLAYER_ATTACK_HINT : gate.reason}
+        onClick={() => onO07MageSlayerAttack()}
+      >
+        Убийца магов
+      </button>,
+    )
+  }
+  if (o07?.knowsRiposte && onO07Riposte) {
+    const gate = canRiposteReaction(turnEco.turnEconomy, {
+      knowsRiposte: true,
+      hasSuperiorityDie: Boolean(o07.hasSuperiorityDie),
+    })
+    push(
+      'riposte',
+      ['reaction'],
+      'personal',
+      <button
+        key="riposte"
+        type="button"
+        className="sheet-chip"
+        disabled={!gate.ok}
+        title={gate.ok ? RIPOSTE_HINT : gate.reason}
+        onClick={() => onO07Riposte()}
+      >
+        Ответный удар
+      </button>,
+    )
+  }
+  if (o07?.knowsParry && onO07ParryHint) {
+    const gate = canParryReaction(turnEco.turnEconomy, {
+      knowsParry: true,
+      hasSuperiorityDie: Boolean(o07.hasSuperiorityDie),
+    })
+    push(
+      'parry',
+      ['reaction'],
+      'personal',
+      <button
+        key="parry"
+        type="button"
+        className="sheet-chip"
+        disabled={!gate.ok}
+        title={gate.ok ? `${PARRY_HINT} · предложит pad хитов при уроне` : gate.reason}
+        onClick={() => onO07ParryHint()}
+      >
+        Парирование
+      </button>,
+    )
+  }
+  if (o07?.hasPolearmMaster && onO07PolearmBonus) {
+    const gate = canPolearmBonusAttack(turnEco.turnEconomy, {
+      hasPolearmMaster: true,
+      holdingPolearm: Boolean(o07.holdingPolearmBonus),
+    })
+    push(
+      'polearm_bonus',
+      ['bonus'],
+      'personal',
+      <button
+        key="polearm_bonus"
+        type="button"
+        className="sheet-chip"
+        disabled={!gate.ok}
+        title={gate.ok ? POLEARM_BONUS_HINT : gate.reason}
+        onClick={() => onO07PolearmBonus()}
+      >
+        Конец древка (к4)
+      </button>,
+    )
+  }
+
+  for (const row of o07?.reactionSpells ?? []) {
+    if (row.kind === 'counterspell' && onO07Counterspell) {
+      push(
+        `react_spell_${row.id}`,
+        ['reaction'],
+        'common',
+        <button
+          key={`react_spell_${row.id}`}
+          type="button"
+          className="sheet-chip"
+          disabled={Boolean(row.disabled) || !reactionGate.ok}
+          title={
+            row.disabled
+              ? row.disabledReason || row.hint
+              : reactionGate.ok
+                ? `${row.name}: ${row.hint}`
+                : reactionGate.reason
+          }
+          onClick={() => onO07Counterspell()}
+        >
+          {row.name}
+        </button>,
+      )
+    } else {
+      push(
+        `react_spell_${row.id}`,
+        ['reaction'],
+        'common',
+        <button
+          key={`react_spell_${row.id}`}
+          type="button"
+          className="sheet-chip"
+          disabled={Boolean(row.disabled) || !reactionGate.ok}
+          title={
+            row.disabled
+              ? row.disabledReason || row.hint
+              : reactionGate.ok
+                ? `${row.name}: ${row.hint}`
+                : reactionGate.reason
+          }
+          onClick={() => onO07CastReactionSpell?.(row.id)}
+        >
+          {row.name}
+        </button>,
+      )
     }
+  }
+  if (
+    onO07CastReactionGeneric &&
+    ((o07?.reactionSpells?.length ?? 0) > 0 ||
+      o07?.reactionSpells?.some((r) => r.kind === 'other'))
+  ) {
+    push(
+      'cast_reaction',
+      ['reaction'],
+      'common',
+      <button
+        key="cast_reaction"
+        type="button"
+        className="sheet-chip"
+        disabled={!reactionGate.ok}
+        title={
+          reactionGate.ok
+            ? 'Открыть каст заклинания со временем «реакция»'
+            : reactionGate.reason
+        }
+        onClick={() => onO07CastReactionGeneric()}
+      >
+        Кастануть реакцией
+      </button>,
+    )
+  }
+
+  if (hasProtectionStyle) {
+    const protGate = canProtectionReaction(turnEco.turnEconomy, {
+      hasProtectionStyle: true,
+      shieldInHand: shieldInHandForProtection,
+    })
+    push(
+      'protection',
+      ['reaction'],
+      'personal',
+      <button
+        key="protection"
+        type="button"
+        className="sheet-chip"
+        disabled={!protGate.ok}
+        title={protGate.ok ? PROTECTION_REACTION_HINT : protGate.reason}
+        onClick={() => {
+          if (
+            !canProtectionReaction(turnEco.turnEconomy, {
+              hasProtectionStyle: true,
+              shieldInHand: shieldInHandForProtection,
+            }).ok
+          ) {
+            return
+          }
+          turnEco.spendFeature('reaction')
+          onToast?.(
+            'Защита: реакция · помеха на атаку по союзнику в 5 фт (ты видишь атакующего)',
+          )
+        }}
+      >
+        Защита
+      </button>,
+    )
+  }
+
+  if (hasInterception) {
+    push(
+      'interception',
+      ['reaction'],
+      'personal',
+      <button
+        key="interception"
+        type="button"
+        className="sheet-chip"
+        disabled={!reactionGate.ok}
+        title={
+          reactionGate.ok
+            ? 'Перехват: реакция · союзник в 5 фт получил попадание · снизить урон на 1к10+БМ'
+            : reactionGate.reason
+        }
+        onClick={() => {
+          if (!turnEco.canFeature('reaction').ok) return
+          turnEco.spendFeature('reaction')
+          onToast?.(
+            'Перехват: реакция · снизь урон союзнику на 1к10+БМ (не ниже 0). В руках — щит или простое/воинское оружие.',
+          )
+        }}
+      >
+        Перехват
+      </button>,
+    )
+  }
+
+  if (hasChainMaster) {
+    push(
+      'chain_attack',
+      ['bonus'],
+      'personal',
+      <button
+        key="chain_attack"
+        type="button"
+        className="sheet-chip"
+        disabled={!bonusGate.ok}
+        title={
+          bonusGate.ok
+            ? 'Дар мастера цепи: бонусным приказать фамильяру действие «Атака»'
+            : bonusGate.reason
+        }
+        onClick={() => {
+          if (!turnEco.canFeature('bonus').ok) return
+          turnEco.spendFeature('bonus')
+          onToast?.('Дар мастера цепи: фамильяр совершает действие «Атака» (бонусное)')
+        }}
+      >
+        Атака фамильяра
+      </button>,
+    )
+    push(
+      'chain_resist',
+      ['reaction'],
+      'personal',
+      <button
+        key="chain_resist"
+        type="button"
+        className="sheet-chip"
+        disabled={!reactionGate.ok}
+        title={
+          reactionGate.ok
+            ? 'Дар мастера цепи: реакцией дать фамильяру сопротивление к полученному урону'
+            : reactionGate.reason
+        }
+        onClick={() => {
+          if (!turnEco.canFeature('reaction').ok) return
+          turnEco.spendFeature('reaction')
+          onToast?.(
+            'Дар мастера цепи: реакция · фамильяр получает сопротивление к этому урону',
+          )
+        }}
+      >
+        Сопр. фамильяра
+      </button>,
+    )
+  }
+
+  if (hasTalismanRebuke) {
+    push(
+      'talisman_rebuke',
+      ['reaction'],
+      'personal',
+      <button
+        key="talisman_rebuke"
+        type="button"
+        className="sheet-chip"
+        disabled={!reactionGate.ok}
+        title={
+          reactionGate.ok
+            ? 'Порицание талисмана: реакция · урон психической = БМ и толчок на 10 фт'
+            : reactionGate.reason
+        }
+        onClick={() => {
+          if (!turnEco.canFeature('reaction').ok) return
+          turnEco.spendFeature('reaction')
+          onToast?.(
+            'Порицание талисмана: реакция · урон психической энергией = БМ, толчок на 10 фт от носителя',
+          )
+        }}
+      >
+        Порицание талисмана
+      </button>,
+    )
+  }
+
+  if (o05?.greatWeaponMaster && onO05GwmBonus) {
+    push(
+      'gwm_bonus',
+      ['bonus'],
+      'personal',
+      <button
+        key="gwm_bonus"
+        type="button"
+        className="sheet-chip"
+        disabled={!gwmGate.ok}
+        title={gwmGate.ok ? GWM_BONUS_ATTACK_HINT : gwmGate.reason}
+        onClick={() => {
+          if (!canGwmBonusAttack(turnEco.turnEconomy, true).ok) return
+          turnEco.patchTurnEconomy(markGwmBonusUsed)
+          onO05GwmBonus()
+          onToast?.('Мастер большого оружия: бонусная рукопашная атака оружием')
+        }}
+      >
+        Атака Мастера большого оружия
+      </button>,
+    )
+  }
+
+  if (o05?.charger && onO05ChargerAttack) {
+    push(
+      'charger_attack',
+      ['bonus'],
+      'personal',
+      <button
+        key="charger_attack"
+        type="button"
+        className="sheet-chip"
+        disabled={!chargerGate.ok}
+        title={
+          chargerGate.ok
+            ? 'Бонусная рукопашная атака оружием · +5 к урону при попадании'
+            : chargerGate.reason
+        }
+        onClick={() => {
+          if (!canChargerBonus(turnEco.turnEconomy, true).ok) return
+          turnEco.patchTurnEconomy((s) => {
+            const next = markChargerBonusUsed(s)
+            return { ...next, bonus: true }
+          })
+          onO05ChargerAttack()
+          onToast?.('Налётчик: бонусная атака · +5 к урону при попадании')
+        }}
+      >
+        Налётчик: Удар (+5)
+      </button>,
+    )
+  }
+  if (o05?.charger && onO05ChargerShove) {
+    push(
+      'charger_shove',
+      ['bonus'],
+      'personal',
+      <button
+        key="charger_shove"
+        type="button"
+        className="sheet-chip"
+        disabled={!chargerGate.ok}
+        title={
+          chargerGate.ok ? 'Бонусный толчок (состязание Атлетики)' : chargerGate.reason
+        }
+        onClick={() => {
+          if (!canChargerBonus(turnEco.turnEconomy, true).ok) return
+          onO05ChargerShove()
+        }}
+      >
+        Налётчик: Толчок
+      </button>,
+    )
+  }
+
+  if (o05?.crossbowExpert && onO05CrossbowBonus) {
+    push(
+      'crossbow_bonus',
+      ['bonus'],
+      'personal',
+      <button
+        key="crossbow_bonus"
+        type="button"
+        className="sheet-chip"
+        disabled={!xbowGate.ok}
+        title={
+          xbowGate.ok
+            ? 'Эксперт в арбалетах: бонусная атака ручным арбалетом'
+            : xbowGate.reason
+        }
+        onClick={() => {
+          if (
+            !canCrossbowExpertBonus(turnEco.turnEconomy, {
+              hasFeat: true,
+              holdingHandCrossbow: Boolean(o05.holdingHandCrossbow),
+            }).ok
+          ) {
+            return
+          }
+          turnEco.patchTurnEconomy((s) => {
+            const next = markCrossbowExpertBonusUsed(s)
+            return { ...next, bonus: true }
+          })
+          onO05CrossbowBonus()
+          onToast?.('Эксперт в арбалетах: бонусная атака ручным арбалетом')
+        }}
+      >
+        Выстрел ручным арбалетом
+      </button>,
+    )
+  }
+
+  if (o05?.tavernBrawler && onO05TavernGrapple) {
+    push(
+      'tavern_grapple',
+      ['bonus'],
+      'personal',
+      <button
+        key="tavern_grapple"
+        type="button"
+        className="sheet-chip"
+        disabled={!tavernGate.ok}
+        title={
+          tavernGate.ok
+            ? 'Драчун: бонусным попытка захвата после безоружной/импровизированной'
+            : tavernGate.reason
+        }
+        onClick={() => {
+          if (!canTavernBrawlerGrapple(turnEco.turnEconomy, true).ok) return
+          onO05TavernGrapple()
+        }}
+      >
+        Захват (Драчун)
+      </button>,
+    )
+  }
+
+  if (o05?.healer && o05.hasHealerKit && onO05HealerStabilize) {
+    push(
+      'healer_stabilize',
+      ['action'],
+      'personal',
+      <button
+        key="healer_stabilize"
+        type="button"
+        className="sheet-chip"
+        disabled={!actionGate.ok}
+        title={
+          actionGate.ok
+            ? 'Действием стабилизировать (успех без Медицины) · 1 использование набора'
+            : actionGate.reason
+        }
+        onClick={() => {
+          if (!turnEco.canFeature('action').ok) return
+          onO05HealerStabilize()
+        }}
+      >
+        Целитель: Стабилизировать
+      </button>,
+    )
+  }
+  if (o05?.healer && o05.hasHealerKit && onO05HealerHeal) {
+    push(
+      'healer_heal',
+      ['action'],
+      'personal',
+      <button
+        key="healer_heal"
+        type="button"
+        className="sheet-chip"
+        disabled={!actionGate.ok}
+        title={
+          actionGate.ok
+            ? 'Действием 1к6+4+кости хитов · 1 использование · 1 цель до отдыха'
+            : actionGate.reason
+        }
+        onClick={() => {
+          if (!turnEco.canFeature('action').ok) return
+          onO05HealerHeal()
+        }}
+      >
+        Целитель: Лечить
+      </button>,
+    )
+  }
+
+  if (o05?.grappler && onO05GrapplerPin) {
+    push(
+      'grappler_pin',
+      ['action'],
+      'personal',
+      <button
+        key="grappler_pin"
+        type="button"
+        className="sheet-chip"
+        disabled={!actionGate.ok}
+        title={
+          actionGate.ok
+            ? 'Борец: действием опрокинуть схваченного (состязание Атлетики)'
+            : actionGate.reason
+        }
+        onClick={() => {
+          if (!turnEco.canFeature('action').ok) return
+          onO05GrapplerPin()
+        }}
+      >
+        Опрокинуть схваченного
+      </button>,
+    )
+  }
+
+  if (o05?.shieldMaster && onO05ShieldShove) {
+    push(
+      'shield_shove',
+      ['bonus'],
+      'personal',
+      <button
+        key="shield_shove"
+        type="button"
+        className="sheet-chip"
+        disabled={!shieldGate.ok}
+        title={
+          shieldGate.ok
+            ? 'Мастер щита: бонусный толчок щитом после действия «Атака»'
+            : shieldGate.reason
+        }
+        onClick={() => {
+          if (
+            !canShieldMasterShove(turnEco.turnEconomy, {
+              hasFeat: true,
+              shieldInHand: Boolean(o05.shieldInHand),
+            }).ok
+          ) {
+            return
+          }
+          onO05ShieldShove()
+        }}
+      >
+        Толчок щитом
+      </button>,
+    )
+  }
+
+  if (tceOn && o05?.telekinetic && onO05Telekinetic) {
+    push(
+      'telekinetic',
+      ['bonus'],
+      'personal',
+      <button
+        key="telekinetic"
+        type="button"
+        className="sheet-chip"
+        disabled={!teleGate.ok}
+        title={
+          teleGate.ok
+            ? 'Телекинез: бонусным толкнуть существо в 30 фт (состязание хар-ки)'
+            : teleGate.reason
+        }
+        onClick={() => {
+          if (!canTelekineticShove(turnEco.turnEconomy, true).ok) return
+          onO05Telekinetic()
+        }}
+      >
+        Толчок (Телекинез)
+      </button>,
+    )
+  }
+
+  if (tceOn && o05?.orcishFury && onO05OrcishFury) {
+    push(
+      'orcish_fury',
+      ['bonus'],
+      'personal',
+      <button
+        key="orcish_fury"
+        type="button"
+        className="sheet-chip"
+        disabled={!orcGate.ok}
+        title={
+          orcGate.ok
+            ? 'Орочья ярость: бонусная атака тем же оружием после попадания'
+            : orcGate.reason
+        }
+        onClick={() => {
+          if (!canOrcishFuryBonus(turnEco.turnEconomy, true).ok) return
+          turnEco.patchTurnEconomy((s) => {
+            const next = markOrcishFuryBonusUsed(s)
+            return { ...next, bonus: true }
+          })
+          onO05OrcishFury()
+          onToast?.('Орочья ярость: бонусная атака тем же оружием')
+        }}
+      >
+        Атака Орочьей ярости
+      </button>,
+    )
+  }
+
+  if (o06Breath) {
+    push(
+      'breath',
+      ['action'],
+      'personal',
+      <button
+        key="breath"
+        type="button"
+        className="sheet-chip"
+        disabled={Boolean(o06Breath.disabled)}
+        title={
+          o06Breath.disabled
+            ? o06Breath.disabledReason || o06Breath.hint
+            : o06Breath.hint
+        }
+        onClick={() => o06Breath.onClick()}
+      >
+        {o06Breath.label}
+      </button>,
+    )
+  }
+  for (const row of o06FtdExtra ?? []) {
+    push(
+      `ftd_${row.label}`,
+      ['action'],
+      'personal',
+      <button
+        key={`ftd_${row.label}`}
+        type="button"
+        className="sheet-chip"
+        disabled={Boolean(row.disabled)}
+        title={row.disabled ? row.disabledReason || row.hint : row.hint}
+        onClick={() => row.onClick()}
+      >
+        {row.label}
+      </button>,
+    )
+  }
+
+  if (o03?.mark && onO03Mark) {
+    push(
+      'mark',
+      ['action'],
+      'personal',
+      <button
+        key="mark"
+        type="button"
+        className="sheet-chip"
+        title="Метка: пометить цель рукопашной атаки"
+        onClick={() => onO03Mark()}
+      >
+        Метка
+      </button>,
+    )
+  }
+  if (o03?.mark && o03.hasMarkedTarget && onO03MarkOpportunity) {
+    push(
+      'mark_opp',
+      ['reaction'],
+      'personal',
+      <button
+        key="mark_opp"
+        type="button"
+        className="sheet-chip"
+        disabled={!o03.markOppAvailable}
+        title={
+          o03.markOppAvailable
+            ? 'Провоцированная по метке: преимущество, не тратит реакцию (1/ход)'
+            : 'Уже использована в этот ход или реакция запрещена'
+        }
+        onClick={() => onO03MarkOpportunity()}
+      >
+        Провоцированная по метке
+      </button>,
+    )
+  }
+
+  // —— DMG «ещё» ——
+  if (o03?.overrun && onO03Overrun) {
+    push(
+      'overrun',
+      ['action', 'bonus'],
+      'more',
+      <button
+        key="overrun"
+        type="button"
+        className="sheet-chip"
+        disabled={!actionGate.ok && !bonusGate.ok}
+        title="Пробегание: действие или бонусное · Атлетика vs Атлетика"
+        onClick={() => onO03Overrun()}
+      >
+        Пробегание
+      </button>,
+    )
+  }
+  if (o03?.tumble && onO03Tumble) {
+    push(
+      'tumble',
+      ['action', 'bonus'],
+      'more',
+      <button
+        key="tumble"
+        type="button"
+        className="sheet-chip"
+        disabled={!actionGate.ok && !bonusGate.ok}
+        title="Кувырок: действие или бонусное · Акробатика vs Акробатика"
+        onClick={() => onO03Tumble()}
+      >
+        Кувырок
+      </button>,
+    )
+  }
+  if (o03?.climbBigger && onO03ClimbBigger) {
+    push(
+      'climb',
+      ['action'],
+      'more',
+      <button
+        key="climb"
+        type="button"
+        className="sheet-chip"
+        disabled={!actionGate.ok}
+        title={actionGate.ok ? 'Взбирание на большее существо · действие' : actionGate.reason}
+        onClick={() => {
+          if (!turnEco.canFeature('action').ok) return
+          onO03ClimbBigger()
+        }}
+      >
+        Взбирание
+      </button>,
+    )
+  }
+  if (o03?.identifySpell && onO03IdentifySpell) {
+    push(
+      'identify_spell',
+      ['reaction'],
+      'more',
+      <button
+        key="identify_spell"
+        type="button"
+        className="sheet-chip"
+        disabled={!reactionGate.ok}
+        title={
+          reactionGate.ok
+            ? 'Распознать заклинание: реакция · Анализ Сл 15+ур.'
+            : reactionGate.reason
+        }
+        onClick={() => {
+          if (!turnEco.canFeature('reaction').ok) return
+          onO03IdentifySpell()
+        }}
+      >
+        Распознать заклинание
+      </button>,
+    )
+  }
+  if (o03?.falling && onO03Falling) {
+    push(
+      'falling',
+      ['action'],
+      'more',
+      <button
+        key="falling"
+        type="button"
+        className="sheet-chip"
+        title="Калькулятор падения: 1к6 / 10 фт, макс. 20к6"
+        onClick={() => onO03Falling()}
+      >
+        Падение
+      </button>,
+    )
+  }
+  if (o03?.noLongRest && onO03NoLongRest) {
+    push(
+      'no_long_rest',
+      ['action'],
+      'more',
+      <button
+        key="no_long_rest"
+        type="button"
+        className="sheet-chip"
+        title="Прошло 24 часа без длинного отдыха → спас Тел"
+        onClick={() => onO03NoLongRest()}
+      >
+        24 ч без отдыха
+      </button>,
+    )
+  }
+  if (o04?.lingeringInjuries && onO04LingeringInjury) {
+    push(
+      'injury',
+      ['action'],
+      'more',
+      <button
+        key="injury"
+        type="button"
+        className="sheet-chip"
+        title="Ручной бросок по таблице незаживающих ран DMG"
+        onClick={() => onO04LingeringInjury()}
+      >
+        Бросок раны
+      </button>,
+    )
+  }
+  if (o04?.morale && onO04Morale) {
+    push(
+      'morale',
+      ['action'],
+      'more',
+      <button
+        key="morale"
+        type="button"
+        className="sheet-chip"
+        title="Проверка морали врагов (спас Мудрости Сл 10)"
+        onClick={() => onO04Morale()}
+      >
+        Проверка морали
+      </button>,
+    )
+  }
+  if (o04?.heroPoints && onO04HeroPoints) {
+    push(
+      'hero',
+      ['action'],
+      'more',
+      <button
+        key="hero"
+        type="button"
+        className="sheet-chip"
+        title="Потратить очко героя (+1к6 к d20 или стабилизация)"
+        onClick={() => onO04HeroPoints()}
+      >
+        Очко героя
+      </button>,
+    )
+  }
+
+  // —— Info chips (not actions) ——
+  if (hasBlindFighting) {
+    push(
+      'blind_sight',
+      ['action', 'bonus', 'reaction'],
+      'info',
+      <span
+        key="blind_sight"
+        className="sheet-chip is-stub"
+        title="Сражение вслепую: слепое зрение 10 фт (без карты) · не действие"
+      >
+        Слепое зрение 10 фт
+      </span>,
+    )
+  }
+  if (hasDevilsSight) {
+    push(
+      'devils_sight',
+      ['action', 'bonus', 'reaction'],
+      'info',
+      <span
+        key="devils_sight"
+        className="sheet-chip is-stub"
+        title={`${DEVILS_SIGHT_HINT} · не действие`}
+      >
+        Дьявольское зрение 120 фт
+      </span>,
+    )
+  }
+
+  if (turnEco.turnEconomy.extraActions > 0) {
+    push(
+      'extra_action',
+      ['action'],
+      'personal',
+      <span
+        key="extra_action"
+        className="sheet-chip is-on"
+        title="Дополнительное действие от «Всплеска действий»"
+      >
+        Доп. действие ×{turnEco.turnEconomy.extraActions}
+      </span>,
+    )
+  }
+
+  // Count actionable (non-info) for empty-state disable. «ещё» and personal/common count.
+  const groupActionable = (group: TurnActionGroupId) =>
+    chips.some((c) => c.groups.includes(group) && c.tier !== 'info')
+
+  const spentOf = (group: TurnActionGroupId) =>
+    group === 'action' ? actionSpent : group === 'bonus' ? bonusSpent : reactionSpent
+
+  const renderGroupPanel = (group: TurnActionGroupId) => {
+    const personal = chips.filter(
+      (c) => c.groups.includes(group) && c.tier === 'personal',
+    )
+    const common = chips.filter(
+      (c) => c.groups.includes(group) && c.tier === 'common',
+    )
+    const more = chips.filter((c) => c.groups.includes(group) && c.tier === 'more')
+    const info = chips.filter((c) => c.groups.includes(group) && c.tier === 'info')
     return (
-      <div className={className} role="group" aria-label="Классовые действия хода">
-        {everyTurnChips}
+      <div
+        className="play-desk-turn-actions__panel"
+        role="group"
+        aria-label={TURN_GROUP_LABELS[group]}
+      >
+        {personal.length || common.length ? (
+          <div className="chip-row play-desk-turn-actions__chips">
+            {personal.map((c) => c.node)}
+            {common.map((c) => c.node)}
+          </div>
+        ) : (
+          <p className="play-desk-turn-actions__empty">{TURN_GROUP_EMPTY_HINT[group]}</p>
+        )}
+        {more.length ? (
+          <details className="play-desk-turn-actions__more">
+            <summary className="play-desk-turn-actions__more-summary">ещё</summary>
+            <div className="chip-row play-desk-turn-actions__chips">{more.map((c) => c.node)}</div>
+          </details>
+        ) : null}
+        {info.length ? (
+          <div
+            className="chip-row play-desk-turn-actions__info"
+            role="group"
+            aria-label="Пометки"
+          >
+            {info.map((c) => c.node)}
+          </div>
+        ) : null}
       </div>
     )
   }
 
-  const hideEveryTurn = mode === 'more'
+  const groups: TurnActionGroupId[] = ['action', 'bonus', 'reaction']
 
   return (
-    <div className={className} role="group" aria-label="Действия боя">
-      <button
-        type="button"
-        className="sheet-chip"
-        disabled={!searchGate.ok}
-        title={
-          searchGate.ok
-            ? 'Тратит действие · затем можно бросить Анализ или Внимательность'
-            : searchGate.reason
-        }
-        onClick={() => {
-          const gate = turnEco.canSearch()
-          if (!gate.ok) return
-          turnEco.spendSearch()
-          onOfferSkill?.('investigation')
-        }}
-      >
-        Поиск
-      </button>
-
-      {!hideEveryTurn ? everyTurnChips : null}
-
-      {!hasCunningAction ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!hideGate.ok}
-          title={
-            hideGate.ok
-              ? 'Тратит действие · затем можно бросить Скрытность'
-              : hideGate.reason
-          }
-          onClick={() => {
-            const gate = turnEco.canHide(false)
-            if (!gate.ok || !gate.timing) return
-            turnEco.spendHide(gate.timing)
-            onOfferSkill?.('stealth')
-          }}
-        >
-          Засада
-        </button>
-      ) : null}
-
-      {/* O-08: PHB действия (не Хитрое) — отдельный слот от бонусного Отход/Рывок плута */}
-      <button
-        type="button"
-        className="sheet-chip"
-        disabled={!dashGate.ok}
-        title={dashGate.ok ? DASH_ACTION_HINT : dashGate.reason}
-        onClick={() => {
-          if (!canDashAction(turnEco.turnEconomy).ok) return
-          turnEco.patchTurnEconomy((s) => applyDashAction(s))
-          onToast?.('Рывок (действие)')
-        }}
-      >
-        Рывок
-      </button>
-      <button
-        type="button"
-        className="sheet-chip"
-        disabled={!disengageGate.ok}
-        title={disengageGate.ok ? DISENGAGE_ACTION_HINT : disengageGate.reason}
-        onClick={() => {
-          if (!canDisengageAction(turnEco.turnEconomy).ok) return
-          turnEco.patchTurnEconomy((s) => applyDisengageAction(s))
-          onToast?.('Отход')
-        }}
-      >
-        Отход
-      </button>
-      <button
-        type="button"
-        className="sheet-chip"
-        disabled={!dodgeGate.ok}
-        title={dodgeGate.ok ? DODGE_ACTION_HINT : dodgeGate.reason}
-        onClick={() => {
-          if (!canDodgeAction(turnEco.turnEconomy).ok) return
-          if (onO08Dodge) {
-            onO08Dodge()
-            return
-          }
-          turnEco.spendFeature('action')
-          onToast?.('Уклонение')
-        }}
-      >
-        Уклонение
-      </button>
-      {onO08Help ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!helpGate.ok}
-          title={helpGate.ok ? HELP_ACTION_HINT : helpGate.reason}
-          onClick={() => {
-            if (!canHelpAction(turnEco.turnEconomy).ok) return
-            onO08Help()
-          }}
-        >
-          Помощь
-        </button>
-      ) : null}
-      {onO08Ready ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!readyGate.ok}
-          title={readyGate.ok ? READY_ACTION_HINT : readyGate.reason}
-          onClick={() => {
-            if (!canReadyAction(turnEco.turnEconomy).ok) return
-            onO08Ready()
-          }}
-        >
-          Подготовка
-        </button>
-      ) : null}
-      {onO09Stabilize ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!actionGate.ok}
-          title={
-            actionGate.ok
-              ? 'Стабилизировать: действие · Медицина Сл 10 · успех — цель стабильна при 0 хитах'
-              : actionGate.reason
-          }
-          onClick={() => {
-            if (!actionGate.ok) return
-            onO09Stabilize()
-          }}
-        >
-          Стабилизировать
-        </button>
-      ) : null}
-      {te.readyPrepared ? (
-        <button
-          type="button"
-          className="sheet-chip is-on"
-          disabled={!readyFireGate.ok}
-          title={
-            readyFireGate.ok
-              ? `Сработало: ${te.readyTrigger || 'триггер'} → ${te.readyKind || 'действие'} · реакция`
-              : readyFireGate.reason
-          }
-          onClick={() => {
-            if (!readyFireGate.ok) return
-            if (onO08ReadyTrigger) {
-              onO08ReadyTrigger()
-              return
-            }
-            turnEco.spendFeature('reaction')
-            turnEco.patchTurnEconomy((s) => {
-              let next = clearReadyPrepared(s)
-              if (te.readyKind === 'dash') next = markDashed(next)
-              if (te.readyKind === 'disengage') next = markDisengagedThisTurn(next)
-              return next
-            })
-            onToast?.(
-              `Подготовка сработала: ${te.readyKind || 'действие'}${
-                te.readyTrigger ? ` · ${te.readyTrigger}` : ''
-              }`,
-            )
-          }}
-        >
-          Сработало
-        </button>
-      ) : null}
-
-      {hasKiFueledAttack ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!kiFueledGate.ok}
-          title={
-            kiFueledGate.ok
-              ? 'Атака на ци: бонусная безоружная или атака оружием монаха'
-              : kiFueledGate.reason
-          }
-          onClick={() => {
-            const gate = canKiFueledAttack(turnEco.turnEconomy)
-            if (!gate.ok) {
-              onToast?.(gate.reason)
-              return
-            }
-            turnEco.spendFeature('bonus')
-            onToast?.(
-              'Атака на ци: бонусная безоружная атака или атака оружием монаха',
-            )
-          }}
-        >
-          Атака на ци
-        </button>
-      ) : null}
-
-      {onGrappleShove ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!attackGate.ok}
-          title={
-            attackGate.ok
-              ? 'Захват или толчок вместо одной атаки (не всё действие)'
-              : attackGate.reason
-          }
-          onClick={() => {
-            if (!turnEco.canAttack().ok) return
-            onGrappleShove()
-          }}
-        >
-          Захват / Толчок
-        </button>
-      ) : null}
-
-      {o03?.disarm && onO03Disarm ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!attackGate.ok}
-          title={
-            attackGate.ok
-              ? 'Обезоруживание: вместо одной атаки · урона нет'
-              : attackGate.reason
-          }
-          onClick={() => {
-            if (!turnEco.canAttack().ok) return
-            onO03Disarm()
-          }}
-        >
-          Обезоруживание
-        </button>
-      ) : null}
-
-      {o03?.mark && onO03Mark ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          title="Метка: пометить цель рукопашной атаки"
-          onClick={() => onO03Mark()}
-        >
-          Метка
-        </button>
-      ) : null}
-
-      {o03?.mark && o03.hasMarkedTarget && onO03MarkOpportunity ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!o03.markOppAvailable}
-          title={
-            o03.markOppAvailable
-              ? 'Провоцированная по метке: преимущество, не тратит реакцию (1/ход)'
-              : 'Уже использована в этот ход или реакция запрещена'
-          }
-          onClick={() => onO03MarkOpportunity()}
-        >
-          Провоцированная по метке
-        </button>
-      ) : null}
-
-      {o03?.overrun && onO03Overrun ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!actionGate.ok && !bonusGate.ok}
-          title="Пробегание: действие или бонусное · Атлетика vs Атлетика"
-          onClick={() => onO03Overrun()}
-        >
-          Пробегание
-        </button>
-      ) : null}
-
-      {o03?.tumble && onO03Tumble ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!actionGate.ok && !bonusGate.ok}
-          title="Кувырок: действие или бонусное · Акробатика vs Акробатика"
-          onClick={() => onO03Tumble()}
-        >
-          Кувырок
-        </button>
-      ) : null}
-
-      {o03?.climbBigger && onO03ClimbBigger ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!actionGate.ok}
-          title={
-            actionGate.ok
-              ? 'Взбирание на большее существо · действие'
-              : actionGate.reason
-          }
-          onClick={() => {
-            if (!turnEco.canFeature('action').ok) return
-            onO03ClimbBigger()
-          }}
-        >
-          Взбирание
-        </button>
-      ) : null}
-
-      {o03?.identifySpell && onO03IdentifySpell ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!reactionGate.ok}
-          title={
-            reactionGate.ok
-              ? 'Распознать заклинание: реакция · Анализ Сл 15+ур.'
-              : reactionGate.reason
-          }
-          onClick={() => {
-            if (!turnEco.canFeature('reaction').ok) return
-            onO03IdentifySpell()
-          }}
-        >
-          Распознать заклинание
-        </button>
-      ) : null}
-
-      {o03?.falling && onO03Falling ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          title="Калькулятор падения: 1к6 / 10 фт, макс. 20к6"
-          onClick={() => onO03Falling()}
-        >
-          Падение
-        </button>
-      ) : null}
-
-      {o03?.noLongRest && onO03NoLongRest ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          title="Прошло 24 часа без длинного отдыха → спас Тел"
-          onClick={() => onO03NoLongRest()}
-        >
-          24 ч без отдыха
-        </button>
-      ) : null}
-
-      {o04?.lingeringInjuries && onO04LingeringInjury ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          title="Ручной бросок по таблице незаживающих ран DMG"
-          onClick={() => onO04LingeringInjury()}
-        >
-          Бросок раны
-        </button>
-      ) : null}
-
-      {o04?.morale && onO04Morale ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          title="Проверка морали врагов (спас Мудрости Сл 10)"
-          onClick={() => onO04Morale()}
-        >
-          Проверка морали
-        </button>
-      ) : null}
-
-      {o04?.heroPoints && onO04HeroPoints ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          title="Потратить очко героя (+1к6 к d20 или стабилизация)"
-          onClick={() => onO04HeroPoints()}
-        >
-          Очко героя
-        </button>
-      ) : null}
-
-      {hasBlindFighting ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          title="Сражение вслепую: слепое зрение 10 фт (без карты)"
-          onClick={() => {
-            onToast?.(
-              'Сражение вслепую: слепое зрение 10 фт — видишь в 10 фт даже ослеплённым или в темноте; невидимое — если оно не спряталось',
-            )
-          }}
-        >
-          Слепое зрение 10 фт
-        </button>
-      ) : null}
-
-      {hasDevilsSight ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          title={DEVILS_SIGHT_HINT}
-          onClick={() => {
-            onToast?.(DEVILS_SIGHT_HINT)
-          }}
-        >
-          Дьявольское зрение 120 фт
-        </button>
-      ) : null}
-
-      {hasProtectionStyle
-        ? (() => {
-            const protGate = canProtectionReaction(turnEco.turnEconomy, {
-              hasProtectionStyle: true,
-              shieldInHand: shieldInHandForProtection,
-            })
-            return (
-              <button
-                type="button"
-                className="sheet-chip"
-                disabled={!protGate.ok}
-                title={protGate.ok ? PROTECTION_REACTION_HINT : protGate.reason}
-                onClick={() => {
-                  if (!canProtectionReaction(turnEco.turnEconomy, {
-                    hasProtectionStyle: true,
-                    shieldInHand: shieldInHandForProtection,
-                  }).ok) {
-                    return
-                  }
-                  turnEco.spendFeature('reaction')
-                  onToast?.(
-                    'Защита: реакция · помеха на атаку по союзнику в 5 фт (ты видишь атакующего)',
-                  )
-                }}
-              >
-                Защита
-              </button>
-            )
-          })()
-        : null}
-
-      {o06Breath ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={Boolean(o06Breath.disabled)}
-          title={
-            o06Breath.disabled
-              ? o06Breath.disabledReason || o06Breath.hint
-              : o06Breath.hint
-          }
-          onClick={() => o06Breath.onClick()}
-        >
-          {o06Breath.label}
-        </button>
-      ) : null}
-
-      {(o06FtdExtra ?? []).map((row) => (
-        <button
-          key={row.label}
-          type="button"
-          className="sheet-chip"
-          disabled={Boolean(row.disabled)}
-          title={row.disabled ? row.disabledReason || row.hint : row.hint}
-          onClick={() => row.onClick()}
-        >
-          {row.label}
-        </button>
-      ))}
-
-      {hasInterception ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!reactionGate.ok}
-          title={
-            reactionGate.ok
-              ? 'Перехват: реакция · союзник в 5 фт получил попадание · снизить урон на 1к10+БМ'
-              : reactionGate.reason
-          }
-          onClick={() => {
-            if (!turnEco.canFeature('reaction').ok) return
-            turnEco.spendFeature('reaction')
-            onToast?.(
-              'Перехват: реакция · снизь урон союзнику на 1к10+БМ (не ниже 0). В руках — щит или простое/воинское оружие.',
-            )
-          }}
-        >
-          Перехват
-        </button>
-      ) : null}
-
-      {/* O-07: Реакции (отдельная группа, не смешивать с Поиск/Засада) */}
-      {o07 || onO07OpportunityAttack ? (
-        <div className="chip-row" role="group" aria-label="Реакции">
-          <span className="sheet-chip is-stub" title="Реакции (1/раунд)">
-            Реакции
-          </span>
-          {onO07OpportunityAttack ? (
+    <div
+      className={`play-desk-turn-actions ${className}`.trim()}
+      role="group"
+      aria-label="Действия хода"
+    >
+      <div className="play-desk-turn-actions__tabs" role="tablist" aria-label="Вид действия">
+        {groups.map((group) => {
+          const spent = spentOf(group)
+          const has = groupActionable(group)
+          const open = openGroup === group
+          return (
             <button
+              key={group}
               type="button"
-              className="sheet-chip"
-              disabled={!reactionGate.ok}
-              title={reactionGate.ok ? OPPORTUNITY_ATTACK_HINT : reactionGate.reason}
-              onClick={() => onO07OpportunityAttack()}
-            >
-              Атака по возможности
-            </button>
-          ) : null}
-          {o07?.hasSentinel && onO07SentinelAttack
-            ? (() => {
-                const gate = canSentinelAttack(turnEco.turnEconomy, true)
-                return (
-                  <button
-                    type="button"
-                    className="sheet-chip"
-                    disabled={!gate.ok}
-                    title={gate.ok ? SENTINEL_ATTACK_HINT : gate.reason}
-                    onClick={() => onO07SentinelAttack()}
-                  >
-                    Страж: атака
-                  </button>
-                )
-              })()
-            : null}
-          {o07?.hasMageSlayer && onO07MageSlayerAttack
-            ? (() => {
-                const gate = canMageSlayerAttack(turnEco.turnEconomy, true)
-                return (
-                  <button
-                    type="button"
-                    className="sheet-chip"
-                    disabled={!gate.ok}
-                    title={gate.ok ? MAGE_SLAYER_ATTACK_HINT : gate.reason}
-                    onClick={() => onO07MageSlayerAttack()}
-                  >
-                    Убийца магов
-                  </button>
-                )
-              })()
-            : null}
-          {o07?.knowsRiposte && onO07Riposte
-            ? (() => {
-                const gate = canRiposteReaction(turnEco.turnEconomy, {
-                  knowsRiposte: true,
-                  hasSuperiorityDie: Boolean(o07.hasSuperiorityDie),
-                })
-                return (
-                  <button
-                    type="button"
-                    className="sheet-chip"
-                    disabled={!gate.ok}
-                    title={gate.ok ? RIPOSTE_HINT : gate.reason}
-                    onClick={() => onO07Riposte()}
-                  >
-                    Ответный удар
-                  </button>
-                )
-              })()
-            : null}
-          {o07?.knowsParry && onO07ParryHint
-            ? (() => {
-                const gate = canParryReaction(turnEco.turnEconomy, {
-                  knowsParry: true,
-                  hasSuperiorityDie: Boolean(o07.hasSuperiorityDie),
-                })
-                return (
-                  <button
-                    type="button"
-                    className="sheet-chip"
-                    disabled={!gate.ok}
-                    title={gate.ok ? `${PARRY_HINT} · предложит pad хитов при уроне` : gate.reason}
-                    onClick={() => onO07ParryHint()}
-                  >
-                    Парирование
-                  </button>
-                )
-              })()
-            : null}
-          {o07?.hasPolearmMaster && onO07PolearmBonus
-            ? (() => {
-                const gate = canPolearmBonusAttack(turnEco.turnEconomy, {
-                  hasPolearmMaster: true,
-                  holdingPolearm: Boolean(o07.holdingPolearmBonus),
-                })
-                return (
-                  <button
-                    type="button"
-                    className="sheet-chip"
-                    disabled={!gate.ok}
-                    title={gate.ok ? POLEARM_BONUS_HINT : gate.reason}
-                    onClick={() => onO07PolearmBonus()}
-                  >
-                    Конец древка (к4)
-                  </button>
-                )
-              })()
-            : null}
-          {(o07?.reactionSpells ?? []).map((row) => {
-            if (row.kind === 'counterspell' && onO07Counterspell) {
-              return (
-                <button
-                  key={row.id}
-                  type="button"
-                  className="sheet-chip"
-                  disabled={Boolean(row.disabled) || !reactionGate.ok}
-                  title={
-                    row.disabled
-                      ? row.disabledReason || row.hint
-                      : reactionGate.ok
-                        ? `${row.name}: ${row.hint}`
-                        : reactionGate.reason
-                  }
-                  onClick={() => onO07Counterspell()}
-                >
-                  {row.name}
-                </button>
-              )
-            }
-            return (
-              <button
-                key={row.id}
-                type="button"
-                className="sheet-chip"
-                disabled={Boolean(row.disabled) || !reactionGate.ok}
-                title={
-                  row.disabled
-                    ? row.disabledReason || row.hint
-                    : reactionGate.ok
-                      ? `${row.name}: ${row.hint}`
-                      : reactionGate.reason
-                }
-                onClick={() => onO07CastReactionSpell?.(row.id)}
-              >
-                {row.name}
-              </button>
-            )
-          })}
-          {onO07CastReactionGeneric &&
-          (o07?.reactionSpells?.some((r) => r.kind === 'other') ||
-            (o07?.reactionSpells?.length ?? 0) > 0) ? (
-            <button
-              type="button"
-              className="sheet-chip"
-              disabled={!reactionGate.ok}
+              role="tab"
+              aria-selected={open}
+              className={`sheet-chip play-desk-turn-actions__tab${
+                open ? ' is-open' : ''
+              }${spent ? ' is-spent' : ''}`}
+              disabled={!has}
               title={
-                reactionGate.ok
-                  ? 'Открыть каст заклинания со временем «реакция»'
-                  : reactionGate.reason
-              }
-              onClick={() => onO07CastReactionGeneric()}
-            >
-              Кастануть реакцией
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-
-      {hasChainMaster ? (
-        <>
-          <button
-            type="button"
-            className="sheet-chip"
-            disabled={!bonusGate.ok}
-            title={
-              bonusGate.ok
-                ? 'Дар мастера цепи: бонусным приказать фамильяру действие «Атака»'
-                : bonusGate.reason
-            }
-            onClick={() => {
-              if (!turnEco.canFeature('bonus').ok) return
-              turnEco.spendFeature('bonus')
-              onToast?.('Дар мастера цепи: фамильяр совершает действие «Атака» (бонусное)')
-            }}
-          >
-            Атака фамильяра
-          </button>
-          <button
-            type="button"
-            className="sheet-chip"
-            disabled={!reactionGate.ok}
-            title={
-              reactionGate.ok
-                ? 'Дар мастера цепи: реакцией дать фамильяру сопротивление к полученному урону'
-                : reactionGate.reason
-            }
-            onClick={() => {
-              if (!turnEco.canFeature('reaction').ok) return
-              turnEco.spendFeature('reaction')
-              onToast?.(
-                'Дар мастера цепи: реакция · фамильяр получает сопротивление к этому урону',
-              )
-            }}
-          >
-            Сопр. фамильяра
-          </button>
-        </>
-      ) : null}
-
-      {hasTalismanRebuke ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!reactionGate.ok}
-          title={
-            reactionGate.ok
-              ? 'Порицание талисмана: реакция · урон психической = БМ и толчок на 10 фт'
-              : reactionGate.reason
-          }
-          onClick={() => {
-            if (!turnEco.canFeature('reaction').ok) return
-            turnEco.spendFeature('reaction')
-            onToast?.(
-              'Порицание талисмана: реакция · урон психической энергией = БМ, толчок на 10 фт от носителя',
-            )
-          }}
-        >
-          Порицание талисмана
-        </button>
-      ) : null}
-
-      {o05?.greatWeaponMaster && onO05GwmBonus ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!gwmGate.ok}
-          title={gwmGate.ok ? GWM_BONUS_ATTACK_HINT : gwmGate.reason}
-          onClick={() => {
-            if (!canGwmBonusAttack(turnEco.turnEconomy, true).ok) return
-            turnEco.patchTurnEconomy(markGwmBonusUsed)
-            onO05GwmBonus()
-            onToast?.('Мастер большого оружия: бонусная рукопашная атака оружием')
-          }}
-        >
-          Атака Мастера большого оружия
-        </button>
-      ) : null}
-
-      {o05?.charger ? (
-        <div className="chip-row" role="group" aria-label="Налётчик">
-          <span className="sheet-chip is-stub" title="Налётчик">
-            Налётчик
-          </span>
-          {onO05ChargerAttack ? (
-            <button
-              type="button"
-              className="sheet-chip"
-              disabled={!chargerGate.ok}
-              title={
-                chargerGate.ok
-                  ? 'Бонусная рукопашная атака оружием · +5 к урону при попадании'
-                  : chargerGate.reason
+                !has
+                  ? TURN_GROUP_EMPTY_HINT[group]
+                  : spent
+                    ? `${TURN_GROUP_LABELS[group]}: потрачено в этот ход`
+                    : `${TURN_GROUP_LABELS[group]}: свободно`
               }
               onClick={() => {
-                if (!canChargerBonus(turnEco.turnEconomy, true).ok) return
-                turnEco.patchTurnEconomy((s) => {
-                  const next = markChargerBonusUsed(s)
-                  return { ...next, bonus: true }
-                })
-                onO05ChargerAttack()
-                onToast?.('Налётчик: бонусная атака · +5 к урону при попадании')
+                if (!has) return
+                toggleGroup(group)
               }}
             >
-              Удар (+5)
+              {spent ? <span className="sheet-chip__check" aria-hidden>✓</span> : null}
+              <span>{TURN_GROUP_LABELS[group]}</span>
             </button>
-          ) : null}
-          {onO05ChargerShove ? (
-            <button
-              type="button"
-              className="sheet-chip"
-              disabled={!chargerGate.ok}
-              title={
-                chargerGate.ok
-                  ? 'Бонусный толчок (состязание Атлетики)'
-                  : chargerGate.reason
-              }
-              onClick={() => {
-                if (!canChargerBonus(turnEco.turnEconomy, true).ok) return
-                onO05ChargerShove()
-              }}
-            >
-              Толчок
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-
-      {o05?.crossbowExpert && onO05CrossbowBonus ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!xbowGate.ok}
-          title={
-            xbowGate.ok
-              ? 'Эксперт в арбалетах: бонусная атака ручным арбалетом'
-              : xbowGate.reason
-          }
-          onClick={() => {
-            if (
-              !canCrossbowExpertBonus(turnEco.turnEconomy, {
-                hasFeat: true,
-                holdingHandCrossbow: Boolean(o05.holdingHandCrossbow),
-              }).ok
-            ) {
-              return
-            }
-            turnEco.patchTurnEconomy((s) => {
-              const next = markCrossbowExpertBonusUsed(s)
-              return { ...next, bonus: true }
-            })
-            onO05CrossbowBonus()
-            onToast?.('Эксперт в арбалетах: бонусная атака ручным арбалетом')
-          }}
-        >
-          Выстрел ручным арбалетом
-        </button>
-      ) : null}
-
-      {o05?.tavernBrawler && onO05TavernGrapple ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!tavernGate.ok}
-          title={
-            tavernGate.ok
-              ? 'Драчун: бонусным попытка захвата после безоружной/импровизированной'
-              : tavernGate.reason
-          }
-          onClick={() => {
-            if (!canTavernBrawlerGrapple(turnEco.turnEconomy, true).ok) return
-            onO05TavernGrapple()
-          }}
-        >
-          Захват (Драчун)
-        </button>
-      ) : null}
-
-      {o05?.healer && o05.hasHealerKit ? (
-        <div className="chip-row" role="group" aria-label="Целитель">
-          <span className="sheet-chip is-stub" title="Целитель · набор целителя">
-            Целитель
-          </span>
-          {onO05HealerStabilize ? (
-            <button
-              type="button"
-              className="sheet-chip"
-              disabled={!actionGate.ok}
-              title={
-                actionGate.ok
-                  ? 'Действием стабилизировать (успех без Медицины) · 1 использование набора'
-                  : actionGate.reason
-              }
-              onClick={() => {
-                if (!turnEco.canFeature('action').ok) return
-                onO05HealerStabilize()
-              }}
-            >
-              Стабилизировать
-            </button>
-          ) : null}
-          {onO05HealerHeal ? (
-            <button
-              type="button"
-              className="sheet-chip"
-              disabled={!actionGate.ok}
-              title={
-                actionGate.ok
-                  ? 'Действием 1к6+4+кости хитов · 1 использование · 1 цель до отдыха'
-                  : actionGate.reason
-              }
-              onClick={() => {
-                if (!turnEco.canFeature('action').ok) return
-                onO05HealerHeal()
-              }}
-            >
-              Лечить
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-
-      {o05?.grappler && onO05GrapplerPin ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!actionGate.ok}
-          title={
-            actionGate.ok
-              ? 'Борец: действием опрокинуть схваченного (состязание Атлетики)'
-              : actionGate.reason
-          }
-          onClick={() => {
-            if (!turnEco.canFeature('action').ok) return
-            onO05GrapplerPin()
-          }}
-        >
-          Опрокинуть схваченного
-        </button>
-      ) : null}
-
-      {o05?.shieldMaster && onO05ShieldShove ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!shieldGate.ok}
-          title={
-            shieldGate.ok
-              ? 'Мастер щита: бонусный толчок щитом после действия «Атака»'
-              : shieldGate.reason
-          }
-          onClick={() => {
-            if (
-              !canShieldMasterShove(turnEco.turnEconomy, {
-                hasFeat: true,
-                shieldInHand: Boolean(o05.shieldInHand),
-              }).ok
-            ) {
-              return
-            }
-            onO05ShieldShove()
-          }}
-        >
-          Толчок щитом
-        </button>
-      ) : null}
-
-      {tceOn && o05?.telekinetic && onO05Telekinetic ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!teleGate.ok}
-          title={
-            teleGate.ok
-              ? 'Телекинез: бонусным толкнуть существо в 30 фт (состязание хар-ки)'
-              : teleGate.reason
-          }
-          onClick={() => {
-            if (!canTelekineticShove(turnEco.turnEconomy, true).ok) return
-            onO05Telekinetic()
-          }}
-        >
-          Толчок (Телекинез)
-        </button>
-      ) : null}
-
-      {tceOn && o05?.orcishFury && onO05OrcishFury ? (
-        <button
-          type="button"
-          className="sheet-chip"
-          disabled={!orcGate.ok}
-          title={
-            orcGate.ok
-              ? 'Орочья ярость: бонусная атака тем же оружием после попадания'
-              : orcGate.reason
-          }
-          onClick={() => {
-            if (!canOrcishFuryBonus(turnEco.turnEconomy, true).ok) return
-            turnEco.patchTurnEconomy((s) => {
-              const next = markOrcishFuryBonusUsed(s)
-              return { ...next, bonus: true }
-            })
-            onO05OrcishFury()
-            onToast?.('Орочья ярость: бонусная атака тем же оружием')
-          }}
-        >
-          Атака Орочьей ярости
-        </button>
-      ) : null}
-
-      {turnEco.turnEconomy.extraActions > 0 ? (
-        <span
-          className="sheet-chip is-on"
-          title="Дополнительное действие от «Всплеска действий»"
-        >
-          Доп. действие ×{turnEco.turnEconomy.extraActions}
-        </span>
-      ) : null}
+          )
+        })}
+      </div>
+      {openGroup ? renderGroupPanel(openGroup) : null}
     </div>
   )
 }
