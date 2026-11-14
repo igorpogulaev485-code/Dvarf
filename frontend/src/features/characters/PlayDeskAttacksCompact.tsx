@@ -209,6 +209,12 @@ import {
   monkAttackAbility,
 } from '../../shared/dnd/martialArts'
 import {
+  isKitComputedAttack,
+  isKitImprovisedAttack,
+  isKitUnarmedAttack,
+  listDeskCombatAttacks,
+} from './kitCombatAttacks'
+import {
   resolveAttackRoll,
   rollDamage,
   type BonusDiePart,
@@ -871,7 +877,30 @@ export function PlayDeskAttacksCompact({
   const [activeCombatFeatureIds, setActiveCombatFeatureIds] = useState<Set<string>>(
     () => new Set(),
   )
-  const named = weapons.filter((row) => row.name.trim())
+  const styleIdsForKit =
+    fightingStyleIds ?? (fightingStyleId ? [fightingStyleId] : [])
+  const featUnarmedDamage = hasFeatFlag(featGrants, 'tavern_brawler')
+    ? (featGrants ?? []).map((g) => g.applied.unarmedDamage).find((d) => Boolean(d))
+    : null
+  const named = useMemo(
+    () =>
+      listDeskCombatAttacks({
+        weapons,
+        martialArtsDie,
+        hasTavernBrawler: hasFeatFlag(featGrants, 'tavern_brawler'),
+        styleIds: styleIdsForKit,
+        inventoryItems,
+        featUnarmedDamage: featUnarmedDamage ?? null,
+      }),
+    [
+      weapons,
+      martialArtsDie,
+      featGrants,
+      styleIdsForKit,
+      inventoryItems,
+      featUnarmedDamage,
+    ],
+  )
   const combatResources = resources.filter((row) => {
     if (row.max <= 0 || !row.name.trim()) return false
     if (isHarnessDivinePowerResourceId(row.id)) return false
@@ -1076,9 +1105,9 @@ export function PlayDeskAttacksCompact({
             type="button"
             className="play-desk-compact__link play-desk-compact__link--settings"
             onClick={onOpenSettings}
-            title="Оружие и атаки"
+            title="Настроить атаки"
           >
-            Оружие и атаки
+            Настроить атаки
           </button>
         </div>
       </div>
@@ -2303,10 +2332,12 @@ export function PlayDeskAttacksCompact({
           </div>
         ) : (
           named.map((attack) => {
-            const unarmed = isMonkUnarmedAttack(attack)
+            const unarmed =
+              isMonkUnarmedAttack(attack) || isKitUnarmedAttack(attack)
+            const kitComputed = isKitComputedAttack(attack)
             const monkWeapon =
               Boolean(martialArtsDie) &&
-              (unarmed || isMonkWeaponName(attack.name))
+              (isMonkUnarmedAttack(attack) || isMonkWeaponName(attack.name))
             const shillelaghOn =
               shillelagh != null &&
               shillelagh.attackId === attack.id &&
@@ -2329,7 +2360,7 @@ export function PlayDeskAttacksCompact({
                 ? effectiveMartialArtsDamage({
                     weaponDamage: face.damage,
                     martialArtsDie,
-                    forceMartialArts: unarmed,
+                    forceMartialArts: isMonkUnarmedAttack(attack),
                   })
                 : face.damage
             const featUnarmed = hasTavernBrawler
@@ -2338,9 +2369,11 @@ export function PlayDeskAttacksCompact({
                   .find((d) => Boolean(d))
               : null
             const baseDamage =
-              unarmed && hasTavernBrawler
+              isMonkUnarmedAttack(attack) && hasTavernBrawler
                 ? tavernBrawlerUnarmedDamage(featUnarmed || rawBaseDamage)
-                : isImprovisedWeaponName(attack.name) && hasTavernBrawler
+                : isImprovisedWeaponName(attack.name) &&
+                    hasTavernBrawler &&
+                    !isKitImprovisedAttack(attack)
                   ? tavernBrawlerUnarmedDamage(rawBaseDamage || '1к4')
                   : rawBaseDamage
             const shownType = face.damageType || attack.damage_type
@@ -2659,7 +2692,12 @@ export function PlayDeskAttacksCompact({
               ability: attackAbility,
             })
             return (
-              <div key={attack.id} className="play-desk-compact__row is-dense is-attack">
+              <div
+                key={attack.id}
+                className={`play-desk-compact__row is-dense is-attack${
+                  kitComputed ? ' is-kit-attack' : ''
+                }`}
+              >
                 <div
                   className="play-desk-compact__hit"
                   role="group"
@@ -2672,7 +2710,9 @@ export function PlayDeskAttacksCompact({
                       <IconMelee className="play-desk-compact__row-icon" />
                     )}
                     <b>{attack.name}</b>
-                    {attack.inventory_item_id ? (
+                    {kitComputed ? (
+                      <span className="play-desk-compact__tag">всегда</span>
+                    ) : attack.inventory_item_id ? (
                       <span className="play-desk-compact__tag">из инвентаря</span>
                     ) : attack.source_kind === 'custom' ? (
                       <span className="play-desk-compact__tag">вручную</span>
@@ -2684,7 +2724,7 @@ export function PlayDeskAttacksCompact({
                     {attack.qty != null && attack.qty > 1 ? (
                       <span className="play-desk-compact__tag">×{attack.qty}</span>
                     ) : null}
-                    {attack.held ? (
+                    {attack.held && !kitComputed ? (
                       <span className="play-desk-compact__tag is-on">в руках</span>
                     ) : null}
                     {attack.mode_active ? (
@@ -2890,6 +2930,7 @@ export function PlayDeskAttacksCompact({
                           let next = markWeaponHitThisTurn(s)
                           if (
                             unarmed ||
+                            kitComputed ||
                             isUnarmedAttackName(attack.name) ||
                             isImprovisedWeaponName(attack.name)
                           ) {
@@ -3402,7 +3443,7 @@ export function PlayDeskAttacksCompact({
                     role="group"
                     aria-label="Действия оружия"
                   >
-                    {onModifiersChange ? (
+                    {onModifiersChange && !kitComputed ? (
                       <Button
                         type="button"
                         size="sm"

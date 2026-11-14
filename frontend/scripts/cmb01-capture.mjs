@@ -11,6 +11,7 @@ const TAG = process.env.CMB01_TAG || '' // e.g. 'main-' for control captures
 const CLERIC = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1'
 const ROGUE = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3'
 const WARRIOR = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa5'
+const MONK = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa6'
 const WIDTHS = [1920, 1440, 1280, 1024, 768, 390]
 const HDR_WIDTHS = [1920, 1440, 1280, 1024, 768, 390]
 const SCENE_WIDTHS = [1920, 1440, 1280, 1024, 768, 390]
@@ -512,6 +513,24 @@ if (only === 'all' || only === 'caster') {
     report.files.push({ file: out, w, kind: 'combat-caster' })
     console.log('combat-caster', w)
   }
+}
+
+if (only === 'all' || only === 'monk') {
+  await page.setViewportSize({ width: 1440, height: 1600 })
+  await openSheet(page, MONK)
+  await openCombatScene(page, 1440)
+  const out = outName('combat-monk-1440.png')
+  await shotCombatPanel(page, out)
+  // Probe: exactly one «Безоружный удар»
+  const unarmedCount = await page.evaluate(() => {
+    const names = [...document.querySelectorAll('.play-desk-compact__row.is-attack .play-desk-compact__row-main b')].map(
+      (b) => b.textContent?.trim(),
+    )
+    return names.filter((n) => n === 'Безоружный удар').length
+  })
+  report.probes['monk-unarmed-count'] = unarmedCount
+  report.files.push({ file: out, w: 1440, kind: 'combat-monk', unarmedCount })
+  console.log('combat-monk', 1440, 'unarmed', unarmedCount)
 }
 
 if (only === 'all' || only === 'hdr' || only === 'control') {

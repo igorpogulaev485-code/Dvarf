@@ -19,15 +19,22 @@
 3. Ресурсы — `1/1` + pips с подсказкой «Потратить»; фон белый как хот.
 4. 390 — колонки `+N` и урона выровнены по вертикали у всех оружий.
 
+### Правки #2 (кит, только сцена «Бой»)
+
+1. Кнопка настроек — **«Настроить атаки»** (`title` тот же).
+2. **«Безоружный удар»** у всех — вычисляемая строка (`kit:unarmed-strike`), не в `draft.weapons`: урон `1` + Сил, всегда с БМ; TB → `tavernBrawlerUnarmedDamage`; UF → `unarmedFightingDie`. Монах: карточка Martial Arts без дубля кита.
+3. **«Импровизированное оружие»** у всех — `1к4` + Сил, БМ только с «Драчуном». Обе строки последними под оружием, тег «всегда», `markUnarmedOrImprovisedHit` при попадании. Расовое природное оружие не трогали.
+
 ## Скрины (VM)
 
 Окружение: Postgres `dvarf/dvarf@localhost` → wipe + `alembic upgrade head` → `seed_lp01` / uikit03. Vite `:5173` (ветка) + `:5174` (main worktree) + API `:8000`.
 
 Артефакты в `/opt/cursor/artifacts/`:
 
-- `combat-pair-{1920,1440,1280,1024,768,390}.png` — плут сверху / воин снизу
+- `combat-pair-{1920,1440,1280,1024,768,390}.png` — плут сверху / воин снизу (кит-строки внизу)
 - `combat-caster-{1440,390}.png` — жрец, панель магии с «Направляющий снаряд» (атака) + заговоры
-- `hdr-pair-*` / `scene-block-pair-*` — контроль vs main (`main-*`); desktop **0 px**; mobile AA ≤ tol3 ≈ **0** (21 px AA на scene-390)
+- `combat-monk-1440.png` — монах: один «Безоружный удар» (класс) + импровизированное, без дубля кита
+- `hdr-pair-*` / `scene-block-pair-*` — контроль vs main (`main-*`); desktop **0**; mobile soft AA; scene-390/768 hard ≈ тонкая полоска AA (лицо сцен не менялось)
 - `speed-menu-open-{1440,1024,390}.png` — меню открыто, tip скрыт, курсор на плитке
 - отчёт: `cmb01-diff-report.json`, скрипт: `frontend/scripts/cmb01-capture.mjs`
 
@@ -39,12 +46,13 @@
 ## Проверка
 
 - `npx tsc -p tsconfig.app.json --noEmit` ok
-- `npm run build` ok (ранее)
-- `cmb01Combat.selfcheck` / `o09DeathInspirationAmmo.selfcheck` / `uikit02Polish.selfcheck` ok
+- `npm run build` ok
+- `kitCombatAttacks.selfcheck` / `cmb01Combat.selfcheck` ok
 
 ## Файлы
 
 - `PlayDeskAttacksCompact.tsx`, `attackIcons.tsx`, `combatConsumables.ts`
+- `kitCombatAttacks.ts` (+ selfcheck) — вычисляемые безоружный / импровизированное
 - `DetailsMenu.tsx` + `31-onboarding.css` (tip при open)
 - `o09DeathInspirationAmmo.ts` — launcher ≠ ammo stack
 - стили: `08`, `17`, `18`, `19`, `22`

@@ -550,6 +550,15 @@
   min-height: 44px;
 }
 
+/* CMB-01: computed unarmed + improvised — compact pair under weapons */
+.play-desk-compact__row.is-attack.is-kit-attack {
+  background: color-mix(in srgb, var(--desk-card, var(--card)) 92%, var(--desk-accent-soft, var(--accent-soft)));
+}
+
+.play-desk-compact__row.is-attack.is-kit-attack + .play-desk-compact__row.is-attack.is-kit-attack {
+  margin-top: -2px;
+}
+
 .play-desk-compact__row.is-attack .play-desk-compact__hit {
   display: flex;
   flex-wrap: wrap;

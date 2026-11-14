@@ -25,7 +25,11 @@ assert.match(attacks, /play-desk-compact__resource-count/)
 assert.match(attacks, /play-desk-compact__end/)
 assert.match(attacks, /play-desk-compact__tool-more/)
 assert.match(attacks, /aria-pressed=\{Boolean\(attack\.held\)\}/)
+assert.match(attacks, /Настроить атаки/)
+assert.match(attacks, /listDeskCombatAttacks/)
+assert.match(attacks, /is-kit-attack/)
 assert.doesNotMatch(attacks, /Ещё \/ Действия хода/)
+assert.doesNotMatch(attacks, /Оружие и атаки/)
 /* Hold/mode stay light secondary — not solid primary (icon vanishes on .desk-icon). */
 assert.doesNotMatch(
   attacks,
