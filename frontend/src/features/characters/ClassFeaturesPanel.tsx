@@ -1255,7 +1255,7 @@ function FeatureChoiceControls({
             const disc = elementalDisciplineById(id)
             if (!disc) return null
             const cost =
-              disc.kiCost == null ? 'бесплатно' : `${disc.kiCost} ки`
+              disc.kiCost == null ? 'бесплатно' : `${disc.kiCost} ци`
             const locked = disc.minLevel != null && disc.minLevel > feature.classLevel
             const prereq = disc.minLevel ? `с ${disc.minLevel} ур.; ` : ''
             return (

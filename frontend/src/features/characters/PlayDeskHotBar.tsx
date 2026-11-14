@@ -9,7 +9,11 @@ import {
 import { createPortal } from 'react-dom'
 import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import type { ConcentrationState } from './play'
-import { resourceShowsOnHot, type SheetResource } from '../../shared/dnd/rest'
+import {
+  displayResourceLabel,
+  resourceShowsOnHot,
+  type SheetResource,
+} from '../../shared/dnd/rest'
 import { ResourcePips } from '../../ui/ResourcePips'
 import { shouldUseCompactResourceTrack } from '../../ui/resourceTrackDisplay'
 import {
@@ -47,7 +51,7 @@ type PlayDeskHotBarProps = {
 
 /** One-line ellipsis title; full name in native tooltip (HOT-01). */
 function HotResourceName({ name }: { name: string }): ReactNode {
-  const label = name.trim()
+  const label = displayResourceLabel(name).trim()
   return (
     <span className="play-desk__hot-res-name" title={label || undefined}>
       {label}
@@ -64,6 +68,7 @@ function ResourceChip({
 }) {
   const remaining = Math.max(0, row.max - row.used)
   const compact = shouldUseCompactResourceTrack(row.max)
+  const faceName = displayResourceLabel(row.name).trim() || row.name
   if (row.unlimited) {
     return (
       <div className="play-desk__hot-item play-desk__hot-item--res play-desk__hot-item--res-compact">
@@ -71,7 +76,7 @@ function ResourceChip({
           <IconPouch className="play-desk__hot-icon" />
           <HotResourceName name={row.name} />
         </span>
-        <div className="play-desk__stepper" role="group" aria-label={`${row.name}: без лимита`}>
+        <div className="play-desk__stepper" role="group" aria-label={`${faceName}: без лимита`}>
           <span className="play-desk__stepper-value">без лимита</span>
         </div>
       </div>
@@ -92,13 +97,13 @@ function ResourceChip({
         <div
           className="play-desk__stepper"
           role="group"
-          aria-label={`${row.name}: ${remaining}/${row.max}`}
+          aria-label={`${faceName}: ${remaining}/${row.max}`}
         >
           <button
             type="button"
             className="play-desk__step"
             disabled={remaining <= 0}
-            aria-label={`${row.name}: потратить 1`}
+            aria-label={`${faceName}: потратить 1`}
             onClick={() =>
               onResourceUsedChange(row.id, Math.min(row.max, row.used + 1))
             }
@@ -113,7 +118,7 @@ function ResourceChip({
             type="button"
             className="play-desk__step"
             disabled={row.used <= 0}
-            aria-label={`${row.name}: вернуть 1`}
+            aria-label={`${faceName}: вернуть 1`}
             onClick={() =>
               onResourceUsedChange(row.id, Math.max(0, row.used - 1))
             }
@@ -126,7 +131,7 @@ function ResourceChip({
           max={row.max}
           used={row.used}
           fillMode="available"
-          label={`${row.name}: ${remaining}/${row.max}`}
+          label={`${faceName}: ${remaining}/${row.max}`}
           onChange={(nextUsed) => onResourceUsedChange(row.id, nextUsed)}
         />
       )}

@@ -51,10 +51,10 @@ export function SunSoulKiControls({
   return (
     <div className="feature-resource">
       <Text>
-        Ки: <strong>{left}</strong>/{ki?.max ?? 0}. Сначала выбери стоимость, потом подтверди.
+        Ци: <strong>{left}</strong>/{ki?.max ?? 0}. Сначала выбери стоимость, потом подтверди.
       </Text>
       <label className="feature-resource__select">
-        <span className="sr-only">Сколько ки</span>
+        <span className="sr-only">Сколько ци</span>
         <select
           className="play-select"
           value={picked}
@@ -62,14 +62,14 @@ export function SunSoulKiControls({
         >
           {Array.from({ length: max - min + 1 }, (_, index) => min + index).map((n) => (
             <option key={n} value={n}>
-              {n} ки
+              {n} ци
             </option>
           ))}
         </select>
       </label>
       <Text tone="muted">
-        {picked} ки · {preview}
-        {picked > left ? ` · не хватает ки (есть ${left})` : ''}
+        {picked} ци · {preview}
+        {picked > left ? ` · не хватает ци (есть ${left})` : ''}
       </Text>
       <div className="feature-resource__actions">
         <Button
@@ -87,7 +87,7 @@ export function SunSoulKiControls({
               return
             }
             onResourcesChange(result.resources)
-            onToast?.(`${feature.name_ru}: ${picked} ки · ${preview}`)
+            onToast?.(`${feature.name_ru}: ${picked} ци · ${preview}`)
           }}
         >
           Подтвердить −{picked}

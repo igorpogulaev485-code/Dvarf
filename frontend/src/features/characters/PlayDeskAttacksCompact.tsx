@@ -2201,9 +2201,9 @@ export function PlayDeskAttacksCompact({
                 disabled={!kiResource || kiLeft < cost || !onSpendResource}
                 title={
                   !kiResource
-                    ? 'Пул ки не найден'
+                    ? 'Пул ци не найден'
                     : kiLeft < cost
-                      ? `Не хватает ки (нужно ${cost}, есть ${kiLeft})`
+                      ? `Не хватает ци (нужно ${cost}, есть ${kiLeft})`
                       : `Потратить ${cost} ци · +${bonus} к броску атаки`
                 }
                 onClick={() => {
@@ -2724,7 +2724,7 @@ export function PlayDeskAttacksCompact({
                     {attack.qty != null && attack.qty > 1 ? (
                       <span className="play-desk-compact__tag">×{attack.qty}</span>
                     ) : null}
-                    {attack.held && !kitComputed ? (
+                    {attack.held && !kitComputed && !unarmed ? (
                       <span className="play-desk-compact__tag is-on">в руках</span>
                     ) : null}
                     {attack.mode_active ? (
