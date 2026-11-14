@@ -19,7 +19,8 @@ type Props = {
   /** Heroism: grant temp HP equal to caster mod at start of turn. */
   onHeroismTurnStart?: () => void
   /**
-   * Phone: chips scroll in kit ScrollRow; Round stays pinned in the trail.
+   * Phone: chips scroll in kit ScrollRow (full faces, no clamp/+N).
+   * Round stays in the trail; phone CSS puts trail + companions under the row.
    * Desktop keeps measure + +N clamp (default).
    */
   chipLayout?: 'clamp' | 'scroll'

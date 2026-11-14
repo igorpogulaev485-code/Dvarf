@@ -488,19 +488,23 @@ button.play-desk-header__name {
   color: var(--desk-accent, var(--accent));
 }
 
+/* block + nowrap: ellipsis on the whole «раса · мировоззрение» string
+   (inline-flex clipped mid-glyph without «…»). Full text stays in title. */
 .play-desk-header__identity {
-  display: inline-flex;
-  flex-wrap: nowrap;
-  align-items: baseline;
-  gap: 0 0.3em;
+  display: block;
   margin: 0;
   color: var(--desk-muted);
   font-size: 0.72rem;
   line-height: 1.2;
   max-width: 100%;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.play-desk-header__identity > span {
+  display: inline;
 }
 
 .play-desk-header__dot {
@@ -671,12 +675,16 @@ button.play-desk-header__name {
 }
 
 button.play-desk-header__sub--btn {
+  display: block;
+  width: 100%;
+  max-width: 100%;
   padding: 0;
   border: 0;
   background: transparent;
   font: inherit;
   text-align: left;
   cursor: pointer;
+  color: inherit;
 }
 
 button.play-desk-header__identity:hover {
@@ -858,10 +866,12 @@ button.play-desk-header__identity:hover {
   min-width: 0;
 }
 
-/* Phone: chips ScrollRow + Round/Companions pinned on the right */
+/* Phone: effects ScrollRow full-width (fade/› like hot); Round + companions
+   on the next row, trailing. display:contents lifts children into this flex. */
 .play-desk__mobile-chrome > .play-desk__mobile-effects {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: 6px;
   min-width: 0;
@@ -869,28 +879,16 @@ button.play-desk-header__identity:hover {
   overflow: visible;
 }
 
-.play-desk__mobile-chrome > .play-desk__mobile-effects > .active-effects {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.play-desk__mobile-chrome > .play-desk__mobile-effects > .play-desk__dock-chip {
-  flex: 0 0 auto;
-}
-
-.play-desk__mobile-chrome .active-effects--scroll {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 6px;
+.play-desk__mobile-chrome > .play-desk__mobile-effects > .active-effects--scroll {
+  display: contents;
 }
 
 .play-desk__mobile-chrome .active-effects__main-wrap {
-  flex: 1 1 auto;
+  flex: 1 0 100%;
+  order: -1;
   min-width: 0;
   max-width: 100%;
+  width: 100%;
 }
 
 .play-desk__mobile-chrome .active-effects__scroller {
@@ -909,9 +907,17 @@ button.play-desk-header__identity:hover {
   display: none;
 }
 
+/* Full chip faces — no ellipsis; overflow scrolls in ScrollRow */
 .play-desk__mobile-chrome .active-effects__scroller > .ui-chip {
   flex: 0 0 auto;
-  max-width: min(52vw, 11rem);
+  max-width: none;
+  width: max-content;
+}
+
+.play-desk__mobile-chrome .active-effects__scroller > .ui-chip .ui-chip__label {
+  overflow: visible;
+  text-overflow: unset;
+  max-width: none;
 }
 
 .play-desk__mobile-chrome .active-effects__trail,
