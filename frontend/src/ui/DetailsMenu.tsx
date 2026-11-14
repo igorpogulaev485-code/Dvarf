@@ -27,6 +27,7 @@ export function DetailsMenu({
   summaryClassName = '',
   panelClassName = '',
   onToggle,
+  title,
   ...rootProps
 }: DetailsMenuProps) {
   const rootRef = useRef<HTMLDetailsElement | null>(null)
@@ -37,6 +38,8 @@ export function DetailsMenu({
     left: number
     minWidth: number
   } | null>(null)
+  /* Native title overlays popover fields while open (CMB-01 speed tile). */
+  const tipTitle = open ? undefined : title
 
   const place = () => {
     const el = summaryRef.current
@@ -94,6 +97,8 @@ export function DetailsMenu({
       ref={rootRef}
       className={`ui-menu ${className}`.trim()}
       {...rootProps}
+      title={tipTitle}
+      data-menu-open={open ? 'true' : undefined}
       onToggle={(event) => {
         setOpen(event.currentTarget.open)
         onToggle?.(event)

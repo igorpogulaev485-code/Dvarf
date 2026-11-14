@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
-import { Button } from '../../ui'
+import { Button, DetailsMenu } from '../../ui'
+import { ResourcePips } from '../../ui/ResourcePips'
+import { shouldUseCompactResourceTrack } from '../../ui/resourceTrackDisplay'
 import { useTurnEconomy } from './TurnEconomyContext'
 import { TurnEconomyChips } from './TurnEconomyChips'
 import { TurnEconomyCombatActions } from './TurnEconomyCombatActions'
@@ -206,7 +208,12 @@ import {
   isMonkWeaponName,
   monkAttackAbility,
 } from '../../shared/dnd/martialArts'
-import { resolveAttackRoll, type BonusDiePart, type DeskRollMode } from './deskRolls'
+import {
+  resolveAttackRoll,
+  rollDamage,
+  type BonusDiePart,
+  type DeskRollMode,
+} from './deskRolls'
 import { postSheetRollToSession } from './postSheetRollToSession'
 import { attackSuppressedByEmptyStack } from './attacksInventorySync'
 import {
@@ -228,10 +235,14 @@ import type { InventoryItem } from './inventory'
 import type { FormulaVars } from '../../shared/dnd/formulas'
 import { isCastableSpellScroll } from './spellScroll'
 import {
+  IconAttackMods,
   IconConsumable,
   IconMelee,
   IconRanged,
   IconResource,
+  IconWeaponHold,
+  IconWeaponItem,
+  IconWeaponMode,
   attackRowIconKind,
 } from './attackIcons'
 import type { CompanionEntry } from './companions'
@@ -870,9 +881,41 @@ export function PlayDeskAttacksCompact({
   const deskCombatFeatures = combatFeatures.filter(
     (row) => row.desk === 'combat' && row.name_ru.trim(),
   )
+  /** CMB-01: ammo shown under a weapon must not auto-duplicate in «Расходники». */
+  const ammoIdsUnderWeapons = useMemo(() => {
+    const ids = new Set<string>()
+    for (const attack of named) {
+      const weaponItem = attack.inventory_item_id
+        ? inventoryItems.find((row) => row.id === attack.inventory_item_id)
+        : undefined
+      if (
+        !weaponNeedsAmmunition({
+          name: attack.name,
+          catalogSlug: weaponItem?.catalog_slug ?? weaponItem?.base_weapon_slug,
+          baseWeaponSlug: weaponItem?.base_weapon_slug,
+          properties: null,
+        })
+      ) {
+        continue
+      }
+      const kind =
+        ammoKindForWeapon({
+          name: attack.name,
+          catalogSlug: weaponItem?.catalog_slug ?? weaponItem?.base_weapon_slug,
+          baseWeaponSlug: weaponItem?.base_weapon_slug,
+        }) ?? 'arrow'
+      for (const stack of listMatchingAmmoStacks(inventoryItems, kind)) {
+        ids.add(stack.id)
+      }
+    }
+    return ids
+  }, [named, inventoryItems])
   const consumables = useMemo(
-    () => listCombatConsumables(inventoryItems, favoriteConsumableIds),
-    [inventoryItems, favoriteConsumableIds],
+    () =>
+      listCombatConsumables(inventoryItems, favoriteConsumableIds, {
+        hideAutoItemIds: ammoIdsUnderWeapons,
+      }),
+    [inventoryItems, favoriteConsumableIds, ammoIdsUnderWeapons],
   )
   const favoriteCount = favoriteConsumableIds.length
   const pickerOptions = useMemo(() => {
@@ -1056,7 +1099,10 @@ export function PlayDeskAttacksCompact({
           ) : null}
           <details className="play-desk-attacks-more">
             <summary className="play-desk-attacks-more__summary">
-              Ещё / Действия хода
+              <span className="play-desk-attacks-more__title">Действия хода</span>
+              <span className="play-desk-attacks-more__hint">
+                рывок, отход, укрытие, реакция…
+              </span>
             </summary>
             <div className="play-desk-attacks-more__body">
           {hasGwm ? (
@@ -2614,27 +2660,70 @@ export function PlayDeskAttacksCompact({
             })
             return (
               <div key={attack.id} className="play-desk-compact__row is-dense is-attack">
-                <button
-                  key={`${attack.id}:${dmgLine}:${formatModifier(attackBonus)}`}
-                  type="button"
+                <div
                   className="play-desk-compact__hit"
+                  role="group"
                   aria-label={`${attack.name}, атака ${formatModifier(attackBonus)}, урон ${dmgLine}`}
-                  ref={(el) => {
-                    attackHitButtonRefs.current[attack.id] = el
-                  }}
-                  disabled={Boolean(turnEco && !turnEco.canAttack().ok)}
-                  title={(() => {
-                    if (uwMode.autoMiss) {
-                      return uwMode.autoMissReason || 'Промах под водой'
-                    }
-                    if (coverVs.blocked) {
-                      return 'Полное укрытие — снимите в «+ Укрытие / состояние цели»'
-                    }
-                    const gate = turnEco?.canAttack()
-                    if (gate && !gate.ok) return gate.reason
-                    return 'Бросок атаки и урона'
-                  })()}
-                  onClick={() => {
+                >
+                  <div className="play-desk-compact__row-main">
+                    {iconKind === 'ranged' ? (
+                      <IconRanged className="play-desk-compact__row-icon" />
+                    ) : (
+                      <IconMelee className="play-desk-compact__row-icon" />
+                    )}
+                    <b>{attack.name}</b>
+                    {attack.inventory_item_id ? (
+                      <span className="play-desk-compact__tag">из инвентаря</span>
+                    ) : attack.source_kind === 'custom' ? (
+                      <span className="play-desk-compact__tag">вручную</span>
+                    ) : attack.source_kind === 'race' ? (
+                      <span className="play-desk-compact__tag">раса</span>
+                    ) : attack.source_kind === 'class' ? (
+                      <span className="play-desk-compact__tag">класс</span>
+                    ) : null}
+                    {attack.qty != null && attack.qty > 1 ? (
+                      <span className="play-desk-compact__tag">×{attack.qty}</span>
+                    ) : null}
+                    {attack.held ? (
+                      <span className="play-desk-compact__tag is-on">в руках</span>
+                    ) : null}
+                    {attack.mode_active ? (
+                      <span className="play-desk-compact__tag is-on">режим</span>
+                    ) : null}
+                    {attack.req_score != null && !requirementOk ? (
+                      <span className="play-desk-compact__tag">
+                        {attack.req_ability?.toUpperCase()} {attack.req_score}+
+                      </span>
+                    ) : null}
+                    {hasManualMods ? (
+                      <span className="play-desk-compact__tag is-on" title="Ручные бонусы оружия">
+                        мод.
+                        {manualHit ? ` ${formatModifier(manualHit)}` : ''}
+                        {manualDmg ? ` урон${formatModifier(manualDmg)}` : ''}
+                      </span>
+                    ) : null}
+                  </div>
+                  <button
+                    key={`${attack.id}:${dmgLine}:${formatModifier(attackBonus)}`}
+                    type="button"
+                    className="play-desk-compact__mod play-desk-compact__mod--roll"
+                    aria-label={`Бросок атаки ${formatModifier(attackBonus)}`}
+                    ref={(el) => {
+                      attackHitButtonRefs.current[attack.id] = el
+                    }}
+                    disabled={Boolean(turnEco && !turnEco.canAttack().ok)}
+                    title={(() => {
+                      if (uwMode.autoMiss) {
+                        return uwMode.autoMissReason || 'Промах под водой'
+                      }
+                      if (coverVs.blocked) {
+                        return 'Полное укрытие — снимите в «+ Укрытие / состояние цели»'
+                      }
+                      const gate = turnEco?.canAttack()
+                      if (gate && !gate.ok) return gate.reason
+                      return 'Бросок атаки'
+                    })()}
+                    onClick={() => {
                     if (uwMode.autoMiss) {
                       onToast?.(
                         uwMode.autoMissReason ||
@@ -3271,67 +3360,40 @@ export function PlayDeskAttacksCompact({
                     }
                     runAttackWithPb(proficient ? proficiencyBonus : 0, '')
                   }}
-                >
-                  <div className="play-desk-compact__row-main">
-                    {iconKind === 'ranged' ? (
-                      <IconRanged className="play-desk-compact__row-icon" />
-                    ) : (
-                      <IconMelee className="play-desk-compact__row-icon" />
-                    )}
-                    <b>{attack.name}</b>
-                    {attack.inventory_item_id ? (
-                      <span className="play-desk-compact__tag">из инвентаря</span>
-                    ) : attack.source_kind === 'custom' ? (
-                      <span className="play-desk-compact__tag">вручную</span>
-                    ) : attack.source_kind === 'race' ? (
-                      <span className="play-desk-compact__tag">раса</span>
-                    ) : attack.source_kind === 'class' ? (
-                      <span className="play-desk-compact__tag">класс</span>
-                    ) : null}
-                    {attack.qty != null && attack.qty > 1 ? (
-                      <span className="play-desk-compact__tag">×{attack.qty}</span>
-                    ) : null}
-                    {attack.held ? (
-                      <span className="play-desk-compact__tag is-on">в руках</span>
-                    ) : null}
-                    {attack.mode_active ? (
-                      <span className="play-desk-compact__tag is-on">режим</span>
-                    ) : null}
-                    {attack.req_score != null && !requirementOk ? (
-                      <span className="play-desk-compact__tag">
-                        {attack.req_ability?.toUpperCase()} {attack.req_score}+
-                      </span>
-                    ) : null}
-                    {hasManualMods ? (
-                      <span className="play-desk-compact__tag is-on" title="Ручные бонусы оружия">
-                        мод.
-                        {manualHit ? ` ${formatModifier(manualHit)}` : ''}
-                        {manualDmg ? ` урон${formatModifier(manualDmg)}` : ''}
-                      </span>
-                    ) : null}
-                  </div>
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    className="play-desk-compact__mod play-desk-compact__mod--breakdown"
-                    title="Модификаторы атаки и урона"
-                    aria-label={`Бонус атаки ${formatModifier(attackBonus)}, модификаторы`}
-                    onClick={(event) => {
-                      event.preventDefault()
-                      event.stopPropagation()
-                      openWeaponMods()
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key !== 'Enter' && event.key !== ' ') return
-                      event.preventDefault()
-                      event.stopPropagation()
-                      openWeaponMods()
-                    }}
                   >
                     {formatModifier(attackBonus)}
-                  </span>
-                  <span className="play-desk-compact__dmg">{dmgLine}</span>
-                </button>
+                  </button>
+                  <button
+                    type="button"
+                    className="play-desk-compact__dmg play-desk-compact__dmg--roll"
+                    title="Бросок урона"
+                    aria-label={`Бросок урона ${dmgLine}`}
+                    disabled={!dmg && !baseDamage}
+                    onClick={() => {
+                      const expr = dmg || baseDamage || ''
+                      const typeBit = shownType ? ` ${shownType}` : ''
+                      const rolled = rollDamage(expr)
+                      const text = rolled
+                        ? `Урон: ${attack.name} · ${rolled.total}${typeBit} (${rolled.detail})`
+                        : `Урон: ${attack.name} · ${expr || '—'}${typeBit}`
+                      onToast?.(text)
+                      if (characterId && rolled) {
+                        void postSheetRollToSession({
+                          openSessionId: openSessionId ?? turnEco?.openSessionId,
+                          characterId,
+                          title: `Урон: ${attack.name}`,
+                          total: rolled.total,
+                          formula: expr || null,
+                          breakdown: rolled.detail,
+                          physicalDice: Boolean(turnEco?.diceOnTable),
+                          targetName: null,
+                        })
+                      }
+                    }}
+                  >
+                    {dmgLine}
+                  </button>
+                </div>
                 <div className="play-desk-compact__weapon-tools">
                   <div
                     className="play-desk-compact__holds"
@@ -3343,10 +3405,12 @@ export function PlayDeskAttacksCompact({
                         type="button"
                         size="sm"
                         variant={hasManualMods ? 'primary' : 'secondary'}
+                        className="ui-button--icon play-desk-compact__tool"
                         onClick={openWeaponMods}
                         title="Модификаторы атаки и урона"
+                        aria-label="Модификаторы атаки и урона"
                       >
-                        мод.
+                        <IconAttackMods className="play-desk-compact__tool-icon" />
                       </Button>
                     ) : null}
                     {onToggleActivation && attack.activation && requirementOk ? (
@@ -3354,14 +3418,20 @@ export function PlayDeskAttacksCompact({
                         type="button"
                         size="sm"
                         variant={attack.mode_active ? 'primary' : 'secondary'}
+                        className="ui-button--icon play-desk-compact__tool play-desk-compact__tool--desk"
                         onClick={() => onToggleActivation(attack)}
                         title={
                           attack.mode_active
                             ? 'Выключить режим'
                             : `${attack.activation.name}: ${attack.activation.active_damage}`
                         }
+                        aria-label={
+                          attack.mode_active
+                            ? 'Выключить режим'
+                            : `${attack.activation.name}: ${attack.activation.active_damage}`
+                        }
                       >
-                        {attack.mode_active ? 'режим' : 'вкл'}
+                        <IconWeaponMode className="play-desk-compact__tool-icon" />
                       </Button>
                     ) : null}
                     {onToggleHeld && attack.inventory_item_id ? (
@@ -3369,10 +3439,12 @@ export function PlayDeskAttacksCompact({
                         type="button"
                         size="sm"
                         variant={attack.held ? 'primary' : 'secondary'}
+                        className="ui-button--icon play-desk-compact__tool play-desk-compact__tool--desk"
                         onClick={() => onToggleHeld(attack)}
                         title={attack.held ? 'Убрать из рук' : 'Взять в руки'}
+                        aria-label={attack.held ? 'Убрать из рук' : 'Взять в руки'}
                       >
-                        {attack.held ? 'удерж.' : 'взять'}
+                        <IconWeaponHold className="play-desk-compact__tool-icon" />
                       </Button>
                     ) : null}
                     {onOpenItem && attack.inventory_item_id ? (
@@ -3380,11 +3452,53 @@ export function PlayDeskAttacksCompact({
                         type="button"
                         size="sm"
                         variant="secondary"
+                        className="ui-button--icon play-desk-compact__tool play-desk-compact__tool--desk"
                         onClick={() => onOpenItem(attack.inventory_item_id!)}
                         title="Открыть предмет в инвентаре"
+                        aria-label="Открыть предмет в инвентаре"
                       >
-                        предмет
+                        <IconWeaponItem className="play-desk-compact__tool-icon" />
                       </Button>
+                    ) : null}
+                    {(onToggleActivation && attack.activation && requirementOk) ||
+                    (onToggleHeld && attack.inventory_item_id) ||
+                    (onOpenItem && attack.inventory_item_id) ? (
+                      <DetailsMenu
+                        className="play-desk-compact__tool-more"
+                        summaryClassName="ui-button ui-button--secondary ui-button--sm ui-button--icon play-desk-compact__tool"
+                        panelClassName="play-desk-compact__tool-menu"
+                        title="Ещё действия оружия"
+                        aria-label="Ещё действия оружия"
+                        summary={<span aria-hidden>⋯</span>}
+                      >
+                        {onToggleActivation && attack.activation && requirementOk ? (
+                          <button
+                            type="button"
+                            className="ui-vital-menu__action"
+                            onClick={() => onToggleActivation(attack)}
+                          >
+                            {attack.mode_active ? 'Выключить режим' : 'Включить режим'}
+                          </button>
+                        ) : null}
+                        {onToggleHeld && attack.inventory_item_id ? (
+                          <button
+                            type="button"
+                            className="ui-vital-menu__action"
+                            onClick={() => onToggleHeld(attack)}
+                          >
+                            {attack.held ? 'Убрать из рук' : 'Взять в руки'}
+                          </button>
+                        ) : null}
+                        {onOpenItem && attack.inventory_item_id ? (
+                          <button
+                            type="button"
+                            className="ui-vital-menu__action"
+                            onClick={() => onOpenItem(attack.inventory_item_id!)}
+                          >
+                            Предмет в инвентаре
+                          </button>
+                        ) : null}
+                      </DetailsMenu>
                     ) : null}
                   </div>
                   {needsAmmo && onBindAmmo ? (
@@ -3395,29 +3509,49 @@ export function PlayDeskAttacksCompact({
                     >
                       <span className="play-desk-compact__ammo-label">боеприпас</span>
                       {listMatchingAmmoStacks(inventoryItems, ammoKind ?? 'arrow').map(
-                        (stack) => (
-                          <button
-                            key={stack.id}
-                            type="button"
-                            className={`play-desk-compact__ammo-chip${
-                              attack.ammo_item_id === stack.id ||
-                              (!attack.ammo_item_id && ammoPickAttackId === attack.id)
-                                ? ' is-on'
-                                : ''
-                            }`}
-                            title={AMMO_BIND_HINT}
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              onBindAmmo(
-                                attack.id,
-                                attack.ammo_item_id === stack.id ? null : stack.id,
-                              )
-                              setAmmoPickAttackId(null)
-                            }}
-                          >
-                            {stack.name} ×{stack.qty}
-                          </button>
-                        ),
+                        (stack) => {
+                          const bound =
+                            attack.ammo_item_id === stack.id ||
+                            (!attack.ammo_item_id && ammoPickAttackId === attack.id)
+                          return (
+                            <span
+                              key={stack.id}
+                              className={`play-desk-compact__ammo-chip${
+                                bound ? ' is-on' : ''
+                              }`}
+                            >
+                              <button
+                                type="button"
+                                className="play-desk-compact__ammo-bind"
+                                title={AMMO_BIND_HINT}
+                                onClick={(event) => {
+                                  event.stopPropagation()
+                                  onBindAmmo(
+                                    attack.id,
+                                    attack.ammo_item_id === stack.id ? null : stack.id,
+                                  )
+                                  setAmmoPickAttackId(null)
+                                }}
+                              >
+                                {stack.name} ×{stack.qty}
+                              </button>
+                              {onSpendConsumable && (stack.qty ?? 0) > 0 ? (
+                                <button
+                                  type="button"
+                                  className="play-desk-compact__ammo-spend"
+                                  title={`Потратить 1 «${stack.name}»`}
+                                  aria-label={`Потратить 1 «${stack.name}»`}
+                                  onClick={(event) => {
+                                    event.stopPropagation()
+                                    onSpendConsumable(stack.id, 1)
+                                  }}
+                                >
+                                  −
+                                </button>
+                              ) : null}
+                            </span>
+                          )
+                        },
                       )}
                       {ammoPickAttackId === attack.id ? (
                         <span className="play-desk-compact__ammo-hint">выберите стопку</span>
@@ -3501,32 +3635,76 @@ export function PlayDeskAttacksCompact({
 
         {combatResources.map((row) => {
           const remaining = resourceShownCurrent(row)
-          const dice = row.track === 'stock' && row.dice?.length ? ` · ${row.dice.join(', ')}` : ''
+          const dice =
+            row.track === 'stock' && row.dice?.length ? ` · ${row.dice.join(', ')}` : ''
+          const compact = shouldUseCompactResourceTrack(row.max)
           const canSpend =
             Boolean(onSpendResource) &&
             !(row.track !== 'stock' && remaining <= 0) &&
             !(row.track === 'stock' && remaining <= 0 && !row.activeLabel)
+          const canRestore =
+            Boolean(onResourcesChange) && row.used > 0 && row.track !== 'stock'
+          const patchUsed = (nextUsed: number) => {
+            if (nextUsed > row.used) {
+              onSpendResource?.(row.id)
+              return
+            }
+            if (nextUsed < row.used && onResourcesChange) {
+              onResourcesChange(
+                resources.map((item) =>
+                  item.id === row.id ? { ...item, used: Math.max(0, nextUsed) } : item,
+                ),
+              )
+            }
+          }
           return (
             <div key={row.id} className="play-desk-compact__row is-dense is-resource">
               <div className="play-desk-compact__resource-row">
                 <div className="play-desk-compact__resource-name">
                   <IconResource className="play-desk-compact__row-icon" />
-                  <b>{row.name}</b>
+                  <b title={row.name}>{row.name}</b>
+                  {dice ? (
+                    <span className="play-desk-compact__resource-dice">{dice.trim()}</span>
+                  ) : null}
                 </div>
-                <span className="play-desk-compact__tag">ресурс</span>
-                <span className="play-desk-compact__resource-count">
-                  {remaining}/{row.max}
-                  {dice}
-                </span>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  disabled={!canSpend}
-                  onClick={() => onSpendResource?.(row.id)}
-                >
-                  потратить
-                </Button>
+                {compact ? (
+                  <div
+                    className="play-desk__stepper play-desk-compact__resource-track"
+                    role="group"
+                    aria-label={`${row.name}: ${remaining}/${row.max}`}
+                  >
+                    <button
+                      type="button"
+                      className="play-desk__step"
+                      disabled={!canSpend}
+                      aria-label={`${row.name}: потратить 1`}
+                      onClick={() => onSpendResource?.(row.id)}
+                    >
+                      −
+                    </button>
+                    <span className="play-desk__stepper-value">
+                      {remaining}
+                      <span className="play-desk__stepper-max">/{row.max}</span>
+                    </span>
+                    <button
+                      type="button"
+                      className="play-desk__step"
+                      disabled={!canRestore}
+                      aria-label={`${row.name}: вернуть 1`}
+                      onClick={() => patchUsed(Math.max(0, row.used - 1))}
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <ResourcePips
+                    max={row.max}
+                    used={row.used}
+                    fillMode="available"
+                    label={`${row.name}: ${remaining}/${row.max}`}
+                    onChange={patchUsed}
+                  />
+                )}
               </div>
             </div>
           )
@@ -3724,6 +3902,8 @@ export function PlayDeskAttacksCompact({
           </div>
         ) : null}
       </div>
+      {/* CMB-01: аккуратное завершение блока без пустоты «как незаконченный экран». */}
+      <div className="play-desk-compact__end" aria-hidden />
       {openStrike ? (
         <div className="play-desk-compact__enter-number">
           <button

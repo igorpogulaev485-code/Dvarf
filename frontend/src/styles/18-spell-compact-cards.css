@@ -282,10 +282,10 @@
   padding: 6px 8px;
 }
 
-/* UIKIT-02: имя | метка | счётчик | потратить — одна сетка, без прыгающей раскладки */
+/* CMB-01 / UIKIT-02: имя | hot-track (pips / ±) — одна сетка */
 .play-desk-compact__resource-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 6px 8px;
   align-items: center;
   min-width: 0;
@@ -327,16 +327,8 @@
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .play-desk-compact__resource-row .play-desk-compact__tag {
-    justify-self: end;
-  }
-
-  .play-desk-compact__resource-count {
-    grid-column: 1;
-  }
-
-  .play-desk-compact__resource-row > .ui-button {
-    grid-column: 2;
+  .play-desk-compact__resource-track,
+  .play-desk-compact__resource-row .ui-resource-pips {
     justify-self: end;
   }
 }
@@ -421,8 +413,8 @@
 }
 
 /*
- * UIKIT-02 weapon tools: kit sm buttons grouped (Удерж./Предмет/Взять),
- * no tall side rail, no full-width bottom strip. Ammo = compact chips.
+ * CMB-01 / UIKIT-02 weapon tools: icon kit buttons + mobile ⋯ overflow.
+ * Ammo = bind chip + spend − (no duplicate in расходники).
  */
 .play-desk-compact__weapon-tools {
   display: contents;
@@ -431,7 +423,7 @@
 .play-desk-compact__holds {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-end;
   align-self: center;
@@ -448,10 +440,37 @@
   grid-row: 1;
 }
 
-.play-desk-compact__holds .ui-button {
+.play-desk-compact__holds .ui-button,
+.play-desk-compact__holds .play-desk-compact__tool {
   flex: 0 0 auto;
   text-transform: none;
   letter-spacing: normal;
+}
+
+.play-desk-compact__tool.ui-button--icon,
+.play-desk-compact__tool.ui-button--sm {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+}
+
+.play-desk-compact__tool-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.play-desk-compact__tool-more {
+  display: none;
+}
+
+.play-desk-compact__tool-menu {
+  display: grid;
+  gap: 2px;
+  min-width: 12rem;
+  padding: 6px;
 }
 
 .play-desk-compact__ammo {
@@ -476,11 +495,13 @@
 }
 
 .play-desk-compact__ammo-chip {
+  display: inline-flex;
+  align-items: stretch;
   flex: 0 1 auto;
   min-width: 0;
   max-width: 100%;
   margin: 0;
-  padding: 1px 6px;
+  padding: 0;
   border: 1px solid var(--desk-line, var(--line));
   border-radius: 999px;
   background: color-mix(in srgb, var(--desk-chip, #e7e1d4) 35%, white);
@@ -489,10 +510,35 @@
   font-weight: 600;
   line-height: 1.25;
   color: var(--desk-ink, var(--ink));
+  overflow: hidden;
+}
+
+.play-desk-compact__ammo-bind {
+  margin: 0;
+  padding: 1px 6px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
   cursor: pointer;
   white-space: nowrap;
+  max-width: 12rem;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.play-desk-compact__ammo-spend {
+  margin: 0;
+  padding: 0 7px;
+  border: 0;
+  border-left: 1px solid var(--desk-line, var(--line));
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 40%, transparent);
+  font: inherit;
+  font-weight: 700;
+  color: var(--desk-accent, var(--accent));
+  cursor: pointer;
+  line-height: 1.25;
 }
 
 .play-desk-compact__ammo-chip:hover {
@@ -503,6 +549,23 @@
   background: var(--desk-accent-soft, var(--accent-soft));
   border-color: color-mix(in srgb, var(--desk-accent, var(--accent)) 45%, var(--desk-line, var(--line)));
   color: var(--desk-accent, var(--accent));
+}
+
+.play-desk-compact__resource-track {
+  justify-self: end;
+}
+
+.play-desk-compact__resource-dice {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+  white-space: nowrap;
+}
+
+.play-desk-compact__end {
+  margin: 10px 2px 0;
+  height: 0;
+  border-top: 1px solid color-mix(in srgb, var(--desk-line, var(--line)) 70%, transparent);
 }
 
 .play-desk-compact__subhead-label {

@@ -72,10 +72,18 @@ export function toggleCombatConsumableFavorite(
 export function listCombatConsumables(
   items: InventoryItem[],
   favoriteIds: string[],
+  opts?: {
+    /** CMB-01: ammo stacks already shown under a weapon — hide auto rows (favorites stay). */
+    hideAutoItemIds?: ReadonlySet<string> | string[]
+  },
 ): CombatConsumableRow[] {
   const byId = new Map(items.map((item) => [item.id, item]))
   const rows: CombatConsumableRow[] = []
   const seen = new Set<string>()
+  const hideAuto =
+    opts?.hideAutoItemIds instanceof Set
+      ? opts.hideAutoItemIds
+      : new Set(opts?.hideAutoItemIds ?? [])
 
   for (const id of favoriteIds) {
     const item = byId.get(id)
@@ -91,6 +99,7 @@ export function listCombatConsumables(
   for (const item of items) {
     if (seen.has(item.id)) continue
     if (!isAutoCombatConsumable(item)) continue
+    if (hideAuto.has(item.id)) continue
     seen.add(item.id)
     rows.push({ item, favorite: false, auto: true })
   }

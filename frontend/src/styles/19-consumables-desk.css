@@ -231,6 +231,29 @@
     grid-column: 1;
     grid-row: 3;
   }
+
+  /* CMB-01 phone/narrow: secondary tools → ⋯, keep мод. + rolls on one line */
+  .play-desk-compact__tool--desk {
+    display: none !important;
+  }
+
+  .play-desk-compact__tool-more {
+    display: inline-block;
+  }
+
+  .play-desk-compact__row.is-attack .play-desk-compact__hit {
+    flex-wrap: nowrap;
+  }
+
+  .play-desk-compact__row.is-attack .play-desk-compact__row-main {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .play-desk-compact__row.is-attack .play-desk-compact__dmg--roll {
+    flex: 0 1 auto;
+    max-width: 42%;
+  }
 }
 
 .play-desk__body {
