@@ -13,6 +13,7 @@ import {
   ScrollRow,
   Text,
   VitalTile,
+  VitalTileMenu,
   XpTrack,
 } from '../ui'
 
@@ -163,6 +164,34 @@ export function UiKitEtalonPreviewPage() {
             />
             <VitalTile as="div" value="+4" label="Иниц." className="play-desk-vital" />
             <VitalTile as="div" value="+3" label="БМ" className="play-desk-vital" />
+          </div>
+          <Text as="h2">VitalTileMenu (phone speed +N)</Text>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', maxWidth: 120 }}>
+            <VitalTileMenu
+              value={25}
+              label="Скор."
+              badge="+3"
+              menu={
+                <ul className="ui-vital-menu__list">
+                  <li className="ui-vital-menu__row">
+                    <span className="ui-vital-menu__row-label">ходьба</span>
+                    <span className="ui-vital-menu__row-value">25 фт</span>
+                  </li>
+                  <li className="ui-vital-menu__row">
+                    <span className="ui-vital-menu__row-label">лазание</span>
+                    <span className="ui-vital-menu__row-value">10 фт</span>
+                  </li>
+                  <li className="ui-vital-menu__row">
+                    <span className="ui-vital-menu__row-label">плавание</span>
+                    <span className="ui-vital-menu__row-value">10 фт</span>
+                  </li>
+                  <li className="ui-vital-menu__row">
+                    <span className="ui-vital-menu__row-label">полёт</span>
+                    <span className="ui-vital-menu__row-value">15 фт</span>
+                  </li>
+                </ul>
+              }
+            />
           </div>
         </div>
 

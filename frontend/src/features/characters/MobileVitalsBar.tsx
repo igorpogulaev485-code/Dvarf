@@ -33,10 +33,11 @@ import {
   exhaustionSpeedFt,
   exhaustionSpeedNote,
 } from '../../shared/dnd/exhaustion2014'
-import { IconCoin, IconJump, IconRest, IconSkull } from './deskIcons'
+import { IconBoot, IconCoin, IconJump, IconRest, IconSkull } from './deskIcons'
 import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
 import { absorbDamageWithArcaneWard } from '../../shared/dnd/wizardTradition'
 import type { NeedsSetupItem } from './needsSetup'
+import { VitalTileMenu } from '../../ui'
 
 /** v2: M-02 / Q1 defaults to collapsed; old key often stored «0» from M-01 mounts. */
 const COLLAPSE_KEY = 'dvarf.mobileVitals.collapsed.v2'
@@ -88,7 +89,7 @@ type MobileVitalsBarProps = {
   onToggleShield?: () => void
   speed: number | null
   movementHint?: string | null
-  /** Alt speeds — shown as tags under walk (desk parity). */
+  /** Alt speeds — phone: +N badge + DetailsMenu (kit VitalTileMenu). */
   climbSpeed?: number | null
   swimSpeed?: number | null
   flySpeed?: number | null
@@ -561,77 +562,77 @@ export function MobileVitalsBar({
             </button>
           ) : null}
         </div>
-        {onOpenSpeed ? (
-          <button
-            type="button"
-            className={`mobile-vitals__chip mobile-vitals__chip--btn is-tap${
-              altModes.length ? ' mobile-vitals__chip--speed' : ''
-            }`}
-            role="listitem"
-            title={
-              speedTitle
-                ? `${speedTitle}. Открыть разборку`
-                : 'Скорость не задана. Открыть разборку'
-            }
-            aria-label={
-              speedTitle
-                ? `Скорость: ${speedTitle}. Открыть разборку`
-                : 'Скорость не задана. Открыть разборку'
-            }
-            onClick={onOpenSpeed}
-          >
-            <b>
-              {shownSpeed == null && altModes[0]
-                ? altModes[0].value
-                : shownSpeed == null
-                  ? '—'
-                  : shownSpeed}
-            </b>
-            <span>
-              {shownSpeed == null && altModes[0] ? altModes[0].label : 'Скор.'}
-            </span>
-            {altModes.length > 0 && shownSpeed != null ? (
-              <ul className="mobile-vitals__modes" aria-label="Дополнительные скорости">
+        <VitalTileMenu
+          className="mobile-vitals__speed"
+          role="listitem"
+          icon={<IconBoot className="ui-vital__icon" />}
+          value={shownSpeed == null ? '—' : shownSpeed}
+          label="Скор."
+          badge={altModes.length > 0 ? `+${altModes.length}` : undefined}
+          title={
+            speedTitle
+              ? `${speedTitle}. Нажми — все скорости`
+              : 'Скорость не задана'
+          }
+          aria-label={
+            speedTitle
+              ? `Скорость: ${speedTitle}. Открыть список скоростей`
+              : 'Скорость не задана. Открыть список скоростей'
+          }
+          menu={
+            <>
+              <ul className="ui-vital-menu__list" role="list">
+                <li className="ui-vital-menu__row">
+                  <span className="ui-vital-menu__row-label">ходьба</span>
+                  <span className="ui-vital-menu__row-value">
+                    {shownSpeed == null ? '—' : `${shownSpeed} фт`}
+                  </span>
+                </li>
                 {altModes.map((mode) => (
-                  <li key={mode.key}>
-                    {mode.label} {mode.value} фт
+                  <li key={mode.key} className="ui-vital-menu__row">
+                    <span className="ui-vital-menu__row-label">
+                      {mode.key === 'climb'
+                        ? 'лазание'
+                        : mode.key === 'swim'
+                          ? 'плавание'
+                          : mode.key === 'fly'
+                            ? 'полёт'
+                            : mode.label}
+                    </span>
+                    <span className="ui-vital-menu__row-value">
+                      {mode.value} фт
+                    </span>
                   </li>
                 ))}
               </ul>
-            ) : null}
-          </button>
-        ) : (
-          <div
-            className={`mobile-vitals__chip${altModes.length ? ' mobile-vitals__chip--speed' : ''}`}
-            role="listitem"
-            title={speedTitle}
-            aria-label={
-              speedTitle
-                ? `Скорость: ${speedTitle}`
-                : 'Скорость не задана'
-            }
-          >
-            <b>
-              {shownSpeed == null && altModes[0]
-                ? altModes[0].value
-                : shownSpeed == null
-                  ? '—'
-                  : shownSpeed}
-            </b>
-            <span>
-              {shownSpeed == null && altModes[0] ? altModes[0].label : 'Скор.'}
-            </span>
-            {altModes.length > 0 && shownSpeed != null ? (
-              <ul className="mobile-vitals__modes" aria-label="Дополнительные скорости">
-                {altModes.map((mode) => (
-                  <li key={mode.key}>
-                    {mode.label} {mode.value} фт
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-        )}
+              {movementHint ? (
+                <p className="ui-vital-menu__note">{movementHint}</p>
+              ) : null}
+              {speedExhaustNote ? (
+                <p className="ui-vital-menu__note">{speedExhaustNote}</p>
+              ) : null}
+              {onOpenSpeed ? (
+                <button
+                  type="button"
+                  className="ui-vital-menu__action"
+                  onClick={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    // Panel is portaled — close the host details by class.
+                    document
+                      .querySelectorAll('details.mobile-vitals__speed[open]')
+                      .forEach((el) => {
+                        if (el instanceof HTMLDetailsElement) el.open = false
+                      })
+                    onOpenSpeed()
+                  }}
+                >
+                  Разборка и бонусы
+                </button>
+              ) : null}
+            </>
+          }
+        />
         {jumpLongFt != null && jumpHighFt != null ? (
           <div
             className="mobile-vitals__chip mobile-vitals__chip--jump"

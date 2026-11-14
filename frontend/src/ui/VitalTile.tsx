@@ -3,6 +3,7 @@ import type {
   HTMLAttributes,
   ReactNode,
 } from 'react'
+import { DetailsMenu } from './DetailsMenu'
 
 type VitalFace = {
   icon?: ReactNode
@@ -63,5 +64,65 @@ export function VitalTile(props: VitalTileProps) {
     <button type="button" className={face} {...btnProps}>
       {body}
     </button>
+  )
+}
+
+export type VitalTileMenuProps = {
+  icon?: ReactNode
+  value: ReactNode
+  label: ReactNode
+  /** Corner badge, e.g. `+3` for extra movement modes. */
+  badge?: ReactNode
+  /** Popover body (kit DetailsMenu panel). */
+  menu: ReactNode
+  className?: string
+  summaryClassName?: string
+  panelClassName?: string
+  title?: string
+  'aria-label'?: string
+  role?: string
+}
+
+/**
+ * Compact vital that opens kit DetailsMenu on tap.
+ * Face stays one tile tall (icon / value / label); extras live in `badge` + menu.
+ * Phone speed tile: walk on face, alt modes as +N → full list in panel.
+ */
+export function VitalTileMenu({
+  icon,
+  value,
+  label,
+  badge,
+  menu,
+  className = '',
+  summaryClassName = '',
+  panelClassName = '',
+  title,
+  'aria-label': ariaLabel,
+  role,
+}: VitalTileMenuProps) {
+  return (
+    <DetailsMenu
+      className={`ui-vital-menu ${className}`.trim()}
+      summaryClassName={`ui-vital-menu__summary ${summaryClassName}`.trim()}
+      panelClassName={`ui-vital-menu__panel ${panelClassName}`.trim()}
+      summary={
+        <>
+          {icon}
+          <b className="ui-vital__value">{value}</b>
+          <span className="ui-vital__label">{label}</span>
+          {badge != null && badge !== false && badge !== '' ? (
+            <span className="ui-vital__badge" aria-hidden>
+              {badge}
+            </span>
+          ) : null}
+        </>
+      }
+      title={title}
+      aria-label={ariaLabel}
+      role={role}
+    >
+      {menu}
+    </DetailsMenu>
   )
 }

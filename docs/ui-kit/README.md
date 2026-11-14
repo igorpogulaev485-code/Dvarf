@@ -86,7 +86,7 @@ Skill для агентов: [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../../.cur
 | `ChipStack` | `ui/ChipStack.tsx` | столбик равных плиток (Вдохн./Истощ. · зм/Отдых) |
 | `ClassChip` / `ClassChipRow` | `ui/ClassChip.tsx` | класс над архетипом; мультикласс рядом; overflow → `+N` DetailsMenu (класс / архетип / ур.), без скролла |
 | `XpTrack` | `ui/XpTrack.tsx` | полоса XP + подпись «… · до ур. N — X» |
-| `VitalTile` | `ui/VitalTile.tsx` | иконка над числом, подпись под; КД + «Щит» |
+| `VitalTile` / `VitalTileMenu` | `ui/VitalTile.tsx` | иконка над числом, подпись под; КД + «Щит»; `VitalTileMenu` — компактная плитка + угол `+N` → `DetailsMenu` (телефон: доп. скорости) |
 | `Chip` + `DetailsMenu` | `ui/Chip.tsx`, `ui/DetailsMenu.tsx` | эффект «название + бонус», tip hover/tap; «+N» поповер |
 
 Доска LOCK: [`desk-header-lock`](boards/dvarf-ui-kit-desk-header-lock.jpg) · состояния: [`header-states`](boards/dvarf-ui-kit-desk-header-states.jpg) · [`header-death`](boards/dvarf-ui-kit-desk-header-death.jpg) · [`header-dense`](boards/dvarf-ui-kit-desk-header-dense.jpg) · tip: [`coin-tip`](boards/dvarf-ui-kit-desk-coin-tip.jpg) · icons: [`desk-icons`](boards/dvarf-ui-kit-desk-icons.jpg)

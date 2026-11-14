@@ -153,37 +153,16 @@
   gap: 4px;
 }
 
-.mobile-vitals__chip--speed {
-  min-height: 58px;
-  gap: 3px;
-}
-
-.mobile-vitals__modes {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 3px;
-  margin: 2px 0 0;
-  padding: 0;
-  list-style: none;
-  width: 100%;
-  max-width: 100%;
+/* Speed: kit VitalTileMenu (same tile height as jump; alts → +N + DetailsMenu) */
+.mobile-vitals__row > .mobile-vitals__speed {
   min-width: 0;
+  width: 100%;
+  align-self: stretch;
 }
 
-.mobile-vitals__modes li {
-  padding: 1px 4px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line));
-  background: color-mix(in srgb, var(--accent-soft) 55%, var(--card));
-  font-size: 0.58rem;
-  font-weight: 650;
-  line-height: 1.2;
-  color: var(--ink);
-  white-space: nowrap;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.mobile-vitals__row > .mobile-vitals__speed > .ui-vital-menu__summary {
+  min-height: 48px;
+  height: 100%;
 }
 
 .mobile-vitals__chip--ac.is-shield-on {

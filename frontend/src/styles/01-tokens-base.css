@@ -568,6 +568,157 @@ a.ui-button--primary {
 }
 
 /*
+ * VitalTileMenu — compact vital face (icon / value / label) + corner +N,
+ * opens kit DetailsMenu. Phone speed: alts in badge, full list in panel.
+ */
+.ui-vital-menu {
+  display: block;
+  min-width: 0;
+  max-width: none;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.ui-vital-menu__summary {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.1;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.ui-vital-menu__summary::-webkit-details-marker {
+  display: none;
+}
+
+.ui-vital-menu[open] > .ui-vital-menu__summary {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, var(--card));
+}
+
+.ui-vital-menu__summary .ui-vital__value,
+.ui-vital-menu__summary > b {
+  font-size: 1.12rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.ui-vital-menu__summary .ui-vital__label,
+.ui-vital-menu__summary > .ui-vital__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #5f584e;
+  letter-spacing: 0.01em;
+}
+
+.ui-vital-menu__summary .ui-vital__icon {
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.ui-vital__badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 4px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 70%, var(--card));
+  color: var(--ink);
+  font-size: 0.58rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.ui-vital-menu__panel {
+  min-width: min(16rem, calc(100vw - 24px));
+}
+
+.ui-vital-menu__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ui-vital-menu__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.84rem;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.ui-vital-menu__row-label {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.ui-vital-menu__row-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ui-vital-menu__note {
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.ui-vital-menu__action {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ui-vital-menu__action:hover {
+  background: var(--accent-soft);
+}
+
+/*
  * Kit ScrollRow — one-line horizontal scroller.
  * Edge cue: ~40px fade (transparent → panel) + small semi-transparent round ‹/›.
  * Only the scrollable side(s) render an edge.
