@@ -5,7 +5,7 @@ import {
   listKiSpendOptions,
   type KiSpendOption,
 } from '../../shared/dnd/monkKiSpend'
-import type { SheetResource } from '../../shared/dnd/rest'
+import { displayResourceLabel, type SheetResource } from '../../shared/dnd/rest'
 import { Button, Dialog, Field, Stack, Text } from '../../ui'
 
 type KiSpendDialogProps = {
@@ -41,6 +41,8 @@ export function KiSpendDialog({
 }: KiSpendDialogProps) {
   const remaining = resource ? Math.max(0, resource.max - resource.used) : 0
   const parsed = resource ? parseKiResourceId(resource.id) : null
+  const faceName =
+    displayResourceLabel(resource?.name?.trim() || '').trim() || 'Ци'
   const [variableCosts, setVariableCosts] = useState<Record<string, number>>({})
 
   const options = useMemo(() => {
@@ -74,11 +76,11 @@ export function KiSpendDialog({
 
   function spend(option: KiSpendOption | null, label: string, cost: number) {
     if (remaining <= 0) {
-      onToast('Нет очков ки')
+      onToast('Нет очков ци')
       return
     }
     if (cost > remaining) {
-      onToast(`Не хватает ки (нужно ${cost}, есть ${remaining})`)
+      onToast(`Не хватает ци (нужно ${cost}, есть ${remaining})`)
       return
     }
     onSpend(label, cost, timingFor(option))
@@ -87,7 +89,7 @@ export function KiSpendDialog({
   return (
     <Dialog
       open={open}
-      title={resource?.name?.trim() || 'Ки'}
+      title={faceName}
       size="wide"
       primaryLabel="Закрыть"
       onPrimary={onClose}
@@ -96,7 +98,7 @@ export function KiSpendDialog({
     >
       <Stack gap={14}>
         <Text tone="muted">
-          Сейчас {remaining}/{resource?.max ?? 0}. Выбери, на что потратить ки.
+          Сейчас {remaining}/{resource?.max ?? 0}. Выбери, на что потратить ци.
         </Text>
 
         {options.length === 0 ? (
@@ -113,13 +115,13 @@ export function KiSpendDialog({
                     <b>{option.nameRu}</b>
                     <span>
                       {option.costMax != null
-                        ? `${option.cost}–${option.costMax} ки`
-                        : `${option.cost} ки`}
+                        ? `${option.cost}–${option.costMax} ци`
+                        : `${option.cost} ци`}
                       {' · '}
                       {option.summaryRu}
                     </span>
                     {option.costMax != null ? (
-                      <Field label="Сколько ки">
+                      <Field label="Сколько ци">
                         <select
                           className="play-select"
                           value={cost}
@@ -135,7 +137,7 @@ export function KiSpendDialog({
                             (_, i) => option.cost + i,
                           ).map((n) => (
                             <option key={n} value={n}>
-                              {n} ки
+                              {n} ци
                             </option>
                           ))}
                         </select>
@@ -160,9 +162,9 @@ export function KiSpendDialog({
           type="button"
           variant="secondary"
           disabled={remaining <= 0}
-          onClick={() => spend(null, resource?.name || 'Ки', 1)}
+          onClick={() => spend(null, faceName, 1)}
         >
-          Просто −1 ки
+          Просто −1 ци
         </Button>
       </Stack>
     </Dialog>

@@ -1608,8 +1608,9 @@ export function installSheetActions4(model: SheetModel) {
   }
 
   model.isKiResource = function isKiResource(row: { id: string; name: string }): boolean {
-    // feat:{class}:ki:{entryId} — avoid matching unrelated names that contain «ки».
-    return /:ki:/.test(row.id) || /^ки$/i.test(row.name.trim())
+    // feat:{class}:ki:{entryId} — avoid matching unrelated names that contain «ки»/«ци».
+    // QI-01: accept legacy «Ки» and display label «Ци».
+    return /:ki:/.test(row.id) || /^(ки|ци)$/i.test(row.name.trim())
   }
 
   model.isBardicInspirationResource = function isBardicInspirationResource(row: { id: string; name: string }): boolean {

@@ -16,7 +16,7 @@ assert(!heal!.line.includes('HP'), 'no HP in hit-die preview')
 
 const pact = { max: 2, used: 1, level: 3 }
 const shortRes: SheetResource[] = [
-  { id: 'ki', name: 'Ки', max: 5, used: 3, reset: 'short' },
+  { id: 'ki', name: 'Ци', max: 5, used: 3, reset: 'short' },
 ]
 const short = buildShortRestResourcesSummary({
   resources: shortRes,

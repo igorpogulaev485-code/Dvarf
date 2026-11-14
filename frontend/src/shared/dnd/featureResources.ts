@@ -312,7 +312,9 @@ export function collapseSameClassPools(
 }
 
 function normalizeResourceName(name: string): string {
-  return name.trim().toLowerCase().replace(/\s+/g, ' ')
+  const key = name.trim().toLowerCase().replace(/\s+/g, ' ')
+  // QI-01: treat legacy «ки» and «ци» as the same pool label for absorb/match.
+  return key === 'ки' ? 'ци' : key
 }
 
 /**
@@ -659,7 +661,7 @@ export function spendFeatureUse(input: {
       resources: input.resources,
       ok: true,
       via: 'pool',
-      message: `${input.feature.name_ru}: 0 ки`,
+      message: `${input.feature.name_ru}: 0 ци`,
     }
   }
   if (spendRemaining(pool) >= poolCost) {

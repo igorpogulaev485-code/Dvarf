@@ -28,6 +28,11 @@ assert.match(attacks, /aria-pressed=\{Boolean\(attack\.held\)\}/)
 assert.match(attacks, /Настроить атаки/)
 assert.match(attacks, /listDeskCombatAttacks/)
 assert.match(attacks, /is-kit-attack/)
+/* QI-01: «в руках» not shown for monk/kit unarmed (isMonkUnarmedAttack / kit:unarmed-strike). */
+assert.match(
+  attacks,
+  /attack\.held && !kitComputed && !unarmed \? \(/,
+)
 assert.doesNotMatch(attacks, /Ещё \/ Действия хода/)
 assert.doesNotMatch(attacks, /Оружие и атаки/)
 /* Hold/mode stay light secondary — not solid primary (icon vanishes on .desk-icon). */

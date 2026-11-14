@@ -332,7 +332,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
             teApi?.spendFeature?.(timing)
             teApi?.markKiSpent?.(timing)
           }
-          model.onToast(`${label}: −${cost} ки`)
+          model.onToast(`${label}: −${cost} ци`)
           model.setKiSpendId(null)
           const action = resolveB04KiSpend(label)
           if (action.kind === 'buff') {

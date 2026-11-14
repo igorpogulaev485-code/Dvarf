@@ -96,6 +96,18 @@ export function resourceShownCurrent(resource: SheetResource): number {
 }
 
 /** Hot-bar visibility: explicit false hides; undefined/true shows (legacy + class pools). */
+/**
+ * QI-01: monk Ki pool label for UI. Saved sheets may still store «Ки»;
+ * show «Ци» without rewriting sheet data.
+ */
+export function displayResourceLabel(name: string): string {
+  const trimmed = name.trim()
+  if (trimmed === 'Ки') return 'Ци'
+  if (trimmed === 'ки') return 'ци'
+  if (trimmed === 'КИ') return 'ЦИ'
+  return name
+}
+
 export function resourceShowsOnHot(resource: SheetResource): boolean {
   if (resource.onHot === false) return false
   // HDP daily is not a direct hot spend — only via Channel Divinity dialog / amulet.

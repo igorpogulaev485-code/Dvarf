@@ -555,10 +555,10 @@ function elementalSpell(id: string, monk: CastWithoutSlotsClass): SheetSpell | n
       classSlug: 'monk',
       classEntryId: monk.id,
       cost: disc.kiCost,
-      label: `Ки · ${disc.nameRu}`,
+      label: `Ци · ${disc.nameRu}`,
       optionId: id,
     },
-    notes: `${disc.kiCost} ки, без ячейки. ${disc.summaryRu}`,
+    notes: `${disc.kiCost} ци, без ячейки. ${disc.summaryRu}`,
   }
 }
 

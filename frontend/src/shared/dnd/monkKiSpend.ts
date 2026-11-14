@@ -27,7 +27,7 @@ export function kiLinkedSpendCost(feature: UnlockedFeature): {
 } | null {
   const linked = feature.resource?.linked_spend
   if (!linked || linked.pool_id !== 'ki') return null
-  // Require explicit amount so vague “ки (см. описание)” stubs stay out of the picker.
+  // Require explicit amount so vague “ци (см. описание)” stubs stay out of the picker.
   if (typeof linked.amount !== 'number') return null
   const cost = Math.max(1, Math.floor(linked.amount))
   const costMax =
@@ -60,7 +60,7 @@ export function listKiSpendOptions(features: UnlockedFeature[]): KiSpendOption[]
           classEntryId: feature.classEntryId,
           nameRu: 'Пустое тело (невидимость)',
           summaryRu:
-            '4 ки → невидимость 1 мин (+сопротивление всем уронам кроме силового).',
+            '4 ци → невидимость 1 мин (+сопротивление всем уронам кроме силового).',
           cost: 4,
           via: 'shared_pool',
         })
@@ -69,7 +69,7 @@ export function listKiSpendOptions(features: UnlockedFeature[]): KiSpendOption[]
           featureId: feature.id,
           classEntryId: feature.classEntryId,
           nameRu: 'Пустое тело (астрал)',
-          summaryRu: '8 ки → проекция в астрал.',
+          summaryRu: '8 ци → проекция в астрал.',
           cost: 8,
           via: 'shared_pool',
         })
