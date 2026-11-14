@@ -166,17 +166,18 @@ assert.match(
   /\.play-desk-vital--shield\s*>\s*\.play-desk-vital__icon[\s\S]*?display:\s*none/,
 )
 
-/* UIKIT-02 follow-up: hot strip one row + scroll; pip squares dense */
+/* UIKIT-02: ресурсы wrap; скролл только у навыков; pip gap 4px */
 const hotCss = read('src/styles/20-pinned-spells.css')
 assert.match(
   hotCss,
-  /\.play-desk--wide\s+\.play-desk__hot\s*\{[^}]*flex-wrap:\s*nowrap[^}]*overflow-x:\s*auto/,
+  /\.play-desk--wide\s+\.play-desk__hot-wrap\s+\.play-desk__hot\s*\{[^}]*flex-wrap:\s*wrap/,
+)
+assert.match(
+  hotCss,
+  /\.play-desk--wide\s+\.play-desk__hot--skills\s*\{[^}]*flex-wrap:\s*nowrap[^}]*overflow-x:\s*auto/,
 )
 assert.match(hotCss, /\.play-desk__pips\s*\{[^}]*gap:\s*4px/)
-assert.doesNotMatch(
-  hotCss,
-  /\.play-desk--wide\s+\.play-desk__hot\s*\{[^}]*flex-wrap:\s*wrap/,
-)
+assert.match(hotCss, /\.play-desk__pip\s*\{[^}]*width:\s*18px/)
 
 const hotBar = read('src/features/characters/PlayDeskHotBar.tsx')
 assert.match(hotBar, /play-desk__pips/)

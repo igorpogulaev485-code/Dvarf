@@ -49,6 +49,6 @@ assert.match(hot, /mobileMoreOverflow/)
 assert.match(hot, /Ещё \{/)
 assert.match(layout, /mobileMoreOverflow=\{!model\.isPlayDesk\}/)
 assert.match(hot, /Прокрутить вправо/)
-assert.match(shell, /\.play-desk__pip[\s\S]*?min-width:\s*44px/)
+assert.match(shell, /\.play-desk--mobile\s+\.play-desk__pip[\s\S]*?min-width:\s*18px/)
 
 console.log('m02CombatFirstScreen.selfcheck: ok')

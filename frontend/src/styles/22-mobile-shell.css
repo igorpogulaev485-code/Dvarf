@@ -107,17 +107,24 @@
   font-size: 0.78rem;
   line-height: 1.25;
 }
+/* UIKIT-02: ячейки/заряды остаются плотными (gap 4px); 44px — только прочие controls */
 .play-desk--mobile .play-desk__pip {
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  min-height: 44px;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
   margin: 0;
+}
+
+.play-desk--mobile .play-desk-compact__slot-pip {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
 }
 
 .play-desk--mobile .abil-prof-pip,
 .play-desk--mobile .abil-skill__roll,
-.play-desk--mobile .play-desk-compact__slot-pip,
 .play-desk--mobile .attune-card__remove,
 .play-desk--mobile .tag-chip__remove {
   min-width: 44px;

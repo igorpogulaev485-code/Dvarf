@@ -12,7 +12,7 @@
   flex-wrap: wrap;
   gap: 6px 10px;
   align-items: baseline;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .slot-pips__label {
@@ -31,7 +31,9 @@
 .slot-pips__row {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 4px;
+  width: max-content;
+  max-width: 100%;
 }
 
 .slot-pips__stepper {
@@ -81,15 +83,16 @@
 
 .slot-pip {
   box-sizing: border-box;
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  min-height: 44px;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
   padding: 0;
-  border: 2px solid color-mix(in srgb, var(--accent) 45%, var(--line));
-  border-radius: 8px;
+  border: 1.5px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-radius: 3px;
   background: #fff;
   cursor: pointer;
+  flex: 0 0 auto;
 }
 
 .slot-pip.is-filled {

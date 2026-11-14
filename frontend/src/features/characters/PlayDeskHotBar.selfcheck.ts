@@ -42,8 +42,13 @@ const css = readFileSync(
 )
 assert.match(
   css,
-  /\.play-desk--wide\s+\.play-desk__hot\s*\{[\s\S]*?flex-wrap:\s*nowrap/,
+  /\.play-desk--wide\s+\.play-desk__hot-wrap\s+\.play-desk__hot\s*\{[\s\S]*?flex-wrap:\s*wrap/,
+)
+assert.match(
+  css,
+  /\.play-desk--wide\s+\.play-desk__hot--skills\s*\{[\s\S]*?flex-wrap:\s*nowrap/,
 )
 assert.match(css, /\.play-desk__pips\s*\{[\s\S]*?gap:\s*4px/)
+assert.match(css, /\.play-desk__pip\s*\{[\s\S]*?width:\s*18px/)
 
 console.log('PlayDeskHotBar.selfcheck: ok')

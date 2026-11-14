@@ -1,6 +1,6 @@
 /*
- * Desk hot strip (≥960): одна горизонтальная строка; overflow — скролл + стрелки.
- * (откат UIKIT-02 wrap — навыки и ресурсы снова в ряд)
+ * Desk hot (≥960): ресурсы/состояния — wrap целыми плитками по содержимому.
+ * Горизонтальный скролл — ТОЛЬКО у строки навыков (.play-desk__hot--skills).
  */
 .play-desk__hot-wrap {
   position: relative;
@@ -9,7 +9,37 @@
   width: 100%;
 }
 
-.play-desk--wide .play-desk__hot {
+.play-desk--wide .play-desk__hot-wrap .play-desk__hot {
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.play-desk--wide .play-desk__hot-wrap .play-desk__hot-item {
+  flex: 0 0 auto;
+}
+
+.play-desk--wide .play-desk__hot-wrap .play-desk__hot-item--wide {
+  flex: 0 1 auto;
+  width: max-content;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.play-desk--wide .play-desk__hot-wrap .play-desk__hot-item--res,
+.play-desk--wide .play-desk__hot-wrap .play-desk__hot-item--res-compact {
+  flex: 0 0 auto;
+  min-width: 0;
+  width: max-content;
+  max-width: 100%;
+}
+
+/* Скролл вбок — только навыки сцены */
+.play-desk--wide .play-desk__hot--skills {
   flex-wrap: nowrap;
   gap: 6px;
   min-width: 0;
@@ -24,22 +54,9 @@
   scroll-snap-type: x proximity;
 }
 
-.play-desk--wide .play-desk__hot-item {
+.play-desk--wide .play-desk__hot--skills .play-desk__hot-item {
   flex: 0 0 auto;
   scroll-snap-align: start;
-}
-
-.play-desk--wide .play-desk__hot-item--wide {
-  flex: 0 0 auto;
-  min-width: min(200px, 72%);
-  max-width: min(360px, 85%);
-}
-
-.play-desk--wide .play-desk__hot-item--res {
-  flex: 0 0 auto;
-  min-width: 0;
-  width: max-content;
-  max-width: none;
 }
 
 .play-desk__hot-fade {
@@ -212,16 +229,16 @@ button.play-desk__hot-res-name {
   width: max-content;
 }
 
-/* UIKIT-02: квадратики плотнее (~4px), hit ≥28px; ширина карточки по содержимому */
+/* UIKIT-02: квадратики вплотную (gap 4px), hit ≈ visual */
 .play-desk__pip {
   position: relative;
   box-sizing: border-box;
-  width: 28px;
-  height: 28px;
+  width: 18px;
+  height: 18px;
   margin: 0;
   padding: 0;
   border: 0;
-  border-radius: 6px;
+  border-radius: 4px;
   background: transparent;
   cursor: pointer;
   appearance: none;
@@ -238,7 +255,7 @@ button.play-desk__hot-res-name {
   height: 16px;
   margin: -8px 0 0 -8px;
   box-sizing: border-box;
-  border-radius: 4px;
+  border-radius: 3px;
   border: 1.5px solid var(--desk-accent);
   background: #fff;
   pointer-events: none;

@@ -325,7 +325,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 6px 10px;
 }
 
@@ -358,6 +358,8 @@
   align-items: center;
   gap: 6px 8px;
   min-width: 0;
+  width: max-content;
+  max-width: 100%;
 }
 
 .play-desk-compact__slot-count {
@@ -372,22 +374,24 @@
   flex-wrap: wrap;
   gap: 4px;
   align-items: center;
+  width: max-content;
 }
 
-/* B16: visual square ~18px; hit-area 44×44 so pact/slot taps don't miss */
+/* UIKIT-02: квадратики вплотную (gap 4px); hit ≈ visual, без «дыр» от 44px */
 .play-desk-compact__slot-pip {
   position: relative;
   box-sizing: border-box;
-  width: 44px;
-  height: 44px;
+  width: 18px;
+  height: 18px;
   margin: 0;
   padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: 4px;
   background: transparent;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
+  flex: 0 0 auto;
 }
 
 .play-desk-compact__slot-pip::after {
@@ -395,11 +399,11 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 18px;
-  height: 18px;
-  margin: -9px 0 0 -9px;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
   box-sizing: border-box;
-  border-radius: 4px;
+  border-radius: 3px;
   border: 1.5px solid var(--desk-accent);
   background: #fff;
   pointer-events: none;
