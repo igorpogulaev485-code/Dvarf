@@ -46,6 +46,7 @@
     "selfcheck:artifact-gear": "tsx --tsconfig tsconfig.app.json src/features/characters/artifactGear.selfcheck.ts",
     "selfcheck:hot-bar-scroll": "tsx --tsconfig tsconfig.app.json src/features/characters/PlayDeskHotBar.selfcheck.ts",
     "selfcheck:scroll-row-snap": "tsx --tsconfig tsconfig.app.json src/ui/ScrollRow.snap.selfcheck.ts",
+    "selfcheck:hot-conditions-dialog": "tsx --tsconfig tsconfig.app.json src/features/characters/HotConditionsDialog.selfcheck.ts",
     "selfcheck:needs-setup": "tsx --tsconfig tsconfig.app.json src/features/characters/needsSetup.selfcheck.ts",
     "selfcheck:m01-mobile-header": "tsx --tsconfig tsconfig.app.json src/features/characters/m01MobileHeader.selfcheck.ts",
     "selfcheck:m02-combat-first-screen": "tsx --tsconfig tsconfig.app.json src/features/characters/m02CombatFirstScreen.selfcheck.ts",

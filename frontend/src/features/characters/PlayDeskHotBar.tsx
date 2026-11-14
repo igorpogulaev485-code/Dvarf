@@ -6,6 +6,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { createPortal } from 'react-dom'
 import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import type { ConcentrationState } from './play'
 import { resourceShowsOnHot, type SheetResource } from '../../shared/dnd/rest'
@@ -310,19 +311,31 @@ function ConditionsHotCard({
 
   const title = `Состояния: ${(titleParts ?? parts).join(', ')}`
 
+  const measure =
+    typeof document !== 'undefined'
+      ? createPortal(
+          <div
+            className="play-desk__hot-cond-measure"
+            ref={measureRef}
+            aria-hidden="true"
+          >
+            {parts.map((label) => (
+              <span
+                key={label}
+                className="play-desk__hot-cond-chip"
+                data-hot-cond-measure
+              >
+                {label}
+              </span>
+            ))}
+          </div>,
+          document.body,
+        )
+      : null
+
   return (
     <>
-      <div
-        className="play-desk__hot-cond-measure"
-        ref={measureRef}
-        aria-hidden="true"
-      >
-        {parts.map((label) => (
-          <span key={label} className="play-desk__hot-cond-chip" data-hot-cond-measure>
-            {label}
-          </span>
-        ))}
-      </div>
+      {measure}
       <button
         type="button"
         className="play-desk__hot-item play-desk__hot-item--btn play-desk__hot-item--states is-on"

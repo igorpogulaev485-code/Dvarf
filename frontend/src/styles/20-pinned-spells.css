@@ -15,7 +15,7 @@
   display: flex;
   flex-wrap: nowrap;
   gap: 6px;
-  align-items: stretch;
+  align-items: center;
   min-width: 0;
   max-width: 100%;
   width: 100%;
@@ -29,6 +29,7 @@
    * Snap is JS-driven — CSS snap fights end pull-back for fade. */
   scroll-snap-type: none;
   padding-inline: 6px;
+  padding-block: 4px;
   scroll-padding-inline: 40px;
 }
 

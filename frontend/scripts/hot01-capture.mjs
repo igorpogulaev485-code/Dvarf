@@ -8,8 +8,15 @@ import { chromium } from 'playwright'
 const ART = '/opt/cursor/artifacts'
 const DARRACK = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1'
 const TORBIN = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2'
-const WIDTHS = [1920, 1440, 1280, 1024, 768, 390]
-const HDR_WIDTHS = [1440, 1024, 390]
+const WIDTHS = (process.env.HOT01_WIDTHS || '1920,1440,1280,1024,768,390')
+  .split(',')
+  .map((s) => Number(s.trim()))
+  .filter((n) => Number.isFinite(n) && n > 0)
+const HDR_WIDTHS = (process.env.HOT01_HDR_WIDTHS || '1440,1024,390')
+  .split(',')
+  .map((s) => Number(s.trim()))
+  .filter((n) => Number.isFinite(n) && n > 0)
+const SKIP_HDR = process.env.HOT01_SKIP_HDR === '1'
 const ITEM_SEL = ':scope > .play-desk__hot-item, :scope > .play-desk__hot-more'
 
 mkdirSync(ART, { recursive: true })
@@ -309,45 +316,91 @@ async function shotHeader(page, path) {
   await page.screenshot({ path, clip: box })
 }
 
-async function shotStatesPopover(page, path) {
-  // Open HotConditionsDialog via states card / empty states button.
-  const btn = page.locator(
-    '.play-desk__hot-item--states, .play-desk__hot-item--empty-row',
-  ).first()
-  await btn.click()
-  await page.waitForSelector('[role="dialog"], .ui-dialog, .hot-conditions', {
-    timeout: 8000,
-  })
-  await page.waitForTimeout(350)
-  const box = await page.evaluate(() => {
+function dialogClipBox(page) {
+  return page.evaluate(() => {
     const dlg =
       document.querySelector('[role="dialog"]') ||
       document.querySelector('.ui-dialog') ||
       document.querySelector('.hot-conditions')
     if (!dlg) return null
     const r = dlg.getBoundingClientRect()
-    // Include a bit of surrounding desk for context
-    const pad = 12
+    // Prefer full viewport width on phone so we don't clip the sheet edge.
+    const x = 0
+    const y = Math.max(0, Math.round(r.y) - 4)
     return {
-      x: Math.max(0, Math.round(r.x - pad)),
-      y: Math.max(0, Math.round(r.y - pad)),
-      width: Math.min(
-        window.innerWidth - 4,
-        Math.max(200, Math.round(r.width + pad * 2)),
-      ),
-      height: Math.min(
-        window.innerHeight - 4,
-        Math.max(160, Math.round(r.height + pad * 2)),
-      ),
+      x,
+      y,
+      width: Math.min(window.innerWidth, Math.max(Math.round(r.width), Math.round(r.right))),
+      height: Math.min(window.innerHeight - y, Math.max(160, Math.round(r.height) + 8)),
     }
   })
-  if (!box) throw new Error('no states dialog')
-  await page.screenshot({ path, clip: box })
-  // Close dialog
-  const close = page.getByRole('button', { name: /Закрыть|Отмена|Close/i })
+}
+
+async function openStatesDialog(page) {
+  const btn = page.locator(
+    '.play-desk__hot-item--states, .play-desk__hot-item--empty-row',
+  ).first()
+  await btn.click()
+  await page.waitForSelector('[role="dialog"] .hot-conditions', { timeout: 8000 })
+  await page.waitForTimeout(350)
+}
+
+async function closeStatesDialog(page) {
+  const close = page.getByRole('button', { name: /Закрыть|Отмена|Close|Готово/i })
   if (await close.count()) await close.first().click().catch(() => {})
   else await page.keyboard.press('Escape')
   await page.waitForTimeout(200)
+}
+
+async function shotStatesPopover(page, path) {
+  await openStatesDialog(page)
+  const probe = await page.evaluate(() => {
+    const body = document.querySelector('.ui-dialog__body')
+    const active = document.querySelector('.hot-conditions__active')
+    const chips = active
+      ? [...active.querySelectorAll('.tag-chip')].map((el) =>
+          (el.textContent || '').replace(/\s+/g, ' ').trim(),
+        )
+      : []
+    return {
+      bodyScrollW: body?.scrollWidth ?? 0,
+      bodyClientW: body?.clientWidth ?? 0,
+      overflowX: (body?.scrollWidth ?? 0) > (body?.clientWidth ?? 0) + 1,
+      dlgW: Math.round(document.querySelector('.ui-dialog')?.getBoundingClientRect().width || 0),
+      vw: window.innerWidth,
+      activeCount: chips.length,
+      chips,
+    }
+  })
+  const box = await dialogClipBox(page)
+  if (!box) throw new Error('no states dialog')
+  await page.screenshot({ path, clip: box })
+  await closeStatesDialog(page)
+  return probe
+}
+
+/** Scroll dialog body to «На персонаже» / active chips and shoot. */
+async function shotStatesPopoverActive(page, path) {
+  await openStatesDialog(page)
+  const found = await page.evaluate(() => {
+    const body = document.querySelector('.ui-dialog__body')
+    const section =
+      document.querySelector('.hot-conditions__card[aria-label="Активные состояния"]') ||
+      document.querySelector('.hot-conditions__active')
+    if (!body || !section) return { ok: false, activeCount: 0 }
+    section.scrollIntoView({ block: 'start', behavior: 'instant' })
+    const chips = [
+      ...(section.querySelectorAll?.('.tag-chip') ||
+        document.querySelectorAll('.hot-conditions__active .tag-chip')),
+    ].map((el) => (el.textContent || '').replace(/\s+/g, ' ').trim())
+    return { ok: true, activeCount: chips.length, chips }
+  })
+  await page.waitForTimeout(250)
+  const box = await dialogClipBox(page)
+  if (!box) throw new Error('no states dialog for active')
+  await page.screenshot({ path, clip: box })
+  await closeStatesDialog(page)
+  return found
 }
 
 async function composePair(page, w, clericPath, loadPath, outPath) {
@@ -424,28 +477,36 @@ for (const w of WIDTHS) {
   }
 }
 
-for (const w of HDR_WIDTHS) {
-  const h = w <= 390 ? 844 : 1100
-  await page.setViewportSize({ width: w, height: h })
-  await openSheet(page, DARRACK)
-  const cTmp = `${ART}/_tmp-hdr-cleric-${w}.png`
-  await shotHeader(page, cTmp)
-  await openSheet(page, TORBIN)
-  const lTmp = `${ART}/_tmp-hdr-load-${w}.png`
-  await shotHeader(page, lTmp)
-  const out = `${ART}/hdr-pair-${w}.png`
-  await composePair(page, w, cTmp, lTmp, out)
-  report.files.push(out)
+if (!SKIP_HDR) {
+  for (const w of HDR_WIDTHS) {
+    const h = w <= 390 ? 844 : 1100
+    await page.setViewportSize({ width: w, height: h })
+    await openSheet(page, DARRACK)
+    const cTmp = `${ART}/_tmp-hdr-cleric-${w}.png`
+    await shotHeader(page, cTmp)
+    await openSheet(page, TORBIN)
+    const lTmp = `${ART}/_tmp-hdr-load-${w}.png`
+    await shotHeader(page, lTmp)
+    const out = `${ART}/hdr-pair-${w}.png`
+    await composePair(page, w, cTmp, lTmp, out)
+    report.files.push(out)
+  }
 }
 
 // States dialog shots (Torbin — many conditions)
+report.statesDialog = {}
 for (const w of [390, 1440]) {
   const h = w <= 390 ? 844 : 1100
   await page.setViewportSize({ width: w, height: h })
   await openSheet(page, TORBIN)
   const out = `${ART}/hotbar-states-popover-${w}.png`
-  await shotStatesPopover(page, out)
+  report.statesDialog[`${w}`] = await shotStatesPopover(page, out)
   report.files.push(out)
+
+  await openSheet(page, TORBIN)
+  const activeOut = `${ART}/hotbar-states-popover-${w}-active.png`
+  report.statesDialog[`${w}-active`] = await shotStatesPopoverActive(page, activeOut)
+  report.files.push(activeOut)
 }
 
 writeFileSync(`${ART}/hot01-report.json`, JSON.stringify(report, null, 2))
