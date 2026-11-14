@@ -1,13 +1,16 @@
 /**
- * /dev/uikit03-header-preview — реальные PlayDeskHeader + effects + HotBar.
+ * /dev/uikit03-header-preview — реальные PlayDeskHeader / MobileVitalsBar + effects + HotBar.
  * Сиды без БД: ?seed=cleric | ?seed=multi | ?seed=max (дефолт max).
+ * ≥960: desk wide + rail; <960: mobile chrome (как PlayDeskTop).
  */
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ActiveEffectsPanel } from '../features/characters/ActiveEffectsPanel'
+import { MobileVitalsBar } from '../features/characters/MobileVitalsBar'
 import { PlayDeskHeader } from '../features/characters/PlayDeskHeader'
 import { PlayDeskHotBar } from '../features/characters/PlayDeskHotBar'
 import type { PlayState } from '../features/characters/play'
+import type { CharacterDetail } from '../shared/api/characters'
 import type { ActiveEffect } from '../shared/dnd/activeEffects'
 import type { ClassLevelEntry } from '../shared/dnd/classLevels'
 import { emptyTurnEconomy } from '../shared/dnd/turnEconomy'
@@ -350,6 +353,9 @@ export function UiKit03HeaderPreviewPage() {
   const [play, setPlay] = useState<PlayState>(() => playFromSeed(seed, seed.effects))
   const [inspiration, setInspiration] = useState(seed.inspiration)
   const [resources, setResources] = useState(seed.resources)
+  const [isWide, setIsWide] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 960px)').matches,
+  )
 
   useEffect(() => {
     setEffects(seed.effects)
@@ -358,7 +364,56 @@ export function UiKit03HeaderPreviewPage() {
     setResources(seed.resources)
   }, [seed])
 
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 960px)')
+    const sync = () => setIsWide(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+
   const coins = useMemo(() => seed.coins, [seed])
+  const stubCharacter = useMemo<CharacterDetail>(
+    () => ({
+      id: `uikit03-${seed.id}`,
+      name: seed.name,
+      avatar_url: null,
+      level: seed.level,
+      class_name: seed.className,
+      race_name: seed.raceName,
+      hp_current: seed.hpCurrent,
+      hp_max: seed.hpMax,
+      rules_edition: '2014',
+      sheet_version: 0,
+      is_draft: false,
+      created_at: '1970-01-01T00:00:00Z',
+      updated_at: '1970-01-01T00:00:00Z',
+      sheet: {},
+    }),
+    [seed],
+  )
+
+  const playLive = { ...play, effects, resources, hpTemp: seed.hpTemp }
+
+  const effectsBlock =
+    effects.length > 0 || seed.companions > 0 ? (
+      <>
+        <ActiveEffectsPanel
+          effects={effects}
+          onChange={(next) => {
+            setEffects(next)
+            setPlay((prev) => ({ ...prev, effects: next }))
+          }}
+          onToast={() => undefined}
+          onHeroismTurnStart={() => undefined}
+        />
+        {seed.companions > 0 ? (
+          <button type="button" className="play-desk__dock-chip">
+            Напарники {seed.companions}
+          </button>
+        ) : null}
+      </>
+    ) : null
 
   return (
     <main className="page page--app" data-uikit03-preview data-seed={seed.id}>
@@ -366,113 +421,161 @@ export function UiKit03HeaderPreviewPage() {
         /dev/uikit03-header-preview?seed={seed.id} · UIKIT-03 скрины
       </Text>
       <div
-        className="play-desk play-desk--wide"
+        className={`play-desk ${isWide ? 'play-desk--wide' : 'play-desk--mobile'}`}
         data-testid="uikit03-desk"
-        style={{
-          marginTop: 8,
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 220px) minmax(0, 1fr)',
-          gap: 12,
-          alignItems: 'start',
-        }}
+        style={
+          isWide
+            ? {
+                marginTop: 8,
+                display: 'grid',
+                gridTemplateColumns: 'minmax(0, 220px) minmax(0, 1fr)',
+                gap: 12,
+                alignItems: 'start',
+              }
+            : { marginTop: 8, minWidth: 0 }
+        }
       >
-        <aside
-          aria-hidden
-          style={{
-            minHeight: 120,
-            borderRadius: 12,
-            background: 'color-mix(in srgb, var(--accent-soft) 40%, #fff)',
-            border: '1px solid var(--line)',
-            padding: 8,
-            fontSize: 12,
-            color: 'var(--muted)',
-          }}
-        >
-          rail (preview)
-        </aside>
+        {isWide ? (
+          <aside
+            aria-hidden
+            style={{
+              minHeight: 120,
+              borderRadius: 12,
+              background: 'color-mix(in srgb, var(--accent-soft) 40%, #fff)',
+              border: '1px solid var(--line)',
+              padding: 8,
+              fontSize: 12,
+              color: 'var(--muted)',
+            }}
+          >
+            rail (preview)
+          </aside>
+        ) : null}
         <div style={{ minWidth: 0 }}>
-        <div className="play-desk__top" data-onboarding="combat-header">
-          <PlayDeskHeader
-            name={seed.name}
-            raceName={seed.raceName}
-            className={seed.className}
-            alignment={seed.alignment}
-            rulesEdition="2014"
-            level={seed.level}
-            experience={seed.experience}
-            classes={seed.classes}
-            hitDie="d8"
-            constitutionMod={2}
-            hpCurrent={seed.hpCurrent}
-            hpMax={seed.hpMax}
-            play={{ ...play, effects, resources, hpTemp: seed.hpTemp }}
-            autoAc={seed.autoAc}
-            acHint={seed.acHint}
-            shieldInHand
-            shieldAvailable
-            onToggleShield={() => undefined}
-            onOpenAc={() => undefined}
-            speed={seed.speed}
-            climbSpeed={seed.climbSpeed}
-            swimSpeed={seed.swimSpeed}
-            flySpeed={seed.flySpeed}
-            jumpLongFt={seed.jumpLongFt}
-            jumpHighFt={seed.jumpHighFt}
-            proficiencyBonus={seed.proficiencyBonus}
-            initiative={seed.initiative}
-            inspiration={inspiration}
-            coins={coins}
-            xpHistory={[]}
-            onOpenRest={() => undefined}
-            onExperienceChange={() => undefined}
-            onToggleInspiration={() => setInspiration((v) => !v)}
-            onExhaustionChange={(n) =>
-              setPlay((prev) => ({ ...prev, exhaustion: n }))
-            }
-            onOpenInitiative={() => undefined}
-            onOpenSpeed={() => undefined}
-            onPlayChange={setPlay}
-            onCoinsChange={() => undefined}
-            onCombatChange={() => undefined}
-            onToast={() => undefined}
-          />
-          {(effects.length > 0 || seed.companions > 0) && (
-            <div className="play-desk__top-extras">
-              <ActiveEffectsPanel
-                effects={effects}
-                onChange={(next) => {
-                  setEffects(next)
-                  setPlay((prev) => ({ ...prev, effects: next }))
-                }}
+          {isWide ? (
+            <div
+              className="play-desk__top"
+              data-testid="uikit03-header-chrome"
+              data-onboarding="combat-header"
+            >
+              <PlayDeskHeader
+                name={seed.name}
+                raceName={seed.raceName}
+                className={seed.className}
+                alignment={seed.alignment}
+                rulesEdition="2014"
+                level={seed.level}
+                experience={seed.experience}
+                classes={seed.classes}
+                hitDie="d8"
+                constitutionMod={2}
+                hpCurrent={seed.hpCurrent}
+                hpMax={seed.hpMax}
+                play={playLive}
+                autoAc={seed.autoAc}
+                acHint={seed.acHint}
+                shieldInHand
+                shieldAvailable
+                onToggleShield={() => undefined}
+                onOpenAc={() => undefined}
+                speed={seed.speed}
+                climbSpeed={seed.climbSpeed}
+                swimSpeed={seed.swimSpeed}
+                flySpeed={seed.flySpeed}
+                jumpLongFt={seed.jumpLongFt}
+                jumpHighFt={seed.jumpHighFt}
+                proficiencyBonus={seed.proficiencyBonus}
+                initiative={seed.initiative}
+                inspiration={inspiration}
+                coins={coins}
+                xpHistory={[]}
+                onOpenRest={() => undefined}
+                onExperienceChange={() => undefined}
+                onToggleInspiration={() => setInspiration((v) => !v)}
+                onExhaustionChange={(n) =>
+                  setPlay((prev) => ({ ...prev, exhaustion: n }))
+                }
+                onOpenInitiative={() => undefined}
+                onOpenSpeed={() => undefined}
+                onPlayChange={setPlay}
+                onCoinsChange={() => undefined}
+                onCombatChange={() => undefined}
                 onToast={() => undefined}
-                onHeroismTurnStart={() => undefined}
               />
-              {seed.companions > 0 ? (
-                <button type="button" className="play-desk__dock-chip">
-                  Напарники {seed.companions}
-                </button>
+              {effectsBlock ? (
+                <div className="play-desk__top-extras">{effectsBlock}</div>
               ) : null}
             </div>
+          ) : (
+            <div
+              className="play-desk__mobile-chrome"
+              data-testid="uikit03-header-chrome"
+              data-onboarding="combat-header"
+            >
+              <MobileVitalsBar
+                character={stubCharacter}
+                name={seed.name}
+                raceName={seed.raceName}
+                classSummary={seed.className}
+                alignment={seed.alignment}
+                level={seed.level}
+                hpCurrent={seed.hpCurrent}
+                hpMax={seed.hpMax}
+                play={playLive}
+                autoAc={seed.autoAc}
+                acOverride={null}
+                acHint={seed.acHint}
+                shieldInHand
+                shieldAvailable
+                onToggleShield={() => undefined}
+                onOpenAc={() => undefined}
+                speed={seed.speed}
+                climbSpeed={seed.climbSpeed}
+                swimSpeed={seed.swimSpeed}
+                flySpeed={seed.flySpeed}
+                jumpLongFt={seed.jumpLongFt}
+                jumpHighFt={seed.jumpHighFt}
+                proficiencyBonus={seed.proficiencyBonus}
+                initiative={seed.initiative}
+                inspiration={inspiration}
+                coins={coins}
+                constitutionMod={2}
+                classes={seed.classes}
+                hitDie="d8"
+                onOpenIdentity={() => undefined}
+                onOpenAbilities={() => undefined}
+                onOpenRest={() => undefined}
+                onOpenConditions={() => undefined}
+                onToggleInspiration={() => setInspiration((v) => !v)}
+                onAvatarChanged={() => undefined}
+                onOpenInitiative={() => undefined}
+                onOpenSpeed={() => undefined}
+                onPlayChange={setPlay}
+                onCoinsChange={() => undefined}
+                onCombatChange={() => undefined}
+                onToast={() => undefined}
+              />
+              {effectsBlock}
+            </div>
           )}
-        </div>
 
-        <div style={{ marginTop: 10 }} data-testid="uikit03-hot">
-          <PlayDeskHotBar
-            conditionNames={[]}
-            exhaustion={play.exhaustion}
-            concentration={play.concentration}
-            resources={resources}
-            onOpenConditions={() => undefined}
-            onClearConcentration={() =>
-              setPlay((prev) => ({ ...prev, concentration: null }))
-            }
-            onResourceUsedChange={(id, used) =>
-              setResources((prev) =>
-                prev.map((row) => (row.id === id ? { ...row, used } : row)),
-              )
-            }
-          />
-        </div>
+          <div style={{ marginTop: 10 }} data-testid="uikit03-hot">
+            <PlayDeskHotBar
+              conditionNames={[]}
+              exhaustion={play.exhaustion}
+              concentration={play.concentration}
+              resources={resources}
+              onOpenConditions={() => undefined}
+              onClearConcentration={() =>
+                setPlay((prev) => ({ ...prev, concentration: null }))
+              }
+              onResourceUsedChange={(id, used) =>
+                setResources((prev) =>
+                  prev.map((row) => (row.id === id ? { ...row, used } : row)),
+                )
+              }
+            />
+          </div>
         </div>
       </div>
     </main>
