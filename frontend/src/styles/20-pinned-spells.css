@@ -25,12 +25,10 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   overscroll-behavior-x: contain;
-  /* HOT-01: small lead pad; end spacer = fade+chevron so max scroll clears ‹/fade
-   * (remnant or empty under left arrow — never a full card face).
-   * Snap is JS-driven — CSS snap fights end pull-back for fade. */
+  /* HOT-01: small lead/trail pad; kit ScrollRow end-spacer grows for fade clear.
+   * Snap is JS-driven — CSS snap fights settle. */
   scroll-snap-type: none;
-  padding-inline-start: 6px;
-  padding-inline-end: 48px; /* 40 fade + 8 clearance */
+  padding-inline: 6px;
   padding-block: 4px;
   scroll-padding-inline: 40px;
 }

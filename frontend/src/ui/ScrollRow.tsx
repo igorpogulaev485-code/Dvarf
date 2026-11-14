@@ -34,53 +34,114 @@ export const SCROLL_ROW_FADE_CLEARANCE_PX = 8
 
 type SnapItem = { left: number; width: number }
 
+function thinRemnantPx(width: number, pad: number): number {
+  return Math.min(pad, Math.floor(width * 0.35))
+}
+
 /**
- * Pure end-snap: leftmost substantial card must clear the left fade/‹.
- * Prefer max scroll; if a full-ish card would sit under the fade, pull back
- * even when that clips a few px of the last card on the right.
- * Thin remnant under fade is OK (symmetric to start).
+ * Grow trailing spacer from the *real* current max (scrollWidth − clientWidth
+ * with the current spacer already applied). Extra spacer raises max 1:1 so the
+ * left fade ends on a thin remnant / empty — never pull scrollLeft back.
  */
-export function computeEndSnapScrollLeft(
+export function computeEndSpacerPx(
   items: SnapItem[],
   clientWidth: number,
-  scrollWidth: number,
+  /** Current max with the spacer already in the layout. */
+  currentMax: number,
+  /** Current spacer width in px. */
+  currentSpacer: number,
   pad: number,
   clearance = SCROLL_ROW_FADE_CLEARANCE_PX,
 ): number {
-  const max = Math.max(0, scrollWidth - clientWidth)
-  if (items.length === 0 || max <= 0) return 0
+  const base = pad + clearance
+  if (clientWidth <= 0) return base
+  let spacer = Math.max(base, currentSpacer)
+  let max = Math.max(0, currentMax + (spacer - currentSpacer))
+  if (items.length === 0) return spacer
 
-  const viewLeft = max
-  const fadeEnd = viewLeft + pad
-  let best = max
+  for (let step = 0; step < 8; step += 1) {
+    if (max <= 0) return spacer
+    const fadeEnd = max + pad
+    let needMore = 0
+    for (const item of items) {
+      const left = item.left
+      const right = left + item.width
+      if (right <= max + 1) continue
+      if (left >= max + clientWidth - 1) break
 
+      const thin = thinRemnantPx(item.width, pad)
+      const pastFade = Math.max(0, right - fadeEnd)
+      const substantial = pastFade >= thin
+      if (!substantial) continue
+      if (left < fadeEnd - 1) {
+        // Scroll further until only a thin remnant remains under the fade.
+        const targetMax = right - thin
+        needMore = Math.max(0, targetMax - max)
+      }
+      break
+    }
+    if (needMore <= 0) break
+    spacer += needMore
+    max += needMore
+  }
+  return Math.ceil(spacer)
+}
+
+/**
+ * End snap = true max (scrollWidth − clientWidth).
+ * Left-fade clearance is achieved by {@link computeEndSpacerPx}, not pull-back.
+ */
+export function computeEndSnapScrollLeft(
+  _items: SnapItem[],
+  clientWidth: number,
+  scrollWidth: number,
+  _pad: number,
+  _clearance = SCROLL_ROW_FADE_CLEARANCE_PX,
+): number {
+  return Math.max(0, scrollWidth - clientWidth)
+}
+
+/** How many px of a substantial card sit under the left fade at scrollLeft. */
+export function leftFadeOverlapPx(
+  items: SnapItem[],
+  scrollLeft: number,
+  clientWidth: number,
+  pad: number,
+): number {
+  const fadeEnd = scrollLeft + pad
   for (const item of items) {
     const left = item.left
     const right = left + item.width
-    if (right <= viewLeft + 1) continue // fully scrolled off left
-    if (left >= viewLeft + clientWidth - 1) break
-
+    if (right <= scrollLeft + 1) continue
+    if (left >= scrollLeft + clientWidth - 1) break
+    const thin = thinRemnantPx(item.width, pad)
     const pastFade = Math.max(0, right - fadeEnd)
-    const substantial =
-      pastFade >= Math.min(pad, Math.floor(item.width * 0.35))
-    // Thin clipped remnant under the fade — leave it; check next card.
+    const substantial = pastFade >= thin
     if (!substantial) continue
-
     if (left < fadeEnd - 1) {
-      // Always clear the face — never keep a substantial card under ‹/fade.
-      best = Math.max(0, Math.min(max, left - pad - clearance))
+      return Math.max(0, Math.round(fadeEnd - left))
     }
     break
   }
+  return 0
+}
 
-  // Valid max (remnant or empty under fade) — do not wander to a start-align.
-  return best
+/** Last item fully inside the viewport (small trailing spacer OK). */
+export function lastItemFullyVisible(
+  items: SnapItem[],
+  scrollLeft: number,
+  clientWidth: number,
+  epsilon = 2,
+): boolean {
+  if (items.length === 0) return true
+  const last = items[items.length - 1]
+  const right = last.left + last.width
+  return right <= scrollLeft + clientWidth + epsilon
 }
 
 /**
  * Snap so a card starts just past the left fade (scroll-padding).
- * At end: fade/‹ cover only a clipped remnant (or empty pad) — never a
- * substantial card face (symmetric to the right fade at start).
+ * At end: true max — last card fully visible thanks to end spacer.
  */
 export function snapScrollLeft(
   el: HTMLElement,
@@ -106,17 +167,10 @@ export function snapScrollLeft(
   }
 
   if (prefer === 'end') {
-    const snapped = computeEndSnapScrollLeft(
-      items,
-      el.clientWidth,
-      el.scrollWidth,
-      pad,
-    )
-    el.scrollLeft = snapped
-    return snapped
+    el.scrollLeft = max
+    return max
   }
 
-  // nearest: pick candidate closest to current scrollLeft
   const cur = el.scrollLeft
   let best = cur
   let bestDist = Infinity
@@ -127,12 +181,11 @@ export function snapScrollLeft(
       best = sl
     }
   }
-  // Also allow plain 0 / max as terminals
   if (Math.abs(0 - cur) < bestDist) best = 0
   if (Math.abs(max - cur) <= bestDist) {
-    // prefer end snap helper logic when near max
     if (cur > max - 24) {
-      return snapScrollLeft(el, itemSelector, 'end')
+      el.scrollLeft = max
+      return max
     }
   }
   el.scrollLeft = best
@@ -163,7 +216,6 @@ function scrollByApproxOneItem(
     return
   }
   if (dir > 0) {
-    // Next card whose start is past the current snap line (scrollLeft + pad)
     const line = el.scrollLeft + pad + 2
     const next = items.find((item) => item.offsetLeft > line)
     if (!next) {
@@ -194,8 +246,8 @@ function scrollByApproxOneItem(
  * Kit horizontal scroll row — one line, no wrap.
  * Edge cue: ~40px fade overlay + small semi-transparent round ‹/›,
  * only on the side that can still scroll.
- * HOT-01: fade is visual-only; chevron is the hit target. Snap uses
- * scroll-padding so whole cards clear the fade (clipped remnant under it).
+ * HOT-01: end = true max; trailing spacer keeps last card fully visible and
+ * left fade over remnant/empty only (no pull-back that hides the last card).
  */
 export function ScrollRow({
   ariaLabel,
@@ -203,18 +255,43 @@ export function ScrollRow({
   shellClassName = '',
   children,
   watchKey = '',
-  itemSelector = ':scope > *',
+  itemSelector = ':scope > :not(.ui-scroll-row__end-spacer)',
 }: ScrollRowProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null)
+  const spacerRef = useRef<HTMLDivElement | null>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(false)
+  const [endSpacerPx, setEndSpacerPx] = useState(SCROLL_ROW_FADE_CLEARANCE_PX)
   const itemSelectorRef = useRef(itemSelector)
   itemSelectorRef.current = itemSelector
+
+  const updateEndSpacer = () => {
+    const el = scrollerRef.current
+    const spacerEl = spacerRef.current
+    if (!el) return
+    const nodes = Array.from(
+      el.querySelectorAll<HTMLElement>(itemSelectorRef.current),
+    )
+    const items = nodes.map((n) => ({
+      left: n.offsetLeft,
+      width: n.offsetWidth,
+    }))
+    const pad = scrollPadStartPx(el)
+    const currentSpacer = spacerEl?.offsetWidth ?? endSpacerPx
+    const currentMax = Math.max(0, el.scrollWidth - el.clientWidth)
+    const next = computeEndSpacerPx(
+      items,
+      el.clientWidth,
+      currentMax,
+      currentSpacer,
+      pad,
+    )
+    setEndSpacerPx((prev) => (prev === next ? prev : next))
+  }
 
   const updateScrollHints = () => {
     const el = scrollerRef.current
     if (!el) return
-    // Mobile hot: scrollLeft can stick ~4px at "start" and falsely show ‹.
     const edgeEpsilon = 8
     if (el.scrollLeft > 0 && el.scrollLeft < edgeEpsilon) {
       el.scrollLeft = 0
@@ -226,63 +303,34 @@ export function ScrollRow({
       edgeEpsilon,
     )
     setCanScrollLeft(edges.canScrollLeft)
-    // Logical end: fade-clear snap may sit below raw max — hide › there so
-    // clicking › cannot park a full card under the left fade.
-    if (edges.canScrollRight) {
-      const nodes = Array.from(
-        el.querySelectorAll<HTMLElement>(itemSelectorRef.current),
-      )
-      const items = nodes.map((n) => ({
-        left: n.offsetLeft,
-        width: n.offsetWidth,
-      }))
-      const logicalEnd = computeEndSnapScrollLeft(
-        items,
-        el.clientWidth,
-        el.scrollWidth,
-        scrollPadStartPx(el),
-      )
-      if (el.scrollLeft >= logicalEnd - edgeEpsilon) {
-        setCanScrollRight(false)
-        return
-      }
-    }
     setCanScrollRight(edges.canScrollRight)
   }
 
   useLayoutEffect(() => {
+    updateEndSpacer()
     updateScrollHints()
     const raf = requestAnimationFrame(() => {
+      updateEndSpacer()
       updateScrollHints()
-      requestAnimationFrame(updateScrollHints)
+      requestAnimationFrame(() => {
+        updateEndSpacer()
+        updateScrollHints()
+      })
     })
     return () => cancelAnimationFrame(raf)
-  }, [watchKey])
+  }, [watchKey, endSpacerPx])
 
   useEffect(() => {
     const el = scrollerRef.current
     if (!el) return
 
     let settleTimer: ReturnType<typeof setTimeout> | null = null
-    const logicalEndLeft = () => {
-      const nodes = Array.from(
-        el.querySelectorAll<HTMLElement>(itemSelectorRef.current),
-      )
-      return computeEndSnapScrollLeft(
-        nodes.map((n) => ({ left: n.offsetLeft, width: n.offsetWidth })),
-        el.clientWidth,
-        el.scrollWidth,
-        scrollPadStartPx(el),
-      )
-    }
     const settleSnap = () => {
       if (settleTimer) clearTimeout(settleTimer)
       settleTimer = setTimeout(() => {
         const max = Math.max(0, el.scrollWidth - el.clientWidth)
         if (max <= 0) return
-        const endLeft = logicalEndLeft()
-        // Treat fade-clear end snap as the end zone (may be below raw max).
-        const nearEnd = el.scrollLeft >= endLeft - 24 || el.scrollLeft >= max - 8
+        const nearEnd = el.scrollLeft >= max - 24
         if (el.scrollLeft <= 8) {
           el.scrollLeft = 0
         } else if (nearEnd) {
@@ -300,9 +348,7 @@ export function ScrollRow({
     }
     const onScrollEnd = () => {
       const max = Math.max(0, el.scrollWidth - el.clientWidth)
-      const endLeft = logicalEndLeft()
-      const nearEnd = el.scrollLeft >= endLeft - 24 || el.scrollLeft >= max - 8
-      if (nearEnd) {
+      if (el.scrollLeft >= max - 24) {
         snapScrollLeft(el, itemSelectorRef.current, 'end')
       } else if (el.scrollLeft > 8) {
         snapScrollLeft(el, itemSelectorRef.current, 'nearest')
@@ -320,13 +366,17 @@ export function ScrollRow({
     }
     el.addEventListener('wheel', onWheel, { passive: false })
 
-    const ro = new ResizeObserver(() => updateScrollHints())
+    const onResize = () => {
+      updateEndSpacer()
+      updateScrollHints()
+    }
+    const ro = new ResizeObserver(onResize)
     ro.observe(el)
     for (const child of Array.from(el.children)) {
       if (child instanceof HTMLElement) ro.observe(child)
     }
-    window.addEventListener('resize', updateScrollHints)
-    document.fonts?.ready?.then?.(() => updateScrollHints()).catch?.(() => {})
+    window.addEventListener('resize', onResize)
+    document.fonts?.ready?.then?.(onResize).catch?.(() => {})
 
     return () => {
       if (settleTimer) clearTimeout(settleTimer)
@@ -334,7 +384,7 @@ export function ScrollRow({
       el.removeEventListener('scrollend', onScrollEnd)
       el.removeEventListener('wheel', onWheel)
       ro.disconnect()
-      window.removeEventListener('resize', updateScrollHints)
+      window.removeEventListener('resize', onResize)
     }
   }, [watchKey])
 
@@ -372,6 +422,16 @@ export function ScrollRow({
       ) : null}
       <div className={className} ref={scrollerRef} aria-label={ariaLabel}>
         {children}
+        <div
+          ref={spacerRef}
+          className="ui-scroll-row__end-spacer"
+          aria-hidden="true"
+          style={{
+            flex: `0 0 ${endSpacerPx}px`,
+            width: endSpacerPx,
+            minWidth: endSpacerPx,
+          }}
+        />
       </div>
     </div>
   )

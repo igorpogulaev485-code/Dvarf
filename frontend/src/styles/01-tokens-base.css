@@ -897,6 +897,18 @@ a.ui-button--primary {
   outline-offset: 2px;
 }
 
+/* HOT-01: trailing spacer — grows so max scroll clears left fade without pull-back */
+.ui-scroll-row__end-spacer {
+  flex: 0 0 auto;
+  align-self: stretch;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
 /* Desk paper surfaces: fade into white card strip */
 .play-desk .ui-scroll-row__edge--left {
   background: linear-gradient(

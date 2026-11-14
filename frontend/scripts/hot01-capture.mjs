@@ -153,30 +153,45 @@ async function hotProbe(page) {
         break
       }
     }
-    // End-snap invariant: no substantial card face under left fade.
+    // End invariants: last card fully visible; left fade overlap on substantial card.
     const pad =
       Number.parseFloat(getComputedStyle(hot).scrollPaddingInlineStart || '0') ||
       0
     const viewLeft = hot.scrollLeft
     const fadeEnd = viewLeft + pad
-    let fadeCoversSubstantial = false
-    let leftmostSubstantialClear = true
     const items = Array.from(hot.querySelectorAll(itemSel))
+    let leftFadeOverlapPx = 0
+    let fadeCoversSubstantial = false
     for (const item of items) {
       const left = item.offsetLeft
       const right = left + item.offsetWidth
       if (right <= viewLeft + 1) continue
       if (left >= viewLeft + hot.clientWidth - 1) break
+      const thin = Math.min(pad, Math.floor(item.offsetWidth * 0.35))
       const pastFade = Math.max(0, right - fadeEnd)
-      const substantial =
-        pastFade >= Math.min(pad, Math.floor(item.offsetWidth * 0.35))
+      const substantial = pastFade >= thin
       if (!substantial) continue
       if (left < fadeEnd - 1) {
         fadeCoversSubstantial = true
-        leftmostSubstantialClear = false
+        leftFadeOverlapPx = Math.max(0, Math.round(fadeEnd - left))
       }
       break
     }
+    const last = items[items.length - 1]
+    const lastRight = last ? last.offsetLeft + last.offsetWidth : 0
+    const lastCardFullyVisible = last
+      ? lastRight <= viewLeft + hot.clientWidth + 2
+      : true
+    const lastLabel = last
+      ? (
+          last.querySelector('.play-desk__hot-res-name')?.textContent ||
+          last.querySelector('.play-desk__hot-label')?.textContent ||
+          ''
+        ).trim().slice(0, 40)
+      : null
+    const max = Math.max(0, hot.scrollWidth - hot.clientWidth)
+    const atMax = hot.scrollLeft >= max - 2
+    const rightEdge = wrap?.querySelector('.ui-scroll-row__edge--right')
     return {
       names,
       dups,
@@ -184,98 +199,50 @@ async function hotProbe(page) {
       padL: getComputedStyle(hot).paddingLeft,
       scrollPad: getComputedStyle(hot).scrollPaddingInlineStart,
       leftEdgeW: Math.round(leftEdgeW),
+      rightEdgeVisible: Boolean(rightEdge),
       leftmostFullRes,
       statesW,
       moreText: more ? (more.textContent || '').trim() : null,
       scrollLeft: Math.round(hot.scrollLeft),
       scrollWidth: hot.scrollWidth,
       clientWidth: hot.clientWidth,
+      atMax,
       fadeCoversSubstantial,
-      leftmostSubstantialClear,
+      leftmostSubstantialClear: !fadeCoversSubstantial,
+      leftFadeOverlapPx,
+      lastCardFullyVisible,
+      lastLabel,
+      lastRightGap: last
+        ? Math.round(viewLeft + hot.clientWidth - lastRight)
+        : null,
     }
   }, ITEM_SEL)
 }
 
-/**
- * Mirror of computeEndSnapScrollLeft (ScrollRow kit) for capture.
- * Keep in sync with frontend/src/ui/ScrollRow.tsx.
- */
-function computeEndSnapScrollLeft(items, clientWidth, scrollWidth, pad, clearance = 8) {
-  const max = Math.max(0, scrollWidth - clientWidth)
-  if (items.length === 0 || max <= 0) return 0
-  const viewLeft = max
-  const fadeEnd = viewLeft + pad
-  let best = max
-  for (const item of items) {
-    const left = item.left
-    const right = left + item.width
-    if (right <= viewLeft + 1) continue
-    if (left >= viewLeft + clientWidth - 1) break
-    const pastFade = Math.max(0, right - fadeEnd)
-    const substantial =
-      pastFade >= Math.min(pad, Math.floor(item.width * 0.35))
-    if (!substantial) continue
-    if (left < fadeEnd - 1) {
-      best = Math.max(0, Math.min(max, left - pad - clearance))
-    }
-    break
-  }
-  return best
-}
-
-/** Mirror of snapScrollLeft(..., 'end') / start for capture. */
+/** End = true max (kit end-spacer already applied in DOM). */
 async function scrollHot(page, toEnd) {
-  await page.evaluate(
-    ({ end, itemSel }) => {
+  await page.evaluate((end) => {
+    const hot =
+      document.querySelector('.play-desk__hot-wrap .play-desk__hot') ||
+      document.querySelector('.play-desk__hot')
+    if (!hot) return
+    if (!end) {
+      hot.scrollLeft = 0
+    } else {
+      hot.scrollLeft = Math.max(0, hot.scrollWidth - hot.clientWidth)
+    }
+    hot.dispatchEvent(new Event('scroll'))
+  }, toEnd)
+  await page.waitForTimeout(250)
+  if (toEnd) {
+    await page.evaluate(() => {
       const hot =
         document.querySelector('.play-desk__hot-wrap .play-desk__hot') ||
         document.querySelector('.play-desk__hot')
       if (!hot) return
-      if (!end) {
-        hot.scrollLeft = 0
-        hot.dispatchEvent(new Event('scroll'))
-      } else {
-        // Jump to max first; settle + re-apply below uses kit logic.
-        hot.scrollLeft = Math.max(0, hot.scrollWidth - hot.clientWidth)
-        hot.dispatchEvent(new Event('scroll'))
-      }
-    },
-    { end: toEnd, itemSel: ITEM_SEL },
-  )
-  await page.waitForTimeout(200)
-  if (toEnd) {
-    const layout = await page.evaluate(({ itemSel }) => {
-      const hot =
-        document.querySelector('.play-desk__hot-wrap .play-desk__hot') ||
-        document.querySelector('.play-desk__hot')
-      if (!hot) return null
-      const nodes = Array.from(hot.querySelectorAll(itemSel))
-      const pad =
-        Number.parseFloat(getComputedStyle(hot).scrollPaddingInlineStart || '0') ||
-        0
-      return {
-        pad,
-        clientWidth: hot.clientWidth,
-        scrollWidth: hot.scrollWidth,
-        items: nodes.map((n) => ({ left: n.offsetLeft, width: n.offsetWidth })),
-      }
-    }, { itemSel: ITEM_SEL })
-    if (layout) {
-      const snapped = computeEndSnapScrollLeft(
-        layout.items,
-        layout.clientWidth,
-        layout.scrollWidth,
-        layout.pad,
-      )
-      await page.evaluate((sl) => {
-        const hot =
-          document.querySelector('.play-desk__hot-wrap .play-desk__hot') ||
-          document.querySelector('.play-desk__hot')
-        if (!hot) return
-        hot.scrollLeft = sl
-        hot.dispatchEvent(new Event('scroll'))
-      }, snapped)
-    }
+      hot.scrollLeft = Math.max(0, hot.scrollWidth - hot.clientWidth)
+      hot.dispatchEvent(new Event('scroll'))
+    })
     await page.waitForTimeout(120)
   }
 }
