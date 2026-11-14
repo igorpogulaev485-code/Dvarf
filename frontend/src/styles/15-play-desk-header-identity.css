@@ -183,6 +183,7 @@
 }
 
 .play-desk__top {
+  position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   gap: 4px 8px;
@@ -325,8 +326,18 @@
   align-items: flex-start;
   gap: 6px 8px;
   min-width: 0;
+  width: 100%;
   max-width: 100%;
   overflow: visible;
+}
+
+/* Kit popovers (+N classes/effects) must clear sticky scene toolbars («Развернуть все») */
+.play-desk__top:has(.ui-menu[open]),
+.play-desk-header:has(.ui-menu[open]),
+.play-desk__top-extras:has(.ui-menu[open]),
+.play-desk__mobile-chrome:has(.ui-menu[open]) {
+  position: relative;
+  z-index: 55;
 }
 
 .play-desk-header__who,
@@ -351,27 +362,16 @@
 }
 
 .play-desk-header__who {
-  /* UIKIT-03 / run8: who shrinks for load; never steals mid/right columns */
-  flex: 0 1 16rem;
+  /* UIKIT-03: who absorbs spare width (race/XP/classes); mid+right stay shrink-wrap */
+  flex: 1 1 14rem;
   width: auto;
   min-width: 0;
-  max-width: min(300px, 26vw);
+  max-width: none;
   display: grid;
   gap: 2px;
   justify-items: stretch;
   align-content: center;
   overflow: visible;
-}
-
-@media (min-width: 1280px) {
-  .play-desk-header__who {
-    flex-basis: 15rem;
-    max-width: min(300px, 24vw);
-  }
-}
-
-.play-desk-header__who:has(.play-desk-header__classes.is-many) {
-  max-width: min(320px, 26vw);
 }
 
 .play-desk-header__who-line {
@@ -494,7 +494,7 @@ button.play-desk-header__name {
   color: var(--desk-muted);
   font-size: 0.72rem;
   line-height: 1.2;
-  max-width: min(100%, 18rem);
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -872,6 +872,35 @@ button.play-desk-header__identity:hover {
 
 .play-desk__mobile-chrome > .play-desk__mobile-effects > .play-desk__dock-chip {
   flex: 0 0 auto;
+}
+
+/* Short Round/Companions faces — phone only (<480); 768 keeps full labels */
+.active-effects__round-short,
+.play-desk__dock-chip-short {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .play-desk__mobile-chrome .active-effects__round-full,
+  .play-desk__mobile-chrome .play-desk__dock-chip-full {
+    display: none;
+  }
+
+  .play-desk__mobile-chrome .active-effects__round-short,
+  .play-desk__mobile-chrome .play-desk__dock-chip-short {
+    display: inline;
+  }
+
+  .play-desk__mobile-chrome .active-effects .ui-chip {
+    max-width: min(46vw, 9.5rem);
+  }
+
+  .play-desk__mobile-chrome .active-effects__round,
+  .play-desk__mobile-chrome .play-desk__dock-chip {
+    min-height: 26px;
+    padding: 2px 7px;
+    font-size: 0.72rem;
+  }
 }
 
 .play-desk__top > .play-desk__top-extras {

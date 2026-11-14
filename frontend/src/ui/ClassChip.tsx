@@ -109,8 +109,7 @@ export function ClassChipRow({
         fitAll += 1
       }
       if (fitAll >= chips.length) {
-        // Dense / many multiclass: still face at most 2 + +N (run8 load rule).
-        setVisibleCount(dense ? Math.min(chips.length, 2) : chips.length)
+        setVisibleCount(chips.length)
         return
       }
       let width = 0
@@ -123,13 +122,12 @@ export function ClassChipRow({
         kept += 1
       }
       // Always show at least one class block when any exist; +N = hidden only.
-      // UIKIT-03 / run8: under load keep 1–2 face blocks; rest in +N.
-      const capped = dense ? Math.min(kept, 2) : kept
-      if (capped <= 0) {
+      // Face count follows host width (who absorbs spare on wide desks).
+      if (kept <= 0) {
         setVisibleCount(1)
         return
       }
-      setVisibleCount(capped)
+      setVisibleCount(kept)
     }
 
     recompute()

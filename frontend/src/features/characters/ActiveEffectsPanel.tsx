@@ -266,6 +266,7 @@ export function ActiveEffectsPanel({
       }
 
       // Need +N — reserve its width, then pack whole chips only.
+      // Always keep ≥1 face chip when any effects exist (mobile must not show bare +N).
       let width = 0
       let kept = 0
       const maxW = Math.max(0, hostW - MORE_RESERVE_PX)
@@ -275,7 +276,7 @@ export function ActiveEffectsPanel({
         width = next
         kept += 1
       }
-      setVisibleCount(Math.max(0, kept))
+      setVisibleCount(Math.max(1, kept))
     }
 
     recompute()
@@ -396,7 +397,10 @@ export function ActiveEffectsPanel({
             )
           }}
         >
-          Раунд −1
+          <span className="active-effects__round-full">Раунд −1</span>
+          <span className="active-effects__round-short" aria-hidden="true">
+            −1
+          </span>
         </Button>
       </div>
     </div>

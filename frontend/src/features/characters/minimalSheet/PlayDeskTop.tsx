@@ -721,7 +721,12 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                   model.setActivePanel('companions')
                 }}
               >
-                Напарники {model.dockCompanions.length}
+                <span className="play-desk__dock-chip-full">
+                  Напарники {model.dockCompanions.length}
+                </span>
+                <span className="play-desk__dock-chip-short" aria-hidden="true">
+                  ×{model.dockCompanions.length}
+                </span>
               </button>
             ) : null}
           </div>

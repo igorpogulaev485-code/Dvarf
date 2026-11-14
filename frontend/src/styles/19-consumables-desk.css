@@ -155,12 +155,9 @@
   }
 
   .play-desk--wide .play-desk-header__who {
-    max-width: min(280px, 26vw);
-    flex: 0 1 13rem;
-  }
-
-  .play-desk--wide .play-desk-header__who:has(.play-desk-header__classes.is-many) {
-    max-width: min(300px, 28vw);
+    /* Still flex-grow into leftover; tighten basis on 1024 so mid/right stay run8 */
+    max-width: none;
+    flex: 1 1 11rem;
   }
 
   .play-desk--wide .play-desk-header__name-text {
