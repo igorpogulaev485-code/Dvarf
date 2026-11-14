@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { formatModifier } from './sheetTypes'
+import { PlayDeskHotScrollWrap } from './PlayDeskHotScrollWrap'
 
 export type PlayDeskSkillChip = {
   key: string
@@ -11,7 +12,7 @@ export type PlayDeskSkillChip = {
 
 /**
  * How many skill chips stay visible on phone before «Ещё».
- * SC-06: 3 + «Ещё» = ровно 2×2, без третьего ряда на всю ширину.
+ * Kept for API compat; UIKIT-02 prefers full row + scroll.
  */
 export const MOBILE_SKILL_PINNED_COUNT = 3
 
@@ -19,7 +20,7 @@ type PlayDeskSkillStripProps = {
   ariaLabel: string
   skills: PlayDeskSkillChip[]
   onSkillClick?: (skill: PlayDeskSkillChip) => void
-  /** Phone: wrap grid + «Ещё» instead of silent sideways scroll. */
+  /** Legacy phone wrap + «Ещё»; prefer false (scroll + arrows). */
   mobileOverflow?: boolean
 }
 
@@ -83,13 +84,8 @@ export function PlayDeskSkillStrip({
     setMoreOpen(false)
   }, [skillKeys, mobileOverflow])
 
-  return (
-    <div
-      className={`play-desk__hot play-desk__hot--skills${
-        mobileOverflow ? ' play-desk__hot--skills-mobile' : ''
-      }`}
-      aria-label={ariaLabel}
-    >
+  const row = (
+    <>
       {pinned.map((skill) => (
         <SkillChipButton key={skill.key} skill={skill} onSkillClick={onSkillClick} />
       ))}
@@ -128,6 +124,27 @@ export function PlayDeskSkillStrip({
           ) : null}
         </div>
       ) : null}
-    </div>
+    </>
+  )
+
+  if (mobileOverflow) {
+    return (
+      <div
+        className="play-desk__hot play-desk__hot--skills play-desk__hot--skills-mobile"
+        aria-label={ariaLabel}
+      >
+        {row}
+      </div>
+    )
+  }
+
+  return (
+    <PlayDeskHotScrollWrap
+      ariaLabel={ariaLabel}
+      className="play-desk__hot play-desk__hot--skills"
+      watchKey={skillKeys}
+    >
+      {row}
+    </PlayDeskHotScrollWrap>
   )
 }

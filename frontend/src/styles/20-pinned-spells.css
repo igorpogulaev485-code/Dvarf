@@ -1,6 +1,6 @@
 /*
- * Desk hot (≥960): ресурсы/состояния — wrap целыми плитками по содержимому.
- * Горизонтальный скролл — ТОЛЬКО у строки навыков (.play-desk__hot--skills).
+ * Desk hot: ресурсы И навыки — одна строка + горизонтальный скролл.
+ * Стрелки ‹ › только когда есть куда крутить (PlayDeskHotScrollWrap).
  */
 .play-desk__hot-wrap {
   position: relative;
@@ -9,39 +9,11 @@
   width: 100%;
 }
 
-.play-desk--wide .play-desk__hot-wrap .play-desk__hot {
-  flex-wrap: wrap;
-  gap: 6px;
-  min-width: 0;
-  max-width: 100%;
-  width: 100%;
-  box-sizing: border-box;
-  overflow: visible;
-}
-
-.play-desk--wide .play-desk__hot-wrap .play-desk__hot-item {
-  flex: 0 0 auto;
-}
-
-.play-desk--wide .play-desk__hot-wrap .play-desk__hot-item--wide {
-  flex: 0 1 auto;
-  width: max-content;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.play-desk--wide .play-desk__hot-wrap .play-desk__hot-item--res,
-.play-desk--wide .play-desk__hot-wrap .play-desk__hot-item--res-compact {
-  flex: 0 0 auto;
-  min-width: 0;
-  width: max-content;
-  max-width: 100%;
-}
-
-/* Скролл вбок — только навыки сцены */
-.play-desk--wide .play-desk__hot--skills {
+.play-desk__hot-wrap .play-desk__hot {
+  display: flex;
   flex-wrap: nowrap;
   gap: 6px;
+  align-items: stretch;
   min-width: 0;
   max-width: 100%;
   width: 100%;
@@ -54,67 +26,32 @@
   scroll-snap-type: x proximity;
 }
 
-.play-desk--wide .play-desk__hot--skills .play-desk__hot-item {
+.play-desk__hot-wrap .play-desk__hot-item,
+.play-desk__hot-wrap .play-desk__hot-more {
   flex: 0 0 auto;
+  flex-shrink: 0;
   scroll-snap-align: start;
 }
 
-.play-desk__hot-fade {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 36px;
-  z-index: 2;
-  pointer-events: none;
+.play-desk__hot-wrap .play-desk__hot-item--wide {
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: none;
+  min-width: min(200px, 72%);
 }
 
-.play-desk__hot-fade--left {
-  left: 0;
-  background: linear-gradient(to right, #fff 35%, transparent);
+.play-desk__hot-wrap .play-desk__hot-item--res,
+.play-desk__hot-wrap .play-desk__hot-item--res-compact {
+  flex: 0 0 auto;
+  min-width: 0;
+  width: max-content;
+  max-width: none;
 }
 
-.play-desk__hot-fade--right {
-  right: 0;
-  background: linear-gradient(to left, #fff 35%, transparent);
-}
-
+/* Legacy hot-arrow/fade classes kept as no-ops — edges live in kit .ui-scroll-row */
+.play-desk__hot-fade,
 .play-desk__hot-arrow {
-  position: absolute;
-  top: 50%;
-  z-index: 3;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid var(--desk-line);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--desk-ink);
-  font-size: 1.25rem;
-  line-height: 1;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 0 rgba(45, 45, 42, 0.06);
-}
-
-.play-desk__hot-arrow:hover {
-  background: var(--desk-accent-soft);
-  border-color: var(--desk-line);
-}
-
-.play-desk__hot-arrow:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--desk-accent) 45%, white);
-  outline-offset: 1px;
-}
-
-.play-desk__hot-arrow--left {
-  left: 4px;
-}
-
-.play-desk__hot-arrow--right {
-  right: 4px;
+  display: none;
 }
 
 .play-desk__hot-item {

@@ -66,9 +66,13 @@
   color: var(--accent);
   line-height: 1.2;
   white-space: normal;
-  overflow: visible;
-  display: block;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   word-break: break-word;
+  overflow-wrap: anywhere;
   max-width: 100%;
 }
 
@@ -523,13 +527,15 @@
 .mobile-vitals__collapse-who strong {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   font-family: var(--font-display, "Source Serif 4", Georgia, serif);
   font-size: 0.95rem;
   color: var(--accent);
   white-space: normal;
   overflow: hidden;
   word-break: break-word;
+  overflow-wrap: anywhere;
   line-height: 1.15;
 }
 

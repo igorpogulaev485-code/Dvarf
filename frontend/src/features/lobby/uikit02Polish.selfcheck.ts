@@ -158,7 +158,8 @@ assert.match(
   headerCss,
   /\.play-desk-header__name\s*\{[\s\S]*?-webkit-line-clamp:\s*2/,
 )
-assert.match(headerCss, /\.active-effects__chip-text\.is-clamped/)
+assert.match(headerCss, /\.active-effects__tip/)
+assert.match(headerCss, /\.active-effects__more/)
 
 const vitalsCss = read('src/styles/16-play-desk-header-vitals.css')
 assert.match(
@@ -166,18 +167,19 @@ assert.match(
   /\.play-desk-vital--shield\s*>\s*\.play-desk-vital__icon[\s\S]*?display:\s*none/,
 )
 
-/* UIKIT-02: ресурсы wrap; скролл только у навыков; pip gap 4px */
+/* UIKIT-02: ресурсы+навыки — одна строка + скролл; pip gap 4px */
 const hotCss = read('src/styles/20-pinned-spells.css')
 assert.match(
   hotCss,
-  /\.play-desk--wide\s+\.play-desk__hot-wrap\s+\.play-desk__hot\s*\{[^}]*flex-wrap:\s*wrap/,
-)
-assert.match(
-  hotCss,
-  /\.play-desk--wide\s+\.play-desk__hot--skills\s*\{[^}]*flex-wrap:\s*nowrap[^}]*overflow-x:\s*auto/,
+  /\.play-desk__hot-wrap\s+\.play-desk__hot\s*\{[\s\S]*?flex-wrap:\s*nowrap[\s\S]*?overflow-x:\s*auto/,
 )
 assert.match(hotCss, /\.play-desk__pips\s*\{[^}]*gap:\s*4px/)
 assert.match(hotCss, /\.play-desk__pip\s*\{[^}]*width:\s*18px/)
+const kitTokens = read('src/styles/01-tokens-base.css')
+assert.match(kitTokens, /\.ui-scroll-row__edge/)
+assert.match(kitTokens, /\.ui-scroll-row__chevron/)
+const scrollRow = read('src/ui/ScrollRow.tsx')
+assert.match(scrollRow, /export function ScrollRow/)
 
 const hotBar = read('src/features/characters/PlayDeskHotBar.tsx')
 assert.match(hotBar, /play-desk__pips/)

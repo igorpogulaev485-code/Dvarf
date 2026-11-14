@@ -2,11 +2,12 @@
 .play-desk-header__xp {
   margin: 0;
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 5px;
+  gap: 4px 8px;
   min-width: 0;
   max-width: 100%;
-  flex: 1 1 7rem;
+  flex: 1 1 14rem;
   padding: 0;
   border: 0;
   background: transparent;
@@ -50,8 +51,18 @@
   color: var(--desk-muted);
   font-weight: 600;
   font-size: 0.62rem;
-  flex: 0 1 auto;
+  flex: 1 1 100%;
   min-width: 0;
+  order: 3;
+}
+
+.play-desk-header__xp.is-milestones .play-desk-header__xp-bar {
+  display: none;
+}
+
+.play-desk-header__xp.is-milestones .play-desk-header__xp-remain {
+  flex: 0 1 auto;
+  order: 2;
 }
 
 button.play-desk-header__xp:hover .play-desk-header__xp-bar {
@@ -72,18 +83,23 @@ button.play-desk-header__xp:hover .play-desk-header__xp-bar {
 }
 
 .play-desk-header__stack {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: 1fr;
   gap: 4px;
-  align-items: center;
+  align-items: stretch;
   align-content: center;
   min-height: 0;
+  width: max-content;
+  min-width: 5.5rem;
 }
 
 .play-desk-header__chip {
   display: inline-flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 3px;
+  width: 100%;
   padding: 0 8px;
   border-radius: 999px;
   border: 1px solid var(--desk-line);
@@ -121,13 +137,14 @@ button.play-desk-header__chip {
 
 .play-desk-header__xp-bar {
   display: block;
-  flex: 1 1 4.5rem;
-  min-width: 3.5rem;
-  max-width: 7rem;
-  height: 5px;
+  flex: 1 1 10rem;
+  min-width: 8rem;
+  max-width: 18rem;
+  height: 7px;
   border-radius: 999px;
   background: var(--desk-chip, #e7e1d4);
   overflow: hidden;
+  order: 2;
 }
 
 .play-desk-header__xp-bar > i {
@@ -230,10 +247,36 @@ button.play-desk-vital:hover,
   white-space: nowrap;
 }
 
+.play-desk-vital--jump {
+  overflow: hidden;
+  padding-top: 2px;
+  padding-bottom: 1px;
+  gap: 1px;
+}
+
+.play-desk-vital--jump .play-desk-vital__icon {
+  width: 0.78rem;
+  height: 0.78rem;
+}
+
+.play-desk-vital--jump b {
+  font-size: 0.98rem;
+  line-height: 1;
+}
+
+.play-desk-vital--jump .play-desk-vital__slash {
+  display: inline-block;
+  line-height: 1;
+  vertical-align: baseline;
+  transform: translateY(-0.05em);
+}
+
 .play-desk-vital--jump .play-desk-vital__label-row {
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   letter-spacing: 0;
   white-space: nowrap;
+  line-height: 1;
+  margin: 0;
 }
 
 .play-desk-vital--shield b {
@@ -334,13 +377,14 @@ button.play-desk-vital:hover,
   letter-spacing: 0.02em;
 }
 
-/* P1 base — overridden below for row layout + fixed 48px height */
-.play-desk-vital--speed-wide {
-  width: auto;
-  min-width: 52px;
-  max-width: none;
+/* Speed: icon above value, «Скор.» below (like Jump/Init/BM); alts column right */
+.play-desk-vital__stack {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0;
   flex: 0 0 auto;
-  align-self: center;
+  min-width: 0;
 }
 
 .play-desk-vital__tags {
@@ -348,18 +392,16 @@ button.play-desk-vital:hover,
   margin: 0;
   padding: 0;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   flex-wrap: nowrap;
-  gap: 2px;
+  gap: 1px;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   width: auto;
   max-width: none;
   min-width: 0;
-  grid-column: 1 / -1;
 }
 
-/* P1: alt speeds sit beside the walk value — tile stays ~48px tall */
 .play-desk-vital--speed-wide {
   display: flex;
   flex-direction: row;
@@ -367,26 +409,19 @@ button.play-desk-vital:hover,
   align-items: center;
   justify-content: center;
   gap: 4px;
+  width: auto;
+  min-width: 52px;
+  max-width: none;
+  flex: 0 0 auto;
   height: 48px;
   min-height: 48px;
   max-height: 48px;
-  padding: 2px 6px;
+  padding: 2px 5px;
+  align-self: center;
 }
 
-.play-desk-vital--speed-wide > .play-desk-vital__icon,
-.play-desk-vital--speed-wide > b,
-.play-desk-vital--speed-wide > .play-desk-vital__label-row {
-  flex: 0 0 auto;
-}
-
-.play-desk-vital--speed-wide > b {
+.play-desk-vital--speed-wide .play-desk-vital__stack > b {
   font-size: 1.05rem;
-}
-
-.play-desk-vital--speed-wide .play-desk-vital__tags {
-  flex-direction: column;
-  flex-wrap: nowrap;
-  gap: 1px;
 }
 
 .play-desk-vital__tag {
@@ -471,12 +506,15 @@ button.play-desk-vital:hover,
 }
 
 .play-desk-header__right-tools {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: 1fr;
   gap: 4px;
   flex: 0 0 auto;
-  align-items: center;
+  align-items: stretch;
   align-content: center;
+  width: max-content;
+  min-width: 5.75rem;
 }
 
 .play-desk-header__coin,
@@ -485,6 +523,7 @@ button.play-desk-vital:hover,
   align-items: center;
   justify-content: center;
   gap: 4px;
+  width: 100%;
   min-height: 28px;
   height: 28px;
   padding: 0 8px;

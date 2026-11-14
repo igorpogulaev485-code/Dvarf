@@ -42,6 +42,7 @@ import {
   buildNeedsSetupItems,
   type NeedsSetupItem,
 } from '../needsSetup'
+import { normalizeCampaignRules } from '../../lobby/campaignRules'
 
 function initiativeAdvantageFromSheet(model: SheetModel): 'advantage' | 'disadvantage' | 'normal' {
   const fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
@@ -346,6 +347,12 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             rulesEdition={model.baseCharacter.rules_edition}
             level={model.characterLevel}
             experience={model.draft.identity.experience}
+            progressionMode={
+              normalizeCampaignRules(model.campaignRulesRaw).progression.mode ===
+              'milestones'
+                ? 'milestones'
+                : 'xp'
+            }
             classes={model.draft.classes}
             hitDie={model.draft.play.hitDie}
             constitutionMod={abilityModifier(model.draft.abilities.con)}

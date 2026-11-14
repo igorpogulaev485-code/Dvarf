@@ -558,6 +558,106 @@ a.ui-button--primary {
   box-sizing: border-box;
 }
 
+/*
+ * Kit ScrollRow — one-line horizontal scroller.
+ * Edge cue: ~40px fade (transparent → panel) + small semi-transparent round ‹/›.
+ * Only the scrollable side(s) render an edge.
+ */
+.ui-scroll-row {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+.ui-scroll-row__edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 6;
+  width: 40px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.ui-scroll-row__edge--left {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--panel, #fbf7ec) 92%, var(--ink, #2d2d2a)) 0%,
+    color-mix(in srgb, var(--panel, #fbf7ec) 55%, transparent) 55%,
+    transparent 100%
+  );
+}
+
+.ui-scroll-row__edge--right {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    color-mix(in srgb, var(--panel, #fbf7ec) 92%, var(--ink, #2d2d2a)) 0%,
+    color-mix(in srgb, var(--panel, #fbf7ec) 55%, transparent) 55%,
+    transparent 100%
+  );
+}
+
+.ui-scroll-row__chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink, #2d2d2a) 28%, transparent);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--ink, #2d2d2a) 18%, transparent);
+  pointer-events: none;
+}
+
+.ui-scroll-row__edge:hover .ui-scroll-row__chevron,
+.ui-scroll-row__edge:focus-visible .ui-scroll-row__chevron {
+  background: color-mix(in srgb, var(--ink, #2d2d2a) 42%, transparent);
+}
+
+.ui-scroll-row__edge:focus-visible {
+  outline: none;
+}
+
+.ui-scroll-row__edge:focus-visible .ui-scroll-row__chevron {
+  outline: 2px solid color-mix(in srgb, var(--accent, #5a6b3d) 55%, white);
+  outline-offset: 2px;
+}
+
+/* Desk paper surfaces: fade into white card strip */
+.play-desk .ui-scroll-row__edge--left {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, #fff 88%, var(--desk-ink, #2d2d2a)) 0%,
+    color-mix(in srgb, #fff 45%, transparent) 58%,
+    transparent 100%
+  );
+}
+
+.play-desk .ui-scroll-row__edge--right {
+  background: linear-gradient(
+    to left,
+    color-mix(in srgb, #fff 88%, var(--desk-ink, #2d2d2a)) 0%,
+    color-mix(in srgb, #fff 45%, transparent) 58%,
+    transparent 100%
+  );
+}
+
 .ui-button--ghost {
   background: transparent;
   color: var(--ink);

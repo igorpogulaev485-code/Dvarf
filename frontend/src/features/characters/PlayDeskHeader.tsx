@@ -74,6 +74,8 @@ type PlayDeskHeaderProps = {
   rulesEdition?: string
   level: number
   experience: number
+  /** Lobby progression: XP track vs milestones (default xp). */
+  progressionMode?: 'xp' | 'milestones'
   classes: ClassLevelEntry[]
   hitDie: HitDie | null
   constitutionMod: number
@@ -175,6 +177,7 @@ export function PlayDeskHeader({
   rulesEdition = '2014',
   level,
   experience,
+  progressionMode = 'xp',
   classes,
   hitDie,
   constitutionMod,
@@ -286,12 +289,21 @@ export function PlayDeskHeader({
     if (!xpPadOpen) setXpReason('')
   }, [xpPadOpen])
 
-  const xpRemainLabel =
-    xp.remaining == null ? 'макс.' : `ещё ${formatXp(xp.remaining)}`
-  const xpLabel =
-    xp.nextThreshold == null
-      ? `${formatXp(xp.xp)} · ${xpRemainLabel}`
-      : `${formatXp(xp.floor)} · ${xpRemainLabel} · ${formatXp(xp.nextThreshold)}`
+  const milestones = progressionMode === 'milestones'
+  const xpRemainLabel = milestones
+    ? 'Вехи'
+    : xp.remaining == null
+      ? 'макс.'
+      : xp.nextThreshold == null
+        ? 'макс.'
+        : `${formatXp(xp.xp)} / ${formatXp(xp.nextThreshold)} XP · до ур. ${
+            xp.level + 1
+          } — ${formatXp(xp.remaining)}`
+  const xpLabel = milestones
+    ? `ур. ${level} · Вехи`
+    : xp.nextThreshold == null
+      ? `${formatXp(xp.xp)} XP · макс.`
+      : xpRemainLabel
   const nextLevel = xp.level >= 20 ? null : xp.level + 1
   const hpTemp = play.hpTemp
   const atZeroHp = hpCurrent != null && hpCurrent <= 0
@@ -493,10 +505,7 @@ export function PlayDeskHeader({
                 >
                   <span className="play-desk-header__class-main">{chip.label}</span>
                   {chip.subclass ? (
-                    <span className="play-desk-header__class-archetype">
-                      {' · '}
-                      {chip.subclass}
-                    </span>
+                    <span className="play-desk-header__class-archetype">{chip.subclass}</span>
                   ) : null}
                 </li>
               ))}
@@ -504,24 +513,34 @@ export function PlayDeskHeader({
           ) : null}
           <button
             type="button"
-            className={`play-desk-header__xp${showValueTips ? ' has-onboarding-tip' : ''}`}
+            className={`play-desk-header__xp${milestones ? ' is-milestones' : ''}${
+              showValueTips ? ' has-onboarding-tip' : ''
+            }`}
             title={
               showValueTips
                 ? undefined
-                : `Опыт ${formatXp(xp.xp)}. ${xpLabel}. Нажми, чтобы начислить или убавить`
+                : milestones
+                  ? `Уровень ${level} · прогресс по вехам лобби. Нажми для журнала опыта`
+                  : `Опыт ${formatXp(xp.xp)}. ${xpLabel}. Нажми, чтобы начислить или убавить`
             }
-            aria-label={`Опыт ${formatXp(xp.xp)}. ${xpRemainLabel}. Открыть клавиатуру`}
+            aria-label={
+              milestones
+                ? `Уровень ${level}, вехи. Открыть журнал опыта`
+                : `Опыт ${formatXp(xp.xp)}. ${xpRemainLabel}. Открыть клавиатуру`
+            }
             onClick={() => setXpPadOpen(true)}
           >
             {showValueTips ? <HoverTipCard tip={VITAL_TIPS.xp} /> : null}
             <span className="play-desk-header__xp-level">ур. {level}</span>
-            <span
-              className="play-desk-header__xp-bar"
-              aria-hidden
-              title={xpRemainLabel}
-            >
-              <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
-            </span>
+            {milestones ? null : (
+              <span
+                className="play-desk-header__xp-bar"
+                aria-hidden
+                title={xpRemainLabel}
+              >
+                <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
+              </span>
+            )}
             <span className="play-desk-header__xp-remain">{xpRemainLabel}</span>
           </button>
         </div>
@@ -613,20 +632,22 @@ export function PlayDeskHeader({
               }
               onClick={onOpenSpeed}
             >
-              <IconBoot className="play-desk-vital__icon" />
-              <b>{primarySpeed ? primarySpeed.value : '—'}</b>
-              <span className="play-desk-vital__label-row">
-                {primarySpeed
-                  ? primarySpeed.key === 'walk'
-                    ? 'Скор.'
-                    : primarySpeed.label
-                  : 'Скор.'}
+              <span className="play-desk-vital__stack">
+                <IconBoot className="play-desk-vital__icon" />
+                <b>{primarySpeed ? primarySpeed.value : '—'}</b>
+                <span className="play-desk-vital__label-row">
+                  {primarySpeed
+                    ? primarySpeed.key === 'walk'
+                      ? 'Скор.'
+                      : primarySpeed.label
+                    : 'Скор.'}
+                </span>
               </span>
               {secondarySpeeds.length > 0 ? (
                 <ul className="play-desk-vital__tags" aria-label="Дополнительные скорости">
                   {secondarySpeeds.map((mode) => (
                     <li key={mode.key} className="play-desk-vital__tag">
-                      {mode.label} {mode.value} фт
+                      {mode.label} {mode.value}
                     </li>
                   ))}
                 </ul>
@@ -653,20 +674,22 @@ export function PlayDeskHeader({
                   : 'Скорость не задана'
               }
             >
-              <IconBoot className="play-desk-vital__icon" />
-              <b>{primarySpeed ? primarySpeed.value : '—'}</b>
-              <span className="play-desk-vital__label-row">
-                {primarySpeed
-                  ? primarySpeed.key === 'walk'
-                    ? 'Скор.'
-                    : primarySpeed.label
-                  : 'Скор.'}
+              <span className="play-desk-vital__stack">
+                <IconBoot className="play-desk-vital__icon" />
+                <b>{primarySpeed ? primarySpeed.value : '—'}</b>
+                <span className="play-desk-vital__label-row">
+                  {primarySpeed
+                    ? primarySpeed.key === 'walk'
+                      ? 'Скор.'
+                      : primarySpeed.label
+                    : 'Скор.'}
+                </span>
               </span>
               {secondarySpeeds.length > 0 ? (
                 <ul className="play-desk-vital__tags" aria-label="Дополнительные скорости">
                   {secondarySpeeds.map((mode) => (
                     <li key={mode.key} className="play-desk-vital__tag">
-                      {mode.label} {mode.value} фт
+                      {mode.label} {mode.value}
                     </li>
                   ))}
                 </ul>
