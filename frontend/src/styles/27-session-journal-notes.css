@@ -934,9 +934,7 @@
     display: none !important;
   }
 
-  .session-table-toolbar--master .session-toolbar-more__summary {
-    min-height: var(--control-h-lg);
-  }
+  /* summary height comes from kit .ui-menu__summary (--control-h-lg) */
 
   /* LV-05: мастер на телефоне — ход → MVP-тулбар → карточки → лор */
   .session-center--master-desk > .ui-stack {

@@ -243,9 +243,20 @@
   .play-desk-compact__row.is-action .play-desk-compact__dmg {
     grid-column: 1 / -1;
   }
+  .play-desk-compact__holds {
+    flex-direction: row;
+    width: 100%;
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--desk-line);
+  }
   .play-desk-compact__hold {
     border-left: 0;
-    border-top: 1px solid var(--desk-line);
+    border-top: 0;
+    flex: 1 1 0;
+    min-height: var(--control-h-md);
+  }
+  .play-desk-compact__hold + .play-desk-compact__hold {
+    border-left: 1px solid var(--desk-line);
   }
 }
 

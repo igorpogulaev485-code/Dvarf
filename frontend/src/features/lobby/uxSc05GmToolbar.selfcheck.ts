@@ -60,7 +60,15 @@ assert.match(lore, /Привязать сеттинг/)
 const enemies = read('src/styles/28-session-enemies.css')
 assert.match(enemies, /text-transform:\s*none/)
 assert.match(enemies, /session-toolbar-rewards/)
-assert.match(enemies, /min-height:\s*44px/)
+assert.match(enemies, /ui-menu/)
+
+const tokens = read('src/styles/01-tokens-base.css')
+assert.match(tokens, /\.ui-menu__summary\s*\{[\s\S]*?min-height:\s*var\(--control-h-lg\)/)
+assert.match(tokens, /\.ui-menu__panel\s*\{[\s\S]*?position:\s*absolute/)
+
+const menu = read('src/ui/DetailsMenu.tsx')
+assert.match(menu, /export function DetailsMenu/)
+assert.match(menu, /ui-menu__panel/)
 
 const journal = read('src/styles/27-session-journal-notes.css')
 assert.match(

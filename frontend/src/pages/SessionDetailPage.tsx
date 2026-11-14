@@ -124,6 +124,7 @@ import {
 } from '../shared/api/lobbies'
 import {
   Button,
+  DetailsMenu,
   Dialog,
   Field,
   Input,
@@ -1505,17 +1506,18 @@ export function SessionDetailPage() {
                         Кто пришёл
                       </Button>
                     </div>
-                    {/* Б: опыт / добыча / выдать — один клик «Награды» */}
-                    <details
+                    {/* Б: опыт / добыча / выдать — один клик «Награды» (kit DetailsMenu popover) */}
+                    <DetailsMenu
                       className={`session-toolbar-more session-toolbar-rewards${
                         !session.combat?.active
                           ? ' session-toolbar-group--rewards-spotlight'
                           : ''
                       }`}
                       data-sc05-rewards
+                      summary="Награды"
+                      summaryClassName="session-toolbar-more__summary"
+                      panelClassName="session-toolbar-more__body"
                     >
-                      <summary className="session-toolbar-more__summary">Награды</summary>
-                      <div className="session-toolbar-more__body">
                         <div className="session-toolbar-group" aria-label="Награды">
                           <Button
                             type="button"
@@ -1567,11 +1569,14 @@ export function SessionDetailPage() {
                             Выдать
                           </Button>
                         </div>
-                      </div>
-                    </details>
-                    <details className="session-toolbar-more" data-sc05-more>
-                      <summary className="session-toolbar-more__summary">Ещё действия</summary>
-                      <div className="session-toolbar-more__body">
+                    </DetailsMenu>
+                    <DetailsMenu
+                      className="session-toolbar-more"
+                      data-sc05-more
+                      summary="Ещё действия"
+                      summaryClassName="session-toolbar-more__summary"
+                      panelClassName="session-toolbar-more__body"
+                    >
                         <Text tone="muted" className="session-toolbar-mobile-only session-toolbar-more__desk-note">
                           Генератор и вики удобнее с компьютера.
                         </Text>
@@ -1809,8 +1814,7 @@ export function SessionDetailPage() {
                             Настройки стола
                           </Button>
                         </div>
-                      </div>
-                    </details>
+                    </DetailsMenu>
                   </div>
                   ) : null}
 

@@ -797,9 +797,9 @@
 
 .session-table-card__top {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 8px 10px;
-  align-items: center;
+  align-items: start;
 }
 
 .session-table-card__avatar {
@@ -812,10 +812,20 @@
   place-items: center;
   font-weight: 700;
   font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* UIKIT-02: аватар + имя + звезда компактно; звезда не в отдельной колонке на край */
+.session-table-card__identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
 }
 
 .session-table-card__meta {
   min-width: 0;
+  flex: 1 1 auto;
   display: grid;
   gap: 1px;
 }
@@ -824,8 +834,11 @@
   margin: 0;
   font-size: 1rem;
   line-height: 1.25;
-  /* LV-01: перенос по словам, не по буквам («Г / р / о / к») */
-  overflow-wrap: break-word;
+  /* UIKIT-02: одна строка с многоточием; полное имя в title */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  overflow-wrap: normal;
   word-break: normal;
 }
 
@@ -834,6 +847,7 @@
   font-size: 1.1rem;
   line-height: 1;
   padding: 4px;
+  flex-shrink: 0;
 }
 
 .session-table-card__sub,
@@ -841,7 +855,10 @@
   margin: 0;
   font-size: 0.82rem;
   line-height: 1.3;
-  overflow-wrap: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  overflow-wrap: normal;
   word-break: normal;
 }
 

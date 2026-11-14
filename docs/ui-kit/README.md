@@ -427,8 +427,20 @@ LOCK-доски §2b–2l не переписываем; меняется пор
 | `Button` | `ui-button--icon` (квадрат под height size) | как size |
 | `SegmentedControl` | `.ui-segmented` / `__item` / `--sm`; active = accent | md 36 / sm 32 |
 | `Input` / `NumberInput` | `size`, `narrow`, классы `ui-input--sm/md/lg`, `--narrow`, `--touch`, `--title`, `--slot`, `--prep`, `--center` | по киту |
+| `DetailsMenu` | `<details class="ui-menu">` · `__summary` · `__panel` (absolute popover) | summary = lg 44; панель поверх, без reflow тулбара |
 
 **Запрет:** в стилях страниц/фич нельзя писать `.something .ui-button { min-height/padding/font-size… }`. Нужен вариант — добавь в кит, на экране выбери пропом. Selfcheck: `npm run selfcheck:uikit-no-overrides`.
+
+### UIKIT-02 (мелкий polish прода)
+
+| Место | Правило |
+|-------|---------|
+| Карточка героя на столе | `.session-table-card__identity` — аватар + имя + ★ компактно; имя в одну строку с ellipsis + `title` |
+| Строка оружия | hold-кнопки («взять» / «предмет» / …) в `.play-desk-compact__holds` — одна высота |
+| «Сторона · …» у врага | kit `Button` `size="md"`, как у героя |
+| Очередь инициативы | mobile: ellipsis + `title`; desktop ≥960: до 2 строк без обрезки «про…» |
+| Тулбар «Награды» / «Ещё» | kit `DetailsMenu` — панель absolute, тулбар не перестраивается |
+| Play Desk desktop | `.play-desk__body` stretch; stage-panel `min-height: 100%` — без пустого пергамента справа |
 
 ## 2r. Play Desk = единственный лист (LOCK)
 

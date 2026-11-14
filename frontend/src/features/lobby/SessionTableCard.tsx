@@ -435,43 +435,59 @@ export function SessionTableCard({
                 {initial}
               </div>
             ) : null}
-            <div className="session-table-card__meta">
-              {showName ? (
-                <Text as="h3" className="session-table-card__name">
-                  {seat.character_name}
-                </Text>
-              ) : (
-                <Text as="h3" className="session-table-card__name">
-                  Персонаж
-                </Text>
-              )}
-              {showRaceClass ? (
-                <Text tone="muted" className="session-table-card__sub">
-                  ур. {seat.character_level}
-                  {[seat.character_race_name, seat.character_class_name]
-                    .filter(Boolean)
-                    .map((part) => ` · ${part}`)
-                    .join('')}
-                </Text>
+            <div className="session-table-card__identity">
+              <div className="session-table-card__meta">
+                {showName ? (
+                  <Text
+                    as="h3"
+                    className="session-table-card__name"
+                    title={seat.character_name}
+                  >
+                    {seat.character_name}
+                  </Text>
+                ) : (
+                  <Text as="h3" className="session-table-card__name">
+                    Персонаж
+                  </Text>
+                )}
+                {showRaceClass ? (
+                  <Text
+                    tone="muted"
+                    className="session-table-card__sub"
+                    title={[
+                      `ур. ${seat.character_level}`,
+                      seat.character_race_name,
+                      seat.character_class_name,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  >
+                    ур. {seat.character_level}
+                    {[seat.character_race_name, seat.character_class_name]
+                      .filter(Boolean)
+                      .map((part) => ` · ${part}`)
+                      .join('')}
+                  </Text>
+                ) : null}
+              </div>
+              {masterControls && showInspiration ? (
+                <button
+                  type="button"
+                  className={`session-insp-toggle${seat.inspiration ? ' is-on' : ''}`}
+                  disabled={busy}
+                  aria-pressed={Boolean(seat.inspiration)}
+                  aria-label="Вдохновение"
+                  title="Вдохновение"
+                  onClick={() => onToggleInspiration?.(!seat.inspiration)}
+                >
+                  ★
+                </button>
+              ) : showInspiration && seat.inspiration ? (
+                <span className="session-table-card__insp" title="Вдохновение">
+                  ★
+                </span>
               ) : null}
             </div>
-            {masterControls && showInspiration ? (
-              <button
-                type="button"
-                className={`session-insp-toggle${seat.inspiration ? ' is-on' : ''}`}
-                disabled={busy}
-                aria-pressed={Boolean(seat.inspiration)}
-                aria-label="Вдохновение"
-                title="Вдохновение"
-                onClick={() => onToggleInspiration?.(!seat.inspiration)}
-              >
-                ★
-              </button>
-            ) : showInspiration && seat.inspiration ? (
-              <span className="session-table-card__insp" title="Вдохновение">
-                ★
-              </span>
-            ) : null}
             <div className="session-table-card__top-actions">
               {masterControls && onAwardPiety ? (
                 <Button

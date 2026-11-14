@@ -53,69 +53,22 @@
   background: color-mix(in srgb, var(--accent-soft) 70%, var(--card));
 }
 
-.session-toolbar-more {
-  min-width: 0;
-  flex: 0 1 auto;
-  align-self: flex-start;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--card) 88%, transparent);
-  padding: 0;
-}
-
-.session-table-toolbar--master > .session-toolbar-more {
+/* Master toolbar menus — kit `.ui-menu` (DetailsMenu); panel overlays, no reflow */
+.session-table-toolbar--master > .session-toolbar-more,
+.session-table-toolbar--master > .ui-menu {
   align-self: center;
-  border: none;
-  background: transparent;
-  border-radius: 0;
+  flex: 0 0 auto;
 }
 
-.session-table-toolbar--master > .session-toolbar-more:not([open]) {
-  max-width: max-content;
-}
-
-.session-toolbar-more__summary {
-  list-style: none;
-  cursor: pointer;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--muted);
-  padding: 8px 12px;
-  user-select: none;
-  min-height: var(--control-h-lg);
-  display: inline-flex;
-  align-items: center;
-  box-sizing: border-box;
-}
-
-/* Closed summary = kit secondary lg button face */
-.session-table-toolbar--master .session-toolbar-more__summary {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--card);
-  color: var(--ink);
-  font-weight: 600;
-  padding: 8px 14px;
-  min-height: 44px;
-}
-
-.session-toolbar-more__summary::-webkit-details-marker {
-  display: none;
-}
-
-.session-toolbar-more[open] .session-toolbar-more__summary {
-  color: var(--ink);
-  border-bottom: 1px solid var(--line);
-}
-
-.session-toolbar-more__body {
-  padding: 8px;
-}
-
-.session-toolbar-more__body .session-toolbar-group {
+.session-toolbar-more__body .session-toolbar-group,
+.ui-menu__panel .session-toolbar-group {
   border: none;
   background: transparent;
   padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
 }
 
 .session-toolbar-more__desk-note {
@@ -134,18 +87,10 @@
   background: transparent;
 }
 
-/* Toolbar summary height follows kit lg; buttons use Button size prop */
-.session-table-toolbar--master .session-toolbar-rewards .session-toolbar-more__summary,
-.session-table-toolbar--master .session-toolbar-more .session-toolbar-more__summary {
-  min-height: var(--control-h-lg);
-}
-
-.session-toolbar-rewards.session-toolbar-group--rewards-spotlight {
+.session-toolbar-rewards.session-toolbar-group--rewards-spotlight > .ui-menu__summary,
+.session-toolbar-rewards.session-toolbar-group--rewards-spotlight > .session-toolbar-more__summary {
   border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
   background: color-mix(in srgb, var(--accent-soft) 70%, var(--card));
-}
-
-.session-toolbar-rewards.session-toolbar-group--rewards-spotlight > .session-toolbar-more__summary {
   color: var(--accent);
 }
 
@@ -164,6 +109,7 @@
 .session-insp-toggle {
   width: 44px;
   height: 44px;
+  min-height: 44px;
   border: 1px solid var(--line);
   background: var(--card);
   border-radius: 12px;
@@ -183,6 +129,7 @@
 }
 
 .session-table-card__top-actions {
+  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;

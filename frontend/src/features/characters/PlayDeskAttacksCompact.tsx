@@ -3280,39 +3280,45 @@ export function PlayDeskAttacksCompact({
                     ) : null}
                   </div>
                 ) : null}
-                {onToggleActivation && attack.activation && requirementOk ? (
-                  <button
-                    type="button"
-                    className={`play-desk-compact__hold${attack.mode_active ? ' is-on' : ''}`}
-                    onClick={() => onToggleActivation(attack)}
-                    title={
-                      attack.mode_active
-                        ? 'Выключить режим'
-                        : `${attack.activation.name}: ${attack.activation.active_damage}`
-                    }
-                  >
-                    {attack.mode_active ? 'режим' : 'вкл'}
-                  </button>
-                ) : null}
-                {onToggleHeld && attack.inventory_item_id ? (
-                  <button
-                    type="button"
-                    className={`play-desk-compact__hold${attack.held ? ' is-on' : ''}`}
-                    onClick={() => onToggleHeld(attack)}
-                    title={attack.held ? 'Убрать из рук' : 'Взять в руки'}
-                  >
-                    {attack.held ? 'удерж.' : 'взять'}
-                  </button>
-                ) : null}
-                {onOpenItem && attack.inventory_item_id ? (
-                  <button
-                    type="button"
-                    className="play-desk-compact__hold"
-                    onClick={() => onOpenItem(attack.inventory_item_id!)}
-                    title="Открыть предмет в инвентаре"
-                  >
-                    предмет
-                  </button>
+                {(onToggleActivation && attack.activation && requirementOk) ||
+                (onToggleHeld && attack.inventory_item_id) ||
+                (onOpenItem && attack.inventory_item_id) ? (
+                  <div className="play-desk-compact__holds" role="group" aria-label="Действия оружия">
+                    {onToggleActivation && attack.activation && requirementOk ? (
+                      <button
+                        type="button"
+                        className={`play-desk-compact__hold${attack.mode_active ? ' is-on' : ''}`}
+                        onClick={() => onToggleActivation(attack)}
+                        title={
+                          attack.mode_active
+                            ? 'Выключить режим'
+                            : `${attack.activation.name}: ${attack.activation.active_damage}`
+                        }
+                      >
+                        {attack.mode_active ? 'режим' : 'вкл'}
+                      </button>
+                    ) : null}
+                    {onToggleHeld && attack.inventory_item_id ? (
+                      <button
+                        type="button"
+                        className={`play-desk-compact__hold${attack.held ? ' is-on' : ''}`}
+                        onClick={() => onToggleHeld(attack)}
+                        title={attack.held ? 'Убрать из рук' : 'Взять в руки'}
+                      >
+                        {attack.held ? 'удерж.' : 'взять'}
+                      </button>
+                    ) : null}
+                    {onOpenItem && attack.inventory_item_id ? (
+                      <button
+                        type="button"
+                        className="play-desk-compact__hold"
+                        onClick={() => onOpenItem(attack.inventory_item_id!)}
+                        title="Открыть предмет в инвентаре"
+                      >
+                        предмет
+                      </button>
+                    ) : null}
+                  </div>
                 ) : null}
               </div>
             )

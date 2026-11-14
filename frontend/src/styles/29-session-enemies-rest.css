@@ -396,6 +396,33 @@
   white-space: nowrap;
 }
 
+/* UIKIT-02: на десктопе имя целиком (до 2 строк), на телефоне — ellipsis + title */
+@media (min-width: 960px) {
+  .session-combat-order__chip {
+    white-space: normal;
+    align-items: flex-start;
+  }
+
+  .session-combat-order__name {
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: unset;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .session-combat-order__side {
+    max-width: none;
+    align-self: center;
+  }
+
+  .session-combat-order__init {
+    align-self: center;
+  }
+}
+
 .session-init-list__surprise {
   display: inline-flex;
   align-items: center;

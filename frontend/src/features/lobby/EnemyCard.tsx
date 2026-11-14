@@ -274,17 +274,19 @@ export function EnemyCard({
         </div>
         <div className="session-enemy-card__top-actions">
           {masterControls && onSideClick ? (
-            <button
+            <Button
               type="button"
-              className="session-side-btn"
+              variant="secondary"
+              size="md"
               disabled={busy}
+              aria-label="Сторона"
               title="Сторона в бою"
               onClick={onSideClick}
             >
               Сторона
               {sideLabelText ? ` · ${sideLabelText}` : ''}
               {sideHidden ? ' · скрыта' : ''}
-            </button>
+            </Button>
           ) : sideLabelText ? (
             <span className="session-side-chip">{sideLabelText}</span>
           ) : null}

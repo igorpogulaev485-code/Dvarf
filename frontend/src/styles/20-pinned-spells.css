@@ -361,9 +361,18 @@ button.play-desk__hot-res-name {
   border-radius: 12px;
   background: #fff;
   padding: 10px 10px 20px;
-  /* UIKIT-01 desktop: no inner clip / empty right void — page scrolls */
+  /* UIKIT-01 desktop: no inner clip — page scrolls */
   overflow: visible;
   max-height: none;
+}
+
+@media (min-width: 960px) {
+  .play-desk--wide .play-desk__stage-panel:not([hidden]) {
+    /* UIKIT-02: панель сцены заполняет высоту колонки — без пустоты справа */
+    min-height: 100%;
+    height: 100%;
+    box-sizing: border-box;
+  }
 }
 
 .play-desk__stage-panel[hidden] {
