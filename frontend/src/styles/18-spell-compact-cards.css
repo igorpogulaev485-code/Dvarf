@@ -365,45 +365,25 @@
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
 }
 
-/* UIKIT-02: все hold-кнопки в одной ячейке — одинаковая высота */
+/* UIKIT-02: hold = kit Button одного size; группа только раскладка (без «ячейки») */
 .play-desk-compact__holds {
   display: flex;
   flex-direction: row;
-  align-items: stretch;
-  align-self: stretch;
-  min-height: 100%;
-}
-
-.play-desk-compact__hold {
-  border: 0;
-  border-left: 1px solid var(--desk-line);
-  background: #fff;
-  border-radius: 0;
-  padding: 6px 8px;
-  font: inherit;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--desk-muted, var(--muted));
-  cursor: pointer;
-  align-self: stretch;
-  min-width: 3.4rem;
-  min-height: var(--control-h-md);
-  box-sizing: border-box;
-  display: inline-flex;
+  flex-wrap: nowrap;
   align-items: center;
-  justify-content: center;
+  align-self: center;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  box-sizing: border-box;
 }
 
-.play-desk-compact__hold:hover {
-  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 40%, white);
-  color: var(--desk-accent, var(--accent));
-}
-
-.play-desk-compact__hold.is-on {
-  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 75%, white);
-  color: var(--desk-accent, var(--accent));
+.play-desk-compact__holds .ui-button {
+  flex: 0 0 auto;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .play-desk-compact__subhead-label {

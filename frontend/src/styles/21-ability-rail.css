@@ -564,8 +564,8 @@
 
 @media (min-width: 960px) {
   .play-desk__body {
-    grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
-    /* UIKIT-02: колонки тянутся — без пустого пергамента справа внизу */
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    /* UIKIT-02: колонки тянутся; рельс компактнее (свёрнутые навыки + 2 кол.) */
     align-items: stretch;
   }
 
@@ -574,6 +574,14 @@
     position: static;
     max-height: none;
     overflow: visible;
+  }
+
+  /* Две колонки полосок характеристик — короче по высоте */
+  .abil-column__list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    align-content: start;
   }
 
   .play-desk__stage {
@@ -585,8 +593,7 @@
 
 @media (min-width: 1280px) {
   .play-desk__body {
-    /* Slightly narrower ability rail → more stage for attacks/spells split. */
-    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
   }
 
   .play-desk--split .play-desk__scene-wrap {

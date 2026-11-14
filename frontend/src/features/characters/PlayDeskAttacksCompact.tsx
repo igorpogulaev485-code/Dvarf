@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { Button } from '../../ui'
 import { useTurnEconomy } from './TurnEconomyContext'
 import { TurnEconomyChips } from './TurnEconomyChips'
 import { TurnEconomyCombatActions } from './TurnEconomyCombatActions'
@@ -3285,9 +3286,10 @@ export function PlayDeskAttacksCompact({
                 (onOpenItem && attack.inventory_item_id) ? (
                   <div className="play-desk-compact__holds" role="group" aria-label="Действия оружия">
                     {onToggleActivation && attack.activation && requirementOk ? (
-                      <button
+                      <Button
                         type="button"
-                        className={`play-desk-compact__hold${attack.mode_active ? ' is-on' : ''}`}
+                        size="sm"
+                        variant={attack.mode_active ? 'primary' : 'secondary'}
                         onClick={() => onToggleActivation(attack)}
                         title={
                           attack.mode_active
@@ -3296,27 +3298,29 @@ export function PlayDeskAttacksCompact({
                         }
                       >
                         {attack.mode_active ? 'режим' : 'вкл'}
-                      </button>
+                      </Button>
                     ) : null}
                     {onToggleHeld && attack.inventory_item_id ? (
-                      <button
+                      <Button
                         type="button"
-                        className={`play-desk-compact__hold${attack.held ? ' is-on' : ''}`}
+                        size="sm"
+                        variant={attack.held ? 'primary' : 'secondary'}
                         onClick={() => onToggleHeld(attack)}
                         title={attack.held ? 'Убрать из рук' : 'Взять в руки'}
                       >
                         {attack.held ? 'удерж.' : 'взять'}
-                      </button>
+                      </Button>
                     ) : null}
                     {onOpenItem && attack.inventory_item_id ? (
-                      <button
+                      <Button
                         type="button"
-                        className="play-desk-compact__hold"
+                        size="sm"
+                        variant="secondary"
                         onClick={() => onOpenItem(attack.inventory_item_id!)}
                         title="Открыть предмет в инвентаре"
                       >
                         предмет
-                      </button>
+                      </Button>
                     ) : null}
                   </div>
                 ) : null}

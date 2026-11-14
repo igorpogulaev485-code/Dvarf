@@ -717,24 +717,49 @@
   border-color: var(--danger);
 }
 
+/* UIKIT-02: раскладка формы — без перекрытий на 390; размеры контролов из кита */
 .session-typed-damage {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+}
+
+.session-typed-damage__row {
   display: grid;
-  grid-template-columns: auto minmax(7.5rem, 10rem) auto auto auto;
   gap: 6px;
   align-items: center;
+  min-width: 0;
+}
+
+.session-typed-damage__row--inputs {
+  grid-template-columns: minmax(4.5rem, 6.75rem) minmax(0, 1fr);
+}
+
+.session-typed-damage__row--actions {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.session-typed-damage__row--actions .ui-button {
+  width: 100%;
+  min-width: 0;
+  justify-content: center;
 }
 
 .session-typed-damage__type {
   min-width: 0;
   width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .session-typed-damage__temp {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: nowrap;
-  white-space: nowrap;
+  flex-wrap: wrap;
+  min-width: 0;
   min-height: var(--control-h-md);
 }
 
@@ -743,13 +768,22 @@
   flex: 0 0 auto;
 }
 
-@media (max-width: 640px) {
+/* На широкой карточке — одна полоса: число | тип | Урон | Лечение | врем.HP */
+@media (min-width: 720px) {
   .session-typed-damage {
-    grid-template-columns: minmax(4.5rem, 1fr) minmax(6rem, 1.2fr) auto auto;
+    display: grid;
+    grid-template-columns: auto minmax(8rem, 1fr) auto auto auto;
+    align-items: center;
+  }
+
+  .session-typed-damage__row--inputs,
+  .session-typed-damage__row--actions {
+    display: contents;
   }
 
   .session-typed-damage__temp {
-    grid-column: 1 / -1;
+    flex-wrap: nowrap;
+    white-space: nowrap;
   }
 }
 

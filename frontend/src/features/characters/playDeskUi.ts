@@ -180,11 +180,13 @@ function normalizeDeskMode(raw: unknown): PlayDeskMode {
 export function readSheetUi(sheet: Record<string, unknown>): SheetUiState {
   const ui = asRecord(sheet.ui)
   const collapsedRaw = ui.collapsed_abilities
+  // UIKIT-02: по умолчанию навыки свёрнуты в полоску — левый рельс короче,
+  // на 1440/1280 нет пустоты справа под короткой сценой.
   const collapsed = Array.isArray(collapsedRaw)
     ? collapsedRaw.filter((item): item is AbilityKey =>
         ABILITY_KEYS.includes(item as AbilityKey),
       )
-    : []
+    : [...ABILITY_KEYS]
   // Default ON so combat opens like the mockup (attacks + spells).
   const deskSplit = ui.desk_split === false ? false : true
   return {

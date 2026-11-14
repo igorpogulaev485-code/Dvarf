@@ -212,12 +212,27 @@ input {
   font-size: 0.95rem;
 }
 
-/* Amount / «Число» — wide enough for placeholder, centered */
+/* Amount / «Число» — wide enough for placeholder, centered; can shrink in tight rows */
 .ui-input--narrow {
   width: 6.75rem;
-  min-width: 6.75rem;
+  min-width: 4.5rem;
   max-width: 8rem;
+  flex: 0 1 6.75rem;
   text-align: center;
+}
+
+/* Kit native select — same face as Input, chevron room on the right */
+.ui-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236f675c' d='M1.1 1.2 6 6.1l4.9-4.9 1.1 1.1L6 8.3.0 2.3z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 12px 8px;
+  cursor: pointer;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .ui-input--center {

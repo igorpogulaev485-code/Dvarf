@@ -23,12 +23,30 @@ assert.match(
 
 const attacks = read('src/features/characters/PlayDeskAttacksCompact.tsx')
 assert.match(attacks, /play-desk-compact__holds/)
+assert.match(attacks, /from '\.\.\/\.\.\/ui'/)
+assert.match(attacks, /size="sm"/)
 assert.match(attacks, /: 'взять'/)
 assert.match(attacks, />\s*предмет\s*</)
+assert.doesNotMatch(attacks, /play-desk-compact__hold\$\{/)
 
 const holdsCss = read('src/styles/18-spell-compact-cards.css')
 assert.match(holdsCss, /\.play-desk-compact__holds\s*\{/)
-assert.match(holdsCss, /\.play-desk-compact__hold\s*\{[\s\S]*?min-height:\s*var\(--control-h-md\)/)
+assert.doesNotMatch(holdsCss, /\.play-desk-compact__hold\s*\{/)
+
+const damage = read('src/features/lobby/TypedDamageForm.tsx')
+assert.match(damage, /session-typed-damage__row--inputs/)
+assert.match(damage, /session-typed-damage__row--actions/)
+assert.match(damage, /\bSelect\b/)
+
+const select = read('src/ui/Select.tsx')
+assert.match(select, /export function Select/)
+assert.match(select, /ui-select/)
+
+const deskUi = read('src/features/characters/playDeskUi.ts')
+assert.match(deskUi, /collapsedRaw[\s\S]*?:\s*\[\.\.\.ABILITY_KEYS\]/)
+
+const rail = read('src/styles/21-ability-rail.css')
+assert.match(rail, /\.abil-column__list\s*\{[\s\S]*?grid-template-columns:\s*1fr 1fr/)
 
 const enemy = read('src/features/lobby/EnemyCard.tsx')
 assert.match(enemy, /variant="secondary"[\s\S]*?Сторона/)
@@ -49,11 +67,22 @@ assert.match(page, /data-sc05-more/)
 const tokens = read('src/styles/01-tokens-base.css')
 assert.match(tokens, /\.ui-menu__panel\s*\{[\s\S]*?position:\s*absolute/)
 
-const rail = read('src/styles/21-ability-rail.css')
 assert.match(rail, /align-items:\s*stretch/)
 assert.match(rail, /\.play-desk__stage\s*\{[\s\S]*?min-height:\s*100%/)
 
 const pinned = read('src/styles/20-pinned-spells.css')
 assert.match(pinned, /min-height:\s*100%/)
+assert.match(
+  pinned,
+  /\.play-desk--split\s+\.play-desk__scene-wrap\s*\{[\s\S]*?align-items:\s*stretch/,
+)
+
+const typedCss = read('src/styles/26-lobby-hub-lock.css')
+assert.match(typedCss, /\.session-typed-damage__row--actions/)
+assert.match(typedCss, /\.session-typed-damage__row--inputs/)
+assert.match(typedCss, /minmax\(4\.5rem,\s*6\.75rem\)/)
+
+assert.match(holdsCss, /border:\s*none/)
+assert.match(tokens, /\.ui-input--narrow\s*\{[\s\S]*?min-width:\s*4\.5rem/)
 
 console.log('uikit02Polish.selfcheck: ok')

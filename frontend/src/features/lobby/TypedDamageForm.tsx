@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { DAMAGE_TYPES, damageTypeLabel, type DamageType } from '../../shared/dnd/damageTypes'
-import { Button, NumberInput, Text } from '../../ui'
+import { Button, NumberInput, Select, Text } from '../../ui'
 
 export type TypedDamagePayload = {
   amount: number
@@ -50,50 +50,55 @@ export function TypedDamageForm({
 
   return (
     <form className="session-typed-damage" onSubmit={onForm}>
-      <NumberInput
-        size="md"
-        narrow
-        value={amount}
-        min={1}
-        max={9999}
-        integer
-        emptyValue={null}
-        disabled={busy}
-        placeholder="Число"
-        aria-label="Количество"
-        onValueChange={setAmount}
-      />
-      <select
-        className="ui-input ui-input--md session-typed-damage__type"
-        value={damageType}
-        disabled={busy}
-        aria-label="Тип урона"
-        onChange={(e) => setDamageType(e.target.value as DamageType | '')}
-      >
-        <option value="">без типа</option>
-        {DAMAGE_TYPES.map((t) => (
-          <option key={t} value={t}>
-            {damageTypeLabel(t)}
-          </option>
-        ))}
-      </select>
-      <Button
-        type="submit"
-        variant="primary"
-        size="md"
-        disabled={busy || disabledDeal || !hasAmount}
-      >
-        Урон
-      </Button>
-      <Button
-        type="button"
-        variant="secondary"
-        size="md"
-        disabled={busy || disabledHeal || !hasAmount}
-        onClick={() => submit(true)}
-      >
-        Лечение
-      </Button>
+      <div className="session-typed-damage__row session-typed-damage__row--inputs">
+        <NumberInput
+          size="md"
+          narrow
+          value={amount}
+          min={1}
+          max={9999}
+          integer
+          emptyValue={null}
+          disabled={busy}
+          placeholder="Число"
+          aria-label="Количество"
+          onValueChange={setAmount}
+        />
+        <Select
+          size="md"
+          className="session-typed-damage__type"
+          value={damageType}
+          disabled={busy}
+          aria-label="Тип урона"
+          onChange={(e) => setDamageType(e.target.value as DamageType | '')}
+        >
+          <option value="">без типа</option>
+          {DAMAGE_TYPES.map((t) => (
+            <option key={t} value={t}>
+              {damageTypeLabel(t)}
+            </option>
+          ))}
+        </Select>
+      </div>
+      <div className="session-typed-damage__row session-typed-damage__row--actions">
+        <Button
+          type="submit"
+          variant="primary"
+          size="md"
+          disabled={busy || disabledDeal || !hasAmount}
+        >
+          Урон
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          size="md"
+          disabled={busy || disabledHeal || !hasAmount}
+          onClick={() => submit(true)}
+        >
+          Лечение
+        </Button>
+      </div>
       {showTempHp ? (
         <label className="session-typed-damage__temp">
           <Text tone="muted" className="session-typed-damage__temp-label">

@@ -248,15 +248,11 @@
     width: 100%;
     grid-column: 1 / -1;
     border-top: 1px solid var(--desk-line);
+    justify-content: stretch;
+    padding: 6px;
   }
-  .play-desk-compact__hold {
-    border-left: 0;
-    border-top: 0;
+  .play-desk-compact__holds .ui-button {
     flex: 1 1 0;
-    min-height: var(--control-h-md);
-  }
-  .play-desk-compact__hold + .play-desk-compact__hold {
-    border-left: 1px solid var(--desk-line);
   }
 }
 

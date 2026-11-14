@@ -340,7 +340,9 @@ button.play-desk__hot-res-name {
 
 .play-desk--split .play-desk__scene-wrap {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: start;
+  /* UIKIT-02: тянем панели на высоту колонки — без пустоты под сценой */
+  align-items: stretch;
+  min-height: 100%;
 }
 
 /* Pinned spells must sit on the right regardless of DOM order. */
