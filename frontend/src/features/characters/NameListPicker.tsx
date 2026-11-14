@@ -51,16 +51,26 @@ export function NameListPicker({
 
   return (
     <div className="multi-pick">
-      <Field label={title} hint={hint}>
-        <Combobox
-          value={query}
-          options={options}
-          placeholder={placeholder}
-          emptyHint="Введите название и выберите его в списке"
-          onChange={setQuery}
-          onSelectOption={pick}
-        />
-      </Field>
+      <div className="multi-pick__head">
+        <Field label={title}>
+          <Combobox
+            value={query}
+            options={options}
+            placeholder={placeholder}
+            emptyHint="Введите название и выберите его в списке"
+            onChange={setQuery}
+            onSelectOption={pick}
+          />
+        </Field>
+        <button
+          type="button"
+          className="ownership-editor__hint-btn"
+          title={hint}
+          aria-label={hint}
+        >
+          ?
+        </button>
+      </div>
       {selected.length > 0 ? (
         <div className="tag-row" aria-label={`Выбрано: ${title}`}>
           {selected.map((name) => (

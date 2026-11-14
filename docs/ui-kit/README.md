@@ -86,7 +86,7 @@ Skill для агентов: [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../../.cur
 | `ChipStack` | `ui/ChipStack.tsx` | столбик равных плиток (Вдохн./Истощ. · зм/Отдых) |
 | `ClassChip` / `ClassChipRow` | `ui/ClassChip.tsx` | класс над архетипом; мультикласс рядом; overflow → `+N` DetailsMenu (класс / архетип / ур.), без скролла |
 | `XpTrack` | `ui/XpTrack.tsx` | полоса XP + подпись «… · до ур. N — X» |
-| `VitalTile` / `VitalTileMenu` | `ui/VitalTile.tsx` | иконка над числом, подпись под; КД: IconShield + число + «Щит» (без «КД» на лице, title = Класс доспеха); `VitalTileMenu` — `+N` → `DetailsMenu` (телефон: доп. скорости) |
+| `VitalTile` / `VitalTileMenu` | `ui/VitalTile.tsx` | иконка над числом, подпись под; КД: IconShield + число + «Щит» (без «КД» на лице, title = Класс доспеха); `VitalTileMenu` — `+N` → `DetailsMenu` (телефон); десктоп: клик по плитке скорости → тот же body (`SpeedModesMenuBody`), лицо плитки без изменений |
 | `Chip` + `DetailsMenu` | `ui/Chip.tsx`, `ui/DetailsMenu.tsx` | эффект «название + бонус», tip hover/tap; «+N» поповер |
 
 Доска LOCK: [`desk-header-lock`](boards/dvarf-ui-kit-desk-header-lock.jpg) · состояния: [`header-states`](boards/dvarf-ui-kit-desk-header-states.jpg) · [`header-death`](boards/dvarf-ui-kit-desk-header-death.jpg) · [`header-dense`](boards/dvarf-ui-kit-desk-header-dense.jpg) · tip: [`coin-tip`](boards/dvarf-ui-kit-desk-coin-tip.jpg) · icons: [`desk-icons`](boards/dvarf-ui-kit-desk-icons.jpg)
@@ -449,6 +449,8 @@ LOCK-доски §2b–2l не переписываем; меняется пор
 **HOT-01 (хот-панель листа):** карточки ресурсов — однострочное имя (ellipsis + `title`), одна высота; «Состояния»/`hot-label` = `0.78rem` как имена ресурсов; «Состояния» — фикс. ширина/высота + чипы/`+N` (пусто → приглушённое «нет»), клик → `HotConditionsDialog`; один пул класса = одна карточка (`syncFeatureResources` + `collapseSameClassPools`). Ресурсы: max ≤ 5 — квадратики; max > 5 — `текущее/макс` с −/+ (`RESOURCE_PIP_INLINE_MAX = 5`).
 
 **SCN-01 (блок сцен):** «Новый ход» + «Кубики на столе» — в `SceneTurnControls` рядом с норм/преим./помеха/броски (не отдельная карточка). Компетентность на полоске навыков и в рельсе характеристик заметно сильнее владения (фон + ◆ / двойной pip); в title — «владение»/«компетентность». «Пассивы» в `rail-foot` — не sticky (не наезжают на навыки).
+
+**LP-01 (левая панель / рельс):** владение = бледный `--abil-soft` + заполненный pip; компетентность = сплошной `--abil` + белый текст + ◆ / двойной pip (как до LSS-rail, с кружком). Служебные подсказки рельса — в кнопке «?», не абзацем. «Можно позже» свёрнут по умолчанию (`Можно позже · N`); пустой список не показывают. Под «Пассивами» — `DarkvisionSense` (тот же `identity.darkvision`) + `OwnershipSummary` (Доспехи / Оружие / Инструменты / Языки; чипы wrap до 2 строк, затем `+N`, без обрезки до 1–2 букв). Клик по владениям → drawer «Владения» (без блока скоростей/ТЗ; карточки по высоте содержимого). Доп. скорости — `SpeedModesMenuBody`: телефон `+N`, десктоп клик по плитке скорости (лицо/сетка шапки не трогаем). В редакторе выбранные `.sheet-chip.is-on` = solid `--accent` + ✓; пояснения — в «?». Витрина: `/dev/ui-kit-etalon` § LP-01.
 
 **Запрет:** в стилях страниц/фич нельзя писать `.something .ui-button { min-height/padding/font-size… }`. Нужен вариант — добавь в кит, на экране выбери пропом. Selfcheck: `npm run selfcheck:uikit-no-overrides`.
 

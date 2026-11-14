@@ -33,7 +33,7 @@ export function LanguagesToolsPanel({
         />
         <NameListPicker
           title="Инструменты"
-          hint="Воровские, ремесло, музыка, транспорт — плюс свой текст."
+          hint="Воровские, ремесло, музыка, транспорт — плюс свой текст. Плашка снимается кликом."
           presets={TOOL_PRESETS}
           selected={tools}
           placeholder="Найти инструмент…"

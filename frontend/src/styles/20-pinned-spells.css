@@ -495,8 +495,9 @@
   gap: 8px;
 }
 
+/* LP-01: одинаковый ритм между блоками характеристик */
 .abil-column__list {
   display: grid;
-  gap: 7px;
+  gap: 8px;
 }
 

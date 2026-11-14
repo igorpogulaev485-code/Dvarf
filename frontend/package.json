@@ -58,6 +58,7 @@
     "selfcheck:ux-sc06-phone-scenes": "tsx --tsconfig tsconfig.app.json src/features/characters/uxSc06PhoneScenes.selfcheck.ts",
     "selfcheck:ux-sc07-polish": "tsx --tsconfig tsconfig.app.json src/features/characters/uxSc07Polish.selfcheck.ts",
     "selfcheck:uikit-no-overrides": "tsx --tsconfig tsconfig.app.json src/features/characters/uikitNoPageOverrides.selfcheck.ts",
+    "selfcheck:lp01-left-panel": "tsx --tsconfig tsconfig.app.json src/features/characters/lp01LeftPanel.selfcheck.ts",
     "selfcheck:uikit02-polish": "tsx --tsconfig tsconfig.app.json src/features/lobby/uikit02Polish.selfcheck.ts",
     "selfcheck:m04-create-mobile": "tsx --tsconfig tsconfig.app.json src/features/createPipeline/m04CreateMobile.selfcheck.ts",
     "selfcheck:onboarding-display": "tsx --tsconfig tsconfig.app.json src/features/onboarding/onboardingDisplay.selfcheck.ts",

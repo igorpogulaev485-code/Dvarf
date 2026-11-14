@@ -333,10 +333,51 @@
 }
 
 .onboarding-checklist {
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: 12px;
   border: 1px dashed color-mix(in srgb, var(--accent) 40%, var(--line));
   background: color-mix(in srgb, var(--accent-soft) 55%, #fffdf9);
+}
+
+.onboarding-checklist__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+  text-align: left;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.onboarding-checklist__summary:hover {
+  color: color-mix(in srgb, var(--accent) 82%, var(--ink));
+}
+
+.onboarding-checklist__summary-label {
+  min-width: 0;
+}
+
+.onboarding-checklist__summary-chevron {
+  flex: 0 0 auto;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.onboarding-checklist.is-open .onboarding-checklist__summary {
+  margin-bottom: 4px;
 }
 
 .onboarding-checklist__title {

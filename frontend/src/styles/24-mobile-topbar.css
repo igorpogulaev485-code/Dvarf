@@ -41,8 +41,12 @@
   flex: 1;
   overflow: auto;
   padding: 12px;
-  /* Foot = passives strip + Ownership CTA */
-  padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px));
+  /* Foot = passives + ownership summary (LP-01) */
+  padding-bottom: calc(220px + env(safe-area-inset-bottom, 0px));
+}
+
+.mobile-abil-page__ownership {
+  min-width: 0;
 }
 
 .mobile-abil-page__foot {

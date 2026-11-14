@@ -265,7 +265,9 @@
   position: static;
   padding: 6px 8px;
   border-radius: 10px;
-  box-shadow: 0 -4px 14px rgba(28, 25, 23, 0.05);
+  box-shadow: none;
+  overflow: visible;
+  min-width: 0;
 }
 
 .play-desk__passives-label {
@@ -280,6 +282,57 @@
   font-size: 0.65rem;
   margin-bottom: 4px;
   letter-spacing: 0.04em;
+}
+
+/* LP-01: тёмное зрение рядом с пассивами */
+.darkvision-sense {
+  margin-top: 6px;
+  min-width: 0;
+}
+
+.darkvision-sense__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 6px 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-soft) 40%, white);
+  font: inherit;
+  cursor: pointer;
+  list-style: none;
+  color: var(--ink);
+}
+
+.darkvision-sense__summary::-webkit-details-marker {
+  display: none;
+}
+
+.darkvision-sense__summary:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 60%, white);
+}
+
+.darkvision-sense__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.darkvision-sense__value {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.darkvision-sense__panel {
+  min-width: min(16rem, calc(100vw - 24px));
+  padding: 10px;
 }
 
 .passive-grid--desk {
