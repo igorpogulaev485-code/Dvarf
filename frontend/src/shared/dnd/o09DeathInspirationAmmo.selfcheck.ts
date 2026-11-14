@@ -89,6 +89,20 @@ assert(stabilizePlayPatch().isDying === false, 'stabilize clears dying')
   ]
   assert(ammoKindOfStack(items[0]) === 'arrow', 'stack kind arrow')
   assert(listMatchingAmmoStacks(items, 'arrow').length === 2, 'two arrow stacks')
+  assert(
+    ammoKindOfStack({ id: 'bow', name: 'Короткий лук', qty: 1, catalog_slug: 'shortbow' }) == null,
+    'launcher shortbow is not an ammo stack',
+  )
+  assert(
+    listMatchingAmmoStacks(
+      [
+        ...items,
+        { id: 'bow', name: 'Короткий лук', qty: 1, catalog_slug: 'shortbow' as string | null },
+      ],
+      'arrow',
+    ).length === 2,
+    'bow excluded from arrow stacks',
+  )
 
   const shot = resolveAmmoConsume({
     needsAmmo: true,

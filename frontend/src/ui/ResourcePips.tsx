@@ -57,6 +57,15 @@ export function ResourcePips({
                   ? `Вернуть заряд ${index + 1}`
                   : `Потратить заряд ${index + 1}`
             }
+            title={
+              fillMode === 'available'
+                ? isOn
+                  ? 'Потратить'
+                  : 'Вернуть'
+                : isOn
+                  ? 'Вернуть'
+                  : 'Потратить'
+            }
             onClick={() => {
               if (fillMode === 'available') {
                 if (isOn) onChange(Math.min(max, safeUsed + 1))

@@ -750,7 +750,7 @@ button.spells-settings__derived-stat--btn:hover {
   padding: 4px 8px;
 }
 
-/* SC-01/SC-02: слот «Ещё / Действия хода» на панели атак. */
+/* SC-01/SC-02 / CMB-01: слот «Действия хода» на панели атак. */
 .play-desk-attacks-more {
   margin: 0 0 10px;
   border: 1px solid var(--desk-line, var(--line));
@@ -808,6 +808,10 @@ button.spells-settings__derived-stat--btn:hover {
   list-style: none;
   cursor: pointer;
   user-select: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
   font-size: 0.86rem;
   font-weight: 600;
   color: var(--desk-muted, var(--muted));
@@ -818,9 +822,24 @@ button.spells-settings__derived-stat--btn:hover {
   display: none;
 }
 
+.play-desk-attacks-more__title {
+  color: var(--desk-ink, var(--ink));
+  font-weight: 700;
+}
+
+.play-desk-attacks-more__hint {
+  font-weight: 500;
+  font-size: 0.78rem;
+  color: var(--desk-muted, var(--muted));
+}
+
 .play-desk-attacks-more[open] .play-desk-attacks-more__summary {
   color: var(--desk-ink, var(--ink));
   border-bottom: 1px solid var(--desk-line, var(--line));
+}
+
+.play-desk-attacks-more[open] .play-desk-attacks-more__hint {
+  display: none;
 }
 
 .play-desk-attacks-more__body {

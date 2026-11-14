@@ -541,6 +541,14 @@
   position: relative;
 }
 
+/* CMB-01: while a DetailsMenu is open, kit hover tips must not cover panel fields. */
+.ui-menu[data-menu-open='true'] .onboarding-hover-tip,
+.ui-menu[data-menu-open='true'] .onboarding-hover-tip__card--fixed,
+.ui-menu[open] .onboarding-hover-tip {
+  display: none !important;
+  pointer-events: none !important;
+}
+
 .onboarding-hover-tip {
   display: inline-flex;
   position: relative;

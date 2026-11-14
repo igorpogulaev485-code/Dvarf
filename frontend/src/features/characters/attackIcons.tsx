@@ -76,6 +76,52 @@ export function IconConsumable(props: IconProps) {
   )
 }
 
+/** Attack modifiers — sliders */
+export function IconAttackMods(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path {...stroke} d="M4 7h16" />
+      <path {...stroke} d="M4 12h16" />
+      <path {...stroke} d="M4 17h16" />
+      <circle {...stroke} cx="9" cy="7" r="1.6" fill="currentColor" />
+      <circle {...stroke} cx="15" cy="12" r="1.6" fill="currentColor" />
+      <circle {...stroke} cx="11" cy="17" r="1.6" fill="currentColor" />
+    </Svg>
+  )
+}
+
+/** Take / hold weapon — open hand */
+export function IconWeaponHold(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        {...stroke}
+        d="M8.2 11.2V8.4a1.4 1.4 0 0 1 2.8 0v2.2M11 10.6V7.6a1.4 1.4 0 0 1 2.8 0v3.4M13.8 11V8.2a1.4 1.4 0 0 1 2.8 0V14c0 2.6-1.8 4.6-4.4 4.6h-.4c-2.2 0-3.8-1-4.8-2.6L6.2 14"
+      />
+    </Svg>
+  )
+}
+
+/** Open inventory item — box */
+export function IconWeaponItem(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path {...stroke} d="M4.5 8.2 12 4.5l7.5 3.7v7.6L12 19.5 4.5 15.8z" />
+      <path {...stroke} d="M12 19.5v-7.6" />
+      <path {...stroke} d="M4.5 8.2 12 11.9l7.5-3.7" />
+    </Svg>
+  )
+}
+
+/** Weapon mode toggle — spark */
+export function IconWeaponMode(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path {...stroke} d="M12 3.8 13.6 9.2 19 10.8 13.6 12.4 12 17.8 10.4 12.4 5 10.8 10.4 9.2z" />
+    </Svg>
+  )
+}
+
 const RANGED_HINT =
   /лук|арбалет|метат|дротик|копье|копьё|пращ|выстрел|бросок|javelin|bow|crossbow|dart|sling/i
 

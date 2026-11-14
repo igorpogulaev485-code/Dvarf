@@ -536,9 +536,9 @@
 }
 
 /*
- * UIKIT-02 weapon row: name + bonus + damage read together;
- * kit sm actions clustered; ammo on a second compact line.
- * Narrow pinned-magic column may wrap — never squeeze text.
+ * CMB-01 / UIKIT-02 weapon row: name + attack-roll bonus + damage-roll;
+ * kit icon tools clustered; ammo on a second compact line.
+ * Equal row height; never ellipsis-squeeze name/damage.
  */
 .play-desk-compact__row.is-attack {
   display: grid;
@@ -547,16 +547,27 @@
   align-items: center;
   padding: 4px 6px;
   overflow: visible;
+  min-height: 44px;
+}
+
+/* CMB-01: computed unarmed + improvised — compact pair under weapons */
+.play-desk-compact__row.is-attack.is-kit-attack {
+  background: color-mix(in srgb, var(--desk-card, var(--card)) 92%, var(--desk-accent-soft, var(--accent-soft)));
+}
+
+.play-desk-compact__row.is-attack.is-kit-attack + .play-desk-compact__row.is-attack.is-kit-attack {
+  margin-top: -2px;
 }
 
 .play-desk-compact__row.is-attack .play-desk-compact__hit {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px 8px;
+  align-items: center;
+  gap: 4px 8px;
   padding: 2px 4px;
   grid-column: 1;
   grid-row: 1;
+  min-width: 0;
 }
 
 .play-desk-compact__row.is-attack .play-desk-compact__row-main {
@@ -564,22 +575,90 @@
   min-width: 0;
 }
 
+.play-desk-compact__row.is-attack .play-desk-compact__row-main b {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+/* CMB-01: +N and damage share one rolls cluster — content-sized, not a half-row field. */
+.play-desk-compact__rolls {
+  display: grid;
+  grid-template-columns: 3.25rem max-content;
+  gap: 6px;
+  align-items: center;
+  flex: 0 0 auto;
+  min-width: 0;
+  margin-left: auto;
+}
+
 .play-desk-compact__row.is-attack .play-desk-compact__mod {
   font-variant-numeric: tabular-nums;
   flex: 0 0 auto;
-  min-width: 2.2rem;
-  text-align: right;
+  min-width: 0;
+  text-align: center;
 }
 
 .play-desk-compact__row.is-attack .play-desk-compact__dmg {
-  flex: 1 1 6rem;
+  flex: 0 0 auto;
   min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
-/* U09: click bonus → breakdown (not the attack roll). */
+/* CMB-01: bonus number = attack roll; damage face = damage roll. */
+.play-desk-compact__mod--roll,
+.play-desk-compact__dmg--roll {
+  margin: 0;
+  border: 1px solid var(--desk-line, var(--line));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
+  color: var(--desk-accent, var(--accent));
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  padding: 4px 8px;
+  min-height: 32px;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: 100%;
+}
+
+.play-desk-compact__mod--roll {
+  width: 100%;
+  min-width: 0;
+  text-align: center;
+  border-color: color-mix(
+    in srgb,
+    var(--desk-accent, var(--accent)) 35%,
+    var(--desk-line, var(--line))
+  );
+}
+
+.play-desk-compact__dmg--roll {
+  justify-self: start;
+}
+
+.play-desk-compact__mod--roll:hover,
+.play-desk-compact__mod--roll:focus-visible,
+.play-desk-compact__dmg--roll:hover,
+.play-desk-compact__dmg--roll:focus-visible {
+  outline: none;
+  border-color: color-mix(
+    in srgb,
+    var(--desk-accent, var(--accent)) 55%,
+    var(--desk-line, var(--line))
+  );
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 70%, white);
+}
+
+.play-desk-compact__mod--roll:disabled,
+.play-desk-compact__dmg--roll:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Legacy U09 class kept for any remaining breakdown faces. */
 .play-desk-compact__mod--breakdown {
   cursor: pointer;
   border-radius: 6px;

@@ -481,6 +481,57 @@
   font-size: 0.84rem;
 }
 
+/* CMB-01: 390/768 — no ellipsis on attack name/damage; tools in one row or ⋯ */
+.play-desk--mobile .play-desk-compact__row.is-attack {
+  min-height: 44px;
+}
+
+.play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__row-main b,
+.play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__dmg--roll {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__hit {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__rolls {
+  width: max-content;
+  max-width: 100%;
+  margin-left: 0; /* column stack: left-align +N/dmg for every weapon */
+  grid-template-columns: 3.25rem max-content;
+}
+
+.play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__mod--roll {
+  width: 100%;
+  text-align: center;
+}
+
+.play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__dmg--roll {
+  width: max-content;
+  max-width: min(14rem, 100%);
+  justify-self: start;
+  text-align: center;
+}
+
+.play-desk--mobile .play-desk-compact__holds {
+  flex-wrap: nowrap;
+}
+
+.play-desk--mobile .play-desk-compact__tool--desk {
+  display: none !important;
+}
+
+.play-desk--mobile .play-desk-compact__tool-more {
+  display: inline-block;
+}
+
 /* SC-06: плотный первый экран «Бой» — меньше вертикальных полей до оружия */
 .play-desk--mobile .play-desk__stage {
   gap: 6px;
