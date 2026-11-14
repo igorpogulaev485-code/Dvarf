@@ -174,10 +174,15 @@ assert.match(kitChip, /export function Chip/)
 assert.match(read('src/styles/01-tokens-base.css'), /\.ui-chip__dismiss/)
 
 const vitalsCss = read('src/styles/16-play-desk-header-vitals.css')
-assert.match(
+assert.doesNotMatch(
   vitalsCss,
   /\.play-desk-vital--shield\s*>\s*\.play-desk-vital__icon[\s\S]*?display:\s*none/,
 )
+assert.match(
+  read('src/styles/01-tokens-base.css'),
+  /\.ui-vital\.play-desk-vital--shield|\.play-desk-vital--shield\.ui-vital/,
+)
+assert.match(read('src/styles/01-tokens-base.css'), /\.ui-vital__shield-tog/)
 
 /* UIKIT-02/03: ресурсы+навыки — одна строка + ScrollRow; pip gap 4px */
 const hotCss = read('src/styles/20-pinned-spells.css')
@@ -214,7 +219,13 @@ assert.doesNotMatch(hotBar, /UIKIT-02: имя \+ «N\/M»/)
 
 const deskHeader = read('src/features/characters/PlayDeskHeader.tsx')
 assert.doesNotMatch(deskHeader, /NeedsSetupIndicator/)
-assert.doesNotMatch(deskHeader, /IconShield/)
+assert.match(deskHeader, /IconShield/)
+assert.match(deskHeader, /VitalTile/)
+assert.match(deskHeader, /Класс доспеха/)
+assert.doesNotMatch(
+  deskHeader,
+  /play-desk-vital__label-row">КД</,
+)
 
 const combatOrder = read('src/styles/29-session-enemies-rest.css')
 assert.match(

@@ -8,7 +8,8 @@ import { DetailsMenu } from './DetailsMenu'
 type VitalFace = {
   icon?: ReactNode
   value: ReactNode
-  label: ReactNode
+  /** Caption under the value (e.g. «Скор.»). Omit when children own the foot (e.g. «Щит»). */
+  label?: ReactNode
   children?: ReactNode
   className?: string
   title?: string
@@ -27,10 +28,21 @@ type VitalTileDivProps = HTMLAttributes<HTMLDivElement> &
 
 export type VitalTileProps = VitalTileButtonProps | VitalTileDivProps
 
+function renderLabel(label: ReactNode) {
+  if (label == null || label === false) return null
+  if (typeof label === 'string' || typeof label === 'number') {
+    return (
+      <span className="ui-vital__label play-desk-vital__label-row">{label}</span>
+    )
+  }
+  // Interactive foot (e.g. «Щит» toggle) — no extra span wrapper.
+  return label
+}
+
 /**
  * Kit stat tile — icon above value, caption below (Скор. / Иниц. / БМ).
- * Variants via className: `play-desk-vital--shield`, `--speed`, `--jump`, …
- * Etalon accepted Игорь 14.11.2026.
+ * AC variant: IconShield + number + «Щит» toggle (no «КД» on face; title = Класс доспеха).
+ * Etalon accepted Игорь 14.11.2026 (+ AC icon face 14.11.2026).
  */
 export function VitalTile(props: VitalTileProps) {
   const {
@@ -46,8 +58,8 @@ export function VitalTile(props: VitalTileProps) {
   const body = (
     <>
       {icon}
-      <b>{value}</b>
-      <span className="ui-vital__label play-desk-vital__label-row">{label}</span>
+      <b className="ui-vital__value">{value}</b>
+      {renderLabel(label)}
       {children}
     </>
   )

@@ -568,6 +568,99 @@ a.ui-button--primary {
 }
 
 /*
+ * VitalTile AC — icon / value / «Щит» toggle (no «КД» on face).
+ * Size locked to other vitals (≤48px tall). Title carries «Класс доспеха».
+ */
+.ui-vital.play-desk-vital--shield,
+.play-desk-vital--shield.ui-vital {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0;
+  width: 56px;
+  min-width: 56px;
+  max-width: 56px;
+  height: 48px;
+  min-height: 48px;
+  flex: 0 0 56px;
+  padding: 2px 2px 2px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.ui-vital.play-desk-vital--shield > .play-desk-vital__icon,
+.ui-vital.play-desk-vital--shield > .ui-vital__icon,
+.play-desk-vital--shield.ui-vital > .play-desk-vital__icon {
+  display: block;
+  width: 0.78rem;
+  height: 0.78rem;
+  color: var(--desk-accent, var(--accent));
+  flex-shrink: 0;
+}
+
+.ui-vital.play-desk-vital--shield > b,
+.ui-vital.play-desk-vital--shield > .ui-vital__value {
+  color: var(--desk-accent, var(--accent));
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.ui-vital__shield-tog,
+.play-desk-vital__shield-tog {
+  position: static;
+  left: auto;
+  bottom: auto;
+  transform: none;
+  margin: 1px 0 0;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--desk-line, var(--line));
+  background: color-mix(in srgb, var(--desk-chip, #e7e1d4) 40%, white);
+  border-radius: 999px;
+  padding: 0 5px;
+  font: inherit;
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  line-height: 1.15;
+  color: var(--desk-muted, var(--muted));
+  cursor: pointer;
+  max-width: calc(100% - 2px);
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.ui-vital__shield-tog:hover:not(:disabled),
+.play-desk-vital__shield-tog:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--desk-accent, var(--accent)) 40%, var(--desk-line, var(--line)));
+  color: var(--desk-ink, var(--ink));
+}
+
+.ui-vital__shield-tog.is-on,
+.play-desk-vital__shield-tog.is-on {
+  background: var(--desk-accent, var(--accent));
+  border-color: var(--desk-accent, var(--accent));
+  color: #fff;
+}
+
+.ui-vital__shield-tog.is-empty,
+.ui-vital__shield-tog:disabled,
+.play-desk-vital__shield-tog.is-empty,
+.play-desk-vital__shield-tog:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.play-desk-vital--shield.is-shield-on {
+  border-color: var(--desk-accent, var(--accent));
+}
+
+/*
  * VitalTileMenu — compact vital face (icon / value / label) + corner +N,
  * opens kit DetailsMenu. Phone speed: alts in badge, full list in panel.
  */

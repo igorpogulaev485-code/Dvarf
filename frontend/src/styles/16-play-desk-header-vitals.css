@@ -282,83 +282,11 @@ button.play-desk-vital:hover,
   margin: 0;
 }
 
-.play-desk-vital--shield b {
-  color: var(--desk-accent);
-}
-
-/*
- * UIKIT-02: текстовая подпись-кнопка «Щит» под числом/КД
- * (как до UIKIT-01), без круглой иконки в углу и без наезда на «КД».
- */
+/* AC face (icon / value / «Щит») — kit tokens in 01-tokens-base.css */
 .play-desk-vital--shield {
-  position: relative;
-  width: 56px;
-  min-width: 56px;
-  max-width: 56px;
-  flex-basis: 56px;
-  height: 48px;
-  min-height: 48px;
-  padding: 4px 2px 14px;
-  gap: 0;
   align-self: center;
-  overflow: hidden;
-  isolation: isolate;
   background: var(--card, #fff);
   box-shadow: none;
-}
-
-/* UIKIT-02: без IconShield — кружок вылезал над «19 КД»; «Щит» текстом */
-.play-desk-vital--shield > .play-desk-vital__icon,
-.play-desk-vital--shield::before,
-.play-desk-vital--shield::after {
-  display: none !important;
-  content: none !important;
-}
-
-.play-desk-vital__shield-tog {
-  position: absolute;
-  left: 50%;
-  bottom: 1px;
-  transform: translateX(-50%);
-  margin: 0;
-  width: auto;
-  height: auto;
-  min-height: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--desk-line);
-  background: color-mix(in srgb, var(--desk-chip, #e7e1d4) 40%, white);
-  border-radius: 999px;
-  padding: 0 5px;
-  font: inherit;
-  font-size: 0.52rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: none;
-  line-height: 1.15;
-  color: var(--desk-muted);
-  cursor: pointer;
-  max-width: calc(100% - 2px);
-  white-space: nowrap;
-  z-index: 1;
-}
-
-.play-desk-vital__shield-tog:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--desk-accent) 40%, var(--desk-line));
-  color: var(--desk-ink, var(--ink));
-}
-
-.play-desk-vital__shield-tog.is-on {
-  background: var(--desk-accent);
-  border-color: var(--desk-accent);
-  color: #fff;
-}
-
-.play-desk-vital__shield-tog.is-empty,
-.play-desk-vital__shield-tog:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 /* speed/jump use the same 64×64 StatTile size as other vitals */

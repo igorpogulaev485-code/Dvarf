@@ -36,6 +36,7 @@ import {
   ChipStack,
   ClassChipRow,
   NumberPadDialog,
+  VitalTile,
   XpTrack,
 } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
@@ -53,6 +54,7 @@ import {
   IconCoin,
   IconJump,
   IconRest,
+  IconShield,
   IconSkull,
   IconSpark,
 } from './deskIcons'
@@ -528,8 +530,39 @@ export function PlayDeskHeader({
 
       <div className="play-desk-header__mid">
         <div className="play-desk-header__vitals" data-onboarding="combat-vitals">
-          <div
-            className={`play-desk-vital play-desk-vital--shield${
+          <VitalTile
+            as="div"
+            icon={<IconShield className="play-desk-vital__icon" />}
+            value={autoAc}
+            label={
+              onToggleShield ? (
+                <button
+                  type="button"
+                  className={`ui-vital__shield-tog play-desk-vital__shield-tog${
+                    shieldInHand ? ' is-on' : ''
+                  }${shieldAvailable || shieldInHand ? '' : ' is-empty'}`}
+                  aria-pressed={shieldInHand}
+                  aria-label={
+                    shieldInHand ? 'Убрать щит из руки' : 'Взять щит в руку'
+                  }
+                  title={
+                    shieldInHand
+                      ? 'Щит в руке — нажми, чтобы убрать (КД −бонус щита)'
+                      : shieldAvailable
+                        ? 'Взять щит в руку — КД с бонусом щита'
+                        : 'Нет щита в инвентаре'
+                  }
+                  disabled={!shieldAvailable && !shieldInHand}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onToggleShield()
+                  }}
+                >
+                  Щит
+                </button>
+              ) : undefined
+            }
+            className={`play-desk-vital--shield${
               shieldInHand ? ' is-shield-on' : ''
             }${onOpenAc ? ' play-desk-vital--clickable' : ''}${
               showValueTips ? ' has-onboarding-tip' : ''
@@ -538,15 +571,15 @@ export function PlayDeskHeader({
               showValueTips
                 ? undefined
                 : onOpenAc
-                  ? `${acHint}. Нажми, чтобы открыть разборку КД и бонусы`
-                  : acHint
+                  ? `Класс доспеха ${autoAc}. ${acHint}. Нажми — разборка и бонусы`
+                  : `Класс доспеха ${autoAc}. ${acHint}`
             }
             role={onOpenAc ? 'button' : undefined}
             tabIndex={onOpenAc ? 0 : undefined}
             aria-label={
               onOpenAc
-                ? `Класс защиты ${autoAc}. Открыть разборку`
-                : `Класс защиты ${autoAc}`
+                ? `Класс доспеха ${autoAc}. Открыть разборку`
+                : `Класс доспеха ${autoAc}`
             }
             onClick={() => onOpenAc?.()}
             onKeyDown={(event) => {
@@ -556,36 +589,8 @@ export function PlayDeskHeader({
               onOpenAc()
             }}
           >
-            <b>{autoAc}</b>
-            <span className="play-desk-vital__label-row">КД</span>
-            {onToggleShield ? (
-              <button
-                type="button"
-                className={`play-desk-vital__shield-tog${
-                  shieldInHand ? ' is-on' : ''
-                }${shieldAvailable || shieldInHand ? '' : ' is-empty'}`}
-                aria-pressed={shieldInHand}
-                aria-label={
-                  shieldInHand ? 'Убрать щит из руки' : 'Взять щит в руку'
-                }
-                title={
-                  shieldInHand
-                    ? 'Щит в руке — нажми, чтобы убрать (КД −бонус щита)'
-                    : shieldAvailable
-                      ? 'Взять щит в руку — КД с бонусом щита'
-                      : 'Нет щита в инвентаре'
-                }
-                disabled={!shieldAvailable && !shieldInHand}
-                onClick={(event) => {
-                  event.stopPropagation()
-                  onToggleShield()
-                }}
-              >
-                Щит
-              </button>
-            ) : null}
             {showValueTips ? <HoverTipCard tip={VITAL_TIPS.ac} /> : null}
-          </div>
+          </VitalTile>
           {onOpenSpeed ? (
             <button
               type="button"

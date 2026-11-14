@@ -3,7 +3,7 @@
  * Не для продакшен-навигации (маршрут только в import.meta.env.DEV).
  */
 import { useState } from 'react'
-import { IconCoin, IconRest } from '../features/characters/deskIcons'
+import { IconCoin, IconRest, IconShield } from '../features/characters/deskIcons'
 import {
   Chip,
   ChipStack,
@@ -150,12 +150,16 @@ export function UiKitEtalonPreviewPage() {
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <VitalTile
               as="div"
+              icon={<IconShield className="play-desk-vital__icon" />}
               value={21}
-              label="КД"
-              className="play-desk-vital play-desk-vital--shield is-shield-on"
-            >
-              <span className="play-desk-vital__shield-tog is-on">Щит</span>
-            </VitalTile>
+              label={
+                <span className="ui-vital__shield-tog play-desk-vital__shield-tog is-on">
+                  Щит
+                </span>
+              }
+              className="play-desk-vital--shield is-shield-on"
+              title="Класс доспеха 21"
+            />
             <VitalTile
               as="div"
               value={17}

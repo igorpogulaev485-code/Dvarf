@@ -147,13 +147,18 @@
   overflow: hidden;
 }
 
-.mobile-vitals__chip--ac {
-  min-height: 58px;
-  padding-bottom: 4px;
-  gap: 4px;
+/* AC + speed: kit tiles stretch into mobile vitals grid cells */
+.mobile-vitals__row > .mobile-vitals__ac.play-desk-vital--shield {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  flex: none;
+  height: auto;
+  min-height: 48px;
+  align-self: stretch;
+  box-sizing: border-box;
 }
 
-/* Speed: kit VitalTileMenu (same tile height as jump; alts → +N + DetailsMenu) */
 .mobile-vitals__row > .mobile-vitals__speed {
   min-width: 0;
   width: 100%;
@@ -163,27 +168,6 @@
 .mobile-vitals__row > .mobile-vitals__speed > .ui-vital-menu__summary {
   min-height: 48px;
   height: 100%;
-}
-
-.mobile-vitals__chip--ac.is-shield-on {
-  border-color: var(--accent);
-}
-
-.mobile-vitals__chip-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  padding: 0;
-  cursor: pointer;
-}
-
-.mobile-vitals__chip-main:disabled {
-  cursor: default;
 }
 
 .mobile-vitals__chip--btn {
@@ -197,31 +181,6 @@
 .mobile-vitals__chip.is-tap:active,
 .mobile-vitals__chip--btn.is-tap:active {
   background: var(--accent-soft);
-}
-
-.mobile-vitals__shield-tog {
-  min-height: 28px;
-  min-width: 44px;
-  padding: 2px 8px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--panel);
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.68rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.mobile-vitals__shield-tog.is-on {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-.mobile-vitals__shield-tog.is-empty:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 .mobile-vitals__chip--jump {

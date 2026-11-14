@@ -33,11 +33,18 @@ import {
   exhaustionSpeedFt,
   exhaustionSpeedNote,
 } from '../../shared/dnd/exhaustion2014'
-import { IconBoot, IconCoin, IconJump, IconRest, IconSkull } from './deskIcons'
+import {
+  IconBoot,
+  IconCoin,
+  IconJump,
+  IconRest,
+  IconShield,
+  IconSkull,
+} from './deskIcons'
 import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
 import { absorbDamageWithArcaneWard } from '../../shared/dnd/wizardTradition'
 import type { NeedsSetupItem } from './needsSetup'
-import { VitalTileMenu } from '../../ui'
+import { VitalTile, VitalTileMenu } from '../../ui'
 
 /** v2: M-02 / Q1 defaults to collapsed; old key often stored «0» from M-01 mounts. */
 const COLLAPSE_KEY = 'dvarf.mobileVitals.collapsed.v2'
@@ -527,56 +534,62 @@ export function MobileVitalsBar({
       </div>
 
       <div className="mobile-vitals__row" role="list">
-        <div
-          className={`mobile-vitals__chip mobile-vitals__chip--ac${
-            shieldInHand ? ' is-shield-on' : ''
-          }${onOpenAc ? ' is-tap' : ''}${showValueTips ? ' has-onboarding-tip' : ''}`}
+        <VitalTile
+          as="div"
           role="listitem"
+          icon={<IconShield className="play-desk-vital__icon ui-vital__icon" />}
+          value={ac}
+          label={
+            onToggleShield ? (
+              <button
+                type="button"
+                className={`ui-vital__shield-tog play-desk-vital__shield-tog${
+                  shieldInHand ? ' is-on' : ''
+                }${shieldAvailable || shieldInHand ? '' : ' is-empty'}`}
+                aria-pressed={shieldInHand}
+                aria-label={
+                  shieldInHand ? 'Убрать щит из руки' : 'Взять щит в руку'
+                }
+                title={
+                  shieldInHand
+                    ? 'Щит в руке — убрать'
+                    : shieldAvailable
+                      ? 'Взять щит в руку'
+                      : 'Нет щита в инвентаре'
+                }
+                disabled={!shieldAvailable && !shieldInHand}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onToggleShield()
+                }}
+              >
+                Щит
+              </button>
+            ) : undefined
+          }
+          className={`mobile-vitals__ac play-desk-vital--shield${
+            shieldInHand ? ' is-shield-on' : ''
+          }${onOpenAc ? ' play-desk-vital--clickable' : ''}${
+            showValueTips ? ' has-onboarding-tip' : ''
+          }`}
+          title={
+            showValueTips
+              ? undefined
+              : onOpenAc
+                ? `Класс доспеха ${ac}. Открыть разборку`
+                : acOverride == null
+                  ? `Класс доспеха ${ac}. ${acHint}`
+                  : `Класс доспеха ${ac} (вручную)`
+          }
+          aria-label={
+            onOpenAc
+              ? `Класс доспеха ${ac}. Открыть разборку`
+              : `Класс доспеха ${ac}`
+          }
+          onClick={() => onOpenAc?.()}
         >
-          <button
-            type="button"
-            className="mobile-vitals__chip-main"
-            title={
-              showValueTips
-                ? undefined
-                : onOpenAc
-                  ? `Класс защиты ${ac}. Открыть разборку`
-                  : acOverride == null
-                    ? acHint
-                    : 'вручную'
-            }
-            disabled={!onOpenAc}
-            onClick={() => onOpenAc?.()}
-          >
-            <b>{ac}</b>
-            <span>КД</span>
-          </button>
           {showValueTips ? <HoverTipCard tip={VITAL_TIPS.ac} /> : null}
-          {onToggleShield ? (
-            <button
-              type="button"
-              className={`mobile-vitals__shield-tog${shieldInHand ? ' is-on' : ''}${
-                shieldAvailable || shieldInHand ? '' : ' is-empty'
-              }`}
-              aria-pressed={shieldInHand}
-              aria-label={shieldInHand ? 'Убрать щит из руки' : 'Взять щит в руку'}
-              title={
-                shieldInHand
-                  ? 'Щит в руке — убрать'
-                  : shieldAvailable
-                    ? 'Взять щит в руку'
-                    : 'Нет щита в инвентаре'
-              }
-              disabled={!shieldAvailable && !shieldInHand}
-              onClick={(event) => {
-                event.stopPropagation()
-                onToggleShield()
-              }}
-            >
-              щит
-            </button>
-          ) : null}
-        </div>
+        </VitalTile>
         <VitalTileMenu
           className="mobile-vitals__speed"
           role="listitem"
