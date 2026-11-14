@@ -242,7 +242,7 @@ Live-эталоны в продукте (уже близки к киту): Inven
 | Быстрый выбор | sheet-chips toggle on/off |
 | Истощение | уровни 1–6 + текст отыгрыша стадии |
 | Icons | `IconConditions` / `IconExhaustion` (`deskIcons.tsx`) |
-| Hot chip | `is-on`, когда есть состояния / истощение |
+| Hot chip | `is-on`, когда есть состояния / истощение; **фиксированная ширина** (`--states`), чипы что влезают + «+N» (только скрытые); клик / «+N» → тот же диалог |
 
 ## 2f. Исследование / инвентарь — LOCK
 
@@ -442,11 +442,11 @@ LOCK-доски §2b–2l не переписываем; меняется пор
 | `Input` / `NumberInput` | `size`, `narrow`, классы `ui-input--sm/md/lg`, `--narrow`, `--touch`, `--title`, `--slot`, `--prep`, `--center` | по киту |
 | `DetailsMenu` | `<details class="ui-menu">` · `__summary` · `__panel` (absolute popover) | summary = lg 44; панель поверх, без reflow тулбара |
 | `Select` | native `<select class="ui-input ui-select ui-input--sm\|md\|lg">` | те же высоты, что Input |
-| `ScrollRow` | `.ui-scroll-row` · `__edge` · `__chevron` | одна строка; стрелки только на scrollable стороне; fade без hit-area (клик — только ‹/›); padding/scroll-padding у hot |
+| `ScrollRow` | `.ui-scroll-row` · `__edge` · `__chevron` | одна строка; стрелки только на scrollable стороне; fade без hit-area (клик — только ‹/›); у hot `padding-inline: 6px` + `scroll-padding` = ширина fade (snap) |
 | `Chip` | `.ui-chip` · `__label` · `__dismiss` · `__tip` | gap label↔× в ките; tip hover / tap |
 | `ResourcePips` | `.ui-resource-pips` / `.play-desk__pips` | квадрат 18px, gap 4px |
 
-**HOT-01 (хот-панель листа):** карточки ресурсов — однострочное имя (ellipsis + `title`), одна высота; «Состояния»/`hot-label` = `0.78rem` как имена ресурсов; один пул класса = одна карточка (`syncFeatureResources` + `collapseSameClassPools`).
+**HOT-01 (хот-панель листа):** карточки ресурсов — однострочное имя (ellipsis + `title`), одна высота; «Состояния»/`hot-label` = `0.78rem` как имена ресурсов; «Состояния» — фикс. ширина + чипы/`+N` (паттерн clamp как ClassChipRow/эффекты), клик → `HotConditionsDialog`; один пул класса = одна карточка (`syncFeatureResources` + `collapseSameClassPools`).
 
 **Запрет:** в стилях страниц/фич нельзя писать `.something .ui-button { min-height/padding/font-size… }`. Нужен вариант — добавь в кит, на экране выбери пропом. Selfcheck: `npm run selfcheck:uikit-no-overrides`.
 

@@ -332,9 +332,13 @@ def main() -> None:
             "initiative": 4,
             "ac": None,
         },
+        # HOT-01: 5 states → fixed-width card shows chips + «+N»
         conditions=[
+            {"slug": "blinded", "name": "Ослеплённый", "catalog_id": None},
             {"slug": "poisoned", "name": "Отравленный", "catalog_id": None},
             {"slug": "frightened", "name": "Испуганный", "catalog_id": None},
+            {"slug": "grappled", "name": "Схваченный", "catalog_id": None},
+            {"slug": "prone", "name": "Сбит с ног", "catalog_id": None},
         ],
         concentration={"name": "Щит веры", "spell_id": "shield_of_faith"},
         effects=MAX_EFFECTS,

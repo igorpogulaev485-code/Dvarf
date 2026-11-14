@@ -25,9 +25,10 @@
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
-  /* HOT-01: inset so edge fade/‹› never covers first/last pips at start/end */
-  padding-inline: 40px;
+  /* HOT-01: small edge pad; scroll-padding used by JS snapScrollLeft (fade clearance).
+   * Snap is JS-driven — CSS snap fights end pull-back for fade. */
+  scroll-snap-type: none;
+  padding-inline: 6px;
   scroll-padding-inline: 40px;
 }
 
@@ -113,6 +114,82 @@
   background: var(--desk-accent-soft);
   border-color: var(--desk-line);
   color: var(--desk-ink);
+}
+
+/* HOT-01: «Состояния» — fixed width (no grow from chip count); chips + +N */
+.play-desk__hot-wrap .play-desk__hot-item--states,
+.ui-scroll-row.play-desk__hot-wrap > .play-desk__hot > .play-desk__hot-item--states {
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 11.5rem;
+  min-width: 11.5rem;
+  max-width: 11.5rem;
+  display: grid;
+  gap: 4px;
+  padding: 6px 8px;
+  align-content: start;
+  min-height: 52px;
+  text-align: left;
+  color: var(--desk-ink);
+  background: var(--desk-accent-soft);
+  border-color: var(--desk-line);
+}
+
+.play-desk__hot-cond-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.play-desk__hot-cond-chip {
+  flex: 0 0 auto;
+  max-width: 7.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-sizing: border-box;
+  min-height: 22px;
+  padding: 1px 7px;
+  border: 1px solid var(--desk-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--desk-ink);
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.play-desk__hot-cond-more {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 1px 8px;
+  border: 1px solid var(--desk-line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--desk-accent-soft) 70%, white);
+  color: var(--desk-ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.play-desk__hot-cond-measure {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: var(--play-desk-hot-cond-measure-w, 11.5rem);
 }
 
 .play-desk__hot-icon {

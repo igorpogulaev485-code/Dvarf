@@ -2,7 +2,7 @@
  * HOT-01: pair screenshots of real Play Desk hot bar (cleric / loaded).
  * Requires API + vite + seed_uikit03_hot_chars.py.
  */
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { chromium } from 'playwright'
 
 const ART = '/opt/cursor/artifacts'
@@ -10,6 +10,7 @@ const DARRACK = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1'
 const TORBIN = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2'
 const WIDTHS = [1920, 1440, 1280, 1024, 768, 390]
 const HDR_WIDTHS = [1440, 1024, 390]
+const ITEM_SEL = ':scope > .play-desk__hot-item, :scope > .play-desk__hot-more'
 
 mkdirSync(ART, { recursive: true })
 
@@ -27,7 +28,6 @@ async function login(page) {
     localStorage.setItem('dvarf.access_token', a)
     localStorage.setItem('dvarf.refresh_token', r)
     localStorage.setItem('dvarf.mobileVitals.collapsed.v2', '0')
-    // Skip onboarding welcome so the real Play Desk is visible
     localStorage.setItem(
       'creed20.onboarding.v1',
       JSON.stringify({
@@ -59,7 +59,14 @@ async function dismissOnboarding(page) {
     await page.waitForTimeout(300)
   }
   await page.evaluate(() => {
-    document.querySelectorAll('[data-onboarding], .onboarding-modal, .coachmark, .welcome-card').forEach((el) => {
+    document
+      .querySelectorAll('[data-onboarding], .onboarding-modal, .coachmark, .welcome-card')
+      .forEach((el) => {
+        if (el instanceof HTMLElement && !el.closest?.('.play-desk__top, .play-desk__mobile-chrome, .mobile-vitals')) {
+          /* keep combat-header anchors visible */
+        }
+      })
+    document.querySelectorAll('.onboarding-modal, .coachmark, .welcome-card').forEach((el) => {
       if (el instanceof HTMLElement) el.style.display = 'none'
     })
   })
@@ -73,20 +80,40 @@ async function openSheet(page, id) {
   await page.waitForTimeout(900)
   await dismissOnboarding(page)
   await page.evaluate(() => {
-    document.querySelectorAll('details[open]').forEach((d) => d.removeAttribute('open'))
-    document.querySelectorAll('.ui-chip.is-tip-open').forEach((el) => el.classList.remove('is-tip-open'))
+    document.querySelectorAll('details[open]').forEach((d) => {
+      if (!d.closest('.play-desk__top, .play-desk__mobile-chrome')) {
+        d.removeAttribute('open')
+      }
+    })
+    document
+      .querySelectorAll('.ui-chip.is-tip-open')
+      .forEach((el) => el.classList.remove('is-tip-open'))
   })
-  const expand = page.locator('button[aria-expanded="false"]').filter({ hasText: /Развер|Основн/i })
-  if (await expand.count()) await expand.first().click().catch(() => {})
-  await page.waitForTimeout(250)
-  await page.waitForSelector('.play-desk__hot-wrap .play-desk__hot, .play-desk__hot', {
-    timeout: 20_000,
-  })
+  const expand = page.getByRole('button', { name: /Развернуть шапку/i })
+  if (await expand.count()) {
+    await expand.first().click().catch(() => {})
+    await page.waitForTimeout(250)
+  }
+  await page.waitForSelector('.play-desk__hot-wrap', { timeout: 20_000 })
+  // Wait until desk chrome has a real box (desktop top / mobile vitals).
+  await page.waitForFunction(() => {
+    const desk = document.querySelector('.play-desk')
+    if (!desk) return false
+    const wide = desk.classList.contains('play-desk--wide')
+    const el = wide
+      ? document.querySelector('.play-desk__top')
+      : document.querySelector('.play-desk__mobile-chrome, .mobile-vitals')
+    if (!el) return false
+    const r = el.getBoundingClientRect()
+    const cs = getComputedStyle(el)
+    return cs.display !== 'none' && r.width > 80 && r.height > 40
+  }, { timeout: 15_000 }).catch(() => {})
 }
 
 async function hotProbe(page) {
-  return page.evaluate(() => {
-    const hot = document.querySelector('.play-desk__hot-wrap .play-desk__hot, .play-desk__hot')
+  return page.evaluate((itemSel) => {
+    const wrap = document.querySelector('.play-desk__hot-wrap')
+    const hot = wrap?.querySelector('.play-desk__hot') || document.querySelector('.play-desk__hot')
     if (!hot) return { error: 'no hot' }
     const names = [...hot.querySelectorAll('.play-desk__hot-res-name')].map((el) =>
       (el.textContent || '').trim(),
@@ -96,47 +123,159 @@ async function hotProbe(page) {
       return acc
     }, {})
     const dups = Object.entries(counts).filter(([, c]) => c > 1)
-    const label = hot.querySelector('.play-desk__hot-label')
-    const labelFs = label ? getComputedStyle(label).fontSize : null
-    const resName = hot.querySelector('.play-desk__hot-res-name')
-    const resFs = resName ? getComputedStyle(resName).fontSize : null
-    const resFw = resName ? getComputedStyle(resName).fontWeight : null
-    const heights = [...hot.querySelectorAll('.play-desk__hot-item--res')].map((el) =>
-      Math.round(el.getBoundingClientRect().height),
-    )
+    const first = hot.querySelector(itemSel)
+    const hotBox = hot.getBoundingClientRect()
+    const firstLeft = first
+      ? Math.round(first.getBoundingClientRect().left - hotBox.left)
+      : null
+    const states = hot.querySelector('.play-desk__hot-item--states')
+    const statesW = states ? Math.round(states.getBoundingClientRect().width) : null
+    const more = states?.querySelector('.play-desk__hot-cond-more')
+    const leftEdge = wrap?.querySelector('.ui-scroll-row__edge--left')
+    const leftEdgeW = leftEdge ? leftEdge.getBoundingClientRect().width : 0
+    let leftmostFullRes = null
+    const fadeRight = hotBox.left + leftEdgeW
+    for (const el of hot.querySelectorAll('.play-desk__hot-item--res')) {
+      const r = el.getBoundingClientRect()
+      if (r.left >= fadeRight - 1 && r.right <= hotBox.right + 1) {
+        leftmostFullRes = {
+          name: (el.querySelector('.play-desk__hot-res-name')?.textContent || '').trim(),
+          left: Math.round(r.left - hotBox.left),
+          clearOfFade: r.left >= fadeRight - 1,
+        }
+        break
+      }
+    }
     return {
       names,
       dups,
-      labelFs,
-      resFs,
-      resFw,
-      heights,
+      firstLeft,
+      padL: getComputedStyle(hot).paddingLeft,
+      scrollPad: getComputedStyle(hot).scrollPaddingInlineStart,
+      leftEdgeW: Math.round(leftEdgeW),
+      leftmostFullRes,
+      statesW,
+      moreText: more ? (more.textContent || '').trim() : null,
+      scrollLeft: Math.round(hot.scrollLeft),
       scrollWidth: hot.scrollWidth,
       clientWidth: hot.clientWidth,
     }
-  })
+  }, ITEM_SEL)
 }
 
+/** Mirror of snapScrollLeft(..., 'end') / start for capture. */
 async function scrollHot(page, toEnd) {
-  await page.evaluate((end) => {
-    const hot = document.querySelector('.play-desk__hot-wrap .play-desk__hot, .play-desk__hot')
-    if (!hot) return
-    hot.scrollLeft = end ? hot.scrollWidth : 0
-    hot.dispatchEvent(new Event('scroll'))
-  }, toEnd)
+  await page.evaluate(
+    ({ end, itemSel }) => {
+      const hot =
+        document.querySelector('.play-desk__hot-wrap .play-desk__hot') ||
+        document.querySelector('.play-desk__hot')
+      if (!hot) return
+      const items = Array.from(hot.querySelectorAll(itemSel))
+      const pad = Number.parseFloat(getComputedStyle(hot).scrollPaddingInlineStart || '0') || 0
+      const max = Math.max(0, hot.scrollWidth - hot.clientWidth)
+      if (!end) {
+        hot.scrollLeft = 0
+        hot.dispatchEvent(new Event('scroll'))
+        return
+      }
+      let best = max
+      const viewLeft = max
+      const fadeEnd = max + pad
+      for (const item of items) {
+        const left = item.offsetLeft
+        const right = left + item.offsetWidth
+        if (right <= viewLeft + 1) continue
+        const pastFade = Math.max(0, right - fadeEnd)
+        const mostlyVisible =
+          pastFade >= Math.min(pad, Math.floor(item.offsetWidth * 0.4))
+        if (!mostlyVisible) continue
+        if (left < fadeEnd - 1) {
+          const target = Math.max(0, Math.min(max, left - pad - 8))
+          const last = items[items.length - 1]
+          const lastRight = last.offsetLeft + last.offsetWidth - target
+          if (lastRight <= hot.clientWidth + 24) best = target
+        }
+        break
+      }
+      if (best < max) {
+        hot.scrollLeft = best
+      } else {
+        const last = items[items.length - 1]
+        let snapped = best
+        let snappedDist = Infinity
+        const candidates = items
+          .map((item) => item.offsetLeft - pad)
+          .filter((sl) => sl >= -0.5 && sl <= max + 0.5)
+          .map((sl) => Math.max(0, Math.min(max, sl)))
+        for (const sl of candidates) {
+          if (!last) break
+          const lastRight = last.offsetLeft + last.offsetWidth - sl
+          if (lastRight > hot.clientWidth - 6 + 8) continue
+          const d = Math.abs(sl - best)
+          if (d < snappedDist) {
+            snappedDist = d
+            snapped = sl
+          }
+        }
+        hot.scrollLeft = snapped
+      }
+      hot.dispatchEvent(new Event('scroll'))
+    },
+    { end: toEnd, itemSel: ITEM_SEL },
+  )
+  // Let ScrollRow settleSnap run, then re-apply end snap (settle may race).
   await page.waitForTimeout(200)
+  if (toEnd) {
+    await page.evaluate(
+      ({ itemSel }) => {
+        const hot =
+          document.querySelector('.play-desk__hot-wrap .play-desk__hot') ||
+          document.querySelector('.play-desk__hot')
+        if (!hot) return
+        const items = Array.from(hot.querySelectorAll(itemSel))
+        const pad =
+          Number.parseFloat(getComputedStyle(hot).scrollPaddingInlineStart || '0') ||
+          0
+        const max = Math.max(0, hot.scrollWidth - hot.clientWidth)
+        const viewLeft = max
+        const fadeEnd = max + pad
+        let best = max
+        for (const item of items) {
+          const left = item.offsetLeft
+          const right = left + item.offsetWidth
+          if (right <= viewLeft + 1) continue
+          const pastFade = Math.max(0, right - fadeEnd)
+          const mostlyVisible =
+            pastFade >= Math.min(pad, Math.floor(item.offsetWidth * 0.4))
+          if (!mostlyVisible) continue
+          if (left < fadeEnd - 1) {
+            const target = Math.max(0, Math.min(max, left - pad - 8))
+            const last = items[items.length - 1]
+            const lastRight = last.offsetLeft + last.offsetWidth - target
+            if (lastRight <= hot.clientWidth + 24) best = target
+          }
+          break
+        }
+        hot.scrollLeft = best
+        hot.dispatchEvent(new Event('scroll'))
+      },
+      { itemSel: ITEM_SEL },
+    )
+    await page.waitForTimeout(120)
+  }
 }
 
 async function shotHotCrop(page, path) {
   const box = await page.evaluate(() => {
-    const wrap = document.querySelector('.play-desk__hot-wrap') || document.querySelector('.play-desk__hot')
+    const wrap = document.querySelector('.ui-scroll-row.play-desk__hot-wrap, .play-desk__hot-wrap')
     if (!wrap) return null
     const r = wrap.getBoundingClientRect()
     return {
-      x: Math.max(0, r.x - 8),
-      y: Math.max(0, r.y - 8),
-      width: Math.min(window.innerWidth - 4, r.width + 16),
-      height: Math.min(220, r.height + 24),
+      x: Math.max(0, Math.round(r.x)),
+      y: Math.max(0, Math.round(r.y)),
+      width: Math.max(1, Math.min(window.innerWidth - 2, Math.round(r.width))),
+      height: Math.max(1, Math.round(r.height)),
     }
   })
   if (!box) throw new Error('no hot box')
@@ -146,33 +285,73 @@ async function shotHotCrop(page, path) {
 async function shotHeader(page, path) {
   const box = await page.evaluate(() => {
     const desk = document.querySelector('.play-desk')
-    const wide = desk?.classList.contains('play-desk--wide')
-    const root =
-      document.querySelector(wide ? '.play-desk__top' : '.play-desk__mobile-chrome') ||
-      document.querySelector('.play-desk__top') ||
-      document.querySelector('.mobile-vitals') ||
-      document.querySelector('.play-desk')
+    if (!desk) return null
+    const wide = desk.classList.contains('play-desk--wide')
+    let root = wide
+      ? document.querySelector('.play-desk__top')
+      : document.querySelector('.play-desk__mobile-chrome')
+    if (!root) root = document.querySelector('.play-desk__top, .mobile-vitals')
     if (!root) return null
+    const cs = getComputedStyle(root)
+    if (cs.display === 'none') return null
     const r = root.getBoundingClientRect()
-    const width = Math.max(1, Math.min(window.innerWidth - 2, Math.round(r.width) || window.innerWidth - 2))
-    const height = Math.max(1, Math.min(window.innerHeight - 4, Math.round(r.height + 8) || 200))
+    if (r.width < 80 || r.height < 40) return null
+    // Cap mobile chrome height so effects strip doesn't dominate, but keep vitals.
+    const maxH = wide ? Math.round(r.height) : Math.min(Math.round(r.height), 420)
     return {
       x: Math.max(0, Math.round(r.x)),
       y: Math.max(0, Math.round(r.y)),
-      width,
-      height,
+      width: Math.max(80, Math.round(r.width)),
+      height: Math.max(40, maxH),
     }
   })
-  if (!box || box.width < 2 || box.height < 2) {
-    await page.screenshot({ path, fullPage: false })
-    return
-  }
+  if (!box) throw new Error('bad header box')
   await page.screenshot({ path, clip: box })
 }
 
-async function composePair(page, w, state, clericPath, loadPath, outPath) {
-  // Use sharp if available; else stack via canvas in page
-  await page.setViewportSize({ width: Math.max(w, 400), height: 900 })
+async function shotStatesPopover(page, path) {
+  // Open HotConditionsDialog via states card / empty states button.
+  const btn = page.locator(
+    '.play-desk__hot-item--states, .play-desk__hot-item--empty-row',
+  ).first()
+  await btn.click()
+  await page.waitForSelector('[role="dialog"], .ui-dialog, .hot-conditions', {
+    timeout: 8000,
+  })
+  await page.waitForTimeout(350)
+  const box = await page.evaluate(() => {
+    const dlg =
+      document.querySelector('[role="dialog"]') ||
+      document.querySelector('.ui-dialog') ||
+      document.querySelector('.hot-conditions')
+    if (!dlg) return null
+    const r = dlg.getBoundingClientRect()
+    // Include a bit of surrounding desk for context
+    const pad = 12
+    return {
+      x: Math.max(0, Math.round(r.x - pad)),
+      y: Math.max(0, Math.round(r.y - pad)),
+      width: Math.min(
+        window.innerWidth - 4,
+        Math.max(200, Math.round(r.width + pad * 2)),
+      ),
+      height: Math.min(
+        window.innerHeight - 4,
+        Math.max(160, Math.round(r.height + pad * 2)),
+      ),
+    }
+  })
+  if (!box) throw new Error('no states dialog')
+  await page.screenshot({ path, clip: box })
+  // Close dialog
+  const close = page.getByRole('button', { name: /Закрыть|Отмена|Close/i })
+  if (await close.count()) await close.first().click().catch(() => {})
+  else await page.keyboard.press('Escape')
+  await page.waitForTimeout(200)
+}
+
+async function composePair(page, w, clericPath, loadPath, outPath) {
+  await page.setViewportSize({ width: Math.max(w, 400), height: 1000 })
   const stacked = await page.evaluate(
     async ({ a, b, labelA, labelB }) => {
       async function load(src) {
@@ -201,14 +380,13 @@ async function composePair(page, w, state, clericPath, loadPath, outPath) {
       return canvas.toDataURL('image/png')
     },
     {
-      a: `data:image/png;base64,${(await import('node:fs')).readFileSync(clericPath).toString('base64')}`,
-      b: `data:image/png;base64,${(await import('node:fs')).readFileSync(loadPath).toString('base64')}`,
+      a: `data:image/png;base64,${readFileSync(clericPath).toString('base64')}`,
+      b: `data:image/png;base64,${readFileSync(loadPath).toString('base64')}`,
       labelA: `жрец · ${w}px`,
       labelB: `нагрузка · ${w}px`,
     },
   )
-  const b64 = stacked.replace(/^data:image\/png;base64,/, '')
-  writeFileSync(outPath, Buffer.from(b64, 'base64'))
+  writeFileSync(outPath, Buffer.from(stacked.replace(/^data:image\/png;base64,/, ''), 'base64'))
 }
 
 const report = { probes: {}, files: [] }
@@ -227,14 +405,12 @@ for (const w of WIDTHS) {
   await page.setViewportSize({ width: w, height: h })
 
   for (const state of ['start', 'end']) {
-    // cleric
     await openSheet(page, DARRACK)
     await scrollHot(page, state === 'end')
     const clericProbe = await hotProbe(page)
     const clericTmp = `${ART}/_tmp-cleric-${w}-${state}.png`
     await shotHotCrop(page, clericTmp)
 
-    // loaded
     await openSheet(page, TORBIN)
     await scrollHot(page, state === 'end')
     const loadProbe = await hotProbe(page)
@@ -242,14 +418,14 @@ for (const w of WIDTHS) {
     await shotHotCrop(page, loadTmp)
 
     const out = `${ART}/hotbar-pair-${w}-${state}.png`
-    await composePair(page, w, state, clericTmp, loadTmp, out)
+    await composePair(page, w, clericTmp, loadTmp, out)
     report.files.push(out)
     report.probes[`${w}-${state}`] = { cleric: clericProbe, load: loadProbe }
   }
 }
 
 for (const w of HDR_WIDTHS) {
-  const h = w <= 390 ? 844 : 900
+  const h = w <= 390 ? 844 : 1100
   await page.setViewportSize({ width: w, height: h })
   await openSheet(page, DARRACK)
   const cTmp = `${ART}/_tmp-hdr-cleric-${w}.png`
@@ -258,7 +434,17 @@ for (const w of HDR_WIDTHS) {
   const lTmp = `${ART}/_tmp-hdr-load-${w}.png`
   await shotHeader(page, lTmp)
   const out = `${ART}/hdr-pair-${w}.png`
-  await composePair(page, w, 'hdr', cTmp, lTmp, out)
+  await composePair(page, w, cTmp, lTmp, out)
+  report.files.push(out)
+}
+
+// States dialog shots (Torbin — many conditions)
+for (const w of [390, 1440]) {
+  const h = w <= 390 ? 844 : 1100
+  await page.setViewportSize({ width: w, height: h })
+  await openSheet(page, TORBIN)
+  const out = `${ART}/hotbar-states-popover-${w}.png`
+  await shotStatesPopover(page, out)
   report.files.push(out)
 }
 
