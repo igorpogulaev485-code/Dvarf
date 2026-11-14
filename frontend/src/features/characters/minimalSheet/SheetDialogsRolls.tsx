@@ -5,6 +5,7 @@ import { AbilityBreakdownDialog } from '../AbilityBreakdownDialog'
 import { AcBreakdownDialog } from '../AcBreakdownDialog'
 import { TempHpReplaceDialog } from '../TempHpReplaceDialog'
 import { InitiativeBreakdownDialog } from '../InitiativeBreakdownDialog'
+import { SpeedBreakdownDialog } from '../SpeedBreakdownDialog'
 import { Button, Dialog, Stack, Text } from '../../../ui'
 import { ConsumableSpendPadDialog } from '../ConsumableSpendPadDialog'
 import { syncAttacksHeldFromInventory } from '../AttacksPanel'
@@ -800,6 +801,42 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           )
         }}
         onClose={() => model.setInitiativeBreakdownOpen(false)}
+      />
+
+      <SpeedBreakdownDialog
+        open={Boolean(model.speedBreakdownOpen)}
+        channels={[
+          {
+            target: 'speed',
+            label: 'Ходьба',
+            baseFt: model.displaySpeedAuto ?? model.draft.speed,
+            baseHint: 'раса / класс / снаряжение / эффекты',
+          },
+          {
+            target: 'speed_climb',
+            label: 'Лазание',
+            baseFt: model.draft.climbSpeed,
+            baseHint: 'из расы / листа',
+          },
+          {
+            target: 'speed_swim',
+            label: 'Плавание',
+            baseFt: model.draft.swimSpeed,
+            baseHint: 'из расы / листа',
+          },
+          {
+            target: 'speed_fly',
+            label: 'Полёт',
+            baseFt: model.displayFlySpeedAuto ?? model.draft.flySpeed,
+            baseHint: 'из расы / эффектов',
+          },
+        ]}
+        formulaVars={model.formulaVarsBase}
+        modifiers={model.draft.modifiers}
+        onModifiersChange={(modifiers) =>
+          model.setDraft((prev) => ({ ...prev, modifiers }))
+        }
+        onClose={() => model.setSpeedBreakdownOpen(false)}
       />
 
     </>

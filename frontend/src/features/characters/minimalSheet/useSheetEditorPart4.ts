@@ -326,6 +326,9 @@ export function useSheetEditorPart4(model: SheetModel) {
   const [initiativeBreakdownOpen, setInitiativeBreakdownOpen] = useState(false)
   model.initiativeBreakdownOpen = initiativeBreakdownOpen
   model.setInitiativeBreakdownOpen = setInitiativeBreakdownOpen
+  const [speedBreakdownOpen, setSpeedBreakdownOpen] = useState(false)
+  model.speedBreakdownOpen = speedBreakdownOpen
+  model.setSpeedBreakdownOpen = setSpeedBreakdownOpen
   /** Compact play-desk cast (dialog), not the full spells editor. */
   const [deskCastSpell, setDeskCastSpell] = useState<SheetSpell | null>(null)
   model.deskCastSpell = deskCastSpell

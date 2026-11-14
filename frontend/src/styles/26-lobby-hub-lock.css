@@ -602,8 +602,29 @@
 
 .session-table-grid {
   display: grid;
-  gap: 14px;
-  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  /* Equal-width cells — never stretch a lone card across the row.
+     minmax(0,1fr) so 2-up fits the live-desk center (~320px+). */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 639px) {
+  .session-table-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .session-table-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1600px) {
+  .session-table-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .session-table-card {
@@ -611,8 +632,11 @@
   border-radius: 16px;
   background: var(--card);
   overflow: hidden;
-  /* LV-01: не схлопываться в буквенную полоску в узком центре стола */
-  min-width: min(100%, 240px);
+  /* Allow 2-up in narrow center; stack already has min-width:0 */
+  min-width: 0;
+  width: 100%;
+  height: auto;
+  align-self: start;
 }
 
 .session-table-card__hp {
@@ -821,6 +845,50 @@
   gap: 6px;
   align-items: center;
   width: 100%;
+}
+
+.session-study-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 70%, white);
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.session-study-dc-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.session-study-dc-edit .ui-input,
+.session-study-dc-edit input {
+  width: 3.25rem;
+  min-height: var(--control-h-sm, 32px);
+  padding: 2px 6px;
+}
+
+.session-last-strike {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  color: var(--accent);
+}
+
+.session-attack-outcome {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+  font-weight: 700;
+  color: var(--accent);
 }
 
 .session-table-card__body {

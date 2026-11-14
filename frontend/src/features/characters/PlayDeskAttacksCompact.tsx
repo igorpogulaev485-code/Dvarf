@@ -217,9 +217,12 @@ import {
 import { artifactAttackDamage, artifactRequirementMet, type WeaponAttack } from './AttacksPanel'
 import {
   buildAttackBonusParts,
-  type AttackBonusPart,
 } from './attackBonusBreakdown'
-import { AttackBonusBreakdownDialog } from './AttackBonusBreakdownDialog'
+import { WeaponAttackBreakdownDialog } from './WeaponAttackBreakdownDialog'
+import {
+  weaponManualBonus,
+  type BonusLine,
+} from './modifiers'
 import { shillelaghDamage } from './shillelagh'
 import type { InventoryItem } from './inventory'
 import type { FormulaVars } from '../../shared/dnd/formulas'
@@ -324,6 +327,9 @@ type PlayDeskAttacksCompactProps = {
   onOpenItem?: (itemId: string) => void
   /** Sheet formula vars for the attack-bonus breakdown VariablePicker shell. */
   formulaVars?: FormulaVars
+  /** Sheet modifiers — weapon_hit / weapon_dmg lines edited in breakdown dialog. */
+  modifiers?: BonusLine[]
+  onModifiersChange?: (next: BonusLine[]) => void
   /** When true and no weapons — compact empty (pure caster). */
   preferMagicEmpty?: boolean
   rollMode?: DeskRollMode
@@ -474,6 +480,8 @@ export function PlayDeskAttacksCompact({
   onOpenInventory,
   onOpenItem,
   formulaVars = {},
+  modifiers = [],
+  onModifiersChange,
   preferMagicEmpty = false,
   rollMode = 'normal',
   bonusDice = null,
@@ -734,8 +742,12 @@ export function PlayDeskAttacksCompact({
     [companions, characterLevel, spellMod, proficiencyBonus],
   )
   const [attackBreakdown, setAttackBreakdown] = useState<{
+    attackId: string
     name: string
-    parts: AttackBonusPart[]
+    baseAttack: number
+    attackBaseHint: string
+    baseDamageBonus: number
+    damageDieLabel: string
     inventoryItemId?: string | null
   } | null>(null)
   const [pendingAttack, setPendingAttack] = useState<{
@@ -2377,14 +2389,31 @@ export function PlayDeskAttacksCompact({
             const powerMods = powerAttackModifiers(powerKind)
             const chargerFlat =
               chargerPlus5Next && meleeAttack && !unarmed ? 5 : 0
-            const attackBonus =
+            const manualHit = weaponManualBonus(
+              modifiers,
+              attack.id,
+              'hit',
+              formulaVars,
+            )
+            const manualDmg = weaponManualBonus(
+              modifiers,
+              attack.id,
+              'damage',
+              formulaVars,
+            )
+            const baseAttackBeforeManual =
               mod +
               pbContrib.value +
               magicAtk +
               styleAtk +
               infusionAtk +
-              effectAtk +
-              powerMods.attackDelta
+              effectAtk
+            const attackBonus =
+              baseAttackBeforeManual + manualHit + powerMods.attackDelta
+            const attackBaseHint = attackParts
+              .filter((part) => part.value !== 0)
+              .map((part) => part.label)
+              .join('+')
             const profDiceOn = Boolean(masterRules.dmg_proficiency_dice) && proficient
             const abilityDmgMod =
               twfBonusArmed && meleeAttack && !unarmed
@@ -2393,16 +2422,33 @@ export function PlayDeskAttacksCompact({
                     hasTwoWeaponFightingStyle: hasTwoWeaponStyle,
                   })
                 : mod
-            const dmgBonus =
+            const baseDamageBonusBeforeManual =
               abilityDmgMod +
               (gear?.damageBonus ?? 0) +
               infusionDmg +
               flatFxDamage +
-              powerMods.damageDelta +
               chargerFlat
+            const dmgBonus =
+              baseDamageBonusBeforeManual +
+              manualDmg +
+              powerMods.damageDelta
             const dmg =
               baseDamage +
               (dmgBonus ? `${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
+            const openWeaponMods = () => {
+              setAttackBreakdown({
+                attackId: attack.id,
+                name: attack.name,
+                baseAttack: baseAttackBeforeManual,
+                attackBaseHint: attackBaseHint || 'хар-ка+БМ',
+                baseDamageBonus: baseDamageBonusBeforeManual,
+                damageDieLabel: face.damageType
+                  ? `${baseDamage} ${face.damageType}`
+                  : baseDamage,
+                inventoryItemId: attack.inventory_item_id,
+              })
+            }
+            const hasManualMods = manualHit !== 0 || manualDmg !== 0
             const gwfApplies =
               hasGwfStyle &&
               meleeAttack &&
@@ -2853,12 +2899,27 @@ export function PlayDeskAttacksCompact({
                         Boolean(opts?.physicalDice) || Boolean(turnEco?.diceOnTable)
                       let text = opts?.strikeText ?? ''
                       if (opts?.tableHit) {
-                        const dmg =
+                        text = [
+                          `Атака: ${attack.name}`,
+                          opts.target?.name ? `→ ${opts.target.name}` : null,
+                          'Попадание',
                           opts.damageTotal != null && Number.isFinite(opts.damageTotal)
-                            ? ` · урон ${opts.damageTotal}`
-                            : ''
-                        text = `${attack.name}: попал${dmg} 🎲`
-                      } else if (opts?.tableMiss) text = `${attack.name}: промах 🎲`
+                            ? `${opts.damageTotal} урона`
+                            : null,
+                          '🎲',
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')
+                      } else if (opts?.tableMiss) {
+                        text = [
+                          `Атака: ${attack.name}`,
+                          opts.target?.name ? `→ ${opts.target.name}` : null,
+                          'Промах',
+                          '🎲',
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')
+                      }
                       if (text) onToast?.(text)
                       if (
                         (opts?.tableHit ||
@@ -2907,17 +2968,41 @@ export function PlayDeskAttacksCompact({
                             ? 0
                             : 0)
                       if (characterId && (opts?.hitTotal != null || opts?.manualTotal != null || opts?.tableHit || opts?.tableMiss)) {
+                        const feedTitle = opts?.tableHit
+                          ? [
+                              `Атака: ${attack.name}`,
+                              opts.target?.name ? `→ ${opts.target.name}` : null,
+                              opts.hitTotal != null &&
+                              opts.target?.ac != null
+                                ? `${opts.hitTotal} vs КД ${opts.target.ac}`
+                                : opts.hitTotal != null
+                                  ? String(opts.hitTotal)
+                                  : null,
+                              'Попадание',
+                              opts.damageTotal != null
+                                ? `${opts.damageTotal} урона`
+                                : null,
+                            ]
+                              .filter(Boolean)
+                              .join(' · ')
+                          : opts?.tableMiss
+                            ? [
+                                `Атака: ${attack.name}`,
+                                opts.target?.name ? `→ ${opts.target.name}` : null,
+                                'Промах',
+                              ]
+                                .filter(Boolean)
+                                .join(' · ')
+                            : `Атака: ${attack.name}`
                         void postSheetRollToSession({
                           openSessionId: openSessionId ?? turnEco?.openSessionId,
                           characterId,
-                          title: opts?.tableHit
-                            ? `Атака: ${attack.name} · урон`
-                            : `Атака: ${attack.name}`,
+                          title: feedTitle,
                           total,
                           formula: opts?.formula ?? null,
                           breakdown: opts?.breakdown ?? null,
                           physicalDice: physical,
-                          targetName: opts?.target?.name ?? null,
+                          targetName: null,
                         })
                       }
                       smiteApplyLock.current = false
@@ -3214,77 +3299,53 @@ export function PlayDeskAttacksCompact({
                         {attack.req_ability?.toUpperCase()} {attack.req_score}+
                       </span>
                     ) : null}
+                    {hasManualMods ? (
+                      <span className="play-desk-compact__tag is-on" title="Ручные бонусы оружия">
+                        мод.
+                        {manualHit ? ` ${formatModifier(manualHit)}` : ''}
+                        {manualDmg ? ` урон${formatModifier(manualDmg)}` : ''}
+                      </span>
+                    ) : null}
                   </div>
                   <span
                     role="button"
                     tabIndex={0}
                     className="play-desk-compact__mod play-desk-compact__mod--breakdown"
-                    title="Разбор бонуса атаки"
-                    aria-label={`Бонус атаки ${formatModifier(attackBonus)}, разбор`}
+                    title="Модификаторы атаки и урона"
+                    aria-label={`Бонус атаки ${formatModifier(attackBonus)}, модификаторы`}
                     onClick={(event) => {
                       event.preventDefault()
                       event.stopPropagation()
-                      setAttackBreakdown({
-                        name: attack.name,
-                        parts: attackParts,
-                        inventoryItemId: attack.inventory_item_id,
-                      })
+                      openWeaponMods()
                     }}
                     onKeyDown={(event) => {
                       if (event.key !== 'Enter' && event.key !== ' ') return
                       event.preventDefault()
                       event.stopPropagation()
-                      setAttackBreakdown({
-                        name: attack.name,
-                        parts: attackParts,
-                        inventoryItemId: attack.inventory_item_id,
-                      })
+                      openWeaponMods()
                     }}
                   >
                     {formatModifier(attackBonus)}
                   </span>
                   <span className="play-desk-compact__dmg">{dmgLine}</span>
                 </button>
-                {needsAmmo && onBindAmmo ? (
+                <div className="play-desk-compact__weapon-tools">
                   <div
-                    className="chip-row"
-                    style={{ gridColumn: '1 / -1', marginTop: 4 }}
+                    className="play-desk-compact__holds"
                     role="group"
-                    aria-label={AMMO_BIND_HINT}
+                    aria-label="Действия оружия"
                   >
-                    <span className="sheet-chip is-stub">боеприпас</span>
-                    {listMatchingAmmoStacks(inventoryItems, ammoKind ?? 'arrow').map((stack) => (
-                      <button
-                        key={stack.id}
+                    {onModifiersChange ? (
+                      <Button
                         type="button"
-                        className={`sheet-chip${
-                          attack.ammo_item_id === stack.id ||
-                          (!attack.ammo_item_id && ammoPickAttackId === attack.id)
-                            ? ' is-on'
-                            : ''
-                        }`}
-                        title={AMMO_BIND_HINT}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          onBindAmmo(
-                            attack.id,
-                            attack.ammo_item_id === stack.id ? null : stack.id,
-                          )
-                          setAmmoPickAttackId(null)
-                        }}
+                        size="sm"
+                        variant={hasManualMods ? 'primary' : 'secondary'}
+                        onClick={openWeaponMods}
+                        title="Модификаторы атаки и урона"
                       >
-                        {stack.name} ×{stack.qty}
-                      </button>
-                    ))}
-                    {ammoPickAttackId === attack.id ? (
-                      <span className="sheet-chip is-stub">выберите стопку</span>
+                        мод.
+                      </Button>
                     ) : null}
-                  </div>
-                ) : null}
-                {(onToggleActivation && attack.activation && requirementOk) ||
-                (onToggleHeld && attack.inventory_item_id) ||
-                (onOpenItem && attack.inventory_item_id) ? (
-                  <div className="play-desk-compact__holds" role="group" aria-label="Действия оружия">
                     {onToggleActivation && attack.activation && requirementOk ? (
                       <Button
                         type="button"
@@ -3323,7 +3384,44 @@ export function PlayDeskAttacksCompact({
                       </Button>
                     ) : null}
                   </div>
-                ) : null}
+                  {needsAmmo && onBindAmmo ? (
+                    <div
+                      className="play-desk-compact__ammo"
+                      role="group"
+                      aria-label={AMMO_BIND_HINT}
+                    >
+                      <span className="play-desk-compact__ammo-label">боеприпас</span>
+                      {listMatchingAmmoStacks(inventoryItems, ammoKind ?? 'arrow').map(
+                        (stack) => (
+                          <button
+                            key={stack.id}
+                            type="button"
+                            className={`play-desk-compact__ammo-chip${
+                              attack.ammo_item_id === stack.id ||
+                              (!attack.ammo_item_id && ammoPickAttackId === attack.id)
+                                ? ' is-on'
+                                : ''
+                            }`}
+                            title={AMMO_BIND_HINT}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              onBindAmmo(
+                                attack.id,
+                                attack.ammo_item_id === stack.id ? null : stack.id,
+                              )
+                              setAmmoPickAttackId(null)
+                            }}
+                          >
+                            {stack.name} ×{stack.qty}
+                          </button>
+                        ),
+                      )}
+                      {ammoPickAttackId === attack.id ? (
+                        <span className="play-desk-compact__ammo-hint">выберите стопку</span>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
               </div>
             )
           })
@@ -3401,24 +3499,32 @@ export function PlayDeskAttacksCompact({
         {combatResources.map((row) => {
           const remaining = resourceShownCurrent(row)
           const dice = row.track === 'stock' && row.dice?.length ? ` · ${row.dice.join(', ')}` : ''
+          const canSpend =
+            Boolean(onSpendResource) &&
+            !(row.track !== 'stock' && remaining <= 0) &&
+            !(row.track === 'stock' && remaining <= 0 && !row.activeLabel)
           return (
             <div key={row.id} className="play-desk-compact__row is-dense is-resource">
-              <button
-                type="button"
-                className="play-desk-compact__hit"
-                disabled={!onSpendResource || (row.track !== 'stock' && remaining <= 0) || (row.track === 'stock' && remaining <= 0 && !row.activeLabel)}
-                onClick={() => onSpendResource?.(row.id)}
-              >
-                <div className="play-desk-compact__row-main">
+              <div className="play-desk-compact__resource-row">
+                <div className="play-desk-compact__resource-name">
                   <IconResource className="play-desk-compact__row-icon" />
                   <b>{row.name}</b>
-                  <span className="play-desk-compact__tag">ресурс</span>
                 </div>
-                <span className="play-desk-compact__mod">
-                  {remaining}/{row.max}{dice}
+                <span className="play-desk-compact__tag">ресурс</span>
+                <span className="play-desk-compact__resource-count">
+                  {remaining}/{row.max}
+                  {dice}
                 </span>
-                <span className="play-desk-compact__dmg">потратить</span>
-              </button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  disabled={!canSpend}
+                  onClick={() => onSpendResource?.(row.id)}
+                >
+                  потратить
+                </Button>
+              </div>
             </div>
           )
         })}
@@ -3645,6 +3751,13 @@ export function PlayDeskAttacksCompact({
       filter="foes"
       mobile={isMobile}
       diceOnTable={Boolean(pendingAttack?.tableMode)}
+      rememberKey={openSessionId ?? turnEco?.openSessionId ?? characterId ?? null}
+      attackTotal={pendingAttack?.hitTotal ?? null}
+      attackNatural={pendingAttack?.crit ? 20 : null}
+      showTargetAc={Boolean(
+        /* Hide enemy AC numbers unless campaign shows them — seats still show PC AC. */
+        (turnEco?.targets ?? []).some((t) => t.kind !== 'enemy' || t.ac != null),
+      )}
       modifiersSlot={targetModifiersSlot}
       onClose={() => {
         skipAttackDeferRef.current = false
@@ -3789,11 +3902,17 @@ export function PlayDeskAttacksCompact({
         setEnterNumberOpen(false)
       }}
     />
-    <AttackBonusBreakdownDialog
+    <WeaponAttackBreakdownDialog
       open={Boolean(attackBreakdown)}
+      attackId={attackBreakdown?.attackId ?? ''}
       attackName={attackBreakdown?.name ?? ''}
-      parts={attackBreakdown?.parts ?? []}
+      baseAttack={attackBreakdown?.baseAttack ?? 0}
+      attackBaseHint={attackBreakdown?.attackBaseHint ?? ''}
+      baseDamageBonus={attackBreakdown?.baseDamageBonus ?? 0}
+      damageDieLabel={attackBreakdown?.damageDieLabel ?? ''}
       formulaVars={formulaVars}
+      modifiers={modifiers}
+      onModifiersChange={(next) => onModifiersChange?.(next)}
       inventoryItemId={attackBreakdown?.inventoryItemId}
       onOpenItem={
         onOpenItem

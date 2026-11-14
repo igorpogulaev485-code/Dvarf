@@ -1,6 +1,6 @@
 /*
- * Desk hot strip (≥960): one horizontal row; overflow scrolls with edge hints
- * (fade + arrow buttons on PlayDeskHotBar wrap). Owner override of UX A1 «Ещё».
+ * UIKIT-02: hot strip wraps — no horizontal scroll / edge arrows.
+ * Name + counter on each resource chip.
  */
 .play-desk__hot-wrap {
   position: relative;
@@ -10,34 +10,34 @@
 }
 
 .play-desk--wide .play-desk__hot {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 6px;
   min-width: 0;
   max-width: 100%;
   width: 100%;
   box-sizing: border-box;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
+  overflow: visible;
 }
 
 .play-desk--wide .play-desk__hot-item {
-  flex: 0 0 auto;
-  scroll-snap-align: start;
+  flex: 0 1 auto;
 }
 
 .play-desk--wide .play-desk__hot-item--wide {
-  flex: 0 0 auto;
-  min-width: min(200px, 72%);
-  max-width: min(360px, 85%);
+  flex: 1 1 auto;
+  min-width: min(160px, 100%);
+  max-width: 100%;
 }
 
 .play-desk--wide .play-desk__hot-item--res {
-  flex: 0 0 auto;
-  min-width: 120px;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.play-desk--wide .play-desk__hot-fade,
+.play-desk--wide .play-desk__hot-arrow {
+  display: none;
 }
 
 .play-desk__hot-fade {

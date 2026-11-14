@@ -296,6 +296,24 @@ def resolve_attack_roll(
     }
 
 
+def outcome_label(
+    *,
+    hit: bool | None,
+    natural: int | None = None,
+    save: bool = False,
+) -> str | None:
+    """Explicit Попадание/Промах/Крит/Провал (or спас/провал for saves)."""
+    if hit is None:
+        return None
+    if save:
+        return "провал" if hit else "спас"
+    if natural == 20 and hit:
+        return "Крит"
+    if natural == 1 and not hit:
+        return "Провал"
+    return "Попадание" if hit else "Промах"
+
+
 def format_feed_line(
     *,
     actor: str,
@@ -308,11 +326,21 @@ def format_feed_line(
     hide_enemy_ac: bool = False,
     enemy_ac: int | None = None,
     show_ac_to_master: bool = False,
+    attack_total: int | None = None,
 ) -> str:
-    """Одна строка журнала: «Огр → Торин: Дубина, попал 🎲, 13 дробящего»."""
+    """Одна строка: «Огр → Торин: Дубина · 17 vs КД 13 · Попадание · 13 дробящего»."""
     dice_mark = " 🎲" if physical else ""
     left = f"{actor} → {target}" if target else actor
     bits = [action_name]
+    show_vs = (
+        attack_total is not None
+        and enemy_ac is not None
+        and (show_ac_to_master or not hide_enemy_ac)
+    )
+    if show_vs:
+        bits.append(f"{attack_total} vs КД {enemy_ac}")
+    elif attack_total is not None and outcome:
+        bits.append(str(attack_total))
     if outcome:
         bits.append(f"{outcome}{dice_mark}")
     elif physical:
@@ -322,9 +350,9 @@ def format_feed_line(
         if not type_ru and damage_type:
             type_ru = str(damage_type)
         bits.append(f"{damage} {type_ru}".strip() if type_ru else str(damage))
-    if show_ac_to_master and enemy_ac is not None and not hide_enemy_ac:
+    if show_ac_to_master and enemy_ac is not None and not hide_enemy_ac and not show_vs:
         bits.append(f"КД {enemy_ac}")
-    return f"{left}: {', '.join(bits)}"
+    return f"{left}: {' · '.join(bits)}"
 
 
 def event_category(event_type: str, payload: dict | None = None) -> Literal["combat", "roll", "other"]:

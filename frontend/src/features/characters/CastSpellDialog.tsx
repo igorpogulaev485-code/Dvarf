@@ -728,6 +728,18 @@ export function CastSpellDialog({
     itemCast,
   ])
 
+  // P0: all hooks must run even when spell is null (dialog closed).
+  // Early return below used to skip this useMemo → «Rendered more hooks…» → ErrorBoundary.
+  const sorceryLeft = useMemo(() => {
+    const pool = (resources ?? []).find(
+      (row) =>
+        row.id.includes('sorcery_points') ||
+        /очки чародейства/i.test(row.name) ||
+        /sorcery points/i.test(row.name),
+    )
+    return pool ? Math.max(0, pool.max - pool.used) : 0
+  }, [resources])
+
   if (!spell) {
     return null
   }
@@ -815,15 +827,6 @@ export function CastSpellDialog({
   const offerEmbodiment = Boolean(
     embodimentRemaining > 0 && enchantment && !isCantrip && !notOneAction,
   )
-  const sorceryLeft = useMemo(() => {
-    const pool = (resources ?? []).find(
-      (row) =>
-        row.id.includes('sorcery_points') ||
-        /очки чародейства/i.test(row.name) ||
-        /sorcery points/i.test(row.name),
-    )
-    return pool ? Math.max(0, pool.max - pool.used) : 0
-  }, [resources])
   const knowsQuickened = metamagicIds.includes('quickened')
   const knowsSeeking = metamagicIds.includes('seeking')
   const knowsTransmuted = metamagicIds.includes('transmuted')

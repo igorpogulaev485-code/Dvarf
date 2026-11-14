@@ -728,6 +728,10 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             }}
             onOpenItem={openInventoryItem}
             formulaVars={model.formulaVarsBase}
+            modifiers={model.draft.modifiers}
+            onModifiersChange={(next) =>
+              model.setDraft((prev) => ({ ...prev, modifiers: next }))
+            }
             onCombatFeatureToggle={(featureId, active) => {
               if (featureId === 'reckless_attack') {
                 model.setDeskRollMode(active ? 'advantage' : 'normal')

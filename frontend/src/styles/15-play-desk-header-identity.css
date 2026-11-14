@@ -665,11 +665,81 @@ button.play-desk-header__identity:hover {
 }
 
 
-/* B-01 active effects block */
-.active-effects {
-  margin: 0.5rem 0 0;
-  padding: 0.55rem 0.7rem;
+/* B-01 / UIKIT-02: active effects — compact chip strip under header */
+.play-desk__top > .active-effects {
+  grid-column: 1 / -1;
 }
+
+.active-effects {
+  margin: 0.35rem 0 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.active-effects--strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  min-width: 0;
+}
+
+.active-effects__label {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.active-effects__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.active-effects__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 2px 4px 2px 8px;
+  border: 1px solid var(--desk-line, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.active-effects__chip.is-inactive {
+  opacity: 0.55;
+}
+
+.active-effects__chip-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.active-effects__chip-meta {
+  color: var(--desk-muted, var(--muted));
+  font-weight: 500;
+}
+
+.active-effects__chip-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  flex: 0 0 auto;
+}
+
 .active-effects__row {
   display: flex;
   align-items: center;

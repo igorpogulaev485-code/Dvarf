@@ -13,6 +13,14 @@ export type BonusTarget =
   | 'initiative'
   | 'spell_dc'
   | 'spell_attack'
+  /** Walk / climb / swim / fly — same BonusLine UI as AC / initiative. */
+  | 'speed'
+  | 'speed_climb'
+  | 'speed_swim'
+  | 'speed_fly'
+  /** Per-weapon hit / damage stacks (BonusLine on sheet.modifiers). */
+  | `weapon_hit:${string}`
+  | `weapon_dmg:${string}`
   | `${AbilityKey}_score`
   | `${AbilityKey}_check`
   | `${AbilityKey}_save`
@@ -45,9 +53,15 @@ const TARGETS = new Set<BonusTarget>([
   'initiative',
   'spell_dc',
   'spell_attack',
+  'speed',
+  'speed_climb',
+  'speed_swim',
+  'speed_fly',
   ...ABILITY_TARGETS,
 ])
 const OPS = new Set<BonusOp>(['+', '-', '='])
+const WEAPON_HIT_RE = /^weapon_hit:(.+)$/
+const WEAPON_DMG_RE = /^weapon_dmg:(.+)$/
 
 export function abilityBonusTarget(
   ability: AbilityKey,
@@ -56,8 +70,42 @@ export function abilityBonusTarget(
   return `${ability}_${channel}`
 }
 
+/** Manual hit bonuses for one attack card (same stack UI as ability / spell). */
+export function weaponHitBonusTarget(attackId: string): BonusTarget {
+  return `weapon_hit:${attackId}`
+}
+
+/** Manual damage bonuses for one attack card. */
+export function weaponDamageBonusTarget(attackId: string): BonusTarget {
+  return `weapon_dmg:${attackId}`
+}
+
+export function isWeaponHitBonusTarget(value: string): boolean {
+  return WEAPON_HIT_RE.test(value)
+}
+
+export function isWeaponDamageBonusTarget(value: string): boolean {
+  return WEAPON_DMG_RE.test(value)
+}
+
 export function isBonusTarget(value: unknown): value is BonusTarget {
-  return typeof value === 'string' && TARGETS.has(value as BonusTarget)
+  if (typeof value !== 'string') return false
+  if (TARGETS.has(value as BonusTarget)) return true
+  return isWeaponHitBonusTarget(value) || isWeaponDamageBonusTarget(value)
+}
+
+/** Flat manual bonus stacked on a weapon's hit or damage (enabled lines only). */
+export function weaponManualBonus(
+  modifiers: BonusLine[],
+  attackId: string,
+  channel: 'hit' | 'damage',
+  vars: FormulaVars,
+): number {
+  const target =
+    channel === 'hit'
+      ? weaponHitBonusTarget(attackId)
+      : weaponDamageBonusTarget(attackId)
+  return applyBonusStack(0, bonusesForTarget(modifiers, target), vars).total
 }
 
 function newId(): string {
@@ -288,4 +336,16 @@ export function withInitiativeBonus(input: {
 }): { total: number; applied: AppliedBonus[] } {
   const lines = bonusesForTarget(input.modifiers, 'initiative')
   return applyBonusStack(input.core, lines, input.vars)
+}
+
+/** Walk / climb / swim / fly: auto core + manual BonusLine stack. */
+export function withSpeedBonus(input: {
+  core: number | null
+  target: 'speed' | 'speed_climb' | 'speed_swim' | 'speed_fly'
+  modifiers: BonusLine[]
+  vars: FormulaVars
+}): number | null {
+  const lines = bonusesForTarget(input.modifiers, input.target)
+  if (input.core == null && lines.length === 0) return null
+  return applyBonusStack(input.core ?? 0, lines, input.vars).total
 }

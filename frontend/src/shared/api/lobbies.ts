@@ -463,6 +463,8 @@ export type LobbyDetail = {
   can_delete_session?: boolean
   role?: string
   owner_id: string
+  /** Owner nick / display name from API (prefer over raw owner_id). */
+  owner_display_name?: string | null
   members: LobbyMember[]
   roles?: LobbyRole[]
   settings: SettingSummary[]
@@ -683,6 +685,9 @@ export type SessionCombatant = {
   suggested_study_dc?: number | null
   reaction_hint?: string | null
   last_damage_note?: string | null
+  /** UIKIT-02: «Попадание · 6» / «Промах» on the enemy card. */
+  last_strike_label?: string | null
+  study_dc?: number | null
   /** S-06: killed | fled | surrendered */
   outcome?: string | null
 }
@@ -1673,6 +1678,8 @@ export async function patchSessionCombatant(
     reveal_statblock?: boolean
     /** S-06: killed | fled | surrendered | '' */
     outcome?: string | null
+    /** G12: master sets Study DC */
+    study_dc?: number | null
   },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(`/sessions/${sessionId}/combatants/${combatantId}`, {

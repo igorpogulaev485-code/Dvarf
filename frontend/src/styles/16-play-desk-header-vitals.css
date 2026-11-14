@@ -73,22 +73,15 @@ button.play-desk-header__xp:hover .play-desk-header__xp-bar {
 
 .play-desk-header__mid {
   /* SC-07 / UX-03: mid fills the ribbon evenly — no empty hole between
-     who and КД. HP stays the accent on the right (__right). */
+     who and КД. HP stays the accent on the right (__right).
+     UIKIT-02: wrap whole tiles — never clip / horizontal-scroll vitals. */
   flex: 1 1 auto;
   min-width: 0;
   margin-left: 8px;
   display: flex;
   justify-content: stretch;
   align-items: center;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  overscroll-behavior-x: contain;
-}
-
-.play-desk-header__mid::-webkit-scrollbar {
-  display: none;
+  overflow: visible;
 }
 
 .play-desk-header__stack {
@@ -169,7 +162,7 @@ button.play-desk-header__chip {
 
 .play-desk-header__vitals {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: clamp(6px, 1.1vw, 12px);
   align-items: center;
   width: 100%;
@@ -260,39 +253,51 @@ button.play-desk-vital:hover,
   color: var(--desk-accent);
 }
 
-/* Shield toggle: corner icon only — never overlaps «КД» label */
+/*
+ * UIKIT-02: текстовая подпись-кнопка «Щит» под числом/КД
+ * (как до UIKIT-01), без круглой иконки в углу и без наезда на «КД».
+ */
 .play-desk-vital--shield {
   position: relative;
-  padding: 6px 4px 5px;
-  gap: 2px;
+  width: 68px;
+  min-width: 68px;
+  max-width: 68px;
+  flex-basis: 68px;
+  height: 72px;
+  min-height: 72px;
+  padding: 4px 4px 16px;
+  gap: 1px;
   align-self: center;
   overflow: hidden;
 }
 
 .play-desk-vital__shield-tog {
   position: absolute;
-  top: 3px;
-  right: 3px;
+  left: 50%;
+  bottom: 2px;
+  transform: translateX(-50%);
   margin: 0;
-  width: 16px;
-  height: 16px;
-  display: grid;
-  place-items: center;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--desk-line);
   background: color-mix(in srgb, var(--desk-chip, #e7e1d4) 40%, white);
   border-radius: 999px;
-  padding: 0;
+  padding: 0 6px;
   font: inherit;
-  line-height: 1;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  line-height: 1.2;
   color: var(--desk-muted);
   cursor: pointer;
+  max-width: calc(100% - 4px);
+  white-space: nowrap;
   z-index: 1;
-}
-
-.play-desk-vital__shield-tog-ico {
-  width: 10px;
-  height: 10px;
-  display: block;
 }
 
 .play-desk-vital__shield-tog:hover:not(:disabled) {
@@ -331,12 +336,17 @@ button.play-desk-vital:hover,
   letter-spacing: 0.02em;
 }
 
-/* Same-height card as speed — alt tags stacked vertically (уже). */
-.play-desk-vital--modes {
+/* Alt speeds live INSIDE the speed tile — tile grows with chips. */
+.play-desk-vital--speed-wide {
   width: auto;
-  min-width: 52px;
-  max-width: 72px;
-  padding: 5px 6px;
+  min-width: 64px;
+  max-width: none;
+  height: auto;
+  min-height: 64px;
+  flex: 0 0 auto;
+  padding: 5px 6px 6px;
+  gap: 3px;
+  align-self: center;
 }
 
 .play-desk-vital__tags {
@@ -350,6 +360,9 @@ button.play-desk-vital:hover,
   justify-content: center;
   align-items: stretch;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  grid-column: 1 / -1;
 }
 
 .play-desk-vital__tag {
@@ -363,6 +376,11 @@ button.play-desk-vital:hover,
   color: var(--desk-ink, var(--ink));
   white-space: nowrap;
   text-align: center;
+}
+
+/* Legacy sibling modes tile — keep safe if any leftover markup */
+.play-desk-vital--modes {
+  display: none;
 }
 
 .play-desk-header__coin-tip {

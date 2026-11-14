@@ -2061,12 +2061,27 @@ export function SessionDetailPage() {
                           onSaveToSetting={() => {
                             void openHandoff(enemy)
                           }}
+                          lastStrikeLabel={enemy.last_strike_label ?? null}
                           canStudy={
                             !canRun &&
                             !session.closed_at &&
                             !session.is_observer &&
                             ownCharacterIds.size > 0 &&
                             !enemy.statblock_visible
+                          }
+                          onStudyDcChange={
+                            canRun
+                              ? (dc) => {
+                                  void run(async () => {
+                                    const updated = await patchSessionCombatant(
+                                      session.id,
+                                      enemy.id,
+                                      { study_dc: dc },
+                                    )
+                                    setSession(updated)
+                                  })
+                                }
+                              : undefined
                           }
                           onStudy={({ rollTotal, dc }) => {
                             const characterId =

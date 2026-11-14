@@ -92,6 +92,7 @@ type MobileVitalsBarProps = {
   jumpHighFt?: number | null
   initiative: number
   onOpenInitiative?: () => void
+  onOpenSpeed?: () => void
   proficiencyBonus: number
   inspiration: boolean
   coins: CoinPurse
@@ -178,6 +179,7 @@ export function MobileVitalsBar({
   jumpHighFt = null,
   initiative,
   onOpenInitiative,
+  onOpenSpeed,
   proficiencyBonus,
   inspiration,
   coins,
@@ -572,30 +574,77 @@ export function MobileVitalsBar({
             </button>
           ) : null}
         </div>
-        <div
-          className={`mobile-vitals__chip${altModes.length ? ' mobile-vitals__chip--speed' : ''}`}
-          role="listitem"
-          title={speedTitle}
-          aria-label={
-            speedTitle
-              ? `Скорость: ${speedTitle}`
-              : 'Скорость не задана'
-          }
-        >
-          <b>{shownSpeed == null && altModes[0] ? altModes[0].value : shownSpeed == null ? '—' : shownSpeed}</b>
-          <span>
-            {shownSpeed == null && altModes[0] ? altModes[0].label : 'Скор.'}
-          </span>
-          {altModes.length > 0 && shownSpeed != null ? (
-            <ul className="mobile-vitals__modes" aria-label="Дополнительные скорости">
-              {altModes.map((mode) => (
-                <li key={mode.key}>
-                  {mode.label} {mode.value} фт
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
+        {onOpenSpeed ? (
+          <button
+            type="button"
+            className={`mobile-vitals__chip mobile-vitals__chip--btn is-tap${
+              altModes.length ? ' mobile-vitals__chip--speed' : ''
+            }`}
+            role="listitem"
+            title={
+              speedTitle
+                ? `${speedTitle}. Открыть разборку`
+                : 'Скорость не задана. Открыть разборку'
+            }
+            aria-label={
+              speedTitle
+                ? `Скорость: ${speedTitle}. Открыть разборку`
+                : 'Скорость не задана. Открыть разборку'
+            }
+            onClick={onOpenSpeed}
+          >
+            <b>
+              {shownSpeed == null && altModes[0]
+                ? altModes[0].value
+                : shownSpeed == null
+                  ? '—'
+                  : shownSpeed}
+            </b>
+            <span>
+              {shownSpeed == null && altModes[0] ? altModes[0].label : 'Скор.'}
+            </span>
+            {altModes.length > 0 && shownSpeed != null ? (
+              <ul className="mobile-vitals__modes" aria-label="Дополнительные скорости">
+                {altModes.map((mode) => (
+                  <li key={mode.key}>
+                    {mode.label} {mode.value} фт
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </button>
+        ) : (
+          <div
+            className={`mobile-vitals__chip${altModes.length ? ' mobile-vitals__chip--speed' : ''}`}
+            role="listitem"
+            title={speedTitle}
+            aria-label={
+              speedTitle
+                ? `Скорость: ${speedTitle}`
+                : 'Скорость не задана'
+            }
+          >
+            <b>
+              {shownSpeed == null && altModes[0]
+                ? altModes[0].value
+                : shownSpeed == null
+                  ? '—'
+                  : shownSpeed}
+            </b>
+            <span>
+              {shownSpeed == null && altModes[0] ? altModes[0].label : 'Скор.'}
+            </span>
+            {altModes.length > 0 && shownSpeed != null ? (
+              <ul className="mobile-vitals__modes" aria-label="Дополнительные скорости">
+                {altModes.map((mode) => (
+                  <li key={mode.key}>
+                    {mode.label} {mode.value} фт
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        )}
         {jumpLongFt != null && jumpHighFt != null ? (
           <div
             className="mobile-vitals__chip mobile-vitals__chip--jump"

@@ -352,6 +352,21 @@
   font-size: 0.72rem;
 }
 
+.play-desk-compact__slot-track {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  min-width: 0;
+}
+
+.play-desk-compact__slot-count {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+  white-space: nowrap;
+}
+
 .play-desk-compact__slot-pips {
   display: flex;
   flex-wrap: wrap;
@@ -516,10 +531,48 @@
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 28%, transparent);
 }
 
+/*
+ * UIKIT-02 weapon row: name + bonus + damage read together;
+ * kit sm actions clustered; ammo on a second compact line.
+ * Narrow pinned-magic column may wrap — never squeeze text.
+ */
+.play-desk-compact__row.is-attack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 6px;
+  align-items: center;
+  padding: 4px 6px;
+  overflow: visible;
+}
+
+.play-desk-compact__row.is-attack .play-desk-compact__hit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  padding: 2px 4px;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.play-desk-compact__row.is-attack .play-desk-compact__row-main {
+  flex: 1 1 9rem;
+  min-width: 0;
+}
+
 .play-desk-compact__row.is-attack .play-desk-compact__mod {
   font-variant-numeric: tabular-nums;
-  min-width: 2.4rem;
+  flex: 0 0 auto;
+  min-width: 2.2rem;
   text-align: right;
+}
+
+.play-desk-compact__row.is-attack .play-desk-compact__dmg {
+  flex: 1 1 6rem;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
 }
 
 /* U09: click bonus → breakdown (not the attack roll). */
@@ -533,10 +586,6 @@
 .play-desk-compact__mod--breakdown:focus-visible {
   text-decoration: underline;
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, transparent);
-}
-
-.play-desk-compact__row.is-attack .play-desk-compact__dmg {
-  font-variant-numeric: tabular-nums;
 }
 
 .play-desk-compact__row.is-action:not(.is-spell) {

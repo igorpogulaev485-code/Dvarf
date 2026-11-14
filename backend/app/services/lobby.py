@@ -703,6 +703,18 @@ def _parse_combatants(raw: object) -> list[dict]:
     return out
 
 
+def _last_strike_label(raw: object) -> str | None:
+    if not isinstance(raw, dict):
+        return None
+    label = str(raw.get("label") or "").strip()
+    if not label:
+        return None
+    dmg = raw.get("damage")
+    if raw.get("hit") and isinstance(dmg, int) and dmg > 0:
+        return f"{label} · {dmg}"
+    return label
+
+
 def _combatant_out(
     row: dict,
     *,
@@ -794,13 +806,18 @@ def _combatant_out(
         ),
         study_skill=skill["skill"],
         study_skill_ru=skill["skill_ru"],
-        suggested_study_dc=s03.default_study_dc(
-            str(row.get("cr")) if row.get("cr") is not None else None
+        suggested_study_dc=(
+            int(row["study_dc"])
+            if isinstance(row.get("study_dc"), int)
+            else s03.default_study_dc(
+                str(row.get("cr")) if row.get("cr") is not None else None
+            )
         ),
         reaction_hint=str(row["reaction_hint"]) if row.get("reaction_hint") else None,
         last_damage_note=(
             str(row["last_damage_note"]) if row.get("last_damage_note") else None
         ),
+        last_strike_label=_last_strike_label(row.get("last_strike")),
         outcome=(
             str(row["outcome"])
             if row.get("outcome") in {"killed", "fled", "surrendered"}
@@ -1138,6 +1155,7 @@ class LobbyService:
             can_delete_session=flags["can_delete_session"],
             role=flags["role"],
             owner_id=lobby.owner_id,
+            owner_display_name=self._user_display(lobby.owner_id),
             members=members,
             roles=[self._role_out(r) for r in role_rows],
             settings=settings,
@@ -5452,6 +5470,8 @@ class LobbyService:
             target["name"] = payload.name.strip()
         if payload.ac is not None:
             target["ac"] = int(payload.ac)
+        if payload.study_dc is not None:
+            target["study_dc"] = int(payload.study_dc)
         if payload.reveal_statblock is True:
             target["statblock_revealed"] = True
         if payload.outcome is not None:
@@ -5768,6 +5788,38 @@ class LobbyService:
         target["pending_study"] = None
         session.combatants = combatants
         flag_modified(session, "combatants")
+        # Feed: study success / fail for the table
+        who = str(pending.get("character_name") or "Игрок")
+        skill_ru = str(pending.get("skill_ru") or "Анализ")
+        dc = pending.get("dc")
+        roll = pending.get("roll_total")
+        enemy_name = str(target.get("name") or "Противник")
+        bits = [f"Изучить · {enemy_name}", skill_ru]
+        if dc is not None:
+            bits.append(f"СЛ {dc}")
+        if roll is not None:
+            bits.append(f"бросок {roll}")
+        bits.append("успех" if payload.success else "провал")
+        if payload.success:
+            bits.append("узнал слабости")
+        event = SessionEvent(
+            session_id=session.id,
+            event_type="combat",
+            actor_user_id=user.id,
+            character_name=who,
+            title=" · ".join(bits),
+            formula=None,
+            breakdown=None,
+            total=int(roll) if isinstance(roll, int) else None,
+            payload={
+                "category": "combat",
+                "combat_journal": True,
+                "study": True,
+                "success": bool(payload.success),
+                "combatant_id": str(combatant_id),
+            },
+        )
+        self.db.add(event)
         self.db.commit()
         detail = self._session_detail(session, lobby, user)
         await _broadcast_session_changed(session.id)
@@ -6439,6 +6491,7 @@ class LobbyService:
         target_ac: int | None = None
         is_enemy_target = payload.target_kind == "enemy"
         reaction_character_id: UUID | None = None
+        enemy: dict | None = None
 
         # --- цель ---
         target_kind = payload.target_kind
@@ -6504,19 +6557,19 @@ class LobbyService:
 
         if mode == "table_miss":
             hit = False
-            outcome = "промах"
+            outcome = s04.outcome_label(hit=False, natural=payload.attack_natural) or "Промах"
             physical = True
         elif mode == "table_hit":
             hit = True
-            outcome = "попал"
+            outcome = s04.outcome_label(hit=True, natural=payload.attack_natural) or "Попадание"
             physical = True
         elif mode == "table_save":
             hit = False  # спас = без полного урона; упрощённо: «спас»
-            outcome = "спас"
+            outcome = "Спас"
             physical = True
         elif mode == "table_fail":
             hit = True
-            outcome = "провал"
+            outcome = "Провал"
             physical = True
         elif is_save and mode in ("roll", "manual"):
             # Для спасброска mode roll/manual: attack_total = бросок цели; сравниваем с DC
@@ -6535,7 +6588,9 @@ class LobbyService:
                 attack_natural = rolled.get("natural")
             attack_total = total
             hit = total < dc  # провал спасброска → эффект/урон
-            outcome = "провал" if hit else "спас"
+            outcome = s04.outcome_label(hit=hit, natural=attack_natural, save=True) or (
+                "Провал" if hit else "Спас"
+            )
         else:
             bonus = int(stats["attack_bonus"] or 0)
             rolled = s04.resolve_attack_roll(
@@ -6555,7 +6610,9 @@ class LobbyService:
                 outcome = f"бросок {attack_total}"
             else:
                 hit = attack_total >= int(target_ac)
-                outcome = "попал" if hit else "промах"
+                outcome = s04.outcome_label(hit=hit, natural=attack_natural) or (
+                    "Попадание" if hit else "Промах"
+                )
 
             if (
                 hit is False
@@ -6736,7 +6793,7 @@ class LobbyService:
                 target_kind=target_kind,
             )
 
-        # КД врага игрокам не светим в ленте
+        # КД врага игрокам не светим в ленте (hide_enemy_ac)
         feed_line = s04.format_feed_line(
             actor=actor_name,
             target=target_name,
@@ -6746,9 +6803,18 @@ class LobbyService:
             damage_type=damage_type if hit else None,
             physical=physical or dice_on_table and mode.startswith("table_"),
             hide_enemy_ac=is_enemy_target,
-            enemy_ac=target_ac if not is_enemy_target else None,
+            enemy_ac=int(target_ac) if target_ac is not None else None,
             show_ac_to_master=False,
+            attack_total=int(attack_total) if attack_total is not None else None,
         )
+
+        # Brief last-strike chip on the target (PC seat is mirrored via HP; enemy card reads this).
+        if target_kind == "enemy" and enemy is not None:
+            enemy["last_strike"] = {
+                "label": outcome,
+                "damage": int(damage_applied) if hit and damage_applied else None,
+                "hit": bool(hit),
+            }
 
         session.combatants = combatants
         flag_modified(session, "combatants")

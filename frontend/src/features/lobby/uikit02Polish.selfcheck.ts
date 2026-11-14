@@ -23,15 +23,33 @@ assert.match(
 
 const attacks = read('src/features/characters/PlayDeskAttacksCompact.tsx')
 assert.match(attacks, /play-desk-compact__holds/)
+assert.match(attacks, /play-desk-compact__weapon-tools/)
+assert.match(attacks, /play-desk-compact__ammo/)
+assert.match(attacks, /play-desk-compact__ammo-chip/)
 assert.match(attacks, /from '\.\.\/\.\.\/ui'/)
 assert.match(attacks, /size="sm"/)
 assert.match(attacks, /: 'взять'/)
 assert.match(attacks, />\s*предмет\s*</)
+assert.match(attacks, />\s*мод\.\s*</)
+assert.match(attacks, /WeaponAttackBreakdownDialog/)
 assert.doesNotMatch(attacks, /play-desk-compact__hold\$\{/)
+assert.doesNotMatch(
+  attacks,
+  /needsAmmo[\s\S]{0,400}className="chip-row"/,
+)
 
 const holdsCss = read('src/styles/18-spell-compact-cards.css')
 assert.match(holdsCss, /\.play-desk-compact__holds\s*\{/)
+assert.match(holdsCss, /\.play-desk-compact__weapon-tools\s*\{/)
+assert.match(holdsCss, /\.play-desk-compact__ammo\s*\{/)
+assert.match(holdsCss, /\.play-desk-compact__ammo-chip\s*\{/)
 assert.doesNotMatch(holdsCss, /\.play-desk-compact__hold\s*\{/)
+
+const attackRowCss = read('src/styles/17-death-saves-compact.css')
+assert.match(
+  attackRowCss,
+  /\.play-desk-compact__row\.is-attack\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto/,
+)
 
 const damage = read('src/features/lobby/TypedDamageForm.tsx')
 assert.match(damage, /session-typed-damage__row--inputs/)
@@ -46,7 +64,17 @@ const deskUi = read('src/features/characters/playDeskUi.ts')
 assert.match(deskUi, /collapsedRaw[\s\S]*?:\s*\[\.\.\.ABILITY_KEYS\]/)
 
 const rail = read('src/styles/21-ability-rail.css')
-assert.match(rail, /\.abil-column__list\s*\{[\s\S]*?grid-template-columns:\s*1fr 1fr/)
+/* UIKIT-02: 2-col ability grid rolled back — list stays single column */
+assert.doesNotMatch(
+  rail,
+  /\.abil-column__list\s*\{[\s\S]*?grid-template-columns:\s*1fr 1fr/,
+)
+const abilList = read('src/styles/20-pinned-spells.css')
+assert.match(abilList, /\.abil-column__list\s*\{[\s\S]*?display:\s*grid/)
+assert.doesNotMatch(
+  abilList,
+  /\.abil-column__list\s*\{[\s\S]*?grid-template-columns:\s*1fr 1fr/,
+)
 
 const enemy = read('src/features/lobby/EnemyCard.tsx')
 assert.match(enemy, /variant="secondary"[\s\S]*?Сторона/)
@@ -84,5 +112,50 @@ assert.match(typedCss, /minmax\(4\.5rem,\s*6\.75rem\)/)
 
 assert.match(holdsCss, /border:\s*none/)
 assert.match(tokens, /\.ui-input--narrow\s*\{[\s\S]*?min-width:\s*4\.5rem/)
+
+/* UIKIT-02: kit Dialog backdrop covers iPad Safari dynamic viewport */
+const dialogCss = read('src/styles/07-features-dialogs.css')
+assert.match(
+  dialogCss,
+  /\.ui-dialog-backdrop\s*\{[\s\S]*?position:\s*fixed[\s\S]*?inset:\s*0[\s\S]*?100dvh[\s\S]*?100lvh/,
+)
+
+/* UIKIT-02: live table equal grid + companions inside host card */
+assert.match(
+  lock,
+  /\.session-table-grid\s*\{[\s\S]*?align-items:\s*start[\s\S]*?repeat\(2,\s*minmax\(0,\s*1fr\)/,
+)
+assert.match(lock, /\.session-table-card\s*\{[\s\S]*?min-width:\s*0/)
+
+/* T-01 / UIKIT-02: attack target chips first, «Атаковать {имя}» */
+const picker = read('src/features/characters/CombatTargetPicker.tsx')
+assert.match(picker, /combat-target-picker__chips/)
+assert.match(picker, /Атаковать \$\{selected\.name\}/)
+assert.match(picker, /rememberKey/)
+
+const tableCard = read('src/features/lobby/SessionTableCard.tsx')
+assert.match(tableCard, /session-table-card__companions/)
+assert.doesNotMatch(
+  tableCard,
+  /<\/article>\s*\{companions\.map/,
+)
+
+/* UIKIT-02: compact feed total chip (no 48×48 inflate) */
+const feedCss = read('src/styles/27-session-journal-notes.css')
+assert.match(
+  feedCss,
+  /\.session-event-feed__total\s*\{[\s\S]*?inline-flex[\s\S]*?font-size:\s*0\.82rem/,
+)
+assert.doesNotMatch(
+  feedCss,
+  /\.session-event-feed__total\s*\{[\s\S]*?min-width:\s*48px[\s\S]*?height:\s*48px/,
+)
+
+/* App canvas fills viewport — no white Safari strip under short pages */
+assert.match(
+  tokens,
+  /html\s*\{[\s\S]*?min-height:\s*100dvh[\s\S]*?background:\s*var\(--app-canvas-bg\)/,
+)
+assert.match(tokens, /#root\s*\{[\s\S]*?min-height:\s*100dvh/)
 
 console.log('uikit02Polish.selfcheck: ok')

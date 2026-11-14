@@ -953,6 +953,8 @@ export function useSheetEditorPart3(model: SheetModel) {
     quiet?: boolean
     /** After a version conflict we already rebased once — do not loop. */
     conflictRetry?: boolean
+    /** After a transient API failure we already retried once — do not loop. */
+    transientRetry?: boolean
   }) => {
     if (model.character.can_edit === false) {
       model.setSaveStatus('saved')
@@ -964,7 +966,9 @@ export function useSheetEditorPart3(model: SheetModel) {
     const baseSnap = model.baseCharacterRef.current
     const versionSnap = model.sheetVersionRef.current
     model.setSaveStatus('saving')
-    if (!quiet) model.setError(null)
+    // Always clear a stale banner when a new save starts — quiet autosave used to
+    // leave «Сервер временно недоступен» next to «Сохранено» after a later success.
+    model.setError(null)
     try {
       const sheet = structuredClone(asRecord(baseSnap.sheet))
       const identity = asRecord(sheet.identity)
@@ -1103,6 +1107,7 @@ export function useSheetEditorPart3(model: SheetModel) {
         sheetVersion: updated.sheet_version,
       })
       model.setSaveStatus('saved')
+      model.setError(null)
       model.setConflictOpen(false)
       model.conflictOpenRef.current = false
       if (!quiet) model.onToastRef.current('Лист сохранён')
@@ -1126,8 +1131,29 @@ export function useSheetEditorPart3(model: SheetModel) {
         model.conflictOpenRef.current = true
         model.setError(null)
         model.setSaveStatus('error')
+      } else if (
+        err instanceof ApiRequestError &&
+        !options?.transientRetry &&
+        (err.code === 'api_unavailable' ||
+          err.code === 'request_timeout' ||
+          err.code === 'network_error' ||
+          err.status === 502 ||
+          err.status === 503 ||
+          err.status === 504)
+      ) {
+        // One more save-level retry after client already retried the HTTP call.
+        await new Promise((resolve) => window.setTimeout(resolve, 700))
+        return await persistDraft({
+          quiet,
+          conflictRetry: options?.conflictRetry,
+          transientRetry: true,
+        })
       } else {
-        model.setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить лист')
+        const message =
+          err instanceof ApiRequestError
+            ? err.message
+            : 'Не удалось сохранить лист'
+        model.setError(message)
         model.setSaveStatus('error')
       }
       return false

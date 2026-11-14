@@ -1,9 +1,12 @@
 :root {
   /* UI Kit Wave A — Листва (docs/ui-kit/README.md) */
   color: #2d2d2a;
-  background:
+  /* Canvas fill lives on html/body/#root below — not only here —
+     so short pages / Safari overscroll never flash a white strip. */
+  --app-canvas-bg:
     radial-gradient(circle at top left, #f3e8d4 0%, transparent 42%),
     linear-gradient(180deg, #fbf7ec 0%, #f3ebe0 100%);
+  background: var(--app-canvas-bg);
   font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -82,16 +85,25 @@ html[data-ability-colors='theme'] .abil-block[data-abil] {
   box-sizing: border-box;
 }
 
+html {
+  overflow-x: clip;
+  /* Fallback first, then dvh for iPad Safari dynamic chrome */
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--app-canvas-bg);
+  background-color: var(--panel, #fbf7ec);
+}
+
 body {
   margin: 0;
   /* Allow sub-320 viewports (narrow Safari / split) without sideways page grow */
   min-width: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: clip;
-}
-
-html {
-  overflow-x: clip;
+  /* Paint canvas on body too — UA white must not show past content */
+  background: var(--app-canvas-bg);
+  background-color: var(--panel, #fbf7ec);
 }
 
 button,
@@ -101,6 +113,9 @@ input {
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--app-canvas-bg);
+  background-color: var(--panel, #fbf7ec);
 }
 
 .page {

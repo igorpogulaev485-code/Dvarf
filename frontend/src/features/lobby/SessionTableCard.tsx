@@ -683,6 +683,30 @@ export function SessionTableCard({
             </div>
           ) : null}
 
+          {companions.length > 0 ? (
+            <ul className="session-table-card__companions" aria-label="Напарники">
+              {companions.map((companion) => (
+                <li key={companion.id}>
+                  <CompanionCard
+                    companion={companion}
+                    masterControls={masterControls}
+                    busy={busy}
+                    onRemove={
+                      onRemoveCompanion
+                        ? () => onRemoveCompanion(companion.id)
+                        : undefined
+                    }
+                    onPatch={
+                      onPatchCompanion
+                        ? (patch) => onPatchCompanion(companion.id, patch)
+                        : undefined
+                    }
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
           <div className="session-table-card__actions">
             <Link
               className="ui-button ui-button--ghost ui-button--lg"
@@ -724,23 +748,6 @@ export function SessionTableCard({
           </div>
         </div>
       </article>
-
-      {companions.map((companion) => (
-        <CompanionCard
-          key={companion.id}
-          companion={companion}
-          masterControls={masterControls}
-          busy={busy}
-          onRemove={
-            onRemoveCompanion ? () => onRemoveCompanion(companion.id) : undefined
-          }
-          onPatch={
-            onPatchCompanion
-              ? (patch) => onPatchCompanion(companion.id, patch)
-              : undefined
-          }
-        />
-      ))}
     </div>
   )
 }

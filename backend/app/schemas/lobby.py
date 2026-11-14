@@ -869,6 +869,8 @@ class LobbyDetail(BaseModel):
     can_delete_session: bool = False
     role: str = "none"
     owner_id: UUID
+    # Display name / login / email of the lobby owner (never raw UUID in UI).
+    owner_display_name: str | None = None
     members: list[LobbyMemberOut]
     roles: list[LobbyRoleOut] = Field(default_factory=list)
     settings: list[SettingSummary]
@@ -1228,6 +1230,8 @@ class SessionCombatantOut(BaseModel):
     """Подсказка ведущему после урона (реакция — S-04)."""
     reaction_hint: str | None = None
     last_damage_note: str | None = None
+    """UIKIT-02: краткий исход последнего удара по цели («Попадание · 6»)."""
+    last_strike_label: str | None = None
     """S-06: сбежал / сдался (XP как за поверженного)."""
     outcome: str | None = None
 
@@ -1670,6 +1674,8 @@ class CombatantPatchRequest(BaseModel):
     outcome: str | None = Field(
         default=None, max_length=16
     )
+    """G12: мастер задаёт СЛ «Изучить» (иначе от CR)."""
+    study_dc: int | None = Field(default=None, ge=1, le=40)
 
 
 class CombatantStudyRequest(BaseModel):

@@ -53,10 +53,15 @@ assert.equal(/play-desk-compact__dice-toggle/.test(attacks), false)
 assert.doesNotMatch(strip, /TurnEconomyCombatActions/)
 assert.doesNotMatch(strip, /<TurnEconomyChips/)
 
-// Desktop combat: no skill strip (phone keeps it).
+// UIKIT-02: полоска навыков сцены снова на десктопе/планшете (как до SC-01).
 assert.match(
   layout,
-  /!model\.isPlayDesk && model\.draft\.sheetUi\.deskMode === 'combat'/,
+  /UIKIT-02: полоска навыков[\s\S]*?deskMode === 'combat'[\s\S]{0,200}?PlayDeskSkillStrip/,
+)
+assert.match(layout, /PlayDeskSkillStrip[\s\S]{0,240}?mobileOverflow=\{!model\.isPlayDesk\}/)
+assert.doesNotMatch(
+  layout,
+  /mobile-combat-seg-stack[\s\S]{0,800}?PlayDeskSkillStrip/,
 )
 
 // Empty effects / hot empties collapsed.

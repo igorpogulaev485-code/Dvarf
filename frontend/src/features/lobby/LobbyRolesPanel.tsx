@@ -85,7 +85,12 @@ export function LobbyRolesPanel({
           <Text as="h3" className="lobby-roles-block__title">
             Владелец
           </Text>
-          <Text>{lobby.owner_id.slice(0, 8)}… (вы {lobby.is_owner ? 'мастер' : 'не мастер'})</Text>
+          <Text>
+            {lobby.owner_display_name?.trim() ||
+              lobby.members.find((m) => m.user_id === lobby.owner_id)?.character_name ||
+              'Мастер'}{' '}
+            (вы {lobby.is_owner ? 'мастер' : 'не мастер'})
+          </Text>
         </div>
 
         <div className="lobby-roles-block">

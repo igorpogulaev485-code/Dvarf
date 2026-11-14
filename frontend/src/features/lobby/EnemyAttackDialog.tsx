@@ -7,6 +7,11 @@ import {
   targetsFromSession,
   type CombatTarget,
 } from './combatTargets'
+import {
+  attackOutcomeLabel,
+  formatAttackResultLine,
+  hitAgainstAc,
+} from './attackOutcome'
 
 export type EnemyAttackSubmit = {
   attacker_combatant_id: string
@@ -124,6 +129,25 @@ export function EnemyAttackDialog({
 
   const proposeRiderDis =
     targetSeatMounted && looksRangedWeapon && selected?.kind === 'pc'
+
+  const previewHit = hitAgainstAc(attackTotal, selected?.ac ?? null)
+  const attackPreview =
+    !isSave && attackTotal != null && previewHit != null
+      ? formatAttackResultLine({
+          attackName: action?.name_ru || 'Атака',
+          targetName: selected?.name,
+          attackTotal,
+          natural: attackNatural,
+          ac: selected?.ac,
+          showAc: selected?.ac != null,
+          hit: previewHit,
+          damage: damageTotal,
+        })
+      : !isSave && attackNatural === 20
+        ? attackOutcomeLabel('crit')
+        : !isSave && attackNatural === 1
+          ? attackOutcomeLabel('fumble')
+          : null
 
   async function run(mode: EnemyAttackSubmit['mode']) {
     if (!combatant || !action || !selected) {
@@ -249,16 +273,44 @@ export function EnemyAttackDialog({
 
         {diceOnTable ? (
           <>
-            <Text>Кубики на столе — число атаки не обязательно:</Text>
+            <Text>Кубики на столе — отметьте исход:</Text>
             <div className="session-attack-actions">
               {isSave ? (
-                <Button type="button" disabled={busy} onClick={() => void run('table_fail')}>
-                  Провал
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void run('table_fail')}
+                  >
+                    Провал спасброска
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={busy}
+                    onClick={() => void run('table_save')}
+                  >
+                    Спас
+                  </Button>
+                </>
               ) : (
-                <Button type="button" disabled={busy} onClick={() => void run('table_miss')}>
-                  Промах
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void run('table_hit')}
+                  >
+                    Попадание
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={busy}
+                    onClick={() => void run('table_miss')}
+                  >
+                    Промах
+                  </Button>
+                </>
               )}
             </div>
             <Field label="Урон (при попадании / провале)">
@@ -285,7 +337,7 @@ export function EnemyAttackDialog({
                   onValueChange={setAttackTotal}
                 />
               </Field>
-              <Field label="Натуральная d20" hint="для провала на 1">
+              <Field label="Натуральная d20" hint="20 = крит · 1 = провал">
                 <NumberInput
                   value={attackNatural}
                   min={1}
@@ -306,6 +358,11 @@ export function EnemyAttackDialog({
                 />
               </Field>
             </div>
+            {attackPreview ? (
+              <p className="session-attack-outcome" role="status">
+                {attackPreview}
+              </p>
+            ) : null}
             <Button type="button" disabled={busy} onClick={() => void run('manual')}>
               Записать число с кости
             </Button>

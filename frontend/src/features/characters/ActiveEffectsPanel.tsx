@@ -6,7 +6,7 @@ import {
   tickAllEffectsOneRound,
   type ActiveEffect,
 } from '../../shared/dnd/activeEffects'
-import { Button, Stack, Text } from '../../ui'
+import { Button, Text } from '../../ui'
 import { rollDamage } from './deskRolls'
 
 type Props = {
@@ -32,11 +32,11 @@ export function ActiveEffectsPanel({
   const hasHeroism = rows.some((row) => row.slug === 'heroism' && !row.inactive)
 
   return (
-    <div className="active-effects panel" data-testid="active-effects">
-      <Text>
-        <strong>Активные эффекты</strong>
+    <div className="active-effects active-effects--strip" data-testid="active-effects">
+      <Text as="span" className="active-effects__label" tone="muted">
+        Эффекты
       </Text>
-      <Stack gap={8}>
+      <div className="active-effects__chips" role="list">
         {rows.map((effect) => {
           const remaining = formatEffectRemaining(effect)
           const from = effect.source_name
@@ -56,50 +56,40 @@ export function ActiveEffectsPanel({
           const vitality = effect.slug === 'aura_of_vitality'
           const blink = effect.slug === 'blink'
           const fortune = effect.slug === 'fortunes_favor'
+          const meta = [
+            from,
+            conc,
+            remaining,
+            charges != null
+              ? mirror
+                ? `двойники ${charges}`
+                : vitality
+                  ? `импульсы ${charges}`
+                  : fortune
+                    ? `удача ${charges}`
+                    : `заряды ${charges}`
+              : null,
+            inactive,
+          ]
+            .filter(Boolean)
+            .join(' · ')
+
           return (
             <div
               key={effect.id}
-              className={`active-effects__row${inactive ? ' is-inactive' : ''}`}
+              className={`active-effects__chip${inactive ? ' is-inactive' : ''}`}
+              role="listitem"
             >
-              <div className="active-effects__main">
-                <span className={`sheet-chip${inactive ? '' : ' is-on'}`}>{effect.name}</span>
-                {from ? (
-                  <Text tone="muted" as="span">
-                    {from}
-                  </Text>
-                ) : null}
-                {conc ? (
-                  <Text tone="muted" as="span">
-                    {conc}
-                  </Text>
-                ) : null}
-                {remaining ? (
-                  <Text tone="muted" as="span">
-                    {remaining}
-                  </Text>
-                ) : null}
-                {charges != null ? (
-                  <Text tone="muted" as="span">
-                    {mirror
-                      ? `двойники: ${charges}`
-                      : vitality
-                        ? `импульсы: ${charges}`
-                        : fortune
-                          ? `удача: ${charges}`
-                          : `заряды: ${charges}`}
-                  </Text>
-                ) : null}
-                {inactive ? (
-                  <Text tone="muted" as="span">
-                    {inactive}
-                  </Text>
-                ) : null}
-              </div>
-              <div className="chip-row">
+              <span className="active-effects__chip-text" title={meta || undefined}>
+                <strong>{effect.name}</strong>
+                {meta ? <span className="active-effects__chip-meta"> · {meta}</span> : null}
+              </span>
+              <span className="active-effects__chip-actions">
                 {mirror && !inactive ? (
                   <Button
                     type="button"
-                    variant="secondary"
+                    size="sm"
+                    variant="ghost"
                     onClick={() => {
                       const next = decrementEffectCharges(rows, effect.id, 1)
                       onChange(next)
@@ -117,7 +107,8 @@ export function ActiveEffectsPanel({
                 {vitality && !inactive ? (
                   <Button
                     type="button"
-                    variant="secondary"
+                    size="sm"
+                    variant="ghost"
                     onClick={() => {
                       const rolled = rollDamage('2d6')
                       const next = decrementEffectCharges(rows, effect.id, 1)
@@ -129,13 +120,14 @@ export function ActiveEffectsPanel({
                       )
                     }}
                   >
-                    Лечение 2к6
+                    2к6
                   </Button>
                 ) : null}
                 {blink && !inactive ? (
                   <Button
                     type="button"
-                    variant="secondary"
+                    size="sm"
+                    variant="ghost"
                     onClick={() => {
                       const die = 1 + Math.floor(Math.random() * 20)
                       onToast?.(
@@ -145,13 +137,14 @@ export function ActiveEffectsPanel({
                       )
                     }}
                   >
-                    к20 в конце хода
+                    к20
                   </Button>
                 ) : null}
                 {fortune && !inactive && (charges ?? 0) > 0 ? (
                   <Button
                     type="button"
-                    variant="secondary"
+                    size="sm"
+                    variant="ghost"
                     onClick={() => {
                       onChange(decrementEffectCharges(rows, effect.id, 1))
                       onToast?.(
@@ -159,7 +152,7 @@ export function ActiveEffectsPanel({
                       )
                     }}
                   >
-                    Потратить удачу
+                    Удача
                   </Button>
                 ) : null}
                 {effect.source_character_id &&
@@ -167,7 +160,8 @@ export function ActiveEffectsPanel({
                   effect.slug === 'exalted_champion') ? (
                   <Button
                     type="button"
-                    variant="secondary"
+                    size="sm"
+                    variant="ghost"
                     onClick={() => {
                       const next = rows.map((row) => {
                         if (row.id !== effect.id) return row
@@ -192,26 +186,31 @@ export function ActiveEffectsPanel({
                 ) : null}
                 <Button
                   type="button"
+                  size="sm"
                   variant="ghost"
+                  aria-label={`Снять «${effect.name}»`}
+                  title="Снять"
                   onClick={() => {
                     onChange(rows.filter((row) => row.id !== effect.id))
                     onToast?.(`Снят эффект «${effect.name}»`)
                   }}
                 >
-                  Снять
+                  ×
                 </Button>
-              </div>
+              </span>
             </div>
           )
         })}
         {hasHeroism && onHeroismTurnStart ? (
-          <Button type="button" variant="secondary" onClick={onHeroismTurnStart}>
-            Начало хода (Героизм)
+          <Button type="button" size="sm" variant="secondary" onClick={onHeroismTurnStart}>
+            Героизм
           </Button>
         ) : null}
         <Button
           type="button"
-          variant="secondary"
+          size="sm"
+          variant="ghost"
+          title="Таймеры эффектов −1 (смена раунда — в сцене Бой)"
           onClick={() => {
             const next = tickAllEffectsOneRound(rows)
             onChange(next)
@@ -222,9 +221,9 @@ export function ActiveEffectsPanel({
             )
           }}
         >
-          Следующий раунд
+          −раунд
         </Button>
-      </Stack>
+      </div>
     </div>
   )
 }

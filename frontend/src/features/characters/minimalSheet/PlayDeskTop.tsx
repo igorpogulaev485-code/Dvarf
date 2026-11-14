@@ -400,8 +400,8 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               )
             }}
             speed={model.displaySpeed}
-            climbSpeed={model.draft.climbSpeed}
-            swimSpeed={model.draft.swimSpeed}
+            climbSpeed={model.displayClimbSpeed ?? model.draft.climbSpeed}
+            swimSpeed={model.displaySwimSpeed ?? model.draft.swimSpeed}
             flySpeed={model.displayFlySpeed ?? model.draft.flySpeed}
             jumpLongFt={model.jump.longFt}
             jumpHighFt={model.jump.highFt}
@@ -447,6 +447,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               }))
             }
             onOpenInitiative={() => model.setInitiativeBreakdownOpen(true)}
+            onOpenSpeed={() => model.setSpeedBreakdownOpen(true)}
             onInitiativeRoll={() => model.emitToast(formatInitiativeToast(model))}
             onPlayChange={(play) => model.setDraft((prev) => ({ ...prev, play }))}
             onCoinsChange={(coins) =>
@@ -584,8 +585,8 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           speed={model.displaySpeed}
           movementHint={[
             formatRaceMovementHint({
-              climb: model.draft.climbSpeed,
-              swim: model.draft.swimSpeed,
+              climb: model.displayClimbSpeed ?? model.draft.climbSpeed,
+              swim: model.displaySwimSpeed ?? model.draft.swimSpeed,
               fly: model.displayFlySpeed ?? model.draft.flySpeed,
             }),
             model.classSpeedHint,
@@ -593,13 +594,14 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           ]
             .filter(Boolean)
             .join(' · ') || null}
-          climbSpeed={model.draft.climbSpeed}
-          swimSpeed={model.draft.swimSpeed}
+          climbSpeed={model.displayClimbSpeed ?? model.draft.climbSpeed}
+          swimSpeed={model.displaySwimSpeed ?? model.draft.swimSpeed}
           flySpeed={model.displayFlySpeed ?? model.draft.flySpeed}
           jumpLongFt={model.jump.longFt}
           jumpHighFt={model.jump.highFt}
           initiative={model.initiativeValue}
           onOpenInitiative={() => model.setInitiativeBreakdownOpen(true)}
+          onOpenSpeed={() => model.setSpeedBreakdownOpen(true)}
           proficiencyBonus={model.proficiencyBonus}
           inspiration={model.draft.inspiration}
           coins={model.draft.inventory.coins}

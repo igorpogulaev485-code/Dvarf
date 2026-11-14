@@ -565,7 +565,7 @@
 @media (min-width: 960px) {
   .play-desk__body {
     grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
-    /* UIKIT-02: колонки тянутся; рельс компактнее (свёрнутые навыки + 2 кол.) */
+    /* UIKIT-02: колонки тянутся; навыки свёрнуты по умолчанию (1 кол. — без обрезки Сп) */
     align-items: stretch;
   }
 
@@ -574,14 +574,6 @@
     position: static;
     max-height: none;
     overflow: visible;
-  }
-
-  /* Две колонки полосок характеристик — короче по высоте */
-  .abil-column__list {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    align-content: start;
   }
 
   .play-desk__stage {
