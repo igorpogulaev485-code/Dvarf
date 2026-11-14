@@ -75,12 +75,14 @@ async function shotClip(page, path, fn) {
   const box = await page.evaluate(fn)
   if (!box) throw new Error(`no clip for ${path}`)
   await page.screenshot({ path, clip: box })
+  return box
 }
 
 async function shotSceneBlock(page, path) {
-  await shotClip(page, path, () => {
-    const modes =
-      document.querySelector('.play-desk__modes') ||
+  return shotClip(page, path, () => {
+    const modes = document.querySelector('.play-desk__modes')
+    const tools = document.querySelector('.play-desk__mode-tools')
+    const mobileRoll =
       document.querySelector('.mobile-combat-seg-stack') ||
       document.querySelector('.mobile-combat-roll')
     const skills =
@@ -88,7 +90,7 @@ async function shotSceneBlock(page, path) {
       document.querySelector('.play-desk__hot--skills')
     const turn = document.querySelector('[data-scn01-scene-turn], .scene-turn-controls')
     const strip = document.querySelector('.turn-economy-strip')
-    const els = [modes, turn, strip, skills].filter(Boolean)
+    const els = [modes, tools, mobileRoll, turn, strip, skills].filter(Boolean)
     if (els.length === 0) return null
     let top = Infinity
     let left = Infinity
@@ -103,6 +105,21 @@ async function shotSceneBlock(page, path) {
       bottom = Math.max(bottom, r.bottom)
     }
     if (!Number.isFinite(top)) return null
+    // Probe: tools on one line?
+    const toolsEl = document.querySelector('.play-desk__mode-tools')
+    let toolsOneLine = null
+    if (toolsEl) {
+      const kids = [...toolsEl.children].filter((c) => c.getBoundingClientRect().height > 0)
+      if (kids.length >= 2) {
+        const tops = kids.map((c) => Math.round(c.getBoundingClientRect().top))
+        toolsOneLine = Math.max(...tops) - Math.min(...tops) <= 4
+      }
+    }
+    const hint = document.querySelector('.play-desk__mode-hint')
+    const hintVisible = Boolean(
+      hint && getComputedStyle(hint).display !== 'none' && hint.getBoundingClientRect().height > 0,
+    )
+    window.__scn01SceneProbe = { toolsOneLine, hintVisible }
     return {
       x: Math.max(0, Math.round(left) - 4),
       y: Math.max(0, Math.round(top) - 4),
@@ -113,10 +130,16 @@ async function shotSceneBlock(page, path) {
 }
 
 async function shotHot(page, path) {
-  await shotClip(page, path, () => {
-    const wrap =
-      document.querySelector('.ui-scroll-row.play-desk__hot-wrap, .play-desk__hot-wrap')
+  return shotClip(page, path, () => {
+    const wrap = document.querySelector(
+      '.ui-scroll-row.play-desk__hot-wrap, .play-desk__hot-wrap',
+    )
     if (!wrap) return null
+    const hot = wrap.querySelector('.play-desk__hot:not(.play-desk__hot--skills)') || wrap
+    const heights = [...hot.querySelectorAll('.play-desk__hot-item')].map((el) =>
+      Math.round(el.getBoundingClientRect().height),
+    )
+    window.__scn01HotHeights = heights
     const r = wrap.getBoundingClientRect()
     return {
       x: Math.max(0, Math.round(r.x)),
@@ -128,7 +151,7 @@ async function shotHot(page, path) {
 }
 
 async function shotHeader(page, path) {
-  await shotClip(page, path, () => {
+  return shotClip(page, path, () => {
     const desk = document.querySelector('.play-desk')
     if (!desk) return null
     const wide = desk.classList.contains('play-desk--wide')
@@ -149,7 +172,7 @@ async function shotHeader(page, path) {
 }
 
 async function shotSkills(page, path) {
-  await shotClip(page, path, () => {
+  return shotClip(page, path, () => {
     const skills =
       document.querySelector('.play-desk__hot--skills')?.closest('.play-desk__hot-wrap') ||
       document.querySelector('.play-desk__hot--skills')
@@ -164,38 +187,41 @@ async function shotSkills(page, path) {
   })
 }
 
+async function expandAbilities(page) {
+  const expandAll = page.getByRole('button', { name: /Развернуть все/i })
+  if (await expandAll.count()) {
+    await expandAll.first().click().catch(() => {})
+    await page.waitForTimeout(400)
+  }
+}
+
 async function shotLeftRail(page, path) {
-  await shotClip(page, path, () => {
+  await expandAbilities(page)
+  // Scroll left column so passives are in view together with Dex/Wis
+  await page.evaluate(() => {
+    const left = document.querySelector('.play-desk__left')
+    const foot = left?.querySelector('.play-desk__rail-foot, .play-desk__passives')
+    const dex = [...(left?.querySelectorAll('.abil-block') || [])].find((b) =>
+      /Ловк/i.test(b.textContent || ''),
+    )
+    dex?.scrollIntoView?.({ block: 'start' })
+    foot?.scrollIntoView?.({ block: 'nearest' })
+  })
+  await page.waitForTimeout(200)
+  return shotClip(page, path, () => {
     const left = document.querySelector('.play-desk__left')
     if (!left) return null
-    const blocks = [...left.querySelectorAll('.abil-block')]
-    const pick = blocks.filter((b) => /Ловк|Мудр/i.test(b.textContent || ''))
-    const els = pick.length ? pick : blocks.slice(0, 3)
-    const foot = left.querySelector('.play-desk__rail-foot')
-    const all = [...els, foot].filter(Boolean)
-    if (!all.length) return null
-    // Scroll first picked block into view so skills aren't off-screen
-    els[0]?.scrollIntoView?.({ block: 'start' })
-    let top = Infinity
-    let leftX = Infinity
-    let right = 0
-    let bottom = 0
-    for (const el of all) {
-      const r = el.getBoundingClientRect()
-      top = Math.min(top, r.top)
-      leftX = Math.min(leftX, r.left)
-      right = Math.max(right, r.right)
-      bottom = Math.max(bottom, r.bottom)
-    }
-    const y = Math.max(0, Math.round(top) - 4)
+    const r = left.getBoundingClientRect()
+    // Prefer full left column (abilities + passives + ownership)
+    const y = Math.max(0, Math.round(r.top))
     const height = Math.min(
-      window.innerHeight - y - 8,
-      Math.max(40, Math.round(bottom - top) + 8),
+      window.innerHeight - y - 4,
+      Math.max(200, Math.round(r.height)),
     )
     return {
-      x: Math.max(0, Math.round(leftX) - 4),
+      x: Math.max(0, Math.round(r.left) - 2),
       y,
-      width: Math.max(40, Math.round(right - leftX) + 8),
+      width: Math.max(40, Math.round(r.width) + 4),
       height,
     }
   })
@@ -213,8 +239,27 @@ async function scrollHot(page, toEnd) {
   await page.waitForTimeout(200)
 }
 
+/** Scroll hot row so Lay on Hands / compact stepper card is fully visible. */
+async function scrollHotToCompact(page) {
+  await page.evaluate(() => {
+    const hot =
+      document.querySelector('.play-desk__hot-wrap .play-desk__hot:not(.play-desk__hot--skills)') ||
+      document.querySelector('.play-desk__hot:not(.play-desk__hot--skills)')
+    if (!hot) return
+    const card =
+      [...hot.querySelectorAll('.play-desk__hot-item--res-compact')].find((el) =>
+        /рук|Hands|налож|Возлож/i.test(el.textContent || ''),
+      ) || hot.querySelector('.play-desk__hot-item--res-compact')
+    if (!card) return
+    const left = card.offsetLeft - 8
+    hot.scrollLeft = Math.max(0, left)
+    hot.dispatchEvent(new Event('scroll'))
+  })
+  await page.waitForTimeout(250)
+}
+
 async function composePair(page, w, aPath, bPath, outPath, labelA, labelB) {
-  await page.setViewportSize({ width: Math.max(w, 400), height: 1200 })
+  await page.setViewportSize({ width: Math.max(w, 400), height: 1400 })
   const stacked = await page.evaluate(
     async ({ a, b, la, lb }) => {
       async function load(src) {
@@ -252,7 +297,7 @@ async function composePair(page, w, aPath, bPath, outPath, labelA, labelB) {
   writeFileSync(outPath, Buffer.from(stacked.replace(/^data:image\/png;base64,/, ''), 'base64'))
 }
 
-const report = { files: [], notes: [] }
+const report = { files: [], probes: {}, heights: {} }
 const browser = await chromium.launch({
   executablePath: '/usr/local/bin/google-chrome',
   headless: true,
@@ -263,18 +308,21 @@ await page.goto('http://127.0.0.1:5173/', { waitUntil: 'domcontentloaded' })
 await login(page)
 
 for (const w of WIDTHS) {
-  const h = w <= 390 ? 900 : 1100
+  const h = w <= 390 ? 900 : 1200
   await page.setViewportSize({ width: w, height: h })
 
   await openSheet(page, DARRACK)
   const cScene = `${ART}/_tmp-scene-cleric-${w}.png`
   await shotSceneBlock(page, cScene)
+  const sceneProbeCleric = await page.evaluate(() => window.__scn01SceneProbe || null)
   await openSheet(page, TORBIN)
   const tScene = `${ART}/_tmp-scene-load-${w}.png`
   await shotSceneBlock(page, tScene)
+  const sceneProbeLoad = await page.evaluate(() => window.__scn01SceneProbe || null)
   const sceneOut = `${ART}/scene-block-pair-${w}.png`
   await composePair(page, w, cScene, tScene, sceneOut, `жрец · ${w}px`, `нагрузка · ${w}px`)
   report.files.push(sceneOut)
+  report.probes[`scene-${w}`] = { cleric: sceneProbeCleric, load: sceneProbeLoad }
 
   for (const state of ['start', 'end']) {
     await openSheet(page, DARRACK)
@@ -295,20 +343,21 @@ for (const w of [1440, 390]) {
   const h = w <= 390 ? 900 : 1100
   await page.setViewportSize({ width: w, height: h })
 
-  // Empty states — paladin (no conditions)
   await openSheet(page, PALADIN)
+  if (w <= 390) await scrollHotToCompact(page)
+  else await scrollHot(page, false)
   const emptyOut = `${ART}/hotbar-empty-states-${w}.png`
   await shotHot(page, emptyOut)
   report.files.push(emptyOut)
+  report.heights[`empty-${w}`] = await page.evaluate(() => window.__scn01HotHeights || [])
 
-  // Paladin −/+ counter
   const palOut = `${ART}/hotbar-paladin-${w}.png`
+  if (w <= 390) await scrollHotToCompact(page)
   await shotHot(page, palOut)
   report.files.push(palOut)
+  report.heights[`paladin-${w}`] = await page.evaluate(() => window.__scn01HotHeights || [])
 
-  // Rogue skills
   await openSheet(page, ROGUE)
-  // ensure combat scene for skill strip
   const combatTab = page.getByRole('button', { name: /^Бой$/ })
   if (await combatTab.count()) await combatTab.first().click().catch(() => {})
   await page.waitForTimeout(300)
@@ -317,16 +366,18 @@ for (const w of [1440, 390]) {
   report.files.push(skillsOut)
 }
 
-await page.setViewportSize({ width: 1440, height: 1400 })
-await openSheet(page, ROGUE)
-const expandAll = page.getByRole('button', { name: /Развернуть все/i })
-if (await expandAll.count()) {
-  await expandAll.first().click().catch(() => {})
-  await page.waitForTimeout(400)
+for (const w of [1440, 1024]) {
+  await page.setViewportSize({ width: w, height: 1600 })
+  await openSheet(page, ROGUE)
+  const rogueLeft = `${ART}/left-panel-rogue-${w}.png`
+  await shotLeftRail(page, rogueLeft)
+  report.files.push(rogueLeft)
+
+  await openSheet(page, TORBIN)
+  const warriorLeft = `${ART}/left-panel-warrior-${w}.png`
+  await shotLeftRail(page, warriorLeft)
+  report.files.push(warriorLeft)
 }
-const leftOut = `${ART}/left-panel-rogue-1440.png`
-await shotLeftRail(page, leftOut)
-report.files.push(leftOut)
 
 for (const w of HDR_WIDTHS) {
   const h = w <= 390 ? 900 : 1100

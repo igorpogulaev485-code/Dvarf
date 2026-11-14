@@ -319,6 +319,24 @@
   max-width: 100%;
 }
 
+/* SCN-01: roll + ход/кубики + магия — одна неразрывная строка */
+.play-desk__mode-tools {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (min-width: 1024px) {
+  /* Вкладки могут перенестись; tools (roll+ход+магия) — одна строка */
+  .play-desk__mode-tools {
+    flex: 0 1 auto;
+    flex-wrap: nowrap;
+  }
+}
+
 /* Tour spotlight wraps only scene tabs — not roll-mode chips. */
 .play-desk__mode-tabs {
   display: inline-flex;
@@ -454,28 +472,31 @@
   color: var(--desk-accent);
 }
 
+/* SCN-01: подпись сцены только в title/aria — отдельной строки нет */
 .play-desk__mode-hint {
-  flex: 1 1 100%;
-  color: var(--desk-muted);
-  font-size: 0.75rem;
+  display: none;
 }
 
 .play-desk__split-btn {
+  flex: 0 0 auto;
+  box-sizing: border-box;
   border: 1px solid var(--desk-line);
   background: #fff;
-  border-radius: 8px;
-  padding: 6px 10px;
+  border-radius: 999px;
+  padding: 6px 12px;
+  min-height: var(--control-h-md);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  color: var(--desk-ink);
+  color: var(--desk-muted);
+  line-height: 1.25;
 }
 
 .play-desk__split-btn.is-on {
-  background: var(--desk-accent-soft);
-  border-color: var(--desk-line);
-  color: var(--desk-accent);
+  background: var(--desk-accent);
+  border-color: var(--desk-accent);
+  color: #fff;
 }
 
 .play-desk__split-hint {

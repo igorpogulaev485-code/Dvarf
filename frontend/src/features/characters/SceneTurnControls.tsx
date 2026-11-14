@@ -69,8 +69,10 @@ export function SceneTurnControls({
         }${te.diceLockedByMaster ? ' is-locked' : ''}`}
         title={
           te.diceLockedByMaster
-            ? 'Включено мастером на столе'
-            : 'Бросок живыми кубиками: Попал/Промах или своё число, без цифрового броска'
+            ? 'Кубики на столе: включено мастером'
+            : te.diceOnTable
+              ? 'Кубики на столе: вкл — клик выключить'
+              : 'Кубики на столе: выкл — клик включить (Попал/Промах или своё число)'
         }
       >
         <input
@@ -79,8 +81,18 @@ export function SceneTurnControls({
           checked={te.diceOnTable}
           disabled={te.diceLockedByMaster}
           onChange={(e) => te.setPersonalDiceOnTable(e.target.checked)}
-          aria-label="Кубики на столе"
+          aria-label={
+            te.diceOnTable ? 'Кубики на столе: включено' : 'Кубики на столе: выключено'
+          }
         />
+        <span
+          className={`scene-turn-controls__dice-mark${
+            te.diceOnTable ? ' is-on' : ''
+          }`}
+          aria-hidden="true"
+        >
+          {te.diceOnTable ? '✓' : ''}
+        </span>
         <span>{diceLabel}</span>
         {te.diceLockedByMaster ? (
           <span className="scene-turn-controls__hint">мастер</span>

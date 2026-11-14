@@ -87,19 +87,27 @@ export function UiKitEtalonPreviewPage() {
                 броски
               </button>
             </div>
-            <div
-              className="scene-turn-controls scene-turn-controls--desk"
-              role="group"
-              aria-label="Ход и кубики"
-              data-scn01-scene-turn="1"
-            >
-              <button type="button" className="play-desk__roll-mode-btn">
-                Новый ход
+            <div className="play-desk__mode-tools" role="group" aria-label="Броски и ход">
+              <div
+                className="scene-turn-controls scene-turn-controls--desk"
+                role="group"
+                aria-label="Ход и кубики"
+                data-scn01-scene-turn="1"
+              >
+                <button type="button" className="play-desk__roll-mode-btn">
+                  Новый ход
+                </button>
+                <label className="play-desk__roll-mode-btn scene-turn-controls__dice is-on">
+                  <input type="checkbox" checked readOnly aria-label="Кубики на столе: включено" />
+                  <span className="scene-turn-controls__dice-mark is-on" aria-hidden="true">
+                    ✓
+                  </span>
+                  <span>кубики</span>
+                </label>
+              </div>
+              <button type="button" className="play-desk__split-btn is-on">
+                магия
               </button>
-              <label className="play-desk__roll-mode-btn scene-turn-controls__dice is-on">
-                <input type="checkbox" checked readOnly aria-label="Кубики на столе" />
-                <span>кубики</span>
-              </label>
             </div>
           </div>
         </div>
