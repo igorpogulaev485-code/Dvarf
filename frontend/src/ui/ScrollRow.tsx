@@ -76,7 +76,18 @@ export function ScrollRow({
   const updateScrollHints = () => {
     const el = scrollerRef.current
     if (!el) return
-    const edges = scrollRowEdges(el.scrollLeft, el.clientWidth, el.scrollWidth)
+    // Mobile hot uses padding + scroll-snap; scrollLeft can stick ~4px at "start"
+    // and falsely show ‹ over the first chip. Treat near-zero as the start edge.
+    const edgeEpsilon = 8
+    if (el.scrollLeft > 0 && el.scrollLeft < edgeEpsilon) {
+      el.scrollLeft = 0
+    }
+    const edges = scrollRowEdges(
+      el.scrollLeft,
+      el.clientWidth,
+      el.scrollWidth,
+      edgeEpsilon,
+    )
     setCanScrollLeft(edges.canScrollLeft)
     setCanScrollRight(edges.canScrollRight)
   }

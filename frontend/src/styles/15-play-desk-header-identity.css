@@ -321,10 +321,12 @@
 .play-desk-header {
   position: relative;
   z-index: 1;
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-  gap: 6px 8px;
+  /* who (1fr) | mid tiles+Вдохн. (auto) | right зм+хиты (auto, trailing edge) */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 6px;
   min-width: 0;
   width: 100%;
   max-width: 100%;
@@ -354,6 +356,8 @@
 
 .play-desk-header__right {
   align-self: center;
+  justify-self: end;
+  margin-left: 0;
 }
 
 .play-desk-header:has(.play-desk-header__coin:hover),
@@ -362,11 +366,10 @@
 }
 
 .play-desk-header__who {
-  /* UIKIT-03: who absorbs spare width (race/XP/classes); mid+right stay shrink-wrap */
-  flex: 1 1 14rem;
-  width: auto;
+  /* Grid column 1 — absorbs spare width; mid/right stay content-sized at the end */
   min-width: 0;
   max-width: none;
+  width: auto;
   display: grid;
   gap: 2px;
   justify-items: stretch;
@@ -855,6 +858,7 @@ button.play-desk-header__identity:hover {
   min-width: 0;
 }
 
+/* Phone: chips ScrollRow + Round/Companions pinned on the right */
 .play-desk__mobile-chrome > .play-desk__mobile-effects {
   display: flex;
   flex-wrap: nowrap;
@@ -874,33 +878,71 @@ button.play-desk-header__identity:hover {
   flex: 0 0 auto;
 }
 
-/* Short Round/Companions faces — phone only (<480); 768 keeps full labels */
-.active-effects__round-short,
-.play-desk__dock-chip-short {
+.play-desk__mobile-chrome .active-effects--scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.play-desk__mobile-chrome .active-effects__main-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.play-desk__mobile-chrome .active-effects__scroller {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  min-width: 0;
+  width: 100%;
+}
+
+.play-desk__mobile-chrome .active-effects__scroller::-webkit-scrollbar {
   display: none;
 }
 
-@media (max-width: 480px) {
-  .play-desk__mobile-chrome .active-effects__round-full,
-  .play-desk__mobile-chrome .play-desk__dock-chip-full {
-    display: none;
-  }
+.play-desk__mobile-chrome .active-effects__scroller > .ui-chip {
+  flex: 0 0 auto;
+  max-width: min(52vw, 11rem);
+}
 
-  .play-desk__mobile-chrome .active-effects__round-short,
-  .play-desk__mobile-chrome .play-desk__dock-chip-short {
-    display: inline;
-  }
+.play-desk__mobile-chrome .active-effects__trail,
+.play-desk__mobile-chrome > .play-desk__mobile-effects > .play-desk__dock-chip {
+  flex: 0 0 auto;
+}
 
-  .play-desk__mobile-chrome .active-effects .ui-chip {
-    max-width: min(46vw, 9.5rem);
-  }
+.play-desk__mobile-chrome .active-effects__round {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
 
-  .play-desk__mobile-chrome .active-effects__round,
-  .play-desk__mobile-chrome .play-desk__dock-chip {
-    min-height: 26px;
-    padding: 2px 7px;
-    font-size: 0.72rem;
-  }
+.play-desk__mobile-chrome .active-effects__round-icon,
+.play-desk__dock-chip-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
+}
+
+.play-desk__mobile-chrome .play-desk__dock-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
 }
 
 .play-desk__top > .play-desk__top-extras {
@@ -1015,6 +1057,15 @@ button.play-desk-header__identity:hover {
 .active-effects__round {
   flex: 0 0 auto;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.active-effects__round-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
 }
 
 .active-effects__row {

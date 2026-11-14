@@ -8,7 +8,8 @@ import {
   tickAllEffectsOneRound,
   type ActiveEffect,
 } from '../../shared/dnd/activeEffects'
-import { Button, Chip, DetailsMenu } from '../../ui'
+import { Button, Chip, DetailsMenu, ScrollRow } from '../../ui'
+import { IconRound } from './deskIcons'
 import { rollDamage } from './deskRolls'
 
 type Props = {
@@ -17,6 +18,11 @@ type Props = {
   onToast?: (message: string) => void
   /** Heroism: grant temp HP equal to caster mod at start of turn. */
   onHeroismTurnStart?: () => void
+  /**
+   * Phone: chips scroll in kit ScrollRow; Round stays pinned in the trail.
+   * Desktop keeps measure + +N clamp (default).
+   */
+  chipLayout?: 'clamp' | 'scroll'
 }
 
 function EffectChip({
@@ -216,6 +222,7 @@ export function ActiveEffectsPanel({
   onChange,
   onToast,
   onHeroismTurnStart,
+  chipLayout = 'clamp',
 }: Props) {
   const [openTipId, setOpenTipId] = useState<string | null>(null)
   const [visibleCount, setVisibleCount] = useState<number | null>(null)
@@ -223,16 +230,23 @@ export function ActiveEffectsPanel({
   const measureRef = useRef<HTMLDivElement | null>(null)
   const rows = applyEffectStacking(effects ?? [])
   const rowKey = rows.map((r) => r.id).join('|')
-  const shown =
-    visibleCount == null || visibleCount >= rows.length
+  const scrollChips = chipLayout === 'scroll'
+  const shown = scrollChips
+    ? rows
+    : visibleCount == null || visibleCount >= rows.length
       ? rows
       : rows.slice(0, Math.max(0, visibleCount))
-  const overflow =
-    visibleCount != null && visibleCount < rows.length
+  const overflow = scrollChips
+    ? []
+    : visibleCount != null && visibleCount < rows.length
       ? rows.slice(Math.max(0, visibleCount))
       : []
 
   useLayoutEffect(() => {
+    if (scrollChips) {
+      setVisibleCount(rows.length)
+      return
+    }
     if (rows.length === 0) {
       setVisibleCount(null)
       return
@@ -287,16 +301,17 @@ export function ActiveEffectsPanel({
       ro.disconnect()
       window.removeEventListener('resize', recompute)
     }
-  }, [rows.length, rowKey])
+  }, [rows.length, rowKey, scrollChips])
 
   useEffect(() => {
     if (!openTipId) return
     function onDoc(event: PointerEvent) {
       const t = event.target
       if (!(t instanceof Node)) return
-      const chip = mainRef.current
-        ?.closest('.active-effects')
-        ?.querySelector('.ui-chip.is-tip-open')
+      const root =
+        mainRef.current?.closest('.active-effects') ||
+        (t instanceof Element ? t.closest('.active-effects') : null)
+      const chip = root?.querySelector('.ui-chip.is-tip-open')
       if (chip && chip.contains(t)) return
       setOpenTipId(null)
     }
@@ -315,70 +330,91 @@ export function ActiveEffectsPanel({
     return null
   }
 
+  const chipNodes = shown.map((effect) => (
+    <EffectChip
+      key={effect.id}
+      effect={effect}
+      rows={rows}
+      open={openTipId === effect.id}
+      onToggleOpen={() =>
+        setOpenTipId((prev) => (prev === effect.id ? null : effect.id))
+      }
+      onChange={onChange}
+      onToast={onToast}
+      onHeroismTurnStart={onHeroismTurnStart}
+    />
+  ))
+
   return (
-    <div className="active-effects active-effects--strip" data-testid="active-effects">
-      <div
-        className="active-effects__measure"
-        ref={measureRef}
-        aria-hidden="true"
-      >
-        {rows.map((effect) => (
-          <span key={effect.id} className="ui-chip active-effects__chip" data-effect-measure>
-            <span className="ui-chip__label">
-              <strong>{formatEffectChipFace(effect)}</strong>
+    <div
+      className={`active-effects active-effects--strip${
+        scrollChips ? ' active-effects--scroll' : ''
+      }`}
+      data-testid="active-effects"
+    >
+      {scrollChips ? null : (
+        <div
+          className="active-effects__measure"
+          ref={measureRef}
+          aria-hidden="true"
+        >
+          {rows.map((effect) => (
+            <span key={effect.id} className="ui-chip active-effects__chip" data-effect-measure>
+              <span className="ui-chip__label">
+                <strong>{formatEffectChipFace(effect)}</strong>
+              </span>
+              <span className="ui-chip__actions">
+                <span className="ui-chip__dismiss">×</span>
+              </span>
             </span>
-            <span className="ui-chip__actions">
-              <span className="ui-chip__dismiss">×</span>
-            </span>
-          </span>
-        ))}
-      </div>
-      <div
-        className="active-effects__main"
-        role="list"
-        aria-label="Активные эффекты"
-        ref={mainRef}
-      >
-        {shown.map((effect) => (
-          <EffectChip
-            key={effect.id}
-            effect={effect}
-            rows={rows}
-            open={openTipId === effect.id}
-            onToggleOpen={() =>
-              setOpenTipId((prev) => (prev === effect.id ? null : effect.id))
-            }
-            onChange={onChange}
-            onToast={onToast}
-            onHeroismTurnStart={onHeroismTurnStart}
-          />
-        ))}
-        {overflow.length > 0 ? (
-          <DetailsMenu
-            className="active-effects__more"
-            summaryClassName="active-effects__more-summary"
-            panelClassName="active-effects__more-panel"
-            summary={`+${overflow.length}`}
-          >
-            <div className="active-effects__more-list" role="list">
-              {overflow.map((effect) => (
-                <EffectChip
-                  key={effect.id}
-                  effect={effect}
-                  rows={rows}
-                  open={openTipId === effect.id}
-                  onToggleOpen={() =>
-                    setOpenTipId((prev) => (prev === effect.id ? null : effect.id))
-                  }
-                  onChange={onChange}
-                  onToast={onToast}
-                  onHeroismTurnStart={onHeroismTurnStart}
-                />
-              ))}
-            </div>
-          </DetailsMenu>
-        ) : null}
-      </div>
+          ))}
+        </div>
+      )}
+      {scrollChips ? (
+        <ScrollRow
+          ariaLabel="Активные эффекты"
+          className="active-effects__main active-effects__scroller"
+          shellClassName="active-effects__main-wrap"
+          watchKey={rowKey}
+          itemSelector=":scope > .ui-chip"
+        >
+          {chipNodes}
+        </ScrollRow>
+      ) : (
+        <div
+          className="active-effects__main"
+          role="list"
+          aria-label="Активные эффекты"
+          ref={mainRef}
+        >
+          {chipNodes}
+          {overflow.length > 0 ? (
+            <DetailsMenu
+              className="active-effects__more"
+              summaryClassName="active-effects__more-summary"
+              panelClassName="active-effects__more-panel"
+              summary={`+${overflow.length}`}
+            >
+              <div className="active-effects__more-list" role="list">
+                {overflow.map((effect) => (
+                  <EffectChip
+                    key={effect.id}
+                    effect={effect}
+                    rows={rows}
+                    open={openTipId === effect.id}
+                    onToggleOpen={() =>
+                      setOpenTipId((prev) => (prev === effect.id ? null : effect.id))
+                    }
+                    onChange={onChange}
+                    onToast={onToast}
+                    onHeroismTurnStart={onHeroismTurnStart}
+                  />
+                ))}
+              </div>
+            </DetailsMenu>
+          ) : null}
+        </div>
+      )}
       <div className="active-effects__trail">
         <Button
           type="button"
@@ -386,7 +422,7 @@ export function ActiveEffectsPanel({
           variant="ghost"
           className="active-effects__round"
           title="Сменить раунд: таймеры эффектов −1 (полный ход — в сцене Бой)"
-          aria-label="Раунд минус 1 — уменьшить таймеры эффектов"
+          aria-label="Раунд −1 — уменьшить таймеры эффектов"
           onClick={() => {
             const next = tickAllEffectsOneRound(rows)
             onChange(next)
@@ -397,10 +433,8 @@ export function ActiveEffectsPanel({
             )
           }}
         >
-          <span className="active-effects__round-full">Раунд −1</span>
-          <span className="active-effects__round-short" aria-hidden="true">
-            −1
-          </span>
+          <IconRound className="active-effects__round-icon" />
+          Раунд −1
         </Button>
       </div>
     </div>

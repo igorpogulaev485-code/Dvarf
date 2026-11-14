@@ -38,6 +38,7 @@ import {
   alignmentSheetLabel,
 } from '../../../shared/dnd/alignments'
 import { ActiveEffectsPanel } from '../ActiveEffectsPanel'
+import { IconCompanions } from '../deskIcons'
 import {
   buildNeedsSetupItems,
   type NeedsSetupItem,
@@ -707,26 +708,23 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               onChange={(effects) => model.applyEffectsChange?.(effects)}
               onToast={model.onToast}
               onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
+              chipLayout="scroll"
             />
             {model.dockCompanions.length > 0 ? (
               <button
                 type="button"
                 className="play-desk__dock-chip"
                 aria-label={`Напарники ${model.dockCompanions.length}`}
-                title={model.dockCompanions
+                title={`Напарники: ${model.dockCompanions
                   .map((row) => row.name || 'Без имени')
-                  .join(', ')}
+                  .join(', ')}`}
                 onClick={() => {
                   model.setDeskMode('companions')
                   model.setActivePanel('companions')
                 }}
               >
-                <span className="play-desk__dock-chip-full">
-                  Напарники {model.dockCompanions.length}
-                </span>
-                <span className="play-desk__dock-chip-short" aria-hidden="true">
-                  ×{model.dockCompanions.length}
-                </span>
+                <IconCompanions className="play-desk__dock-chip-icon" />
+                <span>{model.dockCompanions.length}</span>
               </button>
             ) : null}
           </div>

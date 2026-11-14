@@ -176,3 +176,25 @@ export function IconPouch(props: IconProps) {
     </Svg>
   )
 }
+
+/** Round tick — small cycle (effects trail) */
+export function IconRound(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path {...stroke} d="M4.8 12a7.2 7.2 0 1 0 2.1-5.1" />
+      <path {...stroke} d="M4.5 4.8v4.2h4.2" />
+    </Svg>
+  )
+}
+
+/** Companions — two people */
+export function IconCompanions(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle {...stroke} cx="9" cy="8" r="2.4" />
+      <path {...stroke} d="M4.6 18.2c.4-2.8 2.2-4.2 4.4-4.2s4 1.4 4.4 4.2" />
+      <circle {...stroke} cx="15.6" cy="8.4" r="2.1" />
+      <path {...stroke} d="M13.2 14.2c1.3-.7 2.7-.7 4.2.2 1.2.8 1.9 2.2 2 3.8" />
+    </Svg>
+  )
+}

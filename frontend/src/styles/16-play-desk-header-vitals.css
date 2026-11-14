@@ -70,13 +70,11 @@ button.play-desk-header__xp:hover .play-desk-header__xp-bar {
 }
 
 .play-desk-header__mid {
-  /* UIKIT-03 / run8 grid: mid shrink-wraps tiles + Вдохн./Истощ.
-     Do NOT flex-grow — that opened an empty hole before зм/Отдых/HP. */
-  flex: 0 1 auto;
+  /* Header grid col 2: tiles + Вдохн./Истощ. — content-sized, right after who */
   width: max-content;
   max-width: 100%;
   min-width: 0;
-  margin-left: 8px;
+  margin-left: 0;
   display: flex;
   justify-content: flex-start;
   align-items: center;
@@ -505,9 +503,8 @@ button.play-desk-vital:hover,
   flex-wrap: nowrap;
   align-items: center;
   gap: 6px;
-  /* Sit immediately after mid (tiles + insp/exh) — no margin:auto hole */
-  margin-left: 6px;
-  flex: 0 0 auto;
+  /* Header grid col 3: зм/Отдых + хиты — trailing edge of the ribbon */
+  margin-left: 0;
   min-width: 0;
 }
 
