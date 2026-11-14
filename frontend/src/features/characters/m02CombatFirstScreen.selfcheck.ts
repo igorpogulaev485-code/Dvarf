@@ -34,21 +34,21 @@ assert.equal(
   'attacks head must not duplicate dice toggle',
 )
 
-// M06 / SC-06 — skill wrap 2×2: 3 pinned + «Ещё» в 4-й ячейке
+// UIKIT-02: skills + resources — one row + ScrollRow (mobileOverflow=false)
 assert.equal(MOBILE_SKILL_PINNED_COUNT, 3)
 assert.match(skills, /mobileOverflow/)
-assert.match(skills, /Ещё \{/)
-assert.match(skills, /play-desk__hot-more--skills-cell/)
-assert.match(layout, /mobileOverflow=\{!model\.isPlayDesk\}/)
-assert.match(shell, /play-desk__hot--skills-mobile|play-desk__hot--skills/)
-assert.match(shell, /grid-template-columns:\s*repeat\(2/)
+assert.match(skills, /PlayDeskHotScrollWrap|play-desk__hot--skills/)
+assert.match(layout, /mobileOverflow=\{false\}/)
+assert.match(shell, /play-desk__hot--skills/)
 
-// M07 — mobile resources pinned + «Ещё N»; desktop scroll untouched in code path
 assert.equal(MOBILE_HOT_PINNED_RESOURCE_COUNT, 2)
 assert.match(hot, /mobileMoreOverflow/)
-assert.match(hot, /Ещё \{/)
-assert.match(layout, /mobileMoreOverflow=\{!model\.isPlayDesk\}/)
-assert.match(hot, /Прокрутить вправо/)
-assert.match(shell, /\.play-desk__pip[\s\S]*?min-width:\s*44px/)
+assert.match(layout, /mobileMoreOverflow=\{false\}/)
+assert.match(shell, /\.play-desk--mobile\s+\.play-desk__pip[\s\S]*?min-width:\s*18px/)
+const scrollRow = readFileSync(
+  join(here, '../../ui/ScrollRow.tsx'),
+  'utf8',
+)
+assert.match(scrollRow, /Прокрутить вправо/)
 
 console.log('m02CombatFirstScreen.selfcheck: ok')

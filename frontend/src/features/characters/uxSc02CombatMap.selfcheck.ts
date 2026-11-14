@@ -16,10 +16,18 @@ const actions = readFileSync(join(here, 'TurnEconomyCombatActions.tsx'), 'utf8')
 
 assert.match(mods, /\+ Укрытие \/ состояние цели/)
 assert.match(picker, /modifiersSlot/)
+assert.match(picker, /combat-target-picker__chips/)
+assert.match(picker, /Атаковать \$\{selected\.name\}/)
+assert.match(picker, /rememberKey/)
 assert.match(enter, /modifiersSlot/)
 assert.match(attacks, /targetModifiersSlot/)
 assert.match(attacks, /modifiersSlot=\{targetModifiersSlot\}/)
 assert.match(attacks, /modifiersSlot=\{enterNumberCtx \? targetModifiersSlot/)
+assert.match(attacks, /rememberKey=\{/)
+/* Targets block must appear before modifiersSlot in the picker body */
+const chipsIdx = picker.indexOf('combat-target-picker__chips')
+const modsSlotIdx = picker.indexOf('{modifiersSlot}')
+assert.ok(chipsIdx >= 0 && modsSlotIdx > chipsIdx, 'targets before modifiersSlot')
 
 // No permanent cover / 9-check carpet on the combat tab body.
 const headIdx = attacks.indexOf('<h3>Атаки</h3>')

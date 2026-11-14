@@ -136,116 +136,100 @@
 }
 
 /*
- * Tablet / narrow laptop desk: keep ONE compact header row (Wave A LOCK).
- * Who stays capped + ellipsis; mid vitals scroll; HP + death stay pinned.
- * Do NOT wrap who onto its own full-width row — that stretched the XP band
- * and made the шапка look broken on iPad Pro 11".
+ * UIKIT-02 tablet / narrow laptop (≈768–1180):
+ * tight who, full-size vitals that wrap, compact effect chips.
+ * Do NOT shrink StatTiles — wrap the mid vitals row instead.
  */
-@media (max-width: 1280px) {
+/* UIKIT-02 P1: keep one compact header row on iPad/1024 — do not wrap mid to 100% */
+@media (max-width: 1180px) {
   .play-desk--wide .play-desk__top {
     min-width: 0;
-    gap: 8px;
+    gap: 6px 8px;
   }
 
   .play-desk--wide .play-desk-header {
-    flex-wrap: nowrap;
-    gap: 6px 8px;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    column-gap: 6px;
+    row-gap: 4px;
     min-width: 0;
+    align-items: center;
   }
 
   .play-desk--wide .play-desk-header__who {
-    max-width: min(240px, 28vw);
+    max-width: none;
+    min-width: 0;
   }
 
-  .play-desk--wide .play-desk-header__who:has(.play-desk-header__classes.is-many) {
-    max-width: min(560px, 48vw);
-  }
-
-  .play-desk--wide .play-desk-header__name {
-    font-size: 1.15rem;
+  .play-desk--wide .play-desk-header__name-text {
+    font-size: 1.12rem;
   }
 
   .play-desk--wide .play-desk-header__identity {
-    font-size: 0.78rem;
+    font-size: 0.68rem;
   }
 
-  .play-desk--wide .char-avatar--md .char-avatar__face {
-    width: 56px;
-    height: 56px;
-    font-size: 1.15rem;
+  .play-desk--wide .play-desk-header__mid {
+    width: max-content;
+    max-width: 100%;
+    min-width: 0;
+    margin-left: 0;
+    overflow: visible;
   }
 
-  .play-desk--wide .play-desk-vital {
-    width: 50px;
-    min-width: 50px;
-    height: 56px;
-    padding: 4px 4px 3px;
+  .play-desk--wide .play-desk-header__vitals {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 4px;
+    width: max-content;
   }
 
-  .play-desk--wide .play-desk-vital b {
-    font-size: 1.05rem;
-  }
-
-  .play-desk--wide .play-desk-vital--jump {
-    width: 58px;
-    min-width: 58px;
-  }
-
-  .play-desk--wide .play-desk-vital--jump b {
-    font-size: 0.92rem;
-  }
-
-  .play-desk--wide .play-desk-vital--modes {
-    min-width: 48px;
-    max-width: 64px;
+  .play-desk--wide .play-desk-header__right {
+    margin-left: 0;
+    justify-self: end;
   }
 
   .play-desk--wide .play-desk-header__stack {
-    min-height: 56px;
     gap: 3px;
   }
 
   .play-desk--wide .play-desk-header__chip {
-    padding: 3px 6px;
-    font-size: 0.62rem;
-  }
-
-  .play-desk--wide .play-desk-header__coin,
-  .play-desk--wide .play-desk-header__rest {
+    padding: 0 6px;
+    font-size: 0.6rem;
     min-height: 26px;
-    padding: 4px 8px;
-    font-size: 0.74rem;
-  }
-
-  .play-desk--wide .play-desk-header__hp {
-    min-width: 112px;
-    min-height: 56px;
-    padding: 6px 10px;
-  }
-
-  .play-desk--wide .play-desk-header__hp strong {
-    font-size: 1.2rem;
-  }
-
-  .play-desk--wide .play-desk-header__death {
-    min-width: 108px;
-    min-height: 56px;
-    padding: 5px 6px;
+    height: 26px;
   }
 }
 
 @media (max-width: 1100px) {
   .play-desk-compact__hit,
-  .play-desk-compact__row.is-action {
-    grid-template-columns: 1fr auto;
+  .play-desk-compact__row.is-action:not(.is-attack) {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
-  .play-desk-compact__hit .play-desk-compact__dmg,
-  .play-desk-compact__row.is-action .play-desk-compact__dmg {
-    grid-column: 1 / -1;
+
+  /* Narrow attacks column (pinned magic): wrap tools under hit if needed */
+  .play-desk-compact__row.is-attack {
+    grid-template-columns: minmax(0, 1fr);
   }
-  .play-desk-compact__hold {
-    border-left: 0;
-    border-top: 1px solid var(--desk-line);
+
+  .play-desk-compact__row.is-attack .play-desk-compact__hit {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .play-desk-compact__holds {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-start;
+    justify-self: start;
+    width: max-content;
+    max-width: 100%;
+    border-top: none;
+    padding: 0;
+  }
+
+  .play-desk-compact__ammo {
+    grid-column: 1;
+    grid-row: 3;
   }
 }
 
@@ -505,10 +489,15 @@
   color: var(--desk-muted);
 }
 
+/* UIKIT-03 etalon: hot strip is always one row — overflow via kit ScrollRow */
 .play-desk__hot {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   align-items: stretch;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 

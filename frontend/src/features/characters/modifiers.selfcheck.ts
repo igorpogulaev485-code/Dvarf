@@ -10,6 +10,9 @@ import {
   normalizeBonusLines,
   patchModifierList,
   readModifiers,
+  weaponDamageBonusTarget,
+  weaponHitBonusTarget,
+  weaponManualBonus,
   withInitiativeBonus,
   withSpellCastBonuses,
 } from './modifiers.ts'
@@ -137,6 +140,47 @@ const cast = withSpellCastBonuses({
   vars,
 })
 assert(cast.dc === 14 && cast.attack === 7, `cast ${cast.dc}/${cast.attack}`)
+
+// UIKIT-02: per-weapon hit / damage stacks (same BonusLine UI as ability/spell)
+const weaponLines = normalizeBonusLines([
+  {
+    id: 'wh',
+    target: weaponHitBonusTarget('atk-hammer'),
+    label: 'Магия +1',
+    op: '+',
+    expr: '1',
+    enabled: true,
+  },
+  {
+    id: 'wd',
+    target: weaponDamageBonusTarget('atk-hammer'),
+    label: 'Огонь',
+    op: '+',
+    expr: '2',
+    enabled: true,
+  },
+  {
+    id: 'other',
+    target: weaponHitBonusTarget('atk-other'),
+    label: 'Чужой',
+    op: '+',
+    expr: '9',
+    enabled: true,
+  },
+])
+assert(weaponLines.length === 3, 'weapon targets normalize')
+assert(
+  weaponManualBonus(weaponLines, 'atk-hammer', 'hit', vars) === 1,
+  'weapon hit',
+)
+assert(
+  weaponManualBonus(weaponLines, 'atk-hammer', 'damage', vars) === 2,
+  'weapon dmg',
+)
+assert(
+  weaponManualBonus(weaponLines, 'atk-other', 'hit', vars) === 9,
+  'scoped per attack id',
+)
 
 // M3: class_slug scope — warlock +1 DC does not hit artificer
 const scoped = normalizeBonusLines([

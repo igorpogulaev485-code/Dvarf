@@ -1,70 +1,68 @@
-/* 3) Опыт — полоска; под ней: старт ур. | ещё N | конец ур. */
+/* UIKIT-02 P1: XP — thin bar inline in meta line */
 .play-desk-header__xp {
   margin: 0;
-  display: block;
-  width: 100%;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
   min-width: 0;
-  max-width: none;
+  max-width: 100%;
+  flex: 1 1 14rem;
   padding: 0;
   border: 0;
   background: transparent;
   font: inherit;
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   color: var(--desk-muted);
   text-align: left;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .play-desk-header__xp-row {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 8px;
-  align-items: center;
-  min-width: 0;
+  display: contents;
 }
 
 .play-desk-header__xp-level {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  color: var(--desk-ink, var(--ink));
+  flex: 0 0 auto;
 }
 
 .play-desk-header__xp-track {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
+  display: contents;
 }
 
 .play-desk-header__xp-nums {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 6px;
-  align-items: baseline;
-  font-size: 0.66rem;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
-  line-height: 1.2;
-  color: var(--desk-muted);
+  display: none;
 }
 
-.play-desk-header__xp-floor {
-  justify-self: start;
-  white-space: nowrap;
+.play-desk-header__xp-floor,
+.play-desk-header__xp-next {
+  display: none;
 }
 
 .play-desk-header__xp-remain {
-  justify-self: center;
   white-space: nowrap;
-  overflow: visible;
-  color: var(--desk-ink, var(--ink));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--desk-muted);
   font-weight: 600;
-  /* SC-07: «ещё N» не обрезать на широкой шапке */
-  min-width: max-content;
+  font-size: 0.62rem;
+  flex: 1 1 100%;
+  min-width: 0;
+  order: 3;
 }
 
-.play-desk-header__xp-next {
-  justify-self: end;
-  white-space: nowrap;
+.play-desk-header__xp.is-milestones .play-desk-header__xp-bar {
+  display: none;
+}
+
+.play-desk-header__xp.is-milestones .play-desk-header__xp-remain {
+  flex: 0 1 auto;
+  order: 2;
 }
 
 button.play-desk-header__xp:hover .play-desk-header__xp-bar {
@@ -72,45 +70,47 @@ button.play-desk-header__xp:hover .play-desk-header__xp-bar {
 }
 
 .play-desk-header__mid {
-  /* SC-07 / UX-03: mid fills the ribbon evenly — no empty hole between
-     who and КД. HP stays the accent on the right (__right). */
-  flex: 1 1 auto;
+  /* Header grid col 2: tiles + Вдохн./Истощ. — content-sized, right after who */
+  width: max-content;
+  max-width: 100%;
   min-width: 0;
-  margin-left: 8px;
+  margin-left: 0;
   display: flex;
-  justify-content: stretch;
+  justify-content: flex-start;
   align-items: center;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  overscroll-behavior-x: contain;
-}
-
-.play-desk-header__mid::-webkit-scrollbar {
-  display: none;
+  overflow: visible;
 }
 
 .play-desk-header__stack {
   display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: 1fr;
   gap: 4px;
+  align-items: stretch;
   align-content: center;
-  min-height: 64px;
+  min-height: 0;
+  width: max-content;
+  min-width: 5.5rem;
+  /* UIKIT-03: never collapse Вдохн./Истощ. off the mid ribbon */
+  flex: 0 0 auto;
+  flex-shrink: 0;
 }
 
 .play-desk-header__chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 0 10px;
+  justify-content: flex-start;
+  gap: 3px;
+  width: 100%;
+  padding: 0 8px;
   border-radius: 999px;
   border: 1px solid var(--desk-line);
   background: #fff;
   font: inherit;
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   color: inherit;
-  min-height: 30px;
-  height: 30px;
+  min-height: 28px;
+  height: 28px;
   box-sizing: border-box;
   white-space: nowrap;
 }
@@ -133,21 +133,20 @@ button.play-desk-header__chip {
 }
 
 .play-desk-header__exh-hint {
-  align-self: center;
-  max-width: 120px;
-  font-size: 0.68rem;
-  color: var(--danger, #9f2d2d);
-  line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* P1: stage text lives in chip title — don't grow header */
+  display: none;
 }
 
 .play-desk-header__xp-bar {
-  height: 8px;
+  display: block;
+  flex: 1 1 10rem;
+  min-width: 8rem;
+  max-width: 18rem;
+  height: 7px;
   border-radius: 999px;
   background: var(--desk-chip, #e7e1d4);
   overflow: hidden;
+  order: 2;
 }
 
 .play-desk-header__xp-bar > i {
@@ -169,37 +168,38 @@ button.play-desk-header__chip {
 
 .play-desk-header__vitals {
   display: flex;
+  /* Desktop run8: one ribbon — never drop Вдохн./Истощ. under tiles */
   flex-wrap: nowrap;
-  gap: clamp(6px, 1.1vw, 12px);
+  gap: clamp(4px, 0.8vw, 8px);
   align-items: center;
-  width: 100%;
-  max-width: none;
-  justify-content: space-evenly;
+  width: max-content;
+  max-width: 100%;
+  justify-content: flex-start;
   box-sizing: border-box;
-  padding-inline: 2px;
+  padding-inline: 0;
 }
 
-/* Equal StatTile-like vitals: one size in one baseline */
+/* UIKIT-02 P1: denser vitals (~48px) — one baseline with HP */
 .play-desk-vital {
   position: relative;
   display: grid;
   justify-items: center;
   align-content: center;
-  gap: 2px;
-  width: 64px;
-  min-width: 64px;
-  max-width: 64px;
-  height: 64px;
-  min-height: 64px;
-  flex: 0 0 64px;
-  padding: 6px 4px 5px;
-  border-radius: 12px;
+  gap: 0;
+  width: 52px;
+  min-width: 52px;
+  max-width: 52px;
+  height: 48px;
+  min-height: 48px;
+  flex: 0 0 52px;
+  padding: 3px 2px 2px;
+  border-radius: 10px;
   background: var(--card, #fff);
   border: 1px solid var(--desk-line);
   text-align: center;
   font: inherit;
   color: inherit;
-  box-shadow: 0 1px 0 rgba(45, 45, 42, 0.03);
+  box-shadow: none;
   box-sizing: border-box;
 }
 
@@ -222,8 +222,8 @@ button.play-desk-vital:hover,
 }
 
 .play-desk-vital__icon {
-  width: 1.05rem;
-  height: 1.05rem;
+  width: 0.85rem;
+  height: 0.85rem;
   color: var(--desk-accent, var(--accent));
   flex-shrink: 0;
 }
@@ -231,7 +231,7 @@ button.play-desk-vital:hover,
 .play-desk-vital b {
   display: block;
   font-family: var(--font-display);
-  font-size: 1.32rem;
+  font-size: 1.05rem;
   line-height: 1;
   color: var(--desk-ink, var(--ink));
   font-variant-numeric: tabular-nums;
@@ -241,81 +241,58 @@ button.play-desk-vital:hover,
 .play-desk-vital__label-row {
   display: block;
   margin-top: 0;
-  font-size: 0.7rem;
+  font-size: 0.58rem;
   font-weight: 600;
   color: var(--desk-muted);
   text-transform: none;
   letter-spacing: 0.01em;
-  line-height: 1.2;
+  line-height: 1.15;
   white-space: nowrap;
+}
+
+.play-desk-vital--jump {
+  overflow: hidden;
+  padding-top: 2px;
+  padding-bottom: 1px;
+  gap: 1px;
+}
+
+.play-desk-vital--jump .play-desk-vital__icon {
+  width: 0.78rem;
+  height: 0.78rem;
+}
+
+.play-desk-vital--jump b {
+  font-size: 0.98rem;
+  line-height: 1;
+}
+
+.play-desk-vital--jump .play-desk-vital__slash {
+  display: inline-block;
+  line-height: 1;
+  vertical-align: baseline;
+  transform: translateY(-0.05em);
 }
 
 .play-desk-vital--jump .play-desk-vital__label-row {
-  font-size: 0.7rem;
+  font-size: 0.56rem;
   letter-spacing: 0;
   white-space: nowrap;
-}
-
-.play-desk-vital--shield b {
-  color: var(--desk-accent);
-}
-
-/* Shield toggle: corner icon only — never overlaps «КД» label */
-.play-desk-vital--shield {
-  position: relative;
-  padding: 6px 4px 5px;
-  gap: 2px;
-  align-self: center;
-  overflow: hidden;
-}
-
-.play-desk-vital__shield-tog {
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  margin: 0;
-  width: 16px;
-  height: 16px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--desk-line);
-  background: color-mix(in srgb, var(--desk-chip, #e7e1d4) 40%, white);
-  border-radius: 999px;
-  padding: 0;
-  font: inherit;
   line-height: 1;
-  color: var(--desk-muted);
-  cursor: pointer;
-  z-index: 1;
+  margin: 0;
 }
 
-.play-desk-vital__shield-tog-ico {
-  width: 10px;
-  height: 10px;
-  display: block;
-}
-
-.play-desk-vital__shield-tog:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--desk-accent) 40%, var(--desk-line));
-  color: var(--desk-ink, var(--ink));
-}
-
-.play-desk-vital__shield-tog.is-on {
-  background: var(--desk-accent);
-  border-color: var(--desk-accent);
-  color: #fff;
-}
-
-.play-desk-vital__shield-tog.is-empty,
-.play-desk-vital__shield-tog:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+/* AC face (icon / value / «Щит») — kit tokens in 01-tokens-base.css */
+.play-desk-vital--shield {
+  align-self: center;
+  background: var(--card, #fff);
+  box-shadow: none;
 }
 
 /* speed/jump use the same 64×64 StatTile size as other vitals */
 
 .play-desk-vital--jump b {
-  font-size: 1.1rem;
+  font-size: 0.92rem;
   letter-spacing: -0.02em;
   white-space: nowrap;
 }
@@ -331,12 +308,14 @@ button.play-desk-vital:hover,
   letter-spacing: 0.02em;
 }
 
-/* Same-height card as speed — alt tags stacked vertically (уже). */
-.play-desk-vital--modes {
-  width: auto;
-  min-width: 52px;
-  max-width: 72px;
-  padding: 5px 6px;
+/* Speed: icon above value, «Скор.» below (like Jump/Init/BM); alts column right */
+.play-desk-vital__stack {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0;
+  flex: 0 0 auto;
+  min-width: 0;
 }
 
 .play-desk-vital__tags {
@@ -346,23 +325,52 @@ button.play-desk-vital:hover,
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
-  gap: 2px;
+  gap: 1px;
   justify-content: center;
   align-items: stretch;
-  width: 100%;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+}
+
+.play-desk-vital--speed-wide {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: auto;
+  min-width: 52px;
+  max-width: none;
+  flex: 0 0 auto;
+  height: 48px;
+  min-height: 48px;
+  max-height: 48px;
+  padding: 2px 5px;
+  align-self: center;
+}
+
+.play-desk-vital--speed-wide .play-desk-vital__stack > b {
+  font-size: 1.05rem;
 }
 
 .play-desk-vital__tag {
-  padding: 1px 5px;
+  padding: 0 4px;
   border-radius: 999px;
   border: 1px solid var(--desk-line);
   background: color-mix(in srgb, var(--desk-chip, #e7e1d4) 45%, white);
-  font-size: 0.58rem;
+  font-size: 0.5rem;
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.2;
   color: var(--desk-ink, var(--ink));
   white-space: nowrap;
   text-align: center;
+}
+
+/* Legacy sibling modes tile — keep safe if any leftover markup */
+.play-desk-vital--modes {
+  display: none;
 }
 
 .play-desk-header__coin-tip {
@@ -422,18 +430,22 @@ button.play-desk-vital:hover,
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  /* Header grid col 3: зм/Отдых + хиты — trailing edge of the ribbon */
   margin-left: 0;
-  /* Pin coins / rest / HP / death — never clip when the name is long. */
-  flex: 0 0 auto;
   min-width: 0;
 }
 
 .play-desk-header__right-tools {
   display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: 1fr;
   gap: 4px;
   flex: 0 0 auto;
+  align-items: stretch;
   align-content: center;
+  width: max-content;
+  min-width: 5.75rem;
 }
 
 .play-desk-header__coin,
@@ -441,15 +453,16 @@ button.play-desk-vital:hover,
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 30px;
-  height: 30px;
-  padding: 0 10px;
+  gap: 4px;
+  width: 100%;
+  min-height: 28px;
+  height: 28px;
+  padding: 0 8px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
   border: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 22%, var(--desk-line));
   font: inherit;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
   color: var(--desk-accent, var(--accent));
@@ -530,11 +543,11 @@ button.play-desk-vital:hover,
   display: flex;
   flex-direction: column;
   justify-content: center;
-  /* SC-07: запас под трёхзначные хиты (999/999) */
-  min-width: 148px;
-  min-height: 64px;
-  padding: 8px 12px;
-  border-radius: 12px;
+  min-width: 108px;
+  min-height: 48px;
+  height: 48px;
+  padding: 4px 10px;
+  border-radius: 10px;
   background: #fff;
   border: 1px solid #efc2c2;
   box-shadow: inset 0 0 0 1px #fff4f4;
@@ -552,16 +565,18 @@ button.play-desk-vital:hover,
 
 .play-desk-header__hp strong {
   font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
-  font-size: 1.45rem;
+  font-size: 1.15rem;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   color: var(--danger, #b42318);
+  line-height: 1.1;
 }
 
 .play-desk-header__hp small {
   display: block;
   color: var(--desk-muted);
-  font-size: 0.76rem;
+  font-size: 0.62rem;
   font-weight: 600;
+  line-height: 1.15;
 }
 

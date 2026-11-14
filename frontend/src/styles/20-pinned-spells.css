@@ -1,17 +1,21 @@
 /*
- * Desk hot strip (≥960): one horizontal row; overflow scrolls with edge hints
- * (fade + arrow buttons on PlayDeskHotBar wrap). Owner override of UX A1 «Ещё».
+ * Desk hot / skills: одна строка + kit ScrollRow (fade + ‹ ›).
+ * UIKIT-03 etalon — accepted Игорь 14.11.2026. Never wrap the row.
  */
-.play-desk__hot-wrap {
+.play-desk__hot-wrap,
+.ui-scroll-row.play-desk__hot-wrap {
   position: relative;
   min-width: 0;
   max-width: 100%;
   width: 100%;
 }
 
-.play-desk--wide .play-desk__hot {
+.play-desk__hot-wrap .play-desk__hot,
+.ui-scroll-row.play-desk__hot-wrap > .play-desk__hot {
+  display: flex;
   flex-wrap: nowrap;
   gap: 6px;
+  align-items: stretch;
   min-width: 0;
   max-width: 100%;
   width: 100%;
@@ -24,78 +28,39 @@
   scroll-snap-type: x proximity;
 }
 
-.play-desk--wide .play-desk__hot-item {
+.play-desk__hot-wrap .play-desk__hot-item,
+.play-desk__hot-wrap .play-desk__hot-more,
+.ui-scroll-row.play-desk__hot-wrap > .play-desk__hot > .play-desk__hot-item,
+.ui-scroll-row.play-desk__hot-wrap > .play-desk__hot > .play-desk__hot-more {
   flex: 0 0 auto;
+  flex-shrink: 0;
   scroll-snap-align: start;
 }
 
-.play-desk--wide .play-desk__hot-item--wide {
+.play-desk__hot-wrap .play-desk__hot-item--wide,
+.ui-scroll-row.play-desk__hot-wrap > .play-desk__hot > .play-desk__hot-item--wide {
   flex: 0 0 auto;
+  flex-shrink: 0;
+  width: max-content;
+  max-width: none;
   min-width: min(200px, 72%);
-  max-width: min(360px, 85%);
 }
 
-.play-desk--wide .play-desk__hot-item--res {
+.play-desk__hot-wrap .play-desk__hot-item--res,
+.play-desk__hot-wrap .play-desk__hot-item--res-compact,
+.ui-scroll-row.play-desk__hot-wrap > .play-desk__hot > .play-desk__hot-item--res,
+.ui-scroll-row.play-desk__hot-wrap > .play-desk__hot > .play-desk__hot-item--res-compact {
   flex: 0 0 auto;
-  min-width: 120px;
+  flex-shrink: 0;
+  min-width: 0;
+  width: max-content;
+  max-width: none;
 }
 
-.play-desk__hot-fade {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 36px;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.play-desk__hot-fade--left {
-  left: 0;
-  background: linear-gradient(to right, #fff 35%, transparent);
-}
-
-.play-desk__hot-fade--right {
-  right: 0;
-  background: linear-gradient(to left, #fff 35%, transparent);
-}
-
+/* Legacy hot-arrow/fade classes kept as no-ops — edges live in kit .ui-scroll-row */
+.play-desk__hot-fade,
 .play-desk__hot-arrow {
-  position: absolute;
-  top: 50%;
-  z-index: 3;
-  transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 1px solid var(--desk-line);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--desk-ink);
-  font-size: 1.25rem;
-  line-height: 1;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 0 rgba(45, 45, 42, 0.06);
-}
-
-.play-desk__hot-arrow:hover {
-  background: var(--desk-accent-soft);
-  border-color: var(--desk-line);
-}
-
-.play-desk__hot-arrow:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--desk-accent) 45%, white);
-  outline-offset: 1px;
-}
-
-.play-desk__hot-arrow--left {
-  left: 4px;
-}
-
-.play-desk__hot-arrow--right {
-  right: 4px;
+  display: none;
 }
 
 .play-desk__hot-item {
@@ -126,12 +91,15 @@
   border-color: var(--desk-line);
 }
 
+/* Inside ScrollRow the wrap rule forces flex:0 0 auto; base must not grow/wrap the strip */
 .play-desk__hot-item--wide {
-  flex: 1 1 180px;
-  min-width: 160px;
+  flex: 0 0 auto;
+  min-width: 0;
+  width: max-content;
+  max-width: none;
   color: var(--desk-muted);
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px 10px;
   align-items: center;
 }
@@ -157,9 +125,11 @@
 .play-desk__hot-item--res {
   background: #fff;
   border-color: var(--desk-line);
-  min-width: 120px;
+  min-width: 0;
+  width: max-content;
   display: grid;
   gap: 4px;
+  padding: 6px 8px;
 }
 
 .play-desk__hot-res-head {
@@ -202,25 +172,27 @@ button.play-desk__hot-res-name {
 
 .play-desk__pips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  margin-top: 4px;
+  flex-wrap: nowrap;
+  gap: 4px;
+  margin-top: 2px;
+  width: max-content;
 }
 
-/* B16: charge squares — 44×44 hit, compact visual */
+/* UIKIT-02: квадратики вплотную (gap 4px), hit ≈ visual */
 .play-desk__pip {
   position: relative;
   box-sizing: border-box;
-  width: 44px;
-  height: 44px;
-  margin: -8px -6px;
+  width: 18px;
+  height: 18px;
+  margin: 0;
   padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: 4px;
   background: transparent;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
+  flex: 0 0 auto;
 }
 
 .play-desk__pip::after {
@@ -232,7 +204,7 @@ button.play-desk__hot-res-name {
   height: 16px;
   margin: -8px 0 0 -8px;
   box-sizing: border-box;
-  border-radius: 4px;
+  border-radius: 3px;
   border: 1.5px solid var(--desk-accent);
   background: #fff;
   pointer-events: none;
@@ -243,8 +215,9 @@ button.play-desk__hot-res-name {
 }
 
 .play-desk__hot-item--res-compact {
-  min-width: 132px;
-  max-width: 180px;
+  min-width: 0;
+  width: max-content;
+  max-width: none;
 }
 
 /* M-02: mobile «Ещё N» overflow (desktop keeps scroll + arrows). */
@@ -340,7 +313,9 @@ button.play-desk__hot-res-name {
 
 .play-desk--split .play-desk__scene-wrap {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: start;
+  /* UIKIT-02: тянем панели на высоту колонки — без пустоты под сценой */
+  align-items: stretch;
+  min-height: 100%;
 }
 
 /* Pinned spells must sit on the right regardless of DOM order. */
@@ -361,9 +336,18 @@ button.play-desk__hot-res-name {
   border-radius: 12px;
   background: #fff;
   padding: 10px 10px 20px;
-  /* UIKIT-01 desktop: no inner clip / empty right void — page scrolls */
+  /* UIKIT-01 desktop: no inner clip — page scrolls */
   overflow: visible;
   max-height: none;
+}
+
+@media (min-width: 960px) {
+  .play-desk--wide .play-desk__stage-panel:not([hidden]) {
+    /* UIKIT-02: панель сцены заполняет высоту колонки — без пустоты справа */
+    min-height: 100%;
+    height: 100%;
+    box-sizing: border-box;
+  }
 }
 
 .play-desk__stage-panel[hidden] {

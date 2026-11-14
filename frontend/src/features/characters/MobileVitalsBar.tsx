@@ -10,7 +10,12 @@ import {
 import { rollCheck } from './deskRolls'
 import type { CharacterDetail } from '../../shared/api/characters'
 import { formatModifier } from './sheetTypes'
-import type { CoinPurse } from '../../shared/dnd/weight'
+import {
+  coinsToGp,
+  formatGpCompact,
+  formatGpExact,
+  type CoinPurse,
+} from '../../shared/dnd/weight'
 import type { PlayState } from './play'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
 import { HpPadDialog } from './HpPadDialog'
@@ -28,11 +33,18 @@ import {
   exhaustionSpeedFt,
   exhaustionSpeedNote,
 } from '../../shared/dnd/exhaustion2014'
-import { IconCoin, IconJump, IconRest, IconSkull } from './deskIcons'
+import {
+  IconBoot,
+  IconCoin,
+  IconJump,
+  IconRest,
+  IconShield,
+  IconSkull,
+} from './deskIcons'
 import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
 import { absorbDamageWithArcaneWard } from '../../shared/dnd/wizardTradition'
-import { NeedsSetupIndicator } from './NeedsSetupIndicator'
 import type { NeedsSetupItem } from './needsSetup'
+import { VitalTile, VitalTileMenu } from '../../ui'
 
 /** v2: M-02 / Q1 defaults to collapsed; old key often stored «0» from M-01 mounts. */
 const COLLAPSE_KEY = 'dvarf.mobileVitals.collapsed.v2'
@@ -84,7 +96,7 @@ type MobileVitalsBarProps = {
   onToggleShield?: () => void
   speed: number | null
   movementHint?: string | null
-  /** Alt speeds — shown as tags under walk (desk parity). */
+  /** Alt speeds — phone: +N badge + DetailsMenu (kit VitalTileMenu). */
   climbSpeed?: number | null
   swimSpeed?: number | null
   flySpeed?: number | null
@@ -92,6 +104,7 @@ type MobileVitalsBarProps = {
   jumpHighFt?: number | null
   initiative: number
   onOpenInitiative?: () => void
+  onOpenSpeed?: () => void
   proficiencyBonus: number
   inspiration: boolean
   coins: CoinPurse
@@ -170,7 +183,7 @@ export function MobileVitalsBar({
   shieldAvailable = false,
   onToggleShield,
   speed,
-  movementHint = null,
+  movementHint: _movementHint = null,
   climbSpeed = null,
   swimSpeed = null,
   flySpeed = null,
@@ -178,6 +191,7 @@ export function MobileVitalsBar({
   jumpHighFt = null,
   initiative,
   onOpenInitiative,
+  onOpenSpeed,
   proficiencyBonus,
   inspiration,
   coins,
@@ -196,8 +210,8 @@ export function MobileVitalsBar({
   onDamaged,
   onToast,
   showValueTips = false,
-  needsSetupItems = [],
-  onNeedsSetupSelect,
+  needsSetupItems: _needsSetupItems = [],
+  onNeedsSetupSelect: _onNeedsSetupSelect,
 }: MobileVitalsBarProps) {
   const [collapsed, setCollapsed] = useState(readCollapsed)
   const [hpPadOpen, setHpPadOpen] = useState(false)
@@ -240,11 +254,26 @@ export function MobileVitalsBar({
   if (shownClimb != null) altModes.push({ key: 'climb', label: 'лаз.', value: shownClimb })
   if (shownSwim != null) altModes.push({ key: 'swim', label: 'плав.', value: shownSwim })
   if (shownFly != null) altModes.push({ key: 'fly', label: 'полёт', value: shownFly })
+  // Base speeds before exhaustion ÷2 — clear label, not a second unlabeled row.
+  const withoutExhaustionNote =
+    play.exhaustion >= 2
+      ? [
+          speed != null ? `ход. ${speed}` : null,
+          climbSpeed != null ? `лаз. ${climbSpeed}` : null,
+          swimSpeed != null ? `плав. ${swimSpeed}` : null,
+          flySpeed != null ? `полёт ${flySpeed}` : null,
+        ]
+          .filter(Boolean)
+          .join(' · ')
+      : ''
+  const withoutExhaustionLine = withoutExhaustionNote
+    ? `без истощения: ${withoutExhaustionNote}`
+    : null
   const speedTitle =
     [
       shownSpeed != null ? `ход ${shownSpeed} фт` : null,
       ...altModes.map((mode) => `${mode.label} ${mode.value} фт`),
-      movementHint,
+      withoutExhaustionLine,
       speedExhaustNote,
     ]
       .filter(Boolean)
@@ -416,15 +445,6 @@ export function MobileVitalsBar({
         >
           <strong>{name || 'Без имени'}</strong>
         </button>
-        {onNeedsSetupSelect ? (
-          <NeedsSetupIndicator
-            items={needsSetupItems}
-            onSelect={onNeedsSetupSelect}
-            compact
-            iconOnly
-            asSheet
-          />
-        ) : null}
         <button
           type="button"
           className={`mobile-vitals__collapse-hp${hpPulse ? ' is-pulse' : ''}${
@@ -502,14 +522,6 @@ export function MobileVitalsBar({
             {level ? ` · ур. ${level}` : ''}
           </span>
         </div>
-        {onNeedsSetupSelect ? (
-          <NeedsSetupIndicator
-            items={needsSetupItems}
-            onSelect={onNeedsSetupSelect}
-            compact
-            asSheet
-          />
-        ) : null}
         <button
           type="button"
           className={`mobile-vitals__insp${inspiration ? ' is-on' : ''}`}
@@ -522,80 +534,133 @@ export function MobileVitalsBar({
       </div>
 
       <div className="mobile-vitals__row" role="list">
-        <div
-          className={`mobile-vitals__chip mobile-vitals__chip--ac${
+        <VitalTile
+          as="div"
+          role="listitem"
+          icon={<IconShield className="play-desk-vital__icon ui-vital__icon" />}
+          value={ac}
+          label={
+            onToggleShield ? (
+              <button
+                type="button"
+                className={`ui-vital__shield-tog play-desk-vital__shield-tog${
+                  shieldInHand ? ' is-on' : ''
+                }${shieldAvailable || shieldInHand ? '' : ' is-empty'}`}
+                aria-pressed={shieldInHand}
+                aria-label={
+                  shieldInHand ? 'Убрать щит из руки' : 'Взять щит в руку'
+                }
+                title={
+                  shieldInHand
+                    ? 'Щит в руке — убрать'
+                    : shieldAvailable
+                      ? 'Взять щит в руку'
+                      : 'Нет щита в инвентаре'
+                }
+                disabled={!shieldAvailable && !shieldInHand}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onToggleShield()
+                }}
+              >
+                Щит
+              </button>
+            ) : undefined
+          }
+          className={`mobile-vitals__ac play-desk-vital--shield${
             shieldInHand ? ' is-shield-on' : ''
-          }${onOpenAc ? ' is-tap' : ''}${showValueTips ? ' has-onboarding-tip' : ''}`}
-          role="listitem"
-        >
-          <button
-            type="button"
-            className="mobile-vitals__chip-main"
-            title={
-              showValueTips
-                ? undefined
-                : onOpenAc
-                  ? `Класс защиты ${ac}. Открыть разборку`
-                  : acOverride == null
-                    ? acHint
-                    : 'вручную'
-            }
-            disabled={!onOpenAc}
-            onClick={() => onOpenAc?.()}
-          >
-            <b>{ac}</b>
-            <span>КД</span>
-          </button>
-          {showValueTips ? <HoverTipCard tip={VITAL_TIPS.ac} /> : null}
-          {onToggleShield ? (
-            <button
-              type="button"
-              className={`mobile-vitals__shield-tog${shieldInHand ? ' is-on' : ''}${
-                shieldAvailable || shieldInHand ? '' : ' is-empty'
-              }`}
-              aria-pressed={shieldInHand}
-              aria-label={shieldInHand ? 'Убрать щит из руки' : 'Взять щит в руку'}
-              title={
-                shieldInHand
-                  ? 'Щит в руке — убрать'
-                  : shieldAvailable
-                    ? 'Взять щит в руку'
-                    : 'Нет щита в инвентаре'
-              }
-              disabled={!shieldAvailable && !shieldInHand}
-              onClick={(event) => {
-                event.stopPropagation()
-                onToggleShield()
-              }}
-            >
-              щит
-            </button>
-          ) : null}
-        </div>
-        <div
-          className={`mobile-vitals__chip${altModes.length ? ' mobile-vitals__chip--speed' : ''}`}
-          role="listitem"
-          title={speedTitle}
+          }${onOpenAc ? ' play-desk-vital--clickable' : ''}${
+            showValueTips ? ' has-onboarding-tip' : ''
+          }`}
+          title={
+            showValueTips
+              ? undefined
+              : onOpenAc
+                ? `Класс доспеха ${ac}. Открыть разборку`
+                : acOverride == null
+                  ? `Класс доспеха ${ac}. ${acHint}`
+                  : `Класс доспеха ${ac} (вручную)`
+          }
           aria-label={
+            onOpenAc
+              ? `Класс доспеха ${ac}. Открыть разборку`
+              : `Класс доспеха ${ac}`
+          }
+          onClick={() => onOpenAc?.()}
+        >
+          {showValueTips ? <HoverTipCard tip={VITAL_TIPS.ac} /> : null}
+        </VitalTile>
+        <VitalTileMenu
+          className="mobile-vitals__speed"
+          role="listitem"
+          icon={<IconBoot className="ui-vital__icon" />}
+          value={shownSpeed == null ? '—' : shownSpeed}
+          label="Скор."
+          badge={altModes.length > 0 ? `+${altModes.length}` : undefined}
+          title={
             speedTitle
-              ? `Скорость: ${speedTitle}`
+              ? `${speedTitle}. Нажми — все скорости`
               : 'Скорость не задана'
           }
-        >
-          <b>{shownSpeed == null && altModes[0] ? altModes[0].value : shownSpeed == null ? '—' : shownSpeed}</b>
-          <span>
-            {shownSpeed == null && altModes[0] ? altModes[0].label : 'Скор.'}
-          </span>
-          {altModes.length > 0 && shownSpeed != null ? (
-            <ul className="mobile-vitals__modes" aria-label="Дополнительные скорости">
-              {altModes.map((mode) => (
-                <li key={mode.key}>
-                  {mode.label} {mode.value} фт
+          aria-label={
+            speedTitle
+              ? `Скорость: ${speedTitle}. Открыть список скоростей`
+              : 'Скорость не задана. Открыть список скоростей'
+          }
+          menu={
+            <>
+              <ul className="ui-vital-menu__list" role="list">
+                <li className="ui-vital-menu__row">
+                  <span className="ui-vital-menu__row-label">ходьба</span>
+                  <span className="ui-vital-menu__row-value">
+                    {shownSpeed == null ? '—' : `${shownSpeed} фт`}
+                  </span>
                 </li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
+                {altModes.map((mode) => (
+                  <li key={mode.key} className="ui-vital-menu__row">
+                    <span className="ui-vital-menu__row-label">
+                      {mode.key === 'climb'
+                        ? 'лазание'
+                        : mode.key === 'swim'
+                          ? 'плавание'
+                          : mode.key === 'fly'
+                            ? 'полёт'
+                            : mode.label}
+                    </span>
+                    <span className="ui-vital-menu__row-value">
+                      {mode.value} фт
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {withoutExhaustionLine ? (
+                <p className="ui-vital-menu__note">{withoutExhaustionLine}</p>
+              ) : null}
+              {speedExhaustNote ? (
+                <p className="ui-vital-menu__note">{speedExhaustNote}</p>
+              ) : null}
+              {onOpenSpeed ? (
+                <button
+                  type="button"
+                  className="ui-vital-menu__action"
+                  onClick={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    // Panel is portaled — close the host details by class.
+                    document
+                      .querySelectorAll('details.mobile-vitals__speed[open]')
+                      .forEach((el) => {
+                        if (el instanceof HTMLDetailsElement) el.open = false
+                      })
+                    onOpenSpeed()
+                  }}
+                >
+                  Разборка и бонусы
+                </button>
+              ) : null}
+            </>
+          }
+        />
         {jumpLongFt != null && jumpHighFt != null ? (
           <div
             className="mobile-vitals__chip mobile-vitals__chip--jump"
@@ -655,12 +720,15 @@ export function MobileVitalsBar({
         </button>
         <button
           type="button"
-          className="mobile-vitals__tool"
-          aria-label="Монеты"
-          title="Монеты"
+          className="mobile-vitals__tool mobile-vitals__tool--coin"
+          aria-label={`${formatGpExact(coinsToGp(coins))} зм — кошелёк`}
+          title={`${formatGpExact(coinsToGp(coins))} зм`}
           onClick={() => setCoinPadOpen(true)}
         >
           <IconCoin />
+          <span className="mobile-vitals__coin-amt">
+            {formatGpCompact(coinsToGp(coins))} зм
+          </span>
         </button>
         <button
           type="button"

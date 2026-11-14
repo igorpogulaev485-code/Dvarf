@@ -602,17 +602,25 @@
 
 .session-table-grid {
   display: grid;
-  gap: 14px;
-  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  width: 100%;
+  /* UIKIT-02: fill center; <560px → 1 card full width; else 280px+ columns */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 
 .session-table-card {
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--card);
-  overflow: hidden;
-  /* LV-01: не схлопываться в буквенную полоску в узком центре стола */
-  min-width: min(100%, 240px);
+  /* UIKIT-02: never clip name / chips / typed-damage / +Напарник */
+  overflow: visible;
+  container-type: inline-size;
+  container-name: session-card;
+  min-width: 0;
+  width: 100%;
+  height: auto;
+  align-self: start;
 }
 
 .session-table-card__hp {
@@ -717,24 +725,49 @@
   border-color: var(--danger);
 }
 
+/* UIKIT-02: раскладка формы — без перекрытий на 390; размеры контролов из кита */
 .session-typed-damage {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+}
+
+.session-typed-damage__row {
   display: grid;
-  grid-template-columns: auto minmax(7.5rem, 10rem) auto auto auto;
   gap: 6px;
   align-items: center;
+  min-width: 0;
+}
+
+.session-typed-damage__row--inputs {
+  grid-template-columns: minmax(4.5rem, 6.75rem) minmax(0, 1fr);
+}
+
+.session-typed-damage__row--actions {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.session-typed-damage__row--actions .ui-button {
+  width: 100%;
+  min-width: 0;
+  justify-content: center;
 }
 
 .session-typed-damage__type {
   min-width: 0;
   width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .session-typed-damage__temp {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: nowrap;
-  white-space: nowrap;
+  flex-wrap: wrap;
+  min-width: 0;
   min-height: var(--control-h-md);
 }
 
@@ -743,13 +776,22 @@
   flex: 0 0 auto;
 }
 
-@media (max-width: 640px) {
+/* Широкая карточка (≥560px) — одна полоса; иначе stacked rows без вылезания */
+@container session-card (min-width: 560px) {
   .session-typed-damage {
-    grid-template-columns: minmax(4.5rem, 1fr) minmax(6rem, 1.2fr) auto auto;
+    display: grid;
+    grid-template-columns: auto minmax(6rem, 1fr) auto auto auto;
+    align-items: center;
+  }
+
+  .session-typed-damage__row--inputs,
+  .session-typed-damage__row--actions {
+    display: contents;
   }
 
   .session-typed-damage__temp {
-    grid-column: 1 / -1;
+    flex-wrap: nowrap;
+    white-space: nowrap;
   }
 }
 
@@ -789,17 +831,67 @@
   width: 100%;
 }
 
+.session-study-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 70%, white);
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.session-study-dc-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Width via kit NumberInput `narrow` + size="sm" — no .ui-input size overrides. */
+.session-study-dc-edit .ui-input--narrow {
+  width: 3.25rem;
+}
+
+.session-last-strike {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  color: var(--accent);
+}
+
+.session-attack-outcome {
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+  font-weight: 700;
+  color: var(--accent);
+}
+
 .session-table-card__body {
   display: grid;
   gap: 8px;
   padding: 12px;
+  min-width: 0;
+  width: 100%;
+  overflow: visible;
+}
+
+.session-table-card__body > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .session-table-card__top {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 8px 10px;
-  align-items: center;
+  align-items: start;
 }
 
 .session-table-card__avatar {
@@ -812,10 +904,20 @@
   place-items: center;
   font-weight: 700;
   font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* UIKIT-02: аватар + имя + звезда компактно; звезда не в отдельной колонке на край */
+.session-table-card__identity {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
 }
 
 .session-table-card__meta {
   min-width: 0;
+  flex: 1 1 auto;
   display: grid;
   gap: 1px;
 }
@@ -824,9 +926,12 @@
   margin: 0;
   font-size: 1rem;
   line-height: 1.25;
-  /* LV-01: перенос по словам, не по буквам («Г / р / о / к») */
-  overflow-wrap: break-word;
-  word-break: normal;
+  /* UIKIT-02: имя целиком — перенос, не обрезка */
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .session-table-card__insp {
@@ -834,6 +939,7 @@
   font-size: 1.1rem;
   line-height: 1;
   padding: 4px;
+  flex-shrink: 0;
 }
 
 .session-table-card__sub,
@@ -841,8 +947,11 @@
   margin: 0;
   font-size: 0.82rem;
   line-height: 1.3;
-  overflow-wrap: break-word;
-  word-break: normal;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .session-table-card__stats {

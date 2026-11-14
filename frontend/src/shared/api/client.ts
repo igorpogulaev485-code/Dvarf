@@ -52,8 +52,13 @@ const REFRESH_TIMEOUT_MS = 12_000
 const REQUEST_TIMEOUT_MS = 20_000
 /** List/summary GETs should fail fast — heavy sheet JSON is not needed here. */
 const LIST_TIMEOUT_MS = 12_000
+/** Full sheet PATCH can be large (iPad / slow uplink) — allow a bit more before abort. */
+const SHEET_PATCH_TIMEOUT_MS = 35_000
+/** Brief pause before one automatic retry on transient failures. */
+const TRANSIENT_RETRY_MS = 700
 
-function timeoutMsForPath(path: string): number {
+function timeoutMsForPath(path: string, method = 'GET'): number {
+  const verb = method.toUpperCase()
   if (path.startsWith('/auth/login') || path.startsWith('/auth/register')) {
     return 15_000
   }
@@ -62,6 +67,12 @@ function timeoutMsForPath(path: string): number {
   }
   if (path === '/characters' || path === '/lobbies' || path === '/auth/me') {
     return LIST_TIMEOUT_MS
+  }
+  if (
+    (verb === 'PATCH' || verb === 'PUT') &&
+    /^\/characters\/[^/]+$/.test(path)
+  ) {
+    return SHEET_PATCH_TIMEOUT_MS
   }
   return REQUEST_TIMEOUT_MS
 }
@@ -141,7 +152,8 @@ export async function apiRequest<T>(
     headers.set('Authorization', `Bearer ${accessToken}`)
   }
 
-  const timeoutMs = timeoutMsForPath(path)
+  const method = (options.method || 'GET').toUpperCase()
+  const timeoutMs = timeoutMsForPath(path, method)
   const controller = new AbortController()
   const externalSignal = options.signal
   const onExternalAbort = () => controller.abort()
@@ -164,18 +176,28 @@ export async function apiRequest<T>(
       cache: 'no-store',
     })
   } catch (err) {
-    if (controller.signal.aborted && !externalSignal?.aborted) {
+    const timedOut = controller.signal.aborted && !externalSignal?.aborted
+    if (timedOut) {
+      // P0: timeout ≠ «сервер мёртв» — /health may still be 200. Retry once, then honest copy.
+      if (!retried) {
+        await new Promise((resolve) => window.setTimeout(resolve, TRANSIENT_RETRY_MS))
+        return apiRequest<T>(path, options, true)
+      }
       throw new ApiRequestError(
-        'Сервер временно недоступен — подождите пару секунд и повторите',
+        'Запрос не успел завершиться — нажмите «Повторить»',
         504,
-        'api_unavailable',
+        'request_timeout',
       )
     }
     if (err instanceof ApiRequestError) {
       throw err
     }
+    if (!retried) {
+      await new Promise((resolve) => window.setTimeout(resolve, TRANSIENT_RETRY_MS))
+      return apiRequest<T>(path, options, true)
+    }
     throw new ApiRequestError(
-      'Нет связи с сервером — проверьте сеть и повторите',
+      'Нет связи с сервером — проверьте сеть и нажмите «Повторить»',
       0,
       'network_error',
     )
@@ -218,7 +240,7 @@ export async function apiRequest<T>(
     !retried &&
     (response.status === 502 || response.status === 503 || response.status === 504)
   ) {
-    await new Promise((resolve) => window.setTimeout(resolve, 700))
+    await new Promise((resolve) => window.setTimeout(resolve, TRANSIENT_RETRY_MS))
     return apiRequest<T>(path, options, true)
   }
 
@@ -226,7 +248,7 @@ export async function apiRequest<T>(
   if (contentType.includes('text/html')) {
     throw new ApiRequestError(
       response.status >= 500
-        ? 'Сервер временно недоступен — подождите пару секунд и повторите'
+        ? 'API не ответил (HTML вместо JSON) — нажмите «Повторить»'
         : 'Сервер вернул страницу вместо API. Обновите страницу (Ctrl+Shift+R) или войдите снова.',
       response.status || 502,
       response.status >= 500 ? 'api_unavailable' : 'html_instead_of_json',

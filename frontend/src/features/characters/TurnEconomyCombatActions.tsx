@@ -441,16 +441,11 @@ export function TurnEconomyCombatActions({
           Точное прицеливание
         </button>
       ) : null}
-      {showTwoWeaponBonus && onTwoWeaponBonus ? (
+      {showTwoWeaponBonus && onTwoWeaponBonus && twoWeaponBonusGate?.ok ? (
         <button
           type="button"
           className="sheet-chip"
-          disabled={!(twoWeaponBonusGate?.ok ?? false)}
-          title={
-            twoWeaponBonusGate?.ok
-              ? TWO_WEAPON_BONUS_HINT
-              : twoWeaponBonusGate?.reason || TWO_WEAPON_BONUS_HINT
-          }
+          title={TWO_WEAPON_BONUS_HINT}
           onClick={() => onTwoWeaponBonus()}
         >
           Атака вторым оружием

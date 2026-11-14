@@ -301,47 +301,25 @@
     padding: 0;
   }
 
-  /* M-02: skills use grid (no silent x-scroll); combat hot-wrap stacks (M-01). */
-  .play-desk--mobile .play-desk__hot {
+  /* UIKIT-02: hot + skills — one row, scroll + arrows (no wrap / no silent clip) */
+  .play-desk--mobile .play-desk__hot-wrap .play-desk__hot,
+  .play-desk--mobile .play-desk__hot--skills {
     max-width: 100%;
     width: 100%;
     min-width: 0;
+    flex-wrap: nowrap;
     overflow-x: auto;
     overscroll-behavior-x: contain;
   }
 
-  .play-desk--mobile .play-desk__hot--skills,
-  .play-desk--mobile .play-desk__hot--skills-mobile {
-    overflow-x: hidden;
-    overscroll-behavior-x: none;
-  }
-
   .play-desk--mobile .play-desk__hot-item,
-  .play-desk--mobile .play-desk__hot-item--wide {
-    min-width: min(132px, 62vw);
-  }
-
-  .play-desk--mobile .play-desk__hot--skills .play-desk__hot-item {
-    min-width: 0;
-  }
-
-  .play-desk--mobile .play-desk__hot-item--res {
-    min-width: min(104px, 48vw);
-  }
-
-  .play-desk--mobile .play-desk__hot-wrap .play-desk__hot {
-    overflow-x: hidden;
-    overscroll-behavior-x: none;
-  }
-
-  .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--wide {
-    min-width: 0;
-  }
-
-  .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--res,
-  .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--res-compact {
-    min-width: 0;
-    max-width: 100%;
+  .play-desk--mobile .play-desk__hot-item--wide,
+  .play-desk--mobile .play-desk__hot-item--res,
+  .play-desk--mobile .play-desk__hot-item--res-compact {
+    flex: 0 0 auto;
+    flex-shrink: 0;
+    min-width: max-content;
+    max-width: none;
   }
 }
 

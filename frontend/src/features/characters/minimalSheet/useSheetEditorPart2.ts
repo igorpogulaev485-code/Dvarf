@@ -26,6 +26,7 @@ import {
   initiativeBonusFromActiveEffects,
   speedModsFromActiveEffects,
 } from '../../../shared/dnd/activeEffects'
+import { withSpeedBonus } from '../modifiers'
 import { applyFeatureSaveProficiencies, ironMindSaveKey, wisdomSaveAlreadyGranted } from '../../../shared/dnd/featureSaveProficiency'
 import { revokeFalseSubclassCompanions } from '../companions'
 import { backfillCompanionStatsFromTemplates } from '../companionBackfill'
@@ -822,7 +823,7 @@ export function useSheetEditorPart2(model: SheetModel) {
     [model.draft.inventory.items],
   )
   model.armorPiecesForSpeed = armorPiecesForSpeed
-  const displaySpeed = useMemo(() => {
+  const displaySpeedAuto = useMemo(() => {
     const wearingHeavy = armorPiecesForSpeed.armor?.kind === 'heavy'
     const wearingArmorOrShield = Boolean(
       armorPiecesForSpeed.armor || armorPiecesForSpeed.shield,
@@ -866,9 +867,39 @@ export function useSheetEditorPart2(model: SheetModel) {
     model.draft.play.effects,
     model.infusionBonuses?.speedWalkBonusFt,
   ])
+  model.displaySpeedAuto = displaySpeedAuto
+
+  const displaySpeed = useMemo(() => {
+    return withSpeedBonus({
+      core: displaySpeedAuto,
+      target: 'speed',
+      modifiers: model.draft.modifiers,
+      vars: model.formulaVarsBase ?? {},
+    })
+  }, [displaySpeedAuto, model.draft.modifiers, model.formulaVarsBase])
   model.displaySpeed = displaySpeed
 
-  const displayFlySpeed = useMemo(() => {
+  const displayClimbSpeed = useMemo(() => {
+    return withSpeedBonus({
+      core: model.draft.climbSpeed,
+      target: 'speed_climb',
+      modifiers: model.draft.modifiers,
+      vars: model.formulaVarsBase ?? {},
+    })
+  }, [model.draft.climbSpeed, model.draft.modifiers, model.formulaVarsBase])
+  model.displayClimbSpeed = displayClimbSpeed
+
+  const displaySwimSpeed = useMemo(() => {
+    return withSpeedBonus({
+      core: model.draft.swimSpeed,
+      target: 'speed_swim',
+      modifiers: model.draft.modifiers,
+      vars: model.formulaVarsBase ?? {},
+    })
+  }, [model.draft.swimSpeed, model.draft.modifiers, model.formulaVarsBase])
+  model.displaySwimSpeed = displaySwimSpeed
+
+  const displayFlySpeedAuto = useMemo(() => {
     const mods = speedModsFromActiveEffects(model.draft.play.effects)
     const raceSlug = model.draft.raceGrant?.slug ?? null
     const armorKind = armorPiecesForSpeed.armor?.kind ?? null
@@ -876,7 +907,7 @@ export function useSheetEditorPart2(model: SheetModel) {
     const applyArmorGate = raceFlightUsesArmorGate(raceSlug)
     const resolved = resolveDisplayFlySpeed({
       baseFly: model.draft.flySpeed,
-      walkSpeed: displaySpeed,
+      walkSpeed: displaySpeedAuto,
       flyEqualWalk: mods.flyEqualWalk,
       flySpeedFt: mods.flySpeedFt,
       armorKind,
@@ -888,9 +919,19 @@ export function useSheetEditorPart2(model: SheetModel) {
     model.draft.play.effects,
     model.draft.flySpeed,
     model.draft.raceGrant?.slug,
-    displaySpeed,
+    displaySpeedAuto,
     armorPiecesForSpeed.armor?.kind,
   ])
+  model.displayFlySpeedAuto = displayFlySpeedAuto
+
+  const displayFlySpeed = useMemo(() => {
+    return withSpeedBonus({
+      core: displayFlySpeedAuto,
+      target: 'speed_fly',
+      modifiers: model.draft.modifiers,
+      vars: model.formulaVarsBase ?? {},
+    })
+  }, [displayFlySpeedAuto, model.draft.modifiers, model.formulaVarsBase])
   model.displayFlySpeed = displayFlySpeed
 
   model.raceSaveAdvantageNotes = useMemo(() => {

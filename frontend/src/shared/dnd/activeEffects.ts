@@ -1386,6 +1386,83 @@ export function formatEffectRemaining(effect: ActiveEffect): string {
   return `осталось ${rounds} раундов`
 }
 
+/** Chip face: name + primary buff only (no source / concentration / rounds). */
+export function formatEffectChipFace(effect: ActiveEffect): string {
+  const raw = String(effect.name || '').trim()
+  const parts = raw
+    .split(/\s*·\s*/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+  const title = parts[0] || raw || 'Эффект'
+  const fromParts = parts.slice(1).find((p) => {
+    if (/^от\s/i.test(p)) return false
+    if (/^концентрац/i.test(p)) return false
+    if (/^осталось/i.test(p)) return false
+    return /^\+?-?\d/.test(p) || /КД|хит|урон|фт|скорост/i.test(p)
+  })
+  let buff = fromParts || null
+  if (!buff && typeof effect.ac_bonus === 'number' && Number.isFinite(effect.ac_bonus)) {
+    const n = Math.floor(effect.ac_bonus)
+    if (n !== 0) buff = `${n > 0 ? '+' : ''}${n} КД`
+  }
+  if (!buff && effect.mods) {
+    for (const mod of effect.mods) {
+      if (mod.target === 'ac' && mod.op === 'add' && typeof mod.value === 'number') {
+        const n = Math.floor(mod.value)
+        if (n !== 0) {
+          buff = `${n > 0 ? '+' : ''}${n} КД`
+          break
+        }
+      }
+    }
+  }
+  if (!buff && effect.mods) {
+    for (const mod of effect.mods) {
+      if (mod.target === 'temp_hp' && typeof mod.value === 'number') {
+        const n = Math.floor(mod.value)
+        if (n !== 0) {
+          // Heroism face: «Героизм +4 вр. хита/ход» (action lives in tip, not a nested button).
+          buff =
+            effect.slug === 'heroism'
+              ? `${n > 0 ? '+' : ''}${n} вр. хита/ход`
+              : `${n > 0 ? '+' : ''}${n} вр. хита`
+          break
+        }
+      }
+    }
+  }
+  return buff ? `${title} ${buff}` : title
+}
+
+/** Tooltip / popover details for an effect chip. */
+export function formatEffectChipDetails(effect: ActiveEffect): string[] {
+  const lines: string[] = []
+  if (effect.source_name) lines.push(`от ${effect.source_name}`)
+  else if (effect.source_character_id) lines.push('от союзника')
+  if (effect.linked_concentration) {
+    lines.push(
+      effect.source_name
+        ? `концентрация: ${effect.source_name}`
+        : 'концентрация',
+    )
+  }
+  const remaining = formatEffectRemaining(effect)
+  if (remaining) lines.push(remaining)
+  if (effect.slug === 'heroism') {
+    lines.push('в начале хода: вр. хиты = модификатор заклинателя')
+  }
+  if (typeof effect.charges === 'number') {
+    if (effect.slug === 'mirror_image') lines.push(`двойники ${effect.charges}`)
+    else if (effect.slug === 'aura_of_vitality') lines.push(`импульсы ${effect.charges}`)
+    else if (effect.slug === 'fortunes_favor') lines.push(`удача ${effect.charges}`)
+    else lines.push(`заряды ${effect.charges}`)
+  }
+  if (effect.inactive) {
+    lines.push(effect.inactive_reason || 'не действует (одноимённый)')
+  }
+  return lines
+}
+
 export function serializeActiveEffect(effect: ActiveEffect): Record<string, unknown> {
   const row: Record<string, unknown> = {
     id: effect.id,

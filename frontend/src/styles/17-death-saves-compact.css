@@ -325,7 +325,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 6px 10px;
 }
 
@@ -352,27 +352,46 @@
   font-size: 0.72rem;
 }
 
+.play-desk-compact__slot-track {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  min-width: 0;
+  width: max-content;
+  max-width: 100%;
+}
+
+.play-desk-compact__slot-count {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+  white-space: nowrap;
+}
+
 .play-desk-compact__slot-pips {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   align-items: center;
+  width: max-content;
 }
 
-/* B16: visual square ~18px; hit-area 44×44 so pact/slot taps don't miss */
+/* UIKIT-02: квадратики вплотную (gap 4px); hit ≈ visual, без «дыр» от 44px */
 .play-desk-compact__slot-pip {
   position: relative;
   box-sizing: border-box;
-  width: 44px;
-  height: 44px;
+  width: 18px;
+  height: 18px;
   margin: 0;
   padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: 4px;
   background: transparent;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
+  flex: 0 0 auto;
 }
 
 .play-desk-compact__slot-pip::after {
@@ -380,11 +399,11 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 18px;
-  height: 18px;
-  margin: -9px 0 0 -9px;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
   box-sizing: border-box;
-  border-radius: 4px;
+  border-radius: 3px;
   border: 1.5px solid var(--desk-accent);
   background: #fff;
   pointer-events: none;
@@ -516,10 +535,48 @@
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 28%, transparent);
 }
 
+/*
+ * UIKIT-02 weapon row: name + bonus + damage read together;
+ * kit sm actions clustered; ammo on a second compact line.
+ * Narrow pinned-magic column may wrap — never squeeze text.
+ */
+.play-desk-compact__row.is-attack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 6px;
+  align-items: center;
+  padding: 4px 6px;
+  overflow: visible;
+}
+
+.play-desk-compact__row.is-attack .play-desk-compact__hit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  padding: 2px 4px;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.play-desk-compact__row.is-attack .play-desk-compact__row-main {
+  flex: 1 1 9rem;
+  min-width: 0;
+}
+
 .play-desk-compact__row.is-attack .play-desk-compact__mod {
   font-variant-numeric: tabular-nums;
-  min-width: 2.4rem;
+  flex: 0 0 auto;
+  min-width: 2.2rem;
   text-align: right;
+}
+
+.play-desk-compact__row.is-attack .play-desk-compact__dmg {
+  flex: 1 1 6rem;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
 }
 
 /* U09: click bonus → breakdown (not the attack roll). */
@@ -533,10 +590,6 @@
 .play-desk-compact__mod--breakdown:focus-visible {
   text-decoration: underline;
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, transparent);
-}
-
-.play-desk-compact__row.is-attack .play-desk-compact__dmg {
-  font-variant-numeric: tabular-nums;
 }
 
 .play-desk-compact__row.is-action:not(.is-spell) {

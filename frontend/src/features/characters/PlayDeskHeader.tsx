@@ -27,11 +27,18 @@ import { rollCheck } from './deskRolls'
 import {
   coinsToGp,
   formatCoinBreakdown,
-  formatGpTotal,
+  formatGpCompact,
+  formatGpExact,
   type CoinPurse,
 } from '../../shared/dnd/weight'
 import { HoverTipCard, VITAL_TIPS } from '../onboarding'
-import { NumberPadDialog } from '../../ui'
+import {
+  ChipStack,
+  ClassChipRow,
+  NumberPadDialog,
+  VitalTile,
+  XpTrack,
+} from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
 import { HpPadDialog } from './HpPadDialog'
 import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
@@ -56,7 +63,6 @@ import {
   formatJumpTitle,
 } from '../../shared/dnd/jumpDistance'
 import { formatModifier } from './sheetTypes'
-import { NeedsSetupIndicator } from './NeedsSetupIndicator'
 import type { NeedsSetupItem } from './needsSetup'
 
 type SpeedMode = {
@@ -76,6 +82,8 @@ type PlayDeskHeaderProps = {
   rulesEdition?: string
   level: number
   experience: number
+  /** Lobby progression: XP track vs milestones (default xp). */
+  progressionMode?: 'xp' | 'milestones'
   classes: ClassLevelEntry[]
   hitDie: HitDie | null
   constitutionMod: number
@@ -127,6 +135,8 @@ type PlayDeskHeaderProps = {
   onInitiativeRoll?: () => void
   /** Open initiative breakdown / buffs (preferred over direct roll). */
   onOpenInitiative?: () => void
+  /** Open speed breakdown / buffs (same shell as AC / initiative). */
+  onOpenSpeed?: () => void
   onPlayChange: (play: PlayState) => void
   onCoinsChange: (coins: CoinPurse) => void
   onCombatChange: (patch: {
@@ -175,6 +185,7 @@ export function PlayDeskHeader({
   rulesEdition = '2014',
   level,
   experience,
+  progressionMode = 'xp',
   classes,
   hitDie,
   constitutionMod,
@@ -228,6 +239,7 @@ export function PlayDeskHeader({
   onExhaustionChange,
   onInitiativeRoll,
   onOpenInitiative,
+  onOpenSpeed,
   onPlayChange,
   onCoinsChange,
   onCombatChange,
@@ -236,12 +248,12 @@ export function PlayDeskHeader({
   coinPadOpen: coinPadOpenProp,
   onCoinPadOpenChange,
   showValueTips = false,
-  needsSetupItems = [],
-  onNeedsSetupSelect,
+  needsSetupItems: _needsSetupItems = [],
+  onNeedsSetupSelect: _onNeedsSetupSelect,
 }: PlayDeskHeaderProps) {
   const alignmentLabel = alignment.trim()
   const editionLabel = String(rulesEdition).trim() || '2014'
-  const [nameExpanded, setNameExpanded] = useState(false)
+  /* name stays ≤2 lines; full string in title (no expand that blows header height) */
   const classRows = classes.filter((row) => row.name.trim() && row.level > 0)
   const classChips =
     classRows.length > 0
@@ -285,12 +297,21 @@ export function PlayDeskHeader({
     if (!xpPadOpen) setXpReason('')
   }, [xpPadOpen])
 
-  const xpRemainLabel =
-    xp.remaining == null ? 'макс.' : `ещё ${formatXp(xp.remaining)}`
-  const xpLabel =
-    xp.nextThreshold == null
-      ? `${formatXp(xp.xp)} · ${xpRemainLabel}`
-      : `${formatXp(xp.floor)} · ${xpRemainLabel} · ${formatXp(xp.nextThreshold)}`
+  const milestones = progressionMode === 'milestones'
+  const xpRemainLabel = milestones
+    ? 'Вехи'
+    : xp.remaining == null
+      ? 'макс.'
+      : xp.nextThreshold == null
+        ? 'макс.'
+        : `${formatXp(xp.xp)} / ${formatXp(xp.nextThreshold)} XP · до ур. ${
+            xp.level + 1
+          } — ${formatXp(xp.remaining)}`
+  const xpLabel = milestones
+    ? `ур. ${level} · Вехи`
+    : xp.nextThreshold == null
+      ? `${formatXp(xp.xp)} XP · макс.`
+      : xpRemainLabel
   const nextLevel = xp.level >= 20 ? null : xp.level + 1
   const hpTemp = play.hpTemp
   const atZeroHp = hpCurrent != null && hpCurrent <= 0
@@ -425,25 +446,21 @@ export function PlayDeskHeader({
   return (
     <section className="play-desk-header" aria-label="Шапка стола">
       <div className="play-desk-header__who">
-        {/* 1) Имя · Раса · Мировоззрение · издание */}
-        <div className="play-desk-header__who-line">
-          <h1 className="play-desk-header__name-wrap">
-            <button
-              type="button"
-              className={`play-desk-header__name${nameExpanded ? ' is-expanded' : ''}`}
-              title={
-                nameExpanded
-                  ? 'Свернуть имя'
-                  : name
-                    ? `Полное имя: ${name}. Нажми, чтобы раскрыть`
-                    : undefined
-              }
-              aria-expanded={nameExpanded}
-              onClick={() => setNameExpanded((prev) => !prev)}
-            >
-              {name || 'Без имени'}
-            </button>
-          </h1>
+        {/* 1) Имя — одна строка; клик раскрывает, если не влезло */}
+        <h1 className="play-desk-header__name-wrap">
+          <button
+            type="button"
+            className="play-desk-header__name"
+            title={name || undefined}
+            aria-label={name ? `Имя: ${name}` : 'Без имени'}
+            onClick={() => onOpenIdentity?.()}
+          >
+            <span className="play-desk-header__name-text">{name || 'Без имени'}</span>
+          </button>
+        </h1>
+
+        {/* 2) Раса · класс · ур. · XP — одна компактная строка */}
+        <div className="play-desk-header__meta-line">
           {onOpenIdentity ? (
             <button
               type="button"
@@ -453,31 +470,11 @@ export function PlayDeskHeader({
                 alignmentHint
                   ? alignmentHint
                   : alignmentLabel
-                    ? 'Основное — мировоззрение, предыстория…'
-                    : 'Основное — мировоззрение не задано, нажми чтобы указать'
+                    ? `${raceLabel} · ${alignmentLabel} · ${editionLabel}`
+                    : `${raceLabel} · мировоззрение не задано · ${editionLabel}`
               }
               onClick={onOpenIdentity}
             >
-              <span className="play-desk-header__identity-action">Основное</span>
-              <span className="play-desk-header__dot" aria-hidden>
-                ·
-              </span>
-              <span>{raceLabel}</span>
-              <span className="play-desk-header__dot" aria-hidden>
-                ·
-              </span>
-              {alignmentLabel ? (
-                <span className="play-desk-header__alignment">{alignmentLabel}</span>
-              ) : (
-                <span className="play-desk-header__alignment is-empty">мировоззрение</span>
-              )}
-              <span className="play-desk-header__dot" aria-hidden>
-                ·
-              </span>
-              <span className="play-desk-header__edition">{editionLabel}</span>
-            </button>
-          ) : (
-            <p className="play-desk-header__identity">
               <span>{raceLabel}</span>
               {alignmentLabel ? (
                 <>
@@ -487,82 +484,85 @@ export function PlayDeskHeader({
                   <span className="play-desk-header__alignment">{alignmentLabel}</span>
                 </>
               ) : null}
-              <span className="play-desk-header__dot" aria-hidden>
-                ·
-              </span>
-              <span className="play-desk-header__edition">{editionLabel}</span>
+            </button>
+          ) : (
+            <p className="play-desk-header__identity">
+              <span>{raceLabel}</span>
             </p>
           )}
-        </div>
-        {onNeedsSetupSelect ? (
-          <NeedsSetupIndicator
-            items={needsSetupItems}
-            onSelect={onNeedsSetupSelect}
-          />
-        ) : null}
-
-        {/* 2) Классы */}
-        {classChips.length > 0 ? (
-          <ul
-            className={`play-desk-header__classes${classChips.length >= 3 ? ' is-many' : ''}`}
-            aria-label="Классы"
+          {classChips.length > 0 ? (
+            <ClassChipRow
+              many={classChips.length >= 3}
+              aria-label="Классы"
+              items={classChips.map((chip) => ({
+                id: chip.id,
+                label: chip.label,
+                archetype: chip.subclass || undefined,
+                className: classRows.find((row) => row.id === chip.id)?.name,
+                level: classRows.find((row) => row.id === chip.id)?.level,
+              }))}
+            />
+          ) : null}
+          <XpTrack
+            level={level}
+            ratio={xp.ratio}
+            remainLabel={xpRemainLabel}
+            milestones={milestones}
+            className={showValueTips ? 'has-onboarding-tip' : ''}
+            title={
+              showValueTips
+                ? undefined
+                : milestones
+                  ? `Уровень ${level} · прогресс по вехам лобби. Нажми для журнала опыта`
+                  : `Опыт ${formatXp(xp.xp)}. ${xpLabel}. Нажми, чтобы начислить или убавить`
+            }
+            aria-label={
+              milestones
+                ? `Уровень ${level}, вехи. Открыть журнал опыта`
+                : `Опыт ${formatXp(xp.xp)}. ${xpRemainLabel}. Открыть клавиатуру`
+            }
+            onClick={() => setXpPadOpen(true)}
           >
-            {classChips.map((chip) => (
-              <li
-                key={chip.id}
-                className={`play-desk-header__class-chip${
-                  chip.subclass ? ' has-subclass' : ''
-                }`}
-                title={
-                  chip.subclass ? `${chip.label} · ${chip.subclass}` : chip.label
-                }
-              >
-                <span className="play-desk-header__class-main">{chip.label}</span>
-                {chip.subclass ? (
-                  <span className="play-desk-header__class-archetype">
-                    {chip.subclass}
-                  </span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-
-        {/* 3) Опыт — полоска; под ней: порог ур. | ещё N | порог след. */}
-        <button
-          type="button"
-          className={`play-desk-header__xp${showValueTips ? ' has-onboarding-tip' : ''}`}
-          title={
-            showValueTips
-              ? undefined
-              : `Опыт ${formatXp(xp.xp)}. ${xpLabel}. Нажми, чтобы начислить или убавить`
-          }
-          aria-label={`Опыт ${formatXp(xp.xp)}. ${xpRemainLabel}. Открыть клавиатуру`}
-          onClick={() => setXpPadOpen(true)}
-        >
-          {showValueTips ? <HoverTipCard tip={VITAL_TIPS.xp} /> : null}
-          <div className="play-desk-header__xp-row">
-            <span className="play-desk-header__xp-level">ур. {level}</span>
-            <div className="play-desk-header__xp-track">
-              <div className="play-desk-header__xp-bar" aria-hidden>
-                <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
-              </div>
-              <div className="play-desk-header__xp-nums">
-                <span className="play-desk-header__xp-floor">{formatXp(xp.floor)}</span>
-                <span className="play-desk-header__xp-remain">{xpRemainLabel}</span>
-                <span className="play-desk-header__xp-next">
-                  {xp.nextThreshold == null ? '—' : formatXp(xp.nextThreshold)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </button>
+            {showValueTips ? <HoverTipCard tip={VITAL_TIPS.xp} /> : null}
+          </XpTrack>
+        </div>
       </div>
 
       <div className="play-desk-header__mid">
         <div className="play-desk-header__vitals" data-onboarding="combat-vitals">
-          <div
-            className={`play-desk-vital play-desk-vital--shield${
+          <VitalTile
+            as="div"
+            icon={<IconShield className="play-desk-vital__icon" />}
+            value={autoAc}
+            label={
+              onToggleShield ? (
+                <button
+                  type="button"
+                  className={`ui-vital__shield-tog play-desk-vital__shield-tog${
+                    shieldInHand ? ' is-on' : ''
+                  }${shieldAvailable || shieldInHand ? '' : ' is-empty'}`}
+                  aria-pressed={shieldInHand}
+                  aria-label={
+                    shieldInHand ? 'Убрать щит из руки' : 'Взять щит в руку'
+                  }
+                  title={
+                    shieldInHand
+                      ? 'Щит в руке — нажми, чтобы убрать (КД −бонус щита)'
+                      : shieldAvailable
+                        ? 'Взять щит в руку — КД с бонусом щита'
+                        : 'Нет щита в инвентаре'
+                  }
+                  disabled={!shieldAvailable && !shieldInHand}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onToggleShield()
+                  }}
+                >
+                  Щит
+                </button>
+              ) : undefined
+            }
+            className={`play-desk-vital--shield${
               shieldInHand ? ' is-shield-on' : ''
             }${onOpenAc ? ' play-desk-vital--clickable' : ''}${
               showValueTips ? ' has-onboarding-tip' : ''
@@ -571,15 +571,15 @@ export function PlayDeskHeader({
               showValueTips
                 ? undefined
                 : onOpenAc
-                  ? `${acHint}. Нажми, чтобы открыть разборку КД и бонусы`
-                  : acHint
+                  ? `Класс доспеха ${autoAc}. ${acHint}. Нажми — разборка и бонусы`
+                  : `Класс доспеха ${autoAc}. ${acHint}`
             }
             role={onOpenAc ? 'button' : undefined}
             tabIndex={onOpenAc ? 0 : undefined}
             aria-label={
               onOpenAc
-                ? `Класс защиты ${autoAc}. Открыть разборку`
-                : `Класс защиты ${autoAc}`
+                ? `Класс доспеха ${autoAc}. Открыть разборку`
+                : `Класс доспеха ${autoAc}`
             }
             onClick={() => onOpenAc?.()}
             onKeyDown={(event) => {
@@ -589,80 +589,99 @@ export function PlayDeskHeader({
               onOpenAc()
             }}
           >
-            <IconShield className="play-desk-vital__icon" />
-            <b>{autoAc}</b>
-            <span className="play-desk-vital__label-row">КД</span>
-            {onToggleShield ? (
-              <button
-                type="button"
-                className={`play-desk-vital__shield-tog${
-                  shieldInHand ? ' is-on' : ''
-                }${shieldAvailable || shieldInHand ? '' : ' is-empty'}`}
-                aria-pressed={shieldInHand}
-                aria-label={
-                  shieldInHand ? 'Убрать щит из руки' : 'Взять щит в руку'
-                }
-                title={
-                  shieldInHand
-                    ? 'Щит в руке — нажми, чтобы убрать (КД −бонус щита)'
-                    : shieldAvailable
-                      ? 'Взять щит в руку — КД с бонусом щита'
-                      : 'Нет щита в инвентаре'
-                }
-                disabled={!shieldAvailable && !shieldInHand}
-                onClick={(event) => {
-                  event.stopPropagation()
-                  onToggleShield()
-                }}
-              >
-                <IconShield className="play-desk-vital__shield-tog-ico" aria-hidden />
-              </button>
-            ) : null}
             {showValueTips ? <HoverTipCard tip={VITAL_TIPS.ac} /> : null}
-          </div>
-          <div
-            className={`play-desk-vital play-desk-vital--speed${
-              primarySpeed && primarySpeed.key !== 'walk' ? ' play-desk-vital--alt-primary' : ''
-            }${showValueTips ? ' has-onboarding-tip' : ''}`}
-            title={showValueTips ? undefined : speedTitle}
-            aria-label={
-              primarySpeed
-                ? `Скорость ${primarySpeed.value} фт${
-                    secondarySpeeds.length
-                      ? ` · ${secondarySpeeds
-                          .map((m) => `${m.label} ${m.value} фт`)
-                          .join(' · ')}`
-                      : ''
-                  }`
-                : 'Скорость не задана'
-            }
-          >
-            <IconBoot className="play-desk-vital__icon" />
-            <b>{primarySpeed ? primarySpeed.value : '—'}</b>
-            <span className="play-desk-vital__label-row">
-              {primarySpeed
-                ? primarySpeed.key === 'walk'
-                  ? 'Скор.'
-                  : primarySpeed.label
-                : 'Скор.'}
-            </span>
-            {showValueTips ? <HoverTipCard tip={VITAL_TIPS.speed} /> : null}
-          </div>
-          {secondarySpeeds.length > 0 ? (
-            <div
-              className="play-desk-vital play-desk-vital--modes"
-              aria-label="Дополнительные скорости"
-              title={secondarySpeeds.map((m) => `${m.label} ${m.value} фт`).join(' · ')}
+          </VitalTile>
+          {onOpenSpeed ? (
+            <button
+              type="button"
+              className={`play-desk-vital play-desk-vital--speed play-desk-vital--clickable${
+                secondarySpeeds.length ? ' play-desk-vital--speed-wide' : ''
+              }${
+                primarySpeed && primarySpeed.key !== 'walk' ? ' play-desk-vital--alt-primary' : ''
+              }${showValueTips ? ' has-onboarding-tip' : ''}`}
+              title={
+                showValueTips
+                  ? undefined
+                  : `${speedTitle}. Нажми — разборка и бонусы`
+              }
+              aria-label={
+                primarySpeed
+                  ? `Скорость ${primarySpeed.value} фт${
+                      secondarySpeeds.length
+                        ? ` · ${secondarySpeeds
+                            .map((m) => `${m.label} ${m.value} фт`)
+                            .join(' · ')}`
+                        : ''
+                    }. Открыть разборку`
+                  : 'Скорость не задана. Открыть разборку'
+              }
+              onClick={onOpenSpeed}
             >
-              <ul className="play-desk-vital__tags">
-                {secondarySpeeds.map((mode) => (
-                  <li key={mode.key} className="play-desk-vital__tag">
-                    {mode.label} {mode.value} фт
-                  </li>
-                ))}
-              </ul>
+              <span className="play-desk-vital__stack">
+                <IconBoot className="play-desk-vital__icon" />
+                <b>{primarySpeed ? primarySpeed.value : '—'}</b>
+                <span className="play-desk-vital__label-row">
+                  {primarySpeed
+                    ? primarySpeed.key === 'walk'
+                      ? 'Скор.'
+                      : primarySpeed.label
+                    : 'Скор.'}
+                </span>
+              </span>
+              {secondarySpeeds.length > 0 ? (
+                <ul className="play-desk-vital__tags" aria-label="Дополнительные скорости">
+                  {secondarySpeeds.map((mode) => (
+                    <li key={mode.key} className="play-desk-vital__tag">
+                      {mode.label} {mode.value}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {showValueTips ? <HoverTipCard tip={VITAL_TIPS.speed} /> : null}
+            </button>
+          ) : (
+            <div
+              className={`play-desk-vital play-desk-vital--speed${
+                secondarySpeeds.length ? ' play-desk-vital--speed-wide' : ''
+              }${
+                primarySpeed && primarySpeed.key !== 'walk' ? ' play-desk-vital--alt-primary' : ''
+              }${showValueTips ? ' has-onboarding-tip' : ''}`}
+              title={showValueTips ? undefined : speedTitle}
+              aria-label={
+                primarySpeed
+                  ? `Скорость ${primarySpeed.value} фт${
+                      secondarySpeeds.length
+                        ? ` · ${secondarySpeeds
+                            .map((m) => `${m.label} ${m.value} фт`)
+                            .join(' · ')}`
+                        : ''
+                    }`
+                  : 'Скорость не задана'
+              }
+            >
+              <span className="play-desk-vital__stack">
+                <IconBoot className="play-desk-vital__icon" />
+                <b>{primarySpeed ? primarySpeed.value : '—'}</b>
+                <span className="play-desk-vital__label-row">
+                  {primarySpeed
+                    ? primarySpeed.key === 'walk'
+                      ? 'Скор.'
+                      : primarySpeed.label
+                    : 'Скор.'}
+                </span>
+              </span>
+              {secondarySpeeds.length > 0 ? (
+                <ul className="play-desk-vital__tags" aria-label="Дополнительные скорости">
+                  {secondarySpeeds.map((mode) => (
+                    <li key={mode.key} className="play-desk-vital__tag">
+                      {mode.label} {mode.value}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {showValueTips ? <HoverTipCard tip={VITAL_TIPS.speed} /> : null}
             </div>
-          ) : null}
+          )}
           {jumpLongFt != null && jumpHighFt != null ? (
             <div
               className={`play-desk-vital play-desk-vital--jump${
@@ -744,7 +763,7 @@ export function PlayDeskHeader({
             <span className="play-desk-vital__label-row">БМ</span>
             {showValueTips ? <HoverTipCard tip={VITAL_TIPS.proficiency} /> : null}
           </div>
-          <div className="play-desk-header__stack">
+          <ChipStack>
             <button
               type="button"
               className={`play-desk-header__chip${inspiration ? ' is-on' : ''}${
@@ -785,26 +804,27 @@ export function PlayDeskHeader({
                 {exhaustionStage}
               </span>
             ) : null}
-          </div>
+          </ChipStack>
         </div>
       </div>
 
       <div className="play-desk-header__right">
-        <div className="play-desk-header__right-tools">
+        <ChipStack variant="tools">
           <button
             type="button"
             className={`play-desk-header__coin${showValueTips ? ' has-onboarding-tip' : ''}`}
-            aria-label={`${formatGpTotal(coinsToGp(coins))} зм — кошелёк`}
+            aria-label={`${formatGpExact(coinsToGp(coins))} зм — кошелёк`}
+            title={`${formatGpExact(coinsToGp(coins))} зм`}
             aria-describedby={showValueTips ? undefined : 'play-desk-coin-tip'}
             onClick={() => setCoinPadOpen(true)}
           >
             <IconCoin className="play-desk-header__btn-icon" />
-            <span aria-hidden="true">{formatGpTotal(coinsToGp(coins))} зм</span>
+            <span aria-hidden="true">{formatGpCompact(coinsToGp(coins))} зм</span>
             {showValueTips ? <HoverTipCard tip={VITAL_TIPS.coins} /> : null}
             {showValueTips ? null : (
               <span id="play-desk-coin-tip" className="play-desk-header__coin-tip" role="tooltip">
                 <b>Кошелёк</b>
-                <strong>≈ {formatGpTotal(coinsToGp(coins))} зм</strong>
+                <strong>{formatGpExact(coinsToGp(coins))} зм</strong>
                 <em>{formatCoinBreakdown(coins)}</em>
                 <small>Нажми — взять / отдать</small>
               </span>
@@ -819,7 +839,7 @@ export function PlayDeskHeader({
             <span className="play-desk-vital__label-row">Отдых</span>
             {showValueTips ? <HoverTipCard tip={VITAL_TIPS.rest} /> : null}
           </button>
-        </div>
+        </ChipStack>
         <div className="play-desk-header__hp-wrap">
           <button
             type="button"

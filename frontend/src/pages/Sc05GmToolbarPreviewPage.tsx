@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { SessionLorePanel } from '../features/lobby/SessionLorePanel'
 import type { SessionLorePage, SessionSeat } from '../shared/api/lobbies'
-import { Button, Panel, Stack, Text } from '../ui'
+import { Button, DetailsMenu, Panel, Stack, Text } from '../ui'
 
 const SEATS: SessionSeat[] = [
   {
@@ -127,14 +127,15 @@ export function Sc05GmToolbarPreviewPage() {
                     </Button>
                   </div>
 
-                  <details
+                  <DetailsMenu
                     className={`session-toolbar-more session-toolbar-rewards${
                       !combatActive ? ' session-toolbar-group--rewards-spotlight' : ''
                     }`}
                     data-sc05-rewards
+                    summary="Награды"
+                    summaryClassName="session-toolbar-more__summary"
+                    panelClassName="session-toolbar-more__body"
                   >
-                    <summary className="session-toolbar-more__summary">Награды</summary>
-                    <div className="session-toolbar-more__body">
                       <div className="session-toolbar-group" aria-label="Награды">
                         <Button
                           type="button"
@@ -158,12 +159,15 @@ export function Sc05GmToolbarPreviewPage() {
                           Выдать
                         </Button>
                       </div>
-                    </div>
-                  </details>
+                  </DetailsMenu>
 
-                  <details className="session-toolbar-more" data-sc05-more>
-                    <summary className="session-toolbar-more__summary">Ещё действия</summary>
-                    <div className="session-toolbar-more__body">
+                  <DetailsMenu
+                    className="session-toolbar-more"
+                    data-sc05-more
+                    summary="Ещё действия"
+                    summaryClassName="session-toolbar-more__summary"
+                    panelClassName="session-toolbar-more__body"
+                  >
                       <Text
                         tone="muted"
                         className="session-toolbar-mobile-only session-toolbar-more__desk-note"
@@ -190,8 +194,7 @@ export function Sc05GmToolbarPreviewPage() {
                           Настройки стола
                         </Button>
                       </div>
-                    </div>
-                  </details>
+                  </DetailsMenu>
                 </div>
 
                 <div className="session-center-slot session-center-slot--cards">

@@ -1,9 +1,12 @@
 :root {
   /* UI Kit Wave A — Листва (docs/ui-kit/README.md) */
   color: #2d2d2a;
-  background:
+  /* Canvas fill lives on html/body/#root below — not only here —
+     so short pages / Safari overscroll never flash a white strip. */
+  --app-canvas-bg:
     radial-gradient(circle at top left, #f3e8d4 0%, transparent 42%),
     linear-gradient(180deg, #fbf7ec 0%, #f3ebe0 100%);
+  background: var(--app-canvas-bg);
   font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -82,16 +85,25 @@ html[data-ability-colors='theme'] .abil-block[data-abil] {
   box-sizing: border-box;
 }
 
+html {
+  overflow-x: clip;
+  /* Fallback first, then dvh for iPad Safari dynamic chrome */
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--app-canvas-bg);
+  background-color: var(--panel, #fbf7ec);
+}
+
 body {
   margin: 0;
   /* Allow sub-320 viewports (narrow Safari / split) without sideways page grow */
   min-width: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: clip;
-}
-
-html {
-  overflow-x: clip;
+  /* Paint canvas on body too — UA white must not show past content */
+  background: var(--app-canvas-bg);
+  background-color: var(--panel, #fbf7ec);
 }
 
 button,
@@ -101,6 +113,9 @@ input {
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--app-canvas-bg);
+  background-color: var(--panel, #fbf7ec);
 }
 
 .page {
@@ -212,12 +227,27 @@ input {
   font-size: 0.95rem;
 }
 
-/* Amount / «Число» — wide enough for placeholder, centered */
+/* Amount / «Число» — wide enough for placeholder, centered; can shrink in tight rows */
 .ui-input--narrow {
   width: 6.75rem;
-  min-width: 6.75rem;
+  min-width: 4.5rem;
   max-width: 8rem;
+  flex: 0 1 6.75rem;
   text-align: center;
+}
+
+/* Kit native select — same face as Input, chevron room on the right */
+.ui-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236f675c' d='M1.1 1.2 6 6.1l4.9-4.9 1.1 1.1L6 8.3.0 2.3z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 12px 8px;
+  cursor: pointer;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .ui-input--center {
@@ -336,20 +366,50 @@ a.ui-button--primary {
 .sheet-topbar {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .sheet-topbar__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 
 .sheet-topbar__actions .ui-button {
-  padding: 6px 12px;
-  font-size: 0.88rem;
-  min-height: var(--control-h-md);
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  min-height: 28px;
+}
+
+/* UIKIT-02 P1: play sheet chrome — one thin row */
+.sheet-topbar--play {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 8px;
+  min-height: 28px;
+  margin: 0 0 4px;
+  padding: 0;
+}
+
+.sheet-topbar--play .back-link {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.sheet-topbar--play .ui-button {
+  min-height: 28px;
+  padding: 0 8px;
+  font-size: 0.78rem;
+}
+
+.sheet-topbar--play .sheet-topbar__actions {
+  gap: 4px;
 }
 
 .ui-button--danger {
@@ -445,10 +505,556 @@ a.ui-button--primary {
   padding: 0;
 }
 
+/* Kit details popover — panel overlays, does not reflow toolbar siblings */
+.ui-menu {
+  position: relative;
+  display: inline-block;
+  min-width: 0;
+  max-width: max-content;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.ui-menu__summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: var(--control-h-lg);
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.ui-menu__summary::-webkit-details-marker {
+  display: none;
+}
+
+.ui-menu[open] > .ui-menu__summary {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, var(--card));
+}
+
+.ui-menu__panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 40;
+  min-width: max(100%, 12rem);
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 12%, transparent);
+  box-sizing: border-box;
+}
+
+/* Portaled panel — above sticky scene toolbars / desk chrome */
+.ui-menu__panel--portal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 90;
+  margin: 0;
+}
+
+/*
+ * VitalTile AC — icon / value / «Щит» toggle (no «КД» on face).
+ * Size locked to other vitals (≤48px tall). Title carries «Класс доспеха».
+ */
+.ui-vital.play-desk-vital--shield,
+.play-desk-vital--shield.ui-vital {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 0;
+  width: 56px;
+  min-width: 56px;
+  max-width: 56px;
+  height: 48px;
+  min-height: 48px;
+  flex: 0 0 56px;
+  padding: 2px 2px 2px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.ui-vital.play-desk-vital--shield > .play-desk-vital__icon,
+.ui-vital.play-desk-vital--shield > .ui-vital__icon,
+.play-desk-vital--shield.ui-vital > .play-desk-vital__icon {
+  display: block;
+  width: 0.78rem;
+  height: 0.78rem;
+  color: var(--desk-accent, var(--accent));
+  flex-shrink: 0;
+}
+
+.ui-vital.play-desk-vital--shield > b,
+.ui-vital.play-desk-vital--shield > .ui-vital__value {
+  color: var(--desk-accent, var(--accent));
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.ui-vital__shield-tog,
+.play-desk-vital__shield-tog {
+  position: static;
+  left: auto;
+  bottom: auto;
+  transform: none;
+  margin: 1px 0 0;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--desk-line, var(--line));
+  background: color-mix(in srgb, var(--desk-chip, #e7e1d4) 40%, white);
+  border-radius: 999px;
+  padding: 0 5px;
+  font: inherit;
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  line-height: 1.15;
+  color: var(--desk-muted, var(--muted));
+  cursor: pointer;
+  max-width: calc(100% - 2px);
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.ui-vital__shield-tog:hover:not(:disabled),
+.play-desk-vital__shield-tog:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--desk-accent, var(--accent)) 40%, var(--desk-line, var(--line)));
+  color: var(--desk-ink, var(--ink));
+}
+
+.ui-vital__shield-tog.is-on,
+.play-desk-vital__shield-tog.is-on {
+  background: var(--desk-accent, var(--accent));
+  border-color: var(--desk-accent, var(--accent));
+  color: #fff;
+}
+
+.ui-vital__shield-tog.is-empty,
+.ui-vital__shield-tog:disabled,
+.play-desk-vital__shield-tog.is-empty,
+.play-desk-vital__shield-tog:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.play-desk-vital--shield.is-shield-on {
+  border-color: var(--desk-accent, var(--accent));
+}
+
+/*
+ * VitalTileMenu — compact vital face (icon / value / label) + corner +N,
+ * opens kit DetailsMenu. Phone speed: alts in badge, full list in panel.
+ */
+.ui-vital-menu {
+  display: block;
+  min-width: 0;
+  max-width: none;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.ui-vital-menu__summary {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.1;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.ui-vital-menu__summary::-webkit-details-marker {
+  display: none;
+}
+
+.ui-vital-menu[open] > .ui-vital-menu__summary {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, var(--card));
+}
+
+.ui-vital-menu__summary .ui-vital__value,
+.ui-vital-menu__summary > b {
+  font-size: 1.12rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.ui-vital-menu__summary .ui-vital__label,
+.ui-vital-menu__summary > .ui-vital__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #5f584e;
+  letter-spacing: 0.01em;
+}
+
+.ui-vital-menu__summary .ui-vital__icon {
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.ui-vital__badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 4px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 70%, var(--card));
+  color: var(--ink);
+  font-size: 0.58rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.ui-vital-menu__panel {
+  min-width: min(16rem, calc(100vw - 24px));
+}
+
+.ui-vital-menu__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ui-vital-menu__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.84rem;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.ui-vital-menu__row-label {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.ui-vital-menu__row-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ui-vital-menu__note {
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.ui-vital-menu__action {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ui-vital-menu__action:hover {
+  background: var(--accent-soft);
+}
+
+/*
+ * Kit ScrollRow — one-line horizontal scroller.
+ * Edge cue: ~40px fade (transparent → panel) + small semi-transparent round ‹/›.
+ * Only the scrollable side(s) render an edge.
+ */
+.ui-scroll-row {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+.ui-scroll-row__edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* Above scroller (mobile .play-desk__hot uses z-index:30) — else fade/› hide under the strip */
+  z-index: 35;
+  width: 40px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.ui-scroll-row__edge--left {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--panel, #fbf7ec) 92%, var(--ink, #2d2d2a)) 0%,
+    color-mix(in srgb, var(--panel, #fbf7ec) 55%, transparent) 55%,
+    transparent 100%
+  );
+}
+
+.ui-scroll-row__edge--right {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    color-mix(in srgb, var(--panel, #fbf7ec) 92%, var(--ink, #2d2d2a)) 0%,
+    color-mix(in srgb, var(--panel, #fbf7ec) 55%, transparent) 55%,
+    transparent 100%
+  );
+}
+
+.ui-scroll-row__chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink, #2d2d2a) 28%, transparent);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--ink, #2d2d2a) 18%, transparent);
+  pointer-events: none;
+}
+
+.ui-scroll-row__edge:hover .ui-scroll-row__chevron,
+.ui-scroll-row__edge:focus-visible .ui-scroll-row__chevron {
+  background: color-mix(in srgb, var(--ink, #2d2d2a) 42%, transparent);
+}
+
+.ui-scroll-row__edge:focus-visible {
+  outline: none;
+}
+
+.ui-scroll-row__edge:focus-visible .ui-scroll-row__chevron {
+  outline: 2px solid color-mix(in srgb, var(--accent, #5a6b3d) 55%, white);
+  outline-offset: 2px;
+}
+
+/* Desk paper surfaces: fade into white card strip */
+.play-desk .ui-scroll-row__edge--left {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, #fff 92%, var(--desk-ink, #2d2d2a)) 0%,
+    color-mix(in srgb, #fff 55%, transparent) 55%,
+    transparent 100%
+  );
+}
+
+.play-desk .ui-scroll-row__edge--right {
+  background: linear-gradient(
+    to left,
+    color-mix(in srgb, #fff 92%, var(--desk-ink, #2d2d2a)) 0%,
+    color-mix(in srgb, #fff 55%, transparent) 55%,
+    transparent 100%
+  );
+}
+
+/* Mobile desk: stronger edge cue (narrow hot strip) — ink tint so fade reads on #fff */
+.play-desk--mobile .ui-scroll-row__edge--left {
+  width: 52px;
+  background: linear-gradient(
+    to right,
+    #fff 0%,
+    color-mix(in srgb, #fff 82%, var(--desk-ink, #2d2d2a) 8%) 38%,
+    transparent 100%
+  );
+}
+
+.play-desk--mobile .ui-scroll-row__edge--right {
+  width: 52px;
+  background: linear-gradient(
+    to left,
+    #fff 0%,
+    color-mix(in srgb, #fff 82%, var(--desk-ink, #2d2d2a) 8%) 38%,
+    transparent 100%
+  );
+}
+
+.play-desk--mobile .ui-scroll-row__chevron {
+  width: 24px;
+  height: 24px;
+  font-size: 1.05rem;
+  background: color-mix(in srgb, var(--desk-ink, #2d2d2a) 48%, transparent);
+}
+
 .ui-button--ghost {
   background: transparent;
   color: var(--ink);
   border-color: var(--line);
+}
+
+/* Kit chip — removable status face (label ↔ × gap owned here) */
+.ui-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: min(100%, 16rem);
+  min-width: 0;
+  padding: 1px 4px 1px 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  min-height: 26px;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  color: var(--ink);
+}
+
+.ui-chip.is-inactive {
+  opacity: 0.55;
+}
+
+.ui-chip__label {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.ui-chip__label strong {
+  font-weight: 700;
+}
+
+.ui-chip__tip {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  z-index: 40;
+  min-width: max(100%, 12rem);
+  max-width: min(280px, 80vw);
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card, #fff);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 12%, transparent);
+  color: var(--ink);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.ui-chip__tip > * {
+  display: block;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ui-chip:hover .ui-chip__tip,
+  .ui-chip:focus-within .ui-chip__tip {
+    display: grid;
+    gap: 2px;
+  }
+}
+
+.ui-chip.is-tip-open .ui-chip__tip {
+  display: grid;
+  gap: 2px;
+}
+
+.ui-chip__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.ui-chip__dismiss {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ui-chip__dismiss:hover {
+  border-color: var(--line);
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent-soft) 40%, white);
 }
 
 .ui-text {

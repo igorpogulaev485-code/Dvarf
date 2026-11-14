@@ -436,35 +436,40 @@ export function PlayDeskSpellsCompact({
                   <strong>{levelLabel(group.level)}</strong>
                   {slot && slot.max > 0 ? (
                     <div
-                      className="play-desk-compact__slot-pips"
+                      className="play-desk-compact__slot-track"
                       role="group"
                       aria-label={`Ячейки ${group.level}: ${remaining}/${slot.max}`}
                       title={`Ячейки ${group.level}: ${remaining}/${slot.max}`}
                     >
-                      {Array.from({ length: slot.max }, (_, index) => {
-                        const isOn = index < (remaining ?? 0)
-                        return (
-                          <button
-                            key={`${group.level}-${index}`}
-                            type="button"
-                            className={`play-desk-compact__slot-pip${isOn ? ' is-on' : ''}`}
-                            disabled={!onSlotUsedChange}
-                            aria-label={
-                              isOn
-                                ? `Ячейка ${group.level}: потратить ${index + 1}`
-                                : `Ячейка ${group.level}: вернуть ${index + 1}`
-                            }
-                            onClick={() => {
-                              if (!onSlotUsedChange || !slot) return
-                              if (isOn) {
-                                onSlotUsedChange(group.level, Math.min(slot.max, slot.used + 1))
-                              } else {
-                                onSlotUsedChange(group.level, Math.max(0, slot.used - 1))
+                      <span className="play-desk-compact__slot-count">
+                        Ячейки {remaining}/{slot.max}
+                      </span>
+                      <div className="play-desk-compact__slot-pips">
+                        {Array.from({ length: slot.max }, (_, index) => {
+                          const isOn = index < (remaining ?? 0)
+                          return (
+                            <button
+                              key={`${group.level}-${index}`}
+                              type="button"
+                              className={`play-desk-compact__slot-pip${isOn ? ' is-on' : ''}`}
+                              disabled={!onSlotUsedChange}
+                              aria-label={
+                                isOn
+                                  ? `Ячейка ${group.level}: потратить ${index + 1}`
+                                  : `Ячейка ${group.level}: вернуть ${index + 1}`
                               }
-                            }}
-                          />
-                        )
-                      })}
+                              onClick={() => {
+                                if (!onSlotUsedChange || !slot) return
+                                if (isOn) {
+                                  onSlotUsedChange(group.level, Math.min(slot.max, slot.used + 1))
+                                } else {
+                                  onSlotUsedChange(group.level, Math.max(0, slot.used - 1))
+                                }
+                              }}
+                            />
+                          )
+                        })}
+                      </div>
                     </div>
                   ) : null}
                 </div>

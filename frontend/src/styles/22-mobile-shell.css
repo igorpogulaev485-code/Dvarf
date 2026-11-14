@@ -60,32 +60,38 @@
   max-width: min(180px, 70vw);
 }
 
-/* M-01 / M01 (Q2): combat effects — wrap, no sideways clip */
-/* SC-06: пустой хром и ресурсы компактно в ряд, не на всю ширину каждый */
+/* UIKIT-02: ресурсы/навыки — одна строка + скролл + стрелки (не wrap) */
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 4px;
   padding: 4px;
-  overflow-x: hidden;
-  overflow-y: visible;
-  -webkit-overflow-scrolling: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item,
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-more {
+  flex: 0 0 auto;
+  flex-shrink: 0;
 }
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--wide {
-  flex: 1 1 calc(50% - 3px);
+  flex: 0 0 auto;
+  width: max-content;
   min-width: 0;
   max-width: none;
 }
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--compact,
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--empty-row {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
   min-height: 40px;
   padding: 4px 8px;
 }
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--res,
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--res-compact {
-  flex: 1 1 calc(50% - 3px);
+  flex: 0 0 auto;
+  width: max-content;
   min-width: 0;
   max-width: none;
   min-height: 40px;
@@ -93,10 +99,6 @@
 }
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot--empty-chrome {
   align-items: center;
-}
-.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-fade,
-.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-arrow {
-  display: none;
 }
 .play-desk--mobile .play-desk__step {
   width: 32px;
@@ -107,17 +109,24 @@
   font-size: 0.78rem;
   line-height: 1.25;
 }
+/* UIKIT-02: ячейки/заряды остаются плотными (gap 4px); 44px — только прочие controls */
 .play-desk--mobile .play-desk__pip {
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  min-height: 44px;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
   margin: 0;
+}
+
+.play-desk--mobile .play-desk-compact__slot-pip {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
 }
 
 .play-desk--mobile .abil-prof-pip,
 .play-desk--mobile .abil-skill__roll,
-.play-desk--mobile .play-desk-compact__slot-pip,
 .play-desk--mobile .attune-card__remove,
 .play-desk--mobile .tag-chip__remove {
   min-width: 44px;
@@ -274,9 +283,19 @@
   flex: 1.15;
 }
 
-/* M-02 / M06: skill names fully readable — 2-col wrap, no word clip / silent x-scroll */
-/* SC-06: плотнее по вертикали; «Ещё» — 4-я ячейка 2×2, не третий ряд */
-.play-desk--mobile .play-desk__hot--skills,
+/* UIKIT-02: навыки — одна строка + скролл (как ресурсы); legacy grid только у --skills-mobile */
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot--skills {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  padding: 4px;
+  margin: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  align-items: stretch;
+}
+
 .play-desk--mobile .play-desk__hot--skills-mobile {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -285,11 +304,21 @@
   margin: 0;
   overflow-x: hidden;
   overflow-y: visible;
-  -webkit-overflow-scrolling: auto;
   align-items: stretch;
 }
 
-.play-desk--mobile .play-desk__hot--skills .play-desk__hot-item {
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot--skills .play-desk__hot-item {
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  min-width: max-content;
+  max-width: none;
+  width: auto;
+  min-height: 40px;
+  padding: 4px 6px;
+  white-space: nowrap;
+}
+
+.play-desk--mobile .play-desk__hot--skills-mobile .play-desk__hot-item {
   flex: none;
   min-width: 0;
   max-width: none;
@@ -299,7 +328,18 @@
   white-space: normal;
 }
 
-.play-desk--mobile .play-desk__hot--skills .play-desk__hot-item span {
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot--skills .play-desk__hot-item span {
+  display: inline;
+  font-size: 0.74rem;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: unset;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.play-desk--mobile .play-desk__hot--skills-mobile .play-desk__hot-item span {
   display: block;
   font-size: 0.74rem;
   line-height: 1.15;

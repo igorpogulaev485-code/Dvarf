@@ -1,13 +1,20 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import type { ConcentrationState } from './play'
 import { resourceShowsOnHot, type SheetResource } from '../../shared/dnd/rest'
+import { ResourcePips } from '../../ui/ResourcePips'
 import { shouldUseCompactResourceTrack } from '../../ui/resourceTrackDisplay'
 import {
   IconConcentration,
   IconConditions,
   IconPouch,
 } from './deskIcons'
+import {
+  hotBarScrollEdges,
+  PlayDeskHotScrollWrap,
+} from './PlayDeskHotScrollWrap'
+
+export { hotBarScrollEdges }
 
 /** Phone: how many resource chips stay visible before «Ещё». */
 export const MOBILE_HOT_PINNED_RESOURCE_COUNT = 2
@@ -21,26 +28,10 @@ type PlayDeskHotBarProps = {
   onClearConcentration?: () => void
   onResourceUsedChange: (id: string, used: number) => void
   /**
-   * M-02 / M07: phone overflow = pinned + «Ещё N» (no silent sideways scroll).
-   * Desktop (≥960) keeps the scroll row with edge arrows (§2l / UX restore).
+   * Legacy phone «Ещё N». UIKIT-02: keep false — one row + scroll + arrows
+   * for resources (same as skills).
    */
   mobileMoreOverflow?: boolean
-}
-
-/** Pure edge flags for the hot-bar scroller (selfcheck + UI). */
-export function hotBarScrollEdges(
-  scrollLeft: number,
-  clientWidth: number,
-  scrollWidth: number,
-  epsilon = 1,
-): { canScrollLeft: boolean; canScrollRight: boolean } {
-  if (scrollWidth <= clientWidth + epsilon) {
-    return { canScrollLeft: false, canScrollRight: false }
-  }
-  return {
-    canScrollLeft: scrollLeft > epsilon,
-    canScrollRight: scrollLeft + clientWidth < scrollWidth - epsilon,
-  }
 }
 
 function HotResourceName({ name }: { name: string }) {
@@ -84,6 +75,7 @@ function ResourceChip({
       </div>
     )
   }
+  /* До SC / UIKIT: квадратики зарядов; ± только для пулов >10 (Lay on Hands и т.п.). */
   return (
     <div
       className={`play-desk__hot-item play-desk__hot-item--res${
@@ -128,57 +120,16 @@ function ResourceChip({
           </button>
         </div>
       ) : (
-        <div
-          className="play-desk__pips"
-          role="group"
-          aria-label={`${row.name}: ${remaining}/${row.max}`}
-        >
-          {Array.from({ length: row.max }, (_, index) => {
-            const isOn = index < remaining
-            return (
-              <button
-                key={`${row.id}-${index}`}
-                type="button"
-                className={`play-desk__pip${isOn ? ' is-on' : ''}`}
-                aria-label={
-                  isOn
-                    ? `${row.name}: потратить заряд ${index + 1}`
-                    : `${row.name}: вернуть заряд ${index + 1}`
-                }
-                onClick={() => {
-                  if (isOn) {
-                    onResourceUsedChange(row.id, Math.min(row.max, row.used + 1))
-                  } else {
-                    onResourceUsedChange(row.id, Math.max(0, row.used - 1))
-                  }
-                }}
-              />
-            )
-          })}
-        </div>
+        <ResourcePips
+          max={row.max}
+          used={row.used}
+          fillMode="available"
+          label={`${row.name}: ${remaining}/${row.max}`}
+          onChange={(nextUsed) => onResourceUsedChange(row.id, nextUsed)}
+        />
       )}
     </div>
   )
-}
-
-function scrollHotBarByApproxOneItem(el: HTMLElement, dir: -1 | 1) {
-  const items = Array.from(
-    el.querySelectorAll<HTMLElement>(':scope > .play-desk__hot-item'),
-  )
-  const gap = 6
-  if (items.length === 0) {
-    el.scrollBy({ left: dir * 140, behavior: 'smooth' })
-    return
-  }
-  if (dir > 0) {
-    const next = items.find((item) => item.offsetLeft + item.offsetWidth > el.scrollLeft + 8)
-    el.scrollBy({ left: (next?.offsetWidth ?? 140) + gap, behavior: 'smooth' })
-    return
-  }
-  const prev = [...items]
-    .reverse()
-    .find((item) => item.offsetLeft < el.scrollLeft - 1)
-  el.scrollBy({ left: -((prev?.offsetWidth ?? 140) + gap), behavior: 'smooth' })
 }
 
 function MoreResources({
@@ -282,160 +233,68 @@ export function PlayDeskHotBar({
     : []
   const concOn = Boolean(concentration)
   const emptyChrome = !conditionsOn && !concOn
-  const scrollerRef = useRef<HTMLDivElement | null>(null)
-  const [canScrollLeft, setCanScrollLeft] = useState(false)
-  const [canScrollRight, setCanScrollRight] = useState(false)
-
-  const updateScrollHints = () => {
-    if (mobileMoreOverflow) {
-      setCanScrollLeft(false)
-      setCanScrollRight(false)
-      return
-    }
-    const el = scrollerRef.current
-    if (!el) return
-    const edges = hotBarScrollEdges(el.scrollLeft, el.clientWidth, el.scrollWidth)
-    setCanScrollLeft(edges.canScrollLeft)
-    setCanScrollRight(edges.canScrollRight)
-  }
-
-  useLayoutEffect(() => {
-    updateScrollHints()
-  }, [
+  const watchKey = [
     hotResources.length,
-    conditionsLabel,
-    concOn,
-    concentration?.name,
-    mobileMoreOverflow,
+    conditionsLabel ?? '',
+    concOn ? concentration?.name ?? '' : '',
+    mobileMoreOverflow ? 'more' : 'scroll',
     pinnedResources.length,
     overflowResources.length,
-  ])
-
-  useEffect(() => {
-    if (mobileMoreOverflow) return
-    const el = scrollerRef.current
-    if (!el) return
-
-    const onScroll = () => updateScrollHints()
-    el.addEventListener('scroll', onScroll, { passive: true })
-
-    const onWheel = (event: WheelEvent) => {
-      if (el.scrollWidth <= el.clientWidth + 1) return
-      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return
-      event.preventDefault()
-      el.scrollLeft += event.deltaY
-    }
-    el.addEventListener('wheel', onWheel, { passive: false })
-
-    const ro = new ResizeObserver(() => updateScrollHints())
-    ro.observe(el)
-    for (const child of Array.from(el.children)) {
-      if (child instanceof HTMLElement) ro.observe(child)
-    }
-
-    window.addEventListener('resize', updateScrollHints)
-
-    return () => {
-      el.removeEventListener('scroll', onScroll)
-      el.removeEventListener('wheel', onWheel)
-      ro.disconnect()
-      window.removeEventListener('resize', updateScrollHints)
-    }
-  }, [
-    hotResources.length,
-    conditionsLabel,
-    concOn,
-    concentration?.name,
-    mobileMoreOverflow,
-  ])
+  ].join('|')
 
   return (
-    <div className="play-desk__hot-wrap">
-      {canScrollLeft ? (
-        <>
-          <div className="play-desk__hot-fade play-desk__hot-fade--left" aria-hidden="true" />
-          <button
-            type="button"
-            className="play-desk__hot-arrow play-desk__hot-arrow--left"
-            aria-label="Прокрутить влево"
-            onClick={() => {
-              const el = scrollerRef.current
-              if (el) scrollHotBarByApproxOneItem(el, -1)
-            }}
-          >
-            ‹
-          </button>
-        </>
-      ) : null}
-      {canScrollRight ? (
-        <>
-          <div className="play-desk__hot-fade play-desk__hot-fade--right" aria-hidden="true" />
-          <button
-            type="button"
-            className="play-desk__hot-arrow play-desk__hot-arrow--right"
-            aria-label="Прокрутить вправо"
-            onClick={() => {
-              const el = scrollerRef.current
-              if (el) scrollHotBarByApproxOneItem(el, 1)
-            }}
-          >
-            ›
-          </button>
-        </>
-      ) : null}
-      <div
-        className={`play-desk__hot${emptyChrome ? ' play-desk__hot--empty-chrome' : ''}`}
-        ref={scrollerRef}
-        aria-label="Боевая полоса"
+    <PlayDeskHotScrollWrap
+      ariaLabel="Боевая полоса"
+      className={`play-desk__hot${emptyChrome ? ' play-desk__hot--empty-chrome' : ''}`}
+      watchKey={watchKey}
+    >
+      <button
+        type="button"
+        className={`play-desk__hot-item play-desk__hot-item--btn${
+          conditionsOn
+            ? ' play-desk__hot-item--wide is-on'
+            : ' play-desk__hot-item--compact play-desk__hot-item--empty-row'
+        }`}
+        title={
+          emptyChrome
+            ? 'Состояния и концентрация — открыть'
+            : 'Нажми, чтобы изменить состояния'
+        }
+        aria-pressed={conditionsOn}
+        onClick={onOpenConditions}
         data-sc06-hot-empty={emptyChrome ? '1' : '0'}
       >
-        <button
-          type="button"
-          className={`play-desk__hot-item play-desk__hot-item--btn${
-            conditionsOn
-              ? ' play-desk__hot-item--wide is-on'
-              : ' play-desk__hot-item--compact play-desk__hot-item--empty-row'
-          }`}
-          title={
-            emptyChrome
-              ? 'Состояния и концентрация — открыть'
-              : 'Нажми, чтобы изменить состояния'
-          }
-          aria-pressed={conditionsOn}
-          onClick={onOpenConditions}
-        >
-          <IconConditions className="play-desk__hot-icon" />
+        <IconConditions className="play-desk__hot-icon" />
+        <span className="play-desk__hot-label">
+          {conditionsOn ? `Состояния: ${conditionsLabel}` : 'Состояния'}
+        </span>
+      </button>
+      {concentration ? (
+        <div className="play-desk__hot-item play-desk__hot-item--wide is-on">
+          <IconConcentration className="play-desk__hot-icon" />
           <span className="play-desk__hot-label">
-            {conditionsOn ? `Состояния: ${conditionsLabel}` : 'Состояния'}
+            Концентрация: <strong>{concentration.name}</strong>
           </span>
-        </button>
-        {concentration ? (
-          <div className="play-desk__hot-item play-desk__hot-item--wide is-on">
-            <IconConcentration className="play-desk__hot-icon" />
-            <span className="play-desk__hot-label">
-              Концентрация: <strong>{concentration.name}</strong>
-            </span>
-            {onClearConcentration ? (
-              <button type="button" className="linkish" onClick={onClearConcentration}>
-                Снять
-              </button>
-            ) : null}
-          </div>
-        ) : null}
-        {pinnedResources.map((row) => (
-          <ResourceChip
-            key={row.id}
-            row={row}
-            onResourceUsedChange={onResourceUsedChange}
-          />
-        ))}
-        {mobileMoreOverflow ? (
-          <MoreResources
-            overflowResources={overflowResources}
-            onResourceUsedChange={onResourceUsedChange}
-          />
-        ) : null}
-      </div>
-    </div>
+          {onClearConcentration ? (
+            <button type="button" className="linkish" onClick={onClearConcentration}>
+              Снять
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+      {pinnedResources.map((row) => (
+        <ResourceChip
+          key={row.id}
+          row={row}
+          onResourceUsedChange={onResourceUsedChange}
+        />
+      ))}
+      {mobileMoreOverflow ? (
+        <MoreResources
+          overflowResources={overflowResources}
+          onResourceUsedChange={onResourceUsedChange}
+        />
+      ) : null}
+    </PlayDeskHotScrollWrap>
   )
 }

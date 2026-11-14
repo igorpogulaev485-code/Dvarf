@@ -177,22 +177,23 @@
   border-radius: 16px;
   background: var(--desk-panel);
   box-shadow: 0 1px 0 rgba(26, 36, 32, 0.06);
-  padding: 12px;
-  overflow: hidden;
+  padding: 8px 10px;
+  /* visible — kit DetailsMenu / effect tips must not clip (UIKIT-03 +N) */
+  overflow: visible;
 }
 
 .play-desk__top {
+  position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 12px;
+  gap: 4px 8px;
   align-items: center;
   min-width: 0;
-  padding: 4px 2px 10px;
   border-bottom: 1px solid var(--desk-line);
   background:
     linear-gradient(90deg, var(--accent-soft) 0%, var(--desk-panel) 45%, #f7f1e6 100%);
-  margin: -12px -12px 0;
-  padding: 12px 14px;
+  margin: -8px -10px 0;
+  padding: 4px 8px 5px;
 }
 
 .play-desk:not(.play-desk--wide) .play-desk__top {
@@ -215,15 +216,33 @@
   line-height: 1.15;
 }
 
-.play-desk__dock {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+/* UIKIT-03: companions dock → one chip in effects row */
+.play-desk__dock-chip {
+  display: inline-flex;
   align-items: center;
-  padding: 8px 10px;
+  gap: 4px;
+  margin: 0;
+  padding: 2px 10px;
+  min-height: 28px;
   border: 1px solid var(--desk-line);
-  border-radius: 12px;
-  background: #f0f5f2;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--desk-accent-soft) 55%, white);
+  color: var(--desk-ink);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.play-desk__dock-chip:hover {
+  border-color: color-mix(in srgb, var(--desk-accent) 40%, var(--desk-line));
+  color: var(--desk-accent);
+}
+
+.play-desk__dock {
+  display: none;
 }
 
 .play-desk__dock-label {
@@ -302,13 +321,43 @@
 .play-desk-header {
   position: relative;
   z-index: 1;
-  display: flex;
-  flex-wrap: nowrap;
+  /* who (1fr) | mid tiles+Вдохн. (auto) | right зм+хиты (auto, trailing edge) */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 8px 12px;
+  column-gap: 8px;
+  row-gap: 6px;
   min-width: 0;
+  width: 100%;
   max-width: 100%;
   overflow: visible;
+}
+
+/* Kit popovers (+N classes/effects) must clear sticky scene toolbars («Развернуть все») */
+.play-desk__top:has(.ui-menu[open]),
+.play-desk-header:has(.ui-menu[open]),
+.play-desk__top-extras:has(.ui-menu[open]),
+.play-desk__mobile-chrome:has(.ui-menu[open]) {
+  position: relative;
+  z-index: 55;
+}
+
+.play-desk-header__who,
+.play-desk-header__mid,
+.play-desk-header__right {
+  position: relative;
+  /* Keep columns from painting over each other under max load */
+  isolation: isolate;
+}
+
+.play-desk-header__mid {
+  align-self: center;
+}
+
+.play-desk-header__right {
+  align-self: center;
+  justify-self: end;
+  margin-left: 0;
 }
 
 .play-desk-header:has(.play-desk-header__coin:hover),
@@ -317,38 +366,72 @@
 }
 
 .play-desk-header__who {
-  /* Shrink when the name is long — never push HP / death off-screen.
-     Stay in one row with vitals (no full-width wrap — that made the
-     header look «разъехавшейся» on iPad).
-     SC-07: чуть шире на 1440, чтобы XP «ещё N» и имя не обрезались. */
-  flex: 0 1 auto;
-  width: auto;
+  /* Grid column 1 — absorbs spare width; mid/right stay content-sized at the end */
   min-width: 0;
-  max-width: min(340px, 28vw);
+  max-width: none;
+  width: auto;
   display: grid;
-  gap: 5px;
+  gap: 2px;
   justify-items: stretch;
+  align-content: center;
+  overflow: visible;
 }
 
-@media (min-width: 1280px) {
-  .play-desk-header__who {
-    max-width: min(380px, 26vw);
-  }
-}
-
-/* 3+ classes: give the who column room so chips stay in ONE row
-   (not a 2×2 wrap under the narrow single-class cap). */
-.play-desk-header__who:has(.play-desk-header__classes.is-many) {
-  max-width: min(640px, 52vw);
-}
-
-/* 1) Имя · Раса · Мировоззрение · издание */
 .play-desk-header__who-line {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
+  gap: 2px 6px;
+  min-width: 0;
+}
+
+.play-desk-header__meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
   gap: 4px 8px;
   min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+  height: auto;
+  min-height: 24px;
+}
+
+.play-desk-header__meta-line > * {
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+/* Identity on its own row — class chips never paint over alignment text */
+.play-desk-header__meta-line .play-desk-header__identity {
+  flex: 1 1 100%;
+  max-width: 100%;
+}
+
+.play-desk-header__meta-line .play-desk-header__classes {
+  flex: 0 1 auto;
+}
+
+.play-desk-header__meta-line .needs-setup {
+  flex: 0 0 auto;
+}
+
+.play-desk-header__meta-line .play-desk-header__xp {
+  flex: 1 1 12rem;
+  min-width: 8rem;
+  max-width: 100%;
+}
+
+/* XP track keeps a usable bar even when who is compact (1024) */
+.play-desk-header__meta-line .play-desk-header__xp .play-desk-header__xp-bar,
+.play-desk-header__xp-bar {
+  flex: 1 1 8rem;
+  min-width: 6.5rem;
+  max-width: none;
+}
+
+.play-desk-header__meta-line .play-desk-header__xp-remain {
+  display: block;
 }
 
 .play-desk-header__name-wrap {
@@ -359,21 +442,15 @@
 
 .play-desk-header__name {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.35rem;
-  line-height: 1.15;
-  color: var(--desk-accent, var(--accent));
-  /* B14: up to two lines; click expands (is-expanded). */
-  white-space: normal;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
   max-width: 100%;
-  word-break: break-word;
+  min-width: 0;
+  color: var(--desk-accent, var(--accent));
 }
 
 button.play-desk-header__name {
+  display: block;
+  width: 100%;
+  max-width: 100%;
   padding: 0;
   border: 0;
   background: transparent;
@@ -383,11 +460,25 @@ button.play-desk-header__name {
   color: inherit;
 }
 
-.play-desk-header__name.is-expanded {
-  display: block;
-  -webkit-line-clamp: unset;
-  overflow: visible;
+/* Clamp on inner span — <button> + -webkit-line-clamp is unreliable in Chromium */
+.play-desk-header__name-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 700;
+  line-height: 1.2;
+  max-height: calc(1.12rem * 1.2 * 2);
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
+  color: inherit;
 }
+
 
 .desk-icon {
   width: 1.05rem;
@@ -397,15 +488,23 @@ button.play-desk-header__name {
   color: var(--desk-accent, var(--accent));
 }
 
+/* block + nowrap: ellipsis on the whole «раса · мировоззрение» string
+   (inline-flex clipped mid-glyph without «…»). Full text stays in title. */
 .play-desk-header__identity {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 0.35em;
+  display: block;
   margin: 0;
   color: var(--desk-muted);
-  font-size: 0.84rem;
-  line-height: 1.25;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.play-desk-header__identity > span {
+  display: inline;
 }
 
 .play-desk-header__dot {
@@ -417,8 +516,28 @@ button.play-desk-header__name {
   font-variant-numeric: tabular-nums;
 }
 
-/* 2) Классы — всегда одна горизонтальная строка */
-.play-desk-header__classes {
+/* 2) Классы — одна строка; overflow → kit +N (не скролл) */
+.ui-class-row__measure {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: var(--ui-class-row-measure-w, 240px);
+}
+
+.ui-class-row__measure .play-desk-header__classes.is-many .play-desk-header__class-chip,
+.ui-class-row__measure .is-measure-many {
+  font-size: 0.66rem;
+  padding: 2px 7px;
+  max-width: 10.5rem;
+}
+
+.play-desk-header__classes,
+.ui-class-row {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -426,24 +545,88 @@ button.play-desk-header__name {
   flex-wrap: nowrap;
   align-items: stretch;
   gap: 4px;
-  min-width: 0;
+  /* Keep room for ≥1 class chip + +N; do not shrink to bare +N */
+  flex: 1 1 auto;
+  min-width: min(100%, 9.5rem);
   max-width: 100%;
+  /* visible — DetailsMenu +N panel must not be clipped */
+  overflow: visible;
+}
+
+.play-desk-header__meta-line .play-desk-header__classes,
+.play-desk-header__meta-line .ui-class-row {
+  flex: 1 1 auto;
+  min-width: min(100%, 9.5rem);
+}
+
+.ui-class-row__more {
+  position: relative;
+  z-index: 30;
+}
+
+.ui-class-row__more-item {
+  list-style: none;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ui-class-row__more-summary {
+  min-height: 26px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+}
+
+.ui-class-row__more-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.ui-class-row__more-row {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ui-class-row__more-name {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--desk-ink, var(--ink));
+}
+
+.ui-class-row__more-archetype {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--desk-accent, var(--accent));
+}
+
+.ui-class-row__more-level {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+  font-variant-numeric: tabular-nums;
 }
 
 .play-desk-header__class-chip {
   display: inline-flex;
   flex-direction: column;
+  flex-wrap: nowrap;
   align-items: flex-start;
+  justify-content: center;
   gap: 0;
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 28%, var(--desk-line));
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 70%, white);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.2;
   color: var(--desk-ink, var(--ink));
   white-space: nowrap;
   max-width: 100%;
@@ -451,25 +634,26 @@ button.play-desk-header__name {
 
 .play-desk-header__class-chip.has-subclass {
   border-radius: 10px;
-  padding: 3px 9px 4px;
+  padding: 2px 8px 3px;
 }
 
 .play-desk-header__class-main {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 14rem;
+  max-width: 12rem;
 }
 
 .play-desk-header__class-archetype {
-  max-width: 14rem;
+  max-width: 12rem;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.15;
   color: var(--desk-accent, var(--accent));
 }
+
 
 .play-desk-header__classes.is-many .play-desk-header__class-chip {
   font-size: 0.66rem;
@@ -491,12 +675,16 @@ button.play-desk-header__name {
 }
 
 button.play-desk-header__sub--btn {
+  display: block;
+  width: 100%;
+  max-width: 100%;
   padding: 0;
   border: 0;
   background: transparent;
   font: inherit;
   text-align: left;
   cursor: pointer;
+  color: inherit;
 }
 
 button.play-desk-header__identity:hover {
@@ -606,9 +794,9 @@ button.play-desk-header__identity:hover {
 }
 
 .needs-setup--compact .needs-setup__btn {
-  font-size: 0.68rem;
-  padding: 4px 8px;
-  min-height: 32px;
+  font-size: 0.62rem;
+  padding: 1px 6px;
+  min-height: 22px;
 }
 
 .needs-setup--compact .needs-setup__list {
@@ -665,11 +853,227 @@ button.play-desk-header__identity:hover {
 }
 
 
-/* B-01 active effects block */
-.active-effects {
-  margin: 0.5rem 0 0;
-  padding: 0.55rem 0.7rem;
+/* B-01 / UIKIT-03: effects + companions — one nowrap strip */
+/* Mobile chrome: effects + companions share one strip (same as desk top-extras) */
+.play-desk__mobile-chrome {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
 }
+
+.play-desk__mobile-chrome > .active-effects,
+.play-desk__mobile-chrome > .play-desk__dock-chip {
+  min-width: 0;
+}
+
+/* Phone: effects ScrollRow full-width (fade/› like hot); Round + companions
+   on the next row, trailing. display:contents lifts children into this flex. */
+.play-desk__mobile-chrome > .play-desk__mobile-effects {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.play-desk__mobile-chrome > .play-desk__mobile-effects > .active-effects--scroll {
+  display: contents;
+}
+
+.play-desk__mobile-chrome .active-effects__main-wrap {
+  flex: 1 0 100%;
+  order: -1;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+}
+
+.play-desk__mobile-chrome .active-effects__scroller {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  min-width: 0;
+  width: 100%;
+}
+
+.play-desk__mobile-chrome .active-effects__scroller::-webkit-scrollbar {
+  display: none;
+}
+
+/* Full chip faces — no ellipsis; overflow scrolls in ScrollRow */
+.play-desk__mobile-chrome .active-effects__scroller > .ui-chip {
+  flex: 0 0 auto;
+  max-width: none;
+  width: max-content;
+}
+
+.play-desk__mobile-chrome .active-effects__scroller > .ui-chip .ui-chip__label {
+  overflow: visible;
+  text-overflow: unset;
+  max-width: none;
+}
+
+.play-desk__mobile-chrome .active-effects__trail,
+.play-desk__mobile-chrome > .play-desk__mobile-effects > .play-desk__dock-chip {
+  flex: 0 0 auto;
+}
+
+.play-desk__mobile-chrome .active-effects__round {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.play-desk__mobile-chrome .active-effects__round-icon,
+.play-desk__dock-chip-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
+}
+
+.play-desk__mobile-chrome .play-desk__dock-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+}
+
+.play-desk__top > .play-desk__top-extras {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+  margin: 0;
+}
+
+.play-desk__top-extras > .active-effects {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.play-desk__top-extras > .play-desk__dock-chip {
+  flex: 0 0 auto;
+}
+
+.active-effects {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.active-effects--strip {
+  position: relative;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px 6px;
+  min-width: 0;
+  width: 100%;
+}
+
+.active-effects__label {
+  display: none;
+}
+
+.active-effects__main {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px 6px;
+  min-width: 0;
+  flex: 1 1 auto;
+  /* visible — +N DetailsMenu panel must not be clipped */
+  overflow: visible;
+}
+
+.active-effects__more {
+  position: relative;
+  z-index: 30;
+}
+
+.active-effects__trail {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.active-effects__measure {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  width: var(--active-effects-measure-w, 320px);
+}
+
+/* Desk surface tint on kit chip (sizes/gap stay in kit .ui-chip) */
+.play-desk .active-effects .ui-chip {
+  border-color: var(--desk-line, var(--line));
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
+  color: var(--desk-ink, var(--ink));
+}
+
+.active-effects__more {
+  flex: 0 0 auto;
+  max-width: max-content;
+}
+
+.active-effects__more-summary {
+  min-height: 26px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+}
+
+.active-effects__more-panel {
+  min-width: min(280px, 88vw);
+  max-width: min(360px, 92vw);
+  display: grid;
+  gap: 6px;
+}
+
+.active-effects__more-list {
+  display: grid;
+  gap: 6px;
+}
+
+.active-effects__round {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.active-effects__round-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
+}
+
 .active-effects__row {
   display: flex;
   align-items: center;
@@ -677,12 +1081,7 @@ button.play-desk-header__identity:hover {
   gap: 0.5rem;
   flex-wrap: wrap;
 }
-.active-effects__main {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem 0.55rem;
-}
+
 .active-effects__row.is-inactive {
   opacity: 0.55;
 }

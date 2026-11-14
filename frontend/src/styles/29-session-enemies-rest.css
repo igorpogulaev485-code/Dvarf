@@ -244,9 +244,10 @@
 }
 
 .session-combat-order > li > .session-combat-order__chip {
-  flex: 1 1 10rem;
-  width: auto;
-  min-width: min(100%, 10rem);
+  /* UIKIT-02: чип на всю ширину — «Сторона» не режет имя */
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
   max-width: 100%;
 }
 
@@ -259,7 +260,7 @@
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  flex: 0 0 auto;
+  flex: 1 1 100%;
 }
 
 .session-combat-waves,
@@ -334,13 +335,13 @@
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  min-height: 44px;
-  min-width: 44px;
-  padding: 8px 14px;
+  min-height: 32px;
+  min-width: 0;
+  padding: 4px 8px;
   border: 1px dashed var(--line);
   border-radius: 999px;
-  font-size: 0.85rem;
-  line-height: 1.2;
+  font-size: 0.72rem;
+  line-height: 1.15;
   color: var(--muted);
   background: transparent;
   cursor: pointer;
@@ -375,9 +376,20 @@
 
 .session-table-card__turn-chips {
   display: flex;
+  flex-direction: row;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.session-table-card__turn-stub {
+  width: 100%;
+}
+
+.session-turn-chip {
+  flex: 0 1 auto;
 }
 
 .session-combat-track__progress {
@@ -394,6 +406,33 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* UIKIT-02: на десктопе имя целиком (до 2 строк), на телефоне — ellipsis + title */
+@media (min-width: 960px) {
+  .session-combat-order__chip {
+    white-space: normal;
+    align-items: flex-start;
+  }
+
+  .session-combat-order__name {
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: unset;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .session-combat-order__side {
+    max-width: none;
+    align-self: center;
+  }
+
+  .session-combat-order__init {
+    align-self: center;
+  }
 }
 
 .session-init-list__surprise {

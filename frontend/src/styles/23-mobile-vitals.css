@@ -61,14 +61,19 @@
 
 .mobile-vitals__name {
   font-family: var(--font-display, "Source Serif 4", Georgia, serif);
-  font-size: 1.15rem;
+  font-size: 1.12rem;
   font-weight: 700;
   color: var(--accent);
   line-height: 1.2;
   white-space: normal;
-  overflow: visible;
-  display: block;
-  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  word-break: normal;
+  overflow-wrap: break-word;
   max-width: 100%;
 }
 
@@ -142,64 +147,27 @@
   overflow: hidden;
 }
 
-.mobile-vitals__chip--ac {
-  min-height: 58px;
-  padding-bottom: 4px;
-  gap: 4px;
-}
-
-.mobile-vitals__chip--speed {
-  min-height: 58px;
-  gap: 3px;
-}
-
-.mobile-vitals__modes {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 3px;
-  margin: 2px 0 0;
-  padding: 0;
-  list-style: none;
+/* AC + speed: kit tiles stretch into mobile vitals grid cells */
+.mobile-vitals__row > .mobile-vitals__ac.play-desk-vital--shield {
   width: 100%;
-  max-width: 100%;
+  max-width: none;
   min-width: 0;
+  flex: none;
+  height: auto;
+  min-height: 48px;
+  align-self: stretch;
+  box-sizing: border-box;
 }
 
-.mobile-vitals__modes li {
-  padding: 1px 4px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line));
-  background: color-mix(in srgb, var(--accent-soft) 55%, var(--card));
-  font-size: 0.58rem;
-  font-weight: 650;
-  line-height: 1.2;
-  color: var(--ink);
-  white-space: nowrap;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.mobile-vitals__row > .mobile-vitals__speed {
+  min-width: 0;
+  width: 100%;
+  align-self: stretch;
 }
 
-.mobile-vitals__chip--ac.is-shield-on {
-  border-color: var(--accent);
-}
-
-.mobile-vitals__chip-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  padding: 0;
-  cursor: pointer;
-}
-
-.mobile-vitals__chip-main:disabled {
-  cursor: default;
+.mobile-vitals__row > .mobile-vitals__speed > .ui-vital-menu__summary {
+  min-height: 48px;
+  height: 100%;
 }
 
 .mobile-vitals__chip--btn {
@@ -213,31 +181,6 @@
 .mobile-vitals__chip.is-tap:active,
 .mobile-vitals__chip--btn.is-tap:active {
   background: var(--accent-soft);
-}
-
-.mobile-vitals__shield-tog {
-  min-height: 28px;
-  min-width: 44px;
-  padding: 2px 8px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--panel);
-  color: var(--muted);
-  font: inherit;
-  font-size: 0.68rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.mobile-vitals__shield-tog.is-on {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-.mobile-vitals__shield-tog.is-empty:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 .mobile-vitals__chip--jump {
@@ -448,6 +391,27 @@
   padding: 0;
 }
 
+.mobile-vitals__tool--coin {
+  width: auto;
+  min-width: 48px;
+  max-width: 9.5rem;
+  padding: 4px 8px;
+  gap: 2px;
+  grid-auto-flow: row;
+  justify-items: center;
+}
+
+.mobile-vitals__coin-amt {
+  font-size: 0.62rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .mobile-vitals__tool .desk-icon {
   width: 22px;
   height: 22px;
@@ -523,13 +487,15 @@
 .mobile-vitals__collapse-who strong {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   font-family: var(--font-display, "Source Serif 4", Georgia, serif);
   font-size: 0.95rem;
   color: var(--accent);
   white-space: normal;
   overflow: hidden;
   word-break: break-word;
+  overflow-wrap: anywhere;
   line-height: 1.15;
 }
 

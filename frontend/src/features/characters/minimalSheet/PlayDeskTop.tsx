@@ -1,7 +1,6 @@
 /** Шапка стола, полоска жизни на телефоне и док напарников. */
 import { useMemo } from 'react'
 import type { SheetModel } from './sheetModel'
-import { isSelfForm } from '../companions'
 import { formatRaceMovementHint } from '../../../shared/dnd/raceGrants'
 import { syncAttacksHeldFromInventory } from '../AttacksPanel'
 import { canWearArmor, armorProficiencyHint } from '../equipmentProficiency'
@@ -38,12 +37,13 @@ import {
   alignmentNeedsClarification,
   alignmentSheetLabel,
 } from '../../../shared/dnd/alignments'
-import { COMPANION_KIND_SHORT } from './draft'
 import { ActiveEffectsPanel } from '../ActiveEffectsPanel'
+import { IconCompanions } from '../deskIcons'
 import {
   buildNeedsSetupItems,
   type NeedsSetupItem,
 } from '../needsSetup'
+import { normalizeCampaignRules } from '../../lobby/campaignRules'
 
 function initiativeAdvantageFromSheet(model: SheetModel): 'advantage' | 'disadvantage' | 'normal' {
   const fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
@@ -331,7 +331,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
         <div className="play-desk__top" data-onboarding="combat-header">
           <CharacterAvatarControl
             character={model.baseCharacter}
-            size="md"
+            size="sm"
             showActions={false}
             onOpen={() => model.setIdentityOpen(true)}
             onChanged={(updated) => {
@@ -348,6 +348,12 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             rulesEdition={model.baseCharacter.rules_edition}
             level={model.characterLevel}
             experience={model.draft.identity.experience}
+            progressionMode={
+              normalizeCampaignRules(model.campaignRulesRaw).progression.mode ===
+              'milestones'
+                ? 'milestones'
+                : 'xp'
+            }
             classes={model.draft.classes}
             hitDie={model.draft.play.hitDie}
             constitutionMod={abilityModifier(model.draft.abilities.con)}
@@ -400,8 +406,8 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               )
             }}
             speed={model.displaySpeed}
-            climbSpeed={model.draft.climbSpeed}
-            swimSpeed={model.draft.swimSpeed}
+            climbSpeed={model.displayClimbSpeed ?? model.draft.climbSpeed}
+            swimSpeed={model.displaySwimSpeed ?? model.draft.swimSpeed}
             flySpeed={model.displayFlySpeed ?? model.draft.flySpeed}
             jumpLongFt={model.jump.longFt}
             jumpHighFt={model.jump.highFt}
@@ -447,6 +453,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               }))
             }
             onOpenInitiative={() => model.setInitiativeBreakdownOpen(true)}
+            onOpenSpeed={() => model.setSpeedBreakdownOpen(true)}
             onInitiativeRoll={() => model.emitToast(formatInitiativeToast(model))}
             onPlayChange={(play) => model.setDraft((prev) => ({ ...prev, play }))}
             onCoinsChange={(coins) =>
@@ -516,12 +523,33 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               })
             }}
           />
-          <ActiveEffectsPanel
-            effects={model.draft.play.effects ?? []}
-            onChange={(effects) => model.applyEffectsChange?.(effects)}
-            onToast={model.onToast}
-            onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
-          />
+          {(model.draft.play.effects ?? []).length > 0 ||
+          model.dockCompanions.length > 0 ? (
+            <div className="play-desk__top-extras">
+              <ActiveEffectsPanel
+                effects={model.draft.play.effects ?? []}
+                onChange={(effects) => model.applyEffectsChange?.(effects)}
+                onToast={model.onToast}
+                onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
+              />
+              {model.dockCompanions.length > 0 ? (
+                <button
+                  type="button"
+                  className="play-desk__dock-chip"
+                  aria-label={`Напарники ${model.dockCompanions.length}`}
+                  title={model.dockCompanions
+                    .map((row) => row.name || 'Без имени')
+                    .join(', ')}
+                  onClick={() => {
+                    model.setDeskMode('companions')
+                    model.setActivePanel('companions')
+                  }}
+                >
+                  Напарники {model.dockCompanions.length}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       ) : (
         <div className="play-desk__mobile-chrome" data-onboarding="combat-header">
@@ -584,8 +612,8 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           speed={model.displaySpeed}
           movementHint={[
             formatRaceMovementHint({
-              climb: model.draft.climbSpeed,
-              swim: model.draft.swimSpeed,
+              climb: model.displayClimbSpeed ?? model.draft.climbSpeed,
+              swim: model.displaySwimSpeed ?? model.draft.swimSpeed,
               fly: model.displayFlySpeed ?? model.draft.flySpeed,
             }),
             model.classSpeedHint,
@@ -593,13 +621,14 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           ]
             .filter(Boolean)
             .join(' · ') || null}
-          climbSpeed={model.draft.climbSpeed}
-          swimSpeed={model.draft.swimSpeed}
+          climbSpeed={model.displayClimbSpeed ?? model.draft.climbSpeed}
+          swimSpeed={model.displaySwimSpeed ?? model.draft.swimSpeed}
           flySpeed={model.displayFlySpeed ?? model.draft.flySpeed}
           jumpLongFt={model.jump.longFt}
           jumpHighFt={model.jump.highFt}
           initiative={model.initiativeValue}
           onOpenInitiative={() => model.setInitiativeBreakdownOpen(true)}
+          onOpenSpeed={() => model.setSpeedBreakdownOpen(true)}
           proficiencyBonus={model.proficiencyBonus}
           inspiration={model.draft.inspiration}
           coins={model.draft.inventory.coins}
@@ -671,55 +700,37 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           needsSetupItems={needsSetupItems}
           onNeedsSetupSelect={handleNeedsSetupSelect}
         />
-        <ActiveEffectsPanel
-          effects={model.draft.play.effects ?? []}
-          onChange={(effects) => model.applyEffectsChange?.(effects)}
-          onToast={model.onToast}
-          onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
-        />
-        </div>
-      )}
-
-      {model.isPlayDesk && model.dockCompanions.length > 0 ? (
-        <div className="play-desk__dock" aria-label="Напарники">
-          <span className="play-desk__dock-label">Напарники</span>
-          {model.dockCompanions.map((row, index) => {
-            const initial = (row.name.trim()[0] || '?').toUpperCase()
-            const isPrimary = index === 0
-            const inForm = isSelfForm(row) && row.active
-            const kind = COMPANION_KIND_SHORT[row.kind] ?? 'Спутник'
-            return (
+        {(model.draft.play.effects ?? []).length > 0 ||
+        model.dockCompanions.length > 0 ? (
+          <div className="play-desk__mobile-effects">
+            <ActiveEffectsPanel
+              effects={model.draft.play.effects ?? []}
+              onChange={(effects) => model.applyEffectsChange?.(effects)}
+              onToast={model.onToast}
+              onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
+              chipLayout="scroll"
+            />
+            {model.dockCompanions.length > 0 ? (
               <button
-                key={row.id}
                 type="button"
-                className={`play-desk__comp${isPrimary ? ' is-primary' : ''}${inForm ? ' is-form' : ''}`}
+                className="play-desk__dock-chip"
+                aria-label={`Напарники ${model.dockCompanions.length}`}
+                title={`Напарники: ${model.dockCompanions
+                  .map((row) => row.name || 'Без имени')
+                  .join(', ')}`}
                 onClick={() => {
                   model.setDeskMode('companions')
                   model.setActivePanel('companions')
                 }}
               >
-                <span className="play-desk__comp-face" aria-hidden>
-                  {initial}
-                </span>
-                <span className="play-desk__comp-text">
-                  <b>{row.name || 'Без имени'}</b>
-                  <span>
-                    {inForm ? 'В облике' : isPrimary ? 'Основной' : kind}
-                    {row.mounted ? ' · верхом' : ''}
-                    {row.stats.hp != null ? ` · ${row.stats.hp} хитов` : ''}
-                  </span>
-                </span>
-                <span className="play-desk__comp-hp">
-                  {row.stats.hp != null ? row.stats.hp : '—'}
-                </span>
+                <IconCompanions className="play-desk__dock-chip-icon" />
+                <span>{model.dockCompanions.length}</span>
               </button>
-            )
-          })}
-          <p className="play-desk__dock-note">
-            Док всегда виден. Полный список — панель «Напарники».
-          </p>
+            ) : null}
+          </div>
+        ) : null}
         </div>
-      ) : null}
+      )}
     </>
   )
 }

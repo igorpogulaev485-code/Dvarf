@@ -48,16 +48,15 @@ assert.match(tokens, /\.ui-button--lg\s*\{[\s\S]*?min-height:\s*var\(--control-h
 assert.match(button, /size\?:\s*ButtonSize/)
 assert.match(button, /ui-button--\$\{size\}|ui-button--\$\{size\}|sizeClass/)
 
-// Mid заполняет ленту, не прижимает виталы к HP
-assert.match(vitals, /SC-07/)
-assert.match(vitals, /justify-content:\s*stretch/)
-assert.match(vitals, /justify-content:\s*space-evenly/)
+// Mid — content ribbon after who (UIKIT-03 grid); denser vitals keep kit rhythm
+assert.match(vitals, /justify-content:\s*flex-start/)
 assert.doesNotMatch(
   vitals,
   /\.play-desk-header__mid\s*\{[^}]*justify-content:\s*flex-end/,
 )
-assert.match(vitals, /min-width:\s*148px/)
-assert.match(vitals, /play-desk-header__xp-remain[\s\S]*?min-width:\s*max-content/)
+assert.match(header, /VitalTile/)
+assert.match(tokens, /ui-vital__shield-tog/)
+assert.match(header, /Класс доспеха/)
 
 // Состав шапки LOCK §2b на месте
 assert.match(header, /play-desk-header__who/)
@@ -73,8 +72,10 @@ assert.match(header, /Вдохн/)
 assert.match(header, /Истощ/)
 assert.match(header, /Отдых/)
 
-// Мобильную шапку не подменяем десктопной
+// Мобильную шапку не подменяем десктопной; AC тоже через VitalTile
 assert.match(mobileVitals, /mobile-vitals/)
+assert.match(mobileVitals, /VitalTile/)
+assert.match(mobileVitals, /IconShield/)
 assert.doesNotMatch(mobileVitals, /play-desk-header__mid/)
 
 // Чипы / вкладки сцен на токенах кита
@@ -102,8 +103,8 @@ assert.doesNotMatch(
   /session-toolbar-group--primary\s+\.ui-button\s*\{[^}]*min-height/,
 )
 
-// Who чуть шире на desktop (XP)
-assert.match(identity, /min-width:\s*1280px[\s\S]*?play-desk-header__who/)
+// Who absorbs spare width (UIKIT-03 grid col 1)
+assert.match(identity, /\.play-desk-header__who\s*\{[\s\S]*?min-width:\s*0/)
 
 // Документация
 assert.match(kit, /Сцены и плотность после 13\.11/)

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import type { CombatantAction, CombatantMember, SessionCombatant } from '../../shared/api/lobbies'
-import { Button, NumberInput, Text } from '../../ui'
+import { Button, Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 import { PackRosterList, memberHpColorLabel, memberHpTone } from './enemyPackRoster'
 import { TypedDamageForm, type TypedDamagePayload } from './TypedDamageForm'
 import {
@@ -38,6 +38,12 @@ type Props = {
   onRevealStatblock?: () => void
   onShareStudy?: () => void
   studyCharacterName?: string | null
+  /** Skill mod for «Бросить» (d20 + mod). */
+  studySkillBonus?: number | null
+  /** Master may edit DC before / while players study. */
+  onStudyDcChange?: (dc: number) => void
+  /** Last strike chip: «Попадание · 6» / «Промах». */
+  lastStrikeLabel?: string | null
   /** S-05 */
   sideLabelText?: string | null
   sideHidden?: boolean
@@ -131,6 +137,9 @@ export function EnemyCard({
   onResolveStudy,
   onRevealStatblock,
   onShareStudy,
+  studySkillBonus = null,
+  onStudyDcChange,
+  lastStrikeLabel = null,
   sideLabelText = null,
   sideHidden = false,
   onSideClick,
@@ -141,6 +150,7 @@ export function EnemyCard({
   const [rosterOpen, setRosterOpen] = useState(false)
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null)
   const [focusAbility, setFocusAbility] = useState<string | null>(null)
+  const [studyOpen, setStudyOpen] = useState(false)
   const [studyRoll, setStudyRoll] = useState<number | null>(null)
   const [studyDc, setStudyDc] = useState<number | null>(null)
   const profile = normalizeVisibilityProfile(visibility)
@@ -228,16 +238,26 @@ export function EnemyCard({
     setRosterOpen(false)
   }
 
-  function onStudyForm(e: FormEvent) {
-    e.preventDefault()
-    onStudy?.({
-      rollTotal: studyRoll ?? undefined,
-      dc: studyDc ?? undefined,
-    })
-  }
-
   const pending = combatant.pending_study
   const snap = combatant.study_snapshot
+  const studyDcValue = studyDc ?? combatant.suggested_study_dc ?? 10
+  const studySkillRu = combatant.study_skill_ru ?? 'Анализ'
+
+  function submitStudy(e?: FormEvent) {
+    e?.preventDefault()
+    onStudy?.({
+      rollTotal: studyRoll ?? undefined,
+      // Players send null DC — server uses catalog default; master overrides via onStudyDcChange.
+      dc: masterControls ? studyDcValue : undefined,
+    })
+    setStudyOpen(false)
+  }
+
+  function rollStudyCheck() {
+    const d20 = 1 + Math.floor(Math.random() * 20)
+    const mod = studySkillBonus ?? 0
+    setStudyRoll(d20 + mod)
+  }
 
   return (
     <article
@@ -274,17 +294,19 @@ export function EnemyCard({
         </div>
         <div className="session-enemy-card__top-actions">
           {masterControls && onSideClick ? (
-            <button
+            <Button
               type="button"
-              className="session-side-btn"
+              variant="secondary"
+              size="md"
               disabled={busy}
+              aria-label="Сторона"
               title="Сторона в бою"
               onClick={onSideClick}
             >
               Сторона
               {sideLabelText ? ` · ${sideLabelText}` : ''}
               {sideHidden ? ' · скрыта' : ''}
-            </button>
+            </Button>
           ) : sideLabelText ? (
             <span className="session-side-chip">{sideLabelText}</span>
           ) : null}
@@ -328,6 +350,11 @@ export function EnemyCard({
           ) : null}
           {showSpeed ? (
             <span className="session-table-card__chip">{combatant.speed} фт</span>
+          ) : null}
+          {lastStrikeLabel ? (
+            <span className="session-table-card__chip session-last-strike" title="Последний удар">
+              {lastStrikeLabel}
+            </span>
           ) : null}
           {isMaster && isDead ? (
             <span className="session-condition-tag">Мёртв</span>
@@ -440,6 +467,7 @@ export function EnemyCard({
             <Button
               type="button"
               variant="ghost"
+              size="sm"
               disabled={busy}
               aria-expanded={rosterOpen}
               onClick={() => {
@@ -450,10 +478,32 @@ export function EnemyCard({
               {rosterOpen ? 'Свернуть' : 'Состав'}
             </Button>
           ) : null}
+          {onStudyDcChange && !statblockVisible ? (
+            <label className="session-study-dc-edit">
+              <span>СЛ изуч.</span>
+              <NumberInput
+                value={studyDcValue}
+                min={1}
+                max={40}
+                integer
+                emptyValue={null}
+                size="sm"
+                narrow
+                disabled={busy}
+                aria-label="СЛ проверки «Изучить»"
+                onValueChange={(v) => {
+                  if (v == null) return
+                  setStudyDc(v)
+                  onStudyDcChange(v)
+                }}
+              />
+            </label>
+          ) : null}
           {kit.length > 0 ? (
             <Button
               type="button"
               variant="ghost"
+              size="sm"
               disabled={busy}
               onClick={() => {
                 setAbilitiesOpen((v) => !v)
@@ -515,6 +565,7 @@ export function EnemyCard({
             <Button
               type="button"
               variant="ghost"
+              size="sm"
               disabled={busy}
               aria-expanded={rosterOpen}
               onClick={() => setRosterOpen((v) => !v)}
@@ -522,41 +573,28 @@ export function EnemyCard({
               {rosterOpen ? 'Свернуть' : 'Состав'}
             </Button>
           ) : null}
-          {canStudy && onStudy && !statblockVisible ? (
-            <form className="session-study-form" onSubmit={onStudyForm}>
-              <Text tone="muted">
-                Изучить · {combatant.study_skill_ru ?? 'Анализ'} · СЛ{' '}
-                {studyDc ?? combatant.suggested_study_dc ?? 10}
-              </Text>
-              <NumberInput
-                value={studyRoll}
-                min={-20}
-                max={99}
-                integer
-                emptyValue={null}
-                disabled={busy}
-                placeholder="Бросок"
-                aria-label="Результат проверки"
-                onValueChange={setStudyRoll}
-              />
-              <NumberInput
-                value={studyDc}
-                min={1}
-                max={40}
-                integer
-                emptyValue={null}
-                disabled={busy}
-                placeholder={`СЛ ${combatant.suggested_study_dc ?? 10}`}
-                aria-label="СЛ (если задал ведущий)"
-                onValueChange={setStudyDc}
-              />
-              <Button type="submit" variant="secondary" disabled={busy}>
-                Изучить
-              </Button>
-            </form>
+          {combatant.studied_by_me ? (
+            <span className="session-study-chip" title="Уже изучен вами">
+              Изучен
+            </span>
+          ) : null}
+          {canStudy && onStudy && !statblockVisible && !combatant.studied_by_me ? (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={busy || Boolean(pending)}
+              onClick={() => {
+                setStudyRoll(null)
+                setStudyDc(combatant.suggested_study_dc ?? 10)
+                setStudyOpen(true)
+              }}
+            >
+              Изучить · СЛ {studyDcValue}
+            </Button>
           ) : null}
           {combatant.studied_by_me && onShareStudy && !combatant.statblock_revealed ? (
-            <Button type="button" variant="ghost" disabled={busy} onClick={onShareStudy}>
+            <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={onShareStudy}>
               Показать партии
             </Button>
           ) : null}
@@ -564,6 +602,7 @@ export function EnemyCard({
             <Button
               type="button"
               variant="ghost"
+              size="sm"
               disabled={busy}
               onClick={() => setAbilitiesOpen((v) => !v)}
             >
@@ -572,6 +611,46 @@ export function EnemyCard({
           ) : null}
         </div>
       )}
+
+      <Dialog
+        open={studyOpen}
+        title={`Изучить · ${combatant.name}`}
+        primaryLabel="Изучить"
+        secondaryLabel="Отмена"
+        busy={busy}
+        primaryDisabled={studyRoll == null}
+        onSecondary={() => setStudyOpen(false)}
+        onPrimary={() => submitStudy()}
+        size="default"
+      >
+        <Stack gap={10}>
+          <Text>
+            {studySkillRu} · СЛ {studyDcValue}
+          </Text>
+          <Text tone="muted">
+            Навык и сложность подставлены. СЛ меняет только мастер на карточке.
+          </Text>
+          <Field label="Бросок (живой куб или «Бросить»)">
+            <NumberInput
+              value={studyRoll}
+              min={-20}
+              max={99}
+              integer
+              emptyValue={null}
+              disabled={busy}
+              placeholder="Итог проверки"
+              aria-label="Результат проверки"
+              onValueChange={setStudyRoll}
+            />
+          </Field>
+          <Button type="button" variant="secondary" disabled={busy} onClick={rollStudyCheck}>
+            Бросить
+            {studySkillBonus != null
+              ? ` (d20${studySkillBonus >= 0 ? '+' : ''}${studySkillBonus})`
+              : ' (d20)'}
+          </Button>
+        </Stack>
+      </Dialog>
 
       {pending && masterControls && onResolveStudy ? (
         <div className="session-study-resolve" role="status">

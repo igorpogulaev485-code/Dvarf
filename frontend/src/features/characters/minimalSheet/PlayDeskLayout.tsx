@@ -179,7 +179,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             exhaustion={model.draft.play.exhaustion}
             concentration={model.draft.play.concentration}
             resources={model.draft.play.resources}
-            mobileMoreOverflow={!model.isPlayDesk}
+            mobileMoreOverflow={false}
             onOpenConditions={() => model.setHotConditionsOpen(true)}
             onClearConcentration={() => model.clearConcentrationDismissingCompanions(null)}
             onResourceUsedChange={(id, used) => {
@@ -353,16 +353,13 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             </div>
           ) : null}
 
-          {/*
-            SC-01 / решение 13.11 17:42: на десктопе полоска навыков боя скрыта
-            (дубль левой колонки). На телефоне оставляем.
-          */}
-          {!model.isPlayDesk && model.draft.sheetUi.deskMode === 'combat' ? (
+          {/* UIKIT-02: полоска навыков сцены снова на десктопе/планшете (как до SC-01). */}
+          {model.draft.sheetUi.deskMode === 'combat' ? (
             <PlayDeskSkillStrip
               ariaLabel="Навыки боя"
               skills={model.modeSkillChips('combat')}
               onSkillClick={model.rollModeSkill}
-              mobileOverflow
+              mobileOverflow={false}
             />
           ) : null}
 
@@ -453,7 +450,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
               ariaLabel="Навыки исследования"
               skills={model.modeSkillChips('explore')}
               onSkillClick={model.rollModeSkill}
-              mobileOverflow={!model.isPlayDesk}
+              mobileOverflow={false}
             />
           ) : null}
 
@@ -544,7 +541,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
               ariaLabel="Навыки общения"
               skills={model.modeSkillChips('social')}
               onSkillClick={model.rollModeSkill}
-              mobileOverflow={!model.isPlayDesk}
+              mobileOverflow={false}
             />
           ) : null}
 
@@ -558,11 +555,30 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
         <PlayDeskScenes model={model} />
           </TurnEconomyDeskHost>
 
-      {model.error ? <Text tone="danger">{model.error}</Text> : null}
+      {model.error ? (
+        <div className="sheet-save-error" role="alert">
+          <Text tone="danger">{model.error}</Text>
+          {model.character.can_edit !== false ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              disabled={model.saveStatus === 'saving' || model.reloading}
+              onClick={() => {
+                void model.persistDraft?.({ quiet: false })
+              }}
+            >
+              Повторить
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="sheet-actions sheet-actions--autosave">
         <Text
-          tone={model.saveStatus === 'error' ? 'danger' : 'muted'}
+          tone={
+            model.error || model.saveStatus === 'error' ? 'danger' : 'muted'
+          }
           className={
             model.saveStatus === 'saving' || model.saveStatus === 'dirty'
               ? 'sheet-autosave sheet-autosave--busy'
@@ -577,8 +593,8 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                 ? 'Сохраняем…'
                 : model.saveStatus === 'dirty'
                   ? 'Сохраним через мгновение…'
-                  : model.saveStatus === 'error'
-                    ? 'Ошибка сохранения'
+                  : model.error || model.saveStatus === 'error'
+                    ? 'Не сохранено'
                     : 'Сохранено'}
         </Text>
         <Text tone="muted">

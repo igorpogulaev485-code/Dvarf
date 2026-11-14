@@ -11,6 +11,8 @@ import { QuackCreateSpellsPreviewPage } from './pages/QuackCreateSpellsPreviewPa
 import { QuackSpellPreviewPage } from './pages/QuackSpellPreviewPage'
 import { Sc04LiveTablePreviewPage } from './pages/Sc04LiveTablePreviewPage'
 import { Sc05GmToolbarPreviewPage } from './pages/Sc05GmToolbarPreviewPage'
+import { UiKit03HeaderPreviewPage } from './pages/UiKit03HeaderPreviewPage'
+import { UiKitEtalonPreviewPage } from './pages/UiKitEtalonPreviewPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
 import { safeNextPath } from './shared/auth/nextPath'
@@ -75,23 +77,30 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/legal" element={<LegalPage />} />
-        <Route path="/dev/onboarding-preview" element={<OnboardingPreviewPage />} />
-        <Route path="/dev/quack-spell-preview" element={<QuackSpellPreviewPage />} />
-        <Route path="/dev/quack-create-spells-preview" element={<QuackCreateSpellsPreviewPage />} />
-        <Route path="/dev/classic-sheet-preview" element={<ClassicSheetPreviewPage />} />
-        <Route path="/dev/sc04-live-table-preview" element={<Sc04LiveTablePreviewPage />} />
-        <Route path="/dev/sc05-gm-toolbar-preview" element={<Sc05GmToolbarPreviewPage />} />
         <Route path="/classic/blank" element={<ClassicBlankSheetPage />} />
         <Route path="/login" element={<LoginRoute />} />
         {import.meta.env.DEV ? (
-          <Route
-            path="/dev/consumables-tap-guard"
-            element={
-              <LazyPage>
-                <ConsumablesTapGuardPreviewPage />
-              </LazyPage>
-            }
-          />
+          <>
+            <Route path="/dev/onboarding-preview" element={<OnboardingPreviewPage />} />
+            <Route path="/dev/quack-spell-preview" element={<QuackSpellPreviewPage />} />
+            <Route
+              path="/dev/quack-create-spells-preview"
+              element={<QuackCreateSpellsPreviewPage />}
+            />
+            <Route path="/dev/classic-sheet-preview" element={<ClassicSheetPreviewPage />} />
+            <Route path="/dev/sc04-live-table-preview" element={<Sc04LiveTablePreviewPage />} />
+            <Route path="/dev/sc05-gm-toolbar-preview" element={<Sc05GmToolbarPreviewPage />} />
+            <Route path="/dev/ui-kit-etalon" element={<UiKitEtalonPreviewPage />} />
+            <Route path="/dev/uikit03-header-preview" element={<UiKit03HeaderPreviewPage />} />
+            <Route
+              path="/dev/consumables-tap-guard"
+              element={
+                <LazyPage>
+                  <ConsumablesTapGuardPreviewPage />
+                </LazyPage>
+              }
+            />
+          </>
         ) : null}
         <Route
           path="/reset-password"

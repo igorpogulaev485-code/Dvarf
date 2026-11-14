@@ -128,10 +128,80 @@ export function spendGpFromPurse(coins: CoinPurse, gpCost: number): SpendGpResul
   }
 }
 
-export function formatGpTotal(total: number): string {
+/** Exact GP amount with thin-space thousands (tooltip / coin pad / inventory). */
+export function formatGpExact(total: number): string {
   if (!Number.isFinite(total)) return '0'
-  if (Number.isInteger(total)) return String(total)
-  return total.toFixed(2).replace(/\.?0+$/, '')
+  const neg = total < 0
+  const abs = Math.abs(total)
+  if (Number.isInteger(abs)) {
+    const digits = String(Math.trunc(abs)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+    return neg ? `−${digits}` : digits
+  }
+  const fixed = abs.toFixed(2).replace(/\.?0+$/, '')
+  const [whole, frac] = fixed.split('.')
+  const spaced = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+  const out = frac ? `${spaced},${frac}` : spaced
+  return neg ? `−${out}` : out
+}
+
+/**
+ * Floor to at most `sig` significant digits (truncate toward zero, never round up).
+ * Returns a Russian decimal string (comma) without trailing zeros.
+ */
+export function formatSigDigitsFloor(value: number, sig = 3): string {
+  if (!Number.isFinite(value) || value === 0) return '0'
+  const neg = value < 0
+  const abs = Math.abs(value)
+  const exp = Math.floor(Math.log10(abs))
+  const scale = 10 ** (exp - (sig - 1))
+  const truncated = Math.floor(abs / scale) * scale
+  // Avoid float dust (e.g. 1.2300000001).
+  const normalized = Number(truncated.toPrecision(sig + 2))
+  let text: string
+  if (Number.isInteger(normalized) || exp >= sig - 1) {
+    text = String(Math.trunc(normalized))
+  } else {
+    const decimals = Math.max(0, sig - 1 - exp)
+    text = normalized
+      .toFixed(decimals)
+      .replace(/\.?0+$/, '')
+      .replace('.', ',')
+  }
+  return neg ? `−${text}` : text
+}
+
+/**
+ * Compact gold face for the desk/mobile header chip.
+ * ≤9999 → exact with spaces («1 234»); else «12,3 тыс» / «1,23 млн» / «1,2 млрд»
+ * (≤3 significant digits, floor). Exact amount stays in tooltip / coin pad.
+ */
+export function formatGpCompact(total: number): string {
+  if (!Number.isFinite(total)) return '0'
+  const neg = total < 0
+  const abs = Math.abs(total)
+  if (abs < 10_000) {
+    const exact = formatGpExact(abs)
+    return neg ? `−${exact}` : exact
+  }
+  let scaled: number
+  let unit: string
+  if (abs < 1_000_000) {
+    scaled = abs / 1_000
+    unit = 'тыс'
+  } else if (abs < 1_000_000_000) {
+    scaled = abs / 1_000_000
+    unit = 'млн'
+  } else {
+    scaled = abs / 1_000_000_000
+    unit = 'млрд'
+  }
+  const body = formatSigDigitsFloor(scaled, 3)
+  return neg ? `−${body} ${unit}` : `${body} ${unit}`
+}
+
+/** @deprecated Prefer formatGpExact — kept as the shared exact face. */
+export function formatGpTotal(total: number): string {
+  return formatGpExact(total)
 }
 
 /** Short purse breakdown for tooltips (omit zero piles). */
