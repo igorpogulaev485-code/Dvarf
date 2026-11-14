@@ -321,8 +321,8 @@ export function ammoKindOfStack(item: {
   const fromBase = ammoKindFromSlug(item.base_ammo_slug)
   if (fromBase) return fromBase
   const slug = String(item.catalog_slug || '').toLowerCase()
+  // Only real ammo slugs — never treat launchers (shortbow, crossbow_*) as stacks.
   if (AMMO_KIND_BY_SLUG.has(slug)) return slug as AmmoKind
-  if (LAUNCHER_AMMO[slug]) return LAUNCHER_AMMO[slug]
   for (const row of AMMO_NAME_RE) {
     if (row.re.test(String(item.name || ''))) return row.kind
   }

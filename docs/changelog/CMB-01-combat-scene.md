@@ -5,27 +5,40 @@
 ## Что сделано
 
 1. **Строка атаки** — бонус атаки (`+N`) стал отдельной кнопкой броска атаки; урон — отдельной кнопкой броска урона. Действия «мод. / взять / предмет / режим» — компактные иконки кита с `title`/`aria-label`. Высота строк выровнена (`min-height: 44px`).
-2. **Дубль боеприпасов** — у оружия чип с привязкой и кнопкой `−`; авто-строки тех же стопок скрыты из «Расходники» (`hideAutoItemIds`). Избранное остаётся.
+2. **Дубль боеприпасов** — у оружия чип с привязкой и кнопкой `−`; авто-строки тех же стопок скрыты из «Расходники» (`hideAutoItemIds`). Избранное остаётся. Фикс: `ammoKindOfStack` больше не считает launcher (shortbow и т.п.) стопкой боеприпаса — в ряду только «Стрелы ×N».
 3. **«Ещё / Действия хода»** → заголовок **«Действия хода»** + подсказка «рывок, отход, укрытие, реакция…» (не выглядит как пустой инпут).
 4. **Ресурсы класса** в бою — лицо хот-панели: квадратики (`ResourcePips`) при max ≤ 5, иначе счётчик `− / N/max / +`.
 5. **Пустота ниже сцены** — линия-завершение `.play-desk-compact__end` без новых игровых сущностей.
 6. **Телефон 390/768** — без ellipsis на имени/уроне; вторичные действия в «⋯», «мод.» остаётся на строке.
 7. **Плитка скорости** — при открытом окне скоростей нативный `title` и HoverTip («Сколько футов…») скрыты (`DetailsMenu` + CSS). Вид/размер/раскладка плитки не менялись.
 
+## Скрины (VM)
+
+Окружение: Postgres `dvarf/dvarf@localhost` → wipe + `alembic upgrade head` → `seed_lp01` / uikit03. Vite `:5173` (ветка) + `:5174` (main worktree) + API `:8000`.
+
+Артефакты в `/opt/cursor/artifacts/`:
+
+- `combat-pair-{1920,1440,1280,1024,768,390}.png` — плут сверху / воин снизу
+- `combat-caster-{1440,390}.png` — жрец, панель магии с «Направляющий снаряд» (атака) + заговоры
+- `hdr-pair-*` / `scene-block-pair-*` — контроль vs main (`main-*`); desktop **0 px**; mobile AA ≤ tol3 ≈ **0** (21 px AA на scene-390)
+- `speed-menu-open-{1440,1024,390}.png` — меню открыто, tip скрыт, курсор на плитке
+- отчёт: `cmb01-diff-report.json`, скрипт: `frontend/scripts/cmb01-capture.mjs`
+
 ## Что не сделано / ограничения
 
-- **Скрины** `combat-pair-{1920,1440,1280,1024,768,390}`, caster 1440/390, `hdr-pair-*`, `scene-block-pair-*`, `speed-menu-open-{1440,1024,390}` — **не сняты** в этой VM: локальный Postgres не доехал до чистого `alembic upgrade head` (catalog FK + рассинхрон колонок users/characters), сиды LP-01/SCN-01 не применились. Просьба к Игорю: прогнать на tip после checkout ветки или на стенде. Контроль шапки/блока сцен по коду: правки только атаки + tip; лицо `PlayDeskHeader`/сцен не менялось (кроме скрытия tip при open).
 - Кнопка атаки по-прежнему запускает существующий `resolveAttackRoll` (атака + урон в тосте) — логика расчётов/API/миграции не менялась; отдельная кнопка урона — дополнительный `rollDamage` без траты хода/боеприпаса.
-- Заклинательные атаки жреца по-прежнему в панели магии (split), не в строках оружия — как в проде.
+- Заклинательные атаки жреца в панели магии (split / «Заклинания»), не в строках оружия — как в проде.
 
 ## Проверка
 
 - `npx tsc -p tsconfig.app.json --noEmit` ok
-- `npm run build` ok
-- `cmb01Combat.selfcheck` / `uikit02Polish.selfcheck` / `uxSc02CombatMap.selfcheck` ok
+- `npm run build` ok (ранее)
+- `cmb01Combat.selfcheck` / `o09DeathInspirationAmmo.selfcheck` / `uikit02Polish.selfcheck` ok
 
 ## Файлы
 
 - `PlayDeskAttacksCompact.tsx`, `attackIcons.tsx`, `combatConsumables.ts`
 - `DetailsMenu.tsx` + `31-onboarding.css` (tip при open)
+- `o09DeathInspirationAmmo.ts` — launcher ≠ ammo stack
 - стили: `08`, `17`, `18`, `19`, `22`
+- `frontend/scripts/cmb01-capture.mjs`
