@@ -699,27 +699,32 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           needsSetupItems={needsSetupItems}
           onNeedsSetupSelect={handleNeedsSetupSelect}
         />
-        <ActiveEffectsPanel
-          effects={model.draft.play.effects ?? []}
-          onChange={(effects) => model.applyEffectsChange?.(effects)}
-          onToast={model.onToast}
-          onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
-        />
-        {model.dockCompanions.length > 0 ? (
-          <button
-            type="button"
-            className="play-desk__dock-chip"
-            aria-label={`Напарники ${model.dockCompanions.length}`}
-            title={model.dockCompanions
-              .map((row) => row.name || 'Без имени')
-              .join(', ')}
-            onClick={() => {
-              model.setDeskMode('companions')
-              model.setActivePanel('companions')
-            }}
-          >
-            Напарники {model.dockCompanions.length}
-          </button>
+        {(model.draft.play.effects ?? []).length > 0 ||
+        model.dockCompanions.length > 0 ? (
+          <div className="play-desk__mobile-effects">
+            <ActiveEffectsPanel
+              effects={model.draft.play.effects ?? []}
+              onChange={(effects) => model.applyEffectsChange?.(effects)}
+              onToast={model.onToast}
+              onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
+            />
+            {model.dockCompanions.length > 0 ? (
+              <button
+                type="button"
+                className="play-desk__dock-chip"
+                aria-label={`Напарники ${model.dockCompanions.length}`}
+                title={model.dockCompanions
+                  .map((row) => row.name || 'Без имени')
+                  .join(', ')}
+                onClick={() => {
+                  model.setDeskMode('companions')
+                  model.setActivePanel('companions')
+                }}
+              >
+                Напарники {model.dockCompanions.length}
+              </button>
+            ) : null}
+          </div>
         ) : null}
         </div>
       )}

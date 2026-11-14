@@ -61,18 +61,19 @@
 
 .mobile-vitals__name {
   font-family: var(--font-display, "Source Serif 4", Georgia, serif);
-  font-size: 1.15rem;
+  font-size: 1.12rem;
   font-weight: 700;
   color: var(--accent);
   line-height: 1.2;
   white-space: normal;
   overflow: hidden;
+  text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  word-break: normal;
+  overflow-wrap: break-word;
   max-width: 100%;
 }
 
@@ -450,6 +451,27 @@
   color: var(--ink);
   cursor: pointer;
   padding: 0;
+}
+
+.mobile-vitals__tool--coin {
+  width: auto;
+  min-width: 48px;
+  max-width: 9.5rem;
+  padding: 4px 8px;
+  gap: 2px;
+  grid-auto-flow: row;
+  justify-items: center;
+}
+
+.mobile-vitals__coin-amt {
+  font-size: 0.62rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mobile-vitals__tool .desk-icon {

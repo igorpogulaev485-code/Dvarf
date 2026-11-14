@@ -45,24 +45,8 @@ function EffectChip({
   const vitality = effect.slug === 'aura_of_vitality'
   const blink = effect.slug === 'blink'
   const fortune = effect.slug === 'fortunes_favor'
-  const heroism = effect.slug === 'heroism' && !inactive && onHeroismTurnStart
-
   const actionNodes: ReactNode[] = []
-  if (heroism) {
-    actionNodes.push(
-      <Button
-        key="heroism"
-        type="button"
-        size="sm"
-        variant="ghost"
-        title="Начало хода: временные хиты = модификатор заклинателя"
-        aria-label="Героизм: выдать временные хиты на начало хода"
-        onClick={() => onHeroismTurnStart?.()}
-      >
-        ход
-      </Button>,
-    )
-  }
+  // Heroism: face carries «+N вр. хита/ход»; turn grant stays in tip (no nested «ход» button).
   if (mirror && !inactive) {
     actionNodes.push(
       <Button
@@ -192,11 +176,24 @@ function EffectChip({
         onClick: onToggleOpen,
       }}
       tip={
-        details.length > 0 ? (
+        details.length > 0 ||
+        (effect.slug === 'heroism' && !inactive && onHeroismTurnStart) ? (
           <>
             {details.map((line) => (
               <span key={line}>{line}</span>
             ))}
+            {effect.slug === 'heroism' && !inactive && onHeroismTurnStart ? (
+              <button
+                type="button"
+                className="linkish"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onHeroismTurnStart()
+                }}
+              >
+                Выдать вр. хиты (начало хода)
+              </button>
+            ) : null}
           </>
         ) : null
       }
@@ -330,9 +327,6 @@ export function ActiveEffectsPanel({
               <strong>{formatEffectChipFace(effect)}</strong>
             </span>
             <span className="ui-chip__actions">
-              {effect.slug === 'heroism' && onHeroismTurnStart ? (
-                <span className="ui-button ui-button--ghost ui-button--sm">ход</span>
-              ) : null}
               <span className="ui-chip__dismiss">×</span>
             </span>
           </span>

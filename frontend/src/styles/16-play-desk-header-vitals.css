@@ -70,14 +70,15 @@ button.play-desk-header__xp:hover .play-desk-header__xp-bar {
 }
 
 .play-desk-header__mid {
-  /* SC-07 / UX-03: mid fills the ribbon evenly — no empty hole between
-     who and КД. HP stays the accent on the right (__right).
-     UIKIT-02: wrap whole tiles — never clip / horizontal-scroll vitals. */
-  flex: 1 1 auto;
+  /* UIKIT-03 / run8 grid: mid shrink-wraps tiles + Вдохн./Истощ.
+     Do NOT flex-grow — that opened an empty hole before зм/Отдых/HP. */
+  flex: 0 1 auto;
+  width: max-content;
+  max-width: 100%;
   min-width: 0;
   margin-left: 8px;
   display: flex;
-  justify-content: stretch;
+  justify-content: flex-start;
   align-items: center;
   overflow: visible;
 }
@@ -92,6 +93,9 @@ button.play-desk-header__xp:hover .play-desk-header__xp-bar {
   min-height: 0;
   width: max-content;
   min-width: 5.5rem;
+  /* UIKIT-03: never collapse Вдохн./Истощ. off the mid ribbon */
+  flex: 0 0 auto;
+  flex-shrink: 0;
 }
 
 .play-desk-header__chip {
@@ -166,11 +170,12 @@ button.play-desk-header__chip {
 
 .play-desk-header__vitals {
   display: flex;
-  flex-wrap: wrap;
+  /* Desktop run8: one ribbon — never drop Вдохн./Истощ. under tiles */
+  flex-wrap: nowrap;
   gap: clamp(4px, 0.8vw, 8px);
   align-items: center;
-  width: 100%;
-  max-width: none;
+  width: max-content;
+  max-width: 100%;
   justify-content: flex-start;
   box-sizing: border-box;
   padding-inline: 0;
@@ -500,7 +505,8 @@ button.play-desk-vital:hover,
   flex-wrap: nowrap;
   align-items: center;
   gap: 6px;
-  margin-left: 0;
+  /* Sit immediately after mid (tiles + insp/exh) — no margin:auto hole */
+  margin-left: 6px;
   flex: 0 0 auto;
   min-width: 0;
 }

@@ -10,7 +10,12 @@ import {
 import { rollCheck } from './deskRolls'
 import type { CharacterDetail } from '../../shared/api/characters'
 import { formatModifier } from './sheetTypes'
-import type { CoinPurse } from '../../shared/dnd/weight'
+import {
+  coinsToGp,
+  formatGpCompact,
+  formatGpExact,
+  type CoinPurse,
+} from '../../shared/dnd/weight'
 import type { PlayState } from './play'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
 import { HpPadDialog } from './HpPadDialog'
@@ -686,12 +691,15 @@ export function MobileVitalsBar({
         </button>
         <button
           type="button"
-          className="mobile-vitals__tool"
-          aria-label="Монеты"
-          title="Монеты"
+          className="mobile-vitals__tool mobile-vitals__tool--coin"
+          aria-label={`${formatGpExact(coinsToGp(coins))} зм — кошелёк`}
+          title={`${formatGpExact(coinsToGp(coins))} зм`}
           onClick={() => setCoinPadOpen(true)}
         >
           <IconCoin />
+          <span className="mobile-vitals__coin-amt">
+            {formatGpCompact(coinsToGp(coins))} зм
+          </span>
         </button>
         <button
           type="button"

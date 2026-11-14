@@ -27,7 +27,8 @@ import { rollCheck } from './deskRolls'
 import {
   coinsToGp,
   formatCoinBreakdown,
-  formatGpTotal,
+  formatGpCompact,
+  formatGpExact,
   type CoinPurse,
 } from '../../shared/dnd/weight'
 import { HoverTipCard, VITAL_TIPS } from '../onboarding'
@@ -250,7 +251,7 @@ export function PlayDeskHeader({
 }: PlayDeskHeaderProps) {
   const alignmentLabel = alignment.trim()
   const editionLabel = String(rulesEdition).trim() || '2014'
-  const [nameExpanded, setNameExpanded] = useState(false)
+  /* name stays ≤2 lines; full string in title (no expand that blows header height) */
   const classRows = classes.filter((row) => row.name.trim() && row.level > 0)
   const classChips =
     classRows.length > 0
@@ -447,18 +448,12 @@ export function PlayDeskHeader({
         <h1 className="play-desk-header__name-wrap">
           <button
             type="button"
-            className={`play-desk-header__name${nameExpanded ? ' is-expanded' : ''}`}
-            title={
-              nameExpanded
-                ? 'Свернуть имя'
-                : name
-                  ? `Полное имя: ${name}. Нажми, чтобы раскрыть`
-                  : undefined
-            }
-            aria-expanded={nameExpanded}
-            onClick={() => setNameExpanded((prev) => !prev)}
+            className="play-desk-header__name"
+            title={name || undefined}
+            aria-label={name ? `Имя: ${name}` : 'Без имени'}
+            onClick={() => onOpenIdentity?.()}
           >
-            {name || 'Без имени'}
+            <span className="play-desk-header__name-text">{name || 'Без имени'}</span>
           </button>
         </h1>
 
@@ -813,17 +808,18 @@ export function PlayDeskHeader({
           <button
             type="button"
             className={`play-desk-header__coin${showValueTips ? ' has-onboarding-tip' : ''}`}
-            aria-label={`${formatGpTotal(coinsToGp(coins))} зм — кошелёк`}
+            aria-label={`${formatGpExact(coinsToGp(coins))} зм — кошелёк`}
+            title={`${formatGpExact(coinsToGp(coins))} зм`}
             aria-describedby={showValueTips ? undefined : 'play-desk-coin-tip'}
             onClick={() => setCoinPadOpen(true)}
           >
             <IconCoin className="play-desk-header__btn-icon" />
-            <span aria-hidden="true">{formatGpTotal(coinsToGp(coins))} зм</span>
+            <span aria-hidden="true">{formatGpCompact(coinsToGp(coins))} зм</span>
             {showValueTips ? <HoverTipCard tip={VITAL_TIPS.coins} /> : null}
             {showValueTips ? null : (
               <span id="play-desk-coin-tip" className="play-desk-header__coin-tip" role="tooltip">
                 <b>Кошелёк</b>
-                <strong>≈ {formatGpTotal(coinsToGp(coins))} зм</strong>
+                <strong>{formatGpExact(coinsToGp(coins))} зм</strong>
                 <em>{formatCoinBreakdown(coins)}</em>
                 <small>Нажми — взять / отдать</small>
               </span>

@@ -322,11 +322,27 @@
   z-index: 1;
   display: flex;
   flex-wrap: nowrap;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px 8px;
   min-width: 0;
   max-width: 100%;
   overflow: visible;
+}
+
+.play-desk-header__who,
+.play-desk-header__mid,
+.play-desk-header__right {
+  position: relative;
+  /* Keep columns from painting over each other under max load */
+  isolation: isolate;
+}
+
+.play-desk-header__mid {
+  align-self: center;
+}
+
+.play-desk-header__right {
+  align-self: center;
 }
 
 .play-desk-header:has(.play-desk-header__coin:hover),
@@ -335,11 +351,11 @@
 }
 
 .play-desk-header__who {
-  /* UIKIT-02: имя целиком (до 2 строк) — больше ширины, без ellipsis */
-  flex: 1 1 18rem;
+  /* UIKIT-03 / run8: who shrinks for load; never steals mid/right columns */
+  flex: 0 1 16rem;
   width: auto;
   min-width: 0;
-  max-width: min(420px, 36vw);
+  max-width: min(300px, 26vw);
   display: grid;
   gap: 2px;
   justify-items: stretch;
@@ -349,13 +365,13 @@
 
 @media (min-width: 1280px) {
   .play-desk-header__who {
-    flex-basis: 20rem;
-    max-width: min(480px, 40vw);
+    flex-basis: 15rem;
+    max-width: min(300px, 24vw);
   }
 }
 
 .play-desk-header__who:has(.play-desk-header__classes.is-many) {
-  max-width: min(420px, 40vw);
+  max-width: min(320px, 26vw);
 }
 
 .play-desk-header__who-line {
@@ -398,9 +414,17 @@
 }
 
 .play-desk-header__meta-line .play-desk-header__xp {
-  flex: 1 1 14rem;
-  min-width: 10rem;
+  flex: 1 1 12rem;
+  min-width: 8rem;
   max-width: 100%;
+}
+
+/* XP track keeps a usable bar even when who is compact (1024) */
+.play-desk-header__meta-line .play-desk-header__xp .play-desk-header__xp-bar,
+.play-desk-header__xp-bar {
+  flex: 1 1 8rem;
+  min-width: 6.5rem;
+  max-width: none;
 }
 
 .play-desk-header__meta-line .play-desk-header__xp-remain {
@@ -415,24 +439,15 @@
 
 .play-desk-header__name {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.12rem;
-  line-height: 1.15;
-  color: var(--desk-accent, var(--accent));
-  /* UIKIT-02: до 2 строк вместо «Даррак Желе…» */
-  white-space: normal;
-  overflow: hidden;
-  text-overflow: unset;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
   max-width: 100%;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  min-width: 0;
+  color: var(--desk-accent, var(--accent));
 }
 
 button.play-desk-header__name {
+  display: block;
+  width: 100%;
+  max-width: 100%;
   padding: 0;
   border: 0;
   background: transparent;
@@ -442,13 +457,25 @@ button.play-desk-header__name {
   color: inherit;
 }
 
-.play-desk-header__name.is-expanded {
-  display: block;
-  -webkit-line-clamp: unset;
-  line-clamp: unset;
-  overflow: visible;
-  word-break: break-word;
+/* Clamp on inner span — <button> + -webkit-line-clamp is unreliable in Chromium */
+.play-desk-header__name-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 700;
+  line-height: 1.2;
+  max-height: calc(1.12rem * 1.2 * 2);
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
+  color: inherit;
 }
+
 
 .desk-icon {
   width: 1.05rem;
@@ -511,10 +538,18 @@ button.play-desk-header__name {
   flex-wrap: nowrap;
   align-items: stretch;
   gap: 4px;
-  min-width: 0;
+  /* Keep room for ≥1 class chip + +N; do not shrink to bare +N */
+  flex: 1 1 auto;
+  min-width: min(100%, 9.5rem);
   max-width: 100%;
   /* visible — DetailsMenu +N panel must not be clipped */
   overflow: visible;
+}
+
+.play-desk-header__meta-line .play-desk-header__classes,
+.play-desk-header__meta-line .ui-class-row {
+  flex: 1 1 auto;
+  min-width: min(100%, 9.5rem);
 }
 
 .ui-class-row__more {
@@ -808,6 +843,37 @@ button.play-desk-header__identity:hover {
 
 
 /* B-01 / UIKIT-03: effects + companions — one nowrap strip */
+/* Mobile chrome: effects + companions share one strip (same as desk top-extras) */
+.play-desk__mobile-chrome {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.play-desk__mobile-chrome > .active-effects,
+.play-desk__mobile-chrome > .play-desk__dock-chip {
+  min-width: 0;
+}
+
+.play-desk__mobile-chrome > .play-desk__mobile-effects {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.play-desk__mobile-chrome > .play-desk__mobile-effects > .active-effects {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.play-desk__mobile-chrome > .play-desk__mobile-effects > .play-desk__dock-chip {
+  flex: 0 0 auto;
+}
+
 .play-desk__top > .play-desk__top-extras {
   grid-column: 1 / -1;
   display: flex;

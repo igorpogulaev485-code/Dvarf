@@ -1416,6 +1416,21 @@ export function formatEffectChipFace(effect: ActiveEffect): string {
       }
     }
   }
+  if (!buff && effect.mods) {
+    for (const mod of effect.mods) {
+      if (mod.target === 'temp_hp' && typeof mod.value === 'number') {
+        const n = Math.floor(mod.value)
+        if (n !== 0) {
+          // Heroism face: «Героизм +4 вр. хита/ход» (action lives in tip, not a nested button).
+          buff =
+            effect.slug === 'heroism'
+              ? `${n > 0 ? '+' : ''}${n} вр. хита/ход`
+              : `${n > 0 ? '+' : ''}${n} вр. хита`
+          break
+        }
+      }
+    }
+  }
   return buff ? `${title} ${buff}` : title
 }
 
@@ -1433,6 +1448,9 @@ export function formatEffectChipDetails(effect: ActiveEffect): string[] {
   }
   const remaining = formatEffectRemaining(effect)
   if (remaining) lines.push(remaining)
+  if (effect.slug === 'heroism') {
+    lines.push('в начале хода: вр. хиты = модификатор заклинателя')
+  }
   if (typeof effect.charges === 'number') {
     if (effect.slug === 'mirror_image') lines.push(`двойники ${effect.charges}`)
     else if (effect.slug === 'aura_of_vitality') lines.push(`импульсы ${effect.charges}`)
