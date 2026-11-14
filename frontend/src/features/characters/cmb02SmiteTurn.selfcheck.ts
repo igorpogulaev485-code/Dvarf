@@ -45,8 +45,21 @@ assert.match(turnUi, /Реакция/)
 assert.match(turnUi, /play-desk-turn-actions__tab/)
 assert.match(turnUi, /is-spent/)
 assert.match(turnUi, /Хитрое действие: Засада/)
+assert.match(turnUi, /Увёртливость/)
+assert.match(turnUi, /hasUncannyDodge/)
+assert.match(turnUi, /Добивание \(0 хитов\)/)
 assert.match(turnUi, /mode === 'everyTurn'/)
 assert.match(turnUi, /return null/)
+assert.doesNotMatch(attacks, /play-desk-turn-actions__gwm/)
+assert.match(attacks, /hasUncannyDodge/)
+assert.match(attacks, /onO05GwmFinishing/)
+assert.match(attacks, /turnGroupedFeatureIds/)
+assert.match(attacks, /steady_aim/)
+assert.doesNotMatch(
+  attacks,
+  /hasSteadyAim=\{\s*tceAllowed && combatFeatures\.some/,
+)
+assert.ok(TURN_ACTION_CATALOG.some((r) => r.id === 'gwm_finish' && r.tier === 'personal'))
 
 // Nat 1 → no smite offer, no spend path
 const nat1 = resolveSmiteAfterAttack({ naturalDie: 1 })
@@ -112,27 +125,38 @@ const levels = divineSmitePresentLevels(spend, {
 })
 assert.deepEqual(levels, [1, 2])
 
-// Rogue 5: Хитрое действие in Бонусное (+ mirrored under Действие)
-assert.deepEqual(cunningActionGroups(), ['bonus', 'action'])
+// Rogue 5: Хитрое действие только в Бонусном; Точное прицеливание — Бонусное; Увёртливость — Реакция
+assert.deepEqual(cunningActionGroups(), ['bonus'])
 const bonusIds = catalogRowsForGroup('bonus').map((r) => r.id)
 assert.ok(bonusIds.includes('cunning_hide'))
 assert.ok(bonusIds.includes('cunning_dash'))
 assert.ok(bonusIds.includes('steady_aim'))
 assert.ok(bonusIds.includes('two_weapon'))
 assert.ok(bonusIds.includes('gwm_bonus'))
+assert.ok(bonusIds.includes('gwm_finish'))
 assert.ok(bonusIds.includes('shield_shove'))
 
 const actionIds = catalogRowsForGroup('action').map((r) => r.id)
 assert.ok(actionIds.includes('dash'))
 assert.ok(actionIds.includes('search'))
-assert.ok(actionIds.includes('cunning_hide'))
+assert.ok(actionIds.includes('hide'))
+assert.ok(!actionIds.includes('cunning_hide'))
+assert.ok(!actionIds.includes('cunning_dash'))
+assert.ok(!actionIds.includes('steady_aim'))
 
 const reactionIds = catalogRowsForGroup('reaction').map((r) => r.id)
 assert.ok(reactionIds.includes('opportunity'))
+assert.ok(reactionIds.includes('uncanny_dodge'))
 assert.ok(reactionIds.includes('interception'))
 assert.ok(reactionIds.includes('parry'))
 
 assert.ok(TURN_ACTION_CATALOG.some((r) => r.id === 'blind_sight' && r.tier === 'info'))
+assert.ok(TURN_ACTION_CATALOG.some((r) => r.id === 'gwm_finish' && r.group === 'bonus'))
 assert.ok(TURN_ACTION_CATALOG.some((r) => r.id === 'overrun' && r.tier === 'more'))
+assert.ok(
+  TURN_ACTION_CATALOG.every(
+    (r) => !r.id.startsWith('cunning_') || (r.group === 'bonus' && !r.alsoGroup),
+  ),
+)
 
 console.log('cmb02SmiteTurn.selfcheck ok')

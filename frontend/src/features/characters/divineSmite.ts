@@ -153,10 +153,14 @@ export function rollDivineSmiteExtra(input: {
   const critNote = input.crit ? ', крит' : ''
   const vsChip = dice.undeadDice ? ' · нежить' : ''
   const critChip = input.crit ? ' · крит' : ''
+  // Crit doubles dice in the roll; show the doubled count on the radiant chip.
+  const chipFormula = input.crit
+    ? `${dice.totalDice * 2}к${dice.diceSize}`
+    : dice.formulaRu
   return {
     total: rolled.total,
     line: ` + ${rolled.total} излучением (Божественная кара, ${dice.formulaRu}${vs}${critNote}, ${rolled.detail})`,
-    chip: `${rolled.total} излучением · ${dice.formulaRu}${vsChip}${critChip}`,
+    chip: `${rolled.total} излучением · ${chipFormula}${vsChip}${critChip}`,
   }
 }
 

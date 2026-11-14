@@ -711,12 +711,12 @@ button.play-desk-compact__more--btn:hover {
   min-width: 0;
 }
 
-/* CMB-02: Divine Smite — inline strip under a melee weapon row (kit chips/pips). */
+/* CMB-02/03: Divine Smite — inline strip under a melee weapon row (kit chips/pips). */
 .play-desk-smite {
   display: grid;
-  gap: 6px;
+  gap: 4px;
   margin: 0 0 8px;
-  padding: 8px 10px;
+  padding: 6px 8px;
   border: 1px solid var(--desk-line, var(--line));
   border-radius: 12px;
   background: var(--card);
@@ -727,11 +727,13 @@ button.play-desk-compact__more--btn:hover {
   border-radius: 10px;
 }
 
+/* Desktop: keep prompt + circles + undead + miss on one row. */
 .play-desk-smite__row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 6px;
+  min-width: 0;
 }
 
 .play-desk-smite__prompt {
@@ -740,6 +742,7 @@ button.play-desk-compact__more--btn:hover {
   font-weight: 600;
   color: var(--desk-muted, var(--muted));
   white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .play-desk-smite__note {
@@ -751,12 +754,13 @@ button.play-desk-compact__more--btn:hover {
 
 .play-desk-smite__slot {
   display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  min-height: 44px;
-  padding: 6px 10px;
-  font-size: 0.82rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  flex: 0 0 auto;
 }
 
 .play-desk-smite__slot:disabled {
@@ -766,25 +770,33 @@ button.play-desk-compact__more--btn:hover {
 
 .play-desk-smite__slot-label {
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .play-desk-smite__pips {
   display: inline-flex;
-  gap: 4px;
+  gap: 3px;
   align-items: center;
 }
 
 .play-desk-smite__pip {
   pointer-events: none;
-  width: 10px;
-  height: 10px;
-  min-width: 10px;
-  min-height: 10px;
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  min-height: 8px;
 }
 
 .play-desk-smite__radiant {
   /* Kit accent chip = radiant highlight without a new damage-type style. */
   cursor: default;
+}
+
+.play-desk-smite__collapse {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
 }
 
 .play-desk-compact__attack-block {

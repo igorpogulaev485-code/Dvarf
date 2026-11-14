@@ -28,29 +28,25 @@ export const TURN_ACTION_CATALOG: TurnActionCatalogRow[] = [
     id: 'cunning_hide',
     label: 'Хитрое действие: Засада',
     group: 'bonus',
-    alsoGroup: 'action',
-    alsoLabel: 'Хитрое действие: Засада (бонусное)',
     tier: 'personal',
   },
   {
     id: 'cunning_disengage',
     label: 'Хитрое действие: Отход',
     group: 'bonus',
-    alsoGroup: 'action',
-    alsoLabel: 'Хитрое действие: Отход (бонусное)',
     tier: 'personal',
   },
   {
     id: 'cunning_dash',
     label: 'Хитрое действие: Рывок',
     group: 'bonus',
-    alsoGroup: 'action',
-    alsoLabel: 'Хитрое действие: Рывок (бонусное)',
     tier: 'personal',
   },
   { id: 'steady_aim', label: 'Точное прицеливание', group: 'bonus', tier: 'personal' },
   { id: 'two_weapon', label: 'Атака вторым оружием', group: 'bonus', tier: 'personal' },
   { id: 'ki_fueled', label: 'Атака на ци', group: 'bonus', tier: 'personal' },
+  /** Mark that enables GWM bonus attack — shown in Бонусное (not a spend). */
+  { id: 'gwm_finish', label: 'Добивание (0 хитов)', group: 'bonus', tier: 'personal' },
   { id: 'gwm_bonus', label: 'Атака Мастера большого оружия', group: 'bonus', tier: 'personal' },
   { id: 'charger_attack', label: 'Налётчик: Удар (+5)', group: 'bonus', tier: 'personal' },
   { id: 'charger_shove', label: 'Налётчик: Толчок', group: 'bonus', tier: 'personal' },
@@ -63,6 +59,7 @@ export const TURN_ACTION_CATALOG: TurnActionCatalogRow[] = [
   { id: 'telekinetic', label: 'Толчок (Телекинез)', group: 'bonus', tier: 'personal' },
   { id: 'orcish_fury', label: 'Атака Орочьей ярости', group: 'bonus', tier: 'personal' },
   { id: 'polearm_bonus', label: 'Конец древка (к4)', group: 'bonus', tier: 'personal' },
+  { id: 'uncanny_dodge', label: 'Увёртливость', group: 'reaction', tier: 'personal' },
   { id: 'interception', label: 'Перехват', group: 'reaction', tier: 'personal' },
   { id: 'protection', label: 'Защита', group: 'reaction', tier: 'personal' },
   { id: 'chain_attack', label: 'Атака фамильяра', group: 'bonus', tier: 'personal' },
@@ -142,7 +139,7 @@ export function catalogRowsForGroup(group: TurnActionGroupId): TurnActionCatalog
   )
 }
 
-/** Rogue 5: «Хитрое действие» lives in Бонусное (and mirrored under Действие). */
+/** Rogue 5: «Хитрое действие» — только бонусное (общие Рывок/Отход/Засада остаются в Действии). */
 export function cunningActionGroups(): TurnActionGroupId[] {
-  return ['bonus', 'action']
+  return ['bonus']
 }

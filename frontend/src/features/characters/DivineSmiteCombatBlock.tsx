@@ -144,7 +144,7 @@ export function DivineSmiteCombatBlock({
         {onClose && !confirm ? (
           <button
             type="button"
-            className="sheet-chip"
+            className="sheet-chip play-desk-smite__collapse"
             title="Свернуть"
             onClick={onClose}
           >

@@ -1,8 +1,10 @@
 /**
- * CMB-02 screenshots: smite states + turn action groups + hdr/scene control.
+ * CMB-02/03 screenshots: smite states + turn action groups + hdr/scene/combat control.
  * Requires API :8000 + vite :5173 + seed_cmb02_chars.py (+ lp01/qi01).
+ *
+ * Dev-only RNG hook via Math.random (not product code) for nat1 / nat20 frames.
  */
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs'
+import { mkdirSync, writeFileSync, readFileSync, existsSync, unlinkSync, readdirSync } from 'node:fs'
 import { chromium } from 'playwright'
 
 const ART = '/opt/cursor/artifacts'
@@ -121,6 +123,30 @@ async function shotHeader(page, path) {
   await page.screenshot({ path, clip: box })
 }
 
+async function shotSceneBlock(page, path) {
+  const box = await page.evaluate(() => {
+    const el =
+      document.querySelector('.play-desk__scene-tools') ||
+      document.querySelector('.scene-turn-controls') ||
+      document.querySelector('[data-onboarding="scene-tools"]')
+    if (!el) return null
+    const r = el.getBoundingClientRect()
+    return {
+      x: Math.max(0, Math.round(r.left) - 4),
+      y: Math.max(0, Math.round(r.top) - 4),
+      width: Math.max(80, Math.round(r.width) + 8),
+      height: Math.max(36, Math.round(r.height) + 8),
+    }
+  })
+  if (!box) {
+    // Fallback: empty 1×1 so pair diff still runs
+    writeFileSync(path.replace(/\.png$/, '.missing.txt'), 'scene block not found')
+    return false
+  }
+  await page.screenshot({ path, clip: box })
+  return true
+}
+
 async function composePair(page, aPath, bPath, outPath, la, lb) {
   const stacked = await page.evaluate(
     async ({ a, b, la, lb }) => {
@@ -161,14 +187,14 @@ async function composePair(page, aPath, bPath, outPath, la, lb) {
 
 async function openTurnGroup(page, label) {
   const tab = page.locator('.play-desk-turn-actions__tab').filter({ hasText: new RegExp(`^${label}$`, 'i') })
-  if (!(await tab.count())) return
+  if (!(await tab.count())) return false
   const btn = tab.first()
   const disabled = await btn.isDisabled().catch(() => false)
-  if (disabled) return
-  // close others then open
+  if (disabled) return false
   const open = await btn.evaluate((el) => el.classList.contains('is-open'))
   if (!open) await btn.click().catch(() => {})
   await page.waitForTimeout(300)
+  return true
 }
 
 async function openSmiteOnFirstMelee(page) {
@@ -179,13 +205,101 @@ async function openSmiteOnFirstMelee(page) {
   }
 }
 
+/** Dev-only: force next rollDie(20) face via Math.random mid-bucket. */
+async function forceNextD20(page, face) {
+  await page.evaluate((f) => {
+    const faceN = Math.max(1, Math.min(20, Math.floor(f)))
+    if (!window.__cmb02OrigRandom) {
+      window.__cmb02OrigRandom = Math.random.bind(Math)
+    }
+    window.__cmb02PendingD20 = faceN
+    Math.random = () => {
+      if (window.__cmb02PendingD20 != null) {
+        const pending = window.__cmb02PendingD20
+        window.__cmb02PendingD20 = null
+        return (pending - 0.5) / 20
+      }
+      return window.__cmb02OrigRandom()
+    }
+  }, face)
+}
+
+async function clickFirstMeleeAttack(page) {
+  // Prefer the attack-roll bonus button inside a weapon row
+  const roll = page.locator('.play-desk-compact__row.is-attack .play-desk-compact__mod--roll').first()
+  if (await roll.count()) {
+    await roll.click().catch(() => {})
+    await page.waitForTimeout(500)
+    return true
+  }
+  const hit = page.locator('.play-desk-compact__row.is-attack .play-desk-compact__hit').first()
+  if (await hit.count()) {
+    await hit.click().catch(() => {})
+    await page.waitForTimeout(500)
+    return true
+  }
+  return false
+}
+
+async function clickSmiteCircle(page, level = 1) {
+  const btn = page.locator('.play-desk-smite__slot').filter({ hasText: new RegExp(`^${level}\\s·`) }).first()
+  if (await btn.count()) {
+    await btn.click().catch(() => {})
+    await page.waitForTimeout(400)
+    return true
+  }
+  const any = page.locator('.play-desk-smite__slot:not(:disabled)').first()
+  if (await any.count()) {
+    await any.click().catch(() => {})
+    await page.waitForTimeout(400)
+    return true
+  }
+  return false
+}
+
+async function toggleUndead(page) {
+  const btn = page.locator('.play-desk-smite button, .play-desk-smite .sheet-chip').filter({
+    hasText: /нежить/i,
+  })
+  if (await btn.count()) {
+    await btn.first().click().catch(() => {})
+    await page.waitForTimeout(200)
+  }
+}
+
+async function spendActionViaDash(page) {
+  const opened = await openTurnGroup(page, 'Действие')
+  if (!opened) return false
+  const dash = page.locator('.play-desk-turn-actions__panel .sheet-chip').filter({ hasText: /^Рывок$/ })
+  if (await dash.count()) {
+    await dash.first().click().catch(() => {})
+    await page.waitForTimeout(300)
+    // close panel — click tab again
+    await openTurnGroup(page, 'Действие')
+    return true
+  }
+  return false
+}
+
+function cleanupTmp() {
+  for (const name of readdirSync(ART)) {
+    if (name.startsWith('_tmp') || name.startsWith(`${TAG}_tmp`)) {
+      try {
+        unlinkSync(`${ART}/${name}`)
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+}
+
 async function main() {
   const browser = await chromium.launch({ headless: true })
   const page = await browser.newPage()
   await page.goto(BASE, { waitUntil: 'domcontentloaded' })
   await login(page)
 
-  // —— Smite idle / open (paladin 5) ——
+  // —— Smite idle / open-arm (paladin 5) ——
   for (const w of [1440, 390]) {
     await page.setViewportSize({ width: w, height: 1600 })
     await openSheet(page, PAL5)
@@ -202,8 +316,40 @@ async function main() {
   await openSmiteOnFirstMelee(page)
   await shotPanel(page, out('smite-improved-1440.png'))
 
+  // —— Smite interactive states (paladin 5, forced dice) ——
+  await page.setViewportSize({ width: 1440, height: 1600 })
+  await openSheet(page, PAL5)
+  await openCombat(page, 1440)
+
+  // nat1 → no smite offer
+  await forceNextD20(page, 1)
+  await clickFirstMeleeAttack(page)
+  await shotPanel(page, out('smite-nat1-1440.png'))
+
+  // fresh sheet for crit
+  await openSheet(page, PAL5)
+  await openCombat(page, 1440)
+  await forceNextD20(page, 20)
+  await clickFirstMeleeAttack(page)
+  await page.waitForSelector('.play-desk-smite.is-confirm', { timeout: 8_000 }).catch(() => {})
+  await clickSmiteCircle(page, 1)
+  await page.waitForSelector('.play-desk-smite__radiant', { timeout: 5_000 }).catch(() => {})
+  await shotPanel(page, out('smite-crit-1440.png'))
+
+  // undead + apply
+  await openSheet(page, PAL5)
+  await openCombat(page, 1440)
+  await forceNextD20(page, 15)
+  await clickFirstMeleeAttack(page)
+  await page.waitForSelector('.play-desk-smite.is-confirm', { timeout: 8_000 }).catch(() => {})
+  await toggleUndead(page)
+  await shotPanel(page, out('smite-undead-1440.png'))
+  await clickSmiteCircle(page, 1)
+  await page.waitForSelector('.play-desk-smite__radiant', { timeout: 5_000 }).catch(() => {})
+  await shotPanel(page, out('smite-applied-1440.png'))
+
   // —— Turn pairs: rogue5 / war5 ——
-  for (const w of [1440, 1024, 390]) {
+  for (const w of [1440, 390]) {
     await page.setViewportSize({ width: w, height: 1800 })
     const shots = []
     for (const [id, tag] of [
@@ -223,7 +369,6 @@ async function main() {
         shots.push([group, p])
       }
     }
-    // Compose closed / action / bonus / reaction pairs
     const map = Object.fromEntries(
       ['closed', 'Действие', 'Бонусное', 'Реакция'].map((k) => {
         const rogue = shots.find((s) => s[0] === k && s[1].includes('rogue'))?.[1]
@@ -258,14 +403,86 @@ async function main() {
   await openTurnGroup(page, 'Бонусное')
   await shotPanel(page, out('turn-bonus-monk-1440.png'))
 
-  // HDR control at 1440/390
+  // Action spent (rogue after Dash)
+  await openSheet(page, ROGUE5)
+  await openCombat(page, 1440)
+  await spendActionViaDash(page)
+  await shotPanel(page, out('turn-action-spent-1440.png'))
+
+  // Paladin 5: disabled Бонусное tooltip
+  await openSheet(page, PAL5)
+  await openCombat(page, 1440)
+  const bonusTab = page.locator('.play-desk-turn-actions__tab').filter({ hasText: /^Бонусное$/i })
+  if (await bonusTab.count()) {
+    await bonusTab.first().hover({ force: true }).catch(() => {})
+    await page.waitForTimeout(400)
+    // Force native title into a visible tip bubble for headless screenshot
+    await page.evaluate(() => {
+      const tab = document.querySelector('.play-desk-turn-actions__tab:disabled')
+      if (!tab) return
+      const tip = tab.getAttribute('title') || 'Нет бонусных действий'
+      let bubble = document.getElementById('cmb02-tip-bubble')
+      if (!bubble) {
+        bubble = document.createElement('div')
+        bubble.id = 'cmb02-tip-bubble'
+        document.body.appendChild(bubble)
+      }
+      const r = tab.getBoundingClientRect()
+      bubble.textContent = tip
+      bubble.setAttribute(
+        'style',
+        [
+          'position:fixed',
+          `left:${Math.round(r.left)}px`,
+          `top:${Math.round(r.bottom) + 6}px`,
+          'z-index:99999',
+          'padding:6px 10px',
+          'border-radius:8px',
+          'background:#2d2d2a',
+          'color:#fbf7ec',
+          'font:600 12px "IBM Plex Sans",sans-serif',
+          'box-shadow:0 4px 14px rgba(0,0,0,.18)',
+          'pointer-events:none',
+          'max-width:240px',
+        ].join(';'),
+      )
+    })
+    await shotPanel(page, out('turn-bonus-paladin-disabled-tooltip-1440.png'))
+    await page.evaluate(() => document.getElementById('cmb02-tip-bubble')?.remove())
+  }
+
+  // combat-pair-390 (after)
+  await page.setViewportSize({ width: 390, height: 1600 })
+  await openSheet(page, ROGUE5)
+  await openCombat(page, 390)
+  const combatRogue = out('_tmp-combat-rogue-390.png')
+  await shotPanel(page, combatRogue)
+  await openSheet(page, WAR5)
+  await openCombat(page, 390)
+  const combatWar = out('_tmp-combat-war-390.png')
+  await shotPanel(page, combatWar)
+  await composePair(
+    page,
+    combatRogue,
+    combatWar,
+    out('combat-pair-390.png'),
+    'плут 5',
+    'воин 5',
+  )
+
+  // HDR + scene control
   for (const w of [1440, 390]) {
     await page.setViewportSize({ width: w, height: 1200 })
     await openSheet(page, ROGUE5)
     await openCombat(page, w)
     await shotHeader(page, out(`hdr-pair-${w}.png`))
   }
+  await page.setViewportSize({ width: 1440, height: 1200 })
+  await openSheet(page, ROGUE5)
+  await openCombat(page, 1440)
+  await shotSceneBlock(page, out('scene-block-pair-1440.png'))
 
+  cleanupTmp()
   console.log('cmb02-capture done →', ART)
   await browser.close()
 }

@@ -550,6 +550,12 @@
 
 .play-desk--mobile .play-desk-smite__row {
   flex-wrap: wrap;
+  gap: 4px;
+}
+
+.play-desk--mobile .play-desk-smite__slot {
+  min-height: 36px;
+  padding: 4px 8px;
 }
 
 /* SC-06: плотный первый экран «Бой» — меньше вертикальных полей до оружия */

@@ -94,6 +94,8 @@ type Props = {
   hasSteadyAim?: boolean
   /** O-02: «Атака на ци» (монах, TCE). */
   hasKiFueledAttack?: boolean
+  /** B-05: Увёртливость (плут/охотник) — реакция. */
+  hasUncannyDodge?: boolean
   /** O-01: Перехват (TCE fighting style). */
   hasInterception?: boolean
   /** O-01: Сражение вслепую — пометка слепого зрения. */
@@ -182,6 +184,8 @@ type Props = {
     tceAllowed?: boolean
   }
   onO05GwmBonus?: () => void
+  /** GWM: mark a melee kill this turn (enables bonus attack) — not an action spend. */
+  onO05GwmFinishing?: () => void
   onO05ChargerAttack?: () => void
   onO05ChargerShove?: () => void
   onO05CrossbowBonus?: () => void
@@ -228,6 +232,7 @@ export function TurnEconomyCombatActions({
   hasCunningAction,
   hasSteadyAim = false,
   hasKiFueledAttack = false,
+  hasUncannyDodge = false,
   hasInterception = false,
   hasBlindFighting = false,
   hasChainMaster = false,
@@ -259,6 +264,7 @@ export function TurnEconomyCombatActions({
   onGrappleShove,
   o05,
   onO05GwmBonus,
+  onO05GwmFinishing,
   onO05ChargerAttack,
   onO05ChargerShove,
   onO05CrossbowBonus,
@@ -411,16 +417,17 @@ export function TurnEconomyCombatActions({
     chips.push({ key, groups, tier, node })
   }
 
-  // —— Bonus / Action: Cunning Action ——
+  // —— Bonus only: Cunning Action (PHB bonus; common Dash/Disengage/Hide stay in Действие) ——
   if (hasCunningAction) {
+    const cunningSpent = Boolean(teState.bonus)
     push(
       'cunning_hide',
-      ['bonus', 'action'],
+      ['bonus'],
       'personal',
       <button
         key="cunning_hide"
         type="button"
-        className="sheet-chip"
+        className={`sheet-chip${cunningSpent && !hideGate.ok ? ' is-spent' : ''}`}
         disabled={!hideGate.ok}
         title={
           hideGate.ok
@@ -434,17 +441,22 @@ export function TurnEconomyCombatActions({
           onOfferSkill?.('stealth')
         }}
       >
+        {cunningSpent && !hideGate.ok ? (
+          <span className="sheet-chip__check" aria-hidden>
+            ✓
+          </span>
+        ) : null}
         Хитрое действие: Засада
       </button>,
     )
     push(
       'cunning_disengage',
-      ['bonus', 'action'],
+      ['bonus'],
       'personal',
       <button
         key="cunning_disengage"
         type="button"
-        className="sheet-chip"
+        className={`sheet-chip${cunningSpent && !cunningGate.ok ? ' is-spent' : ''}`}
         disabled={!cunningGate.ok}
         title={
           cunningGate.ok
@@ -456,17 +468,22 @@ export function TurnEconomyCombatActions({
           turnEco.spendCunningBonus('disengage')
         }}
       >
+        {cunningSpent && !cunningGate.ok ? (
+          <span className="sheet-chip__check" aria-hidden>
+            ✓
+          </span>
+        ) : null}
         Хитрое действие: Отход
       </button>,
     )
     push(
       'cunning_dash',
-      ['bonus', 'action'],
+      ['bonus'],
       'personal',
       <button
         key="cunning_dash"
         type="button"
-        className="sheet-chip"
+        className={`sheet-chip${cunningSpent && !cunningGate.ok ? ' is-spent' : ''}`}
         disabled={!cunningGate.ok}
         title={
           cunningGate.ok
@@ -478,6 +495,11 @@ export function TurnEconomyCombatActions({
           turnEco.spendCunningBonus('dash')
         }}
       >
+        {cunningSpent && !cunningGate.ok ? (
+          <span className="sheet-chip__check" aria-hidden>
+            ✓
+          </span>
+        ) : null}
         Хитрое действие: Рывок
       </button>,
     )
@@ -1046,6 +1068,39 @@ export function TurnEconomyCombatActions({
     )
   }
 
+  if (hasUncannyDodge) {
+    push(
+      'uncanny_dodge',
+      ['reaction'],
+      'personal',
+      <button
+        key="uncanny_dodge"
+        type="button"
+        className={`sheet-chip${reactionSpent ? ' is-spent' : ''}`}
+        disabled={!reactionGate.ok}
+        title={
+          reactionGate.ok
+            ? 'Увёртливость: реакция · половина урона от одной атаки, которую ты видишь'
+            : reactionGate.reason
+        }
+        onClick={() => {
+          if (!turnEco.canFeature('reaction').ok) return
+          turnEco.spendFeature('reaction')
+          onToast?.(
+            'Увёртливость: реакция · урон от этой атаки уменьшается вдвое (ты видишь атакующего)',
+          )
+        }}
+      >
+        {reactionSpent ? (
+          <span className="sheet-chip__check" aria-hidden>
+            ✓
+          </span>
+        ) : null}
+        Увёртливость
+      </button>,
+    )
+  }
+
   if (hasInterception) {
     push(
       'interception',
@@ -1054,7 +1109,7 @@ export function TurnEconomyCombatActions({
       <button
         key="interception"
         type="button"
-        className="sheet-chip"
+        className={`sheet-chip${reactionSpent ? ' is-spent' : ''}`}
         disabled={!reactionGate.ok}
         title={
           reactionGate.ok
@@ -1069,6 +1124,11 @@ export function TurnEconomyCombatActions({
           )
         }}
       >
+        {reactionSpent ? (
+          <span className="sheet-chip__check" aria-hidden>
+            ✓
+          </span>
+        ) : null}
         Перехват
       </button>,
     )
@@ -1153,7 +1213,28 @@ export function TurnEconomyCombatActions({
     )
   }
 
+  if (o05?.greatWeaponMaster && onO05GwmFinishing) {
+    const marked = Boolean(
+      teState.gwmBonusReady || teState.meleeWeaponCritOrKillThisTurn,
+    )
+    push(
+      'gwm_finish',
+      ['bonus'],
+      'personal',
+      <button
+        key="gwm_finish"
+        type="button"
+        className={`sheet-chip${marked ? ' is-on' : ''}`}
+        title="Отметить добивание рукопашным оружием в этот ход (хиты цели → 0) · не тратит действие"
+        onClick={() => onO05GwmFinishing()}
+      >
+        Добивание (0 хитов)
+      </button>,
+    )
+  }
+
   if (o05?.greatWeaponMaster && onO05GwmBonus) {
+    const gwmUsed = Boolean(teState.gwmBonusUsed)
     push(
       'gwm_bonus',
       ['bonus'],
@@ -1161,7 +1242,7 @@ export function TurnEconomyCombatActions({
       <button
         key="gwm_bonus"
         type="button"
-        className="sheet-chip"
+        className={`sheet-chip${gwmUsed ? ' is-spent' : ''}`}
         disabled={!gwmGate.ok}
         title={gwmGate.ok ? GWM_BONUS_ATTACK_HINT : gwmGate.reason}
         onClick={() => {
@@ -1171,6 +1252,11 @@ export function TurnEconomyCombatActions({
           onToast?.('Мастер большого оружия: бонусная рукопашная атака оружием')
         }}
       >
+        {gwmUsed ? (
+          <span className="sheet-chip__check" aria-hidden>
+            ✓
+          </span>
+        ) : null}
         Атака Мастера большого оружия
       </button>,
     )
@@ -1365,6 +1451,7 @@ export function TurnEconomyCombatActions({
   }
 
   if (o05?.shieldMaster && onO05ShieldShove) {
+    const shieldUsed = Boolean(teState.shieldMasterShoveUsed)
     push(
       'shield_shove',
       ['bonus'],
@@ -1372,7 +1459,7 @@ export function TurnEconomyCombatActions({
       <button
         key="shield_shove"
         type="button"
-        className="sheet-chip"
+        className={`sheet-chip${shieldUsed ? ' is-spent' : ''}`}
         disabled={!shieldGate.ok}
         title={
           shieldGate.ok
@@ -1391,6 +1478,11 @@ export function TurnEconomyCombatActions({
           onO05ShieldShove()
         }}
       >
+        {shieldUsed ? (
+          <span className="sheet-chip__check" aria-hidden>
+            ✓
+          </span>
+        ) : null}
         Толчок щитом
       </button>,
     )

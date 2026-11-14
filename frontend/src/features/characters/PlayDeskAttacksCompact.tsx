@@ -913,8 +913,18 @@ export function PlayDeskAttacksCompact({
     if (row.track === 'stock') return true
     return row.used < row.max
   })
+  /** Features that live in Действие/Бонусное/Реакция — do not also show as a free chip-row. */
+  const turnGroupedFeatureIds = new Set([
+    'steady_aim',
+    'cunning_action',
+    'uncanny_dodge',
+    'ki_fueled_attack',
+  ])
   const deskCombatFeatures = combatFeatures.filter(
-    (row) => row.desk === 'combat' && row.name_ru.trim(),
+    (row) =>
+      row.desk === 'combat' &&
+      row.name_ru.trim() &&
+      !turnGroupedFeatureIds.has(row.id),
   )
   /** CMB-01: ammo shown under a weapon must not auto-duplicate in «Расходники». */
   const ammoIdsUnderWeapons = useMemo(() => {
@@ -1145,33 +1155,15 @@ export function PlayDeskAttacksCompact({
           ) : null}
           {/* CMB-02: Действие · Бонусное · Реакция — без свёрнутого details. */}
           <div className="play-desk-turn-actions-wrap">
-          {hasGwm ? (
-            <div className="chip-row play-desk-turn-actions__gwm">
-              <button
-                type="button"
-                className="sheet-chip"
-                title="Отметить добивание рукопашным оружием в этот ход (хиты цели → 0)"
-                onClick={() => {
-                  turnEco?.patchTurnEconomy(markMeleeWeaponCritOrKill)
-                  onToast?.('Мастер большого оружия: добивание отмечено · бонусная атака доступна')
-                }}
-              >
-                Добивание (0 хитов)
-              </button>
-            </div>
-          ) : null}
           <TurnEconomyCombatActions
             mode="all"
             hasCunningAction={
               hasCunningAction ||
               combatFeatures.some((f) => f.id === 'cunning_action')
             }
-            hasSteadyAim={
-              tceAllowed && combatFeatures.some((f) => f.id === 'steady_aim')
-            }
-            hasKiFueledAttack={
-              tceAllowed && combatFeatures.some((f) => f.id === 'ki_fueled_attack')
-            }
+            hasSteadyAim={combatFeatures.some((f) => f.id === 'steady_aim')}
+            hasKiFueledAttack={combatFeatures.some((f) => f.id === 'ki_fueled_attack')}
+            hasUncannyDodge={combatFeatures.some((f) => f.id === 'uncanny_dodge')}
             hasInterception={hasInterception}
             hasBlindFighting={hasBlindFighting}
             hasChainMaster={hasChainMaster}
@@ -1346,6 +1338,10 @@ export function PlayDeskAttacksCompact({
             }}
             onO05GwmBonus={() => {
               onToast?.('Сделай одну рукопашную атаку оружием (бонусное уже отмечено)')
+            }}
+            onO05GwmFinishing={() => {
+              turnEco?.patchTurnEconomy(markMeleeWeaponCritOrKill)
+              onToast?.('Мастер большого оружия: добивание отмечено · бонусная атака доступна')
             }}
             onO05ChargerAttack={() => {
               setChargerPlus5Next(true)

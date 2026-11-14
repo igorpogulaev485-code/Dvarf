@@ -793,6 +793,27 @@ button.spells-settings__derived-stat--btn:hover {
   opacity: 0.5;
 }
 
+/* CMB-03: spent/unavailable variants — dim + optional ✓, never strikethrough.
+ * Beat .sheet-chip:disabled from 06-companions-features.css (loaded earlier). */
+.play-desk-turn-actions .sheet-chip:disabled,
+.play-desk-turn-actions .sheet-chip.is-blocked,
+.play-desk-turn-actions .sheet-chip.is-spent,
+.play-desk-turn-actions__panel .sheet-chip:disabled,
+.play-desk-turn-actions__chips .sheet-chip:disabled {
+  text-decoration: none !important;
+}
+
+.play-desk-turn-actions .sheet-chip.is-spent {
+  opacity: 0.72;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.play-desk-turn-actions .sheet-chip:disabled:not(.is-spent) {
+  opacity: 0.5;
+}
+
 .play-desk-turn-actions__panel {
   display: grid;
   gap: 6px;
@@ -831,10 +852,6 @@ button.spells-settings__derived-stat--btn:hover {
 
 .play-desk-turn-actions__info .sheet-chip.is-stub {
   cursor: default;
-}
-
-.play-desk-turn-actions__gwm {
-  margin: 0;
 }
 
 .play-desk-turn-marks {
