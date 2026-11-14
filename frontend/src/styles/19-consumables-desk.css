@@ -251,19 +251,14 @@
   background: var(--card);
 }
 
+/* SCN-01: не sticky — иначе «Пассивы» наезжают на навыки рельса при скролле */
 .play-desk__rail-foot {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
+  position: static;
+  z-index: auto;
   display: grid;
   gap: 6px;
   padding: 6px 0 2px;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--panel) 0%, transparent) 0%,
-    color-mix(in srgb, var(--panel) 92%, white) 28%,
-    color-mix(in srgb, var(--panel) 96%, white) 100%
-  );
+  background: transparent;
 }
 
 .play-desk__passives--compact {

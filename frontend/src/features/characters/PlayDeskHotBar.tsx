@@ -77,7 +77,7 @@ function ResourceChip({
       </div>
     )
   }
-  /* До SC / UIKIT: квадратики зарядов; ± только для пулов >10 (Lay on Hands и т.п.). */
+  /* SCN-01: квадратики при max ≤ 5; ± счётчик при max > 5 (Lay on Hands и т.п.). */
   return (
     <div
       className={`play-desk__hot-item play-desk__hot-item--res${
@@ -293,18 +293,23 @@ function ConditionsHotCard({
     return (
       <button
         type="button"
-        className="play-desk__hot-item play-desk__hot-item--btn play-desk__hot-item--compact play-desk__hot-item--empty-row"
+        className="play-desk__hot-item play-desk__hot-item--btn play-desk__hot-item--states play-desk__hot-item--states-empty"
         title={
           emptyChrome
             ? 'Состояния и концентрация — открыть'
             : 'Нажми, чтобы изменить состояния'
         }
+        aria-label="Состояния: нет"
         aria-pressed={false}
         onClick={onOpenConditions}
         data-sc06-hot-empty={emptyChrome ? '1' : '0'}
+        data-scn01-states-empty="1"
       >
-        <IconConditions className="play-desk__hot-icon" />
-        <span className="play-desk__hot-label">Состояния</span>
+        <span className="play-desk__hot-res-head">
+          <IconConditions className="play-desk__hot-icon" />
+          <span className="play-desk__hot-label">Состояния</span>
+        </span>
+        <span className="play-desk__hot-cond-empty">нет</span>
       </button>
     )
   }

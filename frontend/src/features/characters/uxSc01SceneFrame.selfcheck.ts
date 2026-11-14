@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url'
 const here = dirname(fileURLToPath(import.meta.url))
 const attacks = readFileSync(join(here, 'PlayDeskAttacksCompact.tsx'), 'utf8')
 const strip = readFileSync(join(here, 'TurnEconomyStrip.tsx'), 'utf8')
+const sceneTurn = readFileSync(join(here, 'SceneTurnControls.tsx'), 'utf8')
 const layout = readFileSync(join(here, 'minimalSheet/PlayDeskLayout.tsx'), 'utf8')
 const effects = readFileSync(join(here, 'ActiveEffectsPanel.tsx'), 'utf8')
 const hot = readFileSync(join(here, 'PlayDeskHotBar.tsx'), 'utf8')
@@ -47,11 +48,15 @@ assert.match(afterMore, /deskCombatFeatures/)
 assert.doesNotMatch(afterMore, /Без укрытия/)
 assert.match(afterMore, /mode="everyTurn"/)
 
-// M-02: one «Кубики на столе» in TurnEconomyStrip; not in attacks head.
-assert.match(strip, /Кубики на столе/)
+// SCN-01: «Кубики на столе» / «Новый ход» in SceneTurnControls; not in attacks head.
+assert.match(sceneTurn, /Кубики на столе/)
+assert.match(sceneTurn, /Новый ход/)
+assert.match(layout, /SceneTurnControls/)
+assert.doesNotMatch(strip, /Кубики на столе/)
 assert.equal(/play-desk-compact__dice-toggle/.test(attacks), false)
 assert.doesNotMatch(strip, /TurnEconomyCombatActions/)
 assert.doesNotMatch(strip, /<TurnEconomyChips/)
+assert.match(hot, /play-desk__hot-item--states-empty|data-scn01-states-empty/)
 
 // UIKIT-02: полоска навыков сцены снова на десктопе/планшете (как до SC-01).
 assert.match(

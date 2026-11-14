@@ -98,6 +98,23 @@
   border-color: var(--desk-line);
 }
 
+/* SCN-01: компетентность на полоске навыков — сильнее владения */
+.play-desk__hot--skills .play-desk__hot-item--btn.is-on.is-expert {
+  background: color-mix(in srgb, var(--desk-accent-soft) 35%, var(--desk-accent));
+  border-color: var(--desk-accent);
+  border-width: 2px;
+  font-weight: 700;
+}
+
+.play-desk__skill-expert-mark {
+  display: inline-block;
+  margin-left: 3px;
+  font-size: 0.65em;
+  vertical-align: 0.15em;
+  color: var(--desk-accent);
+  line-height: 1;
+}
+
 /* Inside ScrollRow the wrap rule forces flex:0 0 auto; base must not grow/wrap the strip */
 .play-desk__hot-item--wide {
   flex: 0 0 auto;
@@ -117,7 +134,7 @@
   color: var(--desk-ink);
 }
 
-/* HOT-01: «Состояния» — fixed width (no grow from chip count); chips + +N */
+/* HOT-01 / SCN-01: «Состояния» — fixed width/height always (empty → «нет») */
 .play-desk__hot-wrap .play-desk__hot-item--states,
 .ui-scroll-row.play-desk__hot-wrap > .play-desk__hot > .play-desk__hot-item--states {
   flex: 0 0 auto;
@@ -131,10 +148,27 @@
   padding: 6px 8px;
   align-content: start;
   min-height: 52px;
+  height: 52px;
   text-align: left;
   color: var(--desk-ink);
   background: var(--desk-accent-soft);
   border-color: var(--desk-line);
+}
+
+.play-desk__hot-wrap .play-desk__hot-item--states-empty,
+.ui-scroll-row.play-desk__hot-wrap
+  > .play-desk__hot
+  > .play-desk__hot-item--states-empty {
+  background: #fff;
+  color: var(--desk-ink);
+}
+
+.play-desk__hot-cond-empty {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+  line-height: 1.2;
 }
 
 .play-desk__hot-cond-row {

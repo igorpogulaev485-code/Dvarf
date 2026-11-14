@@ -58,8 +58,8 @@ function cycleSkill(state: SkillState): SkillState {
 }
 
 function skillProfTitle(state: SkillState): string {
-  if (state.is_expertise) return 'Экспертиза — клик: снять'
-  if (state.is_proficient) return 'Владение — клик: экспертиза'
+  if (state.is_expertise) return 'Компетентность — клик: снять'
+  if (state.is_proficient) return 'Владение — клик: компетентность'
   return 'Нет владения — клик: владение'
 }
 

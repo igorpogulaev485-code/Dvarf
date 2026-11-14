@@ -88,16 +88,13 @@
 .play-desk--mobile
   .ui-scroll-row.play-desk__hot-wrap
   > .play-desk__hot
-  > .play-desk__hot-item--states {
+  > .play-desk__hot-item--states,
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--states-empty {
   width: 10.5rem;
   min-width: 10.5rem;
   max-width: 10.5rem;
-}
-.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--compact,
-.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--empty-row {
-  flex: 0 0 auto;
-  min-width: 0;
-  min-height: 40px;
+  min-height: 48px;
+  height: 48px;
   padding: 4px 8px;
 }
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--res,
@@ -303,6 +300,26 @@
 
 .mobile-combat-roll__btn--history {
   flex: 1.15;
+}
+
+/* SCN-01: ход/кубики входят в тот же segmented row */
+.mobile-combat-roll .scene-turn-controls {
+  display: contents;
+}
+
+.mobile-combat-roll .scene-turn-controls__begin,
+.mobile-combat-roll .scene-turn-controls__dice {
+  flex: 0.85 1 0;
+}
+
+.mobile-combat-roll--turn-only {
+  width: auto;
+  max-width: 100%;
+  align-self: flex-start;
+}
+
+.mobile-combat-roll--turn-only .scene-turn-controls {
+  display: contents;
 }
 
 /* UIKIT-02: навыки — одна строка + скролл (как ресурсы); legacy grid только у --skills-mobile */

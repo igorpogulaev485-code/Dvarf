@@ -12,7 +12,7 @@ import { MOBILE_SKILL_PINNED_COUNT } from './PlayDeskSkillStrip'
 const here = dirname(fileURLToPath(import.meta.url))
 const vitals = readFileSync(join(here, 'MobileVitalsBar.tsx'), 'utf8')
 const attacks = readFileSync(join(here, 'PlayDeskAttacksCompact.tsx'), 'utf8')
-const strip = readFileSync(join(here, 'TurnEconomyStrip.tsx'), 'utf8')
+const sceneTurn = readFileSync(join(here, 'SceneTurnControls.tsx'), 'utf8')
 const skills = readFileSync(join(here, 'PlayDeskSkillStrip.tsx'), 'utf8')
 const hot = readFileSync(join(here, 'PlayDeskHotBar.tsx'), 'utf8')
 const layout = readFileSync(join(here, 'minimalSheet/PlayDeskLayout.tsx'), 'utf8')
@@ -26,8 +26,9 @@ assert.match(vitals, /return true/)
 // M04 — bottom padding clears Bottom Scene Nav
 assert.match(shell, /padding-bottom:\s*calc\(72px/)
 
-// M13 — one «Кубики на столе» (strip keeps it; attacks head drops duplicate)
-assert.match(strip, /Кубики на столе/)
+// M13 / SCN-01 — one «Кубики на столе» in SceneTurnControls; attacks head drops duplicate
+assert.match(sceneTurn, /Кубики на столе/)
+assert.match(layout, /SceneTurnControls/)
 assert.equal(
   /play-desk-compact__dice-toggle/.test(attacks),
   false,

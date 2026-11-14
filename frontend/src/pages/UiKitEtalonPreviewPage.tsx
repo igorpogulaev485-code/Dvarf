@@ -60,16 +60,79 @@ export function UiKitEtalonPreviewPage() {
         </div>
 
         <div>
-          <Text as="h2">Hot resource cards (HOT-01)</Text>
+          <Text as="h2">SCN-01 · SceneTurnControls</Text>
           <Text tone="muted">
-            Одна высота, название в одну строку с ellipsis + title; квадратики gap 4px
+            «Новый ход» + «кубики» рядом с норм/преим./помеха — без отдельной карточки
           </Text>
           <div
-            className="play-desk__hot"
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 8,
+              alignItems: 'center',
+              marginTop: 8,
+            }}
+          >
+            <div className="play-desk__roll-mode" role="group" aria-label="Преимущество">
+              <button type="button" className="play-desk__roll-mode-btn is-on">
+                норм
+              </button>
+              <button type="button" className="play-desk__roll-mode-btn">
+                преим.
+              </button>
+              <button type="button" className="play-desk__roll-mode-btn">
+                помеха
+              </button>
+              <button type="button" className="play-desk__roll-mode-btn">
+                броски
+              </button>
+            </div>
+            <div
+              className="scene-turn-controls scene-turn-controls--desk"
+              role="group"
+              aria-label="Ход и кубики"
+              data-scn01-scene-turn="1"
+            >
+              <button type="button" className="play-desk__roll-mode-btn">
+                Новый ход
+              </button>
+              <label className="play-desk__roll-mode-btn scene-turn-controls__dice is-on">
+                <input type="checkbox" checked readOnly aria-label="Кубики на столе" />
+                <span>кубики</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <Text as="h2">Hot resource cards (HOT-01 / SCN-01)</Text>
+          <Text tone="muted">
+            Состояния — фикс. ширина/высота (пусто → «нет»); max ≤ 5 квадратики, max &gt; 5 —
+            счётчик −/+
+          </Text>
+          <div
+            className="play-desk__hot play-desk__hot-wrap"
             style={{ display: 'flex', gap: 6, flexWrap: 'nowrap', marginTop: 8 }}
           >
-            <button type="button" className="play-desk__hot-item play-desk__hot-item--btn play-desk__hot-item--wide is-on">
-              <span className="play-desk__hot-label">Состояния: Оглохший</span>
+            <button
+              type="button"
+              className="play-desk__hot-item play-desk__hot-item--btn play-desk__hot-item--states play-desk__hot-item--states-empty"
+            >
+              <span className="play-desk__hot-res-head">
+                <span className="play-desk__hot-label">Состояния</span>
+              </span>
+              <span className="play-desk__hot-cond-empty">нет</span>
+            </button>
+            <button
+              type="button"
+              className="play-desk__hot-item play-desk__hot-item--btn play-desk__hot-item--states is-on"
+            >
+              <span className="play-desk__hot-res-head">
+                <span className="play-desk__hot-label">Состояния</span>
+              </span>
+              <span className="play-desk__hot-cond-row">
+                <span className="play-desk__hot-cond-chip">Оглохший</span>
+              </span>
             </button>
             <div className="play-desk__hot-item play-desk__hot-item--res">
               <span className="play-desk__hot-res-head">
@@ -95,19 +158,63 @@ export function UiKitEtalonPreviewPage() {
                 onChange={() => undefined}
               />
             </div>
-            <div className="play-desk__hot-item play-desk__hot-item--res">
+            <div className="play-desk__hot-item play-desk__hot-item--res play-desk__hot-item--res-compact">
               <span className="play-desk__hot-res-head">
-                <span className="play-desk__hot-res-name" title="Кости превосходства">
-                  Кости превосходства
+                <span className="play-desk__hot-res-name" title="Наложение рук">
+                  Наложение рук
                 </span>
               </span>
-              <ResourcePips
-                max={4}
-                used={0}
-                label="Кости превосходства"
-                onChange={() => undefined}
-              />
+              <div
+                className="play-desk__stepper"
+                role="group"
+                aria-label="Наложение рук: 18/25"
+              >
+                <button type="button" className="play-desk__step" aria-label="потратить">
+                  −
+                </button>
+                <span className="play-desk__stepper-value">
+                  18
+                  <span className="play-desk__stepper-max">/25</span>
+                </span>
+                <button type="button" className="play-desk__step" aria-label="вернуть">
+                  +
+                </button>
+              </div>
             </div>
+          </div>
+        </div>
+
+        <div>
+          <Text as="h2">SCN-01 · навыки: владение vs компетентность</Text>
+          <div
+            className="play-desk__hot play-desk__hot--skills"
+            style={{ display: 'flex', gap: 6, flexWrap: 'nowrap', marginTop: 8 }}
+          >
+            <button type="button" className="play-desk__hot-item play-desk__hot-item--btn">
+              <span>Атлетика</span>
+              <b>+0</b>
+            </button>
+            <button
+              type="button"
+              className="play-desk__hot-item play-desk__hot-item--btn is-on"
+              title="Акробатика: +5 · владение"
+            >
+              <span>Акробатика</span>
+              <b>+5</b>
+            </button>
+            <button
+              type="button"
+              className="play-desk__hot-item play-desk__hot-item--btn is-on is-expert"
+              title="Скрытность: +7 · компетентность"
+            >
+              <span>
+                Скрытность
+                <span className="play-desk__skill-expert-mark" aria-hidden="true">
+                  ◆
+                </span>
+              </span>
+              <b>+7</b>
+            </button>
           </div>
         </div>
 

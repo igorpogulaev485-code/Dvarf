@@ -25,6 +25,8 @@ import { SheetDialogsRolls } from './SheetDialogsRolls'
 import { SheetDialogsResources } from './SheetDialogsResources'
 import { SheetDialogsSetup } from './SheetDialogsSetup'
 import { TurnEconomyDeskHost } from '../TurnEconomyDeskHost'
+import { TurnEconomyStrip } from '../TurnEconomyStrip'
+import { SceneTurnControls } from '../SceneTurnControls'
 
 export function PlayDeskLayout({ model }: { model: SheetModel }) {
   return (
@@ -52,6 +54,11 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
         </aside>
 
         <div className="play-desk__stage">
+          {/*
+            SCN-01: TurnEconomy wraps modes so SceneTurnControls (Новый ход / кубики)
+            live in the scene toolbar — no separate card row under tabs.
+          */}
+          <TurnEconomyDeskHost model={model}>
           {model.isPlayDesk ? (
             <div className="play-desk__modes" aria-label="Сцены листа">
               <div className="play-desk__mode-tabs" data-onboarding="desk-modes" role="group" aria-label="Вкладки сцен">
@@ -148,6 +155,11 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                     : ''}
                 </button>
               </div>
+              <SceneTurnControls
+                showValueTips={Boolean(model.showValueTips)}
+                className="scene-turn-controls scene-turn-controls--desk"
+                buttonClassName="play-desk__roll-mode-btn"
+              />
               {modeUsesSpellSplit(model.draft.sheetUi.deskMode) ? (
                 <button
                   type="button"
@@ -169,11 +181,24 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             </div>
           ) : null}
 
-          {/*
-            SC-06: «Новый ход» сразу после шапки/вкладок, до горячей полосы и навыков —
-            на 390 первый экран «Бой» доходит до оружия.
-          */}
-          <TurnEconomyDeskHost model={model}>
+          <TurnEconomyStrip />
+
+          {!model.isPlayDesk &&
+          (model.draft.sheetUi.deskMode === 'companions' ||
+            model.draft.sheetUi.deskMode === 'features') ? (
+            <div
+              className="mobile-combat-roll mobile-combat-roll--turn-only"
+              role="group"
+              aria-label="Ход и кубики"
+            >
+              <SceneTurnControls
+                showValueTips={Boolean(model.showValueTips)}
+                className="scene-turn-controls"
+                buttonClassName="mobile-combat-roll__btn"
+              />
+            </div>
+          ) : null}
+
           <PlayDeskHotBar
             conditionNames={model.hotConditionNames}
             exhaustion={model.draft.play.exhaustion}
@@ -349,6 +374,11 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                     ? ` ${Math.min(model.draft.sheetUi.rollHistory.length, 99)}`
                     : ''}
                 </button>
+                <SceneTurnControls
+                  showValueTips={Boolean(model.showValueTips)}
+                  className="scene-turn-controls"
+                  buttonClassName="mobile-combat-roll__btn"
+                />
               </div>
             </div>
           ) : null}
@@ -442,6 +472,11 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                   ? ` ${Math.min(model.draft.sheetUi.rollHistory.length, 99)}`
                   : ''}
               </button>
+              <SceneTurnControls
+                showValueTips={Boolean(model.showValueTips)}
+                className="scene-turn-controls"
+                buttonClassName="mobile-combat-roll__btn"
+              />
             </div>
           ) : null}
 
@@ -533,6 +568,11 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                   ? ` ${Math.min(model.draft.sheetUi.rollHistory.length, 99)}`
                   : ''}
               </button>
+              <SceneTurnControls
+                showValueTips={Boolean(model.showValueTips)}
+                className="scene-turn-controls"
+                buttonClassName="mobile-combat-roll__btn"
+              />
             </div>
           ) : null}
 

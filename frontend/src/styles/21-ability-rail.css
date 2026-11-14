@@ -338,12 +338,27 @@
   box-shadow: inset 0 0 0 2px #fff;
 }
 
+/* SCN-01: компетентность — двойное кольцо + насыщенная заливка */
 .abil-prof-pip.is-expert::after {
   background: var(--abil);
   border-color: var(--abil);
   box-shadow:
-    inset 0 0 0 2px #fff,
-    0 0 0 2px color-mix(in srgb, var(--abil) 55%, white);
+    inset 0 0 0 2.5px #fff,
+    0 0 0 2.5px var(--abil);
+}
+
+.abil-prof-pip.is-expert::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border-radius: 999px;
+  background: #fff;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .abil-block__skills {
@@ -381,11 +396,14 @@
   font-weight: 600;
 }
 
+/* SCN-01: компетентность заметно сильнее владения */
 .abil-skill.is-expert {
   font-weight: 700;
-  background: color-mix(in srgb, var(--abil-soft) 72%, white);
-  border-color: color-mix(in srgb, var(--abil) 42%, var(--line));
-  color: var(--abil);
+  background: color-mix(in srgb, var(--abil-soft) 55%, var(--abil));
+  border-color: var(--abil);
+  border-width: 2px;
+  color: color-mix(in srgb, var(--abil) 70%, #1c1917);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--abil) 35%, white);
 }
 
 .abil-skill__name {
