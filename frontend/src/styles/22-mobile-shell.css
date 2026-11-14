@@ -65,8 +65,10 @@
   display: flex;
   flex-wrap: nowrap;
   gap: 4px;
-  /* HOT-01: rim 4–6px (no empty lead); scroll-padding = mobile fade for JS snap */
-  padding: 4px 6px;
+  /* HOT-01: rim 4–6px lead; end spacer = mobile fade+chevron for max clearance */
+  padding-block: 4px;
+  padding-inline-start: 6px;
+  padding-inline-end: 60px; /* 52 fade + 8 clearance */
   scroll-padding-inline: 52px;
   scroll-snap-type: none;
   overflow-x: auto;
