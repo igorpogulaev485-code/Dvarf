@@ -494,6 +494,32 @@
   overflow-wrap: anywhere;
 }
 
+.play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__hit {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__rolls {
+  width: max-content;
+  max-width: 100%;
+  margin-left: 0; /* column stack: left-align +N/dmg for every weapon */
+  grid-template-columns: 3.25rem max-content;
+}
+
+.play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__mod--roll {
+  width: 100%;
+  text-align: center;
+}
+
+.play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__dmg--roll {
+  width: max-content;
+  max-width: min(14rem, 100%);
+  justify-self: start;
+  text-align: center;
+}
+
 .play-desk--mobile .play-desk-compact__holds {
   flex-wrap: nowrap;
 }

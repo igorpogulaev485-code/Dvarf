@@ -2703,6 +2703,7 @@ export function PlayDeskAttacksCompact({
                       </span>
                     ) : null}
                   </div>
+                  <div className="play-desk-compact__rolls" role="group" aria-label="Броски атаки и урона">
                   <button
                     key={`${attack.id}:${dmgLine}:${formatModifier(attackBonus)}`}
                     type="button"
@@ -3393,6 +3394,7 @@ export function PlayDeskAttacksCompact({
                   >
                     {dmgLine}
                   </button>
+                  </div>
                 </div>
                 <div className="play-desk-compact__weapon-tools">
                   <div
@@ -3404,11 +3406,14 @@ export function PlayDeskAttacksCompact({
                       <Button
                         type="button"
                         size="sm"
-                        variant={hasManualMods ? 'primary' : 'secondary'}
-                        className="ui-button--icon play-desk-compact__tool"
+                        variant="secondary"
+                        className={`ui-button--icon play-desk-compact__tool${
+                          hasManualMods ? ' is-on' : ''
+                        }`}
                         onClick={openWeaponMods}
                         title="Модификаторы атаки и урона"
                         aria-label="Модификаторы атаки и урона"
+                        aria-pressed={hasManualMods}
                       >
                         <IconAttackMods className="play-desk-compact__tool-icon" />
                       </Button>
@@ -3417,8 +3422,10 @@ export function PlayDeskAttacksCompact({
                       <Button
                         type="button"
                         size="sm"
-                        variant={attack.mode_active ? 'primary' : 'secondary'}
-                        className="ui-button--icon play-desk-compact__tool play-desk-compact__tool--desk"
+                        variant="secondary"
+                        className={`ui-button--icon play-desk-compact__tool play-desk-compact__tool--desk${
+                          attack.mode_active ? ' is-on' : ''
+                        }`}
                         onClick={() => onToggleActivation(attack)}
                         title={
                           attack.mode_active
@@ -3430,6 +3437,7 @@ export function PlayDeskAttacksCompact({
                             ? 'Выключить режим'
                             : `${attack.activation.name}: ${attack.activation.active_damage}`
                         }
+                        aria-pressed={Boolean(attack.mode_active)}
                       >
                         <IconWeaponMode className="play-desk-compact__tool-icon" />
                       </Button>
@@ -3438,11 +3446,14 @@ export function PlayDeskAttacksCompact({
                       <Button
                         type="button"
                         size="sm"
-                        variant={attack.held ? 'primary' : 'secondary'}
-                        className="ui-button--icon play-desk-compact__tool play-desk-compact__tool--desk"
+                        variant="secondary"
+                        className={`ui-button--icon play-desk-compact__tool play-desk-compact__tool--desk${
+                          attack.held ? ' is-on' : ''
+                        }`}
                         onClick={() => onToggleHeld(attack)}
                         title={attack.held ? 'Убрать из рук' : 'Взять в руки'}
                         aria-label={attack.held ? 'Убрать из рук' : 'Взять в руки'}
+                        aria-pressed={Boolean(attack.held)}
                       >
                         <IconWeaponHold className="play-desk-compact__tool-icon" />
                       </Button>
@@ -3672,12 +3683,14 @@ export function PlayDeskAttacksCompact({
                     className="play-desk__stepper play-desk-compact__resource-track"
                     role="group"
                     aria-label={`${row.name}: ${remaining}/${row.max}`}
+                    title={`${row.name}: ${remaining}/${row.max} · − потратить · + вернуть`}
                   >
                     <button
                       type="button"
                       className="play-desk__step"
                       disabled={!canSpend}
                       aria-label={`${row.name}: потратить 1`}
+                      title="Потратить"
                       onClick={() => onSpendResource?.(row.id)}
                     >
                       −
@@ -3691,19 +3704,28 @@ export function PlayDeskAttacksCompact({
                       className="play-desk__step"
                       disabled={!canRestore}
                       aria-label={`${row.name}: вернуть 1`}
+                      title="Вернуть"
                       onClick={() => patchUsed(Math.max(0, row.used - 1))}
                     >
                       +
                     </button>
                   </div>
                 ) : (
-                  <ResourcePips
-                    max={row.max}
-                    used={row.used}
-                    fillMode="available"
-                    label={`${row.name}: ${remaining}/${row.max}`}
-                    onChange={patchUsed}
-                  />
+                  <div
+                    className="play-desk-compact__resource-track"
+                    title={`${row.name}: ${remaining} доступно из ${row.max} · нажми квадрат — потратить`}
+                  >
+                    <span className="play-desk-compact__resource-count" aria-hidden>
+                      {remaining}/{row.max}
+                    </span>
+                    <ResourcePips
+                      max={row.max}
+                      used={row.used}
+                      fillMode="available"
+                      label={`${row.name}: ${remaining}/${row.max}`}
+                      onChange={patchUsed}
+                    />
+                  </div>
                 )}
               </div>
             </div>

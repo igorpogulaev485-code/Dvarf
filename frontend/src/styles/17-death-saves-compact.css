@@ -571,18 +571,28 @@
   white-space: normal;
 }
 
+/* CMB-01: +N and damage share one rolls cluster — content-sized, not a half-row field. */
+.play-desk-compact__rolls {
+  display: grid;
+  grid-template-columns: 3.25rem max-content;
+  gap: 6px;
+  align-items: center;
+  flex: 0 0 auto;
+  min-width: 0;
+  margin-left: auto;
+}
+
 .play-desk-compact__row.is-attack .play-desk-compact__mod {
   font-variant-numeric: tabular-nums;
   flex: 0 0 auto;
-  min-width: 2.6rem;
+  min-width: 0;
   text-align: center;
 }
 
 .play-desk-compact__row.is-attack .play-desk-compact__dmg {
-  flex: 1 1 6rem;
+  flex: 0 0 auto;
   min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
@@ -592,8 +602,8 @@
   margin: 0;
   border: 1px solid var(--desk-line, var(--line));
   border-radius: 8px;
-  background: color-mix(in srgb, var(--desk-card, var(--card)) 70%, white);
-  color: inherit;
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
+  color: var(--desk-accent, var(--accent));
   font: inherit;
   font-weight: 700;
   line-height: 1.2;
@@ -601,18 +611,23 @@
   padding: 4px 8px;
   min-height: 32px;
   box-sizing: border-box;
+  width: max-content;
+  max-width: 100%;
 }
 
 .play-desk-compact__mod--roll {
-  min-width: 2.8rem;
+  width: 100%;
+  min-width: 0;
   text-align: center;
-  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
   border-color: color-mix(
     in srgb,
     var(--desk-accent, var(--accent)) 35%,
     var(--desk-line, var(--line))
   );
-  color: var(--desk-accent, var(--accent));
+}
+
+.play-desk-compact__dmg--roll {
+  justify-self: start;
 }
 
 .play-desk-compact__mod--roll:hover,

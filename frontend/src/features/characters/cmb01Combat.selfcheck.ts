@@ -14,15 +14,23 @@ const read = (rel: string) => readFileSync(join(root, rel), 'utf8')
 const attacks = read('src/features/characters/PlayDeskAttacksCompact.tsx')
 assert.match(attacks, /play-desk-compact__mod--roll/)
 assert.match(attacks, /play-desk-compact__dmg--roll/)
+assert.match(attacks, /play-desk-compact__rolls/)
 assert.match(attacks, /Действия хода/)
 assert.match(attacks, /play-desk-attacks-more__hint/)
 assert.match(attacks, /play-desk-compact__ammo-spend/)
 assert.match(attacks, /hideAutoItemIds/)
 assert.match(attacks, /ResourcePips/)
 assert.match(attacks, /shouldUseCompactResourceTrack/)
+assert.match(attacks, /play-desk-compact__resource-count/)
 assert.match(attacks, /play-desk-compact__end/)
 assert.match(attacks, /play-desk-compact__tool-more/)
+assert.match(attacks, /aria-pressed=\{Boolean\(attack\.held\)\}/)
 assert.doesNotMatch(attacks, /Ещё \/ Действия хода/)
+/* Hold/mode stay light secondary — not solid primary (icon vanishes on .desk-icon). */
+assert.doesNotMatch(
+  attacks,
+  /variant=\{attack\.held \? 'primary' : 'secondary'\}/,
+)
 
 const details = read('src/ui/DetailsMenu.tsx')
 assert.match(details, /data-menu-open/)

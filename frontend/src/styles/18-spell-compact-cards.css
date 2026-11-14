@@ -277,8 +277,10 @@
   );
 }
 
+/* CMB-01: resource face like hot-bar card (not solid soft fill — pips must read). */
 .play-desk-compact__row.is-resource {
-  background: var(--desk-accent-soft);
+  background: #fff;
+  border-color: var(--desk-line, var(--line));
   padding: 6px 8px;
 }
 
@@ -456,10 +458,25 @@
   padding: 0;
 }
 
+/* Keep tool icons visible: .desk-icon forces accent which vanishes on primary fill. */
+.play-desk-compact__tool .desk-icon,
 .play-desk-compact__tool-icon {
   width: 16px;
   height: 16px;
   display: block;
+  color: currentColor;
+}
+
+/* Held / mode / mods — light kit face with pressed border (not solid primary). */
+.play-desk-compact__tool.is-on {
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 80%, white);
+  border-color: color-mix(
+    in srgb,
+    var(--desk-accent, var(--accent)) 45%,
+    var(--desk-line, var(--line))
+  );
+  color: var(--desk-accent, var(--accent));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--desk-accent, var(--accent)) 25%, transparent);
 }
 
 .play-desk-compact__tool-more {
@@ -552,7 +569,16 @@
 }
 
 .play-desk-compact__resource-track {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
   justify-self: end;
+}
+
+.play-desk-compact__resource-track .play-desk-compact__resource-count {
+  color: var(--desk-muted, var(--muted));
+  font-size: 0.78rem;
 }
 
 .play-desk-compact__resource-dice {

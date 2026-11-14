@@ -242,17 +242,39 @@
   }
 
   .play-desk-compact__row.is-attack .play-desk-compact__hit {
+    display: flex;
+    flex-direction: column;
     flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 6px;
   }
 
   .play-desk-compact__row.is-attack .play-desk-compact__row-main {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
+    width: 100%;
     min-width: 0;
   }
 
+  /* +N / damage — same start columns for every weapon; both content-sized. */
+  .play-desk-compact__row.is-attack .play-desk-compact__rolls {
+    width: max-content;
+    max-width: 100%;
+    margin-left: 0;
+    grid-template-columns: 3.25rem max-content;
+  }
+
+  .play-desk-compact__row.is-attack .play-desk-compact__mod--roll {
+    width: 100%;
+    text-align: center;
+  }
+
   .play-desk-compact__row.is-attack .play-desk-compact__dmg--roll {
-    flex: 0 1 auto;
-    max-width: 42%;
+    width: max-content;
+    max-width: min(14rem, 100%);
+    justify-self: start;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }
 
