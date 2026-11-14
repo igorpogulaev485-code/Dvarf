@@ -316,12 +316,19 @@ async function shotOwnershipView(page, path) {
 async function shotDarkvision(page, path) {
   await expandAbilities(page)
   await page.evaluate(() => {
-    document.querySelector('.darkvision-sense')?.scrollIntoView?.({ block: 'center' })
+    const mobile = document.querySelector('.mobile-abil-page')
+    const useMobile = mobile && getComputedStyle(mobile).display !== 'none'
+    const root = useMobile ? mobile : document
+    root.querySelector('.darkvision-sense')?.scrollIntoView?.({ block: 'center' })
   })
   await page.waitForTimeout(200)
   return shotClip(page, path, () => {
-    const passives = document.querySelector('.play-desk__passives')
-    const dv = document.querySelector('.darkvision-sense')
+    const mobile = document.querySelector('.mobile-abil-page')
+    const useMobile = mobile && getComputedStyle(mobile).display !== 'none'
+    const root = useMobile ? mobile : document
+    // Prefer visible mobile copy — desktop .play-desk__left may still be in DOM off-screen.
+    const passives = root.querySelector('.play-desk__passives')
+    const dv = root.querySelector('.darkvision-sense')
     const els = [passives, dv].filter(Boolean)
     if (!els.length) return null
     let top = Infinity
@@ -330,11 +337,13 @@ async function shotDarkvision(page, path) {
     let bottom = 0
     for (const el of els) {
       const r = el.getBoundingClientRect()
+      if (r.width < 2 || r.height < 2) continue
       top = Math.min(top, r.top)
       left = Math.min(left, r.left)
       right = Math.max(right, r.right)
       bottom = Math.max(bottom, r.bottom)
     }
+    if (!Number.isFinite(top)) return null
     return {
       x: Math.max(0, Math.round(left) - 4),
       y: Math.max(0, Math.round(top) - 4),
