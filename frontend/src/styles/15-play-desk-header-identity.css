@@ -178,7 +178,8 @@
   background: var(--desk-panel);
   box-shadow: 0 1px 0 rgba(26, 36, 32, 0.06);
   padding: 8px 10px;
-  overflow: hidden;
+  /* visible — kit DetailsMenu / effect tips must not clip (UIKIT-03 +N) */
+  overflow: visible;
 }
 
 .play-desk__top {
@@ -512,7 +513,13 @@ button.play-desk-header__name {
   gap: 4px;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
+  /* visible — DetailsMenu +N panel must not be clipped */
+  overflow: visible;
+}
+
+.ui-class-row__more {
+  position: relative;
+  z-index: 30;
 }
 
 .ui-class-row__more-item {
@@ -850,7 +857,13 @@ button.play-desk-header__identity:hover {
   gap: 4px 6px;
   min-width: 0;
   flex: 1 1 auto;
-  overflow: hidden;
+  /* visible — +N DetailsMenu panel must not be clipped */
+  overflow: visible;
+}
+
+.active-effects__more {
+  position: relative;
+  z-index: 30;
 }
 
 .active-effects__trail {

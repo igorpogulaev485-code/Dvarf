@@ -368,8 +368,29 @@ export function UiKit03HeaderPreviewPage() {
       <div
         className="play-desk play-desk--wide"
         data-testid="uikit03-desk"
-        style={{ marginTop: 8 }}
+        style={{
+          marginTop: 8,
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 220px) minmax(0, 1fr)',
+          gap: 12,
+          alignItems: 'start',
+        }}
       >
+        <aside
+          aria-hidden
+          style={{
+            minHeight: 120,
+            borderRadius: 12,
+            background: 'color-mix(in srgb, var(--accent-soft) 40%, #fff)',
+            border: '1px solid var(--line)',
+            padding: 8,
+            fontSize: 12,
+            color: 'var(--muted)',
+          }}
+        >
+          rail (preview)
+        </aside>
+        <div style={{ minWidth: 0 }}>
         <div className="play-desk__top" data-onboarding="combat-header">
           <PlayDeskHeader
             name={seed.name}
@@ -451,6 +472,7 @@ export function UiKit03HeaderPreviewPage() {
               )
             }
           />
+        </div>
         </div>
       </div>
     </main>

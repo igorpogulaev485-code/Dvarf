@@ -121,7 +121,8 @@ export function ClassChipRow({
         width = next
         kept += 1
       }
-      setVisibleCount(Math.max(0, kept))
+      // Prefer at least one class chip when any whole chip fits beside +N.
+      setVisibleCount(kept > 0 ? kept : 0)
     }
 
     recompute()
@@ -187,9 +188,9 @@ export function ClassChipRow({
         {overflow.length > 0 ? (
           <li className="ui-class-row__more-item">
             <DetailsMenu
-              className="ui-class-row__more active-effects__more"
-              summaryClassName="ui-class-row__more-summary active-effects__more-summary"
-              panelClassName="ui-class-row__more-panel active-effects__more-panel"
+              className="ui-class-row__more"
+              summaryClassName="ui-class-row__more-summary"
+              panelClassName="ui-class-row__more-panel"
               summary={`+${overflow.length}`}
             >
               <ul className="ui-class-row__more-list" role="list">
