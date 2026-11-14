@@ -1,15 +1,17 @@
 /*
- * Desk hot: ресурсы И навыки — одна строка + горизонтальный скролл.
- * Стрелки ‹ › только когда есть куда крутить (PlayDeskHotScrollWrap).
+ * Desk hot / skills: одна строка + kit ScrollRow (fade + ‹ ›).
+ * UIKIT-03 etalon — accepted Игорь 14.11.2026. Never wrap the row.
  */
-.play-desk__hot-wrap {
+.play-desk__hot-wrap,
+.ui-scroll-row.play-desk__hot-wrap {
   position: relative;
   min-width: 0;
   max-width: 100%;
   width: 100%;
 }
 
-.play-desk__hot-wrap .play-desk__hot {
+.play-desk__hot-wrap .play-desk__hot,
+.ui-scroll-row.play-desk__hot-wrap > .play-desk__hot {
   display: flex;
   flex-wrap: nowrap;
   gap: 6px;
@@ -27,22 +29,29 @@
 }
 
 .play-desk__hot-wrap .play-desk__hot-item,
-.play-desk__hot-wrap .play-desk__hot-more {
+.play-desk__hot-wrap .play-desk__hot-more,
+.ui-scroll-row.play-desk__hot-wrap > .play-desk__hot > .play-desk__hot-item,
+.ui-scroll-row.play-desk__hot-wrap > .play-desk__hot > .play-desk__hot-more {
   flex: 0 0 auto;
   flex-shrink: 0;
   scroll-snap-align: start;
 }
 
-.play-desk__hot-wrap .play-desk__hot-item--wide {
+.play-desk__hot-wrap .play-desk__hot-item--wide,
+.ui-scroll-row.play-desk__hot-wrap > .play-desk__hot > .play-desk__hot-item--wide {
   flex: 0 0 auto;
+  flex-shrink: 0;
   width: max-content;
   max-width: none;
   min-width: min(200px, 72%);
 }
 
 .play-desk__hot-wrap .play-desk__hot-item--res,
-.play-desk__hot-wrap .play-desk__hot-item--res-compact {
+.play-desk__hot-wrap .play-desk__hot-item--res-compact,
+.ui-scroll-row.play-desk__hot-wrap > .play-desk__hot > .play-desk__hot-item--res,
+.ui-scroll-row.play-desk__hot-wrap > .play-desk__hot > .play-desk__hot-item--res-compact {
   flex: 0 0 auto;
+  flex-shrink: 0;
   min-width: 0;
   width: max-content;
   max-width: none;
@@ -82,12 +91,15 @@
   border-color: var(--desk-line);
 }
 
+/* Inside ScrollRow the wrap rule forces flex:0 0 auto; base must not grow/wrap the strip */
 .play-desk__hot-item--wide {
-  flex: 1 1 180px;
-  min-width: 160px;
+  flex: 0 0 auto;
+  min-width: 0;
+  width: max-content;
+  max-width: none;
   color: var(--desk-muted);
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px 10px;
   align-items: center;
 }

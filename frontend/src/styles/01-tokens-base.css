@@ -664,6 +664,117 @@ a.ui-button--primary {
   border-color: var(--line);
 }
 
+/* Kit chip — removable status face (label ↔ × gap owned here) */
+.ui-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: min(100%, 16rem);
+  min-width: 0;
+  padding: 1px 4px 1px 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  min-height: 26px;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  color: var(--ink);
+}
+
+.ui-chip.is-inactive {
+  opacity: 0.55;
+}
+
+.ui-chip__label {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.ui-chip__label strong {
+  font-weight: 700;
+}
+
+.ui-chip__tip {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  z-index: 40;
+  min-width: max(100%, 12rem);
+  max-width: min(280px, 80vw);
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card, #fff);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 12%, transparent);
+  color: var(--ink);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.ui-chip__tip > * {
+  display: block;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ui-chip:hover .ui-chip__tip,
+  .ui-chip:focus-within .ui-chip__tip {
+    display: grid;
+    gap: 2px;
+  }
+}
+
+.ui-chip.is-tip-open .ui-chip__tip {
+  display: grid;
+  gap: 2px;
+}
+
+.ui-chip__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.ui-chip__dismiss {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ui-chip__dismiss:hover {
+  border-color: var(--line);
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent-soft) 40%, white);
+}
+
 .ui-text {
   margin: 0;
   line-height: 1.45;

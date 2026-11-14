@@ -497,10 +497,15 @@
   color: var(--desk-muted);
 }
 
+/* UIKIT-03 etalon: hot strip is always one row — overflow via kit ScrollRow */
 .play-desk__hot {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   align-items: stretch;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 

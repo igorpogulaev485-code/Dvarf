@@ -59,7 +59,8 @@ Skill для агентов: [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../../.cur
 
 ## 2b. Шапка стола — LOCK
 
-> **LOCK (Wave A header):** зафиксировано с Игорем 2026-10-12 — «Идеал». Не откатывать без нового согласования.
+> **LOCK (Wave A header):** зафиксировано с Игорем 2026-10-12 — «Идеал». Не откатывать без нового согласования.  
+> **Эталон UIKIT-03 (принят Игорем 14.11.2026):** текущий вид шапки + ScrollRow хот/навыков — kit-компоненты в `frontend/src/ui/`. Витрина: `/dev/ui-kit-etalon`.
 
 Компоненты / паттерны этого этапа (`PlayDeskHeader`, `deskIcons.tsx`):
 
@@ -75,6 +76,18 @@ Skill для агентов: [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../../.cur
 | Death | opaque `#fff` card + череп; не wash / не fade opacity |
 | Coin tip | hover ≈ зм + разбивка; клик → pad |
 | deskIcons | shield / boot / bolt / badge / coin / rest / spark / skull |
+
+### Эталон 14.11.2026 — kit atoms (не менять вид без ok)
+
+| Kit | Файл | Лицо |
+|-----|------|------|
+| `ScrollRow` | `ui/ScrollRow.tsx` | одна строка, fade + круглая ‹ › только с стороны, куда можно крутить (хот + навыки) |
+| `ResourcePips` | `ui/ResourcePips.tsx` | квадратики зарядов, gap 4px |
+| `ChipStack` | `ui/ChipStack.tsx` | столбик равных плиток (Вдохн./Истощ. · зм/Отдых) |
+| `ClassChip` / `ClassChipRow` | `ui/ClassChip.tsx` | класс над архетипом; мультикласс рядом; overflow → `+N` DetailsMenu (класс / архетип / ур.), без скролла |
+| `XpTrack` | `ui/XpTrack.tsx` | полоса XP + подпись «… · до ур. N — X» |
+| `VitalTile` | `ui/VitalTile.tsx` | иконка над числом, подпись под; КД + «Щит» |
+| `Chip` + `DetailsMenu` | `ui/Chip.tsx`, `ui/DetailsMenu.tsx` | эффект «название + бонус», tip hover/tap; «+N» поповер |
 
 Доска LOCK: [`desk-header-lock`](boards/dvarf-ui-kit-desk-header-lock.jpg) · состояния: [`header-states`](boards/dvarf-ui-kit-desk-header-states.jpg) · [`header-death`](boards/dvarf-ui-kit-desk-header-death.jpg) · [`header-dense`](boards/dvarf-ui-kit-desk-header-dense.jpg) · tip: [`coin-tip`](boards/dvarf-ui-kit-desk-coin-tip.jpg) · icons: [`desk-icons`](boards/dvarf-ui-kit-desk-icons.jpg)
 
@@ -429,6 +442,9 @@ LOCK-доски §2b–2l не переписываем; меняется пор
 | `Input` / `NumberInput` | `size`, `narrow`, классы `ui-input--sm/md/lg`, `--narrow`, `--touch`, `--title`, `--slot`, `--prep`, `--center` | по киту |
 | `DetailsMenu` | `<details class="ui-menu">` · `__summary` · `__panel` (absolute popover) | summary = lg 44; панель поверх, без reflow тулбара |
 | `Select` | native `<select class="ui-input ui-select ui-input--sm\|md\|lg">` | те же высоты, что Input |
+| `ScrollRow` | `.ui-scroll-row` · `__edge` · `__chevron` | одна строка; стрелки только на scrollable стороне |
+| `Chip` | `.ui-chip` · `__label` · `__dismiss` · `__tip` | gap label↔× в ките; tip hover / tap |
+| `ResourcePips` | `.ui-resource-pips` / `.play-desk__pips` | квадрат 18px, gap 4px |
 
 **Запрет:** в стилях страниц/фич нельзя писать `.something .ui-button { min-height/padding/font-size… }`. Нужен вариант — добавь в кит, на экране выбери пропом. Selfcheck: `npm run selfcheck:uikit-no-overrides`.
 

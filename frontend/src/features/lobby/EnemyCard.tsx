@@ -487,6 +487,8 @@ export function EnemyCard({
                 max={40}
                 integer
                 emptyValue={null}
+                size="sm"
+                narrow
                 disabled={busy}
                 aria-label="СЛ проверки «Изучить»"
                 onValueChange={(v) => {

@@ -83,6 +83,12 @@ export function ScrollRow({
 
   useLayoutEffect(() => {
     updateScrollHints()
+    // Fonts / late flex layout can change scrollWidth after first paint.
+    const raf = requestAnimationFrame(() => {
+      updateScrollHints()
+      requestAnimationFrame(updateScrollHints)
+    })
+    return () => cancelAnimationFrame(raf)
   }, [watchKey])
 
   useEffect(() => {
@@ -106,6 +112,7 @@ export function ScrollRow({
       if (child instanceof HTMLElement) ro.observe(child)
     }
     window.addEventListener('resize', updateScrollHints)
+    document.fonts?.ready?.then?.(() => updateScrollHints()).catch?.(() => {})
 
     return () => {
       el.removeEventListener('scroll', onScroll)

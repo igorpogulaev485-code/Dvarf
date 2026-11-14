@@ -1,5 +1,5 @@
-/** Блок «Активные эффекты» на листе цели (B-01 / B-02 / B-03). */
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+/** Блок «Активные эффекты» на листе цели (B-01 / B-02 / B-03 / UIKIT-03). */
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import {
   applyEffectStacking,
   decrementEffectCharges,
@@ -8,7 +8,7 @@ import {
   tickAllEffectsOneRound,
   type ActiveEffect,
 } from '../../shared/dnd/activeEffects'
-import { Button, DetailsMenu } from '../../ui'
+import { Button, Chip, DetailsMenu } from '../../ui'
 import { rollDamage } from './deskRolls'
 
 type Props = {
@@ -25,6 +25,7 @@ function EffectChip({
   onToggleOpen,
   onChange,
   onToast,
+  onHeroismTurnStart,
   rows,
 }: {
   effect: ActiveEffect
@@ -32,6 +33,7 @@ function EffectChip({
   onToggleOpen: () => void
   onChange: (effects: ActiveEffect[]) => void
   onToast?: (message: string) => void
+  onHeroismTurnStart?: () => void
   rows: ActiveEffect[]
 }) {
   const face = formatEffectChipFace(effect)
@@ -43,147 +45,174 @@ function EffectChip({
   const vitality = effect.slug === 'aura_of_vitality'
   const blink = effect.slug === 'blink'
   const fortune = effect.slug === 'fortunes_favor'
+  const heroism = effect.slug === 'heroism' && !inactive && onHeroismTurnStart
+
+  const actionNodes: ReactNode[] = []
+  if (heroism) {
+    actionNodes.push(
+      <Button
+        key="heroism"
+        type="button"
+        size="sm"
+        variant="ghost"
+        title="Начало хода: временные хиты = модификатор заклинателя"
+        aria-label="Героизм: выдать временные хиты на начало хода"
+        onClick={() => onHeroismTurnStart?.()}
+      >
+        ход
+      </Button>,
+    )
+  }
+  if (mirror && !inactive) {
+    actionNodes.push(
+      <Button
+        key="mirror"
+        type="button"
+        size="sm"
+        variant="ghost"
+        onClick={() => {
+          const next = decrementEffectCharges(rows, effect.id, 1)
+          onChange(next)
+          const left = next.find((row) => row.id === effect.id)?.charges
+          onToast?.(
+            left == null
+              ? 'Отражения: двойники исчерпаны'
+              : `Отражения: двойники ${left}`,
+          )
+        }}
+      >
+        −1
+      </Button>,
+    )
+  }
+  if (vitality && !inactive) {
+    actionNodes.push(
+      <Button
+        key="vitality"
+        type="button"
+        size="sm"
+        variant="ghost"
+        onClick={() => {
+          const rolled = rollDamage('2d6')
+          const next = decrementEffectCharges(rows, effect.id, 1)
+          onChange(next)
+          onToast?.(
+            rolled
+              ? `Аура живучести: +${rolled.total} хитов (${rolled.detail})`
+              : 'Аура живучести: 2к6 хитов',
+          )
+        }}
+      >
+        2к6
+      </Button>,
+    )
+  }
+  if (blink && !inactive) {
+    actionNodes.push(
+      <Button
+        key="blink"
+        type="button"
+        size="sm"
+        variant="ghost"
+        onClick={() => {
+          const die = 1 + Math.floor(Math.random() * 20)
+          onToast?.(
+            die >= 11
+              ? `Мерцание: ${die} · уход на Эфир до начала следующего хода`
+              : `Мерцание: ${die} · остаётесь на Материальном`,
+          )
+        }}
+      >
+        к20
+      </Button>,
+    )
+  }
+  if (fortune && !inactive && (charges ?? 0) > 0) {
+    actionNodes.push(
+      <Button
+        key="fortune"
+        type="button"
+        size="sm"
+        variant="ghost"
+        onClick={() => {
+          onChange(decrementEffectCharges(rows, effect.id, 1))
+          onToast?.(
+            'Благосклонность судьбы: очко удачи потрачено (переброс / запасная кость — по правилу EGW)',
+          )
+        }}
+      >
+        Удача
+      </Button>,
+    )
+  }
+  if (
+    effect.source_character_id &&
+    (effect.slug?.startsWith('aura_of_') || effect.slug === 'exalted_champion')
+  ) {
+    actionNodes.push(
+      <Button
+        key="aura"
+        type="button"
+        size="sm"
+        variant="ghost"
+        onClick={() => {
+          const next = rows.map((row) => {
+            if (row.id !== effect.id) return row
+            const on = Boolean(row.inactive)
+            return {
+              ...row,
+              inactive: on ? false : true,
+              inactive_reason: on ? null : 'вне ауры',
+            }
+          })
+          onChange(next)
+          const nowOn = next.find((row) => row.id === effect.id)
+          onToast?.(
+            nowOn && !nowOn.inactive
+              ? `${effect.name}: в ауре`
+              : `${effect.name}: вне ауры`,
+          )
+        }}
+      >
+        {effect.inactive ? 'В ауре' : 'Вне ауры'}
+      </Button>,
+    )
+  }
 
   return (
-    <div
-      className={`active-effects__chip${inactive ? ' is-inactive' : ''}${
-        open ? ' is-tip-open' : ''
-      }`}
+    <Chip
       role="listitem"
+      inactive={inactive}
+      tipOpen={open}
+      className="active-effects__chip"
+      labelProps={{
+        title: detailText || face,
+        'aria-expanded': open,
+        'aria-label': detailText ? `${face}. ${detailText}` : face,
+        onClick: onToggleOpen,
+      }}
+      tip={
+        details.length > 0 ? (
+          <>
+            {details.map((line) => (
+              <span key={line}>{line}</span>
+            ))}
+          </>
+        ) : null
+      }
+      actions={actionNodes.length > 0 ? actionNodes : undefined}
+      onDismiss={() => {
+        onChange(rows.filter((row) => row.id !== effect.id))
+        onToast?.(`Снят эффект «${effect.name}»`)
+      }}
+      dismissLabel={`Снять «${effect.name}»`}
     >
-      <button
-        type="button"
-        className="active-effects__chip-text"
-        title={detailText || face}
-        aria-expanded={open}
-        aria-label={detailText ? `${face}. ${detailText}` : face}
-        onClick={onToggleOpen}
-      >
-        <strong>{face}</strong>
-      </button>
-      {details.length > 0 ? (
-        <div className="active-effects__tip" role="tooltip">
-          {details.map((line) => (
-            <span key={line}>{line}</span>
-          ))}
-        </div>
-      ) : null}
-      <span className="active-effects__chip-actions">
-        {mirror && !inactive ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              const next = decrementEffectCharges(rows, effect.id, 1)
-              onChange(next)
-              const left = next.find((row) => row.id === effect.id)?.charges
-              onToast?.(
-                left == null
-                  ? 'Отражения: двойники исчерпаны'
-                  : `Отражения: двойники ${left}`,
-              )
-            }}
-          >
-            −1
-          </Button>
-        ) : null}
-        {vitality && !inactive ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              const rolled = rollDamage('2d6')
-              const next = decrementEffectCharges(rows, effect.id, 1)
-              onChange(next)
-              onToast?.(
-                rolled
-                  ? `Аура живучести: +${rolled.total} хитов (${rolled.detail})`
-                  : 'Аура живучести: 2к6 хитов',
-              )
-            }}
-          >
-            2к6
-          </Button>
-        ) : null}
-        {blink && !inactive ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              const die = 1 + Math.floor(Math.random() * 20)
-              onToast?.(
-                die >= 11
-                  ? `Мерцание: ${die} · уход на Эфир до начала следующего хода`
-                  : `Мерцание: ${die} · остаётесь на Материальном`,
-              )
-            }}
-          >
-            к20
-          </Button>
-        ) : null}
-        {fortune && !inactive && (charges ?? 0) > 0 ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              onChange(decrementEffectCharges(rows, effect.id, 1))
-              onToast?.(
-                'Благосклонность судьбы: очко удачи потрачено (переброс / запасная кость — по правилу EGW)',
-              )
-            }}
-          >
-            Удача
-          </Button>
-        ) : null}
-        {effect.source_character_id &&
-        (effect.slug?.startsWith('aura_of_') || effect.slug === 'exalted_champion') ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              const next = rows.map((row) => {
-                if (row.id !== effect.id) return row
-                const on = Boolean(row.inactive)
-                return {
-                  ...row,
-                  inactive: on ? false : true,
-                  inactive_reason: on ? null : 'вне ауры',
-                }
-              })
-              onChange(next)
-              const nowOn = next.find((row) => row.id === effect.id)
-              onToast?.(
-                nowOn && !nowOn.inactive
-                  ? `${effect.name}: в ауре`
-                  : `${effect.name}: вне ауры`,
-              )
-            }}
-          >
-            {effect.inactive ? 'В ауре' : 'Вне ауры'}
-          </Button>
-        ) : null}
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          aria-label={`Снять «${effect.name}»`}
-          title="Снять"
-          onClick={() => {
-            onChange(rows.filter((row) => row.id !== effect.id))
-            onToast?.(`Снят эффект «${effect.name}»`)
-          }}
-        >
-          ×
-        </Button>
-      </span>
-    </div>
+      <strong>{face}</strong>
+    </Chip>
   )
 }
+
+const MORE_RESERVE_PX = 40
 
 export function ActiveEffectsPanel({
   effects,
@@ -193,18 +222,17 @@ export function ActiveEffectsPanel({
 }: Props) {
   const [openTipId, setOpenTipId] = useState<string | null>(null)
   const [visibleCount, setVisibleCount] = useState<number | null>(null)
-  const chipsRef = useRef<HTMLDivElement | null>(null)
+  const mainRef = useRef<HTMLDivElement | null>(null)
   const measureRef = useRef<HTMLDivElement | null>(null)
   const rows = applyEffectStacking(effects ?? [])
   const rowKey = rows.map((r) => r.id).join('|')
-  const hasHeroism = rows.some((row) => row.slug === 'heroism' && !row.inactive)
   const shown =
     visibleCount == null || visibleCount >= rows.length
       ? rows
-      : rows.slice(0, Math.max(1, visibleCount))
+      : rows.slice(0, Math.max(0, visibleCount))
   const overflow =
     visibleCount != null && visibleCount < rows.length
-      ? rows.slice(Math.max(1, visibleCount))
+      ? rows.slice(Math.max(0, visibleCount))
       : []
 
   useLayoutEffect(() => {
@@ -212,15 +240,14 @@ export function ActiveEffectsPanel({
       setVisibleCount(null)
       return
     }
-    const host = chipsRef.current
+    const host = mainRef.current
     const measure = measureRef.current
     if (!host || !measure) return
 
     const recompute = () => {
       const hostW = host.clientWidth
-      if (hostW > 0) {
-        measure.style.setProperty('--active-effects-measure-w', `${hostW}px`)
-      }
+      if (hostW <= 0) return
+      measure.style.setProperty('--active-effects-measure-w', `${hostW}px`)
       const chips = Array.from(
         measure.querySelectorAll<HTMLElement>('[data-effect-measure]'),
       )
@@ -228,28 +255,30 @@ export function ActiveEffectsPanel({
         setVisibleCount(rows.length)
         return
       }
+
+      // First pass: how many fit in one wrapped row at full host width.
       const rowTop = chips[0].offsetTop
-      let fit = 0
+      let fitAll = 0
       for (const chip of chips) {
         if (chip.offsetTop > rowTop + 1) break
-        fit += 1
+        fitAll += 1
       }
-      // Reserve room for +N + round button when anything would wrap.
-      if (fit < chips.length) {
-        const plusW = 52
-        let width = 0
-        let kept = 0
-        const maxW = hostW - plusW - 72
-        for (const chip of chips) {
-          const next = width + chip.offsetWidth + (kept > 0 ? 6 : 0)
-          if (next > maxW) break
-          width = next
-          kept += 1
-        }
-        setVisibleCount(Math.max(1, kept))
-      } else {
+      if (fitAll >= chips.length) {
         setVisibleCount(chips.length)
+        return
       }
+
+      // Need +N — reserve its width, then pack whole chips only.
+      let width = 0
+      let kept = 0
+      const maxW = Math.max(0, hostW - MORE_RESERVE_PX)
+      for (const chip of chips) {
+        const next = width + chip.offsetWidth + (kept > 0 ? 6 : 0)
+        if (next > maxW) break
+        width = next
+        kept += 1
+      }
+      setVisibleCount(Math.max(0, kept))
     }
 
     recompute()
@@ -264,20 +293,22 @@ export function ActiveEffectsPanel({
 
   useEffect(() => {
     if (!openTipId) return
-    function onDoc(event: MouseEvent) {
+    function onDoc(event: PointerEvent) {
       const t = event.target
       if (!(t instanceof Node)) return
-      const chip = chipsRef.current?.querySelector('.active-effects__chip.is-tip-open')
+      const chip = mainRef.current
+        ?.closest('.active-effects')
+        ?.querySelector('.ui-chip.is-tip-open')
       if (chip && chip.contains(t)) return
       setOpenTipId(null)
     }
     function onKey(event: KeyboardEvent) {
       if (event.key === 'Escape') setOpenTipId(null)
     }
-    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('pointerdown', onDoc)
     document.addEventListener('keydown', onKey)
     return () => {
-      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('pointerdown', onDoc)
       document.removeEventListener('keydown', onKey)
     }
   }, [openTipId])
@@ -294,17 +325,25 @@ export function ActiveEffectsPanel({
         aria-hidden="true"
       >
         {rows.map((effect) => (
-          <div key={effect.id} className="active-effects__chip" data-effect-measure>
-            <span className="active-effects__chip-text">
+          <span key={effect.id} className="ui-chip active-effects__chip" data-effect-measure>
+            <span className="ui-chip__label">
               <strong>{formatEffectChipFace(effect)}</strong>
             </span>
-            <span className="active-effects__chip-actions">
-              <span className="ui-button ui-button--ghost ui-button--sm">×</span>
+            <span className="ui-chip__actions">
+              {effect.slug === 'heroism' && onHeroismTurnStart ? (
+                <span className="ui-button ui-button--ghost ui-button--sm">ход</span>
+              ) : null}
+              <span className="ui-chip__dismiss">×</span>
             </span>
-          </div>
+          </span>
         ))}
       </div>
-      <div className="active-effects__chips" role="list" aria-label="Активные эффекты" ref={chipsRef}>
+      <div
+        className="active-effects__main"
+        role="list"
+        aria-label="Активные эффекты"
+        ref={mainRef}
+      >
         {shown.map((effect) => (
           <EffectChip
             key={effect.id}
@@ -316,6 +355,7 @@ export function ActiveEffectsPanel({
             }
             onChange={onChange}
             onToast={onToast}
+            onHeroismTurnStart={onHeroismTurnStart}
           />
         ))}
         {overflow.length > 0 ? (
@@ -337,16 +377,14 @@ export function ActiveEffectsPanel({
                   }
                   onChange={onChange}
                   onToast={onToast}
+                  onHeroismTurnStart={onHeroismTurnStart}
                 />
               ))}
             </div>
           </DetailsMenu>
         ) : null}
-        {hasHeroism && onHeroismTurnStart ? (
-          <Button type="button" size="sm" variant="secondary" onClick={onHeroismTurnStart}>
-            Героизм
-          </Button>
-        ) : null}
+      </div>
+      <div className="active-effects__trail">
         <Button
           type="button"
           size="sm"

@@ -151,15 +151,27 @@ assert.match(sessionPage, /return false/)
 
 const effectsPanel = read('src/features/characters/ActiveEffectsPanel.tsx')
 assert.match(effectsPanel, /Раунд −1/)
+assert.match(effectsPanel, /active-effects__trail/)
+assert.match(effectsPanel, /from '\.\.\/\.\.\/ui'/)
+assert.match(effectsPanel, /\bChip\b/)
 assert.doesNotMatch(effectsPanel, />\s*−раунд\s*</)
+assert.doesNotMatch(effectsPanel, /variant="secondary"[\s\S]{0,80}?>\s*Героизм\s*</)
 
 const headerCss = read('src/styles/15-play-desk-header-identity.css')
 assert.match(
   headerCss,
   /\.play-desk-header__name\s*\{[\s\S]*?-webkit-line-clamp:\s*2/,
 )
-assert.match(headerCss, /\.active-effects__tip/)
 assert.match(headerCss, /\.active-effects__more/)
+assert.match(headerCss, /\.active-effects__trail/)
+assert.match(
+  headerCss,
+  /\.play-desk__top\s*>\s*\.play-desk__top-extras\s*\{[\s\S]*?flex-wrap:\s*nowrap/,
+)
+
+const kitChip = read('src/ui/Chip.tsx')
+assert.match(kitChip, /export function Chip/)
+assert.match(read('src/styles/01-tokens-base.css'), /\.ui-chip__dismiss/)
 
 const vitalsCss = read('src/styles/16-play-desk-header-vitals.css')
 assert.match(
@@ -167,23 +179,37 @@ assert.match(
   /\.play-desk-vital--shield\s*>\s*\.play-desk-vital__icon[\s\S]*?display:\s*none/,
 )
 
-/* UIKIT-02: ресурсы+навыки — одна строка + скролл; pip gap 4px */
+/* UIKIT-02/03: ресурсы+навыки — одна строка + ScrollRow; pip gap 4px */
 const hotCss = read('src/styles/20-pinned-spells.css')
-assert.match(
-  hotCss,
-  /\.play-desk__hot-wrap\s+\.play-desk__hot\s*\{[\s\S]*?flex-wrap:\s*nowrap[\s\S]*?overflow-x:\s*auto/,
-)
+assert.match(hotCss, /\.play-desk__hot-wrap\s+\.play-desk__hot/)
+assert.match(hotCss, /flex-wrap:\s*nowrap/)
+assert.match(hotCss, /overflow-x:\s*auto/)
 assert.match(hotCss, /\.play-desk__pips\s*\{[^}]*gap:\s*4px/)
 assert.match(hotCss, /\.play-desk__pip\s*\{[^}]*width:\s*18px/)
 const kitTokens = read('src/styles/01-tokens-base.css')
 assert.match(kitTokens, /\.ui-scroll-row__edge/)
 assert.match(kitTokens, /\.ui-scroll-row__chevron/)
+assert.match(kitTokens, /\.ui-chip__dismiss/)
 const scrollRow = read('src/ui/ScrollRow.tsx')
 assert.match(scrollRow, /export function ScrollRow/)
+assert.match(read('src/ui/ResourcePips.tsx'), /export function ResourcePips/)
+assert.match(read('src/ui/Chip.tsx'), /export function Chip/)
+assert.match(read('src/ui/ClassChip.tsx'), /export function ClassChip/)
+assert.match(read('src/ui/ClassChip.tsx'), /export function ClassChipRow/)
+assert.match(read('src/ui/ClassChip.tsx'), /DetailsMenu/)
+assert.match(read('src/ui/ClassChip.tsx'), /\+\$\{overflow\.length\}/)
+assert.match(read('src/ui/XpTrack.tsx'), /export function XpTrack/)
+assert.match(read('src/ui/ChipStack.tsx'), /export function ChipStack/)
+assert.match(read('src/ui/VitalTile.tsx'), /export function VitalTile/)
+assert.match(
+  read('src/styles/15-play-desk-header-identity.css'),
+  /\.ui-class-row__more/,
+)
 
 const hotBar = read('src/features/characters/PlayDeskHotBar.tsx')
-assert.match(hotBar, /play-desk__pips/)
+assert.match(hotBar, /ResourcePips/)
 assert.match(hotBar, /shouldUseCompactResourceTrack/)
+assert.match(hotBar, /PlayDeskHotScrollWrap/)
 assert.doesNotMatch(hotBar, /UIKIT-02: имя \+ «N\/M»/)
 
 const deskHeader = read('src/features/characters/PlayDeskHeader.tsx')

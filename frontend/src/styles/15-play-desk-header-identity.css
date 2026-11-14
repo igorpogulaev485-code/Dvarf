@@ -214,10 +214,8 @@
   line-height: 1.15;
 }
 
-/* UIKIT-02 P1: companions dock → one chip (full list on «Напарники» scene) */
+/* UIKIT-03: companions dock → one chip in effects row */
 .play-desk__dock-chip {
-  grid-column: 1 / -1;
-  justify-self: start;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -233,6 +231,7 @@
   font-weight: 650;
   cursor: pointer;
   white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .play-desk__dock-chip:hover {
@@ -482,8 +481,28 @@ button.play-desk-header__name {
   font-variant-numeric: tabular-nums;
 }
 
-/* 2) Классы — всегда одна горизонтальная строка */
-.play-desk-header__classes {
+/* 2) Классы — одна строка; overflow → kit +N (не скролл) */
+.ui-class-row__measure {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: var(--ui-class-row-measure-w, 240px);
+}
+
+.ui-class-row__measure .play-desk-header__classes.is-many .play-desk-header__class-chip,
+.ui-class-row__measure .is-measure-many {
+  font-size: 0.66rem;
+  padding: 2px 7px;
+  max-width: 10.5rem;
+}
+
+.play-desk-header__classes,
+.ui-class-row {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -493,6 +512,54 @@ button.play-desk-header__name {
   gap: 4px;
   min-width: 0;
   max-width: 100%;
+  overflow: hidden;
+}
+
+.ui-class-row__more-item {
+  list-style: none;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ui-class-row__more-summary {
+  min-height: 26px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+}
+
+.ui-class-row__more-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.ui-class-row__more-row {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ui-class-row__more-name {
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--desk-ink, var(--ink));
+}
+
+.ui-class-row__more-archetype {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--desk-accent, var(--accent));
+}
+
+.ui-class-row__more-level {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+  font-variant-numeric: tabular-nums;
 }
 
 .play-desk-header__class-chip {
@@ -733,11 +800,11 @@ button.play-desk-header__identity:hover {
 }
 
 
-/* B-01 / UIKIT-02 P1: effects + companions chip — one strip */
+/* B-01 / UIKIT-03: effects + companions — one nowrap strip */
 .play-desk__top > .play-desk__top-extras {
   grid-column: 1 / -1;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 4px 8px;
   min-width: 0;
@@ -751,8 +818,6 @@ button.play-desk-header__identity:hover {
 }
 
 .play-desk__top-extras > .play-desk__dock-chip {
-  grid-column: auto;
-  justify-self: auto;
   flex: 0 0 auto;
 }
 
@@ -771,20 +836,29 @@ button.play-desk-header__identity:hover {
   align-items: center;
   gap: 4px 6px;
   min-width: 0;
+  width: 100%;
 }
 
 .active-effects__label {
   display: none;
 }
 
-.active-effects__chips {
+.active-effects__main {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
   gap: 4px 6px;
   min-width: 0;
   flex: 1 1 auto;
-  overflow: visible;
+  overflow: hidden;
+}
+
+.active-effects__trail {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
 }
 
 .active-effects__measure {
@@ -799,87 +873,11 @@ button.play-desk-header__identity:hover {
   width: var(--active-effects-measure-w, 320px);
 }
 
-.active-effects__chip {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  max-width: min(100%, 16rem);
-  min-width: 0;
-  padding: 1px 2px 1px 7px;
-  border: 1px solid var(--desk-line, var(--line));
-  border-radius: 12px;
+/* Desk surface tint on kit chip (sizes/gap stay in kit .ui-chip) */
+.play-desk .active-effects .ui-chip {
+  border-color: var(--desk-line, var(--line));
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
-  font-size: 0.72rem;
-  line-height: 1.2;
-  min-height: 26px;
-  flex: 0 0 auto;
-}
-
-.active-effects__chip.is-inactive {
-  opacity: 0.55;
-}
-
-.active-effects__chip-text {
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-}
-
-.active-effects__chip-text strong {
-  font-weight: 700;
-}
-
-.active-effects__tip {
-  display: none;
-  position: absolute;
-  left: 0;
-  top: calc(100% + 4px);
-  z-index: 40;
-  min-width: max(100%, 12rem);
-  max-width: min(280px, 80vw);
-  padding: 8px 10px;
-  border: 1px solid var(--desk-line, var(--line));
-  border-radius: 12px;
-  background: var(--card, #fff);
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--desk-ink, #2d2d2a) 12%, transparent);
   color: var(--desk-ink, var(--ink));
-  font-size: 0.72rem;
-  line-height: 1.35;
-  white-space: normal;
-}
-
-.active-effects__tip span {
-  display: block;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .active-effects__chip:hover .active-effects__tip,
-  .active-effects__chip:focus-within .active-effects__tip {
-    display: grid;
-    gap: 2px;
-  }
-}
-
-.active-effects__chip.is-tip-open .active-effects__tip {
-  display: grid;
-  gap: 2px;
-}
-
-.active-effects__chip-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  flex: 0 0 auto;
 }
 
 .active-effects__more {
@@ -918,12 +916,7 @@ button.play-desk-header__identity:hover {
   gap: 0.5rem;
   flex-wrap: wrap;
 }
-.active-effects__main {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem 0.55rem;
-}
+
 .active-effects__row.is-inactive {
   opacity: 0.55;
 }

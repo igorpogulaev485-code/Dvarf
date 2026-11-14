@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import type { ConcentrationState } from './play'
 import { resourceShowsOnHot, type SheetResource } from '../../shared/dnd/rest'
+import { ResourcePips } from '../../ui/ResourcePips'
 import { shouldUseCompactResourceTrack } from '../../ui/resourceTrackDisplay'
 import {
   IconConcentration,
@@ -119,34 +120,13 @@ function ResourceChip({
           </button>
         </div>
       ) : (
-        <div
-          className="play-desk__pips"
-          role="group"
-          aria-label={`${row.name}: ${remaining}/${row.max}`}
-        >
-          {Array.from({ length: row.max }, (_, index) => {
-            const isOn = index < remaining
-            return (
-              <button
-                key={`${row.id}-${index}`}
-                type="button"
-                className={`play-desk__pip${isOn ? ' is-on' : ''}`}
-                aria-label={
-                  isOn
-                    ? `${row.name}: потратить заряд ${index + 1}`
-                    : `${row.name}: вернуть заряд ${index + 1}`
-                }
-                onClick={() => {
-                  if (isOn) {
-                    onResourceUsedChange(row.id, Math.min(row.max, row.used + 1))
-                  } else {
-                    onResourceUsedChange(row.id, Math.max(0, row.used - 1))
-                  }
-                }}
-              />
-            )
-          })}
-        </div>
+        <ResourcePips
+          max={row.max}
+          used={row.used}
+          fillMode="available"
+          label={`${row.name}: ${remaining}/${row.max}`}
+          onChange={(nextUsed) => onResourceUsedChange(row.id, nextUsed)}
+        />
       )}
     </div>
   )

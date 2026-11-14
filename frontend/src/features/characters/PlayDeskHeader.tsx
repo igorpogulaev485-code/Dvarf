@@ -31,7 +31,12 @@ import {
   type CoinPurse,
 } from '../../shared/dnd/weight'
 import { HoverTipCard, VITAL_TIPS } from '../onboarding'
-import { NumberPadDialog } from '../../ui'
+import {
+  ChipStack,
+  ClassChipRow,
+  NumberPadDialog,
+  XpTrack,
+} from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
 import { HpPadDialog } from './HpPadDialog'
 import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
@@ -489,33 +494,24 @@ export function PlayDeskHeader({
             </p>
           )}
           {classChips.length > 0 ? (
-            <ul
-              className={`play-desk-header__classes${classChips.length >= 3 ? ' is-many' : ''}`}
+            <ClassChipRow
+              many={classChips.length >= 3}
               aria-label="Классы"
-            >
-              {classChips.map((chip) => (
-                <li
-                  key={chip.id}
-                  className={`play-desk-header__class-chip${
-                    chip.subclass ? ' has-subclass' : ''
-                  }`}
-                  title={
-                    chip.subclass ? `${chip.label} · ${chip.subclass}` : chip.label
-                  }
-                >
-                  <span className="play-desk-header__class-main">{chip.label}</span>
-                  {chip.subclass ? (
-                    <span className="play-desk-header__class-archetype">{chip.subclass}</span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
+              items={classChips.map((chip) => ({
+                id: chip.id,
+                label: chip.label,
+                archetype: chip.subclass || undefined,
+                className: classRows.find((row) => row.id === chip.id)?.name,
+                level: classRows.find((row) => row.id === chip.id)?.level,
+              }))}
+            />
           ) : null}
-          <button
-            type="button"
-            className={`play-desk-header__xp${milestones ? ' is-milestones' : ''}${
-              showValueTips ? ' has-onboarding-tip' : ''
-            }`}
+          <XpTrack
+            level={level}
+            ratio={xp.ratio}
+            remainLabel={xpRemainLabel}
+            milestones={milestones}
+            className={showValueTips ? 'has-onboarding-tip' : ''}
             title={
               showValueTips
                 ? undefined
@@ -531,18 +527,7 @@ export function PlayDeskHeader({
             onClick={() => setXpPadOpen(true)}
           >
             {showValueTips ? <HoverTipCard tip={VITAL_TIPS.xp} /> : null}
-            <span className="play-desk-header__xp-level">ур. {level}</span>
-            {milestones ? null : (
-              <span
-                className="play-desk-header__xp-bar"
-                aria-hidden
-                title={xpRemainLabel}
-              >
-                <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
-              </span>
-            )}
-            <span className="play-desk-header__xp-remain">{xpRemainLabel}</span>
-          </button>
+          </XpTrack>
         </div>
       </div>
 
@@ -778,7 +763,7 @@ export function PlayDeskHeader({
             <span className="play-desk-vital__label-row">БМ</span>
             {showValueTips ? <HoverTipCard tip={VITAL_TIPS.proficiency} /> : null}
           </div>
-          <div className="play-desk-header__stack">
+          <ChipStack>
             <button
               type="button"
               className={`play-desk-header__chip${inspiration ? ' is-on' : ''}${
@@ -819,12 +804,12 @@ export function PlayDeskHeader({
                 {exhaustionStage}
               </span>
             ) : null}
-          </div>
+          </ChipStack>
         </div>
       </div>
 
       <div className="play-desk-header__right">
-        <div className="play-desk-header__right-tools">
+        <ChipStack variant="tools">
           <button
             type="button"
             className={`play-desk-header__coin${showValueTips ? ' has-onboarding-tip' : ''}`}
@@ -853,7 +838,7 @@ export function PlayDeskHeader({
             <span className="play-desk-vital__label-row">Отдых</span>
             {showValueTips ? <HoverTipCard tip={VITAL_TIPS.rest} /> : null}
           </button>
-        </div>
+        </ChipStack>
         <div className="play-desk-header__hp-wrap">
           <button
             type="button"
