@@ -31,7 +31,6 @@ import {
 import { IconCoin, IconJump, IconRest, IconSkull } from './deskIcons'
 import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
 import { absorbDamageWithArcaneWard } from '../../shared/dnd/wizardTradition'
-import { NeedsSetupIndicator } from './NeedsSetupIndicator'
 import type { NeedsSetupItem } from './needsSetup'
 
 /** v2: M-02 / Q1 defaults to collapsed; old key often stored «0» from M-01 mounts. */
@@ -198,8 +197,8 @@ export function MobileVitalsBar({
   onDamaged,
   onToast,
   showValueTips = false,
-  needsSetupItems = [],
-  onNeedsSetupSelect,
+  needsSetupItems: _needsSetupItems = [],
+  onNeedsSetupSelect: _onNeedsSetupSelect,
 }: MobileVitalsBarProps) {
   const [collapsed, setCollapsed] = useState(readCollapsed)
   const [hpPadOpen, setHpPadOpen] = useState(false)
@@ -418,15 +417,6 @@ export function MobileVitalsBar({
         >
           <strong>{name || 'Без имени'}</strong>
         </button>
-        {onNeedsSetupSelect ? (
-          <NeedsSetupIndicator
-            items={needsSetupItems}
-            onSelect={onNeedsSetupSelect}
-            compact
-            iconOnly
-            asSheet
-          />
-        ) : null}
         <button
           type="button"
           className={`mobile-vitals__collapse-hp${hpPulse ? ' is-pulse' : ''}${
@@ -504,14 +494,6 @@ export function MobileVitalsBar({
             {level ? ` · ур. ${level}` : ''}
           </span>
         </div>
-        {onNeedsSetupSelect ? (
-          <NeedsSetupIndicator
-            items={needsSetupItems}
-            onSelect={onNeedsSetupSelect}
-            compact
-            asSheet
-          />
-        ) : null}
         <button
           type="button"
           className={`mobile-vitals__insp${inspiration ? ' is-on' : ''}`}

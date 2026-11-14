@@ -286,7 +286,7 @@ const FEATURE_FILTERS: Array<{ id: FeatureFilter; label: string }> = [
   { id: 'all', label: 'Все' },
   { id: 'active', label: 'Активные' },
   { id: 'passive', label: 'Пассивные' },
-  { id: 'needs_setup', label: 'Нужно настроить' },
+  { id: 'needs_setup', label: 'Не выбраны опции' },
   { id: 'class', label: 'Класс' },
   { id: 'subclass', label: 'Подкласс' },
   { id: 'feats', label: 'Черты' },

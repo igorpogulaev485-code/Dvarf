@@ -2,6 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import type { ConcentrationState } from './play'
 import { resourceShowsOnHot, type SheetResource } from '../../shared/dnd/rest'
+import { shouldUseCompactResourceTrack } from '../../ui/resourceTrackDisplay'
 import {
   IconConcentration,
   IconConditions,
@@ -69,6 +70,7 @@ function ResourceChip({
   onResourceUsedChange: (id: string, used: number) => void
 }) {
   const remaining = Math.max(0, row.max - row.used)
+  const compact = shouldUseCompactResourceTrack(row.max)
   if (row.unlimited) {
     return (
       <div className="play-desk__hot-item play-desk__hot-item--res play-desk__hot-item--res-compact">
@@ -82,45 +84,80 @@ function ResourceChip({
       </div>
     )
   }
-  // UIKIT-02: имя + «N/M», без голых квадратиков.
+  /* До SC / UIKIT: квадратики зарядов; ± только для пулов >10 (Lay on Hands и т.п.). */
   return (
-    <div className="play-desk__hot-item play-desk__hot-item--res play-desk__hot-item--res-compact">
+    <div
+      className={`play-desk__hot-item play-desk__hot-item--res${
+        compact ? ' play-desk__hot-item--res-compact' : ''
+      }`}
+    >
       <span className="play-desk__hot-res-head">
         <IconPouch className="play-desk__hot-icon" />
         <HotResourceName name={row.name} />
       </span>
-      <div
-        className="play-desk__stepper"
-        role="group"
-        aria-label={`${row.name}: ${remaining}/${row.max}`}
-      >
-        <button
-          type="button"
-          className="play-desk__step"
-          disabled={remaining <= 0}
-          aria-label={`${row.name}: потратить 1`}
-          onClick={() =>
-            onResourceUsedChange(row.id, Math.min(row.max, row.used + 1))
-          }
+      {compact ? (
+        <div
+          className="play-desk__stepper"
+          role="group"
+          aria-label={`${row.name}: ${remaining}/${row.max}`}
         >
-          −
-        </button>
-        <span className="play-desk__stepper-value">
-          {remaining}
-          <span className="play-desk__stepper-max">/{row.max}</span>
-        </span>
-        <button
-          type="button"
-          className="play-desk__step"
-          disabled={row.used <= 0}
-          aria-label={`${row.name}: вернуть 1`}
-          onClick={() =>
-            onResourceUsedChange(row.id, Math.max(0, row.used - 1))
-          }
+          <button
+            type="button"
+            className="play-desk__step"
+            disabled={remaining <= 0}
+            aria-label={`${row.name}: потратить 1`}
+            onClick={() =>
+              onResourceUsedChange(row.id, Math.min(row.max, row.used + 1))
+            }
+          >
+            −
+          </button>
+          <span className="play-desk__stepper-value">
+            {remaining}
+            <span className="play-desk__stepper-max">/{row.max}</span>
+          </span>
+          <button
+            type="button"
+            className="play-desk__step"
+            disabled={row.used <= 0}
+            aria-label={`${row.name}: вернуть 1`}
+            onClick={() =>
+              onResourceUsedChange(row.id, Math.max(0, row.used - 1))
+            }
+          >
+            +
+          </button>
+        </div>
+      ) : (
+        <div
+          className="play-desk__pips"
+          role="group"
+          aria-label={`${row.name}: ${remaining}/${row.max}`}
         >
-          +
-        </button>
-      </div>
+          {Array.from({ length: row.max }, (_, index) => {
+            const isOn = index < remaining
+            return (
+              <button
+                key={`${row.id}-${index}`}
+                type="button"
+                className={`play-desk__pip${isOn ? ' is-on' : ''}`}
+                aria-label={
+                  isOn
+                    ? `${row.name}: потратить заряд ${index + 1}`
+                    : `${row.name}: вернуть заряд ${index + 1}`
+                }
+                onClick={() => {
+                  if (isOn) {
+                    onResourceUsedChange(row.id, Math.min(row.max, row.used + 1))
+                  } else {
+                    onResourceUsedChange(row.id, Math.max(0, row.used - 1))
+                  }
+                }}
+              />
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

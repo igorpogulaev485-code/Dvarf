@@ -832,6 +832,7 @@
   }
 
   .session-live-desk.is-side-collapsed {
+    /* UIKIT-02: свёрнутая панель = только ›, центр забирает ширину */
     grid-template-columns: minmax(200px, 0.7fr) minmax(0, 1fr) auto;
   }
 
@@ -872,6 +873,17 @@
 
   .session-live-desk.is-side-collapsed .session-live-desk__side {
     width: auto;
+    max-width: 2.75rem;
+    min-width: 0;
+  }
+
+  .session-live-desk.is-side-collapsed .session-live-desk__side-tabs {
+    display: none;
+  }
+
+  .session-live-desk.is-side-collapsed .session-live-desk__side-head {
+    justify-content: flex-end;
+    margin-bottom: 0;
   }
 
   .session-live-desk.is-side-collapsed .session-live-desk__side-body {

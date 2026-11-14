@@ -1,6 +1,6 @@
 /*
- * UIKIT-02: hot strip wraps — no horizontal scroll / edge arrows.
- * Name + counter on each resource chip.
+ * Desk hot strip (≥960): одна горизонтальная строка; overflow — скролл + стрелки.
+ * (откат UIKIT-02 wrap — навыки и ресурсы снова в ряд)
  */
 .play-desk__hot-wrap {
   position: relative;
@@ -10,34 +10,36 @@
 }
 
 .play-desk--wide .play-desk__hot {
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   min-width: 0;
   max-width: 100%;
   width: 100%;
   box-sizing: border-box;
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
 }
 
 .play-desk--wide .play-desk__hot-item {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
 }
 
 .play-desk--wide .play-desk__hot-item--wide {
-  flex: 1 1 auto;
-  min-width: min(160px, 100%);
-  max-width: 100%;
+  flex: 0 0 auto;
+  min-width: min(200px, 72%);
+  max-width: min(360px, 85%);
 }
 
 .play-desk--wide .play-desk__hot-item--res {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
   min-width: 0;
-  max-width: 100%;
-}
-
-.play-desk--wide .play-desk__hot-fade,
-.play-desk--wide .play-desk__hot-arrow {
-  display: none;
+  width: max-content;
+  max-width: none;
 }
 
 .play-desk__hot-fade {
@@ -157,9 +159,11 @@
 .play-desk__hot-item--res {
   background: #fff;
   border-color: var(--desk-line);
-  min-width: 120px;
+  min-width: 0;
+  width: max-content;
   display: grid;
   gap: 4px;
+  padding: 6px 8px;
 }
 
 .play-desk__hot-res-head {
@@ -202,25 +206,27 @@ button.play-desk__hot-res-name {
 
 .play-desk__pips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  margin-top: 4px;
+  flex-wrap: nowrap;
+  gap: 4px;
+  margin-top: 2px;
+  width: max-content;
 }
 
-/* B16: charge squares — 44×44 hit, compact visual */
+/* UIKIT-02: квадратики плотнее (~4px), hit ≥28px; ширина карточки по содержимому */
 .play-desk__pip {
   position: relative;
   box-sizing: border-box;
-  width: 44px;
-  height: 44px;
-  margin: -8px -6px;
+  width: 28px;
+  height: 28px;
+  margin: 0;
   padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: 6px;
   background: transparent;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
+  flex: 0 0 auto;
 }
 
 .play-desk__pip::after {
@@ -243,8 +249,9 @@ button.play-desk__hot-res-name {
 }
 
 .play-desk__hot-item--res-compact {
-  min-width: 132px;
-  max-width: 180px;
+  min-width: 0;
+  width: max-content;
+  max-width: none;
 }
 
 /* M-02: mobile «Ещё N» overflow (desktop keeps scroll + arrows). */

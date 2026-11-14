@@ -244,9 +244,10 @@
 }
 
 .session-combat-order > li > .session-combat-order__chip {
-  flex: 1 1 10rem;
-  width: auto;
-  min-width: min(100%, 10rem);
+  /* UIKIT-02: чип на всю ширину — «Сторона» не режет имя */
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
   max-width: 100%;
 }
 
@@ -259,7 +260,7 @@
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  flex: 0 0 auto;
+  flex: 1 1 100%;
 }
 
 .session-combat-waves,
@@ -379,6 +380,8 @@
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
+  width: 100%;
+  min-width: 0;
 }
 
 .session-table-card__turn-stub {

@@ -252,10 +252,21 @@ button.play-desk-vital:hover,
   flex-basis: 56px;
   height: 48px;
   min-height: 48px;
-  padding: 2px 2px 14px;
+  padding: 4px 2px 14px;
   gap: 0;
   align-self: center;
   overflow: hidden;
+  isolation: isolate;
+  background: var(--card, #fff);
+  box-shadow: none;
+}
+
+/* UIKIT-02: без IconShield — кружок вылезал над «19 КД»; «Щит» текстом */
+.play-desk-vital--shield > .play-desk-vital__icon,
+.play-desk-vital--shield::before,
+.play-desk-vital--shield::after {
+  display: none !important;
+  content: none !important;
 }
 
 .play-desk-vital__shield-tog {

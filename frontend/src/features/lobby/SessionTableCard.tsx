@@ -493,7 +493,7 @@ export function SessionTableCard({
                 <Button
                   type="button"
                   variant="secondary"
-                  size="md"
+                  size="sm"
                   disabled={busy}
                   aria-label="Благочестие ±"
                   title={
@@ -511,7 +511,7 @@ export function SessionTableCard({
                 <Button
                   type="button"
                   variant="secondary"
-                  size="md"
+                  size="sm"
                   disabled={busy}
                   aria-label="Сторона"
                   title="Сторона в бою"

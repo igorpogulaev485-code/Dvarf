@@ -33,5 +33,17 @@ assert.equal(MOBILE_HOT_PINNED_RESOURCE_COUNT, 2)
 assert.equal(src.includes('mobileMoreOverflow'), true)
 assert.equal(src.includes('play-desk__hot-more'), true)
 assert.match(src, /Ещё \{/)
+assert.match(src, /play-desk__pips/)
+assert.match(src, /shouldUseCompactResourceTrack/)
+
+const css = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), '../../styles/20-pinned-spells.css'),
+  'utf8',
+)
+assert.match(
+  css,
+  /\.play-desk--wide\s+\.play-desk__hot\s*\{[\s\S]*?flex-wrap:\s*nowrap/,
+)
+assert.match(css, /\.play-desk__pips\s*\{[\s\S]*?gap:\s*4px/)
 
 console.log('PlayDeskHotBar.selfcheck: ok')

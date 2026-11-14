@@ -155,21 +155,23 @@
   }
 
   .play-desk--wide .play-desk-header__who {
-    max-width: min(200px, 22vw);
-    flex: 0 1 11rem;
+    max-width: min(380px, 34vw);
+    flex: 1 1 16rem;
   }
 
   .play-desk--wide .play-desk-header__who:has(.play-desk-header__classes.is-many) {
-    max-width: min(260px, 28vw);
+    max-width: min(440px, 38vw);
   }
 
   .play-desk--wide .play-desk-header__name {
     font-size: 1.02rem;
-    white-space: nowrap;
+    white-space: normal;
     overflow: hidden;
-    text-overflow: ellipsis;
-    display: block;
-    -webkit-line-clamp: unset;
+    text-overflow: unset;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
 
   .play-desk--wide .play-desk-header__identity {

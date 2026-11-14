@@ -2970,15 +2970,16 @@ export function PlayDeskAttacksCompact({
                       if (characterId && (opts?.hitTotal != null || opts?.manualTotal != null || opts?.tableHit || opts?.tableMiss)) {
                         const feedTitle = opts?.tableHit
                           ? [
-                              `Атака: ${attack.name}`,
-                              opts.target?.name ? `→ ${opts.target.name}` : null,
-                              opts.hitTotal != null &&
-                              opts.target?.ac != null
+                              'Попадание',
+                              attack.name,
+                              opts.target?.name
+                                ? `по ${opts.target.name}`
+                                : null,
+                              opts.hitTotal != null && opts.target?.ac != null
                                 ? `${opts.hitTotal} vs КД ${opts.target.ac}`
                                 : opts.hitTotal != null
                                   ? String(opts.hitTotal)
                                   : null,
-                              'Попадание',
                               opts.damageTotal != null
                                 ? `${opts.damageTotal} урона`
                                 : null,
@@ -2987,9 +2988,11 @@ export function PlayDeskAttacksCompact({
                               .join(' · ')
                           : opts?.tableMiss
                             ? [
-                                `Атака: ${attack.name}`,
-                                opts.target?.name ? `→ ${opts.target.name}` : null,
                                 'Промах',
+                                attack.name,
+                                opts.target?.name
+                                  ? `по ${opts.target.name}`
+                                  : null,
                               ]
                                 .filter(Boolean)
                                 .join(' · ')

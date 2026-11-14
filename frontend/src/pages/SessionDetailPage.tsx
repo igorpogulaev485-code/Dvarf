@@ -258,8 +258,12 @@ function sessionCanDelete(
 function readSidePanelOpen(): boolean {
   try {
     const raw = localStorage.getItem(SIDE_PANEL_KEY)
-    if (raw === null) return true
-    return raw !== '0'
+    if (raw !== null) return raw !== '0'
+    // UIKIT-02: на ≤1180 по умолчанию свёрнута — две карточки ≥280px в центре
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 1180px)').matches) {
+      return false
+    }
+    return true
   } catch {
     return true
   }

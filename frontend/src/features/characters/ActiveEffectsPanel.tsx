@@ -1,4 +1,5 @@
 /** Блок «Активные эффекты» на листе цели (B-01 / B-02 / B-03). */
+import { useState } from 'react'
 import {
   applyEffectStacking,
   decrementEffectCharges,
@@ -23,6 +24,7 @@ export function ActiveEffectsPanel({
   onToast,
   onHeroismTurnStart,
 }: Props) {
+  const [expandedEffectId, setExpandedEffectId] = useState<string | null>(null)
   const rows = applyEffectStacking(effects ?? [])
   // SC-01: empty effects → render nothing (no empty muted placeholder).
   if (rows.length === 0) {
@@ -71,16 +73,34 @@ export function ActiveEffectsPanel({
             .filter(Boolean)
             .join(' · ')
 
+          const chipLabel = [effect.name, meta].filter(Boolean).join(' · ')
+
           return (
             <div
               key={effect.id}
               className={`active-effects__chip${inactive ? ' is-inactive' : ''}`}
               role="listitem"
             >
-              <span className="active-effects__chip-text" title={meta || undefined}>
+              <button
+                type="button"
+                className={`active-effects__chip-text${
+                  expandedEffectId === effect.id ? ' is-expanded' : ' is-clamped'
+                }`}
+                title={
+                  expandedEffectId === effect.id
+                    ? 'Свернуть'
+                    : `Полный текст: ${chipLabel}. Нажми, чтобы раскрыть`
+                }
+                aria-expanded={expandedEffectId === effect.id}
+                onClick={() =>
+                  setExpandedEffectId((prev) =>
+                    prev === effect.id ? null : effect.id,
+                  )
+                }
+              >
                 <strong>{effect.name}</strong>
                 {meta ? <span className="active-effects__chip-meta"> · {meta}</span> : null}
-              </span>
+              </button>
               <span className="active-effects__chip-actions">
                 {mirror && !inactive ? (
                   <Button
@@ -207,7 +227,8 @@ export function ActiveEffectsPanel({
           type="button"
           size="sm"
           variant="ghost"
-          title="Таймеры эффектов −1 (смена раунда — в сцене Бой)"
+          title="Сменить раунд: таймеры эффектов −1 (полный ход — в сцене Бой)"
+          aria-label="Раунд минус 1 — уменьшить таймеры эффектов"
           onClick={() => {
             const next = tickAllEffectsOneRound(rows)
             onChange(next)
@@ -218,7 +239,7 @@ export function ActiveEffectsPanel({
             )
           }}
         >
-          −раунд
+          Раунд −1
         </Button>
       </div>
     </div>

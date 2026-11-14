@@ -124,13 +124,74 @@ assert.match(
   /\.ui-dialog-backdrop\s*\{[\s\S]*?position:\s*fixed[\s\S]*?inset:\s*0[\s\S]*?100dvh[\s\S]*?100lvh/,
 )
 
-/* UIKIT-02: live table equal grid + companions inside host card */
+/* UIKIT-02: live table fills center; cards ≥280px; no overflow clip */
 assert.match(
   lock,
-  /\.session-table-grid\s*\{[\s\S]*?align-items:\s*start[\s\S]*?repeat\(2,\s*minmax\(0,\s*1fr\)/,
+  /\.session-table-grid\s*\{[\s\S]*?repeat\(auto-fill,\s*minmax\(280px,\s*1fr\)/,
 )
-assert.match(lock, /\.session-table-card\s*\{[\s\S]*?min-width:\s*0/)
-assert.match(lock, /min-width:\s*1440px[\s\S]*?repeat\(3,\s*minmax\(0,\s*1fr\)/)
+assert.match(
+  lock,
+  /\.session-table-card\s*\{[^}]*overflow:\s*visible/,
+)
+assert.match(lock, /container-type:\s*inline-size/)
+assert.doesNotMatch(
+  lock,
+  /\.session-table-card\s*\{[^}]*overflow:\s*hidden/,
+)
+
+const liveDesk = read('src/styles/27-session-journal-notes.css')
+assert.match(
+  liveDesk,
+  /\.session-live-desk\.is-side-collapsed\s+\.session-live-desk__side-tabs\s*\{[\s\S]*?display:\s*none/,
+)
+
+const sessionPage = read('src/pages/SessionDetailPage.tsx')
+assert.match(sessionPage, /max-width:\s*1180px/)
+assert.match(sessionPage, /return false/)
+
+const effectsPanel = read('src/features/characters/ActiveEffectsPanel.tsx')
+assert.match(effectsPanel, /Раунд −1/)
+assert.doesNotMatch(effectsPanel, />\s*−раунд\s*</)
+
+const headerCss = read('src/styles/15-play-desk-header-identity.css')
+assert.match(
+  headerCss,
+  /\.play-desk-header__name\s*\{[\s\S]*?-webkit-line-clamp:\s*2/,
+)
+assert.match(headerCss, /\.active-effects__chip-text\.is-clamped/)
+
+const vitalsCss = read('src/styles/16-play-desk-header-vitals.css')
+assert.match(
+  vitalsCss,
+  /\.play-desk-vital--shield\s*>\s*\.play-desk-vital__icon[\s\S]*?display:\s*none/,
+)
+
+/* UIKIT-02 follow-up: hot strip one row + scroll; pip squares dense */
+const hotCss = read('src/styles/20-pinned-spells.css')
+assert.match(
+  hotCss,
+  /\.play-desk--wide\s+\.play-desk__hot\s*\{[^}]*flex-wrap:\s*nowrap[^}]*overflow-x:\s*auto/,
+)
+assert.match(hotCss, /\.play-desk__pips\s*\{[^}]*gap:\s*4px/)
+assert.doesNotMatch(
+  hotCss,
+  /\.play-desk--wide\s+\.play-desk__hot\s*\{[^}]*flex-wrap:\s*wrap/,
+)
+
+const hotBar = read('src/features/characters/PlayDeskHotBar.tsx')
+assert.match(hotBar, /play-desk__pips/)
+assert.match(hotBar, /shouldUseCompactResourceTrack/)
+assert.doesNotMatch(hotBar, /UIKIT-02: имя \+ «N\/M»/)
+
+const deskHeader = read('src/features/characters/PlayDeskHeader.tsx')
+assert.doesNotMatch(deskHeader, /NeedsSetupIndicator/)
+assert.doesNotMatch(deskHeader, /IconShield/)
+
+const combatOrder = read('src/styles/29-session-enemies-rest.css')
+assert.match(
+  combatOrder,
+  /\.session-combat-order\s*>\s*li\s*>\s*\.session-combat-order__chip\s*\{[\s\S]*?flex:\s*1\s+1\s+100%/,
+)
 
 /* T-01 / UIKIT-02: attack target chips first, «Атаковать {имя}» */
 const picker = read('src/features/characters/CombatTargetPicker.tsx')

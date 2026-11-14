@@ -47,7 +47,6 @@ import {
   IconCoin,
   IconJump,
   IconRest,
-  IconShield,
   IconSkull,
   IconSpark,
 } from './deskIcons'
@@ -56,7 +55,6 @@ import {
   formatJumpTitle,
 } from '../../shared/dnd/jumpDistance'
 import { formatModifier } from './sheetTypes'
-import { NeedsSetupIndicator } from './NeedsSetupIndicator'
 import type { NeedsSetupItem } from './needsSetup'
 
 type SpeedMode = {
@@ -239,8 +237,8 @@ export function PlayDeskHeader({
   coinPadOpen: coinPadOpenProp,
   onCoinPadOpenChange,
   showValueTips = false,
-  needsSetupItems = [],
-  onNeedsSetupSelect,
+  needsSetupItems: _needsSetupItems = [],
+  onNeedsSetupSelect: _onNeedsSetupSelect,
 }: PlayDeskHeaderProps) {
   const alignmentLabel = alignment.trim()
   const editionLabel = String(rulesEdition).trim() || '2014'
@@ -504,13 +502,6 @@ export function PlayDeskHeader({
               ))}
             </ul>
           ) : null}
-          {onNeedsSetupSelect ? (
-            <NeedsSetupIndicator
-              items={needsSetupItems}
-              onSelect={onNeedsSetupSelect}
-              compact
-            />
-          ) : null}
           <button
             type="button"
             className={`play-desk-header__xp${showValueTips ? ' has-onboarding-tip' : ''}`}
@@ -566,7 +557,6 @@ export function PlayDeskHeader({
               onOpenAc()
             }}
           >
-            <IconShield className="play-desk-vital__icon" />
             <b>{autoAc}</b>
             <span className="play-desk-vital__label-row">КД</span>
             {onToggleShield ? (

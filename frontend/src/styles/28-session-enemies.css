@@ -161,6 +161,9 @@
   color: var(--danger);
   line-height: 1.2;
   max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 button.session-condition-tag {

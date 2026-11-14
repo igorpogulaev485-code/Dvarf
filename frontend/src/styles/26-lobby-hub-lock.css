@@ -604,36 +604,19 @@
   display: grid;
   gap: 10px;
   align-items: start;
-  /* Equal-width cells — never stretch a lone card across the row.
-     minmax(0,1fr) so 2-up fits the live-desk center (~320px+). */
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-@media (max-width: 639px) {
-  .session-table-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-/* Keep 2-up through iPad landscape / 1280 so names + turn chips fit */
-@media (min-width: 1440px) {
-  .session-table-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1800px) {
-  .session-table-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
+  width: 100%;
+  /* UIKIT-02: fill center; <560px → 1 card full width; else 280px+ columns */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 
 .session-table-card {
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--card);
-  overflow: hidden;
-  /* Allow 2-up in narrow center; stack already has min-width:0 */
+  /* UIKIT-02: never clip name / chips / typed-damage / +Напарник */
+  overflow: visible;
+  container-type: inline-size;
+  container-name: session-card;
   min-width: 0;
   width: 100%;
   height: auto;
@@ -793,11 +776,11 @@
   flex: 0 0 auto;
 }
 
-/* На широкой карточке — одна полоса: число | тип | Урон | Лечение | врем.HP */
-@media (min-width: 720px) {
+/* Широкая карточка (≥560px) — одна полоса; иначе stacked rows без вылезания */
+@container session-card (min-width: 560px) {
   .session-typed-damage {
     display: grid;
-    grid-template-columns: auto minmax(8rem, 1fr) auto auto auto;
+    grid-template-columns: auto minmax(6rem, 1fr) auto auto auto;
     align-items: center;
   }
 
@@ -896,6 +879,14 @@
   display: grid;
   gap: 8px;
   padding: 12px;
+  min-width: 0;
+  width: 100%;
+  overflow: visible;
+}
+
+.session-table-card__body > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .session-table-card__top {

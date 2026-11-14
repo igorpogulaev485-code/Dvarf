@@ -335,22 +335,22 @@
 }
 
 .play-desk-header__who {
-  /* UIKIT-02 P1: compact who — name + one meta line with XP */
-  flex: 0 1 14rem;
+  /* UIKIT-02: имя целиком (до 2 строк) — больше ширины, без ellipsis */
+  flex: 1 1 18rem;
   width: auto;
   min-width: 0;
-  max-width: min(280px, 26vw);
+  max-width: min(420px, 36vw);
   display: grid;
-  gap: 1px;
+  gap: 2px;
   justify-items: stretch;
   align-content: center;
-  overflow: hidden;
+  overflow: visible;
 }
 
 @media (min-width: 1280px) {
   .play-desk-header__who {
-    flex-basis: 16rem;
-    max-width: min(340px, 28vw);
+    flex-basis: 20rem;
+    max-width: min(480px, 40vw);
   }
 }
 
@@ -368,13 +368,14 @@
 
 .play-desk-header__meta-line {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 4px 6px;
+  gap: 4px 8px;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
-  height: 24px;
+  overflow: visible;
+  height: auto;
+  min-height: 24px;
 }
 
 .play-desk-header__meta-line > * {
@@ -411,13 +412,17 @@
   font-size: 1.12rem;
   line-height: 1.15;
   color: var(--desk-accent, var(--accent));
-  /* P1: one line by default; click expands if clipped */
-  white-space: nowrap;
+  /* UIKIT-02: до 2 строк вместо «Даррак Желе…» */
+  white-space: normal;
   overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
+  text-overflow: unset;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   max-width: 100%;
-  word-break: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 button.play-desk-header__name {
@@ -431,9 +436,10 @@ button.play-desk-header__name {
 }
 
 .play-desk-header__name.is-expanded {
-  white-space: normal;
+  display: block;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
   overflow: visible;
-  text-overflow: unset;
   word-break: break-word;
 }
 
@@ -447,14 +453,17 @@ button.play-desk-header__name {
 
 .play-desk-header__identity {
   display: inline-flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: baseline;
   gap: 0 0.3em;
   margin: 0;
   color: var(--desk-muted);
   font-size: 0.72rem;
   line-height: 1.2;
-  max-width: 100%;
+  max-width: min(100%, 18rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .play-desk-header__dot {
@@ -770,13 +779,13 @@ button.play-desk-header__identity:hover {
 
 .active-effects__chip {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 2px;
-  max-width: min(100%, 22rem);
+  max-width: min(100%, 36rem);
   min-width: 0;
   padding: 1px 2px 1px 7px;
   border: 1px solid var(--desk-line, var(--line));
-  border-radius: 999px;
+  border-radius: 12px;
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
   font-size: 0.72rem;
   line-height: 1.2;
@@ -789,9 +798,35 @@ button.play-desk-header__identity:hover {
 
 .active-effects__chip-text {
   min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  overflow: visible;
+  text-overflow: unset;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.active-effects__chip-text.is-clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  cursor: pointer;
+}
+
+.active-effects__chip-text.is-expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  overflow: visible;
+  cursor: pointer;
 }
 
 .active-effects__chip-meta {
