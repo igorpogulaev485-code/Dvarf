@@ -176,7 +176,7 @@ export function MobileVitalsBar({
   shieldAvailable = false,
   onToggleShield,
   speed,
-  movementHint = null,
+  movementHint: _movementHint = null,
   climbSpeed = null,
   swimSpeed = null,
   flySpeed = null,
@@ -247,11 +247,26 @@ export function MobileVitalsBar({
   if (shownClimb != null) altModes.push({ key: 'climb', label: 'лаз.', value: shownClimb })
   if (shownSwim != null) altModes.push({ key: 'swim', label: 'плав.', value: shownSwim })
   if (shownFly != null) altModes.push({ key: 'fly', label: 'полёт', value: shownFly })
+  // Base speeds before exhaustion ÷2 — clear label, not a second unlabeled row.
+  const withoutExhaustionNote =
+    play.exhaustion >= 2
+      ? [
+          speed != null ? `ход. ${speed}` : null,
+          climbSpeed != null ? `лаз. ${climbSpeed}` : null,
+          swimSpeed != null ? `плав. ${swimSpeed}` : null,
+          flySpeed != null ? `полёт ${flySpeed}` : null,
+        ]
+          .filter(Boolean)
+          .join(' · ')
+      : ''
+  const withoutExhaustionLine = withoutExhaustionNote
+    ? `без истощения: ${withoutExhaustionNote}`
+    : null
   const speedTitle =
     [
       shownSpeed != null ? `ход ${shownSpeed} фт` : null,
       ...altModes.map((mode) => `${mode.label} ${mode.value} фт`),
-      movementHint,
+      withoutExhaustionLine,
       speedExhaustNote,
     ]
       .filter(Boolean)
@@ -605,8 +620,8 @@ export function MobileVitalsBar({
                   </li>
                 ))}
               </ul>
-              {movementHint ? (
-                <p className="ui-vital-menu__note">{movementHint}</p>
+              {withoutExhaustionLine ? (
+                <p className="ui-vital-menu__note">{withoutExhaustionLine}</p>
               ) : null}
               {speedExhaustNote ? (
                 <p className="ui-vital-menu__note">{speedExhaustNote}</p>
