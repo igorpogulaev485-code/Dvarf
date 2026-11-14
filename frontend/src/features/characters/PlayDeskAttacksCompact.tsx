@@ -1028,7 +1028,7 @@ export function PlayDeskAttacksCompact({
       <div className="play-desk-compact__head">
         <h3>Атаки</h3>
         <div className="play-desk-compact__head-actions">
-          {/* M-02 / M13: «Кубики на столе» only on TurnEconomyStrip next to «Новый ход». */}
+          {/* M-02 / M13 / SCN-01: «Кубики на столе» only in SceneTurnControls (scene toolbar). */}
           <button
             type="button"
             className="play-desk-compact__link play-desk-compact__link--settings"

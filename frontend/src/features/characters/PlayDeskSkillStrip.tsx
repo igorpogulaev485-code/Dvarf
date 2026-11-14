@@ -6,8 +6,10 @@ export type PlayDeskSkillChip = {
   key: string
   label: string
   mod: number
-  /** Proficient or expertise — tint the chip. */
+  /** Владение (без компетентности). */
   trained?: boolean
+  /** Компетентность (expertise) — сильнее владения. */
+  expertise?: boolean
 }
 
 /**
@@ -24,6 +26,12 @@ type PlayDeskSkillStripProps = {
   mobileOverflow?: boolean
 }
 
+function skillProfHint(skill: PlayDeskSkillChip): string {
+  if (skill.expertise) return 'компетентность'
+  if (skill.trained) return 'владение'
+  return 'без владения'
+}
+
 function SkillChipButton({
   skill,
   onSkillClick,
@@ -31,16 +39,24 @@ function SkillChipButton({
   skill: PlayDeskSkillChip
   onSkillClick?: (skill: PlayDeskSkillChip) => void
 }) {
+  const prof = skillProfHint(skill)
   return (
     <button
       type="button"
       className={`play-desk__hot-item play-desk__hot-item--btn${
-        skill.trained ? ' is-on' : ''
+        skill.expertise ? ' is-on is-expert' : skill.trained ? ' is-on' : ''
       }`}
-      title={`${skill.label}: ${formatModifier(skill.mod)}`}
+      title={`${skill.label}: ${formatModifier(skill.mod)} · ${prof}`}
       onClick={() => onSkillClick?.(skill)}
     >
-      <span>{skill.label}</span>
+      <span>
+        {skill.label}
+        {skill.expertise ? (
+          <span className="play-desk__skill-expert-mark" aria-hidden="true">
+            ◆
+          </span>
+        ) : null}
+      </span>
       <b>{formatModifier(skill.mod)}</b>
     </button>
   )

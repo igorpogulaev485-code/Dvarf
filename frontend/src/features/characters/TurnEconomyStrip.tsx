@@ -1,92 +1,31 @@
-import type { TurnEconomyMarkKey, TurnEconomyState } from '../../shared/dnd/turnEconomy'
-import { HoverTipCard } from '../onboarding/ValueTip'
-import { TURN_TIPS } from '../onboarding/valueTips.ru'
 import { Button, Text } from '../../ui'
-
-type Props = {
-  /** Бой активен в открытой сессии — полоска видна. */
-  combatActive: boolean
-  yourTurn: boolean
-  round: number
-  activeName: string | null
-  turnsUntil: number | null
-  initiativePending: boolean
-  turnEconomy: TurnEconomyState
-  onToggleMark: (mark: TurnEconomyMarkKey) => void
-  onBeginTurn: () => void
-  onRollInitiative: () => void
-  /** Вне боя — кнопка «Новый ход». */
-  showNewTurnButton: boolean
-  diceOnTable: boolean
-  diceLockedByMaster: boolean
-  onDiceOnTableChange: (next: boolean) => void
-  hasCunningAction?: boolean
-  hasSteadyAim?: boolean
-  hasKiFueledAttack?: boolean
-  onToggleMoved?: () => void
-  onOfferSkill?: (skillKey: 'investigation' | 'perception' | 'stealth') => void
-  onToast?: (message: string) => void
-  /** Absolute beginner (dnd_new): hover tips on turn controls. */
-  showValueTips?: boolean
-}
+import { useTurnEconomy } from './TurnEconomyContext'
 
 /**
- * T-01: отдельная полоска над сценами (не LOCK-шапка виталов).
- * SC-01: отметки хода и PHB — в «Ещё / Действия хода» на панели атак;
- * здесь «Новый ход» / статус боя и единственный «Кубики на столе» (M-02).
+ * T-01 / SCN-01: статус боя над сценами (не LOCK-шапка виталов).
+ * Ход/кубики — в SceneTurnControls (тулбар сцены).
+ * Вне боя не рендерится — без отдельной строки-карточки.
  */
-export function TurnEconomyStrip({
-  combatActive,
-  yourTurn,
-  round,
-  activeName,
-  turnsUntil,
-  initiativePending,
-  onBeginTurn,
-  onRollInitiative,
-  showNewTurnButton,
-  diceOnTable,
-  diceLockedByMaster,
-  onDiceOnTableChange,
-  showValueTips = false,
-}: Props) {
-  // Вне боя: без полоски «Твой ход», только «Новый ход» + личные кубики.
-  // SC-06 / M-02: одна строка, без дубля «Кубики на столе» в шапке атак.
-  if (!combatActive) {
-    if (!showNewTurnButton) return null
-    return (
-      <div
-        className="turn-economy-strip turn-economy-strip--idle"
-        role="region"
-        aria-label="Новый ход"
-        data-sc06-turn-row="idle"
-      >
-        <div className="turn-economy-strip__row">
-          <span className={showValueTips ? 'has-onboarding-tip' : undefined}>
-            <Button type="button" variant="secondary" onClick={onBeginTurn}>
-              Новый ход
-            </Button>
-            {showValueTips ? <HoverTipCard tip={TURN_TIPS.newTurn} /> : null}
-          </span>
-          <label
-            className={`turn-economy-strip__dice${diceLockedByMaster ? ' is-locked' : ''}`}
-            title="Бросок живыми кубиками: Попал/Промах или своё число, без цифрового броска"
-          >
-            <input
-              type="checkbox"
-              checked={diceOnTable}
-              disabled={diceLockedByMaster}
-              onChange={(e) => onDiceOnTableChange(e.target.checked)}
-            />
-            Кубики на столе
-          </label>
-        </div>
-      </div>
-    )
-  }
+export function TurnEconomyStrip() {
+  const te = useTurnEconomy()
+  if (!te?.combatActive) return null
+
+  const {
+    yourTurn,
+    combatRound: round,
+    combatActiveName: activeName,
+    combatTurnsUntil: turnsUntil,
+    initiativePending,
+    openInitiativeRoll,
+  } = te
 
   return (
-    <div className="turn-economy-strip" role="region" aria-label="Ход и отметки">
+    <div
+      className="turn-economy-strip turn-economy-strip--combat-status"
+      role="region"
+      aria-label="Ход"
+      data-scn01-combat-status="1"
+    >
       <div className="turn-economy-strip__status">
         {initiativePending ? (
           <Text as="p" className="turn-economy-strip__headline">
@@ -106,45 +45,10 @@ export function TurnEconomyStrip({
           </Text>
         )}
         {initiativePending ? (
-          <Button type="button" onClick={onRollInitiative}>
+          <Button type="button" onClick={openInitiativeRoll}>
             Бросить инициативу
           </Button>
         ) : null}
-      </div>
-
-      {/*
-        SC-01: отметки хода и PHB-действия переехали в «Ещё / Действия хода»
-        на панели атак. Здесь остаются статус боя, «Начало моего хода» и
-        единственный «Кубики на столе» (M-02 / M13).
-      */}
-      <div className="turn-economy-strip__row">
-        {yourTurn ? (
-          <span className={showValueTips ? 'has-onboarding-tip' : undefined}>
-            <Button type="button" variant="secondary" onClick={onBeginTurn}>
-              Начало моего хода
-            </Button>
-            {showValueTips ? <HoverTipCard tip={TURN_TIPS.newTurn} /> : null}
-          </span>
-        ) : null}
-        <label
-          className={`turn-economy-strip__dice${diceLockedByMaster ? ' is-locked' : ''}`}
-          title={
-            diceLockedByMaster
-              ? 'Включено мастером на столе'
-              : 'Бросок живыми кубиками: Попал/Промах или своё число, без цифрового броска'
-          }
-        >
-          <input
-            type="checkbox"
-            checked={diceOnTable}
-            disabled={diceLockedByMaster}
-            onChange={(e) => onDiceOnTableChange(e.target.checked)}
-          />
-          Кубики на столе
-          {diceLockedByMaster ? (
-            <span className="turn-economy-strip__hint">включено мастером</span>
-          ) : null}
-        </label>
       </div>
     </div>
   )

@@ -88,16 +88,13 @@
 .play-desk--mobile
   .ui-scroll-row.play-desk__hot-wrap
   > .play-desk__hot
-  > .play-desk__hot-item--states {
+  > .play-desk__hot-item--states,
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--states-empty {
   width: 10.5rem;
   min-width: 10.5rem;
   max-width: 10.5rem;
-}
-.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--compact,
-.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--empty-row {
-  flex: 0 0 auto;
-  min-width: 0;
-  min-height: 40px;
+  min-height: 48px;
+  height: 48px;
   padding: 4px 8px;
 }
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--res,
@@ -106,16 +103,17 @@
   width: max-content;
   min-width: 0;
   max-width: none;
-  min-height: 40px;
+  min-height: 48px;
+  height: 48px;
   padding: 4px 8px;
 }
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot--empty-chrome {
   align-items: center;
 }
 .play-desk--mobile .play-desk__step {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
 }
 .play-desk--mobile .play-desk__hot-label {
   font-size: 0.78rem;
@@ -260,36 +258,40 @@
   color: #fff;
 }
 
-/* Combat roll mode: норм / преим. / помеха / броски (M1.4) */
+/* Combat roll mode: норм / преим / помех / броски (M1.4 / SCN-01: без ellipsis) */
 .mobile-combat-roll {
   display: flex;
+  flex-wrap: nowrap;
   gap: 0;
   border: 1px solid var(--desk-line, var(--line));
   border-radius: 10px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   background: #fff;
   min-width: 0;
   max-width: 100%;
   width: 100%;
   box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .mobile-combat-roll__btn {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 0 0 auto;
+  min-width: max-content;
   min-height: 40px;
   border: 0;
   border-right: 1px solid var(--desk-line, var(--line));
   background: transparent;
-  padding: 6px 4px;
+  padding: 6px 8px;
   font: inherit;
   font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
   color: var(--desk-muted, var(--muted));
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .mobile-combat-roll__btn:last-child {
@@ -302,7 +304,27 @@
 }
 
 .mobile-combat-roll__btn--history {
-  flex: 1.15;
+  flex: 0 0 auto;
+}
+
+/* SCN-01: ход/кубики входят в тот же segmented row */
+.mobile-combat-roll .scene-turn-controls {
+  display: contents;
+}
+
+.mobile-combat-roll .scene-turn-controls__begin,
+.mobile-combat-roll .scene-turn-controls__dice {
+  flex: 0 0 auto;
+}
+
+.mobile-combat-roll--turn-only {
+  width: auto;
+  max-width: 100%;
+  align-self: flex-start;
+}
+
+.mobile-combat-roll--turn-only .scene-turn-controls {
+  display: contents;
 }
 
 /* UIKIT-02: навыки — одна строка + скролл (как ресурсы); legacy grid только у --skills-mobile */

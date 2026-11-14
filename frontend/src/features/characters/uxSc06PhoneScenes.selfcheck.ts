@@ -17,6 +17,7 @@ const layout = read('minimalSheet/PlayDeskLayout.tsx')
 const hot = read('PlayDeskHotBar.tsx')
 const skills = read('PlayDeskSkillStrip.tsx')
 const strip = read('TurnEconomyStrip.tsx')
+const sceneTurn = read('SceneTurnControls.tsx')
 const attacks = read('PlayDeskAttacksCompact.tsx')
 const nav = read('BottomSceneNav.tsx')
 const shell = readFileSync(join(here, '../../styles/22-mobile-shell.css'), 'utf8')
@@ -32,8 +33,7 @@ assert.equal(
 assert.doesNotMatch(nav, /id:\s*'more'|mode:\s*'more'/)
 assert.match(ui, /combat:\s*'Сцена боя: атаки и заклинания рядом'/)
 
-// Порядок на телефоне: TurnEconomyDeskHost оборачивает HotBar → сцены
-// («Новый ход» сразу после шапки/вкладок).
+// Порядок на телефоне: TurnEconomyDeskHost оборачивает modes/HotBar → сцены
 const hostOpen = layout.indexOf('<TurnEconomyDeskHost')
 const hotIdx = layout.indexOf('<PlayDeskHotBar')
 const scenesIdx = layout.indexOf('<PlayDeskScenes')
@@ -41,10 +41,11 @@ const hostClose = layout.indexOf('</TurnEconomyDeskHost>')
 assert.ok(hostOpen >= 0 && hotIdx > hostOpen, 'HotBar inside TurnEconomyDeskHost')
 assert.ok(scenesIdx > hotIdx && hostClose > scenesIdx, 'Scenes inside host after HotBar')
 
-// Горячая полоса: пустой хром свёрнут; нет «Концентрация: —»
+// Горячая полоса: SCN-01 пустые состояния — фикс. карточка; нет «Концентрация: —»
 assert.match(hot, /emptyChrome/)
 assert.match(hot, /play-desk__hot--empty-chrome/)
 assert.match(hot, /data-sc06-hot-empty/)
+assert.match(hot, /play-desk__hot-item--states-empty|data-scn01-states-empty/)
 assert.doesNotMatch(hot, /Концентрация: —/)
 assert.match(hot, /\{concentration \? \(/)
 assert.equal(MOBILE_HOT_PINNED_RESOURCE_COUNT, 2)
@@ -56,11 +57,14 @@ assert.match(skills, /play-desk__hot-more--skills-cell/)
 assert.match(shell, /play-desk__hot-more--skills-cell/)
 assert.match(shell, /grid-template-columns:\s*repeat\(2/)
 
-// «Новый ход» + «Кубики на столе» — одна строка в strip; без дубля в атаках
-assert.match(strip, /data-sc06-turn-row="idle"/)
-assert.match(strip, /Кубики на столе/)
+// SCN-01: «Новый ход» + «Кубики» в SceneTurnControls (тулбар), не idle-карточка
+assert.match(sceneTurn, /data-scn01-scene-turn/)
+assert.match(sceneTurn, /Кубики на столе/)
+assert.match(layout, /SceneTurnControls/)
+assert.doesNotMatch(strip, /data-sc06-turn-row="idle"/)
+assert.doesNotMatch(strip, /aria-label="Кубики|turn-economy-strip__dice/)
 assert.equal(/play-desk-compact__dice-toggle/.test(attacks), false)
-assert.match(shell, /turn-economy-strip__row[\s\S]*?flex-wrap:\s*nowrap/)
+assert.match(shell, /mobile-combat-roll \.scene-turn-controls[\s\S]*?display:\s*contents/)
 
 // Нижняя навигация не перекрывает: padding M-02
 assert.match(shell, /padding-bottom:\s*calc\(72px/)

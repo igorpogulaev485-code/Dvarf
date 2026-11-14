@@ -98,6 +98,23 @@
   border-color: var(--desk-line);
 }
 
+/* SCN-01: компетентность на полоске навыков — сильнее владения */
+.play-desk__hot--skills .play-desk__hot-item--btn.is-on.is-expert {
+  background: color-mix(in srgb, var(--desk-accent-soft) 35%, var(--desk-accent));
+  border-color: var(--desk-accent);
+  border-width: 2px;
+  font-weight: 700;
+}
+
+.play-desk__skill-expert-mark {
+  display: inline-block;
+  margin-left: 3px;
+  font-size: 0.65em;
+  vertical-align: 0.15em;
+  color: var(--desk-accent);
+  line-height: 1;
+}
+
 /* Inside ScrollRow the wrap rule forces flex:0 0 auto; base must not grow/wrap the strip */
 .play-desk__hot-item--wide {
   flex: 0 0 auto;
@@ -117,7 +134,7 @@
   color: var(--desk-ink);
 }
 
-/* HOT-01: «Состояния» — fixed width (no grow from chip count); chips + +N */
+/* HOT-01 / SCN-01: «Состояния» — fixed width/height always (empty → «нет») */
 .play-desk__hot-wrap .play-desk__hot-item--states,
 .ui-scroll-row.play-desk__hot-wrap > .play-desk__hot > .play-desk__hot-item--states {
   flex: 0 0 auto;
@@ -131,10 +148,27 @@
   padding: 6px 8px;
   align-content: start;
   min-height: 52px;
+  height: 52px;
   text-align: left;
   color: var(--desk-ink);
   background: var(--desk-accent-soft);
   border-color: var(--desk-line);
+}
+
+.play-desk__hot-wrap .play-desk__hot-item--states-empty,
+.ui-scroll-row.play-desk__hot-wrap
+  > .play-desk__hot
+  > .play-desk__hot-item--states-empty {
+  background: #fff;
+  color: var(--desk-ink);
+}
+
+.play-desk__hot-cond-empty {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+  line-height: 1.2;
 }
 
 .play-desk__hot-cond-row {
@@ -214,12 +248,16 @@
   min-width: 0;
   width: max-content;
   display: grid;
+  grid-template-rows: 1.25em auto;
   gap: 4px;
   padding: 6px 8px;
-  /* HOT-01: equal card height — one-line title + pips row */
+  /* HOT-01 / SCN-01: equal card height with −/+ and pips */
   align-content: start;
+  align-items: start;
   min-height: 52px;
+  height: 52px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .play-desk__hot-res-head {
@@ -291,6 +329,8 @@
   min-width: 0;
   width: max-content;
   max-width: none;
+  min-height: 52px;
+  height: 52px;
 }
 
 /* M-02: mobile «Ещё N» overflow (desktop keeps scroll + arrows). */
@@ -325,22 +365,26 @@
   box-shadow: 0 8px 24px rgba(45, 45, 42, 0.12);
 }
 
+/* SCN-01: −/+ row same height as pip row (18px), no extra margin */
 .play-desk__stepper {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 4px;
+  margin-top: 0;
+  min-height: 18px;
+  height: 18px;
 }
 
 .play-desk__step {
-  width: 26px;
-  height: 26px;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
   padding: 0;
-  border-radius: 6px;
-  border: 1px solid var(--desk-accent);
+  border-radius: 4px;
+  border: 1.5px solid var(--desk-accent);
   background: #fff;
   color: var(--desk-ink);
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
@@ -357,10 +401,12 @@
 }
 
 .play-desk__stepper-value {
-  min-width: 3.4rem;
+  min-width: 2.8rem;
   text-align: center;
+  font-size: 0.78rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  line-height: 1;
   color: var(--desk-ink);
 }
 

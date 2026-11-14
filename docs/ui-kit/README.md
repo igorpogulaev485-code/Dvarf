@@ -446,7 +446,9 @@ LOCK-доски §2b–2l не переписываем; меняется пор
 | `Chip` | `.ui-chip` · `__label` · `__dismiss` · `__tip` | gap label↔× в ките; tip hover / tap |
 | `ResourcePips` | `.ui-resource-pips` / `.play-desk__pips` | квадрат 18px, gap 4px |
 
-**HOT-01 (хот-панель листа):** карточки ресурсов — однострочное имя (ellipsis + `title`), одна высота; «Состояния»/`hot-label` = `0.78rem` как имена ресурсов; «Состояния» — фикс. ширина + чипы/`+N` (паттерн clamp как ClassChipRow/эффекты), клик → `HotConditionsDialog`; один пул класса = одна карточка (`syncFeatureResources` + `collapseSameClassPools`).
+**HOT-01 (хот-панель листа):** карточки ресурсов — однострочное имя (ellipsis + `title`), одна высота; «Состояния»/`hot-label` = `0.78rem` как имена ресурсов; «Состояния» — фикс. ширина/высота + чипы/`+N` (пусто → приглушённое «нет»), клик → `HotConditionsDialog`; один пул класса = одна карточка (`syncFeatureResources` + `collapseSameClassPools`). Ресурсы: max ≤ 5 — квадратики; max > 5 — `текущее/макс` с −/+ (`RESOURCE_PIP_INLINE_MAX = 5`).
+
+**SCN-01 (блок сцен):** «Новый ход» + «Кубики на столе» — в `SceneTurnControls` рядом с норм/преим./помеха/броски (не отдельная карточка). Компетентность на полоске навыков и в рельсе характеристик заметно сильнее владения (фон + ◆ / двойной pip); в title — «владение»/«компетентность». «Пассивы» в `rail-foot` — не sticky (не наезжают на навыки).
 
 **Запрет:** в стилях страниц/фич нельзя писать `.something .ui-button { min-height/padding/font-size… }`. Нужен вариант — добавь в кит, на экране выбери пропом. Selfcheck: `npm run selfcheck:uikit-no-overrides`.
 

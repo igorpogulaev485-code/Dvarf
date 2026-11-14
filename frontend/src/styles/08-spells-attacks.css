@@ -493,16 +493,101 @@ button.spells-settings__derived-stat--btn:hover {
   color: var(--desk-accent, var(--accent));
 }
 
-/* T-01: полоска хода (не LOCK-шапка виталов) */
+/* T-01 / SCN-01: статус боя (компактно); ход/кубики — в SceneTurnControls */
 .turn-economy-strip {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin: 0 0 10px;
-  padding: 10px 12px;
+  gap: 4px;
+  margin: 0 0 6px;
+  padding: 6px 10px;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--panel);
+}
+
+.turn-economy-strip--combat-status {
+  margin: 0 0 6px;
+  padding: 4px 10px;
+}
+
+/* SCN-01: «Новый ход» + «кубики» рядом с норм/преим./помеха */
+.scene-turn-controls {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+  border: 1px solid var(--desk-line, var(--line));
+  border-radius: 999px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.scene-turn-controls--desk .play-desk__roll-mode-btn {
+  border-right: 1px solid var(--desk-line, var(--line));
+}
+
+.scene-turn-controls--desk .play-desk__roll-mode-btn:last-child,
+.scene-turn-controls--desk .scene-turn-controls__dice:last-child {
+  border-right: 0;
+}
+
+.scene-turn-controls__dice {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.scene-turn-controls__dice-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* SCN-01: явная галка вкл/выкл (как kit toggle) */
+.scene-turn-controls__dice-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1.5px solid color-mix(in srgb, var(--desk-muted, var(--muted)) 55%, var(--desk-line, var(--line)));
+  background: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1;
+  color: transparent;
+}
+
+.scene-turn-controls__dice-mark.is-on,
+.scene-turn-controls__dice.is-on .scene-turn-controls__dice-mark {
+  border-color: currentColor;
+  background: color-mix(in srgb, #fff 22%, transparent);
+  color: inherit;
+}
+
+.scene-turn-controls__dice.is-on .scene-turn-controls__dice-mark {
+  color: #fff;
+  border-color: #fff;
+  background: color-mix(in srgb, #fff 18%, transparent);
+}
+
+.scene-turn-controls__dice.is-locked {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.scene-turn-controls__hint {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
 }
 
 .turn-economy-strip__status {

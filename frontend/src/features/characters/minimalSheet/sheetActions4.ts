@@ -1197,11 +1197,13 @@ export function installSheetActions4(model: SheetModel) {
     return MODE_SKILL_KEYS[mode].map((key) => {
       const def = SKILL_DEFS.find((skill) => skill.key === key)
       const state = model.draft.skills[key]
+      const expertise = Boolean(state?.is_expertise)
       return {
         key,
         label: def?.label ?? key,
         mod: model.skillModFor(key),
-        trained: Boolean(state?.is_proficient || state?.is_expertise),
+        trained: Boolean(state?.is_proficient || expertise),
+        expertise,
       }
     })
   }

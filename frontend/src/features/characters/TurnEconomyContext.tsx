@@ -20,6 +20,12 @@ export type TurnEconomyContextValue = {
   setPersonalDiceOnTable: (next: boolean) => void
   combatActive: boolean
   yourTurn: boolean
+  /** SCN-01: combat status banner fields (null/0 when idle). */
+  combatRound: number
+  combatActiveName: string | null
+  combatTurnsUntil: number | null
+  initiativePending: boolean
+  openInitiativeRoll: () => void
   openSessionId: string | null
   characterId: string
   targets: CombatTarget[]

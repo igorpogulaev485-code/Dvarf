@@ -25,6 +25,8 @@ import { SheetDialogsRolls } from './SheetDialogsRolls'
 import { SheetDialogsResources } from './SheetDialogsResources'
 import { SheetDialogsSetup } from './SheetDialogsSetup'
 import { TurnEconomyDeskHost } from '../TurnEconomyDeskHost'
+import { TurnEconomyStrip } from '../TurnEconomyStrip'
+import { SceneTurnControls } from '../SceneTurnControls'
 
 export function PlayDeskLayout({ model }: { model: SheetModel }) {
   return (
@@ -52,8 +54,17 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
         </aside>
 
         <div className="play-desk__stage">
+          {/*
+            SCN-01: TurnEconomy wraps modes so SceneTurnControls (Новый ход / кубики)
+            live in the scene toolbar — no separate card row under tabs.
+          */}
+          <TurnEconomyDeskHost model={model}>
           {model.isPlayDesk ? (
-            <div className="play-desk__modes" aria-label="Сцены листа">
+            <div
+              className="play-desk__modes"
+              aria-label="Сцены листа"
+              title={MODE_HINT[model.draft.sheetUi.deskMode]}
+            >
               <div className="play-desk__mode-tabs" data-onboarding="desk-modes" role="group" aria-label="Вкладки сцен">
                 {MODE_LABELS.map(({ id: mode, label }) => (
                   <button
@@ -69,111 +80,133 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                   </button>
                 ))}
               </div>
-              <div
-                className="play-desk__roll-mode"
-                role="group"
-                aria-label="Преимущество / помеха"
-              >
-                {(
-                  [
-                    ['normal', 'норм'],
-                    ['advantage', 'преим.'],
-                    ['disadvantage', 'помеха'],
-                  ] as const
-                ).map(([mode, label]) => (
+              {/* SCN-01: roll + ход/кубики + магия — одна строка (≥1024) */}
+              <div className="play-desk__mode-tools" role="group" aria-label="Броски и ход">
+                <div
+                  className="play-desk__roll-mode"
+                  role="group"
+                  aria-label="Преимущество / помеха"
+                >
+                  {(
+                    [
+                      ['normal', 'норм'],
+                      ['advantage', 'преим.'],
+                      ['disadvantage', 'помеха'],
+                    ] as const
+                  ).map(([mode, label]) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      className={`play-desk__roll-mode-btn${
+                        model.deskRollMode === mode ? ' is-on' : ''
+                      }`}
+                      aria-pressed={model.deskRollMode === mode}
+                      onClick={() => model.setDeskRollMode(mode)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                  {typeof model.luckyPointsRemaining === 'function' &&
+                  model.luckyPointsRemaining() > 0 ? (
+                    <button
+                      type="button"
+                      className={`play-desk__roll-mode-btn${
+                        model.luckyRollArmed ? ' is-on' : ''
+                      }`}
+                      aria-pressed={Boolean(model.luckyRollArmed)}
+                      title="Везунчик: лишняя к20, выбрать любую"
+                      onClick={() =>
+                        model.setLuckyRollArmed?.(!model.luckyRollArmed)
+                      }
+                    >
+                      удача {model.luckyPointsRemaining()}
+                    </button>
+                  ) : null}
+                  {model.draft.inspiration || model.inspirationRollArmed ? (
+                    <button
+                      type="button"
+                      className={`play-desk__roll-mode-btn${
+                        model.inspirationRollArmed ? ' is-on' : ''
+                      }`}
+                      aria-pressed={Boolean(model.inspirationRollArmed)}
+                      title="Потратить вдохновение: преимущество на один бросок атаки, проверки или спаса"
+                      onClick={() => {
+                        if (model.inspirationRollArmed) {
+                          model.setInspirationRollArmed?.(false)
+                          return
+                        }
+                        if (!model.draft.inspiration) {
+                          model.onToast?.('Нет вдохновения')
+                          return
+                        }
+                        if (model.deskRollMode === 'advantage') {
+                          model.onToast?.('Уже есть преимущество')
+                          return
+                        }
+                        model.setInspirationRollArmed?.(true)
+                      }}
+                    >
+                      вдохн.
+                    </button>
+                  ) : null}
                   <button
-                    key={mode}
                     type="button"
-                    className={`play-desk__roll-mode-btn${
-                      model.deskRollMode === mode ? ' is-on' : ''
-                    }`}
-                    aria-pressed={model.deskRollMode === mode}
-                    onClick={() => model.setDeskRollMode(mode)}
+                    className="play-desk__roll-mode-btn"
+                    title="История бросков на этом листе"
+                    onClick={() => model.setRollHistoryOpen(true)}
                   >
-                    {label}
+                    броски
+                    {model.draft.sheetUi.rollHistory.length > 0
+                      ? ` ${Math.min(model.draft.sheetUi.rollHistory.length, 99)}`
+                      : ''}
                   </button>
-                ))}
-                {typeof model.luckyPointsRemaining === 'function' &&
-                model.luckyPointsRemaining() > 0 ? (
+                </div>
+                <SceneTurnControls
+                  showValueTips={Boolean(model.showValueTips)}
+                  className="scene-turn-controls scene-turn-controls--desk"
+                  buttonClassName="play-desk__roll-mode-btn"
+                />
+                {modeUsesSpellSplit(model.draft.sheetUi.deskMode) ? (
                   <button
                     type="button"
-                    className={`play-desk__roll-mode-btn${
-                      model.luckyRollArmed ? ' is-on' : ''
-                    }`}
-                    aria-pressed={Boolean(model.luckyRollArmed)}
-                    title="Везунчик: лишняя к20, выбрать любую"
+                    className={`play-desk__split-btn${model.deskSplit ? ' is-on' : ''}`}
+                    aria-pressed={model.deskSplit}
+                    title={
+                      model.deskSplit
+                        ? `${MODE_HINT[model.draft.sheetUi.deskMode]} · Скрыть магию — основная панель на всю ширину`
+                        : model.hasMagicSources
+                          ? `${MODE_HINT[model.draft.sheetUi.deskMode]} · Показать магию справа рядом с панелью`
+                          : `${MODE_HINT[model.draft.sheetUi.deskMode]} · Показать панель магии (у персонажа нет источников магии)`
+                    }
                     onClick={() =>
-                      model.setLuckyRollArmed?.(!model.luckyRollArmed)
+                      model.patchSheetUi({ deskSplit: !model.draft.sheetUi.deskSplit })
                     }
                   >
-                    удача {model.luckyPointsRemaining()}
+                    магия
                   </button>
                 ) : null}
-                {model.draft.inspiration || model.inspirationRollArmed ? (
-                  <button
-                    type="button"
-                    className={`play-desk__roll-mode-btn${
-                      model.inspirationRollArmed ? ' is-on' : ''
-                    }`}
-                    aria-pressed={Boolean(model.inspirationRollArmed)}
-                    title="Потратить вдохновение: преимущество на один бросок атаки, проверки или спаса"
-                    onClick={() => {
-                      if (model.inspirationRollArmed) {
-                        model.setInspirationRollArmed?.(false)
-                        return
-                      }
-                      if (!model.draft.inspiration) {
-                        model.onToast?.('Нет вдохновения')
-                        return
-                      }
-                      if (model.deskRollMode === 'advantage') {
-                        model.onToast?.('Уже есть преимущество')
-                        return
-                      }
-                      model.setInspirationRollArmed?.(true)
-                    }}
-                  >
-                    вдохн.
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  className="play-desk__roll-mode-btn"
-                  title="История бросков на этом листе"
-                  onClick={() => model.setRollHistoryOpen(true)}
-                >
-                  броски
-                  {model.draft.sheetUi.rollHistory.length > 0
-                    ? ` ${Math.min(model.draft.sheetUi.rollHistory.length, 99)}`
-                    : ''}
-                </button>
               </div>
-              {modeUsesSpellSplit(model.draft.sheetUi.deskMode) ? (
-                <button
-                  type="button"
-                  className={`play-desk__split-btn${model.deskSplit ? ' is-on' : ''}`}
-                  aria-pressed={model.deskSplit}
-                  title={
-                    model.deskSplit
-                      ? 'Скрыть магию — основная панель на всю ширину'
-                      : model.hasMagicSources
-                        ? 'Показать магию справа рядом с панелью'
-                        : 'Показать панель магии (у персонажа нет источников магии)'
-                  }
-                  onClick={() => model.patchSheetUi({ deskSplit: !model.draft.sheetUi.deskSplit })}
-                >
-                  {model.deskSplit ? 'Скрыть магию' : 'Показать магию'}
-                </button>
-              ) : null}
-              <span className="play-desk__mode-hint">{MODE_HINT[model.draft.sheetUi.deskMode]}</span>
             </div>
           ) : null}
 
-          {/*
-            SC-06: «Новый ход» сразу после шапки/вкладок, до горячей полосы и навыков —
-            на 390 первый экран «Бой» доходит до оружия.
-          */}
-          <TurnEconomyDeskHost model={model}>
+          <TurnEconomyStrip />
+
+          {!model.isPlayDesk &&
+          (model.draft.sheetUi.deskMode === 'companions' ||
+            model.draft.sheetUi.deskMode === 'features') ? (
+            <div
+              className="mobile-combat-roll mobile-combat-roll--turn-only"
+              role="group"
+              aria-label="Ход и кубики"
+            >
+              <SceneTurnControls
+                showValueTips={Boolean(model.showValueTips)}
+                className="scene-turn-controls"
+                buttonClassName="mobile-combat-roll__btn"
+              />
+            </div>
+          ) : null}
+
           <PlayDeskHotBar
             conditionNames={model.hotConditionNames}
             exhaustion={model.draft.play.exhaustion}
@@ -279,8 +312,8 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                 {(
                   [
                     ['normal', 'норм'],
-                    ['advantage', 'преим.'],
-                    ['disadvantage', 'помеха'],
+                    ['advantage', 'преим'],
+                    ['disadvantage', 'помех'],
                   ] as const
                 ).map(([mode, label]) => (
                   <button
@@ -349,6 +382,11 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                     ? ` ${Math.min(model.draft.sheetUi.rollHistory.length, 99)}`
                     : ''}
                 </button>
+                <SceneTurnControls
+                  showValueTips={Boolean(model.showValueTips)}
+                  className="scene-turn-controls"
+                  buttonClassName="mobile-combat-roll__btn"
+                />
               </div>
             </div>
           ) : null}
@@ -372,8 +410,8 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
               {(
                 [
                   ['normal', 'норм'],
-                  ['advantage', 'преим.'],
-                  ['disadvantage', 'помеха'],
+                  ['advantage', 'преим'],
+                  ['disadvantage', 'помех'],
                 ] as const
               ).map(([mode, label]) => (
                 <button
@@ -442,6 +480,11 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                   ? ` ${Math.min(model.draft.sheetUi.rollHistory.length, 99)}`
                   : ''}
               </button>
+              <SceneTurnControls
+                showValueTips={Boolean(model.showValueTips)}
+                className="scene-turn-controls"
+                buttonClassName="mobile-combat-roll__btn"
+              />
             </div>
           ) : null}
 
@@ -463,8 +506,8 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
               {(
                 [
                   ['normal', 'норм'],
-                  ['advantage', 'преим.'],
-                  ['disadvantage', 'помеха'],
+                  ['advantage', 'преим'],
+                  ['disadvantage', 'помех'],
                 ] as const
               ).map(([mode, label]) => (
                 <button
@@ -533,6 +576,11 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                   ? ` ${Math.min(model.draft.sheetUi.rollHistory.length, 99)}`
                   : ''}
               </button>
+              <SceneTurnControls
+                showValueTips={Boolean(model.showValueTips)}
+                className="scene-turn-controls"
+                buttonClassName="mobile-combat-roll__btn"
+              />
             </div>
           ) : null}
 

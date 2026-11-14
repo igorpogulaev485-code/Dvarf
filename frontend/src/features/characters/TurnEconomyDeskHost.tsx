@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import type { SheetModel } from './minimalSheet/sheetModel'
 import { applyBeginMyTurnWithCompanions } from './beginMyTurn'
-import { TurnEconomyStrip } from './TurnEconomyStrip'
 import {
   TurnEconomyProvider,
   type TurnEconomyContextValue,
@@ -32,13 +31,11 @@ import {
   type TurnEconomyMarkKey,
 } from '../../shared/dnd/turnEconomy'
 import {
-  hasO02Feature,
   markBlessedStrikesUsed as markBlessedStrikesUsedState,
   markFavoredFoeDamageUsed as markFavoredFoeDamageUsedState,
   markKiSpent as markKiSpentState,
 } from '../../shared/dnd/o02TashaFeatures'
 import type { ActiveEffect } from '../../shared/dnd/activeEffects'
-import { normalizeCampaignRules } from '../lobby/campaignRules'
 import { postSheetRollToSession } from './postSheetRollToSession'
 import {
   rollSessionCombatInitiative,
@@ -167,6 +164,11 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
       setPersonalDiceOnTable,
       combatActive: combat.combatActive,
       yourTurn: combat.yourTurn,
+      combatRound: combat.round,
+      combatActiveName: combat.activeEntry?.name ?? null,
+      combatTurnsUntil: combat.turnsUntil,
+      initiativePending: combat.initiativePending,
+      openInitiativeRoll: () => setInitiativeOpen(true),
       openSessionId,
       characterId,
       targets: combat.targets,
@@ -288,6 +290,10 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
       setPersonalDiceOnTable,
       combat.combatActive,
       combat.yourTurn,
+      combat.round,
+      combat.activeEntry?.name,
+      combat.turnsUntil,
+      combat.initiativePending,
       combat.targets,
       openSessionId,
       characterId,
@@ -299,24 +305,6 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
   // expose for cast dialog hooks that live on model
   model.turnEconomyApi = ctx
   model.castingTimeToEconomyMark = castingTimeToEconomyMark
-
-  const activeName = combat.activeEntry?.name ?? null
-  const showNewTurn = !combat.combatActive
-  const hasCunningAction = Boolean(
-    (model.unlockedFeatures as Array<{ id?: string }> | undefined)?.some(
-      (f) => f.id === 'cunning_action',
-    ),
-  )
-  const campaignRules = normalizeCampaignRules(
-    (model as { campaignRulesRaw?: unknown }).campaignRulesRaw ??
-      model.character?.campaign_rules ??
-      null,
-  )
-  const tceAllowed = campaignRules.start.allowed_sources.includes('tce')
-  const unlocked = (model.unlockedFeatures as Array<{ id?: string }> | undefined) ?? []
-  const hasSteadyAim = tceAllowed && unlocked.some((f) => f.id === 'steady_aim')
-  const hasKiFueledAttack =
-    tceAllowed && hasO02Feature(unlocked, 'ki_fueled_attack')
 
   const rollOfferedSkill = useCallback(
     (key: 'investigation' | 'perception' | 'stealth') => {
@@ -347,32 +335,6 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
 
   return (
     <TurnEconomyProvider value={ctx}>
-      <TurnEconomyStrip
-        combatActive={combat.combatActive}
-        yourTurn={combat.yourTurn}
-        round={combat.round}
-        activeName={activeName}
-        turnsUntil={combat.turnsUntil}
-        initiativePending={combat.initiativePending}
-        turnEconomy={economy}
-        onToggleMark={toggleMark}
-        onBeginTurn={beginMyTurn}
-        onRollInitiative={() => setInitiativeOpen(true)}
-        showNewTurnButton={showNewTurn}
-        diceOnTable={diceOnTable}
-        diceLockedByMaster={diceLockedByMaster}
-        onDiceOnTableChange={setPersonalDiceOnTable}
-        hasCunningAction={hasCunningAction}
-        hasSteadyAim={hasSteadyAim}
-        hasKiFueledAttack={hasKiFueledAttack}
-        onToggleMoved={toggleMoved}
-        onOfferSkill={(key) => {
-          if (key === 'stealth') setSkillOffer('stealth')
-          else setSkillOffer('search')
-        }}
-        onToast={(msg) => model.onToast?.(msg)}
-        showValueTips={Boolean(model.showValueTips)}
-      />
       {children}
       <InitiativeRollDialog
         open={initiativeOpen}
