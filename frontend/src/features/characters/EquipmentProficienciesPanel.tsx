@@ -1,3 +1,4 @@
+import { HoverTipCard, PANEL_HELP, panelExplain } from '../onboarding'
 import { Panel, Stack, Text } from '../../ui'
 import {
   ARMOR_PROF_OPTIONS,
@@ -25,26 +26,33 @@ export function EquipmentProficienciesPanel({
   const extras = weapons.extras ?? []
 
   return (
-    <Panel title="Владения снаряжением">
+    <Panel
+      title="Владения снаряжением"
+      titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.proficiencies)} />}
+    >
       <Stack gap={14}>
-        <Text tone="muted">
-          Отсюда считается, можно ли надеть доспех/щит и даёт ли оружие бонус мастерства в атаках —
-          на карточке атаки это не переключается вручную.
-        </Text>
         <div>
-          <Text tone="muted">Доспехи</Text>
+          <Text tone="muted" className="ownership-editor__section-label">
+            Доспехи
+          </Text>
           <div className="chip-row">
             {ARMOR_PROF_OPTIONS.map((option) => (
               <button
                 key={option.key}
                 type="button"
                 className={`sheet-chip${armor[option.key] ? ' is-on' : ''}`}
+                aria-pressed={armor[option.key]}
                 onClick={() =>
                   onChange({
                     armor: { ...armor, [option.key]: !armor[option.key] },
                   })
                 }
               >
+                {armor[option.key] ? (
+                  <span className="sheet-chip__check" aria-hidden="true">
+                    ✓
+                  </span>
+                ) : null}
                 {option.label}
               </button>
             ))}
@@ -52,13 +60,16 @@ export function EquipmentProficienciesPanel({
         </div>
 
         <div>
-          <Text tone="muted">Оружие — категории</Text>
+          <Text tone="muted" className="ownership-editor__section-label">
+            Оружие — категории
+          </Text>
           <div className="chip-row">
             {WEAPON_PROF_OPTIONS.map((option) => (
               <button
                 key={option.key}
                 type="button"
                 className={`sheet-chip${weapons[option.key] ? ' is-on' : ''}`}
+                aria-pressed={weapons[option.key]}
                 onClick={() =>
                   onChange({
                     weapons: {
@@ -69,6 +80,11 @@ export function EquipmentProficienciesPanel({
                   })
                 }
               >
+                {weapons[option.key] ? (
+                  <span className="sheet-chip__check" aria-hidden="true">
+                    ✓
+                  </span>
+                ) : null}
                 {option.label}
               </button>
             ))}

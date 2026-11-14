@@ -227,6 +227,201 @@ export function UiKitEtalonPreviewPage() {
         </div>
 
         <div>
+          <Text as="h2">LP-01 · рельс характеристик: владение vs компетентность</Text>
+          <Text tone="muted">
+            владение = бледный фон + заполненный кружок · компетентность = сплошной --abil + белый
+            текст + ◆ / двойной pip
+          </Text>
+          <article className="abil-block" data-abil="dex" style={{ marginTop: 8, maxWidth: 320 }}>
+            <div className="abil-block__head">
+              <span className="abil-block__drag">⋮⋮</span>
+              <div className="abil-block__label">
+                <button type="button" className="abil-block__label-open">
+                  <span className="abil-block__label-text">Ловкость</span>
+                </button>
+              </div>
+              <div className="abil-block__meta">
+                <div className="abil-block__score-wrap">
+                  <span
+                    className="abil-block__score ui-input"
+                    style={{
+                      display: 'inline-grid',
+                      placeItems: 'center',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    16
+                  </span>
+                </div>
+                <div className="abil-block__mods">
+                  <button type="button" className="abil-mod abil-mod--btn abil-mod--roll">
+                    <span className="abil-mod__tag">Пр</span>
+                    <span className="abil-mod__num">+3</span>
+                  </button>
+                  <div className="abil-mod-pair">
+                    <button
+                      type="button"
+                      className="abil-prof-pip is-on"
+                      title="владение"
+                      aria-label="владение спасброском"
+                    />
+                    <button
+                      type="button"
+                      className="abil-mod abil-mod--btn abil-mod--roll is-proficient"
+                      title="Спасбросок · владение"
+                    >
+                      <span className="abil-mod__tag">Сп</span>
+                      <span className="abil-mod__num">+5</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="abil-block__skills">
+              <div className="abil-skill is-on">
+                <button
+                  type="button"
+                  className="abil-prof-pip is-on"
+                  title="владение"
+                  aria-label="Акробатика: владение"
+                />
+                <span className="abil-skill__name" title="Акробатика · владение">
+                  Акробатика
+                </span>
+                <button type="button" className="abil-skill__roll" title="Акробатика · владение">
+                  +5
+                </button>
+              </div>
+              <div className="abil-skill is-on">
+                <button
+                  type="button"
+                  className="abil-prof-pip is-on"
+                  title="владение"
+                  aria-label="Ловкость рук: владение"
+                />
+                <span className="abil-skill__name" title="Ловкость рук · владение">
+                  Ловкость рук
+                </span>
+                <button type="button" className="abil-skill__roll" title="Ловкость рук · владение">
+                  +5
+                </button>
+              </div>
+              <div className="abil-skill is-on is-expert">
+                <button
+                  type="button"
+                  className="abil-prof-pip is-on is-expert"
+                  title="компетентность"
+                  aria-label="Скрытность: компетентность"
+                />
+                <span className="abil-skill__name" title="Скрытность · компетентность">
+                  Скрытность
+                  <span className="abil-skill__expert-mark" aria-hidden="true">
+                    ◆
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="abil-skill__roll"
+                  title="Скрытность · компетентность"
+                >
+                  +7
+                </button>
+              </div>
+            </div>
+          </article>
+          <div className="play-desk__rail-foot" style={{ marginTop: 10, maxWidth: 320 }}>
+            <div className="play-desk__passives play-desk__passives--compact">
+              <div className="play-desk__passives-label">Пассивы</div>
+              <div className="passive-grid passive-grid--desk">
+                <div className="passive-card">
+                  <span className="passive-card__label">Внимат.</span>
+                  <strong>17</strong>
+                </div>
+                <div className="passive-card">
+                  <span className="passive-card__label">Анализ</span>
+                  <strong>11</strong>
+                </div>
+                <div className="passive-card">
+                  <span className="passive-card__label">Прониц.</span>
+                  <strong>11</strong>
+                </div>
+              </div>
+              <div className="darkvision-sense">
+                <button type="button" className="darkvision-sense__summary" title="Тёмное зрение 60 фт">
+                  <span className="darkvision-sense__label">Тёмное зрение</span>
+                  <strong className="darkvision-sense__value">60 фт</strong>
+                </button>
+              </div>
+            </div>
+            <section className="ownership-summary" aria-label="Владения">
+              <div className="ownership-summary__head">
+                <button type="button" className="ownership-summary__open" title="Владения">
+                  <span className="ownership-summary__title">Владения</span>
+                  <span className="ownership-summary__cta" aria-hidden="true">
+                    ▸
+                  </span>
+                </button>
+              </div>
+              <div className="ownership-summary__body">
+                <div className="ownership-summary__row">
+                  <span className="ownership-summary__label">Доспехи</span>
+                  <div className="ownership-summary__chips">
+                    <span className="ownership-summary__chip">Лёгкие</span>
+                  </div>
+                </div>
+                <div className="ownership-summary__row">
+                  <span className="ownership-summary__label">Оружие</span>
+                  <div className="ownership-summary__chips">
+                    <span className="ownership-summary__chip">Простое</span>
+                    <span className="ownership-summary__chip">Рапира</span>
+                    <span className="ownership-summary__chip">Короткий меч</span>
+                    <span className="ownership-summary__chip">+1</span>
+                  </div>
+                </div>
+                <div className="ownership-summary__row">
+                  <span className="ownership-summary__label">Инструменты</span>
+                  <div className="ownership-summary__chips">
+                    <span className="ownership-summary__chip">Воровские инструменты</span>
+                  </div>
+                </div>
+                <div className="ownership-summary__row">
+                  <span className="ownership-summary__label">Языки</span>
+                  <div className="ownership-summary__chips">
+                    <span className="ownership-summary__chip">Общий</span>
+                    <span className="ownership-summary__chip">Воровской жаргон</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+              <button type="button" className="sheet-chip">
+                Средние
+              </button>
+              <button type="button" className="sheet-chip is-on">
+                <span className="sheet-chip__check" aria-hidden="true">
+                  ✓
+                </span>
+                Лёгкие
+              </button>
+              <button type="button" className="sheet-chip is-on">
+                <span className="sheet-chip__check" aria-hidden="true">
+                  ✓
+                </span>
+                Простое
+              </button>
+            </div>
+            <section className="onboarding-checklist onboarding-checklist--compact is-collapsed">
+              <button type="button" className="onboarding-checklist__summary" aria-expanded={false}>
+                <span className="onboarding-checklist__summary-label">Можно позже · 7</span>
+                <span className="onboarding-checklist__summary-chevron" aria-hidden="true">
+                  ▸
+                </span>
+              </button>
+            </section>
+          </div>
+        </div>
+
+        <div>
           <Text as="h2">ClassChipRow (+N overflow)</Text>
           <div style={{ maxWidth: 280 }}>
             <ClassChipRow

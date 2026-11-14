@@ -624,6 +624,12 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           climbSpeed={model.displayClimbSpeed ?? model.draft.climbSpeed}
           swimSpeed={model.displaySwimSpeed ?? model.draft.swimSpeed}
           flySpeed={model.displayFlySpeed ?? model.draft.flySpeed}
+          onAltSpeedChange={(patch) =>
+            model.setDraft((prev) => ({
+              ...prev,
+              ...patch,
+            }))
+          }
           jumpLongFt={model.jump.longFt}
           jumpHighFt={model.jump.highFt}
           initiative={model.initiativeValue}

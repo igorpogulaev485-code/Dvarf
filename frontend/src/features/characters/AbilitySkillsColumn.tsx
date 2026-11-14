@@ -58,10 +58,19 @@ function cycleSkill(state: SkillState): SkillState {
 }
 
 function skillProfTitle(state: SkillState): string {
-  if (state.is_expertise) return 'Компетентность — клик: снять'
-  if (state.is_proficient) return 'Владение — клик: компетентность'
-  return 'Нет владения — клик: владение'
+  if (state.is_expertise) return 'компетентность — клик: снять'
+  if (state.is_proficient) return 'владение — клик: компетентность'
+  return 'без владения — клик: владение'
 }
+
+function skillProfHint(state: SkillState): string {
+  if (state.is_expertise) return 'компетентность'
+  if (state.is_proficient) return 'владение'
+  return 'без владения'
+}
+
+const RAIL_USAGE_HINT =
+  'Число → бросок · кружок → владение / компетентность · название → разборка'
 
 export { cycleSkill }
 
@@ -110,6 +119,10 @@ export function AbilitySkillsColumn({
     onReorder(next)
   }
 
+  const helpTitle = saveAdvantageNote
+    ? `${RAIL_USAGE_HINT}\n\n${saveAdvantageNote}. Включите преимущество на броске, если спасбросок подходит.`
+    : RAIL_USAGE_HINT
+
   return (
     <div className="abil-column" data-onboarding="abilities">
       <div className="abil-column__toolbar">
@@ -122,15 +135,15 @@ export function AbilitySkillsColumn({
         <button type="button" onClick={() => onCollapsedChange([])}>
           ▼ Развернуть все
         </button>
+        <button
+          type="button"
+          className="abil-column__toolbar-help"
+          title={helpTitle}
+          aria-label={helpTitle}
+        >
+          ?
+        </button>
       </div>
-      <Text tone="muted" className="abil-column__hint">
-        число → бросок · кружок → владение/эксп. · название → разборка
-      </Text>
-      {saveAdvantageNote ? (
-        <Text tone="muted" className="abil-column__hint">
-          {saveAdvantageNote}. Включите преимущество на броске, если спасбросок подходит.
-        </Text>
-      ) : null}
       <div className="abil-column__list" id="abil-column-list">
         {order.map((key) => {
           const baseScore = abilities[key]
@@ -268,8 +281,8 @@ export function AbilitySkillsColumn({
                         }
                         title={
                           saves[key]
-                            ? 'Владение спасброском — клик: снять'
-                            : 'Нет владения — клик: владение'
+                            ? 'владение — клик: снять'
+                            : 'без владения — клик: владение'
                         }
                         onClick={() => onSaveToggle(key)}
                       />
@@ -281,9 +294,13 @@ export function AbilitySkillsColumn({
                         title={
                           onRollSave
                             ? `Спасбросок ${ABILITY_NAMES[key]} — бросок${
+                                saves[key] ? ' · владение' : ''
+                              }${
                                 saveAdvantageNote ? ` · ${saveAdvantageNote}` : ''
                               }`
-                            : 'Спасбросок'
+                            : saves[key]
+                              ? 'Спасбросок · владение'
+                              : 'Спасбросок'
                         }
                         onClick={() => {
                           if (onRollSave) onRollSave(key, saveMod)
@@ -334,18 +351,28 @@ export function AbilitySkillsColumn({
                             title={skillProfTitle(state)}
                             onClick={() => onSkillCycle(skill.key)}
                           />
-                          <span className="abil-skill__name">{skill.label}</span>
+                          <span
+                            className="abil-skill__name"
+                            title={`${skill.label} · ${skillProfHint(state)}`}
+                          >
+                            {skill.label}
+                            {state.is_expertise ? (
+                              <span className="abil-skill__expert-mark" aria-hidden="true">
+                                ◆
+                              </span>
+                            ) : null}
+                          </span>
                           <button
                             type="button"
                             className="abil-skill__roll"
                             title={
                               onRollSkill
-                                ? `${skill.label} — бросок${
+                                ? `${skill.label} — бросок · ${skillProfHint(state)}${
                                     gearSkill
                                       ? ` · предм. ${formatModifier(gearSkill)}`
                                       : ''
                                   }`
-                                : formatModifier(mod)
+                                : `${formatModifier(mod)} · ${skillProfHint(state)}`
                             }
                             onClick={() =>
                               onRollSkill?.({

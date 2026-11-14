@@ -1,17 +1,11 @@
 /** Каркас Play Desk: собирает шапку, сцены и диалоги в прежнем порядке. */
 import type { SheetModel } from './sheetModel'
 import { EquipmentProficienciesPanel } from '../EquipmentProficienciesPanel'
-import {
-  Button,
-  Field,
-  NumberInput,
-  Panel,
-  Stack,
-  Text,
-} from '../../../ui'
+import { Button, Text } from '../../../ui'
 import { syncAttacksHeldFromInventory } from '../AttacksPanel'
 import { canWearArmor } from '../equipmentProficiency'
 import { LanguagesToolsPanel } from '../LanguagesToolsPanel'
+import { OwnershipSummary } from '../OwnershipSummary'
 import { OnboardingChecklist, HoverTipCard, SCENE_TIPS } from '../../onboarding'
 import { PlayDeskHotBar } from '../PlayDeskHotBar'
 import { BottomSceneNav } from '../BottomSceneNav'
@@ -46,9 +40,13 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
           {model.abilityColumn}
           <div className="play-desk__rail-foot">
             {model.passivesCompact}
-            <Button type="button" variant="secondary" onClick={() => model.setOwnershipOpen(true)}>
-              Владения ▸
-            </Button>
+            <OwnershipSummary
+              armor={model.draft.identity.armor}
+              weapons={model.draft.identity.weapons}
+              tools={model.draft.identity.tools}
+              languages={model.draft.identity.languages}
+              onOpen={() => model.setOwnershipOpen(true)}
+            />
             {model.showOnboardingChecklist ? <OnboardingChecklist compact /> : null}
           </div>
         </aside>
@@ -670,6 +668,15 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             model.setOwnershipOpen(true)
           }}
           passives={model.passivesCompact}
+          ownership={
+            <OwnershipSummary
+              armor={model.draft.identity.armor}
+              weapons={model.draft.identity.weapons}
+              tools={model.draft.identity.tools}
+              languages={model.draft.identity.languages}
+              onOpen={() => model.setOwnershipOpen(true)}
+            />
+          }
         >
           {model.abilityColumn}
         </MobileAbilitiesPage>
@@ -689,62 +696,6 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
               </Button>
             </div>
             <div className="play-desk-drawer__body">
-              <Panel title="Скорости и зрение">
-                <Stack gap={12}>
-                  <Field
-                    label="Тёмное зрение, фт"
-                    htmlFor="sheet-darkvision"
-                    hint={
-                      model.effectiveDarkvisionFt !== model.draft.identity.darkvision
-                        ? `база ${model.draft.identity.darkvision || 0} · итого ${model.effectiveDarkvisionFt} фт (умения/предметы)`
-                        : '0 = нет'
-                    }
-                  >
-                    <NumberInput
-                      id="sheet-darkvision"
-                      min={0}
-                      emptyValue={0}
-                      value={model.draft.identity.darkvision}
-                      onValueChange={(darkvision) =>
-                        model.patchIdentity({ darkvision: darkvision ?? 0 })
-                      }
-                    />
-                  </Field>
-                  <div className="sheet-grid sheet-grid--speeds">
-                    <Field label="Лазание, фт" htmlFor="sheet-climb" hint="пусто = нет">
-                      <NumberInput
-                        id="sheet-climb"
-                        min={0}
-                        value={model.draft.climbSpeed}
-                        onValueChange={(climbSpeed) =>
-                          model.setDraft((prev) => ({ ...prev, climbSpeed }))
-                        }
-                      />
-                    </Field>
-                    <Field label="Плавание, фт" htmlFor="sheet-swim" hint="пусто = нет">
-                      <NumberInput
-                        id="sheet-swim"
-                        min={0}
-                        value={model.draft.swimSpeed}
-                        onValueChange={(swimSpeed) =>
-                          model.setDraft((prev) => ({ ...prev, swimSpeed }))
-                        }
-                      />
-                    </Field>
-                    <Field label="Полёт, фт" htmlFor="sheet-fly" hint="пусто = нет">
-                      <NumberInput
-                        id="sheet-fly"
-                        min={0}
-                        value={model.draft.flySpeed}
-                        onValueChange={(flySpeed) =>
-                          model.setDraft((prev) => ({ ...prev, flySpeed }))
-                        }
-                      />
-                    </Field>
-                  </div>
-                </Stack>
-              </Panel>
-
               <EquipmentProficienciesPanel
                 armor={model.draft.identity.armor}
                 weapons={model.draft.identity.weapons}

@@ -290,9 +290,15 @@
   color: #fff;
 }
 
+/* LP-01: владение спасброском — бледный тон (как .abil-skill.is-on) */
 .abil-mod--roll.is-proficient {
-  border-color: color-mix(in srgb, var(--abil) 40%, var(--line));
-  background: color-mix(in srgb, var(--abil-soft) 70%, white);
+  border-color: color-mix(in srgb, var(--abil) 28%, var(--line));
+  background: var(--abil-soft);
+  color: var(--abil);
+}
+
+.abil-mod--roll.is-proficient .abil-mod__tag {
+  color: color-mix(in srgb, var(--abil) 70%, var(--muted));
 }
 
 .abil-mod-pair {
@@ -372,12 +378,14 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 4px 10px;
+  gap: 4px 8px;
   width: 100%;
+  min-height: 36px;
+  box-sizing: border-box;
   border: 1px solid transparent;
   background: color-mix(in srgb, var(--panel) 55%, white);
   border-radius: 8px;
-  padding: 2px 6px 2px 4px;
+  padding: 2px 6px 2px 2px;
   font: inherit;
   font-size: 0.8rem;
   text-align: left;
@@ -396,14 +404,17 @@
   font-weight: 600;
 }
 
-/* SCN-01: компетентность заметно сильнее владения */
+/*
+ * LP-01: компетентность — сплошная заливка --abil + белый текст
+ * (как до LSS-rail e221cf34); владение остаётся бледным --abil-soft.
+ */
 .abil-skill.is-expert {
   font-weight: 700;
-  background: color-mix(in srgb, var(--abil-soft) 55%, var(--abil));
+  background: var(--abil);
   border-color: var(--abil);
-  border-width: 2px;
-  color: color-mix(in srgb, var(--abil) 70%, #1c1917);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--abil) 35%, white);
+  border-width: 1px;
+  color: #fff;
+  box-shadow: none;
 }
 
 .abil-skill__name {
@@ -413,19 +424,29 @@
   white-space: nowrap;
 }
 
+.abil-skill__expert-mark {
+  display: inline-block;
+  margin-left: 3px;
+  font-size: 0.7em;
+  vertical-align: 0.12em;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.95;
+}
+
 .abil-skill__roll {
   flex: 0 0 auto;
   box-sizing: border-box;
   min-width: 44px;
-  min-height: 44px;
-  height: 44px;
+  min-height: 32px;
+  height: 32px;
   margin: 0;
-  padding: 0 10px;
+  padding: 0 8px;
   border-radius: 8px;
   border: 1px solid var(--line);
   background: #fff;
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
@@ -438,9 +459,21 @@
   color: var(--abil);
 }
 
-.abil-skill.is-on .abil-skill__roll,
-.abil-skill.is-expert .abil-skill__roll {
+.abil-skill.is-on .abil-skill__roll {
   border-color: color-mix(in srgb, var(--abil) 35%, var(--line));
+  color: var(--abil);
+}
+
+/* Число броска читаемо на сплошной заливке компетенции */
+.abil-skill.is-expert .abil-skill__roll {
+  border-color: color-mix(in srgb, #fff 55%, var(--abil));
+  background: color-mix(in srgb, #fff 94%, var(--abil));
+  color: var(--abil);
+}
+
+.abil-skill.is-expert .abil-skill__roll:hover {
+  background: #fff;
+  border-color: #fff;
   color: var(--abil);
 }
 
@@ -452,8 +485,9 @@
 
 .abil-column__toolbar {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr auto;
   gap: 6px;
+  align-items: center;
   position: sticky;
   top: 0;
   z-index: 2;
@@ -486,20 +520,235 @@
   color: var(--muted);
 }
 
-/* Passives + Владения CTA — kit rail foot */
-.play-desk__rail-foot > .ui-button {
-  width: 100%;
+/* LP-01: подсказка рельса — кнопка «?», не постоянный абзац */
+.abil-column__toolbar-help {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  font-weight: 600;
-  background: color-mix(in srgb, var(--accent-soft) 70%, white);
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
   color: var(--accent);
+  cursor: help;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
-.play-desk__rail-foot > .ui-button:hover {
+.abil-column__toolbar-help:hover {
   background: var(--accent-soft);
   border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+/* LP-01: compact owned glance under passives */
+.ownership-summary {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-soft) 45%, white);
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  min-width: 0;
+  overflow: visible;
+}
+
+.ownership-summary:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 65%, white);
+}
+
+.ownership-summary__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ownership-summary__open {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.ownership-summary__title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--desk-muted, var(--muted));
+}
+
+.ownership-summary__cta {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.ownership-summary__body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.ownership-summary__body:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  outline-offset: 2px;
+}
+
+.ownership-summary__row {
+  display: grid;
+  grid-template-columns: 5.6rem minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+
+.ownership-summary__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ownership-summary__empty {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.ownership-summary__chips {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ownership-summary__chip {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 7.5rem;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 70%, white);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ownership-summary__more-wrap {
+  flex: 0 0 auto;
+}
+
+.ownership-summary__more-btn {
+  min-height: 24px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: var(--card);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ownership-summary__more-list {
+  margin: 0;
+  padding: 4px 2px;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  font-size: 0.82rem;
+}
+
+.ownership-editor__section-label {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.ownership-editor__hint-btn {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+  cursor: help;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.ownership-editor__hint-btn:hover {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.multi-pick__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+}
+
+.multi-pick__head .ui-field {
+  min-width: 0;
+}
+
+.play-desk-drawer__body .ui-field__label,
+.play-desk-drawer__body .ownership-editor__section-label {
+  font-size: 0.86rem;
+}
+
+.play-desk-drawer__body .sheet-chip {
+  font-size: 0.86rem;
+}
+
+.play-desk-drawer__body .tag-chip {
+  font-size: 0.82rem;
+  min-height: 28px;
 }
 
 .passive-grid--desk .passive-card {

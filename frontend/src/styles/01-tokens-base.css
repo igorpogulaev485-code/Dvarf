@@ -784,6 +784,19 @@ a.ui-button--primary {
   white-space: nowrap;
 }
 
+/* LP-01: edit climb/swim/fly inside existing +N panel (menu content only) */
+.ui-vital-menu__row--edit {
+  align-items: center;
+}
+
+.ui-vital-menu__input.ui-input {
+  width: 4.2rem;
+  min-width: 4.2rem;
+  max-width: 4.2rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .ui-vital-menu__note {
   margin: 4px 0 0;
   font-size: 0.72rem;

@@ -28,6 +28,7 @@ def _skill(proficient: bool = False, expertise: bool = False) -> dict:
 
 
 def rogue_sheet() -> dict:
+    # LP-01 screenshots: darkvision sense
     skills = {
         "acrobatics": _skill(True),
         "animal_handling": _skill(),
@@ -80,6 +81,10 @@ def rogue_sheet() -> dict:
         "combat": {
             "inspiration": False,
             "speed": 30,
+            "darkvision": 60,
+            "climb_speed": 15,
+            "swim_speed": None,
+            "fly_speed": None,
             "conditions": [],
             "exhaustion": 0,
             "hp_temp": 0,
@@ -104,11 +109,25 @@ def rogue_sheet() -> dict:
             "coins": {"cp": 0, "sp": 0, "ep": 0, "gp": 15, "pp": 0},
             "notes": "",
         },
+        "proficiency": {
+            "armor": {"light": True, "medium": False, "heavy": False, "shields": False},
+            "weapons": {
+                "simple": True,
+                "martial": False,
+                "extras": ["Рапира", "Короткий меч", "Арбалет ручной", "Длинный лук"],
+            },
+            "languages": ["Общий", "Воровской жаргон", "Эльфийский", "Дварфийский"],
+            "tools": ["Воровские инструменты", "Карты", "Набор для грима"],
+        },
         "companions": [],
         "spells": {"known": [], "slots": {}, "casting_ability": None},
         "weapons": [],
         "text_blocks": [],
-        "ui": {},
+        "ui": {
+            "sheetUi": {
+                "collapsedAbilities": [],
+            }
+        },
         "subclassGrants": [],
         "subclassTransitions": [],
         "featurePicks": {},

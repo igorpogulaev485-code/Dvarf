@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { isSelfForm } from '../companions'
 import { DEFAULT_ABILITY_SCORE_MAX, clampAbilityScore } from '../../../shared/dnd/abilityScoreCaps'
 import { AbilitySkillsColumn } from '../AbilitySkillsColumn'
+import { DarkvisionSense } from '../DarkvisionSense'
 import { formatSaveAdvantageNote } from '../gearEffects'
 import { ABILITY_KEYS, type AbilityKey } from '../sheetTypes'
 import { cycleSkill } from './draft'
@@ -110,6 +111,11 @@ export function useSheetEditorPart5(model: SheetModel) {
           <strong>{model.passives.insight}</strong>
         </div>
       </div>
+      <DarkvisionSense
+        baseFt={model.draft.identity.darkvision}
+        effectiveFt={model.effectiveDarkvisionFt ?? model.draft.identity.darkvision}
+        onBaseChange={(darkvision) => model.patchIdentity({ darkvision })}
+      />
     </div>
   )
   model.passivesCompact = passivesCompact

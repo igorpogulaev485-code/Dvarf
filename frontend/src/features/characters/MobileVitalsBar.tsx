@@ -44,7 +44,7 @@ import {
 import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
 import { absorbDamageWithArcaneWard } from '../../shared/dnd/wizardTradition'
 import type { NeedsSetupItem } from './needsSetup'
-import { VitalTile, VitalTileMenu } from '../../ui'
+import { NumberInput, VitalTile, VitalTileMenu } from '../../ui'
 
 /** v2: M-02 / Q1 defaults to collapsed; old key often stored «0» from M-01 mounts. */
 const COLLAPSE_KEY = 'dvarf.mobileVitals.collapsed.v2'
@@ -100,6 +100,12 @@ type MobileVitalsBarProps = {
   climbSpeed?: number | null
   swimSpeed?: number | null
   flySpeed?: number | null
+  /** LP-01: edit climb/swim/fly base inside the existing +N menu only. */
+  onAltSpeedChange?: (patch: {
+    climbSpeed?: number | null
+    swimSpeed?: number | null
+    flySpeed?: number | null
+  }) => void
   jumpLongFt?: number | null
   jumpHighFt?: number | null
   initiative: number
@@ -187,6 +193,7 @@ export function MobileVitalsBar({
   climbSpeed = null,
   swimSpeed = null,
   flySpeed = null,
+  onAltSpeedChange,
   jumpLongFt = null,
   jumpHighFt = null,
   initiative,
@@ -616,20 +623,51 @@ export function MobileVitalsBar({
                     {shownSpeed == null ? '—' : `${shownSpeed} фт`}
                   </span>
                 </li>
-                {altModes.map((mode) => (
-                  <li key={mode.key} className="ui-vital-menu__row">
-                    <span className="ui-vital-menu__row-label">
-                      {mode.key === 'climb'
-                        ? 'лазание'
-                        : mode.key === 'swim'
-                          ? 'плавание'
-                          : mode.key === 'fly'
-                            ? 'полёт'
-                            : mode.label}
-                    </span>
-                    <span className="ui-vital-menu__row-value">
-                      {mode.value} фт
-                    </span>
+                {(
+                  [
+                    {
+                      key: 'climb' as const,
+                      label: 'лазание',
+                      value: climbSpeed,
+                      patch: (n: number | null) =>
+                        onAltSpeedChange?.({ climbSpeed: n }),
+                    },
+                    {
+                      key: 'swim' as const,
+                      label: 'плавание',
+                      value: swimSpeed,
+                      patch: (n: number | null) =>
+                        onAltSpeedChange?.({ swimSpeed: n }),
+                    },
+                    {
+                      key: 'fly' as const,
+                      label: 'полёт',
+                      value: flySpeed,
+                      patch: (n: number | null) =>
+                        onAltSpeedChange?.({ flySpeed: n }),
+                    },
+                  ] as const
+                ).map((row) => (
+                  <li key={row.key} className="ui-vital-menu__row ui-vital-menu__row--edit">
+                    <span className="ui-vital-menu__row-label">{row.label}</span>
+                    {onAltSpeedChange ? (
+                      <NumberInput
+                        className="ui-vital-menu__input"
+                        size="sm"
+                        narrow
+                        min={0}
+                        emptyValue={null}
+                        value={row.value}
+                        onValueChange={(next) => row.patch(next)}
+                        onClick={(event) => event.stopPropagation()}
+                        aria-label={`${row.label}, фт`}
+                        title="пусто = нет"
+                      />
+                    ) : (
+                      <span className="ui-vital-menu__row-value">
+                        {row.value == null ? '—' : `${row.value} фт`}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
