@@ -29,7 +29,7 @@ assert.equal(MOBILE_HOT_PINNED_RESOURCE_COUNT, 2)
 assert.equal(src.includes('mobileMoreOverflow'), true)
 assert.equal(src.includes('play-desk__hot-more'), true)
 assert.match(src, /Ещё \{/)
-assert.match(src, /play-desk__pips/)
+assert.match(src, /ResourcePips/)
 assert.match(src, /shouldUseCompactResourceTrack/)
 
 const css = readFileSync(
@@ -38,10 +38,15 @@ const css = readFileSync(
 )
 assert.match(
   css,
-  /\.play-desk__hot-wrap\s+\.play-desk__hot\s*\{[\s\S]*?flex-wrap:\s*nowrap/,
+  /\.play-desk__hot-wrap\s+\.play-desk__hot[\s\S]*?\{[\s\S]*?flex-wrap:\s*nowrap/,
 )
 assert.match(css, /\.play-desk__pips\s*\{[\s\S]*?gap:\s*4px/)
 assert.match(css, /\.play-desk__pip\s*\{[\s\S]*?width:\s*18px/)
+assert.match(css, /scroll-padding-inline/)
+assert.match(css, /\.play-desk__hot-res-name\s*\{[\s\S]*?text-overflow:\s*ellipsis/)
+assert.match(css, /\.play-desk__hot-label\s*\{[\s\S]*?font-size:\s*0\.78rem/)
+assert.doesNotMatch(src, /is-expanded/)
+assert.match(src, /title=\{label/)
 const scrollSrc = readFileSync(
   join(dirname(fileURLToPath(import.meta.url)), '../../ui/ScrollRow.tsx'),
   'utf8',

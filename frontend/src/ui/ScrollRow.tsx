@@ -136,34 +136,34 @@ export function ScrollRow({
   return (
     <div className={`ui-scroll-row ${shellClassName}`.trim()}>
       {canScrollLeft ? (
-        <button
-          type="button"
-          className="ui-scroll-row__edge ui-scroll-row__edge--left"
-          aria-label="Прокрутить влево"
-          onClick={() => {
-            const el = scrollerRef.current
-            if (el) scrollByApproxOneItem(el, -1, itemSelector)
-          }}
-        >
-          <span className="ui-scroll-row__chevron" aria-hidden="true">
+        <div className="ui-scroll-row__edge ui-scroll-row__edge--left" aria-hidden="true">
+          <button
+            type="button"
+            className="ui-scroll-row__chevron"
+            aria-label="Прокрутить влево"
+            onClick={() => {
+              const el = scrollerRef.current
+              if (el) scrollByApproxOneItem(el, -1, itemSelector)
+            }}
+          >
             ‹
-          </span>
-        </button>
+          </button>
+        </div>
       ) : null}
       {canScrollRight ? (
-        <button
-          type="button"
-          className="ui-scroll-row__edge ui-scroll-row__edge--right"
-          aria-label="Прокрутить вправо"
-          onClick={() => {
-            const el = scrollerRef.current
-            if (el) scrollByApproxOneItem(el, 1, itemSelector)
-          }}
-        >
-          <span className="ui-scroll-row__chevron" aria-hidden="true">
+        <div className="ui-scroll-row__edge ui-scroll-row__edge--right" aria-hidden="true">
+          <button
+            type="button"
+            className="ui-scroll-row__chevron"
+            aria-label="Прокрутить вправо"
+            onClick={() => {
+              const el = scrollerRef.current
+              if (el) scrollByApproxOneItem(el, 1, itemSelector)
+            }}
+          >
             ›
-          </span>
-        </button>
+          </button>
+        </div>
       ) : null}
       <div className={className} ref={scrollerRef} aria-label={ariaLabel}>
         {children}

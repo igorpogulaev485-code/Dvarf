@@ -60,12 +60,54 @@ export function UiKitEtalonPreviewPage() {
         </div>
 
         <div>
-          <Text as="h2">ResourcePips</Text>
-          <div className="play-desk__hot-item play-desk__hot-item--res">
-            <span className="play-desk__hot-res-head">
-              <span className="play-desk__hot-res-name">Гнев бури</span>
-            </span>
-            <ResourcePips max={3} used={used} label="Гнев бури" onChange={setUsed} />
+          <Text as="h2">Hot resource cards (HOT-01)</Text>
+          <Text tone="muted">
+            Одна высота, название в одну строку с ellipsis + title; квадратики gap 4px
+          </Text>
+          <div
+            className="play-desk__hot"
+            style={{ display: 'flex', gap: 6, flexWrap: 'nowrap', marginTop: 8 }}
+          >
+            <button type="button" className="play-desk__hot-item play-desk__hot-item--btn play-desk__hot-item--wide is-on">
+              <span className="play-desk__hot-label">Состояния: Оглохший</span>
+            </button>
+            <div className="play-desk__hot-item play-desk__hot-item--res">
+              <span className="play-desk__hot-res-head">
+                <span className="play-desk__hot-res-name" title="Гнев бури">
+                  Гнев бури
+                </span>
+              </span>
+              <ResourcePips max={3} used={used} label="Гнев бури" onChange={setUsed} />
+            </div>
+            <div className="play-desk__hot-item play-desk__hot-item--res">
+              <span className="play-desk__hot-res-head">
+                <span
+                  className="play-desk__hot-res-name"
+                  title="Бардовское вдохновение"
+                >
+                  Бардовское вдохновение
+                </span>
+              </span>
+              <ResourcePips
+                max={3}
+                used={1}
+                label="Бардовское вдохновение"
+                onChange={() => undefined}
+              />
+            </div>
+            <div className="play-desk__hot-item play-desk__hot-item--res">
+              <span className="play-desk__hot-res-head">
+                <span className="play-desk__hot-res-name" title="Кости превосходства">
+                  Кости превосходства
+                </span>
+              </span>
+              <ResourcePips
+                max={4}
+                used={0}
+                label="Кости превосходства"
+                onChange={() => undefined}
+              />
+            </div>
           </div>
         </div>
 

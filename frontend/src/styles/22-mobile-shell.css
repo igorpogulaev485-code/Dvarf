@@ -65,7 +65,9 @@
   display: flex;
   flex-wrap: nowrap;
   gap: 4px;
-  padding: 4px;
+  /* HOT-01: inset ≥ mobile fade width (52px) so edge pips clear ‹ at start/end */
+  padding: 4px 52px;
+  scroll-padding-inline: 52px;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
@@ -107,7 +109,17 @@
 }
 .play-desk--mobile .play-desk__hot-label {
   font-size: 0.78rem;
+  font-weight: 600;
   line-height: 1.25;
+}
+.play-desk--mobile .play-desk__hot-res-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 120px;
 }
 /* UIKIT-02: ячейки/заряды остаются плотными (gap 4px); 44px — только прочие controls */
 .play-desk--mobile .play-desk__pip {

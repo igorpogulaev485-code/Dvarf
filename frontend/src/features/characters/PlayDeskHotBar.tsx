@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import type { ConcentrationState } from './play'
 import { resourceShowsOnHot, type SheetResource } from '../../shared/dnd/rest'
@@ -34,22 +34,13 @@ type PlayDeskHotBarProps = {
   mobileMoreOverflow?: boolean
 }
 
-function HotResourceName({ name }: { name: string }) {
-  const [expanded, setExpanded] = useState(false)
-  const long = name.trim().length > 18
-  if (!long) {
-    return <span className="play-desk__hot-res-name">{name}</span>
-  }
+/** One-line ellipsis title; full name in native tooltip (HOT-01). */
+function HotResourceName({ name }: { name: string }): ReactNode {
+  const label = name.trim()
   return (
-    <button
-      type="button"
-      className={`play-desk__hot-res-name${expanded ? ' is-expanded' : ''}`}
-      title={expanded ? 'Свернуть название' : name}
-      aria-expanded={expanded}
-      onClick={() => setExpanded((prev) => !prev)}
-    >
-      {name}
-    </button>
+    <span className="play-desk__hot-res-name" title={label || undefined}>
+      {label}
+    </span>
   )
 }
 

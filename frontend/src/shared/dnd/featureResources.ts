@@ -269,7 +269,80 @@ export function desiredResourcesFromFeatures(input: {
     }
   }
 
-  return disambiguateFeatureResourceNames([...byId.values()])
+  return disambiguateFeatureResourceNames(
+    collapseSameClassPools([...byId.values()]),
+  )
+}
+
+/**
+ * One pool per class — merge `feat:{class}:{pool}:{entryA|B}` that share
+ * classSlug+poolId (class + domain both listing Channel Divinity, etc.).
+ * Keeps the first id so existing sheet used counts stay attached.
+ */
+export function collapseSameClassPools(
+  rows: DesiredFeatureResource[],
+): DesiredFeatureResource[] {
+  const byKey = new Map<string, DesiredFeatureResource>()
+  for (const row of rows) {
+    const parsed = parseFeatureResourceId(row.id)
+    const key = parsed ? `${parsed.classSlug}:${parsed.poolId}` : row.id
+    const prev = byKey.get(key)
+    if (!prev) {
+      byKey.set(key, row)
+      continue
+    }
+    byKey.set(key, {
+      ...prev,
+      name: row.name.trim() || prev.name,
+      max: Math.max(prev.max, row.max),
+      unlimited: Boolean(prev.unlimited || row.unlimited),
+      reset:
+        prev.reset === 'short' || row.reset === 'short'
+          ? 'short'
+          : prev.reset === 'manual' || row.reset === 'manual'
+            ? 'manual'
+            : 'long',
+      grantStockOnLongRestIfEmpty:
+        prev.grantStockOnLongRestIfEmpty || row.grantStockOnLongRestIfEmpty,
+      classSlug: prev.classSlug || row.classSlug,
+      classLabelRu: prev.classLabelRu || row.classLabelRu,
+    })
+  }
+  return [...byKey.values()]
+}
+
+function normalizeResourceName(name: string): string {
+  return name.trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+/**
+ * Manual / seed rows often reuse the same RU label as a class pool
+ * («Гнев бури», «Божественный канал») with a non-feat id. Absorb those into
+ * the desired feat: pool so the hot bar shows one card.
+ */
+function findDesiredForManualResource(
+  item: SheetResource,
+  desired: DesiredFeatureResource[],
+  claimedIds: Set<string>,
+): DesiredFeatureResource | null {
+  const nameKey = normalizeResourceName(item.name)
+  if (!nameKey) return null
+  const exact = desired.find(
+    (row) =>
+      !claimedIds.has(row.id) && normalizeResourceName(row.name) === nameKey,
+  )
+  if (exact) return exact
+  // Seed shorthand «Превосходство» → «Кости превосходства»
+  if (nameKey === 'превосходство') {
+    return (
+      desired.find(
+        (row) =>
+          !claimedIds.has(row.id) &&
+          normalizeResourceName(row.name) === 'кости превосходства',
+      ) ?? null
+    )
+  }
+  return null
 }
 
 /** Upsert feature pools; keep manual resources; drop obsolete feat: pools. */
@@ -277,26 +350,66 @@ export function syncFeatureResources(
   existing: SheetResource[],
   desired: DesiredFeatureResource[],
 ): SheetResource[] {
-  const desiredById = new Map(desired.map((row) => [row.id, row]))
+  const desiredRows = collapseSameClassPools(desired)
+  const desiredById = new Map(desiredRows.map((row) => [row.id, row]))
+  /** used carried from absorbed manual / previous feat rows into new desired ids */
+  const usedCarry = new Map<string, number>()
   const next: SheetResource[] = []
+  const claimedDesired = new Set<string>()
 
   for (const raw of existing) {
     const item = clampResource(raw)
     if (!isFeatureManagedResourceId(item.id)) {
+      const absorb = findDesiredForManualResource(
+        item,
+        desiredRows,
+        claimedDesired,
+      )
+      if (absorb) {
+        claimedDesired.add(absorb.id)
+        const prevCarry = usedCarry.get(absorb.id) ?? 0
+        usedCarry.set(absorb.id, Math.max(prevCarry, item.used))
+        continue
+      }
       next.push(item)
       continue
     }
     const want = desiredById.get(item.id)
-    if (!want) continue
+    if (!want) {
+      // Stale feat id after pool collapse — try match by classSlug+poolId.
+      const parsed = parseFeatureResourceId(item.id)
+      if (parsed) {
+        const collapsed = desiredRows.find((row) => {
+          const p = parseFeatureResourceId(row.id)
+          return (
+            p &&
+            p.classSlug === parsed.classSlug &&
+            p.poolId === parsed.poolId
+          )
+        })
+        if (collapsed) {
+          const prevCarry = usedCarry.get(collapsed.id) ?? 0
+          usedCarry.set(collapsed.id, Math.max(prevCarry, item.used))
+          continue
+        }
+      }
+      continue
+    }
     desiredById.delete(item.id)
+    claimedDesired.add(want.id)
     // Preserve manual reset while the pool is still expended (success_lock).
     const preserveManualLock = item.reset === 'manual' && item.used > 0
+    const carried = usedCarry.get(want.id)
+    const used = want.unlimited
+      ? 0
+      : Math.min(want.max, Math.max(item.used, carried ?? 0))
+    usedCarry.delete(want.id)
     next.push(
       clampResource({
         ...item,
         name: want.name,
         max: want.max,
-        used: want.unlimited ? 0 : Math.min(want.max, item.used),
+        used,
         reset: preserveManualLock ? 'manual' : want.reset,
         track: want.track,
         unlimited: want.unlimited || undefined,
@@ -305,13 +418,19 @@ export function syncFeatureResources(
   }
 
   for (const want of desiredById.values()) {
+    const carried = usedCarry.get(want.id) ?? 0
     next.push(
       clampResource({
         id: want.id,
         name: want.name,
         max: want.max,
         // stock starts empty; spend starts fully available (used=0)
-        used: 0,
+        // unless a manual/seed duplicate carried spent charges over.
+        used: want.unlimited
+          ? 0
+          : want.track === 'stock'
+            ? 0
+            : Math.min(want.max, carried),
         reset: want.reset,
         track: want.track,
         unlimited: want.unlimited || undefined,

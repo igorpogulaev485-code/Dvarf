@@ -173,9 +173,15 @@ const SEEDS: Record<SeedId, Seed> = {
     concentrationName: 'Щит веры',
     effects: CLERIC_EFFECTS,
     resources: [
-      { id: 'wrath', name: 'Гнев бури', max: 3, used: 1, reset: 'short' },
       {
-        id: 'channel',
+        id: 'feat:cleric:wrath_of_the_storm:cleric',
+        name: 'Гнев бури',
+        max: 3,
+        used: 1,
+        reset: 'short',
+      },
+      {
+        id: 'feat:cleric:channel_divinity:cleric',
         name: 'Божественный канал',
         max: 1,
         used: 0,
@@ -308,15 +314,34 @@ const SEEDS: Record<SeedId, Seed> = {
     concentrationName: 'Щит веры',
     effects: MAX_EFFECTS,
     resources: [
-      { id: 'wrath', name: 'Гнев бури', max: 3, used: 1, reset: 'short' },
       {
-        id: 'channel',
-        name: 'Божественный канал',
-        max: 2,
+        id: 'feat:fighter:superiority_dice:fighter',
+        name: 'Кости превосходства',
+        max: 4,
         used: 0,
         reset: 'short',
       },
-      { id: 'ki', name: 'Ци', max: 4, used: 1, reset: 'short' },
+      {
+        id: 'feat:bard:bardic_inspiration:bard',
+        name: 'Бардовское вдохновение',
+        max: 3,
+        used: 1,
+        reset: 'long',
+      },
+      {
+        id: 'feat:fighter:second_wind:fighter',
+        name: 'Второе дыхание',
+        max: 1,
+        used: 0,
+        reset: 'short',
+      },
+      {
+        id: 'feat:fighter:action_surge:fighter',
+        name: 'Всплеск действий',
+        max: 1,
+        used: 0,
+        reset: 'short',
+      },
     ],
   },
 }
