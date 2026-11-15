@@ -68,6 +68,7 @@ import {
   asRecordNotes,
   brandYearLabel,
   clampMarks,
+  ClassicBrandWordmark,
   isClassicBlankCharacter,
 } from './classicPrintShared'
 import { classicCombatDisplay, classicEffectiveAbilities } from './classicDerivedCombat'
@@ -263,7 +264,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
       <article className="classic-sheet classic-page1" aria-label="Классический лист 2014, страница 1">
         <header className="classic-header classic-header--p1">
           <div className="classic-brand" aria-hidden="true">
-            <strong>КриD20</strong>
+            <ClassicBrandWordmark />
             <span>{brandYearLabel('2014')}</span>
           </div>
           <div className="classic-name classic-name--banner">
@@ -692,7 +693,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
       <article className="classic-sheet classic-page2" aria-label="Классический лист 2014, страница 2">
         <header className="classic-header classic-header--page2">
           <div className="classic-brand" aria-hidden="true">
-            <strong>КриD20</strong>
+            <ClassicBrandWordmark />
             <span>{brandYearLabel('2014')}</span>
           </div>
           <div className="classic-name classic-name--banner">
@@ -798,7 +799,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
       <article className="classic-sheet classic-page3" aria-label="Классический лист 2014, страница 3">
         <header className="classic-spell-header">
           <div className="classic-brand" aria-hidden="true">
-            <strong>КриD20</strong>
+            <ClassicBrandWordmark />
             <span>{brandYearLabel('2014')}</span>
           </div>
           <div className="classic-name classic-name--banner">

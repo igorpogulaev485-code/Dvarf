@@ -149,10 +149,29 @@
 
 ---
 
+## Pass 9c — логотип «КриD20» в рамке 2014
+
+Двухстрочный знак `Кри` / `D20` (`ClassicBrandWordmark`): кегль меньше, отступы от рамки ≥ у «5E · 2014», центр по H/V. Пара к плашке «D&D» на 2024.
+
+### Кадры pass 9c
+
+| Кадр | md5 |
+|---|---|
+| before-blank-brand-crop.png | `c1ed27995a1ae3a2655af52e0e067612` |
+| after-blank-brand-crop.png | `f6d6155bdc064a811b4da53c2144702a` |
+| before-torbin-brand-crop.png | `8823ac391664e2c428c9916ff87fecc2` |
+| after-torbin-brand-crop.png | `5497239db2a6617ca2daa7094ded75a8` |
+| after-blank-2014-print-1.png | `1b3fb6be40019d6e6959c6bba20bb96f` |
+| after-torbin-2014-print-1.png | `c3bfa80382f01cd1ac32aa262f6e824d` |
+
+Каталоги: `pass9c-before/` · `pass9c-after/`.
+
+---
+
 ## Проверки
 
 - `frontend`: `npm run build` — ok
 - selfcheck: classicPrint14, classicPrintSettings — ok
 - `backend`: `pytest` — 380 passed (incl. HP sheet-patch)
 - Alembic: одна голова
-- Кадры pass8/pass9/pass9b: Vite + API, Chromium PDF + pdftoppm
+- Кадры pass8/pass9/pass9b/pass9c: Vite + API, Chromium PDF + pdftoppm

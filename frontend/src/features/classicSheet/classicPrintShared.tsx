@@ -134,3 +134,13 @@ export function asRecordNotes(character: CharacterDetail): string {
 export function brandYearLabel(layout: '2014' | '2024'): string {
   return `5e · ${layout}`
 }
+
+/** 2014 header mark — two lines so it fits the 0.72in plate (pair to 2024 «D&D»). */
+export function ClassicBrandWordmark() {
+  return (
+    <strong className="classic-brand__wordmark">
+      <b>Кри</b>
+      <b>D20</b>
+    </strong>
+  )
+}
