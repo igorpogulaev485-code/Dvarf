@@ -17,6 +17,7 @@ import { filterActiveFeaturesForPlay } from '../../../shared/dnd/featureReplacem
 import {
   proficiencyBonusForTotalLevel,
   resolveClassFeatureSlug,
+  resolveSubclassFeatureSlug,
   unlockFeaturesForClasses,
 } from '../../../shared/dnd/classFeatures'
 import { martialArtsDieFromFeatures } from '../../../shared/dnd/martialArts'
@@ -261,8 +262,21 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
         map[transition.classEntryId] = transition.activeSlug
       }
     }
+    // MAG-01: seeded / sheet rows may have subclass_name or catalog slug
+    // without a grant ledger yet — still unlock subclass feature cards.
+    for (const row of draft.classes) {
+      if (map[row.id]) continue
+      const catalogKey = (row.subclass_catalog_id ?? '').trim()
+      const fromName = resolveSubclassFeatureSlug(row.subclass_name)
+      const fromCatalog = catalogKey ? resolveSubclassFeatureSlug(catalogKey) : null
+      const raw =
+        fromName ||
+        fromCatalog ||
+        (/^[a-z][a-z0-9_]*$/i.test(catalogKey) ? catalogKey : '')
+      if (raw) map[row.id] = raw
+    }
     return map
-  }, [draft.subclassGrants, draft.subclassTransitions])
+  }, [draft.subclassGrants, draft.subclassTransitions, draft.classes])
   model.subclassSlugByEntryId = subclassSlugByEntryId
   const subclassTransitionByEntryId = useMemo(() => {
     const map: Record<

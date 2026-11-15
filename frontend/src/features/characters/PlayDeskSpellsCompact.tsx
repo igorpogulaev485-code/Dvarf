@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   abilityModifier,
   formatModifier,
@@ -10,7 +10,9 @@ import { SpellDetailDialog } from './SpellDetailDialog'
 import type { SpellLearnBudget } from '../../shared/dnd/casterProgression'
 import {
   buildCastProfiles,
+  classSlugChipLabel,
   formatNamedCantripBudgets,
+  formatNamedClassQuotas,
   formatNamedPrepareBudgets,
   mergeCastProfilesForDisplay,
   resolveSpellCastStats,
@@ -27,6 +29,7 @@ import {
   countLearnedCantrips,
   countLearnedCantripsBySlug,
   countLearnedLeveled,
+  countLearnedLeveledForSlug,
   countLockedFeatureCantrips,
   countPreparedLeveled,
   countPreparedLeveledBySlug,
@@ -50,6 +53,14 @@ import {
 } from '../../shared/dnd/spells'
 import type { RulesEdition } from '../../shared/api/characters'
 import { type BonusLine, withSpellCastBonuses } from './modifiers'
+
+type SpellFilter =
+  | 'all'
+  | 'cantrips'
+  | 'rituals'
+  | 'concentration'
+  | 'ritual_book'
+  | `class:${string}`
 
 type PlayDeskSpellsCompactProps = {
   spells: SpellsState
@@ -88,12 +99,27 @@ type PlayDeskSpellsCompactProps = {
   onSlotUsedChange?: (level: number, used: number) => void
   /** Set used count for warlock pact slots. */
   onPactUsedChange?: (used: number) => void
-  /** Open cast picker (slot / pact / grant / ritual). */
+  /** Open cast picker (slot / pact / grant / ritual). Metamagic is chosen only in CastSpellDialog. */
   onCastSpell?: (spell: SheetSpell) => void
   /** Pin concentration in hot without opening full panel. */
   onConcentrateSpell?: (spell: SheetSpell) => void
   ritualBookLabel?: string | null
   onOpenRitualBook?: () => void
+}
+
+function isRitualFromBook(
+  spell: SheetSpell,
+  learnMode: 'known' | 'prepared_list' | 'spellbook' | null,
+  hasSpellbook: boolean,
+): boolean {
+  return (
+    Boolean(spell.ritual) &&
+    !spell.prepared &&
+    spell.level > 0 &&
+    learnMode === 'spellbook' &&
+    hasSpellbook &&
+    spell.in_spellbook !== false
+  )
 }
 
 export function PlayDeskSpellsCompact({
@@ -124,6 +150,10 @@ export function PlayDeskSpellsCompact({
 }: PlayDeskSpellsCompactProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [detailSpell, setDetailSpell] = useState<SheetSpell | null>(null)
+  const [filter, setFilter] = useState<SpellFilter>('all')
+  const [search, setSearch] = useState('')
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+  const [metaExpanded, setMetaExpanded] = useState<Record<string, boolean>>({})
   const bookLost = Boolean(spells.wizard_spellbook?.bookLost)
   const hasSpellbook =
     learnBudget?.mode === 'spellbook' &&
@@ -132,12 +162,52 @@ export function PlayDeskSpellsCompact({
         !spells.wizard_spellbook.bookLost &&
         spells.wizard_spellbook.primaryBookItemId,
     )
-  const ready = spells.known.filter((spell) =>
+  const learnMode = learnBudget?.mode ?? null
+
+  const castable = spells.known.filter((spell) =>
     isAvailableToCast(spell, {
-      learnMode: learnBudget?.mode ?? null,
+      learnMode,
       hasSpellbook,
     }),
   )
+  const ritualBookSpells = castable.filter((spell) =>
+    isRitualFromBook(spell, learnMode, hasSpellbook),
+  )
+  const readyBase = castable.filter(
+    (spell) => !isRitualFromBook(spell, learnMode, hasSpellbook),
+  )
+
+  const classFilterSlugs = useMemo(() => {
+    const profiles =
+      castProfiles && castProfiles.length > 0
+        ? castProfiles
+        : classes.length > 0
+          ? buildCastProfiles({
+              classes,
+              proficiencyBonus,
+              abilityModFor: (ability) => abilityModifier(abilities[ability]),
+            })
+          : []
+    return profiles.filter((row) => row.kind === 'class').map((row) => row.slug)
+  }, [castProfiles, classes, proficiencyBonus, abilities])
+  const isMulticlassCaster = classFilterSlugs.length > 1
+
+  const ready = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    const pool = filter === 'ritual_book' ? ritualBookSpells : readyBase
+    return pool.filter((spell) => {
+      if (filter === 'cantrips' && spell.level > 0) return false
+      if (filter === 'rituals' && !spell.ritual) return false
+      if (filter === 'concentration' && !spell.concentration) return false
+      if (filter.startsWith('class:')) {
+        const slug = filter.slice('class:'.length)
+        if ((spell.class_slug ?? '').trim().toLowerCase() !== slug) return false
+      }
+      if (!q) return true
+      return spell.name.toLowerCase().includes(q)
+    })
+  }, [readyBase, ritualBookSpells, filter, search])
+
   const pact = spells.pact_slots ? clampPactSlots(spells.pact_slots) : null
   const pactRemaining = pact && pact.max > 0 ? Math.max(0, pact.max - pact.used) : null
   const abilityKey = spells.casting_ability
@@ -168,7 +238,6 @@ export function PlayDeskSpellsCompact({
             })
           : []
     if (built.length === 0) return null
-    // Unscoped lines + lines matching this profile.slug (M3).
     return mergeCastProfilesForDisplay(
       built.map((row) => {
         const boosted = withSpellCastBonuses({
@@ -198,19 +267,40 @@ export function PlayDeskSpellsCompact({
   const learnedLeveled = countLearnedLeveled(spells.known)
   const preparedCount = countPreparedLeveled(spells.known)
   const alwaysPreparedCount = countAlwaysPreparedLeveled(spells.known)
+  const preparedBySlug = countPreparedLeveledBySlug(spells.known)
+  const knownBySlug = useMemo(() => {
+    const out: Record<string, number> = {}
+    for (const row of learnBudgets ?? []) {
+      out[row.slug] = countLearnedLeveledForSlug(spells.known, row.slug)
+    }
+    return out
+  }, [learnBudgets, spells.known])
+  const bookCountBySlug = useMemo(() => {
+    const out: Record<string, number> = {}
+    for (const row of learnBudgets ?? []) {
+      if (row.mode === 'spellbook') {
+        out[row.slug] = countLearnedLeveledForSlug(spells.known, row.slug)
+      }
+    }
+    return out
+  }, [learnBudgets, spells.known])
+
   const quotaLabel = (() => {
+    // MAG-01: never show a false global «изв. 17/5» on multiclass.
+    if (learnBudgets && learnBudgets.length > 0) {
+      const mixed = formatNamedClassQuotas(learnBudgets, knownBySlug, preparedBySlug, {
+        bookCountBySlug,
+        alwaysPrepared: alwaysPreparedCount,
+      })
+      if (mixed) return mixed
+      const namedPrep = formatNamedPrepareBudgets(learnBudgets, preparedBySlug, {
+        alwaysPrepared: alwaysPreparedCount,
+      })
+      if (namedPrep) return namedPrep
+    }
     if (learnBudget?.mode === 'known') {
       const cap = learnBudget.leveledKnown
       return cap != null ? `изв. ${learnedLeveled}/${cap}` : `изв. ${learnedLeveled}`
-    }
-    // Prefer per-class prepare chips when several prepare casters are present.
-    if (learnBudgets && learnBudgets.length > 0) {
-      const named = formatNamedPrepareBudgets(
-        learnBudgets,
-        countPreparedLeveledBySlug(spells.known),
-        { alwaysPrepared: alwaysPreparedCount },
-      )
-      if (named) return named
     }
     if (!learnBudget) {
       if (spells.max_prepared != null) {
@@ -234,27 +324,30 @@ export function PlayDeskSpellsCompact({
         { tomeExtra },
       )
     }
-    // Hide «заг. 0/0» for paladin / ranger; keep racial / feat grants.
     if (learnBudget?.cantrips != null && learnBudget.cantrips > 0) {
       return `заг. ${learnedCantrips}/${learnBudget.cantrips}`
     }
     if (tomeExtra > 0) return `Гримуар ${tomeExtra}`
     return null
   })()
-  /**
-   * «Подготовить» на листе — только волшебник (быстрый набор из книги).
-   * Жрец и компания готовят в гримуаре; known — без daily prepare.
-   */
   const showPrepare =
     Boolean(onSpellsChange) && learnBudget?.mode === 'spellbook'
 
-  /** Always show every ready spell — no «показать все» collapse (Игорь). */
   const levelGroups = (() => {
-    const grouped = groupSpellsByLevel(ready)
+    const source =
+      filter === 'ritual_book'
+        ? ready
+        : filter === 'cantrips'
+          ? ready.filter((s) => s.level <= 0)
+          : ready
+    const grouped = groupSpellsByLevel(source)
     const byLevel = new Map(grouped.map((group) => [group.level, group]))
-    for (let level = 1; level <= 9; level += 1) {
-      if ((spells.slots[String(level)]?.max ?? 0) > 0 && !byLevel.has(level)) {
-        byLevel.set(level, { level, spells: [] })
+    // Empty slot circles only in the main combat list (not ritual-book chip).
+    if (filter === 'all' && !search.trim()) {
+      for (let level = 1; level <= 9; level += 1) {
+        if ((spells.slots[String(level)]?.max ?? 0) > 0 && !byLevel.has(level)) {
+          byLevel.set(level, { level, spells: [] })
+        }
       }
     }
     return [...byLevel.entries()]
@@ -263,183 +356,298 @@ export function PlayDeskSpellsCompact({
       .filter(
         (group) =>
           group.visible.length > 0 ||
-          (group.level > 0 && (spells.slots[String(group.level)]?.max ?? 0) > 0),
+          (group.level > 0 &&
+            filter === 'all' &&
+            !search.trim() &&
+            (spells.slots[String(group.level)]?.max ?? 0) > 0),
       )
   })()
 
+  function levelKey(level: number): string {
+    return `lv-${level}`
+  }
+
+  function isCollapsed(level: number, spellCount: number): boolean {
+    const key = levelKey(level)
+    if (key in collapsed) return collapsed[key]!
+    // Empty circles (slots but no spells) start collapsed.
+    return spellCount === 0
+  }
+
+  function toggleLevel(level: number, spellCount: number) {
+    const key = levelKey(level)
+    const next = !isCollapsed(level, spellCount)
+    setCollapsed((prev) => ({ ...prev, [key]: next }))
+  }
+
+  function collapseAll() {
+    const next: Record<string, boolean> = {}
+    for (const group of levelGroups) {
+      next[levelKey(group.level)] = true
+    }
+    setCollapsed(next)
+  }
+
+  function expandAll() {
+    const next: Record<string, boolean> = {}
+    for (const group of levelGroups) {
+      next[levelKey(group.level)] = false
+    }
+    setCollapsed(next)
+  }
+
+  const filterChips: Array<{ id: SpellFilter; label: string }> = [
+    { id: 'all', label: 'все' },
+    { id: 'cantrips', label: 'заговоры' },
+    { id: 'rituals', label: 'ритуалы' },
+    { id: 'concentration', label: 'концентрация' },
+    ...(ritualBookSpells.length > 0
+      ? [{ id: 'ritual_book' as const, label: 'ритуалы из книги' }]
+      : []),
+    ...(isMulticlassCaster
+      ? classFilterSlugs.map((slug) => ({
+          id: `class:${slug}` as SpellFilter,
+          label: classSlugChipLabel(slug) ?? slug,
+        }))
+      : []),
+  ]
+
   return (
-    <div className="play-desk-compact">
-      <div className="play-desk-compact__head">
-        <h3>{pinned ? 'Заклинания (закреплено)' : 'Заклинания'}</h3>
-        <div className="play-desk-compact__head-actions">
-          {ritualBookLabel && onOpenRitualBook ? (
+    <div className="play-desk-compact play-desk-compact--spells">
+      <div className="play-desk-compact__chrome">
+        <div className="play-desk-compact__head">
+          <h3>{pinned ? 'Заклинания (закреплено)' : 'Заклинания'}</h3>
+          <div className="play-desk-compact__head-actions">
+            {ritualBookLabel && onOpenRitualBook ? (
+              <button
+                type="button"
+                className="play-desk-compact__link play-desk-compact__link--prepare"
+                onClick={onOpenRitualBook}
+              >
+                <IconSpellBook className="play-desk-compact__link-icon" />
+                {ritualBookLabel}
+              </button>
+            ) : null}
+            {showPrepare ? (
+              <button
+                type="button"
+                className="play-desk-compact__link play-desk-compact__link--prepare"
+                onClick={() => setPrepareOpen(true)}
+                title={
+                  learnBudget?.mode === 'spellbook'
+                    ? 'Выбрать на сегодня из книги (лимит = Инт + ур. волшебника)'
+                    : 'Выбрать на сегодня из списка класса (лимит = мод + уровень)'
+                }
+              >
+                <IconWizardHat className="play-desk-compact__link-icon" />
+                Подготовить
+              </button>
+            ) : null}
+            {onClearSplit ? (
+              <button
+                type="button"
+                className="play-desk-compact__link"
+                onClick={onClearSplit}
+                title="Скрыть магию — основная панель на всю ширину"
+              >
+                Скрыть магию
+              </button>
+            ) : null}
             <button
               type="button"
-              className="play-desk-compact__link play-desk-compact__link--prepare"
-              onClick={onOpenRitualBook}
+              className="play-desk-compact__link play-desk-compact__link--settings"
+              onClick={onOpenSettings}
             >
-              <IconSpellBook className="play-desk-compact__link-icon" />
-              {ritualBookLabel}
+              {settingsLabel}
             </button>
-          ) : null}
-          {showPrepare ? (
-            <button
-              type="button"
-              className="play-desk-compact__link play-desk-compact__link--prepare"
-              onClick={() => setPrepareOpen(true)}
-              title={
-                learnBudget?.mode === 'spellbook'
-                  ? 'Выбрать на сегодня из книги (лимит = Инт + ур. волшебника)'
-                  : 'Выбрать на сегодня из списка класса (лимит = мод + уровень)'
-              }
+          </div>
+        </div>
+
+        {learnBudget?.mode === 'spellbook' && bookLost ? (
+          <p className="play-desk-compact__book-lost">
+            Книга утеряна — подготовка и ритуалы из книги закрыты. Открой «{settingsLabel}» →
+            статус книги, чтобы вернуть книгу из инвентаря.
+          </p>
+        ) : null}
+
+        {profileRows && profileRows.length > 0 ? (
+          <div
+            className={`play-desk-compact__combat-stats play-desk-compact__combat-stats--profiles play-desk-compact__combat-stats--dense${
+              profileRows.length > 1 ? ' is-multi' : ''
+            }`}
+            aria-label="Сл. спас. и атака заклинаний по классам"
+          >
+            {profileRows.map((row) => (
+              <div
+                key={row.id}
+                className={`play-desk-compact__cast-profile play-desk-compact__cast-profile--line is-${row.ability}`}
+                title={`${row.labelRu} · ${SPELLCASTING_ABILITY_LABELS[row.ability]}`}
+              >
+                <span className="play-desk-compact__cast-profile-line">
+                  {row.labelRu}
+                  {' · '}
+                  {SPELLCASTING_ABILITY_LABELS[row.ability]}
+                  {' · Сл '}
+                  {row.saveDc}
+                  {' · '}
+                  {formatModifier(row.attackBonus)}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : dc != null || attack != null ? (
+          <div className="play-desk-compact__combat-stats play-desk-compact__combat-stats--dense" aria-label="Сл. спас. и атака заклинаний">
+            <div className="play-desk-compact__cast-profile play-desk-compact__cast-profile--line">
+              <span className="play-desk-compact__cast-profile-line">
+                {abilityKey ? SPELLCASTING_ABILITY_LABELS[abilityKey] : '—'}
+                {dc != null ? ` · Сл ${dc}` : ''}
+                {attack != null ? ` · ${formatModifier(attack)}` : ''}
+              </span>
+            </div>
+          </div>
+        ) : null}
+
+        {(quotaLabel || cantripLabel || concentration) && (
+          <div className="play-desk-compact__meta">
+            {quotaLabel ? <span>{quotaLabel}</span> : null}
+            {cantripLabel ? <span>{cantripLabel}</span> : null}
+            {concentration ? (
+              <span className="play-desk-compact__meta-conc">конц. {concentration.name}</span>
+            ) : null}
+          </div>
+        )}
+
+        {pact && pact.max > 0 ? (
+          <div className="play-desk-compact__pact" aria-label="Ячейки договора">
+            <strong>Ячейки договора · {pact.level} ур.</strong>
+            <div
+              className="play-desk-compact__slot-pips is-pact"
+              role="group"
+              aria-label={`Ячейки договора ${pact.level}: ${pactRemaining}/${pact.max}`}
+              title={`Ячейки договора ${pact.level}-го уровня: ${pactRemaining}/${pact.max}`}
             >
-              <IconWizardHat className="play-desk-compact__link-icon" />
-              Подготовить
-            </button>
-          ) : null}
-          {onClearSplit ? (
+              {Array.from({ length: pact.max }, (_, index) => {
+                const isOn = index < (pactRemaining ?? 0)
+                return (
+                  <button
+                    key={`pact-${index}`}
+                    type="button"
+                    className={`play-desk-compact__slot-pip is-pact${isOn ? ' is-on' : ''}`}
+                    disabled={!onPactUsedChange}
+                    aria-label={
+                      isOn
+                        ? `Договор: потратить ${index + 1}`
+                        : `Договор: вернуть ${index + 1}`
+                    }
+                    onClick={() => {
+                      if (!onPactUsedChange || !pact) return
+                      if (isOn) onPactUsedChange(Math.min(pact.max, pact.used + 1))
+                      else onPactUsedChange(Math.max(0, pact.used - 1))
+                    }}
+                  />
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="play-desk-compact__spell-tools">
+          <div className="chip-row play-desk-compact__spell-filters" role="group" aria-label="Фильтр заклинаний">
+            {filterChips.map((chip) => (
+              <button
+                key={chip.id}
+                type="button"
+                className={`sheet-chip${filter === chip.id ? ' is-on' : ''}`}
+                onClick={() => setFilter(chip.id)}
+              >
+                {chip.label}
+              </button>
+            ))}
+          </div>
+          <label className="play-desk-compact__spell-search">
+            <span className="sr-only">Поиск заклинания</span>
+            <input
+              type="search"
+              className="ui-input"
+              placeholder="Поиск по названию"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </label>
+          <div className="play-desk-compact__collapse-actions">
             <button
               type="button"
               className="play-desk-compact__link"
-              onClick={onClearSplit}
-              title="Скрыть магию — основная панель на всю ширину"
+              aria-label="Свернуть все круги заклинаний"
+              onClick={collapseAll}
             >
-              Скрыть магию
+              Свернуть все
             </button>
-          ) : null}
-          <button
-            type="button"
-            className="play-desk-compact__link play-desk-compact__link--settings"
-            onClick={onOpenSettings}
-          >
-            {settingsLabel}
-          </button>
+            <button
+              type="button"
+              className="play-desk-compact__link"
+              aria-label="Развернуть все круги заклинаний"
+              onClick={expandAll}
+            >
+              Развернуть все
+            </button>
+          </div>
         </div>
       </div>
 
-      {learnBudget?.mode === 'spellbook' && bookLost ? (
-        <p className="play-desk-compact__book-lost">
-          Книга утеряна — подготовка и ритуалы из книги закрыты. Открой «{settingsLabel}» →
-          статус книги, чтобы вернуть книгу из инвентаря.
-        </p>
-      ) : null}
-
-      {profileRows && profileRows.length > 0 ? (
-        <div
-          className={`play-desk-compact__combat-stats play-desk-compact__combat-stats--profiles${
-            profileRows.length > 1 ? ' is-multi' : ''
-          }`}
-          aria-label="Сл. спас. и атака заклинаний по классам"
-        >
-          {profileRows.map((row) => (
-            <div
-              key={row.id}
-              className={`play-desk-compact__cast-profile is-${row.ability}`}
-              title={`${row.labelRu} · ${SPELLCASTING_ABILITY_LABELS[row.ability]}`}
-            >
-              <span className="play-desk-compact__cast-profile-source">
-                {row.labelRu}
-                <em>{SPELLCASTING_ABILITY_LABELS[row.ability]}</em>
-              </span>
-              <span className="play-desk-compact__cast-profile-nums">
-                <span>
-                  Сл <b>{row.saveDc}</b>
-                </span>
-                <span>
-                  Атака <b>{formatModifier(row.attackBonus)}</b>
-                </span>
-              </span>
-            </div>
-          ))}
-        </div>
-      ) : (dc != null || attack != null) ? (
-        <div className="play-desk-compact__combat-stats" aria-label="Сл. спас. и атака заклинаний">
-          {dc != null ? (
-            <div className="play-desk-compact__combat-stat">
-              <span>Сл. спас.</span>
-              <b>{dc}</b>
-            </div>
-          ) : null}
-          {attack != null ? (
-            <div className="play-desk-compact__combat-stat">
-              <span>Атака</span>
-              <b>{formatModifier(attack)}</b>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-
-      {(quotaLabel || cantripLabel || concentration) && (
-        <div className="play-desk-compact__meta">
-          {quotaLabel ? <span>{quotaLabel}</span> : null}
-          {cantripLabel ? <span>{cantripLabel}</span> : null}
-          {concentration ? (
-            <span className="play-desk-compact__meta-conc">конц. {concentration.name}</span>
-          ) : null}
-        </div>
-      )}
-
-      {pact && pact.max > 0 ? (
-        <div className="play-desk-compact__pact" aria-label="Ячейки договора">
-          <strong>Ячейки договора · {pact.level} ур.</strong>
-          <div
-            className="play-desk-compact__slot-pips is-pact"
-            role="group"
-            aria-label={`Ячейки договора ${pact.level}: ${pactRemaining}/${pact.max}`}
-            title={`Ячейки договора ${pact.level}-го уровня: ${pactRemaining}/${pact.max}`}
-          >
-            {Array.from({ length: pact.max }, (_, index) => {
-              const isOn = index < (pactRemaining ?? 0)
-              return (
-                <button
-                  key={`pact-${index}`}
-                  type="button"
-                  className={`play-desk-compact__slot-pip is-pact${isOn ? ' is-on' : ''}`}
-                  disabled={!onPactUsedChange}
-                  aria-label={
-                    isOn
-                      ? `Договор: потратить ${index + 1}`
-                      : `Договор: вернуть ${index + 1}`
-                  }
-                  onClick={() => {
-                    if (!onPactUsedChange || !pact) return
-                    if (isOn) onPactUsedChange(Math.min(pact.max, pact.used + 1))
-                    else onPactUsedChange(Math.max(0, pact.used - 1))
-                  }}
-                />
-              )
-            })}
-          </div>
-        </div>
-      ) : null}
-
-      <div className="play-desk-compact__list play-desk-compact__list--dense">
+      <div className="play-desk-compact__list play-desk-compact__list--dense play-desk-compact__list--scroll">
         {ready.length === 0 && levelGroups.length === 0 ? (
           <div className="play-desk-compact__empty-block">
-            <p className="play-desk-compact__empty">Нет готовых заклинаний</p>
-            <button
-              type="button"
-              className="play-desk-compact__link play-desk-compact__link--prepare"
-              onClick={onOpenSettings}
-            >
-              Выбрать заклинания
-            </button>
+            <p className="play-desk-compact__empty">
+              {filter === 'ritual_book'
+                ? 'Нет ритуалов из книги'
+                : search.trim()
+                  ? 'Ничего не найдено'
+                  : 'Нет готовых заклинаний'}
+            </p>
+            {filter === 'all' && !search.trim() ? (
+              <button
+                type="button"
+                className="play-desk-compact__link play-desk-compact__link--prepare"
+                onClick={onOpenSettings}
+              >
+                Выбрать заклинания
+              </button>
+            ) : null}
           </div>
         ) : (
           levelGroups.map((group) => {
             const slot = group.level > 0 ? spells.slots[String(group.level)] : null
             const remaining =
               slot && slot.max > 0 ? Math.max(0, slot.max - slot.used) : null
+            const folded = isCollapsed(group.level, group.visible.length)
             return (
-              <div key={group.level} className="play-desk-compact__level">
+              <div
+                key={group.level}
+                className={`play-desk-compact__level${folded ? ' is-collapsed' : ''}`}
+              >
                 <div className="play-desk-compact__level-head">
-                  <strong>{levelLabel(group.level)}</strong>
+                  <button
+                    type="button"
+                    className="play-desk-compact__level-toggle"
+                    aria-expanded={!folded}
+                    onClick={() => toggleLevel(group.level, group.visible.length)}
+                  >
+                    <span className="play-desk-compact__level-chevron" aria-hidden>
+                      {folded ? '▸' : '▾'}
+                    </span>
+                    <strong>{levelLabel(group.level)}</strong>
+                    <span className="play-desk-compact__level-count">
+                      {group.visible.length}
+                    </span>
+                  </button>
                   {slot && slot.max > 0 ? (
                     <div
                       className="play-desk-compact__slot-track"
                       role="group"
                       aria-label={`Ячейки ${group.level}: ${remaining}/${slot.max}`}
                       title={`Ячейки ${group.level}: ${remaining}/${slot.max}`}
+                      onClick={(event) => event.stopPropagation()}
                     >
                       <span className="play-desk-compact__slot-count">
                         Ячейки {remaining}/{slot.max}
@@ -473,38 +681,48 @@ export function PlayDeskSpellsCompact({
                     </div>
                   ) : null}
                 </div>
-                {group.visible.map((spell) => {
-                  const isActiveConc =
-                    concentration != null &&
-                    (concentration.spell_id === spell.id ||
-                      concentration.name.trim() === (spell.name || '').trim())
-                  return (
-                    <SpellRow
-                      key={spell.id}
-                      spell={spell}
-                      characterLevel={characterLevel}
-                      affinity={elementalAffinity}
-                      learnMode={learnBudget?.mode ?? null}
-                      hasSpellbook={hasSpellbook}
-                      activeConcentration={isActiveConc}
-                      onOpenDetail={() => setDetailSpell(spell)}
-                      abilities={abilities}
-                      castProfiles={castProfiles ?? null}
-                      proficiencyBonus={proficiencyBonus}
-                      castingAbility={spells.casting_ability ?? null}
-                      onCast={() => {
-                        if (onCastSpell) {
-                          onCastSpell(spell)
-                          return
-                        }
-                        if (spell.concentration && onConcentrateSpell) {
-                          onConcentrateSpell(spell)
-                        }
-                      }}
-                      hasCast={Boolean(onCastSpell || onConcentrateSpell)}
-                    />
-                  )
-                })}
+                {!folded
+                  ? group.visible.map((spell) => {
+                      const isActiveConc =
+                        concentration != null &&
+                        (concentration.spell_id === spell.id ||
+                          concentration.name.trim() === (spell.name || '').trim())
+                      return (
+                        <SpellRow
+                          key={spell.id}
+                          spell={spell}
+                          characterLevel={characterLevel}
+                          affinity={elementalAffinity}
+                          learnMode={learnMode}
+                          hasSpellbook={hasSpellbook}
+                          activeConcentration={isActiveConc}
+                          onOpenDetail={() => setDetailSpell(spell)}
+                          abilities={abilities}
+                          castProfiles={castProfiles ?? null}
+                          proficiencyBonus={proficiencyBonus}
+                          castingAbility={spells.casting_ability ?? null}
+                          showClassChip={isMulticlassCaster}
+                          metaOpen={Boolean(metaExpanded[spell.id])}
+                          onToggleMeta={() =>
+                            setMetaExpanded((prev) => ({
+                              ...prev,
+                              [spell.id]: !prev[spell.id],
+                            }))
+                          }
+                          onCast={() => {
+                            if (onCastSpell) {
+                              onCastSpell(spell)
+                              return
+                            }
+                            if (spell.concentration && onConcentrateSpell) {
+                              onConcentrateSpell(spell)
+                            }
+                          }}
+                          hasCast={Boolean(onCastSpell || onConcentrateSpell)}
+                        />
+                      )
+                    })
+                  : null}
               </div>
             )
           })
@@ -597,10 +815,6 @@ function shortDamage(raw: string): string {
   return t.replace(/\s+/g, ' ')
 }
 
-/**
- * Actual effect for this character (cantrip/slot scaling + Agathys-style summary).
- * Falls back to static `damage` when no scale/summary applies (magic-qa tip).
- */
 function compactDamage(
   spell: SheetSpell,
   characterLevel: number,
@@ -623,7 +837,6 @@ function compactDamage(
   return shortDamage(rules.damage ?? '')
 }
 
-/** Unified card skeleton: action · range · attack/save (always present). */
 function compactSpellMeta(spell: SheetSpell): string {
   const parts: string[] = []
   const rules = withBundledRules(spell)
@@ -654,6 +867,9 @@ function SpellRow({
   castProfiles,
   proficiencyBonus,
   castingAbility,
+  showClassChip,
+  metaOpen,
+  onToggleMeta,
 }: {
   spell: SheetSpell
   characterLevel: number
@@ -668,6 +884,9 @@ function SpellRow({
   castProfiles: SpellCastProfile[] | null
   proficiencyBonus: number
   castingAbility: SpellcastingAbility | null
+  showClassChip: boolean
+  metaOpen: boolean
+  onToggleMeta: () => void
 }) {
   const levelText = spell.item_cast
     ? spell.item_cast.chargePerLevel
@@ -704,45 +923,53 @@ function SpellRow({
   const granted = isGrantedSpellHighlight(spell)
   const grantLeft =
     spell.grant_cast && spell.grant_cast.max > 0 ? grantCastRemaining(spell) : null
-  const ritualFromBook =
-    Boolean(spell.ritual) &&
-    !spell.prepared &&
-    learnMode === 'spellbook' &&
-    hasSpellbook
+  const ritualFromBook = isRitualFromBook(spell, learnMode, hasSpellbook)
   const ritualLabel = ritualFromBook
     ? 'Не подготовлено · ритуал из книги'
     : spell.ritual
       ? 'ритуал'
       : null
+  const classChip = showClassChip ? classSlugChipLabel(spell.class_slug) : null
   const flags: string[] = []
   if (activeConcentration) flags.push('держит конц.')
   else if (spell.concentration) flags.push('конц.')
   if (ritualLabel) flags.push(ritualLabel)
   if (source) flags.push(source.label)
+  if (classChip) flags.push(classChip)
   if (damage) flags.push(damage)
+
+  const rowLabel = damage ? `${spell.name}, ${damage}` : `${spell.name}, без урона`
 
   return (
     <div
-      className={`play-desk-compact__row is-spell${
+      key={`${spell.id}:${damage || '—'}`}
+      className={`play-desk-compact__row is-spell is-spell-line${
         activeConcentration ? ' is-conc-active' : ''
       }${granted ? ' is-granted' : ''}${hasCast ? ' has-cast' : ''}${
         ritualFromBook ? ' is-ritual-unprepared' : ''
-      }`}
+      }${metaOpen ? ' is-meta-open' : ''}`}
+      role="button"
+      tabIndex={0}
+      aria-expanded={metaOpen}
+      aria-label={rowLabel}
+      title={
+        flags.length
+          ? `${spell.name} · ${flags.join(' · ')} · клик — детали строки`
+          : `${spell.name} · клик — детали строки`
+      }
+      onClick={() => onToggleMeta()}
+      onDoubleClick={(event) => {
+        event.preventDefault()
+        onOpenDetail()
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onToggleMeta()
+        }
+      }}
     >
-      <button
-        key={`${spell.id}:${damage || '—'}`}
-        type="button"
-        className="play-desk-compact__spell-body"
-        aria-label={
-          damage ? `${spell.name}, ${damage}` : `${spell.name}, без урона`
-        }
-        title={
-          flags.length
-            ? `${spell.name} · ${flags.join(' · ')} · описание`
-            : `${spell.name} · описание`
-        }
-        onClick={onOpenDetail}
-      >
+      <div className="play-desk-compact__spell-body">
         <div className="play-desk-compact__spell-top">
           <div className="play-desk-compact__row-main">
             <b>{spell.name}</b>
@@ -756,6 +983,11 @@ function SpellRow({
             >
               {damage || '—'}
             </span>
+            {classChip ? (
+              <span className="play-desk-compact__source is-class" title={`Класс · ${classChip}`}>
+                {classChip}
+              </span>
+            ) : null}
             {source ? (
               <span
                 className={`play-desk-compact__source is-${source.kind}`}
@@ -795,26 +1027,29 @@ function SpellRow({
             </span>
           )}
         </div>
-        <p className="play-desk-compact__spell-meta" title="Действие · дистанция · атака/спас">
+        <p
+          className={`play-desk-compact__spell-meta${metaOpen ? ' is-open' : ' is-quiet'}`}
+          title="Действие · дистанция · атака/спас · клик по строке — раскрыть"
+        >
           {meta}
         </p>
-        {ritualFromBook ? (
-          <p className="play-desk-compact__spell-ritual-note">{ritualLabel}</p>
-        ) : null}
-      </button>
+      </div>
       {hasCast ? (
-        <button
-          type="button"
-          className="play-desk-compact__spell-cast"
-          title={`Каст: ${spell.name}`}
-          onClick={(event) => {
-            event.stopPropagation()
-            onCast()
-          }}
-        >
-          <IconCast className="play-desk-compact__spell-cast-icon" />
-          <span>Каст</span>
-        </button>
+        <div className="play-desk-compact__spell-cast-wrap">
+          <button
+            type="button"
+            className="ui-button ui-button--secondary ui-button--edge-end play-desk-compact__spell-cast"
+            title={`Каст: ${spell.name}`}
+            onClick={(event) => {
+              event.stopPropagation()
+              onCast()
+            }}
+            onKeyDown={(event) => event.stopPropagation()}
+          >
+            <IconCast className="play-desk-compact__spell-cast-icon" />
+            <span>Каст</span>
+          </button>
+        </div>
       ) : null}
     </div>
   )

@@ -218,7 +218,7 @@ export function CompanionCreaturePickDialog({
         ? `${title}: скакун обновлён («${applied.name}»)`
         : `${title}: «${applied.name}»`,
     })
-    onClose()
+    // Do not call onClose after confirm — parent clears pending; onClose toasts «не выбрано».
   }
 
   function confirmConjure(pick: BestiaryFormPick) {
@@ -243,7 +243,6 @@ export function CompanionCreaturePickDialog({
       companions: applied.companions,
       toast: `${title}: «${applied.name}»`,
     })
-    onClose()
   }
 
   function confirmUndead() {
@@ -274,7 +273,6 @@ export function CompanionCreaturePickDialog({
       companions: applied.companions,
       toast: `${title}: «${applied.name}»`,
     })
-    onClose()
   }
 
   return (

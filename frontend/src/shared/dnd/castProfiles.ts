@@ -492,6 +492,92 @@ export function formatNamedPrepareBudgets(
   return `подг. ${parts.join(' · ')}`
 }
 
+/**
+ * Per-class known meta: «Бард изв. 2/2 · Колдун изв. 2/2».
+ * Avoids the false global «изв. 17/5» on multiclass.
+ */
+export function formatNamedKnownBudgets(
+  budgets: SpellLearnBudget[],
+  countsBySlug: Record<string, number>,
+): string | null {
+  const knownRows = budgets.filter(
+    (row) => row.mode === 'known' && row.leveledKnown != null && row.leveledKnown > 0,
+  )
+  if (knownRows.length === 0) return null
+  return knownRows
+    .map((row) => {
+      const used = countsBySlug[row.slug] ?? 0
+      return `${shortCastProfileLabel(row.labelRu)} изв. ${used}/${row.leveledKnown}`
+    })
+    .join(' · ')
+}
+
+/**
+ * Mixed multiclass quota line: «Бард изв. 2/2 · Жрец подг. 3/3 · Волшебник подг. 1/5, в книге 6».
+ * One fragment per class mode — never a single shared «изв. N/M».
+ */
+export function formatNamedClassQuotas(
+  budgets: SpellLearnBudget[],
+  knownBySlug: Record<string, number>,
+  preparedBySlug: Record<string, number>,
+  options?: { bookCountBySlug?: Record<string, number>; alwaysPrepared?: number },
+): string | null {
+  if (budgets.length === 0) return null
+  const parts: string[] = []
+  for (const row of budgets) {
+    const label = shortCastProfileLabel(row.labelRu)
+    if (row.mode === 'known' && row.leveledKnown != null && row.leveledKnown > 0) {
+      const used = knownBySlug[row.slug] ?? 0
+      parts.push(`${label} изв. ${used}/${row.leveledKnown}`)
+      continue
+    }
+    if (row.mode === 'prepared_list' && row.maxPrepared != null && row.maxPrepared > 0) {
+      const used = preparedBySlug[row.slug] ?? 0
+      parts.push(`${label} подг. ${used}/${row.maxPrepared}`)
+      continue
+    }
+    if (row.mode === 'spellbook') {
+      const book = options?.bookCountBySlug?.[row.slug]
+      const prep =
+        row.maxPrepared != null && row.maxPrepared > 0
+          ? `${label} подг. ${preparedBySlug[row.slug] ?? 0}/${row.maxPrepared}`
+          : null
+      if (prep && book != null) {
+        parts.push(`${prep}, в книге ${book}`)
+      } else if (prep) {
+        parts.push(prep)
+      } else if (book != null) {
+        parts.push(`${label} в книге ${book}`)
+      }
+    }
+  }
+  if (options?.alwaysPrepared && options.alwaysPrepared > 0) {
+    parts.push(`всегда ${options.alwaysPrepared}`)
+  }
+  return parts.length > 0 ? parts.join(' · ') : null
+}
+
+/** Short lowercase class chip for multiclass combat rows («бард», «волшебник»). */
+export function classSlugChipLabel(slug: string | null | undefined): string | null {
+  const key = (slug ?? '').trim().toLowerCase()
+  if (!key) return null
+  const map: Record<string, string> = {
+    bard: 'бард',
+    cleric: 'жрец',
+    wizard: 'волшебник',
+    sorcerer: 'чародей',
+    warlock: 'колдун',
+    paladin: 'паладин',
+    druid: 'друид',
+    ranger: 'следопыт',
+    artificer: 'изобретатель',
+    fighter: 'воитель',
+    rogue: 'плут',
+    monk: 'монах',
+  }
+  return map[key] ?? key
+}
+
 /** One grimoire shelf = one caster profile (M5). */
 export type GrimoireShelfSource = {
   slug: string

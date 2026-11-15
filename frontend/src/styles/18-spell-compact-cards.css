@@ -1,4 +1,4 @@
-/* Spell compact card: body = detail, cast = source picker */
+/* Spell compact card: body = detail, cast = edge-docked kit button */
 .play-desk-compact__row.is-spell {
   display: grid;
   grid-template-columns: 1fr;
@@ -11,6 +11,7 @@
   text-align: left;
   background: var(--card, #fffdf8);
   border-color: var(--desk-line, var(--line));
+  border-radius: var(--radius-card, 8px);
   overflow: hidden;
 }
 
@@ -38,36 +39,12 @@
 
 .play-desk-compact__spell-cast {
   display: inline-flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  min-width: 3.75rem;
-  padding: 8px 10px;
-  border: 0;
-  border-left: 2px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 55%, var(--desk-line));
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--desk-accent, var(--accent)) 22%, white) 0%,
-    color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 92%, white) 45%,
-    color-mix(in srgb, var(--desk-accent, var(--accent)) 14%, white) 100%
-  );
-  color: color-mix(in srgb, var(--desk-accent, var(--accent)) 88%, #1a1510);
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  gap: 4px;
+  min-width: 3.25rem;
   cursor: pointer;
-}
-
-.play-desk-compact__spell-cast:hover {
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--desk-accent, var(--accent)) 32%, white) 0%,
-    color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 100%, white) 50%,
-    color-mix(in srgb, var(--desk-accent, var(--accent)) 22%, white) 100%
-  );
 }
 
 .cast-source-row {
@@ -833,3 +810,194 @@ button.play-desk-compact__more--btn:hover {
   margin: 0 0 2px;
 }
 
+
+/* MAG-01: spell column chrome + scroll (kit tokens only) */
+.play-desk-compact--spells {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
+  height: 100%;
+}
+
+/* Desktop split: колонка не выше окна (шапка стола остаётся) — список кругов крутится внутри */
+@media (min-width: 960px) {
+  .play-desk--split .play-desk__stage-panel.is-pinned:has(.play-desk-compact--spells) {
+    /* ~шапка+режимы+сцена-хром: панель целиком в первом вьюпорте */
+    max-height: calc(100dvh - 27.5rem);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-self: start;
+    box-sizing: border-box;
+  }
+
+  .play-desk--split .play-desk__stage-panel.is-pinned:has(.play-desk-compact--spells) > .play-desk-compact--spells {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    height: auto;
+  }
+}
+
+.play-desk-compact__chrome {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 8px;
+}
+
+.play-desk-compact__list--scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+
+.play-desk-compact__combat-stats--dense {
+  gap: 4px;
+}
+
+.play-desk-compact__cast-profile--line {
+  padding: 3px 8px;
+  border-radius: 8px;
+  justify-content: flex-start;
+}
+
+.play-desk-compact__cast-profile-line {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--desk-ink, var(--ink));
+  line-height: 1.25;
+}
+
+.play-desk-compact__spell-tools {
+  display: grid;
+  gap: 6px;
+}
+
+.play-desk-compact__spell-filters {
+  flex-wrap: wrap;
+}
+
+.play-desk-compact__spell-search .ui-input,
+.play-desk-compact__spell-search input {
+  width: 100%;
+  min-height: 34px;
+  font-size: 0.85rem;
+}
+
+.play-desk-compact__collapse-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.play-desk-compact__level-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.play-desk-compact__level-chevron {
+  font-size: 0.75rem;
+  color: var(--desk-muted, var(--muted));
+}
+
+.play-desk-compact__level-count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+}
+
+.play-desk-compact__level.is-collapsed .play-desk-compact__level-head {
+  opacity: 0.95;
+}
+
+/* MAG-01: one-line spell row — Cast edge-docked; expand via row click (no ▾) */
+.play-desk-compact__row.is-spell.is-spell-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0;
+  cursor: pointer;
+}
+
+.play-desk-compact__row.is-spell.is-spell-line.has-cast {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.play-desk-compact__row.is-spell.is-spell-line .play-desk-compact__spell-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 8px;
+}
+
+.play-desk-compact__row.is-spell.is-spell-line .play-desk-compact__spell-top {
+  min-width: 0;
+}
+
+.play-desk-compact__row.is-spell.is-spell-line .play-desk-compact__spell-meta.is-quiet {
+  font-size: 0.62rem;
+  opacity: 0.72;
+  max-width: 100%;
+}
+
+.play-desk-compact__row.is-spell.is-spell-line:not(.is-meta-open) .play-desk-compact__spell-meta.is-quiet {
+  white-space: nowrap;
+}
+
+.play-desk-compact__spell-cast-wrap {
+  display: flex;
+  align-items: stretch;
+  align-self: stretch;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+.play-desk-compact__row.is-spell.is-spell-line .play-desk-compact__spell-cast {
+  min-height: 100%;
+  height: 100%;
+}
+
+.play-desk-compact__row.is-spell.is-spell-line .play-desk-compact__spell-cast-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+}
+
+.play-desk-compact__source.is-class {
+  border-color: color-mix(in srgb, var(--desk-accent, var(--accent)) 35%, var(--desk-line));
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 45%, var(--panel, white));
+  color: var(--desk-ink, var(--ink));
+  text-transform: lowercase;
+}
+
+@media (max-width: 959px) {
+  /* 390: обычная прокрутка страницы, без вложенного скролла колонки */
+  .play-desk-compact--spells {
+    max-height: none;
+    height: auto;
+  }
+
+  .play-desk-compact__list--scroll {
+    flex: none;
+    overflow-y: visible;
+    min-height: 0;
+  }
+
+  .play-desk-compact__spell-cast.ui-button--edge-end {
+    min-width: 44px;
+    padding-inline: 10px;
+  }
+}

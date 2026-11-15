@@ -79,6 +79,7 @@ import {
   featureLockedExpertiseSkillIds,
   fighterSkillAndLanguageGrants,
 } from '../../shared/dnd/fighterArchetypeGrants'
+import { bridgeOriginPicks } from '../../shared/dnd/pack04SorcererWarlock'
 import { listUnlockedExpertiseKeys } from '../../shared/dnd/pendingFeatureChoices'
 import {
   applyBackgroundGrantToDraft,
@@ -1182,6 +1183,19 @@ export async function applyPipelineToSheet(input: {
       classEntryId: row.id,
       values: totemValues,
     })
+    const setupEntry = setup?.entry
+    const originSlug =
+      (typeof setupEntry?.slug === 'string' && setupEntry.slug) ||
+      row.subclass_name ||
+      null
+    if (originSlug && setup?.picks) {
+      featurePicks = bridgeOriginPicks({
+        featurePicks,
+        classEntryId: row.id,
+        subclassSlug: originSlug,
+        grantPicks: normalizeSubclassPicks(setup.picks),
+      })
+    }
   }
   featurePicks = dropDuplicateFightingStyles(featurePicks)
 

@@ -18,7 +18,7 @@ import { newFeatGrantId, type AppliedFeatGrant } from '../../../shared/dnd/featG
 import { applyFeatGrantToDraft } from '../featEffects'
 import { resolveSubclassFeatureSlug, unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
 import { withPactTomeCantripsStep } from '../pactTomeEffects'
-import { characterHasCasterClass, highestSpellSlotLevelForClasses } from '../../../shared/dnd/casterProgression'
+import { characterHasCasterClass, maxSpellLevelForClassAlone } from '../../../shared/dnd/casterProgression'
 import { freeBookSlotsAtLevel, remainingFreeSpellbookSlots } from '../../../shared/dnd/wizardSpellbook'
 import { wizardHasUsableSpellbook } from '../wizardSpellbookInventory'
 import { addCatalogSpellToKnown } from '../spells'
@@ -202,22 +202,22 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
         spellbookPicksContext={(() => {
           const step = model.guidedWizard?.steps[model.guidedWizard.index]
           if (!step || step.kind !== 'spellbook_picks') return null
-          const slotCap = highestSpellSlotLevelForClasses(
-            model.draft.classes,
-            model.subclassCastersForSpells,
+          const wizard = model.draft.classes.find((row) => {
+            const n = row.name.trim().toLowerCase()
+            return n === 'волшебник' || n === 'wizard' || n === 'маг'
+          })
+          const aloneCap = maxSpellLevelForClassAlone(
+            'full',
+            wizard?.level ?? step.classLevel,
           )
           return {
-            maxSpellLevel: Math.max(1, slotCap || 1),
+            maxSpellLevel: Math.max(1, aloneCap || 1),
             blockedCatalogIds: model.draft.spells.known
               .map((spell) => spell.catalog_id)
               .filter((id): id is string => Boolean(id)),
             hasBook: wizardHasUsableSpellbook(model.draft.spells),
             classListSlugs: ['wizard'],
             subclassSlug: (() => {
-              const wizard = model.draft.classes.find((row) => {
-                const n = row.name.trim().toLowerCase()
-                return n === 'волшебник' || n === 'wizard' || n === 'маг'
-              })
               const raw = wizard?.subclass_name?.trim() || ''
               if (!raw) return null
               return (
@@ -233,6 +233,10 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
             step?.kind === 'spellbook_picks' && step.classLevel <= 1
               ? 'starting'
               : 'level_up'
+          const wizardRow = model.draft.classes.find((row) => {
+            const n = row.name.trim().toLowerCase()
+            return n === 'волшебник' || n === 'wizard' || n === 'маг'
+          })
           model.setDraft((prev) => {
             let known = prev.spells.known
             for (const entry of entries) {
@@ -240,6 +244,8 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
                 prepare: false,
                 spellbook_acquisition: acquisition,
                 in_spellbook: true,
+                class_slug: 'wizard',
+                class_entry_id: wizardRow?.id ?? null,
               })
             }
             return {

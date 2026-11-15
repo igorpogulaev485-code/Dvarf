@@ -416,6 +416,16 @@ export function bridgeOriginPicks(input: {
       )
     }
   }
+  // Draconic Bloodline: master pick → feature card «Предок-дракон».
+  if (slug === 'draconic_bloodline') {
+    const ancestry =
+      grantPickString(values, 'dragon_ancestor') ??
+      grantPickString(values, 'draconic_ancestry')
+    const key = (ancestry ?? '').trim().toLowerCase()
+    if (key && DRAGON_DAMAGE[key]) {
+      next = setFeaturePick(next, input.classEntryId, 'dragon_ancestor', key)
+    }
+  }
   return next
 }
 

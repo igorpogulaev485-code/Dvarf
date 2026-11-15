@@ -233,6 +233,9 @@ export function isSubclassGateFeature(feature: Pick<UnlockedFeature, 'choice' | 
     feature.id === 'primal_path' ||
     feature.id === 'arcane_tradition' ||
     feature.id === 'artificer_specialist' ||
+    feature.id === 'druid_circle' ||
+    feature.id === 'sacred_oath' ||
+    feature.id === 'sorcerous_origin' ||
     feature.id.endsWith('_archetype') ||
     feature.id.includes('patron')
   )

@@ -74,10 +74,12 @@ import {
   countLearnedLeveledForSlug,
   countLockedFeatureCantrips,
   countPreparedLeveled,
+  countPreparedLeveledBySlug,
   groupSpellsByLevel,
   isCustomSheetSpell,
   knownHasCatalogIdForSlug,
   otherClassBindingsForCatalog,
+  prepareCapForSpell,
   setSpellPrepared,
   spellSourceBadge,
   updateCustomSheetSpell,
@@ -687,7 +689,25 @@ export function GrimoireDialog({
     })
   }
 
-  function prepareCapReached(): boolean {
+  /** MAG-01: per-class prepare cap — warlock known must not block paladin. */
+  function prepareCapReached(spell?: SheetSpell | null, shelfSlug?: string | null): boolean {
+    if (spell) {
+      const scoped = prepareCapForSpell(spell, access.budgets, maxPrepared)
+      if (scoped.maxPrepared == null) return false
+      if (scoped.scopeSlug) {
+        return (countPreparedLeveledBySlug(spells.known)[scoped.scopeSlug] ?? 0) >= scoped.maxPrepared
+      }
+      return countPreparedLeveled(spells.known) >= scoped.maxPrepared
+    }
+    if (shelfSlug) {
+      const budget = access.budgets.find((row) => row.slug === shelfSlug)
+      const cap = budget?.maxPrepared ?? maxPrepared
+      if (cap == null) return false
+      if (access.budgets.filter((row) => (row.maxPrepared ?? 0) > 0).length > 1) {
+        return (countPreparedLeveledBySlug(spells.known)[shelfSlug] ?? 0) >= cap
+      }
+      return preparedCount >= cap
+    }
     if (maxPrepared == null) return false
     return preparedCount >= maxPrepared
   }
@@ -801,12 +821,21 @@ export function GrimoireDialog({
     }
     if (level > 0) {
       const acquireMode = acquisitionProfile?.mode ?? mode
+      const stubForCap = {
+        id: 'grimoire-stub',
+        name: entry.name_ru,
+        level,
+        prepared: false,
+        class_slug: acquisitionSlug,
+      } as SheetSpell
       if (acquireMode === 'prepared_list') {
         // Full-list casters prepare directly from the class list in grimoire.
-        if (prepare && prepareCapReached()) {
-          onToast?.(
-            `Лимит подготовки: ${preparedCount}/${maxPrepared ?? '—'}`,
-          )
+        if (prepare && prepareCapReached(stubForCap, acquisitionSlug)) {
+          const cap = prepareCapForSpell(stubForCap, access.budgets, maxPrepared)
+          const used = cap.scopeSlug
+            ? (countPreparedLeveledBySlug(spells.known)[cap.scopeSlug] ?? 0)
+            : preparedCount
+          onToast?.(`Лимит подготовки: ${used}/${cap.maxPrepared ?? '—'}`)
           return
         }
       } else if (acquireMode !== 'spellbook' && leveledLearnCapReached(acquisitionSlug)) {
@@ -819,10 +848,12 @@ export function GrimoireDialog({
           }/${budget?.leveledKnown ?? access.budget?.leveledKnown ?? '—'}`,
         )
         return
-      } else if (prepare && prepareCapReached()) {
-        onToast?.(
-          `Лимит подготовки: ${preparedCount}/${maxPrepared ?? '—'}`,
-        )
+      } else if (prepare && prepareCapReached(stubForCap, acquisitionSlug)) {
+        const cap = prepareCapForSpell(stubForCap, access.budgets, maxPrepared)
+        const used = cap.scopeSlug
+          ? (countPreparedLeveledBySlug(spells.known)[cap.scopeSlug] ?? 0)
+          : preparedCount
+        onToast?.(`Лимит подготовки: ${used}/${cap.maxPrepared ?? '—'}`)
         return
       }
     }
@@ -957,13 +988,19 @@ export function GrimoireDialog({
     const existing = knownSpellForCatalog(entry.id)
     if (!existing || existing.level <= 0) return
     const nextPrepared = !existing.prepared
-    if (nextPrepared && prepareCapReached()) {
-      onToast?.(`Лимит подготовки: ${preparedCount}/${maxPrepared ?? '—'}`)
+    const cap = prepareCapForSpell(existing, access.budgets, maxPrepared)
+    if (nextPrepared && prepareCapReached(existing)) {
+      const used = cap.scopeSlug
+        ? (countPreparedLeveledBySlug(spells.known)[cap.scopeSlug] ?? 0)
+        : preparedCount
+      onToast?.(`Лимит подготовки: ${used}/${cap.maxPrepared ?? '—'}`)
       return
     }
     onChange({
       ...spells,
-      known: setSpellPrepared(spells.known, existing.id, nextPrepared, maxPrepared),
+      known: setSpellPrepared(spells.known, existing.id, nextPrepared, cap.maxPrepared, {
+        scopeSlug: cap.scopeSlug,
+      }),
       max_prepared: maxPrepared ?? spells.max_prepared,
     })
   }
@@ -1021,13 +1058,19 @@ export function GrimoireDialog({
   function togglePrepareCustom(spell: SheetSpell) {
     if (spell.level <= 0) return
     const nextPrepared = !spell.prepared
-    if (nextPrepared && prepareCapReached()) {
-      onToast?.(`Лимит подготовки: ${preparedCount}/${maxPrepared ?? '—'}`)
+    const cap = prepareCapForSpell(spell, access.budgets, maxPrepared)
+    if (nextPrepared && prepareCapReached(spell)) {
+      const used = cap.scopeSlug
+        ? (countPreparedLeveledBySlug(spells.known)[cap.scopeSlug] ?? 0)
+        : preparedCount
+      onToast?.(`Лимит подготовки: ${used}/${cap.maxPrepared ?? '—'}`)
       return
     }
     onChange({
       ...spells,
-      known: setSpellPrepared(spells.known, spell.id, nextPrepared, maxPrepared),
+      known: setSpellPrepared(spells.known, spell.id, nextPrepared, cap.maxPrepared, {
+        scopeSlug: cap.scopeSlug,
+      }),
       max_prepared: maxPrepared ?? spells.max_prepared,
     })
   }
@@ -1068,8 +1111,9 @@ export function GrimoireDialog({
       return
     }
     if (level > 0) {
+      const customSlug = classFilter !== 'all' ? classFilter : null
       if (mode === 'prepared_list') {
-        if (prepare && prepareCapReached()) {
+        if (prepare && prepareCapReached(null, customSlug)) {
           onToast?.(
             `Лимит подготовки: ${preparedCount}/${maxPrepared ?? '—'}`,
           )
@@ -1080,7 +1124,7 @@ export function GrimoireDialog({
           `Лимит известных: ${learnedLeveled}/${access.budget?.leveledKnown ?? '—'}`,
         )
         return
-      } else if (prepare && prepareCapReached()) {
+      } else if (prepare && prepareCapReached(null, customSlug)) {
         onToast?.(
           `Лимит подготовки: ${preparedCount}/${maxPrepared ?? '—'}`,
         )
@@ -1690,7 +1734,7 @@ export function GrimoireDialog({
                               className="sheet-chip"
                               disabled={
                                 leveledLearnCapReached(rowSlug) ||
-                                prepareCapReached() ||
+                                prepareCapReached(null, rowSlug) ||
                                 !canWriteToBook
                               }
                               onClick={() => addSpell(entry, true, section.shelf?.slug)}
@@ -1711,11 +1755,13 @@ export function GrimoireDialog({
                           <button
                             type="button"
                             className="sheet-chip"
-                            disabled={prepareCapReached()}
+                            disabled={prepareCapReached(null, rowSlug)}
                             onClick={() => addSpell(entry, true, section.shelf?.slug)}
                             title="Добавить в сегодняшний набор (список класса уже доступен)"
                           >
-                            {prepareCapReached() ? 'Лимит подготовки' : 'Подготовить'}
+                            {prepareCapReached(null, rowSlug)
+                              ? 'Лимит подготовки'
+                              : 'Подготовить'}
                           </button>
                         )}
                       </div>

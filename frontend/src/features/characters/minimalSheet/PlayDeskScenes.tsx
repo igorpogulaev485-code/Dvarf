@@ -1411,6 +1411,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             }}
             onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
             onCastSpell={(spell) => {
+              model.setDeskCastMetamagic?.(null)
               void spellReadyToCast(spell, model.rulesEdition).then((ready) =>
                 model.setDeskCastSpell(ready),
               )

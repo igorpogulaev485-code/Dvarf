@@ -16,6 +16,7 @@ import {
   groupSpellsByLevel,
   isGrantedSpellHighlight,
   isPreparedLocked,
+  prepareCapForSpell,
   preparedLockChip,
   setSpellPrepared,
   spellSourceBadge,
@@ -38,28 +39,6 @@ type PrepareSpellsDialogProps = {
 }
 
 type Tab = 'prepared' | 'available'
-
-function prepareCapForSpell(
-  spell: SheetSpell,
-  learnBudgets: SpellLearnBudget[] | null | undefined,
-  fallbackMax: number | null,
-): { maxPrepared: number | null; scopeSlug: string | null } {
-  const slug = (spell.class_slug ?? '').trim().toLowerCase()
-  const prepareRows =
-    learnBudgets?.filter(
-      (row) => row.maxPrepared != null && (row.maxPrepared ?? 0) > 0,
-    ) ?? []
-  if (slug && prepareRows.length > 0) {
-    const row = prepareRows.find((item) => item.slug === slug)
-    if (row?.maxPrepared != null) {
-      return {
-        maxPrepared: row.maxPrepared,
-        scopeSlug: prepareRows.length > 1 ? slug : null,
-      }
-    }
-  }
-  return { maxPrepared: fallbackMax, scopeSlug: null }
-}
 
 /**
  * Wizard morning prep: pick today's set from the spellbook.

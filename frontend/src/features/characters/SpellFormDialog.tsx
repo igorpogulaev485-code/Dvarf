@@ -164,7 +164,7 @@ export function SpellFormDialog({
       ...next,
       toast: `${limits.labelRu}: ${pick.name_ru}`,
     })
-    onClose()
+    // Do not call onClose after confirm — parent clears pending; onClose toasts «не выбран».
   }
 
   const typeHint =

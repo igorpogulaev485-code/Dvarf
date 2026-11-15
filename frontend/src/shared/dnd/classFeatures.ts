@@ -1095,6 +1095,8 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   draconic_bloodline: 'draconic_bloodline',
   'драконья кровь': 'draconic_bloodline',
   'драконья родословная': 'draconic_bloodline',
+  'наследие драконьей крови': 'draconic_bloodline',
+  'наследие драконьей родословной': 'draconic_bloodline',
   wild_magic: 'wild_magic',
   'дикая магия': 'wild_magic',
   storm_sorcery: 'storm_sorcery',
@@ -1459,9 +1461,12 @@ export function unlockFeaturesForClasses(input: {
     const hasSubclass = Boolean(row.subclass_name.trim() || row.subclass_catalog_id)
     if (!hasSubclass) continue
 
+    const catalogKey = (row.subclass_catalog_id ?? '').trim()
     const activeSlug =
       input.subclassSlugByEntryId?.[row.id] ||
       resolveSubclassFeatureSlug(row.subclass_name) ||
+      (catalogKey ? resolveSubclassFeatureSlug(catalogKey) : null) ||
+      (/^[a-z][a-z0-9_]*$/i.test(catalogKey) ? catalogKey : null) ||
       null
     const transition = input.subclassTransitionByEntryId?.[row.id]
     const futureOnly =

@@ -1505,12 +1505,18 @@ export function countLearnedLeveledForSlug(
 ): number {
   const slug = classSlug.trim().toLowerCase()
   if (!slug) return 0
-  return known.filter(
-    (spell) =>
-      spell.level > 0 &&
-      canRemoveSheetSpell(spell) &&
-      (spell.class_slug ?? '').trim().toLowerCase() === slug,
-  ).length
+  return known.filter((spell) => {
+    if (spell.level <= 0 || !canRemoveSheetSpell(spell)) return false
+    const tagged = (spell.class_slug ?? '').trim().toLowerCase()
+    if (tagged) return tagged === slug
+    // Legacy wizard book rows without class_slug (MAG-01): count for wizard only.
+    if (slug === 'wizard') {
+      const acquisition = (spell.spellbook_acquisition ?? '').trim()
+      if (acquisition) return true
+      if (spell.in_spellbook === true) return true
+    }
+    return false
+  }).length
 }
 
 /** Combat list: cantrips + prepared leveled spells. */
@@ -1548,6 +1554,34 @@ export type PrepareCapScope = {
    * (multiclass morning prep / per-class budgets). Omit for a global sheet cap.
    */
   scopeSlug?: string | null
+}
+
+/** Per-class prepare cap (MAG-01): warlock known must not eat paladin prepare budget. */
+export function prepareCapForSpell(
+  spell: SheetSpell,
+  learnBudgets: Array<{
+    slug: string
+    maxPrepared: number | null
+  }> | null | undefined,
+  fallbackMax: number | null,
+): { maxPrepared: number | null; scopeSlug: string | null } {
+  const slug = (spell.class_slug ?? '').trim().toLowerCase()
+  const prepareRows =
+    learnBudgets?.filter(
+      (row) => row.maxPrepared != null && (row.maxPrepared ?? 0) > 0,
+    ) ?? []
+  if (slug && prepareRows.length > 0) {
+    const row = prepareRows.find((item) => item.slug === slug)
+    if (row?.maxPrepared != null) {
+      // Always scope when the spell is tagged — known casters (warlock) must not
+      // eat a paladin/cleric prepare budget even if they are the only prepare row.
+      return {
+        maxPrepared: row.maxPrepared,
+        scopeSlug: slug,
+      }
+    }
+  }
+  return { maxPrepared: fallbackMax, scopeSlug: null }
 }
 
 export function canPrepareSpell(

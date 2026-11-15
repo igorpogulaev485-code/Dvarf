@@ -2,6 +2,21 @@ import { resourceShownCurrent, type SheetResource } from '../../shared/dnd/rest'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
 import { isHarnessDivinePowerResourceId } from '../../shared/dnd/harnessDivinePower'
+import { isSubclassGateFeature } from '../../shared/dnd/pendingFeatureChoices'
+
+function subclassNameForGate(
+  feature: UnlockedFeature,
+  all: UnlockedFeature[],
+): string | null {
+  if (!isSubclassGateFeature(feature)) return null
+  const fromSibling = all.find(
+    (row) =>
+      row.classEntryId === feature.classEntryId &&
+      row.source === 'subclass' &&
+      Boolean(row.subclassName?.trim()),
+  )?.subclassName?.trim()
+  return fromSibling || feature.subclassName?.trim() || null
+}
 
 type PlayDeskFeaturesCompactProps = {
   features: UnlockedFeature[]
@@ -82,7 +97,10 @@ export function PlayDeskFeaturesCompact({
           </button>
         ) : null}
 
-        {topFeatures.map((feature) => (
+        {topFeatures.map((feature) => {
+          const gateSubclass = subclassNameForGate(feature, features)
+          const summary = gateSubclass || feature.summary_ru || feature.className
+          return (
           <button
             key={`${feature.classEntryId}:${feature.id}`}
             type="button"
@@ -91,7 +109,7 @@ export function PlayDeskFeaturesCompact({
               onToast?.(
                 `${feature.name_ru}${
                   feature.scaleValue ? ` · ${feature.scaleValue}` : ''
-                }${feature.summary_ru ? ` — ${feature.summary_ru}` : ''}`,
+                }${summary ? ` — ${summary}` : ''}`,
               )
             }
           >
@@ -103,10 +121,11 @@ export function PlayDeskFeaturesCompact({
             </div>
             <p>
               {feature.scaleValue ? `${feature.scaleValue} · ` : ''}
-              {feature.summary_ru || feature.className}
+              {summary}
             </p>
           </button>
-        ))}
+          )
+        })}
 
         {feats.map((feat) => (
           <button

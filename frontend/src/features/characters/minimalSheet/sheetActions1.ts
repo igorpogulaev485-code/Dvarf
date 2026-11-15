@@ -31,6 +31,7 @@ import { withSpellFocusFlags } from '../spellFocus'
 import { abilityModifier } from '../sheetTypes'
 import type { BestiaryFormPick } from '../wildShape'
 import type { Draft } from './draft'
+import { resolveClassEntryIdForSubclassCommit } from '../../createPipeline/resolveClassEntryIdForSubclass'
 
 export function installSheetActions1(model: SheetModel) {
   model.applyWildShapeResult = function applyWildShapeResult(result: WildShapeDialogResult) {
@@ -393,8 +394,19 @@ export function installSheetActions1(model: SheetModel) {
     companionBestiaryPicks?: Record<string, BestiaryFormPick | null | undefined>
   }) {
     let summary: string | null = null
+    let missingClass = false
     const changeMode = input.changeMode ?? 'initial'
     model.setDraft((prev) => {
+      const resolvedId = resolveClassEntryIdForSubclassCommit({
+        classEntryId: input.classEntryId,
+        classes: prev.classes,
+        preferredClassEntryId: prev.classes[0]?.id ?? null,
+        subclassParentCatalogId: input.selected.parent_id,
+      })
+      if (!resolvedId) {
+        missingClass = true
+        return prev
+      }
       const maxSpellLevel = highestSpellSlotLevelForClasses(
         prev.classes,
         prev.subclassGrants
@@ -406,10 +418,10 @@ export function installSheetActions1(model: SheetModel) {
           })),
       )
       const classLevel =
-        prev.classes.find((row) => row.id === input.classEntryId)?.level ?? 1
+        prev.classes.find((row) => row.id === resolvedId)?.level ?? 1
       const castingAbility =
         input.def.sheetGrants.caster?.ability ??
-        prev.subclassGrants.find((row) => row.classEntryId === input.classEntryId)
+        prev.subclassGrants.find((row) => row.classEntryId === resolvedId)
           ?.caster?.ability ??
         null
       const spellMod = castingAbility
@@ -419,7 +431,7 @@ export function installSheetActions1(model: SheetModel) {
         : abilityModifier(prev.abilities.wis ?? 10)
       const applied = applySubclassGrantToDraft({
         draft: model.subclassSliceFrom(prev),
-        classEntryId: input.classEntryId,
+        classEntryId: resolvedId,
         catalogId: input.selected.id,
         def: input.def,
         picks: input.picks,
@@ -440,7 +452,7 @@ export function installSheetActions1(model: SheetModel) {
       if (!applied) return prev
       summary = applied.summary
       const withGrant = model.mergeSubclassSlice(prev, applied.draft)
-      const row = withGrant.classes.find((item) => item.id === input.classEntryId)
+      const row = withGrant.classes.find((item) => item.id === resolvedId)
       const watermark =
         input.changedAtClassLevel ??
         row?.level ??
@@ -461,35 +473,35 @@ export function installSheetActions1(model: SheetModel) {
         ]
         nextPicks = clearFeaturePicksForFeatureIds(
           withGrant.featurePicks,
-          input.classEntryId,
+          resolvedId,
           dropIds,
         )
       } else if (changeMode === 'replace_all') {
-        nextPicks = clearFeaturePicksForClass(withGrant.featurePicks, input.classEntryId)
+        nextPicks = clearFeaturePicksForClass(withGrant.featurePicks, resolvedId)
       }
       // Battle Master: maneuvers_3 → combat_superiority (sheet archetype block / spend)
       nextPicks = bridgeOriginPicks({
         featurePicks: nextPicks,
-        classEntryId: input.classEntryId,
+        classEntryId: resolvedId,
         subclassSlug: input.def.slug,
         grantPicks: input.picks,
       })
       nextPicks = bridgeManeuversIntoFeaturePicks({
         featurePicks: nextPicks,
-        classEntryId: input.classEntryId,
+        classEntryId: resolvedId,
         maneuverIds: extractManeuverIdsFromSubclassPicks(input.picks),
         mode: 'merge_missing',
       })
       nextPicks = bridgeSwordsFightingStyle({
         featurePicks: nextPicks,
-        classEntryId: input.classEntryId,
+        classEntryId: resolvedId,
         styleId: swordsFightingStyleFromSubclassPicks(input.picks),
       })
       return {
         ...withGrant,
         featurePicks: nextPicks,
         classes: withGrant.classes.map((item) =>
-          item.id === input.classEntryId
+          item.id === resolvedId
             ? {
                 ...item,
                 subclass_name: input.selected.name_ru,
@@ -498,11 +510,15 @@ export function installSheetActions1(model: SheetModel) {
             : item,
         ),
         identity:
-          withGrant.classes[0]?.id === input.classEntryId
+          withGrant.classes[0]?.id === resolvedId
             ? { ...withGrant.identity, subclassName: input.selected.name_ru }
             : withGrant.identity,
       }
     })
+    if (missingClass) {
+      model.onToast('Архетип не записан: класс в прокачке не найден')
+      return
+    }
     if (summary) {
       model.onToast(`Архетип «${input.selected.name_ru}»: ${summary}`)
     }

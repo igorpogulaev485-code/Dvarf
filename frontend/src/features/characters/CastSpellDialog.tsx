@@ -32,8 +32,23 @@ import {
   isCounterspellOrDispel,
   wizardLeveledCastGate,
 } from '../../shared/dnd/wizardTradition'
-import { TRANSMUTED_DAMAGE_TYPES } from '../../shared/dnd/sorcererMetamagic'
-import { Button, Dialog, Stack, Text } from '../../ui'
+import {
+  TRANSMUTED_DAMAGE_TYPES,
+  metamagicById,
+  metamagicSpendCost,
+} from '../../shared/dnd/sorcererMetamagic'
+import {
+  applyMetamagicToCastParams,
+  listKnownMetamagic,
+  metamagicCostLabel,
+  metamagicDisableReason,
+  metamagicSelectionCost,
+  metamagicShortLabel,
+  metamagicStackOk,
+  STACKABLE_METAMAGIC_IDS,
+  type MetamagicCastFlags,
+} from '../../shared/dnd/metamagicCast'
+import { Button, Dialog, Stack, Text, ToggleChip } from '../../ui'
 import { AllyTargetFields } from '../lobby/AllyTargetFields'
 import { useLobbyParty, type AllyPickDemo } from '../lobby/useLobbyParty'
 import { useTurnEconomy } from './TurnEconomyContext'
@@ -176,6 +191,8 @@ export type CastChoice = {
   seeking?: boolean
   /** O-01: TCE «Преобразованное заклинание» — новый тип урона из списка. */
   transmutedType?: string | null
+  /** MAG-01: full metamagic flags applied to this cast. */
+  metamagic?: MetamagicCastFlags
   /** O-02: Магическое вдохновение — добавить кость BI к урону/лечению одной цели. */
   magicalInspiration?: boolean
 }
@@ -237,6 +254,8 @@ type CastSpellDialogProps = {
   resources?: SheetResource[]
   /** T-02: выбранные варианты метамагии чародея (id из sorcererMetamagic). */
   metamagicIds?: string[]
+  /** MAG-01: metamagic pre-selected on the combat row. */
+  initialMetamagicId?: string | null
   /** O-02: у кастера есть «Магическое вдохновение» и книга Таши вкл. */
   magicalInspirationAvailable?: boolean
   /**
@@ -278,6 +297,7 @@ export function CastSpellDialog({
   knownInvocationIds = [],
   resources,
   metamagicIds = [],
+  initialMetamagicId = null,
   magicalInspirationAvailable = false,
   statLock = null,
   scrollItemId = null,
@@ -376,7 +396,15 @@ export function CastSpellDialog({
   const [useQuickened, setUseQuickened] = useState(false)
   const [useSeeking, setUseSeeking] = useState(false)
   const [useTransmuted, setUseTransmuted] = useState(false)
+  const [useCareful, setUseCareful] = useState(false)
+  const [useDistant, setUseDistant] = useState(false)
+  const [useEmpowered, setUseEmpowered] = useState(false)
+  const [useExtended, setUseExtended] = useState(false)
+  const [useHeightened, setUseHeightened] = useState(false)
+  const [useSubtle, setUseSubtle] = useState(false)
+  const [useTwinned, setUseTwinned] = useState(false)
   const [useMagicalInspiration, setUseMagicalInspiration] = useState(false)
+  const [metamagicOpen, setMetamagicOpen] = useState(false)
   const [transmutedType, setTransmutedType] = useState<string>('cold')
   const [buffOption, setBuffOption] = useState<string>('str')
   const isTransformSelf = spell != null && isSpellSelfFormCast(spell)
@@ -481,9 +509,27 @@ export function CastSpellDialog({
     setUseQuickened(false)
     setUseSeeking(false)
     setUseTransmuted(false)
+    setUseCareful(false)
+    setUseDistant(false)
+    setUseEmpowered(false)
+    setUseExtended(false)
+    setUseHeightened(false)
+    setUseSubtle(false)
+    setUseTwinned(false)
     setTransmutedType('cold')
+    const seed = (initialMetamagicId ?? '').trim()
+    if (seed === 'quickened') setUseQuickened(true)
+    else if (seed === 'seeking') setUseSeeking(true)
+    else if (seed === 'transmuted') setUseTransmuted(true)
+    else if (seed === 'careful') setUseCareful(true)
+    else if (seed === 'distant') setUseDistant(true)
+    else if (seed === 'empowered') setUseEmpowered(true)
+    else if (seed === 'extended') setUseExtended(true)
+    else if (seed === 'heightened') setUseHeightened(true)
+    else if (seed === 'subtle') setUseSubtle(true)
+    else if (seed === 'twinned') setUseTwinned(true)
     setTargetSlots(Array.from({ length: targetCount }, () => ''))
-  }, [open, spell?.id, targetCount])
+  }, [open, spell?.id, targetCount, initialMetamagicId])
 
   useEffect(() => {
     if (!spell || isCantrip) {
@@ -797,7 +843,7 @@ export function CastSpellDialog({
     ? Math.max(0, spells.pact_slots.max - spells.pact_slots.used)
     : 0
 
-  const metaParts = [
+  const metaPartsBase = [
     spell.casting_time,
     spell.range,
     spell.duration ? `длится ${spell.duration}` : '',
@@ -827,15 +873,69 @@ export function CastSpellDialog({
   const offerEmbodiment = Boolean(
     embodimentRemaining > 0 && enchantment && !isCantrip && !notOneAction,
   )
-  const knowsQuickened = metamagicIds.includes('quickened')
-  const knowsSeeking = metamagicIds.includes('seeking')
-  const knowsTransmuted = metamagicIds.includes('transmuted')
+  const knownMetamagic =
+    spell && !useRitual ? listKnownMetamagic(metamagicIds) : []
   const castingIsAction = !/бонус|реакц|мин|час|bonus|reaction|minute|hour/i.test(
     spell.casting_time ?? '',
   )
-  const quickenedCost = 2
-  const seekingCost = 2
-  const transmutedCost = 1
+  const metaFlags: MetamagicCastFlags = {
+    careful: useCareful,
+    distant: useDistant,
+    empowered: useEmpowered,
+    extended: useExtended,
+    heightened: useHeightened,
+    quickened: useQuickened && castingIsAction && !useEmbodiment,
+    subtle: useSubtle,
+    twinned: useTwinned,
+    seeking: useSeeking,
+    transmutedType: useTransmuted ? transmutedType : null,
+  }
+  const metaSlotLevel = usePact
+    ? (spells.pact_slots?.level ?? spell.level)
+    : Math.max(spell.level, slotLevel)
+  const metaCost = metamagicSelectionCost(metaFlags, metaSlotLevel)
+  const metaAffordable = metaCost <= sorceryLeft && metamagicStackOk(metaFlags)
+  const metaPreview = applyMetamagicToCastParams(spell, metaFlags)
+  const metaActive = metaCost > 0 || Boolean(metaFlags.transmutedType)
+  const metaSelectedLabels = knownMetamagic
+    .filter((def) => {
+      if (def.id === 'careful') return useCareful
+      if (def.id === 'distant') return useDistant
+      if (def.id === 'empowered') return useEmpowered
+      if (def.id === 'extended') return useExtended
+      if (def.id === 'heightened') return useHeightened
+      if (def.id === 'quickened') return useQuickened
+      if (def.id === 'subtle') return useSubtle
+      if (def.id === 'twinned') return useTwinned
+      if (def.id === 'seeking') return useSeeking
+      if (def.id === 'transmuted') return useTransmuted
+      return false
+    })
+    .map((def) => metamagicShortLabel(def))
+  const metaParts = metaActive
+    ? [
+        metaPreview.casting_time,
+        metaPreview.range,
+        metaPreview.duration !== '—' ? `длится ${metaPreview.duration}` : '',
+        metaPreview.componentsLabel !== '—'
+          ? metaPreview.componentsLabel
+          : rulesSpell?.components
+            ? formatSpellComponents(rulesSpell.components)
+            : '',
+        spell.school ? spellSchoolLabelRu(spell.school) : '',
+        rulesSpell?.attack_or_save || spell.attack_or_save,
+        castEffect.effect || rulesSpell?.damage || spell.damage,
+      ].filter(Boolean)
+    : metaPartsBase
+  const knowsQuickened = knownMetamagic.some((row) => row.id === 'quickened')
+  const knowsSeeking = knownMetamagic.some((row) => row.id === 'seeking')
+  const knowsTransmuted = knownMetamagic.some((row) => row.id === 'transmuted')
+  const quickenedDef = metamagicById('quickened')
+  const seekingDef = metamagicById('seeking')
+  const transmutedDef = metamagicById('transmuted')
+  const quickenedCost = quickenedDef ? metamagicSpendCost(quickenedDef, 1) : 2
+  const seekingCost = seekingDef ? metamagicSpendCost(seekingDef, 1) : 2
+  const transmutedCost = transmutedDef ? metamagicSpendCost(transmutedDef, 1) : 1
   const offerQuickened = Boolean(
     knowsQuickened &&
       castingIsAction &&
@@ -843,7 +943,6 @@ export function CastSpellDialog({
       !useEmbodiment &&
       sorceryLeft >= quickenedCost,
   )
-  /** Seeking can stack with another metamagic on the same cast. */
   const spAfterQuickened =
     offerQuickened && useQuickened ? sorceryLeft - quickenedCost : sorceryLeft
   const offerSeeking = Boolean(
@@ -860,6 +959,29 @@ export function CastSpellDialog({
   const offerTransmuted = Boolean(
     knowsTransmuted && !useRitual && transmutable && spAfterSeeking >= transmutedCost,
   )
+
+  function togglePrimaryMeta(id: string, next: boolean) {
+    if (!next) {
+      if (id === 'careful') setUseCareful(false)
+      if (id === 'distant') setUseDistant(false)
+      if (id === 'extended') setUseExtended(false)
+      if (id === 'heightened') setUseHeightened(false)
+      if (id === 'quickened') setUseQuickened(false)
+      if (id === 'subtle') setUseSubtle(false)
+      if (id === 'twinned') setUseTwinned(false)
+      if (id === 'transmuted') setUseTransmuted(false)
+      return
+    }
+    setUseCareful(id === 'careful')
+    setUseDistant(id === 'distant')
+    setUseExtended(id === 'extended')
+    setUseHeightened(id === 'heightened')
+    setUseQuickened(id === 'quickened')
+    setUseSubtle(id === 'subtle')
+    setUseTwinned(id === 'twinned')
+    setUseTransmuted(id === 'transmuted')
+    if (id === 'quickened') setUseEmbodiment(false)
+  }
 
   const grantLabel = selectedGrant?.label ?? 'Грант'
   const activeRestLabel = isCantrip
@@ -928,12 +1050,28 @@ export function CastSpellDialog({
           useMastery: !isCantrip && useMastery && masteryAvailable,
           powerSurge: powerSurgeOffer && powerSurge,
           embodimentOfLaw: offerEmbodiment && useEmbodiment && !useRitual && !useGrant,
-          quickened: offerQuickened && useQuickened && !useRitual && !useGrant,
-          seeking: offerSeeking && useSeeking && !useRitual && !useGrant,
+          quickened: offerQuickened && useQuickened && !useRitual && !useGrant && metaAffordable,
+          seeking: offerSeeking && useSeeking && !useRitual && !useGrant && metaAffordable,
           transmutedType:
-            offerTransmuted && useTransmuted && !useRitual && !useGrant
+            offerTransmuted && useTransmuted && !useRitual && !useGrant && metaAffordable
               ? transmutedType
               : null,
+          metamagic:
+            !useRitual && !useGrant && metaAffordable
+              ? {
+                  careful: useCareful,
+                  distant: useDistant,
+                  empowered: useEmpowered,
+                  extended: useExtended,
+                  heightened: useHeightened,
+                  quickened: offerQuickened && useQuickened,
+                  subtle: useSubtle,
+                  twinned: useTwinned,
+                  seeking: offerSeeking && useSeeking,
+                  transmutedType:
+                    offerTransmuted && useTransmuted ? transmutedType : null,
+                }
+              : undefined,
           magicalInspiration:
             magicalInspirationAvailable &&
             useMagicalInspiration &&
@@ -1271,6 +1409,117 @@ export function CastSpellDialog({
           </div>
         ) : null}
 
+        {knownMetamagic.length > 0 && !useRitual ? (
+          <div className="cast-metamagic-block" data-testid="cast-metamagic-block">
+            <button
+              type="button"
+              className={`cast-metamagic-block__toggle${metamagicOpen ? ' is-open' : ''}${
+                metaActive ? ' has-active' : ''
+              }`}
+              aria-expanded={metamagicOpen}
+              onClick={() => setMetamagicOpen((open) => !open)}
+            >
+              <span className="cast-metamagic-block__chevron" aria-hidden>
+                {metamagicOpen ? '▾' : '▸'}
+              </span>
+              <span>
+                Метамагия · очки {sorceryLeft}
+                {metaCost > 0 ? ` · к трате ${metaCost}` : ''}
+                {!metaAffordable && metaCost > 0 ? ' · не хватает / нельзя совместить' : ''}
+                {metaSelectedLabels.length > 0
+                  ? ` · ${metaSelectedLabels.join(', ')}`
+                  : ''}
+              </span>
+            </button>
+            {metaActive ? (
+              <p className="cast-metamagic-block__params" data-testid="cast-metamagic-params">
+                <strong>С метамагией:</strong> {metaPreview.casting_time}
+                {' · '}
+                {metaPreview.range}
+                {metaPreview.duration !== '—' ? ` · ${metaPreview.duration}` : ''}
+                {' · '}
+                {metaPreview.componentsLabel}
+                {metaPreview.notes.length > 0 ? ` · ${metaPreview.notes.join(' · ')}` : ''}
+              </p>
+            ) : null}
+            {metamagicOpen ? (
+              <div className="chip-row cast-source-row cast-metamagic-block__body">
+                {knownMetamagic.map((def) => {
+                  const cost = metamagicSpendCost(def, metaSlotLevel)
+                  const stackable = STACKABLE_METAMAGIC_IDS.has(def.id)
+                  const checked =
+                    def.id === 'careful'
+                      ? useCareful
+                      : def.id === 'distant'
+                        ? useDistant
+                        : def.id === 'empowered'
+                          ? useEmpowered
+                          : def.id === 'extended'
+                            ? useExtended
+                            : def.id === 'heightened'
+                              ? useHeightened
+                              : def.id === 'quickened'
+                                ? useQuickened
+                                : def.id === 'subtle'
+                                  ? useSubtle
+                                  : def.id === 'twinned'
+                                    ? useTwinned
+                                    : def.id === 'seeking'
+                                      ? useSeeking
+                                      : def.id === 'transmuted'
+                                        ? useTransmuted
+                                        : false
+                  const reason = metamagicDisableReason(def, spell, {
+                    sorceryLeft,
+                    cost,
+                    checked,
+                    castingIsAction,
+                    useEmbodiment,
+                  })
+                  const disabled = useRitual || Boolean(reason)
+                  const rest = reason
+                    ? reason
+                    : `${metamagicCostLabel(cost)}${
+                        stackable ? ' · можно с другой' : ''
+                      }`
+                  return (
+                    <span key={def.id} className="cast-metamagic-block__chip-wrap">
+                      <ToggleChip
+                        main={metamagicShortLabel(def)}
+                        rest={rest}
+                        checked={checked}
+                        disabled={disabled}
+                        title={def.summaryRu}
+                        onChange={(next) => {
+                          if (stackable) {
+                            if (def.id === 'empowered') setUseEmpowered(next)
+                            if (def.id === 'seeking') setUseSeeking(next)
+                            return
+                          }
+                          togglePrimaryMeta(def.id, next)
+                        }}
+                      />
+                      {def.id === 'transmuted' && checked ? (
+                        <select
+                          value={transmutedType}
+                          onChange={(ev) => setTransmutedType(ev.target.value)}
+                          aria-label="Тип урона преобразованного"
+                        >
+                          {TRANSMUTED_DAMAGE_TYPES.map((row) => (
+                            <option key={row.id} value={row.id}>
+                              {row.nameRu}
+                            </option>
+                          ))}
+                        </select>
+                      ) : null}
+                    </span>
+                  )
+                })}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
         {isCantrip ? (
           <Text tone="muted">Заговоры не тратят ячейки.</Text>
         ) : (
@@ -1459,62 +1708,6 @@ export function CastSpellDialog({
                     }}
                   />{' '}
                   Воплощение закона: бонусное действие (−1 заряд, осталось {embodimentRemaining})
-                </label>
-              ) : null}
-              {knowsQuickened && castingIsAction && !useRitual ? (
-                <label className="field">
-                  <input
-                    type="checkbox"
-                    checked={useQuickened && offerQuickened}
-                    disabled={!offerQuickened && !useQuickened}
-                    onChange={(event) => {
-                      setUseQuickened(event.target.checked)
-                      if (event.target.checked) setUseEmbodiment(false)
-                    }}
-                  />{' '}
-                  Ускоренное заклинание: бонусное действие (−{quickenedCost} очк.
-                  чародейства
-                  {sorceryLeft < quickenedCost
-                    ? `, не хватает: ${sorceryLeft}`
-                    : `, осталось ${sorceryLeft}`}
-                  )
-                </label>
-              ) : null}
-              {knowsSeeking && !useRitual ? (
-                <label className="field">
-                  <input
-                    type="checkbox"
-                    checked={useSeeking && offerSeeking}
-                    disabled={!offerSeeking && !useSeeking}
-                    onChange={(event) => setUseSeeking(event.target.checked)}
-                  />{' '}
-                  Ищущее заклинание: при промахе атакой — переброс к20 (−{seekingCost} очк.
-                  {spAfterQuickened < seekingCost
-                    ? `, не хватает: ${spAfterQuickened}`
-                    : `, осталось ${spAfterQuickened}`}
-                  ). Можно вместе с другой метамагией.
-                </label>
-              ) : null}
-              {knowsTransmuted && !useRitual && transmutable ? (
-                <label className="field">
-                  <input
-                    type="checkbox"
-                    checked={useTransmuted && offerTransmuted}
-                    disabled={!offerTransmuted && !useTransmuted}
-                    onChange={(event) => setUseTransmuted(event.target.checked)}
-                  />{' '}
-                  Преобразованное заклинание (−{transmutedCost} очк.): сменить тип урона на{' '}
-                  <select
-                    value={transmutedType}
-                    disabled={!useTransmuted}
-                    onChange={(event) => setTransmutedType(event.target.value)}
-                  >
-                    {TRANSMUTED_DAMAGE_TYPES.map((row) => (
-                      <option key={row.id} value={row.id}>
-                        {row.nameRu}
-                      </option>
-                    ))}
-                  </select>
                 </label>
               ) : null}
               {magicalInspirationAvailable && !useRitual ? (

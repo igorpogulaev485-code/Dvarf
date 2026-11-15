@@ -969,3 +969,92 @@ button.spells-settings__derived-stat--btn:hover {
   color: var(--desk-muted, var(--muted));
 }
 
+
+/* MAG-01: multiclass profiles in Магия settings — ability rail A tokens only */
+.spells-settings__ability-row {
+  margin-top: 6px;
+}
+
+.spells-settings__profiles {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.spells-settings__profile-line {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--accent-soft) 45%, var(--panel, white));
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.spells-settings__profile-line.is-int {
+  border-color: color-mix(in srgb, var(--abil-int) 45%, var(--line));
+  background: color-mix(in srgb, var(--abil-int-soft) 75%, var(--panel, white));
+}
+
+.spells-settings__profile-line.is-cha {
+  border-color: color-mix(in srgb, var(--abil-cha) 45%, var(--line));
+  background: color-mix(in srgb, var(--abil-cha-soft) 75%, var(--panel, white));
+}
+
+.spells-settings__profile-line.is-wis {
+  border-color: color-mix(in srgb, var(--abil-wis) 45%, var(--line));
+  background: color-mix(in srgb, var(--abil-wis-soft) 75%, var(--panel, white));
+}
+
+.cast-metamagic-block {
+  display: grid;
+  gap: 6px;
+}
+
+/* Kit collapsible (как круги / target-modifiers) — summary + body */
+.cast-metamagic-block__toggle {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+  cursor: pointer;
+  text-align: left;
+}
+
+.cast-metamagic-block__toggle.is-open,
+.cast-metamagic-block__toggle.has-active {
+  color: var(--desk-ink, var(--ink));
+}
+
+.cast-metamagic-block__chevron {
+  font-size: 0.75rem;
+  color: var(--desk-muted, var(--muted));
+}
+
+.cast-metamagic-block__body {
+  margin-bottom: 0;
+  padding: 2px 0 0;
+}
+
+.cast-metamagic-block__chip-wrap {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.cast-metamagic-block__params {
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 40%, var(--panel, white));
+  font-size: 0.8rem;
+  line-height: 1.35;
+}

@@ -10,7 +10,11 @@ import {
   type SpellcastingSuggestion,
   type SubclassCasterOverlay,
 } from '../../shared/dnd/casterProgression'
-import { resolveSpellLearnBudgets } from '../../shared/dnd/castProfiles'
+import {
+  buildCastProfiles,
+  mergeCastProfilesForDisplay,
+  resolveSpellLearnBudgets,
+} from '../../shared/dnd/castProfiles'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
   SPELLCASTING_ABILITIES,
@@ -24,7 +28,6 @@ import {
   formatSpellComponents,
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
-import { buildCastProfiles } from '../../shared/dnd/castProfiles'
 import type { FormulaVars } from '../../shared/dnd/formulas'
 import type { CoinPurse } from '../../shared/dnd/weight'
 import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
@@ -175,16 +178,36 @@ export function SpellsSettingsDialog({
   const baseAttackBonus = abilityKey
     ? spellAttackBonus(abilityMod, proficiencyBonus)
     : null
-  const headerClass = useMemo(() => {
-    if (classRows.length === 0) return null
-    const profiles = buildCastProfiles({
+  const castProfiles = useMemo(() => {
+    if (classRows.length === 0) return []
+    return buildCastProfiles({
       classes: classRows,
       subclassCasters,
       proficiencyBonus,
       abilityModFor: (ability) => abilityModifier(abilities[ability]),
     })
-    return profiles.length === 1 ? profiles[0]?.slug ?? null : null
   }, [classRows, subclassCasters, proficiencyBonus, abilities])
+  const displayProfiles = useMemo(
+    () =>
+      mergeCastProfilesForDisplay(
+        castProfiles.map((row) => {
+          const boosted = withSpellCastBonuses({
+            baseDc: row.saveDc,
+            baseAttack: row.attackBonus,
+            modifiers,
+            vars: formulaVars,
+            classSlug: row.slug,
+          })
+          return {
+            ...row,
+            saveDc: boosted.dc ?? row.saveDc,
+            attackBonus: boosted.attack ?? row.attackBonus,
+          }
+        }),
+      ),
+    [castProfiles, modifiers, formulaVars],
+  )
+  const headerClass = castProfiles.length === 1 ? castProfiles[0]?.slug ?? null : null
   const castStats = withSpellCastBonuses({
     baseDc: baseSaveDc,
     baseAttack: baseAttackBonus,
@@ -195,6 +218,9 @@ export function SpellsSettingsDialog({
   const saveDc = castStats.dc
   const attackBonus = castStats.attack
   const canEditCastBuffs = Boolean(onModifiersChange && abilityKey)
+  // Multiclass (incl. same-ability merge like paladin+warlock CHA) — show profile
+  // lines, not the single editable casting_ability chips.
+  const showMultiProfiles = classRows.length > 1 && displayProfiles.length > 0
 
   function patch(next: Partial<SpellsState>) {
     onChange({ ...spells, ...next })
@@ -396,66 +422,90 @@ export function SpellsSettingsDialog({
               <div className="spells-settings__top">
                 <div>
                   <Text>Характеристика заклинаний</Text>
-                  <div className="chip-row" style={{ marginTop: 6 }}>
-                    {SPELLCASTING_ABILITIES.map((key) => (
-                      <button
-                        key={key}
-                        type="button"
-                        className={`sheet-chip${
-                          spells.casting_ability === key ? ' is-on' : ''
-                        }`}
-                        onClick={() => setCastingAbility(key)}
-                      >
-                        {SPELLCASTING_ABILITY_LABELS[key]}
-                      </button>
-                    ))}
-                  </div>
-                  <div
-                    className="spells-settings__derived"
-                    aria-label="Сл. спас. и атака заклинаний"
-                  >
-                    {canEditCastBuffs ? (
-                      <button
-                        type="button"
-                        className="spells-settings__derived-stat spells-settings__derived-stat--btn"
-                        title="Разборка сл. спас. — бонусы и формулы"
-                        onClick={() => setCastBuffFocus('spell_dc')}
-                      >
-                        <span>Сл. спас.</span>
-                        <strong>{saveDc == null ? '—' : saveDc}</strong>
-                      </button>
-                    ) : (
-                      <div className="spells-settings__derived-stat">
-                        <span>Сл. спас.</span>
-                        <strong>{saveDc == null ? '—' : saveDc}</strong>
+                  {showMultiProfiles ? (
+                    <div
+                      className="spells-settings__profiles"
+                      aria-label="Сл. спас. и атака по классам"
+                    >
+                      {displayProfiles.map((row) => (
+                        <div
+                          key={row.id}
+                          className={`spells-settings__profile-line is-${row.ability}`}
+                        >
+                          <span>
+                            {row.labelRu} · {SPELLCASTING_ABILITY_LABELS[row.ability]} · Сл{' '}
+                            {row.saveDc} · {formatModifier(row.attackBonus)}
+                          </span>
+                        </div>
+                      ))}
+                      <Text tone="muted" className="spells-settings__derived-hint">
+                        Мультикласс: Сл и атака считаются по классу заклинания на листе
+                      </Text>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="chip-row spells-settings__ability-row">
+                        {SPELLCASTING_ABILITIES.map((key) => (
+                          <button
+                            key={key}
+                            type="button"
+                            className={`sheet-chip${
+                              spells.casting_ability === key ? ' is-on' : ''
+                            }`}
+                            onClick={() => setCastingAbility(key)}
+                          >
+                            {SPELLCASTING_ABILITY_LABELS[key]}
+                          </button>
+                        ))}
                       </div>
-                    )}
-                    {canEditCastBuffs ? (
-                      <button
-                        type="button"
-                        className="spells-settings__derived-stat spells-settings__derived-stat--btn"
-                        title="Разборка атаки заклинанием — бонусы и формулы"
-                        onClick={() => setCastBuffFocus('spell_attack')}
+                      <div
+                        className="spells-settings__derived"
+                        aria-label="Сл. спас. и атака заклинаний"
                       >
-                        <span>Атака</span>
-                        <strong>
-                          {attackBonus == null ? '—' : formatModifier(attackBonus)}
-                        </strong>
-                      </button>
-                    ) : (
-                      <div className="spells-settings__derived-stat">
-                        <span>Атака</span>
-                        <strong>
-                          {attackBonus == null ? '—' : formatModifier(attackBonus)}
-                        </strong>
+                        {canEditCastBuffs ? (
+                          <button
+                            type="button"
+                            className="spells-settings__derived-stat spells-settings__derived-stat--btn"
+                            title="Разборка сл. спас. — бонусы и формулы"
+                            onClick={() => setCastBuffFocus('spell_dc')}
+                          >
+                            <span>Сл. спас.</span>
+                            <strong>{saveDc == null ? '—' : saveDc}</strong>
+                          </button>
+                        ) : (
+                          <div className="spells-settings__derived-stat">
+                            <span>Сл. спас.</span>
+                            <strong>{saveDc == null ? '—' : saveDc}</strong>
+                          </div>
+                        )}
+                        {canEditCastBuffs ? (
+                          <button
+                            type="button"
+                            className="spells-settings__derived-stat spells-settings__derived-stat--btn"
+                            title="Разборка атаки заклинанием — бонусы и формулы"
+                            onClick={() => setCastBuffFocus('spell_attack')}
+                          >
+                            <span>Атака</span>
+                            <strong>
+                              {attackBonus == null ? '—' : formatModifier(attackBonus)}
+                            </strong>
+                          </button>
+                        ) : (
+                          <div className="spells-settings__derived-stat">
+                            <span>Атака</span>
+                            <strong>
+                              {attackBonus == null ? '—' : formatModifier(attackBonus)}
+                            </strong>
+                          </div>
+                        )}
+                        <Text tone="muted" className="spells-settings__derived-hint">
+                          {canEditCastBuffs
+                            ? '8+БМ+мод / БМ+мод · клик — бонусы'
+                            : '8+БМ+мод / БМ+мод — считаются сами'}
+                        </Text>
                       </div>
-                    )}
-                    <Text tone="muted" className="spells-settings__derived-hint">
-                      {canEditCastBuffs
-                        ? '8+БМ+мод / БМ+мод · клик — бонусы'
-                        : '8+БМ+мод / БМ+мод — считаются сами'}
-                    </Text>
-                  </div>
+                    </>
+                  )}
                 </div>
                 <div className="spells-settings__prep">
                   <Field

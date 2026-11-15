@@ -444,6 +444,7 @@ LOCK-доски §2b–2l не переписываем; меняется пор
 | `Select` | native `<select class="ui-input ui-select ui-input--sm\|md\|lg">` | те же высоты, что Input |
 | `ScrollRow` | `.ui-scroll-row` · `__edge` · `__chevron` | одна строка; стрелки только на scrollable стороне; fade без hit-area (клик — только ‹/›); у hot `padding-inline: 6px` + `scroll-padding` = ширина fade (snap) |
 | `Chip` | `.ui-chip` · `__label` · `__dismiss` · `__tip` | gap label↔× в ките; tip hover / tap |
+| `ToggleChip` | `.ui-toggle-chip` · `__main` · `__rest`; `role=checkbox` | двухстрочный выбираемый чип (имя / цена\|причина); on = solid accent |
 | `ResourcePips` | `.ui-resource-pips` / `.play-desk__pips` | квадрат 18px, gap 4px |
 
 **HOT-01 (хот-панель листа):** карточки ресурсов — однострочное имя (ellipsis + `title`), одна высота; «Состояния»/`hot-label` = `0.78rem` как имена ресурсов; «Состояния» — фикс. ширина/высота + чипы/`+N` (пусто → приглушённое «нет»), клик → `HotConditionsDialog`; один пул класса = одна карточка (`syncFeatureResources` + `collapseSameClassPools`). Ресурсы: max ≤ 5 — квадратики; max > 5 — `текущее/макс` с −/+ (`RESOURCE_PIP_INLINE_MAX = 5`).

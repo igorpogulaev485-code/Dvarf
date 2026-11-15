@@ -333,6 +333,10 @@ export function useSheetEditorPart4(model: SheetModel) {
   const [deskCastSpell, setDeskCastSpell] = useState<SheetSpell | null>(null)
   model.deskCastSpell = deskCastSpell
   model.setDeskCastSpell = setDeskCastSpell
+  /** MAG-01: metamagic pre-picked on the combat spell row. */
+  const [deskCastMetamagic, setDeskCastMetamagic] = useState<string | null>(null)
+  model.deskCastMetamagic = deskCastMetamagic
+  model.setDeskCastMetamagic = setDeskCastMetamagic
   const [pendingSpellSelfForm, setPendingSpellSelfForm] = useState<{
     spell: SheetSpell
     slug: SpellSelfFormSlug
