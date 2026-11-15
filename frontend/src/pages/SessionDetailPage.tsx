@@ -1648,6 +1648,59 @@ export function SessionDetailPage() {
                         )
                         return (
                           <>
+                            <div className="session-toolbar-group" aria-label="Награды">
+                              <span className="session-toolbar-group__caption">Награды</span>
+                              <ToolbarMoreItem
+                                label="Награды"
+                                disabled={busy || noParty}
+                                why={noParty ? 'Нужна партия за столом' : undefined}
+                                onClick={() => {
+                                  setRewardsFocus(inCombat ? 'combat' : 'manual')
+                                  setRewardsOpen(true)
+                                }}
+                              />
+                              <ToolbarMoreItem
+                                label="Опыт"
+                                className="session-toolbar-desktop-only"
+                                disabled={busy || noParty}
+                                why={noParty ? 'Нужна партия за столом' : undefined}
+                                onClick={() => {
+                                  setRewardsFocus('manual')
+                                  setRewardsOpen(true)
+                                }}
+                              />
+                              <ToolbarMoreItem
+                                label="Опыт"
+                                className="session-toolbar-mobile-only"
+                                disabled={busy || noParty}
+                                why={noParty ? 'Нужна партия за столом' : undefined}
+                                onClick={() => setSimpleXpOpen(true)}
+                              />
+                              <ToolbarMoreItem
+                                label="Добыча"
+                                disabled={busy || noParty}
+                                why={noParty ? 'Нужна партия за столом' : undefined}
+                                onClick={() => {
+                                  setRewardsFocus('loot')
+                                  setRewardsOpen(true)
+                                }}
+                              />
+                              <ToolbarMoreItem
+                                label="Выдать"
+                                disabled={busy || noParty || !(session.can_award || canRun)}
+                                why={
+                                  noParty
+                                    ? 'Нужна партия за столом'
+                                    : !(session.can_award || canRun)
+                                      ? 'Нет права выдавать со стола'
+                                      : undefined
+                                }
+                                onClick={() => {
+                                  setGrantSeatId(null)
+                                  setGrantOpen(true)
+                                }}
+                              />
+                            </div>
                             <div className="session-toolbar-group" aria-label="Бой">
                               <span className="session-toolbar-group__caption">Бой</span>
                               <ToolbarMoreItem
@@ -1699,59 +1752,6 @@ export function SessionDetailPage() {
                                     setToast(result.summary)
                                     await reloadEvents()
                                   })
-                                }}
-                              />
-                            </div>
-                            <div className="session-toolbar-group" aria-label="Награды">
-                              <span className="session-toolbar-group__caption">Награды</span>
-                              <ToolbarMoreItem
-                                label="Награды"
-                                disabled={busy || noParty}
-                                why={noParty ? 'Нужна партия за столом' : undefined}
-                                onClick={() => {
-                                  setRewardsFocus(inCombat ? 'combat' : 'manual')
-                                  setRewardsOpen(true)
-                                }}
-                              />
-                              <ToolbarMoreItem
-                                label="Опыт"
-                                className="session-toolbar-desktop-only"
-                                disabled={busy || noParty}
-                                why={noParty ? 'Нужна партия за столом' : undefined}
-                                onClick={() => {
-                                  setRewardsFocus('manual')
-                                  setRewardsOpen(true)
-                                }}
-                              />
-                              <ToolbarMoreItem
-                                label="Опыт"
-                                className="session-toolbar-mobile-only"
-                                disabled={busy || noParty}
-                                why={noParty ? 'Нужна партия за столом' : undefined}
-                                onClick={() => setSimpleXpOpen(true)}
-                              />
-                              <ToolbarMoreItem
-                                label="Добыча"
-                                disabled={busy || noParty}
-                                why={noParty ? 'Нужна партия за столом' : undefined}
-                                onClick={() => {
-                                  setRewardsFocus('loot')
-                                  setRewardsOpen(true)
-                                }}
-                              />
-                              <ToolbarMoreItem
-                                label="Выдать"
-                                disabled={busy || noParty || !(session.can_award || canRun)}
-                                why={
-                                  noParty
-                                    ? 'Нужна партия за столом'
-                                    : !(session.can_award || canRun)
-                                      ? 'Нет права выдавать со стола'
-                                      : undefined
-                                }
-                                onClick={() => {
-                                  setGrantSeatId(null)
-                                  setGrantOpen(true)
                                 }}
                               />
                             </div>

@@ -54,7 +54,7 @@ export function packMemberRosterLine(
   if (canExact && !numbersHidden) {
     return {
       ...base,
-      status: `HP ${member.hp_current}/${member.hp_max}`,
+      status: `Хиты ${member.hp_current}/${member.hp_max}`,
       showsExactHp: true,
     }
   }
@@ -73,7 +73,7 @@ export function packMemberRosterLine(
   if (hp === 'active' && !numbersHidden) {
     return {
       ...base,
-      status: `HP ${member.hp_current}/${member.hp_max}`,
+      status: `Хиты ${member.hp_current}/${member.hp_max}`,
       showsExactHp: true,
     }
   }

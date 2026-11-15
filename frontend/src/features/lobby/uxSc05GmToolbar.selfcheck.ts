@@ -38,7 +38,7 @@ assert.match(primaryBlock, /variant="primary"[\s\S]*?>\s*Бой\s*</)
 assert.match(primaryBlock, /Следующий ход/)
 assert.doesNotMatch(primaryBlock, /\+ Враги/)
 
-// Ещё — группы Бой / Награды / Сюжет, список пунктов
+// Ещё — группы Награды / Бой / Сюжет (награды выше, чтобы «Добыча» не уезжала на 390)
 const moreStart = page.indexOf('data-sc05-more')
 assert.ok(moreStart >= 0)
 const moreBlock = page.slice(moreStart, moreStart + 9000)
@@ -50,6 +50,9 @@ assert.match(moreBlock, /label="Награды"/)
 assert.match(moreBlock, /label="Опыт"/)
 assert.match(moreBlock, /label="Добыча"/)
 assert.match(moreBlock, /label="Выдать"/)
+const nagrIdx = moreBlock.indexOf('aria-label="Награды"')
+const boyIdx = moreBlock.indexOf('aria-label="Бой"')
+assert.ok(nagrIdx >= 0 && boyIdx > nagrIdx, 'Награды выше Боя в «Ещё»')
 assert.doesNotMatch(moreBlock, /Генератор и вики удобнее с компьютера/)
 assert.match(moreBlock, /session-toolbar-more__item-why|why=\{/)
 

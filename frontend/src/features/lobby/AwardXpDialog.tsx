@@ -88,7 +88,7 @@ export function AwardXpDialog({
   return (
     <Dialog
       open={open}
-      title="Опыт (XP)"
+      title="Опыт"
       primaryLabel={mode === 'combat' ? 'Раздать за бой' : 'Выдать'}
       secondaryLabel="Отмена"
       busy={busy}
@@ -137,10 +137,10 @@ export function AwardXpDialog({
         {mode === 'combat' ? (
           <Stack gap={8}>
             <Text tone="muted">
-              XP по CR поверженных (ещё не раздавали). Делится поровну между отмеченными.
+              Опыт по ПО поверженных (ещё не раздавали). Делится поровну между отмеченными.
             </Text>
             {defeatRows.length === 0 ? (
-              <Text tone="muted">Нет неучтённых поверженных с XP — или выдай вручную.</Text>
+              <Text tone="muted">Нет неучтённых поверженных с опытом — или выдай вручную.</Text>
             ) : (
               <ul className="session-xp-defeat-list">
                 {defeatRows.map((row) => {
@@ -153,8 +153,8 @@ export function AwardXpDialog({
                       : row.combatant.name
                   const xpLabel =
                     row.unclaimed > 1
-                      ? `${row.xpEach} × ${row.unclaimed} = ${row.total} XP`
-                      : `${row.total} XP`
+                      ? `${row.xpEach} × ${row.unclaimed} = ${row.total} опыта`
+                      : `${row.total} опыта`
                   return (
                     <li key={row.combatant.id}>
                       <span>{label}</span>
@@ -165,7 +165,7 @@ export function AwardXpDialog({
               </ul>
             )}
             <Text>
-              Пул: <strong>{combatPool}</strong> XP
+              Пул: <strong>{combatPool}</strong> опыта
               {n > 0 ? (
                 <>
                   {' '}
@@ -175,7 +175,7 @@ export function AwardXpDialog({
             </Text>
           </Stack>
         ) : (
-          <Field label="XP каждому">
+          <Field label="Опыт каждому">
             <NumberInput
               value={manualAmount}
               min={1}
