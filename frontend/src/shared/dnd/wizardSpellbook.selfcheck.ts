@@ -238,6 +238,20 @@ assert(
   'ritual ok with book',
 )
 assert(
+  canCastWizardRitualFromBook({
+    spell: { level: 1, ritual: true, in_spellbook: true },
+    book: null,
+  }).ok,
+  'ritual ok without tracked book (class book default)',
+)
+assert(
+  canCastWizardRitualFromBook({
+    spell: { level: 1, ritual: true },
+    book: createEmptyWizardSpellbookState(null),
+  }).ok,
+  'ritual ok when primaryBookItemId not linked yet',
+)
+assert(
   !canCastWizardRitualFromBook({
     spell: { level: 1, ritual: true, in_spellbook: true },
     book: { ...bookOk, bookLost: true, primaryBookItemId: null },

@@ -174,7 +174,9 @@ function phbBeastStub(): CompanionTemplatePatch {
     kind: 'beast_companion',
     defaultName: 'Зверь-спутник',
     stats: { hp: null, hp_max: null, ac: null, speed: null },
-    actions: '',
+    // Compact attack line so «Бой» sees dice once the card is filled / backfilled.
+    // Real stats come from bestiary pick (mergeBestiaryPickIntoCompanion).
+    actions: 'Укус +4 1к6+2 колющий',
     notes: 'PHB: зверь КР ≤ ¼ — выбери из бестиария или заполни статы вручную',
     nature: 'living',
     // C-02 Н5: ход хозяина, команда за действие.

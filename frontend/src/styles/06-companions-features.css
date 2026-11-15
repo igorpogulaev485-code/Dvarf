@@ -128,10 +128,11 @@
 }
 
 .sheet-chip.is-blocked,
+.sheet-chip.is-disabled,
 .sheet-chip:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-  text-decoration: line-through;
+  text-decoration: none;
 }
 
 .sheet-check {
@@ -173,6 +174,17 @@
   position: sticky;
   top: 0;
   z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  grid-template-columns: unset;
+  justify-content: flex-start;
+}
+
+.companions-panel__collapse-bar button {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0;
 }
 
 .companion-card {
@@ -235,6 +247,127 @@
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+}
+
+/* Отпущен / не призван: карточка приглушена; бейдж и «Призвать снова» яркие.
+   Не ставить filter на корень — иначе нельзя «отжать» яркость кнопки. */
+.companion-card--inactive {
+  background: color-mix(in srgb, var(--muted) 24%, #e8e2d6);
+  border-color: color-mix(in srgb, var(--muted) 55%, var(--line));
+  box-shadow: none;
+}
+
+.companion-card--inactive .companion-card__view-title,
+.companion-card--inactive .companion-card__name,
+.companion-card--inactive .companion-card__preview,
+.companion-card--inactive .companion-card__attack-line,
+.companion-card--inactive .companion-card__attack-text {
+  color: var(--muted);
+  opacity: 0.72;
+  filter: grayscale(0.45);
+}
+
+.companion-card--inactive .inventory-role,
+.companion-card--inactive .attack-held-tag,
+.companion-card--inactive .inventory-card__chevron-btn,
+.companion-card--inactive .inventory-card__collapse {
+  opacity: 0.55;
+  filter: grayscale(0.5);
+}
+
+.companion-card--inactive .companion-card__view > :not(.companion-card__view-actions) {
+  opacity: 0.7;
+  filter: grayscale(0.4);
+}
+
+/* Бейдж «не призван» / «повержен» — поверх приглушения. */
+.companion-card--inactive .companion-card__status-chip {
+  opacity: 1;
+  filter: none;
+  background: color-mix(in srgb, var(--muted) 18%, white);
+  border-color: color-mix(in srgb, var(--muted) 45%, var(--line));
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.companion-card--inactive .companion-card__view-actions {
+  opacity: 1;
+  filter: none;
+}
+
+.companion-card--inactive .companion-card__resummon,
+.companion-card--inactive button.companion-card__resummon {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* Свёрнутая отпущенная: яркая «Призвать снова» справа в glance-actions. */
+.companion-card--inactive .inventory-card__glance-actions .companion-card__resummon {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.companion-card__view {
+  display: grid;
+  gap: 8px;
+}
+
+.companion-card__view-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.companion-card__attack-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.companion-card__attack-label {
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+
+.companion-card__attack-text {
+  min-width: 0;
+}
+
+.companion-card__view-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.companions-panel__actions-end {
+  display: flex;
+  align-items: flex-end;
+}
+
+.companions-panel__chip-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.companions-panel.ui-panel {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.companions-panel.ui-panel > .ui-panel__title {
+  margin: 0 0 4px;
 }
 
 .companion-card--self-form {

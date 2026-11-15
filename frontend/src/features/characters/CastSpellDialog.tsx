@@ -388,6 +388,8 @@ export function CastSpellDialog({
   const [slotLevel, setSlotLevel] = useState(1)
   const [damageChoice, setDamageChoice] = useState<DamageTypeChoice>('first')
   const [consumeMaterial, setConsumeMaterial] = useState(true)
+  /** COMP-01: player confirms costly M component is on hand when inventory has no match. */
+  const [haveMaterial, setHaveMaterial] = useState(false)
   const [selfFormTarget, setSelfFormTarget] = useState<'self' | 'other'>('self')
   const [useMastery, setUseMastery] = useState(false)
   const [useFeature, setUseFeature] = useState(false)
@@ -506,6 +508,7 @@ export function CastSpellDialog({
   useEffect(() => {
     if (!open) return
     setConsumeMaterial(true)
+    setHaveMaterial(false)
     setUseQuickened(false)
     setUseSeeking(false)
     setUseTransmuted(false)
@@ -790,7 +793,8 @@ export function CastSpellDialog({
     return null
   }
 
-  const materialsOk = borne || (materialCheck.ok && focusGate.ok)
+  const materialsOk =
+    borne || ((materialCheck.ok || haveMaterial) && focusGate.ok)
   const chargePool = itemCast?.resourceId
     ? resources?.find((row) => row.id === itemCast.resourceId) ?? null
     : null
@@ -855,7 +859,11 @@ export function CastSpellDialog({
       : '',
     rulesSpell?.attack_or_save || spell.attack_or_save,
     castEffect.effect || rulesSpell?.damage || spell.damage,
-  ].filter(Boolean)
+  ].filter((part) => {
+    if (!part) return false
+    const t = String(part).trim()
+    return t && t !== '—' && t !== '-' && t !== '–'
+  })
 
   const showHigherLevels =
     Boolean(spell.higher_levels) &&
@@ -1335,34 +1343,44 @@ export function CastSpellDialog({
           </div>
         ) : null}
         {metaParts.length > 0 ? <Text tone="muted">{metaParts.join(' · ')}</Text> : null}
-        {castEffect.lines.length > 0 || castEffect.effect ? (
-          <div className="cast-effect-summary" aria-label="Итог эффекта для выбранной ячейки">
-            <Text>
-              Эффект сейчас
-              {isCantrip
-                ? ` (ур. персонажа ${Math.max(1, characterLevel)})`
-                : borne
-                  ? ` (${castSlot} ур.${itemCast?.chargePerLevel ? '' : ''})`
-                  : !useRitual && !useGrant
-                    ? ` (ячейка ${Math.max(spell.level, effectiveSlotLevel)} · база ${spell.level})`
-                  : ''}
-              :
-            </Text>
-            {castEffect.lines.length > 0 ? (
-              <ul className="cast-effect-summary__list">
-                {castEffect.lines.map((line) => (
-                  <li key={line}>
-                    <strong>{line}</strong>
-                  </li>
-                ))}
-              </ul>
-            ) : (
+        {(() => {
+          const isEmptyEffectLine = (line: string) => {
+            const t = line.trim()
+            return !t || t === '—' || t === '-' || t === '–'
+          }
+          const effectLines = castEffect.lines.filter((line) => !isEmptyEffectLine(line))
+          const effectText = castEffect.effect?.trim() ?? ''
+          const showEffectText = effectText && !isEmptyEffectLine(effectText)
+          if (effectLines.length === 0 && !showEffectText) return null
+          return (
+            <div className="cast-effect-summary" aria-label="Итог эффекта для выбранной ячейки">
               <Text>
-                <strong>{castEffect.effect}</strong>
+                Эффект сейчас
+                {isCantrip
+                  ? ` (ур. персонажа ${Math.max(1, characterLevel)})`
+                  : borne
+                    ? ` (${castSlot} ур.${itemCast?.chargePerLevel ? '' : ''})`
+                    : !useRitual && !useGrant
+                      ? ` (ячейка ${Math.max(spell.level, effectiveSlotLevel)} · база ${spell.level})`
+                    : ''}
+                :
               </Text>
-            )}
-          </div>
-        ) : null}
+              {effectLines.length > 0 ? (
+                <ul className="cast-effect-summary__list">
+                  {effectLines.map((line) => (
+                    <li key={line}>
+                      <strong>{line}</strong>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <Text>
+                  <strong>{effectText}</strong>
+                </Text>
+              )}
+            </div>
+          )
+        })()}
         {rulesSpell &&
         spellOffersDamageTypeChoice(rulesSpell) &&
         !isCantrip &&
@@ -1387,7 +1405,11 @@ export function CastSpellDialog({
             </button>
           </div>
         ) : null}
-        {showHigherLevels && castEffect.lines.length === 0 ? (
+        {showHigherLevels &&
+        castEffect.lines.filter((line) => {
+          const t = line.trim()
+          return t && t !== '—' && t !== '-' && t !== '–'
+        }).length === 0 ? (
           <Text tone="muted">На больших уровнях: {spell.higher_levels}</Text>
         ) : null}
 
@@ -1409,6 +1431,18 @@ export function CastSpellDialog({
                   ? `Списать «${materialCheck.cheapest?.item.name}»`
                   : 'Не списывать (тест)'}
               </button>
+            ) : null}
+            {!borne &&
+            !materialCheck.ok &&
+            focusGate.ok &&
+            materialCheck.requirement.minCostGp > 0 ? (
+              <ToggleChip
+                main="Компонент есть"
+                rest="в ноше нет подходящей вещи — каст без списания"
+                checked={haveMaterial}
+                onChange={setHaveMaterial}
+                data-testid="cast-have-material"
+              />
             ) : null}
           </div>
         ) : null}

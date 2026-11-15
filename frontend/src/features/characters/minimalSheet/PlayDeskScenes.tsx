@@ -33,7 +33,16 @@ import { ClassFeaturesPanel } from '../ClassFeaturesPanel'
 import { PietyPanel } from '../PietyPanel'
 import { syncPietyChampion, type PietyState } from '../../../shared/dnd/therosPiety'
 import { CompanionsPanel } from '../CompanionsPanel'
-import { getActiveSelfForm } from '../companions'
+import { resolveCompanionsEmptyHint } from '../companionsEmptyHint'
+import {
+  getActiveSelfForm,
+  isSteedCompanion,
+  type CompanionEntry,
+} from '../companions'
+import { isFindFamiliarSpell } from '../familiarForms'
+import { isFindSteedSpellSlug } from '../steedCompanions'
+import { resolveSpellNaparnikSlug } from '../spellCompanions'
+import type { WildShapeForkRequest } from '../ClassFeaturesPanel'
 import { healSelfForm, rollDice, starryFormDice } from '../wildShape'
 import { TextBlocksPanel } from '../TextBlocksPanel'
 import { PlayDeskAttacksCompact } from '../PlayDeskAttacksCompact'
@@ -1613,6 +1622,121 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         spells={model.draft.spells}
         onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
         onToast={model.onToast}
+        emptyHint={resolveCompanionsEmptyHint({
+          classes: model.draft.classes,
+          subclassSlugByEntryId: model.subclassSlugByEntryId,
+        })}
+        onEmptyAction={() => {
+          const hint = resolveCompanionsEmptyHint({
+            classes: model.draft.classes,
+            subclassSlugByEntryId: model.subclassSlugByEntryId,
+          })
+          if (hint.kind === 'wizard') {
+            const spell =
+              model.draft.spells.known.find((row) => isFindFamiliarSpell(row)) ??
+              null
+            if (spell) {
+              model.setDeskCastSpell(spell)
+              return
+            }
+            if (model.pactChainFamiliarReady) {
+              model.openPactChainFamiliarCast()
+              return
+            }
+            model.onToast?.('Нет «Поиска фамильяра» в книге')
+            return
+          }
+          if (hint.kind === 'paladin') {
+            const spell =
+              model.draft.spells.known.find((row) => {
+                const slug = resolveSpellNaparnikSlug(row)
+                return isFindSteedSpellSlug(slug)
+              }) ?? null
+            if (spell) {
+              model.setDeskCastSpell(spell)
+              return
+            }
+            model.onToast?.('Нет «Поиска скакуна» в книге')
+            return
+          }
+          if (hint.kind === 'druid') {
+            const druid = model.draft.classes.find((row) =>
+              /друид|druid/i.test(row.name),
+            )
+            const feature = model.unlockedFeatures.find(
+              (f: { id: string; classEntryId?: string }) =>
+                (f.id === 'wild_shape' || f.id === 'wild_companion') &&
+                (!druid || f.classEntryId === druid.id),
+            )
+            if (druid && feature) {
+              const request: WildShapeForkRequest = {
+                feature,
+                classSlug: 'druid',
+                classEntryId: druid.id,
+              }
+              model.setWildShapeFork(request)
+              return
+            }
+            model.onToast?.(
+              'Открой «Способности» и нажми «Через Дикий облик…»',
+            )
+            return
+          }
+        }}
+        onResummonSpellCompanion={(row: CompanionEntry) => {
+          const feature = (row.source?.feature ?? '').trim().toLowerCase()
+          if (feature === 'wild_companion') {
+            const druid = model.draft.classes.find((r) =>
+              /друид|druid/i.test(r.name),
+            )
+            const featureRow = model.unlockedFeatures.find(
+              (f: { id: string; classEntryId?: string }) =>
+                (f.id === 'wild_shape' || f.id === 'wild_companion') &&
+                (!druid || f.classEntryId === druid.id),
+            )
+            if (druid && featureRow) {
+              model.setWildShapeFork({
+                feature: featureRow,
+                classSlug: 'druid',
+                classEntryId: druid.id,
+              })
+              return
+            }
+            model.onToast?.(
+              'Открой «Способности» → «Через Дикий облик…»',
+            )
+            return
+          }
+          if (row.kind === 'familiar' || feature.includes('familiar')) {
+            const spell =
+              model.draft.spells.known.find((s) => isFindFamiliarSpell(s)) ??
+              null
+            if (spell) {
+              model.setDeskCastSpell(spell)
+              return
+            }
+            if (model.pactChainFamiliarReady) {
+              model.openPactChainFamiliarCast()
+              return
+            }
+            model.onToast?.('Нет «Поиска фамильяра» в книге')
+            return
+          }
+          if (isSteedCompanion(row)) {
+            const spell =
+              model.draft.spells.known.find((s) => {
+                const slug = resolveSpellNaparnikSlug(s)
+                return isFindSteedSpellSlug(slug)
+              }) ?? null
+            if (spell) {
+              model.setDeskCastSpell(spell)
+              return
+            }
+            model.onToast?.('Нет «Поиска скакуна» в книге')
+            return
+          }
+          model.onToast?.('Повторный призыв недоступен')
+        }}
         attackHost={{
           characterLevel: model.characterLevel,
           proficiencyBonus: model.proficiencyBonus,

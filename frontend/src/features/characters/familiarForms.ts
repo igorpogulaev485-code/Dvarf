@@ -445,6 +445,12 @@ export function applyFindFamiliarCompanion(input: {
       hp_max: pick.hp,
       ac: pick.ac,
       speed: pick.speed_walk || pick.speed_fly || 20,
+      speed_fly: pick.speed_fly ?? null,
+      speed_swim: pick.speed_swim ?? null,
+      speed_climb: pick.speed_climb ?? null,
+      str: pick.str ?? null,
+      dex: pick.dex ?? null,
+      con: pick.con ?? null,
     },
     actions:
       pick.actions_text ||
