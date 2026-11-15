@@ -26,6 +26,9 @@ WAVE_FILES = (
     "magic_items_srd.json",
     "creatures_srd.json",
     "animals_srd.json",
+    "species_ph24.json",
+    "backgrounds_ph24.json",
+    "subclasses_ph24.json",
 )
 
 DISPLAY_LEAVES = frozenset(

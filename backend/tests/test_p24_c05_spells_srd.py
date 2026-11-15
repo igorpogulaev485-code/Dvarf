@@ -33,7 +33,7 @@ CASTER_CLASSES = {
 NON_CASTERS = {"barbarian", "fighter", "monk", "rogue"}
 # C01–C04 catalog rows + 339 spells
 # C01–C04 + spells + P24-C06 magic items (285)
-PLANNED_TOTAL = 215 + 12 + 12 + SRD_SPELL_COUNT + 285 + 235 + 95  # + C07 + C08
+PLANNED_TOTAL = 215 + 12 + 12 + SRD_SPELL_COUNT + 285 + 235 + 95 + 1 + 12 + 36  # +C07+C08+C09
 
 SRD_RENAMES = {
     "acid-arrow",

@@ -49,7 +49,8 @@ SRD_SUBCLASSES = {
     "wizard__evoker",
 }
 WM_CLASSES = {"barbarian", "fighter", "paladin", "ranger", "rogue"}
-PLANNED_TOTAL = 215 + 12 + 12 + 339 + 285 + 235 + 95  # + C07 monsters + C08 animals
+# C01–C08 SRD rows + C09 PHB beyond SRD (1 species + 12 backgrounds + 36 subclasses).
+PLANNED_TOTAL = 215 + 12 + 12 + 339 + 285 + 235 + 95 + 1 + 12 + 36
 
 
 def _srd_ids(category: str) -> set[str]:
@@ -101,11 +102,13 @@ def test_live_class_waves_registered_and_complete():
     assert (LIVE / "subclasses_srd.json").is_file()
 
     assert {r["slug"] for r in _rows("class")} == SRD_CLASSES == _srd_ids("classes")
-    assert {r["slug"] for r in _rows("subclass")} == SRD_SUBCLASSES == _srd_ids(
-        "subclasses"
-    )
+    srd_subs = [
+        r for r in _rows("subclass") if str(r["source"]).startswith("srd")
+    ]
+    assert {r["slug"] for r in srd_subs} == SRD_SUBCLASSES == _srd_ids("subclasses")
     assert len(_rows("class")) == 12
-    assert len(_rows("subclass")) == 12
+    assert len(srd_subs) == 12
+    assert len(_rows("subclass")) >= 12
 
 
 def test_each_class_has_full_level_table_and_subclass_at_3():
@@ -189,6 +192,8 @@ def test_starting_equipment_and_mastery_links_resolve():
 def test_subclass_cards_link_parent_and_features():
     class_ids = {row["slug"]: row["id"] for row in _rows("class")}
     for row in _rows("subclass"):
+        if not str(row["source"]).startswith("srd"):
+            continue
         data = row["data"]
         parent = data.get("parent_class")
         assert parent in SRD_CLASSES, row["slug"]
@@ -216,6 +221,8 @@ def test_names_match_reference_csv():
             if r["srd"] == "true"
         }
         for row in _rows(kind):
+            if kind == "subclass" and not str(row["source"]).startswith("srd"):
+                continue
             assert row["name_ru"] == ref[row["slug"]]["name_ru"]
             assert row["name_en"] == ref[row["slug"]]["name_en"]
 
@@ -292,7 +299,13 @@ def test_apply_seed_includes_classes_idempotent():
     assert stats1.upserted == planned == PLANNED_TOTAL
     assert stats2.upserted == planned
     assert {k[1] for k in store if k[0] == "class"} == SRD_CLASSES
-    assert {k[1] for k in store if k[0] == "subclass"} == SRD_SUBCLASSES
+    srd_subs = {
+        k[1]
+        for k, v in store.items()
+        if k[0] == "subclass" and str(v.get("source", "")).startswith("srd")
+    }
+    assert srd_subs == SRD_SUBCLASSES
+    assert SRD_SUBCLASSES.issubset({k[1] for k in store if k[0] == "subclass"})
     for params in store.values():
         assert params["edition"] == "2024"
 
@@ -317,9 +330,12 @@ def test_alembic_single_head_includes_p24_c04():
     assert "p24c06magic01" in ancestor_ids  # head may advance (C07+)
 
 
-def test_no_artificer_or_book_subclasses_in_live_wave():
+def test_no_artificer_in_live_class_wave():
+    """Artificer stays out of C04; PHB book subclasses may appear from C09+."""
     assert "artificer" not in {r["slug"] for r in _rows("class")}
-    slugs = {r["slug"] for r in _rows("subclass")}
-    assert "cleric__light-domain" not in slugs
-    assert "rogue__assassin" not in slugs
-    assert "monk__warrior-of-shadow" not in slugs
+    srd_slugs = {
+        r["slug"] for r in _rows("subclass") if str(r["source"]).startswith("srd")
+    }
+    assert "cleric__light-domain" not in srd_slugs
+    assert "rogue__assassin" not in srd_slugs
+    assert "monk__warrior-of-shadow" not in srd_slugs

@@ -158,10 +158,16 @@ def test_names_match_reference_csv():
 
 
 def test_background_origin_feats_resolve_to_catalog_cards():
-    """C01 backgrounds reference origin feats by id — cards must exist after C02."""
+    """SRD (C01) backgrounds reference origin feats by id — cards must exist after C02.
+
+    PHB-beyond (C09, source=ph24) may point at feats that arrive in C10; those
+    keep id+name without requiring a catalog row yet.
+    """
     feat_slugs = {r["slug"] for r in _feat_rows()}
     for row in load_wave_rows():
         if row["kind"] != "background":
+            continue
+        if not str(row["source"]).startswith("srd"):
             continue
         origin = (row["data"] or {}).get("origin_feat") or {}
         feat_id = origin.get("id") or origin.get("slug")

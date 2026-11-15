@@ -21,7 +21,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 SRD_MONSTER_COUNT = 235
 SRD_ANIMAL_COUNT = 95
-PLANNED_TOTAL = 863 + SRD_MONSTER_COUNT + SRD_ANIMAL_COUNT
+PLANNED_TOTAL = 863 + SRD_MONSTER_COUNT + SRD_ANIMAL_COUNT + 1 + 12 + 36  # + C09
 
 ABILITIES = ("str", "dex", "con", "int", "wis", "cha")
 
@@ -278,4 +278,4 @@ def test_alembic_single_head_includes_p24_c08():
     }
     assert "p24c08anim01" in ancestor_ids
     assert "p24c07best01" in ancestor_ids
-    assert heads[0] == "p24c08anim01"
+    # Head advances with later packs (C09+); C08 must stay on the single lineage.

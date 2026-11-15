@@ -23,6 +23,9 @@
 | `magic_items_srd.json` | P24-C06 | 285 магических предметов SRD (`kind=item`, `equipment_group=magic_item`) |
 | `creatures_srd.json` | P24-C07 | 235 существ SRD Monsters A–Z (`kind=bestiary`) |
 | `animals_srd.json` | P24-C08 | 95 существ SRD Animals (`kind=bestiary`, `beast_tags`) |
+| `species_ph24.json` | P24-C09 | виды PHB сверх SRD (`kind=race`, `source=ph24`) |
+| `backgrounds_ph24.json` | P24-C09 | 12 предысторий PHB сверх 4 SRD (`source=ph24`) |
+| `subclasses_ph24.json` | P24-C09 | 36 подклассов PHB сверх 12 SRD (`source=ph24`) |
 
 ## Схема карточек (контракт)
 
@@ -39,5 +42,6 @@
 - бестиарий (`bestiary`, C07 Monsters / C08 Animals): КД, хиты, скорости, ПО/опыт/БМ, инициатива, характеристики + мод + спас, `gear_refs` → C03, `spell_refs` → C05; у Animals — `beast_tags` (`wild_shape_ok`, `mount`, `has_fly`, `has_swim`); короткое `summary_ru` / `text_ru` (без длинного SRD и без статов 2014)
 - отображаемые строки (`summary_ru`, `traits_text`, `components.m`, `casting_time.condition`, …) — по-русски; словари `spell_materials_ru.json` / `spell_reaction_conditions_ru.json`
 - `source` вида `srd-5.2` → `content_layer: srd`
+- `source` вида `ph24` → `content_layer: community_ref` (ярлык игроку не показываем)
 
-Не сидить: Culture, Engineering, пустые заглушки классов/видов/предысторий, книжный контент сверх SRD (в т.ч. FRHoF из `equipment.csv`, заклинания AU/книг — C10+, предметы DMG сверх SRD — C11+), Изобретатель (C15).
+Не сидить: Culture, Engineering, пустые заглушки классов/видов/предысторий, книжный контент сверх PHB (Eberron/FR/Ravenloft — C15+, заклинания/черты/предметы PHB сверх SRD — C10+, предметы DMG — C11+), Изобретатель (C15).

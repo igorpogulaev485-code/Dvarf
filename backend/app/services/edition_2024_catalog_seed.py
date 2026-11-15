@@ -22,6 +22,8 @@ Schema contract for later packs (P24-00 lists → data packs):
 - bestiary (monsters C07 + animals C08): size/type/AC/HP/speed/CR/PB/initiative,
   abilities + mods + saves, gear_refs → C03, spell_refs → C05,
   ``beast_tags`` on Animals (wild_shape_ok / mount / has_fly / has_swim)
+- PHB beyond SRD (C09): ``species_ph24`` / ``backgrounds_ph24`` / ``subclasses_ph24``,
+  ``source`` ``ph24`` → ``content_layer=community_ref``
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -69,6 +71,10 @@ EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("magic_items_srd.json"),
     WaveSpec("creatures_srd.json"),
     WaveSpec("animals_srd.json"),
+    # P24-C09 — PHB 2024 beyond SRD (community_ref)
+    WaveSpec("species_ph24.json"),
+    WaveSpec("backgrounds_ph24.json"),
+    WaveSpec("subclasses_ph24.json"),
 )
 
 WEAPON_MASTERY_FILENAME = "weapon_mastery_srd.json"

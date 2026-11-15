@@ -61,8 +61,14 @@ def test_live_waves_registered_and_complete():
     assert (LIVE / "backgrounds_srd.json").is_file()
 
     planned = load_wave_rows()
-    races = [r for r in planned if r["kind"] == "race"]
-    bgs = [r for r in planned if r["kind"] == "background"]
+    races = [
+        r for r in planned if r["kind"] == "race" and str(r["source"]).startswith("srd")
+    ]
+    bgs = [
+        r
+        for r in planned
+        if r["kind"] == "background" and str(r["source"]).startswith("srd")
+    ]
     assert {r["slug"] for r in races} == SRD_SPECIES_EXPECTED
     assert {r["slug"] for r in bgs} == SRD_BACKGROUNDS_EXPECTED
     assert len(races) == len(_srd_ids("species"))
@@ -73,6 +79,8 @@ def test_live_waves_registered_and_complete():
 def test_species_have_empty_asi_and_short_card():
     for row in load_wave_rows():
         if row["kind"] != "race":
+            continue
+        if not str(row["source"]).startswith("srd"):
             continue
         data = row["data"]
         assert data.get("ability_bonuses") == {}
@@ -88,6 +96,8 @@ def test_species_have_empty_asi_and_short_card():
 def test_backgrounds_have_asi_and_origin_feat_ref():
     for row in load_wave_rows():
         if row["kind"] != "background":
+            continue
+        if not str(row["source"]).startswith("srd"):
             continue
         data = row["data"]
         asi = data.get("asi")
@@ -118,6 +128,8 @@ def test_names_match_reference_csv():
         if r["srd"] == "true"
     }
     for row in load_wave_rows():
+        if not str(row["source"]).startswith("srd"):
+            continue
         if row["kind"] == "race":
             ref = species_csv[row["slug"]]
         elif row["kind"] == "background":
@@ -128,12 +140,21 @@ def test_names_match_reference_csv():
         assert row["name_en"] == ref["name_en"]
 
 
-def test_no_book_species_in_this_pack():
-    """Aasimar and other PHB-extra species belong to C09, not C01."""
-    slugs = {r["slug"] for r in load_wave_rows() if r["kind"] == "race"}
-    assert "aasimar" not in slugs
-    assert "half-elf" not in slugs
-    assert "half-orc" not in slugs
+def test_no_book_species_in_srd_wave():
+    """Aasimar lives in species_ph24 (C09), not in the SRD species wave."""
+    srd_slugs = {
+        r["slug"]
+        for r in load_wave_rows()
+        if r["kind"] == "race" and str(r["source"]).startswith("srd")
+    }
+    assert "aasimar" not in srd_slugs
+    assert "half-elf" not in srd_slugs
+    assert "half-orc" not in srd_slugs
+    # C09 may add aasimar under source=ph24.
+    all_race = {r["slug"] for r in load_wave_rows() if r["kind"] == "race"}
+    if "aasimar" in all_race:
+        aas = next(r for r in load_wave_rows() if r["kind"] == "race" and r["slug"] == "aasimar")
+        assert aas["source"] == "ph24"
 
 
 def test_origin_feat_missing_catalog_does_not_break_normalize():
@@ -190,7 +211,8 @@ def test_seed_rows_are_edition_2024_only():
             "subclass",
             "bestiary",
         }
-        assert row["source"].startswith("srd")
+        src = str(row["source"])
+        assert src.startswith("srd") or src == "ph24"
 
 
 def test_apply_seed_idempotent_with_fake_conn():
@@ -242,8 +264,22 @@ def test_apply_seed_idempotent_with_fake_conn():
     assert stats2.upserted == planned
     assert set(store) == set(snapshot)
     assert {"race", "background", "feat"}.issubset({k[0] for k in store})
-    assert {k[1] for k in store if k[0] == "race"} == SRD_SPECIES_EXPECTED
-    assert {k[1] for k in store if k[0] == "background"} == SRD_BACKGROUNDS_EXPECTED
+    srd_races = {
+        k[1]
+        for k, v in store.items()
+        if k[0] == "race" and str(v.get("source", "")).startswith("srd")
+    }
+    srd_bgs = {
+        k[1]
+        for k, v in store.items()
+        if k[0] == "background" and str(v.get("source", "")).startswith("srd")
+    }
+    assert srd_races == SRD_SPECIES_EXPECTED
+    assert srd_bgs == SRD_BACKGROUNDS_EXPECTED
+    assert SRD_SPECIES_EXPECTED.issubset({k[1] for k in store if k[0] == "race"})
+    assert SRD_BACKGROUNDS_EXPECTED.issubset(
+        {k[1] for k in store if k[0] == "background"}
+    )
     assert len({k[1] for k in store if k[0] == "feat"}) == 17
     for params in store.values():
         data = json.loads(params["data"])

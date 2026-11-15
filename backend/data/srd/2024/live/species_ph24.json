@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "pack": "P24-C09",
+    "rules_edition": "2024",
+    "source": "ph24",
+    "notes_ru": "Виды PHB 2024 сверх SRD (srd=false в species.csv). Сейчас эталон даёт только аасимара; голиаф и орк уже в C01 как SRD. RU-имена: docs/edition-2024/sources/species.csv (next.dnd.su). source=ph24."
+  },
+  "entries": [
+    {
+      "kind": "race",
+      "slug": "aasimar",
+      "name_ru": "Аасимар",
+      "name_en": "Aasimar",
+      "source": "ph24",
+      "sort_order": 5,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/aasimar",
+        "url_ttg": "https://new.ttg.club/species/aasimar-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "medium",
+          "small"
+        ],
+        "speed": 30,
+        "darkvision": 60,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "damage_resistances": [
+          "necrotic",
+          "radiant"
+        ],
+        "traits": [
+          "celestial-resistance",
+          "darkvision",
+          "healing-hands",
+          "light-bearer",
+          "celestial-revelation"
+        ],
+        "traits_text": "Аасимар (2024): гуманоид, Средний или Маленький, 30 фт. Сопротивление некротическому и излучению. Тёмное зрение 60. Исцеляющие руки (Магия, ПБ×к4, 1/длинный). Заговор «Свет» (ХАР). С 3 ур. — Небесное откровение (бонусным, 1 мин, 1/длинный): крылья / сияющая душа / саван смерти."
+      }
+    }
+  ]
+}
