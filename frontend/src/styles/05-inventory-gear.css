@@ -239,32 +239,31 @@
   padding: 10px 12px;
 }
 
-/* EXP-01: compact summary chips on phone — one short scrollable row. */
-.play-desk--mobile .inventory-panel .inventory-summary__top {
-  gap: 6px 8px;
-  flex-wrap: nowrap;
-  align-items: center;
+/* EXP-01: 390 — вес+полоска сверху, чипы второй строкой с переносом (без обрезки). */
+.play-desk--mobile .inventory-panel .inventory-summary {
+  grid-template-columns: 1fr;
+  gap: 8px;
 }
 
-.play-desk--mobile .inventory-panel .inventory-summary__weights {
-  flex: 1 1 auto;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.play-desk--mobile .inventory-panel .inventory-summary__load {
+  grid-column: 1;
 }
 
 .play-desk--mobile .inventory-panel .inventory-summary__chips {
-  flex: 0 1 auto;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  max-width: 58%;
+  grid-column: 1;
+  max-width: none;
+  width: 100%;
+  flex-wrap: wrap;
+  overflow: visible;
+  justify-content: flex-start;
+  gap: 6px;
 }
 
-.play-desk--mobile .inventory-panel .inventory-summary__chips::-webkit-scrollbar {
-  display: none;
+.play-desk--mobile .inventory-panel .inventory-summary__weights {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  font-size: 0.8rem;
 }
 
 .play-desk--mobile .inventory-panel .inventory-summary__chip,
@@ -276,9 +275,75 @@
   font-size: 0.8rem;
 }
 
-.play-desk--mobile .inventory-panel .inventory-equip--icon {
-  min-width: 44px;
-  min-height: 44px;
+.play-desk--mobile .inventory-panel .inventory-summary__label--full {
+  display: none;
+}
+
+.play-desk--mobile .inventory-panel .inventory-summary__label--short {
+  display: inline;
+}
+
+/* EXP-01: one-floor glance row — compact trail icons (kit dense, not 44px stack). */
+.play-desk--mobile .inventory-panel .inventory-card--compact {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+}
+
+.play-desk--mobile .inventory-panel .inventory-card__glance {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  flex-wrap: nowrap;
+  padding: 0;
+}
+
+.play-desk--mobile .inventory-panel .inventory-card__glance-main {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.play-desk--mobile .inventory-panel .inventory-card__glance-name {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.92rem;
+}
+
+.play-desk--mobile .inventory-panel .inventory-card__glance-tags {
+  gap: 4px;
+}
+
+.play-desk--mobile .inventory-panel .inventory-card__glance-tags .inventory-role,
+.play-desk--mobile .inventory-panel .inventory-card__glance-tags .attack-held-tag {
+  font-size: 0.72rem;
+}
+
+.play-desk--mobile .inventory-panel .inventory-card__glance-actions {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 2px;
+}
+
+.play-desk--mobile .inventory-panel .inventory-card__glance-meta {
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.play-desk--mobile .inventory-panel .inventory-fav,
+.play-desk--mobile .inventory-panel .inventory-equip--icon,
+.play-desk--mobile .inventory-panel .inventory-card__chevron-btn {
+  min-width: 36px;
+  min-height: 36px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
 }
 
 .play-desk--mobile .mobile-combat-roll--explore,
