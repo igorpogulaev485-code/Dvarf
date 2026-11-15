@@ -52,13 +52,17 @@ export function DetailsMenu({
     if (left + minWidth > window.innerWidth - pad) {
       left = Math.max(pad, window.innerWidth - pad - minWidth)
     }
-    // LOBBY-FIX: на 390 «Ещё» должно умещать «Добычу» — панель влезает в viewport.
+    // LOBBY-FIX: на 390 «Ещё» должно умещать «Добычу» — открываем в сторону с местом.
     const spaceBelow = window.innerHeight - r.bottom - pad
     const spaceAbove = r.top - pad
-    const openUp = spaceBelow < 220 && spaceAbove > spaceBelow
-    const maxHeight = Math.max(160, Math.floor(openUp ? spaceAbove - 4 : spaceBelow - 4))
+    const openUp = spaceAbove > spaceBelow
+    const available = Math.max(openUp ? spaceAbove : spaceBelow, 120)
+    const maxHeight = Math.max(
+      180,
+      Math.min(Math.floor(available - 8), Math.floor(window.innerHeight * 0.75)),
+    )
     const top = openUp
-      ? Math.round(Math.max(pad, r.top - 4 - Math.min(maxHeight, spaceAbove)))
+      ? Math.round(Math.max(pad, r.top - 4 - maxHeight))
       : Math.round(r.bottom + 4)
     setCoords({
       top,
