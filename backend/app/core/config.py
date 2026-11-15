@@ -45,6 +45,10 @@ class Settings(BaseSettings):
     world_import_ai_api_key: str = ""
     world_import_ai_base_url: str = ""
 
+    # W-API-10: MCP streamable HTTP (хосты для DNS-rebinding allowlist, через запятую).
+    mcp_allowed_hosts: str = ""
+    mcp_port: int = 8100
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]

@@ -15,16 +15,20 @@ from app.api.routers import lobbies as lobbies_router
 from app.api.routers import world_imports as world_imports_router
 from app.core.config import settings
 from app.core.exceptions import AppError
+from app.mcp.world_import import get_world_import_mcp_asgi, mount_world_import_mcp, world_import_mcp
 from app.realtime.bus import start_realtime, stop_realtime
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    # MCP streamable HTTP: session_manager живёт в lifespan родителя (mount не запускает дочерний).
+    get_world_import_mcp_asgi()
     await start_realtime()
-    try:
-        yield
-    finally:
-        await stop_realtime()
+    async with world_import_mcp.session_manager.run():
+        try:
+            yield
+        finally:
+            await stop_realtime()
 
 
 app = FastAPI(title="Dvarf API", version="0.1.0", lifespan=lifespan)
@@ -42,6 +46,7 @@ app.include_router(catalog_router.router)
 app.include_router(characters_router.router)
 app.include_router(lobbies_router.router)
 app.include_router(world_imports_router.router)
+mount_world_import_mcp(app)
 
 uploads_path = Path(settings.uploads_dir)
 uploads_path.mkdir(parents=True, exist_ok=True)

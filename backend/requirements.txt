@@ -11,3 +11,5 @@ httpx==0.28.1
 python-multipart==0.0.20
 Pillow==11.3.0
 PyYAML==6.0.2
+# W-API-10: remote MCP (streamable HTTP) для импорта мира
+mcp==1.30.0
