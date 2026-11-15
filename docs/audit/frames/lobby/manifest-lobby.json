@@ -1,7 +1,7 @@
 {
   "generated": "2026-11-15",
-  "count": 209,
-  "uniqueMd5": 124,
+  "count": 213,
+  "uniqueMd5": 128,
   "frames": [
     {
       "file": "m01-lobbies-list-1440.png",
@@ -838,6 +838,26 @@
     {
       "file": "z-player-fatal-390.png",
       "md5": "f95c356b1d2933b207b1b74ca16085aa"
+    },
+    {
+      "file": "cu-01-login-overlay.png",
+      "md5": "75b483e39e1d4cfeb21c2d819a3f73fc",
+      "source": "computer-use"
+    },
+    {
+      "file": "cu-02-chars-password-overlay.png",
+      "md5": "0527421136fbb5cea13641515e52fccc",
+      "source": "computer-use"
+    },
+    {
+      "file": "cu-03-lobbies-list.png",
+      "md5": "ff96fb698f704bcfe833470d08c45a08",
+      "source": "computer-use"
+    },
+    {
+      "file": "cu-05-join-warrior5.png",
+      "md5": "242d33745082ac1d3c690ff71ff0b3fb",
+      "source": "computer-use"
     }
   ]
 }
