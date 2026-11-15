@@ -14,6 +14,8 @@ const PAL5 = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa7'
 const PAL11 = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa8'
 const ROGUE5 = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa9'
 const WAR5 = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1'
+const WAR1 = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2'
+const PAL_WL = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3'
 const MONK = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa6'
 
 mkdirSync(ART, { recursive: true })
@@ -258,8 +260,8 @@ async function clickSmiteCircle(page, level = 1) {
 }
 
 async function toggleUndead(page) {
-  const btn = page.locator('.play-desk-smite button, .play-desk-smite .sheet-chip').filter({
-    hasText: /нежить/i,
+  const btn = page.locator('.play-desk-smite__undead, .play-desk-smite button, .play-desk-smite .sheet-chip').filter({
+    hasText: /\+1к8|нежить/i,
   })
   if (await btn.count()) {
     await btn.first().click().catch(() => {})
@@ -476,11 +478,74 @@ async function main() {
     await openSheet(page, ROGUE5)
     await openCombat(page, w)
     await shotHeader(page, out(`hdr-pair-${w}.png`))
+    await shotHeader(page, out(`header-${w}.png`))
   }
   await page.setViewportSize({ width: 1440, height: 1200 })
   await openSheet(page, ROGUE5)
   await openCombat(page, 1440)
   await shotSceneBlock(page, out('scene-block-pair-1440.png'))
+
+  // —— CMB-04 ——
+  for (const w of [1440, 390]) {
+    await page.setViewportSize({ width: w, height: 1600 })
+    // Smite open confirm after hit
+    await openSheet(page, PAL5)
+    await openCombat(page, w)
+    await forceNextD20(page, 15)
+    await clickFirstMeleeAttack(page)
+    await page.waitForSelector('.play-desk-smite.is-confirm', { timeout: 8_000 }).catch(() => {})
+    await shotPanel(page, out(`smite-open-hit-${w}.png`))
+
+    // Undead chip on
+    await toggleUndead(page)
+    await shotPanel(page, out(`smite-undead-${w}.png`))
+
+    // Nat 1 mark
+    await openSheet(page, PAL5)
+    await openCombat(page, w)
+    await forceNextD20(page, 1)
+    await clickFirstMeleeAttack(page)
+    await page.waitForSelector('.play-desk-smite__nat1', { timeout: 5_000 }).catch(() => {})
+    await shotPanel(page, out(`smite-nat1-${w}.png`))
+
+    // Pact smite (paladin 2 / warlock 3)
+    await openSheet(page, PAL_WL)
+    await openCombat(page, w)
+    await openSmiteOnFirstMelee(page)
+    await page.waitForSelector('.play-desk-smite__slot--pact, .play-desk-smite', { timeout: 5_000 }).catch(() => {})
+    await shotPanel(page, out(`smite-pact-${w}.png`))
+  }
+
+  // Fighter: Second Wind in Бонусное
+  for (const w of [1440, 390]) {
+    await page.setViewportSize({ width: w, height: 1600 })
+    await openSheet(page, WAR5)
+    await openCombat(page, w)
+    await openTurnGroup(page, 'Бонусное')
+    await shotPanel(page, out(`turn-bonus-fighter-${w}.png`))
+
+    const sw = page.locator('.play-desk-turn-actions__panel .sheet-chip').filter({
+      hasText: /Второе дыхание/,
+    })
+    if (await sw.count()) {
+      await sw.first().click().catch(() => {})
+      await page.waitForTimeout(400)
+      await openTurnGroup(page, 'Бонусное')
+      await shotPanel(page, out(`turn-bonus-fighter-spent-${w}.png`))
+    }
+
+    await openSheet(page, WAR5)
+    await openCombat(page, w)
+    await openTurnGroup(page, 'Действие')
+    await shotPanel(page, out(`turn-action-surge-${w}.png`))
+  }
+
+  // Warrior 1 also has Second Wind (no Action Surge)
+  await page.setViewportSize({ width: 1440, height: 1600 })
+  await openSheet(page, WAR1)
+  await openCombat(page, 1440)
+  await openTurnGroup(page, 'Бонусное')
+  await shotPanel(page, out('turn-bonus-fighter1-1440.png'))
 
   cleanupTmp()
   console.log('cmb02-capture done →', ART)

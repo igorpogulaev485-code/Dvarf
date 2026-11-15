@@ -6,6 +6,7 @@ import { rollDamage } from './deskRolls.ts'
 import {
   decideSmiteSlotClick,
   divineSmiteDice,
+  divineSmitePactOffer,
   divineSmitePresentLevels,
   divineSmiteSpendOf,
   formatDivineSmiteExtra,
@@ -166,6 +167,19 @@ assert(
     '3': { max: 0, used: 0 },
   }).join(',') === '1,2',
   'only circles with max>0 are present',
+)
+assert(divineSmitePactOffer(null) == null, 'no pact → no offer')
+assert(
+  divineSmitePactOffer({ max: 2, used: 2, level: 2 }) == null,
+  'empty pact hidden',
+)
+assert(
+  divineSmitePactOffer({ max: 2, used: 1, level: 2 })?.remaining === 1,
+  'pact remaining offered',
+)
+assert(
+  divineSmiteDice({ spend, slotLevel: 2, vsUndeadOrFiend: false }).formulaRu === '3к8',
+  'pact level 2 smite is 3d8',
 )
 
 function paladinFeatures(level: number) {

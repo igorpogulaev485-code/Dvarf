@@ -12,10 +12,27 @@ import { rollDamage } from './deskRolls'
 
 export const DIVINE_SMITE_FEATURE_ID = 'divine_smite'
 
+export type DivineSmiteSlotSource = 'spell' | 'pact'
+
 export type DivineSmiteIntent = {
   /** Circle prepared for the next confirmed melee hit. Null = choose after the roll. */
   slotLevel: number | null
+  /** Spell slot vs warlock pact magic. Ignored when slotLevel is null. */
+  slotSource?: DivineSmiteSlotSource
   vsUndeadOrFiend: boolean
+}
+
+/** Pact magic available for Divine Smite (remaining > 0). */
+export function divineSmitePactOffer(
+  pact: { max: number; used: number; level: number } | null | undefined,
+): { level: number; remaining: number; max: number } | null {
+  if (!pact) return null
+  const max = Math.max(0, Math.floor(pact.max))
+  const used = Math.min(max, Math.max(0, Math.floor(pact.used)))
+  const remaining = Math.max(0, max - used)
+  if (remaining <= 0) return null
+  const level = Math.max(1, Math.min(9, Math.floor(pact.level || 1)))
+  return { level, remaining, max }
 }
 
 /**

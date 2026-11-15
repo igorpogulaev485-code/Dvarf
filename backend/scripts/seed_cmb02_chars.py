@@ -28,6 +28,7 @@ PAL11_ID = uuid.UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa8")
 ROGUE5_ID = uuid.UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa9")
 WAR5_ID = uuid.UUID("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1")
 WAR1_ID = uuid.UUID("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2")
+PAL_WL_ID = uuid.UUID("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb3")
 
 
 def _skill(proficient: bool = False, expertise: bool = False) -> dict:
@@ -478,6 +479,109 @@ def warrior_sheet(*, level: int, with_feats: bool, name_ru: str) -> dict:
     }
 
 
+def paladin_warlock_sheet() -> dict:
+    """Paladin 2 / Warlock 3 — CMB-04 pact smite check.
+
+    Ordinary 1st-circle slots from the paladin half-caster side;
+    pact magic: 2 slots of 2nd circle from warlock 3.
+    """
+    return {
+        "identity": {
+            "alignment": "Хаотично-добрый",
+            "experience": 6500,
+            "background": "Шарлатан",
+        },
+        "classes": [
+            {
+                "id": "paladin",
+                "name": "Паладин",
+                "catalog_id": "paladin",
+                "level": 2,
+                "subclass_name": "",
+                "subclass_catalog_id": None,
+            },
+            {
+                "id": "warlock",
+                "name": "Колдун",
+                "catalog_id": "warlock",
+                "level": 3,
+                "subclass_name": "Архифея",
+                "subclass_catalog_id": "the_archfey",
+            },
+        ],
+        "abilities": {
+            "str": {"score": 14},
+            "dex": {"score": 12},
+            "con": {"score": 14},
+            "int": {"score": 10},
+            "wis": {"score": 10},
+            "cha": {"score": 16},
+        },
+        "saves": {
+            "wis": {"is_proficient": True},
+            "cha": {"is_proficient": True},
+        },
+        "skills": _skills("athletics", "persuasion", "deception", "intimidation"),
+        "combat": {
+            "inspiration": False,
+            "speed": 30,
+            "darkvision": 0,
+            "conditions": [],
+            "exhaustion": 0,
+            "hp_temp": 0,
+            "concentration": None,
+            "effects": [],
+            "hit_die": "d10",
+            "hp_dice_current": 5,
+            "is_dying": False,
+            "death_successes": 0,
+            "death_fails": 0,
+            "turn_economy": _empty_te(),
+            "ac": 16,
+            "hp_current": 38,
+            "hp_max": 38,
+        },
+        "resources": [
+            {
+                "id": "feat:lay_on_hands",
+                "name": "Возложение рук",
+                "max": 10,
+                "used": 0,
+                "reset": "long",
+                "onHot": True,
+            },
+        ],
+        "play": {},
+        "inventory": {
+            "items": [],
+            "coins": {"cp": 0, "sp": 0, "ep": 0, "gp": 10, "pp": 0},
+            "notes": "",
+        },
+        "companions": [],
+        "spells": {
+            "known": [],
+            "slots": {"1": {"max": 2, "used": 0}},
+            "pact_slots": {"max": 2, "used": 0, "level": 2},
+            "casting_ability": "cha",
+        },
+        "weapons": [
+            _weapon(
+                "w-longsword",
+                "Длинный меч",
+                ability="str",
+                damage="1к8",
+                dtype="рубящий",
+            ),
+        ],
+        "text_blocks": [],
+        "ui": {},
+        "feature_picks": {},
+        "feat_grants": [],
+        "fighting_style_ids": ["dueling"],
+        "notes": "CMB-04 паладин 2 / колдун 3",
+    }
+
+
 def upsert(db, user_id: uuid.UUID, char_id: uuid.UUID, name: str, sheet: dict) -> None:
     row = db.query(Character).filter(Character.id == char_id).one_or_none()
     now = datetime.now(timezone.utc)
@@ -548,6 +652,13 @@ def main() -> None:
             "CMB-02 Воин 1",
             warrior_sheet(level=1, with_feats=False, name_ru="CMB-02 воин 1"),
         )
+        upsert(
+            db,
+            user.id,
+            PAL_WL_ID,
+            "CMB-04 Паладин 2 / Колдун 3",
+            paladin_warlock_sheet(),
+        )
         db.commit()
         print(
             json.dumps(
@@ -559,6 +670,7 @@ def main() -> None:
                     "rogue5": str(ROGUE5_ID),
                     "warrior5": str(WAR5_ID),
                     "warrior1": str(WAR1_ID),
+                    "paladinWarlock": str(PAL_WL_ID),
                     "monk5": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa6",
                 },
                 ensure_ascii=False,

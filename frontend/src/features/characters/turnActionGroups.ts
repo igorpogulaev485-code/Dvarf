@@ -45,6 +45,10 @@ export const TURN_ACTION_CATALOG: TurnActionCatalogRow[] = [
   { id: 'steady_aim', label: 'Точное прицеливание', group: 'bonus', tier: 'personal' },
   { id: 'two_weapon', label: 'Атака вторым оружием', group: 'bonus', tier: 'personal' },
   { id: 'ki_fueled', label: 'Атака на ци', group: 'bonus', tier: 'personal' },
+  /** Fighter 1: bonus heal — same pool as the resource counter below weapons. */
+  { id: 'second_wind', label: 'Второе дыхание', group: 'bonus', tier: 'personal' },
+  /** Fighter 2: grants +1 action — not a bonus action. */
+  { id: 'action_surge', label: '+1 действие (Всплеск)', group: 'action', tier: 'personal' },
   /** Mark that enables GWM bonus attack — shown in Бонусное (not a spend). */
   { id: 'gwm_finish', label: 'Добивание (0 хитов)', group: 'bonus', tier: 'personal' },
   { id: 'gwm_bonus', label: 'Атака Мастера большого оружия', group: 'bonus', tier: 'personal' },

@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
+  divineSmitePactOffer,
   divineSmitePresentLevels,
   formatDivineSmiteExtra,
   resolveSmiteAfterAttack,
@@ -37,7 +38,12 @@ assert.match(smiteUi, /Попал\? Выбери круг/)
 assert.match(smiteUi, /play-desk-smite--inline/)
 assert.match(smiteUi, /ui-resource-pip/)
 assert.match(smiteUi, /play-desk-smite__miss[\s\S]*?Промах/)
+assert.match(smiteUi, /play-desk-smite__undead/)
+assert.match(smiteUi, /\+1к8/)
+assert.match(smiteUi, /Договор \$\{pact\.level\} круга/)
+assert.match(smiteUi, /pactSlots/)
 assert.doesNotMatch(smiteUi, /Промах — не тратить ячейку/)
+assert.doesNotMatch(smiteUi, />нежить \/ исчадие</)
 
 assert.match(turnUi, /Действие/)
 assert.match(turnUi, /Бонусное/)
@@ -48,6 +54,10 @@ assert.match(turnUi, /Хитрое действие: Засада/)
 assert.match(turnUi, /Увёртливость/)
 assert.match(turnUi, /hasUncannyDodge/)
 assert.match(turnUi, /Добивание \(0 хитов\)/)
+assert.match(turnUi, /Второе дыхание/)
+assert.match(turnUi, /\+1 действие \(Всплеск\)/)
+assert.match(turnUi, /secondWind/)
+assert.match(turnUi, /actionSurge/)
 assert.match(turnUi, /mode === 'everyTurn'/)
 assert.match(turnUi, /return null/)
 assert.doesNotMatch(attacks, /play-desk-turn-actions__gwm/)
@@ -55,11 +65,24 @@ assert.match(attacks, /hasUncannyDodge/)
 assert.match(attacks, /onO05GwmFinishing/)
 assert.match(attacks, /turnGroupedFeatureIds/)
 assert.match(attacks, /steady_aim/)
+assert.match(attacks, /Промах \(нат\. 1\)/)
+assert.match(attacks, /pactSlots/)
+assert.match(attacks, /secondWind/)
 assert.doesNotMatch(
   attacks,
   /hasSteadyAim=\{\s*tceAllowed && combatFeatures\.some/,
 )
 assert.ok(TURN_ACTION_CATALOG.some((r) => r.id === 'gwm_finish' && r.tier === 'personal'))
+assert.ok(
+  TURN_ACTION_CATALOG.some(
+    (r) => r.id === 'second_wind' && r.group === 'bonus' && r.tier === 'personal',
+  ),
+)
+assert.ok(
+  TURN_ACTION_CATALOG.some(
+    (r) => r.id === 'action_surge' && r.group === 'action' && r.tier === 'personal',
+  ),
+)
 
 // Nat 1 → no smite offer, no spend path
 const nat1 = resolveSmiteAfterAttack({ naturalDie: 1 })
@@ -125,6 +148,14 @@ const levels = divineSmitePresentLevels(spend, {
 })
 assert.deepEqual(levels, [1, 2])
 
+// CMB-04: pact offer only when remaining > 0
+assert.equal(divineSmitePactOffer(null), null)
+assert.equal(divineSmitePactOffer({ max: 2, used: 2, level: 2 }), null)
+const pactOffer = divineSmitePactOffer({ max: 2, used: 0, level: 2 })
+assert.ok(pactOffer)
+assert.equal(pactOffer.level, 2)
+assert.equal(pactOffer.remaining, 2)
+
 // Rogue 5: Хитрое действие только в Бонусном; Точное прицеливание — Бонусное; Увёртливость — Реакция
 assert.deepEqual(cunningActionGroups(), ['bonus'])
 const bonusIds = catalogRowsForGroup('bonus').map((r) => r.id)
@@ -135,14 +166,17 @@ assert.ok(bonusIds.includes('two_weapon'))
 assert.ok(bonusIds.includes('gwm_bonus'))
 assert.ok(bonusIds.includes('gwm_finish'))
 assert.ok(bonusIds.includes('shield_shove'))
+assert.ok(bonusIds.includes('second_wind'))
 
 const actionIds = catalogRowsForGroup('action').map((r) => r.id)
 assert.ok(actionIds.includes('dash'))
 assert.ok(actionIds.includes('search'))
 assert.ok(actionIds.includes('hide'))
+assert.ok(actionIds.includes('action_surge'))
 assert.ok(!actionIds.includes('cunning_hide'))
 assert.ok(!actionIds.includes('cunning_dash'))
 assert.ok(!actionIds.includes('steady_aim'))
+assert.ok(!actionIds.includes('second_wind'))
 
 const reactionIds = catalogRowsForGroup('reaction').map((r) => r.id)
 assert.ok(reactionIds.includes('opportunity'))

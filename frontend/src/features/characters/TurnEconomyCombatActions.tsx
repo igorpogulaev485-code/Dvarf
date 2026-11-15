@@ -215,6 +215,18 @@ type Props = {
   /** Предложить бросок навыка после траты (не обязательный автобросок). */
   onOfferSkill?: (skillKey: 'investigation' | 'perception' | 'stealth') => void
   onToast?: (message: string) => void
+  /** CMB-04: fighter «Второе дыхание» in Бонусное (same pool as resource counter). */
+  secondWind?: {
+    remaining: number
+    max: number
+    onSpend: () => void
+  } | null
+  /** CMB-04: fighter «Всплеск действий» in Действие as +1 действие. */
+  actionSurge?: {
+    remaining: number
+    max: number
+    onSpend: () => void
+  } | null
   className?: string
   /**
    * CMB-02: grouped UI is the only face. Legacy modes kept for call-site compat:
@@ -291,7 +303,9 @@ export function TurnEconomyCombatActions({
   onO04HeroPoints,
   onOfferSkill,
   onToast,
-  className = 'chip-row',
+  secondWind = null,
+  actionSurge = null,
+  className = '',
   mode = 'all',
 }: Props) {
   const turnEco = useTurnEconomy()
@@ -569,6 +583,83 @@ export function TurnEconomyCombatActions({
         }}
       >
         Атака на ци
+      </button>,
+    )
+  }
+
+  // —— Fighter: Second Wind (bonus) / Action Surge (action, not bonus) ——
+  if (secondWind) {
+    const empty = secondWind.remaining <= 0
+    const disabled = empty || !bonusGate.ok
+    push(
+      'second_wind',
+      ['bonus'],
+      'personal',
+      <button
+        key="second_wind"
+        type="button"
+        className={`sheet-chip${empty ? ' is-spent' : ''}`}
+        disabled={disabled}
+        title={
+          empty
+            ? 'Второе дыхание: нет зарядов до короткого или продолжительного отдыха'
+            : bonusGate.ok
+              ? `Второе дыхание: бонусное · 1к10+ур. воина · осталось ${secondWind.remaining}/${secondWind.max}`
+              : bonusGate.reason
+        }
+        onClick={() => {
+          if (secondWind.remaining <= 0) return
+          if (!turnEco.canFeature('bonus').ok) return
+          secondWind.onSpend()
+        }}
+      >
+        {empty ? (
+          <span className="sheet-chip__check" aria-hidden>
+            ✓
+          </span>
+        ) : null}
+        Второе дыхание
+        {secondWind.max > 0 ? (
+          <span className="play-desk-turn-actions__charges" aria-hidden>
+            {secondWind.remaining}/{secondWind.max}
+          </span>
+        ) : null}
+      </button>,
+    )
+  }
+
+  if (actionSurge) {
+    const empty = actionSurge.remaining <= 0
+    push(
+      'action_surge',
+      ['action'],
+      'personal',
+      <button
+        key="action_surge"
+        type="button"
+        className={`sheet-chip${empty ? ' is-spent' : ''}`}
+        disabled={empty}
+        title={
+          empty
+            ? 'Всплеск действий: нет зарядов до короткого или продолжительного отдыха'
+            : `+1 действие (Всплеск) · само умение отметку хода не тратит · осталось ${actionSurge.remaining}/${actionSurge.max}`
+        }
+        onClick={() => {
+          if (actionSurge.remaining <= 0) return
+          actionSurge.onSpend()
+        }}
+      >
+        {empty ? (
+          <span className="sheet-chip__check" aria-hidden>
+            ✓
+          </span>
+        ) : null}
+        +1 действие (Всплеск)
+        {actionSurge.max > 0 ? (
+          <span className="play-desk-turn-actions__charges" aria-hidden>
+            {actionSurge.remaining}/{actionSurge.max}
+          </span>
+        ) : null}
       </button>,
     )
   }
@@ -1814,7 +1905,7 @@ export function TurnEconomyCombatActions({
     push(
       'extra_action',
       ['action'],
-      'personal',
+      'info',
       <span
         key="extra_action"
         className="sheet-chip is-on"

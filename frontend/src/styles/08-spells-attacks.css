@@ -814,17 +814,25 @@ button.spells-settings__derived-stat--btn:hover {
   opacity: 0.5;
 }
 
+.play-desk-turn-actions.chip-row {
+  /* Root must not inherit global .chip-row margin — that left empty space under the panel. */
+  margin-bottom: 0;
+}
+
 .play-desk-turn-actions__panel {
   display: grid;
-  gap: 6px;
-  padding: 8px 10px 10px;
+  gap: 4px;
+  padding: 6px 8px;
   border: 1px solid var(--desk-line, var(--line));
   border-radius: 10px;
   background: color-mix(in srgb, var(--desk-card, var(--card)) 88%, transparent);
 }
 
-.play-desk-turn-actions__chips {
+/* Beat global .chip-row { margin-bottom: 8px } — no empty gap under chips. */
+.play-desk-turn-actions__chips,
+.play-desk-turn-actions__info {
   flex-wrap: wrap;
+  margin-bottom: 0;
 }
 
 .play-desk-turn-actions__empty {
@@ -852,6 +860,12 @@ button.spells-settings__derived-stat--btn:hover {
 
 .play-desk-turn-actions__info .sheet-chip.is-stub {
   cursor: default;
+}
+
+.play-desk-turn-actions__charges {
+  margin-left: 2px;
+  font-size: 0.78em;
+  opacity: 0.85;
 }
 
 .play-desk-turn-marks {

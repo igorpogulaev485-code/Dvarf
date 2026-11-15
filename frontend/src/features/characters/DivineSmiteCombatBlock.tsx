@@ -1,10 +1,13 @@
 import { canSpendSlot, clampSlot } from '../../shared/dnd/spells'
 import type { FeatureSlotSpendDef } from '../../shared/dnd/classFeatures'
-import type { SpellSlotState } from '../../shared/dnd/spells'
+import type { PactSlotState, SpellSlotState } from '../../shared/dnd/spells'
+import { IconUndeadFiend } from './attackIcons'
 import {
   divineSmiteDice,
+  divineSmitePactOffer,
   divineSmitePresentLevels,
   type DivineSmiteIntent,
+  type DivineSmiteSlotSource,
 } from './divineSmite'
 
 type OpenStrikeView = {
@@ -19,23 +22,26 @@ type OpenStrikeView = {
 type DivineSmiteCombatBlockProps = {
   spend: FeatureSlotSpendDef
   slots: Record<string, SpellSlotState>
+  /** Warlock pact magic — offered as a separate circle when remaining > 0. */
+  pactSlots?: PactSlotState | null
   intent: DivineSmiteIntent
   openStrike: OpenStrikeView
   /** Confirm mode = after a melee hit; arm mode = pick circle early. */
   mode: 'arm' | 'confirm'
   onIntent: (next: DivineSmiteIntent) => void
-  onSlotClick: (slotLevel: number) => void
+  onSlotClick: (slotLevel: number, source?: DivineSmiteSlotSource) => void
   onMiss: () => void
   onClose?: () => void
 }
 
 /**
- * CMB-02: compact circle strip under a melee weapon row.
+ * CMB-02/04: compact circle strip under a melee weapon row.
  * No permanent banner — only while the smite control is open.
  */
 export function DivineSmiteCombatBlock({
   spend,
   slots,
+  pactSlots = null,
   intent,
   openStrike,
   mode,
@@ -45,8 +51,10 @@ export function DivineSmiteCombatBlock({
   onClose,
 }: DivineSmiteCombatBlockProps) {
   const levels = divineSmitePresentLevels(spend, slots)
+  const pact = divineSmitePactOffer(pactSlots)
   const confirm = mode === 'confirm' && Boolean(openStrike?.melee)
   const applied = Boolean(openStrike?.melee && openStrike.smiteApplied)
+  const source: DivineSmiteSlotSource = intent.slotSource === 'pact' ? 'pact' : 'spell'
 
   return (
     <section
@@ -78,7 +86,7 @@ export function DivineSmiteCombatBlock({
                 vsUndeadOrFiend: intent.vsUndeadOrFiend,
               })
               const available = canSpendSlot(slots, level)
-              const armed = intent.slotLevel === level
+              const armed = intent.slotLevel === level && source === 'spell'
               const title = available
                 ? intent.vsUndeadOrFiend
                   ? `Ячейка ${level}: ${dice.slotDice}к${dice.diceSize} от круга и +1к8 против нежити или исчадия · осталось ${remaining}`
@@ -86,13 +94,13 @@ export function DivineSmiteCombatBlock({
                 : `Нет ячейки ${level} круга`
               return (
                 <button
-                  key={level}
+                  key={`spell-${level}`}
                   type="button"
                   className={`sheet-chip play-desk-smite__slot${armed ? ' is-on' : ''}`}
                   disabled={!available || (confirm && Boolean(openStrike?.smiteApplied))}
                   aria-pressed={armed}
                   title={title}
-                  onClick={() => onSlotClick(level)}
+                  onClick={() => onSlotClick(level, 'spell')}
                 >
                   <span className="play-desk-smite__slot-label">
                     {level} · {dice.formulaRu}
@@ -115,20 +123,68 @@ export function DivineSmiteCombatBlock({
               )
             })
           : null}
+        {!applied && pact
+          ? (() => {
+              const dice = divineSmiteDice({
+                spend,
+                slotLevel: pact.level,
+                vsUndeadOrFiend: intent.vsUndeadOrFiend,
+              })
+              const armed = intent.slotLevel === pact.level && source === 'pact'
+              const title = intent.vsUndeadOrFiend
+                ? `Договор ${pact.level} круга: ${dice.slotDice}к${dice.diceSize} от круга и +1к8 против нежити или исчадия · осталось ${pact.remaining}`
+                : `Договор ${pact.level} круга: ${dice.formulaRu} излучением · осталось ${pact.remaining}`
+              return (
+                <button
+                  key="pact"
+                  type="button"
+                  className={`sheet-chip play-desk-smite__slot play-desk-smite__slot--pact${
+                    armed ? ' is-on' : ''
+                  }`}
+                  disabled={confirm && Boolean(openStrike?.smiteApplied)}
+                  aria-pressed={armed}
+                  title={title}
+                  onClick={() => onSlotClick(pact.level, 'pact')}
+                >
+                  <span className="play-desk-smite__slot-label">
+                    Договор {pact.level} круга · {dice.formulaRu}
+                  </span>
+                  <span
+                    className="play-desk-smite__pips"
+                    aria-hidden="true"
+                    title={`${pact.remaining}/${pact.max}`}
+                  >
+                    {Array.from({ length: pact.max }, (_, index) => (
+                      <span
+                        key={index}
+                        className={`ui-resource-pip play-desk__pip play-desk-smite__pip${
+                          index < pact.remaining ? ' is-on' : ''
+                        }`}
+                      />
+                    ))}
+                  </span>
+                </button>
+              )
+            })()
+          : null}
         {!applied ? (
           <button
             type="button"
-            className={`sheet-chip${intent.vsUndeadOrFiend ? ' is-on' : ''}`}
+            className={`sheet-chip play-desk-smite__undead${
+              intent.vsUndeadOrFiend ? ' is-on' : ''
+            }`}
             aria-pressed={intent.vsUndeadOrFiend}
-            title="Ещё 1к8 излучением сверх потолка ячейки"
+            title="нежить / исчадие · ещё +1к8 излучением сверх потолка ячейки"
             onClick={() =>
               onIntent({
                 slotLevel: intent.slotLevel,
+                slotSource: intent.slotSource,
                 vsUndeadOrFiend: !intent.vsUndeadOrFiend,
               })
             }
           >
-            нежить / исчадие
+            <IconUndeadFiend className="play-desk-smite__undead-icon" />
+            <span>+1к8</span>
           </button>
         ) : null}
         {confirm && !applied ? (
@@ -152,7 +208,7 @@ export function DivineSmiteCombatBlock({
           </button>
         ) : null}
       </div>
-      {levels.length === 0 ? (
+      {levels.length === 0 && !pact ? (
         <p className="play-desk-smite__note">Нет ячеек для кары</p>
       ) : null}
     </section>

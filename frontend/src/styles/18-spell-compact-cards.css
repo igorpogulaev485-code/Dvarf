@@ -727,13 +727,14 @@ button.play-desk-compact__more--btn:hover {
   border-radius: 10px;
 }
 
-/* Desktop: keep prompt + circles + undead + miss on one row. */
+/* CMB-04: wrap inside the card when the strip does not fit (~460 px column). */
 .play-desk-smite__row {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   min-width: 0;
+  max-width: 100%;
 }
 
 .play-desk-smite__prompt {
@@ -792,11 +793,38 @@ button.play-desk-compact__more--btn:hover {
   cursor: default;
 }
 
+/* Compact undead/fiend toggle: icon + +1к8; full label lives in title. */
+.play-desk-smite__undead {
+  flex: 0 0 auto;
+  gap: 4px;
+  min-height: 32px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.play-desk-smite__undead-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+.play-desk-smite__miss,
 .play-desk-smite__collapse {
   flex: 0 0 auto;
   min-height: 32px;
   padding: 4px 8px;
   font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.play-desk-smite__nat1 {
+  margin: 0 0 8px;
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+  opacity: 0.85;
 }
 
 .play-desk-compact__attack-block {

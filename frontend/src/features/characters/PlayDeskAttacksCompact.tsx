@@ -176,8 +176,14 @@ import {
   type ActiveEffect,
 } from '../../shared/dnd/activeEffects'
 import { resolveWeaponGrip } from './heldEquip'
-import { canSpendSlot, spendSpellSlot } from '../../shared/dnd/spells'
+import {
+  canSpendPactSlot,
+  canSpendSlot,
+  spendPactSlot,
+  spendSpellSlot,
+} from '../../shared/dnd/spells'
 import type { SpellsState } from './spells'
+import { resolveB04FeatureSpend } from './b04FeatureSpend'
 import {
   divineStrikeRider,
   improvedDivineSmiteRider,
@@ -202,6 +208,7 @@ import {
   resolveSmiteAfterAttack,
   rollDivineSmiteExtra,
   type DivineSmiteIntent,
+  type DivineSmiteSlotSource,
 } from './divineSmite'
 import {
   effectiveMartialArtsDamage,
@@ -318,6 +325,15 @@ type PlayDeskAttacksCompactProps = {
   hpTemp?: number
   /** Fired when a combat feature chip is toggled (e.g. Reckless → advantage). */
   onCombatFeatureToggle?: (featureId: string, active: boolean) => void
+  /**
+   * CMB-04: same hook as ClassFeaturesPanel — Second Wind heal / Action Surge side effects.
+   */
+  onFeatureBuffApply?: (input: {
+    featureId: string
+    featureNameRu: string
+    classEntryId: string
+    classLevel: number
+  }) => void
   onToggleHeld?: (attack: WeaponAttack) => void
   onToggleActivation?: (attack: WeaponAttack) => void
   onSpendResource?: (id: string) => void
@@ -481,6 +497,7 @@ export function PlayDeskAttacksCompact({
   onDivineSmiteIntent,
   hpTemp = 0,
   onCombatFeatureToggle,
+  onFeatureBuffApply,
   onToggleHeld,
   onToggleActivation,
   onSpendResource,
@@ -877,6 +894,8 @@ export function PlayDeskAttacksCompact({
   } | null>(null)
   /** CMB-02: arm-strip open under a melee row before the roll. */
   const [smiteArmAttackId, setSmiteArmAttackId] = useState<string | null>(null)
+  /** CMB-04: muted «Промах (нат. 1)» mark under the weapon that rolled a natural 1. */
+  const [smiteNat1AttackId, setSmiteNat1AttackId] = useState<string | null>(null)
   const smiteApplyLock = useRef(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [logOpen, setLogOpen] = useState(false)
@@ -919,7 +938,25 @@ export function PlayDeskAttacksCompact({
     'cunning_action',
     'uncanny_dodge',
     'ki_fueled_attack',
+    'second_wind',
+    'action_surge',
   ])
+  const secondWindFeature = combatFeatures.find((f) => f.id === 'second_wind')
+  const actionSurgeFeature = combatFeatures.find((f) => f.id === 'action_surge')
+  const secondWindPool = resources.find(
+    (row) =>
+      row.id === 'feat:second_wind' ||
+      row.id.includes(':second_wind:') ||
+      /:second_wind$/i.test(row.id) ||
+      /второе дыхание/i.test(row.name),
+  )
+  const actionSurgePool = resources.find(
+    (row) =>
+      row.id === 'feat:action_surge' ||
+      row.id.includes(':action_surge:') ||
+      /:action_surge$/i.test(row.id) ||
+      /всплеск действий/i.test(row.name),
+  )
   const deskCombatFeatures = combatFeatures.filter(
     (row) =>
       row.desk === 'combat' &&
@@ -975,18 +1012,29 @@ export function PlayDeskAttacksCompact({
   }, [inventoryItems, favoriteConsumableIds])
   const restoreableLogCount = consumableSpendLog.filter((row) => !row.undone).length
 
-  const applySmiteSlot = (slotLevel: number) => {
+  const applySmiteSlot = (
+    slotLevel: number,
+    slotSource: DivineSmiteSlotSource = 'spell',
+  ) => {
     if (!smiteSpend) return
+    const slotAvailable =
+      slotSource === 'pact'
+        ? Boolean(spells && canSpendPactSlot(spells.pact_slots, slotLevel))
+        : Boolean(spells && canSpendSlot(spells.slots, slotLevel))
+    const armedSameSource =
+      (smiteIntent.slotSource ?? 'spell') === slotSource ? smiteIntent.slotLevel : null
     const decision = decideSmiteSlotClick({
       slotLevel,
-      armedSlot: smiteIntent.slotLevel,
+      armedSlot: armedSameSource,
       open: openStrike,
-      slotAvailable: spells ? canSpendSlot(spells.slots, slotLevel) : false,
+      slotAvailable,
     })
     if (decision.action === 'refuse') {
       const reason =
         decision.reason === 'no_slot'
-          ? `Нет ячейки ${slotLevel} ур. Ячейка не списана.`
+          ? slotSource === 'pact'
+            ? `Нет ячейки договора. Ячейка не списана.`
+            : `Нет ячейки ${slotLevel} ур. Ячейка не списана.`
           : decision.reason === 'ranged'
             ? 'Дальняя атака не получает кару. Ячейка не списана.'
             : 'На это попадание кара уже добавлена. Ячейка не списана.'
@@ -995,13 +1043,18 @@ export function PlayDeskAttacksCompact({
       return
     }
     if (decision.action === 'disarm') {
-      setSmiteIntent({ slotLevel: null, vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend })
+      setSmiteIntent({
+        slotLevel: null,
+        slotSource: 'spell',
+        vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
+      })
       onToast?.('Круг снят. Ячейка не списана.')
       return
     }
     if (decision.action === 'arm') {
       setSmiteIntent({
         slotLevel: decision.slotLevel,
+        slotSource,
         vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
       })
       const dice = divineSmiteDice({
@@ -1010,7 +1063,9 @@ export function PlayDeskAttacksCompact({
         vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
       })
       onToast?.(
-        `Круг ${decision.slotLevel} выбран (${dice.formulaRu}). Ячейка не списана — спишется, если подтвердишь попадание.`,
+        slotSource === 'pact'
+          ? `Договор ${decision.slotLevel} круга выбран (${dice.formulaRu}). Ячейка не списана — спишется, если подтвердишь попадание.`
+          : `Круг ${decision.slotLevel} выбран (${dice.formulaRu}). Ячейка не списана — спишется, если подтвердишь попадание.`,
       )
       return
     }
@@ -1023,6 +1078,45 @@ export function PlayDeskAttacksCompact({
       return
     }
     smiteApplyLock.current = true
+    if (slotSource === 'pact') {
+      if (!spells.pact_slots) {
+        smiteApplyLock.current = false
+        onToast?.('Нет ячейки договора. Ячейка не списана.')
+        return
+      }
+      const spentPact = spendPactSlot(spells.pact_slots)
+      if (!spentPact.ok) {
+        smiteApplyLock.current = false
+        onToast?.('Нет ячейки договора. Ячейка не списана.')
+        return
+      }
+      const rolled = rollDivineSmiteExtra({
+        spend: smiteSpend,
+        slotLevel,
+        vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
+        crit: openStrike.crit,
+      })
+      if (!rolled) {
+        smiteApplyLock.current = false
+        onToast?.('Не удалось бросить кару. Ячейка не списана.')
+        return
+      }
+      onSpellsChange({ ...spells, pact_slots: spentPact.pact })
+      const text = `${openStrike.text}${rolled.line}`
+      onToast?.(text)
+      setOpenStrike({
+        ...openStrike,
+        smiteApplied: true,
+        text,
+        radiantChip: rolled.chip,
+      })
+      setSmiteIntent({
+        slotLevel: null,
+        slotSource: 'spell',
+        vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
+      })
+      return
+    }
     const spent = spendSpellSlot(spells.slots, decision.slotLevel)
     if (!spent.ok) {
       smiteApplyLock.current = false
@@ -1049,7 +1143,11 @@ export function PlayDeskAttacksCompact({
       text,
       radiantChip: rolled.chip,
     })
-    setSmiteIntent({ slotLevel: null, vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend })
+    setSmiteIntent({
+      slotLevel: null,
+      slotSource: 'spell',
+      vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
+    })
   }
 
   const markSmiteMiss = () => {
@@ -1058,6 +1156,7 @@ export function PlayDeskAttacksCompact({
     onToast?.(`Промах${name}: ячейка не списана.`)
     setOpenStrike(null)
     setSmiteArmAttackId(null)
+    setSmiteNat1AttackId(null)
   }
 
   const targetModifiersValue: TargetModifiersValue = {
@@ -1164,6 +1263,58 @@ export function PlayDeskAttacksCompact({
             hasSteadyAim={combatFeatures.some((f) => f.id === 'steady_aim')}
             hasKiFueledAttack={combatFeatures.some((f) => f.id === 'ki_fueled_attack')}
             hasUncannyDodge={combatFeatures.some((f) => f.id === 'uncanny_dodge')}
+            secondWind={
+              secondWindPool && (secondWindFeature || secondWindPool)
+                ? {
+                    remaining: resourceShownCurrent(secondWindPool),
+                    max: secondWindPool.max,
+                    onSpend: () => {
+                      if (!turnEco || !secondWindPool) return
+                      if (resourceShownCurrent(secondWindPool) <= 0) return
+                      if (!turnEco.canFeature('bonus').ok) return
+                      onSpendResource?.(secondWindPool.id)
+                      turnEco.spendFeature('bonus')
+                      const feature = secondWindFeature
+                      if (feature && onFeatureBuffApply) {
+                        onFeatureBuffApply({
+                          featureId: feature.id,
+                          featureNameRu: feature.name_ru || 'Второе дыхание',
+                          classEntryId: feature.classEntryId,
+                          classLevel: feature.classLevel,
+                        })
+                      } else {
+                        const heal = resolveB04FeatureSpend({
+                          featureId: 'second_wind',
+                          featureNameRu: 'Второе дыхание',
+                          classEntryId: feature?.classEntryId || 'fighter',
+                          classLevel: feature?.classLevel || 1,
+                        })
+                        if (heal.kind === 'heal') onToast?.(heal.label)
+                        else onToast?.('Второе дыхание')
+                      }
+                    },
+                  }
+                : null
+            }
+            actionSurge={
+              actionSurgePool && (actionSurgeFeature || actionSurgePool)
+                ? {
+                    remaining: resourceShownCurrent(actionSurgePool),
+                    max: actionSurgePool.max,
+                    onSpend: () => {
+                      if (!turnEco || !actionSurgePool) return
+                      if (resourceShownCurrent(actionSurgePool) <= 0) return
+                      onSpendResource?.(actionSurgePool.id)
+                      turnEco.grantActionSurge()
+                      onToast?.(
+                        actionSurgeFeature
+                          ? `${actionSurgeFeature.name_ru}: +1 дополнительное действие`
+                          : 'Всплеск действий: +1 дополнительное действие',
+                      )
+                    },
+                  }
+                : null
+            }
             hasInterception={hasInterception}
             hasBlindFighting={hasBlindFighting}
             hasChainMaster={hasChainMaster}
@@ -3112,11 +3263,15 @@ export function PlayDeskAttacksCompact({
                         setOpenStrike(null)
                         setSmiteArmAttackId(null)
                         if (opts?.naturalDie === 1) {
+                          setSmiteNat1AttackId(attack.id)
                           onToast?.(
                             `Натуральная 1 · «${attack.name}»: промах · кара не предлагается · ячейка не списана`,
                           )
+                        } else {
+                          setSmiteNat1AttackId(null)
                         }
                       } else if (smiteSpend && meleeAttack && smiteGate.offer) {
+                        setSmiteNat1AttackId(null)
                         setOpenStrike({
                           name: attack.name,
                           attackId: attack.id,
@@ -3128,6 +3283,7 @@ export function PlayDeskAttacksCompact({
                         setSmiteArmAttackId(null)
                       } else {
                         setOpenStrike(null)
+                        setSmiteNat1AttackId(null)
                       }
                     }
 
@@ -3443,6 +3599,7 @@ export function PlayDeskAttacksCompact({
                         aria-pressed={smiteStripOpen}
                         onClick={() => {
                           if (smiteConfirmOpen) return
+                          setSmiteNat1AttackId(null)
                           setSmiteArmAttackId((prev) =>
                             prev === attack.id ? null : attack.id,
                           )
@@ -3620,10 +3777,16 @@ export function PlayDeskAttacksCompact({
                   ) : null}
                 </div>
               </div>
+              {smiteNat1AttackId === attack.id && smiteSpend && !smiteStripOpen ? (
+                <p className="play-desk-smite__nat1" title="Натуральная 1 — промах, ячейка не списана">
+                  Промах (нат. 1)
+                </p>
+              ) : null}
               {smiteStripOpen && smiteSpend ? (
                 <DivineSmiteCombatBlock
                   spend={smiteSpend}
                   slots={spells?.slots ?? {}}
+                  pactSlots={spells?.pact_slots ?? null}
                   intent={smiteIntent}
                   openStrike={
                     openStrike && openStrike.attackId === attack.id
