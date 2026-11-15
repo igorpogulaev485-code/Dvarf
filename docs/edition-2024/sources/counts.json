@@ -1,6 +1,6 @@
 {
   "by_category": {
-    "species": 25,
+    "species": 26,
     "classes": 13,
     "subclasses": 76,
     "backgrounds": 70,
@@ -17,7 +17,7 @@
   "by_category_book": {
     "species": {
       "EFA": 5,
-      "LFL": 6,
+      "LFL": 7,
       "PH24": 10,
       "RTW": 4
     },
@@ -63,7 +63,8 @@
       "PH24": 13
     },
     "equipment": {
-      "PH24": 136
+      "FRHoF": 12,
+      "PH24": 124
     },
     "magic_items": {
       "AU": 47,
@@ -94,6 +95,7 @@
   "generated": "2026-11-15",
   "notes": [
     "DDBD (Dragon Delves): 0 записей на обоих сайтах на дату опроса.",
-    "bastions: 0 — разделы пусты/недоступны (см. gaps.md)."
+    "bastions: 0 — разделы пусты/недоступны (см. gaps.md).",
+    "Доправка: url_ttg суффикс ↔ книга; elf-phb; EFA без UAEU-ссылок; elf__lfl с ttg."
   ]
 }

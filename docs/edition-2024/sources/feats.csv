@@ -44,33 +44,33 @@ spell-subterfuge,Spell Subterfuge,Хитрый заклинатель,AU,feats,h
 transmutation-adept,Transmutation Adept,Адепт Преобразования,AU,feats,https://next.dnd.su/feats/527-transmutation-adept,https://new.ttg.club/feats/transmutation-adept-au,false,general,Универсальная черта
 transmuted-anatomy,Transmuted Anatomy,Преобразованная анатомия,AU,feats,https://next.dnd.su/feats/518-transmuted-anatomy,https://new.ttg.club/feats/transmuted-anatomy-au,false,origin,Черта происхождения
 warlike-familiar,Warlike Familiar,Воинственный фамильяр,AU,feats,https://next.dnd.su/feats/533-warlike-familiar,https://new.ttg.club/feats/warlike-familiar-au,false,general,Универсальная черта
-aberrant-dragonmark,Aberrant Dragonmark,Аберрантная метка,EFA,feats,https://next.dnd.su/feats/439-aberrant-dragonmark,https://new.ttg.club/feats/aberrant-dragonmark-uaeu,false,dragonmark,Драконья метка
-boon-of-siberys,Boon of Siberys,Дар Сибериса,EFA,feats,https://next.dnd.su/feats/466-boon-of-siberys,https://new.ttg.club/feats/boon-of-siberys-uaeu,false,epic_boon,Эпический дар
-greater-aberrant-mark,Greater Aberrant Mark,Старшая аберрантная метка,EFA,feats,https://next.dnd.su/feats/452-greater-aberrant-mark,https://new.ttg.club/feats/greater-aberrant-mark-uaeu,false,general,Универсальная черта
+aberrant-dragonmark,Aberrant Dragonmark,Аберрантная метка,EFA,feats,https://next.dnd.su/feats/439-aberrant-dragonmark,,false,dragonmark,Драконья метка
+boon-of-siberys,Boon of Siberys,Дар Сибериса,EFA,feats,https://next.dnd.su/feats/466-boon-of-siberys,,false,epic_boon,Эпический дар
+greater-aberrant-mark,Greater Aberrant Mark,Старшая аберрантная метка,EFA,feats,https://next.dnd.su/feats/452-greater-aberrant-mark,,false,general,Универсальная черта
 greater-mark-of-detection,Greater Mark of Detection,Старшая метка обнаружения,EFA,feats,https://next.dnd.su/feats/453-greater-mark-of-detection,https://new.ttg.club/feats/greater-mark-of-detection-efa,false,general,Универсальная черта
 greater-mark-of-finding,Greater Mark of Finding,Старшая метка поиска,EFA,feats,https://next.dnd.su/feats/454-greater-mark-of-finding,https://new.ttg.club/feats/greater-mark-of-finding-efa,false,general,Универсальная черта
-greater-mark-of-handling,Greater Mark of Handling,Старшая метка обхождения,EFA,feats,https://next.dnd.su/feats/455-greater-mark-of-handling,https://new.ttg.club/feats/greater-mark-of-handling-uaeu,false,general,Универсальная черта
+greater-mark-of-handling,Greater Mark of Handling,Старшая метка обхождения,EFA,feats,https://next.dnd.su/feats/455-greater-mark-of-handling,,false,general,Универсальная черта
 greater-mark-of-healing,Greater Mark of Healing,Старшая метка исцеления,EFA,feats,https://next.dnd.su/feats/456-greater-mark-of-healing,https://new.ttg.club/feats/greater-mark-of-healing-efa,false,general,Универсальная черта
 greater-mark-of-hospitality,Greater Mark of Hospitality,Старшая метка гостеприимства,EFA,feats,https://next.dnd.su/feats/457-greater-mark-of-hospitality,https://new.ttg.club/feats/greater-mark-of-hospitality-efa,false,general,Универсальная черта
 greater-mark-of-making,Greater Mark of Making,Старшая метка создания,EFA,feats,https://next.dnd.su/feats/458-greater-mark-of-making,https://new.ttg.club/feats/greater-mark-of-making-efa,false,general,Универсальная черта
-greater-mark-of-passage,Greater Mark of Passage,Старшая метка прохода,EFA,feats,https://next.dnd.su/feats/459-greater-mark-of-passage,https://new.ttg.club/feats/greater-mark-of-passage-uaeu,false,general,Универсальная черта
+greater-mark-of-passage,Greater Mark of Passage,Старшая метка прохода,EFA,feats,https://next.dnd.su/feats/459-greater-mark-of-passage,,false,general,Универсальная черта
 greater-mark-of-scribing,Greater Mark of Scribing,Старшая метка письма,EFA,feats,https://next.dnd.su/feats/460-greater-mark-of-scribing,https://new.ttg.club/feats/greater-mark-of-scribing-efa,false,general,Универсальная черта
 greater-mark-of-sentinel,Greater Mark of Sentinel,Старшая метка стража,EFA,feats,https://next.dnd.su/feats/461-greater-mark-of-sentinel,https://new.ttg.club/feats/greater-mark-of-sentinel-efa,false,general,Универсальная черта
-greater-mark-of-shadow,Greater Mark of Shadow,Старшая метка тени,EFA,feats,https://next.dnd.su/feats/462-greater-mark-of-shadow,https://new.ttg.club/feats/greater-mark-of-shadow-uaeu,false,general,Универсальная черта
-greater-mark-of-storm,Greater Mark of Storm,Старшая метка бури,EFA,feats,https://next.dnd.su/feats/463-greater-mark-of-storm,https://new.ttg.club/feats/greater-mark-of-storm-uaeu,false,general,Универсальная черта
+greater-mark-of-shadow,Greater Mark of Shadow,Старшая метка тени,EFA,feats,https://next.dnd.su/feats/462-greater-mark-of-shadow,,false,general,Универсальная черта
+greater-mark-of-storm,Greater Mark of Storm,Старшая метка бури,EFA,feats,https://next.dnd.su/feats/463-greater-mark-of-storm,,false,general,Универсальная черта
 greater-mark-of-warding,Greater Mark of Warding,Старшая метка охранения,EFA,feats,https://next.dnd.su/feats/464-greater-mark-of-warding,https://new.ttg.club/feats/greater-mark-of-warding-efa,false,general,Универсальная черта
-mark-of-detection,Mark of Detection,Метка обнаружения,EFA,feats,https://next.dnd.su/feats/440-mark-of-detection,https://new.ttg.club/feats/mark-of-detection-uaeu,false,dragonmark,Драконья метка
+mark-of-detection,Mark of Detection,Метка обнаружения,EFA,feats,https://next.dnd.su/feats/440-mark-of-detection,,false,dragonmark,Драконья метка
 mark-of-finding,Mark of Finding,Метка поиска,EFA,feats,https://next.dnd.su/feats/441-mark-of-finding,https://new.ttg.club/feats/mark-of-finding-efa,false,dragonmark,Драконья метка
 mark-of-handling,Mark of Handling,Метка обхождения,EFA,feats,https://next.dnd.su/feats/442-mark-of-handling,https://new.ttg.club/feats/mark-of-handling-efa,false,dragonmark,Драконья метка
 mark-of-healing,Mark of Healing,Метка исцеления,EFA,feats,https://next.dnd.su/feats/443-mark-of-healing,https://new.ttg.club/feats/mark-of-healing-efa,false,dragonmark,Драконья метка
-mark-of-hospitality,Mark of Hospitality,Метка гостеприимства,EFA,feats,https://next.dnd.su/feats/444-mark-of-hospitality,https://new.ttg.club/feats/mark-of-hospitality-uaeu,false,dragonmark,Драконья метка
+mark-of-hospitality,Mark of Hospitality,Метка гостеприимства,EFA,feats,https://next.dnd.su/feats/444-mark-of-hospitality,,false,dragonmark,Драконья метка
 mark-of-making,Mark of Making,Метка создания,EFA,feats,https://next.dnd.su/feats/445-mark-of-making,https://new.ttg.club/feats/mark-of-making-efa,false,dragonmark,Драконья метка
-mark-of-passage,Mark of Passage,Метка прохода,EFA,feats,https://next.dnd.su/feats/446-mark-of-passage,https://new.ttg.club/feats/mark-of-passage-uaeu,false,dragonmark,Драконья метка
+mark-of-passage,Mark of Passage,Метка прохода,EFA,feats,https://next.dnd.su/feats/446-mark-of-passage,,false,dragonmark,Драконья метка
 mark-of-scribing,Mark of Scribing,Метка письма,EFA,feats,https://next.dnd.su/feats/447-mark-of-scribing,https://new.ttg.club/feats/mark-of-scribing-efa,false,dragonmark,Драконья метка
-mark-of-sentinel,Mark of Sentinel,Метка стража,EFA,feats,https://next.dnd.su/feats/448-mark-of-sentinel,https://new.ttg.club/feats/mark-of-sentinel-uaeu,false,dragonmark,Драконья метка
-mark-of-shadow,Mark of Shadow,Метка тени,EFA,feats,https://next.dnd.su/feats/449-mark-of-shadow,https://new.ttg.club/feats/mark-of-shadow-uaeu,false,dragonmark,Драконья метка
-mark-of-storm,Mark of Storm,Метка бури,EFA,feats,https://next.dnd.su/feats/450-mark-of-storm,https://new.ttg.club/feats/mark-of-storm-uaeu,false,dragonmark,Драконья метка
-mark-of-warding,Mark of Warding,Метка охранения,EFA,feats,https://next.dnd.su/feats/451-mark-of-warding,https://new.ttg.club/feats/mark-of-warding-uaeu,false,dragonmark,Драконья метка
+mark-of-sentinel,Mark of Sentinel,Метка стража,EFA,feats,https://next.dnd.su/feats/448-mark-of-sentinel,,false,dragonmark,Драконья метка
+mark-of-shadow,Mark of Shadow,Метка тени,EFA,feats,https://next.dnd.su/feats/449-mark-of-shadow,,false,dragonmark,Драконья метка
+mark-of-storm,Mark of Storm,Метка бури,EFA,feats,https://next.dnd.su/feats/450-mark-of-storm,,false,dragonmark,Драконья метка
+mark-of-warding,Mark of Warding,Метка охранения,EFA,feats,https://next.dnd.su/feats/451-mark-of-warding,,false,dragonmark,Драконья метка
 potent-dragonmark,Potent Dragonmark,Могущественная драконья метка,EFA,feats,https://next.dnd.su/feats/465-potent-dragonmark,https://new.ttg.club/feats/potent-dragonmark-efa,false,general,Универсальная черта
 boon-of-bloodshed,Boon of Bloodshed,Дар кровопролития,FRHoF,feats,https://next.dnd.su/feats/406-boon-of-bloodshed,https://new.ttg.club/feats/boon-of-bloodshed-frhof,false,epic_boon,Эпический дар
 boon-of-bountiful-health,Boon of Bountiful Health,Дар изобильного здоровья,FRHoF,feats,https://next.dnd.su/feats/419-boon-of-bountiful-health,https://new.ttg.club/feats/boon-of-bountiful-health-frhof,false,epic_boon,Эпический дар

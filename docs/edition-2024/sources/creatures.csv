@@ -553,7 +553,7 @@ weretiger,Weretiger,Вертигр,MM24,creatures,https://next.dnd.su/bestiary/2
 werewolf,Werewolf,Верволк,MM24,creatures,https://next.dnd.su/bestiary/21625-werewolf,https://new.ttg.club/bestiary/werewolf-mm,true,Чудовище
 white-dragon-wyrmling,White Dragon Wyrmling,Вирмлинг белого дракона,MM24,creatures,https://next.dnd.su/bestiary/21626-white-dragon-wyrmling,https://new.ttg.club/bestiary/white-dragon-wyrmling-mm,true,Дракон
 wight,Wight,Умертвие,MM24,creatures,https://next.dnd.su/bestiary/21627-wight,https://new.ttg.club/bestiary/wight-mm,true,Нежить
-will-o-wisp,Will-o’-Wisp,Блуждающий огонёк,MM24,creatures,https://next.dnd.su/bestiary/21628-will-o-wisp,https://new.ttg.club/bestiary/will-o-wisp-dmg,true,Нежить
+will-o-wisp,Will-o’-Wisp,Блуждающий огонёк,MM24,creatures,https://next.dnd.su/bestiary/21628-will-o-wisp,,true,Нежить
 winged-kobold,Winged Kobold,Крылатый кобольд,MM24,creatures,https://next.dnd.su/bestiary/21629-winged-kobold,https://new.ttg.club/bestiary/winged-kobold-mm,false,Дракон
 winter-wolf,Winter Wolf,Полярный волк,MM24,creatures,https://next.dnd.su/bestiary/21630-winter-wolf,https://new.ttg.club/bestiary/winter-wolf-mm,true,Чудовище
 wolf,Wolf,Волк,MM24,creatures,https://next.dnd.su/bestiary/21631-wolf,https://new.ttg.club/bestiary/wolf-mm,true,Зверь
@@ -582,9 +582,9 @@ yuan-ti-malison-type-3,Yuan-ti Malison (Type 3),Юань-ти проклинат
 zombie,Zombie,Зомби,MM24,creatures,https://next.dnd.su/bestiary/21654-zombie,https://new.ttg.club/bestiary/zombie-mm,true,Нежить
 caldron-magen,Caldron Magen,Маген-котельник,NsF,creatures,https://next.dnd.su/bestiary/27186-caldron-magen,https://new.ttg.club/bestiary/caldron-magen-nf,false,Конструкт
 eldritch-eddy,Eldritch Eddy,Магический вихрь,NsF,creatures,https://next.dnd.su/bestiary/27185-eldritch-eddy,https://new.ttg.club/bestiary/eldritch-eddy-nf,false,Конструкт
-phaerimm-agent,Phaerimm Agent,Фаэримм-агент,NsF,creatures,https://next.dnd.su/bestiary/27191-phaerimm-agent,https://new.ttg.club/bestiary/phaerimm-agent-fraif,false,Аберрация
+phaerimm-agent,Phaerimm Agent,Фаэримм-агент,NsF,creatures,https://next.dnd.su/bestiary/27191-phaerimm-agent,,false,Аберрация
 phaerimm-elder,Phaerimm Elder,Фаэримм-старейшина,NsF,creatures,https://next.dnd.su/bestiary/27192-phaerimm-elder,https://new.ttg.club/bestiary/phaerimm-elder-nf,false,Аберрация
-phaerimm-hatchling,Phaerimm Hatchling,Фаэримм-детёныш,NsF,creatures,https://next.dnd.su/bestiary/27189-phaerimm-hatchling,https://new.ttg.club/bestiary/phaerimm-hatchling-fraif,false,Аберрация
+phaerimm-hatchling,Phaerimm Hatchling,Фаэримм-детёныш,NsF,creatures,https://next.dnd.su/bestiary/27189-phaerimm-hatchling,,false,Аберрация
 phaerimm-scout,Phaerimm Scout,Фаэримм-разведчик,NsF,creatures,https://next.dnd.su/bestiary/27190-phaerimm-scout,https://new.ttg.club/bestiary/phaerimm-scout-nf,false,Аберрация
 terran-magen,Terran Magen,Маген-земельник,NsF,creatures,https://next.dnd.su/bestiary/27187-terran-magen,https://new.ttg.club/bestiary/terran-magen-nf,false,Конструкт
 virvos-magen,Virvos Magen,Маген-морочник,NsF,creatures,https://next.dnd.su/bestiary/27188-virvos-magen,,false,Конструкт

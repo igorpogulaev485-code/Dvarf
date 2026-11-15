@@ -366,7 +366,7 @@ potion-of-superior-healing,Potion of Superior Healing,Зелье отлично�
 potion-of-supreme-healing,Potion of Supreme Healing,Зелье превосходного лечения,DMG24,magic_items,https://next.dnd.su/items/16525-potion-of-supreme-healing,https://new.ttg.club/magic-items/potion-of-supreme-healing-dmg,false
 potion-of-vitality,Potion of Vitality,Зелье живучести,DMG24,magic_items,https://next.dnd.su/items/16042-potion-of-vitality,https://new.ttg.club/magic-items/potion-of-vitality-dmg,false
 potion-of-water-breathing,Potion of Water Breathing,Зелье подводного дыхания,DMG24,magic_items,https://next.dnd.su/items/16043-potion-of-water-breathing,https://new.ttg.club/magic-items/potion-of-water-breathing-dmg,false
-prosthetic-limb,Prosthetic Limb,Протез конечности,DMG24,magic_items,https://next.dnd.su/items/16045-prosthetic-limb,https://new.ttg.club/magic-items/prosthetic-limb-frhof,false
+prosthetic-limb,Prosthetic Limb,Протез конечности,DMG24,magic_items,https://next.dnd.su/items/16045-prosthetic-limb,https://new.ttg.club/magic-items/prosthetic-limb-dmg,false
 quaals-feather-token,Quaal’s Feather Token,Перо Кваля,DMG24,magic_items,https://next.dnd.su/items/16844-quaals-feather-token,,false
 quaals-feather-token-anchor,Quaal’s Feather Token (anchor),Перо Кваля (якорь),DMG24,magic_items,https://next.dnd.su/items/17783-quaals-feather-token-anchor,,false
 quaals-feather-token-bird,Quaal’s Feather Token (bird),Перо Кваля (птица),DMG24,magic_items,https://next.dnd.su/items/17782-quaals-feather-token-bird,,false
@@ -553,7 +553,7 @@ orb-of-damara,Orb of Damara,Сфера Дамара,FRAiF,magic_items,https://ne
 silver-harper-pin,Silver Harper Pin,Серебряная брошь Арфиста,FRAiF,magic_items,https://next.dnd.su/items/18693-silver-harper-pin,,false
 tome-of-the-dragon,Tome of the Dragon,Гримуар дракона,FRAiF,magic_items,https://next.dnd.su/items/18611-tome-of-the-dragon,https://new.ttg.club/magic-items/tome-of-the-dragon-fraif,false
 adventurers-ring,Adventurer’s Ring,Кольцо авантюриста,FRHoF,magic_items,https://next.dnd.su/items/17342-adventurers-ring,https://new.ttg.club/magic-items/adventurer-s-ring-frhof,false
-windskiff,Windskiff,Ветряной челнок,FRHoF,magic_items,https://next.dnd.su/items/17351-windskiff,https://new.ttg.club/magic-items/windskiff-fraif,false
+windskiff,Windskiff,Ветряной челнок,FRHoF,magic_items,https://next.dnd.su/items/17351-windskiff,,false
 arcane-battery,Arcane Battery,Магический накопитель,NsF,magic_items,https://next.dnd.su/items/17494-arcane-battery,https://new.ttg.club/magic-items/arcane-battery-nf,false
 brooch-of-the-elements,Brooch of the Elements,Брошь стихий,NsF,magic_items,https://next.dnd.su/items/17495-brooch-of-the-elements,https://new.ttg.club/magic-items/brooch-of-the-elements-nf,false
 fork-of-eddy-summoning,Fork of Eddy Summoning,Камертон призыва вихря,NsF,magic_items,https://next.dnd.su/items/17496-fork-of-eddy-summoning,https://new.ttg.club/magic-items/fork-of-eddy-summoning-nf,false
@@ -562,5 +562,5 @@ magen-handbell,Magen Handbell,Колокольчик магена,NsF,magic_item
 mask-of-changed-appearance,Mask of Changed Appearance,Маска изменённого облика,NsF,magic_items,https://next.dnd.su/items/17499-mask-of-changed-appearance,https://new.ttg.club/magic-items/mask-of-changed-appearance-nf,false
 mythallar-bracelet,Mythallar Bracelet,Браслет из мифаллара,NsF,magic_items,https://next.dnd.su/items/17500-mythallar-bracelet,https://new.ttg.club/magic-items/mythallar-bracelet-nf,false
 mythallar-cloak,Mythallar Cloak,Плащ мифаллара,NsF,magic_items,https://next.dnd.su/items/17501-mythallar-cloak,https://new.ttg.club/magic-items/mythallar-cloak-nf,false
-potion-of-healing,Potion of Healing,Зелье лечения,PH24,magic_items,https://next.dnd.su/items/256-potion-of-healing,https://new.ttg.club/magic-items/potion-of-healing-dmg,false
+potion-of-healing,Potion of Healing,Зелье лечения,PH24,magic_items,https://next.dnd.su/items/256-potion-of-healing,,false
 ebonbane,Ebonbane,Чёрная Погибель,RTW,magic_items,https://next.dnd.su/items/19731-ebonbane,https://new.ttg.club/magic-items/ebonbane-rhw,false

@@ -27,12 +27,37 @@ CATEGORIES = [
     "glossary",
 ]
 
+# Last path segment suffix on new.ttg.club must match the row book.
+BOOK_TO_TTG_SUFFIX: dict[str, set[str]] = {
+    "PH24": {"phb"},
+    "DMG24": {"dmg"},
+    "MM24": {"mm"},
+    "EFA": {"efa"},
+    "FRHoF": {"frhof"},
+    "FRAiF": {"fraif"},
+    "NsF": {"nf"},
+    "ABH": {"abh"},
+    "LFL": {"lfl"},
+    "RTW": {"rhw", "rtw"},
+    "DDBD": {"ddbd"},
+    "AU": {"au"},
+    "AUD": {"aud"},
+    "SRD": {"srd"},
+}
+
 
 def _read_csv(name: str) -> list[dict[str, str]]:
     path = SOURCES / f"{name}.csv"
     assert path.is_file(), f"missing {path}"
     with path.open(encoding="utf-8", newline="") as f:
         return list(csv.DictReader(f))
+
+
+def _ttg_book_suffix(url: str) -> str | None:
+    slug = url.rstrip("/").split("/")[-1]
+    if "-" not in slug:
+        return None
+    return slug.split("-")[-1].lower()
 
 
 @pytest.fixture(scope="module")
@@ -56,6 +81,27 @@ def test_book_and_source_link(category: str) -> None:
         assert (row.get("book") or "").strip(), f"{category}/{row.get('id')}: empty book"
         has_link = bool((row.get("url_dndsu") or "").strip() or (row.get("url_ttg") or "").strip())
         assert has_link, f"{category}/{row.get('id')}: need url_dndsu or url_ttg"
+
+
+@pytest.mark.parametrize("category", CATEGORIES)
+def test_url_ttg_suffix_matches_book(category: str) -> None:
+    """url_ttg slug suffix (…-phb, …-efa, …) must match the row's book; UA suffixes forbidden."""
+    rows = _read_csv(category)
+    bad: list[str] = []
+    for row in rows:
+        url = (row.get("url_ttg") or "").strip()
+        if not url:
+            continue
+        assert "new.ttg.club" in url, f"{category}/{row.get('id')}: url_ttg not on ttg: {url}"
+        suf = _ttg_book_suffix(url)
+        book = row.get("book") or ""
+        allowed = BOOK_TO_TTG_SUFFIX.get(book, set())
+        if suf is None or suf not in allowed:
+            bad.append(f"{row.get('id')} book={book} suffix={suf} url={url}")
+        # Explicit: Unearthed Arcana / homebrew-ish ttg suffixes never OK in reference lists.
+        if suf in {"uaeu", "ua", "hb", "wow", "pug"}:
+            bad.append(f"{row.get('id')} forbidden ttg suffix {suf}: {url}")
+    assert not bad, f"{category}: url_ttg book mismatch:\n" + "\n".join(bad)
 
 
 def test_counts_match_files(counts: dict) -> None:
