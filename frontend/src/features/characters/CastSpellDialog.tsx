@@ -388,6 +388,8 @@ export function CastSpellDialog({
   const [slotLevel, setSlotLevel] = useState(1)
   const [damageChoice, setDamageChoice] = useState<DamageTypeChoice>('first')
   const [consumeMaterial, setConsumeMaterial] = useState(true)
+  /** COMP-01: player confirms costly M component is on hand when inventory has no match. */
+  const [haveMaterial, setHaveMaterial] = useState(false)
   const [selfFormTarget, setSelfFormTarget] = useState<'self' | 'other'>('self')
   const [useMastery, setUseMastery] = useState(false)
   const [useFeature, setUseFeature] = useState(false)
@@ -506,6 +508,7 @@ export function CastSpellDialog({
   useEffect(() => {
     if (!open) return
     setConsumeMaterial(true)
+    setHaveMaterial(false)
     setUseQuickened(false)
     setUseSeeking(false)
     setUseTransmuted(false)
@@ -790,7 +793,8 @@ export function CastSpellDialog({
     return null
   }
 
-  const materialsOk = borne || (materialCheck.ok && focusGate.ok)
+  const materialsOk =
+    borne || ((materialCheck.ok || haveMaterial) && focusGate.ok)
   const chargePool = itemCast?.resourceId
     ? resources?.find((row) => row.id === itemCast.resourceId) ?? null
     : null
@@ -1405,6 +1409,18 @@ export function CastSpellDialog({
                   ? `Списать «${materialCheck.cheapest?.item.name}»`
                   : 'Не списывать (тест)'}
               </button>
+            ) : null}
+            {!borne &&
+            !materialCheck.ok &&
+            focusGate.ok &&
+            materialCheck.requirement.minCostGp > 0 ? (
+              <ToggleChip
+                main="Компонент есть"
+                rest="в ноше нет подходящей вещи — каст без списания"
+                checked={haveMaterial}
+                onChange={setHaveMaterial}
+                data-testid="cast-have-material"
+              />
             ) : null}
           </div>
         ) : null}

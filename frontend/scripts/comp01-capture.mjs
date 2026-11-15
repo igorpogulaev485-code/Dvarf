@@ -1,0 +1,396 @@
+/**
+ * COMP-01 screenshots for «Напарники».
+ * Requires API :8000 + vite :5173 + seed_comp01_chars.py.
+ *
+ * COMP01_TAG=before-  → кадры «до»
+ * COMP01_TAG=         → кадры «после» (ветка)
+ */
+import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import { chromium } from 'playwright'
+
+const ART = '/opt/cursor/artifacts'
+const BASE = process.env.COMP01_BASE || 'http://127.0.0.1:5173'
+const TAG = process.env.COMP01_TAG || ''
+const EMPTY = 'cccccccc-cccc-4ccc-8ccc-cccccccccd01'
+const RANGER = 'cccccccc-cccc-4ccc-8ccc-cccccccccd02'
+const FAM = 'cccccccc-cccc-4ccc-8ccc-cccccccccd03'
+const DRUID = 'cccccccc-cccc-4ccc-8ccc-cccccccccd04'
+const STEED = 'cccccccc-cccc-4ccc-8ccc-cccccccccd05'
+
+mkdirSync(ART, { recursive: true })
+const out = (name) => `${ART}/${TAG}${name}`
+
+function md5(path) {
+  if (!existsSync(path)) return null
+  return createHash('md5').update(readFileSync(path)).digest('hex')
+}
+
+async function login(page) {
+  await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded', timeout: 60_000 })
+  const body = await page.evaluate(async () => {
+    const res = await fetch('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'uikit03@example.com', password: 'uikit03-dev' }),
+    })
+    return res.json()
+  })
+  if (!body.access_token) throw new Error(`login failed: ${JSON.stringify(body).slice(0, 200)}`)
+  await page.evaluate(
+    ({ a, r }) => {
+      localStorage.setItem('dvarf.access_token', a)
+      localStorage.setItem('dvarf.refresh_token', r)
+      localStorage.setItem('dvarf.mobileVitals.collapsed.v2', '1')
+      localStorage.setItem(
+        'creed20.onboarding.v1',
+        JSON.stringify({
+          version: 1,
+          welcomeDone: true,
+          segment: 'skip',
+          createHintVersion: 1,
+          sheetTourDone: true,
+          lobbyTourDone: true,
+          dismissedPanelHelp: [],
+          helpOpened: false,
+          pendingReadyBridge: false,
+          pendingSheetTour: false,
+          pendingLobbyTour: false,
+        }),
+      )
+    },
+    { a: body.access_token, r: body.refresh_token },
+  )
+}
+
+async function openSheet(page, id) {
+  await page.goto(`${BASE}/characters/${id}`, { waitUntil: 'networkidle', timeout: 90_000 })
+  await page.waitForTimeout(600)
+  await page.evaluate(() => {
+    document.querySelectorAll('.onboarding-modal, .coachmark, .welcome-card').forEach((el) => {
+      if (el instanceof HTMLElement) el.style.display = 'none'
+    })
+  })
+  await page.waitForSelector('.play-desk', { timeout: 25_000 })
+}
+
+async function openCompanions(page, w) {
+  if (w < 960) {
+    const nav = page
+      .locator('.mobile-scene-nav button, .mobile-scene-nav__tab')
+      .filter({ hasText: /Напарник/i })
+    if (await nav.count()) await nav.first().click().catch(() => {})
+  }
+  const tab = page.locator(
+    [
+      'button.play-desk__mode[data-mode="companions"]',
+      'button:has-text("Напарники")',
+    ].join(', '),
+  )
+  if (await tab.count()) await tab.first().click().catch(() => {})
+  await page.waitForTimeout(450)
+  await page.waitForSelector('.companions-panel, .play-desk', { timeout: 15_000 }).catch(() => {})
+}
+
+async function openCombat(page, w) {
+  if (w < 960) {
+    const nav = page
+      .locator('.mobile-scene-nav button, .mobile-scene-nav__tab')
+      .filter({ hasText: /Бой/i })
+    if (await nav.count()) await nav.first().click().catch(() => {})
+  }
+  const tab = page.locator(
+    ['button.play-desk__mode[data-mode="combat"]', 'button:has-text("Бой")'].join(', '),
+  )
+  if (await tab.count()) await tab.first().click().catch(() => {})
+  await page.waitForTimeout(400)
+}
+
+async function shot(page, name) {
+  await page.screenshot({ path: out(name), fullPage: false })
+  console.log('wrote', name, md5(out(name)))
+}
+
+async function shotEl(page, selector, name) {
+  const el = page.locator(selector).first()
+  if (!(await el.count())) {
+    console.warn('missing', selector, '→', name)
+    await shot(page, name)
+    return null
+  }
+  await el.screenshot({ path: out(name) })
+  console.log('wrote', name, md5(out(name)))
+  return el.boundingBox()
+}
+
+async function closeDialogs(page) {
+  for (let i = 0; i < 3; i += 1) {
+    const dlg = page.locator('.ui-dialog-backdrop, [role="dialog"]')
+    if (!(await dlg.count())) break
+    await page.keyboard.press('Escape').catch(() => {})
+    const done = page.getByRole('button', { name: /Готово|Отмена|Закрыть/i })
+    if (await done.count()) await done.first().click().catch(() => {})
+    await page.waitForTimeout(200)
+  }
+}
+
+async function expandFirstCard(page) {
+  await closeDialogs(page)
+  const glance = page.locator('.companion-card__glance').first()
+  if (await glance.count()) {
+    await glance.click({ force: true })
+    await page.waitForTimeout(300)
+  }
+}
+
+async function withViewport(browser, w, fn) {
+  const context = await browser.newContext({
+    viewport: { width: w, height: w < 960 ? 844 : 900 },
+    deviceScaleFactor: 1,
+  })
+  const page = await context.newPage()
+  await page.goto(BASE, { waitUntil: 'domcontentloaded' })
+  await login(page)
+  await fn(page, w)
+  await context.close()
+}
+
+async function main() {
+  const browser = await chromium.launch({ headless: true })
+  const report = { tag: TAG || 'after', files: {} }
+
+  // Empty wizard
+  for (const w of [1440, 390]) {
+    await withViewport(browser, w, async (page) => {
+      await openSheet(page, EMPTY)
+      await openCompanions(page, w)
+      if (w === 1440) {
+        await shotEl(
+          page,
+          '.play-desk-header, .play-desk__header, [data-onboarding="sheet-header"], .m01-sheet-header, .sheet-sticky-header',
+          'hdr-pair-1440.png',
+        )
+        await shotEl(page, '.play-desk__modes, .play-desk__mode-tabs', 'scene-block-pair-1440.png')
+      } else {
+        await shotEl(
+          page,
+          '.play-desk-header, .play-desk__header, [data-onboarding="sheet-header"], .m01-sheet-header, .sheet-sticky-header, .mobile-vitals',
+          'hdr-pair-390.png',
+        )
+      }
+      await shotEl(page, '.companions-panel, .ui-empty', `comp-empty-wizard-${w}.png`)
+      await shot(page, `comp-empty-generic-${w}.png`)
+    })
+  }
+
+  // Druid empty-ish / card
+  for (const w of [1440, 390]) {
+    await withViewport(browser, w, async (page) => {
+      await openSheet(page, DRUID)
+      await openCompanions(page, w)
+      await shotEl(page, '.companions-panel', `comp-empty-druid-${w}.png`)
+      await expandFirstCard(page)
+      await shotEl(page, '.companion-card--expand, .companions-panel', `comp-card-view-druid-${w}.png`)
+    })
+  }
+
+  // Ranger card + combat
+  for (const w of [1440, 390]) {
+    await withViewport(browser, w, async (page) => {
+      await openSheet(page, RANGER)
+      await openCompanions(page, w)
+      await expandFirstCard(page)
+      await shotEl(page, '.companion-card--expand, .companions-panel', `comp-card-view-ranger-${w}.png`)
+      if (w === 1440) {
+        const edit = page.getByRole('button', { name: /^Изменить$/ })
+        if (await edit.count()) {
+          await edit.first().click()
+          await page.waitForTimeout(300)
+          await shotEl(page, '.companion-card--expand, .ui-dialog', 'comp-card-edit-1440.png')
+        }
+      } else {
+        const edit = page.getByRole('button', { name: /^Изменить$/ })
+        if (await edit.count()) {
+          await edit.first().click()
+          await page.waitForTimeout(400)
+          await shotEl(page, '.ui-dialog, [role="dialog"]', 'comp-card-edit-dialog-390.png')
+          await closeDialogs(page)
+        }
+      }
+      // dismiss / resummon on a fresh sheet load
+      await closeDialogs(page)
+      await openSheet(page, RANGER)
+      await openCompanions(page, w)
+      await expandFirstCard(page)
+      const dismiss = page.getByRole('button', { name: /Отпустить/ })
+      if (await dismiss.count()) {
+        await dismiss.first().click({ force: true })
+        await page.waitForTimeout(400)
+        await shotEl(page, '.companions-panel', `comp-dismiss-${w}.png`)
+        await expandFirstCard(page)
+        const resummon = page.getByRole('button', { name: /Призвать снова/ })
+        if (await resummon.count()) {
+          await shotEl(page, '.companions-panel', `comp-resummon-${w}.png`)
+        }
+      }
+
+      await openCombat(page, w)
+      await shotEl(
+        page,
+        '.play-desk-compact--attacks, .play-desk__stage-panel',
+        `comp-combat-ranger-${w}.png`,
+      )
+    })
+  }
+
+  // 0 HP beast — separate pass so dialog state cannot block
+  for (const w of [1440, 390]) {
+    await withViewport(browser, w, async (page) => {
+      await openSheet(page, RANGER)
+      await openCompanions(page, w)
+      await expandFirstCard(page)
+      const editBtn = page.getByRole('button', { name: /^Изменить$/ })
+      if (await editBtn.count()) await editBtn.first().click({ force: true }).catch(() => {})
+      await page.waitForTimeout(250)
+      await page.evaluate(() => {
+        const labels = Array.from(document.querySelectorAll('.ui-field__label, label'))
+        for (const lab of labels) {
+          if (!/^Хиты/.test((lab.textContent || '').trim())) continue
+          const field = lab.closest('.ui-field')
+          const input = field?.querySelector('input')
+          if (!input) continue
+          const native = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')
+          native?.set?.call(input, '0')
+          input.dispatchEvent(new Event('input', { bubbles: true }))
+          input.dispatchEvent(new Event('change', { bubbles: true }))
+          input.blur()
+        }
+      })
+      await page.waitForTimeout(400)
+      await closeDialogs(page)
+      await shotEl(page, '.companions-panel', `comp-0hp-beast-ranger-${w}.png`)
+    })
+  }
+
+  // Familiar
+  for (const w of [1440, 390]) {
+    await withViewport(browser, w, async (page) => {
+      await openSheet(page, FAM)
+      await openCompanions(page, w)
+      await expandFirstCard(page)
+      await shotEl(page, '.companion-card--expand, .companions-panel', `comp-card-view-fam-${w}.png`)
+      await shotEl(page, '.companions-panel', `comp-fam-created-${w}.png`)
+      if (w === 1440) {
+        // open cast from magic
+        const magic = page.locator('button:has-text("Магия"), button.play-desk__mode[data-mode="spells"]')
+        if (await magic.count()) await magic.first().click().catch(() => {})
+        await page.waitForTimeout(400)
+        const cast = page.getByRole('button', { name: /Каст|Использовать/ }).first()
+        if (await cast.count()) {
+          await cast.click().catch(() => {})
+          await page.waitForTimeout(500)
+          await shotEl(page, '.ui-dialog, [role="dialog"]', 'comp-fam-cast-block-before.png')
+          const chip = page.getByRole('checkbox', { name: /Компонент есть/ })
+          if (await chip.count()) {
+            await chip.click()
+            await page.waitForTimeout(200)
+            await shotEl(page, '.ui-dialog, [role="dialog"]', 'comp-fam-component-check-1440.png')
+          }
+        }
+      }
+      await openCombat(page, w)
+      await shotEl(
+        page,
+        '.play-desk-compact--attacks, .play-desk__stage-panel',
+        `comp-combat-fam-${w}.png`,
+      )
+    })
+  }
+
+  // Steed
+  for (const w of [1440, 390]) {
+    await withViewport(browser, w, async (page) => {
+      await openSheet(page, STEED)
+      await openCompanions(page, w)
+      await expandFirstCard(page)
+      await shotEl(page, '.companion-card--expand, .companions-panel', `comp-card-view-steed-${w}.png`)
+      await openCombat(page, w)
+      await shotEl(
+        page,
+        '.play-desk-compact--attacks, .play-desk__stage-panel',
+        `comp-combat-steed-${w}.png`,
+      )
+      // 0hp steed vanish
+      await openCompanions(page, w)
+      await expandFirstCard(page)
+      const editBtn = page.getByRole('button', { name: /^Изменить$/ })
+      if (await editBtn.count()) await editBtn.first().click().catch(() => {})
+      await page.evaluate(() => {
+        const inputs = Array.from(document.querySelectorAll('input'))
+        for (const input of inputs) {
+          const lab = input.closest('.ui-field, .sheet-grid')?.querySelector('label, .ui-field__label')
+          if (lab && /Хиты/i.test(lab.textContent || '') && !/Макс/i.test(lab.textContent || '')) {
+            const native = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')
+            native?.set?.call(input, '0')
+            input.dispatchEvent(new Event('input', { bubbles: true }))
+            input.dispatchEvent(new Event('change', { bubbles: true }))
+          }
+        }
+      })
+      await page.waitForTimeout(350)
+      await shotEl(page, '.companions-panel', `comp-0hp-summon-steed-${w}.png`)
+    })
+  }
+
+  // Familiar 0hp
+  for (const w of [1440, 390]) {
+    await withViewport(browser, w, async (page) => {
+      await openSheet(page, FAM)
+      await openCompanions(page, w)
+      await expandFirstCard(page)
+      const editBtn = page.getByRole('button', { name: /^Изменить$/ })
+      if (await editBtn.count()) await editBtn.first().click().catch(() => {})
+      await page.evaluate(() => {
+        const inputs = Array.from(document.querySelectorAll('input'))
+        for (const input of inputs) {
+          const lab = input.closest('.ui-field, .sheet-grid')?.querySelector('label, .ui-field__label')
+          if (lab && /Хиты/i.test(lab.textContent || '') && !/Макс/i.test(lab.textContent || '')) {
+            const native = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')
+            native?.set?.call(input, '0')
+            input.dispatchEvent(new Event('input', { bubbles: true }))
+            input.dispatchEvent(new Event('change', { bubbles: true }))
+          }
+        }
+      })
+      await page.waitForTimeout(350)
+      await shotEl(page, '.companions-panel', `comp-0hp-summon-fam-${w}.png`)
+    })
+  }
+
+  for (const name of [
+    'hdr-pair-1440.png',
+    'hdr-pair-390.png',
+    'scene-block-pair-1440.png',
+    'comp-empty-wizard-1440.png',
+    'comp-card-view-ranger-1440.png',
+    'comp-card-edit-1440.png',
+    'comp-card-edit-dialog-390.png',
+    'comp-dismiss-1440.png',
+    'comp-resummon-1440.png',
+    'comp-combat-steed-1440.png',
+    'comp-combat-ranger-1440.png',
+    'comp-combat-fam-1440.png',
+    'comp-fam-component-check-1440.png',
+  ]) {
+    const path = out(name)
+    report.files[name] = { path, md5: md5(path) }
+  }
+  writeFileSync(`${ART}/comp01-capture-report${TAG || 'after'}.json`, JSON.stringify(report, null, 2))
+  console.log('comp01 capture done', TAG || 'after')
+  await browser.close()
+}
+
+main().catch((err) => {
+  console.error(err)
+  process.exit(1)
+})

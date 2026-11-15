@@ -62,6 +62,10 @@ export function parseCompanionActionAttacks(
 ): CompanionAttackRow[] {
   if (!row.active) return []
   if (isSelfForm(row)) return []
+  // PHB Find Familiar / Wild Companion: the spirit itself does not attack.
+  if (row.kind === 'familiar') return []
+  const feature = (row.source?.feature ?? '').trim().toLowerCase()
+  if (feature === 'wild_companion' || feature === 'spell:find_familiar') return []
   const text = row.actions?.trim() ?? ''
   if (!text) return []
 
@@ -78,6 +82,7 @@ export function parseCompanionActionAttacks(
     const line = lines[i]!
     // Skip non-attack utility lines (Repair, teleport-only without hit).
     if (/^repair\b/i.test(line)) continue
+    if (/не\s*атакует/i.test(line)) continue
     if (/телепортац/i.test(line) && !/\+\s*\d|1\s*[dк]\s*\d/i.test(line)) continue
     if (/temp\s*hp|временн/i.test(line) && !/\+\s*\d+\s+\d+\s*[dк]/i.test(line)) {
       // Protector cannon — not a weapon attack.

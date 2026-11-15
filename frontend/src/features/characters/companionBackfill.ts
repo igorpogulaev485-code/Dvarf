@@ -37,11 +37,58 @@ export function isWildfireSpiritCompanion(row: CompanionEntry): boolean {
   return false
 }
 
+/**
+ * COMP-01: spell summons that keep a grey «не призван» slot after «Отпустить»,
+ * but leave the list at 0 HP (familiar, steed, Дикий спутник).
+ */
+export function isSpellBoundCompanionSlot(row: CompanionEntry): boolean {
+  if (isSelfForm(row)) return false
+  if (row.kind === 'familiar') return true
+  if (isSteedCompanion(row)) return true
+  const feature = (row.source?.feature ?? '').trim().toLowerCase()
+  if (feature === 'wild_companion' || feature === 'spell:find_familiar') return true
+  return false
+}
+
+/** Archetype companions (beast, drake, defender, cannon, wildfire, …) stay at 0 HP as «повержен». */
+export function isArchetypeCompanionSlot(row: CompanionEntry): boolean {
+  if (isSelfForm(row) || isSpellBoundCompanionSlot(row)) return false
+  if (
+    row.kind === 'beast_companion' ||
+    row.kind === 'primal_companion' ||
+    row.kind === 'drake' ||
+    row.kind === 'steel_defender' ||
+    row.kind === 'eldritch_cannon'
+  ) {
+    return true
+  }
+  if (isHomunculusCompanion(row) || isWildfireSpiritCompanion(row)) return true
+  if (row.source?.kind === 'subclass' || row.source?.kind === 'feature') return true
+  if (row.source?.kind === 'class' && row.source.feature !== 'wild_companion') return true
+  return false
+}
+
+/**
+ * COMP-01: conjure / find-familiar / steed at 0 HP leave the strip;
+ * archetype slots stay («повержен»). Story mounts with death saves stay.
+ */
+export function companionVanishesAtZeroHp(row: CompanionEntry): boolean {
+  if (isSelfForm(row)) return false
+  if (row.story) return false
+  if (isArchetypeCompanionSlot(row)) return false
+  if (isSpellBoundCompanionSlot(row)) return true
+  if (row.source?.kind === 'spell') return true
+  if (row.nature === 'summoned') return true
+  return !isPermanentCompanionSlot(row)
+}
+
 /** Permanent slot stays on the strip even when inactive («не призван»). */
 export function isPermanentCompanionSlot(row: CompanionEntry): boolean {
   if (isSelfForm(row)) return false
-  // C-03: Find Steed / Homunculus Servant keep the strip slot when fallen.
-  if (isSteedCompanion(row) || isHomunculusCompanion(row)) return true
+  // COMP-01: familiar keeps strip after dismiss (resummon via cast).
+  if (isSpellBoundCompanionSlot(row)) return true
+  // C-03: Homunculus Servant keep the strip slot when fallen.
+  if (isHomunculusCompanion(row)) return true
   if (row.source?.kind === 'spell') return false
   if (row.source?.kind === 'subclass' || row.source?.kind === 'feature') return true
   if (row.source?.kind === 'class') return true
@@ -52,18 +99,33 @@ export function isPermanentCompanionSlot(row: CompanionEntry): boolean {
   return false
 }
 
-/** Strip / glance list: permanent always; temporary only while active. */
+/** Strip / glance list: permanent always (except 0 HP summons); temporary only while active. */
 export function shouldShowOnCompanionStrip(row: CompanionEntry): boolean {
   if (!row.name.trim()) return false
   if (isSelfForm(row)) return row.active
+  if ((row.stats.hp ?? 1) <= 0 && companionVanishesAtZeroHp(row)) return false
   if (isPermanentCompanionSlot(row)) return true
   return row.active
+}
+
+/** Drop spell summons at 0 HP from the companions array (COMP-01). */
+export function pruneVanishedCompanions(
+  companions: CompanionEntry[],
+): CompanionEntry[] {
+  return companions.filter((row) => {
+    if ((row.stats.hp ?? 1) > 0) return true
+    if (isSelfForm(row)) return true
+    return !companionVanishesAtZeroHp(row)
+  })
 }
 
 export function companionStatusChip(row: CompanionEntry): string | null {
   if (isSelfForm(row)) return null
   if (!row.active) {
-    if ((row.stats.hp ?? 1) <= 0 && isPermanentCompanionSlot(row)) return 'пал'
+    if ((row.stats.hp ?? 1) <= 0 && isArchetypeCompanionSlot(row)) return 'повержен'
+    if ((row.stats.hp ?? 1) <= 0 && isPermanentCompanionSlot(row) && !companionVanishesAtZeroHp(row)) {
+      return 'повержен'
+    }
     if (row.death && (row.death.successes > 0 || row.death.failures > 0)) {
       return 'спасброски'
     }

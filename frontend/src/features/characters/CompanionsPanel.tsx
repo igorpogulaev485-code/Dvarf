@@ -3,6 +3,7 @@ import { canSpendSlot, spendSpellSlot } from '../../shared/dnd/spells'
 import {
   Button,
   Dialog,
+  EmptyState,
   Field,
   Input,
   NumberInput,
@@ -21,6 +22,7 @@ import {
   formSourceBadgeRu,
   getActiveSelfForm,
   isSelfForm,
+  isSteedCompanion,
   restoreCompanion,
   sortCompanionsForDisplay,
   type CompanionEntry,
@@ -30,6 +32,8 @@ import {
   companionStatusChip,
   isCompanionStatEmpty,
   isPermanentCompanionSlot,
+  isSpellBoundCompanionSlot,
+  pruneVanishedCompanions,
   shouldShowOnCompanionStrip,
 } from './companionBackfill'
 import {
@@ -58,6 +62,15 @@ import { useTurnEconomy } from './TurnEconomyContext'
 import type { SpellsState } from './spells'
 import { healSelfForm, moonHealDiceCount, rollDice } from './wildShape'
 
+/** COMP-01 empty-state hint from host class / subclass. */
+export type CompanionsEmptyHint = {
+  kind: 'druid' | 'wizard' | 'paladin' | 'ranger_beast' | 'generic'
+  title: string
+  description: string
+  /** Primary CTA label under the empty copy. */
+  actionLabel: string
+}
+
 type CompanionsPanelProps = {
   companions: CompanionEntry[]
   onChange: (companions: CompanionEntry[]) => void
@@ -69,6 +82,15 @@ type CompanionsPanelProps = {
   onToast?: (msg: string) => void
   /** Pact of the Chain: open Find Familiar cast (creates familiar card). */
   onCastPactChainFamiliar?: () => void
+  /** COMP-01: empty-state copy by class (PlayDeskScenes). */
+  emptyHint?: CompanionsEmptyHint | null
+  /** COMP-01: primary empty CTA (cast / wild shape / add). */
+  onEmptyAction?: () => void
+  /**
+   * COMP-01: «Призвать снова» for familiar / steed / Дикий спутник —
+   * opens spell or Wild Shape cast instead of silent restore.
+   */
+  onResummonSpellCompanion?: (row: CompanionEntry) => void
   /** Damage to a beast form is damage to you: offer a concentration save. */
   onFormDamaged?: (damage: number) => void
   /** For one-click companion attacks (Н3). */
@@ -87,6 +109,35 @@ type CompanionsPanelProps = {
     mountName: string
     onResolved: (rollTotal: number) => void
   }) => void
+}
+
+function useIsPhone(): boolean {
+  const [phone, setPhone] = useState(() =>
+    typeof window !== 'undefined'
+      ? window.matchMedia('(max-width: 959px)').matches
+      : false,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 959px)')
+    const sync = () => setPhone(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+  return phone
+}
+
+function hpViewLine(row: CompanionEntry): string {
+  const hp = row.stats.hp
+  const max = row.stats.hp_max
+  if (hp != null && max != null) return `${hp}/${max}`
+  if (hp != null) return `${hp}/—`
+  if (max != null) return `—/${max}`
+  return '—/—'
+}
+
+function needsSpellResummon(row: CompanionEntry): boolean {
+  return isSpellBoundCompanionSlot(row) || isSteedCompanion(row)
 }
 
 const KIND_SHORT: Record<CompanionKind, string> = {
@@ -186,6 +237,9 @@ export function CompanionsPanel({
   onSpellsChange,
   onToast,
   onCastPactChainFamiliar,
+  emptyHint = null,
+  onEmptyAction,
+  onResummonSpellCompanion,
   onFormDamaged,
   attackHost,
   onSpendHostAttack,
@@ -195,6 +249,7 @@ export function CompanionsPanel({
   onMountFallDexSave,
 }: CompanionsPanelProps) {
   const turnEco = useTurnEconomy()
+  const isPhone = useIsPhone()
   const spendHostAttack = onSpendHostAttack ?? (() => turnEco?.spendAttack())
   const checkHostAttack =
     canHostAttack ??
@@ -208,6 +263,44 @@ export function CompanionsPanel({
     const active = getActiveSelfForm(companions)
     return active ? new Set([active.id]) : new Set()
   })
+  /** Expand opens view-first; edit only after «Изменить». */
+  const [editingIds, setEditingIds] = useState<Set<string>>(() => new Set())
+  /** Phone editor dialog — keeps the form from scrolling off-screen. */
+  const [dialogEditId, setDialogEditId] = useState<string | null>(null)
+
+  function beginEdit(id: string) {
+    if (isPhone) {
+      setDialogEditId(id)
+      setOpenIds((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+      setEditingIds((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+      return
+    }
+    setOpenIds((prev) => new Set(prev).add(id))
+    setEditingIds((prev) => new Set(prev).add(id))
+  }
+
+  function closeDialogEdit() {
+    setDialogEditId(null)
+  }
+
+  function resummonCompanion(row: CompanionEntry) {
+    if (needsSpellResummon(row) && onResummonSpellCompanion) {
+      onResummonSpellCompanion(row)
+      return
+    }
+    commit(
+      companions.map((c) => (c.id === row.id ? restoreCompanion(c) : c)),
+    )
+    onToast?.(`${row.name}: призван снова`)
+  }
 
   function applyMountHpAndMaybeFall(row: CompanionEntry, hp: number | null) {
     const wasMounted = Boolean(row.mounted)
@@ -219,14 +312,14 @@ export function CompanionsPanel({
       (prevHp == null || prevHp > 0) &&
       (next.stats.hp ?? 0) <= 0
     if (!droppedToZero) {
-      onChange(
+      commit(
         companions.map((c) => (c.id === row.id ? next : c)),
       )
       return
     }
     // Clear mounted on the fallen mount immediately; offer Dex save for host.
     const cleared = { ...next, mounted: false }
-    onChange(
+    commit(
       companions.map((c) => (c.id === row.id ? cleared : c)),
     )
     onToast?.(MOUNT_FALL_HINT)
@@ -273,8 +366,12 @@ export function CompanionsPanel({
     [ordered, filter],
   )
 
+  function commit(next: CompanionEntry[]) {
+    onChange(pruneVanishedCompanions(next))
+  }
+
   function update(id: string, patch: Partial<CompanionEntry>) {
-    onChange(
+    commit(
       companions.map((row) => {
         if (row.id !== id) return row
         return {
@@ -332,20 +429,61 @@ export function CompanionsPanel({
   function toggle(id: string) {
     setOpenIds((prev) => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      if (next.has(id)) {
+        next.delete(id)
+        setEditingIds((ids) => {
+          const copy = new Set(ids)
+          copy.delete(id)
+          return copy
+        })
+      } else next.add(id)
       return next
     })
   }
 
+  const stripEmpty =
+    companions.filter((row) => shouldShowOnCompanionStrip(row)).length === 0
+  const resolvedEmpty: CompanionsEmptyHint = emptyHint ?? {
+    kind: 'generic',
+    title: 'Пока пусто',
+    description:
+      'Спутники архетипа и призывы умений появятся здесь. Можно добавить вручную.',
+    actionLabel: '+ Добавить',
+  }
+
   return (
     <Panel title="Напарники" className="companions-panel">
-      <p className="companions-panel__lede">
-        Спутники архетипа и призывы умений. Строка — статус; клик — правка.
-      </p>
-
       <Stack gap={12}>
-        {visible.length > 0 ? (
+        {stripEmpty ? (
+          <EmptyState
+            title={resolvedEmpty.title}
+            description={resolvedEmpty.description}
+            action={
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  if (
+                    resolvedEmpty.kind === 'generic' ||
+                    resolvedEmpty.kind === 'ranger_beast'
+                  ) {
+                    setAddForkOpen(true)
+                    return
+                  }
+                  if (onEmptyAction) {
+                    onEmptyAction()
+                    return
+                  }
+                  setAddForkOpen(true)
+                }}
+              >
+                {resolvedEmpty.actionLabel}
+              </Button>
+            }
+          />
+        ) : null}
+
+        {!stripEmpty && visible.length > 0 ? (
           <div className="abil-column__toolbar companions-panel__collapse-bar">
             <button type="button" onClick={() => setOpenIds(new Set())}>
               ▲ Свернуть все
@@ -359,28 +497,30 @@ export function CompanionsPanel({
           </div>
         ) : null}
 
-        <div className="inventory-panel__toolbar companions-panel__toolbar">
-          <Button
-            type="button"
-            variant="secondary"
-            className="inventory-toolbar-btn"
-            onClick={() => setAddForkOpen(true)}
-          >
-            <IconPlus />
-            Добавить
-          </Button>
-          {onCastPactChainFamiliar && !hasFamiliar ? (
+        {!stripEmpty ? (
+          <div className="inventory-panel__toolbar companions-panel__toolbar">
             <Button
               type="button"
               variant="secondary"
               className="inventory-toolbar-btn"
-              onClick={onCastPactChainFamiliar}
-              title="Договор Цепи: каст «Поиск фамильяра»"
+              onClick={() => setAddForkOpen(true)}
             >
-              Призвать фамильяра…
+              <IconPlus />
+              Добавить
             </Button>
-          ) : null}
-        </div>
+            {onCastPactChainFamiliar && !hasFamiliar ? (
+              <Button
+                type="button"
+                variant="secondary"
+                className="inventory-toolbar-btn"
+                onClick={onCastPactChainFamiliar}
+                title="Договор Цепи: каст «Поиск фамильяра»"
+              >
+                Призвать фамильяра…
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
 
         <Dialog
           open={addForkOpen}
@@ -435,33 +575,24 @@ export function CompanionsPanel({
           </div>
         </Dialog>
 
-        <div className="inventory-filters" role="tablist" aria-label="Фильтр напарников">
-          {FILTERS.map((row) => (
-            <button
-              key={row.id}
-              type="button"
-              role="tab"
-              aria-selected={filter === row.id}
-              className={`inventory-filter${filter === row.id ? ' is-on' : ''}`}
-              onClick={() => setFilter(row.id)}
-            >
-              {row.label}
-            </button>
-          ))}
-        </div>
-
-        {companions.length === 0 ? (
-          <Text tone="muted">
-            Пока пусто. Спутники — от архетипа (зверь, дрейк, пушка…). Призывы — кнопка
-            «Использовать» на умении или «+ Добавить»
-            {onCastPactChainFamiliar
-              ? '; договор Цепь — «Призвать фамильяра…»'
-              : ''}
-            .
-          </Text>
+        {!stripEmpty ? (
+          <div className="inventory-filters" role="tablist" aria-label="Фильтр напарников">
+            {FILTERS.map((row) => (
+              <button
+                key={row.id}
+                type="button"
+                role="tab"
+                aria-selected={filter === row.id}
+                className={`inventory-filter${filter === row.id ? ' is-on' : ''}`}
+                onClick={() => setFilter(row.id)}
+              >
+                {row.label}
+              </button>
+            ))}
+          </div>
         ) : null}
 
-        {companions.length > 0 && visible.length === 0 ? (
+        {!stripEmpty && companions.length > 0 && visible.length === 0 ? (
           <Text tone="muted">Нет строк в этом фильтре.</Text>
         ) : null}
 
@@ -590,6 +721,9 @@ export function CompanionsPanel({
               )
             }
 
+            const editing = editingIds.has(row.id)
+            const moveLine = companionMovementLine(row.stats)
+
             return (
               <div
                 key={row.id}
@@ -663,6 +797,66 @@ export function CompanionsPanel({
                   </div>
                 ) : null}
 
+                {!editing ? (
+                  <div className="companion-card__view">
+                    <h3 className="companion-card__view-title">
+                      {row.name.trim() || 'Без имени'}
+                    </h3>
+                    <Text>
+                      Хиты {hpViewLine(row)}
+                      {row.stats.ac != null ? ` · КД ${row.stats.ac}` : ''}
+                    </Text>
+                    {moveLine ? <Text tone="muted">Скорость: {moveLine}</Text> : null}
+                    {row.actions.trim() ? (
+                      <Text tone="muted">Атака: {row.actions.trim()}</Text>
+                    ) : (
+                      <Text tone="muted">Атака: —</Text>
+                    )}
+                    {!selfForm ? (
+                      <Text tone="muted">{companionCombatSummary(row)}</Text>
+                    ) : null}
+                    {row.notes.trim() ? <Text>{row.notes.trim()}</Text> : null}
+                    {!selfForm && row.active ? (
+                      <div className="sheet-actions">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            commit(
+                              companions.map((c) =>
+                                c.id === row.id ? dismissCompanion(c) : c,
+                              ),
+                            )
+                            onToast?.(
+                              isPermanentCompanionSlot(row)
+                                ? `${row.name}: отпущен → не призван`
+                                : `${row.name}: отпущен`,
+                            )
+                          }}
+                        >
+                          Отпустить
+                        </Button>
+                      </div>
+                    ) : null}
+                    {!selfForm && !row.active && isPermanentCompanionSlot(row) ? (
+                      <div className="sheet-actions">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => resummonCompanion(row)}
+                        >
+                          Призвать снова
+                        </Button>
+                      </div>
+                    ) : null}
+                    <div className="companion-card__view-actions">
+                      <Button type="button" onClick={() => beginEdit(row.id)}>
+                        Изменить
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                <>
                 <div className="sheet-grid sheet-grid--2">
                   <Field label="Имя">
                     <Input
@@ -750,9 +944,14 @@ export function CompanionsPanel({
                 {row.stats.immunities ? (
                   <Text tone="muted">Иммунитеты: {row.stats.immunities}</Text>
                 ) : null}
-                {row.actions.trim() ? (
-                  <Text tone="muted">Атаки и действия: {row.actions}</Text>
-                ) : null}
+                <Field label="Атаки и действия">
+                  <Input
+                    value={row.actions}
+                    onChange={(event) =>
+                      update(row.id, { actions: event.target.value })
+                    }
+                  />
+                </Field>
 
                 {!selfForm ? (
                   <Stack gap={8}>
@@ -780,14 +979,14 @@ export function CompanionsPanel({
                       <span className="attack-held-tag">Уклонение</span>
                     ) : null}
                     {isMountCompanionLike(row) && row.active ? (
-                      <div className="chip-row" style={{ flexWrap: 'wrap', gap: 8 }}>
+                      <div className="chip-row companions-panel__chip-wrap">
                         <label className="chip-row">
                           <input
                             type="checkbox"
                             checked={Boolean(row.mounted)}
                             onChange={(e) => {
                               const nextMounted = e.target.checked
-                              onChange(
+                              commit(
                                 companions.map((c) => {
                                   if (c.id === row.id) {
                                     return { ...c, mounted: nextMounted }
@@ -818,7 +1017,7 @@ export function CompanionsPanel({
                             type="button"
                             variant="ghost"
                             onClick={() => {
-                              onChange(
+                              commit(
                                 companions.map((c) =>
                                   c.id === row.id ? { ...c, mounted: false } : c,
                                 ),
@@ -832,7 +1031,7 @@ export function CompanionsPanel({
                       </div>
                     ) : null}
                     {mountFallPendingId === row.id ? (
-                      <div className="sheet-actions" style={{ flexWrap: 'wrap' }}>
+                      <div className="sheet-actions companions-panel__chip-wrap">
                         <Text tone="muted">
                           Спас Ловк. Сл {MOUNT_FALL_DEX_DC} (спешиться на ноги)
                         </Text>
@@ -904,7 +1103,7 @@ export function CompanionsPanel({
                               } else if (result.hostMark === 'reaction') {
                                 turnEco?.spendFeature('reaction')
                               }
-                              onChange(
+                              commit(
                                 companions.map((c) =>
                                   c.id === row.id ? result.companion : c,
                                 ),
@@ -925,7 +1124,7 @@ export function CompanionsPanel({
                           type="button"
                           variant="ghost"
                           onClick={() => {
-                            onChange(
+                            commit(
                               companions.map((c) =>
                                 c.id === row.id ? dismissCompanion(c) : c,
                               ),
@@ -939,38 +1138,15 @@ export function CompanionsPanel({
                         >
                           Отпустить
                         </Button>
-                        {!row.active && isPermanentCompanionSlot(row) ? (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={() => {
-                              onChange(
-                                companions.map((c) =>
-                                  c.id === row.id ? restoreCompanion(c) : c,
-                                ),
-                              )
-                              onToast?.(`${row.name}: возвращён`)
-                            }}
-                          >
-                            Вернуть
-                          </Button>
-                        ) : null}
                       </div>
-                    ) : null}
-                    {!row.active && !companionNeedsCommand(row) ? (
+                    ) : isPermanentCompanionSlot(row) ? (
                       <div className="sheet-actions">
                         <Button
                           type="button"
-                          variant="ghost"
-                          onClick={() => {
-                            onChange(
-                              companions.map((c) =>
-                                c.id === row.id ? dismissCompanion(c) : c,
-                              ),
-                            )
-                          }}
+                          variant="secondary"
+                          onClick={() => resummonCompanion(row)}
                         >
-                          Отпустить
+                          Призвать снова
                         </Button>
                       </div>
                     ) : null}
@@ -985,7 +1161,7 @@ export function CompanionsPanel({
                           }
                         />
                       </Field>
-                      <div className="sheet-actions" style={{ alignItems: 'flex-end' }}>
+                      <div className="sheet-actions companions-panel__actions-end">
                         <Button
                           type="button"
                           variant="secondary"
@@ -999,7 +1175,7 @@ export function CompanionsPanel({
                               max != null
                                 ? Math.min(max, cur + amount)
                                 : cur + amount
-                            onChange(
+                            commit(
                               companions.map((c) =>
                                 c.id === row.id ? applyCompanionHpChange(c, next) : c,
                               ),
@@ -1104,7 +1280,7 @@ export function CompanionsPanel({
                         }
                       />
                     </Field>
-                    <div className="sheet-actions" style={{ alignItems: 'flex-end' }}>
+                    <div className="sheet-actions companions-panel__actions-end">
                       <Button
                         type="button"
                         variant="secondary"
@@ -1245,16 +1421,170 @@ export function CompanionsPanel({
                   ) : null}
                   <button
                     type="button"
+                    className="inventory-action"
+                    onClick={() => {
+                      setEditingIds((prev) => {
+                        const next = new Set(prev)
+                        next.delete(row.id)
+                        return next
+                      })
+                    }}
+                  >
+                    Готово
+                  </button>
+                  <button
+                    type="button"
                     className="inventory-action inventory-action--danger"
                     onClick={() => removeOrDismiss(row)}
                   >
                     Убрать
                   </button>
                 </div>
+                </>
+                )}
               </div>
             )
           })}
         </Stack>
+
+        {(() => {
+          const editRow =
+            dialogEditId != null
+              ? companions.find((c) => c.id === dialogEditId) ?? null
+              : null
+          if (!editRow) return null
+          return (
+            <Dialog
+              open
+              title={editRow.name.trim() || 'Напарник'}
+              primaryLabel="Готово"
+              secondaryLabel="Отмена"
+              onPrimary={closeDialogEdit}
+              onSecondary={closeDialogEdit}
+              onDismiss={closeDialogEdit}
+            >
+              <Stack gap={10}>
+                <Field label="Имя">
+                  <Input
+                    value={editRow.name}
+                    onChange={(event) =>
+                      update(editRow.id, { name: event.target.value })
+                    }
+                  />
+                </Field>
+                <div className="sheet-grid sheet-grid--3">
+                  <Field label="Хиты">
+                    <NumberInput
+                      min={0}
+                      emptyValue={null}
+                      value={editRow.stats.hp}
+                      onValueChange={(hp) =>
+                        applyMountHpAndMaybeFall(editRow, hp)
+                      }
+                    />
+                  </Field>
+                  <Field label="Макс.">
+                    <NumberInput
+                      min={0}
+                      emptyValue={null}
+                      value={editRow.stats.hp_max}
+                      onValueChange={(hp_max) =>
+                        update(editRow.id, {
+                          stats: { ...editRow.stats, hp_max },
+                        })
+                      }
+                    />
+                  </Field>
+                  <Field label="КД">
+                    <NumberInput
+                      min={0}
+                      emptyValue={null}
+                      value={editRow.stats.ac}
+                      onValueChange={(ac) =>
+                        update(editRow.id, {
+                          stats: { ...editRow.stats, ac },
+                        })
+                      }
+                    />
+                  </Field>
+                </div>
+                <div className="sheet-grid sheet-grid--2">
+                  <Field label="Скорость">
+                    <NumberInput
+                      min={0}
+                      emptyValue={null}
+                      value={editRow.stats.speed}
+                      onValueChange={(speed) =>
+                        update(editRow.id, {
+                          stats: { ...editRow.stats, speed },
+                        })
+                      }
+                    />
+                  </Field>
+                  <Field label="Полёт">
+                    <NumberInput
+                      min={0}
+                      emptyValue={null}
+                      value={editRow.stats.speed_fly ?? null}
+                      onValueChange={(speed_fly) =>
+                        update(editRow.id, {
+                          stats: { ...editRow.stats, speed_fly },
+                        })
+                      }
+                    />
+                  </Field>
+                </div>
+                <Field label="Атаки и действия">
+                  <Input
+                    value={editRow.actions}
+                    onChange={(event) =>
+                      update(editRow.id, { actions: event.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="Заметки">
+                  <Input
+                    value={editRow.notes}
+                    onChange={(event) =>
+                      update(editRow.id, { notes: event.target.value })
+                    }
+                  />
+                </Field>
+                {!isSelfForm(editRow) && isPermanentCompanionSlot(editRow) ? (
+                  <div className="sheet-actions">
+                    {editRow.active ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => {
+                          commit(
+                            companions.map((c) =>
+                              c.id === editRow.id ? dismissCompanion(c) : c,
+                            ),
+                          )
+                          closeDialogEdit()
+                        }}
+                      >
+                        Отпустить
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          resummonCompanion(editRow)
+                          closeDialogEdit()
+                        }}
+                      >
+                        Призвать снова
+                      </Button>
+                    )}
+                  </div>
+                ) : null}
+              </Stack>
+            </Dialog>
+          )
+        })()}
       </Stack>
     </Panel>
   )

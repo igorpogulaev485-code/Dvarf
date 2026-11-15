@@ -49,6 +49,33 @@ function joinList(values: string[] | undefined): string | undefined {
   return text || undefined
 }
 
+/**
+ * Compact MM prose («Укус … +4 … 1к8 + 2») into a Combat-parseable line
+ * («Укус +4 1к8+2»). Lines without dice/bonus are kept as-is.
+ */
+export function compactCompanionAttackLine(actionsText: string): string {
+  const text = actionsText.trim()
+  if (!text) return ''
+  return text
+    .split(/\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const bonus = line.match(/\+(\d+)/)
+      const dice = line.match(/(\d+)\s*[dк]\s*(\d+)(?:\s*([+-]\s*\d+))?/i)
+      if (!bonus || !dice) return line
+      const nameRaw = line.split(/:|Рукопашн|\+/i)[0]?.trim() || 'Атака'
+      const shortName = nameRaw.replace(/\s*\(.*$/, '').trim() || 'Атака'
+      const flat = dice[3] ? Number(String(dice[3]).replace(/\s+/g, '')) : 0
+      const dmg =
+        flat === 0
+          ? `${dice[1]}к${dice[2]}`
+          : `${dice[1]}к${dice[2]}${flat > 0 ? '+' : ''}${flat}`
+      return `${shortName} +${bonus[1]} ${dmg}`
+    })
+    .join('\n')
+}
+
 /** Overlay catalog pick onto companion stats (optional HP override for scaled spirits). */
 export function mergeBestiaryPickIntoCompanion(input: {
   companion: CompanionEntry
@@ -60,6 +87,8 @@ export function mergeBestiaryPickIntoCompanion(input: {
     input.hpOverride != null
       ? Math.max(1, Math.floor(input.hpOverride))
       : input.pick.hp
+  const rawActions = input.pick.actions_text || input.companion.actions
+  const actions = compactCompanionAttackLine(rawActions) || rawActions
   return {
     ...input.companion,
     name: input.companion.name.trim() || input.pick.name_ru,
@@ -79,7 +108,7 @@ export function mergeBestiaryPickIntoCompanion(input: {
       resistances: input.pick.resistances ?? input.companion.stats.resistances,
       immunities: input.pick.immunities ?? input.companion.stats.immunities,
     },
-    actions: input.pick.actions_text || input.companion.actions,
+    actions,
   }
 }
 
