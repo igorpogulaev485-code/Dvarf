@@ -1,5 +1,7 @@
 export { Button } from './Button'
 export type { ButtonSize } from './Button'
+export { CodeBlock } from './CodeBlock'
+export type { CodeBlockOverflow } from './CodeBlock'
 export { Chip } from './Chip'
 export { ChipStack } from './ChipStack'
 export { ToggleChip } from './ToggleChip'

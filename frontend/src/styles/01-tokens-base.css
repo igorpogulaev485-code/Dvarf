@@ -136,6 +136,7 @@ input {
   display: flex;
   flex-direction: column;
   gap: var(--stack-gap, 12px);
+  min-width: 0;
 }
 
 
@@ -178,6 +179,7 @@ input {
   border-radius: 18px;
   padding: 20px;
   backdrop-filter: blur(8px);
+  min-width: 0;
 }
 
 .ui-panel__title {
@@ -1307,6 +1309,45 @@ a.ui-button--primary {
   color: var(--warn);
 }
 
+/* Kit atom: CodeBlock — код внутри рамки, без раздувания страницы */
+.ui-code-block {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 14px;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ui-code-block__code {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+}
+
+.ui-code-block--scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: pre;
+}
+
+.ui-code-block--wrap {
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .mode-switch {
   display: inline-flex;
   gap: 6px;
@@ -1438,6 +1479,7 @@ a.ui-button--primary {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  min-width: 0;
 }
 
 .page--app > .ui-stack > .app-legal-footer {

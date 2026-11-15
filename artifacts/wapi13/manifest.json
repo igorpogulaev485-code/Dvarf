@@ -13,13 +13,13 @@
   },
   {
     "file": "03-help-top-390.png",
-    "md5": "30944df595731a482c52738e921dd34e",
+    "md5": "94bfc99018dde179cefc3269ea5abe20",
     "width": 390,
     "height": 844
   },
   {
     "file": "04-help-mcp-390.png",
-    "md5": "87190837d64fa6e1bfb68a7fb881228f",
+    "md5": "dce93650ec10a21c3039ec859fb47a3c",
     "width": 390,
     "height": 844
   },
@@ -28,5 +28,11 @@
     "md5": "21e03b0cc180ddd8be3feb3e38b5a4e5",
     "width": 1280,
     "height": 800
+  },
+  {
+    "file": "06-help-curl-390.png",
+    "md5": "589dc65038a202604913f58fb98ce3b4",
+    "width": 390,
+    "height": 844
   }
 ]

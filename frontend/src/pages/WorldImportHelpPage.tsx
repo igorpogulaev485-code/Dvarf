@@ -1,6 +1,6 @@
 /**
  * W-API-13: справка /help/world-import — API и MCP импорта мира.
- * Только UI-кит (Panel / Stack / Text / Button / Field / Input). Без CSS-переопределений.
+ * Только UI-кит (Panel / Stack / Text / Button / Field / Input / CodeBlock). Без CSS-переопределений.
  */
 import { useNavigate } from 'react-router-dom'
 import {
@@ -22,15 +22,7 @@ import {
   buildMcpClientConfig,
   mcpUrlFromWindow,
 } from '../features/worldImport/helpCopy.ru'
-import { Button, Field, Input, Panel, Stack, Text } from '../ui'
-
-function CodeBlock({ children }: { children: string }) {
-  return (
-    <pre>
-      <code>{children}</code>
-    </pre>
-  )
-}
+import { Button, CodeBlock, Field, Input, Panel, Stack, Text } from '../ui'
 
 export function WorldImportHelpPage() {
   const navigate = useNavigate()
@@ -125,21 +117,25 @@ export function WorldImportHelpPage() {
               <Field label="Базовый адрес (origin)">
                 <Input value={origin || '—'} readOnly />
               </Field>
-              <Text tone="muted">{HELP_REST.authHint}</Text>
-              <CodeBlock>{HELP_REST.authHeader}</CodeBlock>
-              <Text as="h3">Запросы</Text>
-              {HELP_REST_ENDPOINTS.map((ep) => (
-                <Stack gap={2} key={`${ep.method}-${ep.path}`}>
-                  <Text>
-                    <code>
-                      {ep.method} {ep.path}
-                    </code>
-                  </Text>
-                  <Text tone="muted">{ep.note}</Text>
-                </Stack>
-              ))}
-              <Text as="h3">{HELP_REST.curlTitle}</Text>
-              <CodeBlock>{curl}</CodeBlock>
+            <Text tone="muted">{HELP_REST.authHint}</Text>
+            <CodeBlock id="help-auth-header" overflow="wrap">
+              {HELP_REST.authHeader}
+            </CodeBlock>
+            <Text as="h3">Запросы</Text>
+            {HELP_REST_ENDPOINTS.map((ep) => (
+              <Stack gap={2} key={`${ep.method}-${ep.path}`}>
+                <Text>
+                  <code>
+                    {ep.method} {ep.path}
+                  </code>
+                </Text>
+                <Text tone="muted">{ep.note}</Text>
+              </Stack>
+            ))}
+            <Text as="h3">{HELP_REST.curlTitle}</Text>
+            <CodeBlock id="help-curl" overflow="wrap">
+              {curl}
+            </CodeBlock>
               <Text tone="muted">{HELP_REST.idempotencyHint}</Text>
               <Text as="h3">{HELP_LIMITS.title}</Text>
               {HELP_LIMITS.items.map((item) => (
@@ -165,8 +161,10 @@ export function WorldImportHelpPage() {
                   {i + 1}. {step}
                 </Text>
               ))}
-              <Text as="h3">{HELP_MCP.configTitle}</Text>
-              <CodeBlock>{mcpConfig}</CodeBlock>
+            <Text as="h3">{HELP_MCP.configTitle}</Text>
+            <CodeBlock id="help-mcp-config" overflow="wrap">
+              {mcpConfig}
+            </CodeBlock>
               <Text as="h3">{HELP_MCP.toolsTitle}</Text>
               {HELP_MCP.tools.map((tool) => (
                 <Stack gap={2} key={tool.name}>

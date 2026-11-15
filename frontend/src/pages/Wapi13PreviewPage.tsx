@@ -1,8 +1,10 @@
 /**
  * /dev/wapi13-preview — кадры W-API-13 без бэкенда (kit only).
  * ?scene=help|panel
- * ?narrow=1 — 390 (верх + якорь MCP).
+ * ?narrow=1 — 390
+ * ?focus=mcp|curl|top — прокрутка к якорю (для кадров).
  */
+import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { HELP_PANEL_LINK } from '../features/worldImport/helpCopy.ru'
 import { WorldImportHelpPage } from './WorldImportHelpPage'
@@ -12,6 +14,24 @@ export function Wapi13PreviewPage() {
   const [params] = useSearchParams()
   const scene = params.get('scene') || 'help'
   const narrow = params.get('narrow') === '1'
+  const focus = params.get('focus') || ''
+
+  useEffect(() => {
+    if (scene !== 'help' || !focus) return
+    const id =
+      focus === 'mcp'
+        ? 'help-mcp-config'
+        : focus === 'curl'
+          ? 'help-curl'
+          : focus === 'auth'
+            ? 'help-auth-header'
+            : null
+    if (!id) return
+    const t = window.setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ block: 'start' })
+    }, 50)
+    return () => window.clearTimeout(t)
+  }, [scene, focus])
 
   if (scene === 'panel') {
     return (

@@ -77,6 +77,14 @@ Skill для агентов: [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../../.cur
 | Coin tip | hover ≈ зм + разбивка; клик → pad |
 | deskIcons | shield / boot / bolt / badge / coin / rest / spark / skull |
 
+### CodeBlock (атом, W-API-13)
+
+`CodeBlock` в `frontend/src/ui/CodeBlock.tsx` — `<pre><code>` для справки и примеров.
+Варианты: `overflow="scroll"` (дефолт, горизонтальная прокрутка внутри рамки) и
+`overflow="wrap"` (перенос длинных строк). Стили `.ui-code-block*` в `01-tokens-base.css`.
+Страница `/help/world-import` использует `wrap`, чтобы на 390px curl/JSON читались целиком.
+Без page-level CSS: длинный код не должен вылезать за край экрана.
+
 ### Эталон 14.11.2026 — kit atoms (не менять вид без ok)
 
 | Kit | Файл | Лицо |

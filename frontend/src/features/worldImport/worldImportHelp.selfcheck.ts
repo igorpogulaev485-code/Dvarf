@@ -79,6 +79,22 @@ assert.ok(!/Bearer wapi_[a-zA-Z0-9]{20,}/.test(html), 'no real secret in render'
 assert.ok(html.includes('data-section="rest"'))
 assert.ok(html.includes('data-section="mcp"'))
 assert.ok(html.includes('data-section="token"'))
+assert.ok(html.includes('ui-code-block'), 'kit CodeBlock class on render')
+assert.ok(html.includes('ui-code-block--wrap'), 'wrap overflow on help page')
+assert.equal(
+  (html.match(/ui-code-block--wrap/g) || []).length,
+  3,
+  'auth + curl + mcp config use CodeBlock wrap',
+)
+
+const pageSrc = readSrc('pages/WorldImportHelpPage.tsx')
+assert.ok(pageSrc.includes('CodeBlock'), 'page imports kit CodeBlock')
+assert.ok(!pageSrc.includes('function CodeBlock'), 'no local CodeBlock override')
+assert.ok(!/style=\{\{/.test(pageSrc), 'no inline style overrides on help page')
+
+const kitSrc = readSrc('ui/CodeBlock.tsx')
+assert.ok(kitSrc.includes('ui-code-block--scroll'))
+assert.ok(kitSrc.includes('ui-code-block--wrap'))
 
 // --- WorldImportPanel link ---
 const panelSrc = readSrc('features/lobby/WorldImportPanel.tsx')
