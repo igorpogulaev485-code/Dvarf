@@ -418,7 +418,8 @@ export function WorldImportPanel({
               <Input value={mcpWorldImportUrl()} readOnly />
             </Field>
             <Text tone="muted">
-              Документация в репозитории: <code>docs/world-import-mcp.md</code>
+              Документация: <code>docs/world-import.md</code>, MCP:{' '}
+              <code>docs/world-import-mcp.md</code>
             </Text>
           </Stack>
         </Stack>
