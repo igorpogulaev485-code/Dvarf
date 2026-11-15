@@ -1,7 +1,8 @@
-import { useMemo, useState, type DragEvent as ReactDragEvent } from 'react'
+import { useEffect, useMemo, useState, type DragEvent as ReactDragEvent } from 'react'
 import { HoverTipCard, PANEL_HELP, panelExplain } from '../onboarding'
 import {
   Button,
+  Dialog,
   Field,
   Input,
   NumberInput,
@@ -34,6 +35,22 @@ import {
   type TextBlockPart,
 } from './textBlocks'
 import type { PhysiqueFields } from './identity'
+import {
+  APPEARANCE_KEY,
+  PHYSIQUE_FIELDS,
+  appearancePlain,
+  blockHasPlayerContent,
+  blockViewPreview,
+  countFilledPhysique,
+  emptyPersonalityBlocks,
+  filledPhysiquePairs,
+  listBlocksForFilter,
+  physiqueGlancePreview,
+  physiqueHasContent,
+  socialBucket,
+  visibleSocialFilters,
+  type SocialFilter,
+} from './socialScene'
 
 type TextBlocksPanelProps = {
   blocks: TextBlock[]
@@ -47,56 +64,10 @@ type TextBlocksPanelProps = {
   onOpenFeatures?: () => void
 }
 
-const PHYSIQUE_FIELDS: Array<{ key: keyof PhysiqueFields; label: string; placeholder: string }> =
-  [
-    { key: 'height', label: 'Рост', placeholder: '4 фута' },
-    { key: 'weight', label: 'Вес', placeholder: '160 фунтов' },
-    { key: 'age', label: 'Возраст', placeholder: '150' },
-    { key: 'eyes', label: 'Глаза', placeholder: 'Зелёные' },
-    { key: 'skin', label: 'Кожа', placeholder: 'Светлая' },
-    { key: 'hair', label: 'Волосы', placeholder: 'Каштановые' },
-  ]
-
 const RESET_OPTIONS: ResourceReset[] = ['short', 'long', 'manual']
 
-type TextFilter = 'all' | 'personality' | 'notes' | 'resource' | 'hidden'
-
-const FILTERS: Array<{ id: TextFilter; label: string }> = [
-  { id: 'all', label: 'Все' },
-  { id: 'personality', label: 'Личность' },
-  { id: 'notes', label: 'Заметки' },
-  { id: 'resource', label: 'С ресурсом' },
-  { id: 'hidden', label: 'Скрытые' },
-]
-
-const PERSONALITY_KEYS = new Set([
-  'personality',
-  'ideals',
-  'bonds',
-  'flaws',
-  'appearance',
-  'background',
-  'quests',
-])
-
-const FEATURE_KEYS = new Set(['traits', 'features', 'feats'])
-
-function previewText(value: string, max = 110): string {
-  const flat = stripDvarfInternalMarkers(value).replace(/\s+/g, ' ').trim()
-  if (!flat) return ''
-  if (flat.length <= max) return flat
-  return `${flat.slice(0, max - 1)}…`
-}
-
-function blockBucket(block: TextBlock): 'personality' | 'features' | 'notes' {
-  if (block.isCustom) return 'notes'
-  if (PERSONALITY_KEYS.has(block.key)) return 'personality'
-  if (FEATURE_KEYS.has(block.key)) return 'features'
-  return 'notes'
-}
-
 function roleLabel(block: TextBlock): string {
-  const bucket = blockBucket(block)
+  const bucket = socialBucket(block)
   if (bucket === 'personality') return 'Личность'
   if (bucket === 'features') return 'Умения'
   return 'Заметка'
@@ -137,16 +108,18 @@ function IconTrash() {
   )
 }
 
-function blockHasContent(block: TextBlock): boolean {
-  return block.parts.some((part) => {
-    if (part.kind === 'text') return Boolean(part.value.trim())
-    if (part.kind === 'spoiler') {
-      return Boolean(part.title.trim() || part.body.trim())
-    }
-    if (part.kind === 'divider') return Boolean(part.label.trim())
-    if (part.kind === 'resource') return true
-    return false
-  })
+function useIsPhone(): boolean {
+  const [phone, setPhone] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 959px)').matches : false,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 959px)')
+    const sync = () => setPhone(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+  return phone
 }
 
 export function TextBlocksPanel({
@@ -158,39 +131,36 @@ export function TextBlocksPanel({
   onPhysiqueChange,
   onOpenFeatures,
 }: TextBlocksPanelProps) {
-  // B10: start on personality — not the full technical dump.
-  const [filter, setFilter] = useState<TextFilter>('personality')
+  const isPhone = useIsPhone()
+  const hasPhysiqueUi = Boolean(physique && onPhysiqueChange)
+  const appearanceBlock = blocks.find((block) => block.key === APPEARANCE_KEY)
+
+  const [filterWish, setFilterWish] = useState<SocialFilter>('personality')
+  /** Expanded view (read) keys — editor only after «Изменить». */
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
+  const [editingKeys, setEditingKeys] = useState<Set<string>>(() => new Set())
   const [insertMenuFor, setInsertMenuFor] = useState<string | null>(null)
   const [orphansOpen, setOrphansOpen] = useState(false)
-  const [physiqueOpen, setPhysiqueOpen] = useState(true)
+  /** Physique: glance → view → edit. Default glance (one line). */
+  const [physiquePhase, setPhysiquePhase] = useState<'glance' | 'view' | 'edit'>('glance')
+  /** Phone editor dialog: block key or `physique`. */
+  const [dialogEditKey, setDialogEditKey] = useState<string | null>(null)
 
-  const linkedIds = new Set(
-    blocks.flatMap((block) => listResourceIds(block.parts)),
-  )
+  const linkedIds = new Set(blocks.flatMap((block) => listResourceIds(block.parts)))
   const orphanResources = resources.filter((item) => !linkedIds.has(item.id))
 
+  const filterChips = useMemo(
+    () => visibleSocialFilters(blocks, { hasPhysiqueUi }),
+    [blocks, hasPhysiqueUi],
+  )
+  const filter: SocialFilter = filterChips.some((row) => row.id === filterWish)
+    ? filterWish
+    : (filterChips[0]?.id ?? 'all')
+
   const visibleBlocks = useMemo(() => {
-    const filtered = blocks.filter((block) => {
-      if (filter === 'all') {
-        // U11: abilities catalog lives in «Способности»; keep player notes/personality.
-        return !block.isHidden && blockBucket(block) !== 'features'
-      }
-      if (filter === 'hidden') return block.isHidden
-      if (filter === 'resource') {
-        return (
-          blockHasResource(block) &&
-          !block.isHidden &&
-          blockBucket(block) !== 'features'
-        )
-      }
-      if (filter === 'personality') {
-        return !block.isHidden && blockBucket(block) === 'personality'
-      }
-      return !block.isHidden && blockBucket(block) === 'notes'
-    })
+    const filtered = listBlocksForFilter(blocks, filter)
     const bucketRank = (block: TextBlock) => {
-      const bucket = blockBucket(block)
+      const bucket = socialBucket(block)
       if (bucket === 'personality') return 0
       if (bucket === 'notes') return 1
       return 2
@@ -198,21 +168,18 @@ export function TextBlocksPanel({
     return [...filtered].sort((a, b) => {
       const rank = bucketRank(a) - bucketRank(b)
       if (rank !== 0) return rank
-      // Empty personality last within personality.
-      if (blockBucket(a) === 'personality') {
-        return Number(blockHasContent(a)) === Number(blockHasContent(b))
-          ? 0
-          : blockHasContent(a)
-            ? -1
-            : 1
-      }
       return 0
     })
   }, [blocks, filter])
 
-  const physiqueFilled = physique
-    ? PHYSIQUE_FIELDS.filter((row) => physique[row.key].trim()).length
-    : 0
+  const emptyPersonality = useMemo(() => emptyPersonalityBlocks(blocks), [blocks])
+  const showEmptyLine =
+    (filter === 'all' || filter === 'personality') && emptyPersonality.length > 0
+  const showPhysique =
+    hasPhysiqueUi && (filter === 'all' || filter === 'personality')
+
+  const physiqueFilled = physique ? countFilledPhysique(physique) : 0
+  const physiqueContent = physiqueHasContent(physique, appearanceBlock)
 
   function replaceBlock(next: TextBlock) {
     onChange(blocks.map((item) => (item.key === next.key ? next : item)))
@@ -220,6 +187,21 @@ export function TextBlocksPanel({
 
   function updateBlock(key: string, patch: Partial<TextBlock>) {
     onChange(blocks.map((item) => (item.key === key ? { ...item, ...patch } : item)))
+  }
+
+  function updateAppearanceText(next: string) {
+    const target = blocks.find((item) => item.key === APPEARANCE_KEY)
+    if (!target) return
+    const textPart = target.parts.find((part) => part.kind === 'text')
+    if (textPart && textPart.kind === 'text') {
+      replaceBlock(
+        patchBlockPart(target, textPart.id, {
+          value: storeTextBlockFromEditor(APPEARANCE_KEY, textPart.value, next),
+        }),
+      )
+      return
+    }
+    replaceBlock(appendBlockPart(target, createTextPart(next)))
   }
 
   function updateResource(id: string, patch: Partial<SheetResource>) {
@@ -248,7 +230,6 @@ export function TextBlocksPanel({
     onChange(
       blocks.map((block) => {
         if (block.key !== blockKey) {
-          // Detach from other blocks if re-linked.
           if (!listResourceIds(block.parts).includes(resourceId)) return block
           return updateBlockParts(
             block,
@@ -263,7 +244,44 @@ export function TextBlocksPanel({
     )
   }
 
-  function toggleDetails(key: string) {
+  function closeDialogEdit() {
+    setDialogEditKey(null)
+  }
+
+  function beginEdit(key: string) {
+    if (isPhone) {
+      setDialogEditKey(key)
+      setOpenKeys((prev) => {
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
+      setEditingKeys((prev) => {
+        const next = new Set(prev)
+        next.delete(key)
+        return next
+      })
+      return
+    }
+    setOpenKeys((prev) => new Set(prev).add(key))
+    setEditingKeys((prev) => new Set(prev).add(key))
+  }
+
+  function beginPhysiqueEdit() {
+    if (isPhone) {
+      setDialogEditKey('physique')
+      setPhysiquePhase('glance')
+      return
+    }
+    setPhysiquePhase('edit')
+  }
+
+  function openView(key: string) {
+    setEditingKeys((prev) => {
+      const next = new Set(prev)
+      next.delete(key)
+      return next
+    })
     setOpenKeys((prev) => {
       const next = new Set(prev)
       if (next.has(key)) next.delete(key)
@@ -272,12 +290,30 @@ export function TextBlocksPanel({
     })
   }
 
+  function collapseBlock(key: string) {
+    setOpenKeys((prev) => {
+      const next = new Set(prev)
+      next.delete(key)
+      return next
+    })
+    setEditingKeys((prev) => {
+      const next = new Set(prev)
+      next.delete(key)
+      return next
+    })
+  }
+
   function collapseAll() {
     setOpenKeys(new Set())
+    setEditingKeys(new Set())
+    setPhysiquePhase('glance')
+    setDialogEditKey(null)
   }
 
   function expandAll() {
     setOpenKeys(new Set(visibleBlocks.map((block) => block.key)))
+    setEditingKeys(new Set())
+    if (showPhysique) setPhysiquePhase('view')
   }
 
   function insertPart(block: TextBlock, kind: TextBlockPart['kind']) {
@@ -351,7 +387,10 @@ export function TextBlocksPanel({
     }
   }
 
-  function renderResourcePart(block: TextBlock, part: Extract<TextBlockPart, { kind: 'resource' }>) {
+  function renderResourcePart(
+    block: TextBlock,
+    part: Extract<TextBlockPart, { kind: 'resource' }>,
+  ) {
     const resource = resources.find((item) => item.id === part.resourceId)
     if (!resource) {
       return (
@@ -573,125 +612,25 @@ export function TextBlocksPanel({
     )
   }
 
-  function renderBlockCard(block: TextBlock) {
-    const label = displayLabel(block)
-    const bucket = blockBucket(block)
-    const role = roleLabel(block)
-    const preview = previewText(block.value)
-    const filled =
-      Boolean(stripDvarfInternalMarkers(block.value).trim()) ||
-      blockHasResource(block)
-    const detailsOpen = openKeys.has(block.key)
-    const drop = blockDropProps(block)
+  function renderBlockEditor(block: TextBlock) {
+    const bucket = socialBucket(block)
     const hasResource = blockHasResource(block)
-    const spoilerCount = block.parts.filter((part) => part.kind === 'spoiler').length
-
-    if (block.isHidden && filter === 'hidden' && !detailsOpen) {
-      return (
-        <div
-          key={block.key}
-          id={`text-block-${block.key}`}
-          className="text-block text-block--compact text-block--hidden"
-          {...drop}
-        >
-          {renderDragHandle(block)}
-          <button
-            type="button"
-            className="text-block__glance"
-            onClick={() => toggleDetails(block.key)}
-          >
-            <b className="text-block__glance-name">{label}</b>
-            <span className={`inventory-role inventory-role--${roleClass(bucket)}`}>
-              {role}
-            </span>
-            <span className="attack-held-tag">скрыт</span>
-            <span className="inventory-card__glance-spacer" aria-hidden />
-            <span className="inventory-card__glance-meta">
-              {filled ? 'есть текст' : 'пусто'}
-            </span>
-          </button>
-          <div className="inventory-card__glance-actions">
-            <button
-              type="button"
-              className="inventory-equip is-on"
-              onClick={() => updateBlock(block.key, { isHidden: false })}
-            >
-              Показать
-            </button>
-            <button
-              type="button"
-              className="inventory-card__chevron-btn"
-              aria-label="Подробнее"
-              onClick={() => toggleDetails(block.key)}
-            >
-              ›
-            </button>
-          </div>
-        </div>
-      )
-    }
-
-    if (!detailsOpen) {
-      return (
-        <div
-          key={block.key}
-          id={`text-block-${block.key}`}
-          className={`text-block text-block--compact${filled ? '' : ' text-block--empty'}`}
-          {...drop}
-        >
-          {renderDragHandle(block)}
-          <button
-            type="button"
-            className="text-block__glance"
-            onClick={() => toggleDetails(block.key)}
-          >
-            <b className="text-block__glance-name">{label}</b>
-            <span className={`inventory-role inventory-role--${roleClass(bucket)}`}>
-              {role}
-            </span>
-            {hasResource ? <span className="attack-held-tag is-on">ресурс</span> : null}
-            {spoilerCount > 0 ? (
-              <span className="attack-held-tag">спойлер</span>
-            ) : null}
-            <span className="inventory-card__glance-spacer" aria-hidden />
-            <span className="text-block__glance-preview">
-              {preview || 'пусто — нажми, чтобы заполнить'}
-            </span>
-          </button>
-          <div className="inventory-card__glance-actions">
-            <button
-              type="button"
-              className="inventory-card__chevron-btn"
-              aria-label="Подробнее"
-              onClick={() => toggleDetails(block.key)}
-            >
-              ›
-            </button>
-          </div>
-        </div>
-      )
-    }
-
     return (
-      <div
-        key={block.key}
-        id={`text-block-${block.key}`}
-        className={`text-block text-block--expand${
-          block.isHidden ? ' text-block--hidden' : ''
-        }`}
-        {...drop}
-      >
+      <>
         <div className="text-block__meta">
           {renderDragHandle(block)}
           <span className={`inventory-role inventory-role--${roleClass(bucket)}`}>
-            {role}
+            {roleLabel(block)}
           </span>
           {hasResource ? <span className="attack-held-tag is-on">ресурс</span> : null}
           {block.isHidden ? <span className="attack-held-tag">скрыт</span> : null}
           <button
             type="button"
             className="inventory-card__collapse"
-            onClick={() => toggleDetails(block.key)}
+            onClick={() => {
+              if (dialogEditKey === block.key) closeDialogEdit()
+              else collapseBlock(block.key)
+            }}
           >
             свернуть
           </button>
@@ -749,6 +688,7 @@ export function TextBlocksPanel({
                   )
                 }
                 onChange(blocks.filter((item) => item.key !== block.key))
+                if (dialogEditKey === block.key) closeDialogEdit()
               }}
             >
               <IconTrash />
@@ -756,9 +696,325 @@ export function TextBlocksPanel({
             </button>
           ) : null}
         </div>
+      </>
+    )
+  }
+
+  function renderPhysiqueEditor() {
+    if (!physique || !onPhysiqueChange) return null
+    return (
+      <div className="text-physique__edit">
+        <div className="text-physique__grid">
+          {PHYSIQUE_FIELDS.map((row) => (
+            <Field key={row.key} label={row.label}>
+              <Input
+                value={physique[row.key]}
+                placeholder={row.placeholder}
+                onChange={(event) =>
+                  onPhysiqueChange({
+                    ...physique,
+                    [row.key]: event.target.value,
+                  })
+                }
+              />
+            </Field>
+          ))}
+        </div>
+        <Field label="Описание">
+          <textarea
+            className="ui-input text-block__area"
+            rows={4}
+            value={appearancePlain(appearanceBlock)}
+            placeholder="Как выглядит персонаж…"
+            onChange={(event) => updateAppearanceText(event.target.value)}
+          />
+        </Field>
       </div>
     )
   }
+
+  function renderPhysiqueView() {
+    if (!physique) return null
+    const pairs = filledPhysiquePairs(physique)
+    const text = appearancePlain(appearanceBlock)
+    return (
+      <div className="text-physique__view">
+        {pairs.length > 0 ? (
+          <ul className="text-physique__pairs">
+            {pairs.map((row) => (
+              <li key={row.label}>
+                <span className="text-physique__pair-label">{row.label}</span>
+                <span>{row.value}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Text tone="muted">Поля роста, глаз и прочего пока пустые</Text>
+        )}
+        {text ? <p className="text-physique__desc">{text}</p> : null}
+        <div className="text-physique__view-actions">
+          <Button type="button" onClick={beginPhysiqueEdit}>
+            Изменить
+          </Button>
+          <button
+            type="button"
+            className="inventory-card__collapse"
+            onClick={() => setPhysiquePhase('glance')}
+          >
+            свернуть
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  function renderPhysiqueBlock() {
+    if (!showPhysique || !physique || !onPhysiqueChange) return null
+    const glance = physiqueGlancePreview(physique, appearanceBlock)
+
+    if (physiquePhase === 'edit' && !isPhone) {
+      return (
+        <div className="text-physique text-physique--edit">
+          <div className="text-physique__head">
+            <strong>Внешность</strong>
+            <button
+              type="button"
+              className="inventory-card__collapse"
+              onClick={() => setPhysiquePhase('view')}
+            >
+              свернуть
+            </button>
+          </div>
+          {renderPhysiqueEditor()}
+        </div>
+      )
+    }
+
+    if (physiquePhase === 'view') {
+      return (
+        <div className="text-physique text-physique--view">
+          <div className="text-physique__head">
+            <strong>Внешность</strong>
+            <span className="text-physique__meta">
+              {physiqueContent
+                ? `${physiqueFilled}/6${appearancePlain(appearanceBlock) ? ' · описание' : ''}`
+                : 'не заполнено'}
+            </span>
+          </div>
+          {renderPhysiqueView()}
+        </div>
+      )
+    }
+
+    return (
+      <div className="text-physique text-physique--glance">
+        <button
+          type="button"
+          className="text-physique__toggle"
+          aria-expanded={false}
+          onClick={() => setPhysiquePhase('view')}
+        >
+          <strong>Внешность</strong>
+          <span className="text-physique__meta">
+            {physiqueContent
+              ? glance || `${physiqueFilled}/6`
+              : 'не заполнено'}
+            {' · '}
+            показать
+          </span>
+        </button>
+      </div>
+    )
+  }
+
+  function renderEmptyPersonalityLine() {
+    if (!showEmptyLine) return null
+    return (
+      <div className="text-block text-block--empty-line">
+        <p className="text-block__empty-line">
+          <span>Не заполнено:{' '}</span>
+          {emptyPersonality.map((block, index) => (
+            <span key={block.key}>
+              {index > 0 ? ' · ' : null}
+              <button
+                type="button"
+                className="linkish text-block__empty-link"
+                onClick={() => beginEdit(block.key)}
+              >
+                {displayLabel(block)}
+              </button>
+            </span>
+          ))}
+          <span>{' · '}</span>
+          <button
+            type="button"
+            className="linkish text-block__empty-link"
+            onClick={() => {
+              const first = emptyPersonality[0]
+              if (first) beginEdit(first.key)
+            }}
+          >
+            заполнить
+          </button>
+        </p>
+      </div>
+    )
+  }
+
+  function renderBlockCard(block: TextBlock) {
+    const label = displayLabel(block)
+    const bucket = socialBucket(block)
+    const role = roleLabel(block)
+    const filled = blockHasPlayerContent(block)
+    const detailsOpen = openKeys.has(block.key)
+    const editing = editingKeys.has(block.key)
+    const drop = blockDropProps(block)
+    const hasResource = blockHasResource(block)
+    const spoilerCount = block.parts.filter((part) => part.kind === 'spoiler').length
+    const viewText = blockViewPreview(block.value)
+
+    if (block.isHidden && filter === 'hidden' && !detailsOpen && !editing) {
+      return (
+        <div
+          key={block.key}
+          id={`text-block-${block.key}`}
+          className="text-block text-block--compact text-block--hidden"
+          {...drop}
+        >
+          {renderDragHandle(block)}
+          <button
+            type="button"
+            className="text-block__glance"
+            onClick={() => openView(block.key)}
+          >
+            <b className="text-block__glance-name">{label}</b>
+            <span className={`inventory-role inventory-role--${roleClass(bucket)}`}>
+              {role}
+            </span>
+            <span className="attack-held-tag">скрыт</span>
+            <span className="inventory-card__glance-spacer" aria-hidden />
+            <span className="inventory-card__glance-meta">
+              {filled ? 'есть текст' : 'пусто'}
+            </span>
+          </button>
+          <div className="inventory-card__glance-actions">
+            <button
+              type="button"
+              className="inventory-equip is-on"
+              onClick={() => updateBlock(block.key, { isHidden: false })}
+            >
+              Показать
+            </button>
+            <button
+              type="button"
+              className="inventory-card__chevron-btn"
+              aria-label="Подробнее"
+              onClick={() => openView(block.key)}
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    if (editing && !isPhone) {
+      return (
+        <div
+          key={block.key}
+          id={`text-block-${block.key}`}
+          className={`text-block text-block--expand${
+            block.isHidden ? ' text-block--hidden' : ''
+          }`}
+          {...drop}
+        >
+          {renderBlockEditor(block)}
+        </div>
+      )
+    }
+
+    if (detailsOpen) {
+      return (
+        <div
+          key={block.key}
+          id={`text-block-${block.key}`}
+          className={`text-block text-block--expand text-block--view${
+            block.isHidden ? ' text-block--hidden' : ''
+          }`}
+          {...drop}
+        >
+          <div className="text-block__meta">
+            {renderDragHandle(block)}
+            <span className={`inventory-role inventory-role--${roleClass(bucket)}`}>
+              {role}
+            </span>
+            {hasResource ? <span className="attack-held-tag is-on">ресурс</span> : null}
+            {block.isHidden ? <span className="attack-held-tag">скрыт</span> : null}
+            <button
+              type="button"
+              className="inventory-card__collapse"
+              onClick={() => collapseBlock(block.key)}
+            >
+              свернуть
+            </button>
+          </div>
+          <h3 className="text-block__view-title">{label}</h3>
+          {viewText ? (
+            <p className="text-block__view-body">{viewText}</p>
+          ) : (
+            <Text tone="muted">Пусто</Text>
+          )}
+          <div className="text-block__view-actions">
+            <Button type="button" onClick={() => beginEdit(block.key)}>
+              Изменить
+            </Button>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div
+        key={block.key}
+        id={`text-block-${block.key}`}
+        className={`text-block text-block--compact${filled ? '' : ' text-block--empty'}`}
+        {...drop}
+      >
+        {renderDragHandle(block)}
+        <button
+          type="button"
+          className="text-block__glance"
+          onClick={() => openView(block.key)}
+        >
+          <b className="text-block__glance-name">{label}</b>
+          <span className={`inventory-role inventory-role--${roleClass(bucket)}`}>
+            {role}
+          </span>
+          {hasResource ? <span className="attack-held-tag is-on">ресурс</span> : null}
+          {spoilerCount > 0 ? <span className="attack-held-tag">спойлер</span> : null}
+          <span className="inventory-card__glance-spacer" aria-hidden />
+          <span className="text-block__glance-preview">
+            {viewText || 'нажми, чтобы открыть'}
+          </span>
+        </button>
+        <div className="inventory-card__glance-actions">
+          <button
+            type="button"
+            className="inventory-card__chevron-btn"
+            aria-label="Подробнее"
+            onClick={() => openView(block.key)}
+          >
+            ›
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const dialogBlock =
+    dialogEditKey && dialogEditKey !== 'physique'
+      ? blocks.find((block) => block.key === dialogEditKey)
+      : null
 
   return (
     <Panel
@@ -766,73 +1022,36 @@ export function TextBlocksPanel({
       className="text-panel"
       titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.text_blocks)} />}
     >
-      <p className="text-panel__lede">
-        Сначала личность и внешность. Умения класса — во вкладке «Способности».
-        {onOpenFeatures ? (
-          <>
-            {' '}
-            <button
-              type="button"
-              className="play-desk-compact__link"
-              onClick={onOpenFeatures}
-            >
-              Открыть в Способностях
-            </button>
-          </>
-        ) : null}
-      </p>
+      {onOpenFeatures ? (
+        <div className="text-panel__features-jump">
+          <button
+            type="button"
+            className="play-desk-compact__link text-panel__features-btn"
+            onClick={onOpenFeatures}
+          >
+            Способности
+          </button>
+        </div>
+      ) : null}
 
       <Stack gap={12}>
         <div className="inventory-filters" role="tablist" aria-label="Фильтр текстов">
-          {FILTERS.map((row) => (
+          {filterChips.map((row) => (
             <button
               key={row.id}
               type="button"
               role="tab"
               aria-selected={filter === row.id}
               className={`inventory-filter${filter === row.id ? ' is-on' : ''}`}
-              onClick={() => setFilter(row.id)}
+              onClick={() => setFilterWish(row.id)}
             >
               {row.label}
             </button>
           ))}
         </div>
 
-        {physique && onPhysiqueChange && (filter === 'all' || filter === 'personality') ? (
-          <div className="text-physique">
-            <button
-              type="button"
-              className="text-physique__toggle"
-              aria-expanded={physiqueOpen}
-              onClick={() => setPhysiqueOpen((prev) => !prev)}
-            >
-              <strong>Внешность</strong>
-              <span className="text-physique__meta">
-                {physiqueFilled > 0 ? `${physiqueFilled}/6` : 'не заполнено'}
-                {' · '}
-                {physiqueOpen ? 'свернуть' : 'показать'}
-              </span>
-            </button>
-            {physiqueOpen ? (
-              <div className="text-physique__grid">
-                {PHYSIQUE_FIELDS.map((row) => (
-                  <Field key={row.key} label={row.label}>
-                    <Input
-                      value={physique[row.key]}
-                      placeholder={row.placeholder}
-                      onChange={(event) =>
-                        onPhysiqueChange({
-                          ...physique,
-                          [row.key]: event.target.value,
-                        })
-                      }
-                    />
-                  </Field>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+        {renderPhysiqueBlock()}
+        {renderEmptyPersonalityLine()}
 
         <div className="abil-column__toolbar text-panel__collapse-bar">
           <button type="button" onClick={collapseAll}>
@@ -850,8 +1069,8 @@ export function TextBlocksPanel({
             onClick={() => {
               const next = createCustomTextBlock(blocks)
               onChange([...blocks, next])
-              setFilter('notes')
-              setOpenKeys((prev) => new Set(prev).add(next.key))
+              setFilterWish('notes')
+              beginEdit(next.key)
             }}
           >
             <IconPlus />
@@ -860,12 +1079,12 @@ export function TextBlocksPanel({
         </div>
 
         <Stack gap={10}>
-          {visibleBlocks.length === 0 ? (
+          {visibleBlocks.length === 0 && !showEmptyLine && !showPhysique ? (
             <Text tone="muted">
               {filter === 'all'
                 ? 'Нет видимых блоков — добавь заметку или покажи скрытые.'
                 : filter === 'personality'
-                  ? 'Пустые поля личности свёрнуты в карточках — открой нужное и заполни.'
+                  ? 'Поля личности пустые — заполни строку выше.'
                   : 'Нет блоков в этом фильтре.'}
             </Text>
           ) : null}
@@ -937,6 +1156,36 @@ export function TextBlocksPanel({
           </div>
         ) : null}
       </Stack>
+
+      <Dialog
+        open={dialogEditKey === 'physique' && Boolean(physique)}
+        title="Внешность"
+        primaryLabel="Готово"
+        secondaryLabel="Закрыть"
+        onPrimary={closeDialogEdit}
+        onSecondary={closeDialogEdit}
+        onDismiss={closeDialogEdit}
+        size="wide"
+      >
+        {renderPhysiqueEditor()}
+      </Dialog>
+
+      <Dialog
+        open={Boolean(dialogBlock)}
+        title={dialogBlock ? displayLabel(dialogBlock) : 'Блок'}
+        primaryLabel="Готово"
+        secondaryLabel="Закрыть"
+        onPrimary={closeDialogEdit}
+        onSecondary={closeDialogEdit}
+        onDismiss={closeDialogEdit}
+        size="wide"
+      >
+        {dialogBlock ? (
+          <div className="text-block text-block--dialog-edit">
+            {renderBlockEditor(dialogBlock)}
+          </div>
+        ) : null}
+      </Dialog>
     </Panel>
   )
 }

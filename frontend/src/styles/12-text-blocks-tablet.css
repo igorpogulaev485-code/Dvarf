@@ -20,6 +20,19 @@
   color: var(--muted);
 }
 
+/* SOC-01: small jump to «Способности» instead of lede paragraph */
+.text-panel__features-jump {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 8px;
+}
+
+.text-panel__features-btn.play-desk-compact__link {
+  font-size: 0.82rem;
+  font-weight: 650;
+  padding: 2px 0;
+}
+
 .text-panel__collapse-bar {
   margin: 0;
   /* Stage panel scrolls; sticky bar stays under stage chrome like ability rail. */
@@ -328,6 +341,13 @@
   color: inherit;
 }
 
+.text-physique__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .text-physique__meta {
   font-size: 0.82rem;
   color: var(--muted);
@@ -340,8 +360,104 @@
   gap: 10px 12px;
 }
 
+.text-physique__edit {
+  display: grid;
+  gap: 12px;
+}
+
+.text-physique__view {
+  display: grid;
+  gap: 10px;
+}
+
+.text-physique__pairs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.text-physique__pairs li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  font-size: 0.92rem;
+  color: var(--ink);
+}
+
+.text-physique__pair-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  min-width: 4.5rem;
+}
+
+.text-physique__desc {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
+.text-physique__view-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.text-block--empty-line {
+  padding: 10px 12px;
+  border-style: dashed;
+  background: rgba(255, 253, 248, 0.72);
+}
+
+.text-block__empty-line {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.text-block__empty-link {
+  font-weight: 650;
+}
+
+.text-block__view-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.text-block__view-body {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--ink);
+  white-space: pre-wrap;
+}
+
+.text-block__view-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.text-block--dialog-edit {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
 @media (max-width: 560px) {
-  .text-physique__grid {
+  .text-physique__grid,
+  .text-physique__pairs {
     grid-template-columns: 1fr;
   }
 }
