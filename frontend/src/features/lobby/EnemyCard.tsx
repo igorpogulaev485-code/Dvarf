@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import type { CombatantAction, CombatantMember, SessionCombatant } from '../../shared/api/lobbies'
-import { Button, Dialog, Field, NumberInput, Stack, Text } from '../../ui'
+import { Button, DetailsMenu, Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 import { PackRosterList, memberHpColorLabel, memberHpTone } from './enemyPackRoster'
 import { TypedDamageForm, type TypedDamagePayload } from './TypedDamageForm'
 import {
@@ -515,47 +515,56 @@ export function EnemyCard({
               {abilitiesOpen ? 'Свернуть' : 'Текст'}
             </Button>
           ) : null}
-          {onRevealStatblock && !combatant.statblock_revealed ? (
-            <Button type="button" variant="ghost" disabled={busy} onClick={onRevealStatblock}>
-              Показать игрокам
-            </Button>
-          ) : null}
-          {canSaveToSetting && onSaveToSetting ? (
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={busy}
-              title="Создать страницу НПС в сеттинге сессии"
-              onClick={onSaveToSetting}
+          {(onRevealStatblock && !combatant.statblock_revealed) ||
+          (canSaveToSetting && onSaveToSetting) ||
+          onOutcome ? (
+            <DetailsMenu
+              className="session-enemy-card__more"
+              summary="⋯"
+              summaryClassName="ui-button ui-button--ghost ui-button--sm"
+              panelClassName="session-toolbar-more__body"
             >
-              В сеттинг
-            </Button>
-          ) : null}
-          {onOutcome ? (
-            <>
-              <Button
-                type="button"
-                variant="ghost"
-                disabled={busy}
-                className={combatant.outcome === 'fled' ? 'is-on' : undefined}
-                onClick={() =>
-                  onOutcome(combatant.outcome === 'fled' ? '' : 'fled')
-                }
-              >
-                Сбежал
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                disabled={busy}
-                className={combatant.outcome === 'surrendered' ? 'is-on' : undefined}
-                onClick={() =>
-                  onOutcome(combatant.outcome === 'surrendered' ? '' : 'surrendered')
-                }
-              >
-                Сдался
-              </Button>
-            </>
+              {onRevealStatblock && !combatant.statblock_revealed ? (
+                <Button type="button" variant="ghost" disabled={busy} onClick={onRevealStatblock}>
+                  Показать игрокам
+                </Button>
+              ) : null}
+              {canSaveToSetting && onSaveToSetting ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={busy}
+                  title="Создать страницу НПС в сеттинге сессии"
+                  onClick={onSaveToSetting}
+                >
+                  В сеттинг
+                </Button>
+              ) : null}
+              {onOutcome ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={busy}
+                    className={combatant.outcome === 'fled' ? 'is-on' : undefined}
+                    onClick={() => onOutcome(combatant.outcome === 'fled' ? '' : 'fled')}
+                  >
+                    Сбежал
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={busy}
+                    className={combatant.outcome === 'surrendered' ? 'is-on' : undefined}
+                    onClick={() =>
+                      onOutcome(combatant.outcome === 'surrendered' ? '' : 'surrendered')
+                    }
+                  >
+                    Сдался
+                  </Button>
+                </>
+              ) : null}
+            </DetailsMenu>
           ) : null}
         </div>
       ) : (

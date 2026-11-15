@@ -103,12 +103,13 @@ export function SessionAttendancePanel({
         </Text>
       ) : null}
 
-      {(mode === 'create' || mode === 'manage') && !readOnly ? (
+      {(mode === 'create' || mode === 'manage') && !readOnly && members.length > 0 ? (
         <div className="inline-actions">
           <Button
             type="button"
             variant="secondary"
-            disabled={busy || members.length === 0}
+            size="sm"
+            disabled={busy}
             onClick={() => {
               for (const m of members) {
                 if (!presentIds.has(m.character_id)) onToggle(m.character_id, true)
@@ -120,6 +121,7 @@ export function SessionAttendancePanel({
           <Button
             type="button"
             variant="ghost"
+            size="sm"
             disabled={busy || presentIds.size === 0}
             onClick={() => {
               for (const id of [...presentIds]) onToggle(id, false)

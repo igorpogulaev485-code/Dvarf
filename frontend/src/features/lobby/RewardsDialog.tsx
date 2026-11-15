@@ -16,6 +16,7 @@ import {
   Field,
   Input,
   NumberInput,
+  SegmentedControl,
   Select,
   Stack,
   Text,
@@ -235,6 +236,8 @@ export function RewardsDialog({
   )
   const [awardMode, setAwardMode] = useState<'idle' | 'assign'>('idle')
   const [quickKind, setQuickKind] = useState<(typeof QUICK)[number]['kind']>('trinkets')
+  /** На узкой ширине Опыт и Добыча — вкладками, чтобы подвал не закрывал добычу. */
+  const [mobilePane, setMobilePane] = useState<'xp' | 'loot'>('xp')
 
   useEffect(() => {
     if (!open) return
@@ -251,6 +254,7 @@ export function RewardsDialog({
     setSelectedIds(initial)
     setManualAmount(focus === 'manual' ? 300 : null)
     setNote(focus === 'manual' ? '' : '')
+    setMobilePane(focus === 'loot' ? 'loot' : 'xp')
     setRemainderMode('bank')
     setRemainderWho(seats[0]?.character_id ?? '')
     setBonusWho(seats[0]?.character_id ?? '')
@@ -407,7 +411,7 @@ export function RewardsDialog({
   const bonusAddDisabledHint = !bonusWho
     ? 'Выберите, кому выдать бонус.'
     : !(bonusAmount && bonusAmount > 0)
-      ? 'Укажите сумму XP.'
+      ? 'Укажите сумму опыта.'
       : undefined
 
   const primaryLabel = milestones
@@ -473,9 +477,25 @@ export function RewardsDialog({
         })
       }}
     >
-      <div className="session-rewards">
+      <div className="session-rewards-mobile-tabs">
+        <SegmentedControl
+          aria-label="Раздел наград"
+          size="sm"
+          value={mobilePane}
+          options={[
+            { id: 'xp', label: milestones ? 'Вехи' : 'Опыт' },
+            { id: 'loot', label: 'Добыча' },
+          ]}
+          onChange={setMobilePane}
+        />
+      </div>
+      <div
+        className={`session-rewards${
+          mobilePane === 'loot' ? ' session-rewards--pane-loot' : ' session-rewards--pane-xp'
+        }`}
+      >
         <Stack gap={12} className="session-rewards__xp">
-          <Text as="h4" className="session-xp-recipients__title">
+          <Text as="h4" className="session-xp-recipients__title session-rewards__desktop-heading">
             {milestones ? 'Вехи' : 'Опыт'}
           </Text>
           {milestones ? (
@@ -518,14 +538,14 @@ export function RewardsDialog({
                             : ''}
                         {(row.unclaimed || 0) > 1 ? ` × ${row.unclaimed}` : ''}
                       </span>
-                      <span className="session-xp-defeat-list__xp">{row.total} XP</span>
+                      <span className="session-xp-defeat-list__xp">{row.total} опыта</span>
                     </li>
                   ))}
                 </ul>
               ) : (
                 <Text tone="muted">
                   {combatPool > 0
-                    ? `Пул по поверженным: ${combatPool} XP`
+                    ? `Пул по поверженным: ${combatPool} опыта`
                     : 'Пул пуст — можно выдать вручную или закрыть.'}
                 </Text>
               )}
@@ -858,7 +878,6 @@ export function RewardsDialog({
                       <span>
                         {row.name}
                         {row.qty > 1 ? ` × ${row.qty}` : ''}
-                        {row.magic_table ? ` [${row.magic_table}]` : ''}
                       </span>
                     ) : (
                       <span>

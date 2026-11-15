@@ -567,7 +567,9 @@ export function LobbyDetailPage() {
                         key={s.id}
                       >
                         <div>
-                          <Link to={`/sessions/${s.id}`}>{s.name}</Link>
+                          <Link className="ui-button ui-button--ghost" to={`/sessions/${s.id}`}>
+                            {s.name}
+                          </Link>
                           <Text tone="muted">
                             {s.setting_name ? `Сеттинг: ${s.setting_name}` : 'Разовая сессия'} · пришло:{' '}
                             {s.seat_count}
@@ -659,8 +661,8 @@ export function LobbyDetailPage() {
                       })
                     }}
                   />
-                  <Button type="submit" disabled={busy}>
-                    + Создать сессию
+                  <Button type="submit" disabled={busy} size="lg">
+                    Создать сессию
                     {sessionPresentIds.size > 0 ? ` (${sessionPresentIds.size})` : ''}
                   </Button>
                 </form>
@@ -685,7 +687,9 @@ export function LobbyDetailPage() {
                     {lobby.settings.map((s) => (
                       <div className="list-row" key={s.id}>
                         <div>
-                          <Link to={`/settings/${s.id}`}>{s.name}</Link>
+                          <Link className="ui-button ui-button--ghost" to={`/settings/${s.id}`}>
+                            {s.name}
+                          </Link>
                         </div>
                         <Button
                           type="button"
@@ -708,7 +712,9 @@ export function LobbyDetailPage() {
               {lobby.settings.map((s) => (
                 <div className="list-row" key={s.id}>
                   <div>
-                    <Link to={`/settings/${s.id}`}>{s.name}</Link>
+                    <Link className="ui-button ui-button--ghost" to={`/settings/${s.id}`}>
+                      {s.name}
+                    </Link>
                     <Text tone="muted">
                       {s.world_notes.trim() ? s.world_notes.slice(0, 80) : 'Мир пока пуст'}
                     </Text>
@@ -771,8 +777,8 @@ export function LobbyDetailPage() {
                       placeholder="Мир кампании…"
                     />
                   </Field>
-                  <Button type="submit" disabled={busy}>
-                    + Сеттинг
+                  <Button type="submit" disabled={busy} size="lg">
+                    Создать сеттинг
                   </Button>
                 </form>
               ) : null}

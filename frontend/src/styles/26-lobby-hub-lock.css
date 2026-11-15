@@ -641,6 +641,7 @@
   color: var(--muted);
   cursor: pointer;
   min-height: 44px;
+  white-space: nowrap;
 }
 
 .session-live-tab.is-active {

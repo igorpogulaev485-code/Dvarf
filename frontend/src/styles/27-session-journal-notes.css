@@ -1037,8 +1037,6 @@
     gap: 6px;
   }
 
-  .session-combat-track--compact .session-combat-track__title,
-  .session-combat-track--compact .session-combat-track__now,
   .session-combat-track--compact .session-combat-track__actions,
   .session-combat-track--compact .session-combat-reminders,
   .session-combat-track--compact .session-combat-waves,
@@ -1046,7 +1044,9 @@
     display: none;
   }
 
-  /* LV-02: на узкой полосе оставляем «ход N из M» */
+  /* LOBBY-FIX: игроку нужны раунд и чей ход, не только «ход N из M». */
+  .session-combat-track--compact .session-combat-track__title,
+  .session-combat-track--compact .session-combat-track__now,
   .session-combat-track--compact .session-combat-track__progress {
     font-size: 0.8rem;
   }

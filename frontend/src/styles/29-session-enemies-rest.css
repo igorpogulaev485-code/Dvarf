@@ -878,8 +878,29 @@
   gap: 4px;
 }
 
+.session-rewards-mobile-tabs {
+  display: none;
+  margin: 0 0 12px;
+}
+
 @media (max-width: 900px) {
   .session-rewards {
     grid-template-columns: 1fr;
+  }
+
+  .session-rewards-mobile-tabs {
+    display: block;
+  }
+
+  .session-rewards__desktop-heading {
+    display: none;
+  }
+
+  .session-rewards--pane-xp .session-rewards__loot {
+    display: none;
+  }
+
+  .session-rewards--pane-loot .session-rewards__xp {
+    display: none;
   }
 }

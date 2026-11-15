@@ -273,20 +273,23 @@ export function LobbyNotesPanel({
                 disabled={busy}
               />
             </Field>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={busy}
-              onClick={() =>
-                void run(async () => {
-                  const file = await exportNotes(lobbyId)
-                  downloadTextFile(file.filename, file.content)
-                  onToast?.('Заметки скачаны')
-                })
-              }
-            >
-              Скачать заметки
-            </Button>
+            {notes.length > 0 ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={busy}
+                onClick={() =>
+                  void run(async () => {
+                    const file = await exportNotes(lobbyId)
+                    downloadTextFile(file.filename, file.content)
+                    onToast?.('Заметки скачаны')
+                  })
+                }
+              >
+                Скачать
+              </Button>
+            ) : null}
           </div>
         ) : null}
 
