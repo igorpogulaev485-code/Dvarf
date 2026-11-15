@@ -1,4 +1,4 @@
-"""W-API-01/03: задание импорта мира, черновик сверки, ключи, алиасы, связи."""
+"""W-API-01/03/05: задание импорта мира, черновик сверки, ключи, алиасы, связи, журнал confirm."""
 
 from __future__ import annotations
 
@@ -88,6 +88,12 @@ class WorldImportJob(Base):
     source_kind: Mapped[str] = mapped_column(String(16), nullable=False, default="api")
     idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
     source_ref: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # W-API-05: снимок канона «до confirm» (для undo в W-API-07).
+    confirm_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    last_confirmed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -102,6 +108,11 @@ class WorldImportJob(Base):
 
     draft_items: Mapped[list[WorldImportDraftItem]] = relationship(
         "WorldImportDraftItem",
+        back_populates="job",
+        cascade="all, delete-orphan",
+    )
+    confirmations: Mapped[list["WorldImportConfirmation"]] = relationship(
+        "WorldImportConfirmation",
         back_populates="job",
         cascade="all, delete-orphan",
     )
@@ -311,4 +322,67 @@ class WorldImportDraftLink(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
+    )
+
+
+WorldImportConfirmActorKind = Literal["user", "ai_token"]
+WORLD_IMPORT_CONFIRM_ACTOR_KINDS: frozenset[str] = frozenset({"user", "ai_token"})
+
+
+class WorldImportConfirmation(Base):
+    """Журнал подтверждений импорта: кто (мастер / ИИ-токен) и когда.
+
+    Undo последнего confirm — W-API-07; здесь храним снимок и undone_at.
+    """
+
+    __tablename__ = "world_import_confirmations"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    job_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("world_import_jobs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    setting_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("settings.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    lobby_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("lobbies.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    actor_kind: Mapped[str] = mapped_column(String(16), nullable=False, default="user")
+    actor_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    actor_token_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("world_api_tokens.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    item_ids: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
+    snapshot_before: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    confirmed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    undone_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    job: Mapped[WorldImportJob] = relationship(
+        "WorldImportJob", back_populates="confirmations"
     )

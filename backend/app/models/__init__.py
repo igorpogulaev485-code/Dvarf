@@ -32,6 +32,7 @@ from app.models.user import (
 )
 from app.models.world_api_token import WorldApiToken
 from app.models.world_import import (
+    WorldImportConfirmation,
     WorldImportDraftItem,
     WorldImportDraftLink,
     WorldImportJob,
@@ -78,6 +79,7 @@ __all__ = [
     "WhisperMessage",
     "WhisperThread",
     "WorldApiToken",
+    "WorldImportConfirmation",
     "WorldImportDraftItem",
     "WorldImportDraftLink",
     "WorldImportJob",

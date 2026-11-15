@@ -16,10 +16,11 @@ import yaml
 
 from app.core.exceptions import AppError
 
-# Ориентир из задания: ~20 МБ текста / разумный потолок архива.
+# Ориентир из задания: ~20 МБ текста / ~400 файлов / разумный потолок архива.
 MAX_ZIP_BYTES = 25 * 1024 * 1024
 MAX_TEXT_TOTAL_BYTES = 20 * 1024 * 1024
 MAX_SINGLE_FILE_BYTES = 2 * 1024 * 1024
+MAX_FILE_COUNT = 400
 
 SKIP_BASENAMES = frozenset(
     {
@@ -212,6 +213,18 @@ def parse_vault_files(files: list[VaultFile]) -> VaultParseResult:
     skipped: list[dict[str, str]] = []
     seen_keys: set[str] = set()
     book_chapters: list[dict[str, str]] = []
+
+    if len(files) > MAX_FILE_COUNT:
+        raise AppError(
+            "Слишком много файлов в пакете",
+            code="quota_exceeded",
+            status_code=400,
+            data={
+                "hint": f"Не больше {MAX_FILE_COUNT} файлов за одну заливку",
+                "file_count": len(files),
+                "limit": MAX_FILE_COUNT,
+            },
+        )
 
     total_bytes = 0
     for vf in files:

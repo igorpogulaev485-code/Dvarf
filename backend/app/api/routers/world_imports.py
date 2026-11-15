@@ -1,7 +1,8 @@
-"""W-API-01/02/03: эндпоинты токенов, заданий, разбора и связей черновика."""
+"""W-API-01…05: токены, задания, разбор, validate/upsert/diff/confirm/cancel."""
 
 from __future__ import annotations
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, File, Form, Header, UploadFile
@@ -12,18 +13,39 @@ from app.schemas.world_import import (
     WorldApiTokenCreated,
     WorldApiTokenCreateRequest,
     WorldApiTokenOut,
+    WorldImportCancelOut,
+    WorldImportConfirmOut,
+    WorldImportConfirmRequest,
     WorldImportCreateRequest,
+    WorldImportDiffOut,
     WorldImportDraftItemOut,
     WorldImportDraftLinkOut,
     WorldImportJobOut,
+    WorldImportSettingsOut,
+    WorldImportSettingsPatch,
+    WorldImportUpsertRequest,
+    WorldImportValidateOut,
+    WorldImportValidateRequest,
     WorldVaultParseRequest,
     WorldVaultParseResultOut,
 )
 from app.services.world_api_tokens import WorldApiTokenService
 from app.services.world_import import WorldImportService
+from app.services.world_import_auth import resolve_world_import_actor
+from app.services.world_import_confirm import WorldImportConfirmService
+from app.services.world_import_diff import build_diff
 from app.services.world_vault_parse import MAX_ZIP_BYTES
 
 router = APIRouter(tags=["world-imports"])
+
+AuthorizationHeader = Annotated[str | None, Header()]
+
+
+def _actor(db: DbSession, authorization: str | None):
+    return resolve_world_import_actor(db, authorization)
+
+
+# --- Токены: только сессия мастера ---
 
 
 @router.post(
@@ -68,18 +90,89 @@ def revoke_world_api_token(
     return WorldApiTokenService(db).revoke(current_user, lobby_id, setting_id, token_id)
 
 
+# --- W-API-05: настройки импорта (тумблер) ---
+
+
+@router.get(
+    "/settings/{setting_id}/world-import-settings",
+    response_model=WorldImportSettingsOut,
+)
+def get_world_import_settings(
+    setting_id: UUID,
+    db: DbSession,
+    authorization: AuthorizationHeader = None,
+) -> WorldImportSettingsOut:
+    actor = _actor(db, authorization)
+    return WorldImportService(db).get_import_settings(actor, setting_id)
+
+
+@router.patch(
+    "/settings/{setting_id}/world-import-settings",
+    response_model=WorldImportSettingsOut,
+)
+def patch_world_import_settings(
+    setting_id: UUID,
+    payload: WorldImportSettingsPatch,
+    db: DbSession,
+    authorization: AuthorizationHeader = None,
+) -> WorldImportSettingsOut:
+    actor = _actor(db, authorization)
+    return WorldImportService(db).patch_import_settings(actor, setting_id, payload)
+
+
+# --- W-API-05: validate ---
+
+
+@router.post(
+    "/settings/{setting_id}/world-imports/validate",
+    response_model=WorldImportValidateOut,
+)
+def validate_world_import(
+    setting_id: UUID,
+    payload: WorldImportValidateRequest,
+    db: DbSession,
+    authorization: AuthorizationHeader = None,
+) -> WorldImportValidateOut:
+    actor = _actor(db, authorization)
+    return WorldImportService(db).validate_package(actor, setting_id, payload)
+
+
+# --- Задания: create (сессия) + upsert (сессия/токен) ---
+
+
 @router.post(
     "/settings/{setting_id}/world-imports",
+    response_model=WorldVaultParseResultOut,
+    status_code=201,
+)
+def upsert_world_import(
+    setting_id: UUID,
+    db: DbSession,
+    payload: WorldImportUpsertRequest | None = None,
+    authorization: AuthorizationHeader = None,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+) -> WorldVaultParseResultOut:
+    """W-API-05: upsert файлов в черновик (Idempotency-Key). Канон не трогаем."""
+    actor = _actor(db, authorization)
+    body = payload or WorldImportUpsertRequest()
+    return WorldImportService(db).upsert_package(
+        actor, setting_id, body, idempotency_key=idempotency_key
+    )
+
+
+@router.post(
+    "/settings/{setting_id}/world-imports/jobs",
     response_model=WorldImportJobOut,
     status_code=201,
 )
-def create_world_import(
+def create_world_import_job(
     setting_id: UUID,
     current_user: CurrentUser,
     db: DbSession,
     payload: WorldImportCreateRequest | None = None,
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> WorldImportJobOut:
+    """W-API-01 совместимость: создать пустое задание сессией мастера."""
     return WorldImportService(db).create_job(
         current_user,
         setting_id,
@@ -94,10 +187,11 @@ def create_world_import(
 )
 def list_world_imports(
     setting_id: UUID,
-    current_user: CurrentUser,
     db: DbSession,
+    authorization: AuthorizationHeader = None,
 ) -> list[WorldImportJobOut]:
-    return WorldImportService(db).list_jobs(current_user, setting_id)
+    actor = _actor(db, authorization)
+    return WorldImportService(db).list_jobs_for_actor(actor, setting_id)
 
 
 @router.get(
@@ -107,10 +201,61 @@ def list_world_imports(
 def get_world_import(
     setting_id: UUID,
     job_id: UUID,
-    current_user: CurrentUser,
     db: DbSession,
+    authorization: AuthorizationHeader = None,
 ) -> WorldImportJobOut:
-    return WorldImportService(db).get_job(current_user, setting_id, job_id)
+    actor = _actor(db, authorization)
+    return WorldImportService(db).get_job_for_actor(actor, setting_id, job_id)
+
+
+@router.get(
+    "/settings/{setting_id}/world-imports/{job_id}/diff",
+    response_model=WorldImportDiffOut,
+)
+def get_world_import_diff(
+    setting_id: UUID,
+    job_id: UUID,
+    db: DbSession,
+    authorization: AuthorizationHeader = None,
+) -> WorldImportDiffOut:
+    actor = _actor(db, authorization)
+    svc = WorldImportService(db)
+    setting = svc.access.require_setting(setting_id)
+    svc.access.authorize(actor, setting, need_write=False, allow_ai=True)
+    job = svc._require_job(setting, job_id)
+    return build_diff(db, job)
+
+
+@router.post(
+    "/settings/{setting_id}/world-imports/{job_id}/confirm",
+    response_model=WorldImportConfirmOut,
+)
+def confirm_world_import(
+    setting_id: UUID,
+    job_id: UUID,
+    db: DbSession,
+    payload: WorldImportConfirmRequest | None = None,
+    authorization: AuthorizationHeader = None,
+) -> WorldImportConfirmOut:
+    actor = _actor(db, authorization)
+    body = payload or WorldImportConfirmRequest()
+    return WorldImportConfirmService(db).confirm(
+        actor, setting_id, job_id, item_ids=body.item_ids
+    )
+
+
+@router.post(
+    "/settings/{setting_id}/world-imports/{job_id}/cancel",
+    response_model=WorldImportCancelOut,
+)
+def cancel_world_import(
+    setting_id: UUID,
+    job_id: UUID,
+    db: DbSession,
+    authorization: AuthorizationHeader = None,
+) -> WorldImportCancelOut:
+    actor = _actor(db, authorization)
+    return WorldImportConfirmService(db).cancel(actor, setting_id, job_id)
 
 
 @router.get(
