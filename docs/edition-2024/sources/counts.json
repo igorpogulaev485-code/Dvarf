@@ -102,7 +102,8 @@
     "P24-C06: srd-флаги magic_items сверстаны с SRD 5.2.1 (285); добавлены строки с именами SRD без эпонима (Apparatus of the Crab и т.п.).",
     "P24-C07: srd_section monsters=235, animals=95; сид только Monsters.",
     "P24-C08: animals_srd=95; total SRD bestiary=330.",
-    "P24-C13: creatures_mm24_w1=86 (MM24 srd=false, name_en < Kuo-toa Archpriest)."
+    "P24-C13: creatures_mm24_w1=86 (MM24 srd=false, name_en < Kuo-toa Archpriest).",
+    "P24-C14: creatures_mm24_w2=87 (MM24 srd=false, name_en >= Kuo-toa Archpriest)."
   ],
   "srd_creatures": {
     "monsters": 235,

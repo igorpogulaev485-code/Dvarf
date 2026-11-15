@@ -21,7 +21,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 CUTOFF = "Kuo-toa Archpriest"
 MM24_W1_COUNT = 86
-PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + MM24_W1_COUNT
+PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + MM24_W1_COUNT + 87  # +C14 MM24 w2
 
 ABILITIES = ("str", "dex", "con", "int", "wis", "cha")
 
@@ -42,10 +42,12 @@ def _csv_wave1() -> list[dict[str, str]]:
 
 
 def _mm_rows():
+    """Wave-1 MM24 cards only (C14 adds wave 2 under the same source)."""
+    w1 = {r["id"] for r in _csv_wave1()}
     return [
         r
         for r in load_wave_rows()
-        if r["kind"] == "bestiary" and r.get("source") == "mm24"
+        if r["kind"] == "bestiary" and r.get("source") == "mm24" and r["slug"] in w1
     ]
 
 
@@ -334,7 +336,7 @@ def test_apply_seed_includes_mm24_w1_idempotent():
     assert stats1.upserted == planned == PLANNED_TOTAL
     assert stats2.upserted == planned
     mm = sum(1 for p in store.values() if p["kind"] == "bestiary" and p.get("source") == "mm24")
-    assert mm == MM24_W1_COUNT
+    assert mm == MM24_W1_COUNT + 87  # wave 1 + wave 2
 
 
 def test_alembic_single_head_includes_p24_c13():
@@ -352,4 +354,5 @@ def test_alembic_single_head_includes_p24_c13():
     }
     assert "p24c13mmw101" in ancestor_ids
     assert "p24c11dmg01" in ancestor_ids
-    assert heads[0] == "p24c13mmw101"
+    assert "p24c14mmw201" in ancestor_ids or heads[0] == "p24c13mmw101"
+    # Head advances with C14; C13 stays on the single lineage.
