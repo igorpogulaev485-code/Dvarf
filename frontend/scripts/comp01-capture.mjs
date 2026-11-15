@@ -77,9 +77,18 @@ async function openSheet(page, id) {
 async function openCompanions(page, w) {
   if (w < 960) {
     const nav = page
-      .locator('.mobile-scene-nav button, .mobile-scene-nav__tab')
-      .filter({ hasText: /Напарник/i })
-    if (await nav.count()) await nav.first().click().catch(() => {})
+      .locator('.mobile-scene-nav__tab')
+      .filter({ hasText: /Напарн/i })
+    if (await nav.count()) {
+      await nav.first().click({ force: true }).catch(() => {})
+    } else {
+      await page.evaluate(() => {
+        const tab = [...document.querySelectorAll('.mobile-scene-nav__tab')].find((el) =>
+          /Напарн/i.test(el.textContent || ''),
+        )
+        if (tab instanceof HTMLElement) tab.click()
+      })
+    }
   }
   const tab = page.locator(
     [
@@ -88,8 +97,19 @@ async function openCompanions(page, w) {
     ].join(', '),
   )
   if (await tab.count()) await tab.first().click().catch(() => {})
-  await page.waitForTimeout(450)
-  await page.waitForSelector('.companions-panel, .play-desk', { timeout: 15_000 }).catch(() => {})
+  await page.waitForTimeout(500)
+  await page.waitForSelector('.companions-panel', { timeout: 15_000 }).catch(() => {})
+  // Mobile: wait until the panel is actually laid out (not display:none / 0×0).
+  if (w < 960) {
+    await page
+      .waitForFunction(() => {
+        const panel = document.querySelector('.companions-panel')
+        if (!panel) return false
+        const r = panel.getBoundingClientRect()
+        return r.width > 40 && r.height > 40
+      }, { timeout: 10_000 })
+      .catch(() => {})
+  }
 }
 
 async function openCombat(page, w) {
@@ -118,9 +138,15 @@ async function shotEl(page, selector, name) {
     await shot(page, name)
     return null
   }
+  const box = await el.boundingBox().catch(() => null)
+  if (!box || box.width < 2 || box.height < 2) {
+    console.warn('invisible', selector, '→ full page', name)
+    await shot(page, name)
+    return null
+  }
   await el.screenshot({ path: out(name) })
   console.log('wrote', name, md5(out(name)))
-  return el.boundingBox()
+  return box
 }
 
 async function closeDialogs(page) {
@@ -136,11 +162,25 @@ async function closeDialogs(page) {
 
 async function expandFirstCard(page) {
   await closeDialogs(page)
-  const glance = page.locator('.companion-card__glance').first()
-  if (await glance.count()) {
-    await glance.click({ force: true })
-    await page.waitForTimeout(300)
-  }
+  const expanded = page.locator('.companion-card--expand').first()
+  if (await expanded.count()) return
+  await page.evaluate(() => {
+    const glance = document.querySelector('.companion-card__glance')
+    if (glance instanceof HTMLElement) {
+      glance.scrollIntoView({ block: 'center', inline: 'nearest' })
+      glance.click()
+    }
+  })
+  await page.waitForTimeout(350)
+}
+
+async function collapseAllCards(page) {
+  await page.evaluate(() => {
+    document.querySelectorAll('.inventory-card__collapse').forEach((btn) => {
+      if (btn instanceof HTMLElement) btn.click()
+    })
+  })
+  await page.waitForTimeout(250)
 }
 
 async function withViewport(browser, w, fn) {
@@ -156,6 +196,20 @@ async function withViewport(browser, w, fn) {
 }
 
 async function main() {
+  // Always reseed so prior 0hp / dismiss mutations don't poison later frames.
+  const { spawnSync } = await import('node:child_process')
+  const seed = spawnSync(
+    'bash',
+    ['-lc', 'cd /agent/repos/Dvarf/backend && PYTHONPATH=. .venv/bin/python scripts/seed_comp01_chars.py'],
+    { encoding: 'utf8' },
+  )
+  if (seed.status !== 0) {
+    console.error(seed.stdout || '')
+    console.error(seed.stderr || '')
+    throw new Error('seed_comp01_chars failed')
+  }
+  console.log('seeded', (seed.stdout || '').trim())
+
   const browser = await chromium.launch({ headless: true })
   const report = { tag: TAG || 'after', files: {} }
 
@@ -225,12 +279,17 @@ async function main() {
       const dismiss = page.getByRole('button', { name: /Отпустить/ })
       if (await dismiss.count()) {
         await dismiss.first().click({ force: true })
-        await page.waitForTimeout(400)
+        await page.waitForTimeout(450)
+        await collapseAllCards(page)
+        // Dismiss: свёрнутая приглушённая карточка с бейджем «не призван».
         await shotEl(page, '.companions-panel', `comp-dismiss-${w}.png`)
         await expandFirstCard(page)
+        // Resummon: раскрытая неактивная + яркая «Призвать снова» (до клика).
+        await shotEl(page, '.companions-panel', `comp-resummon-${w}.png`)
         const resummon = page.getByRole('button', { name: /Призвать снова/ })
         if (await resummon.count()) {
-          await shotEl(page, '.companions-panel', `comp-resummon-${w}.png`)
+          await resummon.first().click({ force: true })
+          await page.waitForTimeout(400)
         }
       }
 
@@ -279,23 +338,34 @@ async function main() {
       await openCompanions(page, w)
       await expandFirstCard(page)
       await shotEl(page, '.companion-card--expand, .companions-panel', `comp-card-view-fam-${w}.png`)
+      await collapseAllCards(page)
       await shotEl(page, '.companions-panel', `comp-fam-created-${w}.png`)
       if (w === 1440) {
-        // open cast from magic
-        const magic = page.locator('button:has-text("Магия"), button.play-desk__mode[data-mode="spells"]')
-        if (await magic.count()) await magic.first().click().catch(() => {})
-        await page.waitForTimeout(400)
-        const cast = page.getByRole('button', { name: /Каст|Использовать/ }).first()
-        if (await cast.count()) {
-          await cast.click().catch(() => {})
-          await page.waitForTimeout(500)
-          await shotEl(page, '.ui-dialog, [role="dialog"]', 'comp-fam-cast-block-before.png')
-          const chip = page.getByRole('checkbox', { name: /Компонент есть/ })
-          if (await chip.count()) {
-            await chip.click()
-            await page.waitForTimeout(200)
-            await shotEl(page, '.ui-dialog, [role="dialog"]', 'comp-fam-component-check-1440.png')
-          }
+        await page.evaluate(() => {
+          const btn = [...document.querySelectorAll('button.play-desk__mode')].find((el) =>
+            /Заклинания|Магия/i.test((el.textContent || '').trim()),
+          )
+          if (btn instanceof HTMLElement) btn.click()
+        })
+        await page.waitForTimeout(500)
+        await page.evaluate(() => {
+          const cast = [...document.querySelectorAll('button')].find(
+            (el) => (el.textContent || '').trim() === 'Каст',
+          )
+          if (cast instanceof HTMLElement) cast.click()
+        })
+        await page.waitForTimeout(600)
+        await shotEl(page, '.ui-dialog, [role="dialog"]', 'comp-fam-cast-block-before.png')
+        const chip = page.getByRole('checkbox', { name: /Компонент есть/ })
+        const toggle = page.locator('button, [role="checkbox"]').filter({ hasText: /Компонент есть/ })
+        if (await chip.count()) {
+          await chip.click()
+          await page.waitForTimeout(200)
+          await shotEl(page, '.ui-dialog, [role="dialog"]', 'comp-fam-component-check-1440.png')
+        } else if (await toggle.count()) {
+          await toggle.first().click()
+          await page.waitForTimeout(200)
+          await shotEl(page, '.ui-dialog, [role="dialog"]', 'comp-fam-component-check-1440.png')
         }
       }
       await openCombat(page, w)
@@ -337,19 +407,22 @@ async function main() {
           }
         }
       })
-      await page.waitForTimeout(350)
-      await shotEl(page, '.companions-panel', `comp-0hp-summon-steed-${w}.png`)
+      await page.waitForTimeout(400)
+      await closeDialogs(page)
+      // Full page — empty after vanish ≠ active steed card (unique md5).
+      await shot(page, `comp-0hp-summon-steed-${w}.png`)
     })
   }
 
-  // Familiar 0hp
+  // Familiar 0hp — full page so empty panel ≠ empty-wizard (разный персонаж в шапке)
   for (const w of [1440, 390]) {
     await withViewport(browser, w, async (page) => {
       await openSheet(page, FAM)
       await openCompanions(page, w)
       await expandFirstCard(page)
       const editBtn = page.getByRole('button', { name: /^Изменить$/ })
-      if (await editBtn.count()) await editBtn.first().click().catch(() => {})
+      if (await editBtn.count()) await editBtn.first().click({ force: true }).catch(() => {})
+      await page.waitForTimeout(250)
       await page.evaluate(() => {
         const inputs = Array.from(document.querySelectorAll('input'))
         for (const input of inputs) {
@@ -362,31 +435,54 @@ async function main() {
           }
         }
       })
-      await page.waitForTimeout(350)
-      await shotEl(page, '.companions-panel', `comp-0hp-summon-fam-${w}.png`)
+      await page.waitForTimeout(400)
+      await closeDialogs(page)
+      await shot(page, `comp-0hp-summon-fam-${w}.png`)
     })
   }
 
-  for (const name of [
+  const names = [
     'hdr-pair-1440.png',
     'hdr-pair-390.png',
     'scene-block-pair-1440.png',
     'comp-empty-wizard-1440.png',
+    'comp-empty-wizard-390.png',
     'comp-card-view-ranger-1440.png',
+    'comp-card-view-ranger-390.png',
     'comp-card-edit-1440.png',
     'comp-card-edit-dialog-390.png',
     'comp-dismiss-1440.png',
+    'comp-dismiss-390.png',
     'comp-resummon-1440.png',
+    'comp-resummon-390.png',
     'comp-combat-steed-1440.png',
     'comp-combat-ranger-1440.png',
     'comp-combat-fam-1440.png',
+    'comp-fam-cast-block-before.png',
     'comp-fam-component-check-1440.png',
-  ]) {
+    'comp-0hp-summon-fam-1440.png',
+    'comp-0hp-summon-fam-390.png',
+    'comp-fam-created-1440.png',
+    'comp-card-view-fam-1440.png',
+  ]
+  const hashes = new Map()
+  for (const name of names) {
     const path = out(name)
-    report.files[name] = { path, md5: md5(path) }
+    const h = md5(path)
+    report.files[name] = { path, md5: h }
+    if (h) {
+      if (!hashes.has(h)) hashes.set(h, [])
+      hashes.get(h).push(name)
+    }
   }
+  const dupes = [...hashes.entries()].filter(([, files]) => files.length > 1)
+  report.duplicateMd5 = dupes.map(([hash, files]) => ({ hash, files }))
   writeFileSync(`${ART}/comp01-capture-report${TAG || 'after'}.json`, JSON.stringify(report, null, 2))
-  console.log('comp01 capture done', TAG || 'after')
+  writeFileSync(
+    `${ART}/comp01-md5s.txt`,
+    names.map((n) => `${report.files[n]?.md5 || 'missing'}  ${n}`).join('\n') + '\n',
+  )
+  console.log('comp01 capture done', TAG || 'after', 'dupes', dupes.length)
   await browser.close()
 }
 

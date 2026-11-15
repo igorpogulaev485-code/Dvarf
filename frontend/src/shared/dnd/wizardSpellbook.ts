@@ -460,7 +460,10 @@ export function wizardSpellAccess(book: WizardSpellbookState | null | undefined)
 }
 
 /**
- * Wizard ritual cast (PHB): ritual tag + spell in book + physical book present.
+ * Wizard ritual cast (PHB): ritual tag + spell in the book.
+ * Class spellbook is always present until marked lost; primaryBookItemId
+ * tracks the physical inventory copy for loss/backup — a missing link alone
+ * does not block ritual when the spell is in the book.
  * Prepared-with-slot is a separate path — this is ritual-only.
  */
 export function canCastWizardRitualFromBook(input: {
@@ -470,7 +473,7 @@ export function canCastWizardRitualFromBook(input: {
   if (input.spell.level <= 0 || !input.spell.ritual) {
     return { ok: false, message: 'Не ритуал' }
   }
-  if (!wizardSpellAccess(input.book).canRitualFromBook) {
+  if (input.book?.bookLost) {
     return {
       ok: false,
       message: 'Нужна книга заклинаний для ритуала из книги',

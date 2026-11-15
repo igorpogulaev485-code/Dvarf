@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { canSpendSlot, spendSpellSlot } from '../../shared/dnd/spells'
 import {
   Button,
+  Chip,
   Dialog,
   EmptyState,
   Field,
@@ -366,6 +367,43 @@ export function CompanionsPanel({
     [ordered, filter],
   )
 
+  /** Как в «Общении»: свернуть/фильтры только при >1 карточке на полосе. */
+  const stripCount = useMemo(
+    () => ordered.filter((row) => shouldShowOnCompanionStrip(row)).length,
+    [ordered],
+  )
+  const showCollapseBar = stripCount > 1
+  const showFilters = stripCount > 1
+
+  function dismissToast(row: CompanionEntry): string {
+    if (isPermanentCompanionSlot(row)) {
+      return `${row.name}: отпущен, не призван`
+    }
+    return `${row.name}: отпущен`
+  }
+
+  function rollCompanionAttack(
+    atk: ReturnType<typeof parseCompanionActionAttacks>[number],
+  ) {
+    const gate = checkHostAttack?.()
+    if (gate && !gate.ok) {
+      onToast?.(
+        ('reason' in gate && typeof gate.reason === 'string'
+          ? gate.reason
+          : null) || 'Действие уже потрачено',
+      )
+      return
+    }
+    const strike = resolveAttackRoll({
+      name: `${atk.companionName}: ${atk.name}`,
+      attackBonus: atk.attackBonus,
+      damageExpr: atk.damageExpr,
+      damageType: atk.damageType,
+    })
+    spendHostAttack?.()
+    onToast?.(strike.text)
+  }
+
   function commit(next: CompanionEntry[]) {
     onChange(pruneVanishedCompanions(next))
   }
@@ -483,7 +521,7 @@ export function CompanionsPanel({
           />
         ) : null}
 
-        {!stripEmpty && visible.length > 0 ? (
+        {!stripEmpty && showCollapseBar ? (
           <div className="abil-column__toolbar companions-panel__collapse-bar">
             <button type="button" onClick={() => setOpenIds(new Set())}>
               ▲ Свернуть все
@@ -575,7 +613,7 @@ export function CompanionsPanel({
           </div>
         </Dialog>
 
-        {!stripEmpty ? (
+        {!stripEmpty && showFilters ? (
           <div className="inventory-filters" role="tablist" aria-label="Фильтр напарников">
             {FILTERS.map((row) => (
               <button
@@ -658,7 +696,12 @@ export function CompanionsPanel({
                       </span>
                     ) : null}
                     {statusChip ? (
-                      <span className="attack-held-tag">{statusChip}</span>
+                      <Chip
+                        inactive={!row.active}
+                        className="companion-card__status-chip"
+                      >
+                        {statusChip}
+                      </Chip>
                     ) : null}
                     {isPrimary ? (
                       <span className="attack-held-tag is-on">основной</span>
@@ -685,25 +728,7 @@ export function CompanionsPanel({
                         type="button"
                         className="sheet-chip"
                         disabled={Boolean(checkHostAttack && !checkHostAttack().ok)}
-                        onClick={() => {
-                          const gate = checkHostAttack?.()
-                          if (gate && !gate.ok) {
-                            onToast?.(
-                              ('reason' in gate && typeof gate.reason === 'string'
-                                ? gate.reason
-                                : null) || 'Действие уже потрачено',
-                            )
-                            return
-                          }
-                          const strike = resolveAttackRoll({
-                            name: `${atk.companionName}: ${atk.name}`,
-                            attackBonus: atk.attackBonus,
-                            damageExpr: atk.damageExpr,
-                            damageType: atk.damageType,
-                          })
-                          spendHostAttack?.()
-                          onToast?.(strike.text)
-                        }}
+                        onClick={() => rollCompanionAttack(atk)}
                       >
                         {atk.name}
                       </button>
@@ -747,7 +772,12 @@ export function CompanionsPanel({
                     </>
                   ) : null}
                   {statusChip ? (
-                    <span className="attack-held-tag">{statusChip}</span>
+                    <Chip
+                      inactive={!row.active}
+                      className="companion-card__status-chip"
+                    >
+                      {statusChip}
+                    </Chip>
                   ) : null}
                   {isPrimary ? (
                     <span className="attack-held-tag is-on">основной</span>
@@ -763,39 +793,6 @@ export function CompanionsPanel({
                     свернуть
                   </button>
                 </div>
-                {cardAttacks.length > 0 ? (
-                  <div className="chip-row">
-                    {cardAttacks.map((atk) => (
-                      <button
-                        key={atk.id}
-                        type="button"
-                        className="sheet-chip"
-                        disabled={Boolean(checkHostAttack && !checkHostAttack().ok)}
-                        onClick={() => {
-                          const gate = checkHostAttack?.()
-                          if (gate && !gate.ok) {
-                            onToast?.(
-                              ('reason' in gate && typeof gate.reason === 'string'
-                                ? gate.reason
-                                : null) || 'Действие уже потрачено',
-                            )
-                            return
-                          }
-                          const strike = resolveAttackRoll({
-                            name: `${atk.companionName}: ${atk.name}`,
-                            attackBonus: atk.attackBonus,
-                            damageExpr: atk.damageExpr,
-                            damageType: atk.damageType,
-                          })
-                          spendHostAttack?.()
-                          onToast?.(strike.text)
-                        }}
-                      >
-                        {atk.name}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
 
                 {!editing ? (
                   <div className="companion-card__view">
@@ -807,17 +804,43 @@ export function CompanionsPanel({
                       {row.stats.ac != null ? ` · КД ${row.stats.ac}` : ''}
                     </Text>
                     {moveLine ? <Text tone="muted">Скорость: {moveLine}</Text> : null}
-                    {row.actions.trim() ? (
-                      <Text tone="muted">Атака: {row.actions.trim()}</Text>
-                    ) : (
-                      <Text tone="muted">Атака: —</Text>
-                    )}
+                    <div className="companion-card__attack-line">
+                      <span className="companion-card__attack-label">Атака:</span>
+                      {cardAttacks.length > 0 ? (
+                        cardAttacks.map((atk) => {
+                          const bits = [
+                            atk.name,
+                            atk.attackBonus != null ? `+${atk.attackBonus}` : null,
+                            atk.damageExpr
+                              ? `${atk.damageExpr}${atk.damageType ? ` ${atk.damageType}` : ''}`
+                              : null,
+                          ].filter(Boolean)
+                          return (
+                            <button
+                              key={atk.id}
+                              type="button"
+                              className="sheet-chip"
+                              disabled={Boolean(
+                                checkHostAttack && !checkHostAttack().ok,
+                              )}
+                              onClick={() => rollCompanionAttack(atk)}
+                            >
+                              {bits.join(' · ')}
+                            </button>
+                          )
+                        })
+                      ) : (
+                        <span className="companion-card__attack-text">
+                          {row.actions.trim() || '—'}
+                        </span>
+                      )}
+                    </div>
                     {!selfForm ? (
                       <Text tone="muted">{companionCombatSummary(row)}</Text>
                     ) : null}
                     {row.notes.trim() ? <Text>{row.notes.trim()}</Text> : null}
-                    {!selfForm && row.active ? (
-                      <div className="sheet-actions">
+                    <div className="companion-card__view-actions">
+                      {!selfForm && row.active ? (
                         <Button
                           type="button"
                           variant="ghost"
@@ -827,29 +850,24 @@ export function CompanionsPanel({
                                 c.id === row.id ? dismissCompanion(c) : c,
                               ),
                             )
-                            onToast?.(
-                              isPermanentCompanionSlot(row)
-                                ? `${row.name}: отпущен → не призван`
-                                : `${row.name}: отпущен`,
-                            )
+                            onToast?.(dismissToast(row))
                           }}
                         >
                           Отпустить
                         </Button>
-                      </div>
-                    ) : null}
-                    {!selfForm && !row.active && isPermanentCompanionSlot(row) ? (
-                      <div className="sheet-actions">
+                      ) : null}
+                      {!selfForm &&
+                      !row.active &&
+                      isPermanentCompanionSlot(row) ? (
                         <Button
                           type="button"
                           variant="secondary"
+                          className="companion-card__resummon"
                           onClick={() => resummonCompanion(row)}
                         >
                           Призвать снова
                         </Button>
-                      </div>
-                    ) : null}
-                    <div className="companion-card__view-actions">
+                      ) : null}
                       <Button type="button" onClick={() => beginEdit(row.id)}>
                         Изменить
                       </Button>
@@ -1129,11 +1147,7 @@ export function CompanionsPanel({
                                 c.id === row.id ? dismissCompanion(c) : c,
                               ),
                             )
-                            onToast?.(
-                              isPermanentCompanionSlot(row)
-                                ? `${row.name}: отпущен → не призван`
-                                : `${row.name}: отпущен`,
-                            )
+                            onToast?.(dismissToast(row))
                           }}
                         >
                           Отпустить
@@ -1144,6 +1158,7 @@ export function CompanionsPanel({
                         <Button
                           type="button"
                           variant="secondary"
+                          className="companion-card__resummon"
                           onClick={() => resummonCompanion(row)}
                         >
                           Призвать снова
