@@ -36,8 +36,8 @@ export function SessionAttendancePanel({
     <Stack gap={16}>
       <Text tone="muted">
         {mode === 'create'
-          ? 'Отметьте, кто пришёл. Позже можно изменить через «Кто пришёл» на экране сессии.'
-          : 'Отметьте присутствующих и сохраните. На основном экране остаются только они.'}
+          ? 'По умолчанию все из состава за столом. Снимите тех, кто не пришёл — правку можно сделать и позже.'
+          : 'Необязательная правка: снимите отсутствующих и сохраните.'}
       </Text>
 
       {members.length === 0 ? (
@@ -103,12 +103,13 @@ export function SessionAttendancePanel({
         </Text>
       ) : null}
 
-      {(mode === 'create' || mode === 'manage') && !readOnly ? (
+      {(mode === 'create' || mode === 'manage') && !readOnly && members.length > 0 ? (
         <div className="inline-actions">
           <Button
             type="button"
             variant="secondary"
-            disabled={busy || members.length === 0}
+            size="sm"
+            disabled={busy}
             onClick={() => {
               for (const m of members) {
                 if (!presentIds.has(m.character_id)) onToggle(m.character_id, true)
@@ -120,6 +121,7 @@ export function SessionAttendancePanel({
           <Button
             type="button"
             variant="ghost"
+            size="sm"
             disabled={busy || presentIds.size === 0}
             onClick={() => {
               for (const id of [...presentIds]) onToggle(id, false)

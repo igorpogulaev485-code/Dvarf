@@ -11,7 +11,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '../../..')
 const read = (rel: string) => readFileSync(join(root, rel), 'utf8')
 
 const form = read('src/features/lobby/ManualRollForm.tsx')
-assert.match(form, /Записать живой куб/)
+assert.match(form, /Записать бросок/)
 assert.match(form, /diceOnTable/)
 assert.match(form, /const open = Boolean\(diceOnTable\) \|\| userOpen/)
 assert.match(form, /if \(!open\)/)

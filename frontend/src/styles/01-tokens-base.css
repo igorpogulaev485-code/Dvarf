@@ -603,12 +603,18 @@ a.ui-button--primary {
   box-sizing: border-box;
 }
 
-/* Portaled panel — above sticky scene toolbars / desk chrome */
+/* Portaled panel — above sticky toolbars, ниже модалок (.ui-dialog-backdrop: 80) */
+.ui-menu__panel--sheet {
+  border-radius: 16px 16px 12px 12px;
+  box-shadow: 0 -10px 28px rgba(28, 25, 23, 0.18);
+  padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+}
+
 .ui-menu__panel--portal {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 90;
+  z-index: 70;
   margin: 0;
 }
 
@@ -1297,6 +1303,10 @@ a.ui-button--primary {
   color: var(--success);
 }
 
+.ui-text--warn {
+  color: var(--warn);
+}
+
 .mode-switch {
   display: inline-flex;
   gap: 6px;
@@ -1417,6 +1427,21 @@ a.ui-button--primary {
 .page--app {
   /* Base: leave side gutters, but don't leave huge empty bands on desktop. */
   width: min(980px, calc(100% - 32px));
+  /* LOBBY-FIX: нормальная высота — футер у низа, без «дыры» посередине бежа. */
+  min-height: calc(100svh - 24px);
+  display: flex;
+  flex-direction: column;
+}
+
+.page--app > .ui-stack {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.page--app > .ui-stack > .app-legal-footer {
+  margin-top: auto;
 }
 
 .brand-wordmark {
@@ -1480,6 +1505,17 @@ a.ui-button--primary {
   padding: 4px 0 8px;
 }
 
+.app-header__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.app-header__title-row .ui-text:first-child,
+.app-header__title-row h1,
 .app-header__brand .ui-text:first-child,
 .app-header h1 {
   font-family: var(--font-display);
@@ -1487,6 +1523,11 @@ a.ui-button--primary {
   font-weight: 700;
   color: var(--accent);
   margin: 0;
+  min-width: 0;
+}
+
+.app-header__title-row .app-header__more-btn {
+  flex: 0 0 auto;
 }
 
 .app-nav {

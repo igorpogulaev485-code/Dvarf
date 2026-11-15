@@ -238,7 +238,8 @@
   }
 
   .session-enemies-grid {
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    /* LOBBY-FIX: минимум ~320px — имена, «пачка», тип урона не режутся; до 2 колонок. */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
     align-items: start;
   }
 }
@@ -1037,8 +1038,6 @@
     gap: 6px;
   }
 
-  .session-combat-track--compact .session-combat-track__title,
-  .session-combat-track--compact .session-combat-track__now,
   .session-combat-track--compact .session-combat-track__actions,
   .session-combat-track--compact .session-combat-reminders,
   .session-combat-track--compact .session-combat-waves,
@@ -1046,7 +1045,9 @@
     display: none;
   }
 
-  /* LV-02: на узкой полосе оставляем «ход N из M» */
+  /* LOBBY-FIX: игроку нужны раунд и чей ход, не только «ход N из M». */
+  .session-combat-track--compact .session-combat-track__title,
+  .session-combat-track--compact .session-combat-track__now,
   .session-combat-track--compact .session-combat-track__progress {
     font-size: 0.8rem;
   }
@@ -1135,7 +1136,10 @@
     padding: 8px 10px;
   }
 
+  /* 641–999: кабинет спрятан — «⋯» обязан быть видимым (иначе только «Сайт»). */
   .app-header--lobby-shell .app-header__more-btn {
+    display: inline-grid;
+    place-items: center;
     width: 44px;
     min-width: 44px;
     max-width: 44px;
@@ -1143,6 +1147,99 @@
     min-height: 44px;
     max-height: 44px;
     flex-basis: 44px;
+    padding: 0;
   }
 }
 
+
+/* LOBBY-FIX D: скелетон стола вместо «Загрузка сессии…» */
+.session-skeleton {
+  display: grid;
+  gap: 16px;
+  padding: 8px 0 24px;
+}
+.session-skeleton__header,
+.session-skeleton__toolbar,
+.session-skeleton__rail,
+.session-skeleton__card {
+  border-radius: 12px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--line) 55%, var(--panel)) 0%,
+    color-mix(in srgb, var(--card) 80%, var(--line)) 45%,
+    color-mix(in srgb, var(--line) 55%, var(--panel)) 100%
+  );
+  background-size: 200% 100%;
+  animation: session-skeleton-shimmer 1.2s ease-in-out infinite;
+}
+.session-skeleton__header {
+  height: 64px;
+}
+.session-skeleton__toolbar {
+  height: 44px;
+  max-width: 28rem;
+}
+.session-skeleton__desk {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+}
+@media (min-width: 960px) {
+  .session-skeleton__desk {
+    grid-template-columns: minmax(12rem, 18rem) minmax(0, 1fr);
+  }
+}
+.session-skeleton__rail {
+  min-height: 220px;
+}
+.session-skeleton__cards {
+  display: grid;
+  gap: 12px;
+}
+.session-skeleton__card {
+  min-height: 140px;
+}
+@keyframes session-skeleton-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* LOBBY-FIX visual 1–3: шапка стола — Назад + название + ⋯ */
+.session-table-chrome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.session-table-chrome__back {
+  flex: 0 0 auto;
+  min-width: var(--control-h-lg);
+  min-height: var(--control-h-lg);
+}
+.session-table-chrome__title {
+  flex: 1 1 auto;
+  margin: 0;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  line-height: 1.25;
+}
+.session-table-chrome__more-btn {
+  min-width: var(--control-h-lg);
+  min-height: var(--control-h-lg);
+  width: var(--control-h-lg);
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+}
+.session-combat-track__reaction-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.session-typed-damage__row--actions .ui-button.is-ready:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: var(--accent-soft);
+  color: var(--ink);
+}

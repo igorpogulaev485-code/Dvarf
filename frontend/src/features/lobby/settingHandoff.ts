@@ -18,7 +18,7 @@ export function draftFromCombatant(
 ): SettingHandoffDraft {
   const sessionName = opts?.sessionName?.trim() || null
   const meta: string[] = []
-  if (combatant.cr) meta.push(`CR ${combatant.cr}`)
+  if (combatant.cr) meta.push(`ПО ${combatant.cr}`)
   if (combatant.type_ru) meta.push(combatant.type_ru)
   if (combatant.source_book) meta.push(combatant.source_book)
   if (combatant.custom) meta.push('свой НПС')
@@ -26,7 +26,7 @@ export function draftFromCombatant(
   const stats: string[] = []
   if (combatant.ac != null) stats.push(`КД ${combatant.ac}`)
   if (combatant.speed != null) stats.push(`${combatant.speed} фт`)
-  if (combatant.hp_max) stats.push(`HP ${combatant.hp_max}`)
+  if (combatant.hp_max) stats.push(`Хиты ${combatant.hp_max}`)
 
   const lines = [
     sessionName ? `Сохранено со стола · сессия «${sessionName}».` : 'Сохранено со стола.',

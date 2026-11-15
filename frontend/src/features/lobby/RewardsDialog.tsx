@@ -10,7 +10,18 @@ import type {
 import { unclaimedDefeatXp } from '../../shared/api/lobbies'
 import { formatClassLevelLabel } from '../../shared/dnd/classLevels'
 import type { CampaignRules } from './campaignRules'
-import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
+import {
+  Button,
+  Dialog,
+  Field,
+  Input,
+  NumberInput,
+  SegmentedControl,
+  Select,
+  Stack,
+  Text,
+  ToggleChip,
+} from '../../ui'
 
 type CoinKey = 'cp' | 'sp' | 'ep' | 'gp' | 'pp'
 
@@ -103,11 +114,11 @@ type Props = {
 }
 
 const COIN_META: { key: CoinKey; label: string }[] = [
-  { key: 'gp', label: 'зм' },
-  { key: 'sp', label: 'см' },
-  { key: 'cp', label: 'мм' },
-  { key: 'ep', label: 'эм' },
-  { key: 'pp', label: 'пм' },
+  { key: 'gp', label: 'Золото' },
+  { key: 'sp', label: 'Серебро' },
+  { key: 'cp', label: 'Медь' },
+  { key: 'ep', label: 'Электрум' },
+  { key: 'pp', label: 'Платина' },
 ]
 
 const QUICK: Array<{
@@ -224,6 +235,9 @@ export function RewardsDialog({
     'medium',
   )
   const [awardMode, setAwardMode] = useState<'idle' | 'assign'>('idle')
+  const [quickKind, setQuickKind] = useState<(typeof QUICK)[number]['kind']>('trinkets')
+  /** На узкой ширине Опыт и Добыча — вкладками, чтобы подвал не закрывал добычу. */
+  const [mobilePane, setMobilePane] = useState<'xp' | 'loot'>('xp')
 
   useEffect(() => {
     if (!open) return
@@ -240,6 +254,7 @@ export function RewardsDialog({
     setSelectedIds(initial)
     setManualAmount(focus === 'manual' ? 300 : null)
     setNote(focus === 'manual' ? '' : '')
+    setMobilePane(focus === 'loot' ? 'loot' : 'xp')
     setRemainderMode('bank')
     setRemainderWho(seats[0]?.character_id ?? '')
     setBonusWho(seats[0]?.character_id ?? '')
@@ -390,11 +405,23 @@ export function RewardsDialog({
     (milestones ||
       (useManual ? (manualAmount ?? 0) > 0 : combatPool >= 0 && (combatPool > 0 || bank > 0 || bonuses.length > 0)))
 
+  const chestEmpty = chestRows.length === 0
+  const chestDisabledHint = 'Сундук пуст — добавьте добычу.'
+  const bonusAddDisabled = busy || !bonusWho || !(bonusAmount && bonusAmount > 0)
+  const bonusAddDisabledHint = !bonusWho
+    ? 'Выберите, кому выдать бонус.'
+    : !(bonusAmount && bonusAmount > 0)
+      ? 'Укажите сумму опыта.'
+      : undefined
+
+  const onLootPane = mobilePane === 'loot'
   const primaryLabel = milestones
     ? 'Повысить уровень'
     : awardMode === 'assign'
       ? 'Готово'
-      : 'Утвердить опыт'
+      : onLootPane
+        ? 'Положить на стол'
+        : 'Утвердить опыт'
 
   return (
     <Dialog
@@ -403,13 +430,24 @@ export function RewardsDialog({
       primaryLabel={primaryLabel}
       secondaryLabel="Закрыть"
       busy={busy}
-      primaryDisabled={awardMode === 'assign' ? false : !canXp}
+      primaryDisabled={
+        awardMode === 'assign'
+          ? false
+          : onLootPane
+            ? chestEmpty
+            : !canXp
+      }
       size="xl"
       onSecondary={onClose}
       onPrimary={() => {
         if (awardMode === 'assign') {
           syncChestToServer({ award: true })
           setAwardMode('idle')
+          return
+        }
+        if (onLootPane) {
+          if (chestEmpty) return
+          syncChestToServer({ putOnTable: true })
           return
         }
         if (!canXp) return
@@ -453,16 +491,29 @@ export function RewardsDialog({
         })
       }}
     >
-      <div className="session-rewards">
+      <div className="session-rewards-mobile-tabs">
+        <SegmentedControl
+          aria-label="Раздел наград"
+          size="sm"
+          value={mobilePane}
+          options={[
+            { id: 'xp', label: milestones ? 'Вехи' : 'Опыт' },
+            { id: 'loot', label: 'Добыча' },
+          ]}
+          onChange={setMobilePane}
+        />
+      </div>
+      <div
+        className={`session-rewards${
+          mobilePane === 'loot' ? ' session-rewards--pane-loot' : ' session-rewards--pane-xp'
+        }`}
+      >
         <Stack gap={12} className="session-rewards__xp">
-          <Text as="h4" className="session-xp-recipients__title">
+          <Text as="h4" className="session-xp-recipients__title session-rewards__desktop-heading">
             {milestones ? 'Вехи' : 'Опыт'}
           </Text>
           {milestones ? (
-            <Text tone="muted">
-              В правилах кампании — вехи. Отметьте героев для повышения уровня партии.
-              Сумма CR в листы не пишется.
-            </Text>
+            <Text tone="muted">Отметьте героев для повышения уровня.</Text>
           ) : useManual ? (
             <Stack gap={8}>
               <Field label="Сумма каждому">
@@ -501,14 +552,14 @@ export function RewardsDialog({
                             : ''}
                         {(row.unclaimed || 0) > 1 ? ` × ${row.unclaimed}` : ''}
                       </span>
-                      <span className="session-xp-defeat-list__xp">{row.total} XP</span>
+                      <span className="session-xp-defeat-list__xp">{row.total} опыта</span>
                     </li>
                   ))}
                 </ul>
               ) : (
                 <Text tone="muted">
                   {combatPool > 0
-                    ? `Пул по поверженным: ${combatPool} XP`
+                    ? `Пул по поверженным: ${combatPool} опыта`
                     : 'Пул пуст — можно выдать вручную или закрыть.'}
                 </Text>
               )}
@@ -547,8 +598,7 @@ export function RewardsDialog({
               ) : null}
               {rem > 0 && remainderMode === 'give' ? (
                 <Field label="Кому остаток">
-                  <select
-                    className="ui-input"
+                  <Select
                     value={remainderWho}
                     disabled={busy}
                     onChange={(e) => setRemainderWho(e.target.value)}
@@ -558,7 +608,7 @@ export function RewardsDialog({
                         {s.character_name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </Field>
               ) : null}
             </Stack>
@@ -577,10 +627,6 @@ export function RewardsDialog({
                 Все за столом
               </button>
             </div>
-            <Text tone="muted">
-              Только сидящие за столом. Офлайн-героя посади в «Кто пришёл» — опыт ляжет на
-              цифровой лист без открытия приложения.
-            </Text>
             <ul className="session-xp-recipients">
               {seats.map((seat) => {
                 const on = selectedIds.has(seat.character_id)
@@ -590,26 +636,27 @@ export function RewardsDialog({
                   tags.push('не был')
                 if (pendingRewards?.traitor_ids?.includes(seat.character_id))
                   tags.push('предатель')
+                const main = (
+                  <>
+                    {seat.character_name}
+                    {seat.character_class_name || seat.character_level
+                      ? ` · ${formatClassLevelLabel(
+                          seat.character_class_name,
+                          seat.character_level,
+                        )}`
+                      : ''}
+                    {tags.length ? ` (${tags.join(', ')})` : ''}
+                  </>
+                )
                 return (
                   <li key={seat.character_id}>
-                    <label className={`session-xp-recipient${on ? ' is-on' : ''}`}>
-                      <input
-                        type="checkbox"
-                        checked={on}
-                        disabled={busy}
-                        onChange={() => toggle(seat.character_id)}
-                      />
-                      <span>
-                        {seat.character_name}
-                        {seat.character_class_name || seat.character_level
-                          ? ` · ${formatClassLevelLabel(
-                              seat.character_class_name,
-                              seat.character_level,
-                            )}`
-                          : ''}
-                        {tags.length ? ` (${tags.join(', ')})` : ''}
-                      </span>
-                    </label>
+                    <ToggleChip
+                      className={`session-xp-recipient${on ? ' is-on' : ''}`}
+                      main={main}
+                      checked={on}
+                      disabled={busy}
+                      onChange={() => toggle(seat.character_id)}
+                    />
                   </li>
                 )
               })}
@@ -621,10 +668,9 @@ export function RewardsDialog({
               <Text as="h4" className="session-xp-recipients__title">
                 Бонус
               </Text>
-              <div className="session-loot-compose">
+              <div className="session-loot-compose session-loot-compose--bonus">
                 <Field label="Кому">
-                  <select
-                    className="ui-input"
+                  <Select
                     value={bonusWho}
                     disabled={busy}
                     onChange={(e) => setBonusWho(e.target.value)}
@@ -634,9 +680,9 @@ export function RewardsDialog({
                         {s.character_name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </Field>
-                <Field label="XP">
+                <Field label="Опыт">
                   <NumberInput
                     value={bonusAmount}
                     min={1}
@@ -648,8 +694,7 @@ export function RewardsDialog({
                   />
                 </Field>
                 <Field label="За">
-                  <select
-                    className="ui-input"
+                  <Select
                     value={bonusReason}
                     disabled={busy}
                     onChange={(e) =>
@@ -658,12 +703,18 @@ export function RewardsDialog({
                   >
                     <option value="отыгрыш">+ за отыгрыш</option>
                     <option value="находчивость">+ за находчивость</option>
-                  </select>
+                  </Select>
                 </Field>
                 <Button
                   type="button"
                   variant="secondary"
-                  disabled={busy || !bonusWho || !(bonusAmount && bonusAmount > 0)}
+                  disabled={bonusAddDisabled}
+                  title={bonusAddDisabled ? bonusAddDisabledHint : undefined}
+                  aria-label={
+                    bonusAddDisabled && bonusAddDisabledHint
+                      ? `Добавить бонус: ${bonusAddDisabledHint}`
+                      : 'Добавить бонус'
+                  }
                   onClick={() => {
                     if (!bonusWho || !bonusAmount) return
                     setBonuses((prev) => [
@@ -709,17 +760,62 @@ export function RewardsDialog({
           <Text as="h4" className="session-xp-recipients__title">
             Добыча
           </Text>
-          <Text tone="muted">
-            Пустой сундук после боя. Наполните, затем «Выдать» или «Положить на стол».
-            Награды получают только герои за столом — офлайн-игрока посади через «Кто
-            пришёл». Если игрок приложение не открывал, лучше жать «Выдать», а не
-            «Положить на стол».
-          </Text>
 
-          <div className="session-rewards__quick">
+          <Stack gap={8} className="session-rewards__pick-group">
+            <Text as="h5" className="session-rewards__group-title">
+              Подобрать добычу
+            </Text>
+            <div className="session-loot-compose session-loot-compose--pick">
+              <Field label="Уровень боя">
+                <Select
+                  value={difficulty}
+                  disabled={busy}
+                  aria-label="Уровень боя"
+                  onChange={(e) =>
+                    setDifficulty(e.target.value as 'easy' | 'medium' | 'hard' | 'deadly')
+                  }
+                >
+                  <option value="easy">лёгкий</option>
+                  <option value="medium">средний</option>
+                  <option value="hard">сложный</option>
+                  <option value="deadly">смертельный</option>
+                </Select>
+              </Field>
+              <Field label="Категория">
+                <Select
+                  value={quickKind}
+                  disabled={busy}
+                  aria-label="Категория добычи"
+                  onChange={(e) =>
+                    setQuickKind(e.target.value as (typeof QUICK)[number]['kind'])
+                  }
+                >
+                  {QUICK.map((q) => (
+                    <option key={q.kind} value={q.kind}>
+                      {q.label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={busy}
+                title={quickKind === 'legend' ? 'Только вручную — подставит название' : undefined}
+                onClick={() => {
+                  if (quickKind === 'legend') {
+                    setDraftName('Легендарный предмет')
+                    return
+                  }
+                  onChest({ action: 'quick_add', kind: quickKind, difficulty })
+                }}
+              >
+                Подобрать
+              </Button>
+            </div>
             <Button
               type="button"
-              variant="secondary"
+              variant="ghost"
               disabled={busy}
               onClick={() =>
                 onChest({
@@ -729,48 +825,13 @@ export function RewardsDialog({
                 })
               }
             >
-              Подобрать добычу
+              Случайный набор по уровню
             </Button>
-            <select
-              className="ui-input"
-              value={difficulty}
-              disabled={busy}
-              onChange={(e) =>
-                setDifficulty(e.target.value as 'easy' | 'medium' | 'hard' | 'deadly')
-              }
-              title="Сложность боя"
-            >
-              <option value="easy">лёгкий</option>
-              <option value="medium">средний</option>
-              <option value="hard">сложный</option>
-              <option value="deadly">смертельный</option>
-            </select>
-          </div>
-          <div className="session-rewards__quick">
-            {QUICK.map((q) => (
-              <Button
-                key={q.kind}
-                type="button"
-                variant="ghost"
-                disabled={busy}
-                title={q.kind === 'legend' ? 'Только вручную' : undefined}
-                onClick={() => {
-                  if (q.kind === 'legend') {
-                    setDraftName('Легендарный предмет')
-                    return
-                  }
-                  onChest({ action: 'quick_add', kind: q.kind, difficulty })
-                }}
-              >
-                {q.label}
-              </Button>
-            ))}
-          </div>
+          </Stack>
 
           {artifacts.length > 0 ? (
             <Field label="Артефакт сеттинга">
-              <select
-                className="ui-input"
+              <Select
                 value={draftArtifactId}
                 disabled={busy}
                 onChange={(e) => {
@@ -784,16 +845,16 @@ export function RewardsDialog({
                     {a.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </Field>
           ) : null}
 
-          <div className="session-loot-compose">
-            <Field label="Добавить">
+          <div className="session-loot-compose session-loot-compose--manual">
+            <Field label="Предмет">
               <Input
                 value={draftArtifactId ? artifacts.find((a) => a.id === draftArtifactId)?.name ?? '' : draftName}
                 disabled={busy || Boolean(draftArtifactId)}
-                placeholder="предмет / поиск"
+                placeholder="поиск / название"
                 onChange={(e) => setDraftName(e.target.value)}
               />
             </Field>
@@ -809,22 +870,22 @@ export function RewardsDialog({
               />
             </Field>
             <Button type="button" variant="secondary" disabled={busy} onClick={addChestItem}>
-              +
+              Добавить
             </Button>
           </div>
 
           <div className="session-loot-compose session-loot-compose--coins">
-            <Field label="зм">
+            <Field label="Золото">
               <NumberInput value={coinGp} min={0} integer emptyValue={null} disabled={busy} onValueChange={setCoinGp} />
             </Field>
-            <Field label="см">
+            <Field label="Серебро">
               <NumberInput value={coinSp} min={0} integer emptyValue={null} disabled={busy} onValueChange={setCoinSp} />
             </Field>
-            <Field label="мм">
+            <Field label="Медь">
               <NumberInput value={coinCp} min={0} integer emptyValue={null} disabled={busy} onValueChange={setCoinCp} />
             </Field>
             <Button type="button" variant="secondary" disabled={busy} onClick={addChestCoins}>
-              + Монеты
+              Добавить монеты
             </Button>
           </div>
 
@@ -837,7 +898,6 @@ export function RewardsDialog({
                       <span>
                         {row.name}
                         {row.qty > 1 ? ` × ${row.qty}` : ''}
-                        {row.magic_table ? ` [${row.magic_table}]` : ''}
                       </span>
                     ) : (
                       <span>
@@ -847,8 +907,7 @@ export function RewardsDialog({
                       </span>
                     )}
                     {awardMode === 'assign' ? (
-                      <select
-                        className="ui-input"
+                      <Select
                         value={assign[row.key] || ''}
                         onChange={(e) =>
                           setAssign((prev) => ({ ...prev, [row.key]: e.target.value }))
@@ -863,7 +922,7 @@ export function RewardsDialog({
                             {s.character_name}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     ) : null}
                   </div>
                   <div className="session-rewards__row-actions">
@@ -897,14 +956,16 @@ export function RewardsDialog({
               ))}
             </ul>
           ) : (
-            <Text tone="muted">Сундук пуст.</Text>
+            <Text tone="muted">{chestDisabledHint}</Text>
           )}
 
           <div className="session-rewards__loot-actions">
             <Button
               type="button"
               variant="secondary"
-              disabled={busy || chestRows.length === 0}
+              disabled={busy || chestEmpty}
+              title={chestEmpty ? chestDisabledHint : undefined}
+              aria-label={chestEmpty ? `Выдать: ${chestDisabledHint}` : 'Выдать добычу'}
               onClick={() => {
                 syncChestToServer()
                 setAwardMode('assign')
@@ -915,7 +976,11 @@ export function RewardsDialog({
             <Button
               type="button"
               variant="secondary"
-              disabled={busy || chestRows.length === 0}
+              disabled={busy || chestEmpty}
+              title={chestEmpty ? chestDisabledHint : undefined}
+              aria-label={
+                chestEmpty ? `Положить на стол: ${chestDisabledHint}` : 'Положить добычу на стол'
+              }
               onClick={() => syncChestToServer({ putOnTable: true })}
             >
               Положить на стол
@@ -1002,10 +1067,11 @@ export function LootChestBoard({
                 </Button>
               ) : null}
               {canAward ? (
-                <select
-                  className="ui-input"
+                <Select
                   defaultValue=""
                   disabled={busy}
+                  size="sm"
+                  aria-label="Перекинуть предмет"
                   onChange={(e) => {
                     if (!e.target.value) return
                     onReassign({ character_id: e.target.value, item_id: item.id })
@@ -1018,7 +1084,7 @@ export function LootChestBoard({
                       {s.character_name}
                     </option>
                   ))}
-                </select>
+                </Select>
               ) : null}
             </div>
           </li>

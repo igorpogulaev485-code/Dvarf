@@ -703,8 +703,8 @@ export function summarizeStartRules(start: StartRules): string[] {
 /** Сводка включённых правил для игрока (только чтение). */
 export function summarizeEnabledRules(rules: CampaignRules): string[] {
   const lines: string[] = []
-  if (rules.edition_2014.feats_instead_of_asi) lines.push('Черты вместо ASI')
-  else lines.push('Только ASI (без черт)')
+  if (rules.edition_2014.feats_instead_of_asi) lines.push('Черты вместо повышения характеристик')
+  else lines.push('Только повышение характеристик (без черт)')
   if (rules.edition_2014.multiclass) lines.push('Мультикласс разрешён')
   else lines.push('Мультикласс выключен')
   lines.push(

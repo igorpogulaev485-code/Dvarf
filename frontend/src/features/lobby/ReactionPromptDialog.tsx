@@ -1,32 +1,69 @@
+import { useEffect, useRef, useState } from 'react'
 import { Dialog, Stack, Text } from '../../ui'
+
+const AUTO_SKIP_SECONDS = 10
 
 type Props = {
   open: boolean
   busy?: boolean
   characterName: string
   hint?: string | null
+  /** Меняется на каждую новую реакцию — перезапуск автопропуска (audit M4). */
+  reactionKey?: string | null
   onDeclare: () => void
   onSkip: () => void
 }
 
 /**
- * S-04: окно игроку после урона — объявить реакцию или пропустить.
- * «Щит» и эффекты — существующий B-02; здесь только снятие waiting_reaction.
+ * S-04 / LOBBY-FIX A: окно после урона — объявить реакцию или «Нет реакции».
+ * Автопропуск через ~10 с с видимым отсчётом, чтобы стол не зависал.
  */
 export function ReactionPromptDialog({
   open,
   busy = false,
   characterName,
   hint,
+  reactionKey = null,
   onDeclare,
   onSkip,
 }: Props) {
+  const [secondsLeft, setSecondsLeft] = useState(AUTO_SKIP_SECONDS)
+  const onSkipRef = useRef(onSkip)
+  onSkipRef.current = onSkip
+  const skippedRef = useRef(false)
+
+  useEffect(() => {
+    if (!open) {
+      setSecondsLeft(AUTO_SKIP_SECONDS)
+      skippedRef.current = false
+      return
+    }
+    // Audit M4: новая реакция при уже open=true должна сбросить таймер
+    // (иначе автопропуск старой реакции срезает следующую).
+    setSecondsLeft(AUTO_SKIP_SECONDS)
+    skippedRef.current = false
+    const started = Date.now()
+    const tick = window.setInterval(() => {
+      const left = Math.max(
+        0,
+        AUTO_SKIP_SECONDS - Math.floor((Date.now() - started) / 1000),
+      )
+      setSecondsLeft(left)
+      if (left <= 0 && !skippedRef.current) {
+        skippedRef.current = true
+        window.clearInterval(tick)
+        onSkipRef.current()
+      }
+    }, 250)
+    return () => window.clearInterval(tick)
+  }, [open, reactionKey])
+
   return (
     <Dialog
       open={open}
-      title="Реакция"
+      title="Есть ли реакция?"
       primaryLabel="Объявить реакцию"
-      secondaryLabel="Пропустить"
+      secondaryLabel="Нет реакции"
       busy={busy}
       onPrimary={onDeclare}
       onSecondary={onSkip}
@@ -36,7 +73,8 @@ export function ReactionPromptDialog({
           {characterName}: {hint || 'Есть ли реакция на этот урон?'}
         </Text>
         <Text tone="muted">
-          Пока окно открыто, ход врага не закрывается. Щит и подобные — через эффекты на листе.
+          Нет реакции — автоматически через {secondsLeft} с. Щит и подобные — через эффекты на
+          листе.
         </Text>
       </Stack>
     </Dialog>

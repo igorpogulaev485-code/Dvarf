@@ -3,9 +3,10 @@ import type { ReactNode } from 'react'
 type TextProps = {
   children: ReactNode
   as?: 'p' | 'span' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5'
-  tone?: 'default' | 'muted' | 'danger' | 'success'
+  tone?: 'default' | 'muted' | 'danger' | 'success' | 'warn'
   className?: string
   title?: string
+  role?: string
 }
 
 export function Text({
@@ -14,8 +15,15 @@ export function Text({
   tone = 'default',
   className = '',
   title,
+  role,
 }: TextProps) {
   return (
-    <Tag className={`ui-text ui-text--${tone} ${className}`.trim()} title={title}>{children}</Tag>
+    <Tag
+      className={`ui-text ui-text--${tone} ${className}`.trim()}
+      title={title}
+      role={role}
+    >
+      {children}
+    </Tag>
   )
 }

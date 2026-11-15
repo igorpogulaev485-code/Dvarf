@@ -26,7 +26,7 @@ assert.match(detail, /lobby-hub-invite-acc/)
 assert.match(detail, /inviteOpen/)
 assert.match(detail, /Сейчас открыта/)
 assert.match(detail, /Карточки состава/)
-assert.match(detail, /без дубля на каждом табе/)
+assert.match(detail, /Код, ссылка и QR — в блоке «Приглашение» сверху/)
 const inviteQrCount = (detail.match(/<InviteQr\b/g) || []).length
 assert.equal(inviteQrCount, 1, 'InviteQr только в аккордеоне шапки')
 

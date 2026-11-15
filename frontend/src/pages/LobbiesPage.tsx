@@ -86,14 +86,11 @@ export function LobbiesPage() {
           >
             {createOpen ? 'Скрыть форму' : 'Создать'}
           </Button>
-          <Text tone="muted" className="lobbies-toolbar__hint">
-            Свои столы и живые игры — ниже. Новое лобби — кнопка «Создать».
-          </Text>
         </div>
 
         {createOpen ? (
           <Panel title="Создать лобби">
-            <form className="inline-form" onSubmit={onCreate}>
+            <form className="inline-form lobbies-create-form" onSubmit={onCreate}>
               <Field label="Название">
                 <Input
                   value={name}
@@ -102,8 +99,8 @@ export function LobbiesPage() {
                   autoFocus
                 />
               </Field>
-              <Button type="submit" disabled={creating}>
-                {creating ? 'Создаём…' : '+ Создать лобби'}
+              <Button type="submit" size="md" disabled={creating} className="lobbies-create-form__submit">
+                {creating ? 'Создаём…' : 'Создать лобби'}
               </Button>
             </form>
             <Text tone="muted">
@@ -119,7 +116,7 @@ export function LobbiesPage() {
         ) : sortedItems.length === 0 ? (
           <EmptyState
             title="Пока нет лобби"
-            description="Нажмите «Создать» или зайдите по коду / QR с персонажем."
+            description="Нажмите «Создать» или зайдите по коду или QR от мастера."
           />
         ) : (
           <Stack gap={12} className="lobbies-list">

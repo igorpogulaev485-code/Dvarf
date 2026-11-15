@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type {
   CombatEntry,
   SessionCombat,
@@ -6,6 +6,8 @@ import type {
 } from '../../shared/api/lobbies'
 import { Button, Text } from '../../ui'
 import { sideLabel } from './combatSides'
+
+const REACTION_WAIT_SECONDS = 10
 
 type Props = {
   combat: SessionCombat
@@ -20,10 +22,14 @@ type Props = {
   onEnd?: () => void
   onSelect?: (index: number) => void
   onRollInitiative?: (entry: CombatEntry) => void
+  /** LOBBY-FIX A: мастер бросает инициативу всем, кто ещё не бросил */
+  onRollRemaining?: () => void
   onReleaseWave?: (waveId: string) => void
   onRestoreFallen?: (fallenId: string) => void
   /** S-05: смена стороны с чипа очереди */
   onSideClick?: (entry: CombatEntry) => void
+  /** LOBBY-FIX A: снять «ждём реакцию» со стороны мастера */
+  onSkipReaction?: () => void
   /** LV-01: узкая полоса инициативы на первом экране игрока (телефон) */
   compact?: boolean
   /**
@@ -31,6 +37,8 @@ type Props = {
    * В рельсе/полосе инициативы по умолчанию не дублируем.
    */
   showEndAction?: boolean
+  /** Не дублировать «Следующий ход» — он в тулбаре мастера. */
+  showNextAction?: boolean
 }
 
 function kindLabel(kind: string): string {
@@ -82,15 +90,19 @@ export function CombatTrack({
   onPrev,
   onEnd,
   showEndAction = false,
+  showNextAction = true,
   onSelect,
   onRollInitiative,
+  onRollRemaining,
   onReleaseWave,
   onRestoreFallen,
   onSideClick,
+  onSkipReaction,
   compact = false,
 }: Props) {
   const orderRef = useRef<HTMLOListElement>(null)
   const activeItemRef = useRef<HTMLLIElement>(null)
+  const [reactionLeft, setReactionLeft] = useState(REACTION_WAIT_SECONDS)
 
   const active: CombatEntry | undefined = combat.active
     ? combat.entries[combat.active_index]
@@ -100,6 +112,27 @@ export function CombatTrack({
   const turnTotal = combat.entries.length
   const turnNumber =
     turnTotal > 0 ? Math.min(Math.max(combat.active_index, 0) + 1, turnTotal) : 0
+  const pendingInitCount = combat.entries.filter(
+    (e) => e.initiative_pending || e.initiative == null,
+  ).length
+
+  useEffect(() => {
+    // Таймер виден и мастеру, и игроку (оба клиента по WS).
+    if (!combat.waiting_reaction) {
+      setReactionLeft(REACTION_WAIT_SECONDS)
+      return
+    }
+    setReactionLeft(REACTION_WAIT_SECONDS)
+    const started = Date.now()
+    const tick = window.setInterval(() => {
+      const left = Math.max(
+        0,
+        REACTION_WAIT_SECONDS - Math.floor((Date.now() - started) / 1000),
+      )
+      setReactionLeft(left)
+    }, 250)
+    return () => window.clearInterval(tick)
+  }, [combat.waiting_reaction, combat.reaction_character_id])
 
   // LV-02 P08: держать текущий чип в кадре с peek следующего
   useEffect(() => {
@@ -159,20 +192,57 @@ export function CombatTrack({
             Очередь пуста — дождись бросков или выпусти волну.
           </Text>
         )}
-        {combat.waiting_reaction && masterControls ? (
-          <Text className="session-combat-track__reaction">ждём реакцию</Text>
+        {combat.waiting_reaction ? (
+          <div className="session-combat-track__reaction-row">
+            <Text className="session-combat-track__reaction" role="status">
+              {masterControls
+                ? `Ждём реакцию игрока · ${reactionLeft} с`
+                : `Реакция · ${reactionLeft} с`}
+            </Text>
+            {masterControls && onSkipReaction ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={busy}
+                onClick={onSkipReaction}
+              >
+                Пропустить
+              </Button>
+            ) : null}
+          </div>
         ) : null}
         {masterControls ? (
           <div className="session-combat-track__actions">
-            <Button type="button" variant="ghost" disabled={busy} onClick={onPrev}>
-              ←
-            </Button>
-            <Button type="button" variant="secondary" disabled={busy} onClick={onNext}>
-              Следующий ход
-            </Button>
+            {showNextAction ? (
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={busy}
+                  aria-label="Предыдущий ход"
+                  onClick={onPrev}
+                >
+                  ← предыдущий ход
+                </Button>
+                <Button type="button" variant="primary" disabled={busy} onClick={onNext}>
+                  Следующий ход
+                </Button>
+              </>
+            ) : null}
             {showEndAction && onEnd ? (
-              <Button type="button" variant="ghost" disabled={busy} onClick={onEnd}>
+              <Button type="button" variant="secondary" disabled={busy} onClick={onEnd}>
                 Завершить бой
+              </Button>
+            ) : null}
+            {onRollRemaining && pendingInitCount > 0 ? (
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={busy}
+                onClick={onRollRemaining}
+              >
+                Бросить за оставшихся
               </Button>
             ) : null}
           </div>
@@ -252,10 +322,27 @@ export function CombatTrack({
                       {entry.surprised ? ' · врасплох' : ''}
                     </span>
                     {entry.side ? (
-                      <span className="session-combat-order__side">
-                        {sideLabel(entry.side, combat.sides)}
-                        {entry.side_hidden ? ' · скрыта' : ''}
-                      </span>
+                      masterControls && onSideClick ? (
+                        <button
+                          type="button"
+                          className="session-combat-order__side session-combat-order__side--btn"
+                          disabled={busy}
+                          aria-label="Сменить сторону"
+                          title="Сменить сторону"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            onSideClick(entry)
+                          }}
+                        >
+                          {sideLabel(entry.side, combat.sides)}
+                          {entry.side_hidden ? ' · скрыта' : ''}
+                        </button>
+                      ) : (
+                        <span className="session-combat-order__side">
+                          {sideLabel(entry.side, combat.sides)}
+                          {entry.side_hidden ? ' · скрыта' : ''}
+                        </span>
+                      )
                     ) : null}
                     <MemberDots tones={entry.member_tones} />
                   </button>
@@ -272,31 +359,17 @@ export function CombatTrack({
                       ))}
                     </ul>
                   ) : null}
-                  {(canRollOwn || canRollMaster || (masterControls && onSideClick)) ? (
+                  {(canRollOwn || canRollMaster) && onRollInitiative ? (
                     <div className="session-combat-order__actions">
-                      {(canRollOwn || canRollMaster) && onRollInitiative ? (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          disabled={busy}
-                          onClick={() => onRollInitiative(entry)}
-                        >
-                          Бросить инициативу
-                        </Button>
-                      ) : null}
-                      {masterControls && onSideClick ? (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="session-combat-order__side-action"
-                          disabled={busy}
-                          onClick={() => onSideClick(entry)}
-                        >
-                          Сторона
-                        </Button>
-                      ) : null}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        disabled={busy}
+                        onClick={() => onRollInitiative(entry)}
+                      >
+                        Бросить инициативу
+                      </Button>
                     </div>
                   ) : null}
                 </li>

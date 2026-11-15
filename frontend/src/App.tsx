@@ -32,6 +32,7 @@ import {
   LazyVerifyEmailPage,
 } from './shared/lazy/routes'
 import { AccountAppearanceSync } from './shared/theme/AccountAppearanceSync'
+import { SessionTableSkeleton } from './features/lobby/SessionTableSkeleton'
 
 function HomeRedirect() {
   return <Navigate to={getAccessToken() ? '/characters' : '/login'} replace />
@@ -46,14 +47,22 @@ function LoginRoute() {
   return <AuthDebugPage nextPath={next} />
 }
 
-function LazyPage({ children }: { children: ReactNode }) {
+function LazyPage({
+  children,
+  fallback,
+}: {
+  children: ReactNode
+  fallback?: ReactNode
+}) {
   return (
     <LazyRouteErrorBoundary>
       <Suspense
         fallback={
-          <main className="page page--app">
-            <p className="ui-text ui-text--muted">Загрузка экрана…</p>
-          </main>
+          fallback ?? (
+            <main className="page page--app">
+              <p className="ui-text ui-text--muted">Загрузка экрана…</p>
+            </main>
+          )
         }
       >
         {children}
@@ -210,9 +219,11 @@ export default function App() {
         <Route
           path="/sessions/:sessionId"
           element={
-            <AuthLazy>
-              <LazySessionDetailPage />
-            </AuthLazy>
+            <RequireAuth>
+              <LazyPage fallback={<SessionTableSkeleton />}>
+                <LazySessionDetailPage />
+              </LazyPage>
+            </RequireAuth>
           }
         />
         <Route

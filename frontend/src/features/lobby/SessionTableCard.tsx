@@ -97,8 +97,8 @@ function CompanionCard({
   const ratio = hpRatio(companion.hp_current, companion.hp_max)
   const hp =
     companion.hp_max != null
-      ? `HP ${companion.hp_current ?? 0}/${companion.hp_max}`
-      : 'HP —'
+      ? `Хиты ${companion.hp_current ?? 0}/${companion.hp_max}`
+      : 'Хиты —'
   const ac = companion.ac != null ? `КД ${companion.ac}` : null
   const typeBit = companion.type?.trim() || null
   const durationBit = companion.duration?.trim() || null
@@ -357,10 +357,10 @@ export function SessionTableCard({
   const hpLabel =
     showHpSection && hpMode !== 'off'
       ? hpMode === 'color_only' && !revealAll
-        ? `HP · ${colorLabel}`
+        ? `Хиты · ${colorLabel}`
         : seat.hp_max != null
-          ? `HP ${seat.hp_current ?? 0}/${seat.hp_max}${seat.hp_temp ? ` (+${seat.hp_temp})` : ''}`
-          : 'HP —'
+          ? `Хиты ${seat.hp_current ?? 0}/${seat.hp_max}${seat.hp_temp ? ` (+${seat.hp_temp})` : ''}`
+          : null
       : null
 
   const atZero = seat.hp_current != null && seat.hp_current <= 0
@@ -513,12 +513,11 @@ export function SessionTableCard({
                   variant="secondary"
                   size="sm"
                   disabled={busy}
-                  aria-label="Сторона"
-                  title="Сторона в бою"
+                  aria-label="Сменить сторону"
+                  title="Сменить сторону в бою"
                   onClick={onSideClick}
                 >
-                  Сторона
-                  {sideLabelText ? ` · ${sideLabelText}` : ''}
+                  {sideLabelText ?? 'Сменить сторону'}
                   {sideHidden ? ' · скрыта' : ''}
                 </Button>
               ) : sideLabelText ? (
@@ -542,21 +541,23 @@ export function SessionTableCard({
                 </span>
               ) : null}
               {showAc && seat.ac != null ? (
-                <span className="session-table-card__chip">КД {seat.ac}</span>
+                <span className="session-table-card__chip" title="Класс доспеха">
+                  КД {seat.ac}
+                </span>
               ) : null}
               {showPassives && seat.passive_perception != null ? (
                 <span className="session-table-card__chip" title="Пассивная внимательность">
-                  👁 {seat.passive_perception}
+                  Внимательность {seat.passive_perception}
                 </span>
               ) : null}
               {showPassives && seat.passive_insight != null ? (
                 <span className="session-table-card__chip" title="Пассивная проницательность">
-                  ◎ {seat.passive_insight}
+                  Проницательность {seat.passive_insight}
                 </span>
               ) : null}
               {showPassives && seat.passive_investigation != null ? (
                 <span className="session-table-card__chip" title="Пассивное расследование">
-                  ? {seat.passive_investigation}
+                  Расследование {seat.passive_investigation}
                 </span>
               ) : null}
               {seat.advantage_next_roll ? (

@@ -12,10 +12,13 @@ type Props = {
 
 function formatTime(iso: string): string {
   try {
+    // Пояс пользователя браузера (не UTC сервера и не фиксированный Europe/*).
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
     return new Date(iso).toLocaleTimeString('ru-RU', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
+      timeZone,
     })
   } catch {
     return ''
@@ -26,6 +29,14 @@ function withDiceMark(title: string, physical: boolean): string {
   if (!physical) return title
   if (title.includes('🎲')) return title
   return `${title} 🎲`
+}
+
+function localizeFeedCopy(text: string): string {
+  return text
+    .replace(/\b(\d+)\s*XP\b/g, '$1 опыта')
+    .replace(/\bXP\b/g, 'Опыт')
+    .replace(/\b1d20\b/gi, '1к20')
+    .replace(/\bd20\b/gi, '1к20')
 }
 
 export function SessionEventFeed({
@@ -66,7 +77,7 @@ export function SessionEventFeed({
           {events.map((ev) => {
             const payload = (ev.payload ?? {}) as Record<string, unknown>
             const physical = Boolean(payload.physical_dice)
-            const title = withDiceMark(ev.title, physical)
+            const title = withDiceMark(localizeFeedCopy(ev.title), physical)
             return (
               <li key={ev.id} className="session-event-feed__item">
                 <div className="session-event-feed__head">
@@ -108,7 +119,10 @@ export function SessionEventFeed({
                   </Text>
                   {ev.formula || ev.breakdown ? (
                     <Text tone="muted" className="session-event-feed__formula">
-                      {[ev.formula, ev.breakdown].filter(Boolean).join(' · ')}
+                      {[ev.formula, ev.breakdown]
+                        .filter(Boolean)
+                        .map((line) => localizeFeedCopy(String(line)))
+                        .join(' · ')}
                       {physical ? ' 🎲' : ''}
                     </Text>
                   ) : null}

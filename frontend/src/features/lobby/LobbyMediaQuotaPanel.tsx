@@ -47,7 +47,7 @@ export function LobbyMediaQuotaPanel({
       const row = await uploadLobbyMedia(lobbyId, file, { type: 'other' })
       setLastUpload(row)
       await refreshUsage()
-      onToast('Картинка загружена (WebP)')
+      onToast('Картинка загружена')
     } catch (err) {
       onError(err instanceof ApiRequestError ? err.message : 'Не удалось загрузить картинку')
     } finally {
@@ -77,7 +77,6 @@ export function LobbyMediaQuotaPanel({
         <Text>
           Занято {formatMb(usage.used_mb)} из {formatMb(usage.limit_mb)} МБ
         </Text>
-        <Text tone="muted">Картинки сжимаются до WebP (длинная сторона до 1600 px, превью 400 px).</Text>
         {canUpload ? (
           <div className="inline-actions">
             <input
