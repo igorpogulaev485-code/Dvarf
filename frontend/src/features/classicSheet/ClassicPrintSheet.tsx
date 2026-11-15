@@ -91,13 +91,13 @@ const GENDER_LABELS: Record<string, string> = {
   female: 'Женский',
 }
 
-/** Full Russian coin names — single-line marks (small caps via CSS). */
+/** Short full-word coin marks — one line, no hyphenation (print ≥6pt). */
 const COIN_LABELS = [
-  ['cp', 'Медные'],
-  ['sp', 'Серебряные'],
-  ['ep', 'Электрумовые'],
-  ['gp', 'Золотые'],
-  ['pp', 'Платиновые'],
+  ['cp', 'Медь'],
+  ['sp', 'Серебро'],
+  ['ep', 'Электрум'],
+  ['gp', 'Золото'],
+  ['pp', 'Платина'],
 ] as const
 
 /** Ability frame — side notches + concave bottom (viewBox 0 0 100 110). */
@@ -107,6 +107,10 @@ const ABILITY_FRAME_PATH =
 /** AC shield (viewBox 0 0 100 120) — wide body so «16»/«30» keep ≥2pt inset from stroke. */
 const AC_SHIELD_PATH =
   'M50 4 L90 16 C94 18 96 22 96 26 V56 C96 84 70 104 50 118 C30 104 4 84 4 56 V26 C4 22 6 18 10 16 Z'
+
+function numOrEmpty(value: unknown): number | '' {
+  return typeof value === 'number' ? value : ''
+}
 
 function padWeaponRows<T extends { id: string; name: string; attackBonus: string; damageLine: string }>(
   rows: T[],
@@ -462,7 +466,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
               <div className="classic-hp-max">
                 <span className="classic-field-label">Максимум хитов</span>
                 <ClassicStaticField
-                  value={c.hp_max ?? ''}
+                  value={c.hp_max ?? numOrEmpty(combatField(c, 'hp_max'))}
                   align="center"
                   tone="numeric"
                   className="classic-hp-max__value"
@@ -471,7 +475,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
               </div>
               <ClassicStaticField
                 className="classic-hp"
-                value={c.hp_current ?? ''}
+                value={c.hp_current ?? numOrEmpty(combatField(c, 'hp_current'))}
                 align="center"
                 tone="display"
                 aria-label="Текущие хиты"

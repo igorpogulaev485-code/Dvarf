@@ -285,11 +285,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem 1rem;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 0.75rem 1.25rem;
   background: #1f2420;
   color: #f5f2eb;
+  overflow: visible;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .classic-print-toolbar a {
@@ -314,10 +317,79 @@
 }
 
 .classic-toolbar-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem 1rem;
+  align-items: start;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.classic-toolbar-actions__controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem 1rem;
+  gap: 0.65rem 0.85rem;
   align-items: center;
+  min-width: 0;
+}
+
+.classic-print-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+  flex: 0 0 auto;
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.classic-print-cta .ui-button {
+  white-space: nowrap;
+}
+
+.classic-blank-link.ui-button {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  border-color: transparent;
+  background: transparent;
+  opacity: 0.88;
+  font-weight: 550;
+}
+
+.classic-blank-link.ui-button:hover:not(:disabled) {
+  opacity: 1;
+  background: rgb(255 255 255 / 8%);
+}
+
+/* Kit ToggleChip as clear on/off switch face. */
+.classic-print-toolbar .classic-toolbar-switch.ui-toggle-chip {
+  display: inline-grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.55rem;
+  max-width: 14rem;
+  padding: 0.35rem 0.55rem 0.35rem 0.65rem;
+}
+
+.classic-print-toolbar .classic-toolbar-switch .ui-toggle-chip__rest {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.4rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 1;
+  background: rgb(0 0 0 / 28%);
+  color: #e8e4db;
+}
+
+.classic-print-toolbar .classic-toolbar-switch.ui-toggle-chip.is-on .ui-toggle-chip__rest {
+  background: #1f2420;
+  color: #f5f2eb;
 }
 
 .classic-toolbar-group {
@@ -1072,6 +1144,8 @@
   text-overflow: clip;
   min-width: 0;
   padding-right: 0.28rem;
+  letter-spacing: 0;
+  word-spacing: 0.22em;
 }
 
 .classic-check em,
@@ -1100,7 +1174,8 @@
 
 .classic-panel--skills .classic-check__name {
   font-size: 0.46rem;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
+  word-spacing: 0.28em;
 }
 
 .classic-bubble-btn {
@@ -1520,10 +1595,10 @@
   align-items: stretch;
 }
 
-/* Top strip: five equal coin cells (wraps to 2 rows if the column is tight). */
+/* Top strip: coin cells — short full words, one line; wraps to 2 rows if tight. */
 .classic-coins {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0.78in, 1fr));
   gap: 0.08rem;
   align-content: start;
   grid-column: 1;
@@ -1537,8 +1612,9 @@
   border: 1.25pt solid #000;
   border-radius: 0.18rem;
   padding: 0.05rem 0.06rem 0.08rem;
-  min-height: 0.62in;
-  height: 0.62in;
+  min-height: 0.58in;
+  height: auto;
+  min-width: 0;
   box-sizing: border-box;
   background: #fff;
   clip-path: none;
@@ -1549,24 +1625,25 @@
   place-items: center;
   grid-row: 2;
   min-height: 0.7rem;
-  padding: 0.1rem 0.08rem 0.06rem;
+  padding: 0.1rem 0.04rem 0.06rem;
   border-top: 0.55pt solid #000;
-  /* Microtag floor 6pt — full RU names need wrap in narrow cells. */
+  /* Floor 6pt — full words, no hyphen breaks («МЕД-НЫЕ»). */
   font-size: 6.5pt;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  word-spacing: 0.04em;
+  text-transform: none;
   text-align: center;
-  line-height: 1.1;
+  line-height: 1.15;
   color: #000;
   border-right: none;
-  white-space: normal;
-  overflow: hidden;
+  white-space: nowrap;
+  overflow: visible;
   text-overflow: clip;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  hyphens: auto;
-  -webkit-hyphens: auto;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
+  -webkit-hyphens: none;
 }
 
 .classic-coin .classic-static {
@@ -1593,7 +1670,7 @@
 
 @media (max-width: 22rem) {
   .classic-coins {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0.78in, 1fr));
   }
 }
 
@@ -2350,13 +2427,16 @@
 
 .classic-lss-top {
   display: flex;
-  gap: 0.08in;
+  gap: 0.06in;
   align-items: stretch;
   flex: 0 0 auto;
-  height: 1.2in;
+  height: auto;
+  min-height: 1.15in;
   margin-bottom: 0.06in;
   min-width: 0;
-  overflow: hidden;
+  max-width: 100%;
+  overflow: visible;
+  box-sizing: border-box;
 }
 
 .classic-lss-top > * {
@@ -2364,7 +2444,7 @@
 }
 
 .classic-lss-id {
-  flex: 1.15 1 0;
+  flex: 1.05 1 0;
   display: flex;
   flex-direction: column;
   gap: 0.05in;
@@ -2373,10 +2453,11 @@
 }
 
 .classic-lss-vitals {
-  flex: 1.55 1 0;
+  flex: 1.45 1 0;
   display: flex;
-  gap: 0.06in;
+  gap: 0.05in;
   min-width: 0;
+  max-width: 100%;
 }
 
 .classic-lss-name {
@@ -2420,6 +2501,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.05in 0.08in;
+  align-items: end;
 }
 
 .classic-lss-id-grid label,
@@ -2427,6 +2509,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.06rem;
+  min-width: 0;
 }
 
 .classic-lss-id-grid input,
@@ -2446,7 +2529,7 @@
 }
 
 .classic-lss-level {
-  flex: 0 0 0.72in;
+  flex: 0 0 0.68in;
   display: flex;
   flex-direction: column;
   gap: 0.08in;
@@ -2455,7 +2538,7 @@
 }
 
 .classic-lss-ac {
-  flex: 0 0 0.95in;
+  flex: 0 0 0.88in;
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -2509,32 +2592,35 @@
 }
 
 .classic-lss-hp {
-  flex: 1.35 1 0;
-  min-width: 1.5in;
+  flex: 1.2 1 0;
+  min-width: 1.25in;
 }
 
 .classic-lss-hd {
-  flex: 0.75 1 0;
-  min-width: 0.9in;
+  flex: 0.7 1 0;
+  min-width: 0.78in;
 }
 
 .classic-lss-death {
-  flex: 1.05 1 0;
-  min-width: 1.25in;
+  flex: 0 0 1.2in;
+  width: 1.2in;
+  min-width: 1.2in;
+  max-width: 1.25in;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 0.08rem;
+  box-sizing: border-box;
 }
 
 .classic-lss-hp,
 .classic-lss-hd,
 .classic-lss-death {
-  padding: 0.06in;
+  padding: 0.05in;
   border: 1.25px solid var(--lss-line);
   border-radius: 0.28rem;
   background: var(--c-paper-tint);
-  overflow: hidden;
+  overflow: visible;
   min-height: 0;
 }
 
@@ -2562,11 +2648,13 @@
 
 .classic-lss-death .classic-death-line {
   display: grid;
-  grid-template-columns: 1.7rem repeat(3, 0.18in);
-  column-gap: 0.12rem;
+  grid-template-columns: 1.55rem repeat(3, 0.15in);
+  column-gap: 0.1rem;
   align-items: center;
   justify-content: start;
-  font-size: 0.48rem;
+  width: max-content;
+  max-width: 100%;
+  font-size: 0.45rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -2577,13 +2665,12 @@
 .classic-lss-death .classic-death-line > span:first-child {
   flex: none;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
 }
 
 .classic-lss-death .classic-bubble {
-  width: 0.16in;
-  height: 0.16in;
+  width: 0.14in;
+  height: 0.14in;
 }
 
 .classic-lss-death .classic-lss-block-title {
@@ -3215,7 +3302,7 @@
 
 .classic-lss-coins--inline {
   flex: 0 0 auto;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0.72in, 1fr));
   gap: 0.04in;
   padding: 0.04in 0.05in;
   margin: 0 0 0.06in;
@@ -3228,13 +3315,28 @@
   gap: 0.08rem;
   font-size: 0.5rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   text-align: center;
+  min-width: 0;
 }
 
 .classic-lss-coins--inline label {
   gap: 0.04rem;
-  font-size: 0.42rem;
+  font-size: 6.5pt;
+}
+
+.classic-lss-coin-mark {
+  display: block;
+  white-space: nowrap;
+  overflow: visible;
+  letter-spacing: 0;
+  word-spacing: 0.04em;
+  hyphens: none;
+  -webkit-hyphens: none;
+  word-break: keep-all;
+  line-height: 1.15;
+  font-size: 6.5pt;
+  font-weight: 700;
 }
 
 .classic-lss-coins input {
@@ -3480,6 +3582,11 @@
     left: 0;
     width: 100%;
     box-sizing: border-box;
+    overflow: visible;
+  }
+
+  .classic-toolbar-actions {
+    width: 100%;
   }
 
   .classic-fit-scaled > .classic-stack {
@@ -3493,5 +3600,39 @@
 
   .classic-layout-switch {
     flex-wrap: wrap;
+  }
+}
+
+/* Phone width: Print stays first-row primary; no horizontal clip. */
+@media screen and (max-width: 420px) {
+  .classic-print-toolbar {
+    padding: 0.65rem 0.75rem;
+    gap: 0.55rem;
+  }
+
+  .classic-toolbar-identity {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .classic-toolbar-actions {
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: 100%;
+  }
+
+  .classic-toolbar-actions__controls {
+    gap: 0.45rem 0.55rem;
+  }
+
+  .classic-print-cta {
+    align-items: stretch;
+  }
+
+  .classic-print-cta small {
+    display: none;
+  }
+
+  .classic-print-toolbar .classic-toolbar-switch.ui-toggle-chip {
+    max-width: 100%;
   }
 }

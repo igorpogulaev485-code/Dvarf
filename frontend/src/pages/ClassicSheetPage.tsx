@@ -179,114 +179,117 @@ export function ClassicSheetPage() {
           </p>
         </div>
         <div className="classic-toolbar-actions">
-          <div className="classic-toolbar-group">
-            <span className="classic-toolbar-group__label">Макет</span>
+          <div className="classic-toolbar-actions__controls">
+            <div className="classic-toolbar-group">
+              <span className="classic-toolbar-group__label">Макет</span>
+              <SegmentedControl
+                aria-label="Макет классического листа"
+                size="sm"
+                className="classic-toolbar-segmented"
+                value={sheetLayout}
+                onChange={(year) => {
+                  if (!character) return
+                  handleLayoutChange(year)
+                }}
+                options={[
+                  { id: '2014', label: '2014' },
+                  { id: '2024', label: '2024' },
+                ]}
+              />
+              <span className="classic-toolbar-group__hint">
+                печатная форма · D&D 5e {sheetLayout}
+              </span>
+            </div>
+
+            <ToggleChip
+              className="classic-toolbar-chip classic-toolbar-switch"
+              main="Линии под карандаш"
+              rest={pencilBlanks ? 'Вкл' : 'Выкл'}
+              checked={pencilBlanks}
+              disabled={!character}
+              aria-label={`Линии под карандаш: ${pencilBlanks ? 'включены' : 'выключены'}`}
+              onChange={(next) => {
+                const current = latestRef.current
+                if (!current) return
+                handlePrintSettings(setClassicPencilBlanks(current, next))
+              }}
+            />
+
+            <div className="classic-toolbar-stepper" role="group" aria-label="Доп. страницы заметок">
+              <span className="classic-toolbar-group__label">Доп. страницы заметок</span>
+              <div className="classic-toolbar-stepper__controls">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={!character || extraNotePages <= 0}
+                  aria-label="Меньше страниц заметок"
+                  onClick={() => {
+                    const current = latestRef.current
+                    if (!current) return
+                    handlePrintSettings(setClassicExtraNotePages(current, extraNotePages - 1))
+                  }}
+                >
+                  −
+                </Button>
+                <span className="classic-toolbar-stepper__value" aria-live="polite">
+                  {extraNotePages}
+                </span>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={!character || extraNotePages >= 12}
+                  aria-label="Больше страниц заметок"
+                  onClick={() => {
+                    const current = latestRef.current
+                    if (!current) return
+                    handlePrintSettings(setClassicExtraNotePages(current, extraNotePages + 1))
+                  }}
+                >
+                  +
+                </Button>
+              </div>
+            </div>
+
             <SegmentedControl
-              aria-label="Макет классического листа"
+              aria-label="Цвет печати"
               size="sm"
               className="classic-toolbar-segmented"
-              value={sheetLayout}
-              onChange={(year) => {
-                if (!character) return
-                handleLayoutChange(year)
+              value={printColor}
+              onChange={(mode) => {
+                const current = latestRef.current
+                if (!current) return
+                handlePrintSettings(setClassicPrintColor(current, mode))
               }}
               options={[
-                { id: '2014', label: '2014' },
-                { id: '2024', label: '2024' },
+                { id: 'bw', label: 'Чёрно-белая' },
+                { id: 'color', label: 'Цвет' },
               ]}
             />
-            <span className="classic-toolbar-group__hint">
-              печатная форма · D&D 5e {sheetLayout}
-            </span>
+
+            <Button
+              variant={editing ? 'primary' : 'secondary'}
+              size="sm"
+              className="classic-edit-toggle"
+              aria-pressed={editing}
+              disabled={!character}
+              title="Размер шрифта блоков, гарнитура, интервал, высота полей"
+              onClick={() => setEditing((v) => !v)}
+            >
+              Правка печати
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              className="classic-blank-link"
+              onClick={() => navigate(`/classic/blank?layout=${sheetLayout}`)}
+            >
+              Распечатать пустой бланк
+            </Button>
           </div>
-
-          <ToggleChip
-            className="classic-toolbar-chip"
-            main="Линии под карандаш"
-            rest="Пустые строки в атаках, заклинаниях…"
-            checked={pencilBlanks}
-            disabled={!character}
-            onChange={(next) => {
-              const current = latestRef.current
-              if (!current) return
-              handlePrintSettings(setClassicPencilBlanks(current, next))
-            }}
-          />
-
-          <div className="classic-toolbar-stepper" role="group" aria-label="Доп. страницы заметок">
-            <span className="classic-toolbar-group__label">Доп. страницы заметок</span>
-            <div className="classic-toolbar-stepper__controls">
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={!character || extraNotePages <= 0}
-                aria-label="Меньше страниц заметок"
-                onClick={() => {
-                  const current = latestRef.current
-                  if (!current) return
-                  handlePrintSettings(setClassicExtraNotePages(current, extraNotePages - 1))
-                }}
-              >
-                −
-              </Button>
-              <span className="classic-toolbar-stepper__value" aria-live="polite">
-                {extraNotePages}
-              </span>
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={!character || extraNotePages >= 12}
-                aria-label="Больше страниц заметок"
-                onClick={() => {
-                  const current = latestRef.current
-                  if (!current) return
-                  handlePrintSettings(setClassicExtraNotePages(current, extraNotePages + 1))
-                }}
-              >
-                +
-              </Button>
-            </div>
-          </div>
-
-          <SegmentedControl
-            aria-label="Цвет печати"
-            size="sm"
-            className="classic-toolbar-segmented"
-            value={printColor}
-            onChange={(mode) => {
-              const current = latestRef.current
-              if (!current) return
-              handlePrintSettings(setClassicPrintColor(current, mode))
-            }}
-            options={[
-              { id: 'bw', label: 'Чёрно-белая' },
-              { id: 'color', label: 'Цвет' },
-            ]}
-          />
-
-          <Button
-            variant={editing ? 'primary' : 'secondary'}
-            size="sm"
-            className="classic-edit-toggle"
-            aria-pressed={editing}
-            disabled={!character}
-            title="Размер шрифта блоков, гарнитура, интервал, высота полей"
-            onClick={() => setEditing((v) => !v)}
-          >
-            Правка печати
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            className="classic-blank-btn"
-            onClick={() => navigate(`/classic/blank?layout=${sheetLayout}`)}
-          >
-            Пустой бланк
-          </Button>
 
           <div className="classic-print-cta">
-            <Button variant="secondary" onClick={() => window.print()}>
+            <Button variant="primary" onClick={() => window.print()}>
               Печать / PDF
             </Button>
             <small>В диалоге печати выберите «Сохранить как PDF»</small>

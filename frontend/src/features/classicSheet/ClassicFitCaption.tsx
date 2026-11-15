@@ -28,15 +28,14 @@ export function ClassicFitCaption({
       const prevOverflow = el.style.overflow
       el.style.overflow = 'hidden'
       let size = maxPt
-      let track = -0.02
+      // Never negative tracking — it visually eats spaces («Уходза»).
       el.style.fontSize = `${size}pt`
-      el.style.letterSpacing = `${track}em`
+      el.style.letterSpacing = '0'
+      el.style.wordSpacing = '0.04em'
       const overflows = () => el.scrollWidth > el.clientWidth + 0.5
       while (size > minPt && overflows()) {
         size -= 0.1
-        track -= 0.015
         el.style.fontSize = `${size}pt`
-        el.style.letterSpacing = `${track}em`
       }
       // Last resort: keep floor size, allow slight scaleX so the word stays whole.
       if (overflows() && el.clientWidth > 0) {

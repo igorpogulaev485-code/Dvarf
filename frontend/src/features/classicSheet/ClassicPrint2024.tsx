@@ -3,9 +3,11 @@ import {
   ABILITY_NAMES,
   SKILL_DEFS,
   abilityModifier,
+  asRecord,
   formatModifier,
   type AbilityKey,
 } from '../characters/sheetTypes'
+import { readClassLevels } from '../characters/classLevels'
 import type { SheetSpell } from '../characters/spells'
 import type { ClassicPatch } from './fromApi'
 import {
@@ -76,6 +78,27 @@ const ABILITY_COL_RIGHT: AbilityKey[] = ['int', 'wis', 'cha']
 
 const SPELL_TABLE_ROWS = 28
 
+const COIN_LABELS_2024 = {
+  cp: 'Медь',
+  sp: 'Серебро',
+  ep: 'Электрум',
+  gp: 'Золото',
+  pp: 'Платина',
+} as const
+
+function classicHpDisplay(
+  character: CharacterDetail,
+  key: 'hp_current' | 'hp_max',
+): string {
+  const top = character[key]
+  if (typeof top === 'number') return String(top)
+  const fromCombat = combatField(character, key)
+  if (typeof fromCombat === 'number' || typeof fromCombat === 'string') {
+    return String(fromCombat)
+  }
+  return ''
+}
+
 /**
  * Classic 2024 printable layout — LSS-style 4 pages (display only).
  * Same paper tokens as 2014; structure follows Long Story Short 2024 blank.
@@ -84,7 +107,6 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
   const combatNum = (key: string): string => classicCombatDisplay(c, key)
 
   const combatBool = (key: string): boolean => Boolean(combatField(c, key))
-
 
   const proficiency = Number(asProfBonus(c))
   const hitDiceTotal = String(c.level || '')
@@ -95,6 +117,20 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
   const attunement = classicAttunementFilled(c)
   const attunementLimit = classicAttunementLimit(c)
   const scores = classicEffectiveAbilities(c)
+  const sheetClasses = readClassLevels(asRecord(c.sheet), {
+    className: c.class_name ?? '',
+    level: c.level ?? 1,
+    subclassName: String(identityField(c, 'subclass_name') ?? ''),
+    classCatalogId: null,
+  })
+  const subclassLabel =
+    sheetClasses
+      .map((row) => row.subclass_name.trim())
+      .filter(Boolean)
+      .join(' / ') ||
+    String(identityField(c, 'subclass_name') ?? identityField(c, 'subclass') ?? '')
+  const hpCurrent = classicHpDisplay(c, 'hp_current')
+  const hpMax = classicHpDisplay(c, 'hp_max')
   const alignmentRaw = String(identityField(c, 'alignment') ?? '')
   const alignmentText = String(identityField(c, 'alignment_text') ?? '')
   const alignmentSlug = recognizeAlignment(alignmentRaw) ?? ''
@@ -149,19 +185,22 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
               <label>
                 <input
                   value={c.class_name ?? ''}
-                 readOnly />
+                  readOnly
+                />
                 <span>Класс</span>
               </label>
               <label>
                 <input
                   value={c.race_name ?? ''}
-                 readOnly />
-                <span>Вид</span>
+                  readOnly
+                />
+                <span>Раса</span>
               </label>
               <label>
                 <input
-                  value={String(identityField(c, 'subclass') ?? '')}
-                 readOnly />
+                  value={subclassLabel}
+                  readOnly
+                />
                 <span>Подкласс</span>
               </label>
             </div>
@@ -207,20 +246,26 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
               <div className="classic-lss-hp__row">
                 <label>
                   <input
-                    value={c.hp_current ?? ''}
-                   readOnly />
+                    value={hpCurrent}
+                    readOnly
+                    aria-label="Текущие хиты"
+                  />
                   <span>Тек.</span>
                 </label>
                 <label>
                   <input
                     value={combatNum('hp_temp')}
-                   readOnly />
+                    readOnly
+                    aria-label="Временные хиты"
+                  />
                   <span>Врем.</span>
                 </label>
                 <label>
                   <input
-                    value={c.hp_max ?? ''}
-                   readOnly />
+                    value={hpMax}
+                    readOnly
+                    aria-label="Максимум хитов"
+                  />
                   <span>Макс.</span>
                 </label>
               </div>
@@ -822,12 +867,11 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
               <div className="classic-lss-coins classic-lss-coins--inline" aria-label="Монеты">
                 {(['cp', 'sp', 'ep', 'gp', 'pp'] as const).map((k) => (
                   <label key={k}>
-                    <span>
-                      {({ cp: 'ММ', sp: 'СМ', ep: 'ЭМ', gp: 'ЗМ', pp: 'ПМ' } as const)[k]}
-                    </span>
+                    <span className="classic-lss-coin-mark">{COIN_LABELS_2024[k]}</span>
                     <input
                       value={coins[k]}
-                     readOnly />
+                      readOnly
+                    />
                   </label>
                 ))}
               </div>
