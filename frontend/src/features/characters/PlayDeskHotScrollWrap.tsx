@@ -16,6 +16,8 @@ type PlayDeskHotScrollWrapProps = {
   className?: string
   children: ReactNode
   watchKey?: string | number
+  /** TOUR-01 spotlight — put on the scroll shell, not on chrome. */
+  dataOnboarding?: string
 }
 
 /** Desk hot strip — kit ScrollRow with play-desk item step selector. */
@@ -24,6 +26,7 @@ export function PlayDeskHotScrollWrap({
   className = '',
   children,
   watchKey = '',
+  dataOnboarding,
 }: PlayDeskHotScrollWrapProps) {
   return (
     <ScrollRow
@@ -32,6 +35,7 @@ export function PlayDeskHotScrollWrap({
       shellClassName="play-desk__hot-wrap"
       watchKey={watchKey}
       itemSelector=":scope > .play-desk__hot-item, :scope > .play-desk__hot-more"
+      dataOnboarding={dataOnboarding}
     >
       {children}
     </ScrollRow>

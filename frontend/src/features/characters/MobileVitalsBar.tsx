@@ -434,7 +434,11 @@ export function MobileVitalsBar({
 
   if (collapsed) {
     return (
-      <section className="mobile-vitals mobile-vitals--collapsed" aria-label="Боевой статус">
+      <section
+        className="mobile-vitals mobile-vitals--collapsed"
+        aria-label="Боевой статус"
+        data-onboarding="combat-vitals"
+      >
         <div className="mobile-vitals__collapse-avatar">
           <CharacterAvatarControl
             character={character}

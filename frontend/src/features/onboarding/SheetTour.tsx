@@ -1,5 +1,9 @@
-import { useMemo, useState } from 'react'
-import { hasVisibleOnboardingAnchor, resolveSheetTourAnchor } from './anchors'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  ensureCombatTourSurface,
+  hasVisibleOnboardingAnchor,
+  resolveSheetTourAnchor,
+} from './anchors'
 import { Coachmark } from './Coachmark'
 import { TOUR_STEPS } from './copy.ru'
 import type { SheetTourStepId } from './types'
@@ -21,8 +25,29 @@ function pickAnchor(stepId: SheetTourStepId, fallback: string): string {
 
 export function SheetTour({ open, onComplete, onSkip }: SheetTourProps) {
   const [index, setIndex] = useState(0)
+  const [surfaceTick, setSurfaceTick] = useState(0)
   const steps = TOUR_STEPS
   const step = steps[Math.min(index, steps.length - 1)]
+
+  // Reset when tour re-opens (create bridge / «Показать подсказки снова»).
+  useEffect(() => {
+    if (open) setIndex(0)
+  }, [open])
+
+  // Before «Ход в Бою»: switch to combat + Атаки so the turn row is on screen.
+  useEffect(() => {
+    if (!open || !step || step.id !== 'turn_actions') return
+    ensureCombatTourSurface()
+    const t1 = window.setTimeout(() => {
+      ensureCombatTourSurface()
+      setSurfaceTick((n) => n + 1)
+    }, 50)
+    const t2 = window.setTimeout(() => setSurfaceTick((n) => n + 1), 220)
+    return () => {
+      window.clearTimeout(t1)
+      window.clearTimeout(t2)
+    }
+  }, [open, step, index])
 
   const stepLabel = useMemo(
     () => `Подсказка ${Math.min(index + 1, steps.length)} из ${steps.length}`,
@@ -35,24 +60,13 @@ export function SheetTour({ open, onComplete, onSkip }: SheetTourProps) {
       typeof window !== 'undefined' && window.matchMedia('(max-width: 959px)').matches
     if (narrow && step.id === 'desk_modes') {
       return (
-        'Это не «ещё меню», а сцены за столом: Бой, Исследование, Общение, Напарники, Способности. ' +
-        'Одна сцена = один контекст, лишнее спрятано. Начни с «Бой»; позже зажми вкладку — коротко напомним.'
+        'Пять вкладок — пять ситуаций за столом: Бой, Исследование, Общение, Напарники, Способности. ' +
+        'Зажми вкладку — коротко напомним, что внутри.'
       )
     }
-    if (narrow && step.id === 'actions') {
+    if (narrow && step.id === 'turn_actions') {
       return (
-        'Жесты игры: ударить или колдовать. Рядом чипы хода — отмечай действие, бонусное и реакцию, когда потратил.'
-      )
-    }
-    if (narrow && step.id === 'checklist') {
-      return 'Необязательно заполнять всё сразу. Кнопка «Справка» — карта листа и словарь, если что-то забудешь.'
-    }
-    if (narrow && step.id === 'abilities') {
-      return 'Характеристики открываются из шапки («Характеристики ▸» или «СИЛ»). Мастер просит проверку — бросок оттуда.'
-    }
-    if (narrow && step.id === 'combat_header') {
-      return (
-        'Хиты, КД, скорость — живые числа сверху. В бою отмечай действие / бонусное / реакцию; «Новый ход» сбрасывает отметки.'
+        'Строка «Действие / Бонусное / Реакция» в сцене «Бой»: нажми — появятся варианты, потраченное отмечается галкой.'
       )
     }
     return step.body
@@ -60,21 +74,21 @@ export function SheetTour({ open, onComplete, onSkip }: SheetTourProps) {
 
   const tourTitle = useMemo(() => {
     if (!step) return ''
-    const narrow =
-      typeof window !== 'undefined' && window.matchMedia('(max-width: 959px)').matches
-    if (narrow && step.id === 'checklist') return 'Справка под рукой'
     return step.title
   }, [step])
 
   if (!open || !step) return null
 
   const isLast = index >= steps.length - 1
+  // surfaceTick forces re-pick after combat switch layout settles.
+  void surfaceTick
   const anchor = pickAnchor(step.id, step.anchor)
+  const hasHole = hasVisibleOnboardingAnchor(anchor)
 
   return (
     <Coachmark
       open={open}
-      anchorSelector={`[data-onboarding="${anchor}"]`}
+      anchorSelector={hasHole ? `[data-onboarding="${anchor}"]` : '[data-onboarding="__missing__"]'}
       title={tourTitle}
       body={tourBody}
       stepLabel={stepLabel}

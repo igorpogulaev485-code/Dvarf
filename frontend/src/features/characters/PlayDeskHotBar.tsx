@@ -432,6 +432,7 @@ export function PlayDeskHotBar({
       ariaLabel="Боевая полоса"
       className={`play-desk__hot${emptyChrome ? ' play-desk__hot--empty-chrome' : ''}`}
       watchKey={watchKey}
+      dataOnboarding="hot-bar"
     >
       <ConditionsHotCard
         parts={parts}

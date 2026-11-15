@@ -30,30 +30,34 @@ test.describe('ONB-01 welcome dismiss ≠ skip', () => {
   })
 })
 
-test.describe('ONB-02 sheet tour copy + anchors', () => {
-  test('five steps keep a coach card; step 5 prefers needs-setup; missing anchor does not crash', async ({
+test.describe('ONB-02 / TOUR-01 sheet tour copy + anchors', () => {
+  test('five steps keep a coach card; step 5 is Справка; missing anchor does not crash', async ({
     page,
-  }, testInfo) => {
+  }) => {
     await openPreview(page, 'tour')
     const coach = page.locator('.onboarding-coach')
     await expect(coach).toBeVisible()
     await expect(page.locator('.onboarding-coach__blocker')).toBeVisible()
 
-    await expect(page.getByRole('heading', { name: 'Шапка боя' })).toBeVisible()
-    await expect(coach).toContainText(/ход|действи/i)
+    await expect(page.getByRole('heading', { name: 'Шапка' })).toBeVisible()
+    await expect(coach).toContainText(/Хиты|КД/i)
+    await expect(coach).not.toContainText(/ход|действи|бонусн/i)
+
+    await page.getByRole('button', { name: 'Далее' }).click()
+    await expect(page.getByRole('heading', { name: 'Хот-панель' })).toBeVisible()
 
     await page.getByRole('button', { name: 'Далее' }).click()
     await expect(page.getByRole('heading', { name: 'Сцены' })).toBeVisible()
     await expect(coach).not.toContainText(/\bjob\b/i)
 
-    for (let i = 0; i < 3; i += 1) {
-      await page.getByRole('button', { name: 'Далее' }).click()
-      await expect(coach).toBeVisible()
-    }
+    await page.getByRole('button', { name: 'Далее' }).click()
+    await expect(page.getByRole('heading', { name: /Ход в/i })).toBeVisible()
+    await expect(coach).toContainText(/Действие/)
+
+    await page.getByRole('button', { name: 'Далее' }).click()
+    await expect(page.getByRole('heading', { name: 'Справка' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Готово' })).toBeVisible()
-    if (!testInfo.project.name.includes('mobile')) {
-      await expect(page.getByRole('heading', { name: /Нужно настроить/i })).toBeVisible()
-    }
+    await expect(coach).not.toContainText(/Нужно настроить/i)
 
     // Remove anchors mid-tour and ensure UI stays usable.
     await page.evaluate(() => {
@@ -104,7 +108,8 @@ test.describe('ONB-01 sheet tour overlay', () => {
   test('mobile scenes step keeps card above bottom safe band', async ({ page }, testInfo) => {
     test.skip(!testInfo.project.name.includes('mobile'), 'mobile placement only')
     await openPreview(page, 'tour')
-    // Step 1 combat → step 2 scenes
+    // Step 1 шапка → step 2 хот → step 3 сцены
+    await page.getByRole('button', { name: 'Далее' }).click()
     await page.getByRole('button', { name: 'Далее' }).click()
     await expect(page.getByRole('heading', { name: 'Сцены' })).toBeVisible()
 
