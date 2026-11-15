@@ -1,0 +1,156 @@
+id,name_en,name_ru,book,category,url_dndsu,url_ttg,srd,glossary_section
+ability-check,Ability Check,Проверка характеристики,PH24,glossary,https://next.dnd.su/glossary/ability-check,https://new.ttg.club/glossary/ability-check-phb,false,general
+ability-score-and-modifier,Ability Score and Modifier,Значения и модификаторы характеристик,PH24,glossary,https://next.dnd.su/glossary/ability-score-and-modifier,https://new.ttg.club/glossary/ability-score-and-modifier-phb,false,general
+action,Action,Действие,PH24,glossary,https://next.dnd.su/glossary/action,https://new.ttg.club/glossary/action-phb,false,actions
+advantage,Advantage,Преимущество,PH24,glossary,https://next.dnd.su/glossary/advantage,https://new.ttg.club/glossary/advantage-phb,false,general
+adventure,Adventure,Приключение,PH24,glossary,https://next.dnd.su/glossary/encounter,https://new.ttg.club/glossary/adventure-phb,false,general
+alignment,Alignment,Мировоззрение,PH24,glossary,https://next.dnd.su/glossary/alignment,https://new.ttg.club/glossary/alignment-phb,false,general
+ally,Ally,Союзник,PH24,glossary,https://next.dnd.su/glossary/ally,https://new.ttg.club/glossary/ally-phb,false,general
+area-of-effect,Area of Effect,Область воздействия,PH24,glossary,https://next.dnd.su/glossary/area-of-effect,https://new.ttg.club/glossary/area-of-effect-phb,false,aoe
+armor-class,Armor Class,Класс Защиты,PH24,glossary,https://next.dnd.su/glossary/armor-class,https://new.ttg.club/glossary/armor-class-phb,false,general
+armor-training,Armor Training,Тренированность с доспехами,PH24,glossary,https://next.dnd.su/glossary/armor-training,https://new.ttg.club/glossary/armor-training-phb,false,general
+attack,Attack,Атака,PH24,glossary,https://next.dnd.su/glossary/attack,https://new.ttg.club/glossary/attack-phb,false,actions
+attack-roll,Attack Roll,Бросок атаки,PH24,glossary,https://next.dnd.su/glossary/attack-roll,https://new.ttg.club/glossary/attack-roll-phb,false,general
+attitude,Attitude,Отношение,PH24,glossary,https://next.dnd.su/glossary/attitude,https://new.ttg.club/glossary/attitude-phb,false,attitude
+attunement,Attunement,Настройка,PH24,glossary,https://next.dnd.su/glossary/attunement,https://new.ttg.club/glossary/attunement-phb,false,general
+blinded,Blinded,Ослеплённый,PH24,glossary,https://next.dnd.su/glossary/blinded-condition,https://new.ttg.club/glossary/blinded-phb,false,condition
+blindsight,Blindsight,Слепое зрение,PH24,glossary,https://next.dnd.su/glossary/blindsight,https://new.ttg.club/glossary/blindsight-phb,false,senses
+bloodied,Bloodied,Окровавленный,PH24,glossary,https://next.dnd.su/glossary/bloodied,https://new.ttg.club/glossary/bloodied-phb,false,general
+bonus-action,Bonus Action,Бонусное действие,PH24,glossary,https://next.dnd.su/glossary/bonus-action,https://new.ttg.club/glossary/bonus-action-phb,false,actions
+breaking-objects,Breaking Objects,Уничтожение объектов,PH24,glossary,https://next.dnd.su/glossary/breaking-objects,https://new.ttg.club/glossary/breaking-objects-phb,false,general
+bright-light,Bright Light,Яркий свет,PH24,glossary,https://next.dnd.su/glossary/bright-light,https://new.ttg.club/glossary/bright-light-phb,false,general
+burning,Burning,Горение,PH24,glossary,https://next.dnd.su/glossary/burning,https://new.ttg.club/glossary/burning-phb,false,general
+burrow-speed,Burrow Speed,Скорость копания,PH24,glossary,https://next.dnd.su/glossary/burrow-speed,https://new.ttg.club/glossary/burrow-speed-phb,false,speed
+campaign,Campaign,Кампания,PH24,glossary,https://next.dnd.su/glossary/campaign,https://new.ttg.club/glossary/campaign-phb,false,general
+cantrip,Cantrip,Заговор,PH24,glossary,https://next.dnd.su/glossary/cantrip,https://new.ttg.club/glossary/cantrip-phb,false,general
+carrying-capacity,Carrying Capacity,Грузоподъёмность,PH24,glossary,https://next.dnd.su/glossary/carrying-capacity,https://new.ttg.club/glossary/carrying-capacity-phb,false,general
+challenge-rating,Challenge Rating,Показатель опасности,PH24,glossary,https://next.dnd.su/glossary/challenge-rating,https://new.ttg.club/glossary/challenge-rating-phb,false,general
+character-sheet,Character Sheet,Лист персонажа,PH24,glossary,https://next.dnd.su/glossary/character-sheet,https://new.ttg.club/glossary/character-sheet-phb,false,general
+charmed,Charmed,Очарованный,PH24,glossary,https://next.dnd.su/glossary/charmed,https://new.ttg.club/glossary/charmed-phb,false,condition
+climb-speed,Climb Speed,Скорость лазания,PH24,glossary,https://next.dnd.su/glossary/climb-speed,https://new.ttg.club/glossary/climb-speed-phb,false,speed
+climbing,Climbing,Лазание,PH24,glossary,https://next.dnd.su/glossary/climbing,https://new.ttg.club/glossary/climbing-phb,false,speed
+concentration,Concentration,Концентрация,PH24,glossary,https://next.dnd.su/glossary/concentration,https://new.ttg.club/glossary/concentration-phb,false,general
+condition,Condition,Состояние,PH24,glossary,https://next.dnd.su/glossary/condition,https://new.ttg.club/glossary/condition-phb,false,condition
+cone,Cone,Конус,PH24,glossary,https://next.dnd.su/glossary/cone,https://new.ttg.club/glossary/cone-phb,false,aoe
+cover,Cover,Укрытие,PH24,glossary,https://next.dnd.su/glossary/cover,https://new.ttg.club/glossary/cover-phb,false,general
+crawling,Crawling,Ползание,PH24,glossary,https://next.dnd.su/glossary/crawling,https://new.ttg.club/glossary/crawling-phb,false,speed
+creature,Creature,Существо,PH24,glossary,https://next.dnd.su/glossary/creature,https://new.ttg.club/glossary/creature-phb,false,general
+creature-type,Creature Type,Тип существа,PH24,glossary,https://next.dnd.su/glossary/creature-type,https://new.ttg.club/glossary/creature-type-phb,false,general
+critical-hit,Critical Hit,Критическое попадание,PH24,glossary,https://next.dnd.su/glossary/critical-hit,https://new.ttg.club/glossary/critical-hit-phb,false,general
+cube,Cube,Куб,PH24,glossary,https://next.dnd.su/glossary/cube,https://new.ttg.club/glossary/cube-phb,false,aoe
+curses,Curses,Проклятия,PH24,glossary,https://next.dnd.su/glossary/curses,https://new.ttg.club/glossary/curses-phb,false,general
+cylinder,Cylinder,Цилиндр,PH24,glossary,https://next.dnd.su/glossary/cylinder,https://new.ttg.club/glossary/cylinder-phb,false,aoe
+d20-test,D20 Test,Тест к20,PH24,glossary,https://next.dnd.su/glossary/d20-test,https://new.ttg.club/glossary/d20-test-phb,false,general
+damage,Damage,Урон,PH24,glossary,https://next.dnd.su/glossary/damage,https://new.ttg.club/glossary/damage-phb,false,general
+damage-roll,Damage Roll,Бросок урона,PH24,glossary,https://next.dnd.su/glossary/damage-roll,https://new.ttg.club/glossary/damage-roll-phb,false,general
+damage-threshold,Damage Threshold,Порог урона,PH24,glossary,https://next.dnd.su/glossary/damage-threshold,https://new.ttg.club/glossary/damage-threshold-phb,false,general
+damage-types,Damage Types,Типы урона,PH24,glossary,https://next.dnd.su/glossary/damage-types,https://new.ttg.club/glossary/damage-types-phb,true,general
+darkness,Darkness,Темнота,PH24,glossary,https://next.dnd.su/glossary/darkness,https://new.ttg.club/glossary/darkness-phb,true,general
+darkvision,Darkvision,Тёмное зрение,PH24,glossary,https://next.dnd.su/glossary/darkvision,https://new.ttg.club/glossary/darkvision-phb,true,senses
+dash,Dash,Рывок,PH24,glossary,https://next.dnd.su/glossary/dash,https://new.ttg.club/glossary/dash-phb,false,actions
+dead,Dead,Смерть,PH24,glossary,https://next.dnd.su/glossary/dead,https://new.ttg.club/glossary/dead-phb,false,general
+deafened,Deafened,Оглохший,PH24,glossary,https://next.dnd.su/glossary/deafened,https://new.ttg.club/glossary/deafened-phb,false,condition
+death-saving-throw,Death Saving Throw,Спасбросок от Cмерти,PH24,glossary,https://next.dnd.su/glossary/death-saving-throw,https://new.ttg.club/glossary/death-saving-throw-phb,false,general
+dehydration,Dehydration,Обезвоживание,PH24,glossary,https://next.dnd.su/glossary/dehydration,https://new.ttg.club/glossary/dehydration-phb,false,general
+difficult-terrain,Difficult Terrain,Труднопроходимая местность,PH24,glossary,https://next.dnd.su/glossary/difficult-terrain,https://new.ttg.club/glossary/difficult-terrain-phb,false,general
+difficulty-class,Difficulty Class,Сложность,PH24,glossary,https://next.dnd.su/glossary/difficulty-class,https://new.ttg.club/glossary/difficulty-class-phb,false,general
+dim-light,Dim Light,Тусклый свет,PH24,glossary,https://next.dnd.su/glossary/dim-light,https://new.ttg.club/glossary/dim-light-phb,false,general
+disadvantage,Disadvantage,Помеха,PH24,glossary,https://next.dnd.su/glossary/disadvantage,https://new.ttg.club/glossary/disadvantage-phb,false,general
+disengage,Disengage,Отход,PH24,glossary,https://next.dnd.su/glossary/disengage,https://new.ttg.club/glossary/disengage-phb,false,actions
+dodge,Dodge,Уклонение,PH24,glossary,https://next.dnd.su/glossary/dodge,https://new.ttg.club/glossary/dodge-phb,false,actions
+emanation,Emanation,Эманация,PH24,glossary,https://next.dnd.su/glossary/emanation,https://new.ttg.club/glossary/emanation-phb,false,aoe
+encounter,Encounter,Столкновение,PH24,glossary,https://next.dnd.su/glossary/encounter,https://new.ttg.club/glossary/encounter-phb,false,general
+enemy,Enemy,Враг,PH24,glossary,https://next.dnd.su/glossary/enemy,https://new.ttg.club/glossary/enemy-phb,false,general
+exhaustion,Exhaustion,Истощение,PH24,glossary,https://next.dnd.su/glossary/exhaustion,https://new.ttg.club/glossary/exhaustion-phb,false,condition
+experience-points,Experience Points,Очки опыта,PH24,glossary,https://next.dnd.su/glossary/experience-points,https://new.ttg.club/glossary/experience-points-phb,false,general
+expertise,Expertise,Экспертность,PH24,glossary,https://next.dnd.su/glossary/expertise,https://new.ttg.club/glossary/expertise-phb,false,general
+falling,Falling,Падение,PH24,glossary,https://next.dnd.su/glossary/falling,https://new.ttg.club/glossary/falling-phb,false,general
+fly-speed,Fly Speed,Скорость полёта,PH24,glossary,https://next.dnd.su/glossary/fly-speed,https://new.ttg.club/glossary/fly-speed-phb,false,speed
+flying,Flying,Полёт,PH24,glossary,https://next.dnd.su/glossary/flying,https://new.ttg.club/glossary/flying-phb,false,speed
+friendly,Friendly,Дружелюбное отношение,PH24,glossary,https://next.dnd.su/glossary/friendly,https://new.ttg.club/glossary/friendly-phb,false,attitude
+frightened,Frightened,Испуганный,PH24,glossary,https://next.dnd.su/glossary/frightened,https://new.ttg.club/glossary/frightened-phb,false,condition
+grappled,Grappled,Схваченный,PH24,glossary,https://next.dnd.su/glossary/grappled,https://new.ttg.club/glossary/grappled-phb,false,condition
+grappling,Grappling,Захват,PH24,glossary,https://next.dnd.su/glossary/grappling,https://new.ttg.club/glossary/grappling-phb,false,general
+hazard,Hazard,Угроза окружения,PH24,glossary,https://next.dnd.su/glossary/hazard,https://new.ttg.club/glossary/hazard-phb,false,general
+healing,Healing,Лечение,PH24,glossary,https://next.dnd.su/glossary/healing,https://new.ttg.club/glossary/healing-phb,true,general
+heavily-obscured,Heavily Obscured,Сильное заслонение,PH24,glossary,https://next.dnd.su/glossary/heavily-obscured,https://new.ttg.club/glossary/heavily-obscured-phb,false,general
+help,Help,Помощь,PH24,glossary,https://next.dnd.su/glossary/help,https://new.ttg.club/glossary/help-phb,false,actions
+heroic-inspiration,Heroic Inspiration,Героическое вдохновение,PH24,glossary,https://next.dnd.su/glossary/heroic-inspiration,https://new.ttg.club/glossary/heroic-inspiration-phb,false,general
+hide,Hide,Затаивание,PH24,glossary,https://next.dnd.su/glossary/hide,https://new.ttg.club/glossary/hide-phb,false,actions
+high-jump,High Jump,Прыжок в высоту,PH24,glossary,https://next.dnd.su/glossary/high-jump,https://new.ttg.club/glossary/high-jump-phb,false,speed
+hit-point-dice,Hit Point Dice,Кости хитов,PH24,glossary,https://next.dnd.su/glossary/hit-point-dice,https://new.ttg.club/glossary/hit-point-dice-phb,false,general
+hit-points,Hit Points,Хиты,PH24,glossary,https://next.dnd.su/glossary/hit-points,https://new.ttg.club/glossary/hit-points-phb,true,general
+hostile,Hostile,Враждебное отношение,PH24,glossary,https://next.dnd.su/glossary/hostile,https://new.ttg.club/glossary/hostile-phb,false,attitude
+hover,Hover,Парение,PH24,glossary,https://next.dnd.su/glossary/hover,https://new.ttg.club/glossary/hover-phb,false,general
+illusions,Illusions,Иллюзии,PH24,glossary,https://next.dnd.su/glossary/illusions,https://new.ttg.club/glossary/illusions-phb,false,general
+immunity,Immunity,Иммунитет,PH24,glossary,https://next.dnd.su/glossary/immunity,https://new.ttg.club/glossary/immunity-phb,true,general
+improvised-weapons,Improvised Weapons,Импровизированное оружие,PH24,glossary,https://next.dnd.su/glossary/improvised-weapons,https://new.ttg.club/glossary/improvised-weapons-phb,false,general
+incapacitated,Incapacitated,Недееспособный,PH24,glossary,https://next.dnd.su/glossary/incapacitated,https://new.ttg.club/glossary/incapacitated-phb,false,condition
+indifferent,Indifferent,Безразличное отношение,PH24,glossary,https://next.dnd.su/glossary/indifferent,https://new.ttg.club/glossary/indifferent-phb,false,attitude
+influence,Influence,Влияние,PH24,glossary,https://next.dnd.su/glossary/influence,https://new.ttg.club/glossary/influence-phb,false,actions
+initiative,Initiative,Инициатива,PH24,glossary,https://next.dnd.su/glossary/initiative,https://new.ttg.club/glossary/initiative-phb,false,general
+invisible,Invisible,Невидимый,PH24,glossary,https://next.dnd.su/glossary/invisible,https://new.ttg.club/glossary/invisible-phb,false,condition
+jumping,Jumping,Прыжки,PH24,glossary,https://next.dnd.su/glossary/jumping,https://new.ttg.club/glossary/jumping-phb,false,speed
+knocking-out-a-creature,Knocking Out a Creature,Нокаутирование существа,PH24,glossary,https://next.dnd.su/glossary/knockout,https://new.ttg.club/glossary/knocking-out-a-creature-phb,false,general
+lightly-obscured,Lightly Obscured,Слабое заслонение,PH24,glossary,https://next.dnd.su/glossary/lightly-obscured,https://new.ttg.club/glossary/lightly-obscured-phb,false,general
+line,Line,Линия,PH24,glossary,https://next.dnd.su/glossary/line,https://new.ttg.club/glossary/line-phb,false,aoe
+line-of-sight,Line of Sight,Линия видимости,PH24,glossary,https://next.dnd.su/glossary/line-of-sight,,false,general
+long-jump,Long Jump,Прыжок в длину,PH24,glossary,https://next.dnd.su/glossary/long-jump,https://new.ttg.club/glossary/long-jump-phb,false,speed
+long-rest,Long Rest,Долгий отдых,PH24,glossary,https://next.dnd.su/glossary/long-rest,https://new.ttg.club/glossary/long-rest-phb,false,general
+magic,Magic,Магия,PH24,glossary,https://next.dnd.su/glossary/magic,https://new.ttg.club/glossary/magic-phb,false,actions
+magical-effect,Magical Effect,Магический эффект,PH24,glossary,https://next.dnd.su/glossary/magical-effect,https://new.ttg.club/glossary/magical-effect-phb,false,general
+malnutrition,Malnutrition,Недоедание,PH24,glossary,https://next.dnd.su/glossary/malnutrition,https://new.ttg.club/glossary/malnutrition-phb,false,general
+monster,Monster,Монстр,PH24,glossary,https://next.dnd.su/glossary/monster,https://new.ttg.club/glossary/monster-phb,false,general
+nonplayer-character,Nonplayer Character,Неигровой персонаж,PH24,glossary,https://next.dnd.su/glossary/NPC,https://new.ttg.club/glossary/nonplayer-character-phb,false,general
+object,Object,Объект,PH24,glossary,https://next.dnd.su/glossary/object,https://new.ttg.club/glossary/object-phb,false,general
+occupied-space,Occupied Space,Занятое пространство,PH24,glossary,https://next.dnd.su/glossary/occupied-space,https://new.ttg.club/glossary/occupied-space-phb,false,general
+opportunity-attacks,Opportunity Attacks,Провоцированные атаки,PH24,glossary,https://next.dnd.su/glossary/opportunity-attacks,,false,general
+paralyzed,Paralyzed,Парализованный,PH24,glossary,https://next.dnd.su/glossary/paralyzed,https://new.ttg.club/glossary/paralyzed-phb,false,condition
+passive-perception,Passive Perception,Пассивное Восприятие,PH24,glossary,https://next.dnd.su/glossary/passive-perception,https://new.ttg.club/glossary/passive-perception-phb,false,general
+per-day,Per Day,В день,PH24,glossary,https://next.dnd.su/glossary/per-day,https://new.ttg.club/glossary/per-day-phb,false,general
+petrified,Petrified,Окаменевший,PH24,glossary,https://next.dnd.su/glossary/petrified,https://new.ttg.club/glossary/petrified-phb,false,condition
+player-character,Player Character,Персонаж игрока,PH24,glossary,https://next.dnd.su/glossary/PC,https://new.ttg.club/glossary/player-character-phb,false,general
+poisoned,Poisoned,Отравленный,PH24,glossary,https://next.dnd.su/glossary/poisoned,https://new.ttg.club/glossary/poisoned-phb,false,condition
+possession,Possession,Одержимость,PH24,glossary,https://next.dnd.su/glossary/possession,https://new.ttg.club/glossary/possession-phb,false,general
+proficiency,Proficiency,Владение,PH24,glossary,https://next.dnd.su/glossary/proficiency,https://new.ttg.club/glossary/proficiency-phb,true,general
+prone,Prone,Опрокинутый,PH24,glossary,https://next.dnd.su/glossary/prone,https://new.ttg.club/glossary/prone-phb,false,condition
+reach,Reach,Досягаемость,PH24,glossary,https://next.dnd.su/glossary/reach,https://new.ttg.club/glossary/reach-phb,false,general
+reaction,Reaction,Реакция,PH24,glossary,https://next.dnd.su/glossary/reaction,https://new.ttg.club/glossary/reaction-phb,false,actions
+ready,Ready,Подготовка,PH24,glossary,https://next.dnd.su/glossary/ready,https://new.ttg.club/glossary/ready-phb,false,actions
+resistance,Resistance,Сопротивление,PH24,glossary,https://next.dnd.su/glossary/resistance,https://new.ttg.club/glossary/resistance-phb,true,general
+restrained,Restrained,Опутанный,PH24,glossary,https://next.dnd.su/glossary/restrained,https://new.ttg.club/glossary/restrained-phb,false,condition
+ritual,Ritual,Ритуал,PH24,glossary,https://next.dnd.su/glossary/ritual,https://new.ttg.club/glossary/ritual-phb,false,general
+round-down,Round Down,Округление вниз,PH24,glossary,https://next.dnd.su/glossary/round-down,https://new.ttg.club/glossary/round-down-phb,false,general
+saving-throw,Saving Throw,Спасбросок,PH24,glossary,https://next.dnd.su/glossary/saving-throw,https://new.ttg.club/glossary/saving-throw-phb,false,general
+search,Search,Поиск,PH24,glossary,https://next.dnd.su/glossary/search,https://new.ttg.club/glossary/search-phb,false,actions
+shape-shifting,Shape-Shifting,Перевоплощение,PH24,glossary,https://next.dnd.su/glossary/shape-shifting,https://new.ttg.club/glossary/shape-shifting-phb,false,general
+short-rest,Short Rest,Короткий отдых,PH24,glossary,https://next.dnd.su/glossary/short-rest,https://new.ttg.club/glossary/short-rest-phb,false,general
+simultaneous-effects,Simultaneous Effects,Одновременные эффекты,PH24,glossary,https://next.dnd.su/glossary/simultaneous-effects,https://new.ttg.club/glossary/simultaneous-effects-phb,false,general
+size,Size,Размер,PH24,glossary,https://next.dnd.su/glossary/size,https://new.ttg.club/glossary/size-phb,false,general
+skill,Skill,Навык,PH24,glossary,https://next.dnd.su/glossary/skill,https://new.ttg.club/glossary/skill-phb,false,general
+speed,Speed,Скорость,PH24,glossary,https://next.dnd.su/glossary/speed,https://new.ttg.club/glossary/speed-phb,false,speed
+spell,Spell,Заклинание,PH24,glossary,https://next.dnd.su/glossary/spell,https://new.ttg.club/glossary/spell-phb,false,general
+spell-attack,Spell Attack,Атака заклинанием,PH24,glossary,https://next.dnd.su/glossary/spell-attack,https://new.ttg.club/glossary/spell-attack-phb,false,general
+spellcasting-focus,Spellcasting Focus,Заклинательная фокусировка,PH24,glossary,https://next.dnd.su/glossary/spellcasting-focus,https://new.ttg.club/glossary/spellcasting-focus-phb,false,general
+sphere,Sphere,Сфера,PH24,glossary,https://next.dnd.su/glossary/sphere,https://new.ttg.club/glossary/sphere-phb,false,aoe
+stable,Stable,Стабилизированный,PH24,glossary,https://next.dnd.su/glossary/stable,https://new.ttg.club/glossary/stable-phb,false,general
+stat-block,Stat Block,Блок статистики,PH24,glossary,https://next.dnd.su/glossary/stat-block,https://new.ttg.club/glossary/stat-block-phb,false,general
+study,Study,Изучение,PH24,glossary,https://next.dnd.su/glossary/study,https://new.ttg.club/glossary/study-phb,false,actions
+stunned,Stunned,Ошеломлённый,PH24,glossary,https://next.dnd.su/glossary/stunned,https://new.ttg.club/glossary/stunned-phb,false,condition
+suffocation,Suffocation,Удушение,PH24,glossary,https://next.dnd.su/glossary/suffocation,https://new.ttg.club/glossary/suffocation-phb,false,general
+surprise,Surprise,Застигнуты врасплох,PH24,glossary,https://next.dnd.su/glossary/surprise,,false,general
+swim-speed,Swim Speed,Скорость плавания,PH24,glossary,https://next.dnd.su/glossary/swim-speed,https://new.ttg.club/glossary/swim-speed-phb,false,speed
+swimming,Swimming,Плавание,PH24,glossary,https://next.dnd.su/glossary/swimming,https://new.ttg.club/glossary/swimming-phb,false,general
+target,Target,Цель,PH24,glossary,https://next.dnd.su/glossary/target,https://new.ttg.club/glossary/target-phb,false,general
+telepathy,Telepathy,Телепатия,PH24,glossary,https://next.dnd.su/glossary/telepathy,https://new.ttg.club/glossary/telepathy-phb,false,general
+teleportation,Teleportation,Телепортация,PH24,glossary,https://next.dnd.su/glossary/teleportation,https://new.ttg.club/glossary/teleportation-phb,false,general
+temporary-hit-points,Temporary Hit Points,Временные хиты,PH24,glossary,https://next.dnd.su/glossary/temporary-hit-points,https://new.ttg.club/glossary/temporary-hit-points-phb,true,general
+tremorsense,Tremorsense,Чувство вибрации,PH24,glossary,https://next.dnd.su/glossary/tremorsense,https://new.ttg.club/glossary/tremorsense-phb,false,senses
+truesight,Truesight,Истинное зрение,PH24,glossary,https://next.dnd.su/glossary/truesight,https://new.ttg.club/glossary/truesight-phb,false,senses
+unarmed-strike,Unarmed Strike,Безоружный удар,PH24,glossary,https://next.dnd.su/glossary/unarmed-strike,https://new.ttg.club/glossary/unarmed-strike-phb,false,general
+unconscious,Unconscious,Бессознательный,PH24,glossary,https://next.dnd.su/glossary/unconscious,https://new.ttg.club/glossary/unconscious-phb,false,condition
+unoccupied-space,Unoccupied Space,Незанятое пространство,PH24,glossary,https://next.dnd.su/glossary/unoccupied-space,https://new.ttg.club/glossary/unoccupied-space-phb,false,general
+utilize,Utilize,Использование,PH24,glossary,https://next.dnd.su/glossary/utilize,https://new.ttg.club/glossary/utilize-phb,false,actions
+vulnerability,Vulnerability,Уязвимость,PH24,glossary,https://next.dnd.su/glossary/vulnerability,https://new.ttg.club/glossary/vulnerability-phb,false,general
+weapon,Weapon,Оружие,PH24,glossary,https://next.dnd.su/glossary/weapon,https://new.ttg.club/glossary/weapon-phb,false,general
+weapon-attack,Weapon Attack,Атака оружием,PH24,glossary,https://next.dnd.su/glossary/weapon-attack,https://new.ttg.club/glossary/weapon-attack-phb,false,general

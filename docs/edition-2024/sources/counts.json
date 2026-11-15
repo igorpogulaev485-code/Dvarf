@@ -1,0 +1,99 @@
+{
+  "by_category": {
+    "species": 25,
+    "classes": 13,
+    "subclasses": 76,
+    "backgrounds": 70,
+    "feats": 195,
+    "spells": 444,
+    "weapons": 38,
+    "armor": 13,
+    "equipment": 136,
+    "magic_items": 565,
+    "creatures": 657,
+    "bastions": 0,
+    "glossary": 155
+  },
+  "by_category_book": {
+    "species": {
+      "EFA": 5,
+      "LFL": 6,
+      "PH24": 10,
+      "RTW": 4
+    },
+    "classes": {
+      "EFA": 1,
+      "PH24": 12
+    },
+    "subclasses": {
+      "AU": 8,
+      "EFA": 5,
+      "FRHoF": 8,
+      "PH24": 48,
+      "RTW": 7
+    },
+    "backgrounds": {
+      "ABH": 3,
+      "AU": 10,
+      "EFA": 17,
+      "FRHoF": 18,
+      "LFL": 2,
+      "PH24": 16,
+      "RTW": 4
+    },
+    "feats": {
+      "ABH": 16,
+      "AU": 29,
+      "EFA": 28,
+      "FRHoF": 34,
+      "LFL": 2,
+      "PH24": 75,
+      "RTW": 11
+    },
+    "spells": {
+      "AU": 33,
+      "EFA": 1,
+      "FRHoF": 19,
+      "PH24": 391
+    },
+    "weapons": {
+      "PH24": 38
+    },
+    "armor": {
+      "PH24": 13
+    },
+    "equipment": {
+      "PH24": 136
+    },
+    "magic_items": {
+      "AU": 47,
+      "AUD": 14,
+      "DMG24": 471,
+      "EFA": 9,
+      "FRAiF": 12,
+      "FRHoF": 2,
+      "NsF": 8,
+      "PH24": 1,
+      "RTW": 1
+    },
+    "creatures": {
+      "ABH": 5,
+      "AU": 19,
+      "AUD": 6,
+      "FRAiF": 40,
+      "LFL": 8,
+      "MM24": 503,
+      "NsF": 8,
+      "RTW": 68
+    },
+    "bastions": {},
+    "glossary": {
+      "PH24": 155
+    }
+  },
+  "generated": "2026-11-15",
+  "notes": [
+    "DDBD (Dragon Delves): 0 записей на обоих сайтах на дату опроса.",
+    "bastions: 0 — разделы пусты/недоступны (см. gaps.md)."
+  ]
+}
