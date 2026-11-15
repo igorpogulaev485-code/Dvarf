@@ -54,6 +54,8 @@ const REQUEST_TIMEOUT_MS = 20_000
 const LIST_TIMEOUT_MS = 12_000
 /** Full sheet PATCH can be large (iPad / slow uplink) — allow a bit more before abort. */
 const SHEET_PATCH_TIMEOUT_MS = 35_000
+/** World-import zip/upsert can be tens of MB — align with nginx proxy_read_timeout 300s. */
+const WORLD_IMPORT_UPLOAD_TIMEOUT_MS = 300_000
 /** Brief pause before one automatic retry on transient failures. */
 const TRANSIENT_RETRY_MS = 700
 
@@ -73,6 +75,12 @@ function timeoutMsForPath(path: string, method = 'GET'): number {
     /^\/characters\/[^/]+$/.test(path)
   ) {
     return SHEET_PATCH_TIMEOUT_MS
+  }
+  if (
+    verb === 'POST' &&
+    (/\/world-imports(\/|$)/.test(path) || /\/world-import-settings(\/|$)/.test(path))
+  ) {
+    return WORLD_IMPORT_UPLOAD_TIMEOUT_MS
   }
   return REQUEST_TIMEOUT_MS
 }
@@ -234,6 +242,14 @@ export async function apiRequest<T>(
 
   if (response.status === 204) {
     return undefined as T
+  }
+
+  if (response.status === 413) {
+    throw new ApiRequestError(
+      'Файл слишком большой для загрузки. Уменьшите zip или пакет и попробуйте снова.',
+      413,
+      'file_too_large',
+    )
   }
 
   if (

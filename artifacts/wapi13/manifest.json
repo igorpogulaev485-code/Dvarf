@@ -1,0 +1,38 @@
+[
+  {
+    "file": "01-help-top-1280.png",
+    "md5": "ac94fc476a8e7f609276939599999087",
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "file": "02-help-bottom-1280.png",
+    "md5": "e87b47e7fffa657e6d7eab011d5e0937",
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "file": "03-help-top-390.png",
+    "md5": "3daed287a545561ea269a4eaa5f5c468",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "file": "04-help-mcp-390.png",
+    "md5": "9951b8693589e6e0c30ec1cfb823efb3",
+    "width": 390,
+    "height": 844
+  },
+  {
+    "file": "05-panel-link-1280.png",
+    "md5": "21e03b0cc180ddd8be3feb3e38b5a4e5",
+    "width": 1280,
+    "height": 800
+  },
+  {
+    "file": "06-help-curl-390.png",
+    "md5": "eb97301ce3e32ddece3a36611b473086",
+    "width": 390,
+    "height": 844
+  }
+]

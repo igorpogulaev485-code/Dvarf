@@ -128,8 +128,10 @@ def create_world_import_mcp(
         streamable_http_path="/",
         json_response=True,
         stateless_http=True,
-        # Крупные пакеты markdown+base64 PDF; потолок тела MCP выше дефолтных 4 МиБ.
-        max_request_body_size=12 * 1024 * 1024,
+        # Крупные пакеты markdown+base64 PDF; потолок тела MCP = запас nginx (50m),
+        # выше лимитов приложения (zip 25 МБ / текст 20 МБ), чтобы отказ был
+        # file_too_large из REST, а не обрезка на транспорте MCP.
+        max_request_body_size=50 * 1024 * 1024,
         transport_security=TransportSecuritySettings(
             enable_dns_rebinding_protection=True,
             allowed_hosts=_hosts_from_public_url(settings.app_public_url),

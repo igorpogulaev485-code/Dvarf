@@ -49,6 +49,8 @@ type Props = {
   compact?: boolean
   onBindSetting?: () => void
   showBindHint?: boolean
+  /** W-API-11: отдельный вход «Залить мир» без рефакторинга хаба. */
+  onWorldImport?: () => void
 }
 
 export function SettingWikiReader({
@@ -59,6 +61,7 @@ export function SettingWikiReader({
   compact,
   onBindSetting,
   showBindHint,
+  onWorldImport,
 }: Props) {
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -174,6 +177,11 @@ export function SettingWikiReader({
           <Link className="ui-button ui-button--ghost" to={`/settings/${setting.id}`}>
             Полная вики
           </Link>
+        ) : null}
+        {canEditWiki && onWorldImport ? (
+          <button type="button" className="ui-button ui-button--ghost" onClick={onWorldImport}>
+            Залить мир
+          </button>
         ) : null}
       </div>
 

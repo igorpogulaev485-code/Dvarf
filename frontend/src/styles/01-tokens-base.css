@@ -1307,6 +1307,46 @@ a.ui-button--primary {
   color: var(--warn);
 }
 
+/* Kit atom: CodeBlock — код внутри рамки, без раздувания страницы.
+   width:0 + min-width:100% — самодостаточный трюк: не трогаем .ui-stack/.ui-panel. */
+.ui-code-block {
+  display: block;
+  width: 0;
+  min-width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 12px 14px;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ui-code-block__code {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+}
+
+.ui-code-block--scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: pre;
+}
+
+.ui-code-block--wrap {
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .mode-switch {
   display: inline-flex;
   gap: 6px;

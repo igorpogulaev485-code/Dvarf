@@ -78,6 +78,8 @@
     "selfcheck:dialog-backdrop": "tsx --tsconfig tsconfig.app.json src/ui/dialogBackdrop.selfcheck.ts",
     "selfcheck:text-blocks": "tsx --tsconfig tsconfig.app.json src/features/characters/textBlocks.selfcheck.ts",
     "selfcheck:abl01-abilities": "tsx --tsconfig tsconfig.app.json src/features/characters/abl01Abilities.selfcheck.ts",
+    "selfcheck:wapi11-review": "tsx --tsconfig tsconfig.app.json src/features/lobby/worldImportReview.selfcheck.ts",
+    "selfcheck:wapi13-help": "tsx --tsconfig tsconfig.app.json src/features/worldImport/worldImportHelp.selfcheck.ts",
     "test:e2e:onboarding": "playwright test --config=playwright.onboarding.config.ts"
   },
   "dependencies": {

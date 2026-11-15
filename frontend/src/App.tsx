@@ -13,6 +13,9 @@ import { Sc04LiveTablePreviewPage } from './pages/Sc04LiveTablePreviewPage'
 import { Sc05GmToolbarPreviewPage } from './pages/Sc05GmToolbarPreviewPage'
 import { UiKit03HeaderPreviewPage } from './pages/UiKit03HeaderPreviewPage'
 import { UiKitEtalonPreviewPage } from './pages/UiKitEtalonPreviewPage'
+import { Wapi11PreviewPage } from './pages/Wapi11PreviewPage'
+import { Wapi13PreviewPage } from './pages/Wapi13PreviewPage'
+import { WorldImportHelpPage } from './pages/WorldImportHelpPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
 import { safeNextPath } from './shared/auth/nextPath'
@@ -101,6 +104,8 @@ export default function App() {
             <Route path="/dev/sc05-gm-toolbar-preview" element={<Sc05GmToolbarPreviewPage />} />
             <Route path="/dev/ui-kit-etalon" element={<UiKitEtalonPreviewPage />} />
             <Route path="/dev/uikit03-header-preview" element={<UiKit03HeaderPreviewPage />} />
+            <Route path="/dev/wapi11-preview" element={<Wapi11PreviewPage />} />
+            <Route path="/dev/wapi13-preview" element={<Wapi13PreviewPage />} />
             <Route
               path="/dev/consumables-tap-guard"
               element={
@@ -232,6 +237,14 @@ export default function App() {
             <AuthLazy>
               <LazyCabinetPage />
             </AuthLazy>
+          }
+        />
+        <Route
+          path="/help/world-import"
+          element={
+            <RequireAuth>
+              <WorldImportHelpPage />
+            </RequireAuth>
           }
         />
         <Route path="*" element={<HomeRedirect />} />

@@ -1,0 +1,50 @@
+[
+  {
+    "file": "01-entry-upload-1440.png",
+    "md5": "616f11baed534cd9e7a258557f8707a2",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "02-review-filters-1440.png",
+    "md5": "d4e6d870a2c114849a1b96a9f55730ff",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "03-characters-1440.png",
+    "md5": "0a28ae3f3c78f89d81ee4c930a87f192",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "04-toggle-warn-1440.png",
+    "md5": "34975070c634b625d5da1fcbc61c88ee",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "05-token-redacted-1440.png",
+    "md5": "46896b51b918f0fa432544229f00a2c3",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "06-confirm-dialog-1440.png",
+    "md5": "0fe1c2233ba2c6f206dc47343ec25023",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "07-undo-dialog-1440.png",
+    "md5": "c1e5bda28a7d34ee8bf74b8246b0804c",
+    "width": 1440,
+    "height": 900
+  },
+  {
+    "file": "08-status-390.png",
+    "md5": "ad135bec56906fc9e8aad3fa0a54570f",
+    "width": 390,
+    "height": 844
+  }
+]
