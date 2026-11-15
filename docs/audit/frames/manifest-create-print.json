@@ -1,0 +1,700 @@
+{
+  "manifest": [
+    {
+      "name": "c13-00-list-390",
+      "file": "c13-00-list-390.png",
+      "md5": "40c33659b51ee88aad46500bff8de0fd",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters"
+    },
+    {
+      "name": "c13-01-create-start-390",
+      "file": "c13-01-create-start-390.png",
+      "md5": "a75f62ca9d4f9feb4151bcf7e0d808b3",
+      "w": 390,
+      "h": 844,
+      "note": "http://127.0.0.1:5173/characters/create",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-02-race-step-390",
+      "file": "c13-02-race-step-390.png",
+      "md5": "a75f62ca9d4f9feb4151bcf7e0d808b3",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-03-race-selected-390",
+      "file": "c13-03-race-selected-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-04-race-setup-390",
+      "file": "c13-04-race-setup-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-05-after-race-390",
+      "file": "c13-05-after-race-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-06-background-step-390",
+      "file": "c13-06-background-step-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-07-background-selected-390",
+      "file": "c13-07-background-selected-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-08-after-background-390",
+      "file": "c13-08-after-background-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-09-class-step-390",
+      "file": "c13-09-class-step-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-10-class-selected-390",
+      "file": "c13-10-class-selected-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-11-class-setup-390",
+      "file": "c13-11-class-setup-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-12-after-class-390",
+      "file": "c13-12-after-class-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-13-abilities-390",
+      "file": "c13-13-abilities-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-14-abilities-method-390",
+      "file": "c13-14-abilities-method-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-15-after-abilities-390",
+      "file": "c13-15-after-abilities-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-16-leveling-390",
+      "file": "c13-16-leveling-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-17-finish-390",
+      "file": "c13-17-finish-390.png",
+      "md5": "c33d7174cdf49c6e98a633922bf1e092",
+      "w": 390,
+      "h": 844,
+      "note": "http://127.0.0.1:5173/characters/create",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-18-result-390",
+      "file": "c13-18-result-390.png",
+      "md5": "5d04ca6bf6d62af254c378833f8d4eac",
+      "w": 390,
+      "h": 844,
+      "note": "http://127.0.0.1:5173/characters/create",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c14-00-sheet-390",
+      "file": "c14-00-sheet-390.png",
+      "md5": "7793422db39cb7aab2a36c4b02f3786b",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1"
+    },
+    {
+      "name": "c14-01-menu-390",
+      "file": "c14-01-menu-390.png",
+      "md5": "967efa0633c1b809934742ba9f22eb57",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1"
+    },
+    {
+      "name": "c14-02-classic-2014-390",
+      "file": "c14-02-classic-2014-390.png",
+      "md5": "a465216722587f1d56b08c5d39a1296e",
+      "w": 390,
+      "h": 844,
+      "note": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1/classic",
+      "url": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1/classic"
+    },
+    {
+      "name": "c14-03-layout-switch-390",
+      "file": "c14-03-layout-switch-390.png",
+      "md5": "32b6dc4a6869f6d14257b52fd31ca3fe",
+      "w": 390,
+      "h": 844,
+      "note": "{\"has2014\":true,\"has2024\":false,\"disabled2024\":null}",
+      "url": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1/classic"
+    },
+    {
+      "name": "c14-04-print-cta-390",
+      "file": "c14-04-print-cta-390.png",
+      "md5": "32b6dc4a6869f6d14257b52fd31ca3fe",
+      "w": 390,
+      "h": 844,
+      "note": "hasPrint=true",
+      "url": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1/classic"
+    },
+    {
+      "name": "c14-05-print-page1-390",
+      "file": "c14-05-print-page1-390.png",
+      "md5": "32b6dc4a6869f6d14257b52fd31ca3fe",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1/classic"
+    },
+    {
+      "name": "c14-06-print-page-scroll-390",
+      "file": "c14-06-print-page-scroll-390.png",
+      "md5": "501882f080809d0346c1bbfcf2e7d55d",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1/classic"
+    },
+    {
+      "name": "c14-07-blank-layout2024-query-390",
+      "file": "c14-07-blank-layout2024-query-390.png",
+      "md5": "121d34e492439a556656e79ad413700d",
+      "w": 390,
+      "h": 844,
+      "note": "http://127.0.0.1:5173/classic/blank?layout=2024",
+      "url": "http://127.0.0.1:5173/classic/blank?layout=2024"
+    },
+    {
+      "name": "c14-08-blank-toolbar-390",
+      "file": "c14-08-blank-toolbar-390.png",
+      "md5": "4423bc50976e867c48c2f56919d1ed60",
+      "w": 390,
+      "h": 844,
+      "note": "Без данных персонажа · макет 2014 | Чистые страницы под карандаш. Для заполненного бланка откройте классический лист персонажа. | Макет2014 | В диалоге печати выберите «Сохранить как PDF»",
+      "url": "http://127.0.0.1:5173/classic/blank?layout=2024"
+    },
+    {
+      "name": "c14-09-dev-preview-390",
+      "file": "c14-09-dev-preview-390.png",
+      "md5": "29ba5ef4aeb2e203e97353e173dd79af",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/dev/classic-sheet-preview"
+    },
+    {
+      "name": "c14-10-dev-preview-2024-390",
+      "file": "c14-10-dev-preview-2024-390.png",
+      "md5": "f3d009c9fc269c8797f2f2ca2722e360",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/dev/classic-sheet-preview"
+    },
+    {
+      "name": "c13-00-list-1440",
+      "file": "c13-00-list-1440.png",
+      "md5": "10df2d8943249b19ce286c9fcb4ea429",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters"
+    },
+    {
+      "name": "c13-01-create-start-1440",
+      "file": "c13-01-create-start-1440.png",
+      "md5": "0a517c8548720566a0420f619fdf9e0e",
+      "w": 1440,
+      "h": 900,
+      "note": "http://127.0.0.1:5173/characters/create",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-02-race-step-1440",
+      "file": "c13-02-race-step-1440.png",
+      "md5": "0a517c8548720566a0420f619fdf9e0e",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-03-race-selected-1440",
+      "file": "c13-03-race-selected-1440.png",
+      "md5": "fee035642f686e0d848b51bdf3de1a67",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-04-race-setup-1440",
+      "file": "c13-04-race-setup-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-05-after-race-1440",
+      "file": "c13-05-after-race-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-06-background-step-1440",
+      "file": "c13-06-background-step-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-07-background-selected-1440",
+      "file": "c13-07-background-selected-1440.png",
+      "md5": "fee035642f686e0d848b51bdf3de1a67",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-08-after-background-1440",
+      "file": "c13-08-after-background-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-09-class-step-1440",
+      "file": "c13-09-class-step-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-10-class-selected-1440",
+      "file": "c13-10-class-selected-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-11-class-setup-1440",
+      "file": "c13-11-class-setup-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-12-after-class-1440",
+      "file": "c13-12-after-class-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-13-abilities-1440",
+      "file": "c13-13-abilities-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-14-abilities-method-1440",
+      "file": "c13-14-abilities-method-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-15-after-abilities-1440",
+      "file": "c13-15-after-abilities-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-16-leveling-1440",
+      "file": "c13-16-leveling-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-17-finish-1440",
+      "file": "c13-17-finish-1440.png",
+      "md5": "fee035642f686e0d848b51bdf3de1a67",
+      "w": 1440,
+      "h": 900,
+      "note": "http://127.0.0.1:5173/characters/create",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13-18-result-1440",
+      "file": "c13-18-result-1440.png",
+      "md5": "fee035642f686e0d848b51bdf3de1a67",
+      "w": 1440,
+      "h": 900,
+      "note": "http://127.0.0.1:5173/characters/create",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c14-00-sheet-1440",
+      "file": "c14-00-sheet-1440.png",
+      "md5": "f579c6e3c2476c90f5d68109c5872253",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1"
+    },
+    {
+      "name": "c14-01-menu-1440",
+      "file": "c14-01-menu-1440.png",
+      "md5": "f579c6e3c2476c90f5d68109c5872253",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1"
+    },
+    {
+      "name": "c14-02-classic-2014-1440",
+      "file": "c14-02-classic-2014-1440.png",
+      "md5": "fd3e41de0182339f8e67dadea2b56d4b",
+      "w": 1440,
+      "h": 900,
+      "note": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1/classic",
+      "url": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1/classic"
+    },
+    {
+      "name": "c14-03-layout-switch-1440",
+      "file": "c14-03-layout-switch-1440.png",
+      "md5": "6537974de48844261de65cf648a15f59",
+      "w": 1440,
+      "h": 900,
+      "note": "{\"has2014\":true,\"has2024\":false,\"disabled2024\":null}",
+      "url": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1/classic"
+    },
+    {
+      "name": "c14-04-print-cta-1440",
+      "file": "c14-04-print-cta-1440.png",
+      "md5": "6537974de48844261de65cf648a15f59",
+      "w": 1440,
+      "h": 900,
+      "note": "hasPrint=true",
+      "url": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1/classic"
+    },
+    {
+      "name": "c14-05-print-page1-1440",
+      "file": "c14-05-print-page1-1440.png",
+      "md5": "6537974de48844261de65cf648a15f59",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1/classic"
+    },
+    {
+      "name": "c14-06-print-page-scroll-1440",
+      "file": "c14-06-print-page-scroll-1440.png",
+      "md5": "073f0c47db192e083d5011d393450c37",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1/classic"
+    },
+    {
+      "name": "c14-07-blank-layout2024-query-1440",
+      "file": "c14-07-blank-layout2024-query-1440.png",
+      "md5": "220a53664fd7d1aca75f1463cfa7afb7",
+      "w": 1440,
+      "h": 900,
+      "note": "http://127.0.0.1:5173/classic/blank?layout=2024",
+      "url": "http://127.0.0.1:5173/classic/blank?layout=2024"
+    },
+    {
+      "name": "c14-08-blank-toolbar-1440",
+      "file": "c14-08-blank-toolbar-1440.png",
+      "md5": "55fdb30bc55cb50fb1166d4b4564f00b",
+      "w": 1440,
+      "h": 900,
+      "note": "Без данных персонажа · макет 2014 | Чистые страницы под карандаш. Для заполненного бланка откройте классический лист персонажа. | Макет2014 | В диалоге печати выберите «Сохранить как PDF»",
+      "url": "http://127.0.0.1:5173/classic/blank?layout=2024"
+    },
+    {
+      "name": "c14-09-dev-preview-1440",
+      "file": "c14-09-dev-preview-1440.png",
+      "md5": "e667fcb75ad19da4d5a7f58dcf5276ca",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/dev/classic-sheet-preview"
+    },
+    {
+      "name": "c14-10-dev-preview-2024-1440",
+      "file": "c14-10-dev-preview-2024-1440.png",
+      "md5": "1611994f4b8ddd1f36a4336e581f07b5",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/dev/classic-sheet-preview"
+    }
+  ],
+  "clickLog": [
+    {
+      "vp": "390",
+      "step": "list",
+      "label": "Создать персонажа",
+      "t": 1794728384776
+    },
+    {
+      "vp": "390",
+      "step": "race",
+      "label": "Человек",
+      "t": 1794728387293
+    },
+    {
+      "vp": "390",
+      "step": "race",
+      "label": "настроить/далее",
+      "t": 1794728388431
+    },
+    {
+      "vp": "390",
+      "step": "race-setup",
+      "label": "confirm setup",
+      "t": 1794728390039
+    },
+    {
+      "vp": "390",
+      "step": "background",
+      "label": "first",
+      "t": 1794728392149
+    },
+    {
+      "vp": "390",
+      "step": "background",
+      "label": "confirm",
+      "t": 1794728392735
+    },
+    {
+      "vp": "390",
+      "step": "background-setup",
+      "label": "done",
+      "t": 1794728393654
+    },
+    {
+      "vp": "390",
+      "step": "class",
+      "label": "other",
+      "t": 1794728415683
+    },
+    {
+      "vp": "390",
+      "step": "finish2",
+      "label": "create/open",
+      "t": 1794728424226
+    },
+    {
+      "vp": "390",
+      "step": "print",
+      "label": "menu",
+      "t": 1794728430356
+    },
+    {
+      "vp": "390",
+      "step": "print",
+      "label": "dev preview 2024",
+      "t": 1794728441995
+    },
+    {
+      "vp": "1440",
+      "step": "list",
+      "label": "Создать персонажа",
+      "t": 1794728446127
+    },
+    {
+      "vp": "1440",
+      "step": "race",
+      "label": "Человек",
+      "t": 1794728448699
+    },
+    {
+      "vp": "1440",
+      "step": "race",
+      "label": "настроить/далее",
+      "t": 1794728449848
+    },
+    {
+      "vp": "1440",
+      "step": "race-setup",
+      "label": "confirm setup",
+      "t": 1794728451436
+    },
+    {
+      "vp": "1440",
+      "step": "background",
+      "label": "first",
+      "t": 1794728453742
+    },
+    {
+      "vp": "1440",
+      "step": "background",
+      "label": "confirm",
+      "t": 1794728454367
+    },
+    {
+      "vp": "1440",
+      "step": "background-setup",
+      "label": "done",
+      "t": 1794728455301
+    },
+    {
+      "vp": "1440",
+      "step": "class",
+      "label": "other",
+      "t": 1794728477488
+    },
+    {
+      "vp": "1440",
+      "step": "class",
+      "label": "confirm",
+      "t": 1794728478852
+    },
+    {
+      "vp": "1440",
+      "step": "print",
+      "label": "Классический лист",
+      "t": 1794728494355
+    },
+    {
+      "vp": "1440",
+      "step": "print",
+      "label": "dev preview 2024",
+      "t": 1794728504106
+    }
+  ],
+  "results": {
+    "create_390": {
+      "clicks": 9,
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    "print_390": {
+      "has2014": true,
+      "has2024": false,
+      "disabled2024": null,
+      "hasPrint": true
+    },
+    "create_1440": {
+      "clicks": 9,
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    "print_1440": {
+      "has2014": true,
+      "has2024": false,
+      "disabled2024": null,
+      "hasPrint": true
+    }
+  }
+}

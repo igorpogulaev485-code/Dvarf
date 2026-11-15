@@ -1,0 +1,971 @@
+{
+  "total": 193,
+  "unique": 107,
+  "frames": [
+    {
+      "file": "01-chars-list-390.png",
+      "md5": "94c03d70b30638e860e3e2500590dc61",
+      "bytes": 201939
+    },
+    {
+      "file": "01-chars-list-onboarding-390.png",
+      "md5": "94c03d70b30638e860e3e2500590dc61",
+      "bytes": 201939
+    },
+    {
+      "file": "02-sheet-header-collapsed-390.png",
+      "md5": "fbd6ad13fc1add0b8aa8cbfca2763071",
+      "bytes": 243078
+    },
+    {
+      "file": "03-sheet-header-expanded-hp-390.png",
+      "md5": "68da452ecab6e0cb2e0c246a4a072c20",
+      "bytes": 128313
+    },
+    {
+      "file": "04-effects-row-390.png",
+      "md5": "f02f798e16df8be5046b144d3b4790ff",
+      "bytes": 117987
+    },
+    {
+      "file": "05-bottom-nav-390.png",
+      "md5": "f02f798e16df8be5046b144d3b4790ff",
+      "bytes": 117987
+    },
+    {
+      "file": "06-scene-combat-390.png",
+      "md5": "2dd8906865768cc29fb2e8a6ea28297e",
+      "bytes": 242870
+    },
+    {
+      "file": "07-attack-target-dialog-390.png",
+      "md5": "8d2ceb4423cf75ccaf2b2881f30a7005",
+      "bytes": 161533
+    },
+    {
+      "file": "08-smite-strip-390.png",
+      "md5": "14572b97d26c76138d3be7fe6feb0e13",
+      "bytes": 243126
+    },
+    {
+      "file": "09-turn-economy-390.png",
+      "md5": "ca5e9782a11e42404ade2219c6567496",
+      "bytes": 248009
+    },
+    {
+      "file": "10-spells-list-390.png",
+      "md5": "c145538f780e27267b80532dac884eab",
+      "bytes": 268162
+    },
+    {
+      "file": "100-conditions-dialog-390.png",
+      "md5": "b8f6e2a663571a3de43ddf9e85cca634",
+      "bytes": 134949
+    },
+    {
+      "file": "101-rest-dialog-390.png",
+      "md5": "7793422db39cb7aab2a36c4b02f3786b",
+      "bytes": 254944
+    },
+    {
+      "file": "102-create-390.png",
+      "md5": "97c4aedc24935b38e441aba9610b8f2b",
+      "bytes": 192169
+    },
+    {
+      "file": "103-levelup-390.png",
+      "md5": "f0199e11971c51f2c06164fc9b813d43",
+      "bytes": 181982
+    },
+    {
+      "file": "104-lobby-tab-390.png",
+      "md5": "bab6ae77ec99cbea0989257c7dc031e6",
+      "bytes": 209623
+    },
+    {
+      "file": "105-lobbies-route-390.png",
+      "md5": "2d7b34fd51cfb677be827144a6c00dd7",
+      "bytes": 236497
+    },
+    {
+      "file": "106-social-empty-390.png",
+      "md5": "5a6a839147111e928dd969f1fb81f7e7",
+      "bytes": 204272
+    },
+    {
+      "file": "107-social-empty-tap-390.png",
+      "md5": "ce791125e31498043290537db6b82fca",
+      "bytes": 218321
+    },
+    {
+      "file": "108-social-editor-390.png",
+      "md5": "f6bee136739e189cbde0d293aeedde88",
+      "bytes": 112313
+    },
+    {
+      "file": "109-social-editor-typed-390.png",
+      "md5": "ef33a91ce9caeecab8a0583daabcb73c",
+      "bytes": 120024
+    },
+    {
+      "file": "110-list-375.png",
+      "md5": "b8a4166e1e6361a18bd9f1d83b6b1b53",
+      "bytes": 168110
+    },
+    {
+      "file": "110-list-430.png",
+      "md5": "d1c0ad57686bbcf77a985869f963c524",
+      "bytes": 230292
+    },
+    {
+      "file": "111-combat-375.png",
+      "md5": "5e94b6fd2b28041c50ceec4899f582ce",
+      "bytes": 198710
+    },
+    {
+      "file": "111-combat-430.png",
+      "md5": "5a78c654511c72b4b7c881b606e28b90",
+      "bytes": 277422
+    },
+    {
+      "file": "112-explore-375.png",
+      "md5": "5e94b6fd2b28041c50ceec4899f582ce",
+      "bytes": 198710
+    },
+    {
+      "file": "112-explore-430.png",
+      "md5": "28d95e3038a3d4a4bf150489a8447e96",
+      "bytes": 248097
+    },
+    {
+      "file": "113-features-375.png",
+      "md5": "5512f0604d497ae3692b01a8ef91059e",
+      "bytes": 322686
+    },
+    {
+      "file": "113-features-430.png",
+      "md5": "5a78c654511c72b4b7c881b606e28b90",
+      "bytes": 277422
+    },
+    {
+      "file": "114-create-375.png",
+      "md5": "b88cbf451216ee38848cffb10ddb5351",
+      "bytes": 184117
+    },
+    {
+      "file": "114-create-430.png",
+      "md5": "007c52668b1cde56e6820b9691644808",
+      "bytes": 193591
+    },
+    {
+      "file": "115-header-a-390.png",
+      "md5": "7793422db39cb7aab2a36c4b02f3786b",
+      "bytes": 254944
+    },
+    {
+      "file": "116-header-toggle-0-390.png",
+      "md5": "967efa0633c1b809934742ba9f22eb57",
+      "bytes": 250711
+    },
+    {
+      "file": "116-header-toggle-1-390.png",
+      "md5": "68f76c37acd693b78f8869fa35ffa82e",
+      "bytes": 128454
+    },
+    {
+      "file": "116-header-toggle-2-390.png",
+      "md5": "68f76c37acd693b78f8869fa35ffa82e",
+      "bytes": 128454
+    },
+    {
+      "file": "116-header-toggle-3-390.png",
+      "md5": "68f76c37acd693b78f8869fa35ffa82e",
+      "bytes": 128454
+    },
+    {
+      "file": "117-transfer-footer-760.png",
+      "md5": "9d1c77b7d40ac522904a30decc790ab4",
+      "bytes": 164073
+    },
+    {
+      "file": "118-combat-nav-760.png",
+      "md5": "ac5b7f975fe60fc7da2beda20c3eed49",
+      "bytes": 227610
+    },
+    {
+      "file": "12-cast-dialog-390.png",
+      "md5": "c145538f780e27267b80532dac884eab",
+      "bytes": 268162
+    },
+    {
+      "file": "13-scene-explore-390.png",
+      "md5": "e766251e0abbd1616a16bb7bc8ff625c",
+      "bytes": 243270
+    },
+    {
+      "file": "14-coins-390.png",
+      "md5": "e766251e0abbd1616a16bb7bc8ff625c",
+      "bytes": 243270
+    },
+    {
+      "file": "15-transfer-coins-390.png",
+      "md5": "315ab32bcc4c6cb99577fb690c9221b8",
+      "bytes": 234675
+    },
+    {
+      "file": "16-scene-social-390.png",
+      "md5": "0aed7e6f635637a978be82cc35c2b650",
+      "bytes": 215924
+    },
+    {
+      "file": "17-scene-companions-paladin-390.png",
+      "md5": "70a76328154b3001326b116a5954e6d3",
+      "bytes": 171183
+    },
+    {
+      "file": "18-scene-features-390.png",
+      "md5": "ae2afc035f0c80de65c027451542c19d",
+      "bytes": 257991
+    },
+    {
+      "file": "19-features-need-choice-390.png",
+      "md5": "ae2afc035f0c80de65c027451542c19d",
+      "bytes": 257991
+    },
+    {
+      "file": "20-features-use-390.png",
+      "md5": "ae2afc035f0c80de65c027451542c19d",
+      "bytes": 257991
+    },
+    {
+      "file": "21-dice-390.png",
+      "md5": "248dc0c5e6f8232ace653a4c504a6a07",
+      "bytes": 218229
+    },
+    {
+      "file": "22-rest-390.png",
+      "md5": "20f9ca5fd81431d5be0b72dd11e35d72",
+      "bytes": 264421
+    },
+    {
+      "file": "23-conditions-390.png",
+      "md5": "7260ca6895466b8da441ff36937aa11a",
+      "bytes": 132771
+    },
+    {
+      "file": "24-concentration-390.png",
+      "md5": "a6ef2cb0161c73f66c49912bf3046b5b",
+      "bytes": 264726
+    },
+    {
+      "file": "25-journal-390.png",
+      "md5": "a6ef2cb0161c73f66c49912bf3046b5b",
+      "bytes": 264726
+    },
+    {
+      "file": "26-cast-footer-safari-760.png",
+      "md5": "cd3ecf5e417f6bce278e73c9c32d7b04",
+      "bytes": 346289
+    },
+    {
+      "file": "27-cast-footer-scrolled-760.png",
+      "md5": "cd3ecf5e417f6bce278e73c9c32d7b04",
+      "bytes": 346289
+    },
+    {
+      "file": "28-companions-familiar-390.png",
+      "md5": "f964fc4aaf8f752e5d2763c33217de13",
+      "bytes": 185495
+    },
+    {
+      "file": "29-companions-dismiss-390.png",
+      "md5": "f964fc4aaf8f752e5d2763c33217de13",
+      "bytes": 185495
+    },
+    {
+      "file": "30-companions-summon-390.png",
+      "md5": "f964fc4aaf8f752e5d2763c33217de13",
+      "bytes": 185495
+    },
+    {
+      "file": "31-companions-steed-390.png",
+      "md5": "46ab606ecf8bab543bae69fb00be54b9",
+      "bytes": 192156
+    },
+    {
+      "file": "32-companions-beast-390.png",
+      "md5": "9c040e708267c45f702179d76f365c67",
+      "bytes": 181495
+    },
+    {
+      "file": "33-companions-combat-390.png",
+      "md5": "3b7a707d987f6da2ef747aa07fbfad70",
+      "bytes": 236063
+    },
+    {
+      "file": "34-companions-druid-390.png",
+      "md5": "78efea9e8b0845f38359817b440d4392",
+      "bytes": 184828
+    },
+    {
+      "file": "35-social-empty-390.png",
+      "md5": "e0f7b37bb15515aa7c16352a5912384e",
+      "bytes": 203879
+    },
+    {
+      "file": "36-social-filled-390.png",
+      "md5": "d73b45c80c712eb4fbe43c6a243d026e",
+      "bytes": 241562
+    },
+    {
+      "file": "37-social-editor-390.png",
+      "md5": "42f29f7a7c89cb26d2363b894b6e396a",
+      "bytes": 330579
+    },
+    {
+      "file": "39-sorcerer-spells-390.png",
+      "md5": "4341e582fd31de49a824addbb6b08fdd",
+      "bytes": 278572
+    },
+    {
+      "file": "40-sorcerer-metamagic-cast-390.png",
+      "md5": "4341e582fd31de49a824addbb6b08fdd",
+      "bytes": 278572
+    },
+    {
+      "file": "41-monk-ki-390.png",
+      "md5": "7f23d52bd0de3a73ca778d125226788e",
+      "bytes": 374984
+    },
+    {
+      "file": "42-monk-combat-390.png",
+      "md5": "61aa645af06851bbc876b55e6b3c80b7",
+      "bytes": 228671
+    },
+    {
+      "file": "43-darrack-header-390.png",
+      "md5": "7793422db39cb7aab2a36c4b02f3786b",
+      "bytes": 254944
+    },
+    {
+      "file": "44-darrack-combat-390.png",
+      "md5": "7793422db39cb7aab2a36c4b02f3786b",
+      "bytes": 254944
+    },
+    {
+      "file": "45-multiclass-390.png",
+      "md5": "fc7a7dabdb50aa844e2e34dee56e6e71",
+      "bytes": 271620
+    },
+    {
+      "file": "46-multiclass-features-390.png",
+      "md5": "34305b631ee496b32187191b84d61994",
+      "bytes": 456377
+    },
+    {
+      "file": "47-create-wizard-390.png",
+      "md5": "97c4aedc24935b38e441aba9610b8f2b",
+      "bytes": 192169
+    },
+    {
+      "file": "48-create-wizard-step-390.png",
+      "md5": "97c4aedc24935b38e441aba9610b8f2b",
+      "bytes": 192169
+    },
+    {
+      "file": "49-levelup-390.png",
+      "md5": "0771df5587740983fe07680e8141aebd",
+      "bytes": 184488
+    },
+    {
+      "file": "50-lobby-list-or-hub-390.png",
+      "md5": "3dd599f4788cd71c6d3511e08cb426e9",
+      "bytes": 236396
+    },
+    {
+      "file": "70-attack-hit-chip-390.png",
+      "md5": "533e69d33da3340e1ece07ffe83a2d65",
+      "bytes": 259797
+    },
+    {
+      "file": "71-attack-dmg-chip-390.png",
+      "md5": "cb9515a9f96962179cd34123a70336eb",
+      "bytes": 254995
+    },
+    {
+      "file": "75-smite-feature-390.png",
+      "md5": "887ee303c321a572fcddaccd9d4ad503",
+      "bytes": 247135
+    },
+    {
+      "file": "76-turn-row-expanded-390.png",
+      "md5": "887ee303c321a572fcddaccd9d4ad503",
+      "bytes": 247135
+    },
+    {
+      "file": "77-spells-tab-390.png",
+      "md5": "887ee303c321a572fcddaccd9d4ad503",
+      "bytes": 247135
+    },
+    {
+      "file": "80-sorc-spells-760.png",
+      "md5": "dbcfc0f2a0a27609d90737fd5a615343",
+      "bytes": 212995
+    },
+    {
+      "file": "85-explore-clean-390.png",
+      "md5": "77ff9698fb6de8ac4eb84fba6ff8da7b",
+      "bytes": 235037
+    },
+    {
+      "file": "86-transfer-dialog-390.png",
+      "md5": "6b1c6baeadc24506c54ad840916e1305",
+      "bytes": 175269
+    },
+    {
+      "file": "87-item-detail-390.png",
+      "md5": "fe16397d3fd7e5b98f93a9d37529dddd",
+      "bytes": 238901
+    },
+    {
+      "file": "88-packs-filter-390.png",
+      "md5": "fe16397d3fd7e5b98f93a9d37529dddd",
+      "bytes": 238901
+    },
+    {
+      "file": "89-coins-sheet-390.png",
+      "md5": "ab77616f3535616c0a9a723225f7d493",
+      "bytes": 236571
+    },
+    {
+      "file": "90-familiar-card-390.png",
+      "md5": "50f10b44db1e9ab55cdae2bbf1c9e924",
+      "bytes": 185369
+    },
+    {
+      "file": "93-steed-card-390.png",
+      "md5": "65e460a11af95974694560e13e8f891f",
+      "bytes": 192094
+    },
+    {
+      "file": "94-features-sorc-390.png",
+      "md5": "999d477d7d151f31520e6155e8d86bf7",
+      "bytes": 385404
+    },
+    {
+      "file": "95-features-need-choice-filter-390.png",
+      "md5": "999d477d7d151f31520e6155e8d86bf7",
+      "bytes": 385404
+    },
+    {
+      "file": "96-features-search-390.png",
+      "md5": "d9980693ef247bf1b25d3f445a1cd3d4",
+      "bytes": 252172
+    },
+    {
+      "file": "98-darrack-home-390.png",
+      "md5": "7793422db39cb7aab2a36c4b02f3786b",
+      "bytes": 254944
+    },
+    {
+      "file": "99-hp-menu-390.png",
+      "md5": "fbbb809b43852887950035506650dea8",
+      "bytes": 136163
+    },
+    {
+      "file": "c13-00-list-1440.png",
+      "md5": "10df2d8943249b19ce286c9fcb4ea429",
+      "bytes": 237311
+    },
+    {
+      "file": "c13-00-list-390.png",
+      "md5": "40c33659b51ee88aad46500bff8de0fd",
+      "bytes": 204362
+    },
+    {
+      "file": "c13-01-create-start-1440.png",
+      "md5": "0a517c8548720566a0420f619fdf9e0e",
+      "bytes": 238033
+    },
+    {
+      "file": "c13-01-create-start-390.png",
+      "md5": "a75f62ca9d4f9feb4151bcf7e0d808b3",
+      "bytes": 198728
+    },
+    {
+      "file": "c13-02-race-step-1440.png",
+      "md5": "0a517c8548720566a0420f619fdf9e0e",
+      "bytes": 238033
+    },
+    {
+      "file": "c13-02-race-step-390.png",
+      "md5": "a75f62ca9d4f9feb4151bcf7e0d808b3",
+      "bytes": 198728
+    },
+    {
+      "file": "c13-03-race-selected-1440.png",
+      "md5": "fee035642f686e0d848b51bdf3de1a67",
+      "bytes": 267648
+    },
+    {
+      "file": "c13-03-race-selected-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "bytes": 120764
+    },
+    {
+      "file": "c13-04-race-setup-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "bytes": 225635
+    },
+    {
+      "file": "c13-04-race-setup-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "bytes": 120764
+    },
+    {
+      "file": "c13-05-after-race-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "bytes": 225635
+    },
+    {
+      "file": "c13-05-after-race-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "bytes": 120764
+    },
+    {
+      "file": "c13-06-background-step-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "bytes": 225635
+    },
+    {
+      "file": "c13-06-background-step-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "bytes": 120764
+    },
+    {
+      "file": "c13-07-background-selected-1440.png",
+      "md5": "fee035642f686e0d848b51bdf3de1a67",
+      "bytes": 267648
+    },
+    {
+      "file": "c13-07-background-selected-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "bytes": 120764
+    },
+    {
+      "file": "c13-08-after-background-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "bytes": 225635
+    },
+    {
+      "file": "c13-08-after-background-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "bytes": 120764
+    },
+    {
+      "file": "c13-09-class-step-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "bytes": 225635
+    },
+    {
+      "file": "c13-09-class-step-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "bytes": 120764
+    },
+    {
+      "file": "c13-10-class-selected-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "bytes": 225635
+    },
+    {
+      "file": "c13-10-class-selected-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "bytes": 120764
+    },
+    {
+      "file": "c13-11-class-setup-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "bytes": 225635
+    },
+    {
+      "file": "c13-11-class-setup-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "bytes": 120764
+    },
+    {
+      "file": "c13-12-after-class-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "bytes": 225635
+    },
+    {
+      "file": "c13-12-after-class-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "bytes": 120764
+    },
+    {
+      "file": "c13-13-abilities-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "bytes": 225635
+    },
+    {
+      "file": "c13-13-abilities-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "bytes": 120764
+    },
+    {
+      "file": "c13-14-abilities-method-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "bytes": 225635
+    },
+    {
+      "file": "c13-14-abilities-method-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "bytes": 120764
+    },
+    {
+      "file": "c13-15-after-abilities-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "bytes": 225635
+    },
+    {
+      "file": "c13-15-after-abilities-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "bytes": 120764
+    },
+    {
+      "file": "c13-16-leveling-1440.png",
+      "md5": "736f5f7f57896502e13a8eece5ae90b1",
+      "bytes": 225635
+    },
+    {
+      "file": "c13-16-leveling-390.png",
+      "md5": "44bfb561f321cd06fb91bea6cd2be390",
+      "bytes": 120764
+    },
+    {
+      "file": "c13-17-finish-1440.png",
+      "md5": "fee035642f686e0d848b51bdf3de1a67",
+      "bytes": 267648
+    },
+    {
+      "file": "c13-17-finish-390.png",
+      "md5": "c33d7174cdf49c6e98a633922bf1e092",
+      "bytes": 145400
+    },
+    {
+      "file": "c13-18-result-1440.png",
+      "md5": "fee035642f686e0d848b51bdf3de1a67",
+      "bytes": 267648
+    },
+    {
+      "file": "c13-18-result-390.png",
+      "md5": "5d04ca6bf6d62af254c378833f8d4eac",
+      "bytes": 120490
+    },
+    {
+      "file": "c13f-01-start-1440.png",
+      "md5": "0a517c8548720566a0420f619fdf9e0e",
+      "bytes": 238033
+    },
+    {
+      "file": "c13f-01-start-390.png",
+      "md5": "9f918e1a94c82a562af90726629f8393",
+      "bytes": 197674
+    },
+    {
+      "file": "c13f-02-race-picked-1440.png",
+      "md5": "fee035642f686e0d848b51bdf3de1a67",
+      "bytes": 267648
+    },
+    {
+      "file": "c13f-02-race-picked-390.png",
+      "md5": "5ead024ed3c7aec9ec5e41f709fdc44e",
+      "bytes": 123907
+    },
+    {
+      "file": "c13f-03-race-dialog-1440.png",
+      "md5": "6eb0d8ebb74687be1ec34a89f0718221",
+      "bytes": 193246
+    },
+    {
+      "file": "c13f-03-race-dialog-390.png",
+      "md5": "5ead024ed3c7aec9ec5e41f709fdc44e",
+      "bytes": 123907
+    },
+    {
+      "file": "c13f-04-after-race-1440.png",
+      "md5": "2c2f228c3795e40d94cb9448860a3fc8",
+      "bytes": 194087
+    },
+    {
+      "file": "c13f-04-after-race-390.png",
+      "md5": "0264f51b3c5359db88faf558e002174a",
+      "bytes": 127874
+    },
+    {
+      "file": "c13f-05-background-1440.png",
+      "md5": "2c2f228c3795e40d94cb9448860a3fc8",
+      "bytes": 194087
+    },
+    {
+      "file": "c13f-05-background-390.png",
+      "md5": "0264f51b3c5359db88faf558e002174a",
+      "bytes": 127874
+    },
+    {
+      "file": "c13f-06-bg-dialog-1440.png",
+      "md5": "2c2f228c3795e40d94cb9448860a3fc8",
+      "bytes": 194087
+    },
+    {
+      "file": "c13f-06-bg-dialog-390.png",
+      "md5": "0264f51b3c5359db88faf558e002174a",
+      "bytes": 127874
+    },
+    {
+      "file": "c13f-07-after-bg-1440.png",
+      "md5": "bfcfa7c63db08527b74ce4b622571456",
+      "bytes": 176907
+    },
+    {
+      "file": "c13f-07-after-bg-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "bytes": 168550
+    },
+    {
+      "file": "c13f-08-class-1440.png",
+      "md5": "bfcfa7c63db08527b74ce4b622571456",
+      "bytes": 176907
+    },
+    {
+      "file": "c13f-08-class-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "bytes": 168550
+    },
+    {
+      "file": "c13f-09-class-dialog-1440.png",
+      "md5": "bfcfa7c63db08527b74ce4b622571456",
+      "bytes": 176907
+    },
+    {
+      "file": "c13f-09-class-dialog-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "bytes": 168550
+    },
+    {
+      "file": "c13f-10-after-class-1440.png",
+      "md5": "f89b209701fd07c036ba04bb616fc1c7",
+      "bytes": 169437
+    },
+    {
+      "file": "c13f-10-after-class-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "bytes": 168550
+    },
+    {
+      "file": "c13f-11-abilities-1440.png",
+      "md5": "f89b209701fd07c036ba04bb616fc1c7",
+      "bytes": 169437
+    },
+    {
+      "file": "c13f-11-abilities-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "bytes": 168550
+    },
+    {
+      "file": "c13f-12-after-abilities-1440.png",
+      "md5": "f89b209701fd07c036ba04bb616fc1c7",
+      "bytes": 169437
+    },
+    {
+      "file": "c13f-12-after-abilities-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "bytes": 168550
+    },
+    {
+      "file": "c13f-13-leveling-1440.png",
+      "md5": "f89b209701fd07c036ba04bb616fc1c7",
+      "bytes": 169437
+    },
+    {
+      "file": "c13f-13-leveling-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "bytes": 168550
+    },
+    {
+      "file": "c13f-14-done-1440.png",
+      "md5": "f89b209701fd07c036ba04bb616fc1c7",
+      "bytes": 169437
+    },
+    {
+      "file": "c13f-14-done-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "bytes": 168550
+    },
+    {
+      "file": "c13f-background-dialog-0-1440.png",
+      "md5": "bfcfa7c63db08527b74ce4b622571456",
+      "bytes": 176907
+    },
+    {
+      "file": "c13f-background-dialog-0-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "bytes": 168550
+    },
+    {
+      "file": "c13f-race-setup-named-1440.png",
+      "md5": "a054a2645e3c3cdc74684eb07580b036",
+      "bytes": 193332
+    },
+    {
+      "file": "c13f-race-setup-named-390.png",
+      "md5": "502a73cd8f9f99ee43d1d79f11371ee4",
+      "bytes": 125725
+    },
+    {
+      "file": "c13f-race-setup-ready-1440.png",
+      "md5": "2c2f228c3795e40d94cb9448860a3fc8",
+      "bytes": 194087
+    },
+    {
+      "file": "c13f-race-setup-ready-390.png",
+      "md5": "0264f51b3c5359db88faf558e002174a",
+      "bytes": 127874
+    },
+    {
+      "file": "c14-00-sheet-1440.png",
+      "md5": "f579c6e3c2476c90f5d68109c5872253",
+      "bytes": 281297
+    },
+    {
+      "file": "c14-00-sheet-390.png",
+      "md5": "7793422db39cb7aab2a36c4b02f3786b",
+      "bytes": 254944
+    },
+    {
+      "file": "c14-01-menu-1440.png",
+      "md5": "f579c6e3c2476c90f5d68109c5872253",
+      "bytes": 281297
+    },
+    {
+      "file": "c14-01-menu-390.png",
+      "md5": "967efa0633c1b809934742ba9f22eb57",
+      "bytes": 250711
+    },
+    {
+      "file": "c14-02-classic-2014-1440.png",
+      "md5": "fd3e41de0182339f8e67dadea2b56d4b",
+      "bytes": 170305
+    },
+    {
+      "file": "c14-02-classic-2014-390.png",
+      "md5": "a465216722587f1d56b08c5d39a1296e",
+      "bytes": 226081
+    },
+    {
+      "file": "c14-03-layout-switch-1440.png",
+      "md5": "6537974de48844261de65cf648a15f59",
+      "bytes": 170310
+    },
+    {
+      "file": "c14-03-layout-switch-390.png",
+      "md5": "32b6dc4a6869f6d14257b52fd31ca3fe",
+      "bytes": 226070
+    },
+    {
+      "file": "c14-04-print-cta-1440.png",
+      "md5": "6537974de48844261de65cf648a15f59",
+      "bytes": 170310
+    },
+    {
+      "file": "c14-04-print-cta-390.png",
+      "md5": "32b6dc4a6869f6d14257b52fd31ca3fe",
+      "bytes": 226070
+    },
+    {
+      "file": "c14-05-print-page1-1440.png",
+      "md5": "6537974de48844261de65cf648a15f59",
+      "bytes": 170310
+    },
+    {
+      "file": "c14-05-print-page1-390.png",
+      "md5": "32b6dc4a6869f6d14257b52fd31ca3fe",
+      "bytes": 226070
+    },
+    {
+      "file": "c14-06-print-page-scroll-1440.png",
+      "md5": "073f0c47db192e083d5011d393450c37",
+      "bytes": 127172
+    },
+    {
+      "file": "c14-06-print-page-scroll-390.png",
+      "md5": "501882f080809d0346c1bbfcf2e7d55d",
+      "bytes": 131669
+    },
+    {
+      "file": "c14-07-blank-layout2024-query-1440.png",
+      "md5": "220a53664fd7d1aca75f1463cfa7afb7",
+      "bytes": 163238
+    },
+    {
+      "file": "c14-07-blank-layout2024-query-390.png",
+      "md5": "121d34e492439a556656e79ad413700d",
+      "bytes": 210704
+    },
+    {
+      "file": "c14-08-blank-toolbar-1440.png",
+      "md5": "55fdb30bc55cb50fb1166d4b4564f00b",
+      "bytes": 163245
+    },
+    {
+      "file": "c14-08-blank-toolbar-390.png",
+      "md5": "4423bc50976e867c48c2f56919d1ed60",
+      "bytes": 210680
+    },
+    {
+      "file": "c14-09-dev-preview-1440.png",
+      "md5": "e667fcb75ad19da4d5a7f58dcf5276ca",
+      "bytes": 191935
+    },
+    {
+      "file": "c14-09-dev-preview-390.png",
+      "md5": "29ba5ef4aeb2e203e97353e173dd79af",
+      "bytes": 230063
+    },
+    {
+      "file": "c14-10-dev-preview-2024-1440.png",
+      "md5": "1611994f4b8ddd1f36a4336e581f07b5",
+      "bytes": 164811
+    },
+    {
+      "file": "c14-10-dev-preview-2024-390.png",
+      "md5": "f3d009c9fc269c8797f2f2ca2722e360",
+      "bytes": 244231
+    },
+    {
+      "file": "c14f-preview-2014-1440.png",
+      "md5": "d69e159489be29e169a92e1c4f7adc27",
+      "bytes": 216595
+    },
+    {
+      "file": "c14f-preview-2024-1440.png",
+      "md5": "1611994f4b8ddd1f36a4336e581f07b5",
+      "bytes": 164811
+    },
+    {
+      "file": "c14f-preview-2024-390.png",
+      "md5": "000b174a38336ba0b31b508dd23be4d5",
+      "bytes": 243953
+    },
+    {
+      "file": "c14f-preview-2024-printbtn-1440.png",
+      "md5": "f250366cb7874eb043e865feaed5de34",
+      "bytes": 164831
+    },
+    {
+      "file": "c14f-preview-2024-scroll-390.png",
+      "md5": "6607073dc47db2dbaac687e82ebecb79",
+      "bytes": 243965
+    }
+  ]
+}

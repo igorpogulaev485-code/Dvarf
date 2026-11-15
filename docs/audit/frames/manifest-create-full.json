@@ -1,0 +1,495 @@
+{
+  "manifest": [
+    {
+      "name": "c13f-01-start-390",
+      "file": "c13f-01-start-390.png",
+      "md5": "9f918e1a94c82a562af90726629f8393",
+      "w": 390,
+      "h": 844,
+      "note": "step1 race",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-02-race-picked-390",
+      "file": "c13f-02-race-picked-390.png",
+      "md5": "5ead024ed3c7aec9ec5e41f709fdc44e",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-03-race-dialog-390",
+      "file": "c13f-03-race-dialog-390.png",
+      "md5": "5ead024ed3c7aec9ec5e41f709fdc44e",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-race-setup-named-390",
+      "file": "c13f-race-setup-named-390.png",
+      "md5": "502a73cd8f9f99ee43d1d79f11371ee4",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-race-setup-ready-390",
+      "file": "c13f-race-setup-ready-390.png",
+      "md5": "0264f51b3c5359db88faf558e002174a",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-04-after-race-390",
+      "file": "c13f-04-after-race-390.png",
+      "md5": "0264f51b3c5359db88faf558e002174a",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-05-background-390",
+      "file": "c13f-05-background-390.png",
+      "md5": "0264f51b3c5359db88faf558e002174a",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-06-bg-dialog-390",
+      "file": "c13f-06-bg-dialog-390.png",
+      "md5": "0264f51b3c5359db88faf558e002174a",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-background-dialog-0-390",
+      "file": "c13f-background-dialog-0-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-07-after-bg-390",
+      "file": "c13f-07-after-bg-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-08-class-390",
+      "file": "c13f-08-class-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-09-class-dialog-390",
+      "file": "c13f-09-class-dialog-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-10-after-class-390",
+      "file": "c13f-10-after-class-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-11-abilities-390",
+      "file": "c13f-11-abilities-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-12-after-abilities-390",
+      "file": "c13f-12-after-abilities-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-13-leveling-390",
+      "file": "c13f-13-leveling-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-14-done-390",
+      "file": "c13f-14-done-390.png",
+      "md5": "1e6a45e03292abfbe67ca89b16d8f907",
+      "w": 390,
+      "h": 844,
+      "note": "http://127.0.0.1:5173/characters/create",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-01-start-1440",
+      "file": "c13f-01-start-1440.png",
+      "md5": "0a517c8548720566a0420f619fdf9e0e",
+      "w": 1440,
+      "h": 900,
+      "note": "step1 race",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-02-race-picked-1440",
+      "file": "c13f-02-race-picked-1440.png",
+      "md5": "fee035642f686e0d848b51bdf3de1a67",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-03-race-dialog-1440",
+      "file": "c13f-03-race-dialog-1440.png",
+      "md5": "6eb0d8ebb74687be1ec34a89f0718221",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-race-setup-named-1440",
+      "file": "c13f-race-setup-named-1440.png",
+      "md5": "a054a2645e3c3cdc74684eb07580b036",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-race-setup-ready-1440",
+      "file": "c13f-race-setup-ready-1440.png",
+      "md5": "2c2f228c3795e40d94cb9448860a3fc8",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-04-after-race-1440",
+      "file": "c13f-04-after-race-1440.png",
+      "md5": "2c2f228c3795e40d94cb9448860a3fc8",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-05-background-1440",
+      "file": "c13f-05-background-1440.png",
+      "md5": "2c2f228c3795e40d94cb9448860a3fc8",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-06-bg-dialog-1440",
+      "file": "c13f-06-bg-dialog-1440.png",
+      "md5": "2c2f228c3795e40d94cb9448860a3fc8",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-background-dialog-0-1440",
+      "file": "c13f-background-dialog-0-1440.png",
+      "md5": "bfcfa7c63db08527b74ce4b622571456",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-07-after-bg-1440",
+      "file": "c13f-07-after-bg-1440.png",
+      "md5": "bfcfa7c63db08527b74ce4b622571456",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-08-class-1440",
+      "file": "c13f-08-class-1440.png",
+      "md5": "bfcfa7c63db08527b74ce4b622571456",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-09-class-dialog-1440",
+      "file": "c13f-09-class-dialog-1440.png",
+      "md5": "bfcfa7c63db08527b74ce4b622571456",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-10-after-class-1440",
+      "file": "c13f-10-after-class-1440.png",
+      "md5": "f89b209701fd07c036ba04bb616fc1c7",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-11-abilities-1440",
+      "file": "c13f-11-abilities-1440.png",
+      "md5": "f89b209701fd07c036ba04bb616fc1c7",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-12-after-abilities-1440",
+      "file": "c13f-12-after-abilities-1440.png",
+      "md5": "f89b209701fd07c036ba04bb616fc1c7",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-13-leveling-1440",
+      "file": "c13f-13-leveling-1440.png",
+      "md5": "f89b209701fd07c036ba04bb616fc1c7",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c13f-14-done-1440",
+      "file": "c13f-14-done-1440.png",
+      "md5": "f89b209701fd07c036ba04bb616fc1c7",
+      "w": 1440,
+      "h": 900,
+      "note": "http://127.0.0.1:5173/characters/create",
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    {
+      "name": "c14f-preview-2014-1440",
+      "file": "c14f-preview-2014-1440.png",
+      "md5": "d69e159489be29e169a92e1c4f7adc27",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/dev/classic-sheet-preview"
+    },
+    {
+      "name": "c14f-preview-2024-1440",
+      "file": "c14f-preview-2024-1440.png",
+      "md5": "1611994f4b8ddd1f36a4336e581f07b5",
+      "w": 1440,
+      "h": 900,
+      "note": "{\"active\":[{\"t\":\"Квакк\",\"active\":true,\"disabled\":false},{\"t\":\"Торин\",\"active\":false,\"disabled\":false},{\"t\":\"2014\",\"active\":false,\"disabled\":false},{\"t\":\"2024\",\"active\":true,\"disabled\":false}],\"brand\":true}",
+      "url": "http://127.0.0.1:5173/dev/classic-sheet-preview"
+    },
+    {
+      "name": "c14f-preview-2024-printbtn-1440",
+      "file": "c14f-preview-2024-printbtn-1440.png",
+      "md5": "f250366cb7874eb043e865feaed5de34",
+      "w": 1440,
+      "h": 900,
+      "note": "",
+      "url": "http://127.0.0.1:5173/dev/classic-sheet-preview"
+    },
+    {
+      "name": "c14f-preview-2024-390",
+      "file": "c14f-preview-2024-390.png",
+      "md5": "000b174a38336ba0b31b508dd23be4d5",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/dev/classic-sheet-preview"
+    },
+    {
+      "name": "c14f-preview-2024-scroll-390",
+      "file": "c14f-preview-2024-scroll-390.png",
+      "md5": "6607073dc47db2dbaac687e82ebecb79",
+      "w": 390,
+      "h": 844,
+      "note": "",
+      "url": "http://127.0.0.1:5173/dev/classic-sheet-preview"
+    }
+  ],
+  "clicks": [
+    {
+      "vp": "390",
+      "label": "Выбор: Человек"
+    },
+    {
+      "vp": "390",
+      "label": "Настроить расу"
+    },
+    {
+      "vp": "390",
+      "label": "Имя"
+    },
+    {
+      "vp": "390",
+      "label": "Язык"
+    },
+    {
+      "vp": "390",
+      "label": "Применить расу"
+    },
+    {
+      "vp": "390",
+      "label": "Настроить предысторию"
+    },
+    {
+      "vp": "390",
+      "label": "dialog:Мужской"
+    },
+    {
+      "vp": "390",
+      "label": "dialog:Женский"
+    },
+    {
+      "vp": "390",
+      "label": "dialog:Сгенерировать имя"
+    },
+    {
+      "vp": "390",
+      "label": "dialog:Дварфийский"
+    },
+    {
+      "vp": "390",
+      "label": "dialog:Эльфийский"
+    },
+    {
+      "vp": "390",
+      "label": "dialog:Великаний"
+    },
+    {
+      "vp": "390",
+      "label": "dialog:Гномий"
+    },
+    {
+      "vp": "390",
+      "label": "dialog:Гоблинский"
+    },
+    {
+      "vp": "390",
+      "label": "dialog apply"
+    },
+    {
+      "vp": "390",
+      "label": "Настроить класс"
+    },
+    {
+      "vp": "1440",
+      "label": "Выбор: Человек"
+    },
+    {
+      "vp": "1440",
+      "label": "Настроить расу"
+    },
+    {
+      "vp": "1440",
+      "label": "Имя"
+    },
+    {
+      "vp": "1440",
+      "label": "Язык"
+    },
+    {
+      "vp": "1440",
+      "label": "Применить расу"
+    },
+    {
+      "vp": "1440",
+      "label": "Настроить предысторию"
+    },
+    {
+      "vp": "1440",
+      "label": "dialog:Мужской"
+    },
+    {
+      "vp": "1440",
+      "label": "dialog:Женский"
+    },
+    {
+      "vp": "1440",
+      "label": "dialog:Сгенерировать имя"
+    },
+    {
+      "vp": "1440",
+      "label": "dialog:Дварфийский"
+    },
+    {
+      "vp": "1440",
+      "label": "dialog:Эльфийский"
+    },
+    {
+      "vp": "1440",
+      "label": "dialog:Великаний"
+    },
+    {
+      "vp": "1440",
+      "label": "dialog:Гномий"
+    },
+    {
+      "vp": "1440",
+      "label": "dialog:Гоблинский"
+    },
+    {
+      "vp": "1440",
+      "label": "dialog apply"
+    },
+    {
+      "vp": "1440",
+      "label": "Настроить класс"
+    }
+  ],
+  "results": {
+    "390": {
+      "clicks": 16,
+      "url": "http://127.0.0.1:5173/characters/create"
+    },
+    "1440": {
+      "clicks": 16,
+      "url": "http://127.0.0.1:5173/characters/create"
+    }
+  }
+}
