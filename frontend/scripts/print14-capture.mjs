@@ -112,6 +112,44 @@ async function shotEquipCloseup(page, slug) {
   return path
 }
 
+
+function cropRegions(printPng, slug) {
+  // Crop key regions from A4 raster for the audit report.
+  try {
+    execFileSync(
+      'python3',
+      [
+        '-c',
+        `
+from PIL import Image
+import sys, os
+src, dest_prefix = sys.argv[1:3]
+im = Image.open(src).convert('RGB')
+w, h = im.size
+regions = {
+  'abilities': (0.02, 0.11, 0.30, 0.72),
+  'combat': (0.28, 0.12, 0.68, 0.42),
+  'attacks': (0.28, 0.40, 0.68, 0.62),
+  'equip': (0.28, 0.55, 0.68, 0.95),
+  'left-bottom': (0.02, 0.55, 0.32, 0.98),
+}
+os.makedirs(os.path.dirname(dest_prefix), exist_ok=True)
+for name, (x0,y0,x1,y1) in regions.items():
+  c = im.crop((int(w*x0), int(h*y0), int(w*x1), int(h*y1)))
+  c = c.resize((c.width*2, c.height*2), Image.Resampling.LANCZOS)
+  c.save(f'{dest_prefix}-{name}.png')
+  print(f'{dest_prefix}-{name}.png')
+`,
+        printPng,
+        out(`${slug}-crop`),
+      ],
+      { stdio: 'inherit' },
+    )
+  } catch (err) {
+    console.error('crop failed', err)
+  }
+}
+
 async function captureChar(page, id, slug) {
   await openClassic(page, `/characters/${id}/classic`)
   const equip = await shotEquipCloseup(page, slug)
@@ -184,11 +222,17 @@ async function main() {
   report.shots.sorcerer = await captureChar(page, SORC, 'sorcerer20')
   report.shots.blank = await captureBlank(page)
 
+  // Large crops from PDF page 1 for Darrack + blank
+  for (const slug of ['darrack', 'blank']) {
+    const p1 = join(ART, `${TAG}${slug}-print-1.png`)
+    if (existsSync(p1)) cropRegions(p1, slug)
+  }
+
   // Side-by-side with official
   const pairs = [
-    ['darrack-print-1.png', 'official-2014-1.png', 'compare-darrack-p1.png', 'Dvarf · Даррак P1', 'Official 2014 P1'],
-    ['sorcerer20-print-3.png', 'official-2014-3.png', 'compare-spells.png', 'Dvarf · Чародей spells', 'Official 2014 spells'],
-    ['blank-print-1.png', 'official-2014-1.png', 'compare-blank-p1.png', 'Dvarf · пустой бланк', 'Official 2014 P1'],
+    ['darrack-print-1.png', 'official-2014-1.png', 'compare-darrack-p1.png', 'Dvarf 2014', 'WotC 2014'],
+    ['sorcerer20-print-3.png', 'official-2014-3.png', 'compare-spells.png', 'Dvarf spells', 'WotC spells'],
+    ['blank-print-1.png', 'official-2014-1.png', 'compare-blank-p1.png', 'Dvarf blank', 'WotC 2014'],
   ]
   for (const [ours, official, dest, la, ra] of pairs) {
     const left = join(ART, `${TAG}${ours}`)

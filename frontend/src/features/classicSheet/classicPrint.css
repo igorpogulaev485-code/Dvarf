@@ -163,38 +163,45 @@
 
 .classic-name--banner {
   position: relative;
-  border-radius: 0.55rem 0.2rem 0.2rem 0.55rem;
-  padding: 0.28rem 0.55rem 0.22rem 0.7rem;
-  background:
-    linear-gradient(90deg, #f0f0f0 0 0.18rem, #fff 0.18rem),
-    #fff;
-  box-shadow: inset 0 0 0 1pt #000;
-  min-height: 0.85in;
+  border-radius: 0.18rem;
+  padding: 0.22rem 0.7rem 0.18rem;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5pt #000;
+  min-height: 0.78in;
   justify-content: center;
+  /* Ribbon ends via SVG-ish polygon (prints more reliably than soft rolls). */
+  clip-path: polygon(
+    0.35rem 0,
+    calc(100% - 0.35rem) 0,
+    100% 0.22rem,
+    100% calc(100% - 0.22rem),
+    calc(100% - 0.35rem) 100%,
+    0.35rem 100%,
+    0 calc(100% - 0.22rem),
+    0 0.22rem
+  );
 }
 
 .classic-name--banner::before,
 .classic-name--banner::after {
   content: '';
   position: absolute;
-  top: 50%;
-  width: 0.42rem;
-  height: 0.72rem;
+  top: 0.12rem;
+  bottom: 0.12rem;
+  width: 0.38rem;
   border: 1.25pt solid #000;
-  background: #f3f3f3;
-  transform: translateY(-50%);
+  background: #ececec;
+  z-index: 0;
 }
 
 .classic-name--banner::before {
-  left: -0.12rem;
-  border-radius: 0.08rem 0 0 0.08rem;
-  clip-path: polygon(0 0, 100% 18%, 100% 82%, 0 100%);
+  left: 0.08rem;
+  border-radius: 0.06rem 0 0 0.06rem;
 }
 
 .classic-name--banner::after {
-  right: -0.12rem;
-  border-radius: 0 0.08rem 0.08rem 0;
-  clip-path: polygon(0 18%, 100% 0, 100% 100%, 0 82%);
+  right: 0.08rem;
+  border-radius: 0 0.06rem 0.06rem 0;
 }
 
 .classic-name .classic-static,
@@ -207,11 +214,21 @@
   --classic-fit-max-px: 20;
 }
 
+.classic-name--banner .classic-static,
+.classic-name--banner .classic-fit-input {
+  white-space: nowrap;
+  max-height: none;
+  min-height: 1.35rem;
+  line-height: 1.15;
+  overflow: hidden;
+}
+
 .classic-name--banner .classic-static--wrap,
 .classic-name--banner .classic-fit-input.classic-static--wrap {
-  max-height: 2.6rem;
-  min-height: 1.5rem;
-  line-height: 1.2;
+  white-space: nowrap;
+  max-height: none;
+  min-height: 1.35rem;
+  line-height: 1.15;
 }
 
 .classic-print-toolbar {
@@ -608,31 +625,44 @@
 }
 
 .classic-ability__frame {
+  position: relative;
   width: 100%;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 0.1rem;
-  padding: 0.16rem 0.08rem 0.42rem;
-  border: 1.75pt solid #000;
-  border-radius: 0.42rem 0.42rem 0.62rem 0.62rem;
-  background: #fff;
-  clip-path: polygon(
-    8% 0,
-    92% 0,
-    100% 10%,
-    100% 88%,
-    92% 100%,
-    8% 100%,
-    0 88%,
-    0 10%
-  );
+  gap: 0.06rem;
+  padding: 0.2rem 0.1rem 0.55rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  clip-path: none;
+  z-index: 1;
+}
+
+/* Figurine frame: concave corners (SVG prints reliably; clip-path does not). */
+.classic-ability__svg {
+  position: absolute;
+  inset: 0 0 0.22rem 0;
+  width: 100%;
+  height: calc(100% - 0.22rem);
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+
+.classic-ability__svg path {
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 2.2;
+  vector-effect: non-scaling-stroke;
 }
 
 .classic-ability__label {
-  font-size: 0.5rem;
+  position: relative;
+  z-index: 1;
+  font-size: 0.48rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -642,16 +672,18 @@
 
 /* Official 2014: large modifier, readable score oval below frame */
 .classic-ability__mod {
+  position: relative;
+  z-index: 1;
   flex: 1 1 auto;
   display: grid;
   place-items: center;
   width: 100%;
   font-family: var(--font-display);
-  font-size: 1.28rem;
+  font-size: 1.22rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  min-height: 1.2rem;
+  min-height: 1.15rem;
 }
 
 .classic-ability__score {
@@ -659,14 +691,14 @@
   left: 50%;
   bottom: 0;
   transform: translateX(-50%);
-  width: 1.55rem;
-  height: 1.28rem;
+  width: 1.62rem;
+  height: 1.18rem;
   border: 1.75pt solid #000;
   border-radius: 50%;
   background: #fff;
   display: grid;
   place-items: center;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -740,11 +772,15 @@
 .classic-panel {
   border: var(--c-frame);
   border-radius: var(--c-radius-panel);
-  padding: 0.24rem 0.3rem 0.5rem;
+  padding: 0.2rem 0.28rem 0.12rem;
   position: relative;
   margin-bottom: calc(var(--c-u) * 1);
   background: #fff;
   flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  /* Captions must not bleed into neighboring columns (root of «П СНАРЯЖЕНИЕ ИЯ…»). */
+  overflow: hidden;
 }
 
 .classic-panel--grow {
@@ -781,47 +817,74 @@
   margin-bottom: 0;
 }
 
+/* Footer caption in normal flow — never absolute across columns. */
 .classic-caption {
-  position: absolute;
-  left: 50%;
-  bottom: 0.04rem;
-  transform: translateX(-50%);
+  position: static;
+  align-self: center;
+  margin-top: auto;
+  flex: 0 0 auto;
+  transform: none;
   white-space: nowrap;
   background: var(--c-caption-bg);
-  padding: 0 0.22rem;
-  max-width: calc(100% - 0.2rem);
-  overflow: visible;
+  padding: 0.14rem 0.18rem 0.02rem;
+  max-width: 100%;
+  overflow: hidden;
   text-overflow: clip;
   z-index: 1;
+  font-size: 5.6pt;
+  letter-spacing: 0.05em;
+  line-height: 1.1;
 }
 
 .classic-caption--full {
-  font-size: 6.2pt;
-  letter-spacing: 0.06em;
-  max-width: none;
+  font-size: 5.4pt;
+  letter-spacing: 0.04em;
+  max-width: 100%;
   white-space: nowrap;
 }
 
 .classic-check {
   display: grid;
-  grid-template-columns: 0.72rem 1.45rem 1fr;
-  gap: 0.18rem;
-  align-items: center;
-  font-size: 0.64rem;
-  min-height: 0.92rem;
-  line-height: 1.15;
+  grid-template-columns: 0.62rem 1.15rem minmax(0, 1fr) auto;
+  gap: 0.06rem 0.1rem;
+  align-items: baseline;
+  font-size: 0.52rem;
+  min-height: 0.72rem;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .classic-check strong {
   text-align: center;
   font-variant-numeric: tabular-nums;
+  border-bottom: 0.55pt solid var(--c-line-soft);
+  min-height: 0.72rem;
+  line-height: 0.95;
+  font-size: 0.6rem;
 }
 
-.classic-check em {
+.classic-check__name {
+  overflow: hidden;
+  text-overflow: clip;
+  min-width: 0;
+}
+
+.classic-check em,
+.classic-check__tag {
   color: var(--c-muted);
   font-style: normal;
-  font-size: 0.58rem;
+  font-size: 0.42rem;
   font-weight: 500;
+  letter-spacing: 0;
+  flex: 0 0 auto;
+}
+
+.classic-panel > .classic-caption {
+  padding-top: 0.32rem;
+}
+
+.classic-panel--skills .classic-check__name {
+  font-size: 0.5rem;
 }
 
 .classic-bubble-btn {
@@ -886,15 +949,26 @@
 
 .classic-combat-stat {
   border: var(--c-frame);
-  border-radius: 0.35rem;
+  border-radius: 0.12rem;
   text-align: center;
-  padding: 0.18rem 0.1rem 0.22rem;
+  padding: 0.18rem 0.1rem 0.18rem;
   background: #fff;
   min-height: 2rem;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  gap: 0.06rem;
+  gap: 0.04rem;
+  /* Slight concave corners via SVG mask substitute: chamfer */
+  clip-path: polygon(
+    0.12rem 0,
+    calc(100% - 0.12rem) 0,
+    100% 0.12rem,
+    100% calc(100% - 0.12rem),
+    calc(100% - 0.12rem) 100%,
+    0.12rem 100%,
+    0 calc(100% - 0.12rem),
+    0 0.12rem
+  );
 }
 
 .classic-combat-stat .classic-static {
@@ -905,37 +979,73 @@
   min-height: 1.2rem;
 }
 
+.classic-combat-stat .classic-field-label {
+  white-space: nowrap;
+  font-size: 5.2pt;
+  letter-spacing: 0.04em;
+}
+
 .classic-combat-stat--ac {
   border: none;
   background: transparent;
   padding: 0;
   min-height: 0;
   align-items: center;
+  clip-path: none;
+  gap: 0;
 }
 
 .classic-ac-shield {
+  position: relative;
   width: 100%;
-  min-height: 1.55rem;
-  display: grid;
-  place-items: center;
-  padding: 0.35rem 0.2rem 0.55rem;
-  border: 1.75pt solid #000;
-  background: #fff;
-  clip-path: polygon(
-    12% 0,
-    88% 0,
-    100% 14%,
-    100% 58%,
-    50% 100%,
-    0 58%,
-    0 14%
-  );
+  min-height: 2.45rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0.32rem 0.16rem 0.58rem;
+  border: none;
+  background: transparent;
+  clip-path: none;
+}
+
+.classic-ac-shield__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+
+.classic-ac-shield__svg path {
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 2.4;
+  vector-effect: non-scaling-stroke;
 }
 
 .classic-ac-shield .classic-static {
+  position: relative;
+  z-index: 1;
   border-bottom: none;
-  font-size: 1.15rem;
-  min-height: 1.1rem;
+  font-size: 1.2rem;
+  min-height: 1.15rem;
+}
+
+.classic-ac-shield .classic-field-label {
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+  font-size: 4.4pt;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  margin-top: 0.08rem;
+  /* Sit above tip; white plate cuts the shield stroke cleanly. */
+  margin-bottom: 0.42rem;
+  background: #fff;
+  padding: 0 0.12rem;
 }
 
 .classic-hp-max {
@@ -998,85 +1108,141 @@
 
 .classic-death-saves {
   display: grid;
-  gap: 0.28rem;
-  padding-top: 0.1rem;
-  padding-bottom: 0.7rem;
+  gap: 0.22rem;
+  padding-top: 0.18rem;
+  padding-bottom: 0.08rem;
+  align-content: center;
 }
 
 .classic-death-line {
   display: flex;
-  gap: 0.22rem;
+  gap: 0.28rem;
   align-items: center;
   justify-content: flex-end;
+  min-height: 0.85rem;
 }
 
 .classic-death-line > span:first-child {
   margin-right: auto;
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .classic-death-bubbles {
   display: inline-flex;
   align-items: center;
-  gap: 0.28rem;
+  gap: 0.38rem;
   position: relative;
-  padding: 0 0.08rem;
+  padding: 0 0.04rem;
 }
 
+/* Connecting line through circle centers (official death-saves look). */
 .classic-death-bubbles::before {
   content: '';
   position: absolute;
-  left: 0.28rem;
-  right: 0.28rem;
+  left: 0.42rem;
+  right: 0.42rem;
   top: 50%;
   height: 0;
-  border-top: 1pt solid #000;
+  border-top: 1.15pt solid #000;
   z-index: 0;
 }
 
 .classic-death-bubbles .classic-bubble-btn {
   position: relative;
   z-index: 1;
+  width: 0.78rem;
+  height: 0.78rem;
+  background: #fff;
+  border-radius: 50%;
+}
+
+.classic-death-bubbles .classic-bubble {
+  width: 0.72rem;
+  height: 0.72rem;
+  border-width: 1.35pt;
   background: #fff;
 }
 
 .classic-attacks-head,
 .classic-weapon {
   display: grid;
-  grid-template-columns: 1.35fr 0.75fr 1.15fr;
-  gap: 0.18rem;
-  align-items: center;
+  grid-template-columns: 1.4fr 0.7fr 1.2fr;
+  gap: 0.12rem;
+  align-items: stretch;
 }
 
 .classic-attacks-head {
-  margin-bottom: 0.12rem;
+  margin-bottom: 0.1rem;
+  font-size: 5.2pt;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.classic-attacks-head > span {
+  padding: 0 0.08rem;
 }
 
 .classic-weapon {
-  font-size: 0.7rem;
-  min-height: 1rem;
-  border-bottom: var(--c-hair);
-  margin-bottom: 0.06rem;
-  gap: 0.14rem;
-  padding: 0.08rem 0.12rem;
+  font-size: 0.68rem;
+  min-height: 0;
+  border-bottom: none;
+  margin-bottom: 0.1rem;
+  gap: 0.12rem;
+  padding: 0;
+  background: transparent;
 }
 
-.classic-weapon--slot {
-  background: #e8e8e8;
-  border-bottom: none;
-  border-radius: 0.08rem;
+.classic-weapon__cell {
+  min-width: 0;
   min-height: 1.05rem;
-  margin-bottom: 0.1rem;
+  display: grid;
+  place-items: center start;
+  padding: 0.1rem 0.14rem;
+  background: #e6e6e6;
+  border-radius: 0.06rem;
+  clip-path: polygon(
+    0.1rem 0,
+    calc(100% - 0.1rem) 0,
+    100% 0.1rem,
+    100% calc(100% - 0.1rem),
+    calc(100% - 0.1rem) 100%,
+    0.1rem 100%,
+    0 calc(100% - 0.1rem),
+    0 0.1rem
+  );
+}
+
+.classic-weapon__cell--bonus {
+  place-items: center;
+}
+
+.classic-weapon__cell--dmg {
+  place-items: center start;
+}
+
+.classic-weapon--slot .classic-weapon__cell {
+  background: #e6e6e6;
+}
+
+.classic-weapon:not(.classic-weapon--slot) .classic-weapon__cell {
+  background: transparent;
+  clip-path: none;
+  border-radius: 0;
+  border-bottom: var(--c-hair);
+  min-height: 0.95rem;
+  padding: 0.04rem 0.06rem;
 }
 
 .classic-weapon .classic-static {
   border-bottom: none;
-  min-height: 0.95rem;
-  font-size: inherit;
-}
-
-.classic-panel--attacks .classic-weapon:not(.classic-weapon--slot) {
-  background: transparent;
-  border-bottom: var(--c-hair);
+  min-height: 0.9rem;
+  font-size: 0.66rem;
+  width: 100%;
+  padding: 0;
 }
 
 .classic-equip-items {
@@ -1112,52 +1278,58 @@
 }
 
 .classic-coin {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 0.4rem;
   align-items: stretch;
-  justify-content: flex-start;
   border: 1.25pt solid #000;
-  border-radius: 0.22rem;
-  padding: 0.08rem 0.04rem 0.08rem;
-  min-height: 0.55in;
+  border-radius: 0.18rem;
+  padding: 0.05rem 0.02rem 0.04rem;
+  min-height: 0.5in;
+  height: 0.5in;
   box-sizing: border-box;
   background: #fff;
   clip-path: none;
 }
 
 .classic-coin__mark {
-  display: block;
-  margin-top: auto;
-  padding-top: 0.05rem;
+  display: grid;
+  place-items: center;
+  grid-row: 2;
+  height: 0.4rem;
+  max-height: 0.4rem;
+  padding: 0;
   border-top: 0.55pt solid #000;
-  font-size: 0.33rem;
+  font-size: 3.6pt;
   font-weight: 700;
-  letter-spacing: 0.015em;
+  letter-spacing: -0.01em;
   text-transform: uppercase;
   text-align: center;
-  line-height: 1.05;
+  line-height: 1;
   color: #000;
   border-right: none;
-  height: auto;
-  overflow-wrap: break-word;
-  word-break: normal;
-  hyphens: manual;
-  -webkit-hyphens: manual;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
+  -webkit-hyphens: none;
 }
 
 .classic-coin .classic-static {
+  grid-row: 1;
   border-bottom: none !important;
   text-align: center;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 700;
   min-width: 0;
-  min-height: 0.26in;
-  height: auto;
-  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
   padding: 0;
   line-height: 1;
   display: grid;
   place-items: center;
+  align-self: stretch;
 }
 
 .classic-coin .classic-static--pencil,
@@ -1189,16 +1361,10 @@
   word-break: break-word;
 }
 
+/* Ruled pencil lines — always, so filled text sits on the same grid. */
+.classic-expand,
+.classic-expand--pencil,
 .classic-expand--fill {
-  flex: 1 1 auto;
-  min-height: 3.5rem;
-  height: auto !important;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-}
-
-/* Ruled lines for empty text blocks (pencil blanks) */
-.classic-expand--pencil {
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0,
@@ -1207,6 +1373,19 @@
     var(--c-line-soft) 1.15em
   );
   background-size: 100% 1.15em;
+  background-attachment: local;
+  line-height: 1.15;
+}
+
+.classic-expand--fill {
+  flex: 1 1 auto;
+  min-height: 3.5rem;
+  height: auto !important;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.classic-expand--pencil {
   min-height: 2.6rem;
 }
 
@@ -1284,6 +1463,20 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  align-self: stretch;
+}
+
+.classic-equip-main .classic-text-block {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.classic-equip-main .classic-expand--fill {
+  flex: 1 1 auto;
+  min-height: 100%;
+  height: 100% !important;
+  margin-bottom: 0.15rem;
 }
 
 .classic-equip-main .classic-equip-items {
@@ -1304,7 +1497,11 @@
 }
 
 .classic-equip.classic-panel--grow .classic-caption {
-  grid-column: 1 / -1;
+  grid-column: 1;
+  grid-row: 3;
+  justify-self: center;
+  width: auto;
+  max-width: 100%;
 }
 
 /* ——— Page 3: spells ——— */
@@ -2860,14 +3057,32 @@
     color: #000 !important;
   }
 
-  .classic-expand--pencil {
+  .classic-expand,
+  .classic-expand--pencil,
+  .classic-expand--fill {
     background-image: repeating-linear-gradient(
       to bottom,
       transparent 0,
       transparent calc(1.15em - 0.55pt),
       #888 calc(1.15em - 0.55pt),
       #888 1.15em
-    );
+    ) !important;
+  }
+
+  .classic-weapon__cell {
+    background: #e0e0e0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .classic-weapon:not(.classic-weapon--slot) .classic-weapon__cell {
+    background: transparent !important;
+  }
+
+  .classic-ability__svg path,
+  .classic-ac-shield__svg path {
+    fill: #fff !important;
+    stroke: #000 !important;
   }
 
   .classic-fit-viewport,

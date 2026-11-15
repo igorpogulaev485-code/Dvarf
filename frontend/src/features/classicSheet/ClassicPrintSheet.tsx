@@ -90,14 +90,22 @@ const GENDER_LABELS: Record<string, string> = {
   female: 'Женский',
 }
 
-/** Soft hyphen in `mark` keeps long Russian names readable in the 5-cell strip. */
+/** Full Russian coin names — single-line marks (small caps via CSS). */
 const COIN_LABELS = [
-  ['cp', 'Медные', 'Медные'],
-  ['sp', 'Серебряные', 'Сереб\u00ADряные'],
-  ['ep', 'Электрумовые', 'Электру\u00ADмовые'],
-  ['gp', 'Золотые', 'Золотые'],
-  ['pp', 'Платиновые', 'Плати\u00ADновые'],
+  ['cp', 'Медные'],
+  ['sp', 'Серебряные'],
+  ['ep', 'Электрумовые'],
+  ['gp', 'Золотые'],
+  ['pp', 'Платиновые'],
 ] as const
+
+/** Ability frame — side notches + concave bottom (viewBox 0 0 100 110). */
+const ABILITY_FRAME_PATH =
+  'M14 3 H86 C94 3 97 8 97 14 V70 C97 78 94 84 88 88 L58 100 C54 102 46 102 42 100 L12 88 C6 84 3 78 3 70 V14 C3 8 6 3 14 3 Z'
+
+/** AC shield (viewBox 0 0 100 120) — room for label above tip. */
+const AC_SHIELD_PATH =
+  'M10 3 H90 C96 3 97 8 97 14 V58 C97 78 78 96 50 114 C22 96 3 78 3 58 V14 C3 8 4 3 10 3 Z'
 
 function padWeaponRows<T extends { id: string; name: string; attackBonus: string; damageLine: string }>(
   rows: T[],
@@ -187,7 +195,13 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
   const spellCardPages = chunkSpellCardPages(classicSpellCardFaces(c))
   const traitsText = classicFeaturesTraitsValue(c)
   const traitsChunks = chunkOverflowText(traitsText, 1800)
-  const equipFull = [equipmentItemsLine(c), equipmentNotes(c)].filter(Boolean).join('\n')
+  // One gear item per ruled line (not a comma paragraph).
+  const equipItemsBlock = equipmentItemsLine(c)
+    .split(/\s*,\s*/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join('\n')
+  const equipFull = [equipItemsBlock, equipmentNotes(c)].filter(Boolean).join('\n')
   const equipChunks = chunkOverflowText(equipFull, 1400)
   const spellExtraPages = spellOverflowPageCount(classicSpellsState(c).known, [0, ...SPELL_LEVELS])
   const scores = classicEffectiveAbilities(c)
@@ -226,7 +240,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
             <span>{brandYearLabel('2014')}</span>
           </div>
           <div className="classic-name classic-name--banner">
-            <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
+            <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
             <span className="classic-field-label">Имя персонажа</span>
           </div>
           <div className="classic-meta classic-meta--plate">
@@ -293,6 +307,14 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                 {ABILITY_KEYS.map((key) => (
                   <div className="classic-ability" key={key}>
                     <div className="classic-ability__frame">
+                      <svg
+                        className="classic-ability__svg"
+                        viewBox="0 0 100 110"
+                        preserveAspectRatio="none"
+                        aria-hidden="true"
+                      >
+                        <path d={ABILITY_FRAME_PATH} />
+                      </svg>
                       <div className="classic-ability__label">{ABILITY_NAMES[key]}</div>
                       <div className="classic-ability__mod" aria-label={`Модификатор ${ABILITY_NAMES[key]}`}>
                         {formatModifier(abilityModifier(scores[key]))}
@@ -339,7 +361,9 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                             (isSaveProficient(c, key) ? proficiency : 0),
                         )}
                       </strong>
-                      <span>{ABILITY_NAMES[key]}</span>
+                      <span className="classic-check__name" style={{ gridColumn: '3 / -1' }}>
+                        {ABILITY_NAMES[key]}
+                      </span>
                     </div>
                   ))}
                   <div className="classic-caption classic-caption--full">Спасброски</div>
@@ -358,9 +382,8 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                           label={`Владение навыком: ${skill.label}`}
                         />
                         <strong>{formatModifier(bonus)}</strong>
-                        <span>
-                          {skill.label} <em>({ABILITY_LABELS[skill.base].toLowerCase()})</em>
-                        </span>
+                        <span className="classic-check__name">{skill.label}</span>
+                        <em className="classic-check__tag">({ABILITY_LABELS[skill.base].toLowerCase()})</em>
                       </div>
                     )
                   })}
@@ -392,6 +415,14 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
             <div className="classic-combat-row">
               <div className="classic-combat-stat classic-combat-stat--ac">
                 <div className="classic-ac-shield">
+                  <svg
+                    className="classic-ac-shield__svg"
+                    viewBox="0 0 100 120"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                  >
+                    <path d={AC_SHIELD_PATH} />
+                  </svg>
                   <ClassicStaticField
                     value={combatNum('ac')}
                     align="center"
@@ -399,8 +430,8 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                     pencilLine={false}
                     aria-label="Класс доспеха"
                   />
+                  <span className="classic-field-label">Класс доспеха</span>
                 </div>
-                <span className="classic-field-label">Класс доспеха</span>
               </div>
               <div className="classic-combat-stat">
                 <ClassicStaticField
@@ -515,24 +546,33 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                   className={`classic-weapon${idx < CLASSIC_WEAPON_SLOTS ? ' classic-weapon--slot' : ''}`}
                   key={row.id}
                 >
-                  <ClassicStaticField
-                    value={row.name}
-                    fit
-                    tone="compact"
-                    aria-label={`Атака ${idx + 1}: название`}
-                  />
-                  <ClassicStaticField
-                    value={row.attackBonus}
-                    align="center"
-                    tone="numeric"
-                    aria-label={`Атака ${idx + 1}: бонус`}
-                  />
-                  <ClassicStaticField
-                    value={row.damageLine}
-                    fit
-                    tone="compact"
-                    aria-label={`Атака ${idx + 1}: урон`}
-                  />
+                  <div className="classic-weapon__cell">
+                    <ClassicStaticField
+                      value={row.name}
+                      fit
+                      tone="compact"
+                      pencilLine={false}
+                      aria-label={`Атака ${idx + 1}: название`}
+                    />
+                  </div>
+                  <div className="classic-weapon__cell classic-weapon__cell--bonus">
+                    <ClassicStaticField
+                      value={row.attackBonus}
+                      align="center"
+                      tone="numeric"
+                      pencilLine={false}
+                      aria-label={`Атака ${idx + 1}: бонус`}
+                    />
+                  </div>
+                  <div className="classic-weapon__cell classic-weapon__cell--dmg">
+                    <ClassicStaticField
+                      value={row.damageLine}
+                      fit
+                      tone="compact"
+                      pencilLine={false}
+                      aria-label={`Атака ${idx + 1}: урон`}
+                    />
+                  </div>
                 </div>
               ))}
               <ClassicTextBlock
@@ -549,7 +589,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
 
             <div className="classic-panel classic-equip classic-panel--grow classic-panel--grow-lg">
               <div className="classic-coins" aria-label="Монеты">
-                {COIN_LABELS.map(([k, label, mark]) => (
+                {COIN_LABELS.map(([k, label]) => (
                   <div className="classic-coin" key={k}>
                     <ClassicStaticField
                       value={coins[k]}
@@ -558,7 +598,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                       pencilLine={false}
                       aria-label={label}
                     />
-                    <span className="classic-coin__mark">{mark}</span>
+                    <span className="classic-coin__mark">{label}</span>
                   </div>
                 ))}
               </div>
@@ -620,7 +660,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
             <span>{brandYearLabel('2014')}</span>
           </div>
           <div className="classic-name classic-name--banner">
-            <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
+            <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
             <span className="classic-field-label">Имя персонажа</span>
           </div>
           <div className="classic-physique">

@@ -2,77 +2,59 @@
 
 **Ветка:** `cursor/print14-classic-2014-a398` · **база:** `main` · **не мержить без ок Игоря** · **PR:** #411
 
-Цель: бумажный бланк D&D 5e 2014 без интерактива — типографская форма, приятная в ч/б печати. Форма 2024 и тулбар страницы печати не трогались (PR #410).
+Цель: бумажный бланк D&D 5e 2014 без интерактива — типографская форма, приятнее официального в ч/б. Форма 2024 и тулбар печати не трогались (PR #410).
 
-## Что сделано
+## Корневые правки этой итерации
 
-1. **Статика вместо полей формы.** В теле листа 2014 нет `input` / `select` / `textarea`: значения — статичный текст (`ClassicStaticField`), пустые — линии под карандаш. Режим «Пустые поля под карандаш» сохранён.
-2. **Канон способностей 2014.** Крупный модификатор в рамке, мелкий скор в овале снизу (как у официального бланка).
-3. **Типографика.** Подписи капсом под значениями, единый модуль `0.08in`, тонкие рамки (hair / frame / accent), центровка чисел, перенос длинных классов/рас с autofit ≥ ~7pt. Подписи блоков — `classic-caption--full` без обрезки.
-4. **A4.** Страницы 210×297 мм, предсказуемые разрывы, overflow уходит на продолжения; пустые note-страницы на печати скрыты.
-5. **Ч/б.** Чернила `#000`/`#111`, без цветных подложек на печати; заполненные пузырьки владения — сплошные.
-6. **Монеты (раскладка Игоря).** Полные русские названия без сокращений: Медные, Серебряные, Электрумовые, Золотые, Платиновые. Верхняя полоса блока «Снаряжение» — 5 одинаковых ячеек в ряд: крупное число по центру, подпись мелким капсом снизу (мягкий перенос у длинных слов). Ниже — список снаряжения на всю ширину. Не стопка аббревиатур слева.
-7. **Кости хитов.** Итог вида `3к8` / мультикласс (`classicHitDiceTotalLabel`), текущие отдельно.
-8. **Атаки.** Фиксированные слоты + серые подложки строк; данные из листа, не mock.
-9. **Эстетика бланка.** Свиток-шапка имени, meta-plate, щит КД, овал скора, серые underlay у способностей/атак.
+1. **Подписи блоков.** Причина «П СНАРЯЖЕНИЕ ИЯ И ЯЗЫКИ»: `position: absolute` + `nowrap` + `overflow: visible` — длинные капшены трёх колонок на одной базовой линии наезжали друг на друга. Исправление: подписи в **normal flow** (footer панели), `overflow: hidden` на `.classic-panel`. PDF: ПРОЧИЕ / СНАРЯЖЕНИЕ / УМЕНИЯ на разных x.
+2. **Характеристики.** SVG-рамка с вырезами + овал скора снизу, модификатор крупно в центре (clip-path в Chromium PDF ломался → SVG).
+3. **КД / имя.** Щит КД — SVG; подпись «Класс доспеха» в одну строку внутри щита. Имя — лента, **одна строка** с autofit (без wrap).
+4. **Спасброски / навыки.** Подписи в своём поле; навыки в одну строку (значение на линии, имя + серый тег `сил/лов/…`).
+5. **Смертные спасброски.** Кружки + соединяющая линия через центры.
+6. **Атаки.** 3 серые ячейки на строку × 3 слота (Название / Бонус / Урон), дальше линии.
+7. **Монеты.** Полные RU-названия, 5 равных ячеек, фиксированная высота подписи (одна строка), числа на одной сетке. Снаряжение — по предмету на строку, линии до низа.
+8. **Карандашные линии.** Ruled background на всех text-блоках (и пустых, и с данными).
+9. **«Darr…P1».** Это была подпись side-by-side монтирования, не печать; подписи compare укорочены. На бланке — только бренд «КриD20».
 
-## Границы (соблюдены)
+## Кадры (сверка с official-2014-1)
 
-| Не трогали | Почему |
-|---|---|
-| `ClassicPrint2024.tsx` | только 2014 |
-| `ClassicSheetPage.tsx` / тулбар печати | параллельно PR #410 |
-| Play Desk / шапка / сцены | вне scope |
+Скрипт: `frontend/scripts/print14-capture.mjs` → `/opt/cursor/artifacts/print14/`.  
+**0 дублей**, полный словарь `md5s.json`.
 
-## Персонажи проверки (настоящее приложение)
-
-| Слаг | ID | Кто |
-|---|---|---|
-| darrack | `aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1` | Жрец 3 «Даррак Железный Кулак» |
-| torbin | `aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2` | Мультикласс, длинное имя, другие монеты/снаряжение |
-| sorcerer20 | `cccccccc-cccc-4ccc-8ccc-cccccccccc02` | Чародей 20, большой список |
-| blank | `/classic/blank` | пустой бланк 2014 |
-
-Сиды: `backend/scripts/seed_print14_chars.py` (+ uikit03 / mag01). Логин `uikit03@example.com` / `uikit03-dev`.  
-Кадры: `frontend/scripts/print14-capture.mjs` → `/opt/cursor/artifacts/print14/` (PDF + pdftoppm + side-by-side + крупный `.classic-equip`).
-
-## Сверка с официальным бланком
-
-Ориентиры WotC: `official-2014-1.png` (P1), `official-2014-3.png` (заклинания) в том же каталоге артефактов.
-
-Доведено после сравнения: иерархия модификатор/скор, подписи под линией, тонкие рамки, овал скора, пузырьки владения, ч/б, щит КД, полоса монет с полными RU-названиями (вместо вертикальной стопки cp/sp у WotC — осознанный выбор под кириллицу).
-
-## Кадры до / после + md5
-
-Все файлы уникальны (59 md5, 0 дублей). Полный словарь: `/opt/cursor/artifacts/print14/md5s.json`.
-
-### Крупный блок снаряжения (монеты + список)
+### Side-by-side
 
 | Кадр | md5 |
 |---|---|
-| after-darrack-equip-close.png | `3106c003d04647b8ffa8ccb653699ef4` |
-| after-torbin-equip-close.png | `f627a7f1bce7cc7bf4430db68bd04f1c` |
-| after-sorcerer20-equip-close.png | `f92ca6033e787737cbaa09c826ce73d3` |
-| after-blank-equip-close.png | `36ced32c7e8d89dd5d15611340175739` |
-
-### Print-preview / PDF page 1 (и ключевые)
-
-| Кадр | md5 |
-|---|---|
-| after-darrack-print-1.png | `922470d849cafc9381307bdc635d19e4` |
-| after-torbin-print-1.png | `44c19c63bcd2effc39e132ca8f140107` |
-| after-sorcerer20-print-1.png | `a5cff4196727faeb3cd1d26827562e64` |
-| after-blank-print-1.png | `c3199ceb7933f8a6f8e42077b24c63b0` |
-| after-compare-darrack-p1.png | `6818b8cd44dd984d48eb966b81ecb663` |
-| after-compare-blank-p1.png | `4f2ebf1a19d7531e5f947c7179d7838b` |
-| after-compare-spells.png | `ebf62b7965e0ca24c5be4dba6c2a70ca` |
+| after-compare-darrack-p1.png | `e4892ce8cc3a689915eeca29d8865327` |
+| after-compare-blank-p1.png | `cbdd235055e41ccab0bf9abf51fa8ca9` |
 | official-2014-1.png | `5ecb717c89acc171eb4b10379579ca9b` |
-| official-2014-3.png | `53ebdae0c20ebd98f58ef094d4c48c4a` |
 
-PDF A4: `after-{darrack,torbin,sorcerer20,blank}-a4.pdf` (+ одноимённые `before-*`).
+### Крупные кропы PDF (Даррак)
+
+| Кадр | md5 |
+|---|---|
+| after-darrack-crop-abilities.png | `f38ca73390701b8031935c9725babeda` |
+| after-darrack-crop-combat.png | `6f16e63c330cb3ee1c3a94f40b78029a` |
+| after-darrack-crop-attacks.png | `eabcea3fb4ba47d79220cbfb67fffa6f` |
+| after-darrack-crop-equip.png | `335340b3f682703b6e5e7a6812b96cf2` |
+| after-darrack-crop-left-bottom.png | `d5756003572948c2db38a3f558c56c2d` |
+| after-darrack-equip-close.png | `35a9c264ed02ff4c5392da381b83c178` |
+| after-darrack-print-1.png | `599e885d4206b33e478c92f0925e2b15` |
+
+### Крупные кропы PDF (пустой бланк)
+
+| Кадр | md5 |
+|---|---|
+| after-blank-crop-abilities.png | `bb1f0f15fb817d045c622af03a79e238` |
+| after-blank-crop-combat.png | `8122458c4a294f2e2fd7bea4ef1fd141` |
+| after-blank-crop-attacks.png | `a5da0192429a427f7b90e860dfc3773b` |
+| after-blank-crop-equip.png | `ad310a3535dad44a368a479f98aebc8d` |
+| after-blank-crop-left-bottom.png | `4d52fa8054eb9a5a3ffcd07ee39eb963` |
+| after-blank-equip-close.png | `3715f00cee7406a4ed1b7a28dc64328e` |
+| after-blank-print-1.png | `5e8d8df06c7b8ed097a32f64abd91e1a` |
 
 ## Проверки
 
 - `npm run build` — ok
 - `npx tsx src/features/classicSheet/classicPrint14.selfcheck.ts` — ok
-- Кадры сняты с живого Vite + API, не со стендов-заглушек
+- Кадры с живого Vite + API
