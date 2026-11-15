@@ -60,8 +60,18 @@ def normalize_wave_combatant(raw: object | None) -> dict[str, Any] | None:
         return None
     slug = str(raw.get("slug") or "").strip()[:80] or None
     catalog_id = str(raw.get("catalog_id") or "").strip()[:80] or None
+    # W-API-04: ссылка на существо сеттинга (полная подстановка в стол — позже).
+    setting_creature_id = (
+        str(raw.get("setting_creature_id") or "").strip()[:80] or None
+    )
     name = str(raw.get("name") or "").strip()[:120]
-    custom = bool(raw.get("custom")) or (not slug and not catalog_id)
+    # Существо сеттинга — не официальный каталог.
+    if setting_creature_id:
+        custom = True
+        slug = None
+        catalog_id = None
+    else:
+        custom = bool(raw.get("custom")) or (not slug and not catalog_id)
     try:
         count = max(1, min(20, int(raw.get("count") or 1)))
     except (TypeError, ValueError):
@@ -81,7 +91,7 @@ def normalize_wave_combatant(raw: object | None) -> dict[str, Any] | None:
         xp_i = int(xp) if xp is not None and str(xp) != "" else None
     except (TypeError, ValueError):
         xp_i = None
-    if custom and not name:
+    if custom and not name and not setting_creature_id:
         return None
     if not custom and not slug and not catalog_id:
         return None
@@ -89,6 +99,7 @@ def normalize_wave_combatant(raw: object | None) -> dict[str, Any] | None:
     return {
         "slug": None if custom else slug,
         "catalog_id": None if custom else catalog_id,
+        "setting_creature_id": setting_creature_id,
         "name": name or (slug or "Враг"),
         "count": count,
         "hp_max": hp_max_i,

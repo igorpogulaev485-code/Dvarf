@@ -214,6 +214,10 @@ class SettingArtifactOut(BaseModel):
     rarity: str = ""
     description: str = ""
     requires_attunement: bool = False
+    # W-API-04: ordinary | magic; старые строки по умолчанию magic.
+    item_kind: str = "magic"
+    rules_edition: str = "2014"
+    import_key: str | None = None
     abilities: list[dict] = Field(default_factory=list)
     attack_damage: str = ""
     attack_damage_type: str = ""
@@ -230,6 +234,9 @@ class SettingArtifactCreateRequest(BaseModel):
     rarity: str = Field(default="", max_length=40)
     description: str = Field(default="", max_length=4000)
     requires_attunement: bool = False
+    item_kind: Literal["ordinary", "magic"] = "magic"
+    rules_edition: str | None = Field(default=None, max_length=16)
+    import_key: str | None = Field(default=None, max_length=128)
     abilities: list[ArtifactAbilityIn] = Field(default_factory=list)
     attack_damage: str = Field(default="", max_length=40)
     attack_damage_type: str = Field(default="", max_length=40)
@@ -244,6 +251,10 @@ class SettingArtifactUpdateRequest(BaseModel):
     rarity: str | None = Field(default=None, max_length=40)
     description: str | None = Field(default=None, max_length=4000)
     requires_attunement: bool | None = None
+    item_kind: Literal["ordinary", "magic"] | None = None
+    rules_edition: str | None = Field(default=None, max_length=16)
+    import_key: str | None = Field(default=None, max_length=128)
+    clear_import_key: bool = False
     abilities: list[ArtifactAbilityIn] | None = None
     attack_damage: str | None = Field(default=None, max_length=40)
     attack_damage_type: str | None = Field(default=None, max_length=40)

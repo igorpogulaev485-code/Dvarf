@@ -3017,6 +3017,7 @@ class LobbyService:
         payload: SettingArtifactCreateRequest,
     ) -> SettingDetail:
         from app.services.artifact_apply import normalize_abilities
+        from app.services.setting_creatures import validate_setting_item_fields
 
         setting = self.lobbies.get_setting(setting_id)
         if setting is None:
@@ -3030,6 +3031,13 @@ class LobbyService:
             else (max((a.sort_order for a in existing), default=-1) + 1)
         )
         abilities = normalize_abilities([a.model_dump() for a in payload.abilities])
+        item_kind, rules_edition = validate_setting_item_fields(
+            item_kind=payload.item_kind,
+            rules_edition=payload.rules_edition,
+        )
+        import_key = None
+        if payload.import_key is not None and str(payload.import_key).strip():
+            import_key = str(payload.import_key).strip()[:128]
         self.lobbies.create_setting_artifact(
             setting_id=setting.id,
             name=(payload.name or "Новый артефакт").strip()[:120] or "Новый артефакт",
@@ -3043,6 +3051,9 @@ class LobbyService:
             attack_range_kind=payload.attack_range_kind,
             weight_lb=payload.weight_lb,
             sort_order=sort_order,
+            item_kind=item_kind,
+            rules_edition=rules_edition,
+            import_key=import_key,
         )
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
@@ -3073,6 +3084,25 @@ class LobbyService:
             artifact.description = payload.description.strip()[:4000]
         if payload.requires_attunement is not None:
             artifact.requires_attunement = bool(payload.requires_attunement)
+        if payload.item_kind is not None or payload.rules_edition is not None:
+            from app.services.setting_creatures import validate_setting_item_fields
+
+            kind, edition = validate_setting_item_fields(
+                item_kind=payload.item_kind or getattr(artifact, "item_kind", "magic"),
+                rules_edition=(
+                    payload.rules_edition
+                    if payload.rules_edition is not None
+                    else getattr(artifact, "rules_edition", "2014")
+                ),
+            )
+            if payload.item_kind is not None:
+                artifact.item_kind = kind
+            if payload.rules_edition is not None:
+                artifact.rules_edition = edition
+        if payload.clear_import_key:
+            artifact.import_key = None
+        elif payload.import_key is not None:
+            artifact.import_key = payload.import_key.strip()[:128] or None
         if payload.abilities is not None:
             artifact.abilities = normalize_abilities(
                 [a.model_dump() for a in payload.abilities]

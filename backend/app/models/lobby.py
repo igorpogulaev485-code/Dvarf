@@ -258,6 +258,12 @@ class Setting(Base):
         cascade="all, delete-orphan",
         order_by="SettingArtifactSet.sort_order",
     )
+    creatures: Mapped[list["SettingCreature"]] = relationship(
+        "SettingCreature",
+        back_populates="setting",
+        cascade="all, delete-orphan",
+        order_by="SettingCreature.name",
+    )
 
 
 class PlaySession(Base):
