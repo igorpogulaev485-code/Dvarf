@@ -12,10 +12,13 @@ type Props = {
 
 function formatTime(iso: string): string {
   try {
+    // Пояс пользователя браузера (не UTC сервера и не фиксированный Europe/*).
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
     return new Date(iso).toLocaleTimeString('ru-RU', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
+      timeZone,
     })
   } catch {
     return ''

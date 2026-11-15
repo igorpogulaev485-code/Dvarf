@@ -14,7 +14,7 @@ type AppHeaderProps = {
    * На `/characters` не включать — зона M-пачек.
    */
   lobbyMobileShell?: boolean
-  /** LOBBY-FIX: не оставлять одинокий «⋯» в пустой строке (например /join). */
+  /** LOBBY-FIX: не оставлять одинокий «⋯» в пустой строке. */
   hideMoreMenu?: boolean
 }
 
@@ -37,16 +37,37 @@ export function AppHeader({
   useEffect(() => {
     if (!moreOpen) return
     function onKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') setMoreOpen(false)
+      if (event.key !== 'Escape') return
+      setMoreOpen(false)
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [moreOpen])
 
+  const moreButton =
+    hideMoreMenu ? null : (
+      <Button
+        type="button"
+        variant="ghost"
+        size="lg"
+        className="app-header__more-btn"
+        aria-label="Ещё"
+        aria-haspopup="dialog"
+        aria-expanded={moreOpen}
+        onClick={() => setMoreOpen(true)}
+      >
+        ⋯
+      </Button>
+    )
+
   return (
     <header className={`app-header${lobbyMobileShell ? ' app-header--lobby-shell' : ''}`}>
       <div className="app-header__brand">
-        <Text as="h1">{title}</Text>
+        <div className="app-header__title-row">
+          <Text as="h1">{title}</Text>
+          {/* На shell «⋯» в одной строке с заголовком (390), не отдельным рядом. */}
+          {lobbyMobileShell ? moreButton : null}
+        </div>
         {subtitle ? <Text tone="muted">{subtitle}</Text> : null}
         <nav className="app-nav" aria-label="Разделы">
           {NAV.map((item) => (
@@ -81,20 +102,7 @@ export function AppHeader({
         >
           Сайт КриD20
         </Button>
-        {hideMoreMenu ? null : (
-          <Button
-            type="button"
-            variant="ghost"
-            size="lg"
-            className="app-header__more-btn"
-            aria-label="Ещё"
-            aria-haspopup="dialog"
-            aria-expanded={moreOpen}
-            onClick={() => setMoreOpen(true)}
-          >
-            ⋯
-          </Button>
-        )}
+        {!lobbyMobileShell ? moreButton : null}
       </div>
 
       {hideMoreMenu ? null : (

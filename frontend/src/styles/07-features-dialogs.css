@@ -293,7 +293,9 @@
   flex: 0 0 auto;
   align-items: flex-start;
   gap: 8px;
-  padding: 14px 16px 0;
+  /* LOBBY-FIX: заголовок не прилипает к первому полю (Хиты в своём НПС). */
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
 }
 
 .ui-dialog__title {

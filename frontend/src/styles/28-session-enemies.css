@@ -120,7 +120,10 @@
   font-size: 0.8rem;
   font-weight: 500;
   color: var(--muted);
-  line-height: 1.25;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
 }
 
 .session-toolbar-more__body .ui-button.session-toolbar-more__item:disabled .session-toolbar-more__item-why {
@@ -482,7 +485,7 @@ button.session-concentration-tag {
   flex-direction: column;
   align-items: stretch;
   gap: 10px;
-  min-width: 0;
+  min-width: min(100%, 280px);
   height: auto;
   align-self: start;
   padding: 12px 14px;
@@ -582,9 +585,9 @@ button.session-concentration-tag {
 
 .session-enemy-card__top {
   display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
 }
 
 .session-enemy-card__meta {
@@ -595,12 +598,27 @@ button.session-concentration-tag {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 650;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .session-enemy-card__sub,
 .session-enemy-card__block-title {
   margin: 2px 0 0;
   font-size: 0.85rem;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.session-enemy-card__top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }
 
 .session-enemy-card__stats {

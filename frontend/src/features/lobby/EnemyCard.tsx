@@ -296,29 +296,31 @@ export function EnemyCard({
           {masterControls && onSideClick ? (
             <Button
               type="button"
-              variant="secondary"
-              size="md"
+              variant="ghost"
+              size="sm"
               disabled={busy}
               aria-label="Сменить сторону"
               title="Сменить сторону в бою"
               onClick={onSideClick}
             >
-              {sideLabelText ?? 'Сменить сторону'}
+              {sideLabelText ?? 'Сторона'}
               {sideHidden ? ' · скрыта' : ''}
             </Button>
           ) : sideLabelText ? (
             <span className="session-side-chip">{sideLabelText}</span>
           ) : null}
           {masterControls && onRemove ? (
-            <button
+            <Button
               type="button"
-              className="session-enemy-card__remove"
+              variant="ghost"
+              size="sm"
               disabled={busy}
+              aria-label="Убрать со стола"
               title="Убрать со стола"
               onClick={onRemove}
             >
-              ×
-            </button>
+              Убрать
+            </Button>
           ) : null}
         </div>
       </div>

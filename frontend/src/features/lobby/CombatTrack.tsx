@@ -313,10 +313,27 @@ export function CombatTrack({
                       {entry.surprised ? ' · врасплох' : ''}
                     </span>
                     {entry.side ? (
-                      <span className="session-combat-order__side">
-                        {sideLabel(entry.side, combat.sides)}
-                        {entry.side_hidden ? ' · скрыта' : ''}
-                      </span>
+                      masterControls && onSideClick ? (
+                        <button
+                          type="button"
+                          className="session-combat-order__side session-combat-order__side--btn"
+                          disabled={busy}
+                          aria-label="Сменить сторону"
+                          title="Сменить сторону"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            onSideClick(entry)
+                          }}
+                        >
+                          {sideLabel(entry.side, combat.sides)}
+                          {entry.side_hidden ? ' · скрыта' : ''}
+                        </button>
+                      ) : (
+                        <span className="session-combat-order__side">
+                          {sideLabel(entry.side, combat.sides)}
+                          {entry.side_hidden ? ' · скрыта' : ''}
+                        </span>
+                      )
                     ) : null}
                     <MemberDots tones={entry.member_tones} />
                   </button>
@@ -333,34 +350,17 @@ export function CombatTrack({
                       ))}
                     </ul>
                   ) : null}
-                  {(canRollOwn || canRollMaster || (masterControls && onSideClick)) ? (
+                  {(canRollOwn || canRollMaster) && onRollInitiative ? (
                     <div className="session-combat-order__actions">
-                      {(canRollOwn || canRollMaster) && onRollInitiative ? (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          disabled={busy}
-                          onClick={() => onRollInitiative(entry)}
-                        >
-                          Бросить инициативу
-                        </Button>
-                      ) : null}
-                      {masterControls && onSideClick ? (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="session-combat-order__side-action"
-                          disabled={busy}
-                          aria-label="Сменить сторону"
-                          onClick={() => onSideClick(entry)}
-                        >
-                          {entry.side
-                            ? sideLabel(entry.side, combat.sides)
-                            : 'Сменить сторону'}
-                        </Button>
-                      ) : null}
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        disabled={busy}
+                        onClick={() => onRollInitiative(entry)}
+                      >
+                        Бросить инициативу
+                      </Button>
                     </div>
                   ) : null}
                 </li>

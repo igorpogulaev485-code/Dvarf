@@ -414,11 +414,14 @@ export function RewardsDialog({
       ? 'Укажите сумму опыта.'
       : undefined
 
+  const onLootPane = mobilePane === 'loot'
   const primaryLabel = milestones
     ? 'Повысить уровень'
     : awardMode === 'assign'
       ? 'Готово'
-      : 'Утвердить опыт'
+      : onLootPane
+        ? 'Положить на стол'
+        : 'Утвердить опыт'
 
   return (
     <Dialog
@@ -427,13 +430,24 @@ export function RewardsDialog({
       primaryLabel={primaryLabel}
       secondaryLabel="Закрыть"
       busy={busy}
-      primaryDisabled={awardMode === 'assign' ? false : !canXp}
+      primaryDisabled={
+        awardMode === 'assign'
+          ? false
+          : onLootPane
+            ? chestEmpty
+            : !canXp
+      }
       size="xl"
       onSecondary={onClose}
       onPrimary={() => {
         if (awardMode === 'assign') {
           syncChestToServer({ award: true })
           setAwardMode('idle')
+          return
+        }
+        if (onLootPane) {
+          if (chestEmpty) return
+          syncChestToServer({ putOnTable: true })
           return
         }
         if (!canXp) return
@@ -747,10 +761,61 @@ export function RewardsDialog({
             Добыча
           </Text>
 
-          <div className="session-rewards__quick">
+          <Stack gap={8} className="session-rewards__pick-group">
+            <Text as="h5" className="session-rewards__group-title">
+              Подобрать добычу
+            </Text>
+            <div className="session-loot-compose session-loot-compose--pick">
+              <Field label="Уровень боя">
+                <Select
+                  value={difficulty}
+                  disabled={busy}
+                  aria-label="Уровень боя"
+                  onChange={(e) =>
+                    setDifficulty(e.target.value as 'easy' | 'medium' | 'hard' | 'deadly')
+                  }
+                >
+                  <option value="easy">лёгкий</option>
+                  <option value="medium">средний</option>
+                  <option value="hard">сложный</option>
+                  <option value="deadly">смертельный</option>
+                </Select>
+              </Field>
+              <Field label="Категория">
+                <Select
+                  value={quickKind}
+                  disabled={busy}
+                  aria-label="Категория добычи"
+                  onChange={(e) =>
+                    setQuickKind(e.target.value as (typeof QUICK)[number]['kind'])
+                  }
+                >
+                  {QUICK.map((q) => (
+                    <option key={q.kind} value={q.kind}>
+                      {q.label}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={busy}
+                title={quickKind === 'legend' ? 'Только вручную — подставит название' : undefined}
+                onClick={() => {
+                  if (quickKind === 'legend') {
+                    setDraftName('Легендарный предмет')
+                    return
+                  }
+                  onChest({ action: 'quick_add', kind: quickKind, difficulty })
+                }}
+              >
+                Подобрать
+              </Button>
+            </div>
             <Button
               type="button"
-              variant="secondary"
+              variant="ghost"
               disabled={busy}
               onClick={() =>
                 onChest({
@@ -760,54 +825,9 @@ export function RewardsDialog({
                 })
               }
             >
-              Подобрать добычу
+              Случайный набор по уровню
             </Button>
-            <Select
-              value={difficulty}
-              disabled={busy}
-              title="Сложность боя"
-              onChange={(e) =>
-                setDifficulty(e.target.value as 'easy' | 'medium' | 'hard' | 'deadly')
-              }
-            >
-              <option value="easy">лёгкий</option>
-              <option value="medium">средний</option>
-              <option value="hard">сложный</option>
-              <option value="deadly">смертельный</option>
-            </Select>
-          </div>
-          <div className="session-loot-compose">
-            <Field label="Категория">
-              <Select
-                value={quickKind}
-                disabled={busy}
-                onChange={(e) =>
-                  setQuickKind(e.target.value as (typeof QUICK)[number]['kind'])
-                }
-              >
-                {QUICK.map((q) => (
-                  <option key={q.kind} value={q.kind}>
-                    {q.label}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={busy}
-              title={quickKind === 'legend' ? 'Только вручную — подставит название' : undefined}
-              onClick={() => {
-                if (quickKind === 'legend') {
-                  setDraftName('Легендарный предмет')
-                  return
-                }
-                onChest({ action: 'quick_add', kind: quickKind, difficulty })
-              }}
-            >
-              Добавить
-            </Button>
-          </div>
+          </Stack>
 
           {artifacts.length > 0 ? (
             <Field label="Артефакт сеттинга">
@@ -829,12 +849,12 @@ export function RewardsDialog({
             </Field>
           ) : null}
 
-          <div className="session-loot-compose">
-            <Field label="Добавить">
+          <div className="session-loot-compose session-loot-compose--manual">
+            <Field label="Предмет">
               <Input
                 value={draftArtifactId ? artifacts.find((a) => a.id === draftArtifactId)?.name ?? '' : draftName}
                 disabled={busy || Boolean(draftArtifactId)}
-                placeholder="предмет / поиск"
+                placeholder="поиск / название"
                 onChange={(e) => setDraftName(e.target.value)}
               />
             </Field>
@@ -850,7 +870,7 @@ export function RewardsDialog({
               />
             </Field>
             <Button type="button" variant="secondary" disabled={busy} onClick={addChestItem}>
-              +
+              Добавить
             </Button>
           </div>
 
@@ -865,7 +885,7 @@ export function RewardsDialog({
               <NumberInput value={coinCp} min={0} integer emptyValue={null} disabled={busy} onValueChange={setCoinCp} />
             </Field>
             <Button type="button" variant="secondary" disabled={busy} onClick={addChestCoins}>
-              + Монеты
+              Добавить монеты
             </Button>
           </div>
 
@@ -1050,6 +1070,8 @@ export function LootChestBoard({
                 <Select
                   defaultValue=""
                   disabled={busy}
+                  size="sm"
+                  aria-label="Перекинуть предмет"
                   onChange={(e) => {
                     if (!e.target.value) return
                     onReassign({ character_id: e.target.value, item_id: item.id })

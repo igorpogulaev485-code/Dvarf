@@ -114,7 +114,6 @@ export function AddCombatantDialog({
   }, [open])
 
   const data = selected ? parseBestiaryData(selected.data) : null
-  const crXp = CR_OPTIONS.find((o) => o.cr === customCr)?.xp
   const canSubmit =
     mode === 'bestiary'
       ? Boolean(selected)
@@ -246,7 +245,7 @@ export function AddCombatantDialog({
               <Field label="КД">
                 <NumberInput value={customAc} onValueChange={setCustomAc} min={0} max={40} />
               </Field>
-              <Field label="ПО" hint={crXp != null ? `${crXp} опыта` : undefined}>
+              <Field label="ПО">
                 <Select
                   value={customCr}
                   disabled={busy}

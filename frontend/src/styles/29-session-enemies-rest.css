@@ -92,13 +92,14 @@
 
 .session-combat-order__chip {
   display: inline-flex;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 8px;
   min-height: var(--control-h-md);
   min-width: 0;
   width: 100%;
   max-width: 100%;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--card);
@@ -109,6 +110,13 @@
   cursor: pointer;
   box-sizing: border-box;
   text-align: left;
+}
+
+.session-combat-order__name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .session-combat-order__chip:disabled {
@@ -237,7 +245,7 @@
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
@@ -668,9 +676,17 @@
 
 .session-loot-compose {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(4.5rem, 5.5rem) minmax(0, 1.2fr) auto;
+  grid-template-columns: minmax(0, 1.6fr) minmax(4.5rem, 5.5rem) auto;
   gap: 10px;
   align-items: end;
+}
+
+.session-loot-compose--manual {
+  grid-template-columns: minmax(0, 1fr) minmax(4.5rem, 5.5rem) auto;
+}
+
+.session-loot-compose--pick {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
 }
 
 .session-loot-compose--bonus {
@@ -685,7 +701,13 @@
 }
 
 .session-loot-compose--coins {
-  grid-template-columns: repeat(3, minmax(4.5rem, 1fr)) 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(0, 1fr) auto;
+}
+
+.session-rewards__group-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
 }
 
 .session-loot-compose__coin-actions {
@@ -732,9 +754,30 @@
 }
 
 @media (max-width: 640px) {
-  .session-loot-compose,
+  .session-loot-compose--pick {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .session-loot-compose--pick > .ui-button {
+    grid-column: 1 / -1;
+  }
+
+  .session-loot-compose--manual {
+    grid-template-columns: minmax(0, 1fr) minmax(4.5rem, 5.5rem);
+  }
+
+  .session-loot-compose--manual > .ui-button {
+    grid-column: 1 / -1;
+  }
+
+  /* Золото / серебро в одну строку на 390; медь + кнопка ниже. */
   .session-loot-compose--coins {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .session-loot-compose--coins > .ui-field:nth-child(3),
+  .session-loot-compose--coins > .ui-button {
+    grid-column: 1 / -1;
   }
 }
 
@@ -801,12 +844,7 @@
   white-space: nowrap;
 }
 
-.session-enemy-card__top-actions {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  flex-shrink: 0;
-}
+/* top-actions layout — see 28-session-enemies.css (.session-enemy-card__top) */
 
 .session-combat-order__side {
   font-size: 0.72rem;
@@ -817,6 +855,22 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 40%;
+}
+
+.session-combat-order__side--btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.session-combat-order__side--btn:disabled {
+  cursor: default;
+  opacity: 0.7;
 }
 
 
