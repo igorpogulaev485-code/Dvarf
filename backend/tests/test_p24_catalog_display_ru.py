@@ -23,6 +23,7 @@ WAVE_FILES = (
     "classes_srd.json",
     "subclasses_srd.json",
     "spells_srd.json",
+    "magic_items_srd.json",
 )
 
 DISPLAY_LEAVES = frozenset(
@@ -43,6 +44,10 @@ DISPLAY_LEAVES = frozenset(
         "name_ru",
         "damage",
         "attack_or_save",
+        "magic_item_type_ru",
+        "rarity_ru",
+        "attunement_restriction_ru",
+        "recharge_ru",
     }
 )
 

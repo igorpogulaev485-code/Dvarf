@@ -16,6 +16,9 @@ Schema contract for later packs (P24-00 lists → data packs):
 - subclass: ``parent_class``, features by level; ``spell_list`` filled in C05 when SRD has domain/circle/oath lists
 - spell: level 0–9, school, casting_time, ``magic_action``, components, classes,
   cantrip/slot scaling tables; short ``summary_ru`` (no long SRD prose)
+- magic item (``kind=item``, ``equipment_group=magic_item``): type, rarity,
+  attunement, charges, attack/AC bonuses, ``spell_refs`` → C05, 
+  ``base_item_categories`` → C03; short ``summary_ru`` (no long SRD prose)
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -60,6 +63,7 @@ EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("spells_srd.json"),
     WaveSpec("classes_srd.json"),
     WaveSpec("subclasses_srd.json"),
+    WaveSpec("magic_items_srd.json"),
 )
 
 WEAPON_MASTERY_FILENAME = "weapon_mastery_srd.json"
@@ -178,13 +182,39 @@ def normalize_armor_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
 
 
 def normalize_item_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
-    """2024 adventuring gear / tools / ammo / focus / pack (kind=item)."""
+    """2024 adventuring gear / tools / ammo / focus / pack / magic item (kind=item)."""
     out = dict(data) if isinstance(data, dict) else {}
     out.setdefault("equipment_group", None)
     out.setdefault("weight_lb", None)
     out.setdefault("cost", None)
     out.setdefault("utilize_ru", None)
     out.setdefault("summary_ru", None)
+    # Magic-item fields (P24-C06); mundane gear leaves them unset/None.
+    if out.get("equipment_group") == "magic_item":
+        out.setdefault("magic_item_type", None)
+        out.setdefault("magic_item_type_ru", None)
+        out.setdefault("rarity", None)
+        out.setdefault("rarity_ru", None)
+        if out.get("requires_attunement") is None:
+            out["requires_attunement"] = False
+        else:
+            out["requires_attunement"] = bool(out["requires_attunement"])
+        out.setdefault("attunement_restriction_ru", None)
+        out.setdefault("charges", None)
+        out.setdefault("bonus_attack", None)
+        out.setdefault("bonus_damage", None)
+        out.setdefault("bonus_ac", None)
+        out.setdefault("bonus_spell_attack", None)
+        if out.get("cursed") is None:
+            out["cursed"] = False
+        else:
+            out["cursed"] = bool(out["cursed"])
+        out.setdefault("spell_refs", [])
+        out.setdefault("base_item_categories", [])
+        if out.get("name_ru_pending") is None:
+            out["name_ru_pending"] = False
+        else:
+            out["name_ru_pending"] = bool(out["name_ru_pending"])
     return out
 
 

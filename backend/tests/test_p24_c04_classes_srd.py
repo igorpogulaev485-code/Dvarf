@@ -49,7 +49,7 @@ SRD_SUBCLASSES = {
     "wizard__evoker",
 }
 WM_CLASSES = {"barbarian", "fighter", "paladin", "ranger", "rogue"}
-PLANNED_TOTAL = 215 + 12 + 12 + 339  # C01–C03 + classes + subclasses + C05 spells
+PLANNED_TOTAL = 215 + 12 + 12 + 339 + 285  # C01–C03 + classes/sub + C05 spells + C06 magic
 
 
 def _srd_ids(category: str) -> set[str]:
@@ -313,7 +313,8 @@ def test_alembic_single_head_includes_p24_c04():
     assert "p24c04class01" in ancestor_ids
     assert "p24c03gear01" in ancestor_ids
     assert "p24c05spell01" in ancestor_ids
-    assert heads[0] == "p24c05spell01"
+    assert "p24c06magic01" in ancestor_ids
+    assert heads[0] == "p24c06magic01"
 
 
 def test_no_artificer_or_book_subclasses_in_live_wave():

@@ -86,10 +86,15 @@ def test_live_gear_waves_registered_and_complete():
 
     assert {r["slug"] for r in _rows("weapon")} == _srd_ids("weapons")
     assert {r["slug"] for r in _rows("armor")} == _srd_ids("armor")
-    assert {r["slug"] for r in _rows("item")} == _srd_ids("equipment")
+    mundane = {
+        r["slug"]
+        for r in _rows("item")
+        if (r.get("data") or {}).get("equipment_group") != "magic_item"
+    }
+    assert mundane == _srd_ids("equipment")
     assert len(_rows("weapon")) == len(_srd_ids("weapons"))
     assert len(_rows("armor")) == len(_srd_ids("armor"))
-    assert len(_rows("item")) == len(_srd_ids("equipment"))
+    assert len(mundane) == len(_srd_ids("equipment"))
 
 
 def test_weapon_mastery_dictionary_has_eight_entries():
@@ -144,6 +149,8 @@ def test_each_armor_has_ac_rules_and_don_doff():
 def test_equipment_cards_have_group_and_optional_utilize():
     for row in _rows("item"):
         data = row["data"]
+        if data.get("equipment_group") == "magic_item":
+            continue  # P24-C06
         assert data.get("equipment_group") in {
             "equipment",
             "toolkit",
@@ -171,6 +178,8 @@ def test_names_match_reference_csv():
             if r["srd"] == "true"
         }
         for row in _rows(kind):
+            if kind == "item" and (row.get("data") or {}).get("equipment_group") == "magic_item":
+                continue  # P24-C06 — names checked against magic_items.csv there
             assert row["name_ru"] == ref[row["slug"]]["name_ru"]
             assert row["name_en"] == ref[row["slug"]]["name_en"]
 
@@ -296,7 +305,17 @@ def test_apply_seed_includes_gear_idempotent():
     assert stats2.upserted == planned
     assert {k[1] for k in store if k[0] == "weapon"} == _srd_ids("weapons")
     assert {k[1] for k in store if k[0] == "armor"} == _srd_ids("armor")
-    assert {k[1] for k in store if k[0] == "item"} == _srd_ids("equipment")
+    # Mundane C03 gear only (P24-C06 adds magic_item rows under kind=item).
+    mundane_items = set()
+    for key, params in store.items():
+        if key[0] != "item":
+            continue
+        data = params["data"]
+        if isinstance(data, str):
+            data = json.loads(data)
+        if data.get("equipment_group") != "magic_item":
+            mundane_items.add(key[1])
+    assert mundane_items == _srd_ids("equipment")
     # Never write 2014 edition.
     for params in store.values():
         assert params["edition"] == "2024"

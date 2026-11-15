@@ -765,6 +765,8 @@ warm-fungal-clothing,equipment,Warm Fungal Clothing,Тёплый грибной 
 winter-camouflage,equipment,Winter Camouflage,Зимняя маскировка,FRHoF
 yarting,equipment,Yarting,Яртинг,FRHoF
 acid,equipment,Acid,Кислота,PH24
+alchemists-fire,equipment,Alchemist's Fire,Алхимический огонь,PH24
+alchemists-supplies,equipment,Alchemist's Supplies,Инструменты алхимика,PH24
 ammunition,equipment,Ammunition,Боеприпасы,PH24
 amulet,equipment,Amulet,Амулет,PH24
 antitoxin,equipment,Antitoxin,Противоядие,PH24
@@ -784,6 +786,7 @@ book,equipment,Book,Книга,PH24
 brewers-supplies,equipment,Brewer’s Supplies,Инструменты пивовара,PH24
 bucket,equipment,Bucket,Ведро,PH24
 bullseye-lantern,equipment,Bullseye Lantern,Направленный фонарь,PH24
+burglars-pack,equipment,Burglar's Pack,Набор взломщика,PH24
 calligraphers-supplies,equipment,Calligrapher’s Supplies,Инструменты каллиграфа,PH24
 caltrops,equipment,Caltrops,Калтропы,PH24
 candle,equipment,Candle,Свеча,PH24
@@ -791,6 +794,7 @@ carpenters-tools,equipment,Carpenter’s Tools,Инструменты плотн
 cartographers-tools,equipment,Cartographer’s Tools,Инструменты картографа,PH24
 chain,equipment,Chain,Цепь,PH24
 chest,equipment,Chest,Сундук,PH24
+climbers-kit,equipment,Climber's Kit,Комплект для лазания,PH24
 cobblers-tools,equipment,Cobbler’s Tools,Инструменты сапожника,PH24
 component-pouch,equipment,Component Pouch,Мешочек с компонентами,PH24
 cooks-utensils,equipment,Cook’s Utensils,Инструменты повара,PH24
@@ -819,6 +823,7 @@ gaming-set,equipment,Gaming Set,Игровой набор,PH24
 glass-bottle,equipment,Glass Bottle,Стеклянная бутылка,PH24
 glassblowers-tools,equipment,Glassblower’s Tools,Инструменты стеклодува,PH24
 grappling-hook,equipment,Grappling Hook,Крюк-кошка,PH24
+healers-kit,equipment,Healer's Kit,Комплект целителя,PH24
 herbalism-kit,equipment,Herbalism Kit,Набор травника,PH24
 holy-symbol,equipment,Holy Symbol,Священный символ,PH24
 holy-water,equipment,Holy Water,Святая вода,PH24
@@ -841,6 +846,7 @@ magnifying-glass,equipment,Magnifying Glass,Увеличительное сте�
 manacles,equipment,Manacles,Кандалы,PH24
 map,equipment,Map,Карта,PH24
 map-or-scroll-case,equipment,Map or Scroll Case,Тубус для карт и свитков,PH24
+masons-tools,equipment,Mason's Tools,Инструменты каменщика,PH24
 mirror,equipment,Mirror,Зеркало,PH24
 musical-instrument,equipment,Musical Instrument,Музыкальный инструмент,PH24
 navigators-tools,equipment,Navigator’s Tools,Инструменты навигатора,PH24
@@ -848,6 +854,7 @@ needles,equipment,Needles,Иглы,PH24
 net,equipment,Net,Сеть,PH24
 oil,equipment,Oil,Масло,PH24
 orb,equipment,Orb,Сфера,PH24
+painters-supplies,equipment,Painter's Supplies,Инструменты художника,PH24
 pan-flute,equipment,Pan Flute,Флейта Пана,PH24
 paper,equipment,Paper,Бумага,PH24
 parchment,equipment,Parchment,Пергамент,PH24
@@ -856,6 +863,7 @@ playing-cards,equipment,Playing cards,Игральные карты,PH24
 poisoners-kit,equipment,Poisoner’s Kit,Инструменты отравителя,PH24
 pole,equipment,Pole,Шест,PH24
 portable-ram,equipment,Portable Ram,Портативный таран,PH24
+potters-tools,equipment,Potter's Tools,Инструменты гончара,PH24
 pouch,equipment,Pouch,Кошель,PH24
 priests-pack,equipment,Priest’s Pack,Набор священника,PH24
 quiver,equipment,Quiver,Колчан,PH24
@@ -870,6 +878,7 @@ shawm,equipment,Shawm,Шалмей,PH24
 shovel,equipment,Shovel,Лопата,PH24
 signal-whistle,equipment,Signal Whistle,Сигнальный свисток,PH24
 sling-bullets,equipment,Sling Bullets,Снаряды для пращи,PH24
+smiths-tools,equipment,Smith's Tools,Инструменты кузнеца,PH24
 sprig-of-mistletoe,equipment,Sprig of Mistletoe,Веточка омелы,PH24
 spyglass,equipment,Spyglass,Подзорная труба,PH24
 staff,equipment,Staff,Посох,PH24
@@ -880,6 +889,7 @@ three-dragon-ante,equipment,Three-dragon ante,Ставка трёх дракон
 tinderbox,equipment,Tinderbox,Трутница,PH24
 tinkers-tools,equipment,Tinker’s Tools,Инструменты ремонтника,PH24
 torch,equipment,Torch,Факел,PH24
+travelers-clothes,equipment,Traveler's Clothes,Дорожная одежда,PH24
 vial,equipment,Vial,Флакон,PH24
 viol,equipment,Viol,Виола да гамба,PH24
 wand,equipment,Wand,Волшебная палочка,PH24
@@ -1313,6 +1323,7 @@ amulet-of-the-planes,magic_items,Amulet of the Planes,Амулет планов,
 animated-shield,magic_items,Animated Shield,Живой щит,DMG24
 anstruth-harp,magic_items,Anstruth harp,Арфа Анструт,DMG24
 apparatus-of-kwalish,magic_items,Apparatus of Kwalish,Аппарат Квалиша,DMG24
+apparatus-of-the-crab,magic_items,Apparatus of the Crab,Аппарат краба,DMG24
 armor-1,magic_items,"Armor, +1",Доспех +1,DMG24
 armor-1-2-or-3,magic_items,"Armor, +1, +2, or +3","Доспех +1, +2, +3",DMG24
 armor-2,magic_items,"Armor, +2",Доспех +2,DMG24
@@ -1398,6 +1409,7 @@ demon-armor,magic_items,Demon Armor,Демонический доспех,DMG24
 demonomicon-of-iggwilv,magic_items,Demonomicon of Iggwilv,Демономикон Иггвилв,DMG24
 dimensional-shackles,magic_items,Dimensional Shackles,Оковы измерений,DMG24
 doss-lute,magic_items,Doss lute,Лютня Досс,DMG24
+dragon-orb,magic_items,Dragon Orb,Драконий шар,DMG24
 dragon-scale-mail,magic_items,Dragon Scale Mail,Доспех из драконьей чешуи,DMG24
 dragon-slayer,magic_items,Dragon Slayer,Убийца драконов,DMG24
 dread-helm,magic_items,Dread Helm,Шлем ужаса,DMG24
@@ -1408,6 +1420,7 @@ dust-of-sneezing-and-choking,magic_items,Dust of Sneezing and Choking,Порош
 dwarven-plate,magic_items,Dwarven Plate,Латы дварфов,DMG24
 dwarven-thrower,magic_items,Dwarven Thrower,Дварфийский метатель,DMG24
 ear-horn-of-hearing,magic_items,Ear Horn of Hearing,Слуховой рог,DMG24
+efficient-quiver,magic_items,Efficient Quiver,Вместительный колчан,DMG24
 efreeti-bottle,magic_items,Efreeti Bottle,Бутылка с ифритом,DMG24
 efreeti-chain,magic_items,Efreeti Chain,Кольчуга ифритов,DMG24
 elemental-gem,magic_items,Elemental Gem,Камень элементаля,DMG24
@@ -1452,6 +1465,7 @@ eye-and-hand-of-vecna,magic_items,Eye and Hand of Vecna,Глаз и рука В�
 eyes-of-charming,magic_items,Eyes of Charming,Очи обольщения,DMG24
 eyes-of-minute-seeing,magic_items,Eyes of Minute Seeing,Очки детального зрения,DMG24
 eyes-of-the-eagle,magic_items,Eyes of the Eagle,Очки орлиного зрения,DMG24
+feather-token,magic_items,Feather Token,Перо-токен,DMG24
 figurine-of-wondrous-power,magic_items,Figurine of Wondrous Power,Статуэтка чудесной силы,DMG24
 figurine-of-wondrous-power-bronze-griffon,magic_items,Figurine of Wondrous Power (bronze griffon),Статуэтка чудесной силы (бронзовый грифон),DMG24
 figurine-of-wondrous-power-ebony-fly,magic_items,Figurine of Wondrous Power (ebony fly),Статуэтка чудесной силы (эбеновая муха),DMG24
@@ -1477,6 +1491,7 @@ gloves-of-thievery,magic_items,Gloves of Thievery,Перчатки воровс�
 goggles-of-night,magic_items,Goggles of Night,Ночные очки,DMG24
 hag-eye,magic_items,Hag Eye,Ведьмин глаз,DMG24
 hammer-of-thunderbolts,magic_items,Hammer of Thunderbolts,Молот грома,DMG24
+handy-haversack,magic_items,Handy Haversack,Удобный рюкзак,DMG24
 hat-of-disguise,magic_items,Hat of Disguise,Шапка маскировки,DMG24
 hat-of-many-spells,magic_items,Hat of Many Spells,Шляпа множества заклинаний,DMG24
 hat-of-vermin,magic_items,Hat of Vermin,Шляпа вредителей,DMG24
@@ -1499,6 +1514,7 @@ horn-of-valhalla-silver,magic_items,Horn of Valhalla (Silver),Рог Вальх�
 horseshoes-of-a-zephyr,magic_items,Horseshoes of a Zephyr,Подковы ветра,DMG24
 horseshoes-of-speed,magic_items,Horseshoes of Speed,Подковы скорости,DMG24
 immovable-rod,magic_items,Immovable Rod,Неподвижный жезл,DMG24
+instant-fortress,magic_items,Instant Fortress,Мгновенная крепость,DMG24
 instrument-of-illusions,magic_items,Instrument of Illusions,Инструмент иллюзий,DMG24
 instrument-of-scribing,magic_items,Instrument of Scribing,Инструмент надписей,DMG24
 instrument-of-the-bards,magic_items,Instrument of the Bards,Инструмент бардов,DMG24
@@ -1517,6 +1533,7 @@ ioun-stone-regeneration,magic_items,Ioun Stone (regeneration),Камень Ай�
 ioun-stone-reserve,magic_items,Ioun Stone (reserve),Камень Айун (резерв),DMG24
 ioun-stone-strength,magic_items,Ioun Stone (strength),Камень Айун (сила),DMG24
 ioun-stone-sustenance,magic_items,Ioun Stone (sustenance),Камень Айун (питание),DMG24
+iron-bands,magic_items,Iron Bands,Железные оковы,DMG24
 iron-bands-of-bilarro,magic_items,Iron Bands of Bilarro,Железные ленты Биларро,DMG24
 iron-flask,magic_items,Iron Flask,Железная фляга,DMG24
 javelin-of-lightning,magic_items,Javelin of Lightning,Метательное копьё молнии,DMG24
@@ -1539,11 +1556,13 @@ manual-of-golems-iron,magic_items,Manual of Golems (Iron),Справочник �
 manual-of-golems-stone,magic_items,Manual of Golems (Stone),Справочник по каменным големам,DMG24
 manual-of-quickness-of-action,magic_items,Manual of Quickness of Action,Справочник быстроты действий,DMG24
 mariners-armor,magic_items,Mariner’s Armor,Доспех моряка,DMG24
+marvelous-pigments,magic_items,Marvelous Pigments,Чудесные краски,DMG24
 medallion-of-thoughts,magic_items,Medallion of Thoughts,Медальон мыслей,DMG24
 mirror-of-life-trapping,magic_items,Mirror of Life Trapping,Зеркало похищения жизни,DMG24
 mithral-armor,magic_items,Mithral Armor,Мифрильный доспех,DMG24
 moon-touched-sword,magic_items,Moon-Touched Sword,Осенённый луной меч,DMG24
 moonblade,magic_items,Moonblade,Лунный клинок,DMG24
+mysterious-deck,magic_items,Mysterious Deck,Таинственная колода,DMG24
 mystery-key,magic_items,Mystery Key,Таинственный ключ,DMG24
 natures-mantle,magic_items,Nature’s Mantle,Одеяние природы,DMG24
 necklace-of-adaptation,magic_items,Necklace of Adaptation,Ожерелье адаптации,DMG24
@@ -1882,6 +1901,7 @@ spellfire-flare,spells,Spellfire Flare,Вспышка чаропламени,FRH
 spellfire-storm,spells,Spellfire Storm,Буря чаропламени,FRHoF
 sylunes-viper,spells,Syluné’s Viper,Гадюка Силунэй,FRHoF
 wardaway,spells,Wardaway,Оберегающий разряд,FRHoF
+acid-arrow,spells,Acid Arrow,Кислотная стрела,PH24
 acid-splash,spells,Acid Splash,Брызги кислоты,PH24
 aid,spells,Aid,Подмога,PH24
 alarm,spells,Alarm,Сигнал тревоги,PH24
@@ -1896,8 +1916,11 @@ antimagic-field,spells,Antimagic Field,Поле антимагии,PH24
 antipathy-sympathy,spells,Antipathy/Sympathy,Антипатия/симпатия,PH24
 arcane-eye,spells,Arcane Eye,Магический глаз,PH24
 arcane-gate,spells,Arcane Gate,Магические врата,PH24
+arcane-hand,spells,Arcane Hand,Чародейская длань,PH24
 arcane-lock,spells,Arcane Lock,Волшебный замок,PH24
+arcane-sword,spells,Arcane Sword,Чародейский меч,PH24
 arcane-vigor,spells,Arcane Vigor,Мистическая бодрость,PH24
+arcanists-magic-aura,spells,Arcanist's Magic Aura,Аура чародея,PH24
 armor-of-agathys,spells,Armor of Agathys,Доспех Агатиса,PH24
 arms-of-hadar,spells,Arms of Hadar,Руки Хадара,PH24
 astral-projection,spells,Astral Projection,Проекция в астрал,PH24
@@ -1915,6 +1938,7 @@ beast-sense,spells,Beast Sense,Животные чувства,PH24
 befuddlement,spells,Befuddlement,Помутнение разума,PH24
 bestow-curse,spells,Bestow Curse,Наложение проклятия,PH24
 bigbys-hand,spells,Bigby’s Hand,Длань Бигби,PH24
+black-tentacles,spells,Black Tentacles,Чёрные щупальца,PH24
 blade-barrier,spells,Blade Barrier,Стена клинков,PH24
 blade-ward,spells,Blade Ward,Защита от оружия,PH24
 bless,spells,Bless,Благословение,PH24
@@ -2013,6 +2037,7 @@ expeditious-retreat,spells,Expeditious Retreat,Поспешное отступл
 eyebite,spells,Eyebite,Разящее око,PH24
 fabricate,spells,Fabricate,Изготовление,PH24
 faerie-fire,spells,Faerie Fire,Огонь фей,PH24
+faithful-hound,spells,Faithful Hound,Верный пёс,PH24
 false-life,spells,False Life,Псевдожизнь,PH24
 fear,spells,Fear,Ужас,PH24
 feather-fall,spells,Feather Fall,Падение пёрышком,PH24
@@ -2030,6 +2055,7 @@ flame-blade,spells,Flame Blade,Горящий клинок,PH24
 flame-strike,spells,Flame Strike,Небесный огонь,PH24
 flaming-sphere,spells,Flaming Sphere,Пылающий шар,PH24
 flesh-to-stone,spells,Flesh to Stone,Окаменение,PH24
+floating-disk,spells,Floating Disk,Парящий диск,PH24
 fly,spells,Fly,Полёт,PH24
 fog-cloud,spells,Fog Cloud,Туманное облако,PH24
 forbiddance,spells,Forbiddance,Запрет,PH24
@@ -2037,6 +2063,7 @@ forcecage,spells,Forcecage,Узилище,PH24
 foresight,spells,Foresight,Предвидение,PH24
 fount-of-moonlight,spells,Fount of Moonlight,Источник лунного света,PH24
 freedom-of-movement,spells,Freedom of Movement,Свобода перемещения,PH24
+freezing-sphere,spells,Freezing Sphere,Ледяной шар,PH24
 friends,spells,Friends,Дружба,PH24
 gaseous-form,spells,Gaseous Form,Газообразная форма,PH24
 gate,spells,Gate,Врата,PH24
@@ -2068,6 +2095,7 @@ hellish-rebuke,spells,Hellish Rebuke,Адское возмездие,PH24
 heroes-feast,spells,Heroes’ Feast,Пир героев,PH24
 heroism,spells,Heroism,Героизм,PH24
 hex,spells,Hex,Сглаз,PH24
+hideous-laughter,spells,Hideous Laughter,Жуткий смех,PH24
 hold-monster,spells,Hold Monster,Удержание монстра,PH24
 hold-person,spells,Hold Person,Удержание личности,PH24
 holy-aura,spells,Holy Aura,Аура святости,PH24
@@ -2082,7 +2110,9 @@ imprisonment,spells,Imprisonment,Заточение,PH24
 incendiary-cloud,spells,Incendiary Cloud,Воспламеняющаяся туча,PH24
 inflict-wounds,spells,Inflict Wounds,Нанесение ран,PH24
 insect-plague,spells,Insect Plague,Нашествие насекомых,PH24
+instant-summons,spells,Instant Summons,Мгновенный вызов,PH24
 invisibility,spells,Invisibility,Невидимость,PH24
+irresistible-dance,spells,Irresistible Dance,Неудержимая пляска,PH24
 jallarzis-storm-of-radiance,spells,Jallarzi’s Storm of Radiance,Сияющий шторм Джалларзи,PH24
 jump,spells,Jump,Прыжок,PH24
 knock,spells,Knock,Стук,PH24
@@ -2105,6 +2135,7 @@ magic-jar,spells,Magic Jar,Волшебный сосуд,PH24
 magic-missile,spells,Magic Missile,Волшебная стрела,PH24
 magic-mouth,spells,Magic Mouth,Волшебные уста,PH24
 magic-weapon,spells,Magic Weapon,Магическое оружие,PH24
+magnificent-mansion,spells,Magnificent Mansion,Великолепный особняк,PH24
 major-image,spells,Major Image,Образ,PH24
 mass-cure-wounds,spells,Mass Cure Wounds,Множественное лечение ран,PH24
 mass-heal,spells,Mass Heal,Множественное исцеление,PH24
@@ -2155,6 +2186,7 @@ prayer-of-healing,spells,Prayer of Healing,Молебен лечения,PH24
 prestidigitation,spells,Prestidigitation,Фокусы,PH24
 prismatic-spray,spells,Prismatic Spray,Радужные брызги,PH24
 prismatic-wall,spells,Prismatic Wall,Радужная стена,PH24
+private-sanctum,spells,Private Sanctum,Личный кабинет,PH24
 produce-flame,spells,Produce Flame,Сотворение пламени,PH24
 programmed-illusion,spells,Programmed Illusion,Заданная иллюзия,PH24
 project-image,spells,Project Image,Проекция,PH24
@@ -2170,6 +2202,7 @@ ray-of-sickness,spells,Ray of Sickness,Луч болезни,PH24
 regenerate,spells,Regenerate,Регенерация,PH24
 reincarnate,spells,Reincarnate,Реинкарнация,PH24
 remove-curse,spells,Remove Curse,Снятие проклятия,PH24
+resilient-sphere,spells,Resilient Sphere,Упругий шар,PH24
 resistance,spells,Resistance,Сопротивление,PH24
 resurrection,spells,Resurrection,Воскрешение,PH24
 reverse-gravity,spells,Reverse Gravity,Изменение тяготения,PH24
@@ -2180,6 +2213,7 @@ sanctuary,spells,Sanctuary,Убежище,PH24
 scorching-ray,spells,Scorching Ray,Палящий луч,PH24
 scrying,spells,Scrying,Наблюдение,PH24
 searing-smite,spells,Searing Smite,Палящая кара,PH24
+secret-chest,spells,Secret Chest,Потайной сундук,PH24
 see-invisibility,spells,See Invisibility,Видение невидимого,PH24
 seeming,spells,Seeming,Притворство,PH24
 sending,spells,Sending,Послание,PH24
@@ -2231,6 +2265,7 @@ synaptic-static,spells,Synaptic Static,Синаптический разряд,P
 tashas-bubbling-cauldron,spells,Tasha’s Bubbling Cauldron,Бурлящий котёл Таши,PH24
 tashas-hideous-laughter,spells,Tasha’s Hideous Laughter,Жуткий смех Таши,PH24
 telekinesis,spells,Telekinesis,Телекинез,PH24
+telepathic-bond,spells,Telepathic Bond,Ментальная связь,PH24
 telepathy,spells,Telepathy,Телепатия,PH24
 teleport,spells,Teleport,Телепортация,PH24
 teleportation-circle,spells,Teleportation Circle,Круг телепортации,PH24
@@ -2241,6 +2276,7 @@ thunderclap,spells,Thunderclap,Раскат грома,PH24
 thunderous-smite,spells,Thunderous Smite,Громовая кара,PH24
 thunderwave,spells,Thunderwave,Волна грома,PH24
 time-stop,spells,Time Stop,Остановка времени,PH24
+tiny-hut,spells,Tiny Hut,Крошечная хижина,PH24
 toll-the-dead,spells,Toll the Dead,Погребальный звон,PH24
 tongues,spells,Tongues,Языки,PH24
 transport-via-plants,spells,Transport via Plants,Путешествие через растения,PH24
@@ -2387,30 +2423,3 @@ trident,weapons,Trident,Трезубец,PH24
 war-pick,weapons,War Pick,Клевец,PH24
 warhammer,weapons,Warhammer,Боевой молот,PH24
 whip,weapons,Whip,Кнут,PH24
-alchemists-fire,equipment,Alchemist's Fire,Алхимический огонь,PH24
-alchemists-supplies,equipment,Alchemist's Supplies,Инструменты алхимика,PH24
-burglars-pack,equipment,Burglar's Pack,Набор взломщика,PH24
-climbers-kit,equipment,Climber's Kit,Комплект для лазания,PH24
-healers-kit,equipment,Healer's Kit,Комплект целителя,PH24
-masons-tools,equipment,Mason's Tools,Инструменты каменщика,PH24
-painters-supplies,equipment,Painter's Supplies,Инструменты художника,PH24
-potters-tools,equipment,Potter's Tools,Инструменты гончара,PH24
-smiths-tools,equipment,Smith's Tools,Инструменты кузнеца,PH24
-travelers-clothes,equipment,Traveler's Clothes,Дорожная одежда,PH24
-acid-arrow,spells,Acid Arrow,Кислотная стрела,PH24
-arcane-hand,spells,Arcane Hand,Чародейская длань,PH24
-arcane-sword,spells,Arcane Sword,Чародейский меч,PH24
-arcanists-magic-aura,spells,Arcanist's Magic Aura,Аура чародея,PH24
-black-tentacles,spells,Black Tentacles,Чёрные щупальца,PH24
-faithful-hound,spells,Faithful Hound,Верный пёс,PH24
-floating-disk,spells,Floating Disk,Парящий диск,PH24
-freezing-sphere,spells,Freezing Sphere,Ледяной шар,PH24
-hideous-laughter,spells,Hideous Laughter,Жуткий смех,PH24
-instant-summons,spells,Instant Summons,Мгновенный вызов,PH24
-irresistible-dance,spells,Irresistible Dance,Неудержимая пляска,PH24
-magnificent-mansion,spells,Magnificent Mansion,Великолепный особняк,PH24
-private-sanctum,spells,Private Sanctum,Личный кабинет,PH24
-resilient-sphere,spells,Resilient Sphere,Упругий шар,PH24
-secret-chest,spells,Secret Chest,Потайной сундук,PH24
-telepathic-bond,spells,Telepathic Bond,Ментальная связь,PH24
-tiny-hut,spells,Tiny Hut,Крошечная хижина,PH24

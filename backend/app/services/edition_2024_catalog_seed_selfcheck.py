@@ -93,12 +93,18 @@ def main() -> None:
     assert ok["data"]["category"] == "origin"
 
     planned = load_wave_rows()
-    assert len(EDITION_2024_CATALOG_WAVES) >= 9
+    assert len(EDITION_2024_CATALOG_WAVES) >= 10
     races = [r for r in planned if r["kind"] == "race"]
     bgs = [r for r in planned if r["kind"] == "background"]
     weapons = [r for r in planned if r["kind"] == "weapon"]
     armor_rows = [r for r in planned if r["kind"] == "armor"]
     items = [r for r in planned if r["kind"] == "item"]
+    mundane = [
+        r for r in items if (r.get("data") or {}).get("equipment_group") != "magic_item"
+    ]
+    magic = [
+        r for r in items if (r.get("data") or {}).get("equipment_group") == "magic_item"
+    ]
     spells = [r for r in planned if r["kind"] == "spell"]
     classes = [r for r in planned if r["kind"] == "class"]
     subclasses = [r for r in planned if r["kind"] == "subclass"]
@@ -106,10 +112,15 @@ def main() -> None:
     assert len(bgs) == 4, len(bgs)
     assert len(weapons) == 38, len(weapons)
     assert len(armor_rows) == 13, len(armor_rows)
-    assert len(items) == 134, len(items)
+    assert len(mundane) == 134, len(mundane)
+    assert len(magic) == 285, len(magic)
     assert len(spells) == 339, len(spells)
     assert len(classes) == 12, len(classes)
     assert len(subclasses) == 12, len(subclasses)
+    for row in magic:
+        assert row["data"].get("magic_item_type")
+        assert row["data"].get("rarity")
+        assert row["data"].get("summary_ru")
     for row in spells:
         assert row["data"].get("level") in range(0, 10)
         assert row["data"].get("school")
