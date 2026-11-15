@@ -29,6 +29,12 @@
   z-index: 2;
 }
 
+/* Social stage is flat (no cream plate) — don't keep inventory's white sticky halo. */
+.text-panel .inventory-panel__toolbar {
+  background: transparent;
+  border-bottom: none;
+}
+
 .text-block {
   display: grid;
   gap: 10px;
@@ -307,10 +313,14 @@
 .text-physique {
   display: grid;
   gap: 10px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: color-mix(in srgb, var(--accent-soft, #eef2e8) 55%, white);
+  box-sizing: border-box;
 }
 
 .text-physique__toggle {
@@ -319,6 +329,7 @@
   justify-content: space-between;
   gap: 10px;
   width: 100%;
+  min-width: 0;
   margin: 0;
   padding: 0;
   border: 0;
@@ -329,16 +340,26 @@
   color: inherit;
 }
 
+.text-physique__toggle > strong,
+.text-physique__head > strong {
+  flex: 0 0 auto;
+}
+
 .text-physique__head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
+  min-width: 0;
 }
 
 .text-physique__meta {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 0.82rem;
   color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
