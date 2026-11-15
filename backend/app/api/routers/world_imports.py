@@ -23,6 +23,7 @@ from app.schemas.world_import import (
     WorldImportJobOut,
     WorldImportSettingsOut,
     WorldImportSettingsPatch,
+    WorldImportUndoOut,
     WorldImportUpsertRequest,
     WorldImportValidateOut,
     WorldImportValidateRequest,
@@ -34,6 +35,7 @@ from app.services.world_import import WorldImportService
 from app.services.world_import_auth import resolve_world_import_actor
 from app.services.world_import_confirm import WorldImportConfirmService
 from app.services.world_import_diff import build_diff
+from app.services.world_import_undo import WorldImportUndoService
 from app.services.world_vault_parse import MAX_ZIP_BYTES
 
 router = APIRouter(tags=["world-imports"])
@@ -240,7 +242,11 @@ def confirm_world_import(
     actor = _actor(db, authorization)
     body = payload or WorldImportConfirmRequest()
     return WorldImportConfirmService(db).confirm(
-        actor, setting_id, job_id, item_ids=body.item_ids
+        actor,
+        setting_id,
+        job_id,
+        item_ids=body.item_ids,
+        conflict_resolutions=body.conflict_resolutions,
     )
 
 
@@ -256,6 +262,21 @@ def cancel_world_import(
 ) -> WorldImportCancelOut:
     actor = _actor(db, authorization)
     return WorldImportConfirmService(db).cancel(actor, setting_id, job_id)
+
+
+@router.post(
+    "/settings/{setting_id}/world-imports/{job_id}/undo",
+    response_model=WorldImportUndoOut,
+)
+def undo_world_import(
+    setting_id: UUID,
+    job_id: UUID,
+    db: DbSession,
+    authorization: AuthorizationHeader = None,
+) -> WorldImportUndoOut:
+    """W-API-07: откат последнего confirm; черновик по-прежнему cancel."""
+    actor = _actor(db, authorization)
+    return WorldImportUndoService(db).undo(actor, setting_id, job_id)
 
 
 @router.get(
