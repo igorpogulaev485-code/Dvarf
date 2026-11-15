@@ -207,6 +207,8 @@ type ScrollRowProps = {
   watchKey?: string | number
   /** Selector for child items used when stepping by arrow click. */
   itemSelector?: string
+  /** Optional onboarding spotlight id on the scroll track. */
+  dataOnboarding?: string
 }
 
 function scrollByApproxOneItem(
@@ -260,6 +262,7 @@ export function ScrollRow({
   children,
   watchKey = '',
   itemSelector = ':scope > :not(.ui-scroll-row__end-spacer)',
+  dataOnboarding,
 }: ScrollRowProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null)
   const spacerRef = useRef<HTMLDivElement | null>(null)
@@ -422,8 +425,15 @@ export function ScrollRow({
     }
   }, [watchKey])
 
+  const edgeMods = [
+    canScrollLeft ? 'ui-scroll-row--edge-left' : '',
+    canScrollRight ? 'ui-scroll-row--edge-right' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <div className={`ui-scroll-row ${shellClassName}`.trim()}>
+    <div className={`ui-scroll-row ${shellClassName} ${edgeMods}`.trim()}>
       {canScrollLeft ? (
         <div className="ui-scroll-row__edge ui-scroll-row__edge--left" aria-hidden="true">
           <button
@@ -454,7 +464,12 @@ export function ScrollRow({
           </button>
         </div>
       ) : null}
-      <div className={className} ref={scrollerRef} aria-label={ariaLabel}>
+      <div
+        className={className}
+        ref={scrollerRef}
+        aria-label={ariaLabel}
+        {...(dataOnboarding ? { 'data-onboarding': dataOnboarding } : {})}
+      >
         {children}
         <div
           ref={spacerRef}

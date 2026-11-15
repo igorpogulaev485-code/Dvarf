@@ -84,12 +84,16 @@ const serverPartial = applyServerOnboarding(pendingLocal, {
 assert(serverPartial.state.pendingSheetTour, 'keeps pending when sheet not done on server')
 assert(serverPartial.state.pendingReadyBridge, 'keeps bridge pending')
 
-const restarted = restartTipsState(localDone)
+const restarted = restartTipsState({
+  ...localDone,
+  seenSceneIntros: ['explore', 'companions'],
+})
 assert(!restarted.sheetTourDone, 'restart clears sheetTourDone')
 assert(!restarted.lobbyTourDone, 'restart clears lobbyTourDone')
 assert(restarted.pendingSheetTour, 'restart arms sheet tour')
 assert(restarted.pendingLobbyTour, 'restart arms lobby tour')
 assert(restarted.segment === 'product_new', 'keeps segment')
+assert(restarted.seenSceneIntros.length === 0, 'restart clears scene intros')
 
 const afterSkip = restartTipsState({
   ...defaultOnboardingState(),

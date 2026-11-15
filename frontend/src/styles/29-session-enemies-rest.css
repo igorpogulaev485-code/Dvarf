@@ -733,12 +733,34 @@
   padding: 8px 14px;
   cursor: pointer;
   font: inherit;
+  min-height: var(--tap-min, 44px);
 }
 
 .session-combatant-mode__btn.is-on {
   border-color: var(--accent);
   background: var(--accent-soft);
   color: var(--accent);
+}
+
+/* Kit: coin currency row — one line / even grid on narrow sheets */
+.session-combatant-mode--coins {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.session-combatant-mode--coins .session-combatant-mode__btn {
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 0.82rem;
+  min-width: 0;
+}
+
+@media (max-width: 359px) {
+  .session-combatant-mode--coins {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .session-combatant-custom-row {

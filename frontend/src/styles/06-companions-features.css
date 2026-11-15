@@ -48,6 +48,27 @@
   margin-bottom: 8px;
 }
 
+/* Compact language / pick grids (create race setup on phone) */
+.chip-row--compact {
+  gap: 4px;
+}
+
+.chip-row--compact .sheet-chip {
+  padding: 4px 8px;
+  min-height: 32px;
+  font-size: 0.78rem;
+  border-radius: 8px;
+}
+
+.race-setup__gender-hint {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 70%, #fffdf9);
+  color: var(--ink) !important;
+  font-weight: 600;
+}
+
 .sheet-chip,
 .skill-row {
   border: 1px solid var(--line);

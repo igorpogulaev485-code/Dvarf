@@ -422,8 +422,8 @@ export function ActiveEffectsPanel({
           size="sm"
           variant="ghost"
           className="active-effects__round"
-          title="Сменить раунд: таймеры эффектов −1 (полный ход — в сцене Бой)"
-          aria-label="Раунд −1 — уменьшить таймеры эффектов"
+          title="Таймеры эффектов −1 раунд, истёкшие снимаются"
+          aria-label="Следующий раунд — таймеры эффектов −1"
           onClick={() => {
             const next = tickAllEffectsOneRound(rows)
             onChange(next)
@@ -435,7 +435,7 @@ export function ActiveEffectsPanel({
           }}
         >
           <IconRound className="active-effects__round-icon" />
-          Раунд −1
+          Следующий раунд
         </Button>
       </div>
     </div>

@@ -208,26 +208,35 @@
   color: var(--ink);
 }
 
-/* EXP-01: load (weights+bar) + chips; desktop — side by side. */
+/* EXP-01: load (weights+bar) + chips.
+   Wide desk: side by side. Split (~½ stage): chips wrap under — load must not
+   collapse to ~18px (word-per-line). */
 .inventory-panel .inventory-summary {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px 12px;
-  align-items: start;
+  align-items: center;
 }
 
 .inventory-panel .inventory-summary__load {
-  grid-column: 1;
+  flex: 1 1 16rem;
+  min-width: min(100%, 16rem);
+}
+
+.inventory-panel .inventory-summary__weights {
+  /* Beat base min-width:0 so split cannot crush the ноша line. */
+  min-width: min(100%, 12rem);
 }
 
 .inventory-panel .inventory-summary__chips {
-  grid-column: 2;
+  flex: 1 1 auto;
+  max-width: 100%;
   justify-content: flex-end;
-  align-self: center;
 }
 
 .inventory-panel .inventory-summary__over {
-  grid-column: 1 / -1;
+  flex: 1 1 100%;
+  width: 100%;
 }
 
 .inventory-panel .inventory-summary__chip--wallet {

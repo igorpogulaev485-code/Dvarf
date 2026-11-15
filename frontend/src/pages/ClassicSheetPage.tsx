@@ -147,6 +147,16 @@ export function ClassicSheetPage() {
         ? 'Сохраняем настройки печати…'
         : null
 
+  const handleLayoutChange = useCallback(
+    (layout: ClassicSheetLayout) => {
+      const current = latestRef.current
+      if (!current) return
+      setLayoutOverride(layout)
+      handlePrintSettings(setClassicSheetLayout(current, layout))
+    },
+    [handlePrintSettings],
+  )
+
   return (
     <div
       className="classic-print-page"

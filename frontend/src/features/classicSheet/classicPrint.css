@@ -537,25 +537,33 @@
 .classic-layout-switch button,
 .classic-color-switch button {
   min-width: 3.1rem;
+  min-height: 2rem;
   padding: 0.35rem 0.65rem;
-  border: 0;
+  border: 1px solid rgb(255 255 255 / 22%);
   border-radius: 0.32rem;
-  background: transparent;
+  background: rgb(255 255 255 / 6%);
   color: #e8e4db;
   font: inherit;
   font-size: 0.85rem;
   font-weight: 650;
   cursor: pointer;
+  opacity: 1;
 }
 
-.classic-layout-switch button:hover:not(:disabled),
-.classic-color-switch button:hover:not(:disabled) {
-  background: rgb(255 255 255 / 10%);
+/* MOB-FIX: hover must not override .is-active; keep color-switch parity for PRINT-14 */
+.classic-layout-switch button:hover:not(:disabled):not(.is-active),
+.classic-color-switch button:hover:not(:disabled):not(.is-active) {
+  background: rgb(255 255 255 / 14%);
+  border-color: rgb(255 255 255 / 34%);
 }
 
+/* Active must match shown layout; beat :hover specificity so click/hover never washes accent out */
 .classic-layout-switch button.is-active,
-.classic-color-switch button.is-active {
+.classic-layout-switch button.is-active:hover:not(:disabled),
+.classic-color-switch button.is-active,
+.classic-color-switch button.is-active:hover:not(:disabled) {
   background: #f5f2eb;
+  border-color: #f5f2eb;
   color: #1f2420;
 }
 

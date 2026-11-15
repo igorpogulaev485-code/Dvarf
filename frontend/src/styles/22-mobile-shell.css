@@ -65,9 +65,10 @@
   display: flex;
   flex-wrap: nowrap;
   gap: 4px;
-  /* HOT-01: rim 4–6px; kit ScrollRow end-spacer grows for fade clear at max */
-  padding: 4px 6px;
-  scroll-padding-inline: 52px;
+  /* HOT-01: rim only — horizontal gutter lives on .ui-scroll-row shell (kit) */
+  padding-block: 4px;
+  padding-inline: 4px;
+  scroll-padding-inline: 12px;
   scroll-snap-type: none;
   overflow-x: auto;
   overflow-y: hidden;
@@ -94,7 +95,7 @@
   min-width: 10.5rem;
   max-width: 10.5rem;
   min-height: 48px;
-  height: 48px;
+  height: auto;
   padding: 4px 8px;
 }
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--res,
@@ -104,7 +105,7 @@
   min-width: 0;
   max-width: none;
   min-height: 48px;
-  height: 48px;
+  height: auto;
   padding: 4px 8px;
 }
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot--empty-chrome {
@@ -119,15 +120,79 @@
   font-size: 0.78rem;
   font-weight: 600;
   line-height: 1.25;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  overflow-wrap: break-word;
+  word-break: normal;
+  max-width: none;
+}
+
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--wide {
+  height: auto;
+  min-height: 48px;
+  align-items: flex-start;
+  max-width: none;
+  overflow: visible;
+}
+
+.play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--wide .play-desk__hot-label {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: none;
+}
+
+/* Concentration: kicker + full spell name on two lines (e.g. «Щит веры») */
+.play-desk--mobile .play-desk__hot-label--stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  white-space: normal;
+  max-width: none;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.play-desk--mobile .play-desk__hot-label-kicker {
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--desk-muted, var(--muted));
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+/* Two-line face on phone — drop «: » separator */
+.play-desk--mobile .play-desk__hot-label-sep {
+  display: none;
+}
+
+.play-desk--mobile .play-desk__hot-label--stack strong {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  overflow-wrap: break-word;
 }
 .play-desk--mobile .play-desk__hot-res-name {
   font-size: 0.78rem;
   font-weight: 600;
-  line-height: 1.25;
-  white-space: nowrap;
+  line-height: 1.2;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 120px;
+  max-width: 9.5rem;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 /* UIKIT-02: ячейки/заряды остаются плотными (gap 4px); 44px — только прочие controls */
 .play-desk--mobile .play-desk__pip {
@@ -209,13 +274,11 @@
   }
 
   .ui-dialog__actions {
-    gap: 8px;
-    padding: 10px 14px max(12px, env(safe-area-inset-bottom, 0px));
-  }
-
-  .ui-dialog__actions {
     display: flex;
     flex-wrap: wrap;
+    gap: 8px;
+    /* Extra lift above Safari home bar / bottom chrome (760) */
+    padding: 10px 14px max(20px, calc(12px + env(safe-area-inset-bottom, 0px)));
   }
 
   .ui-dialog__actions > * {
@@ -542,6 +605,16 @@
 
 .play-desk--mobile .play-desk-compact__tool-more {
   display: inline-block;
+}
+
+/* MOB-FIX: attack «…» / icon tools ≥ --tap-min on phone */
+.play-desk--mobile .play-desk-compact__tool.ui-button--icon,
+.play-desk--mobile .play-desk-compact__tool.ui-button--sm,
+.play-desk--mobile .play-desk-compact__tool-more .ui-button {
+  width: var(--tap-min, 44px);
+  min-width: var(--tap-min, 44px);
+  height: var(--tap-min, 44px);
+  min-height: var(--tap-min, 44px);
 }
 
 /* FIX-01 / CMB-02: строка хода на 390 — перенос или сжатие, без обрезки текста */

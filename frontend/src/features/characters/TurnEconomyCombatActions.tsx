@@ -2157,6 +2157,7 @@ export function TurnEconomyCombatActions({
       className={`play-desk-turn-actions ${className}`.trim()}
       role="group"
       aria-label="Действия хода"
+      data-onboarding="turn-actions"
     >
       {/*
         FIX-01: одна строка — группы Действие/Бонусное/Реакция + отметки
