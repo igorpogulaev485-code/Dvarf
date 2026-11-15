@@ -1,4 +1,4 @@
-"""W-API-01/02: эндпоинты токенов, заданий и разбора хранилища (отдельный роутер)."""
+"""W-API-01/02/03: эндпоинты токенов, заданий, разбора и связей черновика."""
 
 from __future__ import annotations
 
@@ -14,6 +14,7 @@ from app.schemas.world_import import (
     WorldApiTokenOut,
     WorldImportCreateRequest,
     WorldImportDraftItemOut,
+    WorldImportDraftLinkOut,
     WorldImportJobOut,
     WorldVaultParseRequest,
     WorldVaultParseResultOut,
@@ -123,6 +124,20 @@ def list_world_import_draft_items(
     db: DbSession,
 ) -> list[WorldImportDraftItemOut]:
     return WorldImportService(db).list_draft_items(current_user, setting_id, job_id)
+
+
+@router.get(
+    "/settings/{setting_id}/world-imports/{job_id}/draft-links",
+    response_model=list[WorldImportDraftLinkOut],
+)
+def list_world_import_draft_links(
+    setting_id: UUID,
+    job_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> list[WorldImportDraftLinkOut]:
+    """Предложенные рёбра черновика (не канон SettingPageLink)."""
+    return WorldImportService(db).list_draft_links(current_user, setting_id, job_id)
 
 
 @router.post(

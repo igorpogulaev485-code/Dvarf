@@ -12,7 +12,13 @@ from uuid import uuid4
 import pytest
 
 from app.core.exceptions import AppError
-from app.models.world_import import WorldImportDraftItem, WorldImportJob, WorldSourceKey
+from app.models.world_import import (
+    WorldImportDraftItem,
+    WorldImportDraftLink,
+    WorldImportJob,
+    WorldSourceAlias,
+    WorldSourceKey,
+)
 from app.schemas.world_import import WorldImportCreateRequest, WorldVaultParseRequest
 from app.services import lobby_roles as roles
 from app.services.world_import import WorldImportService
@@ -77,6 +83,8 @@ class FakeDB:
         self.jobs: list[WorldImportJob] = []
         self.draft_items: list[WorldImportDraftItem] = []
         self.source_keys: list[WorldSourceKey] = []
+        self.aliases: list[WorldSourceAlias] = []
+        self.draft_links: list[WorldImportDraftLink] = []
 
     def add(self, obj):
         now = datetime.now(timezone.utc)
@@ -104,11 +112,31 @@ class FakeDB:
             if getattr(obj, "updated_at", None) is None:
                 obj.updated_at = now
             self.source_keys.append(obj)
+        elif isinstance(obj, WorldSourceAlias):
+            if getattr(obj, "id", None) is None:
+                obj.id = uuid4()
+            if getattr(obj, "created_at", None) is None:
+                obj.created_at = now
+            self.aliases.append(obj)
+        elif isinstance(obj, WorldImportDraftLink):
+            if getattr(obj, "id", None) is None:
+                obj.id = uuid4()
+            if getattr(obj, "created_at", None) is None:
+                obj.created_at = now
+            self.draft_links.append(obj)
 
     def commit(self):
         return None
 
+    def flush(self):
+        return None
+
     def refresh(self, obj):
+        return None
+
+    def execute(self, stmt):  # noqa: ANN001
+        # delete(WorldImportDraftLink) на повторном разборе
+        self.draft_links = []
         return None
 
     def get(self, model, pk):
@@ -159,21 +187,56 @@ def _svc(lobby, setting, monkeypatch):
                     )
                     if not conflict:
                         sk.source_slug = source_slug
-                return
-        slug_to_set = source_slug
-        if slug_to_set and any(
-            sk.setting_id == setting_id and sk.source_slug == slug_to_set for sk in db.source_keys
-        ):
-            slug_to_set = None
-        db.add(
-            WorldSourceKey(
-                setting_id=setting_id,
-                source_path=source_path,
-                source_slug=slug_to_set,
-            )
+                return sk
+        if source_slug:
+            for sk in db.source_keys:
+                if sk.setting_id == setting_id and sk.source_slug == source_slug:
+                    path_taken = any(
+                        other.setting_id == setting_id
+                        and other.source_path == source_path
+                        and other.id != sk.id
+                        for other in db.source_keys
+                    )
+                    if not path_taken:
+                        sk.source_path = source_path
+                    return sk
+        row = WorldSourceKey(
+            setting_id=setting_id,
+            source_path=source_path,
+            source_slug=source_slug,
         )
+        db.add(row)
+        return row
 
     svc._upsert_source_key = fake_upsert  # type: ignore[method-assign]
+
+    def fake_upsert_aliases(setting_id, source_key_row, alias_pairs):
+        stored = []
+        for display, norm in alias_pairs:
+            hit = next(
+                (
+                    a
+                    for a in db.aliases
+                    if a.setting_id == setting_id and a.alias_norm == norm
+                ),
+                None,
+            )
+            if hit is not None:
+                if hit.source_key_id == source_key_row.id:
+                    stored.append(hit.alias)
+                continue
+            db.add(
+                WorldSourceAlias(
+                    setting_id=setting_id,
+                    source_key_id=source_key_row.id,
+                    alias=display,
+                    alias_norm=norm,
+                )
+            )
+            stored.append(display)
+        return stored
+
+    svc._upsert_aliases = fake_upsert_aliases  # type: ignore[method-assign]
 
     # Draft-item lookup for re-ingest: scalars() already returns draft_items.
     # Idempotency for create_job: mimic W-API-01 helper.

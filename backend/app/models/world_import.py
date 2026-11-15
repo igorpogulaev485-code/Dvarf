@@ -1,4 +1,4 @@
-"""W-API-01: задание импорта мира, черновик сверки, ключи источника."""
+"""W-API-01/03: задание импорта мира, черновик сверки, ключи, алиасы, связи."""
 
 from __future__ import annotations
 
@@ -199,5 +199,97 @@ class WorldSourceKey(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
+        nullable=False,
+    )
+
+    aliases: Mapped[list["WorldSourceAlias"]] = relationship(
+        "WorldSourceAlias",
+        back_populates="source_key",
+        cascade="all, delete-orphan",
+    )
+
+
+class WorldSourceAlias(Base):
+    """Алиас имени → ключ источника внутри сеттинга (регистр/пробелы не плодят дубль)."""
+
+    __tablename__ = "world_source_aliases"
+    __table_args__ = (
+        UniqueConstraint(
+            "setting_id",
+            "alias_norm",
+            name="uq_world_source_aliases_setting_norm",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    setting_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("settings.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    source_key_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("world_source_keys.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    alias: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    alias_norm: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    source_key: Mapped[WorldSourceKey] = relationship(
+        "WorldSourceKey", back_populates="aliases"
+    )
+
+
+class WorldImportDraftLink(Base):
+    """Предложенное ребро черновика (канон SettingPageLink — только на confirm)."""
+
+    __tablename__ = "world_import_draft_links"
+    __table_args__ = (
+        UniqueConstraint(
+            "job_id",
+            "from_source_key",
+            "to_source_key",
+            "kind",
+            "label",
+            "confidence",
+            name="uq_world_import_draft_links_edge",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    job_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("world_import_jobs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    from_source_key: Mapped[str] = mapped_column(String(512), nullable=False, default="")
+    to_source_key: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    to_alias: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # Как у SettingPageLink: semantic | mention
+    kind: Mapped[str] = mapped_column(String(16), nullable=False, default="mention")
+    # Подпись из LINK_PRESETS («живёт в», «член») или пусто
+    label: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    # explicit = md/[[]]/@; suggested = голое жирное имя
+    confidence: Mapped[str] = mapped_column(String(16), nullable=False, default="explicit")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="proposed")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
         nullable=False,
     )
