@@ -40,6 +40,11 @@ const sceneIntro = read('SceneIntroCard.tsx')
 match(sceneIntro, /Понятно/, 'scene card primary')
 match(sceneIntro, /SCENE_INTRO/, 'uses SCENE_INTRO copy')
 match(sceneIntro, /below-start/, 'scene card sits under panel, left-aligned')
+match(
+  sheetTour,
+  /Сверху имя и хиты\. Нажми хиты, чтобы изменить, а стрелку — чтобы увидеть КД, скорость и отдых\./,
+  'mobile step 1 matches collapsed vitals (hits + expand)',
+)
 assert(!/companionsEmpty/.test(sceneIntro), 'no special empty companions branch')
 
 const header = read('../characters/PlayDeskHeader.tsx')
@@ -55,6 +60,14 @@ const vitals = read('../characters/MobileVitalsBar.tsx')
 assert(
   /mobile-vitals--collapsed[\s\S]{0,240}?data-onboarding="combat-vitals"/.test(vitals),
   'collapsed mobile header keeps combat-vitals anchor',
+)
+assert(
+  /mobile-vitals__collapse-hp[\s\S]{0,200}?setHpPadOpen\(true\)/.test(vitals),
+  'collapsed hits open HP pad',
+)
+assert(
+  /mobile-vitals__expand[\s\S]{0,120}?setCollapsed\(false\)/.test(vitals),
+  'expand arrow reveals full vitals (AC/speed/rest)',
 )
 
 const hot = read('../characters/PlayDeskHotBar.tsx')

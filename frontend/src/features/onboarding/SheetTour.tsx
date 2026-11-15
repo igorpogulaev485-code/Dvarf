@@ -58,6 +58,12 @@ export function SheetTour({ open, onComplete, onSkip }: SheetTourProps) {
     if (!step) return ''
     const narrow =
       typeof window !== 'undefined' && window.matchMedia('(max-width: 959px)').matches
+    // Collapsed mobile vitals: name + hits + expand arrow (see MobileVitalsBar).
+    if (narrow && step.id === 'combat_header') {
+      return (
+        'Сверху имя и хиты. Нажми хиты, чтобы изменить, а стрелку — чтобы увидеть КД, скорость и отдых.'
+      )
+    }
     if (narrow && step.id === 'desk_modes') {
       return (
         'Пять вкладок — пять ситуаций за столом: Бой, Исследование, Общение, Напарники, Способности. ' +
