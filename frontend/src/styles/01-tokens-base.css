@@ -136,7 +136,6 @@ input {
   display: flex;
   flex-direction: column;
   gap: var(--stack-gap, 12px);
-  min-width: 0;
 }
 
 
@@ -179,7 +178,6 @@ input {
   border-radius: 18px;
   padding: 20px;
   backdrop-filter: blur(8px);
-  min-width: 0;
 }
 
 .ui-panel__title {
@@ -1309,12 +1307,13 @@ a.ui-button--primary {
   color: var(--warn);
 }
 
-/* Kit atom: CodeBlock — код внутри рамки, без раздувания страницы */
+/* Kit atom: CodeBlock — код внутри рамки, без раздувания страницы.
+   width:0 + min-width:100% — самодостаточный трюк: не трогаем .ui-stack/.ui-panel. */
 .ui-code-block {
   display: block;
-  width: 100%;
+  width: 0;
+  min-width: 100%;
   max-width: 100%;
-  min-width: 0;
   margin: 0;
   padding: 12px 14px;
   box-sizing: border-box;
@@ -1479,7 +1478,6 @@ a.ui-button--primary {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  min-width: 0;
 }
 
 .page--app > .ui-stack > .app-legal-footer {
