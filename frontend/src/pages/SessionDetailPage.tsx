@@ -1362,13 +1362,18 @@ export function SessionDetailPage() {
                       })
                     }}
                     onSkipReaction={() => {
+                      // Audit M5: без reaction_character_id — снять флаг, не noop.
                       const cid = session.combat?.reaction_character_id
-                      if (!cid) return
                       void run(async () => {
-                        const updated = await resolveSessionCombatReaction(session.id, {
-                          action: 'skip',
-                          character_id: cid,
-                        })
+                        const updated = cid
+                          ? await resolveSessionCombatReaction(session.id, {
+                              action: 'skip',
+                              character_id: cid,
+                            })
+                          : await patchSessionCombat(session.id, {
+                              action: 'set_waiting_reaction',
+                              waiting_reaction: false,
+                            })
                         setSession(updated)
                         await reloadEvents()
                         setToast('Реакция пропущена')
@@ -1939,13 +1944,18 @@ export function SessionDetailPage() {
                       })
                     }}
                     onSkipReaction={() => {
+                      // Audit M5: без reaction_character_id — снять флаг, не noop.
                       const cid = session.combat?.reaction_character_id
-                      if (!cid) return
                       void run(async () => {
-                        const updated = await resolveSessionCombatReaction(session.id, {
-                          action: 'skip',
-                          character_id: cid,
-                        })
+                        const updated = cid
+                          ? await resolveSessionCombatReaction(session.id, {
+                              action: 'skip',
+                              character_id: cid,
+                            })
+                          : await patchSessionCombat(session.id, {
+                              action: 'set_waiting_reaction',
+                              waiting_reaction: false,
+                            })
                         setSession(updated)
                         await reloadEvents()
                         setToast('Реакция пропущена')
@@ -3298,6 +3308,11 @@ export function SessionDetailPage() {
           )?.character_name ?? 'Герой'
         }
         hint={session.combat?.reaction_hint}
+        reactionKey={
+          session.combat?.waiting_reaction
+            ? `${session.combat.reaction_character_id ?? ''}:${session.combat.reaction_hint ?? ''}`
+            : null
+        }
         onDeclare={() => {
           const cid = session.combat?.reaction_character_id
           if (!cid) return

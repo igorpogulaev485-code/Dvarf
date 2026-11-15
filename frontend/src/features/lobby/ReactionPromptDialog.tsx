@@ -8,6 +8,8 @@ type Props = {
   busy?: boolean
   characterName: string
   hint?: string | null
+  /** Меняется на каждую новую реакцию — перезапуск автопропуска (audit M4). */
+  reactionKey?: string | null
   onDeclare: () => void
   onSkip: () => void
 }
@@ -21,6 +23,7 @@ export function ReactionPromptDialog({
   busy = false,
   characterName,
   hint,
+  reactionKey = null,
   onDeclare,
   onSkip,
 }: Props) {
@@ -35,6 +38,8 @@ export function ReactionPromptDialog({
       skippedRef.current = false
       return
     }
+    // Audit M4: новая реакция при уже open=true должна сбросить таймер
+    // (иначе автопропуск старой реакции срезает следующую).
     setSecondsLeft(AUTO_SKIP_SECONDS)
     skippedRef.current = false
     const started = Date.now()
@@ -51,7 +56,7 @@ export function ReactionPromptDialog({
       }
     }, 250)
     return () => window.clearInterval(tick)
-  }, [open])
+  }, [open, reactionKey])
 
   return (
     <Dialog
