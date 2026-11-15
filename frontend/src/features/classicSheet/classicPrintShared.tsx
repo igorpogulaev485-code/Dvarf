@@ -11,7 +11,6 @@ export function Expanding({
   className,
   fill,
   style: styleProp,
-  readOnly = true,
 }: {
   value: string
   onChange?: (value: string) => void
@@ -21,16 +20,14 @@ export function Expanding({
   /** Stretch to fill a growable panel instead of hugging text height. */
   fill?: boolean
   style?: CSSProperties
+  /** Ignored — print blocks are always static text. */
   readOnly?: boolean
 }) {
-  const ref = useRef<HTMLTextAreaElement>(null)
+  const ref = useRef<HTMLDivElement>(null)
+  const empty = value.trim() === ''
   useLayoutEffect(() => {
     const el = ref.current
-    if (!el) return
-    if (!fill) {
-      el.style.height = '0px'
-      el.style.height = `${Math.max(el.scrollHeight, 24)}px`
-    }
+    if (!el || empty) return
     const computed = getComputedStyle(el)
     const cssMax = parseFloat(computed.getPropertyValue('--classic-fit-max-pt'))
     const start =
@@ -45,25 +42,30 @@ export function Expanding({
       size -= 0.25
       el.style.fontSize = `${size}pt`
     }
-  }, [value, fill])
+  }, [value, fill, empty])
   const style: CSSProperties = {
     ...(printMaxHeight ? ({ ['--print-max-height']: printMaxHeight } as CSSProperties) : null),
     ...styleProp,
   }
-  const classes = ['classic-expand', fill ? 'classic-expand--fill' : '', className]
+  const classes = [
+    'classic-expand',
+    fill ? 'classic-expand--fill' : '',
+    empty ? 'classic-expand--pencil' : '',
+    className,
+  ]
     .filter(Boolean)
     .join(' ')
   return (
-    <textarea
+    <div
       ref={ref}
       className={classes}
-      value={value}
       aria-label={ariaLabel}
-      rows={1}
+      role="text"
       style={style}
-      readOnly={readOnly}
-      tabIndex={readOnly ? -1 : undefined}
-    />
+      data-empty={empty ? '1' : undefined}
+    >
+      {empty ? null : value}
+    </div>
   )
 }
 

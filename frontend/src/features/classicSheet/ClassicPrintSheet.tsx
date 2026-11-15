@@ -65,7 +65,7 @@ import {
 } from './classicPrintShared'
 import { classicCombatDisplay, classicEffectiveAbilities } from './classicDerivedCombat'
 import {
-  ALIGNMENTS,
+  alignmentNameRu,
   alignmentNeedsClarification,
   recognizeAlignment,
 } from '../../shared/dnd/alignments'
@@ -76,7 +76,13 @@ import {
 import { ClassicTextBlock } from './ClassicTextBlock'
 import { ClassicFitViewport } from './ClassicFitViewport'
 import { ClassicFitInput } from './ClassicFitInput'
+import { ClassicStaticField } from './ClassicStaticField'
 import './classicPrint.css'
+
+const GENDER_LABELS: Record<string, string> = {
+  male: 'Мужской',
+  female: 'Женский',
+}
 
 /** FIX-01: 2024-бланк не тянем в чанк 2014 — убирает лишний парсинг при печати. */
 const ClassicPrint2024 = lazy(() =>
@@ -156,10 +162,16 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
   const alignmentRaw = String(identityField(c, 'alignment') ?? '')
   const alignmentText = String(identityField(c, 'alignment_text') ?? '')
   const alignmentSlug = recognizeAlignment(alignmentRaw) ?? ''
+  const alignmentDisplay =
+    alignmentNameRu(alignmentSlug) ||
+    alignmentText ||
+    (alignmentSlug ? '' : alignmentRaw)
   const alignmentUnparsed = alignmentNeedsClarification({
     alignment: alignmentSlug,
     alignmentText: alignmentText || (alignmentSlug ? '' : alignmentRaw),
   })
+  const genderRaw = String(physiqueField(c, 'gender') ?? '')
+  const genderDisplay = GENDER_LABELS[genderRaw] ?? genderRaw
   const passivePerception =
     10 +
     abilityModifier(scores.wis) +
@@ -177,64 +189,68 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
         <>
       <article className="classic-sheet classic-page1" aria-label="Классический лист 2014, страница 1">
         <header className="classic-header">
-          <div className="classic-brand">
+          <div className="classic-brand" aria-hidden="true">
             <strong>D&amp;D</strong>
             <span>{brandYearLabel('2014')}</span>
           </div>
-          <label className="classic-name">
-            <span>Имя персонажа</span>
-            <ClassicFitInput
-              value={c.name}
-              aria-label="Имя персонажа"
-            />
-          </label>
+          <div className="classic-name">
+            <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
+            <span className="classic-field-label">Имя персонажа</span>
+          </div>
           <div className="classic-meta">
-            <label>
-              <span>Класс и уровень</span>
-              <input
+            <div className="classic-field">
+              <ClassicStaticField
                 value={classAndLevel}
-               readOnly />
-            </label>
-            <label>
-              <span>Предыстория</span>
-              <input
-                value={String(identityField(c, 'background') ?? '')}
-                readOnly
-                title="Выбор из справочника — в панели над листом (не печатается)"
+                fit
+                wrap
+                tone="body"
+                aria-label="Класс и уровень"
               />
-            </label>
-            <label>
-              <span>Имя игрока</span>
-              <input
+              <span className="classic-field-label">Класс и уровень</span>
+            </div>
+            <div className="classic-field">
+              <ClassicStaticField
+                value={String(identityField(c, 'background') ?? '')}
+                fit
+                wrap
+                aria-label="Предыстория"
+              />
+              <span className="classic-field-label">Предыстория</span>
+            </div>
+            <div className="classic-field">
+              <ClassicStaticField
                 value={String(identityField(c, 'player_name') ?? '')}
-               readOnly />
-            </label>
-            <label>
-              <span>Раса</span>
-              <input
-                value={c.race_name ?? ''}
-               readOnly />
-            </label>
-            <label>
-              <span>Мировоззрение</span>
-              <select
-                value={alignmentSlug}
-               disabled>
-                <option value="">—</option>
-                {ALIGNMENTS.map((row) => (
-                  <option key={row.slug} value={row.slug}>
-                    {row.nameRu}
-                  </option>
-                ))}
-              </select>
-              {alignmentUnparsed ? <span>Уточните мировоззрение</span> : null}
-            </label>
-            <label>
-              <span>Опыт</span>
-              <input
+                fit
+                wrap
+                aria-label="Имя игрока"
+              />
+              <span className="classic-field-label">Имя игрока</span>
+            </div>
+            <div className="classic-field">
+              <ClassicStaticField value={c.race_name ?? ''} fit wrap aria-label="Раса" />
+              <span className="classic-field-label">Раса</span>
+            </div>
+            <div className="classic-field">
+              <ClassicStaticField
+                value={alignmentDisplay}
+                fit
+                wrap
+                aria-label="Мировоззрение"
+              />
+              <span className="classic-field-label">Мировоззрение</span>
+              {alignmentUnparsed ? (
+                <span className="classic-field-hint">Уточните мировоззрение</span>
+              ) : null}
+            </div>
+            <div className="classic-field">
+              <ClassicStaticField
                 value={String(identityField(c, 'experience') ?? '')}
-               readOnly />
-            </label>
+                align="center"
+                tone="numeric"
+                aria-label="Опыт"
+              />
+              <span className="classic-field-label">Опыт</span>
+            </div>
           </div>
         </header>
 
@@ -245,29 +261,31 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                 {ABILITY_KEYS.map((key) => (
                   <div className="classic-ability" key={key}>
                     <div className="classic-ability__label">{ABILITY_NAMES[key]}</div>
-                    <input
-                      type="number"
-                      value={scores[key]}
-                     readOnly />
-                    <div className="classic-ability__mod">
+                    <div className="classic-ability__mod" aria-label={`Модификатор ${ABILITY_NAMES[key]}`}>
                       {formatModifier(abilityModifier(scores[key]))}
+                    </div>
+                    <div className="classic-ability__score" aria-label={ABILITY_NAMES[key]}>
+                      {scores[key]}
                     </div>
                   </div>
                 ))}
               </div>
               <div>
-                <label className="classic-insp">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(combatField(c, 'inspiration'))}
-                   disabled />
-                  Вдохновение
-                </label>
+                <div className="classic-insp">
+                  <Bubble
+                    filled={Boolean(combatField(c, 'inspiration'))}
+                    label="Вдохновение"
+                  />
+                  <span>Вдохновение</span>
+                </div>
                 <div className="classic-prof">
-                  <input
-                    type="number"
+                  <ClassicStaticField
                     value={proficiency}
-                   readOnly />
+                    align="center"
+                    tone="numeric"
+                    pencilLine={false}
+                    aria-label="Бонус владения"
+                  />
                   <span>Бонус владения</span>
                 </div>
                 <div className="classic-panel">
@@ -332,60 +350,87 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
 
           <div className="classic-col">
             <div className="classic-combat-row">
-              <label className="classic-combat-stat classic-combat-stat--ac">
-                <input
+              <div className="classic-combat-stat classic-combat-stat--ac">
+                <ClassicStaticField
                   value={combatNum('ac')}
-                 readOnly />
-                <span>Класс доспеха</span>
-              </label>
-              <label className="classic-combat-stat">
-                <input
+                  align="center"
+                  tone="display"
+                  pencilLine={false}
+                  aria-label="Класс доспеха"
+                />
+                <span className="classic-field-label">Класс доспеха</span>
+              </div>
+              <div className="classic-combat-stat">
+                <ClassicStaticField
                   value={combatNum('initiative')}
-                 readOnly />
-                <span>Инициатива</span>
-              </label>
-              <label className="classic-combat-stat">
-                <input
+                  align="center"
+                  tone="display"
+                  pencilLine={false}
+                  aria-label="Инициатива"
+                />
+                <span className="classic-field-label">Инициатива</span>
+              </div>
+              <div className="classic-combat-stat">
+                <ClassicStaticField
                   value={combatNum('speed')}
-                 readOnly />
-                <span>Скорость</span>
-              </label>
+                  align="center"
+                  tone="display"
+                  pencilLine={false}
+                  aria-label="Скорость"
+                />
+                <span className="classic-field-label">Скорость</span>
+              </div>
             </div>
 
             <div className="classic-panel classic-panel--hp">
-              <label className="classic-hp-max">
-                Максимум хитов
-                <input
+              <div className="classic-hp-max">
+                <span className="classic-field-label">Максимум хитов</span>
+                <ClassicStaticField
                   value={c.hp_max ?? ''}
-                 readOnly />
-              </label>
-              <input
+                  align="center"
+                  tone="numeric"
+                  className="classic-hp-max__value"
+                  aria-label="Максимум хитов"
+                />
+              </div>
+              <ClassicStaticField
                 className="classic-hp"
                 value={c.hp_current ?? ''}
+                align="center"
+                tone="display"
                 aria-label="Текущие хиты"
-               readOnly />
+              />
               <div className="classic-caption">Текущие хиты</div>
             </div>
 
             <div className="classic-panel classic-panel--hp-temp">
-              <input
+              <ClassicStaticField
                 className="classic-hp"
                 value={combatNum('hp_temp')}
+                align="center"
+                tone="display"
                 aria-label="Временные хиты"
-               readOnly />
+              />
               <div className="classic-caption">Временные хиты</div>
             </div>
 
             <div className="classic-hit-death-row">
               <section className="classic-panel classic-hit-dice">
-                <label>
-                  Всего
-                  <input value={hitDiceTotal} readOnly title="По уровню персонажа" />
-                </label>
-                <input
+                <div className="classic-hit-dice__total">
+                  <span className="classic-field-label">Всего</span>
+                  <ClassicStaticField
+                    value={hitDiceTotal}
+                    align="center"
+                    tone="numeric"
+                    aria-label="Всего костей хитов"
+                  />
+                </div>
+                <ClassicStaticField
                   value={hitDiceCurrent}
+                  align="center"
+                  tone="display"
                   aria-label="Текущие кости хитов"
-                 readOnly />
+                />
                 <div className="classic-caption">Кости хитов</div>
               </section>
               <section className="classic-panel classic-death-saves">
@@ -421,21 +466,24 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
               </div>
               {weapons.map((row, idx) => (
                 <div className="classic-weapon" key={row.id}>
-                  <input
+                  <ClassicStaticField
                     value={row.name}
+                    fit
+                    tone="compact"
                     aria-label={`Атака ${idx + 1}: название`}
-                    placeholder="—"
-                   readOnly />
-                  <input
+                  />
+                  <ClassicStaticField
                     value={row.attackBonus}
+                    align="center"
+                    tone="numeric"
                     aria-label={`Атака ${idx + 1}: бонус`}
-                    placeholder="—"
-                   readOnly />
-                  <input
+                  />
+                  <ClassicStaticField
                     value={row.damageLine}
+                    fit
+                    tone="compact"
                     aria-label={`Атака ${idx + 1}: урон`}
-                    placeholder="—"
-                   readOnly />
+                  />
                 </div>
               ))}
               <ClassicTextBlock
@@ -453,12 +501,15 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
             <div className="classic-panel classic-equip classic-panel--grow classic-panel--grow-lg">
               <div className="classic-coins" aria-label="Монеты">
                 {(['cp', 'sp', 'ep', 'gp', 'pp'] as const).map((k) => (
-                  <label key={k}>
-                    {k.toUpperCase()}
-                    <input
+                  <div className="classic-coin" key={k}>
+                    <span className="classic-field-label">{k.toUpperCase()}</span>
+                    <ClassicStaticField
                       value={coins[k]}
-                     readOnly />
-                  </label>
+                      align="center"
+                      tone="numeric"
+                      aria-label={k.toUpperCase()}
+                    />
+                  </div>
                 ))}
               </div>
               <div className="classic-equip-main">
@@ -515,28 +566,19 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
 
       <article className="classic-sheet classic-page2" aria-label="Классический лист 2014, страница 2">
         <header className="classic-header classic-header--page2">
-          <div className="classic-brand">
+          <div className="classic-brand" aria-hidden="true">
             <strong>D&amp;D</strong>
             <span>{brandYearLabel('2014')}</span>
           </div>
-          <label className="classic-name">
-            <span>Имя персонажа</span>
-            <ClassicFitInput
-              value={c.name}
-              aria-label="Имя персонажа"
-            />
-          </label>
+          <div className="classic-name">
+            <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
+            <span className="classic-field-label">Имя персонажа</span>
+          </div>
           <div className="classic-physique">
-            <label>
-              <span>Пол</span>
-              <select
-                value={physiqueField(c, 'gender')}
-               disabled>
-                <option value="">—</option>
-                <option value="male">Мужской</option>
-                <option value="female">Женский</option>
-              </select>
-            </label>
+            <div className="classic-field">
+              <ClassicStaticField value={genderDisplay} fit aria-label="Пол" />
+              <span className="classic-field-label">Пол</span>
+            </div>
             {(
               [
                 ['age', 'Возраст'],
@@ -547,12 +589,14 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                 ['hair', 'Волосы'],
               ] as const
             ).map(([key, label]) => (
-              <label key={key}>
-                <span>{label}</span>
-                <input
+              <div className="classic-field" key={key}>
+                <ClassicStaticField
                   value={physiqueField(c, key)}
-                 readOnly />
-              </label>
+                  fit
+                  aria-label={label}
+                />
+                <span className="classic-field-label">{label}</span>
+              </div>
             ))}
           </div>
         </header>
@@ -628,17 +672,17 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
 
       <article className="classic-sheet classic-page3" aria-label="Классический лист 2014, страница 3">
         <header className="classic-spell-header">
-          <div className="classic-brand">
+          <div className="classic-brand" aria-hidden="true">
             <strong>D&amp;D</strong>
             <span>{brandYearLabel('2014')}</span>
           </div>
-          <label className="classic-name">
-            <span>Класс заклинателя</span>
+          <div className="classic-name">
             <ClassicFitInput
               value={c.class_name ?? ''}
               aria-label="Класс заклинателя"
             />
-          </label>
+            <span className="classic-field-label">Класс заклинателя</span>
+          </div>
           {castProfiles.length > 1 ? (
             <div
               className="classic-spell-profiles"
@@ -667,29 +711,33 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
             </div>
           ) : (
             <div className="classic-spell-stats">
-              <label>
-                <span>Базовая характеристика</span>
-                <input
+              <div className="classic-field">
+                <ClassicStaticField
                   value={classicSpellAbilityLabel(spells.casting_ability)}
-                  placeholder="ИНТ / МУД / ХАР"
-                 readOnly />
-              </label>
-              <label>
-                <span>Сложность спасброска</span>
-                <input
+                  align="center"
+                  tone="body"
+                  aria-label="Базовая характеристика"
+                />
+                <span className="classic-field-label">Базовая характеристика</span>
+              </div>
+              <div className="classic-field">
+                <ClassicStaticField
                   value={spellStats.saveDc}
-                  readOnly
-                  title="Считается от характеристики и бонуса владения"
+                  align="center"
+                  tone="numeric"
+                  aria-label="Сложность спасброска"
                 />
-              </label>
-              <label>
-                <span>Бонус атаки заклинанием</span>
-                <input
+                <span className="classic-field-label">Сложность спасброска</span>
+              </div>
+              <div className="classic-field">
+                <ClassicStaticField
                   value={spellStats.attackBonus}
-                  readOnly
-                  title="Считается от характеристики и бонуса владения"
+                  align="center"
+                  tone="numeric"
+                  aria-label="Бонус атаки заклинанием"
                 />
-              </label>
+                <span className="classic-field-label">Бонус атаки заклинанием</span>
+              </div>
             </div>
           )}
         </header>
@@ -734,10 +782,10 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
             <strong>D&amp;D</strong>
             <span>{brandYearLabel(sheetLayout)}</span>
           </div>
-          <label className="classic-name">
-            <span>Имя персонажа</span>
+          <div className="classic-name">
             <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
-          </label>
+            <span className="classic-field-label">Имя персонажа</span>
+          </div>
           <div className="classic-companions-banner">
             <strong>Напарники</strong>
             <span>
@@ -756,34 +804,51 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
               key={row?.id ?? `slot-${pageIndex}-${index}`}
             >
               <div className="classic-companion-card__top">
-                <label className="classic-companion-card__name">
-                  <span>Имя</span>
-                  <input value={row?.name ?? ''} readOnly />
-                </label>
-                <label className="classic-companion-card__kind">
-                  <span>Тип</span>
-                  <select value={row?.kind ?? 'other'} disabled>
-                    {(Object.keys(COMPANION_KIND_LABELS) as CompanionKind[]).map((kind) => (
-                      <option key={kind} value={kind}>
-                        {COMPANION_KIND_LABELS[kind]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <div className="classic-companion-card__name classic-field">
+                  <ClassicStaticField value={row?.name ?? ''} fit aria-label="Имя напарника" />
+                  <span className="classic-field-label">Имя</span>
+                </div>
+                <div className="classic-companion-card__kind classic-field">
+                  <ClassicStaticField
+                    value={
+                      row?.kind
+                        ? COMPANION_KIND_LABELS[row.kind as CompanionKind]
+                        : ''
+                    }
+                    fit
+                    aria-label="Тип напарника"
+                  />
+                  <span className="classic-field-label">Тип</span>
+                </div>
               </div>
               <div className="classic-companion-card__stats">
-                <label>
-                  <span>КД</span>
-                  <input value={row?.stats.ac ?? ''} readOnly />
-                </label>
-                <label>
-                  <span>Хиты</span>
-                  <input value={row?.stats.hp ?? ''} readOnly />
-                </label>
-                <label>
-                  <span>Скорость</span>
-                  <input value={row?.stats.speed ?? ''} readOnly />
-                </label>
+                <div className="classic-field">
+                  <ClassicStaticField
+                    value={row?.stats.ac ?? ''}
+                    align="center"
+                    tone="numeric"
+                    aria-label="КД напарника"
+                  />
+                  <span className="classic-field-label">КД</span>
+                </div>
+                <div className="classic-field">
+                  <ClassicStaticField
+                    value={row?.stats.hp ?? ''}
+                    align="center"
+                    tone="numeric"
+                    aria-label="Хиты напарника"
+                  />
+                  <span className="classic-field-label">Хиты</span>
+                </div>
+                <div className="classic-field">
+                  <ClassicStaticField
+                    value={row?.stats.speed ?? ''}
+                    align="center"
+                    tone="compact"
+                    aria-label="Скорость напарника"
+                  />
+                  <span className="classic-field-label">Скорость</span>
+                </div>
               </div>
               <ClassicTextBlock
                 blockId={`companion_${pageIndex}_${index}`}
@@ -819,10 +884,10 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
               <strong>D&amp;D</strong>
               <span>{brandYearLabel(sheetLayout)}</span>
             </div>
-            <label className="classic-name">
-              <span>Имя персонажа</span>
+            <div className="classic-name">
               <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
-            </label>
+              <span className="classic-field-label">Имя персонажа</span>
+            </div>
             <div className="classic-companions-banner">
               <strong>Заметки</strong>
               <span>
@@ -851,12 +916,12 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
               paddedClassicNoteSlotsLocal(pageNotes).map((block, i) =>
                 block ? (
                   <section className="classic-panel classic-note-card" key={block.key}>
-                    <input
+                    <ClassicStaticField
                       className="classic-note-card__title-input"
                       value={classicNoteLabel(block)}
-                      placeholder="Название заметки"
+                      fit
+                      tone="body"
                       aria-label="Название заметки"
-                      readOnly
                     />
                     <ClassicTextBlock
                       blockId={`note_${block.key}`}
@@ -895,10 +960,10 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
               <strong>D&amp;D</strong>
               <span>{brandYearLabel(sheetLayout)}</span>
             </div>
-            <label className="classic-name">
-              <span>Имя персонажа</span>
+            <div className="classic-name">
               <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
-            </label>
+              <span className="classic-field-label">Имя персонажа</span>
+            </div>
             <div className="classic-companions-banner">
               <strong>Умения и особенности · продолжение</strong>
             </div>
@@ -928,10 +993,10 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
               <strong>D&amp;D</strong>
               <span>{brandYearLabel(sheetLayout)}</span>
             </div>
-            <label className="classic-name">
-              <span>Имя персонажа</span>
+            <div className="classic-name">
               <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
-            </label>
+              <span className="classic-field-label">Имя персонажа</span>
+            </div>
             <div className="classic-companions-banner">
               <strong>Снаряжение · продолжение</strong>
             </div>
@@ -1097,7 +1162,12 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
         <ul className="classic-spell-lines classic-spell-lines--cantrips">
           {rows.map((spell, i) => (
             <li key={spell?.id ?? `cantrip-${pageIndex}-${i}`}>
-              <input value={spell?.name ?? ''} readOnly />
+              <ClassicStaticField
+                value={spell?.name ?? ''}
+                fit
+                tone="compact"
+                aria-label={`Заговор ${i + 1}`}
+              />
             </li>
           ))}
         </ul>
@@ -1115,14 +1185,24 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
           <div className="classic-spell-level__badge">{level}</div>
           {pageIndex === 0 ? (
             <div className="classic-spell-level__slots">
-              <label>
-                Всего ячеек
-                <input type="number" value={slot.max || ''} readOnly />
-              </label>
-              <label>
-                Потрачено
-                <input type="number" value={slot.used || ''} readOnly />
-              </label>
+              <div className="classic-spell-level__slot">
+                <span className="classic-field-label">Всего ячеек</span>
+                <ClassicStaticField
+                  value={slot.max || ''}
+                  align="center"
+                  tone="numeric"
+                  aria-label={`Ячейки ${level} круга · всего`}
+                />
+              </div>
+              <div className="classic-spell-level__slot">
+                <span className="classic-field-label">Потрачено</span>
+                <ClassicStaticField
+                  value={slot.used || ''}
+                  align="center"
+                  tone="numeric"
+                  aria-label={`Ячейки ${level} круга · потрачено`}
+                />
+              </div>
             </div>
           ) : (
             <div className="classic-spell-level__title">Продолжение</div>
@@ -1134,7 +1214,12 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
               <span className="classic-bubble-btn classic-bubble-btn--static" aria-label="Подготовлено">
                 <span className={`classic-bubble ${spell?.prepared ? 'is-filled' : ''}`} />
               </span>
-              <input value={spell?.name ?? ''} readOnly />
+              <ClassicStaticField
+                value={spell?.name ?? ''}
+                fit
+                tone="compact"
+                aria-label={`Заклинание ${level} · ${i + 1}`}
+              />
             </li>
           ))}
         </ul>
