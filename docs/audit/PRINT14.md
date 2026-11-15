@@ -89,10 +89,37 @@
 
 ---
 
+## Pass 8 — шапка 2024 Торбин, смерть, монеты, отчёт HP PATCH
+
+1. **2024 шапка.** Поля предыстория/класс/раса/подкласс — `ClassicFitInput` + autofit как в 2014 (≥7 pt, затем перенос; при длинном мультиклассе до 4 строк, без обрезки слов).
+2. **СМЕРТЬ.** Кружки в группе `.classic-death-bubbles` с зазором от «Усп./Пров.» (не `margin-right: auto` из 2014).
+3. **Монеты.** Ряд 3+2, кроп всех 5 ячеек: Торбин 2014 и пустой бланк.
+4. **HP PATCH (бэкенд, уже в pass 7).** См. ниже. Тест: `tests/test_character_sheet_patch_hp.py`. Больше бэкенд не трогали.
+
+### Почему обнулялись хиты (простыми словами)
+
+При сохранении **только листа** (`PATCH /characters/{id}` с полем `sheet`, без `hp_current`/`hp_max`) сервис подтягивал хиты из `sheet.combat`. В боевом блоке этих чисел часто нет (классическая печать пишет туда layout/карандаш/шрифт, а не HP). Тогда в колонки персонажа записывался `null` — хиты на бланке становились пустыми.
+
+**Кто задевался:** любой, кто открывал классическую печать и менял настройки (макет 2014/2024, линии под карандаш, гарнитуру и т.п.). На проде это реальные игроки с такими действиями, не только сиды PRINT-14. Хиты в Play Desk/основном листе после этого тоже могли показываться пустыми, пока их снова не выставят.
+
+### Кадры pass 8
+
+| Кадр | md5 |
+|---|---|
+| after-torbin-2024-print-1.png | `6e2baefe728ddcae40ff7793f7e99639` |
+| after-torbin-2014-print-1.png | `20d828ee1cfcf3b2ece9acaeaf1cc1f2` |
+| after-torbin-crop-coins.png | `71a5234a88320589cd87ed8cdbfca671` |
+| after-blank-2014-print-1.png | `8d56ad90a10044819cc3a1cbc3497705` |
+| after-blank-crop-coins.png | `7e0e920873dfbed347a18acf515b3f36` |
+
+Каталоги: `pass8-before/` · `pass8-after/`.
+
+---
+
 ## Проверки
 
 - `frontend`: `npm run build` — ok
 - selfcheck: classicPrint14, classicPrintSettings — ok
-- `backend`: `pytest` — 378 passed
+- `backend`: `pytest` — 380 passed (incl. HP sheet-patch)
 - Alembic: одна голова
-- Кадры pass7: Vite + API, Chromium PDF + pdftoppm; stuck-words = 0
+- Кадры pass8: Vite + API, Chromium PDF + pdftoppm

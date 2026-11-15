@@ -43,6 +43,7 @@ import {
   clampMarks,
 } from './classicPrintShared'
 import { classicCombatDisplay, classicEffectiveAbilities } from './classicDerivedCombat'
+import { formatClassLevelLabel, formatClassSummary } from '../../shared/dnd/classLevels'
 import {
   ALIGNMENTS,
   alignmentNeedsClarification,
@@ -123,6 +124,9 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
     subclassName: String(identityField(c, 'subclass_name') ?? ''),
     classCatalogId: null,
   })
+  const classSummary = formatClassSummary(sheetClasses)
+  const classAndLevel =
+    classSummary || formatClassLevelLabel(c.class_name, c.level)
   const subclassLabel =
     sheetClasses
       .map((row) => row.subclass_name.trim())
@@ -175,31 +179,35 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
             </label>
             <div className="classic-lss-id-grid">
               <label>
-                <input
+                <ClassicFitInput
                   value={String(identityField(c, 'background') ?? '')}
-                  readOnly
+                  wrap
+                  aria-label="Предыстория"
                   title="Выбор из справочника — в панели над листом"
                 />
                 <span>Предыстория</span>
               </label>
               <label>
-                <input
-                  value={c.class_name ?? ''}
-                  readOnly
+                <ClassicFitInput
+                  value={classAndLevel}
+                  wrap
+                  aria-label="Класс"
                 />
                 <span>Класс</span>
               </label>
               <label>
-                <input
+                <ClassicFitInput
                   value={c.race_name ?? ''}
-                  readOnly
+                  wrap
+                  aria-label="Раса"
                 />
                 <span>Раса</span>
               </label>
               <label>
-                <input
+                <ClassicFitInput
                   value={subclassLabel}
-                  readOnly
+                  wrap
+                  aria-label="Подкласс"
                 />
                 <span>Подкласс</span>
               </label>
@@ -289,23 +297,27 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
               <span className="classic-lss-block-title">Смерть</span>
               <div className="classic-death-line">
                 <span>Усп.</span>
-                {[0, 1, 2].map((i) => (
-                  <Bubble
-                    key={`s${i}`}
-                    filled={deathSuccesses > i}
-                    label={`Успех ${i + 1}`}
-                  />
-                ))}
+                <span className="classic-death-bubbles">
+                  {[0, 1, 2].map((i) => (
+                    <Bubble
+                      key={`s${i}`}
+                      filled={deathSuccesses > i}
+                      label={`Успех ${i + 1}`}
+                    />
+                  ))}
+                </span>
               </div>
               <div className="classic-death-line">
                 <span>Пров.</span>
-                {[0, 1, 2].map((i) => (
-                  <Bubble
-                    key={`f${i}`}
-                    filled={deathFails > i}
-                    label={`Провал ${i + 1}`}
-                  />
-                ))}
+                <span className="classic-death-bubbles">
+                  {[0, 1, 2].map((i) => (
+                    <Bubble
+                      key={`f${i}`}
+                      filled={deathFails > i}
+                      label={`Провал ${i + 1}`}
+                    />
+                  ))}
+                </span>
               </div>
             </div>
           </div>

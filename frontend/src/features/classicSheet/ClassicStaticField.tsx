@@ -61,11 +61,13 @@ export function ClassicStaticField({
           : parseFloat(computed.fontSize) || 18)
       let size = start
       el.style.fontSize = `${size}px`
-      // Long names: lock a 2-line box so autofit prefers wrap over tiny single-line type.
+      // Long values: lock a 2-line box so autofit prefers wrap over tiny single-line type.
       if (wrap) {
         el.style.whiteSpace = 'normal'
-        el.style.height = '2.55rem'
-        el.style.maxHeight = '2.55rem'
+        const wrapH =
+          computed.getPropertyValue('--classic-fit-wrap-height').trim() || '2.55rem'
+        el.style.height = wrapH
+        el.style.maxHeight = wrapH
       }
       const overflows = () => {
         const w = el.scrollWidth > el.clientWidth + 1
@@ -75,6 +77,16 @@ export function ClassicStaticField({
       while (size > minFontPx && overflows()) {
         size -= 0.5
         el.style.fontSize = `${size}px`
+      }
+      // Still overflowing at ≥7pt → grow wrap box line-by-line (cap 4)
+      // so long multiclass strings keep whole words (no mid-word clip).
+      if (wrap && overflows()) {
+        const line = Math.max(size * 1.2, minFontPx * 1.15)
+        for (let lines = 3; lines <= 4 && overflows(); lines += 1) {
+          const h = `${(line * lines).toFixed(1)}px`
+          el.style.height = h
+          el.style.maxHeight = h
+        }
       }
     }
 

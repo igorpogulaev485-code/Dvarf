@@ -50,6 +50,17 @@ assert(print2024.length > 100, 'ClassicPrint2024 present')
 assert(print2024.includes('classicHpDisplay'), '2024 HP helper fills Тек/Макс')
 assert(print2024.includes('subclassLabel'), '2024 subclass from class levels')
 assert(print2024.includes("Медь"), '2024 coin words')
+assert(print2024.includes('ClassicFitInput'), '2024 header uses ClassicFitInput')
+assert(
+  /classic-lss-id-grid[\s\S]*ClassicFitInput[\s\S]*wrap[\s\S]*Класс/.test(print2024) ||
+    print2024.includes('aria-label="Класс"'),
+  '2024 class field autofit+wrap',
+)
+assert(
+  /\.classic-lss-death \.classic-death-line\s*\{[^}]*gap:\s*0\.55rem/.test(css),
+  '2024 death label/bubble gap',
+)
+assert(css.includes('classic-lss-death .classic-death-bubbles'), '2024 death bubbles group')
 
 const fromApi = readFileSync(join(here, 'fromApi.ts'), 'utf8')
 assert(fromApi.includes('stripTrailingItemQty'), 'dedupe ×N in equipment line')
