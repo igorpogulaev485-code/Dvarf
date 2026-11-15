@@ -5,6 +5,7 @@ khoravar,Khoravar,Кхоравар,EFA,species,https://next.dnd.su/species/khora
 shifter,Shifter,Шифтер,EFA,species,https://next.dnd.su/species/shifter,https://new.ttg.club/species/shifter-efa,false
 warforged,Warforged,Кованый,EFA,species,https://next.dnd.su/species/warforged,https://new.ttg.club/species/warforged-efa,false
 boggart,Boggart,Боггарт,LFL,species,https://next.dnd.su/species/boggart,https://new.ttg.club/species/boggart-lfl,false
+elf__lfl,Elf,Эльф,LFL,species,,https://new.ttg.club/species/elf-lfl,false
 faerie,Faerie,Феери,LFL,species,https://next.dnd.su/species/faerie,https://new.ttg.club/species/faerie-lfl,false
 flamekin,Flamekin,Огневик,LFL,species,https://next.dnd.su/species/flamekin,https://new.ttg.club/species/flamekin-lfl,false
 kithkin,Kithkin,Свояк,LFL,species,https://next.dnd.su/species/kithkin,https://new.ttg.club/species/kithkin-lfl,false
@@ -13,7 +14,7 @@ rimekin,Rimekin,Измороз,LFL,species,https://next.dnd.su/species/rimekin,h
 aasimar,Aasimar,Аасимар,PH24,species,https://next.dnd.su/species/aasimar,https://new.ttg.club/species/aasimar-phb,false
 dragonborn,Dragonborn,Драконорождённый,PH24,species,https://next.dnd.su/species/dragonborn,https://new.ttg.club/species/dragonborn-phb,true
 dwarf,Dwarf,Дварф,PH24,species,https://next.dnd.su/species/dwarf,https://new.ttg.club/species/dwarf-phb,true
-elf,Elf,Эльф,PH24,species,https://next.dnd.su/species/elf,https://new.ttg.club/species/elf-lfl,true
+elf,Elf,Эльф,PH24,species,https://next.dnd.su/species/elf,https://new.ttg.club/species/elf-phb,true
 gnome,Gnome,Гном,PH24,species,https://next.dnd.su/species/gnome,https://new.ttg.club/species/gnome-phb,true
 goliath,Goliath,Голиаф,PH24,species,https://next.dnd.su/species/goliath,https://new.ttg.club/species/goliath-phb,true
 halfling,Halfling,Полурослик,PH24,species,https://next.dnd.su/species/halfling,https://new.ttg.club/species/halfling-phb,true

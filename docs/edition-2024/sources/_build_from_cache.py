@@ -303,32 +303,62 @@ def primary_book_from_sources(srcs: list[int], prefer: list[str] | None = None) 
     return mapped[0] if mapped else None
 
 
-def ttg_index(path: str) -> dict[str, dict]:
-    """Index by normalized English name only (avoids false slug collisions)."""
+TTG_LABEL_TO_BOOK = {
+    "PHB": "PH24", "DMG": "DMG24", "MM": "MM24", "EFA": "EFA", "FRHOF": "FRHoF",
+    "FRAIF": "FRAiF", "NF": "NsF", "ABH": "ABH", "LFL": "LFL", "RHW": "RTW",
+    "RTW": "RTW", "DDBD": "DDBD", "AU": "AU", "AUD": "AUD", "SRD": "SRD",
+}
+BOOK_TO_TTG_SUFFIX = {
+    "PH24": {"phb"}, "DMG24": {"dmg"}, "MM24": {"mm"}, "EFA": {"efa"},
+    "FRHoF": {"frhof"}, "FRAiF": {"fraif"}, "NsF": {"nf"}, "ABH": {"abh"},
+    "LFL": {"lfl"}, "RTW": {"rhw", "rtw"}, "DDBD": {"ddbd"}, "AU": {"au"},
+    "AUD": {"aud"}, "SRD": {"srd"},
+}
+
+
+def ttg_index(path: str) -> dict[str, list[dict]]:
+    """Index by normalized English name → list of ttg cards (may differ by book)."""
     p = CACHE / "ttg/api" / path
     if not p.exists():
         return {}
     data = json.loads(p.read_text())
     if not isinstance(data, list):
         return {}
-    out: dict[str, dict] = {}
+    out: dict[str, list[dict]] = {}
     for it in data:
         eng = ((it.get("name") or {}).get("eng") or "").strip()
         if not eng:
             continue
+        label = (((it.get("source") or {}).get("name") or {}).get("label") or "")
+        if label in EXCLUDE_TTG_LABELS or label.startswith("UA"):
+            continue
         key = eng.lower().replace("’", "'")
-        # Prefer official Basic-group when duplicates share an English name.
-        prev = out.get(key)
-        group = (((it.get("source") or {}).get("group") or {}).get("label") or "")
-        if prev is None or group == "Basic":
-            out[key] = it
+        out.setdefault(key, []).append(it)
     return out
 
 
-def ttg_lookup(index: dict[str, dict], name_en: str) -> dict | None:
+def ttg_lookup(index: dict[str, list[dict]], name_en: str, book: str | None = None) -> dict | None:
     if not name_en:
         return None
-    return index.get(name_en.lower().replace("’", "'"))
+    cands = index.get(name_en.lower().replace("’", "'")) or []
+    if not cands:
+        return None
+    if book:
+        want = BOOK_TO_TTG_SUFFIX.get(book, set())
+        for it in cands:
+            slug = (it.get("url") or "").split("/")[-1]
+            suf = slug.split("-")[-1].lower() if "-" in slug else ""
+            label = (((it.get("source") or {}).get("name") or {}).get("label") or "")
+            mapped = TTG_LABEL_TO_BOOK.get(label)
+            if suf in want or mapped == book:
+                return it
+        return None  # do not attach wrong-book / UA ttg URL
+    # Prefer Basic-group official when book not specified
+    for it in cands:
+        group = (((it.get("source") or {}).get("group") or {}).get("label") or "")
+        if group == "Basic":
+            return it
+    return cands[0]
 
 
 def ttg_url(category: str, it: dict | None) -> str:
@@ -409,7 +439,7 @@ def build_species():
             note_excluded("species", rid, en, ru, f"неофициальная/неизвестная книга: {code}", "dnd.su", dnd_abs(href))
             continue
         book = books[0]
-        tit = ttg_lookup(ttg, en)
+        tit = ttg_lookup(ttg, en, book)
         ru = compare_names("species", rid, en, ru, ((tit.get("name") or {}).get("rus") if tit else ""))
         rows.append({
             "id": rid, "name_en": en, "name_ru": ru, "book": book, "category": "species",
@@ -453,7 +483,7 @@ def build_classes():
         if not book:
             note_excluded("classes", rid, en, ru, f"книга не из плана: {src}", "dnd.su", dnd_abs(href))
             continue
-        tit = ttg_lookup(ttg, en)
+        tit = ttg_lookup(ttg, en, book)
         ru = compare_names("classes", rid, en, ru, ((tit.get("name") or {}).get("rus") if tit else ""))
         rows.append({
             "id": rid, "name_en": en, "name_ru": ru, "book": book, "category": "classes",
@@ -523,7 +553,7 @@ def build_backgrounds():
         if not book:
             note_excluded("backgrounds", b["id"], b["name_en"], b["name_ru"], f"книга {b['source_code']}", "dnd.su", dnd_abs(b["href"]))
             continue
-        tit = ttg_lookup(ttg, b["name_en"])
+        tit = ttg_lookup(ttg, b["name_en"], book)
         ru = compare_names("backgrounds", b["id"], b["name_en"], b["name_ru"], ((tit.get("name") or {}).get("rus") if tit else ""))
         rows.append({
             "id": b["id"], "name_en": b["name_en"], "name_ru": ru, "book": book, "category": "backgrounds",
@@ -551,7 +581,7 @@ def build_feats():
             continue
         feat_cat = FEAT_CAT.get(c.get("type_order") or c.get("item_icon_title") or "", "general")
         # TTG category cross-check
-        tit = ttg_lookup(ttg, en)
+        tit = ttg_lookup(ttg, en, book)
         ru = compare_names("feats", rid, en, ru, ((tit.get("name") or {}).get("rus") if tit else ""))
         rows.append({
             "id": rid, "name_en": en, "name_ru": ru, "book": book, "category": "feats",
@@ -587,7 +617,7 @@ def build_spells():
         if not school:
             for fid in c.get("filter_school") or []:
                 school = SCHOOL_MAP.get(str(fid), school)
-        tit = ttg_lookup(ttg, en)
+        tit = ttg_lookup(ttg, en, book)
         ru = compare_names("spells", rid, en, ru, ((tit.get("name") or {}).get("rus") if tit else ""))
         rows.append({
             "id": rid, "name_en": en, "name_ru": ru, "book": book, "category": "spells",
@@ -609,7 +639,7 @@ def build_equipment_split():
         en = e["name_en"]
         ru = e["name_ru"]
         rid = e["id"]
-        tit = ttg_lookup(ttg_items, en)
+        tit = ttg_lookup(ttg_items, en, "PH24")
         ru = compare_names("equipment", rid, en, ru, ((tit.get("name") or {}).get("rus") if tit else ""))
         base = {
             "id": rid, "name_en": en, "name_ru": ru, "book": "PH24",
@@ -649,7 +679,7 @@ def build_magic_items():
             codes = [DND_SOURCE_MAP.get(s, str(s)) for s in srcs]
             note_excluded("magic_items", rid, en, ru, f"неофициальные источники: {codes}", "dnd.su", dnd_abs(link))
             continue
-        tit = ttg_lookup(ttg, en)
+        tit = ttg_lookup(ttg, en, book)
         ru = compare_names("magic_items", rid, en, ru, ((tit.get("name") or {}).get("rus") if tit else ""))
         # Disambiguate same English slug published under different books/URLs.
         uniq = rid
@@ -681,7 +711,7 @@ def build_creatures():
             codes = [DND_SOURCE_MAP.get(s, str(s)) for s in srcs]
             note_excluded("creatures", rid, en, ru, f"неофициальные источники: {codes}", "dnd.su", dnd_abs(link))
             continue
-        tit = ttg_lookup(ttg, en)
+        tit = ttg_lookup(ttg, en, book)
         ru = compare_names("creatures", rid, en, ru, ((tit.get("name") or {}).get("rus") if tit else ""))
         rows.append({
             "id": rid, "name_en": en, "name_ru": ru, "book": book, "category": "creatures",
@@ -700,7 +730,7 @@ def build_glossary():
         rid = e["id"]
         en = e["name_en"]
         ru = re.sub(r"#\s*⤒", "", e["name_ru"]).strip()
-        tit = ttg_lookup(ttg, en) if en else None
+        tit = ttg_lookup(ttg, en, "PH24") if en else None
         if tit:
             ru = compare_names("glossary", rid, en, ru, ((tit.get("name") or {}).get("rus") if tit else ""))
         sub = e.get("section") or "general"

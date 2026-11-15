@@ -39,6 +39,12 @@ SRD 5.2.1 PDF: [SRD_CC_v5.2.1.pdf](https://media.dndbeyond.com/compendium-images
 - **next.dnd.su богаче** по объёму официальных карточек в заклинаниях, магических предметах и бестиарии (в эталон взяты списки dnd.su; ttg использован для русских имён и перекрёстной проверки).
 - **new.ttg.club** иногда даёт карточку, которой нет в официальном срезе dnd.su после отсева — такие 3rd/UA/HB ушли в `excluded.md`, в эталон не брались.
 - Подклассы: эталон собран с страниц классов **next.dnd.su** (в HTML есть `class__subclass__holder` + источник). Детальные страницы классов ttg в Nuxt на дату опроса не отдали вложенный список подклассов в SSR.
+- **Elf (Lorwyn / LFL):** на ttg есть отдельная карточка [`elf-lfl`](https://new.ttg.club/species/elf-lfl); на next.dnd.su отдельного вида «Эльф» из LFL нет (только PH24 `/species/elf`). В эталон добавлена строка `elf__lfl` только со ссылкой ttg.
+- **Черты EFA без карточки книги на ttg:** у 14 черт next.dnd.su помечает книгу EFA, а на ttg есть только вариант с суффиксом `-uaeu` (Unearthed Arcana). UA в эталон не входит → `url_ttg` пустой:
+
+  `aberrant-dragonmark`, `boon-of-siberys`, `greater-aberrant-mark`, `greater-mark-of-handling`, `greater-mark-of-passage`, `greater-mark-of-shadow`, `greater-mark-of-storm`, `mark-of-detection`, `mark-of-hospitality`, `mark-of-passage`, `mark-of-sentinel`, `mark-of-shadow`, `mark-of-storm`, `mark-of-warding`.
+
+- **Ссылки ttg другой книги (очищены, чтобы суффикс = книга строки):** `windskiff` (FRHoF, на ttg только `-fraif`), `potion-of-healing` PH24 (на ttg только `-dmg`), `will-o-wisp` MM24 (slug `-dmg`), `phaerimm-agent` / `phaerimm-hatchling` NsF (на ttg `-fraif`).
 
 Примеры расхождений состава (не названий): см. также `counts.json` и таблицу в README/PR.
 
