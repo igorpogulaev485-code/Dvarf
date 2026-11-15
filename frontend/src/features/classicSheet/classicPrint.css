@@ -152,23 +152,66 @@
 .classic-name {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  gap: 0.06rem;
+  justify-content: flex-start;
+  gap: 0.08rem;
   border: var(--c-frame-accent);
   border-radius: 0.35rem;
-  padding: 0.14rem 0.36rem 0.2rem;
+  padding: 0.2rem 0.36rem 0.18rem;
   background: #fff;
   min-width: 0;
+}
+
+.classic-name--banner {
+  position: relative;
+  border-radius: 0.55rem 0.2rem 0.2rem 0.55rem;
+  padding: 0.28rem 0.55rem 0.22rem 0.7rem;
+  background:
+    linear-gradient(90deg, #f0f0f0 0 0.18rem, #fff 0.18rem),
+    #fff;
+  box-shadow: inset 0 0 0 1pt #000;
+  min-height: 0.85in;
+  justify-content: center;
+}
+
+.classic-name--banner::before,
+.classic-name--banner::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 0.42rem;
+  height: 0.72rem;
+  border: 1.25pt solid #000;
+  background: #f3f3f3;
+  transform: translateY(-50%);
+}
+
+.classic-name--banner::before {
+  left: -0.12rem;
+  border-radius: 0.08rem 0 0 0.08rem;
+  clip-path: polygon(0 0, 100% 18%, 100% 82%, 0 100%);
+}
+
+.classic-name--banner::after {
+  right: -0.12rem;
+  border-radius: 0 0.08rem 0.08rem 0;
+  clip-path: polygon(0 18%, 100% 0, 100% 100%, 0 82%);
 }
 
 .classic-name .classic-static,
 .classic-name .classic-fit-input {
   font-family: var(--font-display);
-  font-size: 1.18rem;
+  font-size: 1.12rem;
   font-weight: 650;
   border-bottom: none;
-  min-height: 1.45rem;
-  --classic-fit-max-px: 19.5;
+  min-height: 1.35rem;
+  --classic-fit-max-px: 20;
+}
+
+.classic-name--banner .classic-static--wrap,
+.classic-name--banner .classic-fit-input.classic-static--wrap {
+  max-height: 2.6rem;
+  min-height: 1.5rem;
+  line-height: 1.2;
 }
 
 .classic-print-toolbar {
@@ -428,6 +471,47 @@
   min-height: 0.62in;
 }
 
+/* Official-style: one plate, two rows of ruled cells */
+.classic-meta--plate {
+  gap: 0;
+  border: var(--c-frame-accent);
+  border-radius: 0.28rem;
+  background: #fff;
+  overflow: hidden;
+  min-height: 0.95in;
+}
+
+.classic-meta__cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.04rem;
+  min-width: 0;
+  padding: 0.14rem 0.28rem 0.12rem;
+  border-right: 0.7pt solid var(--c-line);
+  border-bottom: 0.7pt solid var(--c-line);
+  background: #fff;
+}
+
+.classic-meta__cell:nth-child(3n) {
+  border-right: none;
+}
+
+.classic-meta__cell:nth-child(n + 4) {
+  border-bottom: none;
+}
+
+.classic-meta__cell .classic-static {
+  border-bottom: var(--c-hair);
+  min-height: 1.15rem;
+}
+
+.classic-header--p1 {
+  grid-template-columns: 0.68in 2.45in 1fr;
+  gap: 0.12in;
+  align-items: stretch;
+}
+
 /* ——— Body columns ——— */
 .classic-body {
   flex: 1 1 auto;
@@ -504,21 +588,47 @@
   gap: 0.08in;
 }
 
+.classic-abilities-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.12in;
+}
+
 .classic-ability {
-  border: var(--c-frame-accent);
-  border-radius: 0.55rem;
-  text-align: center;
-  padding: 0.14rem 0.08rem 0.72rem;
-  margin-bottom: 0;
   position: relative;
-  background: #fff;
+  text-align: center;
+  margin-bottom: 0;
   flex: 1 1 0;
-  min-height: 0.78in;
+  min-height: 0.82in;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 0.55rem;
+}
+
+.classic-ability__frame {
+  width: 100%;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 0.08rem;
+  gap: 0.1rem;
+  padding: 0.16rem 0.08rem 0.42rem;
+  border: 1.75pt solid #000;
+  border-radius: 0.42rem 0.42rem 0.62rem 0.62rem;
+  background: #fff;
+  clip-path: polygon(
+    8% 0,
+    92% 0,
+    100% 10%,
+    100% 88%,
+    92% 100%,
+    8% 100%,
+    0 88%,
+    0 10%
+  );
 }
 
 .classic-ability__label {
@@ -530,66 +640,101 @@
   line-height: 1.1;
 }
 
-/* Official 2014: large modifier, small score oval at bottom */
+/* Official 2014: large modifier, readable score oval below frame */
 .classic-ability__mod {
   flex: 1 1 auto;
   display: grid;
   place-items: center;
   width: 100%;
   font-family: var(--font-display);
-  font-size: 1.22rem;
+  font-size: 1.28rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  min-height: 1.15rem;
+  min-height: 1.2rem;
 }
 
 .classic-ability__score {
   position: absolute;
   left: 50%;
-  bottom: -0.4rem;
+  bottom: 0;
   transform: translateX(-50%);
-  width: 1.32rem;
-  height: 1.05rem;
-  border: var(--c-frame-accent);
-  border-radius: 50% / 48%;
+  width: 1.55rem;
+  height: 1.28rem;
+  border: 1.75pt solid #000;
+  border-radius: 50%;
   background: #fff;
   display: grid;
   place-items: center;
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  z-index: 2;
 }
 
 .classic-insp,
 .classic-prof,
 .classic-passive {
   display: flex;
-  gap: 0.32rem;
+  gap: 0.28rem;
   align-items: center;
   border: var(--c-frame);
-  border-radius: var(--c-radius-pill);
-  padding: 0.12rem 0.38rem;
+  border-radius: 0.2rem;
+  padding: 0.08rem 0.28rem 0.08rem 0.08rem;
   margin-bottom: var(--c-gap);
-  font-size: 0.58rem;
+  font-size: 0.56rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   background: #fff;
 }
 
+.classic-plate-box {
+  flex: 0 0 auto;
+  width: 1.15rem;
+  height: 1.15rem;
+  display: grid;
+  place-items: center;
+  border: 1.25pt solid #000;
+  border-radius: 0.12rem;
+  background: #fff;
+}
+
+.classic-plate-box--value {
+  width: 1.35rem;
+  border-radius: 50%;
+}
+
 .classic-insp .classic-bubble-btn {
   flex: 0 0 auto;
 }
 
-.classic-prof .classic-static {
-  width: 1.45rem;
-  flex: 0 0 auto;
+.classic-prof .classic-static,
+.classic-plate-box .classic-static {
+  width: 100%;
   border-bottom: none;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   padding: 0;
   min-height: 0;
+}
+
+.classic-col--stats,
+.classic-col--combat,
+.classic-col--persona {
+  background: #ececec;
+  padding: 0.08in 0.07in 0.07in;
+  border-radius: 0.18rem;
+}
+
+.classic-col--stats .classic-panel,
+.classic-col--combat .classic-panel,
+.classic-col--persona .classic-panel,
+.classic-col--stats .classic-insp,
+.classic-col--stats .classic-prof,
+.classic-col--stats .classic-passive,
+.classic-col--combat .classic-combat-stat {
+  background: #fff;
 }
 
 .classic-panel {
@@ -639,14 +784,22 @@
 .classic-caption {
   position: absolute;
   left: 50%;
-  bottom: 0.06rem;
+  bottom: 0.04rem;
   transform: translateX(-50%);
   white-space: nowrap;
   background: var(--c-caption-bg);
-  padding: 0 0.28rem;
-  max-width: calc(100% - 0.4rem);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  padding: 0 0.22rem;
+  max-width: calc(100% - 0.2rem);
+  overflow: visible;
+  text-overflow: clip;
+  z-index: 1;
+}
+
+.classic-caption--full {
+  font-size: 6.2pt;
+  letter-spacing: 0.06em;
+  max-width: none;
+  white-space: nowrap;
 }
 
 .classic-check {
@@ -753,10 +906,36 @@
 }
 
 .classic-combat-stat--ac {
-  border-radius: 42% 42% 18% 18% / 34% 34% 58% 58%;
-  padding-top: 0.32rem;
-  border-width: 1.75pt;
+  border: none;
+  background: transparent;
+  padding: 0;
+  min-height: 0;
+  align-items: center;
+}
+
+.classic-ac-shield {
+  width: 100%;
+  min-height: 1.55rem;
+  display: grid;
+  place-items: center;
+  padding: 0.35rem 0.2rem 0.55rem;
+  border: 1.75pt solid #000;
   background: #fff;
+  clip-path: polygon(
+    12% 0,
+    88% 0,
+    100% 14%,
+    100% 58%,
+    50% 100%,
+    0 58%,
+    0 14%
+  );
+}
+
+.classic-ac-shield .classic-static {
+  border-bottom: none;
+  font-size: 1.15rem;
+  min-height: 1.1rem;
 }
 
 .classic-hp-max {
@@ -821,6 +1000,7 @@
   display: grid;
   gap: 0.28rem;
   padding-top: 0.1rem;
+  padding-bottom: 0.7rem;
 }
 
 .classic-death-line {
@@ -830,8 +1010,33 @@
   justify-content: flex-end;
 }
 
-.classic-death-line > span {
+.classic-death-line > span:first-child {
   margin-right: auto;
+}
+
+.classic-death-bubbles {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  position: relative;
+  padding: 0 0.08rem;
+}
+
+.classic-death-bubbles::before {
+  content: '';
+  position: absolute;
+  left: 0.28rem;
+  right: 0.28rem;
+  top: 50%;
+  height: 0;
+  border-top: 1pt solid #000;
+  z-index: 0;
+}
+
+.classic-death-bubbles .classic-bubble-btn {
+  position: relative;
+  z-index: 1;
+  background: #fff;
 }
 
 .classic-attacks-head,
@@ -852,12 +1057,26 @@
   border-bottom: var(--c-hair);
   margin-bottom: 0.06rem;
   gap: 0.14rem;
+  padding: 0.08rem 0.12rem;
+}
+
+.classic-weapon--slot {
+  background: #e8e8e8;
+  border-bottom: none;
+  border-radius: 0.08rem;
+  min-height: 1.05rem;
+  margin-bottom: 0.1rem;
 }
 
 .classic-weapon .classic-static {
   border-bottom: none;
   min-height: 0.95rem;
   font-size: inherit;
+}
+
+.classic-panel--attacks .classic-weapon:not(.classic-weapon--slot) {
+  background: transparent;
+  border-bottom: var(--c-hair);
 }
 
 .classic-equip-items {
@@ -876,47 +1095,81 @@
 
 .classic-equip {
   display: grid;
-  grid-template-columns: 0.62in minmax(0, 1fr);
-  gap: 0.16rem;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0.14rem;
+  align-items: stretch;
 }
 
+/* Top strip: five equal coin cells (wraps to 2 rows if the column is tight). */
 .classic-coins {
   display: grid;
-  gap: 0.05rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.08rem;
   align-content: start;
-  align-self: start;
+  grid-column: 1;
+  grid-row: 1;
 }
 
 .classic-coin {
-  display: grid;
-  grid-template-columns: 0.28in minmax(0, 1fr);
-  gap: 0.06rem;
-  align-items: center;
-  border: 1pt solid var(--c-line);
-  border-radius: var(--c-radius-pill);
-  padding: 0 0.1rem;
-  min-height: 0;
-  height: 1.02rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  border: 1.25pt solid #000;
+  border-radius: 0.22rem;
+  padding: 0.08rem 0.04rem 0.08rem;
+  min-height: 0.55in;
   box-sizing: border-box;
-  background: var(--c-paper-tint);
+  background: #fff;
+  clip-path: none;
 }
 
-.classic-coin .classic-field-label {
-  font-size: 0.46rem;
-  letter-spacing: 0.05em;
+.classic-coin__mark {
+  display: block;
+  margin-top: auto;
+  padding-top: 0.05rem;
+  border-top: 0.55pt solid #000;
+  font-size: 0.33rem;
+  font-weight: 700;
+  letter-spacing: 0.015em;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.05;
+  color: #000;
+  border-right: none;
+  height: auto;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: manual;
+  -webkit-hyphens: manual;
 }
 
 .classic-coin .classic-static {
-  border-bottom: none;
+  border-bottom: none !important;
   text-align: center;
-  font-size: 0.66rem;
-  font-weight: 650;
+  font-size: 0.88rem;
+  font-weight: 700;
   min-width: 0;
-  min-height: 0;
-  height: 100%;
+  min-height: 0.26in;
+  height: auto;
+  flex: 1 1 auto;
   padding: 0;
   line-height: 1;
+  display: grid;
+  place-items: center;
+}
+
+.classic-coin .classic-static--pencil,
+.classic-coin .classic-static__pencil,
+.classic-coin .classic-static--pencil::after {
+  display: none;
+}
+
+@media (max-width: 22rem) {
+  .classic-coins {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .classic-expand {
@@ -1009,9 +1262,9 @@
 
 .classic-equip.classic-panel--grow {
   display: grid;
-  grid-template-columns: 0.62in minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 0.16rem;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0.14rem;
   align-items: stretch;
   min-height: 0;
 }
@@ -1019,13 +1272,13 @@
 .classic-equip.classic-panel--grow .classic-coins {
   grid-column: 1;
   grid-row: 1;
-  align-self: start; /* don't stretch coins to panel height */
+  align-self: stretch;
   align-content: start;
 }
 
 .classic-equip-main {
-  grid-column: 2;
-  grid-row: 1;
+  grid-column: 1;
+  grid-row: 2;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -1154,6 +1407,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  box-shadow: 0 0 0 0.08in #ececec;
 }
 
 .classic-spell-level--grow {
@@ -1169,15 +1423,15 @@
 }
 
 .classic-spell-level__badge {
-  width: 1.15rem;
-  height: 1.15rem;
-  border: 2px solid var(--c-line);
-  border-radius: 4px;
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 1.75pt solid #000;
+  border-radius: 50%;
   display: grid;
   place-items: center;
   font-weight: 700;
-  font-size: 0.75rem;
-  background: var(--c-paper-tint);
+  font-size: 0.72rem;
+  background: #e8e8e8;
   flex: 0 0 auto;
 }
 
@@ -1232,18 +1486,33 @@
   align-items: center;
   border-bottom: var(--c-hair);
   flex: 1 1 0;
-  min-height: 0.92rem;
+  min-height: 0.88rem;
+  max-height: 1.05rem;
 }
 
 .classic-spell-lines--cantrips li {
   grid-template-columns: 1fr;
+  min-height: 0.88rem;
+  max-height: 1.05rem;
 }
 
 .classic-spell-lines .classic-static {
   border-bottom: none;
   font-size: 0.66rem;
-  min-height: 0.88rem;
+  min-height: 0.82rem;
   padding: 0;
+}
+
+/* Equal rhythm: higher levels shouldn't stretch empty lines taller */
+.classic-spell-col .classic-spell-level--grow {
+  flex: 1 1 0;
+}
+
+.classic-page3 .classic-spell-columns {
+  background: #ececec;
+  padding: 0.08in;
+  border-radius: 0.16rem;
+  gap: 0.08in;
 }
 
 /* ——— Page 4: companions (Dvarf extension) ——— */
@@ -2540,17 +2809,32 @@
     overflow: hidden !important;
   }
 
+  .classic-col--stats,
+  .classic-col--combat,
+  .classic-col--persona,
+  .classic-page3 .classic-spell-columns,
+  .classic-weapon--slot,
+  .classic-spell-level__badge {
+    background: #e8e8e8 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
   .classic-panel,
   .classic-field,
   .classic-name,
   .classic-brand,
-  .classic-ability,
+  .classic-ability__frame,
   .classic-insp,
   .classic-prof,
   .classic-passive,
   .classic-combat-stat,
   .classic-spell-level,
-  .classic-coin {
+  .classic-coin,
+  .classic-ac-shield,
+  .classic-meta--plate,
+  .classic-ability__score,
+  .classic-plate-box {
     background: #fff !important;
     border-color: #000 !important;
   }

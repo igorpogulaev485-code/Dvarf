@@ -7,19 +7,22 @@ type Props = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & {
   maxFontPx?: number
   /** Min font-size in px before giving up (default ≈ 7pt). */
   minFontPx?: number
+  /** Allow 2-line wrap for long character names. */
+  wrap?: boolean
   /** Kept for call-site compatibility; print fields are always static. */
   readOnly?: boolean
   'aria-label'?: string
 }
 
 /**
- * Single-line header field: shrinks font so long values stay readable
+ * Header field: shrinks font so long values stay readable
  * instead of clipping inside the A4 blank. Always static print ink.
  */
 export function ClassicFitInput({
   value,
   maxFontPx,
   minFontPx,
+  wrap = false,
   className,
   style,
   readOnly: _readOnly,
@@ -30,6 +33,7 @@ export function ClassicFitInput({
     <ClassicStaticField
       value={value}
       fit
+      wrap={wrap}
       maxFontPx={maxFontPx}
       minFontPx={minFontPx}
       tone="display"
