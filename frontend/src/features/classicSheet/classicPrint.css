@@ -1,26 +1,281 @@
-/* Classic 2014 printable sheet — visual tokens (S1) + P1 fidelity (S2) */
+/* Classic 2014 printable sheet — typographic blank (PRINT-14)
+   Modular unit u = 0.08in. Line weights: hair 0.5pt / frame 1.25pt / accent 1.75pt. */
 
 .classic-print-page {
-  --c-ink: #1c1c1c;
-  --c-muted: #5c564c;
-  --c-line: #2a2a2a;
-  --c-line-soft: #c8c0b4;
-  --c-paper: #fffdf8;
-  --c-paper-tint: #f6f1e6;
+  --c-ink: #111;
+  --c-muted: #3a3a3a;
+  --c-line: #1a1a1a;
+  --c-line-soft: #9a9a9a;
+  --c-paper: #fff;
+  --c-paper-tint: #f3f3f3;
   --c-desk: #cfc6b6;
-  --c-caption-bg: #fffdf8;
-  --c-radius-panel: 0.42rem;
+  --c-caption-bg: #fff;
+  --c-radius-panel: 0.28rem;
   --c-radius-pill: 999px;
+  --c-u: 0.08in;
+  --c-gap: calc(var(--c-u) * 1.25);
+  --c-frame: 1.25pt solid var(--c-line);
+  --c-frame-accent: 1.75pt solid var(--c-line);
+  --c-hair: 0.55pt solid var(--c-line-soft);
   --font-display: 'Source Serif 4', 'Times New Roman', 'DejaVu Serif', serif;
   --font-ui: 'IBM Plex Sans', 'Segoe UI', 'DejaVu Sans', sans-serif;
-  --font-script: 'Pinyon Script', 'Segoe Script', 'Comic Sans MS', cursive;
+  --font-script: 'Marck Script', 'Bad Script', 'Segoe Script', cursive;
+  --classic-ink-font: var(--font-display);
   --classic-toolbar-h: 3.25rem;
+  --classic-label-size: 7pt;
+  --classic-label-track: 0.08em;
 
   min-height: 100vh;
   background: var(--c-desk);
   color: var(--c-ink);
   font-family: var(--font-ui);
   scroll-padding-top: calc(var(--classic-toolbar-h) + 0.5rem);
+}
+
+/* B&W default: white sheet, black ink. Color: cream blank. */
+.classic-print-page[data-classic-color='bw'] {
+  --c-paper: #fff;
+  --c-paper-tint: #f3f3f3;
+  --c-desk: #cfc6b6;
+  --c-ink: #111;
+  --c-caption-bg: #fff;
+}
+
+.classic-print-page[data-classic-color='color'] {
+  --c-paper: #f3ebe0;
+  --c-paper-tint: #ebe2d4;
+  --c-desk: #c4b8a4;
+  --c-ink: #1a1510;
+  --c-caption-bg: #f3ebe0;
+}
+
+/* Filled-in values follow chosen body font; form labels stay on --font-ui. */
+.classic-print-page .classic-static,
+.classic-print-page .classic-expand,
+.classic-print-page .classic-check,
+.classic-print-page .classic-check strong,
+.classic-print-page .classic-ability__mod,
+.classic-print-page .classic-ability__score,
+.classic-print-page .classic-hp,
+.classic-print-page .classic-passive strong,
+.classic-print-page .classic-insp strong,
+.classic-print-page .classic-prof strong,
+.classic-print-page .classic-weapon,
+.classic-print-page .classic-note-card__title-input,
+.classic-print-page .classic-lss .classic-static,
+.classic-print-page .classic-lss-ability__modbox,
+.classic-print-page .classic-lss-ability__scorebox {
+  font-family: var(--classic-ink-font);
+}
+
+.classic-print-page[data-classic-name-script='1'] .classic-name .classic-static,
+.classic-print-page[data-classic-name-script='1'] .classic-name .classic-fit-input,
+.classic-print-page[data-classic-name-script='1'] .classic-lss-name .classic-static,
+.classic-print-page[data-classic-name-script='1'] .classic-lss-name .classic-fit-input {
+  font-family: var(--font-script);
+}
+
+/* ——— Static print ink (no form controls) ——— */
+.classic-static {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 1.05rem;
+  padding: 0.02rem 0 0.04rem;
+  border: none;
+  border-bottom: var(--c-hair);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1.2;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip;
+}
+
+.classic-static--display {
+  font-family: var(--classic-ink-font);
+  font-weight: 650;
+  border-bottom: none;
+}
+
+.classic-static--numeric {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.classic-static--compact {
+  font-size: 0.68rem;
+  font-weight: 550;
+}
+
+.classic-static--body {
+  font-size: 0.82rem;
+  font-weight: 550;
+}
+
+.classic-static--fit {
+  min-width: 0;
+}
+
+.classic-static--wrap {
+  white-space: normal;
+  overflow: hidden;
+  word-break: break-word;
+  line-height: 1.15;
+  min-height: 1.35rem;
+  max-height: 2.4rem;
+}
+
+.classic-meta .classic-field .classic-static--wrap {
+  max-height: 2.35rem;
+}
+
+.classic-static--pencil {
+  border-bottom: none;
+  position: relative;
+}
+
+.classic-static__pencil,
+.classic-static--pencil::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 0;
+  border-bottom: var(--c-hair);
+  margin-top: 0.85rem;
+}
+
+.classic-static--pencil .classic-static__pencil {
+  margin-top: 0.85rem;
+}
+
+.classic-static--pencil::after {
+  display: none;
+}
+
+.classic-field {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.06rem;
+  border: var(--c-frame);
+  border-radius: 0.32rem;
+  padding: 0.12rem 0.3rem 0.18rem;
+  background: #fff;
+  min-width: 0;
+}
+
+.classic-field-label,
+.classic-caption,
+.classic-name .classic-field-label,
+.classic-attacks-head,
+.classic-combat-stat .classic-field-label,
+.classic-hp-max .classic-field-label,
+.classic-death-line > span,
+.classic-physique .classic-field-label,
+.classic-spell-stats .classic-field-label,
+.classic-companion-card .classic-field-label,
+.classic-coin .classic-field-label,
+.classic-spell-level__slot .classic-field-label,
+.classic-hit-dice__total .classic-field-label {
+  font-size: var(--classic-label-size);
+  letter-spacing: var(--classic-label-track);
+  text-transform: uppercase;
+  color: var(--c-muted);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.classic-field-hint {
+  font-size: 0.5rem;
+  color: var(--c-muted);
+  letter-spacing: 0.04em;
+}
+
+.classic-name {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0.08rem;
+  border: var(--c-frame-accent);
+  border-radius: 0.35rem;
+  padding: 0.2rem 0.36rem 0.18rem;
+  background: #fff;
+  min-width: 0;
+}
+
+.classic-name--banner {
+  position: relative;
+  border-radius: 0.18rem;
+  padding: 0.22rem 0.7rem 0.18rem;
+  background: #fff;
+  box-shadow: inset 0 0 0 1.5pt #000;
+  min-height: 0.92in;
+  justify-content: center;
+  /* Ribbon ends via SVG-ish polygon (prints more reliably than soft rolls). */
+  clip-path: polygon(
+    0.35rem 0,
+    calc(100% - 0.35rem) 0,
+    100% 0.22rem,
+    100% calc(100% - 0.22rem),
+    calc(100% - 0.35rem) 100%,
+    0.35rem 100%,
+    0 calc(100% - 0.22rem),
+    0 0.22rem
+  );
+}
+
+.classic-name--banner::before,
+.classic-name--banner::after {
+  content: '';
+  position: absolute;
+  top: 0.12rem;
+  bottom: 0.12rem;
+  width: 0.38rem;
+  border: 1.25pt solid #000;
+  background: #ececec;
+  z-index: 0;
+}
+
+.classic-name--banner::before {
+  left: 0.08rem;
+  border-radius: 0.06rem 0 0 0.06rem;
+}
+
+.classic-name--banner::after {
+  right: 0.08rem;
+  border-radius: 0 0.06rem 0.06rem 0;
+}
+
+.classic-name .classic-static,
+.classic-name .classic-fit-input {
+  font-family: var(--classic-ink-font);
+  font-size: 1.12rem;
+  font-weight: 650;
+  border-bottom: none;
+  min-height: 1.35rem;
+  --classic-fit-max-px: 22;
+}
+
+.classic-name--banner .classic-static,
+.classic-name--banner .classic-fit-input {
+  max-height: none;
+  min-height: 1.35rem;
+  line-height: 1.2;
+  overflow: hidden;
+}
+
+/* Long names: up to 2 lines, autofit — never mid-word clip. */
+.classic-name--banner .classic-static--wrap,
+.classic-name--banner .classic-fit-input.classic-static--wrap {
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  max-height: 2.7rem;
+  min-height: 1.55rem;
+  line-height: 1.2;
+  text-overflow: clip;
 }
 
 .classic-print-toolbar {
@@ -30,11 +285,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem 1rem;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 0.75rem 1.25rem;
   background: #1f2420;
   color: #f5f2eb;
+  overflow: visible;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .classic-print-toolbar a {
@@ -48,14 +306,216 @@
   font-size: 0.75rem;
 }
 
+.classic-toolbar-identity {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 12rem;
+}
+
+.classic-toolbar-identity__title {
+  font-weight: 650;
+}
+
 .classic-toolbar-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem 1rem;
+  align-items: start;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.classic-toolbar-actions__controls {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem 0.85rem;
   align-items: center;
+  min-width: 0;
 }
 
-.classic-layout-switch {
+.classic-print-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+  flex: 0 0 auto;
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.classic-print-cta .ui-button {
+  white-space: nowrap;
+}
+
+.classic-blank-link.ui-button {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  border-color: transparent;
+  background: transparent;
+  opacity: 0.88;
+  font-weight: 550;
+}
+
+.classic-blank-link.ui-button:hover:not(:disabled) {
+  opacity: 1;
+  background: rgb(255 255 255 / 8%);
+}
+
+/* Kit ToggleChip as clear on/off switch face. */
+.classic-print-toolbar .classic-toolbar-switch.ui-toggle-chip {
+  display: inline-grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.55rem;
+  max-width: 14rem;
+  padding: 0.35rem 0.55rem 0.35rem 0.65rem;
+}
+
+.classic-print-toolbar .classic-toolbar-switch .ui-toggle-chip__rest {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.4rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 1;
+  background: rgb(0 0 0 / 28%);
+  color: #e8e4db;
+}
+
+.classic-print-toolbar .classic-toolbar-switch.ui-toggle-chip.is-on .ui-toggle-chip__rest {
+  background: #1f2420;
+  color: #f5f2eb;
+}
+
+.classic-toolbar-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
+}
+
+.classic-toolbar-group__label {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.classic-toolbar-group__hint {
+  font-size: 0.68rem;
+  opacity: 0.55;
+}
+
+.classic-toolbar-stepper {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.classic-toolbar-stepper__controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.classic-toolbar-stepper__value {
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Dark toolbar: kit segmented / chips keep contrast. */
+.classic-print-toolbar .classic-toolbar-segmented.ui-segmented {
+  background: rgb(0 0 0 / 28%);
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 0.45rem;
+  padding: 0.15rem;
+  gap: 0.15rem;
+}
+
+.classic-print-toolbar .classic-toolbar-segmented .ui-segmented__item {
+  color: #e8e4db;
+  background: transparent;
+  border: 0;
+  min-width: 3.1rem;
+}
+
+.classic-print-toolbar .classic-toolbar-segmented .ui-segmented__item.is-on {
+  background: #f5f2eb;
+  color: #1f2420;
+}
+
+.classic-print-toolbar .classic-toolbar-chip.ui-toggle-chip {
+  background: rgb(0 0 0 / 28%);
+  border: 1px solid rgb(255 255 255 / 18%);
+  color: #e8e4db;
+  max-width: 11rem;
+}
+
+.classic-print-toolbar .classic-toolbar-chip.ui-toggle-chip.is-on {
+  background: #f5f2eb;
+  color: #1f2420;
+  border-color: #f5f2eb;
+}
+
+.classic-print-toolbar .classic-toolbar-chip .ui-toggle-chip__rest {
+  opacity: 0.7;
+  font-size: 0.62rem;
+}
+
+.classic-print-toolbar .ui-button--secondary,
+.classic-print-toolbar .ui-button--ghost {
+  border-color: rgb(255 255 255 / 22%);
+  color: #e8e4db;
+  background: rgb(0 0 0 / 22%);
+}
+
+.classic-print-toolbar .ui-button--secondary:hover:not(:disabled),
+.classic-print-toolbar .ui-button--ghost:hover:not(:disabled) {
+  background: rgb(255 255 255 / 10%);
+}
+
+.classic-print-toolbar .ui-button--primary {
+  background: #f5f2eb;
+  color: #1f2420;
+  border-color: #f5f2eb;
+}
+
+.classic-print-typo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.85rem 1.1rem;
+  padding: 0.85rem 1.25rem;
+  background: var(--panel, #fbf7ec);
+  border-bottom: 1px solid var(--line, #d8d0c0);
+}
+
+.classic-print-typo__field {
+  min-width: 9.5rem;
+  margin: 0;
+}
+
+.classic-print-typo__chip {
+  align-self: center;
+}
+
+.classic-print-typo__hint {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted, #5c564c);
+  line-height: 1.35;
+}
+
+.classic-layout-switch,
+.classic-color-switch {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
@@ -74,7 +534,8 @@
   opacity: 0.7;
 }
 
-.classic-layout-switch button {
+.classic-layout-switch button,
+.classic-color-switch button {
   min-width: 3.1rem;
   min-height: 2rem;
   padding: 0.35rem 0.65rem;
@@ -89,20 +550,25 @@
   opacity: 1;
 }
 
-.classic-layout-switch button:hover:not(:disabled):not(.is-active) {
+/* MOB-FIX: hover must not override .is-active; keep color-switch parity for PRINT-14 */
+.classic-layout-switch button:hover:not(:disabled):not(.is-active),
+.classic-color-switch button:hover:not(:disabled):not(.is-active) {
   background: rgb(255 255 255 / 14%);
   border-color: rgb(255 255 255 / 34%);
 }
 
 /* Active must match shown layout; beat :hover specificity so click/hover never washes accent out */
 .classic-layout-switch button.is-active,
-.classic-layout-switch button.is-active:hover:not(:disabled) {
+.classic-layout-switch button.is-active:hover:not(:disabled),
+.classic-color-switch button.is-active,
+.classic-color-switch button.is-active:hover:not(:disabled) {
   background: #f5f2eb;
   border-color: #f5f2eb;
   color: #1f2420;
 }
 
-.classic-layout-switch button:disabled {
+.classic-layout-switch button:disabled,
+.classic-color-switch button:disabled {
   opacity: 0.45;
   cursor: default;
 }
@@ -202,18 +668,16 @@
   height: 297mm;
   min-height: 297mm;
   max-height: 297mm;
-  padding: 5mm 5mm 4mm;
+  padding: 5mm 5.5mm 4.5mm;
   display: flex;
   flex-direction: column;
-  overflow: visible;
-  background:
-    linear-gradient(180deg, rgb(255 253 248 / 96%), rgb(250 245 235 / 98%)),
-    var(--c-paper);
+  overflow: hidden;
+  background: var(--c-paper);
   color: var(--c-ink);
-  border: 1px solid #b7a996;
+  border: 1px solid #bbb;
   box-shadow:
     0 1px 0 rgb(255 255 255 / 55%) inset,
-    0 12px 28px rgb(40 30 10 / 14%);
+    0 10px 24px rgb(40 30 10 / 12%);
 }
 
 .classic-sheet * {
@@ -241,40 +705,12 @@
 .classic-physique {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.1in;
+  gap: var(--c-gap);
 }
 
-.classic-physique label {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 0.08rem;
-  border: 1.75px solid var(--c-line);
-  border-radius: 0.45rem;
-  padding: 0.14rem 0.32rem 0.24rem;
-  background: #fff;
-}
-
-.classic-physique span {
-  font-size: 0.54rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--c-muted);
-  font-weight: 700;
-}
-
-.classic-physique input,
-.classic-physique select {
-  border: none;
-  border-bottom: 1px solid var(--c-line-soft);
-  background: transparent;
-  outline: none;
-  width: 100%;
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 550;
-  min-height: 1.1rem;
-  padding: 0.05rem 0;
+.classic-physique .classic-field {
+  border-radius: 0.32rem;
+  padding: 0.1rem 0.26rem 0.14rem;
 }
 
 .classic-brand {
@@ -282,97 +718,124 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 0.12rem;
-  border: 2.5px solid var(--c-line);
-  border-radius: 0.35rem;
+  gap: 0.1rem;
+  border: var(--c-frame-accent);
+  border-radius: 0.28rem;
   background: var(--c-paper-tint);
   text-align: center;
-  padding: 0.15rem;
+  padding: 0.18rem 0.14rem;
+  box-sizing: border-box;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .classic-brand strong {
-  font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-family: var(--classic-ink-font);
+  font-size: 1.28rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+/* 2014 mark — «К р и D 2 0» column, upright letters, even gaps. */
+.classic-brand strong.classic-brand__wordmark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.08em;
+  max-width: 100%;
+  font-family: var(--classic-ink-font);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
+}
+
+.classic-brand strong.classic-brand__wordmark b {
+  display: block;
+  width: 1.15em;
+  text-align: center;
+  font: inherit;
+  font-weight: inherit;
+  letter-spacing: 0;
   line-height: 1;
 }
 
 .classic-brand span {
-  font-size: 0.55rem;
+  font-size: 0.52rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--c-muted);
 }
 
-.classic-name,
-.classic-meta label {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 0.08rem;
-  border: 1.75px solid var(--c-line);
-  border-radius: 0.45rem;
-  padding: 0.16rem 0.38rem 0.28rem;
-  background: #fff;
+/* Year under letter column — stay inside the 0.72in plate. */
+.classic-brand:has(.classic-brand__wordmark) {
+  gap: 0.16rem;
+  padding: 0.2rem 0.1rem;
 }
 
-.classic-name span,
-.classic-meta span,
-.classic-caption,
-.classic-combat-stat span,
-.classic-hp-max,
-.classic-death-line > span,
-.classic-attacks-head {
-  font-size: 0.54rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--c-muted);
-  font-weight: 700;
-}
-
-.classic-name input,
-.classic-meta input,
-.classic-ability input,
-.classic-combat-stat input,
-.classic-prof input,
-.classic-hp,
-.classic-hp-max input,
-.classic-hit-dice input,
-.classic-coins input,
-.classic-weapon input {
-  border: none;
-  border-bottom: 1px solid var(--c-line-soft);
-  background: transparent;
-  outline: none;
-  width: 100%;
-  font: inherit;
-  color: inherit;
-  min-height: 1.1rem;
-  padding: 0.05rem 0;
-}
-
-.classic-name input {
-  font-family: var(--font-display);
-  font-size: 1.22rem;
-  font-weight: 650;
-  border-bottom: none;
-  min-height: 1.55rem;
-  --classic-fit-max-px: 19.5;
-  min-width: 0;
+.classic-brand:has(.classic-brand__wordmark) > span {
+  font-size: 0.4rem;
+  letter-spacing: 0.05em;
+  max-width: 100%;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: clip;
 }
 
 .classic-meta {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.1in;
+  gap: var(--c-gap);
 }
 
-.classic-meta input {
-  font-size: 0.82rem;
-  font-weight: 550;
+.classic-meta .classic-field {
+  min-height: 0.62in;
+}
+
+/* Official-style: one plate, two rows of ruled cells */
+.classic-meta--plate {
+  gap: 0;
+  border: var(--c-frame-accent);
+  border-radius: 0.28rem;
+  background: #fff;
+  overflow: hidden;
+  min-height: 0.95in;
+}
+
+.classic-meta__cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.04rem;
+  min-width: 0;
+  padding: 0.14rem 0.28rem 0.12rem;
+  border-right: 0.7pt solid var(--c-line);
+  border-bottom: 0.7pt solid var(--c-line);
+  background: #fff;
+}
+
+.classic-meta__cell:nth-child(3n) {
+  border-right: none;
+}
+
+.classic-meta__cell:nth-child(n + 4) {
+  border-bottom: none;
+}
+
+.classic-meta__cell .classic-static {
+  border-bottom: var(--c-hair);
+  min-height: 1.15rem;
+}
+
+.classic-header--p1 {
+  grid-template-columns: 0.68in 2.45in 1fr;
+  gap: 0.12in;
+  align-items: stretch;
 }
 
 /* ——— Body columns ——— */
@@ -380,7 +843,7 @@
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: 2.48in 2.52in 1fr;
+  grid-template-columns: 2.65in 2.5in 1fr;
   gap: 0.1in;
   align-items: stretch;
 }
@@ -438,8 +901,9 @@
 
 .classic-abilities-wrap {
   display: grid;
-  grid-template-columns: 0.9in 1fr;
-  gap: 0.1in;
+  /* Wide enough for «ТЕЛОСЛОЖЕНИЕ» at ≥6pt (fit caption). */
+  grid-template-columns: 0.84in minmax(0, 1fr);
+  gap: 0.05in;
   align-items: stretch;
   flex: 0 0 auto;
 }
@@ -451,104 +915,193 @@
   gap: 0.08in;
 }
 
+.classic-abilities-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.12in;
+}
+
 .classic-ability {
-  border: 2.25px solid var(--c-line);
-  border-radius: 0.65rem;
-  text-align: center;
-  padding: 0.18rem 0.08rem 0.5rem;
-  margin-bottom: 0;
   position: relative;
-  background: linear-gradient(180deg, #fff, var(--c-paper-tint));
+  text-align: center;
+  margin-bottom: 0;
   flex: 1 1 0;
-  min-height: 0.72in;
+  min-height: 0.82in;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 0.55rem;
+}
+
+.classic-ability__frame {
+  position: relative;
+  width: 100%;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.04rem;
+  padding: 0.3rem 0.28rem 0.62rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  clip-path: none;
+  z-index: 1;
+  box-sizing: border-box;
+}
+
+/* Figurine frame: concave corners (SVG prints reliably; clip-path does not). */
+.classic-ability__svg {
+  position: absolute;
+  inset: 0 0 0.22rem 0;
+  width: 100%;
+  height: calc(100% - 0.22rem);
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+
+.classic-ability__svg path {
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 2.2;
+  vector-effect: non-scaling-stroke;
 }
 
 .classic-ability__label {
-  font-size: 0.52rem;
+  position: relative;
+  z-index: 1;
+  font-size: 7pt;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: -0.02em;
   text-transform: uppercase;
   color: var(--c-ink);
-}
-
-.classic-ability input {
-  font-family: var(--font-display);
-  font-size: 1.28rem;
-  font-weight: 700;
+  line-height: 1.05;
+  width: calc(100% - 0.12rem);
+  max-width: calc(100% - 0.12rem);
+  padding: 0.1rem 0.02rem 0;
+  margin: 0 auto;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
   text-align: center;
-  border-bottom: none;
-  -moz-appearance: textfield;
 }
 
-.classic-ability input::-webkit-outer-spin-button,
-.classic-ability input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
+/* Official 2014: large modifier, readable score oval below frame */
 .classic-ability__mod {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  font-family: var(--classic-ink-font);
+  font-size: 1.22rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  /* Pass 9b: empty mod keeps the same floor as filled ink. */
+  min-height: 1.35rem;
+}
+
+.classic-ability__score {
   position: absolute;
   left: 50%;
-  bottom: -0.42rem;
+  bottom: 0;
   transform: translateX(-50%);
-  width: 1.38rem;
-  height: 1.38rem;
-  border: 2px solid var(--c-line);
+  width: 1.42rem;
+  height: 1.05rem;
+  min-height: 1.05rem;
+  border: 1.75pt solid #000;
   border-radius: 50%;
   background: #fff;
   display: grid;
   place-items: center;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  box-shadow: 0 1px 0 rgb(0 0 0 / 6%);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  z-index: 2;
 }
 
 .classic-insp,
 .classic-prof,
 .classic-passive {
   display: flex;
-  gap: 0.35rem;
+  gap: 0.28rem;
   align-items: center;
-  border: 1.75px solid var(--c-line);
-  border-radius: var(--c-radius-pill);
-  padding: 0.14rem 0.42rem;
-  margin-bottom: 0.1in;
-  font-size: 0.62rem;
+  border: var(--c-frame);
+  border-radius: 0.2rem;
+  padding: 0.08rem 0.28rem 0.08rem 0.08rem;
+  margin-bottom: var(--c-gap);
+  font-size: 0.56rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   background: #fff;
 }
 
-.classic-insp input[type='checkbox'] {
-  width: 0.85rem;
-  height: 0.85rem;
-  accent-color: var(--c-ink);
+.classic-plate-box {
+  flex: 0 0 auto;
+  width: 1.15rem;
+  height: 1.15rem;
+  display: grid;
+  place-items: center;
+  border: 1.25pt solid #000;
+  border-radius: 0.12rem;
+  background: #fff;
 }
 
-.classic-prof input {
-  width: 1.55rem;
-  text-align: center;
-  font-size: 0.95rem;
-  font-weight: 700;
+.classic-plate-box--value {
+  width: 1.35rem;
+  border-radius: 50%;
+}
+
+.classic-insp .classic-bubble-btn {
+  flex: 0 0 auto;
+}
+
+.classic-prof .classic-static,
+.classic-plate-box .classic-static {
+  width: 100%;
   border-bottom: none;
-  -moz-appearance: textfield;
+  font-size: 0.9rem;
+  padding: 0;
+  min-height: 0;
 }
 
-.classic-prof input::-webkit-outer-spin-button,
-.classic-prof input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+.classic-col--stats,
+.classic-col--combat,
+.classic-col--persona {
+  background: #ececec;
+  padding: 0.08in 0.07in 0.07in;
+  border-radius: 0.18rem;
+}
+
+.classic-col--stats .classic-panel,
+.classic-col--combat .classic-panel,
+.classic-col--persona .classic-panel,
+.classic-col--stats .classic-insp,
+.classic-col--stats .classic-prof,
+.classic-col--stats .classic-passive,
+.classic-col--combat .classic-combat-stat:not(.classic-combat-stat--ac) {
+  background: #fff;
 }
 
 .classic-panel {
-  border: 1.75px solid var(--c-line);
+  border: var(--c-frame);
   border-radius: var(--c-radius-panel);
-  padding: 0.28rem 0.34rem 0.55rem;
+  padding: 0.2rem 0.28rem 0.12rem;
   position: relative;
-  margin-bottom: 0.08in;
+  margin-bottom: calc(var(--c-u) * 1);
   background: #fff;
   flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  /* Captions must not bleed into neighboring columns (root of «П СНАРЯЖЕНИЕ ИЯ…»). */
+  overflow: hidden;
 }
 
 .classic-panel--grow {
@@ -585,39 +1138,102 @@
   margin-bottom: 0;
 }
 
+/* Footer caption in normal flow — never absolute across columns. */
 .classic-caption {
-  position: absolute;
-  left: 50%;
-  bottom: 0.06rem;
-  transform: translateX(-50%);
+  position: static;
+  align-self: center;
+  margin-top: auto;
+  flex: 0 0 auto;
+  transform: none;
   white-space: nowrap;
   background: var(--c-caption-bg);
-  padding: 0 0.28rem;
-  max-width: calc(100% - 0.4rem);
+  padding: 0.14rem 0.18rem 0.02rem;
+  max-width: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
+  z-index: 1;
+  font-size: 7pt;
+  letter-spacing: 0.05em;
+  line-height: 1.1;
+}
+
+.classic-caption--full {
+  font-size: 7pt;
+  letter-spacing: 0.04em;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+.classic-caption--wrap {
+  white-space: normal !important;
+  overflow: visible;
+  text-overflow: unset;
+  text-align: center;
+  line-height: 1.15;
+  hyphens: manual;
 }
 
 .classic-check {
   display: grid;
-  grid-template-columns: 0.72rem 1.45rem 1fr;
-  gap: 0.18rem;
-  align-items: center;
-  font-size: 0.64rem;
-  min-height: 0.92rem;
-  line-height: 1.15;
+  grid-template-columns: 0.72rem 0.95rem minmax(0, 1fr) auto;
+  column-gap: 0.22rem;
+  row-gap: 0;
+  align-items: baseline;
+  font-size: 0.46rem;
+  min-height: 0.64rem;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .classic-check strong {
   text-align: center;
   font-variant-numeric: tabular-nums;
+  border-bottom: 0.55pt solid var(--c-line-soft);
+  min-height: 0.62rem;
+  line-height: 0.95;
+  font-size: 0.5rem;
 }
 
-.classic-check em {
+.classic-check__name {
+  overflow: visible;
+  text-overflow: clip;
+  min-width: 0;
+  padding-right: 0.28rem;
+  letter-spacing: 0;
+  /* Pass 9: no justified stretch — double spaces on skill names. */
+  word-spacing: normal;
+  text-align: left;
+}
+
+.classic-check em,
+.classic-check__tag {
   color: var(--c-muted);
   font-style: normal;
-  font-size: 0.58rem;
-  font-weight: 500;
+  font-size: 6.5pt;
+  font-weight: 600;
+  letter-spacing: 0;
+  flex: 0 0 auto;
+  margin-left: 0.2rem;
+  padding-left: 0;
+  opacity: 0.92;
+  white-space: nowrap;
+}
+
+.classic-panel > .classic-caption {
+  padding-top: 0.32rem;
+}
+
+.classic-panel--skills {
+  min-width: 0;
+  /* Caption bleed fixed via flow layout — don't clip long skill names. */
+  overflow: visible;
+}
+
+.classic-panel--skills .classic-check__name {
+  font-size: 0.46rem;
+  letter-spacing: 0;
+  word-spacing: normal;
+  text-align: left;
 }
 
 .classic-bubble-btn {
@@ -628,16 +1244,22 @@
   height: 0.72rem;
   display: grid;
   place-items: center;
-  cursor: pointer;
+  cursor: default;
+}
+
+.classic-bubble-btn--static {
+  cursor: default;
+  pointer-events: none;
 }
 
 .classic-bubble {
-  width: 0.52rem;
-  height: 0.52rem;
-  border: 1.5px solid var(--c-line);
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 1.25pt solid var(--c-line);
   border-radius: 50%;
   display: inline-block;
   background: #fff;
+  box-sizing: border-box;
 }
 
 .classic-bubble.is-filled {
@@ -646,7 +1268,8 @@
 
 .classic-bubble.is-expertise {
   background: var(--c-ink);
-  box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--c-ink);
+  /* Double ring stays clear of the modifier column (gap via .classic-check). */
+  box-shadow: 0 0 0 1.1pt #fff, 0 0 0 2.1pt var(--c-ink);
 }
 
 .classic-passive {
@@ -669,59 +1292,161 @@
 /* ——— Combat column ——— */
 .classic-combat-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1.35fr 1fr 1fr;
   gap: 0.09in;
   margin-bottom: 0.1in;
+  align-items: stretch;
+  min-height: 4.15rem;
 }
 
 .classic-combat-stat {
-  border: 1.75px solid var(--c-line);
-  border-radius: 0.45rem;
+  border: var(--c-frame);
+  border-radius: 0.12rem;
   text-align: center;
-  padding: 0.22rem 0.12rem 0.32rem;
+  padding: 0.18rem 0.1rem 0.18rem;
   background: #fff;
-  min-height: 2.05rem;
+  min-height: 4.15rem;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  gap: 0.04rem;
+  box-sizing: border-box;
+  /* Slight concave corners via SVG mask substitute: chamfer */
+  clip-path: polygon(
+    0.12rem 0,
+    calc(100% - 0.12rem) 0,
+    100% 0.12rem,
+    100% calc(100% - 0.12rem),
+    calc(100% - 0.12rem) 100%,
+    0.12rem 100%,
+    0 calc(100% - 0.12rem),
+    0 0.12rem
+  );
 }
 
-.classic-combat-stat input {
-  text-align: center;
-  font-family: var(--font-display);
-  font-size: 1.12rem;
-  font-weight: 700;
+.classic-combat-stat .classic-static {
   border-bottom: none;
+  font-family: var(--classic-ink-font);
+  font-size: 1.08rem;
+  font-weight: 700;
+  min-height: 1.2rem;
+}
+
+.classic-combat-stat .classic-field-label {
+  white-space: nowrap;
+  font-size: 7pt;
+  letter-spacing: 0.04em;
 }
 
 .classic-combat-stat--ac {
-  border-radius: 42% 42% 18% 18% / 34% 34% 58% 58%;
-  padding-top: 0.35rem;
-  background:
-    radial-gradient(120% 80% at 50% 0%, #fff 40%, var(--c-paper-tint));
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0;
+  min-height: 4.15rem;
+  height: 100%;
+  align-self: stretch;
+  align-items: center;
+  justify-content: flex-start;
+  clip-path: none !important;
+  gap: 0.04rem;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+}
+
+.classic-ac-shield {
+  position: relative;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 3.45rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.32rem 0.1rem 0.38rem;
+  border: none;
+  background: transparent !important;
+  clip-path: none;
+  box-sizing: border-box;
+}
+
+.classic-ac-shield__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+  background: transparent !important;
+  /* Chromium PDF sometimes paints an opaque SVG canvas — keep it clear. */
+  color: transparent;
+}
+
+.classic-ac-shield__svg path {
+  fill: #fff;
+  stroke: #000;
+  stroke-width: 2.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.classic-ac-shield .classic-static {
+  position: relative;
+  z-index: 1;
+  border-bottom: none;
+  background: transparent !important;
+  /* Digits stay ≥2pt inside the shield stroke (two-digit AC up to 30). */
+  font-size: 0.86rem;
+  min-height: 0.95rem;
+  max-width: 46%;
+  width: auto;
+  margin: 0.2rem auto 0;
+  padding: 0.22rem 0.32rem;
+  box-sizing: border-box;
+  letter-spacing: -0.04em;
+}
+
+/* Label sits under the shield outline — never inside the SVG path. */
+.classic-combat-stat--ac > .classic-field-label {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 6.5pt;
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  margin: 0;
+  background: transparent !important;
+  padding: 0 0.04rem;
+  color: var(--c-muted);
 }
 
 .classic-hp-max {
   display: flex;
-  gap: 0.35rem;
+  gap: 0.3rem;
   align-items: center;
-  margin-bottom: 0.1rem;
+  margin-bottom: 0.08rem;
 }
 
-.classic-hp-max input {
-  width: 2.8rem;
-  border-bottom-color: #bbb !important;
+.classic-hp-max__value,
+.classic-hp-max .classic-static {
+  width: 2.6rem;
+  flex: 0 0 auto;
   text-align: center;
   font-weight: 650;
+  border-bottom-color: var(--c-line-soft);
+  min-height: 0.95rem;
 }
 
 .classic-hp {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-family: var(--classic-ink-font);
+  font-size: 1.22rem;
   font-weight: 700;
   text-align: center;
   border-bottom: none !important;
-  min-height: 1.85rem;
+  min-height: 1.7rem;
 }
 
 .classic-panel--hp {
@@ -741,65 +1466,199 @@
 
 .classic-hit-dice {
   display: grid;
-  gap: 0.2rem;
+  gap: 0.18rem;
 }
 
-.classic-hit-dice label {
+.classic-hit-dice__total {
   display: flex;
-  gap: 0.3rem;
-  align-items: center;
-  font-size: 0.54rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--c-muted);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.08rem;
+  min-width: 0;
+  width: 100%;
 }
 
-.classic-hit-dice label input {
-  width: 2.4rem;
+.classic-hit-dice__total .classic-field-label {
+  align-self: flex-start;
+}
+
+.classic-hit-dice__total .classic-static {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   text-align: center;
+  --classic-fit-max-px: 13;
+  overflow: hidden;
+  letter-spacing: -0.03em;
 }
 
 .classic-death-saves {
   display: grid;
-  gap: 0.28rem;
-  padding-top: 0.1rem;
+  gap: 0.22rem;
+  padding-top: 0.18rem;
+  padding-bottom: 0.08rem;
+  align-content: center;
 }
 
 .classic-death-line {
   display: flex;
-  gap: 0.22rem;
+  gap: 0.28rem;
   align-items: center;
   justify-content: flex-end;
+  min-height: 0.85rem;
 }
 
-.classic-death-line > span {
+.classic-death-line > span:first-child {
   margin-right: auto;
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.classic-death-bubbles {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  position: relative;
+  padding: 0 0.04rem;
+}
+
+/* Connecting line through circle centers (official death-saves look). */
+.classic-death-bubbles::before {
+  content: '';
+  position: absolute;
+  left: 0.42rem;
+  right: 0.42rem;
+  top: 50%;
+  height: 0;
+  border-top: 1.15pt solid #000;
+  z-index: 0;
+}
+
+.classic-death-bubbles .classic-bubble-btn {
+  position: relative;
+  z-index: 1;
+  width: 0.78rem;
+  height: 0.78rem;
+  background: #fff;
+  border-radius: 50%;
+}
+
+.classic-death-bubbles .classic-bubble {
+  width: 0.72rem;
+  height: 0.72rem;
+  border-width: 1.35pt;
+  background: #fff;
 }
 
 .classic-attacks-head,
 .classic-weapon {
   display: grid;
-  grid-template-columns: 1.35fr 0.75fr 1.15fr;
-  gap: 0.18rem;
-  align-items: center;
+  grid-template-columns: 1.3fr 0.55fr 1.45fr;
+  gap: 0.08rem;
+  align-items: stretch;
 }
 
 .classic-attacks-head {
-  margin-bottom: 0.12rem;
+  margin-bottom: 0.1rem;
+  font-size: 7pt;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.classic-attacks-head > span {
+  padding: 0 0.08rem;
 }
 
 .classic-weapon {
-  font-size: 0.72rem;
-  min-height: 1.05rem;
-  border-bottom: 1px solid var(--c-line-soft);
-  margin-bottom: 0.08rem;
+  font-size: 0.68rem;
+  min-height: 0;
+  border-bottom: none;
+  margin-bottom: 0.1rem;
+  gap: 0.12rem;
+  padding: 0;
+  background: transparent;
 }
 
-.classic-weapon span {
-  overflow: hidden;
-  text-overflow: ellipsis;
+.classic-weapon__cell {
+  min-width: 0;
+  min-height: 1.05rem;
+  display: grid;
+  place-items: center start;
+  padding: 0.1rem 0.14rem;
+  background: #e6e6e6;
+  border-radius: 0.06rem;
+  clip-path: polygon(
+    0.1rem 0,
+    calc(100% - 0.1rem) 0,
+    100% 0.1rem,
+    100% calc(100% - 0.1rem),
+    calc(100% - 0.1rem) 100%,
+    0.1rem 100%,
+    0 calc(100% - 0.1rem),
+    0 0.1rem
+  );
+}
+
+.classic-weapon__cell--bonus {
+  place-items: center;
+}
+
+.classic-weapon__cell--dmg {
+  place-items: center start;
+}
+
+.classic-weapon__cell--dmg .classic-static {
   white-space: nowrap;
+  line-height: 1.15;
+  text-align: left;
+  overflow: visible;
+  text-overflow: clip;
+  /* Fixed print size — autofit on screen lied about A4 column width. */
+  font-size: 6.5pt !important;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0;
+  padding: 0;
+}
+
+.classic-weapon:not(.classic-weapon--slot) .classic-weapon__cell--dmg {
+  min-height: 1.35rem;
+  align-items: start;
+  padding: 0.06rem 0.1rem;
+  overflow: visible;
+}
+
+.classic-weapon__cell--name .classic-static--wrap {
+  white-space: pre-line;
+  overflow: visible;
+  font-size: 7.5pt !important;
+  height: auto !important;
+  max-height: none !important;
+  line-height: 1.15;
+}
+
+.classic-weapon--slot .classic-weapon__cell {
+  background: #e6e6e6;
+}
+
+.classic-weapon:not(.classic-weapon--slot) .classic-weapon__cell {
+  background: transparent;
+  clip-path: none;
+  border-radius: 0;
+  border-bottom: var(--c-hair);
+  min-height: 0.95rem;
+  padding: 0.04rem 0.06rem;
+}
+
+.classic-weapon .classic-static {
+  border-bottom: none;
+  min-height: 0.9rem;
+  font-size: 0.66rem;
+  width: 100%;
+  padding: 0;
 }
 
 .classic-equip-items {
@@ -818,69 +1677,157 @@
 
 .classic-equip {
   display: grid;
-  grid-template-columns: 0.62in minmax(0, 1fr);
-  gap: 0.16rem;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0.14rem;
+  align-items: stretch;
 }
 
+/* Top strip: coin cells — short full words, one line; two rows (3+2) so A4 never clips. */
 .classic-coins {
   display: grid;
-  gap: 0.05rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.08rem;
   align-content: start;
-  align-self: start;
-}
-
-.classic-coins label {
-  display: grid;
-  grid-template-columns: 0.28in minmax(0, 1fr);
-  gap: 0.06rem;
-  align-items: center;
-  border: 1.25px solid var(--c-line);
-  border-radius: var(--c-radius-pill);
-  padding: 0 0.1rem;
-  min-height: 0;
-  height: 1.05rem;
-  box-sizing: border-box;
-  font-size: 0.48rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  background: var(--c-paper-tint);
-}
-
-.classic-coins input {
-  border-bottom: none;
-  text-align: center;
-  font-size: 0.68rem;
-  font-weight: 650;
+  grid-column: 1;
+  grid-row: 1;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
-  min-height: 0; /* override shared classic input 1.1rem — coins must stay compact */
+  box-sizing: border-box;
+}
+
+.classic-coin {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: stretch;
+  border: 1.25pt solid #000;
+  border-radius: 0.18rem;
+  padding: 0.05rem 0.06rem 0.08rem;
+  min-height: 0.58in;
+  height: auto;
+  min-width: 0;
+  box-sizing: border-box;
+  background: #fff;
+  clip-path: none;
+}
+
+.classic-coin__mark {
+  display: grid;
+  place-items: center;
+  grid-row: 2;
+  min-height: 0.7rem;
+  padding: 0.1rem 0.04rem 0.06rem;
+  border-top: 0.55pt solid #000;
+  /* Floor 6pt — full words, no hyphen breaks («МЕД-НЫЕ»). */
+  font-size: 6.5pt;
+  font-weight: 700;
+  letter-spacing: 0;
+  word-spacing: 0.04em;
+  text-transform: none;
+  text-align: center;
+  line-height: 1.15;
+  color: #000;
+  border-right: none;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  hyphens: none;
+  -webkit-hyphens: none;
+}
+
+.classic-coin .classic-static {
+  grid-row: 1;
+  border-bottom: none !important;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  min-width: 0;
+  min-height: 0;
   height: 100%;
   padding: 0;
   line-height: 1;
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+}
+
+.classic-coin .classic-static--pencil,
+.classic-coin .classic-static__pencil,
+.classic-coin .classic-static--pencil::after {
+  display: none;
+}
+
+/* Wide equip column (screen preview): keep five across when space allows. */
+@media screen and (min-width: 28rem) {
+  .classic-fit-scaled .classic-coins {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
 }
 
 .classic-expand {
   display: block;
   width: 100%;
-  resize: none;
   overflow: hidden;
   border: none;
   outline: none;
   background: transparent;
   font: inherit;
   font-size: 0.7rem;
-  line-height: 1.35;
   min-height: 1.35rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.48rem;
   color: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/*
+  Ruled pencil lines (notebook pattern):
+  - line-height == background-size step (!important beats ClassicTextBlock)
+  - rule sits at ~1.48em in each 1.5em tile (tuned on Chromium PDF / pdftoppm):
+    baseline on the hairline, descenders kiss/cross it
+  - 0.5pt light grey; text and rules share left edge (no side pad)
+*/
+.classic-expand,
+.classic-expand--pencil,
+.classic-expand--fill {
+  --classic-rule-step: 1.5em;
+  --classic-rule-baseline: 1.48em;
+  --classic-rule-ink: #c8c8c8;
+  line-height: var(--classic-rule-step) !important;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--classic-rule-baseline) - 0.5pt),
+    var(--classic-rule-ink) calc(var(--classic-rule-baseline) - 0.5pt),
+    var(--classic-rule-ink) var(--classic-rule-baseline),
+    transparent var(--classic-rule-baseline),
+    transparent var(--classic-rule-step)
+  );
+  background-size: 100% var(--classic-rule-step);
+  background-repeat: repeat-y;
+  background-attachment: scroll;
+  background-origin: padding-box;
+  background-clip: padding-box;
+  background-position: 0 0;
+  padding-top: 0;
+  padding-bottom: 0.1em;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .classic-expand--fill {
   flex: 1 1 auto;
   min-height: 3.5rem;
   height: auto !important;
-  overflow: auto;
-  margin-bottom: 0.55rem;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.classic-expand--pencil {
+  min-height: 2.6rem;
 }
 
 .classic-text-block {
@@ -935,9 +1882,9 @@
 
 .classic-equip.classic-panel--grow {
   display: grid;
-  grid-template-columns: 0.62in minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 0.16rem;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0.14rem;
   align-items: stretch;
   min-height: 0;
 }
@@ -945,18 +1892,32 @@
 .classic-equip.classic-panel--grow .classic-coins {
   grid-column: 1;
   grid-row: 1;
-  align-self: start; /* don't stretch coins to panel height */
+  align-self: stretch;
   align-content: start;
 }
 
 .classic-equip-main {
-  grid-column: 2;
-  grid-row: 1;
+  grid-column: 1;
+  grid-row: 2;
   display: flex;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  align-self: stretch;
+}
+
+.classic-equip-main .classic-text-block {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.classic-equip-main .classic-expand--fill {
+  flex: 1 1 auto;
+  min-height: 100%;
+  height: 100% !important;
+  margin-bottom: 0.15rem;
 }
 
 .classic-equip-main .classic-equip-items {
@@ -977,7 +1938,11 @@
 }
 
 .classic-equip.classic-panel--grow .classic-caption {
-  grid-column: 1 / -1;
+  grid-column: 1;
+  grid-row: 3;
+  justify-self: center;
+  width: auto;
+  max-width: 100%;
 }
 
 /* ——— Page 3: spells ——— */
@@ -1044,35 +2009,15 @@
   margin-bottom: 0.2rem;
 }
 
-.classic-spell-stats label {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 0.08rem;
-  border: 1.75px solid var(--c-line);
-  border-radius: 0.45rem;
-  padding: 0.14rem 0.32rem 0.24rem;
-  background: #fff;
+.classic-spell-stats .classic-field {
+  min-height: 0.62in;
+  text-align: center;
 }
 
-.classic-spell-stats span {
-  font-size: 0.54rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--c-muted);
-  font-weight: 700;
-}
-
-.classic-spell-stats input {
-  border: none;
-  border-bottom: 1px solid var(--c-line-soft);
-  background: transparent;
-  outline: none;
-  width: 100%;
-  font: inherit;
-  font-size: 0.9rem;
+.classic-spell-stats .classic-static {
+  font-size: 0.92rem;
   font-weight: 650;
-  min-height: 1.15rem;
+  border-bottom: none;
 }
 
 .classic-spell-columns {
@@ -1093,13 +2038,14 @@
 }
 
 .classic-spell-level {
-  border: 1.75px solid var(--c-line);
+  border: var(--c-frame);
   border-radius: var(--c-radius-panel);
-  padding: 0.22rem 0.28rem 0.3rem;
+  padding: 0.18rem 0.24rem 0.26rem;
   background: #fff;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  box-shadow: 0 0 0 0.08in #ececec;
 }
 
 .classic-spell-level--grow {
@@ -1115,15 +2061,15 @@
 }
 
 .classic-spell-level__badge {
-  width: 1.15rem;
-  height: 1.15rem;
-  border: 2px solid var(--c-line);
-  border-radius: 4px;
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 1.75pt solid #000;
+  border-radius: 50%;
   display: grid;
   place-items: center;
   font-weight: 700;
-  font-size: 0.75rem;
-  background: var(--c-paper-tint);
+  font-size: 0.72rem;
+  background: #e8e8e8;
   flex: 0 0 auto;
 }
 
@@ -1137,39 +2083,28 @@
 
 .classic-spell-level__slots {
   display: flex;
-  gap: 0.35rem;
+  gap: 0.4rem;
   flex: 1;
   justify-content: flex-end;
+  align-items: flex-end;
 }
 
-.classic-spell-level__slots label {
+.classic-spell-level__slot {
   display: flex;
-  gap: 0.2rem;
+  flex-direction: column;
   align-items: center;
-  font-size: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--c-muted);
-  font-weight: 700;
+  gap: 0.04rem;
+  min-width: 1.7rem;
 }
 
-.classic-spell-level__slots input {
-  width: 1.55rem;
+.classic-spell-level__slot .classic-static {
+  width: 1.5rem;
   text-align: center;
-  border: none;
-  border-bottom: 1px solid var(--c-line-soft);
-  background: transparent;
-  outline: none;
-  font: inherit;
   font-size: 0.78rem;
   font-weight: 700;
-  -moz-appearance: textfield;
-}
-
-.classic-spell-level__slots input::-webkit-outer-spin-button,
-.classic-spell-level__slots input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+  border-bottom: var(--c-hair);
+  min-height: 0.95rem;
+  padding: 0;
 }
 
 .classic-spell-lines {
@@ -1185,31 +2120,37 @@
 .classic-spell-lines li {
   display: grid;
   grid-template-columns: 0.7rem 1fr;
-  gap: 0.22rem;
+  gap: 0.2rem;
   align-items: center;
-  border-bottom: 1px solid var(--c-line-soft);
+  border-bottom: var(--c-hair);
   flex: 1 1 0;
-  min-height: 0.95rem;
+  min-height: 0.88rem;
+  max-height: 1.05rem;
 }
 
 .classic-spell-lines--cantrips li {
   grid-template-columns: 1fr;
+  min-height: 0.88rem;
+  max-height: 1.05rem;
 }
 
-.classic-spell-lines input {
-  border: none;
-  background: transparent;
-  outline: none;
-  width: 100%;
-  font: inherit;
-  font-size: 0.68rem;
-  min-height: 0.9rem;
+.classic-spell-lines .classic-static {
+  border-bottom: none;
+  font-size: 0.66rem;
+  min-height: 0.82rem;
   padding: 0;
 }
 
-.classic-spell-lines .classic-bubble-btn:disabled {
-  opacity: 0.35;
-  cursor: default;
+/* Equal rhythm: higher levels shouldn't stretch empty lines taller */
+.classic-spell-col .classic-spell-level--grow {
+  flex: 1 1 0;
+}
+
+.classic-page3 .classic-spell-columns {
+  background: #ececec;
+  padding: 0.08in;
+  border-radius: 0.16rem;
+  gap: 0.08in;
 }
 
 /* ——— Page 4: companions (Dvarf extension) ——— */
@@ -1230,7 +2171,7 @@
 }
 
 .classic-companions-banner strong {
-  font-family: var(--font-display);
+  font-family: var(--classic-ink-font);
   font-size: 1.05rem;
   letter-spacing: 0.02em;
 }
@@ -1269,57 +2210,26 @@
 
 .classic-companion-card__name,
 .classic-companion-card__kind,
-.classic-companion-card__stats label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.08rem;
-  border: 1.25px solid var(--c-line);
-  border-radius: 0.35rem;
-  padding: 0.12rem 0.28rem 0.18rem;
+.classic-companion-card__stats .classic-field {
+  border: 1pt solid var(--c-line);
+  border-radius: 0.28rem;
+  padding: 0.1rem 0.24rem 0.14rem;
   background: #fff;
-}
-
-.classic-companion-card__name span,
-.classic-companion-card__kind span,
-.classic-companion-card__stats span {
-  font-size: 0.5rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--c-muted);
-  font-weight: 700;
-}
-
-.classic-companion-card__name input,
-.classic-companion-card__kind select,
-.classic-companion-card__stats input {
-  border: none;
-  border-bottom: 1px solid var(--c-line-soft);
-  background: transparent;
-  outline: none;
-  width: 100%;
-  font: inherit;
-  font-size: 0.78rem;
-  font-weight: 600;
-  min-height: 1.05rem;
-}
-
-.classic-companion-card__kind select {
-  border-bottom: none;
-  padding: 0;
 }
 
 .classic-companion-card__stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.28rem;
+  gap: 0.24rem;
   flex: 0 0 auto;
 }
 
-.classic-companion-card__stats input {
+.classic-companion-card__stats .classic-static {
   text-align: center;
-  font-family: var(--font-display);
-  font-size: 0.95rem;
+  font-family: var(--classic-ink-font);
+  font-size: 0.9rem;
   border-bottom: none;
+  font-weight: 650;
 }
 
 .classic-companion-card .classic-expand--fill {
@@ -1388,7 +2298,7 @@
   outline: none;
   margin: 0 0 0.2rem;
   padding: 0.05rem 0.1rem 0.15rem;
-  font-family: var(--font-display);
+  font-family: var(--classic-ink-font);
   font-size: 0.85rem;
   font-weight: 650;
   color: var(--c-ink);
@@ -1443,19 +2353,50 @@
 
 .classic-spell-cards-header {
   display: grid;
-  grid-template-columns: 0.72in 1fr;
+  grid-template-columns: 0.72in minmax(0, 1.2fr) minmax(0, 1fr);
   gap: 0.12in;
   margin-bottom: 0.12in;
   flex: 0 0 auto;
+  align-items: stretch;
+}
+
+.classic-spell-cards-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12in;
+  overflow: hidden;
+}
+
+.classic-spell-cards-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08in;
+  flex: 0 0 auto;
+}
+
+.classic-spell-cards-group__title {
+  margin: 0;
+  padding: 0.06rem 0.12rem;
+  border-bottom: var(--c-frame);
+  font-family: var(--classic-ink-font);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-ink);
+  line-height: 1.2;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 .classic-spell-cards-grid {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: repeat(3, 2.5in);
-  grid-template-rows: repeat(3, 3.5in);
   gap: 0.14in;
-  justify-content: center;
+  justify-content: start;
   align-content: start;
   min-height: 0;
 }
@@ -1463,21 +2404,23 @@
 .classic-spell-card {
   box-sizing: border-box;
   width: 2.5in;
-  height: 3.5in;
-  border: 1.5px dashed #7a7468;
+  min-height: 0;
+  height: auto;
+  border: var(--c-frame);
   border-radius: 0.18rem;
-  background: #fff;
+  background: var(--c-paper);
   padding: 0.22rem 0.24rem 0.2rem;
   display: flex;
   flex-direction: column;
   gap: 0.18rem;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .classic-spell-card--empty {
-  background: transparent;
-  border-color: #d2cbc0;
+  display: none;
 }
 
 .classic-spell-card--cont .classic-spell-card__title {
@@ -1491,7 +2434,7 @@
 }
 
 .classic-spell-card__title {
-  font-family: var(--font-display);
+  font-family: var(--classic-ink-font);
   font-size: 0.88rem;
   font-weight: 700;
   line-height: 1.15;
@@ -1520,7 +2463,7 @@
   border: 1px solid var(--c-line);
   border-radius: 999px;
   padding: 0.02rem 0.28rem;
-  font-size: 0.48rem;
+  font-size: 6.5pt;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1540,7 +2483,7 @@
   color: var(--c-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  font-size: 0.48rem;
+  font-size: 6.5pt;
   margin-right: 0.15rem;
 }
 
@@ -1563,16 +2506,16 @@
 }
 
 @media print {
-  .classic-spell-cards-header {
-    display: none !important;
-  }
-
   .classic-spell-cards-grid {
     gap: 0.08in;
   }
 
   .classic-spell-card {
-    border-style: dotted;
+    border: var(--c-frame) !important;
+    border-style: solid !important;
+    background: var(--c-paper) !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 }
 
@@ -1610,13 +2553,16 @@
 
 .classic-lss-top {
   display: flex;
-  gap: 0.08in;
+  gap: 0.06in;
   align-items: stretch;
   flex: 0 0 auto;
-  height: 1.2in;
+  height: auto;
+  min-height: 1.25in;
   margin-bottom: 0.06in;
   min-width: 0;
-  overflow: hidden;
+  max-width: 100%;
+  overflow: visible;
+  box-sizing: border-box;
 }
 
 .classic-lss-top > * {
@@ -1624,7 +2570,7 @@
 }
 
 .classic-lss-id {
-  flex: 1.15 1 0;
+  flex: 1.05 1 0;
   display: flex;
   flex-direction: column;
   gap: 0.05in;
@@ -1633,10 +2579,11 @@
 }
 
 .classic-lss-vitals {
-  flex: 1.55 1 0;
+  flex: 1.45 1 0;
   display: flex;
-  gap: 0.06in;
+  gap: 0.05in;
   min-width: 0;
+  max-width: 100%;
 }
 
 .classic-lss-name {
@@ -1649,7 +2596,7 @@
 .classic-lss-name input {
   width: 100%;
   min-width: 0;
-  font-family: var(--font-display);
+  font-family: var(--classic-ink-font);
   font-size: 1.2rem;
   font-weight: 700;
   border: 0;
@@ -1680,6 +2627,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.05in 0.08in;
+  align-items: end;
 }
 
 .classic-lss-id-grid label,
@@ -1687,6 +2635,35 @@
   display: flex;
   flex-direction: column;
   gap: 0.06rem;
+  min-width: 0;
+}
+
+/* Same autofit as 2014 meta: shrink ≥7pt, then wrap to 2 lines — never clip words. */
+.classic-lss-id-grid .classic-fit-input,
+.classic-lss-id-grid .classic-static {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.12rem 0.18rem;
+  border: 1px solid var(--lss-soft);
+  border-radius: 0.2rem;
+  background: #fff;
+  font-size: 0.78rem;
+  font-weight: 550;
+  color: var(--c-ink);
+  --classic-fit-max-px: 12.48;
+  --classic-fit-wrap-height: 2.05rem;
+  letter-spacing: 0;
+  word-spacing: 0.06em;
+  overflow: visible;
+}
+
+.classic-lss-id-grid .classic-static--wrap {
+  max-height: 4.2rem;
+  min-height: 1.35rem;
+  word-break: normal;
+  overflow-wrap: anywhere;
+  overflow: visible;
+  hyphens: manual;
 }
 
 .classic-lss-id-grid input,
@@ -1703,10 +2680,13 @@
   background: #fff;
   font-size: 0.78rem;
   color: var(--c-ink);
+  box-sizing: border-box;
+  /* Pass 9b: empty ink must keep the same cell height as filled. */
+  min-height: 1.55rem;
 }
 
 .classic-lss-level {
-  flex: 0 0 0.72in;
+  flex: 0 0 0.68in;
   display: flex;
   flex-direction: column;
   gap: 0.08in;
@@ -1715,7 +2695,7 @@
 }
 
 .classic-lss-ac {
-  flex: 0 0 0.95in;
+  flex: 0 0 0.88in;
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -1753,7 +2733,7 @@
   border: 0;
   background: transparent;
   text-align: center;
-  font-family: var(--font-display);
+  font-family: var(--classic-ink-font);
   font-size: 1.55rem;
   font-weight: 700;
   line-height: 1;
@@ -1769,32 +2749,35 @@
 }
 
 .classic-lss-hp {
-  flex: 1.35 1 0;
-  min-width: 1.5in;
+  flex: 1.2 1 0;
+  min-width: 1.25in;
 }
 
 .classic-lss-hd {
-  flex: 0.75 1 0;
-  min-width: 0.9in;
+  flex: 0.7 1 0;
+  min-width: 0.78in;
 }
 
 .classic-lss-death {
-  flex: 1.05 1 0;
-  min-width: 1.25in;
+  flex: 0 0 1.38in;
+  width: 1.38in;
+  min-width: 1.38in;
+  max-width: 1.42in;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.08rem;
+  gap: 0.1rem;
+  box-sizing: border-box;
 }
 
 .classic-lss-hp,
 .classic-lss-hd,
 .classic-lss-death {
-  padding: 0.06in;
+  padding: 0.05in;
   border: 1.25px solid var(--lss-line);
   border-radius: 0.28rem;
   background: var(--c-paper-tint);
-  overflow: hidden;
+  overflow: visible;
   min-height: 0;
 }
 
@@ -1821,12 +2804,13 @@
 }
 
 .classic-lss-death .classic-death-line {
-  display: grid;
-  grid-template-columns: 1.7rem repeat(3, 0.18in);
-  column-gap: 0.12rem;
+  display: flex;
   align-items: center;
-  justify-content: start;
-  font-size: 0.48rem;
+  justify-content: flex-start;
+  gap: 0.55rem;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.45rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -1835,15 +2819,37 @@
 }
 
 .classic-lss-death .classic-death-line > span:first-child {
-  flex: none;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex: 0 0 auto;
+  min-width: 1.85rem;
+  margin-right: 0 !important; /* kill 2014 margin-right:auto that collapses gap */
+  padding-right: 0.12rem;
+  overflow: visible;
 }
 
-.classic-lss-death .classic-bubble {
-  width: 0.16in;
-  height: 0.16in;
+.classic-lss-death .classic-death-bubbles {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  margin-left: 0.2rem;
+  padding-left: 0.15rem;
+  border-left: 0;
+}
+
+.classic-lss-death .classic-death-bubbles .classic-bubble-btn {
+  width: 0.15in;
+  height: 0.15in;
+  flex: 0 0 auto;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+
+.classic-lss-death .classic-death-bubbles .classic-bubble {
+  width: 0.13in;
+  height: 0.13in;
+  margin: 0;
+  box-shadow: none;
 }
 
 .classic-lss-death .classic-lss-block-title {
@@ -1981,6 +2987,8 @@
   border-radius: 0.16rem;
   background: #fff;
   padding: 0.04rem 0;
+  /* Pass 9b: empty value must not collapse the cell. */
+  min-height: 2.2rem;
   -moz-appearance: textfield;
 }
 
@@ -1991,7 +2999,8 @@
 }
 
 .classic-lss-ability__modbox strong {
-  display: block;
+  display: grid;
+  place-items: center;
   width: 100%;
   box-sizing: border-box;
   padding: 0.12rem 0;
@@ -2001,6 +3010,8 @@
   text-align: center;
   font-size: 0.9rem;
   line-height: 1;
+  /* Pass 9b: empty МОД. must match filled pill height (~2.2rem). */
+  min-height: 2.2rem;
 }
 
 .classic-lss-ability__scorebox em,
@@ -2051,6 +3062,8 @@
   font-size: 0.54rem;
   text-align: right;
   padding-right: 0.08rem;
+  min-height: 0.7rem;
+  box-sizing: border-box;
 }
 
 .classic-lss-ability__skills span {
@@ -2168,6 +3181,22 @@
 .classic-lss-weapons-head,
 .classic-lss-weapon-row {
   grid-template-columns: 1.4fr 0.7fr 1.1fr 0.8fr;
+}
+
+.classic-lss-weapon-row input {
+  box-sizing: border-box;
+  min-height: 1.35rem;
+  width: 100%;
+  border: none;
+  border-bottom: 0.55pt solid var(--lss-soft);
+  background: transparent;
+  font: inherit;
+  color: inherit;
+}
+
+.classic-lss-weapon-row input::placeholder {
+  color: transparent;
+  opacity: 0;
 }
 
 .classic-lss-features {
@@ -2423,6 +3452,18 @@
   font: inherit;
 }
 
+.classic-lss-spell-table__rows .classic-static,
+.classic-lss-spell-table__rows li {
+  font-family: var(--classic-ink-font);
+}
+
+.classic-lss-spell-table__rows .classic-static {
+  border-bottom: none;
+  min-height: 0;
+  padding: 0;
+  font-size: inherit;
+}
+
 .classic-lss-spell-lvl {
   text-align: center;
   font-weight: 700;
@@ -2454,6 +3495,18 @@
   text-transform: none;
 }
 
+.classic-lss-alignment .classic-static {
+  border: none;
+  border-bottom: var(--c-hair);
+  border-radius: 0;
+  padding: 0.1rem 0.05rem;
+  font-size: 0.78rem;
+  color: var(--c-ink);
+  text-transform: none;
+  letter-spacing: 0;
+  min-height: 1.1rem;
+}
+
 .classic-lss-attune {
   display: flex;
   align-items: center;
@@ -2473,13 +3526,21 @@
   border-radius: 0.28rem;
 }
 
+.classic-lss .classic-coins {
+  flex: 0 0 auto;
+  grid-column: auto;
+  grid-row: auto;
+  margin: 0 0 0.06in;
+  width: 100%;
+}
+
 .classic-lss-coins--inline {
   flex: 0 0 auto;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0.72in, 1fr));
   gap: 0.04in;
   padding: 0.04in 0.05in;
   margin: 0 0 0.06in;
-  background: #fff;
+  background: var(--c-paper);
 }
 
 .classic-lss-coins label {
@@ -2488,13 +3549,28 @@
   gap: 0.08rem;
   font-size: 0.5rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   text-align: center;
+  min-width: 0;
 }
 
 .classic-lss-coins--inline label {
   gap: 0.04rem;
-  font-size: 0.42rem;
+  font-size: 6.5pt;
+}
+
+.classic-lss-coin-mark {
+  display: block;
+  white-space: nowrap;
+  overflow: visible;
+  letter-spacing: 0;
+  word-spacing: 0.04em;
+  hyphens: none;
+  -webkit-hyphens: none;
+  word-break: keep-all;
+  line-height: 1.15;
+  font-size: 6.5pt;
+  font-weight: 700;
 }
 
 .classic-lss-coins input {
@@ -2523,9 +3599,155 @@
   }
 
   .classic-print-page {
-    background: #fff;
+    background: var(--c-desk, #fff);
+    color: var(--c-ink, #000);
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+
+  .classic-print-page[data-classic-color='bw'] {
+    background: #fff;
+    color: #000;
+  }
+
+  .classic-sheet {
+    background: var(--c-paper, #fff) !important;
+    color: var(--c-ink, #000) !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+  }
+
+  .classic-print-page[data-classic-color='bw'] .classic-sheet {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .classic-col--stats,
+  .classic-col--combat,
+  .classic-col--persona,
+  .classic-page3 .classic-spell-columns,
+  .classic-weapon--slot,
+  .classic-spell-level__badge {
+    background: #e8e8e8 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .classic-print-page[data-classic-color='color'] .classic-col--stats,
+  .classic-print-page[data-classic-color='color'] .classic-col--combat,
+  .classic-print-page[data-classic-color='color'] .classic-col--persona,
+  .classic-print-page[data-classic-color='color'] .classic-page3 .classic-spell-columns,
+  .classic-print-page[data-classic-color='color'] .classic-weapon--slot,
+  .classic-print-page[data-classic-color='color'] .classic-spell-level__badge {
+    background: var(--c-paper-tint) !important;
+  }
+
+  .classic-panel,
+  .classic-field,
+  .classic-name,
+  .classic-brand,
+  .classic-insp,
+  .classic-prof,
+  .classic-passive,
+  .classic-combat-stat:not(.classic-combat-stat--ac),
+  .classic-spell-level,
+  .classic-coin,
+  .classic-meta--plate,
+  .classic-ability__score,
+  .classic-plate-box {
+    background: var(--c-paper, #fff) !important;
+    border-color: #000 !important;
+  }
+
+  .classic-print-page[data-classic-color='bw'] .classic-panel,
+  .classic-print-page[data-classic-color='bw'] .classic-field,
+  .classic-print-page[data-classic-color='bw'] .classic-name,
+  .classic-print-page[data-classic-color='bw'] .classic-brand,
+  .classic-print-page[data-classic-color='bw'] .classic-insp,
+  .classic-print-page[data-classic-color='bw'] .classic-prof,
+  .classic-print-page[data-classic-color='bw'] .classic-passive,
+  .classic-print-page[data-classic-color='bw'] .classic-combat-stat:not(.classic-combat-stat--ac),
+  .classic-print-page[data-classic-color='bw'] .classic-spell-level,
+  .classic-print-page[data-classic-color='bw'] .classic-coin,
+  .classic-print-page[data-classic-color='bw'] .classic-meta--plate,
+  .classic-print-page[data-classic-color='bw'] .classic-ability__score,
+  .classic-print-page[data-classic-color='bw'] .classic-plate-box {
+    background: #fff !important;
+  }
+
+  /* Ability/AC frames: white only inside SVG paths — never a plate over grey. */
+  .classic-ability__frame,
+  .classic-combat-stat--ac,
+  .classic-ac-shield,
+  .classic-ac-shield .classic-static,
+  .classic-combat-stat--ac > .classic-field-label {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .classic-field-label,
+  .classic-caption,
+  .classic-ability__label,
+  .classic-check em,
+  .classic-brand span {
+    color: #222 !important;
+  }
+
+  .classic-bubble.is-filled,
+  .classic-bubble.is-expertise {
+    background: #000 !important;
+    border-color: #000 !important;
+  }
+
+  .classic-static,
+  .classic-expand,
+  .classic-ability__mod,
+  .classic-ability__score {
+    color: #000 !important;
+  }
+
+  .classic-expand,
+  .classic-expand--pencil,
+  .classic-expand--fill {
+    --classic-rule-step: 1.5em;
+    --classic-rule-baseline: 1.48em;
+    --classic-rule-ink: #c8c8c8;
+    line-height: var(--classic-rule-step) !important;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--classic-rule-baseline) - 0.5pt),
+      var(--classic-rule-ink) calc(var(--classic-rule-baseline) - 0.5pt),
+      var(--classic-rule-ink) var(--classic-rule-baseline),
+      transparent var(--classic-rule-baseline),
+      transparent var(--classic-rule-step)
+    ) !important;
+    background-size: 100% var(--classic-rule-step) !important;
+    background-position: 0 0 !important;
+    background-attachment: scroll !important;
+    background-origin: padding-box !important;
+    background-clip: padding-box !important;
+    padding-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .classic-weapon__cell {
+    background: #e0e0e0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .classic-weapon:not(.classic-weapon--slot) .classic-weapon__cell {
+    background: transparent !important;
+  }
+
+  .classic-ability__svg path,
+  .classic-ac-shield__svg path {
+    fill: #fff !important;
+    stroke: #000 !important;
   }
 
   .classic-fit-viewport,
@@ -2556,9 +3778,10 @@
     height: 297mm;
     min-height: 297mm;
     max-height: 297mm;
-    overflow: visible;
-    border: none;
-    box-shadow: none;
+    overflow: hidden;
+    border: none !important;
+    box-shadow: none !important;
+    background: #fff !important;
     page-break-after: always;
     break-after: page;
     page-break-inside: avoid;
@@ -2603,7 +3826,57 @@
   .classic-bubble-btn {
     print-color-adjust: exact;
   }
+
+  /* 2024 LSS: print values as ink, not form controls. */
+  .classic-lss input,
+  .classic-lss select,
+  .classic-lss textarea {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    color: var(--c-ink) !important;
+    font-family: var(--classic-ink-font) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .classic-lss select {
+    background-image: none !important;
+  }
 }
+
+/* Color mode: cream paper / tinted plates; B&W stays pure white/grey. */
+.classic-print-page[data-classic-color='color'] .classic-sheet {
+  background: var(--c-paper);
+}
+
+.classic-print-page[data-classic-color='color'] .classic-brand,
+.classic-print-page[data-classic-color='color'] .classic-panel,
+.classic-print-page[data-classic-color='color'] .classic-field,
+.classic-print-page[data-classic-color='color'] .classic-name,
+.classic-print-page[data-classic-color='color'] .classic-coin,
+.classic-print-page[data-classic-color='color'] .classic-meta--plate,
+.classic-print-page[data-classic-color='color'] .classic-ability__score,
+.classic-print-page[data-classic-color='color'] .classic-plate-box,
+.classic-print-page[data-classic-color='color'] .classic-insp,
+.classic-print-page[data-classic-color='color'] .classic-prof,
+.classic-print-page[data-classic-color='color'] .classic-passive,
+.classic-print-page[data-classic-color='color'] .classic-spell-level {
+  background: var(--c-paper) !important;
+}
+
+.classic-print-page[data-classic-color='color'] .classic-col--stats,
+.classic-print-page[data-classic-color='color'] .classic-col--combat,
+.classic-print-page[data-classic-color='color'] .classic-col--persona,
+.classic-print-page[data-classic-color='color'] .classic-page3 .classic-spell-columns,
+.classic-print-page[data-classic-color='color'] .classic-weapon--slot,
+.classic-print-page[data-classic-color='color'] .classic-spell-level__badge {
+  background: var(--c-paper-tint) !important;
+}
+
 
 @page {
   size: A4;
@@ -2618,6 +3891,11 @@
     left: 0;
     width: 100%;
     box-sizing: border-box;
+    overflow: visible;
+  }
+
+  .classic-toolbar-actions {
+    width: 100%;
   }
 
   .classic-fit-scaled > .classic-stack {
@@ -2631,5 +3909,39 @@
 
   .classic-layout-switch {
     flex-wrap: wrap;
+  }
+}
+
+/* Phone width: Print stays first-row primary; no horizontal clip. */
+@media screen and (max-width: 420px) {
+  .classic-print-toolbar {
+    padding: 0.65rem 0.75rem;
+    gap: 0.55rem;
+  }
+
+  .classic-toolbar-identity {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .classic-toolbar-actions {
+    grid-template-columns: minmax(0, 1fr) auto;
+    width: 100%;
+  }
+
+  .classic-toolbar-actions__controls {
+    gap: 0.45rem 0.55rem;
+  }
+
+  .classic-print-cta {
+    align-items: stretch;
+  }
+
+  .classic-print-cta small {
+    display: none;
+  }
+
+  .classic-print-toolbar .classic-toolbar-switch.ui-toggle-chip {
+    max-width: 100%;
   }
 }

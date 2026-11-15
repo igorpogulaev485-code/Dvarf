@@ -289,9 +289,11 @@ class CharacterService:
             summary = extract_summary_from_sheet(
                 character.sheet if isinstance(character.sheet, dict) else payload.sheet
             )
-            if payload.hp_current is None and "hp_current" in summary:
+            # Only sync column HP when combat explicitly carries a number.
+            # Print-settings sheet patches often omit combat.hp_* — must not null columns.
+            if payload.hp_current is None and summary.get("hp_current") is not None:
                 character.hp_current = summary["hp_current"]
-            if payload.hp_max is None and "hp_max" in summary:
+            if payload.hp_max is None and summary.get("hp_max") is not None:
                 character.hp_max = summary["hp_max"]
 
         character.sheet_version += 1

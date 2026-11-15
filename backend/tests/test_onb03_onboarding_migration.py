@@ -66,10 +66,12 @@ def test_alembic_single_head_contains_onb03():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1
-    revs = {rev.revision for rev in script.walk_revisions()}
-    assert "onb03usr9c2e1" in revs
-    assert "w04sets8a1b2c" in revs
-    assert heads[0] == "onb03usr9c2e1"
+    # Do not hardcode the current tip — only that ONB-03 is an ancestor of it.
+    ancestor_ids = {
+        rev.revision for rev in script.walk_revisions(base="base", head=heads[0])
+    }
+    assert "onb03usr9c2e1" in ancestor_ids
+    assert "w04sets8a1b2c" in ancestor_ids
 
 
 def test_upgrade_downgrade_idempotent(monkeypatch):

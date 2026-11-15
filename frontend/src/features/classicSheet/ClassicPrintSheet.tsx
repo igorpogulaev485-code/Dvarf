@@ -1,14 +1,17 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type { CharacterDetail } from '../../shared/api/characters'
-import { formatClassLevelLabel } from '../../shared/dnd/classLevels'
+import { listCatalogEntries } from '../../shared/api/catalog'
+import { formatClassLevelLabel, formatClassSummary } from '../../shared/dnd/classLevels'
 import {
   ABILITY_KEYS,
   ABILITY_LABELS,
   ABILITY_NAMES,
   SKILL_DEFS,
   abilityModifier,
+  asRecord,
   formatModifier,
 } from '../characters/sheetTypes'
+import { readClassLevels } from '../characters/classLevels'
 import type { ClassicPatch } from './fromApi'
 import {
   combatField,
@@ -22,7 +25,11 @@ import {
   classicFeaturesTraitsValue,
   textBlockValue,
 } from './fromApi'
-import { classicWeaponRows } from './classicWeapons'
+import { CLASSIC_WEAPON_SLOTS, classicWeaponRows } from './classicWeapons'
+import {
+  classicHitDiceCurrentLabel,
+  classicHitDiceTotalLabel,
+} from './classicHitDiceLabel'
 import {
   classicCastProfiles,
   classicSpellAbilityLabel,
@@ -51,9 +58,11 @@ import {
   listClassicNotes,
 } from './classicNotes'
 import {
+  buildSpellCatalogIndex,
   chunkSpellCardPages,
   classicSpellCardFaces,
-  SPELL_CARDS_PER_PAGE,
+  effectKindLabel,
+  type SpellCatalogIndex,
 } from './classicSpellCards'
 import type { CompanionKind } from '../characters/companions'
 import {
@@ -62,10 +71,12 @@ import {
   asRecordNotes,
   brandYearLabel,
   clampMarks,
+  ClassicBrandWordmark,
+  isClassicBlankCharacter,
 } from './classicPrintShared'
 import { classicCombatDisplay, classicEffectiveAbilities } from './classicDerivedCombat'
 import {
-  ALIGNMENTS,
+  alignmentNameRu,
   alignmentNeedsClarification,
   recognizeAlignment,
 } from '../../shared/dnd/alignments'
@@ -75,8 +86,54 @@ import {
 } from './classicSheetLayout'
 import { ClassicTextBlock } from './ClassicTextBlock'
 import { ClassicFitViewport } from './ClassicFitViewport'
+import { ClassicFitCaption } from './ClassicFitCaption'
 import { ClassicFitInput } from './ClassicFitInput'
+import { ClassicStaticField } from './ClassicStaticField'
 import './classicPrint.css'
+
+const GENDER_LABELS: Record<string, string> = {
+  male: 'Мужской',
+  female: 'Женский',
+}
+
+/** Short full-word coin marks — one line, no hyphenation (print ≥6pt). */
+const COIN_LABELS = [
+  ['cp', 'Медь'],
+  ['sp', 'Серебро'],
+  ['ep', 'Электрум'],
+  ['gp', 'Золото'],
+  ['pp', 'Платина'],
+] as const
+
+/** Ability frame — side notches + concave bottom (viewBox 0 0 100 110). */
+const ABILITY_FRAME_PATH =
+  'M14 3 H86 C94 3 97 8 97 14 V70 C97 78 94 84 88 88 L58 100 C54 102 46 102 42 100 L12 88 C6 84 3 78 3 70 V14 C3 8 6 3 14 3 Z'
+
+/** AC shield (viewBox 0 0 100 120) — wide body so «16»/«30» keep ≥2pt inset from stroke. */
+const AC_SHIELD_PATH =
+  'M50 4 L90 16 C94 18 96 22 96 26 V56 C96 84 70 104 50 118 C30 104 4 84 4 56 V26 C4 22 6 18 10 16 Z'
+
+function numOrEmpty(value: unknown): number | '' {
+  return typeof value === 'number' ? value : ''
+}
+
+function padWeaponRows<T extends { id: string; name: string; attackBonus: string; damageLine: string }>(
+  rows: T[],
+  slots = CLASSIC_WEAPON_SLOTS,
+): Array<T | { id: string; name: string; attackBonus: string; damageLine: string }> {
+  const out: Array<T | { id: string; name: string; attackBonus: string; damageLine: string }> = [
+    ...rows,
+  ]
+  while (out.length < slots) {
+    out.push({
+      id: `blank-weapon-${out.length}`,
+      name: '',
+      attackBonus: '',
+      damageLine: '',
+    })
+  }
+  return out.slice(0, Math.max(slots, rows.length))
+}
 
 /** FIX-01: 2024-бланк не тянем в чанк 2014 — убирает лишний парсинг при печати. */
 const ClassicPrint2024 = lazy(() =>
@@ -92,33 +149,35 @@ type Props = {
 
 export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Props) {
   const sheetLayout = layout ?? readClassicSheetLayout(c)
-  const combatNum = (key: string): string => classicCombatDisplay(c, key)
+  const blank = isClassicBlankCharacter(c)
+  const combatNum = (key: string): string =>
+    blank ? '' : classicCombatDisplay(c, key)
   const pencilBlanks = readClassicPencilBlanks(c)
   const extraNotePages = readClassicExtraNotePages(c)
 
-  const classAndLevel = formatClassLevelLabel(c.class_name, c.level)
+  const sheetClasses = readClassLevels(asRecord(c.sheet), {
+    className: c.class_name ?? '',
+    level: c.level ?? 1,
+    subclassName: '',
+    classCatalogId: null,
+  })
+  const classSummary = formatClassSummary(sheetClasses)
+  const classAndLevel = blank
+    ? ''
+    : classSummary || formatClassLevelLabel(c.class_name, c.level)
   const coins = inventoryCoins(c)
   const weaponsBase = classicWeaponRows(c)
-  const weapons =
-    pencilBlanks && weaponsBase.length < 3
+  const weapons = padWeaponRows(
+    pencilBlanks && weaponsBase.length >= CLASSIC_WEAPON_SLOTS
       ? [
           ...weaponsBase,
-          ...Array.from({ length: 3 - weaponsBase.length }, (_, i) => ({
-            id: `pencil-weapon-${i}`,
-            name: '',
-            attackBonus: '',
-            damageLine: '',
-          })),
+          { id: 'pencil-weapon-extra', name: '', attackBonus: '', damageLine: '' },
         ]
-      : pencilBlanks
-        ? [
-            ...weaponsBase,
-            { id: 'pencil-weapon-extra', name: '', attackBonus: '', damageLine: '' },
-          ]
-        : weaponsBase
-  const proficiency = Number(asProfBonus(c))
-  const hitDiceTotal = String(c.level || '')
-  const hitDiceCurrent = combatNum('hp_dice_current') || hitDiceTotal
+      : weaponsBase,
+  )
+  const proficiency = blank ? null : Number(asProfBonus(c))
+  const hitDiceTotal = blank ? '' : classicHitDiceTotalLabel(c)
+  const hitDiceCurrent = blank ? '' : classicHitDiceCurrentLabel(c)
   const deathSuccesses = clampMarks(Number(combatField(c, 'death_successes') ?? 0))
   const deathFails = clampMarks(Number(combatField(c, 'death_fails') ?? 0))
   const spells = classicSpellsState(c)
@@ -126,45 +185,112 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
   const castProfiles = classicCastProfiles(c)
   const companionPages = chunkCompanionPages(classicCompanions(c), pencilBlanks)
   const customNotes = listClassicNotes(c)
-  // 2024 puts the first 6 notes on LSS P3; trailing pages only for overflow (or all pages on 2014).
-  const trailingNotes =
-    sheetLayout === '2024' ? customNotes.slice(CLASSIC_NOTES_PER_PAGE) : customNotes
-  const notePagesBase = chunkClassicNotePages(trailingNotes)
+  // Extras after blank + spells: notes once, only when present / settings / pencil spare.
+  const notePagesBase = chunkClassicNotePages(customNotes)
   const spareEmpty = buildExtraEmptyNotePages(
-    trailingNotes.length,
+    customNotes.length,
     extraNotePages,
     pencilBlanks,
   )
   const notePages = [
     ...notePagesBase,
-    ...Array.from({ length: spareEmpty }, () => [] as typeof trailingNotes),
+    ...Array.from({ length: spareEmpty }, () => [] as typeof customNotes),
   ]
-  // Screen: if no notes and no spare pages, keep one empty screen-only page for 2014.
-  const notePagesForRender =
-    notePages.length > 0
-      ? notePages
-      : sheetLayout === '2014'
-        ? [[]]
-        : []
-  const spellCardPages = chunkSpellCardPages(classicSpellCardFaces(c))
+  // Screen-only fallback empty page (hidden in @media print via --empty).
+  const usedFallbackEmptyNotes = notePages.length === 0 && sheetLayout === '2014'
+  const notePagesForRender = usedFallbackEmptyNotes ? [[]] : notePages
+  const [spellCatalog, setSpellCatalog] = useState<SpellCatalogIndex | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    const edition = sheetLayout === '2024' ? '2024' : '2014'
+    void (async () => {
+      let apiEntries: Awaited<ReturnType<typeof listCatalogEntries>> = []
+      try {
+        apiEntries = await listCatalogEntries({ kind: 'spell', edition })
+      } catch {
+        apiEntries = []
+      }
+      // 2014 API catalog is a thin seed; merge bundled full list so print cards
+      // pick up handbook RU descriptions (PRINT-14 pass 14).
+      let bundled: Awaited<ReturnType<typeof listCatalogEntries>> = []
+      if (edition === '2014') {
+        try {
+          const response = await fetch('/spells-2014.json')
+          const contentType = response.headers.get('content-type') || ''
+          if (response.ok && !contentType.includes('text/html')) {
+            const data = (await response.json()) as unknown
+            if (Array.isArray(data)) bundled = data as typeof apiEntries
+          }
+        } catch {
+          bundled = []
+        }
+      }
+      if (cancelled) return
+      const byKey = new Map<string, (typeof apiEntries)[number]>()
+      for (const entry of [...bundled, ...apiEntries]) {
+        const key = entry.id || entry.slug
+        if (!key) continue
+        byKey.set(key, entry)
+      }
+      setSpellCatalog(buildSpellCatalogIndex([...byKey.values()]))
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [sheetLayout])
+  const spellCardPages = chunkSpellCardPages(classicSpellCardFaces(c, spellCatalog))
   const traitsText = classicFeaturesTraitsValue(c)
   const traitsChunks = chunkOverflowText(traitsText, 1800)
-  const equipFull = [equipmentItemsLine(c), equipmentNotes(c)].filter(Boolean).join('\n')
+  // One gear item per ruled line (not a comma paragraph).
+  const equipItemsBlock = equipmentItemsLine(c)
+    .split(/\s*,\s*/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join('\n')
+  const equipFull = [equipItemsBlock, equipmentNotes(c)].filter(Boolean).join('\n')
   const equipChunks = chunkOverflowText(equipFull, 1400)
   const spellExtraPages = spellOverflowPageCount(classicSpellsState(c).known, [0, ...SPELL_LEVELS])
   const scores = classicEffectiveAbilities(c)
   const alignmentRaw = String(identityField(c, 'alignment') ?? '')
   const alignmentText = String(identityField(c, 'alignment_text') ?? '')
   const alignmentSlug = recognizeAlignment(alignmentRaw) ?? ''
+  const alignmentDisplay =
+    alignmentNameRu(alignmentSlug) ||
+    alignmentText ||
+    (alignmentSlug ? '' : alignmentRaw)
   const alignmentUnparsed = alignmentNeedsClarification({
     alignment: alignmentSlug,
     alignmentText: alignmentText || (alignmentSlug ? '' : alignmentRaw),
   })
-  const passivePerception =
-    10 +
-    abilityModifier(scores.wis) +
-    (skillFlags(c, 'perception').is_proficient ? proficiency : 0) +
-    (skillFlags(c, 'perception').is_expertise ? proficiency : 0)
+  const genderRaw = String(physiqueField(c, 'gender') ?? '')
+  const genderDisplay = GENDER_LABELS[genderRaw] ?? genderRaw
+  const pb = proficiency ?? 0
+  const passivePerception = blank
+    ? ''
+    : String(
+        10 +
+          abilityModifier(scores.wis) +
+          (skillFlags(c, 'perception').is_proficient ? pb : 0) +
+          (skillFlags(c, 'perception').is_expertise ? pb : 0),
+      )
+  const scoreInk = (key: (typeof ABILITY_KEYS)[number]) =>
+    blank ? '' : scores[key]
+  const modInk = (key: (typeof ABILITY_KEYS)[number]) =>
+    blank ? '' : formatModifier(abilityModifier(scores[key]))
+  const saveInk = (key: (typeof ABILITY_KEYS)[number]) =>
+    blank
+      ? ''
+      : formatModifier(
+          abilityModifier(scores[key]) + (isSaveProficient(c, key) ? pb : 0),
+        )
+  const skillInk = (skillKey: string, base: (typeof ABILITY_KEYS)[number]) => {
+    if (blank) return ''
+    const flags = skillFlags(c, skillKey)
+    const bonus =
+      abilityModifier(scores[base]) +
+      (flags.is_expertise ? pb * 2 : flags.is_proficient ? pb : 0)
+    return formatModifier(bonus)
+  }
 
   return (
     <ClassicFitViewport key={sheetLayout}>
@@ -176,147 +302,164 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
       ) : (
         <>
       <article className="classic-sheet classic-page1" aria-label="Классический лист 2014, страница 1">
-        <header className="classic-header">
-          <div className="classic-brand">
-            <strong>D&amp;D</strong>
+        <header className="classic-header classic-header--p1">
+          <div className="classic-brand" aria-hidden="true">
+            <ClassicBrandWordmark />
             <span>{brandYearLabel('2014')}</span>
           </div>
-          <label className="classic-name">
-            <span>Имя персонажа</span>
-            <ClassicFitInput
-              value={c.name}
-              aria-label="Имя персонажа"
-            />
-          </label>
-          <div className="classic-meta">
-            <label>
-              <span>Класс и уровень</span>
-              <input
+          <div className="classic-name classic-name--banner">
+            <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
+            <span className="classic-field-label">Имя персонажа</span>
+          </div>
+          <div className="classic-meta classic-meta--plate">
+            <div className="classic-meta__cell">
+              <ClassicStaticField
                 value={classAndLevel}
-               readOnly />
-            </label>
-            <label>
-              <span>Предыстория</span>
-              <input
-                value={String(identityField(c, 'background') ?? '')}
-                readOnly
-                title="Выбор из справочника — в панели над листом (не печатается)"
+                fit
+                wrap
+                tone="body"
+                aria-label="Класс и уровень"
               />
-            </label>
-            <label>
-              <span>Имя игрока</span>
-              <input
+              <span className="classic-field-label">Класс и уровень</span>
+            </div>
+            <div className="classic-meta__cell">
+              <ClassicStaticField
+                value={String(identityField(c, 'background') ?? '')}
+                fit
+                wrap
+                aria-label="Предыстория"
+              />
+              <span className="classic-field-label">Предыстория</span>
+            </div>
+            <div className="classic-meta__cell">
+              <ClassicStaticField
                 value={String(identityField(c, 'player_name') ?? '')}
-               readOnly />
-            </label>
-            <label>
-              <span>Раса</span>
-              <input
-                value={c.race_name ?? ''}
-               readOnly />
-            </label>
-            <label>
-              <span>Мировоззрение</span>
-              <select
-                value={alignmentSlug}
-               disabled>
-                <option value="">—</option>
-                {ALIGNMENTS.map((row) => (
-                  <option key={row.slug} value={row.slug}>
-                    {row.nameRu}
-                  </option>
-                ))}
-              </select>
-              {alignmentUnparsed ? <span>Уточните мировоззрение</span> : null}
-            </label>
-            <label>
-              <span>Опыт</span>
-              <input
+                fit
+                wrap
+                aria-label="Имя игрока"
+              />
+              <span className="classic-field-label">Имя игрока</span>
+            </div>
+            <div className="classic-meta__cell">
+              <ClassicStaticField value={c.race_name ?? ''} fit wrap aria-label="Раса" />
+              <span className="classic-field-label">Раса</span>
+            </div>
+            <div className="classic-meta__cell">
+              <ClassicStaticField
+                value={alignmentDisplay}
+                fit
+                wrap
+                aria-label="Мировоззрение"
+              />
+              <span className="classic-field-label">Мировоззрение</span>
+              {alignmentUnparsed ? (
+                <span className="classic-field-hint">Уточните мировоззрение</span>
+              ) : null}
+            </div>
+            <div className="classic-meta__cell">
+              <ClassicStaticField
                 value={String(identityField(c, 'experience') ?? '')}
-               readOnly />
-            </label>
+                align="center"
+                tone="numeric"
+                aria-label="Опыт"
+              />
+              <span className="classic-field-label">Опыт</span>
+            </div>
           </div>
         </header>
 
         <div className="classic-body">
-          <div className="classic-col">
+          <div className="classic-col classic-col--stats">
             <div className="classic-abilities-wrap">
-              <div>
+              <div className="classic-abilities-stack">
                 {ABILITY_KEYS.map((key) => (
                   <div className="classic-ability" key={key}>
-                    <div className="classic-ability__label">{ABILITY_NAMES[key]}</div>
-                    <input
-                      type="number"
-                      value={scores[key]}
-                     readOnly />
-                    <div className="classic-ability__mod">
-                      {formatModifier(abilityModifier(scores[key]))}
+                    <div className="classic-ability__frame">
+                      <svg
+                        className="classic-ability__svg"
+                        viewBox="0 0 100 110"
+                        preserveAspectRatio="none"
+                        aria-hidden="true"
+                      >
+                        <path d={ABILITY_FRAME_PATH} />
+                      </svg>
+                      <ClassicFitCaption className="classic-ability__label" minPt={6} maxPt={7}>
+                        {ABILITY_NAMES[key]}
+                      </ClassicFitCaption>
+                      <div className="classic-ability__mod" aria-label={`Модификатор ${ABILITY_NAMES[key]}`}>
+                        {modInk(key)}
+                      </div>
+                    </div>
+                    <div className="classic-ability__score" aria-label={ABILITY_NAMES[key]}>
+                      {scoreInk(key)}
                     </div>
                   </div>
                 ))}
               </div>
-              <div>
-                <label className="classic-insp">
-                  <input
-                    type="checkbox"
-                    checked={Boolean(combatField(c, 'inspiration'))}
-                   disabled />
-                  Вдохновение
-                </label>
+              <div className="classic-skills-stack">
+                <div className="classic-insp">
+                  <span className="classic-plate-box">
+                    <Bubble
+                      filled={Boolean(combatField(c, 'inspiration'))}
+                      label="Вдохновение"
+                    />
+                  </span>
+                  <span>Вдохновение</span>
+                </div>
                 <div className="classic-prof">
-                  <input
-                    type="number"
-                    value={proficiency}
-                   readOnly />
+                  <span className="classic-plate-box classic-plate-box--value">
+                    <ClassicStaticField
+                      value={proficiency ?? ''}
+                      align="center"
+                      tone="numeric"
+                      pencilLine={false}
+                      aria-label="Бонус владения"
+                    />
+                  </span>
                   <span>Бонус владения</span>
                 </div>
                 <div className="classic-panel">
                   {ABILITY_KEYS.map((key) => (
                     <div className="classic-check" key={key}>
                       <Bubble
-                        filled={isSaveProficient(c, key)}
+                        filled={!blank && isSaveProficient(c, key)}
                         label={`Владение спасброском: ${ABILITY_NAMES[key]}`}
                       />
-                      <strong>
-                        {formatModifier(
-                          abilityModifier(scores[key]) +
-                            (isSaveProficient(c, key) ? proficiency : 0),
-                        )}
-                      </strong>
-                      <span>{ABILITY_NAMES[key]}</span>
+                      <strong>{saveInk(key)}</strong>
+                      <span className="classic-check__name" style={{ gridColumn: '3 / -1' }}>
+                        {ABILITY_NAMES[key]}
+                      </span>
                     </div>
                   ))}
-                  <div className="classic-caption">Спасброски</div>
+                  <div className="classic-caption classic-caption--full">Спасброски</div>
                 </div>
-                <div className="classic-panel">
+                <div className="classic-panel classic-panel--skills">
                   {SKILL_DEFS.map((skill) => {
                     const flags = skillFlags(c, skill.key)
-                    const bonus =
-                      abilityModifier(scores[skill.base]) +
-                      (flags.is_expertise ? proficiency * 2 : flags.is_proficient ? proficiency : 0)
                     return (
                       <div className="classic-check" key={skill.key}>
                         <Bubble
-                          filled={flags.is_proficient || flags.is_expertise}
-                          expertise={flags.is_expertise}
+                          filled={!blank && (flags.is_proficient || flags.is_expertise)}
+                          expertise={!blank && flags.is_expertise}
                           label={`Владение навыком: ${skill.label}`}
                         />
-                        <strong>{formatModifier(bonus)}</strong>
-                        <span>
-                          {skill.label} <em>({ABILITY_LABELS[skill.base].toLowerCase()})</em>
-                        </span>
+                        <strong>{skillInk(skill.key, skill.base)}</strong>
+                        <span className="classic-check__name">{skill.label}</span>
+                        <em className="classic-check__tag">({ABILITY_LABELS[skill.base].toLowerCase()})</em>
                       </div>
                     )
                   })}
-                  <div className="classic-caption">Навыки</div>
+                  <div className="classic-caption classic-caption--full">Навыки</div>
                 </div>
               </div>
             </div>
             <div className="classic-passive">
-              <strong>{passivePerception}</strong>
+              <span className="classic-plate-box classic-plate-box--value">
+                <strong>{passivePerception}</strong>
+              </span>
               <span>Пассивная мудрость (Восприятие)</span>
             </div>
-            <div className="classic-panel classic-panel--grow">
+            <div className="classic-panel classic-panel--grow classic-panel--prof">
               <ClassicTextBlock
                 blockId="other_proficiencies"
                 character={c}
@@ -326,116 +469,179 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                 printMaxHeight="12rem"
                 ariaLabel="Прочие владения и языки"
               />
-              <div className="classic-caption">Прочие владения и языки</div>
+              <div className="classic-caption classic-caption--full classic-caption--wrap">
+                Прочие владения и языки
+              </div>
             </div>
           </div>
 
-          <div className="classic-col">
+          <div className="classic-col classic-col--combat">
             <div className="classic-combat-row">
-              <label className="classic-combat-stat classic-combat-stat--ac">
-                <input
-                  value={combatNum('ac')}
-                 readOnly />
-                <span>Класс доспеха</span>
-              </label>
-              <label className="classic-combat-stat">
-                <input
+              <div className="classic-combat-stat classic-combat-stat--ac">
+                <div className="classic-ac-shield">
+                  <svg
+                    className="classic-ac-shield__svg"
+                    viewBox="0 0 100 120"
+                    preserveAspectRatio="xMidYMid meet"
+                    aria-hidden="true"
+                    style={{ background: 'transparent' }}
+                  >
+                    <rect width="100" height="120" fill="none" />
+                    <path d={AC_SHIELD_PATH} fill="#fff" stroke="#000" strokeWidth="2.2" />
+                  </svg>
+                  <ClassicStaticField
+                    value={combatNum('ac')}
+                    align="center"
+                    tone="display"
+                    pencilLine={false}
+                    aria-label="Класс доспеха"
+                  />
+                </div>
+                <span className="classic-field-label">Класс доспеха</span>
+              </div>
+              <div className="classic-combat-stat">
+                <ClassicStaticField
                   value={combatNum('initiative')}
-                 readOnly />
-                <span>Инициатива</span>
-              </label>
-              <label className="classic-combat-stat">
-                <input
+                  align="center"
+                  tone="display"
+                  pencilLine={false}
+                  aria-label="Инициатива"
+                />
+                <span className="classic-field-label">Инициатива</span>
+              </div>
+              <div className="classic-combat-stat">
+                <ClassicStaticField
                   value={combatNum('speed')}
-                 readOnly />
-                <span>Скорость</span>
-              </label>
+                  align="center"
+                  tone="display"
+                  pencilLine={false}
+                  aria-label="Скорость"
+                />
+                <span className="classic-field-label">Скорость</span>
+              </div>
             </div>
 
             <div className="classic-panel classic-panel--hp">
-              <label className="classic-hp-max">
-                Максимум хитов
-                <input
-                  value={c.hp_max ?? ''}
-                 readOnly />
-              </label>
-              <input
+              <div className="classic-hp-max">
+                <span className="classic-field-label">Максимум хитов</span>
+                <ClassicStaticField
+                  value={c.hp_max ?? numOrEmpty(combatField(c, 'hp_max'))}
+                  align="center"
+                  tone="numeric"
+                  className="classic-hp-max__value"
+                  aria-label="Максимум хитов"
+                />
+              </div>
+              <ClassicStaticField
                 className="classic-hp"
-                value={c.hp_current ?? ''}
+                value={c.hp_current ?? numOrEmpty(combatField(c, 'hp_current'))}
+                align="center"
+                tone="display"
                 aria-label="Текущие хиты"
-               readOnly />
+              />
               <div className="classic-caption">Текущие хиты</div>
             </div>
 
             <div className="classic-panel classic-panel--hp-temp">
-              <input
+              <ClassicStaticField
                 className="classic-hp"
                 value={combatNum('hp_temp')}
+                align="center"
+                tone="display"
                 aria-label="Временные хиты"
-               readOnly />
+              />
               <div className="classic-caption">Временные хиты</div>
             </div>
 
             <div className="classic-hit-death-row">
               <section className="classic-panel classic-hit-dice">
-                <label>
-                  Всего
-                  <input value={hitDiceTotal} readOnly title="По уровню персонажа" />
-                </label>
-                <input
+                <div className="classic-hit-dice__total">
+                  <span className="classic-field-label">Всего</span>
+                  <ClassicStaticField
+                    value={hitDiceTotal}
+                    align="center"
+                    tone="compact"
+                    fit
+                    aria-label="Всего костей хитов"
+                  />
+                </div>
+                <ClassicStaticField
                   value={hitDiceCurrent}
+                  align="center"
+                  tone="display"
                   aria-label="Текущие кости хитов"
-                 readOnly />
-                <div className="classic-caption">Кости хитов</div>
+                />
+                <div className="classic-caption classic-caption--full">Кости хитов</div>
               </section>
               <section className="classic-panel classic-death-saves">
                 <div className="classic-death-line">
                   <span>Успехи</span>
-                  {[0, 1, 2].map((i) => (
-                    <Bubble
-                      key={`s${i}`}
-                      filled={deathSuccesses > i}
-                      label={`Успех спасброска от смерти ${i + 1}`}
-                    />
-                  ))}
+                  <span className="classic-death-bubbles">
+                    {[0, 1, 2].map((i) => (
+                      <Bubble
+                        key={`s${i}`}
+                        filled={deathSuccesses > i}
+                        label={`Успех спасброска от смерти ${i + 1}`}
+                      />
+                    ))}
+                  </span>
                 </div>
                 <div className="classic-death-line">
                   <span>Провалы</span>
-                  {[0, 1, 2].map((i) => (
-                    <Bubble
-                      key={`f${i}`}
-                      filled={deathFails > i}
-                      label={`Провал спасброска от смерти ${i + 1}`}
-                    />
-                  ))}
+                  <span className="classic-death-bubbles">
+                    {[0, 1, 2].map((i) => (
+                      <Bubble
+                        key={`f${i}`}
+                        filled={deathFails > i}
+                        label={`Провал спасброска от смерти ${i + 1}`}
+                      />
+                    ))}
+                  </span>
                 </div>
-                <div className="classic-caption">Спасброски от смерти</div>
+                <div className="classic-caption classic-caption--full classic-caption--wrap">
+                  Спасброски от смерти
+                </div>
               </section>
             </div>
 
-            <div className="classic-panel classic-panel--grow">
+            <div className="classic-panel classic-panel--grow classic-panel--attacks">
               <div className="classic-attacks-head">
                 <span>Название</span>
                 <span>Бонус атаки</span>
                 <span>Урон / тип</span>
               </div>
               {weapons.map((row, idx) => (
-                <div className="classic-weapon" key={row.id}>
-                  <input
-                    value={row.name}
-                    aria-label={`Атака ${idx + 1}: название`}
-                    placeholder="—"
-                   readOnly />
-                  <input
-                    value={row.attackBonus}
-                    aria-label={`Атака ${idx + 1}: бонус`}
-                    placeholder="—"
-                   readOnly />
-                  <input
-                    value={row.damageLine}
-                    aria-label={`Атака ${idx + 1}: урон`}
-                    placeholder="—"
-                   readOnly />
+                <div
+                  className={`classic-weapon${idx < CLASSIC_WEAPON_SLOTS ? ' classic-weapon--slot' : ''}`}
+                  key={row.id}
+                >
+                  <div className="classic-weapon__cell classic-weapon__cell--name">
+                    <ClassicStaticField
+                      value={row.name}
+                      wrap
+                      tone="compact"
+                      pencilLine={false}
+                      aria-label={`Атака ${idx + 1}: название`}
+                    />
+                  </div>
+                  <div className="classic-weapon__cell classic-weapon__cell--bonus">
+                    <ClassicStaticField
+                      value={row.attackBonus}
+                      align="center"
+                      tone="numeric"
+                      pencilLine={false}
+                      aria-label={`Атака ${idx + 1}: бонус`}
+                    />
+                  </div>
+                  <div className="classic-weapon__cell classic-weapon__cell--dmg">
+                    <ClassicStaticField
+                      value={row.damageLine}
+                      wrap
+                      tone="compact"
+                      pencilLine={false}
+                      aria-label={`Атака ${idx + 1}: урон`}
+                    />
+                  </div>
                 </div>
               ))}
               <ClassicTextBlock
@@ -447,18 +653,24 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                 printMaxHeight="6rem"
                 ariaLabel="Заметки к атакам и заклинаниям"
               />
-              <div className="classic-caption">Атаки и заклинания</div>
+              <div className="classic-caption classic-caption--full classic-caption--wrap">
+                Атаки и заклинания
+              </div>
             </div>
 
             <div className="classic-panel classic-equip classic-panel--grow classic-panel--grow-lg">
               <div className="classic-coins" aria-label="Монеты">
-                {(['cp', 'sp', 'ep', 'gp', 'pp'] as const).map((k) => (
-                  <label key={k}>
-                    {k.toUpperCase()}
-                    <input
+                {COIN_LABELS.map(([k, label]) => (
+                  <div className="classic-coin" key={k}>
+                    <ClassicStaticField
                       value={coins[k]}
-                     readOnly />
-                  </label>
+                      align="center"
+                      tone="numeric"
+                      pencilLine={false}
+                      aria-label={label}
+                    />
+                    <span className="classic-coin__mark">{label}</span>
+                  </div>
                 ))}
               </div>
               <div className="classic-equip-main">
@@ -468,15 +680,15 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                   onPrintSettings={onPrintSettings}
                   fill
                   value={equipChunks[0] ?? ''}
-                  printMaxHeight="14rem"
+                  printMaxHeight="12rem"
                   ariaLabel="Снаряжение"
                 />
               </div>
-              <div className="classic-caption">Снаряжение</div>
+              <div className="classic-caption classic-caption--full">Снаряжение</div>
             </div>
           </div>
 
-          <div className="classic-col">
+          <div className="classic-col classic-col--persona">
             {(
               [
                 ['personality', 'Черты характера', '3.6rem', true],
@@ -504,9 +716,14 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                   }
                   printMaxHeight={height}
                   ariaLabel={label}
-
                 />
-                <div className="classic-caption">{label}</div>
+                <div
+                  className={`classic-caption classic-caption--full${
+                    label.length > 12 ? ' classic-caption--wrap' : ''
+                  }`}
+                >
+                  {label}
+                </div>
               </div>
             ))}
           </div>
@@ -515,28 +732,19 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
 
       <article className="classic-sheet classic-page2" aria-label="Классический лист 2014, страница 2">
         <header className="classic-header classic-header--page2">
-          <div className="classic-brand">
-            <strong>D&amp;D</strong>
+          <div className="classic-brand" aria-hidden="true">
+            <ClassicBrandWordmark />
             <span>{brandYearLabel('2014')}</span>
           </div>
-          <label className="classic-name">
-            <span>Имя персонажа</span>
-            <ClassicFitInput
-              value={c.name}
-              aria-label="Имя персонажа"
-            />
-          </label>
+          <div className="classic-name classic-name--banner">
+            <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
+            <span className="classic-field-label">Имя персонажа</span>
+          </div>
           <div className="classic-physique">
-            <label>
-              <span>Пол</span>
-              <select
-                value={physiqueField(c, 'gender')}
-               disabled>
-                <option value="">—</option>
-                <option value="male">Мужской</option>
-                <option value="female">Женский</option>
-              </select>
-            </label>
+            <div className="classic-field">
+              <ClassicStaticField value={genderDisplay} fit aria-label="Пол" />
+              <span className="classic-field-label">Пол</span>
+            </div>
             {(
               [
                 ['age', 'Возраст'],
@@ -547,12 +755,14 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                 ['hair', 'Волосы'],
               ] as const
             ).map(([key, label]) => (
-              <label key={key}>
-                <span>{label}</span>
-                <input
+              <div className="classic-field" key={key}>
+                <ClassicStaticField
                   value={physiqueField(c, key)}
-                 readOnly />
-              </label>
+                  fit
+                  aria-label={label}
+                />
+                <span className="classic-field-label">{label}</span>
+              </div>
             ))}
           </div>
         </header>
@@ -628,17 +838,18 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
 
       <article className="classic-sheet classic-page3" aria-label="Классический лист 2014, страница 3">
         <header className="classic-spell-header">
-          <div className="classic-brand">
-            <strong>D&amp;D</strong>
+          <div className="classic-brand" aria-hidden="true">
+            <ClassicBrandWordmark />
             <span>{brandYearLabel('2014')}</span>
           </div>
-          <label className="classic-name">
-            <span>Класс заклинателя</span>
+          <div className="classic-name classic-name--banner">
             <ClassicFitInput
-              value={c.class_name ?? ''}
+              value={classAndLevel}
+              wrap
               aria-label="Класс заклинателя"
             />
-          </label>
+            <span className="classic-field-label">Класс заклинателя</span>
+          </div>
           {castProfiles.length > 1 ? (
             <div
               className="classic-spell-profiles"
@@ -667,29 +878,33 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
             </div>
           ) : (
             <div className="classic-spell-stats">
-              <label>
-                <span>Базовая характеристика</span>
-                <input
+              <div className="classic-field">
+                <ClassicStaticField
                   value={classicSpellAbilityLabel(spells.casting_ability)}
-                  placeholder="ИНТ / МУД / ХАР"
-                 readOnly />
-              </label>
-              <label>
-                <span>Сложность спасброска</span>
-                <input
+                  align="center"
+                  tone="body"
+                  aria-label="Базовая характеристика"
+                />
+                <span className="classic-field-label">Базовая характеристика</span>
+              </div>
+              <div className="classic-field">
+                <ClassicStaticField
                   value={spellStats.saveDc}
-                  readOnly
-                  title="Считается от характеристики и бонуса владения"
+                  align="center"
+                  tone="numeric"
+                  aria-label="Сложность спасброска"
                 />
-              </label>
-              <label>
-                <span>Бонус атаки заклинанием</span>
-                <input
+                <span className="classic-field-label">Сложность спасброска</span>
+              </div>
+              <div className="classic-field">
+                <ClassicStaticField
                   value={spellStats.attackBonus}
-                  readOnly
-                  title="Считается от характеристики и бонуса владения"
+                  align="center"
+                  tone="numeric"
+                  aria-label="Бонус атаки заклинанием"
                 />
-              </label>
+                <span className="classic-field-label">Бонус атаки заклинанием</span>
+              </div>
             </div>
           )}
         </header>
@@ -716,174 +931,6 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
         </>
       )}
 
-      {companionPages.length === 0 ? (
-        <p className="classic-companions-empty no-print">Нет напарников</p>
-      ) : (
-        companionPages.map((companionSlots, pageIndex) => (
-      <article
-        className="classic-sheet classic-page4"
-        aria-label={
-          companionPages.length > 1
-            ? `Классический лист, напарники · лист ${pageIndex + 1}`
-            : 'Классический лист, напарники'
-        }
-        key={`companions-${pageIndex}`}
-      >
-        <header className="classic-header classic-header--companions">
-          <div className="classic-brand">
-            <strong>D&amp;D</strong>
-            <span>{brandYearLabel(sheetLayout)}</span>
-          </div>
-          <label className="classic-name">
-            <span>Имя персонажа</span>
-            <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
-          </label>
-          <div className="classic-companions-banner">
-            <strong>Напарники</strong>
-            <span>
-              Спутники, фамильяры и призывы — страница Dvarf (нет в официальном бланке)
-              {companionPages.length > 1
-                ? ` · лист ${pageIndex + 1}/${companionPages.length}`
-                : ''}
-            </span>
-          </div>
-        </header>
-
-        <div className="classic-companions-grid">
-          {companionSlots.map((row, index) => (
-            <section
-              className="classic-panel classic-companion-card"
-              key={row?.id ?? `slot-${pageIndex}-${index}`}
-            >
-              <div className="classic-companion-card__top">
-                <label className="classic-companion-card__name">
-                  <span>Имя</span>
-                  <input value={row?.name ?? ''} readOnly />
-                </label>
-                <label className="classic-companion-card__kind">
-                  <span>Тип</span>
-                  <select value={row?.kind ?? 'other'} disabled>
-                    {(Object.keys(COMPANION_KIND_LABELS) as CompanionKind[]).map((kind) => (
-                      <option key={kind} value={kind}>
-                        {COMPANION_KIND_LABELS[kind]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <div className="classic-companion-card__stats">
-                <label>
-                  <span>КД</span>
-                  <input value={row?.stats.ac ?? ''} readOnly />
-                </label>
-                <label>
-                  <span>Хиты</span>
-                  <input value={row?.stats.hp ?? ''} readOnly />
-                </label>
-                <label>
-                  <span>Скорость</span>
-                  <input value={row?.stats.speed ?? ''} readOnly />
-                </label>
-              </div>
-              <ClassicTextBlock
-                blockId={`companion_${pageIndex}_${index}`}
-                character={c}
-                onPrintSettings={onPrintSettings}
-                fill
-                value={row?.notes ?? ''}
-                printMaxHeight="5.5rem"
-                ariaLabel="Заметки напарника"
-              />
-              <div className="classic-caption">Карточка напарника</div>
-            </section>
-          ))}
-        </div>
-      </article>
-        ))
-      )}
-
-      {notePagesForRender.map((pageNotes, pageIndex) => (
-        <article
-          className={`classic-sheet classic-page-notes${
-            pageNotes.length === 0 ? ' classic-page-notes--empty' : ''
-          }`}
-          aria-label={
-            notePagesForRender.length > 1
-              ? `Заметки, лист ${pageIndex + 1}`
-              : 'Заметки'
-          }
-          key={`notes-${pageIndex}`}
-        >
-          <header className="classic-header classic-header--companions">
-            <div className="classic-brand">
-              <strong>D&amp;D</strong>
-              <span>{brandYearLabel(sheetLayout)}</span>
-            </div>
-            <label className="classic-name">
-              <span>Имя персонажа</span>
-              <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
-            </label>
-            <div className="classic-companions-banner">
-              <strong>Заметки</strong>
-              <span>
-                {pageNotes.length === 0
-                  ? 'Пустые блоки под карандаш'
-                  : 'Свободные блоки из цифрового листа'}
-                {notePagesForRender.length > 1
-                  ? ` · лист ${pageIndex + 1}/${notePagesForRender.length}`
-                  : ''}
-              </span>
-            </div>
-          </header>
-
-          <div className="classic-notes-grid">
-            {pageNotes.length === 0 ? (
-              Array.from({ length: CLASSIC_NOTES_PER_PAGE }, (_, i) => (
-                <section
-                  className="classic-panel classic-note-card classic-note-card--blank"
-                  key={`blank-note-${pageIndex}-${i}`}
-                  aria-label="Пустая заметка"
-                >
-                  <div className="classic-caption">Заметка</div>
-                </section>
-              ))
-            ) : (
-              paddedClassicNoteSlotsLocal(pageNotes).map((block, i) =>
-                block ? (
-                  <section className="classic-panel classic-note-card" key={block.key}>
-                    <input
-                      className="classic-note-card__title-input"
-                      value={classicNoteLabel(block)}
-                      placeholder="Название заметки"
-                      aria-label="Название заметки"
-                      readOnly
-                    />
-                    <ClassicTextBlock
-                      blockId={`note_${block.key}`}
-                      character={c}
-                      onPrintSettings={onPrintSettings}
-                      fill
-                      value={classicNoteText(block)}
-                      printMaxHeight="9rem"
-                      ariaLabel={classicNoteLabel(block)}
-                    />
-                    <div className="classic-caption">Заметка</div>
-                  </section>
-                ) : (
-                  <section
-                    className="classic-panel classic-note-card classic-note-card--blank"
-                    key={`pad-note-${pageIndex}-${i}`}
-                    aria-label="Пустая заметка"
-                  >
-                    <div className="classic-caption">Заметка</div>
-                  </section>
-                ),
-              )
-            )}
-          </div>
-        </article>
-      ))}
-
       {traitsChunks.slice(1).map((chunk, i) => (
         <article
           className="classic-sheet classic-page-continuation"
@@ -892,13 +939,13 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
         >
           <header className="classic-header classic-header--companions">
             <div className="classic-brand">
-              <strong>D&amp;D</strong>
+              <ClassicBrandWordmark />
               <span>{brandYearLabel(sheetLayout)}</span>
             </div>
-            <label className="classic-name">
-              <span>Имя персонажа</span>
-              <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
-            </label>
+            <div className="classic-name">
+              <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
+              <span className="classic-field-label">Имя персонажа</span>
+            </div>
             <div className="classic-companions-banner">
               <strong>Умения и особенности · продолжение</strong>
             </div>
@@ -925,13 +972,13 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
         >
           <header className="classic-header classic-header--companions">
             <div className="classic-brand">
-              <strong>D&amp;D</strong>
+              <ClassicBrandWordmark />
               <span>{brandYearLabel(sheetLayout)}</span>
             </div>
-            <label className="classic-name">
-              <span>Имя персонажа</span>
-              <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
-            </label>
+            <div className="classic-name">
+              <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
+              <span className="classic-field-label">Имя персонажа</span>
+            </div>
             <div className="classic-companions-banner">
               <strong>Снаряжение · продолжение</strong>
             </div>
@@ -958,7 +1005,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
         >
           <header className="classic-spell-header">
             <div className="classic-brand">
-              <strong>D&amp;D</strong>
+              <ClassicBrandWordmark />
               <span>{brandYearLabel('2014')}</span>
             </div>
             <div className="classic-companions-banner">
@@ -989,98 +1036,292 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
         </article>
       ))}
 
-      {spellCardPages.map((pageFaces, pageIndex) => (
+      {spellCardPages.map((page, pageIndex) => (
         <article
           className="classic-sheet classic-page-spell-cards"
           aria-label={`Карточки заклинаний, лист ${pageIndex + 1}`}
           key={`spell-cards-${pageIndex}`}
         >
-          <header className="classic-spell-cards-header no-print">
+          <header className="classic-spell-cards-header">
             <div className="classic-brand">
-              <strong>D&amp;D</strong>
+              <ClassicBrandWordmark />
               <span>{brandYearLabel(sheetLayout)}</span>
+            </div>
+            <div className="classic-name">
+              <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
+              <span className="classic-field-label">Имя персонажа</span>
             </div>
             <div className="classic-companions-banner">
               <strong>Карточки заклинаний</strong>
               <span>
-                {c.name} · лист {pageIndex + 1}/{spellCardPages.length} · покерный размер · режь по
-                пунктиру
+                лист {pageIndex + 1}/{spellCardPages.length}
               </span>
             </div>
           </header>
-          <div className="classic-spell-cards-grid">
-            {Array.from({ length: SPELL_CARDS_PER_PAGE }, (_, slot) => {
-              const face = pageFaces[slot]
-              if (!face) {
-                return <div className="classic-spell-card classic-spell-card--empty" key={`empty-${slot}`} />
-              }
-              return (
-                <div
-                  className={`classic-spell-card ${face.isContinuation ? 'classic-spell-card--cont' : ''}`}
-                  key={face.key}
-                >
-                  <div className="classic-spell-card__head">
-                    <div className="classic-spell-card__title">{face.name}</div>
-                    <div className="classic-spell-card__meta">
-                      <span>{face.levelLabel}</span>
-                      {face.school ? <span>{face.school}</span> : null}
-                      {face.partsTotal > 1 ? (
-                        <span>
-                          {face.part}/{face.partsTotal}
-                        </span>
-                      ) : null}
-                    </div>
-                    {face.badges.length ? (
-                      <div className="classic-spell-card__badges">
-                        {face.badges.map((badge) => (
-                          <span key={badge}>{badge}</span>
-                        ))}
+          <div className="classic-spell-cards-body">
+            {page.groups.map((group) => (
+              <section
+                className="classic-spell-cards-group"
+                key={`spell-group-${pageIndex}-${group.level}-${group.faces[0]?.key ?? 'empty'}`}
+                aria-label={group.label}
+              >
+                <h3 className="classic-spell-cards-group__title">{group.label}</h3>
+                <div className="classic-spell-cards-grid">
+                  {group.faces.map((face) => (
+                    <div
+                      className={`classic-spell-card ${face.isContinuation ? 'classic-spell-card--cont' : ''}`}
+                      key={face.key}
+                    >
+                      <div className="classic-spell-card__head">
+                        <div className="classic-spell-card__title">{face.name}</div>
+                        <div className="classic-spell-card__meta">
+                          <span>{face.levelLabel}</span>
+                          {face.school ? <span>{face.school}</span> : null}
+                          {face.partsTotal > 1 ? (
+                            <span>
+                              {face.part}/{face.partsTotal}
+                            </span>
+                          ) : null}
+                        </div>
+                        {face.badges.length ? (
+                          <div className="classic-spell-card__badges">
+                            {face.badges.map((badge) => (
+                              <span key={badge}>{badge}</span>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
-                    ) : null}
-                  </div>
-                  {!face.isContinuation ? (
-                    <div className="classic-spell-card__facts">
-                      {face.castingTime ? (
-                        <div>
-                          <em>Время</em> {face.castingTime}
+                      {!face.isContinuation ? (
+                        <div className="classic-spell-card__facts">
+                          {face.castingTime ? (
+                            <div>
+                              <em>Время</em> {face.castingTime}
+                            </div>
+                          ) : null}
+                          {face.range ? (
+                            <div>
+                              <em>Дист.</em> {face.range}
+                            </div>
+                          ) : null}
+                          {face.components ? (
+                            <div>
+                              <em>Комп.</em> {face.components}
+                            </div>
+                          ) : null}
+                          {face.duration ? (
+                            <div>
+                              <em>Длит.</em> {face.duration}
+                            </div>
+                          ) : null}
+                          {face.attackOrSave ? (
+                            <div>
+                              <em>Атака/спас</em> {face.attackOrSave}
+                            </div>
+                          ) : null}
+                          {face.effectKind && face.effectValue ? (
+                            <div>
+                              <em>{effectKindLabel(face.effectKind)}</em> {face.effectValue}
+                            </div>
+                          ) : null}
                         </div>
-                      ) : null}
-                      {face.range ? (
-                        <div>
-                          <em>Дист.</em> {face.range}
-                        </div>
-                      ) : null}
-                      {face.components ? (
-                        <div>
-                          <em>Комп.</em> {face.components}
-                        </div>
-                      ) : null}
-                      {face.duration ? (
-                        <div>
-                          <em>Длит.</em> {face.duration}
-                        </div>
-                      ) : null}
-                      {face.attackOrSave ? (
-                        <div>
-                          <em>Атака/спас</em> {face.attackOrSave}
-                        </div>
-                      ) : null}
-                      {face.damage ? (
-                        <div>
-                          <em>Урон</em> {face.damage}
-                        </div>
-                      ) : null}
+                      ) : (
+                        <div className="classic-spell-card__cont-label">Продолжение</div>
+                      )}
+                      <div className="classic-spell-card__body">{face.body}</div>
                     </div>
-                  ) : (
-                    <div className="classic-spell-card__cont-label">Продолжение</div>
-                  )}
-                  <div className="classic-spell-card__body">{face.body}</div>
+                  ))}
                 </div>
-              )
-            })}
+              </section>
+            ))}
           </div>
         </article>
       ))}
+
+      {companionPages.length === 0 ? (
+        <p className="classic-companions-empty no-print">Нет напарников</p>
+      ) : (
+        companionPages.map((companionSlots, pageIndex) => (
+      <article
+        className="classic-sheet classic-page4"
+        aria-label={
+          companionPages.length > 1
+            ? `Классический лист, напарники · лист ${pageIndex + 1}`
+            : 'Классический лист, напарники'
+        }
+        key={`companions-${pageIndex}`}
+      >
+        <header className="classic-header classic-header--companions">
+          <div className="classic-brand">
+            <ClassicBrandWordmark />
+            <span>{brandYearLabel(sheetLayout)}</span>
+          </div>
+          <div className="classic-name">
+            <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
+            <span className="classic-field-label">Имя персонажа</span>
+          </div>
+          <div className="classic-companions-banner">
+            <strong>Напарники</strong>
+            <span>
+              Спутники, фамильяры, призывы
+              {companionPages.length > 1
+                ? ` · лист ${pageIndex + 1}/${companionPages.length}`
+                : ''}
+            </span>
+          </div>
+        </header>
+
+        <div className="classic-companions-grid">
+          {companionSlots.map((row, index) => (
+            <section
+              className="classic-panel classic-companion-card"
+              key={row?.id ?? `slot-${pageIndex}-${index}`}
+            >
+              <div className="classic-companion-card__top">
+                <div className="classic-companion-card__name classic-field">
+                  <ClassicStaticField value={row?.name ?? ''} fit aria-label="Имя напарника" />
+                  <span className="classic-field-label">Имя</span>
+                </div>
+                <div className="classic-companion-card__kind classic-field">
+                  <ClassicStaticField
+                    value={
+                      row?.kind
+                        ? COMPANION_KIND_LABELS[row.kind as CompanionKind]
+                        : ''
+                    }
+                    fit
+                    aria-label="Тип напарника"
+                  />
+                  <span className="classic-field-label">Тип</span>
+                </div>
+              </div>
+              <div className="classic-companion-card__stats">
+                <div className="classic-field">
+                  <ClassicStaticField
+                    value={row?.stats.ac ?? ''}
+                    align="center"
+                    tone="numeric"
+                    aria-label="КД напарника"
+                  />
+                  <span className="classic-field-label">КД</span>
+                </div>
+                <div className="classic-field">
+                  <ClassicStaticField
+                    value={row?.stats.hp ?? ''}
+                    align="center"
+                    tone="numeric"
+                    aria-label="Хиты напарника"
+                  />
+                  <span className="classic-field-label">Хиты</span>
+                </div>
+                <div className="classic-field">
+                  <ClassicStaticField
+                    value={row?.stats.speed ?? ''}
+                    align="center"
+                    tone="compact"
+                    aria-label="Скорость напарника"
+                  />
+                  <span className="classic-field-label">Скорость</span>
+                </div>
+              </div>
+              <ClassicTextBlock
+                blockId={`companion_${pageIndex}_${index}`}
+                character={c}
+                onPrintSettings={onPrintSettings}
+                fill
+                value={row?.notes ?? ''}
+                printMaxHeight="5.5rem"
+                ariaLabel="Заметки напарника"
+              />
+              <div className="classic-caption">Карточка напарника</div>
+            </section>
+          ))}
+        </div>
+      </article>
+        ))
+      )}
+
+      {notePagesForRender.map((pageNotes, pageIndex) => (
+        <article
+          className={`classic-sheet classic-page-notes${
+            pageNotes.length === 0 && usedFallbackEmptyNotes
+              ? ' classic-page-notes--empty'
+              : ''
+          }`}
+          aria-label={
+            notePagesForRender.length > 1
+              ? `Заметки, лист ${pageIndex + 1}`
+              : 'Заметки'
+          }
+          key={`notes-${pageIndex}`}
+        >
+          <header className="classic-header classic-header--companions">
+            <div className="classic-brand">
+              <ClassicBrandWordmark />
+              <span>{brandYearLabel(sheetLayout)}</span>
+            </div>
+            <div className="classic-name">
+              <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
+              <span className="classic-field-label">Имя персонажа</span>
+            </div>
+            <div className="classic-companions-banner">
+              <strong>Заметки</strong>
+              <span>
+                {notePagesForRender.length > 1
+                  ? `лист ${pageIndex + 1}/${notePagesForRender.length}`
+                  : ''}
+              </span>
+            </div>
+          </header>
+
+          <div className="classic-notes-grid">
+            {pageNotes.length === 0 ? (
+              Array.from({ length: CLASSIC_NOTES_PER_PAGE }, (_, i) => (
+                <section
+                  className="classic-panel classic-note-card classic-note-card--blank"
+                  key={`blank-note-${pageIndex}-${i}`}
+                  aria-label="Пустая заметка"
+                >
+                  <div className="classic-caption">Заметка</div>
+                </section>
+              ))
+            ) : (
+              paddedClassicNoteSlotsLocal(pageNotes).map((block, i) =>
+                block ? (
+                  <section className="classic-panel classic-note-card" key={block.key}>
+                    <ClassicStaticField
+                      className="classic-note-card__title-input"
+                      value={classicNoteLabel(block)}
+                      fit
+                      tone="body"
+                      aria-label="Название заметки"
+                    />
+                    <ClassicTextBlock
+                      blockId={`note_${block.key}`}
+                      character={c}
+                      onPrintSettings={onPrintSettings}
+                      fill
+                      value={classicNoteText(block)}
+                      printMaxHeight="9rem"
+                      ariaLabel={classicNoteLabel(block)}
+                    />
+                    <div className="classic-caption">Заметка</div>
+                  </section>
+                ) : (
+                  <section
+                    className="classic-panel classic-note-card classic-note-card--blank"
+                    key={`pad-note-${pageIndex}-${i}`}
+                    aria-label="Пустая заметка"
+                  >
+                    <div className="classic-caption">Заметка</div>
+                  </section>
+                ),
+              )
+            )}
+          </div>
+        </article>
+      ))}
+
+
     </div>
     </ClassicFitViewport>
   )
@@ -1097,7 +1338,12 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
         <ul className="classic-spell-lines classic-spell-lines--cantrips">
           {rows.map((spell, i) => (
             <li key={spell?.id ?? `cantrip-${pageIndex}-${i}`}>
-              <input value={spell?.name ?? ''} readOnly />
+              <ClassicStaticField
+                value={spell?.name ?? ''}
+                fit
+                tone="compact"
+                aria-label={`Заговор ${i + 1}`}
+              />
             </li>
           ))}
         </ul>
@@ -1115,14 +1361,24 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
           <div className="classic-spell-level__badge">{level}</div>
           {pageIndex === 0 ? (
             <div className="classic-spell-level__slots">
-              <label>
-                Всего ячеек
-                <input type="number" value={slot.max || ''} readOnly />
-              </label>
-              <label>
-                Потрачено
-                <input type="number" value={slot.used || ''} readOnly />
-              </label>
+              <div className="classic-spell-level__slot">
+                <span className="classic-field-label">Всего ячеек</span>
+                <ClassicStaticField
+                  value={slot.max || ''}
+                  align="center"
+                  tone="numeric"
+                  aria-label={`Ячейки ${level} круга · всего`}
+                />
+              </div>
+              <div className="classic-spell-level__slot">
+                <span className="classic-field-label">Потрачено</span>
+                <ClassicStaticField
+                  value={slot.used || ''}
+                  align="center"
+                  tone="numeric"
+                  aria-label={`Ячейки ${level} круга · потрачено`}
+                />
+              </div>
             </div>
           ) : (
             <div className="classic-spell-level__title">Продолжение</div>
@@ -1134,7 +1390,12 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
               <span className="classic-bubble-btn classic-bubble-btn--static" aria-label="Подготовлено">
                 <span className={`classic-bubble ${spell?.prepared ? 'is-filled' : ''}`} />
               </span>
-              <input value={spell?.name ?? ''} readOnly />
+              <ClassicStaticField
+                value={spell?.name ?? ''}
+                fit
+                tone="compact"
+                aria-label={`Заклинание ${level} · ${i + 1}`}
+              />
             </li>
           ))}
         </ul>

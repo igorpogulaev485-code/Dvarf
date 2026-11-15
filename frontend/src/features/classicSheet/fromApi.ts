@@ -366,6 +366,11 @@ export function weaponsSummary(character: CharacterDetail): Array<{
   return rows.slice(0, 6)
 }
 
+/** Strip a trailing «×N» from an item name so qty is printed once. */
+export function stripTrailingItemQty(name: string): string {
+  return name.replace(/\s*[×xх]\s*\d+\s*$/iu, '').trim()
+}
+
 /** Derived item names for the classic equipment box (source of truth). */
 export function equipmentItemsLine(character: CharacterDetail): string {
   const inventory = asRecord(asRecord(character.sheet).inventory)
@@ -374,10 +379,11 @@ export function equipmentItemsLine(character: CharacterDetail): string {
   return items
     .map((item) => {
       const row = asRecord(item)
-      const name = typeof row.name === 'string' ? row.name.trim() : ''
-      if (!name) return ''
+      const rawName = typeof row.name === 'string' ? row.name.trim() : ''
+      if (!rawName) return ''
       // Nested pack children stay in the digital list but clutter the blank.
       if (row.parent_id) return ''
+      const name = stripTrailingItemQty(rawName) || rawName
       const qty =
         typeof row.qty === 'number' && Number.isFinite(row.qty) && row.qty > 1
           ? Math.floor(row.qty)

@@ -10,31 +10,36 @@ export const CLASSIC_PRINT_UI_KEYS = [
   'classic_extra_note_pages',
   'classic_text_style',
   'classic_block_sizes',
-  'classic_global_font_scale',
+  'classic_global_font_scale', // legacy — ignored in UI; kept so old sheets don't crash
+  'classic_print_color',
 ] as const
 
 export type ClassicPrintUiKey = (typeof CLASSIC_PRINT_UI_KEYS)[number]
 
 export type ClassicLineHeight = 'tight' | 'normal' | 'loose'
 export type ClassicTextAlign = 'left' | 'justify'
-export type ClassicPrintFontFamily = 'serif' | 'sans' | 'script'
+/** Body ink fonts only — script is a separate name toggle. */
+export type ClassicPrintFontFamily = 'serif' | 'sans'
+export type ClassicPrintColorMode = 'bw' | 'color'
 
 export type ClassicTextStyle = {
   lineHeight: ClassicLineHeight
   align: ClassicTextAlign
-  headingBold: boolean
-  headingItalic: boolean
   fontFamily: ClassicPrintFontFamily
+  /** Handwritten Cyrillic script on the character name field only. */
+  nameScript: boolean
 }
 
 export const CLASSIC_TEXT_STYLE_DEFAULT: ClassicTextStyle = {
   lineHeight: 'normal',
   align: 'left',
-  headingBold: true,
-  headingItalic: false,
   fontFamily: 'serif',
+  nameScript: false,
 }
 
+export const CLASSIC_PRINT_COLOR_DEFAULT: ClassicPrintColorMode = 'bw'
+
+/** @deprecated Global scale removed from UI; readers always treat as 1. */
 export const CLASSIC_GLOBAL_FONT_SCALE_DEFAULT = 1
 export const CLASSIC_GLOBAL_FONT_SCALE_MIN = 0.85
 export const CLASSIC_GLOBAL_FONT_SCALE_MAX = 1.25
@@ -76,6 +81,21 @@ export function setClassicExtraNotePages(
   return { sheet }
 }
 
+export function readClassicPrintColor(character: CharacterDetail): ClassicPrintColorMode {
+  return uiRoot(character).classic_print_color === 'color' ? 'color' : 'bw'
+}
+
+export function setClassicPrintColor(
+  character: CharacterDetail,
+  mode: ClassicPrintColorMode,
+): ClassicPatch {
+  const sheet = cloneSheet(asRecord(character.sheet))
+  const ui = asRecord(sheet.ui)
+  ui.classic_print_color = mode === 'color' ? 'color' : 'bw'
+  sheet.ui = ui
+  return { sheet }
+}
+
 export function readClassicTextStyle(character: CharacterDetail): ClassicTextStyle {
   const raw = asRecord(uiRoot(character).classic_text_style)
   const lineHeight =
@@ -83,16 +103,17 @@ export function readClassicTextStyle(character: CharacterDetail): ClassicTextSty
       ? raw.lineHeight
       : CLASSIC_TEXT_STYLE_DEFAULT.lineHeight
   const align = raw.align === 'justify' ? 'justify' : 'left'
-  const fontFamily =
-    raw.fontFamily === 'sans' || raw.fontFamily === 'script' || raw.fontFamily === 'serif'
-      ? raw.fontFamily
-      : CLASSIC_TEXT_STYLE_DEFAULT.fontFamily
+  // Legacy: fontFamily 'script' → serif body + nameScript on.
+  const legacyScript = raw.fontFamily === 'script'
+  const fontFamily: ClassicPrintFontFamily =
+    raw.fontFamily === 'sans' ? 'sans' : 'serif'
+  const nameScript =
+    typeof raw.nameScript === 'boolean' ? raw.nameScript : legacyScript
   return {
     lineHeight,
     align,
-    headingBold: raw.headingBold === undefined ? true : Boolean(raw.headingBold),
-    headingItalic: Boolean(raw.headingItalic),
     fontFamily,
+    nameScript,
   }
 }
 
@@ -103,29 +124,31 @@ export function setClassicTextStyle(
   const sheet = cloneSheet(asRecord(character.sheet))
   const ui = asRecord(sheet.ui)
   const prev = readClassicTextStyle(character)
-  ui.classic_text_style = { ...prev, ...style }
+  const next: ClassicTextStyle = { ...prev, ...style }
+  // Persist only live fields — drop headingBold / headingItalic / script family.
+  ui.classic_text_style = {
+    lineHeight: next.lineHeight,
+    align: next.align,
+    fontFamily: next.fontFamily,
+    nameScript: next.nameScript,
+  }
   sheet.ui = ui
   return { sheet }
 }
 
-export function readClassicGlobalFontScale(character: CharacterDetail): number {
-  const n = readNumber(uiRoot(character).classic_global_font_scale, CLASSIC_GLOBAL_FONT_SCALE_DEFAULT)
-  return Math.max(
-    CLASSIC_GLOBAL_FONT_SCALE_MIN,
-    Math.min(CLASSIC_GLOBAL_FONT_SCALE_MAX, Math.round(n * 100) / 100),
-  )
+/** Legacy global scale — always 1 for rendering (UI removed). */
+export function readClassicGlobalFontScale(_character: CharacterDetail): number {
+  return CLASSIC_GLOBAL_FONT_SCALE_DEFAULT
 }
 
+/** @deprecated No-op write kept so old callers compile; scale is ignored. */
 export function setClassicGlobalFontScale(
   character: CharacterDetail,
-  scale: number,
+  _scale: number,
 ): ClassicPatch {
   const sheet = cloneSheet(asRecord(character.sheet))
   const ui = asRecord(sheet.ui)
-  ui.classic_global_font_scale = Math.max(
-    CLASSIC_GLOBAL_FONT_SCALE_MIN,
-    Math.min(CLASSIC_GLOBAL_FONT_SCALE_MAX, Math.round(scale * 100) / 100),
-  )
+  delete ui.classic_global_font_scale
   sheet.ui = ui
   return { sheet }
 }
@@ -170,7 +193,7 @@ export function setClassicBlockSize(
   return { sheet }
 }
 
-/** Reset typography + block sizes (keeps layout / pencil / extra notes). */
+/** Reset typography + block sizes + color (keeps layout / pencil / extra notes). */
 export function resetClassicPrintTextSettings(character: CharacterDetail): ClassicPatch {
   const sheet = cloneSheet(asRecord(character.sheet))
   const ui = asRecord(sheet.ui)
@@ -178,6 +201,7 @@ export function resetClassicPrintTextSettings(character: CharacterDetail): Class
   delete ui.classic_text_style
   delete ui.classic_block_sizes
   delete ui.classic_global_font_scale
+  delete ui.classic_print_color
   sheet.ui = ui
   return { sheet }
 }
@@ -241,9 +265,8 @@ export function isClassicPrintSettingsOnlyPatch(
 }
 
 export function classicPrintFontFamilyCss(family: ClassicPrintFontFamily): string {
-  if (family === 'sans') return "var(--font-ui)"
-  if (family === 'script') return "var(--font-script)"
-  return "var(--font-display)"
+  if (family === 'sans') return 'var(--font-ui)'
+  return 'var(--font-display)'
 }
 
 export function classicLineHeightCss(value: ClassicLineHeight): string {

@@ -5,7 +5,6 @@ type ClassicSheetUiValue = {
   /** Show print typography / size controls (toolbar «Правка печати»). */
   editing: boolean
   textStyle?: ClassicTextStyle
-  globalFontScale?: number
   pencilBlanks?: boolean
 }
 
@@ -14,20 +13,18 @@ const ClassicSheetUiContext = createContext<ClassicSheetUiValue>({ editing: fals
 export function ClassicSheetUiProvider({
   editing,
   textStyle,
-  globalFontScale,
   pencilBlanks,
   children,
 }: {
   editing: boolean
   textStyle?: ClassicTextStyle
+  /** @deprecated Ignored — global scale removed. */
   globalFontScale?: number
   pencilBlanks?: boolean
   children: ReactNode
 }) {
   return (
-    <ClassicSheetUiContext.Provider
-      value={{ editing, textStyle, globalFontScale, pencilBlanks }}
-    >
+    <ClassicSheetUiContext.Provider value={{ editing, textStyle, pencilBlanks }}>
       {children}
     </ClassicSheetUiContext.Provider>
   )

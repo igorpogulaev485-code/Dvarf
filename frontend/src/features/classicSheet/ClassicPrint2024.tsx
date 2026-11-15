@@ -3,9 +3,11 @@ import {
   ABILITY_NAMES,
   SKILL_DEFS,
   abilityModifier,
+  asRecord,
   formatModifier,
   type AbilityKey,
 } from '../characters/sheetTypes'
+import { readClassLevels } from '../characters/classLevels'
 import type { SheetSpell } from '../characters/spells'
 import type { ClassicPatch } from './fromApi'
 import {
@@ -36,24 +38,22 @@ import { SPELLCASTING_ABILITY_LABELS } from '../../shared/dnd/spells'
 import {
   Bubble,
   asProfBonus,
+  isClassicBlankCharacter,
   asRecordNotes,
   brandYearLabel,
   clampMarks,
+  ClassicBrandWordmark,
 } from './classicPrintShared'
 import { classicCombatDisplay, classicEffectiveAbilities } from './classicDerivedCombat'
+import { formatClassLevelLabel, formatClassSummary } from '../../shared/dnd/classLevels'
 import {
-  ALIGNMENTS,
+  alignmentNameRu,
   alignmentNeedsClarification,
   recognizeAlignment,
 } from '../../shared/dnd/alignments'
-import {
-  classicNoteLabel,
-  classicNoteText,
-  listClassicNotes,
-  paddedClassicNoteSlots,
-} from './classicNotes'
 import { ClassicTextBlock } from './ClassicTextBlock'
 import { ClassicFitInput } from './ClassicFitInput'
+import { ClassicStaticField } from './ClassicStaticField'
 
 type Props = {
   character: CharacterDetail
@@ -76,25 +76,68 @@ const ABILITY_COL_RIGHT: AbilityKey[] = ['int', 'wis', 'cha']
 
 const SPELL_TABLE_ROWS = 28
 
+const COIN_LABELS_2024 = {
+  cp: 'Медь',
+  sp: 'Серебро',
+  ep: 'Электрум',
+  gp: 'Золото',
+  pp: 'Платина',
+} as const
+
+function classicHpDisplay(
+  character: CharacterDetail,
+  key: 'hp_current' | 'hp_max',
+): string {
+  const top = character[key]
+  if (typeof top === 'number') return String(top)
+  const fromCombat = combatField(character, key)
+  if (typeof fromCombat === 'number' || typeof fromCombat === 'string') {
+    return String(fromCombat)
+  }
+  return ''
+}
+
 /**
  * Classic 2024 printable layout — LSS-style 4 pages (display only).
  * Same paper tokens as 2014; structure follows Long Story Short 2024 blank.
  */
 export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
-  const combatNum = (key: string): string => classicCombatDisplay(c, key)
+  const blank = isClassicBlankCharacter(c)
+  const combatNum = (key: string): string =>
+    blank ? '' : classicCombatDisplay(c, key)
 
   const combatBool = (key: string): boolean => Boolean(combatField(c, key))
 
-
-  const proficiency = Number(asProfBonus(c))
-  const hitDiceTotal = String(c.level || '')
-  const hitDiceCurrent = combatNum('hp_dice_current') || hitDiceTotal
+  const proficiency = blank ? null : Number(asProfBonus(c))
+  const hitDiceTotal = blank ? '' : String(c.level || '')
+  const hitDiceCurrent = blank
+    ? ''
+    : combatNum('hp_dice_current') || hitDiceTotal
   const deathSuccesses = clampMarks(Number(combatField(c, 'death_successes') ?? 0))
   const deathFails = clampMarks(Number(combatField(c, 'death_fails') ?? 0))
   const exhaustion = clampExhaustion(Number(combatField(c, 'exhaustion') ?? 0))
   const attunement = classicAttunementFilled(c)
   const attunementLimit = classicAttunementLimit(c)
   const scores = classicEffectiveAbilities(c)
+  const sheetClasses = readClassLevels(asRecord(c.sheet), {
+    className: c.class_name ?? '',
+    level: c.level ?? 1,
+    subclassName: String(identityField(c, 'subclass_name') ?? ''),
+    classCatalogId: null,
+  })
+  const classSummary = formatClassSummary(sheetClasses)
+  const classAndLevel = blank
+    ? ''
+    : classSummary || formatClassLevelLabel(c.class_name, c.level)
+  const subclassLabel = blank
+    ? ''
+    : sheetClasses
+        .map((row) => row.subclass_name.trim())
+        .filter(Boolean)
+        .join(' / ') ||
+      String(identityField(c, 'subclass_name') ?? identityField(c, 'subclass') ?? '')
+  const hpCurrent = blank ? '' : classicHpDisplay(c, 'hp_current')
+  const hpMax = blank ? '' : classicHpDisplay(c, 'hp_max')
   const alignmentRaw = String(identityField(c, 'alignment') ?? '')
   const alignmentText = String(identityField(c, 'alignment_text') ?? '')
   const alignmentSlug = recognizeAlignment(alignmentRaw) ?? ''
@@ -102,6 +145,10 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
     alignment: alignmentSlug,
     alignmentText: alignmentText || (alignmentSlug ? '' : alignmentRaw),
   })
+  const alignmentDisplay =
+    alignmentNameRu(alignmentSlug) ||
+    alignmentText.trim() ||
+    alignmentRaw.trim()
   const conditionsLabel = classicConditionsLabel(c)
   const equipItems = equipmentItemsLine(c)
   const spells = classicSpellsState(c)
@@ -109,17 +156,18 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
   const castProfiles = classicCastProfiles(c)
   const coins = inventoryCoins(c)
   const weapons = classicWeaponRows(c)
-  const passivePerception =
-    10 +
-    abilityModifier(scores.wis) +
-    (skillFlags(c, 'perception').is_proficient ? proficiency : 0) +
-    (skillFlags(c, 'perception').is_expertise ? proficiency : 0)
+  const pb = proficiency ?? 0
+  const passivePerception = blank
+    ? ''
+    : String(
+        10 +
+          abilityModifier(scores.wis) +
+          (skillFlags(c, 'perception').is_proficient ? pb : 0) +
+          (skillFlags(c, 'perception').is_expertise ? pb : 0),
+      )
 
   const pencilBlanks = readClassicPencilBlanks(c)
   const { first: spellRows, rest: spellOverflow } = buildSpellTableRows(spells.known, pencilBlanks)
-  const customNotes = listClassicNotes(c)
-  const noteSlots = paddedClassicNoteSlots(customNotes)
-
   return (
     <>
       {/* ——— P1 combat (LSS) ——— */}
@@ -132,35 +180,43 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
             <label className="classic-lss-name">
               <ClassicFitInput
                 value={c.name}
+                wrap
                 aria-label="Имя персонажа"
               />
               <span>Имя персонажа</span>
             </label>
             <div className="classic-lss-id-grid">
               <label>
-                <input
+                <ClassicFitInput
                   value={String(identityField(c, 'background') ?? '')}
-                  readOnly
+                  wrap
+                  aria-label="Предыстория"
                   title="Выбор из справочника — в панели над листом"
                 />
                 <span>Предыстория</span>
               </label>
               <label>
-                <input
-                  value={c.class_name ?? ''}
-                 readOnly />
+                <ClassicFitInput
+                  value={classAndLevel}
+                  wrap
+                  aria-label="Класс"
+                />
                 <span>Класс</span>
               </label>
               <label>
-                <input
+                <ClassicFitInput
                   value={c.race_name ?? ''}
-                 readOnly />
-                <span>Вид</span>
+                  wrap
+                  aria-label="Раса"
+                />
+                <span>Раса</span>
               </label>
               <label>
-                <input
-                  value={String(identityField(c, 'subclass') ?? '')}
-                 readOnly />
+                <ClassicFitInput
+                  value={subclassLabel}
+                  wrap
+                  aria-label="Подкласс"
+                />
                 <span>Подкласс</span>
               </label>
             </div>
@@ -170,7 +226,7 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
             <label>
               <input
                 type="number"
-                value={c.level}
+                value={blank ? '' : c.level}
                readOnly />
               <span>Уровень</span>
             </label>
@@ -206,20 +262,26 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
               <div className="classic-lss-hp__row">
                 <label>
                   <input
-                    value={c.hp_current ?? ''}
-                   readOnly />
+                    value={hpCurrent}
+                    readOnly
+                    aria-label="Текущие хиты"
+                  />
                   <span>Тек.</span>
                 </label>
                 <label>
                   <input
                     value={combatNum('hp_temp')}
-                   readOnly />
+                    readOnly
+                    aria-label="Временные хиты"
+                  />
                   <span>Врем.</span>
                 </label>
                 <label>
                   <input
-                    value={c.hp_max ?? ''}
-                   readOnly />
+                    value={hpMax}
+                    readOnly
+                    aria-label="Максимум хитов"
+                  />
                   <span>Макс.</span>
                 </label>
               </div>
@@ -228,13 +290,21 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
               <span className="classic-lss-block-title">Кости хитов</span>
               <label>
                 <input
-                  value={`${hitDiceCurrent} / ${hitDiceTotal}`}
+                  value={
+                    blank || (!hitDiceCurrent && !hitDiceTotal)
+                      ? ''
+                      : `${hitDiceCurrent} / ${hitDiceTotal}`
+                  }
                  readOnly />
                 <span>Текущие</span>
               </label>
               <label>
                 <input
-                  value={String(combatField(c, 'hit_die') ?? '') || 'к6'}
+                  value={
+                    blank
+                      ? ''
+                      : String(combatField(c, 'hit_die') ?? '') || 'к6'
+                  }
                  readOnly />
                 <span>Кость</span>
               </label>
@@ -243,23 +313,27 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
               <span className="classic-lss-block-title">Смерть</span>
               <div className="classic-death-line">
                 <span>Усп.</span>
-                {[0, 1, 2].map((i) => (
-                  <Bubble
-                    key={`s${i}`}
-                    filled={deathSuccesses > i}
-                    label={`Успех ${i + 1}`}
-                  />
-                ))}
+                <span className="classic-death-bubbles">
+                  {[0, 1, 2].map((i) => (
+                    <Bubble
+                      key={`s${i}`}
+                      filled={deathSuccesses > i}
+                      label={`Успех ${i + 1}`}
+                    />
+                  ))}
+                </span>
               </div>
               <div className="classic-death-line">
                 <span>Пров.</span>
-                {[0, 1, 2].map((i) => (
-                  <Bubble
-                    key={`f${i}`}
-                    filled={deathFails > i}
-                    label={`Провал ${i + 1}`}
-                  />
-                ))}
+                <span className="classic-death-bubbles">
+                  {[0, 1, 2].map((i) => (
+                    <Bubble
+                      key={`f${i}`}
+                      filled={deathFails > i}
+                      label={`Провал ${i + 1}`}
+                    />
+                  ))}
+                </span>
               </div>
             </div>
           </div>
@@ -267,10 +341,9 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
 
         <div className="classic-lss-brand-rule">
           <div className="classic-brand">
-            <strong>D&amp;D</strong>
+            <ClassicBrandWordmark />
             <span>{brandYearLabel('2024')}</span>
           </div>
-          <span className="classic-lss-brand-rule__line" />
         </div>
 
         <div className="classic-lss-p1-body">
@@ -279,7 +352,7 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
               <span>Бонус владения</span>
               <input
                 type="number"
-                value={proficiency}
+                value={proficiency ?? ''}
                readOnly />
             </div>
             <div className="classic-lss-ability-cols">
@@ -289,7 +362,8 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                     key={key}
                     ability={key}
                     character={c}
-                    proficiency={proficiency}
+                    proficiency={pb}
+                    blank={blank}
                   />
                 ))}
               </div>
@@ -299,7 +373,8 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                     key={key}
                     ability={key}
                     character={c}
-                    proficiency={proficiency}
+                    proficiency={pb}
+                    blank={blank}
                   />
                 ))}
               </div>
@@ -416,22 +491,33 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
               </div>
               {weapons.map((row, idx) => (
                 <div className="classic-weapon classic-lss-weapon-row" key={row.id}>
-                  <input
-                    value={row.name}
-                    aria-label={`Оружие ${idx + 1}: название`}
-                    placeholder="—"
-                   readOnly />
-                  <input
-                    value={row.attackBonus}
-                    aria-label={`Оружие ${idx + 1}: бонус`}
-                    placeholder="—"
-                   readOnly />
-                  <input
-                    value={row.damageLine}
-                    aria-label={`Оружие ${idx + 1}: урон`}
-                    placeholder="—"
-                   readOnly />
-                  <span />
+                  <div className="classic-weapon__cell classic-weapon__cell--name">
+                    <ClassicStaticField
+                      value={row.name}
+                      wrap
+                      tone="compact"
+                      pencilLine={false}
+                      aria-label={`Оружие ${idx + 1}: название`}
+                    />
+                  </div>
+                  <div className="classic-weapon__cell classic-weapon__cell--bonus">
+                    <ClassicStaticField
+                      value={row.attackBonus}
+                      align="center"
+                      tone="numeric"
+                      pencilLine={false}
+                      aria-label={`Оружие ${idx + 1}: бонус`}
+                    />
+                  </div>
+                  <div className="classic-weapon__cell classic-weapon__cell--dmg">
+                    <ClassicStaticField
+                      value={row.damageLine}
+                      wrap
+                      tone="compact"
+                      pencilLine={false}
+                      aria-label={`Оружие ${idx + 1}: урон`}
+                    />
+                  </div>
                 </div>
               ))}
               <div className="classic-caption">Оружие и боевые заговоры</div>
@@ -485,6 +571,12 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
         className="classic-sheet classic-lss classic-lss-p2"
         aria-label="Классический лист 2024, страница 2"
       >
+        <div className="classic-lss-brand-rule">
+          <div className="classic-brand">
+            <ClassicBrandWordmark />
+            <span>{brandYearLabel('2024')}</span>
+          </div>
+        </div>
         <div className="classic-lss-p2-grid">
           <section className="classic-panel classic-lss-portrait">
             <div className="classic-lss-portrait__frame">
@@ -547,61 +639,18 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
         </div>
       </article>
 
-      {/* ——— P3 custom notes (same notes-N as interactive sheet) ——— */}
-      <article
-        className="classic-sheet classic-lss classic-lss-p3"
-        aria-label="Классический лист 2024, страница 3 — заметки"
-      >
-        <header className="classic-lss-notes-head">
-          <div className="classic-brand">
-            <strong>D&amp;D</strong>
-            <span>{brandYearLabel('2024')}</span>
-          </div>
-          <div className="classic-companions-banner">
-            <strong>Заметки</strong>
-            <span>Свободные блоки из цифрового листа — не секции бланка</span>
-          </div>
-        </header>
-        <div className="classic-lss-notes-grid">
-          {noteSlots.map((block, i) =>
-            block ? (
-              <section className="classic-panel classic-lss-note classic-note-card" key={block.key}>
-                <input
-                  className="classic-note-card__title-input"
-                  value={classicNoteLabel(block)}
-                  placeholder="Название заметки"
-                  aria-label="Название заметки"
-                 readOnly />
-                <ClassicTextBlock
-                  blockId={`note_${block.key}`}
-                  character={c}
-                  onPrintSettings={onPrintSettings}
-                  fill
-                  value={classicNoteText(block)}
-                  printMaxHeight="9rem"
-                  ariaLabel={classicNoteLabel(block)}
-
-                />
-                <div className="classic-caption">Заметка</div>
-              </section>
-            ) : (
-              <section
-                className="classic-panel classic-lss-note classic-note-card classic-note-card--blank"
-                key={`blank-note-${i}`}
-                aria-label="Пустая заметка"
-              >
-                <div className="classic-caption">Заметка</div>
-              </section>
-            ),
-          )}
-        </div>
-      </article>
 
       {/* ——— P4 spells + gear ——— */}
       <article
         className="classic-sheet classic-lss classic-lss-p4"
         aria-label="Классический лист 2024, страница 4"
       >
+        <div className="classic-lss-brand-rule">
+          <div className="classic-brand">
+            <ClassicBrandWordmark />
+            <span>{brandYearLabel('2024')}</span>
+          </div>
+        </div>
         <div className="classic-lss-p4-grid">
           <div className="classic-lss-p4-left">
             {castProfiles.length > 1 ? (
@@ -746,9 +795,13 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                     <span className="classic-lss-spell-lvl">
                       {row ? (row.level === 0 ? '0' : String(row.level)) : ''}
                     </span>
-                    <input
+                    <ClassicStaticField
                       value={row?.name ?? ''}
-                     readOnly />
+                      fit
+                      tone="compact"
+                      pencilLine={false}
+                      aria-label="Название заклинания"
+                    />
                     <span>{row?.casting_time ?? ''}</span>
                     <span>{row?.range ?? ''}</span>
                     <span className={row?.concentration ? 'is-on' : ''}>
@@ -800,34 +853,34 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                 printMaxHeight="8rem"
                 ariaLabel="Предыстория и личные качества"
               />
-              <label className="classic-lss-alignment">
+              <div className="classic-lss-alignment">
                 <span>Мировоззрение</span>
-                <select
-                  value={alignmentSlug}
-                 disabled>
-                  <option value="">—</option>
-                  {ALIGNMENTS.map((row) => (
-                    <option key={row.slug} value={row.slug}>
-                      {row.nameRu}
-                    </option>
-                  ))}
-                </select>
+                <ClassicStaticField
+                  value={alignmentDisplay}
+                  fit
+                  wrap
+                  tone="body"
+                  pencilLine={false}
+                  aria-label="Мировоззрение"
+                />
                 {alignmentUnparsed ? <span>Уточните мировоззрение</span> : null}
-              </label>
+              </div>
               <div className="classic-caption">Предыстория и личные качества</div>
             </div>
 
             <div className="classic-panel classic-equip classic-panel--grow classic-panel--grow-lg">
-              <div className="classic-lss-coins classic-lss-coins--inline" aria-label="Монеты">
+              <div className="classic-coins" aria-label="Монеты">
                 {(['cp', 'sp', 'ep', 'gp', 'pp'] as const).map((k) => (
-                  <label key={k}>
-                    <span>
-                      {({ cp: 'ММ', sp: 'СМ', ep: 'ЭМ', gp: 'ЗМ', pp: 'ПМ' } as const)[k]}
-                    </span>
-                    <input
+                  <div className="classic-coin" key={k}>
+                    <ClassicStaticField
                       value={coins[k]}
-                     readOnly />
-                  </label>
+                      align="center"
+                      tone="numeric"
+                      pencilLine={false}
+                      aria-label={COIN_LABELS_2024[k]}
+                    />
+                    <span className="classic-coin__mark">{COIN_LABELS_2024[k]}</span>
+                  </div>
                 ))}
               </div>
               {equipItems ? (
@@ -869,7 +922,7 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
         >
           <header className="classic-lss-notes-head">
             <div className="classic-brand">
-              <strong>D&amp;D</strong>
+              <ClassicBrandWordmark />
               <span>{brandYearLabel('2024')}</span>
             </div>
             <div className="classic-companions-banner">
@@ -888,7 +941,13 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                 <span className="classic-bubble-btn classic-bubble-btn--static" aria-label="Подготовлено">
                   <span className={`classic-bubble ${row.prepared ? 'is-filled' : ''}`} />
                 </span>
-                <input value={row.name} readOnly />
+                <ClassicStaticField
+                  value={row.name}
+                  fit
+                  tone="compact"
+                  pencilLine={false}
+                  aria-label="Название заклинания"
+                />
                 <span>{row.level}</span>
               </div>
             ))}
@@ -904,14 +963,16 @@ function AbilityBlock({
   ability,
   character: c,
   proficiency,
+  blank = false,
 }: {
   ability: AbilityKey
   character: CharacterDetail
   proficiency: number
+  blank?: boolean
 }) {
   const score = classicEffectiveAbilities(c)[ability]
   const mod = abilityModifier(score)
-  const saveProf = isSaveProficient(c, ability)
+  const saveProf = !blank && isSaveProficient(c, ability)
   const saveBonus = mod + (saveProf ? proficiency : 0)
 
   return (
@@ -919,13 +980,13 @@ function AbilityBlock({
       <div className="classic-lss-ability__name">{ABILITY_NAMES[ability]}</div>
       <div className="classic-lss-ability__nums">
         <div className="classic-lss-ability__modbox">
-          <strong>{formatModifier(mod)}</strong>
+          <strong>{blank ? '' : formatModifier(mod)}</strong>
           <em>Мод.</em>
         </div>
         <div className="classic-lss-ability__scorebox">
           <input
             type="number"
-            value={score}
+            value={blank ? '' : score}
            readOnly />
           <em>Знач.</em>
         </div>
@@ -936,7 +997,7 @@ function AbilityBlock({
             filled={saveProf}
             label={`Спасбросок ${ABILITY_NAMES[ability]}`}
           />
-          <strong>{formatModifier(saveBonus)}</strong>
+          <strong>{blank ? '' : formatModifier(saveBonus)}</strong>
           <span>Спасбросок</span>
         </li>
         {SKILLS_BY_ABILITY[ability].map((skill) => {
@@ -947,11 +1008,11 @@ function AbilityBlock({
           return (
             <li key={skill.key}>
               <Bubble
-                filled={flags.is_proficient || flags.is_expertise}
-                expertise={flags.is_expertise}
+                filled={!blank && (flags.is_proficient || flags.is_expertise)}
+                expertise={!blank && flags.is_expertise}
                 label={skill.label}
               />
-              <strong>{formatModifier(bonus)}</strong>
+              <strong>{blank ? '' : formatModifier(bonus)}</strong>
               <span>{skill.label}</span>
             </li>
           )
