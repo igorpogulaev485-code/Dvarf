@@ -226,6 +226,9 @@ class Setting(Base):
         default=None,
         index=True,
     )
+    # W-API-05: ИИ (токен) может подтверждать импорт. По умолчанию выкл.;
+    # меняется только сессией мастера, не токеном API.
+    ai_can_confirm: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

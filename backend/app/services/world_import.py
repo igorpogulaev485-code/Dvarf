@@ -1,7 +1,8 @@
-"""W-API-01/02/03: задания импорта, разбор хранилища, ключи/алиасы/связи."""
+"""W-API-01/02/03/05: задания импорта, разбор, validate/upsert, ключи/алиасы/связи."""
 
 from __future__ import annotations
 
+from collections import Counter
 from uuid import UUID
 
 from sqlalchemy import delete, select
@@ -25,16 +26,28 @@ from app.schemas.world_import import (
     WorldImportDraftItemOut,
     WorldImportDraftLinkOut,
     WorldImportJobOut,
+    WorldImportSettingsOut,
+    WorldImportSettingsPatch,
+    WorldImportUpsertRequest,
+    WorldImportValidateOut,
+    WorldImportValidateRequest,
     WorldVaultParseRequest,
     WorldVaultParseResultOut,
 )
 from app.services import lobby_roles as roles
+from app.services.media import LOBBY_QUOTA_BYTES, LobbyMediaService
+from app.services.world_import_auth import WorldImportActor, WorldImportAccess
 from app.services.world_import_links import build_alias_and_link_graph
 from app.services.world_vault_parse import (
+    MAX_FILE_COUNT,
+    MAX_TEXT_TOTAL_BYTES,
+    MAX_ZIP_BYTES,
     VaultFile,
     extract_zip_to_files,
     parse_vault_files,
 )
+
+ACTIVE_JOB_STATUSES = frozenset({"parsing"})
 
 RULES_EDITION_UNSUPPORTED_MESSAGE = (
     "В этой версии импорта мира доступна только редакция 2014"
@@ -60,6 +73,7 @@ class WorldImportService:
     def __init__(self, db: Session) -> None:
         self.db = db
         self.lobbies = LobbyRepository(db)
+        self.access = WorldImportAccess(db)
 
     def _require_lobby(self, lobby_id: UUID) -> Lobby:
         lobby = self.lobbies.get(lobby_id)
@@ -77,6 +91,20 @@ class WorldImportService:
         lobby = self._require_lobby(setting.lobby_id)
         roles.require_can_edit_wiki(self.db, lobby, user)
         return lobby
+
+    def _ensure_no_active_parse(self, setting_id: UUID, *, except_job_id: UUID | None = None) -> None:
+        q = select(WorldImportJob).where(
+            WorldImportJob.setting_id == setting_id,
+            WorldImportJob.status.in_(ACTIVE_JOB_STATUSES),
+        )
+        active = self.db.scalar(q.limit(1))
+        if active is not None and (except_job_id is None or active.id != except_job_id):
+            raise AppError(
+                "Уже идёт разбор импорта для этого сеттинга",
+                code="import_in_progress",
+                status_code=409,
+                data={"job_id": str(active.id), "hint": "Дождитесь окончания или отмените задание"},
+            )
 
     def create_job(
         self,
@@ -484,3 +512,245 @@ class WorldImportService:
             job.status = "failed"
             self.db.commit()
             raise
+
+    # --- W-API-05: validate / upsert / settings (сессия или токен) ---
+
+    def validate_package(
+        self,
+        actor: WorldImportActor,
+        setting_id: UUID,
+        payload: WorldImportValidateRequest,
+    ) -> WorldImportValidateOut:
+        """Проверка без записи в канон и без устойчивого задания."""
+        setting = self.access.require_setting(setting_id)
+        lobby = self.access.authorize(actor, setting, need_write=False, allow_ai=True)
+
+        rules_edition = normalize_rules_edition(payload.rules_edition)
+        warnings: list[str] = []
+        errors: list = []
+
+        text_bytes = 0
+        for f in payload.files:
+            text_bytes += len((f.content or "").encode("utf-8"))
+
+        media_usage = LobbyMediaService(self.db).usage(lobby.id)
+
+        if not payload.files:
+            from app.schemas.world_import import WorldImportValidateIssue
+
+            errors.append(
+                WorldImportValidateIssue(
+                    code="vault_files_empty",
+                    path="",
+                    message="Нет файлов для проверки",
+                    hint="Передайте files: [{path, content}]",
+                )
+            )
+
+        type_counts: dict[str, int] = {}
+        skipped: list[dict[str, str]] = []
+        if payload.files and not errors:
+            try:
+                vault_files = [
+                    VaultFile(path=f.path, content=f.content) for f in payload.files
+                ]
+                result = parse_vault_files(vault_files)
+                type_counts = dict(Counter(it.item_type for it in result.items))
+                skipped = result.skipped
+                if not result.items:
+                    warnings.append("Ни один файл не дал карточку мира")
+            except AppError as exc:
+                from app.schemas.world_import import WorldImportValidateIssue
+
+                errors.append(
+                    WorldImportValidateIssue(
+                        code=exc.code,
+                        path=str((exc.data or {}).get("path") or ""),
+                        message=exc.message,
+                        hint=str((exc.data or {}).get("hint") or ""),
+                    )
+                )
+
+        if media_usage.free_bytes <= 0:
+            warnings.append(
+                "Квота медиа лобби исчерпана (200 МБ) — вложения импорта могут быть отклонены"
+            )
+
+        ok = len(errors) == 0
+        return WorldImportValidateOut(
+            rules_edition=rules_edition,
+            type_counts=type_counts,
+            file_count=len(payload.files),
+            text_bytes=text_bytes,
+            skipped=skipped,
+            warnings=warnings,
+            errors=errors,
+            media_quota_bytes=LOBBY_QUOTA_BYTES,
+            media_used_bytes=media_usage.used_bytes,
+            media_free_bytes=media_usage.free_bytes,
+            limits={
+                "max_text_bytes": MAX_TEXT_TOTAL_BYTES,
+                "max_zip_bytes": MAX_ZIP_BYTES,
+                "max_files": MAX_FILE_COUNT,
+                "media_quota_bytes": LOBBY_QUOTA_BYTES,
+            },
+            ok=ok,
+        )
+
+    def upsert_package(
+        self,
+        actor: WorldImportActor,
+        setting_id: UUID,
+        payload: WorldImportUpsertRequest,
+        *,
+        idempotency_key: str | None = None,
+    ) -> WorldVaultParseResultOut:
+        """Создать/найти задание по Idempotency-Key и разобрать файлы (канон не трогаем)."""
+        setting = self.access.require_setting(setting_id)
+        lobby = self.access.authorize(actor, setting, need_write=True, allow_ai=True)
+        rules_edition = normalize_rules_edition(payload.rules_edition)
+
+        source_kind = payload.source_kind or "api"
+        if source_kind not in WORLD_IMPORT_SOURCE_KINDS:
+            raise AppError(
+                "Неизвестный вид источника импорта",
+                code="world_import_source_kind_bad",
+                status_code=400,
+                data={"field": "source_kind"},
+            )
+
+        key = (idempotency_key or "").strip() or None
+        job: WorldImportJob | None = None
+        if key:
+            job = self.db.scalar(
+                select(WorldImportJob)
+                .where(
+                    WorldImportJob.setting_id == setting.id,
+                    WorldImportJob.idempotency_key == key,
+                )
+                .limit(1)
+            )
+
+        if job is None:
+            self._ensure_no_active_parse(setting.id)
+            author_id = actor.author_user_id
+            if author_id is None:
+                raise AppError(
+                    "Не удалось определить автора задания",
+                    code="world_import_author_missing",
+                    status_code=400,
+                )
+            job = WorldImportJob(
+                setting_id=setting.id,
+                lobby_id=lobby.id,
+                author_id=author_id,
+                status="received",
+                rules_edition=rules_edition,
+                source_kind=source_kind,
+                idempotency_key=key,
+                source_ref=payload.source_ref,
+            )
+            self.db.add(job)
+            self.db.commit()
+            self.db.refresh(job)
+        elif job.status == "parsing":
+            raise AppError(
+                "Импорт ещё разбирается",
+                code="import_in_progress",
+                status_code=409,
+                data={"job_id": str(job.id)},
+            )
+
+        if not payload.files:
+            # Идемпотентный повтор без файлов — вернуть текущее состояние.
+            items = list(
+                self.db.scalars(
+                    select(WorldImportDraftItem).where(WorldImportDraftItem.job_id == job.id)
+                ).all()
+            )
+            links = list(
+                self.db.scalars(
+                    select(WorldImportDraftLink).where(WorldImportDraftLink.job_id == job.id)
+                ).all()
+            )
+            return WorldVaultParseResultOut(
+                job=WorldImportJobOut.model_validate(job),
+                items=[WorldImportDraftItemOut.model_validate(r) for r in items],
+                links=[WorldImportDraftLinkOut.model_validate(r) for r in links],
+                links_count=len(links),
+            )
+
+        self._ensure_no_active_parse(setting.id, except_job_id=job.id)
+        job.status = "parsing"
+        job.rules_edition = rules_edition
+        if payload.source_ref is not None:
+            job.source_ref = payload.source_ref
+        self.db.commit()
+
+        try:
+            vault_files = [
+                VaultFile(path=f.path, content=f.content) for f in payload.files
+            ]
+            result = parse_vault_files(vault_files)
+            return self._apply_parsed_items(job, result.items, skipped=result.skipped)
+        except AppError:
+            job.status = "failed"
+            self.db.commit()
+            raise
+        except Exception:
+            job.status = "failed"
+            self.db.commit()
+            raise
+
+    def get_import_settings(
+        self, actor: WorldImportActor, setting_id: UUID
+    ) -> WorldImportSettingsOut:
+        setting = self.access.require_setting(setting_id)
+        lobby = self.access.authorize(actor, setting, need_write=False, allow_ai=True)
+        return WorldImportSettingsOut(
+            setting_id=setting.id,
+            lobby_id=lobby.id,
+            ai_can_confirm=bool(getattr(setting, "ai_can_confirm", False)),
+        )
+
+    def patch_import_settings(
+        self,
+        actor: WorldImportActor,
+        setting_id: UUID,
+        payload: WorldImportSettingsPatch,
+    ) -> WorldImportSettingsOut:
+        """Тумблер ai_can_confirm — только сессия мастера, не токен API."""
+        setting = self.access.require_setting(setting_id)
+        lobby = self.access.authorize(
+            actor, setting, master_session_only=True, allow_ai=False
+        )
+        setting.ai_can_confirm = bool(payload.ai_can_confirm)
+        self.db.commit()
+        self.db.refresh(setting)
+        return WorldImportSettingsOut(
+            setting_id=setting.id,
+            lobby_id=lobby.id,
+            ai_can_confirm=bool(setting.ai_can_confirm),
+        )
+
+    def list_jobs_for_actor(
+        self, actor: WorldImportActor, setting_id: UUID
+    ) -> list[WorldImportJobOut]:
+        setting = self.access.require_setting(setting_id)
+        self.access.authorize(actor, setting, need_write=False, allow_ai=True)
+        rows = list(
+            self.db.scalars(
+                select(WorldImportJob)
+                .where(WorldImportJob.setting_id == setting.id)
+                .order_by(WorldImportJob.created_at.desc())
+            ).all()
+        )
+        return [WorldImportJobOut.model_validate(r) for r in rows]
+
+    def get_job_for_actor(
+        self, actor: WorldImportActor, setting_id: UUID, job_id: UUID
+    ) -> WorldImportJobOut:
+        setting = self.access.require_setting(setting_id)
+        self.access.authorize(actor, setting, need_write=False, allow_ai=True)
+        job = self._require_job(setting, job_id)
+        return WorldImportJobOut.model_validate(job)
