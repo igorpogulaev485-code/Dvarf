@@ -21,7 +21,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 SRD_MAGIC_COUNT = 285
 # C01–C05 catalog rows + magic items
-PLANNED_TOTAL = 215 + 12 + 12 + 339 + SRD_MAGIC_COUNT + 235  # + C07
+PLANNED_TOTAL = 215 + 12 + 12 + 339 + SRD_MAGIC_COUNT + 235 + 95  # + C07 + C08
 
 SRD_RENAMES = {
     "apparatus-of-the-crab",
@@ -310,4 +310,7 @@ def test_alembic_single_head_includes_p24_c06():
     assert "p24c06magic01" in ancestor_ids
     assert "p24c05spell01" in ancestor_ids
     # Head advances with later catalog packs (C07+); C06 must remain an ancestor.
-    assert heads[0] in {"p24c06magic01", "p24c07best01"} or "p24c06magic01" in ancestor_ids
+    assert (
+        heads[0] in {"p24c06magic01", "p24c07best01", "p24c08anim01"}
+        or "p24c06magic01" in ancestor_ids
+    )

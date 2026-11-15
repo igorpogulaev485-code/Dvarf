@@ -49,7 +49,7 @@ SRD_SUBCLASSES = {
     "wizard__evoker",
 }
 WM_CLASSES = {"barbarian", "fighter", "paladin", "ranger", "rogue"}
-PLANNED_TOTAL = 215 + 12 + 12 + 339 + 285 + 235  # + C07 monsters
+PLANNED_TOTAL = 215 + 12 + 12 + 339 + 285 + 235 + 95  # + C07 monsters + C08 animals
 
 
 def _srd_ids(category: str) -> set[str]:

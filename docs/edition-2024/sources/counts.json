@@ -100,11 +100,13 @@
     "P24-C03: srd-флаги armor/equipment сверстаны с SRD 5.2.1; в equipment.csv добавлены 10 пропущенных SRD-предметов (без зелья/свитков — они в magic_items).",
     "P24-C05: srd-флаги spells сверстаны с SRD 5.2.1 (339); добавлены 17 строк с именами SRD без эпонима (Acid Arrow и т.п.); 22 ложных negative → true.",
     "P24-C06: srd-флаги magic_items сверстаны с SRD 5.2.1 (285); добавлены строки с именами SRD без эпонима (Apparatus of the Crab и т.п.).",
-    "P24-C07: srd_section monsters=235, animals=95; сид только Monsters."
+    "P24-C07: srd_section monsters=235, animals=95; сид только Monsters.",
+    "P24-C08: animals_srd=95; total SRD bestiary=330."
   ],
   "srd_creatures": {
     "monsters": 235,
     "animals": 95,
-    "total_srd": 330
+    "total_srd": 330,
+    "animals_seeded": true
   }
 }

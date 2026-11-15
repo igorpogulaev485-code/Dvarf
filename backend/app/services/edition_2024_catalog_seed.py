@@ -19,8 +19,9 @@ Schema contract for later packs (P24-00 lists → data packs):
 - magic item (``kind=item``, ``equipment_group=magic_item``): type, rarity,
   attunement, charges, attack/AC bonuses, ``spell_refs`` → C05, 
   ``base_item_categories`` → C03; short ``summary_ru`` (no long SRD prose)
-- bestiary (monsters, P24-C07): size/type/AC/HP/speed/CR/PB/initiative,
-  abilities + mods + saves, gear_refs → C03, spell_refs → C05; Animals → C08
+- bestiary (monsters C07 + animals C08): size/type/AC/HP/speed/CR/PB/initiative,
+  abilities + mods + saves, gear_refs → C03, spell_refs → C05,
+  ``beast_tags`` on Animals (wild_shape_ok / mount / has_fly / has_swim)
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -67,6 +68,7 @@ EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("subclasses_srd.json"),
     WaveSpec("magic_items_srd.json"),
     WaveSpec("creatures_srd.json"),
+    WaveSpec("animals_srd.json"),
 )
 
 WEAPON_MASTERY_FILENAME = "weapon_mastery_srd.json"
@@ -298,7 +300,7 @@ def normalize_spell_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
 
 
 def normalize_bestiary_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
-    """2024 bestiary card (Monsters A–Z): PB, initiative, ability saves, refs."""
+    """2024 bestiary card (Monsters / Animals): PB, initiative, ability saves, refs."""
     out = dict(data) if isinstance(data, dict) else {}
     if out.get("schema_version") is None:
         out["schema_version"] = 1
@@ -326,6 +328,7 @@ def normalize_bestiary_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
         out["name_ru_pending"] = bool(out["name_ru_pending"])
     out.setdefault("gear_refs", [])
     out.setdefault("spell_refs", [])
+    out.setdefault("beast_tags", [])
     return out
 
 

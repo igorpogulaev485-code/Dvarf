@@ -89,6 +89,7 @@ class BestiaryCatalogData(TypedDict):
     gear_refs: NotRequired[list[str]]
     spell_refs: NotRequired[list[str]]
     srd_section: NotRequired[str]
+    beast_tags: NotRequired[list[str]]
     summary_ru: NotRequired[str]
     skills: NotRequired[dict[str, int]]
     senses: NotRequired[BestiarySenses]

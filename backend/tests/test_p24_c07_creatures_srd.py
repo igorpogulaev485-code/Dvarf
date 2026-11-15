@@ -21,8 +21,8 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 SRD_MONSTER_COUNT = 235
 SRD_ANIMAL_COUNT = 95
-# C01–C06 catalog rows + monsters
-PLANNED_TOTAL = 863 + SRD_MONSTER_COUNT
+# C01–C06 catalog rows + monsters + animals (C08)
+PLANNED_TOTAL = 863 + SRD_MONSTER_COUNT + SRD_ANIMAL_COUNT
 
 ABILITIES = ("str", "dex", "con", "int", "wis", "cha")
 
@@ -51,7 +51,12 @@ def _animal_ids() -> set[str]:
 
 
 def _bestiary_rows():
-    return [r for r in load_wave_rows() if r["kind"] == "bestiary"]
+    """Monsters only — Animals live in animals_srd (C08)."""
+    return [
+        r
+        for r in load_wave_rows()
+        if r["kind"] == "bestiary" and r["data"].get("srd_section") == "monsters"
+    ]
 
 
 def test_reference_srd_monster_count_matches_srd():
@@ -211,7 +216,22 @@ def test_apply_seed_includes_creatures_idempotent():
     assert stats1.upserted == planned == PLANNED_TOTAL
     assert stats2.upserted == planned
     bestiary = sum(1 for p in store.values() if p["kind"] == "bestiary")
-    assert bestiary == SRD_MONSTER_COUNT
+    assert bestiary == SRD_MONSTER_COUNT + SRD_ANIMAL_COUNT
+    monsters = 0
+    animals = 0
+    for p in store.values():
+        if p["kind"] != "bestiary":
+            continue
+        data = p["data"]
+        if isinstance(data, str):
+            data = json.loads(data)
+        sec = (data or {}).get("srd_section")
+        if sec == "monsters":
+            monsters += 1
+        elif sec == "animals":
+            animals += 1
+    assert monsters == SRD_MONSTER_COUNT
+    assert animals == SRD_ANIMAL_COUNT
 
 
 def test_alembic_single_head_includes_p24_c07():
@@ -229,4 +249,5 @@ def test_alembic_single_head_includes_p24_c07():
     }
     assert "p24c07best01" in ancestor_ids
     assert "p24c06magic01" in ancestor_ids
-    assert heads[0] == "p24c07best01"
+    assert "p24c08anim01" in ancestor_ids
+    assert heads[0] == "p24c08anim01"
