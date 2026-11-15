@@ -3,7 +3,9 @@
  * Только UI-кит (Panel / Button / Field / Chip / Dialog / Stack / Text). Без CSS-переопределений.
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ApiRequestError } from '../../shared/api/client'
+import { HELP_PANEL_LINK } from '../worldImport/helpCopy.ru'
 import {
   cancelWorldImport,
   confirmWorldImport,
@@ -102,6 +104,7 @@ export function WorldImportPanel({
   onError,
   onConfirmed,
 }: Props) {
+  const navigate = useNavigate()
   const narrow = useIsNarrow(compact)
   const zipRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
@@ -417,10 +420,15 @@ export function WorldImportPanel({
             <Field label="Адрес MCP">
               <Input value={mcpWorldImportUrl()} readOnly />
             </Field>
-            <Text tone="muted">
-              Документация: <code>docs/world-import.md</code>, MCP:{' '}
-              <code>docs/world-import-mcp.md</code>
-            </Text>
+            <div className="inline-actions">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => navigate('/help/world-import')}
+              >
+                {HELP_PANEL_LINK}
+              </Button>
+            </div>
           </Stack>
         </Stack>
       </Panel>

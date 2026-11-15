@@ -211,6 +211,11 @@ export function Wapi11PreviewPage() {
                 <Field label="Адрес MCP">
                   <Input value="https://creed20.tech/mcp/world-import" readOnly />
                 </Field>
+                <div className="inline-actions">
+                  <Button type="button" variant="secondary">
+                    Как подключить API и MCP →
+                  </Button>
+                </div>
               </Stack>
             </Stack>
           </Panel>

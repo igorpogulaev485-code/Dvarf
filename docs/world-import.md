@@ -12,6 +12,8 @@
 
 Подробности MCP: [`docs/world-import-mcp.md`](world-import-mcp.md).
 
+Та же справка на сайте (для залогиненного мастера): [`/help/world-import`](/help/world-import).
+
 ## Кому доступно
 
 | Кто | Что может |
