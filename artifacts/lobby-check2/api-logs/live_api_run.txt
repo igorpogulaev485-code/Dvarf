@@ -1,0 +1,20 @@
+[✓] bootstrap_join_by_code_master_player_observer: PASS
+[✓] invite_meta_requires_auth: PASS
+[✓] session_create_empty_character_ids_seats_nobody: PASS
+[✓] setting_attach: PASS
+[✓] custom_npc_cr_optional_and_xp_from_table: PASS
+[✓] enemy_pack_single_post_one_card_three_members: PASS
+[✓] initiative_roll_remaining_prev_api_new_fight: PASS
+[✓] damage_heal_temp_death_sheet_sync: PASS
+[✓] m5_skip_waiting_reaction_without_cid: PASS
+[✓] conditions_lobby_to_sheet: PASS
+[✓] xp_award_persists_on_sheet: PASS
+[✓] inventory_grant_coins_items_sheet: PASS
+[✓] party_rest_short: PASS
+[✓] concurrent_lobby_then_sheet_patch_keeps_fields: PASS
+[✓] piety_backend_first_award: PASS
+[✓] companions_add_beast_and_story: PASS
+[✓] player_observer_permissions: PASS
+[✓] session_close_writes_journal: PASS
+
+Wrote /agent/repos/Dvarf/artifacts/lobby-check2/api-logs/live_api_results.json PASS=18 FAIL=0 seed=/agent/repos/Dvarf/artifacts/lobby-check2/api-logs/ui-seed.json

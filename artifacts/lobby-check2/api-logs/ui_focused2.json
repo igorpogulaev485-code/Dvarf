@@ -1,0 +1,7 @@
+[
+  {
+    "name": "rewards_loot_390_footer_clipping",
+    "status": "PASS",
+    "detail": "{\"emptyHint\":true,\"dialogH\":644,\"footerTop\":628,\"footerBottom\":699,\"bodyClientH\":538,\"bodyScrollH\":712,\"bodyBottom\":628,\"actionish\":[{\"label\":\"Подобрать\",\"top\":108,\"bottom\":148,\"height\":40,\"visibility\":\"visible\",\"display\":\"flex\",\"underFooter\":false,\"clippedByBody\":false,\"occluded\":false},{\"label\":\"Случайный набор по уровню\",\"top\":156,\"bottom\":196,\"height\":40,\"visibility\":\"visible\",\"display\":\"flex\",\"underFooter\":false,\"clippedByBody\":false,\"occluded\":false},{\"label\":\"Добавить\",\"top\":284,\"bottom\":324,\"height\":40,\"visibility\":\"visible\",\"display\":\"flex\",\"underFooter\":false,\"clippedByBody\":false,\"occluded\":false},{\"label\":\"Добавить монеты\",\"top\":488,\"bottom\":528,\"height\":40,\"visibility\":\"visible\",\"display\":\"flex\",\"underFooter\":false,\"clippedByBody\":false,\"occluded\":false},{\"label\":\"Выдать\",\"top\":572,\"bottom\":612,\"height\":40,\"visibility\":\"visible\",\"display\":\"flex\",\"underFooter\":false,\"clippedByBody\":false,\"occluded\":false},{\"label\":\"Положить на стол\",\"top\":572,\"bottom\":612,\"height\":40,\"visibility\":\"visible\",\"display\":\"flex\",\"underFooter\":false,\"clippedByBody\":false,\"occluded\":false}],\"occludedActions\":[],\"allActionLabels\":[\"Подобрать\",\"Случайный набор по уровню\",\"Добавить\",\"Добавить монеты\",\"Выдать\",\"Положить на стол\"],\"belowFold\":[],\"viewport\":{\"width\":390,\"height\":700}}"
+  }
+]

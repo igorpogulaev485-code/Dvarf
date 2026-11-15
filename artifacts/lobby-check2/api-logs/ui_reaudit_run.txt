@@ -1,0 +1,22 @@
+[PASS] M2_piety_button_visible — видна (у игрока уже score после API)
+[PASS] companions_on_table — wolf=true story=true
+[PASS] companion_death_saves_beast_vs_story — beast_has_death_ui=false story_has_death_ui=true cards=2 (2014: зверь без death saves)
+[PASS] M1_prev_turn_button — prev=true next=true
+[NOT_TESTED] initiative_wolf_label_confusion — host_label=false; init_snip=Назад ReAudit Session ⋯ Живой стол Инициатива и лента Бой · раунд 1 ход 1 из 6 Ход: Волк · враг Бросить за оставшихся 10 Волк Враги ? Волк-напарник (Воин Игрока) Партия Бросить инициативу ? Спутник-сюжет (Воин Игрока) Па
+[PASS] M1_prev_click_works — clicked
+[FAIL] more_menu_1440
+[NOT_TESTED] rewards_dialog_1440 — menu entry not found
+[NOT_TESTED] rewards_loot_390_footer_clipping
+[FAIL] M3_xp_toast_recipient_only — expected=+55; playerToasts=["+100 опыта","+55 опыта","+40 опыта"]; player2Toasts=["+100 опыта","+40 опыта"]; apiStatus=200
+[PASS] M3_xp_toast_per_recipient_amount — expected 55, seen ["+100 опыта","+55 опыта","+40 опыта"]
+[PASS] reaction_dialog_opens_for_owner
+[PASS] M5_master_skip_visible — count=1
+[PASS] reaction_no_button_works — clicked Нет реакции
+[PASS] M4_reaction_timer_resets_on_new_reaction — seconds_left=8; snip=Есть ли реакция?
+
+Воин Игрока: Есть ли реакция на этот урон?
+
+Нет реакции — автоматически через 8 с. Щит и подобные — че
+[PASS] reaction_autoskip_closes — stillOpen=false
+[PASS] player_no_fight_button
+DONE PASS=12 FAIL=2 NOT_TESTED=3

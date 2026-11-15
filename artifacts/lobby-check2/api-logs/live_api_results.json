@@ -1,0 +1,172 @@
+[
+  {
+    "scenario": "bootstrap_join_by_code_master_player_observer",
+    "status": "PASS",
+    "detail": {
+      "lobby": "b737a326-178b-4149-8423-015f32154c63",
+      "members": 3,
+      "invite": "8GK84Z"
+    }
+  },
+  {
+    "scenario": "invite_meta_requires_auth",
+    "status": "PASS",
+    "detail": {
+      "unauth_status": 401,
+      "authed_name": "ReAudit 6cab2d"
+    }
+  },
+  {
+    "scenario": "session_create_empty_character_ids_seats_nobody",
+    "status": "PASS",
+    "detail": {
+      "empty_seats": 0,
+      "filled_seats": 3
+    }
+  },
+  {
+    "scenario": "setting_attach",
+    "status": "PASS",
+    "detail": {
+      "setting_id": "9f7aaf88-f1fa-45f7-8fd8-ed22d173c0a0"
+    }
+  },
+  {
+    "scenario": "custom_npc_cr_optional_and_xp_from_table",
+    "status": "PASS",
+    "detail": {
+      "no_cr_ok": true,
+      "npc_xp": null,
+      "cr1_xp": 200
+    }
+  },
+  {
+    "scenario": "enemy_pack_single_post_one_card_three_members",
+    "status": "PASS",
+    "detail": {
+      "added": 1,
+      "members": 3
+    }
+  },
+  {
+    "scenario": "initiative_roll_remaining_prev_api_new_fight",
+    "status": "PASS",
+    "detail": {
+      "entries_f1": 6,
+      "entries_f2": 3,
+      "prev_works": true,
+      "active_after_next": 2,
+      "active_after_prev": 1
+    }
+  },
+  {
+    "scenario": "damage_heal_temp_death_sheet_sync",
+    "status": "PASS",
+    "detail": {
+      "before": 45,
+      "healed": 45,
+      "reaction_ok": true
+    }
+  },
+  {
+    "scenario": "m5_skip_waiting_reaction_without_cid",
+    "status": "PASS",
+    "detail": {
+      "cleared": true
+    }
+  },
+  {
+    "scenario": "conditions_lobby_to_sheet",
+    "status": "PASS",
+    "detail": {
+      "ok": true
+    }
+  },
+  {
+    "scenario": "xp_award_persists_on_sheet",
+    "status": "PASS",
+    "detail": {
+      "before": 0,
+      "after": 125,
+      "awarded_each": 100,
+      "per_recipient": {
+        "3705f8af-d824-4c3d-a854-db596eb9716e": 125
+      },
+      "character_ids": [
+        "Воин Игрока"
+      ],
+      "payload_keys": [
+        "awarded_each",
+        "awarded_total",
+        "leveled_up",
+        "mode",
+        "per_recipient",
+        "recipients",
+        "remainder",
+        "remainder_banked",
+        "session",
+        "xp_remainder"
+      ]
+    }
+  },
+  {
+    "scenario": "inventory_grant_coins_items_sheet",
+    "status": "PASS",
+    "detail": {
+      "gp0": 5,
+      "gp1": 17
+    }
+  },
+  {
+    "scenario": "party_rest_short",
+    "status": "PASS",
+    "detail": {
+      "kind": "short",
+      "summary": "Короткий отдых для партии"
+    }
+  },
+  {
+    "scenario": "concurrent_lobby_then_sheet_patch_keeps_fields",
+    "status": "PASS",
+    "detail": {
+      "hp": 22,
+      "marker": true
+    }
+  },
+  {
+    "scenario": "piety_backend_first_award",
+    "status": "PASS",
+    "detail": {
+      "score": 1
+    }
+  },
+  {
+    "scenario": "companions_add_beast_and_story",
+    "status": "PASS",
+    "detail": {
+      "companions_on_seat": [
+        "Волк-напарник",
+        "Спутник-сюжет"
+      ],
+      "enemy_wolf_added": true,
+      "sheet_companions": 2
+    }
+  },
+  {
+    "scenario": "player_observer_permissions",
+    "status": "PASS",
+    "detail": {
+      "observer_get": 200,
+      "player_add_enemy": 403,
+      "player_code": "lobby_run_required"
+    }
+  },
+  {
+    "scenario": "session_close_writes_journal",
+    "status": "PASS",
+    "detail": {
+      "closed": true,
+      "journal_total": 2
+    }
+  }
+]

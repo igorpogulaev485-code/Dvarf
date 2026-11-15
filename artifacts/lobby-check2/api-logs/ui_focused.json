@@ -1,0 +1,17 @@
+[
+  {
+    "name": "M3_xp_toast_recipient_only_v2",
+    "status": "PASS",
+    "detail": "expected=+40; p1=[\"+40 опыта\"]; p2=[]; status=200"
+  },
+  {
+    "name": "more_menu_390_open",
+    "status": "FAIL",
+    "detail": "opened=false"
+  },
+  {
+    "name": "rewards_loot_390_footer_clipping",
+    "status": "NOT_TESTED",
+    "detail": "dialog not open; clicked=false"
+  }
+]
