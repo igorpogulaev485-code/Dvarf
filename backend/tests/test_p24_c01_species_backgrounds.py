@@ -67,6 +67,7 @@ def test_live_waves_registered_and_complete():
     assert {r["slug"] for r in bgs} == SRD_BACKGROUNDS_EXPECTED
     assert len(races) == len(_srd_ids("species"))
     assert len(bgs) == len(_srd_ids("backgrounds"))
+    # Feats wave is owned by P24-C02; C01 only asserts species/backgrounds stay present.
 
 
 def test_species_have_empty_asi_and_short_card():
@@ -136,7 +137,7 @@ def test_no_book_species_in_this_pack():
 
 
 def test_origin_feat_missing_catalog_does_not_break_normalize():
-    """C02 feats are absent; background card still normalizes with id+name only."""
+    """Background card normalizes with origin_feat id+name even without looking up the feat row."""
     payload = normalize_entry_payload(
         {
             "kind": "background",
@@ -177,12 +178,12 @@ def test_seed_rows_are_edition_2024_only():
     """Seed plan never writes rules_edition=2014 — 2014 catalog stays untouched by construction."""
     for row in load_wave_rows():
         assert row["rules_edition"] == "2024"
-        assert row["kind"] in {"race", "background"}
+        assert row["kind"] in {"race", "background", "feat"}
         assert row["source"].startswith("srd")
 
 
 def test_apply_seed_idempotent_with_fake_conn():
-    """Two applies upsert the same 13 keys; SQL never targets edition 2014."""
+    """Two applies upsert the same keys; SQL never targets edition 2014."""
     store: dict[tuple[str, str], dict] = {}
     executed: list[str] = []
 
@@ -224,19 +225,28 @@ def test_apply_seed_idempotent_with_fake_conn():
     snapshot = {k: dict(v) for k, v in store.items()}
     stats2 = apply_edition_2024_catalog_seed(conn)  # type: ignore[arg-type]
 
-    assert stats1.upserted == 13
-    assert stats2.upserted == 13
+    # C01 species/backgrounds + C02 feats
+    assert stats1.upserted == 30
+    assert stats2.upserted == 30
     assert set(store) == set(snapshot)
-    assert {k[0] for k in store} == {"race", "background"}
+    assert {k[0] for k in store} == {"race", "background", "feat"}
     assert {k[1] for k in store if k[0] == "race"} == SRD_SPECIES_EXPECTED
     assert {k[1] for k in store if k[0] == "background"} == SRD_BACKGROUNDS_EXPECTED
+    assert len({k[1] for k in store if k[0] == "feat"}) == 17
     for params in store.values():
         data = json.loads(params["data"])
         if params["kind"] == "race":
             assert data.get("ability_bonuses") == {}
-        else:
+        elif params["kind"] == "background":
             assert len((data.get("asi") or {}).get("abilities") or []) == 3
             assert (data.get("origin_feat") or {}).get("id")
+        elif params["kind"] == "feat":
+            assert data.get("category") in {
+                "origin",
+                "general",
+                "fighting_style",
+                "epic_boon",
+            }
     # No statement may filter or write rules_edition 2014.
     joined = "\n".join(executed)
     assert "'2014'" not in joined

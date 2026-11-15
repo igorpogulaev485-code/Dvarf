@@ -12,13 +12,14 @@
 |------|-------|------------|
 | `species_srd.json` | P24-C01 | 9 видов SRD (`kind=race`, `rules_edition=2024`) |
 | `backgrounds_srd.json` | P24-C01 | 4 предыстории SRD |
+| `feats_srd.json` | P24-C02 | 17 черт SRD (`kind=feat`) |
 
 ## Схема карточек (контракт)
 
 - оружие: поле `data.mastery` отдельно, не в `properties`
 - вид (`race`): `ability_bonuses` пустой объект; без языков с вида; наследия в `lineages`
-- предыстория: `data.asi` (три характеристики), `data.origin_feat` (id + имя; карточки черт — C02)
-- черта: `data.category`
+- предыстория: `data.asi` (три характеристики), `data.origin_feat` (id + имя → карточка черты C02)
+- черта: `data.category` (`origin` / `general` / `fighting_style` / `epic_boon`), `prerequisites`, `repeatable`, `ability_score_increase`, короткое `summary_ru` / `traits_text`
 - `source` вида `srd-5.2` → `content_layer: srd`
 
 Не сидить: Culture, Engineering, пустые заглушки классов/видов/предысторий, книжный контент сверх SRD.

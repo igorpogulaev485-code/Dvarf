@@ -7,8 +7,8 @@ its empty class/species/background stubs, Culture, or Engineering.
 Schema contract for later packs (P24-00 lists → data packs):
 - weapon: ``mastery`` is a top-level ``data`` field (not a ``properties`` entry)
 - race (species 2024): empty ``ability_bonuses``; no languages from species
-- background: ``data.asi`` and ``data.origin_feat`` (feat cards land in C02)
-- feat: ``data.category`` (may be empty)
+- background: ``data.asi`` and ``data.origin_feat`` (feat cards in C02)
+- feat: ``data.category``, ``prerequisites``, ``repeatable``, ``ability_score_increase``
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -45,6 +45,7 @@ class WaveSpec:
 EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("species_srd.json"),
     WaveSpec("backgrounds_srd.json"),
+    WaveSpec("feats_srd.json"),
 )
 
 
@@ -124,8 +125,17 @@ def normalize_background_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
 
 
 def normalize_feat_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
+    """2024 feat card: category + prerequisites + repeatable + optional ASI."""
     out = dict(data) if isinstance(data, dict) else {}
     out.setdefault("category", None)
+    out.setdefault("prerequisites", {})
+    if out.get("repeatable") is None:
+        out["repeatable"] = False
+    else:
+        out["repeatable"] = bool(out["repeatable"])
+    out.setdefault("ability_score_increase", None)
+    out.setdefault("summary_ru", None)
+    out.setdefault("traits_text", None)
     return out
 
 
@@ -294,7 +304,7 @@ def apply_edition_2024_catalog_seed(conn: sa.Connection) -> SeedStats:
             row = {**row, "data": data}
         stats.upserted += _upsert_row(conn, row)
     _migration_logger.info(
-        "P24-C01 edition 2024 seed: upserted=%s deactivated_stubs=%s waves=%s",
+        "P24 edition 2024 seed: upserted=%s deactivated_stubs=%s waves=%s",
         stats.upserted,
         stats.deactivated_stubs,
         len(EDITION_2024_CATALOG_WAVES),

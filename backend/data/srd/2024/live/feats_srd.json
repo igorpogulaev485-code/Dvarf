@@ -1,0 +1,409 @@
+{
+  "meta": {
+    "pack": "P24-C02",
+    "rules_edition": "2024",
+    "source": "srd-5.2",
+    "notes_ru": "17 черт SRD 5.2.1. Короткие карточки своими словами. RU из feats.csv (next.dnd.su); при расхождении с ttg — колонка «Предложено» и name_ru_pending."
+  },
+  "entries": [
+    {
+      "kind": "feat",
+      "slug": "alert",
+      "name_ru": "Бдительный",
+      "name_en": "Alert",
+      "source": "srd-5.2",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/310-alert",
+        "url_ttg": "https://new.ttg.club/feats/alert-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Бонус мастерства к инициативе; можно сразу обменяться инициативой с согласным союзником.",
+        "traits_text": "Черта происхождения (2024, SRD): к инициативе — бонус мастерства; после броска можно обменять инициативу с согласным союзником (если никто не недееспособен)."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "magic-initiate",
+      "name_ru": "Посвящённый в магию",
+      "name_en": "Magic Initiate",
+      "source": "srd-5.2",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/314-magic-initiate",
+        "url_ttg": "https://new.ttg.club/feats/magic-initiate-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": true,
+        "repeatable_note_ru": "Повторно — только с другим списком заклинаний (жрец / друид / волшебник).",
+        "ability_score_increase": null,
+        "summary_ru": "Два заговора и одно заклинание 1 круга из списка жреца, друида или волшебника; 1 раз без ячейки за длинный отдых.",
+        "traits_text": "Черта происхождения (2024, SRD): два заговора + заклинание 1 круга из одного списка (жрец/друид/волшебник); характеристика накладывания — на выбор. Один бесплатный каст 1 круга за длинный отдых. Повторяемая с другим списком."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "savage-attacker",
+      "name_ru": "Неистово атакующий",
+      "name_en": "Savage Attacker",
+      "source": "srd-5.2",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/316-savage-attacker",
+        "url_ttg": "https://new.ttg.club/feats/savage-attacker-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "origin",
+        "name_ru_pending": true,
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Раз за ход при попадании оружием — перебросить кости урона оружия и взять любой результат.",
+        "traits_text": "Черта происхождения (2024, SRD): 1/ход при попадании оружием бросаете кости урона оружия дважды и выбираете результат."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "skilled",
+      "name_ru": "Одарённый",
+      "name_en": "Skilled",
+      "source": "srd-5.2",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/317-skilled",
+        "url_ttg": "https://new.ttg.club/feats/skilled-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": true,
+        "ability_score_increase": null,
+        "summary_ru": "Владение любыми тремя навыками или инструментами на выбор; можно брать снова.",
+        "traits_text": "Черта происхождения (2024, SRD): три владения (навыки и/или инструменты) на выбор. Повторяемая."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "ability-score-improvement",
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "source": "srd-5.2",
+      "sort_order": 110,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/320-ability-score-improvement",
+        "url_ttg": "https://new.ttg.club/feats/ability-score-improvement-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "general",
+        "name_ru_pending": true,
+        "prerequisites": {"level": 4},
+        "prerequisites_ru": "Уровень 4+",
+        "repeatable": true,
+        "ability_score_increase": {
+          "options": [
+            {"amount": 2, "count": 1, "from": "any"},
+            {"amount": 1, "count": 2, "from": "any"}
+          ],
+          "cap": 20
+        },
+        "summary_ru": "+2 к одной характеристике или +1 к двум (не выше 20); повторяемая.",
+        "traits_text": "Общая черта (2024, SRD), ур. 4+: +2 к одной или +1 к двум характеристикам (потолок 20). Повторяемая."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "grappler",
+      "name_ru": "Борец",
+      "name_en": "Grappler",
+      "source": "srd-5.2",
+      "sort_order": 120,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/332-grappler",
+        "url_ttg": "https://new.ttg.club/feats/grappler-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability_or": [{"ability": "str", "min": 13}, {"ability": "dex", "min": 13}]
+        },
+        "prerequisites_ru": "Уровень 4+; Сила или Ловкость 13+",
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": ["str", "dex"],
+          "cap": 20
+        },
+        "summary_ru": "+1 Сил/Лов; удар+захват одной безоружной атакой; преимущество по схваченному; легче тащить.",
+        "traits_text": "Общая черта (2024, SRD), ур. 4+, Сил или Лов 13+: +1 Сил или Лов (≤20). 1/ход безоружный удар может и нанести урон, и схватить. Преимущество атак по схваченному вами. Тащить схваченного своего размера или меньше без доп. перемещения."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "archery",
+      "name_ru": "Стрельба",
+      "name_en": "Archery",
+      "source": "srd-5.2",
+      "sort_order": 210,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/363-archery",
+        "url_ttg": "https://new.ttg.club/feats/archery-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "fighting_style",
+        "prerequisites": {"fighting_style_feature": true},
+        "prerequisites_ru": "Умение «Боевой стиль»",
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "+2 к броскам атаки дальнобойным оружием.",
+        "traits_text": "Боевой стиль (2024, SRD): +2 к атакам дальнобойным оружием."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "defense",
+      "name_ru": "Оборона",
+      "name_en": "Defense",
+      "source": "srd-5.2",
+      "sort_order": 220,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/365-defense",
+        "url_ttg": "https://new.ttg.club/feats/defense-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "fighting_style",
+        "prerequisites": {"fighting_style_feature": true},
+        "prerequisites_ru": "Умение «Боевой стиль»",
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "+1 КД, пока на вас лёгкий, средний или тяжёлый доспех.",
+        "traits_text": "Боевой стиль (2024, SRD): +1 КД в лёгком, среднем или тяжёлом доспехе."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "great-weapon-fighting",
+      "name_ru": "Сражение большим оружием",
+      "name_en": "Great Weapon Fighting",
+      "source": "srd-5.2",
+      "sort_order": 230,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/367-great-weapon-fighting",
+        "url_ttg": "https://new.ttg.club/feats/great-weapon-fighting-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "fighting_style",
+        "prerequisites": {"fighting_style_feature": true},
+        "prerequisites_ru": "Умение «Боевой стиль»",
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "На костях урона двуручного/универсального оружия в двух руках 1 и 2 считаются как 3.",
+        "traits_text": "Боевой стиль (2024, SRD): при уроне рукопашным оружием в двух руках (двуручное или универсальное) результат 1 или 2 на кости урона становится 3."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "two-weapon-fighting",
+      "name_ru": "Сражение двумя оружиями",
+      "name_en": "Two-Weapon Fighting",
+      "source": "srd-5.2",
+      "sort_order": 240,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/371-two-weapon-fighting",
+        "url_ttg": "https://new.ttg.club/feats/two-weapon-fighting-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "fighting_style",
+        "prerequisites": {"fighting_style_feature": true},
+        "prerequisites_ru": "Умение «Боевой стиль»",
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "К доп. атаке от лёгкого оружия добавляете модификатор характеристики, если ещё не добавляли.",
+        "traits_text": "Боевой стиль (2024, SRD): к дополнительной атаке от свойства «лёгкое» добавляете модификатор характеристики, если он ещё не учтён в уроне."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "boon-of-combat-prowess",
+      "name_ru": "Дар боевой удали",
+      "name_en": "Boon of Combat Prowess",
+      "source": "srd-5.2",
+      "sort_order": 310,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/373-boon-of-combat-prowess",
+        "url_ttg": "https://new.ttg.club/feats/boon-of-combat-prowess-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "epic_boon",
+        "name_ru_pending": true,
+        "prerequisites": {"level": 19},
+        "prerequisites_ru": "Уровень 19+",
+        "repeatable": false,
+        "ability_score_increase": {"amount": 1, "from": "any", "cap": 30},
+        "summary_ru": "+1 к любой характеристике (до 30); промах атаки можно превратить в попадание 1/ход.",
+        "traits_text": "Эпический дар (2024, SRD), ур. 19+: +1 к одной характеристике (≤30). Промах атаки можно сделать попаданием; снова — со своего следующего хода."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "boon-of-dimensional-travel",
+      "name_ru": "Дар межпространственного перемещения",
+      "name_en": "Boon of Dimensional Travel",
+      "source": "srd-5.2",
+      "sort_order": 320,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/374-boon-of-dimensional-travel",
+        "url_ttg": "https://new.ttg.club/feats/boon-of-dimensional-travel-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "epic_boon",
+        "name_ru_pending": true,
+        "prerequisites": {"level": 19},
+        "prerequisites_ru": "Уровень 19+",
+        "repeatable": false,
+        "ability_score_increase": {"amount": 1, "from": "any", "cap": 30},
+        "summary_ru": "+1 к любой (до 30); после Атаки или Магии — телепорт до 30 фт в видимое свободное место.",
+        "traits_text": "Эпический дар (2024, SRD), ур. 19+: +1 к одной характеристике (≤30). Сразу после действия Атака или Магия — телепорт до 30 фт в видимое незанятое пространство."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "boon-of-fate",
+      "name_ru": "Дар судьбы",
+      "name_en": "Boon of Fate",
+      "source": "srd-5.2",
+      "sort_order": 330,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/376-boon-of-fate",
+        "url_ttg": "https://new.ttg.club/feats/boon-of-fate-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "epic_boon",
+        "prerequisites": {"level": 19},
+        "prerequisites_ru": "Уровень 19+",
+        "repeatable": false,
+        "ability_score_increase": {"amount": 1, "from": "any", "cap": 30},
+        "summary_ru": "+1 к любой (до 30); раз за бой/отдых подкрутить чужой или свой D20 Test на ±2к4 в 60 фт.",
+        "traits_text": "Эпический дар (2024, SRD), ур. 19+: +1 к одной характеристике (≤30). Когда вы или существо в 60 фт преуспеваете/проваливаете D20 Test — добавить или вычесть 2к4; снова после инициативы или короткого/длинного отдыха."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "boon-of-irresistible-offense",
+      "name_ru": "Дар неотразимого нападения",
+      "name_en": "Boon of Irresistible Offense",
+      "source": "srd-5.2",
+      "sort_order": 340,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/378-boon-of-irresistible-offense",
+        "url_ttg": "https://new.ttg.club/feats/boon-of-irresistible-offense-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "epic_boon",
+        "name_ru_pending": true,
+        "prerequisites": {"level": 19},
+        "prerequisites_ru": "Уровень 19+",
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": ["str", "dex"],
+          "cap": 30
+        },
+        "summary_ru": "+1 Сил/Лов (до 30); дробящий/колющий/рубящий игнорирует сопротивление; крит 20 даёт доп. урон = значение характеристики.",
+        "traits_text": "Эпический дар (2024, SRD), ур. 19+: +1 Сил или Лов (≤30). Ваш дробящий, колющий и рубящий урон игнорирует сопротивление. При 20 на d20 атаки — доп. урон, равный увеличенной этой чертой характеристике."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "boon-of-spell-recall",
+      "name_ru": "Дар восстановления заклинаний",
+      "name_en": "Boon of Spell Recall",
+      "source": "srd-5.2",
+      "sort_order": 350,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/382-boon-of-spell-recall",
+        "url_ttg": "https://new.ttg.club/feats/boon-of-spell-recall-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "epic_boon",
+        "name_ru_pending": true,
+        "prerequisites": {"level": 19, "spellcasting_feature": true},
+        "prerequisites_ru": "Уровень 19+; умение накладывать заклинания",
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": ["int", "wis", "cha"],
+          "cap": 30
+        },
+        "summary_ru": "+1 Интел/Мудр/Хар (до 30); при касте ячейкой 1–4 круга 1к4 = уровень ячейки → ячейка не тратится.",
+        "traits_text": "Эпический дар (2024, SRD), ур. 19+, умение заклинаний: +1 Интел, Мудр или Хар (≤30). При касте ячейкой 1–4 круга бросок 1к4: если выпало число уровня ячейки — ячейка не расходуется."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "boon-of-the-night-spirit",
+      "name_ru": "Дар ночного духа",
+      "name_en": "Boon of the Night Spirit",
+      "source": "srd-5.2",
+      "sort_order": 360,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/383-boon-of-the-night-spirit",
+        "url_ttg": "https://new.ttg.club/feats/boon-of-the-night-spirit-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "epic_boon",
+        "name_ru_pending": true,
+        "prerequisites": {"level": 19},
+        "prerequisites_ru": "Уровень 19+",
+        "repeatable": false,
+        "ability_score_increase": {"amount": 1, "from": "any", "cap": 30},
+        "summary_ru": "+1 к любой (до 30); в тусклом/тьме — бонусом невидимость и сопротивление почти всем уронам.",
+        "traits_text": "Эпический дар (2024, SRD), ур. 19+: +1 к одной характеристике (≤30). В тусклом свете или тьме: бонусом — невидимость (срывается действием/бонусом/реакцией); сопротивление всем уронам, кроме психического и лучистого."
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "boon-of-truesight",
+      "name_ru": "Дар истинного зрения",
+      "name_en": "Boon of Truesight",
+      "source": "srd-5.2",
+      "sort_order": 370,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/feats/384-boon-of-truesight",
+        "url_ttg": "https://new.ttg.club/feats/boon-of-truesight-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "epic_boon",
+        "prerequisites": {"level": 19},
+        "prerequisites_ru": "Уровень 19+",
+        "repeatable": false,
+        "ability_score_increase": {"amount": 1, "from": "any", "cap": 30},
+        "summary_ru": "+1 к любой (до 30); истинное зрение 60 фт.",
+        "traits_text": "Эпический дар (2024, SRD), ур. 19+: +1 к одной характеристике (≤30). Истинное зрение на 60 футов."
+      }
+    }
+  ]
+}

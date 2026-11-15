@@ -352,6 +352,8 @@ def test_seed_schema_and_no_stubs():
 
     feat = normalize_feat_data({})
     assert feat["category"] is None
+    assert feat["prerequisites"] == {}
+    assert feat["repeatable"] is False
 
     assert (
         normalize_entry_payload(

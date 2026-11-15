@@ -108,38 +108,38 @@ zhentarim-ruffian,Zhentarim Ruffian,Бандит Жентарима,FRHoF,feats,
 zhentarim-tactics,Zhentarim Tactics,Тактика Жентарима,FRHoF,feats,https://next.dnd.su/feats/404-zhentarim-tactics,https://new.ttg.club/feats/zhentarim-tactics-frhof,false,general,Универсальная черта
 child-of-the-sun,Child of the Sun,Дитя солнца,LFL,feats,https://next.dnd.su/feats/438-child-of-the-sun,https://new.ttg.club/feats/child-of-the-sun-lfl,false,origin,Черта происхождения
 shadowmoor-hexer,Shadowmoor Hexer,Проклинатель Шэдоумура,LFL,feats,https://next.dnd.su/feats/437-shadowmoor-hexer,https://new.ttg.club/feats/shadowmoor-hexer-lfl,false,origin,Черта происхождения
-ability-score-improvement,Ability Score Improvement,Увеличение характеристик,PH24,feats,https://next.dnd.su/feats/320-ability-score-improvement,https://new.ttg.club/feats/ability-score-improvement-phb,false,general,Универсальная черта
+ability-score-improvement,Ability Score Improvement,Увеличение характеристик,PH24,feats,https://next.dnd.su/feats/320-ability-score-improvement,https://new.ttg.club/feats/ability-score-improvement-phb,true,general,Универсальная черта
 actor,Actor,Актёр,PH24,feats,https://next.dnd.su/feats/321-actor,https://new.ttg.club/feats/actor-phb,false,general,Универсальная черта
 alert,Alert,Бдительный,PH24,feats,https://next.dnd.su/feats/310-alert,https://new.ttg.club/feats/alert-phb,true,origin,Черта происхождения
-archery,Archery,Стрельба,PH24,feats,https://next.dnd.su/feats/363-archery,https://new.ttg.club/feats/archery-phb,false,fighting_style,Боевой стиль
+archery,Archery,Стрельба,PH24,feats,https://next.dnd.su/feats/363-archery,https://new.ttg.club/feats/archery-phb,true,fighting_style,Боевой стиль
 athlete,Athlete,Атлет,PH24,feats,https://next.dnd.su/feats/322-athlete,https://new.ttg.club/feats/athlete-phb,false,general,Универсальная черта
 blind-fighting,Blind Fighting,Сражение вслепую,PH24,feats,https://next.dnd.su/feats/364-blind-fighting,https://new.ttg.club/feats/blind-fighting-phb,false,fighting_style,Боевой стиль
-boon-of-combat-prowess,Boon of Combat Prowess,Дар боевой удали,PH24,feats,https://next.dnd.su/feats/373-boon-of-combat-prowess,https://new.ttg.club/feats/boon-of-combat-prowess-phb,false,epic_boon,Эпический дар
-boon-of-dimensional-travel,Boon of Dimensional Travel,Дар межпространственного перемещения,PH24,feats,https://next.dnd.su/feats/374-boon-of-dimensional-travel,https://new.ttg.club/feats/boon-of-dimensional-travel-phb,false,epic_boon,Эпический дар
+boon-of-combat-prowess,Boon of Combat Prowess,Дар боевой удали,PH24,feats,https://next.dnd.su/feats/373-boon-of-combat-prowess,https://new.ttg.club/feats/boon-of-combat-prowess-phb,true,epic_boon,Эпический дар
+boon-of-dimensional-travel,Boon of Dimensional Travel,Дар межпространственного перемещения,PH24,feats,https://next.dnd.su/feats/374-boon-of-dimensional-travel,https://new.ttg.club/feats/boon-of-dimensional-travel-phb,true,epic_boon,Эпический дар
 boon-of-energy-resistance,Boon of Energy Resistance,Дар сопротивления энергии,PH24,feats,https://next.dnd.su/feats/375-boon-of-energy-resistance,https://new.ttg.club/feats/boon-of-energy-resistance-phb,false,epic_boon,Эпический дар
-boon-of-fate,Boon of Fate,Дар судьбы,PH24,feats,https://next.dnd.su/feats/376-boon-of-fate,https://new.ttg.club/feats/boon-of-fate-phb,false,epic_boon,Эпический дар
+boon-of-fate,Boon of Fate,Дар судьбы,PH24,feats,https://next.dnd.su/feats/376-boon-of-fate,https://new.ttg.club/feats/boon-of-fate-phb,true,epic_boon,Эпический дар
 boon-of-fortitude,Boon of Fortitude,Дар стойкости,PH24,feats,https://next.dnd.su/feats/377-boon-of-fortitude,https://new.ttg.club/feats/boon-of-fortitude-phb,false,epic_boon,Эпический дар
-boon-of-irresistible-offense,Boon of Irresistible Offense,Дар неотразимого нападения,PH24,feats,https://next.dnd.su/feats/378-boon-of-irresistible-offense,https://new.ttg.club/feats/boon-of-irresistible-offense-phb,false,epic_boon,Эпический дар
+boon-of-irresistible-offense,Boon of Irresistible Offense,Дар неотразимого нападения,PH24,feats,https://next.dnd.su/feats/378-boon-of-irresistible-offense,https://new.ttg.club/feats/boon-of-irresistible-offense-phb,true,epic_boon,Эпический дар
 boon-of-recovery,Boon of Recovery,Дар восстановления,PH24,feats,https://next.dnd.su/feats/379-boon-of-recovery,https://new.ttg.club/feats/boon-of-recovery-phb,false,epic_boon,Эпический дар
 boon-of-skill,Boon of Skill,Дар умелости,PH24,feats,https://next.dnd.su/feats/380-boon-of-skill,https://new.ttg.club/feats/boon-of-skill-phb,false,epic_boon,Эпический дар
 boon-of-speed,Boon of Speed,Дар скорости,PH24,feats,https://next.dnd.su/feats/381-boon-of-speed,https://new.ttg.club/feats/boon-of-speed-phb,false,epic_boon,Эпический дар
-boon-of-spell-recall,Boon of Spell Recall,Дар восстановления заклинаний,PH24,feats,https://next.dnd.su/feats/382-boon-of-spell-recall,https://new.ttg.club/feats/boon-of-spell-recall-phb,false,epic_boon,Эпический дар
-boon-of-the-night-spirit,Boon of the Night Spirit,Дар ночного духа,PH24,feats,https://next.dnd.su/feats/383-boon-of-the-night-spirit,https://new.ttg.club/feats/boon-of-the-night-spirit-phb,false,epic_boon,Эпический дар
-boon-of-truesight,Boon of Truesight,Дар истинного зрения,PH24,feats,https://next.dnd.su/feats/384-boon-of-truesight,https://new.ttg.club/feats/boon-of-truesight-phb,false,epic_boon,Эпический дар
+boon-of-spell-recall,Boon of Spell Recall,Дар восстановления заклинаний,PH24,feats,https://next.dnd.su/feats/382-boon-of-spell-recall,https://new.ttg.club/feats/boon-of-spell-recall-phb,true,epic_boon,Эпический дар
+boon-of-the-night-spirit,Boon of the Night Spirit,Дар ночного духа,PH24,feats,https://next.dnd.su/feats/383-boon-of-the-night-spirit,https://new.ttg.club/feats/boon-of-the-night-spirit-phb,true,epic_boon,Эпический дар
+boon-of-truesight,Boon of Truesight,Дар истинного зрения,PH24,feats,https://next.dnd.su/feats/384-boon-of-truesight,https://new.ttg.club/feats/boon-of-truesight-phb,true,epic_boon,Эпический дар
 charger,Charger,Налётчик,PH24,feats,https://next.dnd.su/feats/323-charger,https://new.ttg.club/feats/charger-phb,false,general,Универсальная черта
 chef,Chef,Шеф-повар,PH24,feats,https://next.dnd.su/feats/324-chef,https://new.ttg.club/feats/chef-phb,false,general,Универсальная черта
 crafter,Crafter,Мастеровой,PH24,feats,https://next.dnd.su/feats/311-crafter,https://new.ttg.club/feats/crafter-phb,false,origin,Черта происхождения
 crossbow-expert,Crossbow Expert,Эксперт по арбалетам,PH24,feats,https://next.dnd.su/feats/325-crossbow-expert,https://new.ttg.club/feats/crossbow-expert-phb,false,general,Универсальная черта
 crusher,Crusher,Крушитель,PH24,feats,https://next.dnd.su/feats/326-crusher,https://new.ttg.club/feats/crusher-phb,false,general,Универсальная черта
-defense,Defense,Оборона,PH24,feats,https://next.dnd.su/feats/365-defense,https://new.ttg.club/feats/defense-phb,false,fighting_style,Боевой стиль
+defense,Defense,Оборона,PH24,feats,https://next.dnd.su/feats/365-defense,https://new.ttg.club/feats/defense-phb,true,fighting_style,Боевой стиль
 defensive-duelist,Defensive Duelist,Парирующий дуэлянт,PH24,feats,https://next.dnd.su/feats/327-defensive-duelist,https://new.ttg.club/feats/defensive-duelist-phb,false,general,Универсальная черта
 dual-wielder,Dual Wielder,Мастер боя двумя оружиями,PH24,feats,https://next.dnd.su/feats/328-dual-wielder,https://new.ttg.club/feats/dual-wielder-phb,false,general,Универсальная черта
 dueling,Dueling,Дуэлянт,PH24,feats,https://next.dnd.su/feats/366-dueling,https://new.ttg.club/feats/dueling-phb,false,fighting_style,Боевой стиль
 durable,Durable,Стойкий,PH24,feats,https://next.dnd.su/feats/329-durable,https://new.ttg.club/feats/durable-phb,false,general,Универсальная черта
 elemental-adept,Elemental Adept,Стихийный адепт,PH24,feats,https://next.dnd.su/feats/330-elemental-adept,https://new.ttg.club/feats/elemental-adept-phb,false,general,Универсальная черта
 fey-touched,Fey-Touched,Затронутый феями,PH24,feats,https://next.dnd.su/feats/331-fey-touched,https://new.ttg.club/feats/fey-touched-phb,false,general,Универсальная черта
-grappler,Grappler,Борец,PH24,feats,https://next.dnd.su/feats/332-grappler,https://new.ttg.club/feats/grappler-phb,false,general,Универсальная черта
-great-weapon-fighting,Great Weapon Fighting,Сражение большим оружием,PH24,feats,https://next.dnd.su/feats/367-great-weapon-fighting,https://new.ttg.club/feats/great-weapon-fighting-phb,false,fighting_style,Боевой стиль
+grappler,Grappler,Борец,PH24,feats,https://next.dnd.su/feats/332-grappler,https://new.ttg.club/feats/grappler-phb,true,general,Универсальная черта
+great-weapon-fighting,Great Weapon Fighting,Сражение большим оружием,PH24,feats,https://next.dnd.su/feats/367-great-weapon-fighting,https://new.ttg.club/feats/great-weapon-fighting-phb,true,fighting_style,Боевой стиль
 great-weapon-master,Great Weapon Master,Мастер тяжёлого оружия,PH24,feats,https://next.dnd.su/feats/333-great-weapon-master,https://new.ttg.club/feats/great-weapon-master-phb,false,general,Универсальная черта
 healer,Healer,Лекарь,PH24,feats,https://next.dnd.su/feats/312-healer,https://new.ttg.club/feats/healer-phb,false,origin,Черта происхождения
 heavily-armored,Heavily Armored,Знаток тяжёлых доспехов,PH24,feats,https://next.dnd.su/feats/334-heavily-armored,https://new.ttg.club/feats/heavily-armored-phb,false,general,Универсальная черта
@@ -169,7 +169,7 @@ shadow-touched,Shadow-Touched,Затронутый тенью,PH24,feats,https:/
 sharpshooter,Sharpshooter,Меткий стрелок,PH24,feats,https://next.dnd.su/feats/352-sharpshooter,https://new.ttg.club/feats/sharpshooter-phb,false,general,Универсальная черта
 shield-master,Shield Master,Мастер щита,PH24,feats,https://next.dnd.su/feats/353-shield-master,https://new.ttg.club/feats/shield-master-phb,false,general,Универсальная черта
 skill-expert,Skill Expert,Эксперт в навыке,PH24,feats,https://next.dnd.su/feats/354-skill-expert,https://new.ttg.club/feats/skill-expert-phb,false,general,Универсальная черта
-skilled,Skilled,Одарённый,PH24,feats,https://next.dnd.su/feats/317-skilled,https://new.ttg.club/feats/skilled-phb,false,origin,Черта происхождения
+skilled,Skilled,Одарённый,PH24,feats,https://next.dnd.su/feats/317-skilled,https://new.ttg.club/feats/skilled-phb,true,origin,Черта происхождения
 skulker,Skulker,Проныра,PH24,feats,https://next.dnd.su/feats/355-skulker,https://new.ttg.club/feats/skulker-phb,false,general,Универсальная черта
 slasher,Slasher,Рубака,PH24,feats,https://next.dnd.su/feats/356-slasher,https://new.ttg.club/feats/slasher-phb,false,general,Универсальная черта
 speedy,Speedy,Быстрый,PH24,feats,https://next.dnd.su/feats/357-speedy,https://new.ttg.club/feats/speedy-phb,false,general,Универсальная черта
@@ -178,8 +178,8 @@ tavern-brawler,Tavern Brawler,Дебошир,PH24,feats,https://next.dnd.su/feat
 telekinetic,Telekinetic,Телекинетик,PH24,feats,https://next.dnd.su/feats/359-telekinetic,https://new.ttg.club/feats/telekinetic-phb,false,general,Универсальная черта
 telepathic,Telepathic,Телепат,PH24,feats,https://next.dnd.su/feats/360-telepathic,https://new.ttg.club/feats/telepathic-phb,false,general,Универсальная черта
 thrown-weapon-fighting,Thrown Weapon Fighting,Сражение метательным оружием,PH24,feats,https://next.dnd.su/feats/370-thrown-weapon-fighting,https://new.ttg.club/feats/thrown-weapon-fighting-phb,false,fighting_style,Боевой стиль
-tough,Tough,Крепкий,PH24,feats,https://next.dnd.su/feats/319-tough,https://new.ttg.club/feats/tough-phb,true,origin,Черта происхождения
-two-weapon-fighting,Two-Weapon Fighting,Сражение двумя оружиями,PH24,feats,https://next.dnd.su/feats/371-two-weapon-fighting,https://new.ttg.club/feats/two-weapon-fighting-phb,false,fighting_style,Боевой стиль
+tough,Tough,Крепкий,PH24,feats,https://next.dnd.su/feats/319-tough,https://new.ttg.club/feats/tough-phb,false,origin,Черта происхождения
+two-weapon-fighting,Two-Weapon Fighting,Сражение двумя оружиями,PH24,feats,https://next.dnd.su/feats/371-two-weapon-fighting,https://new.ttg.club/feats/two-weapon-fighting-phb,true,fighting_style,Боевой стиль
 unarmed-fighting,Unarmed Fighting,Сражение без оружия,PH24,feats,https://next.dnd.su/feats/372-unarmed-fighting,https://new.ttg.club/feats/unarmed-fighting-phb,false,fighting_style,Боевой стиль
 war-caster,War Caster,Боевой заклинатель,PH24,feats,https://next.dnd.su/feats/361-war-caster,https://new.ttg.club/feats/war-caster-phb,false,general,Универсальная черта
 weapon-master,Weapon Master,Мастер оружия,PH24,feats,https://next.dnd.su/feats/362-weapon-master,https://new.ttg.club/feats/weapon-master-phb,false,general,Универсальная черта
