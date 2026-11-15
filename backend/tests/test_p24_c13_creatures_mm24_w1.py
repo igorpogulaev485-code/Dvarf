@@ -129,6 +129,130 @@ def test_spell_and_gear_refs_resolve():
             assert gid in gear_slugs, f"{row['slug']} -> missing gear {gid}"
 
 
+_SPELLCASTING_NAME = ("сотворение заклинаний", "колдовство", "spellcasting")
+
+
+def _has_spellcasting_feature(data: dict) -> bool:
+    for bucket in ("traits", "actions", "bonus_actions", "reactions"):
+        for feat in data.get(bucket) or []:
+            name = str(feat.get("name_ru") or "").strip().lower()
+            en = str(feat.get("name_en") or "").strip().lower()
+            if name.startswith(_SPELLCASTING_NAME) or en.startswith("spellcasting"):
+                return True
+    return False
+
+
+def test_spell_refs_only_from_spellcasting_block():
+    """Incidental /spells/ links (sunlight, antimagic cone, wish-on-remains) are not refs."""
+    with_spells = 0
+    for row in _mm_rows():
+        refs = row["data"].get("spell_refs") or []
+        summary = row["data"].get("summary_ru") or ""
+        has_cast = _has_spellcasting_feature(row["data"])
+        if refs:
+            with_spells += 1
+            assert has_cast, f"{row['slug']} has spell_refs without Spellcasting"
+            assert "есть заклинания" in summary, row["slug"]
+        else:
+            assert "есть заклинания" not in summary, row["slug"]
+            if row["slug"] in {"kuo-toa", "beholder", "death-tyrant", "demilich"}:
+                assert not has_cast
+                assert refs == []
+    assert with_spells == 38
+
+
+def test_no_space_before_punctuation_in_display_ru():
+    import re
+
+    bad_punct = re.compile(r"\s+[.,:;]")
+    typo = re.compile(r"спабросок", re.I)
+    failures: list[str] = []
+    leaves = {
+        "text_ru",
+        "summary_ru",
+        "name_ru",
+        "legendary_actions_note_ru",
+        "alignment",
+        "size_ru",
+        "type_ru",
+    }
+
+    def walk(obj, path: str = ""):
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                yield from walk(value, f"{path}.{key}" if path else key)
+        elif isinstance(obj, list):
+            for idx, value in enumerate(obj):
+                yield from walk(value, f"{path}[{idx}]")
+        elif isinstance(obj, str):
+            yield path, obj
+
+    for row in _mm_rows():
+        for field_path, value in walk(row["data"]):
+            leaf = field_path.split(".")[-1].split("[")[0]
+            if leaf not in leaves:
+                continue
+            if bad_punct.search(value):
+                failures.append(f"{row['slug']} {field_path}: {value!r}")
+            if typo.search(value):
+                failures.append(f"{row['slug']} typo {field_path}: {value!r}")
+    assert not failures, "bad punctuation/typo:\n" + "\n".join(failures[:30])
+
+
+def test_summary_ru_size_type_agreement():
+    import re
+
+    # «средняя аберрация» / «средний гуманоид» — type lowercased inside phrase
+    pat = re.compile(
+        r"^(крошечн|маленьк|средн|больш|огромн|гигантск)\w+\s+([а-яё])",
+        re.I,
+    )
+    for row in _mm_rows():
+        summary = row["data"]["summary_ru"]
+        m = pat.match(summary)
+        assert m, f"{row['slug']}: {summary}"
+        assert m.group(2).islower() or m.group(2) == m.group(2).lower(), row["slug"]
+        # no «средний Аберрация»
+        assert not re.search(
+            r"\b(средний|большой|маленький|огромный|крошечный|гигантский)\s+[А-ЯЁ]",
+            summary,
+        ), summary
+
+
+def test_beholder_eye_rays_and_legendary_blocks():
+    by_slug = {r["slug"]: r for r in _mm_rows()}
+    beh = by_slug["beholder"]["data"]
+    action_names = [a["name_ru"] for a in beh.get("actions") or []]
+    assert "Лучи из глаз" in action_names
+    rays = [n for n in action_names if n.startswith("Луч ")]
+    assert len(rays) == 10, rays
+    assert beh.get("legendary_actions_uses") == 3
+    assert beh.get("legendary_actions_uses_lair") == 4
+    assert len(beh.get("legendary_actions") or []) >= 2
+    # Antimagic cone is a bonus action, not a spell_ref
+    bonus = [a["name_ru"] for a in beh.get("bonus_actions") or []]
+    assert any("антимаг" in n.lower() for n in bonus)
+    assert not (beh.get("spell_refs") or [])
+
+    for slug in (
+        "death-tyrant",
+        "dracolich",
+        "demilich",
+        "death-knight",
+        "arch-hag",
+        "animal-lord",
+        "empyrean",
+        "colossus",
+    ):
+        data = by_slug[slug]["data"]
+        assert isinstance(data.get("legendary_actions_uses"), int), slug
+        assert data["legendary_actions_uses"] >= 1, slug
+        assert data.get("legendary_actions"), slug
+
+    dt = by_slug["death-tyrant"]["data"]
+    assert len([n for n in [a["name_ru"] for a in dt["actions"]] if n.startswith("Луч ")]) == 10
+
+
 def test_no_overlap_with_srd_bestiary():
     srd = {
         r["slug"]

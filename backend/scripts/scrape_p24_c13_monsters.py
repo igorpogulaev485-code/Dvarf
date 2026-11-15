@@ -71,6 +71,27 @@ def _strip_tags(html: str) -> str:
     return t.strip()
 
 
+def _clean_ru_text(text: str) -> str:
+    """Drop spaces before punctuation; fix common OCR/typo leftovers."""
+    t = re.sub(r"\s+", " ", text or "").strip()
+    t = re.sub(r"\s+([.,:;!?])", r"\1", t)
+    t = re.sub(r"\(\s+", "(", t)
+    t = re.sub(r"\s+\)", ")", t)
+    # typo: спабросок → спасбросок (and declined forms)
+    t = re.sub(r"\bспабросок\b", "спасбросок", t, flags=re.I)
+    t = re.sub(r"\bспаброска\b", "спасброска", t, flags=re.I)
+    t = re.sub(r"\bспаброске\b", "спасброске", t, flags=re.I)
+    t = re.sub(r"\bспаброском\b", "спасброском", t, flags=re.I)
+    t = re.sub(r"\bспаброски\b", "спасброски", t, flags=re.I)
+    t = re.sub(r"\bспаброску\b", "спасброску", t, flags=re.I)
+    return t.strip()
+
+
+_SPELLCASTING_NAME_RE = re.compile(
+    r"(?i)^(сотворение\s+заклинаний|колдовство|spellcasting)\b"
+)
+
+
 def _parse_signed(raw: str) -> int:
     t = raw.strip().replace("+", "").replace("−", "-").replace("–", "-").replace("—", "-")
     return int(t)
@@ -253,6 +274,7 @@ def parse_page(html: str, meta: dict[str, str]) -> dict:
             pb = _parse_signed(cm.group(3))
 
     # Feature sections on next.dnd.su: Особенности / Действия / …
+    # Split by section headers (li/div) so nested </div> inside body cannot truncate.
     sections: dict[str, list[dict]] = {
         "traits": [],
         "actions": [],
@@ -268,18 +290,33 @@ def parse_page(html: str, meta: dict[str, str]) -> dict:
         "реакции": "reactions",
         "легендарные действия": "legendary_actions",
     }
-    section_chunks = re.findall(
+    header_re = re.compile(
         r"<(?:li|div)[^>]*class=[\"']article-body__monster__section[^\"']*[\"'][^>]*>\s*"
-        r"<h3 class='article-body__monster__section-title'>([^<]+)</h3>\s*"
-        r"<div class=\"article-body__monster__section-body\">([\s\S]*?)</div>\s*"
-        r"(?:</(?:li|div)>)?",
-        body,
+        r"<h3 class='article-body__monster__section-title'>([^<]+)</h3>",
+        re.I,
     )
+    headers = list(header_re.finditer(body))
     legendary_note = None
     legendary_uses = None
     legendary_uses_lair = None
-    for title_raw, chunk in section_chunks:
-        title = _strip_tags(title_raw).strip().lower()
+    spell_slugs: list[str] = []
+    spell_names: list[str] = []
+    has_spellcasting = False
+
+    def _append_spell_links(block_html: str) -> None:
+        for href, data_name in re.findall(
+            r'href="/spells/\d+-([a-z0-9\-]+)/?"[^>]*(?:data-name="([^"]*)")?',
+            block_html,
+            re.I,
+        ):
+            spell_slugs.append(href.lower().rstrip("/"))
+            if data_name:
+                ru = data_name.split("[", 1)[0].strip()
+                if ru:
+                    spell_names.append(ru)
+
+    for i, hm in enumerate(headers):
+        title = _strip_tags(hm.group(1)).strip().lower()
         key = None
         for ru, k in section_map.items():
             if title.startswith(ru):
@@ -287,13 +324,16 @@ def parse_page(html: str, meta: dict[str, str]) -> dict:
                 break
         if not key:
             continue
+        start = hm.end()
+        end = headers[i + 1].start() if i + 1 < len(headers) else len(body)
+        chunk = body[start:end]
         if key == "legendary_actions":
             desc = re.search(
                 r"article-body__monster__section-legendary-desc[^>]*>([\s\S]*?)</p>",
                 chunk,
             )
             if desc:
-                dt = _strip_tags(desc.group(1))
+                dt = _clean_ru_text(_strip_tags(desc.group(1)))
                 lm = re.search(
                     r"(\d+)\s*использован\w*(?:\s*Легендарных действий)?\s*"
                     r"\(или\s*(\d+)\s*использован",
@@ -311,25 +351,25 @@ def parse_page(html: str, meta: dict[str, str]) -> dict:
                     if lm2:
                         legendary_uses = int(lm2.group(1))
                         legendary_note = f"{legendary_uses} за раунд"
-        # feature + attack paragraphs
+        # feature / attack / save-effect (rays, legendary options, etc.)
         blocks = re.findall(
-            r"<p class=\"article-body__(?:feature|monster-attack)[^\"]*\"[^>]*>"
-            r"([\s\S]*?)</p>",
+            r"<p class=\"article-body__(?:feature|monster-attack|monster-save-effect)"
+            r"[^\"]*\"[^>]*>([\s\S]*?)</p>",
             chunk,
         )
         for block in blocks:
             name_m = re.search(
-                r"<(?:span)[^>]*class='article-body__(?:feature-name|monster-attack__name)'"
-                r"[^>]*(?:title=\"([^\"]*)\")?[^>]*>([^<]+)</span>",
+                r"<span[^>]*class='article-body__(?:feature-name|monster-attack__name|"
+                r"monster-save-effect__name)'[^>]*"
+                r"(?:title=\"([^\"]*)\"|title='([^']*)')?[^>]*>([^<]+)</span>",
                 block,
             )
             if not name_m:
                 continue
-            name_en = (name_m.group(1) or "").strip() or None
-            name_ru = _strip_tags(name_m.group(2)).rstrip(".").strip()
-            # text after the name span
+            name_en = (name_m.group(1) or name_m.group(2) or "").strip() or None
+            name_ru = _clean_ru_text(_strip_tags(name_m.group(3))).rstrip(".").strip()
             after = block[name_m.end() :]
-            text = _strip_tags(after).lstrip(". ").strip()
+            text = _clean_ru_text(_strip_tags(after).lstrip(". "))
             if not name_ru:
                 continue
             if name_ru.lower() == (meta.get("name_ru") or "").lower():
@@ -337,23 +377,19 @@ def parse_page(html: str, meta: dict[str, str]) -> dict:
             entry = {"name_ru": name_ru, "text_ru": text}
             if name_en:
                 entry["name_en"] = name_en
+            # Spell refs ONLY from explicit Spellcasting / Колдовство blocks
+            is_cast = bool(
+                _SPELLCASTING_NAME_RE.match(name_ru)
+                or (name_en and _SPELLCASTING_NAME_RE.match(name_en))
+                or "monster__spellcasting" in block
+            )
+            if is_cast:
+                has_spellcasting = True
+                entry["is_spellcasting"] = True
+                _append_spell_links(block)
             sections[key].append(entry)
 
-    # Spell refs from /spells/<id>-<slug> links and data-name
-    spell_slugs: list[str] = []
-    spell_names: list[str] = []
-    for href, data_name in re.findall(
-        r'href="/spells/\d+-([a-z0-9\-]+)"[^>]*(?:data-name="([^"]*)")?',
-        body,
-        re.I,
-    ):
-        spell_slugs.append(href.lower())
-        if data_name:
-            # "Волшебная рука [Mage Hand]"
-            ru = data_name.split("[", 1)[0].strip()
-            if ru:
-                spell_names.append(ru)
-    # dedupe preserve order
+    # dedupe spell refs
     seen: set[str] = set()
     spell_slugs_u: list[str] = []
     for s in spell_slugs:
@@ -368,6 +404,9 @@ def parse_page(html: str, meta: dict[str, str]) -> dict:
             seen_n.add(n)
             spell_names_u.append(n)
     spell_names = spell_names_u
+    if not has_spellcasting:
+        spell_slugs = []
+        spell_names = []
 
     incomplete = not (
         ac is not None
@@ -419,6 +458,7 @@ def parse_page(html: str, meta: dict[str, str]) -> dict:
         "legendary_actions_uses_lair": legendary_uses_lair,
         "spell_slugs": spell_slugs,
         "spell_names_ru": spell_names,
+        "has_spellcasting": has_spellcasting,
         "incomplete": incomplete,
     }
 

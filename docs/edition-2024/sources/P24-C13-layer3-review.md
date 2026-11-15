@@ -4,23 +4,23 @@
 
 | slug | name_ru | type | CR | PB | spells | gear |
 |---|---|---|---|---|---|---|
-| `aarakocra-aeromancer` | Ааракокра аэромант | elemental | 4 | +2 | 7 | 1 |
-| `aarakocra-skirmisher` | Ааракокра застрельщик | elemental | 1/4 | +2 | 1 | 0 |
-| `aberrant-cultist` | Последователь культа аберрации | humanoid | 8 | +3 | 3 | 0 |
+| `aarakocra-aeromancer` | Ааракокра аэромант | elemental | 4 | +2 | 5 | 1 |
+| `aarakocra-skirmisher` | Ааракокра застрельщик | elemental | 1/4 | +2 | 0 | 0 |
+| `aberrant-cultist` | Последователь культа аберрации | humanoid | 8 | +3 | 2 | 0 |
 | `abominable-yeti` | Отвратительный йети | monstrosity | 9 | +4 | 0 | 0 |
-| `animal-lord` | Владыка зверей | celestial | 20 | +6 | 9 | 0 |
+| `animal-lord` | Владыка зверей | celestial | 20 | +6 | 7 | 0 |
 | `animated-broom` | Живая метла | construct | 1/4 | +2 | 0 | 0 |
-| `arcanaloth` | Арканалот | fiend | 12 | +4 | 11 | 0 |
-| `arch-hag` | Архикарга | fey | 21 | +7 | 19 | 0 |
-| `archpriest` | Архиепископ | humanoid | 12 | +4 | 11 | 0 |
-| `azer-pyromancer` | Эйзер пиромант | elemental | 6 | +3 | 5 | 0 |
+| `arcanaloth` | Арканалот | fiend | 12 | +4 | 9 | 0 |
+| `arch-hag` | Архикарга | fey | 21 | +7 | 7 | 0 |
+| `archpriest` | Архиепископ | humanoid | 12 | +4 | 6 | 0 |
+| `azer-pyromancer` | Эйзер пиромант | elemental | 6 | +3 | 3 | 0 |
 | `bandit-crime-lord` | Преступный лорд бандитов | humanoid | 11 | +4 | 0 | 1 |
 | `bandit-deceiver` | Бандит-обманщик | humanoid | 7 | +3 | 6 | 1 |
-| `beholder` | Бехолдер | aberration | 13 | +5 | 2 | 0 |
+| `beholder` | Бехолдер | aberration | 13 | +5 | 0 | 0 |
 | `colossus` | Колосс | construct | 25 | +8 | 0 | 0 |
-| `death-knight` | Рыцарь смерти | undead | 17 | +6 | 6 | 0 |
-| `dracolich` | Драколич | undead | 17 | +6 | 5 | 0 |
-| `kuo-toa` | Куо-тоа | aberration | 1/4 | +2 | 1 | 1 |
+| `death-knight` | Рыцарь смерти | undead | 17 | +6 | 4 | 0 |
+| `dracolich` | Драколич | undead | 17 | +6 | 4 | 0 |
+| `kuo-toa` | Куо-тоа | aberration | 1/4 | +2 | 0 | 1 |
 
 ## Источник русских имён
 

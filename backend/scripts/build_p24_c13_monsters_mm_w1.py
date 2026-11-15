@@ -53,6 +53,40 @@ SIZE_LABEL = {
     "huge": "огромный",
     "gargantuan": "гигантский",
 }
+# Feminine size adjective for agreement with feminine type nouns in summary.
+SIZE_LABEL_FEM = {
+    "tiny": "крошечная",
+    "small": "маленькая",
+    "medium": "средняя",
+    "large": "большая",
+    "huge": "огромная",
+    "gargantuan": "гигантская",
+}
+SIZE_LABEL_NEUT = {
+    "tiny": "крошечное",
+    "small": "маленькое",
+    "medium": "среднее",
+    "large": "большое",
+    "huge": "огромное",
+    "gargantuan": "гигантское",
+}
+# Grammatical gender of type noun in Russian (for «средняя аберрация»).
+TYPE_GENDER = {
+    "aberration": "f",  # аберрация
+    "beast": "m",  # зверь
+    "celestial": "m",  # небожитель
+    "construct": "m",  # конструкт
+    "dragon": "m",  # дракон
+    "elemental": "m",  # элементаль
+    "fey": "f",  # фея
+    "fiend": "n",  # исчадие
+    "giant": "m",  # великан
+    "humanoid": "m",  # гуманоид
+    "monstrosity": "n",  # чудовище
+    "ooze": "f",  # слизь
+    "plant": "n",  # растение
+    "undead": "f",  # нежить
+}
 TYPE_RU = {
     "аберрация": "aberration",
     "зверь": "beast",
@@ -327,13 +361,43 @@ def parse_size_type_align(raw: str, csv_type: str) -> tuple[str, str, str | None
     return size, size_ru, subtype, align
 
 
-def short_text(text: str, *, limit: int = 220) -> str:
+def clean_ru_text(text: str) -> str:
     t = re.sub(r"\s+", " ", text or "").strip()
+    t = re.sub(r"\s+([.,:;!?])", r"\1", t)
+    t = re.sub(r"\(\s+", "(", t)
+    t = re.sub(r"\s+\)", ")", t)
+    t = re.sub(r"\bспабросок\b", "спасбросок", t, flags=re.I)
+    t = re.sub(r"\bспаброска\b", "спасброска", t, flags=re.I)
+    t = re.sub(r"\bспаброске\b", "спасброске", t, flags=re.I)
+    t = re.sub(r"\bспаброском\b", "спасброском", t, flags=re.I)
+    t = re.sub(r"\bспаброски\b", "спасброски", t, flags=re.I)
+    t = re.sub(r"\bспаброску\b", "спасброску", t, flags=re.I)
+    return t.strip()
+
+
+def short_text(text: str, *, limit: int = 220) -> str:
+    t = clean_ru_text(text)
     if len(t) <= limit:
         return t
     # keep attack mechanics head
     cut = t[: limit - 1].rsplit(" ", 1)[0]
     return cut.rstrip(".,;:") + "…"
+
+
+def summary_size_type(size: str, type_en: str, type_ru: str) -> str:
+    """«средняя аберрация» / «средний гуманоид» — size agrees, type lowercased."""
+    gender = TYPE_GENDER.get(type_en, "m")
+    if gender == "f":
+        size_word = SIZE_LABEL_FEM.get(size, "средняя")
+    elif gender == "n":
+        size_word = SIZE_LABEL_NEUT.get(size, "среднее")
+    else:
+        size_word = SIZE_LABEL.get(size, "средний")
+    type_word = (type_ru or TYPE_LABEL.get(type_en, type_en)).strip()
+    # Inside the phrase type is lowercase (except if already a proper name).
+    if type_word:
+        type_word = type_word[:1].lower() + type_word[1:]
+    return f"{size_word} {type_word}"
 
 
 def norm_damage_list(items: list[str]) -> list[str]:
@@ -392,12 +456,22 @@ def norm_skills(skills: dict[str, int]) -> dict[str, int]:
 def feature_entries(raw_list: list[dict], *, shorten: bool = True) -> list[dict]:
     out: list[dict] = []
     for feat in raw_list or []:
-        name_ru = (feat.get("name_ru") or "").strip()
+        name_ru = clean_ru_text(feat.get("name_ru") or "").strip()
         if not name_ru:
             continue
         text = feat.get("text_ru") or ""
         if shorten:
-            text = short_text(text)
+            # Rays / recharge options: keep full short mechanics (already compact).
+            en = str(feat.get("name_en") or "")
+            is_rayish = (
+                "луч" in name_ru.lower()
+                or en[:1].isdigit()
+                or "ray" in en.lower()
+            )
+            limit = 480 if is_rayish else 240
+            text = short_text(text, limit=limit)
+        else:
+            text = clean_ru_text(text)
         item: dict[str, Any] = {
             "name_ru": name_ru,
             "text_ru": text,
@@ -412,9 +486,11 @@ def feature_entries(raw_list: list[dict], *, shorten: bool = True) -> list[dict]
 def resolve_spells(
     scraped: dict, by_slug: dict[str, str], by_ru: dict[str, str]
 ) -> list[str]:
+    """Only links collected from Spellcasting / Колдовство blocks by the scraper."""
+    if not scraped.get("has_spellcasting"):
+        return []
     found: list[str] = []
     for slug in scraped.get("spell_slugs") or []:
-        # elementalism etc. may be ph24
         if slug in by_slug:
             found.append(slug)
         elif slug.replace("_", "-") in by_slug:
@@ -422,23 +498,6 @@ def resolve_spells(
     for name in scraped.get("spell_names_ru") or []:
         slug = by_ru.get(_norm(name))
         if slug:
-            found.append(slug)
-    # also scan feature texts for known RU names (long → short)
-    blob = " ".join(
-        f.get("text_ru") or ""
-        for bucket in (
-            scraped.get("traits") or [],
-            scraped.get("actions") or [],
-            scraped.get("bonus_actions") or [],
-            scraped.get("reactions") or [],
-            scraped.get("legendary_actions") or [],
-        )
-        for f in bucket
-    )
-    for ru, slug in by_ru.items():
-        if len(ru) < 4:
-            continue
-        if ru in _norm(blob):
             found.append(slug)
     seen: set[str] = set()
     out: list[str] = []
@@ -495,11 +554,13 @@ def build_entry(
         sta = _norm(scraped.get("size_type_alignment") or "")
         type_en = next((TYPE_RU[k] for k in TYPE_RU if k in sta), "monstrosity")
     type_ru = type_csv or TYPE_LABEL[type_en]
+    size_type = summary_size_type(size, type_en, type_ru)
+    has_cast = bool(scraped.get("has_spellcasting") and spells)
     summary = (
-        f"{size_ru} {type_ru}, ПО {cr}; КД {scraped['ac']}, "
+        f"{size_type}, ПО {cr}; КД {scraped['ac']}, "
         f"хиты {scraped['hp_average']} ({scraped['hp_formula']}); "
         f"инициатива {init['mod']:+d} (ср. {init['score']}), БМ +{pb}"
-        + ("; есть заклинания." if spells else ".")
+        + ("; есть заклинания." if has_cast else ".")
     )
 
     data: dict[str, Any] = {
