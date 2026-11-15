@@ -443,7 +443,10 @@ export function PlayDeskHotBar({
         <div className="play-desk__hot-item play-desk__hot-item--wide is-on">
           <IconConcentration className="play-desk__hot-icon" />
           <span className="play-desk__hot-label play-desk__hot-label--stack">
-            <span className="play-desk__hot-label-kicker">Концентрация</span>
+            <span className="play-desk__hot-label-kicker">
+              Концентрация
+              <span className="play-desk__hot-label-sep">: </span>
+            </span>
             <strong>{concentration.name}</strong>
           </span>
           {onClearConcentration ? (

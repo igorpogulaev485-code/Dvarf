@@ -164,6 +164,11 @@
   text-overflow: unset;
 }
 
+/* Two-line face on phone — drop «: » separator */
+.play-desk--mobile .play-desk__hot-label-sep {
+  display: none;
+}
+
 .play-desk--mobile .play-desk__hot-label--stack strong {
   display: block;
   font-size: 0.78rem;

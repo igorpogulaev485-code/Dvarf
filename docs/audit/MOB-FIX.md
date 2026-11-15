@@ -30,8 +30,8 @@
 |------|-----|--------|
 | `after-01-chars-welcome-390.png` | `19d0442c52797b9814d75a9a51e6e3aa` | × + «Пропустить подсказки» |
 | `after-01-chars-list-390.png` | `41f0f57861c935c85e60c28e44b9a1ce` | список после закрытия |
-| `after-02-sheet-header-collapsed-390.png` | `2f409c078213e14d8efcbde0542e4187` | свёрнутая шапка; «Следующий раунд» |
-| `after-06-scene-combat-390.png` | `08244c707b1b0a0fc20bbe0d8e8aaa63` | сцена Бой; ряды flush слева |
+| `after-02-sheet-header-collapsed-390.png` | `2f409c078213e14d8efcbde0542e4187` | свёрнутая шапка; концентрация 2 строки |
+| `after-06-scene-combat-390.png` | `b1bf799a4c83bed66a4d1eff23ef9b6d` | сцена Бой; концентрация 2 строки |
 | `after-toast-sheet-390.png` | `bc7213dd72bc2d6ce5d9e74a80a7fdfc` | тост броска на листе |
 | `after-86-transfer-dialog-390.png` | `d362f650162cf554396ff67a6d0def28` | валюты / передать |
 | `after-c13-create-start-390.png` | `51bbd2fdb1e7b000e3263715e7de4c94` | старт; «← К списку» через `.back-link` |
@@ -47,8 +47,8 @@
 | `after-c14-blank-layout2024-390.png` | `85ecf5ffc62653269e21ef39a87594fb` | blank `?layout=2024` |
 | `after-toast-over-nav-760.png` | `c433aeceac6cd9f9164a3a9fe47f1950` | тост над nav 760 |
 | `after-117-transfer-footer-760.png` | `816982431215f612d2e31ce2554b1cc6` | футер диалога 760 |
-| `after-desk-header-1440.png` | `6cdfb0b0118e02c1809b312a0acc791b` | десктоп шапка; «Следующий раунд» в одну строку |
-| `after-desk-combat-1440.png` | `e8ab44d49b5956d30f081171714ce395` | десктоп бой (без сдвигов) |
+| `after-desk-header-1440.png` | `e7cbe16da0301b0d65ec500d8d003d9f` | десктоп шапка; «Концентрация: Щит веры» |
+| `after-desk-combat-1440.png` | `e547e3d5b9004c5ef5ee0f4bfafc46dd` | десктоп бой; «Концентрация: Щит веры» |
 | `after-c14-classic-2014-1440.png` | `23919e6860b021ab719d973d2291c052` | 2014 на 1440 |
 | `after-c14-classic-2014-print-1440.png` | `337a2c44fcf7e9f94d01d3fdebe543be` | 2014 print 1440 |
 | `after-c14-classic-2024-1440.png` | `c81edf2010d78f668f59274fe8e62f27` | 2024 на 1440 (active=cream) |
