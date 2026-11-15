@@ -1297,6 +1297,10 @@ a.ui-button--primary {
   color: var(--success);
 }
 
+.ui-text--warn {
+  color: var(--warn);
+}
+
 .mode-switch {
   display: inline-flex;
   gap: 6px;

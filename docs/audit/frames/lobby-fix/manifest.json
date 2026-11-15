@@ -1,7 +1,7 @@
 {
-  "generated": "2026-11-15T11:12:42.292Z",
-  "count": 32,
-  "uniqueMd5": 32,
+  "generated": "2026-11-15T11:24:44.557268Z",
+  "count": 77,
+  "uniqueMd5": 53,
   "frames": [
     {
       "file": "m-after-roll-remaining-1440.png",
@@ -18,6 +18,58 @@
     {
       "file": "m-campaign-rules-390.png",
       "md5": "4eebc246f5b5e12490c3722fac54862a"
+    },
+    {
+      "file": "m-campaign-rules-after-1440.png",
+      "md5": "8cbb2efc8437a47cad1284976166e925"
+    },
+    {
+      "file": "m-campaign-rules-after-390.png",
+      "md5": "734ac079c78c410ed58157d1fc1dc848"
+    },
+    {
+      "file": "m-campaign-rules-before-1440.png",
+      "md5": "95bd7cf77c9caff838262e475172e49d",
+      "duplicateOf": "m-campaign-rules-1440.png"
+    },
+    {
+      "file": "m-campaign-rules-before-390.png",
+      "md5": "4eebc246f5b5e12490c3722fac54862a",
+      "duplicateOf": "m-campaign-rules-390.png"
+    },
+    {
+      "file": "m-campaign-rules-fix2-before-1440.png",
+      "md5": "95bd7cf77c9caff838262e475172e49d",
+      "duplicateOf": "m-campaign-rules-1440.png"
+    },
+    {
+      "file": "m-campaign-rules-fix2-before-390.png",
+      "md5": "4eebc246f5b5e12490c3722fac54862a",
+      "duplicateOf": "m-campaign-rules-390.png"
+    },
+    {
+      "file": "m-chrome-after-1440.png",
+      "md5": "a734a2d653ab11bbb87ebd6c18b7850e"
+    },
+    {
+      "file": "m-chrome-after-390.png",
+      "md5": "6355e6be579a87f6d685da40e9e4fb43"
+    },
+    {
+      "file": "m-chrome-before-1440.png",
+      "md5": "c680122c2c9fddf113a6222be5efca38"
+    },
+    {
+      "file": "m-chrome-before-390.png",
+      "md5": "d3c0fe252b4540de82394e331bdd7705"
+    },
+    {
+      "file": "m-combat-after-1440.png",
+      "md5": "1d43b84f99eb43179d778b0eaeb44719"
+    },
+    {
+      "file": "m-combat-after-390.png",
+      "md5": "15c1d1afe16b6a82eff08fa04bf59ed2"
     },
     {
       "file": "m-combat-pending-init-1440.png",
@@ -52,6 +104,14 @@
       "md5": "602d50bd886b7d893ce232bdc6233deb"
     },
     {
+      "file": "m-rewards-after-1440.png",
+      "md5": "4e7c93b6bcafe4a75659fb4af58bb267"
+    },
+    {
+      "file": "m-rewards-after-390.png",
+      "md5": "c3d8a8ad820fbf5d2d6b23e4ebad6cd2"
+    },
+    {
       "file": "m-rewards-after-end-1440.png",
       "md5": "70457d2f7f7e378a3b0d457cd460cdba"
     },
@@ -60,20 +120,70 @@
       "md5": "022b6f121e0d202d5a82ab43be53d5c1"
     },
     {
+      "file": "m-rewards-after-end-fix2-before-1440.png",
+      "md5": "70457d2f7f7e378a3b0d457cd460cdba",
+      "duplicateOf": "m-rewards-after-end-1440.png"
+    },
+    {
+      "file": "m-rewards-after-end-fix2-before-390.png",
+      "md5": "022b6f121e0d202d5a82ab43be53d5c1",
+      "duplicateOf": "m-rewards-after-end-390.png"
+    },
+    {
+      "file": "m-rewards-before-1440.png",
+      "md5": "70457d2f7f7e378a3b0d457cd460cdba",
+      "duplicateOf": "m-rewards-after-end-1440.png"
+    },
+    {
+      "file": "m-rewards-before-390.png",
+      "md5": "022b6f121e0d202d5a82ab43be53d5c1",
+      "duplicateOf": "m-rewards-after-end-390.png"
+    },
+    {
       "file": "m-session-empty-1440.png",
-      "md5": "c680122c2c9fddf113a6222be5efca38"
+      "md5": "c680122c2c9fddf113a6222be5efca38",
+      "duplicateOf": "m-chrome-before-1440.png"
     },
     {
       "file": "m-session-empty-390.png",
-      "md5": "d3c0fe252b4540de82394e331bdd7705"
+      "md5": "d3c0fe252b4540de82394e331bdd7705",
+      "duplicateOf": "m-chrome-before-390.png"
     },
     {
       "file": "m-session-empty-760.png",
       "md5": "ea2e9ac8a1bed678ca1daf4b9aaf0180"
     },
     {
+      "file": "m-session-empty-fix2-before-1440.png",
+      "md5": "c680122c2c9fddf113a6222be5efca38",
+      "duplicateOf": "m-chrome-before-1440.png"
+    },
+    {
+      "file": "m-session-empty-fix2-before-390.png",
+      "md5": "d3c0fe252b4540de82394e331bdd7705",
+      "duplicateOf": "m-chrome-before-390.png"
+    },
+    {
       "file": "m-session-loading-390.png",
       "md5": "eb576bd853d9542ab4627eff479ac0f7"
+    },
+    {
+      "file": "m-session-loading-after-1440.png",
+      "md5": "246f3b064adabc98da39580f5d94e5bf"
+    },
+    {
+      "file": "m-session-loading-after-390.png",
+      "md5": "3093d2d7616111704e51498f4da0fccf"
+    },
+    {
+      "file": "m-session-loading-before-390.png",
+      "md5": "eb576bd853d9542ab4627eff479ac0f7",
+      "duplicateOf": "m-session-loading-390.png"
+    },
+    {
+      "file": "m-session-loading-fix2-before-390.png",
+      "md5": "eb576bd853d9542ab4627eff479ac0f7",
+      "duplicateOf": "m-session-loading-390.png"
     },
     {
       "file": "m-waiting-reaction-1440.png",
@@ -84,12 +194,52 @@
       "md5": "eb104d58b74408cc1b1f6aeb64c68ffc"
     },
     {
+      "file": "m-waiting-reaction-after-1440.png",
+      "md5": "062413ec65f3391e5a633d16b980ca32"
+    },
+    {
+      "file": "m-waiting-reaction-after-390.png",
+      "md5": "ab2c91421ead3f964dc10c067022b3e7"
+    },
+    {
+      "file": "m-waiting-reaction-before-390.png",
+      "md5": "eb104d58b74408cc1b1f6aeb64c68ffc",
+      "duplicateOf": "m-waiting-reaction-390.png"
+    },
+    {
+      "file": "m-waiting-reaction-fix2-before-390.png",
+      "md5": "eb104d58b74408cc1b1f6aeb64c68ffc",
+      "duplicateOf": "m-waiting-reaction-390.png"
+    },
+    {
       "file": "p-after-xp-1440.png",
       "md5": "c247f65b4901fa99693f6a2527b5d4de"
     },
     {
       "file": "p-after-xp-390.png",
       "md5": "e08f3d881675af2899a5143b4793ea75"
+    },
+    {
+      "file": "p-after-xp-after-1440.png",
+      "md5": "0a57a32b943350535e97dfc8523c9094"
+    },
+    {
+      "file": "p-after-xp-after-390.png",
+      "md5": "ef0afd273cab6b154e3772d807d45f30"
+    },
+    {
+      "file": "p-after-xp-before-390.png",
+      "md5": "e08f3d881675af2899a5143b4793ea75",
+      "duplicateOf": "p-after-xp-390.png"
+    },
+    {
+      "file": "p-after-xp-fix2-before-390.png",
+      "md5": "e08f3d881675af2899a5143b4793ea75",
+      "duplicateOf": "p-after-xp-390.png"
+    },
+    {
+      "file": "p-combat-after-1440.png",
+      "md5": "fe63332dcdc706702f40b82d4daec9fe"
     },
     {
       "file": "p-combat-live-1440.png",
@@ -100,12 +250,27 @@
       "md5": "010b7daed28730c7c747970afc9c5c1e"
     },
     {
+      "file": "p-combat-live-fix2-before-390.png",
+      "md5": "010b7daed28730c7c747970afc9c5c1e",
+      "duplicateOf": "p-combat-live-390.png"
+    },
+    {
       "file": "p-join-1440.png",
       "md5": "99155bb8c2d9aa5f5a64376e4a3b2739"
     },
     {
       "file": "p-join-390.png",
       "md5": "3ab47cdc6a81e8b94da8e08297bf2582"
+    },
+    {
+      "file": "p-join-fix2-before-1440.png",
+      "md5": "99155bb8c2d9aa5f5a64376e4a3b2739",
+      "duplicateOf": "p-join-1440.png"
+    },
+    {
+      "file": "p-join-fix2-before-390.png",
+      "md5": "3ab47cdc6a81e8b94da8e08297bf2582",
+      "duplicateOf": "p-join-390.png"
     },
     {
       "file": "p-join-level-after-1440.png",
@@ -124,12 +289,51 @@
       "md5": "71d8fb4964435538d776be7dd5c8b2d2"
     },
     {
+      "file": "p-join-warn-after-1440.png",
+      "md5": "a420bf8e669b7046d88a4be756a19281"
+    },
+    {
+      "file": "p-join-warn-after-390.png",
+      "md5": "d59fcc9c3f6d4d540bc7e0be414eadb9"
+    },
+    {
+      "file": "p-join-warn-before-1440.png",
+      "md5": "bfd8a71535db599a81f4b9addcd96e22",
+      "duplicateOf": "p-join-level-after-1440.png"
+    },
+    {
+      "file": "p-join-warn-before-390.png",
+      "md5": "03f496a5d7a81332e00b6a9424c8b3cc",
+      "duplicateOf": "p-join-level-after-390.png"
+    },
+    {
       "file": "p-reaction-1440.png",
       "md5": "6a5f0e38ff39ec9fb7af1d50212cd6c0"
     },
     {
       "file": "p-reaction-390.png",
       "md5": "cdbbda6702e4ac825d3ce31fd31f79e6"
+    },
+    {
+      "file": "p-reaction-after-1440.png",
+      "md5": "03ad34990785f1a742e5aec8eaa26cc2"
+    },
+    {
+      "file": "p-reaction-after-390.png",
+      "md5": "9b0b0fe743195aab56fbdc2dfbacd9e5"
+    },
+    {
+      "file": "p-your-turn-after-1440.png",
+      "md5": "a9197da1088bea06f2a6ae7907a798ea"
+    },
+    {
+      "file": "p-your-turn-after-390.png",
+      "md5": "66bad335af38cadb8d2e4d31b282046a"
+    },
+    {
+      "file": "p-your-turn-before-390.png",
+      "md5": "010b7daed28730c7c747970afc9c5c1e",
+      "duplicateOf": "p-combat-live-390.png"
     }
   ]
 }

@@ -357,9 +357,9 @@ export function SessionTableCard({
   const hpLabel =
     showHpSection && hpMode !== 'off'
       ? hpMode === 'color_only' && !revealAll
-        ? `HP · ${colorLabel}`
+        ? `Хиты · ${colorLabel}`
         : seat.hp_max != null
-          ? `${seat.hp_current ?? 0}/${seat.hp_max}${seat.hp_temp ? ` (+${seat.hp_temp})` : ''}`
+          ? `Хиты ${seat.hp_current ?? 0}/${seat.hp_max}${seat.hp_temp ? ` (+${seat.hp_temp})` : ''}`
           : null
       : null
 

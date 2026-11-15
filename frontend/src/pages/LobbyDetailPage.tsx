@@ -796,12 +796,6 @@ export function LobbyDetailPage() {
                 ) : (
                   <Text tone="muted">Название меняет только мастер.</Text>
                 )}
-                {lobby.invite_code ? (
-                  <Text tone="muted">
-                    Код, ссылка и QR — в блоке «Приглашение» сверху.
-                    {canChangeInvite ? ' Смена кода — там же.' : ''}
-                  </Text>
-                ) : null}
               </Stack>
             </Panel>
 

@@ -535,7 +535,14 @@
 
 .session-xp-recipient.is-on {
   border-color: var(--accent);
-  background: var(--accent-soft);
+  background: var(--accent);
+  background-color: var(--accent);
+  color: #fff;
+}
+
+.session-xp-recipient.is-on .ui-toggle-chip__main,
+.session-xp-recipient.is-on .ui-toggle-chip__rest {
+  color: #fff;
 }
 
 .session-encounter-save {
@@ -661,9 +668,20 @@
 
 .session-loot-compose {
   display: grid;
-  grid-template-columns: 1.4fr 5.5rem 1fr auto;
+  grid-template-columns: minmax(0, 1.6fr) minmax(4.5rem, 5.5rem) minmax(0, 1.2fr) auto;
   gap: 10px;
   align-items: end;
+}
+
+.session-loot-compose--bonus {
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+}
+
+.session-loot-compose .ui-field,
+.session-loot-compose .ui-select,
+.session-loot-compose select {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .session-loot-compose--coins {

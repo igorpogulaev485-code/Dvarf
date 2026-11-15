@@ -281,6 +281,7 @@ export function CampaignRulesPanel({
   createHeroHref,
 }: Props) {
   const [customDraft, setCustomDraft] = useState('')
+  const [rareOpen, setRareOpen] = useState(false)
   const [races, setRaces] = useState<CatalogEntry[]>([])
   const [classes, setClasses] = useState<CatalogEntry[]>([])
   const summary = summarizeEnabledRules(rules)
@@ -450,9 +451,6 @@ export function CampaignRulesPanel({
               </button>
             ))}
           </div>
-          <Text tone="muted">
-            Окно «Награды» на сессии читает этот режим: опыт или повышение по вехам.
-          </Text>
         </div>
 
         <div>
@@ -466,74 +464,82 @@ export function CampaignRulesPanel({
           />
         </div>
 
-        <details className="campaign-rules-rare">
-          <summary>Редкие правила</summary>
-          <Stack gap={16}>
-            <div>
-              <Text as="h3">Домашние правила</Text>
-              <Stack gap={8}>
-                {LEGACY_HOMEBREW_CATALOG.map((entry) => (
-                  <div key={entry.key}>
-                    <ToggleRow
-                      label={entry.label}
-                      tip={entry.tip}
-                      source={entry.source}
-                      checked={rules.homebrew[entry.key]}
-                      onChange={(v) => patchHomebrew(entry.key, v)}
-                    />
-                    {entry.key === 'inspiration_stack' && rules.homebrew.inspiration_stack ? (
-                      <Field label="Максимум вдохновения" hint="По умолчанию 3">
-                        <NumberInput
-                          min={1}
-                          max={20}
-                          emptyValue={3}
-                          value={rules.homebrew.inspiration_stack_max}
-                          onValueChange={(v) =>
-                            onChange({
-                              ...rules,
-                              homebrew: {
-                                ...rules.homebrew,
-                                inspiration_stack_max: Math.max(1, Math.min(20, v ?? 3)),
-                              },
-                            })
-                          }
+        <div className="campaign-rules-rare">
+          <Button
+            type="button"
+            variant="secondary"
+            className="campaign-rules-rare__summary"
+            aria-expanded={rareOpen}
+            onClick={() => setRareOpen((v) => !v)}
+          >
+            {rareOpen ? 'Скрыть редкие правила' : 'Редкие правила'}
+          </Button>
+          {rareOpen ? (
+            <div className="campaign-rules-rare__panel">
+              <Stack gap={16}>
+                <div>
+                  <Text as="h3">Домашние правила</Text>
+                  <Stack gap={8}>
+                    {LEGACY_HOMEBREW_CATALOG.map((entry) => (
+                      <div key={entry.key}>
+                        <ToggleRow
+                          label={entry.label}
+                          tip={entry.tip}
+                          source={entry.source}
+                          checked={rules.homebrew[entry.key]}
+                          onChange={(v) => patchHomebrew(entry.key, v)}
                         />
-                      </Field>
-                    ) : null}
-                  </div>
-                ))}
+                        {entry.key === 'inspiration_stack' && rules.homebrew.inspiration_stack ? (
+                          <Field label="Максимум вдохновения" hint="По умолчанию 3">
+                            <NumberInput
+                              min={1}
+                              max={20}
+                              emptyValue={3}
+                              value={rules.homebrew.inspiration_stack_max}
+                              onValueChange={(v) =>
+                                onChange({
+                                  ...rules,
+                                  homebrew: {
+                                    ...rules.homebrew,
+                                    inspiration_stack_max: Math.max(1, Math.min(20, v ?? 3)),
+                                  },
+                                })
+                              }
+                            />
+                          </Field>
+                        ) : null}
+                      </div>
+                    ))}
+                  </Stack>
+                </div>
+
+                <div>
+                  <Text as="h3">Правила мастера (DMG / Xanathar)</Text>
+                  <Stack gap={8}>
+                    {MASTER_HOMEBREW_CATALOG.map((entry) => (
+                      <div key={entry.key}>
+                        <ToggleRow
+                          label={entry.label}
+                          tip={entry.tip}
+                          source={entry.source}
+                          checked={rules.homebrew[entry.key]}
+                          onChange={(v) => patchHomebrew(entry.key, v)}
+                        />
+                      </div>
+                    ))}
+                  </Stack>
+                </div>
+
+                <StartRulesEditor
+                  rules={rules}
+                  onChange={onChange}
+                  races={races}
+                  classes={classes}
+                />
               </Stack>
             </div>
-
-            <div>
-              <Text as="h3">Правила мастера (DMG / Xanathar)</Text>
-              <Text tone="muted">
-                Варианты из DMG гл. 9 и XGE. Каждый переключатель по умолчанию выкл.; подсказка
-                «?» — текст и источник.
-              </Text>
-              <Stack gap={8}>
-                {MASTER_HOMEBREW_CATALOG.map((entry) => (
-                  <div key={entry.key}>
-                    <ToggleRow
-                      label={entry.label}
-                      tip={entry.tip}
-                      source={entry.source}
-                      checked={rules.homebrew[entry.key]}
-                      onChange={(v) => patchHomebrew(entry.key, v)}
-                    />
-                  </div>
-                ))}
-              </Stack>
-            </div>
-
-            <StartRulesEditor
-              rules={rules}
-              onChange={onChange}
-              races={races}
-              classes={classes}
-            />
-          </Stack>
-        </details>
+          ) : null}
+        </div>
 
         <div>
           <Text as="h3">Свободный список</Text>

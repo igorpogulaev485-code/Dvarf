@@ -20,6 +20,7 @@ import {
 import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
 import { Button, EmptyState, Field, Input, Panel, Select, Stack, Text } from '../ui'
 
+
 function characterMeta(c: CharacterSummary): string {
   const bits = [
     c.race_name,
@@ -228,6 +229,7 @@ export function JoinLobbyPage() {
           subtitle="Код или QR от мастера: выберите персонажа или войдите наблюдателем"
           onOfficialSite={openProductSite}
           lobbyMobileShell
+          hideMoreMenu
         />
 
         <Panel title="Присоединиться">
@@ -352,15 +354,12 @@ export function JoinLobbyPage() {
                   ) : null}
 
                   {levelMismatch && codeReady && !startMismatch ? (
-                    <Text
-                      tone="danger"
-                      className="join-flow__level-warn"
-                      role="status"
-                    >
-                      Уровень героя {selected!.level}, стартовый уровень лобби —{' '}
-                      {startLevel}. Лист не меняется: можно сесть, мастер увидит
-                      «не по правилам старта».
-                    </Text>
+                    <Panel className="join-flow__level-warn">
+                      <Text tone="warn" role="status">
+                        У героя {selected!.level} уровень, а лобби стартует с{' '}
+                        {startLevel}-го. Сесть можно — мастер увидит отметку.
+                      </Text>
+                    </Panel>
                   ) : null}
 
                   {startMismatch ? (

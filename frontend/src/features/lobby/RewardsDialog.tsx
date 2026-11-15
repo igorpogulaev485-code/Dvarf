@@ -634,7 +634,7 @@ export function RewardsDialog({
               <Text as="h4" className="session-xp-recipients__title">
                 Бонус
               </Text>
-              <div className="session-loot-compose">
+              <div className="session-loot-compose session-loot-compose--bonus">
                 <Field label="Кому">
                   <Select
                     value={bonusWho}

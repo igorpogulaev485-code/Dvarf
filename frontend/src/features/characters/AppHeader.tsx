@@ -14,6 +14,8 @@ type AppHeaderProps = {
    * На `/characters` не включать — зона M-пачек.
    */
   lobbyMobileShell?: boolean
+  /** LOBBY-FIX: не оставлять одинокий «⋯» в пустой строке (например /join). */
+  hideMoreMenu?: boolean
 }
 
 const NAV = [
@@ -27,6 +29,7 @@ export function AppHeader({
   user,
   onOfficialSite,
   lobbyMobileShell = false,
+  hideMoreMenu = false,
 }: AppHeaderProps) {
   const nickname = user?.display_name?.trim() || user?.email || 'Профиль'
   const [moreOpen, setMoreOpen] = useState(false)
@@ -78,51 +81,55 @@ export function AppHeader({
         >
           Сайт КриD20
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="lg"
-          className="app-header__more-btn"
-          aria-label="Ещё"
-          aria-haspopup="dialog"
-          aria-expanded={moreOpen}
-          onClick={() => setMoreOpen(true)}
-        >
-          ⋯
-        </Button>
+        {hideMoreMenu ? null : (
+          <Button
+            type="button"
+            variant="ghost"
+            size="lg"
+            className="app-header__more-btn"
+            aria-label="Ещё"
+            aria-haspopup="dialog"
+            aria-expanded={moreOpen}
+            onClick={() => setMoreOpen(true)}
+          >
+            ⋯
+          </Button>
+        )}
       </div>
 
-      <Dialog
-        open={moreOpen}
-        title="Ещё"
-        primaryLabel="Закрыть"
-        secondaryLabel="Отмена"
-        onPrimary={() => setMoreOpen(false)}
-        onSecondary={() => setMoreOpen(false)}
-        closeOnBackdrop
-      >
-        <div className="app-header__more-sheet" role="menu">
-          <button
-            type="button"
-            role="menuitem"
-            className="app-header__more-item"
-            onClick={() => {
-              setMoreOpen(false)
-              onOfficialSite()
-            }}
-          >
-            Сайт КриD20
-          </button>
-          <NavLink
-            role="menuitem"
-            className="app-header__more-item"
-            to="/cabinet"
-            onClick={() => setMoreOpen(false)}
-          >
-            Личный кабинет
-          </NavLink>
-        </div>
-      </Dialog>
+      {hideMoreMenu ? null : (
+        <Dialog
+          open={moreOpen}
+          title="Ещё"
+          primaryLabel="Закрыть"
+          secondaryLabel="Отмена"
+          onPrimary={() => setMoreOpen(false)}
+          onSecondary={() => setMoreOpen(false)}
+          closeOnBackdrop
+        >
+          <div className="app-header__more-sheet" role="menu">
+            <button
+              type="button"
+              role="menuitem"
+              className="app-header__more-item"
+              onClick={() => {
+                setMoreOpen(false)
+                onOfficialSite()
+              }}
+            >
+              Сайт КриD20
+            </button>
+            <NavLink
+              role="menuitem"
+              className="app-header__more-item"
+              to="/cabinet"
+              onClick={() => setMoreOpen(false)}
+            >
+              Личный кабинет
+            </NavLink>
+          </div>
+        </Dialog>
+      )}
     </header>
   )
 }

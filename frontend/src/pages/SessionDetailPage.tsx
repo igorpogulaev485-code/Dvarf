@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { AppHeader } from '../features/characters'
 import { openProductSite } from '../shared/brand/creed20'
 import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
 import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
@@ -22,6 +21,7 @@ import { LootChestBoard, RewardsDialog } from '../features/lobby/RewardsDialog'
 import { MasterGrantDialog } from '../features/lobby/MasterGrantDialog'
 import { PietyAwardDialog } from '../features/lobby/PietyAwardDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
+import { SessionTableSkeleton } from '../features/lobby/SessionTableSkeleton'
 import {
   EncounterGenerateDialog,
   type EncounterDeployPick,
@@ -265,26 +265,6 @@ function readSidePanelOpen(): boolean {
   } catch {
     return false
   }
-}
-
-function SessionTableSkeleton() {
-  return (
-    <main className="page page--app page--lobby-hub">
-      <Stack gap={16}>
-        <div className="session-skeleton" aria-busy="true" aria-label="Загрузка стола">
-          <div className="session-skeleton__header" />
-          <div className="session-skeleton__toolbar" />
-          <div className="session-skeleton__desk">
-            <div className="session-skeleton__rail" />
-            <div className="session-skeleton__cards">
-              <div className="session-skeleton__card" />
-              <div className="session-skeleton__card" />
-            </div>
-          </div>
-        </div>
-      </Stack>
-    </main>
-  )
 }
 
 export function SessionDetailPage() {
@@ -576,21 +556,32 @@ export function SessionDetailPage() {
       ) {
         setToast(incoming.title)
       }
-      // LOBBY-FIX B: тост опыта игроку из ленты
+      // LOBBY-FIX B: тост опыта игроку из ленты («+N опыта»)
       if (
         !isOwnerRef.current &&
         incoming.event_type === 'xp' &&
-        incoming.title &&
         xpToastSeenRef.current !== incoming.id
       ) {
         xpToastSeenRef.current = incoming.id
-        const payload = incoming.payload as { amount?: number } | undefined
-        const amount = payload?.amount
-        setToast(
-          typeof amount === 'number' && amount > 0
-            ? `+${amount} опыта`
-            : incoming.title,
-        )
+        const payload = incoming.payload as {
+          amount?: number
+          awarded_each?: number
+          awarded_total?: number
+        } | undefined
+        const amount =
+          (typeof payload?.awarded_each === 'number' && payload.awarded_each > 0
+            ? payload.awarded_each
+            : null) ??
+          (typeof payload?.amount === 'number' && payload.amount > 0
+            ? payload.amount
+            : null) ??
+          (typeof incoming.total === 'number' && incoming.total > 0
+            ? incoming.total
+            : null) ??
+          (typeof payload?.awarded_total === 'number' && payload.awarded_total > 0
+            ? payload.awarded_total
+            : null)
+        setToast(amount != null ? `+${amount} опыта` : incoming.title || 'Опыт')
       }
     },
     onSessionUpdate: (next) => {
@@ -952,9 +943,13 @@ export function SessionDetailPage() {
         (e) => e.kind === 'pc' && e.ref_id === seat.character_id,
       )?.surprised,
     )
+    // Чипы хода только на активном герое и если есть обработчик (не декорация)
     const showChips =
       combatActive &&
-      (canControl || Boolean(seat.turn_economy) || seatSurprised)
+      yourTurnCharacterId === seat.character_id &&
+      canControl &&
+      !session.closed_at &&
+      !session.is_observer
     const asGm = Boolean(canRun && !session.is_observer)
     return (
                     <SessionTableCard
@@ -1035,7 +1030,9 @@ export function SessionDetailPage() {
                         })
                       }}
                       onAwardPiety={
-                        canRun && !session.closed_at
+                        canRun &&
+                        !session.closed_at &&
+                        (Boolean(seat.piety_god) || seat.piety_score != null)
                           ? () => setPietySeatId(seat.character_id)
                           : undefined
                       }
@@ -1088,10 +1085,8 @@ export function SessionDetailPage() {
                                   },
                                 )
                                 setSession(updated)
-                                const hint = updated.seats.find(
-                                  (s) => s.character_id === seat.character_id,
-                                )?.reaction_hint
-                                setToast(hint || (payload.heal ? 'Лечение' : 'Урон нанесён'))
+                                // Мастеру не тост «Есть ли реакция…» — статус в панели хода
+                                setToast(payload.heal ? 'Лечение' : 'Урон нанесён')
                               })
                             }
                           : undefined
@@ -1153,16 +1148,6 @@ export function SessionDetailPage() {
   return (
     <main className="page page--app page--lobby-hub">
       <Stack gap={16}>
-        <AppHeader
-          title={session.name}
-          subtitle={
-            session.setting_name
-              ? `${session.lobby_name} · ${session.setting_name}`
-              : session.lobby_name
-          }
-          onOfficialSite={openProductSite}
-          lobbyMobileShell
-        />
         <div className="lobby-hub-top session-table-chrome">
           <Button
             type="button"
@@ -1176,39 +1161,82 @@ export function SessionDetailPage() {
           <Text as="h2" className="session-table-chrome__title">
             {session.name}
           </Text>
-          {sessionCanRun(session) && !session.closed_at ? (
-            <DetailsMenu
-              className="session-table-chrome__more"
-              summary="⋯"
-              summaryClassName="session-table-chrome__more-btn"
-              panelClassName="session-toolbar-more__body"
-            >
-              <div className="session-toolbar-group" aria-label="Стол">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="lg"
-                  onClick={openAttendanceEditor}
-                  disabled={busy}
-                >
-                  Кто пришёл
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="lg"
-                  disabled={busy}
-                  title="Переименовать, закрыть или удалить стол"
-                  onClick={() => {
-                    setRenameDraft(session.name)
-                    setTableSettingsOpen(true)
-                  }}
-                >
-                  Настройки стола
-                </Button>
-              </div>
-            </DetailsMenu>
-          ) : null}
+          <DetailsMenu
+            className="session-table-chrome__more"
+            summary="⋯"
+            summaryClassName="session-table-chrome__more-btn"
+            panelClassName="session-toolbar-more__body"
+          >
+            <div className="session-toolbar-group" aria-label="Стол">
+              <Button
+                type="button"
+                variant="secondary"
+                size="lg"
+                onClick={() => navigate('/characters')}
+              >
+                Персонажи
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="lg"
+                onClick={() => navigate('/lobbies')}
+              >
+                Лобби
+              </Button>
+              {sessionCanRun(session) && !session.closed_at ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="lg"
+                    onClick={openAttendanceEditor}
+                    disabled={busy}
+                  >
+                    Кто пришёл
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="lg"
+                    disabled={busy}
+                    title="Переименовать, закрыть или удалить стол"
+                    onClick={() => {
+                      setRenameDraft(session.name)
+                      setTableSettingsOpen(true)
+                    }}
+                  >
+                    Настройки стола
+                  </Button>
+                  {!session.setting_id ? (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="lg"
+                      disabled={busy}
+                      onClick={() => {
+                        setBindSettingId(lobbySettings[0]?.id ?? '')
+                        setBindSettingOpen(true)
+                      }}
+                    >
+                      Привязать сеттинг
+                    </Button>
+                  ) : null}
+                </>
+              ) : null}
+              <Button
+                type="button"
+                variant="ghost"
+                size="lg"
+                onClick={() => navigate('/cabinet')}
+              >
+                Личный кабинет
+              </Button>
+              <Button type="button" variant="ghost" size="lg" onClick={openProductSite}>
+                Сайт КриD20
+              </Button>
+            </div>
+          </DetailsMenu>
         </div>
         {error ? <Text tone="danger">{error}</Text> : null}
         {session.closed_at ? (
@@ -1243,6 +1271,7 @@ export function SessionDetailPage() {
                     combat={session.combat}
                     seats={session.seats}
                     masterControls={canRun && !session.closed_at}
+                    showNextAction={false}
                     busy={busy}
                     onNext={() => {
                       void run(async () => {
@@ -1461,18 +1490,10 @@ export function SessionDetailPage() {
                       </Button>
                     </div>
                   ) : null}
-                  {yourTurnCharacterId ? (
-                    <div
-                      className="session-center-slot session-center-slot--turn session-your-turn-banner"
-                      role="status"
-                      data-onboarding="lobby-your-turn-banner"
-                    >
-                      Твой ход
-                    </div>
-                  ) : null}
+                  {session.setting_id ? (
                   <div className="session-center-slot session-center-slot--lore">
                     <SessionLorePanel
-                      hasSetting={Boolean(session.setting_id)}
+                      hasSetting
                       settingName={session.setting_name ?? null}
                       locationPage={session.location_page ?? null}
                       involvedPages={session.involved_pages ?? []}
@@ -1481,10 +1502,6 @@ export function SessionDetailPage() {
                       compact={canRun}
                       onOpenPage={(id) => void openLorePreview(id)}
                       onEdit={() => void openLoreBind()}
-                      onBindSetting={() => {
-                        setBindSettingId(lobbySettings[0]?.id ?? '')
-                        setBindSettingOpen(true)
-                      }}
                       onQuestStatus={(page) => {
                         setQuestTarget(page)
                         setQuestDialogOpen(true)
@@ -1509,6 +1526,7 @@ export function SessionDetailPage() {
                       }}
                     />
                   </div>
+                  ) : null}
                   {!session.closed_at && canRun ? (
                   <div
                     className="session-center-slot session-center-slot--toolbar session-table-toolbar session-table-toolbar--master"
@@ -1893,6 +1911,7 @@ export function SessionDetailPage() {
                     combat={session.combat}
                     seats={session.seats}
                     masterControls={canRun && !session.closed_at}
+                    showNextAction={false}
                     compact={!canRun}
                     busy={busy}
                     onNext={() => {
@@ -2251,7 +2270,6 @@ export function SessionDetailPage() {
                               const note = updated.combatants?.find((c) => c.id === enemy.id)
                               setToast(
                                 note?.last_damage_note ||
-                                  note?.reaction_hint ||
                                   (payload.heal ? 'Лечение' : 'Урон'),
                               )
                             })

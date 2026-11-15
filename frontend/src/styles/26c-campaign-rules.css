@@ -103,3 +103,21 @@
 .campaign-rules-later {
   font-style: italic;
 }
+
+.campaign-rules-rare {
+  display: block;
+}
+
+.campaign-rules-rare__summary {
+  min-height: 44px;
+  font-weight: 700;
+}
+
+.campaign-rules-rare__panel {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  max-width: min(40rem, 100%);
+}

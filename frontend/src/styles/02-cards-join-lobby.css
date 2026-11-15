@@ -21,6 +21,11 @@
   display: none;
 }
 
+.join-flow__level-warn {
+  border-color: color-mix(in srgb, var(--warn) 35%, var(--line));
+  background: color-mix(in srgb, var(--warn) 8%, var(--card));
+}
+
 .join-thumb-cta {
   display: contents;
 }

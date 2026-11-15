@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type {
   CombatEntry,
   SessionCombat,
@@ -6,6 +6,8 @@ import type {
 } from '../../shared/api/lobbies'
 import { Button, Text } from '../../ui'
 import { sideLabel } from './combatSides'
+
+const REACTION_WAIT_SECONDS = 10
 
 type Props = {
   combat: SessionCombat
@@ -35,6 +37,8 @@ type Props = {
    * В рельсе/полосе инициативы по умолчанию не дублируем.
    */
   showEndAction?: boolean
+  /** Не дублировать «Следующий ход» — он в тулбаре мастера. */
+  showNextAction?: boolean
 }
 
 function kindLabel(kind: string): string {
@@ -86,6 +90,7 @@ export function CombatTrack({
   onPrev,
   onEnd,
   showEndAction = false,
+  showNextAction = true,
   onSelect,
   onRollInitiative,
   onRollRemaining,
@@ -97,6 +102,7 @@ export function CombatTrack({
 }: Props) {
   const orderRef = useRef<HTMLOListElement>(null)
   const activeItemRef = useRef<HTMLLIElement>(null)
+  const [reactionLeft, setReactionLeft] = useState(REACTION_WAIT_SECONDS)
 
   const active: CombatEntry | undefined = combat.active
     ? combat.entries[combat.active_index]
@@ -109,6 +115,23 @@ export function CombatTrack({
   const pendingInitCount = combat.entries.filter(
     (e) => e.initiative_pending || e.initiative == null,
   ).length
+
+  useEffect(() => {
+    if (!combat.waiting_reaction || !masterControls) {
+      setReactionLeft(REACTION_WAIT_SECONDS)
+      return
+    }
+    setReactionLeft(REACTION_WAIT_SECONDS)
+    const started = Date.now()
+    const tick = window.setInterval(() => {
+      const left = Math.max(
+        0,
+        REACTION_WAIT_SECONDS - Math.floor((Date.now() - started) / 1000),
+      )
+      setReactionLeft(left)
+    }, 250)
+    return () => window.clearInterval(tick)
+  }, [combat.waiting_reaction, combat.reaction_character_id, masterControls])
 
   // LV-02 P08: держать текущий чип в кадре с peek следующего
   useEffect(() => {
@@ -170,7 +193,9 @@ export function CombatTrack({
         )}
         {combat.waiting_reaction && masterControls ? (
           <div className="session-combat-track__reaction-row">
-            <Text className="session-combat-track__reaction">ждём реакцию</Text>
+            <Text className="session-combat-track__reaction" role="status">
+              Ждём реакцию игрока · {reactionLeft} с
+            </Text>
             {onSkipReaction ? (
               <Button
                 type="button"
@@ -179,19 +204,23 @@ export function CombatTrack({
                 disabled={busy}
                 onClick={onSkipReaction}
               >
-                Нет реакции
+                Пропустить
               </Button>
             ) : null}
           </div>
         ) : null}
         {masterControls ? (
           <div className="session-combat-track__actions">
-            <Button type="button" variant="ghost" disabled={busy} onClick={onPrev}>
-              ←
-            </Button>
-            <Button type="button" variant="primary" disabled={busy} onClick={onNext}>
-              Следующий ход
-            </Button>
+            {showNextAction ? (
+              <>
+                <Button type="button" variant="ghost" disabled={busy} onClick={onPrev}>
+                  ←
+                </Button>
+                <Button type="button" variant="primary" disabled={busy} onClick={onNext}>
+                  Следующий ход
+                </Button>
+              </>
+            ) : null}
             {showEndAction && onEnd ? (
               <Button type="button" variant="secondary" disabled={busy} onClick={onEnd}>
                 Завершить бой

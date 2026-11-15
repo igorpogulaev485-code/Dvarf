@@ -51,6 +51,9 @@ assert.match(density, /session-lore-panel--compact/)
 // LV-01 карточка / LV-02 чипы / L-21 не откатываем (UIKIT-02: min-width 0 + auto-fill)
 const lock = read('src/styles/26-lobby-hub-lock.css')
 assert.match(lock, /\.session-table-card[\s\S]*min-width:\s*0/)
-assert.match(page, /lobbyMobileShell/)
+// LOBBY-FIX: одна строка шапки стола без AppHeader
+assert.match(page, /session-table-chrome/)
+assert.match(page, /session-table-chrome__more/)
+assert.doesNotMatch(page, /lobbyMobileShell/)
 
 console.log('lobbyVisualLv04.selfcheck: ok')
