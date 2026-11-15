@@ -1,7 +1,7 @@
 /** L-08/L-16: раздел «Правила кампании» в настройках лобби. */
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
-import { Button, Field, NumberInput, Panel, Stack, Text } from '../../ui'
+import { Button, Field, NumberInput, Panel, Stack, Text, ToggleChip } from '../../ui'
 import { mutuallyExclusiveRestFlags } from '../../shared/dnd/o04DmgAdvanced'
 import {
   BOOK_SOURCE_CATALOG,
@@ -28,8 +28,8 @@ type Props = {
   readOnly?: boolean
   onChange: (next: CampaignRules) => void
   onEventHistoryChange: (mode: EventHistoryMode) => void
-  /** Кнопка «Создать героя для этого лобби» (один пайплайн). */
-  createHeroHref?: string | null
+  /** Кнопки под правилами (напр. «Сохранить») — снаружи чипов. */
+  footer?: ReactNode
 }
 
 function RuleTip({ tip, source }: { tip: string; source: string }) {
@@ -72,18 +72,15 @@ function ToggleRow({
   onChange: (next: boolean) => void
 }) {
   return (
-    <label className="campaign-rule-row">
-      <input
-        type="checkbox"
+    <div className="campaign-rule-row">
+      <ToggleChip
+        main={label}
         checked={checked}
         disabled={disabled}
-        onChange={(e) => onChange(e.target.checked)}
+        onChange={onChange}
       />
-      <span className="campaign-rule-row__label">
-        {label}
-        <RuleTip tip={tip} source={source} />
-      </span>
-    </label>
+      <RuleTip tip={tip} source={source} />
+    </div>
   )
 }
 
@@ -281,9 +278,10 @@ export function CampaignRulesPanel({
   readOnly,
   onChange,
   onEventHistoryChange,
-  createHeroHref,
+  footer,
 }: Props) {
   const [customDraft, setCustomDraft] = useState('')
+  const [rareOpen, setRareOpen] = useState(false)
   const [races, setRaces] = useState<CatalogEntry[]>([])
   const [classes, setClasses] = useState<CatalogEntry[]>([])
   const summary = summarizeEnabledRules(rules)
@@ -372,11 +370,6 @@ export function CampaignRulesPanel({
           ) : (
             <Text tone="muted">Нет включённых особых правил.</Text>
           )}
-          {createHeroHref ? (
-            <a className="ui-button ui-button--secondary" href={createHeroHref}>
-              Создать героя для этого лобби
-            </a>
-          ) : null}
         </Stack>
       </Panel>
     )
@@ -389,8 +382,8 @@ export function CampaignRulesPanel({
           <Text as="h3">Варианты 2014</Text>
           <Stack gap={8}>
             <ToggleRow
-              label="Черты вместо ASI"
-              tip="При повышении уровня можно выбрать черту вместо увеличения характеристик. Выкл — только ASI."
+              label="Черты вместо повышения характеристик"
+              tip="При повышении уровня можно выбрать черту вместо увеличения характеристик. Выкл — только рост характеристик."
               source="PHB 2014"
               checked={rules.edition_2014.feats_instead_of_asi}
               onChange={(v) => patchEdition({ feats_instead_of_asi: v })}
@@ -453,9 +446,6 @@ export function CampaignRulesPanel({
               </button>
             ))}
           </div>
-          <Text tone="muted">
-            Окно «Награды» на сессии читает этот режим: опыт или повышение по вехам.
-          </Text>
         </div>
 
         <div>
@@ -469,61 +459,81 @@ export function CampaignRulesPanel({
           />
         </div>
 
-        <div>
-          <Text as="h3">Домашние правила</Text>
-          <Stack gap={8}>
-            {LEGACY_HOMEBREW_CATALOG.map((entry) => (
-              <div key={entry.key}>
-                <ToggleRow
-                  label={entry.label}
-                  tip={entry.tip}
-                  source={entry.source}
-                  checked={rules.homebrew[entry.key]}
-                  onChange={(v) => patchHomebrew(entry.key, v)}
-                />
-                {entry.key === 'inspiration_stack' && rules.homebrew.inspiration_stack ? (
-                  <Field label="Максимум вдохновения" hint="По умолчанию 3">
-                    <NumberInput
-                      min={1}
-                      max={20}
-                      emptyValue={3}
-                      value={rules.homebrew.inspiration_stack_max}
-                      onValueChange={(v) =>
-                        onChange({
-                          ...rules,
-                          homebrew: {
-                            ...rules.homebrew,
-                            inspiration_stack_max: Math.max(1, Math.min(20, v ?? 3)),
-                          },
-                        })
-                      }
-                    />
-                  </Field>
-                ) : null}
-              </div>
-            ))}
-          </Stack>
-        </div>
+        <div className="campaign-rules-rare">
+          <Button
+            type="button"
+            variant="secondary"
+            className="campaign-rules-rare__summary"
+            aria-expanded={rareOpen}
+            onClick={() => setRareOpen((v) => !v)}
+          >
+            {rareOpen ? 'Скрыть редкие правила' : 'Редкие правила'}
+          </Button>
+          {rareOpen ? (
+            <div className="campaign-rules-rare__panel">
+              <Stack gap={16}>
+                <div>
+                  <Text as="h3">Домашние правила</Text>
+                  <Stack gap={8}>
+                    {LEGACY_HOMEBREW_CATALOG.map((entry) => (
+                      <div key={entry.key}>
+                        <ToggleRow
+                          label={entry.label}
+                          tip={entry.tip}
+                          source={entry.source}
+                          checked={rules.homebrew[entry.key]}
+                          onChange={(v) => patchHomebrew(entry.key, v)}
+                        />
+                        {entry.key === 'inspiration_stack' && rules.homebrew.inspiration_stack ? (
+                          <Field label="Максимум вдохновения" hint="По умолчанию 3">
+                            <NumberInput
+                              min={1}
+                              max={20}
+                              emptyValue={3}
+                              value={rules.homebrew.inspiration_stack_max}
+                              onValueChange={(v) =>
+                                onChange({
+                                  ...rules,
+                                  homebrew: {
+                                    ...rules.homebrew,
+                                    inspiration_stack_max: Math.max(1, Math.min(20, v ?? 3)),
+                                  },
+                                })
+                              }
+                            />
+                          </Field>
+                        ) : null}
+                      </div>
+                    ))}
+                  </Stack>
+                </div>
 
-        <div>
-          <Text as="h3">Правила мастера (DMG / Xanathar)</Text>
-          <Text tone="muted">
-            Варианты из DMG гл. 9 и XGE. Каждый переключатель по умолчанию выкл.; подсказка «?» —
-            текст и источник.
-          </Text>
-          <Stack gap={8}>
-            {MASTER_HOMEBREW_CATALOG.map((entry) => (
-              <div key={entry.key}>
-                <ToggleRow
-                  label={entry.label}
-                  tip={entry.tip}
-                  source={entry.source}
-                  checked={rules.homebrew[entry.key]}
-                  onChange={(v) => patchHomebrew(entry.key, v)}
+                <div>
+                  <Text as="h3">Правила мастера (DMG / Xanathar)</Text>
+                  <Stack gap={8}>
+                    {MASTER_HOMEBREW_CATALOG.map((entry) => (
+                      <div key={entry.key}>
+                        <ToggleRow
+                          label={entry.label}
+                          tip={entry.tip}
+                          source={entry.source}
+                          checked={rules.homebrew[entry.key]}
+                          onChange={(v) => patchHomebrew(entry.key, v)}
+                        />
+                      </div>
+                    ))}
+                  </Stack>
+                </div>
+
+                <StartRulesEditor
+                  rules={rules}
+                  onChange={onChange}
+                  races={races}
+                  classes={classes}
                 />
-              </div>
-            ))}
-          </Stack>
+              </Stack>
+            </div>
+          ) : null}
         </div>
 
         <div>
@@ -599,28 +609,17 @@ export function CampaignRulesPanel({
                 </button>
               </div>
               <Text tone="muted">
-                По умолчанию скрыт. «Показать / Изучить» (G12) не ломается.
+                По умолчанию скрыт. Раскрытие и изучение статблока работают как раньше.
               </Text>
             </div>
             <Text tone="muted">
-              Спасброски от смерти — переключатель «Скрытые спасброски от смерти» выше (дефолт
-              вкл.).
+              Спасброски от смерти настраиваются переключателем «Скрытые спасброски от смерти» в
+              блоке домашних правил — по умолчанию включено.
             </Text>
           </Stack>
         </div>
 
-        <StartRulesEditor
-          rules={rules}
-          onChange={onChange}
-          races={races}
-          classes={classes}
-        />
-
-        {createHeroHref ? (
-          <a className="ui-button ui-button--secondary" href={createHeroHref}>
-            Создать героя для этого лобби
-          </a>
-        ) : null}
+        {footer ? <div className="inline-actions">{footer}</div> : null}
       </Stack>
     </Panel>
   )

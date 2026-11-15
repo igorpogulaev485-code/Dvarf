@@ -14,6 +14,8 @@ type AppHeaderProps = {
    * На `/characters` не включать — зона M-пачек.
    */
   lobbyMobileShell?: boolean
+  /** LOBBY-FIX: не оставлять одинокий «⋯» в пустой строке. */
+  hideMoreMenu?: boolean
 }
 
 const NAV = [
@@ -27,6 +29,7 @@ export function AppHeader({
   user,
   onOfficialSite,
   lobbyMobileShell = false,
+  hideMoreMenu = false,
 }: AppHeaderProps) {
   const nickname = user?.display_name?.trim() || user?.email || 'Профиль'
   const [moreOpen, setMoreOpen] = useState(false)
@@ -34,16 +37,37 @@ export function AppHeader({
   useEffect(() => {
     if (!moreOpen) return
     function onKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') setMoreOpen(false)
+      if (event.key !== 'Escape') return
+      setMoreOpen(false)
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [moreOpen])
 
+  const moreButton =
+    hideMoreMenu ? null : (
+      <Button
+        type="button"
+        variant="ghost"
+        size="lg"
+        className="app-header__more-btn"
+        aria-label="Ещё"
+        aria-haspopup="dialog"
+        aria-expanded={moreOpen}
+        onClick={() => setMoreOpen(true)}
+      >
+        ⋯
+      </Button>
+    )
+
   return (
     <header className={`app-header${lobbyMobileShell ? ' app-header--lobby-shell' : ''}`}>
       <div className="app-header__brand">
-        <Text as="h1">{title}</Text>
+        <div className="app-header__title-row">
+          <Text as="h1">{title}</Text>
+          {/* На shell «⋯» в одной строке с заголовком (390), не отдельным рядом. */}
+          {lobbyMobileShell ? moreButton : null}
+        </div>
         {subtitle ? <Text tone="muted">{subtitle}</Text> : null}
         <nav className="app-nav" aria-label="Разделы">
           {NAV.map((item) => (
@@ -78,50 +102,42 @@ export function AppHeader({
         >
           Сайт КриD20
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          className="app-header__more-btn"
-          aria-label="Ещё"
-          aria-haspopup="dialog"
-          aria-expanded={moreOpen}
-          onClick={() => setMoreOpen(true)}
-        >
-          ⋯
-        </Button>
+        {!lobbyMobileShell ? moreButton : null}
       </div>
 
-      <Dialog
-        open={moreOpen}
-        title="Ещё"
-        primaryLabel="Закрыть"
-        secondaryLabel="Отмена"
-        onPrimary={() => setMoreOpen(false)}
-        onSecondary={() => setMoreOpen(false)}
-        closeOnBackdrop
-      >
-        <div className="app-header__more-sheet" role="menu">
-          <button
-            type="button"
-            role="menuitem"
-            className="app-header__more-item"
-            onClick={() => {
-              setMoreOpen(false)
-              onOfficialSite()
-            }}
-          >
-            Сайт КриD20
-          </button>
-          <NavLink
-            role="menuitem"
-            className="app-header__more-item"
-            to="/cabinet"
-            onClick={() => setMoreOpen(false)}
-          >
-            Личный кабинет
-          </NavLink>
-        </div>
-      </Dialog>
+      {hideMoreMenu ? null : (
+        <Dialog
+          open={moreOpen}
+          title="Ещё"
+          primaryLabel="Закрыть"
+          secondaryLabel="Отмена"
+          onPrimary={() => setMoreOpen(false)}
+          onSecondary={() => setMoreOpen(false)}
+          closeOnBackdrop
+        >
+          <div className="app-header__more-sheet" role="menu">
+            <button
+              type="button"
+              role="menuitem"
+              className="app-header__more-item"
+              onClick={() => {
+                setMoreOpen(false)
+                onOfficialSite()
+              }}
+            >
+              Сайт КриD20
+            </button>
+            <NavLink
+              role="menuitem"
+              className="app-header__more-item"
+              to="/cabinet"
+              onClick={() => setMoreOpen(false)}
+            >
+              Личный кабинет
+            </NavLink>
+          </div>
+        </Dialog>
+      )}
     </header>
   )
 }

@@ -8,7 +8,7 @@ import {
   type LobbyDetail,
   type LobbyRole,
 } from '../../shared/api/lobbies'
-import { Button, Field, Input, Panel, Stack, Text } from '../../ui'
+import { Button, Field, Input, Panel, Select, Stack, Text } from '../../ui'
 
 type Props = {
   lobby: LobbyDetail
@@ -108,6 +108,7 @@ export function LobbyRolesPanel({
                     <Button
                       type="button"
                       variant="secondary"
+                      size="sm"
                       disabled={busy}
                       onClick={() =>
                         run(async () => {
@@ -124,6 +125,7 @@ export function LobbyRolesPanel({
                     <Button
                       type="button"
                       variant="secondary"
+                      size="sm"
                       disabled={busy}
                       onClick={() =>
                         run(async () => {
@@ -147,7 +149,7 @@ export function LobbyRolesPanel({
             Наблюдатели
           </Text>
           {observers.length === 0 ? (
-            <Text tone="muted">Пока никого. Войти можно через /join без персонажа.</Text>
+            <Text tone="muted">Пока никого. Войти можно по коду лобби без персонажа.</Text>
           ) : (
             <ul className="lobby-roles-list">
               {observers.map((r) => (
@@ -156,6 +158,7 @@ export function LobbyRolesPanel({
                   {canChange ? (
                     <Button
                       type="button"
+                      size="sm"
                       disabled={busy}
                       onClick={() =>
                         run(async () => {
@@ -172,6 +175,7 @@ export function LobbyRolesPanel({
                     <Button
                       type="button"
                       variant="secondary"
+                      size="sm"
                       disabled={busy}
                       onClick={() =>
                         run(async () => {
@@ -249,8 +253,7 @@ export function LobbyRolesPanel({
               }}
             >
               <Field label="Игрок">
-                <select
-                  className="ui-input"
+                <Select
                   value={leadUserId}
                   onChange={(e) => setLeadUserId(e.target.value)}
                 >
@@ -260,11 +263,10 @@ export function LobbyRolesPanel({
                       {p.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </Field>
               <Field label="Сессия">
-                <select
-                  className="ui-input"
+                <Select
                   value={leadSessionId}
                   onChange={(e) => setLeadSessionId(e.target.value)}
                 >
@@ -273,16 +275,16 @@ export function LobbyRolesPanel({
                       {s.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </Field>
-              <Button type="submit" disabled={busy}>
+              <Button type="submit" size="sm" disabled={busy}>
                 Повести сегодня
               </Button>
             </form>
           ) : null}
         </div>
 
-        {canTransfer ? (
+        {canTransfer && transferCandidates.length > 0 ? (
           <div className="lobby-roles-block">
             <Text as="h3" className="lobby-roles-block__title">
               Передать лобби
@@ -310,8 +312,7 @@ export function LobbyRolesPanel({
               }}
             >
               <Field label="Новый владелец">
-                <select
-                  className="ui-input"
+                <Select
                   value={transferUserId}
                   onChange={(e) => setTransferUserId(e.target.value)}
                 >
@@ -321,14 +322,13 @@ export function LobbyRolesPanel({
                       {c.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </Field>
               <Field label={`Введите название «${lobby.name}»`}>
                 <Input value={confirmName} onChange={(e) => setConfirmName(e.target.value)} />
               </Field>
               <Field label="Вы после передачи">
-                <select
-                  className="ui-input"
+                <Select
                   value={formerFate}
                   onChange={(e) =>
                     setFormerFate(e.target.value as 'become_player' | 'leave')
@@ -336,9 +336,14 @@ export function LobbyRolesPanel({
                 >
                   <option value="leave">Выйти</option>
                   <option value="become_player">Стать игроком</option>
-                </select>
+                </Select>
               </Field>
-              <Button type="submit" variant="danger" disabled={busy || !confirmName.trim()}>
+              <Button
+                type="submit"
+                variant="danger"
+                size="sm"
+                disabled={busy || !confirmName.trim()}
+              >
                 Передать лобби
               </Button>
             </form>

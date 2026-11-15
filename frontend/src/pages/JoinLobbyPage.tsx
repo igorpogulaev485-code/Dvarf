@@ -18,7 +18,8 @@ import {
   type JoinLobbyAction,
 } from '../shared/api/lobbies'
 import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
-import { Button, EmptyState, Field, Input, Panel, Stack, Text } from '../ui'
+import { Button, EmptyState, Field, Input, Panel, Select, Stack, Text } from '../ui'
+
 
 function characterMeta(c: CharacterSummary): string {
   const bits = [
@@ -29,10 +30,11 @@ function characterMeta(c: CharacterSummary): string {
       : c.level != null
         ? `ур. ${c.level}`
         : null,
-  ].filter(
-    Boolean,
-  )
-  return bits.join(' · ') || 'Без расы/класса'
+    c.hp_max != null
+      ? `Хиты ${c.hp_current ?? c.hp_max}/${c.hp_max}`
+      : null,
+  ].filter(Boolean)
+  return bits.join(' · ') || 'Персонаж'
 }
 
 export function JoinLobbyPage() {
@@ -57,6 +59,19 @@ export function JoinLobbyPage() {
     () => characters.find((c) => c.id === characterId) ?? null,
     [characters, characterId],
   )
+
+  const startLevel = useMemo(() => {
+    if (!inviteMeta) return null
+    const start = inviteMeta.start ?? inviteMeta.campaign_rules_start
+    return normalizeStartRules(start).level
+  }, [inviteMeta])
+
+  /** LOBBY-FIX E: явный предупреждающий текст до «Сесть за стол», лист не трогаем. */
+  const levelMismatch =
+    selected != null &&
+    startLevel != null &&
+    Number.isFinite(selected.level) &&
+    selected.level !== startLevel
 
   useEffect(() => {
     if (!getAccessToken()) {
@@ -211,7 +226,7 @@ export function JoinLobbyPage() {
       <Stack gap={20}>
         <AppHeader
           title="Вход в лобби"
-          subtitle="Код или QR от мастера → персонаж или наблюдатель"
+          subtitle="Код или QR от мастера: выберите персонажа или войдите наблюдателем"
           onOfficialSite={openProductSite}
           lobbyMobileShell
         />
@@ -271,7 +286,7 @@ export function JoinLobbyPage() {
                       ) : null}
                       {createHeroHref ? (
                         <Link className="ui-button ui-button--secondary" to={createHeroHref}>
-                          Создать героя для этого лобби
+                          Создать героя
                         </Link>
                       ) : null}
                     </div>
@@ -281,21 +296,22 @@ export function JoinLobbyPage() {
 
                   <div className="join-flow__select-field">
                     <Field label="Какого персонажа добавить">
-                      <select
-                        className="ui-input join-flow__select"
+                      <Select
+                        className="join-flow__select"
                         value={characterId}
                         onChange={(e) => {
                           setCharacterId(e.target.value)
                           setConflict(null)
+                          setStartMismatch(null)
                         }}
                         required
                       >
                         {characters.map((c) => (
                           <option key={c.id} value={c.id}>
-                            {c.name} · {c.class_name || 'без класса'}
+                            {c.name} · {characterMeta(c)}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </Field>
                   </div>
 
@@ -314,6 +330,7 @@ export function JoinLobbyPage() {
                             onClick={() => {
                               setCharacterId(c.id)
                               setConflict(null)
+                              setStartMismatch(null)
                             }}
                           >
                             <span className="join-char-card__avatar" aria-hidden="true">
@@ -333,6 +350,14 @@ export function JoinLobbyPage() {
                     <Text tone="muted" className="join-flow__picked">
                       К столу сядет: <strong>{selected.name}</strong>
                     </Text>
+                  ) : null}
+
+                  {levelMismatch && codeReady && !startMismatch ? (
+                    <Panel className="join-flow__level-warn">
+                      <Text tone="warn" role="status">
+                        {`У героя ${selected!.level}\u00a0уровень, а лобби стартует с\u00a0${startLevel}\u00a0уровня. Сесть можно — мастер увидит отметку.`}
+                      </Text>
+                    </Panel>
                   ) : null}
 
                   {startMismatch ? (

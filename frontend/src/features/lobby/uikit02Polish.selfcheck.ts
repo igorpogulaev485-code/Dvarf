@@ -84,7 +84,7 @@ assert.doesNotMatch(
 )
 
 const enemy = read('src/features/lobby/EnemyCard.tsx')
-assert.match(enemy, /variant="secondary"[\s\S]*?Сторона/)
+assert.match(enemy, /aria-label="Сменить сторону"/)
 assert.doesNotMatch(enemy, /session-side-btn/)
 
 const initCss = read('src/styles/29-session-enemies-rest.css')
@@ -124,7 +124,7 @@ assert.match(tokens, /\.ui-input--narrow\s*\{[\s\S]*?min-width:\s*4\.5rem/)
 const dialogCss = read('src/styles/07-features-dialogs.css')
 assert.match(
   dialogCss,
-  /\.ui-dialog-backdrop\s*\{[\s\S]*?position:\s*fixed[\s\S]*?inset:\s*0[\s\S]*?100dvh[\s\S]*?100lvh/,
+  /\.ui-dialog-backdrop\s*\{[\s\S]*?position:\s*fixed[\s\S]*?inset:\s*0[\s\S]*?100svh[\s\S]*?100dvh/,
 )
 
 /* UIKIT-02: live table fills center; cards ≥280px; no overflow clip */

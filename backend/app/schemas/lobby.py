@@ -1433,14 +1433,17 @@ class CombatPatchRequest(BaseModel):
 
 
 class CombatInitiativeRequest(BaseModel):
-    """Бросок или ручной ввод инициативы игроком (свой ПК) / ведущим."""
+    """Бросок или ручной ввод инициативы игроком (свой ПК) / ведущим.
+
+    mode=roll_remaining — ведущий бросает за всех с initiative_pending (LOBBY-FIX).
+    """
 
     character_id: UUID | None = None
     entry_id: str | None = Field(default=None, max_length=80)
     kind: str | None = Field(default=None, pattern="^(pc|companion|enemy)$")
     ref_id: str | None = Field(default=None, max_length=80)
     companion_id: str | None = Field(default=None, max_length=80)
-    mode: str = Field(default="roll", pattern="^(roll|manual)$")
+    mode: str = Field(default="roll", pattern="^(roll|manual|roll_remaining)$")
     value: int | None = Field(default=None, ge=-20, le=99)
     """Принудительно преимущество (если на листе уже есть — и так учтём)."""
     advantage: bool | None = None
@@ -1660,6 +1663,8 @@ class CombatantCreateRequest(BaseModel):
     count: int = Field(default=1, ge=1, le=20)
     actions: list[CombatantActionOut] = Field(default_factory=list)
     xp: int | None = Field(default=None, ge=0, le=10_000_000)
+    """ПО (CR) для своего НПС — опыт по таблице DMG 2014. Необязателен при посадке."""
+    cr: str | None = Field(default=None, max_length=16)
     """S-02: при активном бое — номер новой (ещё не выпущенной) волны; иначе волна 1."""
     wave_index: int | None = Field(default=None, ge=1, le=20)
     wave_condition_text: str | None = Field(default=None, max_length=240)

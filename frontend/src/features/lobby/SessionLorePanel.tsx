@@ -34,25 +34,15 @@ export function SessionLorePanel({
   settingName = null,
   onOpenPage,
   onEdit,
-  onBindSetting,
+  onBindSetting: _onBindSetting,
   onQuestStatus,
   combatPages,
   onPickCombat,
   compact = false,
 }: Props) {
-  if (!hasSetting) {
-    if (!isOwner || !onBindSetting) return null
-    return (
-      <div
-        className={`session-lore-panel session-lore-panel--bind${compact ? ' session-lore-panel--compact' : ''}`}
-        aria-label="Лор сессии"
-      >
-        <Button type="button" variant="secondary" disabled={busy} onClick={onBindSetting}>
-          Привязать сеттинг
-        </Button>
-      </div>
-    )
-  }
+  void _onBindSetting
+  // LOBBY-FIX: «Привязать сеттинг» только в «⋯» / «Ещё», не плашкой на столе
+  if (!hasSetting) return null
 
   const empty = !locationPage && involvedPages.length === 0
   if (empty && !isOwner) return null

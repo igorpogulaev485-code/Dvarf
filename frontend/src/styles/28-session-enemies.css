@@ -66,21 +66,67 @@
   flex: 0 0 auto;
 }
 
+/* «Ещё»: список кита — одна строка = один пункт, группы с подзаголовком */
+.session-toolbar-more__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: min(100vw - 24px, 17.5rem);
+  max-width: min(100vw - 16px, 22rem);
+  max-height: min(70vh, 28rem);
+  overflow: auto;
+  padding: 10px;
+}
+
 .session-toolbar-more__body .session-toolbar-group,
-.ui-menu__panel .session-toolbar-group {
+.ui-menu__panel.session-toolbar-more__body .session-toolbar-group {
   border: none;
   background: transparent;
   padding: 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 4px;
+  align-items: stretch;
 }
 
-.session-toolbar-more__desk-note {
+.session-toolbar-more__body .session-toolbar-group__caption {
   display: block;
-  margin: 0 0 8px;
-  font-size: 0.86rem;
+  width: 100%;
+  margin: 0 0 2px;
+  padding: 0 6px;
+}
+
+.session-toolbar-more__body .ui-button {
+  /* height/padding from kit size="lg" — layout only here */
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.session-toolbar-more__body .ui-button.session-toolbar-more__item {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.session-toolbar-more__item-label {
+  font-weight: 600;
+}
+
+.session-toolbar-more__item-why {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+.session-toolbar-more__body .ui-button.session-toolbar-more__item:disabled .session-toolbar-more__item-why {
+  color: color-mix(in srgb, var(--muted) 85%, var(--ink));
 }
 
 .session-toolbar-group--mvp {
@@ -438,7 +484,7 @@ button.session-concentration-tag {
   flex-direction: column;
   align-items: stretch;
   gap: 10px;
-  min-width: 0;
+  min-width: min(100%, 280px);
   height: auto;
   align-self: start;
   padding: 12px 14px;
@@ -538,9 +584,9 @@ button.session-concentration-tag {
 
 .session-enemy-card__top {
   display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
 }
 
 .session-enemy-card__meta {
@@ -551,12 +597,27 @@ button.session-concentration-tag {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 650;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .session-enemy-card__sub,
 .session-enemy-card__block-title {
   margin: 2px 0 0;
   font-size: 0.85rem;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.session-enemy-card__top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }
 
 .session-enemy-card__stats {

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import type { CombatantAction, CombatantMember, SessionCombatant } from '../../shared/api/lobbies'
-import { Button, Dialog, Field, NumberInput, Stack, Text } from '../../ui'
+import { Button, DetailsMenu, Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 import { PackRosterList, memberHpColorLabel, memberHpTone } from './enemyPackRoster'
 import { TypedDamageForm, type TypedDamagePayload } from './TypedDamageForm'
 import {
@@ -215,7 +215,7 @@ export function EnemyCard({
   const metaParts = [
     combatant.type_ru,
     isPack ? `${aliveCount}/${memberCount}` : null,
-    statblockVisible && combatant.cr ? `CR ${combatant.cr}` : null,
+    statblockVisible && combatant.cr ? `ПО ${combatant.cr}` : null,
     isMaster && combatant.source_book ? combatant.source_book : null,
     isMaster && combatant.custom ? 'свой НПС' : null,
   ].filter(Boolean)
@@ -296,30 +296,31 @@ export function EnemyCard({
           {masterControls && onSideClick ? (
             <Button
               type="button"
-              variant="secondary"
-              size="md"
+              variant="ghost"
+              size="sm"
               disabled={busy}
-              aria-label="Сторона"
-              title="Сторона в бою"
+              aria-label="Сменить сторону"
+              title="Сменить сторону в бою"
               onClick={onSideClick}
             >
-              Сторона
-              {sideLabelText ? ` · ${sideLabelText}` : ''}
+              {sideLabelText ?? 'Сторона'}
               {sideHidden ? ' · скрыта' : ''}
             </Button>
           ) : sideLabelText ? (
             <span className="session-side-chip">{sideLabelText}</span>
           ) : null}
           {masterControls && onRemove ? (
-            <button
+            <Button
               type="button"
-              className="session-enemy-card__remove"
+              variant="ghost"
+              size="sm"
               disabled={busy}
+              aria-label="Убрать со стола"
               title="Убрать со стола"
               onClick={onRemove}
             >
-              ×
-            </button>
+              Убрать
+            </Button>
           ) : null}
         </div>
       </div>
@@ -329,13 +330,13 @@ export function EnemyCard({
           {showHpNumbers && !isDead ? (
             <span className={`session-table-card__chip session-table-card__chip--hp is-${tone}`}>
               {isPack
-                ? `Цель · ${focusMember?.name ?? '—'} · HP ${focusMember?.hp_current ?? 0}/${focusMember?.hp_max ?? combatant.hp_max}`
-                : `HP ${combatant.hp_current}/${combatant.hp_max}`}
+                ? `Цель · ${focusMember?.name ?? '—'} · Хиты ${focusMember?.hp_current ?? 0}/${focusMember?.hp_max ?? combatant.hp_max}`
+                : `Хиты ${combatant.hp_current}/${combatant.hp_max}`}
             </span>
           ) : null}
           {showHpNumbers && isDead ? (
             <span className="session-table-card__chip session-table-card__chip--hp is-down">
-              HP 0/{combatant.hp_max}
+              Хиты 0/{combatant.hp_max}
             </span>
           ) : null}
           {!showHpNumbers && showHpColor ? (
@@ -517,46 +518,59 @@ export function EnemyCard({
             </Button>
           ) : null}
           {onRevealStatblock && !combatant.statblock_revealed ? (
-            <Button type="button" variant="ghost" disabled={busy} onClick={onRevealStatblock}>
-              Показать игрокам
-            </Button>
-          ) : null}
-          {canSaveToSetting && onSaveToSetting ? (
             <Button
               type="button"
               variant="ghost"
+              size="sm"
               disabled={busy}
-              title="Создать страницу НПС в сеттинге сессии"
-              onClick={onSaveToSetting}
+              onClick={onRevealStatblock}
             >
-              В сеттинг
+              Показать игрокам
             </Button>
           ) : null}
-          {onOutcome ? (
-            <>
-              <Button
-                type="button"
-                variant="ghost"
-                disabled={busy}
-                className={combatant.outcome === 'fled' ? 'is-on' : undefined}
-                onClick={() =>
-                  onOutcome(combatant.outcome === 'fled' ? '' : 'fled')
-                }
-              >
-                Сбежал
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                disabled={busy}
-                className={combatant.outcome === 'surrendered' ? 'is-on' : undefined}
-                onClick={() =>
-                  onOutcome(combatant.outcome === 'surrendered' ? '' : 'surrendered')
-                }
-              >
-                Сдался
-              </Button>
-            </>
+          {(canSaveToSetting && onSaveToSetting) || onOutcome ? (
+            <DetailsMenu
+              className="session-enemy-card__more"
+              summary="⋯"
+              summaryClassName="ui-button ui-button--ghost ui-button--sm"
+              panelClassName="session-toolbar-more__body"
+            >
+              {canSaveToSetting && onSaveToSetting ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={busy}
+                  title="Создать страницу НПС в сеттинге сессии"
+                  onClick={onSaveToSetting}
+                >
+                  В сеттинг
+                </Button>
+              ) : null}
+              {onOutcome ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={busy}
+                    className={combatant.outcome === 'fled' ? 'is-on' : undefined}
+                    onClick={() => onOutcome(combatant.outcome === 'fled' ? '' : 'fled')}
+                  >
+                    Сбежал
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={busy}
+                    className={combatant.outcome === 'surrendered' ? 'is-on' : undefined}
+                    onClick={() =>
+                      onOutcome(combatant.outcome === 'surrendered' ? '' : 'surrendered')
+                    }
+                  >
+                    Сдался
+                  </Button>
+                </>
+              ) : null}
+            </DetailsMenu>
           ) : null}
         </div>
       ) : (
@@ -646,8 +660,8 @@ export function EnemyCard({
           <Button type="button" variant="secondary" disabled={busy} onClick={rollStudyCheck}>
             Бросить
             {studySkillBonus != null
-              ? ` (d20${studySkillBonus >= 0 ? '+' : ''}${studySkillBonus})`
-              : ' (d20)'}
+              ? ` (1к20${studySkillBonus >= 0 ? '+' : ''}${studySkillBonus})`
+              : ' (1к20)'}
           </Button>
         </Stack>
       </Dialog>

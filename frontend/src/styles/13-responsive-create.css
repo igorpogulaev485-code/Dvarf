@@ -76,17 +76,22 @@
   .app-header__actions .ui-button.app-header__more-btn {
     display: inline-grid;
     place-items: center;
-    flex: 0 0 32px;
+    flex: 0 0 auto;
     align-self: center;
-    width: 32px;
-    min-width: 32px;
-    max-width: 32px;
-    height: 32px;
-    min-height: 32px;
-    max-height: 32px;
+    /* square face via width; height from kit size="lg" */
+    width: 2.75rem;
+    min-width: 2.75rem;
+    max-width: 2.75rem;
     padding: 0;
     border-radius: 8px;
-    font-size: 0.95rem;
+  }
+
+  /* LOBBY-FIX D: лобби/стол/join — ⋯ square without --control-h on kit atom */
+  .app-header--lobby-shell .app-header__actions .ui-button.app-header__more-btn {
+    flex: 0 0 auto;
+    width: 2.75rem;
+    min-width: 2.75rem;
+    max-width: 2.75rem;
   }
 
   .app-nav {

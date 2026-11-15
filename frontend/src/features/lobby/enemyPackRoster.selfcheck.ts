@@ -1,8 +1,12 @@
 /**
  * S-03: полоска/подписи G12 + состав пачки.
  */
+import * as React from 'react'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
+
+/* tsx SSR of EnemyCard JSX needs React in scope under classic transform. */
+;(globalThis as unknown as { React: typeof React }).React = React
 import type { CombatantMember, SessionCombatant } from '../../shared/api/lobbies'
 import { EnemyCard } from './EnemyCard.tsx'
 import { PackRosterList, packMemberRosterLine } from './enemyPackRoster.tsx'
@@ -90,10 +94,10 @@ const afterReveal = packMemberRosterLine(members[1], numbers, {
   revealExactHp: false,
   statblockVisible: true,
 })
-assert(afterReveal.status === 'HP 3/7' && afterReveal.showsExactHp, 'после открытия — цифры')
+assert(afterReveal.status === 'Хиты 3/7' && afterReveal.showsExactHp, 'после открытия — цифры')
 
 const masterLine = packMemberRosterLine(members[1], hiddenHp, { revealExactHp: true })
-assert(masterLine.status === 'HP 3/7', 'мастер видит цифры')
+assert(masterLine.status === 'Хиты 3/7', 'мастер видит цифры')
 
 function markup(node: ReturnType<typeof createElement>): string {
   return renderToStaticMarkup(node)
@@ -126,7 +130,7 @@ assert(playerRoster.includes('Гоблин 1') && playerRoster.includes('Без 
 assert(playerRoster.includes('Гоблин 2') && playerRoster.includes('Ранен'), 'раненый')
 assert(playerRoster.includes('Гоблин 3') && playerRoster.includes('Цел'), 'целый')
 assert(playerRoster.includes('Тяжело ранен'), 'тяжело ранен')
-assert(!playerRoster.includes('HP '), 'в цветном составе нет цифр HP')
+assert(!playerRoster.includes('Хиты ') && !playerRoster.includes('HP '), 'в цветном составе нет цифр хитов')
 assert(playerRoster.includes('is-readonly'), 'строка игрока не кнопка урона')
 
 const masterCard = markup(

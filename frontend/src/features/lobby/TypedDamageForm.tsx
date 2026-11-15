@@ -17,7 +17,7 @@ type Props = {
   onApply: (payload: TypedDamagePayload) => void
 }
 
-/** Урон / лечение с типом (S-03). Общий жест для героя и врага. */
+/** Урон / лечение с типом (S-03). LOBBY-FIX A: подсказка при пустом числе, равный вес кнопок. */
 export function TypedDamageForm({
   busy = false,
   disabledDeal = false,
@@ -80,12 +80,20 @@ export function TypedDamageForm({
           ))}
         </Select>
       </div>
+      {!hasAmount ? (
+        <Text tone="muted" className="session-typed-damage__hint">
+          Введите число
+        </Text>
+      ) : null}
       <div className="session-typed-damage__row session-typed-damage__row--actions">
         <Button
           type="submit"
-          variant="primary"
+          variant="secondary"
           size="md"
+          className={hasAmount && !disabledDeal ? 'is-ready' : undefined}
           disabled={busy || disabledDeal || !hasAmount}
+          aria-disabled={busy || disabledDeal || !hasAmount}
+          title={!hasAmount ? 'Введите число' : undefined}
         >
           Урон
         </Button>
@@ -93,7 +101,10 @@ export function TypedDamageForm({
           type="button"
           variant="secondary"
           size="md"
+          className={hasAmount && !disabledHeal ? 'is-ready' : undefined}
           disabled={busy || disabledHeal || !hasAmount}
+          aria-disabled={busy || disabledHeal || !hasAmount}
+          title={!hasAmount ? 'Введите число' : undefined}
           onClick={() => submit(true)}
         >
           Лечение
@@ -102,7 +113,7 @@ export function TypedDamageForm({
       {showTempHp ? (
         <label className="session-typed-damage__temp">
           <Text tone="muted" className="session-typed-damage__temp-label">
-            Врем. HP
+            Временные хиты
           </Text>
           <NumberInput
             size="md"
