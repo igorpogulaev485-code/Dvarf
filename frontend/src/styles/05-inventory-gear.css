@@ -241,16 +241,17 @@
 
 /* EXP-01: 390 — вес+полоска сверху, чипы второй строкой с переносом (без обрезки). */
 .play-desk--mobile .inventory-panel .inventory-summary {
-  grid-template-columns: 1fr;
   gap: 8px;
 }
 
 .play-desk--mobile .inventory-panel .inventory-summary__load {
-  grid-column: 1;
+  flex: 1 1 100%;
+  min-width: 0;
+  width: 100%;
 }
 
 .play-desk--mobile .inventory-panel .inventory-summary__chips {
-  grid-column: 1;
+  flex: 1 1 100%;
   max-width: none;
   width: 100%;
   flex-wrap: wrap;
@@ -260,6 +261,7 @@
 }
 
 .play-desk--mobile .inventory-panel .inventory-summary__weights {
+  min-width: 0;
   white-space: normal;
   overflow: visible;
   text-overflow: unset;

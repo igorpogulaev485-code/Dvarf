@@ -18,6 +18,7 @@
 | 4 | Welcome: два пропуска | Оставлены × и один «Пропустить подсказки»; нижнюю ссылку «Пропустить» убрали. |
 | 5 | Печать: active ≠ макет | Корневая причина: `:hover` перебивал `.is-active`. Active = cream+тёмный текст (и на `:hover`); inactive читаемые; `aria-pressed`; optimistic `layoutOverride`. |
 | 6 | Создание: 3 колонки в topbar | На `<960` — колонка: «← К списку», текст, подсказка. |
+| 7 | Инвентарь split 1440: ноша ~18px, слово/строка | `.inventory-panel .inventory-summary` → flex+wrap; `min-width` у load/weights; чипы уходят под сводку. 390 без регрессии. |
 
 ---
 
@@ -47,7 +48,10 @@
 | `after-c14-blank-layout2024-390.png` | `85ecf5ffc62653269e21ef39a87594fb` | blank `?layout=2024` |
 | `after-toast-over-nav-760.png` | `c433aeceac6cd9f9164a3a9fe47f1950` | тост над nav 760 |
 | `after-117-transfer-footer-760.png` | `816982431215f612d2e31ce2554b1cc6` | футер диалога 760 |
-| `after-desk-header-1440.png` | `e7cbe16da0301b0d65ec500d8d003d9f` | десктоп шапка; «Концентрация: Щит веры» |
+| `after-desk-header-1440.png` | `b492cd94ff6f34d3c07b45d09ae0571a` | split 1440; сводка ноши одной строкой + чипы под ней |
+| `after-inv-summary-split-1440.png` | `7f76ca06caa3a01144a372dd9ac177b3` | кроп сводки split 1440 |
+| `after-inv-summary-single-1440.png` | `96028c3ecfe63d756ee93bdd8496a3f1` | кроп сводки одна колонка 1440 |
+| `after-inv-summary-390.png` | `1b247b93262171db3693626620ba912c` | кроп сводки 390 |
 | `after-desk-combat-1440.png` | `e547e3d5b9004c5ef5ee0f4bfafc46dd` | десктоп бой; «Концентрация: Щит веры» |
 | `after-c14-classic-2014-1440.png` | `23919e6860b021ab719d973d2291c052` | 2014 на 1440 |
 | `after-c14-classic-2014-print-1440.png` | `337a2c44fcf7e9f94d01d3fdebe543be` | 2014 print 1440 |
