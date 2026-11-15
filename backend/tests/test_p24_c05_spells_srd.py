@@ -46,7 +46,8 @@ PLANNED_TOTAL = (
     + 58
     + 69
     + 196
-)  # +C07+C08+C09+C10+C11
+    + 86
+)  # +C07+C08+C09+C10+C11+C13
 
 SRD_RENAMES = {
     "acid-arrow",

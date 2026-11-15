@@ -20,7 +20,7 @@ SOURCES = REPO_ROOT / "docs" / "edition-2024" / "sources"
 LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 DMG24_COUNT = 196
-PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + DMG24_COUNT
+PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + DMG24_COUNT + 86  # +C13 MM24 w1
 
 SRD_ALIASES = {
     "apparatus-of-kwalish": "apparatus-of-the-crab",
@@ -329,9 +329,9 @@ def test_alembic_single_head_includes_p24_c11():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1, f"expected one alembic head, got {heads}"
-    assert heads[0] == "p24c11dmg01"
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])
     }
     assert "p24c10phb01" in ancestor_ids
     assert "p24c11dmg01" in ancestor_ids
+    assert "p24c13mmw101" in ancestor_ids

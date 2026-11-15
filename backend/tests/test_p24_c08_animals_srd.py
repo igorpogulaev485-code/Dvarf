@@ -21,7 +21,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 SRD_MONSTER_COUNT = 235
 SRD_ANIMAL_COUNT = 95
-PLANNED_TOTAL = 863 + SRD_MONSTER_COUNT + SRD_ANIMAL_COUNT + 1 + 12 + 36 + 58 + 69 + 196  # C11 DMG items
+PLANNED_TOTAL = 863 + SRD_MONSTER_COUNT + SRD_ANIMAL_COUNT + 1 + 12 + 36 + 58 + 69 + 196 + 86  # C11 DMG items + C13 MM24 w1
 
 ABILITIES = ("str", "dex", "con", "int", "wis", "cha")
 
@@ -53,7 +53,9 @@ def _animal_rows():
     return [
         r
         for r in load_wave_rows()
-        if r["kind"] == "bestiary" and r["data"].get("srd_section") == "animals"
+        if r["kind"] == "bestiary"
+        and r["data"].get("srd_section") == "animals"
+        and str(r.get("source") or "").startswith("srd")
     ]
 
 
@@ -61,7 +63,9 @@ def _monster_rows():
     return [
         r
         for r in load_wave_rows()
-        if r["kind"] == "bestiary" and r["data"].get("srd_section") == "monsters"
+        if r["kind"] == "bestiary"
+        and r["data"].get("srd_section") == "monsters"
+        and str(r.get("source") or "").startswith("srd")
     ]
 
 

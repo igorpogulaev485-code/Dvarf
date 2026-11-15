@@ -29,6 +29,8 @@ Schema contract for later packs (P24-00 lists → data packs):
   beyond SRD count is 0 after C03/C06.
 - DMG beyond SRD (C11): ``magic_items_dmg24``; ``source`` ``dmg24`` →
   ``community_ref``; named eponyms use ``data.srd_alias`` → SRD slug.
+- MM beyond SRD (C13 wave 1): ``creatures_mm24_w1``; ``source`` ``mm24`` →
+  ``community_ref``; alphabet before ``Kuo-toa Archpriest`` (C14 = rest).
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -85,6 +87,8 @@ EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("spells_ph24.json"),
     # P24-C11 — DMG 2024 magic items beyond SRD (community_ref)
     WaveSpec("magic_items_dmg24.json"),
+    # P24-C13 — MM 2024 bestiary beyond SRD, wave 1 (community_ref)
+    WaveSpec("creatures_mm24_w1.json"),
 )
 
 WEAPON_MASTERY_FILENAME = "weapon_mastery_srd.json"

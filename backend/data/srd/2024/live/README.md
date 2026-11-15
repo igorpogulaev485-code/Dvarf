@@ -29,6 +29,7 @@
 | `feats_ph24.json` | P24-C10 | 58 черт PHB сверх SRD (`kind=feat`, `source=ph24`) |
 | `spells_ph24.json` | P24-C10 | 69 заклинаний PHB сверх SRD (`kind=spell`, `source=ph24`; именные → `data.srd_alias`) |
 | `magic_items_dmg24.json` | P24-C11 | 196 магических предметов DMG сверх SRD (`kind=item`, `source=dmg24`; именные → `data.srd_alias`) |
+| `creatures_mm24_w1.json` | P24-C13 | 86 существ MM24 сверх SRD, волна 1 до Kuo-toa Archpriest (`kind=bestiary`, `source=mm24`) |
 
 ## Схема карточек (контракт)
 
@@ -42,9 +43,9 @@
 - подкласс: `parent_class` + `parent_id`, умения по уровням; `spell_list` — домен/круг/клятва/покровитель, если есть в SRD
 - заклинание: `level` 0–9, `school`, `casting_time`, `magic_action` (для unit=action), `components` (В/С/М + цена/расход), `classes`, рост заговора / усиление ячейкой; короткое `summary_ru` (без длинного текста SRD); у именных PHB — `srd_alias` на безымянную SRD-карточку
 - магический предмет (`item` / `magic_item`): `magic_item_type` (доспех/оружие/палочка/кольцо/зелье/свиток/посох/жезл/чудесный), `rarity`, настройка, заряды, бонусы атаки/КД, `spell_refs` → C05/C10, `base_item_categories` → C03; у DMG сверх SRD — `source=dmg24`, опционально `srd_alias` / `sentient` / `artifact`; короткое `summary_ru`
-- бестиарий (`bestiary`, C07 Monsters / C08 Animals): КД, хиты, скорости, ПО/опыт/БМ, инициатива, характеристики + мод + спас, `gear_refs` → C03, `spell_refs` → C05; у Animals — `beast_tags` (`wild_shape_ok`, `mount`, `has_fly`, `has_swim`); короткое `summary_ru` / `text_ru` (без длинного SRD и без статов 2014)
+- бестиарий (`bestiary`, C07 Monsters / C08 Animals / C13 MM24 w1): КД, хиты, скорости, ПО/опыт/БМ, инициатива, характеристики + мод + спас, `gear_refs` → C03, `spell_refs` → C05/C10; у Animals — `beast_tags` (`wild_shape_ok`, `mount`, `has_fly`, `has_swim`); у MM сверх SRD — `source=mm24`; короткое `summary_ru` / `text_ru` (без длинного текста книги и без статов 2014)
 - отображаемые строки (`summary_ru`, `traits_text`, `components.m`, `casting_time.condition`, …) — по-русски; словари `spell_materials_ru.json` / `spell_reaction_conditions_ru.json`
 - `source` вида `srd-5.2` → `content_layer: srd`
-- `source` вида `ph24` / `dmg24` → `content_layer: community_ref` (ярлык игроку не показываем)
+- `source` вида `ph24` / `dmg24` / `mm24` → `content_layer: community_ref` (ярлык игроку не показываем)
 
-Не сидить: Culture, Engineering, пустые заглушки классов/видов/предысторий, книжный контент сверх PHB/DMG этой очереди (Eberron/FR/Ravenloft — C15+), Изобретатель (C15). Черты и заклинания PHB сверх SRD — C10; предметы DMG сверх SRD — C11 (здесь).
+Не сидить: Culture, Engineering, пустые заглушки классов/видов/предысторий, книжный контент сверх PHB/DMG/MM этой очереди (Eberron/FR/Ravenloft — C15+), Изобретатель (C15). Черты и заклинания PHB сверх SRD — C10; предметы DMG сверх SRD — C11; MM сверх SRD волна 1 — C13 (здесь), волна 2 — C14.
