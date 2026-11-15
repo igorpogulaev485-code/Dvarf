@@ -27,6 +27,7 @@ from app.repositories.lobby import LobbyRepository
 from app.schemas.world_import import (
     WorldImportCancelOut,
     WorldImportConfirmOut,
+    WorldImportConflictResolutionIn,
     WorldImportJobOut,
 )
 from app.services.setting_creatures import validate_creature_statblock, validate_setting_item_fields
@@ -38,10 +39,13 @@ from app.services.world_import_diff import (
     CREATURE_ITEM_TYPES,
     PAGE_ITEM_TYPES,
     _page_kind_for,
+    build_diff,
 )
 from app.services.world_import_links import OFFICE_LINK_LABEL
 
 ACTIVE_PARSE_STATUSES = frozenset({"parsing"})
+KEEP_OURS = "keep_ours"
+TAKE_SOURCE = "take_source"
 
 
 def _proposal_title(item: WorldImportDraftItem) -> str:
@@ -94,9 +98,11 @@ class WorldImportConfirmService:
         return out
 
     def _snapshot_before(self, setting: Setting, items: list[WorldImportDraftItem]) -> dict[str, Any]:
-        """Лёгкий снимок затронутых ключей — основа для undo (W-API-07)."""
+        """Снимок канона «до confirm» + заготовка applied (W-API-07 undo/diff)."""
         keys = [it.source_key for it in items]
         pages = []
+        holder_offices_before: list[dict[str, Any]] = []
+        seen_holders: set[UUID] = set()
         for sk in self.db.scalars(
             select(WorldSourceKey).where(
                 WorldSourceKey.setting_id == setting.id,
@@ -115,12 +121,84 @@ class WorldImportConfirmService:
                     "artifact_id": str(sk.artifact_id) if sk.artifact_id else None,
                 }
             )
+        # Снимок offices у всех НПС сеттинга (для отката истории должностей).
+        for page in self.db.scalars(
+            select(SettingPage).where(
+                SettingPage.setting_id == setting.id,
+                SettingPage.deleted_at.is_(None),
+                SettingPage.page_kind == "npc",
+            )
+        ).all():
+            fields = page.fields if isinstance(page.fields, dict) else {}
+            if not fields.get("offices"):
+                continue
+            if page.id in seen_holders:
+                continue
+            seen_holders.add(page.id)
+            holder_offices_before.append(
+                {
+                    "page_id": str(page.id),
+                    "offices": list(fields.get("offices") or []),
+                }
+            )
         return {
             "setting_id": str(setting.id),
             "captured_at": datetime.now(UTC).isoformat(),
             "pages": pages,
             "item_ids": [str(it.id) for it in items],
+            "applied": {
+                "pages": [],
+                "creatures": [],
+                "artifacts": [],
+                "offices": [],
+                "created_link_ids": [],
+                "journal_entry_ids": [],
+                "holder_offices_before": holder_offices_before,
+            },
         }
+
+    def _resolution_map(
+        self, resolutions: list[WorldImportConflictResolutionIn] | None
+    ) -> dict[UUID, str]:
+        out: dict[UUID, str] = {}
+        for row in resolutions or []:
+            out[row.draft_item_id] = row.resolution
+        return out
+
+    def _require_conflict_resolutions(
+        self,
+        job: WorldImportJob,
+        selected: list[WorldImportDraftItem],
+        resolutions: dict[UUID, str],
+    ) -> None:
+        """Конфликты нельзя подтверждать молча — нужно keep_ours / take_source."""
+        diff = build_diff(self.db, job)
+        conflict_ids = {
+            e.draft_item_id
+            for e in diff.entries
+            if e.status == "conflict" and e.draft_item_id is not None
+        }
+        selected_ids = {it.id for it in selected}
+        pending = conflict_ids & selected_ids
+        missing = [pid for pid in pending if pid not in resolutions]
+        if missing:
+            raise AppError(
+                "Есть конфликты без решения мастера",
+                code="conflict_needs_review",
+                status_code=409,
+                data={
+                    "draft_item_ids": [str(x) for x in missing],
+                    "hint": "Укажите conflict_resolutions: keep_ours или take_source",
+                },
+            )
+        for item_id, value in resolutions.items():
+            if value not in {KEEP_OURS, TAKE_SOURCE}:
+                raise AppError(
+                    "Неизвестное решение конфликта",
+                    code="conflict_resolution_invalid",
+                    status_code=400,
+                    data={"hint": "Допустимо: keep_ours, take_source"},
+                )
 
     def _upsert_page(
         self,
@@ -167,6 +245,9 @@ class WorldImportConfirmService:
                 ]
                 page = existing[0] if existing else None
 
+        # keep_ours передаётся через атрибут на item (см. confirm).
+        keep_ours = bool(getattr(item, "_wapi_keep_ours", False))
+
         if page is None:
             sort_order = self.db.scalar(
                 select(SettingPage.sort_order)
@@ -194,11 +275,13 @@ class WorldImportConfirmService:
             page.revealed = False
             created = True
         else:
-            page.title = title
-            page.body = body
-            if tags:
-                page.tags = tags
-            page.revealed = False
+            if not keep_ours:
+                page.title = title
+                page.body = body
+                if tags:
+                    page.tags = tags
+                # Не трогаем revealed и не затираем fields.offices при обновлении тела.
+            # keep_ours: оставляем title/body мастера как есть.
 
         # Привязка source key
         if sk is None:
@@ -543,10 +626,40 @@ class WorldImportConfirmService:
                 "tenure_to": link.tenure_to,
                 "seat_source_key": link.to_source_key,
                 "seat_page_id": str(to_id),
+                "holder_source_key": link.from_source_key,
             }
+            # Новый текущий держатель → прежние current по той же должности/месту
+            # становятся former (история не затирается).
+            if link.office_holder_status == "current" and link.office_title:
+                for other in self.db.scalars(
+                    select(SettingPage).where(
+                        SettingPage.setting_id == setting.id,
+                        SettingPage.deleted_at.is_(None),
+                        SettingPage.page_kind == "npc",
+                    )
+                ).all():
+                    if other.id == from_id:
+                        continue
+                    ofields = dict(other.fields or {})
+                    olist = list(ofields.get("offices") or [])
+                    changed = False
+                    for o in olist:
+                        if not isinstance(o, dict):
+                            continue
+                        if (
+                            o.get("office_title") == link.office_title
+                            and o.get("seat_page_id") == str(to_id)
+                            and o.get("office_holder_status") == "current"
+                        ):
+                            o["office_holder_status"] = "former"
+                            changed = True
+                    if changed:
+                        ofields["offices"] = olist
+                        other.fields = ofields
+
             fields = dict(from_page.fields or {})
             offices = list(fields.get("offices") or [])
-            # Идемпотентность: тот же title+seat+order не дублируем.
+            # Идемпотентность: тот же title+seat+order не дублируем; историю не чистим.
             signature = (
                 office_meta.get("office_title"),
                 office_meta.get("seat_page_id"),
@@ -609,6 +722,7 @@ class WorldImportConfirmService:
         setting_id: UUID,
         job_id: UUID,
         item_ids: list[UUID] | None = None,
+        conflict_resolutions: list[WorldImportConflictResolutionIn] | None = None,
     ) -> WorldImportConfirmOut:
         setting = self.access.require_setting(setting_id)
         # Тумблер проверяем до полной авторизации токена — понятный confirm_ai_disabled.
@@ -661,6 +775,12 @@ class WorldImportConfirmService:
                 and it.item_type not in AI_SUGGESTION_ITEM_TYPES
             ]
 
+        resolutions = self._resolution_map(conflict_resolutions)
+        self._require_conflict_resolutions(job, selected, resolutions)
+        for item in selected:
+            if resolutions.get(item.id) == KEEP_OURS:
+                setattr(item, "_wapi_keep_ours", True)
+
         # Идемпотентность: уже accepted пункты без изменений в каноне — просто пересчитаем.
         snapshot = self._snapshot_before(setting, selected)
         source_keys = self._source_key_map(setting.id)
@@ -681,6 +801,12 @@ class WorldImportConfirmService:
         confirmed_keys: set[str] = set()
         artifacts_by_import_key: dict[str, SettingArtifact] = {}
         pending_sets: list[WorldImportDraftItem] = []
+        applied_pages: list[dict[str, Any]] = []
+        applied_creatures: list[dict[str, Any]] = []
+        applied_artifacts: list[dict[str, Any]] = []
+        applied_offices: list[dict[str, Any]] = []
+        created_link_ids: list[str] = []
+        skip_office = False
 
         for item in selected:
             if item.item_type == "pending_character" or item.item_type in AI_SUGGESTION_ITEM_TYPES:
@@ -696,17 +822,45 @@ class WorldImportConfirmService:
                 confirmed_keys.add(item.source_key)
                 continue
             if item.item_type in CREATURE_ITEM_TYPES:
+                if getattr(item, "_wapi_keep_ours", False):
+                    item.status = "accepted"
+                    confirmed_keys.add(item.source_key)
+                    continue
                 creature, created = self._upsert_creature(setting, item, source_keys)
                 (created_creatures if created else updated_creatures).append(creature.id)
+                applied_creatures.append(
+                    {
+                        "import_key": creature.import_key,
+                        "creature_id": str(creature.id),
+                        "name": creature.name,
+                        "data": creature.data or {},
+                        "created": created,
+                        "source_key": item.source_key,
+                    }
+                )
                 item.status = "accepted"
                 confirmed_keys.add(item.source_key)
                 continue
             if item.item_type in ARTIFACT_ITEM_TYPES:
+                if getattr(item, "_wapi_keep_ours", False):
+                    item.status = "accepted"
+                    confirmed_keys.add(item.source_key)
+                    continue
                 artifact, created = self._upsert_artifact(setting, item, source_keys)
                 (created_artifacts if created else updated_artifacts).append(artifact.id)
                 key = str((item.proposal or {}).get("import_key") or artifact.import_key or "")
                 if key:
                     artifacts_by_import_key[key] = artifact
+                applied_artifacts.append(
+                    {
+                        "import_key": artifact.import_key,
+                        "artifact_id": str(artifact.id),
+                        "name": artifact.name,
+                        "description": artifact.description or "",
+                        "created": created,
+                        "source_key": item.source_key,
+                    }
+                )
                 item.status = "accepted"
                 confirmed_keys.add(item.source_key)
                 continue
@@ -718,6 +872,26 @@ class WorldImportConfirmService:
                 "book_chapter",
                 "note",
             }:
+                if getattr(item, "_wapi_keep_ours", False):
+                    # «Взять наше» — канон не трогаем; офисы тоже не переписываем.
+                    skip_office = skip_office or item.item_type in {"location", "faction"}
+                    sk = source_keys.get(item.source_key)
+                    if sk and sk.page_id:
+                        page_ids_by_source[item.source_key] = sk.page_id
+                        applied_pages.append(
+                            {
+                                "source_key": item.source_key,
+                                "page_id": str(sk.page_id),
+                                "title": None,
+                                "body": None,
+                                "page_kind": None,
+                                "created": False,
+                                "keep_ours": True,
+                            }
+                        )
+                    item.status = "accepted"
+                    confirmed_keys.add(item.source_key)
+                    continue
                 page, created = self._upsert_page(
                     setting=setting,
                     item=item,
@@ -725,6 +899,16 @@ class WorldImportConfirmService:
                     page_ids_by_source=page_ids_by_source,
                 )
                 (created_pages if created else updated_pages).append(page.id)
+                applied_pages.append(
+                    {
+                        "source_key": item.source_key,
+                        "page_id": str(page.id),
+                        "title": page.title,
+                        "body": page.body,
+                        "page_kind": page.page_kind,
+                        "created": created,
+                    }
+                )
                 item.status = "accepted"
                 confirmed_keys.add(item.source_key)
                 continue
@@ -744,12 +928,50 @@ class WorldImportConfirmService:
                 item.status = "accepted"
                 confirmed_keys.add(item.source_key)
 
-        links_created = self._apply_office_links(
-            setting=setting,
-            job=job,
-            page_ids_by_source=page_ids_by_source,
-            confirmed_keys=confirmed_keys,
-        )
+        links_created = 0
+        if not skip_office:
+            links_before = {
+                lnk.id
+                for lnk in self.db.scalars(select(SettingPageLink)).all()
+                if getattr(lnk, "id", None)
+            }
+            links_created = self._apply_office_links(
+                setting=setting,
+                job=job,
+                page_ids_by_source=page_ids_by_source,
+                confirmed_keys=confirmed_keys,
+            )
+            for lnk in self.db.scalars(select(SettingPageLink)).all():
+                if getattr(lnk, "id", None) and lnk.id not in links_before:
+                    created_link_ids.append(str(lnk.id))
+            # Снимок офисов из draft links по местам.
+            for link in self.db.scalars(
+                select(WorldImportDraftLink).where(WorldImportDraftLink.job_id == job.id)
+            ).all():
+                if link.label != OFFICE_LINK_LABEL or not link.to_source_key:
+                    continue
+                applied_offices.append(
+                    {
+                        "office_title": link.office_title,
+                        "office_holder_status": link.office_holder_status,
+                        "succession_order": link.succession_order,
+                        "holder_source_key": link.from_source_key,
+                        "seat_source_key": link.to_source_key,
+                        "tenure_from": link.tenure_from,
+                        "tenure_to": link.tenure_to,
+                    }
+                )
+
+        applied = snapshot.setdefault("applied", {})
+        applied["pages"] = applied_pages
+        applied["creatures"] = applied_creatures
+        applied["artifacts"] = applied_artifacts
+        applied["offices"] = applied_offices
+        applied["created_link_ids"] = created_link_ids
+        applied["journal_entry_ids"] = [str(j) for j in journal_ids]
+        applied["created_page_ids"] = [str(x) for x in created_pages]
+        applied["created_creature_ids"] = [str(x) for x in created_creatures]
+        applied["created_artifact_ids"] = [str(x) for x in created_artifacts]
 
         actor_kind = "ai_token" if actor.is_ai else "user"
         confirmation = WorldImportConfirmation(

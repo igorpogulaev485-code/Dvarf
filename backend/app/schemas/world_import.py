@@ -206,10 +206,21 @@ class WorldImportDiffOut(BaseModel):
     counts: dict[str, int] = Field(default_factory=dict)
 
 
+WorldImportConflictResolution = Literal["keep_ours", "take_source"]
+
+
+class WorldImportConflictResolutionIn(BaseModel):
+    """Решение по конфликту: «взять наше» или «взять из источника»."""
+
+    draft_item_id: UUID
+    resolution: WorldImportConflictResolution
+
+
 class WorldImportConfirmRequest(BaseModel):
     """Список id пунктов черновика. Пусто / нет поля — все proposed/conflict."""
 
     item_ids: list[UUID] | None = None
+    conflict_resolutions: list[WorldImportConflictResolutionIn] | None = None
 
 
 class WorldImportConfirmOut(BaseModel):
@@ -230,6 +241,19 @@ class WorldImportConfirmOut(BaseModel):
 
 class WorldImportCancelOut(BaseModel):
     job: WorldImportJobOut
+
+
+class WorldImportUndoOut(BaseModel):
+    job: WorldImportJobOut
+    confirmation_id: UUID
+    undone_at: datetime
+    actor_kind: WorldImportConfirmActorKind
+    restored_page_ids: list[UUID] = Field(default_factory=list)
+    trashed_page_ids: list[UUID] = Field(default_factory=list)
+    removed_creature_ids: list[UUID] = Field(default_factory=list)
+    removed_artifact_ids: list[UUID] = Field(default_factory=list)
+    journal_entry_id: UUID | None = None
+    message: str = ""
 
 
 class WorldImportSettingsOut(BaseModel):
