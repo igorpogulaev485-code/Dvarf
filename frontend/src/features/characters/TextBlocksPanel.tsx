@@ -1027,7 +1027,7 @@ export function TextBlocksPanel({
           </div>
         ) : null}
 
-        <div className="inventory-panel__toolbar">
+        <div className="inventory-panel__toolbar inventory-panel__toolbar--bare">
           <Button
             variant="secondary"
             className="inventory-toolbar-btn"

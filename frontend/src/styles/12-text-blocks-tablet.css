@@ -29,12 +29,6 @@
   z-index: 2;
 }
 
-/* Social stage is flat (no cream plate) — don't keep inventory's white sticky halo. */
-.text-panel .inventory-panel__toolbar {
-  background: transparent;
-  border-bottom: none;
-}
-
 .text-block {
   display: grid;
   gap: 10px;

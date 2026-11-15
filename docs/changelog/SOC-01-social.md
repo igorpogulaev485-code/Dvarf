@@ -13,8 +13,8 @@
 7. Плейсхолдеры «4 фута / 160 фунтов» остаются только в режиме правки и не считаются заполненными.
 8. Служебная строка «Ресурсы без блока» в сцене «Общение» **не показывается** (данные в `play.resources` не удалялись). Ресурсы с `onHot` — на хот-панели; привязанные к блоку — в карточке блока («+ Вставка → Ресурс»); классовые пулы — во вкладке «Способности».
 9. «Свернуть все / Развернуть все» — только если раскрываемых карточек **больше одной**.
-10. На 390: длинная строка «Внешность» обрезается с многоточием внутри карточки (`text-overflow: ellipsis`).
-11. На 390: убран белый фон sticky-тулбара у «Добавить блок» (`.text-panel .inventory-panel__toolbar` → transparent).
+10. На 390: длинная строка «Внешность» обрезается с многоточием внутри карточки (`text-overflow: ellipsis`); кадр `social-block-view-390` — полная ширина экрана (рамка карточки и `…` видны).
+11. Белый sticky-фон у «Добавить блок» снят через кит-модификатор `.inventory-panel__toolbar--bare` (в `04-combobox-inventory.css`), класс только в `TextBlocksPanel`. Переопределения `.text-panel .inventory-panel__toolbar` нет. Инвентарь (Исследование) — без изменений (до/после 0 px).
 
 ## Таблица кадров
 
@@ -42,6 +42,7 @@
 - `frontend/src/features/characters/socialScene.ts`
 - `frontend/src/features/characters/socialScene.selfcheck.ts`
 - `frontend/src/styles/12-text-blocks-tablet.css`
+- `frontend/src/styles/04-combobox-inventory.css` (`.inventory-panel__toolbar--bare`)
 - `frontend/scripts/soc01-capture.mjs`
 - `backend/scripts/seed_soc01_chars.py` (только локальные кадры)
 
