@@ -29,6 +29,12 @@ from app.models.user import (
     User,
     UserIdentity,
 )
+from app.models.world_api_token import WorldApiToken
+from app.models.world_import import (
+    WorldImportDraftItem,
+    WorldImportJob,
+    WorldSourceKey,
+)
 
 __all__ = [
     "AuthProvider",
@@ -67,4 +73,8 @@ __all__ = [
     "UserIdentity",
     "WhisperMessage",
     "WhisperThread",
+    "WorldApiToken",
+    "WorldImportDraftItem",
+    "WorldImportJob",
+    "WorldSourceKey",
 ]
