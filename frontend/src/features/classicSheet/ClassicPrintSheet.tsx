@@ -203,13 +203,37 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
   useEffect(() => {
     let cancelled = false
     const edition = sheetLayout === '2024' ? '2024' : '2014'
-    void listCatalogEntries({ kind: 'spell', edition })
-      .then((entries) => {
-        if (!cancelled) setSpellCatalog(buildSpellCatalogIndex(entries))
-      })
-      .catch(() => {
-        if (!cancelled) setSpellCatalog(null)
-      })
+    void (async () => {
+      let apiEntries: Awaited<ReturnType<typeof listCatalogEntries>> = []
+      try {
+        apiEntries = await listCatalogEntries({ kind: 'spell', edition })
+      } catch {
+        apiEntries = []
+      }
+      // 2014 API catalog is a thin seed; merge bundled full list so print cards
+      // pick up handbook RU descriptions (PRINT-14 pass 14).
+      let bundled: Awaited<ReturnType<typeof listCatalogEntries>> = []
+      if (edition === '2014') {
+        try {
+          const response = await fetch('/spells-2014.json')
+          const contentType = response.headers.get('content-type') || ''
+          if (response.ok && !contentType.includes('text/html')) {
+            const data = (await response.json()) as unknown
+            if (Array.isArray(data)) bundled = data as typeof apiEntries
+          }
+        } catch {
+          bundled = []
+        }
+      }
+      if (cancelled) return
+      const byKey = new Map<string, (typeof apiEntries)[number]>()
+      for (const entry of [...bundled, ...apiEntries]) {
+        const key = entry.id || entry.slug
+        if (!key) continue
+        byKey.set(key, entry)
+      }
+      setSpellCatalog(buildSpellCatalogIndex([...byKey.values()]))
+    })()
     return () => {
       cancelled = true
     }

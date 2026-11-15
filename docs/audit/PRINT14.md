@@ -218,6 +218,15 @@
 
 ---
 
+## Прогон 14 → final5 (RU описания в справочнике)
+
+Галерея: `/opt/cursor/artifacts/print14/final5/` · `REPORT.md` · `md5s.json`.  
+Скрипт: `frontend/scripts/print14-final5-capture.mjs`.
+
+21 EN-only заклинания 2014 переведены в `spell_ru_descriptions_pass14.json` + зеркала catalog/enriched/public; Alembic `p14spelru9a1b2` идемпотентно заполняет пустые/EN поля. Чудотворство на карточках на русском.
+
+---
+
 ## Проверки
 
 - `frontend`: `npm run build` — ok
