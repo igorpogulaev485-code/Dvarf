@@ -1,10 +1,10 @@
-"""W-API-01/02: задания импорта мира и разбор хранилища в черновик сверки."""
+"""W-API-01/02/03: задания импорта, разбор хранилища, ключи/алиасы/связи."""
 
 from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppError, NotFoundError
@@ -14,18 +14,22 @@ from app.models.world_import import (
     SUPPORTED_RULES_EDITION,
     WORLD_IMPORT_SOURCE_KINDS,
     WorldImportDraftItem,
+    WorldImportDraftLink,
     WorldImportJob,
+    WorldSourceAlias,
     WorldSourceKey,
 )
 from app.repositories.lobby import LobbyRepository
 from app.schemas.world_import import (
     WorldImportCreateRequest,
     WorldImportDraftItemOut,
+    WorldImportDraftLinkOut,
     WorldImportJobOut,
     WorldVaultParseRequest,
     WorldVaultParseResultOut,
 )
 from app.services import lobby_roles as roles
+from app.services.world_import_links import build_alias_and_link_graph
 from app.services.world_vault_parse import (
     VaultFile,
     extract_zip_to_files,
@@ -167,10 +171,28 @@ class WorldImportService:
         )
         return [WorldImportDraftItemOut.model_validate(r) for r in rows]
 
+    def list_draft_links(
+        self, user: User, setting_id: UUID, job_id: UUID
+    ) -> list[WorldImportDraftLinkOut]:
+        setting = self._require_setting(setting_id)
+        self._require_master_for_setting(user, setting)
+        job = self._require_job(setting, job_id)
+        rows = list(
+            self.db.scalars(
+                select(WorldImportDraftLink)
+                .where(WorldImportDraftLink.job_id == job.id)
+                .order_by(WorldImportDraftLink.created_at.asc())
+            ).all()
+        )
+        return [WorldImportDraftLinkOut.model_validate(r) for r in rows]
+
     def _upsert_source_key(
         self, setting_id: UUID, *, source_path: str, source_slug: str | None
-    ) -> None:
-        """Регистрирует/обновляет ключ источника. В page_id и т.п. не пишет."""
+    ) -> WorldSourceKey:
+        """Регистрирует/обновляет ключ. Ярлык стабилен: переезд файла при том же slug — update.
+
+        В page_id / artifact_id / character_id не пишет (confirm — W-API-05).
+        """
         existing = self.db.scalar(
             select(WorldSourceKey)
             .where(
@@ -192,28 +214,116 @@ class WorldImportService:
                 )
                 if conflict is None:
                     existing.source_slug = source_slug
-            return
+            return existing
 
-        slug_to_set = source_slug
-        if slug_to_set:
-            slug_hit = self.db.scalar(
+        # Переезд файла: тот же ярлык, другой путь → обновляем путь, не плодим ключ.
+        if source_slug:
+            by_slug = self.db.scalar(
                 select(WorldSourceKey)
                 .where(
                     WorldSourceKey.setting_id == setting_id,
-                    WorldSourceKey.source_slug == slug_to_set,
+                    WorldSourceKey.source_slug == source_slug,
                 )
                 .limit(1)
             )
-            if slug_hit is not None:
-                slug_to_set = None
+            if by_slug is not None:
+                path_taken = self.db.scalar(
+                    select(WorldSourceKey)
+                    .where(
+                        WorldSourceKey.setting_id == setting_id,
+                        WorldSourceKey.source_path == source_path,
+                        WorldSourceKey.id != by_slug.id,
+                    )
+                    .limit(1)
+                )
+                if path_taken is None:
+                    by_slug.source_path = source_path
+                return by_slug
 
-        self.db.add(
-            WorldSourceKey(
-                setting_id=setting_id,
-                source_path=source_path,
-                source_slug=slug_to_set,
-            )
+        row = WorldSourceKey(
+            setting_id=setting_id,
+            source_path=source_path,
+            source_slug=source_slug,
         )
+        self.db.add(row)
+        self.db.flush()
+        return row
+
+    def _upsert_aliases(
+        self,
+        setting_id: UUID,
+        source_key_row: WorldSourceKey,
+        alias_pairs: list[tuple[str, str]],
+    ) -> list[str]:
+        """Пишет алиасы; первый занявший alias_norm в сеттинге побеждает."""
+        stored: list[str] = []
+        for display, norm in alias_pairs:
+            if not norm:
+                continue
+            existing = self.db.scalar(
+                select(WorldSourceAlias)
+                .where(
+                    WorldSourceAlias.setting_id == setting_id,
+                    WorldSourceAlias.alias_norm == norm,
+                )
+                .limit(1)
+            )
+            if existing is not None:
+                if existing.source_key_id == source_key_row.id:
+                    stored.append(existing.alias)
+                continue
+            self.db.add(
+                WorldSourceAlias(
+                    setting_id=setting_id,
+                    source_key_id=source_key_row.id,
+                    alias=display[:200],
+                    alias_norm=norm[:200],
+                )
+            )
+            stored.append(display[:200])
+        return stored
+
+    def _replace_draft_links(
+        self, job: WorldImportJob, proposals: list
+    ) -> list[WorldImportDraftLink]:
+        """Повторный разбор обновляет рёбра черновика, не трогая канон вики."""
+        self.db.execute(
+            delete(WorldImportDraftLink).where(WorldImportDraftLink.job_id == job.id)
+        )
+        rows: list[WorldImportDraftLink] = []
+        seen: set[tuple] = set()
+        for prop in proposals:
+            edge = (
+                prop.from_source_key,
+                prop.to_source_key,
+                prop.kind,
+                prop.label or "",
+                prop.confidence,
+                getattr(prop, "office_title", None),
+                getattr(prop, "succession_order", None),
+            )
+            if edge in seen:
+                continue
+            seen.add(edge)
+            row = WorldImportDraftLink(
+                job_id=job.id,
+                from_source_key=prop.from_source_key,
+                to_source_key=prop.to_source_key,
+                to_alias=(prop.to_alias[:200] if prop.to_alias else None),
+                kind=prop.kind,
+                label=(prop.label or "")[:120],
+                confidence=prop.confidence,
+                status="proposed",
+                office_title=getattr(prop, "office_title", None),
+                office_holder_status=getattr(prop, "office_holder_status", None),
+                succession_order=getattr(prop, "succession_order", None),
+                tenure_from=getattr(prop, "tenure_from", None),
+                tenure_to=getattr(prop, "tenure_to", None),
+                hint=getattr(prop, "hint", None),
+            )
+            self.db.add(row)
+            rows.append(row)
+        return rows
 
     def _apply_parsed_items(
         self,
@@ -232,7 +342,13 @@ class WorldImportService:
         updated = 0
         out_rows: list[WorldImportDraftItem] = []
 
+        alias_by_key, link_proposals = build_alias_and_link_graph(parsed_items)
+
         for parsed in parsed_items:
+            aliases = [display for display, _norm in alias_by_key[parsed.source_key].norms]
+            proposal = dict(parsed.proposal)
+            proposal["aliases"] = aliases
+
             row = by_key.get(parsed.source_key)
             if row is None:
                 row = WorldImportDraftItem(
@@ -240,30 +356,39 @@ class WorldImportService:
                     item_type=parsed.item_type,
                     source_key=parsed.source_key,
                     status="proposed",
-                    proposal=parsed.proposal,
+                    proposal=proposal,
                 )
                 self.db.add(row)
                 by_key[parsed.source_key] = row
                 created += 1
             else:
                 row.item_type = parsed.item_type
-                row.proposal = parsed.proposal
+                row.proposal = proposal
                 # Повторный разбор обновляет черновик, не трогая уже принятые/отклонённые
                 # статусы сверки, если мастер уже что-то отметил — кроме «proposed».
                 if row.status in {"proposed", "conflict", "deferred"}:
                     row.status = "proposed"
                 updated += 1
             out_rows.append(row)
-            self._upsert_source_key(
+            source_key_row = self._upsert_source_key(
                 job.setting_id,
                 source_path=parsed.source_path,
                 source_slug=parsed.source_slug,
             )
+            self._upsert_aliases(
+                job.setting_id,
+                source_key_row,
+                alias_by_key[parsed.source_key].norms,
+            )
+
+        link_rows = self._replace_draft_links(job, link_proposals)
 
         job.status = "ready_for_review"
         self.db.commit()
         for row in out_rows:
             self.db.refresh(row)
+        for link in link_rows:
+            self.db.refresh(link)
         self.db.refresh(job)
 
         return WorldVaultParseResultOut(
@@ -272,6 +397,8 @@ class WorldImportService:
             skipped=skipped,
             created_count=created,
             updated_count=updated,
+            links=[WorldImportDraftLinkOut.model_validate(r) for r in link_rows],
+            links_count=len(link_rows),
         )
 
     def ingest_vault_files(

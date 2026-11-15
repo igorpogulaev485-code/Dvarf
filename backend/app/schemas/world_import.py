@@ -1,4 +1,4 @@
-"""W-API-01: схемы токенов импорта и заданий заливки."""
+"""W-API-01/03: схемы токенов импорта, заданий и предложенных связей."""
 
 from __future__ import annotations
 
@@ -100,9 +100,32 @@ class WorldImportDraftItemOut(BaseModel):
     updated_at: datetime
 
 
+class WorldImportDraftLinkOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    job_id: UUID
+    from_source_key: str
+    to_source_key: str | None = None
+    to_alias: str | None = None
+    kind: str
+    label: str
+    confidence: str
+    status: str
+    office_title: str | None = None
+    office_holder_status: str | None = None
+    succession_order: int | None = None
+    tenure_from: str | None = None
+    tenure_to: str | None = None
+    hint: str | None = None
+    created_at: datetime
+
+
 class WorldVaultParseResultOut(BaseModel):
     job: WorldImportJobOut
     items: list[WorldImportDraftItemOut]
     skipped: list[dict[str, str]] = Field(default_factory=list)
     created_count: int = 0
     updated_count: int = 0
+    links: list[WorldImportDraftLinkOut] = Field(default_factory=list)
+    links_count: int = 0

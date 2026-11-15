@@ -1,4 +1,4 @@
-"""W-API-01: задание импорта мира, черновик сверки, ключи источника."""
+"""W-API-01/03: задание импорта мира, черновик сверки, ключи, алиасы, связи."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Literal
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint, func
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -199,5 +199,110 @@ class WorldSourceKey(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
+        nullable=False,
+    )
+
+    aliases: Mapped[list["WorldSourceAlias"]] = relationship(
+        "WorldSourceAlias",
+        back_populates="source_key",
+        cascade="all, delete-orphan",
+    )
+
+
+class WorldSourceAlias(Base):
+    """Алиас имени → ключ источника внутри сеттинга (регистр/пробелы не плодят дубль)."""
+
+    __tablename__ = "world_source_aliases"
+    __table_args__ = (
+        UniqueConstraint(
+            "setting_id",
+            "alias_norm",
+            name="uq_world_source_aliases_setting_norm",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    setting_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("settings.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    source_key_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("world_source_keys.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    alias: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    alias_norm: Mapped[str] = mapped_column(String(200), nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    source_key: Mapped[WorldSourceKey] = relationship(
+        "WorldSourceKey", back_populates="aliases"
+    )
+
+
+class WorldImportDraftLink(Base):
+    """Предложенное ребро черновика (канон SettingPageLink — только на confirm).
+
+    Должность («занимает должность») хранится здесь: у SettingPageLink нет
+    полей office_title / преемства / tenure.
+    """
+
+    __tablename__ = "world_import_draft_links"
+    __table_args__ = (
+        UniqueConstraint(
+            "job_id",
+            "from_source_key",
+            "to_source_key",
+            "kind",
+            "label",
+            "confidence",
+            "office_title",
+            "succession_order",
+            name="uq_world_import_draft_links_edge",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    job_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("world_import_jobs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    from_source_key: Mapped[str] = mapped_column(String(512), nullable=False, default="")
+    to_source_key: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    to_alias: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # Как у SettingPageLink: semantic | mention
+    kind: Mapped[str] = mapped_column(String(16), nullable=False, default="mention")
+    # Подпись из LINK_PRESETS («живёт в», «член») или «занимает должность»
+    label: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    # explicit = md/[[]]/@ / явная должность; suggested = кандидат
+    confidence: Mapped[str] = mapped_column(String(16), nullable=False, default="explicit")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="proposed")
+    # Поля должности (пусто для обычных рёбер)
+    office_title: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    office_holder_status: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    succession_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tenure_from: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    tenure_to: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    hint: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
         nullable=False,
     )
