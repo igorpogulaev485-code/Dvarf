@@ -1547,8 +1547,8 @@
 .classic-attacks-head,
 .classic-weapon {
   display: grid;
-  grid-template-columns: 1.4fr 0.7fr 1.2fr;
-  gap: 0.12rem;
+  grid-template-columns: 1.3fr 0.55fr 1.45fr;
+  gap: 0.08rem;
   align-items: stretch;
 }
 
@@ -1600,6 +1600,36 @@
 
 .classic-weapon__cell--dmg {
   place-items: center start;
+}
+
+.classic-weapon__cell--dmg .classic-static {
+  white-space: nowrap;
+  line-height: 1.15;
+  text-align: left;
+  overflow: visible;
+  text-overflow: clip;
+  /* Fixed print size — autofit on screen lied about A4 column width. */
+  font-size: 6.5pt !important;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0;
+  padding: 0;
+}
+
+.classic-weapon:not(.classic-weapon--slot) .classic-weapon__cell--dmg {
+  min-height: 1.35rem;
+  align-items: start;
+  padding: 0.06rem 0.1rem;
+  overflow: visible;
+}
+
+.classic-weapon__cell--name .classic-static--wrap {
+  white-space: pre-line;
+  overflow: visible;
+  font-size: 7.5pt !important;
+  height: auto !important;
+  max-height: none !important;
+  line-height: 1.15;
 }
 
 .classic-weapon--slot .classic-weapon__cell {
@@ -2315,17 +2345,17 @@
 
 .classic-spell-cards-header {
   display: grid;
-  grid-template-columns: 0.72in 1fr;
+  grid-template-columns: 0.72in minmax(0, 1.2fr) minmax(0, 1fr);
   gap: 0.12in;
   margin-bottom: 0.12in;
   flex: 0 0 auto;
+  align-items: stretch;
 }
 
 .classic-spell-cards-grid {
   flex: 1 1 auto;
   display: grid;
   grid-template-columns: repeat(3, 2.5in);
-  grid-template-rows: repeat(3, 3.5in);
   gap: 0.14in;
   justify-content: center;
   align-content: start;
@@ -2335,21 +2365,21 @@
 .classic-spell-card {
   box-sizing: border-box;
   width: 2.5in;
-  height: 3.5in;
-  border: 1.5px dashed #7a7468;
+  min-height: 0;
+  height: auto;
+  border: var(--c-frame);
   border-radius: 0.18rem;
-  background: #fff;
+  background: var(--c-paper);
   padding: 0.22rem 0.24rem 0.2rem;
   display: flex;
   flex-direction: column;
   gap: 0.18rem;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
 }
 
 .classic-spell-card--empty {
-  background: transparent;
-  border-color: #d2cbc0;
+  display: none;
 }
 
 .classic-spell-card--cont .classic-spell-card__title {
@@ -2435,16 +2465,16 @@
 }
 
 @media print {
-  .classic-spell-cards-header {
-    display: none !important;
-  }
-
   .classic-spell-cards-grid {
     gap: 0.08in;
   }
 
   .classic-spell-card {
-    border-style: dotted;
+    border: var(--c-frame) !important;
+    border-style: solid !important;
+    background: var(--c-paper) !important;
+    height: auto !important;
+    overflow: visible !important;
   }
 }
 
@@ -3381,6 +3411,18 @@
   font: inherit;
 }
 
+.classic-lss-spell-table__rows .classic-static,
+.classic-lss-spell-table__rows li {
+  font-family: var(--classic-ink-font);
+}
+
+.classic-lss-spell-table__rows .classic-static {
+  border-bottom: none;
+  min-height: 0;
+  padding: 0;
+  font-size: inherit;
+}
+
 .classic-lss-spell-lvl {
   text-align: center;
   font-weight: 700;
@@ -3412,6 +3454,18 @@
   text-transform: none;
 }
 
+.classic-lss-alignment .classic-static {
+  border: none;
+  border-bottom: var(--c-hair);
+  border-radius: 0;
+  padding: 0.1rem 0.05rem;
+  font-size: 0.78rem;
+  color: var(--c-ink);
+  text-transform: none;
+  letter-spacing: 0;
+  min-height: 1.1rem;
+}
+
 .classic-lss-attune {
   display: flex;
   align-items: center;
@@ -3431,13 +3485,21 @@
   border-radius: 0.28rem;
 }
 
+.classic-lss .classic-coins {
+  flex: 0 0 auto;
+  grid-column: auto;
+  grid-row: auto;
+  margin: 0 0 0.06in;
+  width: 100%;
+}
+
 .classic-lss-coins--inline {
   flex: 0 0 auto;
   grid-template-columns: repeat(5, minmax(0.72in, 1fr));
   gap: 0.04in;
   padding: 0.04in 0.05in;
   margin: 0 0 0.06in;
-  background: #fff;
+  background: var(--c-paper);
 }
 
 .classic-lss-coins label {
@@ -3531,6 +3593,15 @@
     print-color-adjust: exact;
   }
 
+  .classic-print-page[data-classic-color='color'] .classic-col--stats,
+  .classic-print-page[data-classic-color='color'] .classic-col--combat,
+  .classic-print-page[data-classic-color='color'] .classic-col--persona,
+  .classic-print-page[data-classic-color='color'] .classic-page3 .classic-spell-columns,
+  .classic-print-page[data-classic-color='color'] .classic-weapon--slot,
+  .classic-print-page[data-classic-color='color'] .classic-spell-level__badge {
+    background: var(--c-paper-tint) !important;
+  }
+
   .classic-panel,
   .classic-field,
   .classic-name,
@@ -3544,8 +3615,24 @@
   .classic-meta--plate,
   .classic-ability__score,
   .classic-plate-box {
-    background: #fff !important;
+    background: var(--c-paper, #fff) !important;
     border-color: #000 !important;
+  }
+
+  .classic-print-page[data-classic-color='bw'] .classic-panel,
+  .classic-print-page[data-classic-color='bw'] .classic-field,
+  .classic-print-page[data-classic-color='bw'] .classic-name,
+  .classic-print-page[data-classic-color='bw'] .classic-brand,
+  .classic-print-page[data-classic-color='bw'] .classic-insp,
+  .classic-print-page[data-classic-color='bw'] .classic-prof,
+  .classic-print-page[data-classic-color='bw'] .classic-passive,
+  .classic-print-page[data-classic-color='bw'] .classic-combat-stat:not(.classic-combat-stat--ac),
+  .classic-print-page[data-classic-color='bw'] .classic-spell-level,
+  .classic-print-page[data-classic-color='bw'] .classic-coin,
+  .classic-print-page[data-classic-color='bw'] .classic-meta--plate,
+  .classic-print-page[data-classic-color='bw'] .classic-ability__score,
+  .classic-print-page[data-classic-color='bw'] .classic-plate-box {
+    background: #fff !important;
   }
 
   /* Ability/AC frames: white only inside SVG paths — never a plate over grey. */
@@ -3698,7 +3785,57 @@
   .classic-bubble-btn {
     print-color-adjust: exact;
   }
+
+  /* 2024 LSS: print values as ink, not form controls. */
+  .classic-lss input,
+  .classic-lss select,
+  .classic-lss textarea {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    color: var(--c-ink) !important;
+    font-family: var(--classic-ink-font) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .classic-lss select {
+    background-image: none !important;
+  }
 }
+
+/* Color mode: cream paper / tinted plates; B&W stays pure white/grey. */
+.classic-print-page[data-classic-color='color'] .classic-sheet {
+  background: var(--c-paper);
+}
+
+.classic-print-page[data-classic-color='color'] .classic-brand,
+.classic-print-page[data-classic-color='color'] .classic-panel,
+.classic-print-page[data-classic-color='color'] .classic-field,
+.classic-print-page[data-classic-color='color'] .classic-name,
+.classic-print-page[data-classic-color='color'] .classic-coin,
+.classic-print-page[data-classic-color='color'] .classic-meta--plate,
+.classic-print-page[data-classic-color='color'] .classic-ability__score,
+.classic-print-page[data-classic-color='color'] .classic-plate-box,
+.classic-print-page[data-classic-color='color'] .classic-insp,
+.classic-print-page[data-classic-color='color'] .classic-prof,
+.classic-print-page[data-classic-color='color'] .classic-passive,
+.classic-print-page[data-classic-color='color'] .classic-spell-level {
+  background: var(--c-paper) !important;
+}
+
+.classic-print-page[data-classic-color='color'] .classic-col--stats,
+.classic-print-page[data-classic-color='color'] .classic-col--combat,
+.classic-print-page[data-classic-color='color'] .classic-col--persona,
+.classic-print-page[data-classic-color='color'] .classic-page3 .classic-spell-columns,
+.classic-print-page[data-classic-color='color'] .classic-weapon--slot,
+.classic-print-page[data-classic-color='color'] .classic-spell-level__badge {
+  background: var(--c-paper-tint) !important;
+}
+
 
 @page {
   size: A4;

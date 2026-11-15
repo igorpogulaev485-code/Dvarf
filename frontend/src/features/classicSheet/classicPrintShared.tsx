@@ -132,7 +132,7 @@ export function asRecordNotes(character: CharacterDetail): string {
 }
 
 export function brandYearLabel(layout: '2014' | '2024'): string {
-  return `5e · ${layout}`
+  return `5E · ${layout}`
 }
 
 const CREED20_LETTERS = ['К', 'р', 'и', 'D', '2', '0'] as const

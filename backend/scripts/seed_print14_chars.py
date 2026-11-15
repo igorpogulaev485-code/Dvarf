@@ -26,6 +26,65 @@ DARRACK_ID = uuid.UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1")
 TORBIN_ID = uuid.UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2")
 SORC_ID = uuid.UUID("cccccccc-cccc-4ccc-8ccc-cccccccccc02")
 
+from pathlib import Path as _Path
+
+_SPELL_SLUG_BY_NAME = {
+    "Священное пламя": "sacred_flame",
+    "Указание": "guidance",
+    "Чудотворство": "thaumaturgy",
+    "Лечение ран": "cure_wounds",
+    "Благословение": "bless",
+    "Громовая волна": "thunderwave",
+    "Подмога": "aid",
+    "Дребезги": "shatter",
+    "Огненный снаряд": "fire_bolt",
+    "Волшебная рука": "mage_hand",
+    "Волшебная стрела": "magic_missile",
+    "Щит": "shield",
+    "Злая насмешка": "vicious_mockery",
+    "Слово исцеления": "healing_word",
+}
+
+
+def _catalog_spells_2014() -> dict[str, dict]:
+    path = _Path(__file__).resolve().parents[1] / "data" / "srd" / "2014" / "catalog.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    out: dict[str, dict] = {}
+    for entry in data:
+        if entry.get("kind") == "spell":
+            out[str(entry.get("slug"))] = entry.get("data") or {}
+    return out
+
+
+_SPELL_CATALOG = _catalog_spells_2014()
+
+
+def _with_catalog(spell: dict) -> dict:
+    """Fill damage/description from SRD catalog when the seed left placeholders."""
+    slug = _SPELL_SLUG_BY_NAME.get(str(spell.get("name") or ""))
+    data = _SPELL_CATALOG.get(slug or "", {})
+    if not data:
+        return spell
+    row = dict(spell)
+    damage = data.get("damage")
+    if damage and (not row.get("damage") or row.get("damage") in ("—", "-", "–")):
+        row["damage"] = str(damage).replace("d", "к")
+    if data.get("description") and not row.get("description"):
+        row["description"] = data["description"]
+    if data.get("higher_levels") and not row.get("higher_levels"):
+        row["higher_levels"] = data["higher_levels"]
+    atk = data.get("attack_or_save")
+    if atk and (not row.get("attack_or_save") or row.get("attack_or_save") in ("—", "-", "–")):
+        row["attack_or_save"] = atk
+    duration = data.get("duration")
+    if duration and not row.get("duration"):
+        row["duration"] = duration
+    return row
+
+
+def _known(*spells: dict) -> list[dict]:
+    return [_with_catalog(spell) for spell in spells]
+
 
 def _skill(proficient: bool = False, expertise: bool = False) -> dict:
     return {"is_proficient": proficient or expertise, "is_expertise": expertise}
@@ -163,7 +222,7 @@ def darrack_sheet() -> dict:
             "casting_ability": "wis",
             "max_prepared": 6,
             "slots": {"1": {"max": 4, "used": 1}, "2": {"max": 2, "used": 0}},
-            "known": [
+            "known": _known(
                 _spell("cl:sacred", "Священное пламя", 0, class_slug="cleric", damage="1к8", attack_or_save="спас Ловкости"),
                 _spell("cl:guidance", "Указание", 0, class_slug="cleric", concentration=True),
                 _spell("cl:thaum", "Чудотворство", 0, class_slug="cleric"),
@@ -172,7 +231,7 @@ def darrack_sheet() -> dict:
                 _spell("cl:thunder", "Громовая волна", 1, class_slug="cleric"),
                 _spell("cl:aid", "Подмога", 2, class_slug="cleric"),
                 _spell("cl:shatter", "Дребезги", 2, class_slug="cleric"),
-            ],
+            ),
         },
         "resources": [],
         "companions": [],
@@ -319,14 +378,14 @@ def torbin_sheet() -> dict:
             "casting_ability": "int",
             "max_prepared": 5,
             "slots": {"1": {"max": 3, "used": 0}},
-            "known": [
+            "known": _known(
                 _spell("tw:fire", "Огненный снаряд", 0, class_slug="wizard", damage="1к10", attack_or_save="атака"),
                 _spell("tw:magehand", "Волшебная рука", 0, class_slug="wizard"),
                 _spell("tw:mm", "Волшебная стрела", 1, class_slug="wizard"),
                 _spell("tw:shield", "Щит", 1, class_slug="wizard", casting_time="1 реакция"),
                 _spell("tb:vicious", "Злая насмешка", 0, class_slug="bard"),
                 _spell("tb:heal", "Слово исцеления", 1, class_slug="bard"),
-            ],
+            ),
         },
         "resources": [
             {

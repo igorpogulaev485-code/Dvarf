@@ -63,7 +63,8 @@ export function ClassicStaticField({
       el.style.fontSize = `${size}px`
       // Long values: lock a 2-line box so autofit prefers wrap over tiny single-line type.
       if (wrap) {
-        el.style.whiteSpace = 'normal'
+        // pre-line keeps intentional newlines (e.g. damage + type on two rows).
+        el.style.whiteSpace = 'pre-line'
         const wrapH =
           computed.getPropertyValue('--classic-fit-wrap-height').trim() || '2.55rem'
         el.style.height = wrapH

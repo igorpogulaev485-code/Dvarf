@@ -1,5 +1,6 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type { CharacterDetail } from '../../shared/api/characters'
+import { listCatalogEntries } from '../../shared/api/catalog'
 import { formatClassLevelLabel, formatClassSummary } from '../../shared/dnd/classLevels'
 import {
   ABILITY_KEYS,
@@ -57,9 +58,10 @@ import {
   listClassicNotes,
 } from './classicNotes'
 import {
+  buildSpellCatalogIndex,
   chunkSpellCardPages,
   classicSpellCardFaces,
-  SPELL_CARDS_PER_PAGE,
+  type SpellCatalogIndex,
 } from './classicSpellCards'
 import type { CompanionKind } from '../characters/companions'
 import {
@@ -182,23 +184,36 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
   const castProfiles = classicCastProfiles(c)
   const companionPages = chunkCompanionPages(classicCompanions(c), pencilBlanks)
   const customNotes = listClassicNotes(c)
-  // 2024 puts the first 6 notes on LSS P3; trailing pages only for overflow (or all pages on 2014).
-  const trailingNotes =
-    sheetLayout === '2024' ? customNotes.slice(CLASSIC_NOTES_PER_PAGE) : customNotes
-  const notePagesBase = chunkClassicNotePages(trailingNotes)
+  // Extras after blank + spells: notes once, only when present / settings / pencil spare.
+  const notePagesBase = chunkClassicNotePages(customNotes)
   const spareEmpty = buildExtraEmptyNotePages(
-    trailingNotes.length,
+    customNotes.length,
     extraNotePages,
     pencilBlanks,
   )
   const notePages = [
     ...notePagesBase,
-    ...Array.from({ length: spareEmpty }, () => [] as typeof trailingNotes),
+    ...Array.from({ length: spareEmpty }, () => [] as typeof customNotes),
   ]
   // Screen-only fallback empty page (hidden in @media print via --empty).
   const usedFallbackEmptyNotes = notePages.length === 0 && sheetLayout === '2014'
   const notePagesForRender = usedFallbackEmptyNotes ? [[]] : notePages
-  const spellCardPages = chunkSpellCardPages(classicSpellCardFaces(c))
+  const [spellCatalog, setSpellCatalog] = useState<SpellCatalogIndex | null>(null)
+  useEffect(() => {
+    let cancelled = false
+    const edition = sheetLayout === '2024' ? '2024' : '2014'
+    void listCatalogEntries({ kind: 'spell', edition })
+      .then((entries) => {
+        if (!cancelled) setSpellCatalog(buildSpellCatalogIndex(entries))
+      })
+      .catch(() => {
+        if (!cancelled) setSpellCatalog(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [sheetLayout])
+  const spellCardPages = chunkSpellCardPages(classicSpellCardFaces(c, spellCatalog))
   const traitsText = classicFeaturesTraitsValue(c)
   const traitsChunks = chunkOverflowText(traitsText, 1800)
   // One gear item per ruled line (not a comma paragraph).
@@ -575,10 +590,10 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                   className={`classic-weapon${idx < CLASSIC_WEAPON_SLOTS ? ' classic-weapon--slot' : ''}`}
                   key={row.id}
                 >
-                  <div className="classic-weapon__cell">
+                  <div className="classic-weapon__cell classic-weapon__cell--name">
                     <ClassicStaticField
                       value={row.name}
-                      fit
+                      wrap
                       tone="compact"
                       pencilLine={false}
                       aria-label={`Атака ${idx + 1}: название`}
@@ -596,7 +611,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                   <div className="classic-weapon__cell classic-weapon__cell--dmg">
                     <ClassicStaticField
                       value={row.damageLine}
-                      fit
+                      wrap
                       tone="compact"
                       pencilLine={false}
                       aria-label={`Атака ${idx + 1}: урон`}
@@ -891,6 +906,201 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
         </>
       )}
 
+      {traitsChunks.slice(1).map((chunk, i) => (
+        <article
+          className="classic-sheet classic-page-continuation"
+          aria-label={`Умения и особенности · продолжение ${i + 1}`}
+          key={`traits-cont-${i}`}
+        >
+          <header className="classic-header classic-header--companions">
+            <div className="classic-brand">
+              <ClassicBrandWordmark />
+              <span>{brandYearLabel(sheetLayout)}</span>
+            </div>
+            <div className="classic-name">
+              <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
+              <span className="classic-field-label">Имя персонажа</span>
+            </div>
+            <div className="classic-companions-banner">
+              <strong>Умения и особенности · продолжение</strong>
+            </div>
+          </header>
+          <div className="classic-panel classic-panel--grow">
+            <ClassicTextBlock
+              blockId={`traits_cont_${i}`}
+              character={c}
+              onPrintSettings={onPrintSettings}
+              fill
+              value={chunk}
+              printMaxHeight="24rem"
+              ariaLabel="Умения и особенности · продолжение"
+            />
+          </div>
+        </article>
+      ))}
+
+      {equipChunks.slice(1).map((chunk, i) => (
+        <article
+          className="classic-sheet classic-page-continuation"
+          aria-label={`Снаряжение · продолжение ${i + 1}`}
+          key={`equip-cont-${i}`}
+        >
+          <header className="classic-header classic-header--companions">
+            <div className="classic-brand">
+              <ClassicBrandWordmark />
+              <span>{brandYearLabel(sheetLayout)}</span>
+            </div>
+            <div className="classic-name">
+              <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
+              <span className="classic-field-label">Имя персонажа</span>
+            </div>
+            <div className="classic-companions-banner">
+              <strong>Снаряжение · продолжение</strong>
+            </div>
+          </header>
+          <div className="classic-panel classic-panel--grow">
+            <ClassicTextBlock
+              blockId={`equip_cont_${i}`}
+              character={c}
+              onPrintSettings={onPrintSettings}
+              fill
+              value={chunk}
+              printMaxHeight="24rem"
+              ariaLabel="Снаряжение · продолжение"
+            />
+          </div>
+        </article>
+      ))}
+
+      {Array.from({ length: spellExtraPages }, (_, pageIndex) => (
+        <article
+          className="classic-sheet classic-page3 classic-page3--cont"
+          aria-label={`Заклинания · продолжение ${pageIndex + 1}`}
+          key={`spells-cont-${pageIndex}`}
+        >
+          <header className="classic-spell-header">
+            <div className="classic-brand">
+              <ClassicBrandWordmark />
+              <span>{brandYearLabel('2014')}</span>
+            </div>
+            <div className="classic-companions-banner">
+              <strong>Заклинания · продолжение</strong>
+              <span>
+                {c.name} · лист {pageIndex + 2}
+              </span>
+            </div>
+          </header>
+          <div className="classic-spell-columns">
+            <div className="classic-spell-col">
+              {renderCantrips(pageIndex + 1)}
+              {renderSpellLevel(1, pageIndex + 1)}
+              {renderSpellLevel(2, pageIndex + 1)}
+            </div>
+            <div className="classic-spell-col">
+              {renderSpellLevel(3, pageIndex + 1)}
+              {renderSpellLevel(4, pageIndex + 1)}
+              {renderSpellLevel(5, pageIndex + 1)}
+            </div>
+            <div className="classic-spell-col">
+              {renderSpellLevel(6, pageIndex + 1)}
+              {renderSpellLevel(7, pageIndex + 1)}
+              {renderSpellLevel(8, pageIndex + 1)}
+              {renderSpellLevel(9, pageIndex + 1)}
+            </div>
+          </div>
+        </article>
+      ))}
+
+      {spellCardPages.map((pageFaces, pageIndex) => (
+        <article
+          className="classic-sheet classic-page-spell-cards"
+          aria-label={`Карточки заклинаний, лист ${pageIndex + 1}`}
+          key={`spell-cards-${pageIndex}`}
+        >
+          <header className="classic-spell-cards-header">
+            <div className="classic-brand">
+              <ClassicBrandWordmark />
+              <span>{brandYearLabel(sheetLayout)}</span>
+            </div>
+            <div className="classic-name">
+              <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
+              <span className="classic-field-label">Имя персонажа</span>
+            </div>
+            <div className="classic-companions-banner">
+              <strong>Карточки заклинаний</strong>
+              <span>
+                лист {pageIndex + 1}/{spellCardPages.length}
+              </span>
+            </div>
+          </header>
+          <div className="classic-spell-cards-grid">
+            {pageFaces.map((face) => (
+                <div
+                  className={`classic-spell-card ${face.isContinuation ? 'classic-spell-card--cont' : ''}`}
+                  key={face.key}
+                >
+                  <div className="classic-spell-card__head">
+                    <div className="classic-spell-card__title">{face.name}</div>
+                    <div className="classic-spell-card__meta">
+                      <span>{face.levelLabel}</span>
+                      {face.school ? <span>{face.school}</span> : null}
+                      {face.partsTotal > 1 ? (
+                        <span>
+                          {face.part}/{face.partsTotal}
+                        </span>
+                      ) : null}
+                    </div>
+                    {face.badges.length ? (
+                      <div className="classic-spell-card__badges">
+                        {face.badges.map((badge) => (
+                          <span key={badge}>{badge}</span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                  {!face.isContinuation ? (
+                    <div className="classic-spell-card__facts">
+                      {face.castingTime ? (
+                        <div>
+                          <em>Время</em> {face.castingTime}
+                        </div>
+                      ) : null}
+                      {face.range ? (
+                        <div>
+                          <em>Дист.</em> {face.range}
+                        </div>
+                      ) : null}
+                      {face.components ? (
+                        <div>
+                          <em>Комп.</em> {face.components}
+                        </div>
+                      ) : null}
+                      {face.duration ? (
+                        <div>
+                          <em>Длит.</em> {face.duration}
+                        </div>
+                      ) : null}
+                      {face.attackOrSave ? (
+                        <div>
+                          <em>Атака/спас</em> {face.attackOrSave}
+                        </div>
+                      ) : null}
+                      {face.damage ? (
+                        <div>
+                          <em>Урон</em> {face.damage}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div className="classic-spell-card__cont-label">Продолжение</div>
+                  )}
+                  <div className="classic-spell-card__body">{face.body}</div>
+                </div>
+            ))}
+          </div>
+        </article>
+      ))}
+
       {companionPages.length === 0 ? (
         <p className="classic-companions-empty no-print">Нет напарников</p>
       ) : (
@@ -906,7 +1116,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
       >
         <header className="classic-header classic-header--companions">
           <div className="classic-brand">
-            <strong>D&amp;D</strong>
+            <ClassicBrandWordmark />
             <span>{brandYearLabel(sheetLayout)}</span>
           </div>
           <div className="classic-name">
@@ -916,7 +1126,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
           <div className="classic-companions-banner">
             <strong>Напарники</strong>
             <span>
-              Спутники, фамильяры и призывы — страница Dvarf (нет в официальном бланке)
+              Спутники, фамильяры, призывы
               {companionPages.length > 1
                 ? ` · лист ${pageIndex + 1}/${companionPages.length}`
                 : ''}
@@ -1010,7 +1220,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
         >
           <header className="classic-header classic-header--companions">
             <div className="classic-brand">
-              <strong>D&amp;D</strong>
+              <ClassicBrandWordmark />
               <span>{brandYearLabel(sheetLayout)}</span>
             </div>
             <div className="classic-name">
@@ -1020,11 +1230,8 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
             <div className="classic-companions-banner">
               <strong>Заметки</strong>
               <span>
-                {pageNotes.length === 0
-                  ? 'Пустые блоки под карандаш'
-                  : 'Свободные блоки из цифрового листа'}
                 {notePagesForRender.length > 1
-                  ? ` · лист ${pageIndex + 1}/${notePagesForRender.length}`
+                  ? `лист ${pageIndex + 1}/${notePagesForRender.length}`
                   : ''}
               </span>
             </div>
@@ -1078,203 +1285,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
         </article>
       ))}
 
-      {traitsChunks.slice(1).map((chunk, i) => (
-        <article
-          className="classic-sheet classic-page-continuation"
-          aria-label={`Умения и особенности · продолжение ${i + 1}`}
-          key={`traits-cont-${i}`}
-        >
-          <header className="classic-header classic-header--companions">
-            <div className="classic-brand">
-              <strong>D&amp;D</strong>
-              <span>{brandYearLabel(sheetLayout)}</span>
-            </div>
-            <div className="classic-name">
-              <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
-              <span className="classic-field-label">Имя персонажа</span>
-            </div>
-            <div className="classic-companions-banner">
-              <strong>Умения и особенности · продолжение</strong>
-            </div>
-          </header>
-          <div className="classic-panel classic-panel--grow">
-            <ClassicTextBlock
-              blockId={`traits_cont_${i}`}
-              character={c}
-              onPrintSettings={onPrintSettings}
-              fill
-              value={chunk}
-              printMaxHeight="24rem"
-              ariaLabel="Умения и особенности · продолжение"
-            />
-          </div>
-        </article>
-      ))}
 
-      {equipChunks.slice(1).map((chunk, i) => (
-        <article
-          className="classic-sheet classic-page-continuation"
-          aria-label={`Снаряжение · продолжение ${i + 1}`}
-          key={`equip-cont-${i}`}
-        >
-          <header className="classic-header classic-header--companions">
-            <div className="classic-brand">
-              <strong>D&amp;D</strong>
-              <span>{brandYearLabel(sheetLayout)}</span>
-            </div>
-            <div className="classic-name">
-              <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
-              <span className="classic-field-label">Имя персонажа</span>
-            </div>
-            <div className="classic-companions-banner">
-              <strong>Снаряжение · продолжение</strong>
-            </div>
-          </header>
-          <div className="classic-panel classic-panel--grow">
-            <ClassicTextBlock
-              blockId={`equip_cont_${i}`}
-              character={c}
-              onPrintSettings={onPrintSettings}
-              fill
-              value={chunk}
-              printMaxHeight="24rem"
-              ariaLabel="Снаряжение · продолжение"
-            />
-          </div>
-        </article>
-      ))}
-
-      {Array.from({ length: spellExtraPages }, (_, pageIndex) => (
-        <article
-          className="classic-sheet classic-page3 classic-page3--cont"
-          aria-label={`Заклинания · продолжение ${pageIndex + 1}`}
-          key={`spells-cont-${pageIndex}`}
-        >
-          <header className="classic-spell-header">
-            <div className="classic-brand">
-              <strong>D&amp;D</strong>
-              <span>{brandYearLabel('2014')}</span>
-            </div>
-            <div className="classic-companions-banner">
-              <strong>Заклинания · продолжение</strong>
-              <span>
-                {c.name} · лист {pageIndex + 2}
-              </span>
-            </div>
-          </header>
-          <div className="classic-spell-columns">
-            <div className="classic-spell-col">
-              {renderCantrips(pageIndex + 1)}
-              {renderSpellLevel(1, pageIndex + 1)}
-              {renderSpellLevel(2, pageIndex + 1)}
-            </div>
-            <div className="classic-spell-col">
-              {renderSpellLevel(3, pageIndex + 1)}
-              {renderSpellLevel(4, pageIndex + 1)}
-              {renderSpellLevel(5, pageIndex + 1)}
-            </div>
-            <div className="classic-spell-col">
-              {renderSpellLevel(6, pageIndex + 1)}
-              {renderSpellLevel(7, pageIndex + 1)}
-              {renderSpellLevel(8, pageIndex + 1)}
-              {renderSpellLevel(9, pageIndex + 1)}
-            </div>
-          </div>
-        </article>
-      ))}
-
-      {spellCardPages.map((pageFaces, pageIndex) => (
-        <article
-          className="classic-sheet classic-page-spell-cards"
-          aria-label={`Карточки заклинаний, лист ${pageIndex + 1}`}
-          key={`spell-cards-${pageIndex}`}
-        >
-          <header className="classic-spell-cards-header no-print">
-            <div className="classic-brand">
-              <strong>D&amp;D</strong>
-              <span>{brandYearLabel(sheetLayout)}</span>
-            </div>
-            <div className="classic-companions-banner">
-              <strong>Карточки заклинаний</strong>
-              <span>
-                {c.name} · лист {pageIndex + 1}/{spellCardPages.length} · покерный размер · режь по
-                пунктиру
-              </span>
-            </div>
-          </header>
-          <div className="classic-spell-cards-grid">
-            {Array.from({ length: SPELL_CARDS_PER_PAGE }, (_, slot) => {
-              const face = pageFaces[slot]
-              if (!face) {
-                return <div className="classic-spell-card classic-spell-card--empty" key={`empty-${slot}`} />
-              }
-              return (
-                <div
-                  className={`classic-spell-card ${face.isContinuation ? 'classic-spell-card--cont' : ''}`}
-                  key={face.key}
-                >
-                  <div className="classic-spell-card__head">
-                    <div className="classic-spell-card__title">{face.name}</div>
-                    <div className="classic-spell-card__meta">
-                      <span>{face.levelLabel}</span>
-                      {face.school ? <span>{face.school}</span> : null}
-                      {face.partsTotal > 1 ? (
-                        <span>
-                          {face.part}/{face.partsTotal}
-                        </span>
-                      ) : null}
-                    </div>
-                    {face.badges.length ? (
-                      <div className="classic-spell-card__badges">
-                        {face.badges.map((badge) => (
-                          <span key={badge}>{badge}</span>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                  {!face.isContinuation ? (
-                    <div className="classic-spell-card__facts">
-                      {face.castingTime ? (
-                        <div>
-                          <em>Время</em> {face.castingTime}
-                        </div>
-                      ) : null}
-                      {face.range ? (
-                        <div>
-                          <em>Дист.</em> {face.range}
-                        </div>
-                      ) : null}
-                      {face.components ? (
-                        <div>
-                          <em>Комп.</em> {face.components}
-                        </div>
-                      ) : null}
-                      {face.duration ? (
-                        <div>
-                          <em>Длит.</em> {face.duration}
-                        </div>
-                      ) : null}
-                      {face.attackOrSave ? (
-                        <div>
-                          <em>Атака/спас</em> {face.attackOrSave}
-                        </div>
-                      ) : null}
-                      {face.damage ? (
-                        <div>
-                          <em>Урон</em> {face.damage}
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : (
-                    <div className="classic-spell-card__cont-label">Продолжение</div>
-                  )}
-                  <div className="classic-spell-card__body">{face.body}</div>
-                </div>
-              )
-            })}
-          </div>
-        </article>
-      ))}
     </div>
     </ClassicFitViewport>
   )

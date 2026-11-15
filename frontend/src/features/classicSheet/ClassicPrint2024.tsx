@@ -42,22 +42,18 @@ import {
   asRecordNotes,
   brandYearLabel,
   clampMarks,
+  ClassicBrandWordmark,
 } from './classicPrintShared'
 import { classicCombatDisplay, classicEffectiveAbilities } from './classicDerivedCombat'
 import { formatClassLevelLabel, formatClassSummary } from '../../shared/dnd/classLevels'
 import {
-  ALIGNMENTS,
+  alignmentNameRu,
   alignmentNeedsClarification,
   recognizeAlignment,
 } from '../../shared/dnd/alignments'
-import {
-  classicNoteLabel,
-  classicNoteText,
-  listClassicNotes,
-  paddedClassicNoteSlots,
-} from './classicNotes'
 import { ClassicTextBlock } from './ClassicTextBlock'
 import { ClassicFitInput } from './ClassicFitInput'
+import { ClassicStaticField } from './ClassicStaticField'
 
 type Props = {
   character: CharacterDetail
@@ -149,6 +145,10 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
     alignment: alignmentSlug,
     alignmentText: alignmentText || (alignmentSlug ? '' : alignmentRaw),
   })
+  const alignmentDisplay =
+    alignmentNameRu(alignmentSlug) ||
+    alignmentText.trim() ||
+    alignmentRaw.trim()
   const conditionsLabel = classicConditionsLabel(c)
   const equipItems = equipmentItemsLine(c)
   const spells = classicSpellsState(c)
@@ -168,9 +168,6 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
 
   const pencilBlanks = readClassicPencilBlanks(c)
   const { first: spellRows, rest: spellOverflow } = buildSpellTableRows(spells.known, pencilBlanks)
-  const customNotes = listClassicNotes(c)
-  const noteSlots = paddedClassicNoteSlots(customNotes)
-
   return (
     <>
       {/* ——— P1 combat (LSS) ——— */}
@@ -344,10 +341,9 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
 
         <div className="classic-lss-brand-rule">
           <div className="classic-brand">
-            <strong>D&amp;D</strong>
+            <ClassicBrandWordmark />
             <span>{brandYearLabel('2024')}</span>
           </div>
-          <span className="classic-lss-brand-rule__line" />
         </div>
 
         <div className="classic-lss-p1-body">
@@ -495,19 +491,33 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
               </div>
               {weapons.map((row, idx) => (
                 <div className="classic-weapon classic-lss-weapon-row" key={row.id}>
-                  <input
-                    value={row.name}
-                    aria-label={`Оружие ${idx + 1}: название`}
-                   readOnly />
-                  <input
-                    value={row.attackBonus}
-                    aria-label={`Оружие ${idx + 1}: бонус`}
-                   readOnly />
-                  <input
-                    value={row.damageLine}
-                    aria-label={`Оружие ${idx + 1}: урон`}
-                   readOnly />
-                  <span />
+                  <div className="classic-weapon__cell classic-weapon__cell--name">
+                    <ClassicStaticField
+                      value={row.name}
+                      wrap
+                      tone="compact"
+                      pencilLine={false}
+                      aria-label={`Оружие ${idx + 1}: название`}
+                    />
+                  </div>
+                  <div className="classic-weapon__cell classic-weapon__cell--bonus">
+                    <ClassicStaticField
+                      value={row.attackBonus}
+                      align="center"
+                      tone="numeric"
+                      pencilLine={false}
+                      aria-label={`Оружие ${idx + 1}: бонус`}
+                    />
+                  </div>
+                  <div className="classic-weapon__cell classic-weapon__cell--dmg">
+                    <ClassicStaticField
+                      value={row.damageLine}
+                      wrap
+                      tone="compact"
+                      pencilLine={false}
+                      aria-label={`Оружие ${idx + 1}: урон`}
+                    />
+                  </div>
                 </div>
               ))}
               <div className="classic-caption">Оружие и боевые заговоры</div>
@@ -561,6 +571,12 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
         className="classic-sheet classic-lss classic-lss-p2"
         aria-label="Классический лист 2024, страница 2"
       >
+        <div className="classic-lss-brand-rule">
+          <div className="classic-brand">
+            <ClassicBrandWordmark />
+            <span>{brandYearLabel('2024')}</span>
+          </div>
+        </div>
         <div className="classic-lss-p2-grid">
           <section className="classic-panel classic-lss-portrait">
             <div className="classic-lss-portrait__frame">
@@ -623,61 +639,18 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
         </div>
       </article>
 
-      {/* ——— P3 custom notes (same notes-N as interactive sheet) ——— */}
-      <article
-        className="classic-sheet classic-lss classic-lss-p3"
-        aria-label="Классический лист 2024, страница 3 — заметки"
-      >
-        <header className="classic-lss-notes-head">
-          <div className="classic-brand">
-            <strong>D&amp;D</strong>
-            <span>{brandYearLabel('2024')}</span>
-          </div>
-          <div className="classic-companions-banner">
-            <strong>Заметки</strong>
-            <span>Свободные блоки из цифрового листа — не секции бланка</span>
-          </div>
-        </header>
-        <div className="classic-lss-notes-grid">
-          {noteSlots.map((block, i) =>
-            block ? (
-              <section className="classic-panel classic-lss-note classic-note-card" key={block.key}>
-                <input
-                  className="classic-note-card__title-input"
-                  value={classicNoteLabel(block)}
-                  placeholder="Название заметки"
-                  aria-label="Название заметки"
-                 readOnly />
-                <ClassicTextBlock
-                  blockId={`note_${block.key}`}
-                  character={c}
-                  onPrintSettings={onPrintSettings}
-                  fill
-                  value={classicNoteText(block)}
-                  printMaxHeight="9rem"
-                  ariaLabel={classicNoteLabel(block)}
-
-                />
-                <div className="classic-caption">Заметка</div>
-              </section>
-            ) : (
-              <section
-                className="classic-panel classic-lss-note classic-note-card classic-note-card--blank"
-                key={`blank-note-${i}`}
-                aria-label="Пустая заметка"
-              >
-                <div className="classic-caption">Заметка</div>
-              </section>
-            ),
-          )}
-        </div>
-      </article>
 
       {/* ——— P4 spells + gear ——— */}
       <article
         className="classic-sheet classic-lss classic-lss-p4"
         aria-label="Классический лист 2024, страница 4"
       >
+        <div className="classic-lss-brand-rule">
+          <div className="classic-brand">
+            <ClassicBrandWordmark />
+            <span>{brandYearLabel('2024')}</span>
+          </div>
+        </div>
         <div className="classic-lss-p4-grid">
           <div className="classic-lss-p4-left">
             {castProfiles.length > 1 ? (
@@ -822,9 +795,13 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                     <span className="classic-lss-spell-lvl">
                       {row ? (row.level === 0 ? '0' : String(row.level)) : ''}
                     </span>
-                    <input
+                    <ClassicStaticField
                       value={row?.name ?? ''}
-                     readOnly />
+                      fit
+                      tone="compact"
+                      pencilLine={false}
+                      aria-label="Название заклинания"
+                    />
                     <span>{row?.casting_time ?? ''}</span>
                     <span>{row?.range ?? ''}</span>
                     <span className={row?.concentration ? 'is-on' : ''}>
@@ -876,33 +853,34 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                 printMaxHeight="8rem"
                 ariaLabel="Предыстория и личные качества"
               />
-              <label className="classic-lss-alignment">
+              <div className="classic-lss-alignment">
                 <span>Мировоззрение</span>
-                <select
-                  value={alignmentSlug}
-                 disabled>
-                  <option value="">—</option>
-                  {ALIGNMENTS.map((row) => (
-                    <option key={row.slug} value={row.slug}>
-                      {row.nameRu}
-                    </option>
-                  ))}
-                </select>
+                <ClassicStaticField
+                  value={alignmentDisplay}
+                  fit
+                  wrap
+                  tone="body"
+                  pencilLine={false}
+                  aria-label="Мировоззрение"
+                />
                 {alignmentUnparsed ? <span>Уточните мировоззрение</span> : null}
-              </label>
+              </div>
               <div className="classic-caption">Предыстория и личные качества</div>
             </div>
 
             <div className="classic-panel classic-equip classic-panel--grow classic-panel--grow-lg">
-              <div className="classic-lss-coins classic-lss-coins--inline" aria-label="Монеты">
+              <div className="classic-coins" aria-label="Монеты">
                 {(['cp', 'sp', 'ep', 'gp', 'pp'] as const).map((k) => (
-                  <label key={k}>
-                    <span className="classic-lss-coin-mark">{COIN_LABELS_2024[k]}</span>
-                    <input
+                  <div className="classic-coin" key={k}>
+                    <ClassicStaticField
                       value={coins[k]}
-                      readOnly
+                      align="center"
+                      tone="numeric"
+                      pencilLine={false}
+                      aria-label={COIN_LABELS_2024[k]}
                     />
-                  </label>
+                    <span className="classic-coin__mark">{COIN_LABELS_2024[k]}</span>
+                  </div>
                 ))}
               </div>
               {equipItems ? (
@@ -944,7 +922,7 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
         >
           <header className="classic-lss-notes-head">
             <div className="classic-brand">
-              <strong>D&amp;D</strong>
+              <ClassicBrandWordmark />
               <span>{brandYearLabel('2024')}</span>
             </div>
             <div className="classic-companions-banner">
@@ -963,7 +941,13 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                 <span className="classic-bubble-btn classic-bubble-btn--static" aria-label="Подготовлено">
                   <span className={`classic-bubble ${row.prepared ? 'is-filled' : ''}`} />
                 </span>
-                <input value={row.name} readOnly />
+                <ClassicStaticField
+                  value={row.name}
+                  fit
+                  tone="compact"
+                  pencilLine={false}
+                  aria-label="Название заклинания"
+                />
                 <span>{row.level}</span>
               </div>
             ))}
