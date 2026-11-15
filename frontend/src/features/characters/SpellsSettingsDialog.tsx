@@ -218,7 +218,9 @@ export function SpellsSettingsDialog({
   const saveDc = castStats.dc
   const attackBonus = castStats.attack
   const canEditCastBuffs = Boolean(onModifiersChange && abilityKey)
-  const showMultiProfiles = displayProfiles.length > 1
+  // Multiclass (incl. same-ability merge like paladin+warlock CHA) — show profile
+  // lines, not the single editable casting_ability chips.
+  const showMultiProfiles = classRows.length > 1 && displayProfiles.length > 0
 
   function patch(next: Partial<SpellsState>) {
     onChange({ ...spells, ...next })

@@ -583,10 +583,20 @@ export function PlayDeskSpellsCompact({
             />
           </label>
           <div className="play-desk-compact__collapse-actions">
-            <button type="button" className="play-desk-compact__link" onClick={collapseAll}>
+            <button
+              type="button"
+              className="play-desk-compact__link"
+              aria-label="Свернуть все круги заклинаний"
+              onClick={collapseAll}
+            >
               Свернуть все
             </button>
-            <button type="button" className="play-desk-compact__link" onClick={expandAll}>
+            <button
+              type="button"
+              className="play-desk-compact__link"
+              aria-label="Развернуть все круги заклинаний"
+              onClick={expandAll}
+            >
               Развернуть все
             </button>
           </div>

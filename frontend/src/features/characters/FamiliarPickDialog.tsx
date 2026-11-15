@@ -154,7 +154,7 @@ export function FamiliarPickDialog({
         ? `${title}: снова «${applied.name}»`
         : `${title}: «${applied.name}»`,
     })
-    onClose()
+    // Do not call onClose after confirm — parent clears pending; onClose toasts «не выбран».
   }
 
   return (

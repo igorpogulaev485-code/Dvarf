@@ -839,7 +839,7 @@ export function CastSpellDialog({
     ? Math.max(0, spells.pact_slots.max - spells.pact_slots.used)
     : 0
 
-  const metaParts = [
+  const metaPartsBase = [
     spell.casting_time,
     spell.range,
     spell.duration ? `длится ${spell.duration}` : '',
@@ -892,6 +892,22 @@ export function CastSpellDialog({
   const metaCost = metamagicSelectionCost(metaFlags, metaSlotLevel)
   const metaAffordable = metaCost <= sorceryLeft && metamagicStackOk(metaFlags)
   const metaPreview = applyMetamagicToCastParams(spell, metaFlags)
+  const metaActive = metaCost > 0 || Boolean(metaFlags.transmutedType)
+  const metaParts = metaActive
+    ? [
+        metaPreview.casting_time,
+        metaPreview.range,
+        metaPreview.duration !== '—' ? `длится ${metaPreview.duration}` : '',
+        metaPreview.componentsLabel !== '—'
+          ? metaPreview.componentsLabel
+          : rulesSpell?.components
+            ? formatSpellComponents(rulesSpell.components)
+            : '',
+        spell.school ? spellSchoolLabelRu(spell.school) : '',
+        rulesSpell?.attack_or_save || spell.attack_or_save,
+        castEffect.effect || rulesSpell?.damage || spell.damage,
+      ].filter(Boolean)
+    : metaPartsBase
   const knowsQuickened = applicableMetamagic.some((row) => row.id === 'quickened')
   const knowsSeeking = applicableMetamagic.some((row) => row.id === 'seeking')
   const knowsTransmuted = applicableMetamagic.some((row) => row.id === 'transmuted')
@@ -1381,8 +1397,16 @@ export function CastSpellDialog({
               {metaCost > 0 ? ` · к трате ${metaCost}` : ''}
               {!metaAffordable && metaCost > 0 ? ' · не хватает / нельзя совместить' : ''}
             </Text>
-            {metaPreview.notes.length > 0 ? (
-              <Text tone="muted">{metaPreview.notes.join(' · ')}</Text>
+            {metaActive ? (
+              <p className="cast-metamagic-block__params" data-testid="cast-metamagic-params">
+                <strong>С метамагией:</strong> {metaPreview.casting_time}
+                {' · '}
+                {metaPreview.range}
+                {metaPreview.duration !== '—' ? ` · ${metaPreview.duration}` : ''}
+                {' · '}
+                {metaPreview.componentsLabel}
+                {metaPreview.notes.length > 0 ? ` · ${metaPreview.notes.join(' · ')}` : ''}
+              </p>
             ) : null}
             {applicableMetamagic.map((def) => {
               const cost = metamagicSpendCost(def, metaSlotLevel)

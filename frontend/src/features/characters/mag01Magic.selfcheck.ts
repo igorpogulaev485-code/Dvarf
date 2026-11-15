@@ -29,6 +29,7 @@ import {
   canPrepareSpell,
   type SheetSpell,
 } from './spells.ts'
+import { resolveClassEntryIdForSubclassCommit } from '../createPipeline/resolveClassEntryIdForSubclass.ts'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../../..')
 const read = (rel: string) => readFileSync(join(root, rel), 'utf8')
@@ -278,7 +279,66 @@ assert.equal(metamagicSelectionCost({ distant: true, empowered: true }, 3), 2)
 assert.equal(metamagicStackOk({ distant: true, empowered: true }), true)
 assert.equal(metamagicStackOk({ distant: true, quickened: true }), false)
 
-// --- 17: commitSubclassSetup resolves stale id ---
-assert.match(createPage, /resolve stale classEntryId|MAG-01: resolve stale/)
+// --- 17: commitSubclassSetup resolves stale id (warlock / druid / paladin) ---
+assert.match(createPage, /resolveClassEntryIdForSubclassCommit/)
+const resolveSrc = read(
+  'src/features/createPipeline/resolveClassEntryIdForSubclass.ts',
+)
+assert.match(resolveSrc, /subclassParentCatalogId/)
+assert.equal(
+  resolveClassEntryIdForSubclassCommit({
+    classEntryId: 'stale',
+    classes: [{ id: 'druid-1', catalog_id: 'druid-cat', subclass_name: '' }],
+    preferredClassEntryId: null,
+    subclassParentCatalogId: 'druid-cat',
+  }),
+  'druid-1',
+)
+assert.equal(
+  resolveClassEntryIdForSubclassCommit({
+    classEntryId: 'gone',
+    classes: [
+      { id: 'pal-1', catalog_id: 'paladin', subclass_name: '' },
+      { id: 'wl-1', catalog_id: 'warlock', subclass_name: 'Архифея' },
+    ],
+    preferredClassEntryId: 'also-gone',
+    subclassParentCatalogId: 'paladin',
+  }),
+  'pal-1',
+)
+assert.equal(
+  resolveClassEntryIdForSubclassCommit({
+    classEntryId: 'gone',
+    classes: [{ id: 'only', catalog_id: 'x', subclass_name: null }],
+  }),
+  'only',
+)
+
+// --- 4a: subclass gate shows chosen name ---
+const featuresPanel = read('src/features/characters/ClassFeaturesPanel.tsx')
+assert.match(featuresPanel, /isSubclassGateFeature/)
+assert.match(featuresPanel, /Выбрано:/)
+assert.match(read('src/shared/dnd/pendingFeatureChoices.ts'), /druid_circle/)
+assert.match(
+  read('src/shared/dnd/classFeatures.ts'),
+  /наследие драконьей крови/,
+)
+assert.match(
+  read('src/features/characters/minimalSheet/useSheetEditorPart1.ts'),
+  /resolveSubclassFeatureSlug\(row\.subclass_name\)/,
+)
+
+// --- 4b: no false «не выбрано» toast after confirm ---
+assert.match(
+  read('src/features/characters/CompanionCreaturePickDialog.tsx'),
+  /Do not call onClose after confirm/,
+)
+assert.match(
+  read('src/features/characters/FamiliarPickDialog.tsx'),
+  /Do not call onClose after confirm/,
+)
+
+// --- Cast dialog shows changed params ---
+assert.match(castDlg, /cast-metamagic-params|С метамагией/)
 
 console.log('mag01Magic.selfcheck: ok')

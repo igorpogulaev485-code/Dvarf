@@ -51,6 +51,7 @@ import {
   savePipelineState,
 } from '../features/createPipeline/createPipelineStorage'
 import { LevelingStep, ensureHpChoices } from '../features/createPipeline/LevelingStep'
+import { resolveClassEntryIdForSubclassCommit } from '../features/createPipeline/resolveClassEntryIdForSubclass'
 import {
   catalogSnapshot,
   createEmptyPipelineState,
@@ -1180,13 +1181,13 @@ export function CreateCharacterPage() {
   ) {
     let saved = false
     setState((prev) => {
-      // MAG-01: resolve stale classEntryId (first warlock patron / recreated sole row).
-      let resolvedId = classEntryId
-      if (!prev.classes.some((row) => row.id === resolvedId)) {
-        resolvedId =
-          prev.classes.find((row) => row.id === prev.classEntryId)?.id ??
-          (prev.classes.length === 1 ? prev.classes[0]!.id : '')
-      }
+      // MAG-01: resolve stale classEntryId (warlock patron / druid circle / paladin oath).
+      const resolvedId = resolveClassEntryIdForSubclassCommit({
+        classEntryId,
+        classes: prev.classes,
+        preferredClassEntryId: prev.classEntryId,
+        subclassParentCatalogId: selected.parent_id,
+      })
       if (!resolvedId || !prev.classes.some((row) => row.id === resolvedId)) {
         return prev
       }

@@ -834,10 +834,118 @@ button.play-desk-compact__more--btn:hover {
 }
 
 
-/* MAG-01: one-line spell row + class chip + metamagic pick */
+/* MAG-01: spell column chrome + scroll (kit tokens only) */
+.play-desk-compact--spells {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
+  height: 100%;
+}
+
+.play-desk-compact__chrome {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 8px;
+}
+
+.play-desk-compact__list--scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+
+.play-desk-compact__combat-stats--dense {
+  gap: 4px;
+}
+
+.play-desk-compact__cast-profile--line {
+  padding: 3px 8px;
+  border-radius: 8px;
+  justify-content: flex-start;
+}
+
+.play-desk-compact__cast-profile-line {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--desk-ink, var(--ink));
+  line-height: 1.25;
+}
+
+.play-desk-compact__spell-tools {
+  display: grid;
+  gap: 6px;
+}
+
+.play-desk-compact__spell-filters {
+  flex-wrap: wrap;
+}
+
+.play-desk-compact__spell-search .ui-input,
+.play-desk-compact__spell-search input {
+  width: 100%;
+  min-height: 34px;
+  font-size: 0.85rem;
+}
+
+.play-desk-compact__collapse-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.play-desk-compact__level-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.play-desk-compact__level-chevron {
+  font-size: 0.75rem;
+  color: var(--desk-muted, var(--muted));
+}
+
+.play-desk-compact__level-count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+}
+
+.play-desk-compact__level.is-collapsed .play-desk-compact__level-head {
+  opacity: 0.95;
+}
+
+/* MAG-01: one-line spell row — Cast stays on the right of the name line */
 .play-desk-compact__row.is-spell.is-spell-line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 4px 6px;
+}
+
+.play-desk-compact__row.is-spell.is-spell-line.has-cast {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.play-desk-compact__row.is-spell.is-spell-line .play-desk-compact__spell-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 8px;
+}
+
+.play-desk-compact__row.is-spell.is-spell-line .play-desk-compact__spell-top {
+  min-width: 0;
 }
 
 .play-desk-compact__row.is-spell.is-spell-line .play-desk-compact__spell-meta.is-quiet {
@@ -856,7 +964,7 @@ button.play-desk-compact__more--btn:hover {
   min-height: 36px;
   border: 1px solid var(--desk-line, var(--line));
   border-radius: 8px;
-  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 40%, white);
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 40%, var(--panel, white));
   color: var(--desk-muted, var(--muted));
   cursor: pointer;
   font-size: 0.75rem;
@@ -867,6 +975,23 @@ button.play-desk-compact__more--btn:hover {
   align-items: center;
   gap: 4px;
   flex: 0 0 auto;
+  align-self: center;
+}
+
+.play-desk-compact__row.is-spell.is-spell-line .play-desk-compact__spell-cast {
+  flex-direction: row;
+  gap: 4px;
+  min-width: 0;
+  min-height: 36px;
+  padding: 4px 8px;
+  border-left: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 45%, var(--desk-line));
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+}
+
+.play-desk-compact__row.is-spell.is-spell-line .play-desk-compact__spell-cast-icon {
+  width: 0.85rem;
+  height: 0.85rem;
 }
 
 .play-desk-compact__meta-select {
@@ -878,14 +1003,24 @@ button.play-desk-compact__more--btn:hover {
 
 .play-desk-compact__source.is-class {
   border-color: color-mix(in srgb, var(--desk-accent, var(--accent)) 35%, var(--desk-line));
-  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 45%, white);
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 45%, var(--panel, white));
   color: var(--desk-ink, var(--ink));
   text-transform: lowercase;
 }
 
 @media (max-width: 959px) {
+  .play-desk-compact--spells {
+    max-height: min(70vh, 560px);
+  }
+
   .play-desk-compact__spell-cast {
     min-height: 40px;
     min-width: 44px;
+  }
+
+  .play-desk-compact__row.is-spell.is-spell-line .play-desk-compact__spell-cast {
+    min-height: 40px;
+    min-width: 44px;
+    padding: 6px 10px;
   }
 }

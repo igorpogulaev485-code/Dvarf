@@ -120,6 +120,7 @@ import {
 } from '../../shared/dnd/classAsi'
 import {
   isFeatureChoiceComplete,
+  isSubclassGateFeature,
   listUnlockedExpertiseKeys,
 } from '../../shared/dnd/pendingFeatureChoices'
 import { fightingStyleById, isTceFightingStyle } from '../../shared/dnd/fightingStyles'
@@ -2080,9 +2081,27 @@ function FeatureRow({
 
   const scaleShown = moonShapeScale(feature, unlockedFeatures) ?? feature.scaleValue
 
+  const classRow = classes.find((row) => row.id === feature.classEntryId)
+  const subclassFromPeers =
+    unlockedFeatures.find(
+      (row) =>
+        row.classEntryId === feature.classEntryId &&
+        row.source === 'subclass' &&
+        Boolean(row.subclassName?.trim()),
+    )?.subclassName?.trim() || ''
+  const subclassChosen =
+    classRow?.subclass_name?.trim() ||
+    feature.subclassName?.trim() ||
+    subclassFromPeers ||
+    ''
+  const gateWithSubclass =
+    isSubclassGateFeature(feature) && Boolean(subclassChosen)
+
   let metaExtra = ''
   if (asiLabel) {
     metaExtra = asiLabel
+  } else if (gateWithSubclass) {
+    metaExtra = subclassChosen
   } else if (choiceLabel) {
     metaExtra = chainFamiliarReady ? `${choiceLabel} · призвать` : choiceLabel
   } else if (choicePending) {
@@ -2099,7 +2118,7 @@ function FeatureRow({
     metaExtra = scaleShown
   }
 
-  const preview = previewSummary(feature.summary_ru)
+  const preview = gateWithSubclass ? '' : previewSummary(feature.summary_ru)
   const canExpand = featureCanExpand(feature)
   const optionalBadge = optionalFeatureBadgeRu(feature)
   const replacementStatus = replacementStatusForFeature(
@@ -2214,7 +2233,15 @@ function FeatureRow({
         ) : null}
       </h3>
       <Text tone="muted">{sourceLabel}</Text>
-      <Text>{feature.summary_ru}</Text>
+      <Text>
+        {gateWithSubclass ? (
+          <>
+            Выбрано: <strong>{subclassChosen}</strong>
+          </>
+        ) : (
+          feature.summary_ru
+        )}
+      </Text>
       {feature.body_ru ? <Text tone="muted">{feature.body_ru}</Text> : null}
       <FeatureReplacementControls
         feature={feature}

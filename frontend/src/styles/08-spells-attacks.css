@@ -970,7 +970,7 @@ button.spells-settings__derived-stat--btn:hover {
 }
 
 
-/* MAG-01: multiclass profiles in Магия settings */
+/* MAG-01: multiclass profiles in Магия settings — ability rail A tokens only */
 .spells-settings__ability-row {
   margin-top: 6px;
 }
@@ -985,27 +985,37 @@ button.spells-settings__derived-stat--btn:hover {
   padding: 6px 10px;
   border-radius: 8px;
   border: 1px solid var(--line);
-  background: color-mix(in srgb, var(--accent-soft) 45%, white);
+  background: color-mix(in srgb, var(--accent-soft) 45%, var(--panel, white));
   font-size: 0.82rem;
   font-weight: 600;
 }
 
 .spells-settings__profile-line.is-int {
-  border-color: color-mix(in srgb, #3f5f8a 45%, var(--line));
-  background: color-mix(in srgb, #dde6f2 75%, white);
+  border-color: color-mix(in srgb, var(--abil-int) 45%, var(--line));
+  background: color-mix(in srgb, var(--abil-int-soft) 75%, var(--panel, white));
 }
 
 .spells-settings__profile-line.is-cha {
-  border-color: color-mix(in srgb, #7a4a6e 45%, var(--line));
-  background: color-mix(in srgb, #efe0ea 75%, white);
+  border-color: color-mix(in srgb, var(--abil-cha) 45%, var(--line));
+  background: color-mix(in srgb, var(--abil-cha-soft) 75%, var(--panel, white));
 }
 
 .spells-settings__profile-line.is-wis {
-  border-color: color-mix(in srgb, #5a6b3d 45%, var(--line));
-  background: color-mix(in srgb, #e5ecd4 75%, white);
+  border-color: color-mix(in srgb, var(--abil-wis) 45%, var(--line));
+  background: color-mix(in srgb, var(--abil-wis-soft) 75%, var(--panel, white));
 }
 
 .cast-metamagic-block {
   display: grid;
   gap: 6px;
+}
+
+.cast-metamagic-block__params {
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 40%, var(--panel, white));
+  font-size: 0.8rem;
+  line-height: 1.35;
 }

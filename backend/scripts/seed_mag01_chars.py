@@ -24,6 +24,8 @@ MULTI3_ID = uuid.UUID("cccccccc-cccc-4ccc-8ccc-cccccccccc03")
 PAL_WL_ID = uuid.UUID("cccccccc-cccc-4ccc-8ccc-cccccccccc04")
 CLERIC5_ID = uuid.UUID("cccccccc-cccc-4ccc-8ccc-cccccccccc05")
 ROGUE5_ID = uuid.UUID("cccccccc-cccc-4ccc-8ccc-cccccccccc06")
+DRUID5_ID = uuid.UUID("cccccccc-cccc-4ccc-8ccc-cccccccccc07")
+WARLOCK1_ID = uuid.UUID("cccccccc-cccc-4ccc-8ccc-cccccccccc08")
 
 
 def _skill(proficient: bool = False, expertise: bool = False) -> dict:
@@ -353,7 +355,17 @@ def sorcerer20_sheet() -> dict:
             "has_spell_focus": True,
             "has_component_pouch": True,
         },
-        "inventory": {"coins": {"cp": 0, "sp": 0, "ep": 0, "gp": 40, "pp": 0}, "items": []},
+        "inventory": {
+            "coins": {"cp": 0, "sp": 0, "ep": 0, "gp": 40, "pp": 0},
+            "items": [
+                {
+                    "id": "mag01-sorc-pouch",
+                    "name": "Мешочек с компонентами",
+                    "qty": 1,
+                    "spell_tooling": "component_pouch",
+                }
+            ],
+        },
         "feature_picks": {
             "values": {
                 "sorcerer:dragon_ancestor": "red",
@@ -511,6 +523,15 @@ def paladin_warlock_sheet() -> dict:
         _spell("pal:cure", "Лечение ран", 1, class_slug="paladin", prepared=False),
         _spell("pal:shield", "Щит веры", 1, class_slug="paladin", prepared=False, concentration=True),
         _spell("pal:smite", "Божественная кара", 1, class_slug="paladin", prepared=False),
+        _spell(
+            "pal:steed",
+            "Поиск скакуна",
+            2,
+            class_slug="paladin",
+            prepared=True,
+            casting_time="10 минут",
+            range_="30 фт.",
+        ),
     ]
     return {
         "identity": {"alignment": "Законно-добрый", "experience": 6500, "background": "Благородный"},
@@ -520,8 +541,9 @@ def paladin_warlock_sheet() -> dict:
                 "id": "paladin",
                 "name": "Паладин",
                 "catalog_id": "paladin",
-                "level": 2,
-                "subclass_name": None,
+                "level": 5,
+                "subclass_name": "Клятва преданности",
+                "subclass_catalog_id": "oath_of_devotion",
             },
             {
                 "id": "warlock",
@@ -577,7 +599,7 @@ def paladin_warlock_sheet() -> dict:
         "spells": {
             "casting_ability": "cha",
             "max_prepared": 4,
-            "slots": {"1": {"max": 3, "used": 0}},
+            "slots": {"1": {"max": 3, "used": 0}, "2": {"max": 1, "used": 0}},
             "pact_slots": {"max": 2, "used": 0, "level": 2},
             "known": known,
             "has_spell_focus": True,
@@ -733,6 +755,165 @@ def rogue5_sheet() -> dict:
     }
 
 
+def druid5_moon_sheet() -> dict:
+    """Друид 5 · Круг луны — карточка «Круг друидов» должна показывать выбранный круг."""
+    known = [
+        _spell("dr:produce", "Друдкрафт", 0, class_slug="druid"),
+        _spell("dr:guidance", "Указание", 0, class_slug="druid", concentration=True),
+        _spell("dr:shillelagh", "Дубинка", 0, class_slug="druid"),
+        _spell("dr:entangle", "Опутывание", 1, class_slug="druid", concentration=True),
+        _spell("dr:cure", "Лечение ран", 1, class_slug="druid"),
+        _spell("dr:moonbeam", "Лунный луч", 2, class_slug="druid", concentration=True),
+        _spell("dr:spike", "Шипы", 2, class_slug="druid", concentration=True),
+        _spell("dr:conjure", "Призыв животных", 3, class_slug="druid", concentration=True),
+    ]
+    return {
+        "identity": {"alignment": "Нейтральный", "experience": 6500, "background": "Отшельник"},
+        "race": {"name": "Лесной эльф", "slug": "wood-elf"},
+        "classes": [
+            {
+                "id": "druid",
+                "name": "Друид",
+                "catalog_id": "druid",
+                "level": 5,
+                "subclass_name": "Круг луны",
+                "subclass_catalog_id": "circle_of_the_moon",
+            }
+        ],
+        "abilities": {
+            "str": {"score": 10},
+            "dex": {"score": 14},
+            "con": {"score": 14},
+            "int": {"score": 10},
+            "wis": {"score": 16},
+            "cha": {"score": 10},
+        },
+        "saves": {"int": {"is_proficient": True}, "wis": {"is_proficient": True}},
+        "skills": _skills("nature", "perception", "survival", "animal_handling"),
+        "combat": {
+            "inspiration": False,
+            "speed": 35,
+            "darkvision": 60,
+            "conditions": [],
+            "exhaustion": 0,
+            "hp_temp": 0,
+            "concentration": None,
+            "effects": [],
+            "hit_die": "d8",
+            "hp_dice_current": 5,
+            "is_dying": False,
+            "death_successes": 0,
+            "death_fails": 0,
+            "turn_economy": _empty_te(),
+            "ac": 14,
+            "hp_current": 38,
+            "hp_max": 38,
+        },
+        "resources": [
+            {
+                "id": "wild_shape",
+                "name": "Дикий облик",
+                "max": 2,
+                "used": 0,
+                "recharge": "short_rest",
+            }
+        ],
+        "weapons": [],
+        "spells": {
+            "casting_ability": "wis",
+            "max_prepared": 8,
+            "slots": {
+                "1": {"max": 4, "used": 0},
+                "2": {"max": 3, "used": 0},
+                "3": {"max": 2, "used": 0},
+            },
+            "pact_slots": None,
+            "known": known,
+            "has_spell_focus": True,
+            "has_component_pouch": True,
+        },
+        "inventory": {"coins": {"cp": 0, "sp": 0, "ep": 0, "gp": 20, "pp": 0}, "items": []},
+        "feature_picks": {"values": {}},
+        "subclass_setups": {
+            "druid": {
+                "entry": {
+                    "id": "circle_of_the_moon",
+                    "slug": "circle_of_the_moon",
+                    "name_ru": "Круг луны",
+                },
+                "picks": {"values": {}},
+            }
+        },
+        "notes": "MAG-01 друид 5 круг луны",
+    }
+
+
+def warlock1_no_patron_sheet() -> dict:
+    """Колдун 1 без покровителя — первый выбор архетипа в мастере/на листе."""
+    known = [
+        _spell("wl:eldritch", "Мистический заряд", 0, class_slug="warlock", damage="1к10 силовое", attack_or_save="атака"),
+        _spell("wl:mage-hand", "Волшебная рука", 0, class_slug="warlock"),
+        _spell("wl:hex", "Проклятие", 1, class_slug="warlock", concentration=True, prepared=True),
+        _spell("wl:armor", "Доспех Агатиса", 1, class_slug="warlock", prepared=True),
+    ]
+    return {
+        "identity": {"alignment": "Хаотично-нейтральный", "experience": 0, "background": "Шарлатан"},
+        "race": {"name": "Человек", "slug": "human"},
+        "classes": [
+            {
+                "id": "warlock",
+                "name": "Колдун",
+                "catalog_id": "warlock",
+                "level": 1,
+                "subclass_name": None,
+            }
+        ],
+        "abilities": {
+            "str": {"score": 8},
+            "dex": {"score": 14},
+            "con": {"score": 14},
+            "int": {"score": 10},
+            "wis": {"score": 10},
+            "cha": {"score": 16},
+        },
+        "saves": {"wis": {"is_proficient": True}, "cha": {"is_proficient": True}},
+        "skills": _skills("deception", "intimidation", "arcana", "investigation"),
+        "combat": {
+            "inspiration": False,
+            "speed": 30,
+            "darkvision": 0,
+            "conditions": [],
+            "exhaustion": 0,
+            "hp_temp": 0,
+            "concentration": None,
+            "effects": [],
+            "hit_die": "d8",
+            "hp_dice_current": 1,
+            "is_dying": False,
+            "death_successes": 0,
+            "death_fails": 0,
+            "turn_economy": _empty_te(),
+            "ac": 13,
+            "hp_current": 10,
+            "hp_max": 10,
+        },
+        "resources": [],
+        "weapons": [],
+        "spells": {
+            "casting_ability": "cha",
+            "max_prepared": None,
+            "slots": {},
+            "pact_slots": {"max": 1, "used": 0, "level": 1},
+            "known": known,
+            "has_spell_focus": True,
+            "has_component_pouch": True,
+        },
+        "inventory": {"coins": {"cp": 0, "sp": 0, "ep": 0, "gp": 15, "pp": 0}, "items": []},
+        "feature_picks": {"values": {}},
+        "notes": "MAG-01 колдун 1 без покровителя",
+    }
+
+
 def upsert(db, user_id: uuid.UUID, char_id: uuid.UUID, name: str, sheet: dict) -> None:
     row = db.query(Character).filter(Character.id == char_id).one_or_none()
     now = datetime.now(timezone.utc)
@@ -773,9 +954,11 @@ def main() -> None:
         upsert(db, user.id, WIZ20_ID, "MAG-01 Волшебник 20", wizard20_sheet())
         upsert(db, user.id, SORC20_ID, "MAG-01 Чародей 20", sorcerer20_sheet())
         upsert(db, user.id, MULTI3_ID, "MAG-01 Бард/Жрец/Волшебник 2", multi3_sheet())
-        upsert(db, user.id, PAL_WL_ID, "MAG-01 Паладин 2 / Колдун 3", paladin_warlock_sheet())
+        upsert(db, user.id, PAL_WL_ID, "MAG-01 Паладин 5 / Колдун 3", paladin_warlock_sheet())
         upsert(db, user.id, CLERIC5_ID, "MAG-01 Жрец 5", cleric5_sheet())
         upsert(db, user.id, ROGUE5_ID, "MAG-01 Плут 5", rogue5_sheet())
+        upsert(db, user.id, DRUID5_ID, "MAG-01 Друид 5 Луна", druid5_moon_sheet())
+        upsert(db, user.id, WARLOCK1_ID, "MAG-01 Колдун 1 без покровителя", warlock1_no_patron_sheet())
         db.commit()
         print(
             json.dumps(
@@ -788,6 +971,8 @@ def main() -> None:
                     "paladinWarlock": str(PAL_WL_ID),
                     "cleric5": str(CLERIC5_ID),
                     "rogue5": str(ROGUE5_ID),
+                    "druid5": str(DRUID5_ID),
+                    "warlock1": str(WARLOCK1_ID),
                 },
                 ensure_ascii=False,
                 indent=2,
