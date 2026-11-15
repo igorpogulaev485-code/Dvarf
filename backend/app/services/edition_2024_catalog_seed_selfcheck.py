@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from app.services.edition_2024_catalog_seed import (
+    EDITION_2024_CATALOG_WAVES,
     assert_raw_dump_not_activated,
     load_wave_rows,
     normalize_background_data,
     normalize_entry_payload,
     normalize_feat_data,
+    normalize_race_data,
     normalize_source,
     normalize_weapon_data,
 )
@@ -23,6 +25,11 @@ def main() -> None:
     assert weapon.get("mastery") == "vex"
     assert "mastery:vex" not in weapon.get("properties", [])
     assert "finesse" in weapon.get("properties", [])
+
+    race = normalize_race_data({"speed": 30, "ability_bonuses": {"str": 2}})
+    assert race["ability_bonuses"] == {"str": 2}  # cleaner keeps until apply forces empty
+    race_empty = normalize_race_data({"speed": 30})
+    assert race_empty["ability_bonuses"] == {}
 
     bg = normalize_background_data({})
     assert "asi" in bg and "origin_feat" in bg
@@ -66,7 +73,22 @@ def main() -> None:
     assert ok["data"]["category"] == "origin"
 
     planned = load_wave_rows()
-    assert planned == []
+    assert len(EDITION_2024_CATALOG_WAVES) >= 2
+    races = [r for r in planned if r["kind"] == "race"]
+    bgs = [r for r in planned if r["kind"] == "background"]
+    assert len(races) == 9, len(races)
+    assert len(bgs) == 4, len(bgs)
+    for row in races:
+        assert row["data"].get("ability_bonuses") in ({}, None) or row["data"][
+            "ability_bonuses"
+        ] == {}
+        # After normalize_race_data empty default:
+        assert row["data"]["ability_bonuses"] == {}
+    for row in bgs:
+        asi = row["data"].get("asi")
+        assert isinstance(asi, dict) and len(asi.get("abilities") or []) == 3
+        feat_ref = row["data"].get("origin_feat")
+        assert isinstance(feat_ref, dict) and feat_ref.get("id") and feat_ref.get("name_ru")
     assert_raw_dump_not_activated(planned)
     print("edition_2024_catalog_seed selfcheck ok")
 

@@ -6,7 +6,8 @@ its empty class/species/background stubs, Culture, or Engineering.
 
 Schema contract for later packs (P24-00 lists → data packs):
 - weapon: ``mastery`` is a top-level ``data`` field (not a ``properties`` entry)
-- background: ``data.asi`` and ``data.origin_feat`` (may be empty placeholders)
+- race (species 2024): empty ``ability_bonuses``; no languages from species
+- background: ``data.asi`` and ``data.origin_feat`` (feat cards land in C02)
 - feat: ``data.category`` (may be empty)
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
@@ -40,8 +41,11 @@ class WaveSpec:
     filename: str
 
 
-# Empty until P24-00 reference lists land and later packs ship JSON waves.
-EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = ()
+# Live waves (P24-C01+). Raw dump catalog.json is never listed here.
+EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
+    WaveSpec("species_srd.json"),
+    WaveSpec("backgrounds_srd.json"),
+)
 
 
 def _data_dir() -> Path:
@@ -91,6 +95,27 @@ def normalize_weapon_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
     return out
 
 
+def normalize_race_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
+    """2024 species: no ASI from the species card; keep short trait payload."""
+    out = dict(data) if isinstance(data, dict) else {}
+    bonuses = out.get("ability_bonuses")
+    if bonuses in (None, ""):
+        out["ability_bonuses"] = {}
+    elif isinstance(bonuses, Mapping):
+        # Strip zero / null leftovers; 2024 species must not grant ASI.
+        cleaned = {
+            str(k).lower(): v
+            for k, v in bonuses.items()
+            if v not in (None, "", 0, "0")
+        }
+        out["ability_bonuses"] = cleaned
+    else:
+        out["ability_bonuses"] = {}
+    out.setdefault("languages", [])
+    out.setdefault("languages_choose", 0)
+    return out
+
+
 def normalize_background_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
     out = dict(data) if isinstance(data, dict) else {}
     out.setdefault("asi", None)
@@ -116,6 +141,8 @@ def normalize_entry_payload(item: Mapping[str, Any]) -> dict[str, Any] | None:
     data_raw = item.get("data") if isinstance(item.get("data"), dict) else {}
     if kind == "weapon":
         data = normalize_weapon_data(data_raw)
+    elif kind == "race":
+        data = normalize_race_data(data_raw)
     elif kind == "background":
         data = normalize_background_data(data_raw)
     elif kind == "feat":
@@ -255,14 +282,19 @@ def deactivate_legacy_2024_stubs(conn: sa.Connection) -> int:
 
 
 def apply_edition_2024_catalog_seed(conn: sa.Connection) -> SeedStats:
-    """Idempotent apply: upsert live waves (none yet) and deactivate stubs."""
+    """Idempotent apply: upsert live waves and deactivate stubs."""
     stats = SeedStats()
     stats.deactivated_stubs = deactivate_legacy_2024_stubs(conn)
     rows = load_wave_rows()
     for row in rows:
+        # 2024 species must never carry ASI, even if a wave file regresses.
+        if row.get("kind") == "race":
+            data = dict(row.get("data") or {})
+            data["ability_bonuses"] = {}
+            row = {**row, "data": data}
         stats.upserted += _upsert_row(conn, row)
     _migration_logger.info(
-        "P24-01 edition 2024 seed: upserted=%s deactivated_stubs=%s waves=%s",
+        "P24-C01 edition 2024 seed: upserted=%s deactivated_stubs=%s waves=%s",
         stats.upserted,
         stats.deactivated_stubs,
         len(EDITION_2024_CATALOG_WAVES),

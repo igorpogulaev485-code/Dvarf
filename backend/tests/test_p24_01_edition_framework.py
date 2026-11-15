@@ -366,7 +366,8 @@ def test_seed_schema_and_no_stubs():
         is None
     )
     planned = load_wave_rows()
-    assert planned == []
+    # P24-C01 fills SRD species + backgrounds; framework still forbids stubs / playtest.
+    assert all(r["slug"] not in {"culture", "engineering"} for r in planned)
     assert_raw_dump_not_activated(planned)
 
 
