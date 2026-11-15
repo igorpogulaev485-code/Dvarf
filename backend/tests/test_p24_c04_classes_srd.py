@@ -49,7 +49,7 @@ SRD_SUBCLASSES = {
     "wizard__evoker",
 }
 WM_CLASSES = {"barbarian", "fighter", "paladin", "ranger", "rogue"}
-PLANNED_TOTAL = 215 + 12 + 12  # C01–C03 + classes + subclasses
+PLANNED_TOTAL = 215 + 12 + 12 + 339  # C01–C03 + classes + subclasses + C05 spells
 
 
 def _srd_ids(category: str) -> set[str]:
@@ -134,8 +134,12 @@ def test_each_class_has_full_level_table_and_subclass_at_3():
         # Subclass feature appears at level 3.
         lv3_ids = {f["id"] for f in levels[2]["features"]}
         assert any("subclass" in fid for fid in lv3_ids), row["slug"]
-        assert data.get("spell_list") == []
-        assert "C05" in (data.get("spell_list_note_ru") or "")
+        assert isinstance(data.get("spell_list"), list)
+        # Casters filled in P24-C05; non-casters stay empty.
+        if row["slug"] in {"barbarian", "fighter", "monk", "rogue"}:
+            assert data.get("spell_list") == []
+        else:
+            assert data.get("spell_list"), row["slug"]
         assert data.get("content_layer") == "srd"
         assert row["rules_edition"] == "2024"
 
@@ -200,7 +204,7 @@ def test_subclass_cards_link_parent_and_features():
             assert block.get("features")
             for f in block["features"]:
                 assert f.get("id") and f.get("name_ru") and f.get("summary_ru")
-        assert data.get("spell_list") == []
+        assert isinstance(data.get("spell_list"), list)
         assert data.get("content_layer") == "srd"
 
 
@@ -308,7 +312,8 @@ def test_alembic_single_head_includes_p24_c04():
     }
     assert "p24c04class01" in ancestor_ids
     assert "p24c03gear01" in ancestor_ids
-    assert heads[0] == "p24c04class01"
+    assert "p24c05spell01" in ancestor_ids
+    assert heads[0] == "p24c05spell01"
 
 
 def test_no_artificer_or_book_subclasses_in_live_wave():

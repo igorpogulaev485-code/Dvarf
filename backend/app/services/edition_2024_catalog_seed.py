@@ -12,8 +12,10 @@ Schema contract for later packs (P24-00 lists → data packs):
 - background: ``data.asi`` and ``data.origin_feat`` (feat cards in C02)
 - feat: ``data.category``, ``prerequisites``, ``repeatable``, ``ability_score_increase``
 - class: ``hit_die``, saves, proficiencies, ``subclass_level``, ``levels`` 1–20,
-  ``weapon_mastery``, starting gear refs; ``spell_list`` empty until C05
-- subclass: ``parent_class``, features by level; ``spell_list`` empty until C05
+  ``weapon_mastery``, starting gear refs; ``spell_list`` filled in C05
+- subclass: ``parent_class``, features by level; ``spell_list`` filled in C05 when SRD has domain/circle/oath lists
+- spell: level 0–9, school, casting_time, ``magic_action``, components, classes,
+  cantrip/slot scaling tables; short ``summary_ru`` (no long SRD prose)
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -55,6 +57,7 @@ EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("weapons_srd.json"),
     WaveSpec("armor_srd.json"),
     WaveSpec("equipment_srd.json"),
+    WaveSpec("spells_srd.json"),
     WaveSpec("classes_srd.json"),
     WaveSpec("subclasses_srd.json"),
 )
@@ -206,10 +209,7 @@ def normalize_class_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
     out.setdefault("starting_equipment", [])
     out.setdefault("levels", [])
     out.setdefault("spell_list", [])
-    out.setdefault(
-        "spell_list_note_ru",
-        "Список заклинаний класса — пачка P24-C05; поле намеренно пустое.",
-    )
+    out.setdefault("spell_list_note_ru", None)
     out.setdefault("summary_ru", None)
     return out
 
@@ -224,11 +224,43 @@ def normalize_subclass_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
         out["subclass_level"] = int(out["subclass_level"])
     out.setdefault("features", [])
     out.setdefault("spell_list", [])
-    out.setdefault(
-        "spell_list_note_ru",
-        "Заклинания подкласса — пачка P24-C05; поле намеренно пустое.",
-    )
+    out.setdefault("spell_list_note_ru", None)
     out.setdefault("summary_ru", None)
+    return out
+
+
+def normalize_spell_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
+    """2024 spell card: mechanics + short RU summary (no long SRD prose)."""
+    out = dict(data) if isinstance(data, dict) else {}
+    if out.get("schema_version") is None:
+        out["schema_version"] = 1
+    out.setdefault("level", None)
+    out.setdefault("school", None)
+    out.setdefault("casting_time", None)
+    if out.get("magic_action") is None:
+        ct = out.get("casting_time")
+        if isinstance(ct, Mapping):
+            out["magic_action"] = ct.get("unit") == "action"
+        else:
+            out["magic_action"] = False
+    else:
+        out["magic_action"] = bool(out["magic_action"])
+    out.setdefault("range", None)
+    out.setdefault("components", {})
+    out.setdefault("duration", None)
+    if out.get("concentration") is None:
+        out["concentration"] = False
+    else:
+        out["concentration"] = bool(out["concentration"])
+    if out.get("ritual") is None:
+        out["ritual"] = False
+    else:
+        out["ritual"] = bool(out["ritual"])
+    out.setdefault("classes", [])
+    out.setdefault("attack_or_save", None)
+    out.setdefault("damage", None)
+    out.setdefault("summary_ru", None)
+    out.setdefault("name_ru_pending", False)
     return out
 
 
@@ -290,6 +322,8 @@ def normalize_entry_payload(item: Mapping[str, Any]) -> dict[str, Any] | None:
         data = normalize_class_data(data_raw)
     elif kind == "subclass":
         data = normalize_subclass_data(data_raw)
+    elif kind == "spell":
+        data = normalize_spell_data(data_raw)
     else:
         data = dict(data_raw)
 

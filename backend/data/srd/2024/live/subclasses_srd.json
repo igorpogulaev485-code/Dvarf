@@ -70,7 +70,7 @@
         ],
         "summary_ru": "Подкласс варвара SRD: яростное безумие.",
         "spell_list": [],
-        "spell_list_note_ru": "Заклинания подкласса — пачка P24-C05; поле намеренно пустое."
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в SRD 5.2.1."
       }
     },
     {
@@ -132,7 +132,7 @@
         ],
         "summary_ru": "Подкласс барда SRD: знания и Режущие слова.",
         "spell_list": [],
-        "spell_list_note_ru": "Заклинания подкласса — пачка P24-C05; поле намеренно пустое."
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в SRD 5.2.1."
       }
     },
     {
@@ -199,8 +199,39 @@
           }
         ],
         "summary_ru": "Подкласс жреца SRD: лечение и канал Сохранения жизни.",
-        "spell_list": [],
-        "spell_list_note_ru": "Заклинания подкласса — пачка P24-C05; поле намеренно пустое."
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "aid",
+              "bless",
+              "cure-wounds",
+              "lesser-restoration"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "mass-healing-word",
+              "revivify"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "aura-of-life",
+              "death-ward"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "greater-restoration",
+              "mass-cure-wounds"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные / круговые заклинания подкласса по SRD 5.2.1."
       }
     },
     {
@@ -272,8 +303,129 @@
           }
         ],
         "summary_ru": "Подкласс друида SRD: земля и восстановление слотов.",
-        "spell_list": [],
-        "spell_list_note_ru": "Заклинания подкласса — пачка P24-C05; поле намеренно пустое."
+        "spell_list": [
+          {
+            "level": 3,
+            "land": "arid",
+            "spells": [
+              "blur",
+              "burning-hands",
+              "fire-bolt"
+            ]
+          },
+          {
+            "level": 5,
+            "land": "arid",
+            "spells": [
+              "fireball"
+            ]
+          },
+          {
+            "level": 7,
+            "land": "arid",
+            "spells": [
+              "blight"
+            ]
+          },
+          {
+            "level": 9,
+            "land": "arid",
+            "spells": [
+              "wall-of-stone"
+            ]
+          },
+          {
+            "level": 3,
+            "land": "polar",
+            "spells": [
+              "fog-cloud",
+              "hold-person",
+              "ray-of-frost"
+            ]
+          },
+          {
+            "level": 5,
+            "land": "polar",
+            "spells": [
+              "sleet-storm"
+            ]
+          },
+          {
+            "level": 7,
+            "land": "polar",
+            "spells": [
+              "ice-storm"
+            ]
+          },
+          {
+            "level": 9,
+            "land": "polar",
+            "spells": [
+              "cone-of-cold"
+            ]
+          },
+          {
+            "level": 3,
+            "land": "temperate",
+            "spells": [
+              "misty-step",
+              "shocking-grasp",
+              "sleep"
+            ]
+          },
+          {
+            "level": 5,
+            "land": "temperate",
+            "spells": [
+              "lightning-bolt"
+            ]
+          },
+          {
+            "level": 7,
+            "land": "temperate",
+            "spells": [
+              "freedom-of-movement"
+            ]
+          },
+          {
+            "level": 9,
+            "land": "temperate",
+            "spells": [
+              "tree-stride"
+            ]
+          },
+          {
+            "level": 3,
+            "land": "tropical",
+            "spells": [
+              "acid-splash",
+              "ray-of-sickness",
+              "web"
+            ]
+          },
+          {
+            "level": 5,
+            "land": "tropical",
+            "spells": [
+              "stinking-cloud"
+            ]
+          },
+          {
+            "level": 7,
+            "land": "tropical",
+            "spells": [
+              "polymorph"
+            ]
+          },
+          {
+            "level": 9,
+            "land": "tropical",
+            "spells": [
+              "insect-plague"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные / круговые заклинания подкласса по SRD 5.2.1."
       }
     },
     {
@@ -357,7 +509,7 @@
         ],
         "summary_ru": "Подкласс воина SRD: криты и атлетизм.",
         "spell_list": [],
-        "spell_list_note_ru": "Заклинания подкласса — пачка P24-C05; поле намеренно пустое."
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в SRD 5.2.1."
       }
     },
     {
@@ -424,7 +576,7 @@
         ],
         "summary_ru": "Подкласс монаха SRD: техника открытой ладони.",
         "spell_list": [],
-        "spell_list_note_ru": "Заклинания подкласса — пачка P24-C05; поле намеренно пустое."
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в SRD 5.2.1."
       }
     },
     {
@@ -496,8 +648,44 @@
           }
         ],
         "summary_ru": "Подкласс паладина SRD: клятва преданности.",
-        "spell_list": [],
-        "spell_list_note_ru": "Заклинания подкласса — пачка P24-C05; поле намеренно пустое."
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "protection-from-evil-and-good",
+              "shield-of-faith"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "aid",
+              "zone-of-truth"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "beacon-of-hope",
+              "dispel-magic"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "freedom-of-movement",
+              "guardian-of-faith"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "commune",
+              "flame-strike"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные / круговые заклинания подкласса по SRD 5.2.1."
       }
     },
     {
@@ -570,7 +758,7 @@
         ],
         "summary_ru": "Подкласс следопыта SRD: охотник.",
         "spell_list": [],
-        "spell_list_note_ru": "Заклинания подкласса — пачка P24-C05; поле намеренно пустое."
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в SRD 5.2.1."
       }
     },
     {
@@ -643,7 +831,7 @@
         ],
         "summary_ru": "Подкласс плута SRD: вор.",
         "spell_list": [],
-        "spell_list_note_ru": "Заклинания подкласса — пачка P24-C05; поле намеренно пустое."
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в SRD 5.2.1."
       }
     },
     {
@@ -716,7 +904,7 @@
         ],
         "summary_ru": "Подкласс чародея SRD: драконья кровь.",
         "spell_list": [],
-        "spell_list_note_ru": "Заклинания подкласса — пачка P24-C05; поле намеренно пустое."
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в SRD 5.2.1."
       }
     },
     {
@@ -788,8 +976,39 @@
           }
         ],
         "summary_ru": "Подкласс колдуна SRD: покровитель-исчадие.",
-        "spell_list": [],
-        "spell_list_note_ru": "Заклинания подкласса — пачка P24-C05; поле намеренно пустое."
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "burning-hands",
+              "command",
+              "scorching-ray",
+              "suggestion"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "fireball",
+              "stinking-cloud"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "fire-shield",
+              "wall-of-fire"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "geas",
+              "insect-plague"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные / круговые заклинания подкласса по SRD 5.2.1."
       }
     },
     {
@@ -862,7 +1081,7 @@
         ],
         "summary_ru": "Подкласс волшебника SRD: школа воплощения.",
         "spell_list": [],
-        "spell_list_note_ru": "Заклинания подкласса — пачка P24-C05; поле намеренно пустое."
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в SRD 5.2.1."
       }
     }
   ]

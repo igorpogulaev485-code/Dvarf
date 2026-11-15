@@ -16,6 +16,7 @@ from app.services.edition_2024_catalog_seed import (
     normalize_item_data,
     normalize_race_data,
     normalize_source,
+    normalize_spell_data,
     normalize_subclass_data,
     normalize_weapon_data,
 )
@@ -52,6 +53,9 @@ def main() -> None:
     assert cls["subclass_level"] == 3
     sub = normalize_subclass_data({"parent_class": "fighter"})
     assert sub["parent_class"] == "fighter"
+    spell = normalize_spell_data({"casting_time": {"unit": "action", "amount": 1}})
+    assert spell["magic_action"] is True
+    assert spell["schema_version"] == 1
 
     stub = normalize_entry_payload(
         {
@@ -89,12 +93,13 @@ def main() -> None:
     assert ok["data"]["category"] == "origin"
 
     planned = load_wave_rows()
-    assert len(EDITION_2024_CATALOG_WAVES) >= 8
+    assert len(EDITION_2024_CATALOG_WAVES) >= 9
     races = [r for r in planned if r["kind"] == "race"]
     bgs = [r for r in planned if r["kind"] == "background"]
     weapons = [r for r in planned if r["kind"] == "weapon"]
     armor_rows = [r for r in planned if r["kind"] == "armor"]
     items = [r for r in planned if r["kind"] == "item"]
+    spells = [r for r in planned if r["kind"] == "spell"]
     classes = [r for r in planned if r["kind"] == "class"]
     subclasses = [r for r in planned if r["kind"] == "subclass"]
     assert len(races) == 9, len(races)
@@ -102,8 +107,16 @@ def main() -> None:
     assert len(weapons) == 38, len(weapons)
     assert len(armor_rows) == 13, len(armor_rows)
     assert len(items) == 134, len(items)
+    assert len(spells) == 339, len(spells)
     assert len(classes) == 12, len(classes)
     assert len(subclasses) == 12, len(subclasses)
+    for row in spells:
+        assert row["data"].get("level") in range(0, 10)
+        assert row["data"].get("school")
+        assert row["data"].get("components")
+    wizard = next(r for r in classes if r["slug"] == "wizard")
+    assert wizard["data"].get("spell_list")
+    assert "fireball" in wizard["data"]["spell_list"]
     for row in classes:
         assert len(row["data"].get("levels") or []) == 20
         assert row["data"].get("subclass_level") == 3
