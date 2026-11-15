@@ -74,14 +74,21 @@ assert.match(createPage, /resolvedId/)
 assert.match(grimoire, /prepareCapForSpell/)
 assert.match(grimoire, /countPreparedLeveledBySlug/)
 
-// --- Cast dialog full metamagic (collapsible; no per-option «осталось») ---
+// --- Cast dialog full metamagic (ToggleChip; collapsible; no «осталось») ---
 assert.match(castDlg, /listKnownMetamagic/)
 assert.match(castDlg, /knownMetamagic/)
 assert.match(castDlg, /metamagicOpen/)
 assert.match(castDlg, /metamagicDisableReason/)
 assert.match(castDlg, /metamagicCostLabel/)
+assert.match(castDlg, /ToggleChip/)
+assert.match(castDlg, /metamagicShortLabel/)
 assert.doesNotMatch(castDlg, /осталось \$\{sorceryLeft\}/)
+assert.doesNotMatch(castDlg, /cast-metamagic-block__option/)
 assert.match(castDlg, /useDistant|useCareful|useEmpowered/)
+const toggleChipSrc = read('src/ui/ToggleChip.tsx')
+assert.match(toggleChipSrc, /role="checkbox"/)
+assert.match(toggleChipSrc, /aria-checked/)
+assert.match(toggleChipSrc, /ui-toggle-chip/)
 
 // --- Settings multiclass profiles ---
 assert.match(settings, /showMultiProfiles/)

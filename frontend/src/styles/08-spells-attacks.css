@@ -1038,24 +1038,15 @@ button.spells-settings__derived-stat--btn:hover {
 }
 
 .cast-metamagic-block__body {
-  display: grid;
-  gap: 4px;
+  margin-bottom: 0;
   padding: 2px 0 0;
 }
 
-.cast-metamagic-block__option {
-  font-size: 0.86rem;
-  line-height: 1.35;
-}
-
-.cast-metamagic-block__option.is-disabled {
-  color: var(--desk-muted, var(--muted));
-  opacity: 0.78;
-}
-
-.cast-metamagic-block__reason {
-  font-weight: 500;
-  color: var(--desk-muted, var(--muted));
+.cast-metamagic-block__chip-wrap {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
 }
 
 .cast-metamagic-block__params {

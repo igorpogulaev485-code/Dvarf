@@ -48,7 +48,7 @@ import {
   STACKABLE_METAMAGIC_IDS,
   type MetamagicCastFlags,
 } from '../../shared/dnd/metamagicCast'
-import { Button, Dialog, Stack, Text } from '../../ui'
+import { Button, Dialog, Stack, Text, ToggleChip } from '../../ui'
 import { AllyTargetFields } from '../lobby/AllyTargetFields'
 import { useLobbyParty, type AllyPickDemo } from '../lobby/useLobbyParty'
 import { useTurnEconomy } from './TurnEconomyContext'
@@ -1443,7 +1443,7 @@ export function CastSpellDialog({
               </p>
             ) : null}
             {metamagicOpen ? (
-              <div className="cast-metamagic-block__body">
+              <div className="chip-row cast-source-row cast-metamagic-block__body">
                 {knownMetamagic.map((def) => {
                   const cost = metamagicSpendCost(def, metaSlotLevel)
                   const stackable = STACKABLE_METAMAGIC_IDS.has(def.id)
@@ -1477,20 +1477,20 @@ export function CastSpellDialog({
                     useEmbodiment,
                   })
                   const disabled = useRitual || Boolean(reason)
+                  const rest = reason
+                    ? reason
+                    : `${metamagicCostLabel(cost)}${
+                        stackable ? ' · можно с другой' : ''
+                      }`
                   return (
-                    <label
-                      key={def.id}
-                      className={`field cast-metamagic-block__option${
-                        disabled ? ' is-disabled' : ''
-                      }`}
-                      title={def.summaryRu}
-                    >
-                      <input
-                        type="checkbox"
+                    <span key={def.id} className="cast-metamagic-block__chip-wrap">
+                      <ToggleChip
+                        main={metamagicShortLabel(def)}
+                        rest={rest}
                         checked={checked}
                         disabled={disabled}
-                        onChange={(event) => {
-                          const next = event.target.checked
+                        title={def.summaryRu}
+                        onChange={(next) => {
                           if (stackable) {
                             if (def.id === 'empowered') setUseEmpowered(next)
                             if (def.id === 'seeking') setUseSeeking(next)
@@ -1498,28 +1498,21 @@ export function CastSpellDialog({
                           }
                           togglePrimaryMeta(def.id, next)
                         }}
-                      />{' '}
-                      {def.nameRu} · {metamagicCostLabel(cost)}
-                      {stackable ? ' · можно с другой' : ''}
-                      {reason ? (
-                        <span className="cast-metamagic-block__reason"> · {reason}</span>
-                      ) : null}
+                      />
                       {def.id === 'transmuted' && checked ? (
-                        <>
-                          {' '}
-                          <select
-                            value={transmutedType}
-                            onChange={(ev) => setTransmutedType(ev.target.value)}
-                          >
-                            {TRANSMUTED_DAMAGE_TYPES.map((row) => (
-                              <option key={row.id} value={row.id}>
-                                {row.nameRu}
-                              </option>
-                            ))}
-                          </select>
-                        </>
+                        <select
+                          value={transmutedType}
+                          onChange={(ev) => setTransmutedType(ev.target.value)}
+                          aria-label="Тип урона преобразованного"
+                        >
+                          {TRANSMUTED_DAMAGE_TYPES.map((row) => (
+                            <option key={row.id} value={row.id}>
+                              {row.nameRu}
+                            </option>
+                          ))}
+                        </select>
                       ) : null}
-                    </label>
+                    </span>
                   )
                 })}
               </div>

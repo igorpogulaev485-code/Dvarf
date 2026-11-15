@@ -1014,6 +1014,65 @@ a.ui-button--primary {
   border-color: var(--line);
 }
 
+/**
+ * Kit selectable chip — two-line face (name / cost|reason), like cast slot chips.
+ * Selected = solid accent; disabled = muted (no strikethrough).
+ */
+.ui-toggle-chip {
+  appearance: none;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 6px 12px;
+  min-height: var(--control-h-md);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ui-toggle-chip:hover:not(:disabled):not(.is-on) {
+  background: color-mix(in srgb, var(--accent-soft) 45%, var(--card));
+}
+
+.ui-toggle-chip.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #fff 18%, transparent);
+}
+
+.ui-toggle-chip.is-disabled,
+.ui-toggle-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ui-toggle-chip__main {
+  font-weight: 700;
+}
+
+.ui-toggle-chip__rest {
+  font-size: 0.72em;
+  font-weight: 600;
+  opacity: 0.78;
+  line-height: 1.2;
+}
+
+.ui-toggle-chip.is-on .ui-toggle-chip__rest {
+  opacity: 0.9;
+}
+
 /* Kit chip — removable status face (label ↔ × gap owned here) */
 .ui-chip {
   position: relative;
