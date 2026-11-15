@@ -1899,6 +1899,40 @@ class CombatAttackResult(BaseModel):
     feed_line: str | None = None
 
 
+class SheetCombatAttackRequest(BaseModel):
+    """FIX-01: атака с листа героя → попадание по КД цели → снятие хитов."""
+
+    character_id: UUID
+    attack_name: str = Field(min_length=1, max_length=200)
+    target_kind: str = Field(pattern="^(pc|companion|enemy)$")
+    target_ref_id: str = Field(min_length=1, max_length=80)
+    target_member_id: str | None = Field(default=None, max_length=80)
+    companion_id: str | None = Field(default=None, max_length=80)
+    # roll | manual | table_hit | table_miss
+    mode: str = Field(
+        default="roll",
+        pattern="^(roll|manual|table_hit|table_miss)$",
+    )
+    attack_total: int | None = Field(default=None, ge=-20, le=99)
+    attack_natural: int | None = Field(default=None, ge=1, le=20)
+    damage_total: int | None = Field(default=None, ge=0, le=9999)
+    damage_type: str | None = Field(default=None, max_length=40)
+    physical_dice: bool = False
+
+
+class SheetCombatAttackResult(BaseModel):
+    session: "SessionDetail"
+    event: SessionEventOut | None = None
+    hit: bool
+    crit: bool = False
+    damage_applied: int | None = None
+    damage_note: str | None = None
+    hp_current: int | None = None
+    hp_max: int | None = None
+    target_name: str | None = None
+    feed_line: str | None = None
+
+
 class CombatReactionRequest(BaseModel):
     """S-04: объявить реакцию или пропустить."""
 

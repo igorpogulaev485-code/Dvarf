@@ -1867,6 +1867,48 @@ export async function resolveSessionCombatAttack(
   })
 }
 
+export type SheetCombatAttackPayload = {
+  character_id: string
+  attack_name: string
+  target_kind: 'pc' | 'companion' | 'enemy'
+  target_ref_id: string
+  target_member_id?: string | null
+  companion_id?: string | null
+  mode?: 'roll' | 'manual' | 'table_hit' | 'table_miss'
+  attack_total?: number | null
+  attack_natural?: number | null
+  damage_total?: number | null
+  damage_type?: string | null
+  physical_dice?: boolean
+}
+
+export type SheetCombatAttackResult = {
+  session: SessionDetail
+  event?: SessionEvent | null
+  hit: boolean
+  crit?: boolean
+  damage_applied?: number | null
+  damage_note?: string | null
+  hp_current?: number | null
+  hp_max?: number | null
+  target_name?: string | null
+  feed_line?: string | null
+}
+
+/** FIX-01: атака с листа — попадание по КД и снятие хитов цели. */
+export async function resolveSessionSheetCombatAttack(
+  sessionId: string,
+  payload: SheetCombatAttackPayload,
+): Promise<SheetCombatAttackResult> {
+  return apiRequest<SheetCombatAttackResult>(
+    `/sessions/${sessionId}/combat/sheet-attack`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+  )
+}
+
 export async function resolveSessionCombatReaction(
   sessionId: string,
   payload: {

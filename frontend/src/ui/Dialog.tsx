@@ -26,6 +26,8 @@ type DialogProps = {
   onDismiss?: () => void
   /** When false, hide the default footer (custom actions live in children). */
   showActions?: boolean
+  /** Show × in the header; calls onDismiss (falls back to onSecondary). */
+  showClose?: boolean
 }
 
 export function Dialog({
@@ -43,10 +45,19 @@ export function Dialog({
   closeOnBackdrop,
   onDismiss,
   showActions = true,
+  showClose = false,
 }: DialogProps) {
   // Cancel / Escape stay available even when primary is busy or disabled.
   const canClose = Boolean(onDismiss || onSecondary)
   const backdropCloses = closeOnBackdrop ?? canClose
+
+  function dismiss() {
+    if (onDismiss) {
+      onDismiss()
+      return
+    }
+    onSecondary?.()
+  }
 
   useEffect(() => {
     if (!open) return
@@ -54,14 +65,13 @@ export function Dialog({
     const releaseScroll = acquireBodyScrollLock()
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape' && canClose) {
-        event.preventDefault()
-        if (onDismiss) {
-          onDismiss()
-          return
-        }
-        onSecondary?.()
+      if (event.key !== 'Escape' || !canClose) return
+      event.preventDefault()
+      if (onDismiss) {
+        onDismiss()
+        return
       }
+      onSecondary?.()
     }
 
     document.addEventListener('keydown', onKeyDown)
@@ -78,12 +88,7 @@ export function Dialog({
   function handleBackdropClick(event: MouseEvent<HTMLDivElement>) {
     if (event.target !== event.currentTarget) return
     if (!backdropCloses) return
-    if (onDismiss) {
-      onDismiss()
-      return
-    }
-    if (!onSecondary) return
-    onSecondary()
+    dismiss()
   }
 
   return createPortal(
@@ -105,9 +110,22 @@ export function Dialog({
         aria-labelledby="ui-dialog-title"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <h2 id="ui-dialog-title" className="ui-text ui-dialog__title">
-          {title}
-        </h2>
+        <div className="ui-dialog__header">
+          <h2 id="ui-dialog-title" className="ui-text ui-dialog__title">
+            {title}
+          </h2>
+          {showClose && canClose ? (
+            <button
+              type="button"
+              className="ui-dialog__close"
+              aria-label="Закрыть"
+              title="Закрыть"
+              onClick={dismiss}
+            >
+              ×
+            </button>
+          ) : null}
+        </div>
         <div className="ui-dialog__body">{children}</div>
         {showActions ? (
           <div className="ui-dialog__actions">

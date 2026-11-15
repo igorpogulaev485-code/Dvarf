@@ -1,5 +1,5 @@
 /**
- * Kit Dialog backdrop must cover full viewport (iPad Safari dynamic chrome).
+ * Kit Dialog backdrop must cover the visible viewport (iPhone Safari chrome).
  * Run: npx tsx --tsconfig tsconfig.app.json src/ui/dialogBackdrop.selfcheck.ts
  */
 import assert from 'node:assert/strict'
@@ -9,22 +9,51 @@ import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../..')
 const css = readFileSync(join(root, 'src/styles/07-features-dialogs.css'), 'utf8')
+const mobile = readFileSync(join(root, 'src/styles/22-mobile-shell.css'), 'utf8')
 const dialog = readFileSync(join(root, 'src/ui/Dialog.tsx'), 'utf8')
 const lock = readFileSync(join(root, 'src/ui/bodyScrollLock.ts'), 'utf8')
+const html = readFileSync(join(root, 'index.html'), 'utf8')
 
 const block = css.match(/\.ui-dialog-backdrop\s*\{[\s\S]*?\n\}/)
 assert.ok(block, 'backdrop rule present')
 assert.match(block![0], /position:\s*fixed/)
 assert.match(block![0], /inset:\s*0/)
 assert.match(block![0], /height:\s*100vh/)
+assert.match(block![0], /height:\s*100svh/)
 assert.match(block![0], /height:\s*100dvh/)
-assert.match(block![0], /height:\s*100lvh/)
+assert.doesNotMatch(block![0], /height:\s*100lvh/)
 assert.match(block![0], /touch-action:\s*none/)
 assert.match(block![0], /overscroll-behavior:\s*none/)
+assert.match(block![0], /safe-area-inset-bottom/)
 
+const body = css.match(/\.ui-dialog__body\s*\{[\s\S]*?\n\}/)
+assert.ok(body, 'body rule present')
+assert.match(body![0], /touch-action:\s*pan-y/)
+assert.match(body![0], /overscroll-behavior:\s*contain/)
+
+const actions = css.match(/\.ui-dialog__actions\s*\{[\s\S]*?\n\}/)
+assert.ok(actions, 'actions rule present')
+assert.match(actions![0], /flex:\s*0\s+0\s+auto/)
+assert.match(actions![0], /safe-area-inset-bottom/)
+
+assert.match(css, /\.ui-dialog__header/)
+assert.match(css, /\.ui-dialog__close/)
+assert.match(dialog, /showClose/)
+assert.match(dialog, /ui-dialog__close/)
 assert.match(dialog, /className="ui-dialog-backdrop"/)
 assert.match(dialog, /acquireBodyScrollLock/)
 assert.match(lock, /position = 'fixed'/)
 assert.match(lock, /documentElement/)
+assert.match(html, /viewport-fit=cover/)
+
+const mobileBackdrop = mobile.match(
+  /@media \(max-width: 959px\)\s*\{[\s\S]*?\.ui-dialog-backdrop\s*\{[\s\S]*?\n\s*\}/,
+)
+assert.ok(mobileBackdrop, 'mobile backdrop rule')
+assert.match(mobileBackdrop![0], /safe-area-inset-bottom/)
+assert.doesNotMatch(
+  mobileBackdrop![0].replace(/safe-area-inset-bottom[\s\S]*/, ''),
+  /padding:\s*[^;]*\n\s*0\s*\n\s*0\s*\n\s*0/,
+)
 
 console.log('dialogBackdrop.selfcheck: ok')

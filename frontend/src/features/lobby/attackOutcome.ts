@@ -32,6 +32,42 @@ export function hitAgainstAc(
 }
 
 /**
+ * FIX-01: hit vs target AC from the table.
+ * Nat 1 → always miss; nat 20 → always hit (+ crit); else total ≥ AC.
+ * Returns null when AC unknown and natural is not 1/20.
+ */
+export function resolveHitVsAc(input: {
+  attackTotal?: number | null
+  natural?: number | null
+  ac?: number | null
+}): { hit: boolean; crit: boolean } | null {
+  const natural =
+    input.natural != null && Number.isFinite(input.natural)
+      ? Math.floor(Number(input.natural))
+      : null
+  if (natural === 1) return { hit: false, crit: false }
+  if (natural === 20) return { hit: true, crit: true }
+  const vs = hitAgainstAc(input.attackTotal, input.ac)
+  if (vs == null) return null
+  return { hit: vs, crit: false }
+}
+
+/** Feed line for HP change after a confirmed hit. */
+export function formatTargetHpFeedLine(input: {
+  targetName: string
+  damageApplied: number
+  hpCurrent: number
+  hpMax: number
+}): string {
+  const name = input.targetName.trim() || 'Цель'
+  const dmg = Math.max(0, Math.floor(input.damageApplied))
+  const cur = Math.max(0, Math.floor(input.hpCurrent))
+  const max = Math.max(1, Math.floor(input.hpMax))
+  const zero = cur <= 0 ? ' · 0 хитов' : ''
+  return `${name}: −${dmg}, ${cur}/${max}${zero}`
+}
+
+/**
  * Feed / toast line for a PC or enemy attack.
  * If AC is hidden from the viewer, omit «vs КД N».
  */

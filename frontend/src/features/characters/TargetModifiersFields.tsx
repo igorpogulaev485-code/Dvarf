@@ -12,6 +12,7 @@ import {
   POWER_ATTACK_HINT_GWM,
   POWER_ATTACK_HINT_SS,
 } from '../../shared/dnd/o05CombatFeats'
+import { ToggleChip } from '../../ui'
 
 export type TargetModifiersValue = {
   cover: CoverLevel
@@ -20,6 +21,11 @@ export type TargetModifiersValue = {
   restrained: boolean
   paralyzedClose: boolean
   fearSourceVisible: boolean
+  /** Цель ослеплена. */
+  blinded: boolean
+  /** Цель невидима. */
+  invisible: boolean
+  /** Невидимый обнаружен (снимает помеху по невидимой цели). */
   invisibleDiscovered: boolean
   underwater: boolean
   isMounted: boolean
@@ -43,6 +49,8 @@ export type TargetModifiersFlags = {
   hasMountedCombatant?: boolean
   isMountedNow?: boolean
   mountSizeLabel?: string | null
+  /** Атакующий испуган — показать чип «Источник страха виден». */
+  attackerFrightened?: boolean
 }
 
 type Props = {
@@ -72,6 +80,7 @@ export function TargetModifiersFields({
   const showWithin5 =
     Boolean(flags.hasCrossbowExpert || flags.hasGunner || flags.hasSharpshooter) ||
     (!showPower && Boolean(flags.hasCrossbowExpert || flags.hasGunner))
+  const showFear = Boolean(flags.attackerFrightened)
 
   const activeBits = [
     value.cover !== 'none' ? coverLabelRu(value.cover) : null,
@@ -79,12 +88,15 @@ export function TargetModifiersFields({
     value.prone ? 'опрокинута' : null,
     value.restrained ? 'опутана' : null,
     value.paralyzedClose ? 'паралич в 5 фт' : null,
+    value.blinded ? 'ослеплена' : null,
+    value.invisible ? 'невидима' : null,
     value.underwater ? 'цель под водой' : null,
     value.isMounted ? 'цель верхом' : null,
     value.powerAttackOn ? '−5/+10' : null,
     value.within5ft ? 'в 5 фт' : null,
     value.grappledByMe ? 'схвачена' : null,
     value.isObject ? 'предмет' : null,
+    showFear && value.fearSourceVisible ? 'страх виден' : null,
   ].filter(Boolean)
 
   return (
@@ -106,21 +118,27 @@ export function TargetModifiersFields({
       {open ? (
         <div id={panelId} className="target-modifiers__panel">
           {flags.showAdamantineObject ? (
-            <label className="field" style={{ marginBottom: 4 }}>
-              <input
-                type="checkbox"
+            <div className="chip-row" style={{ marginBottom: 8 }}>
+              <ToggleChip
+                main="Цель — предмет"
+                rest="адамантин → автокрит"
                 checked={value.isObject}
-                onChange={(e) => onChange({ isObject: e.target.checked })}
-              />{' '}
-              Цель — предмет (адамантин → автокрит)
-            </label>
+                onChange={(next) => onChange({ isObject: next })}
+              />
+            </div>
           ) : null}
 
           {showPower ? (
             <div className="chip-row" style={{ marginBottom: 8 }} role="group" aria-label="Силовой удар">
-              <button
-                type="button"
-                className={`sheet-chip${value.powerAttackOn ? ' is-on' : ''}`}
+              <ToggleChip
+                main={
+                  flags.hasGwm && flags.hasSharpshooter
+                    ? 'Силовой удар −5/+10'
+                    : flags.hasGwm
+                      ? 'Мастер большого оружия −5/+10'
+                      : 'Меткий стрелок −5/+10'
+                }
+                checked={value.powerAttackOn}
                 title={
                   flags.hasGwm && flags.hasSharpshooter
                     ? `${POWER_ATTACK_HINT_GWM} · ${POWER_ATTACK_HINT_SS}`
@@ -128,58 +146,41 @@ export function TargetModifiersFields({
                       ? POWER_ATTACK_HINT_GWM
                       : POWER_ATTACK_HINT_SS
                 }
-                onClick={() => onChange({ powerAttackOn: !value.powerAttackOn })}
-              >
-                {flags.hasGwm && flags.hasSharpshooter
-                  ? 'Силовой удар −5/+10'
-                  : flags.hasGwm
-                    ? 'Мастер большого оружия −5/+10'
-                    : 'Меткий стрелок −5/+10'}
-              </button>
+                onChange={(next) => onChange({ powerAttackOn: next })}
+              />
               {flags.hasSharpshooter ? (
-                <label className="field" style={{ margin: 0 }}>
-                  <input
-                    type="checkbox"
-                    checked={value.longRangeMarked}
-                    onChange={(e) => onChange({ longRangeMarked: e.target.checked })}
-                  />{' '}
-                  Дальняя дистанция
-                </label>
+                <ToggleChip
+                  main="Дальняя дистанция"
+                  checked={value.longRangeMarked}
+                  onChange={(next) => onChange({ longRangeMarked: next })}
+                />
               ) : null}
               {showWithin5 ? (
-                <label className="field" style={{ margin: 0 }}>
-                  <input
-                    type="checkbox"
-                    checked={value.within5ft}
-                    onChange={(e) => onChange({ within5ft: e.target.checked })}
-                  />{' '}
-                  В 5 фт
-                </label>
+                <ToggleChip
+                  main="В 5 фт"
+                  checked={value.within5ft}
+                  onChange={(next) => onChange({ within5ft: next })}
+                />
               ) : null}
             </div>
           ) : showWithin5 ? (
             <div className="chip-row" style={{ marginBottom: 8 }}>
-              <label className="field" style={{ margin: 0 }}>
-                <input
-                  type="checkbox"
-                  checked={value.within5ft}
-                  onChange={(e) => onChange({ within5ft: e.target.checked })}
-                />{' '}
-                В 5 фт (дальнобойная)
-              </label>
+              <ToggleChip
+                main="В 5 фт (дальнобойная)"
+                checked={value.within5ft}
+                onChange={(next) => onChange({ within5ft: next })}
+              />
             </div>
           ) : null}
 
           {flags.hasGrappler ? (
             <div className="chip-row" style={{ marginBottom: 8 }}>
-              <label className="field" style={{ margin: 0 }}>
-                <input
-                  type="checkbox"
-                  checked={value.grappledByMe}
-                  onChange={(e) => onChange({ grappledByMe: e.target.checked })}
-                />{' '}
-                Цель схвачена мной (преимущество)
-              </label>
+              <ToggleChip
+                main="Цель схвачена мной"
+                rest="преимущество"
+                checked={value.grappledByMe}
+                onChange={(next) => onChange({ grappledByMe: next })}
+              />
             </div>
           ) : null}
 
@@ -198,115 +199,110 @@ export function TargetModifiersFields({
             ))}
           </div>
 
-          <div className="chip-row" style={{ marginBottom: 8 }}>
-            <label className="field" style={{ margin: 0 }}>
-              <input
-                type="checkbox"
-                checked={value.dodging}
-                onChange={(e) => onChange({ dodging: e.target.checked })}
-              />{' '}
-              Цель уклоняется
-            </label>
-            <label className="field" style={{ margin: 0 }}>
-              <input
-                type="checkbox"
-                checked={value.prone}
-                onChange={(e) => onChange({ prone: e.target.checked })}
-              />{' '}
-              Цель опрокинута
-            </label>
-            <label className="field" style={{ margin: 0 }}>
-              <input
-                type="checkbox"
-                checked={value.restrained}
-                onChange={(e) => onChange({ restrained: e.target.checked })}
-              />{' '}
-              Цель опутана
-            </label>
-            <label className="field" style={{ margin: 0 }}>
-              <input
-                type="checkbox"
-                checked={value.paralyzedClose}
-                onChange={(e) => onChange({ paralyzedClose: e.target.checked })}
-              />{' '}
-              Паралич/без сознания в 5 фт
-            </label>
-            <label className="field" style={{ margin: 0 }}>
-              <input
-                type="checkbox"
-                checked={value.fearSourceVisible}
-                onChange={(e) => onChange({ fearSourceVisible: e.target.checked })}
-              />{' '}
-              Источник страха виден
-            </label>
-            <label className="field" style={{ margin: 0 }}>
-              <input
-                type="checkbox"
+          <div
+            className="chip-row target-modifiers__conditions"
+            style={{ marginBottom: 8 }}
+            role="group"
+            aria-label="Состояния цели"
+          >
+            <ToggleChip
+              main="Цель уклоняется"
+              checked={value.dodging}
+              onChange={(next) => onChange({ dodging: next })}
+            />
+            <ToggleChip
+              main="Цель опрокинута"
+              checked={value.prone}
+              onChange={(next) => onChange({ prone: next })}
+            />
+            <ToggleChip
+              main="Цель опутана"
+              checked={value.restrained}
+              onChange={(next) => onChange({ restrained: next })}
+            />
+            <ToggleChip
+              main="Паралич/без сознания в 5 фт"
+              checked={value.paralyzedClose}
+              onChange={(next) => onChange({ paralyzedClose: next })}
+            />
+            <ToggleChip
+              main="Цель ослеплена"
+              checked={value.blinded}
+              onChange={(next) => onChange({ blinded: next })}
+            />
+            <ToggleChip
+              main="Цель невидима"
+              checked={value.invisible}
+              onChange={(next) =>
+                onChange(
+                  next
+                    ? { invisible: true }
+                    : { invisible: false, invisibleDiscovered: false },
+                )
+              }
+            />
+            {value.invisible ? (
+              <ToggleChip
+                main="Невидимый обнаружен"
                 checked={value.invisibleDiscovered}
-                onChange={(e) => onChange({ invisibleDiscovered: e.target.checked })}
-              />{' '}
-              Невидимый обнаружен
-            </label>
+                onChange={(next) => onChange({ invisibleDiscovered: next })}
+              />
+            ) : null}
+            {showFear ? (
+              <ToggleChip
+                main="Источник страха виден"
+                rest="вы испуганы"
+                checked={value.fearSourceVisible}
+                title="Источник страха виден (вы испуганы)"
+                onChange={(next) => onChange({ fearSourceVisible: next })}
+              />
+            ) : null}
           </div>
 
           <div className="chip-row" style={{ marginBottom: 0 }} role="group" aria-label="Цель: верхом и под водой">
-            <label className="field" style={{ margin: 0 }} title={UNDERWATER_HINT}>
-              <input
-                type="checkbox"
-                checked={value.underwater}
-                onChange={(e) => onChange({ underwater: e.target.checked })}
-              />{' '}
-              Цель под водой
-            </label>
+            <ToggleChip
+              main="Цель под водой"
+              checked={value.underwater}
+              title={UNDERWATER_HINT}
+              onChange={(next) => onChange({ underwater: next })}
+            />
             {flags.hasMountedCombatant && flags.isMountedNow ? (
-              <label className="field" style={{ margin: 0 }} title={MOUNTED_COMBATANT_ADV_HINT}>
-                <input
-                  type="checkbox"
-                  checked={value.smallerThanMount}
-                  onChange={(e) => onChange({ smallerThanMount: e.target.checked })}
-                />{' '}
-                Цель меньше скакуна
-                {flags.mountSizeLabel ? ` (${flags.mountSizeLabel})` : ''}
-              </label>
+              <ToggleChip
+                main={
+                  flags.mountSizeLabel
+                    ? `Цель меньше скакуна (${flags.mountSizeLabel})`
+                    : 'Цель меньше скакуна'
+                }
+                checked={value.smallerThanMount}
+                title={MOUNTED_COMBATANT_ADV_HINT}
+                onChange={(next) => onChange({ smallerThanMount: next })}
+              />
             ) : null}
-            <label className="field" style={{ margin: 0 }}>
-              <input
-                type="checkbox"
-                checked={value.isMounted}
-                onChange={(e) => {
-                  const next = e.target.checked
-                  onChange(
-                    next
-                      ? { isMounted: true }
-                      : { isMounted: false, aimAtMount: false, dismissRiderRangedDis: false },
-                  )
-                }}
-              />{' '}
-              Цель верхом
-            </label>
+            <ToggleChip
+              main="Цель верхом"
+              checked={value.isMounted}
+              onChange={(next) => {
+                onChange(
+                  next
+                    ? { isMounted: true }
+                    : { isMounted: false, aimAtMount: false, dismissRiderRangedDis: false },
+                )
+              }}
+            />
             {value.isMounted ? (
               <>
-                <label className="field" style={{ margin: 0 }}>
-                  <input
-                    type="checkbox"
-                    checked={value.aimAtMount}
-                    onChange={(e) => onChange({ aimAtMount: e.target.checked })}
-                  />{' '}
-                  Бью по скакуну
-                </label>
-                <label
-                  className="field"
-                  style={{ margin: 0 }}
+                <ToggleChip
+                  main="Бью по скакуну"
+                  checked={value.aimAtMount}
+                  onChange={(next) => onChange({ aimAtMount: next })}
+                />
+                <ToggleChip
+                  main="Помеха дальним по всаднику"
+                  checked={!value.dismissRiderRangedDis && !value.aimAtMount}
+                  disabled={value.aimAtMount}
                   title={MOUNTED_COMBATANT_RANGED_DIS_HINT}
-                >
-                  <input
-                    type="checkbox"
-                    checked={!value.dismissRiderRangedDis && !value.aimAtMount}
-                    disabled={value.aimAtMount}
-                    onChange={(e) => onChange({ dismissRiderRangedDis: !e.target.checked })}
-                  />{' '}
-                  Помеха дальним по всаднику
-                </label>
+                  onChange={(next) => onChange({ dismissRiderRangedDis: !next })}
+                />
               </>
             ) : null}
           </div>
@@ -314,4 +310,38 @@ export function TargetModifiersFields({
       ) : null}
     </div>
   )
+}
+
+/** Map table combatant conditions → modifier chips (player may clear). */
+export function modifiersFromTargetConditions(
+  conditions: unknown[] | null | undefined,
+): Partial<TargetModifiersValue> {
+  const slugs = new Set<string>()
+  for (const raw of conditions ?? []) {
+    if (typeof raw === 'string') {
+      slugs.add(raw.trim().toLowerCase())
+      continue
+    }
+    if (raw && typeof raw === 'object') {
+      const row = raw as { slug?: string; name?: string }
+      if (row.slug) slugs.add(String(row.slug).trim().toLowerCase())
+      const name = String(row.name || '').toLowerCase()
+      if (/опрокинут/.test(name)) slugs.add('prone')
+      if (/опутан/.test(name)) slugs.add('restrained')
+      if (/паралич|парализован|без сознан/.test(name)) slugs.add('paralyzed')
+      if (/ослепл/.test(name)) slugs.add('blinded')
+      if (/невидим/.test(name)) slugs.add('invisible')
+      if (/уклоня/.test(name)) slugs.add('dodging')
+    }
+  }
+  const patch: Partial<TargetModifiersValue> = {
+    prone: slugs.has('prone'),
+    restrained: slugs.has('restrained'),
+    paralyzedClose: slugs.has('paralyzed') || slugs.has('unconscious'),
+    blinded: slugs.has('blinded'),
+    invisible: slugs.has('invisible'),
+    dodging: slugs.has('dodging'),
+  }
+  if (!patch.invisible) patch.invisibleDiscovered = false
+  return patch
 }

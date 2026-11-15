@@ -6410,6 +6410,391 @@ class LobbyService:
         )
         return detail
 
+    async def resolve_sheet_combat_attack(
+        self,
+        user: User,
+        session_id: UUID,
+        payload,
+    ):
+        """FIX-01: атака с листа → hit vs КД → снятие хитов цели (игрок за столом)."""
+        from sqlalchemy.orm.attributes import flag_modified
+
+        from app.schemas.lobby import SheetCombatAttackResult
+        from app.services import session_table_s04 as s04
+
+        session, lobby, character = self._require_seat_actor(
+            user, session_id, payload.character_id
+        )
+        combatants = _parse_combatants(session.combatants)
+        state = _parse_combat_state(session.combat, combatants=combatants)
+        if not state.get("active"):
+            raise AppError(
+                "Бой не активен",
+                code="combat_inactive",
+                status_code=400,
+            )
+
+        actor_name = character.name
+        attack_name = (payload.attack_name or "Атака").strip() or "Атака"
+        mode = payload.mode or "roll"
+        physical = bool(payload.physical_dice) or mode in (
+            "manual",
+            "table_hit",
+            "table_miss",
+        )
+        attack_total = (
+            int(payload.attack_total)
+            if payload.attack_total is not None
+            else None
+        )
+        attack_natural = (
+            int(payload.attack_natural)
+            if payload.attack_natural is not None
+            else None
+        )
+
+        target_kind = payload.target_kind
+        target_name = "цель"
+        target_ac: int | None = None
+        hp_current: int | None = None
+        hp_max: int | None = None
+        enemy: dict | None = None
+        member: dict | None = None
+        pc_target = None
+        companion_row = None
+
+        if target_kind == "pc":
+            try:
+                pc_id = UUID(str(payload.target_ref_id))
+            except ValueError as exc:
+                raise AppError(
+                    "Некорректный id цели", code="bad_target", status_code=400
+                ) from exc
+            if self.lobbies.get_seat(session.id, pc_id) is None:
+                raise AppError(
+                    "Герой не за столом",
+                    code="target_not_seated",
+                    status_code=400,
+                )
+            pc_target = self.lobbies.get_characters_map([pc_id]).get(pc_id)
+            if pc_target is None:
+                raise NotFoundError("Персонаж не найден", code="character_not_found")
+            target_name = pc_target.name
+            extras = _seat_combat_fields(pc_target)
+            target_ac = extras.get("ac")
+            hp_max = max(1, int(pc_target.hp_max or 1))
+            hp_current = int(
+                pc_target.hp_current if pc_target.hp_current is not None else hp_max
+            )
+        elif target_kind == "companion":
+            try:
+                pc_id = UUID(str(payload.target_ref_id))
+            except ValueError as exc:
+                raise AppError(
+                    "Некорректный id цели", code="bad_target", status_code=400
+                ) from exc
+            host = self.lobbies.get_characters_map([pc_id]).get(pc_id)
+            if host is None:
+                raise NotFoundError("Персонаж не найден", code="character_not_found")
+            companions = _parse_companions((host.sheet or {}).get("companions"))
+            companion_row = next(
+                (
+                    c
+                    for c in companions
+                    if str(c.get("id")) == str(payload.companion_id)
+                ),
+                None,
+            )
+            if companion_row is None:
+                raise NotFoundError("Напарник не найден", code="companion_not_found")
+            target_name = str(companion_row.get("name") or "Напарник")
+            target_ac = companion_row.get("ac")
+            stats = _companion_stats_dict(companion_row)
+            hp_max_raw = _companion_int(stats.get("hp_max"))
+            if hp_max_raw is None:
+                hp_max_raw = _companion_int(companion_row.get("hp_max"))
+            hp_max = max(1, int(hp_max_raw or 1))
+            hp_cur_raw = _companion_int(stats.get("hp"))
+            if hp_cur_raw is None:
+                hp_cur_raw = _companion_int(companion_row.get("hp_current"))
+            hp_current = int(hp_cur_raw if hp_cur_raw is not None else hp_max)
+        else:
+            enemy = next(
+                (c for c in combatants if str(c.get("id")) == payload.target_ref_id),
+                None,
+            )
+            if enemy is None:
+                raise NotFoundError("Цель-враг не найдена", code="target_not_found")
+            members = list(enemy.get("members") or [])
+            if payload.target_member_id:
+                member = next(
+                    (
+                        m
+                        for m in members
+                        if str(m.get("id")) == payload.target_member_id
+                    ),
+                    None,
+                )
+            if member is None:
+                member = next(
+                    (m for m in members if int(m.get("hp_current") or 0) > 0),
+                    members[0] if members else None,
+                )
+            target_name = str(
+                (member or {}).get("name") or enemy.get("name") or "Враг"
+            )
+            target_ac = enemy.get("ac")
+            if member is not None:
+                hp_max = max(1, int(member.get("hp_max") or 1))
+                hp_current = int(member.get("hp_current") or 0)
+            else:
+                hp_max = max(1, int(enemy.get("hp_max") or 1))
+                hp_current = int(enemy.get("hp_current") or 0)
+
+        # --- hit / miss ---
+        crit = False
+        if mode == "table_miss":
+            hit = False
+        elif mode == "table_hit":
+            hit = True
+            crit = attack_natural == 20
+        elif attack_natural == 1:
+            hit = False
+        elif attack_natural == 20:
+            hit = True
+            crit = True
+        elif target_ac is None or attack_total is None:
+            raise AppError(
+                "Нужны КД цели и итог атаки",
+                code="attack_ac_required",
+                status_code=400,
+            )
+        else:
+            hit = int(attack_total) >= int(target_ac)
+
+        damage_applied: int | None = None
+        damage_note: str | None = None
+        damage_type = s03.normalize_damage_type(payload.damage_type)
+
+        if hit and mode != "table_miss":
+            raw_dmg = int(payload.damage_total or 0)
+            if raw_dmg > 0:
+                if target_kind == "pc" and pc_target is not None:
+                    sheet = dict(pc_target.sheet or {})
+                    combat = dict(sheet.get("combat") or {})
+                    applied = raw_dmg
+                    if damage_type:
+                        defs = s03.defenses_from_sheet_combat(combat)
+                        applied, damage_note = s03.adjust_incoming_damage(
+                            applied,
+                            damage_type,
+                            resistances=defs["damage_resistances"],
+                            immunities=defs["damage_immunities"],
+                            vulnerabilities=defs["damage_vulnerabilities"],
+                        )
+                    cur = int(
+                        pc_target.hp_current
+                        if pc_target.hp_current is not None
+                        else hp_max or 1
+                    )
+                    temp = int(combat.get("hp_temp") or 0)
+                    next_cur, next_temp = s03.apply_damage_through_temp_hp(
+                        cur, temp, applied, hp_max=max(1, int(hp_max or 1))
+                    )
+                    pc_target.hp_current = next_cur
+                    combat["hp_temp"] = next_temp
+                    combat["hp_current"] = next_cur
+                    if next_cur <= 0:
+                        combat["is_dying"] = True
+                    else:
+                        combat["is_dying"] = False
+                        combat["death_successes"] = 0
+                        combat["death_fails"] = 0
+                    sheet["combat"] = combat
+                    pc_target.sheet = sheet
+                    flag_modified(pc_target, "sheet")
+                    damage_applied = applied
+                    hp_current = next_cur
+                    if applied > 0:
+                        state["waiting_reaction"] = True
+                        state["reaction_character_id"] = str(pc_target.id)
+                        state["reaction_hint"] = "Есть ли реакция на этот урон?"
+                elif target_kind == "companion" and companion_row is not None:
+                    try:
+                        host_id = UUID(str(payload.target_ref_id))
+                    except ValueError:
+                        host_id = None
+                    host = (
+                        self.lobbies.get_characters_map([host_id]).get(host_id)
+                        if host_id
+                        else None
+                    )
+                    if host is not None:
+                        sheet = dict(host.sheet or {})
+                        companions = _sheet_companions_raw(sheet)
+                        row = next(
+                            (
+                                c
+                                for c in companions
+                                if str(c.get("id")) == str(payload.companion_id)
+                            ),
+                            None,
+                        )
+                        if row is not None:
+                            applied = raw_dmg
+                            temp = int(row.get("hp_temp") or 0)
+                            next_cur, next_temp = s03.apply_damage_through_temp_hp(
+                                int(hp_current or 0),
+                                temp,
+                                applied,
+                                hp_max=max(1, int(hp_max or 1)),
+                            )
+                            _set_companion_vitals(row, hp_current=next_cur)
+                            row["hp_temp"] = next_temp
+                            if next_cur <= 0:
+                                row["active"] = False
+                            sheet["companions"] = companions
+                            host.sheet = sheet
+                            flag_modified(host, "sheet")
+                            damage_applied = applied
+                            hp_current = next_cur
+                elif target_kind == "enemy" and enemy is not None and member is not None:
+                    defenses = {
+                        "damage_resistances": list(
+                            enemy.get("damage_resistances") or []
+                        ),
+                        "damage_immunities": list(enemy.get("damage_immunities") or []),
+                        "damage_vulnerabilities": list(
+                            enemy.get("damage_vulnerabilities") or []
+                        ),
+                    }
+                    before_cur = int(member.get("hp_current") or 0)
+                    before_temp = int(member.get("hp_temp") or 0)
+                    note = _apply_member_damage(
+                        member,
+                        raw_dmg,
+                        damage_type=damage_type,
+                        defenses=defenses,
+                    )
+                    damage_note = note or None
+                    after_cur = int(member.get("hp_current") or 0)
+                    after_temp = int(member.get("hp_temp") or 0)
+                    damage_applied = max(
+                        0, (before_temp - after_temp) + (before_cur - after_cur)
+                    )
+                    hp_current = after_cur
+                    members_list = list(enemy.get("members") or [])
+                    for i, m in enumerate(members_list):
+                        if str(m.get("id")) == str(member.get("id")):
+                            members_list[i] = member
+                            break
+                    enemy["members"] = members_list
+                    _sync_combatant_summary(enemy)
+                    if damage_applied > 0:
+                        enemy["last_damage_note"] = damage_note or ""
+                        enemy["reaction_hint"] = "Есть ли реакция на этот урон?"
+                        state["waiting_reaction"] = True
+                    enemy["last_strike"] = {
+                        "label": "Крит" if crit else "Попадание",
+                        "damage": damage_applied,
+                        "hit": True,
+                    }
+
+        if not hit:
+            if enemy is not None:
+                enemy["last_strike"] = {
+                    "label": "Провал" if attack_natural == 1 else "Промах",
+                    "damage": None,
+                    "hit": False,
+                }
+
+        # Feed line
+        if not hit:
+            feed_line = f"промах по {target_name}"
+            if attack_natural == 1:
+                feed_line = f"Провал · промах по {target_name}"
+            if attack_total is not None and target_ac is not None:
+                feed_line = (
+                    f"Атака: {attack_name} → {target_name}: "
+                    f"{attack_total} vs КД {target_ac} · Промах"
+                )
+        else:
+            outcome = "Крит" if crit else "Попадание"
+            bits = [f"Атака: {attack_name} → {target_name}", outcome]
+            if attack_total is not None and target_ac is not None:
+                bits.insert(1, f"{attack_total} vs КД {target_ac}")
+            elif attack_total is not None:
+                bits.insert(1, str(attack_total))
+            if damage_applied is not None and damage_applied > 0:
+                cur = int(hp_current if hp_current is not None else 0)
+                mx = int(hp_max if hp_max is not None else max(1, cur))
+                zero = " · 0 хитов" if cur <= 0 else ""
+                bits.append(f"{target_name}: −{damage_applied}, {cur}/{mx}{zero}")
+            if physical:
+                bits.append("🎲")
+            feed_line = " · ".join(bits)
+
+        session.combatants = combatants
+        flag_modified(session, "combatants")
+        if state.get("active"):
+            state, combatants = scmb.sync_fallen_from_combatants(state, combatants)
+            session.combatants = combatants
+            flag_modified(session, "combatants")
+        session.combat = scmb.dump_combat_state(state)
+        flag_modified(session, "combat")
+
+        event = SessionEvent(
+            session_id=session.id,
+            event_type="roll" if attack_total is not None else "combat",
+            actor_user_id=user.id,
+            character_id=character.id,
+            character_name=actor_name,
+            title=feed_line,
+            formula=None,
+            breakdown=None,
+            total=attack_total if not hit else (damage_applied if damage_applied is not None else attack_total),
+            is_master_roll=False,
+            payload={
+                "category": "combat",
+                "combat_journal": True,
+                "from_sheet": True,
+                "physical_dice": physical,
+                "hit": hit,
+                "crit": crit,
+                "damage_applied": damage_applied,
+                "damage_type": damage_type,
+                "damage_note": damage_note,
+                "target_kind": target_kind,
+                "target_name": target_name,
+                "attack_name": attack_name,
+                "hp_current": hp_current,
+                "hp_max": hp_max,
+            },
+        )
+        self.lobbies.add_session_event(event)
+        self.db.commit()
+        self.db.refresh(event)
+
+        detail = self._session_detail(session, lobby, user)
+        await _broadcast_session_changed(session.id)
+        out_event = SessionEventOut.model_validate(event)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_event", "event": out_event.model_dump(mode="json")},
+        )
+        return SheetCombatAttackResult(
+            session=detail,
+            event=out_event,
+            hit=hit,
+            crit=crit,
+            damage_applied=damage_applied,
+            damage_note=damage_note,
+            hp_current=hp_current,
+            hp_max=hp_max,
+            target_name=target_name,
+            feed_line=feed_line,
+        )
+
     async def resolve_combat_attack(
         self,
         user: User,

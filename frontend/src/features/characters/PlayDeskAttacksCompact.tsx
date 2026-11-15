@@ -152,9 +152,19 @@ import { CombatTargetPicker } from './CombatTargetPicker'
 import { EnterOwnNumberDialog } from './EnterOwnNumberDialog'
 import {
   TargetModifiersFields,
+  modifiersFromTargetConditions,
   type TargetModifiersValue,
 } from './TargetModifiersFields'
 import type { CombatTarget } from '../lobby/combatTargets'
+import {
+  formatTargetHpFeedLine,
+  resolveHitVsAc,
+} from '../lobby/attackOutcome'
+import { resolveSessionSheetCombatAttack } from '../../shared/api/lobbies'
+import {
+  hasSlug,
+  conditionSlugs,
+} from '../../shared/dnd/o08ActionsCoverConditions'
 import { resourceShownCurrent, type SheetResource } from '../../shared/dnd/rest'
 import { isHarnessDivinePowerResourceId } from '../../shared/dnd/harnessDivinePower'
 import {
@@ -562,8 +572,11 @@ export function PlayDeskAttacksCompact({
   const [o08Dialog, setO08Dialog] = useState<null | 'help' | 'ready'>(null)
   const [targetCover, setTargetCover] = useState<CoverLevel>('none')
   const [targetDodging, setTargetDodging] = useState(false)
-  const [fearSourceVisible, setFearSourceVisible] = useState(true)
+  /** FIX-01: default OFF; chip only when attacker is frightened. */
+  const [fearSourceVisible, setFearSourceVisible] = useState(false)
   const [invisibleDiscovered, setInvisibleDiscovered] = useState(false)
+  const [targetBlinded, setTargetBlinded] = useState(false)
+  const [targetInvisible, setTargetInvisible] = useState(false)
   const [targetProne, setTargetProne] = useState(false)
   const [targetRestrained, setTargetRestrained] = useState(false)
   const [targetParalyzedClose, setTargetParalyzedClose] = useState(false)
@@ -1167,6 +1180,11 @@ export function PlayDeskAttacksCompact({
     setSmiteNat1AttackId(null)
   }
 
+  const attackerFrightened = hasSlug(
+    conditionSlugs(playConditions),
+    'frightened',
+  )
+
   const targetModifiersValue: TargetModifiersValue = {
     cover: targetCover,
     dodging: targetDodging,
@@ -1174,6 +1192,8 @@ export function PlayDeskAttacksCompact({
     restrained: targetRestrained,
     paralyzedClose: targetParalyzedClose,
     fearSourceVisible,
+    blinded: targetBlinded,
+    invisible: targetInvisible,
     invisibleDiscovered,
     underwater: targetUnderwater,
     isMounted: targetIsMounted,
@@ -1194,6 +1214,8 @@ export function PlayDeskAttacksCompact({
     if (patch.restrained !== undefined) setTargetRestrained(patch.restrained)
     if (patch.paralyzedClose !== undefined) setTargetParalyzedClose(patch.paralyzedClose)
     if (patch.fearSourceVisible !== undefined) setFearSourceVisible(patch.fearSourceVisible)
+    if (patch.blinded !== undefined) setTargetBlinded(patch.blinded)
+    if (patch.invisible !== undefined) setTargetInvisible(patch.invisible)
     if (patch.invisibleDiscovered !== undefined) setInvisibleDiscovered(patch.invisibleDiscovered)
     if (patch.underwater !== undefined) setTargetUnderwater(patch.underwater)
     if (patch.isMounted !== undefined) setTargetIsMounted(patch.isMounted)
@@ -1217,6 +1239,7 @@ export function PlayDeskAttacksCompact({
         hasSharpshooter,
         hasCrossbowExpert,
         hasGunner,
+        attackerFrightened,
         hasGrappler,
         hasMountedCombatant,
         isMountedNow,
@@ -2705,12 +2728,26 @@ export function PlayDeskAttacksCompact({
                 catalog_id: null,
               })
             }
+            if (targetBlinded) {
+              targetCondExtra.push({
+                slug: 'blinded',
+                name: 'Ослеплённый',
+                catalog_id: null,
+              })
+            }
+            if (targetInvisible) {
+              targetCondExtra.push({
+                slug: 'invisible',
+                name: 'Невидимый',
+                catalog_id: null,
+              })
+            }
             const vsTargetMode = conditionModeVsTarget({
               targetConditions: targetCondExtra,
               targetDodging,
               attackReach: meleeAttack ? 'melee' : 'ranged',
               within5ft: targetParalyzedClose || within5ft,
-              invisibleDiscovered,
+              invisibleDiscovered: targetInvisible ? invisibleDiscovered : true,
             })
             const isSpellAtk = isSpellAttackName(attack.name)
             const rangedWeapon =
@@ -3018,6 +3055,7 @@ export function PlayDeskAttacksCompact({
                       tableHit?: boolean
                       tableMiss?: boolean
                       damageTotal?: number | null
+                      damageType?: string | null
                       manualTotal?: number
                       strikeText?: string
                       hitTotal?: number
@@ -3044,9 +3082,27 @@ export function PlayDeskAttacksCompact({
                         setPolearmButtArmed(false)
                         onToast?.('Конец древка: урон 1к4 дробящего (добавь к броску урона)')
                       }
-                      const hitOk =
-                        Boolean(opts?.tableHit) ||
-                        (opts?.hitTotal != null && !opts?.tableMiss)
+                      const target = opts?.target ?? null
+                      const naturalDie =
+                        opts?.naturalDie ??
+                        (opts?.crit ? 20 : null)
+                      const resolved =
+                        opts?.tableHit
+                          ? { hit: true, crit: Boolean(opts?.crit || naturalDie === 20) }
+                          : opts?.tableMiss
+                            ? { hit: false, crit: false }
+                            : target
+                              ? resolveHitVsAc({
+                                  attackTotal: opts?.manualTotal ?? opts?.hitTotal,
+                                  natural: naturalDie,
+                                  ac: target.ac,
+                                })
+                              : opts?.hitTotal != null || opts?.manualTotal != null
+                                ? { hit: true, crit: Boolean(opts?.crit || naturalDie === 20) }
+                                : null
+                      const knownOutcome = resolved != null
+                      const hitOk = resolved?.hit === true
+                      const isCrit = Boolean(resolved?.crit || (hitOk && opts?.crit))
                       if (hitOk) {
                         turnEco?.patchTurnEconomy((s) => {
                           let next = markWeaponHitThisTurn(s)
@@ -3061,15 +3117,14 @@ export function PlayDeskAttacksCompact({
                           if (
                             meleeAttack &&
                             !unarmed &&
-                            (opts?.crit ||
-                              (opts?.target?.hp_current != null &&
-                                opts.damageTotal != null &&
-                                opts.damageTotal >= opts.target.hp_current) ||
-                              (opts?.target?.hp_current != null &&
-                                opts.target.hp_current <= 0))
+                            (isCrit ||
+                              (target?.hp_current != null &&
+                                opts?.damageTotal != null &&
+                                opts.damageTotal >= target.hp_current) ||
+                              (target?.hp_current != null && target.hp_current <= 0))
                           ) {
                             next = markMeleeWeaponCritOrKill(next)
-                          } else if (meleeAttack && !unarmed && opts?.crit) {
+                          } else if (meleeAttack && !unarmed && isCrit) {
                             next = markGwmBonusReady(next)
                           }
                           if (!asReaction && meleeAttack && !unarmed) {
@@ -3139,7 +3194,7 @@ export function PlayDeskAttacksCompact({
                         onToast?.(`Метательное −1 · ${pendingThrownSpend.note}`)
                       }
                       onConsumeOnceBuffDice?.()
-                      if (activeRiders.length) {
+                      if (hitOk && activeRiders.length) {
                         onConsumeDamageRiders?.(
                           activeRiders.map((row) => ({
                             effectId: row.effectId,
@@ -3150,33 +3205,34 @@ export function PlayDeskAttacksCompact({
                       }
                       const physical =
                         Boolean(opts?.physicalDice) || Boolean(turnEco?.diceOnTable)
+                      const damageTotal =
+                        hitOk && opts?.damageTotal != null && Number.isFinite(opts.damageTotal)
+                          ? Math.max(0, Math.floor(opts.damageTotal))
+                          : null
                       let text = opts?.strikeText ?? ''
-                      if (opts?.tableHit) {
+                      if (target && knownOutcome && !hitOk) {
                         text = [
                           `Атака: ${attack.name}`,
-                          opts.target?.name ? `→ ${opts.target.name}` : null,
-                          'Попадание',
-                          opts.damageTotal != null && Number.isFinite(opts.damageTotal)
-                            ? `${opts.damageTotal} урона`
-                            : null,
-                          '🎲',
+                          `→ ${target.name}`,
+                          naturalDie === 1 ? 'Провал' : 'Промах',
+                          physical ? '🎲' : null,
                         ]
                           .filter(Boolean)
                           .join(' · ')
-                      } else if (opts?.tableMiss) {
+                      } else if (opts?.tableHit || (hitOk && target)) {
                         text = [
                           `Атака: ${attack.name}`,
-                          opts.target?.name ? `→ ${opts.target.name}` : null,
-                          'Промах',
-                          '🎲',
+                          target?.name ? `→ ${target.name}` : null,
+                          isCrit ? 'Крит' : 'Попадание',
+                          damageTotal != null ? `${damageTotal} урона` : null,
+                          physical ? '🎲' : null,
                         ]
                           .filter(Boolean)
                           .join(' · ')
                       }
                       if (text) onToast?.(text)
                       if (
-                        (opts?.tableHit ||
-                          (opts?.hitTotal != null && !opts?.tableMiss)) &&
+                        hitOk &&
                         blessedStrikes &&
                         turnEco &&
                         canUseBlessedStrikes(turnEco.turnEconomy)
@@ -3184,8 +3240,7 @@ export function PlayDeskAttacksCompact({
                         turnEco.markBlessedStrikesUsed()
                       }
                       if (
-                        (opts?.tableHit ||
-                          (opts?.hitTotal != null && !opts?.tableMiss)) &&
+                        hitOk &&
                         hasFavoredFoe &&
                         turnEco &&
                         canUseFavoredFoeDamage(turnEco.turnEconomy) &&
@@ -3195,63 +3250,110 @@ export function PlayDeskAttacksCompact({
                       ) {
                         turnEco.markFavoredFoeDamageUsed()
                       }
-                      if (
-                        hasFavoredFoe &&
-                        (opts?.tableHit ||
-                          (opts?.hitTotal != null && !opts?.tableMiss))
-                      ) {
+                      if (hitOk && hasFavoredFoe) {
                         onToast?.(
                           'Избранный противник: можно пометить цель (концентрация, пул БМ)',
                         )
                       }
-                      if (opts?.tableMiss && hasFocusedAim) {
+                      if (!hitOk && target && hasFocusedAim) {
                         setFocusedAimOffer({
                           attackName: attack.name,
-                          baseTotal: opts.hitTotal ?? null,
+                          baseTotal: opts?.hitTotal ?? opts?.manualTotal ?? null,
                         })
                       }
                       const total =
                         opts?.manualTotal ??
                         opts?.hitTotal ??
                         (opts?.tableHit
-                          ? opts.damageTotal != null && Number.isFinite(opts.damageTotal)
-                            ? opts.damageTotal
+                          ? damageTotal != null
+                            ? damageTotal
                             : 1
                           : opts?.tableMiss
                             ? 0
                             : 0)
-                      if (characterId && (opts?.hitTotal != null || opts?.manualTotal != null || opts?.tableHit || opts?.tableMiss)) {
-                        const feedTitle = opts?.tableHit
-                          ? [
-                              'Попадание',
-                              attack.name,
-                              opts.target?.name
-                                ? `по ${opts.target.name}`
-                                : null,
-                              opts.hitTotal != null && opts.target?.ac != null
-                                ? `${opts.hitTotal} vs КД ${opts.target.ac}`
-                                : opts.hitTotal != null
-                                  ? String(opts.hitTotal)
-                                  : null,
-                              opts.damageTotal != null
-                                ? `${opts.damageTotal} урона`
-                                : null,
-                            ]
-                              .filter(Boolean)
-                              .join(' · ')
+                      const sessionId = openSessionId ?? turnEco?.openSessionId
+                      if (
+                        characterId &&
+                        target &&
+                        knownOutcome &&
+                        sessionId &&
+                        turnEco?.combatActive &&
+                        (opts?.hitTotal != null ||
+                          opts?.manualTotal != null ||
+                          opts?.tableHit ||
+                          opts?.tableMiss)
+                      ) {
+                        const mode = opts?.tableHit
+                          ? 'table_hit'
                           : opts?.tableMiss
-                            ? [
-                                'Промах',
-                                attack.name,
-                                opts.target?.name
-                                  ? `по ${opts.target.name}`
-                                  : null,
-                              ]
-                                .filter(Boolean)
-                                .join(' · ')
-                            : `Атака: ${attack.name}`
+                            ? 'table_miss'
+                            : opts?.manualTotal != null
+                              ? 'manual'
+                              : 'roll'
+                        void resolveSessionSheetCombatAttack(sessionId, {
+                          character_id: characterId,
+                          attack_name: attack.name,
+                          target_kind: target.kind,
+                          target_ref_id: target.ref_id,
+                          target_member_id: target.member_id ?? null,
+                          companion_id: target.companion_id ?? null,
+                          mode,
+                          attack_total: opts?.manualTotal ?? opts?.hitTotal ?? null,
+                          attack_natural: naturalDie,
+                          damage_total: hitOk ? damageTotal : null,
+                          damage_type: hitOk
+                            ? opts?.damageType ?? shownType ?? attack.damage_type ?? null
+                            : null,
+                          physical_dice: physical,
+                        })
+                          .then((result) => {
+                            if (result.feed_line) onToast?.(result.feed_line)
+                            else if (
+                              result.hit &&
+                              result.damage_applied != null &&
+                              result.hp_current != null &&
+                              result.hp_max != null
+                            ) {
+                              onToast?.(
+                                formatTargetHpFeedLine({
+                                  targetName: result.target_name || target.name,
+                                  damageApplied: result.damage_applied,
+                                  hpCurrent: result.hp_current,
+                                  hpMax: result.hp_max,
+                                }),
+                              )
+                            }
+                          })
+                          .catch(() => {
+                            /* лента/хиты — побочный эффект */
+                          })
+                      } else if (
+                        characterId &&
+                        (opts?.hitTotal != null ||
+                          opts?.manualTotal != null ||
+                          opts?.tableHit ||
+                          opts?.tableMiss)
+                      ) {
+                        const feedTitle =
+                          target && knownOutcome && !hitOk
+                            ? `промах по ${target.name}`
+                            : target && hitOk
+                              ? [
+                                  isCrit ? 'Крит' : 'Попадание',
+                                  attack.name,
+                                  `по ${target.name}`,
+                                  opts?.hitTotal != null && target.ac != null
+                                    ? `${opts.hitTotal} vs КД ${target.ac}`
+                                    : opts?.hitTotal != null
+                                      ? String(opts.hitTotal)
+                                      : null,
+                                  damageTotal != null ? `${damageTotal} урона` : null,
+                                ]
+                                  .filter(Boolean)
+                                  .join(' · ')
+                              : `Атака: ${attack.name}`
                         void postSheetRollToSession({
-                          openSessionId: openSessionId ?? turnEco?.openSessionId,
+                          openSessionId: sessionId,
                           characterId,
                           title: feedTitle,
                           total,
@@ -3263,14 +3365,16 @@ export function PlayDeskAttacksCompact({
                       }
                       smiteApplyLock.current = false
                       const smiteGate = resolveSmiteAfterAttack({
-                        naturalDie: opts?.naturalDie,
-                        critFlag: Boolean(opts?.crit),
-                        tableMiss: Boolean(opts?.tableMiss),
+                        naturalDie: naturalDie,
+                        critFlag: isCrit,
+                        tableMiss:
+                          Boolean(opts?.tableMiss) ||
+                          Boolean(target && knownOutcome && !hitOk),
                       })
                       if (smiteSpend && meleeAttack && smiteGate.autoMiss) {
                         setOpenStrike(null)
                         setSmiteArmAttackId(null)
-                        if (opts?.naturalDie === 1) {
+                        if (naturalDie === 1) {
                           setSmiteNat1AttackId(attack.id)
                           onToast?.(
                             `Натуральная 1 · «${attack.name}»: промах · кара не предлагается · ячейка не списана`,
@@ -3278,7 +3382,7 @@ export function PlayDeskAttacksCompact({
                         } else {
                           setSmiteNat1AttackId(null)
                         }
-                      } else if (smiteSpend && meleeAttack && smiteGate.offer) {
+                      } else if (smiteSpend && meleeAttack && smiteGate.offer && hitOk) {
                         setSmiteNat1AttackId(null)
                         setOpenStrike({
                           name: attack.name,
@@ -3513,6 +3617,8 @@ export function PlayDeskAttacksCompact({
                       breakdown,
                       crit: strikeCrit || strike.die === 20,
                       naturalDie: strike.die,
+                      damageTotal: strike.damageTotal ?? null,
+                      damageType: strike.damageType ?? shownType ?? attack.damage_type ?? null,
                     })
                     } // end runAttackWithPb
 
@@ -4202,6 +4308,10 @@ export function PlayDeskAttacksCompact({
         (turnEco?.targets ?? []).some((t) => t.kind !== 'enemy' || t.ac != null),
       )}
       modifiersSlot={targetModifiersSlot}
+      onTargetSelect={(target) => {
+        if (!target) return
+        patchTargetModifiers(modifiersFromTargetConditions(target.conditions))
+      }}
       onClose={() => {
         skipAttackDeferRef.current = false
         flushAttackTargetRef.current = null

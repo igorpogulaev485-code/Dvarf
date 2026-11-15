@@ -972,7 +972,25 @@ function SpellRow({
       <div className="play-desk-compact__spell-body">
         <div className="play-desk-compact__spell-top">
           <div className="play-desk-compact__row-main">
-            <b>{spell.name}</b>
+            <b
+              className="play-desk-compact__spell-name"
+              role="link"
+              tabIndex={0}
+              title="Открыть описание заклинания"
+              onClick={(event) => {
+                event.stopPropagation()
+                onOpenDetail()
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  event.stopPropagation()
+                  onOpenDetail()
+                }
+              }}
+            >
+              {spell.name}
+            </b>
             <span className="play-desk-compact__spell-level">
               {levelText}
               {chargeText ? ` · ${chargeText}` : ''}
@@ -1032,6 +1050,22 @@ function SpellRow({
           title="Действие · дистанция · атака/спас · клик по строке — раскрыть"
         >
           {meta}
+          {metaOpen ? (
+            <>
+              {' · '}
+              <button
+                type="button"
+                className="play-desk-compact__link play-desk-compact__spell-desc-btn"
+                title="Открыть описание заклинания"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onOpenDetail()
+                }}
+              >
+                Описание
+              </button>
+            </>
+          ) : null}
         </p>
       </div>
       {hasCast ? (
