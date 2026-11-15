@@ -16,6 +16,7 @@ import { UiKitEtalonPreviewPage } from './pages/UiKitEtalonPreviewPage'
 import { Wapi11PreviewPage } from './pages/Wapi11PreviewPage'
 import { Wapi13PreviewPage } from './pages/Wapi13PreviewPage'
 import { P24EditionPreviewPage } from './pages/P24EditionPreviewPage'
+import { P24CoreRulesPreviewPage } from './pages/P24CoreRulesPreviewPage'
 import { WorldImportHelpPage } from './pages/WorldImportHelpPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
@@ -108,6 +109,7 @@ export default function App() {
             <Route path="/dev/wapi11-preview" element={<Wapi11PreviewPage />} />
             <Route path="/dev/wapi13-preview" element={<Wapi13PreviewPage />} />
             <Route path="/dev/p24-01-preview" element={<P24EditionPreviewPage />} />
+            <Route path="/dev/p24-02-preview" element={<P24CoreRulesPreviewPage />} />
             <Route
               path="/dev/consumables-tap-guard"
               element={

@@ -643,6 +643,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           onOpenSpeed={() => model.setSpeedBreakdownOpen(true)}
           proficiencyBonus={model.proficiencyBonus}
           inspiration={model.draft.inspiration}
+          rulesEdition={model.baseCharacter.rules_edition}
           coins={model.draft.inventory.coins}
           constitutionMod={abilityModifier(model.draft.abilities.con)}
           classes={model.draft.classes}

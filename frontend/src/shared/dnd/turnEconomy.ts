@@ -11,7 +11,17 @@ export type TurnEconomyMarkKey =
   | 'reaction'
   | 'object_interaction'
 
-export type ActionSpentAs = 'attack' | 'cast' | 'feature' | 'search' | null
+export type ActionSpentAs =
+  | 'attack'
+  | 'cast'
+  | 'feature'
+  | 'search'
+  /** P24-02: 2024 Magic / Study / Influence / Utilize (2014 ignores). */
+  | 'magic'
+  | 'study'
+  | 'influence'
+  | 'utilize'
+  | null
 
 export type TurnCastTiming = 'action' | 'bonus' | 'reaction'
 
@@ -195,7 +205,11 @@ export function readTurnEconomy(raw: unknown): TurnEconomyState {
     spent === 'attack' ||
     spent === 'cast' ||
     spent === 'feature' ||
-    spent === 'search'
+    spent === 'search' ||
+    spent === 'magic' ||
+    spent === 'study' ||
+    spent === 'influence' ||
+    spent === 'utilize'
       ? spent
       : null
   const extraRaw = row.extra_actions ?? row.extraActions
@@ -738,6 +752,24 @@ export function applySearchSpend(state: TurnEconomyState): TurnEconomyState {
   }
   if (state.extraActions > 0) {
     return { ...state, extraActions: state.extraActions - 1 }
+  }
+  return state
+}
+
+/** P24-02: spend the action mark as Magic / Study / Influence / Utilize. */
+export function applyNamedActionSpend(
+  state: TurnEconomyState,
+  spentAs: Exclude<ActionSpentAs, null>,
+): TurnEconomyState {
+  if (!state.action) {
+    return { ...state, action: true, actionSpentAs: spentAs }
+  }
+  if (state.extraActions > 0) {
+    return {
+      ...state,
+      extraActions: state.extraActions - 1,
+      actionSpentAs: state.actionSpentAs ?? spentAs,
+    }
   }
   return state
 }

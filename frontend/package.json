@@ -82,6 +82,11 @@
     "selfcheck:wapi13-help": "tsx --tsconfig tsconfig.app.json src/features/worldImport/worldImportHelp.selfcheck.ts",
     "test:e2e:onboarding": "playwright test --config=playwright.onboarding.config.ts",
     "test:e2e:p24-01": "playwright test --config=playwright.p24.config.ts",
+    "test:e2e:p24-02": "playwright test --config=playwright.p24-02.config.ts",
+    "selfcheck:p24-02-exhaustion": "tsx src/shared/dnd/exhaustion2024.selfcheck.ts",
+    "selfcheck:p24-02-heroic": "tsx src/shared/dnd/heroicInspiration.selfcheck.ts",
+    "selfcheck:p24-02-rest": "tsx src/shared/dnd/rest2024.selfcheck.ts",
+    "selfcheck:p24-02-campaign": "tsx src/features/lobby/campaignRules2024.selfcheck.ts",
     "selfcheck:race-species-label": "tsx src/shared/dnd/raceSpeciesLabel.selfcheck.ts"
   },
   "dependencies": {

@@ -639,3 +639,70 @@ def catalog_public() -> list[dict[str, str]]:
             }
         )
     return rows
+
+
+# P24-02: same keys, SRD 5.2.1 reinterpretation for rules_edition=2024 lobbies.
+HOMEBREW_CATALOG_2024_OVERLAY: dict[str, dict[str, str]] = {
+    "potion_bonus_self": {
+        "label": "Зелье стоит действие",
+        "tip": (
+            "По книге 2024 выпить или дать зелье — бонусное действие. "
+            "Вкл.: домашнее ужесточение — зелье себе стоит полноценное действие."
+        ),
+        "source": "Домашнее поверх SRD 5.2.1",
+    },
+    "inspiration_stack": {
+        "label": "Стопка героического вдохновения",
+        "tip": (
+            "По книге одновременно не больше одного; лишнее отдают союзнику. "
+            "Вкл.: можно копить героическое вдохновение сверх одного, до максимума мастера."
+        ),
+        "source": "Домашнее поверх SRD 5.2.1",
+    },
+    "gritty_rest": {
+        "label": "Суровый отдых (2024)",
+        "tip": (
+            "Короткий отдых — 8 часов, длинный — 7 дней (модель 2024: все кости на длинном, "
+            "нужен ≥1 хит, пауза 16 ч между длинными). Взаимоисключается с «Эпическим героизмом»."
+        ),
+        "source": "DMG-вариант, адаптирован к SRD 5.2.1",
+    },
+    "feat_at_level_1": {
+        "label": "Доп. черта на 1 уровне",
+        "tip": (
+            "Дополнительная общая черта на 1 уровне сверх черты происхождения с предыстории. "
+            "Не путать с обязательной чертой происхождения 2024."
+        ),
+        "source": "Домашнее (2024)",
+    },
+}
+
+
+def catalog_public_for_edition(edition: str | None = "2014") -> list[dict[str, str]]:
+    """Homebrew catalog; 2024 overlays tips, same keys as 2014."""
+    use_2024 = str(edition or "2014").strip() == "2024"
+    rows: list[dict[str, str]] = []
+    for key in HOMEBREW_KEYS:
+        meta = HOMEBREW_CATALOG[key]
+        if use_2024 and key in HOMEBREW_CATALOG_2024_OVERLAY:
+            meta = {**meta, **HOMEBREW_CATALOG_2024_OVERLAY[key]}
+        rows.append(
+            {
+                "key": key,
+                "label": meta["label"],
+                "tip": meta["tip"],
+                "source": meta["source"],
+            }
+        )
+    return rows
+
+
+def potion_self_timing(edition: str | None, potion_bonus_self: bool) -> str:
+    """Return 'bonus' or 'action' for drinking a potion on yourself.
+
+    2014: toggle ON = Tasha bonus; OFF = action.
+    2024: book default = bonus; toggle ON = stricter house (action).
+    """
+    if str(edition or "2014").strip() == "2024":
+        return "action" if potion_bonus_self else "bonus"
+    return "bonus" if potion_bonus_self else "action"

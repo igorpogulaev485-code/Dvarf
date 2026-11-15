@@ -5,7 +5,6 @@ import { Button, Field, NumberInput, Panel, Stack, Text, ToggleChip } from '../.
 import { mutuallyExclusiveRestFlags } from '../../shared/dnd/o04DmgAdvanced'
 import {
   BOOK_SOURCE_CATALOG,
-  HOMEBREW_CATALOG,
   MASTER_HOMEBREW_KEYS,
   type CampaignRules,
   type HomebrewKey,
@@ -15,16 +14,17 @@ import {
   type StartingKitMode,
   summarizeEnabledRules,
 } from './campaignRules'
+import { homebrewCatalogForEdition } from './campaignRules2024'
+import type { EventHistoryMode } from './visibilityProfile'
 
 const MASTER_KEY_SET = new Set<HomebrewKey>(MASTER_HOMEBREW_KEYS)
-const LEGACY_HOMEBREW_CATALOG = HOMEBREW_CATALOG.filter((e) => !MASTER_KEY_SET.has(e.key))
-const MASTER_HOMEBREW_CATALOG = HOMEBREW_CATALOG.filter((e) => MASTER_KEY_SET.has(e.key))
-import type { EventHistoryMode } from './visibilityProfile'
 
 type Props = {
   rules: CampaignRules
   /** Режим ленты лобби — броски мастера без второго флага. */
   eventHistory: EventHistoryMode
+  /** P24-02: подписи тумблеров под редакцию лобби (2014 тексты по умолчанию). */
+  rulesEdition?: string | null
   readOnly?: boolean
   onChange: (next: CampaignRules) => void
   onEventHistoryChange: (mode: EventHistoryMode) => void
@@ -275,6 +275,7 @@ function StartRulesEditor({
 export function CampaignRulesPanel({
   rules,
   eventHistory,
+  rulesEdition = '2014',
   readOnly,
   onChange,
   onEventHistoryChange,
@@ -285,6 +286,11 @@ export function CampaignRulesPanel({
   const [races, setRaces] = useState<CatalogEntry[]>([])
   const [classes, setClasses] = useState<CatalogEntry[]>([])
   const summary = summarizeEnabledRules(rules)
+  const edition = String(rulesEdition ?? '2014').trim() || '2014'
+  const is2024 = edition === '2024'
+  const catalog = homebrewCatalogForEdition(edition)
+  const LEGACY_HOMEBREW_CATALOG = catalog.filter((e) => !MASTER_KEY_SET.has(e.key))
+  const MASTER_HOMEBREW_CATALOG = catalog.filter((e) => MASTER_KEY_SET.has(e.key))
 
   useEffect(() => {
     let active = true
@@ -449,11 +455,21 @@ export function CampaignRulesPanel({
         </div>
 
         <div>
-          <Text as="h3">Вдохновение после броска</Text>
+          <Text as="h3">
+            {is2024 ? 'Героическое вдохновение (совместимость)' : 'Вдохновение после броска'}
+          </Text>
           <ToggleRow
-            label="Вдохновение после броска (переброс)"
-            tip="Потратить вдохновение можно после броска как переброс. По умолчанию выкл: преимущество до броска (RAW 2014)."
-            source="S-03"
+            label={
+              is2024
+                ? 'Доп. подсказка «после броска»'
+                : 'Вдохновение после броска (переброс)'
+            }
+            tip={
+              is2024
+                ? 'В книге 2024 героическое вдохновение уже тратится сразу после броска как переброс любого кубика. Тумблер не отключает книжный переброс; оставлен, чтобы те же ключи были видны, что в 2014.'
+                : 'Потратить вдохновение можно после броска как переброс. По умолчанию выкл: преимущество до броска (RAW 2014).'
+            }
+            source={is2024 ? 'SRD 5.2.1 / совместимость' : 'S-03'}
             checked={rules.inspiration_after_roll}
             onChange={(v) => onChange({ ...rules, inspiration_after_roll: v })}
           />

@@ -475,10 +475,14 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               model.spendLuckyPoint?.()
               model.setLuckyRollArmed?.(false)
             }}
-            inspirationArmed={Boolean(model.inspirationRollArmed)}
+            inspirationArmed={
+              Boolean(model.inspirationRollArmed) &&
+              model.baseCharacter.rules_edition !== '2024'
+            }
             onInspirationSpent={() => {
               model.spendInspirationForRoll?.()
             }}
+            rulesEdition={model.baseCharacter.rules_edition}
             repeatingShotItemIds={(() => {
               const ids: string[] = []
               for (const entry of model.draft.classes) {

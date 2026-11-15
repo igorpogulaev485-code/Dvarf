@@ -77,6 +77,9 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           const hb = normalizeCampaignRules(model.campaignRulesRaw).homebrew
           return Boolean(hb.dmg_epic_heroism && !hb.gritty_rest)
         })()}
+        rulesEdition={
+          model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014'
+        }
         preferKind={model.restPreferKind ?? null}
         cantripFormulas={(() => {
           const tceOn =

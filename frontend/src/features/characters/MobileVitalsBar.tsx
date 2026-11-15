@@ -27,12 +27,12 @@ import {
 } from '../../shared/dnd/jumpDistance'
 import { HoverTipCard, VITAL_TIPS } from '../onboarding'
 import {
-  exhaustionHpCurrent,
-  exhaustionHpMax,
-  exhaustionHpNote,
-  exhaustionSpeedFt,
-  exhaustionSpeedNote,
-} from '../../shared/dnd/exhaustion2014'
+  exhaustionHpCurrentForEdition,
+  exhaustionHpMaxForEdition,
+  exhaustionHpNoteForEdition,
+  exhaustionSpeedFtForEdition,
+  exhaustionSpeedNoteForEdition,
+} from '../../shared/dnd/exhaustionRules'
 import {
   IconBoot,
   IconCoin,
@@ -114,6 +114,8 @@ type MobileVitalsBarProps = {
   onOpenSpeed?: () => void
   proficiencyBonus: number
   inspiration: boolean
+  /** P24-02: exhaustion / inspiration labels by character edition. */
+  rulesEdition?: string | null
   coins: CoinPurse
   constitutionMod: number
   classes: ClassLevelEntry[]
@@ -202,6 +204,7 @@ export function MobileVitalsBar({
   onOpenSpeed,
   proficiencyBonus,
   inspiration,
+  rulesEdition = '2014',
   coins,
   constitutionMod,
   classes,
@@ -250,30 +253,39 @@ export function MobileVitalsBar({
     [raceName || null, classSummary ? `${classSummary}` : null, alignment.trim() || null]
       .filter(Boolean)
       .join(' · ') || 'Черновик'
-  const shownHpMax = exhaustionHpMax(hpMax, play.exhaustion)
-  const shownHpCurrent = exhaustionHpCurrent(hpCurrent, hpMax, play.exhaustion)
-  const hpExhaustNote = exhaustionHpNote(play.exhaustion)
-  const speedExhaustNote = exhaustionSpeedNote(play.exhaustion)
-  const shownSpeed = exhaustionSpeedFt(speed, play.exhaustion)
-  const shownClimb = exhaustionSpeedFt(climbSpeed, play.exhaustion)
-  const shownSwim = exhaustionSpeedFt(swimSpeed, play.exhaustion)
-  const shownFly = exhaustionSpeedFt(flySpeed, play.exhaustion)
+  const edition = String(rulesEdition ?? '2014').trim() || '2014'
+  const shownHpMax = exhaustionHpMaxForEdition(hpMax, play.exhaustion, edition)
+  const shownHpCurrent = exhaustionHpCurrentForEdition(
+    hpCurrent,
+    hpMax,
+    play.exhaustion,
+    edition,
+  )
+  const hpExhaustNote = exhaustionHpNoteForEdition(play.exhaustion, edition)
+  const speedExhaustNote = exhaustionSpeedNoteForEdition(play.exhaustion, edition)
+  const shownSpeed = exhaustionSpeedFtForEdition(speed, play.exhaustion, edition)
+  const shownClimb = exhaustionSpeedFtForEdition(climbSpeed, play.exhaustion, edition)
+  const shownSwim = exhaustionSpeedFtForEdition(swimSpeed, play.exhaustion, edition)
+  const shownFly = exhaustionSpeedFtForEdition(flySpeed, play.exhaustion, edition)
   const altModes: { key: string; label: string; value: number }[] = []
   if (shownClimb != null) altModes.push({ key: 'climb', label: 'лаз.', value: shownClimb })
   if (shownSwim != null) altModes.push({ key: 'swim', label: 'плав.', value: shownSwim })
   if (shownFly != null) altModes.push({ key: 'fly', label: 'полёт', value: shownFly })
-  // Base speeds before exhaustion ÷2 — clear label, not a second unlabeled row.
-  const withoutExhaustionNote =
-    play.exhaustion >= 2
-      ? [
-          speed != null ? `ход. ${speed}` : null,
-          climbSpeed != null ? `лаз. ${climbSpeed}` : null,
-          swimSpeed != null ? `плав. ${swimSpeed}` : null,
-          flySpeed != null ? `полёт ${flySpeed}` : null,
-        ]
-          .filter(Boolean)
-          .join(' · ')
-      : ''
+  // Base speeds before exhaustion (2014 ÷2 from L2; 2024 −5×level from L1).
+  const speedAlteredByExhaustion =
+    edition === '2024'
+      ? play.exhaustion >= 1
+      : play.exhaustion >= 2
+  const withoutExhaustionNote = speedAlteredByExhaustion
+    ? [
+        speed != null ? `ход. ${speed}` : null,
+        climbSpeed != null ? `лаз. ${climbSpeed}` : null,
+        swimSpeed != null ? `плав. ${swimSpeed}` : null,
+        flySpeed != null ? `полёт ${flySpeed}` : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : ''
   const withoutExhaustionLine = withoutExhaustionNote
     ? `без истощения: ${withoutExhaustionNote}`
     : null
@@ -538,10 +550,10 @@ export function MobileVitalsBar({
           type="button"
           className={`mobile-vitals__insp${inspiration ? ' is-on' : ''}`}
           aria-pressed={inspiration}
-          title="Вдохновение"
+          title={edition === '2024' ? 'Героическое вдохновение' : 'Вдохновение'}
           onClick={onToggleInspiration}
         >
-          Вдохн.
+          {edition === '2024' ? 'Г.вдохн.' : 'Вдохн.'}
         </button>
       </div>
 

@@ -39,7 +39,8 @@ import {
 } from '../../../shared/dnd/activeEffects'
 import { formatSaveAdvantageNote } from '../gearEffects'
 import { isMantleCommandSpell, MANTLE_CONCENTRATION_ID, silverTongueApplies } from '../../../shared/dnd/bardCollege'
-import { exhaustionRollFlags } from '../../../shared/dnd/exhaustion2014'
+import { exhaustionRollFlagsForEdition } from '../../../shared/dnd/exhaustionRules'
+import { usesHeroicInspiration } from '../../../shared/dnd/heroicInspiration'
 import {
   conditionModeForSelf,
   coverBonusBeyondEffects,
@@ -1231,7 +1232,10 @@ export function installSheetActions4(model: SheetModel) {
   }
 
   model.exhaustionFlags = function exhaustionFlags() {
-    return exhaustionRollFlags(model.draft.play.exhaustion ?? 0)
+    return exhaustionRollFlagsForEdition(
+      model.draft.play.exhaustion ?? 0,
+      model.baseCharacter?.rules_edition ?? model.rulesEdition,
+    )
   }
 
   model.strengthCheckFloor = function strengthCheckFloor(applies: boolean) {
@@ -1246,8 +1250,34 @@ export function installSheetActions4(model: SheetModel) {
   }
 
   function withInspirationMode(mode: DeskRollMode): DeskRollMode {
+    // P24-02: 2024 heroic inspiration is a post-roll reroll, not advantage.
+    if (
+      usesHeroicInspiration(
+        model.baseCharacter?.rules_edition ?? model.rulesEdition,
+      )
+    ) {
+      return mode
+    }
     if (!model.inspirationRollArmed) return mode
     return mergeInspirationAdvantage(mode) as DeskRollMode
+  }
+
+  function exhaustionD20Penalty(): number {
+    return model.exhaustionFlags().d20Penalty ?? 0
+  }
+
+  function offerHeroicRerollAfter(label: string, sides = 20) {
+    if (
+      !usesHeroicInspiration(
+        model.baseCharacter?.rules_edition ?? model.rulesEdition,
+      )
+    ) {
+      return
+    }
+    if (!model.draft.inspiration) return
+    if (typeof model.setHeroicRerollPending === 'function') {
+      model.setHeroicRerollPending({ label, sides })
+    }
   }
 
   model.effectiveRollMode = function effectiveRollMode(skillKey?: string): DeskRollMode {
@@ -1374,8 +1404,9 @@ export function installSheetActions4(model: SheetModel) {
       (model.draft.skills as Record<string, { is_proficient?: boolean }>)[skill.key]
         ?.is_proficient,
     )
-    let rollMod = skill.mod
-    let profNote = ''
+    const exhPen = exhaustionD20Penalty()
+    let rollMod = skill.mod - exhPen
+    let profNote = exhPen > 0 ? ` · истощение −${exhPen}` : ''
     if (homebrew.dmg_proficiency_dice && skillProficient) {
       const pb = Math.max(0, Math.floor(model.proficiencyBonus ?? 0))
       const teDice = (model.turnEconomyApi as { diceOnTable?: boolean } | undefined)?.diceOnTable
@@ -1405,9 +1436,24 @@ export function installSheetActions4(model: SheetModel) {
       model.strengthCheckFloor(base === 'str'),
       silver ? { value: 10, label: 'серебряный язык' } : null,
       bonusDice,
-    )}${note}${profNote}${model.inspirationRollArmed ? ' · вдохновение' : ''}`
-    if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
+    )}${note}${profNote}${
+      model.inspirationRollArmed &&
+      !usesHeroicInspiration(
+        model.baseCharacter?.rules_edition ?? model.rulesEdition,
+      )
+        ? ' · вдохновение'
+        : ''
+    }`
+    if (
+      model.inspirationRollArmed &&
+      !usesHeroicInspiration(
+        model.baseCharacter?.rules_edition ?? model.rulesEdition,
+      )
+    ) {
+      model.spendInspirationForRoll?.()
+    }
     model.emitToast(text)
+    offerHeroicRerollAfter(skill.label, 20)
     const te = model.turnEconomyApi as
       | {
           diceOnTable?: boolean
@@ -1424,7 +1470,7 @@ export function installSheetActions4(model: SheetModel) {
       te.openEnterOwnNumber({
         title: `Проверка: ${skill.label}`,
         mode: 'd20',
-        modifier: skill.mod,
+        modifier: rollMod,
       })
     }
     // O-02: Магическое наставление — предложить переброс при провале (игрок решает).
@@ -1438,7 +1484,7 @@ export function installSheetActions4(model: SheetModel) {
     if (tceForGuidance && hasGuidance && typeof model.setMagicalGuidanceOffer === 'function') {
       model.setMagicalGuidanceOffer({
         label: skill.label,
-        mod: skill.mod,
+        mod: skill.mod - exhPen,
       })
       model.emitToast(`${MAGICAL_GUIDANCE_SHEET_NAME}: при провале можно перебросить за 1 очко`)
     }
@@ -1470,24 +1516,32 @@ export function installSheetActions4(model: SheetModel) {
 
   model.rollAbilityCheck = function rollAbilityCheck(key: AbilityKey, mod: number) {
     const exhaustion = model.exhaustionFlags().disadvantageOnChecks
+    const exhPen = exhaustionD20Penalty()
     const note =
       exhaustion && model.deskRollMode === 'advantage'
         ? ' · истощение отменило преим.'
         : exhaustion && model.deskRollMode !== 'disadvantage'
           ? ' · помеха от истощения'
-          : ''
+          : exhPen > 0
+            ? ` · истощение −${exhPen}`
+            : ''
     const bonusDice = buffDiceFor('check')
+    const rollMod = mod - exhPen
+    const isHeroic = usesHeroicInspiration(
+      model.baseCharacter?.rules_edition ?? model.rulesEdition,
+    )
     const text = `${formatSkillRoll(
       `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
-      mod,
+      rollMod,
       model.effectiveRollMode(),
       undefined,
       model.strengthCheckFloor(key === 'str'),
       null,
       bonusDice,
-    )}${note}${model.inspirationRollArmed ? ' · вдохновение' : ''}`
-    if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
+    )}${note}${model.inspirationRollArmed && !isHeroic ? ' · вдохновение' : ''}`
+    if (model.inspirationRollArmed && !isHeroic) model.spendInspirationForRoll?.()
     model.emitToast(text)
+    offerHeroicRerollAfter(ABILITY_NAMES[key] ?? ABILITY_LABELS[key], 20)
     const te = model.turnEconomyApi as
       | {
           diceOnTable?: boolean
@@ -1502,7 +1556,7 @@ export function installSheetActions4(model: SheetModel) {
       te.openEnterOwnNumber({
         title: `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
         mode: 'd20',
-        modifier: mod,
+        modifier: rollMod,
       })
     }
     consumeOnceBuffDice('check')
@@ -1548,8 +1602,12 @@ export function installSheetActions4(model: SheetModel) {
     const saveProficient = Boolean(
       (model.draft.saves as Record<string, boolean> | undefined)?.[key],
     )
-    let saveRollMod = rolledMod
-    let saveProfNote = ''
+    const exhPenSave = exhaustionD20Penalty()
+    let saveRollMod = rolledMod - exhPenSave
+    let saveProfNote = exhPenSave > 0 ? ` · истощение −${exhPenSave}` : ''
+    const isHeroicSave = usesHeroicInspiration(
+      model.baseCharacter?.rules_edition ?? model.rulesEdition,
+    )
     if (homebrewSave.dmg_proficiency_dice && saveProficient) {
       const pb = Math.max(0, Math.floor(model.proficiencyBonus ?? 0))
       const teDice = (model.turnEconomyApi as { diceOnTable?: boolean } | undefined)?.diceOnTable
@@ -1584,7 +1642,7 @@ export function installSheetActions4(model: SheetModel) {
     if (teSave?.diceOnTable && teSave.openTableSave) {
       teSave.openTableSave(saveTitle)
       if (saveProfNote) model.emitToast(`${saveTitle}${saveProfNote}`)
-      if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
+      if (model.inspirationRollArmed && !isHeroicSave) model.spendInspirationForRoll?.()
     } else {
       model.emitToast(
         `${formatSkillRoll(
@@ -1596,11 +1654,12 @@ export function installSheetActions4(model: SheetModel) {
           null,
           bonusDice,
         )}${note}${songNote}${coverNote}${spellNote}${saveProfNote}${
-          model.inspirationRollArmed ? ' · вдохновение' : ''
+          model.inspirationRollArmed && !isHeroicSave ? ' · вдохновение' : ''
         }`,
       )
-      if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
+      if (model.inspirationRollArmed && !isHeroicSave) model.spendInspirationForRoll?.()
     }
+    offerHeroicRerollAfter(saveTitle, 20)
     consumeOnceBuffDice('save')
   }
 

@@ -554,6 +554,34 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
       <TempHpReplaceDialog request={model.tempHpReplaceAsk ?? null} />
 
       <Dialog
+        open={model.heroicRerollPending != null}
+        title="Героическое вдохновение"
+        primaryLabel="Перебросить"
+        secondaryLabel="Не сейчас"
+        onPrimary={() => {
+          const pending = model.heroicRerollPending
+          if (!pending) return
+          if (!model.spendHeroicInspirationReroll?.()) return
+          const sides = Math.max(2, Math.floor(pending.sides || 20))
+          const face = 1 + Math.floor(Math.random() * sides)
+          model.emitToast?.(
+            `Героическое вдохновение: ${pending.label} — переброс к${sides} → ${face} (новый результат)`,
+          )
+        }}
+        onSecondary={() => model.setHeroicRerollPending?.(null)}
+      >
+        <Stack gap={8}>
+          <Text>
+            Потратить героическое вдохновение и перебросить любой кубик
+            {model.heroicRerollPending
+              ? ` (к${model.heroicRerollPending.sides} · ${model.heroicRerollPending.label})`
+              : ''}
+            ? Новый результат обязателен.
+          </Text>
+        </Stack>
+      </Dialog>
+
+      <Dialog
         open={model.halflingLuckyPending != null}
         title="Удача: перебросить?"
         primaryLabel="Перебросить"

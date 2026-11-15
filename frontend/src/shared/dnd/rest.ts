@@ -5,10 +5,11 @@ import {
   type ActiveEffect,
 } from './activeEffects'
 import {
-  recoverHitDicePoolsOnLongRest,
+  recoverHitDicePoolsOnLongRestForEdition,
   type ClassHitDicePool,
 } from './classHitDice'
-import { recoverHitDiceOnLongRest } from './hitDice'
+import { recoverHitDiceOnLongRestForEdition } from './hitDice'
+import { canStartLongRest2024 } from './rest2024'
 import { clampSlot, type SpellSlotState } from './spells'
 
 export { filterEffectsAfterRest }
@@ -309,11 +310,38 @@ export function applyLongRest(input: {
   rng?: () => number
   /** B-01 / Р26: effects with duration ≤ 8h (and until_*_rest). */
   effects?: ActiveEffect[]
-}): RestResult & { effects?: ActiveEffect[]; removed_effects?: ActiveEffect[] } {
+  /**
+   * P24-02: `2024` restores all Hit Point Dice; requires ≥1 HP to start
+   * (caller should gate UI; here we refuse to restore HP/dice if blocked).
+   * Default `2014` keeps half-dice recovery.
+   */
+  rules_edition?: string | null
+  /** Current HP — used for 2024 «≥1 HP to start» gate. */
+  hp_current?: number | null
+}): RestResult & {
+  effects?: ActiveEffect[]
+  removed_effects?: ActiveEffect[]
+  blocked?: boolean
+  block_reason?: string
+} {
+  const edition = String(input.rules_edition ?? '2014').trim() || '2014'
+  if (edition === '2024') {
+    const hpNow =
+      input.hp_current !== undefined ? input.hp_current : input.hp_max
+    if (!canStartLongRest2024(hpNow)) {
+      return {
+        resources: input.resources,
+        blocked: true,
+        block_reason: 'нужен хотя бы 1 хит, чтобы начать длинный отдых',
+      }
+    }
+  }
   const pact = input.pact_slots
   const pools = input.hit_dice_by_class
   const recoveredPools =
-    pools && pools.length > 0 ? recoverHitDicePoolsOnLongRest(pools) : undefined
+    pools && pools.length > 0
+      ? recoverHitDicePoolsOnLongRestForEdition(pools, edition)
+      : undefined
   const recharged = rechargeFormulaResources(
     resetResourcesOnRest(input.resources, 'long'),
     input.rng,
@@ -332,7 +360,11 @@ export function applyLongRest(input: {
     hp_temp: 0,
     hit_dice_current: recoveredPools
       ? recoveredPools.reduce((sum, pool) => sum + pool.current, 0)
-      : recoverHitDiceOnLongRest(input.hit_dice_current, input.hit_dice_max),
+      : recoverHitDiceOnLongRestForEdition(
+          input.hit_dice_current,
+          input.hit_dice_max,
+          edition,
+        ),
     hit_dice_by_class: recoveredPools,
     ...(effectResult
       ? { effects: effectResult.kept, removed_effects: effectResult.removed }

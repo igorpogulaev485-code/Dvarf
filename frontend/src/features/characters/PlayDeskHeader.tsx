@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
-import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import {
-  exhaustionHpCurrent,
-  exhaustionHpMax,
-  exhaustionHpNote,
-  exhaustionSpeedFt,
-  exhaustionSpeedNote,
-} from '../../shared/dnd/exhaustion2014'
+  exhaustionHpCurrentForEdition,
+  exhaustionHpMaxForEdition,
+  exhaustionHpNoteForEdition,
+  exhaustionSpeedFtForEdition,
+  exhaustionSpeedNoteForEdition,
+  exhaustionStageLabelForEdition,
+} from '../../shared/dnd/exhaustionRules'
 import { clampExhaustion } from '../../shared/dnd/rest'
 import {
   formatXp,
@@ -326,16 +326,23 @@ export function PlayDeskHeader({
   const atZeroHp = hpCurrent != null && hpCurrent <= 0
   const showDeath = play.isDying || atZeroHp
   const deathTracksActive = play.isDying || atZeroHp
-  const exhaustionStage =
-    play.exhaustion > 0 ? conditionLevelLabel('exhaustion', play.exhaustion) : null
-  const shownHpMax = exhaustionHpMax(hpMax, play.exhaustion)
-  const shownHpCurrent = exhaustionHpCurrent(hpCurrent, hpMax, play.exhaustion)
-  const hpExhaustNote = exhaustionHpNote(play.exhaustion)
-  const speedExhaustNote = exhaustionSpeedNote(play.exhaustion)
-  const shownSpeed = exhaustionSpeedFt(speed, play.exhaustion)
-  const shownClimb = exhaustionSpeedFt(climbSpeed, play.exhaustion)
-  const shownSwim = exhaustionSpeedFt(swimSpeed, play.exhaustion)
-  const shownFly = exhaustionSpeedFt(flySpeed, play.exhaustion)
+  const exhaustionStage = exhaustionStageLabelForEdition(
+    play.exhaustion,
+    editionLabel,
+  )
+  const shownHpMax = exhaustionHpMaxForEdition(hpMax, play.exhaustion, editionLabel)
+  const shownHpCurrent = exhaustionHpCurrentForEdition(
+    hpCurrent,
+    hpMax,
+    play.exhaustion,
+    editionLabel,
+  )
+  const hpExhaustNote = exhaustionHpNoteForEdition(play.exhaustion, editionLabel)
+  const speedExhaustNote = exhaustionSpeedNoteForEdition(play.exhaustion, editionLabel)
+  const shownSpeed = exhaustionSpeedFtForEdition(speed, play.exhaustion, editionLabel)
+  const shownClimb = exhaustionSpeedFtForEdition(climbSpeed, play.exhaustion, editionLabel)
+  const shownSwim = exhaustionSpeedFtForEdition(swimSpeed, play.exhaustion, editionLabel)
+  const shownFly = exhaustionSpeedFtForEdition(flySpeed, play.exhaustion, editionLabel)
 
   const altModes: SpeedMode[] = []
   if (shownClimb != null) altModes.push({ key: 'climb', label: 'лаз.', value: shownClimb })
@@ -752,10 +759,18 @@ export function PlayDeskHeader({
               }`}
               onClick={onToggleInspiration}
               aria-pressed={inspiration}
-              title={showValueTips ? undefined : 'Вдохновение — нажми, чтобы переключить'}
+              title={
+                showValueTips
+                  ? undefined
+                  : editionLabel === '2024'
+                    ? 'Героическое вдохновение — нажми, чтобы переключить'
+                    : 'Вдохновение — нажми, чтобы переключить'
+              }
             >
               <IconSpark className="play-desk-header__chip-icon" />
-              <span className="play-desk-vital__label-row">Вдохн.</span>
+              <span className="play-desk-vital__label-row">
+                {editionLabel === '2024' ? 'Г.вдохн.' : 'Вдохн.'}
+              </span>
               <b>{inspiration ? 'да' : '—'}</b>
               {showValueTips ? <HoverTipCard tip={VITAL_TIPS.inspiration} /> : null}
             </button>

@@ -94,6 +94,8 @@ type RestDialogProps = {
   grittyRest?: boolean
   /** O-04: эпический героизм — 5 минут / 1 час (взаимоисключается с gritty). */
   epicHeroism?: boolean
+  /** P24-02: long rest restores all Hit Point Dice on 2024. */
+  rulesEdition?: string | null
   /** S-07: подсветка блока после «Короткий/Долгий отдых» со стола. */
   preferKind?: 'short' | 'long' | null
   /** O-02: Формулы заговоров (TCE wizard) — один раз за этот короткий отдых. */
@@ -124,6 +126,7 @@ export function RestDialog({
   raceSlug = null,
   grittyRest = false,
   epicHeroism = false,
+  rulesEdition = '2014',
   preferKind = null,
   cantripFormulas = null,
   onPlayChange,
@@ -333,7 +336,12 @@ export function RestDialog({
       hit_dice_max: hitDiceMax,
       hit_dice_by_class: pools.length > 0 ? pools : undefined,
       effects: play.effects ?? [],
+      rules_edition: rulesEdition,
     })
+    if (result.blocked) {
+      onToast(result.block_reason || 'Длинный отдых недоступен')
+      return
+    }
     setConfirm({ kind: 'long', lines, result })
   }
 

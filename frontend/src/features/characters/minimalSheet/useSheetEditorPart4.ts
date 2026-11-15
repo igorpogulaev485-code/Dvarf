@@ -30,6 +30,7 @@ import { isWarlockClassName } from '../pactTomeEffects'
 import { parseInfusionSlotsResourceId } from '../InfusionsActiveDialog'
 import { useLobbyParty } from '../../lobby/useLobbyParty'
 import { useLobbyRealtime } from '../../lobby/useLobbyRealtime'
+import { potionSelfTiming } from '../../lobby/campaignRules2024'
 import { armorGivesStealthDisadvantage, type DeskRollMode } from '../deskRolls'
 import {
   appendRollHistory,
@@ -444,6 +445,39 @@ export function useSheetEditorPart4(model: SheetModel) {
     setInspirationRollArmed(false)
     return true
   }
+  /** P24-02: Heroic Inspiration — post-roll reroll chip (any die). */
+  const [heroicRerollPending, setHeroicRerollPending] = useState<{
+    label: string
+    sides: number
+  } | null>(null)
+  model.heroicRerollPending = heroicRerollPending
+  model.setHeroicRerollPending = setHeroicRerollPending
+  model.spendHeroicInspirationReroll = function spendHeroicInspirationReroll() {
+    if (!model.draft.inspiration) {
+      model.onToast?.('Нет героического вдохновения')
+      setHeroicRerollPending(null)
+      return false
+    }
+    model.setDraft((prev) => ({ ...prev, inspiration: false }))
+    setHeroicRerollPending(null)
+    return true
+  }
+  model.transferHeroicInspirationToAlly = function transferHeroicInspirationToAlly(
+    allyId: string,
+  ) {
+    if (!model.draft.inspiration) {
+      model.onToast?.('Нет героического вдохновения для передачи')
+      return false
+    }
+    if (!allyId) {
+      model.onToast?.('Выберите союзника без вдохновения')
+      return false
+    }
+    // Sheet flag clears locally; lobby/session sync of the ally is caller's job.
+    model.setDraft((prev) => ({ ...prev, inspiration: false }))
+    model.onToast?.(`Героическое вдохновение передано союзнику (${allyId})`)
+    return true
+  }
   const [luckyPickPending, setLuckyPickPending] = useState<{
     allDice: number[]
     text: string
@@ -607,7 +641,10 @@ export function useSheetEditorPart4(model: SheetModel) {
         | undefined
       let potionTiming: 'action' | 'bonus' | null = null
       if (heal) {
-        potionTiming = homebrew?.potion_bonus_self ? 'bonus' : 'action'
+        potionTiming = potionSelfTiming({
+          edition: model.baseCharacter?.rules_edition ?? model.rulesEdition,
+          potion_bonus_self: Boolean(homebrew?.potion_bonus_self),
+        })
         if (teApi) {
           const gate = teApi.canFeature(potionTiming)
           if (!gate.ok) {

@@ -886,6 +886,7 @@ export function LobbyDetailPage() {
             <CampaignRulesPanel
               rules={rulesDraft}
               eventHistory={visibilityDraft.event_history}
+              rulesEdition={lobby.rules_edition || '2014'}
               readOnly={rulesReadOnly}
               onChange={onRulesChange}
               onEventHistoryChange={(mode) => {
