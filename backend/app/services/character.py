@@ -36,7 +36,29 @@ from app.services.character_sheet import empty_character_sheet, extract_summary_
 
 
 def to_summary(character: Character) -> CharacterSummary:
-    return CharacterSummary.model_validate(character)
+    data = CharacterSummary.model_validate(character).model_dump()
+    sheet = character.sheet if isinstance(character.sheet, dict) else {}
+    from_sheet = extract_summary_from_sheet(sheet)
+    # LOBBY-FIX E: не отдавать «без класса» / HP —, если на листе есть данные
+    if not data.get("class_name") and from_sheet.get("class_name"):
+        data["class_name"] = from_sheet["class_name"]
+    if not data.get("race_name") and from_sheet.get("race_name"):
+        data["race_name"] = from_sheet["race_name"]
+    if (data.get("hp_max") is None or data.get("hp_current") is None) and from_sheet.get(
+        "hp_max"
+    ) is not None:
+        if data.get("hp_max") is None:
+            data["hp_max"] = from_sheet.get("hp_max")
+        if data.get("hp_current") is None:
+            data["hp_current"] = from_sheet.get("hp_current", from_sheet.get("hp_max"))
+    if (not data.get("level") or data.get("level") == 1) and from_sheet.get("level"):
+        # не занижать: если колонка 1, а на листе сумма классов выше — взять лист
+        sheet_level = from_sheet["level"]
+        if isinstance(sheet_level, int) and sheet_level > int(data.get("level") or 1):
+            data["level"] = sheet_level
+        elif not data.get("class_name") and isinstance(sheet_level, int):
+            data["level"] = sheet_level
+    return CharacterSummary.model_validate(data)
 
 
 def _legacy_artifact_ids(sheet: dict) -> list[str]:

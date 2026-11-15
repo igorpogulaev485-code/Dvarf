@@ -20,10 +20,14 @@ type Props = {
   onEnd?: () => void
   onSelect?: (index: number) => void
   onRollInitiative?: (entry: CombatEntry) => void
+  /** LOBBY-FIX A: мастер бросает инициативу всем, кто ещё не бросил */
+  onRollRemaining?: () => void
   onReleaseWave?: (waveId: string) => void
   onRestoreFallen?: (fallenId: string) => void
   /** S-05: смена стороны с чипа очереди */
   onSideClick?: (entry: CombatEntry) => void
+  /** LOBBY-FIX A: снять «ждём реакцию» со стороны мастера */
+  onSkipReaction?: () => void
   /** LV-01: узкая полоса инициативы на первом экране игрока (телефон) */
   compact?: boolean
   /**
@@ -84,9 +88,11 @@ export function CombatTrack({
   showEndAction = false,
   onSelect,
   onRollInitiative,
+  onRollRemaining,
   onReleaseWave,
   onRestoreFallen,
   onSideClick,
+  onSkipReaction,
   compact = false,
 }: Props) {
   const orderRef = useRef<HTMLOListElement>(null)
@@ -100,6 +106,9 @@ export function CombatTrack({
   const turnTotal = combat.entries.length
   const turnNumber =
     turnTotal > 0 ? Math.min(Math.max(combat.active_index, 0) + 1, turnTotal) : 0
+  const pendingInitCount = combat.entries.filter(
+    (e) => e.initiative_pending || e.initiative == null,
+  ).length
 
   // LV-02 P08: держать текущий чип в кадре с peek следующего
   useEffect(() => {
@@ -160,19 +169,42 @@ export function CombatTrack({
           </Text>
         )}
         {combat.waiting_reaction && masterControls ? (
-          <Text className="session-combat-track__reaction">ждём реакцию</Text>
+          <div className="session-combat-track__reaction-row">
+            <Text className="session-combat-track__reaction">ждём реакцию</Text>
+            {onSkipReaction ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                disabled={busy}
+                onClick={onSkipReaction}
+              >
+                Нет реакции
+              </Button>
+            ) : null}
+          </div>
         ) : null}
         {masterControls ? (
           <div className="session-combat-track__actions">
             <Button type="button" variant="ghost" disabled={busy} onClick={onPrev}>
               ←
             </Button>
-            <Button type="button" variant="secondary" disabled={busy} onClick={onNext}>
+            <Button type="button" variant="primary" disabled={busy} onClick={onNext}>
               Следующий ход
             </Button>
             {showEndAction && onEnd ? (
-              <Button type="button" variant="ghost" disabled={busy} onClick={onEnd}>
+              <Button type="button" variant="secondary" disabled={busy} onClick={onEnd}>
                 Завершить бой
+              </Button>
+            ) : null}
+            {onRollRemaining && pendingInitCount > 0 ? (
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={busy}
+                onClick={onRollRemaining}
+              >
+                Бросить за оставшихся
               </Button>
             ) : null}
           </div>

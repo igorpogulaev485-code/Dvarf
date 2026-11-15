@@ -115,8 +115,27 @@ def empty_character_sheet() -> dict[str, Any]:
 
 
 def extract_summary_from_sheet(sheet: dict[str, Any]) -> dict[str, Any]:
-    combat = sheet.get("combat") or {}
+    combat = sheet.get("combat") if isinstance(sheet.get("combat"), dict) else {}
+    identity = sheet.get("identity") if isinstance(sheet.get("identity"), dict) else {}
+    classes = sheet.get("classes") if isinstance(sheet.get("classes"), list) else []
+    class_parts: list[str] = []
+    total_level = 0
+    for row in classes:
+        if not isinstance(row, dict):
+            continue
+        name = str(row.get("name") or "").strip()
+        try:
+            lvl = max(0, int(row.get("level") or 0))
+        except (TypeError, ValueError):
+            lvl = 0
+        if name and lvl > 0:
+            class_parts.append(f"{name} {lvl}")
+            total_level += lvl
+    race = identity.get("race_name") or identity.get("race") or sheet.get("race_name")
     return {
         "hp_current": combat.get("hp_current"),
         "hp_max": combat.get("hp_max"),
+        "class_name": " / ".join(class_parts) if class_parts else None,
+        "race_name": str(race).strip() if race else None,
+        "level": min(20, max(1, total_level)) if total_level else None,
     }

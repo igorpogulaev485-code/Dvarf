@@ -58,7 +58,7 @@ from app.dnd.setting_templates import (
 )
 from app.services import wiki_combat_ops as wiki_combat_ops
 from app.dnd.sheet_signals import PartyMemberSnapshot
-from app.dnd.xp import xp_from_cr
+from app.dnd.xp import normalize_cr, xp_from_cr
 from app.services import session_combat as scmb
 from app.services import session_sides as sides
 from app.services import session_table_s03 as s03
@@ -3286,15 +3286,19 @@ class LobbyService:
                 raise AppError("Сеттинг не из этого лобби", code="setting_lobby_mismatch")
         name = (payload.name or "").strip()
         if not name:
-            name = f"{setting.name} — сессия" if setting else "Ваншот"
+            name = f"{setting.name} — сессия" if setting else (lobby.name or "Сессия")
         session = self.lobbies.create_session(
             lobby_id=lobby.id,
             name=name,
             setting_id=setting.id if setting else None,
         )
+        # LOBBY-FIX C: пустой список = все из состава за столом
+        seat_ids = list(payload.character_ids)
+        if not seat_ids:
+            seat_ids = [m.character_id for m in lobby.members]
         # Отметить присутствующих при создании (дубликаты игнорируем)
         seen: set[UUID] = set()
-        for character_id in payload.character_ids:
+        for character_id in seat_ids:
             if character_id in seen:
                 continue
             seen.add(character_id)
@@ -3510,11 +3514,32 @@ class LobbyService:
             character = char_map.get(seat.character_id)
             extras = _seat_combat_fields(character)
             sheet = (character.sheet if character is not None else None) or {}
-            init_bonus, init_adv = scmb.initiative_bonus_from_sheet(
-                sheet if isinstance(sheet, dict) else {}
-            )
+            sheet_dict = sheet if isinstance(sheet, dict) else {}
+            init_bonus, init_adv = scmb.initiative_bonus_from_sheet(sheet_dict)
+            from app.services.character_sheet import extract_summary_from_sheet
+
+            sheet_sum = extract_summary_from_sheet(sheet_dict)
             hp_cur = character.hp_current if character else None
             hp_mx = character.hp_max if character else None
+            if hp_mx is None and sheet_sum.get("hp_max") is not None:
+                try:
+                    hp_mx = int(sheet_sum["hp_max"])
+                except (TypeError, ValueError):
+                    hp_mx = None
+            if hp_cur is None and sheet_sum.get("hp_current") is not None:
+                try:
+                    hp_cur = int(sheet_sum["hp_current"])
+                except (TypeError, ValueError):
+                    hp_cur = hp_mx
+            class_name = character.class_name if character else None
+            if not class_name and sheet_sum.get("class_name"):
+                class_name = str(sheet_sum["class_name"])
+            race_name = character.race_name if character else None
+            if not race_name and sheet_sum.get("race_name"):
+                race_name = str(sheet_sum["race_name"])
+            level = character.level if character else 1
+            if sheet_sum.get("level") and int(sheet_sum["level"]) > int(level or 1):
+                level = int(sheet_sum["level"])
             band = s03.hp_band(hp_cur, hp_mx)
             # Спасброски от смерти: L-08 hidden_death_saves (дефолт вкл) —
             # только умирающему и ведущему; выкл — всем, кто видит карточку.
@@ -3535,9 +3560,9 @@ class LobbyService:
                 SessionSeatOut(
                     character_id=seat.character_id,
                     character_name=character.name if character else "Персонаж удалён",
-                    character_level=character.level if character else 1,
-                    character_class_name=character.class_name if character else None,
-                    character_race_name=character.race_name if character else None,
+                    character_level=level,
+                    character_class_name=class_name,
+                    character_race_name=race_name,
                     hp_current=hp_cur,
                     hp_max=hp_mx,
                     hp_temp=int(extras.get("hp_temp") or 0),
@@ -5365,13 +5390,33 @@ class LobbyService:
             if payload.hp_max is None:
                 raise AppError("Укажите максимум HP", code="combatant_hp_required", status_code=400)
             custom = True
+            cr_raw = (payload.cr or "").strip() or None
+            if not cr_raw and payload.xp is None:
+                raise AppError(
+                    "Укажите ПО (опасность) для своего НПС",
+                    code="combatant_cr_required",
+                    status_code=400,
+                )
+            cr_norm = normalize_cr(cr_raw) if cr_raw else None
+            if cr_raw and cr_norm is None:
+                raise AppError(
+                    "Неизвестное ПО (опасность)",
+                    code="combatant_cr_invalid",
+                    status_code=400,
+                )
+            derived_xp = xp_from_cr(cr_norm) if cr_norm else None
+            xp_val = (
+                int(payload.xp)
+                if payload.xp is not None
+                else (int(derived_xp) if derived_xp is not None else None)
+            )
             template = {
                 "name": name,
                 "hp_max": int(payload.hp_max),
                 "hp_current": int(payload.hp_max),
                 "ac": payload.ac,
                 "speed": payload.speed,
-                "cr": None,
+                "cr": cr_norm,
                 "catalog_id": None,
                 "slug": None,
                 "source_book": None,
@@ -5384,7 +5429,7 @@ class LobbyService:
                 "reactions": [],
                 "legendary_actions": [],
                 "dex_mod": None,
-                "xp": int(payload.xp) if payload.xp is not None else None,
+                "xp": xp_val,
                 "xp_claimed_count": 0,
                 **_copy_defenses({}),
             }
@@ -6145,13 +6190,60 @@ class LobbyService:
             )
         return detail
 
+    def _roll_one_initiative_total(
+        self,
+        entry: dict,
+        *,
+        mode: str,
+        value: int | None,
+        advantage: bool,
+    ) -> tuple[int, str, str]:
+        """Вернуть (total, formula, breakdown) для одной записи очереди."""
+        if mode == "manual":
+            if value is None:
+                raise AppError(
+                    "Укажите число инициативы",
+                    code="initiative_value_required",
+                    status_code=400,
+                )
+            total = int(value)
+            return total, "вручную", str(total)
+
+        bonus = 0
+        adv = bool(advantage)
+        dex = entry.get("dex_mod") if isinstance(entry.get("dex_mod"), int) else 0
+        if entry.get("kind") == "pc":
+            character = self.characters.get_active(UUID(str(entry["ref_id"])))
+            if character is not None:
+                sheet = character.sheet if isinstance(character.sheet, dict) else {}
+                dex = scmb.dex_mod_from_sheet(sheet)
+                b, sheet_adv = scmb.initiative_bonus_from_sheet(sheet)
+                bonus = b
+                adv = adv or sheet_adv
+        die, die_note = scmb.roll_d20(advantage=adv)
+        total = die + dex + bonus
+        formula = (
+            f"1к20{(' с преим.' if adv else '')}{dex:+d}{bonus:+d}"
+            if bonus
+            else f"1к20{(' с преим.' if adv else '')}{dex:+d}"
+        )
+        breakdown = (
+            f"{die_note}; ловк. {dex:+d}"
+            + (f"; бонус {bonus:+d}" if bonus else "")
+            + f" → {total}"
+        )
+        return total, formula, breakdown
+
     async def roll_combat_initiative(
         self,
         user: User,
         session_id: UUID,
         payload: CombatInitiativeRequest,
     ) -> SessionDetail:
-        """Игрок бросает за своего ПК; ведущий — за любого. Наблюдатель — 403."""
+        """Игрок бросает за своего ПК; ведущий — за любого. Наблюдатель — 403.
+
+        mode=roll_remaining: ведущий бросает за всех с initiative_pending.
+        """
         session = self.lobbies.get_session(session_id)
         if session is None:
             raise NotFoundError("Сессия не найдена", code="session_not_found")
@@ -6169,6 +6261,85 @@ class LobbyService:
             raise AppError("Бой не начат", code="combat_inactive", status_code=400)
 
         can_run = roles.can_run_session(self.db, lobby, user, session)
+
+        if payload.mode == "roll_remaining":
+            if not can_run:
+                raise AppError(
+                    "Бросать за оставшихся может только ведущий",
+                    code="forbidden",
+                    status_code=403,
+                )
+            pending = [
+                e
+                for e in (state.get("entries") or [])
+                if e.get("initiative_pending") or e.get("initiative") is None
+            ]
+            if not pending:
+                raise AppError(
+                    "Некому бросать — все уже кинули инициативу",
+                    code="initiative_none_pending",
+                    status_code=400,
+                )
+            rolled_names: list[str] = []
+            last_event: SessionEvent | None = None
+            for entry in pending:
+                total, formula, breakdown = self._roll_one_initiative_total(
+                    entry, mode="roll", value=None, advantage=False
+                )
+                state = scmb.set_entry_initiative(
+                    state,
+                    entry_id=entry["id"],
+                    initiative=total,
+                )
+                rolled_names.append(str(entry.get("name") or "?"))
+                last_event = SessionEvent(
+                    session_id=session.id,
+                    event_type="roll",
+                    character_id=(
+                        UUID(str(entry["ref_id"])) if entry.get("kind") == "pc" else None
+                    ),
+                    actor_user_id=user.id,
+                    character_name=entry.get("name"),
+                    title=f"Инициатива: {entry.get('name')}",
+                    formula=formula,
+                    breakdown=breakdown,
+                    total=total,
+                    is_master_roll=True,
+                    payload={
+                        "kind": "initiative",
+                        "entry_id": entry["id"],
+                        "roll_remaining": True,
+                    },
+                )
+                self.lobbies.add_session_event(last_event)
+            session.combat = scmb.dump_combat_state(state)
+            flag_modified(session, "combat")
+            summary = SessionEvent(
+                session_id=session.id,
+                event_type="note",
+                actor_user_id=user.id,
+                title="Инициатива за оставшихся",
+                formula=None,
+                breakdown=None,
+                total=None,
+                is_master_roll=True,
+                payload={
+                    "kind": "initiative_remaining",
+                    "names": rolled_names,
+                    "count": len(rolled_names),
+                },
+            )
+            self.lobbies.add_session_event(summary)
+            self.db.commit()
+            detail = self._session_detail(session, lobby, user)
+            await _broadcast_session_changed(session.id)
+            out_event = SessionEventOut.model_validate(summary)
+            await session_hub.broadcast(
+                session.id,
+                {"type": "session_event", "event": out_event.model_dump(mode="json")},
+            )
+            return detail
+
         entry = None
         if payload.entry_id:
             entry = next(
@@ -6216,34 +6387,12 @@ class LobbyService:
                 status_code=403,
             )
 
-        bonus = 0
-        advantage = bool(payload.advantage)
-        formula = None
-        breakdown = None
-        if payload.mode == "manual":
-            if payload.value is None:
-                raise AppError(
-                    "Укажите число инициативы",
-                    code="initiative_value_required",
-                    status_code=400,
-                )
-            total = int(payload.value)
-            formula = "вручную"
-            breakdown = str(total)
-        else:
-            dex = entry.get("dex_mod") if isinstance(entry.get("dex_mod"), int) else 0
-            if entry.get("kind") == "pc":
-                character = self.characters.get_active(UUID(str(entry["ref_id"])))
-                if character is not None:
-                    sheet = character.sheet if isinstance(character.sheet, dict) else {}
-                    dex = scmb.dex_mod_from_sheet(sheet)
-                    b, adv = scmb.initiative_bonus_from_sheet(sheet)
-                    bonus = b
-                    advantage = advantage or adv
-            die, die_note = scmb.roll_d20(advantage=advantage)
-            total = die + dex + bonus
-            formula = f"1к20{(' с преим.' if advantage else '')}{dex:+d}{bonus:+d}" if bonus else f"1к20{(' с преим.' if advantage else '')}{dex:+d}"
-            breakdown = f"{die_note}; ловк. {dex:+d}" + (f"; бонус {bonus:+d}" if bonus else "") + f" → {total}"
+        total, formula, breakdown = self._roll_one_initiative_total(
+            entry,
+            mode=payload.mode,
+            value=payload.value,
+            advantage=bool(payload.advantage),
+        )
 
         state = scmb.set_entry_initiative(
             state,

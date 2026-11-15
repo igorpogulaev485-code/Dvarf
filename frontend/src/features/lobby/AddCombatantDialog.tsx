@@ -2,9 +2,47 @@ import { useEffect, useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import { parseBestiaryData } from '../../shared/dnd/bestiaryCatalog'
-import { Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
+import { Dialog, Field, Input, NumberInput, Select, Stack, Text } from '../../ui'
 
 type Mode = 'bestiary' | 'custom'
+
+/** DMG 2014 CR → XP (краткая подпись для мастера). */
+const CR_OPTIONS: { cr: string; xp: number }[] = [
+  { cr: '0', xp: 10 },
+  { cr: '1/8', xp: 25 },
+  { cr: '1/4', xp: 50 },
+  { cr: '1/2', xp: 100 },
+  { cr: '1', xp: 200 },
+  { cr: '2', xp: 450 },
+  { cr: '3', xp: 700 },
+  { cr: '4', xp: 1100 },
+  { cr: '5', xp: 1800 },
+  { cr: '6', xp: 2300 },
+  { cr: '7', xp: 2900 },
+  { cr: '8', xp: 3900 },
+  { cr: '9', xp: 5000 },
+  { cr: '10', xp: 5900 },
+  { cr: '11', xp: 7200 },
+  { cr: '12', xp: 8400 },
+  { cr: '13', xp: 10000 },
+  { cr: '14', xp: 11500 },
+  { cr: '15', xp: 13000 },
+  { cr: '16', xp: 15000 },
+  { cr: '17', xp: 18000 },
+  { cr: '18', xp: 20000 },
+  { cr: '19', xp: 22000 },
+  { cr: '20', xp: 25000 },
+  { cr: '21', xp: 33000 },
+  { cr: '22', xp: 41000 },
+  { cr: '23', xp: 50000 },
+  { cr: '24', xp: 62000 },
+  { cr: '25', xp: 75000 },
+  { cr: '26', xp: 90000 },
+  { cr: '27', xp: 105000 },
+  { cr: '28', xp: 120000 },
+  { cr: '29', xp: 135000 },
+  { cr: '30', xp: 155000 },
+]
 
 type Props = {
   open: boolean
@@ -20,6 +58,7 @@ type Props = {
     ac?: number | null
     speed?: number | null
     count: number
+    cr?: string
     actions?: {
       name_ru: string
       text_ru: string
@@ -46,6 +85,7 @@ export function AddCombatantDialog({
   const [customName, setCustomName] = useState('')
   const [customHp, setCustomHp] = useState<number | null>(30)
   const [customAc, setCustomAc] = useState<number | null>(15)
+  const [customCr, setCustomCr] = useState('1/4')
   const [actionName, setActionName] = useState('Атака')
   const [actionBonus, setActionBonus] = useState<number | null>(5)
   const [actionDamage, setActionDamage] = useState('1к8+3')
@@ -63,6 +103,7 @@ export function AddCombatantDialog({
     setCustomName('')
     setCustomHp(30)
     setCustomAc(15)
+    setCustomCr('1/4')
     setActionName('Атака')
     setActionBonus(5)
     setActionDamage('1к8+3')
@@ -73,10 +114,11 @@ export function AddCombatantDialog({
   }, [open])
 
   const data = selected ? parseBestiaryData(selected.data) : null
+  const crXp = CR_OPTIONS.find((o) => o.cr === customCr)?.xp
   const canSubmit =
     mode === 'bestiary'
       ? Boolean(selected)
-      : Boolean(customName.trim() && customHp != null && customHp > 0)
+      : Boolean(customName.trim() && customHp != null && customHp > 0 && customCr)
 
   return (
     <Dialog
@@ -128,6 +170,7 @@ export function AddCombatantDialog({
           name: customName.trim(),
           hp_max: customHp ?? undefined,
           ac: customAc,
+          cr: customCr,
           count: Math.max(1, Math.min(12, count || 1)),
           actions,
           ...waveBit,
@@ -138,7 +181,7 @@ export function AddCombatantDialog({
         <Text tone="muted">
           {combatActive
             ? 'В идущем бою пачка станет новой скрытой волной — выпусти её кнопкой.'
-            : 'Из бестиария (MM и др.) или свой НПС. Волны раскладываются в диалоге «Бой».'}
+            : 'Бестиарий или свой НПС. Для своего НПС укажите ПО — опыт возьмётся из таблицы 2014.'}
         </Text>
         {combatActive ? (
           <Field label="Напоминание волны (необязательно)">
@@ -202,6 +245,20 @@ export function AddCombatantDialog({
               </Field>
               <Field label="КД">
                 <NumberInput value={customAc} onValueChange={setCustomAc} min={0} max={40} />
+              </Field>
+              <Field label="ПО (опасность)" hint={crXp != null ? `${crXp} XP` : undefined}>
+                <Select
+                  value={customCr}
+                  disabled={busy}
+                  aria-label="Показатель опасности"
+                  onChange={(e) => setCustomCr(e.target.value)}
+                >
+                  {CR_OPTIONS.map((o) => (
+                    <option key={o.cr} value={o.cr}>
+                      {o.cr} · {o.xp} XP
+                    </option>
+                  ))}
+                </Select>
               </Field>
             </div>
             <Text as="h4">Действие</Text>

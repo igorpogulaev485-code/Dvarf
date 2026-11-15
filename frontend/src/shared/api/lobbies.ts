@@ -1649,6 +1649,9 @@ export async function addSessionCombatants(
     ac?: number | null
     speed?: number | null
     count?: number
+    /** ПО (CR) для своего НПС — XP по таблице 2014 */
+    cr?: string | null
+    xp?: number | null
     actions?: CombatantAction[]
     wave_index?: number
     wave_condition_text?: string | null
@@ -1777,7 +1780,7 @@ export async function rollSessionCombatInitiative(
     kind?: CombatEntryKind
     ref_id?: string
     companion_id?: string | null
-    mode?: 'roll' | 'manual'
+    mode?: 'roll' | 'manual' | 'roll_remaining'
     value?: number | null
     advantage?: boolean | null
   },
