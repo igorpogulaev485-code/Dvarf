@@ -129,6 +129,25 @@
   border-color: var(--desk-accent, var(--accent));
 }
 
+.play-desk-compact__spell-name {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  text-underline-offset: 2px;
+}
+
+.play-desk-compact__spell-name:hover,
+.play-desk-compact__spell-name:focus-visible {
+  text-decoration-color: var(--accent);
+}
+
+.play-desk-compact__spell-desc-btn {
+  font-size: inherit;
+  padding: 0;
+  min-height: 0;
+  vertical-align: baseline;
+}
+
 .play-desk-compact__spell-top {
   display: flex;
   align-items: center;

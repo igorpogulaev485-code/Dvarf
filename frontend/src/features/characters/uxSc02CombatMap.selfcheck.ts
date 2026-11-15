@@ -47,16 +47,15 @@ assert.doesNotMatch(tabChrome, /Цель под водой/)
 assert.doesNotMatch(tabChrome, /Цель верхом/)
 assert.doesNotMatch(tabChrome, /Силовой удар −5\/\+10/)
 
-assert.match(
-  attacks,
-  /turnEco\.combatActive \? \(\s*<TurnEconomyChips[\s\S]*?className="chip-row play-desk-turn-marks"/,
-)
+assert.doesNotMatch(attacks, /TurnEconomyChips/)
 assert.match(attacks, /play-desk-turn-actions-wrap/)
 assert.match(attacks, /mode="all"/)
 assert.doesNotMatch(attacks, /mode="everyTurn"/)
 assert.doesNotMatch(attacks, /mode="more"/)
 
 assert.match(actions, /play-desk-turn-actions__tab/)
+assert.match(actions, /play-desk-turn-actions__mark/)
+assert.match(actions, /Снять отметку/)
 assert.match(actions, /Хитрое действие/)
 assert.match(actions, /Точное прицеливание/)
 assert.match(actions, /Атака вторым оружием/)

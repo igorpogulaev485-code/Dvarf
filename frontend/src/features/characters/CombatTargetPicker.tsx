@@ -52,12 +52,15 @@ type Props = {
   attackNatural?: number | null
   /** When false, never show «vs КД» (hidden enemy AC). */
   showTargetAc?: boolean
+  /** When a chip is selected — sync modifiers from table conditions. */
+  onTargetSelect?: (target: CombatTarget | null) => void
 }
 
 /**
  * T-01: выбор цели из контракта S-04.
  * UIKIT-02: в бою цели — ПЕРВЫЙ блок (чипы), последняя цель запоминается,
  * при одном враге — выбран сразу; primary = «Атаковать {имя}».
+ * FIX-01: Escape / фон / крестик = закрыть без броска (onDismiss=onClose).
  */
 export function CombatTargetPicker({
   open,
@@ -76,6 +79,7 @@ export function CombatTargetPicker({
   attackTotal = null,
   attackNatural = null,
   showTargetAc = true,
+  onTargetSelect,
 }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [damageTotal, setDamageTotal] = useState<number | null>(null)
@@ -107,6 +111,11 @@ export function CombatTargetPicker({
   }, [open, list, rememberKey])
 
   const selected = list.find((t) => t.id === selectedId) ?? null
+
+  useEffect(() => {
+    if (!open) return
+    onTargetSelect?.(selected)
+  }, [open, selectedId]) // eslint-disable-line react-hooks/exhaustive-deps -- sync on chip pick
 
   const previewHit =
     selected && attackTotal != null
@@ -142,6 +151,10 @@ export function CombatTargetPicker({
     if (target) writeLastTargetId(rememberKey, target.id)
   }
 
+  function selectTarget(id: string) {
+    setSelectedId(id)
+  }
+
   return (
     <Dialog
       open={open}
@@ -150,6 +163,8 @@ export function CombatTargetPicker({
       secondaryLabel="Без цели"
       busy={busy}
       primaryDisabled={diceOnTable ? !selected : false}
+      showClose
+      onDismiss={onClose}
       onSecondary={() => {
         onPick(null)
         onClose()
@@ -208,7 +223,7 @@ export function CombatTargetPicker({
                       className={`combat-target-picker__chip${on ? ' is-on' : ''}`}
                       aria-pressed={on}
                       disabled={busy}
-                      onClick={() => setSelectedId(t.id)}
+                      onClick={() => selectTarget(t.id)}
                     >
                       <b>{t.name}</b>
                       <span className="combat-target-picker__chip-meta">
@@ -292,7 +307,7 @@ export function CombatTargetPicker({
           <Text tone="muted">
             {selected
               ? `Один клик «Атаковать ${selected.name}» — бросок.`
-              : 'Выберите цель или «Без цели» — бросок всё равно запишется.'}
+              : 'Выберите цель или «Без цели» — бросок всё равно запишется. Escape и фон закрывают без броска.'}
           </Text>
         ) : (
           <Text tone="muted">

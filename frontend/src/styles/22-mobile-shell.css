@@ -170,10 +170,11 @@
 @media (max-width: 959px) {
   .ui-dialog-backdrop {
     align-items: flex-end;
+    /* Keep bottom safe-area so sticky footer stays above Safari chrome. */
     padding:
       max(8px, env(safe-area-inset-top, 0px))
       0
-      0
+      env(safe-area-inset-bottom, 0px)
       0;
   }
 
@@ -182,18 +183,29 @@
   .ui-dialog--xl,
   .ui-dialog--pad {
     width: 100%;
-    max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 8px));
+    max-height: min(
+      92svh,
+      92dvh,
+      calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px),
+      calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 8px)
+    );
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -8px 28px rgba(28, 25, 23, 0.18);
   }
 
-  .ui-dialog__title {
+  .ui-dialog__header {
     padding: 12px 14px 0;
+  }
+
+  .ui-dialog__title {
+    padding: 0;
     font-size: 1rem;
   }
 
   .ui-dialog__body {
     padding: 8px 14px 6px;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
   }
 
   .ui-dialog__actions {
@@ -532,16 +544,32 @@
   display: inline-block;
 }
 
-/* CMB-02: три кнопки хода в одну строку; чипы переносятся без обрезки */
+/* FIX-01 / CMB-02: строка хода на 390 — перенос или сжатие, без обрезки текста */
 .play-desk--mobile .play-desk-turn-actions__tabs {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 4px;
 }
 
 .play-desk--mobile .play-desk-turn-actions__tab {
+  flex: 1 1 calc(33.33% - 4px);
+  min-width: 5.2rem;
   min-height: 44px;
-  padding: 6px 8px;
+  padding: 8px 12px;
   font-size: 0.78rem;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.play-desk--mobile .play-desk-turn-actions__mark {
+  flex: 1 1 calc(50% - 4px);
+  min-width: 6.5rem;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 0.76rem;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
 }
 
 .play-desk--mobile .play-desk-turn-actions__chips {

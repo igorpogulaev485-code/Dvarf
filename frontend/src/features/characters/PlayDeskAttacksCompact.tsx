@@ -1,9 +1,18 @@
 import { useMemo, useRef, useState } from 'react'
+
+/** Features with bespoke turn chips — skip generic personal wiring. */
+const TURN_SPECIAL_FEATURE_IDS = new Set([
+  'steady_aim',
+  'cunning_action',
+  'uncanny_dodge',
+  'ki_fueled_attack',
+  'second_wind',
+  'action_surge',
+])
 import { Button, DetailsMenu } from '../../ui'
 import { ResourcePips } from '../../ui/ResourcePips'
 import { shouldUseCompactResourceTrack } from '../../ui/resourceTrackDisplay'
 import { useTurnEconomy } from './TurnEconomyContext'
-import { TurnEconomyChips } from './TurnEconomyChips'
 import { TurnEconomyCombatActions } from './TurnEconomyCombatActions'
 import { GrappleShoveDialog, type GrappleShoveMode } from './GrappleShoveDialog'
 import { TelekineticShoveDialog } from './TelekineticShoveDialog'
@@ -93,10 +102,13 @@ import {
 import {
   castingTimeToEconomyMark,
   clearReadyPrepared,
+  inferFeatureTiming,
   markDashed,
   markDisengagedThisTurn,
   markReadyPrepared,
 } from '../../shared/dnd/turnEconomy'
+import { parseFeatureResourceId } from '../../shared/dnd/featureResources'
+import type { TurnActionGroupId } from './turnActionGroups'
 import {
   findActiveMount,
   hostIsMounted,
@@ -152,9 +164,19 @@ import { CombatTargetPicker } from './CombatTargetPicker'
 import { EnterOwnNumberDialog } from './EnterOwnNumberDialog'
 import {
   TargetModifiersFields,
+  modifiersFromTargetConditions,
   type TargetModifiersValue,
 } from './TargetModifiersFields'
 import type { CombatTarget } from '../lobby/combatTargets'
+import {
+  formatTargetHpFeedLine,
+  resolveHitVsAc,
+} from '../lobby/attackOutcome'
+import { resolveSessionSheetCombatAttack } from '../../shared/api/lobbies'
+import {
+  hasSlug,
+  conditionSlugs,
+} from '../../shared/dnd/o08ActionsCoverConditions'
 import { resourceShownCurrent, type SheetResource } from '../../shared/dnd/rest'
 import { isHarnessDivinePowerResourceId } from '../../shared/dnd/harnessDivinePower'
 import {
@@ -562,8 +584,11 @@ export function PlayDeskAttacksCompact({
   const [o08Dialog, setO08Dialog] = useState<null | 'help' | 'ready'>(null)
   const [targetCover, setTargetCover] = useState<CoverLevel>('none')
   const [targetDodging, setTargetDodging] = useState(false)
-  const [fearSourceVisible, setFearSourceVisible] = useState(true)
+  /** FIX-01: default OFF; chip only when attacker is frightened. */
+  const [fearSourceVisible, setFearSourceVisible] = useState(false)
   const [invisibleDiscovered, setInvisibleDiscovered] = useState(false)
+  const [targetBlinded, setTargetBlinded] = useState(false)
+  const [targetInvisible, setTargetInvisible] = useState(false)
   const [targetProne, setTargetProne] = useState(false)
   const [targetRestrained, setTargetRestrained] = useState(false)
   const [targetParalyzedClose, setTargetParalyzedClose] = useState(false)
@@ -940,15 +965,8 @@ export function PlayDeskAttacksCompact({
     if (row.track === 'stock') return true
     return row.used < row.max
   })
-  /** Features that live in Действие/Бонусное/Реакция — do not also show as a free chip-row. */
-  const turnGroupedFeatureIds = new Set([
-    'steady_aim',
-    'cunning_action',
-    'uncanny_dodge',
-    'ki_fueled_attack',
-    'second_wind',
-    'action_surge',
-  ])
+  /** Features with bespoke turn chips — skip generic personal wiring. */
+  const turnSpecialFeatureIds = TURN_SPECIAL_FEATURE_IDS
   const secondWindFeature = combatFeatures.find((f) => f.id === 'second_wind')
   const actionSurgeFeature = combatFeatures.find((f) => f.id === 'action_surge')
   const secondWindPool = resources.find(
@@ -965,6 +983,133 @@ export function PlayDeskAttacksCompact({
       /:action_surge$/i.test(row.id) ||
       /всплеск действий/i.test(row.name),
   )
+
+  /** FIX-01: map unlocked features into turn groups by kind / summary timing. */
+  const personalTurnFeatures = useMemo(() => {
+    type Row = {
+      id: string
+      nameRu: string
+      summaryRu: string
+      group: TurnActionGroupId
+      remaining?: number | null
+      max?: number | null
+      disabled?: boolean
+      disabledReason?: string
+      onUse: () => void
+      poolId?: string | null
+    }
+    const out: Row[] = []
+    for (const feature of combatFeatures) {
+      if (!feature.name_ru.trim()) continue
+      if (turnSpecialFeatureIds.has(feature.id)) continue
+      if (feature.slot_spend) continue
+      if (feature.kind === 'passive') continue
+      if (feature.choice && !feature.resource) continue
+      /* Named channel options share the pool — show the parent «Божественный канал». */
+      if (
+        feature.id.startsWith('cd_') &&
+        feature.resource?.pool_id === 'channel_divinity'
+      ) {
+        continue
+      }
+      const explicit =
+        feature.kind === 'action' ||
+        feature.kind === 'bonus' ||
+        feature.kind === 'reaction'
+          ? feature.kind
+          : null
+      if (!explicit && feature.kind !== 'resource') continue
+      const group = inferFeatureTiming(feature.summary_ru, explicit)
+      const poolId = feature.resource?.pool_id ?? null
+      const pool = poolId
+        ? resources.find((row) => {
+            const parsed = parseFeatureResourceId(row.id)
+            return (
+              parsed &&
+              parsed.poolId === poolId &&
+              parsed.classEntryId === feature.classEntryId
+            )
+          }) ??
+          resources.find(
+            (row) =>
+              row.id.includes(`:${poolId}:`) ||
+              row.id.endsWith(`:${poolId}`) ||
+              row.name.trim().toLowerCase() ===
+                (feature.resource?.pool_name_ru || feature.name_ru).trim().toLowerCase(),
+          )
+        : null
+      const remaining = pool ? resourceShownCurrent(pool) : null
+      const max = pool?.max ?? feature.resourceUses ?? null
+      const isLayOnHands = poolId === 'lay_on_hands'
+      out.push({
+        id: feature.id,
+        nameRu: feature.name_ru,
+        summaryRu: feature.summary_ru,
+        group,
+        remaining: isLayOnHands ? remaining : remaining,
+        max: isLayOnHands ? max : max,
+        poolId,
+        disabled: Boolean(pool && remaining != null && remaining <= 0),
+        disabledReason:
+          pool && remaining != null && remaining <= 0
+            ? 'Нет использований'
+            : undefined,
+        onUse: () => {
+          if (!turnEco) return
+          const gate = turnEco.canFeature(group)
+          if (!gate.ok) {
+            onToast?.(gate.reason)
+            return
+          }
+          if (pool && remaining != null && remaining <= 0) {
+            onToast?.(`${feature.name_ru}: нет использований`)
+            return
+          }
+          turnEco.spendFeature(group)
+          if (pool && onSpendResource && !isLayOnHands) {
+            onSpendResource(pool.id)
+          }
+          onToast?.(
+            isLayOnHands
+              ? `${feature.name_ru}: действие · укажи хиты пула (${remaining ?? '—'}/${max ?? '—'})`
+              : `${feature.name_ru}${
+                  pool && remaining != null && max != null
+                    ? ` · ${Math.max(0, remaining - 1)}/${max}`
+                    : ''
+                }`,
+          )
+        },
+      })
+    }
+    return out
+  }, [combatFeatures, resources, turnEco, onSpendResource, onToast])
+
+  const personalTurnSpells = useMemo(() => {
+    const known = spells?.known ?? []
+    return known
+      .filter((spell) => spell.prepared !== false && spell.name.trim())
+      .map((spell) => {
+        const mark = castingTimeToEconomyMark(spell.casting_time)
+        if (mark !== 'bonus' && mark !== 'reaction') return null
+        return {
+          id: spell.id,
+          name: spell.name,
+          group: mark as TurnActionGroupId,
+          onUse: () => {
+            if (onCastSpell) onCastSpell(spell)
+            else onToast?.(`${spell.name}: кастуй из колонки «Заклинания»`)
+          },
+        }
+      })
+      .filter((row): row is NonNullable<typeof row> => row != null)
+  }, [spells, onCastSpell, onToast])
+
+  const turnGroupedFeatureIds = useMemo(() => {
+    const ids = new Set(turnSpecialFeatureIds)
+    for (const row of personalTurnFeatures) ids.add(row.id)
+    return ids
+  }, [personalTurnFeatures])
+
   const deskCombatFeatures = combatFeatures.filter(
     (row) =>
       row.desk === 'combat' &&
@@ -1167,6 +1312,11 @@ export function PlayDeskAttacksCompact({
     setSmiteNat1AttackId(null)
   }
 
+  const attackerFrightened = hasSlug(
+    conditionSlugs(playConditions),
+    'frightened',
+  )
+
   const targetModifiersValue: TargetModifiersValue = {
     cover: targetCover,
     dodging: targetDodging,
@@ -1174,6 +1324,8 @@ export function PlayDeskAttacksCompact({
     restrained: targetRestrained,
     paralyzedClose: targetParalyzedClose,
     fearSourceVisible,
+    blinded: targetBlinded,
+    invisible: targetInvisible,
     invisibleDiscovered,
     underwater: targetUnderwater,
     isMounted: targetIsMounted,
@@ -1194,6 +1346,8 @@ export function PlayDeskAttacksCompact({
     if (patch.restrained !== undefined) setTargetRestrained(patch.restrained)
     if (patch.paralyzedClose !== undefined) setTargetParalyzedClose(patch.paralyzedClose)
     if (patch.fearSourceVisible !== undefined) setFearSourceVisible(patch.fearSourceVisible)
+    if (patch.blinded !== undefined) setTargetBlinded(patch.blinded)
+    if (patch.invisible !== undefined) setTargetInvisible(patch.invisible)
     if (patch.invisibleDiscovered !== undefined) setInvisibleDiscovered(patch.invisibleDiscovered)
     if (patch.underwater !== undefined) setTargetUnderwater(patch.underwater)
     if (patch.isMounted !== undefined) setTargetIsMounted(patch.isMounted)
@@ -1217,6 +1371,7 @@ export function PlayDeskAttacksCompact({
         hasSharpshooter,
         hasCrossbowExpert,
         hasGunner,
+        attackerFrightened,
         hasGrappler,
         hasMountedCombatant,
         isMountedNow,
@@ -1249,18 +1404,10 @@ export function PlayDeskAttacksCompact({
       {turnEco ? (
         <>
           {/*
-            SC-02: карта А/Б/В — отметки хода (В) только в бою; PHB в «Ещё» (Б);
-            укрытие/состояния цели только в окне атаки (17:42).
+            FIX-01: одна строка хода — Действие/Бонусное/Реакция (+ Взаимодействие/Движение
+            в бою внутри групп действий). Отдельная строка отметок убрана.
+            Укрытие/состояния цели — только в окне атаки.
           */}
-          {turnEco.combatActive ? (
-            <TurnEconomyChips
-              state={turnEco.turnEconomy}
-              onToggle={turnEco.toggleMark}
-              onToggleMoved={turnEco.toggleMoved}
-              className="chip-row play-desk-turn-marks"
-            />
-          ) : null}
-          {/* CMB-02: Действие · Бонусное · Реакция — без свёрнутого details. */}
           <div className="play-desk-turn-actions-wrap">
           <TurnEconomyCombatActions
             mode="all"
@@ -1271,6 +1418,8 @@ export function PlayDeskAttacksCompact({
             hasSteadyAim={combatFeatures.some((f) => f.id === 'steady_aim')}
             hasKiFueledAttack={combatFeatures.some((f) => f.id === 'ki_fueled_attack')}
             hasUncannyDodge={combatFeatures.some((f) => f.id === 'uncanny_dodge')}
+            personalFeatures={personalTurnFeatures}
+            personalSpells={personalTurnSpells}
             secondWind={
               secondWindPool && (secondWindFeature || secondWindPool)
                 ? {
@@ -2705,12 +2854,26 @@ export function PlayDeskAttacksCompact({
                 catalog_id: null,
               })
             }
+            if (targetBlinded) {
+              targetCondExtra.push({
+                slug: 'blinded',
+                name: 'Ослеплённый',
+                catalog_id: null,
+              })
+            }
+            if (targetInvisible) {
+              targetCondExtra.push({
+                slug: 'invisible',
+                name: 'Невидимый',
+                catalog_id: null,
+              })
+            }
             const vsTargetMode = conditionModeVsTarget({
               targetConditions: targetCondExtra,
               targetDodging,
               attackReach: meleeAttack ? 'melee' : 'ranged',
               within5ft: targetParalyzedClose || within5ft,
-              invisibleDiscovered,
+              invisibleDiscovered: targetInvisible ? invisibleDiscovered : true,
             })
             const isSpellAtk = isSpellAttackName(attack.name)
             const rangedWeapon =
@@ -3018,6 +3181,7 @@ export function PlayDeskAttacksCompact({
                       tableHit?: boolean
                       tableMiss?: boolean
                       damageTotal?: number | null
+                      damageType?: string | null
                       manualTotal?: number
                       strikeText?: string
                       hitTotal?: number
@@ -3044,9 +3208,27 @@ export function PlayDeskAttacksCompact({
                         setPolearmButtArmed(false)
                         onToast?.('Конец древка: урон 1к4 дробящего (добавь к броску урона)')
                       }
-                      const hitOk =
-                        Boolean(opts?.tableHit) ||
-                        (opts?.hitTotal != null && !opts?.tableMiss)
+                      const target = opts?.target ?? null
+                      const naturalDie =
+                        opts?.naturalDie ??
+                        (opts?.crit ? 20 : null)
+                      const resolved =
+                        opts?.tableHit
+                          ? { hit: true, crit: Boolean(opts?.crit || naturalDie === 20) }
+                          : opts?.tableMiss
+                            ? { hit: false, crit: false }
+                            : target
+                              ? resolveHitVsAc({
+                                  attackTotal: opts?.manualTotal ?? opts?.hitTotal,
+                                  natural: naturalDie,
+                                  ac: target.ac,
+                                })
+                              : opts?.hitTotal != null || opts?.manualTotal != null
+                                ? { hit: true, crit: Boolean(opts?.crit || naturalDie === 20) }
+                                : null
+                      const knownOutcome = resolved != null
+                      const hitOk = resolved?.hit === true
+                      const isCrit = Boolean(resolved?.crit || (hitOk && opts?.crit))
                       if (hitOk) {
                         turnEco?.patchTurnEconomy((s) => {
                           let next = markWeaponHitThisTurn(s)
@@ -3061,15 +3243,14 @@ export function PlayDeskAttacksCompact({
                           if (
                             meleeAttack &&
                             !unarmed &&
-                            (opts?.crit ||
-                              (opts?.target?.hp_current != null &&
-                                opts.damageTotal != null &&
-                                opts.damageTotal >= opts.target.hp_current) ||
-                              (opts?.target?.hp_current != null &&
-                                opts.target.hp_current <= 0))
+                            (isCrit ||
+                              (target?.hp_current != null &&
+                                opts?.damageTotal != null &&
+                                opts.damageTotal >= target.hp_current) ||
+                              (target?.hp_current != null && target.hp_current <= 0))
                           ) {
                             next = markMeleeWeaponCritOrKill(next)
-                          } else if (meleeAttack && !unarmed && opts?.crit) {
+                          } else if (meleeAttack && !unarmed && isCrit) {
                             next = markGwmBonusReady(next)
                           }
                           if (!asReaction && meleeAttack && !unarmed) {
@@ -3139,7 +3320,7 @@ export function PlayDeskAttacksCompact({
                         onToast?.(`Метательное −1 · ${pendingThrownSpend.note}`)
                       }
                       onConsumeOnceBuffDice?.()
-                      if (activeRiders.length) {
+                      if (hitOk && activeRiders.length) {
                         onConsumeDamageRiders?.(
                           activeRiders.map((row) => ({
                             effectId: row.effectId,
@@ -3150,33 +3331,34 @@ export function PlayDeskAttacksCompact({
                       }
                       const physical =
                         Boolean(opts?.physicalDice) || Boolean(turnEco?.diceOnTable)
+                      const damageTotal =
+                        hitOk && opts?.damageTotal != null && Number.isFinite(opts.damageTotal)
+                          ? Math.max(0, Math.floor(opts.damageTotal))
+                          : null
                       let text = opts?.strikeText ?? ''
-                      if (opts?.tableHit) {
+                      if (target && knownOutcome && !hitOk) {
                         text = [
                           `Атака: ${attack.name}`,
-                          opts.target?.name ? `→ ${opts.target.name}` : null,
-                          'Попадание',
-                          opts.damageTotal != null && Number.isFinite(opts.damageTotal)
-                            ? `${opts.damageTotal} урона`
-                            : null,
-                          '🎲',
+                          `→ ${target.name}`,
+                          naturalDie === 1 ? 'Провал' : 'Промах',
+                          physical ? '🎲' : null,
                         ]
                           .filter(Boolean)
                           .join(' · ')
-                      } else if (opts?.tableMiss) {
+                      } else if (opts?.tableHit || (hitOk && target)) {
                         text = [
                           `Атака: ${attack.name}`,
-                          opts.target?.name ? `→ ${opts.target.name}` : null,
-                          'Промах',
-                          '🎲',
+                          target?.name ? `→ ${target.name}` : null,
+                          isCrit ? 'Крит' : 'Попадание',
+                          damageTotal != null ? `${damageTotal} урона` : null,
+                          physical ? '🎲' : null,
                         ]
                           .filter(Boolean)
                           .join(' · ')
                       }
                       if (text) onToast?.(text)
                       if (
-                        (opts?.tableHit ||
-                          (opts?.hitTotal != null && !opts?.tableMiss)) &&
+                        hitOk &&
                         blessedStrikes &&
                         turnEco &&
                         canUseBlessedStrikes(turnEco.turnEconomy)
@@ -3184,8 +3366,7 @@ export function PlayDeskAttacksCompact({
                         turnEco.markBlessedStrikesUsed()
                       }
                       if (
-                        (opts?.tableHit ||
-                          (opts?.hitTotal != null && !opts?.tableMiss)) &&
+                        hitOk &&
                         hasFavoredFoe &&
                         turnEco &&
                         canUseFavoredFoeDamage(turnEco.turnEconomy) &&
@@ -3195,63 +3376,110 @@ export function PlayDeskAttacksCompact({
                       ) {
                         turnEco.markFavoredFoeDamageUsed()
                       }
-                      if (
-                        hasFavoredFoe &&
-                        (opts?.tableHit ||
-                          (opts?.hitTotal != null && !opts?.tableMiss))
-                      ) {
+                      if (hitOk && hasFavoredFoe) {
                         onToast?.(
                           'Избранный противник: можно пометить цель (концентрация, пул БМ)',
                         )
                       }
-                      if (opts?.tableMiss && hasFocusedAim) {
+                      if (!hitOk && target && hasFocusedAim) {
                         setFocusedAimOffer({
                           attackName: attack.name,
-                          baseTotal: opts.hitTotal ?? null,
+                          baseTotal: opts?.hitTotal ?? opts?.manualTotal ?? null,
                         })
                       }
                       const total =
                         opts?.manualTotal ??
                         opts?.hitTotal ??
                         (opts?.tableHit
-                          ? opts.damageTotal != null && Number.isFinite(opts.damageTotal)
-                            ? opts.damageTotal
+                          ? damageTotal != null
+                            ? damageTotal
                             : 1
                           : opts?.tableMiss
                             ? 0
                             : 0)
-                      if (characterId && (opts?.hitTotal != null || opts?.manualTotal != null || opts?.tableHit || opts?.tableMiss)) {
-                        const feedTitle = opts?.tableHit
-                          ? [
-                              'Попадание',
-                              attack.name,
-                              opts.target?.name
-                                ? `по ${opts.target.name}`
-                                : null,
-                              opts.hitTotal != null && opts.target?.ac != null
-                                ? `${opts.hitTotal} vs КД ${opts.target.ac}`
-                                : opts.hitTotal != null
-                                  ? String(opts.hitTotal)
-                                  : null,
-                              opts.damageTotal != null
-                                ? `${opts.damageTotal} урона`
-                                : null,
-                            ]
-                              .filter(Boolean)
-                              .join(' · ')
+                      const sessionId = openSessionId ?? turnEco?.openSessionId
+                      if (
+                        characterId &&
+                        target &&
+                        knownOutcome &&
+                        sessionId &&
+                        turnEco?.combatActive &&
+                        (opts?.hitTotal != null ||
+                          opts?.manualTotal != null ||
+                          opts?.tableHit ||
+                          opts?.tableMiss)
+                      ) {
+                        const mode = opts?.tableHit
+                          ? 'table_hit'
                           : opts?.tableMiss
-                            ? [
-                                'Промах',
-                                attack.name,
-                                opts.target?.name
-                                  ? `по ${opts.target.name}`
-                                  : null,
-                              ]
-                                .filter(Boolean)
-                                .join(' · ')
-                            : `Атака: ${attack.name}`
+                            ? 'table_miss'
+                            : opts?.manualTotal != null
+                              ? 'manual'
+                              : 'roll'
+                        void resolveSessionSheetCombatAttack(sessionId, {
+                          character_id: characterId,
+                          attack_name: attack.name,
+                          target_kind: target.kind,
+                          target_ref_id: target.ref_id,
+                          target_member_id: target.member_id ?? null,
+                          companion_id: target.companion_id ?? null,
+                          mode,
+                          attack_total: opts?.manualTotal ?? opts?.hitTotal ?? null,
+                          attack_natural: naturalDie,
+                          damage_total: hitOk ? damageTotal : null,
+                          damage_type: hitOk
+                            ? opts?.damageType ?? shownType ?? attack.damage_type ?? null
+                            : null,
+                          physical_dice: physical,
+                        })
+                          .then((result) => {
+                            if (result.feed_line) onToast?.(result.feed_line)
+                            else if (
+                              result.hit &&
+                              result.damage_applied != null &&
+                              result.hp_current != null &&
+                              result.hp_max != null
+                            ) {
+                              onToast?.(
+                                formatTargetHpFeedLine({
+                                  targetName: result.target_name || target.name,
+                                  damageApplied: result.damage_applied,
+                                  hpCurrent: result.hp_current,
+                                  hpMax: result.hp_max,
+                                }),
+                              )
+                            }
+                          })
+                          .catch(() => {
+                            /* лента/хиты — побочный эффект */
+                          })
+                      } else if (
+                        characterId &&
+                        (opts?.hitTotal != null ||
+                          opts?.manualTotal != null ||
+                          opts?.tableHit ||
+                          opts?.tableMiss)
+                      ) {
+                        const feedTitle =
+                          target && knownOutcome && !hitOk
+                            ? `промах по ${target.name}`
+                            : target && hitOk
+                              ? [
+                                  isCrit ? 'Крит' : 'Попадание',
+                                  attack.name,
+                                  `по ${target.name}`,
+                                  opts?.hitTotal != null && target.ac != null
+                                    ? `${opts.hitTotal} vs КД ${target.ac}`
+                                    : opts?.hitTotal != null
+                                      ? String(opts.hitTotal)
+                                      : null,
+                                  damageTotal != null ? `${damageTotal} урона` : null,
+                                ]
+                                  .filter(Boolean)
+                                  .join(' · ')
+                              : `Атака: ${attack.name}`
                         void postSheetRollToSession({
-                          openSessionId: openSessionId ?? turnEco?.openSessionId,
+                          openSessionId: sessionId,
                           characterId,
                           title: feedTitle,
                           total,
@@ -3263,14 +3491,16 @@ export function PlayDeskAttacksCompact({
                       }
                       smiteApplyLock.current = false
                       const smiteGate = resolveSmiteAfterAttack({
-                        naturalDie: opts?.naturalDie,
-                        critFlag: Boolean(opts?.crit),
-                        tableMiss: Boolean(opts?.tableMiss),
+                        naturalDie: naturalDie,
+                        critFlag: isCrit,
+                        tableMiss:
+                          Boolean(opts?.tableMiss) ||
+                          Boolean(target && knownOutcome && !hitOk),
                       })
                       if (smiteSpend && meleeAttack && smiteGate.autoMiss) {
                         setOpenStrike(null)
                         setSmiteArmAttackId(null)
-                        if (opts?.naturalDie === 1) {
+                        if (naturalDie === 1) {
                           setSmiteNat1AttackId(attack.id)
                           onToast?.(
                             `Натуральная 1 · «${attack.name}»: промах · кара не предлагается · ячейка не списана`,
@@ -3278,7 +3508,7 @@ export function PlayDeskAttacksCompact({
                         } else {
                           setSmiteNat1AttackId(null)
                         }
-                      } else if (smiteSpend && meleeAttack && smiteGate.offer) {
+                      } else if (smiteSpend && meleeAttack && smiteGate.offer && hitOk) {
                         setSmiteNat1AttackId(null)
                         setOpenStrike({
                           name: attack.name,
@@ -3513,6 +3743,8 @@ export function PlayDeskAttacksCompact({
                       breakdown,
                       crit: strikeCrit || strike.die === 20,
                       naturalDie: strike.die,
+                      damageTotal: strike.damageTotal ?? null,
+                      damageType: strike.damageType ?? shownType ?? attack.damage_type ?? null,
                     })
                     } // end runAttackWithPb
 
@@ -4202,6 +4434,10 @@ export function PlayDeskAttacksCompact({
         (turnEco?.targets ?? []).some((t) => t.kind !== 'enemy' || t.ac != null),
       )}
       modifiersSlot={targetModifiersSlot}
+      onTargetSelect={(target) => {
+        if (!target) return
+        patchTargetModifiers(modifiersFromTargetConditions(target.conditions))
+      }}
       onClose={() => {
         skipAttackDeferRef.current = false
         flushAttackTargetRef.current = null

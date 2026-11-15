@@ -315,6 +315,9 @@ export type AttackStrike = {
   /** Kept d20 is a natural 20. */
   crit: boolean
   die: number
+  /** Total weapon (+ extras) damage rolled with this strike. */
+  damageTotal?: number | null
+  damageType?: string | null
   /** Lucky: natural dice awaiting player pick. */
   allDice?: number[]
   needsPick?: boolean
@@ -328,11 +331,14 @@ function formatExtraDamage(
   extra: AttackExtraDamage,
   rng: () => number,
   crit: boolean,
-): string {
+): { text: string; total: number } {
   const extraRoll = rollDamage(extra.expression, rng, { crit })
-  if (!extraRoll) return ` + ${extra.label}`
+  if (!extraRoll) return { text: ` + ${extra.label}`, total: 0 }
   const typeBit = extra.type?.trim() ? ` ${extra.type.trim()}` : ''
-  return ` + ${extraRoll.total}${typeBit} (${extra.label}, ${extraRoll.detail})`
+  return {
+    text: ` + ${extraRoll.total}${typeBit} (${extra.label}, ${extraRoll.detail})`,
+    total: extraRoll.total,
+  }
 }
 
 /** Attack and damage roll. Crit doubles every extra's dice (PHB p. 196). */
@@ -462,7 +468,10 @@ export function resolveAttackRoll(input: {
     ...(input.extraDamage ? [input.extraDamage] : []),
     ...(input.extraDamages ?? []),
   ]
-  const extraBit = extras.map((extra) => formatExtraDamage(extra, rng, crit)).join('')
+  const extraRows = extras.map((extra) => formatExtraDamage(extra, rng, crit))
+  const extraBit = extraRows.map((row) => row.text).join('')
+  const extraTotal = extraRows.reduce((sum, row) => sum + row.total, 0)
+  const damageTotal = (dmg?.total ?? 0) + extraTotal
   const attackHit =
     bonus.total > 0 ? { ...hit, total: hit.total + bonus.total } : hit
   const text = !dmg
@@ -472,6 +481,8 @@ export function resolveAttackRoll(input: {
     text,
     crit,
     die: hit.die,
+    damageTotal: dmg || extraTotal ? damageTotal : null,
+    damageType: input.damageType ?? null,
     allDice: hit.allDice,
     needsPick: hit.needsPick,
     hitRoll: hit,

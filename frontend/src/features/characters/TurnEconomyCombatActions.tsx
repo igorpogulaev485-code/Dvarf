@@ -1,6 +1,12 @@
 import { useState, type ReactNode } from 'react'
 import { useTurnEconomy } from './TurnEconomyContext'
-import { STEADY_AIM_HINT } from '../../shared/dnd/turnEconomy'
+import {
+  STEADY_AIM_HINT,
+  TURN_MARK_LABELS,
+  markClearBlocked,
+  movementClearBlocked,
+  type TurnEconomyMarkKey,
+} from '../../shared/dnd/turnEconomy'
 import { canKiFueledAttack } from '../../shared/dnd/o02TashaFeatures'
 import {
   GWM_BONUS_ATTACK_HINT,
@@ -227,6 +233,30 @@ type Props = {
     max: number
     onSpend: () => void
   } | null
+  /**
+   * FIX-01: character features/spells for this action type — shown first in the
+   * expanded panel (before common PHB actions). Timing from feature.kind /
+   * casting_time.
+   */
+  personalFeatures?: Array<{
+    id: string
+    nameRu: string
+    summaryRu: string
+    group: TurnActionGroupId
+    remaining?: number | null
+    max?: number | null
+    disabled?: boolean
+    disabledReason?: string
+    onUse: () => void
+  }>
+  personalSpells?: Array<{
+    id: string
+    name: string
+    group: TurnActionGroupId
+    disabled?: boolean
+    disabledReason?: string
+    onUse: () => void
+  }>
   className?: string
   /**
    * CMB-02: grouped UI is the only face. Legacy modes kept for call-site compat:
@@ -305,6 +335,8 @@ export function TurnEconomyCombatActions({
   onToast,
   secondWind = null,
   actionSurge = null,
+  personalFeatures = [],
+  personalSpells = [],
   className = '',
   mode = 'all',
 }: Props) {
@@ -407,6 +439,8 @@ export function TurnEconomyCombatActions({
   const actionSpent = teState.action
   const bonusSpent = teState.bonus
   const reactionSpent = teState.reaction
+  const markSpent = (group: TurnActionGroupId) =>
+    group === 'action' ? actionSpent : group === 'bonus' ? bonusSpent : reactionSpent
 
   const toggleGroup = (group: TurnActionGroupId) => {
     setOpenGroup((prev) => (prev === group ? null : group))
@@ -429,6 +463,144 @@ export function TurnEconomyCombatActions({
   ) => {
     if (!node) return
     chips.push({ key, groups, tier, node })
+  }
+
+  // —— FIX-01: PHB «Атака» / «Заклинание» + character features/spells first ——
+  push(
+    'attack_action',
+    ['action'],
+    'personal',
+    <button
+      key="attack_action"
+      type="button"
+      className={`sheet-chip${actionSpent ? ' is-spent' : ''}`}
+      disabled={!attackGate.ok}
+      title={
+        attackGate.ok
+          ? 'Действие «Атака» · отметь ход и бросай оружие ниже'
+          : attackGate.reason
+      }
+      onClick={() => {
+        if (!turnEco.canAttack().ok) return
+        turnEco.spendAttack()
+        onToast?.('Атака: действие · бросок оружия ниже')
+      }}
+    >
+      {actionSpent ? (
+        <span className="sheet-chip__check" aria-hidden>
+          ✓
+        </span>
+      ) : null}
+      Атака
+    </button>,
+  )
+  push(
+    'cast_spell_action',
+    ['action'],
+    'personal',
+    <button
+      key="cast_spell_action"
+      type="button"
+      className={`sheet-chip${actionSpent ? ' is-spent' : ''}`}
+      disabled={!actionGate.ok}
+      title={
+        actionGate.ok
+          ? 'Действие «Заклинание» · кастуй из колонки «Заклинания»'
+          : actionGate.reason
+      }
+      onClick={() => {
+        if (!turnEco.canFeature('action').ok) return
+        turnEco.spendFeature('action')
+        onToast?.('Заклинание: действие · кастуй из колонки «Заклинания»')
+      }}
+    >
+      {actionSpent ? (
+        <span className="sheet-chip__check" aria-hidden>
+          ✓
+        </span>
+      ) : null}
+      Заклинание
+    </button>,
+  )
+
+  for (const feat of personalFeatures) {
+    const spent = markSpent(feat.group)
+    const empty =
+      typeof feat.remaining === 'number' &&
+      typeof feat.max === 'number' &&
+      feat.max > 0 &&
+      feat.remaining <= 0
+    const blocked = Boolean(feat.disabled) || empty || spent
+    push(
+      `feat:${feat.id}`,
+      [feat.group],
+      'personal',
+      <button
+        key={`feat:${feat.id}`}
+        type="button"
+        className={`sheet-chip${spent || empty ? ' is-spent' : ''}`}
+        disabled={blocked}
+        title={
+          empty
+            ? `${feat.nameRu}: нет использований`
+            : feat.disabled
+              ? feat.disabledReason || feat.summaryRu
+              : spent
+                ? `${feat.nameRu}: отметка «${TURN_GROUP_LABELS[feat.group]}» уже стоит`
+                : feat.summaryRu || feat.nameRu
+        }
+        onClick={() => {
+          if (blocked) return
+          feat.onUse()
+        }}
+      >
+        {spent || empty ? (
+          <span className="sheet-chip__check" aria-hidden>
+            ✓
+          </span>
+        ) : null}
+        {feat.nameRu}
+        {typeof feat.remaining === 'number' && typeof feat.max === 'number' && feat.max > 0 ? (
+          <span className="play-desk-turn-actions__charges" aria-hidden>
+            {feat.remaining}/{feat.max}
+          </span>
+        ) : null}
+      </button>,
+    )
+  }
+
+  for (const sp of personalSpells) {
+    const spent = markSpent(sp.group)
+    const blocked = Boolean(sp.disabled) || spent
+    push(
+      `spell:${sp.id}`,
+      [sp.group],
+      'personal',
+      <button
+        key={`spell:${sp.id}`}
+        type="button"
+        className={`sheet-chip${spent ? ' is-spent' : ''}`}
+        disabled={blocked}
+        title={
+          sp.disabled
+            ? sp.disabledReason || sp.name
+            : spent
+              ? `${sp.name}: отметка «${TURN_GROUP_LABELS[sp.group]}» уже стоит`
+              : `Заклинание «${sp.name}» · ${TURN_GROUP_LABELS[sp.group]}`
+        }
+        onClick={() => {
+          if (blocked) return
+          sp.onUse()
+        }}
+      >
+        {spent ? (
+          <span className="sheet-chip__check" aria-hidden>
+            ✓
+          </span>
+        ) : null}
+        {sp.name}
+      </button>,
+    )
   }
 
   // —— Bonus only: Cunning Action (PHB bonus; common Dash/Disengage/Hide stay in Действие) ——
@@ -1966,6 +2138,19 @@ export function TurnEconomyCombatActions({
   }
 
   const groups: TurnActionGroupId[] = ['action', 'bonus', 'reaction']
+  const showMarks = Boolean(turnEco.combatActive)
+  const interactionOn = teState.objectInteraction
+  const movedOn = teState.moved
+  const interactionLocked =
+    interactionOn && markClearBlocked(teState, 'object_interaction', { asGm: false })
+  const movedLocked = movedOn && movementClearBlocked(teState, { asGm: false })
+
+  const clearSpentMark = (group: TurnActionGroupId) => {
+    const mark: TurnEconomyMarkKey = group
+    if (!spentOf(group)) return
+    if (markClearBlocked(teState, mark, { asGm: false })) return
+    turnEco.toggleMark(mark)
+  }
 
   return (
     <div
@@ -1973,6 +2158,10 @@ export function TurnEconomyCombatActions({
       role="group"
       aria-label="Действия хода"
     >
+      {/*
+        FIX-01: одна строка — группы Действие/Бонусное/Реакция + отметки
+        Взаимодействие/Движение (раньше отдельный TurnEconomyChips).
+      */}
       <div className="play-desk-turn-actions__tabs" role="tablist" aria-label="Вид действия">
         {groups.map((group) => {
           const spent = spentOf(group)
@@ -1987,26 +2176,122 @@ export function TurnEconomyCombatActions({
               className={`sheet-chip play-desk-turn-actions__tab${
                 open ? ' is-open' : ''
               }${spent ? ' is-spent' : ''}`}
-              disabled={!has}
+              /* Always clickable: empty catalog still opens for «Снять отметку» / empty hint. */
               title={
-                !has
-                  ? TURN_GROUP_EMPTY_HINT[group]
-                  : spent
-                    ? `${TURN_GROUP_LABELS[group]}: потрачено в этот ход`
-                    : `${TURN_GROUP_LABELS[group]}: свободно`
+                spent
+                  ? `${TURN_GROUP_LABELS[group]}: потрачено · нажмите, чтобы ${open ? 'свернуть' : 'открыть'}`
+                  : has
+                    ? `${TURN_GROUP_LABELS[group]}: свободно · нажмите, чтобы ${open ? 'свернуть' : 'открыть'} варианты`
+                    : `${TURN_GROUP_LABELS[group]}: ${TURN_GROUP_EMPTY_HINT[group]}`
               }
-              onClick={() => {
-                if (!has) return
-                toggleGroup(group)
-              }}
+              onClick={() => toggleGroup(group)}
             >
               {spent ? <span className="sheet-chip__check" aria-hidden>✓</span> : null}
               <span>{TURN_GROUP_LABELS[group]}</span>
             </button>
           )
         })}
+        {showMarks ? (
+          <>
+            <button
+              type="button"
+              className={`sheet-chip play-desk-turn-actions__mark${
+                interactionOn ? ' is-spent' : ''
+              }${interactionLocked ? ' is-locked' : ''}`}
+              aria-pressed={interactionOn}
+              disabled={interactionLocked}
+              title={
+                interactionLocked
+                  ? teState.surprised
+                    ? 'Врасплох — до конца первого хода'
+                    : 'Отметку мастера снимает только мастер'
+                  : interactionOn
+                    ? 'Потрачено — нажмите, чтобы снять'
+                    : 'Свободно — нажмите, чтобы отметить'
+              }
+              onClick={() => {
+                if (interactionLocked) return
+                turnEco.toggleMark('object_interaction')
+              }}
+            >
+              {interactionOn ? (
+                <span className="sheet-chip__check" aria-hidden>
+                  ✓
+                </span>
+              ) : null}
+              {TURN_MARK_LABELS.object_interaction}
+            </button>
+            <button
+              type="button"
+              className={`sheet-chip play-desk-turn-actions__mark${
+                movedOn ? ' is-spent' : ''
+              }${movedLocked ? ' is-locked' : ''}`}
+              aria-pressed={movedOn}
+              disabled={movedLocked}
+              title={
+                movedLocked
+                  ? teState.surprised
+                    ? 'Врасплох — до конца первого хода'
+                    : 'Отметку мастера снимает только мастер'
+                  : movedOn
+                    ? 'Уже двигался — нажмите, чтобы снять'
+                    : 'Отметить перемещение в этот ход'
+              }
+              onClick={() => {
+                if (movedLocked) return
+                turnEco.toggleMoved()
+              }}
+            >
+              {movedOn ? (
+                <span className="sheet-chip__check" aria-hidden>
+                  ✓
+                </span>
+              ) : null}
+              Движение
+            </button>
+            {teState.surprised ? (
+              <span
+                className="sheet-chip play-desk-turn-actions__mark is-spent"
+                title="Застигнут врасплох до конца первого хода"
+              >
+                врасплох
+              </span>
+            ) : null}
+            {teState.steadyAim ? (
+              <span
+                className="sheet-chip play-desk-turn-actions__mark is-on"
+                title="Точное прицеливание: преимущество на следующую атаку, скорость 0"
+              >
+                Прицел
+              </span>
+            ) : null}
+          </>
+        ) : null}
       </div>
-      {openGroup ? renderGroupPanel(openGroup) : null}
+      {openGroup ? (
+        <div className="play-desk-turn-actions__panel-wrap">
+          {spentOf(openGroup) ? (
+            <div className="chip-row play-desk-turn-actions__clear">
+              <button
+                type="button"
+                className="sheet-chip"
+                disabled={markClearBlocked(teState, openGroup, { asGm: false })}
+                title={
+                  markClearBlocked(teState, openGroup, { asGm: false })
+                    ? teState.surprised
+                      ? 'Врасплох — до конца первого хода'
+                      : 'Отметку мастера снимает только мастер'
+                    : `Снять отметку «${TURN_GROUP_LABELS[openGroup]}»`
+                }
+                onClick={() => clearSpentMark(openGroup)}
+              >
+                Снять отметку
+              </button>
+            </div>
+          ) : null}
+          {renderGroupPanel(openGroup)}
+        </div>
+      ) : null}
     </div>
   )
 }

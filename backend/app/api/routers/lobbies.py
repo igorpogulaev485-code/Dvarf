@@ -38,6 +38,8 @@ from app.schemas.lobby import (
     AddLobbyMemberRequest,
     CombatAttackRequest,
     CombatAttackResult,
+    SheetCombatAttackRequest,
+    SheetCombatAttackResult,
     CombatInitiativeRequest,
     CombatPatchRequest,
     CombatReactionRequest,
@@ -1208,6 +1210,22 @@ async def resolve_session_combat_attack(
 ) -> CombatAttackResult:
     """S-04: атака / действие врага по цели."""
     return await LobbyService(db).resolve_combat_attack(
+        current_user, session_id, payload
+    )
+
+
+@router.post(
+    "/sessions/{session_id}/combat/sheet-attack",
+    response_model=SheetCombatAttackResult,
+)
+async def resolve_session_sheet_combat_attack(
+    session_id: UUID,
+    payload: SheetCombatAttackRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SheetCombatAttackResult:
+    """FIX-01: атака героя с листа — попадание по КД, снятие хитов цели."""
+    return await LobbyService(db).resolve_sheet_combat_attack(
         current_user, session_id, payload
     )
 

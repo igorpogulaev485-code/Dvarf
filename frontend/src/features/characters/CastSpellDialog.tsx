@@ -844,11 +844,15 @@ export function CastSpellDialog({
     : 0
 
   const metaPartsBase = [
-    spell.casting_time,
-    spell.range,
-    spell.duration ? `длится ${spell.duration}` : '',
+    rulesSpell?.casting_time || spell.casting_time,
+    rulesSpell?.range || spell.range,
+    (rulesSpell?.duration || spell.duration)
+      ? `длится ${rulesSpell?.duration || spell.duration}`
+      : '',
     rulesSpell?.components ? formatSpellComponents(rulesSpell.components) : '',
-    spell.school ? spellSchoolLabelRu(spell.school) : '',
+    (rulesSpell?.school || spell.school)
+      ? spellSchoolLabelRu(rulesSpell?.school || spell.school || '')
+      : '',
     rulesSpell?.attack_or_save || spell.attack_or_save,
     castEffect.effect || rulesSpell?.damage || spell.damage,
   ].filter(Boolean)
@@ -895,7 +899,7 @@ export function CastSpellDialog({
     : Math.max(spell.level, slotLevel)
   const metaCost = metamagicSelectionCost(metaFlags, metaSlotLevel)
   const metaAffordable = metaCost <= sorceryLeft && metamagicStackOk(metaFlags)
-  const metaPreview = applyMetamagicToCastParams(spell, metaFlags)
+  const metaPreview = applyMetamagicToCastParams(rulesSpell ?? spell, metaFlags)
   const metaActive = metaCost > 0 || Boolean(metaFlags.transmutedType)
   const metaSelectedLabels = knownMetamagic
     .filter((def) => {
