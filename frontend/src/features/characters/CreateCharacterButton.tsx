@@ -1,6 +1,6 @@
 import type { RulesEdition } from '../../shared/api/characters'
 import { RULES_EDITION_2024_OPEN } from '../../shared/dnd/rulesEdition2024'
-import { Button } from '../../ui'
+import { Button, Stack } from '../../ui'
 
 export type CreateCharacterRequest = {
   edition: RulesEdition
@@ -28,7 +28,7 @@ export function CreateCharacterButton({ pending, onCreate }: CreateCharacterButt
   }
 
   return (
-    <div className="create-character-edition" data-testid="create-character-edition">
+    <Stack gap={8}>
       <Button
         disabled={pending}
         onClick={() => onCreate({ edition: '2014' })}
@@ -43,6 +43,6 @@ export function CreateCharacterButton({ pending, onCreate }: CreateCharacterButt
       >
         {pending ? '...' : 'D&D 2024'}
       </Button>
-    </div>
+    </Stack>
   )
 }

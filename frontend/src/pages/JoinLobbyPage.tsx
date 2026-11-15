@@ -10,6 +10,7 @@ import {
 import { getMe } from '../shared/api/auth'
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError, getAccessToken } from '../shared/api/client'
+import { RULES_EDITION_2024_OPEN } from '../shared/dnd/rulesEdition2024'
 import { JoinIntroCard, useOnboardingState } from '../features/onboarding'
 import {
   createHeroForLobbyHref,
@@ -62,6 +63,8 @@ export function JoinLobbyPage() {
   const lobbyEdition = (inviteMeta?.rules_edition || '2014').trim() || '2014'
 
   const seatableCharacters = useMemo(() => {
+    // Пока 2024 закрыт — список как в main (все персонажи). Фильтр редакции — после открытия.
+    if (!RULES_EDITION_2024_OPEN) return characters
     return characters.filter((c) => (c.rules_edition || '2014') === lobbyEdition)
   }, [characters, lobbyEdition])
 
@@ -340,7 +343,9 @@ export function JoinLobbyPage() {
                         ))}
                       </Select>
                     </Field>
-                    {inviteMeta && seatableCharacters.length === 0 ? (
+                    {RULES_EDITION_2024_OPEN &&
+                    inviteMeta &&
+                    seatableCharacters.length === 0 ? (
                       <Text tone="muted">
                         Нет персонажей редакции {lobbyEdition} для этого стола.
                       </Text>

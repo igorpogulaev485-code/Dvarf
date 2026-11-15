@@ -1,9 +1,10 @@
 /**
- * DEV-only preview for P24-01 Playwright: create-character CTA + lobby edition field.
- * No API — pure UI contract while RULES_EDITION_2024_OPEN is off.
+ * DEV-only preview for P24-01 Playwright: create-character CTA + lobby form.
+ * With RULES_EDITION_2024_OPEN off — lobby form matches main (no edition field).
  */
 import { useState, type FormEvent } from 'react'
 import { CreateCharacterButton } from '../features/characters/CreateCharacterButton'
+import { RULES_EDITION_2024_OPEN } from '../shared/dnd/rulesEdition2024'
 import { Button, Field, Input, Panel, Select, Stack, Text } from '../ui'
 import type { LobbyRulesEdition } from '../shared/api/lobbies'
 
@@ -11,11 +12,11 @@ export function P24EditionPreviewPage() {
   const [editionLog, setEditionLog] = useState<string>('—')
   const [name, setName] = useState('Стол 2014')
   const [rulesEdition, setRulesEdition] = useState<LobbyRulesEdition>('2014')
-  const [createdEdition, setCreatedEdition] = useState<string | null>(null)
+  const [created, setCreated] = useState(false)
 
   function onCreateLobby(e: FormEvent) {
     e.preventDefault()
-    setCreatedEdition(rulesEdition)
+    setCreated(true)
   }
 
   return (
@@ -35,7 +36,11 @@ export function P24EditionPreviewPage() {
         </Panel>
 
         <Panel title="Создать лобби">
-          <form className="inline-form" onSubmit={onCreateLobby}>
+          <form
+            className="inline-form lobbies-create-form"
+            onSubmit={onCreateLobby}
+            data-testid="lobby-create-form"
+          >
             <Field label="Название">
               <Input
                 value={name}
@@ -43,29 +48,31 @@ export function P24EditionPreviewPage() {
                 data-testid="lobby-preview-name"
               />
             </Field>
-            <Field
-              label="Редакция"
-              hint="Задаётся при создании и больше не меняется."
-            >
-              <Select
-                value={rulesEdition}
-                onChange={(e) =>
-                  setRulesEdition(e.target.value === '2024' ? '2024' : '2014')
-                }
-                data-testid="lobby-create-rules-edition"
-                aria-label="Редакция лобби"
+            {RULES_EDITION_2024_OPEN ? (
+              <Field
+                label="Редакция"
+                hint="Задаётся при создании и больше не меняется."
               >
-                <option value="2014">D&D 2014</option>
-                <option value="2024">D&D 2024</option>
-              </Select>
-            </Field>
+                <Select
+                  value={rulesEdition}
+                  onChange={(e) =>
+                    setRulesEdition(e.target.value === '2024' ? '2024' : '2014')
+                  }
+                  data-testid="lobby-create-rules-edition"
+                  aria-label="Редакция лобби"
+                >
+                  <option value="2014">D&D 2014</option>
+                  <option value="2024">D&D 2024</option>
+                </Select>
+              </Field>
+            ) : null}
             <Button type="submit" data-testid="lobby-preview-submit">
               Создать лобби
             </Button>
           </form>
-          {createdEdition ? (
-            <p className="ui-text" data-testid="lobby-created-edition">
-              Лобби создано · редакция {createdEdition} · после создания не меняется
+          {created ? (
+            <p className="ui-text" data-testid="lobby-created-ok">
+              Лобби создано
             </p>
           ) : null}
         </Panel>

@@ -20,6 +20,7 @@ import {
   raceSpeciesLabelTitle,
   raceSpeciesSectionTitle,
 } from '../../../shared/dnd/raceSpeciesLabel'
+import { RULES_EDITION_2024_OPEN } from '../../../shared/dnd/rulesEdition2024'
 import {
   ALIGNMENTS,
   alignmentNeedsClarification,
@@ -450,11 +451,16 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                 <Text tone="muted">Пока нет черт на листе.</Text>
               ) : (
                 model.draft.featGrants.map((row) => {
+                  const useSpecies =
+                    RULES_EDITION_2024_OPEN &&
+                    model.baseCharacter.rules_edition === '2024'
                   const sourceLabel =
                     row.source.kind === 'asi'
                       ? `Увел. характеристик · ур. ${row.source.atClassLevel}`
                       : row.source.kind === 'race'
-                        ? raceSpeciesLabelTitle(model.baseCharacter.rules_edition)
+                        ? useSpecies
+                          ? raceSpeciesLabelTitle('2024')
+                          : 'Раса'
                         : row.source.kind === 'background'
                           ? 'Предыстория'
                           : 'Мастер'
@@ -495,18 +501,28 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
           </section>
           <section className="identity-dialog__section">
             <p className="identity-dialog__section-label">
-              {raceSpeciesSectionTitle(model.baseCharacter.rules_edition)}
+              {RULES_EDITION_2024_OPEN &&
+              model.baseCharacter.rules_edition === '2024'
+                ? raceSpeciesSectionTitle('2024')
+                : 'Раса и прошлое'}
             </p>
           <div className="sheet-grid sheet-grid--2">
             <Field
-              label={raceSpeciesLabelTitle(model.baseCharacter.rules_edition)}
+              label={
+                RULES_EDITION_2024_OPEN &&
+                model.baseCharacter.rules_edition === '2024'
+                  ? raceSpeciesLabelTitle('2024')
+                  : 'Раса'
+              }
               htmlFor="sheet-race"
               hint={
                 model.primaryClass?.name.trim()
-                  ? model.baseCharacter.rules_edition === '2024'
+                  ? RULES_EDITION_2024_OPEN &&
+                    model.baseCharacter.rules_edition === '2024'
                     ? 'Шаг 3 · развилки вида — в попапе; если вид даёт черту — мастер подскажет'
                     : 'Шаг 3 · подраса и развилки — в попапе; если раса даёт черту — мастер подскажет'
-                  : model.baseCharacter.rules_edition === '2024'
+                  : RULES_EDITION_2024_OPEN &&
+                      model.baseCharacter.rules_edition === '2024'
                     ? 'Шаг 3 · сначала предыстория и класс, потом вид'
                     : 'Шаг 3 · сначала предыстория и класс, потом раса'
               }
@@ -518,7 +534,8 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                 value={model.draft.raceName}
                 placeholder={
                   model.primaryClass?.name.trim()
-                    ? model.baseCharacter.rules_edition === '2024'
+                    ? RULES_EDITION_2024_OPEN &&
+                      model.baseCharacter.rules_edition === '2024'
                       ? 'Начните вводить вид'
                       : 'Начните вводить расу'
                     : 'Сначала выбери класс'

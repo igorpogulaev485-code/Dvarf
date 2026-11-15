@@ -1188,11 +1188,20 @@ class LobbyService:
         return [self._to_summary(item, user) for item in self.lobbies.list_for_user(user.id)]
 
     def create(self, user: User, payload: LobbyCreateRequest) -> LobbyDetail:
+        from app.core.config import settings
+        from app.models.character import RulesEdition
         from app.services.campaign_rules import default_campaign_rules
         from app.services.lobby_edition import normalize_lobby_rules_edition
 
         name = (payload.name or "Новое лобби").strip() or "Новое лобби"
         edition = normalize_lobby_rules_edition(getattr(payload, "rules_edition", None))
+        # P24-01: лобби 2024 закрыто тем же флагом, что и создание персонажа.
+        if edition == RulesEdition.edition_2024 and not settings.rules_edition_2024_open:
+            raise AppError(
+                "Редакция 2024 ещё не открыта",
+                code="rules_edition_closed",
+                status_code=400,
+            )
         lobby = self.lobbies.create(
             owner_id=user.id,
             name=name,

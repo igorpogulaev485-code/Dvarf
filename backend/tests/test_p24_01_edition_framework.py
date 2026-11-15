@@ -463,3 +463,85 @@ def test_lobby_create_request_accepts_edition():
     assert req.rules_edition == "2014"
     req2 = LobbyCreateRequest(name="Стол", rules_edition="2024")
     assert req2.rules_edition == "2024"
+
+
+def test_lobby_create_rejects_2024_when_flag_off(monkeypatch):
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "rules_edition_2024_open", False)
+    user = _user()
+    db = SimpleNamespace(commit=lambda: None)
+    svc = LobbyService(db=db)  # type: ignore[arg-type]
+
+    class FakeLobbies:
+        def create(self, **_kwargs):
+            raise AssertionError("create must not run when 2024 is closed")
+
+    svc.lobbies = FakeLobbies()  # type: ignore[assignment]
+    with pytest.raises(AppError) as exc:
+        svc.create(
+            user,  # type: ignore[arg-type]
+            LobbyCreateRequest(name="Стол 2024", rules_edition="2024"),
+        )
+    assert exc.value.code == "rules_edition_closed"
+    assert "2024" in exc.value.message
+
+
+def test_lobby_create_allows_2014_when_flag_off(monkeypatch):
+    from app.core.config import settings
+    from app.models.character import RulesEdition
+
+    monkeypatch.setattr(settings, "rules_edition_2024_open", False)
+    user = _user()
+    created = {}
+
+    class FakeLobbies:
+        def create(self, **kwargs):
+            created.update(kwargs)
+            lobby = _lobby(owner_id=kwargs["owner_id"])
+            lobby.name = kwargs["name"]
+            lobby.rules_edition = kwargs["rules_edition"]
+            lobby.campaign_rules = {}
+            lobby.members = []
+            lobby.roles = []
+            lobby.settings = []
+            lobby.sessions = []
+            lobby.visibility_profile = {}
+            lobby.invite_code = "ABCDEF"
+            return lobby
+
+    db = SimpleNamespace(commit=lambda: None)
+    svc = LobbyService(db=db)  # type: ignore[arg-type]
+    svc.lobbies = FakeLobbies()  # type: ignore[assignment]
+
+    def fake_require(lobby_id):
+        lobby = _lobby(owner_id=user.id)
+        lobby.id = lobby_id
+        lobby.name = created.get("name") or "Стол"
+        lobby.rules_edition = created.get("rules_edition") or RulesEdition.edition_2014
+        lobby.campaign_rules = {}
+        lobby.members = []
+        lobby.roles = []
+        lobby.settings = []
+        lobby.sessions = []
+        lobby.visibility_profile = {}
+        lobby.invite_code = "ABCDEF"
+        return lobby
+
+    monkeypatch.setattr(svc, "_require_lobby", fake_require)
+    monkeypatch.setattr(
+        svc,
+        "_to_detail",
+        lambda lobby, _u: SimpleNamespace(
+            id=getattr(lobby, "id", None),
+            rules_edition=lobby_rules_edition_value(lobby),
+            name=getattr(lobby, "name", "Стол"),
+        ),
+    )
+
+    out = svc.create(
+        user,  # type: ignore[arg-type]
+        LobbyCreateRequest(name="Стол", rules_edition="2014"),
+    )
+    assert created["rules_edition"] == RulesEdition.edition_2014
+    assert out.rules_edition == "2014"

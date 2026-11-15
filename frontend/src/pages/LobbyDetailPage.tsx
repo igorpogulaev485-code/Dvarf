@@ -35,6 +35,7 @@ import { chatsBadge, type ChatsBadge } from '../shared/api/chat'
 import { getMe } from '../shared/api/auth'
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
+import { RULES_EDITION_2024_OPEN } from '../shared/dnd/rulesEdition2024'
 import { HelpDrawer, LobbyTour, useOnboardingState } from '../features/onboarding'
 import { exportNotes, type Note } from '../shared/api/notes'
 import {
@@ -385,9 +386,11 @@ export function LobbyDetailPage() {
               </button>
               {inviteOpen ? (
                 <div className="lobby-hub-invite">
-                  <p className="ui-text ui-text--muted" data-testid="lobby-rules-edition">
-                    Редакция {lobby.rules_edition || '2014'} · после создания не меняется
-                  </p>
+                  {RULES_EDITION_2024_OPEN ? (
+                    <p className="ui-text ui-text--muted" data-testid="lobby-rules-edition">
+                      Редакция {lobby.rules_edition || '2014'} · после создания не меняется
+                    </p>
+                  ) : null}
                   <div className="lobby-hub-code">
                     <Text tone="muted">Код комнаты</Text>
                     <button
