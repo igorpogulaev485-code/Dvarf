@@ -1,0 +1,26 @@
+id,name_en,name_ru,book,category,url_dndsu,url_ttg,srd
+changeling,Changeling,Ченжлинг,EFA,species,https://next.dnd.su/species/changeling,https://new.ttg.club/species/changeling-efa,false
+kalashtar,Kalashtar,Калаштар,EFA,species,https://next.dnd.su/species/kalashtar,https://new.ttg.club/species/kalashtar-efa,false
+khoravar,Khoravar,Кхоравар,EFA,species,https://next.dnd.su/species/khoravar,https://new.ttg.club/species/khoravar-efa,false
+shifter,Shifter,Шифтер,EFA,species,https://next.dnd.su/species/shifter,https://new.ttg.club/species/shifter-efa,false
+warforged,Warforged,Кованый,EFA,species,https://next.dnd.su/species/warforged,https://new.ttg.club/species/warforged-efa,false
+boggart,Boggart,Боггарт,LFL,species,https://next.dnd.su/species/boggart,https://new.ttg.club/species/boggart-lfl,false
+faerie,Faerie,Феери,LFL,species,https://next.dnd.su/species/faerie,https://new.ttg.club/species/faerie-lfl,false
+flamekin,Flamekin,Огневик,LFL,species,https://next.dnd.su/species/flamekin,https://new.ttg.club/species/flamekin-lfl,false
+kithkin,Kithkin,Свояк,LFL,species,https://next.dnd.su/species/kithkin,https://new.ttg.club/species/kithkin-lfl,false
+lorwyn-changeling,Lorwyn Changeling,Пересад Лорвина,LFL,species,https://next.dnd.su/species/lorwyn-changeling,https://new.ttg.club/species/lorwyn-changeling-lfl,false
+rimekin,Rimekin,Измороз,LFL,species,https://next.dnd.su/species/rimekin,https://new.ttg.club/species/rimekin-lfl,false
+aasimar,Aasimar,Аасимар,PH24,species,https://next.dnd.su/species/aasimar,https://new.ttg.club/species/aasimar-phb,false
+dragonborn,Dragonborn,Драконорождённый,PH24,species,https://next.dnd.su/species/dragonborn,https://new.ttg.club/species/dragonborn-phb,true
+dwarf,Dwarf,Дварф,PH24,species,https://next.dnd.su/species/dwarf,https://new.ttg.club/species/dwarf-phb,true
+elf,Elf,Эльф,PH24,species,https://next.dnd.su/species/elf,https://new.ttg.club/species/elf-lfl,true
+gnome,Gnome,Гном,PH24,species,https://next.dnd.su/species/gnome,https://new.ttg.club/species/gnome-phb,true
+goliath,Goliath,Голиаф,PH24,species,https://next.dnd.su/species/goliath,https://new.ttg.club/species/goliath-phb,true
+halfling,Halfling,Полурослик,PH24,species,https://next.dnd.su/species/halfling,https://new.ttg.club/species/halfling-phb,true
+human,Human,Человек,PH24,species,https://next.dnd.su/species/human,https://new.ttg.club/species/human-phb,true
+orc,Orc,Орк,PH24,species,https://next.dnd.su/species/orc,https://new.ttg.club/species/orc-phb,true
+tiefling,Tiefling,Тифлинг,PH24,species,https://next.dnd.su/species/tiefling,https://new.ttg.club/species/tiefling-phb,true
+dhampir,Dhampir,Дампир,RTW,species,https://next.dnd.su/species/dhampir,https://new.ttg.club/species/dhampir-rhw,false
+hexblood,Hexblood,Ведьмовская кровь,RTW,species,https://next.dnd.su/species/hexblood,https://new.ttg.club/species/hexblood-rhw,false
+lupin,Lupin,Волколак,RTW,species,https://next.dnd.su/species/lupin,https://new.ttg.club/species/lupin-rhw,false
+reborn,Reborn,Возрождённый,RTW,species,https://next.dnd.su/species/reborn,https://new.ttg.club/species/reborn-rhw,false

@@ -1,0 +1,137 @@
+id,name_en,name_ru,book,category,url_dndsu,url_ttg,srd,equipment_group
+acid,Acid,Кислота,PH24,equipment,https://next.dnd.su/equipment/201-acid,https://new.ttg.club/items/acid-phb,false,equipment
+ammunition,Ammunition,Боеприпасы,PH24,equipment,https://next.dnd.su/equipment/203-ammunition,,false,ammunition
+amulet,Amulet,Амулет,PH24,equipment,https://next.dnd.su/equipment/288-amulet,https://new.ttg.club/items/amulet-phb,false,spellcasting_focus
+antitoxin,Antitoxin,Противоядие,PH24,equipment,https://next.dnd.su/equipment/204-antitoxin,https://new.ttg.club/items/antitoxin-phb,false,equipment
+arcane-focus,Arcane Focus,Магическая фокусировка,PH24,equipment,https://next.dnd.su/equipment/205-arcane-focus,https://new.ttg.club/items/arcane-focus-phb,false,spellcasting_focus
+arrows,Arrows,Стрелы,PH24,equipment,https://next.dnd.su/equipment/41-arrows,,false,ammunition
+backpack,Backpack,Рюкзак,PH24,equipment,https://next.dnd.su/equipment/206-backpack,https://new.ttg.club/items/backpack-phb,false,equipment
+bagpipes,Bagpipes,Волынка,PH24,equipment,https://next.dnd.su/equipment/14383-bagpipes,,false,toolkit
+ball-bearings,Ball Bearings,Металлические шарики,PH24,equipment,https://next.dnd.su/equipment/207-ball-bearings,https://new.ttg.club/items/ball-bearings-phb,false,equipment
+bandore,Bandore,Бандура,PH24,equipment,https://next.dnd.su/equipment/17353-bandore,https://new.ttg.club/items/bandore-frhof,false,toolkit
+barrel,Barrel,Бочка,PH24,equipment,https://next.dnd.su/equipment/208-barrel,https://new.ttg.club/items/barrel-phb,false,equipment
+basic-poison,Basic Poison,Простой яд,PH24,equipment,https://next.dnd.su/equipment/253-basic-poison,,false,equipment
+basket,Basket,Корзина,PH24,equipment,https://next.dnd.su/equipment/209-basket,https://new.ttg.club/items/basket-phb,false,equipment
+bedroll,Bedroll,Спальник,PH24,equipment,https://next.dnd.su/equipment/210-bedroll,https://new.ttg.club/items/bedroll-phb,false,equipment
+bell,Bell,Колокольчик,PH24,equipment,https://next.dnd.su/equipment/211-bell,https://new.ttg.club/items/bell-phb,false,equipment
+blanket,Blanket,Одеяло,PH24,equipment,https://next.dnd.su/equipment/212-blanket,https://new.ttg.club/items/blanket-phb,false,equipment
+block-and-tackle,Block and Tackle,Блок и лебёдка,PH24,equipment,https://next.dnd.su/equipment/213-block-and-tackle,https://new.ttg.club/items/block-and-tackle-phb,false,equipment
+book,Book,Книга,PH24,equipment,https://next.dnd.su/equipment/214-book,https://new.ttg.club/items/book-phb,false,equipment
+brewers-supplies,Brewer’s Supplies,Инструменты пивовара,PH24,equipment,https://next.dnd.su/equipment/14352-brewers-supplies,https://new.ttg.club/items/brewer-s-supplies-phb,false,artisan_tool
+bright-fungal-cloak,Bright Fungal Cloak,Плащ светящейся грибницы,PH24,equipment,https://next.dnd.su/equipment/17343-bright-fungal-cloak,https://new.ttg.club/items/bright-fungal-cloak-frhof,false,equipment
+bucket,Bucket,Ведро,PH24,equipment,https://next.dnd.su/equipment/216-bucket,https://new.ttg.club/items/bucket-phb,false,equipment
+bullseye-lantern,Bullseye Lantern,Направленный фонарь,PH24,equipment,https://next.dnd.su/equipment/241-bullseye-lantern,,false,equipment
+calligraphers-supplies,Calligrapher’s Supplies,Инструменты каллиграфа,PH24,equipment,https://next.dnd.su/equipment/14353-calligraphers-supplies,https://new.ttg.club/items/calligrapher-s-supplies-phb,false,artisan_tool
+caltrops,Caltrops,Калтропы,PH24,equipment,https://next.dnd.su/equipment/217-caltrops,https://new.ttg.club/items/caltrops-phb,false,equipment
+candle,Candle,Свеча,PH24,equipment,https://next.dnd.su/equipment/218-candle,https://new.ttg.club/items/candle-phb,false,equipment
+carpenters-tools,Carpenter’s Tools,Инструменты плотника,PH24,equipment,https://next.dnd.su/equipment/14354-carpenters-tools,https://new.ttg.club/items/carpenter-s-tools-phb,false,artisan_tool
+cartographers-tools,Cartographer’s Tools,Инструменты картографа,PH24,equipment,https://next.dnd.su/equipment/14355-cartographers-tools,https://new.ttg.club/items/cartographer-s-tools-phb,false,artisan_tool
+chain,Chain,Цепь,PH24,equipment,https://next.dnd.su/equipment/221-chain,https://new.ttg.club/items/chain-phb,false,equipment
+chest,Chest,Сундук,PH24,equipment,https://next.dnd.su/equipment/222-chest,https://new.ttg.club/items/chest-phb,false,equipment
+cittern,Cittern,Цистра,PH24,equipment,https://next.dnd.su/equipment/17354-cittern,https://new.ttg.club/items/cittern-frhof,false,toolkit
+cobblers-tools,Cobbler’s Tools,Инструменты сапожника,PH24,equipment,https://next.dnd.su/equipment/14357-cobblers-tools,https://new.ttg.club/items/cobbler-s-tools-phb,false,artisan_tool
+component-pouch,Component Pouch,Мешочек с компонентами,PH24,equipment,https://next.dnd.su/equipment/226-component-pouch,https://new.ttg.club/items/component-pouch-phb,false,equipment
+cooks-utensils,Cook’s Utensils,Инструменты повара,PH24,equipment,https://next.dnd.su/equipment/14358-cooks-utensils,https://new.ttg.club/items/cook-s-utensils-phb,false,artisan_tool
+costume,Costume,Костюм,PH24,equipment,https://next.dnd.su/equipment/227-costume,https://new.ttg.club/items/costume-phb,false,equipment
+crossbow-bolt-case,Crossbow Bolt Case,Футляр для арбалетных болтов,PH24,equipment,https://next.dnd.su/equipment/219-crossbow-bolt-case,,false,equipment
+crossbow-bolts,Crossbow Bolts,Болты,PH24,equipment,https://next.dnd.su/equipment/39-crossbow-bolts,,false,ammunition
+crowbar,Crowbar,Ломик,PH24,equipment,https://next.dnd.su/equipment/228-crowbar,https://new.ttg.club/items/crowbar-phb,false,equipment
+crystal,Crystal,Кристалл,PH24,equipment,https://next.dnd.su/equipment/280-crystal,https://new.ttg.club/items/crystal-phb,false,spellcasting_focus
+desert-clothing,Desert Clothing,Одежда для пустыни,PH24,equipment,https://next.dnd.su/equipment/17344-desert-clothing,https://new.ttg.club/items/desert-clothing-frhof,false,equipment
+devil-mask,Devil Mask,Маска дьявола,PH24,equipment,https://next.dnd.su/equipment/17345-devil-mask,https://new.ttg.club/items/devil-mask-frhof,false,equipment
+dice,Dice,Кости,PH24,equipment,https://next.dnd.su/equipment/14372-dice,,false,toolkit
+diplomats-pack,Diplomat’s Pack,Набор дипломата,PH24,equipment,https://next.dnd.su/equipment/92-diplomats-pack,https://new.ttg.club/items/diplomat-s-pack-phb,false,item_pack
+disguise-kit,Disguise Kit,Набор для грима,PH24,equipment,https://next.dnd.su/equipment/14369-disguise-kit,https://new.ttg.club/items/disguise-kit-phb,false,toolkit
+dragonchess,Dragonchess,Драконьи шахматы,PH24,equipment,https://next.dnd.su/equipment/14373-dragonchess,,false,toolkit
+druidic-focus,Druidic Focus,Друидическая фокусировка,PH24,equipment,https://next.dnd.su/equipment/229-druidic-focus,https://new.ttg.club/items/druidic-focus-phb,false,spellcasting_focus
+drum,Drum,Барабан,PH24,equipment,https://next.dnd.su/equipment/14381-drum,https://new.ttg.club/items/drum-phb,false,toolkit
+dulcimer,Dulcimer,Дульцимер,PH24,equipment,https://next.dnd.su/equipment/14389-dulcimer,https://new.ttg.club/items/dulcimer-phb,false,toolkit
+dungeoneers-pack,Dungeoneer’s Pack,Набор исследователя подземелий,PH24,equipment,https://next.dnd.su/equipment/93-dungeoneers-pack,https://new.ttg.club/items/dungeoneer-s-pack-phb,false,item_pack
+emblem,Emblem,Эмблема,PH24,equipment,https://next.dnd.su/equipment/289-emblem,https://new.ttg.club/items/emblem-phb,false,spellcasting_focus
+entertainers-pack,Entertainer’s Pack,Набор артиста,PH24,equipment,https://next.dnd.su/equipment/94-entertainers-pack,https://new.ttg.club/items/entertainer-s-pack-phb,false,item_pack
+explorers-pack,Explorer’s Pack,Набор путешественника,PH24,equipment,https://next.dnd.su/equipment/95-explorers-pack,https://new.ttg.club/items/explorer-s-pack-phb,false,item_pack
+fine-clothes,Fine Clothes,Отличная одежда,PH24,equipment,https://next.dnd.su/equipment/224-fine-clothes,,false,equipment
+firearm-bullets,Firearm Bullets,Пули,PH24,equipment,https://next.dnd.su/equipment/42-firearm-bullets,,false,ammunition
+flask,Flask,Фляга,PH24,equipment,https://next.dnd.su/equipment/230-flask,https://new.ttg.club/items/flask-phb,false,equipment
+flute,Flute,Флейта,PH24,equipment,https://next.dnd.su/equipment/14390-flute,https://new.ttg.club/items/flute-phb,false,toolkit
+forgery-kit,Forgery Kit,Набор для фальсификации,PH24,equipment,https://next.dnd.su/equipment/14370-forgery-kit,https://new.ttg.club/items/forgery-kit-phb,false,toolkit
+gaming-set,Gaming Set,Игровой набор,PH24,equipment,https://next.dnd.su/equipment/14371-gaming-set,https://new.ttg.club/items/gaming-set-phb,false,toolkit
+garb-of-light-and-shadow,Garb of Light and Shadow,Одеяние света и тьмы,PH24,equipment,https://next.dnd.su/equipment/17346-garb-of-light-and-shadow,https://new.ttg.club/items/garb-of-light-and-shadow-frhof,false,equipment
+genie-robe,Genie Robe,Мантия гения,PH24,equipment,https://next.dnd.su/equipment/17347-genie-robe,https://new.ttg.club/items/genie-robe-frhof,false,equipment
+glass-bottle,Glass Bottle,Стеклянная бутылка,PH24,equipment,https://next.dnd.su/equipment/215-glass-bottle,,false,equipment
+glassblowers-tools,Glassblower’s Tools,Инструменты стеклодува,PH24,equipment,https://next.dnd.su/equipment/14359-glassblowers-tools,https://new.ttg.club/items/glassblower-s-tools-phb,false,artisan_tool
+grappling-hook,Grappling Hook,Крюк-кошка,PH24,equipment,https://next.dnd.su/equipment/231-grappling-hook,https://new.ttg.club/items/grappling-hook-phb,false,equipment
+herbalism-kit,Herbalism Kit,Набор травника,PH24,equipment,https://next.dnd.su/equipment/14376-herbalism-kit,https://new.ttg.club/items/herbalism-kit-phb,false,toolkit
+holy-symbol,Holy Symbol,Священный символ,PH24,equipment,https://next.dnd.su/equipment/233-holy-symbol,https://new.ttg.club/items/holy-symbol-phb,false,spellcasting_focus
+holy-water,Holy Water,Святая вода,PH24,equipment,https://next.dnd.su/equipment/234-holy-water,https://new.ttg.club/items/holy-water-phb,false,equipment
+hooded-lantern,Hooded Lantern,Закрытый фонарь,PH24,equipment,https://next.dnd.su/equipment/242-hooded-lantern,,false,equipment
+horn,Horn,Рожок,PH24,equipment,https://next.dnd.su/equipment/14387-horn,https://new.ttg.club/items/horn-phb,false,toolkit
+hunting-trap,Hunting Trap,Охотничий капкан,PH24,equipment,https://next.dnd.su/equipment/235-hunting-trap,https://new.ttg.club/items/hunting-trap-phb,false,equipment
+ink,Ink,Чернила,PH24,equipment,https://next.dnd.su/equipment/236-ink,https://new.ttg.club/items/ink-phb,false,equipment
+ink-pen,Ink Pen,Писчее перо,PH24,equipment,https://next.dnd.su/equipment/237-ink-pen,https://new.ttg.club/items/ink-pen-phb,false,equipment
+iron-pot,Iron Pot,Железный горшок,PH24,equipment,https://next.dnd.su/equipment/255-iron-pot,https://new.ttg.club/items/pot-iron-phb,false,equipment
+iron-spikes,Iron Spikes,Железные шипы,PH24,equipment,https://next.dnd.su/equipment/266-iron-spikes,,false,equipment
+jewelers-tools,Jeweler’s Tools,Инструменты ювелира,PH24,equipment,https://next.dnd.su/equipment/14360-jewelers-tools,https://new.ttg.club/items/jeweler-s-tools-phb,false,artisan_tool
+jug,Jug,Кувшин,PH24,equipment,https://next.dnd.su/equipment/238-jug,https://new.ttg.club/items/jug-phb,false,equipment
+ladder,Ladder,Лестница,PH24,equipment,https://next.dnd.su/equipment/239-ladder,https://new.ttg.club/items/ladder-phb,false,equipment
+lamp,Lamp,Лампа,PH24,equipment,https://next.dnd.su/equipment/240-lamp,https://new.ttg.club/items/lamp-phb,false,equipment
+leatherworkers-tools,Leatherworker’s Tools,Инструменты кожевника,PH24,equipment,https://next.dnd.su/equipment/14361-leatherworkers-tools,https://new.ttg.club/items/leatherworker-s-tools-phb,false,artisan_tool
+lock,Lock,Замок,PH24,equipment,https://next.dnd.su/equipment/243-lock,https://new.ttg.club/items/lock-phb,false,equipment
+locking-spellbook,Locking Spellbook,Книга заклинаний с замком,PH24,equipment,https://next.dnd.su/equipment/17348-locking-spellbook,https://new.ttg.club/items/locking-spellbook-frhof,false,equipment
+lute,Lute,Лютня,PH24,equipment,https://next.dnd.su/equipment/14385-lute,https://new.ttg.club/items/lute-phb,false,toolkit
+lyre,Lyre,Лира,PH24,equipment,https://next.dnd.su/equipment/14384-lyre,https://new.ttg.club/items/lyre-phb,false,toolkit
+magnifying-glass,Magnifying Glass,Увеличительное стекло,PH24,equipment,https://next.dnd.su/equipment/244-magnifying-glass,https://new.ttg.club/items/magnifying-glass-phb,false,equipment
+manacles,Manacles,Кандалы,PH24,equipment,https://next.dnd.su/equipment/245-manacles,https://new.ttg.club/items/manacles-phb,false,equipment
+map,Map,Карта,PH24,equipment,https://next.dnd.su/equipment/246-map,https://new.ttg.club/items/map-phb,false,equipment
+map-or-scroll-case,Map or Scroll Case,Тубус для карт и свитков,PH24,equipment,https://next.dnd.su/equipment/220-map-or-scroll-case,,false,equipment
+mirror,Mirror,Зеркало,PH24,equipment,https://next.dnd.su/equipment/247-mirror,https://new.ttg.club/items/mirror-phb,false,equipment
+monster-camouflage,Monster Camouflage,Набор маскировки под монстра,PH24,equipment,https://next.dnd.su/equipment/17349-monster-camouflage,https://new.ttg.club/items/monster-camouflage-frhof,false,equipment
+musical-instrument,Musical Instrument,Музыкальный инструмент,PH24,equipment,https://next.dnd.su/equipment/14380-musical-instrument,https://new.ttg.club/items/musical-instrument-frhof,false,toolkit
+navigators-tools,Navigator’s Tools,Инструменты навигатора,PH24,equipment,https://next.dnd.su/equipment/14377-navigators-tools,https://new.ttg.club/items/navigator-s-tools-phb,false,toolkit
+needles,Needles,Иглы,PH24,equipment,https://next.dnd.su/equipment/55-needles,,false,ammunition
+net,Net,Сеть,PH24,equipment,https://next.dnd.su/equipment/248-net,https://new.ttg.club/items/net-phb,false,equipment
+oil,Oil,Масло,PH24,equipment,https://next.dnd.su/equipment/249-oil,https://new.ttg.club/items/oil-phb,false,equipment
+orb,Orb,Сфера,PH24,equipment,https://next.dnd.su/equipment/281-orb,https://new.ttg.club/items/orb-phb,false,spellcasting_focus
+pan-flute,Pan Flute,Флейта Пана,PH24,equipment,https://next.dnd.su/equipment/14391-pan-flute,https://new.ttg.club/items/pan-flute-phb,false,toolkit
+paper,Paper,Бумага,PH24,equipment,https://next.dnd.su/equipment/250-paper,https://new.ttg.club/items/paper-phb,false,equipment
+parchment,Parchment,Пергамент,PH24,equipment,https://next.dnd.su/equipment/251-parchment,https://new.ttg.club/items/parchment-phb,false,equipment
+perfume,Perfume,Духи,PH24,equipment,https://next.dnd.su/equipment/252-perfume,https://new.ttg.club/items/perfume-phb,false,equipment
+playing-cards,Playing cards,Игральные карты,PH24,equipment,https://next.dnd.su/equipment/14374-playing-cards,https://new.ttg.club/items/playing-cards-phb,false,toolkit
+poisoners-kit,Poisoner’s Kit,Инструменты отравителя,PH24,equipment,https://next.dnd.su/equipment/14378-poisoners-kit,https://new.ttg.club/items/poisoner-s-kit-phb,false,toolkit
+pole,Pole,Шест,PH24,equipment,https://next.dnd.su/equipment/254-pole,https://new.ttg.club/items/pole-phb,false,equipment
+portable-ram,Portable Ram,Портативный таран,PH24,equipment,https://next.dnd.su/equipment/259-portable-ram,,false,equipment
+pouch,Pouch,Кошель,PH24,equipment,https://next.dnd.su/equipment/257-pouch,https://new.ttg.club/items/pouch-phb,false,equipment
+priests-pack,Priest’s Pack,Набор священника,PH24,equipment,https://next.dnd.su/equipment/96-priests-pack,https://new.ttg.club/items/priest-s-pack-phb,false,item_pack
+quiver,Quiver,Колчан,PH24,equipment,https://next.dnd.su/equipment/258-quiver,https://new.ttg.club/items/quiver-phb,false,equipment
+rations,Rations,Рационы,PH24,equipment,https://next.dnd.su/equipment/260-rations,https://new.ttg.club/items/rations-phb,false,equipment
+reliquary,Reliquary,Реликварий,PH24,equipment,https://next.dnd.su/equipment/290-reliquary,https://new.ttg.club/items/reliquary-phb,false,spellcasting_focus
+robe,Robe,Мантия,PH24,equipment,https://next.dnd.su/equipment/261-robe,https://new.ttg.club/items/robe-phb,false,equipment
+rod,Rod,Жезл,PH24,equipment,https://next.dnd.su/equipment/282-rod,https://new.ttg.club/items/rod-phb,false,spellcasting_focus
+rope,Rope,Верёвка,PH24,equipment,https://next.dnd.su/equipment/262-rope,https://new.ttg.club/items/rope-phb,false,equipment
+sack,Sack,Мешок,PH24,equipment,https://next.dnd.su/equipment/263-sack,https://new.ttg.club/items/sack-phb,false,equipment
+scholars-pack,Scholar’s Pack,Набор учёного,PH24,equipment,https://next.dnd.su/equipment/97-scholars-pack,https://new.ttg.club/items/scholar-s-pack-phb,false,item_pack
+shawm,Shawm,Шалмей,PH24,equipment,https://next.dnd.su/equipment/14388-shawm,https://new.ttg.club/items/shawm-phb,false,toolkit
+shovel,Shovel,Лопата,PH24,equipment,https://next.dnd.su/equipment/264-shovel,https://new.ttg.club/items/shovel-phb,false,equipment
+signal-whistle,Signal Whistle,Сигнальный свисток,PH24,equipment,https://next.dnd.su/equipment/265-signal-whistle,https://new.ttg.club/items/signal-whistle-phb,false,equipment
+sling-bullets,Sling Bullets,Снаряды для пращи,PH24,equipment,https://next.dnd.su/equipment/40-sling-bullets,,false,ammunition
+sprig-of-mistletoe,Sprig of Mistletoe,Веточка омелы,PH24,equipment,https://next.dnd.su/equipment/285-sprig-of-mistletoe,https://new.ttg.club/items/sprig-of-mistletoe-phb,false,spellcasting_focus
+spyglass,Spyglass,Подзорная труба,PH24,equipment,https://next.dnd.su/equipment/267-spyglass,https://new.ttg.club/items/spyglass-phb,false,equipment
+staff,Staff,Посох,PH24,equipment,https://next.dnd.su/equipment/283-staff,https://new.ttg.club/items/staff-phb,false,spellcasting_focus
+string,String,Леска,PH24,equipment,https://next.dnd.su/equipment/268-string,https://new.ttg.club/items/string-phb,false,equipment
+tent,Tent,Палатка,PH24,equipment,https://next.dnd.su/equipment/269-tent,https://new.ttg.club/items/tent-phb,false,equipment
+thieves-tools,Thieves’ Tools,Воровские инструменты,PH24,equipment,https://next.dnd.su/equipment/14379-thieves-tools,https://new.ttg.club/items/thieves-tools-phb,false,toolkit
+three-dragon-ante,Three-dragon ante,Ставка трёх драконов,PH24,equipment,https://next.dnd.su/equipment/14375-three-dragon-ante,,false,toolkit
+tinderbox,Tinderbox,Трутница,PH24,equipment,https://next.dnd.su/equipment/270-tinderbox,https://new.ttg.club/items/tinderbox-phb,false,equipment
+tinkers-tools,Tinker’s Tools,Инструменты ремонтника,PH24,equipment,https://next.dnd.su/equipment/14366-tinkers-tools,https://new.ttg.club/items/tinker-s-tools-phb,false,artisan_tool
+torch,Torch,Факел,PH24,equipment,https://next.dnd.su/equipment/271-torch,https://new.ttg.club/items/torch-phb,false,equipment
+vial,Vial,Флакон,PH24,equipment,https://next.dnd.su/equipment/272-vial,https://new.ttg.club/items/vial-phb,false,equipment
+viol,Viol,Виола да гамба,PH24,equipment,https://next.dnd.su/equipment/14382-viol,https://new.ttg.club/items/viol-phb,false,toolkit
+wand,Wand,Волшебная палочка,PH24,equipment,https://next.dnd.su/equipment/284-wand,https://new.ttg.club/items/wand-phb,false,spellcasting_focus
+warm-fungal-clothing,Warm Fungal Clothing,Тёплый грибной плащ,PH24,equipment,https://next.dnd.su/equipment/17350-warm-fungal-clothing,https://new.ttg.club/items/warm-fungal-clothing-frhof,false,equipment
+waterskin,Waterskin,Бурдюк,PH24,equipment,https://next.dnd.su/equipment/273-waterskin,https://new.ttg.club/items/waterskin-phb,false,equipment
+weavers-tools,Weaver’s Tools,Инструменты ткача,PH24,equipment,https://next.dnd.su/equipment/14367-weavers-tools,https://new.ttg.club/items/weaver-s-tools-phb,false,artisan_tool
+winter-camouflage,Winter Camouflage,Зимняя маскировка,PH24,equipment,https://next.dnd.su/equipment/17352-winter-camouflage,https://new.ttg.club/items/winter-camouflage-frhof,false,equipment
+woodcarvers-tools,Woodcarver’s Tools,Инструменты резчика по дереву,PH24,equipment,https://next.dnd.su/equipment/14368-woodcarvers-tools,https://new.ttg.club/items/woodcarver-s-tools-phb,false,artisan_tool
+wooden-staff,Wooden Staff,Деревянный посох,PH24,equipment,https://next.dnd.su/equipment/286-wooden-staff,https://new.ttg.club/items/wooden-staff-phb,false,spellcasting_focus
+yarting,Yarting,Яртинг,PH24,equipment,https://next.dnd.su/equipment/17355-yarting,https://new.ttg.club/items/yarting-frhof,false,toolkit
+yew-wand,Yew Wand,Тисовая палочка,PH24,equipment,https://next.dnd.su/equipment/287-yew-wand,https://new.ttg.club/items/yew-wand-phb,false,spellcasting_focus
