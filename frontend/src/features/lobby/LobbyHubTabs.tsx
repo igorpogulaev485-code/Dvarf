@@ -63,15 +63,16 @@ export function LobbyHubTabs({
       setCanRight(false)
       return
     }
-    // LOBBY-FIX: offsetLeft ломается на вложенных обёртках — крутим относительно скроллера.
-    const scrollerBox = scroller.getBoundingClientRect()
-    const activeBox = activeEl.getBoundingClientRect()
-    const delta =
-      activeBox.left -
-      scrollerBox.left -
-      (scroller.clientWidth - activeEl.offsetWidth) / 2
-    scroller.scrollTo({ left: Math.max(0, scroller.scrollLeft + delta), behavior: 'auto' })
-    updateEdges()
+    // LOBBY-FIX: после layout (иначе offsetWidth=0) докрутить активную вкладку в кадр.
+    const sync = () => {
+      activeEl.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' })
+      updateEdges()
+    }
+    const raf = window.requestAnimationFrame(() => {
+      sync()
+      window.setTimeout(sync, 50)
+    })
+    return () => window.cancelAnimationFrame(raf)
   }, [active])
 
   useEffect(() => {
