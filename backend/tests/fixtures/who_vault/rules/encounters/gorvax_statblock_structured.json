@@ -1,0 +1,54 @@
+{
+  "name": "Горвакс Крепкий Клык",
+  "import_key": "gorvax-kreplyy-klyk",
+  "note": "Урезанный структурированный фрагмент из Who rules/encounters/01-dragonborn-vanguard.md — только для тестов W-API-04, не в продуктовый код.",
+  "data": {
+    "schema_version": 1,
+    "size": "medium",
+    "type": "humanoid",
+    "type_ru": "гуманоид",
+    "subtype": "драконорождённый",
+    "ac": 18,
+    "ac_notes": "латы",
+    "hp_average": 75,
+    "hp_formula": "10к8+30",
+    "speed": { "walk": 30 },
+    "cr": "4",
+    "xp": 1100,
+    "abilities": {
+      "str": 20,
+      "dex": 10,
+      "con": 16,
+      "int": 12,
+      "wis": 14,
+      "cha": 16
+    },
+    "skills": {
+      "intimidation": 5,
+      "history": 3,
+      "survival": 4
+    },
+    "senses": {
+      "darkvision": 60,
+      "passive_perception": 12
+    },
+    "languages": ["Общий", "Драконий"],
+    "damage_resistances": ["молниевый"],
+    "actions": [
+      {
+        "name_ru": "Мультиатака",
+        "text_ru": "Две атаки булавой."
+      },
+      {
+        "name_ru": "Булава Горного Гнева",
+        "text_ru": "+7 к попаданию, 5 фт. Попадание: 12 (2к6+5) дробящего + 7 (2к6) молниевого урона."
+      }
+    ],
+    "legendary_actions": [
+      {
+        "name_ru": "Приказ в бой",
+        "text_ru": "Один союзник в 60 фт совершает действие «Атака» как реакцию."
+      }
+    ]
+  }
+}

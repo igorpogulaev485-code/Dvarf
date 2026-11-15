@@ -1,8 +1,12 @@
-# Урезанные фикстуры Who для W-API-02/03
+# Урезанные фикстуры Who для W-API-02/03/04
 
 Короткие копии реальных файлов из https://github.com/igorpogulaev485-code/Who
 («Эхо рассвета»). Весь репозиторий Who сюда не копируем. Upstream Who
 агент не меняет.
+
+W-API-04: `rules/encounters/gorvax_statblock_structured.json` — структурированный
+фрагмент Горвакса из `01-dragonborn-vanguard.md` только для тестов (не в
+продуктовый код).
 
 `drafts/imports/qwen-fake-chat.json` — короткий фейк структуры сырого чата
 (не выгрузка прода). `templates/location.md` — локальный stub шаблона.

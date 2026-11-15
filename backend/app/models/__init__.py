@@ -16,6 +16,7 @@ from app.models.note import Note
 from app.models.session_event import SessionEvent
 from app.models.setting_artifact import SettingArtifact
 from app.models.setting_artifact_set import SettingArtifactSet, SettingArtifactSetMember
+from app.models.setting_creature import SettingCreature
 from app.models.setting_page import SettingPage
 from app.models.setting_page_link import SettingPageLink
 from app.models.setting_page_template import SettingPageTemplate
@@ -67,6 +68,7 @@ __all__ = [
     "SettingArtifact",
     "SettingArtifactSet",
     "SettingArtifactSetMember",
+    "SettingCreature",
     "SettingPage",
     "SettingPageLink",
     "SettingPageTemplate",
