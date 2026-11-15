@@ -168,10 +168,31 @@
 
 ---
 
+## Pass 9d — «КриD20» столбиком по буквам
+
+Знак в рамке 2014: `К / р / и / D / 2 / 0` (по одной букве в строке, без поворота), ровные интервалы, по центру; под ним «5E · 2014». Внутри рамки с отступами.
+
+### Кадры pass 9d
+
+| Кадр | md5 |
+|---|---|
+| before-blank-brand-crop.png | `2e9cb7cd176c686955ac4cbdb2d9af33` |
+| after-blank-brand-crop.png | `b8c9bd9246c9f2039a3ca049bf113ca6` |
+| before-torbin-brand-crop.png | `9ef43f68b5698583d12bab6d2146ecc3` |
+| after-torbin-brand-crop.png | `42b70d64da4a3acea3847a208247c07b` |
+| before-blank-2014-print-1.png | `1b3fb6be40019d6e6959c6bba20bb96f` |
+| after-blank-2014-print-1.png | `3edf26082806022db521c1e2552174a2` |
+| before-torbin-2014-print-1.png | `c3bfa80382f01cd1ac32aa262f6e824d` |
+| after-torbin-2014-print-1.png | `0e8e89f08181842543f3fb1ad3f73c14` |
+
+Каталоги: `pass9d-before/` · `pass9d-after/`.
+
+---
+
 ## Проверки
 
 - `frontend`: `npm run build` — ok
 - selfcheck: classicPrint14, classicPrintSettings — ok
 - `backend`: `pytest` — 380 passed (incl. HP sheet-patch)
 - Alembic: одна голова
-- Кадры pass8/pass9/pass9b/pass9c: Vite + API, Chromium PDF + pdftoppm
+- Кадры pass8…pass9d: Vite + API, Chromium PDF + pdftoppm

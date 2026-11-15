@@ -135,12 +135,15 @@ export function brandYearLabel(layout: '2014' | '2024'): string {
   return `5e · ${layout}`
 }
 
-/** 2014 header mark — two lines so it fits the 0.72in plate (pair to 2024 «D&D»). */
+const CREED20_LETTERS = ['К', 'р', 'и', 'D', '2', '0'] as const
+
+/** 2014 header mark — «КриD20» as a vertical letter column (no rotation). */
 export function ClassicBrandWordmark() {
   return (
-    <strong className="classic-brand__wordmark">
-      <b>Кри</b>
-      <b>D20</b>
+    <strong className="classic-brand__wordmark" aria-label="КриD20">
+      {CREED20_LETTERS.map((ch) => (
+        <b key={ch}>{ch}</b>
+      ))}
     </strong>
   )
 }

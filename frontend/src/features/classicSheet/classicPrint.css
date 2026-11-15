@@ -729,25 +729,31 @@
   line-height: 1;
 }
 
-/* 2014 «Кри / D20» mark — fits 0.72in plate; inset ≥ year label. */
+/* 2014 mark — «К р и D 2 0» column, upright letters, even gaps. */
 .classic-brand strong.classic-brand__wordmark {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.04em;
+  gap: 0.08em;
   max-width: 100%;
   font-family: var(--classic-ink-font);
-  font-size: 0.78rem;
+  font-size: 0.58rem;
   font-weight: 800;
-  letter-spacing: 0.06em;
-  line-height: 1.05;
+  letter-spacing: 0;
+  line-height: 1;
+  writing-mode: horizontal-tb;
+  text-orientation: mixed;
 }
 
 .classic-brand strong.classic-brand__wordmark b {
+  display: block;
+  width: 1.15em;
+  text-align: center;
   font: inherit;
   font-weight: inherit;
-  letter-spacing: inherit;
+  letter-spacing: 0;
+  line-height: 1;
 }
 
 .classic-brand span {
@@ -756,6 +762,21 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--c-muted);
+}
+
+/* Year under letter column — stay inside the 0.72in plate. */
+.classic-brand:has(.classic-brand__wordmark) {
+  gap: 0.16rem;
+  padding: 0.2rem 0.1rem;
+}
+
+.classic-brand:has(.classic-brand__wordmark) > span {
+  font-size: 0.4rem;
+  letter-spacing: 0.05em;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
 .classic-meta {
