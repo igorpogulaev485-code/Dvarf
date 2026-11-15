@@ -94,6 +94,8 @@ assert(restarted.pendingSheetTour, 'restart arms sheet tour')
 assert(restarted.pendingLobbyTour, 'restart arms lobby tour')
 assert(restarted.segment === 'product_new', 'keeps segment')
 assert(restarted.seenSceneIntros.length === 0, 'restart clears scene intros')
+assert(restarted.lobbyTourSeenSteps.length === 0, 'restart clears lobbyTourSeenSteps')
+assert(!restarted.joinIntroDone, 'restart clears joinIntroDone')
 
 const afterSkip = restartTipsState({
   ...defaultOnboardingState(),

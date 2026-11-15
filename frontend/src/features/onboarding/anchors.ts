@@ -1,4 +1,4 @@
-import type { SheetTourStepId } from './types'
+import type { LobbyTourStepId, LobbyTourSurface, SheetTourStepId } from './types'
 
 function asHtmlElement(node: Element | null | undefined): HTMLElement | null {
   if (!node) return null
@@ -101,6 +101,85 @@ export function resolveSheetTourAnchor(
     return preferred
   }
   return preferred
+}
+
+/**
+ * Pick lobby tour spotlight id for a step.
+ * Prefers a visible primary; falls back to role-appropriate anchors.
+ */
+export function resolveLobbyTourAnchor(
+  stepId: LobbyTourStepId,
+  preferred: string,
+  opts: { hasVisible: (anchor: string) => boolean },
+): string {
+  const tryOrder = (ids: string[]): string => {
+    for (const id of ids) {
+      if (opts.hasVisible(id)) return id
+    }
+    return preferred
+  }
+
+  if (stepId === 'invite') return tryOrder(['lobby-invite'])
+  if (stepId === 'roster') return tryOrder(['lobby-roster'])
+  if (stepId === 'live_tabs') {
+    return tryOrder(['lobby-live-tabs', 'lobby-mobile-tabs', 'lobby-initiative'])
+  }
+  if (stepId === 'combat') {
+    return tryOrder(['lobby-combat', 'lobby-master-toolbar', 'lobby-combat-enemies'])
+  }
+  if (stepId === 'more_help') {
+    return tryOrder(['lobby-more', 'lobby-help', 'lobby-master-toolbar'])
+  }
+  if (stepId === 'table') {
+    return tryOrder(['lobby-own-card', 'lobby-initiative', 'lobby-live-tabs'])
+  }
+  if (stepId === 'your_turn') {
+    return tryOrder(['lobby-your-turn', 'lobby-own-card'])
+  }
+  if (stepId === 'reaction' || stepId === 'rewards') {
+    return tryOrder(['lobby-own-card', 'lobby-your-turn'])
+  }
+  return preferred
+}
+
+/** Open invite accordion / roster tab / ensure combat control is in view. */
+export function ensureLobbyTourSurface(
+  stepId: LobbyTourStepId,
+  surface: LobbyTourSurface,
+): void {
+  if (typeof document === 'undefined') return
+
+  if (surface === 'hub' && stepId === 'invite') {
+    const toggle = document.querySelector(
+      '[data-onboarding="lobby-invite"] .lobby-hub-invite-acc__toggle',
+    )
+    const root = document.querySelector('[data-onboarding="lobby-invite"]')
+    if (root && !root.classList.contains('is-open') && toggle instanceof HTMLElement) {
+      toggle.click()
+    }
+  }
+
+  if (surface === 'hub' && stepId === 'roster') {
+    const rosterTab = [...document.querySelectorAll('.lobby-hub-tab, [role="tab"]')].find(
+      (el) => /Состав/i.test((el.textContent || '').trim()),
+    )
+    if (rosterTab instanceof HTMLElement) {
+      const selected =
+        rosterTab.getAttribute('aria-selected') === 'true' ||
+        rosterTab.classList.contains('is-active') ||
+        rosterTab.getAttribute('aria-current') === 'page'
+      if (!selected) rosterTab.click()
+    }
+  }
+
+  if (surface === 'session' && stepId === 'live_tabs') {
+    const tableTab = document.querySelector(
+      '[data-onboarding="lobby-live-tabs"] [aria-label="Стол"], [data-onboarding="lobby-mobile-tabs"] [aria-label="Стол"]',
+    )
+    if (tableTab instanceof HTMLElement && tableTab.getAttribute('aria-current') !== 'page') {
+      tableTab.click()
+    }
+  }
 }
 
 /** Switch Play Desk to «Бой» and (on phone) «Атаки» so the turn row is visible. */
