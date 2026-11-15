@@ -209,6 +209,15 @@
 
 ---
 
+## Прогон 13 → final4 (карточки без обрезки)
+
+Галерея: `/opt/cursor/artifacts/print14/final4/` · `REPORT.md` · `md5s.json`.  
+Скрипт: `frontend/scripts/print14-final4-capture.mjs`.
+
+Паковка по высоте: группа/карточка не режется краем листа; «2-й круг» с Дребезгами целиком на следующем листе с повтором заголовка.
+
+---
+
 ## Проверки
 
 - `frontend`: `npm run build` — ok

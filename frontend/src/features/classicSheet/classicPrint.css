@@ -2379,6 +2379,8 @@
   text-transform: uppercase;
   color: var(--c-ink);
   line-height: 1.2;
+  break-after: avoid;
+  page-break-after: avoid;
 }
 
 .classic-spell-cards-grid {
@@ -2405,6 +2407,8 @@
   gap: 0.18rem;
   overflow: visible;
   position: relative;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .classic-spell-card--empty {

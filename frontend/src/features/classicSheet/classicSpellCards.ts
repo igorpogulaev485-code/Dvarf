@@ -11,6 +11,20 @@ import { classicSpellsState } from './classicSpells'
 /** Poker / MTG size — easy to cut and sleeve (same idea as LSS cards). */
 export const SPELL_CARDS_PER_PAGE = 9
 
+/** Grid columns on a spell-card page. */
+export const SPELL_CARD_COLS = 3
+
+/**
+ * Vertical budget for `.classic-spell-cards-body` inside an A4 `.classic-sheet`
+ * (sheet header already reserved). Conservative so tall cards + group titles
+ * never clip under `overflow: hidden` / print max-height.
+ */
+const PAGE_BODY_BUDGET_PX = 980
+const GROUP_TITLE_PX = 34
+const GROUP_GAP_PX = 14
+/** Tall-card row (facts + long body) — prefer overshooting into the next page. */
+const CARD_ROW_PX = 290
+
 /** Rough body capacity for one card face (chars). Continuations carry the rest. */
 const CARD_BODY_CHARS = 420
 
@@ -383,10 +397,31 @@ export function classicSpellCardFaces(
   return faces
 }
 
+function cardRowsForCount(cardCount: number): number {
+  if (cardCount <= 0) return 0
+  return Math.ceil(cardCount / SPELL_CARD_COLS)
+}
+
+/** Estimated body height from per-group card counts (px). */
+export function estimateSpellCardBodyHeightFromCounts(cardCounts: number[]): number {
+  if (cardCounts.length === 0) return 0
+  let height = 0
+  for (let i = 0; i < cardCounts.length; i++) {
+    if (i > 0) height += GROUP_GAP_PX
+    height += GROUP_TITLE_PX + cardRowsForCount(cardCounts[i]) * CARD_ROW_PX
+  }
+  return height
+}
+
+export function estimateSpellCardBodyHeight(groups: SpellCardGroup[]): number {
+  return estimateSpellCardBodyHeightFromCounts(groups.map((g) => g.faces.length))
+}
+
 /**
- * Pack faces into pages: max 9 cards/page, grouped by level.
- * New level always starts a new grid row (header spans full width).
- * No empty card frames — incomplete rows are left sparse.
+ * Pack faces into pages by vertical budget + max 9 cards.
+ * Group titles and cards stay atomic (no mid-card split); a group may continue
+ * on the next page with a repeated level header. Never leave a lone header.
+ * No empty card frames — incomplete rows stay sparse.
  */
 export function chunkSpellCardPages(faces: SpellCardFace[]): SpellCardPage[] {
   if (faces.length === 0) return []
@@ -410,15 +445,59 @@ export function chunkSpellCardPages(faces: SpellCardFace[]): SpellCardPage[] {
     current = { groups: [], cardCount: 0 }
   }
 
+  const tryFitCount = (level: number, count: number): boolean => {
+    if (count <= 0) return true
+    if (current.cardCount + count > SPELL_CARDS_PER_PAGE) return false
+    const last = current.groups[current.groups.length - 1]
+    const sameGroup = Boolean(last && last.level === level)
+    const counts = current.groups.map((g) => g.faces.length)
+    if (sameGroup) {
+      counts[counts.length - 1] += count
+    } else {
+      counts.push(count)
+    }
+    return estimateSpellCardBodyHeightFromCounts(counts) <= PAGE_BODY_BUDGET_PX
+  }
+
+  /** Largest count in 1…max that still fits; 0 if even one card (with header) does not. */
+  const maxFitting = (level: number, max: number): number => {
+    let lo = 0
+    let hi = max
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2)
+      if (tryFitCount(level, mid)) lo = mid
+      else hi = mid - 1
+    }
+    return lo
+  }
+
   for (const level of levels) {
     const remaining = [...(byLevel.get(level) || [])]
     while (remaining.length > 0) {
-      const space = SPELL_CARDS_PER_PAGE - current.cardCount
-      if (space <= 0) {
+      const cardSpace = SPELL_CARDS_PER_PAGE - current.cardCount
+      if (cardSpace <= 0) {
         pushPage()
         continue
       }
-      const take = remaining.splice(0, space)
+      const fit = maxFitting(level, Math.min(cardSpace, remaining.length))
+      if (fit <= 0) {
+        // Header + first card would overflow — move the whole remainder to the next leaf.
+        if (current.cardCount === 0 && current.groups.length === 0) {
+          // Pathological: a single card exceeds the budget; still place one so we progress.
+          const take = remaining.splice(0, 1)
+          current.groups.push({
+            level,
+            label: levelGroupLabel(level),
+            faces: take,
+          })
+          current.cardCount += 1
+          pushPage()
+          continue
+        }
+        pushPage()
+        continue
+      }
+      const take = remaining.splice(0, fit)
       const last = current.groups[current.groups.length - 1]
       if (last && last.level === level) {
         last.faces.push(...take)
