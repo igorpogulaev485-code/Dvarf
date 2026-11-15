@@ -1410,23 +1410,12 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               model.setSpellsSettingsOpen(true)
             }}
             onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
-            onCastSpell={(spell, opts) => {
-              if (opts?.metamagicId) {
-                model.setDeskCastMetamagic?.(opts.metamagicId)
-              } else {
-                model.setDeskCastMetamagic?.(null)
-              }
+            onCastSpell={(spell) => {
+              model.setDeskCastMetamagic?.(null)
               void spellReadyToCast(spell, model.rulesEdition).then((ready) =>
                 model.setDeskCastSpell(ready),
               )
             }}
-            metamagicIds={model.sorcererMetamagicIds ?? []}
-            sorceryPointsLeft={(() => {
-              const pool = model.draft.play.resources.find((row: { id: string; name: string }) =>
-                model.isSorceryPointsResource?.(row),
-              )
-              return pool ? Math.max(0, pool.max - pool.used) : 0
-            })()}
             ritualBookLabel={ritualLabel}
             onOpenRitualBook={() => setRitualBookOpen(true)}
             onConcentrateSpell={(spell) => model.setDeskCastSpell(spell)}

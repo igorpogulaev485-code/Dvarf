@@ -53,8 +53,6 @@ import {
 } from '../../shared/dnd/spells'
 import type { RulesEdition } from '../../shared/api/characters'
 import { type BonusLine, withSpellCastBonuses } from './modifiers'
-import { listApplicableMetamagic } from '../../shared/dnd/metamagicCast'
-import { metamagicById } from '../../shared/dnd/sorcererMetamagic'
 
 type SpellFilter =
   | 'all'
@@ -101,16 +99,12 @@ type PlayDeskSpellsCompactProps = {
   onSlotUsedChange?: (level: number, used: number) => void
   /** Set used count for warlock pact slots. */
   onPactUsedChange?: (used: number) => void
-  /** Open cast picker (slot / pact / grant / ritual). */
-  onCastSpell?: (spell: SheetSpell, opts?: { metamagicId?: string | null }) => void
+  /** Open cast picker (slot / pact / grant / ritual). Metamagic is chosen only in CastSpellDialog. */
+  onCastSpell?: (spell: SheetSpell) => void
   /** Pin concentration in hot without opening full panel. */
   onConcentrateSpell?: (spell: SheetSpell) => void
   ritualBookLabel?: string | null
   onOpenRitualBook?: () => void
-  /** Known sorcerer metamagic ids (for row picker). */
-  metamagicIds?: string[]
-  /** Remaining sorcery points (for row picker disable). */
-  sorceryPointsLeft?: number
 }
 
 function isRitualFromBook(
@@ -153,8 +147,6 @@ export function PlayDeskSpellsCompact({
   onConcentrateSpell,
   ritualBookLabel = null,
   onOpenRitualBook,
-  metamagicIds = [],
-  sorceryPointsLeft = 0,
 }: PlayDeskSpellsCompactProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [detailSpell, setDetailSpell] = useState<SheetSpell | null>(null)
@@ -717,11 +709,9 @@ export function PlayDeskSpellsCompact({
                               [spell.id]: !prev[spell.id],
                             }))
                           }
-                          metamagicIds={metamagicIds}
-                          sorceryPointsLeft={sorceryPointsLeft}
-                          onCast={(metamagicId) => {
+                          onCast={() => {
                             if (onCastSpell) {
-                              onCastSpell(spell, { metamagicId })
+                              onCastSpell(spell)
                               return
                             }
                             if (spell.concentration && onConcentrateSpell) {
@@ -880,8 +870,6 @@ function SpellRow({
   showClassChip,
   metaOpen,
   onToggleMeta,
-  metamagicIds,
-  sorceryPointsLeft,
 }: {
   spell: SheetSpell
   characterLevel: number
@@ -890,7 +878,7 @@ function SpellRow({
   hasSpellbook: boolean
   activeConcentration: boolean
   onOpenDetail: () => void
-  onCast: (metamagicId?: string | null) => void
+  onCast: () => void
   hasCast: boolean
   abilities: Record<AbilityKey, number>
   castProfiles: SpellCastProfile[] | null
@@ -899,10 +887,7 @@ function SpellRow({
   showClassChip: boolean
   metaOpen: boolean
   onToggleMeta: () => void
-  metamagicIds: string[]
-  sorceryPointsLeft: number
 }) {
-  const [pickedMeta, setPickedMeta] = useState('')
   const levelText = spell.item_cast
     ? spell.item_cast.chargePerLevel
       ? `${spell.item_cast.castLevel}+ ур.`
@@ -945,7 +930,6 @@ function SpellRow({
       ? 'ритуал'
       : null
   const classChip = showClassChip ? classSlugChipLabel(spell.class_slug) : null
-  const applicableMeta = listApplicableMetamagic(metamagicIds, spell)
   const flags: string[] = []
   if (activeConcentration) flags.push('держит конц.')
   else if (spell.concentration) flags.push('конц.')
@@ -1054,41 +1038,13 @@ function SpellRow({
       </button>
       {hasCast ? (
         <div className="play-desk-compact__spell-cast-wrap">
-          {applicableMeta.length > 0 ? (
-            <label className="play-desk-compact__meta-pick">
-              <span className="sr-only">Метамагия</span>
-              <select
-                className="ui-input play-desk-compact__meta-select"
-                value={pickedMeta}
-                onClick={(event) => event.stopPropagation()}
-                onChange={(event) => setPickedMeta(event.target.value)}
-                title="Метамагия к этому касту"
-              >
-                <option value="">—</option>
-                {applicableMeta.map((def) => {
-                  const cost = def.costPoints ?? Math.max(1, spell.level)
-                  const disabled = sorceryPointsLeft < cost
-                  return (
-                    <option key={def.id} value={def.id} disabled={disabled}>
-                      {def.nameRu.replace(/ заклинание$/i, '')}
-                      {disabled ? ` (нет ${cost} очк.)` : ` (−${cost})`}
-                    </option>
-                  )
-                })}
-              </select>
-            </label>
-          ) : null}
           <button
             type="button"
             className="play-desk-compact__spell-cast"
-            title={
-              pickedMeta
-                ? `Каст: ${spell.name} · ${metamagicById(pickedMeta)?.nameRu ?? pickedMeta}`
-                : `Каст: ${spell.name}`
-            }
+            title={`Каст: ${spell.name}`}
             onClick={(event) => {
               event.stopPropagation()
-              onCast(pickedMeta || null)
+              onCast()
             }}
           >
             <IconCast className="play-desk-compact__spell-cast-icon" />

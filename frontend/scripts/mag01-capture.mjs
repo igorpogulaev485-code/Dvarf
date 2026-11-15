@@ -300,25 +300,21 @@ async function main() {
     await shot(page, 'sorc20-header-1440.png', 1440)
     await shot(page, 'sorc20-points-1440.png', 1440)
 
-    // Metamagic on row + cast with distant applied and confirmed
+    // Expanded list: no metamagic dropdowns in rows — pick only in CastSpellDialog
     await expandAllSpells(page)
+    await shot(page, 'sorc20-expanded-1440.png', 1440)
     const fire = spellsRoot(page).locator('.play-desk-compact__row.is-spell').filter({ hasText: /Огненный шар|Fireball/i }).first()
     const row = (await fire.count())
       ? fire
       : spellsRoot(page).locator('.play-desk-compact__row.is-spell.has-cast').first()
     if (await row.count()) {
       await row.scrollIntoViewIfNeeded()
-      const metaSelect = row.locator('.play-desk-compact__meta-select')
-      if (await metaSelect.count()) {
-        const opts = await metaSelect.locator('option').allTextContents()
-        const distant = opts.findIndex((t) => /Далёк/i.test(t))
-        if (distant > 0) await metaSelect.selectOption({ index: distant })
-        else if (opts.length > 1) await metaSelect.selectOption({ index: 1 })
-        await shot(page, 'sorc20-metamagic-row-1440.png', 1440)
+      if (await row.locator('.play-desk-compact__meta-select, select').count()) {
+        throw new Error('MAG-01 capture: metamagic select must not appear on spell rows')
       }
       await row.locator('.play-desk-compact__spell-cast').click()
       await page.waitForTimeout(500)
-      // Enable distant in dialog if not preselected
+      // Enable distant in dialog
       const distantBox = page.locator('label').filter({ hasText: /Далёкое/i }).locator('input[type="checkbox"]')
       if (await distantBox.count()) {
         const checked = await distantBox.isChecked()
@@ -327,22 +323,23 @@ async function main() {
       await page.waitForTimeout(250)
       const metaLine = page.locator('text=/С метамагией/i').first()
       if (await metaLine.count()) {
-        writeFileSync(out('sorc20-meta-params.txt'), ((await metaLine.textContent()) || '').trim())
+        const parent = metaLine.locator('xpath=..')
+        writeFileSync(
+          out('sorc20-meta-params.txt'),
+          ((await parent.textContent()) || (await metaLine.textContent()) || '').trim(),
+        )
       }
       await shot(page, 'sorc20-cast-metamagic-1440.png', 1440)
-      // Confirm cast — primary is «Каст» when pouch/focus is on; never leave a copy of the dialog frame
       const dialog = page.locator('[role="dialog"], .modal, .ui-dialog').filter({ hasText: /Кастовать|Огненн/i }).first()
       const confirm = dialog.getByRole('button', { name: /^Каст$|^Сотворить$|^Применить$|^Ритуал$/i })
       if (await confirm.count()) {
         await confirm.last().click()
       } else {
-        // Fallback: last primary in dialog footer
         const primary = dialog.locator('button').filter({ hasText: /^Каст/i }).last()
         if (await primary.count()) await primary.click()
         else throw new Error('MAG-01 capture: cast confirm button not found (need focus/pouch on seed)')
       }
       await page.waitForTimeout(900)
-      // Dialog must be gone; frame shows spent SP + toast, not the open cast modal
       await page.keyboard.press('Escape').catch(() => {})
       await page.waitForTimeout(350)
       const afterMeta = {
@@ -385,6 +382,11 @@ async function main() {
     await openCombat(page, 390)
     await showSpellsMobile(page)
     await shot(page, 'sorc20-points-390.png', 390)
+    await expandAllSpells(page)
+    await shot(page, 'sorc20-expanded-390.png', 390)
+    if (await spellsRoot(page).locator('.play-desk-compact__meta-select, select').count()) {
+      throw new Error('MAG-01 capture 390: metamagic select must not appear on spell rows')
+    }
     const castBtn = spellsRoot(page).locator('.play-desk-compact__spell-cast').first()
     if (await castBtn.count()) {
       await castBtn.click()

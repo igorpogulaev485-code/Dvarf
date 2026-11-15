@@ -994,13 +994,6 @@ button.play-desk-compact__more--btn:hover {
   height: 0.85rem;
 }
 
-.play-desk-compact__meta-select {
-  max-width: 7.5rem;
-  min-height: 36px;
-  font-size: 0.68rem;
-  padding: 2px 4px;
-}
-
 .play-desk-compact__source.is-class {
   border-color: color-mix(in srgb, var(--desk-accent, var(--accent)) 35%, var(--desk-line));
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 45%, var(--panel, white));

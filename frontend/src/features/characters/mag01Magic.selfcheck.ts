@@ -50,7 +50,8 @@ assert.match(compact, /ритуалы из книги/)
 assert.match(compact, /formatNamedClassQuotas/)
 assert.match(compact, /classSlugChipLabel/)
 assert.match(compact, /play-desk-compact__cast-profile--line/)
-assert.match(compact, /metamagicIds/)
+assert.doesNotMatch(compact, /play-desk-compact__meta-select/)
+assert.doesNotMatch(compact, /listApplicableMetamagic/)
 assert.doesNotMatch(compact, /Always show every ready spell/)
 
 // --- No sorcery duplicate under attacks ---
