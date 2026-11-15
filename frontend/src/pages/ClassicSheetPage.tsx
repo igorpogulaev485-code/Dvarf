@@ -53,6 +53,8 @@ export function ClassicSheetPage() {
   const saveTimer = useRef<number | null>(null)
   const versionRef = useRef(0)
   const latestRef = useRef<CharacterDetail | null>(null)
+  /** Bumps on each persist so a late response cannot leave «Сохраняем…» stuck. */
+  const saveSeqRef = useRef(0)
 
   useEffect(() => {
     let active = true
@@ -77,24 +79,31 @@ export function ClassicSheetPage() {
     return () => {
       active = false
       if (saveTimer.current) window.clearTimeout(saveTimer.current)
+      // Drop pending debounce; do not leave a stuck saving label after unmount/remount.
+      saveSeqRef.current += 1
     }
   }, [characterId, navigate])
 
   const persistPrintSettings = useCallback(async (next: CharacterDetail) => {
+    const seq = ++saveSeqRef.current
     setStatus('saving')
     try {
       const updated = await updateCharacter(next.id, {
         sheet_version: versionRef.current,
         sheet: next.sheet,
       })
+      if (seq !== saveSeqRef.current) return
       versionRef.current = updated.sheet_version
       latestRef.current = updated
       setCharacter(updated)
       setLayoutOverride(null)
-      setStatus('ready')
     } catch (err) {
+      if (seq !== saveSeqRef.current) return
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить настройки печати')
-      setStatus('ready')
+    } finally {
+      if (seq === saveSeqRef.current) {
+        setStatus('ready')
+      }
     }
   }, [])
 
@@ -112,10 +121,11 @@ export function ClassicSheetPage() {
       }
       latestRef.current = next
       setCharacter(next)
-      setStatus('saving')
+      // Status flips to «saving» only when the request actually starts (persistPrintSettings),
+      // not during the debounce window — avoids a stuck label if the timer is cleared.
       if (saveTimer.current) window.clearTimeout(saveTimer.current)
       saveTimer.current = window.setTimeout(() => {
-        void persistPrintSettings(next)
+        void persistPrintSettings(latestRef.current ?? next)
       }, 500)
     },
     [persistPrintSettings],
