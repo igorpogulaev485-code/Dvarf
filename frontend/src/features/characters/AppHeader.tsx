@@ -81,6 +81,7 @@ export function AppHeader({
         <Button
           type="button"
           variant="ghost"
+          size="lg"
           className="app-header__more-btn"
           aria-label="Ещё"
           aria-haspopup="dialog"

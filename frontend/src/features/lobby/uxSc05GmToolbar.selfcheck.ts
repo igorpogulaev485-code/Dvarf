@@ -1,6 +1,6 @@
 /**
- * SC-05: тулбар мастера — «Бой» и «+ Враги» (А), «Награды» (Б),
- * на мобильном нет chip-кнопки с текстом ровно «БОЙ» рядом с «Бой».
+ * SC-05 / LOBBY-FIX: тулбар мастера — «Бой» / «Следующий ход»+«Завершить» в primary;
+ * «+ Враги», награды и остальное в «Ещё».
  * Run: npx tsx --tsconfig tsconfig.app.json src/features/lobby/uxSc05GmToolbar.selfcheck.ts
  */
 import assert from 'node:assert/strict'
@@ -17,12 +17,14 @@ assert.match(page, /data-sc05-gm-toolbar/)
 assert.match(page, /data-sc05-primary/)
 assert.match(page, /data-sc05-rewards/)
 assert.match(page, /data-sc05-more/)
-assert.match(page, /Ещё действия/)
+assert.match(page, /summary="Ещё"/)
 assert.match(page, /\+ Враги/)
 assert.match(page, /session-toolbar-rewards/)
 assert.match(page, /settingName=\{session\.setting_name/)
+assert.match(page, /Следующий ход/)
+assert.match(page, /Завершить бой/)
 
-// Первичная кнопка «Бой» — primary, без соседнего Text-лейбла «Бой»→«БОЙ»
+// Первичная кнопка «Бой» — primary, без соседнего Text-лейбла «БОЙ»
 const primaryStart = page.indexOf('data-sc05-primary')
 const rewardsStart = page.indexOf('data-sc05-rewards')
 assert.ok(primaryStart >= 0 && rewardsStart > primaryStart, 'primary + rewards blocks present')
@@ -33,20 +35,21 @@ assert.doesNotMatch(
   'в primary нет подписи-чипа рядом с кнопкой «Бой»',
 )
 assert.match(primaryBlock, /variant="primary"[\s\S]*?>\s*Бой\s*</)
-assert.match(primaryBlock, /\+ Враги/)
-assert.match(primaryBlock, /Кто пришёл/)
+assert.match(primaryBlock, /Следующий ход/)
+assert.doesNotMatch(primaryBlock, /\+ Враги/)
 
-// Награды — меню Б, не три кнопки в первом ряду
+// Ещё — враги + награды
 const moreStart = page.indexOf('data-sc05-more')
-assert.ok(moreStart > rewardsStart)
-const rewardsBlock = page.slice(rewardsStart, moreStart)
-assert.match(rewardsBlock, /Награды/)
-assert.match(rewardsBlock, />\s*Опыт\s*</)
-assert.match(rewardsBlock, />\s*Добыча\s*</)
-assert.match(rewardsBlock, />\s*Выдать\s*</)
+assert.ok(moreStart >= 0)
+const moreBlock = page.slice(moreStart, moreStart + 6000)
+assert.match(moreBlock, /\+ Враги/)
+assert.match(moreBlock, /Награды/)
+assert.match(moreBlock, />\s*Опыт\s*</)
+assert.match(moreBlock, />\s*Добыча\s*</)
+assert.match(moreBlock, />\s*Выдать\s*</)
 
-// Мобильный баннер короче; старая длинная фраза ушла
-assert.match(page, /С телефона — бой и враги/)
+// LOBBY-FIX visual 4: служебная плашка убрана
+assert.doesNotMatch(page, /С телефона — бой и враги/)
 assert.doesNotMatch(page, /Удобнее с компьютера — здесь основные действия боя/)
 
 // Нет пути 2024

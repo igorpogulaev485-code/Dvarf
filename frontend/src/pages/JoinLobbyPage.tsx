@@ -18,7 +18,7 @@ import {
   type JoinLobbyAction,
 } from '../shared/api/lobbies'
 import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
-import { Button, EmptyState, Field, Input, Panel, Stack, Text } from '../ui'
+import { Button, EmptyState, Field, Input, Panel, Select, Stack, Text } from '../ui'
 
 function characterMeta(c: CharacterSummary): string {
   const bits = [
@@ -29,10 +29,11 @@ function characterMeta(c: CharacterSummary): string {
       : c.level != null
         ? `ур. ${c.level}`
         : null,
-  ].filter(
-    Boolean,
-  )
-  return bits.join(' · ') || 'Без расы/класса'
+    c.hp_max != null
+      ? `HP ${c.hp_current ?? c.hp_max}/${c.hp_max}`
+      : null,
+  ].filter(Boolean)
+  return bits.join(' · ') || 'Персонаж'
 }
 
 export function JoinLobbyPage() {
@@ -211,7 +212,7 @@ export function JoinLobbyPage() {
       <Stack gap={20}>
         <AppHeader
           title="Вход в лобби"
-          subtitle="Код или QR от мастера → персонаж или наблюдатель"
+          subtitle="Код или QR от мастера: выберите персонажа или войдите наблюдателем"
           onOfficialSite={openProductSite}
           lobbyMobileShell
         />
@@ -281,8 +282,8 @@ export function JoinLobbyPage() {
 
                   <div className="join-flow__select-field">
                     <Field label="Какого персонажа добавить">
-                      <select
-                        className="ui-input join-flow__select"
+                      <Select
+                        className="join-flow__select"
                         value={characterId}
                         onChange={(e) => {
                           setCharacterId(e.target.value)
@@ -292,10 +293,10 @@ export function JoinLobbyPage() {
                       >
                         {characters.map((c) => (
                           <option key={c.id} value={c.id}>
-                            {c.name} · {c.class_name || 'без класса'}
+                            {c.name} · {characterMeta(c)}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </Field>
                   </div>
 

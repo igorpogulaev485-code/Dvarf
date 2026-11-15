@@ -76,11 +76,12 @@ const session = read('src/pages/SessionDetailPage.tsx')
 assert.match(session, /Добыча/)
 assert.match(session, /Сесть за стол/)
 assert.match(session, /session-center--master-desk/)
-assert.match(session, /session-master-mobile-hint/)
+assert.doesNotMatch(session, /С телефона — бой и враги/)
 assert.doesNotMatch(session, /D&D 2024/)
 
 const join = read('src/pages/JoinLobbyPage.tsx')
 assert.match(join, /summarizeStartRules/)
 assert.match(join, /Сесть за стол/)
+assert.doesNotMatch(join, /→/)
 
 console.log('lobbyVisualLv06.selfcheck: ok')

@@ -4537,7 +4537,10 @@ class LobbyService:
                     if combat_state.get("active"):
                         from sqlalchemy.orm.attributes import flag_modified as _fm
 
+                        # LOBBY-FIX A: диалог «Есть ли реакция?» у владельца героя
                         combat_state["waiting_reaction"] = True
+                        combat_state["reaction_character_id"] = str(character_id)
+                        combat_state["reaction_hint"] = reaction_hint
                         # S-05: ход скрытого предателя + урон герою → раскрытие.
                         entries = combat_state.get("entries") or []
                         ai = int(combat_state.get("active_index") or 0)

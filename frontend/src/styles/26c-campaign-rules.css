@@ -57,9 +57,17 @@
 
 .campaign-rules-summary {
   margin: 0;
-  padding-left: 1.2rem;
+  padding: 0;
+  list-style: none;
   display: grid;
   gap: 4px;
+  text-align: left;
+}
+
+.campaign-rules-summary li {
+  display: block;
+  padding: 2px 0;
+  text-align: left;
 }
 
 .campaign-rules-custom {

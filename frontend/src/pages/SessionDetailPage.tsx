@@ -133,6 +133,7 @@ import {
   Stack,
   Text,
   Toast,
+  ToggleChip,
 } from '../ui'
 
 const SIDE_PANEL_KEY = 'dvarf.session.sidePanelOpen'
@@ -259,14 +260,31 @@ function readSidePanelOpen(): boolean {
   try {
     const raw = localStorage.getItem(SIDE_PANEL_KEY)
     if (raw !== null) return raw !== '0'
-    // UIKIT-02: на ≤1180 по умолчанию свёрнута — две карточки ≥280px в центре
-    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 1180px)').matches) {
-      return false
-    }
-    return true
+    // LOBBY-FIX visual 6: «Быстрая заметка» свёрнута по умолчанию
+    return false
   } catch {
-    return true
+    return false
   }
+}
+
+function SessionTableSkeleton() {
+  return (
+    <main className="page page--app page--lobby-hub">
+      <Stack gap={16}>
+        <div className="session-skeleton" aria-busy="true" aria-label="Загрузка стола">
+          <div className="session-skeleton__header" />
+          <div className="session-skeleton__toolbar" />
+          <div className="session-skeleton__desk">
+            <div className="session-skeleton__rail" />
+            <div className="session-skeleton__cards">
+              <div className="session-skeleton__card" />
+              <div className="session-skeleton__card" />
+            </div>
+          </div>
+        </div>
+      </Stack>
+    </main>
+  )
 }
 
 export function SessionDetailPage() {
@@ -533,6 +551,8 @@ export function SessionDetailPage() {
   }, [session, pageFromQuery])
 
   isOwnerRef.current = sessionCanRun(session)
+  const lootCountRef = useRef(0)
+  const xpToastSeenRef = useRef<string | null>(null)
 
   useSessionRealtime(session?.id, {
     onEvent: (incoming) => {
@@ -556,8 +576,32 @@ export function SessionDetailPage() {
       ) {
         setToast(incoming.title)
       }
+      // LOBBY-FIX B: тост опыта игроку из ленты
+      if (
+        !isOwnerRef.current &&
+        incoming.event_type === 'xp' &&
+        incoming.title &&
+        xpToastSeenRef.current !== incoming.id
+      ) {
+        xpToastSeenRef.current = incoming.id
+        const payload = incoming.payload as { amount?: number } | undefined
+        const amount = payload?.amount
+        setToast(
+          typeof amount === 'number' && amount > 0
+            ? `+${amount} опыта`
+            : incoming.title,
+        )
+      }
     },
     onSessionUpdate: (next) => {
+      if (!isOwnerRef.current) {
+        const items = next.combat?.loot_chest?.items?.length ?? 0
+        const onTable = Boolean(next.combat?.loot_chest?.on_table)
+        if (onTable && items > 0 && items !== lootCountRef.current) {
+          setToast(`в сундуке ${items} предметов`)
+        }
+        lootCountRef.current = items
+      }
       setSession(next)
     },
     onSessionChanged: () => {
@@ -857,11 +901,7 @@ export function SessionDetailPage() {
   )
 
   if (!session && !error) {
-    return (
-      <main className="page page--app page--lobby-hub">
-        <Text tone="muted">Загрузка сессии…</Text>
-      </main>
-    )
+    return <SessionTableSkeleton />
   }
 
   if (!session) {
@@ -1116,45 +1156,59 @@ export function SessionDetailPage() {
         <AppHeader
           title={session.name}
           subtitle={
-            session.setting_name ? `Сессия · ${session.setting_name}` : 'Сессия · ваншот'
+            session.setting_name
+              ? `${session.lobby_name} · ${session.setting_name}`
+              : session.lobby_name
           }
           onOfficialSite={openProductSite}
           lobbyMobileShell
         />
-        <div className="lobby-hub-top">
-          <Text>
-            <Link to={`/lobbies/${session.lobby_id}`}>← В лобби «{session.lobby_name}»</Link>
+        <div className="lobby-hub-top session-table-chrome">
+          <Button
+            type="button"
+            variant="secondary"
+            size="lg"
+            className="session-table-chrome__back"
+            onClick={() => navigate(`/lobbies/${session.lobby_id}`)}
+          >
+            Назад
+          </Button>
+          <Text as="h2" className="session-table-chrome__title">
+            {session.name}
           </Text>
-          <div className="session-top-actions session-top-actions--master-chrome">
-            {sessionCanRun(session) && !session.closed_at ? (
-              <Button
-                type="button"
-                variant="secondary"
-                size="lg"
-                className="session-toolbar-desktop-only"
-                onClick={openAttendanceEditor}
-                disabled={busy}
-              >
-                Кто пришёл
-              </Button>
-            ) : null}
-            {sessionCanRun(session) && !session.closed_at ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="lg"
-                className="session-toolbar-desktop-only"
-                disabled={busy}
-                title="Переименовать, закрыть или удалить стол"
-                onClick={() => {
-                  setRenameDraft(session.name)
-                  setTableSettingsOpen(true)
-                }}
-              >
-                Настройки стола
-              </Button>
-            ) : null}
-          </div>
+          {sessionCanRun(session) && !session.closed_at ? (
+            <DetailsMenu
+              className="session-table-chrome__more"
+              summary="⋯"
+              summaryClassName="session-table-chrome__more-btn"
+              panelClassName="session-toolbar-more__body"
+            >
+              <div className="session-toolbar-group" aria-label="Стол">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="lg"
+                  onClick={openAttendanceEditor}
+                  disabled={busy}
+                >
+                  Кто пришёл
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="lg"
+                  disabled={busy}
+                  title="Переименовать, закрыть или удалить стол"
+                  onClick={() => {
+                    setRenameDraft(session.name)
+                    setTableSettingsOpen(true)
+                  }}
+                >
+                  Настройки стола
+                </Button>
+              </div>
+            </DetailsMenu>
+          ) : null}
         </div>
         {error ? <Text tone="danger">{error}</Text> : null}
         {session.closed_at ? (
@@ -1212,6 +1266,29 @@ export function SessionDetailPage() {
                     }}
                     ownCharacterIds={ownCharacterIds}
                     onRollInitiative={(entry) => setInitRollEntry(entry)}
+                    onRollRemaining={() => {
+                      void run(async () => {
+                        const updated = await rollSessionCombatInitiative(session.id, {
+                          mode: 'roll_remaining',
+                        })
+                        setSession(updated)
+                        setToast('Инициатива за оставшихся')
+                        await reloadEvents()
+                      })
+                    }}
+                    onSkipReaction={() => {
+                      const cid = session.combat?.reaction_character_id
+                      if (!cid) return
+                      void run(async () => {
+                        const updated = await resolveSessionCombatReaction(session.id, {
+                          action: 'skip',
+                          character_id: cid,
+                        })
+                        setSession(updated)
+                        await reloadEvents()
+                        setToast('Реакция пропущена')
+                      })
+                    }}
                     onReleaseWave={(waveId) => {
                       void run(async () => {
                         const updated = await patchSessionCombat(session.id, {
@@ -1253,36 +1330,27 @@ export function SessionDetailPage() {
                 )}
                 <Stack gap={12}>
                 {canRun && !session.closed_at ? (
-                  <label className="manual-roll-form__check">
-                    <input
-                      type="checkbox"
-                      checked={Boolean(session.combat?.dice_on_table)}
-                      disabled={busy}
-                      onChange={() => {
-                        void run(async () => {
-                          const updated = await patchSessionCombat(session.id, {
-                            action: 'set_dice_on_table',
-                            dice_on_table: !session.combat?.dice_on_table,
-                          })
-                          setSession(updated)
-                          setToast(
-                            updated.combat?.dice_on_table
-                              ? 'Кубики на столе включены'
-                              : 'Обычный цифровой бросок',
-                          )
+                  <ToggleChip
+                    main="Кубики на столе"
+                    checked={Boolean(session.combat?.dice_on_table)}
+                    disabled={busy}
+                    onChange={() => {
+                      void run(async () => {
+                        const updated = await patchSessionCombat(session.id, {
+                          action: 'set_dice_on_table',
+                          dice_on_table: !session.combat?.dice_on_table,
                         })
-                      }}
-                    />
-                    Кубики на столе
-                  </label>
+                        setSession(updated)
+                        setToast(
+                          updated.combat?.dice_on_table
+                            ? 'Кубики на столе включены'
+                            : 'Обычный цифровой бросок',
+                        )
+                      })
+                    }}
+                  />
                 ) : session.combat?.dice_on_table ? (
                   <Text tone="muted">Режим: кубики на столе</Text>
-                ) : null}
-                {session.combat?.waiting_reaction && canRun ? (
-                  <Text className="session-combat-track__reaction">
-                    ждём реакцию
-                    {session.combat.reaction_hint ? ` — ${session.combat.reaction_hint}` : ''}
-                  </Text>
                 ) : null}
                 {session.combat?.pending_fumble && canRun ? (
                   <Stack gap={6}>
@@ -1402,15 +1470,6 @@ export function SessionDetailPage() {
                       Твой ход
                     </div>
                   ) : null}
-                  {canRun && !session.closed_at ? (
-                    <div
-                      className="session-center-slot session-center-slot--master-hint session-master-mobile-hint"
-                      role="note"
-                      data-onboarding="lobby-master-hint"
-                    >
-                      С телефона — бой и враги; награды и вики — в меню
-                    </div>
-                  ) : null}
                   <div className="session-center-slot session-center-slot--lore">
                     <SessionLorePanel
                       hasSetting={Boolean(session.setting_id)}
@@ -1456,7 +1515,7 @@ export function SessionDetailPage() {
                     data-onboarding="lobby-master-toolbar"
                     data-sc05-gm-toolbar
                   >
-                    {/* А: бой и враги сразу; без подписи-чипа «БОЙ» рядом с кнопкой «Бой» */}
+                    {/* LOBBY-FIX visual 3: в бою — Следующий ход + Завершить; остальное в «Ещё» */}
                     <div
                       className="session-toolbar-group session-toolbar-group--primary"
                       aria-label="Бой"
@@ -1477,52 +1536,67 @@ export function SessionDetailPage() {
                           Бой
                         </Button>
                       ) : (
-                        <Button
-                          type="button"
-                          variant="danger"
-                          size="lg"
-                          disabled={busy}
-                          onClick={() => {
-                            setEndCombatThenClose(false)
-                            setCombatEndOpen(true)
-                          }}
-                        >
-                          Завершить бой
-                        </Button>
+                        <>
+                          <Button
+                            type="button"
+                            variant="primary"
+                            size="lg"
+                            disabled={busy}
+                            onClick={() => {
+                              void run(async () => {
+                                const updated = await patchSessionCombat(session.id, {
+                                  action: 'next',
+                                })
+                                setSession(updated)
+                              })
+                            }}
+                          >
+                            Следующий ход
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="danger"
+                            size="lg"
+                            disabled={busy}
+                            onClick={() => {
+                              setEndCombatThenClose(false)
+                              setCombatEndOpen(true)
+                            }}
+                          >
+                            Завершить бой
+                          </Button>
+                        </>
                       )}
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="lg"
-                        disabled={busy}
-                        onClick={() => setCombatantOpen(true)}
-                      >
-                        + Враги
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="lg"
-                        className="session-toolbar-mobile-only"
-                        disabled={busy}
-                        onClick={openAttendanceEditor}
-                      >
-                        Кто пришёл
-                      </Button>
                     </div>
-                    {/* Б: опыт / добыча / выдать — один клик «Награды» (kit DetailsMenu popover) */}
                     <DetailsMenu
-                      className={`session-toolbar-more session-toolbar-rewards${
-                        !session.combat?.active
-                          ? ' session-toolbar-group--rewards-spotlight'
-                          : ''
-                      }`}
+                      className="session-toolbar-more session-toolbar-rewards"
+                      data-sc05-more
                       data-sc05-rewards
-                      summary="Награды"
+                      summary="Ещё"
                       summaryClassName="session-toolbar-more__summary"
                       panelClassName="session-toolbar-more__body"
                     >
-                        <div className="session-toolbar-group" aria-label="Награды">
+                        <div className="session-toolbar-group" aria-label="Враги и награды">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="lg"
+                            disabled={busy}
+                            onClick={() => setCombatantOpen(true)}
+                          >
+                            + Враги
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={busy || session.seats.length === 0}
+                            onClick={() => {
+                              setRewardsFocus(session.combat?.active ? 'combat' : 'manual')
+                              setRewardsOpen(true)
+                            }}
+                          >
+                            Награды
+                          </Button>
                           <Button
                             type="button"
                             variant="secondary"
@@ -1548,7 +1622,6 @@ export function SessionDetailPage() {
                             type="button"
                             variant="secondary"
                             disabled={busy || session.seats.length === 0}
-                            title="Полный диалог добычи удобнее с компьютера"
                             onClick={() => {
                               setRewardsFocus('loot')
                               setRewardsOpen(true)
@@ -1573,14 +1646,6 @@ export function SessionDetailPage() {
                             Выдать
                           </Button>
                         </div>
-                    </DetailsMenu>
-                    <DetailsMenu
-                      className="session-toolbar-more"
-                      data-sc05-more
-                      summary="Ещё действия"
-                      summaryClassName="session-toolbar-more__summary"
-                      panelClassName="session-toolbar-more__body"
-                    >
                         <Text tone="muted" className="session-toolbar-mobile-only session-toolbar-more__desk-note">
                           Генератор и вики удобнее с компьютера.
                         </Text>
@@ -1852,6 +1917,29 @@ export function SessionDetailPage() {
                     }}
                     ownCharacterIds={ownCharacterIds}
                     onRollInitiative={(entry) => setInitRollEntry(entry)}
+                    onRollRemaining={() => {
+                      void run(async () => {
+                        const updated = await rollSessionCombatInitiative(session.id, {
+                          mode: 'roll_remaining',
+                        })
+                        setSession(updated)
+                        setToast('Инициатива за оставшихся')
+                        await reloadEvents()
+                      })
+                    }}
+                    onSkipReaction={() => {
+                      const cid = session.combat?.reaction_character_id
+                      if (!cid) return
+                      void run(async () => {
+                        const updated = await resolveSessionCombatReaction(session.id, {
+                          action: 'skip',
+                          character_id: cid,
+                        })
+                        setSession(updated)
+                        await reloadEvents()
+                        setToast('Реакция пропущена')
+                      })
+                    }}
                     onReleaseWave={(waveId) => {
                       void run(async () => {
                         const updated = await patchSessionCombat(session.id, {

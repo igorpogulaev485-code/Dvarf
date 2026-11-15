@@ -359,8 +359,8 @@ export function SessionTableCard({
       ? hpMode === 'color_only' && !revealAll
         ? `HP · ${colorLabel}`
         : seat.hp_max != null
-          ? `HP ${seat.hp_current ?? 0}/${seat.hp_max}${seat.hp_temp ? ` (+${seat.hp_temp})` : ''}`
-          : 'HP —'
+          ? `${seat.hp_current ?? 0}/${seat.hp_max}${seat.hp_temp ? ` (+${seat.hp_temp})` : ''}`
+          : null
       : null
 
   const atZero = seat.hp_current != null && seat.hp_current <= 0
@@ -542,21 +542,23 @@ export function SessionTableCard({
                 </span>
               ) : null}
               {showAc && seat.ac != null ? (
-                <span className="session-table-card__chip">КД {seat.ac}</span>
+                <span className="session-table-card__chip" title="Класс доспеха">
+                  КД {seat.ac}
+                </span>
               ) : null}
               {showPassives && seat.passive_perception != null ? (
                 <span className="session-table-card__chip" title="Пассивная внимательность">
-                  👁 {seat.passive_perception}
+                  Внимательность {seat.passive_perception}
                 </span>
               ) : null}
               {showPassives && seat.passive_insight != null ? (
                 <span className="session-table-card__chip" title="Пассивная проницательность">
-                  ◎ {seat.passive_insight}
+                  Проницательность {seat.passive_insight}
                 </span>
               ) : null}
               {showPassives && seat.passive_investigation != null ? (
                 <span className="session-table-card__chip" title="Пассивное расследование">
-                  ? {seat.passive_investigation}
+                  Расследование {seat.passive_investigation}
                 </span>
               ) : null}
               {seat.advantage_next_roll ? (

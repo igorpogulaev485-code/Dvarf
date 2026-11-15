@@ -53,7 +53,7 @@ import {
   type LobbyMediaUsage,
 } from '../shared/api/lobbies'
 import { openProductSite } from '../shared/brand/creed20'
-import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+import { Button, Dialog, Field, Input, Panel, Select, Stack, Text, Toast } from '../ui'
 
 type LocationState = {
   toast?: string
@@ -136,6 +136,8 @@ export function LobbyDetailPage() {
     setRulesDraft(normalizeCampaignRules(detail.campaign_rules))
     setRulesDirty(false)
     setLastJournalPublishedAt(detail.last_journal_published_at ?? null)
+    // LOBBY-FIX C: все из состава уже отмечены за столом
+    setSessionPresentIds(new Set(detail.members.map((m) => m.character_id)))
   }, [lobbyId])
 
   useEffect(() => {
@@ -613,7 +615,9 @@ export function LobbyDetailPage() {
                         character_ids: [...sessionPresentIds],
                       })
                       setSessionName('')
-                      setSessionPresentIds(new Set())
+                      setSessionPresentIds(
+                        new Set(lobby.members.map((m) => m.character_id)),
+                      )
                       navigate(`/sessions/${session.id}`)
                     })
                   }}
@@ -626,18 +630,17 @@ export function LobbyDetailPage() {
                     />
                   </Field>
                   <Field label="Сеттинг">
-                    <select
-                      className="ui-input"
+                    <Select
                       value={sessionSettingId}
                       onChange={(e) => setSessionSettingId(e.target.value)}
                     >
-                      <option value="">Ваншот — без сеттинга</option>
+                      <option value="">Без сеттинга</option>
                       {lobby.settings.map((s) => (
                         <option key={s.id} value={s.id}>
                           {s.name}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   </Field>
                   <SessionAttendancePanel
                     mode="create"

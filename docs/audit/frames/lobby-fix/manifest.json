@@ -1,0 +1,119 @@
+{
+  "generated": "2026-11-15T11:09:50.445960Z",
+  "count": 28,
+  "uniqueMd5": 28,
+  "frames": [
+    {
+      "file": "m-after-roll-remaining-1440.png",
+      "md5": "aa9bccab63bb8c8461c72ca5d13d6dac"
+    },
+    {
+      "file": "m-after-roll-remaining-390.png",
+      "md5": "a7be2dd3821edcc61f429fbcf444b598"
+    },
+    {
+      "file": "m-campaign-rules-1440.png",
+      "md5": "95bd7cf77c9caff838262e475172e49d"
+    },
+    {
+      "file": "m-campaign-rules-390.png",
+      "md5": "4eebc246f5b5e12490c3722fac54862a"
+    },
+    {
+      "file": "m-combat-pending-init-1440.png",
+      "md5": "83f9d5a2e09cedab853a2ffa62597358"
+    },
+    {
+      "file": "m-combat-pending-init-390.png",
+      "md5": "49bd2a62466e387691d2e48fe9074a25"
+    },
+    {
+      "file": "m-custom-npc-cr-1440.png",
+      "md5": "d74fca52c01964c70690379586b9084a"
+    },
+    {
+      "file": "m-custom-npc-cr-390.png",
+      "md5": "830539b24a540f0d1488ce084910afe1"
+    },
+    {
+      "file": "m-damage-empty-1440.png",
+      "md5": "4724d2fb06cdd1f2351bafaaa39814b0"
+    },
+    {
+      "file": "m-damage-empty-390.png",
+      "md5": "68e4571573f7f8f93d68870e2e79cfcc"
+    },
+    {
+      "file": "m-hub-after-1440.png",
+      "md5": "a95219a8e24864087b09451f91b10ff0"
+    },
+    {
+      "file": "m-hub-after-390.png",
+      "md5": "602d50bd886b7d893ce232bdc6233deb"
+    },
+    {
+      "file": "m-rewards-after-end-1440.png",
+      "md5": "70457d2f7f7e378a3b0d457cd460cdba"
+    },
+    {
+      "file": "m-rewards-after-end-390.png",
+      "md5": "022b6f121e0d202d5a82ab43be53d5c1"
+    },
+    {
+      "file": "m-session-empty-1440.png",
+      "md5": "c680122c2c9fddf113a6222be5efca38"
+    },
+    {
+      "file": "m-session-empty-390.png",
+      "md5": "d3c0fe252b4540de82394e331bdd7705"
+    },
+    {
+      "file": "m-session-empty-760.png",
+      "md5": "ea2e9ac8a1bed678ca1daf4b9aaf0180"
+    },
+    {
+      "file": "m-session-loading-390.png",
+      "md5": "eb576bd853d9542ab4627eff479ac0f7"
+    },
+    {
+      "file": "m-waiting-reaction-1440.png",
+      "md5": "e0f7452a922c938bbbfb5b4f82065155"
+    },
+    {
+      "file": "m-waiting-reaction-390.png",
+      "md5": "eb104d58b74408cc1b1f6aeb64c68ffc"
+    },
+    {
+      "file": "p-after-xp-1440.png",
+      "md5": "c247f65b4901fa99693f6a2527b5d4de"
+    },
+    {
+      "file": "p-after-xp-390.png",
+      "md5": "e08f3d881675af2899a5143b4793ea75"
+    },
+    {
+      "file": "p-combat-live-1440.png",
+      "md5": "7c2d643617f3125fb6ccc4cbf8820a0f"
+    },
+    {
+      "file": "p-combat-live-390.png",
+      "md5": "010b7daed28730c7c747970afc9c5c1e"
+    },
+    {
+      "file": "p-join-1440.png",
+      "md5": "99155bb8c2d9aa5f5a64376e4a3b2739"
+    },
+    {
+      "file": "p-join-390.png",
+      "md5": "3ab47cdc6a81e8b94da8e08297bf2582"
+    },
+    {
+      "file": "p-reaction-1440.png",
+      "md5": "6a5f0e38ff39ec9fb7af1d50212cd6c0"
+    },
+    {
+      "file": "p-reaction-390.png",
+      "md5": "cdbbda6702e4ac825d3ce31fd31f79e6"
+    }
+  ]
+}
