@@ -1074,6 +1074,8 @@ class LobbyService:
     def _to_summary(self, lobby: Lobby, user: User) -> LobbySummary:
         flags = roles.permission_flags(self.db, lobby, user)
         open_session = self._open_session(lobby)
+        from app.services.lobby_edition import lobby_rules_edition_value
+
         return LobbySummary(
             id=lobby.id,
             name=lobby.name,
@@ -1083,6 +1085,7 @@ class LobbyService:
             is_observer=flags["is_observer"],
             role=flags["role"],
             member_count=len(lobby.members),
+            rules_edition=lobby_rules_edition_value(lobby),
             has_open_session=open_session is not None,
             open_session_id=open_session.id if open_session else None,
             created_at=lobby.created_at,
@@ -1133,6 +1136,8 @@ class LobbyService:
                 free_mb=usage.free_mb,
                 limit_mb=usage.limit_mb,
             )
+        from app.services.lobby_edition import lobby_rules_edition_value
+
         # L-03: код/ссылка видны всем, кто проходит can_view_lobby (деталь уже за _require_view).
         return LobbyDetail(
             id=lobby.id,
@@ -1156,6 +1161,7 @@ class LobbyService:
             role=flags["role"],
             owner_id=lobby.owner_id,
             owner_display_name=self._user_display(lobby.owner_id),
+            rules_edition=lobby_rules_edition_value(lobby),
             members=members,
             roles=[self._role_out(r) for r in role_rows],
             settings=settings,
@@ -1183,9 +1189,15 @@ class LobbyService:
 
     def create(self, user: User, payload: LobbyCreateRequest) -> LobbyDetail:
         from app.services.campaign_rules import default_campaign_rules
+        from app.services.lobby_edition import normalize_lobby_rules_edition
 
         name = (payload.name or "Новое лобби").strip() or "Новое лобби"
-        lobby = self.lobbies.create(owner_id=user.id, name=name)
+        edition = normalize_lobby_rules_edition(getattr(payload, "rules_edition", None))
+        lobby = self.lobbies.create(
+            owner_id=user.id,
+            name=name,
+            rules_edition=edition,
+        )
         lobby.campaign_rules = default_campaign_rules()
         self.db.commit()
         lobby = self._require_lobby(lobby.id)
@@ -1329,6 +1341,8 @@ class LobbyService:
         lobby = self.lobbies.get_invite_row(cleaned)
         if lobby is None:
             raise NotFoundError("Код лобби не найден", code="invite_code_not_found")
+        from app.services.lobby_edition import lobby_rules_edition_value
+
         rules = normalize_campaign_rules(getattr(lobby, "campaign_rules", None))
         start = rules.get("start") if isinstance(rules.get("start"), dict) else {}
         return InviteMetaOut(
@@ -1336,6 +1350,7 @@ class LobbyService:
             name=lobby.name,
             valid=True,
             lobby_id=lobby.id,
+            rules_edition=lobby_rules_edition_value(lobby),
             start=start,
             campaign_rules_start=start,
         )
@@ -1483,6 +1498,11 @@ class LobbyService:
         character = self.characters.get_for_user(payload.character_id, user.id)
         if character is None:
             raise NotFoundError("Персонаж не найден", code="character_not_found")
+
+        from app.services.lobby_edition import ensure_character_matches_lobby
+
+        # P24-01: лобби одной редакции — чужую не сажаем (и copy той же редакции).
+        ensure_character_matches_lobby(lobby=lobby, character=character)
 
         # L-16: copy = клон без посадки; правка в пайплайне, затем join копией.
         if action == "copy":
@@ -1884,6 +1904,9 @@ class LobbyService:
             )
             if character is None:
                 raise NotFoundError("Персонаж не найден", code="character_not_found")
+            from app.services.lobby_edition import ensure_character_matches_lobby
+
+            ensure_character_matches_lobby(lobby=lobby, character=character)
             if self.lobbies.get_member(lobby.id, character.id) is None:
                 self.lobbies.add_member(
                     lobby_id=lobby.id,

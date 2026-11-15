@@ -171,14 +171,17 @@ class CharacterService:
         return [to_summary(item) for item in self.characters.list_for_user(user.id)]
 
     def create(self, user: User, payload: CharacterCreateRequest) -> CharacterDetail:
-        # FIX-hide2024: создание 2024 закрыто до готовности редакции (полный флаг — P24-01).
+        # P24-01: флаг RULES_EDITION_2024_OPEN (по умолчанию выкл.). Открытие — P24-M06.
+        from app.core.config import settings
+
         edition = payload.rules_edition
         if edition == RulesEdition.edition_2024 or edition == "2024":
-            raise AppError(
-                "Редакция 2024 ещё не открыта",
-                code="rules_edition_closed",
-                status_code=400,
-            )
+            if not settings.rules_edition_2024_open:
+                raise AppError(
+                    "Редакция 2024 ещё не открыта",
+                    code="rules_edition_closed",
+                    status_code=400,
+                )
         name = (payload.name or "Новый персонаж").strip() or "Новый персонаж"
         character = self.characters.create(
             user_id=user.id,
@@ -249,8 +252,18 @@ class CharacterService:
             character.hp_current = payload.hp_current
         if payload.hp_max is not None:
             character.hp_max = payload.hp_max
+        # P24-01: редакция фиксируется при создании; PATCH её не меняет.
         if payload.rules_edition is not None:
-            character.rules_edition = payload.rules_edition
+            current = character.rules_edition
+            incoming = payload.rules_edition
+            current_val = current.value if isinstance(current, RulesEdition) else str(current)
+            incoming_val = incoming.value if isinstance(incoming, RulesEdition) else str(incoming)
+            if incoming_val != current_val:
+                raise AppError(
+                    "Редакцию персонажа нельзя сменить после создания",
+                    code="rules_edition_locked",
+                    status_code=400,
+                )
         if payload.is_draft is not None:
             character.is_draft = payload.is_draft
 

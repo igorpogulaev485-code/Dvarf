@@ -49,6 +49,10 @@ class Settings(BaseSettings):
     mcp_allowed_hosts: str = ""
     mcp_port: int = 8100
 
+    # P24-01: редакция 2024 закрыта до финальной пачки открытия (P24-M06).
+    # Env: RULES_EDITION_2024_OPEN=true|false. По умолчанию выключен.
+    rules_edition_2024_open: bool = False
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]

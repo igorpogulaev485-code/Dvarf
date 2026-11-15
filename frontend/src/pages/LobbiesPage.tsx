@@ -4,11 +4,12 @@ import { AppHeader } from '../features/characters'
 import {
   createLobby,
   listLobbies,
+  type LobbyRulesEdition,
   type LobbySummary,
 } from '../shared/api/lobbies'
 import { ApiRequestError } from '../shared/api/client'
 import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
-import { Button, EmptyState, Field, Input, Panel, Stack, Text } from '../ui'
+import { Button, EmptyState, Field, Input, Panel, Select, Stack, Text } from '../ui'
 
 function sortLobbiesLiveFirst(items: LobbySummary[]): LobbySummary[] {
   return [...items].sort((a, b) => {
@@ -26,6 +27,7 @@ export function LobbiesPage() {
   const [creating, setCreating] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   const [name, setName] = useState('')
+  const [rulesEdition, setRulesEdition] = useState<LobbyRulesEdition>('2014')
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -58,7 +60,7 @@ export function LobbiesPage() {
     setCreating(true)
     setError(null)
     try {
-      const created = await createLobby(name.trim() || undefined)
+      const created = await createLobby(name.trim() || undefined, rulesEdition)
       navigate(`/lobbies/${created.id}`, { state: { toast: 'Лобби создано' } })
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось создать лобби')
@@ -98,6 +100,22 @@ export function LobbiesPage() {
                   placeholder="Стол пятницы, кампания…"
                   autoFocus
                 />
+              </Field>
+              <Field
+                label="Редакция"
+                hint="Задаётся при создании и больше не меняется. За стол садятся только персонажи этой редакции."
+              >
+                <Select
+                  value={rulesEdition}
+                  onChange={(e) =>
+                    setRulesEdition((e.target.value === '2024' ? '2024' : '2014') as LobbyRulesEdition)
+                  }
+                  data-testid="lobby-create-rules-edition"
+                  aria-label="Редакция лобби"
+                >
+                  <option value="2014">D&D 2014</option>
+                  <option value="2024">D&D 2024</option>
+                </Select>
               </Field>
               <Button type="submit" size="md" disabled={creating} className="lobbies-create-form__submit">
                 {creating ? 'Создаём…' : 'Создать лобби'}

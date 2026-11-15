@@ -15,6 +15,8 @@ export type LobbyRole = {
   created_at: string
 }
 
+export type LobbyRulesEdition = '2014' | '2024'
+
 export type LobbySummary = {
   id: string
   name: string
@@ -24,6 +26,8 @@ export type LobbySummary = {
   is_observer?: boolean
   role?: string
   member_count: number
+  /** P24-01: редакция стола */
+  rules_edition?: LobbyRulesEdition | string
   /** L-03: есть незакрытая сессия */
   has_open_session?: boolean
   open_session_id?: string | null
@@ -389,6 +393,8 @@ export type InviteMeta = {
   name: string
   valid: boolean
   lobby_id?: string | null
+  /** P24-01: редакция стола для фильтра списка персонажей */
+  rules_edition?: LobbyRulesEdition | string
   start?: unknown
   campaign_rules_start?: unknown
 }
@@ -465,6 +471,8 @@ export type LobbyDetail = {
   owner_id: string
   /** Owner nick / display name from API (prefer over raw owner_id). */
   owner_display_name?: string | null
+  /** P24-01: редакция стола, после создания не меняется */
+  rules_edition?: LobbyRulesEdition | string
   members: LobbyMember[]
   roles?: LobbyRole[]
   settings: SettingSummary[]
@@ -947,10 +955,16 @@ export async function listLobbies(): Promise<LobbySummary[]> {
   return apiRequest<LobbySummary[]>('/lobbies')
 }
 
-export async function createLobby(name?: string): Promise<LobbyDetail> {
+export async function createLobby(
+  name?: string,
+  rulesEdition: LobbyRulesEdition = '2014',
+): Promise<LobbyDetail> {
   return apiRequest<LobbyDetail>('/lobbies', {
     method: 'POST',
-    body: JSON.stringify({ name: name || undefined }),
+    body: JSON.stringify({
+      name: name || undefined,
+      rules_edition: rulesEdition,
+    }),
   })
 }
 

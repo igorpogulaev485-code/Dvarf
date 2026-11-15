@@ -385,6 +385,9 @@ export function LobbyDetailPage() {
               </button>
               {inviteOpen ? (
                 <div className="lobby-hub-invite">
+                  <p className="ui-text ui-text--muted" data-testid="lobby-rules-edition">
+                    Редакция {lobby.rules_edition || '2014'} · после создания не меняется
+                  </p>
                   <div className="lobby-hub-code">
                     <Text tone="muted">Код комнаты</Text>
                     <button

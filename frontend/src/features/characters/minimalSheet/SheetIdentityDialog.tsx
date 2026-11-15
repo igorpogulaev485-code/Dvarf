@@ -17,6 +17,10 @@ import {
 } from '../../../ui'
 import { isRaceComboboxRoot, raceSizeLabel } from '../../../shared/dnd/raceGrants'
 import {
+  raceSpeciesLabelTitle,
+  raceSpeciesSectionTitle,
+} from '../../../shared/dnd/raceSpeciesLabel'
+import {
   ALIGNMENTS,
   alignmentNeedsClarification,
   alignmentSheetLabel,
@@ -450,7 +454,7 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                     row.source.kind === 'asi'
                       ? `Увел. характеристик · ур. ${row.source.atClassLevel}`
                       : row.source.kind === 'race'
-                        ? 'Раса'
+                        ? raceSpeciesLabelTitle(model.baseCharacter.rules_edition)
                         : row.source.kind === 'background'
                           ? 'Предыстория'
                           : 'Мастер'
@@ -490,15 +494,21 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
             </div>
           </section>
           <section className="identity-dialog__section">
-            <p className="identity-dialog__section-label">Раса и прошлое</p>
+            <p className="identity-dialog__section-label">
+              {raceSpeciesSectionTitle(model.baseCharacter.rules_edition)}
+            </p>
           <div className="sheet-grid sheet-grid--2">
             <Field
-              label="Раса"
+              label={raceSpeciesLabelTitle(model.baseCharacter.rules_edition)}
               htmlFor="sheet-race"
               hint={
                 model.primaryClass?.name.trim()
-                  ? 'Шаг 3 · подраса и развилки — в попапе; если раса даёт черту — мастер подскажет'
-                  : 'Шаг 3 · сначала предыстория и класс, потом раса'
+                  ? model.baseCharacter.rules_edition === '2024'
+                    ? 'Шаг 3 · развилки вида — в попапе; если вид даёт черту — мастер подскажет'
+                    : 'Шаг 3 · подраса и развилки — в попапе; если раса даёт черту — мастер подскажет'
+                  : model.baseCharacter.rules_edition === '2024'
+                    ? 'Шаг 3 · сначала предыстория и класс, потом вид'
+                    : 'Шаг 3 · сначала предыстория и класс, потом раса'
               }
             >
               <CatalogCombobox
@@ -508,7 +518,9 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                 value={model.draft.raceName}
                 placeholder={
                   model.primaryClass?.name.trim()
-                    ? 'Начните вводить расу'
+                    ? model.baseCharacter.rules_edition === '2024'
+                      ? 'Начните вводить вид'
+                      : 'Начните вводить расу'
                     : 'Сначала выбери класс'
                 }
                 disabled={!model.primaryClass?.name.trim()}

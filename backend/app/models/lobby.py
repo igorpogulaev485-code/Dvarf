@@ -6,11 +6,12 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, UniqueConstraint, func
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+from app.models.character import RulesEdition
 
 # Без 0/O/1/I — проще диктовать и вбивать с телефона.
 _INVITE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -38,6 +39,19 @@ class Lobby(Base):
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False, default="Новое лобби")
     invite_code: Mapped[str] = mapped_column(String(16), nullable=False, unique=True, index=True)
+    # P24-01: редакция лобби фиксируется при создании (старые строки = 2014).
+    rules_edition: Mapped[RulesEdition] = mapped_column(
+        Enum(
+            RulesEdition,
+            name="rules_edition",
+            native_enum=True,
+            create_constraint=False,
+            values_callable=lambda enum_cls: [item.value for item in enum_cls],
+        ),
+        nullable=False,
+        default=RulesEdition.edition_2014,
+        server_default="2014",
+    )
     visibility_profile: Mapped[dict] = mapped_column(
         JSONB,
         nullable=False,
