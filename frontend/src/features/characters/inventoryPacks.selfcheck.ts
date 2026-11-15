@@ -8,10 +8,13 @@ import {
   findCatalogPackEntry,
   hasPackContents,
   hasSoftCollapsedChildren,
+  hydrateCollapsedPackMeta,
+  hydrateItemWeightFromCatalog,
   isExpandedPack,
   sumContentsWeightLb,
   type ResolvedPackContent,
 } from './inventoryPacks.ts'
+import { startingGearWeightLb } from '../../shared/dnd/startingGearWeights.ts'
 import { itemsWeightLb } from '../../shared/dnd/weight.ts'
 import { focusOptionsFromCatalog } from './focusCatalog.ts'
 import type { CatalogEntry } from '../../shared/api/catalog.ts'
@@ -190,6 +193,93 @@ assert(
   'magic / arcane must not appear for druid starting focus',
 )
 
+// --- EXP-01: hydrate pack + single grant row with null weight ---
+const hydrateCatalog = [
+  {
+    id: 'scholars',
+    slug: 'scholars_pack',
+    name_ru: 'Набор учёного',
+    data: {
+      item_category: 'pack',
+      weight_lb: null,
+      contents: [
+        { slug: 'backpack', name_ru: 'Рюкзак', qty: 1 },
+        { slug: 'book', name_ru: 'Книга', qty: 1 },
+      ],
+    },
+  },
+  {
+    id: 'backpack',
+    slug: 'backpack',
+    name_ru: 'Рюкзак',
+    data: { weight_lb: 5 },
+  },
+  {
+    id: 'book',
+    slug: 'book',
+    name_ru: 'Книга',
+    data: { weight_lb: 5 },
+  },
+  {
+    id: 'rapier',
+    slug: 'rapier',
+    name_ru: 'Рапира',
+    data: { weight_lb: 2 },
+  },
+  {
+    id: 'vestments',
+    slug: 'vestments',
+    name_ru: 'Облачение',
+    data: { weight_lb: 0 },
+  },
+]
+const barePack = createInventoryItem()
+barePack.name = 'Набор учёного'
+barePack.weight_lb = null
+const packHydrated = hydrateCollapsedPackMeta(barePack, hydrateCatalog)
+assert(packHydrated?.weight_lb === 10, `pack hydrate weight, got ${packHydrated?.weight_lb}`)
+assert(packHydrated?.container_kind === 'pack', 'pack hydrate marks container')
+
+const bareRapier = createInventoryItem()
+bareRapier.name = 'Рапира'
+bareRapier.weight_lb = null
+const rapierHydrated = hydrateItemWeightFromCatalog(bareRapier, hydrateCatalog)
+assert(rapierHydrated?.weight_lb === 2, `rapier hydrate, got ${rapierHydrated?.weight_lb}`)
+
+const bareRobe = createInventoryItem()
+bareRobe.name = 'Ряса'
+bareRobe.weight_lb = null
+const robeHydrated = hydrateItemWeightFromCatalog(bareRobe, hydrateCatalog)
+assert(robeHydrated?.weight_lb === 0, `ряса alias → vestments 0, got ${robeHydrated?.weight_lb}`)
+
+assert(startingGearWeightLb('Кинжал') === 1, 'starting table dagger')
+assert(startingGearWeightLb('Магический фокус') == null, 'generic focus has no fixed weight')
+
+// --- EXP-01: pack view vs edit is UI state (editingIds), not nested flag ---
+// Soft collapse hides children again after expand.
+const viewPack = createInventoryItem()
+viewPack.name = 'Набор учёного'
+viewPack.weight_lb = 10
+const viewOpened = expandPack({
+  items: [viewPack],
+  packId: viewPack.id,
+  contents: [
+    { name_ru: 'Рюкзак', qty: 1, weight_lb: 5, catalog_id: 'backpack', slug: 'backpack' },
+    { name_ru: 'Книга', qty: 1, weight_lb: 5, catalog_id: 'book', slug: 'book' },
+  ],
+})
+assert(isExpandedPack(viewOpened, viewPack.id), 'pack open for view shows children')
+assert(
+  viewOpened.filter((row) => row.parent_id === viewPack.id).length === 2,
+  'view lists contents',
+)
+const viewCollapsed = collapsePack({ items: viewOpened, packId: viewPack.id })
+assert(!isExpandedPack(viewCollapsed, viewPack.id), 'свернуть hides nested')
+assert(
+  hasSoftCollapsedChildren(viewCollapsed, viewPack.id),
+  'свернуть keeps children for re-open',
+)
+
 console.log(
-  'inventoryPacks.selfcheck: ok (unique ids; expand scoped; nested weight; soft collapse qty; focus family)',
+  'inventoryPacks.selfcheck: ok (unique ids; expand scoped; nested weight; soft collapse qty; focus family; EXP-01 hydrate)',
 )

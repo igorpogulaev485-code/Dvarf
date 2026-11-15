@@ -29,6 +29,7 @@ import {
   equipInventoryItem,
   type InventoryState,
 } from './inventory'
+import { startingGearWeightLb } from '../../shared/dnd/startingGearWeights'
 import type { ArmorKind } from '../../shared/dnd/armor'
 import { type WeaponAttack } from './AttacksPanel'
 import { resolveWeaponGrip } from './heldEquip'
@@ -388,7 +389,7 @@ export function applyClassGrantToDraft(input: {
         created.qty = Math.max(1, Math.floor(spec.qty ?? 1))
         created.armor_kind = (spec.armor_kind ?? 'none') as ArmorKind
         created.base_ac = spec.base_ac ?? null
-        created.weight_lb = spec.weight_lb ?? null
+        created.weight_lb = spec.weight_lb ?? startingGearWeightLb(spec.name)
         created.notes = spec.notes ?? 'Стартовое снаряжение класса'
         if (focusPick && isFocusPlaceholderItem(spec.name)) {
           const fields = applyFocusSelectionToItemFields({

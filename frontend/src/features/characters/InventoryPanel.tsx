@@ -54,6 +54,7 @@ import { FocusCatalogSelect } from './FocusCatalogSelect'
 import {
   applyFocusSelectionToItemFields,
   focusOptionsFromCatalog,
+  isFocusPlaceholderItem,
   selectionFromCustomName,
   type FocusSelection,
 } from './focusCatalog'
@@ -96,6 +97,7 @@ import {
   hasPackContents,
   hasSoftCollapsedChildren,
   hydrateCollapsedPackMeta,
+  hydrateItemWeightFromCatalog,
   isExpandedPack,
   orderInventoryItems,
   readPackContents,
@@ -174,6 +176,22 @@ function IconTrash() {
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+/** Empty ring — «убран / снято / не в руке» (label lives in title / aria-label). */
+function IconEquipOff() {
+  return (
+    <svg className="inventory-icon" viewBox="0 0 24 24" aria-hidden>
+      <circle
+        cx="12"
+        cy="12"
+        r="7"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
       />
     </svg>
   )
@@ -420,9 +438,13 @@ export function InventoryPanel({
 
   useEffect(() => {
     let cancelled = false
-    listCatalogEntries({ kind: 'item', edition })
-      .then((rows) => {
-        if (!cancelled) setCatalogItems(rows)
+    Promise.all([
+      listCatalogEntries({ kind: 'item', edition }),
+      listCatalogEntries({ kind: 'weapon', edition }),
+      listCatalogEntries({ kind: 'armor', edition }),
+    ])
+      .then(([items, weapons, armors]) => {
+        if (!cancelled) setCatalogItems([...items, ...weapons, ...armors])
       })
       .catch(() => {
         if (!cancelled) setCatalogItems([])
@@ -432,24 +454,29 @@ export function InventoryPanel({
     }
   }, [edition])
 
-  // Starting grants often ship packs as bare names with null weight — fill from catalog
-  // so encumbrance works before the player expands the pack.
+  // Starting grants often ship packs / gear as bare names with null weight —
+  // fill from catalog (and PHB starting table) so encumbrance works on open.
   useEffect(() => {
     if (catalogItems.length === 0) return
     const current = inventoryRef.current
     let changed = false
     const nextItems = current.items.map((item) => {
-      // Soft-collapsed packs already own live children / weight — leave them alone.
+      // Soft-collapsed / expanded packs: children own mass — don't overwrite shell.
       if (
         isExpandedPack(current.items, item.id) ||
         childrenOf(current.items, item.id).length > 0
       ) {
         return item
       }
-      const patch = hydrateCollapsedPackMeta(item, catalogItems)
-      if (!patch) return item
+      const packPatch = hydrateCollapsedPackMeta(item, catalogItems)
+      if (packPatch) {
+        changed = true
+        return { ...item, ...packPatch }
+      }
+      const rowPatch = hydrateItemWeightFromCatalog(item, catalogItems)
+      if (!rowPatch) return item
       changed = true
-      return { ...item, ...patch }
+      return { ...item, ...rowPatch }
     })
     if (changed) {
       onChangeRef.current({ ...current, items: nextItems })
@@ -471,7 +498,10 @@ export function InventoryPanel({
   const weightIncomplete = inventory.items.some((item) => {
     if (item.parent_id) return false
     if (isExpandedPack(inventory.items, item.id)) return false
-    return item.weight_lb == null
+    if (item.weight_lb != null) return false
+    // Placeholder focus names — weight appears after the player picks a real focus.
+    if (isFocusPlaceholderItem(item.name)) return false
+    return true
   })
 
   const visibleRoots = useMemo(() => {
@@ -523,11 +553,24 @@ export function InventoryPanel({
           copy.delete(next)
           return copy
         })
+        const item = inventoryRef.current.items.find((row) => row.id === next)
+        if (item && canExpand(item)) {
+          void onExpandPack(item)
+        }
         window.requestAnimationFrame(() => {
           document
             .getElementById(`inventory-card-${next}`)
             ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
         })
+      } else {
+        const item = inventoryRef.current.items.find((row) => row.id === id)
+        if (item && isExpandedPack(inventoryRef.current.items, item.id)) {
+          const current = inventoryRef.current
+          onChangeRef.current({
+            ...current,
+            items: collapsePack({ items: current.items, packId: item.id }),
+          })
+        }
       }
       return next
     })
@@ -744,14 +787,40 @@ export function InventoryPanel({
       ...inventory,
       items: collapsePack({ items: inventory.items, packId: item.id }),
     })
+    setOpenId((prev) => (prev === item.id ? null : prev))
+    setEditingIds((ids) => {
+      if (!ids.has(item.id)) return ids
+      const copy = new Set(ids)
+      copy.delete(item.id)
+      return copy
+    })
   }
 
-  function renderEquipChip(item: InventoryItem) {
+  function renderEquipChip(item: InventoryItem, mode: 'text' | 'icon' = 'text') {
     if (!canShowEquipChip(item)) return null
+    const labels = equipLabel(item)
     const blocked =
       !item.equipped &&
       item.armor_kind !== 'none' &&
       !canWearArmor(item.armor_kind, armorProficiency)
+    const label = blocked
+      ? 'Нет владения'
+      : item.equipped
+        ? labels.on
+        : labels.off
+    if (mode === 'icon') {
+      return (
+        <button
+          type="button"
+          className={`inventory-equip inventory-equip--icon${item.equipped ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
+          title={blocked ? armorProficiencyHint(item.armor_kind) : label}
+          aria-label={blocked ? armorProficiencyHint(item.armor_kind) : label}
+          onClick={() => toggleEquip(item)}
+        >
+          {item.equipped ? <IconCheck /> : <IconEquipOff />}
+        </button>
+      )
+    }
     return (
       <button
         type="button"
@@ -760,11 +829,7 @@ export function InventoryPanel({
         onClick={() => toggleEquip(item)}
       >
         {item.equipped ? <IconCheck /> : null}
-        {item.equipped
-          ? equipLabel(item).on
-          : blocked
-            ? 'Нет владения'
-            : equipLabel(item).off}
+        {label}
       </button>
     )
   }
@@ -813,7 +878,7 @@ export function InventoryPanel({
 
   function renderItemCard(item: InventoryItem, nested: boolean) {
     const expandedPack = isExpandedPack(inventory.items, item.id)
-    const detailsOpen = openId === item.id || nested
+    const detailsOpen = openId === item.id
     const role = roleLabel(item, catalogItems)
     const bucket = itemBucket(item, catalogItems)
     const lineLb = formatLb(
@@ -831,7 +896,7 @@ export function InventoryPanel({
         ? equipLabel(item).off.toLowerCase()
         : null
 
-    const editing = nested || editingIds.has(item.id)
+    const editing = editingIds.has(item.id)
 
     if (!detailsOpen) {
       const weightLabel =
@@ -843,47 +908,34 @@ export function InventoryPanel({
             !item.equipped && (isWeaponRow(item) || isArmorRow(item))
               ? ' inventory-card--stowed'
               : ''
-          }`}
+          }${nested ? ' inventory-card--nested-glance' : ''}`}
         >
           <button
             type="button"
             className="inventory-card__glance"
             onClick={() => toggleDetails(item.id)}
           >
-            <b className="inventory-card__glance-name">{item.name || 'Без названия'}</b>
-            <span className={`inventory-role inventory-role--${bucket}`}>{role}</span>
-            {statusTag ? (
-              <span className={`attack-held-tag${item.equipped ? ' is-on' : ''}`}>
-                {statusTag}
+            <span className="inventory-card__glance-main">
+              <b className="inventory-card__glance-name">{item.name || 'Без названия'}</b>
+              <span className="inventory-card__glance-tags">
+                <span className={`inventory-role inventory-role--${bucket}`}>{role}</span>
+                {itemNeedsBaseChoice(item) ? (
+                  <span className="attack-held-tag">нужно настроить</span>
+                ) : null}
+                {item.wear_slot && item.wear_slot !== 'none' && bucket === 'other' ? (
+                  <span className="attack-held-tag">{WEAR_SLOT_LABEL_RU[item.wear_slot]}</span>
+                ) : null}
               </span>
-            ) : null}
-            {itemNeedsBaseChoice(item) ? (
-              <span className="attack-held-tag">нужно настроить</span>
-            ) : null}
-            {item.wear_slot && item.wear_slot !== 'none' && bucket === 'other' ? (
-              <span className="attack-held-tag">{WEAR_SLOT_LABEL_RU[item.wear_slot]}</span>
-            ) : null}
-            <span className="inventory-card__glance-spacer" aria-hidden />
+            </span>
+          </button>
+          <div className="inventory-card__glance-actions">
+            <span className="inventory-card__glance-meta">{weightLabel}</span>
             <span
               className="inventory-card__glance-meta"
               aria-label={item.qty <= 0 ? 'количество 0' : `количество ${item.qty}`}
             >
               {item.qty <= 0 ? '×0' : item.qty > 1 ? `×${item.qty}` : '×1'}
             </span>
-            <span className="inventory-card__glance-meta">{weightLabel}</span>
-          </button>
-          <div className="inventory-card__glance-actions">
-            {canExpand(item) ? (
-              <button
-                type="button"
-                className="play-desk-compact__link"
-                disabled={packBusyId === item.id}
-                onClick={() => void onExpandPack(item)}
-              >
-                {packBusyId === item.id ? 'Раскрываю…' : 'Раскрыть'}
-              </button>
-            ) : null}
-            {renderEquipChip(item)}
             {onToggleConsumableFavorite && item.name.trim() && !item.parent_id ? (
               <button
                 type="button"
@@ -904,6 +956,7 @@ export function InventoryPanel({
                 {favoriteSet.has(item.id) ? '★' : '☆'}
               </button>
             ) : null}
+            {renderEquipChip(item, 'icon')}
             <button
               type="button"
               className="inventory-card__chevron-btn"
@@ -1297,11 +1350,6 @@ export function InventoryPanel({
       titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.inventory)} />}
     >
       <Stack gap={12}>
-        <Text tone="muted">
-          Ноша и вещи. Строка — взгляд; клик — детали (одна открыта). ★ — в расходники боя. Монеты —
-          через кошелёк.
-        </Text>
-
         <div className="inventory-panel__toolbar">
           <Button
             variant="secondary"
@@ -1333,11 +1381,16 @@ export function InventoryPanel({
           className={`inventory-summary${overEncumbered ? ' is-over' : ''}`}
           aria-label="Ноша и настройка"
         >
-          <div className="inventory-summary__top">
-            <p className="inventory-summary__weights">
-              Вещи {formatLb(itemsLb)} · монеты {formatLb(coinsLb)} ·{' '}
+          <div className="inventory-summary__load">
+            <p
+              className="inventory-summary__weights"
+              title={`Вещи ${formatLb(itemsLb)} фнт · монеты ${formatLb(coinsLb)} фнт · всего ${formatLb(totalLb)} / ${formatLb(capacityLb)} фнт`}
+            >
+              вещи {formatLb(itemsLb).replace('.', ',')} фнт · монеты{' '}
+              {formatLb(coinsLb).replace('.', ',')} фнт ·{' '}
               <strong>
-                {formatLb(totalLb)} / {formatLb(capacityLb)} фнт
+                {formatLb(totalLb).replace('.', ',')} /{' '}
+                {formatLb(capacityLb).replace('.', ',')} фнт
               </strong>
               {weightIncomplete ? (
                 <span
@@ -1349,52 +1402,87 @@ export function InventoryPanel({
                 </span>
               ) : null}
             </p>
-            <div className="inventory-summary__chips">
-              {autoAc != null ? (
-                <span
-                  className="inventory-summary__chip"
-                  title={acHint || undefined}
-                >
-                  КД {autoAc}
+            <div
+              className="inventory-summary__bar"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={Math.max(1, Math.round(capacityLb))}
+              aria-valuenow={Math.round(totalLb)}
+              aria-label={`Ноша ${formatLb(totalLb)} из ${formatLb(capacityLb)} фунтов`}
+            >
+              <div
+                className="inventory-summary__fill"
+                style={{
+                  width: `${Math.min(100, capacityLb > 0 ? (totalLb / capacityLb) * 100 : 0)}%`,
+                }}
+              />
+            </div>
+          </div>
+          <div className="inventory-summary__chips">
+            {autoAc != null ? (
+              <span
+                className="inventory-summary__chip"
+                title={acHint || undefined}
+              >
+                КД {autoAc}
+              </span>
+            ) : null}
+            <button
+              type="button"
+              className="inventory-summary__chip inventory-summary__chip--action inventory-summary__chip--wallet"
+              aria-label="Монеты — открыть кошелёк"
+              title={formatCoinBreakdown(inventory.coins)}
+              onClick={openCoinsPad}
+            >
+              {formatGpTotal(coinsToGp(inventory.coins))} зм
+            </button>
+            {onTransferCoins ? (
+              <button
+                type="button"
+                className="inventory-summary__chip inventory-summary__chip--action"
+                onClick={onTransferCoins}
+              >
+                <span className="inventory-summary__label inventory-summary__label--full">
+                  Передать монеты
                 </span>
-              ) : null}
-              {attunementFilled != null ? (
-                onOpenAttunement ? (
-                  <button
-                    type="button"
-                    className="inventory-summary__chip inventory-summary__chip--action"
-                    onClick={onOpenAttunement}
-                    title={`Настроенные предметы: ${attunementFilled} из ${attunementLimit}. Магические вещи часто требуют настройки перед использованием свойств.${attunementFilled > attunementLimit ? ' Сверх лимита не действуют.' : ''}`}
-                  >
-                    Настроенные: {attunementFilled}/{attunementLimit}
-                    {attunementFilled > attunementLimit ? ' · сверх лимита' : ''}
-                  </button>
-                ) : (
-                  <span
-                    className="inventory-summary__chip"
-                    title={`Настроенные предметы: ${attunementFilled} из ${attunementLimit}${attunementFilled > attunementLimit ? '. Сверх лимита не действуют.' : ''}`}
-                  >
+                <span className="inventory-summary__label inventory-summary__label--short">
+                  Передать
+                </span>
+              </button>
+            ) : null}
+            {attunementFilled != null ? (
+              onOpenAttunement ? (
+                <button
+                  type="button"
+                  className="inventory-summary__chip inventory-summary__chip--action"
+                  onClick={onOpenAttunement}
+                  title={`Настроенные предметы: ${attunementFilled} из ${attunementLimit}. Магические вещи часто требуют настройки перед использованием свойств.${attunementFilled > attunementLimit ? ' Сверх лимита не действуют.' : ''}`}
+                >
+                  <span className="inventory-summary__label inventory-summary__label--full">
                     Настроенные: {attunementFilled}/{attunementLimit}
                     {attunementFilled > attunementLimit ? ' · сверх лимита' : ''}
                   </span>
-                )
-              ) : null}
-            </div>
-          </div>
-          <div
-            className="inventory-summary__bar"
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={Math.max(1, Math.round(capacityLb))}
-            aria-valuenow={Math.round(totalLb)}
-            aria-label={`Ноша ${formatLb(totalLb)} из ${formatLb(capacityLb)} фунтов`}
-          >
-            <div
-              className="inventory-summary__fill"
-              style={{
-                width: `${Math.min(100, capacityLb > 0 ? (totalLb / capacityLb) * 100 : 0)}%`,
-              }}
-            />
+                  <span className="inventory-summary__label inventory-summary__label--short">
+                    Настр. {attunementFilled}/{attunementLimit}
+                    {attunementFilled > attunementLimit ? '+' : ''}
+                  </span>
+                </button>
+              ) : (
+                <span
+                  className="inventory-summary__chip"
+                  title={`Настроенные предметы: ${attunementFilled} из ${attunementLimit}${attunementFilled > attunementLimit ? '. Сверх лимита не действуют.' : ''}`}
+                >
+                  <span className="inventory-summary__label inventory-summary__label--full">
+                    Настроенные: {attunementFilled}/{attunementLimit}
+                    {attunementFilled > attunementLimit ? ' · сверх лимита' : ''}
+                  </span>
+                  <span className="inventory-summary__label inventory-summary__label--short">
+                    Настр. {attunementFilled}/{attunementLimit}
+                    {attunementFilled > attunementLimit ? '+' : ''}
+                  </span>
+                </span>
+              )
+            ) : null}
           </div>
           {overEncumbered ? (
             <Text tone="danger" className="inventory-summary__over">
@@ -1406,26 +1494,6 @@ export function InventoryPanel({
             </Text>
           ) : null}
         </div>
-
-        <button
-          type="button"
-          className="inventory-coins inventory-coins--pad"
-          aria-label="Монеты — открыть кошелёк"
-          onClick={openCoinsPad}
-        >
-          <span className="inventory-coins__total">
-            <strong>{formatGpTotal(coinsToGp(inventory.coins))} зм</strong>
-            <span>кошелёк</span>
-          </span>
-          <span className="inventory-coins__breakdown">
-            {formatCoinBreakdown(inventory.coins)}
-          </span>
-        </button>
-        {onTransferCoins ? (
-          <Button type="button" variant="secondary" onClick={onTransferCoins}>
-            Передать монеты
-          </Button>
-        ) : null}
 
         <div className="inventory-filters" role="tablist" aria-label="Фильтр инвентаря">
           {FILTERS.map((row) => (

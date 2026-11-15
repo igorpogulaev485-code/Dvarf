@@ -6,6 +6,7 @@ import {
   type StartingEquipmentPackage,
   type StartingGearItem,
 } from './classGrants'
+import { withStartingGearWeight } from './startingGearWeights'
 
 export type SkillChoice = {
   count: number
@@ -203,7 +204,7 @@ function readToolChoice(raw: unknown): ToolChoice | null {
 function readGearItem(raw: unknown): StartingGearItem | null {
   const row = asRecord(raw)
   if (typeof row.name !== 'string' || !row.name.trim()) return null
-  return {
+  const item: StartingGearItem = {
     name: row.name.trim(),
     qty: Math.max(1, Math.floor(readNumber(row.qty, 1))),
     armor_kind:
@@ -218,6 +219,7 @@ function readGearItem(raw: unknown): StartingGearItem | null {
     weight_lb: typeof row.weight_lb === 'number' ? row.weight_lb : null,
     notes: typeof row.notes === 'string' ? row.notes : 'Снаряжение предыстории',
   }
+  return withStartingGearWeight(item)
 }
 
 function readEquipmentPackages(raw: unknown): StartingEquipmentPackage[] {

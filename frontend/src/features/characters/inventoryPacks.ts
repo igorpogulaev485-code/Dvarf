@@ -4,7 +4,16 @@
  * and children each add qty×weight — so encumbrance tracks spends (drank a waterskin).
  */
 
-import { parseItemCatalogData, type PackContentRef } from '../../shared/dnd/gearCatalog'
+import {
+  parseArmorCatalogData,
+  parseItemCatalogData,
+  parseWeaponCatalogData,
+  type PackContentRef,
+} from '../../shared/dnd/gearCatalog'
+import {
+  STARTING_GEAR_NAME_ALIASES,
+  startingGearWeightLb,
+} from '../../shared/dnd/startingGearWeights'
 import { itemLineWeightLb } from '../../shared/dnd/weight'
 import { createInventoryItem, type InventoryItem } from './inventory'
 
@@ -202,6 +211,54 @@ export function hydrateCollapsedPackMeta(
     changed = true
   }
   return changed ? patch : null
+}
+
+function normalizeGearName(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+/**
+ * Fill missing weight_lb on a single inventory row from catalog (item/weapon/armor)
+ * or from the PHB starting-gear weight table. Packs still prefer hydrateCollapsedPackMeta.
+ */
+export function hydrateItemWeightFromCatalog(
+  item: InventoryItem,
+  catalogEntries: PackCatalogLookup[],
+): Partial<InventoryItem> | null {
+  if (item.weight_lb != null && Number.isFinite(item.weight_lb)) return null
+
+  const byId = item.catalog_id
+    ? catalogEntries.find((row) => row.id === item.catalog_id)
+    : null
+  const key = normalizeGearName(item.name)
+  let hit =
+    byId ??
+    catalogEntries.find((row) => normalizeGearName(row.name_ru) === key) ??
+    null
+  if (!hit && key) {
+    for (const [slug, aliases] of Object.entries(STARTING_GEAR_NAME_ALIASES)) {
+      if (!aliases.some((alias) => alias === key)) continue
+      hit = catalogEntries.find((row) => row.slug === slug) ?? null
+      if (hit) break
+    }
+  }
+
+  let weight: number | null = null
+  if (hit) {
+    const data = hit.data ?? {}
+    const fromItem = parseItemCatalogData(data).weight_lb
+    const fromWeapon = parseWeaponCatalogData(data).weight_lb
+    const fromArmor = parseArmorCatalogData(data).weight_lb
+    weight = fromItem ?? fromWeapon ?? fromArmor
+  }
+  if (weight == null) {
+    weight = startingGearWeightLb(item.name)
+  }
+  if (weight == null) return null
+
+  const patch: Partial<InventoryItem> = { weight_lb: weight }
+  if (!item.catalog_id && hit) patch.catalog_id = hit.id
+  return patch
 }
 
 function newId(): string {

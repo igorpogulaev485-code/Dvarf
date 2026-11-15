@@ -138,6 +138,12 @@
   background: color-mix(in srgb, var(--accent-soft) 55%, white);
 }
 
+.inventory-summary__load {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
 .inventory-summary__top {
   display: flex;
   flex-wrap: wrap;
@@ -148,7 +154,6 @@
 
 .inventory-summary__weights {
   margin: 0;
-  flex: 1 1 160px;
   min-width: 0;
   font-size: 0.88rem;
   color: var(--muted);
@@ -195,6 +200,93 @@
 .inventory-summary__chip--action:hover {
   background: var(--accent-soft);
   color: var(--ink);
+}
+
+/* EXP-01: load (weights+bar) + chips; desktop — side by side. */
+.inventory-panel .inventory-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 12px;
+  align-items: start;
+}
+
+.inventory-panel .inventory-summary__load {
+  grid-column: 1;
+}
+
+.inventory-panel .inventory-summary__chips {
+  grid-column: 2;
+  justify-content: flex-end;
+  align-self: center;
+}
+
+.inventory-panel .inventory-summary__over {
+  grid-column: 1 / -1;
+}
+
+.inventory-panel .inventory-summary__chip--wallet {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.inventory-panel .inventory-summary__label--short {
+  display: none;
+}
+
+.inventory-panel .inventory-equip--icon {
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.inventory-panel .inventory-equip--icon .inventory-icon {
+  width: 1.15em;
+  height: 1.15em;
+}
+
+.inventory-panel .inventory-card--nested-glance {
+  margin-left: 12px;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  padding-left: 8px;
+}
+
+.inventory-panel .inventory-card--compact {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.inventory-panel .inventory-card__glance {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+}
+
+.inventory-panel .inventory-card__glance-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.inventory-panel .inventory-card__glance-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  align-items: center;
+}
+
+.inventory-panel .inventory-card__glance-actions {
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: 4px 6px;
 }
 
 .inventory-summary__bar {
