@@ -45,6 +45,7 @@ import { ApiRequestError } from '../shared/api/client'
 import { SettingArtifactsPanel } from '../features/lobby/SettingArtifactsPanel'
 import { SettingArtifactSetsPanel } from '../features/lobby/SettingArtifactSetsPanel'
 import { SettingWikiReader } from '../features/lobby/SettingWikiReader'
+import { WorldImportPanel } from '../features/lobby/WorldImportPanel'
 import {
   TEMPLATE_CARD_KINDS,
   type SettingPageKind as KindForCard,
@@ -85,12 +86,14 @@ export function SettingDetailPage() {
   const { settingId = '' } = useParams()
   const [searchParams] = useSearchParams()
   const pageFromQuery = searchParams.get('page')
+  const worldImportFromQuery = searchParams.get('worldImport') === '1'
   const navigate = useNavigate()
   const [setting, setSetting] = useState<SettingDetail | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [worldImportOpen, setWorldImportOpen] = useState(worldImportFromQuery)
   const [draftTitle, setDraftTitle] = useState('')
   const [draftBody, setDraftBody] = useState('')
   const [draftGmBody, setDraftGmBody] = useState('')
@@ -683,12 +686,40 @@ export function SettingDetailPage() {
                 >
                   Открыть сессию в этом сеттинге
                 </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={() => setWorldImportOpen((v) => !v)}
+                >
+                  {worldImportOpen ? 'Скрыть импорт мира' : 'Залить мир'}
+                </Button>
               </div>
             </form>
           ) : (
             <Text tone="muted">Мастер ещё не раскрыл всё — ниже только то, что видно игрокам.</Text>
           )}
         </Panel>
+
+        {canEditWiki && worldImportOpen ? (
+          <WorldImportPanel
+            lobbyId={setting.lobby_id}
+            settingId={setting.id}
+            canManage={canEditWiki}
+            onToast={setToast}
+            onError={setError}
+            onConfirmed={() => {
+              void (async () => {
+                try {
+                  const next = await getSetting(setting.id)
+                  applyDetail(next, selectedId)
+                } catch {
+                  /* ignore refresh noise */
+                }
+              })()
+            }}
+          />
+        ) : null}
 
         {!canEditWiki ? (
           <Panel title="Чтение вики">

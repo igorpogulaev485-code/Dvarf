@@ -13,6 +13,7 @@ import { Sc04LiveTablePreviewPage } from './pages/Sc04LiveTablePreviewPage'
 import { Sc05GmToolbarPreviewPage } from './pages/Sc05GmToolbarPreviewPage'
 import { UiKit03HeaderPreviewPage } from './pages/UiKit03HeaderPreviewPage'
 import { UiKitEtalonPreviewPage } from './pages/UiKitEtalonPreviewPage'
+import { Wapi11PreviewPage } from './pages/Wapi11PreviewPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
 import { safeNextPath } from './shared/auth/nextPath'
@@ -101,6 +102,7 @@ export default function App() {
             <Route path="/dev/sc05-gm-toolbar-preview" element={<Sc05GmToolbarPreviewPage />} />
             <Route path="/dev/ui-kit-etalon" element={<UiKitEtalonPreviewPage />} />
             <Route path="/dev/uikit03-header-preview" element={<UiKit03HeaderPreviewPage />} />
+            <Route path="/dev/wapi11-preview" element={<Wapi11PreviewPage />} />
             <Route
               path="/dev/consumables-tap-guard"
               element={

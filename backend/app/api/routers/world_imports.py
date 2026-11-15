@@ -18,6 +18,7 @@ from app.schemas.world_import import (
     WorldApiTokenCreateRequest,
     WorldApiTokenOut,
     WorldImportCancelOut,
+    WorldImportConfirmationOut,
     WorldImportConfirmOut,
     WorldImportConfirmRequest,
     WorldImportCreateRequest,
@@ -331,6 +332,37 @@ def list_world_import_draft_links(
 ) -> list[WorldImportDraftLinkOut]:
     """Предложенные рёбра черновика (не канон SettingPageLink)."""
     return WorldImportService(db).list_draft_links(current_user, setting_id, job_id)
+
+
+@router.post(
+    "/settings/{setting_id}/world-imports/{job_id}/draft-items/{item_id}/reject",
+    response_model=WorldImportDraftItemOut,
+)
+def reject_world_import_draft_item(
+    setting_id: UUID,
+    job_id: UUID,
+    item_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> WorldImportDraftItemOut:
+    """W-API-11: отклонить предложение (обычно ИИ) без записи в канон."""
+    return WorldImportService(db).reject_draft_item(
+        current_user, setting_id, job_id, item_id
+    )
+
+
+@router.get(
+    "/settings/{setting_id}/world-imports/{job_id}/confirmations",
+    response_model=list[WorldImportConfirmationOut],
+)
+def list_world_import_confirmations(
+    setting_id: UUID,
+    job_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> list[WorldImportConfirmationOut]:
+    """Журнал «кто подтвердил» для экрана сверки."""
+    return WorldImportService(db).list_confirmations(current_user, setting_id, job_id)
 
 
 @router.post(

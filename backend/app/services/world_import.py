@@ -238,6 +238,40 @@ class WorldImportService:
         )
         return [WorldImportDraftLinkOut.model_validate(r) for r in rows]
 
+    def reject_draft_item(
+        self, user: User, setting_id: UUID, job_id: UUID, item_id: UUID
+    ) -> WorldImportDraftItemOut:
+        """W-API-11: мастер отклоняет пункт (обычно ai_suggestion). Канон не трогаем."""
+        setting = self._require_setting(setting_id)
+        self._require_master_for_setting(user, setting)
+        job = self._require_job(setting, job_id)
+        item = self.db.get(WorldImportDraftItem, item_id)
+        if item is None or item.job_id != job.id:
+            raise NotFoundError("Пункт черновика не найден", code="draft_item_not_found")
+        item.status = "rejected"
+        self.db.commit()
+        self.db.refresh(item)
+        return WorldImportDraftItemOut.model_validate(item)
+
+    def list_confirmations(
+        self, user: User, setting_id: UUID, job_id: UUID
+    ) -> list:
+        """Журнал «кто подтвердил» по заданию (включая отменённые)."""
+        from app.models.world_import import WorldImportConfirmation
+        from app.schemas.world_import import WorldImportConfirmationOut
+
+        setting = self._require_setting(setting_id)
+        self._require_master_for_setting(user, setting)
+        job = self._require_job(setting, job_id)
+        rows = list(
+            self.db.scalars(
+                select(WorldImportConfirmation)
+                .where(WorldImportConfirmation.job_id == job.id)
+                .order_by(WorldImportConfirmation.confirmed_at.desc())
+            ).all()
+        )
+        return [WorldImportConfirmationOut.model_validate(r) for r in rows]
+
     def _upsert_source_key(
         self, setting_id: UUID, *, source_path: str, source_slug: str | None
     ) -> WorldSourceKey:

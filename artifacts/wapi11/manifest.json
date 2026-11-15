@@ -1,0 +1,51 @@
+[
+  {
+    "file": "01-entry-1440.png",
+    "scene": "entry",
+    "width": 1440,
+    "height": 900,
+    "url": "http://127.0.0.1:5173/dev/wapi11-preview?scene=entry"
+  },
+  {
+    "file": "02-upload-1440.png",
+    "scene": "upload",
+    "width": 1440,
+    "height": 900,
+    "url": "http://127.0.0.1:5173/dev/wapi11-preview?scene=upload"
+  },
+  {
+    "file": "03-review-filters-1440.png",
+    "scene": "review",
+    "width": 1440,
+    "height": 900,
+    "url": "http://127.0.0.1:5173/dev/wapi11-preview?scene=review"
+  },
+  {
+    "file": "04-characters-1440.png",
+    "scene": "characters",
+    "width": 1440,
+    "height": 900,
+    "url": "http://127.0.0.1:5173/dev/wapi11-preview?scene=characters"
+  },
+  {
+    "file": "05-toggle-warn-1440.png",
+    "scene": "toggle",
+    "width": 1440,
+    "height": 900,
+    "url": "http://127.0.0.1:5173/dev/wapi11-preview?scene=toggle"
+  },
+  {
+    "file": "06-confirm-1440.png",
+    "scene": "confirm",
+    "width": 1440,
+    "height": 900,
+    "url": "http://127.0.0.1:5173/dev/wapi11-preview?scene=confirm"
+  },
+  {
+    "file": "07-status-390.png",
+    "scene": "status",
+    "width": 390,
+    "height": 844,
+    "url": "http://127.0.0.1:5173/dev/wapi11-preview?scene=status&narrow=1"
+  }
+]
