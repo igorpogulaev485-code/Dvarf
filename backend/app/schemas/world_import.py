@@ -109,6 +109,13 @@ class WorldImportUpsertRequest(BaseModel):
     files: list[WorldVaultFileIn] = Field(default_factory=list)
 
 
+class WorldImportFromGitRequest(BaseModel):
+    """W-API-09: создать задание из публичной HTTPS git-ссылки."""
+
+    url: str = Field(..., min_length=8, max_length=2000)
+    rules_edition: str | None = Field(default=None, max_length=16)
+
+
 class WorldImportValidateRequest(BaseModel):
     """Проверка пакета без записи в канон и без устойчивого задания."""
 

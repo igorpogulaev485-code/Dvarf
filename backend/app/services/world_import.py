@@ -26,6 +26,7 @@ from app.schemas.world_import import (
     WorldImportCreateRequest,
     WorldImportDraftItemOut,
     WorldImportDraftLinkOut,
+    WorldImportFromGitRequest,
     WorldImportJobOut,
     WorldImportSettingsOut,
     WorldImportSettingsPatch,
@@ -562,6 +563,146 @@ class WorldImportService:
                 )
             enriched = self._parse_and_enrich(
                 vault_files, rules_edition=job.rules_edition or "2014"
+            )
+            return self._apply_parsed_items(
+                job,
+                enriched.items,
+                skipped=enriched.skipped,
+                extract_mode=enriched.extract_mode,
+                extract_message=enriched.extract_message,
+                extract_warnings=enriched.extract_warnings,
+            )
+        except AppError:
+            job.status = "failed"
+            self.db.commit()
+            raise
+        except Exception:
+            job.status = "failed"
+            self.db.commit()
+            raise
+
+    def ingest_from_git(
+        self,
+        actor: WorldImportActor,
+        setting_id: UUID,
+        payload: WorldImportFromGitRequest,
+        *,
+        idempotency_key: str | None = None,
+        fetch_files=None,
+    ) -> WorldVaultParseResultOut:
+        """W-API-09: публичная git-ссылка → то же задание, что zip, тот же разбор.
+
+        fetch_files — хук для тестов: (url) → list[VaultFile]; по умолчанию
+        скачивание HTTPS-архива ветки (без бинарника git в образе).
+        """
+        from app.services.world_import_git import fetch_vault_files_from_git_url
+
+        setting = self.access.require_setting(setting_id)
+        lobby = self.access.authorize(actor, setting, need_write=True, allow_ai=True)
+
+        # Редакцию и URL проверяем до сети и до записи в БД.
+        rules_edition = normalize_rules_edition(payload.rules_edition)
+        url = (payload.url or "").strip()
+        if not url:
+            raise AppError(
+                "Пустая git-ссылка",
+                code="git_url_rejected",
+                status_code=400,
+                data={"hint": "Передайте url публичного репозитория"},
+            )
+
+        # Ранняя валидация хоста (без DNS в юнит-пути fetch_files может подменить сеть).
+        from app.services.world_import_git import validate_git_url
+
+        parsed_url = validate_git_url(url)
+
+        key = (idempotency_key or "").strip() or None
+        job: WorldImportJob | None = None
+        if key:
+            job = self.db.scalar(
+                select(WorldImportJob)
+                .where(
+                    WorldImportJob.setting_id == setting.id,
+                    WorldImportJob.idempotency_key == key,
+                )
+                .limit(1)
+            )
+            if job is not None and job.status != "parsing":
+                items = list(
+                    self.db.scalars(
+                        select(WorldImportDraftItem).where(
+                            WorldImportDraftItem.job_id == job.id
+                        )
+                    ).all()
+                )
+                links = list(
+                    self.db.scalars(
+                        select(WorldImportDraftLink).where(
+                            WorldImportDraftLink.job_id == job.id
+                        )
+                    ).all()
+                )
+                if items:
+                    return WorldVaultParseResultOut(
+                        job=WorldImportJobOut.model_validate(job),
+                        items=[WorldImportDraftItemOut.model_validate(r) for r in items],
+                        links=[WorldImportDraftLinkOut.model_validate(r) for r in links],
+                        links_count=len(links),
+                        created_count=0,
+                        updated_count=0,
+                    )
+
+        if job is None:
+            self._ensure_no_active_parse(setting.id)
+            author_id = actor.author_user_id
+            if author_id is None:
+                raise AppError(
+                    "Не удалось определить автора задания",
+                    code="world_import_author_missing",
+                    status_code=400,
+                )
+            job = WorldImportJob(
+                setting_id=setting.id,
+                lobby_id=lobby.id,
+                author_id=author_id,
+                status="received",
+                rules_edition=rules_edition,
+                source_kind="git",
+                idempotency_key=key,
+                source_ref=parsed_url.original_url[:2000],
+            )
+            self.db.add(job)
+            self.db.commit()
+            self.db.refresh(job)
+        elif job.status == "parsing":
+            raise AppError(
+                "Импорт ещё разбирается",
+                code="import_in_progress",
+                status_code=409,
+                data={"job_id": str(job.id)},
+            )
+
+        self._ensure_no_active_parse(setting.id, except_job_id=job.id)
+        job.status = "parsing"
+        job.rules_edition = rules_edition
+        job.source_kind = "git"
+        job.source_ref = parsed_url.original_url[:2000]
+        self.db.commit()
+
+        try:
+            if fetch_files is not None:
+                vault_files = fetch_files(url)
+            else:
+                _parsed, vault_files = fetch_vault_files_from_git_url(url)
+            if not vault_files:
+                raise AppError(
+                    "В репозитории нет текстовых файлов хранилища",
+                    code="vault_files_empty",
+                    status_code=400,
+                    data={"hint": "Добавьте markdown в world/, campaign/, rules/"},
+                )
+            enriched = self._parse_and_enrich(
+                vault_files, rules_edition=rules_edition
             )
             return self._apply_parsed_items(
                 job,

@@ -1,4 +1,4 @@
-"""W-API-01…08: токены, задания, разбор, validate/upsert/diff/confirm/cancel, PDF."""
+"""W-API-01…09: токены, задания, zip/git, validate/upsert/diff/confirm/cancel, PDF."""
 
 from __future__ import annotations
 
@@ -24,6 +24,7 @@ from app.schemas.world_import import (
     WorldImportDiffOut,
     WorldImportDraftItemOut,
     WorldImportDraftLinkOut,
+    WorldImportFromGitRequest,
     WorldImportJobOut,
     WorldImportSettingsOut,
     WorldImportSettingsPatch,
@@ -181,6 +182,28 @@ def create_world_import_job(
     """W-API-01 совместимость: создать пустое задание сессией мастера."""
     return WorldImportService(db).create_job(
         current_user,
+        setting_id,
+        payload,
+        idempotency_key=idempotency_key,
+    )
+
+
+@router.post(
+    "/settings/{setting_id}/world-imports/from-git",
+    response_model=WorldVaultParseResultOut,
+    status_code=201,
+)
+def import_world_from_git(
+    setting_id: UUID,
+    payload: WorldImportFromGitRequest,
+    db: DbSession,
+    authorization: AuthorizationHeader = None,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+) -> WorldVaultParseResultOut:
+    """W-API-09: публичная HTTPS git-ссылка → черновик сверки (как zip)."""
+    actor = _actor(db, authorization)
+    return WorldImportService(db).ingest_from_git(
+        actor,
         setting_id,
         payload,
         idempotency_key=idempotency_key,
