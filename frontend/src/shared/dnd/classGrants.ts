@@ -2,6 +2,7 @@
 
 import type { HitDie } from './hitDice'
 import { CLASS_HIT_DIE, resolveClassSlug } from './multiclassRules'
+import { withStartingGearWeight } from './startingGearWeights'
 
 export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 
@@ -157,7 +158,8 @@ function item(
   name: string,
   extra?: Partial<StartingGearItem>,
 ): StartingGearItem {
-  return { name, qty: 1, armor_kind: 'none', ...extra }
+  const base: StartingGearItem = { name, qty: 1, armor_kind: 'none', ...extra }
+  return withStartingGearWeight(base)
 }
 
 /** Common artisan tools (PHB) for monk tool choice. */

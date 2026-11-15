@@ -197,6 +197,39 @@
   color: var(--ink);
 }
 
+/* EXP-01: wallet lives in the summary chip row (not a full-width pad). */
+.inventory-panel .inventory-summary__chip--wallet {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.inventory-panel .inventory-summary__chips {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+
+.inventory-panel .inventory-equip--icon {
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.inventory-panel .inventory-equip--icon .inventory-icon {
+  width: 1.15em;
+  height: 1.15em;
+}
+
+.inventory-panel .inventory-card--nested-glance {
+  margin-left: 12px;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  padding-left: 8px;
+}
+
 .inventory-summary__bar {
   height: 8px;
   border-radius: 999px;

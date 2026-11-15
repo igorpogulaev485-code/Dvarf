@@ -239,6 +239,48 @@
   padding: 10px 12px;
 }
 
+/* EXP-01: compact summary chips on phone — one short scrollable row. */
+.play-desk--mobile .inventory-panel .inventory-summary__top {
+  gap: 6px 8px;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+.play-desk--mobile .inventory-panel .inventory-summary__weights {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.play-desk--mobile .inventory-panel .inventory-summary__chips {
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  max-width: 58%;
+}
+
+.play-desk--mobile .inventory-panel .inventory-summary__chips::-webkit-scrollbar {
+  display: none;
+}
+
+.play-desk--mobile .inventory-panel .inventory-summary__chip,
+.play-desk--mobile .inventory-panel .inventory-summary__chip--wallet,
+.play-desk--mobile .inventory-panel .inventory-summary__chip--action {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+}
+
+.play-desk--mobile .inventory-panel .inventory-equip--icon {
+  min-width: 44px;
+  min-height: 44px;
+}
+
 .play-desk--mobile .mobile-combat-roll--explore,
 .play-desk--mobile .mobile-combat-roll--social {
   margin: 0 0 8px;

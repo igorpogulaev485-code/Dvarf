@@ -16,6 +16,7 @@ import {
   type BackgroundGrantDef,
   type BackgroundGrantPicks,
 } from '../../shared/dnd/backgroundGrants'
+import { startingGearWeightLb } from '../../shared/dnd/startingGearWeights'
 import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
 import type { ArmorProficiency, IdentityExtras, WeaponProficiency } from './identity'
 import {
@@ -96,7 +97,7 @@ function addGearItem(input: {
   created.qty = Math.max(1, Math.floor(input.qty ?? 1))
   created.armor_kind = (input.armor_kind ?? 'none') as typeof created.armor_kind
   created.base_ac = input.base_ac ?? null
-  created.weight_lb = input.weight_lb ?? null
+  created.weight_lb = input.weight_lb ?? startingGearWeightLb(input.name)
   created.notes = input.notes ?? 'Снаряжение предыстории'
   if (created.armor_kind === 'none' && findWeaponPreset(created.name)) {
     created.weapon_grip = resolveWeaponGrip({ name: created.name })
