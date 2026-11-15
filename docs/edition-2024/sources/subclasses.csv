@@ -29,7 +29,7 @@ bard__glamour,bard,glamour,College of Glamour,Коллегия очарован�
 bard__lore,bard,lore,College of Lore,Коллегия знаний,PH24,subclasses,https://next.dnd.su/class/bard,,true
 bard__valor,bard,valor,College of Valor,Коллегия доблести,PH24,subclasses,https://next.dnd.su/class/bard,,false
 cleric__life-domain,cleric,life-domain,Life Domain,Домен жизни,PH24,subclasses,https://next.dnd.su/class/cleric,,true
-cleric__light-domain,cleric,light-domain,Light Domain,Домен света,PH24,subclasses,https://next.dnd.su/class/cleric,,true
+cleric__light-domain,cleric,light-domain,Light Domain,Домен света,PH24,subclasses,https://next.dnd.su/class/cleric,,false
 cleric__trickery-domain,cleric,trickery-domain,Trickery Domain,Домен обмана,PH24,subclasses,https://next.dnd.su/class/cleric,,false
 cleric__war-domain,cleric,war-domain,War Domain,Домен войны,PH24,subclasses,https://next.dnd.su/class/cleric,,false
 druid__land,druid,land,Circle of the Land,Круг земли,PH24,subclasses,https://next.dnd.su/class/druid,,true
@@ -41,10 +41,10 @@ fighter__champion,fighter,champion,Champion,Чемпион,PH24,subclasses,https
 fighter__eldritch-knight,fighter,eldritch-knight,Eldritch Knight,Мистический рыцарь,PH24,subclasses,https://next.dnd.su/class/fighter,,false
 fighter__psi-warrior,fighter,psi-warrior,Psi Warrior,Пси-воин,PH24,subclasses,https://next.dnd.su/class/fighter,,false
 monk__warrior-of-mercy,monk,warrior-of-mercy,Warrior of Mercy,Воин милосердия,PH24,subclasses,https://next.dnd.su/class/monk,,false
-monk__warrior-of-shadow,monk,warrior-of-shadow,Warrior of Shadow,Воин тени,PH24,subclasses,https://next.dnd.su/class/monk,,true
+monk__warrior-of-shadow,monk,warrior-of-shadow,Warrior of Shadow,Воин тени,PH24,subclasses,https://next.dnd.su/class/monk,,false
 monk__warrior-of-the-elements,monk,warrior-of-the-elements,Warrior of the Elements,Воин cтихий,PH24,subclasses,https://next.dnd.su/class/monk,,false
-monk__warrior-of-the-hand,monk,warrior-of-the-hand,Warrior of the Open Hand,Воин открытой ладони,PH24,subclasses,https://next.dnd.su/class/monk,,false
-paladin__oath-of-devotion,paladin,oath-of-devotion,Oath of Devotion,Клятва преданности,PH24,subclasses,https://next.dnd.su/class/paladin,,false
+monk__warrior-of-the-hand,monk,warrior-of-the-hand,Warrior of the Open Hand,Воин открытой ладони,PH24,subclasses,https://next.dnd.su/class/monk,,true
+paladin__oath-of-devotion,paladin,oath-of-devotion,Oath of Devotion,Клятва преданности,PH24,subclasses,https://next.dnd.su/class/paladin,,true
 paladin__oath-of-glory,paladin,oath-of-glory,Oath of Glory,Клятва славы,PH24,subclasses,https://next.dnd.su/class/paladin,,false
 paladin__oath-of-the-ancients,paladin,oath-of-the-ancients,Oath of the Ancients,Клятва древних,PH24,subclasses,https://next.dnd.su/class/paladin,,false
 paladin__oath-of-vengeance,paladin,oath-of-vengeance,Oath of Vengeance,Клятва возмездия,PH24,subclasses,https://next.dnd.su/class/paladin,,false
@@ -53,12 +53,12 @@ ranger__fey-wanderer,ranger,fey-wanderer,Fey Wanderer,Странник фей,PH
 ranger__gloom-stalker,ranger,gloom-stalker,Gloom Stalker,Сумрачный охотник,PH24,subclasses,https://next.dnd.su/class/ranger,,false
 ranger__hunter-ranger,ranger,hunter-ranger,Hunter,Охотник,PH24,subclasses,https://next.dnd.su/class/ranger,,true
 rogue__arcane-trickster,rogue,arcane-trickster,Arcane Trickster,Мистический ловкач,PH24,subclasses,https://next.dnd.su/class/rogue,,false
-rogue__assassin,rogue,assassin,Assassin,Убийца,PH24,subclasses,https://next.dnd.su/class/rogue,,true
+rogue__assassin,rogue,assassin,Assassin,Убийца,PH24,subclasses,https://next.dnd.su/class/rogue,,false
 rogue__soulknife,rogue,soulknife,Soulknife,Клинок душ,PH24,subclasses,https://next.dnd.su/class/rogue,,false
 rogue__thief,rogue,thief,Thief,Вор,PH24,subclasses,https://next.dnd.su/class/rogue,,true
 sorcerer__aberrant-sorcery,sorcerer,aberrant-sorcery,Aberrant Sorcery,Аберрантное чародейство,PH24,subclasses,https://next.dnd.su/class/sorcerer,,false
 sorcerer__clockwork-sorcery,sorcerer,clockwork-sorcery,Clockwork Sorcery,Заводное чародейство,PH24,subclasses,https://next.dnd.su/class/sorcerer,,false
-sorcerer__draconic-sorcery,sorcerer,draconic-sorcery,Draconic Sorcery,Драконье чародейство,PH24,subclasses,https://next.dnd.su/class/sorcerer,,false
+sorcerer__draconic-sorcery,sorcerer,draconic-sorcery,Draconic Sorcery,Драконье чародейство,PH24,subclasses,https://next.dnd.su/class/sorcerer,,true
 sorcerer__wild-magic-sorcery,sorcerer,wild-magic-sorcery,Wild Magic Sorcery,Чародейство дикой магии,PH24,subclasses,https://next.dnd.su/class/sorcerer,,false
 warlock__archfey,warlock,archfey,Archfey Patron,Архифея,PH24,subclasses,https://next.dnd.su/class/warlock,,false
 warlock__celestial-patron,warlock,celestial-patron,Celestial Patron,Небожитель,PH24,subclasses,https://next.dnd.su/class/warlock,,false

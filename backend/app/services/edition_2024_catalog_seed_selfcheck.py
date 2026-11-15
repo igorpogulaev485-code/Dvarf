@@ -10,11 +10,13 @@ from app.services.edition_2024_catalog_seed import (
     load_weapon_mastery_dictionary,
     normalize_armor_data,
     normalize_background_data,
+    normalize_class_data,
     normalize_entry_payload,
     normalize_feat_data,
     normalize_item_data,
     normalize_race_data,
     normalize_source,
+    normalize_subclass_data,
     normalize_weapon_data,
 )
 
@@ -45,6 +47,11 @@ def main() -> None:
     assert armor["stealth_disadvantage"] is False
     item = normalize_item_data({"equipment_group": "toolkit"})
     assert item["equipment_group"] == "toolkit"
+
+    cls = normalize_class_data({})
+    assert cls["subclass_level"] == 3
+    sub = normalize_subclass_data({"parent_class": "fighter"})
+    assert sub["parent_class"] == "fighter"
 
     stub = normalize_entry_payload(
         {
@@ -82,17 +89,27 @@ def main() -> None:
     assert ok["data"]["category"] == "origin"
 
     planned = load_wave_rows()
-    assert len(EDITION_2024_CATALOG_WAVES) >= 6
+    assert len(EDITION_2024_CATALOG_WAVES) >= 8
     races = [r for r in planned if r["kind"] == "race"]
     bgs = [r for r in planned if r["kind"] == "background"]
     weapons = [r for r in planned if r["kind"] == "weapon"]
     armor_rows = [r for r in planned if r["kind"] == "armor"]
     items = [r for r in planned if r["kind"] == "item"]
+    classes = [r for r in planned if r["kind"] == "class"]
+    subclasses = [r for r in planned if r["kind"] == "subclass"]
     assert len(races) == 9, len(races)
     assert len(bgs) == 4, len(bgs)
     assert len(weapons) == 38, len(weapons)
     assert len(armor_rows) == 13, len(armor_rows)
     assert len(items) == 134, len(items)
+    assert len(classes) == 12, len(classes)
+    assert len(subclasses) == 12, len(subclasses)
+    for row in classes:
+        assert len(row["data"].get("levels") or []) == 20
+        assert row["data"].get("subclass_level") == 3
+    for row in subclasses:
+        assert row["data"].get("parent_class")
+        assert (row["data"].get("features") or [])[0]["level"] == 3
     for row in weapons:
         assert row["data"].get("mastery") in WEAPON_MASTERY_IDS
     mastery = load_weapon_mastery_dictionary()

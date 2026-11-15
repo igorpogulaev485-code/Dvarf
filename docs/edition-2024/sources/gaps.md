@@ -78,3 +78,9 @@ SRD 5.2.1 PDF: [SRD_CC_v5.2.1.pdf](https://media.dndbeyond.com/compendium-images
   - **Пробелы эталона (добавлены в `equipment.csv`):** Alchemist's Fire, Alchemist's Supplies, Burglar's Pack, Climber's Kit, Healer's Kit, Mason's Tools, Painter's Supplies, Potter's Tools, Smith's Tools, Traveler's Clothes.
   - **Не добавляли в equipment (есть в SRD Adventuring Gear, но ведутся как магия):** Potion of Healing, Spell Scroll (Cantrip / Level 1) — уже в `magic_items.csv` (DMG24); сид C03 их не берёт. Закрывать в пачке магических предметов.
   - Кнопки мастерства оружия и логика боя **не** в этой пачке (M01 / поздние механики).
+- **P24-C04 (2026-11-15):** эвристика `srd` для **подклассов** PH24 ошибалась относительно SRD 5.2.1 (в SRD ровно **один** подкласс на каждый из 12 классов):
+  - **Должны быть `true`:** Path of the Berserker, College of Lore, Life Domain, Circle of the Land, Champion, **Warrior of the Open Hand**, **Oath of Devotion**, Hunter, Thief, **Draconic Sorcery**, Fiend Patron, Evoker.
+  - **Были `true` ошибочно → `false`:** Light Domain, Warrior of Shadow, Assassin (есть в PH24, нет в SRD 5.2.1).
+  - **Были `false` ошибочно → `true`:** Warrior of the Open Hand, Oath of Devotion, Draconic Sorcery.
+  - Классы (12 PH24, без Artificer) уже были `srd=true` — без правки.
+  - Автоматизация стола/листа (ресурсы, кнопки) **не** в этой пачке (M02). Список заклинаний классов — C05.

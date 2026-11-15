@@ -11,6 +11,9 @@ Schema contract for later packs (P24-00 lists → data packs):
 - race (species 2024): empty ``ability_bonuses``; no languages from species
 - background: ``data.asi`` and ``data.origin_feat`` (feat cards in C02)
 - feat: ``data.category``, ``prerequisites``, ``repeatable``, ``ability_score_increase``
+- class: ``hit_die``, saves, proficiencies, ``subclass_level``, ``levels`` 1–20,
+  ``weapon_mastery``, starting gear refs; ``spell_list`` empty until C05
+- subclass: ``parent_class``, features by level; ``spell_list`` empty until C05
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -52,6 +55,8 @@ EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("weapons_srd.json"),
     WaveSpec("armor_srd.json"),
     WaveSpec("equipment_srd.json"),
+    WaveSpec("classes_srd.json"),
+    WaveSpec("subclasses_srd.json"),
 )
 
 WEAPON_MASTERY_FILENAME = "weapon_mastery_srd.json"
@@ -180,6 +185,53 @@ def normalize_item_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
     return out
 
 
+def normalize_class_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
+    """2024 class card: core traits + level table 1–20 (no desk automation)."""
+    out = dict(data) if isinstance(data, dict) else {}
+    out.setdefault("hit_die", None)
+    out.setdefault("primary_abilities", [])
+    out.setdefault("saving_throws", [])
+    out.setdefault("armor", [])
+    out.setdefault("weapons", {})
+    out.setdefault("tools_fixed", [])
+    out.setdefault("tool_choices", None)
+    out.setdefault("skill_choices", None)
+    if out.get("subclass_level") is None:
+        out["subclass_level"] = 3
+    else:
+        out["subclass_level"] = int(out["subclass_level"])
+    out.setdefault("feat_levels", [4, 8, 12, 16])
+    out.setdefault("epic_boon_level", 19)
+    out.setdefault("weapon_mastery", {"enabled": False})
+    out.setdefault("starting_equipment", [])
+    out.setdefault("levels", [])
+    out.setdefault("spell_list", [])
+    out.setdefault(
+        "spell_list_note_ru",
+        "Список заклинаний класса — пачка P24-C05; поле намеренно пустое.",
+    )
+    out.setdefault("summary_ru", None)
+    return out
+
+
+def normalize_subclass_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
+    """2024 subclass card linked to a class slug."""
+    out = dict(data) if isinstance(data, dict) else {}
+    out.setdefault("parent_class", None)
+    if out.get("subclass_level") is None:
+        out["subclass_level"] = 3
+    else:
+        out["subclass_level"] = int(out["subclass_level"])
+    out.setdefault("features", [])
+    out.setdefault("spell_list", [])
+    out.setdefault(
+        "spell_list_note_ru",
+        "Заклинания подкласса — пачка P24-C05; поле намеренно пустое.",
+    )
+    out.setdefault("summary_ru", None)
+    return out
+
+
 def load_weapon_mastery_dictionary() -> list[dict[str, Any]]:
     """Eight mastery property cards (reference only — not catalog_entries)."""
     path = _data_dir() / WEAPON_MASTERY_FILENAME
@@ -217,6 +269,11 @@ def normalize_entry_payload(item: Mapping[str, Any]) -> dict[str, Any] | None:
         return None
 
     data_raw = item.get("data") if isinstance(item.get("data"), dict) else {}
+    # Reject dump stubs before kind-normalize fills structural defaults
+    # (class/subclass defaults would otherwise mask hit_die-only shells).
+    if kind in STUB_KINDS and _is_empty_stub(data_raw):
+        return None
+
     if kind == "weapon":
         data = normalize_weapon_data(data_raw)
     elif kind == "armor":
@@ -229,12 +286,12 @@ def normalize_entry_payload(item: Mapping[str, Any]) -> dict[str, Any] | None:
         data = normalize_background_data(data_raw)
     elif kind == "feat":
         data = normalize_feat_data(data_raw)
+    elif kind == "class":
+        data = normalize_class_data(data_raw)
+    elif kind == "subclass":
+        data = normalize_subclass_data(data_raw)
     else:
         data = dict(data_raw)
-
-    # Empty stub cards from the raw dump must not go live.
-    if kind in STUB_KINDS and _is_empty_stub(data):
-        return None
 
     source = normalize_source(item.get("source"))
     data = stamp_data_layer(data, source=source, kind=kind, slug=slug)
@@ -262,16 +319,27 @@ def normalize_entry_payload(item: Mapping[str, Any]) -> dict[str, Any] | None:
 def _is_empty_stub(data: Mapping[str, Any]) -> bool:
     if not data:
         return True
-    # Only hit_die / empty shells count as stubs for class cards.
+    # Only hit_die / empty shells / parent_class_key-only count as stubs.
     meaningful = {
         k: v
         for k, v in data.items()
-        if k not in {"content_layer", "asi", "origin_feat", "category", "mastery"}
+        if k
+        not in {
+            "content_layer",
+            "asi",
+            "origin_feat",
+            "category",
+            "mastery",
+            "spell_list",
+            "spell_list_note_ru",
+        }
         and v not in (None, "", [], {}, False)
     }
     if not meaningful:
         return True
     if set(meaningful.keys()) <= {"hit_die"}:
+        return True
+    if set(meaningful.keys()) <= {"parent_class_key", "parent_class"}:
         return True
     return False
 

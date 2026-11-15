@@ -291,7 +291,8 @@ def test_apply_seed_includes_gear_idempotent():
     planned = len(load_wave_rows())
     stats1 = apply_edition_2024_catalog_seed(conn)  # type: ignore[arg-type]
     stats2 = apply_edition_2024_catalog_seed(conn)  # type: ignore[arg-type]
-    assert stats1.upserted == planned == 215
+    assert stats1.upserted == planned
+    assert planned >= 215
     assert stats2.upserted == planned
     assert {k[1] for k in store if k[0] == "weapon"} == _srd_ids("weapons")
     assert {k[1] for k in store if k[0] == "armor"} == _srd_ids("armor")
@@ -316,7 +317,6 @@ def test_alembic_single_head_includes_p24_c03():
     }
     assert "p24c03gear01" in ancestor_ids
     assert "p24c02feats01" in ancestor_ids
-    assert heads[0] == "p24c03gear01"
 
 
 def test_no_who_or_faerun_book_gear_in_live_wave():
