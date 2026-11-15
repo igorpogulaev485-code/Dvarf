@@ -361,6 +361,7 @@
         "choice": {
           "id": "elemental_form",
           "label_ru": "Элементаль",
+          "at_use": true,
           "options": [
             "air",
             "earth",
@@ -661,6 +662,7 @@
         "choice": {
           "id": "starry_constellation",
           "label_ru": "Созвездие",
+          "at_use": true,
           "options": [
             "archer",
             "chalice",

@@ -533,6 +533,7 @@
         "choice": {
           "id": "blade_flourish_option",
           "label_ru": "Вариант flourish (1×/ход)",
+          "at_use": true,
           "options": [
             "defensive_flourish",
             "slashing_flourish",

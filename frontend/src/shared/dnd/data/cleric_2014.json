@@ -568,6 +568,7 @@
         "choice": {
           "id": "dampen_element_type",
           "label_ru": "Тип сопротивления (реакция)",
+          "at_use": true,
           "options": [
             "acid",
             "cold",

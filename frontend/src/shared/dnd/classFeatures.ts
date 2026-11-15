@@ -178,6 +178,11 @@ export type FeatureChoiceDef = {
    * save when Wisdom is not already proficient). The card can still record a pick.
    */
   optional?: boolean
+  /**
+   * ABL-01: choice is made each use (Flurry hit, rage enter, 1×/turn rider),
+   * not as a lasting sheet setup. Do not show «нужен выбор» / «не выбрано».
+   */
+  at_use?: boolean
 }
 
 export type FeatureSlotSpendDef = {
@@ -403,6 +408,7 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
             )
           : undefined,
         optional: choiceRaw.optional === true,
+        at_use: choiceRaw.at_use === true,
       }
     }
 

@@ -466,6 +466,7 @@
         "choice": {
           "id": "open_hand_effect",
           "label_ru": "Эффект Шквал (при попадании)",
+          "at_use": true,
           "options": [
             "trip",
             "push_15ft",

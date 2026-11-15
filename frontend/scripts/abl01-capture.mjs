@@ -173,27 +173,34 @@ async function main() {
   await clickFilter(page, 'С ресурсом')
   await shotFull(page, 'abl-filters-390.png', 390)
 
-  // ========== Need choice — monk Open Hand / piety ASI ==========
-  await openSheet(page, MONK)
+  // ========== Need choice — permanent pick only (ASI / fighting style), not at_use ==========
+  await openSheet(page, PIETY_ON)
   await openFeatures(page, 1440)
   await clickFilter(page, 'Нужен выбор')
   const needCard = page.locator('.feature-card').filter({
-    has: page.locator('.feature-card__need-choice-chip, .ui-chip'),
+    has: page.locator('.feature-card__need-choice-chip'),
   })
   if (await needCard.count()) {
     await needCard.first().scrollIntoViewIfNeeded()
     await needCard.first().screenshot({ path: out('abl-need-choice-1440.png') })
   } else {
-    // expand ASI history on piety char
-    await openSheet(page, PIETY_ON)
-    await openFeatures(page, 1440)
-    await clickFilter(page, 'Нужен выбор')
-    const asi = page.locator('.feature-card').filter({ hasText: /нужно настроить|нужен выбор/i })
-    if (await asi.count()) {
-      await asi.first().screenshot({ path: out('abl-need-choice-1440.png') })
-    } else {
-      await shotPanel(page, 'abl-need-choice-1440.png')
-    }
+    await shotPanel(page, 'abl-need-choice-1440.png')
+  }
+
+  // Open Hand Technique must NOT show need-choice / «не выбрано»
+  await openSheet(page, MONK)
+  await openFeatures(page, 1440)
+  const openHand = page.locator('.feature-card').filter({ hasText: /Техника открытой ладони/i }).first()
+  if (await openHand.count()) {
+    await openHand.locator('.feature-card__glance').first().click().catch(() => {})
+    await page.waitForTimeout(300)
+    const ohText = (await openHand.innerText().catch(() => '')).replace(/\s+/g, ' ')
+    const falseBadge =
+      /нужен выбор/i.test(ohText) || /не выбрано/i.test(ohText)
+    report.notes.push(`open-hand-false-badge=${falseBadge} text="${ohText.slice(0, 180)}"`)
+    await openHand.screenshot({ path: out('abl-open-hand-no-choice-1440.png') }).catch(() => {})
+  } else {
+    report.notes.push('open-hand-card=missing')
   }
 
   // ========== Resource + Использовать — expand Гнев бури / Ци ==========
@@ -236,14 +243,46 @@ async function main() {
   await page.waitForSelector('.piety-panel', { timeout: 10_000 })
   await shotStage(page, 'abl-piety-on-1440.png')
 
-  // ========== Darkvision once ==========
+  // ========== Darkvision once (real viewport, not element/full-page crop) ==========
   await openSheet(page, WIZ20)
   await openFeatures(page, 1440)
   const dv = page.locator('.features-panel .feature-card__name').filter({ hasText: /Тёмное зрение/i })
   const dvCount = await dv.count()
   report.notes.push(`darkvision-in-features-panel=${dvCount}`)
-  if (dvCount) await dv.first().scrollIntoViewIfNeeded()
-  await shotPanel(page, 'abl-darkvision-1440.png')
+  if (dvCount) await dv.first().scrollIntoViewIfNeeded().catch(() => {})
+  await shotFull(page, 'abl-darkvision-1440.png', 1440)
+  await openFeatures(page, 390)
+  const dv390 = page.locator('.features-panel .feature-card__name').filter({ hasText: /Тёмное зрение/i })
+  if (await dv390.count()) await dv390.first().scrollIntoViewIfNeeded().catch(() => {})
+  await shotFull(page, 'abl-darkvision-390.png', 390)
+
+  // ========== Left passives ТЗ for dwarf (Даррак) ==========
+  await openSheet(page, DARRACK)
+  await setViewport(page, 1440)
+  const leftDv = page.locator('.darkvision-sense').first()
+  const leftText = (await leftDv.innerText().catch(() => '')).replace(/\s+/g, ' ')
+  report.notes.push(`left-passives-darkvision="${leftText}"`)
+  const senseBox = await leftDv.boundingBox().catch(() => null)
+  if (senseBox) {
+    await page.screenshot({
+      path: out('left-passives-darkvision-1440.png'),
+      clip: {
+        x: Math.max(0, senseBox.x - 24),
+        y: Math.max(0, senseBox.y - 100),
+        width: Math.min(420, 1440 - Math.max(0, senseBox.x - 24)),
+        height: Math.min(280, senseBox.height + 160),
+      },
+    })
+  } else {
+    const leftBlock = page.locator('.play-desk__left, .play-desk__rail, .sheet-passives').first()
+    if (await leftBlock.count()) {
+      await leftBlock.screenshot({ path: out('left-passives-darkvision-1440.png') }).catch(async () => {
+        await shotFull(page, 'left-passives-darkvision-1440.png', 1440)
+      })
+    } else {
+      await shotFull(page, 'left-passives-darkvision-1440.png', 1440)
+    }
+  }
 
   // ========== Monk ци ==========
   await openSheet(page, MONK)
@@ -290,10 +329,13 @@ async function main() {
     'abl-filters-1440.png',
     'abl-filters-390.png',
     'abl-need-choice-1440.png',
+    'abl-open-hand-no-choice-1440.png',
     'abl-resource-use-1440.png',
     'abl-piety-off-1440.png',
     'abl-piety-on-1440.png',
     'abl-darkvision-1440.png',
+    'abl-darkvision-390.png',
+    'left-passives-darkvision-1440.png',
     'abl-monk-ki-1440.png',
     'abl-dragon-ancestor-1440.png',
     'hdr-pair-1440.png',

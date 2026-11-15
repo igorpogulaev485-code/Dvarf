@@ -205,6 +205,66 @@ export function resolveRaceEffects(input: {
   return RACE_EFFECTS_BY_SLUG[slug] ?? null
 }
 
+/** Common PHB subrace → parent for darkvision fallback (no catalog grant). */
+const SUBRACE_DARKVISION_PARENT: Record<string, string> = {
+  hill_dwarf: 'dwarf',
+  mountain_dwarf: 'dwarf',
+  duergar: 'dwarf',
+  high_elf: 'elf',
+  wood_elf: 'elf',
+  drow: 'elf',
+  sea_elf: 'elf',
+  eladrin: 'elf',
+  shadar_kai: 'elf',
+  lightfoot_halfling: 'halfling',
+  stout_halfling: 'halfling',
+  rock_gnome: 'gnome',
+  forest_gnome: 'gnome',
+  deep_gnome: 'gnome',
+}
+
+/**
+ * ABL-01: when sheet.combat/identity.darkvision is 0 but race has ТЗ,
+ * left-panel DarkvisionSense still needs a distance (e.g. дварф 60).
+ * Prefer grant → slug/parent → Russian race name hint.
+ */
+export function raceDarkvisionFallbackFt(input: {
+  grantDarkvision?: number | null
+  slug?: string | null
+  parentSlug?: string | null
+  raceName?: string | null
+}): number {
+  const fromGrant = Math.max(0, Math.floor(Number(input.grantDarkvision) || 0))
+  if (fromGrant > 0) return fromGrant
+
+  const fromSlug = (raw: string | null | undefined): number => {
+    const key = (raw ?? '').trim().toLowerCase().replace(/-/g, '_')
+    if (!key) return 0
+    const direct = RACE_EFFECTS_BY_SLUG[key]
+    if (direct) return direct.darkvision
+    const parent =
+      SUBRACE_DARKVISION_PARENT[key] ||
+      (input.parentSlug ?? '').trim().toLowerCase().replace(/-/g, '_')
+    if (parent && RACE_EFFECTS_BY_SLUG[parent]) {
+      return RACE_EFFECTS_BY_SLUG[parent].darkvision
+    }
+    return 0
+  }
+
+  const viaSlug = fromSlug(input.slug) || fromSlug(input.parentSlug)
+  if (viaSlug > 0) return viaSlug
+
+  const name = (input.raceName ?? '').toLowerCase()
+  if (!name) return 0
+  if (/дварф|duergar/.test(name)) return RACE_EFFECTS_BY_SLUG.dwarf.darkvision
+  if (/полуэльф/.test(name)) return RACE_EFFECTS_BY_SLUG.half_elf.darkvision
+  if (/полуорк/.test(name)) return RACE_EFFECTS_BY_SLUG.half_orc.darkvision
+  if (/тифлинг/.test(name)) return RACE_EFFECTS_BY_SLUG.tiefling.darkvision
+  if (/гном/.test(name)) return RACE_EFFECTS_BY_SLUG.gnome.darkvision
+  if (/эльф/.test(name)) return RACE_EFFECTS_BY_SLUG.elf.darkvision
+  return 0
+}
+
 export function mergeRaceLanguages(input: {
   current: string[]
   previousApplied: string[]

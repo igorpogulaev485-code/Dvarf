@@ -2319,7 +2319,7 @@ function FeatureRow({
             )}
           </Text>
         </div>
-      ) : replacementStatus === 'active' ? (
+      ) : replacementStatus === 'active' && feature.choice && !feature.choice.at_use ? (
         <FeatureChoiceControls
           feature={feature}
           featurePicks={featurePicks}

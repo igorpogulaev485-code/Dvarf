@@ -676,7 +676,8 @@
             "bite",
             "claws",
             "tail"
-          ]
+          ],
+          "at_use": true
         }
       },
       {

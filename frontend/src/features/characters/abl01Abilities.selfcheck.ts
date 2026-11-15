@@ -14,6 +14,7 @@ import {
 import { isFeatureChoiceComplete } from '../../shared/dnd/pendingFeatureChoices.ts'
 import { bridgeOriginPicks } from '../../shared/dnd/pack04SorcererWarlock.ts'
 import { displayResourceLabel } from '../../shared/dnd/rest.ts'
+import { raceDarkvisionFallbackFt } from '../../shared/dnd/race.ts'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '../../..')
 const panel = readFileSync(
@@ -50,6 +51,28 @@ assert.match(draft, /bridgeOriginPicks/)
 
 assert.equal(displayResourceLabel('Ки'), 'Ци')
 
+assert.equal(
+  raceDarkvisionFallbackFt({ raceName: 'Дварф (горный)' }),
+  60,
+  'dwarf name → 60 ft',
+)
+assert.equal(
+  raceDarkvisionFallbackFt({ slug: 'mountain_dwarf', parentSlug: 'dwarf' }),
+  60,
+  'mountain_dwarf → 60 ft',
+)
+assert.equal(raceDarkvisionFallbackFt({ raceName: 'Человек' }), 0)
+assert.equal(
+  raceDarkvisionFallbackFt({ grantDarkvision: 120, raceName: 'Человек' }),
+  120,
+)
+
+const part2 = readFileSync(
+  join(root, 'src/features/characters/minimalSheet/useSheetEditorPart2.ts'),
+  'utf8',
+)
+assert.match(part2, /raceDarkvisionFallbackFt/)
+
 const picksChoiceId = setFeaturePick(
   emptyFeaturePicks(),
   'sorcerer',
@@ -72,6 +95,24 @@ assert.equal(
   'red',
 )
 assert.equal(isFeatureChoiceComplete(featureStub, picksChoiceId), true)
+
+const atUseStub = {
+  id: 'open_hand_technique',
+  classEntryId: 'monk',
+  classLevel: 3,
+  choice: {
+    id: 'open_hand_effect',
+    label_ru: 'Эффект Шквал (при попадании)',
+    at_use: true,
+    options: ['trip', 'push_15ft', 'no_reactions'],
+  },
+} as Parameters<typeof isFeatureChoiceComplete>[0]
+assert.equal(
+  isFeatureChoiceComplete(atUseStub, emptyFeaturePicks()),
+  true,
+  'at_use choice is complete without a sheet pick',
+)
+assert.match(panel, /!feature\.choice\.at_use/)
 
 const bridged = bridgeOriginPicks({
   featurePicks: emptyFeaturePicks(),

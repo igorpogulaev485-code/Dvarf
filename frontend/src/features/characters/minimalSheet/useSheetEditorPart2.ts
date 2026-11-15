@@ -42,6 +42,7 @@ import {
 } from '../../../shared/dnd/featurePicks'
 import { syncMonkUnarmedAttack } from '../../../shared/dnd/martialArts'
 import { darkvisionFtFromFeatures, initiativeBonusFromFeatures, initiativeBonusFromRace } from '../featureCombatBonuses'
+import { raceDarkvisionFallbackFt } from '../../../shared/dnd/race'
 import { createSheetSpell } from '../spells'
 import {
   bladesongBonuses,
@@ -750,16 +751,30 @@ export function useSheetEditorPart2(model: SheetModel) {
     [model.draft.featurePicks, model.draft.featGrants],
   )
   model.activeFightingStyleId = activeFightingStyleId
-  const featureDarkvisionFt = useMemo(
-    () =>
-      darkvisionFtFromFeatures({
-        features: model.unlockedFeatures,
-        baseDarkvision:
-          model.draft.identity.darkvision +
-          thirdEyeDarkvisionBonus(model.draft.play.resources),
-      }),
-    [model.unlockedFeatures, model.draft.identity.darkvision, model.draft.play.resources],
-  )
+  const featureDarkvisionFt = useMemo(() => {
+    // ABL-01: identity may be 0 while race (grant / name) still has 60 ft ТЗ.
+    const raceDv = raceDarkvisionFallbackFt({
+      grantDarkvision: model.draft.raceGrant?.darkvision,
+      slug: model.draft.raceGrant?.slug,
+      parentSlug: model.draft.raceGrant?.parentSlug,
+      raceName: model.draft.raceName,
+    })
+    const baseDarkvision =
+      Math.max(model.draft.identity.darkvision, raceDv) +
+      thirdEyeDarkvisionBonus(model.draft.play.resources)
+    return darkvisionFtFromFeatures({
+      features: model.unlockedFeatures,
+      baseDarkvision,
+    })
+  }, [
+    model.unlockedFeatures,
+    model.draft.identity.darkvision,
+    model.draft.play.resources,
+    model.draft.raceGrant?.darkvision,
+    model.draft.raceGrant?.slug,
+    model.draft.raceGrant?.parentSlug,
+    model.draft.raceName,
+  ])
   model.featureDarkvisionFt = featureDarkvisionFt
 
   const passives = useMemo(() => {

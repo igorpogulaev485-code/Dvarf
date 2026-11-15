@@ -363,7 +363,8 @@
             "earth",
             "fire",
             "water"
-          ]
+          ],
+          "at_use": true
         }
       },
       {
@@ -659,7 +660,8 @@
             "archer",
             "chalice",
             "dragon"
-          ]
+          ],
+          "at_use": true
         }
       },
       {

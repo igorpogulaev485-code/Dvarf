@@ -199,6 +199,8 @@ export function isFeatureChoiceComplete(
   const choice = feature.choice
   if (!choice) return true
   if (choice.optional) return true
+  // ABL-01: per-use riders (Open Hand / Blade Flourish / …) are not sheet setup.
+  if (choice.at_use) return true
   const maxPicks = resolveChoiceMaxPicks(choice, feature.classLevel)
   const multi = maxPicks > 1 || Boolean(choice.max_picks_by_level)
   // ABL-01: accept feature.id or choice.id (dragon_ancestor / draconic_ancestry).
