@@ -683,3 +683,99 @@
   text-align: left;
 }
 
+
+/* MAG-01: dense cast profiles + spell column scroll / collapse / filters */
+.play-desk-compact--spells {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 100%;
+  height: 100%;
+}
+
+.play-desk-compact__chrome {
+  flex: 0 0 auto;
+  display: grid;
+  gap: 8px;
+}
+
+.play-desk-compact__list--scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+}
+
+.play-desk-compact__combat-stats--dense {
+  gap: 4px;
+}
+
+.play-desk-compact__cast-profile--line {
+  padding: 3px 8px;
+  border-radius: 8px;
+  justify-content: flex-start;
+}
+
+.play-desk-compact__cast-profile-line {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--desk-ink, var(--ink));
+  line-height: 1.25;
+}
+
+.play-desk-compact__spell-tools {
+  display: grid;
+  gap: 6px;
+}
+
+.play-desk-compact__spell-filters {
+  flex-wrap: wrap;
+}
+
+.play-desk-compact__spell-search .ui-input,
+.play-desk-compact__spell-search input {
+  width: 100%;
+  min-height: 34px;
+  font-size: 0.85rem;
+}
+
+.play-desk-compact__collapse-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.play-desk-compact__level-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.play-desk-compact__level-chevron {
+  font-size: 0.75rem;
+  color: var(--desk-muted, var(--muted));
+}
+
+.play-desk-compact__level-count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+}
+
+.play-desk-compact__level.is-collapsed .play-desk-compact__level-head {
+  opacity: 0.95;
+}
+
+@media (max-width: 959px) {
+  .play-desk-compact--spells {
+    max-height: min(70vh, 560px);
+  }
+}

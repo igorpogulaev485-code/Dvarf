@@ -929,6 +929,14 @@ export function PlayDeskAttacksCompact({
   const combatResources = resources.filter((row) => {
     if (row.max <= 0 || !row.name.trim()) return false
     if (isHarnessDivinePowerResourceId(row.id)) return false
+    // MAG-01: очки чародейства только в хот-панели — не дублировать под атаками.
+    if (
+      row.id.includes('sorcery_points') ||
+      /очки чародейства/i.test(row.name) ||
+      /sorcery points/i.test(row.name)
+    ) {
+      return false
+    }
     if (row.track === 'stock') return true
     return row.used < row.max
   })

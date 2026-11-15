@@ -4,8 +4,11 @@ import {
   buildCastProfiles,
   buildGrimoireShelfSources,
   catalogSpellMatchesAnyShelf,
+  classSlugChipLabel,
   findDualCastSiblings,
   formatNamedCantripBudgets,
+  formatNamedClassQuotas,
+  formatNamedKnownBudgets,
   formatNamedPrepareBudgets,
   mergeCastProfilesForDisplay,
   resolveSpellCastStats,
@@ -199,6 +202,30 @@ assert(
   namedPrep === 'подг. Жрец 4/9 · Паладин 2/6 · всегда 3',
   `named prepare got ${namedPrep}`,
 )
+
+const namedKnown = formatNamedKnownBudgets(
+  [
+    { mode: 'known', slug: 'bard', labelRu: 'Бард', cantrips: 2, leveledKnown: 5, maxPrepared: null },
+    { mode: 'known', slug: 'warlock', labelRu: 'Колдун', cantrips: 2, leveledKnown: 2, maxPrepared: null },
+  ],
+  { bard: 2, warlock: 2 },
+)
+assert(namedKnown === 'Бард изв. 2/5 · Колдун изв. 2/2', `named known got ${namedKnown}`)
+const mixedQuota = formatNamedClassQuotas(
+  [
+    { mode: 'known', slug: 'bard', labelRu: 'Бард', cantrips: 2, leveledKnown: 2, maxPrepared: null },
+    { mode: 'prepared_list', slug: 'cleric', labelRu: 'Жрец', cantrips: 3, leveledKnown: null, maxPrepared: 3 },
+    { mode: 'spellbook', slug: 'wizard', labelRu: 'Волшебник', cantrips: 3, leveledKnown: null, maxPrepared: 5 },
+  ],
+  { bard: 2, wizard: 6 },
+  { cleric: 3, wizard: 1 },
+  { bookCountBySlug: { wizard: 6 } },
+)
+assert(
+  mixedQuota === 'Бард изв. 2/2 · Жрец подг. 3/3 · Волшебник подг. 1/5, в книге 6',
+  `mixed quota got ${mixedQuota}`,
+)
+assert(classSlugChipLabel('wizard') === 'волшебник', 'wizard chip')
 
 // --- M3 dual-cast siblings ---
 const dualKnown = [

@@ -84,6 +84,10 @@ import {
   wizardLeveledCastGate,
 } from '../../../shared/dnd/wizardTradition'
 import { type CastChoice } from '../CastSpellDialog'
+import {
+  applyMetamagicToCastParams,
+  metamagicSelectionCost,
+} from '../../../shared/dnd/metamagicCast'
 import { applySpellBuffToTargets } from '../applySpellBuff'
 import { clearCharacterConcentrationEffects } from '../../../shared/api/characters'
 import { type ActiveEffect } from '../../../shared/dnd/activeEffects'
@@ -427,13 +431,36 @@ export function installSheetActions4(model: SheetModel) {
         return false
       }
     }
-    // Э8 / O-01: списать очки чародейства за метамагию до проведения каста
-    const seeking = Boolean(choice.seeking)
+    // MAG-01 / Э8 / O-01: списать очки чародейства за метамагию до проведения каста
+    const meta = choice.metamagic ?? {
+      quickened,
+      seeking: Boolean(choice.seeking),
+      transmutedType:
+        typeof choice.transmutedType === 'string' && choice.transmutedType.trim()
+          ? choice.transmutedType.trim()
+          : null,
+    }
+    const seeking = Boolean(meta.seeking ?? choice.seeking)
     const transmutedType =
-      typeof choice.transmutedType === 'string' && choice.transmutedType.trim()
-        ? choice.transmutedType.trim()
+      typeof (meta.transmutedType ?? choice.transmutedType) === 'string' &&
+      String(meta.transmutedType ?? choice.transmutedType).trim()
+        ? String(meta.transmutedType ?? choice.transmutedType).trim()
         : null
-    const metaSpCost = (quickened ? 2 : 0) + (seeking ? 2 : 0) + (transmutedType ? 1 : 0)
+    const metaSpCost = metamagicSelectionCost(
+      {
+        careful: Boolean(meta.careful),
+        distant: Boolean(meta.distant),
+        empowered: Boolean(meta.empowered),
+        extended: Boolean(meta.extended),
+        heightened: Boolean(meta.heightened),
+        quickened: Boolean(meta.quickened ?? quickened),
+        subtle: Boolean(meta.subtle),
+        twinned: Boolean(meta.twinned),
+        seeking,
+        transmutedType,
+      },
+      choice.slotLevel || spell.level,
+    )
     if (metaSpCost > 0) {
       const pool = model.draft.play.resources.find((row: { id: string; name: string }) =>
         model.isSorceryPointsResource(row),
@@ -456,24 +483,19 @@ export function installSheetActions4(model: SheetModel) {
         },
       }))
     }
-    const metaNotes: string[] = []
-    if (seeking) {
-      metaNotes.push('Ищущее: при промахе перебрось к20 (новый результат обязателен)')
-    }
-    if (transmutedType) {
-      const typeRu =
-        (
-          {
-            thunder: 'звук',
-            acid: 'кислота',
-            fire: 'огонь',
-            cold: 'холод',
-            lightning: 'электричество',
-            poison: 'яд',
-          } as Record<string, string>
-        )[transmutedType] ?? transmutedType
-      metaNotes.push(`Преобразованное: тип урона → ${typeRu}`)
-    }
+    const metaApplied = applyMetamagicToCastParams(spell, {
+      careful: Boolean(meta.careful),
+      distant: Boolean(meta.distant),
+      empowered: Boolean(meta.empowered),
+      extended: Boolean(meta.extended),
+      heightened: Boolean(meta.heightened),
+      quickened: Boolean(meta.quickened ?? quickened),
+      subtle: Boolean(meta.subtle),
+      twinned: Boolean(meta.twinned),
+      seeking,
+      transmutedType,
+    })
+    const metaNotes: string[] = [...metaApplied.notes]
     if (choice.magicalInspiration) {
       metaNotes.push(
         'Магическое вдохновение: добавь кость BI цели к урону/лечению одной цели — кость тратится',

@@ -110,6 +110,7 @@ import {
   bridgeTotemSpiritPick,
   featureLockedExpertiseSkillIds,
 } from '../shared/dnd/fighterArchetypeGrants'
+import { bridgeOriginPicks } from '../shared/dnd/pack04SorcererWarlock'
 import type { AbilityScores } from '../shared/dnd/multiclassRules'
 import {
   buildPendingWizardSteps,
@@ -192,7 +193,7 @@ import {
 import {
   applySpellcastingSuggestion,
   classLevelOffersSpellPicks,
-  highestSpellSlotLevelForClasses,
+  maxSpellLevelForClassAlone,
   resolveSpellLearnBudget,
   suggestSpellcastingFromClasses,
 } from '../shared/dnd/casterProgression'
@@ -1179,10 +1180,19 @@ export function CreateCharacterPage() {
   ) {
     let saved = false
     setState((prev) => {
-      if (!prev.classes.some((row) => row.id === classEntryId)) return prev
+      // MAG-01: resolve stale classEntryId (first warlock patron / recreated sole row).
+      let resolvedId = classEntryId
+      if (!prev.classes.some((row) => row.id === resolvedId)) {
+        resolvedId =
+          prev.classes.find((row) => row.id === prev.classEntryId)?.id ??
+          (prev.classes.length === 1 ? prev.classes[0]!.id : '')
+      }
+      if (!resolvedId || !prev.classes.some((row) => row.id === resolvedId)) {
+        return prev
+      }
       saved = true
       const nextClasses = prev.classes.map((row) =>
-        row.id === classEntryId
+        row.id === resolvedId
           ? {
               ...row,
               subclass_name: selected.name_ru,
@@ -1192,7 +1202,7 @@ export function CreateCharacterPage() {
       )
       const nextSetups = {
         ...prev.subclassSetups,
-        [classEntryId]: {
+        [resolvedId]: {
           entry: catalogSnapshot(selected),
           picks,
           ...(options?.changeMode
@@ -1205,22 +1215,31 @@ export function CreateCharacterPage() {
             : {}),
         },
       }
-      const nextFeaturePicks = bridgeTotemSpiritPick({
-        featurePicks: bridgeSwordsFightingStyle({
-          featurePicks: bridgeManeuversIntoFeaturePicks({
-            featurePicks: prev.featurePicks ?? emptyFeaturePicks(),
-            classEntryId,
-            maneuverIds: extractManeuverIdsFromSubclassPicks(picks),
-            mode: 'merge_missing',
-          }),
-          classEntryId,
-          styleId: swordsFightingStyleFromSubclassPicks(picks),
-        }),
-        classEntryId,
+      const afterManeuvers = bridgeManeuversIntoFeaturePicks({
+        featurePicks: prev.featurePicks ?? emptyFeaturePicks(),
+        classEntryId: resolvedId,
+        maneuverIds: extractManeuverIdsFromSubclassPicks(picks),
+        mode: 'merge_missing',
+      })
+      const afterSwords = bridgeSwordsFightingStyle({
+        featurePicks: afterManeuvers,
+        classEntryId: resolvedId,
+        styleId: swordsFightingStyleFromSubclassPicks(picks),
+      })
+      const afterTotem = bridgeTotemSpiritPick({
+        featurePicks: afterSwords,
+        classEntryId: resolvedId,
         values: picks.values,
+      })
+      const nextFeaturePicks = bridgeOriginPicks({
+        featurePicks: afterTotem,
+        classEntryId: resolvedId,
+        subclassSlug: selected.slug,
+        grantPicks: picks,
       })
       return {
         ...prev,
+        classEntryId: resolvedId,
         classes: nextClasses,
         subclassSetups: nextSetups,
         featurePicks: nextFeaturePicks,
@@ -2594,9 +2613,14 @@ export function CreateCharacterPage() {
             spells,
             inventory: inv,
           })
-          const slotCap = highestSpellSlotLevelForClasses(state.classes)
+          const wizard = state.classes.find((row) => {
+            const n = row.name.trim().toLowerCase()
+            return n === 'волшебник' || n === 'wizard' || n === 'маг'
+          })
+          // MAG-01: aloneMaxLevel of wizard, not shared multiclass slots.
+          const aloneCap = maxSpellLevelForClassAlone('full', wizard?.level ?? step.classLevel)
           return {
-            maxSpellLevel: Math.max(1, slotCap || 1),
+            maxSpellLevel: Math.max(1, aloneCap || 1),
             blockedCatalogIds: spells.known
               .map((spell) => spell.catalog_id)
               .filter((id): id is string => Boolean(id)),
@@ -2604,10 +2628,6 @@ export function CreateCharacterPage() {
             hasBook: hasBook || step.classLevel <= 1,
             classListSlugs: ['wizard'],
             subclassSlug: (() => {
-              const wizard = state.classes.find((row) => {
-                const n = row.name.trim().toLowerCase()
-                return n === 'волшебник' || n === 'wizard' || n === 'маг'
-              })
               const raw = wizard?.subclass_name?.trim() || ''
               if (!raw) return null
               return (
@@ -2623,6 +2643,10 @@ export function CreateCharacterPage() {
             step?.kind === 'spellbook_picks' && step.classLevel <= 1
               ? 'starting'
               : 'level_up'
+          const wizardRow = state.classes.find((row) => {
+            const n = row.name.trim().toLowerCase()
+            return n === 'волшебник' || n === 'wizard' || n === 'маг'
+          })
           setSpells((prev) => {
             let known = prev.known
             for (const entry of entries) {
@@ -2630,6 +2654,8 @@ export function CreateCharacterPage() {
                 prepare: false,
                 spellbook_acquisition: acquisition,
                 in_spellbook: true,
+                class_slug: 'wizard',
+                class_entry_id: wizardRow?.id ?? null,
               })
             }
             return { ...prev, known }

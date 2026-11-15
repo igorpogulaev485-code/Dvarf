@@ -260,6 +260,7 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         )}
         resources={model.draft.play.resources}
         metamagicIds={model.sorcererMetamagicIds ?? []}
+        initialMetamagicId={model.deskCastMetamagic ?? null}
         magicalInspirationAvailable={
           model.campaignRulesRaw != null &&
           normalizeCampaignRules(model.campaignRulesRaw).start.allowed_sources.includes(
@@ -301,10 +302,12 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         scrollItemId={model.deskScrollLock?.itemId ?? null}
         onClose={() => {
           model.setDeskCastSpell(null)
+          model.setDeskCastMetamagic?.(null)
           model.setDeskScrollLock(null)
         }}
         onRequestRest={() => {
           model.setDeskCastSpell(null)
+          model.setDeskCastMetamagic?.(null)
           model.setRestOpen(true)
         }}
         arcaneArmor={arcaneArmor}

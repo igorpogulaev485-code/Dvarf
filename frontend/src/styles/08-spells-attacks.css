@@ -969,3 +969,43 @@ button.spells-settings__derived-stat--btn:hover {
   color: var(--desk-muted, var(--muted));
 }
 
+
+/* MAG-01: multiclass profiles in Магия settings */
+.spells-settings__ability-row {
+  margin-top: 6px;
+}
+
+.spells-settings__profiles {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.spells-settings__profile-line {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--accent-soft) 45%, white);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.spells-settings__profile-line.is-int {
+  border-color: color-mix(in srgb, #3f5f8a 45%, var(--line));
+  background: color-mix(in srgb, #dde6f2 75%, white);
+}
+
+.spells-settings__profile-line.is-cha {
+  border-color: color-mix(in srgb, #7a4a6e 45%, var(--line));
+  background: color-mix(in srgb, #efe0ea 75%, white);
+}
+
+.spells-settings__profile-line.is-wis {
+  border-color: color-mix(in srgb, #5a6b3d 45%, var(--line));
+  background: color-mix(in srgb, #e5ecd4 75%, white);
+}
+
+.cast-metamagic-block {
+  display: grid;
+  gap: 6px;
+}
