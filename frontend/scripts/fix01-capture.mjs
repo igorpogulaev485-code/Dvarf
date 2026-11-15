@@ -510,44 +510,50 @@ await withViewport(browser, 390, 844, BASE, async (page) => {
     throw new Error('no Каст button on sorcerer')
   }
   await page.waitForSelector('.ui-dialog', { timeout: 12_000 })
-  const meta = page.locator('button').filter({ hasText: /Метамагия/i })
+  const dialog = page.locator('.ui-dialog').last()
+  const meta = dialog.locator('button').filter({ hasText: /Метамагия/i })
   if (await meta.count()) {
     const open = await meta.first().getAttribute('aria-expanded')
-    if (open !== 'true') await meta.first().click()
+    if (open !== 'true') await meta.first().click({ force: true }).catch(() => {})
     await page.waitForTimeout(250)
-    const chip = page.locator('.ui-toggle-chip').first()
+    const chip = dialog.locator('.ui-toggle-chip, .cast-metamagic-block .sheet-chip').first()
     if (await chip.count()) {
-      if ((await chip.first().getAttribute('aria-checked')) !== 'true') {
-        await chip.first().click()
-      }
+      const checked = await chip.first().getAttribute('aria-checked')
+      if (checked !== 'true') await chip.first().click().catch(() => {})
     }
   }
   await save(page, 'fix01-cast-390.png', shotViewport)
   await page.keyboard.press('Escape')
   await page.waitForTimeout(300)
 
-  // Spell detail: tap name
-  const nameHit = page.locator(
-    '.play-desk-compact__spell-name, button.play-desk-compact__spell-name, .spell-compact__name-btn, .play-desk-compact__spell button',
-  )
+  // Spell detail: open Fire Bolt by name (catalog text / scaled damage)
   let opened = false
-  if (await nameHit.count()) {
-    await nameHit.first().click()
-    await page.waitForTimeout(400)
+  const fireName = page
+    .locator('.play-desk-compact__spell-name, button.play-desk-compact__spell-name')
+    .filter({ hasText: /Огненный снаряд/i })
+  if (await fireName.count()) {
+    await fireName.first().click()
+    await page.waitForTimeout(500)
     if (await page.locator('.ui-dialog').count()) opened = true
   }
   if (!opened) {
-    // Expand row then Описание
-    const row = page.locator('.play-desk-compact__spell, [class*="spell-compact__row"]').first()
-    if (await row.count()) await row.click()
-    await page.waitForTimeout(200)
+    const nameHit = page.locator(
+      '.play-desk-compact__spell-name, button.play-desk-compact__spell-name',
+    )
+    if (await nameHit.count()) {
+      await nameHit.first().click()
+      await page.waitForTimeout(400)
+      if (await page.locator('.ui-dialog').count()) opened = true
+    }
+  }
+  if (!opened) {
     const desc = page.locator('button').filter({ hasText: /^Описание$/ })
     if (await desc.count()) {
       await desc.first().click()
       opened = true
     }
   }
-  await page.waitForTimeout(400)
+  await page.waitForTimeout(500)
   await save(page, 'fix01-spell-detail-390.png', shotViewport)
 })
 

@@ -748,6 +748,42 @@ export function PlayDeskSpellsCompact({
             : null
         }
         edition={edition}
+        characterLevel={characterLevel}
+        elementalAffinity={elementalAffinity}
+        spellMod={
+          detailSpell
+            ? (() => {
+                const spell =
+                  spells.known.find((row) => row.id === detailSpell.id) ?? detailSpell
+                const modStats = resolveSpellCastStats({
+                  spell,
+                  profiles: castProfiles ?? [],
+                  abilityModFor: (ability) => abilityModifier(abilities[ability]),
+                  proficiencyBonus,
+                  fallbackAbility: spells.casting_ability ?? null,
+                })
+                return modStats.ability ? abilityModifier(abilities[modStats.ability]) : null
+              })()
+            : null
+        }
+        spellModLabel={
+          detailSpell
+            ? (() => {
+                const spell =
+                  spells.known.find((row) => row.id === detailSpell.id) ?? detailSpell
+                const modStats = resolveSpellCastStats({
+                  spell,
+                  profiles: castProfiles ?? [],
+                  abilityModFor: (ability) => abilityModifier(abilities[ability]),
+                  proficiencyBonus,
+                  fallbackAbility: spells.casting_ability ?? null,
+                })
+                return modStats.ability
+                  ? SPELLCASTING_ABILITY_LABELS[modStats.ability]
+                  : null
+              })()
+            : null
+        }
         onClose={() => setDetailSpell(null)}
         onEnrichSpell={
           onSpellsChange

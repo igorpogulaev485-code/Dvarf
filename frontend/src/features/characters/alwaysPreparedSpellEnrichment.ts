@@ -71,6 +71,7 @@ export function withBundledRules<T extends SheetSpell>(spell: T): T {
     ...spell,
     components: fromCatalog.components ?? spell.components,
     attack_or_save: fromCatalog.attack_or_save || spell.attack_or_save,
+    /* Catalog wins for book fields — sheet rows often have stale damage/range. */
     damage: fromCatalog.damage || spell.damage,
     damage_at_character_level:
       fromCatalog.damage_at_character_level ?? spell.damage_at_character_level,
@@ -79,6 +80,12 @@ export function withBundledRules<T extends SheetSpell>(spell: T): T {
     description: spell.description || fromCatalog.description,
     duration: spell.duration || fromCatalog.duration,
     concentration: spell.concentration || fromCatalog.concentration,
+    casting_time: fromCatalog.casting_time || spell.casting_time,
+    range: fromCatalog.range || spell.range,
+    school: fromCatalog.school || spell.school,
+    ...(fromCatalog.source_book && !spell.source_book
+      ? { source_book: fromCatalog.source_book }
+      : {}),
   }
 }
 

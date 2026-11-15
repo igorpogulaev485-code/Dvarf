@@ -771,16 +771,29 @@ button.spells-settings__derived-stat--btn:hover {
 }
 
 .play-desk-turn-actions__tab {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: 5.5rem;
+  /* FIX-01: у активного «Действие» текст не упирается в края чипа */
+  padding: 8px 14px;
+  box-sizing: border-box;
+  text-align: center;
+  line-height: 1.25;
+  white-space: normal;
 }
 
 /* FIX-01: отметки Взаимодействие / Движение в той же строке, без равного flex. */
 .play-desk-turn-actions__mark {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  min-width: 0;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  text-align: center;
+  line-height: 1.2;
+  white-space: normal;
 }
 
 .play-desk-turn-actions__tab.is-spent:not(:disabled),
@@ -796,6 +809,7 @@ button.spells-settings__derived-stat--btn:hover {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
+  padding: 8px 14px;
 }
 
 .play-desk-turn-actions__tab.is-open.is-spent {

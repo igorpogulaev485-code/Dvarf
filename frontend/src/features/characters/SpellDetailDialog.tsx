@@ -1,13 +1,15 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   formatSpellComponents,
   parseSpellCatalogData,
+  resolveCastEffectSummary,
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
 import { levelLabel } from '../../shared/dnd/spells'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { Dialog, Stack, Text } from '../../ui'
+import { withBundledRules } from './alwaysPreparedSpellEnrichment'
 import { grantCastRemaining, spellSourceBadge, type SheetSpell } from './spells'
 
 type SpellDetailDialogProps = {
@@ -20,6 +22,11 @@ type SpellDetailDialogProps = {
   edition?: RulesEdition
   /** Persist catalog text onto the sheet row after a successful lookup. */
   onEnrichSpell?: (spellId: string, patch: Partial<SheetSpell>) => void
+  /** Same level/mod as cast — for scaled damage line. */
+  characterLevel?: number
+  spellMod?: number | null
+  spellModLabel?: string | null
+  elementalAffinity?: { damageType: string; amount: number } | null
 }
 
 type CatalogText = {
@@ -41,7 +48,19 @@ function pickCatalogMatch(spell: SheetSpell, rows: CatalogEntry[]): CatalogEntry
   return en ?? null
 }
 
-/** Full read-only spell card: sheet fields + catalog description. */
+/** Singular «Заговор» in the detail card (group headers keep plural via levelLabel). */
+function detailLevelLabel(level: number): string {
+  if (level <= 0) return 'Заговор'
+  return levelLabel(level)
+}
+
+function shortDamage(raw: string): string {
+  const t = raw.trim()
+  if (!t || t === '—') return ''
+  return t.replace(/\s+/g, ' ')
+}
+
+/** Full read-only spell card: sheet fields + catalog/bundled description. */
 export function SpellDetailDialog({
   open,
   spell,
@@ -49,6 +68,10 @@ export function SpellDetailDialog({
   onCast,
   edition = '2014',
   onEnrichSpell,
+  characterLevel = 1,
+  spellMod = null,
+  spellModLabel = null,
+  elementalAffinity = null,
 }: SpellDetailDialogProps) {
   const [catalogText, setCatalogText] = useState<CatalogText | null>(null)
   const [catalogStatus, setCatalogStatus] = useState<'idle' | 'loading' | 'missing' | 'error'>(
@@ -56,18 +79,42 @@ export function SpellDetailDialog({
   )
   const enrichRef = useRef(onEnrichSpell)
   enrichRef.current = onEnrichSpell
+  const bundledEnrichDone = useRef<Set<string>>(new Set())
+
+  const rules = useMemo(() => (spell ? withBundledRules(spell) : null), [spell])
 
   useEffect(() => {
-    if (!open || !spell) {
+    if (!open || !spell || !rules) {
       setCatalogText(null)
       setCatalogStatus('idle')
       return
     }
     const hasLocal =
-      Boolean(spell.description?.trim()) || Boolean(spell.higher_levels?.trim())
+      Boolean(rules.description?.trim()) || Boolean(rules.higher_levels?.trim())
     if (hasLocal) {
       setCatalogText(null)
       setCatalogStatus('idle')
+      /* Persist bundled text onto the sheet when the row was empty (once per id). */
+      if (
+        !spell.description?.trim() &&
+        rules.description?.trim() &&
+        !bundledEnrichDone.current.has(spell.id)
+      ) {
+        bundledEnrichDone.current.add(spell.id)
+        enrichRef.current?.(spell.id, {
+          description: rules.description,
+          ...(rules.higher_levels && !spell.higher_levels
+            ? { higher_levels: rules.higher_levels }
+            : {}),
+          ...(rules.range && rules.range !== spell.range ? { range: rules.range } : {}),
+          ...(rules.damage_at_character_level && !spell.damage_at_character_level
+            ? { damage_at_character_level: rules.damage_at_character_level }
+            : {}),
+          ...(rules.source_book && !spell.source_book
+            ? { source_book: rules.source_book }
+            : {}),
+        })
+      }
       return
     }
 
@@ -120,46 +167,61 @@ export function SpellDetailDialog({
     spell?.catalog_id,
     spell?.description,
     spell?.higher_levels,
+    rules?.description,
+    rules?.higher_levels,
     edition,
   ])
 
-  if (!spell) return null
+  if (!spell || !rules) return null
 
-  const source = spellSourceBadge(spell)
+  const source = spellSourceBadge(rules)
   const grantLeft =
-    spell.grant_cast && spell.grant_cast.max > 0 ? grantCastRemaining(spell) : null
-  const school = spell.school ? spellSchoolLabelRu(spell.school) : ''
-  const comps = spell.components ? formatSpellComponents(spell.components) : ''
+    rules.grant_cast && rules.grant_cast.max > 0 ? grantCastRemaining(rules) : null
+  const school = rules.school ? spellSchoolLabelRu(rules.school) : ''
+  const comps = rules.components ? formatSpellComponents(rules.components) : ''
+
+  const level = Math.max(1, Math.floor(characterLevel) || 1)
+  const slotLevel = Math.max(rules.level, 1)
+  const castSummary = resolveCastEffectSummary(rules, {
+    characterLevel: level,
+    slotLevel,
+    spellMod,
+    spellModLabel,
+    affinity: elementalAffinity,
+  })
+  const damageLine =
+    shortDamage(castSummary.effect) || shortDamage(rules.damage ?? '') || ''
+
   const rows: Array<{ label: string; value: string }> = [
-    { label: 'Уровень', value: levelLabel(spell.level) },
-    { label: 'Время', value: spell.casting_time.trim() },
-    { label: 'Дистанция', value: spell.range.trim() },
-    { label: 'Длительность', value: (spell.duration ?? '').trim() },
+    { label: 'Уровень', value: detailLevelLabel(rules.level) },
+    { label: 'Время', value: (rules.casting_time || '').trim() },
+    { label: 'Дистанция', value: (rules.range || '').trim() },
+    { label: 'Длительность', value: (rules.duration ?? '').trim() },
     { label: 'Компоненты', value: comps },
     { label: 'Школа', value: school },
-    { label: 'Атака / спас', value: spell.attack_or_save.trim() },
-    { label: 'Урон / эффект', value: spell.damage.trim() },
+    { label: 'Атака / спас', value: (rules.attack_or_save || '').trim() },
+    { label: 'Урон / эффект', value: damageLine },
     {
       label: 'Источник',
-      value: (spell.source_book ?? catalogText?.source_book ?? '').trim(),
+      value: (rules.source_book ?? catalogText?.source_book ?? '').trim(),
     },
   ].filter((row) => row.value && row.value !== '—')
 
   const flags = [
-    spell.ritual ? 'ритуал' : '',
-    spell.concentration ? 'концентрация' : '',
+    rules.ritual ? 'ритуал' : '',
+    rules.concentration ? 'концентрация' : '',
     source ? source.label : '',
   ].filter(Boolean)
 
   const description =
-    spell.description?.trim() || catalogText?.description?.trim() || ''
+    rules.description?.trim() || catalogText?.description?.trim() || ''
   const higherLevels =
-    spell.higher_levels?.trim() || catalogText?.higher_levels?.trim() || ''
+    rules.higher_levels?.trim() || catalogText?.higher_levels?.trim() || ''
 
   return (
     <Dialog
       open={open}
-      title={spell.name || 'Заклинание'}
+      title={rules.name || 'Заклинание'}
       size="wide"
       primaryLabel={onCast ? 'Каст' : 'Закрыть'}
       secondaryLabel={onCast ? 'Закрыть' : undefined}
@@ -177,7 +239,7 @@ export function SpellDetailDialog({
           <Text tone="muted">
             Подготовлено за счёт: <strong title={source.title}>{source.label}</strong>
             {grantLeft != null
-              ? ` · ${source.label} ${grantLeft}/${spell.grant_cast!.max} без ячейки`
+              ? ` · ${source.label} ${grantLeft}/${rules.grant_cast!.max} без ячейки`
               : ''}
           </Text>
         ) : null}
@@ -217,10 +279,10 @@ export function SpellDetailDialog({
           </div>
         ) : null}
 
-        {spell.notes?.trim() ? (
+        {rules.notes?.trim() ? (
           <div>
             <Text tone="muted">Заметки</Text>
-            <Text>{spell.notes.trim()}</Text>
+            <Text>{rules.notes.trim()}</Text>
           </div>
         ) : null}
       </Stack>

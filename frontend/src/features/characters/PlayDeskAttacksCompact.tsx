@@ -1,4 +1,14 @@
 import { useMemo, useRef, useState } from 'react'
+
+/** Features with bespoke turn chips — skip generic personal wiring. */
+const TURN_SPECIAL_FEATURE_IDS = new Set([
+  'steady_aim',
+  'cunning_action',
+  'uncanny_dodge',
+  'ki_fueled_attack',
+  'second_wind',
+  'action_surge',
+])
 import { Button, DetailsMenu } from '../../ui'
 import { ResourcePips } from '../../ui/ResourcePips'
 import { shouldUseCompactResourceTrack } from '../../ui/resourceTrackDisplay'
@@ -92,10 +102,13 @@ import {
 import {
   castingTimeToEconomyMark,
   clearReadyPrepared,
+  inferFeatureTiming,
   markDashed,
   markDisengagedThisTurn,
   markReadyPrepared,
 } from '../../shared/dnd/turnEconomy'
+import { parseFeatureResourceId } from '../../shared/dnd/featureResources'
+import type { TurnActionGroupId } from './turnActionGroups'
 import {
   findActiveMount,
   hostIsMounted,
@@ -952,15 +965,8 @@ export function PlayDeskAttacksCompact({
     if (row.track === 'stock') return true
     return row.used < row.max
   })
-  /** Features that live in Действие/Бонусное/Реакция — do not also show as a free chip-row. */
-  const turnGroupedFeatureIds = new Set([
-    'steady_aim',
-    'cunning_action',
-    'uncanny_dodge',
-    'ki_fueled_attack',
-    'second_wind',
-    'action_surge',
-  ])
+  /** Features with bespoke turn chips — skip generic personal wiring. */
+  const turnSpecialFeatureIds = TURN_SPECIAL_FEATURE_IDS
   const secondWindFeature = combatFeatures.find((f) => f.id === 'second_wind')
   const actionSurgeFeature = combatFeatures.find((f) => f.id === 'action_surge')
   const secondWindPool = resources.find(
@@ -977,6 +983,133 @@ export function PlayDeskAttacksCompact({
       /:action_surge$/i.test(row.id) ||
       /всплеск действий/i.test(row.name),
   )
+
+  /** FIX-01: map unlocked features into turn groups by kind / summary timing. */
+  const personalTurnFeatures = useMemo(() => {
+    type Row = {
+      id: string
+      nameRu: string
+      summaryRu: string
+      group: TurnActionGroupId
+      remaining?: number | null
+      max?: number | null
+      disabled?: boolean
+      disabledReason?: string
+      onUse: () => void
+      poolId?: string | null
+    }
+    const out: Row[] = []
+    for (const feature of combatFeatures) {
+      if (!feature.name_ru.trim()) continue
+      if (turnSpecialFeatureIds.has(feature.id)) continue
+      if (feature.slot_spend) continue
+      if (feature.kind === 'passive') continue
+      if (feature.choice && !feature.resource) continue
+      /* Named channel options share the pool — show the parent «Божественный канал». */
+      if (
+        feature.id.startsWith('cd_') &&
+        feature.resource?.pool_id === 'channel_divinity'
+      ) {
+        continue
+      }
+      const explicit =
+        feature.kind === 'action' ||
+        feature.kind === 'bonus' ||
+        feature.kind === 'reaction'
+          ? feature.kind
+          : null
+      if (!explicit && feature.kind !== 'resource') continue
+      const group = inferFeatureTiming(feature.summary_ru, explicit)
+      const poolId = feature.resource?.pool_id ?? null
+      const pool = poolId
+        ? resources.find((row) => {
+            const parsed = parseFeatureResourceId(row.id)
+            return (
+              parsed &&
+              parsed.poolId === poolId &&
+              parsed.classEntryId === feature.classEntryId
+            )
+          }) ??
+          resources.find(
+            (row) =>
+              row.id.includes(`:${poolId}:`) ||
+              row.id.endsWith(`:${poolId}`) ||
+              row.name.trim().toLowerCase() ===
+                (feature.resource?.pool_name_ru || feature.name_ru).trim().toLowerCase(),
+          )
+        : null
+      const remaining = pool ? resourceShownCurrent(pool) : null
+      const max = pool?.max ?? feature.resourceUses ?? null
+      const isLayOnHands = poolId === 'lay_on_hands'
+      out.push({
+        id: feature.id,
+        nameRu: feature.name_ru,
+        summaryRu: feature.summary_ru,
+        group,
+        remaining: isLayOnHands ? remaining : remaining,
+        max: isLayOnHands ? max : max,
+        poolId,
+        disabled: Boolean(pool && remaining != null && remaining <= 0),
+        disabledReason:
+          pool && remaining != null && remaining <= 0
+            ? 'Нет использований'
+            : undefined,
+        onUse: () => {
+          if (!turnEco) return
+          const gate = turnEco.canFeature(group)
+          if (!gate.ok) {
+            onToast?.(gate.reason)
+            return
+          }
+          if (pool && remaining != null && remaining <= 0) {
+            onToast?.(`${feature.name_ru}: нет использований`)
+            return
+          }
+          turnEco.spendFeature(group)
+          if (pool && onSpendResource && !isLayOnHands) {
+            onSpendResource(pool.id)
+          }
+          onToast?.(
+            isLayOnHands
+              ? `${feature.name_ru}: действие · укажи хиты пула (${remaining ?? '—'}/${max ?? '—'})`
+              : `${feature.name_ru}${
+                  pool && remaining != null && max != null
+                    ? ` · ${Math.max(0, remaining - 1)}/${max}`
+                    : ''
+                }`,
+          )
+        },
+      })
+    }
+    return out
+  }, [combatFeatures, resources, turnEco, onSpendResource, onToast])
+
+  const personalTurnSpells = useMemo(() => {
+    const known = spells?.known ?? []
+    return known
+      .filter((spell) => spell.prepared !== false && spell.name.trim())
+      .map((spell) => {
+        const mark = castingTimeToEconomyMark(spell.casting_time)
+        if (mark !== 'bonus' && mark !== 'reaction') return null
+        return {
+          id: spell.id,
+          name: spell.name,
+          group: mark as TurnActionGroupId,
+          onUse: () => {
+            if (onCastSpell) onCastSpell(spell)
+            else onToast?.(`${spell.name}: кастуй из колонки «Заклинания»`)
+          },
+        }
+      })
+      .filter((row): row is NonNullable<typeof row> => row != null)
+  }, [spells, onCastSpell, onToast])
+
+  const turnGroupedFeatureIds = useMemo(() => {
+    const ids = new Set(turnSpecialFeatureIds)
+    for (const row of personalTurnFeatures) ids.add(row.id)
+    return ids
+  }, [personalTurnFeatures])
+
   const deskCombatFeatures = combatFeatures.filter(
     (row) =>
       row.desk === 'combat' &&
@@ -1285,6 +1418,8 @@ export function PlayDeskAttacksCompact({
             hasSteadyAim={combatFeatures.some((f) => f.id === 'steady_aim')}
             hasKiFueledAttack={combatFeatures.some((f) => f.id === 'ki_fueled_attack')}
             hasUncannyDodge={combatFeatures.some((f) => f.id === 'uncanny_dodge')}
+            personalFeatures={personalTurnFeatures}
+            personalSpells={personalTurnSpells}
             secondWind={
               secondWindPool && (secondWindFeature || secondWindPool)
                 ? {

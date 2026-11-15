@@ -544,16 +544,32 @@
   display: inline-block;
 }
 
-/* CMB-02: три кнопки хода в одну строку; чипы переносятся без обрезки */
+/* FIX-01 / CMB-02: строка хода на 390 — перенос или сжатие, без обрезки текста */
 .play-desk--mobile .play-desk-turn-actions__tabs {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 4px;
 }
 
 .play-desk--mobile .play-desk-turn-actions__tab {
+  flex: 1 1 calc(33.33% - 4px);
+  min-width: 5.2rem;
   min-height: 44px;
-  padding: 6px 8px;
+  padding: 8px 12px;
   font-size: 0.78rem;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.play-desk--mobile .play-desk-turn-actions__mark {
+  flex: 1 1 calc(50% - 4px);
+  min-width: 6.5rem;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 0.76rem;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
 }
 
 .play-desk--mobile .play-desk-turn-actions__chips {

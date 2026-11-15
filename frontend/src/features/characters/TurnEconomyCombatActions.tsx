@@ -233,6 +233,30 @@ type Props = {
     max: number
     onSpend: () => void
   } | null
+  /**
+   * FIX-01: character features/spells for this action type — shown first in the
+   * expanded panel (before common PHB actions). Timing from feature.kind /
+   * casting_time.
+   */
+  personalFeatures?: Array<{
+    id: string
+    nameRu: string
+    summaryRu: string
+    group: TurnActionGroupId
+    remaining?: number | null
+    max?: number | null
+    disabled?: boolean
+    disabledReason?: string
+    onUse: () => void
+  }>
+  personalSpells?: Array<{
+    id: string
+    name: string
+    group: TurnActionGroupId
+    disabled?: boolean
+    disabledReason?: string
+    onUse: () => void
+  }>
   className?: string
   /**
    * CMB-02: grouped UI is the only face. Legacy modes kept for call-site compat:
@@ -311,6 +335,8 @@ export function TurnEconomyCombatActions({
   onToast,
   secondWind = null,
   actionSurge = null,
+  personalFeatures = [],
+  personalSpells = [],
   className = '',
   mode = 'all',
 }: Props) {
@@ -413,6 +439,8 @@ export function TurnEconomyCombatActions({
   const actionSpent = teState.action
   const bonusSpent = teState.bonus
   const reactionSpent = teState.reaction
+  const markSpent = (group: TurnActionGroupId) =>
+    group === 'action' ? actionSpent : group === 'bonus' ? bonusSpent : reactionSpent
 
   const toggleGroup = (group: TurnActionGroupId) => {
     setOpenGroup((prev) => (prev === group ? null : group))
@@ -435,6 +463,144 @@ export function TurnEconomyCombatActions({
   ) => {
     if (!node) return
     chips.push({ key, groups, tier, node })
+  }
+
+  // —— FIX-01: PHB «Атака» / «Заклинание» + character features/spells first ——
+  push(
+    'attack_action',
+    ['action'],
+    'personal',
+    <button
+      key="attack_action"
+      type="button"
+      className={`sheet-chip${actionSpent ? ' is-spent' : ''}`}
+      disabled={!attackGate.ok}
+      title={
+        attackGate.ok
+          ? 'Действие «Атака» · отметь ход и бросай оружие ниже'
+          : attackGate.reason
+      }
+      onClick={() => {
+        if (!turnEco.canAttack().ok) return
+        turnEco.spendAttack()
+        onToast?.('Атака: действие · бросок оружия ниже')
+      }}
+    >
+      {actionSpent ? (
+        <span className="sheet-chip__check" aria-hidden>
+          ✓
+        </span>
+      ) : null}
+      Атака
+    </button>,
+  )
+  push(
+    'cast_spell_action',
+    ['action'],
+    'personal',
+    <button
+      key="cast_spell_action"
+      type="button"
+      className={`sheet-chip${actionSpent ? ' is-spent' : ''}`}
+      disabled={!actionGate.ok}
+      title={
+        actionGate.ok
+          ? 'Действие «Заклинание» · кастуй из колонки «Заклинания»'
+          : actionGate.reason
+      }
+      onClick={() => {
+        if (!turnEco.canFeature('action').ok) return
+        turnEco.spendFeature('action')
+        onToast?.('Заклинание: действие · кастуй из колонки «Заклинания»')
+      }}
+    >
+      {actionSpent ? (
+        <span className="sheet-chip__check" aria-hidden>
+          ✓
+        </span>
+      ) : null}
+      Заклинание
+    </button>,
+  )
+
+  for (const feat of personalFeatures) {
+    const spent = markSpent(feat.group)
+    const empty =
+      typeof feat.remaining === 'number' &&
+      typeof feat.max === 'number' &&
+      feat.max > 0 &&
+      feat.remaining <= 0
+    const blocked = Boolean(feat.disabled) || empty || spent
+    push(
+      `feat:${feat.id}`,
+      [feat.group],
+      'personal',
+      <button
+        key={`feat:${feat.id}`}
+        type="button"
+        className={`sheet-chip${spent || empty ? ' is-spent' : ''}`}
+        disabled={blocked}
+        title={
+          empty
+            ? `${feat.nameRu}: нет использований`
+            : feat.disabled
+              ? feat.disabledReason || feat.summaryRu
+              : spent
+                ? `${feat.nameRu}: отметка «${TURN_GROUP_LABELS[feat.group]}» уже стоит`
+                : feat.summaryRu || feat.nameRu
+        }
+        onClick={() => {
+          if (blocked) return
+          feat.onUse()
+        }}
+      >
+        {spent || empty ? (
+          <span className="sheet-chip__check" aria-hidden>
+            ✓
+          </span>
+        ) : null}
+        {feat.nameRu}
+        {typeof feat.remaining === 'number' && typeof feat.max === 'number' && feat.max > 0 ? (
+          <span className="play-desk-turn-actions__charges" aria-hidden>
+            {feat.remaining}/{feat.max}
+          </span>
+        ) : null}
+      </button>,
+    )
+  }
+
+  for (const sp of personalSpells) {
+    const spent = markSpent(sp.group)
+    const blocked = Boolean(sp.disabled) || spent
+    push(
+      `spell:${sp.id}`,
+      [sp.group],
+      'personal',
+      <button
+        key={`spell:${sp.id}`}
+        type="button"
+        className={`sheet-chip${spent ? ' is-spent' : ''}`}
+        disabled={blocked}
+        title={
+          sp.disabled
+            ? sp.disabledReason || sp.name
+            : spent
+              ? `${sp.name}: отметка «${TURN_GROUP_LABELS[sp.group]}» уже стоит`
+              : `Заклинание «${sp.name}» · ${TURN_GROUP_LABELS[sp.group]}`
+        }
+        onClick={() => {
+          if (blocked) return
+          sp.onUse()
+        }}
+      >
+        {spent ? (
+          <span className="sheet-chip__check" aria-hidden>
+            ✓
+          </span>
+        ) : null}
+        {sp.name}
+      </button>,
+    )
   }
 
   // —— Bonus only: Cunning Action (PHB bonus; common Dash/Disengage/Hide stay in Действие) ——
