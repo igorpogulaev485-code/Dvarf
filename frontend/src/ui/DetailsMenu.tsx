@@ -73,6 +73,12 @@ export function DetailsMenu({
     }
   }, [open])
 
+  const closeMenu = () => {
+    const root = rootRef.current
+    if (root?.open) root.open = false
+    setOpen(false)
+  }
+
   const panel =
     open && coords && typeof document !== 'undefined'
       ? createPortal(
@@ -84,7 +90,14 @@ export function DetailsMenu({
               minWidth: coords.minWidth,
             }}
             onMouseDown={(event) => event.stopPropagation()}
-            onClick={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation()
+              // Выбор пункта закрывает меню — иначе портал остаётся поверх модалки.
+              const target = event.target as HTMLElement | null
+              if (target?.closest('button:not(:disabled), a[href], [data-menu-close]')) {
+                closeMenu()
+              }
+            }}
           >
             {children}
           </div>,

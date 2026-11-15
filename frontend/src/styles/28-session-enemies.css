@@ -66,21 +66,65 @@
   flex: 0 0 auto;
 }
 
+/* «Ещё»: список кита — одна строка = один пункт, группы с подзаголовком */
+.session-toolbar-more__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: min(100vw - 24px, 17.5rem);
+  max-width: min(100vw - 16px, 22rem);
+  max-height: min(70vh, 28rem);
+  overflow: auto;
+  padding: 10px;
+}
+
 .session-toolbar-more__body .session-toolbar-group,
-.ui-menu__panel .session-toolbar-group {
+.ui-menu__panel.session-toolbar-more__body .session-toolbar-group {
   border: none;
   background: transparent;
   padding: 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 4px;
+  align-items: stretch;
 }
 
-.session-toolbar-more__desk-note {
+.session-toolbar-more__body .session-toolbar-group__caption {
   display: block;
-  margin: 0 0 8px;
-  font-size: 0.86rem;
+  width: 100%;
+  margin: 0 0 2px;
+  padding: 0 6px;
+}
+
+.session-toolbar-more__body .ui-button {
+  width: 100%;
+  min-height: 44px;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.session-toolbar-more__body .ui-button.session-toolbar-more__item {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 12px;
+}
+
+.session-toolbar-more__item-label {
+  font-weight: 600;
+}
+
+.session-toolbar-more__item-why {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.25;
+}
+
+.session-toolbar-more__body .ui-button.session-toolbar-more__item:disabled .session-toolbar-more__item-why {
+  color: color-mix(in srgb, var(--muted) 85%, var(--ink));
 }
 
 .session-toolbar-group--mvp {

@@ -38,15 +38,20 @@ assert.match(primaryBlock, /variant="primary"[\s\S]*?>\s*Бой\s*</)
 assert.match(primaryBlock, /Следующий ход/)
 assert.doesNotMatch(primaryBlock, /\+ Враги/)
 
-// Ещё — враги + награды
+// Ещё — группы Бой / Награды / Сюжет, список пунктов
 const moreStart = page.indexOf('data-sc05-more')
 assert.ok(moreStart >= 0)
-const moreBlock = page.slice(moreStart, moreStart + 6000)
-assert.match(moreBlock, /\+ Враги/)
+const moreBlock = page.slice(moreStart, moreStart + 9000)
+assert.match(moreBlock, /Бой/)
 assert.match(moreBlock, /Награды/)
-assert.match(moreBlock, />\s*Опыт\s*</)
-assert.match(moreBlock, />\s*Добыча\s*</)
-assert.match(moreBlock, />\s*Выдать\s*</)
+assert.match(moreBlock, /Сюжет/)
+assert.match(moreBlock, /label="\+ Враги"/)
+assert.match(moreBlock, /label="Награды"/)
+assert.match(moreBlock, /label="Опыт"/)
+assert.match(moreBlock, /label="Добыча"/)
+assert.match(moreBlock, /label="Выдать"/)
+assert.doesNotMatch(moreBlock, /Генератор и вики удобнее с компьютера/)
+assert.match(moreBlock, /session-toolbar-more__item-why|why=\{/)
 
 // LOBBY-FIX visual 4: служебная плашка убрана
 assert.doesNotMatch(page, /С телефона — бой и враги/)
@@ -68,10 +73,13 @@ assert.match(enemies, /ui-menu/)
 const tokens = read('src/styles/01-tokens-base.css')
 assert.match(tokens, /\.ui-menu__summary\s*\{[\s\S]*?min-height:\s*var\(--control-h-lg\)/)
 assert.match(tokens, /\.ui-menu__panel\s*\{[\s\S]*?position:\s*absolute/)
+assert.match(tokens, /\.ui-menu__panel--portal[\s\S]*?z-index:\s*70/)
 
 const menu = read('src/ui/DetailsMenu.tsx')
 assert.match(menu, /export function DetailsMenu/)
 assert.match(menu, /ui-menu__panel/)
+assert.match(menu, /closeMenu/)
+assert.match(menu, /button:not\(:disabled\)/)
 
 const journal = read('src/styles/27-session-journal-notes.css')
 assert.match(

@@ -603,12 +603,12 @@ a.ui-button--primary {
   box-sizing: border-box;
 }
 
-/* Portaled panel — above sticky scene toolbars / desk chrome */
+/* Portaled panel — above sticky toolbars, ниже модалок (.ui-dialog-backdrop: 80) */
 .ui-menu__panel--portal {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 90;
+  z-index: 70;
   margin: 0;
 }
 
