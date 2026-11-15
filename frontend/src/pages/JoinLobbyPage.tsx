@@ -7,8 +7,10 @@ import {
   normalizeStartRules,
   summarizeStartRules,
 } from '../features/lobby/campaignRules'
+import { getMe } from '../shared/api/auth'
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError, getAccessToken } from '../shared/api/client'
+import { JoinIntroCard, useOnboardingState } from '../features/onboarding'
 import {
   createHeroForLobbyHref,
   getLobbyInviteMeta,
@@ -45,6 +47,8 @@ export function JoinLobbyPage() {
   const [code, setCode] = useState(initialCode)
   const [characters, setCharacters] = useState<CharacterSummary[]>([])
   const [characterId, setCharacterId] = useState('')
+  const [userId, setUserId] = useState<string | null>(null)
+  const onboarding = useOnboardingState(userId)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -80,6 +84,13 @@ export function JoinLobbyPage() {
       return
     }
     let active = true
+    void getMe()
+      .then((me) => {
+        if (active) setUserId(me.id)
+      })
+      .catch(() => {
+        if (active) setUserId(null)
+      })
     listCharacters()
       .then((items) => {
         if (!active) return
@@ -236,7 +247,8 @@ export function JoinLobbyPage() {
           {loading ? (
             <Text tone="muted">Загрузка…</Text>
           ) : (
-            <Stack gap={16} data-onboarding="lobby-join">
+            <div data-onboarding="lobby-join">
+            <Stack gap={16}>
               <Field label="Код лобби">
                 <Input
                   className="join-flow__code"
@@ -453,11 +465,17 @@ export function JoinLobbyPage() {
 
               {error ? <Text tone="danger">{error}</Text> : null}
             </Stack>
+            </div>
           )}
         </Panel>
 
         <AppLegalFooter />
       </Stack>
+
+      <JoinIntroCard
+        enabled={!loading && onboarding.showJoinIntro}
+        onDismiss={() => onboarding.markJoinIntroDone()}
+      />
     </main>
   )
 }

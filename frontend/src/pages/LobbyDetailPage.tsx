@@ -32,8 +32,10 @@ import {
   type VisibilityProfile,
 } from '../features/lobby/visibilityProfile'
 import { chatsBadge, type ChatsBadge } from '../shared/api/chat'
+import { getMe } from '../shared/api/auth'
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
+import { HelpDrawer, LobbyTour, useOnboardingState } from '../features/onboarding'
 import { exportNotes, type Note } from '../shared/api/notes'
 import {
   createJournalEntry,
@@ -81,6 +83,9 @@ export function LobbyDetailPage() {
   const location = useLocation()
   const [lobby, setLobby] = useState<LobbyDetail | null>(null)
   const [characters, setCharacters] = useState<CharacterSummary[]>([])
+  const [userId, setUserId] = useState<string | null>(null)
+  const onboarding = useOnboardingState(userId)
+  const [helpOpen, setHelpOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(
@@ -139,6 +144,20 @@ export function LobbyDetailPage() {
     // LOBBY-FIX C: все из состава уже отмечены за столом
     setSessionPresentIds(new Set(detail.members.map((m) => m.character_id)))
   }, [lobbyId])
+
+  useEffect(() => {
+    let active = true
+    void getMe()
+      .then((me) => {
+        if (active) setUserId(me.id)
+      })
+      .catch(() => {
+        if (active) setUserId(null)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
     if (!lobbyId) return
@@ -336,8 +355,23 @@ export function LobbyDetailPage() {
               ← Все лобби
             </Link>
           </Text>
+          <Button
+            type="button"
+            variant="ghost"
+            size="lg"
+            data-onboarding="lobby-help"
+            onClick={() => {
+              onboarding.markHelpOpened()
+              setHelpOpen(true)
+            }}
+          >
+            Справка
+          </Button>
           {lobby.invite_code ? (
-            <div className={`lobby-hub-invite-acc${inviteOpen ? ' is-open' : ''}`}>
+            <div
+              className={`lobby-hub-invite-acc${inviteOpen ? ' is-open' : ''}`}
+              data-onboarding="lobby-invite"
+            >
               <button
                 type="button"
                 className="lobby-hub-invite-acc__toggle"
@@ -414,6 +448,7 @@ export function LobbyDetailPage() {
 
         {tab === 'roster' ? (
           <Panel title="Состав кампании">
+            <div data-onboarding="lobby-roster">
             <Stack gap={12}>
               <Text tone="muted">
                 Карточки состава. Полные статы — за столом. Вход только по коду / QR со своего
@@ -487,6 +522,7 @@ export function LobbyDetailPage() {
                 }
               />
             </Stack>
+            </div>
           </Panel>
         ) : null}
 
@@ -1127,6 +1163,24 @@ export function LobbyDetailPage() {
       />
 
       <Toast message={toast} onClose={() => setToast(null)} />
+
+      <LobbyTour
+        open={Boolean(lobby && canRun && onboarding.showLobbyTour && onboarding.hydrated)}
+        isMaster
+        surface="hub"
+        seenSteps={onboarding.state.lobbyTourSeenSteps}
+        onStepSeen={(id) => onboarding.markLobbyTourStep(id)}
+        onComplete={() => onboarding.completeLobbyTour()}
+        onSkip={() => onboarding.skipLobbyTour()}
+      />
+      <HelpDrawer
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        onRestartTips={() => {
+          onboarding.restartTips()
+          setHelpOpen(false)
+        }}
+      />
     </main>
   )
 }

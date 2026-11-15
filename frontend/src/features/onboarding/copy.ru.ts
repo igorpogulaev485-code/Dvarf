@@ -73,42 +73,98 @@ export const HELP_DRAWER = {
   ],
   restartTips: 'Показать подсказки снова',
   restartTipsHint:
-    'Снова пройдём короткий тур листа, карточки сцен и, когда сядете за стол, тур лобби. Сегмент сохранится, если вы его уже выбирали.',
+    'Снова пройдём короткий тур листа, карточки сцен, подсказку на /join и тур лобби (мастер и игрок). Сегмент сохранится, если вы его уже выбирали.',
   termsTitle: 'Короткие термины',
   close: 'Закрыть',
 }
 
+/** LOBBY-TOUR — master (hub→session) and player (after seat). Labels match UI. */
 export const LOBBY_TOUR = {
-  player: [
+  master: [
     {
-      id: 'seat' as const,
-      anchor: 'lobby-seat',
-      title: 'Как сесть за стол',
+      id: 'invite' as const,
+      surface: 'hub' as const,
+      anchor: 'lobby-invite',
+      title: 'Приглашение',
       body:
-        'Входите по коду или QR от мастера, затем нажмите «Сесть за стол» со своим героем. Без посадки вы наблюдатель.',
+        'Блок «Приглашение»: код комнаты, ссылка и QR — так игроки входят через /join и садятся за стол.',
     },
     {
-      id: 'combat_view' as const,
-      anchor: 'lobby-your-turn',
-      title: 'Что видно в бою',
+      id: 'roster' as const,
+      surface: 'hub' as const,
+      anchor: 'lobby-roster',
+      title: 'Состав',
       body:
-        'Когда ваш ход — плашка «Твой ход» и своя карточка. Слева (на телефоне — во вкладках) узкая инициатива: кто сейчас ходит.',
+        '«Состав кампании» — герои за лобби. Уровень и хиты мастеру всегда цифрами; «Лист» открывает полный лист героя.',
     },
     {
-      id: 'turn_economy' as const,
-      anchor: 'lobby-turn-chips',
-      title: 'Экономика хода',
+      id: 'live_tabs' as const,
+      surface: 'session' as const,
+      anchor: 'lobby-live-tabs',
+      title: 'Живой стол',
       body:
-        'На своей карточке отметьте действие, бонусное, реакцию и движение, когда потратили. Есть и другие жесты (Помощь…), полный список — позже в базе знаний.',
+        'Вкладки «Стол», «Лента» и «Заметки»: очередь и карточки, события боя, быстрые заметки. На широком экране те же зоны — слева, в центре и справа.',
+      bodyNarrow:
+        'Вкладки «Стол», «Лента» и «Заметки»: нажми нужную — очередь с карточками, лента событий или заметки.',
+    },
+    {
+      id: 'combat' as const,
+      surface: 'session' as const,
+      anchor: 'lobby-combat',
+      title: 'Бой',
+      body:
+        'Кнопка «Бой» запускает встречу. В бою — «Бросить за оставшихся» для инициативы, «Следующий ход», урон и лечение с карточек за столом.',
+    },
+    {
+      id: 'more_help' as const,
+      surface: 'session' as const,
+      anchor: 'lobby-more',
+      title: '«Ещё» и награды',
+      body:
+        '«Ещё»: «+ Враги», «Состояние», отдых и «Награды» (опыт и добыча) после боя. «Справка» в шапке стола — карта продукта и «Показать подсказки снова».',
     },
   ],
-  master: {
-    id: 'master_desk' as const,
-    anchor: 'lobby-master-toolbar',
-    title: 'Вы ведёте стол',
-    body:
-      'Стол удобнее с компьютера: отметки хода игроков и награды — в панели мастера. Лута и генератора встреч в мобильном MVP нет — это не про первые две минуты.',
-  },
+  player: [
+    {
+      id: 'table' as const,
+      surface: 'session' as const,
+      anchor: 'lobby-own-card',
+      title: 'Стол',
+      body:
+        'Здесь очередь хода и карточка твоего героя. Кнопка «Лист» открывает полный лист персонажа.',
+    },
+    {
+      id: 'your_turn' as const,
+      surface: 'session' as const,
+      anchor: 'lobby-own-card',
+      title: 'Твой ход',
+      body:
+        'Когда ход твой, карточка подсвечена плашкой «Твой ход» — действуй с листа или отметь жесты на карточке.',
+    },
+    {
+      id: 'reaction' as const,
+      surface: 'session' as const,
+      anchor: 'lobby-own-card',
+      title: 'Реакция',
+      body:
+        'После урона спросят про реакцию: «Нет реакции» или подожди — окно закроется само.',
+    },
+    {
+      id: 'rewards' as const,
+      surface: 'session' as const,
+      anchor: 'lobby-own-card',
+      title: 'Опыт и добыча',
+      body:
+        'После боя мастер выдаёт награды из «Награды». Тебе придёт уведомление «+N опыта».',
+    },
+  ],
+}
+
+/** One-shot card on /join before seating (not a multi-step tour). */
+export const JOIN_INTRO = {
+  title: 'Что здесь',
+  body:
+    'Введите код лобби, выберите героя и нажмите «Сесть за стол» — мастер увидит персонажа в составе.',
 }
 
 export const TERMS: Array<{ term: string; meaning: string }> = [

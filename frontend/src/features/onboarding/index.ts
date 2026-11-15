@@ -1,5 +1,6 @@
 export { CharacterReadyDialog } from './CharacterReadyDialog'
 export { HelpDrawer } from './HelpDrawer'
+export { JoinIntroCard } from './JoinIntroCard'
 export { LobbyTour } from './LobbyTour'
 export { OnboardingChecklist } from './OnboardingChecklist'
 export { SceneIntroCard } from './SceneIntroCard'
@@ -11,6 +12,8 @@ export { useOnboardingState } from './useOnboardingState'
 export {
   CREATE_HINT_VERSION,
   defaultOnboardingState,
+  type LobbyTourStepId,
+  type LobbyTourSurface,
   type OnboardingPanelId,
   type OnboardingSegment,
   type OnboardingServerPayload,
@@ -33,18 +36,21 @@ export {
   shouldRunLobbyTour,
   shouldRunSheetTour,
   shouldShowCreateHints,
+  shouldShowJoinIntro,
   shouldShowSceneIntros,
 } from './storage'
 export {
   ensureCombatTourSurface,
+  ensureLobbyTourSurface,
   hasVisibleOnboardingAnchor,
   isElementVisible,
   queryVisibleAnchor,
   queryVisibleAnchors,
+  resolveLobbyTourAnchor,
   resolveSheetTourAnchor,
   unionVisibleRects,
 } from './anchors'
-export { SCENE_INTRO, TOUR_STEPS } from './copy.ru'
+export { JOIN_INTRO, LOBBY_TOUR, SCENE_INTRO, TOUR_STEPS } from './copy.ru'
 export { EDITION_HINT, EMPTY_CHARACTERS, PANEL_HELP } from './copy.ru'
 export {
   ABILITY_TIPS,

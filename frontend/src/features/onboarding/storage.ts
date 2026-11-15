@@ -2,6 +2,7 @@ import {
   CREATE_HINT_VERSION,
   defaultOnboardingState,
   ONBOARDING_STORAGE_KEY,
+  type LobbyTourStepId,
   type OnboardingPanelId,
   type OnboardingSegment,
   type OnboardingServerPayload,
@@ -21,8 +22,24 @@ function isPanelId(value: unknown): value is OnboardingPanelId {
 
 const SCENE_INTRO_IDS: SceneIntroId[] = ['explore', 'social', 'features', 'companions']
 
+const LOBBY_TOUR_STEP_IDS: LobbyTourStepId[] = [
+  'invite',
+  'roster',
+  'live_tabs',
+  'combat',
+  'more_help',
+  'table',
+  'your_turn',
+  'reaction',
+  'rewards',
+]
+
 function isSceneIntroId(value: unknown): value is SceneIntroId {
   return typeof value === 'string' && (SCENE_INTRO_IDS as string[]).includes(value)
+}
+
+function isLobbyTourStepId(value: unknown): value is LobbyTourStepId {
+  return typeof value === 'string' && (LOBBY_TOUR_STEP_IDS as string[]).includes(value)
 }
 
 export function isSegment(value: unknown): value is OnboardingSegment {
@@ -54,6 +71,10 @@ export function loadOnboardingState(userId?: string | null): OnboardingState {
       pendingReadyBridge: Boolean(parsed.pendingReadyBridge),
       pendingSheetTour: Boolean(parsed.pendingSheetTour),
       pendingLobbyTour: Boolean(parsed.pendingLobbyTour),
+      lobbyTourSeenSteps: Array.isArray(parsed.lobbyTourSeenSteps)
+        ? parsed.lobbyTourSeenSteps.filter(isLobbyTourStepId)
+        : [],
+      joinIntroDone: Boolean(parsed.joinIntroDone),
     }
   } catch {
     return defaultOnboardingState()
@@ -88,6 +109,10 @@ export function mergeOnboardingState(
   const lobbyTourDone = primary.lobbyTourDone || secondary.lobbyTourDone
   const dismissed = new Set([...primary.dismissedPanelHelp, ...secondary.dismissedPanelHelp])
   const seenScenes = new Set([...primary.seenSceneIntros, ...secondary.seenSceneIntros])
+  const seenLobbySteps = new Set([
+    ...primary.lobbyTourSeenSteps,
+    ...secondary.lobbyTourSeenSteps,
+  ])
   return {
     version: 1,
     segment: primary.segment ?? secondary.segment,
@@ -104,6 +129,8 @@ export function mergeOnboardingState(
       !sheetTourDone && (primary.pendingSheetTour || secondary.pendingSheetTour),
     pendingLobbyTour:
       !lobbyTourDone && (primary.pendingLobbyTour || secondary.pendingLobbyTour),
+    lobbyTourSeenSteps: lobbyTourDone ? [] : Array.from(seenLobbySteps),
+    joinIntroDone: primary.joinIntroDone || secondary.joinIntroDone,
   }
 }
 
@@ -126,8 +153,10 @@ export function loadOnboardingStateForUser(userId?: string | null): OnboardingSt
     anon.pendingSheetTour === anonDefault.pendingSheetTour &&
     anon.pendingLobbyTour === anonDefault.pendingLobbyTour &&
     anon.helpOpened === anonDefault.helpOpened &&
+    anon.joinIntroDone === anonDefault.joinIntroDone &&
     anon.dismissedPanelHelp.length === 0 &&
-    anon.seenSceneIntros.length === 0
+    anon.seenSceneIntros.length === 0 &&
+    anon.lobbyTourSeenSteps.length === 0
   if (anonUntouched) return named
   const merged = mergeOnboardingState(named, anon)
   saveOnboardingState(merged, userId)
@@ -208,6 +237,7 @@ export function applyServerOnboarding(
       pendingReadyBridge: !sheetTourDone && local.pendingReadyBridge,
       pendingSheetTour: !sheetTourDone && local.pendingSheetTour,
       pendingLobbyTour: !lobbyTourDone && local.pendingLobbyTour,
+      lobbyTourSeenSteps: lobbyTourDone ? [] : local.lobbyTourSeenSteps,
     },
     shouldUpload: false,
   }
@@ -227,12 +257,21 @@ export function restartTipsState(prev: OnboardingState): OnboardingState {
     pendingLobbyTour: true,
     createHintVersion: 0,
     seenSceneIntros: [],
+    lobbyTourSeenSteps: [],
+    joinIntroDone: false,
   }
 }
 
 /** First-visit scene cards: dnd_new + product_new only; skip never. */
 export function shouldShowSceneIntros(state: OnboardingState): boolean {
   if (state.segment === 'skip' || state.segment == null) return false
+  return state.segment === 'dnd_new' || state.segment === 'product_new'
+}
+
+/** /join «что здесь»: same segments; once until restart tips. */
+export function shouldShowJoinIntro(state: OnboardingState): boolean {
+  if (state.segment === 'skip' || state.segment == null) return false
+  if (state.joinIntroDone) return false
   return state.segment === 'dnd_new' || state.segment === 'product_new'
 }
 

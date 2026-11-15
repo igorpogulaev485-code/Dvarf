@@ -18,7 +18,7 @@ export function SessionLiveTabs({ active, onChange, moreBadge = 0 }: Props) {
     <nav
       className="session-live-tabs"
       aria-label="Живой стол"
-      data-onboarding="lobby-mobile-tabs"
+      data-onboarding="lobby-live-tabs"
     >
       <div className="session-live-tabs__scroll">
         {TABS.map((tab) => (
