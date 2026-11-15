@@ -71,3 +71,38 @@ class WorldImportJobOut(BaseModel):
     source_ref: str | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class WorldVaultFileIn(BaseModel):
+    """Один файл хранилища: относительный путь + текст."""
+
+    path: str = Field(..., min_length=1, max_length=512)
+    content: str = Field(..., max_length=2_000_000)
+
+
+class WorldVaultParseRequest(BaseModel):
+    """JSON-заливка набора файлов в уже созданное задание."""
+
+    rules_edition: str | None = Field(default=None, max_length=16)
+    files: list[WorldVaultFileIn] = Field(default_factory=list)
+
+
+class WorldImportDraftItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    job_id: UUID
+    item_type: str
+    source_key: str
+    status: str
+    proposal: dict
+    created_at: datetime
+    updated_at: datetime
+
+
+class WorldVaultParseResultOut(BaseModel):
+    job: WorldImportJobOut
+    items: list[WorldImportDraftItemOut]
+    skipped: list[dict[str, str]] = Field(default_factory=list)
+    created_count: int = 0
+    updated_count: int = 0

@@ -1,21 +1,26 @@
-"""W-API-01: эндпоинты токенов и заданий импорта мира (отдельный роутер)."""
+"""W-API-01/02: эндпоинты токенов, заданий и разбора хранилища (отдельный роутер)."""
 
 from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Header
+from fastapi import APIRouter, File, Form, Header, UploadFile
 
 from app.api.deps import CurrentUser, DbSession
+from app.core.exceptions import AppError
 from app.schemas.world_import import (
     WorldApiTokenCreated,
     WorldApiTokenCreateRequest,
     WorldApiTokenOut,
     WorldImportCreateRequest,
+    WorldImportDraftItemOut,
     WorldImportJobOut,
+    WorldVaultParseRequest,
+    WorldVaultParseResultOut,
 )
 from app.services.world_api_tokens import WorldApiTokenService
 from app.services.world_import import WorldImportService
+from app.services.world_vault_parse import MAX_ZIP_BYTES
 
 router = APIRouter(tags=["world-imports"])
 
@@ -105,3 +110,63 @@ def get_world_import(
     db: DbSession,
 ) -> WorldImportJobOut:
     return WorldImportService(db).get_job(current_user, setting_id, job_id)
+
+
+@router.get(
+    "/settings/{setting_id}/world-imports/{job_id}/draft-items",
+    response_model=list[WorldImportDraftItemOut],
+)
+def list_world_import_draft_items(
+    setting_id: UUID,
+    job_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> list[WorldImportDraftItemOut]:
+    return WorldImportService(db).list_draft_items(current_user, setting_id, job_id)
+
+
+@router.post(
+    "/settings/{setting_id}/world-imports/{job_id}/vault",
+    response_model=WorldVaultParseResultOut,
+)
+def parse_world_import_vault_json(
+    setting_id: UUID,
+    job_id: UUID,
+    payload: WorldVaultParseRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> WorldVaultParseResultOut:
+    """Разбор набора {path, content} в строки черновика (без записи в вики)."""
+    return WorldImportService(db).ingest_vault_files(
+        current_user, setting_id, job_id, payload
+    )
+
+
+@router.post(
+    "/settings/{setting_id}/world-imports/{job_id}/vault-zip",
+    response_model=WorldVaultParseResultOut,
+)
+async def parse_world_import_vault_zip(
+    setting_id: UUID,
+    job_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+    file: UploadFile = File(...),
+    rules_edition: str | None = Form(default=None),
+) -> WorldVaultParseResultOut:
+    """Разбор zip-хранилища в строки черновика сверки."""
+    data = await file.read()
+    if len(data) > MAX_ZIP_BYTES:
+        raise AppError(
+            "Архив слишком большой",
+            code="file_too_large",
+            status_code=400,
+            data={"hint": f"Zip не больше {MAX_ZIP_BYTES} байт"},
+        )
+    return WorldImportService(db).ingest_vault_zip(
+        current_user,
+        setting_id,
+        job_id,
+        data,
+        rules_edition=rules_edition,
+    )

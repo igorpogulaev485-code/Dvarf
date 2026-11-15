@@ -1,0 +1,17 @@
+{
+  "success": true,
+  "request_id": "fake-fixture-wapi02",
+  "data": {
+    "title": "Короткий фейк структуры Qwen",
+    "chat": {
+      "history": {
+        "messages": {
+          "msg-1": {
+            "role": "assistant",
+            "content": "Это урезанная фикстура для теста: сырой чат не должен стать карточкой мира."
+          }
+        }
+      }
+    }
+  }
+}
