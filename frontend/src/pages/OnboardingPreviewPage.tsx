@@ -17,6 +17,7 @@ import {
   EMPTY_CHARACTERS,
   panelExplain,
 } from '../features/onboarding'
+import type { LobbyTourStepId } from '../features/onboarding'
 import type { CreatePipelineStepId } from '../features/createPipeline/createPipelineTypes'
 import { Button, EmptyState, Panel, Stack, Text } from '../ui'
 
@@ -57,6 +58,7 @@ export function OnboardingPreviewPage() {
   const [helpOpenOverride, setHelpOpenOverride] = useState(true)
   const [welcomeOpen, setWelcomeOpen] = useState(true)
   const [restartArmed, setRestartArmed] = useState(false)
+  const [lobbySeen, setLobbySeen] = useState<LobbyTourStepId[]>([])
 
   const setScene = (next: Scene) => {
     const nextParams: Record<string, string> = {}
@@ -299,14 +301,35 @@ export function OnboardingPreviewPage() {
               </div>
               <div
                 className="onboarding-preview__anchor onboarding-preview__desk-modes"
-                data-onboarding="lobby-mobile-tabs"
+                data-onboarding="lobby-live-tabs"
               >
                 Стол · Лента · Заметки
+              </div>
+              <div className="onboarding-preview__anchor" data-onboarding="lobby-own-card">
+                Карточка героя · Лист
+              </div>
+              <div className="onboarding-preview__anchor" data-onboarding="lobby-invite">
+                Приглашение · код · QR
+              </div>
+              <div className="onboarding-preview__anchor" data-onboarding="lobby-roster">
+                Состав кампании
+              </div>
+              <div className="onboarding-preview__anchor" data-onboarding="lobby-combat">
+                Бой · Следующий ход
+              </div>
+              <div className="onboarding-preview__anchor" data-onboarding="lobby-more">
+                Ещё
+              </div>
+              <div className="onboarding-preview__anchor" data-onboarding="lobby-help">
+                Справка
               </div>
             </div>
             <LobbyTour
               open
               isMaster={false}
+              surface="session"
+              seenSteps={lobbySeen}
+              onStepSeen={(id) => setLobbySeen((prev) => (prev.includes(id) ? prev : [...prev, id]))}
               onComplete={() => setScene('checklist')}
               onSkip={() => setScene('checklist')}
             />

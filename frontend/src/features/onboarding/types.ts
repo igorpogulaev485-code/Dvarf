@@ -31,11 +31,19 @@ export type SheetTourStepId =
 /** First-visit «что здесь» cards for non-combat scenes (TOUR-01). */
 export type SceneIntroId = 'explore' | 'social' | 'features' | 'companions'
 
+/** LOBBY-TOUR: master hub/session + player session steps. */
 export type LobbyTourStepId =
-  | 'seat'
-  | 'combat_view'
-  | 'turn_economy'
-  | 'master_desk'
+  | 'invite'
+  | 'roster'
+  | 'live_tabs'
+  | 'combat'
+  | 'more_help'
+  | 'table'
+  | 'your_turn'
+  | 'reaction'
+  | 'rewards'
+
+export type LobbyTourSurface = 'hub' | 'session'
 
 /** Durable flags mirrored to users.onboarding (ONB-03). */
 export type OnboardingServerPayload = {
@@ -65,6 +73,10 @@ export type OnboardingState = {
   pendingSheetTour: boolean
   /** After «Показать снова» — run lobby tour on next table visit. Local-only arm. */
   pendingLobbyTour: boolean
+  /** Completed LOBBY-TOUR step ids this run (local; multi-page hub→session). */
+  lobbyTourSeenSteps: LobbyTourStepId[]
+  /** /join «что здесь» card dismissed (local; reset with restart tips). */
+  joinIntroDone: boolean
 }
 
 export const ONBOARDING_STORAGE_KEY = 'creed20.onboarding.v1'
@@ -84,6 +96,8 @@ export function defaultOnboardingState(): OnboardingState {
     pendingReadyBridge: false,
     pendingSheetTour: false,
     pendingLobbyTour: false,
+    lobbyTourSeenSteps: [],
+    joinIntroDone: false,
   }
 }
 

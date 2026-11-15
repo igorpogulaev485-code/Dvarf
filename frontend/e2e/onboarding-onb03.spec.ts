@@ -37,7 +37,7 @@ test.describe('ONB-03 lobby tour preview', () => {
 
     if (testInfo.project.name.includes('mobile')) {
       const card = page.locator('.onboarding-coach__card')
-      const tabs = page.locator('[data-onboarding="lobby-mobile-tabs"]')
+      const tabs = page.locator('[data-onboarding="lobby-live-tabs"]')
       await expect(card).toBeVisible()
       const cardBox = await card.boundingBox()
       const tabsBox = await tabs.boundingBox()
