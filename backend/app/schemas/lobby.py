@@ -1652,7 +1652,7 @@ class CombatantCreateRequest(BaseModel):
     count: int = Field(default=1, ge=1, le=20)
     actions: list[CombatantActionOut] = Field(default_factory=list)
     xp: int | None = Field(default=None, ge=0, le=10_000_000)
-    """ПО (CR) для своего НПС — опыт по таблице DMG 2014. Обязателен без бестиария."""
+    """ПО (CR) для своего НПС — опыт по таблице DMG 2014. Необязателен при посадке."""
     cr: str | None = Field(default=None, max_length=16)
     """S-02: при активном бое — номер новой (ещё не выпущенной) волны; иначе волна 1."""
     wave_index: int | None = Field(default=None, ge=1, le=20)

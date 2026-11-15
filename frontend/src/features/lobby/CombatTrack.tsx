@@ -117,7 +117,8 @@ export function CombatTrack({
   ).length
 
   useEffect(() => {
-    if (!combat.waiting_reaction || !masterControls) {
+    // Таймер виден и мастеру, и игроку (оба клиента по WS).
+    if (!combat.waiting_reaction) {
       setReactionLeft(REACTION_WAIT_SECONDS)
       return
     }
@@ -131,7 +132,7 @@ export function CombatTrack({
       setReactionLeft(left)
     }, 250)
     return () => window.clearInterval(tick)
-  }, [combat.waiting_reaction, combat.reaction_character_id, masterControls])
+  }, [combat.waiting_reaction, combat.reaction_character_id])
 
   // LV-02 P08: держать текущий чип в кадре с peek следующего
   useEffect(() => {
@@ -191,12 +192,14 @@ export function CombatTrack({
             Очередь пуста — дождись бросков или выпусти волну.
           </Text>
         )}
-        {combat.waiting_reaction && masterControls ? (
+        {combat.waiting_reaction ? (
           <div className="session-combat-track__reaction-row">
             <Text className="session-combat-track__reaction" role="status">
-              Ждём реакцию игрока · {reactionLeft} с
+              {masterControls
+                ? `Ждём реакцию игрока · ${reactionLeft} с`
+                : `Реакция · ${reactionLeft} с`}
             </Text>
-            {onSkipReaction ? (
+            {masterControls && onSkipReaction ? (
               <Button
                 type="button"
                 variant="secondary"
@@ -213,8 +216,14 @@ export function CombatTrack({
           <div className="session-combat-track__actions">
             {showNextAction ? (
               <>
-                <Button type="button" variant="ghost" disabled={busy} onClick={onPrev}>
-                  ←
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={busy}
+                  aria-label="Предыдущий ход"
+                  onClick={onPrev}
+                >
+                  ← предыдущий ход
                 </Button>
                 <Button type="button" variant="primary" disabled={busy} onClick={onNext}>
                   Следующий ход

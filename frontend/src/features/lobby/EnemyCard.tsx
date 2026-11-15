@@ -517,20 +517,24 @@ export function EnemyCard({
               {abilitiesOpen ? 'Свернуть' : 'Текст'}
             </Button>
           ) : null}
-          {(onRevealStatblock && !combatant.statblock_revealed) ||
-          (canSaveToSetting && onSaveToSetting) ||
-          onOutcome ? (
+          {onRevealStatblock && !combatant.statblock_revealed ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={busy}
+              onClick={onRevealStatblock}
+            >
+              Показать игрокам
+            </Button>
+          ) : null}
+          {(canSaveToSetting && onSaveToSetting) || onOutcome ? (
             <DetailsMenu
               className="session-enemy-card__more"
               summary="⋯"
               summaryClassName="ui-button ui-button--ghost ui-button--sm"
               panelClassName="session-toolbar-more__body"
             >
-              {onRevealStatblock && !combatant.statblock_revealed ? (
-                <Button type="button" variant="ghost" disabled={busy} onClick={onRevealStatblock}>
-                  Показать игрокам
-                </Button>
-              ) : null}
               {canSaveToSetting && onSaveToSetting ? (
                 <Button
                   type="button"

@@ -3292,10 +3292,8 @@ class LobbyService:
             name=name,
             setting_id=setting.id if setting else None,
         )
-        # LOBBY-FIX C: пустой список = все из состава за столом
+        # Пустой character_ids = никого не сажаем (не «всем членам лобби»).
         seat_ids = list(payload.character_ids)
-        if not seat_ids:
-            seat_ids = [m.character_id for m in lobby.members]
         # Отметить присутствующих при создании (дубликаты игнорируем)
         seen: set[UUID] = set()
         for character_id in seat_ids:
@@ -5393,13 +5391,9 @@ class LobbyService:
             if payload.hp_max is None:
                 raise AppError("Укажите максимум HP", code="combatant_hp_required", status_code=400)
             custom = True
+            # CR/ПО необязателен при посадке своего НПС (решение Игоря / audit M4).
+            # Опыт берётся из xp или из таблицы ПО, если ПО указан.
             cr_raw = (payload.cr or "").strip() or None
-            if not cr_raw and payload.xp is None:
-                raise AppError(
-                    "Укажите ПО (опасность) для своего НПС",
-                    code="combatant_cr_required",
-                    status_code=400,
-                )
             cr_norm = normalize_cr(cr_raw) if cr_raw else None
             if cr_raw and cr_norm is None:
                 raise AppError(

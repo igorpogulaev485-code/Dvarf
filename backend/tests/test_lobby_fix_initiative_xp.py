@@ -143,13 +143,21 @@ def test_roll_remaining_forbidden_for_non_master():
     assert exc.value.status_code == 403
 
 
-def test_custom_npc_requires_cr_and_sets_xp():
+def test_custom_npc_cr_optional_and_sets_xp_when_given():
     from app.dnd.xp import normalize_cr
 
     assert normalize_cr("1/4") == "1/4"
     assert xp_from_cr("1/4") == 50
 
-    # unit-level: CombatantCreateRequest accepts cr
+    # CR необязателен при посадке своего НПС
+    bare = CombatantCreateRequest(
+        name="Свой без ПО",
+        hp_max=7,
+        ac=15,
+        count=1,
+    )
+    assert bare.cr is None
+
     payload = CombatantCreateRequest(
         name="Свой гоблин",
         hp_max=7,

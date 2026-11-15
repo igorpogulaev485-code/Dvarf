@@ -113,8 +113,8 @@
 }
 
 .join-flow__conflict .join-thumb-cta .ui-button {
+  /* size via kit Button size prop — no min-height override */
   width: auto;
-  min-height: 44px;
 }
 
 .join-flow__picked {

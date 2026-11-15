@@ -117,7 +117,7 @@ export function AddCombatantDialog({
   const canSubmit =
     mode === 'bestiary'
       ? Boolean(selected)
-      : Boolean(customName.trim() && customHp != null && customHp > 0 && customCr)
+      : Boolean(customName.trim() && customHp != null && customHp > 0)
 
   return (
     <Dialog
@@ -169,7 +169,7 @@ export function AddCombatantDialog({
           name: customName.trim(),
           hp_max: customHp ?? undefined,
           ac: customAc,
-          cr: customCr,
+          cr: customCr.trim() || undefined,
           count: Math.max(1, Math.min(12, count || 1)),
           actions,
           ...waveBit,
@@ -180,7 +180,7 @@ export function AddCombatantDialog({
         <Text tone="muted">
           {combatActive
             ? 'В идущем бою пачка станет новой скрытой волной — выпусти её кнопкой.'
-            : 'Бестиарий или свой НПС. Для своего НПС укажите ПО — опыт возьмётся из таблицы 2014.'}
+            : 'Бестиарий или свой НПС. ПО необязателен — опыт возьмётся из таблицы, если указать.'}
         </Text>
         {combatActive ? (
           <Field label="Напоминание волны (необязательно)">
@@ -245,13 +245,14 @@ export function AddCombatantDialog({
               <Field label="КД">
                 <NumberInput value={customAc} onValueChange={setCustomAc} min={0} max={40} />
               </Field>
-              <Field label="ПО">
+              <Field label="ПО" hint="необязательно">
                 <Select
                   value={customCr}
                   disabled={busy}
                   aria-label="Показатель опасности"
                   onChange={(e) => setCustomCr(e.target.value)}
                 >
+                  <option value="">— без ПО —</option>
                   {CR_OPTIONS.map((o) => (
                     <option key={o.cr} value={o.cr}>
                       {o.cr} · {o.xp} опыта

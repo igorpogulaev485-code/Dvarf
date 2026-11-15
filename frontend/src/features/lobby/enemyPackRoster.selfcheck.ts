@@ -1,8 +1,12 @@
 /**
  * S-03: полоска/подписи G12 + состав пачки.
  */
+import * as React from 'react'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
+
+/* tsx SSR of EnemyCard JSX needs React in scope under classic transform. */
+;(globalThis as unknown as { React: typeof React }).React = React
 import type { CombatantMember, SessionCombatant } from '../../shared/api/lobbies'
 import { EnemyCard } from './EnemyCard.tsx'
 import { PackRosterList, packMemberRosterLine } from './enemyPackRoster.tsx'

@@ -294,7 +294,8 @@ function readSidePanelOpen(): boolean {
   try {
     const raw = localStorage.getItem(SIDE_PANEL_KEY)
     if (raw !== null) return raw !== '0'
-    // LOBBY-FIX visual 6: «Быстрая заметка» свёрнута по умолчанию
+    // UIKIT-02: на ≤1180 (max-width: 1180px) две карточки ≥280px в центре.
+    // LOBBY-FIX visual 6: «Быстрая заметка» свёрнута по умолчанию на всех ширинах.
     return false
   } catch {
     return false
@@ -567,6 +568,8 @@ export function SessionDetailPage() {
   isOwnerRef.current = sessionCanRun(session)
   const lootCountRef = useRef(0)
   const xpToastSeenRef = useRef<string | null>(null)
+  const ownCharacterIdsRef = useRef(ownCharacterIds)
+  ownCharacterIdsRef.current = ownCharacterIds
 
   useSessionRealtime(session?.id, {
     onEvent: (incoming) => {
@@ -590,31 +593,46 @@ export function SessionDetailPage() {
       ) {
         setToast(incoming.title)
       }
-      // LOBBY-FIX B: тост опыта игроку из ленты («+N опыта»)
+      // LOBBY-FIX B / audit M3: тост опыта только получателям, сумма из per_recipient.
       if (
         !isOwnerRef.current &&
         incoming.event_type === 'xp' &&
         xpToastSeenRef.current !== incoming.id
       ) {
-        xpToastSeenRef.current = incoming.id
         const payload = incoming.payload as {
           amount?: number
           awarded_each?: number
           awarded_total?: number
+          character_ids?: string[]
+          per_recipient?: Record<string, number>
         } | undefined
-        const amount =
-          (typeof payload?.awarded_each === 'number' && payload.awarded_each > 0
-            ? payload.awarded_each
-            : null) ??
-          (typeof payload?.amount === 'number' && payload.amount > 0
-            ? payload.amount
-            : null) ??
-          (typeof incoming.total === 'number' && incoming.total > 0
-            ? incoming.total
-            : null) ??
-          (typeof payload?.awarded_total === 'number' && payload.awarded_total > 0
-            ? payload.awarded_total
-            : null)
+        const ownIds = ownCharacterIdsRef.current
+        const recipientIds = (payload?.character_ids || []).filter((id) =>
+          ownIds.has(id),
+        )
+        if (recipientIds.length === 0) return
+        xpToastSeenRef.current = incoming.id
+        const per = payload?.per_recipient
+        let amount: number | null = null
+        if (per) {
+          const sum = recipientIds.reduce((acc, id) => {
+            const n = per[id]
+            return acc + (typeof n === 'number' && n > 0 ? n : 0)
+          }, 0)
+          if (sum > 0) amount = sum
+        }
+        if (amount == null) {
+          amount =
+            (typeof payload?.awarded_each === 'number' && payload.awarded_each > 0
+              ? payload.awarded_each
+              : null) ??
+            (typeof payload?.amount === 'number' && payload.amount > 0
+              ? payload.amount
+              : null) ??
+            (typeof incoming.total === 'number' && incoming.total > 0
+              ? incoming.total
+              : null)
+        }
         setToast(amount != null ? `+${amount} опыта` : incoming.title || 'Опыт')
       }
     },
@@ -1066,7 +1084,11 @@ export function SessionDetailPage() {
                       onAwardPiety={
                         canRun &&
                         !session.closed_at &&
-                        (Boolean(seat.piety_god) || seat.piety_score != null)
+                        (campaignRules.start.allowed_sources.some(
+                          (s) => s.toLowerCase() === 'mot',
+                        ) ||
+                          Boolean(seat.piety_god) ||
+                          seat.piety_score != null)
                           ? () => setPietySeatId(seat.character_id)
                           : undefined
                       }
@@ -1589,6 +1611,23 @@ export function SessionDetailPage() {
                         </Button>
                       ) : (
                         <>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="lg"
+                            disabled={busy}
+                            aria-label="Предыдущий ход"
+                            onClick={() => {
+                              void run(async () => {
+                                const updated = await patchSessionCombat(session.id, {
+                                  action: 'prev',
+                                })
+                                setSession(updated)
+                              })
+                            }}
+                          >
+                            ← предыдущий ход
+                          </Button>
                           <Button
                             type="button"
                             variant="primary"

@@ -76,28 +76,22 @@
   .app-header__actions .ui-button.app-header__more-btn {
     display: inline-grid;
     place-items: center;
-    flex: 0 0 var(--control-h-lg);
+    flex: 0 0 auto;
     align-self: center;
-    width: var(--control-h-lg);
-    min-width: var(--control-h-lg);
-    max-width: var(--control-h-lg);
-    height: var(--control-h-lg);
-    min-height: var(--control-h-lg);
-    max-height: var(--control-h-lg);
+    /* square face via width; height from kit size="lg" */
+    width: 2.75rem;
+    min-width: 2.75rem;
+    max-width: 2.75rem;
     padding: 0;
     border-radius: 8px;
-    font-size: 0.95rem;
   }
 
-  /* LOBBY-FIX D: лобби/стол/join — ⋯ не меньше 44px (перебивает 32px выше) */
+  /* LOBBY-FIX D: лобби/стол/join — ⋯ square without --control-h on kit atom */
   .app-header--lobby-shell .app-header__actions .ui-button.app-header__more-btn {
-    flex: 0 0 var(--control-h-lg);
-    width: var(--control-h-lg);
-    min-width: var(--control-h-lg);
-    max-width: var(--control-h-lg);
-    height: var(--control-h-lg);
-    min-height: var(--control-h-lg);
-    max-height: var(--control-h-lg);
+    flex: 0 0 auto;
+    width: 2.75rem;
+    min-width: 2.75rem;
+    max-width: 2.75rem;
   }
 
   .app-nav {

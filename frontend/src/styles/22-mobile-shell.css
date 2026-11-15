@@ -618,14 +618,13 @@
   display: inline-block;
 }
 
-/* MOB-FIX: attack «…» / icon tools ≥ --tap-min on phone */
+/* MOB-FIX: attack «…» / icon tools — square via width only; height from kit size */
 .play-desk--mobile .play-desk-compact__tool.ui-button--icon,
 .play-desk--mobile .play-desk-compact__tool.ui-button--sm,
 .play-desk--mobile .play-desk-compact__tool-more .ui-button {
   width: var(--tap-min, 44px);
   min-width: var(--tap-min, 44px);
-  height: var(--tap-min, 44px);
-  min-height: var(--tap-min, 44px);
+  max-width: var(--tap-min, 44px);
 }
 
 /* FIX-01 / CMB-02: строка хода на 390 — перенос или сжатие, без обрезки текста */
