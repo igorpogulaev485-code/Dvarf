@@ -29,40 +29,40 @@ function entry(
 
 const sample: WorldImportDiffEntry[] = [
   entry({
-    source_key: 'world/locations/lunnyy-most.md',
+    source_key: 'world/locations/quiet-harbor.md',
     item_type: 'location',
     status: 'new',
-    title: 'Лунный мост',
+    title: 'Тихая гавань',
   }),
   entry({
-    source_key: 'world/npcs/tandil.md',
+    source_key: 'world/npcs/old-miller.md',
     item_type: 'npc',
     status: 'conflict',
-    title: 'Тандил',
+    title: 'Старый мельник',
   }),
   entry({
-    source_key: 'world/player-books/chapters/Ledyanye-rasteniya-12-08.md',
+    source_key: 'world/player-books/chapters/harbor-tales-01.md',
     item_type: 'player_book_chapter',
     status: 'new',
-    title: 'Ледяные растения',
+    title: 'Сказки гавани',
   }),
   entry({
-    source_key: 'world/player-books/chapters/other.md',
+    source_key: 'world/player-books/chapters/harbor-tales-02.md',
     item_type: 'player_book_chapter',
     status: 'update',
     title: 'Другая глава',
   }),
   entry({
-    source_key: 'campaign/party/characters/kavil.md',
+    source_key: 'campaign/party/characters/mira.md',
     item_type: 'party_character',
     status: 'new',
-    title: 'Кавил',
+    title: 'Мира',
   }),
   entry({
-    source_key: 'world/lore/artefacts-kardian.md',
+    source_key: 'world/lore/copper-compass.md',
     item_type: 'ai_suggestion',
     status: 'ai_suggestion',
-    title: 'Кардиан?',
+    title: 'Медный компас?',
   }),
   entry({
     source_key: 'world/npcs/gone.md',
@@ -124,9 +124,9 @@ const empty = emptyCharacterSheetFields({
   id: 'i',
   job_id: 'j',
   item_type: 'party_character',
-  source_key: 'campaign/party/characters/kavil.md',
+  source_key: 'campaign/party/characters/mira.md',
   status: 'proposed',
-  proposal: { name: 'Кавил', sheet: { class_name: '', race_name: 'Человек' } },
+  proposal: { name: 'Мира', sheet: { class_name: '', race_name: 'Человек' } },
   created_at: '',
   updated_at: '',
 })

@@ -2,6 +2,7 @@
  * /dev/wapi11-preview — кадры W-API-11 без бэкенда (kit only).
  * ?scene=entry|upload|review|characters|toggle|confirm|status
  * ?narrow=1 — узкий статус (390).
+ * Нейтральные выдуманные имена (не учебный мир).
  */
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -35,7 +36,7 @@ const FIXTURE_JOB: WorldImportJob = {
   rules_edition: '2014',
   source_kind: 'zip',
   idempotency_key: null,
-  source_ref: 'who-fixture.zip',
+  source_ref: 'demo-world.zip',
   last_confirmed_at: null,
   created_at: '2026-11-15T12:00:00Z',
   updated_at: '2026-11-15T12:05:00Z',
@@ -44,37 +45,37 @@ const FIXTURE_JOB: WorldImportJob = {
 const FIXTURE_ENTRIES: WorldImportDiffEntry[] = [
   {
     draft_item_id: 'd1',
-    source_key: 'world/locations/lunnyy-most.md',
+    source_key: 'world/locations/quiet-harbor.md',
     item_type: 'location',
     status: 'new',
-    title: 'Лунный мост',
+    title: 'Тихая гавань',
     page_id: null,
     message: 'Новая локация',
     hint: '',
   },
   {
     draft_item_id: 'd2',
-    source_key: 'world/npcs/tandil.md',
+    source_key: 'world/npcs/old-miller.md',
     item_type: 'npc',
     status: 'conflict',
-    title: 'Тандил',
+    title: 'Старый мельник',
     page_id: null,
     message: 'Конфликт: правили и источник, и канон',
     hint: 'Нужно решение: «взять наше» или «взять из источника»',
   },
   {
     draft_item_id: 'd3',
-    source_key: 'world/player-books/chapters/Ledyanye-rasteniya-12-08.md',
+    source_key: 'world/player-books/chapters/harbor-tales-01.md',
     item_type: 'player_book_chapter',
     status: 'new',
-    title: 'Ледяные растения',
+    title: 'Сказки гавани',
     page_id: null,
     message: '',
     hint: '',
   },
   {
     draft_item_id: 'd4',
-    source_key: 'world/player-books/chapters/other.md',
+    source_key: 'world/player-books/chapters/harbor-tales-02.md',
     item_type: 'player_book_chapter',
     status: 'update',
     title: 'Другая глава',
@@ -84,20 +85,20 @@ const FIXTURE_ENTRIES: WorldImportDiffEntry[] = [
   },
   {
     draft_item_id: 'd5',
-    source_key: 'campaign/party/characters/kavil.md',
+    source_key: 'campaign/party/characters/mira.md',
     item_type: 'party_character',
     status: 'new',
-    title: 'Кавил',
+    title: 'Мира',
     page_id: null,
     message: 'Персонаж партии + PDF',
     hint: 'Пустые поля листа: Предыстория',
   },
   {
     draft_item_id: 'd6',
-    source_key: 'world/lore/artefacts-kardian.md',
+    source_key: 'world/lore/copper-compass.md',
     item_type: 'ai_suggestion',
     status: 'ai_suggestion',
-    title: 'Кардиан?',
+    title: 'Медный компас?',
     page_id: null,
     message: 'Предложение из прозы',
     hint: 'Решает мастер',
@@ -114,21 +115,9 @@ const FIXTURE_ENTRIES: WorldImportDiffEntry[] = [
   },
 ]
 
-const SCENES = [
-  'entry',
-  'upload',
-  'review',
-  'characters',
-  'toggle',
-  'confirm',
-  'status',
-] as const
-
-type Scene = (typeof SCENES)[number]
-
 export function Wapi11PreviewPage() {
   const [params] = useSearchParams()
-  const scene = (params.get('scene') || 'entry') as Scene
+  const scene = (params.get('scene') || 'entry') as string
   const narrow = params.get('narrow') === '1'
   const [filter, setFilter] = useState<WorldImportReviewFilter>(
     scene === 'characters' ? 'character' : 'all',
@@ -171,7 +160,7 @@ export function Wapi11PreviewPage() {
           <Panel title="Сеттинг">
             <Stack gap={12}>
               <Field label="Название">
-                <Input value="Эхо рассвета" readOnly />
+                <Input value="Северный берег" readOnly />
               </Field>
               <div className="inline-actions">
                 <Button type="button" variant="secondary">
@@ -210,7 +199,7 @@ export function Wapi11PreviewPage() {
                 </div>
               </Stack>
               <Field label="Публичная git-ссылка (HTTPS)">
-                <Input value="https://github.com/igorpogulaev485-code/Who" readOnly />
+                <Input value="https://github.com/example/world" readOnly />
               </Field>
               <div className="inline-actions">
                 <Button type="button" variant="secondary">
@@ -232,7 +221,7 @@ export function Wapi11PreviewPage() {
             <Stack gap={12}>
               <Text tone="warn">Скопируйте сейчас — больше секрет не покажем:</Text>
               <Field label="Секрет">
-                <Input value="wapi_demo_secret_once_only" readOnly />
+                <Input value="wapi_••••••••••••••••" readOnly />
               </Field>
               <div className="inline-actions">
                 <Button type="button">Выписать токен</Button>
