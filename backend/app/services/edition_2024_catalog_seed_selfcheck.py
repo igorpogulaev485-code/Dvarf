@@ -4,11 +4,15 @@ from __future__ import annotations
 
 from app.services.edition_2024_catalog_seed import (
     EDITION_2024_CATALOG_WAVES,
+    WEAPON_MASTERY_IDS,
     assert_raw_dump_not_activated,
     load_wave_rows,
+    load_weapon_mastery_dictionary,
+    normalize_armor_data,
     normalize_background_data,
     normalize_entry_payload,
     normalize_feat_data,
+    normalize_item_data,
     normalize_race_data,
     normalize_source,
     normalize_weapon_data,
@@ -36,6 +40,11 @@ def main() -> None:
 
     feat = normalize_feat_data({})
     assert "category" in feat
+
+    armor = normalize_armor_data({})
+    assert armor["stealth_disadvantage"] is False
+    item = normalize_item_data({"equipment_group": "toolkit"})
+    assert item["equipment_group"] == "toolkit"
 
     stub = normalize_entry_payload(
         {
@@ -73,11 +82,21 @@ def main() -> None:
     assert ok["data"]["category"] == "origin"
 
     planned = load_wave_rows()
-    assert len(EDITION_2024_CATALOG_WAVES) >= 2
+    assert len(EDITION_2024_CATALOG_WAVES) >= 6
     races = [r for r in planned if r["kind"] == "race"]
     bgs = [r for r in planned if r["kind"] == "background"]
+    weapons = [r for r in planned if r["kind"] == "weapon"]
+    armor_rows = [r for r in planned if r["kind"] == "armor"]
+    items = [r for r in planned if r["kind"] == "item"]
     assert len(races) == 9, len(races)
     assert len(bgs) == 4, len(bgs)
+    assert len(weapons) == 38, len(weapons)
+    assert len(armor_rows) == 13, len(armor_rows)
+    assert len(items) == 134, len(items)
+    for row in weapons:
+        assert row["data"].get("mastery") in WEAPON_MASTERY_IDS
+    mastery = load_weapon_mastery_dictionary()
+    assert {m["id"] for m in mastery} == WEAPON_MASTERY_IDS
     for row in races:
         assert row["data"].get("ability_bonuses") in ({}, None) or row["data"][
             "ability_bonuses"

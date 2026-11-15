@@ -241,9 +241,10 @@ def test_apply_seed_includes_feats_idempotent():
     stats1 = apply_edition_2024_catalog_seed(conn)  # type: ignore[arg-type]
     stats2 = apply_edition_2024_catalog_seed(conn)  # type: ignore[arg-type]
 
-    # 9 species + 4 backgrounds + 17 feats
-    assert stats1.upserted == 30
-    assert stats2.upserted == 30
+    # Live waves grow with later C-packs; assert against the planned row count.
+    planned = len(load_wave_rows())
+    assert stats1.upserted == planned
+    assert stats2.upserted == planned
     feat_keys = {k for k in store if k[0] == "feat"}
     assert {k[1] for k in feat_keys} == SRD_FEATS_EXPECTED
     joined = "\n".join(executed)
@@ -279,4 +280,5 @@ def test_alembic_single_head_includes_p24_c02():
     }
     assert "p24c02feats01" in ancestor_ids
     assert "p24c01speci01" in ancestor_ids
-    assert heads[0] == "p24c02feats01"
+    # C03 may become the tip; C02 must remain an ancestor.
+    assert "p24c02feats01" in ancestor_ids

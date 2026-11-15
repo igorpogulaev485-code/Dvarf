@@ -1,14 +1,14 @@
 id,name_en,name_ru,book,category,url_dndsu,url_ttg,srd,equipment_group
-breastplate,Breastplate,Кираса,PH24,armor,https://next.dnd.su/equipment/49-breastplate,https://new.ttg.club/items/breastplate-phb,false,medium_armor
-chain-mail,Chain Mail,Кольчужный доспех,PH24,armor,https://next.dnd.su/equipment/52-chain-mail,https://new.ttg.club/items/chain-mail-phb,false,heavy_armor
-chain-shirt,Chain Shirt,Кольчужная рубаха,PH24,armor,https://next.dnd.su/equipment/47-chain-shirt,https://new.ttg.club/items/chain-shirt-phb,false,medium_armor
-half-plate-armor,Half Plate Armor,Полулаты,PH24,armor,https://next.dnd.su/equipment/50-half-plate-armor,https://new.ttg.club/items/half-plate-armor-phb,false,medium_armor
-hide-armor,Hide Armor,Шкурный доспех,PH24,armor,https://next.dnd.su/equipment/46-hide-armor,https://new.ttg.club/items/hide-armor-phb,false,medium_armor
-leather-armor,Leather Armor,Кожаный доспех,PH24,armor,https://next.dnd.su/equipment/44-leather-armor,https://new.ttg.club/items/leather-armor-phb,false,light_armor
-padded-armor,Padded Armor,Стёганый доспех,PH24,armor,https://next.dnd.su/equipment/43-padded-armor,https://new.ttg.club/items/padded-armor-phb,false,light_armor
-plate-armor,Plate Armor,Латный доспех,PH24,armor,https://next.dnd.su/equipment/54-plate-armor,https://new.ttg.club/items/plate-armor-phb,false,heavy_armor
-ring-mail,Ring Mail,Колечный доспех,PH24,armor,https://next.dnd.su/equipment/51-ring-mail,https://new.ttg.club/items/ring-mail-phb,false,heavy_armor
-scale-mail,Scale Mail,Чешуйчатый доспех,PH24,armor,https://next.dnd.su/equipment/48-scale-mail,https://new.ttg.club/items/scale-mail-phb,false,medium_armor
+breastplate,Breastplate,Кираса,PH24,armor,https://next.dnd.su/equipment/49-breastplate,https://new.ttg.club/items/breastplate-phb,true,medium_armor
+chain-mail,Chain Mail,Кольчужный доспех,PH24,armor,https://next.dnd.su/equipment/52-chain-mail,https://new.ttg.club/items/chain-mail-phb,true,heavy_armor
+chain-shirt,Chain Shirt,Кольчужная рубаха,PH24,armor,https://next.dnd.su/equipment/47-chain-shirt,https://new.ttg.club/items/chain-shirt-phb,true,medium_armor
+half-plate-armor,Half Plate Armor,Полулаты,PH24,armor,https://next.dnd.su/equipment/50-half-plate-armor,https://new.ttg.club/items/half-plate-armor-phb,true,medium_armor
+hide-armor,Hide Armor,Шкурный доспех,PH24,armor,https://next.dnd.su/equipment/46-hide-armor,https://new.ttg.club/items/hide-armor-phb,true,medium_armor
+leather-armor,Leather Armor,Кожаный доспех,PH24,armor,https://next.dnd.su/equipment/44-leather-armor,https://new.ttg.club/items/leather-armor-phb,true,light_armor
+padded-armor,Padded Armor,Стёганый доспех,PH24,armor,https://next.dnd.su/equipment/43-padded-armor,https://new.ttg.club/items/padded-armor-phb,true,light_armor
+plate-armor,Plate Armor,Латный доспех,PH24,armor,https://next.dnd.su/equipment/54-plate-armor,https://new.ttg.club/items/plate-armor-phb,true,heavy_armor
+ring-mail,Ring Mail,Колечный доспех,PH24,armor,https://next.dnd.su/equipment/51-ring-mail,https://new.ttg.club/items/ring-mail-phb,true,heavy_armor
+scale-mail,Scale Mail,Чешуйчатый доспех,PH24,armor,https://next.dnd.su/equipment/48-scale-mail,https://new.ttg.club/items/scale-mail-phb,true,medium_armor
 shield,Shield,Щит,PH24,armor,https://next.dnd.su/equipment/56-shield,https://new.ttg.club/items/shield-phb,true,shield
-splint-armor,Splint Armor,Пластинчатый доспех,PH24,armor,https://next.dnd.su/equipment/53-splint-armor,https://new.ttg.club/items/splint-armor-phb,false,heavy_armor
-studded-leather-armor,Studded Leather Armor,Проклёпанный кожаный доспех,PH24,armor,https://next.dnd.su/equipment/45-studded-leather-armor,https://new.ttg.club/items/studded-leather-armor-phb,false,light_armor
+splint-armor,Splint Armor,Пластинчатый доспех,PH24,armor,https://next.dnd.su/equipment/53-splint-armor,https://new.ttg.club/items/splint-armor-phb,true,heavy_armor
+studded-leather-armor,Studded Leather Armor,Проклёпанный кожаный доспех,PH24,armor,https://next.dnd.su/equipment/45-studded-leather-armor,https://new.ttg.club/items/studded-leather-armor-phb,true,light_armor

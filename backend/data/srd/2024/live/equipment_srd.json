@@ -1,0 +1,2999 @@
+{
+  "meta": {
+    "pack": "P24-C03",
+    "rules_edition": "2024",
+    "source": "srd-5.2",
+    "notes_ru": "Обыденное снаряжение, инструменты, наборы, боеприпасы, фокусы SRD 5.2.1. kind=item. Книжное FRHoF не включено. Зелье лечения и свитки заклинаний — в magic_items (пробел эталона equipment закрыт частично)."
+  },
+  "entries": [
+    {
+      "kind": "item",
+      "slug": "acid",
+      "name_ru": "Кислота",
+      "name_en": "Acid",
+      "source": "srd-5.2",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/201-acid",
+        "url_ttg": "https://new.ttg.club/items/acid-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Кислота — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "utilize_ru": "Атакой можно метнуть флакон (20 фт); спас Ловкости или 2к6 кислоты."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "alchemists-fire",
+      "name_ru": "Алхимический огонь",
+      "name_en": "Alchemist's Fire",
+      "source": "srd-5.2",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/202-alchemists-fire",
+        "url_ttg": "https://new.ttg.club/items/alchemist-s-fire-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Алхимический огонь — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "utilize_ru": "Атакой можно метнуть флягу (20 фт); спас Ловкости или 1к4 огня и горение."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "alchemists-supplies",
+      "name_ru": "Инструменты алхимика",
+      "name_en": "Alchemist's Supplies",
+      "source": "srd-5.2",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14351-alchemists-supplies",
+        "url_ttg": "https://new.ttg.club/items/alchemist-s-supplies-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты алхимика — снаряжение SRD 2024.",
+        "weight_lb": 8,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "utilize_ru": "Опознать вещество (Сл 15) или разжечь огонь (Сл 15).",
+        "tool_ability": "intelligence"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ammunition",
+      "name_ru": "Боеприпасы",
+      "name_en": "Ammunition",
+      "source": "srd-5.2",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/203-ammunition",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "ammunition",
+        "summary_ru": "Боеприпасы — снаряжение SRD 2024."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "amulet",
+      "name_ru": "Амулет",
+      "name_en": "Amulet",
+      "source": "srd-5.2",
+      "sort_order": 50,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/288-amulet",
+        "url_ttg": "https://new.ttg.club/items/amulet-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "spellcasting_focus",
+        "summary_ru": "Амулет — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "antitoxin",
+      "name_ru": "Противоядие",
+      "name_en": "Antitoxin",
+      "source": "srd-5.2",
+      "sort_order": 60,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/204-antitoxin",
+        "url_ttg": "https://new.ttg.club/items/antitoxin-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Противоядие — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "utilize_ru": "Бонусным действием выпить: преимущество к спасам против отравления на 1 час."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "arcane-focus",
+      "name_ru": "Магическая фокусировка",
+      "name_en": "Arcane Focus",
+      "source": "srd-5.2",
+      "sort_order": 70,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/205-arcane-focus",
+        "url_ttg": "https://new.ttg.club/items/arcane-focus-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "spellcasting_focus",
+        "summary_ru": "Магическая фокусировка — снаряжение SRD 2024."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "arrows",
+      "name_ru": "Стрелы",
+      "name_en": "Arrows",
+      "source": "srd-5.2",
+      "sort_order": 80,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/41-arrows",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "ammunition",
+        "summary_ru": "Стрелы — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "backpack",
+      "name_ru": "Рюкзак",
+      "name_en": "Backpack",
+      "source": "srd-5.2",
+      "sort_order": 90,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/206-backpack",
+        "url_ttg": "https://new.ttg.club/items/backpack-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Рюкзак — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bagpipes",
+      "name_ru": "Волынка",
+      "name_en": "Bagpipes",
+      "source": "srd-5.2",
+      "sort_order": 100,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14383-bagpipes",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Волынка — снаряжение SRD 2024.",
+        "weight_lb": 6,
+        "cost": {
+          "amount": 30,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ball-bearings",
+      "name_ru": "Металлические шарики",
+      "name_en": "Ball Bearings",
+      "source": "srd-5.2",
+      "sort_order": 110,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/207-ball-bearings",
+        "url_ttg": "https://new.ttg.club/items/ball-bearings-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Металлические шарики — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "utilize_ru": "Использование: рассыпать на площадь 10×10 фт; входящий — спас Лов 10 или опрокинут.",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "barrel",
+      "name_ru": "Бочка",
+      "name_en": "Barrel",
+      "source": "srd-5.2",
+      "sort_order": 120,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/208-barrel",
+        "url_ttg": "https://new.ttg.club/items/barrel-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Бочка — снаряжение SRD 2024.",
+        "weight_lb": 70,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "basic-poison",
+      "name_ru": "Простой яд",
+      "name_en": "Basic Poison",
+      "source": "srd-5.2",
+      "sort_order": 130,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/253-basic-poison",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Простой яд — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "utilize_ru": "Бонусным действием смазать оружие/до 3 боеприпасов: +1к4 яда при уроне колющим/рубящим (1 мин)."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "basket",
+      "name_ru": "Корзина",
+      "name_en": "Basket",
+      "source": "srd-5.2",
+      "sort_order": 140,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/209-basket",
+        "url_ttg": "https://new.ttg.club/items/basket-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Корзина — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 4,
+          "unit": "sp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bedroll",
+      "name_ru": "Спальник",
+      "name_en": "Bedroll",
+      "source": "srd-5.2",
+      "sort_order": 150,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/210-bedroll",
+        "url_ttg": "https://new.ttg.club/items/bedroll-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Спальник — снаряжение SRD 2024.",
+        "weight_lb": 7,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bell",
+      "name_ru": "Колокольчик",
+      "name_en": "Bell",
+      "source": "srd-5.2",
+      "sort_order": 160,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/211-bell",
+        "url_ttg": "https://new.ttg.club/items/bell-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Колокольчик — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "utilize_ru": "Использование: звон слышен до 60 фт."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "blanket",
+      "name_ru": "Одеяло",
+      "name_en": "Blanket",
+      "source": "srd-5.2",
+      "sort_order": 170,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/212-blanket",
+        "url_ttg": "https://new.ttg.club/items/blanket-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Одеяло — снаряжение SRD 2024.",
+        "weight_lb": 3,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "block-and-tackle",
+      "name_ru": "Блок и лебёдка",
+      "name_en": "Block and Tackle",
+      "source": "srd-5.2",
+      "sort_order": 180,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/213-block-and-tackle",
+        "url_ttg": "https://new.ttg.club/items/block-and-tackle-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Блок и лебёдка — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "book",
+      "name_ru": "Книга",
+      "name_en": "Book",
+      "source": "srd-5.2",
+      "sort_order": 190,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/214-book",
+        "url_ttg": "https://new.ttg.club/items/book-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Книга — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "brewers-supplies",
+      "name_ru": "Инструменты пивовара",
+      "name_en": "Brewer’s Supplies",
+      "source": "srd-5.2",
+      "sort_order": 200,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14352-brewers-supplies",
+        "url_ttg": "https://new.ttg.club/items/brewer-s-supplies-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты пивовара — снаряжение SRD 2024.",
+        "weight_lb": 9,
+        "cost": {
+          "amount": 20,
+          "unit": "gp"
+        },
+        "utilize_ru": "Обнаружить отравленный напиток (Сл 15) или опознать алкоголь (Сл 10).",
+        "tool_ability": "intelligence"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bucket",
+      "name_ru": "Ведро",
+      "name_en": "Bucket",
+      "source": "srd-5.2",
+      "sort_order": 210,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/216-bucket",
+        "url_ttg": "https://new.ttg.club/items/bucket-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Ведро — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 5,
+          "unit": "cp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bullseye-lantern",
+      "name_ru": "Направленный фонарь",
+      "name_en": "Bullseye Lantern",
+      "source": "srd-5.2",
+      "sort_order": 220,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/241-bullseye-lantern",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Направленный фонарь — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "burglars-pack",
+      "name_ru": "Набор взломщика",
+      "name_en": "Burglar's Pack",
+      "source": "srd-5.2",
+      "sort_order": 230,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/91-burglars-pack",
+        "url_ttg": "https://new.ttg.club/items/burglar-s-pack-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "item_pack",
+        "summary_ru": "Набор «Набор взломщика» (состав — по карточке SRD / справочнику).",
+        "weight_lb": 42,
+        "cost": {
+          "amount": 16,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "calligraphers-supplies",
+      "name_ru": "Инструменты каллиграфа",
+      "name_en": "Calligrapher’s Supplies",
+      "source": "srd-5.2",
+      "sort_order": 240,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14353-calligraphers-supplies",
+        "url_ttg": "https://new.ttg.club/items/calligrapher-s-supplies-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты каллиграфа — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "utilize_ru": "Написать текст с защитой от подделки (Сл 15).",
+        "tool_ability": "dexterity"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "caltrops",
+      "name_ru": "Калтропы",
+      "name_en": "Caltrops",
+      "source": "srd-5.2",
+      "sort_order": 250,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/217-caltrops",
+        "url_ttg": "https://new.ttg.club/items/caltrops-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Калтропы — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "utilize_ru": "Использование: разбросать; входящий — спас Лов 15 или урон и скорость 0."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "candle",
+      "name_ru": "Свеча",
+      "name_en": "Candle",
+      "source": "srd-5.2",
+      "sort_order": 260,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/218-candle",
+        "url_ttg": "https://new.ttg.club/items/candle-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Свеча — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 1,
+          "unit": "cp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "carpenters-tools",
+      "name_ru": "Инструменты плотника",
+      "name_en": "Carpenter’s Tools",
+      "source": "srd-5.2",
+      "sort_order": 270,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14354-carpenters-tools",
+        "url_ttg": "https://new.ttg.club/items/carpenter-s-tools-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты плотника — снаряжение SRD 2024.",
+        "weight_lb": 6,
+        "cost": {
+          "amount": 8,
+          "unit": "gp"
+        },
+        "utilize_ru": "Запечатать или вскрыть дверь/контейнер (Сл 20).",
+        "tool_ability": "strength"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "cartographers-tools",
+      "name_ru": "Инструменты картографа",
+      "name_en": "Cartographer’s Tools",
+      "source": "srd-5.2",
+      "sort_order": 280,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14355-cartographers-tools",
+        "url_ttg": "https://new.ttg.club/items/cartographer-s-tools-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты картографа — снаряжение SRD 2024.",
+        "weight_lb": 6,
+        "cost": {
+          "amount": 15,
+          "unit": "gp"
+        },
+        "utilize_ru": "Набросать карту небольшой области (Сл 15).",
+        "tool_ability": "wisdom"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "chain",
+      "name_ru": "Цепь",
+      "name_en": "Chain",
+      "source": "srd-5.2",
+      "sort_order": 290,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/221-chain",
+        "url_ttg": "https://new.ttg.club/items/chain-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Цепь — снаряжение SRD 2024.",
+        "weight_lb": 10,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "chest",
+      "name_ru": "Сундук",
+      "name_en": "Chest",
+      "source": "srd-5.2",
+      "sort_order": 300,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/222-chest",
+        "url_ttg": "https://new.ttg.club/items/chest-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Сундук — снаряжение SRD 2024.",
+        "weight_lb": 25,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "climbers-kit",
+      "name_ru": "Комплект для лазания",
+      "name_en": "Climber's Kit",
+      "source": "srd-5.2",
+      "sort_order": 310,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/223-climbers-kit",
+        "url_ttg": "https://new.ttg.club/items/climber-s-kit-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Комплект для лазания — снаряжение SRD 2024.",
+        "weight_lb": 12,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "utilize_ru": "Использование: закрепиться; падение/движение ограничены страховкой (до 25 фт)."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "cobblers-tools",
+      "name_ru": "Инструменты сапожника",
+      "name_en": "Cobbler’s Tools",
+      "source": "srd-5.2",
+      "sort_order": 320,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14357-cobblers-tools",
+        "url_ttg": "https://new.ttg.club/items/cobbler-s-tools-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты сапожника — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "utilize_ru": "Модифицировать обувь для преимущества к следующей проверке Ловкости (Акробатика) (Сл 10).",
+        "tool_ability": "dexterity"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "component-pouch",
+      "name_ru": "Мешочек с компонентами",
+      "name_en": "Component Pouch",
+      "source": "srd-5.2",
+      "sort_order": 330,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/226-component-pouch",
+        "url_ttg": "https://new.ttg.club/items/component-pouch-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Мешочек с компонентами — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "cooks-utensils",
+      "name_ru": "Инструменты повара",
+      "name_en": "Cook’s Utensils",
+      "source": "srd-5.2",
+      "sort_order": 340,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14358-cooks-utensils",
+        "url_ttg": "https://new.ttg.club/items/cook-s-utensils-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты повара — снаряжение SRD 2024.",
+        "weight_lb": 8,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "utilize_ru": "Улучшить вкус пищи (Сл 10) или найти испорченную/отравленную (Сл 15).",
+        "tool_ability": "wisdom"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "costume",
+      "name_ru": "Костюм",
+      "name_en": "Costume",
+      "source": "srd-5.2",
+      "sort_order": 350,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/227-costume",
+        "url_ttg": "https://new.ttg.club/items/costume-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Костюм — снаряжение SRD 2024.",
+        "weight_lb": 4,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "crossbow-bolt-case",
+      "name_ru": "Футляр для арбалетных болтов",
+      "name_en": "Crossbow Bolt Case",
+      "source": "srd-5.2",
+      "sort_order": 360,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/219-crossbow-bolt-case",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Футляр для арбалетных болтов — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "crossbow-bolts",
+      "name_ru": "Болты",
+      "name_en": "Crossbow Bolts",
+      "source": "srd-5.2",
+      "sort_order": 370,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/39-crossbow-bolts",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "ammunition",
+        "summary_ru": "Болты — снаряжение SRD 2024.",
+        "weight_lb": 1.5,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "crowbar",
+      "name_ru": "Ломик",
+      "name_en": "Crowbar",
+      "source": "srd-5.2",
+      "sort_order": 380,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/228-crowbar",
+        "url_ttg": "https://new.ttg.club/items/crowbar-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Ломик — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "crystal",
+      "name_ru": "Кристалл",
+      "name_en": "Crystal",
+      "source": "srd-5.2",
+      "sort_order": 390,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/280-crystal",
+        "url_ttg": "https://new.ttg.club/items/crystal-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "spellcasting_focus",
+        "summary_ru": "Кристалл — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "dice",
+      "name_ru": "Кости",
+      "name_en": "Dice",
+      "source": "srd-5.2",
+      "sort_order": 400,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14372-dice",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Кости — снаряжение SRD 2024.",
+        "cost": {
+          "amount": 1,
+          "unit": "sp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "diplomats-pack",
+      "name_ru": "Набор дипломата",
+      "name_en": "Diplomat’s Pack",
+      "source": "srd-5.2",
+      "sort_order": 410,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/92-diplomats-pack",
+        "url_ttg": "https://new.ttg.club/items/diplomat-s-pack-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "item_pack",
+        "summary_ru": "Набор «Набор дипломата» (состав — по карточке SRD / справочнику).",
+        "weight_lb": 39,
+        "cost": {
+          "amount": 39,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "disguise-kit",
+      "name_ru": "Набор для грима",
+      "name_en": "Disguise Kit",
+      "source": "srd-5.2",
+      "sort_order": 420,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14369-disguise-kit",
+        "url_ttg": "https://new.ttg.club/items/disguise-kit-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Набор для грима — снаряжение SRD 2024.",
+        "weight_lb": 3,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "utilize_ru": "Нанести грим (Сл 10).",
+        "tool_ability": "charisma",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "dragonchess",
+      "name_ru": "Драконьи шахматы",
+      "name_en": "Dragonchess",
+      "source": "srd-5.2",
+      "sort_order": 430,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14373-dragonchess",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Драконьи шахматы — снаряжение SRD 2024.",
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "druidic-focus",
+      "name_ru": "Друидическая фокусировка",
+      "name_en": "Druidic Focus",
+      "source": "srd-5.2",
+      "sort_order": 440,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/229-druidic-focus",
+        "url_ttg": "https://new.ttg.club/items/druidic-focus-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "spellcasting_focus",
+        "summary_ru": "Друидическая фокусировка — снаряжение SRD 2024.",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "drum",
+      "name_ru": "Барабан",
+      "name_en": "Drum",
+      "source": "srd-5.2",
+      "sort_order": 450,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14381-drum",
+        "url_ttg": "https://new.ttg.club/items/drum-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Барабан — снаряжение SRD 2024.",
+        "weight_lb": 3,
+        "cost": {
+          "amount": 6,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "dulcimer",
+      "name_ru": "Дульцимер",
+      "name_en": "Dulcimer",
+      "source": "srd-5.2",
+      "sort_order": 460,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14389-dulcimer",
+        "url_ttg": "https://new.ttg.club/items/dulcimer-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Дульцимер — снаряжение SRD 2024.",
+        "weight_lb": 10,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "dungeoneers-pack",
+      "name_ru": "Набор исследователя подземелий",
+      "name_en": "Dungeoneer’s Pack",
+      "source": "srd-5.2",
+      "sort_order": 470,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/93-dungeoneers-pack",
+        "url_ttg": "https://new.ttg.club/items/dungeoneer-s-pack-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "item_pack",
+        "summary_ru": "Набор «Набор исследователя подземелий» (состав — по карточке SRD / справочнику).",
+        "weight_lb": 55,
+        "cost": {
+          "amount": 12,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "emblem",
+      "name_ru": "Эмблема",
+      "name_en": "Emblem",
+      "source": "srd-5.2",
+      "sort_order": 480,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/289-emblem",
+        "url_ttg": "https://new.ttg.club/items/emblem-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "spellcasting_focus",
+        "summary_ru": "Эмблема — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "entertainers-pack",
+      "name_ru": "Набор артиста",
+      "name_en": "Entertainer’s Pack",
+      "source": "srd-5.2",
+      "sort_order": 490,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/94-entertainers-pack",
+        "url_ttg": "https://new.ttg.club/items/entertainer-s-pack-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "item_pack",
+        "summary_ru": "Набор «Набор артиста» (состав — по карточке SRD / справочнику).",
+        "weight_lb": 58.5,
+        "cost": {
+          "amount": 40,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "explorers-pack",
+      "name_ru": "Набор путешественника",
+      "name_en": "Explorer’s Pack",
+      "source": "srd-5.2",
+      "sort_order": 500,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/95-explorers-pack",
+        "url_ttg": "https://new.ttg.club/items/explorer-s-pack-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "item_pack",
+        "summary_ru": "Набор «Набор путешественника» (состав — по карточке SRD / справочнику).",
+        "weight_lb": 55,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "fine-clothes",
+      "name_ru": "Отличная одежда",
+      "name_en": "Fine Clothes",
+      "source": "srd-5.2",
+      "sort_order": 510,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/224-fine-clothes",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Отличная одежда — снаряжение SRD 2024.",
+        "weight_lb": 6,
+        "cost": {
+          "amount": 15,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "firearm-bullets",
+      "name_ru": "Пули",
+      "name_en": "Firearm Bullets",
+      "source": "srd-5.2",
+      "sort_order": 520,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/42-firearm-bullets",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "ammunition",
+        "summary_ru": "Пули — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 3,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "flask",
+      "name_ru": "Фляга",
+      "name_en": "Flask",
+      "source": "srd-5.2",
+      "sort_order": 530,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/230-flask",
+        "url_ttg": "https://new.ttg.club/items/flask-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Фляга — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "cp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "flute",
+      "name_ru": "Флейта",
+      "name_en": "Flute",
+      "source": "srd-5.2",
+      "sort_order": 540,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14390-flute",
+        "url_ttg": "https://new.ttg.club/items/flute-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Флейта — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "forgery-kit",
+      "name_ru": "Набор для фальсификации",
+      "name_en": "Forgery Kit",
+      "source": "srd-5.2",
+      "sort_order": 550,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14370-forgery-kit",
+        "url_ttg": "https://new.ttg.club/items/forgery-kit-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Набор для фальсификации — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 15,
+          "unit": "gp"
+        },
+        "utilize_ru": "Скопировать до 10 слов чужого почерка (Сл 15) или печать (Сл 20).",
+        "tool_ability": "dexterity"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "gaming-set",
+      "name_ru": "Игровой набор",
+      "name_en": "Gaming Set",
+      "source": "srd-5.2",
+      "sort_order": 560,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14371-gaming-set",
+        "url_ttg": "https://new.ttg.club/items/gaming-set-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Игровой набор — снаряжение SRD 2024.",
+        "utilize_ru": "Понять, жульничают ли (Сл 10), или выиграть партию (Сл 20).",
+        "tool_ability": "wisdom"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "glass-bottle",
+      "name_ru": "Стеклянная бутылка",
+      "name_en": "Glass Bottle",
+      "source": "srd-5.2",
+      "sort_order": 570,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/215-glass-bottle",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Стеклянная бутылка — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "glassblowers-tools",
+      "name_ru": "Инструменты стеклодува",
+      "name_en": "Glassblower’s Tools",
+      "source": "srd-5.2",
+      "sort_order": 580,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14359-glassblowers-tools",
+        "url_ttg": "https://new.ttg.club/items/glassblower-s-tools-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты стеклодува — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 30,
+          "unit": "gp"
+        },
+        "utilize_ru": "Понять, что держал стеклянный предмет за последние 24 часа (Сл 15).",
+        "tool_ability": "intelligence"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "grappling-hook",
+      "name_ru": "Крюк-кошка",
+      "name_en": "Grappling Hook",
+      "source": "srd-5.2",
+      "sort_order": 590,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/231-grappling-hook",
+        "url_ttg": "https://new.ttg.club/items/grappling-hook-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Крюк-кошка — снаряжение SRD 2024.",
+        "weight_lb": 4,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "utilize_ru": "Использование: бросок крюка в пределах 50 фт (Сл 13 Акробатика)."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "healers-kit",
+      "name_ru": "Комплект целителя",
+      "name_en": "Healer's Kit",
+      "source": "srd-5.2",
+      "sort_order": 600,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/232-healers-kit",
+        "url_ttg": "https://new.ttg.club/items/healer-s-kit-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Комплект целителя — снаряжение SRD 2024.",
+        "weight_lb": 3,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "utilize_ru": "Использование: потратить применение — стабилизировать бессознательного с 0 хитов без проверки Медицины."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "herbalism-kit",
+      "name_ru": "Набор травника",
+      "name_en": "Herbalism Kit",
+      "source": "srd-5.2",
+      "sort_order": 610,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14376-herbalism-kit",
+        "url_ttg": "https://new.ttg.club/items/herbalism-kit-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Набор травника — снаряжение SRD 2024.",
+        "weight_lb": 3,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "utilize_ru": "Опознать растение (Сл 10).",
+        "tool_ability": "intelligence"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "holy-symbol",
+      "name_ru": "Священный символ",
+      "name_en": "Holy Symbol",
+      "source": "srd-5.2",
+      "sort_order": 620,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/233-holy-symbol",
+        "url_ttg": "https://new.ttg.club/items/holy-symbol-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "spellcasting_focus",
+        "summary_ru": "Священный символ — снаряжение SRD 2024.",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "holy-water",
+      "name_ru": "Святая вода",
+      "name_en": "Holy Water",
+      "source": "srd-5.2",
+      "sort_order": 630,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/234-holy-water",
+        "url_ttg": "https://new.ttg.club/items/holy-water-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Святая вода — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "utilize_ru": "Атакой можно метнуть (20 фт); исчадие/нежить — спас Ловкости или 2к8 излучения."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "hooded-lantern",
+      "name_ru": "Закрытый фонарь",
+      "name_en": "Hooded Lantern",
+      "source": "srd-5.2",
+      "sort_order": 640,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/242-hooded-lantern",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Закрытый фонарь — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "horn",
+      "name_ru": "Рожок",
+      "name_en": "Horn",
+      "source": "srd-5.2",
+      "sort_order": 650,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14387-horn",
+        "url_ttg": "https://new.ttg.club/items/horn-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Рожок — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 3,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "hunting-trap",
+      "name_ru": "Охотничий капкан",
+      "name_en": "Hunting Trap",
+      "source": "srd-5.2",
+      "sort_order": 660,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/235-hunting-trap",
+        "url_ttg": "https://new.ttg.club/items/hunting-trap-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Охотничий капкан — снаряжение SRD 2024.",
+        "weight_lb": 25,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "utilize_ru": "Использование: установить капкан (Сл 13 Ловкости при наступании)."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ink",
+      "name_ru": "Чернила",
+      "name_en": "Ink",
+      "source": "srd-5.2",
+      "sort_order": 670,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/236-ink",
+        "url_ttg": "https://new.ttg.club/items/ink-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Чернила — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ink-pen",
+      "name_ru": "Писчее перо",
+      "name_en": "Ink Pen",
+      "source": "srd-5.2",
+      "sort_order": 680,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/237-ink-pen",
+        "url_ttg": "https://new.ttg.club/items/ink-pen-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Писчее перо — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 2,
+          "unit": "cp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "iron-pot",
+      "name_ru": "Железный горшок",
+      "name_en": "Iron Pot",
+      "source": "srd-5.2",
+      "sort_order": 690,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/255-iron-pot",
+        "url_ttg": "https://new.ttg.club/items/pot-iron-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Железный горшок — снаряжение SRD 2024.",
+        "weight_lb": 10,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "iron-spikes",
+      "name_ru": "Железные шипы",
+      "name_en": "Iron Spikes",
+      "source": "srd-5.2",
+      "sort_order": 700,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/266-iron-spikes",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Железные шипы — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "jewelers-tools",
+      "name_ru": "Инструменты ювелира",
+      "name_en": "Jeweler’s Tools",
+      "source": "srd-5.2",
+      "sort_order": 710,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14360-jewelers-tools",
+        "url_ttg": "https://new.ttg.club/items/jeweler-s-tools-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты ювелира — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "utilize_ru": "Оценить ценность самоцвета (Сл 15).",
+        "tool_ability": "intelligence"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "jug",
+      "name_ru": "Кувшин",
+      "name_en": "Jug",
+      "source": "srd-5.2",
+      "sort_order": 720,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/238-jug",
+        "url_ttg": "https://new.ttg.club/items/jug-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Кувшин — снаряжение SRD 2024.",
+        "weight_lb": 4,
+        "cost": {
+          "amount": 2,
+          "unit": "cp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ladder",
+      "name_ru": "Лестница",
+      "name_en": "Ladder",
+      "source": "srd-5.2",
+      "sort_order": 730,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/239-ladder",
+        "url_ttg": "https://new.ttg.club/items/ladder-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Лестница — снаряжение SRD 2024.",
+        "weight_lb": 25,
+        "cost": {
+          "amount": 1,
+          "unit": "sp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "lamp",
+      "name_ru": "Лампа",
+      "name_en": "Lamp",
+      "source": "srd-5.2",
+      "sort_order": 740,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/240-lamp",
+        "url_ttg": "https://new.ttg.club/items/lamp-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Лампа — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "leatherworkers-tools",
+      "name_ru": "Инструменты кожевника",
+      "name_en": "Leatherworker’s Tools",
+      "source": "srd-5.2",
+      "sort_order": 750,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14361-leatherworkers-tools",
+        "url_ttg": "https://new.ttg.club/items/leatherworker-s-tools-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты кожевника — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "utilize_ru": "Добавить узор на кожаный предмет (Сл 10).",
+        "tool_ability": "dexterity"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "lock",
+      "name_ru": "Замок",
+      "name_en": "Lock",
+      "source": "srd-5.2",
+      "sort_order": 760,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/243-lock",
+        "url_ttg": "https://new.ttg.club/items/lock-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Замок — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "lute",
+      "name_ru": "Лютня",
+      "name_en": "Lute",
+      "source": "srd-5.2",
+      "sort_order": 770,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14385-lute",
+        "url_ttg": "https://new.ttg.club/items/lute-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Лютня — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 35,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "lyre",
+      "name_ru": "Лира",
+      "name_en": "Lyre",
+      "source": "srd-5.2",
+      "sort_order": 780,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14384-lyre",
+        "url_ttg": "https://new.ttg.club/items/lyre-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Лира — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 30,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "magnifying-glass",
+      "name_ru": "Увеличительное стекло",
+      "name_en": "Magnifying Glass",
+      "source": "srd-5.2",
+      "sort_order": 790,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/244-magnifying-glass",
+        "url_ttg": "https://new.ttg.club/items/magnifying-glass-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Увеличительное стекло — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "manacles",
+      "name_ru": "Кандалы",
+      "name_en": "Manacles",
+      "source": "srd-5.2",
+      "sort_order": 800,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/245-manacles",
+        "url_ttg": "https://new.ttg.club/items/manacles-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Кандалы — снаряжение SRD 2024.",
+        "weight_lb": 6,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "utilize_ru": "Использование: заковать подходящую цель (Сл 13 Ловкости рук)."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "map",
+      "name_ru": "Карта",
+      "name_en": "Map",
+      "source": "srd-5.2",
+      "sort_order": 810,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/246-map",
+        "url_ttg": "https://new.ttg.club/items/map-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Карта — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "map-or-scroll-case",
+      "name_ru": "Тубус для карт и свитков",
+      "name_en": "Map or Scroll Case",
+      "source": "srd-5.2",
+      "sort_order": 820,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/220-map-or-scroll-case",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Тубус для карт и свитков — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "masons-tools",
+      "name_ru": "Инструменты каменщика",
+      "name_en": "Mason's Tools",
+      "source": "srd-5.2",
+      "sort_order": 830,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14362-masons-tools",
+        "url_ttg": "https://new.ttg.club/items/mason-s-tools-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты каменщика — снаряжение SRD 2024.",
+        "weight_lb": 8,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "utilize_ru": "Высечь символ или отверстие в камне (Сл 10).",
+        "tool_ability": "strength"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "mirror",
+      "name_ru": "Зеркало",
+      "name_en": "Mirror",
+      "source": "srd-5.2",
+      "sort_order": 840,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/247-mirror",
+        "url_ttg": "https://new.ttg.club/items/mirror-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Зеркало — снаряжение SRD 2024.",
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "musical-instrument",
+      "name_ru": "Музыкальный инструмент",
+      "name_en": "Musical Instrument",
+      "source": "srd-5.2",
+      "sort_order": 850,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14380-musical-instrument",
+        "url_ttg": "https://new.ttg.club/items/musical-instrument-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Музыкальный инструмент — снаряжение SRD 2024.",
+        "utilize_ru": "Сыграть известную мелодию (Сл 10) или импровизировать (Сл 15).",
+        "tool_ability": "charisma"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "navigators-tools",
+      "name_ru": "Инструменты навигатора",
+      "name_en": "Navigator’s Tools",
+      "source": "srd-5.2",
+      "sort_order": 860,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14377-navigators-tools",
+        "url_ttg": "https://new.ttg.club/items/navigator-s-tools-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Инструменты навигатора — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "utilize_ru": "Проложить курс (Сл 10) или определить положение по звёздам (Сл 15).",
+        "tool_ability": "wisdom"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "needles",
+      "name_ru": "Иглы",
+      "name_en": "Needles",
+      "source": "srd-5.2",
+      "sort_order": 870,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/55-needles",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "ammunition",
+        "summary_ru": "Иглы — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "net",
+      "name_ru": "Сеть",
+      "name_en": "Net",
+      "source": "srd-5.2",
+      "sort_order": 880,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/248-net",
+        "url_ttg": "https://new.ttg.club/items/net-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Сеть — снаряжение SRD 2024.",
+        "weight_lb": 3,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "utilize_ru": "Атакой можно метнуть (15 фт); спас Ловкости или состояние «схваченный/стеснённый» до освобождения."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "oil",
+      "name_ru": "Масло",
+      "name_en": "Oil",
+      "source": "srd-5.2",
+      "sort_order": 890,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/249-oil",
+        "url_ttg": "https://new.ttg.club/items/oil-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Масло — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "sp"
+        },
+        "utilize_ru": "Использование/атака: облить цель или площадь; топливо для фонарей."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "orb",
+      "name_ru": "Сфера",
+      "name_en": "Orb",
+      "source": "srd-5.2",
+      "sort_order": 900,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/281-orb",
+        "url_ttg": "https://new.ttg.club/items/orb-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "spellcasting_focus",
+        "summary_ru": "Сфера — снаряжение SRD 2024.",
+        "weight_lb": 3,
+        "cost": {
+          "amount": 20,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "painters-supplies",
+      "name_ru": "Инструменты художника",
+      "name_en": "Painter's Supplies",
+      "source": "srd-5.2",
+      "sort_order": 910,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14363-painters-supplies",
+        "url_ttg": "https://new.ttg.club/items/painter-s-supplies-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты художника — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "utilize_ru": "Нарисовать узнаваемый образ увиденного (Сл 10).",
+        "tool_ability": "wisdom"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "pan-flute",
+      "name_ru": "Флейта Пана",
+      "name_en": "Pan Flute",
+      "source": "srd-5.2",
+      "sort_order": 920,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14391-pan-flute",
+        "url_ttg": "https://new.ttg.club/items/pan-flute-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Флейта Пана — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 12,
+          "unit": "gp"
+        },
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "paper",
+      "name_ru": "Бумага",
+      "name_en": "Paper",
+      "source": "srd-5.2",
+      "sort_order": 930,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/250-paper",
+        "url_ttg": "https://new.ttg.club/items/paper-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Бумага — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 2,
+          "unit": "sp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "parchment",
+      "name_ru": "Пергамент",
+      "name_en": "Parchment",
+      "source": "srd-5.2",
+      "sort_order": 940,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/251-parchment",
+        "url_ttg": "https://new.ttg.club/items/parchment-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Пергамент — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 1,
+          "unit": "sp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "perfume",
+      "name_ru": "Духи",
+      "name_en": "Perfume",
+      "source": "srd-5.2",
+      "sort_order": 950,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/252-perfume",
+        "url_ttg": "https://new.ttg.club/items/perfume-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Духи — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "playing-cards",
+      "name_ru": "Игральные карты",
+      "name_en": "Playing cards",
+      "source": "srd-5.2",
+      "sort_order": 960,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14374-playing-cards",
+        "url_ttg": "https://new.ttg.club/items/playing-cards-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Игральные карты — снаряжение SRD 2024.",
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "poisoners-kit",
+      "name_ru": "Инструменты отравителя",
+      "name_en": "Poisoner’s Kit",
+      "source": "srd-5.2",
+      "sort_order": 970,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14378-poisoners-kit",
+        "url_ttg": "https://new.ttg.club/items/poisoner-s-kit-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Инструменты отравителя — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "utilize_ru": "Обнаружить отравленный объект (Сл 10).",
+        "tool_ability": "intelligence",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "pole",
+      "name_ru": "Шест",
+      "name_en": "Pole",
+      "source": "srd-5.2",
+      "sort_order": 980,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/254-pole",
+        "url_ttg": "https://new.ttg.club/items/pole-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Шест — снаряжение SRD 2024.",
+        "weight_lb": 7,
+        "cost": {
+          "amount": 5,
+          "unit": "cp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "portable-ram",
+      "name_ru": "Портативный таран",
+      "name_en": "Portable Ram",
+      "source": "srd-5.2",
+      "sort_order": 990,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/259-portable-ram",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Портативный таран — снаряжение SRD 2024.",
+        "weight_lb": 35,
+        "cost": {
+          "amount": 4,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "potters-tools",
+      "name_ru": "Инструменты гончара",
+      "name_en": "Potter's Tools",
+      "source": "srd-5.2",
+      "sort_order": 1000,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14364-potters-tools",
+        "url_ttg": "https://new.ttg.club/items/potter-s-tools-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты гончара — снаряжение SRD 2024.",
+        "weight_lb": 3,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "utilize_ru": "Понять, что держал керамический предмет за последние 24 часа (Сл 15).",
+        "tool_ability": "intelligence"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "pouch",
+      "name_ru": "Кошель",
+      "name_en": "Pouch",
+      "source": "srd-5.2",
+      "sort_order": 1010,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/257-pouch",
+        "url_ttg": "https://new.ttg.club/items/pouch-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Кошель — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        },
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "priests-pack",
+      "name_ru": "Набор священника",
+      "name_en": "Priest’s Pack",
+      "source": "srd-5.2",
+      "sort_order": 1020,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/96-priests-pack",
+        "url_ttg": "https://new.ttg.club/items/priest-s-pack-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "item_pack",
+        "summary_ru": "Набор «Набор священника» (состав — по карточке SRD / справочнику).",
+        "weight_lb": 29,
+        "cost": {
+          "amount": 33,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "quiver",
+      "name_ru": "Колчан",
+      "name_en": "Quiver",
+      "source": "srd-5.2",
+      "sort_order": 1030,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/258-quiver",
+        "url_ttg": "https://new.ttg.club/items/quiver-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Колчан — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rations",
+      "name_ru": "Рационы",
+      "name_en": "Rations",
+      "source": "srd-5.2",
+      "sort_order": 1040,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/260-rations",
+        "url_ttg": "https://new.ttg.club/items/rations-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Рационы — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        },
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "reliquary",
+      "name_ru": "Реликварий",
+      "name_en": "Reliquary",
+      "source": "srd-5.2",
+      "sort_order": 1050,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/290-reliquary",
+        "url_ttg": "https://new.ttg.club/items/reliquary-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "spellcasting_focus",
+        "summary_ru": "Реликварий — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "robe",
+      "name_ru": "Мантия",
+      "name_en": "Robe",
+      "source": "srd-5.2",
+      "sort_order": 1060,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/261-robe",
+        "url_ttg": "https://new.ttg.club/items/robe-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Мантия — снаряжение SRD 2024.",
+        "weight_lb": 4,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rod",
+      "name_ru": "Жезл",
+      "name_en": "Rod",
+      "source": "srd-5.2",
+      "sort_order": 1070,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/282-rod",
+        "url_ttg": "https://new.ttg.club/items/rod-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "spellcasting_focus",
+        "summary_ru": "Жезл — снаряжение SRD 2024.",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "rope",
+      "name_ru": "Верёвка",
+      "name_en": "Rope",
+      "source": "srd-5.2",
+      "sort_order": 1080,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/262-rope",
+        "url_ttg": "https://new.ttg.club/items/rope-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Верёвка — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "utilize_ru": "Использование: завязать узел (Сл 10 Ловкости рук); можно связать цель."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "sack",
+      "name_ru": "Мешок",
+      "name_en": "Sack",
+      "source": "srd-5.2",
+      "sort_order": 1090,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/263-sack",
+        "url_ttg": "https://new.ttg.club/items/sack-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Мешок — снаряжение SRD 2024.",
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 1,
+          "unit": "cp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "scholars-pack",
+      "name_ru": "Набор учёного",
+      "name_en": "Scholar’s Pack",
+      "source": "srd-5.2",
+      "sort_order": 1100,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/97-scholars-pack",
+        "url_ttg": "https://new.ttg.club/items/scholar-s-pack-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "item_pack",
+        "summary_ru": "Набор «Набор учёного» (состав — по карточке SRD / справочнику).",
+        "weight_lb": 22,
+        "cost": {
+          "amount": 40,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "shawm",
+      "name_ru": "Шалмей",
+      "name_en": "Shawm",
+      "source": "srd-5.2",
+      "sort_order": 1110,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14388-shawm",
+        "url_ttg": "https://new.ttg.club/items/shawm-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Шалмей — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "shovel",
+      "name_ru": "Лопата",
+      "name_en": "Shovel",
+      "source": "srd-5.2",
+      "sort_order": 1120,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/264-shovel",
+        "url_ttg": "https://new.ttg.club/items/shovel-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Лопата — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "signal-whistle",
+      "name_ru": "Сигнальный свисток",
+      "name_en": "Signal Whistle",
+      "source": "srd-5.2",
+      "sort_order": 1130,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/265-signal-whistle",
+        "url_ttg": "https://new.ttg.club/items/signal-whistle-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Сигнальный свисток — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5,
+          "unit": "cp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "sling-bullets",
+      "name_ru": "Снаряды для пращи",
+      "name_en": "Sling Bullets",
+      "source": "srd-5.2",
+      "sort_order": 1140,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/40-sling-bullets",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "ammunition",
+        "summary_ru": "Снаряды для пращи — снаряжение SRD 2024.",
+        "weight_lb": 1.5,
+        "cost": {
+          "amount": 4,
+          "unit": "cp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "smiths-tools",
+      "name_ru": "Инструменты кузнеца",
+      "name_en": "Smith's Tools",
+      "source": "srd-5.2",
+      "sort_order": 1150,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14365-smiths-tools",
+        "url_ttg": "https://new.ttg.club/items/smith-s-tools-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты кузнеца — снаряжение SRD 2024.",
+        "weight_lb": 8,
+        "cost": {
+          "amount": 20,
+          "unit": "gp"
+        },
+        "utilize_ru": "Вскрыть дверь или контейнер (Сл 20).",
+        "tool_ability": "strength"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "sprig-of-mistletoe",
+      "name_ru": "Веточка омелы",
+      "name_en": "Sprig of Mistletoe",
+      "source": "srd-5.2",
+      "sort_order": 1160,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/285-sprig-of-mistletoe",
+        "url_ttg": "https://new.ttg.club/items/sprig-of-mistletoe-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "spellcasting_focus",
+        "summary_ru": "Веточка омелы — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "spyglass",
+      "name_ru": "Подзорная труба",
+      "name_en": "Spyglass",
+      "source": "srd-5.2",
+      "sort_order": 1170,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/267-spyglass",
+        "url_ttg": "https://new.ttg.club/items/spyglass-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Подзорная труба — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 1000,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff",
+      "name_ru": "Посох",
+      "name_en": "Staff",
+      "source": "srd-5.2",
+      "sort_order": 1180,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/283-staff",
+        "url_ttg": "https://new.ttg.club/items/staff-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "spellcasting_focus",
+        "summary_ru": "Посох — снаряжение SRD 2024.",
+        "weight_lb": 4,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "string",
+      "name_ru": "Леска",
+      "name_en": "String",
+      "source": "srd-5.2",
+      "sort_order": 1190,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/268-string",
+        "url_ttg": "https://new.ttg.club/items/string-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Леска — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 1,
+          "unit": "sp"
+        },
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "tent",
+      "name_ru": "Палатка",
+      "name_en": "Tent",
+      "source": "srd-5.2",
+      "sort_order": 1200,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/269-tent",
+        "url_ttg": "https://new.ttg.club/items/tent-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Палатка — снаряжение SRD 2024.",
+        "weight_lb": 20,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "thieves-tools",
+      "name_ru": "Воровские инструменты",
+      "name_en": "Thieves’ Tools",
+      "source": "srd-5.2",
+      "sort_order": 1210,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14379-thieves-tools",
+        "url_ttg": "https://new.ttg.club/items/thieves-tools-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Воровские инструменты — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "utilize_ru": "Вскрыть замок (Сл 15) или обезвредить ловушку (Сл 15).",
+        "tool_ability": "dexterity"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "three-dragon-ante",
+      "name_ru": "Ставка трёх драконов",
+      "name_en": "Three-dragon ante",
+      "source": "srd-5.2",
+      "sort_order": 1220,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14375-three-dragon-ante",
+        "url_ttg": null,
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Ставка трёх драконов — снаряжение SRD 2024."
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "tinderbox",
+      "name_ru": "Трутница",
+      "name_en": "Tinderbox",
+      "source": "srd-5.2",
+      "sort_order": 1230,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/270-tinderbox",
+        "url_ttg": "https://new.ttg.club/items/tinderbox-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Трутница — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "tinkers-tools",
+      "name_ru": "Инструменты ремонтника",
+      "name_en": "Tinker’s Tools",
+      "source": "srd-5.2",
+      "sort_order": 1240,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14366-tinkers-tools",
+        "url_ttg": "https://new.ttg.club/items/tinker-s-tools-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты ремонтника — снаряжение SRD 2024.",
+        "weight_lb": 10,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "utilize_ru": "Собрать крошечный предмет из обломков, который развалится через 1 минуту (Сл 20).",
+        "tool_ability": "dexterity"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "torch",
+      "name_ru": "Факел",
+      "name_en": "Torch",
+      "source": "srd-5.2",
+      "sort_order": 1250,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/271-torch",
+        "url_ttg": "https://new.ttg.club/items/torch-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Факел — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "cp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "travelers-clothes",
+      "name_ru": "Дорожная одежда",
+      "name_en": "Traveler's Clothes",
+      "source": "srd-5.2",
+      "sort_order": 1260,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/225-travelers-clothes",
+        "url_ttg": "https://new.ttg.club/items/traveler-s-clothes-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Дорожная одежда — снаряжение SRD 2024.",
+        "weight_lb": 4,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "vial",
+      "name_ru": "Флакон",
+      "name_en": "Vial",
+      "source": "srd-5.2",
+      "sort_order": 1270,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/272-vial",
+        "url_ttg": "https://new.ttg.club/items/vial-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Флакон — снаряжение SRD 2024.",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "viol",
+      "name_ru": "Виола да гамба",
+      "name_en": "Viol",
+      "source": "srd-5.2",
+      "sort_order": 1280,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14382-viol",
+        "url_ttg": "https://new.ttg.club/items/viol-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "toolkit",
+        "summary_ru": "Виола да гамба — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 30,
+          "unit": "gp"
+        },
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand",
+      "name_ru": "Волшебная палочка",
+      "name_en": "Wand",
+      "source": "srd-5.2",
+      "sort_order": 1290,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/284-wand",
+        "url_ttg": "https://new.ttg.club/items/wand-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "spellcasting_focus",
+        "summary_ru": "Волшебная палочка — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "waterskin",
+      "name_ru": "Бурдюк",
+      "name_en": "Waterskin",
+      "source": "srd-5.2",
+      "sort_order": 1300,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/273-waterskin",
+        "url_ttg": "https://new.ttg.club/items/waterskin-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Бурдюк — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 2,
+          "unit": "sp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "weavers-tools",
+      "name_ru": "Инструменты ткача",
+      "name_en": "Weaver’s Tools",
+      "source": "srd-5.2",
+      "sort_order": 1310,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14367-weavers-tools",
+        "url_ttg": "https://new.ttg.club/items/weaver-s-tools-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты ткача — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "utilize_ru": "Залатать одежду (Сл 10) или вышить крошечный узор (Сл 10).",
+        "tool_ability": "dexterity"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "woodcarvers-tools",
+      "name_ru": "Инструменты резчика по дереву",
+      "name_en": "Woodcarver’s Tools",
+      "source": "srd-5.2",
+      "sort_order": 1320,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14368-woodcarvers-tools",
+        "url_ttg": "https://new.ttg.club/items/woodcarver-s-tools-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "artisan_tool",
+        "summary_ru": "Инструменты резчика по дереву — снаряжение SRD 2024.",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "utilize_ru": "Вырезать узор по дереву (Сл 10).",
+        "tool_ability": "dexterity"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wooden-staff",
+      "name_ru": "Деревянный посох",
+      "name_en": "Wooden Staff",
+      "source": "srd-5.2",
+      "sort_order": 1330,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/286-wooden-staff",
+        "url_ttg": "https://new.ttg.club/items/wooden-staff-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "spellcasting_focus",
+        "summary_ru": "Деревянный посох — снаряжение SRD 2024.",
+        "weight_lb": 4,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "yew-wand",
+      "name_ru": "Тисовая палочка",
+      "name_en": "Yew Wand",
+      "source": "srd-5.2",
+      "sort_order": 1340,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/287-yew-wand",
+        "url_ttg": "https://new.ttg.club/items/yew-wand-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "equipment_group": "spellcasting_focus",
+        "summary_ru": "Тисовая палочка — снаряжение SRD 2024.",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        }
+      }
+    }
+  ]
+}

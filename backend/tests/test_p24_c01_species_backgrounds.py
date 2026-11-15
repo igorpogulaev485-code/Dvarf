@@ -178,7 +178,14 @@ def test_seed_rows_are_edition_2024_only():
     """Seed plan never writes rules_edition=2014 — 2014 catalog stays untouched by construction."""
     for row in load_wave_rows():
         assert row["rules_edition"] == "2024"
-        assert row["kind"] in {"race", "background", "feat"}
+        assert row["kind"] in {
+            "race",
+            "background",
+            "feat",
+            "weapon",
+            "armor",
+            "item",
+        }
         assert row["source"].startswith("srd")
 
 
@@ -225,11 +232,12 @@ def test_apply_seed_idempotent_with_fake_conn():
     snapshot = {k: dict(v) for k, v in store.items()}
     stats2 = apply_edition_2024_catalog_seed(conn)  # type: ignore[arg-type]
 
-    # C01 species/backgrounds + C02 feats
-    assert stats1.upserted == 30
-    assert stats2.upserted == 30
+    # Live waves grow with later C-packs; assert against the planned row count.
+    planned = len(load_wave_rows())
+    assert stats1.upserted == planned
+    assert stats2.upserted == planned
     assert set(store) == set(snapshot)
-    assert {k[0] for k in store} == {"race", "background", "feat"}
+    assert {"race", "background", "feat"}.issubset({k[0] for k in store})
     assert {k[1] for k in store if k[0] == "race"} == SRD_SPECIES_EXPECTED
     assert {k[1] for k in store if k[0] == "background"} == SRD_BACKGROUNDS_EXPECTED
     assert len({k[1] for k in store if k[0] == "feat"}) == 17

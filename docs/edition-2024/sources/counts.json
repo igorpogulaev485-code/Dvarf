@@ -8,7 +8,7 @@
     "spells": 444,
     "weapons": 38,
     "armor": 13,
-    "equipment": 136,
+    "equipment": 146,
     "magic_items": 565,
     "creatures": 657,
     "bastions": 0,
@@ -64,7 +64,7 @@
     },
     "equipment": {
       "FRHoF": 12,
-      "PH24": 124
+      "PH24": 134
     },
     "magic_items": {
       "AU": 47,
@@ -96,6 +96,7 @@
   "notes": [
     "DDBD (Dragon Delves): 0 записей на обоих сайтах на дату опроса.",
     "bastions: 0 — разделы пусты/недоступны (см. gaps.md).",
-    "Доправка: url_ttg суффикс ↔ книга; elf-phb; EFA без UAEU-ссылок; elf__lfl с ttg."
+    "Доправка: url_ttg суффикс ↔ книга; elf-phb; EFA без UAEU-ссылок; elf__lfl с ttg.",
+    "P24-C03: srd-флаги armor/equipment сверстаны с SRD 5.2.1; в equipment.csv добавлены 10 пропущенных SRD-предметов (без зелья/свитков — они в magic_items)."
   ]
 }

@@ -6,6 +6,8 @@ its empty class/species/background stubs, Culture, or Engineering.
 
 Schema contract for later packs (P24-00 lists → data packs):
 - weapon: ``mastery`` is a top-level ``data`` field (not a ``properties`` entry)
+- armor: ``armor_kind``, AC / Dex rule, Strength, Stealth, don/doff
+- item (gear): ``equipment_group``, optional ``utilize_ru`` (data only, no automation)
 - race (species 2024): empty ``ability_bonuses``; no languages from species
 - background: ``data.asi`` and ``data.origin_feat`` (feat cards in C02)
 - feat: ``data.category``, ``prerequisites``, ``repeatable``, ``ability_score_increase``
@@ -42,10 +44,19 @@ class WaveSpec:
 
 
 # Live waves (P24-C01+). Raw dump catalog.json is never listed here.
+# weapon_mastery_srd.json is a reference dictionary (not catalog_entries).
 EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("species_srd.json"),
     WaveSpec("backgrounds_srd.json"),
     WaveSpec("feats_srd.json"),
+    WaveSpec("weapons_srd.json"),
+    WaveSpec("armor_srd.json"),
+    WaveSpec("equipment_srd.json"),
+)
+
+WEAPON_MASTERY_FILENAME = "weapon_mastery_srd.json"
+WEAPON_MASTERY_IDS = frozenset(
+    {"cleave", "graze", "nick", "push", "sap", "slow", "topple", "vex"}
 )
 
 
@@ -139,6 +150,63 @@ def normalize_feat_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
     return out
 
 
+def normalize_armor_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
+    """2024 armor / shield card."""
+    out = dict(data) if isinstance(data, dict) else {}
+    out.setdefault("armor_kind", None)
+    out.setdefault("base_ac", None)
+    out.setdefault("dex_bonus", None)
+    out.setdefault("strength_requirement", None)
+    if out.get("stealth_disadvantage") is None:
+        out["stealth_disadvantage"] = False
+    else:
+        out["stealth_disadvantage"] = bool(out["stealth_disadvantage"])
+    out.setdefault("weight_lb", None)
+    out.setdefault("cost", None)
+    out.setdefault("don_time", None)
+    out.setdefault("doff_time", None)
+    out.setdefault("summary_ru", None)
+    return out
+
+
+def normalize_item_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
+    """2024 adventuring gear / tools / ammo / focus / pack (kind=item)."""
+    out = dict(data) if isinstance(data, dict) else {}
+    out.setdefault("equipment_group", None)
+    out.setdefault("weight_lb", None)
+    out.setdefault("cost", None)
+    out.setdefault("utilize_ru", None)
+    out.setdefault("summary_ru", None)
+    return out
+
+
+def load_weapon_mastery_dictionary() -> list[dict[str, Any]]:
+    """Eight mastery property cards (reference only — not catalog_entries)."""
+    path = _data_dir() / WEAPON_MASTERY_FILENAME
+    if not path.is_file():
+        return []
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    items = payload if isinstance(payload, list) else payload.get("entries") or []
+    if not isinstance(items, list):
+        raise RuntimeError(f"Expected list in {path}")
+    out: list[dict[str, Any]] = []
+    for item in items:
+        if not isinstance(item, Mapping):
+            continue
+        mid = str(item.get("id") or "").strip().lower()
+        if not mid:
+            continue
+        out.append(
+            {
+                "id": mid,
+                "name_en": item.get("name_en"),
+                "name_ru": item.get("name_ru"),
+                "summary_ru": item.get("summary_ru"),
+            }
+        )
+    return out
+
+
 def normalize_entry_payload(item: Mapping[str, Any]) -> dict[str, Any] | None:
     """Return a live-ready row or None if the row must stay out of the active catalog."""
     kind = str(item.get("kind") or "").strip()
@@ -151,6 +219,10 @@ def normalize_entry_payload(item: Mapping[str, Any]) -> dict[str, Any] | None:
     data_raw = item.get("data") if isinstance(item.get("data"), dict) else {}
     if kind == "weapon":
         data = normalize_weapon_data(data_raw)
+    elif kind == "armor":
+        data = normalize_armor_data(data_raw)
+    elif kind == "item":
+        data = normalize_item_data(data_raw)
     elif kind == "race":
         data = normalize_race_data(data_raw)
     elif kind == "background":

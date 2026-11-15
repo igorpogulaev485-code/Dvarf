@@ -71,3 +71,10 @@ SRD 5.2.1 PDF: [SRD_CC_v5.2.1.pdf](https://media.dndbeyond.com/compendium-images
 - Сайты почти не маркируют карточки кодом SRD (`311`), поэтому полагаться только на сайт-тег нельзя.
 - **P24-C01 (2026-11-15):** в `backgrounds.csv` у `guard` и `noble` флаг `srd` ошибочно был `true` (совпадение с именами бестиария Guard/Noble в PDF). В официальном Character Origins SRD 5.2.1 только **Acolyte, Criminal, Sage, Soldier**. Флаги исправлены на `false`; книжные предыстории — в P24-C09.
 - **P24-C02 (2026-11-15):** в `feats.csv` эвристика `srd` ошибалась. По разделу Feats SRD 5.2.1 ровно **17** черт: Origin — Alert, Magic Initiate, Savage Attacker, **Skilled** (был `false`); General — Ability Score Improvement, Grappler; Fighting Style — Archery, Defense, Great Weapon Fighting, Two-Weapon Fighting; Epic Boon — Combat Prowess, Dimensional Travel, Fate, Irresistible Offense, Spell Recall, the Night Spirit, Truesight. **Tough** был `true` ошибочно (PHB, не SRD) → `false`. Флаги выровнены под PDF/оглавление SRD.
+- **P24-C03 (2026-11-15):** эвристика `srd` для **Armor** и **Adventuring Gear / Tools** была почти полностью `false` (в `armor.csv` только `shield=true`; в `equipment.csv` — **0** `true`). По разделу Equipment SRD 5.2.1:
+  - **Weapons:** все **38** уже были `true` (включая Musket/Pistol) — без правки флагов.
+  - **Armor:** все **13** строк (12 доспехов + Shield) → `srd=true`.
+  - **Equipment:** все PH24 строки из эталона, которые есть в SRD → `srd=true` (**134** после дописки); FRHoF (12) остаются `false`.
+  - **Пробелы эталона (добавлены в `equipment.csv`):** Alchemist's Fire, Alchemist's Supplies, Burglar's Pack, Climber's Kit, Healer's Kit, Mason's Tools, Painter's Supplies, Potter's Tools, Smith's Tools, Traveler's Clothes.
+  - **Не добавляли в equipment (есть в SRD Adventuring Gear, но ведутся как магия):** Potion of Healing, Spell Scroll (Cantrip / Level 1) — уже в `magic_items.csv` (DMG24); сид C03 их не берёт. Закрывать в пачке магических предметов.
+  - Кнопки мастерства оружия и логика боя **не** в этой пачке (M01 / поздние механики).
