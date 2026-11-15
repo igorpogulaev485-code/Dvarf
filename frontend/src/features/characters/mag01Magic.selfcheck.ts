@@ -74,9 +74,13 @@ assert.match(createPage, /resolvedId/)
 assert.match(grimoire, /prepareCapForSpell/)
 assert.match(grimoire, /countPreparedLeveledBySlug/)
 
-// --- Cast dialog full metamagic ---
-assert.match(castDlg, /listApplicableMetamagic/)
-assert.match(castDlg, /applicableMetamagic/)
+// --- Cast dialog full metamagic (collapsible; no per-option «осталось») ---
+assert.match(castDlg, /listKnownMetamagic/)
+assert.match(castDlg, /knownMetamagic/)
+assert.match(castDlg, /metamagicOpen/)
+assert.match(castDlg, /metamagicDisableReason/)
+assert.match(castDlg, /metamagicCostLabel/)
+assert.doesNotMatch(castDlg, /осталось \$\{sorceryLeft\}/)
 assert.match(castDlg, /useDistant|useCareful|useEmpowered/)
 
 // --- Settings multiclass profiles ---

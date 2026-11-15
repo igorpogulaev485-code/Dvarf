@@ -86,16 +86,80 @@ export function listApplicableMetamagic(
   spell: Parameters<typeof metamagicAppliesToSpell>[1],
   options?: { allowTce?: boolean },
 ): MetamagicDef[] {
+  return listKnownMetamagic(knownIds, options).filter((def) =>
+    metamagicAppliesToSpell(def, spell),
+  )
+}
+
+/** All known metamagic options (including ones that do not apply to this spell). */
+export function listKnownMetamagic(
+  knownIds: string[],
+  options?: { allowTce?: boolean },
+): MetamagicDef[] {
   const allowTce = options?.allowTce !== false
   const out: MetamagicDef[] = []
   for (const id of knownIds) {
     const def = metamagicById(id)
     if (!def) continue
     if (def.sourceBook === 'tce' && !allowTce) continue
-    if (!metamagicAppliesToSpell(def, spell)) continue
     out.push(def)
   }
   return out
+}
+
+/** Short label for collapsed header («Далёкое»). */
+export function metamagicShortLabel(def: MetamagicDef): string {
+  return def.nameRu.replace(/\s+заклинание$/i, '').trim() || def.nameRu
+}
+
+/** Cost face: «1 очк.» / «3 очк.» */
+export function metamagicCostLabel(cost: number): string {
+  return `${cost} очк.`
+}
+
+/**
+ * Why an option is inactive for this cast (points / spell fit / timing).
+ * Returns null when the option can be toggled on.
+ */
+export function metamagicDisableReason(
+  def: MetamagicDef,
+  spell: Parameters<typeof metamagicAppliesToSpell>[1],
+  ctx: {
+    sorceryLeft: number
+    cost: number
+    checked: boolean
+    castingIsAction: boolean
+    useEmbodiment: boolean
+  },
+): string | null {
+  if (!metamagicAppliesToSpell(def, spell)) {
+    switch (def.id) {
+      case 'careful':
+      case 'heightened':
+        return 'нет спасброска'
+      case 'distant':
+        return 'нет дистанции'
+      case 'empowered':
+      case 'transmuted':
+        return 'нет урона'
+      case 'extended':
+        return 'неподходящая длительность'
+      case 'quickened':
+        return 'нужно действие'
+      case 'subtle':
+        return 'нет В/С'
+      case 'twinned':
+        return 'не одна цель'
+      case 'seeking':
+        return 'нет атаки'
+      default:
+        return 'не подходит'
+    }
+  }
+  if (def.id === 'quickened' && ctx.useEmbodiment) return 'уже воплощение'
+  if (def.id === 'quickened' && !ctx.castingIsAction) return 'нужно действие'
+  if (!ctx.checked && ctx.sorceryLeft < ctx.cost) return 'не хватает очков'
+  return null
 }
 
 export function metamagicSelectionCost(

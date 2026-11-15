@@ -820,6 +820,26 @@ button.play-desk-compact__more--btn:hover {
   height: 100%;
 }
 
+/* Desktop split: колонка не выше окна (шапка стола остаётся) — список кругов крутится внутри */
+@media (min-width: 960px) {
+  .play-desk--split .play-desk__stage-panel.is-pinned:has(.play-desk-compact--spells) {
+    /* ~шапка+режимы+сцена-хром: панель целиком в первом вьюпорте */
+    max-height: calc(100dvh - 27.5rem);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-self: start;
+    box-sizing: border-box;
+  }
+
+  .play-desk--split .play-desk__stage-panel.is-pinned:has(.play-desk-compact--spells) > .play-desk-compact--spells {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 100%;
+    height: auto;
+  }
+}
+
 .play-desk-compact__chrome {
   flex: 0 0 auto;
   display: grid;
@@ -964,8 +984,16 @@ button.play-desk-compact__more--btn:hover {
 }
 
 @media (max-width: 959px) {
+  /* 390: обычная прокрутка страницы, без вложенного скролла колонки */
   .play-desk-compact--spells {
-    max-height: min(70vh, 560px);
+    max-height: none;
+    height: auto;
+  }
+
+  .play-desk-compact__list--scroll {
+    flex: none;
+    overflow-y: visible;
+    min-height: 0;
   }
 
   .play-desk-compact__spell-cast.ui-button--edge-end {
