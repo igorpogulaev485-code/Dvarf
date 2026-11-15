@@ -30,6 +30,11 @@ import { migrateLegacyHitDice, syncHitDicePools } from '../../../shared/dnd/clas
 import { withSyncedHitDiceSummary } from '../play'
 import { classWalkSpeedBonusFt } from '../../../shared/dnd/classMovement'
 import { readFeaturePicks, type FeaturePicksState } from '../../../shared/dnd/featurePicks'
+import { bridgeOriginPicks } from '../../../shared/dnd/pack04SorcererWarlock'
+import {
+  emptySubclassPicks,
+  type SubclassGrantPicks,
+} from '../../../shared/dnd/subclassGrants'
 import { readSheetUi, type SheetUiState } from '../playDeskUi'
 import type { CompanionKind } from '../companions'
 import { readIdentityExtras, type IdentityExtras } from '../identity'
@@ -195,6 +200,50 @@ export function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
       magic_bonus: readNullableNumber(row.magic_bonus),
     }
   })
+}
+
+/** ABL-01: hydrate grant picks from sheet.subclass_setups into feature card keys. */
+function readSubclassGrantPicks(raw: unknown): SubclassGrantPicks {
+  const root = asRecord(raw)
+  const valuesRaw = asRecord(root.values ?? root)
+  const values: Record<string, string> = {}
+  for (const [key, value] of Object.entries(valuesRaw)) {
+    if (typeof value === 'string' && value.trim()) values[key] = value.trim()
+    else if (Array.isArray(value)) {
+      const joined = value
+        .map((item) => (typeof item === 'string' ? item.trim() : ''))
+        .filter(Boolean)
+        .join(',')
+      if (joined) values[key] = joined
+    }
+  }
+  return values && Object.keys(values).length ? { values } : emptySubclassPicks()
+}
+
+function bridgeFeaturePicksFromSubclassSetups(
+  featurePicks: FeaturePicksState,
+  classes: ClassLevelEntry[],
+  sheet: Record<string, unknown>,
+): FeaturePicksState {
+  const setups = asRecord(sheet.subclass_setups ?? sheet.subclassSetups)
+  let next = featurePicks
+  for (const row of classes) {
+    const rawSetup = setups[row.id] ?? (row.catalog_id ? setups[row.catalog_id] : undefined)
+    if (!rawSetup || typeof rawSetup !== 'object') continue
+    const setup = asRecord(rawSetup)
+    const entry = asRecord(setup.entry)
+    const slug =
+      (typeof entry.slug === 'string' && entry.slug.trim()) ||
+      (typeof row.subclass_name === 'string' ? row.subclass_name : null)
+    if (!slug || setup.picks == null) continue
+    next = bridgeOriginPicks({
+      featurePicks: next,
+      classEntryId: row.id,
+      subclassSlug: slug,
+      grantPicks: readSubclassGrantPicks(setup.picks),
+    })
+  }
+  return next
 }
 
 function readWeaponActivation(raw: unknown): WeaponActivation | null {
@@ -390,7 +439,11 @@ export function buildDraft(character: CharacterDetail): Draft {
         : null,
     companions: readCompanions(sheet.companions),
     knownForms: readKnownForms(sheet.known_forms),
-    featurePicks: readFeaturePicks(sheet.feature_picks),
+    featurePicks: bridgeFeaturePicksFromSubclassSetups(
+      readFeaturePicks(sheet.feature_picks),
+      classes,
+      sheet,
+    ),
     classAsi: readClassAsiLedger(sheet.class_asi),
     primalChampion: readPrimalChampion(sheet.primal_champion),
     piety: readPiety(sheet.piety),

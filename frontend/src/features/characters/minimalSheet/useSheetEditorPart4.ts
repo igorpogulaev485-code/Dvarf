@@ -128,7 +128,7 @@ export function useSheetEditorPart4(model: SheetModel) {
   model.setIdentityOpen = setIdentityOpen
   /** B20: jump from «Нужно настроить» → filter in ClassFeaturesPanel. */
   const [featuresFilterRequest, setFeaturesFilterRequest] = useState<
-    'needs_setup' | null
+    'needs_setup' | 'needs_choice' | null
   >(null)
   model.featuresFilterRequest = featuresFilterRequest
   model.setFeaturesFilterRequest = setFeaturesFilterRequest

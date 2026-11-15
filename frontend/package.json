@@ -75,6 +75,7 @@
     "selfcheck:fix01-mobile-target": "tsx --tsconfig tsconfig.app.json src/features/characters/fix01MobileTarget.selfcheck.ts",
     "selfcheck:dialog-backdrop": "tsx --tsconfig tsconfig.app.json src/ui/dialogBackdrop.selfcheck.ts",
     "selfcheck:text-blocks": "tsx --tsconfig tsconfig.app.json src/features/characters/textBlocks.selfcheck.ts",
+    "selfcheck:abl01-abilities": "tsx --tsconfig tsconfig.app.json src/features/characters/abl01Abilities.selfcheck.ts",
     "test:e2e:onboarding": "playwright test --config=playwright.onboarding.config.ts"
   },
   "dependencies": {

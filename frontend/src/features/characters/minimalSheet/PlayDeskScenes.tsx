@@ -1062,21 +1062,28 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
 
       <div className="play-desk__stage-panel" hidden={model.stageHidden('features')}>
       {/* Features: ClassFeaturesPanel glance→expand — no compact/full flip. */}
-      <PietyPanel
-        piety={model.draft.piety}
-        onChange={(nextPiety: PietyState) =>
-          model.setDraft((prev) => {
-            const reverted = syncPietyChampion({
-              ...prev,
-              piety: { ...prev.piety, score: 0 },
+      {/* ABL-01: Благочестие только при MOT в кампании или если у героя выбран бог. */}
+      {Boolean(model.draft.piety.god) ||
+      (model.campaignRulesRaw != null &&
+        normalizeCampaignRules(model.campaignRulesRaw).start.allowed_sources.includes(
+          'mot',
+        )) ? (
+        <PietyPanel
+          piety={model.draft.piety}
+          onChange={(nextPiety: PietyState) =>
+            model.setDraft((prev) => {
+              const reverted = syncPietyChampion({
+                ...prev,
+                piety: { ...prev.piety, score: 0 },
+              })
+              return {
+                ...reverted,
+                piety: { ...nextPiety, champion_applied: 0 },
+              }
             })
-            return {
-              ...reverted,
-              piety: { ...nextPiety, champion_applied: 0 },
-            }
-          })
-        }
-      />
+          }
+        />
+      ) : null}
       <ClassFeaturesPanel
         classes={model.draft.classes}
         characterLevel={model.characterLevel}
