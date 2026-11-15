@@ -30,4 +30,18 @@ assert(staticField.includes('classic-static--pencil'), 'pencil blanks for empty 
 const print2024 = readFileSync(join(here, 'ClassicPrint2024.tsx'), 'utf8')
 assert(print2024.length > 100, 'ClassicPrint2024 present and untouched by this check')
 
+const fromApi = readFileSync(join(here, 'fromApi.ts'), 'utf8')
+assert(fromApi.includes('stripTrailingItemQty'), 'dedupe ×N in equipment line')
+assert(
+  sheet.includes('classic-combat-stat--ac') && sheet.includes('Класс доспеха'),
+  'AC label still rendered',
+)
+// Label must be a sibling under --ac, not nested inside .classic-ac-shield.
+assert(
+  /classic-ac-shield[\s\S]*?<\/div>\s*<span className="classic-field-label">Класс доспеха<\/span>/.test(
+    sheet,
+  ),
+  'AC label must sit outside classic-ac-shield',
+)
+
 console.log('classicPrint14.selfcheck: ok')

@@ -14,7 +14,6 @@ import {
   classicLineHeightCss,
   classicPrintFontFamilyCss,
   readClassicBlockSize,
-  readClassicGlobalFontScale,
   readClassicTextStyle,
   setClassicBlockSize,
 } from './classicPrintSettings'
@@ -44,15 +43,11 @@ export function ClassicTextBlock({
 }: Props) {
   const { editing } = useClassicSheetUi()
   const size = readClassicBlockFontSize(character, blockId)
-  const scale = readClassicGlobalFontScale(character)
   const textStyle = readClassicTextStyle(character)
   const storedSize = readClassicBlockSize(character, blockId)
   const dragRef = useRef<{ startY: number; startH: number } | null>(null)
 
-  const effectivePt = Math.max(
-    CLASSIC_BLOCK_FONT_MIN,
-    Math.round(size * scale * 10) / 10,
-  )
+  const effectivePt = Math.max(CLASSIC_BLOCK_FONT_MIN, size)
 
   const style = {
     fontSize: `${effectivePt}pt`,

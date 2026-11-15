@@ -5,22 +5,27 @@ import { ClassicSheetUiProvider } from '../features/classicSheet/classicSheetUi'
 import type { ClassicPatch } from '../features/classicSheet/fromApi'
 import { asRecord } from '../features/characters/sheetTypes'
 import {
-  CLASSIC_GLOBAL_FONT_SCALE_MAX,
-  CLASSIC_GLOBAL_FONT_SCALE_MIN,
+  classicPrintFontFamilyCss,
   isClassicPrintSettingsOnlyPatch,
   readClassicExtraNotePages,
-  readClassicGlobalFontScale,
   readClassicPencilBlanks,
+  readClassicPrintColor,
   readClassicTextStyle,
   resetClassicPrintTextSettings,
   setClassicExtraNotePages,
-  setClassicGlobalFontScale,
   setClassicPencilBlanks,
+  setClassicPrintColor,
   setClassicTextStyle,
   type ClassicLineHeight,
+  type ClassicPrintColorMode,
   type ClassicPrintFontFamily,
   type ClassicTextAlign,
 } from '../features/classicSheet/classicPrintSettings'
+import {
+  readClassicSheetLayout,
+  setClassicSheetLayout,
+  type ClassicSheetLayout,
+} from '../features/classicSheet/classicSheetLayout'
 import {
   getCharacter,
   updateCharacter,
@@ -36,12 +41,15 @@ export function ClassicSheetPage() {
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<'loading' | 'saving' | 'ready'>('loading')
   const [editing, setEditing] = useState(false)
+  /** Optimistic layout so switcher is-active matches the sheet before save round-trip. */
+  const [layoutOverride, setLayoutOverride] = useState<ClassicSheetLayout | null>(null)
   const saveTimer = useRef<number | null>(null)
   const versionRef = useRef(0)
   const latestRef = useRef<CharacterDetail | null>(null)
 
   useEffect(() => {
     let active = true
+    setLayoutOverride(null)
     getCharacter(characterId)
       .then((item) => {
         if (!active) return
@@ -75,6 +83,7 @@ export function ClassicSheetPage() {
       versionRef.current = updated.sheet_version
       latestRef.current = updated
       setCharacter(updated)
+      setLayoutOverride(null)
       setStatus('ready')
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить настройки печати')
@@ -105,21 +114,37 @@ export function ClassicSheetPage() {
     [persistPrintSettings],
   )
 
-  // FIX-01: печатный тулбар только 2014 (выбор 2024 убран).
-  const sheetLayout = '2014' as const
+  const sheetLayout: ClassicSheetLayout =
+    layoutOverride ?? (character ? readClassicSheetLayout(character) : '2014')
   const pencilBlanks = character ? readClassicPencilBlanks(character) : false
   const extraNotePages = character ? readClassicExtraNotePages(character) : 0
   const textStyle = character ? readClassicTextStyle(character) : null
-  const fontScale = character ? readClassicGlobalFontScale(character) : 1
+  const printColor: ClassicPrintColorMode = character
+    ? readClassicPrintColor(character)
+    : 'bw'
+
+  const handleLayoutChange = useCallback(
+    (layout: ClassicSheetLayout) => {
+      const current = latestRef.current
+      if (!current) return
+      setLayoutOverride(layout)
+      handlePrintSettings(setClassicSheetLayout(current, layout))
+    },
+    [handlePrintSettings],
+  )
 
   return (
     <div
       className="classic-print-page"
       data-classic-font={textStyle?.fontFamily ?? 'serif'}
       data-classic-leading={textStyle?.lineHeight ?? 'normal'}
+      data-classic-color={printColor}
+      data-classic-name-script={textStyle?.nameScript ? '1' : '0'}
       style={
         {
-          ['--classic-global-font-scale']: String(fontScale),
+          ['--classic-ink-font']: classicPrintFontFamilyCss(
+            textStyle?.fontFamily ?? 'serif',
+          ),
         } as CSSProperties
       }
     >
@@ -148,12 +173,26 @@ export function ClassicSheetPage() {
         <div className="classic-toolbar-actions">
           <div className="classic-layout-switch" role="group" aria-label="Макет классического листа">
             <span className="classic-layout-switch__label">Макет</span>
-            <button type="button" className="is-active" disabled>
-              2014
-            </button>
-            <span className="classic-layout-switch__hint">печатная форма · D&D 5e 2014</span>
+            {(['2014', '2024'] as const).map((year) => (
+              <button
+                key={year}
+                type="button"
+                className={sheetLayout === year ? 'is-active' : undefined}
+                aria-pressed={sheetLayout === year}
+                disabled={!character}
+                onClick={() => handleLayoutChange(year)}
+              >
+                {year}
+              </button>
+            ))}
+            <span className="classic-layout-switch__hint">
+              печатная форма · D&D 5e {sheetLayout}
+            </span>
           </div>
-          <label className="classic-pencil-toggle" title="Добавляет запасные пустые строки и страницы">
+          <label
+            className="classic-pencil-toggle"
+            title="Пустые строки в атаках, заклинаниях, монетах и т.п."
+          >
             <input
               type="checkbox"
               checked={pencilBlanks}
@@ -164,7 +203,7 @@ export function ClassicSheetPage() {
                 handlePrintSettings(setClassicPencilBlanks(current, e.target.checked))
               }}
             />
-            Пустые поля под карандаш
+            Линии под карандаш
           </label>
           <div className="classic-extra-notes" role="group" aria-label="Доп. страницы заметок">
             <button
@@ -178,7 +217,7 @@ export function ClassicSheetPage() {
             >
               −
             </button>
-            <span>Доп. заметки: {extraNotePages}</span>
+            <span>Доп. страницы заметок: {extraNotePages}</span>
             <button
               type="button"
               disabled={!character || extraNotePages >= 12}
@@ -190,6 +229,27 @@ export function ClassicSheetPage() {
             >
               +
             </button>
+          </div>
+          <div className="classic-color-switch" role="group" aria-label="Цвет печати">
+            {([
+              ['bw', 'Чёрно-белая'],
+              ['color', 'Цвет'],
+            ] as const).map(([mode, label]) => (
+              <button
+                key={mode}
+                type="button"
+                className={printColor === mode ? 'is-active' : undefined}
+                aria-pressed={printColor === mode}
+                disabled={!character}
+                onClick={() => {
+                  const current = latestRef.current
+                  if (!current) return
+                  handlePrintSettings(setClassicPrintColor(current, mode))
+                }}
+              >
+                {label}
+              </button>
+            ))}
           </div>
           <button
             type="button"
@@ -227,10 +287,21 @@ export function ClassicSheetPage() {
                 )
               }
             >
-              <option value="serif">С засечками (Source Serif 4)</option>
-              <option value="sans">Без засечек (IBM Plex Sans)</option>
-              <option value="script">Для имени (Pinyon Script)</option>
+              <option value="serif">Source Serif 4</option>
+              <option value="sans">IBM Plex Sans</option>
             </select>
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={textStyle.nameScript}
+              onChange={(e) =>
+                handlePrintSettings(
+                  setClassicTextStyle(character, { nameScript: e.target.checked }),
+                )
+              }
+            />
+            Имя рукописным
           </label>
           <label>
             Интервал
@@ -265,45 +336,6 @@ export function ClassicSheetPage() {
               <option value="justify">По ширине</option>
             </select>
           </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={textStyle.headingBold}
-              onChange={(e) =>
-                handlePrintSettings(
-                  setClassicTextStyle(character, { headingBold: e.target.checked }),
-                )
-              }
-            />
-            Жирные заголовки
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={textStyle.headingItalic}
-              onChange={(e) =>
-                handlePrintSettings(
-                  setClassicTextStyle(character, { headingItalic: e.target.checked }),
-                )
-              }
-            />
-            Курсив заголовков
-          </label>
-          <label>
-            Общий масштаб
-            <input
-              type="number"
-              min={CLASSIC_GLOBAL_FONT_SCALE_MIN}
-              max={CLASSIC_GLOBAL_FONT_SCALE_MAX}
-              step={0.05}
-              value={fontScale}
-              onChange={(e) =>
-                handlePrintSettings(
-                  setClassicGlobalFontScale(character, Number(e.target.value) || 1),
-                )
-              }
-            />
-          </label>
           <button
             type="button"
             onClick={() => handlePrintSettings(resetClassicPrintTextSettings(character))}
@@ -311,8 +343,8 @@ export function ClassicSheetPage() {
             Сбросить настройки текста
           </button>
           <p className="classic-print-typo__hint">
-            Размер шрифта у блока — верхняя граница; автоподгонка не ниже 7 pt. Высоту блока тяните
-            за нижний край в режиме правки печати.
+            Гарнитура — на все вписанные значения; подписи бланка не меняются. Размер у блока
+            7–14 pt, автоподгонка не ниже 7 pt. Высоту блока тяните за нижний край.
           </p>
         </div>
       ) : null}
@@ -326,7 +358,6 @@ export function ClassicSheetPage() {
         <ClassicSheetUiProvider
           editing={editing}
           textStyle={textStyle ?? undefined}
-          globalFontScale={fontScale}
           pencilBlanks={pencilBlanks}
         >
           <ClassicPrintSheet

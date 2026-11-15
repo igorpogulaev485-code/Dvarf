@@ -185,13 +185,9 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
     ...notePagesBase,
     ...Array.from({ length: spareEmpty }, () => [] as typeof trailingNotes),
   ]
-  // Screen: if no notes and no spare pages, keep one empty screen-only page for 2014.
-  const notePagesForRender =
-    notePages.length > 0
-      ? notePages
-      : sheetLayout === '2014'
-        ? [[]]
-        : []
+  // Screen-only fallback empty page (hidden in @media print via --empty).
+  const usedFallbackEmptyNotes = notePages.length === 0 && sheetLayout === '2014'
+  const notePagesForRender = usedFallbackEmptyNotes ? [[]] : notePages
   const spellCardPages = chunkSpellCardPages(classicSpellCardFaces(c))
   const traitsText = classicFeaturesTraitsValue(c)
   const traitsChunks = chunkOverflowText(traitsText, 1800)
@@ -432,8 +428,8 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                     pencilLine={false}
                     aria-label="Класс доспеха"
                   />
-                  <span className="classic-field-label">Класс доспеха</span>
                 </div>
+                <span className="classic-field-label">Класс доспеха</span>
               </div>
               <div className="classic-combat-stat">
                 <ClassicStaticField
@@ -497,6 +493,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                     value={hitDiceTotal}
                     align="center"
                     tone="compact"
+                    fit
                     aria-label="Всего костей хитов"
                   />
                 </div>
@@ -962,7 +959,9 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
       {notePagesForRender.map((pageNotes, pageIndex) => (
         <article
           className={`classic-sheet classic-page-notes${
-            pageNotes.length === 0 ? ' classic-page-notes--empty' : ''
+            pageNotes.length === 0 && usedFallbackEmptyNotes
+              ? ' classic-page-notes--empty'
+              : ''
           }`}
           aria-label={
             notePagesForRender.length > 1
