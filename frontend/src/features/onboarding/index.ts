@@ -40,7 +40,9 @@ export {
   hasVisibleOnboardingAnchor,
   isElementVisible,
   queryVisibleAnchor,
+  queryVisibleAnchors,
   resolveSheetTourAnchor,
+  unionVisibleRects,
 } from './anchors'
 export { SCENE_INTRO, TOUR_STEPS } from './copy.ru'
 export { EDITION_HINT, EMPTY_CHARACTERS, PANEL_HELP } from './copy.ru'

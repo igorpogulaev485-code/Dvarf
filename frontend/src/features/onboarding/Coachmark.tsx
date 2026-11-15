@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Button, Stack, Text } from '../../ui'
 import { acquireBodyScrollLock } from '../../ui/bodyScrollLock'
-import { queryVisibleAnchor } from './anchors'
+import { queryVisibleAnchor, queryVisibleAnchors, unionVisibleRects } from './anchors'
 
 type CoachmarkProps = {
   open: boolean
@@ -14,17 +14,18 @@ type CoachmarkProps = {
   secondaryLabel?: string
   onPrimary: () => void
   onSecondary?: () => void
+  /**
+   * auto — above/below by space (tour).
+   * below-start — always under the hole, left-aligned to the hole (scene cards).
+   */
+  placement?: 'auto' | 'below-start'
 }
 
 type Rect = { top: number; left: number; width: number; height: number }
 type CardPos = { top: number; left: number; width: number }
 
 function readRect(selector: string): Rect | null {
-  const el = queryVisibleAnchor(selector)
-  if (!el) return null
-  const r = el.getBoundingClientRect()
-  if (r.width < 2 && r.height < 2) return null
-  return { top: r.top, left: r.left, width: r.width, height: r.height }
+  return unionVisibleRects(selector)
 }
 
 function scrollAnchorIntoView(selector: string): void {
@@ -37,7 +38,11 @@ function scrollAnchorIntoView(selector: string): void {
   }
 }
 
-function placeCard(hole: Rect | null, cardHeight: number): CardPos {
+function placeCard(
+  hole: Rect | null,
+  cardHeight: number,
+  placement: 'auto' | 'below-start',
+): CardPos {
   const narrow =
     typeof window !== 'undefined' && window.matchMedia('(max-width: 959px)').matches
   const bottomSafe = narrow ? 80 : 16
@@ -49,6 +54,22 @@ function placeCard(hole: Rect | null, cardHeight: number): CardPos {
     return {
       top: Math.max(24, window.innerHeight * 0.28),
       left: Math.max(12, (window.innerWidth - cardWidth) / 2),
+      width: cardWidth,
+    }
+  }
+
+  if (placement === 'below-start') {
+    // Prefer under the block, left-aligned — never float over empty footer / save status.
+    // If the viewport has no room below (mobile full-height panels), sit above the block instead.
+    const preferredBelow = hole.top + hole.height + gap
+    const spaceBelow = window.innerHeight - preferredBelow - bottomSafe
+    let top =
+      spaceBelow >= height
+        ? preferredBelow
+        : Math.max(12, hole.top - height - gap)
+    return {
+      top,
+      left: Math.min(Math.max(12, hole.left), window.innerWidth - cardWidth - 12),
       width: cardWidth,
     }
   }
@@ -84,6 +105,7 @@ export function Coachmark({
   secondaryLabel,
   onPrimary,
   onSecondary,
+  placement = 'auto',
 }: CoachmarkProps) {
   const [rect, setRect] = useState<Rect | null>(null)
   const [cardHeight, setCardHeight] = useState(220)
@@ -109,12 +131,14 @@ export function Coachmark({
       measure()
       raf = window.requestAnimationFrame(measure)
     })
-    const target = queryVisibleAnchor(anchorSelector)
+    const targets = queryVisibleAnchors(anchorSelector)
     const ro =
-      target && 'ResizeObserver' in window
+      targets.length && 'ResizeObserver' in window
         ? new ResizeObserver(() => measure())
         : null
-    if (target && ro) ro.observe(target)
+    if (ro) {
+      for (const target of targets) ro.observe(target)
+    }
     window.addEventListener('resize', measure)
     window.addEventListener('scroll', measure, true)
     const t1 = window.setTimeout(measure, 50)
@@ -143,7 +167,7 @@ export function Coachmark({
       'ResizeObserver' in window ? new ResizeObserver(() => apply()) : null
     if (ro) ro.observe(el)
     return () => ro?.disconnect()
-  }, [open, title, body, stepLabel, primaryLabel, secondaryLabel, rect])
+  }, [open, title, body, stepLabel, primaryLabel, secondaryLabel, rect, placement])
 
   useEffect(() => {
     if (!open) return
@@ -176,7 +200,7 @@ export function Coachmark({
       }
     : null
 
-  const cardStyle = placeCard(hole, cardHeight)
+  const cardStyle = placeCard(hole, cardHeight, placement)
 
   return createPortal(
     <div className="onboarding-coach" role="dialog" aria-modal="true" aria-labelledby="onboarding-coach-title">

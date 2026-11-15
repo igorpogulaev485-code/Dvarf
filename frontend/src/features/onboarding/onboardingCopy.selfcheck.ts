@@ -52,6 +52,8 @@ const step2 = TOUR_STEPS.find((s) => s.id === 'hot_bar')
 assert(step2 && step2.anchor === 'hot-bar', 'step 2 anchors hot-bar')
 assert(step2 && /Следующий раунд/i.test(step2.body), 'step 2 names Следующий раунд')
 assert(step2 && /концентрац/i.test(step2.body), 'step 2 mentions concentration')
+assert(step2 && /в любой сцене/i.test(step2.body), 'step 2 says visible in any scene')
+assert(step2 && !/не сцена|всегда на месте/i.test(step2.body), 'step 2 dropped old phrasing')
 
 const step3 = TOUR_STEPS.find((s) => s.id === 'desk_modes')
 assert(step3 && !/\bjob\b/i.test(step3.body), 'tour step 3 has no English job')
@@ -74,11 +76,12 @@ assert(
   'tour copy never mentions needs-setup badge',
 )
 
-assert(SCENE_INTRO.explore.body.includes('ноша') || SCENE_INTRO.explore.body.includes('кошел'), 'explore intro')
+assert(/справочник/i.test(SCENE_INTRO.explore.body) && /КД/i.test(SCENE_INTRO.explore.body), 'explore intro about catalog + AC')
+assert(!/середине хода|стычк/i.test(SCENE_INTRO.explore.body), 'explore intro dropped awkward fight phrasing')
 assert(SCENE_INTRO.social.body.includes('внешность') || SCENE_INTRO.social.body.includes('личност'), 'social intro')
 assert(SCENE_INTRO.features.body.includes('Использовать'), 'features intro names Использовать')
-assert(SCENE_INTRO.companions.body.includes('Призвать'), 'companions intro names Призвать')
-assert(SCENE_INTRO.companions.bodyEmpty && /пусто/i.test(SCENE_INTRO.companions.bodyEmpty), 'companions empty copy')
+assert(/фамильяр/i.test(SCENE_INTRO.companions.body) && /пусто/i.test(SCENE_INTRO.companions.body), 'companions intro neutral empty hint')
+assert(!/класс не даёт/i.test(SCENE_INTRO.companions.body), 'companions intro does not blame class')
 
 assert(
   HELP_DRAWER.map.some((row) => row.label === 'Создание' && row.text.includes('черта')),

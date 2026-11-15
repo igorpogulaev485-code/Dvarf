@@ -666,7 +666,6 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
           enabled={Boolean(model.sceneIntroEnabled)}
           blocked={Boolean(model.sceneIntroBlocked)}
           seen={model.sceneIntroSeen ?? []}
-          companionsEmpty={(model.dockCompanions?.length ?? 0) === 0}
           onDismiss={(id) => model.onSceneIntroSeen?.(id)}
         />
       ) : null}

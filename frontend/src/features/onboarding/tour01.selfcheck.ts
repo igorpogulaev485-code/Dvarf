@@ -39,7 +39,17 @@ match(sheetTour, /__missing__/, 'no floating hole when anchor hidden')
 const sceneIntro = read('SceneIntroCard.tsx')
 match(sceneIntro, /Понятно/, 'scene card primary')
 match(sceneIntro, /SCENE_INTRO/, 'uses SCENE_INTRO copy')
-match(sceneIntro, /companionsEmpty/, 'empty companions copy path')
+match(sceneIntro, /below-start/, 'scene card sits under panel, left-aligned')
+assert(!/companionsEmpty/.test(sceneIntro), 'no special empty companions branch')
+
+const header = read('../characters/PlayDeskHeader.tsx')
+assert(
+  (header.match(/data-onboarding="combat-vitals"/g) || []).length >= 2,
+  'desktop combat-vitals on mid + right (union spotlight)',
+)
+
+const coach = read('Coachmark.tsx')
+match(coach, /unionVisibleRects/, 'coachmark unions multi-node anchors')
 
 const vitals = read('../characters/MobileVitalsBar.tsx')
 assert(

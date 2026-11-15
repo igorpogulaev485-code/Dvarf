@@ -18,8 +18,6 @@ type SceneIntroCardProps = {
   /** Hide while the 5-step sheet tour (or ready bridge) is active. */
   blocked?: boolean
   seen: SceneIntroId[]
-  /** Companions empty-state copy when the panel has no companions. */
-  companionsEmpty?: boolean
   onDismiss: (id: SceneIntroId) => void
 }
 
@@ -35,7 +33,6 @@ export function SceneIntroCard({
   enabled,
   blocked = false,
   seen,
-  companionsEmpty = false,
   onDismiss,
 }: SceneIntroCardProps) {
   const [armed, setArmed] = useState<SceneIntroId | null>(null)
@@ -58,17 +55,16 @@ export function SceneIntroCard({
   if (!armed) return null
 
   const copy = SCENE_INTRO[armed]
-  const body =
-    armed === 'companions' && companionsEmpty && copy.bodyEmpty ? copy.bodyEmpty : copy.body
 
   return (
     <Coachmark
       open
       anchorSelector={SCENE_ANCHOR[armed]}
       title={copy.title}
-      body={body}
+      body={copy.body}
       stepLabel="Что здесь"
       primaryLabel="Понятно"
+      placement="below-start"
       onPrimary={() => {
         onDismiss(armed)
         setArmed(null)

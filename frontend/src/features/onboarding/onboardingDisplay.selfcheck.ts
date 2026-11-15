@@ -170,7 +170,8 @@ const zero = new FakeEl('block', 0, 0)
   getComputedStyle: (el: FakeEl) => ({ display: el.display, visibility: 'visible' }),
 }
 
-const { isElementVisible, queryVisibleAnchor } = await import('./anchors.ts')
+const { isElementVisible, queryVisibleAnchor, queryVisibleAnchors, unionVisibleRects } =
+  await import('./anchors.ts')
 
 assert(!isElementVisible(hidden as unknown as HTMLElement), 'hidden display skipped')
 assert(!isElementVisible(zero as unknown as HTMLElement), 'zero-size skipped')
@@ -189,5 +190,47 @@ assert(
   queryVisibleAnchor('[data-onboarding="missing"]', emptyRoot as unknown as ParentNode) === null,
   'missing anchor returns null (no throw)',
 )
+
+const left = new FakeEl('block', 40, 20)
+const right = new FakeEl('block', 60, 30)
+// Place right farther so union grows.
+;(right as unknown as { getBoundingClientRect: () => DOMRect }).getBoundingClientRect = () =>
+  ({
+    top: 10,
+    left: 100,
+    width: 60,
+    height: 30,
+    bottom: 40,
+    right: 160,
+    x: 100,
+    y: 10,
+    toJSON() {},
+  }) as DOMRect
+;(left as unknown as { getBoundingClientRect: () => DOMRect }).getBoundingClientRect = () =>
+  ({
+    top: 0,
+    left: 0,
+    width: 40,
+    height: 20,
+    bottom: 20,
+    right: 40,
+    x: 0,
+    y: 0,
+    toJSON() {},
+  }) as DOMRect
+
+const dualRoot = {
+  querySelectorAll: () => [left, right] as unknown as NodeListOf<Element>,
+}
+assert(
+  queryVisibleAnchors('[data-onboarding="combat-vitals"]', dualRoot as unknown as ParentNode)
+    .length === 2,
+  'queryVisibleAnchors returns both',
+)
+const uni = unionVisibleRects(
+  '[data-onboarding="combat-vitals"]',
+  dualRoot as unknown as ParentNode,
+)
+assert(uni && uni.left === 0 && uni.top === 0 && uni.width === 160 && uni.height === 40, 'union rect')
 
 console.log('onboardingDisplay.selfcheck ok')

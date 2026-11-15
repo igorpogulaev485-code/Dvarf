@@ -22,12 +22,47 @@ export function queryVisibleAnchor(
   selector: string,
   root: ParentNode = document,
 ): HTMLElement | null {
+  const all = queryVisibleAnchors(selector, root)
+  return all[0] ?? null
+}
+
+/** All visible matches for a selector (e.g. mid + right header strips). */
+export function queryVisibleAnchors(
+  selector: string,
+  root: ParentNode = document,
+): HTMLElement[] {
+  const out: HTMLElement[] = []
   const nodes = root.querySelectorAll(selector)
   for (const node of nodes) {
     const el = asHtmlElement(node as Element)
-    if (el && isElementVisible(el)) return el
+    if (el && isElementVisible(el)) out.push(el)
   }
-  return null
+  return out
+}
+
+export type AnchorRect = { top: number; left: number; width: number; height: number }
+
+/** Bounding box union of every visible match — for multi-node spotlights. */
+export function unionVisibleRects(
+  selector: string,
+  root: ParentNode = document,
+): AnchorRect | null {
+  const els = queryVisibleAnchors(selector, root)
+  if (els.length === 0) return null
+  let top = Infinity
+  let left = Infinity
+  let right = -Infinity
+  let bottom = -Infinity
+  for (const el of els) {
+    const r = el.getBoundingClientRect()
+    if (r.width < 2 && r.height < 2) continue
+    top = Math.min(top, r.top)
+    left = Math.min(left, r.left)
+    right = Math.max(right, r.right)
+    bottom = Math.max(bottom, r.bottom)
+  }
+  if (!Number.isFinite(top) || right - left < 2 || bottom - top < 2) return null
+  return { top, left, width: right - left, height: bottom - top }
 }
 
 export function hasVisibleOnboardingAnchor(anchor: string, root: ParentNode = document): boolean {
