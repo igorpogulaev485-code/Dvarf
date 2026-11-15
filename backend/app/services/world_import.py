@@ -299,6 +299,8 @@ class WorldImportService:
                 prop.kind,
                 prop.label or "",
                 prop.confidence,
+                getattr(prop, "office_title", None),
+                getattr(prop, "succession_order", None),
             )
             if edge in seen:
                 continue
@@ -312,6 +314,12 @@ class WorldImportService:
                 label=(prop.label or "")[:120],
                 confidence=prop.confidence,
                 status="proposed",
+                office_title=getattr(prop, "office_title", None),
+                office_holder_status=getattr(prop, "office_holder_status", None),
+                succession_order=getattr(prop, "succession_order", None),
+                tenure_from=getattr(prop, "tenure_from", None),
+                tenure_to=getattr(prop, "tenure_to", None),
+                hint=getattr(prop, "hint", None),
             )
             self.db.add(row)
             rows.append(row)

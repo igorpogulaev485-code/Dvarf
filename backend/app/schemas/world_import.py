@@ -112,6 +112,12 @@ class WorldImportDraftLinkOut(BaseModel):
     label: str
     confidence: str
     status: str
+    office_title: str | None = None
+    office_holder_status: str | None = None
+    succession_order: int | None = None
+    tenure_from: str | None = None
+    tenure_to: str | None = None
+    hint: str | None = None
     created_at: datetime
 
 

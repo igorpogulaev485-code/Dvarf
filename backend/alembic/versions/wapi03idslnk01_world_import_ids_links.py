@@ -90,6 +90,12 @@ def upgrade() -> None:
             sa.Column("label", sa.String(120), nullable=False, server_default=""),
             sa.Column("confidence", sa.String(16), nullable=False, server_default="explicit"),
             sa.Column("status", sa.String(32), nullable=False, server_default="proposed"),
+            sa.Column("office_title", sa.String(120), nullable=True),
+            sa.Column("office_holder_status", sa.String(16), nullable=True),
+            sa.Column("succession_order", sa.Integer(), nullable=True),
+            sa.Column("tenure_from", sa.String(200), nullable=True),
+            sa.Column("tenure_to", sa.String(200), nullable=True),
+            sa.Column("hint", sa.String(300), nullable=True),
             sa.Column(
                 "created_at",
                 sa.DateTime(timezone=True),
@@ -103,6 +109,8 @@ def upgrade() -> None:
                 "kind",
                 "label",
                 "confidence",
+                "office_title",
+                "succession_order",
                 name="uq_world_import_draft_links_edge",
             ),
         )

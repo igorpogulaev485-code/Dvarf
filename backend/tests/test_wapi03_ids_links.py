@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -24,11 +25,17 @@ from app.schemas.world_import import WorldImportCreateRequest, WorldVaultParseRe
 from app.services import lobby_roles as roles
 from app.services.world_import import WorldImportService
 from app.services.world_import_links import (
+    OFFICE_LINK_LABEL,
+    OFFICE_NEEDS_MASTER_HINT,
     build_alias_and_link_graph,
+    build_office_succession,
     collect_aliases_for_item,
     extract_md_file_links,
+    is_office_phrase,
     normalize_alias_key,
     resolve_md_href,
+    split_title_name_and_office,
+    unnamed_office_holder_key,
 )
 from app.services.world_vault_parse import load_vault_dir, parse_vault_files
 
@@ -236,7 +243,13 @@ def test_normalize_alias_collapses_case_and_spaces():
     assert normalize_alias_key("Капитан_Тандил") == normalize_alias_key("капитан тандил")
 
 
-def test_tandil_title_aliases_include_short_name():
+def test_tandil_title_aliases_exclude_office():
+    names, office = split_title_name_and_office("Капитан Тандил → мэр")
+    assert office == "мэр"
+    assert any(normalize_alias_key(n) == "тандил" for n in names)
+    assert any(normalize_alias_key(n) == "капитан тандил" for n in names)
+    assert not any(is_office_phrase(n) for n in names)
+
     bundle = collect_aliases_for_item(
         title="Капитан Тандил → мэр",
         slug="tandil",
@@ -245,7 +258,18 @@ def test_tandil_title_aliases_include_short_name():
     )
     norms = {n for _d, n in bundle.norms}
     assert "тандил" in norms
-    assert "капитан тандил → мэр" in norms or "капитан тандил" in norms
+    assert "капитан тандил" in norms
+    assert "мэр" not in norms
+    assert not any("мэр" in n for n in norms)
+    assert bundle.office_from_title == "мэр"
+
+
+def test_mayor_phrase_is_office_not_alias():
+    assert is_office_phrase("мэр")
+    assert is_office_phrase("мэр военного времени")
+    assert is_office_phrase("капитан стражи")
+    assert not is_office_phrase("Тандил")
+    assert not is_office_phrase("Капитан Тандил")
 
 
 def test_md_link_from_elessar_to_konstantin():
@@ -290,6 +314,76 @@ def test_fixture_graph_unique_keys_and_links():
         "world/npcs/tandil.md",
         "suggested",
     ) in edges
+
+    # «мэр» / «мэр военного времени» не стали алиасом Тандила
+    tandil_aliases = {n for d, n in _aliases["world/npcs/tandil.md"].norms}
+    assert "мэр" not in tandil_aliases
+    assert not any("мэр" in n for n in tandil_aliases)
+
+    # Упоминание должности не резолвится в человека: нет ребра «мэр»→tandil как mention
+    for lnk in links:
+        if lnk.to_source_key == "world/npcs/tandil.md" and lnk.label == OFFICE_LINK_LABEL:
+            continue
+        if lnk.to_alias and is_office_phrase(lnk.to_alias):
+            raise AssertionError(f"должность попала в to_alias: {lnk}")
+
+
+def test_lunnyy_most_mayor_succession_three_holders():
+    """Продуктовая цепочка: безымянный → Келебрим → Тандил (текущий)."""
+    raw = json.loads(
+        (FIXTURE_ROOT / "product_rules" / "lunnyy-most-mayor-succession.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    links = build_office_succession(
+        office_title=raw["office_title"],
+        seat_source_key=raw["seat_source_key"],
+        holders=raw["holders"],
+    )
+    assert len(links) == 3
+    assert [lnk.succession_order for lnk in links] == [0, 1, 2]
+    assert [lnk.office_holder_status for lnk in links] == ["former", "former", "current"]
+    assert all(lnk.label == OFFICE_LINK_LABEL for lnk in links)
+    assert all(lnk.to_source_key == "world/locations/lunnyy-most.md" for lnk in links)
+    assert all(lnk.office_title == "мэр Лунного моста" for lnk in links)
+
+    unnamed = links[0]
+    assert unnamed.from_source_key.startswith("__unnamed__/")
+    assert unnamed.from_source_key == unnamed_office_holder_key(
+        seat_key="world/locations/lunnyy-most.md",
+        office_title="мэр Лунного моста",
+        order=0,
+    )
+    assert links[1].from_source_key == "world/npcs/maestro-kelebrim.md"
+    assert links[2].from_source_key == "world/npcs/tandil.md"
+    assert links[2].office_holder_status == "current"
+
+    # Безымянный не сливается ни с Келебримом, ни с Тандилом
+    holders = {lnk.from_source_key for lnk in links}
+    assert len(holders) == 3
+    assert unnamed.from_source_key not in {
+        "world/npcs/maestro-kelebrim.md",
+        "world/npcs/tandil.md",
+    }
+
+
+def test_mayor_mention_never_auto_links_to_person():
+    files = load_vault_dir(FIXTURE_ROOT)
+    result = parse_vault_files(files)
+    aliases, links = build_alias_and_link_graph(result.items)
+
+    # Ни одно ребро mention/suggested не указывает на человека из-за слова «мэр»
+    for lnk in links:
+        if lnk.to_alias and is_office_phrase(lnk.to_alias):
+            raise AssertionError("должность стала to_alias человека")
+        if lnk.confidence == "suggested" and lnk.label == OFFICE_LINK_LABEL:
+            assert lnk.hint == OFFICE_NEEDS_MASTER_HINT
+            # suggested-должность идёт на локацию/место, не на НПС как «это Тандил»
+            assert lnk.to_source_key is None or "npcs/" not in (lnk.to_source_key or "")
+
+    # Алиас-индекс: «мэр» не указывает на Тандила
+    for _key, bundle in aliases.items():
+        assert "мэр" not in {n for _d, n in bundle.norms}
 
 
 def test_title_rename_same_path_no_duplicate_key(monkeypatch):

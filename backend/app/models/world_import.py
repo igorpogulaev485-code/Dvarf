@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Literal
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint, func
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -252,7 +252,11 @@ class WorldSourceAlias(Base):
 
 
 class WorldImportDraftLink(Base):
-    """Предложенное ребро черновика (канон SettingPageLink — только на confirm)."""
+    """Предложенное ребро черновика (канон SettingPageLink — только на confirm).
+
+    Должность («занимает должность») хранится здесь: у SettingPageLink нет
+    полей office_title / преемства / tenure.
+    """
 
     __tablename__ = "world_import_draft_links"
     __table_args__ = (
@@ -263,6 +267,8 @@ class WorldImportDraftLink(Base):
             "kind",
             "label",
             "confidence",
+            "office_title",
+            "succession_order",
             name="uq_world_import_draft_links_edge",
         ),
     )
@@ -283,11 +289,18 @@ class WorldImportDraftLink(Base):
     to_alias: Mapped[str | None] = mapped_column(String(200), nullable=True)
     # Как у SettingPageLink: semantic | mention
     kind: Mapped[str] = mapped_column(String(16), nullable=False, default="mention")
-    # Подпись из LINK_PRESETS («живёт в», «член») или пусто
+    # Подпись из LINK_PRESETS («живёт в», «член») или «занимает должность»
     label: Mapped[str] = mapped_column(String(120), nullable=False, default="")
-    # explicit = md/[[]]/@; suggested = голое жирное имя
+    # explicit = md/[[]]/@ / явная должность; suggested = кандидат
     confidence: Mapped[str] = mapped_column(String(16), nullable=False, default="explicit")
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="proposed")
+    # Поля должности (пусто для обычных рёбер)
+    office_title: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    office_holder_status: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    succession_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tenure_from: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    tenure_to: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    hint: Mapped[str | None] = mapped_column(String(300), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
