@@ -66,6 +66,8 @@
     "selfcheck:onboarding-display": "tsx --tsconfig tsconfig.app.json src/features/onboarding/onboardingDisplay.selfcheck.ts",
     "selfcheck:onboarding-copy": "tsx --tsconfig tsconfig.app.json src/features/onboarding/onboardingCopy.selfcheck.ts",
     "selfcheck:onboarding-sync": "tsx --tsconfig tsconfig.app.json src/features/onboarding/onboardingSync.selfcheck.ts",
+    "selfcheck:social-scene": "tsx --tsconfig tsconfig.app.json src/features/characters/socialScene.selfcheck.ts",
+    "selfcheck:text-blocks": "tsx --tsconfig tsconfig.app.json src/features/characters/textBlocks.selfcheck.ts",
     "test:e2e:onboarding": "playwright test --config=playwright.onboarding.config.ts"
   },
   "dependencies": {
