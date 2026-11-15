@@ -1135,7 +1135,10 @@
     padding: 8px 10px;
   }
 
+  /* 641–999: кабинет спрятан — «⋯» обязан быть видимым (иначе только «Сайт»). */
   .app-header--lobby-shell .app-header__more-btn {
+    display: inline-grid;
+    place-items: center;
     width: 44px;
     min-width: 44px;
     max-width: 44px;
@@ -1143,6 +1146,7 @@
     min-height: 44px;
     max-height: 44px;
     flex-basis: 44px;
+    padding: 0;
   }
 }
 

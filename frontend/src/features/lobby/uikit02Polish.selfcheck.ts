@@ -84,7 +84,7 @@ assert.doesNotMatch(
 )
 
 const enemy = read('src/features/lobby/EnemyCard.tsx')
-assert.match(enemy, /variant="secondary"[\s\S]*?Сторона/)
+assert.match(enemy, /aria-label="Сменить сторону"/)
 assert.doesNotMatch(enemy, /session-side-btn/)
 
 const initCss = read('src/styles/29-session-enemies-rest.css')

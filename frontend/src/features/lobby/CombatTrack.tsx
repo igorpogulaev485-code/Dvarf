@@ -353,9 +353,12 @@ export function CombatTrack({
                           size="sm"
                           className="session-combat-order__side-action"
                           disabled={busy}
+                          aria-label="Сменить сторону"
                           onClick={() => onSideClick(entry)}
                         >
-                          Сторона
+                          {entry.side
+                            ? sideLabel(entry.side, combat.sides)
+                            : 'Сменить сторону'}
                         </Button>
                       ) : null}
                     </div>

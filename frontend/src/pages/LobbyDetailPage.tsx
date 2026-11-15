@@ -332,7 +332,7 @@ export function LobbyDetailPage() {
 
         <div className="lobby-hub-top">
           <Text>
-            <Link to="/lobbies" className="lobby-hub-back">
+            <Link to="/lobbies" className="ui-button ui-button--ghost lobby-hub-back">
               ← Все лобби
             </Link>
           </Text>
@@ -375,22 +375,25 @@ export function LobbyDetailPage() {
                     ) : null}
                   </div>
                   <div className="lobby-hub-invite__meta">
-                    <Text tone="muted">
-                      Ссылка:{' '}
-                      <Link to={lobby.join_path || `/join/${lobby.invite_code}`}>
-                        {lobby.join_path || `/join/${lobby.invite_code}`}
+                    <Text tone="muted">Ссылка для игроков</Text>
+                    <div className="inline-actions">
+                      <Link
+                        className="ui-button ui-button--secondary"
+                        to={lobby.join_path || `/join/${lobby.invite_code}`}
+                      >
+                        Открыть страницу входа
                       </Link>
-                    </Text>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={async () => {
-                        await navigator.clipboard.writeText(joinUrlForCode(lobby.invite_code!))
-                        setToast('Ссылка скопирована')
-                      }}
-                    >
-                      Копировать ссылку
-                    </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(joinUrlForCode(lobby.invite_code!))
+                          setToast('Ссылка скопирована')
+                        }}
+                      >
+                        Копировать ссылку
+                      </Button>
+                    </div>
                     <InviteQr inviteCode={lobby.invite_code} lobbyName={lobby.name} size={120} />
                   </div>
                 </div>
@@ -421,7 +424,7 @@ export function LobbyDetailPage() {
               </Text>
               {lobby.members.length === 0 ? (
                 <Text tone="muted">
-                  Пока никого. Раздай код — каждый входит со своим персонажем через /join.
+                  Пока никого. Раздай код или ссылку — каждый входит со своим персонажем.
                 </Text>
               ) : (
                 <div className="lobby-member-grid">
@@ -566,7 +569,7 @@ export function LobbyDetailPage() {
                         <div>
                           <Link to={`/sessions/${s.id}`}>{s.name}</Link>
                           <Text tone="muted">
-                            {s.setting_name ? `Сеттинг: ${s.setting_name}` : 'Ваншот'} · пришло:{' '}
+                            {s.setting_name ? `Сеттинг: ${s.setting_name}` : 'Разовая сессия'} · пришло:{' '}
                             {s.seat_count}
                             {s.closed_at ? ' · закрыта' : ''}
                           </Text>
@@ -626,7 +629,7 @@ export function LobbyDetailPage() {
                     <Input
                       value={sessionName}
                       onChange={(e) => setSessionName(e.target.value)}
-                      placeholder="Глава / ваншот…"
+                      placeholder="Глава / разовый стол…"
                     />
                   </Field>
                   <Field label="Сеттинг">
@@ -670,7 +673,7 @@ export function LobbyDetailPage() {
           <Panel title="Сеттинг">
             <Stack gap={12}>
               <Text tone="muted">
-                В лобби один активный сеттинг. Сессию можно открыть ваншотом без сеттинга.
+                В лобби один активный сеттинг. Сессию можно открыть разовым столом без сеттинга.
               </Text>
               {lobby.settings_need_primary && canEditWiki ? (
                 <div className="lobby-setting-primary-banner" role="status">
@@ -734,7 +737,8 @@ export function LobbyDetailPage() {
                           disabled={busy}
                           onClick={() =>
                             run(async () => {
-                              if (!confirm('Удалить сеттинг? Сессии станут ваншотами.')) return
+                              if (!confirm('Удалить сеттинг? Сессии станут разовыми без сеттинга.'))
+                                return
                               await deleteSetting(s.id)
                               await reload()
                             })
@@ -821,46 +825,51 @@ export function LobbyDetailPage() {
               />
             ) : null}
 
+            <Link
+              className="ui-button ui-button--primary"
+              to={createHeroForLobbyHref({
+                lobbyId: lobby.id,
+                code: lobby.invite_code,
+              })}
+            >
+              Создать героя
+            </Link>
+
             <CampaignRulesPanel
               rules={rulesDraft}
               eventHistory={visibilityDraft.event_history}
               readOnly={rulesReadOnly}
-              createHeroHref={createHeroForLobbyHref({
-                lobbyId: lobby.id,
-                code: lobby.invite_code,
-              })}
               onChange={onRulesChange}
               onEventHistoryChange={(mode) => {
                 onVisibilityChange({ ...visibilityDraft, event_history: mode })
                 setRulesDirty(true)
               }}
-            />
-
-            {canEditRules && !playerPreview ? (
-              <div className="inline-actions">
-                <Button
-                  type="button"
-                  disabled={busy || (!rulesDirty && !visibilityDirty)}
-                  onClick={() =>
-                    run(async () => {
-                      const next = await updateLobby(lobby.id, {
-                        campaign_rules: rulesDraft,
-                        // Владелец — полный профиль; сомастер — event_history (скрытность бросков).
-                        visibility_profile: visibilityDraft,
+              footer={
+                canEditRules && !playerPreview ? (
+                  <Button
+                    type="button"
+                    disabled={busy || (!rulesDirty && !visibilityDirty)}
+                    onClick={() =>
+                      run(async () => {
+                        const next = await updateLobby(lobby.id, {
+                          campaign_rules: rulesDraft,
+                          // Владелец — полный профиль; сомастер — event_history (скрытность бросков).
+                          visibility_profile: visibilityDraft,
+                        })
+                        setLobby(next)
+                        setRulesDraft(normalizeCampaignRules(next.campaign_rules))
+                        setVisibilityDraft(normalizeVisibilityProfile(next.visibility_profile))
+                        setRulesDirty(false)
+                        setVisibilityDirty(false)
+                        setToast('Правила кампании сохранены')
                       })
-                      setLobby(next)
-                      setRulesDraft(normalizeCampaignRules(next.campaign_rules))
-                      setVisibilityDraft(normalizeVisibilityProfile(next.visibility_profile))
-                      setRulesDirty(false)
-                      setVisibilityDirty(false)
-                      setToast('Правила кампании сохранены')
-                    })
-                  }
-                >
-                  Сохранить правила
-                </Button>
-              </div>
-            ) : null}
+                    }
+                  >
+                    Сохранить правила
+                  </Button>
+                ) : null
+              }
+            />
 
             <VisibilitySettingsPanel
               profile={visibilityDraft}
@@ -868,29 +877,28 @@ export function LobbyDetailPage() {
               playerPreview={playerPreview}
               onPlayerPreviewChange={lobby.is_owner ? setPlayerPreview : undefined}
               onChange={onVisibilityChange}
-            />
-
-            {lobby.is_owner ? (
-              <div className="inline-actions">
-                <Button
-                  type="button"
-                  disabled={busy || !visibilityDirty}
-                  onClick={() =>
-                    run(async () => {
-                      const next = await updateLobby(lobby.id, {
-                        visibility_profile: visibilityDraft,
+              footer={
+                lobby.is_owner ? (
+                  <Button
+                    type="button"
+                    disabled={busy || !visibilityDirty}
+                    onClick={() =>
+                      run(async () => {
+                        const next = await updateLobby(lobby.id, {
+                          visibility_profile: visibilityDraft,
+                        })
+                        setLobby(next)
+                        setVisibilityDraft(normalizeVisibilityProfile(next.visibility_profile))
+                        setVisibilityDirty(false)
+                        setToast('Видимость сохранена')
                       })
-                      setLobby(next)
-                      setVisibilityDraft(normalizeVisibilityProfile(next.visibility_profile))
-                      setVisibilityDirty(false)
-                      setToast('Видимость сохранена')
-                    })
-                  }
-                >
-                  Сохранить видимость
-                </Button>
-              </div>
-            ) : null}
+                    }
+                  >
+                    Сохранить видимость
+                  </Button>
+                ) : null
+              }
+            />
 
             {canDeleteLobby ? (
               <Panel title="Опасная зона" className="ui-panel--danger">

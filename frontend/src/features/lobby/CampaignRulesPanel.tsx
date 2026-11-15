@@ -1,5 +1,5 @@
 /** L-08/L-16: раздел «Правила кампании» в настройках лобби. */
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import { Button, Field, NumberInput, Panel, Stack, Text, ToggleChip } from '../../ui'
 import { mutuallyExclusiveRestFlags } from '../../shared/dnd/o04DmgAdvanced'
@@ -28,8 +28,8 @@ type Props = {
   readOnly?: boolean
   onChange: (next: CampaignRules) => void
   onEventHistoryChange: (mode: EventHistoryMode) => void
-  /** Кнопка «Создать героя для этого лобби» (один пайплайн). */
-  createHeroHref?: string | null
+  /** Кнопки под правилами (напр. «Сохранить») — снаружи чипов. */
+  footer?: ReactNode
 }
 
 function RuleTip({ tip, source }: { tip: string; source: string }) {
@@ -278,7 +278,7 @@ export function CampaignRulesPanel({
   readOnly,
   onChange,
   onEventHistoryChange,
-  createHeroHref,
+  footer,
 }: Props) {
   const [customDraft, setCustomDraft] = useState('')
   const [rareOpen, setRareOpen] = useState(false)
@@ -370,11 +370,6 @@ export function CampaignRulesPanel({
           ) : (
             <Text tone="muted">Нет включённых особых правил.</Text>
           )}
-          {createHeroHref ? (
-            <a className="ui-button ui-button--secondary" href={createHeroHref}>
-              Создать героя для этого лобби
-            </a>
-          ) : null}
         </Stack>
       </Panel>
     )
@@ -387,8 +382,8 @@ export function CampaignRulesPanel({
           <Text as="h3">Варианты 2014</Text>
           <Stack gap={8}>
             <ToggleRow
-              label="Черты вместо ASI"
-              tip="При повышении уровня можно выбрать черту вместо увеличения характеристик. Выкл — только ASI."
+              label="Черты вместо повышения характеристик"
+              tip="При повышении уровня можно выбрать черту вместо увеличения характеристик. Выкл — только рост характеристик."
               source="PHB 2014"
               checked={rules.edition_2014.feats_instead_of_asi}
               onChange={(v) => patchEdition({ feats_instead_of_asi: v })}
@@ -614,21 +609,17 @@ export function CampaignRulesPanel({
                 </button>
               </div>
               <Text tone="muted">
-                По умолчанию скрыт. «Показать / Изучить» (G12) не ломается.
+                По умолчанию скрыт. Раскрытие и изучение статблока работают как раньше.
               </Text>
             </div>
             <Text tone="muted">
-              Спасброски от смерти — переключатель «Скрытые спасброски от смерти» выше (дефолт
-              вкл.).
+              Спасброски от смерти настраиваются переключателем «Скрытые спасброски от смерти» в
+              блоке домашних правил — по умолчанию включено.
             </Text>
           </Stack>
         </div>
 
-        {createHeroHref ? (
-          <a className="ui-button ui-button--secondary" href={createHeroHref}>
-            Создать героя для этого лобби
-          </a>
-        ) : null}
+        {footer ? <div className="inline-actions">{footer}</div> : null}
       </Stack>
     </Panel>
   )

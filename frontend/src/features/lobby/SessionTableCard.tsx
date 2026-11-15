@@ -97,8 +97,8 @@ function CompanionCard({
   const ratio = hpRatio(companion.hp_current, companion.hp_max)
   const hp =
     companion.hp_max != null
-      ? `HP ${companion.hp_current ?? 0}/${companion.hp_max}`
-      : 'HP —'
+      ? `Хиты ${companion.hp_current ?? 0}/${companion.hp_max}`
+      : 'Хиты —'
   const ac = companion.ac != null ? `КД ${companion.ac}` : null
   const typeBit = companion.type?.trim() || null
   const durationBit = companion.duration?.trim() || null
@@ -513,12 +513,11 @@ export function SessionTableCard({
                   variant="secondary"
                   size="sm"
                   disabled={busy}
-                  aria-label="Сторона"
-                  title="Сторона в бою"
+                  aria-label="Сменить сторону"
+                  title="Сменить сторону в бою"
                   onClick={onSideClick}
                 >
-                  Сторона
-                  {sideLabelText ? ` · ${sideLabelText}` : ''}
+                  {sideLabelText ?? 'Сменить сторону'}
                   {sideHidden ? ' · скрыта' : ''}
                 </Button>
               ) : sideLabelText ? (

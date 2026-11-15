@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { Button } from '../../ui'
 
 export type LobbyHubTabId =
   | 'roster'
@@ -36,6 +37,21 @@ export function LobbyHubTabs({
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const activeRef = useRef<HTMLButtonElement>(null)
+  const [canLeft, setCanLeft] = useState(false)
+  const [canRight, setCanRight] = useState(false)
+
+  function updateEdges() {
+    const scroller = scrollRef.current
+    if (!scroller) return
+    const max = scroller.scrollWidth - scroller.clientWidth
+    if (max <= 2) {
+      setCanLeft(false)
+      setCanRight(false)
+      return
+    }
+    setCanLeft(scroller.scrollLeft > 2)
+    setCanRight(scroller.scrollLeft < max - 2)
+  }
 
   useEffect(() => {
     const scroller = scrollRef.current
@@ -43,16 +59,50 @@ export function LobbyHubTabs({
     if (!scroller || !activeEl) return
     // На ≥768 табы wrap — докрутка не нужна
     if (typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches) {
+      setCanLeft(false)
+      setCanRight(false)
       return
     }
     const target =
       activeEl.offsetLeft - Math.max(0, (scroller.clientWidth - activeEl.offsetWidth) / 2)
     scroller.scrollTo({ left: Math.max(0, target), behavior: 'smooth' })
+    const t = window.setTimeout(updateEdges, 280)
+    return () => window.clearTimeout(t)
   }, [active])
 
+  useEffect(() => {
+    const scroller = scrollRef.current
+    if (!scroller) return
+    updateEdges()
+    scroller.addEventListener('scroll', updateEdges, { passive: true })
+    window.addEventListener('resize', updateEdges)
+    return () => {
+      scroller.removeEventListener('scroll', updateEdges)
+      window.removeEventListener('resize', updateEdges)
+    }
+  }, [])
+
+  function nudge(dir: -1 | 1) {
+    const scroller = scrollRef.current
+    if (!scroller) return
+    scroller.scrollBy({ left: dir * Math.max(120, scroller.clientWidth * 0.7), behavior: 'smooth' })
+  }
+
   return (
-    <nav className="lobby-hub-tabs" aria-label="Разделы лобби">
+    <nav className="lobby-hub-tabs" aria-label="Разделы лобби" data-can-left={canLeft || undefined} data-can-right={canRight || undefined}>
       <div className="lobby-hub-tabs__edge lobby-hub-tabs__edge--start" aria-hidden />
+      {canLeft ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="md"
+          className="lobby-hub-tabs__nudge lobby-hub-tabs__nudge--start"
+          aria-label="Предыдущие вкладки"
+          onClick={() => nudge(-1)}
+        >
+          ‹
+        </Button>
+      ) : null}
       <div className="lobby-hub-tabs__scroll" ref={scrollRef}>
         {TABS.map((tab) => (
           <button
@@ -75,6 +125,18 @@ export function LobbyHubTabs({
           </button>
         ))}
       </div>
+      {canRight ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="md"
+          className="lobby-hub-tabs__nudge lobby-hub-tabs__nudge--end"
+          aria-label="Следующие вкладки"
+          onClick={() => nudge(1)}
+        >
+          ›
+        </Button>
+      ) : null}
       <div className="lobby-hub-tabs__edge lobby-hub-tabs__edge--end" aria-hidden />
     </nav>
   )

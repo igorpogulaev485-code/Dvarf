@@ -96,7 +96,7 @@ export function ManualRollForm({
     return (
       <div className="manual-roll-form manual-roll-form--collapsed">
         <Button type="button" variant="secondary" onClick={() => setUserOpen(true)}>
-          Записать живой куб
+          Записать бросок
         </Button>
       </div>
     )

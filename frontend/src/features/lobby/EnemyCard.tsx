@@ -215,7 +215,7 @@ export function EnemyCard({
   const metaParts = [
     combatant.type_ru,
     isPack ? `${aliveCount}/${memberCount}` : null,
-    statblockVisible && combatant.cr ? `CR ${combatant.cr}` : null,
+    statblockVisible && combatant.cr ? `ПО ${combatant.cr}` : null,
     isMaster && combatant.source_book ? combatant.source_book : null,
     isMaster && combatant.custom ? 'свой НПС' : null,
   ].filter(Boolean)
@@ -299,12 +299,11 @@ export function EnemyCard({
               variant="secondary"
               size="md"
               disabled={busy}
-              aria-label="Сторона"
-              title="Сторона в бою"
+              aria-label="Сменить сторону"
+              title="Сменить сторону в бою"
               onClick={onSideClick}
             >
-              Сторона
-              {sideLabelText ? ` · ${sideLabelText}` : ''}
+              {sideLabelText ?? 'Сменить сторону'}
               {sideHidden ? ' · скрыта' : ''}
             </Button>
           ) : sideLabelText ? (
@@ -329,13 +328,13 @@ export function EnemyCard({
           {showHpNumbers && !isDead ? (
             <span className={`session-table-card__chip session-table-card__chip--hp is-${tone}`}>
               {isPack
-                ? `Цель · ${focusMember?.name ?? '—'} · HP ${focusMember?.hp_current ?? 0}/${focusMember?.hp_max ?? combatant.hp_max}`
-                : `HP ${combatant.hp_current}/${combatant.hp_max}`}
+                ? `Цель · ${focusMember?.name ?? '—'} · Хиты ${focusMember?.hp_current ?? 0}/${focusMember?.hp_max ?? combatant.hp_max}`
+                : `Хиты ${combatant.hp_current}/${combatant.hp_max}`}
             </span>
           ) : null}
           {showHpNumbers && isDead ? (
             <span className="session-table-card__chip session-table-card__chip--hp is-down">
-              HP 0/{combatant.hp_max}
+              Хиты 0/{combatant.hp_max}
             </span>
           ) : null}
           {!showHpNumbers && showHpColor ? (
@@ -646,8 +645,8 @@ export function EnemyCard({
           <Button type="button" variant="secondary" disabled={busy} onClick={rollStudyCheck}>
             Бросить
             {studySkillBonus != null
-              ? ` (d20${studySkillBonus >= 0 ? '+' : ''}${studySkillBonus})`
-              : ' (d20)'}
+              ? ` (1к20${studySkillBonus >= 0 ? '+' : ''}${studySkillBonus})`
+              : ' (1к20)'}
           </Button>
         </Stack>
       </Dialog>

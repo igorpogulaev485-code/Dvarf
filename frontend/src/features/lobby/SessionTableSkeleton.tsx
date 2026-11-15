@@ -1,10 +1,11 @@
-import { Stack } from '../../ui'
+import { Stack, Text } from '../../ui'
 
 /** LOBBY-FIX D: скелетон стола — чанк маршрута и данные сессии. */
 export function SessionTableSkeleton() {
   return (
     <main className="page page--app page--lobby-hub">
       <Stack gap={16}>
+        <Text tone="muted">Загрузка…</Text>
         <div className="session-skeleton" aria-busy="true" aria-label="Загрузка стола">
           <div className="session-skeleton__header" />
           <div className="session-skeleton__toolbar" />

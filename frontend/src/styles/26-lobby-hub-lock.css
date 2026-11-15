@@ -118,6 +118,16 @@
   flex: 1 1 12rem;
 }
 
+.lobbies-create-form {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.lobbies-create-form__submit {
+  align-self: end;
+  width: auto;
+  justify-self: start;
+}
+
 .lobbies-list__item.is-live {
   border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
@@ -178,8 +188,7 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding: 8px 0;
-  font-weight: 600;
+  text-decoration: none;
 }
 
 .lobby-hub-tabs {
@@ -405,6 +414,7 @@
 
 @media (max-width: 767px) {
   .lobby-hub-tabs {
+    position: relative;
     grid-template-columns: 12px minmax(0, 1fr) 12px;
   }
 
@@ -415,24 +425,59 @@
 
   .lobby-hub-tabs__edge--start {
     grid-column: 1;
-    background: linear-gradient(90deg, var(--panel), transparent);
+    background: linear-gradient(90deg, var(--panel) 35%, transparent);
   }
 
   .lobby-hub-tabs__edge--end {
     grid-column: 3;
-    background: linear-gradient(270deg, var(--panel), transparent);
+    background: linear-gradient(270deg, var(--panel) 35%, transparent);
+  }
+
+  .lobby-hub-tabs[data-can-left] .lobby-hub-tabs__edge--start,
+  .lobby-hub-tabs[data-can-right] .lobby-hub-tabs__edge--end {
+    opacity: 1;
   }
 
   .lobby-hub-tabs__scroll {
     grid-column: 1 / -1;
     grid-row: 1;
-    padding-inline: 12px;
+    padding-inline: 36px;
+    scrollbar-width: none;
+  }
+
+  .lobby-hub-tabs__scroll::-webkit-scrollbar {
+    display: none;
   }
 
   /* peek следующего таба */
   .lobby-hub-tabs__scroll::after {
     content: '';
     flex: 0 0 28px;
+  }
+
+  .lobby-hub-tabs__nudge {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 36px;
+    min-width: 36px;
+    max-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0;
+    border-radius: 999px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+
+  .lobby-hub-tabs__nudge--start {
+    left: 0;
+  }
+
+  .lobby-hub-tabs__nudge--end {
+    right: 0;
   }
 }
 
@@ -446,6 +491,10 @@
   }
 
   .lobby-hub-tabs__edge {
+    display: none;
+  }
+
+  .lobby-hub-tabs__nudge {
     display: none;
   }
 

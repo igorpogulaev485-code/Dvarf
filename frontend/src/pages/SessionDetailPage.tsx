@@ -3315,7 +3315,7 @@ export function SessionDetailPage() {
                 mine
                   ? `+${mine[1]} опыта`
                   : result.awarded_each > 0
-                    ? `+${result.awarded_each} XP · ${result.recipients.join(', ')}`
+                    ? `+${result.awarded_each} опыта · ${result.recipients.join(', ')}`
                     : result.awarded_total > 0
                       ? `Опыт: ${result.awarded_total}`
                       : 'Опыт: 0',
@@ -3361,7 +3361,7 @@ export function SessionDetailPage() {
                 mine
                   ? `+${mine[1]} опыта`
                   : result.awarded_each > 0
-                    ? `+${result.awarded_each} XP · ${result.recipients.join(', ')}`
+                    ? `+${result.awarded_each} опыта · ${result.recipients.join(', ')}`
                     : result.awarded_total > 0
                       ? `Опыт: ${result.awarded_total}`
                       : 'Опыт: 0',

@@ -124,7 +124,7 @@ export function AddCombatantDialog({
     <Dialog
       open={open}
       title="Посадить противника"
-      primaryLabel={mode === 'bestiary' ? 'Настол' : 'Создать НПС'}
+      primaryLabel={mode === 'bestiary' ? 'На стол' : 'Создать НПС'}
       secondaryLabel="Отмена"
       busy={busy}
       primaryDisabled={!canSubmit}
@@ -227,9 +227,9 @@ export function AddCombatantDialog({
             </Field>
             {data ? (
               <Text tone="muted">
-                HP {data.hp_average}
+                Хиты {data.hp_average}
                 {data.hp_formula ? ` (${data.hp_formula})` : ''} · КД {data.ac}
-                {data.cr ? ` · CR ${data.cr}` : ''}
+                {data.cr ? ` · ПО ${data.cr}` : ''}
                 {data.source_book ? ` · ${data.source_book}` : ''}
               </Text>
             ) : null}
@@ -240,13 +240,13 @@ export function AddCombatantDialog({
               <Input value={customName} onChange={(e) => setCustomName(e.target.value)} />
             </Field>
             <div className="session-combatant-custom-row">
-              <Field label="HP">
+              <Field label="Хиты">
                 <NumberInput value={customHp} onValueChange={setCustomHp} min={1} max={9999} />
               </Field>
               <Field label="КД">
                 <NumberInput value={customAc} onValueChange={setCustomAc} min={0} max={40} />
               </Field>
-              <Field label="ПО (опасность)" hint={crXp != null ? `${crXp} XP` : undefined}>
+              <Field label="ПО" hint={crXp != null ? `${crXp} опыта` : undefined}>
                 <Select
                   value={customCr}
                   disabled={busy}
@@ -255,7 +255,7 @@ export function AddCombatantDialog({
                 >
                   {CR_OPTIONS.map((o) => (
                     <option key={o.cr} value={o.cr}>
-                      {o.cr} · {o.xp} XP
+                      {o.cr} · {o.xp} опыта
                     </option>
                   ))}
                 </Select>
@@ -323,7 +323,7 @@ export function AddCombatantDialog({
         </Field>
         {count > 1 ? (
           <Text tone="muted">
-            Настол одной пачкой ({count}). Быстрый урон — первому живому; в «Составе» —
+            На стол одной пачкой ({count}). Быстрый урон — первому живому; в «Составе» —
             кому сколько.
           </Text>
         ) : null}

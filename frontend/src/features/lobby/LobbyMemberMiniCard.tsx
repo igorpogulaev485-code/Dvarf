@@ -69,7 +69,7 @@ export function LobbyMemberMiniCard({
           ) : null}
           {member.hp_max != null ? (
             <Text tone="muted" className="lobby-member-card__hp-text">
-              HP {member.hp_current ?? 0}/{member.hp_max}
+              Хиты {member.hp_current ?? 0}/{member.hp_max}
             </Text>
           ) : null}
         </div>
@@ -77,7 +77,7 @@ export function LobbyMemberMiniCard({
           <Link className="ui-button ui-button--ghost" to={`/characters/${member.character_id}`}>
             {sheetLabel}
           </Link>
-          {startMark && canWaiveStartRules && onWaiveStartRules ? (
+          {!seated && startMark && canWaiveStartRules && onWaiveStartRules ? (
             <Button type="button" variant="ghost" disabled={busy} onClick={onWaiveStartRules}>
               Допустить
             </Button>

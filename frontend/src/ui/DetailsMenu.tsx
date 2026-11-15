@@ -37,6 +37,7 @@ export function DetailsMenu({
     top: number
     left: number
     minWidth: number
+    maxHeight: number
   } | null>(null)
   /* Native title overlays popover fields while open (CMB-01 speed tile). */
   const tipTitle = open ? undefined : title
@@ -51,10 +52,19 @@ export function DetailsMenu({
     if (left + minWidth > window.innerWidth - pad) {
       left = Math.max(pad, window.innerWidth - pad - minWidth)
     }
+    // LOBBY-FIX: на 390 «Ещё» должно умещать «Добычу» — панель влезает в viewport.
+    const spaceBelow = window.innerHeight - r.bottom - pad
+    const spaceAbove = r.top - pad
+    const openUp = spaceBelow < 220 && spaceAbove > spaceBelow
+    const maxHeight = Math.max(160, Math.floor(openUp ? spaceAbove - 4 : spaceBelow - 4))
+    const top = openUp
+      ? Math.round(Math.max(pad, r.top - 4 - Math.min(maxHeight, spaceAbove)))
+      : Math.round(r.bottom + 4)
     setCoords({
-      top: Math.round(r.bottom + 4),
+      top,
       left: Math.round(Math.max(pad, left)),
       minWidth: Math.round(minWidth),
+      maxHeight,
     })
   }
 
@@ -88,6 +98,8 @@ export function DetailsMenu({
               top: coords.top,
               left: coords.left,
               minWidth: coords.minWidth,
+              maxHeight: coords.maxHeight,
+              overflowY: 'auto',
             }}
             onMouseDown={(event) => event.stopPropagation()}
             onClick={(event) => {

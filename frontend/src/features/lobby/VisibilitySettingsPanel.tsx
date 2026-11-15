@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Button, Panel, Stack, Text } from '../../ui'
 import {
   applyVisibilityPreset,
@@ -15,6 +15,7 @@ type Props = {
   playerPreview?: boolean
   onPlayerPreviewChange?: (value: boolean) => void
   onChange: (next: VisibilityProfile) => void
+  footer?: ReactNode
 }
 
 const EVENT_OPTIONS: Array<{ id: EventHistoryMode; label: string }> = [
@@ -42,6 +43,7 @@ export function VisibilitySettingsPanel({
   playerPreview = false,
   onPlayerPreviewChange,
   onChange,
+  footer,
 }: Props) {
   const [open, setOpen] = useState<Partial<Record<keyof VisibilityProfile['fields'], boolean>>>({
     identity: true,
@@ -216,6 +218,7 @@ export function VisibilitySettingsPanel({
             )
           })}
         </div>
+        {footer ? <div className="inline-actions">{footer}</div> : null}
       </Stack>
     </Panel>
   )

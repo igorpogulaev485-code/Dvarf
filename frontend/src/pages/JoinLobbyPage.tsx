@@ -31,7 +31,7 @@ function characterMeta(c: CharacterSummary): string {
         ? `ур. ${c.level}`
         : null,
     c.hp_max != null
-      ? `HP ${c.hp_current ?? c.hp_max}/${c.hp_max}`
+      ? `Хиты ${c.hp_current ?? c.hp_max}/${c.hp_max}`
       : null,
   ].filter(Boolean)
   return bits.join(' · ') || 'Персонаж'
@@ -287,7 +287,7 @@ export function JoinLobbyPage() {
                       ) : null}
                       {createHeroHref ? (
                         <Link className="ui-button ui-button--secondary" to={createHeroHref}>
-                          Создать героя для этого лобби
+                          Создать героя
                         </Link>
                       ) : null}
                     </div>
