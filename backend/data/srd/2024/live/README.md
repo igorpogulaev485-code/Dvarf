@@ -21,6 +21,7 @@
 | `subclasses_srd.json` | P24-C04 | 12 подклассов SRD (`kind=subclass`, по одному на класс) |
 | `spells_srd.json` | P24-C05 | 339 заклинаний SRD (`kind=spell`); списки классов/подклассов заполняются здесь |
 | `magic_items_srd.json` | P24-C06 | 285 магических предметов SRD (`kind=item`, `equipment_group=magic_item`) |
+| `creatures_srd.json` | P24-C07 | 235 существ SRD Monsters A–Z (`kind=bestiary`); Animals → C08 |
 
 ## Схема карточек (контракт)
 
@@ -34,7 +35,8 @@
 - подкласс: `parent_class` + `parent_id`, умения по уровням; `spell_list` — домен/круг/клятва/покровитель, если есть в SRD
 - заклинание: `level` 0–9, `school`, `casting_time`, `magic_action` (для unit=action), `components` (В/С/М + цена/расход), `classes`, рост заговора / усиление ячейкой; короткое `summary_ru` (без длинного текста SRD)
 - магический предмет (`item` / `magic_item`): `magic_item_type` (доспех/оружие/палочка/кольцо/зелье/свиток/посох/жезл/чудесный), `rarity`, настройка, заряды, бонусы атаки/КД, `spell_refs` → C05, `base_item_categories` → C03; короткое `summary_ru`
+- бестиарий (`bestiary`, C07): КД, хиты, скорости, ПО/опыт/БМ, инициатива, характеристики + мод + спас, `gear_refs` → C03, `spell_refs` → C05; короткое `summary_ru` / `text_ru` (без длинного SRD и без статов 2014)
 - отображаемые строки (`summary_ru`, `traits_text`, `components.m`, `casting_time.condition`, …) — по-русски; словари `spell_materials_ru.json` / `spell_reaction_conditions_ru.json`
 - `source` вида `srd-5.2` → `content_layer: srd`
 
-Не сидить: Culture, Engineering, пустые заглушки классов/видов/предысторий, книжный контент сверх SRD (в т.ч. FRHoF из `equipment.csv`, заклинания AU/книг — C10+, предметы DMG сверх SRD — C11+), Изобретатель (C15).
+Не сидить: Culture, Engineering, пустые заглушки классов/видов/предысторий, книжный контент сверх SRD (в т.ч. FRHoF из `equipment.csv`, заклинания AU/книг — C10+, предметы DMG сверх SRD — C11+), животные SRD (C08), Изобретатель (C15).

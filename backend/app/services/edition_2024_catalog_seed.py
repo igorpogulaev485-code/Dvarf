@@ -19,6 +19,8 @@ Schema contract for later packs (P24-00 lists → data packs):
 - magic item (``kind=item``, ``equipment_group=magic_item``): type, rarity,
   attunement, charges, attack/AC bonuses, ``spell_refs`` → C05, 
   ``base_item_categories`` → C03; short ``summary_ru`` (no long SRD prose)
+- bestiary (monsters, P24-C07): size/type/AC/HP/speed/CR/PB/initiative,
+  abilities + mods + saves, gear_refs → C03, spell_refs → C05; Animals → C08
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -64,6 +66,7 @@ EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("classes_srd.json"),
     WaveSpec("subclasses_srd.json"),
     WaveSpec("magic_items_srd.json"),
+    WaveSpec("creatures_srd.json"),
 )
 
 WEAPON_MASTERY_FILENAME = "weapon_mastery_srd.json"
@@ -294,6 +297,38 @@ def normalize_spell_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
     return out
 
 
+def normalize_bestiary_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
+    """2024 bestiary card (Monsters A–Z): PB, initiative, ability saves, refs."""
+    out = dict(data) if isinstance(data, dict) else {}
+    if out.get("schema_version") is None:
+        out["schema_version"] = 1
+    out.setdefault("size", None)
+    out.setdefault("type", None)
+    out.setdefault("type_ru", None)
+    out.setdefault("ac", None)
+    out.setdefault("hp_average", None)
+    out.setdefault("speed", {})
+    out.setdefault("cr", None)
+    out.setdefault("xp", None)
+    out.setdefault("proficiency_bonus", None)
+    out.setdefault("initiative", {})
+    out.setdefault("abilities", {})
+    out.setdefault("ability_mods", {})
+    out.setdefault("ability_saves", {})
+    out.setdefault("senses", {})
+    out.setdefault("languages", [])
+    out.setdefault("source_book", "SRD 5.2.1")
+    out.setdefault("srd_section", "monsters")
+    out.setdefault("summary_ru", None)
+    if out.get("name_ru_pending") is None:
+        out["name_ru_pending"] = False
+    else:
+        out["name_ru_pending"] = bool(out["name_ru_pending"])
+    out.setdefault("gear_refs", [])
+    out.setdefault("spell_refs", [])
+    return out
+
+
 def load_weapon_mastery_dictionary() -> list[dict[str, Any]]:
     """Eight mastery property cards (reference only — not catalog_entries)."""
     path = _data_dir() / WEAPON_MASTERY_FILENAME
@@ -354,6 +389,8 @@ def normalize_entry_payload(item: Mapping[str, Any]) -> dict[str, Any] | None:
         data = normalize_subclass_data(data_raw)
     elif kind == "spell":
         data = normalize_spell_data(data_raw)
+    elif kind == "bestiary":
+        data = normalize_bestiary_data(data_raw)
     else:
         data = dict(data_raw)
 

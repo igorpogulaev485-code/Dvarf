@@ -39,6 +39,13 @@ class BestiaryAbilities(TypedDict):
     cha: int
 
 
+class BestiaryInitiative(TypedDict, total=False):
+    """2024 stat block: initiative modifier and average score."""
+
+    mod: int
+    score: int
+
+
 class BestiarySenses(TypedDict, total=False):
     darkvision: int
     blindsight: int
@@ -73,6 +80,16 @@ class BestiaryCatalogData(TypedDict):
     cr: str
     proficiency_bonus: NotRequired[int | str]
     abilities: BestiaryAbilities
+    # 2024 extensions (optional; 2014 cards omit these)
+    ability_mods: NotRequired[dict[str, int]]
+    ability_saves: NotRequired[dict[str, int]]
+    initiative: NotRequired[BestiaryInitiative]
+    xp: NotRequired[int]
+    xp_lair: NotRequired[int]
+    gear_refs: NotRequired[list[str]]
+    spell_refs: NotRequired[list[str]]
+    srd_section: NotRequired[str]
+    summary_ru: NotRequired[str]
     skills: NotRequired[dict[str, int]]
     senses: NotRequired[BestiarySenses]
     languages: NotRequired[list[str]]
@@ -85,6 +102,8 @@ class BestiaryCatalogData(TypedDict):
     bonus_actions: NotRequired[list[BestiaryActionBlock]]
     reactions: NotRequired[list[BestiaryActionBlock]]
     legendary_actions: NotRequired[list[BestiaryActionBlock]]
+    legendary_actions_uses: NotRequired[int]
+    legendary_actions_uses_lair: NotRequired[int]
     source_book: str
     tags: NotRequired[list[str]]
     environment: NotRequired[list[str]]

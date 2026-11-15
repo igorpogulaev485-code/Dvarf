@@ -24,6 +24,7 @@ WAVE_FILES = (
     "subclasses_srd.json",
     "spells_srd.json",
     "magic_items_srd.json",
+    "creatures_srd.json",
 )
 
 DISPLAY_LEAVES = frozenset(
@@ -48,6 +49,12 @@ DISPLAY_LEAVES = frozenset(
         "rarity_ru",
         "attunement_restriction_ru",
         "recharge_ru",
+        "text_ru",
+        "alignment",
+        "size_ru",
+        "type_ru",
+        "legendary_actions_note_ru",
+        "ac_notes",
     }
 )
 

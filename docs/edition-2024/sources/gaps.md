@@ -94,3 +94,4 @@ SRD 5.2.1 PDF: [SRD_CC_v5.2.1.pdf](https://media.dndbeyond.com/compendium-images
   - **Семейства развернуты:** Potions of Healing×4, Spell Scroll×10, Ammunition/Armor/Weapon/Shield +1..+3, Wand of the War Mage +1..+3, Potion of Giant Strength×6.
   - **Эпонимы остаются `false`:** Apparatus of Kwalish, Orb of Dragonkind, Quaal’s Feather Token, Heward’s Handy Haversack, Daern’s Instant Fortress, Iron Bands of Bilarro, Nolzur’s Marvelous Pigments, Deck of Many Things.
   - Зелья лечения (4) и свитки заклинаний (cantrip–9) сидятся здесь (C03 их отдал). Книжные предметы сверх SRD — C11+.
+- **P24-C07 (2026-11-15):** сверка `creatures.csv` с разделами SRD 5.2.1 **Monsters A–Z** (235) и **Animals** (95). Добавлена колонка `srd_section` (`monsters` / `animals`). Сид C07 — только Monsters (235); Animals → P24-C08. Эвристика P24-00 по сумме 330 совпала с оглавлением; типы «Зверь» в Monsters (например Axe Beak) остаются в C07, не в C08.
