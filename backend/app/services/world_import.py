@@ -1,4 +1,4 @@
-"""W-API-01/02/03/05: задания импорта, разбор, validate/upsert, ключи/алиасы/связи."""
+"""W-API-01/02/03/05/06: задания импорта, разбор, извлечение, validate/upsert."""
 
 from __future__ import annotations
 
@@ -37,7 +37,8 @@ from app.schemas.world_import import (
 from app.services import lobby_roles as roles
 from app.services.media import LOBBY_QUOTA_BYTES, LobbyMediaService
 from app.services.world_import_auth import WorldImportActor, WorldImportAccess
-from app.services.world_import_links import build_alias_and_link_graph
+from app.services.world_import_extract import enrich_parsed_with_ai
+from app.services.world_import_links import AliasBundle, build_alias_and_link_graph
 from app.services.world_vault_parse import (
     MAX_FILE_COUNT,
     MAX_TEXT_TOTAL_BYTES,
@@ -359,6 +360,9 @@ class WorldImportService:
         parsed_items: list,
         *,
         skipped: list[dict[str, str]],
+        extract_mode: str = "none",
+        extract_message: str = "",
+        extract_warnings: list[str] | None = None,
     ) -> WorldVaultParseResultOut:
         existing_rows = list(
             self.db.scalars(
@@ -370,12 +374,25 @@ class WorldImportService:
         updated = 0
         out_rows: list[WorldImportDraftItem] = []
 
-        alias_by_key, link_proposals = build_alias_and_link_graph(parsed_items)
+        # ИИ/эвристики не участвуют в авто-графе должностей: только явный разбор 03.
+        graph_items = [
+            p
+            for p in parsed_items
+            if not (p.proposal or {}).get("ai_extracted")
+            and p.item_type not in {"ai_suggestion", "artifact_set"}
+        ]
+        alias_by_key, link_proposals = build_alias_and_link_graph(graph_items)
+        empty_bundle = AliasBundle()
 
         for parsed in parsed_items:
-            aliases = [display for display, _norm in alias_by_key[parsed.source_key].norms]
+            bundle = alias_by_key.get(parsed.source_key, empty_bundle)
+            aliases = [display for display, _norm in bundle.norms]
             proposal = dict(parsed.proposal)
             proposal["aliases"] = aliases
+            if extract_mode and extract_mode != "none":
+                proposal.setdefault("extract_mode", extract_mode)
+            if extract_message:
+                proposal.setdefault("extract_message", extract_message)
 
             row = by_key.get(parsed.source_key)
             if row is None:
@@ -398,19 +415,22 @@ class WorldImportService:
                     row.status = "proposed"
                 updated += 1
             out_rows.append(row)
+            # Синтетические ключи извлечения (#artifact:…) — тоже в world_source_keys.
             source_key_row = self._upsert_source_key(
                 job.setting_id,
                 source_path=parsed.source_path,
                 source_slug=parsed.source_slug,
             )
-            self._upsert_aliases(
-                job.setting_id,
-                source_key_row,
-                alias_by_key[parsed.source_key].norms,
-            )
+            if bundle.norms:
+                self._upsert_aliases(
+                    job.setting_id,
+                    source_key_row,
+                    bundle.norms,
+                )
 
         link_rows = self._replace_draft_links(job, link_proposals)
 
+        # Статус задания: разбор готов; режим извлечения — в ответе и proposal.
         job.status = "ready_for_review"
         self.db.commit()
         for row in out_rows:
@@ -427,7 +447,15 @@ class WorldImportService:
             updated_count=updated,
             links=[WorldImportDraftLinkOut.model_validate(r) for r in link_rows],
             links_count=len(link_rows),
+            extract_mode=extract_mode,
+            extract_message=extract_message,
+            extract_warnings=list(extract_warnings or []),
         )
+
+    def _parse_and_enrich(self, vault_files: list, *, rules_edition: str):
+        """Детерминированный разбор + извлечение предложений (W-API-06)."""
+        result = parse_vault_files(vault_files)
+        return enrich_parsed_with_ai(result, rules_edition=rules_edition)
 
     def ingest_vault_files(
         self,
@@ -463,8 +491,17 @@ class WorldImportService:
             vault_files = [
                 VaultFile(path=f.path, content=f.content) for f in payload.files
             ]
-            result = parse_vault_files(vault_files)
-            return self._apply_parsed_items(job, result.items, skipped=result.skipped)
+            enriched = self._parse_and_enrich(
+                vault_files, rules_edition=job.rules_edition or rules_edition
+            )
+            return self._apply_parsed_items(
+                job,
+                enriched.items,
+                skipped=enriched.skipped,
+                extract_mode=enriched.extract_mode,
+                extract_message=enriched.extract_message,
+                extract_warnings=enriched.extract_warnings,
+            )
         except AppError:
             job.status = "failed"
             self.db.commit()
@@ -502,8 +539,17 @@ class WorldImportService:
                     status_code=400,
                     data={"hint": "Добавьте markdown в world/, campaign/, rules/"},
                 )
-            result = parse_vault_files(vault_files)
-            return self._apply_parsed_items(job, result.items, skipped=result.skipped)
+            enriched = self._parse_and_enrich(
+                vault_files, rules_edition=job.rules_edition or "2014"
+            )
+            return self._apply_parsed_items(
+                job,
+                enriched.items,
+                skipped=enriched.skipped,
+                extract_mode=enriched.extract_mode,
+                extract_message=enriched.extract_message,
+                extract_warnings=enriched.extract_warnings,
+            )
         except AppError:
             job.status = "failed"
             self.db.commit()
@@ -549,15 +595,27 @@ class WorldImportService:
 
         type_counts: dict[str, int] = {}
         skipped: list[dict[str, str]] = []
+        extract_mode = "none"
+        extract_message = ""
         if payload.files and not errors:
             try:
                 vault_files = [
                     VaultFile(path=f.path, content=f.content) for f in payload.files
                 ]
-                result = parse_vault_files(vault_files)
-                type_counts = dict(Counter(it.item_type for it in result.items))
-                skipped = result.skipped
-                if not result.items:
+                enriched = self._parse_and_enrich(
+                    vault_files, rules_edition=rules_edition
+                )
+                type_counts = dict(Counter(it.item_type for it in enriched.items))
+                skipped = enriched.skipped
+                extract_mode = enriched.extract_mode
+                extract_message = enriched.extract_message
+                warnings.extend(enriched.extract_warnings)
+                for err in enriched.extract_errors:
+                    from app.schemas.world_import import WorldImportValidateIssue
+
+                    # Ошибки провайдера — предупреждение, validate не валим.
+                    warnings.append(err.message)
+                if not enriched.items:
                     warnings.append("Ни один файл не дал карточку мира")
             except AppError as exc:
                 from app.schemas.world_import import WorldImportValidateIssue
@@ -595,6 +653,8 @@ class WorldImportService:
                 "media_quota_bytes": LOBBY_QUOTA_BYTES,
             },
             ok=ok,
+            extract_mode=extract_mode,
+            extract_message=extract_message,
         )
 
     def upsert_package(
@@ -691,8 +751,17 @@ class WorldImportService:
             vault_files = [
                 VaultFile(path=f.path, content=f.content) for f in payload.files
             ]
-            result = parse_vault_files(vault_files)
-            return self._apply_parsed_items(job, result.items, skipped=result.skipped)
+            enriched = self._parse_and_enrich(
+                vault_files, rules_edition=rules_edition
+            )
+            return self._apply_parsed_items(
+                job,
+                enriched.items,
+                skipped=enriched.skipped,
+                extract_mode=enriched.extract_mode,
+                extract_message=enriched.extract_message,
+                extract_warnings=enriched.extract_warnings,
+            )
         except AppError:
             job.status = "failed"
             self.db.commit()

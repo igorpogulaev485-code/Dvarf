@@ -33,6 +33,8 @@ from app.services.setting_creatures import validate_creature_statblock, validate
 from app.services.world_import_auth import WorldImportActor, WorldImportAccess
 from app.services.world_import_diff import (
     ARTIFACT_ITEM_TYPES,
+    ARTIFACT_SET_ITEM_TYPES,
+    AI_SUGGESTION_ITEM_TYPES,
     CREATURE_ITEM_TYPES,
     PAGE_ITEM_TYPES,
     _page_kind_for,
@@ -364,6 +366,55 @@ class WorldImportConfirmService:
         sk.artifact_id = artifact.id
         return artifact, created
 
+    def _upsert_artifact_set(
+        self,
+        setting: Setting,
+        item: WorldImportDraftItem,
+        *,
+        artifacts_by_key: dict[str, SettingArtifact],
+    ) -> UUID:
+        """Создаёт/обновляет сет предметов сеттинга по proposal member_import_keys."""
+        prop = item.proposal or {}
+        name = _proposal_title(item)[:120]
+        member_keys = [
+            str(k).strip()
+            for k in (prop.get("member_import_keys") or [])
+            if str(k).strip()
+        ]
+        member_ids: list[UUID] = []
+        for key in member_keys:
+            art = artifacts_by_key.get(key)
+            if art is not None:
+                member_ids.append(art.id)
+        description = str(prop.get("description") or prop.get("body") or "")[:4000]
+        thresholds = list(prop.get("thresholds") or [])
+        existing_sets = self.lobbies.list_setting_artifact_sets(setting.id)
+        existing = next((s for s in existing_sets if s.name == name), None)
+        if existing is None:
+            row = self.lobbies.create_setting_artifact_set(
+                setting_id=setting.id,
+                name=name,
+                description=description,
+                thresholds=thresholds,
+                sort_order=len(existing_sets),
+            )
+            set_id = row.id
+        else:
+            existing.description = description
+            existing.thresholds = thresholds
+            set_id = existing.id
+            self.lobbies.clear_artifact_set_members(set_id)
+        for i, aid in enumerate(member_ids):
+            # Один артефакт — один сет (уникальный artifact_id).
+            membership = self.lobbies.find_artifact_set_membership(aid)
+            if membership is not None and membership.set_id != set_id:
+                continue
+            if membership is None:
+                self.lobbies.add_artifact_set_member(
+                    set_id=set_id, artifact_id=aid, sort_order=i
+                )
+        return set_id
+
     def _write_session_journal(
         self, *, setting: Setting, lobby_id: UUID, actor: WorldImportActor, item: WorldImportDraftItem
     ) -> CampaignJournalEntry:
@@ -607,6 +658,7 @@ class WorldImportConfirmService:
                 for it in all_items
                 if it.status in {"proposed", "conflict", "accepted"}
                 and it.item_type != "pending_character"
+                and it.item_type not in AI_SUGGESTION_ITEM_TYPES
             ]
 
         # Идемпотентность: уже accepted пункты без изменений в каноне — просто пересчитаем.
@@ -624,11 +676,15 @@ class WorldImportConfirmService:
         updated_creatures: list[UUID] = []
         created_artifacts: list[UUID] = []
         updated_artifacts: list[UUID] = []
+        created_artifact_sets: list[UUID] = []
         journal_ids: list[UUID] = []
         confirmed_keys: set[str] = set()
+        artifacts_by_import_key: dict[str, SettingArtifact] = {}
+        pending_sets: list[WorldImportDraftItem] = []
 
         for item in selected:
-            if item.item_type == "pending_character":
+            if item.item_type == "pending_character" or item.item_type in AI_SUGGESTION_ITEM_TYPES:
+                # Чистые подсказки (должности и т.п.) в канон не пишем.
                 item.status = "deferred"
                 continue
             if item.item_type == "session_journal":
@@ -648,8 +704,14 @@ class WorldImportConfirmService:
             if item.item_type in ARTIFACT_ITEM_TYPES:
                 artifact, created = self._upsert_artifact(setting, item, source_keys)
                 (created_artifacts if created else updated_artifacts).append(artifact.id)
+                key = str((item.proposal or {}).get("import_key") or artifact.import_key or "")
+                if key:
+                    artifacts_by_import_key[key] = artifact
                 item.status = "accepted"
                 confirmed_keys.add(item.source_key)
+                continue
+            if item.item_type in ARTIFACT_SET_ITEM_TYPES:
+                pending_sets.append(item)
                 continue
             if item.item_type in PAGE_ITEM_TYPES or item.item_type in {
                 "book",
@@ -668,6 +730,19 @@ class WorldImportConfirmService:
                 continue
             # Неизвестный тип — не пишем в канон.
             item.status = "deferred"
+
+        # Сеты — после предметов, чтобы member_import_keys резолвились.
+        if pending_sets:
+            for art in self.lobbies.list_setting_artifacts(setting.id):
+                if art.import_key:
+                    artifacts_by_import_key.setdefault(art.import_key, art)
+            for item in pending_sets:
+                set_id = self._upsert_artifact_set(
+                    setting, item, artifacts_by_key=artifacts_by_import_key
+                )
+                created_artifact_sets.append(set_id)
+                item.status = "accepted"
+                confirmed_keys.add(item.source_key)
 
         links_created = self._apply_office_links(
             setting=setting,
@@ -706,6 +781,7 @@ class WorldImportConfirmService:
             updated_creature_ids=updated_creatures,
             created_artifact_ids=created_artifacts,
             updated_artifact_ids=updated_artifacts,
+            created_artifact_set_ids=created_artifact_sets,
             journal_entry_ids=journal_ids,
             links_created=links_created,
         )

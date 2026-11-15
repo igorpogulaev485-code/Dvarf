@@ -156,6 +156,10 @@ class WorldVaultParseResultOut(BaseModel):
     updated_count: int = 0
     links: list[WorldImportDraftLinkOut] = Field(default_factory=list)
     links_count: int = 0
+    # W-API-06: статус извлечения из прозы (видно в ответе задания).
+    extract_mode: str = "none"
+    extract_message: str = ""
+    extract_warnings: list[str] = Field(default_factory=list)
 
 
 class WorldImportValidateIssue(BaseModel):
@@ -180,6 +184,8 @@ class WorldImportValidateOut(BaseModel):
     media_free_bytes: int = 0
     limits: dict[str, int] = Field(default_factory=dict)
     ok: bool = True
+    extract_mode: str = "none"
+    extract_message: str = ""
 
 
 class WorldImportDiffEntryOut(BaseModel):
@@ -217,6 +223,7 @@ class WorldImportConfirmOut(BaseModel):
     updated_creature_ids: list[UUID] = Field(default_factory=list)
     created_artifact_ids: list[UUID] = Field(default_factory=list)
     updated_artifact_ids: list[UUID] = Field(default_factory=list)
+    created_artifact_set_ids: list[UUID] = Field(default_factory=list)
     journal_entry_ids: list[UUID] = Field(default_factory=list)
     links_created: int = 0
 

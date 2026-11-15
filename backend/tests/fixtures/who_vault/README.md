@@ -1,4 +1,4 @@
-# Урезанные фикстуры Who для W-API-02/03/04
+# Урезанные фикстуры Who для W-API-02…06
 
 Короткие копии реальных файлов из https://github.com/igorpogulaev485-code/Who
 («Эхо рассвета»). Весь репозиторий Who сюда не копируем. Upstream Who
@@ -7,6 +7,10 @@
 W-API-04: `rules/encounters/gorvax_statblock_structured.json` — структурированный
 фрагмент Горвакса из `01-dragonborn-vanguard.md` только для тестов (не в
 продуктовый код).
+
+W-API-06: `world/locations/rozaliya/military-quests.md` — урезанные военные
+квесты Розалии (первые квесты из Who); нарезка квестов — только предложения
+черновика. Таблица артефактов Кардиана и бой Горвакса — те же файлы lore/encounters.
 
 `drafts/imports/qwen-fake-chat.json` — короткий фейк структуры сырого чата
 (не выгрузка прода). `templates/location.md` — локальный stub шаблона.
