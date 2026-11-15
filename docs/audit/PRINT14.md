@@ -189,10 +189,21 @@
 
 ---
 
+## Final gallery (все страницы, PR #411)
+
+Снято без правок вёрстки: `/opt/cursor/artifacts/print14/final/` · отчёт `REPORT.md` · `md5s.json`.  
+Скрипт: `frontend/scripts/print14-final-capture.mjs`.
+
+Листы: `2014-blank`, `2014-torbin`, `2014-darrack`, `2024-blank`, `2024-torbin`, `2024-darrack`, плюс `2014-darrack-pencil` и `2014-torbin-bw`.
+
+**Логотип:** стр.1–3 формы 2014 — столбик КриD20; доп. страницы 2014 (заметки/напарники) — плашка «D&D»; карточки заклинаний — шапка с логотипом в `.no-print` (в PDF только сетка). 2024 — «D&D» / без плашки на части LSS. Код под это не меняли.
+
+---
+
 ## Проверки
 
 - `frontend`: `npm run build` — ok
 - selfcheck: classicPrint14, classicPrintSettings — ok
 - `backend`: `pytest` — 380 passed (incl. HP sheet-patch)
 - Alembic: одна голова
-- Кадры pass8…pass9d: Vite + API, Chromium PDF + pdftoppm
+- Кадры pass8…pass9d + final gallery: Vite + API, Chromium PDF + pdftoppm
