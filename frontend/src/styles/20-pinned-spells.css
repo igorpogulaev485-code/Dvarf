@@ -242,6 +242,11 @@
   line-height: 1.25;
 }
 
+/* Desktop: stack markup reads as one line «Концентрация: Щит веры» (sep in DOM) */
+.play-desk__hot-label--stack strong {
+  font-weight: 700;
+}
+
 .play-desk__hot-item--res {
   background: #fff;
   border-color: var(--desk-line);

@@ -2233,7 +2233,9 @@ export function CreateCharacterPage() {
   return (
     <main className="page page--app page--create-pipeline">
       <div className="create-pipeline__topbar">
-        <Link to="/characters">← К списку</Link>
+        <Link className="back-link" to="/characters">
+          ← К списку
+        </Link>
         <Text tone="muted">
           {lobbyStart
             ? 'Создание для лобби · D&D 2014'

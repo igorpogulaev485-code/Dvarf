@@ -172,7 +172,7 @@ export function TransferDialog({
         {mode?.kind === 'coins' ? (
           <Stack gap={10}>
             <Field label="Валюта">
-              <div className="session-combatant-mode">
+              <div className="session-combatant-mode session-combatant-mode--coins">
                 {COIN_OPTS.map((c) => (
                   <button
                     key={c.key}

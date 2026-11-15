@@ -494,8 +494,11 @@
   color: var(--accent);
   white-space: normal;
   overflow: hidden;
-  word-break: break-word;
-  overflow-wrap: anywhere;
+  /* Word boundaries only — avoid mid-glyph «Даррак Ж… Кулак» */
+  word-break: normal;
+  overflow-wrap: break-word;
+  hyphens: manual;
+  text-overflow: clip;
   line-height: 1.15;
 }
 

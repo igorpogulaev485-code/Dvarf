@@ -901,6 +901,10 @@ button.play-desk-header__identity:hover {
   scrollbar-width: none;
   min-width: 0;
   width: 100%;
+  /* Horizontal gutter is on .ui-scroll-row shell — see tokens */
+  padding-inline: 0;
+  scroll-padding-inline: 12px;
+  box-sizing: border-box;
 }
 
 .play-desk__mobile-chrome .active-effects__scroller::-webkit-scrollbar {

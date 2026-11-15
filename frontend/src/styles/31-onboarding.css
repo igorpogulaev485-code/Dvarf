@@ -44,6 +44,28 @@
   color: var(--muted);
 }
 
+.onboarding-welcome__skip-link {
+  appearance: none;
+  align-self: center;
+  min-height: var(--tap-min, 44px);
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.onboarding-welcome__skip-link:hover,
+.onboarding-welcome__skip-link:focus-visible {
+  color: var(--accent);
+  outline: none;
+}
+
 /* Legacy alias — keep if any old markup remains. */
 .onboarding-welcome__alt {
   appearance: none;

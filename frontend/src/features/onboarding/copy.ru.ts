@@ -15,6 +15,8 @@ export const WELCOME = {
   dndNew: 'Я впервые в D&D',
   productNew: 'Играл, но тут впервые',
   skip: 'Пропустить подсказки',
+  /** Footer secondary / explicit dismiss without choosing a learning path. */
+  skipShort: 'Пропустить',
 }
 
 export const EMPTY_CHARACTERS = {
