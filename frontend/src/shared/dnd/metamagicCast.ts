@@ -157,18 +157,22 @@ export function applyMetamagicToCastParams(
     notes.push('Ускоренное: каст как бонусное действие')
   }
   if (flags.distant) {
-    if (/касание|touch/i.test(range)) {
+    const originalRange = range
+    if (/касание|touch/i.test(originalRange)) {
       range = '30 фт.'
+      notes.push('Далёкое: дистанция ×2 (касание → 30 фт.)')
     } else {
-      const match = range.match(/(\d+)\s*(фт|фут|ft)/i)
+      const match = originalRange.match(/(\d+)\s*(фт\.?|фут(?:ов|а|ы)?|ft\.?|feet)/i)
       if (match) {
-        const n = Number(match[1]) * 2
-        range = range.replace(match[0], `${n} ${match[2]}`)
+        const fromN = Number(match[1])
+        const toN = fromN * 2
+        range = originalRange.replace(match[0], `${toN} фт.`)
+        notes.push(`Далёкое: дистанция ×2 (${fromN} → ${toN} фт.)`)
       } else {
-        range = `${range} (×2)`
+        range = `${originalRange} (×2)`
+        notes.push(`Далёкое: дистанция ×2 (${originalRange} → ×2)`)
       }
     }
-    notes.push('Далёкое: дистанция ×2 (касание → 30 фт.)')
   }
   if (flags.subtle) {
     v = false

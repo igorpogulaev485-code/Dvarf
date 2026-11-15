@@ -41,6 +41,7 @@ const grimoire = read('src/features/characters/GrimoireDialog.tsx')
 const castDlg = read('src/features/characters/CastSpellDialog.tsx')
 const settings = read('src/features/characters/SpellsSettingsDialog.tsx')
 const pack04 = read('src/shared/dnd/pack04SorcererWarlock.ts')
+const tokens = read('src/styles/01-tokens-base.css')
 
 // --- Visual contract ---
 assert.match(compact, /Свернуть все/)
@@ -51,7 +52,12 @@ assert.match(compact, /formatNamedClassQuotas/)
 assert.match(compact, /classSlugChipLabel/)
 assert.match(compact, /play-desk-compact__cast-profile--line/)
 assert.doesNotMatch(compact, /play-desk-compact__meta-select/)
+assert.doesNotMatch(compact, /play-desk-compact__meta-toggle/)
 assert.doesNotMatch(compact, /listApplicableMetamagic/)
+assert.match(compact, /aria-expanded/)
+assert.match(compact, /ui-button--edge-end/)
+assert.match(tokens, /ui-button--edge-end/)
+assert.match(tokens, /--radius-card/)
 assert.doesNotMatch(compact, /Always show every ready spell/)
 
 // --- No sorcery duplicate under attacks ---
@@ -275,7 +281,14 @@ assert.ok(applicable.some((row) => row.id === 'empowered'))
 assert.ok(applicable.some((row) => row.id === 'quickened'))
 const distantOnly = applyMetamagicToCastParams(fireball, { distant: true })
 assert.match(distantOnly.range, /300/)
-assert.ok(distantOnly.notes.some((n) => /Далёкое/.test(n)))
+assert.ok(distantOnly.notes.some((n) => /150\s*→\s*300/.test(n)))
+assert.ok(!distantOnly.notes.some((n) => /касание\s*→\s*30/.test(n)))
+const touchDistant = applyMetamagicToCastParams(
+  { ...fireball, range: 'Касание' },
+  { distant: true },
+)
+assert.match(touchDistant.range, /30/)
+assert.ok(touchDistant.notes.some((n) => /касание\s*→\s*30/.test(n)))
 assert.equal(metamagicSelectionCost({ distant: true, empowered: true }, 3), 2)
 assert.equal(metamagicStackOk({ distant: true, empowered: true }), true)
 assert.equal(metamagicStackOk({ distant: true, quickened: true }), false)

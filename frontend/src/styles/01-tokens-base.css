@@ -47,6 +47,8 @@
   --control-h-sm: 32px;
   --control-h-md: 36px;
   --control-h-lg: 44px;
+  /* Card / compact row corner — shared with edge-docked controls */
+  --radius-card: 8px;
 }
 
 /* Wave B — account theme swaps only accent tokens (docs/ui-kit §2n) */
@@ -503,6 +505,43 @@ a.ui-button--primary {
   width: var(--control-h-md);
   min-width: var(--control-h-md);
   padding: 0;
+}
+
+/**
+ * Edge-docked control — flush to the trailing edge of a card/row
+ * with overflow:hidden and border-radius: var(--radius-card).
+ * Outer corners match the card; no double frame (parent owns the border).
+ */
+.ui-button--edge-end {
+  align-self: stretch;
+  box-sizing: border-box;
+  height: auto;
+  min-height: 100%;
+  margin: 0;
+  padding: 6px 10px;
+  border-style: solid;
+  border-width: 0;
+  border-inline-start-width: 1px;
+  border-inline-start-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-radius: 0;
+  border-start-end-radius: var(--radius-card);
+  border-end-end-radius: var(--radius-card);
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: none;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+
+.ui-button--edge-end:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-soft) 72%, var(--accent) 14%);
+}
+
+.ui-button--edge-end:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 /* Kit details popover — panel overlays, does not reflow toolbar siblings */

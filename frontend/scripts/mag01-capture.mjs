@@ -238,7 +238,22 @@ async function main() {
     await shot(page, 'wiz20-scroll-chrome-1440.png', 1440)
 
     await expandAllSpells(page)
+    if (await spellsRoot(page).locator('.play-desk-compact__meta-toggle').count()) {
+      throw new Error('MAG-01 capture: ▾ meta-toggle must be removed from spell rows')
+    }
     await shot(page, 'wiz20-expanded-1440.png', 1440)
+    const castCrop = spellsRoot(page).locator('.play-desk-compact__row.is-spell.has-cast').first()
+    if (await castCrop.count()) {
+      await castCrop.screenshot({ path: out('spell-row-cast-1440.png') })
+    }
+    const openRow = spellsRoot(page).locator('.play-desk-compact__row.is-spell').first()
+    if (await openRow.count()) {
+      await openRow.click()
+      await page.waitForTimeout(200)
+      await shot(page, 'spell-open-by-click-1440.png', 1440)
+      await openRow.click() // collapse again
+      await page.waitForTimeout(150)
+    }
 
     await collapseAllSpells(page)
     await shot(page, 'wiz20-collapse-all-1440.png', 1440)
@@ -290,7 +305,20 @@ async function main() {
     await collapseAllSpells(page)
     await shot(page, 'wiz20-collapsed-390.png', 390)
     await expandAllSpells(page)
+    if (await spellsRoot(page).locator('.play-desk-compact__meta-toggle').count()) {
+      throw new Error('MAG-01 capture 390: ▾ meta-toggle must be removed')
+    }
     await shot(page, 'wiz20-expanded-390.png', 390)
+    const castCrop390 = spellsRoot(page).locator('.play-desk-compact__row.is-spell.has-cast').first()
+    if (await castCrop390.count()) {
+      await castCrop390.screenshot({ path: out('spell-row-cast-390.png') })
+    }
+    const openRow390 = spellsRoot(page).locator('.play-desk-compact__row.is-spell').first()
+    if (await openRow390.count()) {
+      await openRow390.click()
+      await page.waitForTimeout(200)
+      await shot(page, 'spell-open-by-click-390.png', 390)
+    }
   })
 
   // Sorcerer 20

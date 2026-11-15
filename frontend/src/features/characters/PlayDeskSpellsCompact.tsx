@@ -938,28 +938,38 @@ function SpellRow({
   if (classChip) flags.push(classChip)
   if (damage) flags.push(damage)
 
+  const rowLabel = damage ? `${spell.name}, ${damage}` : `${spell.name}, без урона`
+
   return (
     <div
+      key={`${spell.id}:${damage || '—'}`}
       className={`play-desk-compact__row is-spell is-spell-line${
         activeConcentration ? ' is-conc-active' : ''
       }${granted ? ' is-granted' : ''}${hasCast ? ' has-cast' : ''}${
         ritualFromBook ? ' is-ritual-unprepared' : ''
       }${metaOpen ? ' is-meta-open' : ''}`}
+      role="button"
+      tabIndex={0}
+      aria-expanded={metaOpen}
+      aria-label={rowLabel}
+      title={
+        flags.length
+          ? `${spell.name} · ${flags.join(' · ')} · клик — детали строки`
+          : `${spell.name} · клик — детали строки`
+      }
+      onClick={() => onToggleMeta()}
+      onDoubleClick={(event) => {
+        event.preventDefault()
+        onOpenDetail()
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onToggleMeta()
+        }
+      }}
     >
-      <button
-        key={`${spell.id}:${damage || '—'}`}
-        type="button"
-        className="play-desk-compact__spell-body"
-        aria-label={
-          damage ? `${spell.name}, ${damage}` : `${spell.name}, без урона`
-        }
-        title={
-          flags.length
-            ? `${spell.name} · ${flags.join(' · ')} · описание`
-            : `${spell.name} · описание`
-        }
-        onClick={onOpenDetail}
-      >
+      <div className="play-desk-compact__spell-body">
         <div className="play-desk-compact__spell-top">
           <div className="play-desk-compact__row-main">
             <b>{spell.name}</b>
@@ -1019,33 +1029,22 @@ function SpellRow({
         </div>
         <p
           className={`play-desk-compact__spell-meta${metaOpen ? ' is-open' : ' is-quiet'}`}
-          title="Действие · дистанция · атака/спас · клик строки — описание; стрелка — детали"
+          title="Действие · дистанция · атака/спас · клик по строке — раскрыть"
         >
           {meta}
         </p>
-      </button>
-      <button
-        type="button"
-        className="play-desk-compact__meta-toggle"
-        aria-label={metaOpen ? 'Скрыть детали' : 'Показать детали'}
-        title={metaOpen ? 'Скрыть детали' : 'Время · дистанция · компоненты'}
-        onClick={(event) => {
-          event.stopPropagation()
-          onToggleMeta()
-        }}
-      >
-        {metaOpen ? '▴' : '▾'}
-      </button>
+      </div>
       {hasCast ? (
         <div className="play-desk-compact__spell-cast-wrap">
           <button
             type="button"
-            className="play-desk-compact__spell-cast"
+            className="ui-button ui-button--secondary ui-button--edge-end play-desk-compact__spell-cast"
             title={`Каст: ${spell.name}`}
             onClick={(event) => {
               event.stopPropagation()
               onCast()
             }}
+            onKeyDown={(event) => event.stopPropagation()}
           >
             <IconCast className="play-desk-compact__spell-cast-icon" />
             <span>Каст</span>

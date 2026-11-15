@@ -7,14 +7,14 @@
 | Пункт | Статус | Что сделано | Ключевые файлы |
 |-------|--------|-------------|----------------|
 | 1 Сворачивание кругов | сделано | Клик по заголовку, пустые круги свёрнуты сами, «Свернуть все» / «Развернуть все» (scoped aria-label) | `PlayDeskSpellsCompact.tsx`, `18-spell-compact-cards.css` |
-| 2 Строка в одну линию | сделано | «Каст» справа на одной линии с именем; тихий второй ряд + ▾; без выпадашки метамагии в строке | `PlayDeskSpellsCompact.tsx`, `18-spell-compact-cards.css` |
+| 2 Строка в одну линию | сделано | «Каст» edge-docked (`ui-button--edge-end`); без ▾/select; раскрытие кликом (`aria-expanded`) | `PlayDeskSpellsCompact.tsx`, `01-tokens-base.css`, `Button.tsx` |
 | 3 Фильтры и поиск | сделано | Чипы все / заговоры / ритуалы / конц. / по классу + поиск | `PlayDeskSpellsCompact.tsx` |
 | 4 Ритуалы из книги | сделано | Убраны из основного списка, чип «ритуалы из книги» (выкл. по умолчанию) | `PlayDeskSpellsCompact.tsx` |
 | 5 Своя прокрутка | сделано | Скролл списка, chrome колонки на месте; stage-panel overflow не трогали | `PlayDeskSpellsCompact.tsx`, `18-spell-compact-cards.css` |
 | 6 Плотная шапка | сделано | Строки «Класс · ХАР · Сл N · +M»; квоты по классу/режиму без «изв. 17/5» | `PlayDeskSpellsCompact.tsx`, `castProfiles.ts` |
 | 7 Метка класса | сделано | Чип «бард» / «волшебник» на мультиклассе | `castProfiles.ts`, `PlayDeskSpellsCompact.tsx` |
 | 8 Очки чародейства | сделано | Дубль под атаками скрыт; счётчик в хот-панели | `PlayDeskAttacksCompact.tsx` |
-| 9 Метамагия | сделано | Выбор **только в CastSpellDialog** (не в строке списка); блок «С метамагией» с временем/дистанцией; трата SP | `metamagicCast.ts`, `CastSpellDialog.tsx` |
+| 9 Метамагия | сделано | Выбор **только в CastSpellDialog**; блок «С метамагией» с временем/дистанцией; подсказка Далёкого — факт. диапазон (`150 → 300 фт.`); трата SP | `metamagicCast.ts`, `CastSpellDialog.tsx` |
 | 10 Окно «Магия» | сделано | Профили по классам (в т.ч. паладин+колдун на одной ХАР) | `SpellsSettingsDialog.tsx` |
 | 11 «В книге 0» | сделано | Пики книги с `class_slug: 'wizard'` | `CreateCharacterPage.tsx`, `spells.ts` |
 | 12 Волшебник 2 / 3 круг | сделано | Витрина: `aloneMaxLevel` | `CreateCharacterPage.tsx` |
@@ -48,8 +48,10 @@
 | 5 прокрутка | `wiz20-scroll-chrome-1440` | Список прокручен, chrome колонки на месте |
 | 3–4 фильтры | `wiz20-ritual-filter-1440`, `wiz20-search-1440` | Чип ритуалов / поиск |
 | 11 книга | `wizard-book-count`, `wizard-book-count-grimoire` | «в книге 44» |
-| 2/9 список без select | `sorc20-expanded-1440`, `sorc20-expanded-390` | Строки как у волшебника: имя · круг · урон · мета · ▾ · Каст |
-| 9 метамагия в окне | `sorc20-cast-metamagic-1440`, `sorc20-cast-metamagic-390` | Выбор только в CastSpellDialog; «С метамагией · 300 футов» |
+| 2 список без ▾ | `wiz20-expanded-1440/390`, `sorc20-expanded-1440` | Имя · круг · урон · мета · Каст (без треугольника) |
+| 2 Каст у края | `spell-row-cast-1440`, `spell-row-cast-390` | Каст на всю высоту, скругление `--radius-card`, без зазора |
+| 2 раскрытие кликом | `spell-open-by-click-1440`, `spell-open-by-click-390` | Строка с `aria-expanded`, мета раскрыта |
+| 9 метамагия в окне | `sorc20-cast-metamagic-1440` | «150 → 300 фт.» (не «касание → 30») |
 | 9 после каста | `sorc20-cast-metamagic-after-1440` | Тост с Далёким; очки 19/20; ячейка |
 | 8 без дубля | `sorc20-points-1440` | Очки в хот-панели, не под атаками |
 | 15/4а предок | `sorc20-ancestor-1440` | «Предок-дракон · Красный (огонь)» |
