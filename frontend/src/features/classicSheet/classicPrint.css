@@ -76,23 +76,29 @@
 
 .classic-layout-switch button {
   min-width: 3.1rem;
+  min-height: 2rem;
   padding: 0.35rem 0.65rem;
-  border: 0;
+  border: 1px solid rgb(255 255 255 / 22%);
   border-radius: 0.32rem;
-  background: transparent;
+  background: rgb(255 255 255 / 6%);
   color: #e8e4db;
   font: inherit;
   font-size: 0.85rem;
   font-weight: 650;
   cursor: pointer;
+  opacity: 1;
 }
 
-.classic-layout-switch button:hover:not(:disabled) {
-  background: rgb(255 255 255 / 10%);
+.classic-layout-switch button:hover:not(:disabled):not(.is-active) {
+  background: rgb(255 255 255 / 14%);
+  border-color: rgb(255 255 255 / 34%);
 }
 
-.classic-layout-switch button.is-active {
+/* Active must match shown layout; beat :hover specificity so click/hover never washes accent out */
+.classic-layout-switch button.is-active,
+.classic-layout-switch button.is-active:hover:not(:disabled) {
   background: #f5f2eb;
+  border-color: #f5f2eb;
   color: #1f2420;
 }
 

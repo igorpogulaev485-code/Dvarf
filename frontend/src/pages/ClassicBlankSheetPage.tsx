@@ -91,6 +91,7 @@ export function ClassicBlankSheetPage() {
                 key={year}
                 type="button"
                 className={layout === year ? 'is-active' : undefined}
+                aria-pressed={layout === year}
                 onClick={() => setLayout(year)}
               >
                 {year}

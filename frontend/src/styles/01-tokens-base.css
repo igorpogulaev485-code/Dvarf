@@ -923,6 +923,7 @@ a.ui-button--primary {
 }
 
 .ui-scroll-row__chevron {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -946,13 +947,28 @@ a.ui-button--primary {
   pointer-events: auto;
 }
 
+/* Phone: visible glyph stays 22px; 44px tap via invisible hit pad — no big gray circle over chips */
 @media (max-width: 959px) {
+  .ui-scroll-row__edge {
+    width: var(--tap-min, 44px);
+  }
+
   .ui-scroll-row__chevron {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
+    font-size: 0.95rem;
+  }
+
+  .ui-scroll-row__chevron::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
     width: var(--tap-min, 44px);
     height: var(--tap-min, 44px);
-    min-width: var(--tap-min, 44px);
-    min-height: var(--tap-min, 44px);
-    font-size: 1.15rem;
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -998,9 +1014,9 @@ a.ui-button--primary {
   );
 }
 
-/* Mobile desk: stronger edge cue (narrow hot strip) — ink tint so fade reads on #fff */
+/* Mobile desk: fade gutter matches tap-min; small chevron sits in the gutter, not over chips */
 .play-desk--mobile .ui-scroll-row__edge--left {
-  width: 52px;
+  width: var(--tap-min, 44px);
   background: linear-gradient(
     to right,
     #fff 0%,
@@ -1010,7 +1026,7 @@ a.ui-button--primary {
 }
 
 .play-desk--mobile .ui-scroll-row__edge--right {
-  width: 52px;
+  width: var(--tap-min, 44px);
   background: linear-gradient(
     to left,
     #fff 0%,
@@ -1020,12 +1036,33 @@ a.ui-button--primary {
 }
 
 .play-desk--mobile .ui-scroll-row__chevron {
-  width: var(--tap-min, 44px);
-  height: var(--tap-min, 44px);
-  min-width: var(--tap-min, 44px);
-  min-height: var(--tap-min, 44px);
-  font-size: 1.15rem;
-  background: color-mix(in srgb, var(--desk-ink, #2d2d2a) 48%, transparent);
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  min-height: 20px;
+  font-size: 0.9rem;
+  /* Outline glyph — not a solid gray disc over chip faces / × */
+  background: color-mix(in srgb, #fff 82%, var(--desk-ink, #2d2d2a));
+  color: var(--desk-ink, #2d2d2a);
+  border: 1px solid color-mix(in srgb, var(--desk-ink, #2d2d2a) 28%, transparent);
+  box-shadow: none;
+}
+
+/*
+ * Phone: reserve tap-min gutters on the ScrollRow shell so absolute edges sit
+ * in the padding band; the scroller’s content box is already inset — chips
+ * never paint under the chevron (padding-end alone only helps at max scroll).
+ */
+.play-desk--mobile .ui-scroll-row {
+  padding-inline: var(--tap-min, 44px);
+  box-sizing: border-box;
+}
+
+.play-desk--mobile .ui-scroll-row > [class]:not(.ui-scroll-row__edge) {
+  padding-inline: 0;
+  scroll-padding-inline: 12px;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .ui-button--ghost {

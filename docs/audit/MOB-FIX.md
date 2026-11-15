@@ -1,80 +1,71 @@
-# MOB-FIX — правки по аудиту MOB-AUDIT
+# MOB-FIX — правки по аудиту MOB-AUDIT (доправка PR #410)
 
 **Дата:** 2026-11-15  
 **Ветка:** `cursor/mob-fix-c099`  
-**База:** `main` @ `8a5df3c7`  
+**База:** `main`  
 **Приложение:** локальный Vite `:5173` + API `:8000`, сиды `uikit03@example.com`  
-**Правила:** только UI-кит (токены/модификаторы в `frontend/src/styles/` + компоненты кита); без CSS по месту; десктоп 1440 без изменений кроме печати 2024; шапка — только текст/перенос имени на `<960`.
+**Правила:** только UI-кит; десктоп 1440 без изменений кроме печати; шапка — только текст/перенос имени на `<960`.
 
 ---
 
-## Что сделано (по пунктам пакета)
+## Доправка по кадрам (этот проход)
 
 | # | Проблема | Решение |
 |---|----------|---------|
-| 1 | Печать 2024 убрана | Вернули переключатель **2014 / 2024** на `/characters/:id/classic` и `/classic/blank` (`?layout=2024`). Путь создания 2024 не возвращали. |
-| 2+5 | Тосты накрывают футер / Bottom Scene Nav | В ките: `.ui-toast` поднимается через `:has(.mobile-scene-nav)` / `:has(.create-pipeline__footer)` + safe-area; z-index 55. |
-| 3 | Обрезка подписей ресурсов + мелкие стрелки | На мобилке `hot-res-name` / `hot-label` — до 2 строк; шевроны ScrollRow ≥ `--tap-min` 44px. |
-| 4 | Имя «Даррак Ж… Кулак» | В свёрнутых vitals: перенос по словам (`overflow-wrap: break-word`), без mid-glyph. Десктоп не трогали. |
-| 6 | Чипы валют / футер «Передать» | Модификатор `session-combatant-mode--coins` (сетка 5); padding футера диалога с запасом safe-area на `<960`. |
-| 7 | Tap &lt; 44px | Токены `--tap-min` / `--nav-h`; шевроны, `⋯` topbar, tool-кнопки атак, close диалога. |
-| 8 | Онбординг без явного выхода | `WelcomeDialog`: `showClose` (×) + ссылка «Пропустить». |
-| 9 | Плотный тулбар списка | На `<960` сетка 2×2: Создать+Справка / размеры+Теги — первая карточка в первом экране. |
-| 10 | Создание: фильтры / языки / пол | Источники свёрнуты (`create-pipeline__source-toggle`); языки `chip-row--compact`; явная подсказка «Для генератора имени нужен пол». |
+| 1 | Дубли md5 кадров | Пересняты отдельные сцены: свёрнутая шапка / Бой / тост на листе / create до и после раскрытия источников; print media для 2014/2024. |
+| 2 | Стрелки ScrollRow 44px серые круги поверх чипов | Видимый шеврон ~20px (outline); hit 44px через `::after`; gutter `padding-inline: tap-min` на оболочке `.ui-scroll-row` (края в padding-зоне, скроллер inset). |
+| 3 | «Концентрация: Щит…» режется | Стек из 2 строк: kicker «Концентрация» + `<strong>Щит веры</strong>` целиком. |
+| 4 | Welcome: два пропуска | Оставлены × и один «Пропустить подсказки»; нижнюю ссылку «Пропустить» убрали. |
+| 5 | Печать: active ≠ макет | Корневая причина: `:hover` перебивал `.is-active`. Active = cream+тёмный текст (и на `:hover`); inactive читаемые; `aria-pressed`; optimistic `layoutOverride`. |
+| 6 | Создание: 3 колонки в topbar | На `<960` — колонка: «← К списку», текст, подсказка. |
 
 ---
 
-## Кадры (настоящее приложение)
+## Кадры after (настоящее приложение)
 
 Каталог: `/opt/cursor/artifacts/mob-fix/` (+ копии в `/opt/cursor/artifacts/`).  
-Before — из ветки аудита `cursor/mob-audit-c9ac` (`docs/audit/frames/`).
-
-### Before (аудит)
-
-| Кадр | md5 |
-|------|-----|
-| `before/01-chars-list-390.png` | `94c03d70b30638e860e3e2500590dc61` |
-| `before/01-chars-list-onboarding-390.png` | `94c03d70b30638e860e3e2500590dc61` |
-| `before/02-sheet-header-collapsed-390.png` | `fbd6ad13fc1add0b8aa8cbfca2763071` |
-| `before/06-scene-combat-390.png` | `2dd8906865768cc29fb2e8a6ea28297e` |
-| `before/86-transfer-dialog-390.png` | `6b1c6baeadc24506c54ad840916e1305` |
-| `before/117-transfer-footer-760.png` | `9d1c77b7d40ac522904a30decc790ab4` |
-| `before/c13f-07-after-bg-390.png` | `1e6a45e03292abfbe67ca89b16d8f907` |
-| `before/c13f-03-race-dialog-390.png` | `5ead024ed3c7aec9ec5e41f709fdc44e` |
-| `before/c14-08-blank-toolbar-390.png` | `4423bc50976e867c48c2f56919d1ed60` |
-| `before/c14-02-classic-2014-1440.png` | `fd3e41de0182339f8e67dadea2b56d4b` |
-
-### After (MOB-FIX)
+Все md5 уникальны (26 кадров).
 
 | Кадр | md5 | Зачем |
 |------|-----|--------|
-| `after-01-chars-welcome-390.png` | `570f1fb69a87ec7bdd26425ebe23ce22` | × + «Пропустить» |
-| `after-01-chars-list-390.png` | `618c85dc5448c87374f571231fd983bf` | уплотнённый тулбар |
-| `after-02-sheet-header-collapsed-390.png` | `3e56b53aefcf778c7137fc17495782c7` | имя целиком |
-| `after-06-scene-combat-390.png` | `3e56b53aefcf778c7137fc17495782c7` | бой 390 |
-| `after-86-transfer-dialog-390.png` | `891db7df4afee0ef684020e2b2a762f2` | валюты в ряд |
-| `after-117-transfer-footer-760.png` | `bf2b096a44778569cdeb655f002182fc` | футер на 760 |
-| `after-c13f-toast-bg-390.png` | `c122c51462f90c2f9cc6e5d5bf556821` | тост над CTA предыстории |
-| `after-c13f-race-dialog-gender-390.png` | `7269f88cc12a1ad3c709b39fe936fd13` | пол у генератора + языки |
-| `after-c13-create-start-390.png` | `4b98619678b86301ea4fba69ece84d67` | фильтры источников свёрнуты |
-| `after-c14-classic-2014-390.png` | `1a5415b13303a4f1b196a59d54182b67` | печать 2014 |
-| `after-c14-classic-2024-390.png` | `d4f37790dbae3b59c05aa046a24343dd` | печать 2024 |
-| `after-c14-blank-layout2024-390.png` | `a9fb645b606e83641f0eb01325fb6182` | `?layout=2024` |
-| `after-c14-classic-2014-1440.png` | `a80c91147ae3d61fc6cd00d5471e29e8` | 2014 на 1440 |
-| `after-c14-classic-2024-1440.png` | `0997e5c6d683cbcb052399dab4ed3694` | 2024 на 1440 |
-| `after-c14-blank-2024-1440.png` | `2f8bbf309b3e0b650ac9c28e95206032` | blank 2024 1440 |
-| `after-desk-combat-1440.png` | `cbdc4c403e5f6ad5fa57615a9f6716c7` | контроль десктопа |
-| `after-desk-header-1440.png` | `ea66f938d571ce659ce2c57e4677eede` | шапка десктопа без сдвигов |
+| `after-01-chars-welcome-390.png` | `19d0442c52797b9814d75a9a51e6e3aa` | × + «Пропустить подсказки» |
+| `after-01-chars-list-390.png` | `41f0f57861c935c85e60c28e44b9a1ce` | список после закрытия |
+| `after-02-sheet-header-collapsed-390.png` | `2c87af44ed30a76816e630484d123e79` | свёрнутая шапка, Исслед. |
+| `after-06-scene-combat-390.png` | `8ca3b8162a14e5e6732cab5050e959f0` | сцена Бой + концентрация |
+| `after-toast-sheet-390.png` | `bc7213dd72bc2d6ce5d9e74a80a7fdfc` | тост броска на листе |
+| `after-86-transfer-dialog-390.png` | `d362f650162cf554396ff67a6d0def28` | валюты / передать |
+| `after-c13-create-start-390.png` | `8d4bb33c95db6cf794a393de7152d797` | старт, источники свёрнуты |
+| `after-c13-create-filters-collapsed-390.png` | `524f08d22166e01defa3528ea79ce50a` | после раскрытия источников (chips) |
+| `after-c13f-race-dialog-390.png` | `97986cf6bcfdd3b67c6bb6663cba91e7` | настройка расы |
+| `after-c13f-race-dialog-gender-390.png` | `acd3b5b529921e32336000ecf398d7d9` | пол / имя |
+| `after-c13f-toast-bg-390.png` | `37bdf700fa48230943df6b59e198ba16` | тост над футером создания |
+| `after-c14-classic-toolbar-390.png` | `4a4e4f191aa7888a66fe0de1784cb1f9` | тулбар печати 2014 |
+| `after-c14-classic-2014-390.png` | `9f17c644f793a4ce1f440a8aef1dd751` | макет 2014 экран |
+| `after-c14-classic-2014-print-390.png` | `d1217b0383e613dcf2ce01546c6147c3` | 2014 `media: print` |
+| `after-c14-classic-2024-390.png` | `249e11ec49214341cab31951773a9165` | макет 2024 экран |
+| `after-c14-classic-2024-print-390.png` | `24b67d28bbdb6c054c67230e5554eea8` | 2024 `media: print` |
+| `after-c14-blank-layout2024-390.png` | `85ecf5ffc62653269e21ef39a87594fb` | blank `?layout=2024` |
+| `after-toast-over-nav-760.png` | `c433aeceac6cd9f9164a3a9fe47f1950` | тост над nav 760 |
+| `after-117-transfer-footer-760.png` | `816982431215f612d2e31ce2554b1cc6` | футер диалога 760 |
+| `after-desk-header-1440.png` | `cbdc4c403e5f6ad5fa57615a9f6716c7` | десктоп шапка |
+| `after-desk-combat-1440.png` | `141b50d8ea8313d5f7d4404d323a12c3` | десктоп бой |
+| `after-c14-classic-2014-1440.png` | `23919e6860b021ab719d973d2291c052` | 2014 на 1440 |
+| `after-c14-classic-2014-print-1440.png` | `337a2c44fcf7e9f94d01d3fdebe543be` | 2014 print 1440 |
+| `after-c14-classic-2024-1440.png` | `c81edf2010d78f668f59274fe8e62f27` | 2024 на 1440 (active=cream) |
+| `after-c14-classic-2024-print-1440.png` | `e41d3d45e2b4dace757c7919a8e28bfc` | 2024 print 1440 |
+| `after-c14-blank-2024-1440.png` | `2a81273c4ebfee60435d3795e14c2b1a` | blank 2024 1440 |
+
+Скрипт пересъёмки: `frontend/scripts/mob-fix-capture.mjs`.
 
 ---
 
 ## Проверки
 
 - `npm run build` (frontend) — ок  
-- `npx tsx src/pages/classicSheetFix01.selfcheck.ts` — ок (ожидает 2014+2024)  
-- Десктопный лист на 1440 снят отдельно; правки CSS ограничены `@media (max-width: 959px)` / мобильными селекторами, кроме печати и общих атомов тоста/диалога/chevron.
+- `npx tsx src/pages/classicSheetFix01.selfcheck.ts` — ок  
+- Геометрия ScrollRow (Playwright): `scrollerRight` < `chevLeft` (~12px зазор), шеврон 20×20, shell pad 44px.
 
 ## Не в scope
 
-- Каст / цель атаки / строка хода / Напарники / Способности / Общение / Исследование — без переделки.  
+- Каст / цель атаки / строка хода / Напарники / Способности / Общение — без переделки.  
 - Создание редакции D&D 2024 — не возвращали.

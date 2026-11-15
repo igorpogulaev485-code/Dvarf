@@ -41,12 +41,15 @@ export function ClassicSheetPage() {
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<'loading' | 'saving' | 'ready'>('loading')
   const [editing, setEditing] = useState(false)
+  /** Optimistic layout so switcher is-active matches the sheet before save round-trip. */
+  const [layoutOverride, setLayoutOverride] = useState<ClassicSheetLayout | null>(null)
   const saveTimer = useRef<number | null>(null)
   const versionRef = useRef(0)
   const latestRef = useRef<CharacterDetail | null>(null)
 
   useEffect(() => {
     let active = true
+    setLayoutOverride(null)
     getCharacter(characterId)
       .then((item) => {
         if (!active) return
@@ -80,6 +83,7 @@ export function ClassicSheetPage() {
       versionRef.current = updated.sheet_version
       latestRef.current = updated
       setCharacter(updated)
+      setLayoutOverride(null)
       setStatus('ready')
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить настройки печати')
@@ -110,9 +114,8 @@ export function ClassicSheetPage() {
     [persistPrintSettings],
   )
 
-  const sheetLayout: ClassicSheetLayout = character
-    ? readClassicSheetLayout(character)
-    : '2014'
+  const sheetLayout: ClassicSheetLayout =
+    layoutOverride ?? (character ? readClassicSheetLayout(character) : '2014')
   const pencilBlanks = character ? readClassicPencilBlanks(character) : false
   const extraNotePages = character ? readClassicExtraNotePages(character) : 0
   const textStyle = character ? readClassicTextStyle(character) : null
@@ -122,6 +125,7 @@ export function ClassicSheetPage() {
     (layout: ClassicSheetLayout) => {
       const current = latestRef.current
       if (!current) return
+      setLayoutOverride(layout)
       handlePrintSettings(setClassicSheetLayout(current, layout))
     },
     [handlePrintSettings],
@@ -168,6 +172,7 @@ export function ClassicSheetPage() {
                 key={year}
                 type="button"
                 className={sheetLayout === year ? 'is-active' : undefined}
+                aria-pressed={sheetLayout === year}
                 disabled={!character}
                 onClick={() => handleLayoutChange(year)}
               >

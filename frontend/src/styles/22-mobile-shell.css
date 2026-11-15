@@ -65,9 +65,10 @@
   display: flex;
   flex-wrap: nowrap;
   gap: 4px;
-  /* HOT-01: rim 4–6px; kit ScrollRow end-spacer grows for fade clear at max */
-  padding: 4px 6px;
-  scroll-padding-inline: 52px;
+  /* HOT-01: rim only — horizontal gutter lives on .ui-scroll-row shell (kit) */
+  padding-block: 4px;
+  padding-inline: 4px;
+  scroll-padding-inline: 12px;
   scroll-snap-type: none;
   overflow-x: auto;
   overflow-y: hidden;
@@ -138,7 +139,40 @@
 .play-desk--mobile .play-desk__hot-wrap .play-desk__hot-item--wide .play-desk__hot-label {
   flex: 0 1 auto;
   min-width: 0;
-  max-width: 16rem;
+  max-width: none;
+}
+
+/* Concentration: kicker + full spell name on two lines (e.g. «Щит веры») */
+.play-desk--mobile .play-desk__hot-label--stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  white-space: normal;
+  max-width: none;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.play-desk--mobile .play-desk__hot-label-kicker {
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--desk-muted, var(--muted));
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.play-desk--mobile .play-desk__hot-label--stack strong {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  overflow-wrap: break-word;
 }
 .play-desk--mobile .play-desk__hot-res-name {
   font-size: 0.78rem;

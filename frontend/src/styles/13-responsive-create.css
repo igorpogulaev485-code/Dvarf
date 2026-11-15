@@ -394,6 +394,19 @@
   margin-bottom: 12px;
 }
 
+/* Phone: was three skinny columns (← К списку / edition / hint) — stack one column */
+@media (max-width: 959px) {
+  .create-pipeline__topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .create-pipeline__topbar .onboarding-edition-hint {
+    max-width: none;
+  }
+}
+
 .create-pipeline {
   display: flex;
   flex-direction: column;

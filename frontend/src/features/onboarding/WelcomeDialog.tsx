@@ -47,16 +47,6 @@ export function WelcomeDialog({ open, onChoose, onDismiss }: WelcomeDialogProps)
             {WELCOME.skip}
           </button>
         </div>
-        <button
-          type="button"
-          className="onboarding-welcome__skip-link"
-          onClick={() => {
-            if (onDismiss) onDismiss()
-            else onChoose('skip')
-          }}
-        >
-          {WELCOME.skipShort}
-        </button>
       </Stack>
     </Dialog>
   )

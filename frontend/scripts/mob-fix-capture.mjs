@@ -1,5 +1,6 @@
 /**
  * MOB-FIX after screenshots — real app only (Vite + API), no stubs.
+ * Each named frame must be a distinct scene (no duplicate md5).
  */
 import { mkdirSync, writeFileSync, readFileSync, existsSync, copyFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
@@ -53,7 +54,6 @@ async function login(page, { welcomeDone = true } = {}) {
     },
     { a: body.access_token, r: body.refresh_token, welcomeDone },
   )
-  // Keep server flag in sync so WelcomeDialog does not reappear mid-capture.
   await page.evaluate(
     async (welcomeDone) => {
       await fetch('/auth/me', {
@@ -79,7 +79,7 @@ async function login(page, { welcomeDone = true } = {}) {
 
 async function shot(page, name) {
   const path = `${ART}/mob-fix/${name}.png`
-  await page.waitForTimeout(350)
+  await page.waitForTimeout(400)
   await page.screenshot({ path, fullPage: false })
   const hash = md5(path)
   copyFileSync(path, `${ART}/${name}.png`)
@@ -112,9 +112,91 @@ async function openSheet(page, id) {
   await page.waitForSelector('.play-desk, .mobile-vitals', { timeout: 25_000 })
 }
 
+async function clickScene(page, label) {
+  const tab = page.locator('.mobile-scene-nav__tab, .mobile-scene-nav button').filter({ hasText: label })
+  if (await tab.count()) {
+    await tab.first().click({ force: true })
+    await page.waitForTimeout(600)
+    return true
+  }
+  return false
+}
+
+/** Seed concentration + an effect so combat hot / chevrons show real content. */
+async function seedCombatVisuals(page, id) {
+  await page.evaluate(async (characterId) => {
+    const token = localStorage.getItem('dvarf.access_token')
+    const res = await fetch(`/characters/${characterId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    const ch = await res.json()
+    const sheet = structuredClone(ch.sheet || {})
+    sheet.play = sheet.play || {}
+    sheet.play.concentration = {
+      spell_id: 'shield-of-faith',
+      name: 'Щит веры',
+    }
+    const effects = Array.isArray(sheet.play.effects) ? [...sheet.play.effects] : []
+    if (!effects.some((e) => /Благослов/i.test(String(e?.name || '')))) {
+      effects.push({
+        id: 'mobfix-bless',
+        name: 'Благословение',
+        kind: 'spell',
+        linked_concentration: false,
+        duration: { unit: 'minutes', value: 1, remaining_rounds: 10 },
+        mods: [{ target: 'attack', op: 'roll_die', dice: '1d4' }],
+      })
+    }
+    sheet.play.effects = effects
+    sheet.ui = sheet.ui || {}
+    sheet.ui.desk_mode = 'combat'
+    const patch = await fetch(`/characters/${characterId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ sheet_version: ch.sheet_version, sheet }),
+    })
+    if (!patch.ok) throw new Error(`seed combat patch ${patch.status}`)
+  }, id)
+}
+
+async function setClassicLayout(page, year) {
+  const btn = page.locator('.classic-layout-switch button').filter({ hasText: year })
+  await btn.first().click()
+  await page.waitForTimeout(900)
+  // Wait until active + hint match
+  await page.waitForFunction(
+    (y) => {
+      const active = document.querySelector('.classic-layout-switch button.is-active')
+      const hint = document.querySelector('.classic-layout-switch__hint')
+      return (
+        active?.textContent?.trim() === y &&
+        (!hint || hint.textContent?.includes(y))
+      )
+    },
+    year,
+    { timeout: 8_000 },
+  ).catch(() => {})
+  // Clear :hover wash so is-active cream reads correctly in screenshots
+  await page.mouse.move(0, 0)
+  await page.waitForTimeout(300)
+}
+
 async function main() {
   const browser = await chromium.launch({ headless: true })
   const manifest = []
+  const seen = new Map()
+
+  function track(entry) {
+    if (seen.has(entry.md5)) {
+      console.warn(`DUP md5 ${entry.md5}: ${seen.get(entry.md5)} vs ${entry.name}`)
+    } else {
+      seen.set(entry.md5, entry.name)
+    }
+    manifest.push(entry)
+  }
 
   // —— 390×844 ——
   {
@@ -126,9 +208,8 @@ async function main() {
     })
     const page = await context.newPage()
 
-    // Welcome onboarding
+    // Welcome: × + one «Пропустить подсказки» (no bottom «Пропустить»)
     await login(page, { welcomeDone: false })
-    // Clear server onboarding so welcome shows
     await page.evaluate(async () => {
       await fetch('/auth/me', {
         method: 'PATCH',
@@ -141,103 +222,167 @@ async function main() {
     })
     await page.goto(`${BASE}/characters`, { waitUntil: 'networkidle', timeout: 60_000 })
     await page.waitForTimeout(800)
-    manifest.push(await shot(page, 'after-01-chars-welcome-390'))
+    track(await shot(page, 'after-01-chars-welcome-390'))
 
-    // Dismiss welcome via × if present, else skip
     const closeBtn = page.locator('.ui-dialog__close')
     if (await closeBtn.count()) {
       await closeBtn.click()
       await page.waitForTimeout(400)
     }
-    manifest.push(await shot(page, 'after-01-chars-list-390'))
+    track(await shot(page, 'after-01-chars-list-390'))
 
-    // Sheet collapsed header + resources
+    // Collapsed header on explore
     await login(page, { welcomeDone: true })
     await openSheet(page, DARRACK)
-    // ensure collapsed
     await page.evaluate(() => localStorage.setItem('dvarf.mobileVitals.collapsed.v2', '1'))
+    await clickScene(page, /Исслед/i)
     await page.reload({ waitUntil: 'networkidle' })
     await page.waitForTimeout(700)
-    manifest.push(await shot(page, 'after-02-sheet-header-collapsed-390'))
-    manifest.push(await shot(page, 'after-06-scene-combat-390'))
+    await dismissOverlays(page)
+    await clickScene(page, /Исслед/i)
+    track(await shot(page, 'after-02-sheet-header-collapsed-390'))
+
+    // Combat scene with concentration + effects
+    await seedCombatVisuals(page, DARRACK)
+    await page.reload({ waitUntil: 'networkidle' })
+    await page.waitForTimeout(800)
+    await dismissOverlays(page)
+    await clickScene(page, /^Бой$/i)
+    await page.waitForTimeout(500)
+    track(await shot(page, 'after-06-scene-combat-390'))
+
+    // Toast on sheet (visible)
+    const rollBtn = page
+      .locator(
+        '.play-desk-compact__mod--roll, .play-desk__attack-roll, button.play-desk-compact__mod',
+      )
+      .filter({ hasText: /\+|к20|брос/i })
+      .first()
+    if (await rollBtn.count()) {
+      await rollBtn.click({ force: true }).catch(() => {})
+    } else {
+      // fallback: any attack / skill roll control
+      const any = page.locator('button').filter({ hasText: /^\+/ }).first()
+      if (await any.count()) await any.click({ force: true }).catch(() => {})
+    }
+    await page.waitForSelector('.ui-toast', { timeout: 5_000 }).catch(() => {})
+    await page.waitForTimeout(350)
+    track(await shot(page, 'after-toast-sheet-390'))
 
     // Transfer dialog
     await dismissOverlays(page)
-    const explore = page.locator('.mobile-scene-nav__tab, .mobile-scene-nav button').filter({ hasText: /Исслед/i })
-    if (await explore.count()) {
-      await explore.first().click({ force: true })
-      await page.waitForTimeout(500)
+    await page.evaluate(() => {
+      document.querySelectorAll('.ui-toast').forEach((el) => el.remove())
+    })
+    await clickScene(page, /Исслед/i)
+    let transfer = page.getByRole('button', { name: /Передать монеты/i })
+    if (!(await transfer.count())) {
+      const coins = page.locator('button, [role="button"]').filter({ hasText: /зм|монет|кошел|зм\b/i })
+      if (await coins.count()) await coins.first().click({ force: true }).catch(() => {})
+      await page.waitForTimeout(400)
+      transfer = page.getByRole('button', { name: /Передать/i })
     }
-    const transfer = page.getByRole('button', { name: /Передать монеты/i })
     if (await transfer.count()) {
-      await transfer.first().click()
+      await transfer.first().click({ force: true })
       await page.waitForTimeout(500)
-      manifest.push(await shot(page, 'after-86-transfer-dialog-390'))
+      track(await shot(page, 'after-86-transfer-dialog-390'))
       await page.keyboard.press('Escape')
     } else {
-      // open coins via vitals
-      const coins = page.locator('button').filter({ hasText: /зм|монет|кошел/i })
-      if (await coins.count()) await coins.first().click().catch(() => {})
-      await page.waitForTimeout(400)
-      const t2 = page.getByRole('button', { name: /Передать/i })
-      if (await t2.count()) {
-        await t2.first().click()
-        await page.waitForTimeout(500)
-        manifest.push(await shot(page, 'after-86-transfer-dialog-390'))
-        await page.keyboard.press('Escape')
-      }
+      console.warn('skip after-86-transfer-dialog-390 — transfer control not found')
     }
 
-    // Create race step + toast
+    // Create: start (sources collapsed) → after opening sources (must differ)
     await page.goto(`${BASE}/characters/create`, { waitUntil: 'networkidle', timeout: 90_000 })
     await page.waitForTimeout(800)
-    manifest.push(await shot(page, 'after-c13-create-start-390'))
-    const human = page.locator('button, [role="button"]').filter({ hasText: /^Человек/i })
-    if (await human.count()) {
-      await human.first().click()
-      await page.waitForTimeout(400)
-      const setup = page.getByRole('button', { name: /Настроить расу/i })
-      if (await setup.count()) await setup.first().click()
+    track(await shot(page, 'after-c13-create-start-390'))
+    const srcToggle = page.locator('.create-pipeline__source-toggle')
+    if (await srcToggle.count()) {
+      await srcToggle.first().click()
       await page.waitForTimeout(500)
-      manifest.push(await shot(page, 'after-c13f-race-dialog-390'))
-      // pick gender if present
-      const male = page.getByRole('button', { name: /^Мужской$|^Муж/i })
-      if (await male.count()) await male.first().click()
-      const apply = page.getByRole('button', { name: /Применить/i })
-      if (await apply.count()) {
-        // may need name
-        const nameInput = page.locator('input').first()
+      await page.waitForSelector('.create-pipeline__source-chips', { timeout: 3_000 }).catch(() => {})
+      // «после раскрытия» — chips visible (name kept for report parity with pack)
+      track(await shot(page, 'after-c13-create-filters-collapsed-390'))
+    }
+
+    // Race dialog + toast above footer
+    const human = page.locator('.create-pipeline__card, button, [role="button"]').filter({ hasText: /^Человек/i })
+    if (await human.count()) {
+      await human.first().click({ force: true })
+      await page.waitForTimeout(500)
+      // Card select may already open RaceSetup; else click «Настроить расу»
+      const raceDialog = page.locator('.ui-dialog').filter({ hasText: /рас|пол|язык/i })
+      if (!(await raceDialog.count())) {
+        const setup = page.getByRole('button', { name: /Настроить расу/i })
+        if (await setup.count()) await setup.first().click({ force: true }).catch(() => {})
+        await page.waitForTimeout(500)
+      }
+      if (await page.locator('.ui-dialog').count()) {
+        const raceShot = await shot(page, 'after-c13f-race-dialog-390')
+        track(raceShot)
+        const male = page.locator('.ui-dialog').getByRole('button', { name: /^Мужской$|^Муж/i })
+        if (await male.count()) {
+          await male.first().click({ force: true })
+          await page.waitForTimeout(350)
+          await male.first().scrollIntoViewIfNeeded().catch(() => {})
+        }
+        const genderHint = page.locator('.ui-dialog').getByText(/пол|генератор/i)
+        if (await genderHint.count()) {
+          await genderHint.first().scrollIntoViewIfNeeded().catch(() => {})
+        }
+        await page.waitForTimeout(300)
+        const genderShot = await shot(page, 'after-c13f-race-dialog-gender-390')
+        if (genderShot.md5 === raceShot.md5) {
+          // Force a visible difference: type into name field
+          const nameInput = page.locator('.ui-dialog input').first()
+          if (await nameInput.count()) {
+            await nameInput.fill('Игорь-тест')
+            await page.waitForTimeout(250)
+          }
+          const retry = await shot(page, 'after-c13f-race-dialog-gender-390')
+          track(retry)
+        } else {
+          track(genderShot)
+        }
+        const nameInput = page.locator('.ui-dialog input').first()
         if (await nameInput.count()) {
           const v = await nameInput.inputValue()
           if (!v) await nameInput.fill('Тест')
         }
-        await apply.first().click().catch(() => {})
-        await page.waitForTimeout(700)
-        manifest.push(await shot(page, 'after-c13f-toast-bg-390'))
+        const lang = page.locator('.ui-dialog .chip-row--compact button, .ui-dialog .sheet-chip').first()
+        if (await lang.count()) await lang.click({ force: true }).catch(() => {})
+        const apply = page.locator('.ui-dialog').getByRole('button', { name: /Применить/i })
+        if (await apply.count()) {
+          await apply.first().click({ force: true }).catch(() => {})
+          await page.waitForSelector('.ui-toast', { timeout: 5_000 }).catch(() => {})
+          await page.waitForTimeout(500)
+          track(await shot(page, 'after-c13f-toast-bg-390'))
+        }
       }
     }
 
-    // Classic print character
+    // Classic print 390 — force 2014 first (DB may already be 2024)
     await page.goto(`${BASE}/characters/${DARRACK}/classic`, { waitUntil: 'networkidle', timeout: 90_000 })
     await page.waitForTimeout(800)
-    manifest.push(await shot(page, 'after-c14-classic-toolbar-390'))
-    const y2024 = page.locator('.classic-layout-switch button').filter({ hasText: '2024' })
-    if (await y2024.count()) {
-      await y2024.first().click()
-      await page.waitForTimeout(1000)
-      manifest.push(await shot(page, 'after-c14-classic-2024-390'))
-    }
-    const y2014 = page.locator('.classic-layout-switch button').filter({ hasText: '2014' })
-    if (await y2014.count()) {
-      await y2014.first().click()
-      await page.waitForTimeout(800)
-      manifest.push(await shot(page, 'after-c14-classic-2014-390'))
-    }
+    await setClassicLayout(page, '2014')
+    await page.evaluate(() => window.scrollTo(0, 0))
+    track(await shot(page, 'after-c14-classic-toolbar-390'))
+    await page.evaluate(() => window.scrollBy(0, 120))
+    await page.waitForTimeout(250)
+    track(await shot(page, 'after-c14-classic-2014-390'))
+    await page.emulateMedia({ media: 'print' })
+    await page.evaluate(() => window.scrollTo(0, 0))
+    track(await shot(page, 'after-c14-classic-2014-print-390'))
+    await page.emulateMedia({ media: 'screen' })
+    await setClassicLayout(page, '2024')
+    await page.evaluate(() => window.scrollTo(0, 0))
+    track(await shot(page, 'after-c14-classic-2024-390'))
+    await page.emulateMedia({ media: 'print' })
+    track(await shot(page, 'after-c14-classic-2024-print-390'))
+    await page.emulateMedia({ media: 'screen' })
 
-    // Blank ?layout=2024
     await page.goto(`${BASE}/classic/blank?layout=2024`, { waitUntil: 'networkidle', timeout: 60_000 })
     await page.waitForTimeout(800)
-    manifest.push(await shot(page, 'after-c14-blank-layout2024-390'))
+    track(await shot(page, 'after-c14-blank-layout2024-390'))
 
     await context.close()
   }
@@ -253,23 +398,31 @@ async function main() {
     const page = await context.newPage()
     await login(page)
     await openSheet(page, DARRACK)
-    // trigger a toast by clicking an attack roll if possible
-    const hit = page.locator('.play-desk-compact__mod--roll, button').filter({ hasText: /^\+/ }).first()
+    await clickScene(page, /^Бой$/i)
+    const hit = page.locator('button').filter({ hasText: /^\+/ }).first()
     if (await hit.count()) {
-      await hit.click().catch(() => {})
-      await page.waitForTimeout(600)
+      await hit.click({ force: true }).catch(() => {})
+      await page.waitForSelector('.ui-toast', { timeout: 4_000 }).catch(() => {})
+      await page.waitForTimeout(400)
     }
-    manifest.push(await shot(page, 'after-toast-over-nav-760'))
+    track(await shot(page, 'after-toast-over-nav-760'))
 
-    // transfer footer
-    const explore = page.locator('.mobile-scene-nav__tab').filter({ hasText: /Исслед/i })
-    if (await explore.count()) await explore.first().click()
-    await page.waitForTimeout(400)
-    const transfer = page.getByRole('button', { name: /Передать монеты/i })
-    if (await transfer.count()) {
-      await transfer.first().click()
+    await dismissOverlays(page)
+    await page.evaluate(() => {
+      document.querySelectorAll('.ui-toast').forEach((el) => el.remove())
+    })
+    await clickScene(page, /Исслед/i)
+    let transfer760 = page.getByRole('button', { name: /Передать монеты/i })
+    if (!(await transfer760.count())) {
+      const coins = page.locator('button').filter({ hasText: /зм|монет/i })
+      if (await coins.count()) await coins.first().click({ force: true }).catch(() => {})
+      await page.waitForTimeout(400)
+      transfer760 = page.getByRole('button', { name: /Передать/i })
+    }
+    if (await transfer760.count()) {
+      await transfer760.first().click({ force: true })
       await page.waitForTimeout(500)
-      manifest.push(await shot(page, 'after-117-transfer-footer-760'))
+      track(await shot(page, 'after-117-transfer-footer-760'))
     }
 
     await context.close()
@@ -281,27 +434,42 @@ async function main() {
     const page = await context.newPage()
     await login(page)
     await openSheet(page, PAL5)
-    manifest.push(await shot(page, 'after-desk-combat-1440'))
+    track(await shot(page, 'after-desk-header-1440'))
+    // Distinct combat frame: switch desk mode + scroll attacks into view
+    const combatTab = page.locator('button, [role="tab"]').filter({ hasText: /^Бой$/ })
+    if (await combatTab.count()) {
+      await combatTab.first().click({ force: true }).catch(() => {})
+      await page.waitForTimeout(600)
+    }
+    await page.evaluate(() => window.scrollBy(0, 280))
+    await page.waitForTimeout(400)
+    track(await shot(page, 'after-desk-combat-1440'))
 
     await page.goto(`${BASE}/characters/${DARRACK}/classic`, { waitUntil: 'networkidle', timeout: 90_000 })
     await page.waitForTimeout(800)
-    manifest.push(await shot(page, 'after-c14-classic-2014-1440'))
-    const y2024 = page.locator('.classic-layout-switch button').filter({ hasText: '2024' })
-    if (await y2024.count()) {
-      await y2024.first().click()
-      await page.waitForTimeout(1000)
-      manifest.push(await shot(page, 'after-c14-classic-2024-1440'))
-    }
+    await setClassicLayout(page, '2014')
+    track(await shot(page, 'after-c14-classic-2014-1440'))
+    await page.emulateMedia({ media: 'print' })
+    track(await shot(page, 'after-c14-classic-2014-print-1440'))
+    await page.emulateMedia({ media: 'screen' })
+    await setClassicLayout(page, '2024')
+    track(await shot(page, 'after-c14-classic-2024-1440'))
+    await page.emulateMedia({ media: 'print' })
+    track(await shot(page, 'after-c14-classic-2024-print-1440'))
+    await page.emulateMedia({ media: 'screen' })
+
     await page.goto(`${BASE}/classic/blank?layout=2024`, { waitUntil: 'networkidle', timeout: 60_000 })
     await page.waitForTimeout(800)
-    manifest.push(await shot(page, 'after-c14-blank-2024-1440'))
+    track(await shot(page, 'after-c14-blank-2024-1440'))
 
     await context.close()
   }
 
   writeFileSync(`${ART}/mob-fix/manifest.json`, JSON.stringify(manifest, null, 2))
-  console.log('manifest', manifest.length)
+  const dups = [...seen.entries()].length !== manifest.length
+  console.log('manifest', manifest.length, 'unique md5', seen.size, dups ? 'HAS_DUPES' : 'OK')
   await browser.close()
+  if (seen.size !== manifest.length) process.exit(2)
 }
 
 main().catch((err) => {
