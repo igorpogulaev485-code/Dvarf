@@ -9,6 +9,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.models.character import Character
 from app.models.setting_artifact import SettingArtifact
 from app.models.setting_creature import SettingCreature
 from app.models.setting_page import SettingPage
@@ -19,6 +20,7 @@ from app.models.world_import import (
     WorldSourceKey,
 )
 from app.schemas.world_import import WorldImportDiffEntryOut, WorldImportDiffOut
+from app.services.world_import_characters import PARTY_CHARACTER_TYPES
 from app.services.world_import_links import OFFICE_LINK_LABEL
 from app.services.world_import_snapshots import (
     merge_last_applied,
@@ -32,6 +34,7 @@ CREATURE_ITEM_TYPES = frozenset({"setting_creature", "creature", "monster"})
 ARTIFACT_ITEM_TYPES = frozenset({"setting_item", "item", "artifact", "item_lore"})
 ARTIFACT_SET_ITEM_TYPES = frozenset({"artifact_set", "setting_artifact_set"})
 AI_SUGGESTION_ITEM_TYPES = frozenset({"ai_suggestion"})
+CHARACTER_ITEM_TYPES = PARTY_CHARACTER_TYPES
 
 
 def _title_of(item: WorldImportDraftItem) -> str:
@@ -181,15 +184,39 @@ def build_diff(db: Session, job: WorldImportJob) -> WorldImportDiffOut:
         ).all()
         if a.import_key
     }
+    characters_by_key: dict[str, Character] = {}
+    for row in db.scalars(
+        select(Character).where(
+            Character.imported_setting_id == job.setting_id,
+            Character.deleted_at.is_(None),
+            Character.import_key.is_not(None),
+        )
+    ).all():
+        # FakeDB соседних тестов может вернуть чужой тип — берём только Character.
+        if isinstance(row, Character) and row.import_key:
+            characters_by_key[row.import_key] = row
+    # Также через WorldSourceKey.character_id
+    for sk in source_keys.values():
+        if sk.character_id and sk.source_slug:
+            ch = db.get(Character, sk.character_id)
+            if (
+                isinstance(ch, Character)
+                and ch.deleted_at is None
+                and ch.import_key
+            ):
+                characters_by_key.setdefault(ch.import_key, ch)
+
     last_applied = merge_last_applied(db, job.setting_id)
     last_pages: dict[str, dict[str, Any]] = last_applied["pages"]
     last_creatures: dict[str, dict[str, Any]] = last_applied["creatures"]
     last_artifacts: dict[str, dict[str, Any]] = last_applied["artifacts"]
+    last_characters: dict[str, dict[str, Any]] = last_applied.get("characters") or {}
     last_offices: dict[str, list[dict[str, Any]]] = last_applied["offices"]
 
     draft_keys = {it.source_key for it in items}
     draft_creature_keys = set()
     draft_artifact_keys = set()
+    draft_character_keys = set()
     entries: list[WorldImportDiffEntryOut] = []
 
     for item in items:
@@ -316,10 +343,53 @@ def build_diff(db: Session, job: WorldImportJob) -> WorldImportDiffOut:
         elif item.item_type == "session_journal":
             status = "new"
             message = "Отчёт сессии попадёт в журнал кампании, не на живой стол"
-        elif item.item_type == "pending_character":
-            status = "ai_suggestion"
-            message = "Персонаж отложен до W-API-08"
-            hint = str(prop.get("hint") or "")
+        elif item.item_type in CHARACTER_ITEM_TYPES:
+            import_key = str(prop.get("import_key") or prop.get("slug") or "").strip()
+            if import_key:
+                draft_character_keys.add(import_key)
+            existing = characters_by_key.get(import_key) if import_key else None
+            if existing is None:
+                sk = source_keys.get(item.source_key)
+                if sk and sk.character_id:
+                    existing = db.get(Character, sk.character_id)
+                    if existing is not None and existing.deleted_at is not None:
+                        existing = None
+            empty = prop.get("empty_fields") or []
+            deferred = prop.get("deferred_homebrew") or []
+            if existing is None:
+                status = "new"
+                message = f"Персонаж «{title}» появится у мастера после confirm"
+                if empty:
+                    hint = "Пустые поля листа: " + ", ".join(str(x) for x in empty[:8])
+                if deferred:
+                    hint = (hint + "; " if hint else "") + "отложено до хоумбрю: " + "; ".join(
+                        str(x) for x in deferred[:4]
+                    )
+            else:
+                last = last_characters.get(import_key) if import_key else None
+                draft_level = int(prop.get("level") or 1)
+                if last is None:
+                    status = "update"
+                    message = f"Персонаж «{existing.name}» будет обновлён по ключу {import_key}"
+                else:
+                    source_changed = title != str(last.get("name") or "") or draft_level != int(
+                        last.get("level") or 0
+                    ) or str(prop.get("race_name") or "") != str(last.get("race_name") or "") or str(
+                        prop.get("class_name") or ""
+                    ) != str(last.get("class_name") or "")
+                    local_changed = existing.name != str(last.get("name") or "") or int(
+                        existing.level or 0
+                    ) != int(last.get("level") or 0)
+                    if not source_changed:
+                        status = "unchanged"
+                        message = "Источник персонажа не менялся"
+                    elif local_changed:
+                        status = "conflict"
+                        message = "Конфликт персонажа: правили и источник, и лист"
+                        hint = "Нужно решение: «взять наше» или «взять из источника»"
+                    else:
+                        status = "update"
+                        message = f"Персонаж «{existing.name}» будет обновлён по ключу {import_key}"
         elif item.item_type in PAGE_ITEM_TYPES:
             if prop.get("ai_extracted"):
                 status = "ai_suggestion"
@@ -443,6 +513,30 @@ def build_diff(db: Session, job: WorldImportJob) -> WorldImportDiffOut:
                             hint="Спросите мастера, что делать",
                         )
                     )
+        if sk.character_id:
+            character = next(
+                (c for c in characters_by_key.values() if c.id == sk.character_id),
+                None,
+            )
+            if character is None:
+                character = db.get(Character, sk.character_id)
+            if (
+                character is not None
+                and character.deleted_at is None
+                and (character.import_key or "") not in draft_character_keys
+            ):
+                entries.append(
+                    WorldImportDiffEntryOut(
+                        draft_item_id=None,
+                        source_key=sk.source_path,
+                        item_type="party_character",
+                        status="missing_in_source",
+                        title=character.name,
+                        page_id=None,
+                        message="Персонаж есть после импорта, нет в источнике — не удаляем сами",
+                        hint="Спросите мастера, что делать с листом",
+                    )
+                )
 
     # Существа/предметы по import_key без source_path в draft.
     for key, creature in creatures_by_key.items():

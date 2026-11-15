@@ -278,7 +278,7 @@ def test_classify_who_paths():
         == "book_chapter"
     )
     assert classify_vault_path("campaign/sessions/01-lunnyy-most-start.md") == "session_journal"
-    assert classify_vault_path("campaign/party/characters/kavil.md") == "pending_character"
+    assert classify_vault_path("campaign/party/characters/kavil.md") == "party_character"
     assert classify_vault_path("rules/encounters/01-dragonborn-vanguard.md") == "combat"
     assert classify_vault_path("campaign/plot/arcs.md") == "note"
     assert classify_vault_path("world/locations/README.md") is None
@@ -315,10 +315,10 @@ def test_fixture_vault_types_and_keys():
 
     assert by_key["campaign/sessions/01-lunnyy-most-start.md"].item_type == "session_journal"
     assert by_key["rules/encounters/01-dragonborn-vanguard.md"].item_type == "combat"
-    assert by_key["campaign/party/characters/kavil.md"].item_type == "pending_character"
+    assert by_key["campaign/party/characters/kavil.md"].item_type == "party_character"
     assert (
         by_key["campaign/party/characters/kavil.md"].proposal["parse_status"]
-        == "pending_character"
+        == "party_character"
     )
 
     # Книга попала в черновик как группа + глава.

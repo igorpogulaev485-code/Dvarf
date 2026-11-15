@@ -59,6 +59,21 @@ class Character(Base):
     sheet: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
     sheet_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     is_draft: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # W-API-08: идемпотентный ключ импорта внутри мира (slug вроде kavil).
+    import_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    imported_setting_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("settings.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    # Кому отдать лист позже (мастер владеет user_id; игрок — assigned_user_id).
+    assigned_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -72,4 +87,8 @@ class Character(Base):
     )
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    user = relationship("User", backref="characters")
+    user = relationship(
+        "User",
+        foreign_keys=[user_id],
+        backref="characters",
+    )

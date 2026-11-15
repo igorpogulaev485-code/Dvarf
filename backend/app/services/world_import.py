@@ -1,7 +1,8 @@
-"""W-API-01/02/03/05/06: задания импорта, разбор, извлечение, validate/upsert."""
+"""W-API-01/02/03/05/06/08: задания импорта, разбор, извлечение, validate/upsert."""
 
 from __future__ import annotations
 
+import base64
 from collections import Counter
 from uuid import UUID
 
@@ -31,12 +32,14 @@ from app.schemas.world_import import (
     WorldImportUpsertRequest,
     WorldImportValidateOut,
     WorldImportValidateRequest,
+    WorldVaultFileIn,
     WorldVaultParseRequest,
     WorldVaultParseResultOut,
 )
 from app.services import lobby_roles as roles
 from app.services.media import LOBBY_QUOTA_BYTES, LobbyMediaService
 from app.services.world_import_auth import WorldImportActor, WorldImportAccess
+from app.services.world_import_characters import enrich_party_characters
 from app.services.world_import_extract import enrich_parsed_with_ai
 from app.services.world_import_links import AliasBundle, build_alias_and_link_graph
 from app.services.world_vault_parse import (
@@ -47,6 +50,25 @@ from app.services.world_vault_parse import (
     extract_zip_to_files,
     parse_vault_files,
 )
+
+
+def vault_files_from_payload(files: list[WorldVaultFileIn]) -> list[VaultFile]:
+    """Текст + опциональный content_base64 (PDF) → VaultFile."""
+    out: list[VaultFile] = []
+    for f in files:
+        binary: bytes | None = None
+        if f.content_base64:
+            try:
+                binary = base64.b64decode(f.content_base64, validate=False)
+            except Exception as exc:
+                raise AppError(
+                    "Не удалось прочитать content_base64",
+                    code="bad_encoding",
+                    status_code=400,
+                    data={"path": f.path, "hint": "Передайте корректный base64", "detail": str(exc)},
+                ) from exc
+        out.append(VaultFile(path=f.path, content=f.content or "", binary=binary))
+    return out
 
 ACTIVE_JOB_STATUSES = frozenset({"parsing"})
 
@@ -453,8 +475,9 @@ class WorldImportService:
         )
 
     def _parse_and_enrich(self, vault_files: list, *, rules_edition: str):
-        """Детерминированный разбор + извлечение предложений (W-API-06)."""
+        """Детерминированный разбор + персонажи партии (08) + ИИ (06)."""
         result = parse_vault_files(vault_files)
+        result = enrich_party_characters(result, vault_files)
         return enrich_parsed_with_ai(result, rules_edition=rules_edition)
 
     def ingest_vault_files(
@@ -488,9 +511,7 @@ class WorldImportService:
         self.db.commit()
 
         try:
-            vault_files = [
-                VaultFile(path=f.path, content=f.content) for f in payload.files
-            ]
+            vault_files = vault_files_from_payload(payload.files)
             enriched = self._parse_and_enrich(
                 vault_files, rules_edition=job.rules_edition or rules_edition
             )
@@ -599,9 +620,7 @@ class WorldImportService:
         extract_message = ""
         if payload.files and not errors:
             try:
-                vault_files = [
-                    VaultFile(path=f.path, content=f.content) for f in payload.files
-                ]
+                vault_files = vault_files_from_payload(payload.files)
                 enriched = self._parse_and_enrich(
                     vault_files, rules_edition=rules_edition
                 )
@@ -748,9 +767,7 @@ class WorldImportService:
         self.db.commit()
 
         try:
-            vault_files = [
-                VaultFile(path=f.path, content=f.content) for f in payload.files
-            ]
+            vault_files = vault_files_from_payload(payload.files)
             enriched = self._parse_and_enrich(
                 vault_files, rules_edition=rules_edition
             )

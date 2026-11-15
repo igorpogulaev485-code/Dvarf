@@ -53,6 +53,17 @@ def artifacts_index_from_applied(applied: dict[str, Any]) -> dict[str, dict[str,
     return out
 
 
+def characters_index_from_applied(applied: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    out: dict[str, dict[str, Any]] = {}
+    for row in applied.get("characters") or []:
+        if not isinstance(row, dict):
+            continue
+        key = row.get("import_key")
+        if isinstance(key, str) and key:
+            out[key] = row
+    return out
+
+
 def offices_index_from_applied(applied: dict[str, Any]) -> dict[str, list[dict[str, Any]]]:
     """seat_source_key → список офисных записей (как в YAML/каноне)."""
     out: dict[str, list[dict[str, Any]]] = {}
@@ -95,18 +106,21 @@ def merge_last_applied(db: Session, setting_id: UUID) -> dict[str, Any]:
     pages: dict[str, dict[str, Any]] = {}
     creatures: dict[str, dict[str, Any]] = {}
     artifacts: dict[str, dict[str, Any]] = {}
+    characters: dict[str, dict[str, Any]] = {}
     offices: dict[str, list[dict[str, Any]]] = {}
     for conf in reversed(load_active_confirmations(db, setting_id)):
         applied = confirmation_applied(conf.snapshot_before)
         pages.update(pages_index_from_applied(applied))
         creatures.update(creatures_index_from_applied(applied))
         artifacts.update(artifacts_index_from_applied(applied))
+        characters.update(characters_index_from_applied(applied))
         for seat, rows in offices_index_from_applied(applied).items():
             offices[seat] = list(rows)
     return {
         "pages": pages,
         "creatures": creatures,
         "artifacts": artifacts,
+        "characters": characters,
         "offices": offices,
     }
 

@@ -85,10 +85,12 @@ class WorldImportJobOut(BaseModel):
 
 
 class WorldVaultFileIn(BaseModel):
-    """Один файл хранилища: относительный путь + текст."""
+    """Один файл хранилища: относительный путь + текст и/или base64 (PDF)."""
 
     path: str = Field(..., min_length=1, max_length=512)
-    content: str = Field(..., max_length=2_000_000)
+    content: str = Field(default="", max_length=2_000_000)
+    # W-API-08: PDF листа и прочий бинарь (не через LobbyMedia).
+    content_base64: str | None = Field(default=None, max_length=8_000_000)
 
 
 class WorldVaultParseRequest(BaseModel):
@@ -235,6 +237,9 @@ class WorldImportConfirmOut(BaseModel):
     created_artifact_ids: list[UUID] = Field(default_factory=list)
     updated_artifact_ids: list[UUID] = Field(default_factory=list)
     created_artifact_set_ids: list[UUID] = Field(default_factory=list)
+    created_character_ids: list[UUID] = Field(default_factory=list)
+    updated_character_ids: list[UUID] = Field(default_factory=list)
+    created_attachment_ids: list[UUID] = Field(default_factory=list)
     journal_entry_ids: list[UUID] = Field(default_factory=list)
     links_created: int = 0
 
@@ -252,6 +257,8 @@ class WorldImportUndoOut(BaseModel):
     trashed_page_ids: list[UUID] = Field(default_factory=list)
     removed_creature_ids: list[UUID] = Field(default_factory=list)
     removed_artifact_ids: list[UUID] = Field(default_factory=list)
+    removed_character_ids: list[UUID] = Field(default_factory=list)
+    removed_attachment_ids: list[UUID] = Field(default_factory=list)
     journal_entry_id: UUID | None = None
     message: str = ""
 
