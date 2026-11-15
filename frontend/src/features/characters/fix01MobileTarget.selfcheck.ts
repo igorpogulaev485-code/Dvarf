@@ -25,6 +25,7 @@ const picker = read('src/features/characters/CombatTargetPicker.tsx')
 const mods = read('src/features/characters/TargetModifiersFields.tsx')
 const attacks = read('src/features/characters/PlayDeskAttacksCompact.tsx')
 const api = read('src/shared/api/lobbies.ts')
+const tokens = read('src/styles/01-tokens-base.css')
 
 // 1. Dialog kit — visible viewport + sticky footer + close
 assert.match(html, /viewport-fit=cover/)
@@ -102,10 +103,16 @@ assert.equal(fromTable.prone, true)
 assert.equal(fromTable.blinded, true)
 assert.equal(fromTable.invisible, false)
 
-// 4. Two turn rows are different (marks vs action groups) — keep both
-assert.match(attacks, /TurnEconomyChips/)
+// 4. One turn row: groups + marks inside CombatActions (no separate chips row)
+assert.doesNotMatch(attacks, /TurnEconomyChips/)
 assert.match(attacks, /TurnEconomyCombatActions/)
-assert.match(attacks, /play-desk-turn-marks/)
 assert.match(attacks, /play-desk-turn-actions-wrap/)
+const turnUi = read('src/features/characters/TurnEconomyCombatActions.tsx')
+assert.match(turnUi, /play-desk-turn-actions__mark/)
+assert.match(turnUi, /object_interaction/)
+assert.match(turnUi, /toggleMoved/)
+assert.match(turnUi, /Снять отметку/)
+assert.match(tokens, /ui-toggle-chip\.is-on/)
+assert.match(tokens, /background-color: var\(--accent\)/)
 
 console.log('fix01MobileTarget.selfcheck: ok')

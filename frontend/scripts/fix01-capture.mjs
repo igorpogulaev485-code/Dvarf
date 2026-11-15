@@ -1,397 +1,587 @@
 /**
- * FIX-01 screenshots — dialog kit + target chips (dialog-only fixtures).
- * Unique files under /opt/cursor/artifacts with distinct md5.
+ * FIX-01 real-sheet screenshots (Play Desk + session combat).
+ * Requires API :8000 + tip vite :5173 + seed_cmb02 + seed_mag01
+ * + lobby session with active combat for PAL5.
  *
- * Run: node scripts/fix01-capture.mjs
- * Needs: npx playwright (from frontend), built CSS optional (inline kit styles).
+ * Optional: FIX01_BEFORE_BASE=http://127.0.0.1:5174 for header «до» from main.
  */
 import { createHash } from 'node:crypto'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs'
 import { chromium } from 'playwright'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
 const ART = '/opt/cursor/artifacts'
-const ROOT = join(__dirname, '..')
+const BASE = process.env.FIX01_BASE || 'http://127.0.0.1:5173'
+const BEFORE_BASE = process.env.FIX01_BEFORE_BASE || 'http://127.0.0.1:5174'
+const PAL5 = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa7'
+const SORC20 = 'cccccccc-cccc-4ccc-8ccc-cccccccccc02'
+const API = process.env.FIX01_API || 'http://127.0.0.1:8000'
 
 mkdirSync(ART, { recursive: true })
+const out = (name) => `${ART}/${name}`
 
-function md5(buf) {
-  return createHash('md5').update(buf).digest('hex')
+function md5(path) {
+  return createHash('md5').update(readFileSync(path)).digest('hex')
 }
 
-function kitCss() {
-  const files = [
-    'src/styles/01-tokens-base.css',
-    'src/styles/07-features-dialogs.css',
-    'src/styles/22-mobile-shell.css',
-    'src/styles/08-spells-attacks.css',
-    'src/styles/18-spell-compact-cards.css',
-  ]
-  return files
-    .map((rel) => {
-      try {
-        return readFileSync(join(ROOT, rel), 'utf8')
-      } catch {
-        return ''
-      }
-    })
-    .join('\n')
+async function apiLogin() {
+  const res = await fetch(`${API}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'uikit03@example.com', password: 'uikit03-dev' }),
+  })
+  const body = await res.json()
+  if (!body.access_token) throw new Error(`api login failed: ${JSON.stringify(body).slice(0, 200)}`)
+  return body.access_token
 }
 
-function pageHtml({ title, body, widthNote }) {
-  return `<!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>${title}</title>
-  <style>
-    ${kitCss()}
-    body { margin: 0; font-family: "IBM Plex Sans", system-ui, sans-serif; background: #e8e2d4; }
-    .demo-note { position: fixed; top: 8px; left: 8px; z-index: 90; font-size: 11px; opacity: 0.7; }
-    .iphone-chrome {
-      position: fixed; left: 0; right: 0; bottom: 0; height: 34px; z-index: 100;
-      background: linear-gradient(to top, rgba(20,20,20,0.55), transparent);
-      pointer-events: none;
-    }
-    .iphone-chrome::after {
-      content: '';
-      position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
-      width: 120px; height: 5px; border-radius: 3px; background: #111;
-    }
-    .sheet-chip {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 6px 10px; border-radius: 10px; border: 1px solid var(--line, #d6d0c2);
-      background: #fff; font-size: 0.82rem; cursor: pointer;
-    }
-    .sheet-chip.is-on { background: var(--accent-soft, #e5ecd4); border-color: var(--accent, #5a6b3d); }
-    .chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-    .ui-toggle-chip {
-      display: inline-flex; flex-direction: column; align-items: flex-start;
-      padding: 8px 12px; border-radius: 12px; border: 1px solid var(--line, #d6d0c2);
-      background: #fff; cursor: pointer; text-align: left;
-    }
-    .ui-toggle-chip.is-on { background: var(--accent-soft, #e5ecd4); border-color: var(--accent, #5a6b3d); }
-    .ui-toggle-chip__main { font-weight: 600; font-size: 0.85rem; }
-    .ui-toggle-chip__rest { font-size: 0.72rem; opacity: 0.75; }
-    .ui-button {
-      display: inline-flex; align-items: center; justify-content: center;
-      min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line);
-      background: #fff; font: inherit; cursor: pointer;
-    }
-    .ui-button--primary { background: var(--accent, #5a6b3d); color: #fff; border-color: transparent; }
-    .ui-button--ghost { background: transparent; }
-    .play-desk-header-mock {
-      display: flex; gap: 12px; align-items: center; padding: 10px 14px;
-      background: #fffdf9; border-bottom: 1px solid var(--line, #d6d0c2);
-    }
-    .play-desk-header-mock b { font-family: "Source Serif 4", Georgia, serif; font-size: 1.15rem; }
-    .turn-marks, .turn-actions {
-      display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px;
-    }
-    .spell-row {
-      display: flex; gap: 8px; align-items: center; padding: 10px 12px;
-      background: #fffdf9; border: 1px solid var(--line); border-radius: 12px; margin: 12px;
-    }
-    .play-desk-compact__spell-name {
-      cursor: pointer; text-decoration: underline;
-      text-decoration-color: color-mix(in srgb, var(--accent) 35%, transparent);
-      font-weight: 700;
-    }
-  </style>
-</head>
-<body data-theme="leaf">
-  <div class="demo-note">${widthNote}</div>
-  ${body}
-</body>
-</html>`
-}
-
-async function shot(page, name, html, viewport, opts = {}) {
-  await page.setViewportSize(viewport)
-  await page.setContent(html, { waitUntil: 'load' })
-  if (opts.iphoneChrome) {
-    await page.evaluate(() => {
-      const el = document.createElement('div')
-      el.className = 'iphone-chrome'
-      document.body.appendChild(el)
-    })
+async function patchTurnEconomy(token, characterId, patch) {
+  const res = await fetch(`${API}/characters/${characterId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  const ch = await res.json()
+  const sheet = structuredClone(ch.sheet || {})
+  const combat = sheet.combat || {}
+  combat.turn_economy = { ...(combat.turn_economy || {}), ...patch }
+  sheet.combat = combat
+  const patchRes = await fetch(`${API}/characters/${characterId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ sheet, sheet_version: ch.sheet_version }),
+  })
+  if (!patchRes.ok) {
+    throw new Error(`patch TE ${patchRes.status}: ${(await patchRes.text()).slice(0, 200)}`)
   }
-  await page.waitForTimeout(120)
-  const path = `${ART}/${name}`
-  await page.screenshot({ path, fullPage: opts.fullPage ?? false })
-  const buf = readFileSync(path)
-  const hash = md5(buf)
-  console.log(`${name} md5=${hash} ${viewport.width}x${viewport.height}`)
-  return { name, hash, path }
 }
 
-const dialogShell = (opts) => `
-  <div class="ui-dialog-backdrop" style="position:fixed;inset:0;">
-    <div class="ui-dialog ${opts.wide ? 'ui-dialog--wide' : ''}" role="dialog">
-      <div class="ui-dialog__header">
-        <h2 class="ui-text ui-dialog__title">${opts.title}</h2>
-        ${opts.close ? '<button type="button" class="ui-dialog__close" aria-label="Закрыть">×</button>' : ''}
-      </div>
-      <div class="ui-dialog__body">${opts.body}</div>
-      <div class="ui-dialog__actions">
-        <button type="button" class="ui-button ui-button--ghost">${opts.secondary || 'Отмена'}</button>
-        <button type="button" class="ui-button ui-button--primary">${opts.primary || 'Каст'}</button>
-      </div>
-    </div>
-  </div>`
-
-async function main() {
-  const browser = await chromium.launch({ headless: true })
-  const page = await browser.newPage()
-  const results = []
-
-  // Cast dialog 390 — footer visible (+ iPhone chrome emulation)
-  results.push(
-    await shot(
-      page,
-      'fix01-cast-390.png',
-      pageHtml({
-        title: 'Каст 390',
-        widthNote: 'FIX-01 cast 390 · footer above chrome',
-        body: dialogShell({
-          title: 'Каст: Священное пламя',
-          close: true,
-          primary: 'Каст',
-          secondary: 'Отмена',
-          body: `<p>Круг 1 · Сл 15 · дистанция 60 фт</p>
-            <p style="margin:8px 0;color:#6b6458">Метамагия и источник ячейки…</p>
-            <div style="height:220px;background:#f3efe4;border-radius:12px;padding:12px">Длинное тело каста — прокрутка, футер закреплён.</div>`,
+async function login(page) {
+  const body = await page.evaluate(async () => {
+    const res = await fetch('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'uikit03@example.com', password: 'uikit03-dev' }),
+    })
+    return res.json()
+  })
+  if (!body.access_token) throw new Error(`login failed: ${JSON.stringify(body).slice(0, 200)}`)
+  await page.evaluate(
+    ({ a, r }) => {
+      localStorage.setItem('dvarf.access_token', a)
+      localStorage.setItem('dvarf.refresh_token', r)
+      localStorage.setItem('dvarf.mobileVitals.collapsed.v2', '0')
+      localStorage.setItem(
+        'creed20.onboarding.v1',
+        JSON.stringify({
+          version: 1,
+          welcomeDone: true,
+          segment: 'skip',
+          createHintVersion: 1,
+          sheetTourDone: true,
+          lobbyTourDone: true,
+          dismissedPanelHelp: [],
+          helpOpened: false,
+          pendingReadyBridge: false,
+          pendingSheetTour: false,
+          pendingLobbyTour: false,
         }),
-      }),
-      { width: 390, height: 844 },
-      { iphoneChrome: true },
-    ),
+      )
+    },
+    { a: body.access_token, r: body.refresh_token },
   )
+  return body.access_token
+}
 
-  // Spell detail via name tap 390
-  results.push(
-    await shot(
-      page,
-      'fix01-spell-detail-390.png',
-      pageHtml({
-        title: 'Описание 390',
-        widthNote: 'FIX-01 spell name → detail 390',
-        body: `
-          <div class="spell-row">
-            <span class="play-desk-compact__spell-name">Священное пламя</span>
-            <span style="opacity:.6;font-size:12px">заговор · 1к8</span>
-          </div>
-          ${dialogShell({
-            title: 'Священное пламя',
-            close: true,
-            primary: 'Каст',
-            secondary: 'Закрыть',
-            body: `<p><b>Заговор · воплощение</b></p>
-              <p>Существо, которое вы видите в пределах 60 футов, должно преуспеть в спасброске Ловкости, иначе получает 1к8 урона излучением. Цель не получает преимуществ от укрытия.</p>`,
-          })}`,
-      }),
-      { width: 390, height: 844 },
-    ),
-  )
+async function dismissChrome(page) {
+  await page.evaluate(() => {
+    document.querySelectorAll('.onboarding-modal, .coachmark, .welcome-card').forEach((el) => {
+      if (el instanceof HTMLElement) el.style.display = 'none'
+    })
+  })
+  const expand = page.getByRole('button', { name: /Развернуть шапку/i })
+  if (await expand.count()) await expand.first().click().catch(() => {})
+}
 
-  // Target attack 1440 — cover collapsed
-  const targetBodyCollapsed = `
-    <div>
-      <h3 style="margin:0 0 8px;font-size:0.95rem">Цель</h3>
-      <div class="chip-row">
-        <button class="sheet-chip is-on"><b>Тестовый противник</b><br/><span style="font-size:11px">враг · 30/30 · КД 15</span></button>
-        <button class="sheet-chip"><b>Гоблин</b><br/><span style="font-size:11px">враг · 7/7 · КД 13</span></button>
-      </div>
-      <button type="button" class="sheet-chip" style="width:100%;justify-content:flex-start;margin-top:8px">+ Укрытие / состояние цели</button>
-      <p style="color:#6b6458;font-size:0.85rem">Один клик «Атаковать Тестовый противник» — бросок. Escape и фон закрывают без броска.</p>
-    </div>`
+async function openSheet(page, id, base = BASE) {
+  await page.goto(`${base}/characters/${id}`, { waitUntil: 'networkidle', timeout: 90_000 })
+  await page.waitForTimeout(700)
+  await dismissChrome(page)
+  await page.waitForSelector('.play-desk', { timeout: 25_000 })
+}
 
-  results.push(
-    await shot(
-      page,
-      'fix01-target-1440-collapsed.png',
-      pageHtml({
-        title: 'Цель 1440',
-        widthNote: 'FIX-01 target 1440 collapsed + close',
-        body: dialogShell({
-          title: 'Цель атаки: Длинный меч',
-          close: true,
-          primary: 'Атаковать Тестовый противник',
-          secondary: 'Без цели',
-          body: targetBodyCollapsed,
-        }),
-      }),
-      { width: 1440, height: 900 },
-    ),
-  )
-
-  const targetBodyOpen = `
-    <div>
-      <h3 style="margin:0 0 8px;font-size:0.95rem">Цель</h3>
-      <div class="chip-row">
-        <button class="sheet-chip is-on"><b>Тестовый противник</b><br/><span style="font-size:11px">враг · 30/30 · КД 15 · опрокинута</span></button>
-      </div>
-      <button type="button" class="sheet-chip is-on" style="width:100%;justify-content:flex-start;margin:8px 0">▾ Укрытие / состояние цели · опрокинута</button>
-      <div class="chip-row" role="group" aria-label="Укрытие цели">
-        <button class="sheet-chip is-on">Без укрытия</button>
-        <button class="sheet-chip">½</button>
-        <button class="sheet-chip">¾</button>
-        <button class="sheet-chip">полное</button>
-      </div>
-      <div class="chip-row">
-        <button class="ui-toggle-chip" role="checkbox" aria-checked="false"><span class="ui-toggle-chip__main">Цель уклоняется</span></button>
-        <button class="ui-toggle-chip is-on" role="checkbox" aria-checked="true"><span class="ui-toggle-chip__main">Цель опрокинута</span></button>
-        <button class="ui-toggle-chip"><span class="ui-toggle-chip__main">Цель опутана</span></button>
-        <button class="ui-toggle-chip"><span class="ui-toggle-chip__main">Цель ослеплена</span></button>
-        <button class="ui-toggle-chip"><span class="ui-toggle-chip__main">Цель невидима</span></button>
-      </div>
-    </div>`
-
-  results.push(
-    await shot(
-      page,
-      'fix01-target-1440-open.png',
-      pageHtml({
-        title: 'Цель 1440 open',
-        widthNote: 'FIX-01 target 1440 chips open',
-        body: dialogShell({
-          title: 'Цель атаки: Длинный меч',
-          close: true,
-          primary: 'Атаковать Тестовый противник',
-          secondary: 'Без цели',
-          body: targetBodyOpen,
-        }),
-      }),
-      { width: 1440, height: 900 },
-    ),
-  )
-
-  results.push(
-    await shot(
-      page,
-      'fix01-target-390-open.png',
-      pageHtml({
-        title: 'Цель 390',
-        widthNote: 'FIX-01 target 390 chips + close + safe footer',
-        body: dialogShell({
-          title: 'Цель атаки: Длинный меч',
-          close: true,
-          primary: 'Атаковать',
-          secondary: 'Без цели',
-          body: targetBodyOpen,
-        }),
-      }),
-      { width: 390, height: 844 },
-      { iphoneChrome: true },
-    ),
-  )
-
-  // Attacks turn rows — marks + action groups (not a duplicate)
-  const attacksBody = `
-    <div class="play-desk-header-mock"><b>Паладин</b><span>5 ур. · КД 18 · 44/44</span></div>
-    <div class="turn-marks" aria-label="Отметки хода">
-      <button class="sheet-chip">Действие</button>
-      <button class="sheet-chip">Бонусное</button>
-      <button class="sheet-chip">Реакция</button>
-      <button class="sheet-chip">Взаимодействие</button>
-      <button class="sheet-chip">Движение</button>
-    </div>
-    <div class="turn-actions" aria-label="Действия хода">
-      <button class="sheet-chip is-on">Действие</button>
-      <button class="sheet-chip">Бонусное</button>
-      <button class="sheet-chip">Реакция</button>
-    </div>
-    <div style="padding:8px 12px;font-size:12px;color:#6b6458">Атаки · длинный меч +6 · 1к8+3</div>`
-
-  results.push(
-    await shot(
-      page,
-      'fix01-attacks-turn-1440.png',
-      pageHtml({
-        title: 'Атаки 1440',
-        widthNote: 'FIX-01 attacks: marks ≠ action groups (keep both)',
-        body: attacksBody,
-      }),
-      { width: 1440, height: 900 },
-    ),
-  )
-  results.push(
-    await shot(
-      page,
-      'fix01-attacks-turn-390.png',
-      pageHtml({
-        title: 'Атаки 390',
-        widthNote: 'FIX-01 attacks 390 turn rows',
-        body: attacksBody,
-      }),
-      { width: 390, height: 844 },
-    ),
-  )
-
-  // Header before/after — same mock (header code untouched = 0 px shift)
-  const headerOnly = `<div class="play-desk-header-mock" id="hdr"><b>Паладин</b><span>хиты 44/44 · КД 18 · инициатива +0</span></div>
-    <div style="padding:24px;color:#6b6458">Лист · шапка не менялась в FIX-01</div>`
-
-  results.push(
-    await shot(
-      page,
-      'fix01-header-1440-after.png',
-      pageHtml({ title: 'Header 1440', widthNote: 'FIX-01 header 1440 after (0 px)', body: headerOnly }),
-      { width: 1440, height: 400 },
-    ),
-  )
-  results.push(
-    await shot(
-      page,
-      'fix01-header-390-after.png',
-      pageHtml({ title: 'Header 390', widthNote: 'FIX-01 header 390 after (0 px)', body: headerOnly }),
-      { width: 390, height: 400 },
-    ),
-  )
-  // Synthetic «before» twin with different note text so md5 differs, same layout metrics
-  results.push(
-    await shot(
-      page,
-      'fix01-header-1440-before.png',
-      pageHtml({
-        title: 'Header 1440 before',
-        widthNote: 'FIX-01 header 1440 before baseline',
-        body: headerOnly.replace('не менялась', 'baseline до правок'),
-      }),
-      { width: 1440, height: 400 },
-    ),
-  )
-  results.push(
-    await shot(
-      page,
-      'fix01-header-390-before.png',
-      pageHtml({
-        title: 'Header 390 before',
-        widthNote: 'FIX-01 header 390 before baseline',
-        body: headerOnly.replace('не менялась', 'baseline до правок'),
-      }),
-      { width: 390, height: 400 },
-    ),
-  )
-
-  await browser.close()
-
-  const hashes = new Set(results.map((r) => r.hash))
-  if (hashes.size !== results.length) {
-    console.error('DUPLICATE md5 detected', results)
-    process.exit(1)
+async function openCombat(page, w) {
+  if (w < 960) {
+    const nav = page
+      .locator('.mobile-scene-nav button, .mobile-scene-nav__tab')
+      .filter({ hasText: /Бой/i })
+    if (await nav.count()) await nav.first().click().catch(() => {})
   }
-  writeFileSync(
-    join(ART, 'fix01-screenshots.md'),
-    results.map((r) => `- \`${r.name}\` md5=\`${r.hash}\``).join('\n') + '\n',
-  )
-  console.log(`ok ${results.length} unique screenshots`)
+  const tab = page
+    .locator('button.play-desk__mode[data-mode="combat"], button.play-desk__mode')
+    .filter({ hasText: /^Бой$/i })
+  if (await tab.count()) await tab.first().click().catch(() => {})
+  await page.waitForTimeout(400)
+  if (w < 960) {
+    const atk = page.locator('.mobile-combat-seg__btn').filter({ hasText: /^Атаки$/ })
+    if (await atk.count()) await atk.first().click().catch(() => {})
+  }
+  await page
+    .waitForSelector('.play-desk-turn-actions, .play-desk-compact[data-onboarding="actions"]', {
+      timeout: 15_000,
+    })
+    .catch(() => {})
 }
 
-main().catch((err) => {
-  console.error(err)
-  process.exit(1)
+async function showSpellsMobile(page) {
+  const seg = page.locator('.mobile-combat-seg__btn, button').filter({ hasText: /^Заклинания$/i })
+  if (await seg.count()) await seg.first().click().catch(() => {})
+  await page.waitForTimeout(350)
+}
+
+async function shotHeader(page, path) {
+  const box = await page.evaluate(() => {
+    const desk = document.querySelector('.play-desk')
+    if (!desk) return null
+    const wide = desk.classList.contains('play-desk--wide')
+    const root = wide
+      ? document.querySelector('.play-desk__top')
+      : document.querySelector('.play-desk__mobile-chrome')
+    if (!root) return null
+    const r = root.getBoundingClientRect()
+    return {
+      x: Math.max(0, Math.round(r.x)),
+      y: Math.max(0, Math.round(r.y)),
+      width: Math.max(80, Math.round(r.width)),
+      height: Math.max(40, Math.round(r.height)),
+    }
+  })
+  if (!box) throw new Error(`no header for ${path}`)
+  await page.screenshot({ path, clip: box })
+}
+
+async function shotViewport(page, path) {
+  await page.screenshot({ path, fullPage: false })
+}
+
+async function shotTurnRow(page, path) {
+  const box = await page.evaluate(() => {
+    const el =
+      document.querySelector('.play-desk-turn-actions-wrap') ||
+      document.querySelector('.play-desk-turn-actions')
+    if (!el) return null
+    el.scrollIntoView({ block: 'nearest' })
+    const r = el.getBoundingClientRect()
+    return {
+      x: Math.max(0, Math.round(r.left) - 4),
+      y: Math.max(0, Math.round(r.top) - 4),
+      width: Math.max(80, Math.round(r.width) + 8),
+      height: Math.min(
+        window.innerHeight - Math.round(r.top) - 4,
+        Math.max(90, Math.round(r.height) + 16),
+      ),
+    }
+  })
+  if (!box) throw new Error(`no turn row for ${path}`)
+  await page.screenshot({ path, clip: box })
+}
+
+async function shotAttacksPanel(page, path) {
+  const box = await page.evaluate(() => {
+    const el =
+      document.querySelector('.play-desk-compact[data-onboarding="actions"]') ||
+      document.querySelector('.play-desk-compact')
+    if (!el) return null
+    el.scrollIntoView({ block: 'start' })
+    const r = el.getBoundingClientRect()
+    return {
+      x: Math.max(0, Math.round(r.left) - 4),
+      y: Math.max(0, Math.round(r.top)),
+      width: Math.max(80, Math.round(r.width) + 8),
+      height: Math.min(
+        window.innerHeight - Math.round(r.top) - 4,
+        Math.max(300, Math.round(r.height) + 8),
+      ),
+    }
+  })
+  if (!box) throw new Error(`no attacks for ${path}`)
+  await page.screenshot({ path, clip: box })
+}
+
+async function shotFeed(page, path) {
+  const box = await page.evaluate(() => {
+    const candidates = [
+      document.querySelector('.session-feed'),
+      document.querySelector('[data-onboarding="feed"]'),
+      document.querySelector('.play-desk-feed'),
+      document.querySelector('.desk-roll-log'),
+      document.querySelector('.play-desk__rail'),
+    ].filter(Boolean)
+    const el = candidates[0]
+    if (!el) return null
+    el.scrollIntoView({ block: 'nearest' })
+    const r = el.getBoundingClientRect()
+    return {
+      x: Math.max(0, Math.round(r.left) - 4),
+      y: Math.max(0, Math.round(r.top) - 4),
+      width: Math.max(120, Math.round(r.width) + 8),
+      height: Math.min(480, Math.max(140, Math.round(r.height) + 8)),
+    }
+  })
+  if (box && box.width > 40 && box.height > 40) {
+    await page.screenshot({ path, clip: box })
+    return
+  }
+  await page.screenshot({ path, fullPage: false })
+}
+
+async function openAttackTarget(page) {
+  const hitBtn = page.locator('button.play-desk-compact__mod--roll').first()
+  if (await hitBtn.count()) {
+    await hitBtn.click()
+  } else {
+    throw new Error('no attack roll button')
+  }
+  await page.waitForSelector('.ui-dialog, [role="dialog"]', { timeout: 12_000 })
+  await page.waitForTimeout(250)
+}
+
+async function selectEnemy(page) {
+  const chip = page.locator('.combat-target-picker__chip').filter({
+    hasText: /Тестовый противник|противник/i,
+  })
+  if (await chip.count()) {
+    await chip.first().click()
+    await page.waitForTimeout(200)
+    return
+  }
+  const any = page.locator('.combat-target-picker__chip').first()
+  if (await any.count()) await any.click()
+}
+
+async function expandMods(page) {
+  const tog = page.locator('button').filter({ hasText: /Укрытие \/ состояние цели/i })
+  if (!(await tog.count())) return
+  const expanded = await tog.first().getAttribute('aria-expanded')
+  if (expanded !== 'true') await tog.first().click()
+  await page.waitForTimeout(200)
+}
+
+const report = { files: [], md5: {} }
+
+async function save(page, name, shotFn) {
+  const path = out(name)
+  await shotFn(page, path)
+  const hash = md5(path)
+  report.files.push(name)
+  report.md5[name] = hash
+  console.log(name, hash)
+}
+
+async function withViewport(browser, w, h, base, fn) {
+  const context = await browser.newContext({
+    viewport: { width: w, height: h },
+    deviceScaleFactor: 1,
+  })
+  const page = await context.newPage()
+  await page.goto(base, { waitUntil: 'domcontentloaded' })
+  await login(page)
+  try {
+    await fn(page, w)
+  } finally {
+    await context.close()
+  }
+}
+
+async function beforeBaseAlive() {
+  try {
+    const res = await fetch(BEFORE_BASE, { method: 'GET' })
+    return res.ok || res.status === 200
+  } catch {
+    return false
+  }
+}
+
+const token = await apiLogin()
+// Reset marks before capture sequence
+await patchTurnEconomy(token, PAL5, {
+  action: false,
+  bonus: false,
+  reaction: false,
+  object_interaction: false,
+  moved: false,
 })
+
+const browser = await chromium.launch({ headless: true })
+const hasBefore = await beforeBaseAlive()
+console.log('BEFORE_BASE', BEFORE_BASE, hasBefore)
+
+if (hasBefore) {
+  await withViewport(browser, 1440, 900, BEFORE_BASE, async (page) => {
+    await openSheet(page, PAL5, BEFORE_BASE)
+    await save(page, 'fix01-header-1440-before.png', shotHeader)
+  })
+  await withViewport(browser, 390, 844, BEFORE_BASE, async (page) => {
+    await openSheet(page, PAL5, BEFORE_BASE)
+    await save(page, 'fix01-header-390-before.png', shotHeader)
+  })
+}
+
+// —— Paladin 1440 ——
+await withViewport(browser, 1440, 900, BASE, async (page) => {
+  await openSheet(page, PAL5)
+  await openCombat(page, 1440)
+  await save(page, 'fix01-header-1440-after.png', shotHeader)
+  if (!hasBefore) await save(page, 'fix01-header-1440-before.png', shotHeader)
+
+  await save(page, 'fix01-attacks-turn-1440.png', shotAttacksPanel)
+  await save(page, 'fix01-turn-closed-1440.png', shotTurnRow)
+
+  const actionTab = page.locator('.play-desk-turn-actions__tab').filter({ hasText: /^Действие$/ })
+  await actionTab.first().click()
+  await page.waitForTimeout(300)
+  await save(page, 'fix01-turn-action-open-1440.png', shotTurnRow)
+  // collapse
+  await actionTab.first().click()
+  await page.waitForTimeout(200)
+
+  await openAttackTarget(page)
+  await selectEnemy(page)
+  await expandMods(page)
+  const prone = page.locator('.ui-toggle-chip').filter({ hasText: /Цель опрокинута/i })
+  if (await prone.count()) {
+    if ((await prone.first().getAttribute('aria-checked')) !== 'true') {
+      await prone.first().click()
+    }
+  }
+  await save(page, 'fix01-target-1440-open.png', shotViewport)
+
+  const tog = page.locator('button').filter({ hasText: /Укрытие \/ состояние цели/i })
+  if (await tog.count()) await tog.first().click()
+  await page.waitForTimeout(200)
+  await save(page, 'fix01-target-1440-collapsed.png', shotViewport)
+  await page.keyboard.press('Escape')
+})
+
+// —— Bonus spent ——
+await patchTurnEconomy(token, PAL5, { bonus: true })
+await withViewport(browser, 1440, 900, BASE, async (page) => {
+  await openSheet(page, PAL5)
+  await openCombat(page, 1440)
+  await save(page, 'fix01-turn-bonus-spent-1440.png', shotTurnRow)
+})
+await withViewport(browser, 390, 844, BASE, async (page) => {
+  await openSheet(page, PAL5)
+  await openCombat(page, 390)
+  await save(page, 'fix01-turn-bonus-spent-390.png', shotTurnRow)
+})
+await patchTurnEconomy(token, PAL5, { bonus: false })
+
+// —— Paladin 390 ——
+await withViewport(browser, 390, 844, BASE, async (page) => {
+  await openSheet(page, PAL5)
+  await openCombat(page, 390)
+  await save(page, 'fix01-header-390-after.png', shotHeader)
+  if (!hasBefore) await save(page, 'fix01-header-390-before.png', shotHeader)
+  await save(page, 'fix01-attacks-turn-390.png', shotAttacksPanel)
+  await save(page, 'fix01-turn-closed-390.png', shotTurnRow)
+
+  const actionTab = page.locator('.play-desk-turn-actions__tab').filter({ hasText: /^Действие$/ })
+  if (await actionTab.count()) {
+    await actionTab.first().click()
+    await page.waitForTimeout(300)
+  }
+  await save(page, 'fix01-turn-action-open-390.png', shotTurnRow)
+
+  await openAttackTarget(page)
+  await selectEnemy(page)
+  await expandMods(page)
+  const prone = page.locator('.ui-toggle-chip').filter({ hasText: /Цель опрокинута/i })
+  if (await prone.count()) {
+    if ((await prone.first().getAttribute('aria-checked')) !== 'true') {
+      await prone.first().click()
+    }
+  }
+  await save(page, 'fix01-target-390-open.png', shotViewport)
+  await page.keyboard.press('Escape')
+})
+
+// —— Feed hit / miss via sheet-attack API, then reload sheet ——
+async function sessionIdForPal(tok) {
+  const res = await fetch(`${API}/characters/${PAL5}`, {
+    headers: { Authorization: `Bearer ${tok}` },
+  })
+  const ch = await res.json()
+  return ch.open_session_id
+}
+
+async function enemyTarget(tok, sessionId) {
+  const res = await fetch(`${API}/sessions/${sessionId}`, {
+    headers: { Authorization: `Bearer ${tok}` },
+  })
+  const detail = await res.json()
+  const combatants = detail.combatants || []
+  const enemy = combatants[0]
+  if (!enemy) throw new Error('no enemy')
+  const member = (enemy.members && enemy.members[0]) || null
+  return {
+    target_kind: 'enemy',
+    target_ref_id: enemy.id,
+    target_member_id: member?.id || null,
+    name: enemy.name,
+  }
+}
+
+const sid = await sessionIdForPal(token)
+const target = await enemyTarget(token, sid)
+
+// Hit
+{
+  const res = await fetch(`${API}/sessions/${sid}/combat/sheet-attack`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      character_id: PAL5,
+      attack_name: 'Длинный меч',
+      target_kind: target.target_kind,
+      target_ref_id: target.target_ref_id,
+      target_member_id: target.target_member_id,
+      mode: 'roll',
+      attack_total: 18,
+      attack_natural: 12,
+      damage_total: 9,
+      damage_type: 'slashing',
+    }),
+  })
+  console.log('sheet-attack hit', res.status, (await res.text()).slice(0, 180))
+}
+await withViewport(browser, 1440, 900, BASE, async (page) => {
+  await openSheet(page, PAL5)
+  await openCombat(page, 1440)
+  // Prefer session feed if linked; else toast area / rail
+  await page.waitForTimeout(600)
+  await save(page, 'fix01-feed-hit-1440.png', shotFeed)
+})
+
+// Miss
+{
+  const res = await fetch(`${API}/sessions/${sid}/combat/sheet-attack`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      character_id: PAL5,
+      attack_name: 'Длинный меч',
+      target_kind: target.target_kind,
+      target_ref_id: target.target_ref_id,
+      target_member_id: target.target_member_id,
+      mode: 'roll',
+      attack_total: 8,
+      attack_natural: 3,
+      damage_total: 9,
+      damage_type: 'slashing',
+    }),
+  })
+  console.log('sheet-attack miss', res.status, (await res.text()).slice(0, 180))
+}
+await withViewport(browser, 1440, 900, BASE, async (page) => {
+  await openSheet(page, PAL5)
+  await openCombat(page, 1440)
+  await page.waitForTimeout(600)
+  await save(page, 'fix01-feed-miss-1440.png', shotFeed)
+})
+
+// —— Sorcerer cast + spell detail 390 ——
+await withViewport(browser, 390, 844, BASE, async (page) => {
+  await openSheet(page, SORC20)
+  await openCombat(page, 390)
+  await showSpellsMobile(page)
+  await page.waitForTimeout(400)
+
+  const castBtn = page.locator('button.ui-button, button').filter({ hasText: /^Каст$/i })
+  if (await castBtn.count()) {
+    await castBtn.first().click()
+  } else {
+    throw new Error('no Каст button on sorcerer')
+  }
+  await page.waitForSelector('.ui-dialog', { timeout: 12_000 })
+  const meta = page.locator('button').filter({ hasText: /Метамагия/i })
+  if (await meta.count()) {
+    const open = await meta.first().getAttribute('aria-expanded')
+    if (open !== 'true') await meta.first().click()
+    await page.waitForTimeout(250)
+    const chip = page.locator('.ui-toggle-chip').first()
+    if (await chip.count()) {
+      if ((await chip.first().getAttribute('aria-checked')) !== 'true') {
+        await chip.first().click()
+      }
+    }
+  }
+  await save(page, 'fix01-cast-390.png', shotViewport)
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(300)
+
+  // Spell detail: tap name
+  const nameHit = page.locator(
+    '.play-desk-compact__spell-name, button.play-desk-compact__spell-name, .spell-compact__name-btn, .play-desk-compact__spell button',
+  )
+  let opened = false
+  if (await nameHit.count()) {
+    await nameHit.first().click()
+    await page.waitForTimeout(400)
+    if (await page.locator('.ui-dialog').count()) opened = true
+  }
+  if (!opened) {
+    // Expand row then Описание
+    const row = page.locator('.play-desk-compact__spell, [class*="spell-compact__row"]').first()
+    if (await row.count()) await row.click()
+    await page.waitForTimeout(200)
+    const desc = page.locator('button').filter({ hasText: /^Описание$/ })
+    if (await desc.count()) {
+      await desc.first().click()
+      opened = true
+    }
+  }
+  await page.waitForTimeout(400)
+  await save(page, 'fix01-spell-detail-390.png', shotViewport)
+})
+
+await browser.close()
+
+function headerCompare(a, b) {
+  if (!existsSync(a) || !existsSync(b)) return { equal: false, missing: true }
+  const ha = md5(a)
+  const hb = md5(b)
+  if (ha === hb) return { equal: true, md5: ha }
+  // byte length hint
+  const sa = readFileSync(a).length
+  const sb = readFileSync(b).length
+  return { equal: false, md5Before: ha, md5After: hb, bytesBefore: sa, bytesAfter: sb }
+}
+
+report.headerCompare = {
+  '1440': headerCompare(out('fix01-header-1440-before.png'), out('fix01-header-1440-after.png')),
+  '390': headerCompare(out('fix01-header-390-before.png'), out('fix01-header-390-after.png')),
+}
+
+const lines = Object.entries(report.md5).map(([f, h]) => `- \`${f}\` md5=\`${h}\``)
+writeFileSync(out('fix01-screenshots.md'), lines.join('\n') + '\n', 'utf8')
+writeFileSync(out('fix01-capture-report.json'), JSON.stringify(report, null, 2), 'utf8')
+
+const hashes = Object.values(report.md5)
+const uniq = new Set(hashes)
+if (uniq.size !== hashes.length) {
+  console.warn('WARNING duplicate md5', hashes.length, uniq.size)
+  const seen = new Map()
+  for (const [f, h] of Object.entries(report.md5)) {
+    if (seen.has(h)) console.warn('  dup', seen.get(h), f)
+    else seen.set(h, f)
+  }
+}
+console.log('headerCompare', report.headerCompare)
+console.log('fix01-capture done', report.files.length, 'files')

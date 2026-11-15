@@ -764,9 +764,10 @@ button.spells-settings__derived-stat--btn:hover {
 
 .play-desk-turn-actions__tabs {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 6px;
   width: 100%;
+  align-items: stretch;
 }
 
 .play-desk-turn-actions__tab {
@@ -774,7 +775,16 @@ button.spells-settings__derived-stat--btn:hover {
   min-width: 0;
 }
 
-.play-desk-turn-actions__tab.is-spent:not(:disabled) {
+/* FIX-01: отметки Взаимодействие / Движение в той же строке, без равного flex. */
+.play-desk-turn-actions__mark {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.play-desk-turn-actions__tab.is-spent:not(:disabled),
+.play-desk-turn-actions__mark.is-spent {
   opacity: 0.72;
   background: color-mix(in srgb, var(--accent-soft) 70%, var(--card));
   border-color: var(--line);
@@ -788,9 +798,26 @@ button.spells-settings__derived-stat--btn:hover {
   color: #fff;
 }
 
+.play-desk-turn-actions__tab.is-open.is-spent {
+  /* Открытая вкладка читается как selected, даже если отметка уже стоит. */
+  opacity: 1;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
 .play-desk-turn-actions__tab:disabled {
   text-decoration: none;
   opacity: 0.5;
+}
+
+.play-desk-turn-actions__panel-wrap {
+  display: grid;
+  gap: 4px;
+}
+
+.play-desk-turn-actions__clear {
+  margin: 0;
 }
 
 /* CMB-03: spent/unavailable variants — dim + optional ✓, never strikethrough.

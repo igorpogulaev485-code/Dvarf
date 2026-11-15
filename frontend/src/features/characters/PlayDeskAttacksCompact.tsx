@@ -3,7 +3,6 @@ import { Button, DetailsMenu } from '../../ui'
 import { ResourcePips } from '../../ui/ResourcePips'
 import { shouldUseCompactResourceTrack } from '../../ui/resourceTrackDisplay'
 import { useTurnEconomy } from './TurnEconomyContext'
-import { TurnEconomyChips } from './TurnEconomyChips'
 import { TurnEconomyCombatActions } from './TurnEconomyCombatActions'
 import { GrappleShoveDialog, type GrappleShoveMode } from './GrappleShoveDialog'
 import { TelekineticShoveDialog } from './TelekineticShoveDialog'
@@ -1272,18 +1271,10 @@ export function PlayDeskAttacksCompact({
       {turnEco ? (
         <>
           {/*
-            SC-02: карта А/Б/В — отметки хода (В) только в бою; PHB в «Ещё» (Б);
-            укрытие/состояния цели только в окне атаки (17:42).
+            FIX-01: одна строка хода — Действие/Бонусное/Реакция (+ Взаимодействие/Движение
+            в бою внутри групп действий). Отдельная строка отметок убрана.
+            Укрытие/состояния цели — только в окне атаки.
           */}
-          {turnEco.combatActive ? (
-            <TurnEconomyChips
-              state={turnEco.turnEconomy}
-              onToggle={turnEco.toggleMark}
-              onToggleMoved={turnEco.toggleMoved}
-              className="chip-row play-desk-turn-marks"
-            />
-          ) : null}
-          {/* CMB-02: Действие · Бонусное · Реакция — без свёрнутого details. */}
           <div className="play-desk-turn-actions-wrap">
           <TurnEconomyCombatActions
             mode="all"
