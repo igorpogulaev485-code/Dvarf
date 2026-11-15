@@ -377,24 +377,49 @@ async function main() {
     })
   }
 
-  // Steed
+  // Steed — сначала оба кадра «карточка / бой» (0 HP мутирует API, иначе 390 пустой).
   for (const w of [1440, 390]) {
     await withViewport(browser, w, async (page) => {
       await openSheet(page, STEED)
       await openCompanions(page, w)
+      await page
+        .waitForFunction(
+          () => document.querySelectorAll('.companion-card').length > 0,
+          { timeout: 10_000 },
+        )
+        .catch(() => {})
       await expandFirstCard(page)
-      await shotEl(page, '.companion-card--expand, .companions-panel', `comp-card-view-steed-${w}.png`)
+      const expanded = page.locator('.companion-card--expand').first()
+      if (await expanded.count()) {
+        await shotEl(page, '.companion-card--expand', `comp-card-view-steed-${w}.png`)
+      } else {
+        console.warn('steed card not expanded', w)
+        await shotEl(page, '.companions-panel', `comp-card-view-steed-${w}.png`)
+      }
       await openCombat(page, w)
       await shotEl(
         page,
         '.play-desk-compact--attacks, .play-desk__stage-panel',
         `comp-combat-steed-${w}.png`,
       )
-      // 0hp steed vanish
+    })
+  }
+
+  // Steed 0hp — отдельный проход с reseeds, чтобы не портить view-кадры.
+  for (const w of [1440, 390]) {
+    const { spawnSync } = await import('node:child_process')
+    spawnSync(
+      'bash',
+      ['-lc', 'cd /agent/repos/Dvarf/backend && PYTHONPATH=. .venv/bin/python scripts/seed_comp01_chars.py'],
+      { encoding: 'utf8' },
+    )
+    await withViewport(browser, w, async (page) => {
+      await openSheet(page, STEED)
       await openCompanions(page, w)
       await expandFirstCard(page)
       const editBtn = page.getByRole('button', { name: /^Изменить$/ })
-      if (await editBtn.count()) await editBtn.first().click().catch(() => {})
+      if (await editBtn.count()) await editBtn.first().click({ force: true }).catch(() => {})
+      await page.waitForTimeout(250)
       await page.evaluate(() => {
         const inputs = Array.from(document.querySelectorAll('input'))
         for (const input of inputs) {
@@ -409,7 +434,6 @@ async function main() {
       })
       await page.waitForTimeout(400)
       await closeDialogs(page)
-      // Full page — empty after vanish ≠ active steed card (unique md5).
       await shot(page, `comp-0hp-summon-steed-${w}.png`)
     })
   }

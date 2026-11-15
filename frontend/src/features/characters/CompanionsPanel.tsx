@@ -722,6 +722,22 @@ export function CompanionsPanel({
                         Настроить
                       </button>
                     ) : null}
+                    {!selfForm &&
+                    !row.active &&
+                    isPermanentCompanionSlot(row) ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        className="companion-card__resummon"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          resummonCompanion(row)
+                        }}
+                      >
+                        Призвать снова
+                      </Button>
+                    ) : null}
                     {cardAttacks.slice(0, 2).map((atk) => (
                       <button
                         key={atk.id}

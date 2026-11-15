@@ -249,12 +249,12 @@
   align-items: center;
 }
 
-/* Отпущен / не призван: карточка приглушена целиком; бейдж и «Призвать снова» читаемы. */
+/* Отпущен / не призван: карточка приглушена; бейдж и «Призвать снова» яркие.
+   Не ставить filter на корень — иначе нельзя «отжать» яркость кнопки. */
 .companion-card--inactive {
   background: color-mix(in srgb, var(--muted) 24%, #e8e2d6);
   border-color: color-mix(in srgb, var(--muted) 55%, var(--line));
   box-shadow: none;
-  filter: grayscale(0.35);
 }
 
 .companion-card--inactive .companion-card__view-title,
@@ -264,6 +264,7 @@
 .companion-card--inactive .companion-card__attack-text {
   color: var(--muted);
   opacity: 0.72;
+  filter: grayscale(0.45);
 }
 
 .companion-card--inactive .inventory-role,
@@ -271,16 +272,18 @@
 .companion-card--inactive .inventory-card__chevron-btn,
 .companion-card--inactive .inventory-card__collapse {
   opacity: 0.55;
+  filter: grayscale(0.5);
 }
 
 .companion-card--inactive .companion-card__view > :not(.companion-card__view-actions) {
   opacity: 0.7;
+  filter: grayscale(0.4);
 }
 
 /* Бейдж «не призван» / «повержен» — поверх приглушения. */
 .companion-card--inactive .companion-card__status-chip {
   opacity: 1;
-  filter: grayscale(0);
+  filter: none;
   background: color-mix(in srgb, var(--muted) 18%, white);
   border-color: color-mix(in srgb, var(--muted) 45%, var(--line));
   color: var(--ink);
@@ -294,8 +297,14 @@
 
 .companion-card--inactive .companion-card__resummon,
 .companion-card--inactive button.companion-card__resummon {
-  opacity: 1;
-  filter: none;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* Свёрнутая отпущенная: яркая «Призвать снова» справа в glance-actions. */
+.companion-card--inactive .inventory-card__glance-actions .companion-card__resummon {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .companion-card__view {
