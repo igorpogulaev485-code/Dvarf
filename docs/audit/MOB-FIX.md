@@ -13,7 +13,7 @@
 | # | Проблема | Решение |
 |---|----------|---------|
 | 1 | Дубли md5 кадров | Пересняты отдельные сцены: свёрнутая шапка / Бой / тост на листе / create до и после раскрытия источников; print media для 2014/2024. |
-| 2 | Стрелки ScrollRow 44px серые круги поверх чипов | Видимый шеврон ~20px (outline); hit 44px через `::after`; gutter `padding-inline: tap-min` на оболочке `.ui-scroll-row` (края в padding-зоне, скроллер inset). |
+| 2 | Стрелки ScrollRow 44px серые круги поверх чипов | Видимый шеврон ~20px (outline); hit 44px через `::after`; gutter только справа (`--edge-right`), слева — лишь при `--edge-left` (прокрутка). |
 | 3 | «Концентрация: Щит…» режется | Стек из 2 строк: kicker «Концентрация» + `<strong>Щит веры</strong>` целиком. |
 | 4 | Welcome: два пропуска | Оставлены × и один «Пропустить подсказки»; нижнюю ссылку «Пропустить» убрали. |
 | 5 | Печать: active ≠ макет | Корневая причина: `:hover` перебивал `.is-active`. Active = cream+тёмный текст (и на `:hover`); inactive читаемые; `aria-pressed`; optimistic `layoutOverride`. |
@@ -30,11 +30,11 @@
 |------|-----|--------|
 | `after-01-chars-welcome-390.png` | `19d0442c52797b9814d75a9a51e6e3aa` | × + «Пропустить подсказки» |
 | `after-01-chars-list-390.png` | `41f0f57861c935c85e60c28e44b9a1ce` | список после закрытия |
-| `after-02-sheet-header-collapsed-390.png` | `2c87af44ed30a76816e630484d123e79` | свёрнутая шапка, Исслед. |
-| `after-06-scene-combat-390.png` | `8ca3b8162a14e5e6732cab5050e959f0` | сцена Бой + концентрация |
+| `after-02-sheet-header-collapsed-390.png` | `5291efe1c550eecf2b6fef0438950b50` | свёрнутая шапка, Исслед. |
+| `after-06-scene-combat-390.png` | `08244c707b1b0a0fc20bbe0d8e8aaa63` | сцена Бой; ряды flush слева |
 | `after-toast-sheet-390.png` | `bc7213dd72bc2d6ce5d9e74a80a7fdfc` | тост броска на листе |
 | `after-86-transfer-dialog-390.png` | `d362f650162cf554396ff67a6d0def28` | валюты / передать |
-| `after-c13-create-start-390.png` | `8d4bb33c95db6cf794a393de7152d797` | старт, источники свёрнуты |
+| `after-c13-create-start-390.png` | `51bbd2fdb1e7b000e3263715e7de4c94` | старт; «← К списку» через `.back-link` |
 | `after-c13-create-filters-collapsed-390.png` | `524f08d22166e01defa3528ea79ce50a` | после раскрытия источников (chips) |
 | `after-c13f-race-dialog-390.png` | `97986cf6bcfdd3b67c6bb6663cba91e7` | настройка расы |
 | `after-c13f-race-dialog-gender-390.png` | `acd3b5b529921e32336000ecf398d7d9` | пол / имя |
@@ -47,8 +47,8 @@
 | `after-c14-blank-layout2024-390.png` | `85ecf5ffc62653269e21ef39a87594fb` | blank `?layout=2024` |
 | `after-toast-over-nav-760.png` | `c433aeceac6cd9f9164a3a9fe47f1950` | тост над nav 760 |
 | `after-117-transfer-footer-760.png` | `816982431215f612d2e31ce2554b1cc6` | футер диалога 760 |
-| `after-desk-header-1440.png` | `cbdc4c403e5f6ad5fa57615a9f6716c7` | десктоп шапка |
-| `after-desk-combat-1440.png` | `141b50d8ea8313d5f7d4404d323a12c3` | десктоп бой |
+| `after-desk-header-1440.png` | `cbdc4c403e5f6ad5fa57615a9f6716c7` | десктоп шапка (без сдвигов) |
+| `after-desk-combat-1440.png` | `e8ab44d49b5956d30f081171714ce395` | десктоп бой (без сдвигов) |
 | `after-c14-classic-2014-1440.png` | `23919e6860b021ab719d973d2291c052` | 2014 на 1440 |
 | `after-c14-classic-2014-print-1440.png` | `337a2c44fcf7e9f94d01d3fdebe543be` | 2014 print 1440 |
 | `after-c14-classic-2024-1440.png` | `c81edf2010d78f668f59274fe8e62f27` | 2024 на 1440 (active=cream) |

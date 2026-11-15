@@ -422,8 +422,15 @@ export function ScrollRow({
     }
   }, [watchKey])
 
+  const edgeMods = [
+    canScrollLeft ? 'ui-scroll-row--edge-left' : '',
+    canScrollRight ? 'ui-scroll-row--edge-right' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <div className={`ui-scroll-row ${shellClassName}`.trim()}>
+    <div className={`ui-scroll-row ${shellClassName} ${edgeMods}`.trim()}>
       {canScrollLeft ? (
         <div className="ui-scroll-row__edge ui-scroll-row__edge--left" aria-hidden="true">
           <button

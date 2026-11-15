@@ -1049,13 +1049,22 @@ a.ui-button--primary {
 }
 
 /*
- * Phone: reserve tap-min gutters on the ScrollRow shell so absolute edges sit
- * in the padding band; the scroller’s content box is already inset — chips
- * never paint under the chevron (padding-end alone only helps at max scroll).
+ * Phone: gutter under the chevron only where the arrow is shown.
+ * Right when ›; left only when scrolled and ‹ is shown — start flush with
+ * character card / «Атаки · Заклинания». Absolute edges sit in the shell pad.
  */
 .play-desk--mobile .ui-scroll-row {
-  padding-inline: var(--tap-min, 44px);
+  padding-inline-start: 0;
+  padding-inline-end: 0;
   box-sizing: border-box;
+}
+
+.play-desk--mobile .ui-scroll-row.ui-scroll-row--edge-right {
+  padding-inline-end: var(--tap-min, 44px);
+}
+
+.play-desk--mobile .ui-scroll-row.ui-scroll-row--edge-left {
+  padding-inline-start: var(--tap-min, 44px);
 }
 
 .play-desk--mobile .ui-scroll-row > [class]:not(.ui-scroll-row__edge) {
