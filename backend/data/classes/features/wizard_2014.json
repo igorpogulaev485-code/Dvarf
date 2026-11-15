@@ -757,7 +757,8 @@
             "panacea",
             "restore_life",
             "restore_youth"
-          ]
+          ],
+          "at_use": true
         }
       }
     ],

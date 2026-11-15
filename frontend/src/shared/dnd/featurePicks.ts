@@ -45,6 +45,38 @@ export function getFeaturePick(
   return value && value.trim() ? value : null
 }
 
+/**
+ * ABL-01: feature card id and choice.id can differ (e.g. dragon_ancestor /
+ * draconic_ancestry). Prefer the feature id; fall back to choice.id so a
+ * master/wizard pick is not shown as «не выбрано».
+ */
+export function getFeatureChoicePick(
+  picks: FeaturePicksState,
+  classEntryId: string,
+  featureId: string,
+  choiceId?: string | null,
+): string | null {
+  const primary = getFeaturePick(picks, classEntryId, featureId)
+  if (primary) return primary
+  const alt = (choiceId ?? '').trim()
+  if (alt && alt !== featureId) return getFeaturePick(picks, classEntryId, alt)
+  return null
+}
+
+export function getFeatureChoicePickList(
+  picks: FeaturePicksState,
+  classEntryId: string,
+  featureId: string,
+  choiceId?: string | null,
+): string[] {
+  const raw = getFeatureChoicePick(picks, classEntryId, featureId, choiceId)
+  if (!raw) return []
+  return raw
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
 export function getFeaturePickList(
   picks: FeaturePicksState,
   classEntryId: string,

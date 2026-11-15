@@ -778,6 +778,7 @@
         "choice": {
           "id": "swarm_effect",
           "label_ru": "Эффект роя 1×/ход",
+          "at_use": true,
           "options": [
             "damage_1d6",
             "push_target_5",

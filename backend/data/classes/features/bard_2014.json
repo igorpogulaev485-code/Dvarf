@@ -537,7 +537,8 @@
             "defensive_flourish",
             "slashing_flourish",
             "mobile_flourish"
-          ]
+          ],
+          "at_use": true
         },
         "scale": {
           "label_ru": "Доп. урон",

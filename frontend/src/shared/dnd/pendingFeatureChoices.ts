@@ -13,8 +13,8 @@ import {
 import { isExpertiseChoice } from './expertise'
 import { isFeatureActiveForPlay } from './featureReplacement'
 import {
-  getFeaturePick,
-  getFeaturePickList,
+  getFeatureChoicePick,
+  getFeatureChoicePickList,
   type FeaturePicksState,
 } from './featurePicks'
 
@@ -199,12 +199,24 @@ export function isFeatureChoiceComplete(
   const choice = feature.choice
   if (!choice) return true
   if (choice.optional) return true
+  // ABL-01: per-use riders (Open Hand / Blade Flourish / …) are not sheet setup.
+  if (choice.at_use) return true
   const maxPicks = resolveChoiceMaxPicks(choice, feature.classLevel)
   const multi = maxPicks > 1 || Boolean(choice.max_picks_by_level)
+  // ABL-01: accept feature.id or choice.id (dragon_ancestor / draconic_ancestry).
   if (multi) {
-    return getFeaturePickList(featurePicks, feature.classEntryId, feature.id).length >= maxPicks
+    return (
+      getFeatureChoicePickList(
+        featurePicks,
+        feature.classEntryId,
+        feature.id,
+        choice.id,
+      ).length >= maxPicks
+    )
   }
-  return Boolean(getFeaturePick(featurePicks, feature.classEntryId, feature.id))
+  return Boolean(
+    getFeatureChoicePick(featurePicks, feature.classEntryId, feature.id, choice.id),
+  )
 }
 
 /** Archetype / patron gate features without a choice block. */

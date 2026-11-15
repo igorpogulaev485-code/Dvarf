@@ -106,6 +106,8 @@ import {
 } from '../../shared/dnd/expertise'
 import {
   fightingStylesTakenElsewhere,
+  getFeatureChoicePick,
+  getFeatureChoicePickList,
   getFeaturePick,
   getFeaturePickList,
   setFeaturePick,
@@ -132,8 +134,9 @@ import type { RaceTraitCard } from '../../shared/dnd/raceTraitCards'
 import { raceTraitCardsFromText } from '../../shared/dnd/raceTraitCards'
 import type { ConcentrationState } from '../../shared/dnd/concentration'
 import type { SheetResource } from '../../shared/dnd/rest'
+import { displayResourceLabel } from '../../shared/dnd/rest'
 import type { InventoryItem } from './inventory'
-import { Button, Field, Input, Panel, Stack, Text } from '../../ui'
+import { Button, Chip, Field, Input, Panel, Stack, Text } from '../../ui'
 import { SlotPips } from '../../ui/SlotPips'
 import {
   newCustomFeatureId,
@@ -271,30 +274,52 @@ type ClassFeaturesPanelProps = {
   tceAllowed?: boolean | null
 }
 
-type FeatureFilter =
-  | 'all'
-  | 'class'
-  | 'subclass'
-  | 'feats'
-  | 'custom'
-  | 'resource'
-  | 'choice'
-  | 'active'
-  | 'passive'
-  | 'needs_setup'
+/** ABL-01: five filters only. Legacy ids map in requestedFilter effect. */
+type FeatureFilter = 'all' | 'resource' | 'needs_choice' | 'passive' | 'custom'
 
 const FEATURE_FILTERS: Array<{ id: FeatureFilter; label: string }> = [
   { id: 'all', label: 'Все' },
-  { id: 'active', label: 'Активные' },
-  { id: 'passive', label: 'Пассивные' },
-  { id: 'needs_setup', label: 'Не выбраны опции' },
-  { id: 'class', label: 'Класс' },
-  { id: 'subclass', label: 'Подкласс' },
-  { id: 'feats', label: 'Черты' },
-  { id: 'custom', label: 'Свои' },
   { id: 'resource', label: 'С ресурсом' },
-  { id: 'choice', label: 'Выбор' },
+  { id: 'needs_choice', label: 'Нужен выбор' },
+  { id: 'passive', label: 'Пассивные' },
+  { id: 'custom', label: 'Свои' },
 ]
+
+function isDarkvisionTrait(trait: { id: string; nameRu: string }): boolean {
+  if (trait.id === 'darkvision' || trait.id.includes('darkvision')) return true
+  return /т[её]мн\S*\s+зрен/i.test(trait.nameRu)
+}
+
+function featureNeedsChoice(
+  feature: UnlockedFeature,
+  featurePicks: FeaturePicksState,
+  classAsi: AppliedClassAsi[],
+): boolean {
+  if (isAsiFeature(feature)) {
+    return !findAppliedClassAsi(classAsi, feature.classEntryId, feature.id)
+  }
+  return Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)
+}
+
+/** Sort: need-choice → resource → other active → passive. */
+function compareFeaturesForAbl(
+  a: UnlockedFeature,
+  b: UnlockedFeature,
+  featurePicks: FeaturePicksState,
+  classAsi: AppliedClassAsi[],
+): number {
+  const rank = (feature: UnlockedFeature) => {
+    if (featureNeedsChoice(feature, featurePicks, classAsi)) return 0
+    if (feature.resource?.pool_id) return 1
+    if (feature.kind === 'passive') return 3
+    return 2
+  }
+  const ra = rank(a)
+  const rb = rank(b)
+  if (ra !== rb) return ra - rb
+  if (a.level !== b.level) return a.level - b.level
+  return a.name_ru.localeCompare(b.name_ru, 'ru')
+}
 
 function previewSummary(value: string, max = 110): string {
   const flat = value.replace(/\s+/g, ' ').trim()
@@ -429,12 +454,14 @@ function FeatureResourceControls({
       <Text tone="muted">Ресурс синхронизируется при сохранении уровня/архетипа…</Text>
     )
   }
+  // QI-01 / ABL-01: legacy «Ки» → «Ци» on the card without rewriting the sheet.
+  const poolLabel = displayResourceLabel(pool.name)
 
   if (pool.unlimited && !isWildShapeForkFeature(feature.id)) {
     return (
       <div className="feature-resource">
         <Text>
-          {pool.name}: <strong>без лимита</strong>
+          {poolLabel}: <strong>без лимита</strong>
         </Text>
         <div className="feature-resource__actions">
           <Button
@@ -468,7 +495,7 @@ function FeatureResourceControls({
       return (
         <div className="feature-resource">
           <Text>
-            {pool.name}: <strong>{current}</strong> / {pool.max} на предметах
+            {poolLabel}: <strong>{current}</strong> / {pool.max} на предметах
           </Text>
           <div className="feature-resource__actions">
             <Button
@@ -492,7 +519,7 @@ function FeatureResourceControls({
     return (
       <div className="feature-resource">
         <Text>
-          {pool.name}: <strong>{current}</strong> / {pool.max}
+          {poolLabel}: <strong>{current}</strong> / {pool.max}
           {pool.wardCreated ? '' : resource.pool_id === 'arcane_ward' ? ' · не создан' : ''}
         </Text>
         {pool.dice?.length ? (
@@ -539,7 +566,7 @@ function FeatureResourceControls({
           >
             {resource.pool_id === 'portent'
               ? 'Записать кость'
-              : resource.stock_gain_label_ru || `+ ${pool.name}`}
+              : resource.stock_gain_label_ru || `+ ${poolLabel}`}
           </Button>
           <Button
             type="button"
@@ -569,7 +596,7 @@ function FeatureResourceControls({
               onResourcesChange(result.resources)
               onToast?.(
                 result.ok
-                  ? resource.stock_spend_label_ru || `${pool.name}: −1`
+                  ? resource.stock_spend_label_ru || `${poolLabel}: −1`
                   : result.message,
               )
             }}
@@ -578,7 +605,7 @@ function FeatureResourceControls({
               ? 'Сжечь…'
               : resource.pool_id === 'portent'
                 ? 'Заменить бросок…'
-                : resource.stock_spend_label_ru || `− ${pool.name}`}
+                : resource.stock_spend_label_ru || `− ${poolLabel}`}
           </Button>
         </div>
       </div>
@@ -651,7 +678,7 @@ function FeatureResourceControls({
           label={
             mirrorLinked && linkedPool
               ? `${linkedPool.name}: ${shownLeft}/${linkedPool.max}`
-              : `${pool.name}: ${spendRemaining(pool)}/${pool.max}`
+              : `${poolLabel}: ${spendRemaining(pool)}/${pool.max}`
           }
           onChange={(used) =>
             onResourcesChange(
@@ -924,7 +951,7 @@ function FeatureResourceControls({
                 : spendCost > 1
                   ? `Использовать (−${spendCost})`
                   : resource.alt_pools?.length
-                    ? resource.pool_name_ru || pool.name
+                    ? resource.pool_name_ru || poolLabel
                     : 'Использовать'}
           </Button>
         )}
@@ -1059,7 +1086,12 @@ function FeatureChoiceControls({
   const maxPicks = resolveChoiceMaxPicks(choice, feature.classLevel)
   const multi = maxPicks > 1 || Boolean(choice.max_picks_by_level) || Boolean(choice.max_picks && choice.max_picks > 1)
   const selectedListRaw = multi
-    ? getFeaturePickList(featurePicks, feature.classEntryId, feature.id)
+    ? getFeatureChoicePickList(
+        featurePicks,
+        feature.classEntryId,
+        feature.id,
+        choice.id,
+      )
     : []
   const selectedList =
     choice.options_from === 'artificer_infusions'
@@ -1069,7 +1101,12 @@ function FeatureChoiceControls({
       : selectedListRaw
   const selected = multi
     ? null
-    : getFeaturePick(featurePicks, feature.classEntryId, feature.id)
+    : getFeatureChoicePick(
+        featurePicks,
+        feature.classEntryId,
+        feature.id,
+        choice.id,
+      )
   const selectedIdsForTce = multi
     ? selectedList
     : selected
@@ -2056,10 +2093,20 @@ function FeatureRow({
   const choicePick =
     !isAsi && feature.choice
       ? choiceMulti
-        ? getFeaturePickList(featurePicks, feature.classEntryId, feature.id)
+        ? getFeatureChoicePickList(
+            featurePicks,
+            feature.classEntryId,
+            feature.id,
+            feature.choice.id,
+          )
             .map(choiceOptionLabel)
             .join(', ')
-        : getFeaturePick(featurePicks, feature.classEntryId, feature.id)
+        : getFeatureChoicePick(
+            featurePicks,
+            feature.classEntryId,
+            feature.id,
+            feature.choice.id,
+          )
       : null
   const choiceLabel =
     typeof choicePick === 'string' && choicePick
@@ -2133,6 +2180,10 @@ function FeatureRow({
       {replacementStatusLabelRu(replacementStatus)}
     </span>
   ) : null
+  const needChoiceChip =
+    choicePending && replacementStatus === 'active' ? (
+      <Chip className="feature-card__need-choice-chip">нужен выбор</Chip>
+    ) : null
   const cardToneClass =
     replacementStatus === 'replaced'
       ? ' is-replaced'
@@ -2155,6 +2206,7 @@ function FeatureRow({
           {optionalBadge && !showReplacementBadge ? (
             <span className="feature-optional-badge">{optionalBadge}</span>
           ) : null}
+          {needChoiceChip}
           <span className="inventory-card__glance-spacer" aria-hidden />
           <span className="feature-card__preview">
             {metaExtra ? `${metaExtra} · ` : ''}
@@ -2181,9 +2233,7 @@ function FeatureRow({
           {feature.resource && replacementStatus === 'active' ? (
             <span className="attack-held-tag is-on">ресурс</span>
           ) : null}
-          {choicePending && replacementStatus === 'active' ? (
-            <span className="attack-held-tag">выбор</span>
-          ) : null}
+          {needChoiceChip}
           <span className="inventory-card__glance-spacer" aria-hidden />
           <span className="feature-card__preview">
             {metaExtra ? `${metaExtra} · ` : ''}
@@ -2219,9 +2269,7 @@ function FeatureRow({
         {feature.resource && replacementStatus === 'active' ? (
           <span className="attack-held-tag is-on">ресурс</span>
         ) : null}
-        {choicePending && replacementStatus === 'active' ? (
-          <span className="attack-held-tag">выбор</span>
-        ) : null}
+        {needChoiceChip}
         <button type="button" className="inventory-card__collapse" onClick={onToggle}>
           свернуть
         </button>
@@ -2271,7 +2319,7 @@ function FeatureRow({
             )}
           </Text>
         </div>
-      ) : replacementStatus === 'active' ? (
+      ) : replacementStatus === 'active' && feature.choice && !feature.choice.at_use ? (
         <FeatureChoiceControls
           feature={feature}
           featurePicks={featurePicks}
@@ -2674,12 +2722,20 @@ export function ClassFeaturesPanel({
 
   useEffect(() => {
     if (!requestedFilter) return
-    const allowed = FEATURE_FILTERS.some((row) => row.id === requestedFilter)
-    if (!allowed) {
+    // B20 / ABL-01: «Нужно настроить» and legacy choice ids → «Нужен выбор».
+    const mapped: FeatureFilter | null =
+      requestedFilter === 'needs_setup' ||
+      requestedFilter === 'choice' ||
+      requestedFilter === 'needs_choice'
+        ? 'needs_choice'
+        : FEATURE_FILTERS.some((row) => row.id === requestedFilter)
+          ? (requestedFilter as FeatureFilter)
+          : null
+    if (!mapped) {
       onRequestedFilterConsumed?.()
       return
     }
-    setFilter(requestedFilter as FeatureFilter)
+    setFilter(mapped)
     onRequestedFilterConsumed?.()
   }, [requestedFilter, onRequestedFilterConsumed])
 
@@ -2753,19 +2809,11 @@ export function ClassFeaturesPanel({
         if (!hay.includes(q)) return false
       }
       if (filter === 'all') return true
-      if (filter === 'class') return feature.source !== 'subclass'
-      if (filter === 'subclass') return feature.source === 'subclass'
-      if (filter === 'feats' || filter === 'custom') return false
+      if (filter === 'custom') return false
       if (filter === 'resource') return Boolean(feature.resource?.pool_id)
-      if (filter === 'active') return feature.kind !== 'passive'
       if (filter === 'passive') return feature.kind === 'passive'
-      if (filter === 'choice' || filter === 'needs_setup') {
-        if (isAsiFeature(feature)) {
-          return !findAppliedClassAsi(classAsi, feature.classEntryId, feature.id)
-        }
-        return (
-          Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)
-        )
+      if (filter === 'needs_choice') {
+        return featureNeedsChoice(feature, featurePicks, classAsi)
       }
       return true
     })
@@ -2781,23 +2829,64 @@ export function ClassFeaturesPanel({
     return byClass
       .map((group) => ({
         ...group,
-        features: map.get(group.classEntryId) ?? [],
+        features: [...(map.get(group.classEntryId) ?? [])].sort((a, b) =>
+          compareFeaturesForAbl(a, b, featurePicks, classAsi),
+        ),
       }))
       .filter((group) => group.features.length > 0)
-  }, [byClass, visibleFeatures])
+  }, [byClass, visibleFeatures, featurePicks, classAsi])
 
   const resolvedRaceTraits = useMemo(() => {
-    if (raceTraitCards.length > 0) return raceTraitCards
-    return raceTraitCardsFromText(raceTraitsText)
-  }, [raceTraitCards, raceTraitsText])
+    const base = raceTraitCards.length > 0 ? raceTraitCards : raceTraitCardsFromText(raceTraitsText)
+    // ABL-01: one darkvision card — drop trait duplicates when prop card is shown.
+    if (darkvision <= 0) return base
+    return base.filter((trait) => !isDarkvisionTrait(trait))
+  }, [raceTraitCards, raceTraitsText, darkvision])
 
   const showRace =
     (darkvision > 0 || resolvedRaceTraits.length > 0 || Boolean(defenseSummary)) &&
-    (filter === 'all' || filter === 'class')
+    (filter === 'all' || filter === 'passive')
   const showBackground =
-    Boolean(backgroundFeature) && (filter === 'all' || filter === 'class')
-  const showFeats = filter === 'all' || filter === 'feats'
-  const showCustom = filter === 'all' || filter === 'feats' || filter === 'custom'
+    Boolean(backgroundFeature) && (filter === 'all' || filter === 'passive')
+  const showFeats = filter === 'all'
+  const showCustom = filter === 'all' || filter === 'custom'
+
+  const filterCounts = useMemo(() => {
+    const resource = features.filter((f) => Boolean(f.resource?.pool_id)).length
+    const needsChoice = features.filter((f) =>
+      featureNeedsChoice(f, featurePicks, classAsi),
+    ).length
+    const passive =
+      features.filter((f) => f.kind === 'passive').length +
+      (darkvision > 0 || resolvedRaceTraits.length > 0 || Boolean(defenseSummary) ? 1 : 0) +
+      (backgroundFeature ? 1 : 0)
+    const custom = customFeatures.length
+    return { all: features.length + custom, resource, needsChoice, passive, custom }
+  }, [
+    features,
+    featurePicks,
+    classAsi,
+    darkvision,
+    resolvedRaceTraits.length,
+    defenseSummary,
+    backgroundFeature,
+    customFeatures.length,
+  ])
+
+  const visibleFilters = useMemo(() => {
+    return FEATURE_FILTERS.filter((row) => {
+      if (row.id === 'all') return true
+      if (row.id === 'resource') return filterCounts.resource > 0
+      if (row.id === 'needs_choice') return filterCounts.needsChoice > 0
+      if (row.id === 'passive') return filterCounts.passive > 0
+      if (row.id === 'custom') return filterCounts.custom > 0
+      return true
+    })
+  }, [filterCounts])
+
+  useEffect(() => {
+    if (!visibleFilters.some((row) => row.id === filter)) setFilter('all')
+  }, [visibleFilters, filter])
 
   const extraAttackNote = useMemo(() => {
     const attacks = features.filter(
@@ -2845,11 +2934,6 @@ export function ClassFeaturesPanel({
 
   return (
     <Panel title="Способности" className="features-panel">
-      <p className="features-panel__lede">
-        Сводка умений класса, подкласса, предыстории, черт и расы. Нажми строку —
-        полный текст; у ресурсов и выборов внутри ещё и кнопки.
-      </p>
-
       <Stack gap={12}>
         {allToggleKeys.length > 0 ? (
           <div className="abil-column__toolbar features-panel__collapse-bar">
@@ -2876,7 +2960,7 @@ export function ClassFeaturesPanel({
         </Field>
 
         <div className="inventory-filters" role="tablist" aria-label="Фильтр способностей">
-          {FEATURE_FILTERS.map((row) => (
+          {visibleFilters.map((row) => (
             <button
               key={row.id}
               type="button"
@@ -3094,10 +3178,7 @@ export function ClassFeaturesPanel({
             <div className="feature-list">
               {(() => {
                 const collapseAsi =
-                  !search.trim() &&
-                  filter !== 'needs_setup' &&
-                  filter !== 'choice' &&
-                  filter !== 'active'
+                  !search.trim() && filter !== 'needs_choice' && filter !== 'resource'
                 const asiRows = collapseAsi
                   ? group.features.filter((feature) => isAsiFeature(feature))
                   : []

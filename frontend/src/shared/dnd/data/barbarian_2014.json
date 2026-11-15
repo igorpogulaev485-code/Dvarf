@@ -673,6 +673,7 @@
         "choice": {
           "id": "beast_form",
           "label_ru": "Оружие зверя (на ярость)",
+          "at_use": true,
           "options": [
             "bite",
             "claws",

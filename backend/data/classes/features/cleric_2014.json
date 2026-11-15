@@ -574,7 +574,8 @@
             "fire",
             "lightning",
             "thunder"
-          ]
+          ],
+          "at_use": true
         },
         "scale": {
           "label_ru": "Реакция",

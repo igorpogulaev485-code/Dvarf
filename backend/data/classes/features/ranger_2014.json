@@ -782,7 +782,8 @@
             "damage_1d6",
             "push_target_5",
             "self_move_5"
-          ]
+          ],
+          "at_use": true
         },
         "scale": {
           "label_ru": "Урон",

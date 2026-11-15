@@ -470,7 +470,8 @@
             "trip",
             "push_15ft",
             "no_reactions"
-          ]
+          ],
+          "at_use": true
         }
       },
       {
