@@ -1,7 +1,7 @@
 {
-  "generated": "2026-11-15T11:09:50.445960Z",
-  "count": 28,
-  "uniqueMd5": 28,
+  "generated": "2026-11-15T11:12:42.292Z",
+  "count": 32,
+  "uniqueMd5": 32,
   "frames": [
     {
       "file": "m-after-roll-remaining-1440.png",
@@ -106,6 +106,22 @@
     {
       "file": "p-join-390.png",
       "md5": "3ab47cdc6a81e8b94da8e08297bf2582"
+    },
+    {
+      "file": "p-join-level-after-1440.png",
+      "md5": "bfd8a71535db599a81f4b9addcd96e22"
+    },
+    {
+      "file": "p-join-level-after-390.png",
+      "md5": "03f496a5d7a81332e00b6a9424c8b3cc"
+    },
+    {
+      "file": "p-join-level-before-1440.png",
+      "md5": "b2f7c5dbfe8d6a5caf3ccac4ac6859a3"
+    },
+    {
+      "file": "p-join-level-before-390.png",
+      "md5": "71d8fb4964435538d776be7dd5c8b2d2"
     },
     {
       "file": "p-reaction-1440.png",

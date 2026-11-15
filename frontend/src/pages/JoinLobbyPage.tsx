@@ -59,6 +59,19 @@ export function JoinLobbyPage() {
     [characters, characterId],
   )
 
+  const startLevel = useMemo(() => {
+    if (!inviteMeta) return null
+    const start = inviteMeta.start ?? inviteMeta.campaign_rules_start
+    return normalizeStartRules(start).level
+  }, [inviteMeta])
+
+  /** LOBBY-FIX E: явный предупреждающий текст до «Сесть за стол», лист не трогаем. */
+  const levelMismatch =
+    selected != null &&
+    startLevel != null &&
+    Number.isFinite(selected.level) &&
+    selected.level !== startLevel
+
   useEffect(() => {
     if (!getAccessToken()) {
       const next = routeCode ? `/join/${routeCode}` : `/join?code=${encodeURIComponent(code)}`
@@ -288,6 +301,7 @@ export function JoinLobbyPage() {
                         onChange={(e) => {
                           setCharacterId(e.target.value)
                           setConflict(null)
+                          setStartMismatch(null)
                         }}
                         required
                       >
@@ -315,6 +329,7 @@ export function JoinLobbyPage() {
                             onClick={() => {
                               setCharacterId(c.id)
                               setConflict(null)
+                              setStartMismatch(null)
                             }}
                           >
                             <span className="join-char-card__avatar" aria-hidden="true">
@@ -333,6 +348,18 @@ export function JoinLobbyPage() {
                   {selected && codeReady ? (
                     <Text tone="muted" className="join-flow__picked">
                       К столу сядет: <strong>{selected.name}</strong>
+                    </Text>
+                  ) : null}
+
+                  {levelMismatch && codeReady && !startMismatch ? (
+                    <Text
+                      tone="danger"
+                      className="join-flow__level-warn"
+                      role="status"
+                    >
+                      Уровень героя {selected!.level}, стартовый уровень лобби —{' '}
+                      {startLevel}. Лист не меняется: можно сесть, мастер увидит
+                      «не по правилам старта».
                     </Text>
                   ) : null}
 

@@ -31,6 +31,7 @@
 | **C** | Создание сессии: пустой список мест → все из состава; «Кто пришёл» — правка. |
 | **D** | Скелетон стола вместо голого «Загрузка…»; «Назад» / «⋯» ≥44px на 390. |
 | **E** | `/join` и карточка: раса · класс · уровень · HP из листа (fallback summary). |
+| **E+** | `/join`: если уровень героя ≠ стартовому уровню лобби — `Text tone="danger"` до «Сесть за стол»; лист не меняем. |
 
 ---
 
@@ -53,7 +54,7 @@
 ## Кадры after (настоящее приложение)
 
 Каталог: `/opt/cursor/artifacts/lobbyfix/` (+ копии `docs/audit/frames/lobby-fix/`).  
-**28 кадров, 28 уникальных md5** (без дублей под разными именами).  
+**32 кадра, 32 уникальных md5** (без дублей под разными именами).  
 Скрипты: `frontend/scripts/lobby-fix-capture.mjs`, `frontend/scripts/lobby-fix-capture-extra.mjs`.
 
 | Кадр | md5 | Зачем |
@@ -86,15 +87,19 @@
 | `m-rewards-after-end-390.png` | `022b6f121e0d202d5a82ab43be53d5c1` | награды 390 |
 | `p-after-xp-1440.png` | `c247f65b4901fa99693f6a2527b5d4de` | игрок: +100 XP в ленте |
 | `p-after-xp-390.png` | `e08f3d881675af2899a5143b4793ea75` | after XP 390 |
+| `p-join-level-before-1440.png` | `b2f7c5dbfe8d6a5caf3ccac4ac6859a3` | E+: join до предупреждения (ур. 3 vs старт 1) |
+| `p-join-level-before-390.png` | `71d8fb4964435538d776be7dd5c8b2d2` | E+: до 390 |
+| `p-join-level-after-1440.png` | `bfd8a71535db599a81f4b9addcd96e22` | E+: предупреждение китом до «Сесть за стол» |
+| `p-join-level-after-390.png` | `03f496a5d7a81332e00b6a9424c8b3cc` | E+: после 390 |
 
-Кадры «до» — в `docs/audit/frames/lobby/` (аудит).
+Кадры «до» (аудит лобби) — в `docs/audit/frames/lobby/`.
 
 ---
 
 ## Проверки
 
 - `npm run build` (frontend) — ок  
-- `npx tsx` lobbyVisualLv01–06, uxSc05GmToolbar — ок  
+- `npx tsx` lobbyVisualLv01–06, uxSc05GmToolbar, lobbyFixJoinLevel — ок  
 - `python3 -m pytest tests/test_lobby_fix_initiative_xp.py` — 4 passed  
 - `python3 -m alembic heads` — одна голова `onb03usr9c2e1`
 
