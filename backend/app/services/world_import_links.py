@@ -321,33 +321,115 @@ def preset_label_or_empty(label: str) -> str:
     return text if text in _PRESET_LABELS else ""
 
 
+_UNNAMED_HOLDER_LABELS = frozenset(
+    {
+        "unnamed",
+        "безымянный",
+        "безымянная",
+        "неизвестно",
+        "(безымянный)",
+        "(безымянная)",
+    }
+)
+
+
+def _resolve_holder_key(
+    raw: dict[str, Any] | str | None,
+    *,
+    seat_source_key: str,
+    office_title: str,
+    order: int,
+    path_index: dict[str, str],
+    alias_index: dict[str, str],
+) -> str:
+    """Имя/путь/slug держателя → source_key; пусто/unnamed → __unnamed__/…"""
+
+    def _unnamed() -> str:
+        return unnamed_office_holder_key(
+            seat_key=seat_source_key, office_title=office_title, order=order
+        )
+
+    def _from_text(text: str) -> str:
+        cleaned = text.strip()
+        if not cleaned or cleaned.casefold() in _UNNAMED_HOLDER_LABELS:
+            return _unnamed()
+        if cleaned in path_index:
+            return path_index[cleaned]
+        if "/" in cleaned:
+            try:
+                norm_path = normalize_vault_path(cleaned)
+            except Exception:
+                norm_path = ""
+            if norm_path and norm_path in path_index:
+                return path_index[norm_path]
+        by_alias = alias_index.get(normalize_alias_key(cleaned))
+        if by_alias:
+            return by_alias
+        # Не резолвилось — отдельный безымянный слот, без слияния с чужими ключами
+        return _unnamed()
+
+    if raw is None:
+        return _unnamed()
+    if isinstance(raw, str):
+        return _from_text(raw)
+    if not isinstance(raw, dict):
+        return _unnamed()
+    if raw.get("unnamed") is True:
+        return _unnamed()
+    for key in ("holder_source_key", "holder", "path", "name", "slug"):
+        val = raw.get(key)
+        if isinstance(val, str) and val.strip():
+            return _from_text(val)
+        if val is None and key == "name" and raw.get("unnamed") is not False:
+            # name: null при остальных пустых → безымянный
+            continue
+    # Пустая запись держателя
+    return _unnamed()
+
+
+def _normalize_holder_status(raw: Any, *, default: str = "former") -> str:
+    if not isinstance(raw, str) or not raw.strip():
+        return default
+    text = raw.strip().casefold()
+    if text in {"current", "текущий", "текущая", "сейчас"}:
+        return "current"
+    if text in {"former", "бывший", "бывшая", "ранее", "прошлый", "прошлая"}:
+        return "former"
+    return default
+
+
 def build_office_succession(
     *,
     office_title: str,
     seat_source_key: str,
     holders: list[dict[str, Any]],
+    path_index: dict[str, str] | None = None,
+    alias_index: dict[str, str] | None = None,
 ) -> list[DraftLinkProposal]:
     """Цепочка держателей одной должности на одном месте (локация/фракция).
 
-    holders: [{holder_source_key|None, status, order, tenure_from?, tenure_to?}, …]
-    Безымянный (holder_source_key is None) получает стабильный __unnamed__/… ключ.
+    holders: записи с name/holder/path/slug/unnamed, status, order, tenure_from/to.
+    Безымянный получает стабильный __unnamed__/… ключ.
     """
     title = normalize_alias_display(office_title)
     if not title or not seat_source_key:
         return []
+    paths = path_index or {}
+    aliases = alias_index or {}
     proposals: list[DraftLinkProposal] = []
     for raw in holders:
+        if not isinstance(raw, dict):
+            raw = {"name": raw}
         order = int(raw.get("order", len(proposals)))
-        holder = raw.get("holder_source_key")
-        if holder is None or str(holder).strip() == "":
-            holder_key = unnamed_office_holder_key(
-                seat_key=seat_source_key, office_title=title, order=order
-            )
-        else:
-            holder_key = str(holder)
-        status = str(raw.get("status") or "former")
-        if status not in {"current", "former"}:
-            status = "former"
+        holder_key = _resolve_holder_key(
+            raw,
+            seat_source_key=seat_source_key,
+            office_title=title,
+            order=order,
+            path_index=paths,
+            alias_index=aliases,
+        )
+        status = _normalize_holder_status(raw.get("status"), default="former")
         proposals.append(
             DraftLinkProposal(
                 from_source_key=holder_key,
@@ -369,6 +451,151 @@ def build_office_succession(
     return proposals
 
 
+def office_proposals_from_seat_frontmatter(
+    *,
+    seat_source_key: str,
+    frontmatter: dict[str, Any] | None,
+    path_index: dict[str, str],
+    alias_index: dict[str, str],
+) -> list[DraftLinkProposal]:
+    """Список `offices:` на карточке места (локация/фракция) → цепочки держателей."""
+    fm = frontmatter or {}
+    raw_offices = fm.get("offices")
+    if not isinstance(raw_offices, list) or not raw_offices:
+        return []
+    out: list[DraftLinkProposal] = []
+    for entry in raw_offices:
+        if not isinstance(entry, dict):
+            continue
+        title = entry.get("title") or entry.get("office") or entry.get("name")
+        if not isinstance(title, str) or not title.strip():
+            continue
+        holders = entry.get("holders") or entry.get("succession") or []
+        if not isinstance(holders, list):
+            continue
+        # Нормализуем записи holders
+        normalized: list[dict[str, Any]] = []
+        for i, h in enumerate(holders):
+            if isinstance(h, dict):
+                row = dict(h)
+                if "order" not in row:
+                    row["order"] = i
+                normalized.append(row)
+            elif h is None:
+                normalized.append({"unnamed": True, "order": i, "status": "former"})
+            elif isinstance(h, str):
+                normalized.append({"name": h, "order": i, "status": "former"})
+        out.extend(
+            build_office_succession(
+                office_title=title.strip(),
+                seat_source_key=seat_source_key,
+                holders=normalized,
+                path_index=path_index,
+                alias_index=alias_index,
+            )
+        )
+    return out
+
+
+_OFFICE_SECTION_RE = re.compile(
+    r"(?im)^##\s+(Должности|Offices)\s*$"
+)
+_OFFICE_SUBHEAD_RE = re.compile(r"(?m)^###\s+(.+?)\s*$")
+_OFFICE_HOLDER_LINE_RE = re.compile(
+    r"(?m)^\s*(?:[-*]|\d+[.)])\s+(.*?)\s*$"
+)
+
+
+def office_proposals_from_seat_body(
+    *,
+    seat_source_key: str,
+    body: str,
+    path_index: dict[str, str],
+    alias_index: dict[str, str],
+) -> list[DraftLinkProposal]:
+    """Текстовый блок «## Должности» / «## Offices» с подзаголовками должностей.
+
+    Пример::
+
+        ## Должности
+        ### мэр Лунного моста
+        1. безымянный — бывший
+        2. [[Маэстро Келебрим]] — бывший; по: гибель Маэстро
+        3. [[Тандил]] — текущий; с: после гибели Маэстро
+    """
+    if not body:
+        return []
+    section_match = _OFFICE_SECTION_RE.search(body)
+    if not section_match:
+        return []
+    rest = body[section_match.end() :]
+    # Обрезать до следующего ## того же уровня
+    next_h2 = re.search(r"(?m)^##\s+", rest)
+    if next_h2:
+        rest = rest[: next_h2.start()]
+
+    out: list[DraftLinkProposal] = []
+    parts = _OFFICE_SUBHEAD_RE.split(rest)
+    # parts: [preamble, title1, block1, title2, block2, ...]
+    i = 1
+    while i + 1 < len(parts):
+        office_title = normalize_alias_display(parts[i])
+        block = parts[i + 1]
+        i += 2
+        if not office_title:
+            continue
+        holders: list[dict[str, Any]] = []
+        for line_match in _OFFICE_HOLDER_LINE_RE.finditer(block):
+            line = line_match.group(1).strip()
+            if not line:
+                continue
+            # [[Name]] или голое имя; хвост после — / ;
+            mention = re.search(r"\[\[([^\]]+)\]\]", line)
+            name_part = mention.group(1) if mention else line.split("—")[0].split(";")[0].split(",")[0]
+            name_part = normalize_alias_display(name_part)
+            status = "former"
+            folded = line.casefold()
+            if "текущ" in folded or "сейчас" in folded or "current" in folded:
+                status = "current"
+            elif "бывш" in folded or "former" in folded or "ранее" in folded:
+                status = "former"
+            tenure_from = None
+            tenure_to = None
+            from_m = re.search(r"(?:с|from)\s*:\s*([^;—]+)", line, flags=re.I)
+            to_m = re.search(r"(?:по|to|до)\s*:\s*([^;—]+)", line, flags=re.I)
+            if from_m:
+                tenure_from = from_m.group(1).strip()
+            if to_m:
+                tenure_to = to_m.group(1).strip()
+            unnamed = name_part.casefold() in {
+                "безымянный",
+                "безымянная",
+                "unnamed",
+                "(безымянный)",
+            } or not name_part
+            holders.append(
+                {
+                    "unnamed": unnamed,
+                    "name": None if unnamed else name_part,
+                    "status": status,
+                    "order": len(holders),
+                    "tenure_from": tenure_from,
+                    "tenure_to": tenure_to,
+                }
+            )
+        if holders:
+            out.extend(
+                build_office_succession(
+                    office_title=office_title,
+                    seat_source_key=seat_source_key,
+                    holders=holders,
+                    path_index=path_index,
+                    alias_index=alias_index,
+                )
+            )
+    return out
+
+
 def office_proposals_from_item(
     *,
     source_key: str,
@@ -379,7 +606,7 @@ def office_proposals_from_item(
     path_index: dict[str, str],
     alias_index: dict[str, str],
 ) -> list[DraftLinkProposal]:
-    """Явная должность персонажа (из «Имя → мэр» / YAML) → ребро на локацию."""
+    """Должность на карточке НПС (office / «Имя → мэр») → ребро на место."""
     fm = frontmatter or {}
     office = alias_bundle.office_from_title
     raw_office = fm.get("office") or fm.get("position") or fm.get("role_title")
@@ -387,7 +614,7 @@ def office_proposals_from_item(
         office = normalize_alias_display(raw_office)
 
     if not office or not is_office_phrase(office):
-        # Тело Who: «назначен **мэром военного времени** Лунного моста»
+        # Жирный фрагмент-должность в теле («мэром военного времени»)
         for bold in extract_bold_candidates(body):
             if is_office_phrase(bold):
                 office = bold
@@ -400,28 +627,23 @@ def office_proposals_from_item(
         raw = fm.get(field_name)
         if not isinstance(raw, str) or not raw.strip():
             continue
-        # Берём первый сегмент «Лунный Мост / …»
         first = _ALT_NAME_SPLIT_RE.split(raw.strip(), maxsplit=1)[0]
         seat_key = alias_index.get(normalize_alias_key(first))
         if seat_key:
             break
     if seat_key is None:
-        # По пути / ярлыку локации в индексе path
-        for path, key in path_index.items():
-            if "locations/" in path and alias_index.get(
-                normalize_alias_key(slug_from_path(path).replace("-", " "))
-            ) == key:
-                # только если location в FM совпал по смыслу — иначе не гадаем
-                pass
         return []
 
     status = "current"
-    if "бывш" in (title or "").casefold() or "ранее" in (body or "")[:200].casefold():
-        # Не угадываем former без явного поля — Who для Тандила: сейчас мэр.
-        status = "current"
     fm_status = fm.get("office_status") or fm.get("position_status")
-    if isinstance(fm_status, str) and fm_status.strip().casefold() in {"current", "former"}:
-        status = fm_status.strip().casefold()
+    if isinstance(fm_status, str) and fm_status.strip():
+        status = _normalize_holder_status(fm_status, default="current")
+
+    order_raw = fm.get("succession_order")
+    try:
+        order = int(order_raw) if order_raw is not None else 0
+    except (TypeError, ValueError):
+        order = 0
 
     return [
         DraftLinkProposal(
@@ -433,7 +655,7 @@ def office_proposals_from_item(
             confidence="explicit",
             office_title=office[:120],
             office_holder_status=status,
-            succession_order=int(fm.get("succession_order") or 0),
+            succession_order=order,
             tenure_from=(
                 str(fm["tenure_from"])[:200] if isinstance(fm.get("tenure_from"), str) else None
             ),
@@ -605,10 +827,8 @@ def build_link_proposals_for_item(
 
 def build_alias_and_link_graph(
     items: Iterable[Any],
-    *,
-    extra_office_links: list[DraftLinkProposal] | None = None,
 ) -> tuple[dict[str, AliasBundle], list[DraftLinkProposal]]:
-    """По списку ParsedVaultItem — алиасы-имена и рёбра (+ опциональная цепочка должностей)."""
+    """По списку ParsedVaultItem — алиасы-имена и рёбра (в т.ч. должности из шапки/текста)."""
     item_list = list(items)
     alias_by_key: dict[str, AliasBundle] = {}
     path_index: dict[str, str] = {}
@@ -636,24 +856,56 @@ def build_alias_and_link_graph(
             alias_index.setdefault(norm, it.source_key)
 
     links: list[DraftLinkProposal] = []
+    seen_office: set[tuple] = set()
+
+    def _extend(props: list[DraftLinkProposal]) -> None:
+        for prop in props:
+            edge = (
+                prop.from_source_key,
+                prop.to_source_key,
+                prop.label,
+                prop.office_title,
+                prop.succession_order,
+                prop.confidence,
+            )
+            if edge in seen_office:
+                continue
+            seen_office.add(edge)
+            links.append(prop)
+
     for it in item_list:
         proposal = getattr(it, "proposal", None) or {}
         path = proposal.get("path") or getattr(it, "source_path", "") or it.source_key
         body = proposal.get("body") or ""
         frontmatter = proposal.get("frontmatter") or {}
-        links.extend(
+        fm = frontmatter if isinstance(frontmatter, dict) else {}
+        _extend(
             build_link_proposals_for_item(
                 source_key=it.source_key,
                 path=str(path),
                 body=str(body),
-                frontmatter=frontmatter if isinstance(frontmatter, dict) else {},
+                frontmatter=fm,
                 path_index=path_index,
                 alias_index=alias_index,
                 self_norms=self_norms_by_key.get(it.source_key, set()),
                 alias_bundle=alias_by_key[it.source_key],
             )
         )
-
-    if extra_office_links:
-        links.extend(extra_office_links)
+        # Цепочки должностей с карточки места (любой мир, без спецслучаев)
+        _extend(
+            office_proposals_from_seat_frontmatter(
+                seat_source_key=it.source_key,
+                frontmatter=fm,
+                path_index=path_index,
+                alias_index=alias_index,
+            )
+        )
+        _extend(
+            office_proposals_from_seat_body(
+                seat_source_key=it.source_key,
+                body=str(body),
+                path_index=path_index,
+                alias_index=alias_index,
+            )
+        )
     return alias_by_key, links

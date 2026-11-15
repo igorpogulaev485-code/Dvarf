@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -28,11 +27,11 @@ from app.services.world_import_links import (
     OFFICE_LINK_LABEL,
     OFFICE_NEEDS_MASTER_HINT,
     build_alias_and_link_graph,
-    build_office_succession,
     collect_aliases_for_item,
     extract_md_file_links,
     is_office_phrase,
     normalize_alias_key,
+    office_proposals_from_seat_body,
     resolve_md_href,
     split_title_name_and_office,
     unnamed_office_holder_key,
@@ -328,43 +327,79 @@ def test_fixture_graph_unique_keys_and_links():
             raise AssertionError(f"должность попала в to_alias: {lnk}")
 
 
-def test_lunnyy_most_mayor_succession_three_holders():
-    """Продуктовая цепочка: безымянный → Келебрим → Тандил (текущий)."""
-    raw = json.loads(
-        (FIXTURE_ROOT / "product_rules" / "lunnyy-most-mayor-succession.json").read_text(
-            encoding="utf-8"
-        )
-    )
-    links = build_office_succession(
-        office_title=raw["office_title"],
-        seat_source_key=raw["seat_source_key"],
-        holders=raw["holders"],
-    )
-    assert len(links) == 3
-    assert [lnk.succession_order for lnk in links] == [0, 1, 2]
-    assert [lnk.office_holder_status for lnk in links] == ["former", "former", "current"]
-    assert all(lnk.label == OFFICE_LINK_LABEL for lnk in links)
-    assert all(lnk.to_source_key == "world/locations/lunnyy-most.md" for lnk in links)
-    assert all(lnk.office_title == "мэр Лунного моста" for lnk in links)
+def test_lunnyy_most_mayor_succession_three_holders_from_vault_markdown():
+    """Цепочка из шапки локации (обычное хранилище): безымянный → Келебрим → Тандил."""
+    files = load_vault_dir(FIXTURE_ROOT)
+    result = parse_vault_files(files)
+    _aliases, links = build_alias_and_link_graph(result.items)
 
-    unnamed = links[0]
+    office_links = [
+        lnk
+        for lnk in links
+        if lnk.label == OFFICE_LINK_LABEL
+        and lnk.office_title == "мэр Лунного моста"
+        and lnk.to_source_key == "world/locations/lunnyy-most.md"
+        and lnk.confidence == "explicit"
+        and lnk.succession_order is not None
+    ]
+    office_links.sort(key=lambda lnk: lnk.succession_order or 0)
+    assert len(office_links) == 3
+    assert [lnk.succession_order for lnk in office_links] == [0, 1, 2]
+    assert [lnk.office_holder_status for lnk in office_links] == [
+        "former",
+        "former",
+        "current",
+    ]
+
+    unnamed = office_links[0]
     assert unnamed.from_source_key.startswith("__unnamed__/")
     assert unnamed.from_source_key == unnamed_office_holder_key(
         seat_key="world/locations/lunnyy-most.md",
         office_title="мэр Лунного моста",
         order=0,
     )
-    assert links[1].from_source_key == "world/npcs/maestro-kelebrim.md"
-    assert links[2].from_source_key == "world/npcs/tandil.md"
-    assert links[2].office_holder_status == "current"
+    assert office_links[1].from_source_key == "world/npcs/maestro-kelebrim.md"
+    assert office_links[2].from_source_key == "world/npcs/tandil.md"
+    assert office_links[2].office_holder_status == "current"
 
-    # Безымянный не сливается ни с Келебримом, ни с Тандилом
-    holders = {lnk.from_source_key for lnk in links}
+    holders = {lnk.from_source_key for lnk in office_links}
     assert len(holders) == 3
     assert unnamed.from_source_key not in {
         "world/npcs/maestro-kelebrim.md",
         "world/npcs/tandil.md",
     }
+
+
+def test_office_succession_from_body_section():
+    """Тот же формат смены держателей текстом под «## Должности»."""
+    body = """
+# Город
+
+## Должности
+
+### мэр Лунного моста
+1. безымянный — бывший
+2. [[Маэстро Келебрим]] — бывший; по: гибель Маэстро
+3. [[Тандил]] — текущий; с: после гибели Маэстро
+"""
+    alias_index = {
+        normalize_alias_key("Маэстро Келебрим"): "world/npcs/maestro-kelebrim.md",
+        normalize_alias_key("Келебрим"): "world/npcs/maestro-kelebrim.md",
+        normalize_alias_key("Тандил"): "world/npcs/tandil.md",
+    }
+    links = office_proposals_from_seat_body(
+        seat_source_key="world/locations/lunnyy-most.md",
+        body=body,
+        path_index={},
+        alias_index=alias_index,
+    )
+    assert len(links) == 3
+    assert [lnk.office_holder_status for lnk in links] == ["former", "former", "current"]
+    assert links[0].from_source_key.startswith("__unnamed__/")
+    assert links[1].from_source_key == "world/npcs/maestro-kelebrim.md"
+    assert links[2].from_source_key == "world/npcs/tandil.md"
+    assert links[2].tenure_from == "после гибели Маэстро"
+    assert links[1].tenure_to == "гибель Маэстро"
 
 
 def test_mayor_mention_never_auto_links_to_person():

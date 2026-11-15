@@ -4,6 +4,22 @@ status: canon
 tags: [location, capital-spiritual]
 region: Аэлендор
 faction: Аэлендор
+# Пример записи смены держателей должности (формат импорта, любой мир).
+# Who upstream так не размечен — только тестовая фикстура.
+offices:
+  - title: мэр Лунного моста
+    holders:
+      - unnamed: true
+        status: former
+        order: 0
+      - name: Маэстро Келебрим
+        status: former
+        order: 1
+        tenure_to: гибель Маэстро
+      - name: Тандил
+        status: current
+        order: 2
+        tenure_from: после гибели Маэстро (глашатай)
 ---
 
 # Лунный Мост
