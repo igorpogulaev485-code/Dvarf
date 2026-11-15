@@ -1,0 +1,843 @@
+{
+  "generated": "2026-11-15",
+  "count": 209,
+  "uniqueMd5": 124,
+  "frames": [
+    {
+      "file": "m01-lobbies-list-1440.png",
+      "md5": "c1d0b767fed50bbccf4bc6c5bffa8f10"
+    },
+    {
+      "file": "m01-lobbies-list-390.png",
+      "md5": "b1687f2b0abe914fce6f40cee41aa78b"
+    },
+    {
+      "file": "m02-create-form-1440.png",
+      "md5": "31e9d9f4df54f81a6893844eef89152a"
+    },
+    {
+      "file": "m02-create-form-390.png",
+      "md5": "9d9388300d8b792fab5635f71f0960cc"
+    },
+    {
+      "file": "m03-hub-after-create-1440.png",
+      "md5": "937880162c0e83ed3456f69c74482b8b"
+    },
+    {
+      "file": "m03-hub-after-create-390.png",
+      "md5": "911b6708ce3ee7630e9daac0b332e714"
+    },
+    {
+      "file": "m04-invite-1440.png",
+      "md5": "a525952d0d5fb1613bc2837ec60865c8"
+    },
+    {
+      "file": "m04-invite-390.png",
+      "md5": "d16d8aaaa42eefed30e019bd170e447f"
+    },
+    {
+      "file": "m05-settings-1440.png",
+      "md5": "d6de334e4c3b1613513d0f141dcac838"
+    },
+    {
+      "file": "m05-settings-390.png",
+      "md5": "2c904eb8c39fbaf906686b0702caf848"
+    },
+    {
+      "file": "m05b-campaign-rules-1440.png",
+      "md5": "7d424dfea9e59703fcd3251880b195c1"
+    },
+    {
+      "file": "m05b-campaign-rules-390.png",
+      "md5": "5c9d46dc61a5e2e05835a00523321831"
+    },
+    {
+      "file": "m05c-start-rules-1440.png",
+      "md5": "4da9c79c9d3bc63c80da766aca206d4b"
+    },
+    {
+      "file": "m05c-start-rules-390.png",
+      "md5": "5146105465cdf4f88c6458faab5cece8"
+    },
+    {
+      "file": "m05d-media-quota-1440.png",
+      "md5": "c6a666034837ff3ca4964a586338130a"
+    },
+    {
+      "file": "m05d-media-quota-390.png",
+      "md5": "20a18b90d9461ba5cfc609ddfc10fc5e"
+    },
+    {
+      "file": "m06-roster-1440.png",
+      "md5": "c14fe92dc964b2485d424b6229d06d14"
+    },
+    {
+      "file": "m06-roster-390.png",
+      "md5": "27e83a98b230124a16fa30e41acb0b38"
+    },
+    {
+      "file": "m07-notes-1440.png",
+      "md5": "64d779ea329cb1be7f4df3b68f087ab6"
+    },
+    {
+      "file": "m07-notes-390.png",
+      "md5": "7876fd9212b6af0d112d79990c9db27d"
+    },
+    {
+      "file": "m08-journal-1440.png",
+      "md5": "dc293f16a64efb57ac948a5071f7352f"
+    },
+    {
+      "file": "m08-journal-390.png",
+      "md5": "563b98884a856d04f6861a7641b6a134"
+    },
+    {
+      "file": "m09-chats-1440.png",
+      "md5": "4fb302b88fce63561bae037c612836e1"
+    },
+    {
+      "file": "m09-chats-390.png",
+      "md5": "2d9f1ffb1f3917f7f304bdb3f2f2ed64"
+    },
+    {
+      "file": "m10-setting-1440.png",
+      "md5": "0e9415837aecdf2721bd1f8a69b9818b"
+    },
+    {
+      "file": "m10-setting-390.png",
+      "md5": "b4a7d5a8f6e1899653d290d244053f4e"
+    },
+    {
+      "file": "m100-post-end-1440.png",
+      "md5": "2b42e397bc706eee8483e4f488550a8d"
+    },
+    {
+      "file": "m100-post-end-390.png",
+      "md5": "5a2d2356dd72143c89e17634b78b8245"
+    },
+    {
+      "file": "m101-feed-1440.png",
+      "md5": "37cc83885c69304785f6291c4c880206"
+    },
+    {
+      "file": "m101-feed-390.png",
+      "md5": "fd3ab32c0e7787de2225a6bff369180d"
+    },
+    {
+      "file": "m102-hub-390.png",
+      "md5": "eb576bd853d9542ab4627eff479ac0f7"
+    },
+    {
+      "file": "m102-hub-760.png",
+      "md5": "e9b098c30e9bbffc2c114d2171ba02bf"
+    },
+    {
+      "file": "m103-chats-390.png",
+      "md5": "4c0febb74f3633175a44d7bd0d90c4ce"
+    },
+    {
+      "file": "m103-journal-390.png",
+      "md5": "cc9c4c5d90bb035e8ff8e6df792daa1f"
+    },
+    {
+      "file": "m103-notes-390.png",
+      "md5": "752d17acf40cb3a8e83573b921e55023"
+    },
+    {
+      "file": "m103-settings-390.png",
+      "md5": "75134253b6e86cb98c757ca83f1bdde2"
+    },
+    {
+      "file": "m104-session-390.png",
+      "md5": "eb576bd853d9542ab4627eff479ac0f7"
+    },
+    {
+      "file": "m104-session-760.png",
+      "md5": "fe5eba4585ee6d1033b596c2f00876d5"
+    },
+    {
+      "file": "m11-sessions-1440.png",
+      "md5": "4680dbeacc47bcfe6e45ffe74c9bb3e7"
+    },
+    {
+      "file": "m11-sessions-390.png",
+      "md5": "d64239844747f3dd131cc0b8f60d194b"
+    },
+    {
+      "file": "m12-session-empty-1440.png",
+      "md5": "2d12c6105a4e53ffb17b96388174843c"
+    },
+    {
+      "file": "m12-session-empty-390.png",
+      "md5": "e7dc3955a11c1c02ef96254dbf0c88b6"
+    },
+    {
+      "file": "m12-session-empty-760.png",
+      "md5": "3806d7d6c44fcabd08c26e943e0593c8"
+    },
+    {
+      "file": "m13-roster-with-player-1440.png",
+      "md5": "85b95e58021365a12d8296e5616898e4"
+    },
+    {
+      "file": "m13-roster-with-player-390.png",
+      "md5": "656a8505423ee38c870158137c66c210"
+    },
+    {
+      "file": "m14-session-master-1440.png",
+      "md5": "92faf284a86d768bb32449633e7eac3b"
+    },
+    {
+      "file": "m14-session-master-390.png",
+      "md5": "e7dc3955a11c1c02ef96254dbf0c88b6"
+    },
+    {
+      "file": "m15-attendance-1440.png",
+      "md5": "92faf284a86d768bb32449633e7eac3b"
+    },
+    {
+      "file": "m15-attendance-390.png",
+      "md5": "e7dc3955a11c1c02ef96254dbf0c88b6"
+    },
+    {
+      "file": "m16-after-seat-1440.png",
+      "md5": "92faf284a86d768bb32449633e7eac3b"
+    },
+    {
+      "file": "m16-after-seat-390.png",
+      "md5": "e7dc3955a11c1c02ef96254dbf0c88b6"
+    },
+    {
+      "file": "m17-add-combatant-dialog-1440.png",
+      "md5": "d03e26751cbd2fdfad755b8d45b25866"
+    },
+    {
+      "file": "m17-add-combatant-dialog-390.png",
+      "md5": "9bd316423a11c53059d9d6b34e1d54bd"
+    },
+    {
+      "file": "m18-after-combatant-1440.png",
+      "md5": "d03e26751cbd2fdfad755b8d45b25866"
+    },
+    {
+      "file": "m18-after-combatant-390.png",
+      "md5": "9bd316423a11c53059d9d6b34e1d54bd"
+    },
+    {
+      "file": "m19-start-combat-dialog-1440.png",
+      "md5": "d03e26751cbd2fdfad755b8d45b25866"
+    },
+    {
+      "file": "m19-start-combat-dialog-390.png",
+      "md5": "9bd316423a11c53059d9d6b34e1d54bd"
+    },
+    {
+      "file": "m20-combat-active-1440.png",
+      "md5": "d03e26751cbd2fdfad755b8d45b25866"
+    },
+    {
+      "file": "m20-combat-active-390.png",
+      "md5": "9bd316423a11c53059d9d6b34e1d54bd"
+    },
+    {
+      "file": "m20-combat-active-760.png",
+      "md5": "3d853eda916e37d7e68306fe40ff75a0"
+    },
+    {
+      "file": "m21-next-turn-1440.png",
+      "md5": "d03e26751cbd2fdfad755b8d45b25866"
+    },
+    {
+      "file": "m21-next-turn-390.png",
+      "md5": "9bd316423a11c53059d9d6b34e1d54bd"
+    },
+    {
+      "file": "m23-after-damage-1440.png",
+      "md5": "d03e26751cbd2fdfad755b8d45b25866"
+    },
+    {
+      "file": "m23-after-damage-390.png",
+      "md5": "9bd316423a11c53059d9d6b34e1d54bd"
+    },
+    {
+      "file": "m24-apply-condition-1440.png",
+      "md5": "d03e26751cbd2fdfad755b8d45b25866"
+    },
+    {
+      "file": "m24-apply-condition-390.png",
+      "md5": "9bd316423a11c53059d9d6b34e1d54bd"
+    },
+    {
+      "file": "m25-sides-1440.png",
+      "md5": "64942c21c7e880ee817349811cd31b45"
+    },
+    {
+      "file": "m25-sides-390.png",
+      "md5": "e8d98b870956f3a7be3ab69548be2020"
+    },
+    {
+      "file": "m26-end-combat-1440.png",
+      "md5": "64942c21c7e880ee817349811cd31b45"
+    },
+    {
+      "file": "m26-end-combat-390.png",
+      "md5": "e8d98b870956f3a7be3ab69548be2020"
+    },
+    {
+      "file": "m27-rewards-1440.png",
+      "md5": "64942c21c7e880ee817349811cd31b45"
+    },
+    {
+      "file": "m27-rewards-390.png",
+      "md5": "e8d98b870956f3a7be3ab69548be2020"
+    },
+    {
+      "file": "m28-award-xp-1440.png",
+      "md5": "64942c21c7e880ee817349811cd31b45"
+    },
+    {
+      "file": "m28-award-xp-390.png",
+      "md5": "e8d98b870956f3a7be3ab69548be2020"
+    },
+    {
+      "file": "m29-award-loot-1440.png",
+      "md5": "64942c21c7e880ee817349811cd31b45"
+    },
+    {
+      "file": "m29-award-loot-390.png",
+      "md5": "e8d98b870956f3a7be3ab69548be2020"
+    },
+    {
+      "file": "m30-after-combat-1440.png",
+      "md5": "64942c21c7e880ee817349811cd31b45"
+    },
+    {
+      "file": "m30-after-combat-390.png",
+      "md5": "e8d98b870956f3a7be3ab69548be2020"
+    },
+    {
+      "file": "m31-lobby-after-session-1440.png",
+      "md5": "93d0a3fd57c6115809713debf8c5cbac"
+    },
+    {
+      "file": "m31-lobby-after-session-390.png",
+      "md5": "656a8505423ee38c870158137c66c210"
+    },
+    {
+      "file": "m40-roster-live-1440.png",
+      "md5": "682a8db4fece56b205ff44f8009aa8c3"
+    },
+    {
+      "file": "m40-roster-live-390.png",
+      "md5": "9c625171f54dbdc1f7edcf39f1b9c255"
+    },
+    {
+      "file": "m41-session-seated-1440.png",
+      "md5": "bd531b0b1d005f5da6ff999308fae25d"
+    },
+    {
+      "file": "m41-session-seated-390.png",
+      "md5": "73c66e706814a1e5d069e8e72301485f"
+    },
+    {
+      "file": "m41-session-seated-760.png",
+      "md5": "10c0514705a36422ec36823633677a3a"
+    },
+    {
+      "file": "m42-who-came-1440.png",
+      "md5": "510ea514db135456424a551662a8990b"
+    },
+    {
+      "file": "m42-who-came-390.png",
+      "md5": "3e81a3357a83ce8cd1ad7bcc51625963"
+    },
+    {
+      "file": "m43-add-enemy-ui-1440.png",
+      "md5": "d25a80aa24bbf04039b359b426c82518"
+    },
+    {
+      "file": "m43-add-enemy-ui-390.png",
+      "md5": "191367d6aca34aee61afbe261c8996a2"
+    },
+    {
+      "file": "m43b-enemy-search-1440.png",
+      "md5": "f3ba88372adb3b4abc8fa05af88a3fc4"
+    },
+    {
+      "file": "m43b-enemy-search-390.png",
+      "md5": "d0f5c6590cbd90635e62eed7d70dadb3"
+    },
+    {
+      "file": "m44-start-dialog-1440.png",
+      "md5": "745f1099410405c61a12901932ef5abc"
+    },
+    {
+      "file": "m44-start-dialog-390.png",
+      "md5": "3a4c277a743f92da1f082d46b3078624"
+    },
+    {
+      "file": "m45-combat-live-1440.png",
+      "md5": "7b6e0a6fc4125020e41c08bd2676ba83"
+    },
+    {
+      "file": "m45-combat-live-390.png",
+      "md5": "977380b1bee50d62bc379e98fc0e1b2e"
+    },
+    {
+      "file": "m45-combat-live-760.png",
+      "md5": "afad39225ac2b367ba711bb58acf4dd7"
+    },
+    {
+      "file": "m46-next-turn-1440.png",
+      "md5": "28b58475eda2011effac0552407be9e8"
+    },
+    {
+      "file": "m46-next-turn-390.png",
+      "md5": "873beb06bdb8bce0ad7e181a20f8f415"
+    },
+    {
+      "file": "m60-dmg-filled-1440.png",
+      "md5": "a1691aa6d0bfb4fc5865c2159cafb39b"
+    },
+    {
+      "file": "m60-dmg-filled-390.png",
+      "md5": "873beb06bdb8bce0ad7e181a20f8f415"
+    },
+    {
+      "file": "m61-after-dmg-1440.png",
+      "md5": "28b58475eda2011effac0552407be9e8"
+    },
+    {
+      "file": "m61-after-dmg-390.png",
+      "md5": "873beb06bdb8bce0ad7e181a20f8f415"
+    },
+    {
+      "file": "m64-init-seen-1440.png",
+      "md5": "28b58475eda2011effac0552407be9e8"
+    },
+    {
+      "file": "m64-init-seen-390.png",
+      "md5": "873beb06bdb8bce0ad7e181a20f8f415"
+    },
+    {
+      "file": "m80-after-player-init-1440.png",
+      "md5": "a1691aa6d0bfb4fc5865c2159cafb39b"
+    },
+    {
+      "file": "m80-after-player-init-390.png",
+      "md5": "873beb06bdb8bce0ad7e181a20f8f415"
+    },
+    {
+      "file": "m81-dmg-ready-1440.png",
+      "md5": "ebdc069c0a9dcc348aed0ca07376ee6e"
+    },
+    {
+      "file": "m81-dmg-ready-390.png",
+      "md5": "873beb06bdb8bce0ad7e181a20f8f415"
+    },
+    {
+      "file": "m82-after-dmg-1440.png",
+      "md5": "726ff31e0a299268012307088756f53e"
+    },
+    {
+      "file": "m82-after-dmg-390.png",
+      "md5": "396b90bcddb23b6349384cc6ec06b8ed"
+    },
+    {
+      "file": "m83-heal-1440.png",
+      "md5": "0e859eb51074c6bc7c449ae7dfe88ac4"
+    },
+    {
+      "file": "m83-heal-390.png",
+      "md5": "b615840b8d692513a29e202bb4d67e45"
+    },
+    {
+      "file": "m84-sides-1440.png",
+      "md5": "8c3d77258932a7ccb850d24af624341b"
+    },
+    {
+      "file": "m84-sides-390.png",
+      "md5": "141d09b13e5ed4acefae80f482ea1c0b"
+    },
+    {
+      "file": "m95-session-now-1440.png",
+      "md5": "2362f67ac9f5736eaecf494012a4c0dc"
+    },
+    {
+      "file": "m95-session-now-390.png",
+      "md5": "3a94a2e40ad0d393d84e030030983ab2"
+    },
+    {
+      "file": "m96-rewards-1440.png",
+      "md5": "79f51461ffecd848430a09933f291f7a"
+    },
+    {
+      "file": "m96-rewards-390.png",
+      "md5": "c0bf80cffea0462f4034c25a600382a8"
+    },
+    {
+      "file": "m97-xp-1440.png",
+      "md5": "79f51461ffecd848430a09933f291f7a"
+    },
+    {
+      "file": "m97-xp-390.png",
+      "md5": "c0bf80cffea0462f4034c25a600382a8"
+    },
+    {
+      "file": "m98-loot-1440.png",
+      "md5": "0be1e546838ea3df7727719e231362ca"
+    },
+    {
+      "file": "m98-loot-390.png",
+      "md5": "3a94a2e40ad0d393d84e030030983ab2"
+    },
+    {
+      "file": "m99-end-1440.png",
+      "md5": "b91cd7865a833644e17b28fd50992c75"
+    },
+    {
+      "file": "m99-end-390.png",
+      "md5": "3c407652fff960f1178b09c60572e2ac"
+    },
+    {
+      "file": "p01-join-invite-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p01-join-invite-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p02-join-pick-char-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p02-join-pick-char-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p03-after-join-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p03-after-join-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p04-hub-player-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p04-hub-player-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p05-notes-player-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p05-notes-player-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p06-journal-player-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p06-journal-player-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p07-sessions-player-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p07-sessions-player-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p08-session-player-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p08-session-player-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p09-seated-player-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p09-seated-player-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p10-combat-player-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p10-combat-player-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p10-combat-player-760.png",
+      "md5": "bdf7183032b3284ce34b4419da2ecc67"
+    },
+    {
+      "file": "p11-after-next-turn-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p11-after-next-turn-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p12-after-damage-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p12-after-damage-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p15-rewards-player-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p15-rewards-player-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p16-after-combat-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p16-after-combat-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p17-reconnect-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p17-reconnect-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p18-back-lobby-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p18-back-lobby-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p19-rejoin-occupied-1440.png",
+      "md5": "e0e0854fe6d536441764602455f0d7ee"
+    },
+    {
+      "file": "p19-rejoin-occupied-390.png",
+      "md5": "d3047e4e30d1b9fb02a9e0ea5c292533"
+    },
+    {
+      "file": "p20-join-page-1440.png",
+      "md5": "98be26a94396d3907980e1c7da63e001"
+    },
+    {
+      "file": "p20-join-page-390.png",
+      "md5": "cce7c7c8bb5c53663cbec464b9e60aac"
+    },
+    {
+      "file": "p21-char-selected-1440.png",
+      "md5": "98be26a94396d3907980e1c7da63e001"
+    },
+    {
+      "file": "p21-char-selected-390.png",
+      "md5": "cce7c7c8bb5c53663cbec464b9e60aac"
+    },
+    {
+      "file": "p22-joined-hub-1440.png",
+      "md5": "acd75b1a798b96f785b4ec3869f48bbf"
+    },
+    {
+      "file": "p22-joined-hub-390.png",
+      "md5": "121d81ece1a37f471e2e40bcff1db88c"
+    },
+    {
+      "file": "p22-joined-hub-760.png",
+      "md5": "60592c61b6b7781f948996d61c041bcb"
+    },
+    {
+      "file": "p23-roster-1440.png",
+      "md5": "acd75b1a798b96f785b4ec3869f48bbf"
+    },
+    {
+      "file": "p23-roster-390.png",
+      "md5": "121d81ece1a37f471e2e40bcff1db88c"
+    },
+    {
+      "file": "p24-notes-1440.png",
+      "md5": "2f7c70205ba6e04a282ba4cd163e450d"
+    },
+    {
+      "file": "p24-notes-390.png",
+      "md5": "c52df74adbd088c798a62fab7f1896bf"
+    },
+    {
+      "file": "p25-journal-1440.png",
+      "md5": "9881c592b801106195cc862d93fb9706"
+    },
+    {
+      "file": "p25-journal-390.png",
+      "md5": "b50e980548e841d3ca939ff01f225e59"
+    },
+    {
+      "file": "p26-chats-1440.png",
+      "md5": "2aea766e4cc9788bf038be479530b46e"
+    },
+    {
+      "file": "p26-chats-390.png",
+      "md5": "b2a9db0609804817866410d1a73b9016"
+    },
+    {
+      "file": "p27-sessions-1440.png",
+      "md5": "063b74e6a8b215f176b1f8d31bfd62e4"
+    },
+    {
+      "file": "p27-sessions-390.png",
+      "md5": "89e94cb3efbe7b4d98863a4e5188cdac"
+    },
+    {
+      "file": "p28-session-seated-1440.png",
+      "md5": "68370cd5d346e50e89ec947161bd4faf"
+    },
+    {
+      "file": "p28-session-seated-390.png",
+      "md5": "52ced3e904db49bde4b808a08561277d"
+    },
+    {
+      "file": "p28-session-seated-760.png",
+      "md5": "6d917179077a58b395150be76b40eff8"
+    },
+    {
+      "file": "p29-combat-live-1440.png",
+      "md5": "f1f94706d393f83cc24742df8f6ebcad"
+    },
+    {
+      "file": "p29-combat-live-390.png",
+      "md5": "3e366ae854669a4f5a87fc670c0ff29f"
+    },
+    {
+      "file": "p29-combat-live-760.png",
+      "md5": "2a5405a983b8b50c1109266fcb79e830"
+    },
+    {
+      "file": "p30-sync-turn-1440.png",
+      "md5": "f7bc6a1a367e5d46602b385d86505bb5"
+    },
+    {
+      "file": "p30-sync-turn-390.png",
+      "md5": "07b2cb47bfa2b91ffd3a0e671d8d0e63"
+    },
+    {
+      "file": "p40-after-dmg-1440.png",
+      "md5": "ff18bdd975a1a4d49492cbb745c82704"
+    },
+    {
+      "file": "p40-after-dmg-390.png",
+      "md5": "07b2cb47bfa2b91ffd3a0e671d8d0e63"
+    },
+    {
+      "file": "p41-init-roll-1440.png",
+      "md5": "51d42b19a55a65255feec8a821348cad"
+    },
+    {
+      "file": "p41-init-roll-390.png",
+      "md5": "aa8cd5402109c5bd0c2504fc0dfc3205"
+    },
+    {
+      "file": "p51-after-init-1440.png",
+      "md5": "ff18bdd975a1a4d49492cbb745c82704"
+    },
+    {
+      "file": "p51-after-init-390.png",
+      "md5": "07b2cb47bfa2b91ffd3a0e671d8d0e63"
+    },
+    {
+      "file": "p52-sees-dmg-1440.png",
+      "md5": "0a254389aa89a31144ff062109b18e87"
+    },
+    {
+      "file": "p52-sees-dmg-390.png",
+      "md5": "355dc957014ceeb834c34b95a716b205"
+    },
+    {
+      "file": "p60-session-now-1440.png",
+      "md5": "ff18bdd975a1a4d49492cbb745c82704"
+    },
+    {
+      "file": "p60-session-now-390.png",
+      "md5": "07b2cb47bfa2b91ffd3a0e671d8d0e63"
+    },
+    {
+      "file": "p61-post-end-1440.png",
+      "md5": "7003c6c6bd68b9956a597c6ee2ca33a3"
+    },
+    {
+      "file": "p61-post-end-390.png",
+      "md5": "67872741fbf5d4a3aabef3b3dd5109ae"
+    },
+    {
+      "file": "p62-sheet-1440.png",
+      "md5": "93c180cfb6e14e89935aa55d8c668142"
+    },
+    {
+      "file": "p62-sheet-390.png",
+      "md5": "6b746d9f8f7fa2c960dad4728ee3e7dc"
+    },
+    {
+      "file": "p62-sheet-760.png",
+      "md5": "09cec801f4368088a12bed5e8bb41694"
+    },
+    {
+      "file": "p63-roll-1440.png",
+      "md5": "93c180cfb6e14e89935aa55d8c668142"
+    },
+    {
+      "file": "p63-roll-390.png",
+      "md5": "6b746d9f8f7fa2c960dad4728ee3e7dc"
+    },
+    {
+      "file": "p64-feed-1440.png",
+      "md5": "d0cb31d9d347cfe6d1c7693a6b2e15f1"
+    },
+    {
+      "file": "p64-feed-390.png",
+      "md5": "6b039246eb50b701e539a33c857c25a7"
+    },
+    {
+      "file": "p65-reconnect-1440.png",
+      "md5": "d0cb31d9d347cfe6d1c7693a6b2e15f1"
+    },
+    {
+      "file": "p65-reconnect-390.png",
+      "md5": "6b039246eb50b701e539a33c857c25a7"
+    },
+    {
+      "file": "z-master-fatal-1440.png",
+      "md5": "656f5675e78efcf2880a5c195b594752"
+    },
+    {
+      "file": "z-master-fatal-390.png",
+      "md5": "63c582996390ea4ca6e26e04f8f8aaa3"
+    },
+    {
+      "file": "z-player-fatal-1440.png",
+      "md5": "0c49fe93b1cfaf43d4dcb21e02ff5dfa"
+    },
+    {
+      "file": "z-player-fatal-390.png",
+      "md5": "f95c356b1d2933b207b1b74ca16085aa"
+    }
+  ]
+}
