@@ -795,7 +795,7 @@ export function LobbyDetailPage() {
                 )}
                 {lobby.invite_code ? (
                   <Text tone="muted">
-                    Код, ссылка и QR — в блоке «Приглашение» сверху (без дубля на каждом табе).
+                    Код, ссылка и QR — в блоке «Приглашение» сверху.
                     {canChangeInvite ? ' Смена кода — там же.' : ''}
                   </Text>
                 ) : null}

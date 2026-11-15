@@ -10,7 +10,17 @@ import type {
 import { unclaimedDefeatXp } from '../../shared/api/lobbies'
 import { formatClassLevelLabel } from '../../shared/dnd/classLevels'
 import type { CampaignRules } from './campaignRules'
-import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
+import {
+  Button,
+  Dialog,
+  Field,
+  Input,
+  NumberInput,
+  Select,
+  Stack,
+  Text,
+  ToggleChip,
+} from '../../ui'
 
 type CoinKey = 'cp' | 'sp' | 'ep' | 'gp' | 'pp'
 
@@ -103,11 +113,11 @@ type Props = {
 }
 
 const COIN_META: { key: CoinKey; label: string }[] = [
-  { key: 'gp', label: 'зм' },
-  { key: 'sp', label: 'см' },
-  { key: 'cp', label: 'мм' },
-  { key: 'ep', label: 'эм' },
-  { key: 'pp', label: 'пм' },
+  { key: 'gp', label: 'Золото' },
+  { key: 'sp', label: 'Серебро' },
+  { key: 'cp', label: 'Медь' },
+  { key: 'ep', label: 'Электрум' },
+  { key: 'pp', label: 'Платина' },
 ]
 
 const QUICK: Array<{
@@ -224,6 +234,7 @@ export function RewardsDialog({
     'medium',
   )
   const [awardMode, setAwardMode] = useState<'idle' | 'assign'>('idle')
+  const [quickKind, setQuickKind] = useState<(typeof QUICK)[number]['kind']>('trinkets')
 
   useEffect(() => {
     if (!open) return
@@ -390,6 +401,15 @@ export function RewardsDialog({
     (milestones ||
       (useManual ? (manualAmount ?? 0) > 0 : combatPool >= 0 && (combatPool > 0 || bank > 0 || bonuses.length > 0)))
 
+  const chestEmpty = chestRows.length === 0
+  const chestDisabledHint = 'Сундук пуст — добавьте добычу.'
+  const bonusAddDisabled = busy || !bonusWho || !(bonusAmount && bonusAmount > 0)
+  const bonusAddDisabledHint = !bonusWho
+    ? 'Выберите, кому выдать бонус.'
+    : !(bonusAmount && bonusAmount > 0)
+      ? 'Укажите сумму XP.'
+      : undefined
+
   const primaryLabel = milestones
     ? 'Повысить уровень'
     : awardMode === 'assign'
@@ -459,10 +479,7 @@ export function RewardsDialog({
             {milestones ? 'Вехи' : 'Опыт'}
           </Text>
           {milestones ? (
-            <Text tone="muted">
-              В правилах кампании — вехи. Отметьте героев для повышения уровня партии.
-              Сумма CR в листы не пишется.
-            </Text>
+            <Text tone="muted">Отметьте героев для повышения уровня.</Text>
           ) : useManual ? (
             <Stack gap={8}>
               <Field label="Сумма каждому">
@@ -547,8 +564,7 @@ export function RewardsDialog({
               ) : null}
               {rem > 0 && remainderMode === 'give' ? (
                 <Field label="Кому остаток">
-                  <select
-                    className="ui-input"
+                  <Select
                     value={remainderWho}
                     disabled={busy}
                     onChange={(e) => setRemainderWho(e.target.value)}
@@ -558,7 +574,7 @@ export function RewardsDialog({
                         {s.character_name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </Field>
               ) : null}
             </Stack>
@@ -577,10 +593,6 @@ export function RewardsDialog({
                 Все за столом
               </button>
             </div>
-            <Text tone="muted">
-              Только сидящие за столом. Офлайн-героя посади в «Кто пришёл» — опыт ляжет на
-              цифровой лист без открытия приложения.
-            </Text>
             <ul className="session-xp-recipients">
               {seats.map((seat) => {
                 const on = selectedIds.has(seat.character_id)
@@ -590,26 +602,27 @@ export function RewardsDialog({
                   tags.push('не был')
                 if (pendingRewards?.traitor_ids?.includes(seat.character_id))
                   tags.push('предатель')
+                const main = (
+                  <>
+                    {seat.character_name}
+                    {seat.character_class_name || seat.character_level
+                      ? ` · ${formatClassLevelLabel(
+                          seat.character_class_name,
+                          seat.character_level,
+                        )}`
+                      : ''}
+                    {tags.length ? ` (${tags.join(', ')})` : ''}
+                  </>
+                )
                 return (
                   <li key={seat.character_id}>
-                    <label className={`session-xp-recipient${on ? ' is-on' : ''}`}>
-                      <input
-                        type="checkbox"
-                        checked={on}
-                        disabled={busy}
-                        onChange={() => toggle(seat.character_id)}
-                      />
-                      <span>
-                        {seat.character_name}
-                        {seat.character_class_name || seat.character_level
-                          ? ` · ${formatClassLevelLabel(
-                              seat.character_class_name,
-                              seat.character_level,
-                            )}`
-                          : ''}
-                        {tags.length ? ` (${tags.join(', ')})` : ''}
-                      </span>
-                    </label>
+                    <ToggleChip
+                      className={`session-xp-recipient${on ? ' is-on' : ''}`}
+                      main={main}
+                      checked={on}
+                      disabled={busy}
+                      onChange={() => toggle(seat.character_id)}
+                    />
                   </li>
                 )
               })}
@@ -623,8 +636,7 @@ export function RewardsDialog({
               </Text>
               <div className="session-loot-compose">
                 <Field label="Кому">
-                  <select
-                    className="ui-input"
+                  <Select
                     value={bonusWho}
                     disabled={busy}
                     onChange={(e) => setBonusWho(e.target.value)}
@@ -634,7 +646,7 @@ export function RewardsDialog({
                         {s.character_name}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </Field>
                 <Field label="XP">
                   <NumberInput
@@ -648,8 +660,7 @@ export function RewardsDialog({
                   />
                 </Field>
                 <Field label="За">
-                  <select
-                    className="ui-input"
+                  <Select
                     value={bonusReason}
                     disabled={busy}
                     onChange={(e) =>
@@ -658,12 +669,18 @@ export function RewardsDialog({
                   >
                     <option value="отыгрыш">+ за отыгрыш</option>
                     <option value="находчивость">+ за находчивость</option>
-                  </select>
+                  </Select>
                 </Field>
                 <Button
                   type="button"
                   variant="secondary"
-                  disabled={busy || !bonusWho || !(bonusAmount && bonusAmount > 0)}
+                  disabled={bonusAddDisabled}
+                  title={bonusAddDisabled ? bonusAddDisabledHint : undefined}
+                  aria-label={
+                    bonusAddDisabled && bonusAddDisabledHint
+                      ? `Добавить бонус: ${bonusAddDisabledHint}`
+                      : 'Добавить бонус'
+                  }
                   onClick={() => {
                     if (!bonusWho || !bonusAmount) return
                     setBonuses((prev) => [
@@ -709,12 +726,6 @@ export function RewardsDialog({
           <Text as="h4" className="session-xp-recipients__title">
             Добыча
           </Text>
-          <Text tone="muted">
-            Пустой сундук после боя. Наполните, затем «Выдать» или «Положить на стол».
-            Награды получают только герои за столом — офлайн-игрока посади через «Кто
-            пришёл». Если игрок приложение не открывал, лучше жать «Выдать», а не
-            «Положить на стол».
-          </Text>
 
           <div className="session-rewards__quick">
             <Button
@@ -731,46 +742,56 @@ export function RewardsDialog({
             >
               Подобрать добычу
             </Button>
-            <select
-              className="ui-input"
+            <Select
               value={difficulty}
               disabled={busy}
+              title="Сложность боя"
               onChange={(e) =>
                 setDifficulty(e.target.value as 'easy' | 'medium' | 'hard' | 'deadly')
               }
-              title="Сложность боя"
             >
               <option value="easy">лёгкий</option>
               <option value="medium">средний</option>
               <option value="hard">сложный</option>
               <option value="deadly">смертельный</option>
-            </select>
+            </Select>
           </div>
-          <div className="session-rewards__quick">
-            {QUICK.map((q) => (
-              <Button
-                key={q.kind}
-                type="button"
-                variant="ghost"
+          <div className="session-loot-compose">
+            <Field label="Категория">
+              <Select
+                value={quickKind}
                 disabled={busy}
-                title={q.kind === 'legend' ? 'Только вручную' : undefined}
-                onClick={() => {
-                  if (q.kind === 'legend') {
-                    setDraftName('Легендарный предмет')
-                    return
-                  }
-                  onChest({ action: 'quick_add', kind: q.kind, difficulty })
-                }}
+                onChange={(e) =>
+                  setQuickKind(e.target.value as (typeof QUICK)[number]['kind'])
+                }
               >
-                {q.label}
-              </Button>
-            ))}
+                {QUICK.map((q) => (
+                  <option key={q.kind} value={q.kind}>
+                    {q.label}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={busy}
+              title={quickKind === 'legend' ? 'Только вручную — подставит название' : undefined}
+              onClick={() => {
+                if (quickKind === 'legend') {
+                  setDraftName('Легендарный предмет')
+                  return
+                }
+                onChest({ action: 'quick_add', kind: quickKind, difficulty })
+              }}
+            >
+              Добавить
+            </Button>
           </div>
 
           {artifacts.length > 0 ? (
             <Field label="Артефакт сеттинга">
-              <select
-                className="ui-input"
+              <Select
                 value={draftArtifactId}
                 disabled={busy}
                 onChange={(e) => {
@@ -784,7 +805,7 @@ export function RewardsDialog({
                     {a.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </Field>
           ) : null}
 
@@ -814,13 +835,13 @@ export function RewardsDialog({
           </div>
 
           <div className="session-loot-compose session-loot-compose--coins">
-            <Field label="зм">
+            <Field label="Золото">
               <NumberInput value={coinGp} min={0} integer emptyValue={null} disabled={busy} onValueChange={setCoinGp} />
             </Field>
-            <Field label="см">
+            <Field label="Серебро">
               <NumberInput value={coinSp} min={0} integer emptyValue={null} disabled={busy} onValueChange={setCoinSp} />
             </Field>
-            <Field label="мм">
+            <Field label="Медь">
               <NumberInput value={coinCp} min={0} integer emptyValue={null} disabled={busy} onValueChange={setCoinCp} />
             </Field>
             <Button type="button" variant="secondary" disabled={busy} onClick={addChestCoins}>
@@ -847,8 +868,7 @@ export function RewardsDialog({
                       </span>
                     )}
                     {awardMode === 'assign' ? (
-                      <select
-                        className="ui-input"
+                      <Select
                         value={assign[row.key] || ''}
                         onChange={(e) =>
                           setAssign((prev) => ({ ...prev, [row.key]: e.target.value }))
@@ -863,7 +883,7 @@ export function RewardsDialog({
                             {s.character_name}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     ) : null}
                   </div>
                   <div className="session-rewards__row-actions">
@@ -897,14 +917,16 @@ export function RewardsDialog({
               ))}
             </ul>
           ) : (
-            <Text tone="muted">Сундук пуст.</Text>
+            <Text tone="muted">{chestDisabledHint}</Text>
           )}
 
           <div className="session-rewards__loot-actions">
             <Button
               type="button"
               variant="secondary"
-              disabled={busy || chestRows.length === 0}
+              disabled={busy || chestEmpty}
+              title={chestEmpty ? chestDisabledHint : undefined}
+              aria-label={chestEmpty ? `Выдать: ${chestDisabledHint}` : 'Выдать добычу'}
               onClick={() => {
                 syncChestToServer()
                 setAwardMode('assign')
@@ -915,7 +937,11 @@ export function RewardsDialog({
             <Button
               type="button"
               variant="secondary"
-              disabled={busy || chestRows.length === 0}
+              disabled={busy || chestEmpty}
+              title={chestEmpty ? chestDisabledHint : undefined}
+              aria-label={
+                chestEmpty ? `Положить на стол: ${chestDisabledHint}` : 'Положить добычу на стол'
+              }
               onClick={() => syncChestToServer({ putOnTable: true })}
             >
               Положить на стол
@@ -1002,8 +1028,7 @@ export function LootChestBoard({
                 </Button>
               ) : null}
               {canAward ? (
-                <select
-                  className="ui-input"
+                <Select
                   defaultValue=""
                   disabled={busy}
                   onChange={(e) => {
@@ -1018,7 +1043,7 @@ export function LootChestBoard({
                       {s.character_name}
                     </option>
                   ))}
-                </select>
+                </Select>
               ) : null}
             </div>
           </li>
