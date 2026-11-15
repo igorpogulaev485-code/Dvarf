@@ -537,8 +537,8 @@ export function PlayDeskHeader({
         </div>
       </div>
 
-      <div className="play-desk-header__mid">
-        <div className="play-desk-header__vitals" data-onboarding="combat-vitals">
+      <div className="play-desk-header__mid" data-onboarding="combat-vitals">
+        <div className="play-desk-header__vitals">
           <VitalTile
             as="div"
             icon={<IconShield className="play-desk-vital__icon" />}
@@ -789,7 +789,7 @@ export function PlayDeskHeader({
         </div>
       </div>
 
-      <div className="play-desk-header__right">
+      <div className="play-desk-header__right" data-onboarding="combat-vitals">
         <ChipStack variant="tools">
           <button
             type="button"

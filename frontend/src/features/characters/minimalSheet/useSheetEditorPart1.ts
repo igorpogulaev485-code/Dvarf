@@ -36,6 +36,10 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
   model.startingLevelProp = props.startingLevel ?? 1
   model.showOnboardingChecklist = props.showOnboardingChecklist ?? false
   model.showValueTips = props.showValueTips ?? false
+  model.sceneIntroEnabled = props.sceneIntroEnabled ?? false
+  model.sceneIntroBlocked = props.sceneIntroBlocked ?? false
+  model.sceneIntroSeen = props.sceneIntroSeen ?? []
+  model.onSceneIntroSeen = props.onSceneIntroSeen
   model.onCreateGuideConsumed = props.onCreateGuideConsumed
   model.onSaved = props.onSaved
   model.onToast = props.onToast

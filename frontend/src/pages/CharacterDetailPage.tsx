@@ -391,6 +391,15 @@ export function CharacterDetailPage() {
               tourArmed
             }
             showValueTips={onboarding.state.segment === 'dnd_new'}
+            sceneIntroEnabled={onboarding.showSceneIntros}
+            sceneIntroBlocked={
+              tourArmed ||
+              onboarding.showSheetTour ||
+              onboarding.showReadyBridge ||
+              onboarding.showWelcome
+            }
+            sceneIntroSeen={onboarding.state.seenSceneIntros}
+            onSceneIntroSeen={onboarding.markSceneIntroSeen}
             onCreateGuideConsumed={() => {
               setCreateGuide(null)
               setStartingLevel(1)
@@ -445,12 +454,9 @@ export function CharacterDetailPage() {
         onChoose={(segment) => {
           setWelcomeSessionHide(false)
           onboarding.completeWelcome(segment)
-          if (segment !== 'skip') {
-            onboarding.armSheetTour()
-            setTourArmed(true)
-          } else {
-            setTourArmed(false)
-          }
+          // TOUR-01: sheet tour only after create bridge or «Показать подсказки снова» —
+          // not on welcome when opening any sheet.
+          setTourArmed(false)
         }}
         onDismiss={() => setWelcomeSessionHide(true)}
       />

@@ -23,10 +23,13 @@ export type OnboardingPanelId =
 
 export type SheetTourStepId =
   | 'combat_header'
+  | 'hot_bar'
   | 'desk_modes'
-  | 'abilities'
-  | 'actions'
-  | 'checklist'
+  | 'turn_actions'
+  | 'help'
+
+/** First-visit «что здесь» cards for non-combat scenes (TOUR-01). */
+export type SceneIntroId = 'explore' | 'social' | 'features' | 'companions'
 
 export type LobbyTourStepId =
   | 'seat'
@@ -53,6 +56,8 @@ export type OnboardingState = {
   sheetTourDone: boolean
   lobbyTourDone: boolean
   dismissedPanelHelp: OnboardingPanelId[]
+  /** Scene first-visit cards already shown (local; reset with restart tips). */
+  seenSceneIntros: SceneIntroId[]
   helpOpened: boolean
   /** After create Готово — show bridge dialog once. Local-only. */
   pendingReadyBridge: boolean
@@ -74,6 +79,7 @@ export function defaultOnboardingState(): OnboardingState {
     sheetTourDone: false,
     lobbyTourDone: false,
     dismissedPanelHelp: [],
+    seenSceneIntros: [],
     helpOpened: false,
     pendingReadyBridge: false,
     pendingSheetTour: false,

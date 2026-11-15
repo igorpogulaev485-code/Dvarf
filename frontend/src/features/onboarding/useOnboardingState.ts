@@ -8,6 +8,7 @@ import {
   shouldRunLobbyTour,
   shouldRunSheetTour,
   shouldShowCreateHints,
+  shouldShowSceneIntros,
   toServerPayload,
 } from './storage'
 import {
@@ -15,6 +16,7 @@ import {
   type OnboardingPanelId,
   type OnboardingSegment,
   type OnboardingState,
+  type SceneIntroId,
 } from './types'
 
 export function useOnboardingState(userId?: string | null) {
@@ -215,6 +217,19 @@ export function useOnboardingState(userId?: string | null) {
     commit((prev) => restartTipsState(prev))
   }, [commit])
 
+  const markSceneIntroSeen = useCallback(
+    (id: SceneIntroId) => {
+      commit(
+        (prev) =>
+          prev.seenSceneIntros.includes(id)
+            ? prev
+            : { ...prev, seenSceneIntros: [...prev.seenSceneIntros, id] },
+        { sync: false },
+      )
+    },
+    [commit],
+  )
+
   const showLobbyTour =
     hydrated && shouldRunLobbyTour(state) && (state.pendingLobbyTour || !state.lobbyTourDone)
 
@@ -233,10 +248,12 @@ export function useOnboardingState(userId?: string | null) {
     dismissPanelHelp,
     markHelpOpened,
     restartTips,
+    markSceneIntroSeen,
     showWelcome: hydrated && !state.welcomeDone,
     showCreateHints: shouldShowCreateHints(state),
     showReadyBridge: state.pendingReadyBridge && state.segment !== 'skip',
     showSheetTour: shouldRunSheetTour(state),
     showLobbyTour,
+    showSceneIntros: hydrated && shouldShowSceneIntros(state),
   }
 }

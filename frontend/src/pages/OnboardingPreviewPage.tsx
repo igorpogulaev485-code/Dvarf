@@ -182,31 +182,24 @@ export function OnboardingPreviewPage() {
                 className="onboarding-preview__anchor onboarding-preview__anchor--lg"
                 data-onboarding="combat-header"
               >
-                Шапка боя
-                <div data-onboarding="combat-vitals">КД · хиты · инициатива</div>
+                Шапка
+                <div data-onboarding="combat-vitals">Хиты · КД · скорость · отдых</div>
               </div>
-              <div className="onboarding-preview__anchor" data-onboarding="needs-setup">
-                Нужно настроить: 2
+              <div className="onboarding-preview__anchor" data-onboarding="hot-bar">
+                Хот-панель: запасы · концентрация · состояния · Следующий раунд
               </div>
-              <div className="onboarding-preview__anchor" data-onboarding="abilities">
-                СИЛ ЛОВ ТЕЛ ИНТ МДР ХАР + навыки
-              </div>
-              <div className="onboarding-preview__anchor" data-onboarding="actions">
-                Атаки / заклинания
-              </div>
-              <div data-onboarding="checklist">
-                <OnboardingChecklist compact />
-              </div>
-              <button type="button" data-onboarding="help">
-                Справка
-              </button>
-              {/* Mobile: scenes live in the bottom tab bar — keep a fixed band for placement checks. */}
               <div
                 className="onboarding-preview__anchor onboarding-preview__desk-modes"
                 data-onboarding="desk-modes"
               >
                 Бой · Исследование · Общение · Напарники · Способности
               </div>
+              <div className="onboarding-preview__anchor" data-onboarding="turn-actions">
+                Действие / Бонусное / Реакция
+              </div>
+              <button type="button" data-onboarding="help">
+                Справка
+              </button>
             </div>
             <SheetTour open onComplete={() => setScene('panels')} onSkip={() => setScene('panels')} />
           </section>
@@ -247,16 +240,11 @@ export function OnboardingPreviewPage() {
                   className="onboarding-preview__anchor onboarding-preview__anchor--lg"
                   data-onboarding="combat-header"
                 >
-                  Шапка боя (тур после «Показать снова»)
+                  Шапка (тур после «Показать снова»)
+                  <div data-onboarding="combat-vitals">Хиты · КД</div>
                 </div>
-                <div className="onboarding-preview__anchor" data-onboarding="needs-setup">
-                  Нужно настроить
-                </div>
-                <div className="onboarding-preview__anchor" data-onboarding="abilities">
-                  Характеристики
-                </div>
-                <div className="onboarding-preview__anchor" data-onboarding="actions">
-                  Атаки
+                <div className="onboarding-preview__anchor" data-onboarding="hot-bar">
+                  Хот-панель
                 </div>
                 <div
                   className="onboarding-preview__anchor onboarding-preview__desk-modes"
@@ -264,6 +252,12 @@ export function OnboardingPreviewPage() {
                 >
                   Сцены
                 </div>
+                <div className="onboarding-preview__anchor" data-onboarding="turn-actions">
+                  Действие / Бонусное / Реакция
+                </div>
+                <button type="button" data-onboarding="help">
+                  Справка
+                </button>
                 <SheetTour
                   open
                   onComplete={() => {

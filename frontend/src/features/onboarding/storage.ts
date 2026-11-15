@@ -6,6 +6,7 @@ import {
   type OnboardingSegment,
   type OnboardingServerPayload,
   type OnboardingState,
+  type SceneIntroId,
   toServerPayload,
 } from './types'
 
@@ -16,6 +17,12 @@ function storageKey(userId?: string | null): string {
 
 function isPanelId(value: unknown): value is OnboardingPanelId {
   return typeof value === 'string' && value.length > 0
+}
+
+const SCENE_INTRO_IDS: SceneIntroId[] = ['explore', 'social', 'features', 'companions']
+
+function isSceneIntroId(value: unknown): value is SceneIntroId {
+  return typeof value === 'string' && (SCENE_INTRO_IDS as string[]).includes(value)
 }
 
 export function isSegment(value: unknown): value is OnboardingSegment {
@@ -39,6 +46,9 @@ export function loadOnboardingState(userId?: string | null): OnboardingState {
       lobbyTourDone: Boolean(parsed.lobbyTourDone),
       dismissedPanelHelp: Array.isArray(parsed.dismissedPanelHelp)
         ? parsed.dismissedPanelHelp.filter(isPanelId)
+        : [],
+      seenSceneIntros: Array.isArray(parsed.seenSceneIntros)
+        ? parsed.seenSceneIntros.filter(isSceneIntroId)
         : [],
       helpOpened: Boolean(parsed.helpOpened),
       pendingReadyBridge: Boolean(parsed.pendingReadyBridge),
@@ -77,6 +87,7 @@ export function mergeOnboardingState(
   const sheetTourDone = primary.sheetTourDone || secondary.sheetTourDone
   const lobbyTourDone = primary.lobbyTourDone || secondary.lobbyTourDone
   const dismissed = new Set([...primary.dismissedPanelHelp, ...secondary.dismissedPanelHelp])
+  const seenScenes = new Set([...primary.seenSceneIntros, ...secondary.seenSceneIntros])
   return {
     version: 1,
     segment: primary.segment ?? secondary.segment,
@@ -85,6 +96,7 @@ export function mergeOnboardingState(
     sheetTourDone,
     lobbyTourDone,
     dismissedPanelHelp: Array.from(dismissed),
+    seenSceneIntros: Array.from(seenScenes),
     helpOpened: primary.helpOpened || secondary.helpOpened,
     pendingReadyBridge:
       !sheetTourDone && (primary.pendingReadyBridge || secondary.pendingReadyBridge),
@@ -114,7 +126,8 @@ export function loadOnboardingStateForUser(userId?: string | null): OnboardingSt
     anon.pendingSheetTour === anonDefault.pendingSheetTour &&
     anon.pendingLobbyTour === anonDefault.pendingLobbyTour &&
     anon.helpOpened === anonDefault.helpOpened &&
-    anon.dismissedPanelHelp.length === 0
+    anon.dismissedPanelHelp.length === 0 &&
+    anon.seenSceneIntros.length === 0
   if (anonUntouched) return named
   const merged = mergeOnboardingState(named, anon)
   saveOnboardingState(merged, userId)
@@ -213,7 +226,18 @@ export function restartTipsState(prev: OnboardingState): OnboardingState {
     pendingSheetTour: !wasSkip && prev.segment != null,
     pendingLobbyTour: true,
     createHintVersion: 0,
+    seenSceneIntros: [],
   }
+}
+
+/** First-visit scene cards: dnd_new + product_new only; skip never. */
+export function shouldShowSceneIntros(state: OnboardingState): boolean {
+  if (state.segment === 'skip' || state.segment == null) return false
+  return state.segment === 'dnd_new' || state.segment === 'product_new'
+}
+
+export function isSceneIntroSeen(state: OnboardingState, id: SceneIntroId): boolean {
+  return state.seenSceneIntros.includes(id)
 }
 
 export { toServerPayload }

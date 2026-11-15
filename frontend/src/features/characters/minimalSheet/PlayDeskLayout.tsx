@@ -6,7 +6,7 @@ import { syncAttacksHeldFromInventory } from '../AttacksPanel'
 import { canWearArmor } from '../equipmentProficiency'
 import { LanguagesToolsPanel } from '../LanguagesToolsPanel'
 import { OwnershipSummary } from '../OwnershipSummary'
-import { OnboardingChecklist, HoverTipCard, SCENE_TIPS } from '../../onboarding'
+import { OnboardingChecklist, HoverTipCard, SCENE_TIPS, SceneIntroCard } from '../../onboarding'
 import { PlayDeskHotBar } from '../PlayDeskHotBar'
 import { BottomSceneNav } from '../BottomSceneNav'
 import { MobileAbilitiesPage } from '../MobileAbilitiesPage'
@@ -68,6 +68,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                   <button
                     key={mode}
                     type="button"
+                    data-desk-mode={mode}
                     className={`play-desk__mode${model.draft.sheetUi.deskMode === mode ? ' is-on' : ''}${
                       model.showValueTips ? ' has-onboarding-tip' : ''
                     }`}
@@ -656,6 +657,16 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
           mode={model.draft.sheetUi.deskMode}
           onModeChange={model.setDeskMode}
           showValueTips={model.showValueTips}
+        />
+      ) : null}
+
+      {model.sceneIntroEnabled ? (
+        <SceneIntroCard
+          mode={model.draft.sheetUi.deskMode}
+          enabled={Boolean(model.sceneIntroEnabled)}
+          blocked={Boolean(model.sceneIntroBlocked)}
+          seen={model.sceneIntroSeen ?? []}
+          onDismiss={(id) => model.onSceneIntroSeen?.(id)}
         />
       ) : null}
 

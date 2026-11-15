@@ -42,6 +42,7 @@ export function BottomSceneNav({
               role="tab"
               aria-selected={on}
               aria-label={label}
+              data-desk-mode={id}
               className={`mobile-scene-nav__tab${on ? ' is-on' : ''}${
                 showValueTips ? ' has-onboarding-tip' : ''
               }`}

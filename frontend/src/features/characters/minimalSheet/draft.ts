@@ -76,6 +76,12 @@ export type MinimalSheetEditorProps = {
   showOnboardingChecklist?: boolean
   /** Absolute beginner: value «?» on КД/хиты/СИЛ… */
   showValueTips?: boolean
+  /** TOUR-01: one-shot «что здесь» for explore/social/features/companions. */
+  sceneIntroEnabled?: boolean
+  /** Hide scene intros while sheet tour / ready bridge is open. */
+  sceneIntroBlocked?: boolean
+  sceneIntroSeen?: Array<'explore' | 'social' | 'features' | 'companions'>
+  onSceneIntroSeen?: (id: 'explore' | 'social' | 'features' | 'companions') => void
   onCreateGuideConsumed?: () => void
   onSaved: (character: CharacterDetail) => void
   onToast: (message: ToastInput) => void

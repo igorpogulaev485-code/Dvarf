@@ -1,5 +1,5 @@
 /**
- * ONB-01 display fixes — storage merge, anchor pick, welcome ≠ skip contract.
+ * ONB-01 / TOUR-01 display fixes — storage merge, anchor pick, welcome ≠ skip contract.
  * Run: npx tsx --tsconfig tsconfig.app.json src/features/onboarding/onboardingDisplay.selfcheck.ts
  */
 
@@ -9,6 +9,7 @@ import {
   loadOnboardingState,
   loadOnboardingStateForUser,
   mergeOnboardingState,
+  restartTipsState,
   saveOnboardingState,
 } from './storage.ts'
 import { defaultOnboardingState, ONBOARDING_STORAGE_KEY } from './types.ts'
@@ -43,6 +44,7 @@ const anonPending = {
   pendingSheetTour: true,
   lobbyTourDone: false,
   pendingLobbyTour: false,
+  seenSceneIntros: ['explore' as const],
 }
 const namedEmpty = defaultOnboardingState()
 const merged = mergeOnboardingState(namedEmpty, anonPending)
@@ -50,6 +52,7 @@ assert(merged.segment === 'dnd_new', 'merge keeps segment')
 assert(merged.welcomeDone, 'merge keeps welcomeDone')
 assert(merged.pendingReadyBridge, 'merge keeps pendingReadyBridge')
 assert(merged.pendingSheetTour, 'merge keeps pendingSheetTour')
+assert(merged.seenSceneIntros.includes('explore'), 'merge keeps seenSceneIntros')
 
 const afterTour = mergeOnboardingState(
   { ...namedEmpty, sheetTourDone: true },
@@ -64,6 +67,7 @@ assert(mem.has(ONBOARDING_STORAGE_KEY), 'anon key written')
 const adopted = loadOnboardingStateForUser('user-42')
 assert(adopted.pendingSheetTour, 'adopt pulls pending from anon')
 assert(adopted.segment === 'dnd_new', 'adopt pulls segment')
+assert(adopted.seenSceneIntros.includes('explore'), 'adopt pulls seenSceneIntros')
 assert(!mem.has(ONBOARDING_STORAGE_KEY), 'anon key cleared after adopt')
 assert(mem.has(`${ONBOARDING_STORAGE_KEY}:user-42`), 'named key saved')
 const namedReload = loadOnboardingState('user-42')
@@ -88,41 +92,31 @@ assert(welcomeWouldSkip('dismiss').segment === null, 'dismiss does not set segme
 assert(welcomeWouldSkip('skip').segment === 'skip', 'skip still works')
 assert(welcomeWouldSkip('dnd_new').welcomeDone, 'dnd_new completes welcome')
 
-// ——— anchor resolution (B3/B8) ———
+// ——— restart clears scene intros ———
+const restarted = restartTipsState({
+  ...defaultOnboardingState(),
+  segment: 'dnd_new',
+  welcomeDone: true,
+  sheetTourDone: true,
+  seenSceneIntros: ['explore', 'social'],
+})
+assert(restarted.seenSceneIntros.length === 0, 'restart clears seenSceneIntros')
+assert(restarted.pendingSheetTour, 'restart arms sheet tour')
+
+// ——— anchor resolution (TOUR-01) ———
 assert(
-  resolveSheetTourAnchor('checklist', 'checklist', {
+  resolveSheetTourAnchor('help', 'help', {
     narrow: true,
     hasVisible: () => false,
   }) === 'help',
-  'mobile checklist → help',
+  'mobile help stays help',
 )
 assert(
-  resolveSheetTourAnchor('checklist', 'checklist', {
-    narrow: false,
-    hasVisible: (a) => a === 'needs-setup',
-  }) === 'needs-setup',
-  'desktop missing checklist → needs-setup',
-)
-assert(
-  resolveSheetTourAnchor('checklist', 'checklist', {
-    narrow: false,
-    hasVisible: (a) => a === 'help',
-  }) === 'help',
-  'desktop missing checklist+badge → help',
-)
-assert(
-  resolveSheetTourAnchor('checklist', 'needs-setup', {
-    narrow: false,
-    hasVisible: (a) => a === 'checklist' || a === 'needs-setup',
-  }) === 'needs-setup',
-  'desktop prefers needs-setup over checklist',
-)
-assert(
-  resolveSheetTourAnchor('checklist', 'checklist', {
-    narrow: false,
-    hasVisible: (a) => a === 'checklist',
-  }) === 'checklist',
-  'desktop falls back to checklist when badge missing',
+  resolveSheetTourAnchor('combat_header', 'combat-vitals', {
+    narrow: true,
+    hasVisible: (a) => a === 'combat-vitals',
+  }) === 'combat-vitals',
+  'collapsed vitals preferred',
 )
 assert(
   resolveSheetTourAnchor('combat_header', 'combat-header', {
@@ -132,11 +126,25 @@ assert(
   'combat step prefers vitals row',
 )
 assert(
-  resolveSheetTourAnchor('actions', 'actions', {
+  resolveSheetTourAnchor('hot_bar', 'hot-bar', {
     narrow: false,
-    hasVisible: () => false,
-  }) === 'actions',
-  'actions unchanged',
+    hasVisible: (a) => a === 'hot-bar',
+  }) === 'hot-bar',
+  'hot bar step',
+)
+assert(
+  resolveSheetTourAnchor('turn_actions', 'turn-actions', {
+    narrow: true,
+    hasVisible: (a) => a === 'turn-actions' || a === 'actions',
+  }) === 'turn-actions',
+  'turn step prefers turn-actions over actions toggle',
+)
+assert(
+  resolveSheetTourAnchor('turn_actions', 'turn-actions', {
+    narrow: true,
+    hasVisible: (a) => a === 'actions',
+  }) === 'turn-actions',
+  'turn step does not fall back to actions toggle',
 )
 
 // ——— visible anchor query with stub DOM ———
@@ -162,7 +170,8 @@ const zero = new FakeEl('block', 0, 0)
   getComputedStyle: (el: FakeEl) => ({ display: el.display, visibility: 'visible' }),
 }
 
-const { isElementVisible, queryVisibleAnchor } = await import('./anchors.ts')
+const { isElementVisible, queryVisibleAnchor, queryVisibleAnchors, unionVisibleRects } =
+  await import('./anchors.ts')
 
 assert(!isElementVisible(hidden as unknown as HTMLElement), 'hidden display skipped')
 assert(!isElementVisible(zero as unknown as HTMLElement), 'zero-size skipped')
@@ -181,5 +190,47 @@ assert(
   queryVisibleAnchor('[data-onboarding="missing"]', emptyRoot as unknown as ParentNode) === null,
   'missing anchor returns null (no throw)',
 )
+
+const left = new FakeEl('block', 40, 20)
+const right = new FakeEl('block', 60, 30)
+// Place right farther so union grows.
+;(right as unknown as { getBoundingClientRect: () => DOMRect }).getBoundingClientRect = () =>
+  ({
+    top: 10,
+    left: 100,
+    width: 60,
+    height: 30,
+    bottom: 40,
+    right: 160,
+    x: 100,
+    y: 10,
+    toJSON() {},
+  }) as DOMRect
+;(left as unknown as { getBoundingClientRect: () => DOMRect }).getBoundingClientRect = () =>
+  ({
+    top: 0,
+    left: 0,
+    width: 40,
+    height: 20,
+    bottom: 20,
+    right: 40,
+    x: 0,
+    y: 0,
+    toJSON() {},
+  }) as DOMRect
+
+const dualRoot = {
+  querySelectorAll: () => [left, right] as unknown as NodeListOf<Element>,
+}
+assert(
+  queryVisibleAnchors('[data-onboarding="combat-vitals"]', dualRoot as unknown as ParentNode)
+    .length === 2,
+  'queryVisibleAnchors returns both',
+)
+const uni = unionVisibleRects(
+  '[data-onboarding="combat-vitals"]',
+  dualRoot as unknown as ParentNode,
+)
+assert(uni && uni.left === 0 && uni.top === 0 && uni.width === 160 && uni.height === 40, 'union rect')
 
 console.log('onboardingDisplay.selfcheck ok')
