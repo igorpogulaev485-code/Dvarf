@@ -103,9 +103,9 @@ const COIN_LABELS = [
 const ABILITY_FRAME_PATH =
   'M14 3 H86 C94 3 97 8 97 14 V70 C97 78 94 84 88 88 L58 100 C54 102 46 102 42 100 L12 88 C6 84 3 78 3 70 V14 C3 8 6 3 14 3 Z'
 
-/** AC shield (viewBox 0 0 100 120) — room for label above tip. */
+/** AC shield (viewBox 0 0 100 120) — strong side inset so grey column shows; white only in path. */
 const AC_SHIELD_PATH =
-  'M10 3 H90 C96 3 97 8 97 14 V58 C97 78 78 96 50 114 C22 96 3 78 3 58 V14 C3 8 4 3 10 3 Z'
+  'M50 8 L78 20 C82 22 84 26 84 30 V52 C84 76 64 98 50 110 C36 98 16 76 16 52 V30 C16 26 18 22 22 20 Z'
 
 function padWeaponRows<T extends { id: string; name: string; attackBonus: string; damageLine: string }>(
   rows: T[],
@@ -418,10 +418,12 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                   <svg
                     className="classic-ac-shield__svg"
                     viewBox="0 0 100 120"
-                    preserveAspectRatio="none"
+                    preserveAspectRatio="xMidYMid meet"
                     aria-hidden="true"
+                    style={{ background: 'transparent' }}
                   >
-                    <path d={AC_SHIELD_PATH} />
+                    <rect width="100" height="120" fill="none" />
+                    <path d={AC_SHIELD_PATH} fill="#fff" stroke="#000" strokeWidth="2.2" />
                   </svg>
                   <ClassicStaticField
                     value={combatNum('ac')}

@@ -4,19 +4,17 @@
 
 Цель: бумажный бланк D&D 5e 2014 без интерактива — типографская форма, приятнее официального в ч/б. Форма 2024 и тулбар печати не трогались (PR #410).
 
-## Корневые правки этой итерации
+## Корневые правки
 
-1. **Подписи блоков.** Причина «П СНАРЯЖЕНИЕ ИЯ И ЯЗЫКИ»: `position: absolute` + `nowrap` + `overflow: visible` — длинные капшены трёх колонок на одной базовой линии наезжали друг на друга. Исправление: подписи в **normal flow** (footer панели), `overflow: hidden` на `.classic-panel`. PDF: ПРОЧИЕ / СНАРЯЖЕНИЕ / УМЕНИЯ на разных x.
-2. **Характеристики.** SVG-рамка с вырезами + овал скора снизу, модификатор крупно в центре (clip-path в Chromium PDF ломался → SVG).
-3. **КД / имя.** Щит КД — SVG; подпись «Класс доспеха» в одну строку внутри щита. Имя — лента, **одна строка** с autofit (без wrap).
-4. **Спасброски / навыки.** Подписи в своём поле; навыки в одну строку (значение на линии, имя + серый тег `сил/лов/…`).
-5. **Смертные спасброски.** Кружки + соединяющая линия через центры.
-6. **Атаки.** 3 серые ячейки на строку × 3 слота (Название / Бонус / Урон), дальше линии.
-7. **Монеты.** Полные RU-названия, 5 равных ячеек, фиксированная высота подписи (одна строка), числа на одной сетке. Снаряжение — по предмету на строку, линии до низа.
-8. **Карандашные линии.** Ruled background на всех text-блоках (и пустых, и с данными).
-9. **«Darr…P1».** Это была подпись side-by-side монтирования, не печать; подписи compare укорочены. На бланке — только бренд «КриD20».
+1. **Подписи блоков.** Капшены в normal flow (footer панели) — без наложения «П СНАРЯЖЕНИЕ…».
+2. **Характеристики.** SVG-рамка + овал скора на нижней границе; кегль подписей уменьшен, поля одинаковые (в т.ч. ТЕЛОСЛОЖЕНИЕ).
+3. **КД.** SVG-щит с боковым врезом — белая заливка только у path, серая колонка видна по бокам; высота ряда с Инициативой/Скоростью.
+4. **Навыки.** Полные названия; тег `(лов)/(муд)/…` меньшим кеглем с зазором; колонка характеристик сужена.
+5. **Смертные / атаки / монеты.** Кружки на линии; 3×3 серые ячейки; полные RU-названия монет полосой.
+6. **Карандашные линии.** `line-height` = шаг фона; линия на `1.48em` в тайле `1.5em` (подобрано по Chromium PDF / pdftoppm): базовая линия на волоске, выносные касаются; `0.5pt` `#c8c8c8`.
+7. **Торбин / чародей 20.** Проверены p1 (мультикласс) и лист заклинаний.
 
-## Кадры (сверка с official-2014-1)
+## Кадры
 
 Скрипт: `frontend/scripts/print14-capture.mjs` → `/opt/cursor/artifacts/print14/`.  
 **0 дублей**, полный словарь `md5s.json`.
@@ -25,36 +23,33 @@
 
 | Кадр | md5 |
 |---|---|
-| after-compare-darrack-p1.png | `e4892ce8cc3a689915eeca29d8865327` |
-| after-compare-blank-p1.png | `cbdd235055e41ccab0bf9abf51fa8ca9` |
+| after-compare-darrack-p1.png | `98f82e0ab49b0ecb7c9c0b89cb6f548b` |
+| after-compare-blank-p1.png | `597063968ca045f58beb50f309732813` |
+| after-compare-spells.png | `9b4f4c9c27ba8f99c517f87f28985810` |
 | official-2014-1.png | `5ecb717c89acc171eb4b10379579ca9b` |
 
-### Крупные кропы PDF (Даррак)
+### Кропы PDF (Даррак)
 
 | Кадр | md5 |
 |---|---|
-| after-darrack-crop-abilities.png | `f38ca73390701b8031935c9725babeda` |
-| after-darrack-crop-combat.png | `6f16e63c330cb3ee1c3a94f40b78029a` |
-| after-darrack-crop-attacks.png | `eabcea3fb4ba47d79220cbfb67fffa6f` |
-| after-darrack-crop-equip.png | `335340b3f682703b6e5e7a6812b96cf2` |
-| after-darrack-crop-left-bottom.png | `d5756003572948c2db38a3f558c56c2d` |
-| after-darrack-equip-close.png | `35a9c264ed02ff4c5392da381b83c178` |
-| after-darrack-print-1.png | `599e885d4206b33e478c92f0925e2b15` |
+| after-darrack-print-1.png | `535299147ee39f7e173ff60b3ba186cd` |
+| after-darrack-crop-equip.png | `d37860f7b189835632bd6414245170c4` |
+| after-darrack-crop-skills.png | `77d2b9f3c0cb62ad77915c120689a68e` |
+| after-darrack-crop-combat.png | `4ac05ba2f8ffafeed720c3f8f15c7873` |
+| after-darrack-crop-abilities.png | `8b59617dffe9100e38de6b17e28cefe9` |
+| after-darrack-crop-left-bottom.png | `4f640fce3f57dc1d6cbf991c4fb2c9a0` |
+| after-darrack-crop-traits.png | `39053a36e78d8a1ab4a8f32b7eee1929` |
 
-### Крупные кропы PDF (пустой бланк)
+### Торбин / чародей
 
 | Кадр | md5 |
 |---|---|
-| after-blank-crop-abilities.png | `bb1f0f15fb817d045c622af03a79e238` |
-| after-blank-crop-combat.png | `8122458c4a294f2e2fd7bea4ef1fd141` |
-| after-blank-crop-attacks.png | `a5da0192429a427f7b90e860dfc3773b` |
-| after-blank-crop-equip.png | `ad310a3535dad44a368a479f98aebc8d` |
-| after-blank-crop-left-bottom.png | `4d52fa8054eb9a5a3ffcd07ee39eb963` |
-| after-blank-equip-close.png | `3715f00cee7406a4ed1b7a28dc64328e` |
-| after-blank-print-1.png | `5e8d8df06c7b8ed097a32f64abd91e1a` |
+| after-torbin-print-1.png | `15eb2892ebfb487446e50dd116dc3efb` |
+| after-sorcerer20-print-3.png | `caa64fdfa562d81f823911de90b0e4bb` |
+| after-sorcerer20-crop-spells.png | `03a5f67acfe336efc1878e725dee85bc` |
 
 ## Проверки
 
 - `npm run build` — ok
 - `npx tsx src/features/classicSheet/classicPrint14.selfcheck.ts` — ok
-- Кадры с живого Vite + API
+- Кадры с живого Vite + API; сверка baseline на PDF (не только screenshot элемента)

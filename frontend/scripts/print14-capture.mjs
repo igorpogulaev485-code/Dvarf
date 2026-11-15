@@ -128,10 +128,12 @@ im = Image.open(src).convert('RGB')
 w, h = im.size
 regions = {
   'abilities': (0.02, 0.11, 0.30, 0.72),
+  'skills': (0.12, 0.22, 0.34, 0.58),
   'combat': (0.28, 0.12, 0.68, 0.42),
   'attacks': (0.28, 0.40, 0.68, 0.62),
   'equip': (0.28, 0.55, 0.68, 0.95),
   'left-bottom': (0.02, 0.55, 0.32, 0.98),
+  'traits': (0.66, 0.12, 0.98, 0.55),
 }
 os.makedirs(os.path.dirname(dest_prefix), exist_ok=True)
 for name, (x0,y0,x1,y1) in regions.items():
@@ -222,10 +224,37 @@ async function main() {
   report.shots.sorcerer = await captureChar(page, SORC, 'sorcerer20')
   report.shots.blank = await captureBlank(page)
 
-  // Large crops from PDF page 1 for Darrack + blank
-  for (const slug of ['darrack', 'blank']) {
+  // Large crops from PDF pages for audit
+  for (const slug of ['darrack', 'blank', 'torbin']) {
     const p1 = join(ART, `${TAG}${slug}-print-1.png`)
     if (existsSync(p1)) cropRegions(p1, slug)
+  }
+  const spellPage = join(ART, `${TAG}sorcerer20-print-3.png`)
+  if (existsSync(spellPage)) {
+    try {
+      execFileSync(
+        'python3',
+        [
+          '-c',
+          `
+from PIL import Image
+import sys
+im = Image.open(sys.argv[1]).convert('RGB')
+w, h = im.size
+im.save(sys.argv[2])
+c = im.crop((int(w*0.05), int(h*0.28), int(w*0.95), int(h*0.92)))
+c = c.resize((c.width*2, c.height*2), Image.Resampling.LANCZOS)
+c.save(sys.argv[3])
+`,
+          spellPage,
+          out('sorcerer20-spells-page.png'),
+          out('sorcerer20-crop-spells.png'),
+        ],
+        { stdio: 'inherit' },
+      )
+    } catch (err) {
+      console.error('spell crop failed', err)
+    }
   }
 
   // Side-by-side with official
