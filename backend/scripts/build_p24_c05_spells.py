@@ -20,6 +20,23 @@ REPO = Path(__file__).resolve().parents[2]
 SOURCES = REPO / "docs" / "edition-2024" / "sources"
 LIVE = REPO / "backend" / "data" / "srd" / "2024" / "live"
 OPEN5E = Path("/tmp/p24-c05/open5e_pages.jsonl")
+MATERIALS_RU = json.loads(
+    (LIVE / "spell_materials_ru.json").read_text(encoding="utf-8")
+) if (LIVE / "spell_materials_ru.json").is_file() else {}
+CONDITIONS_RU = json.loads(
+    (LIVE / "spell_reaction_conditions_ru.json").read_text(encoding="utf-8")
+) if (LIVE / "spell_reaction_conditions_ru.json").is_file() else {}
+
+CLASS_RU = {
+    "bard": "бард",
+    "cleric": "жрец",
+    "druid": "друид",
+    "paladin": "паладин",
+    "ranger": "следопыт",
+    "sorcerer": "чародей",
+    "warlock": "колдун",
+    "wizard": "волшебник",
+}
 
 SRD_CLASSES = {
     "bard",
@@ -203,15 +220,13 @@ def parse_material(mat: str | None, consumed_flag: bool) -> dict:
     if not mat:
         return {}
     consumed = bool(re.search(r"which the spell consumes|spell consumes", mat, re.I))
-    # open5e consumed flag is noisy; prefer text. Keep True only when text says so.
-    if not consumed:
-        consumed = False
     cost = None
     m = re.search(r"([\d,]+)\+?\s*GP", mat, re.I)
     if m:
         cost = int(m.group(1).replace(",", ""))
+    ru = MATERIALS_RU.get(mat) or mat
     return {
-        "m": mat,
+        "m": ru,
         "m_cost_gp": cost,
         "m_consumed": consumed,
     }
@@ -226,7 +241,8 @@ def parse_casting_time(raw: str, ritual: bool, reaction_condition: str | None) -
     elif raw in {"reaction"}:
         out = {"unit": "reaction", "amount": 1}
         if reaction_condition:
-            out["condition"] = reaction_condition.strip()
+            key = reaction_condition.strip()
+            out["condition"] = CONDITIONS_RU.get(key, key)
     elif raw in {"1minute", "1-minute", "minute"}:
         out = {"unit": "minute", "amount": 1}
     elif raw in {"10minutes", "10-minutes"}:
@@ -376,7 +392,7 @@ def short_summary_ru(spell: dict, school: str, classes: list[str]) -> str:
     elif spell.get("attack_roll"):
         bits.append("атака заклинанием")
     if classes:
-        bits.append("/".join(classes))
+        bits.append("/".join(CLASS_RU.get(c, c) for c in classes))
     return "; ".join(bits) + "."
 
 

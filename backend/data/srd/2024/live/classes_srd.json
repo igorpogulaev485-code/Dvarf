@@ -206,7 +206,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -290,7 +290,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -362,7 +362,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -434,7 +434,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -518,7 +518,7 @@
           }
         ],
         "spell_list": [],
-        "spell_list_note_ru": "Класс без списка заклинаний в SRD 5.2.1.",
+        "spell_list_note_ru": "Класс без списка заклинаний в справочнике 5.2.1.",
         "summary_ru": "D12, Сила; ярость и мастерство рукопашного оружия."
       }
     },
@@ -692,7 +692,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -788,7 +788,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -885,7 +885,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -983,7 +983,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -1095,7 +1095,7 @@
                 "id": "words-of-creation",
                 "name_en": "Words of Creation",
                 "name_ru": "Слова творения",
-                "summary_ru": "Power Word Heal и Power Word Kill всегда готовы; усиленное применение."
+                "summary_ru": "«Слово силы: исцеление» и «Слово силы: смерть» всегда готовы; усиленное применение."
               }
             ],
             "resources": {
@@ -1250,7 +1250,7 @@
           "vicious-mockery",
           "zone-of-truth"
         ],
-        "spell_list_note_ru": "Список заклинаний SRD 5.2.1; элементы — slug карточек kind=spell, edition=2024.",
+        "spell_list_note_ru": "Список заклинаний справочника 5.2.1; элементы — идентификаторы карточек заклинаний редакции 2024.",
         "summary_ru": "D8, Харизма; Бардовское вдохновение и полное колдовство."
       }
     },
@@ -1360,7 +1360,7 @@
                 "id": "divine-order",
                 "name_en": "Divine Order",
                 "name_ru": "Божественный указ",
-                "summary_ru": "Выбор: Protector (доспехи/оружие) или Thaumaturge (магия)."
+                "summary_ru": "Выбор: Защитник (доспехи/оружие) или Чудотворец (магия)."
               }
             ],
             "resources": {
@@ -1427,7 +1427,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -1523,7 +1523,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -1613,7 +1613,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -1661,7 +1661,7 @@
                 "id": "improved-blessed-strikes",
                 "name_en": "Improved Blessed Strikes",
                 "name_ru": "Улучшенные благословенные удары",
-                "summary_ru": "Усиление Blessed Strikes."
+                "summary_ru": "Усиление «Благословенные удары»."
               }
             ],
             "resources": {
@@ -1711,7 +1711,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -1957,7 +1957,7 @@
           "word-of-recall",
           "zone-of-truth"
         ],
-        "spell_list_note_ru": "Список заклинаний SRD 5.2.1; элементы — slug карточек kind=spell, edition=2024.",
+        "spell_list_note_ru": "Список заклинаний справочника 5.2.1; элементы — идентификаторы карточек заклинаний редакции 2024.",
         "summary_ru": "D8, Мудрость; полное колдовство и Божественный канал."
       }
     },
@@ -2085,7 +2085,7 @@
                 "id": "primal-order",
                 "name_en": "Primal Order",
                 "name_ru": "Изначальный указ",
-                "summary_ru": "Выбор: Magician или Warden."
+                "summary_ru": "Выбор: Маг или Страж."
               }
             ],
             "resources": {
@@ -2113,7 +2113,7 @@
                 "id": "wild-companion",
                 "name_en": "Wild Companion",
                 "name_ru": "Дикий спутник",
-                "summary_ru": "Трата Дикого облика на Find Familiar (фейский)."
+                "summary_ru": "Трата Дикого облика на «Поиск фамильяра» (фейский)."
               }
             ],
             "resources": {
@@ -2158,7 +2158,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -2254,7 +2254,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -2344,7 +2344,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -2420,7 +2420,7 @@
                 "id": "improved-elemental-fury",
                 "name_en": "Improved Elemental Fury",
                 "name_ru": "Улучшенная стихийная ярость",
-                "summary_ru": "Усиление Elemental Fury."
+                "summary_ru": "Усиление «Стихийная ярость»."
               }
             ],
             "resources": {
@@ -2449,7 +2449,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -2710,7 +2710,7 @@
           "wind-walk",
           "wind-wall"
         ],
-        "spell_list_note_ru": "Список заклинаний SRD 5.2.1; элементы — slug карточек kind=spell, edition=2024.",
+        "spell_list_note_ru": "Список заклинаний справочника 5.2.1; элементы — идентификаторы карточек заклинаний редакции 2024.",
         "summary_ru": "D8, Мудрость; Дикий облик и полное колдовство."
       }
     },
@@ -2887,7 +2887,7 @@
                 "id": "fighting-style",
                 "name_en": "Fighting Style",
                 "name_ru": "Боевой стиль",
-                "summary_ru": "Черта боевого стиля (каталог C02); можно менять при повышении уровня."
+                "summary_ru": "Черта боевого стиля (каталог черт); можно менять при повышении уровня."
               },
               {
                 "id": "second-wind",
@@ -2962,7 +2962,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -3006,7 +3006,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -3044,7 +3044,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -3126,7 +3126,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -3170,7 +3170,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -3208,7 +3208,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -3303,7 +3303,7 @@
           }
         ],
         "spell_list": [],
-        "spell_list_note_ru": "Класс без списка заклинаний в SRD 5.2.1.",
+        "spell_list_note_ru": "Класс без списка заклинаний в справочнике 5.2.1.",
         "summary_ru": "D10; боевой стиль, Второе дыхание, мастерство оружия до 6 видов."
       }
     },
@@ -3480,7 +3480,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               },
               {
                 "id": "slow-fall",
@@ -3570,7 +3570,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -3648,7 +3648,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -3720,7 +3720,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -3804,7 +3804,7 @@
           }
         ],
         "spell_list": [],
-        "spell_list_note_ru": "Класс без списка заклинаний в SRD 5.2.1.",
+        "spell_list_note_ru": "Класс без списка заклинаний в справочнике 5.2.1.",
         "summary_ru": "D8; Фокус (не ки 2014), боевые искусства, без мастерства оружия."
       }
     },
@@ -3976,13 +3976,13 @@
                 "id": "fighting-style",
                 "name_en": "Fighting Style",
                 "name_ru": "Боевой стиль",
-                "summary_ru": "Черта боевого стиля или вариант Blessed Warrior."
+                "summary_ru": "Черта боевого стиля или вариант «Благословенный воин»."
               },
               {
                 "id": "paladins-smite",
                 "name_en": "Paladin's Smite",
                 "name_ru": "Кара паладина",
-                "summary_ru": "Всегда готово Divine Smite; бесплатные применения по правилам класса."
+                "summary_ru": "Всегда готово «Божественная кара»; бесплатные применения по правилам класса."
               }
             ],
             "resources": {
@@ -4036,7 +4036,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -4066,7 +4066,7 @@
                 "id": "faithful-steed",
                 "name_en": "Faithful Steed",
                 "name_ru": "Верный скакун",
-                "summary_ru": "Find Steed всегда готов; особое применение."
+                "summary_ru": "«Обретение скакуна» всегда готов; особое применение."
               }
             ],
             "resources": {
@@ -4141,7 +4141,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -4244,7 +4244,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -4344,7 +4344,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -4509,7 +4509,7 @@
           "warding-bond",
           "zone-of-truth"
         ],
-        "spell_list_note_ru": "Список заклинаний SRD 5.2.1; элементы — slug карточек kind=spell, edition=2024.",
+        "spell_list_note_ru": "Список заклинаний справочника 5.2.1; элементы — идентификаторы карточек заклинаний редакции 2024.",
         "summary_ru": "D10; полукастер, Возложение рук, мастерство оружия (2)."
       }
     },
@@ -4660,7 +4660,7 @@
                 "id": "favored-enemy",
                 "name_en": "Favored Enemy",
                 "name_ru": "Избранный враг",
-                "summary_ru": "Hunter's Mark всегда готов; бесплатные применения по таблице."
+                "summary_ru": "«Метка охотника» всегда готов; бесплатные применения по таблице."
               },
               {
                 "id": "weapon-mastery",
@@ -4741,7 +4741,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -4836,7 +4836,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -4935,7 +4935,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -4960,7 +4960,7 @@
                 "id": "relentless-hunter",
                 "name_en": "Relentless Hunter",
                 "name_ru": "Неумолимый охотник",
-                "summary_ru": "Hunter's Mark не требует концентрации от урона."
+                "summary_ru": "«Метка охотника» не требует концентрации от урона."
               }
             ],
             "resources": {
@@ -5038,7 +5038,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -5064,7 +5064,7 @@
                 "id": "precise-hunter",
                 "name_en": "Precise Hunter",
                 "name_ru": "Точный охотник",
-                "summary_ru": "Преимущество к атакам по цели Hunter's Mark."
+                "summary_ru": "Преимущество к атакам по цели «Метка охотника»."
               }
             ],
             "resources": {
@@ -5215,7 +5215,7 @@
           "water-walk",
           "wind-wall"
         ],
-        "spell_list_note_ru": "Список заклинаний SRD 5.2.1; элементы — slug карточек kind=spell, edition=2024.",
+        "spell_list_note_ru": "Список заклинаний справочника 5.2.1; элементы — идентификаторы карточек заклинаний редакции 2024.",
         "summary_ru": "D10; полукастер, Избранный враг, мастерство оружия (2)."
       }
     },
@@ -5444,7 +5444,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -5524,7 +5524,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -5558,7 +5558,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -5592,7 +5592,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -5660,7 +5660,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -5739,7 +5739,7 @@
           }
         ],
         "spell_list": [],
-        "spell_list_note_ru": "Класс без списка заклинаний в SRD 5.2.1.",
+        "spell_list_note_ru": "Класс без списка заклинаний в справочнике 5.2.1.",
         "summary_ru": "D8, Ловкость; Скрытая атака, Хитрое действие, мастерство оружия (2)."
       }
     },
@@ -5922,7 +5922,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -6022,7 +6022,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -6116,7 +6116,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -6218,7 +6218,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -6507,7 +6507,7 @@
           "web",
           "wish"
         ],
-        "spell_list_note_ru": "Список заклинаний SRD 5.2.1; элементы — slug карточек kind=spell, edition=2024.",
+        "spell_list_note_ru": "Список заклинаний справочника 5.2.1; элементы — идентификаторы карточек заклинаний редакции 2024.",
         "summary_ru": "D6, Харизма; очки чародейства и метамагия."
       }
     },
@@ -6619,7 +6619,7 @@
                 "id": "eldritch-invocations",
                 "name_en": "Eldritch Invocations",
                 "name_ru": "Мистические воззвания",
-                "summary_ru": "Воззвания по таблице; часть — договоры (Blade/Chain/Tome)."
+                "summary_ru": "Воззвания по таблице; часть — договоры (клинок/цепь/том)."
               },
               {
                 "id": "pact-magic",
@@ -6697,7 +6697,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -6779,7 +6779,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -6803,7 +6803,7 @@
                 "id": "contact-patron",
                 "name_en": "Contact Patron",
                 "name_ru": "Связь с покровителем",
-                "summary_ru": "Contact Other Plane как ритуал без слота."
+                "summary_ru": "«Контакт с иным планом» как ритуал без слота."
               }
             ],
             "resources": {
@@ -6875,7 +6875,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -6971,7 +6971,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {
@@ -7151,7 +7151,7 @@
           "vampiric-touch",
           "weird"
         ],
-        "spell_list_note_ru": "Список заклинаний SRD 5.2.1; элементы — slug карточек kind=spell, edition=2024.",
+        "spell_list_note_ru": "Список заклинаний справочника 5.2.1; элементы — идентификаторы карточек заклинаний редакции 2024.",
         "summary_ru": "D8, Харизма; Магия договора и мистические воззвания."
       }
     },
@@ -7332,7 +7332,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {},
@@ -7413,7 +7413,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {},
@@ -7495,7 +7495,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {},
@@ -7585,7 +7585,7 @@
                 "id": "ability-score-improvement",
                 "name_en": "Ability Score Improvement",
                 "name_ru": "Увеличение характеристик",
-                "summary_ru": "Черта ASI или другая доступная общая черта (каталог C02)."
+                "summary_ru": "Черта увеличение характеристик или другая доступная общая черта (каталог черт)."
               }
             ],
             "resources": {},
@@ -7930,7 +7930,7 @@
           "weird",
           "wish"
         ],
-        "spell_list_note_ru": "Список заклинаний SRD 5.2.1; элементы — slug карточек kind=spell, edition=2024.",
+        "spell_list_note_ru": "Список заклинаний справочника 5.2.1; элементы — идентификаторы карточек заклинаний редакции 2024.",
         "summary_ru": "D6, Интеллект; книга заклинаний и полное колдовство."
       }
     }

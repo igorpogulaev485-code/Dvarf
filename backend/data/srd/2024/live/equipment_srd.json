@@ -20,7 +20,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Кислота — снаряжение SRD 2024.",
+        "summary_ru": "Кислота — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 25,
@@ -43,7 +43,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Алхимический огонь — снаряжение SRD 2024.",
+        "summary_ru": "Алхимический огонь — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 50,
@@ -66,7 +66,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты алхимика — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты алхимика — обыденное снаряжение редакции 2024.",
         "weight_lb": 8,
         "cost": {
           "amount": 50,
@@ -90,7 +90,7 @@
       },
       "data": {
         "equipment_group": "ammunition",
-        "summary_ru": "Боеприпасы — снаряжение SRD 2024."
+        "summary_ru": "Боеприпасы — обыденное снаряжение редакции 2024."
       }
     },
     {
@@ -107,7 +107,7 @@
       },
       "data": {
         "equipment_group": "spellcasting_focus",
-        "summary_ru": "Амулет — снаряжение SRD 2024.",
+        "summary_ru": "Амулет — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 5,
@@ -129,7 +129,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Противоядие — снаряжение SRD 2024.",
+        "summary_ru": "Противоядие — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 50,
@@ -152,7 +152,7 @@
       },
       "data": {
         "equipment_group": "spellcasting_focus",
-        "summary_ru": "Магическая фокусировка — снаряжение SRD 2024."
+        "summary_ru": "Магическая фокусировка — обыденное снаряжение редакции 2024."
       }
     },
     {
@@ -169,7 +169,7 @@
       },
       "data": {
         "equipment_group": "ammunition",
-        "summary_ru": "Стрелы — снаряжение SRD 2024.",
+        "summary_ru": "Стрелы — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 1,
@@ -191,7 +191,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Рюкзак — снаряжение SRD 2024.",
+        "summary_ru": "Рюкзак — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 2,
@@ -213,7 +213,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Волынка — снаряжение SRD 2024.",
+        "summary_ru": "Волынка — обыденное снаряжение редакции 2024.",
         "weight_lb": 6,
         "cost": {
           "amount": 30,
@@ -235,7 +235,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Металлические шарики — снаряжение SRD 2024.",
+        "summary_ru": "Металлические шарики — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 1,
@@ -259,7 +259,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Бочка — снаряжение SRD 2024.",
+        "summary_ru": "Бочка — обыденное снаряжение редакции 2024.",
         "weight_lb": 70,
         "cost": {
           "amount": 2,
@@ -281,7 +281,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Простой яд — снаряжение SRD 2024.",
+        "summary_ru": "Простой яд — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 100,
@@ -304,7 +304,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Корзина — снаряжение SRD 2024.",
+        "summary_ru": "Корзина — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 4,
@@ -326,7 +326,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Спальник — снаряжение SRD 2024.",
+        "summary_ru": "Спальник — обыденное снаряжение редакции 2024.",
         "weight_lb": 7,
         "cost": {
           "amount": 1,
@@ -348,7 +348,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Колокольчик — снаряжение SRD 2024.",
+        "summary_ru": "Колокольчик — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 1,
@@ -371,7 +371,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Одеяло — снаряжение SRD 2024.",
+        "summary_ru": "Одеяло — обыденное снаряжение редакции 2024.",
         "weight_lb": 3,
         "cost": {
           "amount": 5,
@@ -393,7 +393,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Блок и лебёдка — снаряжение SRD 2024.",
+        "summary_ru": "Блок и лебёдка — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 1,
@@ -415,7 +415,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Книга — снаряжение SRD 2024.",
+        "summary_ru": "Книга — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 25,
@@ -437,7 +437,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты пивовара — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты пивовара — обыденное снаряжение редакции 2024.",
         "weight_lb": 9,
         "cost": {
           "amount": 20,
@@ -461,7 +461,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Ведро — снаряжение SRD 2024.",
+        "summary_ru": "Ведро — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 5,
@@ -483,7 +483,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Направленный фонарь — снаряжение SRD 2024.",
+        "summary_ru": "Направленный фонарь — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 10,
@@ -505,7 +505,7 @@
       },
       "data": {
         "equipment_group": "item_pack",
-        "summary_ru": "Набор «Набор взломщика» (состав — по карточке SRD / справочнику).",
+        "summary_ru": "Набор «Набор взломщика» (состав — по карточке СРД / справочнику).",
         "weight_lb": 42,
         "cost": {
           "amount": 16,
@@ -527,7 +527,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты каллиграфа — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты каллиграфа — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 10,
@@ -551,7 +551,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Калтропы — снаряжение SRD 2024.",
+        "summary_ru": "Калтропы — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 1,
@@ -574,7 +574,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Свеча — снаряжение SRD 2024.",
+        "summary_ru": "Свеча — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 1,
@@ -596,7 +596,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты плотника — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты плотника — обыденное снаряжение редакции 2024.",
         "weight_lb": 6,
         "cost": {
           "amount": 8,
@@ -620,7 +620,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты картографа — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты картографа — обыденное снаряжение редакции 2024.",
         "weight_lb": 6,
         "cost": {
           "amount": 15,
@@ -644,7 +644,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Цепь — снаряжение SRD 2024.",
+        "summary_ru": "Цепь — обыденное снаряжение редакции 2024.",
         "weight_lb": 10,
         "cost": {
           "amount": 5,
@@ -666,7 +666,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Сундук — снаряжение SRD 2024.",
+        "summary_ru": "Сундук — обыденное снаряжение редакции 2024.",
         "weight_lb": 25,
         "cost": {
           "amount": 5,
@@ -688,7 +688,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Комплект для лазания — снаряжение SRD 2024.",
+        "summary_ru": "Комплект для лазания — обыденное снаряжение редакции 2024.",
         "weight_lb": 12,
         "cost": {
           "amount": 25,
@@ -711,7 +711,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты сапожника — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты сапожника — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 5,
@@ -735,7 +735,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Мешочек с компонентами — снаряжение SRD 2024.",
+        "summary_ru": "Мешочек с компонентами — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 25,
@@ -757,7 +757,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты повара — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты повара — обыденное снаряжение редакции 2024.",
         "weight_lb": 8,
         "cost": {
           "amount": 1,
@@ -781,7 +781,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Костюм — снаряжение SRD 2024.",
+        "summary_ru": "Костюм — обыденное снаряжение редакции 2024.",
         "weight_lb": 4,
         "cost": {
           "amount": 5,
@@ -803,7 +803,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Футляр для арбалетных болтов — снаряжение SRD 2024.",
+        "summary_ru": "Футляр для арбалетных болтов — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 1,
@@ -825,7 +825,7 @@
       },
       "data": {
         "equipment_group": "ammunition",
-        "summary_ru": "Болты — снаряжение SRD 2024.",
+        "summary_ru": "Болты — обыденное снаряжение редакции 2024.",
         "weight_lb": 1.5,
         "cost": {
           "amount": 1,
@@ -847,7 +847,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Ломик — снаряжение SRD 2024.",
+        "summary_ru": "Ломик — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 2,
@@ -870,7 +870,7 @@
       },
       "data": {
         "equipment_group": "spellcasting_focus",
-        "summary_ru": "Кристалл — снаряжение SRD 2024.",
+        "summary_ru": "Кристалл — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 10,
@@ -892,7 +892,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Кости — снаряжение SRD 2024.",
+        "summary_ru": "Кости — обыденное снаряжение редакции 2024.",
         "cost": {
           "amount": 1,
           "unit": "sp"
@@ -913,7 +913,7 @@
       },
       "data": {
         "equipment_group": "item_pack",
-        "summary_ru": "Набор «Набор дипломата» (состав — по карточке SRD / справочнику).",
+        "summary_ru": "Набор «Набор дипломата» (состав — по карточке СРД / справочнику).",
         "weight_lb": 39,
         "cost": {
           "amount": 39,
@@ -935,7 +935,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Набор для грима — снаряжение SRD 2024.",
+        "summary_ru": "Набор для грима — обыденное снаряжение редакции 2024.",
         "weight_lb": 3,
         "cost": {
           "amount": 25,
@@ -960,7 +960,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Драконьи шахматы — снаряжение SRD 2024.",
+        "summary_ru": "Драконьи шахматы — обыденное снаряжение редакции 2024.",
         "cost": {
           "amount": 1,
           "unit": "gp"
@@ -981,7 +981,7 @@
       },
       "data": {
         "equipment_group": "spellcasting_focus",
-        "summary_ru": "Друидическая фокусировка — снаряжение SRD 2024.",
+        "summary_ru": "Друидическая фокусировка — обыденное снаряжение редакции 2024.",
         "name_ru_pending": true
       }
     },
@@ -999,7 +999,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Барабан — снаряжение SRD 2024.",
+        "summary_ru": "Барабан — обыденное снаряжение редакции 2024.",
         "weight_lb": 3,
         "cost": {
           "amount": 6,
@@ -1021,7 +1021,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Дульцимер — снаряжение SRD 2024.",
+        "summary_ru": "Дульцимер — обыденное снаряжение редакции 2024.",
         "weight_lb": 10,
         "cost": {
           "amount": 25,
@@ -1044,7 +1044,7 @@
       },
       "data": {
         "equipment_group": "item_pack",
-        "summary_ru": "Набор «Набор исследователя подземелий» (состав — по карточке SRD / справочнику).",
+        "summary_ru": "Набор «Набор исследователя подземелий» (состав — по карточке СРД / справочнику).",
         "weight_lb": 55,
         "cost": {
           "amount": 12,
@@ -1066,7 +1066,7 @@
       },
       "data": {
         "equipment_group": "spellcasting_focus",
-        "summary_ru": "Эмблема — снаряжение SRD 2024.",
+        "summary_ru": "Эмблема — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 5,
@@ -1088,7 +1088,7 @@
       },
       "data": {
         "equipment_group": "item_pack",
-        "summary_ru": "Набор «Набор артиста» (состав — по карточке SRD / справочнику).",
+        "summary_ru": "Набор «Набор артиста» (состав — по карточке СРД / справочнику).",
         "weight_lb": 58.5,
         "cost": {
           "amount": 40,
@@ -1110,7 +1110,7 @@
       },
       "data": {
         "equipment_group": "item_pack",
-        "summary_ru": "Набор «Набор путешественника» (состав — по карточке SRD / справочнику).",
+        "summary_ru": "Набор «Набор путешественника» (состав — по карточке СРД / справочнику).",
         "weight_lb": 55,
         "cost": {
           "amount": 10,
@@ -1132,7 +1132,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Отличная одежда — снаряжение SRD 2024.",
+        "summary_ru": "Отличная одежда — обыденное снаряжение редакции 2024.",
         "weight_lb": 6,
         "cost": {
           "amount": 15,
@@ -1154,7 +1154,7 @@
       },
       "data": {
         "equipment_group": "ammunition",
-        "summary_ru": "Пули — снаряжение SRD 2024.",
+        "summary_ru": "Пули — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 3,
@@ -1176,7 +1176,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Фляга — снаряжение SRD 2024.",
+        "summary_ru": "Фляга — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 2,
@@ -1198,7 +1198,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Флейта — снаряжение SRD 2024.",
+        "summary_ru": "Флейта — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 2,
@@ -1220,7 +1220,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Набор для фальсификации — снаряжение SRD 2024.",
+        "summary_ru": "Набор для фальсификации — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 15,
@@ -1244,7 +1244,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Игровой набор — снаряжение SRD 2024.",
+        "summary_ru": "Игровой набор — обыденное снаряжение редакции 2024.",
         "utilize_ru": "Понять, жульничают ли (Сл 10), или выиграть партию (Сл 20).",
         "tool_ability": "wisdom"
       }
@@ -1263,7 +1263,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Стеклянная бутылка — снаряжение SRD 2024.",
+        "summary_ru": "Стеклянная бутылка — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 2,
@@ -1285,7 +1285,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты стеклодува — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты стеклодува — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 30,
@@ -1309,7 +1309,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Крюк-кошка — снаряжение SRD 2024.",
+        "summary_ru": "Крюк-кошка — обыденное снаряжение редакции 2024.",
         "weight_lb": 4,
         "cost": {
           "amount": 2,
@@ -1332,7 +1332,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Комплект целителя — снаряжение SRD 2024.",
+        "summary_ru": "Комплект целителя — обыденное снаряжение редакции 2024.",
         "weight_lb": 3,
         "cost": {
           "amount": 5,
@@ -1355,7 +1355,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Набор травника — снаряжение SRD 2024.",
+        "summary_ru": "Набор травника — обыденное снаряжение редакции 2024.",
         "weight_lb": 3,
         "cost": {
           "amount": 5,
@@ -1379,7 +1379,7 @@
       },
       "data": {
         "equipment_group": "spellcasting_focus",
-        "summary_ru": "Священный символ — снаряжение SRD 2024.",
+        "summary_ru": "Священный символ — обыденное снаряжение редакции 2024.",
         "name_ru_pending": true
       }
     },
@@ -1397,7 +1397,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Святая вода — снаряжение SRD 2024.",
+        "summary_ru": "Святая вода — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 25,
@@ -1420,7 +1420,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Закрытый фонарь — снаряжение SRD 2024.",
+        "summary_ru": "Закрытый фонарь — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 5,
@@ -1442,7 +1442,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Рожок — снаряжение SRD 2024.",
+        "summary_ru": "Рожок — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 3,
@@ -1464,7 +1464,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Охотничий капкан — снаряжение SRD 2024.",
+        "summary_ru": "Охотничий капкан — обыденное снаряжение редакции 2024.",
         "weight_lb": 25,
         "cost": {
           "amount": 5,
@@ -1487,7 +1487,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Чернила — снаряжение SRD 2024.",
+        "summary_ru": "Чернила — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 10,
@@ -1509,7 +1509,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Писчее перо — снаряжение SRD 2024.",
+        "summary_ru": "Писчее перо — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 2,
@@ -1531,7 +1531,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Железный горшок — снаряжение SRD 2024.",
+        "summary_ru": "Железный горшок — обыденное снаряжение редакции 2024.",
         "weight_lb": 10,
         "cost": {
           "amount": 2,
@@ -1553,7 +1553,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Железные шипы — снаряжение SRD 2024.",
+        "summary_ru": "Железные шипы — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 1,
@@ -1575,7 +1575,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты ювелира — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты ювелира — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 25,
@@ -1599,7 +1599,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Кувшин — снаряжение SRD 2024.",
+        "summary_ru": "Кувшин — обыденное снаряжение редакции 2024.",
         "weight_lb": 4,
         "cost": {
           "amount": 2,
@@ -1621,7 +1621,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Лестница — снаряжение SRD 2024.",
+        "summary_ru": "Лестница — обыденное снаряжение редакции 2024.",
         "weight_lb": 25,
         "cost": {
           "amount": 1,
@@ -1643,7 +1643,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Лампа — снаряжение SRD 2024.",
+        "summary_ru": "Лампа — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 5,
@@ -1665,7 +1665,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты кожевника — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты кожевника — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 5,
@@ -1689,7 +1689,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Замок — снаряжение SRD 2024.",
+        "summary_ru": "Замок — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 10,
@@ -1711,7 +1711,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Лютня — снаряжение SRD 2024.",
+        "summary_ru": "Лютня — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 35,
@@ -1733,7 +1733,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Лира — снаряжение SRD 2024.",
+        "summary_ru": "Лира — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 30,
@@ -1755,7 +1755,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Увеличительное стекло — снаряжение SRD 2024.",
+        "summary_ru": "Увеличительное стекло — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 100,
@@ -1777,7 +1777,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Кандалы — снаряжение SRD 2024.",
+        "summary_ru": "Кандалы — обыденное снаряжение редакции 2024.",
         "weight_lb": 6,
         "cost": {
           "amount": 2,
@@ -1800,7 +1800,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Карта — снаряжение SRD 2024.",
+        "summary_ru": "Карта — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 1,
@@ -1822,7 +1822,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Тубус для карт и свитков — снаряжение SRD 2024.",
+        "summary_ru": "Тубус для карт и свитков — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 1,
@@ -1844,7 +1844,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты каменщика — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты каменщика — обыденное снаряжение редакции 2024.",
         "weight_lb": 8,
         "cost": {
           "amount": 10,
@@ -1868,7 +1868,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Зеркало — снаряжение SRD 2024.",
+        "summary_ru": "Зеркало — обыденное снаряжение редакции 2024.",
         "weight_lb": 0.5,
         "cost": {
           "amount": 5,
@@ -1890,7 +1890,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Музыкальный инструмент — снаряжение SRD 2024.",
+        "summary_ru": "Музыкальный инструмент — обыденное снаряжение редакции 2024.",
         "utilize_ru": "Сыграть известную мелодию (Сл 10) или импровизировать (Сл 15).",
         "tool_ability": "charisma"
       }
@@ -1909,7 +1909,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Инструменты навигатора — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты навигатора — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 25,
@@ -1933,7 +1933,7 @@
       },
       "data": {
         "equipment_group": "ammunition",
-        "summary_ru": "Иглы — снаряжение SRD 2024.",
+        "summary_ru": "Иглы — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 1,
@@ -1955,7 +1955,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Сеть — снаряжение SRD 2024.",
+        "summary_ru": "Сеть — обыденное снаряжение редакции 2024.",
         "weight_lb": 3,
         "cost": {
           "amount": 1,
@@ -1978,7 +1978,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Масло — снаряжение SRD 2024.",
+        "summary_ru": "Масло — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 1,
@@ -2001,7 +2001,7 @@
       },
       "data": {
         "equipment_group": "spellcasting_focus",
-        "summary_ru": "Сфера — снаряжение SRD 2024.",
+        "summary_ru": "Сфера — обыденное снаряжение редакции 2024.",
         "weight_lb": 3,
         "cost": {
           "amount": 20,
@@ -2023,7 +2023,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты художника — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты художника — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 10,
@@ -2047,7 +2047,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Флейта Пана — снаряжение SRD 2024.",
+        "summary_ru": "Флейта Пана — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 12,
@@ -2070,7 +2070,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Бумага — снаряжение SRD 2024.",
+        "summary_ru": "Бумага — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 2,
@@ -2092,7 +2092,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Пергамент — снаряжение SRD 2024.",
+        "summary_ru": "Пергамент — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 1,
@@ -2114,7 +2114,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Духи — снаряжение SRD 2024.",
+        "summary_ru": "Духи — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 5,
@@ -2136,7 +2136,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Игральные карты — снаряжение SRD 2024.",
+        "summary_ru": "Игральные карты — обыденное снаряжение редакции 2024.",
         "cost": {
           "amount": 5,
           "unit": "sp"
@@ -2157,7 +2157,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Инструменты отравителя — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты отравителя — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 50,
@@ -2182,7 +2182,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Шест — снаряжение SRD 2024.",
+        "summary_ru": "Шест — обыденное снаряжение редакции 2024.",
         "weight_lb": 7,
         "cost": {
           "amount": 5,
@@ -2204,7 +2204,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Портативный таран — снаряжение SRD 2024.",
+        "summary_ru": "Портативный таран — обыденное снаряжение редакции 2024.",
         "weight_lb": 35,
         "cost": {
           "amount": 4,
@@ -2226,7 +2226,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты гончара — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты гончара — обыденное снаряжение редакции 2024.",
         "weight_lb": 3,
         "cost": {
           "amount": 10,
@@ -2250,7 +2250,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Кошель — снаряжение SRD 2024.",
+        "summary_ru": "Кошель — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 5,
@@ -2273,7 +2273,7 @@
       },
       "data": {
         "equipment_group": "item_pack",
-        "summary_ru": "Набор «Набор священника» (состав — по карточке SRD / справочнику).",
+        "summary_ru": "Набор «Набор священника» (состав — по карточке СРД / справочнику).",
         "weight_lb": 29,
         "cost": {
           "amount": 33,
@@ -2295,7 +2295,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Колчан — снаряжение SRD 2024.",
+        "summary_ru": "Колчан — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 1,
@@ -2317,7 +2317,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Рационы — снаряжение SRD 2024.",
+        "summary_ru": "Рационы — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 5,
@@ -2340,7 +2340,7 @@
       },
       "data": {
         "equipment_group": "spellcasting_focus",
-        "summary_ru": "Реликварий — снаряжение SRD 2024.",
+        "summary_ru": "Реликварий — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 5,
@@ -2362,7 +2362,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Мантия — снаряжение SRD 2024.",
+        "summary_ru": "Мантия — обыденное снаряжение редакции 2024.",
         "weight_lb": 4,
         "cost": {
           "amount": 1,
@@ -2385,7 +2385,7 @@
       },
       "data": {
         "equipment_group": "spellcasting_focus",
-        "summary_ru": "Жезл — снаряжение SRD 2024.",
+        "summary_ru": "Жезл — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 10,
@@ -2407,7 +2407,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Верёвка — снаряжение SRD 2024.",
+        "summary_ru": "Верёвка — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 1,
@@ -2430,7 +2430,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Мешок — снаряжение SRD 2024.",
+        "summary_ru": "Мешок — обыденное снаряжение редакции 2024.",
         "weight_lb": 0.5,
         "cost": {
           "amount": 1,
@@ -2452,7 +2452,7 @@
       },
       "data": {
         "equipment_group": "item_pack",
-        "summary_ru": "Набор «Набор учёного» (состав — по карточке SRD / справочнику).",
+        "summary_ru": "Набор «Набор учёного» (состав — по карточке СРД / справочнику).",
         "weight_lb": 22,
         "cost": {
           "amount": 40,
@@ -2474,7 +2474,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Шалмей — снаряжение SRD 2024.",
+        "summary_ru": "Шалмей — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 2,
@@ -2496,7 +2496,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Лопата — снаряжение SRD 2024.",
+        "summary_ru": "Лопата — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 2,
@@ -2518,7 +2518,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Сигнальный свисток — снаряжение SRD 2024.",
+        "summary_ru": "Сигнальный свисток — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 5,
@@ -2540,7 +2540,7 @@
       },
       "data": {
         "equipment_group": "ammunition",
-        "summary_ru": "Снаряды для пращи — снаряжение SRD 2024.",
+        "summary_ru": "Снаряды для пращи — обыденное снаряжение редакции 2024.",
         "weight_lb": 1.5,
         "cost": {
           "amount": 4,
@@ -2562,7 +2562,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты кузнеца — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты кузнеца — обыденное снаряжение редакции 2024.",
         "weight_lb": 8,
         "cost": {
           "amount": 20,
@@ -2586,7 +2586,7 @@
       },
       "data": {
         "equipment_group": "spellcasting_focus",
-        "summary_ru": "Веточка омелы — снаряжение SRD 2024.",
+        "summary_ru": "Веточка омелы — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 1,
@@ -2608,7 +2608,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Подзорная труба — снаряжение SRD 2024.",
+        "summary_ru": "Подзорная труба — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 1000,
@@ -2630,7 +2630,7 @@
       },
       "data": {
         "equipment_group": "spellcasting_focus",
-        "summary_ru": "Посох — снаряжение SRD 2024.",
+        "summary_ru": "Посох — обыденное снаряжение редакции 2024.",
         "weight_lb": 4,
         "cost": {
           "amount": 5,
@@ -2652,7 +2652,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Леска — снаряжение SRD 2024.",
+        "summary_ru": "Леска — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 1,
@@ -2675,7 +2675,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Палатка — снаряжение SRD 2024.",
+        "summary_ru": "Палатка — обыденное снаряжение редакции 2024.",
         "weight_lb": 20,
         "cost": {
           "amount": 2,
@@ -2697,7 +2697,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Воровские инструменты — снаряжение SRD 2024.",
+        "summary_ru": "Воровские инструменты — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 25,
@@ -2721,7 +2721,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Ставка трёх драконов — снаряжение SRD 2024."
+        "summary_ru": "Ставка трёх драконов — обыденное снаряжение редакции 2024."
       }
     },
     {
@@ -2738,7 +2738,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Трутница — снаряжение SRD 2024.",
+        "summary_ru": "Трутница — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 5,
@@ -2760,7 +2760,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты ремонтника — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты ремонтника — обыденное снаряжение редакции 2024.",
         "weight_lb": 10,
         "cost": {
           "amount": 50,
@@ -2784,7 +2784,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Факел — снаряжение SRD 2024.",
+        "summary_ru": "Факел — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 1,
@@ -2806,7 +2806,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Дорожная одежда — снаряжение SRD 2024.",
+        "summary_ru": "Дорожная одежда — обыденное снаряжение редакции 2024.",
         "weight_lb": 4,
         "cost": {
           "amount": 2,
@@ -2828,7 +2828,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Флакон — снаряжение SRD 2024.",
+        "summary_ru": "Флакон — обыденное снаряжение редакции 2024.",
         "weight_lb": 0,
         "cost": {
           "amount": 1,
@@ -2850,7 +2850,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Виола да гамба — снаряжение SRD 2024.",
+        "summary_ru": "Виола да гамба — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 30,
@@ -2873,7 +2873,7 @@
       },
       "data": {
         "equipment_group": "spellcasting_focus",
-        "summary_ru": "Волшебная палочка — снаряжение SRD 2024.",
+        "summary_ru": "Волшебная палочка — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 10,
@@ -2895,7 +2895,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Бурдюк — снаряжение SRD 2024.",
+        "summary_ru": "Бурдюк — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 2,
@@ -2917,7 +2917,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты ткача — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты ткача — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 1,
@@ -2941,7 +2941,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты резчика по дереву — снаряжение SRD 2024.",
+        "summary_ru": "Инструменты резчика по дереву — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 1,
@@ -2965,7 +2965,7 @@
       },
       "data": {
         "equipment_group": "spellcasting_focus",
-        "summary_ru": "Деревянный посох — снаряжение SRD 2024.",
+        "summary_ru": "Деревянный посох — обыденное снаряжение редакции 2024.",
         "weight_lb": 4,
         "cost": {
           "amount": 5,
@@ -2987,7 +2987,7 @@
       },
       "data": {
         "equipment_group": "spellcasting_focus",
-        "summary_ru": "Тисовая палочка — снаряжение SRD 2024.",
+        "summary_ru": "Тисовая палочка — обыденное снаряжение редакции 2024.",
         "weight_lb": 1,
         "cost": {
           "amount": 10,

@@ -29,9 +29,9 @@
           "amount": 400,
           "unit": "gp"
         },
-        "don_time": "5 minutes",
-        "doff_time": "1 minute",
-        "summary_ru": "Доспех (medium): КД 14 + Ловк. (макс. 2)."
+        "don_time": "5 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (средний): КД 14 + Ловк. (макс. 2)."
       }
     },
     {
@@ -57,9 +57,9 @@
           "amount": 75,
           "unit": "gp"
         },
-        "don_time": "10 minutes",
-        "doff_time": "5 minutes",
-        "summary_ru": "Доспех (heavy): КД 16.",
+        "don_time": "10 мин",
+        "doff_time": "5 мин",
+        "summary_ru": "Доспех (тяжёлый): КД 16.",
         "name_ru_pending": true
       }
     },
@@ -86,9 +86,9 @@
           "amount": 50,
           "unit": "gp"
         },
-        "don_time": "5 minutes",
-        "doff_time": "1 minute",
-        "summary_ru": "Доспех (medium): КД 13 + Ловк. (макс. 2)."
+        "don_time": "5 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (средний): КД 13 + Ловк. (макс. 2)."
       }
     },
     {
@@ -114,9 +114,9 @@
           "amount": 750,
           "unit": "gp"
         },
-        "don_time": "5 minutes",
-        "doff_time": "1 minute",
-        "summary_ru": "Доспех (medium): КД 15 + Ловк. (макс. 2)."
+        "don_time": "5 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (средний): КД 15 + Ловк. (макс. 2)."
       }
     },
     {
@@ -142,9 +142,9 @@
           "amount": 10,
           "unit": "gp"
         },
-        "don_time": "5 minutes",
-        "doff_time": "1 minute",
-        "summary_ru": "Доспех (medium): КД 12 + Ловк. (макс. 2)."
+        "don_time": "5 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (средний): КД 12 + Ловк. (макс. 2)."
       }
     },
     {
@@ -170,9 +170,9 @@
           "amount": 10,
           "unit": "gp"
         },
-        "don_time": "1 minute",
-        "doff_time": "1 minute",
-        "summary_ru": "Доспех (light): КД 11 + Ловк.."
+        "don_time": "1 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (лёгкий): КД 11 + Ловк.."
       }
     },
     {
@@ -198,9 +198,9 @@
           "amount": 5,
           "unit": "gp"
         },
-        "don_time": "1 minute",
-        "doff_time": "1 minute",
-        "summary_ru": "Доспех (light): КД 11 + Ловк.."
+        "don_time": "1 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (лёгкий): КД 11 + Ловк.."
       }
     },
     {
@@ -226,9 +226,9 @@
           "amount": 1500,
           "unit": "gp"
         },
-        "don_time": "10 minutes",
-        "doff_time": "5 minutes",
-        "summary_ru": "Доспех (heavy): КД 18.",
+        "don_time": "10 мин",
+        "doff_time": "5 мин",
+        "summary_ru": "Доспех (тяжёлый): КД 18.",
         "name_ru_pending": true
       }
     },
@@ -255,9 +255,9 @@
           "amount": 30,
           "unit": "gp"
         },
-        "don_time": "10 minutes",
-        "doff_time": "5 minutes",
-        "summary_ru": "Доспех (heavy): КД 14.",
+        "don_time": "10 мин",
+        "doff_time": "5 мин",
+        "summary_ru": "Доспех (тяжёлый): КД 14.",
         "name_ru_pending": true
       }
     },
@@ -284,9 +284,9 @@
           "amount": 50,
           "unit": "gp"
         },
-        "don_time": "5 minutes",
-        "doff_time": "1 minute",
-        "summary_ru": "Доспех (medium): КД 14 + Ловк. (макс. 2)."
+        "don_time": "5 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (средний): КД 14 + Ловк. (макс. 2)."
       }
     },
     {
@@ -340,9 +340,9 @@
           "amount": 200,
           "unit": "gp"
         },
-        "don_time": "10 minutes",
-        "doff_time": "5 minutes",
-        "summary_ru": "Доспех (heavy): КД 17.",
+        "don_time": "10 мин",
+        "doff_time": "5 мин",
+        "summary_ru": "Доспех (тяжёлый): КД 17.",
         "name_ru_pending": true
       }
     },
@@ -369,9 +369,9 @@
           "amount": 45,
           "unit": "gp"
         },
-        "don_time": "1 minute",
-        "doff_time": "1 minute",
-        "summary_ru": "Доспех (light): КД 12 + Ловк..",
+        "don_time": "1 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (лёгкий): КД 12 + Ловк..",
         "name_ru_pending": true
       }
     }

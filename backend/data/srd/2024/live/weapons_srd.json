@@ -32,7 +32,7 @@
           "versatile"
         ],
         "mastery": "topple",
-        "summary_ru": "Воинское рукопашное: 1d8 (slashing).",
+        "summary_ru": "Воинское рукопашное: 1d8 (рубящий).",
         "versatile_damage": "1d10"
       }
     },
@@ -63,7 +63,7 @@
           "loading"
         ],
         "mastery": "vex",
-        "summary_ru": "Воинское дальнобойное: 1 (piercing).",
+        "summary_ru": "Воинское дальнобойное: 1 (колющий).",
         "range": {
           "normal": 25,
           "long": 100
@@ -97,7 +97,7 @@
           "light"
         ],
         "mastery": "slow",
-        "summary_ru": "Простое рукопашное: 1d4 (bludgeoning)."
+        "summary_ru": "Простое рукопашное: 1d4 (дробящий)."
       }
     },
     {
@@ -128,7 +128,7 @@
           "thrown"
         ],
         "mastery": "nick",
-        "summary_ru": "Простое рукопашное: 1d4 (piercing).",
+        "summary_ru": "Простое рукопашное: 1d4 (колющий).",
         "thrown_range": {
           "normal": 20,
           "long": 60
@@ -162,7 +162,7 @@
           "thrown"
         ],
         "mastery": "vex",
-        "summary_ru": "Простое дальнобойное: 1d4 (piercing).",
+        "summary_ru": "Простое дальнобойное: 1d4 (колющий).",
         "thrown_range": {
           "normal": 20,
           "long": 60
@@ -193,7 +193,7 @@
         },
         "properties": [],
         "mastery": "sap",
-        "summary_ru": "Воинское рукопашное: 1d8 (bludgeoning)."
+        "summary_ru": "Воинское рукопашное: 1d8 (дробящий)."
       }
     },
     {
@@ -224,7 +224,7 @@
           "two_handed"
         ],
         "mastery": "graze",
-        "summary_ru": "Воинское рукопашное: 1d10 (slashing)."
+        "summary_ru": "Воинское рукопашное: 1d10 (рубящий)."
       }
     },
     {
@@ -254,7 +254,7 @@
           "two_handed"
         ],
         "mastery": "cleave",
-        "summary_ru": "Воинское рукопашное: 1d12 (slashing)."
+        "summary_ru": "Воинское рукопашное: 1d12 (рубящий)."
       }
     },
     {
@@ -283,7 +283,7 @@
           "two_handed"
         ],
         "mastery": "push",
-        "summary_ru": "Простое рукопашное: 1d8 (bludgeoning)."
+        "summary_ru": "Простое рукопашное: 1d8 (дробящий)."
       }
     },
     {
@@ -313,7 +313,7 @@
           "two_handed"
         ],
         "mastery": "graze",
-        "summary_ru": "Воинское рукопашное: 2d6 (slashing)."
+        "summary_ru": "Воинское рукопашное: 2d6 (рубящий)."
       }
     },
     {
@@ -344,7 +344,7 @@
           "two_handed"
         ],
         "mastery": "cleave",
-        "summary_ru": "Воинское рукопашное: 1d10 (slashing)."
+        "summary_ru": "Воинское рукопашное: 1d10 (рубящий)."
       }
     },
     {
@@ -375,7 +375,7 @@
           "loading"
         ],
         "mastery": "vex",
-        "summary_ru": "Воинское дальнобойное: 1d6 (piercing).",
+        "summary_ru": "Воинское дальнобойное: 1d6 (колющий).",
         "range": {
           "normal": 30,
           "long": 120
@@ -411,7 +411,7 @@
           "thrown"
         ],
         "mastery": "vex",
-        "summary_ru": "Простое рукопашное: 1d6 (slashing).",
+        "summary_ru": "Простое рукопашное: 1d6 (рубящий).",
         "thrown_range": {
           "normal": 20,
           "long": 60
@@ -448,7 +448,7 @@
           "two_handed"
         ],
         "mastery": "push",
-        "summary_ru": "Воинское дальнобойное: 1d10 (piercing).",
+        "summary_ru": "Воинское дальнобойное: 1d10 (колющий).",
         "range": {
           "normal": 100,
           "long": 400
@@ -482,7 +482,7 @@
           "thrown"
         ],
         "mastery": "slow",
-        "summary_ru": "Простое рукопашное: 1d6 (piercing).",
+        "summary_ru": "Простое рукопашное: 1d6 (колющий).",
         "thrown_range": {
           "normal": 30,
           "long": 120
@@ -517,7 +517,7 @@
           "two_handed"
         ],
         "mastery": "topple",
-        "summary_ru": "Воинское рукопашное: 1d10 (piercing).",
+        "summary_ru": "Воинское рукопашное: 1d10 (колющий).",
         "two_handed_note_ru": "Двуручное, кроме случая когда вы в седле.",
         "name_ru_pending": true
       }
@@ -550,7 +550,7 @@
           "two_handed"
         ],
         "mastery": "slow",
-        "summary_ru": "Простое дальнобойное: 1d8 (piercing).",
+        "summary_ru": "Простое дальнобойное: 1d8 (колющий).",
         "range": {
           "normal": 80,
           "long": 320
@@ -585,7 +585,7 @@
           "thrown"
         ],
         "mastery": "nick",
-        "summary_ru": "Простое рукопашное: 1d4 (bludgeoning).",
+        "summary_ru": "Простое рукопашное: 1d4 (дробящий).",
         "thrown_range": {
           "normal": 20,
           "long": 60
@@ -620,7 +620,7 @@
           "two_handed"
         ],
         "mastery": "slow",
-        "summary_ru": "Воинское дальнобойное: 1d8 (piercing).",
+        "summary_ru": "Воинское дальнобойное: 1d8 (колющий).",
         "range": {
           "normal": 150,
           "long": 600
@@ -654,7 +654,7 @@
           "versatile"
         ],
         "mastery": "sap",
-        "summary_ru": "Воинское рукопашное: 1d8 (slashing).",
+        "summary_ru": "Воинское рукопашное: 1d8 (рубящий).",
         "versatile_damage": "1d10"
       }
     },
@@ -682,7 +682,7 @@
         },
         "properties": [],
         "mastery": "sap",
-        "summary_ru": "Простое рукопашное: 1d6 (bludgeoning)."
+        "summary_ru": "Простое рукопашное: 1d6 (дробящий)."
       }
     },
     {
@@ -712,7 +712,7 @@
           "two_handed"
         ],
         "mastery": "topple",
-        "summary_ru": "Воинское рукопашное: 2d6 (bludgeoning)."
+        "summary_ru": "Воинское рукопашное: 2d6 (дробящий)."
       }
     },
     {
@@ -739,7 +739,7 @@
         },
         "properties": [],
         "mastery": "sap",
-        "summary_ru": "Воинское рукопашное: 1d8 (piercing)."
+        "summary_ru": "Воинское рукопашное: 1d8 (колющий)."
       }
     },
     {
@@ -770,7 +770,7 @@
           "two_handed"
         ],
         "mastery": "slow",
-        "summary_ru": "Воинское дальнобойное: 1d12 (piercing).",
+        "summary_ru": "Воинское дальнобойное: 1d12 (колющий).",
         "range": {
           "normal": 40,
           "long": 120
@@ -806,7 +806,7 @@
           "two_handed"
         ],
         "mastery": "push",
-        "summary_ru": "Воинское рукопашное: 1d10 (piercing)."
+        "summary_ru": "Воинское рукопашное: 1d10 (колющий)."
       }
     },
     {
@@ -836,7 +836,7 @@
           "loading"
         ],
         "mastery": "vex",
-        "summary_ru": "Воинское дальнобойное: 1d10 (piercing).",
+        "summary_ru": "Воинское дальнобойное: 1d10 (колющий).",
         "range": {
           "normal": 30,
           "long": 90
@@ -870,7 +870,7 @@
           "versatile"
         ],
         "mastery": "topple",
-        "summary_ru": "Простое рукопашное: 1d6 (bludgeoning).",
+        "summary_ru": "Простое рукопашное: 1d6 (дробящий).",
         "versatile_damage": "1d8"
       }
     },
@@ -900,7 +900,7 @@
           "finesse"
         ],
         "mastery": "vex",
-        "summary_ru": "Воинское рукопашное: 1d8 (piercing)."
+        "summary_ru": "Воинское рукопашное: 1d8 (колющий)."
       }
     },
     {
@@ -930,7 +930,7 @@
           "light"
         ],
         "mastery": "nick",
-        "summary_ru": "Воинское рукопашное: 1d6 (slashing)."
+        "summary_ru": "Воинское рукопашное: 1d6 (рубящий)."
       }
     },
     {
@@ -960,7 +960,7 @@
           "two_handed"
         ],
         "mastery": "vex",
-        "summary_ru": "Простое дальнобойное: 1d6 (piercing).",
+        "summary_ru": "Простое дальнобойное: 1d6 (колющий).",
         "range": {
           "normal": 80,
           "long": 320
@@ -995,7 +995,7 @@
           "light"
         ],
         "mastery": "vex",
-        "summary_ru": "Воинское рукопашное: 1d6 (piercing)."
+        "summary_ru": "Воинское рукопашное: 1d6 (колющий)."
       }
     },
     {
@@ -1024,7 +1024,7 @@
           "light"
         ],
         "mastery": "nick",
-        "summary_ru": "Простое рукопашное: 1d4 (slashing)."
+        "summary_ru": "Простое рукопашное: 1d4 (рубящий)."
       }
     },
     {
@@ -1053,7 +1053,7 @@
           "ammunition"
         ],
         "mastery": "slow",
-        "summary_ru": "Простое дальнобойное: 1d4 (bludgeoning).",
+        "summary_ru": "Простое дальнобойное: 1d4 (дробящий).",
         "range": {
           "normal": 30,
           "long": 120
@@ -1088,7 +1088,7 @@
           "versatile"
         ],
         "mastery": "sap",
-        "summary_ru": "Простое рукопашное: 1d6 (piercing).",
+        "summary_ru": "Простое рукопашное: 1d6 (колющий).",
         "thrown_range": {
           "normal": 20,
           "long": 60
@@ -1123,7 +1123,7 @@
           "versatile"
         ],
         "mastery": "topple",
-        "summary_ru": "Воинское рукопашное: 1d8 (piercing).",
+        "summary_ru": "Воинское рукопашное: 1d8 (колющий).",
         "thrown_range": {
           "normal": 20,
           "long": 60
@@ -1157,7 +1157,7 @@
           "versatile"
         ],
         "mastery": "sap",
-        "summary_ru": "Воинское рукопашное: 1d8 (piercing).",
+        "summary_ru": "Воинское рукопашное: 1d8 (колющий).",
         "versatile_damage": "1d10",
         "name_ru_pending": true
       }
@@ -1188,7 +1188,7 @@
           "versatile"
         ],
         "mastery": "push",
-        "summary_ru": "Воинское рукопашное: 1d8 (bludgeoning).",
+        "summary_ru": "Воинское рукопашное: 1d8 (дробящий).",
         "versatile_damage": "1d10"
       }
     },
@@ -1219,7 +1219,7 @@
           "reach"
         ],
         "mastery": "slow",
-        "summary_ru": "Воинское рукопашное: 1d4 (slashing)."
+        "summary_ru": "Воинское рукопашное: 1d4 (рубящий)."
       }
     }
   ]
