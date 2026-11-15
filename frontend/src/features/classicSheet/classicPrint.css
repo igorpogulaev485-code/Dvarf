@@ -949,7 +949,8 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  min-height: 1.15rem;
+  /* Pass 9b: empty mod keeps the same floor as filled ink. */
+  min-height: 1.35rem;
 }
 
 .classic-ability__score {
@@ -959,6 +960,7 @@
   transform: translateX(-50%);
   width: 1.42rem;
   height: 1.05rem;
+  min-height: 1.05rem;
   border: 1.75pt solid #000;
   border-radius: 50%;
   background: #fff;
@@ -2562,6 +2564,9 @@
   background: #fff;
   font-size: 0.78rem;
   color: var(--c-ink);
+  box-sizing: border-box;
+  /* Pass 9b: empty ink must keep the same cell height as filled. */
+  min-height: 1.55rem;
 }
 
 .classic-lss-level {
@@ -2866,6 +2871,8 @@
   border-radius: 0.16rem;
   background: #fff;
   padding: 0.04rem 0;
+  /* Pass 9b: empty value must not collapse the cell. */
+  min-height: 2.2rem;
   -moz-appearance: textfield;
 }
 
@@ -2876,7 +2883,8 @@
 }
 
 .classic-lss-ability__modbox strong {
-  display: block;
+  display: grid;
+  place-items: center;
   width: 100%;
   box-sizing: border-box;
   padding: 0.12rem 0;
@@ -2886,6 +2894,8 @@
   text-align: center;
   font-size: 0.9rem;
   line-height: 1;
+  /* Pass 9b: empty МОД. must match filled pill height (~2.2rem). */
+  min-height: 2.2rem;
 }
 
 .classic-lss-ability__scorebox em,
@@ -2936,6 +2946,8 @@
   font-size: 0.54rem;
   text-align: right;
   padding-right: 0.08rem;
+  min-height: 0.7rem;
+  box-sizing: border-box;
 }
 
 .classic-lss-ability__skills span {
@@ -3053,6 +3065,22 @@
 .classic-lss-weapons-head,
 .classic-lss-weapon-row {
   grid-template-columns: 1.4fr 0.7fr 1.1fr 0.8fr;
+}
+
+.classic-lss-weapon-row input {
+  box-sizing: border-box;
+  min-height: 1.35rem;
+  width: 100%;
+  border: none;
+  border-bottom: 0.55pt solid var(--lss-soft);
+  background: transparent;
+  font: inherit;
+  color: inherit;
+}
+
+.classic-lss-weapon-row input::placeholder {
+  color: transparent;
+  opacity: 0;
 }
 
 .classic-lss-features {

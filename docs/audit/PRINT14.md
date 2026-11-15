@@ -133,10 +133,26 @@
 
 ---
 
+## Pass 9b — высота пустых ячеек; без «—» в оружии
+
+1. **МОД. / поля.** `min-height` у `.classic-lss-ability__modbox strong` и score/input ячеек 2024 (и пол пустых полей LSS); у 2014 — пол у `.classic-ability__mod` / score. Пустое значение не сжимает ячейку.
+2. **Оружие 2024.** Убраны `placeholder="—"` в строках «Оружие и боевые заговоры».
+
+### Кадры pass 9b
+
+| Кадр | md5 |
+|---|---|
+| after-blank-2014-print-1.png | `be9f28257f9fe50544463178f500606b` |
+| after-blank-2024-print-1.png | `8e7142f33f5b7a24de74f1d163e32d90` |
+
+Каталог: `pass9b-after/`.
+
+---
+
 ## Проверки
 
 - `frontend`: `npm run build` — ok
 - selfcheck: classicPrint14, classicPrintSettings — ok
 - `backend`: `pytest` — 380 passed (incl. HP sheet-patch)
 - Alembic: одна голова
-- Кадры pass8/pass9: Vite + API, Chromium PDF + pdftoppm
+- Кадры pass8/pass9/pass9b: Vite + API, Chromium PDF + pdftoppm

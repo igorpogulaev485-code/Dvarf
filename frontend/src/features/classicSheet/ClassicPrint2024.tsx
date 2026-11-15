@@ -498,17 +498,14 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                   <input
                     value={row.name}
                     aria-label={`Оружие ${idx + 1}: название`}
-                    placeholder="—"
                    readOnly />
                   <input
                     value={row.attackBonus}
                     aria-label={`Оружие ${idx + 1}: бонус`}
-                    placeholder="—"
                    readOnly />
                   <input
                     value={row.damageLine}
                     aria-label={`Оружие ${idx + 1}: урон`}
-                    placeholder="—"
                    readOnly />
                   <span />
                 </div>
