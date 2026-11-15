@@ -22,6 +22,11 @@ import {
   type ClassicTextAlign,
 } from '../features/classicSheet/classicPrintSettings'
 import {
+  readClassicSheetLayout,
+  setClassicSheetLayout,
+  type ClassicSheetLayout,
+} from '../features/classicSheet/classicSheetLayout'
+import {
   getCharacter,
   updateCharacter,
   type CharacterDetail,
@@ -105,12 +110,22 @@ export function ClassicSheetPage() {
     [persistPrintSettings],
   )
 
-  // FIX-01: печатный тулбар только 2014 (выбор 2024 убран).
-  const sheetLayout = '2014' as const
+  const sheetLayout: ClassicSheetLayout = character
+    ? readClassicSheetLayout(character)
+    : '2014'
   const pencilBlanks = character ? readClassicPencilBlanks(character) : false
   const extraNotePages = character ? readClassicExtraNotePages(character) : 0
   const textStyle = character ? readClassicTextStyle(character) : null
   const fontScale = character ? readClassicGlobalFontScale(character) : 1
+
+  const handleLayoutChange = useCallback(
+    (layout: ClassicSheetLayout) => {
+      const current = latestRef.current
+      if (!current) return
+      handlePrintSettings(setClassicSheetLayout(current, layout))
+    },
+    [handlePrintSettings],
+  )
 
   return (
     <div
@@ -148,10 +163,20 @@ export function ClassicSheetPage() {
         <div className="classic-toolbar-actions">
           <div className="classic-layout-switch" role="group" aria-label="Макет классического листа">
             <span className="classic-layout-switch__label">Макет</span>
-            <button type="button" className="is-active" disabled>
-              2014
-            </button>
-            <span className="classic-layout-switch__hint">печатная форма · D&D 5e 2014</span>
+            {(['2014', '2024'] as const).map((year) => (
+              <button
+                key={year}
+                type="button"
+                className={sheetLayout === year ? 'is-active' : undefined}
+                disabled={!character}
+                onClick={() => handleLayoutChange(year)}
+              >
+                {year}
+              </button>
+            ))}
+            <span className="classic-layout-switch__hint">
+              печатная форма · D&D 5e {sheetLayout}
+            </span>
           </div>
           <label className="classic-pencil-toggle" title="Добавляет запасные пустые строки и страницы">
             <input

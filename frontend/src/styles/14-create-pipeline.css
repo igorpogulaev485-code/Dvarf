@@ -1,3 +1,35 @@
+.create-pipeline__source-block {
+  display: grid;
+  gap: 6px;
+}
+
+.create-pipeline__source-toggle {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: max-content;
+  max-width: 100%;
+  min-height: var(--tap-min, 44px);
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.create-pipeline__source-toggle.is-open,
+.create-pipeline__source-toggle[aria-expanded='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
 .create-pipeline__chip--active {
   border-color: var(--accent);
   background: var(--accent);

@@ -99,17 +99,46 @@
     font-size: 0.82rem;
   }
 
+  /* MOB-FIX: densify list chrome so first card is in the first viewport */
   .character-list-toolbar {
-    gap: 8px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'create help'
+      'sizes tags';
+    gap: 6px 8px;
+    align-items: stretch;
+  }
+
+  .character-list-toolbar > *:nth-child(1) {
+    grid-area: create;
+    width: auto;
+    min-width: 0;
+  }
+
+  .character-list-toolbar > *:nth-child(1) .ui-button,
+  .character-list-toolbar > *:nth-child(1) > button {
+    width: 100%;
+    min-height: var(--tap-min, 44px);
+  }
+
+  .character-list-toolbar > *:nth-child(2) {
+    grid-area: help;
+    width: auto;
+    min-width: var(--tap-min, 44px);
+    min-height: var(--tap-min, 44px);
+    padding-inline: 10px;
   }
 
   .character-list-toolbar__sizes {
+    grid-area: sizes;
     margin-left: 0;
     width: 100%;
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    align-self: center;
   }
 
   .character-list-toolbar__sizes::-webkit-scrollbar {
@@ -118,12 +147,17 @@
 
   .character-list-toolbar__sizes .sheet-chip {
     flex: 0 0 auto;
-    min-height: 40px;
+    min-height: 36px;
+    padding: 4px 8px;
+    font-size: 0.78rem;
   }
 
-  .character-list-toolbar > .ui-button,
-  .character-list-toolbar .create-character {
-    width: 100%;
+  .character-list-toolbar > *:nth-child(4) {
+    grid-area: tags;
+    width: auto;
+    min-height: 36px;
+    padding-inline: 10px;
+    font-size: 0.82rem;
   }
 
   .character-card {

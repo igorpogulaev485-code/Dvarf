@@ -584,11 +584,17 @@ export function RaceSetupDialog({
             ) : null}
             {enableNameGeneration ? (
               <>
+                {!gender ? (
+                  <Text tone="muted" className="race-setup__gender-hint">
+                    Для генератора имени нужен пол — выбери выше.
+                  </Text>
+                ) : null}
                 <Button
                   type="button"
                   variant="secondary"
                   disabled={!gender || !namingContext || !subraceOk}
                   onClick={handleGenerateName}
+                  title={!gender ? 'Сначала укажи пол' : undefined}
                 >
                   Сгенерировать имя
                 </Button>
@@ -734,7 +740,7 @@ export function RaceSetupDialog({
 
             {langNeed > 0 ? (
               <Field label={`Языки на выбор (${languages.length}/${langNeed})`}>
-                <div className="chip-row">
+                <div className="chip-row chip-row--compact" role="group" aria-label="Языки">
                   {languageOptions.map((name) => {
                     const on = languages.includes(name)
                     return (

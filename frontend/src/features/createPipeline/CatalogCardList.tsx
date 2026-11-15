@@ -41,11 +41,14 @@ export function CatalogCardList({
 }: CatalogCardListProps) {
   const [query, setQuery] = useState('')
   const [sources, setSources] = useState<string[]>([])
+  /** Phone: source chips collapsed until opened (MOB-FIX create race density). */
+  const [sourcesOpen, setSourcesOpen] = useState(false)
 
   useEffect(() => {
     if (resetToken === undefined) return
     setQuery('')
     setSources([])
+    setSourcesOpen(false)
   }, [resetToken])
 
   const sourceOptions = useMemo(() => {
@@ -88,32 +91,46 @@ export function CatalogCardList({
             />
           </Field>
           {sourceOptions.length > 0 ? (
-            <div className="create-pipeline__source-chips" role="group" aria-label="Источники">
-              {sourceOptions.map((source) => {
-                const active = sources.includes(source)
-                return (
-                  <button
-                    key={source}
-                    type="button"
-                    className={
-                      active
-                        ? 'create-pipeline__chip create-pipeline__chip--active'
-                        : 'create-pipeline__chip'
-                    }
-                    onClick={() => toggleSource(source)}
-                  >
-                    {source}
-                  </button>
-                )
-              })}
-              {sources.length > 0 ? (
-                <button
-                  type="button"
-                  className="create-pipeline__chip create-pipeline__chip--clear"
-                  onClick={() => setSources([])}
-                >
-                  Все
-                </button>
+            <div className="create-pipeline__source-block">
+              <button
+                type="button"
+                className={`create-pipeline__source-toggle${sourcesOpen || sources.length ? ' is-open' : ''}`}
+                aria-expanded={sourcesOpen || sources.length > 0}
+                onClick={() => setSourcesOpen((v) => !v)}
+              >
+                Источники
+                {sources.length ? ` (${sources.length})` : ''}
+                <span aria-hidden="true">{sourcesOpen || sources.length ? '▴' : '▾'}</span>
+              </button>
+              {sourcesOpen || sources.length > 0 ? (
+                <div className="create-pipeline__source-chips" role="group" aria-label="Источники">
+                  {sourceOptions.map((source) => {
+                    const active = sources.includes(source)
+                    return (
+                      <button
+                        key={source}
+                        type="button"
+                        className={
+                          active
+                            ? 'create-pipeline__chip create-pipeline__chip--active'
+                            : 'create-pipeline__chip'
+                        }
+                        onClick={() => toggleSource(source)}
+                      >
+                        {source}
+                      </button>
+                    )
+                  })}
+                  {sources.length > 0 ? (
+                    <button
+                      type="button"
+                      className="create-pipeline__chip create-pipeline__chip--clear"
+                      onClick={() => setSources([])}
+                    >
+                      Все
+                    </button>
+                  ) : null}
+                </div>
               ) : null}
             </div>
           ) : null}
