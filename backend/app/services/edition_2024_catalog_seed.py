@@ -24,6 +24,9 @@ Schema contract for later packs (P24-00 lists → data packs):
   ``beast_tags`` on Animals (wild_shape_ok / mount / has_fly / has_swim)
 - PHB beyond SRD (C09): ``species_ph24`` / ``backgrounds_ph24`` / ``subclasses_ph24``,
   ``source`` ``ph24`` → ``content_layer=community_ref``
+- PHB beyond SRD (C10): ``feats_ph24`` / ``spells_ph24``; named spells use
+  ``data.srd_alias`` → unprefixed SRD slug (no merge). Equipment/magic PH24
+  beyond SRD count is 0 after C03/C06.
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -75,6 +78,9 @@ EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("species_ph24.json"),
     WaveSpec("backgrounds_ph24.json"),
     WaveSpec("subclasses_ph24.json"),
+    # P24-C10 — PHB feats + spells beyond SRD (community_ref)
+    WaveSpec("feats_ph24.json"),
+    WaveSpec("spells_ph24.json"),
 )
 
 WEAPON_MASTERY_FILENAME = "weapon_mastery_srd.json"
@@ -302,6 +308,8 @@ def normalize_spell_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
     out.setdefault("damage", None)
     out.setdefault("summary_ru", None)
     out.setdefault("name_ru_pending", False)
+    # Named PHB eponym → unprefixed SRD card (C10); SRD rows leave this unset/None.
+    out.setdefault("srd_alias", None)
     return out
 
 

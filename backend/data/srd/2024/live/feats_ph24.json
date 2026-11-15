@@ -1,0 +1,1757 @@
+{
+  "meta": {
+    "pack": "P24-C10",
+    "rules_edition": "2024",
+    "source": "ph24",
+    "notes_ru": "58 черт PHB 2024 сверх SRD (community_ref). Короткие карточки своими словами по next.dnd.su; RU из feats.csv. Полный текст книги не копируем.",
+    "feat_count": 58
+  },
+  "entries": [
+    {
+      "kind": "feat",
+      "slug": "boon-of-energy-resistance",
+      "name_ru": "Дар сопротивления энергии",
+      "name_en": "Boon of Energy Resistance",
+      "source": "ph24",
+      "sort_order": 600,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/375-boon-of-energy-resistance",
+        "url_ttg": "https://new.ttg.club/feats/boon-of-energy-resistance-phb"
+      },
+      "data": {
+        "category": "epic_boon",
+        "prerequisites": {
+          "level": 19
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": "any",
+          "cap": 30
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 30.; Сопротивление энергиям: Вы получаете Сопротивление двум типам урона на ваш выбор из следующих: Звук, Излучение, Кислота, Некротическая энергия, Огонь…; Перенаправление энергии: Когд…",
+        "traits_text": "Эпический дар (2024), 19 уровень: Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 30.; Сопротивление энергиям: Вы получаете Сопротивление двум типам урона на ваш выбор из следующих: Звук, Излучение, Кислота, Некротическая энергия, Огонь…; Перенаправление энергии: Когд…",
+        "prerequisites_ru": "19 уровень",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "boon-of-fortitude",
+      "name_ru": "Дар стойкости",
+      "name_en": "Boon of Fortitude",
+      "source": "ph24",
+      "sort_order": 601,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/377-boon-of-fortitude",
+        "url_ttg": "https://new.ttg.club/feats/boon-of-fortitude-phb"
+      },
+      "data": {
+        "category": "epic_boon",
+        "prerequisites": {
+          "level": 19
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": "any",
+          "cap": 30
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 30.; Укрепление здоровья: Максимум ваших Хитов увеличивается на 40.",
+        "traits_text": "Эпический дар (2024), 19 уровень: Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 30.; Укрепление здоровья: Максимум ваших Хитов увеличивается на 40.",
+        "prerequisites_ru": "19 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "boon-of-recovery",
+      "name_ru": "Дар восстановления",
+      "name_en": "Boon of Recovery",
+      "source": "ph24",
+      "sort_order": 602,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/379-boon-of-recovery",
+        "url_ttg": "https://new.ttg.club/feats/boon-of-recovery-phb"
+      },
+      "data": {
+        "category": "epic_boon",
+        "prerequisites": {
+          "level": 19
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": "any",
+          "cap": 30
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 30.; Последний рубеж: Когда ваши Хиты снижаются до 0, вместо этого вы можете опустить Хиты только до 1 и восстановить Хиты в количестве, равном половине в…; Восстановление жизненной силы…",
+        "traits_text": "Эпический дар (2024), 19 уровень: Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 30.; Последний рубеж: Когда ваши Хиты снижаются до 0, вместо этого вы можете опустить Хиты только до 1 и восстановить Хиты в количестве, равном половине в…; Восстановление жизненной силы…",
+        "prerequisites_ru": "19 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "boon-of-skill",
+      "name_ru": "Дар умелости",
+      "name_en": "Boon of Skill",
+      "source": "ph24",
+      "sort_order": 603,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/380-boon-of-skill",
+        "url_ttg": "https://new.ttg.club/feats/boon-of-skill-phb"
+      },
+      "data": {
+        "category": "epic_boon",
+        "prerequisites": {
+          "level": 19
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": "any",
+          "cap": 30
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 30.; Специалист во всём; Вы получаете владение всеми навыками",
+        "traits_text": "Эпический дар (2024), 19 уровень: Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 30.; Специалист во всём; Вы получаете владение всеми навыками",
+        "prerequisites_ru": "19 уровень",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "boon-of-speed",
+      "name_ru": "Дар скорости",
+      "name_en": "Boon of Speed",
+      "source": "ph24",
+      "sort_order": 604,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/381-boon-of-speed",
+        "url_ttg": "https://new.ttg.club/feats/boon-of-speed-phb"
+      },
+      "data": {
+        "category": "epic_boon",
+        "prerequisites": {
+          "level": 19
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": "any",
+          "cap": 30
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 30.; Мастер побега: Бонусным действием вы можете совершить действие Отход ; сделав это, вы также оканчиваете на себе состояние Схваченный .; Быстрота: Ваша Скорость увеличивается на 30 ф…",
+        "traits_text": "Эпический дар (2024), 19 уровень: Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 30.; Мастер побега: Бонусным действием вы можете совершить действие Отход ; сделав это, вы также оканчиваете на себе состояние Схваченный .; Быстрота: Ваша Скорость увеличивается на 30 ф…",
+        "prerequisites_ru": "19 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "blind-fighting",
+      "name_ru": "Сражение вслепую",
+      "name_en": "Blind Fighting",
+      "source": "ph24",
+      "sort_order": 405,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/364-blind-fighting",
+        "url_ttg": "https://new.ttg.club/feats/blind-fighting-phb"
+      },
+      "data": {
+        "category": "fighting_style",
+        "prerequisites": {
+          "fighting_style_feature": true
+        },
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Вы получаете Слепое зрение дальностью 10 футов.",
+        "traits_text": "Боевой стиль (2024), умение Боевой стиль: Вы получаете Слепое зрение дальностью 10 футов.",
+        "prerequisites_ru": "умение Боевой стиль"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "dueling",
+      "name_ru": "Дуэлянт",
+      "name_en": "Dueling",
+      "source": "ph24",
+      "sort_order": 406,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/366-dueling",
+        "url_ttg": "https://new.ttg.club/feats/dueling-phb"
+      },
+      "data": {
+        "category": "fighting_style",
+        "prerequisites": {
+          "fighting_style_feature": true
+        },
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Пока вы держите Рукопашное оружие в одной руке и не держите другого оружия, вы получаете бонус +2 к броскам урона этим оружием.",
+        "traits_text": "Боевой стиль (2024), умение Боевой стиль: Пока вы держите Рукопашное оружие в одной руке и не держите другого оружия, вы получаете бонус +2 к броскам урона этим оружием.",
+        "prerequisites_ru": "умение Боевой стиль"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "interception",
+      "name_ru": "Перехват",
+      "name_en": "Interception",
+      "source": "ph24",
+      "sort_order": 407,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/368-interception",
+        "url_ttg": "https://new.ttg.club/feats/interception-phb"
+      },
+      "data": {
+        "category": "fighting_style",
+        "prerequisites": {
+          "fighting_style_feature": true
+        },
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Когда видимое вами существо попадает броском атаки по другому существу в пределах 5 футов от вас, вы можете Реакцией уменьшить получаемый целью урон на 1к10 +…; Чтобы использовать эту Реакцию, вы должны держать в руках Щит или Простое или Воинское оружие.",
+        "traits_text": "Боевой стиль (2024), умение Боевой стиль: Когда видимое вами существо попадает броском атаки по другому существу в пределах 5 футов от вас, вы можете Реакцией уменьшить получаемый целью урон на 1к10 +…; Чтобы использовать эту Реакцию, вы должны держать в руках Щит или Простое или Воинское оружие.",
+        "prerequisites_ru": "умение Боевой стиль"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "protection",
+      "name_ru": "Защита",
+      "name_en": "Protection",
+      "source": "ph24",
+      "sort_order": 408,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/369-protection",
+        "url_ttg": "https://new.ttg.club/feats/protection-phb"
+      },
+      "data": {
+        "category": "fighting_style",
+        "prerequisites": {
+          "fighting_style_feature": true
+        },
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Когда видимое вами существо атакует другое существо в пределах 5 футов от вас (кроме вас), вы можете Реакцией выставить Щит, если вы носите его.; В этом случае инициирующая атака совершается с Помехой; все остальные броски атак по цели до начала вашего следующего хода тоже сов…",
+        "traits_text": "Боевой стиль (2024), умение Боевой стиль: Когда видимое вами существо атакует другое существо в пределах 5 футов от вас (кроме вас), вы можете Реакцией выставить Щит, если вы носите его.; В этом случае инициирующая атака совершается с Помехой; все остальные броски атак по цели до начала вашего следующего хода тоже сов…",
+        "prerequisites_ru": "умение Боевой стиль"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "thrown-weapon-fighting",
+      "name_ru": "Сражение метательным оружием",
+      "name_en": "Thrown Weapon Fighting",
+      "source": "ph24",
+      "sort_order": 409,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/370-thrown-weapon-fighting",
+        "url_ttg": "https://new.ttg.club/feats/thrown-weapon-fighting-phb"
+      },
+      "data": {
+        "category": "fighting_style",
+        "prerequisites": {
+          "fighting_style_feature": true
+        },
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Когда вы попадаете дальнобойной атакой оружием со свойством Метательное , вы получаете бонус +2 к броску урона.",
+        "traits_text": "Боевой стиль (2024), умение Боевой стиль: Когда вы попадаете дальнобойной атакой оружием со свойством Метательное , вы получаете бонус +2 к броску урона.",
+        "prerequisites_ru": "умение Боевой стиль"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "unarmed-fighting",
+      "name_ru": "Сражение без оружия",
+      "name_en": "Unarmed Fighting",
+      "source": "ph24",
+      "sort_order": 410,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/372-unarmed-fighting",
+        "url_ttg": "https://new.ttg.club/feats/unarmed-fighting-phb"
+      },
+      "data": {
+        "category": "fighting_style",
+        "prerequisites": {
+          "fighting_style_feature": true
+        },
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Когда вы попадаете Безоружным ударом и наносите урон, вместо обычного урона Безоружного удара вы можете нанести Дробящий урон, равный 1к6 плюс ваш модификатор…; Если вы не держите ни оружия, ни Щита, когда совершаете бросок атаки, к6 становится к8.",
+        "traits_text": "Боевой стиль (2024), умение Боевой стиль: Когда вы попадаете Безоружным ударом и наносите урон, вместо обычного урона Безоружного удара вы можете нанести Дробящий урон, равный 1к6 плюс ваш модификатор…; Если вы не держите ни оружия, ни Щита, когда совершаете бросок атаки, к6 становится к8.",
+        "prerequisites_ru": "умение Боевой стиль",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "actor",
+      "name_ru": "Актёр",
+      "name_en": "Actor",
+      "source": "ph24",
+      "sort_order": 211,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/321-actor",
+        "url_ttg": "https://new.ttg.club/feats/actor-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "cha",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "cha"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Харизмы на 1, но не выше 20.; Персонация: Пока вы маскируетесь под реальную или вымышленную личность, вы совершаете с Преимуществом проверки Харизмы (Обман или Выступление), когда…; Подражание: Вы можете подражать звукам, изда…",
+        "traits_text": "Общая черта (2024), 4 уровень, Харизма 13+: Повышение характеристики: Увеличьте значение вашей Харизмы на 1, но не выше 20.; Персонация: Пока вы маскируетесь под реальную или вымышленную личность, вы совершаете с Преимуществом проверки Харизмы (Обман или Выступление), когда…; Подражание: Вы можете подражать звукам, изда…",
+        "prerequisites_ru": "4 уровень, Харизма 13+"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "athlete",
+      "name_ru": "Атлет",
+      "name_en": "Athlete",
+      "source": "ph24",
+      "sort_order": 212,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/322-athlete",
+        "url_ttg": "https://new.ttg.club/feats/athlete-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "dex",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Скорость лазания: Вы получаете Скорость лазания , равную вашей Скорости .; Подъём: Когда у вас есть состояние Опрокинутый , вы можете встать, потратив только 5 футов перемещения.",
+        "traits_text": "Общая черта (2024), 4 уровень, Сила или Ловкость 13+: Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Скорость лазания: Вы получаете Скорость лазания , равную вашей Скорости .; Подъём: Когда у вас есть состояние Опрокинутый , вы можете встать, потратив только 5 футов перемещения.",
+        "prerequisites_ru": "4 уровень, Сила или Ловкость 13+"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "charger",
+      "name_ru": "Налётчик",
+      "name_en": "Charger",
+      "source": "ph24",
+      "sort_order": 213,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/323-charger",
+        "url_ttg": "https://new.ttg.club/feats/charger-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "dex",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20; Улучшенный рывок: Когда вы совершаете действие Рывок , ваша Скорость для этого действия увеличивается на 10 футов.; Атака с наскока: Если непосредственно перед попаданием по цели броском…",
+        "traits_text": "Общая черта (2024), 4 уровень, Сила или Ловкость 13+: Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20; Улучшенный рывок: Когда вы совершаете действие Рывок , ваша Скорость для этого действия увеличивается на 10 футов.; Атака с наскока: Если непосредственно перед попаданием по цели броском…",
+        "prerequisites_ru": "4 уровень, Сила или Ловкость 13+"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "chef",
+      "name_ru": "Шеф-повар",
+      "name_en": "Chef",
+      "source": "ph24",
+      "sort_order": 214,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/324-chef",
+        "url_ttg": "https://new.ttg.club/feats/chef-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "con",
+            "wis"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Телосложения или Мудрости на 1, но не выше 20.; Инструменты повара: Если вы не владеете Инструментами повара, то получаете владение Инструментами повара.; Сытное блюдо: Как часть Короткого отдыха вы можете приготовить особую…",
+        "traits_text": "Общая черта (2024), 4 уровень: Повышение характеристики: Увеличьте значение вашего Телосложения или Мудрости на 1, но не выше 20.; Инструменты повара: Если вы не владеете Инструментами повара, то получаете владение Инструментами повара.; Сытное блюдо: Как часть Короткого отдыха вы можете приготовить особую…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "crossbow-expert",
+      "name_ru": "Эксперт по арбалетам",
+      "name_en": "Crossbow Expert",
+      "source": "ph24",
+      "sort_order": 215,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/325-crossbow-expert",
+        "url_ttg": "https://new.ttg.club/feats/crossbow-expert-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "dex",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Ловкости на 1, но не выше 20.; Игнорирование перезарядки: Вы игнорируете свойство Перезарядка Одноручного арбалета, Тяжёлого арбалета и Лёгкого арбалета (далее в этой черте — арбал…; Стрельба в рукопашной: Присутствие врага в…",
+        "traits_text": "Общая черта (2024), 4 уровень, Ловкость 13+: Повышение характеристики: Увеличьте значение вашей Ловкости на 1, но не выше 20.; Игнорирование перезарядки: Вы игнорируете свойство Перезарядка Одноручного арбалета, Тяжёлого арбалета и Лёгкого арбалета (далее в этой черте — арбал…; Стрельба в рукопашной: Присутствие врага в…",
+        "prerequisites_ru": "4 уровень, Ловкость 13+",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "crusher",
+      "name_ru": "Крушитель",
+      "name_en": "Crusher",
+      "source": "ph24",
+      "sort_order": 216,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/326-crusher",
+        "url_ttg": "https://new.ttg.club/feats/crusher-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "con"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы или Телосложения на 1, но не выше 20.; Толчок: Один раз за ход, когда вы попадаете по существу атакой, наносящей Дробящий урон, вы можете переместить его на 5 футов в незанятое пространств…; Улучшенные криты: Когда вы сов…",
+        "traits_text": "Общая черта (2024), 4 уровень: Повышение характеристики: Увеличьте значение вашей Силы или Телосложения на 1, но не выше 20.; Толчок: Один раз за ход, когда вы попадаете по существу атакой, наносящей Дробящий урон, вы можете переместить его на 5 футов в незанятое пространств…; Улучшенные криты: Когда вы сов…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "defensive-duelist",
+      "name_ru": "Парирующий дуэлянт",
+      "name_en": "Defensive Duelist",
+      "source": "ph24",
+      "sort_order": 217,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/327-defensive-duelist",
+        "url_ttg": "https://new.ttg.club/feats/defensive-duelist-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "dex",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Ловкости на 1, но не выше 20.; Парирование: Если вы вооружены оружием со свойством Фехтовальное , и другое существо попадает по вам рукопашной атакой, вы можете Реакцией добавить в…",
+        "traits_text": "Общая черта (2024), 4 уровень, Ловкость 13+: Повышение характеристики: Увеличьте значение вашей Ловкости на 1, но не выше 20.; Парирование: Если вы вооружены оружием со свойством Фехтовальное , и другое существо попадает по вам рукопашной атакой, вы можете Реакцией добавить в…",
+        "prerequisites_ru": "4 уровень, Ловкость 13+",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "dual-wielder",
+      "name_ru": "Мастер боя двумя оружиями",
+      "name_en": "Dual Wielder",
+      "source": "ph24",
+      "sort_order": 218,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/328-dual-wielder",
+        "url_ttg": "https://new.ttg.club/feats/dual-wielder-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "dex",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Улучшенное использование двух оружий: Когда в ваш ход вы совершаете действие Атака и атакуете оружием со свойством Лёгкое , вы можете Бонусным действ…; Быстрое выхватывание: Когда обычно…",
+        "traits_text": "Общая черта (2024), 4 уровень, Сила или Ловкость 13+: Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Улучшенное использование двух оружий: Когда в ваш ход вы совершаете действие Атака и атакуете оружием со свойством Лёгкое , вы можете Бонусным действ…; Быстрое выхватывание: Когда обычно…",
+        "prerequisites_ru": "4 уровень, Сила или Ловкость 13+",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "durable",
+      "name_ru": "Стойкий",
+      "name_en": "Durable",
+      "source": "ph24",
+      "sort_order": 219,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/329-durable",
+        "url_ttg": "https://new.ttg.club/feats/durable-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "con"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Телосложения на 1, но не выше 20.; Противостояние смерти: Вы совершаете с Преимуществом спасброски от Смерти .; Быстрое восстановление: Бонусным действием вы можете потратить одну из ваших Костей хитов , бросить эту кость и в…",
+        "traits_text": "Общая черта (2024), 4 уровень: Повышение характеристики: Увеличьте значение вашего Телосложения на 1, но не выше 20.; Противостояние смерти: Вы совершаете с Преимуществом спасброски от Смерти .; Быстрое восстановление: Бонусным действием вы можете потратить одну из ваших Костей хитов , бросить эту кость и в…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "elemental-adept",
+      "name_ru": "Стихийный адепт",
+      "name_en": "Elemental Adept",
+      "source": "ph24",
+      "sort_order": 220,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/330-elemental-adept",
+        "url_ttg": "https://new.ttg.club/feats/elemental-adept-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Власть над энергией: Выберите один из следующих типов урона: Звук, Кислота, Огонь, Холод или Электричество.; Повторяемость: Вы можете взять эту черту более одного раза, н…",
+        "traits_text": "Общая черта (2024), 4 уровень, умение Сотворение заклинаний или Магия договора: Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Власть над энергией: Выберите один из следующих типов урона: Звук, Кислота, Огонь, Холод или Электричество.; Повторяемость: Вы можете взять эту черту более одного раза, н…",
+        "prerequisites_ru": "4 уровень, умение Сотворение заклинаний или Магия договора",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "fey-touched",
+      "name_ru": "Затронутый феями",
+      "name_en": "Fey-Touched",
+      "source": "ph24",
+      "sort_order": 221,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/331-fey-touched",
+        "url_ttg": "https://new.ttg.club/feats/fey-touched-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Влияние магии Страны Фей даровало вам следующие преимущества: Повышение характеристики .; Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.",
+        "traits_text": "Общая черта (2024), 4 уровень: Влияние магии Страны Фей даровало вам следующие преимущества: Повышение характеристики .; Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "great-weapon-master",
+      "name_ru": "Мастер тяжёлого оружия",
+      "name_en": "Great Weapon Master",
+      "source": "ph24",
+      "sort_order": 222,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/333-great-weapon-master",
+        "url_ttg": "https://new.ttg.club/feats/great-weapon-master-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "str",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы на 1, но не выше 20.; Мастерство в тяжёлом оружии: Когда вы в ваш ход частью действия Атака попадаете по существу оружием со свойством Тяжёлое , вы можете нанести цели доп…; Сечь: Сразу после совершения Критического попад…",
+        "traits_text": "Общая черта (2024), 4 уровень, Сила 13+: Повышение характеристики: Увеличьте значение вашей Силы на 1, но не выше 20.; Мастерство в тяжёлом оружии: Когда вы в ваш ход частью действия Атака попадаете по существу оружием со свойством Тяжёлое , вы можете нанести цели доп…; Сечь: Сразу после совершения Критического попад…",
+        "prerequisites_ru": "4 уровень, Сила 13+",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "heavily-armored",
+      "name_ru": "Знаток тяжёлых доспехов",
+      "name_en": "Heavily Armored",
+      "source": "ph24",
+      "sort_order": 223,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/334-heavily-armored",
+        "url_ttg": "https://new.ttg.club/feats/heavily-armored-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "con",
+            "str"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Телосложения или Силы на 1, но не выше 20.; Тренированность с доспехами: Вы получаете тренированность с Тяжёлыми доспехами.",
+        "traits_text": "Общая черта (2024), 4 уровень, тренированность со Средними доспехами: Повышение характеристики: Увеличьте значение вашего Телосложения или Силы на 1, но не выше 20.; Тренированность с доспехами: Вы получаете тренированность с Тяжёлыми доспехами.",
+        "prerequisites_ru": "4 уровень, тренированность со Средними доспехами"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "heavy-armor-master",
+      "name_ru": "Мастер тяжёлых доспехов",
+      "name_en": "Heavy Armor Master",
+      "source": "ph24",
+      "sort_order": 224,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/335-heavy-armor-master",
+        "url_ttg": "https://new.ttg.club/feats/heavy-armor-master-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "con",
+            "str"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Телосложения или Силы на 1, но не выше 20.; Вычет урона: Каждый раз, когда по вам попадают атакой, а на вас надет Тяжёлый доспех, вы уменьшаете урон этой атаки Дробящего, Колющего или Рубящего…",
+        "traits_text": "Общая черта (2024), 4 уровень, тренированность с Тяжёлыми доспехами: Повышение характеристики: Увеличьте значение вашего Телосложения или Силы на 1, но не выше 20.; Вычет урона: Каждый раз, когда по вам попадают атакой, а на вас надет Тяжёлый доспех, вы уменьшаете урон этой атаки Дробящего, Колющего или Рубящего…",
+        "prerequisites_ru": "4 уровень, тренированность с Тяжёлыми доспехами"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "inspiring-leader",
+      "name_ru": "Воодушевляющий лидер",
+      "name_en": "Inspiring Leader",
+      "source": "ph24",
+      "sort_order": 225,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/336-inspiring-leader",
+        "url_ttg": "https://new.ttg.club/feats/inspiring-leader-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "cha",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "wis",
+            "cha"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Мудрости или Харизмы на 1, но не выше 20.; Поддерживающее выступление: По завершении Короткого или Долгого отдыха вы можете выступить с вдохновляющей речью, песней или танцем.",
+        "traits_text": "Общая черта (2024), 4 уровень, Мудрость или Харизма 13+: Повышение характеристики: Увеличьте значение вашей Мудрости или Харизмы на 1, но не выше 20.; Поддерживающее выступление: По завершении Короткого или Долгого отдыха вы можете выступить с вдохновляющей речью, песней или танцем.",
+        "prerequisites_ru": "4 уровень, Мудрость или Харизма 13+"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "keen-mind",
+      "name_ru": "Острый ум",
+      "name_en": "Keen Mind",
+      "source": "ph24",
+      "sort_order": 226,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/337-keen-mind",
+        "url_ttg": "https://new.ttg.club/feats/keen-mind-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "int",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "int"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Интеллекта на 1, но не выше 20.; Знание историй: Выберите один из следующих навыков: История , Природа , Расследование , Религия или Тайная Магия .; Быстрое изучение: Вы можете Бонусным действием совершать действие Изучение .",
+        "traits_text": "Общая черта (2024), 4 уровень, Интеллект 13+: Повышение характеристики: Увеличьте значение вашего Интеллекта на 1, но не выше 20.; Знание историй: Выберите один из следующих навыков: История , Природа , Расследование , Религия или Тайная Магия .; Быстрое изучение: Вы можете Бонусным действием совершать действие Изучение .",
+        "prerequisites_ru": "4 уровень, Интеллект 13+"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "lightly-armored",
+      "name_ru": "Знаток лёгких доспехов",
+      "name_en": "Lightly Armored",
+      "source": "ph24",
+      "sort_order": 227,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/338-lightly-armored",
+        "url_ttg": "https://new.ttg.club/feats/lightly-armored-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Тренированность с доспехами: Вы получаете тренированность с Лёгкими доспехами и Щитами.",
+        "traits_text": "Общая черта (2024), 4 уровень: Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Тренированность с доспехами: Вы получаете тренированность с Лёгкими доспехами и Щитами.",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "mage-slayer",
+      "name_ru": "Убийца магов",
+      "name_en": "Mage Slayer",
+      "source": "ph24",
+      "sort_order": 228,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/339-mage-slayer",
+        "url_ttg": "https://new.ttg.club/feats/mage-slayer-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Нарушение концентрации: Когда вы наносите урон существу, концентрирующемуся на заклинании, это существо совершает с Помехой спасбросок для поддержани…; Защищённый разум: Если вы провалив…",
+        "traits_text": "Общая черта (2024), 4 уровень: Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Нарушение концентрации: Когда вы наносите урон существу, концентрирующемуся на заклинании, это существо совершает с Помехой спасбросок для поддержани…; Защищённый разум: Если вы провалив…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "martial-weapon-training",
+      "name_ru": "Обученность воинскому оружию",
+      "name_en": "Martial Weapon Training",
+      "source": "ph24",
+      "sort_order": 229,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/340-martial-weapon-training",
+        "url_ttg": "https://new.ttg.club/feats/martial-weapon-training-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Владение оружием: Вы получаете владение Воинским оружием.",
+        "traits_text": "Общая черта (2024), 4 уровень: Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Владение оружием: Вы получаете владение Воинским оружием.",
+        "prerequisites_ru": "4 уровень",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "medium-armor-master",
+      "name_ru": "Мастер средних доспехов",
+      "name_en": "Medium Armor Master",
+      "source": "ph24",
+      "sort_order": 230,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/341-medium-armor-master",
+        "url_ttg": "https://new.ttg.club/feats/medium-armor-master-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Подгонка: Пока вы носите Средний доспех, вы можете добавлять к вашему КЗ не 2, а 3, если ваше значение Ловкости 16 или выше.",
+        "traits_text": "Общая черта (2024), 4 уровень, тренированность со Средними доспехами: Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Подгонка: Пока вы носите Средний доспех, вы можете добавлять к вашему КЗ не 2, а 3, если ваше значение Ловкости 16 или выше.",
+        "prerequisites_ru": "4 уровень, тренированность со Средними доспехами"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "moderately-armored",
+      "name_ru": "Знаток средних доспехов",
+      "name_en": "Moderately Armored",
+      "source": "ph24",
+      "sort_order": 231,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/342-moderately-armored",
+        "url_ttg": "https://new.ttg.club/feats/moderately-armored-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Тренированность с доспехами: Вы получаете тренированность со Средними доспехами.",
+        "traits_text": "Общая черта (2024), 4 уровень, тренированность с Лёгкими доспехами: Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Тренированность с доспехами: Вы получаете тренированность со Средними доспехами.",
+        "prerequisites_ru": "4 уровень, тренированность с Лёгкими доспехами"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "mounted-combatant",
+      "name_ru": "Верховой боец",
+      "name_en": "Mounted Combatant",
+      "source": "ph24",
+      "sort_order": 232,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/343-mounted-combatant",
+        "url_ttg": "https://new.ttg.club/feats/mounted-combatant-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "dex",
+            "wis"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы, Ловкости или Мудрости на 1, но не выше 20.; Удар всадника: Будучи верхом, вы совершаете с Преимуществом броски атак по пешим существам в пределах 5 футов от вашего скакуна, если они хотя бы на…; Прыжок в сторону: Если ва…",
+        "traits_text": "Общая черта (2024), 4 уровень: Повышение характеристики: Увеличьте значение вашей Силы, Ловкости или Мудрости на 1, но не выше 20.; Удар всадника: Будучи верхом, вы совершаете с Преимуществом броски атак по пешим существам в пределах 5 футов от вашего скакуна, если они хотя бы на…; Прыжок в сторону: Если ва…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "observant",
+      "name_ru": "Внимательный",
+      "name_en": "Observant",
+      "source": "ph24",
+      "sort_order": 233,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/344-observant",
+        "url_ttg": "https://new.ttg.club/feats/observant-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "wis",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "int",
+            "wis"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Интеллекта или Мудрости на 1, но не выше 20.; Проницательный наблюдатель: Выберите один из следующих навыков: Восприятие , Проницательность или Расследование .; Быстрый поиск: Вы можете Бонусным действием совершать действие П…",
+        "traits_text": "Общая черта (2024), 4 уровень, Интеллект или Мудрость 13+: Повышение характеристики: Увеличьте значение вашего Интеллекта или Мудрости на 1, но не выше 20.; Проницательный наблюдатель: Выберите один из следующих навыков: Восприятие , Проницательность или Расследование .; Быстрый поиск: Вы можете Бонусным действием совершать действие П…",
+        "prerequisites_ru": "4 уровень, Интеллект или Мудрость 13+",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "piercer",
+      "name_ru": "Пронзатель",
+      "name_en": "Piercer",
+      "source": "ph24",
+      "sort_order": 234,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/345-piercer",
+        "url_ttg": "https://new.ttg.club/feats/piercer-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Прокол: Один раз за ход, когда вы попадаете по существу атакой, наносящей Колющий урон, вы можете перебросить одну из костей урона атаки и должны исп…; Улучшенные криты: Когда вы соверша…",
+        "traits_text": "Общая черта (2024), 4 уровень: Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Прокол: Один раз за ход, когда вы попадаете по существу атакой, наносящей Колющий урон, вы можете перебросить одну из костей урона атаки и должны исп…; Улучшенные криты: Когда вы соверша…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "poisoner",
+      "name_ru": "Отравитель",
+      "name_en": "Poisoner",
+      "source": "ph24",
+      "sort_order": 235,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/346-poisoner",
+        "url_ttg": "https://new.ttg.club/feats/poisoner-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "dex",
+            "int"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Ловкости или Интеллекта на 1, но не выше 20.; Сильнодействующий яд: Когда вы совершаете бросок урона, наносящий урон Ядом, этот урон игнорирует Сопротивление урону Ядом.; Варка яда: Вы получаете владение Инструментами отравите…",
+        "traits_text": "Общая черта (2024), 4 уровень: Повышение характеристики: Увеличьте значение вашей Ловкости или Интеллекта на 1, но не выше 20.; Сильнодействующий яд: Когда вы совершаете бросок урона, наносящий урон Ядом, этот урон игнорирует Сопротивление урону Ядом.; Варка яда: Вы получаете владение Инструментами отравите…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "polearm-master",
+      "name_ru": "Мастер древкового оружия",
+      "name_en": "Polearm Master",
+      "source": "ph24",
+      "sort_order": 236,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/347-polearm-master",
+        "url_ttg": "https://new.ttg.club/feats/polearm-master-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "dex",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Удар древком: Когда вы совершаете действие Атака , сразу после атаки Боевым посохом , Копьём или оружием со свойствами Тяжёлое и Досягаемость , вы мо…; Превентивный удар: Если вы вооруже…",
+        "traits_text": "Общая черта (2024), 4 уровень, Сила или Ловкость 13+: Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Удар древком: Когда вы совершаете действие Атака , сразу после атаки Боевым посохом , Копьём или оружием со свойствами Тяжёлое и Досягаемость , вы мо…; Превентивный удар: Если вы вооруже…",
+        "prerequisites_ru": "4 уровень, Сила или Ловкость 13+"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "resilient",
+      "name_ru": "Устойчивый",
+      "name_en": "Resilient",
+      "source": "ph24",
+      "sort_order": 237,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/348-resilient",
+        "url_ttg": "https://new.ttg.club/feats/resilient-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Повышение характеристики: Выберите одну характеристику, спасброском которой вы не владеете.; Владение спасброском: Вы получаете владение спасброском выбранной характеристики.",
+        "traits_text": "Общая черта (2024), 4 уровень: Повышение характеристики: Выберите одну характеристику, спасброском которой вы не владеете.; Владение спасброском: Вы получаете владение спасброском выбранной характеристики.",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "ritual-caster",
+      "name_ru": "Ритуальный заклинатель",
+      "name_en": "Ritual Caster",
+      "source": "ph24",
+      "sort_order": 238,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/349-ritual-caster",
+        "url_ttg": "https://new.ttg.club/feats/ritual-caster-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "cha",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Ритуальные заклинания: Выберите заклинания 1-го уровня с меткой Ритуал в количестве, равном вашему Бонусу владения .; Быстрый ритуал: Используя это преимущество, вы может…",
+        "traits_text": "Общая черта (2024), 4 уровень, Интеллект, Мудрость или Харизма 13+: Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Ритуальные заклинания: Выберите заклинания 1-го уровня с меткой Ритуал в количестве, равном вашему Бонусу владения .; Быстрый ритуал: Используя это преимущество, вы может…",
+        "prerequisites_ru": "4 уровень, Интеллект, Мудрость или Харизма 13+"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "sentinel",
+      "name_ru": "Страж",
+      "name_en": "Sentinel",
+      "source": "ph24",
+      "sort_order": 239,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/350-sentinel",
+        "url_ttg": "https://new.ttg.club/feats/sentinel-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "dex",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Хранитель: Сразу после того, как существо в пределах 5 футов от вас совершит действие Отход или попадёт атакой по любой цели, кроме вас, вы можете со…; Остановка: Когда вы попадаете по с…",
+        "traits_text": "Общая черта (2024), 4 уровень, Сила или Ловкость 13+: Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Хранитель: Сразу после того, как существо в пределах 5 футов от вас совершит действие Отход или попадёт атакой по любой цели, кроме вас, вы можете со…; Остановка: Когда вы попадаете по с…",
+        "prerequisites_ru": "4 уровень, Сила или Ловкость 13+"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "shadow-touched",
+      "name_ru": "Затронутый тенью",
+      "name_en": "Shadow-Touched",
+      "source": "ph24",
+      "sort_order": 240,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/351-shadow-touched",
+        "url_ttg": "https://new.ttg.club/feats/shadow-touched-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Влияние магии Царства Теней даровало вам следующие преимущества: Повышение характеристики .; Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1 при максимуме 20.",
+        "traits_text": "Общая черта (2024), 4 уровень: Влияние магии Царства Теней даровало вам следующие преимущества: Повышение характеристики .; Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1 при максимуме 20.",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "sharpshooter",
+      "name_ru": "Меткий стрелок",
+      "name_en": "Sharpshooter",
+      "source": "ph24",
+      "sort_order": 241,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/352-sharpshooter",
+        "url_ttg": "https://new.ttg.club/feats/sharpshooter-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "dex",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Ловкости на 1, но не выше 20.; Игнорирование укрытия: Ваши дальнобойные атаки оружием игнорируют Укрытие на половину и Укрытие на три четверти .; Стрельба в рукопашной: Присутствие врага в пределах 5 футов от вас не создаёт По…",
+        "traits_text": "Общая черта (2024), 4 уровень, Ловкость 13+: Повышение характеристики: Увеличьте значение вашей Ловкости на 1, но не выше 20.; Игнорирование укрытия: Ваши дальнобойные атаки оружием игнорируют Укрытие на половину и Укрытие на три четверти .; Стрельба в рукопашной: Присутствие врага в пределах 5 футов от вас не создаёт По…",
+        "prerequisites_ru": "4 уровень, Ловкость 13+"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "shield-master",
+      "name_ru": "Мастер щита",
+      "name_en": "Shield Master",
+      "source": "ph24",
+      "sort_order": 242,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/353-shield-master",
+        "url_ttg": "https://new.ttg.club/feats/shield-master-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы на 1, но не выше 20.; Удар щитом: Если вы носите Щит, и частью действия Атака вы попадаете атакой Рукопашным оружием по существу в пределах 5 футов от вас, вы можете немед…; Выставление щита: Если вы носите Щит и подверга…",
+        "traits_text": "Общая черта (2024), 4 уровень, тренированность с Щитами: Повышение характеристики: Увеличьте значение вашей Силы на 1, но не выше 20.; Удар щитом: Если вы носите Щит, и частью действия Атака вы попадаете атакой Рукопашным оружием по существу в пределах 5 футов от вас, вы можете немед…; Выставление щита: Если вы носите Щит и подверга…",
+        "prerequisites_ru": "4 уровень, тренированность с Щитами",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "skill-expert",
+      "name_ru": "Эксперт в навыке",
+      "name_en": "Skill Expert",
+      "source": "ph24",
+      "sort_order": 243,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/354-skill-expert",
+        "url_ttg": "https://new.ttg.club/feats/skill-expert-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 20.; Владение навыками: Вы получаете владение одним навыком на ваш выбор.; Экспертность: Выберите один навык, которым вы владеете и в котором у вас нет Экспертности .",
+        "traits_text": "Общая черта (2024), 4 уровень: Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 20.; Владение навыками: Вы получаете владение одним навыком на ваш выбор.; Экспертность: Выберите один навык, которым вы владеете и в котором у вас нет Экспертности .",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "skulker",
+      "name_ru": "Проныра",
+      "name_en": "Skulker",
+      "source": "ph24",
+      "sort_order": 244,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/355-skulker",
+        "url_ttg": "https://new.ttg.club/feats/skulker-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "dex",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Ловкости на 1, но не выше 20.; Слепое зрение: Вы получаете Слепое зрение дальностью 10 футов.; Туман войны: Вы мастерски используете отвлекающие факторы боя; во время сражения вы совершаете с Преимуществом все проверки Ловкост…",
+        "traits_text": "Общая черта (2024), 4 уровень, Ловкость 13+: Повышение характеристики: Увеличьте значение вашей Ловкости на 1, но не выше 20.; Слепое зрение: Вы получаете Слепое зрение дальностью 10 футов.; Туман войны: Вы мастерски используете отвлекающие факторы боя; во время сражения вы совершаете с Преимуществом все проверки Ловкост…",
+        "prerequisites_ru": "4 уровень, Ловкость 13+"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "slasher",
+      "name_ru": "Рубака",
+      "name_en": "Slasher",
+      "source": "ph24",
+      "sort_order": 245,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/356-slasher",
+        "url_ttg": "https://new.ttg.club/feats/slasher-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Подрезание сухожилия: Один раз за ход, когда вы попадаете по существу атакой, наносящей Рубящий урон, вы можете уменьшить Скорость этого существа на…; Улучшенные криты: Когда вы совершае…",
+        "traits_text": "Общая черта (2024), 4 уровень: Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Подрезание сухожилия: Один раз за ход, когда вы попадаете по существу атакой, наносящей Рубящий урон, вы можете уменьшить Скорость этого существа на…; Улучшенные криты: Когда вы совершае…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "speedy",
+      "name_ru": "Быстрый",
+      "name_en": "Speedy",
+      "source": "ph24",
+      "sort_order": 246,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/357-speedy",
+        "url_ttg": "https://new.ttg.club/feats/speedy-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4,
+          "ability": {
+            "ability": "con",
+            "min": 13
+          }
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "dex",
+            "con"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Ловкости или Телосложения на 1, но не выше 20.; Увеличение скорости; Ваша Скорость увеличивается на 10 футов",
+        "traits_text": "Общая черта (2024), 4 уровень, Ловкость или Телосложение 13+: Повышение характеристики: Увеличьте значение вашей Ловкости или Телосложения на 1, но не выше 20.; Увеличение скорости; Ваша Скорость увеличивается на 10 футов",
+        "prerequisites_ru": "4 уровень, Ловкость или Телосложение 13+",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "spell-sniper",
+      "name_ru": "Меткий заклинатель",
+      "name_en": "Spell Sniper",
+      "source": "ph24",
+      "sort_order": 247,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/358-spell-sniper",
+        "url_ttg": "https://new.ttg.club/feats/spell-sniper-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Игнорирование укрытия: Ваши броски атаки заклинаниями игнорируют Укрытие наполовину и Укрытие на три четверти .; Сотворение заклинания в упор: Присутствие врага в предела…",
+        "traits_text": "Общая черта (2024), 4 уровень, умение Сотворение заклинаний или Магия договора: Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Игнорирование укрытия: Ваши броски атаки заклинаниями игнорируют Укрытие наполовину и Укрытие на три четверти .; Сотворение заклинания в упор: Присутствие врага в предела…",
+        "prerequisites_ru": "4 уровень, умение Сотворение заклинаний или Магия договора"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "telekinetic",
+      "name_ru": "Телекинетик",
+      "name_en": "Telekinetic",
+      "source": "ph24",
+      "sort_order": 248,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/359-telekinetic",
+        "url_ttg": "https://new.ttg.club/feats/telekinetic-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Слабый телекинез: Вы изучаете заговор Волшебная рука .; Телекинетический толчок: Бонусным действием вы можете телекинетически толкнуть одно видимое вами в пределах 30 фут…",
+        "traits_text": "Общая черта (2024), 4 уровень: Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Слабый телекинез: Вы изучаете заговор Волшебная рука .; Телекинетический толчок: Бонусным действием вы можете телекинетически толкнуть одно видимое вами в пределах 30 фут…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "telepathic",
+      "name_ru": "Телепат",
+      "name_en": "Telepathic",
+      "source": "ph24",
+      "sort_order": 249,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/360-telepathic",
+        "url_ttg": "https://new.ttg.club/feats/telepathic-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Телепатическая фраза: Вы можете телепатически разговаривать со всеми видимыми вами в пределах 60 футов от вас существами.; Обнаружение мыслей: У вас всегда подготовлено з…",
+        "traits_text": "Общая черта (2024), 4 уровень: Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Телепатическая фраза: Вы можете телепатически разговаривать со всеми видимыми вами в пределах 60 футов от вас существами.; Обнаружение мыслей: У вас всегда подготовлено з…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "war-caster",
+      "name_ru": "Боевой заклинатель",
+      "name_en": "War Caster",
+      "source": "ph24",
+      "sort_order": 250,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/361-war-caster",
+        "url_ttg": "https://new.ttg.club/feats/war-caster-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Концентрация: Вы совершаете с Преимуществом спасброски Телосложения для поддержания Концентрации .; Превентивное заклинание: Когда существо покидает пределы вашей досягае…",
+        "traits_text": "Общая черта (2024), 4 уровень, умение Сотворение заклинаний или Магия договора: Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Концентрация: Вы совершаете с Преимуществом спасброски Телосложения для поддержания Концентрации .; Превентивное заклинание: Когда существо покидает пределы вашей досягае…",
+        "prerequisites_ru": "4 уровень, умение Сотворение заклинаний или Магия договора"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "weapon-master",
+      "name_ru": "Мастер оружия",
+      "name_en": "Weapon Master",
+      "source": "ph24",
+      "sort_order": 251,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/362-weapon-master",
+        "url_ttg": "https://new.ttg.club/feats/weapon-master-phb"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Свойство мастерства: Благодаря вашим тренировкам с оружием вы можете использовать свойство мастерства одного вида Простого или Воинского оружия на ва…",
+        "traits_text": "Общая черта (2024), 4 уровень: Повышение характеристики: Увеличьте значение вашей Силы или Ловкости на 1, но не выше 20.; Свойство мастерства: Благодаря вашим тренировкам с оружием вы можете использовать свойство мастерства одного вида Простого или Воинского оружия на ва…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "crafter",
+      "name_ru": "Мастеровой",
+      "name_en": "Crafter",
+      "source": "ph24",
+      "sort_order": 102,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/311-crafter",
+        "url_ttg": "https://new.ttg.club/feats/crafter-phb"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Владение инструментами: Вы получаете владение тремя различными Ремесленными инструментами из перечисленных в таблице «Быстрое изготовление» на ваш вы…; Скидка: Каждый раз, когда вы покупаете немагический предмет, вы получаете 20-процентную скидку.; Быстрое изготовление: Когда…",
+        "traits_text": "Черта происхождения (2024): Владение инструментами: Вы получаете владение тремя различными Ремесленными инструментами из перечисленных в таблице «Быстрое изготовление» на ваш вы…; Скидка: Каждый раз, когда вы покупаете немагический предмет, вы получаете 20-процентную скидку.; Быстрое изготовление: Когда…",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "healer",
+      "name_ru": "Лекарь",
+      "name_en": "Healer",
+      "source": "ph24",
+      "sort_order": 103,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/312-healer",
+        "url_ttg": "https://new.ttg.club/feats/healer-phb"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Боевой целитель: Действием Использование вы можете потратить одно применение Комплекта целителя и позаботиться о ранах существа в пределах 5 футов от…; Переброс лечения: Каждый раз, когда вы бросаете кость, чтобы определить количество Хитов, восстанавливаемых с помощью заклина…",
+        "traits_text": "Черта происхождения (2024): Боевой целитель: Действием Использование вы можете потратить одно применение Комплекта целителя и позаботиться о ранах существа в пределах 5 футов от…; Переброс лечения: Каждый раз, когда вы бросаете кость, чтобы определить количество Хитов, восстанавливаемых с помощью заклина…"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "lucky",
+      "name_ru": "Везучий",
+      "name_en": "Lucky",
+      "source": "ph24",
+      "sort_order": 104,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/313-lucky",
+        "url_ttg": "https://new.ttg.club/feats/lucky-phb"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Очки везения: У вас есть Очки везения, которые вы можете потратить на преимущества, указанные ниже.; Преимущество: Когда вы совершаете Тест К20 , можете потратить 1 Очко везения, чтобы применить на этот бросок Преимущество .; Помеха: Когда существо совершает бросок атаки по ва…",
+        "traits_text": "Черта происхождения (2024): Очки везения: У вас есть Очки везения, которые вы можете потратить на преимущества, указанные ниже.; Преимущество: Когда вы совершаете Тест К20 , можете потратить 1 Очко везения, чтобы применить на этот бросок Преимущество .; Помеха: Когда существо совершает бросок атаки по ва…",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "musician",
+      "name_ru": "Музыкант",
+      "name_en": "Musician",
+      "source": "ph24",
+      "sort_order": 105,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/315-musician",
+        "url_ttg": "https://new.ttg.club/feats/musician-phb"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Обученность инструментам: Вы получаете владение тремя Музыкальными инструментами на ваш выбор.; Ободряющая песня: При завершении Короткого или Долгого отдыха вы можете сыграть песню на Музыкальном инструменте, которым владеете, и дать Героическо…",
+        "traits_text": "Черта происхождения (2024): Обученность инструментам: Вы получаете владение тремя Музыкальными инструментами на ваш выбор.; Ободряющая песня: При завершении Короткого или Долгого отдыха вы можете сыграть песню на Музыкальном инструменте, которым владеете, и дать Героическо…"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "tavern-brawler",
+      "name_ru": "Дебошир",
+      "name_en": "Tavern Brawler",
+      "source": "ph24",
+      "sort_order": 106,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/318-tavern-brawler",
+        "url_ttg": "https://new.ttg.club/feats/tavern-brawler-phb"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Усиленный безоружный удар: Когда вы попадаете вашим Безоружным ударом и наносите урон, вы можете вместо обычного урона Безоружного удара нанести 1к4…; Переброс урона: Каждый раз, когда вы бросаете кость урона вашего Безоружного удара , вы можете перебросить её, если на ней вып…",
+        "traits_text": "Черта происхождения (2024): Усиленный безоружный удар: Когда вы попадаете вашим Безоружным ударом и наносите урон, вы можете вместо обычного урона Безоружного удара нанести 1к4…; Переброс урона: Каждый раз, когда вы бросаете кость урона вашего Безоружного удара , вы можете перебросить её, если на ней вып…",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "tough",
+      "name_ru": "Крепкий",
+      "name_en": "Tough",
+      "source": "ph24",
+      "sort_order": 107,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/feats/319-tough",
+        "url_ttg": "https://new.ttg.club/feats/tough-phb"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Ваш максимум Хитов увеличивается на величину, равную удвоенному уровню персонажа, на котором вы получаете эту черту.; При каждом последующем получении уровня персонажа ваш максимум Хитов увеличивается ещё на 2 Хита.",
+        "traits_text": "Черта происхождения (2024): Ваш максимум Хитов увеличивается на величину, равную удвоенному уровню персонажа, на котором вы получаете эту черту.; При каждом последующем получении уровня персонажа ваш максимум Хитов увеличивается ещё на 2 Хита."
+      }
+    }
+  ]
+}

@@ -72,7 +72,12 @@ def _srd_ids(category: str) -> set[str]:
 
 
 def _feat_rows():
-    return [r for r in load_wave_rows() if r["kind"] == "feat"]
+    """SRD feat wave only (PHB-beyond feats live in C10 / source=ph24)."""
+    return [
+        r
+        for r in load_wave_rows()
+        if r["kind"] == "feat" and str(r.get("source", "")).startswith("srd")
+    ]
 
 
 def test_reference_srd_feats_match_official_list():
@@ -160,8 +165,7 @@ def test_names_match_reference_csv():
 def test_background_origin_feats_resolve_to_catalog_cards():
     """SRD (C01) backgrounds reference origin feats by id — cards must exist after C02.
 
-    PHB-beyond (C09, source=ph24) may point at feats that arrive in C10; those
-    keep id+name without requiring a catalog row yet.
+    PHB-beyond backgrounds (C09) are covered by P24-C10 once feats_ph24 lands.
     """
     feat_slugs = {r["slug"] for r in _feat_rows()}
     for row in load_wave_rows():
@@ -251,8 +255,12 @@ def test_apply_seed_includes_feats_idempotent():
     planned = len(load_wave_rows())
     assert stats1.upserted == planned
     assert stats2.upserted == planned
-    feat_keys = {k for k in store if k[0] == "feat"}
-    assert {k[1] for k in feat_keys} == SRD_FEATS_EXPECTED
+    srd_feat_slugs = {
+        k[1]
+        for k, v in store.items()
+        if k[0] == "feat" and str(v.get("source", "")).startswith("srd")
+    }
+    assert srd_feat_slugs == SRD_FEATS_EXPECTED
     joined = "\n".join(executed)
     assert "'2014'" not in joined
 

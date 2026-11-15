@@ -31,9 +31,21 @@ CASTER_CLASSES = {
     "wizard",
 }
 NON_CASTERS = {"barbarian", "fighter", "monk", "rogue"}
-# C01–C04 catalog rows + 339 spells
-# C01–C04 + spells + P24-C06 magic items (285)
-PLANNED_TOTAL = 215 + 12 + 12 + SRD_SPELL_COUNT + 285 + 235 + 95 + 1 + 12 + 36  # +C07+C08+C09
+# C01–C09 + P24-C10 (58 feats + 69 spells PHB beyond SRD)
+PLANNED_TOTAL = (
+    215
+    + 12
+    + 12
+    + SRD_SPELL_COUNT
+    + 285
+    + 235
+    + 95
+    + 1
+    + 12
+    + 36
+    + 58
+    + 69
+)  # +C07+C08+C09+C10
 
 SRD_RENAMES = {
     "acid-arrow",
@@ -69,8 +81,15 @@ def _srd_ids(category: str) -> set[str]:
     return {r["id"] for r in rows if str(r.get("srd", "")).lower() == "true"}
 
 
-def _rows(kind: str):
-    return [r for r in load_wave_rows() if r["kind"] == kind]
+def _rows(kind: str, *, srd_only: bool = False):
+    rows = [r for r in load_wave_rows() if r["kind"] == kind]
+    if srd_only:
+        rows = [r for r in rows if str(r.get("source", "")).startswith("srd")]
+    return rows
+
+
+def _spell_rows_srd():
+    return _rows("spell", srd_only=True)
 
 
 def test_reference_srd_spell_count_matches_srd():
@@ -94,7 +113,7 @@ def test_live_spell_wave_registered_and_complete():
     names = {w.filename for w in EDITION_2024_CATALOG_WAVES}
     assert "spells_srd.json" in names
     assert (LIVE / "spells_srd.json").is_file()
-    live = _rows("spell")
+    live = _spell_rows_srd()
     assert len(live) == SRD_SPELL_COUNT
     assert {r["slug"] for r in live} == _srd_ids("spells")
     for row in live:
@@ -103,7 +122,7 @@ def test_live_spell_wave_registered_and_complete():
 
 
 def test_each_spell_has_required_fields():
-    for row in _rows("spell"):
+    for row in _spell_rows_srd():
         data = row["data"]
         assert data.get("level") in range(0, 10), row["slug"]
         assert data.get("school")
@@ -124,7 +143,7 @@ def test_each_spell_has_required_fields():
 
 
 def test_cantrips_have_level_growth_when_damaging():
-    cans = [r for r in _rows("spell") if r["data"]["level"] == 0]
+    cans = [r for r in _spell_rows_srd() if r["data"]["level"] == 0]
     assert len(cans) == 27
     damaging = [r for r in cans if r["data"].get("damage")]
     assert damaging
@@ -134,6 +153,7 @@ def test_cantrips_have_level_growth_when_damaging():
 
 
 def test_class_spell_lists_resolve_to_cards():
+    # Include PHB-beyond spells (C10) so class lists stay complete.
     spell_slugs = {r["slug"] for r in _rows("spell")}
     for row in _rows("class"):
         data = row["data"]
@@ -145,7 +165,8 @@ def test_class_spell_lists_resolve_to_cards():
             assert slugs, row["slug"]
             for sid in slugs:
                 assert sid in spell_slugs, f"{row['slug']} -> missing {sid}"
-            # Every spell that lists this class appears in the class list.
+            # Every spell that lists this class appears in the class list
+            # (ignore Artificer-only refs until the Artificer pack).
             expected = {
                 r["slug"]
                 for r in _rows("spell")
@@ -168,14 +189,14 @@ def test_subclass_spell_lists_resolve_when_present():
 
 
 def test_levels_distribution_and_renames_present():
-    levels = Counter(r["data"]["level"] for r in _rows("spell"))
+    levels = Counter(r["data"]["level"] for r in _spell_rows_srd())
     assert levels[0] == 27
     assert sum(levels.values()) == SRD_SPELL_COUNT
-    slugs = {r["slug"] for r in _rows("spell")}
+    slugs = {r["slug"] for r in _spell_rows_srd()}
     assert SRD_RENAMES <= slugs
     # Distinct 2024 card even if 2014 has same EN name.
     for slug in ("fireball", "counterspell", "wish"):
-        row = next(r for r in _rows("spell") if r["slug"] == slug)
+        row = next(r for r in _spell_rows_srd() if r["slug"] == slug)
         assert row["id"] == entry_id(kind="spell", slug=slug)
         assert row["rules_edition"] == "2024"
 
@@ -197,6 +218,7 @@ def test_2014_spell_catalog_untouched_and_isolation():
         assert e.get("rules_edition") in {None, "2014", "both"}
     for row in _rows("spell"):
         assert row["rules_edition"] == "2024"
+        assert row["rules_edition"] != "2014"
     # Bundled FE 2014 mirror still 2014-only.
     bundled = REPO_ROOT / "frontend" / "public" / "spells-2014.json"
     if bundled.is_file():
@@ -246,7 +268,11 @@ def test_apply_seed_includes_spells_idempotent():
     stats2 = apply_edition_2024_catalog_seed(conn)  # type: ignore[arg-type]
     assert stats1.upserted == planned == PLANNED_TOTAL
     assert stats2.upserted == planned
-    assert sum(1 for k in store if k[0] == "spell") == SRD_SPELL_COUNT
+    spell_rows = [v for k, v in store.items() if k[0] == "spell"]
+    assert len(spell_rows) == SRD_SPELL_COUNT + 69  # + PHB beyond (C10)
+    assert sum(1 for v in spell_rows if str(v.get("source", "")).startswith("srd")) == (
+        SRD_SPELL_COUNT
+    )
     for params in store.values():
         assert params["edition"] == "2024"
 

@@ -280,7 +280,14 @@ def test_apply_seed_idempotent_with_fake_conn():
     assert SRD_BACKGROUNDS_EXPECTED.issubset(
         {k[1] for k in store if k[0] == "background"}
     )
-    assert len({k[1] for k in store if k[0] == "feat"}) == 17
+    srd_feats = {
+        k[1]
+        for k, v in store.items()
+        if k[0] == "feat" and str(v.get("source", "")).startswith("srd")
+    }
+    assert len(srd_feats) == 17
+    # C10 adds PHB-beyond feats (source=ph24); total grows with later packs.
+    assert len({k[1] for k in store if k[0] == "feat"}) >= 17
     for params in store.values():
         data = json.loads(params["data"])
         if params["kind"] == "race":

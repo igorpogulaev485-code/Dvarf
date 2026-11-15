@@ -49,8 +49,8 @@ SRD_SUBCLASSES = {
     "wizard__evoker",
 }
 WM_CLASSES = {"barbarian", "fighter", "paladin", "ranger", "rogue"}
-# C01–C08 SRD rows + C09 PHB beyond SRD (1 species + 12 backgrounds + 36 subclasses).
-PLANNED_TOTAL = 215 + 12 + 12 + 339 + 285 + 235 + 95 + 1 + 12 + 36
+# C01–C09 + C10 (58 feats + 69 spells PHB beyond SRD).
+PLANNED_TOTAL = 215 + 12 + 12 + 339 + 285 + 235 + 95 + 1 + 12 + 36 + 58 + 69
 
 
 def _srd_ids(category: str) -> set[str]:

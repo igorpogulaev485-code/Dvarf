@@ -18,7 +18,8 @@ SOURCES = REPO_ROOT / "docs" / "edition-2024" / "sources"
 LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 PH24_EXTRA = 1 + 12 + 36
-PLANNED_TOTAL = 863 + 235 + 95 + PH24_EXTRA
+# C10 adds 58 feats + 69 spells on top of C01–C09 baseline.
+PLANNED_TOTAL = 863 + 235 + 95 + PH24_EXTRA + 58 + 69
 
 SRD_ORIGIN_FEATS = {"alert", "magic-initiate", "savage-attacker", "skilled"}
 
@@ -123,30 +124,24 @@ def test_backgrounds_asi_origin_feat_and_community_ref():
         assert row["rules_edition"] == "2024"
 
 
-def test_unresolved_origin_feats_listed_for_c10():
-    """Origin feats not in C02 SRD stay as id+name refs (no crash); report for C10."""
+def test_origin_feats_resolve_after_c10():
+    """All C09 background origin_feat ids resolve once feats_ph24 (C10) is loaded."""
     feat_slugs = {
         r["slug"] for r in load_wave_rows() if r["kind"] == "feat"
     }
-    missing: set[str] = set()
+    required = {
+        "crafter",
+        "musician",
+        "tough",
+        "healer",
+        "lucky",
+        "tavern-brawler",
+    }
+    assert required <= feat_slugs
     for row in _rows("background", source="ph24"):
         fid = (row["data"].get("origin_feat") or {}).get("id")
-        assert fid
-        if fid not in feat_slugs:
-            missing.add(fid)
-    # SRD origin feats may already resolve; PHB-only must be listed.
-    assert "crafter" in missing
-    assert "musician" in missing
-    assert "tough" in missing
-    assert "healer" in missing
-    assert "lucky" in missing
-    assert "tavern-brawler" in missing
-    assert missing.isdisjoint(SRD_ORIGIN_FEATS) or True
-    # alert / skilled / magic-initiate from C02 should resolve when referenced.
-    for row in _rows("background", source="ph24"):
-        fid = row["data"]["origin_feat"]["id"]
-        if fid in SRD_ORIGIN_FEATS:
-            assert fid in feat_slugs
+        assert fid, row["slug"]
+        assert fid in feat_slugs, f"{row['slug']} → {fid}"
 
 
 def test_subclass_parent_and_features():
@@ -283,7 +278,6 @@ def test_alembic_single_head_includes_p24_c09():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1, f"expected one alembic head, got {heads}"
-    assert heads[0] == "p24c09phb01"
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])
     }
@@ -291,6 +285,7 @@ def test_alembic_single_head_includes_p24_c09():
     assert "p24c08anim01" in ancestor_ids
     assert "p24c01speci01" in ancestor_ids
     assert "p24c04class01" in ancestor_ids
+    # C10 may become the tip; C09 must remain an ancestor.
 
 
 def test_no_who_or_artificer_in_this_pack():

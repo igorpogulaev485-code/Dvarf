@@ -29,6 +29,8 @@ WAVE_FILES = (
     "species_ph24.json",
     "backgrounds_ph24.json",
     "subclasses_ph24.json",
+    "feats_ph24.json",
+    "spells_ph24.json",
 )
 
 DISPLAY_LEAVES = frozenset(
@@ -115,6 +117,8 @@ def test_live_wave_display_fields_have_no_latin_prose():
 def test_spell_reaction_conditions_and_materials_are_russian():
     spells = _entries(LIVE / "spells_srd.json")
     assert len(spells) == 339
+    ph24 = _entries(LIVE / "spells_ph24.json")
+    assert len(ph24) == 69
     counterspell = next(s for s in spells if s["slug"] == "counterspell")
     cond = counterspell["data"]["casting_time"]["condition"]
     assert cond
