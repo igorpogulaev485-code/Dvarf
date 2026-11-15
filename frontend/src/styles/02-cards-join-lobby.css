@@ -21,9 +21,14 @@
   display: none;
 }
 
+/* Warn-плашка: песочный/янтарный (не danger-розовый) */
 .join-flow__level-warn {
-  border-color: color-mix(in srgb, var(--warn) 35%, var(--line));
-  background: color-mix(in srgb, var(--warn) 8%, var(--card));
+  border-color: color-mix(in srgb, var(--abil-con) 42%, var(--line));
+  background: color-mix(in srgb, var(--abil-con-soft) 88%, var(--card));
+}
+
+.join-flow__level-warn .ui-text--warn {
+  color: var(--abil-con);
 }
 
 .join-thumb-cta {

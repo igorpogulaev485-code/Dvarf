@@ -356,8 +356,7 @@ export function JoinLobbyPage() {
                   {levelMismatch && codeReady && !startMismatch ? (
                     <Panel className="join-flow__level-warn">
                       <Text tone="warn" role="status">
-                        У героя {selected!.level} уровень, а лобби стартует с{' '}
-                        {startLevel}-го. Сесть можно — мастер увидит отметку.
+                        {`У героя ${selected!.level}\u00a0уровень, а лобби стартует с\u00a0${startLevel}\u00a0уровня. Сесть можно — мастер увидит отметку.`}
                       </Text>
                     </Panel>
                   ) : null}

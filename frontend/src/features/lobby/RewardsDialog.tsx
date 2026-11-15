@@ -648,7 +648,7 @@ export function RewardsDialog({
                     ))}
                   </Select>
                 </Field>
-                <Field label="XP">
+                <Field label="Опыт">
                   <NumberInput
                     value={bonusAmount}
                     min={1}
