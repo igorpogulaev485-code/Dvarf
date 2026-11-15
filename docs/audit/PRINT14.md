@@ -116,10 +116,27 @@
 
 ---
 
+## Pass 9 — пустой бланк без цифр; навыки без растяжки
+
+1. **Пустой бланк 2014/2024.** Фикстура `classic-blank`: `level: 0`, без `abilities`/`proficiency.bonus`. Рендер (`isClassicBlankCharacter`) не пишет производные: ур., 10/+0, PB, КД, инициатива, кости хитов, пассивная мудрость, бонусы спасбросков/навыков. На 2024 также пустая «Кость» (без дефолта `к6`).
+2. **Навыки 2014.** `.classic-check__name`: `word-spacing: normal; text-align: left` — без двойных пробелов от выключки.
+
+### Кадры pass 9
+
+| Кадр | md5 |
+|---|---|
+| after-blank-2014-print-1.png | `955048e300f6fdb6262e59fff06cc7f6` |
+| after-blank-2024-print-1.png | `b610f0861d898bd9dd042441a3351111` |
+| after-torbin-crop-skills.png | `f1260254ea7e8e97475a73811a63f8cd` |
+
+Каталог: `pass9-after/`. Скрипт: `frontend/scripts/print14-pass9-capture.mjs`.
+
+---
+
 ## Проверки
 
 - `frontend`: `npm run build` — ok
 - selfcheck: classicPrint14, classicPrintSettings — ok
 - `backend`: `pytest` — 380 passed (incl. HP sheet-patch)
 - Alembic: одна голова
-- Кадры pass8: Vite + API, Chromium PDF + pdftoppm
+- Кадры pass8/pass9: Vite + API, Chromium PDF + pdftoppm

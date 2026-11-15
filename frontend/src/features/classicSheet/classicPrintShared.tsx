@@ -121,6 +121,11 @@ export function asProfBonus(character: CharacterDetail): number {
   return proficiencyBonusForTotalLevel(level)
 }
 
+/** `/classic/blank` fixture — print labels only, no derived scores. */
+export function isClassicBlankCharacter(character: CharacterDetail): boolean {
+  return character.id === 'classic-blank'
+}
+
 export function asRecordNotes(character: CharacterDetail): string {
   const notes = asRecord(asRecord(character.sheet).notes)
   return typeof notes.proficiencies === 'string' ? notes.proficiencies : ''

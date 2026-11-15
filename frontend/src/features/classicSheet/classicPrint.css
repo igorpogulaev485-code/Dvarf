@@ -1145,7 +1145,9 @@
   min-width: 0;
   padding-right: 0.28rem;
   letter-spacing: 0;
-  word-spacing: 0.22em;
+  /* Pass 9: no justified stretch — double spaces on skill names. */
+  word-spacing: normal;
+  text-align: left;
 }
 
 .classic-check em,
@@ -1175,7 +1177,8 @@
 .classic-panel--skills .classic-check__name {
   font-size: 0.46rem;
   letter-spacing: 0;
-  word-spacing: 0.28em;
+  word-spacing: normal;
+  text-align: left;
 }
 
 .classic-bubble-btn {

@@ -38,6 +38,7 @@ import { SPELLCASTING_ABILITY_LABELS } from '../../shared/dnd/spells'
 import {
   Bubble,
   asProfBonus,
+  isClassicBlankCharacter,
   asRecordNotes,
   brandYearLabel,
   clampMarks,
@@ -105,13 +106,17 @@ function classicHpDisplay(
  * Same paper tokens as 2014; structure follows Long Story Short 2024 blank.
  */
 export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
-  const combatNum = (key: string): string => classicCombatDisplay(c, key)
+  const blank = isClassicBlankCharacter(c)
+  const combatNum = (key: string): string =>
+    blank ? '' : classicCombatDisplay(c, key)
 
   const combatBool = (key: string): boolean => Boolean(combatField(c, key))
 
-  const proficiency = Number(asProfBonus(c))
-  const hitDiceTotal = String(c.level || '')
-  const hitDiceCurrent = combatNum('hp_dice_current') || hitDiceTotal
+  const proficiency = blank ? null : Number(asProfBonus(c))
+  const hitDiceTotal = blank ? '' : String(c.level || '')
+  const hitDiceCurrent = blank
+    ? ''
+    : combatNum('hp_dice_current') || hitDiceTotal
   const deathSuccesses = clampMarks(Number(combatField(c, 'death_successes') ?? 0))
   const deathFails = clampMarks(Number(combatField(c, 'death_fails') ?? 0))
   const exhaustion = clampExhaustion(Number(combatField(c, 'exhaustion') ?? 0))
@@ -125,16 +130,18 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
     classCatalogId: null,
   })
   const classSummary = formatClassSummary(sheetClasses)
-  const classAndLevel =
-    classSummary || formatClassLevelLabel(c.class_name, c.level)
-  const subclassLabel =
-    sheetClasses
-      .map((row) => row.subclass_name.trim())
-      .filter(Boolean)
-      .join(' / ') ||
-    String(identityField(c, 'subclass_name') ?? identityField(c, 'subclass') ?? '')
-  const hpCurrent = classicHpDisplay(c, 'hp_current')
-  const hpMax = classicHpDisplay(c, 'hp_max')
+  const classAndLevel = blank
+    ? ''
+    : classSummary || formatClassLevelLabel(c.class_name, c.level)
+  const subclassLabel = blank
+    ? ''
+    : sheetClasses
+        .map((row) => row.subclass_name.trim())
+        .filter(Boolean)
+        .join(' / ') ||
+      String(identityField(c, 'subclass_name') ?? identityField(c, 'subclass') ?? '')
+  const hpCurrent = blank ? '' : classicHpDisplay(c, 'hp_current')
+  const hpMax = blank ? '' : classicHpDisplay(c, 'hp_max')
   const alignmentRaw = String(identityField(c, 'alignment') ?? '')
   const alignmentText = String(identityField(c, 'alignment_text') ?? '')
   const alignmentSlug = recognizeAlignment(alignmentRaw) ?? ''
@@ -149,11 +156,15 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
   const castProfiles = classicCastProfiles(c)
   const coins = inventoryCoins(c)
   const weapons = classicWeaponRows(c)
-  const passivePerception =
-    10 +
-    abilityModifier(scores.wis) +
-    (skillFlags(c, 'perception').is_proficient ? proficiency : 0) +
-    (skillFlags(c, 'perception').is_expertise ? proficiency : 0)
+  const pb = proficiency ?? 0
+  const passivePerception = blank
+    ? ''
+    : String(
+        10 +
+          abilityModifier(scores.wis) +
+          (skillFlags(c, 'perception').is_proficient ? pb : 0) +
+          (skillFlags(c, 'perception').is_expertise ? pb : 0),
+      )
 
   const pencilBlanks = readClassicPencilBlanks(c)
   const { first: spellRows, rest: spellOverflow } = buildSpellTableRows(spells.known, pencilBlanks)
@@ -218,7 +229,7 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
             <label>
               <input
                 type="number"
-                value={c.level}
+                value={blank ? '' : c.level}
                readOnly />
               <span>Уровень</span>
             </label>
@@ -282,13 +293,21 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
               <span className="classic-lss-block-title">Кости хитов</span>
               <label>
                 <input
-                  value={`${hitDiceCurrent} / ${hitDiceTotal}`}
+                  value={
+                    blank || (!hitDiceCurrent && !hitDiceTotal)
+                      ? ''
+                      : `${hitDiceCurrent} / ${hitDiceTotal}`
+                  }
                  readOnly />
                 <span>Текущие</span>
               </label>
               <label>
                 <input
-                  value={String(combatField(c, 'hit_die') ?? '') || 'к6'}
+                  value={
+                    blank
+                      ? ''
+                      : String(combatField(c, 'hit_die') ?? '') || 'к6'
+                  }
                  readOnly />
                 <span>Кость</span>
               </label>
@@ -337,7 +356,7 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
               <span>Бонус владения</span>
               <input
                 type="number"
-                value={proficiency}
+                value={proficiency ?? ''}
                readOnly />
             </div>
             <div className="classic-lss-ability-cols">
@@ -347,7 +366,8 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                     key={key}
                     ability={key}
                     character={c}
-                    proficiency={proficiency}
+                    proficiency={pb}
+                    blank={blank}
                   />
                 ))}
               </div>
@@ -357,7 +377,8 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                     key={key}
                     ability={key}
                     character={c}
-                    proficiency={proficiency}
+                    proficiency={pb}
+                    blank={blank}
                   />
                 ))}
               </div>
@@ -961,14 +982,16 @@ function AbilityBlock({
   ability,
   character: c,
   proficiency,
+  blank = false,
 }: {
   ability: AbilityKey
   character: CharacterDetail
   proficiency: number
+  blank?: boolean
 }) {
   const score = classicEffectiveAbilities(c)[ability]
   const mod = abilityModifier(score)
-  const saveProf = isSaveProficient(c, ability)
+  const saveProf = !blank && isSaveProficient(c, ability)
   const saveBonus = mod + (saveProf ? proficiency : 0)
 
   return (
@@ -976,13 +999,13 @@ function AbilityBlock({
       <div className="classic-lss-ability__name">{ABILITY_NAMES[ability]}</div>
       <div className="classic-lss-ability__nums">
         <div className="classic-lss-ability__modbox">
-          <strong>{formatModifier(mod)}</strong>
+          <strong>{blank ? '' : formatModifier(mod)}</strong>
           <em>Мод.</em>
         </div>
         <div className="classic-lss-ability__scorebox">
           <input
             type="number"
-            value={score}
+            value={blank ? '' : score}
            readOnly />
           <em>Знач.</em>
         </div>
@@ -993,7 +1016,7 @@ function AbilityBlock({
             filled={saveProf}
             label={`Спасбросок ${ABILITY_NAMES[ability]}`}
           />
-          <strong>{formatModifier(saveBonus)}</strong>
+          <strong>{blank ? '' : formatModifier(saveBonus)}</strong>
           <span>Спасбросок</span>
         </li>
         {SKILLS_BY_ABILITY[ability].map((skill) => {
@@ -1004,11 +1027,11 @@ function AbilityBlock({
           return (
             <li key={skill.key}>
               <Bubble
-                filled={flags.is_proficient || flags.is_expertise}
-                expertise={flags.is_expertise}
+                filled={!blank && (flags.is_proficient || flags.is_expertise)}
+                expertise={!blank && flags.is_expertise}
                 label={skill.label}
               />
-              <strong>{formatModifier(bonus)}</strong>
+              <strong>{blank ? '' : formatModifier(bonus)}</strong>
               <span>{skill.label}</span>
             </li>
           )

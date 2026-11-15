@@ -15,7 +15,8 @@ function blankCharacter(layout: ClassicSheetLayout): CharacterDetail {
     id: 'classic-blank',
     name: '',
     avatar_url: null,
-    level: 1,
+    // level 0 → no «ур. 1» / derived PB / hit-die labels on the blank.
+    level: 0,
     class_name: null,
     race_name: null,
     hp_current: null,
@@ -27,20 +28,15 @@ function blankCharacter(layout: ClassicSheetLayout): CharacterDetail {
     updated_at: '1970-01-01T00:00:00Z',
     sheet: {
       ui: {},
-      abilities: {
-        str: { score: 10 },
-        dex: { score: 10 },
-        con: { score: 10 },
-        int: { score: 10 },
-        wis: { score: 10 },
-        cha: { score: 10 },
-      },
+      // No ability scores — blank must not print 10 / +0 placeholders.
+      abilities: {},
       combat: {},
       identity: {},
       inventory: { items: [], coins: {}, notes: '' },
       spells: { known: [], slots: {}, casting_ability: null },
       companions: [],
       text_blocks: [],
+      proficiency: {},
     },
   }
   const withLayout = setClassicSheetLayout(character, layout)

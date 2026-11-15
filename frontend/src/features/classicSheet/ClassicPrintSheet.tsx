@@ -68,6 +68,7 @@ import {
   asRecordNotes,
   brandYearLabel,
   clampMarks,
+  isClassicBlankCharacter,
 } from './classicPrintShared'
 import { classicCombatDisplay, classicEffectiveAbilities } from './classicDerivedCombat'
 import {
@@ -144,7 +145,9 @@ type Props = {
 
 export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Props) {
   const sheetLayout = layout ?? readClassicSheetLayout(c)
-  const combatNum = (key: string): string => classicCombatDisplay(c, key)
+  const blank = isClassicBlankCharacter(c)
+  const combatNum = (key: string): string =>
+    blank ? '' : classicCombatDisplay(c, key)
   const pencilBlanks = readClassicPencilBlanks(c)
   const extraNotePages = readClassicExtraNotePages(c)
 
@@ -155,8 +158,9 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
     classCatalogId: null,
   })
   const classSummary = formatClassSummary(sheetClasses)
-  const classAndLevel =
-    classSummary || formatClassLevelLabel(c.class_name, c.level)
+  const classAndLevel = blank
+    ? ''
+    : classSummary || formatClassLevelLabel(c.class_name, c.level)
   const coins = inventoryCoins(c)
   const weaponsBase = classicWeaponRows(c)
   const weapons = padWeaponRows(
@@ -167,9 +171,9 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
         ]
       : weaponsBase,
   )
-  const proficiency = Number(asProfBonus(c))
-  const hitDiceTotal = classicHitDiceTotalLabel(c)
-  const hitDiceCurrent = classicHitDiceCurrentLabel(c)
+  const proficiency = blank ? null : Number(asProfBonus(c))
+  const hitDiceTotal = blank ? '' : classicHitDiceTotalLabel(c)
+  const hitDiceCurrent = blank ? '' : classicHitDiceCurrentLabel(c)
   const deathSuccesses = clampMarks(Number(combatField(c, 'death_successes') ?? 0))
   const deathFails = clampMarks(Number(combatField(c, 'death_fails') ?? 0))
   const spells = classicSpellsState(c)
@@ -219,11 +223,33 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
   })
   const genderRaw = String(physiqueField(c, 'gender') ?? '')
   const genderDisplay = GENDER_LABELS[genderRaw] ?? genderRaw
-  const passivePerception =
-    10 +
-    abilityModifier(scores.wis) +
-    (skillFlags(c, 'perception').is_proficient ? proficiency : 0) +
-    (skillFlags(c, 'perception').is_expertise ? proficiency : 0)
+  const pb = proficiency ?? 0
+  const passivePerception = blank
+    ? ''
+    : String(
+        10 +
+          abilityModifier(scores.wis) +
+          (skillFlags(c, 'perception').is_proficient ? pb : 0) +
+          (skillFlags(c, 'perception').is_expertise ? pb : 0),
+      )
+  const scoreInk = (key: (typeof ABILITY_KEYS)[number]) =>
+    blank ? '' : scores[key]
+  const modInk = (key: (typeof ABILITY_KEYS)[number]) =>
+    blank ? '' : formatModifier(abilityModifier(scores[key]))
+  const saveInk = (key: (typeof ABILITY_KEYS)[number]) =>
+    blank
+      ? ''
+      : formatModifier(
+          abilityModifier(scores[key]) + (isSaveProficient(c, key) ? pb : 0),
+        )
+  const skillInk = (skillKey: string, base: (typeof ABILITY_KEYS)[number]) => {
+    if (blank) return ''
+    const flags = skillFlags(c, skillKey)
+    const bonus =
+      abilityModifier(scores[base]) +
+      (flags.is_expertise ? pb * 2 : flags.is_proficient ? pb : 0)
+    return formatModifier(bonus)
+  }
 
   return (
     <ClassicFitViewport key={sheetLayout}>
@@ -320,11 +346,11 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                         {ABILITY_NAMES[key]}
                       </ClassicFitCaption>
                       <div className="classic-ability__mod" aria-label={`Модификатор ${ABILITY_NAMES[key]}`}>
-                        {formatModifier(abilityModifier(scores[key]))}
+                        {modInk(key)}
                       </div>
                     </div>
                     <div className="classic-ability__score" aria-label={ABILITY_NAMES[key]}>
-                      {scores[key]}
+                      {scoreInk(key)}
                     </div>
                   </div>
                 ))}
@@ -342,7 +368,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                 <div className="classic-prof">
                   <span className="classic-plate-box classic-plate-box--value">
                     <ClassicStaticField
-                      value={proficiency}
+                      value={proficiency ?? ''}
                       align="center"
                       tone="numeric"
                       pencilLine={false}
@@ -355,15 +381,10 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                   {ABILITY_KEYS.map((key) => (
                     <div className="classic-check" key={key}>
                       <Bubble
-                        filled={isSaveProficient(c, key)}
+                        filled={!blank && isSaveProficient(c, key)}
                         label={`Владение спасброском: ${ABILITY_NAMES[key]}`}
                       />
-                      <strong>
-                        {formatModifier(
-                          abilityModifier(scores[key]) +
-                            (isSaveProficient(c, key) ? proficiency : 0),
-                        )}
-                      </strong>
+                      <strong>{saveInk(key)}</strong>
                       <span className="classic-check__name" style={{ gridColumn: '3 / -1' }}>
                         {ABILITY_NAMES[key]}
                       </span>
@@ -374,17 +395,14 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                 <div className="classic-panel classic-panel--skills">
                   {SKILL_DEFS.map((skill) => {
                     const flags = skillFlags(c, skill.key)
-                    const bonus =
-                      abilityModifier(scores[skill.base]) +
-                      (flags.is_expertise ? proficiency * 2 : flags.is_proficient ? proficiency : 0)
                     return (
                       <div className="classic-check" key={skill.key}>
                         <Bubble
-                          filled={flags.is_proficient || flags.is_expertise}
-                          expertise={flags.is_expertise}
+                          filled={!blank && (flags.is_proficient || flags.is_expertise)}
+                          expertise={!blank && flags.is_expertise}
                           label={`Владение навыком: ${skill.label}`}
                         />
-                        <strong>{formatModifier(bonus)}</strong>
+                        <strong>{skillInk(skill.key, skill.base)}</strong>
                         <span className="classic-check__name">{skill.label}</span>
                         <em className="classic-check__tag">({ABILITY_LABELS[skill.base].toLowerCase()})</em>
                       </div>
