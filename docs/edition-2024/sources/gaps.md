@@ -100,3 +100,5 @@ SRD 5.2.1 PDF: [SRD_CC_v5.2.1.pdf](https://media.dndbeyond.com/compendium-images
 
 - **P24-C13 (2026-11-15):** волна 1 MM24 сверх SRD (`srd=false`, `name_en` < «Kuo-toa Archpriest»): 86 карточек, source=`mm24` → community_ref. Последнее существо волны: Kuo-toa. C12 (бастионы) пропущена. Остаток алфавита → P24-C14.
 - **P24-C14 (2026-11-15):** волна 2 MM24 сверх SRD (`srd=false`, `name_en` ≥ «Kuo-toa Archpriest»): 87 карточек, source=`mm24` → community_ref. Первое: Kuo-toa Archpriest; последнее: Yuan-ti Malison (Type 3). Доправка C07 (summary + spell_refs). C12 (бастионы) пропущена.
+
+- **P24-C07R (2026-11-15):** пересборка текстов C07 Monsters (235) и C08 Animals (95) с next.dnd.su; формат как C13/C14; стат-диффов 19; пропусков scrape 0.

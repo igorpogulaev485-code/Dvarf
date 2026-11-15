@@ -309,7 +309,6 @@ def test_c07_display_fix_summary_and_spell_refs():
         "ice-mephit",
         "imp",
         "lemure",
-        "pit-fiend",
         "quasit",
         "rust-monster",
         "sea-hag",
@@ -331,7 +330,8 @@ def test_c07_display_fix_summary_and_spell_refs():
             assert "есть заклинания" not in summary, row["slug"]
         if row["slug"] in stripped_expected:
             assert refs == [], row["slug"]
-    assert with_spells == 42
+    # C07R rebuild: pit-fiend and other true Spellcasting blocks restored → 48.
+    assert with_spells == 48
     # aboleth agreement sample
     abo = next(r for r in c07 if r["slug"] == "aboleth")
     assert abo["data"]["summary_ru"].startswith("большая аберрация")
@@ -398,4 +398,5 @@ def test_alembic_single_head_includes_p24_c14():
     }
     assert "p24c14mmw201" in ancestor_ids
     assert "p24c13mmw101" in ancestor_ids
-    assert heads[0] == "p24c14mmw201"
+    # Head advances with later packs (C07R+); C14 stays on the single lineage.
+    assert heads[0] in {"p24c14mmw201", "p24c07rbest01"} or "p24c14mmw201" in ancestor_ids

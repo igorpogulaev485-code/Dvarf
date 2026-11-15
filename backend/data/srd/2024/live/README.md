@@ -21,8 +21,8 @@
 | `subclasses_srd.json` | P24-C04 | 12 подклассов SRD (`kind=subclass`, по одному на класс) |
 | `spells_srd.json` | P24-C05 | 339 заклинаний SRD (`kind=spell`); списки классов/подклассов заполняются здесь |
 | `magic_items_srd.json` | P24-C06 | 285 магических предметов SRD (`kind=item`, `equipment_group=magic_item`) |
-| `creatures_srd.json` | P24-C07 | 235 существ SRD Monsters A–Z (`kind=bestiary`) |
-| `animals_srd.json` | P24-C08 | 95 существ SRD Animals (`kind=bestiary`, `beast_tags`) |
+| `creatures_srd.json` | P24-C07 / C07R | 235 существ SRD Monsters A–Z (`kind=bestiary`; тексты пересобраны в C07R) |
+| `animals_srd.json` | P24-C08 / C07R | 95 существ SRD Animals (`kind=bestiary`, `beast_tags`; тексты пересобраны в C07R) |
 | `species_ph24.json` | P24-C09 | виды PHB сверх SRD (`kind=race`, `source=ph24`) |
 | `backgrounds_ph24.json` | P24-C09 | 12 предысторий PHB сверх 4 SRD (`source=ph24`) |
 | `subclasses_ph24.json` | P24-C09 | 36 подклассов PHB сверх 12 SRD (`source=ph24`) |
@@ -30,6 +30,7 @@
 | `spells_ph24.json` | P24-C10 | 69 заклинаний PHB сверх SRD (`kind=spell`, `source=ph24`; именные → `data.srd_alias`) |
 | `magic_items_dmg24.json` | P24-C11 | 196 магических предметов DMG сверх SRD (`kind=item`, `source=dmg24`; именные → `data.srd_alias`) |
 | `creatures_mm24_w1.json` | P24-C13 | 86 существ MM24 сверх SRD, волна 1 до Kuo-toa Archpriest (`kind=bestiary`, `source=mm24`) |
+| `creatures_mm24_w2.json` | P24-C14 | 87 существ MM24 сверх SRD, волна 2 от Kuo-toa Archpriest (`kind=bestiary`, `source=mm24`) |
 
 ## Схема карточек (контракт)
 
