@@ -12,6 +12,7 @@ from app.api.routers import auth as auth_router
 from app.api.routers import catalog as catalog_router
 from app.api.routers import characters as characters_router
 from app.api.routers import lobbies as lobbies_router
+from app.api.routers import world_imports as world_imports_router
 from app.core.config import settings
 from app.core.exceptions import AppError
 from app.realtime.bus import start_realtime, stop_realtime
@@ -40,6 +41,7 @@ app.include_router(auth_router.router)
 app.include_router(catalog_router.router)
 app.include_router(characters_router.router)
 app.include_router(lobbies_router.router)
+app.include_router(world_imports_router.router)
 
 uploads_path = Path(settings.uploads_dir)
 uploads_path.mkdir(parents=True, exist_ok=True)
