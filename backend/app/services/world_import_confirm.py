@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppError, NotFoundError
+from app.models.character import Character, RulesEdition
 from app.models.journal import CampaignJournalEntry
 from app.models.lobby import Setting
 from app.models.setting_artifact import SettingArtifact
@@ -30,8 +31,14 @@ from app.schemas.world_import import (
     WorldImportConflictResolutionIn,
     WorldImportJobOut,
 )
+from app.services.character_sheet import empty_character_sheet
 from app.services.setting_creatures import validate_creature_statblock, validate_setting_item_fields
+from app.services.world_import_attachments import save_character_pdf
 from app.services.world_import_auth import WorldImportActor, WorldImportAccess
+from app.services.world_import_characters import (
+    PARTY_CHARACTER_TYPES,
+    decode_pdf_from_proposal,
+)
 from app.services.world_import_diff import (
     ARTIFACT_ITEM_TYPES,
     ARTIFACT_SET_ITEM_TYPES,
@@ -150,6 +157,8 @@ class WorldImportConfirmService:
                 "pages": [],
                 "creatures": [],
                 "artifacts": [],
+                "characters": [],
+                "attachments": [],
                 "offices": [],
                 "created_link_ids": [],
                 "journal_entry_ids": [],
@@ -448,6 +457,158 @@ class WorldImportConfirmService:
             source_keys[item.source_key] = sk
         sk.artifact_id = artifact.id
         return artifact, created
+
+    def _upsert_character(
+        self,
+        *,
+        setting: Setting,
+        lobby_id: UUID,
+        actor: WorldImportActor,
+        item: WorldImportDraftItem,
+        source_keys: dict[str, WorldSourceKey],
+    ) -> tuple[Character, bool, UUID | None]:
+        """Создаёт/обновляет Character 2014 у мастера; PDF — отдельным вложением."""
+        prop = item.proposal or {}
+        edition_raw = str(prop.get("rules_edition") or "2014").strip() or "2014"
+        if edition_raw != "2014":
+            raise AppError(
+                "в этой версии импорта мира доступна только редакция 2014",
+                code="rules_edition_unsupported",
+                status_code=400,
+                data={
+                    "field": "rules_edition",
+                    "path": item.source_key,
+                    "hint": "Укажите rules_edition=2014 или опустите поле",
+                },
+            )
+
+        import_key = str(prop.get("import_key") or prop.get("slug") or "").strip()[:128]
+        if not import_key:
+            raise AppError(
+                "У персонажа нет import_key",
+                code="missing_import_key",
+                status_code=400,
+                data={"path": item.source_key, "hint": "slug файла (kavil) станет ключом"},
+            )
+
+        owner_id = actor.author_user_id
+        if owner_id is None:
+            raise AppError(
+                "Не удалось определить владельца персонажа",
+                code="forbidden_setting",
+                status_code=403,
+                data={"hint": "Confirm от имени мастера лобби"},
+            )
+
+        name = _proposal_title(item)[:120]
+        sheet = prop.get("sheet") if isinstance(prop.get("sheet"), dict) else None
+        if not sheet:
+            sheet = empty_character_sheet()
+
+        level = int(prop.get("level") or 1)
+        race_name = str(prop.get("race_name") or "")[:120] or None
+        class_name = str(prop.get("class_name") or "")[:120] or None
+        hp_max = prop.get("hp_max")
+        hp_current = prop.get("hp_current")
+        if hp_max is not None:
+            try:
+                hp_max = int(hp_max)
+            except (TypeError, ValueError):
+                hp_max = None
+        if hp_current is not None:
+            try:
+                hp_current = int(hp_current)
+            except (TypeError, ValueError):
+                hp_current = None
+
+        assigned_raw = prop.get("assigned_user_id")
+        assigned_user_id: UUID | None = None
+        if assigned_raw:
+            try:
+                assigned_user_id = UUID(str(assigned_raw))
+            except (TypeError, ValueError):
+                assigned_user_id = None
+
+        sk = source_keys.get(item.source_key)
+        character: Character | None = None
+        if sk and sk.character_id:
+            character = self.db.get(Character, sk.character_id)
+            if character is not None and character.deleted_at is not None:
+                character = None
+
+        if character is None:
+            character = self.db.scalar(
+                select(Character).where(
+                    Character.imported_setting_id == setting.id,
+                    Character.import_key == import_key,
+                    Character.deleted_at.is_(None),
+                )
+            )
+
+        keep_ours = bool(getattr(item, "_wapi_keep_ours", False))
+        created = False
+        if character is None:
+            character = Character(
+                user_id=owner_id,
+                name=name,
+                rules_edition=RulesEdition.edition_2014,
+                sheet=sheet,
+                level=level,
+                class_name=class_name,
+                race_name=race_name,
+                hp_max=hp_max,
+                hp_current=hp_current if hp_current is not None else hp_max,
+                is_draft=True,
+                import_key=import_key,
+                imported_setting_id=setting.id,
+                assigned_user_id=assigned_user_id,
+            )
+            self.db.add(character)
+            self.db.flush()
+            created = True
+        elif not keep_ours:
+            character.name = name
+            character.sheet = sheet
+            character.level = level
+            character.class_name = class_name
+            character.race_name = race_name
+            character.hp_max = hp_max
+            character.hp_current = hp_current if hp_current is not None else hp_max
+            character.rules_edition = RulesEdition.edition_2014
+            character.import_key = import_key
+            character.imported_setting_id = setting.id
+            character.is_draft = True
+            if assigned_user_id is not None:
+                character.assigned_user_id = assigned_user_id
+            character.sheet_version = int(character.sheet_version or 1) + 1
+
+        if sk is None:
+            sk = WorldSourceKey(
+                setting_id=setting.id,
+                source_path=item.source_key,
+                source_slug=import_key,
+            )
+            self.db.add(sk)
+            self.db.flush()
+            source_keys[item.source_key] = sk
+        sk.character_id = character.id
+
+        attachment_id: UUID | None = None
+        if not keep_ours:
+            pdf = decode_pdf_from_proposal(prop)
+            if pdf:
+                att = save_character_pdf(
+                    self.db,
+                    lobby_id=lobby_id,
+                    setting_id=setting.id,
+                    character_id=character.id,
+                    source_path=str(prop.get("sheet_pdf_path") or f"{import_key}.pdf"),
+                    filename=str(prop.get("pdf_filename") or f"{import_key}.pdf"),
+                    data=pdf,
+                )
+                attachment_id = att.id
+
+        return character, created, attachment_id
 
     def _upsert_artifact_set(
         self,
@@ -771,7 +932,6 @@ class WorldImportConfirmService:
                 it
                 for it in all_items
                 if it.status in {"proposed", "conflict", "accepted"}
-                and it.item_type != "pending_character"
                 and it.item_type not in AI_SUGGESTION_ITEM_TYPES
             ]
 
@@ -797,6 +957,9 @@ class WorldImportConfirmService:
         created_artifacts: list[UUID] = []
         updated_artifacts: list[UUID] = []
         created_artifact_sets: list[UUID] = []
+        created_characters: list[UUID] = []
+        updated_characters: list[UUID] = []
+        created_attachments: list[UUID] = []
         journal_ids: list[UUID] = []
         confirmed_keys: set[str] = set()
         artifacts_by_import_key: dict[str, SettingArtifact] = {}
@@ -804,14 +967,57 @@ class WorldImportConfirmService:
         applied_pages: list[dict[str, Any]] = []
         applied_creatures: list[dict[str, Any]] = []
         applied_artifacts: list[dict[str, Any]] = []
+        applied_characters: list[dict[str, Any]] = []
+        applied_attachments: list[dict[str, Any]] = []
         applied_offices: list[dict[str, Any]] = []
         created_link_ids: list[str] = []
         skip_office = False
 
         for item in selected:
-            if item.item_type == "pending_character" or item.item_type in AI_SUGGESTION_ITEM_TYPES:
-                # Чистые подсказки (должности и т.п.) в канон не пишем.
+            if item.item_type in AI_SUGGESTION_ITEM_TYPES:
+                # Чистые подсказки ИИ в канон не пишем.
                 item.status = "deferred"
+                continue
+            if item.item_type in PARTY_CHARACTER_TYPES:
+                if getattr(item, "_wapi_keep_ours", False):
+                    item.status = "accepted"
+                    confirmed_keys.add(item.source_key)
+                    continue
+                character, created, att_id = self._upsert_character(
+                    setting=setting,
+                    lobby_id=lobby.id,
+                    actor=actor,
+                    item=item,
+                    source_keys=source_keys,
+                )
+                (created_characters if created else updated_characters).append(character.id)
+                applied_characters.append(
+                    {
+                        "import_key": character.import_key,
+                        "character_id": str(character.id),
+                        "name": character.name,
+                        "level": character.level,
+                        "race_name": character.race_name,
+                        "class_name": character.class_name,
+                        "sheet": character.sheet or {},
+                        "created": created,
+                        "source_key": item.source_key,
+                    }
+                )
+                if att_id is not None:
+                    created_attachments.append(att_id)
+                    applied_attachments.append(
+                        {
+                            "attachment_id": str(att_id),
+                            "character_id": str(character.id),
+                            "source_path": str(
+                                (item.proposal or {}).get("sheet_pdf_path") or ""
+                            ),
+                            "created": True,
+                        }
+                    )
+                item.status = "accepted"
+                confirmed_keys.add(item.source_key)
                 continue
             if item.item_type == "session_journal":
                 entry = self._write_session_journal(
@@ -966,12 +1172,16 @@ class WorldImportConfirmService:
         applied["pages"] = applied_pages
         applied["creatures"] = applied_creatures
         applied["artifacts"] = applied_artifacts
+        applied["characters"] = applied_characters
+        applied["attachments"] = applied_attachments
         applied["offices"] = applied_offices
         applied["created_link_ids"] = created_link_ids
         applied["journal_entry_ids"] = [str(j) for j in journal_ids]
         applied["created_page_ids"] = [str(x) for x in created_pages]
         applied["created_creature_ids"] = [str(x) for x in created_creatures]
         applied["created_artifact_ids"] = [str(x) for x in created_artifacts]
+        applied["created_character_ids"] = [str(x) for x in created_characters]
+        applied["created_attachment_ids"] = [str(x) for x in created_attachments]
 
         actor_kind = "ai_token" if actor.is_ai else "user"
         confirmation = WorldImportConfirmation(
@@ -1004,6 +1214,9 @@ class WorldImportConfirmService:
             created_artifact_ids=created_artifacts,
             updated_artifact_ids=updated_artifacts,
             created_artifact_set_ids=created_artifact_sets,
+            created_character_ids=created_characters,
+            updated_character_ids=updated_characters,
+            created_attachment_ids=created_attachments,
             journal_entry_ids=journal_ids,
             links_created=links_created,
         )

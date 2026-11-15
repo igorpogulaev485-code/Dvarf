@@ -37,7 +37,9 @@ PLAYER_BOOKS_GROUP_TITLE = "Книги для игроков"
 @dataclass(frozen=True)
 class VaultFile:
     path: str
-    content: str
+    content: str = ""
+    # W-API-08: PDF и прочий бинарь (не участвует в текстовой квоте md).
+    binary: bytes | None = None
 
 
 @dataclass
@@ -181,7 +183,7 @@ def classify_vault_path(path: str) -> str | None:
         if len(parts) >= 3 and parts[1] in {"plot", "prep"}:
             return "note"
         if len(parts) >= 4 and parts[1] == "party" and parts[2] == "characters":
-            return "pending_character"
+            return "party_character"
         return None
 
     if parts[0] == "drafts":
@@ -282,9 +284,9 @@ def parse_vault_files(files: list[VaultFile]) -> VaultParseResult:
             "body": body,
             "canon_status": frontmatter.get("status"),
         }
-        if item_type == "pending_character":
-            proposal["parse_status"] = "pending_character"
-            proposal["hint"] = "Полный разбор листа персонажа — в пачке W-API-08"
+        if item_type == "party_character":
+            proposal["parse_status"] = "party_character"
+            proposal["hint"] = "Лист партии: поля заполнятся из md + txt (W-API-08)"
         if item_type == "book_chapter":
             proposal["book_group_key"] = PLAYER_BOOKS_GROUP_KEY
             book_chapters.append(
@@ -348,8 +350,12 @@ def decode_text_bytes(data: bytes, *, path: str) -> str:
         ) from exc
 
 
+# PDF в zip — отдельный потолок (W-API-08); тяжёлые Who PDF в git не кладём.
+MAX_ZIP_PDF_BYTES = 5 * 1024 * 1024
+
+
 def extract_zip_to_files(data: bytes) -> list[VaultFile]:
-    """Распаковывает zip в список текстовых файлов хранилища."""
+    """Распаковывает zip в список текстовых файлов хранилища (+ PDF листов)."""
     if len(data) > MAX_ZIP_BYTES:
         raise AppError(
             "Архив слишком большой",
@@ -380,6 +386,18 @@ def extract_zip_to_files(data: bytes) -> list[VaultFile]:
             if base.startswith(".") or name.startswith("__MACOSX/"):
                 continue
             path = normalize_vault_path(name)
+            lower = path.lower()
+            raw = zf.read(info)
+            if lower.endswith(".pdf"):
+                if info.file_size > MAX_ZIP_PDF_BYTES or len(raw) > MAX_ZIP_PDF_BYTES:
+                    raise AppError(
+                        "PDF в архиве слишком большой",
+                        code="file_too_large",
+                        status_code=400,
+                        data={"path": path, "hint": f"PDF не больше {MAX_ZIP_PDF_BYTES} байт"},
+                    )
+                files.append(VaultFile(path=path, content="", binary=raw))
+                continue
             if info.file_size > MAX_SINGLE_FILE_BYTES:
                 raise AppError(
                     "Файл в архиве слишком большой",
@@ -387,9 +405,7 @@ def extract_zip_to_files(data: bytes) -> list[VaultFile]:
                     status_code=400,
                     data={"path": path},
                 )
-            raw = zf.read(info)
             # Бинарные не-текст (кроме .md/.json/.txt/.html) пропускаем молча.
-            lower = path.lower()
             if not lower.endswith((".md", ".json", ".txt", ".html", ".yml", ".yaml")):
                 continue
             text = decode_text_bytes(raw, path=path)
@@ -398,7 +414,7 @@ def extract_zip_to_files(data: bytes) -> list[VaultFile]:
 
 
 def load_vault_dir(root: str | PurePosixPath) -> list[VaultFile]:
-    """Утилита для тестов: читает дерево каталога как хранилище."""
+    """Утилита для тестов: читает дерево каталога как хранилище (+ PDF)."""
     from pathlib import Path
 
     root_path = Path(root)
@@ -408,9 +424,14 @@ def load_vault_dir(root: str | PurePosixPath) -> list[VaultFile]:
             continue
         rel = path.relative_to(root_path).as_posix()
         lower = rel.lower()
+        data = path.read_bytes()
+        if lower.endswith(".pdf"):
+            files.append(
+                VaultFile(path=normalize_vault_path(rel), content="", binary=data)
+            )
+            continue
         if not lower.endswith((".md", ".json", ".txt", ".html", ".yml", ".yaml")):
             continue
-        data = path.read_bytes()
         text = decode_text_bytes(data, path=rel)
         files.append(VaultFile(path=normalize_vault_path(rel), content=text))
     return files

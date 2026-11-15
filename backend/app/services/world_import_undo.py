@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppError, NotFoundError
+from app.models.character import Character
 from app.models.journal import CampaignJournalEntry
 from app.models.lobby import Setting
 from app.models.setting_artifact import SettingArtifact
@@ -17,8 +18,10 @@ from app.models.setting_creature import SettingCreature
 from app.models.setting_page import SettingPage
 from app.models.setting_page_link import SettingPageLink
 from app.models.world_import import WorldImportConfirmation, WorldImportJob
+from app.models.world_import_attachment import WorldImportAttachment
 from app.repositories.lobby import LobbyRepository
 from app.schemas.world_import import WorldImportJobOut, WorldImportUndoOut
+from app.services.world_import_attachments import delete_attachment_files
 from app.services.world_import_auth import WorldImportAccess, WorldImportActor
 from app.services.world_import_snapshots import confirmation_applied
 
@@ -146,6 +149,25 @@ class WorldImportUndoService:
                     data={"path": row.get("import_key") or str(aid)},
                 )
 
+        for row in applied.get("characters") or []:
+            if not isinstance(row, dict) or not row.get("created"):
+                continue
+            cid = row.get("character_id")
+            if not cid:
+                continue
+            character = self.db.get(Character, UUID(str(cid)))
+            if character is None or character.deleted_at is not None:
+                continue
+            if character.name != str(row.get("name") or "") or int(character.level or 0) != int(
+                row.get("level") or 0
+            ):
+                raise AppError(
+                    "Откат небезопасен: персонажа меняли после подтверждения",
+                    code="undo_unsafe",
+                    status_code=409,
+                    data={"path": row.get("import_key") or str(cid)},
+                )
+
         return applied
 
     def undo(
@@ -183,6 +205,8 @@ class WorldImportUndoService:
         trashed: list[UUID] = []
         removed_creatures: list[UUID] = []
         removed_artifacts: list[UUID] = []
+        removed_characters: list[UUID] = []
+        removed_attachments: list[UUID] = []
         now = datetime.now(UTC)
 
         for row in applied.get("pages") or []:
@@ -253,6 +277,28 @@ class WorldImportUndoService:
                 self.db.delete(artifact)
                 removed_artifacts.append(UUID(str(aid)))
 
+        for row in applied.get("attachments") or []:
+            if not isinstance(row, dict):
+                continue
+            att_id = row.get("attachment_id")
+            if not att_id:
+                continue
+            att = self.db.get(WorldImportAttachment, UUID(str(att_id)))
+            if att is not None:
+                delete_attachment_files(self.db, att)
+                removed_attachments.append(UUID(str(att_id)))
+
+        for row in applied.get("characters") or []:
+            if not isinstance(row, dict) or not row.get("created"):
+                continue
+            cid = row.get("character_id")
+            if not cid:
+                continue
+            character = self.db.get(Character, UUID(str(cid)))
+            if character is not None and character.deleted_at is None:
+                character.deleted_at = now
+                removed_characters.append(UUID(str(cid)))
+
         for jid in applied.get("journal_entry_ids") or []:
             try:
                 entry = self.db.get(CampaignJournalEntry, UUID(str(jid)))
@@ -274,7 +320,8 @@ class WorldImportUndoService:
                 f"{actor_name} отменил(а) подтверждение импорта "
                 f"(confirmation {confirmation.id}). "
                 f"В корзину: {len(trashed)} стр.; восстановлено: {len(restored)}; "
-                f"удалено существ: {len(removed_creatures)}; предметов: {len(removed_artifacts)}."
+                f"удалено существ: {len(removed_creatures)}; предметов: {len(removed_artifacts)}; "
+                f"персонажей: {len(removed_characters)}; вложений: {len(removed_attachments)}."
             ),
             is_draft=True,
             setting_id=setting.id,
@@ -306,6 +353,8 @@ class WorldImportUndoService:
             trashed_page_ids=trashed,
             removed_creature_ids=removed_creatures,
             removed_artifact_ids=removed_artifacts,
+            removed_character_ids=removed_characters,
+            removed_attachment_ids=removed_attachments,
             journal_entry_id=getattr(journal, "id", None),
             message="Подтверждение отменено; кто отменил — в журнале кампании",
         )

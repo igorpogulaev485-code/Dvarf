@@ -268,6 +268,19 @@ class LobbyMediaService:
             )
         )
         used_bytes = int(used or 0)
+        # W-API-08: PDF-вложения импорта входят в тот же бюджет 200 МБ.
+        try:
+            from app.models.world_import_attachment import WorldImportAttachment
+
+            att = self.db.scalar(
+                select(func.coalesce(func.sum(WorldImportAttachment.bytes_on_disk), 0)).where(
+                    WorldImportAttachment.lobby_id == lobby_id
+                )
+            )
+            used_bytes += int(att or 0)
+        except Exception:
+            # Таблица ещё не смигрирована / FakeDB без attachments — квота картинок как раньше.
+            pass
         free = max(0, LOBBY_QUOTA_BYTES - used_bytes)
         return LobbyMediaUsage(used_bytes=used_bytes, free_bytes=free)
 

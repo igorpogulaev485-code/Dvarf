@@ -39,6 +39,7 @@ from app.models.world_import import (
     WorldSourceAlias,
     WorldSourceKey,
 )
+from app.models.world_import_attachment import WorldImportAttachment
 
 __all__ = [
     "AuthProvider",
@@ -79,6 +80,7 @@ __all__ = [
     "WhisperMessage",
     "WhisperThread",
     "WorldApiToken",
+    "WorldImportAttachment",
     "WorldImportConfirmation",
     "WorldImportDraftItem",
     "WorldImportDraftLink",

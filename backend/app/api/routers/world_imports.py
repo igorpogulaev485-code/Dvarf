@@ -1,14 +1,18 @@
-"""W-API-01…05: токены, задания, разбор, validate/upsert/diff/confirm/cancel."""
+"""W-API-01…08: токены, задания, разбор, validate/upsert/diff/confirm/cancel, PDF."""
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, File, Form, Header, UploadFile
+from fastapi.responses import FileResponse
 
 from app.api.deps import CurrentUser, DbSession
-from app.core.exceptions import AppError
+from app.core.config import settings
+from app.core.exceptions import AppError, NotFoundError
+from app.models.world_import_attachment import WorldImportAttachment
 from app.schemas.world_import import (
     WorldApiTokenCreated,
     WorldApiTokenCreateRequest,
@@ -350,4 +354,32 @@ async def parse_world_import_vault_zip(
         job_id,
         data,
         rules_edition=rules_edition,
+    )
+
+
+@router.get("/lobbies/{lobby_id}/world-import-attachments/{attachment_id}/file")
+def download_world_import_attachment(
+    lobby_id: UUID,
+    attachment_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> FileResponse:
+    """Отдаёт PDF-вложение импорта (не через LobbyMedia/WebP)."""
+    from app.repositories.lobby import LobbyRepository
+    from app.services import lobby_roles as roles
+
+    lobby = LobbyRepository(db).get(lobby_id)
+    if lobby is None:
+        raise NotFoundError("Лобби не найдено", code="lobby_not_found")
+    roles.require_view(db, lobby, current_user)
+    row = db.get(WorldImportAttachment, attachment_id)
+    if row is None or row.lobby_id != lobby_id:
+        raise NotFoundError("Вложение не найдено", code="attachment_not_found")
+    path = Path(settings.uploads_dir) / row.storage_relpath
+    if not path.is_file():
+        raise NotFoundError("Файл вложения отсутствует на диске", code="attachment_file_missing")
+    return FileResponse(
+        path,
+        media_type=row.content_type or "application/pdf",
+        filename=row.original_filename or "sheet.pdf",
     )
