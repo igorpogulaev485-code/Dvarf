@@ -19,7 +19,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 PH24_EXTRA = 1 + 12 + 36
 # C10 adds 58 feats + 69 spells on top of C01–C09 baseline.
-PLANNED_TOTAL = 863 + 235 + 95 + PH24_EXTRA + 58 + 69
+PLANNED_TOTAL = 863 + 235 + 95 + PH24_EXTRA + 58 + 69 + 196  # +C11 DMG24
 
 SRD_ORIGIN_FEATS = {"alert", "magic-initiate", "savage-attacker", "skilled"}
 

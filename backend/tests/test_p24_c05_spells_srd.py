@@ -31,7 +31,7 @@ CASTER_CLASSES = {
     "wizard",
 }
 NON_CASTERS = {"barbarian", "fighter", "monk", "rogue"}
-# C01–C09 + P24-C10 (58 feats + 69 spells PHB beyond SRD)
+# C01–C10 + P24-C11 (196 DMG24 magic items beyond SRD)
 PLANNED_TOTAL = (
     215
     + 12
@@ -45,7 +45,8 @@ PLANNED_TOTAL = (
     + 36
     + 58
     + 69
-)  # +C07+C08+C09+C10
+    + 196
+)  # +C07+C08+C09+C10+C11
 
 SRD_RENAMES = {
     "acid-arrow",

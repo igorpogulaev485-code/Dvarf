@@ -31,6 +31,7 @@ WAVE_FILES = (
     "subclasses_ph24.json",
     "feats_ph24.json",
     "spells_ph24.json",
+    "magic_items_dmg24.json",
 )
 
 DISPLAY_LEAVES = frozenset(

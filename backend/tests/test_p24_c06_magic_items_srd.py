@@ -21,7 +21,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 SRD_MAGIC_COUNT = 285
 # C01–C05 catalog rows + magic items
-PLANNED_TOTAL = 215 + 12 + 12 + 339 + SRD_MAGIC_COUNT + 235 + 95 + 1 + 12 + 36 + 58 + 69  # +C07–C10
+PLANNED_TOTAL = 215 + 12 + 12 + 339 + SRD_MAGIC_COUNT + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196  # C11 DMG items
 
 SRD_RENAMES = {
     "apparatus-of-the-crab",
@@ -82,10 +82,12 @@ def _srd_ids(category: str) -> set[str]:
 
 
 def _magic_rows():
+    """SRD magic-item wave only (C06). DMG beyond SRD lives in C11."""
     return [
         r
         for r in load_wave_rows()
         if r["kind"] == "item"
+        and str(r.get("source", "")).startswith("srd")
         and (r.get("data") or {}).get("equipment_group") == "magic_item"
     ]
 
@@ -287,7 +289,7 @@ def test_apply_seed_includes_magic_items_idempotent():
     magic = 0
     for params in store.values():
         assert params["edition"] == "2024"
-        if params["kind"] == "item":
+        if params["kind"] == "item" and str(params.get("source", "")).startswith("srd"):
             data = json.loads(params["data"]) if isinstance(params["data"], str) else params["data"]
             if data.get("equipment_group") == "magic_item":
                 magic += 1

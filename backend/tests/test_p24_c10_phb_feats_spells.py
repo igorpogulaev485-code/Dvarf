@@ -20,7 +20,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 PH24_FEATS = 58
 PH24_SPELLS = 69
-PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + PH24_FEATS + PH24_SPELLS
+PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + PH24_FEATS + PH24_SPELLS + 196  # +C11 DMG24
 
 ORIGIN_FEATS_C09 = {
     "crafter",
@@ -315,9 +315,10 @@ def test_alembic_single_head_includes_p24_c10():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1, f"expected one alembic head, got {heads}"
-    assert heads[0] == "p24c10phb01"
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])
     }
     assert "p24c09phb01" in ancestor_ids
     assert "p24c10phb01" in ancestor_ids
+    # Head advances with later catalog packs (C11+); C10 must remain an ancestor.
+    assert heads[0] in {"p24c10phb01", "p24c11dmg01"} or "p24c10phb01" in ancestor_ids

@@ -212,7 +212,7 @@ def test_seed_rows_are_edition_2024_only():
             "bestiary",
         }
         src = str(row["source"])
-        assert src.startswith("srd") or src == "ph24"
+        assert src.startswith("srd") or src in {"ph24", "dmg24"}
 
 
 def test_apply_seed_idempotent_with_fake_conn():

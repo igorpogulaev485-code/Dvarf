@@ -27,6 +27,8 @@ Schema contract for later packs (P24-00 lists → data packs):
 - PHB beyond SRD (C10): ``feats_ph24`` / ``spells_ph24``; named spells use
   ``data.srd_alias`` → unprefixed SRD slug (no merge). Equipment/magic PH24
   beyond SRD count is 0 after C03/C06.
+- DMG beyond SRD (C11): ``magic_items_dmg24``; ``source`` ``dmg24`` →
+  ``community_ref``; named eponyms use ``data.srd_alias`` → SRD slug.
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -81,6 +83,8 @@ EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     # P24-C10 — PHB feats + spells beyond SRD (community_ref)
     WaveSpec("feats_ph24.json"),
     WaveSpec("spells_ph24.json"),
+    # P24-C11 — DMG 2024 magic items beyond SRD (community_ref)
+    WaveSpec("magic_items_dmg24.json"),
 )
 
 WEAPON_MASTERY_FILENAME = "weapon_mastery_srd.json"
@@ -228,10 +232,24 @@ def normalize_item_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
             out["cursed"] = bool(out["cursed"])
         out.setdefault("spell_refs", [])
         out.setdefault("base_item_categories", [])
+        out.setdefault("recharge_ru", None)
+        out.setdefault("srd_alias", None)
         if out.get("name_ru_pending") is None:
             out["name_ru_pending"] = False
         else:
             out["name_ru_pending"] = bool(out["name_ru_pending"])
+        if out.get("text_ru_pending") is None:
+            out["text_ru_pending"] = False
+        else:
+            out["text_ru_pending"] = bool(out["text_ru_pending"])
+        if out.get("sentient") is None:
+            out["sentient"] = False
+        else:
+            out["sentient"] = bool(out["sentient"])
+        if out.get("artifact") is None:
+            out["artifact"] = out.get("rarity") == "artifact"
+        else:
+            out["artifact"] = bool(out["artifact"])
     return out
 
 
