@@ -30,7 +30,6 @@ import {
   moveTextBlockBefore,
   patchBlockPart,
   removeBlockPart,
-  updateBlockParts,
   type TextBlock,
   type TextBlockPart,
 } from './textBlocks'
@@ -47,6 +46,7 @@ import {
   listBlocksForFilter,
   physiqueGlancePreview,
   physiqueHasContent,
+  shouldShowCollapseBar,
   socialBucket,
   visibleSocialFilters,
   type SocialFilter,
@@ -140,14 +140,10 @@ export function TextBlocksPanel({
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
   const [editingKeys, setEditingKeys] = useState<Set<string>>(() => new Set())
   const [insertMenuFor, setInsertMenuFor] = useState<string | null>(null)
-  const [orphansOpen, setOrphansOpen] = useState(false)
   /** Physique: glance → view → edit. Default glance (one line). */
   const [physiquePhase, setPhysiquePhase] = useState<'glance' | 'view' | 'edit'>('glance')
   /** Phone editor dialog: block key or `physique`. */
   const [dialogEditKey, setDialogEditKey] = useState<string | null>(null)
-
-  const linkedIds = new Set(blocks.flatMap((block) => listResourceIds(block.parts)))
-  const orphanResources = resources.filter((item) => !linkedIds.has(item.id))
 
   const filterChips = useMemo(
     () => visibleSocialFilters(blocks, { hasPhysiqueUi }),
@@ -207,40 +203,6 @@ export function TextBlocksPanel({
   function updateResource(id: string, patch: Partial<SheetResource>) {
     onResourcesChange(
       resources.map((item) => (item.id === id ? { ...item, ...patch } : item)),
-    )
-  }
-
-  function removeResource(id: string) {
-    onResourcesChange(resources.filter((item) => item.id !== id))
-    onChange(
-      blocks.map((block) =>
-        updateBlockParts(
-          block,
-          block.parts.filter(
-            (part) => !(part.kind === 'resource' && part.resourceId === id),
-          ),
-        ),
-      ),
-    )
-  }
-
-  function linkOrphanToBlock(resourceId: string, blockKey: string) {
-    const target = blocks.find((item) => item.key === blockKey)
-    if (!target) return
-    onChange(
-      blocks.map((block) => {
-        if (block.key !== blockKey) {
-          if (!listResourceIds(block.parts).includes(resourceId)) return block
-          return updateBlockParts(
-            block,
-            block.parts.filter(
-              (part) => !(part.kind === 'resource' && part.resourceId === resourceId),
-            ),
-          )
-        }
-        if (listResourceIds(block.parts).includes(resourceId)) return block
-        return appendBlockPart(block, createResourcePart(resourceId))
-      }),
     )
   }
 
@@ -1016,24 +978,25 @@ export function TextBlocksPanel({
       ? blocks.find((block) => block.key === dialogEditKey)
       : null
 
+  const showCollapseBar = shouldShowCollapseBar(visibleBlocks.length)
+
   return (
     <Panel
       title="Общение"
       className="text-panel"
       titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.text_blocks)} />}
-    >
-      {onOpenFeatures ? (
-        <div className="text-panel__features-jump">
+      titleAside={
+        onOpenFeatures ? (
           <button
             type="button"
-            className="play-desk-compact__link text-panel__features-btn"
+            className="play-desk-compact__link"
             onClick={onOpenFeatures}
           >
             Способности
           </button>
-        </div>
-      ) : null}
-
+        ) : null
+      }
+    >
       <Stack gap={12}>
         <div className="inventory-filters" role="tablist" aria-label="Фильтр текстов">
           {filterChips.map((row) => (
@@ -1053,14 +1016,16 @@ export function TextBlocksPanel({
         {renderPhysiqueBlock()}
         {renderEmptyPersonalityLine()}
 
-        <div className="abil-column__toolbar text-panel__collapse-bar">
-          <button type="button" onClick={collapseAll}>
-            ▲ Свернуть все
-          </button>
-          <button type="button" onClick={expandAll}>
-            ▼ Развернуть все
-          </button>
-        </div>
+        {showCollapseBar ? (
+          <div className="abil-column__toolbar text-panel__collapse-bar">
+            <button type="button" onClick={collapseAll}>
+              ▲ Свернуть все
+            </button>
+            <button type="button" onClick={expandAll}>
+              ▼ Развернуть все
+            </button>
+          </div>
+        ) : null}
 
         <div className="inventory-panel__toolbar">
           <Button
@@ -1090,71 +1055,6 @@ export function TextBlocksPanel({
           ) : null}
           {visibleBlocks.map((block) => renderBlockCard(block))}
         </Stack>
-
-        {orphanResources.length > 0 ? (
-          <div className="text-block__orphans">
-            <button
-              type="button"
-              className="text-block__orphans-toggle"
-              aria-expanded={orphansOpen}
-              onClick={() => setOrphansOpen((prev) => !prev)}
-            >
-              <strong>Ресурсы без блока</strong>
-              <span>
-                {orphanResources.length} · служебное ·{' '}
-                {orphansOpen ? 'свернуть' : 'показать'}
-              </span>
-            </button>
-            {orphansOpen ? (
-              <>
-                <Text tone="muted">
-                  Остались от старого списка. Привяжи к блоку или удали.
-                </Text>
-                {orphanResources.map((resource) => (
-                  <div key={resource.id} className="text-block__orphan">
-                    <SlotPips
-                      max={resource.max}
-                      used={resource.used}
-                      fillMode="available"
-                      label={resource.name || 'Ресурс'}
-                      summary={`${Math.max(0, resource.max - resource.used)} / ${resource.max}`}
-                      onChange={(used) => updateResource(resource.id, { used })}
-                    />
-                    <div className="text-block__orphan-actions">
-                      <select
-                        className="play-select"
-                        defaultValue=""
-                        aria-label={`Привязать «${resource.name || 'ресурс'}» к блоку`}
-                        onChange={(event) => {
-                          const key = event.target.value
-                          if (!key) return
-                          linkOrphanToBlock(resource.id, key)
-                          event.target.value = ''
-                        }}
-                      >
-                        <option value="">В блок…</option>
-                        {blocks
-                          .filter((block) => !block.isHidden)
-                          .map((block) => (
-                            <option key={block.key} value={block.key}>
-                              {displayLabel(block)}
-                            </option>
-                          ))}
-                      </select>
-                      <button
-                        type="button"
-                        className="linkish"
-                        onClick={() => removeResource(resource.id)}
-                      >
-                        Удалить
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </>
-            ) : null}
-          </div>
-        ) : null}
       </Stack>
 
       <Dialog

@@ -8,8 +8,9 @@
   box-shadow: none;
 }
 
-/* Title via Panel (ui-panel__title) — same kit as Inventory / Spells. */
-.text-panel.ui-panel > .ui-panel__title {
+/* Title via Panel — same kit as Inventory / Spells (heading when titleAside). */
+.text-panel.ui-panel > .ui-panel__title,
+.text-panel.ui-panel > .ui-panel__heading {
   margin: 0 0 4px;
 }
 
@@ -18,19 +19,6 @@
   font-size: 0.88rem;
   line-height: 1.35;
   color: var(--muted);
-}
-
-/* SOC-01: small jump to «Способности» instead of lede paragraph */
-.text-panel__features-jump {
-  display: flex;
-  justify-content: flex-end;
-  margin: 0 0 8px;
-}
-
-.text-panel__features-btn.play-desk-compact__link {
-  font-size: 0.82rem;
-  font-weight: 650;
-  padding: 2px 0;
 }
 
 .text-panel__collapse-bar {

@@ -226,3 +226,8 @@ export function visibleSocialFilters(
 ): Array<{ id: SocialFilter; label: string }> {
   return SOCIAL_FILTERS.filter((row) => filterChipVisible(row.id, blocks, opts))
 }
+
+/** «Свернуть все / Развернуть все» — только если раскрываемых блоков больше одного. */
+export function shouldShowCollapseBar(expandableCount: number): boolean {
+  return expandableCount > 1
+}

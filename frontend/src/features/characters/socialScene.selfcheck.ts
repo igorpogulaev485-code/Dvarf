@@ -19,6 +19,7 @@ import {
   listBlocksForFilter,
   physiqueGlancePreview,
   physiqueHasContent,
+  shouldShowCollapseBar,
   visibleSocialFilters,
 } from './socialScene'
 
@@ -175,5 +176,10 @@ assert(
   'only filled personality cards listed',
 )
 assert(emptyPersonalityBlocks(mixed).some((row) => row.key === 'ideals'), 'ideals still empty')
+
+// Collapse bar only when more than one expandable card.
+assert(!shouldShowCollapseBar(0), 'no collapse when empty')
+assert(!shouldShowCollapseBar(1), 'no collapse when single card')
+assert(shouldShowCollapseBar(2), 'collapse when 2+ cards')
 
 console.log('socialScene.selfcheck OK')
